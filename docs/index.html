@@ -1465,18 +1465,29 @@ section {
   if (!canvas) return;
   var ctx = canvas.getContext('2d');
   var nodes = [];
-  var nodesPerCluster = 5;
   var maxDist = 220;
-  // Cluster centers: spread around the margins and corners
+  // Each cluster is a mini-tree: 1 project (top), 2 tasks (mid), 2 people (bottom)
+  // xFrac/yFrac = center of the cluster
   var clusters = [
-    { xFrac: 0.10, yFrac: 0.20 },  // top-left
-    { xFrac: 0.88, yFrac: 0.15 },  // top-right
-    { xFrac: 0.07, yFrac: 0.55 },  // mid-left
-    { xFrac: 0.92, yFrac: 0.50 },  // mid-right
-    { xFrac: 0.15, yFrac: 0.85 },  // bottom-left
-    { xFrac: 0.85, yFrac: 0.82 }   // bottom-right
+    { xFrac: 0.10, yFrac: 0.22 },  // top-left
+    { xFrac: 0.88, yFrac: 0.18 },  // top-right
+    { xFrac: 0.07, yFrac: 0.58 },  // mid-left
+    { xFrac: 0.92, yFrac: 0.52 },  // mid-right
+    { xFrac: 0.13, yFrac: 0.88 },  // bottom-left
+    { xFrac: 0.87, yFrac: 0.85 }   // bottom-right
   ];
-  var nodeCount = nodesPerCluster * clusters.length;
+  // Tree layout offsets within a cluster (fraction of canvas)
+  // Row 0: project (1 node, centered)
+  // Row 1: tasks (2 nodes, spread horizontally)
+  // Row 2: people (2 nodes, spread horizontally)
+  var treeSlots = [
+    { type: 'project', dxFrac: 0,      dyFrac: -0.06 },
+    { type: 'task',    dxFrac: -0.035,  dyFrac: 0 },
+    { type: 'task',    dxFrac: 0.035,   dyFrac: 0 },
+    { type: 'person',  dxFrac: -0.035,  dyFrac: 0.06 },
+    { type: 'person',  dxFrac: 0.035,   dyFrac: 0.06 }
+  ];
+  var nodeCount = treeSlots.length * clusters.length;
   var time = 0;
 
   // Node types: matches the screenshot graph (project, task, person)
@@ -1575,52 +1586,44 @@ section {
 
   function initNodes() {
     nodes = [];
-    var nameIndex = { project: 0, task: 0, person: 0 };
-    for (var i = 0; i < nodeCount; i++) {
-      var type = types[i % types.length];
-      var r = type.minR + Math.random() * (type.maxR - type.minR);
-      var pool = namesByType[type.name];
-      var name = pool[nameIndex[type.name] % pool.length];
-      nameIndex[type.name]++;
-      var clusterIdx = Math.floor(i / nodesPerCluster);
-      var cluster = clusters[clusterIdx];
-      var spread = 0.12;
-      nodes.push({
-        x: (cluster.xFrac + (Math.random() - 0.5) * spread) * canvas.width,
-        y: (cluster.yFrac + (Math.random() - 0.5) * spread) * canvas.height,
-        vx: (Math.random() - 0.5) * 0.25,
-        vy: (Math.random() - 0.5) * 0.25,
-        r: r,
-        type: type,
-        name: name,
-        cluster: clusterIdx,
-        pulseOffset: Math.random() * Math.PI * 2
-      });
-    }
-
-    // Build persistent edges: connect nodes within each cluster (project→task→person)
     structEdges = [];
-    var byCluster = {};
-    for (var si = 0; si < nodes.length; si++) {
-      var cId = nodes[si].cluster;
-      if (!byCluster[cId]) byCluster[cId] = { project: [], task: [], person: [] };
-      byCluster[cId][nodes[si].type.name].push(si);
-    }
-    for (var ci in byCluster) {
-      var cg = byCluster[ci];
-      // Projects → Tasks within cluster
-      for (var pi = 0; pi < cg.project.length; pi++) {
-        for (var ti = 0; ti < cg.task.length; ti++) {
-          structEdges.push({ a: cg.project[pi], b: cg.task[ti] });
+    var nameIndex = { project: 0, task: 0, person: 0 };
+
+    for (var ci = 0; ci < clusters.length; ci++) {
+      var cl = clusters[ci];
+      var baseIdx = ci * treeSlots.length;
+
+      for (var si = 0; si < treeSlots.length; si++) {
+        var slot = treeSlots[si];
+        var type = null;
+        for (var t = 0; t < types.length; t++) {
+          if (types[t].name === slot.type) { type = types[t]; break; }
         }
+        var r = type.minR + Math.random() * (type.maxR - type.minR);
+        var pool = namesByType[type.name];
+        var name = pool[nameIndex[type.name] % pool.length];
+        nameIndex[type.name]++;
+        var jitter = 0.015;
+        nodes.push({
+          x: (cl.xFrac + slot.dxFrac + (Math.random() - 0.5) * jitter) * canvas.width,
+          y: (cl.yFrac + slot.dyFrac + (Math.random() - 0.5) * jitter) * canvas.height,
+          targetDx: slot.dxFrac,
+          targetDy: slot.dyFrac,
+          vx: (Math.random() - 0.5) * 0.15,
+          vy: (Math.random() - 0.5) * 0.15,
+          r: r,
+          type: type,
+          name: name,
+          cluster: ci,
+          pulseOffset: Math.random() * Math.PI * 2
+        });
       }
-      // Tasks → People within cluster
-      for (var ti2 = 0; ti2 < cg.task.length; ti2++) {
-        if (cg.person.length > 0) {
-          var pIdx = ti2 % cg.person.length;
-          structEdges.push({ a: cg.task[ti2], b: cg.person[pIdx] });
-        }
-      }
+
+      // Tree edges: project(0) → task(1), project(0) → task(2), task(1) → person(3), task(2) → person(4)
+      structEdges.push({ a: baseIdx, b: baseIdx + 1 });
+      structEdges.push({ a: baseIdx, b: baseIdx + 2 });
+      structEdges.push({ a: baseIdx + 1, b: baseIdx + 3 });
+      structEdges.push({ a: baseIdx + 2, b: baseIdx + 4 });
     }
   }
 
@@ -1748,21 +1751,19 @@ section {
 
     }
 
-    // Physics: cluster gravity + structural spring forces + soft repulsion
-    var gravity = 0.00008;
-    var springK = 0.0001;
-    var idealDist = 180;
+    // Physics: tree-slot gravity + soft repulsion
+    var gravity = 0.00012;
     var repulse = 0.3;
-    var minSep = 60;
+    var minSep = 50;
 
     for (var pi = 0; pi < nodes.length; pi++) {
       var pn = nodes[pi];
-      // Pull toward own cluster center
+      // Pull toward own tree-slot position
       var cl = clusters[pn.cluster];
-      var clx = cl.xFrac * canvas.width;
-      var cly = cl.yFrac * canvas.height;
-      pn.vx += (clx - pn.x) * gravity;
-      pn.vy += (cly - pn.y) * gravity;
+      var targetX = (cl.xFrac + pn.targetDx) * canvas.width;
+      var targetY = (cl.yFrac + pn.targetDy) * canvas.height;
+      pn.vx += (targetX - pn.x) * gravity;
+      pn.vy += (targetY - pn.y) * gravity;
 
       // Soft repulsion from nearby nodes (avoid overlap)
       for (var pj = pi + 1; pj < nodes.length; pj++) {
@@ -1779,24 +1780,6 @@ section {
           on.vx -= rnx * push * 0.01;
           on.vy -= rny * push * 0.01;
         }
-      }
-    }
-
-    // Structural spring: pull connected nodes toward idealDist
-    for (var spi = 0; spi < structEdges.length; spi++) {
-      var spA = nodes[structEdges[spi].a];
-      var spB = nodes[structEdges[spi].b];
-      var spdx = spB.x - spA.x;
-      var spdy = spB.y - spA.y;
-      var spDist = Math.sqrt(spdx * spdx + spdy * spdy);
-      if (spDist > 0) {
-        var spForce = (spDist - idealDist) * springK;
-        var spnx = spdx / spDist;
-        var spny = spdy / spDist;
-        spA.vx += spnx * spForce;
-        spA.vy += spny * spForce;
-        spB.vx -= spnx * spForce;
-        spB.vy -= spny * spForce;
       }
     }
 
