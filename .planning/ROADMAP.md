@@ -62,11 +62,12 @@ Plans:
   3. User can view a list of installed Mental Models showing name, version, and description
   4. System rejects Mental Model archives that fail manifest schema validation, ID namespacing rules, or reference integrity checks
   5. A starter Mental Model (Basic PKM) ships with the system providing Projects, People, Notes, and Concepts with shapes, views, and seed data
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
+- [ ] 03-01-PLAN.md — Model domain module (manifest schema, JSON-LD loader, archive validators, model registry SPARQL operations)
+- [ ] 03-02-PLAN.md — Basic PKM starter model (ontology with 4 types, SHACL shapes, view specs, seed data)
+- [ ] 03-03-PLAN.md — ModelService, API endpoints, and app wiring (install/remove/list pipelines, real shapes loader, auto-install)
 
 ### Phase 4: Admin Shell and Object Creation
 **Goal**: Users can manage the system through an admin portal and create, edit, and inspect objects through SHACL-driven forms in an IDE-style workspace with validation feedback
@@ -111,10 +112,10 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 |-------|----------------|--------|-----------|
 | 1. Core Data Foundation | 4/4 | Complete    | 2026-02-21 |
 | 2. Semantic Services | 1/2 | Complete    | 2026-02-21 |
-| 3. Mental Model System | 0/0 | Not started | - |
+| 3. Mental Model System | 0/3 | Planned | - |
 | 4. Admin Shell and Object Creation | 0/0 | Not started | - |
 | 5. Data Browsing and Visualization | 0/0 | Not started | - |
 
 ---
 *Roadmap created: 2026-02-21*
-*Last updated: 2026-02-21 after 02-01 completion*
+*Last updated: 2026-02-21 after 03 planning*
