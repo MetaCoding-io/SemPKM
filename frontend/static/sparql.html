@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPARQL Query - SemPKM Dev Console</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <script src="/js/app.js"></script>
+</head>
+<body>
+    <nav>
+        <div class="nav-inner">
+            <a href="/" class="brand">SemPKM</a>
+            <a href="/">Health</a>
+            <a href="/sparql.html" class="active">SPARQL</a>
+            <a href="/commands.html">Commands</a>
+        </div>
+    </nav>
+
+    <main>
+        <h1>SPARQL Query</h1>
+
+        <div class="card">
+            <div class="form-group">
+                <label for="sparql-query">Query</label>
+                <textarea id="sparql-query" class="query-box" placeholder="Enter SPARQL query...">SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 20</textarea>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn-primary" onclick="runSparqlQuery()">Run Query</button>
+                <button class="btn-secondary" onclick="injectPrefixes('sparql-query')">Add Prefixes</button>
+            </div>
+        </div>
+
+        <div id="sparql-error"></div>
+        <div id="sparql-results"></div>
+    </main>
+</body>
+</html>
