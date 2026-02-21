@@ -20,9 +20,10 @@ from app.commands.schemas import (
     CommandResult,
 )
 from app.config import settings
-from app.dependencies import get_triplestore_client
+from app.dependencies import get_triplestore_client, get_validation_queue
 from app.events.store import EventStore, Operation
 from app.triplestore.client import TriplestoreClient
+from app.validation.queue import AsyncValidationQueue
 
 logger = logging.getLogger(__name__)
 
@@ -60,6 +61,7 @@ def _parse_commands(body: Any) -> list[Command]:
 async def execute_commands(
     request: Request,
     client: TriplestoreClient = Depends(get_triplestore_client),
+    validation_queue: AsyncValidationQueue = Depends(get_validation_queue),
 ) -> CommandResponse:
     """Execute one or more commands atomically.
 
@@ -95,6 +97,12 @@ async def execute_commands(
         # Commit all operations atomically
         event_store = EventStore(client)
         event_result = await event_store.commit(operations)
+
+        # Trigger async validation (non-blocking)
+        await validation_queue.enqueue(
+            event_iri=str(event_result.event_iri),
+            timestamp=event_result.timestamp,
+        )
 
         # Build response
         results = [
