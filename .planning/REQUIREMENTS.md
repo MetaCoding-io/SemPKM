@@ -11,7 +11,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [ ] **CORE-01**: System persists all writes as immutable events stored in RDF named graphs within the triplestore
 - [ ] **CORE-02**: System materializes a current graph state projection derived from the event log
-- [ ] **CORE-03**: RDF4J triplestore is deployed and configured via Docker Compose
+- [x] **CORE-03**: RDF4J triplestore is deployed and configured via Docker Compose
 - [ ] **CORE-04**: User can execute SPARQL queries against the current graph state via a read endpoint
 - [ ] **CORE-05**: System provides a command API for writes: object.create, object.patch, body.set, edge.create, edge.patch
 
@@ -56,7 +56,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Administration
 
-- [ ] **ADMN-01**: User can deploy SemPKM via docker-compose up with all services (FastAPI backend, RDF4J triplestore, frontend)
+- [x] **ADMN-01**: User can deploy SemPKM via docker-compose up with all services (FastAPI backend, RDF4J triplestore, frontend)
 - [ ] **ADMN-02**: User can manage Mental Models (install/remove/list) through an admin portal built with htmx/vanilla web
 - [ ] **ADMN-03**: User can configure simple outbound webhooks that fire on events (object.changed, edge.changed, validation.completed)
 
@@ -123,7 +123,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | CORE-01 | Phase 1 | Pending |
 | CORE-02 | Phase 1 | Pending |
-| CORE-03 | Phase 1 | Pending |
+| CORE-03 | Phase 1 | Complete |
 | CORE-04 | Phase 1 | Pending |
 | CORE-05 | Phase 1 | Pending |
 | SHCL-01 | Phase 2 | Pending |
@@ -150,7 +150,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OBJ-03 | Phase 4 | Pending |
 | INFR-01 | Phase 2 | Pending |
 | INFR-02 | Phase 2 | Pending |
-| ADMN-01 | Phase 1 | Pending |
+| ADMN-01 | Phase 1 | Complete |
 | ADMN-02 | Phase 4 | Pending |
 | ADMN-03 | Phase 4 | Pending |
 
