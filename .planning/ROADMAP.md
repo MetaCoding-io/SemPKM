@@ -35,7 +35,7 @@ Plans:
 - [x] 01-01-PLAN.md — Infrastructure and triplestore foundation (Docker Compose, FastAPI skeleton, RDF4J repo auto-creation)
 - [x] 01-02-PLAN.md — Event store and RDF core (namespaces, IRI minting, JSON-LD, event graphs, current state materialization)
 - [x] 01-03-PLAN.md — Command API (Pydantic schemas, dispatcher, 5 command handlers, POST /api/commands endpoint)
-- [ ] 01-04-PLAN.md — SPARQL read endpoint and dev console (query scoping, htmx UI with SPARQL box and command form)
+- [x] 01-04-PLAN.md — SPARQL read endpoint and dev console (query scoping, htmx UI with SPARQL box and command form)
 
 ### Phase 2: Semantic Services
 **Goal**: The system resolves IRIs to human-readable labels, manages prefix mappings, and validates data against SHACL shapes asynchronously after every commit
@@ -109,7 +109,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Core Data Foundation | 2/4 | Complete    | 2026-02-21 |
+| 1. Core Data Foundation | 4/4 | Complete    | 2026-02-21 |
 | 2. Semantic Services | 0/0 | Not started | - |
 | 3. Mental Model System | 0/0 | Not started | - |
 | 4. Admin Shell and Object Creation | 0/0 | Not started | - |
@@ -117,4 +117,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 ---
 *Roadmap created: 2026-02-21*
-*Last updated: 2026-02-21 after 01-02 completion*
+*Last updated: 2026-02-21 after Phase 1 completion*
