@@ -34,7 +34,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 Plans:
 - [x] 01-01-PLAN.md — Infrastructure and triplestore foundation (Docker Compose, FastAPI skeleton, RDF4J repo auto-creation)
 - [x] 01-02-PLAN.md — Event store and RDF core (namespaces, IRI minting, JSON-LD, event graphs, current state materialization)
-- [ ] 01-03-PLAN.md — Command API (Pydantic schemas, dispatcher, 5 command handlers, POST /api/commands endpoint)
+- [x] 01-03-PLAN.md — Command API (Pydantic schemas, dispatcher, 5 command handlers, POST /api/commands endpoint)
 - [ ] 01-04-PLAN.md — SPARQL read endpoint and dev console (query scoping, htmx UI with SPARQL box and command form)
 
 ### Phase 2: Semantic Services

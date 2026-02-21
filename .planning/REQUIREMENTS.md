@@ -13,7 +13,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **CORE-02**: System materializes a current graph state projection derived from the event log
 - [x] **CORE-03**: RDF4J triplestore is deployed and configured via Docker Compose
 - [ ] **CORE-04**: User can execute SPARQL queries against the current graph state via a read endpoint
-- [ ] **CORE-05**: System provides a command API for writes: object.create, object.patch, body.set, edge.create, edge.patch
+- [x] **CORE-05**: System provides a command API for writes: object.create, object.patch, body.set, edge.create, edge.patch
 
 ### SHACL Validation & Forms
 
@@ -125,7 +125,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CORE-02 | Phase 1 | Complete |
 | CORE-03 | Phase 1 | Complete |
 | CORE-04 | Phase 1 | Pending |
-| CORE-05 | Phase 1 | Pending |
+| CORE-05 | Phase 1 | Complete |
 | SHCL-01 | Phase 2 | Pending |
 | SHCL-02 | Phase 4 | Pending |
 | SHCL-03 | Phase 4 | Pending |
