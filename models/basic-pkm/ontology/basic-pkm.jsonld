@@ -1,0 +1,127 @@
+{
+  "@context": {
+    "owl": "http://www.w3.org/2002/07/owl#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "schema": "https://schema.org/",
+    "dcterms": "http://purl.org/dc/terms/",
+    "foaf": "http://xmlns.com/foaf/0.1/",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "bpkm": "urn:sempkm:model:basic-pkm:"
+  },
+  "@graph": [
+    {
+      "@id": "bpkm:ontology",
+      "@type": "owl:Ontology",
+      "rdfs:label": "Basic PKM Ontology",
+      "dcterms:description": "Core types for personal knowledge management: Projects, People, Notes, and Concepts with rich inter-type relationships."
+    },
+
+    {
+      "@id": "bpkm:Project",
+      "@type": "owl:Class",
+      "rdfs:label": "Project",
+      "rdfs:comment": "A project or initiative being tracked"
+    },
+    {
+      "@id": "bpkm:Person",
+      "@type": "owl:Class",
+      "rdfs:label": "Person",
+      "rdfs:comment": "A person known to the user"
+    },
+    {
+      "@id": "bpkm:Note",
+      "@type": "owl:Class",
+      "rdfs:label": "Note",
+      "rdfs:comment": "A note, observation, or piece of knowledge"
+    },
+    {
+      "@id": "bpkm:Concept",
+      "@type": "owl:Class",
+      "rdfs:label": "Concept",
+      "rdfs:comment": "An abstract concept, topic, or domain area"
+    },
+
+    {
+      "@id": "bpkm:status",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Status",
+      "rdfs:comment": "Status of a project (active, completed, on-hold, cancelled)",
+      "rdfs:domain": { "@id": "bpkm:Project" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:priority",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Priority",
+      "rdfs:comment": "Priority level (low, medium, high, critical)",
+      "rdfs:domain": { "@id": "bpkm:Project" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:tags",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Tags",
+      "rdfs:comment": "Comma-separated tags for categorization",
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:hasParticipant",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Has Participant",
+      "rdfs:comment": "People involved in a project",
+      "rdfs:domain": { "@id": "bpkm:Project" },
+      "rdfs:range": { "@id": "bpkm:Person" }
+    },
+    {
+      "@id": "bpkm:hasNote",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Has Note",
+      "rdfs:comment": "Notes related to a project",
+      "rdfs:domain": { "@id": "bpkm:Project" },
+      "rdfs:range": { "@id": "bpkm:Note" }
+    },
+    {
+      "@id": "bpkm:participatesIn",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Participates In",
+      "rdfs:comment": "Projects a person is involved in",
+      "rdfs:domain": { "@id": "bpkm:Person" },
+      "rdfs:range": { "@id": "bpkm:Project" },
+      "owl:inverseOf": { "@id": "bpkm:hasParticipant" }
+    },
+    {
+      "@id": "bpkm:body",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Body",
+      "rdfs:comment": "Markdown body content of a note",
+      "rdfs:domain": { "@id": "bpkm:Note" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:noteType",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Note Type",
+      "rdfs:comment": "Type of note (observation, idea, reference, meeting-note, journal)",
+      "rdfs:domain": { "@id": "bpkm:Note" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:isAbout",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Is About",
+      "rdfs:comment": "Concepts that a note relates to",
+      "rdfs:domain": { "@id": "bpkm:Note" },
+      "rdfs:range": { "@id": "bpkm:Concept" }
+    },
+    {
+      "@id": "bpkm:relatedProject",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Related Project",
+      "rdfs:comment": "Project context for a note",
+      "rdfs:domain": { "@id": "bpkm:Note" },
+      "rdfs:range": { "@id": "bpkm:Project" }
+    }
+  ]
+}

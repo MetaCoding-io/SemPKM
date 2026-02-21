@@ -1,0 +1,12 @@
+modelId: basic-pkm
+version: "1.0.0"
+name: "Basic PKM"
+description: "Personal knowledge management with Projects, People, Notes, and Concepts. Provides rich types with standard vocabulary properties, inter-type relationships, SHACL shapes for form generation, and view specifications for table, card, and graph browsing."
+namespace: "urn:sempkm:model:basic-pkm:"
+prefixes:
+  bpkm: "urn:sempkm:model:basic-pkm:"
+entrypoints:
+  ontology: "ontology/basic-pkm.jsonld"
+  shapes: "shapes/basic-pkm.jsonld"
+  views: "views/basic-pkm.jsonld"
+  seed: "seed/basic-pkm.jsonld"
