@@ -4,7 +4,9 @@ from fastapi import Request
 
 from app.services.labels import LabelService
 from app.services.prefixes import PrefixRegistry
+from app.services.validation import ValidationService
 from app.triplestore.client import TriplestoreClient
+from app.validation.queue import AsyncValidationQueue
 
 
 async def get_triplestore_client(request: Request) -> TriplestoreClient:
@@ -32,3 +34,21 @@ async def get_label_service(request: Request) -> LabelService:
     app.state.label_service.
     """
     return request.app.state.label_service
+
+
+async def get_validation_queue(request: Request) -> AsyncValidationQueue:
+    """Get the AsyncValidationQueue instance from app state.
+
+    The queue is created during app lifespan startup and stored on
+    app.state.validation_queue.
+    """
+    return request.app.state.validation_queue
+
+
+async def get_validation_service(request: Request) -> ValidationService:
+    """Get the ValidationService instance from app state.
+
+    The service is created during app lifespan startup and stored on
+    app.state.validation_service.
+    """
+    return request.app.state.validation_service

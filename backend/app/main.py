@@ -12,9 +12,12 @@ from app.commands.router import router as commands_router
 from app.health.router import router as health_router
 from app.services.labels import LabelService
 from app.services.prefixes import PrefixRegistry
+from app.services.validation import ValidationService, empty_shapes_loader
 from app.sparql.router import router as sparql_router
 from app.triplestore.client import TriplestoreClient
 from app.triplestore.setup import ensure_repository
+from app.validation.queue import AsyncValidationQueue
+from app.validation.router import router as validation_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -51,10 +54,19 @@ async def lifespan(app: FastAPI):
     label_service = LabelService(client, prefix_registry)
     app.state.label_service = label_service
 
+    # Create validation service and async queue
+    validation_service = ValidationService(client, empty_shapes_loader)
+    app.state.validation_service = validation_service
+
+    validation_queue = AsyncValidationQueue(validation_service)
+    app.state.validation_queue = validation_queue
+    await validation_queue.start()
+
     logger.info("SemPKM API started successfully")
     yield
 
-    # Shutdown: close the triplestore client
+    # Shutdown: stop validation queue, then close the triplestore client
+    await validation_queue.stop()
     await client.close()
     logger.info("SemPKM API shut down")
 
@@ -78,3 +90,4 @@ app.add_middleware(
 app.include_router(commands_router)
 app.include_router(health_router)
 app.include_router(sparql_router)
+app.include_router(validation_router)
