@@ -20,6 +20,7 @@ services:
     ports:
       - "8001:8000"
     volumes:
+      - ./backend/app:/app/app:ro
       - ./config:/app/config:ro
     environment:
       TRIPLESTORE_URL: ${TRIPLESTORE_URL:-http://triplestore:8080/rdf4j-server}
