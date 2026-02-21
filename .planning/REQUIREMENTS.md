@@ -51,8 +51,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Infrastructure Services
 
-- [ ] **INFR-01**: System resolves IRIs to human-readable labels using the label precedence chain (dcterms:title > rdfs:label > skos:prefLabel > schema:name > IRI fallback)
-- [ ] **INFR-02**: System provides a prefix registry merging model-provided, user-override, and built-in prefix mappings for QName rendering across the UI
+- [x] **INFR-01**: System resolves IRIs to human-readable labels using the label precedence chain (dcterms:title > rdfs:label > skos:prefLabel > schema:name > IRI fallback)
+- [x] **INFR-02**: System provides a prefix registry merging model-provided, user-override, and built-in prefix mappings for QName rendering across the UI
 
 ### Administration
 
@@ -148,8 +148,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OBJ-01 | Phase 4 | Pending |
 | OBJ-02 | Phase 4 | Pending |
 | OBJ-03 | Phase 4 | Pending |
-| INFR-01 | Phase 2 | Pending |
-| INFR-02 | Phase 2 | Pending |
+| INFR-01 | Phase 2 | Complete |
+| INFR-02 | Phase 2 | Complete |
 | ADMN-01 | Phase 1 | Complete |
 | ADMN-02 | Phase 4 | Pending |
 | ADMN-03 | Phase 4 | Pending |

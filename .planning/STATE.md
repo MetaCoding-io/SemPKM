@@ -5,32 +5,33 @@
 See: .planning/PROJECT.md (updated 2026-02-21)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations -- no blank-page syndrome, no schema setup.
-**Current focus:** Phase 1 complete — Phase 2: Semantic Services is next
+**Current focus:** Phase 2: Semantic Services -- Plan 01 complete, Plan 02 next
 
 ## Current Position
 
-Phase: 1 of 5 (Core Data Foundation)
-Plan: 4 of 4 in current phase
-Status: Phase Complete
-Last activity: 2026-02-21 -- Completed 01-04 SPARQL Endpoint and Dev Console
+Phase: 2 of 5 (Semantic Services)
+Plan: 1 of 2 in current phase
+Status: In Progress
+Last activity: 2026-02-21 -- Completed 02-01 Prefix Registry and Label Resolution
 
-Progress: [██████░░░░] 20%
+Progress: [██████░░░░] 30%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
-- Average duration: 6min
-- Total execution time: 0.4 hours
+- Total plans completed: 5
+- Average duration: 5min
+- Total execution time: 0.5 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Core Data Foundation | 4 | 23min | 6min |
+| 2. Semantic Services | 1 | 4min | 4min |
 
 **Recent Trend:**
-- Last 5 plans: 7min, 5min, 7min, 4min
+- Last 5 plans: 5min, 7min, 4min, 4min
 - Trend: stable
 
 *Updated after each plan completion*
@@ -54,6 +55,10 @@ Recent decisions affecting current work:
 - [01-03]: Added rdflib Variable support to _serialize_rdf_term for SPARQL DELETE WHERE patterns
 - [01-04]: FROM clause injection for SPARQL graph scoping (less intrusive than GRAPH clause wrapping)
 - [01-04]: Hybrid htmx + vanilla JS for dev console (htmx for health polling, JS for SPARQL results and command dispatch)
+- [02-01]: Four-layer prefix precedence: user > model > LOV > built-in (LOV added as separate layer)
+- [02-01]: Lazy reverse map caching for compact() with invalidation on any layer mutation
+- [02-01]: SPARQL FILTER(LANG() = "" || LANG() = "en") to accept both untagged and language-matched literals
+- [02-01]: FROM <urn:sempkm:current> scoping in label SPARQL query for correct graph isolation
 
 ### Pending Todos
 
@@ -67,5 +72,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Completed 01-04-PLAN.md (SPARQL Endpoint and Dev Console) -- Phase 1 complete
+Stopped at: Completed 02-01-PLAN.md (Prefix Registry and Label Resolution)
 Resume file: None
