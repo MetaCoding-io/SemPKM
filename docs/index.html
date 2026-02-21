@@ -1465,15 +1465,18 @@ section {
   if (!canvas) return;
   var ctx = canvas.getContext('2d');
   var nodes = [];
-  var nodeCount = 28;
+  var nodesPerCluster = 5;
   var maxDist = 220;
-  // Cluster centers: left and right margins
+  // Cluster centers: spread around the margins and corners
   var clusters = [
-    { xFrac: 0.15, yFrac: 0.45 },  // left
-    { xFrac: 0.85, yFrac: 0.45 },  // right
-    { xFrac: 0.2,  yFrac: 0.85 },  // bottom-left
-    { xFrac: 0.8,  yFrac: 0.15 }   // top-right
+    { xFrac: 0.10, yFrac: 0.20 },  // top-left
+    { xFrac: 0.88, yFrac: 0.15 },  // top-right
+    { xFrac: 0.07, yFrac: 0.55 },  // mid-left
+    { xFrac: 0.92, yFrac: 0.50 },  // mid-right
+    { xFrac: 0.15, yFrac: 0.85 },  // bottom-left
+    { xFrac: 0.85, yFrac: 0.82 }   // bottom-right
   ];
+  var nodeCount = nodesPerCluster * clusters.length;
   var time = 0;
 
   // Node types: matches the screenshot graph (project, task, person)
@@ -1579,8 +1582,9 @@ section {
       var pool = namesByType[type.name];
       var name = pool[nameIndex[type.name] % pool.length];
       nameIndex[type.name]++;
-      var cluster = clusters[i % clusters.length];
-      var spread = 0.15;
+      var clusterIdx = Math.floor(i / nodesPerCluster);
+      var cluster = clusters[clusterIdx];
+      var spread = 0.12;
       nodes.push({
         x: (cluster.xFrac + (Math.random() - 0.5) * spread) * canvas.width,
         y: (cluster.yFrac + (Math.random() - 0.5) * spread) * canvas.height,
@@ -1589,7 +1593,7 @@ section {
         r: r,
         type: type,
         name: name,
-        cluster: i % clusters.length,
+        cluster: clusterIdx,
         pulseOffset: Math.random() * Math.PI * 2
       });
     }
