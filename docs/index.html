@@ -228,7 +228,7 @@ section {
   position: absolute;
   font-family: var(--font-mono);
   font-size: 0.72rem;
-  color: rgba(232, 119, 46, 0.07);
+  color: rgba(232, 119, 46, 0.14);
   white-space: nowrap;
   animation: rdf-drift 40s linear infinite;
   line-height: 1.8;
@@ -1066,81 +1066,218 @@ section {
         <!-- Slide 2: Graph View -->
         <div class="carousel-slide">
           <svg viewBox="0 0 1200 675" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <filter id="glowOrange" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur"/>
+                <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0  0.5 0 0 0 0  0 0 0 0 0  0 0 0 0.6 0"/>
+                <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+              <filter id="glowPurple" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur"/>
+                <feColorMatrix in="blur" type="matrix" values="0.5 0 0 0 0  0 0.3 0 0 0  0 0 1 0 0  0 0 0 0.6 0"/>
+                <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+              <filter id="glowGreen" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur"/>
+                <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0  0 0.8 0 0 0  0 0 0.4 0 0  0 0 0 0.5 0"/>
+                <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+              <filter id="tooltipShadow" x="-10%" y="-10%" width="120%" height="120%">
+                <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="rgba(0,0,0,0.5)"/>
+              </filter>
+              <radialGradient id="gradOrange" cx="40%" cy="35%">
+                <stop offset="0%" stop-color="rgba(232,119,46,0.35)"/>
+                <stop offset="100%" stop-color="rgba(232,119,46,0.08)"/>
+              </radialGradient>
+              <radialGradient id="gradPurple" cx="40%" cy="35%">
+                <stop offset="0%" stop-color="rgba(139,92,246,0.35)"/>
+                <stop offset="100%" stop-color="rgba(139,92,246,0.08)"/>
+              </radialGradient>
+              <radialGradient id="gradGreen" cx="40%" cy="35%">
+                <stop offset="0%" stop-color="rgba(34,197,94,0.35)"/>
+                <stop offset="100%" stop-color="rgba(34,197,94,0.08)"/>
+              </radialGradient>
+            </defs>
             <rect width="1200" height="675" fill="#0e0e16"/>
+
             <!-- Toolbar -->
             <rect x="0" y="0" width="1200" height="44" fill="#12121a" stroke="#1e1e2e" stroke-width="1"/>
             <text x="20" y="28" fill="#e8772e" font-family="sans-serif" font-size="13" font-weight="600">Graph View</text>
             <rect x="120" y="10" width="80" height="24" rx="4" fill="#1c1c28"/>
-            <text x="134" y="27" fill="#9898b0" font-family="sans-serif" font-size="11">2D Mode</text>
+            <text x="134" y="27" fill="#9898b0" font-family="sans-serif" font-size="11">Tree</text>
             <rect x="208" y="10" width="80" height="24" rx="4" fill="transparent" stroke="#1e1e2e" stroke-width="1"/>
-            <text x="222" y="27" fill="#686880" font-family="sans-serif" font-size="11">3D Mode</text>
-            <rect x="310" y="10" width="100" height="24" rx="4" fill="transparent" stroke="#1e1e2e" stroke-width="1"/>
-            <text x="324" y="27" fill="#686880" font-family="sans-serif" font-size="11">Filter types</text>
-            <!-- Graph nodes and edges -->
-            <!-- Central node -->
-            <line x1="600" y1="320" x2="380" y2="200" stroke="#e8772e" stroke-width="1.5" opacity="0.3"/>
-            <line x1="600" y1="320" x2="820" y2="180" stroke="#e8772e" stroke-width="1.5" opacity="0.3"/>
-            <line x1="600" y1="320" x2="450" y2="480" stroke="#e8772e" stroke-width="1.5" opacity="0.3"/>
-            <line x1="600" y1="320" x2="780" y2="460" stroke="#e8772e" stroke-width="1.5" opacity="0.3"/>
-            <line x1="600" y1="320" x2="300" y2="380" stroke="#e8772e" stroke-width="1.5" opacity="0.3"/>
-            <line x1="600" y1="320" x2="900" y2="340" stroke="#e8772e" stroke-width="1.5" opacity="0.3"/>
-            <line x1="380" y1="200" x2="250" y2="120" stroke="#f59e0b" stroke-width="1" opacity="0.2"/>
-            <line x1="380" y1="200" x2="300" y2="380" stroke="#f59e0b" stroke-width="1" opacity="0.2"/>
-            <line x1="820" y1="180" x2="950" y2="120" stroke="#f59e0b" stroke-width="1" opacity="0.2"/>
-            <line x1="820" y1="180" x2="900" y2="340" stroke="#f59e0b" stroke-width="1" opacity="0.2"/>
-            <line x1="450" y1="480" x2="300" y2="540" stroke="#f59e0b" stroke-width="1" opacity="0.2"/>
-            <line x1="780" y1="460" x2="950" y2="520" stroke="#f59e0b" stroke-width="1" opacity="0.2"/>
-            <!-- Main node -->
-            <circle cx="600" cy="320" r="28" fill="#e8772e" opacity="0.2" stroke="#e8772e" stroke-width="2"/>
-            <text x="600" y="325" fill="#e8e8f0" font-family="sans-serif" font-size="12" font-weight="700" text-anchor="middle">SemPKM</text>
-            <!-- Type: Project (orange) -->
-            <circle cx="380" cy="200" r="20" fill="rgba(232,119,46,0.15)" stroke="#e8772e" stroke-width="1.5"/>
-            <text x="380" y="205" fill="#e8e8f0" font-family="sans-serif" font-size="10" text-anchor="middle">Roadmap</text>
-            <circle cx="820" cy="180" r="20" fill="rgba(232,119,46,0.15)" stroke="#e8772e" stroke-width="1.5"/>
-            <text x="820" y="185" fill="#e8e8f0" font-family="sans-serif" font-size="10" text-anchor="middle">API Spec</text>
-            <!-- Type: Person (purple) -->
-            <circle cx="450" cy="480" r="20" fill="rgba(139,92,246,0.15)" stroke="#8b5cf6" stroke-width="1.5"/>
-            <text x="450" y="485" fill="#e8e8f0" font-family="sans-serif" font-size="10" text-anchor="middle">Alice</text>
-            <circle cx="780" cy="460" r="20" fill="rgba(139,92,246,0.15)" stroke="#8b5cf6" stroke-width="1.5"/>
-            <text x="780" y="465" fill="#e8e8f0" font-family="sans-serif" font-size="10" text-anchor="middle">Bob</text>
-            <!-- Type: Concept (green) -->
-            <circle cx="300" cy="380" r="20" fill="rgba(34,197,94,0.15)" stroke="#22c55e" stroke-width="1.5"/>
-            <text x="300" y="374" fill="#e8e8f0" font-family="sans-serif" font-size="9" text-anchor="middle">Knowledge</text>
-            <text x="300" y="387" fill="#e8e8f0" font-family="sans-serif" font-size="9" text-anchor="middle">Graph</text>
-            <circle cx="900" cy="340" r="20" fill="rgba(34,197,94,0.15)" stroke="#22c55e" stroke-width="1.5"/>
-            <text x="900" y="345" fill="#e8e8f0" font-family="sans-serif" font-size="10" text-anchor="middle">SHACL</text>
-            <!-- Leaf nodes -->
-            <circle cx="250" cy="120" r="14" fill="rgba(59,130,246,0.15)" stroke="#3b82f6" stroke-width="1"/>
-            <text x="250" y="124" fill="#9898b0" font-family="sans-serif" font-size="9" text-anchor="middle">Note 1</text>
-            <circle cx="950" cy="120" r="14" fill="rgba(59,130,246,0.15)" stroke="#3b82f6" stroke-width="1"/>
-            <text x="950" y="124" fill="#9898b0" font-family="sans-serif" font-size="9" text-anchor="middle">Note 2</text>
-            <circle cx="300" cy="540" r="14" fill="rgba(245,158,11,0.15)" stroke="#f59e0b" stroke-width="1"/>
-            <text x="300" y="544" fill="#9898b0" font-family="sans-serif" font-size="9" text-anchor="middle">Claim</text>
-            <circle cx="950" cy="520" r="14" fill="rgba(245,158,11,0.15)" stroke="#f59e0b" stroke-width="1"/>
-            <text x="950" y="524" fill="#9898b0" font-family="sans-serif" font-size="9" text-anchor="middle">Task</text>
-            <!-- Edge labels -->
-            <text x="480" y="250" fill="#686880" font-family="monospace" font-size="9" transform="rotate(-18, 480, 250)">:hasPart</text>
-            <text x="700" y="240" fill="#686880" font-family="monospace" font-size="9" transform="rotate(15, 700, 240)">:hasPart</text>
-            <text x="510" y="410" fill="#686880" font-family="monospace" font-size="9" transform="rotate(35, 510, 410)">:contributor</text>
-            <text x="700" y="400" fill="#686880" font-family="monospace" font-size="9" transform="rotate(-20, 700, 400)">:contributor</text>
-            <text x="430" y="355" fill="#686880" font-family="monospace" font-size="9" transform="rotate(12, 430, 355)">:relatedTo</text>
-            <text x="760" y="325" fill="#686880" font-family="monospace" font-size="9">:relatedTo</text>
+            <text x="222" y="27" fill="#686880" font-family="sans-serif" font-size="11">Force</text>
+            <rect x="296" y="10" width="80" height="24" rx="4" fill="transparent" stroke="#1e1e2e" stroke-width="1"/>
+            <text x="314" y="27" fill="#686880" font-family="sans-serif" font-size="11">Radial</text>
+            <rect x="400" y="10" width="100" height="24" rx="4" fill="transparent" stroke="#1e1e2e" stroke-width="1"/>
+            <text x="414" y="27" fill="#686880" font-family="sans-serif" font-size="11">Filter types</text>
+
+            <!-- Layout: Project (top) -> Tasks (middle row) -> People (bottom row) -->
+            <!-- Project: y=120, Tasks: y=340, People: y=555 -->
+
+            <!-- === EDGES === -->
+            <!-- Project -> Tasks (:hasTask) - downward tree edges -->
+            <path d="M540 155 L540 220 L200 220 L200 310" fill="none" stroke="#e8772e" stroke-width="1.5" opacity="0.5"/>
+            <path d="M540 155 L540 220 L420 220 L420 310" fill="none" stroke="#e8772e" stroke-width="1.5" opacity="0.5"/>
+            <path d="M540 155 L540 310" fill="none" stroke="#e8772e" stroke-width="1.5" opacity="0.5"/>
+            <path d="M540 155 L540 220 L740 220 L740 310" fill="none" stroke="#e8772e" stroke-width="1.5" opacity="0.5"/>
+            <path d="M540 155 L540 220 L960 220 L960 310" fill="none" stroke="#e8772e" stroke-width="1.5" opacity="0.5"/>
+
+            <!-- Tasks -> People (:assignedTo) - downward -->
+            <path d="M200 370 L200 440 L300 440 L300 525" fill="none" stroke="#8b5cf6" stroke-width="1.2" opacity="0.4"/>
+            <path d="M420 370 L420 440 L300 440 L300 525" fill="none" stroke="#8b5cf6" stroke-width="1.2" opacity="0.4"/>
+            <path d="M540 370 L540 440 L600 440 L600 525" fill="none" stroke="#8b5cf6" stroke-width="1.2" opacity="0.4"/>
+            <path d="M740 370 L740 440 L600 440 L600 525" fill="none" stroke="#8b5cf6" stroke-width="1.2" opacity="0.4"/>
+            <path d="M960 370 L960 440 L900 440 L900 525" fill="none" stroke="#8b5cf6" stroke-width="1.2" opacity="0.4"/>
+
+            <!-- Task dependency (dashed) -->
+            <line x1="250" y1="340" x2="370" y2="340" stroke="#686880" stroke-width="1" opacity="0.4" stroke-dasharray="5 3"/>
+            <line x1="470" y1="340" x2="490" y2="340" stroke="#686880" stroke-width="1" opacity="0.4" stroke-dasharray="5 3"/>
+            <line x1="790" y1="340" x2="910" y2="340" stroke="#686880" stroke-width="1" opacity="0.4" stroke-dasharray="5 3"/>
+
+            <!-- === EDGE LABELS === -->
+            <!-- :hasTask (on the vertical trunk) -->
+            <rect x="548" y="178" width="60" height="16" rx="3" fill="rgba(10,10,15,0.7)"/>
+            <text x="578" y="190" fill="#9898b0" font-family="monospace" font-size="8" text-anchor="middle">:hasTask</text>
+            <!-- :assignedTo labels -->
+            <rect x="248" y="430" width="78" height="16" rx="3" fill="rgba(10,10,15,0.7)"/>
+            <text x="287" y="442" fill="#9898b0" font-family="monospace" font-size="8" text-anchor="middle">:assignedTo</text>
+            <rect x="558" y="430" width="78" height="16" rx="3" fill="rgba(10,10,15,0.7)"/>
+            <text x="597" y="442" fill="#9898b0" font-family="monospace" font-size="8" text-anchor="middle">:assignedTo</text>
+            <rect x="858" y="430" width="78" height="16" rx="3" fill="rgba(10,10,15,0.7)"/>
+            <text x="897" y="442" fill="#9898b0" font-family="monospace" font-size="8" text-anchor="middle">:assignedTo</text>
+            <!-- :dependsOn labels -->
+            <rect x="275" y="326" width="76" height="16" rx="3" fill="rgba(10,10,15,0.7)"/>
+            <text x="313" y="338" fill="#686880" font-family="monospace" font-size="8" text-anchor="middle">:dependsOn</text>
+            <rect x="822" y="326" width="76" height="16" rx="3" fill="rgba(10,10,15,0.7)"/>
+            <text x="860" y="338" fill="#686880" font-family="monospace" font-size="8" text-anchor="middle">:dependsOn</text>
+
+            <!-- === NODES === -->
+
+            <!-- PROJECT: Website Redesign (top center, y=120) -->
+            <g filter="url(#glowOrange)">
+              <circle cx="540" cy="120" r="38" fill="url(#gradOrange)" stroke="#e8772e" stroke-width="2"/>
+            </g>
+            <!-- Clipboard with checkboxes icon -->
+            <rect x="528" y="106" width="24" height="30" rx="3" fill="none" stroke="#e8772e" stroke-width="1.5" opacity="0.7"/>
+            <rect x="534" y="102" width="12" height="6" rx="2" fill="none" stroke="#e8772e" stroke-width="1.2" opacity="0.7"/>
+            <rect x="532" y="114" width="8" height="6" rx="1" fill="none" stroke="#e8772e" stroke-width="0.8" opacity="0.6"/>
+            <polyline points="533,117 535,119 539,115" fill="none" stroke="#e8772e" stroke-width="0.8" opacity="0.6"/>
+            <line x1="543" y1="117" x2="550" y2="117" stroke="#e8772e" stroke-width="0.8" opacity="0.5"/>
+            <rect x="532" y="123" width="8" height="6" rx="1" fill="none" stroke="#e8772e" stroke-width="0.8" opacity="0.6"/>
+            <polyline points="533,126 535,128 539,124" fill="none" stroke="#e8772e" stroke-width="0.8" opacity="0.6"/>
+            <line x1="543" y1="126" x2="550" y2="126" stroke="#e8772e" stroke-width="0.8" opacity="0.5"/>
+            <rect x="532" y="132" width="8" height="2" rx="1" fill="none" stroke="#e8772e" stroke-width="0.8" opacity="0.4"/>
+            <text x="540" y="154" fill="#e8e8f0" font-family="sans-serif" font-size="10" font-weight="700" text-anchor="middle">Website Redesign</text>
+
+            <!-- TASK ROW (y=340) -->
+
+            <!-- TASK: Design Mockups (x=200) -->
+            <g filter="url(#glowGreen)">
+              <circle cx="200" cy="340" r="26" fill="url(#gradGreen)" stroke="#22c55e" stroke-width="1.5"/>
+            </g>
+            <rect x="192" y="332" width="16" height="16" rx="3" fill="none" stroke="#22c55e" stroke-width="1.2" opacity="0.6"/>
+            <polyline points="195,340 199,344 207,336" fill="none" stroke="#22c55e" stroke-width="1.3" opacity="0.6"/>
+            <text x="200" y="362" fill="#e8e8f0" font-family="sans-serif" font-size="8" text-anchor="middle">Design Mockups</text>
+
+            <!-- TASK: Build Frontend (x=420) -->
+            <g filter="url(#glowGreen)">
+              <circle cx="420" cy="340" r="26" fill="url(#gradGreen)" stroke="#22c55e" stroke-width="1.5"/>
+            </g>
+            <rect x="412" y="332" width="16" height="16" rx="3" fill="none" stroke="#22c55e" stroke-width="1.2" opacity="0.6"/>
+            <polyline points="415,340 419,344 427,336" fill="none" stroke="#22c55e" stroke-width="1.3" opacity="0.6"/>
+            <text x="420" y="362" fill="#e8e8f0" font-family="sans-serif" font-size="8" text-anchor="middle">Build Frontend</text>
+
+            <!-- TASK: Write Content (x=540, directly below project) -->
+            <g filter="url(#glowGreen)">
+              <circle cx="540" cy="340" r="26" fill="url(#gradGreen)" stroke="#22c55e" stroke-width="1.5"/>
+            </g>
+            <rect x="532" y="332" width="16" height="16" rx="3" fill="none" stroke="#22c55e" stroke-width="1.2" opacity="0.6"/>
+            <text x="540" y="362" fill="#e8e8f0" font-family="sans-serif" font-size="8" text-anchor="middle">Write Content</text>
+
+            <!-- TASK: QA Testing (x=740) -->
+            <g filter="url(#glowGreen)">
+              <circle cx="740" cy="340" r="26" fill="url(#gradGreen)" stroke="#22c55e" stroke-width="1.5"/>
+            </g>
+            <rect x="732" y="332" width="16" height="16" rx="3" fill="none" stroke="#22c55e" stroke-width="1.2" opacity="0.6"/>
+            <text x="740" y="362" fill="#e8e8f0" font-family="sans-serif" font-size="8" text-anchor="middle">QA Testing</text>
+
+            <!-- TASK: Deploy to Prod (x=960) -->
+            <g filter="url(#glowGreen)">
+              <circle cx="960" cy="340" r="26" fill="url(#gradGreen)" stroke="#22c55e" stroke-width="1.5"/>
+            </g>
+            <rect x="952" y="332" width="16" height="16" rx="3" fill="none" stroke="#22c55e" stroke-width="1.2" opacity="0.6"/>
+            <text x="960" y="362" fill="#e8e8f0" font-family="sans-serif" font-size="8" text-anchor="middle">Deploy to Prod</text>
+
+            <!-- PEOPLE ROW (y=555) -->
+
+            <!-- PERSON: Alice (x=300) -->
+            <g filter="url(#glowPurple)">
+              <circle cx="300" cy="555" r="26" fill="url(#gradPurple)" stroke="#8b5cf6" stroke-width="1.5"/>
+            </g>
+            <circle cx="300" cy="547" r="5" fill="none" stroke="#8b5cf6" stroke-width="1.2" opacity="0.6"/>
+            <path d="M291 562 Q291 555 300 555 Q309 555 309 562" fill="none" stroke="#8b5cf6" stroke-width="1.2" opacity="0.6"/>
+            <text x="300" y="576" fill="#e8e8f0" font-family="sans-serif" font-size="9" text-anchor="middle">Alice</text>
+
+            <!-- PERSON: Bob (x=600) -->
+            <g filter="url(#glowPurple)">
+              <circle cx="600" cy="555" r="26" fill="url(#gradPurple)" stroke="#8b5cf6" stroke-width="1.5"/>
+            </g>
+            <circle cx="600" cy="547" r="5" fill="none" stroke="#8b5cf6" stroke-width="1.2" opacity="0.6"/>
+            <path d="M591 562 Q591 555 600 555 Q609 555 609 562" fill="none" stroke="#8b5cf6" stroke-width="1.2" opacity="0.6"/>
+            <text x="600" y="576" fill="#e8e8f0" font-family="sans-serif" font-size="9" text-anchor="middle">Bob</text>
+
+            <!-- PERSON: Carol (x=900) -->
+            <g filter="url(#glowPurple)">
+              <circle cx="900" cy="555" r="26" fill="url(#gradPurple)" stroke="#8b5cf6" stroke-width="1.5"/>
+            </g>
+            <circle cx="900" cy="547" r="5" fill="none" stroke="#8b5cf6" stroke-width="1.2" opacity="0.6"/>
+            <path d="M891 562 Q891 555 900 555 Q909 555 909 562" fill="none" stroke="#8b5cf6" stroke-width="1.2" opacity="0.6"/>
+            <text x="900" y="576" fill="#e8e8f0" font-family="sans-serif" font-size="9" text-anchor="middle">Carol</text>
+
+            <!-- === TOOLTIP on "Build Frontend" node === -->
+            <!-- Connector line from tooltip to node -->
+            <line x1="420" y1="314" x2="420" y2="282" stroke="rgba(34,197,94,0.5)" stroke-width="1" stroke-dasharray="3 2"/>
+            <!-- Tooltip card -->
+            <g filter="url(#tooltipShadow)">
+              <rect x="312" y="118" width="216" height="164" rx="8" fill="#16161f" stroke="rgba(34,197,94,0.4)" stroke-width="1"/>
+            </g>
+            <!-- Tooltip header bar -->
+            <rect x="312" y="118" width="216" height="30" rx="8" fill="#1a1a24"/>
+            <rect x="312" y="140" width="216" height="8" fill="#1a1a24"/>
+            <circle cx="328" cy="133" r="4" fill="#22c55e" opacity="0.6"/>
+            <text x="338" y="137" fill="#e8e8f0" font-family="sans-serif" font-size="11" font-weight="700">Build Frontend</text>
+            <rect x="460" y="126" width="42" height="16" rx="4" fill="rgba(34,197,94,0.15)"/>
+            <text x="468" y="138" fill="#22c55e" font-family="sans-serif" font-size="9" font-weight="600">Task</text>
+            <!-- Tooltip rows -->
+            <text x="326" y="166" fill="#686880" font-family="sans-serif" font-size="10">Status</text>
+            <rect x="410" y="155" width="64" height="18" rx="4" fill="rgba(232,119,46,0.15)"/>
+            <text x="422" y="168" fill="#e8772e" font-family="sans-serif" font-size="10" font-weight="600">In Progress</text>
+            <text x="326" y="190" fill="#686880" font-family="sans-serif" font-size="10">Due Date</text>
+            <text x="410" y="190" fill="#e8e8f0" font-family="sans-serif" font-size="10">2026-03-15</text>
+            <text x="326" y="214" fill="#686880" font-family="sans-serif" font-size="10">Assigned To</text>
+            <text x="410" y="214" fill="#8b5cf6" font-family="sans-serif" font-size="10">Alice</text>
+            <text x="326" y="238" fill="#686880" font-family="sans-serif" font-size="10">Description</text>
+            <text x="410" y="238" fill="#9898b0" font-family="sans-serif" font-size="10">Implement React UI</text>
+            <text x="326" y="262" fill="#686880" font-family="sans-serif" font-size="10">Priority</text>
+            <rect x="410" y="251" width="40" height="18" rx="4" fill="rgba(245,158,11,0.15)"/>
+            <text x="418" y="264" fill="#f59e0b" font-family="sans-serif" font-size="10" font-weight="600">High</text>
+            <!-- Arrow pointing down to node -->
+            <polygon points="413,282 427,282 420,290" fill="#16161f" stroke="rgba(34,197,94,0.4)" stroke-width="1"/>
+
             <!-- Legend -->
-            <rect x="20" y="590" width="200" height="75" rx="6" fill="#12121a" stroke="#1e1e2e" stroke-width="1"/>
-            <circle cx="40" cy="610" r="5" fill="#e8772e"/>
-            <text x="54" y="614" fill="#9898b0" font-family="sans-serif" font-size="10">Project</text>
-            <circle cx="40" cy="630" r="5" fill="#8b5cf6"/>
-            <text x="54" y="634" fill="#9898b0" font-family="sans-serif" font-size="10">Person</text>
-            <circle cx="120" cy="610" r="5" fill="#22c55e"/>
-            <text x="134" y="614" fill="#9898b0" font-family="sans-serif" font-size="10">Concept</text>
-            <circle cx="120" cy="630" r="5" fill="#3b82f6"/>
-            <text x="134" y="634" fill="#9898b0" font-family="sans-serif" font-size="10">Note</text>
-            <circle cx="40" cy="650" r="5" fill="#f59e0b"/>
-            <text x="54" y="654" fill="#9898b0" font-family="sans-serif" font-size="10">Claim / Task</text>
+            <rect x="20" y="594" width="220" height="72" rx="8" fill="rgba(18,18,26,0.9)" stroke="#1e1e2e" stroke-width="1"/>
+            <text x="40" y="613" fill="#686880" font-family="sans-serif" font-size="9" font-weight="600" letter-spacing="0.5">NODE TYPES</text>
+            <circle cx="40" cy="631" r="6" fill="url(#gradOrange)" stroke="#e8772e" stroke-width="1"/>
+            <text x="54" y="635" fill="#9898b0" font-family="sans-serif" font-size="10">Project</text>
+            <circle cx="40" cy="651" r="6" fill="url(#gradGreen)" stroke="#22c55e" stroke-width="1"/>
+            <text x="54" y="655" fill="#9898b0" font-family="sans-serif" font-size="10">Task</text>
+            <circle cx="130" cy="631" r="6" fill="url(#gradPurple)" stroke="#8b5cf6" stroke-width="1"/>
+            <text x="144" y="635" fill="#9898b0" font-family="sans-serif" font-size="10">Person</text>
           </svg>
           <div class="carousel-caption">
             <h3>Graph Visualization</h3>
-            <p>Explore your knowledge as a semantic graph with type-based coloring and predicate-labeled edges.</p>
+            <p>Semantic tree layouts show project structure at a glance. Hover any node to inspect its properties.</p>
           </div>
         </div>
 
@@ -1374,9 +1511,91 @@ section {
   if (!canvas) return;
   var ctx = canvas.getContext('2d');
   var nodes = [];
-  var nodeCount = 40;
-  var maxDist = 150;
-  var accentR = 232, accentG = 119, accentB = 46;
+  var nodeCount = 18;
+  var maxDist = 220;
+  var time = 0;
+
+  // Node types with colors, size ranges, and icon draw functions
+  var types = [
+    { name: 'project',  color: [232, 119, 46],  minR: 10, maxR: 16, icon: drawProjectIcon },
+    { name: 'person',   color: [139, 92, 246],   minR: 8,  maxR: 13, icon: drawPersonIcon },
+    { name: 'concept',  color: [34, 197, 94],    minR: 7,  maxR: 12, icon: drawConceptIcon },
+    { name: 'note',     color: [59, 130, 246],   minR: 6,  maxR: 10, icon: drawNoteIcon },
+    { name: 'claim',    color: [245, 158, 11],   minR: 6,  maxR: 10, icon: drawClaimIcon }
+  ];
+
+  // Icon drawing functions (drawn at origin, scaled to node radius)
+  function drawProjectIcon(ctx, r) {
+    // Folder icon
+    var s = r * 0.45;
+    ctx.beginPath();
+    ctx.moveTo(-s, -s * 0.3);
+    ctx.lineTo(-s, s * 0.7);
+    ctx.lineTo(s, s * 0.7);
+    ctx.lineTo(s, -s * 0.6);
+    ctx.lineTo(s * 0.1, -s * 0.6);
+    ctx.lineTo(-s * 0.15, -s);
+    ctx.lineTo(-s, -s);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function drawPersonIcon(ctx, r) {
+    // Person silhouette
+    var s = r * 0.4;
+    ctx.beginPath();
+    ctx.arc(0, -s * 0.5, s * 0.55, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(0, s * 0.7, s * 0.9, s * 0.6, 0, Math.PI, 0, true);
+    ctx.fill();
+  }
+
+  function drawConceptIcon(ctx, r) {
+    // Lightbulb / star burst
+    var s = r * 0.4;
+    for (var i = 0; i < 6; i++) {
+      var angle = (i / 6) * Math.PI * 2 - Math.PI / 2;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(Math.cos(angle) * s, Math.sin(angle) * s);
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+    ctx.beginPath();
+    ctx.arc(0, 0, s * 0.3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function drawNoteIcon(ctx, r) {
+    // Document / page
+    var s = r * 0.4;
+    ctx.beginPath();
+    ctx.rect(-s * 0.7, -s, s * 1.4, s * 2);
+    ctx.fill();
+    // Lines
+    ctx.beginPath();
+    ctx.moveTo(-s * 0.4, -s * 0.4);
+    ctx.lineTo(s * 0.4, -s * 0.4);
+    ctx.moveTo(-s * 0.4, s * 0.05);
+    ctx.lineTo(s * 0.4, s * 0.05);
+    ctx.moveTo(-s * 0.4, s * 0.5);
+    ctx.lineTo(s * 0.15, s * 0.5);
+    ctx.strokeStyle = 'rgba(10,10,15,0.6)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  function drawClaimIcon(ctx, r) {
+    // Checkmark / badge
+    var s = r * 0.4;
+    ctx.beginPath();
+    ctx.moveTo(-s * 0.6, s * 0.1);
+    ctx.lineTo(-s * 0.1, s * 0.7);
+    ctx.lineTo(s * 0.7, -s * 0.6);
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
 
   function resize() {
     canvas.width = window.innerWidth;
@@ -1386,32 +1605,43 @@ section {
   function initNodes() {
     nodes = [];
     for (var i = 0; i < nodeCount; i++) {
+      var type = types[i % types.length];
+      var r = type.minR + Math.random() * (type.maxR - type.minR);
       nodes.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.3,
-        vy: (Math.random() - 0.5) * 0.3,
-        r: Math.random() * 2 + 1.5
+        vx: (Math.random() - 0.5) * 0.2,
+        vy: (Math.random() - 0.5) * 0.2,
+        r: r,
+        type: type,
+        pulseOffset: Math.random() * Math.PI * 2
       });
     }
   }
 
   function draw() {
+    time += 0.01;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Draw edges
+    ctx.lineWidth = 0.8;
     for (var i = 0; i < nodes.length; i++) {
       for (var j = i + 1; j < nodes.length; j++) {
         var dx = nodes[i].x - nodes[j].x;
         var dy = nodes[i].y - nodes[j].y;
         var dist = Math.sqrt(dx * dx + dy * dy);
         if (dist < maxDist) {
-          var alpha = (1 - dist / maxDist) * 0.12;
+          var alpha = (1 - dist / maxDist) * 0.25;
+          // Blend the two node colors for the edge
+          var cA = nodes[i].type.color;
+          var cB = nodes[j].type.color;
+          var r = (cA[0] + cB[0]) >> 1;
+          var g = (cA[1] + cB[1]) >> 1;
+          var b = (cA[2] + cB[2]) >> 1;
           ctx.beginPath();
           ctx.moveTo(nodes[i].x, nodes[i].y);
           ctx.lineTo(nodes[j].x, nodes[j].y);
-          ctx.strokeStyle = 'rgba(' + accentR + ',' + accentG + ',' + accentB + ',' + alpha + ')';
-          ctx.lineWidth = 0.8;
+          ctx.strokeStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
           ctx.stroke();
         }
       }
@@ -1420,10 +1650,36 @@ section {
     // Draw nodes
     for (var k = 0; k < nodes.length; k++) {
       var n = nodes[k];
+      var c = n.type.color;
+      var pulse = 1 + Math.sin(time * 2 + n.pulseOffset) * 0.15;
+      var drawR = n.r * pulse;
+
+      // Outer glow
+      ctx.save();
+      ctx.shadowColor = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ', 0.4)';
+      ctx.shadowBlur = drawR * 2;
       ctx.beginPath();
-      ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(' + accentR + ',' + accentG + ',' + accentB + ', 0.2)';
+      ctx.arc(n.x, n.y, drawR, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ', 0.12)';
       ctx.fill();
+      ctx.restore();
+
+      // Node circle
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, drawR, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ', 0.15)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ', 0.35)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Icon inside node
+      ctx.save();
+      ctx.translate(n.x, n.y);
+      ctx.fillStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ', 0.5)';
+      ctx.strokeStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ', 0.5)';
+      n.type.icon(ctx, drawR);
+      ctx.restore();
 
       // Move
       n.x += n.vx;
