@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-02-21)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations -- no blank-page syndrome, no schema setup.
-**Current focus:** Phase 1: Core Data Foundation
+**Current focus:** Phase 1 complete — Phase 2: Semantic Services is next
 
 ## Current Position
 
