@@ -1465,43 +1465,55 @@ section {
   if (!canvas) return;
   var ctx = canvas.getContext('2d');
   var nodes = [];
-  var maxDist = 220;
   // Each cluster is a mini-tree: 1 project (top), 2 tasks (mid), 2 people (bottom)
   // xFrac/yFrac = center of the cluster
   var clusters = [
-    { xFrac: 0.10, yFrac: 0.22 },  // top-left
-    { xFrac: 0.88, yFrac: 0.18 },  // top-right
-    { xFrac: 0.07, yFrac: 0.58 },  // mid-left
-    { xFrac: 0.92, yFrac: 0.52 },  // mid-right
-    { xFrac: 0.13, yFrac: 0.88 },  // bottom-left
-    { xFrac: 0.87, yFrac: 0.85 }   // bottom-right
+    { xFrac: 0.14, yFrac: 0.30 },  // upper-left
+    { xFrac: 0.14, yFrac: 0.70 },  // lower-left
+    { xFrac: 0.86, yFrac: 0.30 },  // upper-right
+    { xFrac: 0.86, yFrac: 0.70 }   // lower-right
   ];
   // Tree layout offsets within a cluster (fraction of canvas)
   // Row 0: project (1 node, centered)
   // Row 1: tasks (2 nodes, spread horizontally)
-  // Row 2: people (2 nodes, spread horizontally)
-  var treeSlots = [
-    { type: 'project', dxFrac: 0,      dyFrac: -0.06 },
-    { type: 'task',    dxFrac: -0.035,  dyFrac: 0 },
-    { type: 'task',    dxFrac: 0.035,   dyFrac: 0 },
-    { type: 'person',  dxFrac: -0.035,  dyFrac: 0.06 },
-    { type: 'person',  dxFrac: 0.035,   dyFrac: 0.06 }
+  // Tree template A: Project → Tasks → People
+  var treeSlotsA = [
+    { type: 'project', dxFrac: 0,     dyFrac: -0.09 },
+    { type: 'task',    dxFrac: -0.06, dyFrac: 0 },
+    { type: 'task',    dxFrac: 0.06,  dyFrac: 0 },
+    { type: 'person',  dxFrac: -0.08, dyFrac: 0.12 },
+    { type: 'person',  dxFrac: 0.08,  dyFrac: 0.12 }
   ];
-  var nodeCount = treeSlots.length * clusters.length;
-  var time = 0;
+  // Tree template B: Value → Goals → Projects
+  var treeSlotsB = [
+    { type: 'value',   dxFrac: 0,     dyFrac: -0.09 },
+    { type: 'goal',    dxFrac: -0.06, dyFrac: 0 },
+    { type: 'goal',    dxFrac: 0.06,  dyFrac: 0 },
+    { type: 'project', dxFrac: -0.08, dyFrac: 0.12 },
+    { type: 'project', dxFrac: 0.08,  dyFrac: 0.12 }
+  ];
+  var treeTemplates = [treeSlotsA, treeSlotsB];
+  var slotsPerCluster = 5;
+  var nodeCount = slotsPerCluster * clusters.length;
 
-  // Node types: matches the screenshot graph (project, task, person)
+  // Node types
   var types = [
-    { name: 'project',  color: [232, 119, 46],  minR: 12, maxR: 18, icon: drawProjectIcon },
-    { name: 'task',     color: [34, 197, 94],    minR: 8,  maxR: 14, icon: drawTaskIcon },
-    { name: 'person',   color: [139, 92, 246],   minR: 8,  maxR: 14, icon: drawPersonIcon }
+    { name: 'project',  color: [232, 119, 46],  minR: 13, maxR: 19, icon: drawProjectIcon },
+    { name: 'task',     color: [34, 197, 94],    minR: 9,  maxR: 15, icon: drawTaskIcon },
+    { name: 'person',   color: [139, 92, 246],   minR: 9,  maxR: 15, icon: drawPersonIcon },
+    { name: 'value',    color: [234, 179, 8],    minR: 13, maxR: 19, icon: drawValueIcon },
+    { name: 'goal',     color: [59, 130, 246],   minR: 10, maxR: 16, icon: drawGoalIcon }
   ];
+  var typeMap = {};
+  for (var ti = 0; ti < types.length; ti++) typeMap[types[ti].name] = types[ti];
 
-  // Names per type (assigned to nodes on init)
+  // Names per type
   var namesByType = {
     project: ['SemPKM', 'Research', 'Sprint 3', 'v1 Release', 'Onboarding', 'Migration'],
     task:    ['Build Frontend', 'Design Mockups', 'Write Tests', 'Deploy', 'QA Testing', 'Review PR'],
-    person:  ['Alice', 'Bob', 'Carol', 'Dave', 'Eve', 'Frank']
+    person:  ['Alice', 'Bob', 'Carol', 'Dave', 'Eve', 'Frank'],
+    value:   ['Autonomy', 'Craftsmanship', 'Openness', 'Learning', 'Impact', 'Simplicity'],
+    goal:    ['Ship v1', 'Grow Community', 'Write Docs', 'Get Feedback', 'Open Source', 'Scale Infra']
   };
 
   // Edge labels by type pair
@@ -1514,7 +1526,13 @@ section {
     'person-project': 'hasMember',
     'task-task': 'dependsOn',
     'project-project': 'relatedTo',
-    'person-person': 'collaborates'
+    'person-person': 'collaborates',
+    'value-goal': 'motivates',
+    'goal-value': 'motivates',
+    'goal-project': 'drives',
+    'project-goal': 'drives',
+    'value-value': 'alignsWith',
+    'goal-goal': 'supports'
   };
 
   // Icon drawing functions (drawn at origin, scaled to node radius)
@@ -1576,6 +1594,44 @@ section {
     ctx.stroke();
   }
 
+  function drawValueIcon(ctx, r) {
+    // Diamond / gem shape (represents a core value)
+    var s = r * 0.45;
+    ctx.beginPath();
+    ctx.moveTo(0, -s);
+    ctx.lineTo(s * 0.8, -s * 0.2);
+    ctx.lineTo(s * 0.5, s);
+    ctx.lineTo(-s * 0.5, s);
+    ctx.lineTo(-s * 0.8, -s * 0.2);
+    ctx.closePath();
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+    // Inner facet line
+    ctx.beginPath();
+    ctx.moveTo(-s * 0.8, -s * 0.2);
+    ctx.lineTo(0, s * 0.3);
+    ctx.lineTo(s * 0.8, -s * 0.2);
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+  }
+
+  function drawGoalIcon(ctx, r) {
+    // Target / bullseye (represents a goal)
+    var s = r * 0.4;
+    ctx.beginPath();
+    ctx.arc(0, 0, s, 0, Math.PI * 2);
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(0, 0, s * 0.5, 0, Math.PI * 2);
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+    // Center dot
+    ctx.beginPath();
+    ctx.arc(0, 0, s * 0.15, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
   function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -1587,18 +1643,17 @@ section {
   function initNodes() {
     nodes = [];
     structEdges = [];
-    var nameIndex = { project: 0, task: 0, person: 0 };
+    var nameIndex = {};
+    for (var ni = 0; ni < types.length; ni++) nameIndex[types[ni].name] = 0;
 
     for (var ci = 0; ci < clusters.length; ci++) {
       var cl = clusters[ci];
-      var baseIdx = ci * treeSlots.length;
+      var template = treeTemplates[ci % treeTemplates.length];
+      var baseIdx = ci * slotsPerCluster;
 
-      for (var si = 0; si < treeSlots.length; si++) {
-        var slot = treeSlots[si];
-        var type = null;
-        for (var t = 0; t < types.length; t++) {
-          if (types[t].name === slot.type) { type = types[t]; break; }
-        }
+      for (var si = 0; si < template.length; si++) {
+        var slot = template[si];
+        var type = typeMap[slot.type];
         var r = type.minR + Math.random() * (type.maxR - type.minR);
         var pool = namesByType[type.name];
         var name = pool[nameIndex[type.name] % pool.length];
@@ -1609,17 +1664,16 @@ section {
           y: (cl.yFrac + slot.dyFrac + (Math.random() - 0.5) * jitter) * canvas.height,
           targetDx: slot.dxFrac,
           targetDy: slot.dyFrac,
-          vx: (Math.random() - 0.5) * 0.15,
-          vy: (Math.random() - 0.5) * 0.15,
+          vx: (Math.random() - 0.5) * 0.4,
+          vy: (Math.random() - 0.5) * 0.4,
           r: r,
           type: type,
           name: name,
-          cluster: ci,
-          pulseOffset: Math.random() * Math.PI * 2
+          cluster: ci
         });
       }
 
-      // Tree edges: project(0) → task(1), project(0) → task(2), task(1) → person(3), task(2) → person(4)
+      // Tree edges: root(0) → mid(1,2), mid(1) → leaf(3), mid(2) → leaf(4)
       structEdges.push({ a: baseIdx, b: baseIdx + 1 });
       structEdges.push({ a: baseIdx, b: baseIdx + 2 });
       structEdges.push({ a: baseIdx + 1, b: baseIdx + 3 });
@@ -1631,43 +1685,12 @@ section {
   var monoFont = '';
 
   function draw() {
-    time += 0.01;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     if (!monoFont) {
       monoFont = getComputedStyle(document.documentElement).getPropertyValue('--font-mono').trim();
     }
 
-    // Draw proximity edges (no labels — just ambient connections)
-    ctx.lineWidth = 0.8;
-    var structSet = {};
-    for (var si = 0; si < structEdges.length; si++) {
-      var lo = Math.min(structEdges[si].a, structEdges[si].b);
-      var hi = Math.max(structEdges[si].a, structEdges[si].b);
-      structSet[lo + '-' + hi] = true;
-    }
-    for (var i = 0; i < nodes.length; i++) {
-      for (var j = i + 1; j < nodes.length; j++) {
-        if (structSet[i + '-' + j]) continue; // drawn separately
-        var dx = nodes[i].x - nodes[j].x;
-        var dy = nodes[i].y - nodes[j].y;
-        var dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < maxDist) {
-          var alpha = (1 - dist / maxDist) * 0.45;
-          var cA = nodes[i].type.color;
-          var cB = nodes[j].type.color;
-          var r = (cA[0] + cB[0]) >> 1;
-          var g = (cA[1] + cB[1]) >> 1;
-          var b = (cA[2] + cB[2]) >> 1;
-          ctx.beginPath();
-          ctx.moveTo(nodes[i].x, nodes[i].y);
-          ctx.lineTo(nodes[j].x, nodes[j].y);
-          ctx.strokeStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
-          ctx.stroke();
-        }
-      }
-    }
-
-    // Draw persistent structural edges — always visible with labels
+    // Draw structural edges with labels
     for (var sei = 0; sei < structEdges.length; sei++) {
       var se = structEdges[sei];
       var nA = nodes[se.a];
@@ -1677,15 +1700,11 @@ section {
       var sr = (cA2[0] + cB2[0]) >> 1;
       var sg = (cA2[1] + cB2[1]) >> 1;
       var sb = (cA2[2] + cB2[2]) >> 1;
-      // Edge line — always at least 0.2 alpha
-      var sdx = nA.x - nB.x;
-      var sdy = nA.y - nB.y;
-      var sDist = Math.sqrt(sdx * sdx + sdy * sdy);
-      var sAlpha = sDist < maxDist ? Math.max((1 - sDist / maxDist) * 0.45, 0.2) : 0.2;
+      // Edge line
       ctx.beginPath();
       ctx.moveTo(nA.x, nA.y);
       ctx.lineTo(nB.x, nB.y);
-      ctx.strokeStyle = 'rgba(' + sr + ',' + sg + ',' + sb + ',' + sAlpha + ')';
+      ctx.strokeStyle = 'rgba(' + sr + ',' + sg + ',' + sb + ', 0.3)';
       ctx.lineWidth = 0.8;
       ctx.stroke();
       // Label at midpoint
@@ -1702,7 +1721,7 @@ section {
       ctx.font = '9px ' + monoFont;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillStyle = 'rgba(' + sr + ',' + sg + ',' + sb + ',' + Math.max(sAlpha * 1.2, 0.25) + ')';
+      ctx.fillStyle = 'rgba(' + sr + ',' + sg + ',' + sb + ', 0.35)';
       ctx.fillText(label, 0, -7);
       ctx.restore();
     }
@@ -1712,22 +1731,10 @@ section {
     for (var k = 0; k < nodes.length; k++) {
       var n = nodes[k];
       var c = n.type.color;
-      var pulse = 1 + Math.sin(time * 2 + n.pulseOffset) * 0.15;
-      var drawR = n.r * pulse;
-
-      // Outer glow
-      ctx.save();
-      ctx.shadowColor = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ', 0.4)';
-      ctx.shadowBlur = drawR * 2;
-      ctx.beginPath();
-      ctx.arc(n.x, n.y, drawR, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ', 0.12)';
-      ctx.fill();
-      ctx.restore();
 
       // Node circle
       ctx.beginPath();
-      ctx.arc(n.x, n.y, drawR, 0, Math.PI * 2);
+      ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
       ctx.fillStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ', 0.15)';
       ctx.fill();
       ctx.strokeStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ', 0.35)';
@@ -1739,7 +1746,7 @@ section {
       ctx.translate(n.x, n.y);
       ctx.fillStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ', 0.5)';
       ctx.strokeStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ', 0.5)';
-      n.type.icon(ctx, drawR);
+      n.type.icon(ctx, n.r);
       ctx.restore();
 
       // Node name label below
@@ -1747,12 +1754,12 @@ section {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
       ctx.fillStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ', 0.5)';
-      ctx.fillText(n.name, n.x, n.y + drawR + 5);
+      ctx.fillText(n.name, n.x, n.y + n.r + 5);
 
     }
 
     // Physics: tree-slot gravity + soft repulsion
-    var gravity = 0.00012;
+    var gravity = 0.00006;
     var repulse = 0.3;
     var minSep = 50;
 
@@ -1787,8 +1794,8 @@ section {
     for (var mi = 0; mi < nodes.length; mi++) {
       var mn = nodes[mi];
       // Damping
-      mn.vx *= 0.97;
-      mn.vy *= 0.97;
+      mn.vx *= 0.99;
+      mn.vy *= 0.99;
       mn.x += mn.vx;
       mn.y += mn.vy;
       // Keep on screen
