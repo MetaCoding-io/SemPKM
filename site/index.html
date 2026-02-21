@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SemPKM — Semantics-Native Personal Knowledge Management</title>
+<meta name="description" content="SemPKM is a semantics-native PKM platform built on RDF, SHACL, and SPARQL. Install Mental Models, get instant structured workflows, and own your data.">
+<style>
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg-primary: #0a0a0f;
+  --bg-secondary: #12121a;
+  --bg-card: #16161f;
+  --bg-card-hover: #1c1c28;
+  --border-subtle: #1e1e2e;
+  --text-primary: #e8e8f0;
+  --text-secondary: #9898b0;
+  --text-muted: #6868808a;
+  --accent-blue: #e8772e;
+  --accent-purple: #f59e0b;
+  --accent-gradient: linear-gradient(135deg, #e8772e, #f59e0b);
+  --accent-glow: rgba(232, 119, 46, 0.15);
+  --font-stack: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --font-mono: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace;
+  --max-width: 1120px;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-stack);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+a {
+  color: var(--accent-blue);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+a:hover {
+  color: var(--accent-purple);
+}
+
+/* ── Nav ── */
+
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(10, 10, 15, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.nav-inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-logo {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.nav-logo span {
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  list-style: none;
+}
+
+.nav-links a {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.nav-links a:hover {
+  color: var(--text-primary);
+}
+
+.nav-cta {
+  background: var(--accent-gradient);
+  color: #fff !important;
+  padding: 0.5rem 1.25rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.nav-cta:hover {
+  opacity: 0.9;
+}
+
+/* Mobile nav toggle */
+.nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+.nav-toggle span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--text-secondary);
+  margin: 5px 0;
+  transition: transform 0.3s, opacity 0.3s;
+}
+
+/* ── Sections ── */
+
+section {
+  padding: 6rem 1.5rem;
+}
+
+.container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+.section-label {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent-blue);
+  margin-bottom: 1rem;
+}
+
+.section-title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin-bottom: 1rem;
+}
+
+.section-subtitle {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  max-width: 640px;
+  line-height: 1.7;
+}
+
+/* ── Hero ── */
+
+.hero {
+  padding: 10rem 1.5rem 6rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(circle, rgba(232, 119, 46, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-title {
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.hero-title .gradient {
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-subtitle {
+  font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+  color: var(--text-secondary);
+  max-width: 640px;
+  margin: 0 auto 2.5rem;
+  line-height: 1.7;
+}
+
+.hero-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: var(--font-stack);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.2s, opacity 0.2s;
+  border: none;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn-primary {
+  background: var(--accent-gradient);
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(232, 119, 46, 0.3);
+}
+
+.btn-primary:hover {
+  box-shadow: 0 6px 28px rgba(232, 119, 46, 0.4);
+  color: #fff;
+}
+
+.btn-secondary {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+}
+
+.btn-secondary:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+}
+
+.hero-note {
+  margin-top: 2.5rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* ── Problem / Solution ── */
+
+.problem-solution {
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.ps-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  margin-top: 3rem;
+}
+
+.ps-card {
+  padding: 2rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-primary);
+}
+
+.ps-card h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.ps-card p {
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.ps-card ul {
+  list-style: none;
+  margin-top: 1rem;
+}
+
+.ps-card ul li {
+  color: var(--text-secondary);
+  line-height: 1.7;
+  padding-left: 1.5rem;
+  position: relative;
+  margin-bottom: 0.5rem;
+}
+
+.ps-card ul li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.65em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-blue);
+}
+
+.ps-highlight {
+  border-color: rgba(232, 119, 46, 0.3);
+  background: linear-gradient(135deg, rgba(232, 119, 46, 0.05), rgba(245, 158, 11, 0.03));
+}
+
+.ps-highlight h3 {
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Features ── */
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.25rem;
+  margin-top: 3rem;
+}
+
+.feature-card {
+  padding: 1.75rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+}
+
+.feature-card:hover {
+  background: var(--bg-card-hover);
+  border-color: rgba(232, 119, 46, 0.2);
+  transform: translateY(-2px);
+}
+
+.feature-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-glow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.feature-card h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.feature-card p {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* ── Deployment ── */
+
+.deploy-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 3rem;
+}
+
+.deploy-card {
+  padding: 2rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+  position: relative;
+}
+
+.deploy-card .badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.7rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.badge-available {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+.badge-soon {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
+
+.deploy-card h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.deploy-card p {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.deploy-code {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  overflow-x: auto;
+}
+
+.deploy-code .comment {
+  color: var(--text-muted);
+}
+
+.deploy-code .cmd {
+  color: var(--accent-blue);
+}
+
+/* ── Signup ── */
+
+.signup {
+  text-align: center;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+  position: relative;
+  overflow: hidden;
+}
+
+.signup::before {
+  content: '';
+  position: absolute;
+  bottom: -30%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.signup .section-subtitle {
+  margin: 0 auto 2rem;
+}
+
+.signup-form {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.signup-form input[type="email"] {
+  flex: 1;
+  min-width: 240px;
+  padding: 0.85rem 1.25rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-family: var(--font-stack);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.signup-form input[type="email"]::placeholder {
+  color: var(--text-muted);
+}
+
+.signup-form input[type="email"]:focus {
+  border-color: var(--accent-blue);
+}
+
+.signup-note {
+  margin-top: 1rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* ── Footer ── */
+
+.footer {
+  padding: 3rem 1.5rem;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.footer-inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.footer-left {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.footer-links {
+  display: flex;
+  gap: 1.5rem;
+  list-style: none;
+}
+
+.footer-links a {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.footer-links a:hover {
+  color: var(--text-primary);
+}
+
+/* ── Animations ── */
+
+.fade-in {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 768px) {
+  section {
+    padding: 4rem 1.25rem;
+  }
+
+  .hero {
+    padding: 8rem 1.25rem 4rem;
+  }
+
+  .section-title {
+    font-size: 1.75rem;
+  }
+
+  .ps-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .deploy-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .nav-links {
+    display: none;
+    position: absolute;
+    top: 64px;
+    left: 0;
+    right: 0;
+    background: rgba(10, 10, 15, 0.95);
+    backdrop-filter: blur(12px);
+    flex-direction: column;
+    padding: 1.5rem;
+    gap: 1.25rem;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .nav-links.open {
+    display: flex;
+  }
+
+  .nav-toggle {
+    display: block;
+  }
+
+  .footer-inner {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">Sem<span>PKM</span></a>
+    <button class="nav-toggle" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#deploy">Deploy</a></li>
+      <li><a href="#signup" class="nav-cta">Get Started</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="container">
+    <h1 class="hero-title fade-in">
+      Your knowledge,<br><span class="gradient">semantically structured</span>
+    </h1>
+    <p class="hero-subtitle fade-in">
+      SemPKM is a semantics-native personal knowledge management platform. Built on RDF, SHACL, and SPARQL &mdash; install a Mental Model, get instant structured workflows, and own every byte.
+    </p>
+    <div class="hero-actions fade-in">
+      <a href="#signup" class="btn btn-primary">Sign up for updates</a>
+      <a href="https://github.com/SemPKM/SemPKM" class="btn btn-secondary">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        GitHub
+      </a>
+    </div>
+    <p class="hero-note fade-in">Self-hosted &middot; Open source &middot; Standards-based</p>
+  </div>
+</section>
+
+<!-- Problem / Solution -->
+<section class="problem-solution">
+  <div class="container">
+    <span class="section-label fade-in">Why SemPKM</span>
+    <h2 class="section-title fade-in">PKM tools force a tradeoff. We don't.</h2>
+    <p class="section-subtitle fade-in">
+      Existing tools make you choose between flexibility and structure.
+      SemPKM gives you both.
+    </p>
+    <div class="ps-grid">
+      <div class="ps-card fade-in">
+        <h3>The problem</h3>
+        <p>
+          Markdown-first tools are flexible and portable, but structure is implicit and semantics are informal.
+          Object-first tools offer structure and views, but lock you into a platform with no interoperability.
+        </p>
+        <ul>
+          <li>Informal structure means no reliable queries or views</li>
+          <li>Platform lock-in means your data isn't truly yours</li>
+          <li>No standard format means fragile integrations</li>
+        </ul>
+      </div>
+      <div class="ps-card ps-highlight fade-in">
+        <h3>The SemPKM answer</h3>
+        <p>
+          A standards-native semantic datastore with an IDE-grade UX.
+          Your knowledge lives as typed, queryable, interoperable data &mdash; and you own all of it.
+        </p>
+        <ul>
+          <li>RDF + SPARQL for powerful, reliable queries</li>
+          <li>SHACL shapes drive forms, validation, and linting</li>
+          <li>Export as JSON-LD, project to Obsidian, publish via SOLID</li>
+          <li>Mental Models: install a bundle, get an instant workflow</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section id="features">
+  <div class="container">
+    <span class="section-label fade-in">Features</span>
+    <h2 class="section-title fade-in">Everything you need to think in structure</h2>
+    <p class="section-subtitle fade-in">
+      SemPKM combines the power of semantic web standards with an interface designed for humans.
+    </p>
+    <div class="features-grid">
+
+      <div class="feature-card fade-in">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+        </div>
+        <h3>Mental Models</h3>
+        <p>Installable domain bundles &mdash; ontology, shapes, views, and projections &mdash; that give you an instant, structured PKM experience. No blank-page syndrome.</p>
+      </div>
+
+      <div class="feature-card fade-in">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        </div>
+        <h3>SHACL-Driven Forms</h3>
+        <p>Forms are auto-generated from SHACL shapes. Constraints drive validation, linting, and layout hints &mdash; no custom UI code needed.</p>
+      </div>
+
+      <div class="feature-card fade-in">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        </div>
+        <h3>Typed Relationships</h3>
+        <p>Edges are first-class: clickable, annotatable, and versionable. Explore your knowledge as a web of typed, meaningful connections.</p>
+      </div>
+
+      <div class="feature-card fade-in">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+        </div>
+        <h3>Graph Visualization</h3>
+        <p>Semantic-aware 2D and 3D graph views with type-based styling, predicate-driven edges, and lenses for focused exploration.</p>
+      </div>
+
+      <div class="feature-card fade-in">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        </div>
+        <h3>SPARQL-Powered Views</h3>
+        <p>Tables, cards, forms, object pages, and graph views &mdash; all backed by SPARQL queries. Compose them into parameterized dashboards.</p>
+      </div>
+
+      <div class="feature-card fade-in">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+        </div>
+        <h3>Standards-Based, No Lock-In</h3>
+        <p>Built on RDF, JSON-LD, SPARQL, and SHACL. Export anything. Project your graph as files for Obsidian. Publish via SOLID and ActivityPub.</p>
+      </div>
+
+      <div class="feature-card fade-in">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        </div>
+        <h3>Event Sourcing &amp; Audit Trail</h3>
+        <p>Every change is an immutable event. The current state is a derived projection. Full history, complete auditability, automation-ready.</p>
+      </div>
+
+      <div class="feature-card fade-in">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+        </div>
+        <h3>Self-Hosted, Own Your Data</h3>
+        <p>Run SemPKM on your own hardware. Single Docker command. Your knowledge graph stays on your machine &mdash; no cloud required.</p>
+      </div>
+
+      <div class="feature-card fade-in">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        </div>
+        <h3>And More Coming Soon</h3>
+        <p>Filesystem projections for Obsidian, webhook automations, ActivityPub publishing, Mental Model marketplace, and much more on the roadmap.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Deployment -->
+<section id="deploy" class="problem-solution">
+  <div class="container">
+    <span class="section-label fade-in">Deployment</span>
+    <h2 class="section-title fade-in">Run it your way</h2>
+    <p class="section-subtitle fade-in">
+      Start self-hosted today. Cloud hosting is on the roadmap for teams who want a managed experience.
+    </p>
+    <div class="deploy-grid">
+      <div class="deploy-card fade-in">
+        <span class="badge badge-available">Available</span>
+        <h3>Self-Hosted</h3>
+        <p>Run SemPKM on your own infrastructure with Docker. Full control, full privacy, zero dependencies on external services.</p>
+        <div class="deploy-code">
+          <span class="comment"># Pull and run</span><br>
+          <span class="cmd">docker run</span> -p 3000:3000 sempkm/sempkm
+        </div>
+      </div>
+      <div class="deploy-card fade-in">
+        <span class="badge badge-soon">Coming Soon</span>
+        <h3>Cloud Hosting</h3>
+        <p>Managed SemPKM for teams. Automatic updates, backups, and collaboration features &mdash; without the ops overhead.</p>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Sign up below to get notified when cloud hosting launches.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Email Signup -->
+<section id="signup" class="signup">
+  <div class="container">
+    <span class="section-label fade-in">Stay in the Loop</span>
+    <h2 class="section-title fade-in">Get notified when SemPKM launches</h2>
+    <p class="section-subtitle fade-in">
+      We're building in the open. Sign up for occasional updates on releases, Mental Models, and the roadmap.
+    </p>
+    <form class="signup-form fade-in" onsubmit="handleSignup(event)">
+      <input type="email" placeholder="you@example.com" required aria-label="Email address">
+      <button type="submit" class="btn btn-primary">Notify me</button>
+    </form>
+    <p class="signup-note fade-in">No spam. Unsubscribe anytime.</p>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-left">&copy; 2026 SemPKM. All rights reserved.</div>
+    <ul class="footer-links">
+      <li><a href="https://github.com/SemPKM/SemPKM">GitHub</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#signup">Get Started</a></li>
+    </ul>
+  </div>
+</footer>
+
+<script>
+// Fade-in on scroll via IntersectionObserver
+(function() {
+  var targets = document.querySelectorAll('.fade-in');
+  if (!('IntersectionObserver' in window)) {
+    targets.forEach(function(el) { el.classList.add('visible'); });
+    return;
+  }
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  targets.forEach(function(el) { observer.observe(el); });
+})();
+
+// Mobile nav toggle
+(function() {
+  var toggle = document.querySelector('.nav-toggle');
+  var links = document.querySelector('.nav-links');
+  toggle.addEventListener('click', function() {
+    links.classList.toggle('open');
+  });
+  // Close menu on link click
+  links.querySelectorAll('a').forEach(function(a) {
+    a.addEventListener('click', function() {
+      links.classList.remove('open');
+    });
+  });
+})();
+
+// Signup form placeholder handler
+function handleSignup(e) {
+  e.preventDefault();
+  var input = e.target.querySelector('input[type="email"]');
+  var btn = e.target.querySelector('button');
+  var email = input.value;
+  // Placeholder: no backend wired yet
+  btn.textContent = 'Thanks!';
+  btn.disabled = true;
+  input.disabled = true;
+  input.value = '';
+  input.placeholder = 'We\'ll be in touch.';
+  setTimeout(function() {
+    btn.textContent = 'Notify me';
+    btn.disabled = false;
+    input.disabled = false;
+    input.placeholder = 'you@example.com';
+  }, 3000);
+}
+</script>
+
+</body>
+</html>
