@@ -10,6 +10,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.commands.router import router as commands_router
 from app.health.router import router as health_router
+from app.services.labels import LabelService
+from app.services.prefixes import PrefixRegistry
 from app.sparql.router import router as sparql_router
 from app.triplestore.client import TriplestoreClient
 from app.triplestore.setup import ensure_repository
@@ -41,6 +43,13 @@ async def lifespan(app: FastAPI):
             base_url=settings.triplestore_url,
             repo_id=settings.repository_id,
         )
+
+    # Create prefix registry and label service
+    prefix_registry = PrefixRegistry()
+    app.state.prefix_registry = prefix_registry
+
+    label_service = LabelService(client, prefix_registry)
+    app.state.label_service = label_service
 
     logger.info("SemPKM API started successfully")
     yield

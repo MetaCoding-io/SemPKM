@@ -2,6 +2,8 @@
 
 from fastapi import Request
 
+from app.services.labels import LabelService
+from app.services.prefixes import PrefixRegistry
 from app.triplestore.client import TriplestoreClient
 
 
@@ -12,3 +14,21 @@ async def get_triplestore_client(request: Request) -> TriplestoreClient:
     app.state.triplestore_client.
     """
     return request.app.state.triplestore_client
+
+
+async def get_prefix_registry(request: Request) -> PrefixRegistry:
+    """Get the PrefixRegistry instance from app state.
+
+    The registry is created during app lifespan startup and stored on
+    app.state.prefix_registry.
+    """
+    return request.app.state.prefix_registry
+
+
+async def get_label_service(request: Request) -> LabelService:
+    """Get the LabelService instance from app state.
+
+    The service is created during app lifespan startup and stored on
+    app.state.label_service.
+    """
+    return request.app.state.label_service
