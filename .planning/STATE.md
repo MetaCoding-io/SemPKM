@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-02-21)
 ## Current Position
 
 Phase: 1 of 5 (Core Data Foundation)
-Plan: 1 of 4 in current phase
+Plan: 2 of 4 in current phase
 Status: Executing
-Last activity: 2026-02-21 -- Completed 01-01 Infrastructure and Triplestore Foundation
+Last activity: 2026-02-21 -- Completed 01-02 Event Store and RDF Core
 
-Progress: [██░░░░░░░░] 5%
+Progress: [███░░░░░░░] 10%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 1
-- Average duration: 7min
-- Total execution time: 0.12 hours
+- Total plans completed: 2
+- Average duration: 6min
+- Total execution time: 0.2 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 1. Core Data Foundation | 1 | 7min | 7min |
+| 1. Core Data Foundation | 2 | 12min | 6min |
 
 **Recent Trend:**
-- Last 5 plans: 7min
-- Trend: starting
+- Last 5 plans: 7min, 5min
+- Trend: stable
 
 *Updated after each plan completion*
 
@@ -48,6 +48,8 @@ Recent decisions affecting current work:
 - [01-01]: Host port 8001 for API (8000 occupied by Portainer)
 - [01-01]: Config volume mount for RDF4J repo config instead of COPY in Dockerfile
 - [01-01]: Sentinel triple pattern to prevent RDF4J empty graph deletion
+- [01-02]: Dev volume mount for backend/app source in docker-compose.yml for live code reload
+- [01-02]: Raw SPARQL body with Content-Type: application/sparql-update for RDF4J transaction updates
 
 ### Pending Todos
 
@@ -61,5 +63,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Completed 01-01-PLAN.md (Infrastructure and Triplestore Foundation)
+Stopped at: Completed 01-02-PLAN.md (Event Store and RDF Core)
 Resume file: None
