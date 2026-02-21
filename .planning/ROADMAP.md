@@ -29,11 +29,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. System persists writes as immutable event named graphs and materializes a current graph state from the event log
   3. User can create objects and edges through the command API (object.create, object.patch, body.set, edge.create, edge.patch) and see them reflected in the current state
   4. User can execute SPARQL SELECT queries against the current graph state and receive correct results
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
+- [ ] 01-01-PLAN.md — Infrastructure and triplestore foundation (Docker Compose, FastAPI skeleton, RDF4J repo auto-creation)
+- [ ] 01-02-PLAN.md — Event store and RDF core (namespaces, IRI minting, JSON-LD, event graphs, current state materialization)
+- [ ] 01-03-PLAN.md — Command API (Pydantic schemas, dispatcher, 5 command handlers, POST /api/commands endpoint)
+- [ ] 01-04-PLAN.md — SPARQL read endpoint and dev console (query scoping, htmx UI with SPARQL box and command form)
 
 ### Phase 2: Semantic Services
 **Goal**: The system resolves IRIs to human-readable labels, manages prefix mappings, and validates data against SHACL shapes asynchronously after every commit
@@ -107,7 +109,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Core Data Foundation | 0/0 | Not started | - |
+| 1. Core Data Foundation | 0/4 | Planned | - |
 | 2. Semantic Services | 0/0 | Not started | - |
 | 3. Mental Model System | 0/0 | Not started | - |
 | 4. Admin Shell and Object Creation | 0/0 | Not started | - |
@@ -115,4 +117,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 ---
 *Roadmap created: 2026-02-21*
-*Last updated: 2026-02-21*
+*Last updated: 2026-02-21 after Phase 1 planning*
