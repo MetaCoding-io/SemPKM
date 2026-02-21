@@ -91,12 +91,15 @@ class TriplestoreClient:
     async def transaction_update(self, txn_url: str, sparql: str) -> None:
         """Execute a SPARQL UPDATE within a transaction.
 
-        PUT to the transaction URL with form-encoded update and action=UPDATE.
+        PUT to the transaction URL with raw SPARQL body and
+        Content-Type: application/sparql-update. RDF4J transaction
+        endpoints require raw SPARQL (not form-encoded) for updates.
         """
         resp = await self._client.put(
             txn_url,
-            data={"update": sparql},
+            content=sparql,
             params={"action": "UPDATE"},
+            headers={"Content-Type": "application/sparql-update"},
         )
         resp.raise_for_status()
 
