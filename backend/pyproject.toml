@@ -13,6 +13,7 @@ dependencies = [
     "uvicorn",
     "pyshacl>=0.31.0",
     "cachetools>=7.0",
+    "pyyaml>=6.0",
 ]
 
 [project.optional-dependencies]
