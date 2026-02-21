@@ -14,7 +14,7 @@ scope changes to the current state graph (per research Pitfall 3).
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
-from rdflib import URIRef, Literal, BNode
+from rdflib import URIRef, Literal, BNode, Variable
 from rdflib.namespace import RDF, XSD
 
 from app.events.models import (
@@ -135,7 +135,17 @@ class EventStore:
             event_sparql = _build_insert_data_sparql(event_iri, event_triples)
             await self._client.transaction_update(txn_url, event_sparql)
 
-            # Step 2: Materialize inserts into current state graph
+            # Step 2: Materialize deletes from current state graph (before inserts)
+            # Deletes must happen first so that Variable patterns like ?old_0
+            # only match existing values, not values about to be inserted.
+            for op in operations:
+                if op.materialize_deletes:
+                    delete_sparql = _build_delete_where_sparql(
+                        CURRENT_GRAPH_IRI, op.materialize_deletes
+                    )
+                    await self._client.transaction_update(txn_url, delete_sparql)
+
+            # Step 3: Materialize inserts into current state graph
             all_inserts: list[tuple] = []
             for op in operations:
                 all_inserts.extend(op.materialize_inserts)
@@ -145,14 +155,6 @@ class EventStore:
                     CURRENT_GRAPH_IRI, all_inserts
                 )
                 await self._client.transaction_update(txn_url, insert_sparql)
-
-            # Step 3: Materialize deletes from current state graph
-            for op in operations:
-                if op.materialize_deletes:
-                    delete_sparql = _build_delete_where_sparql(
-                        CURRENT_GRAPH_IRI, op.materialize_deletes
-                    )
-                    await self._client.transaction_update(txn_url, delete_sparql)
 
             # Commit the transaction (event + materialization are atomic)
             await self._client.commit_transaction(txn_url)
@@ -176,15 +178,17 @@ def _serialize_rdf_term(term) -> str:
     """Serialize an rdflib term to its SPARQL representation.
 
     Handles URIRef (wrapped in <>), Literal (with datatype/language),
-    and BNode.
+    BNode, and Variable (SPARQL ?var).
 
     Args:
-        term: An rdflib URIRef, Literal, or BNode.
+        term: An rdflib URIRef, Literal, BNode, or Variable.
 
     Returns:
         SPARQL-safe string representation.
     """
-    if isinstance(term, URIRef):
+    if isinstance(term, Variable):
+        return f"?{term}"
+    elif isinstance(term, URIRef):
         return f"<{term}>"
     elif isinstance(term, Literal):
         # Escape special characters in the literal value
