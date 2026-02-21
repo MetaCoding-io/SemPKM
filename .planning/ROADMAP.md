@@ -13,7 +13,7 @@ SemPKM delivers a semantics-native personal knowledge management platform throug
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Core Data Foundation** - Event-sourced RDF data path with triplestore, command API, materialized state, and SPARQL reads (completed 2026-02-21)
-- [ ] **Phase 2: Semantic Services** - Label resolution, prefix registry, and async SHACL validation engine
+- [x] **Phase 2: Semantic Services** - Label resolution, prefix registry, and async SHACL validation engine
 - [ ] **Phase 3: Mental Model System** - Install, validate, and manage Mental Model archives; ship the starter Basic PKM model
 - [ ] **Phase 4: Admin Shell and Object Creation** - First user-facing surfaces: admin portal, IDE workspace, SHACL-driven forms, object pages, and lint panel
 - [ ] **Phase 5: Data Browsing and Visualization** - Table, cards, and graph renderers with view spec execution completing the create/browse/explore loop
@@ -50,7 +50,7 @@ Plans:
 
 Plans:
 - [x] 02-01-PLAN.md — Prefix registry and label resolution service (three-layer prefix lookup, SPARQL COALESCE batch labels, TTLCache, LOV import)
-- [ ] 02-02-PLAN.md — Async SHACL validation engine and reports (pyshacl queue worker, immutable report named graphs, polling endpoint, command commit trigger)
+- [x] 02-02-PLAN.md — Async SHACL validation engine and reports (pyshacl queue worker, immutable report named graphs, polling endpoint, command commit trigger)
 
 ### Phase 3: Mental Model System
 **Goal**: Users can install domain experiences as Mental Model archives that bundle ontologies, shapes, views, and seed data into the system

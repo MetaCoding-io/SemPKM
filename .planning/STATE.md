@@ -5,21 +5,21 @@
 See: .planning/PROJECT.md (updated 2026-02-21)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations -- no blank-page syndrome, no schema setup.
-**Current focus:** Phase 2: Semantic Services -- Plan 01 complete, Plan 02 next
+**Current focus:** Phase 2: Semantic Services -- Complete. Phase 3 next.
 
 ## Current Position
 
-Phase: 2 of 5 (Semantic Services)
-Plan: 1 of 2 in current phase
-Status: In Progress
-Last activity: 2026-02-21 -- Completed 02-01 Prefix Registry and Label Resolution
+Phase: 3 of 5 (Mental Models)
+Plan: 0 of ? in current phase
+Status: Phase 2 Complete
+Last activity: 2026-02-21 -- Completed 02-02 SHACL Validation Engine
 
-Progress: [██████░░░░] 30%
+Progress: [███████░░░] 40%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
+- Total plans completed: 6
 - Average duration: 5min
 - Total execution time: 0.5 hours
 
@@ -28,10 +28,10 @@ Progress: [██████░░░░] 30%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Core Data Foundation | 4 | 23min | 6min |
-| 2. Semantic Services | 1 | 4min | 4min |
+| 2. Semantic Services | 2 | 9min | 5min |
 
 **Recent Trend:**
-- Last 5 plans: 5min, 7min, 4min, 4min
+- Last 5 plans: 7min, 4min, 4min, 5min
 - Trend: stable
 
 *Updated after each plan completion*
@@ -59,6 +59,10 @@ Recent decisions affecting current work:
 - [02-01]: Lazy reverse map caching for compact() with invalidation on any layer mutation
 - [02-01]: SPARQL FILTER(LANG() = "" || LANG() = "en") to accept both untagged and language-matched literals
 - [02-01]: FROM <urn:sempkm:current> scoping in label SPARQL query for correct graph isolation
+- [02-02]: Queue coalescing for rapid edits: drain pending jobs and validate only the latest
+- [02-02]: In-memory latest_report cache on AsyncValidationQueue for fast polling
+- [02-02]: Empty shapes loader returns synthetic conforms=True until Phase 3 provides real shapes
+- [02-02]: Validation reports stored in two named graphs: per-report + shared summary graph
 
 ### Pending Todos
 
@@ -72,5 +76,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Completed 02-01-PLAN.md (Prefix Registry and Label Resolution)
+Stopped at: Completed 02-02-PLAN.md (SHACL Validation Engine)
 Resume file: None

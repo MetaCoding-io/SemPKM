@@ -17,11 +17,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### SHACL Validation & Forms
 
-- [ ] **SHCL-01**: System runs SHACL validation asynchronously after each commit (non-blocking UI)
+- [x] **SHCL-01**: System runs SHACL validation asynchronously after each commit (non-blocking UI)
 - [ ] **SHCL-02**: User can see validation results in a lint panel showing violations and warnings per object
 - [ ] **SHCL-03**: User can create objects via forms auto-generated from SHACL shapes (sh:property, sh:order, sh:group, sh:name, sh:datatype, sh:class, sh:in, sh:defaultValue)
 - [ ] **SHCL-04**: User can edit existing objects via the same SHACL-driven forms
-- [ ] **SHCL-05**: System persists immutable SHACL validation reports tied to each commit
+- [x] **SHCL-05**: System persists immutable SHACL validation reports tied to each commit
 - [ ] **SHCL-06**: Violations block conformance-required operations (publish/export); warnings do not block any operations
 
 ### Mental Models
@@ -126,11 +126,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CORE-03 | Phase 1 | Complete |
 | CORE-04 | Phase 1 | Complete |
 | CORE-05 | Phase 1 | Complete |
-| SHCL-01 | Phase 2 | Pending |
+| SHCL-01 | Phase 2 | Complete |
 | SHCL-02 | Phase 4 | Pending |
 | SHCL-03 | Phase 4 | Pending |
 | SHCL-04 | Phase 4 | Pending |
-| SHCL-05 | Phase 2 | Pending |
+| SHCL-05 | Phase 2 | Complete |
 | SHCL-06 | Phase 4 | Pending |
 | MODL-01 | Phase 3 | Pending |
 | MODL-02 | Phase 3 | Pending |
