@@ -1,0 +1,25 @@
+[project]
+name = "sempkm"
+version = "0.1.0"
+description = "SemPKM - Semantics-native Personal Knowledge Management"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard]",
+    "rdflib>=7.5.0",
+    "httpx>=0.28",
+    "pydantic-settings",
+    "jinja2",
+    "jinja2-fragments",
+    "uvicorn",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "httpx",
+]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.backends._legacy:_Backend"
