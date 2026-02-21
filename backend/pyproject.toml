@@ -11,6 +11,8 @@ dependencies = [
     "jinja2",
     "jinja2-fragments",
     "uvicorn",
+    "pyshacl>=0.31.0",
+    "cachetools>=7.0",
 ]
 
 [project.optional-dependencies]
