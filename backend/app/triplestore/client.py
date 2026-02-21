@@ -117,6 +117,20 @@ class TriplestoreClient:
         resp.raise_for_status()
         return resp.json()
 
+    async def construct(self, sparql: str) -> bytes:
+        """Execute a SPARQL CONSTRUCT and return raw Turtle bytes.
+
+        POST to {base_url}/repositories/{repo_id} with form-encoded query
+        and Accept: text/turtle to get Turtle-serialized results.
+        """
+        resp = await self._client.post(
+            self._repo_url,
+            data={"query": sparql},
+            headers={"Accept": "text/turtle"},
+        )
+        resp.raise_for_status()
+        return resp.content
+
     async def close(self) -> None:
         """Close the underlying httpx client."""
         await self._client.aclose()
