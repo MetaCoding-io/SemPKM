@@ -8,6 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
+from app.commands.router import router as commands_router
 from app.health.router import router as health_router
 from app.triplestore.client import TriplestoreClient
 from app.triplestore.setup import ensure_repository
@@ -64,4 +65,5 @@ app.add_middleware(
 )
 
 # Include routers
+app.include_router(commands_router)
 app.include_router(health_router)
