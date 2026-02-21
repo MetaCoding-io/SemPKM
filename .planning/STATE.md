@@ -5,21 +5,21 @@
 See: .planning/PROJECT.md (updated 2026-02-21)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations -- no blank-page syndrome, no schema setup.
-**Current focus:** Phase 2: Semantic Services -- Complete. Phase 3 next.
+**Current focus:** Phase 3: Mental Model System -- In Progress.
 
 ## Current Position
 
 Phase: 3 of 5 (Mental Models)
-Plan: 0 of ? in current phase
-Status: Phase 2 Complete
-Last activity: 2026-02-21 -- Completed 02-02 SHACL Validation Engine
+Plan: 1 of 3 in current phase
+Status: Executing Phase 3
+Last activity: 2026-02-21 -- Completed 03-01 Model Domain Module
 
-Progress: [███████░░░] 40%
+Progress: [████████░░] 47%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
+- Total plans completed: 7
 - Average duration: 5min
 - Total execution time: 0.5 hours
 
@@ -29,9 +29,10 @@ Progress: [███████░░░] 40%
 |-------|-------|-------|----------|
 | 1. Core Data Foundation | 4 | 23min | 6min |
 | 2. Semantic Services | 2 | 9min | 5min |
+| 3. Mental Model System | 1 | 4min | 4min |
 
 **Recent Trend:**
-- Last 5 plans: 7min, 4min, 4min, 5min
+- Last 5 plans: 4min, 4min, 5min, 4min
 - Trend: stable
 
 *Updated after each plan completion*
@@ -63,6 +64,9 @@ Recent decisions affecting current work:
 - [02-02]: In-memory latest_report cache on AsyncValidationQueue for fast polling
 - [02-02]: Empty shapes loader returns synthetic conforms=True until Phase 3 provides real shapes
 - [02-02]: Validation reports stored in two named graphs: per-report + shared summary graph
+- [03-01]: Copied _rdf_term_to_sparql into registry.py to avoid cross-module coupling between models and services
+- [03-01]: Remote @context URL detection reads raw JSON before rdflib parsing to prevent Docker fetch failures
+- [03-01]: Triple-by-triple SPARQL INSERT DATA serialization (not N-Triples) per Research Pitfall 2
 
 ### Pending Todos
 
@@ -76,5 +80,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Completed 02-02-PLAN.md (SHACL Validation Engine)
+Stopped at: Completed 03-01-PLAN.md (Model Domain Module)
 Resume file: None
