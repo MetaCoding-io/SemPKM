@@ -49,7 +49,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Prefix registry and label resolution service (three-layer prefix lookup, SPARQL COALESCE batch labels, TTLCache, LOV import)
+- [x] 02-01-PLAN.md — Prefix registry and label resolution service (three-layer prefix lookup, SPARQL COALESCE batch labels, TTLCache, LOV import)
 - [ ] 02-02-PLAN.md — Async SHACL validation engine and reports (pyshacl queue worker, immutable report named graphs, polling endpoint, command commit trigger)
 
 ### Phase 3: Mental Model System
@@ -110,11 +110,11 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Core Data Foundation | 4/4 | Complete    | 2026-02-21 |
-| 2. Semantic Services | 0/2 | Planned | - |
+| 2. Semantic Services | 1/2 | In Progress | - |
 | 3. Mental Model System | 0/0 | Not started | - |
 | 4. Admin Shell and Object Creation | 0/0 | Not started | - |
 | 5. Data Browsing and Visualization | 0/0 | Not started | - |
 
 ---
 *Roadmap created: 2026-02-21*
-*Last updated: 2026-02-21 after Phase 2 planning*
+*Last updated: 2026-02-21 after 02-01 completion*
