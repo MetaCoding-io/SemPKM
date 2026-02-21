@@ -3,6 +3,7 @@
 from fastapi import Request
 
 from app.services.labels import LabelService
+from app.services.models import ModelService
 from app.services.prefixes import PrefixRegistry
 from app.services.validation import ValidationService
 from app.triplestore.client import TriplestoreClient
@@ -52,3 +53,12 @@ async def get_validation_service(request: Request) -> ValidationService:
     app.state.validation_service.
     """
     return request.app.state.validation_service
+
+
+async def get_model_service(request: Request) -> ModelService:
+    """Get the ModelService instance from app state.
+
+    The service is created during app lifespan startup and stored on
+    app.state.model_service.
+    """
+    return request.app.state.model_service

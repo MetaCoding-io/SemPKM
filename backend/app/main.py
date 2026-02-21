@@ -2,6 +2,7 @@
 
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 import httpx
 from fastapi import FastAPI
@@ -9,10 +10,13 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.commands.router import router as commands_router
+from app.events.store import EventStore
 from app.health.router import router as health_router
+from app.models.router import router as models_router
 from app.services.labels import LabelService
+from app.services.models import ModelService, model_shapes_loader, ensure_starter_model
 from app.services.prefixes import PrefixRegistry
-from app.services.validation import ValidationService, empty_shapes_loader
+from app.services.validation import ValidationService
 from app.sparql.router import router as sparql_router
 from app.triplestore.client import TriplestoreClient
 from app.triplestore.setup import ensure_repository
@@ -54,8 +58,23 @@ async def lifespan(app: FastAPI):
     label_service = LabelService(client, prefix_registry)
     app.state.label_service = label_service
 
-    # Create validation service and async queue
-    validation_service = ValidationService(client, empty_shapes_loader)
+    # Create event store and model service
+    event_store = EventStore(client)
+    app.state.event_store = event_store
+
+    model_service = ModelService(client, event_store, prefix_registry)
+    app.state.model_service = model_service
+
+    # Auto-install starter model if no models are installed
+    # models/ directory is mounted at /app/models in the container
+    starter_model_path = Path("/app/models/basic-pkm")
+    await ensure_starter_model(model_service, starter_model_path)
+
+    # Create validation service with real shapes loader (replaces empty_shapes_loader)
+    async def shapes_loader():
+        return await model_shapes_loader(client)
+
+    validation_service = ValidationService(client, shapes_loader)
     app.state.validation_service = validation_service
 
     validation_queue = AsyncValidationQueue(validation_service)
@@ -89,5 +108,6 @@ app.add_middleware(
 # Include routers
 app.include_router(commands_router)
 app.include_router(health_router)
+app.include_router(models_router)
 app.include_router(sparql_router)
 app.include_router(validation_router)
