@@ -10,27 +10,27 @@ See: .planning/PROJECT.md (updated 2026-02-21)
 ## Current Position
 
 Phase: 1 of 5 (Core Data Foundation)
-Plan: 2 of 4 in current phase
+Plan: 3 of 4 in current phase
 Status: Executing
-Last activity: 2026-02-21 -- Completed 01-02 Event Store and RDF Core
+Last activity: 2026-02-21 -- Completed 01-03 Command API
 
-Progress: [███░░░░░░░] 10%
+Progress: [████░░░░░░] 15%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 2
+- Total plans completed: 3
 - Average duration: 6min
-- Total execution time: 0.2 hours
+- Total execution time: 0.3 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 1. Core Data Foundation | 2 | 12min | 6min |
+| 1. Core Data Foundation | 3 | 19min | 6min |
 
 **Recent Trend:**
-- Last 5 plans: 7min, 5min
+- Last 5 plans: 7min, 5min, 7min
 - Trend: stable
 
 *Updated after each plan completion*
@@ -50,6 +50,8 @@ Recent decisions affecting current work:
 - [01-01]: Sentinel triple pattern to prevent RDF4J empty graph deletion
 - [01-02]: Dev volume mount for backend/app source in docker-compose.yml for live code reload
 - [01-02]: Raw SPARQL body with Content-Type: application/sparql-update for RDF4J transaction updates
+- [01-03]: Fixed EventStore materialization order: deletes before inserts for correct patch semantics
+- [01-03]: Added rdflib Variable support to _serialize_rdf_term for SPARQL DELETE WHERE patterns
 
 ### Pending Todos
 
@@ -63,5 +65,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Completed 01-02-PLAN.md (Event Store and RDF Core)
+Stopped at: Completed 01-03-PLAN.md (Command API)
 Resume file: None
