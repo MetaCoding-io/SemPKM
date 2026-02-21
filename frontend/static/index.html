@@ -4,9 +4,65 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SemPKM Dev Console</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <script src="/js/app.js"></script>
 </head>
 <body>
-    <h1>SemPKM Dev Console</h1>
-    <p>Development console placeholder. Full dev console will be implemented in Plan 01-04.</p>
+    <nav>
+        <div class="nav-inner">
+            <a href="/" class="brand">SemPKM</a>
+            <a href="/" class="active">Health</a>
+            <a href="/sparql.html">SPARQL</a>
+            <a href="/commands.html">Commands</a>
+        </div>
+    </nav>
+
+    <main>
+        <h1>System Health</h1>
+
+        <div class="card">
+            <h2>Service Status</h2>
+            <div id="health-data">
+                <p class="loading">Loading health data...</p>
+            </div>
+            <div id="health-raw"
+                 hx-get="/api/health"
+                 hx-trigger="load"
+                 hx-swap="none"
+                 style="display:none;">
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>About SemPKM</h2>
+            <p>
+                SemPKM is a semantic personal knowledge management system built on
+                event-sourced RDF. It stores knowledge as linked data triples in an
+                RDF4J triplestore, using an immutable event log for all writes and
+                a materialized current state graph for reads.
+            </p>
+            <p>
+                Use this dev console to interact with the system: run SPARQL queries
+                against the knowledge graph, create and modify objects via commands,
+                and monitor system health.
+            </p>
+        </div>
+    </main>
+
+    <script>
+        // Listen for htmx response to render health data
+        document.body.addEventListener("htmx:afterRequest", function(event) {
+            if (event.detail.pathInfo && event.detail.pathInfo.requestPath === "/api/health") {
+                try {
+                    var data = JSON.parse(event.detail.xhr.responseText);
+                    renderHealthData(data);
+                } catch (e) {
+                    document.getElementById("health-data").innerHTML =
+                        '<div class="error-box">Failed to load health data: ' + e.message + '</div>';
+                }
+            }
+        });
+    </script>
 </body>
 </html>
