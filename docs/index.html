@@ -201,6 +201,52 @@ section {
   pointer-events: none;
 }
 
+/* Network graph canvas */
+.hero-graph {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* RDF text background */
+.hero-rdf {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.hero-rdf span {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: rgba(232, 119, 46, 0.07);
+  white-space: nowrap;
+  animation: rdf-drift 40s linear infinite;
+  line-height: 1.8;
+}
+
+@keyframes rdf-drift {
+  0% { transform: translateY(0); opacity: 0; }
+  5% { opacity: 1; }
+  95% { opacity: 1; }
+  100% { transform: translateY(-30px); opacity: 0; }
+}
+
+/* Ensure all page content sits above fixed background */
+.nav, section, footer {
+  position: relative;
+  z-index: 1;
+}
+
 .hero-title {
   font-size: clamp(2.5rem, 6vw, 4rem);
   font-weight: 800;
@@ -655,6 +701,25 @@ section {
   </div>
 </nav>
 
+<!-- Persistent background layers -->
+<canvas class="hero-graph" id="heroGraph"></canvas>
+<div class="hero-rdf" aria-hidden="true">
+  <span style="top:12%;left:4%">@prefix rdf: &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#&gt; .</span>
+  <span style="top:22%;left:68%">@prefix sh: &lt;http://www.w3.org/ns/shacl#&gt; .</span>
+  <span style="top:8%;left:52%">:Project a owl:Class ;</span>
+  <span style="top:38%;left:2%">  sh:property [ sh:path :name ; sh:datatype xsd:string ] .</span>
+  <span style="top:55%;left:72%">:hasContributor a rdf:Property ;</span>
+  <span style="top:65%;left:8%">  rdfs:domain :Project ; rdfs:range :Person .</span>
+  <span style="top:75%;left:58%">SELECT ?s ?p ?o WHERE { ?s ?p ?o }</span>
+  <span style="top:45%;left:42%">@prefix dcterms: &lt;http://purl.org/dc/terms/&gt; .</span>
+  <span style="top:82%;left:15%">:note1 dcterms:created "2026-02-21"^^xsd:date .</span>
+  <span style="top:30%;left:30%">:Person sh:targetClass :Person ;</span>
+  <span style="top:50%;left:5%">  skos:prefLabel "Knowledge Graph"@en .</span>
+  <span style="top:18%;left:35%">@prefix skos: &lt;http://www.w3.org/2004/02/skos/core#&gt; .</span>
+  <span style="top:70%;left:40%">:edge1 a sempkm:Edge ; sempkm:predicate :relatedTo .</span>
+  <span style="top:88%;left:55%">CONSTRUCT { ?s ?p ?o } WHERE { ?s a :Concept }</span>
+</div>
+
 <!-- Hero -->
 <section class="hero">
   <div class="container">
@@ -887,6 +952,85 @@ section {
     a.addEventListener('click', function() {
       links.classList.remove('open');
     });
+  });
+})();
+
+// Network graph background animation
+(function() {
+  var canvas = document.getElementById('heroGraph');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var nodes = [];
+  var nodeCount = 40;
+  var maxDist = 150;
+  var accentR = 232, accentG = 119, accentB = 46;
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+
+  function initNodes() {
+    nodes = [];
+    for (var i = 0; i < nodeCount; i++) {
+      nodes.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.3,
+        r: Math.random() * 2 + 1.5
+      });
+    }
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw edges
+    for (var i = 0; i < nodes.length; i++) {
+      for (var j = i + 1; j < nodes.length; j++) {
+        var dx = nodes[i].x - nodes[j].x;
+        var dy = nodes[i].y - nodes[j].y;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < maxDist) {
+          var alpha = (1 - dist / maxDist) * 0.12;
+          ctx.beginPath();
+          ctx.moveTo(nodes[i].x, nodes[i].y);
+          ctx.lineTo(nodes[j].x, nodes[j].y);
+          ctx.strokeStyle = 'rgba(' + accentR + ',' + accentG + ',' + accentB + ',' + alpha + ')';
+          ctx.lineWidth = 0.8;
+          ctx.stroke();
+        }
+      }
+    }
+
+    // Draw nodes
+    for (var k = 0; k < nodes.length; k++) {
+      var n = nodes[k];
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(' + accentR + ',' + accentG + ',' + accentB + ', 0.2)';
+      ctx.fill();
+
+      // Move
+      n.x += n.vx;
+      n.y += n.vy;
+
+      // Bounce off edges
+      if (n.x < 0 || n.x > canvas.width) n.vx *= -1;
+      if (n.y < 0 || n.y > canvas.height) n.vy *= -1;
+    }
+
+    requestAnimationFrame(draw);
+  }
+
+  resize();
+  initNodes();
+  draw();
+
+  window.addEventListener('resize', function() {
+    resize();
+    initNodes();
   });
 })();
 
