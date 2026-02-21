@@ -10,16 +10,16 @@ See: .planning/PROJECT.md (updated 2026-02-21)
 ## Current Position
 
 Phase: 3 of 5 (Mental Models)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: Executing Phase 3
-Last activity: 2026-02-21 -- Completed 03-01 Model Domain Module
+Last activity: 2026-02-21 -- Completed 03-02 Basic PKM Starter Model
 
-Progress: [████████░░] 47%
+Progress: [████████░░] 53%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
+- Total plans completed: 8
 - Average duration: 5min
 - Total execution time: 0.5 hours
 
@@ -29,7 +29,7 @@ Progress: [████████░░] 47%
 |-------|-------|-------|----------|
 | 1. Core Data Foundation | 4 | 23min | 6min |
 | 2. Semantic Services | 2 | 9min | 5min |
-| 3. Mental Model System | 1 | 4min | 4min |
+| 3. Mental Model System | 2 | 12min | 6min |
 
 **Recent Trend:**
 - Last 5 plans: 4min, 4min, 5min, 4min
@@ -67,6 +67,10 @@ Recent decisions affecting current work:
 - [03-01]: Copied _rdf_term_to_sparql into registry.py to avoid cross-module coupling between models and services
 - [03-01]: Remote @context URL detection reads raw JSON before rdflib parsing to prevent Docker fetch failures
 - [03-01]: Triple-by-triple SPARQL INSERT DATA serialization (not N-Triples) per Research Pitfall 2
+- [03-02]: All JSON-LD uses inline @context only — no remote URLs for Docker compatibility
+- [03-02]: Standard vocabularies (FOAF, DC, Schema.org, SKOS) for well-known properties; bpkm: for model-specific
+- [03-02]: SPARQL queries in view specs use full IRIs since stored as string literals
+- [03-02]: Seed data uses bpkm:seed- prefixed IRIs to distinguish from user data
 
 ### Pending Todos
 
@@ -80,5 +84,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Completed 03-01-PLAN.md (Model Domain Module)
+Stopped at: Completed 03-02-PLAN.md (Basic PKM Starter Model)
 Resume file: None
