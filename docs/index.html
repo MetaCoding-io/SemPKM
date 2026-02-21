@@ -212,35 +212,6 @@ section {
   z-index: 0;
 }
 
-/* RDF text background */
-.hero-rdf {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  pointer-events: none;
-  z-index: 0;
-  overflow: hidden;
-}
-
-.hero-rdf span {
-  position: absolute;
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  color: rgba(232, 119, 46, 0.14);
-  white-space: nowrap;
-  animation: rdf-drift 40s linear infinite;
-  line-height: 1.8;
-}
-
-@keyframes rdf-drift {
-  0% { transform: translateY(0); opacity: 0; }
-  5% { opacity: 1; }
-  95% { opacity: 1; }
-  100% { transform: translateY(-30px); opacity: 0; }
-}
-
 /* Ensure all page content sits above fixed background */
 .nav, section, footer {
   position: relative;
@@ -814,23 +785,6 @@ section {
 
 <!-- Persistent background layers -->
 <canvas class="hero-graph" id="heroGraph"></canvas>
-<div class="hero-rdf" aria-hidden="true">
-  <span style="top:12%;left:4%">@prefix rdf: &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#&gt; .</span>
-  <span style="top:22%;left:68%">@prefix sh: &lt;http://www.w3.org/ns/shacl#&gt; .</span>
-  <span style="top:8%;left:52%">:Project a owl:Class ;</span>
-  <span style="top:38%;left:2%">  sh:property [ sh:path :name ; sh:datatype xsd:string ] .</span>
-  <span style="top:55%;left:72%">:hasContributor a rdf:Property ;</span>
-  <span style="top:65%;left:8%">  rdfs:domain :Project ; rdfs:range :Person .</span>
-  <span style="top:75%;left:58%">SELECT ?s ?p ?o WHERE { ?s ?p ?o }</span>
-  <span style="top:45%;left:42%">@prefix dcterms: &lt;http://purl.org/dc/terms/&gt; .</span>
-  <span style="top:82%;left:15%">:note1 dcterms:created "2026-02-21"^^xsd:date .</span>
-  <span style="top:30%;left:30%">:Person sh:targetClass :Person ;</span>
-  <span style="top:50%;left:5%">  skos:prefLabel "Knowledge Graph"@en .</span>
-  <span style="top:18%;left:35%">@prefix skos: &lt;http://www.w3.org/2004/02/skos/core#&gt; .</span>
-  <span style="top:70%;left:40%">:edge1 a sempkm:Edge ; sempkm:predicate :relatedTo .</span>
-  <span style="top:88%;left:55%">CONSTRUCT { ?s ?p ?o } WHERE { ?s a :Concept }</span>
-</div>
-
 <!-- Hero -->
 <section class="hero">
   <div class="container">
@@ -1511,89 +1465,100 @@ section {
   if (!canvas) return;
   var ctx = canvas.getContext('2d');
   var nodes = [];
-  var nodeCount = 18;
+  var nodeCount = 28;
   var maxDist = 220;
+  // Cluster centers: left and right margins
+  var clusters = [
+    { xFrac: 0.15, yFrac: 0.45 },  // left
+    { xFrac: 0.85, yFrac: 0.45 },  // right
+    { xFrac: 0.2,  yFrac: 0.85 },  // bottom-left
+    { xFrac: 0.8,  yFrac: 0.15 }   // top-right
+  ];
   var time = 0;
 
-  // Node types with colors, size ranges, and icon draw functions
+  // Node types: matches the screenshot graph (project, task, person)
   var types = [
-    { name: 'project',  color: [232, 119, 46],  minR: 10, maxR: 16, icon: drawProjectIcon },
-    { name: 'person',   color: [139, 92, 246],   minR: 8,  maxR: 13, icon: drawPersonIcon },
-    { name: 'concept',  color: [34, 197, 94],    minR: 7,  maxR: 12, icon: drawConceptIcon },
-    { name: 'note',     color: [59, 130, 246],   minR: 6,  maxR: 10, icon: drawNoteIcon },
-    { name: 'claim',    color: [245, 158, 11],   minR: 6,  maxR: 10, icon: drawClaimIcon }
+    { name: 'project',  color: [232, 119, 46],  minR: 12, maxR: 18, icon: drawProjectIcon },
+    { name: 'task',     color: [34, 197, 94],    minR: 8,  maxR: 14, icon: drawTaskIcon },
+    { name: 'person',   color: [139, 92, 246],   minR: 8,  maxR: 14, icon: drawPersonIcon }
   ];
+
+  // Names per type (assigned to nodes on init)
+  var namesByType = {
+    project: ['SemPKM', 'Research', 'Sprint 3', 'v1 Release', 'Onboarding', 'Migration'],
+    task:    ['Build Frontend', 'Design Mockups', 'Write Tests', 'Deploy', 'QA Testing', 'Review PR'],
+    person:  ['Alice', 'Bob', 'Carol', 'Dave', 'Eve', 'Frank']
+  };
+
+  // Edge labels by type pair
+  var edgeLabels = {
+    'project-task': 'hasTask',
+    'task-project': 'hasTask',
+    'task-person': 'assignedTo',
+    'person-task': 'assignedTo',
+    'project-person': 'hasMember',
+    'person-project': 'hasMember',
+    'task-task': 'dependsOn',
+    'project-project': 'relatedTo',
+    'person-person': 'collaborates'
+  };
 
   // Icon drawing functions (drawn at origin, scaled to node radius)
   function drawProjectIcon(ctx, r) {
-    // Folder icon
-    var s = r * 0.45;
-    ctx.beginPath();
-    ctx.moveTo(-s, -s * 0.3);
-    ctx.lineTo(-s, s * 0.7);
-    ctx.lineTo(s, s * 0.7);
-    ctx.lineTo(s, -s * 0.6);
-    ctx.lineTo(s * 0.1, -s * 0.6);
-    ctx.lineTo(-s * 0.15, -s);
-    ctx.lineTo(-s, -s);
-    ctx.closePath();
-    ctx.fill();
-  }
-
-  function drawPersonIcon(ctx, r) {
-    // Person silhouette
+    // Clipboard with checkboxes (matches screenshot)
     var s = r * 0.4;
+    // Clipboard body
     ctx.beginPath();
-    ctx.arc(0, -s * 0.5, s * 0.55, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.rect(-s * 0.7, -s * 0.6, s * 1.4, s * 1.8);
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+    // Clip tab
     ctx.beginPath();
-    ctx.ellipse(0, s * 0.7, s * 0.9, s * 0.6, 0, Math.PI, 0, true);
-    ctx.fill();
-  }
-
-  function drawConceptIcon(ctx, r) {
-    // Lightbulb / star burst
-    var s = r * 0.4;
-    for (var i = 0; i < 6; i++) {
-      var angle = (i / 6) * Math.PI * 2 - Math.PI / 2;
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(Math.cos(angle) * s, Math.sin(angle) * s);
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-    }
-    ctx.beginPath();
-    ctx.arc(0, 0, s * 0.3, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  function drawNoteIcon(ctx, r) {
-    // Document / page
-    var s = r * 0.4;
-    ctx.beginPath();
-    ctx.rect(-s * 0.7, -s, s * 1.4, s * 2);
-    ctx.fill();
-    // Lines
-    ctx.beginPath();
-    ctx.moveTo(-s * 0.4, -s * 0.4);
-    ctx.lineTo(s * 0.4, -s * 0.4);
-    ctx.moveTo(-s * 0.4, s * 0.05);
-    ctx.lineTo(s * 0.4, s * 0.05);
-    ctx.moveTo(-s * 0.4, s * 0.5);
-    ctx.lineTo(s * 0.15, s * 0.5);
-    ctx.strokeStyle = 'rgba(10,10,15,0.6)';
+    ctx.rect(-s * 0.3, -s * 0.9, s * 0.6, s * 0.4);
     ctx.lineWidth = 1;
+    ctx.stroke();
+    // Checkbox lines
+    ctx.beginPath();
+    ctx.moveTo(-s * 0.35, -s * 0.1);
+    ctx.lineTo(s * 0.4, -s * 0.1);
+    ctx.moveTo(-s * 0.35, s * 0.35);
+    ctx.lineTo(s * 0.4, s * 0.35);
+    ctx.moveTo(-s * 0.35, s * 0.8);
+    ctx.lineTo(s * 0.4, s * 0.8);
+    ctx.lineWidth = 0.8;
     ctx.stroke();
   }
 
-  function drawClaimIcon(ctx, r) {
-    // Checkmark / badge
+  function drawTaskIcon(ctx, r) {
+    // Checkbox with checkmark (matches screenshot task nodes)
     var s = r * 0.4;
     ctx.beginPath();
-    ctx.moveTo(-s * 0.6, s * 0.1);
-    ctx.lineTo(-s * 0.1, s * 0.7);
-    ctx.lineTo(s * 0.7, -s * 0.6);
-    ctx.lineWidth = 2;
+    ctx.rect(-s * 0.7, -s * 0.7, s * 1.4, s * 1.4);
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+    // Checkmark
+    ctx.beginPath();
+    ctx.moveTo(-s * 0.35, s * 0.05);
+    ctx.lineTo(-s * 0.05, s * 0.4);
+    ctx.lineTo(s * 0.45, -s * 0.35);
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+
+  function drawPersonIcon(ctx, r) {
+    // Person head + shoulders (matches screenshot person nodes)
+    var s = r * 0.4;
+    // Head
+    ctx.beginPath();
+    ctx.arc(0, -s * 0.5, s * 0.5, 0, Math.PI * 2);
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+    // Shoulders
+    ctx.beginPath();
+    ctx.moveTo(-s * 0.8, s * 0.9);
+    ctx.quadraticCurveTo(-s * 0.8, s * 0.2, 0, s * 0.2);
+    ctx.quadraticCurveTo(s * 0.8, s * 0.2, s * 0.8, s * 0.9);
+    ctx.lineWidth = 1.2;
     ctx.stroke();
   }
 
@@ -1602,37 +1567,85 @@ section {
     canvas.height = window.innerHeight;
   }
 
+  // Persistent structural edges (node index pairs) — built after initNodes
+  var structEdges = [];
+
   function initNodes() {
     nodes = [];
+    var nameIndex = { project: 0, task: 0, person: 0 };
     for (var i = 0; i < nodeCount; i++) {
       var type = types[i % types.length];
       var r = type.minR + Math.random() * (type.maxR - type.minR);
+      var pool = namesByType[type.name];
+      var name = pool[nameIndex[type.name] % pool.length];
+      nameIndex[type.name]++;
+      var cluster = clusters[i % clusters.length];
+      var spread = 0.15;
       nodes.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.2,
-        vy: (Math.random() - 0.5) * 0.2,
+        x: (cluster.xFrac + (Math.random() - 0.5) * spread) * canvas.width,
+        y: (cluster.yFrac + (Math.random() - 0.5) * spread) * canvas.height,
+        vx: (Math.random() - 0.5) * 0.25,
+        vy: (Math.random() - 0.5) * 0.25,
         r: r,
         type: type,
+        name: name,
+        cluster: i % clusters.length,
         pulseOffset: Math.random() * Math.PI * 2
       });
     }
+
+    // Build persistent edges: connect nodes within each cluster (project→task→person)
+    structEdges = [];
+    var byCluster = {};
+    for (var si = 0; si < nodes.length; si++) {
+      var cId = nodes[si].cluster;
+      if (!byCluster[cId]) byCluster[cId] = { project: [], task: [], person: [] };
+      byCluster[cId][nodes[si].type.name].push(si);
+    }
+    for (var ci in byCluster) {
+      var cg = byCluster[ci];
+      // Projects → Tasks within cluster
+      for (var pi = 0; pi < cg.project.length; pi++) {
+        for (var ti = 0; ti < cg.task.length; ti++) {
+          structEdges.push({ a: cg.project[pi], b: cg.task[ti] });
+        }
+      }
+      // Tasks → People within cluster
+      for (var ti2 = 0; ti2 < cg.task.length; ti2++) {
+        if (cg.person.length > 0) {
+          var pIdx = ti2 % cg.person.length;
+          structEdges.push({ a: cg.task[ti2], b: cg.person[pIdx] });
+        }
+      }
+    }
   }
+
+  // Cache the mono font string
+  var monoFont = '';
 
   function draw() {
     time += 0.01;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (!monoFont) {
+      monoFont = getComputedStyle(document.documentElement).getPropertyValue('--font-mono').trim();
+    }
 
-    // Draw edges
+    // Draw proximity edges (no labels — just ambient connections)
     ctx.lineWidth = 0.8;
+    var structSet = {};
+    for (var si = 0; si < structEdges.length; si++) {
+      var lo = Math.min(structEdges[si].a, structEdges[si].b);
+      var hi = Math.max(structEdges[si].a, structEdges[si].b);
+      structSet[lo + '-' + hi] = true;
+    }
     for (var i = 0; i < nodes.length; i++) {
       for (var j = i + 1; j < nodes.length; j++) {
+        if (structSet[i + '-' + j]) continue; // drawn separately
         var dx = nodes[i].x - nodes[j].x;
         var dy = nodes[i].y - nodes[j].y;
         var dist = Math.sqrt(dx * dx + dy * dy);
         if (dist < maxDist) {
-          var alpha = (1 - dist / maxDist) * 0.25;
-          // Blend the two node colors for the edge
+          var alpha = (1 - dist / maxDist) * 0.45;
           var cA = nodes[i].type.color;
           var cB = nodes[j].type.color;
           var r = (cA[0] + cB[0]) >> 1;
@@ -1647,7 +1660,48 @@ section {
       }
     }
 
-    // Draw nodes
+    // Draw persistent structural edges — always visible with labels
+    for (var sei = 0; sei < structEdges.length; sei++) {
+      var se = structEdges[sei];
+      var nA = nodes[se.a];
+      var nB = nodes[se.b];
+      var cA2 = nA.type.color;
+      var cB2 = nB.type.color;
+      var sr = (cA2[0] + cB2[0]) >> 1;
+      var sg = (cA2[1] + cB2[1]) >> 1;
+      var sb = (cA2[2] + cB2[2]) >> 1;
+      // Edge line — always at least 0.2 alpha
+      var sdx = nA.x - nB.x;
+      var sdy = nA.y - nB.y;
+      var sDist = Math.sqrt(sdx * sdx + sdy * sdy);
+      var sAlpha = sDist < maxDist ? Math.max((1 - sDist / maxDist) * 0.45, 0.2) : 0.2;
+      ctx.beginPath();
+      ctx.moveTo(nA.x, nA.y);
+      ctx.lineTo(nB.x, nB.y);
+      ctx.strokeStyle = 'rgba(' + sr + ',' + sg + ',' + sb + ',' + sAlpha + ')';
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
+      // Label at midpoint
+      var smx = (nA.x + nB.x) / 2;
+      var smy = (nA.y + nB.y) / 2;
+      var pairKey = nA.type.name + '-' + nB.type.name;
+      var label = edgeLabels[pairKey] || 'relatedTo';
+      var sAngle = Math.atan2(nB.y - nA.y, nB.x - nA.x);
+      if (sAngle > Math.PI / 2) sAngle -= Math.PI;
+      if (sAngle < -Math.PI / 2) sAngle += Math.PI;
+      ctx.save();
+      ctx.translate(smx, smy);
+      ctx.rotate(sAngle);
+      ctx.font = '9px ' + monoFont;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = 'rgba(' + sr + ',' + sg + ',' + sb + ',' + Math.max(sAlpha * 1.2, 0.25) + ')';
+      ctx.fillText(label, 0, -7);
+      ctx.restore();
+    }
+
+    // Draw nodes with name labels
+    var pad = 30; // keep nodes (and labels) on screen
     for (var k = 0; k < nodes.length; k++) {
       var n = nodes[k];
       var c = n.type.color;
@@ -1681,13 +1735,80 @@ section {
       n.type.icon(ctx, drawR);
       ctx.restore();
 
-      // Move
-      n.x += n.vx;
-      n.y += n.vy;
+      // Node name label below
+      ctx.font = '11px ' + monoFont;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ', 0.5)';
+      ctx.fillText(n.name, n.x, n.y + drawR + 5);
 
-      // Bounce off edges
-      if (n.x < 0 || n.x > canvas.width) n.vx *= -1;
-      if (n.y < 0 || n.y > canvas.height) n.vy *= -1;
+    }
+
+    // Physics: cluster gravity + structural spring forces + soft repulsion
+    var gravity = 0.00008;
+    var springK = 0.0001;
+    var idealDist = 180;
+    var repulse = 0.3;
+    var minSep = 60;
+
+    for (var pi = 0; pi < nodes.length; pi++) {
+      var pn = nodes[pi];
+      // Pull toward own cluster center
+      var cl = clusters[pn.cluster];
+      var clx = cl.xFrac * canvas.width;
+      var cly = cl.yFrac * canvas.height;
+      pn.vx += (clx - pn.x) * gravity;
+      pn.vy += (cly - pn.y) * gravity;
+
+      // Soft repulsion from nearby nodes (avoid overlap)
+      for (var pj = pi + 1; pj < nodes.length; pj++) {
+        var on = nodes[pj];
+        var rdx = pn.x - on.x;
+        var rdy = pn.y - on.y;
+        var rDist = Math.sqrt(rdx * rdx + rdy * rdy);
+        if (rDist < minSep && rDist > 0) {
+          var push = (minSep - rDist) / minSep * repulse;
+          var rnx = rdx / rDist;
+          var rny = rdy / rDist;
+          pn.vx += rnx * push * 0.01;
+          pn.vy += rny * push * 0.01;
+          on.vx -= rnx * push * 0.01;
+          on.vy -= rny * push * 0.01;
+        }
+      }
+    }
+
+    // Structural spring: pull connected nodes toward idealDist
+    for (var spi = 0; spi < structEdges.length; spi++) {
+      var spA = nodes[structEdges[spi].a];
+      var spB = nodes[structEdges[spi].b];
+      var spdx = spB.x - spA.x;
+      var spdy = spB.y - spA.y;
+      var spDist = Math.sqrt(spdx * spdx + spdy * spdy);
+      if (spDist > 0) {
+        var spForce = (spDist - idealDist) * springK;
+        var spnx = spdx / spDist;
+        var spny = spdy / spDist;
+        spA.vx += spnx * spForce;
+        spA.vy += spny * spForce;
+        spB.vx -= spnx * spForce;
+        spB.vy -= spny * spForce;
+      }
+    }
+
+    // Apply velocity + clamp to screen
+    for (var mi = 0; mi < nodes.length; mi++) {
+      var mn = nodes[mi];
+      // Damping
+      mn.vx *= 0.97;
+      mn.vy *= 0.97;
+      mn.x += mn.vx;
+      mn.y += mn.vy;
+      // Keep on screen
+      if (mn.x < pad) { mn.x = pad; mn.vx *= -0.5; }
+      if (mn.x > canvas.width - pad) { mn.x = canvas.width - pad; mn.vx *= -0.5; }
+      if (mn.y < pad) { mn.y = pad; mn.vy *= -0.5; }
+      if (mn.y > canvas.height - pad) { mn.y = canvas.height - pad; mn.vy *= -0.5; }
     }
 
     requestAnimationFrame(draw);
