@@ -1,0 +1,29 @@
+@prefix ex:     <https://example.org/ont/> .
+@prefix dcterms:<http://purl.org/dc/terms/> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+
+# Seed people
+<https://pkm.example.com/objects/Person/1> a ex:Person ;
+  rdfs:label "Aria" .
+
+<https://pkm.example.com/objects/Person/2> a ex:Person ;
+  rdfs:label "Niko" .
+
+# Seed concept tags
+<https://pkm.example.com/objects/Concept/1> a ex:Concept ;
+  skos:prefLabel "Research" .
+
+<https://pkm.example.com/objects/Concept/2> a ex:Concept ;
+  skos:prefLabel "Infrastructure" ;
+  skos:related <https://pkm.example.com/objects/Concept/1> .
+
+# Seed project
+<https://pkm.example.com/objects/Project/100> a ex:Project ;
+  dcterms:title "Project Aurora" ;
+  ex:status "Active" ;
+  ex:hasMember <https://pkm.example.com/objects/Person/1>,
+               <https://pkm.example.com/objects/Person/2> ;
+  ex:tag <https://pkm.example.com/objects/Concept/1>,
+         <https://pkm.example.com/objects/Concept/2> .

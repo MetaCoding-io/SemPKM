@@ -1,0 +1,37 @@
+id: "view:project:table"
+name: "Projects"
+renderer: "table"
+query:
+  language: "sparql"
+  type: "select"
+  text: |
+    PREFIX ex: <https://example.org/ont/>
+    PREFIX dcterms: <http://purl.org/dc/terms/>
+
+    SELECT ?project ?title ?status WHERE {
+      ?project a ex:Project ;
+               dcterms:title ?title .
+      OPTIONAL { ?project ex:status ?status }
+    }
+layout:
+  columns:
+    - key: project
+      label: Project
+      type: iri
+      linkToObject: true
+    - key: title
+      label: Title
+      type: string
+    - key: status
+      label: Status
+      type: string
+defaults:
+  pageSize: 50
+  sort:
+    - key: title
+      direction: asc
+actions:
+  - type: "createObject"
+    label: "New Project"
+    args:
+      type: "https://example.org/ont/Project"

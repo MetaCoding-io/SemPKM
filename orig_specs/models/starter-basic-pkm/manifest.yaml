@@ -1,0 +1,30 @@
+modelId: "model:starter-basic-pkm"
+name: "Starter Basic PKM"
+description: "Notes, Projects, People, and Concepts with SHACL-driven forms, dashboards, and filesystem projections."
+author: "SemPKM"
+license: "Apache-2.0"
+version: "0.1.0"
+sempkmMinVersion: "0.1.0"
+
+entrypoints:
+  ontology:
+    - "ontology.ttl"
+  shapes:
+    - "shapes.ttl"
+  views:
+    - "views/project.table.view.yaml"
+    - "views/project.members.table.view.yaml"
+    - "views/project.dashboard.yaml"
+    - "views/dashboards.yaml"
+  projections:
+    - "projections/obsidian.yaml"
+  seed:
+    - "seed/seed.ttl"
+
+# Cross-model embedding is private-by-default. Export only what you want others to embed.
+exports:
+  views:
+    - "view:project:table"
+    - "view:project:members"
+  dashboards:
+    - "dashboard:project"

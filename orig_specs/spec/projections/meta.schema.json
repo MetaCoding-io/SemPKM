@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sempkm.org/schemas/projections/meta.schema.json",
+  "title": "SemPKM Projection Object Metadata Sidecar (sempkm.meta.v1)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "iri", "types", "labels", "body", "projection"],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "sempkm.meta.v1"
+    },
+    "iri": {
+      "type": "string",
+      "format": "uri"
+    },
+    "types": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "format": "uri" },
+      "uniqueItems": true
+    },
+    "labels": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["preferred"],
+      "properties": {
+        "preferred": { "type": "string", "minLength": 1 },
+        "aliases": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true,
+          "default": []
+        }
+      }
+    },
+    "properties": {
+      "type": "object",
+      "description": "Best-effort subset of object properties. Keys are predicate IRIs; values are arrays of JSON scalar strings in v1.",
+      "propertyNames": { "format": "uri" },
+      "additionalProperties": {
+        "type": "array",
+        "items": { "type": "string" }
+      },
+      "default": {}
+    },
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "contentType"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^\\0]+$"
+        },
+        "contentType": {
+          "type": "string",
+          "const": "text/markdown"
+        }
+      }
+    },
+    "projection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["modelId", "modelVersion", "generatedAt"],
+      "properties": {
+        "modelId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "modelVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "generatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    }
+  }
+}

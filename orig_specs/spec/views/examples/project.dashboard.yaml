@@ -1,0 +1,27 @@
+id: "dashboard:project"
+name: "Project Dashboard"
+renderer: "dashboard"
+params:
+  - name: "contextIri"
+    type: "iri"
+layout:
+  grid:
+    columns: 12
+  panels:
+    - id: "self"
+      type: "objectSelf"
+      title: "Project"
+      position: {x: 0, y: 0, w: 7, h: 10}
+
+    - id: "members"
+      type: "view"
+      title: "Members"
+      viewId: "view:project:members"
+      params:
+        project: "{{contextIri}}"
+      position: {x: 7, y: 0, w: 5, h: 5}
+
+    - id: "lint"
+      type: "lintSummary"
+      title: "Conformance"
+      position: {x: 7, y: 5, w: 5, h: 5}

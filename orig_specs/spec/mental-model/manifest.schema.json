@@ -1,0 +1,38 @@
+
+### `spec/mental-model/manifest.schema.json` (minimal schema starter)
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SemPKM Mental Model Manifest (v1)",
+  "type": "object",
+  "required": ["modelId", "name", "version", "entrypoints"],
+  "properties": {
+    "modelId": { "type": "string" },
+    "name": { "type": "string" },
+    "description": { "type": "string" },
+    "author": { "type": "string" },
+    "license": { "type": "string" },
+    "version": { "type": "string" },
+    "sempkmMinVersion": { "type": "string" },
+    "sempkmMaxVersion": { "type": "string" },
+    "entrypoints": {
+      "type": "object",
+      "required": ["ontology", "shapes", "views", "projections"],
+      "properties": {
+        "ontology": { "type": "array", "items": { "type": "string" } },
+        "shapes": { "type": "array", "items": { "type": "string" } },
+        "views": { "type": "array", "items": { "type": "string" } },
+        "projections": { "type": "array", "items": { "type": "string" } },
+        "seed": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "exports": {
+      "type": "object",
+      "properties": {
+        "views": { "type": "array", "items": { "type": "string" } },
+        "dashboards": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

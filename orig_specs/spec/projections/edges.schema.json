@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sempkm.org/schemas/projections/edges.schema.json",
+  "title": "SemPKM Projection Edges Sidecar (sempkm.edges.v1)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "focus", "edges", "projection"],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "sempkm.edges.v1"
+    },
+    "focus": {
+      "type": "string",
+      "format": "uri",
+      "description": "The object IRI this edges file is about."
+    },
+    "edges": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/edge" },
+      "default": []
+    },
+    "projection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["modelId", "modelVersion", "generatedAt"],
+      "properties": {
+        "modelId": { "type": "string", "minLength": 1 },
+        "modelVersion": { "type": "string", "minLength": 1 },
+        "generatedAt": { "type": "string", "format": "date-time" }
+      }
+    }
+  },
+  "$defs": {
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["edgeId", "direction", "predicate", "object"],
+      "properties": {
+        "edgeId": { "type": "string", "format": "uri" },
+        "direction": {
+          "type": "string",
+          "enum": ["out", "in"]
+        },
+        "predicate": { "type": "string", "format": "uri" },
+
+        "object": {
+          "type": "string",
+          "format": "uri",
+          "description": "For direction=out, this is the target object. For direction=in, this is the source object."
+        },
+        "objectLabel": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional display label for the other end of the edge."
+        },
+
+        "edgeTypes": {
+          "type": "array",
+          "items": { "type": "string", "format": "uri" },
+          "uniqueItems": true,
+          "default": []
+        },
+
+        "annotations": {
+          "type": "object",
+          "description": "Flattened edge metadata. Keys are predicate IRIs; values are JSON scalar strings in v1.",
+          "propertyNames": { "format": "uri" },
+          "additionalProperties": { "type": "string" },
+          "default": {}
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "direction": { "const": "out" } }, "required": ["direction"] },
+          "then": true
+        },
+        {
+          "if": { "properties": { "direction": { "const": "in" } }, "required": ["direction"] },
+          "then": true
+        }
+      ]
+    }
+  }
+}

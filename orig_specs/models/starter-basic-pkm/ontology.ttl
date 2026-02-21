@@ -1,0 +1,65 @@
+@prefix ex:     <https://example.org/ont/> .
+@prefix sempkm: <https://pkm.example.com/ont/> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms:<http://purl.org/dc/terms/> .
+@prefix prov:   <http://www.w3.org/ns/prov#> .
+
+########
+# Core object types
+########
+
+ex:Project a rdfs:Class ;
+  rdfs:label "Project" ;
+  rdfs:comment "A human-facing project object." .
+
+ex:Person a rdfs:Class ;
+  rdfs:label "Person" ;
+  rdfs:comment "A person in the knowledge base." .
+
+ex:Note a rdfs:Class ;
+  rdfs:label "Note" ;
+  rdfs:comment "A note object with a markdown body." .
+
+ex:Concept a rdfs:Class ;
+  rdfs:subClassOf skos:Concept ;
+  rdfs:label "Concept" ;
+  rdfs:comment "A SKOS concept used for tags/topics." .
+
+########
+# Properties
+########
+
+# Reuse DCTERMS for titles/created/modified/creator where possible.
+# Use SKOS for concept labeling and relationships.
+# Use PROV for attribution/provenance (esp. on edges).
+
+ex:status a rdf:Property ;
+  rdfs:label "status" ;
+  rdfs:comment "A lightweight project status string." ;
+  rdfs:range xsd:string .
+
+ex:hasMember a rdf:Property ;
+  rdfs:label "has member" ;
+  rdfs:comment "Project membership relation (Project -> Person)." ;
+  rdfs:domain ex:Project ;
+  rdfs:range ex:Person .
+
+ex:tag a rdf:Property ;
+  rdfs:label "tag" ;
+  rdfs:comment "Relates an object to a Concept tag." ;
+  rdfs:range ex:Concept .
+
+########
+# SemPKM edge resource type (canonical UX identity)
+########
+
+sempkm:Edge a rdfs:Class ;
+  rdfs:label "Edge" ;
+  rdfs:comment "A first-class relationship object with metadata." .
+
+sempkm:subject a rdf:Property ; rdfs:range rdfs:Resource .
+sempkm:predicate a rdf:Property ; rdfs:range rdf:Property .
+sempkm:object a rdf:Property ; rdfs:range rdfs:Resource .

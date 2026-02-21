@@ -1,0 +1,138 @@
+@prefix ex:     <https://example.org/ont/> .
+@prefix sempkm: <https://pkm.example.com/ont/> .
+@prefix sh:     <http://www.w3.org/ns/shacl#> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms:<http://purl.org/dc/terms/> .
+
+########
+# Prefix declarations for UI/editor
+########
+
+ex:PrefixDeclarations a sh:PrefixDeclaration ;
+  sh:prefixes [
+    sh:declare [
+      sh:prefix "ex" ;
+      sh:namespace "https://example.org/ont/"^^xsd:anyURI
+    ] ;
+    sh:declare [
+      sh:prefix "dcterms" ;
+      sh:namespace "http://purl.org/dc/terms/"^^xsd:anyURI
+    ] ;
+    sh:declare [
+      sh:prefix "skos" ;
+      sh:namespace "http://www.w3.org/2004/02/skos/core#"^^xsd:anyURI
+    ] ;
+    sh:declare [
+      sh:prefix "xsd" ;
+      sh:namespace "http://www.w3.org/2001/XMLSchema#"^^xsd:anyURI
+    ]
+  ] .
+
+########
+# Property groups for form layout
+########
+
+ex:GroupBasics a sh:PropertyGroup ;
+  rdfs:label "Basics" ;
+  sh:order 1 .
+
+ex:GroupRelations a sh:PropertyGroup ;
+  rdfs:label "Relationships" ;
+  sh:order 2 .
+
+########
+# Project shape
+########
+
+ex:ProjectShape a sh:NodeShape ;
+  sh:targetClass ex:Project ;
+  sh:property [
+    sh:path dcterms:title ;
+    sh:name "Title" ;
+    sh:description "Human-friendly title for the project." ;
+    sh:datatype xsd:string ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:group ex:GroupBasics ;
+    sh:order 1 ;
+    sh:severity sh:Violation ;
+  ] ;
+  sh:property [
+    sh:path ex:status ;
+    sh:name "Status" ;
+    sh:description "Simple status string (e.g., Active, Paused)." ;
+    sh:datatype xsd:string ;
+    sh:minCount 0 ;
+    sh:maxCount 1 ;
+    sh:group ex:GroupBasics ;
+    sh:order 2 ;
+    sh:severity sh:Warning ;
+  ] ;
+  sh:property [
+    sh:path ex:hasMember ;
+    sh:name "Members" ;
+    sh:description "People associated with this project." ;
+    sh:class ex:Person ;
+    sh:nodeKind sh:IRI ;
+    sh:minCount 0 ;
+    sh:group ex:GroupRelations ;
+    sh:order 1 ;
+    sh:severity sh:Warning ;
+  ] ;
+  sh:property [
+    sh:path ex:tag ;
+    sh:name "Tags" ;
+    sh:description "Concept tags for this object." ;
+    sh:class ex:Concept ;
+    sh:nodeKind sh:IRI ;
+    sh:minCount 0 ;
+    sh:group ex:GroupRelations ;
+    sh:order 2 ;
+    sh:severity sh:Warning ;
+  ] .
+
+########
+# Person shape
+########
+
+ex:PersonShape a sh:NodeShape ;
+  sh:targetClass ex:Person ;
+  sh:property [
+    sh:path rdfs:label ;
+    sh:name "Name" ;
+    sh:datatype xsd:string ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:group ex:GroupBasics ;
+    sh:order 1 ;
+    sh:severity sh:Violation ;
+  ] .
+
+########
+# Concept shape (SKOS)
+########
+
+ex:ConceptShape a sh:NodeShape ;
+  sh:targetClass ex:Concept ;
+  sh:property [
+    sh:path skos:prefLabel ;
+    sh:name "Preferred label" ;
+    sh:datatype xsd:string ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:group ex:GroupBasics ;
+    sh:order 1 ;
+    sh:severity sh:Violation ;
+  ] ;
+  sh:property [
+    sh:path skos:related ;
+    sh:name "Related concepts" ;
+    sh:class ex:Concept ;
+    sh:nodeKind sh:IRI ;
+    sh:group ex:GroupRelations ;
+    sh:order 1 ;
+    sh:severity sh:Warning ;
+  ] .

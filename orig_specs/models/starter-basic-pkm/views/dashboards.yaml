@@ -1,0 +1,5 @@
+defaults:
+  "https://example.org/ont/Project": "dashboard:project"
+available:
+  "https://example.org/ont/Project":
+    - "dashboard:project"

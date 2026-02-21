@@ -1,0 +1,28 @@
+id: "view:project:members"
+name: "Project Members"
+renderer: "table"
+params:
+  - name: "project"
+    type: "iri"
+query:
+  language: "sparql"
+  type: "select"
+  text: |
+    PREFIX ex: <https://example.org/ont/>
+    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+    SELECT ?person ?name WHERE {
+      {{project}} ex:hasMember ?person .
+      OPTIONAL { ?person rdfs:label ?name }
+    }
+layout:
+  columns:
+    - key: person
+      label: Person
+      type: iri
+      linkToObject: true
+    - key: name
+      label: Name
+      type: string
+defaults:
+  pageSize: 50

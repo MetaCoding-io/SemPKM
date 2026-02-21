@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SemPKM View Spec (v1)",
+  "type": "object",
+  "required": ["id", "name", "renderer"],
+  "properties": {
+    "id": { "type": "string" },
+    "name": { "type": "string" },
+    "renderer": {
+      "type": "string",
+      "enum": ["object", "form", "table", "cards", "graph", "dashboard"]
+    },
+    "params": { "type": "array", "items": { "type": "object" } },
+    "query": { "type": "object" },
+    "layout": { "type": "object" },
+    "defaults": { "type": "object" },
+    "actions": { "type": "array", "items": { "type": "object" } }
+  }
+}

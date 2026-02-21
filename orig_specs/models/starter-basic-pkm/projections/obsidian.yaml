@@ -1,0 +1,35 @@
+id: "projection:obsidian"
+name: "Obsidian Read-Only Projection"
+type: "filesystem"
+mode: "readOnly"
+
+# Project only objects in the user's base namespace by default.
+namespacePolicy:
+  includeBaseNamespace: true
+  externalPolicy: "exclude"   # or "stub" in future
+
+# One markdown per object (body).
+body:
+  extension: ".md"
+  contentType: "text/markdown"
+
+# Sidecars
+sidecars:
+  meta:
+    enabled: true
+    filename: "{stem}.meta.json"
+    includeProperties:
+      - "http://purl.org/dc/terms/title"
+      - "https://example.org/ont/status"
+      - "http://www.w3.org/2000/01/rdf-schema#label"
+      - "http://www.w3.org/2004/02/skos/core#prefLabel"
+
+  edges:
+    enabled: true
+    filename: "{stem}.edges.json"
+    includeDirections: ["out", "in"]
+    includeAnnotations: true
+
+# Filename policy: use IRI path segment mapping (v1 global rule); this file may override later.
+naming:
+  strategy: "iriPath"

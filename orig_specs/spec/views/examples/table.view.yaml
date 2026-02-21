@@ -1,0 +1,26 @@
+id: "view:project:table"
+name: "Projects"
+renderer: "table"
+query:
+  language: "sparql"
+  type: "select"
+  text: |
+    SELECT ?project ?title ?status WHERE {
+      ?project a ex:Project ;
+               dcterms:title ?title .
+      OPTIONAL { ?project ex:status ?status }
+    }
+layout:
+  columns:
+    - key: project
+      label: Project
+      type: iri
+      linkToObject: true
+    - key: title
+      label: Title
+      type: string
+    - key: status
+      label: Status
+      type: string
+defaults:
+  pageSize: 50

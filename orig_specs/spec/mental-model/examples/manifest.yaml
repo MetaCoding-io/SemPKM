@@ -1,0 +1,26 @@
+modelId: "model:starter-basic-pkm"
+name: "Starter Basic PKM"
+description: "Notes, Projects, People, Concepts with SHACL-driven UI and basic views."
+author: "SemPKM"
+license: "Apache-2.0"
+version: "0.1.0"
+sempkmMinVersion: "0.1.0"
+
+entrypoints:
+  ontology:
+    - "ontology.ttl"
+  shapes:
+    - "shapes.ttl"
+  views:
+    - "views/project.table.view.yaml"
+    - "views/project.dashboard.yaml"
+  projections:
+    - "projections/obsidian.yaml"
+  seed:
+    - "seed/seed.ttl"
+
+exports:
+  views:
+    - "view:project:table"
+  dashboards:
+    - "dashboard:project"
