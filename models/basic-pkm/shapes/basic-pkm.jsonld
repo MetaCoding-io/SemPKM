@@ -1,0 +1,464 @@
+{
+  "@context": {
+    "sh": "http://www.w3.org/ns/shacl#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "schema": "https://schema.org/",
+    "foaf": "http://xmlns.com/foaf/0.1/",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "bpkm": "urn:sempkm:model:basic-pkm:"
+  },
+  "@graph": [
+    {
+      "@id": "bpkm:ProjectBasicInfoGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Basic Info",
+      "sh:order": 1
+    },
+    {
+      "@id": "bpkm:ProjectDatesGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Dates",
+      "sh:order": 2
+    },
+    {
+      "@id": "bpkm:ProjectRelationshipsGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Relationships",
+      "sh:order": 3
+    },
+    {
+      "@id": "bpkm:ProjectMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 4
+    },
+
+    {
+      "@id": "bpkm:ProjectShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bpkm:Project" },
+      "rdfs:label": "Project Shape",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bpkm:ProjectBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bpkm:ProjectBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "bpkm:status" },
+          "sh:name": "Status",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["active", "completed", "on-hold", "cancelled"] },
+          "sh:defaultValue": "active",
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bpkm:ProjectBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "bpkm:priority" },
+          "sh:name": "Priority",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["low", "medium", "high", "critical"] },
+          "sh:defaultValue": "medium",
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "bpkm:ProjectBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "schema:startDate" },
+          "sh:name": "Start Date",
+          "sh:datatype": { "@id": "xsd:date" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "bpkm:ProjectDatesGroup" }
+        },
+        {
+          "sh:path": { "@id": "schema:endDate" },
+          "sh:name": "End Date",
+          "sh:datatype": { "@id": "xsd:date" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "bpkm:ProjectDatesGroup" }
+        },
+        {
+          "sh:path": { "@id": "bpkm:tags" },
+          "sh:name": "Tags",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:order": 7,
+          "sh:group": { "@id": "bpkm:ProjectMetadataGroup" }
+        },
+        {
+          "sh:path": { "@id": "bpkm:hasParticipant" },
+          "sh:name": "Participants",
+          "sh:class": { "@id": "bpkm:Person" },
+          "sh:order": 8,
+          "sh:group": { "@id": "bpkm:ProjectRelationshipsGroup" }
+        },
+        {
+          "sh:path": { "@id": "bpkm:hasNote" },
+          "sh:name": "Notes",
+          "sh:class": { "@id": "bpkm:Note" },
+          "sh:order": 9,
+          "sh:group": { "@id": "bpkm:ProjectRelationshipsGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 10,
+          "sh:group": { "@id": "bpkm:ProjectMetadataGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:modified" },
+          "sh:name": "Modified",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 11,
+          "sh:group": { "@id": "bpkm:ProjectMetadataGroup" }
+        }
+      ]
+    },
+
+    {
+      "@id": "bpkm:PersonBasicInfoGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Basic Info",
+      "sh:order": 1
+    },
+    {
+      "@id": "bpkm:PersonContactGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Contact",
+      "sh:order": 2
+    },
+    {
+      "@id": "bpkm:PersonRelationshipsGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Relationships",
+      "sh:order": 3
+    },
+    {
+      "@id": "bpkm:PersonMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 4
+    },
+
+    {
+      "@id": "bpkm:PersonShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bpkm:Person" },
+      "rdfs:label": "Person Shape",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "foaf:name" },
+          "sh:name": "Name",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bpkm:PersonBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "foaf:mbox" },
+          "sh:name": "Email",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bpkm:PersonContactGroup" }
+        },
+        {
+          "sh:path": { "@id": "schema:jobTitle" },
+          "sh:name": "Job Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bpkm:PersonBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "schema:worksFor" },
+          "sh:name": "Organization",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "bpkm:PersonBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "foaf:phone" },
+          "sh:name": "Phone",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "bpkm:PersonContactGroup" }
+        },
+        {
+          "sh:path": { "@id": "schema:url" },
+          "sh:name": "URL",
+          "sh:datatype": { "@id": "xsd:anyURI" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "bpkm:PersonContactGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Notes",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 7,
+          "sh:group": { "@id": "bpkm:PersonBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "bpkm:tags" },
+          "sh:name": "Tags",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:order": 8,
+          "sh:group": { "@id": "bpkm:PersonMetadataGroup" }
+        },
+        {
+          "sh:path": { "@id": "bpkm:participatesIn" },
+          "sh:name": "Projects",
+          "sh:class": { "@id": "bpkm:Project" },
+          "sh:order": 9,
+          "sh:group": { "@id": "bpkm:PersonRelationshipsGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 10,
+          "sh:group": { "@id": "bpkm:PersonMetadataGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:modified" },
+          "sh:name": "Modified",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 11,
+          "sh:group": { "@id": "bpkm:PersonMetadataGroup" }
+        }
+      ]
+    },
+
+    {
+      "@id": "bpkm:NoteContentGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Content",
+      "sh:order": 1
+    },
+    {
+      "@id": "bpkm:NoteRelationshipsGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Relationships",
+      "sh:order": 2
+    },
+    {
+      "@id": "bpkm:NoteMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 3
+    },
+
+    {
+      "@id": "bpkm:NoteShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bpkm:Note" },
+      "rdfs:label": "Note Shape",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bpkm:NoteContentGroup" }
+        },
+        {
+          "sh:path": { "@id": "bpkm:body" },
+          "sh:name": "Body",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bpkm:NoteContentGroup" }
+        },
+        {
+          "sh:path": { "@id": "bpkm:noteType" },
+          "sh:name": "Type",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["observation", "idea", "reference", "meeting-note", "journal"] },
+          "sh:defaultValue": "observation",
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bpkm:NoteContentGroup" }
+        },
+        {
+          "sh:path": { "@id": "bpkm:isAbout" },
+          "sh:name": "About Concepts",
+          "sh:class": { "@id": "bpkm:Concept" },
+          "sh:order": 4,
+          "sh:group": { "@id": "bpkm:NoteRelationshipsGroup" }
+        },
+        {
+          "sh:path": { "@id": "bpkm:relatedProject" },
+          "sh:name": "Related Project",
+          "sh:class": { "@id": "bpkm:Project" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "bpkm:NoteRelationshipsGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:source" },
+          "sh:name": "Source URL",
+          "sh:datatype": { "@id": "xsd:anyURI" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "bpkm:NoteContentGroup" }
+        },
+        {
+          "sh:path": { "@id": "bpkm:tags" },
+          "sh:name": "Tags",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:order": 7,
+          "sh:group": { "@id": "bpkm:NoteMetadataGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 8,
+          "sh:group": { "@id": "bpkm:NoteMetadataGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:modified" },
+          "sh:name": "Modified",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 9,
+          "sh:group": { "@id": "bpkm:NoteMetadataGroup" }
+        }
+      ]
+    },
+
+    {
+      "@id": "bpkm:ConceptDefinitionGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Definition",
+      "sh:order": 1
+    },
+    {
+      "@id": "bpkm:ConceptHierarchyGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Hierarchy",
+      "sh:order": 2
+    },
+    {
+      "@id": "bpkm:ConceptMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 3
+    },
+
+    {
+      "@id": "bpkm:ConceptShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bpkm:Concept" },
+      "rdfs:label": "Concept Shape",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "skos:prefLabel" },
+          "sh:name": "Label",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bpkm:ConceptDefinitionGroup" }
+        },
+        {
+          "sh:path": { "@id": "skos:altLabel" },
+          "sh:name": "Alternative Labels",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:order": 2,
+          "sh:group": { "@id": "bpkm:ConceptDefinitionGroup" }
+        },
+        {
+          "sh:path": { "@id": "skos:definition" },
+          "sh:name": "Definition",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bpkm:ConceptDefinitionGroup" }
+        },
+        {
+          "sh:path": { "@id": "skos:broader" },
+          "sh:name": "Broader Concepts",
+          "sh:class": { "@id": "bpkm:Concept" },
+          "sh:order": 4,
+          "sh:group": { "@id": "bpkm:ConceptHierarchyGroup" }
+        },
+        {
+          "sh:path": { "@id": "skos:narrower" },
+          "sh:name": "Narrower Concepts",
+          "sh:class": { "@id": "bpkm:Concept" },
+          "sh:order": 5,
+          "sh:group": { "@id": "bpkm:ConceptHierarchyGroup" }
+        },
+        {
+          "sh:path": { "@id": "skos:related" },
+          "sh:name": "Related Concepts",
+          "sh:class": { "@id": "bpkm:Concept" },
+          "sh:order": 6,
+          "sh:group": { "@id": "bpkm:ConceptHierarchyGroup" }
+        },
+        {
+          "sh:path": { "@id": "schema:url" },
+          "sh:name": "Reference URL",
+          "sh:datatype": { "@id": "xsd:anyURI" },
+          "sh:maxCount": 1,
+          "sh:order": 7,
+          "sh:group": { "@id": "bpkm:ConceptMetadataGroup" }
+        },
+        {
+          "sh:path": { "@id": "bpkm:tags" },
+          "sh:name": "Tags",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:order": 8,
+          "sh:group": { "@id": "bpkm:ConceptMetadataGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 9,
+          "sh:group": { "@id": "bpkm:ConceptMetadataGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:modified" },
+          "sh:name": "Modified",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 10,
+          "sh:group": { "@id": "bpkm:ConceptMetadataGroup" }
+        }
+      ]
+    }
+  ]
+}

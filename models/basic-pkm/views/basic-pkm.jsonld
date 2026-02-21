@@ -1,0 +1,130 @@
+{
+  "@context": {
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "bpkm": "urn:sempkm:model:basic-pkm:",
+    "sempkm": "urn:sempkm:vocab:",
+    "dcterms": "http://purl.org/dc/terms/",
+    "foaf": "http://xmlns.com/foaf/0.1/",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "schema": "https://schema.org/"
+  },
+  "@graph": [
+    {
+      "@id": "bpkm:view-project-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Projects Table",
+      "sempkm:targetClass": { "@id": "bpkm:Project" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?status ?priority ?startDate WHERE { ?s a <urn:sempkm:model:basic-pkm:Project> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:status> ?status } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:priority> ?priority } . OPTIONAL { ?s <https://schema.org/startDate> ?startDate } }",
+      "sempkm:columns": "title,status,priority,startDate",
+      "sempkm:sortDefault": "title"
+    },
+    {
+      "@id": "bpkm:view-project-card",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Projects Cards",
+      "sempkm:targetClass": { "@id": "bpkm:Project" },
+      "sempkm:rendererType": "card",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?description ?status ?priority WHERE { ?s a <urn:sempkm:model:basic-pkm:Project> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:status> ?status } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:priority> ?priority } }",
+      "sempkm:cardTitle": "http://purl.org/dc/terms/title",
+      "sempkm:cardSubtitle": "urn:sempkm:model:basic-pkm:status"
+    },
+    {
+      "@id": "bpkm:view-project-graph",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Projects Graph",
+      "sempkm:targetClass": { "@id": "bpkm:Project" },
+      "sempkm:rendererType": "graph",
+      "sempkm:sparqlQuery": "CONSTRUCT { ?s a <urn:sempkm:model:basic-pkm:Project> ; <http://purl.org/dc/terms/title> ?title ; <urn:sempkm:model:basic-pkm:hasParticipant> ?person ; <urn:sempkm:model:basic-pkm:hasNote> ?note . ?person <http://xmlns.com/foaf/0.1/name> ?pname . ?note <http://purl.org/dc/terms/title> ?ntitle } WHERE { ?s a <urn:sempkm:model:basic-pkm:Project> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:hasParticipant> ?person . ?person <http://xmlns.com/foaf/0.1/name> ?pname } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:hasNote> ?note . ?note <http://purl.org/dc/terms/title> ?ntitle } }"
+    },
+
+    {
+      "@id": "bpkm:view-person-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "People Table",
+      "sempkm:targetClass": { "@id": "bpkm:Person" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?name ?jobTitle ?org ?email WHERE { ?s a <urn:sempkm:model:basic-pkm:Person> ; <http://xmlns.com/foaf/0.1/name> ?name . OPTIONAL { ?s <https://schema.org/jobTitle> ?jobTitle } . OPTIONAL { ?s <https://schema.org/worksFor> ?org } . OPTIONAL { ?s <http://xmlns.com/foaf/0.1/mbox> ?email } }",
+      "sempkm:columns": "name,jobTitle,org,email",
+      "sempkm:sortDefault": "name"
+    },
+    {
+      "@id": "bpkm:view-person-card",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "People Cards",
+      "sempkm:targetClass": { "@id": "bpkm:Person" },
+      "sempkm:rendererType": "card",
+      "sempkm:sparqlQuery": "SELECT ?s ?name ?jobTitle ?org ?description WHERE { ?s a <urn:sempkm:model:basic-pkm:Person> ; <http://xmlns.com/foaf/0.1/name> ?name . OPTIONAL { ?s <https://schema.org/jobTitle> ?jobTitle } . OPTIONAL { ?s <https://schema.org/worksFor> ?org } . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } }",
+      "sempkm:cardTitle": "http://xmlns.com/foaf/0.1/name",
+      "sempkm:cardSubtitle": "https://schema.org/jobTitle"
+    },
+    {
+      "@id": "bpkm:view-person-graph",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "People Graph",
+      "sempkm:targetClass": { "@id": "bpkm:Person" },
+      "sempkm:rendererType": "graph",
+      "sempkm:sparqlQuery": "CONSTRUCT { ?s a <urn:sempkm:model:basic-pkm:Person> ; <http://xmlns.com/foaf/0.1/name> ?name ; <urn:sempkm:model:basic-pkm:participatesIn> ?project . ?project <http://purl.org/dc/terms/title> ?ptitle } WHERE { ?s a <urn:sempkm:model:basic-pkm:Person> ; <http://xmlns.com/foaf/0.1/name> ?name . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:participatesIn> ?project . ?project <http://purl.org/dc/terms/title> ?ptitle } }"
+    },
+
+    {
+      "@id": "bpkm:view-note-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Notes Table",
+      "sempkm:targetClass": { "@id": "bpkm:Note" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?noteType ?created WHERE { ?s a <urn:sempkm:model:basic-pkm:Note> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:noteType> ?noteType } . OPTIONAL { ?s <http://purl.org/dc/terms/created> ?created } }",
+      "sempkm:columns": "title,noteType,created",
+      "sempkm:sortDefault": "created"
+    },
+    {
+      "@id": "bpkm:view-note-card",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Notes Cards",
+      "sempkm:targetClass": { "@id": "bpkm:Note" },
+      "sempkm:rendererType": "card",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?body ?noteType WHERE { ?s a <urn:sempkm:model:basic-pkm:Note> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:body> ?body } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:noteType> ?noteType } }",
+      "sempkm:cardTitle": "http://purl.org/dc/terms/title",
+      "sempkm:cardSubtitle": "urn:sempkm:model:basic-pkm:noteType"
+    },
+    {
+      "@id": "bpkm:view-note-graph",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Notes Graph",
+      "sempkm:targetClass": { "@id": "bpkm:Note" },
+      "sempkm:rendererType": "graph",
+      "sempkm:sparqlQuery": "CONSTRUCT { ?s a <urn:sempkm:model:basic-pkm:Note> ; <http://purl.org/dc/terms/title> ?title ; <urn:sempkm:model:basic-pkm:isAbout> ?concept ; <urn:sempkm:model:basic-pkm:relatedProject> ?project . ?concept <http://www.w3.org/2004/02/skos/core#prefLabel> ?clabel . ?project <http://purl.org/dc/terms/title> ?ptitle } WHERE { ?s a <urn:sempkm:model:basic-pkm:Note> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:isAbout> ?concept . ?concept <http://www.w3.org/2004/02/skos/core#prefLabel> ?clabel } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:relatedProject> ?project . ?project <http://purl.org/dc/terms/title> ?ptitle } }"
+    },
+
+    {
+      "@id": "bpkm:view-concept-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Concepts Table",
+      "sempkm:targetClass": { "@id": "bpkm:Concept" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?label ?definition WHERE { ?s a <urn:sempkm:model:basic-pkm:Concept> ; <http://www.w3.org/2004/02/skos/core#prefLabel> ?label . OPTIONAL { ?s <http://www.w3.org/2004/02/skos/core#definition> ?definition } }",
+      "sempkm:columns": "label,definition",
+      "sempkm:sortDefault": "label"
+    },
+    {
+      "@id": "bpkm:view-concept-card",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Concepts Cards",
+      "sempkm:targetClass": { "@id": "bpkm:Concept" },
+      "sempkm:rendererType": "card",
+      "sempkm:sparqlQuery": "SELECT ?s ?label ?definition ?altLabel WHERE { ?s a <urn:sempkm:model:basic-pkm:Concept> ; <http://www.w3.org/2004/02/skos/core#prefLabel> ?label . OPTIONAL { ?s <http://www.w3.org/2004/02/skos/core#definition> ?definition } . OPTIONAL { ?s <http://www.w3.org/2004/02/skos/core#altLabel> ?altLabel } }",
+      "sempkm:cardTitle": "http://www.w3.org/2004/02/skos/core#prefLabel",
+      "sempkm:cardSubtitle": "http://www.w3.org/2004/02/skos/core#definition"
+    },
+    {
+      "@id": "bpkm:view-concept-graph",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Concepts Graph",
+      "sempkm:targetClass": { "@id": "bpkm:Concept" },
+      "sempkm:rendererType": "graph",
+      "sempkm:sparqlQuery": "CONSTRUCT { ?s a <urn:sempkm:model:basic-pkm:Concept> ; <http://www.w3.org/2004/02/skos/core#prefLabel> ?label ; <http://www.w3.org/2004/02/skos/core#broader> ?broader ; <http://www.w3.org/2004/02/skos/core#narrower> ?narrower ; <http://www.w3.org/2004/02/skos/core#related> ?related . ?broader <http://www.w3.org/2004/02/skos/core#prefLabel> ?blabel . ?narrower <http://www.w3.org/2004/02/skos/core#prefLabel> ?nlabel . ?related <http://www.w3.org/2004/02/skos/core#prefLabel> ?rlabel } WHERE { ?s a <urn:sempkm:model:basic-pkm:Concept> ; <http://www.w3.org/2004/02/skos/core#prefLabel> ?label . OPTIONAL { ?s <http://www.w3.org/2004/02/skos/core#broader> ?broader . ?broader <http://www.w3.org/2004/02/skos/core#prefLabel> ?blabel } . OPTIONAL { ?s <http://www.w3.org/2004/02/skos/core#narrower> ?narrower . ?narrower <http://www.w3.org/2004/02/skos/core#prefLabel> ?nlabel } . OPTIONAL { ?s <http://www.w3.org/2004/02/skos/core#related> ?related . ?related <http://www.w3.org/2004/02/skos/core#prefLabel> ?rlabel } }"
+    }
+  ]
+}

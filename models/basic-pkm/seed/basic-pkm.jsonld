@@ -1,0 +1,160 @@
+{
+  "@context": {
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "schema": "https://schema.org/",
+    "foaf": "http://xmlns.com/foaf/0.1/",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "bpkm": "urn:sempkm:model:basic-pkm:"
+  },
+  "@graph": [
+    {
+      "@id": "bpkm:seed-project-sempkm",
+      "@type": "bpkm:Project",
+      "dcterms:title": "SemPKM Development",
+      "dcterms:description": "Building a semantic personal knowledge management system with RDF-based storage, mental models, and graph visualization.",
+      "bpkm:status": "active",
+      "bpkm:priority": "high",
+      "schema:startDate": { "@value": "2026-01-15", "@type": "xsd:date" },
+      "bpkm:tags": "semantic-web,knowledge-management,rdf",
+      "dcterms:created": { "@value": "2026-01-15T09:00:00Z", "@type": "xsd:dateTime" },
+      "bpkm:hasParticipant": [
+        { "@id": "bpkm:seed-person-alice" },
+        { "@id": "bpkm:seed-person-bob" }
+      ],
+      "bpkm:hasNote": [
+        { "@id": "bpkm:seed-note-architecture" }
+      ]
+    },
+    {
+      "@id": "bpkm:seed-project-garden",
+      "@type": "bpkm:Project",
+      "dcterms:title": "Knowledge Garden",
+      "dcterms:description": "A curated collection of interconnected concepts, references, and insights across multiple domains.",
+      "bpkm:status": "active",
+      "bpkm:priority": "medium",
+      "schema:startDate": { "@value": "2026-02-01", "@type": "xsd:date" },
+      "bpkm:tags": "knowledge-garden,curation,learning",
+      "dcterms:created": { "@value": "2026-02-01T10:00:00Z", "@type": "xsd:dateTime" },
+      "bpkm:hasParticipant": [
+        { "@id": "bpkm:seed-person-carol" }
+      ]
+    },
+
+    {
+      "@id": "bpkm:seed-person-alice",
+      "@type": "bpkm:Person",
+      "foaf:name": "Alice Chen",
+      "foaf:mbox": "alice@example.com",
+      "schema:jobTitle": "Lead Developer",
+      "schema:worksFor": "SemPKM Labs",
+      "dcterms:description": "Core architect focused on RDF storage layer and event sourcing patterns.",
+      "bpkm:tags": "developer,architecture,rdf",
+      "dcterms:created": { "@value": "2026-01-15T09:00:00Z", "@type": "xsd:dateTime" },
+      "bpkm:participatesIn": [
+        { "@id": "bpkm:seed-project-sempkm" }
+      ]
+    },
+    {
+      "@id": "bpkm:seed-person-bob",
+      "@type": "bpkm:Person",
+      "foaf:name": "Bob Martinez",
+      "foaf:mbox": "bob@example.com",
+      "schema:jobTitle": "Product Designer",
+      "schema:worksFor": "SemPKM Labs",
+      "dcterms:description": "Designs the user experience for knowledge browsing and graph visualization.",
+      "bpkm:tags": "design,ux,visualization",
+      "dcterms:created": { "@value": "2026-01-20T11:00:00Z", "@type": "xsd:dateTime" },
+      "bpkm:participatesIn": [
+        { "@id": "bpkm:seed-project-sempkm" }
+      ]
+    },
+    {
+      "@id": "bpkm:seed-person-carol",
+      "@type": "bpkm:Person",
+      "foaf:name": "Carol Singh",
+      "foaf:mbox": "carol@example.com",
+      "schema:jobTitle": "Domain Expert",
+      "schema:worksFor": "Knowledge Institute",
+      "dcterms:description": "Expert in knowledge organization systems and taxonomy design.",
+      "bpkm:tags": "domain-expert,taxonomy,knowledge-organization",
+      "dcterms:created": { "@value": "2026-02-01T10:00:00Z", "@type": "xsd:dateTime" },
+      "bpkm:participatesIn": [
+        { "@id": "bpkm:seed-project-garden" }
+      ]
+    },
+
+    {
+      "@id": "bpkm:seed-note-architecture",
+      "@type": "bpkm:Note",
+      "dcterms:title": "Architecture Decision: Event Sourcing",
+      "bpkm:body": "After evaluating several persistence strategies, we decided to use event sourcing with RDF triplestores. Each mutation is stored as an immutable event, and the current state is materialized by replaying events. This gives us full audit history and enables temporal queries.\n\n## Key Points\n- Events stored as named graphs with timestamps\n- Materialized view updated via SPARQL INSERT/DELETE\n- Sentinel triples prevent empty graph deletion in RDF4J",
+      "bpkm:noteType": "reference",
+      "bpkm:tags": "architecture,event-sourcing,decision",
+      "dcterms:created": { "@value": "2026-01-18T14:30:00Z", "@type": "xsd:dateTime" },
+      "bpkm:isAbout": [
+        { "@id": "bpkm:seed-concept-event-sourcing" }
+      ],
+      "bpkm:relatedProject": { "@id": "bpkm:seed-project-sempkm" }
+    },
+    {
+      "@id": "bpkm:seed-note-kickoff",
+      "@type": "bpkm:Note",
+      "dcterms:title": "Meeting: Project Kickoff",
+      "bpkm:body": "Kickoff meeting for the SemPKM project. Discussed goals, timeline, and initial architecture.\n\n## Attendees\n- Alice Chen (Lead Developer)\n- Bob Martinez (Product Designer)\n\n## Decisions\n- Use RDF4J as the triplestore\n- Start with Basic PKM mental model\n- Target 5-phase implementation plan",
+      "bpkm:noteType": "meeting-note",
+      "bpkm:tags": "meeting,kickoff,planning",
+      "dcterms:created": { "@value": "2026-01-15T10:00:00Z", "@type": "xsd:dateTime" },
+      "bpkm:relatedProject": { "@id": "bpkm:seed-project-sempkm" }
+    },
+    {
+      "@id": "bpkm:seed-note-graph-viz",
+      "@type": "bpkm:Note",
+      "dcterms:title": "Idea: Graph Visualization",
+      "bpkm:body": "Explore using Cytoscape.js for interactive graph visualization of knowledge connections. The graph view should show nodes for each entity and edges for relationships, with different colors per type.\n\n## Considerations\n- Performance with large graphs (1000+ nodes)\n- Layout algorithms (force-directed vs hierarchical)\n- Integration with SPARQL CONSTRUCT queries",
+      "bpkm:noteType": "idea",
+      "bpkm:tags": "visualization,graph,cytoscape",
+      "dcterms:created": { "@value": "2026-02-05T16:00:00Z", "@type": "xsd:dateTime" },
+      "bpkm:isAbout": [
+        { "@id": "bpkm:seed-concept-semantic-web" }
+      ]
+    },
+
+    {
+      "@id": "bpkm:seed-concept-knowledge-management",
+      "@type": "bpkm:Concept",
+      "skos:prefLabel": "Knowledge Management",
+      "skos:altLabel": "KM",
+      "skos:definition": "The process of creating, sharing, using, and managing the knowledge and information of an organization or individual.",
+      "bpkm:tags": "core,methodology",
+      "dcterms:created": { "@value": "2026-01-15T09:00:00Z", "@type": "xsd:dateTime" },
+      "schema:url": { "@value": "https://en.wikipedia.org/wiki/Knowledge_management", "@type": "xsd:anyURI" }
+    },
+    {
+      "@id": "bpkm:seed-concept-semantic-web",
+      "@type": "bpkm:Concept",
+      "skos:prefLabel": "Semantic Web",
+      "skos:altLabel": "Web of Data",
+      "skos:definition": "An extension of the World Wide Web that enables data to be shared and reused across applications using standards like RDF, OWL, and SPARQL.",
+      "skos:related": [
+        { "@id": "bpkm:seed-concept-knowledge-management" }
+      ],
+      "bpkm:tags": "technology,standards,rdf",
+      "dcterms:created": { "@value": "2026-01-15T09:00:00Z", "@type": "xsd:dateTime" },
+      "schema:url": { "@value": "https://en.wikipedia.org/wiki/Semantic_Web", "@type": "xsd:anyURI" }
+    },
+    {
+      "@id": "bpkm:seed-concept-event-sourcing",
+      "@type": "bpkm:Concept",
+      "skos:prefLabel": "Event Sourcing",
+      "skos:definition": "A software architecture pattern where state changes are stored as a sequence of immutable events, enabling full audit trails and temporal queries.",
+      "skos:broader": [
+        { "@id": "bpkm:seed-concept-knowledge-management" }
+      ],
+      "bpkm:tags": "architecture,pattern,persistence",
+      "dcterms:created": { "@value": "2026-01-18T14:00:00Z", "@type": "xsd:dateTime" }
+    }
+  ]
+}
