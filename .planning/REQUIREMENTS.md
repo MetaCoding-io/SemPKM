@@ -26,9 +26,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Mental Models
 
-- [ ] **MODL-01**: User can install a Mental Model from a .sempkm-model archive via the admin UI
-- [ ] **MODL-02**: User can remove an installed Mental Model via the admin UI
-- [ ] **MODL-03**: User can view a list of installed Mental Models with name, version, and description
+- [x] **MODL-01**: User can install a Mental Model from a .sempkm-model archive via the admin UI
+- [x] **MODL-02**: User can remove an installed Mental Model via the admin UI
+- [x] **MODL-03**: User can view a list of installed Mental Models with name, version, and description
 - [x] **MODL-04**: System validates manifest.yaml against schema on install (modelId, version, entrypoints, exports)
 - [x] **MODL-05**: System validates ID uniqueness, namespacing rules, and reference integrity on install
 - [ ] **MODL-06**: A starter Mental Model (Basic PKM) ships with the system providing Projects, People, Notes, and Concepts with shapes, views, and seed data
@@ -132,9 +132,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SHCL-04 | Phase 4 | Pending |
 | SHCL-05 | Phase 2 | Complete |
 | SHCL-06 | Phase 4 | Pending |
-| MODL-01 | Phase 3 | Pending |
-| MODL-02 | Phase 3 | Pending |
-| MODL-03 | Phase 3 | Pending |
+| MODL-01 | Phase 3 | Complete |
+| MODL-02 | Phase 3 | Complete |
+| MODL-03 | Phase 3 | Complete |
 | MODL-04 | Phase 3 | Complete |
 | MODL-05 | Phase 3 | Complete |
 | MODL-06 | Phase 3 | Pending |

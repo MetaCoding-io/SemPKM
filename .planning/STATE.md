@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-02-21)
 
 ## Current Position
 
-Phase: 3 of 5 (Mental Models)
-Plan: 2 of 3 in current phase
-Status: Executing Phase 3
-Last activity: 2026-02-21 -- Completed 03-02 Basic PKM Starter Model
+Phase: 3 of 5 (Mental Models) -- COMPLETE
+Plan: 3 of 3 in current phase
+Status: Phase 3 Complete -- Ready for Phase 4
+Last activity: 2026-02-21 -- Completed 03-03 Model Service and API Wiring
 
-Progress: [████████░░] 53%
+Progress: [██████████] 60%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
+- Total plans completed: 9
 - Average duration: 5min
-- Total execution time: 0.5 hours
+- Total execution time: 0.6 hours
 
 **By Phase:**
 
@@ -29,10 +29,10 @@ Progress: [████████░░] 53%
 |-------|-------|-------|----------|
 | 1. Core Data Foundation | 4 | 23min | 6min |
 | 2. Semantic Services | 2 | 9min | 5min |
-| 3. Mental Model System | 2 | 12min | 6min |
+| 3. Mental Model System | 3 | 24min | 8min |
 
 **Recent Trend:**
-- Last 5 plans: 4min, 4min, 5min, 4min
+- Last 5 plans: 4min, 5min, 4min, 8min, 12min
 - Trend: stable
 
 *Updated after each plan completion*
@@ -71,6 +71,9 @@ Recent decisions affecting current work:
 - [03-02]: Standard vocabularies (FOAF, DC, Schema.org, SKOS) for well-known properties; bpkm: for model-specific
 - [03-02]: SPARQL queries in view specs use full IRIs since stored as string literals
 - [03-02]: Seed data uses bpkm:seed- prefixed IRIs to distinguish from user data
+- [03-03]: Seed data materialized via EventStore.commit() outside model graph transaction for event sourcing consistency
+- [03-03]: Starter model path hardcoded to /app/models/basic-pkm (container mount path)
+- [03-03]: Seed materialization failure treated as warning, not install failure
 
 ### Pending Todos
 
@@ -84,5 +87,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Completed 03-02-PLAN.md (Basic PKM Starter Model)
+Stopped at: Completed 03-03-PLAN.md (Model Service and API Wiring) -- Phase 3 complete
 Resume file: None
