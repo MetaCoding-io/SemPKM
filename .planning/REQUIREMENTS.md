@@ -121,44 +121,44 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CORE-01 | — | Pending |
-| CORE-02 | — | Pending |
-| CORE-03 | — | Pending |
-| CORE-04 | — | Pending |
-| CORE-05 | — | Pending |
-| SHCL-01 | — | Pending |
-| SHCL-02 | — | Pending |
-| SHCL-03 | — | Pending |
-| SHCL-04 | — | Pending |
-| SHCL-05 | — | Pending |
-| SHCL-06 | — | Pending |
-| MODL-01 | — | Pending |
-| MODL-02 | — | Pending |
-| MODL-03 | — | Pending |
-| MODL-04 | — | Pending |
-| MODL-05 | — | Pending |
-| MODL-06 | — | Pending |
-| VIEW-01 | — | Pending |
-| VIEW-02 | — | Pending |
-| VIEW-03 | — | Pending |
-| VIEW-04 | — | Pending |
-| VIEW-05 | — | Pending |
-| VIEW-06 | — | Pending |
-| VIEW-07 | — | Pending |
-| OBJ-01 | — | Pending |
-| OBJ-02 | — | Pending |
-| OBJ-03 | — | Pending |
-| INFR-01 | — | Pending |
-| INFR-02 | — | Pending |
-| ADMN-01 | — | Pending |
-| ADMN-02 | — | Pending |
-| ADMN-03 | — | Pending |
+| CORE-01 | Phase 1 | Pending |
+| CORE-02 | Phase 1 | Pending |
+| CORE-03 | Phase 1 | Pending |
+| CORE-04 | Phase 1 | Pending |
+| CORE-05 | Phase 1 | Pending |
+| SHCL-01 | Phase 2 | Pending |
+| SHCL-02 | Phase 4 | Pending |
+| SHCL-03 | Phase 4 | Pending |
+| SHCL-04 | Phase 4 | Pending |
+| SHCL-05 | Phase 2 | Pending |
+| SHCL-06 | Phase 4 | Pending |
+| MODL-01 | Phase 3 | Pending |
+| MODL-02 | Phase 3 | Pending |
+| MODL-03 | Phase 3 | Pending |
+| MODL-04 | Phase 3 | Pending |
+| MODL-05 | Phase 3 | Pending |
+| MODL-06 | Phase 3 | Pending |
+| VIEW-01 | Phase 5 | Pending |
+| VIEW-02 | Phase 5 | Pending |
+| VIEW-03 | Phase 5 | Pending |
+| VIEW-04 | Phase 4 | Pending |
+| VIEW-05 | Phase 4 | Pending |
+| VIEW-06 | Phase 4 | Pending |
+| VIEW-07 | Phase 5 | Pending |
+| OBJ-01 | Phase 4 | Pending |
+| OBJ-02 | Phase 4 | Pending |
+| OBJ-03 | Phase 4 | Pending |
+| INFR-01 | Phase 2 | Pending |
+| INFR-02 | Phase 2 | Pending |
+| ADMN-01 | Phase 1 | Pending |
+| ADMN-02 | Phase 4 | Pending |
+| ADMN-03 | Phase 4 | Pending |
 
 **Coverage:**
 - v1 requirements: 32 total
-- Mapped to phases: 0
-- Unmapped: 32
+- Mapped to phases: 32
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-21*
-*Last updated: 2026-02-21 after initial definition*
+*Last updated: 2026-02-21 after roadmap creation*
