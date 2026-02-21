@@ -12,7 +12,7 @@ SemPKM delivers a semantics-native personal knowledge management platform throug
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Core Data Foundation** - Event-sourced RDF data path with triplestore, command API, materialized state, and SPARQL reads
+- [x] **Phase 1: Core Data Foundation** - Event-sourced RDF data path with triplestore, command API, materialized state, and SPARQL reads (completed 2026-02-21)
 - [ ] **Phase 2: Semantic Services** - Label resolution, prefix registry, and async SHACL validation engine
 - [ ] **Phase 3: Mental Model System** - Install, validate, and manage Mental Model archives; ship the starter Basic PKM model
 - [ ] **Phase 4: Admin Shell and Object Creation** - First user-facing surfaces: admin portal, IDE workspace, SHACL-driven forms, object pages, and lint panel
@@ -109,7 +109,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Core Data Foundation | 2/4 | In Progress | - |
+| 1. Core Data Foundation | 2/4 | Complete    | 2026-02-21 |
 | 2. Semantic Services | 0/0 | Not started | - |
 | 3. Mental Model System | 0/0 | Not started | - |
 | 4. Admin Shell and Object Creation | 0/0 | Not started | - |
