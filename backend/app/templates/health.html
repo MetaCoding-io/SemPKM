@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}SemPKM - Health Check{% endblock %}
+
+{% block content %}
+<div class="health-page">
+    <h1>System Health</h1>
+
+    <div class="card">
+        <h2>Service Status</h2>
+        <div id="health-data"
+             hx-get="/api/health"
+             hx-trigger="load"
+             hx-swap="innerHTML">
+            <p class="loading">Loading health data...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Transform JSON health response into styled HTML after htmx swap
+    document.body.addEventListener('htmx:beforeSwap', function(event) {
+        if (event.detail.pathInfo && event.detail.pathInfo.requestPath === '/api/health') {
+            try {
+                var data = JSON.parse(event.detail.xhr.responseText);
+                var statusClass = data.status === 'healthy' ? 'status-healthy' : 'status-degraded';
+                var html = '<p>Overall: <span class="' + statusClass + '">' + data.status.toUpperCase() + '</span></p>';
+                html += '<ul class="service-list">';
+                for (var name in data.services) {
+                    var svcStatus = data.services[name];
+                    var dotClass = svcStatus === 'up' ? 'up' : 'down';
+                    html += '<li><span class="status-dot ' + dotClass + '"></span>';
+                    html += '<span class="service-name">' + name + '</span>';
+                    html += '<span>' + svcStatus + '</span></li>';
+                }
+                html += '</ul>';
+                html += '<p class="version-info">Version: ' + data.version + '</p>';
+                event.detail.serverResponse = html;
+            } catch (e) {
+                event.detail.serverResponse = '<div class="error-box">Failed to parse health data</div>';
+            }
+        }
+    });
+</script>
+{% endblock %}

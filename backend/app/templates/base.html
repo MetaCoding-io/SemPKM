@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SemPKM{% endblock %}</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <a href="/">SemPKM</a>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/admin/" class="nav-link"
+                   hx-get="/admin/" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
+                    <span class="nav-icon">&#9881;</span>
+                    <span class="nav-label">Admin</span>
+                </a>
+                <a href="/browser/" class="nav-link"
+                   hx-get="/browser/" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
+                    <span class="nav-icon">&#128193;</span>
+                    <span class="nav-label">Object Browser</span>
+                </a>
+                <a href="/health/" class="nav-link"
+                   hx-get="/health/" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
+                    <span class="nav-icon">&#9829;</span>
+                    <span class="nav-label">Health Check</span>
+                </a>
+            </nav>
+        </aside>
+        <main class="content-area">
+            <div id="app-content">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Highlight the active sidebar link based on current URL
+        function updateActiveNav() {
+            var path = window.location.pathname;
+            document.querySelectorAll('.sidebar-nav .nav-link').forEach(function(link) {
+                var href = link.getAttribute('href');
+                if (path === '/' && href === '/') {
+                    link.classList.add('active');
+                } else if (href !== '/' && path.startsWith(href)) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        }
+        updateActiveNav();
+        // Update active state after htmx navigation
+        document.body.addEventListener('htmx:pushedIntoHistory', updateActiveNav);
+        document.body.addEventListener('htmx:historyRestore', updateActiveNav);
+    </script>
+</body>
+</html>
