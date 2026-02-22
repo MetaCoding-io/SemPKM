@@ -57,7 +57,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Administration
 
 - [x] **ADMN-01**: User can deploy SemPKM via docker-compose up with all services (FastAPI backend, RDF4J triplestore, frontend)
-- [ ] **ADMN-02**: User can manage Mental Models (install/remove/list) through an admin portal built with htmx/vanilla web
+- [x] **ADMN-02**: User can manage Mental Models (install/remove/list) through an admin portal built with htmx/vanilla web
 - [x] **ADMN-03**: User can configure simple outbound webhooks that fire on events (object.changed, edge.changed, validation.completed)
 
 ## v2 Requirements
@@ -151,7 +151,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INFR-01 | Phase 2 | Complete |
 | INFR-02 | Phase 2 | Complete |
 | ADMN-01 | Phase 1 | Complete |
-| ADMN-02 | Phase 4 | Pending |
+| ADMN-02 | Phase 4 | Complete |
 | ADMN-03 | Phase 4 | Complete |
 
 **Coverage:**

@@ -19,9 +19,9 @@ Progress: [█████████████████] 83%
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 13
+- Total plans completed: 14
 - Average duration: 5min
-- Total execution time: 1.0 hours
+- Total execution time: 1.1 hours
 
 **By Phase:**
 
@@ -92,8 +92,9 @@ Recent decisions affecting current work:
 - [06-02]: Setup token is random secrets.token_urlsafe, not signed -- stored on disk, string-compared
 - [06-02]: Logout revokes session in DB via token deletion, not just cookie clearing
 - [06-02]: Magic link verify auto-creates member user for passwordless first-login
-- [Phase 04]: Admin router uses named Jinja2 blocks (model_table, webhook_list) for htmx partial swap targets
-- [Phase 04]: Webhook event types defined as constant list in router for template checkbox rendering
+- [04-03]: Admin router uses named Jinja2 blocks (model_table, webhook_list) for htmx partial swap targets
+- [04-03]: Webhook event types defined as constant list in router for template checkbox rendering
+- [04-03]: Admin router included before shell router so /admin/* routes take precedence
 
 ### Pending Todos
 
