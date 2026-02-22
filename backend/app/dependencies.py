@@ -2,6 +2,7 @@
 
 from fastapi import Request
 
+from app.auth.service import AuthService
 from app.services.labels import LabelService
 from app.services.models import ModelService
 from app.services.prefixes import PrefixRegistry
@@ -82,3 +83,12 @@ async def get_webhook_service(request: Request) -> WebhookService:
     app.state.webhook_service.
     """
     return request.app.state.webhook_service
+
+
+async def get_auth_service(request: Request) -> AuthService:
+    """Get the AuthService instance from app state.
+
+    The service is created during app lifespan startup and stored on
+    app.state.auth_service.
+    """
+    return request.app.state.auth_service

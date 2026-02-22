@@ -12,6 +12,11 @@ from datetime import UTC, datetime, timedelta
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+
+def _utcnow() -> datetime:
+    """Return current UTC time as a naive datetime for SQLite compatibility."""
+    return datetime.now(UTC).replace(tzinfo=None)
+
 from app.auth.models import Invitation, User, UserSession
 from app.auth.tokens import create_invitation_token, verify_invitation_token
 from app.config import settings
@@ -77,7 +82,7 @@ class AuthService:
         Generates a random token and sets expiry based on settings.session_duration_days.
         """
         token = secrets.token_urlsafe(32)
-        expires_at = datetime.now(UTC) + timedelta(days=settings.session_duration_days)
+        expires_at = _utcnow() + timedelta(days=settings.session_duration_days)
 
         async with self._session_factory() as session:
             user_session = UserSession(
@@ -98,7 +103,7 @@ class AuthService:
 
         Returns the associated user or None.
         """
-        now = datetime.now(UTC)
+        now = _utcnow()
         async with self._session_factory() as session:
             result = await session.execute(
                 select(UserSession)
@@ -144,7 +149,7 @@ class AuthService:
     ) -> Invitation:
         """Create an invitation record with a signed token."""
         token = create_invitation_token(email, role)
-        expires_at = datetime.now(UTC) + timedelta(days=7)
+        expires_at = _utcnow() + timedelta(days=7)
 
         async with self._session_factory() as session:
             invitation = Invitation(
@@ -185,7 +190,7 @@ class AuthService:
                 return None
 
             # Mark invitation as accepted
-            invitation.accepted_at = datetime.now(UTC)
+            invitation.accepted_at = _utcnow()
             await session.commit()
 
         # Get or create user
