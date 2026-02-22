@@ -910,6 +910,16 @@ details.form-group[open] > .form-group-summary::before {
     text-decoration: underline;
 }
 
+.relation-arrow {
+    font-size: 0.75rem;
+    color: var(--color-text-muted, #666);
+    flex-shrink: 0;
+}
+
+.relations-panel {
+    padding: 0;
+}
+
 /* ============================================
    Right Pane: Lint Panel
    ============================================ */
