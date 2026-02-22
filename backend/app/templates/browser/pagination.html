@@ -1,0 +1,79 @@
+{% if total_pages > 0 %}
+<div class="pagination">
+    <div class="pagination-info">
+        Page {{ page }} of {{ total_pages }} ({{ total }} total)
+    </div>
+    <div class="pagination-controls">
+        {% if page > 1 %}
+        <a class="pagination-btn"
+           href="#"
+           hx-get="/browser/views/table/{{ spec_iri_encoded }}?page={{ page - 1 }}&sort={{ sort_col }}&dir={{ sort_dir }}&filter={{ current_filter | urlencode }}&page_size={{ page_size }}"
+           hx-target="#editor-area"
+           hx-swap="innerHTML">&laquo; Prev</a>
+        {% else %}
+        <span class="pagination-btn disabled">&laquo; Prev</span>
+        {% endif %}
+
+        {% set max_visible = 7 %}
+        {% set half = (max_visible // 2) %}
+        {% set start_page = [1, page - half] | max %}
+        {% set end_page = [total_pages, start_page + max_visible - 1] | min %}
+        {% set start_page = [1, end_page - max_visible + 1] | max %}
+
+        {% if start_page > 1 %}
+        <a class="pagination-num"
+           href="#"
+           hx-get="/browser/views/table/{{ spec_iri_encoded }}?page=1&sort={{ sort_col }}&dir={{ sort_dir }}&filter={{ current_filter | urlencode }}&page_size={{ page_size }}"
+           hx-target="#editor-area"
+           hx-swap="innerHTML">1</a>
+        {% if start_page > 2 %}
+        <span class="pagination-ellipsis">&hellip;</span>
+        {% endif %}
+        {% endif %}
+
+        {% for p in range(start_page, end_page + 1) %}
+        {% if p == page %}
+        <span class="pagination-num active">{{ p }}</span>
+        {% else %}
+        <a class="pagination-num"
+           href="#"
+           hx-get="/browser/views/table/{{ spec_iri_encoded }}?page={{ p }}&sort={{ sort_col }}&dir={{ sort_dir }}&filter={{ current_filter | urlencode }}&page_size={{ page_size }}"
+           hx-target="#editor-area"
+           hx-swap="innerHTML">{{ p }}</a>
+        {% endif %}
+        {% endfor %}
+
+        {% if end_page < total_pages %}
+        {% if end_page < total_pages - 1 %}
+        <span class="pagination-ellipsis">&hellip;</span>
+        {% endif %}
+        <a class="pagination-num"
+           href="#"
+           hx-get="/browser/views/table/{{ spec_iri_encoded }}?page={{ total_pages }}&sort={{ sort_col }}&dir={{ sort_dir }}&filter={{ current_filter | urlencode }}&page_size={{ page_size }}"
+           hx-target="#editor-area"
+           hx-swap="innerHTML">{{ total_pages }}</a>
+        {% endif %}
+
+        {% if page < total_pages %}
+        <a class="pagination-btn"
+           href="#"
+           hx-get="/browser/views/table/{{ spec_iri_encoded }}?page={{ page + 1 }}&sort={{ sort_col }}&dir={{ sort_dir }}&filter={{ current_filter | urlencode }}&page_size={{ page_size }}"
+           hx-target="#editor-area"
+           hx-swap="innerHTML">Next &raquo;</a>
+        {% else %}
+        <span class="pagination-btn disabled">Next &raquo;</span>
+        {% endif %}
+
+        <span class="pagination-jump">
+            <input type="number"
+                   class="jump-to-page"
+                   min="1"
+                   max="{{ total_pages }}"
+                   placeholder="#"
+                   onkeydown="if(event.key==='Enter'){var p=this.value;if(p>=1&&p<={{ total_pages }}){htmx.ajax('GET','/browser/views/table/{{ spec_iri_encoded }}?page='+p+'&sort={{ sort_col }}&dir={{ sort_dir }}&filter={{ current_filter | urlencode }}&page_size={{ page_size }}',{target:'#editor-area',swap:'innerHTML'})}}">
+            <button class="pagination-btn btn-sm"
+                    onclick="var inp=this.previousElementSibling;var p=inp.value;if(p>=1&&p<={{ total_pages }}){htmx.ajax('GET','/browser/views/table/{{ spec_iri_encoded }}?page='+p+'&sort={{ sort_col }}&dir={{ sort_dir }}&filter={{ current_filter | urlencode }}&page_size={{ page_size }}',{target:'#editor-area',swap:'innerHTML'})}">Go</button>
+        </span>
+    </div>
+</div>
+{% endif %}

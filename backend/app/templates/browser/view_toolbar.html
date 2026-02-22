@@ -1,0 +1,35 @@
+<div class="view-toolbar">
+    <div class="view-toolbar-left">
+        <span class="view-label">{{ spec.label }}</span>
+        <div class="view-type-switcher">
+            {% for s in all_specs %}
+            <a class="view-type-btn{% if s.spec_iri == spec.spec_iri %} active{% endif %}"
+               href="#"
+               hx-get="/browser/views/{{ s.renderer_type }}/{{ s.spec_iri | urlencode }}"
+               hx-target="#editor-area"
+               hx-swap="innerHTML"
+               title="{{ s.label }}">
+                {% if s.renderer_type == 'table' %}&#9638;{% elif s.renderer_type == 'card' %}&#9641;{% elif s.renderer_type == 'graph' %}&#9672;{% else %}&#9654;{% endif %}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="view-toolbar-right">
+        <input type="text"
+               class="view-filter-input"
+               placeholder="Filter {{ type_label }}..."
+               value="{{ current_filter }}"
+               name="filter"
+               hx-get="/browser/views/table/{{ spec_iri_encoded }}"
+               hx-target="#editor-area"
+               hx-swap="innerHTML"
+               hx-trigger="keyup changed delay:300ms"
+               hx-include="this"
+               hx-vals='{"page": "1", "page_size": "{{ page_size }}", "sort": "{{ sort_col }}", "dir": "{{ sort_dir }}"}'>
+        {% if spec.renderer_type == 'table' %}
+        <button class="view-columns-btn" onclick="ColumnPrefs.openColumnSettings('{{ type_iri }}', {{ columns | tojson }})" title="Column settings">
+            &#9881;
+        </button>
+        {% endif %}
+    </div>
+</div>

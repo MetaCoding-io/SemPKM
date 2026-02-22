@@ -1,0 +1,62 @@
+{% include "browser/view_toolbar.html" %}
+
+<div class="view-table-container">
+    {% if rows %}
+    <table class="view-table">
+        <thead>
+            <tr>
+                {% for col in columns %}
+                <th data-col="{{ col }}">
+                    {% set toggled_dir = 'desc' if (sort_col == col and sort_dir == 'asc') else 'asc' %}
+                    <a href="#"
+                       class="sort-header{% if sort_col == col %} sort-active{% endif %}"
+                       hx-get="/browser/views/table/{{ spec_iri_encoded }}?sort={{ col }}&dir={{ toggled_dir }}&page=1&filter={{ current_filter | urlencode }}&page_size={{ page_size }}"
+                       hx-target="#editor-area"
+                       hx-swap="innerHTML">
+                        {{ column_labels.get(col, col) }}
+                        {% if sort_col == col %}
+                        <span class="sort-indicator">{% if sort_dir == 'asc' %}&uarr;{% else %}&darr;{% endif %}</span>
+                        {% endif %}
+                    </a>
+                </th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+            <tr class="clickable">
+                {% for col in columns %}
+                <td data-col="{{ col }}">
+                    {% if loop.first %}
+                    <a href="#" class="table-row-link"
+                       onclick="openTab('{{ row.s }}', '{{ labels.get(row.s, row[col]) | replace("'", "\\'") }}'); return false;">
+                        {{ row[col] or labels.get(row.s, row.s) }}
+                    </a>
+                    {% else %}
+                    {{ row[col] }}
+                    {% endif %}
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="view-empty-state">
+        {% if current_filter %}
+        <p>No results matching "{{ current_filter }}"</p>
+        {% else %}
+        <p>No objects found for this view.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+{% include "browser/pagination.html" %}
+
+<script>
+    // Apply column preferences on table load
+    if (typeof ColumnPrefs !== 'undefined') {
+        ColumnPrefs.applyColumnPrefs('{{ type_iri }}');
+    }
+</script>

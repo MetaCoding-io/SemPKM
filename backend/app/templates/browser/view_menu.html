@@ -1,0 +1,24 @@
+<div class="view-menu">
+    <div class="view-menu-header">Views for {{ type_label }}</div>
+    {% for rtype, spec_list in grouped_specs.items() %}
+    <div class="view-menu-group">
+        <div class="view-menu-group-label">{{ rtype | title }}</div>
+        {% for spec in spec_list %}
+        <a class="view-menu-item"
+           href="#"
+           hx-get="/browser/views/{{ rtype }}/{{ spec.spec_iri | urlencode }}"
+           hx-target="#editor-area"
+           hx-swap="innerHTML"
+           hx-push-url="false">
+            <span class="view-menu-icon">
+                {% if rtype == 'table' %}&#9638;{% elif rtype == 'card' %}&#9641;{% elif rtype == 'graph' %}&#9672;{% else %}&#9654;{% endif %}
+            </span>
+            <span class="view-menu-label">{{ spec.label }}</span>
+        </a>
+        {% endfor %}
+    </div>
+    {% endfor %}
+    {% if not grouped_specs %}
+    <div class="view-menu-empty">No views available for this type.</div>
+    {% endif %}
+</div>
