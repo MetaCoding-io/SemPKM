@@ -116,6 +116,15 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 4. Admin Shell and Object Creation | 0/0 | Not started | - |
 | 5. Data Browsing and Visualization | 0/0 | Not started | - |
 
+### Phase 6: User and team management for multi-tenant cloud readiness
+
+**Goal:** [To be planned]
+**Depends on:** Phase 5
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 6 to break down)
+
 ---
 *Roadmap created: 2026-02-21*
 *Last updated: 2026-02-21 after 03-01 execution*

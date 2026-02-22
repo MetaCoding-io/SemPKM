@@ -79,6 +79,10 @@ Recent decisions affecting current work:
 
 None yet.
 
+### Roadmap Evolution
+
+- Phase 6 added: User and team management for multi-tenant cloud readiness
+
 ### Blockers/Concerns
 
 - Phase 1 research flag: Event sourcing in RDF triplestores is a novel architecture -- benchmarking strategy needed during planning
