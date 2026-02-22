@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Semantic Services** - Label resolution, prefix registry, and async SHACL validation engine
 - [x] **Phase 3: Mental Model System** - Install, validate, and manage Mental Model archives; ship the starter Basic PKM model (completed 2026-02-22)
 - [ ] **Phase 4: Admin Shell and Object Creation** - First user-facing surfaces: admin portal, IDE workspace, SHACL-driven forms, object pages, and lint panel
-- [ ] **Phase 5: Data Browsing and Visualization** - Table, cards, and graph renderers with view spec execution completing the create/browse/explore loop
+- [x] **Phase 5: Data Browsing and Visualization** - Table, cards, and graph renderers with view spec execution completing the create/browse/explore loop (completed 2026-02-22)
 - [ ] **Phase 6: User and Team Management** - Passwordless auth, owner/member/guest RBAC, event provenance, SQL data layer for multi-tenant cloud readiness
 
 ## Phase Details
@@ -119,7 +119,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 2. Semantic Services | 2/2 | Complete    | 2026-02-21 |
 | 3. Mental Model System | 1/3 | Complete    | 2026-02-22 |
 | 4. Admin Shell and Object Creation | 2/6 | In Progress | - |
-| 5. Data Browsing and Visualization | 2/3 | In Progress | - |
+| 5. Data Browsing and Visualization | 2/3 | Complete    | 2026-02-22 |
 | 6. User and Team Management | 0/4 | Not started | - |
 
 ### Phase 6: User and Team Management for Multi-Tenant Cloud Readiness
@@ -135,7 +135,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
   5. Every user-initiated write event records which user performed the action (sempkm:performedBy provenance)
   6. SQL database (SQLite local, PostgreSQL cloud) stores user accounts, sessions, invitations, and instance config
   7. RDF4J triplestore port is not exposed to host; data volume persists across restarts
-**Plans:** 4 plans
+**Plans:** 3/3 plans complete
 
 Plans:
 - [ ] 06-01-PLAN.md — SQL data layer and Docker infrastructure (ORM models, Alembic migrations, config expansion, Docker hardening)
