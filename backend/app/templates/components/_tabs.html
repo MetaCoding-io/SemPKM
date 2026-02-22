@@ -1,0 +1,22 @@
+{# Tab bar component for the workspace editor pane.
+   Tab state is managed client-side via sessionStorage (not server state).
+   This template is rendered dynamically by workspace.js renderTabBar(). #}
+
+<div class="tab-bar-workspace" id="tab-bar">
+    {% if tabs %}
+    {% for tab in tabs %}
+    <div class="workspace-tab {% if tab.active %}active{% endif %}"
+         data-iri="{{ tab.iri }}"
+         onclick="switchTab('{{ tab.iri }}')">
+        <span class="tab-label">{{ tab.label }}</span>
+        {% if tab.dirty %}
+        <span class="tab-dirty" title="Unsaved changes"></span>
+        {% endif %}
+        <button class="tab-close" onclick="event.stopPropagation(); closeTab('{{ tab.iri }}')"
+                title="Close tab">&times;</button>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="tab-empty-state">No objects open</div>
+    {% endif %}
+</div>

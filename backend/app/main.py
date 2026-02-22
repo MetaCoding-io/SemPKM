@@ -11,6 +11,7 @@ from jinja2_fragments.fastapi import Jinja2Blocks
 
 from app.admin.router import router as admin_router
 from app.auth.router import router as auth_router
+from app.browser.router import router as browser_router
 from app.auth.service import AuthService
 from app.auth.tokens import load_or_create_setup_token
 from app.config import settings
@@ -165,7 +166,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers (API routers first, admin before shell, shell router last)
+# Include routers (API routers first, then UI routers, shell router last)
 app.include_router(auth_router)
 app.include_router(commands_router)
 app.include_router(health_router)
@@ -173,4 +174,5 @@ app.include_router(models_router)
 app.include_router(sparql_router)
 app.include_router(validation_router)
 app.include_router(admin_router)
+app.include_router(browser_router)
 app.include_router(shell_router)

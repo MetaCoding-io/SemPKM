@@ -59,5 +59,6 @@
         document.body.addEventListener('htmx:pushedIntoHistory', updateActiveNav);
         document.body.addEventListener('htmx:historyRestore', updateActiveNav);
     </script>
+    {% block scripts %}{% endblock %}
 </body>
 </html>
