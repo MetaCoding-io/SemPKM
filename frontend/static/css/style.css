@@ -374,6 +374,112 @@ pre.json-output {
   display: block;
 }
 
+/* Small buttons */
+.btn-sm {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
+}
+
+.btn-danger {
+  background: var(--color-error);
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background: #a93226;
+}
+
+/* htmx indicator - hidden by default, shown during request */
+.htmx-indicator {
+  display: none;
+}
+
+.htmx-request .htmx-indicator,
+.htmx-request.htmx-indicator {
+  display: inline;
+}
+
+/* Admin-specific styles */
+.admin-page table {
+  margin-top: 1rem;
+}
+
+.admin-page .form-group label {
+  margin-bottom: 0.25rem;
+}
+
+/* Webhook badges */
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 3px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: rgba(45, 90, 158, 0.1);
+  color: var(--color-primary);
+  margin-right: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.badge-success {
+  background: rgba(42, 138, 74, 0.1);
+  color: var(--color-success);
+}
+
+.badge-warning {
+  background: rgba(212, 160, 23, 0.1);
+  color: var(--color-warning);
+}
+
+.badge-error {
+  background: rgba(192, 57, 43, 0.1);
+  color: var(--color-error);
+}
+
+/* Checkbox group for webhook events */
+.checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 400;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.checkbox-group input[type="checkbox"] {
+  width: auto;
+}
+
+/* Toggle button for webhooks */
+.btn-toggle {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-code-bg);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.btn-toggle.enabled {
+  background: rgba(42, 138, 74, 0.1);
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+
+.btn-toggle.disabled {
+  background: rgba(192, 57, 43, 0.1);
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
 /* Loading state */
 .loading {
   color: var(--color-text-muted);
