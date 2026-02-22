@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In - SemPKM</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="/js/auth.js"></script>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card card">
+            <div class="auth-brand">SemPKM</div>
+            <h1>Sign in to SemPKM</h1>
+
+            <form id="loginForm" autocomplete="off">
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" placeholder="you@example.com" autofocus required>
+                </div>
+                <button type="submit" class="btn-primary auth-btn">Send Magic Link</button>
+            </form>
+
+            <p class="auth-info" style="margin-top: 1rem;">
+                A login link will be sent to your email. If this is a local instance
+                without email configured, check the API logs for the magic link token.
+            </p>
+
+            <div id="login-message"></div>
+        </div>
+    </div>
+
+    <script>
+        checkAuthStatus();
+        handleVerifyToken();
+        handleLoginForm();
+    </script>
+</body>
+</html>
