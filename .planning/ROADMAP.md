@@ -18,6 +18,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Admin Shell and Object Creation** - First user-facing surfaces: admin portal, IDE workspace, SHACL-driven forms, object pages, and lint panel (completed 2026-02-22)
 - [x] **Phase 5: Data Browsing and Visualization** - Table, cards, and graph renderers with view spec execution completing the create/browse/explore loop (completed 2026-02-22)
 - [x] **Phase 6: User and Team Management** - Passwordless auth, owner/member/guest RBAC, event provenance, SQL data layer for multi-tenant cloud readiness (completed 2026-02-22)
+- [ ] **Phase 7: Route Protection and Provenance** - Gap closure: server-side auth on browser/views/admin routes, user provenance on browser writes
+- [ ] **Phase 8: Integration Bug Fixes** - Gap closure: validation.completed webhook dispatch, cards view URL mismatch fix
 
 ## Phase Details
 
@@ -111,7 +113,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -121,6 +123,8 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 4. Admin Shell and Object Creation | 6/6 | Complete    | 2026-02-22 |
 | 5. Data Browsing and Visualization | 3/3 | Complete    | 2026-02-22 |
 | 6. User and Team Management | 4/4 | Complete    | 2026-02-22 |
+| 7. Route Protection and Provenance | 0/? | Pending     | — |
+| 8. Integration Bug Fixes | 0/? | Pending     | — |
 
 ### Phase 6: User and Team Management for Multi-Tenant Cloud Readiness
 
@@ -143,6 +147,31 @@ Plans:
 - [x] 06-03-PLAN.md — Route protection and event provenance (auth middleware on all routes, RBAC enforcement, performedBy enrichment)
 - [x] 06-04-PLAN.md — Auth UI pages (setup wizard, login, invitation acceptance pages with human verification checkpoint)
 
+### Phase 7: Route Protection and Provenance
+**Goal:** All browser, views, and admin HTML routes enforce server-side authentication and authorization; browser-originated writes record user provenance in event metadata
+**Depends on:** Phase 6
+**Requirements:** Closes integration gaps INT-01, INT-02, INT-03 from v1.0 audit
+**Gap Closure:** Addresses missing server-side auth on browser/views/admin routes and missing performed_by on browser write endpoints
+**Success Criteria** (what must be TRUE):
+  1. All browser/* write endpoints (POST /browser/objects, POST /browser/objects/{iri}/save, POST /browser/objects/{iri}/body) require owner or member role via server-side dependency
+  2. All browser/* and views/* read endpoints require authentication via get_current_user
+  3. All admin/* endpoints require owner role via require_role("owner")
+  4. Browser-originated writes pass performed_by user IRI to EventStore.commit()
+  5. Unauthenticated direct HTTP requests to any protected route receive 401/403 (not just a JS redirect)
+**Plans:** TBD
+
+### Phase 8: Integration Bug Fixes
+**Goal:** Fix remaining integration issues: wire validation.completed webhook dispatch and fix cards view URL mismatch
+**Depends on:** Phase 7
+**Requirements:** Closes ADMN-03 partial gap and VIEW-02 flow break from v1.0 audit
+**Gap Closure:** Addresses validation.completed webhook never firing and workspace.js cards URL mismatch
+**Success Criteria** (what must be TRUE):
+  1. AsyncValidationQueue fires a completion callback after each validation run
+  2. WebhookService dispatches validation.completed events to configured webhooks
+  3. workspace.js openViewTab() uses correct URL path for cards view (/views/card/ singular)
+  4. Opening a cards view from the command palette or workspace tab system renders correctly (no 404)
+**Plans:** TBD
+
 ---
 *Roadmap created: 2026-02-21*
-*Last updated: 2026-02-22 after Phase 6 completion*
+*Last updated: 2026-02-22 after gap closure phases added from milestone audit*
