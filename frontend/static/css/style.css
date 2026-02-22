@@ -627,6 +627,46 @@ pre.json-output {
   padding-top: 0.5rem;
 }
 
+/* Health page grid */
+.health-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .health-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.config-table {
+  width: 100%;
+  font-size: 0.9rem;
+  border-collapse: collapse;
+}
+
+.config-table td {
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: top;
+}
+
+.config-table .config-label {
+  font-weight: 500;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  padding-right: 1rem;
+  width: 1%;
+}
+
+.config-hint {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-top: 0.15rem;
+}
+
 /* App page headings */
 .admin-page .lead,
 .browser-page .lead,

@@ -6,19 +6,59 @@
 <div class="health-page">
     <h1>System Health</h1>
 
-    <div class="card">
-        <h2>Service Status</h2>
-        <div id="health-data"
-             hx-get="/api/health"
-             hx-trigger="load"
-             hx-swap="innerHTML">
-            <p class="loading">Loading health data...</p>
+    <div class="health-grid">
+        <div class="card">
+            <h2>Service Status</h2>
+            <div id="health-data"
+                 hx-get="/api/health"
+                 hx-trigger="load"
+                 hx-swap="innerHTML">
+                <p class="loading">Loading...</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Configuration</h2>
+            <table class="config-table">
+                <tr>
+                    <td class="config-label">Database</td>
+                    <td>{{ database_url }}</td>
+                </tr>
+                <tr>
+                    <td class="config-label">Session Duration</td>
+                    <td>{{ session_duration_days }} days</td>
+                </tr>
+                <tr>
+                    <td class="config-label">SMTP</td>
+                    <td>
+                        {% if smtp.configured %}
+                        <span class="badge badge-success">Configured</span>
+                        {% else %}
+                        <span class="badge badge-warning">Not configured</span>
+                        <span class="config-hint">Magic links returned in browser</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% if smtp.configured %}
+                <tr>
+                    <td class="config-label">SMTP Host</td>
+                    <td>{{ smtp.host }}:{{ smtp.port }}</td>
+                </tr>
+                <tr>
+                    <td class="config-label">SMTP User</td>
+                    <td>{{ smtp.user }}</td>
+                </tr>
+                <tr>
+                    <td class="config-label">From Email</td>
+                    <td>{{ smtp.from_email }}</td>
+                </tr>
+                {% endif %}
+            </table>
         </div>
     </div>
 </div>
 
 <script>
-    // Transform JSON health response into styled HTML after htmx swap
     document.body.addEventListener('htmx:beforeSwap', function(event) {
         if (event.detail.pathInfo && event.detail.pathInfo.requestPath === '/api/health') {
             try {
