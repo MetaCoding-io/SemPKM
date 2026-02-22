@@ -101,11 +101,12 @@ Plans:
   2. User can browse objects in a cards view with summary display and optional grouping
   3. User can view objects and relationships in a 2D graph with semantic-aware styling (node color by type, edge style by predicate) and interactive exploration
   4. System executes view specs (SPARQL query + renderer type + layout config) to render views, enabling Mental Models to define custom browsing experiences
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 05-01: TBD
-- [ ] 05-02: TBD
+- [ ] 05-01-PLAN.md — ViewSpecService and table view (view spec execution pipeline, sortable/filterable/paginated table renderer)
+- [ ] 05-02-PLAN.md — Cards view (flippable cards with CSS 3D flip, body snippets, property/relation back face, optional grouping)
+- [ ] 05-03-PLAN.md — Graph view and workspace integration (Cytoscape.js visualization, layout picker, view tabs, view menu, command palette)
 
 ## Progress
 
@@ -118,7 +119,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 2. Semantic Services | 2/2 | Complete    | 2026-02-21 |
 | 3. Mental Model System | 1/3 | Complete    | 2026-02-22 |
 | 4. Admin Shell and Object Creation | 2/6 | In Progress | - |
-| 5. Data Browsing and Visualization | 0/0 | Not started | - |
+| 5. Data Browsing and Visualization | 0/3 | Not started | - |
 | 6. User and Team Management | 0/4 | Not started | - |
 
 ### Phase 6: User and Team Management for Multi-Tenant Cloud Readiness
