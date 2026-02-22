@@ -21,7 +21,9 @@ def _is_htmx_request(request: Request) -> bool:
 async def dashboard(request: Request):
     """Render the dashboard home page."""
     templates = request.app.state.templates
-    return templates.TemplateResponse(request, "dashboard.html")
+    return templates.TemplateResponse(
+        request, "dashboard.html", {"active_page": "home"}
+    )
 
 
 @router.get("/health/")
@@ -31,8 +33,9 @@ async def health_page(request: Request):
     Full page for direct navigation, content block only for htmx partial swap.
     """
     templates = request.app.state.templates
+    context = {"active_page": "health"}
     if _is_htmx_request(request):
         return templates.TemplateResponse(
-            request, "health.html", block_name="content"
+            request, "health.html", context, block_name="content"
         )
-    return templates.TemplateResponse(request, "health.html")
+    return templates.TemplateResponse(request, "health.html", context)
