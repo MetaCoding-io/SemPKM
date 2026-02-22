@@ -14,13 +14,15 @@
  * - If authenticated, allow navigation
  */
 async function checkAuthStatus() {
+  var path = window.location.pathname;
+  var authPages = ["/setup.html", "/login.html", "/invite.html"];
+  var isAuthPage = authPages.indexOf(path) !== -1;
+
   try {
-    const resp = await fetch("/api/auth/status");
+    var resp = await fetch("/api/auth/status");
     if (!resp.ok) return;
 
-    const data = await resp.json();
-
-    const path = window.location.pathname;
+    var data = await resp.json();
 
     // If setup mode is active and we're not on the setup page, go there
     if (data.setup_mode && path !== "/setup.html") {
@@ -32,6 +34,15 @@ async function checkAuthStatus() {
     if (!data.setup_mode && data.setup_complete && path === "/setup.html") {
       window.location.href = "/login.html";
       return;
+    }
+
+    // If setup is complete, check if user is authenticated
+    if (data.setup_complete && !isAuthPage) {
+      var meResp = await fetch("/api/auth/me");
+      if (meResp.status === 401) {
+        window.location.href = "/login.html";
+        return;
+      }
     }
   } catch (e) {
     // Network error - silently fail, user can still interact
