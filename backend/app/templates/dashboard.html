@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}SemPKM - Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-home">
+    <h1>Welcome to SemPKM</h1>
+    <p class="lead">
+        Semantic Personal Knowledge Management built on event-sourced RDF.
+        Create, organize, and explore structured knowledge through Mental Models.
+    </p>
+
+    <div class="dashboard-cards">
+        <div class="card">
+            <h2>Get Started</h2>
+            <p>Install and manage Mental Models to define the structure of your knowledge base.</p>
+            <a href="/admin/" class="btn btn-primary"
+               hx-get="/admin/" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
+                Open Admin
+            </a>
+        </div>
+
+        <div class="card">
+            <h2>Explore</h2>
+            <p>Browse, create, and edit objects in your knowledge graph through the Object Browser.</p>
+            <a href="/browser/" class="btn btn-primary"
+               hx-get="/browser/" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
+                Open Browser
+            </a>
+        </div>
+
+        <div class="card">
+            <h2>System Status</h2>
+            <p>Check the health of all system services and verify connectivity.</p>
+            <a href="/health/" class="btn btn-secondary"
+               hx-get="/health/" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
+                View Health
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

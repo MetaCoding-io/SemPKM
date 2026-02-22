@@ -7,6 +7,7 @@ from pathlib import Path
 import httpx
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from jinja2_fragments.fastapi import Jinja2Blocks
 
 from app.config import settings
 from app.commands.router import router as commands_router
@@ -95,6 +96,10 @@ app = FastAPI(
     version=settings.app_version,
     lifespan=lifespan,
 )
+
+# Jinja2 template engine with block-level rendering for htmx partials
+templates = Jinja2Blocks(directory=Path(__file__).parent / "templates")
+app.state.templates = templates
 
 # CORS middleware for dev console access
 app.add_middleware(
