@@ -49,9 +49,13 @@
                     <span class="nav-icon">&#9654;</span>
                     <span class="nav-label">Commands</span>
                 </a>
-                <a href="/redoc" class="nav-link">
+                <a href="/redoc" class="nav-link" onclick="return loadDocsIframe('/redoc', this)">
                     <span class="nav-icon">&#128196;</span>
-                    <span class="nav-label">API Docs</span>
+                    <span class="nav-label">API Docs (ReDoc)</span>
+                </a>
+                <a href="/docs" class="nav-link" onclick="return loadDocsIframe('/docs', this)">
+                    <span class="nav-icon">&#128196;</span>
+                    <span class="nav-label">API Docs (Swagger)</span>
                 </a>
             </nav>
         </aside>
@@ -79,6 +83,18 @@
         }
         updateActiveNav();
         checkAuthStatus();
+
+        function loadDocsIframe(url, linkEl) {
+            var content = document.getElementById('app-content');
+            content.innerHTML = '<iframe src="' + url + '" class="docs-iframe"></iframe>';
+            history.pushState(null, '', url);
+            // Update active nav manually
+            document.querySelectorAll('.sidebar-nav .nav-link').forEach(function(l) {
+                l.classList.remove('active');
+            });
+            if (linkEl) linkEl.classList.add('active');
+            return false;
+        }
         // Update active state after htmx navigation
         document.body.addEventListener('htmx:pushedIntoHistory', updateActiveNav);
         document.body.addEventListener('htmx:historyRestore', updateActiveNav);

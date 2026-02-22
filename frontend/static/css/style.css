@@ -593,6 +593,12 @@ pre.json-output {
   max-width: 100%;
 }
 
+.docs-iframe {
+  width: 100%;
+  height: calc(100vh - 3rem);
+  border: none;
+}
+
 /* Dashboard home page */
 .dashboard-home .lead {
   font-size: 1.05rem;
