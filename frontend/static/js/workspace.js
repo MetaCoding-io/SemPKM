@@ -182,17 +182,41 @@
     var editorArea = document.getElementById('editor-area');
     if (!editorArea) return;
 
-    // Use htmx to load object content
+    // Use htmx to load object content into center pane
     if (typeof htmx !== 'undefined') {
       htmx.ajax('GET', '/browser/object/' + encodeURIComponent(objectIri), {
         target: '#editor-area',
         swap: 'innerHTML'
       }).catch(function () {
-        editorArea.innerHTML = '<div class="editor-empty"><p>Object content will be available after Plan 05/06 implementation.</p></div>';
+        editorArea.innerHTML = '<div class="editor-empty"><p>Failed to load object.</p></div>';
       });
+
+      // Also load relations into right pane
+      loadRightPane(objectIri, 'relations');
     } else {
       editorArea.innerHTML = '<div class="editor-empty"><p>Loading ' + escapeHtml(objectIri) + '...</p></div>';
     }
+  }
+
+  function loadRightPane(objectIri, tab) {
+    if (typeof htmx === 'undefined') return;
+
+    var target = '#right-content';
+    var url;
+
+    if (tab === 'lint') {
+      url = '/browser/lint/' + encodeURIComponent(objectIri);
+    } else {
+      url = '/browser/relations/' + encodeURIComponent(objectIri);
+    }
+
+    htmx.ajax('GET', url, {
+      target: target,
+      swap: 'innerHTML'
+    }).catch(function () {
+      var el = document.getElementById('right-content');
+      if (el) el.innerHTML = '<div class="right-empty">Failed to load content</div>';
+    });
   }
 
   function showEditorEmpty() {
@@ -272,8 +296,45 @@
   function saveCurrentObject() {
     var activeIri = getActiveTabIri();
     if (!activeIri) return;
-    console.log('Save triggered for:', activeIri);
-    // Save implementation will be wired in Plan 05/06
+
+    // Save body via editor.js (CodeMirror Ctrl+S handler)
+    if (typeof window.getEditor === 'function') {
+      var editor = window.getEditor(activeIri);
+      if (editor) {
+        // Trigger the editor's save directly
+        var content = editor.state.doc.toString();
+        fetch('/browser/objects/' + encodeURIComponent(activeIri) + '/body', {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: content
+        }).then(function (resp) {
+          if (resp.ok) {
+            editor._sempkmSavedContent = content;
+            markClean(activeIri);
+            // Refresh lint panel after save to show updated validation
+            refreshLintAfterSave(activeIri);
+          }
+        }).catch(function (err) {
+          console.error('Body save error:', err);
+        });
+      }
+    }
+
+    // Also submit the form if it exists (properties save)
+    var form = document.getElementById('object-form');
+    if (form && typeof htmx !== 'undefined') {
+      htmx.trigger(form, 'submit');
+    }
+  }
+
+  function refreshLintAfterSave(objectIri) {
+    // Refresh the lint panel after a short delay (validation queue processes async)
+    setTimeout(function () {
+      var activeTab = document.querySelector('.rp-tab.active');
+      if (activeTab && activeTab.dataset.tab === 'lint') {
+        loadRightPane(objectIri, 'lint');
+      }
+    }, 2000);
   }
 
   // --- Command Palette ---

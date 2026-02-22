@@ -1,0 +1,38 @@
+{# Type picker dialog: lists all available object types from installed models.
+   Rendered as htmx partial in the editor area when user wants to create a new object.
+
+   Context:
+     types: list of dicts with 'iri' and 'label' keys from ShapesService.get_types()
+#}
+
+<div class="type-picker">
+    <h2 class="type-picker-title">Create New Object</h2>
+    <p class="type-picker-hint">Select a type to create a new object:</p>
+
+    {% if types %}
+    <div class="type-picker-grid">
+        {% for type in types %}
+        <a class="type-card"
+           hx-get="/browser/objects/new?type={{ type.iri | urlencode }}"
+           hx-target="#editor-area"
+           hx-swap="innerHTML">
+            <div class="type-card-label">{{ type.label | replace(' Shape', '') }}</div>
+            <div class="type-card-description">Create a new {{ type.label | replace(' Shape', '') | lower }}</div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="type-picker-empty">
+        <p>No object types available. Install a Mental Model first.</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+(function() {
+    // Create a "New Object" tab when type picker is shown
+    if (typeof window.openTab === 'function') {
+        // Don't open a tab for the picker itself, just show it in the editor area
+    }
+})();
+</script>
