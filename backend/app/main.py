@@ -11,13 +11,16 @@ from jinja2_fragments.fastapi import Jinja2Blocks
 
 from app.config import settings
 from app.commands.router import router as commands_router
+from app.shell.router import router as shell_router
 from app.events.store import EventStore
 from app.health.router import router as health_router
 from app.models.router import router as models_router
 from app.services.labels import LabelService
 from app.services.models import ModelService, model_shapes_loader, ensure_starter_model
 from app.services.prefixes import PrefixRegistry
+from app.services.shapes import ShapesService
 from app.services.validation import ValidationService
+from app.services.webhooks import WebhookService
 from app.sparql.router import router as sparql_router
 from app.triplestore.client import TriplestoreClient
 from app.triplestore.setup import ensure_repository
@@ -82,6 +85,14 @@ async def lifespan(app: FastAPI):
     app.state.validation_queue = validation_queue
     await validation_queue.start()
 
+    # Create ShapesService for SHACL shape extraction (form generation)
+    shapes_service = ShapesService(client)
+    app.state.shapes_service = shapes_service
+
+    # Create WebhookService for outbound event notifications
+    webhook_service = WebhookService(client)
+    app.state.webhook_service = webhook_service
+
     logger.info("SemPKM API started successfully")
     yield
 
@@ -110,9 +121,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
+# Include routers (API routers first, shell router last so /api/* takes precedence)
 app.include_router(commands_router)
 app.include_router(health_router)
 app.include_router(models_router)
 app.include_router(sparql_router)
 app.include_router(validation_router)
+app.include_router(shell_router)

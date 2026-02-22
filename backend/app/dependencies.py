@@ -5,7 +5,9 @@ from fastapi import Request
 from app.services.labels import LabelService
 from app.services.models import ModelService
 from app.services.prefixes import PrefixRegistry
+from app.services.shapes import ShapesService
 from app.services.validation import ValidationService
+from app.services.webhooks import WebhookService
 from app.triplestore.client import TriplestoreClient
 from app.validation.queue import AsyncValidationQueue
 
@@ -62,3 +64,21 @@ async def get_model_service(request: Request) -> ModelService:
     app.state.model_service.
     """
     return request.app.state.model_service
+
+
+async def get_shapes_service(request: Request) -> ShapesService:
+    """Get the ShapesService instance from app state.
+
+    The service is created during app lifespan startup and stored on
+    app.state.shapes_service.
+    """
+    return request.app.state.shapes_service
+
+
+async def get_webhook_service(request: Request) -> WebhookService:
+    """Get the WebhookService instance from app state.
+
+    The service is created during app lifespan startup and stored on
+    app.state.webhook_service.
+    """
+    return request.app.state.webhook_service
