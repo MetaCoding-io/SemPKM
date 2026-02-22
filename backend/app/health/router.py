@@ -1,4 +1,8 @@
-"""Health check endpoint for SemPKM API."""
+"""Health check endpoint for SemPKM API.
+
+Health endpoint is intentionally public (no auth required) -- used by
+Docker healthchecks and load balancers that cannot provide credentials.
+"""
 
 from fastapi import APIRouter, Depends
 

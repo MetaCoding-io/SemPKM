@@ -8,6 +8,8 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from app.auth.dependencies import get_current_user, require_role
+from app.auth.models import User
 from app.dependencies import get_model_service
 from app.services.models import ModelService
 
@@ -69,6 +71,7 @@ class ModelListResponse(BaseModel):
 )
 async def install_model(
     body: InstallRequest,
+    user: User = Depends(require_role("owner")),
     model_service: ModelService = Depends(get_model_service),
 ) -> InstallResponse:
     """Install a Mental Model from a directory path.
@@ -107,6 +110,7 @@ async def install_model(
 )
 async def remove_model(
     model_id: str,
+    user: User = Depends(require_role("owner")),
     model_service: ModelService = Depends(get_model_service),
 ) -> RemoveResponse:
     """Remove an installed Mental Model.
@@ -145,6 +149,7 @@ async def remove_model(
     response_model=ModelListResponse,
 )
 async def list_models(
+    user: User = Depends(get_current_user),
     model_service: ModelService = Depends(get_model_service),
 ) -> ModelListResponse:
     """List all installed Mental Models.
