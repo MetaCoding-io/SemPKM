@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Core Data Foundation** - Event-sourced RDF data path with triplestore, command API, materialized state, and SPARQL reads (completed 2026-02-21)
 - [x] **Phase 2: Semantic Services** - Label resolution, prefix registry, and async SHACL validation engine
-- [ ] **Phase 3: Mental Model System** - Install, validate, and manage Mental Model archives; ship the starter Basic PKM model
+- [x] **Phase 3: Mental Model System** - Install, validate, and manage Mental Model archives; ship the starter Basic PKM model (completed 2026-02-22)
 - [ ] **Phase 4: Admin Shell and Object Creation** - First user-facing surfaces: admin portal, IDE workspace, SHACL-driven forms, object pages, and lint panel
 - [ ] **Phase 5: Data Browsing and Visualization** - Table, cards, and graph renderers with view spec execution completing the create/browse/explore loop
 
@@ -112,7 +112,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 |-------|----------------|--------|-----------|
 | 1. Core Data Foundation | 4/4 | Complete    | 2026-02-21 |
 | 2. Semantic Services | 2/2 | Complete    | 2026-02-21 |
-| 3. Mental Model System | 1/3 | In Progress | - |
+| 3. Mental Model System | 1/3 | Complete    | 2026-02-22 |
 | 4. Admin Shell and Object Creation | 0/0 | Not started | - |
 | 5. Data Browsing and Visualization | 0/0 | Not started | - |
 
