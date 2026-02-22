@@ -37,7 +37,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **VIEW-01**: User can browse objects in a table view with sortable columns, filtering, and pagination
 - [ ] **VIEW-02**: User can browse objects in a cards view with summary display and optional grouping
-- [ ] **VIEW-03**: User can view objects and relationships in a 2D graph with semantic-aware styling (node color by type, edge style by predicate)
+- [x] **VIEW-03**: User can view objects and relationships in a 2D graph with semantic-aware styling (node color by type, edge style by predicate)
 - [ ] **VIEW-04**: User can view a single object's details on an object page (properties, body, related objects)
 - [x] **VIEW-05**: User can work in an IDE-style workspace with resizable panes and tabs
 - [x] **VIEW-06**: User can navigate and execute commands via a command palette and keyboard shortcuts
@@ -140,7 +140,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MODL-06 | Phase 3 | Complete |
 | VIEW-01 | Phase 5 | Complete |
 | VIEW-02 | Phase 5 | Pending |
-| VIEW-03 | Phase 5 | Pending |
+| VIEW-03 | Phase 5 | Complete |
 | VIEW-04 | Phase 4 | Pending |
 | VIEW-05 | Phase 4 | Complete |
 | VIEW-06 | Phase 4 | Complete |
