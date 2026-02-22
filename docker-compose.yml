@@ -18,7 +18,7 @@ services:
     ports:
       - "8001:8000"
     volumes:
-      - ./backend/app:/app/app:ro
+      - ./backend/app:/app/app
       - ./config:/app/config:ro
       - ./models:/app/models:ro
       - sempkm_data:/app/data

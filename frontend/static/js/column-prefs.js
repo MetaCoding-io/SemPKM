@@ -50,7 +50,7 @@
       if (!prefs) return;
 
       prefs.forEach(function (pref) {
-        var cells = document.querySelectorAll('[data-col="' + pref.col + '"]');
+        var cells = document.querySelectorAll('.view-table [data-col="' + pref.col + '"]');
         cells.forEach(function (cell) {
           if (pref.visible) {
             cell.classList.remove('col-hidden');
@@ -91,13 +91,14 @@
       list.className = 'column-settings-list';
 
       prefs.forEach(function (pref, index) {
-        var item = document.createElement('label');
+        var item = document.createElement('div');
         item.className = 'column-settings-item';
 
         var checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
         checkbox.checked = pref.visible;
         checkbox.dataset.col = pref.col;
+        checkbox.id = 'col-toggle-' + index;
 
         checkbox.addEventListener('change', function () {
           pref.visible = this.checked;
@@ -105,7 +106,8 @@
           ColumnPrefs.applyColumnPrefs(typeIri);
         });
 
-        var label = document.createElement('span');
+        var label = document.createElement('label');
+        label.htmlFor = 'col-toggle-' + index;
         label.textContent = pref.col.replace(/_/g, ' ').replace(/\b\w/g, function (c) {
           return c.toUpperCase();
         });

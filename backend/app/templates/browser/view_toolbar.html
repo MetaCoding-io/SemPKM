@@ -17,6 +17,7 @@
         {% set filter_base_url = "/browser/views/" ~ current_view_type ~ "/" ~ spec_iri_encoded %}
         {% if spec.renderer_type != 'graph' %}
         <input type="text"
+               id="view-filter"
                class="view-filter-input"
                placeholder="Filter {{ type_label }}..."
                value="{{ current_filter }}"
@@ -29,13 +30,26 @@
                hx-vals='{"page": "1", "page_size": "{{ page_size }}", "sort": "{{ sort_col | default('') }}", "dir": "{{ sort_dir | default('asc') }}"{% if group_by is defined and group_by %}, "group_by": "{{ group_by }}"{% endif %}}'>
         {% endif %}
         {% if spec.renderer_type == 'table' %}
-        <button class="view-columns-btn" onclick="ColumnPrefs.openColumnSettings('{{ type_iri }}', {{ columns | tojson }})" title="Column settings">
+        <button class="view-columns-btn" onclick='ColumnPrefs.openColumnSettings("{{ type_iri }}", {{ columns | tojson }})' title="Column settings">
             &#9881;
         </button>
         {% endif %}
     </div>
 </div>
 <script>
+if (!window._viewFilterRefocusBound) {
+    window._viewFilterRefocusBound = true;
+    document.body.addEventListener('htmx:afterSwap', function (evt) {
+        if (evt.detail.target && evt.detail.target.id === 'editor-area') {
+            var input = document.getElementById('view-filter');
+            if (input && document.activeElement !== input) {
+                input.focus();
+                var len = input.value.length;
+                input.setSelectionRange(len, len);
+            }
+        }
+    });
+}
 function switchViewType(specIri, label, rendererType) {
     var toolbar = document.querySelector('.view-toolbar');
     var filter = toolbar ? toolbar.getAttribute('data-current-filter') || '' : '';
