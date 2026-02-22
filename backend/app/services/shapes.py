@@ -13,7 +13,8 @@ property paths.
 import logging
 from dataclasses import dataclass, field
 
-from rdflib import Graph, URIRef, Literal, Collection
+from rdflib import Graph, URIRef, Literal
+from rdflib.collection import Collection
 from rdflib.namespace import RDF, RDFS, SH, XSD
 
 from app.models.registry import MODELS_GRAPH, SEMPKM_NS
