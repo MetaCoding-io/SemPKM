@@ -1,0 +1,34 @@
+{% include "browser/view_toolbar.html" %}
+
+<div class="graph-toolbar">
+    <label class="layout-picker-label" for="layout-picker">Layout:</label>
+    <select id="layout-picker" class="layout-picker" onchange="changeLayout(this.value)">
+        {% for layout in available_layouts %}
+        {% if loop.index0 == 3 and available_layouts | length > 3 %}
+        <option disabled>--- Model Layouts ---</option>
+        {% endif %}
+        <option value="{{ layout.name }}"{% if loop.first %} selected{% endif %}>{{ layout.label }}</option>
+        {% endfor %}
+    </select>
+    <button class="graph-fit-btn" onclick="if(window._sempkmGraph) window._sempkmGraph.fit()" title="Fit graph to view">Fit</button>
+</div>
+
+<div id="cy-container" class="graph-container"></div>
+
+<script>
+(function() {
+    var specIri = '{{ spec_iri_encoded }}';
+    var typeColors = {{ type_colors | tojson }};
+    var availableLayouts = {{ available_layouts | tojson }};
+
+    // Wait for graph.js to be loaded, then initialize
+    function tryInit() {
+        if (typeof window.initGraph === 'function') {
+            window.initGraph('cy-container', specIri, typeColors, availableLayouts);
+        } else {
+            setTimeout(tryInit, 50);
+        }
+    }
+    tryInit();
+})();
+</script>
