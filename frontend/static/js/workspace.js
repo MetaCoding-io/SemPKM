@@ -128,7 +128,7 @@
     if (viewType === 'table') {
       url = '/browser/views/table/' + encodeURIComponent(viewId);
     } else if (viewType === 'card') {
-      url = '/browser/views/cards/' + encodeURIComponent(viewId);
+      url = '/browser/views/card/' + encodeURIComponent(viewId);
     } else if (viewType === 'graph') {
       url = '/browser/views/graph/' + encodeURIComponent(viewId);
     } else {

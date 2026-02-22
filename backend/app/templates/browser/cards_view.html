@@ -11,12 +11,12 @@
             <div class="flip-card-front">
                 <div class="card-title" onclick="openTab('{{ card.iri }}', '{{ card.label | replace("'", "\\'") }}'); return false;">{{ card.label }}</div>
                 <div class="card-snippet">{{ card.snippet }}</div>
-                <button class="flip-toggle" onclick="this.closest('.flip-card').classList.toggle('flipped')" title="Flip card">&#x21BB;</button>
+                <button class="flip-toggle" onclick="toggleCardFlip(this.closest('.flip-card'))" title="Flip card">&#x21BB;</button>
             </div>
             <div class="flip-card-back">
                 <div class="card-back-header">
                     <span class="card-back-title">{{ card.label }}</span>
-                    <button class="flip-toggle" onclick="this.closest('.flip-card').classList.toggle('flipped')" title="Flip card">&#x21BB;</button>
+                    <button class="flip-toggle" onclick="toggleCardFlip(this.closest('.flip-card'))" title="Flip card">&#x21BB;</button>
                 </div>
                 <div class="card-properties">
                     {% for prop in card.properties %}
@@ -58,12 +58,12 @@
             <div class="flip-card-front">
                 <div class="card-title" onclick="openTab('{{ card.iri }}', '{{ card.label | replace("'", "\\'") }}'); return false;">{{ card.label }}</div>
                 <div class="card-snippet">{{ card.snippet }}</div>
-                <button class="flip-toggle" onclick="this.closest('.flip-card').classList.toggle('flipped')" title="Flip card">&#x21BB;</button>
+                <button class="flip-toggle" onclick="toggleCardFlip(this.closest('.flip-card'))" title="Flip card">&#x21BB;</button>
             </div>
             <div class="flip-card-back">
                 <div class="card-back-header">
                     <span class="card-back-title">{{ card.label }}</span>
-                    <button class="flip-toggle" onclick="this.closest('.flip-card').classList.toggle('flipped')" title="Flip card">&#x21BB;</button>
+                    <button class="flip-toggle" onclick="toggleCardFlip(this.closest('.flip-card'))" title="Flip card">&#x21BB;</button>
                 </div>
                 <div class="card-properties">
                     {% for prop in card.properties %}
@@ -125,3 +125,23 @@
 {% endif %}
 
 {% include "browser/pagination.html" %}
+
+<script>
+function toggleCardFlip(card) {
+    var isFlipped = card.classList.contains('flipped');
+    if (isFlipped) {
+        var backdrop = document.querySelector('.card-backdrop');
+        if (backdrop) backdrop.remove();
+        card.classList.remove('flipped');
+    } else {
+        var backdrop = document.createElement('div');
+        backdrop.className = 'card-backdrop';
+        backdrop.addEventListener('click', function () {
+            backdrop.remove();
+            card.classList.remove('flipped');
+        });
+        document.body.appendChild(backdrop);
+        card.classList.add('flipped');
+    }
+}
+</script>
