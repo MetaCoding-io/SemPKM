@@ -571,6 +571,16 @@ pre.json-output {
   white-space: nowrap;
 }
 
+.sidebar-section {
+  padding: 0.75rem 1.25rem 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  margin-top: 0.5rem;
+}
+
 /* Content area */
 .content-area {
   flex: 1;

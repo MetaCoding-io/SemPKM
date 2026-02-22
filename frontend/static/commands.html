@@ -3,74 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Commands - SemPKM Dev Console</title>
+    <title>Commands - SemPKM</title>
     <link rel="stylesheet" href="/css/style.css">
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
     <script src="/js/app.js"></script>
     <script src="/js/auth.js"></script>
 </head>
 <body>
-    <nav>
-        <div class="nav-inner">
-            <a href="/" class="brand">SemPKM</a>
-            <a href="/">Health</a>
-            <a href="/sparql.html">SPARQL</a>
-            <a href="/commands.html" class="active">Commands</a>
-        </div>
-    </nav>
-
-    <main>
-        <h1>Execute Commands</h1>
-
-        <div class="card">
-            <div class="tab-bar">
-                <button class="active" data-tab="form" onclick="switchTab('form')">Form</button>
-                <button data-tab="raw" onclick="switchTab('raw')">Raw JSON</button>
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <a href="/">SemPKM</a>
             </div>
+            <nav class="sidebar-nav">
+                <a href="/" class="nav-link">
+                    <span class="nav-icon">&#127968;</span>
+                    <span class="nav-label">Home</span>
+                </a>
+                <a href="/admin/" class="nav-link">
+                    <span class="nav-icon">&#9881;</span>
+                    <span class="nav-label">Admin</span>
+                </a>
+                <a href="/browser/" class="nav-link">
+                    <span class="nav-icon">&#128193;</span>
+                    <span class="nav-label">Object Browser</span>
+                </a>
+                <a href="/health/" class="nav-link">
+                    <span class="nav-icon">&#9829;</span>
+                    <span class="nav-label">Health Check</span>
+                </a>
+                <div class="sidebar-section">Debug Tools</div>
+                <a href="/sparql.html" class="nav-link">
+                    <span class="nav-icon">&#128269;</span>
+                    <span class="nav-label">SPARQL</span>
+                </a>
+                <a href="/commands.html" class="nav-link active">
+                    <span class="nav-icon">&#9654;</span>
+                    <span class="nav-label">Commands</span>
+                </a>
+            </nav>
+        </aside>
+        <main class="content-area">
+            <div id="app-content">
+                <h1>Execute Commands</h1>
 
-            <!-- Form mode -->
-            <div id="tab-form" class="tab-content active">
-                <div class="form-group">
-                    <label for="command-type">Command Type</label>
-                    <select id="command-type" onchange="switchCommandForm(this.value)">
-                        <option value="object.create">object.create</option>
-                        <option value="object.patch">object.patch</option>
-                        <option value="body.set">body.set</option>
-                        <option value="edge.create">edge.create</option>
-                        <option value="edge.patch">edge.patch</option>
-                    </select>
+                <div class="card">
+                    <div class="tab-bar">
+                        <button class="active" data-tab="form" onclick="switchTab('form')">Form</button>
+                        <button data-tab="raw" onclick="switchTab('raw')">Raw JSON</button>
+                    </div>
+
+                    <!-- Form mode -->
+                    <div id="tab-form" class="tab-content active">
+                        <div class="form-group">
+                            <label for="command-type">Command Type</label>
+                            <select id="command-type" onchange="switchCommandForm(this.value)">
+                                <option value="object.create">object.create</option>
+                                <option value="object.patch">object.patch</option>
+                                <option value="body.set">body.set</option>
+                                <option value="edge.create">edge.create</option>
+                                <option value="edge.patch">edge.patch</option>
+                            </select>
+                        </div>
+
+                        <div id="command-fields">
+                            <!-- Dynamic fields injected by switchCommandForm() -->
+                        </div>
+
+                        <div class="btn-group">
+                            <button class="btn-primary" onclick="executeCommand()">Execute</button>
+                        </div>
+                    </div>
+
+                    <!-- Raw JSON mode -->
+                    <div id="tab-raw" class="tab-content">
+                        <div class="form-group">
+                            <label for="raw-json">Command JSON</label>
+                            <textarea id="raw-json" class="query-box" placeholder='{"command": "object.create", "params": {"type": "Person", "slug": "alice", "properties": {"rdfs:label": "Alice"}}}'></textarea>
+                        </div>
+
+                        <div class="btn-group">
+                            <button class="btn-primary" onclick="executeRawCommand()">Execute</button>
+                        </div>
+                    </div>
                 </div>
 
-                <div id="command-fields">
-                    <!-- Dynamic fields injected by switchCommandForm() -->
-                </div>
-
-                <div class="btn-group">
-                    <button class="btn-primary" onclick="executeCommand()">Execute</button>
-                </div>
+                <div id="command-error"></div>
+                <div id="command-result"></div>
             </div>
-
-            <!-- Raw JSON mode -->
-            <div id="tab-raw" class="tab-content">
-                <div class="form-group">
-                    <label for="raw-json">Command JSON</label>
-                    <textarea id="raw-json" class="query-box" placeholder='{"command": "object.create", "params": {"type": "Person", "slug": "alice", "properties": {"rdfs:label": "Alice"}}}'></textarea>
-                </div>
-
-                <div class="btn-group">
-                    <button class="btn-primary" onclick="executeRawCommand()">Execute</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="command-error"></div>
-        <div id="command-result"></div>
-    </main>
+        </main>
+    </div>
 
     <script>
         checkAuthStatus();
-
-        // Initialize the form with the default command type
         switchCommandForm(document.getElementById("command-type").value);
     </script>
 </body>
