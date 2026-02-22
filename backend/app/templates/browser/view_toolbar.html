@@ -1,13 +1,11 @@
-<div class="view-toolbar">
+<div class="view-toolbar" data-current-filter="{{ current_filter }}" data-current-sort="{{ sort_col }}" data-current-dir="{{ sort_dir }}">
     <div class="view-toolbar-left">
         <span class="view-label">{{ spec.label }}</span>
         <div class="view-type-switcher">
             {% for s in all_specs %}
             <a class="view-type-btn{% if s.spec_iri == spec.spec_iri %} active{% endif %}"
                href="#"
-               hx-get="/browser/views/{{ s.renderer_type }}/{{ s.spec_iri | urlencode }}"
-               hx-target="#editor-area"
-               hx-swap="innerHTML"
+               onclick="switchViewType('{{ s.spec_iri }}', '{{ s.label }}', '{{ s.renderer_type }}'); return false;"
                title="{{ s.label }}">
                 {% if s.renderer_type == 'table' %}&#9638;{% elif s.renderer_type == 'card' %}&#9641;{% elif s.renderer_type == 'graph' %}&#9672;{% else %}&#9654;{% endif %}
             </a>
@@ -15,17 +13,19 @@
         </div>
     </div>
     <div class="view-toolbar-right">
+        {% if spec.renderer_type != 'graph' %}
         <input type="text"
                class="view-filter-input"
                placeholder="Filter {{ type_label }}..."
                value="{{ current_filter }}"
                name="filter"
-               hx-get="/browser/views/table/{{ spec_iri_encoded }}"
+               hx-get="/browser/views/{{ spec.renderer_type }}/{{ spec_iri_encoded }}"
                hx-target="#editor-area"
                hx-swap="innerHTML"
                hx-trigger="keyup changed delay:300ms"
                hx-include="this"
                hx-vals='{"page": "1", "page_size": "{{ page_size }}", "sort": "{{ sort_col }}", "dir": "{{ sort_dir }}"}'>
+        {% endif %}
         {% if spec.renderer_type == 'table' %}
         <button class="view-columns-btn" onclick="ColumnPrefs.openColumnSettings('{{ type_iri }}', {{ columns | tojson }})" title="Column settings">
             &#9881;
@@ -33,3 +33,25 @@
         {% endif %}
     </div>
 </div>
+<script>
+function switchViewType(specIri, label, rendererType) {
+    var toolbar = document.querySelector('.view-toolbar');
+    var filter = toolbar ? toolbar.getAttribute('data-current-filter') || '' : '';
+    var sort = toolbar ? toolbar.getAttribute('data-current-sort') || '' : '';
+    var dir = toolbar ? toolbar.getAttribute('data-current-dir') || 'asc' : 'asc';
+
+    // Build URL with preserved params
+    var url = '/browser/views/' + rendererType + '/' + encodeURIComponent(specIri);
+    if (rendererType !== 'graph') {
+        var params = [];
+        if (filter) params.push('filter=' + encodeURIComponent(filter));
+        if (sort) params.push('sort=' + encodeURIComponent(sort));
+        if (dir && dir !== 'asc') params.push('dir=' + encodeURIComponent(dir));
+        if (params.length > 0) url += '?' + params.join('&');
+    }
+
+    if (typeof htmx !== 'undefined') {
+        htmx.ajax('GET', url, { target: '#editor-area', swap: 'innerHTML' });
+    }
+}
+</script>

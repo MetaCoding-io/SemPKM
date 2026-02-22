@@ -1,0 +1,21 @@
+<div class="view-menu">
+    <div class="view-menu-header">All Views</div>
+    {% for group in display_groups %}
+    <div class="view-menu-group">
+        <div class="view-menu-group-label">{{ group.name }}</div>
+        {% for spec in group.specs %}
+        <a class="view-menu-item" href="#"
+           onclick="openViewTab('{{ spec.spec_iri }}', '{{ spec.label }}', '{{ spec.renderer_type }}'); return false;">
+            <span class="view-menu-icon">
+                {% if spec.renderer_type == 'table' %}&#9638;{% elif spec.renderer_type == 'card' %}&#9641;{% elif spec.renderer_type == 'graph' %}&#9672;{% else %}&#9654;{% endif %}
+            </span>
+            <span class="view-menu-label">{{ spec.label }}</span>
+            <span class="view-menu-type">{{ spec.renderer_type }}</span>
+        </a>
+        {% endfor %}
+    </div>
+    {% endfor %}
+    {% if total_specs == 0 %}
+    <div class="view-menu-empty">No views available. Install a Mental Model to get started.</div>
+    {% endif %}
+</div>

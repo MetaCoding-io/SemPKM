@@ -9,10 +9,15 @@ Uses scope_to_current_graph() from app/sparql/client to inject FROM <urn:sempkm:
 into view spec SPARQL queries before execution (per Research Pitfall 1).
 """
 
+import hashlib
+import json
 import logging
 import math
 import re
 from dataclasses import dataclass, field
+
+import rdflib
+from rdflib import RDF, URIRef
 
 from app.models.registry import MODELS_GRAPH, SEMPKM_NS
 from app.services.labels import LabelService
@@ -306,6 +311,304 @@ OFFSET {offset}"""
             "total_pages": total_pages,
             "columns": spec.columns,
         }
+
+    async def execute_graph_query(self, spec: ViewSpec) -> dict:
+        """Execute a view spec's SPARQL CONSTRUCT query for graph visualization.
+
+        Scopes the query to the current graph, executes as CONSTRUCT to get
+        Turtle bytes, parses with rdflib, and converts to Cytoscape.js-compatible
+        JSON with nodes, edges, and type-to-color mapping.
+
+        Args:
+            spec: The ViewSpec containing a CONSTRUCT SPARQL query.
+
+        Returns:
+            Dict with keys: nodes, edges, type_colors.
+        """
+        if not spec.sparql_query:
+            return {"nodes": [], "edges": [], "type_colors": {}}
+
+        scoped_query = scope_to_current_graph(spec.sparql_query)
+
+        try:
+            turtle_bytes = await self._client.construct(scoped_query)
+        except Exception:
+            logger.warning("CONSTRUCT query failed for view spec %s", spec.spec_iri, exc_info=True)
+            return {"nodes": [], "edges": [], "type_colors": {}}
+
+        return await self._parse_graph_results(turtle_bytes)
+
+    async def expand_neighbors(self, node_iri: str) -> dict:
+        """Fetch all triples where node_iri is subject or object.
+
+        Executes a SPARQL CONSTRUCT for both directions (outbound and inbound),
+        scoped to the current graph.
+
+        Args:
+            node_iri: The IRI of the node to expand.
+
+        Returns:
+            Dict with keys: nodes, edges, type_colors.
+        """
+        construct_query = f"""CONSTRUCT {{ ?s ?p ?o }}
+FROM <urn:sempkm:current>
+WHERE {{
+  {{ <{node_iri}> ?p ?o . BIND(<{node_iri}> AS ?s) . FILTER(isIRI(?o)) }}
+  UNION
+  {{ ?s ?p <{node_iri}> . BIND(<{node_iri}> AS ?o) . FILTER(isIRI(?s)) }}
+}}"""
+
+        try:
+            turtle_bytes = await self._client.construct(construct_query)
+        except Exception:
+            logger.warning("Expand neighbors query failed for %s", node_iri, exc_info=True)
+            return {"nodes": [], "edges": [], "type_colors": {}}
+
+        return await self._parse_graph_results(turtle_bytes)
+
+    async def get_model_layouts(self) -> list[dict]:
+        """Query installed model view specs for custom layout definitions.
+
+        Looks for sempkm:layoutAlgorithm entries in views graphs that define
+        sempkm:layoutName and sempkm:layoutConfig (JSON string).
+
+        Returns:
+            List of {"name": str, "label": str, "config": dict} for each
+            model-contributed layout.
+        """
+        model_sparql = f"""SELECT ?modelId WHERE {{
+  GRAPH <{MODELS_GRAPH}> {{
+    ?model a <{SEMPKM_NS}MentalModel> ;
+           <{SEMPKM_NS}modelId> ?modelId .
+  }}
+}}"""
+        try:
+            result = await self._client.query(model_sparql)
+        except Exception:
+            return []
+
+        bindings = result.get("results", {}).get("bindings", [])
+        if not bindings:
+            return []
+
+        from_clauses = []
+        for b in bindings:
+            model_id = b["modelId"]["value"]
+            from_clauses.append(f"FROM <urn:sempkm:model:{model_id}:views>")
+
+        from_str = "\n".join(from_clauses)
+
+        layout_sparql = f"""SELECT ?name ?label ?config
+{from_str}
+WHERE {{
+  ?algo a <{SEMPKM_VOCAB}LayoutAlgorithm> .
+  ?algo <{SEMPKM_VOCAB}layoutName> ?name .
+  OPTIONAL {{ ?algo <http://www.w3.org/2000/01/rdf-schema#label> ?label }}
+  OPTIONAL {{ ?algo <{SEMPKM_VOCAB}layoutConfig> ?config }}
+}}"""
+
+        try:
+            result = await self._client.query(layout_sparql)
+        except Exception:
+            return []
+
+        layouts = []
+        for b in result.get("results", {}).get("bindings", []):
+            name = b["name"]["value"]
+            label = b.get("label", {}).get("value", name.title())
+            config_str = b.get("config", {}).get("value", "{}")
+            try:
+                config = json.loads(config_str)
+            except (json.JSONDecodeError, TypeError):
+                config = {}
+            layouts.append({"name": name, "label": label, "config": config})
+
+        return layouts
+
+    async def _parse_graph_results(self, turtle_bytes: bytes) -> dict:
+        """Parse Turtle CONSTRUCT results into Cytoscape.js-compatible JSON.
+
+        Iterates all triples:
+        - Subjects are always nodes.
+        - rdf:type triples set the node's type.
+        - Object properties (o is URIRef) create edges.
+        - Label properties set the node's display label.
+
+        Returns:
+            Dict with keys: nodes, edges, type_colors.
+        """
+        g = rdflib.Graph()
+        try:
+            g.parse(data=turtle_bytes, format="turtle")
+        except Exception:
+            logger.warning("Failed to parse CONSTRUCT Turtle results", exc_info=True)
+            return {"nodes": [], "edges": [], "type_colors": {}}
+
+        # Track nodes and edges
+        nodes_dict: dict[str, dict] = {}  # IRI -> {id, types, label}
+        edges: list[dict] = []
+
+        for s, p, o in g:
+            s_str = str(s)
+            p_str = str(p)
+
+            # Ensure subject is a node
+            if s_str not in nodes_dict:
+                nodes_dict[s_str] = {"id": s_str, "types": set(), "label": ""}
+
+            if p_str == str(RDF.type) and isinstance(o, URIRef):
+                # rdf:type triple -- add type to node
+                nodes_dict[s_str]["types"].add(str(o))
+            elif isinstance(o, URIRef):
+                # Object property -- create edge and ensure target is a node
+                o_str = str(o)
+                if o_str not in nodes_dict:
+                    nodes_dict[o_str] = {"id": o_str, "types": set(), "label": ""}
+
+                edges.append({
+                    "source": s_str,
+                    "target": o_str,
+                    "predicate": p_str,
+                })
+
+                # Check if predicate is a label property
+                if p_str in LABEL_PROPERTIES:
+                    pass  # URIRef objects are not label values
+            else:
+                # Datatype property -- check if it's a label property
+                if p_str in LABEL_PROPERTIES and not nodes_dict[s_str]["label"]:
+                    nodes_dict[s_str]["label"] = str(o)
+
+        # Resolve labels for nodes without label properties via LabelService
+        iris_needing_labels = [
+            iri for iri, data in nodes_dict.items() if not data["label"]
+        ]
+        if iris_needing_labels:
+            resolved = await self._label_service.resolve_batch(iris_needing_labels)
+            for iri in iris_needing_labels:
+                nodes_dict[iri]["label"] = resolved.get(iri, _local_name(iri))
+
+        # Resolve predicate labels for edges
+        pred_iris = list({e["predicate"] for e in edges})
+        if pred_iris:
+            pred_labels = await self._label_service.resolve_batch(pred_iris)
+        else:
+            pred_labels = {}
+
+        # Build type-to-color mapping
+        all_types: set[str] = set()
+        for data in nodes_dict.values():
+            all_types.update(data["types"])
+
+        # Query models for optional sempkm:nodeColor (best-effort)
+        model_colors = await self._get_model_node_colors(all_types)
+
+        type_colors: dict[str, str] = {}
+        for t in all_types:
+            if t in model_colors:
+                type_colors[t] = model_colors[t]
+            else:
+                type_colors[t] = _color_for_type(t)
+
+        # Build output
+        nodes_out = []
+        for iri, data in nodes_dict.items():
+            primary_type = next(iter(data["types"]), "")
+            nodes_out.append({
+                "id": iri,
+                "label": data["label"] or _local_name(iri),
+                "type": primary_type,
+            })
+
+        edges_out = []
+        for e in edges:
+            edges_out.append({
+                "source": e["source"],
+                "target": e["target"],
+                "predicate": e["predicate"],
+                "predicate_label": pred_labels.get(e["predicate"], _local_name(e["predicate"])),
+            })
+
+        return {
+            "nodes": nodes_out,
+            "edges": edges_out,
+            "type_colors": type_colors,
+        }
+
+    async def _get_model_node_colors(self, type_iris: set[str]) -> dict[str, str]:
+        """Query models for optional sempkm:nodeColor on ontology classes.
+
+        Args:
+            type_iris: Set of type IRIs to look up colors for.
+
+        Returns:
+            Dict mapping type IRI -> hex color string.
+        """
+        if not type_iris:
+            return {}
+
+        model_sparql = f"""SELECT ?modelId WHERE {{
+  GRAPH <{MODELS_GRAPH}> {{
+    ?model a <{SEMPKM_NS}MentalModel> ;
+           <{SEMPKM_NS}modelId> ?modelId .
+  }}
+}}"""
+        try:
+            result = await self._client.query(model_sparql)
+        except Exception:
+            return {}
+
+        bindings = result.get("results", {}).get("bindings", [])
+        if not bindings:
+            return {}
+
+        # Build FROM clauses for each model's ontology graph
+        from_clauses = []
+        for b in bindings:
+            model_id = b["modelId"]["value"]
+            from_clauses.append(f"FROM <urn:sempkm:model:{model_id}:ontology>")
+
+        from_str = "\n".join(from_clauses)
+
+        values = " ".join(f"(<{iri}>)" for iri in type_iris)
+        color_sparql = f"""SELECT ?type ?color
+{from_str}
+WHERE {{
+  VALUES (?type) {{ {values} }}
+  ?type <{SEMPKM_VOCAB}nodeColor> ?color .
+}}"""
+
+        try:
+            result = await self._client.query(color_sparql)
+        except Exception:
+            return {}
+
+        colors: dict[str, str] = {}
+        for b in result.get("results", {}).get("bindings", []):
+            colors[b["type"]["value"]] = b["color"]["value"]
+        return colors
+
+
+# Tableau 10 color palette for auto-assigned node coloring
+TABLEAU_10 = [
+    '#4e79a7', '#f28e2c', '#e15759', '#76b7b2', '#59a14f',
+    '#edc949', '#af7aa1', '#ff9da7', '#9c755f', '#bab0ab',
+]
+
+# Label property IRIs for display label extraction from CONSTRUCT results
+LABEL_PROPERTIES = {
+    str(URIRef("http://purl.org/dc/terms/title")),
+    str(URIRef("http://www.w3.org/2000/01/rdf-schema#label")),
+    str(URIRef("http://xmlns.com/foaf/0.1/name")),
+    str(URIRef("http://www.w3.org/2004/02/skos/core#prefLabel")),
+    str(URIRef("https://schema.org/name")),
+}
+
+
+def _color_for_type(type_iri: str) -> str:
+    """Auto-assign a color from the Tableau 10 palette based on type IRI hash."""
+    idx = int(hashlib.md5(type_iri.encode()).hexdigest(), 16) % len(TABLEAU_10)
+    return TABLEAU_10[idx]
 
 
 def _extract_where_body(query: str) -> str:
