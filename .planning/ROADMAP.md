@@ -104,8 +104,8 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — ViewSpecService and table view (view spec execution pipeline, sortable/filterable/paginated table renderer)
-- [ ] 05-02-PLAN.md — Cards view (flippable cards with CSS 3D flip, body snippets, property/relation back face, optional grouping)
+- [x] 05-01-PLAN.md — ViewSpecService and table view (view spec execution pipeline, sortable/filterable/paginated table renderer)
+- [x] 05-02-PLAN.md — Cards view (flippable cards with CSS 3D flip, body snippets, property/relation back face, optional grouping)
 - [ ] 05-03-PLAN.md — Graph view and workspace integration (Cytoscape.js visualization, layout picker, view tabs, view menu, command palette)
 
 ## Progress
@@ -119,7 +119,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 2. Semantic Services | 2/2 | Complete    | 2026-02-21 |
 | 3. Mental Model System | 1/3 | Complete    | 2026-02-22 |
 | 4. Admin Shell and Object Creation | 2/6 | In Progress | - |
-| 5. Data Browsing and Visualization | 0/3 | Not started | - |
+| 5. Data Browsing and Visualization | 2/3 | In Progress | - |
 | 6. User and Team Management | 0/4 | Not started | - |
 
 ### Phase 6: User and Team Management for Multi-Tenant Cloud Readiness
