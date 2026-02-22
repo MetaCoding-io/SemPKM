@@ -36,11 +36,11 @@ Users browse, filter, and explore their knowledge through table, cards, and grap
 - Pan and zoom for navigation
 
 ### View Specs System
-- View specs defined by both Mental Models (packaged with the model) and users at runtime (saved per-user)
+- View specs defined by Mental Models (packaged with the model) — model-provided only for Phase 5
 - Built-in renderer types: table, cards, graph
 - Mental Models can register custom renderer types (e.g., timeline, kanban, calendar) — extensible renderer registry
 - Installing a model automatically makes its view specs available for the types it targets — zero config, auto-appear
-- Views discoverable via both a view menu (grouped by model vs user-created) and the command palette ("Open view: ...")
+- Views discoverable via both a view menu (grouped by source model name) and the command palette ("Open view: ...")
 
 ### View Switching & Navigation
 - Views open as tabs in the center pane alongside object tabs — shared tab bar
@@ -69,7 +69,7 @@ Users browse, filter, and explore their knowledge through table, cards, and grap
 <deferred>
 ## Deferred Ideas
 
-None — discussion stayed within phase scope
+- **User-created view specs at runtime (saved per-user)**: Users defining their own view specs with custom SPARQL queries and renderer configurations. Phase 5 implements model-provided view specs only. User-created view spec CRUD deferred to a later phase.
 
 </deferred>
 
