@@ -1,0 +1,416 @@
+/* ============================================
+   IDE-Style Workspace Layout
+   Three-column resizable panes with Split.js
+   ============================================ */
+
+/* Override dashboard content constraints for workspace */
+.content-area:has(.workspace-container) {
+    padding: 0;
+}
+
+.content-area:has(.workspace-container) #app-content {
+    max-width: none;
+    height: calc(100vh);
+}
+
+/* Workspace container: three-column flex layout */
+.workspace-container {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+    overflow: hidden;
+    background: var(--color-bg, #fafafa);
+}
+
+/* Individual panes */
+.workspace-pane {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+}
+
+/* Pane headers */
+.pane-header {
+    height: 36px;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    border-bottom: 1px solid var(--color-border, #e0e0e0);
+    background: var(--color-surface, #fff);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-text-muted, #666);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    user-select: none;
+}
+
+.pane-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Pane content areas */
+.pane-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* ============================================
+   Left Pane: Navigation Tree
+   ============================================ */
+
+#nav-pane {
+    background: #f8f9fb;
+    border-right: 1px solid var(--color-border, #e0e0e0);
+}
+
+#nav-pane .pane-content {
+    padding: 4px 0;
+}
+
+/* Tree nodes (type headers) */
+.tree-node {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 12px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text, #1a1a2e);
+    user-select: none;
+    transition: background 0.1s;
+}
+
+.tree-node:hover {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+.tree-node.expanded .tree-toggle {
+    transform: rotate(90deg);
+}
+
+.tree-toggle {
+    font-size: 0.7rem;
+    width: 14px;
+    text-align: center;
+    flex-shrink: 0;
+    transition: transform 0.15s;
+    color: var(--color-text-muted, #666);
+}
+
+.tree-icon {
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.tree-label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Tree children container */
+.tree-children {
+    padding-left: 8px;
+}
+
+/* Tree leaf nodes (individual objects) */
+.tree-leaf {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px 4px 28px;
+    cursor: pointer;
+    font-size: 0.83rem;
+    color: var(--color-text, #1a1a2e);
+    user-select: none;
+    transition: background 0.1s;
+}
+
+.tree-leaf:hover {
+    background: rgba(45, 90, 158, 0.08);
+}
+
+.tree-leaf.active {
+    background: rgba(45, 90, 158, 0.12);
+    color: var(--color-primary, #2d5a9e);
+}
+
+.tree-leaf-icon {
+    font-size: 0.8rem;
+    flex-shrink: 0;
+    color: var(--color-text-muted, #666);
+}
+
+.tree-leaf-label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tree-empty {
+    padding: 16px 12px;
+    font-size: 0.85rem;
+    color: var(--color-text-muted, #666);
+    font-style: italic;
+}
+
+/* ============================================
+   Split.js Gutter
+   ============================================ */
+
+.gutter {
+    background: var(--color-border, #e0e0e0);
+    cursor: col-resize;
+    flex-shrink: 0;
+    transition: background 0.15s;
+}
+
+.gutter:hover {
+    background: var(--color-primary, #2d5a9e);
+}
+
+.gutter.gutter-horizontal {
+    width: 5px;
+}
+
+/* ============================================
+   Center Pane: Tab Bar & Editor
+   ============================================ */
+
+#editor-pane {
+    background: var(--color-surface, #fff);
+}
+
+#editor-pane .pane-header {
+    padding: 0;
+    height: auto;
+    min-height: 36px;
+}
+
+/* Tab bar */
+.tab-bar-workspace {
+    display: flex;
+    align-items: stretch;
+    overflow-x: auto;
+    overflow-y: hidden;
+    width: 100%;
+    min-height: 36px;
+    background: #f4f5f7;
+    border-bottom: 1px solid var(--color-border, #e0e0e0);
+}
+
+.tab-bar-workspace::-webkit-scrollbar {
+    height: 2px;
+}
+
+.tab-bar-workspace::-webkit-scrollbar-thumb {
+    background: var(--color-border, #e0e0e0);
+}
+
+.workspace-tab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 12px;
+    min-height: 36px;
+    font-size: 0.82rem;
+    color: var(--color-text-muted, #666);
+    border-right: 1px solid var(--color-border, #e0e0e0);
+    cursor: pointer;
+    white-space: nowrap;
+    user-select: none;
+    transition: background 0.1s, color 0.1s;
+    max-width: 180px;
+}
+
+.workspace-tab:hover {
+    background: rgba(0, 0, 0, 0.04);
+    color: var(--color-text, #1a1a2e);
+}
+
+.workspace-tab.active {
+    background: var(--color-surface, #fff);
+    color: var(--color-text, #1a1a2e);
+    font-weight: 500;
+    border-bottom: 2px solid var(--color-primary, #2d5a9e);
+}
+
+.tab-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tab-dirty {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--color-warning, #d4a017);
+    flex-shrink: 0;
+}
+
+.tab-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    color: var(--color-text-muted, #666);
+    padding: 0 2px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    opacity: 0.5;
+    transition: opacity 0.1s, background 0.1s;
+}
+
+.tab-close:hover {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.08);
+}
+
+.tab-empty-state {
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    font-size: 0.82rem;
+    color: var(--color-text-muted, #666);
+    font-style: italic;
+}
+
+/* Editor area */
+#editor-area {
+    padding: 16px;
+}
+
+.editor-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 200px;
+    color: var(--color-text-muted, #666);
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.editor-empty .hint {
+    font-size: 0.82rem;
+    margin-top: 8px;
+    opacity: 0.7;
+}
+
+.editor-empty kbd {
+    display: inline-block;
+    padding: 1px 5px;
+    font-family: var(--font-mono, monospace);
+    font-size: 0.75rem;
+    background: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-shadow: 0 1px 0 #bbb;
+}
+
+/* ============================================
+   Right Pane: Properties / Relations / Lint
+   ============================================ */
+
+#right-pane {
+    background: #f8f9fb;
+    border-left: 1px solid var(--color-border, #e0e0e0);
+}
+
+#right-pane .pane-header {
+    flex-wrap: wrap;
+    height: auto;
+    min-height: 36px;
+    gap: 0;
+}
+
+.right-pane-tabs {
+    display: flex;
+    margin-left: auto;
+}
+
+.rp-tab {
+    background: none;
+    border: none;
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--color-text-muted, #666);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    transition: color 0.1s, border-color 0.1s;
+}
+
+.rp-tab:hover {
+    color: var(--color-text, #1a1a2e);
+}
+
+.rp-tab.active {
+    color: var(--color-primary, #2d5a9e);
+    border-bottom-color: var(--color-primary, #2d5a9e);
+}
+
+#right-content {
+    padding: 12px;
+}
+
+.right-empty {
+    font-size: 0.85rem;
+    color: var(--color-text-muted, #666);
+    font-style: italic;
+    padding: 8px 0;
+}
+
+/* ============================================
+   Command Palette (ninja-keys overrides)
+   ============================================ */
+
+ninja-keys {
+    --ninja-accent-color: var(--color-primary, #2d5a9e);
+    --ninja-z-index: 1000;
+}
+
+/* ============================================
+   Responsive
+   ============================================ */
+
+@media (max-width: 768px) {
+    .workspace-container {
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+    }
+
+    .workspace-pane {
+        min-height: 200px;
+    }
+
+    .gutter.gutter-horizontal {
+        width: auto;
+        height: 5px;
+        cursor: row-resize;
+    }
+
+    #right-pane {
+        display: none;
+    }
+}
+
+/* ============================================
+   Pane collapsed state (toggled via command palette)
+   ============================================ */
+
+.workspace-pane.collapsed {
+    display: none;
+}

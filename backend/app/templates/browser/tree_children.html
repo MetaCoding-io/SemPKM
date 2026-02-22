@@ -1,0 +1,12 @@
+{# Navigation tree leaf nodes for objects of a specific type.
+   Returned as an htmx partial by /browser/tree/{type_iri}. #}
+{% if objects %}
+{% for obj in objects %}
+<div class="tree-leaf" onclick="openTab('{{ obj.iri }}', '{{ obj.label }}')">
+    <span class="tree-leaf-icon">&#128196;</span>
+    <span class="tree-leaf-label">{{ obj.label }}</span>
+</div>
+{% endfor %}
+{% else %}
+<div class="tree-empty">No objects</div>
+{% endif %}

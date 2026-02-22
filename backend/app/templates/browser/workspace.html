@@ -2,13 +2,69 @@
 
 {% block title %}SemPKM - Object Browser{% endblock %}
 
+{% block head %}
+<link rel="stylesheet" href="/css/workspace.css">
+<script src="https://unpkg.com/split.js@1.6.5/dist/split.min.js"></script>
+<script type="module" src="https://unpkg.com/ninja-keys?module"></script>
+{% endblock %}
+
 {% block content %}
-<div class="browser-page">
-    <h1>Object Browser</h1>
-    <p class="lead">Browse, create, and edit objects in your knowledge graph.</p>
-    <div class="card">
-        <h2>Coming Soon</h2>
-        <p>The Object Browser will provide an IDE-style workspace with resizable panes, tabs, navigation tree, and command palette for working with your knowledge objects.</p>
+<div class="workspace-container" id="workspace">
+    <div class="workspace-pane" id="nav-pane">
+        <div class="pane-header">
+            <span class="pane-title">Explorer</span>
+        </div>
+        <div class="pane-content" id="nav-tree">
+            {% for type in types %}
+            <div class="tree-node" data-type-iri="{{ type.iri }}"
+                 hx-get="/browser/tree/{{ type.iri | urlencode }}"
+                 hx-trigger="click once"
+                 hx-target="#children-{{ loop.index }}"
+                 hx-swap="innerHTML">
+                <span class="tree-toggle">&#9656;</span>
+                <span class="tree-icon">&#128193;</span>
+                <span class="tree-label">{{ type.label }}</span>
+            </div>
+            <div id="children-{{ loop.index }}" class="tree-children"></div>
+            {% endfor %}
+            {% if not types %}
+            <div class="tree-empty">No models installed</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="workspace-pane" id="editor-pane">
+        <div class="pane-header">
+            <div id="tab-bar" class="tab-bar-workspace">
+                <div class="tab-empty-state">No objects open</div>
+            </div>
+        </div>
+        <div class="pane-content" id="editor-area">
+            <div class="editor-empty">
+                <p>Select an object from the Explorer to open it here.</p>
+                <p class="hint">Or press <kbd>Ctrl</kbd>+<kbd>K</kbd> to open the command palette.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="workspace-pane" id="right-pane">
+        <div class="pane-header">
+            <span class="pane-title">Properties</span>
+            <div class="right-pane-tabs">
+                <button class="rp-tab active" data-tab="properties">Properties</button>
+                <button class="rp-tab" data-tab="relations">Relations</button>
+                <button class="rp-tab" data-tab="lint">Lint</button>
+            </div>
+        </div>
+        <div class="pane-content" id="right-content">
+            <div class="right-empty">No object selected</div>
+        </div>
     </div>
 </div>
+
+<ninja-keys></ninja-keys>
+{% endblock %}
+
+{% block scripts %}
+<script src="/js/workspace.js"></script>
 {% endblock %}
