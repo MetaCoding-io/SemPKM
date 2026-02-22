@@ -19,9 +19,9 @@ Progress: [████████████████] 77%
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 11
+- Total plans completed: 12
 - Average duration: 5min
-- Total execution time: 0.8 hours
+- Total execution time: 0.9 hours
 
 **By Phase:**
 
@@ -30,7 +30,7 @@ Progress: [████████████████] 77%
 | 1. Core Data Foundation | 4 | 23min | 6min |
 | 2. Semantic Services | 2 | 9min | 5min |
 | 3. Mental Model System | 3 | 24min | 8min |
-| 4. Admin Shell and Object Creation | 1 | 4min | 4min |
+| 4. Admin Shell and Object Creation | 2 | 11min | 6min |
 | 6. User and Team Management | 1 | 4min | 4min |
 
 **Recent Trend:**
@@ -76,6 +76,10 @@ Recent decisions affecting current work:
 - [03-03]: Seed data materialized via EventStore.commit() outside model graph transaction for event sourcing consistency
 - [03-03]: Starter model path hardcoded to /app/models/basic-pkm (container mount path)
 - [03-03]: Seed materialization failure treated as warning, not install failure
+- [04-01]: Jinja2Blocks configured at module level in main.py, stored on app.state.templates for router access
+- [04-01]: Shell router included LAST after API routers so /api/* routes take precedence
+- [04-01]: Sidebar uses fixed positioning with 220px width, responsive collapse to icons at 768px
+- [04-01]: Active nav link highlighting via JS listening to htmx:pushedIntoHistory events
 - [04-02]: ShapesService fetches entire shapes graph via CONSTRUCT then traverses with rdflib Python API, not complex SPARQL
 - [04-02]: WebhookService uses delete-all/re-insert pattern for atomic updates
 - [04-02]: Command-to-event mapping: object.create/patch/body.set -> object.changed, edge.create/patch -> edge.changed
@@ -101,5 +105,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-22
-Stopped at: Completed 04-02-PLAN.md (Shapes and Webhooks Services)
+Stopped at: Completed 04-01-PLAN.md (Dashboard Shell and Template Infrastructure)
 Resume file: None
