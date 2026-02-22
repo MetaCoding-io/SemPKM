@@ -18,15 +18,34 @@ class SetupResponse(BaseModel):
 
 
 class MagicLinkRequest(BaseModel):
-    """Request to send a magic link login email."""
+    """Request to send a magic link login email.
 
-    email: EmailStr
+    Uses plain str instead of EmailStr to support local addresses
+    like owner@local that don't have a valid TLD.
+    """
+
+    email: str
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, v: str) -> str:
+        """Require at least user@domain format."""
+        v = v.strip()
+        if "@" not in v or len(v) < 3:
+            msg = "Must be a valid email address"
+            raise ValueError(msg)
+        return v
 
 
 class MagicLinkResponse(BaseModel):
-    """Response after magic link request (always generic for security)."""
+    """Response after magic link request (always generic for security).
+
+    When SMTP is not configured (local instances), the token is returned
+    directly so the user can log in without email.
+    """
 
     message: str
+    token: str | None = None
 
 
 class VerifyTokenRequest(BaseModel):

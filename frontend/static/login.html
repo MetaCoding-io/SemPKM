@@ -16,14 +16,14 @@
             <form id="loginForm" autocomplete="off">
                 <div class="form-group">
                     <label for="login-email">Email</label>
-                    <input type="email" id="login-email" placeholder="you@example.com" autofocus required>
+                    <input type="text" id="login-email" placeholder="you@example.com" autofocus required>
                 </div>
                 <button type="submit" class="btn-primary auth-btn">Send Magic Link</button>
             </form>
 
             <p class="auth-info" style="margin-top: 1rem;">
-                A login link will be sent to your email. If this is a local instance
-                without email configured, check the API logs for the magic link token.
+                Enter your account email to sign in. On local instances without
+                email configured, you'll be logged in automatically.
             </p>
 
             <div id="login-message"></div>

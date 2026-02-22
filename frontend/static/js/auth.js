@@ -155,9 +155,34 @@ function handleLoginForm() {
         return;
       }
 
+      if (data.token) {
+        // No SMTP configured — token returned directly, auto-verify
+        showAuthMessage(messageEl, "Logging in...", "info");
+        var verifyResp = await fetch("/api/auth/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: data.token }),
+        });
+        if (verifyResp.ok) {
+          showAuthMessage(messageEl, "Login successful! Redirecting...", "success");
+          setTimeout(function () {
+            window.location.href = "/";
+          }, 1000);
+        } else {
+          var verifyData = await verifyResp.json();
+          showAuthMessage(
+            messageEl,
+            verifyData.detail || "Token verification failed.",
+            "error"
+          );
+          if (submitBtn) submitBtn.disabled = false;
+        }
+        return;
+      }
+
       showAuthMessage(
         messageEl,
-        "Check your email for a login link. If this is a local instance, check the API logs for the token.",
+        "Check your email for a login link.",
         "success"
       );
     } catch (err) {

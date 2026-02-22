@@ -118,19 +118,26 @@ async def setup(
 async def request_magic_link(body: MagicLinkRequest, request: Request):
     """Request a magic link login email.
 
-    Always returns a generic message to avoid revealing whether
-    the email exists in the system.
+    When SMTP is configured, sends the token via email and returns a
+    generic message. When SMTP is not configured (local instances),
+    returns the token directly in the response and logs it to the terminal.
     """
-    # Generate the token (even if user doesn't exist, to avoid timing attacks)
-    _token = create_magic_link_token(body.email)
+    token = create_magic_link_token(body.email)
+    smtp_configured = bool(settings.smtp_host)
 
-    # TODO: If SMTP is configured, send the email with the token
-    # For now, log it in development mode
-    if settings.debug:
-        logger.info("Magic link token for %s: %s", body.email, _token)
+    # Always log to terminal for local development
+    logger.info("Magic link token for %s: %s", body.email, token)
 
+    if smtp_configured:
+        # TODO: send email with token via SMTP
+        return MagicLinkResponse(
+            message="If this email is registered, a login link has been sent."
+        )
+
+    # No SMTP — return token directly for local instances
     return MagicLinkResponse(
-        message="If this email is registered, a login link has been sent."
+        message="No email configured. Use the token below to log in.",
+        token=token,
     )
 
 
