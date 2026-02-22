@@ -18,42 +18,67 @@
         </div>
 
         <div class="card">
-            <h2>Configuration</h2>
+            <h2>Data Stores</h2>
             <table class="config-table">
                 <tr>
-                    <td class="config-label">Database</td>
-                    <td>{{ database_url }}</td>
+                    <td colspan="2"><strong>Auth Database</strong></td>
                 </tr>
                 <tr>
-                    <td class="config-label">Session Duration</td>
-                    <td>{{ session_duration_days }} days</td>
+                    <td class="config-label">Engine</td>
+                    <td>{{ db.engine }}</td>
                 </tr>
                 <tr>
-                    <td class="config-label">SMTP</td>
-                    <td>
-                        {% if smtp.configured %}
-                        <span class="badge badge-success">Configured</span>
-                        {% else %}
-                        <span class="badge badge-warning">Not configured</span>
-                        <span class="config-hint">Magic links returned in browser</span>
-                        {% endif %}
-                    </td>
+                    <td class="config-label">Path</td>
+                    <td><code>{{ db.path }}</code></td>
                 </tr>
-                {% if smtp.configured %}
                 <tr>
-                    <td class="config-label">SMTP Host</td>
+                    <td class="config-label">Sessions</td>
+                    <td>{{ session_duration_days }} day expiry</td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="padding-top: 0.75rem;"><strong>RDF Triplestore</strong></td>
+                </tr>
+                <tr>
+                    <td class="config-label">URL</td>
+                    <td><code>{{ triplestore.url }}</code></td>
+                </tr>
+                <tr>
+                    <td class="config-label">Repository</td>
+                    <td>{{ triplestore.repository }}</td>
+                </tr>
+                <tr>
+                    <td class="config-label">Namespace</td>
+                    <td><code>{{ triplestore.base_namespace }}</code></td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>Email (SMTP)</h2>
+            {% if smtp.configured %}
+            <p><span class="badge badge-success">Configured</span></p>
+            <table class="config-table">
+                <tr>
+                    <td class="config-label">Host</td>
                     <td>{{ smtp.host }}:{{ smtp.port }}</td>
                 </tr>
                 <tr>
-                    <td class="config-label">SMTP User</td>
+                    <td class="config-label">User</td>
                     <td>{{ smtp.user }}</td>
                 </tr>
                 <tr>
-                    <td class="config-label">From Email</td>
+                    <td class="config-label">From</td>
                     <td>{{ smtp.from_email }}</td>
                 </tr>
-                {% endif %}
             </table>
+            {% else %}
+            <p><span class="badge badge-warning">Not configured</span></p>
+            <p class="config-hint" style="margin-top: 0.5rem;">
+                Magic link tokens are returned directly in the browser.
+                To enable email delivery, set SMTP_HOST, SMTP_USER,
+                SMTP_PASSWORD, and SMTP_FROM_EMAIL in docker-compose.yml.
+            </p>
+            {% endif %}
         </div>
     </div>
 </div>

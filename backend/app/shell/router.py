@@ -36,6 +36,19 @@ async def health_page(request: Request):
     """
     templates = request.app.state.templates
     smtp_configured = bool(settings.smtp_host)
+    # Parse database type and path from URL
+    db_url = settings.database_url
+    if "://" in db_url:
+        db_scheme, db_path = db_url.split("://", 1)
+    else:
+        db_scheme, db_path = db_url, ""
+    # Friendly engine name
+    if "sqlite" in db_scheme:
+        db_engine = "SQLite"
+    elif "postgres" in db_scheme:
+        db_engine = "PostgreSQL"
+    else:
+        db_engine = db_scheme
     context = {
         "active_page": "health",
         "smtp": {
@@ -45,7 +58,16 @@ async def health_page(request: Request):
             "user": settings.smtp_user or "Not configured",
             "from_email": settings.smtp_from_email or "Not configured",
         },
-        "database_url": settings.database_url.split("://")[0] if "://" in settings.database_url else settings.database_url,
+        "db": {
+            "engine": db_engine,
+            "path": db_path,
+            "url": db_url,
+        },
+        "triplestore": {
+            "url": settings.triplestore_url,
+            "repository": settings.repository_id,
+            "base_namespace": settings.base_namespace,
+        },
         "session_duration_days": settings.session_duration_days,
     }
     if _is_htmx_request(request):
