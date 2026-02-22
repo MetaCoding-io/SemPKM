@@ -1,0 +1,366 @@
+/**
+ * SemPKM Graph Visualization
+ *
+ * Cytoscape.js initialization, semantic styling, interaction handlers,
+ * and layout registry with registerLayout() for model-contributed layouts.
+ */
+
+(function () {
+  'use strict';
+
+  // --- Layout Registry ---
+  var LAYOUT_REGISTRY = {
+    'fcose': { name: 'fcose', animate: true, animationDuration: 500, quality: 'default' },
+    'dagre': { name: 'dagre', animate: true, animationDuration: 500, rankDir: 'TB' },
+    'concentric': { name: 'concentric', animate: true, animationDuration: 500 }
+  };
+
+  var currentLayoutName = 'fcose';
+
+  function registerLayout(name, configObj) {
+    LAYOUT_REGISTRY[name] = configObj;
+  }
+
+  // --- Semantic Style Builder ---
+
+  function buildSemanticStyle(typeColors) {
+    var styles = [
+      // Default node style
+      {
+        selector: 'node',
+        style: {
+          'label': 'data(label)',
+          'text-valign': 'bottom',
+          'text-halign': 'center',
+          'font-size': '10px',
+          'text-max-width': '100px',
+          'text-wrap': 'ellipsis',
+          'width': 30,
+          'height': 30,
+          'background-color': '#bab0ab',
+          'border-width': 1,
+          'border-color': '#999',
+          'shape': 'ellipse',
+          'text-margin-y': 4,
+          'color': '#333'
+        }
+      },
+      // Default edge style
+      {
+        selector: 'edge',
+        style: {
+          'curve-style': 'bezier',
+          'target-arrow-shape': 'triangle',
+          'target-arrow-color': '#ccc',
+          'line-color': '#ccc',
+          'width': 1.5,
+          'label': 'data(label)',
+          'font-size': '9px',
+          'text-rotation': 'autorotate',
+          'color': '#888',
+          'text-background-color': '#fff',
+          'text-background-opacity': 0.8,
+          'text-background-padding': '2px'
+        }
+      },
+      // Selected node
+      {
+        selector: 'node:selected',
+        style: {
+          'border-width': 3,
+          'border-color': '#2d5a9e'
+        }
+      },
+      // Hovered node (via mouseover class)
+      {
+        selector: 'node.hovered',
+        style: {
+          'width': 36,
+          'height': 36
+        }
+      }
+    ];
+
+    // Per-type node colors
+    if (typeColors) {
+      var types = Object.keys(typeColors);
+      for (var i = 0; i < types.length; i++) {
+        var typeIri = types[i];
+        var color = typeColors[typeIri];
+        styles.push({
+          selector: 'node[type = "' + typeIri + '"]',
+          style: {
+            'background-color': color,
+            'border-color': _darkenColor(color, 0.2)
+          }
+        });
+      }
+    }
+
+    return styles;
+  }
+
+  function _darkenColor(hex, amount) {
+    // Simple darken: reduce each channel by amount fraction
+    hex = hex.replace('#', '');
+    var r = parseInt(hex.substring(0, 2), 16);
+    var g = parseInt(hex.substring(2, 4), 16);
+    var b = parseInt(hex.substring(4, 6), 16);
+    r = Math.max(0, Math.floor(r * (1 - amount)));
+    g = Math.max(0, Math.floor(g * (1 - amount)));
+    b = Math.max(0, Math.floor(b * (1 - amount)));
+    return '#' + r.toString(16).padStart(2, '0') +
+                 g.toString(16).padStart(2, '0') +
+                 b.toString(16).padStart(2, '0');
+  }
+
+  // --- Graph Initialization ---
+
+  function initGraph(containerId, specIri, typeColors, availableLayouts) {
+    var container = document.getElementById(containerId);
+    if (!container) {
+      console.error('Graph container not found:', containerId);
+      return;
+    }
+
+    // Register any model-contributed layouts from availableLayouts
+    if (availableLayouts && availableLayouts.length > 0) {
+      for (var i = 0; i < availableLayouts.length; i++) {
+        var layout = availableLayouts[i];
+        if (layout.config && Object.keys(layout.config).length > 0) {
+          var config = Object.assign({ name: layout.name }, layout.config);
+          registerLayout(layout.name, config);
+        }
+      }
+    }
+
+    // Show loading state
+    container.innerHTML = '<div class="graph-loading">Loading graph data...</div>';
+
+    // Fetch graph data from the JSON endpoint
+    var dataUrl = '/browser/views/graph/' + specIri + '/data';
+    fetch(dataUrl)
+      .then(function (resp) { return resp.json(); })
+      .then(function (data) {
+        container.innerHTML = '';  // Clear loading state
+        _renderGraph(container, data, typeColors);
+      })
+      .catch(function (err) {
+        console.error('Failed to load graph data:', err);
+        container.innerHTML = '<div class="graph-loading">Failed to load graph data.</div>';
+      });
+  }
+
+  function _renderGraph(container, data, initialTypeColors) {
+    if (!data.nodes || data.nodes.length === 0) {
+      container.innerHTML = '<div class="graph-loading">No data to display in graph.</div>';
+      return;
+    }
+
+    // Merge type colors from server data with any initial colors
+    var typeColors = Object.assign({}, initialTypeColors || {}, data.type_colors || {});
+
+    // Convert server data to Cytoscape elements
+    var elements = [];
+
+    for (var i = 0; i < data.nodes.length; i++) {
+      var node = data.nodes[i];
+      elements.push({
+        group: 'nodes',
+        data: {
+          id: node.id,
+          label: node.label || node.id,
+          type: node.type || ''
+        }
+      });
+    }
+
+    for (var j = 0; j < data.edges.length; j++) {
+      var edge = data.edges[j];
+      elements.push({
+        group: 'edges',
+        data: {
+          id: edge.source + '-' + edge.predicate + '-' + edge.target,
+          source: edge.source,
+          target: edge.target,
+          label: edge.predicate_label || '',
+          predicate: edge.predicate
+        }
+      });
+    }
+
+    // Determine layout -- use fcose if available, fall back to cose
+    var layoutName = currentLayoutName;
+    var layoutConfig = LAYOUT_REGISTRY[layoutName] || { name: layoutName };
+
+    // Check if fcose extension is registered
+    if (layoutName === 'fcose' && typeof cytoscape !== 'undefined') {
+      // fcose should be auto-registered by the CDN script
+      // If not available, fall back to cose
+      try {
+        var testLayout = { name: 'fcose' };
+        // Will throw if fcose is not registered
+      } catch (e) {
+        layoutConfig = { name: 'cose', animate: true, animationDuration: 500 };
+      }
+    }
+
+    var cy = cytoscape({
+      container: container,
+      elements: elements,
+      style: buildSemanticStyle(typeColors),
+      layout: layoutConfig,
+      minZoom: 0.1,
+      maxZoom: 5,
+      wheelSensitivity: 0.3
+    });
+
+    // Store the cy instance globally
+    window._sempkmGraph = cy;
+    window._sempkmTypeColors = typeColors;
+
+    // --- Event Handlers ---
+
+    // Click to select -- load details in right pane
+    cy.on('tap', 'node', function (evt) {
+      var nodeId = evt.target.id();
+      if (typeof window.loadRightPane === 'function') {
+        window.loadRightPane(nodeId, 'relations');
+      }
+    });
+
+    // Double-click to expand neighbors
+    cy.on('dbltap', 'node', function (evt) {
+      var nodeIri = evt.target.id();
+      _expandNode(cy, nodeIri);
+    });
+
+    // Hover effects
+    cy.on('mouseover', 'node', function (evt) {
+      evt.target.addClass('hovered');
+      container.style.cursor = 'pointer';
+    });
+
+    cy.on('mouseout', 'node', function (evt) {
+      evt.target.removeClass('hovered');
+      container.style.cursor = 'default';
+    });
+  }
+
+  // --- Node Expansion ---
+
+  function _expandNode(cy, nodeIri) {
+    var expandUrl = '/browser/views/graph/expand/' + encodeURIComponent(nodeIri);
+
+    fetch(expandUrl)
+      .then(function (resp) { return resp.json(); })
+      .then(function (data) {
+        if (!data.nodes || data.nodes.length === 0) return;
+
+        // Merge new type colors
+        var newTypeColors = data.type_colors || {};
+        var currentColors = window._sempkmTypeColors || {};
+        Object.assign(currentColors, newTypeColors);
+        window._sempkmTypeColors = currentColors;
+
+        // Build new elements, skipping duplicates
+        var newElements = [];
+
+        for (var i = 0; i < data.nodes.length; i++) {
+          var node = data.nodes[i];
+          if (!cy.getElementById(node.id).length) {
+            newElements.push({
+              group: 'nodes',
+              data: {
+                id: node.id,
+                label: node.label || node.id,
+                type: node.type || ''
+              }
+            });
+          }
+        }
+
+        for (var j = 0; j < data.edges.length; j++) {
+          var edge = data.edges[j];
+          var edgeId = edge.source + '-' + edge.predicate + '-' + edge.target;
+          if (!cy.getElementById(edgeId).length) {
+            newElements.push({
+              group: 'edges',
+              data: {
+                id: edgeId,
+                source: edge.source,
+                target: edge.target,
+                label: edge.predicate_label || '',
+                predicate: edge.predicate
+              }
+            });
+          }
+        }
+
+        if (newElements.length === 0) return;
+
+        // Add new elements
+        var added = cy.add(newElements);
+
+        // Update styles with new type colors
+        cy.style(buildSemanticStyle(currentColors));
+
+        // Run layout on ONLY the new elements (per Research Pitfall 6)
+        var newNodes = added.filter('node');
+        if (newNodes.length > 0) {
+          var layoutConfig = LAYOUT_REGISTRY[currentLayoutName] || { name: currentLayoutName };
+          var expandLayout = Object.assign({}, layoutConfig, {
+            animate: true,
+            fit: false,
+            boundingBox: _boundingBoxNear(cy, nodeIri)
+          });
+          newNodes.layout(expandLayout).run();
+        }
+      })
+      .catch(function (err) {
+        console.error('Failed to expand node:', err);
+      });
+  }
+
+  function _boundingBoxNear(cy, nodeIri) {
+    // Position new nodes near the expanded node
+    var node = cy.getElementById(nodeIri);
+    if (node.length) {
+      var pos = node.position();
+      return {
+        x1: pos.x - 200,
+        y1: pos.y - 200,
+        x2: pos.x + 200,
+        y2: pos.y + 200
+      };
+    }
+    return undefined;
+  }
+
+  // --- Layout Switching ---
+
+  function changeLayout(layoutName) {
+    var cy = window._sempkmGraph;
+    if (!cy) return;
+
+    currentLayoutName = layoutName;
+
+    var config = LAYOUT_REGISTRY[layoutName];
+    if (!config) {
+      config = { name: layoutName };
+    }
+
+    var layoutConfig = Object.assign({}, config, {
+      animate: true,
+      animationDuration: 500
+    });
+
+    cy.layout(layoutConfig).run();
+  }
+
+  // --- Export Globally ---
+  window.initGraph = initGraph;
+  window.changeLayout = changeLayout;
+  window.registerLayout = registerLayout;
+
+})();

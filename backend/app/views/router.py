@@ -1,7 +1,8 @@
 """View router for data browsing views (table, cards, graph).
 
 Provides endpoints for listing available view specs per type, rendering
-table views with sortable columns, pagination, and text filtering.
+table views with sortable columns, pagination, and text filtering,
+and graph views with Cytoscape.js visualization.
 Views render as htmx partials into the #editor-area of the workspace.
 
 Uses ViewSpecService for loading view specs and executing SPARQL queries,
@@ -12,7 +13,7 @@ import logging
 from urllib.parse import unquote, quote
 
 from fastapi import APIRouter, Depends, Query, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 
 from app.dependencies import get_label_service, get_view_spec_service
 from app.services.labels import LabelService
@@ -233,3 +234,198 @@ async def cards_view(
     return templates.TemplateResponse(
         request, "browser/cards_view.html", context
     )
+
+
+@router.get("/graph/{spec_iri:path}/data")
+async def graph_data(
+    request: Request,
+    spec_iri: str,
+    view_spec_service: ViewSpecService = Depends(get_view_spec_service),
+):
+    """Return graph data as JSON for Cytoscape.js visualization.
+
+    Returns {nodes, edges, type_colors} as application/json.
+    This endpoint is fetched by graph.js after the container is rendered
+    (per Research Pitfall 2: container must be visible before Cytoscape init).
+    """
+    decoded_iri = unquote(spec_iri)
+
+    spec = await view_spec_service.get_view_spec_by_iri(decoded_iri)
+    if not spec:
+        return JSONResponse(
+            content={"nodes": [], "edges": [], "type_colors": {}},
+            status_code=404,
+        )
+
+    result = await view_spec_service.execute_graph_query(spec)
+    return JSONResponse(content=result)
+
+
+@router.get("/graph/expand/{node_iri:path}")
+async def graph_expand(
+    request: Request,
+    node_iri: str,
+    view_spec_service: ViewSpecService = Depends(get_view_spec_service),
+):
+    """Return neighbor nodes and edges for expansion in the graph.
+
+    Called by Cytoscape double-click handler to expand a node's neighbors.
+    Returns {nodes, edges, type_colors} as application/json.
+    """
+    decoded_iri = unquote(node_iri)
+    result = await view_spec_service.expand_neighbors(decoded_iri)
+    return JSONResponse(content=result)
+
+
+@router.get("/graph/{spec_iri:path}")
+async def graph_view(
+    request: Request,
+    spec_iri: str,
+    view_spec_service: ViewSpecService = Depends(get_view_spec_service),
+    label_service: LabelService = Depends(get_label_service),
+):
+    """Render the graph view container with Cytoscape.js initialization.
+
+    The graph data is NOT included in the HTML -- it is loaded via a
+    separate JSON endpoint (/data) after the DOM is ready, per Research
+    Pitfall 2 (container must be visible before Cytoscape init).
+    """
+    templates = request.app.state.templates
+    decoded_iri = unquote(spec_iri)
+
+    spec = await view_spec_service.get_view_spec_by_iri(decoded_iri)
+    if not spec:
+        return HTMLResponse(
+            content='<div class="editor-empty"><p>View spec not found.</p></div>',
+            status_code=404,
+        )
+
+    # Get all view specs for this type (for view type switcher)
+    all_specs = await view_spec_service.get_view_specs_for_type(spec.target_class)
+
+    # Resolve type label
+    type_labels = await label_service.resolve_batch([spec.target_class])
+    type_label = type_labels.get(spec.target_class, spec.target_class)
+
+    # Build available layouts: 3 built-in + model-contributed
+    built_in_layouts = [
+        {"name": "fcose", "label": "Force-Directed"},
+        {"name": "dagre", "label": "Hierarchical"},
+        {"name": "concentric", "label": "Radial"},
+    ]
+    model_layouts = await view_spec_service.get_model_layouts()
+
+    available_layouts = built_in_layouts + model_layouts
+
+    # Build encoded spec IRI for data endpoint URL
+    encoded_spec_iri = quote(decoded_iri, safe="")
+
+    # Pre-fetch type colors for initial styling (will be updated when data loads)
+    type_colors = {}
+
+    context = {
+        "request": request,
+        "spec": spec,
+        "spec_iri": decoded_iri,
+        "spec_iri_encoded": encoded_spec_iri,
+        "all_specs": all_specs,
+        "type_label": type_label,
+        "type_iri": spec.target_class,
+        "available_layouts": available_layouts,
+        "type_colors": type_colors,
+        "sort_col": "",
+        "sort_dir": "asc",
+        "current_filter": "",
+    }
+
+    return templates.TemplateResponse(
+        request, "browser/graph_view.html", context
+    )
+
+
+@router.get("/menu")
+async def view_menu(
+    request: Request,
+    view_spec_service: ViewSpecService = Depends(get_view_spec_service),
+    label_service: LabelService = Depends(get_label_service),
+):
+    """Return a full view menu listing all available views grouped by source model.
+
+    Shows all view specs from all installed models, grouped by model name,
+    with each entry showing the view label, target type, and renderer type icon.
+    """
+    templates = request.app.state.templates
+
+    all_specs = await view_spec_service.get_all_view_specs()
+
+    # Group by source model
+    grouped: dict[str, list] = {}
+    model_iris = set()
+    for spec in all_specs:
+        model_key = spec.source_model or "Other"
+        if model_key not in grouped:
+            grouped[model_key] = []
+        grouped[model_key].append(spec)
+        if spec.source_model:
+            model_iris.add(spec.source_model)
+
+    # Resolve model names
+    if model_iris:
+        model_labels = await label_service.resolve_batch(list(model_iris))
+    else:
+        model_labels = {}
+
+    # Build display groups with human-readable model names
+    display_groups = []
+    for model_key, specs in grouped.items():
+        if model_key in model_labels:
+            display_name = model_labels[model_key]
+        elif model_key == "Other":
+            display_name = "Other Views"
+        else:
+            display_name = model_key.replace("-", " ").title() + " Views"
+        display_groups.append({
+            "name": display_name,
+            "specs": specs,
+        })
+
+    context = {
+        "request": request,
+        "display_groups": display_groups,
+        "total_specs": len(all_specs),
+    }
+
+    return templates.TemplateResponse(
+        request, "browser/view_menu_all.html", context
+    )
+
+
+@router.get("/available")
+async def views_available(
+    request: Request,
+    view_spec_service: ViewSpecService = Depends(get_view_spec_service),
+    label_service: LabelService = Depends(get_label_service),
+):
+    """Return all view specs as JSON for command palette dynamic registration.
+
+    Returns [{spec_iri, label, type_label, renderer_type}].
+    """
+    all_specs = await view_spec_service.get_all_view_specs()
+
+    # Resolve type labels
+    type_iris = list({s.target_class for s in all_specs if s.target_class})
+    if type_iris:
+        type_labels = await label_service.resolve_batch(type_iris)
+    else:
+        type_labels = {}
+
+    items = []
+    for spec in all_specs:
+        items.append({
+            "spec_iri": spec.spec_iri,
+            "label": spec.label,
+            "type_label": type_labels.get(spec.target_class, spec.target_class),
+            "renderer_type": spec.renderer_type,
+        })
+
+    return JSONResponse(content=items)

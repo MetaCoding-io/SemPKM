@@ -97,6 +97,54 @@
     addObjectToCommandPalette(objectIri, label);
   }
 
+  // --- View Tab Support ---
+
+  function openViewTab(viewId, viewLabel, viewType) {
+    var tabKey = 'view:' + viewId;
+    var tabs = getTabs();
+    var existing = tabs.find(function (t) { return t.iri === tabKey; });
+
+    if (existing) {
+      // Tab already open -- switch to it
+      setActiveTabIri(tabKey);
+      renderTabBar();
+      loadViewContent(viewId, viewType);
+      return;
+    }
+
+    tabs.push({ iri: tabKey, label: viewLabel, dirty: false, isView: true, viewType: viewType, viewId: viewId });
+    saveTabs(tabs);
+
+    setActiveTabIri(tabKey);
+    renderTabBar();
+    loadViewContent(viewId, viewType);
+  }
+
+  function loadViewContent(viewId, viewType) {
+    var editorArea = document.getElementById('editor-area');
+    if (!editorArea) return;
+
+    var url;
+    if (viewType === 'table') {
+      url = '/browser/views/table/' + encodeURIComponent(viewId);
+    } else if (viewType === 'card') {
+      url = '/browser/views/cards/' + encodeURIComponent(viewId);
+    } else if (viewType === 'graph') {
+      url = '/browser/views/graph/' + encodeURIComponent(viewId);
+    } else {
+      url = '/browser/views/table/' + encodeURIComponent(viewId);
+    }
+
+    if (typeof htmx !== 'undefined') {
+      htmx.ajax('GET', url, {
+        target: '#editor-area',
+        swap: 'innerHTML'
+      }).catch(function () {
+        editorArea.innerHTML = '<div class="editor-empty"><p>Failed to load view.</p></div>';
+      });
+    }
+  }
+
   function closeTab(objectIri) {
     var tabs = getTabs();
     var index = tabs.findIndex(function (t) { return t.iri === objectIri; });
@@ -111,8 +159,9 @@
       // Switch to the nearest remaining tab or show empty state
       if (tabs.length > 0) {
         var nextIndex = Math.min(index, tabs.length - 1);
-        setActiveTabIri(tabs[nextIndex].iri);
-        loadObjectContent(tabs[nextIndex].iri);
+        var nextTab = tabs[nextIndex];
+        setActiveTabIri(nextTab.iri);
+        _loadTabContent(nextTab);
       } else {
         setActiveTabIri(null);
         showEditorEmpty();
@@ -125,7 +174,26 @@
   function switchTab(objectIri) {
     setActiveTabIri(objectIri);
     renderTabBar();
-    loadObjectContent(objectIri);
+    var tabs = getTabs();
+    var tab = tabs.find(function (t) { return t.iri === objectIri; });
+    if (tab) {
+      _loadTabContent(tab);
+    } else {
+      loadObjectContent(objectIri);
+    }
+  }
+
+  function _loadTabContent(tab) {
+    if (tab.isView && tab.viewId && tab.viewType) {
+      loadViewContent(tab.viewId, tab.viewType);
+    } else if (tab.iri && tab.iri.indexOf('view:') === 0) {
+      // Fallback for view tabs without viewId/viewType (e.g., restored from session)
+      var viewId = tab.iri.substring(5);
+      var viewType = tab.viewType || 'table';
+      loadViewContent(viewId, viewType);
+    } else {
+      loadObjectContent(tab.iri);
+    }
   }
 
   function markDirty(objectIri) {
@@ -163,9 +231,18 @@
     var html = '';
     tabs.forEach(function (tab) {
       var isActive = tab.iri === activeIri;
-      html += '<div class="workspace-tab' + (isActive ? ' active' : '') + '"' +
+      var isView = tab.isView || (tab.iri && tab.iri.indexOf('view:') === 0);
+      html += '<div class="workspace-tab' + (isActive ? ' active' : '') + (isView ? ' view-tab' : '') + '"' +
         ' data-iri="' + escapeHtml(tab.iri) + '"' +
         ' onclick="switchTab(\'' + escapeJs(tab.iri) + '\')">';
+      if (isView) {
+        var vt = tab.viewType || '';
+        var icon = '&#9654;';
+        if (vt === 'table') icon = '&#9638;';
+        else if (vt === 'card') icon = '&#9641;';
+        else if (vt === 'graph') icon = '&#9672;';
+        html += '<span class="tab-view-icon" title="View: ' + escapeHtml(vt) + '">' + icon + '</span>';
+      }
       html += '<span class="tab-label">' + escapeHtml(tab.label) + '</span>';
       if (tab.dirty) {
         html += '<span class="tab-dirty" title="Unsaved changes"></span>';
@@ -181,6 +258,20 @@
   function loadObjectContent(objectIri) {
     var editorArea = document.getElementById('editor-area');
     if (!editorArea) return;
+
+    // If IRI starts with 'view:', load as view tab
+    if (objectIri && objectIri.indexOf('view:') === 0) {
+      var tabs = getTabs();
+      var tab = tabs.find(function (t) { return t.iri === objectIri; });
+      if (tab && tab.viewId && tab.viewType) {
+        loadViewContent(tab.viewId, tab.viewType);
+        return;
+      }
+      // Fallback: try to parse view type from stored data
+      var viewId = objectIri.substring(5);
+      loadViewContent(viewId, (tab && tab.viewType) || 'table');
+      return;
+    }
 
     // Use htmx to load object content into center pane
     if (typeof htmx !== 'undefined') {
@@ -371,11 +462,65 @@
           title: 'Toggle Properties Panel',
           section: 'View',
           handler: function () { togglePane('right-pane'); }
+        },
+        {
+          id: 'open-view-menu',
+          title: 'Open View Menu',
+          section: 'Views',
+          handler: function () { openViewMenu(); }
         }
       ];
+
+      // Dynamically load available views into command palette
+      _loadViewCommandPaletteEntries(ninja);
     }).catch(function () {
       console.warn('ninja-keys custom element not available');
     });
+  }
+
+  function openViewMenu() {
+    if (typeof htmx !== 'undefined') {
+      htmx.ajax('GET', '/browser/views/menu', {
+        target: '#editor-area',
+        swap: 'innerHTML'
+      }).catch(function () {
+        var editorArea = document.getElementById('editor-area');
+        if (editorArea) {
+          editorArea.innerHTML = '<div class="editor-empty"><p>Failed to load view menu.</p></div>';
+        }
+      });
+    }
+  }
+
+  function _loadViewCommandPaletteEntries(ninja) {
+    fetch('/browser/views/available')
+      .then(function (resp) { return resp.json(); })
+      .then(function (views) {
+        if (!views || views.length === 0) return;
+
+        var newData = ninja.data.slice();
+        views.forEach(function (v) {
+          var id = 'view-' + v.spec_iri;
+          var exists = newData.find(function (d) { return d.id === id; });
+          if (exists) return;
+
+          var icon = '';
+          if (v.renderer_type === 'table') icon = 'Table: ';
+          else if (v.renderer_type === 'card') icon = 'Cards: ';
+          else if (v.renderer_type === 'graph') icon = 'Graph: ';
+
+          newData.push({
+            id: id,
+            title: 'Browse: ' + icon + v.label,
+            section: 'Views',
+            handler: function () { openViewTab(v.spec_iri, v.label, v.renderer_type); }
+          });
+        });
+        ninja.data = newData;
+      })
+      .catch(function () {
+        // Silently fail -- views might not be available yet
+      });
   }
 
   function showTypePicker() {
@@ -575,7 +720,12 @@
       renderTabBar();
       var activeIri = getActiveTabIri();
       if (activeIri) {
-        loadObjectContent(activeIri);
+        var activeTab = tabs.find(function (t) { return t.iri === activeIri; });
+        if (activeTab) {
+          _loadTabContent(activeTab);
+        } else {
+          loadObjectContent(activeIri);
+        }
       }
     }
   }
@@ -659,5 +809,8 @@
   window.showTypePicker = showTypePicker;
   window.jumpToField = jumpToField;
   window.triggerValidation = triggerValidation;
+  window.loadRightPane = loadRightPane;
+  window.openViewTab = openViewTab;
+  window.openViewMenu = openViewMenu;
 
 })();

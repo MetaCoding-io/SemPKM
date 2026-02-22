@@ -12,6 +12,13 @@
     <link rel="stylesheet" href="/css/views.css">
     <script src="https://unpkg.com/split.js@1.6.5/dist/split.min.js"></script>
     <script type="module" src="https://unpkg.com/ninja-keys?module"></script>
+    <!-- Cytoscape.js graph visualization -->
+    <script src="https://unpkg.com/cytoscape@3.33.1/dist/cytoscape.min.js"></script>
+    <script src="https://unpkg.com/layout-base@2.0.1/layout-base.js"></script>
+    <script src="https://unpkg.com/cose-base@2.2.0/cose-base.js"></script>
+    <script src="https://unpkg.com/cytoscape-fcose@2.2.0/cytoscape-fcose.js"></script>
+    <script src="https://unpkg.com/dagre@0.8.5/dist/dagre.min.js"></script>
+    <script src="https://unpkg.com/cytoscape-dagre@2.5.0/cytoscape-dagre.js"></script>
     {% block head %}{% endblock %}
 </head>
 <body>
@@ -58,6 +65,7 @@
         document.body.addEventListener('htmx:historyRestore', updateActiveNav);
     </script>
     <script src="/js/workspace.js"></script>
+    <script src="/js/graph.js"></script>
     <script src="/js/column-prefs.js"></script>
     {% block scripts %}{% endblock %}
 </body>

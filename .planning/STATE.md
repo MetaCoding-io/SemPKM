@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-21)
 ## Current Position
 
 Phase: 5 of 6 (Data Browsing and Visualization)
-Plan: 2 of 3 in current phase
-Status: Plan 05-02 Complete -- Cards View
-Last activity: 2026-02-22 -- Completed 05-02 Cards View
+Plan: 3 of 3 in current phase
+Status: Plans 05-02 and 05-03 Complete -- Cards View + Graph View (parallel merge)
+Last activity: 2026-02-22 -- Merged 05-02 Cards View and 05-03 Graph View from parallel execution
 
-Progress: [███████████████████] 93%
+Progress: [███████████████████] 95%
 
 ## Performance Metrics
 
@@ -31,11 +31,11 @@ Progress: [███████████████████] 93%
 | 2. Semantic Services | 2 | 9min | 5min |
 | 3. Mental Model System | 3 | 24min | 8min |
 | 4. Admin Shell and Object Creation | 4 | 19min | 5min |
-| 5. Data Browsing and Visualization | 2 | 9min | 5min |
+| 5. Data Browsing and Visualization | 3 | 15min | 5min |
 | 6. User and Team Management | 3 | 16min | 5min |
 
 **Recent Trend:**
-- Last 5 plans: 8min, 3min, 5min, 4min, 4min
+- Last 5 plans: 3min, 5min, 4min, 4min, 6min
 - Trend: stable
 
 *Updated after each plan completion*
@@ -109,6 +109,10 @@ Recent decisions affecting current work:
 - [05-02]: Router endpoint /card/ (singular) matching renderer_type from view specs for consistent type switcher
 - [05-02]: Pagination and toolbar partials made view-type-aware via Jinja2 default filters for reuse across renderers
 - [05-02]: Card properties fetched via separate SPARQL queries (literals, outbound IRI, inbound IRI) for clean separation
+- [05-03]: Separate JSON data endpoint for graph view (/data suffix) -- Cytoscape.js requires visible container before init
+- [05-03]: Tableau 10 palette for auto-assigned node colors via type IRI hash, with model sempkm:nodeColor override
+- [05-03]: View tabs use view: prefix namespace in sessionStorage to prevent collision with object IRI keys
+- [05-03]: View toolbar hides filter input for graph views since graph shows full CONSTRUCT results
 
 ### Pending Todos
 
@@ -126,5 +130,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-22
-Stopped at: Completed 05-02-PLAN.md (Cards View)
+Stopped at: Merged 05-02 (Cards View) and 05-03 (Graph View) from parallel execution
 Resume file: None

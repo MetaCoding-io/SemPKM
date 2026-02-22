@@ -436,6 +436,122 @@
     padding: 12px 0;
 }
 
+/* --- Graph View --- */
+
+.graph-container {
+    width: 100%;
+    height: calc(100% - 90px);
+    min-height: 400px;
+    background: #fafafa;
+    border-radius: 4px;
+}
+
+.graph-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--color-border, #e0e0e0);
+    background: var(--color-surface, #fff);
+}
+
+.layout-picker-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-text-muted, #666);
+    white-space: nowrap;
+}
+
+.layout-picker {
+    padding: 4px 8px;
+    border: 1px solid var(--color-border, #e0e0e0);
+    border-radius: 4px;
+    font-size: 0.82rem;
+    background: var(--color-surface, #fff);
+    color: var(--color-text, #1a1a2e);
+    cursor: pointer;
+}
+
+.layout-picker:focus {
+    outline: none;
+    border-color: var(--color-primary, #2d5a9e);
+}
+
+.graph-fit-btn {
+    padding: 4px 10px;
+    border: 1px solid var(--color-border, #e0e0e0);
+    border-radius: 4px;
+    background: var(--color-surface, #fff);
+    color: var(--color-text-muted, #666);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.graph-fit-btn:hover {
+    background: #f0f0f0;
+    color: var(--color-text, #1a1a2e);
+}
+
+.graph-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 200px;
+    color: var(--color-text-muted, #666);
+    font-size: 0.9rem;
+}
+
+/* --- View Menu (All Views) --- */
+
+.view-menu-type {
+    font-size: 0.72rem;
+    color: var(--color-text-muted, #999);
+    margin-left: auto;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+/* --- View Tab Indicator --- */
+
+.tab-view-icon {
+    font-size: 0.72rem;
+    color: var(--color-text-muted, #888);
+    margin-right: 3px;
+    opacity: 0.7;
+}
+
+.workspace-tab.view-tab {
+    border-left: 2px solid var(--color-primary, #2d5a9e);
+}
+
+.workspace-tab.view-tab.active {
+    border-left-color: var(--color-primary, #2d5a9e);
+}
+
+/* --- Views Button in Explorer Pane --- */
+
+.views-btn {
+    padding: 2px 8px;
+    border: 1px solid var(--color-border, #e0e0e0);
+    border-radius: 3px;
+    background: var(--color-surface, #fff);
+    color: var(--color-primary, #2d5a9e);
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    transition: background 0.15s, color 0.15s;
+    margin-left: auto;
+}
+
+.views-btn:hover {
+    background: var(--color-primary, #2d5a9e);
+    color: #fff;
+}
+
 /* --- View Empty State --- */
 
 .view-empty-state {

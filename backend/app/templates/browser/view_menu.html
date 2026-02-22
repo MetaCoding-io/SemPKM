@@ -6,10 +6,7 @@
         {% for spec in spec_list %}
         <a class="view-menu-item"
            href="#"
-           hx-get="/browser/views/{{ rtype }}/{{ spec.spec_iri | urlencode }}"
-           hx-target="#editor-area"
-           hx-swap="innerHTML"
-           hx-push-url="false">
+           onclick="openViewTab('{{ spec.spec_iri }}', '{{ spec.label }}', '{{ rtype }}'); return false;">
             <span class="view-menu-icon">
                 {% if rtype == 'table' %}&#9638;{% elif rtype == 'card' %}&#9641;{% elif rtype == 'graph' %}&#9672;{% else %}&#9654;{% endif %}
             </span>
