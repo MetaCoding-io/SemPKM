@@ -15,21 +15,7 @@
             <span class="pane-title">Explorer</span>
         </div>
         <div class="pane-content" id="nav-tree">
-            {% for type in types %}
-            <div class="tree-node" data-type-iri="{{ type.iri }}"
-                 hx-get="/browser/tree/{{ type.iri | urlencode }}"
-                 hx-trigger="click once"
-                 hx-target="#children-{{ loop.index }}"
-                 hx-swap="innerHTML">
-                <span class="tree-toggle">&#9656;</span>
-                <span class="tree-icon">&#128193;</span>
-                <span class="tree-label">{{ type.label }}</span>
-            </div>
-            <div id="children-{{ loop.index }}" class="tree-children"></div>
-            {% endfor %}
-            {% if not types %}
-            <div class="tree-empty">No models installed</div>
-            {% endif %}
+            {% include "browser/nav_tree.html" %}
         </div>
     </div>
 

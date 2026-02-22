@@ -425,6 +425,22 @@
         init();
       }
     }
+
+    // When tree children are loaded, add objects to command palette
+    var target = e.detail.target;
+    if (target && target.classList && target.classList.contains('tree-children')) {
+      var leaves = target.querySelectorAll('.tree-leaf');
+      leaves.forEach(function (leaf) {
+        var onclick = leaf.getAttribute('onclick');
+        if (onclick) {
+          // Extract IRI and label from onclick="openTab('iri', 'label')"
+          var match = onclick.match(/openTab\('([^']*)',\s*'([^']*)'\)/);
+          if (match) {
+            addObjectToCommandPalette(match[1], match[2]);
+          }
+        }
+      });
+    }
   });
 
   // --- Export functions globally for htmx onclick handlers ---

@@ -1,0 +1,23 @@
+{# Navigation tree: type nodes with lazy-loaded object children.
+   Rendered as part of the workspace left pane. Can also be loaded
+   as an htmx partial for tree refresh.
+
+   Context:
+     types: list of dicts with 'iri' and 'label' keys
+#}
+{% if types %}
+{% for type in types %}
+<div class="tree-node" data-type-iri="{{ type.iri }}"
+     hx-get="/browser/tree/{{ type.iri | urlencode }}"
+     hx-trigger="click once"
+     hx-target="#children-{{ type.iri | urlencode | replace('%', '_') }}"
+     hx-swap="innerHTML">
+    <span class="tree-toggle">&#9656;</span>
+    <span class="tree-icon">&#128193;</span>
+    <span class="tree-label">{{ type.label }}</span>
+</div>
+<div id="children-{{ type.iri | urlencode | replace('%', '_') }}" class="tree-children"></div>
+{% endfor %}
+{% else %}
+<div class="tree-empty">No models installed</div>
+{% endif %}
