@@ -150,8 +150,86 @@ async def table_view(
         "all_specs": all_specs,
         "type_label": type_label,
         "type_iri": spec.target_class,
+        "view_type": "table",
     }
 
     return templates.TemplateResponse(
         request, "browser/table_view.html", context
+    )
+
+
+@router.get("/card/{spec_iri:path}")
+async def cards_view(
+    request: Request,
+    spec_iri: str,
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=12, ge=1, le=100),
+    filter: str = Query(default=""),
+    group_by: str = Query(default=""),
+    view_spec_service: ViewSpecService = Depends(get_view_spec_service),
+    label_service: LabelService = Depends(get_label_service),
+):
+    """Render a cards view for a given view spec IRI.
+
+    Calls ViewSpecService.execute_cards_query() with pagination, filtering,
+    and optional grouping parameters, then renders cards_view.html as an
+    htmx partial for the editor area.
+
+    Cards show title and body snippet on the front, with all properties
+    and relationships on the back via CSS 3D flip animation.
+    """
+    templates = request.app.state.templates
+    decoded_iri = unquote(spec_iri)
+
+    spec = await view_spec_service.get_view_spec_by_iri(decoded_iri)
+    if not spec:
+        return HTMLResponse(
+            content='<div class="editor-empty"><p>View spec not found.</p></div>',
+            status_code=404,
+        )
+
+    # Normalize empty group_by to None
+    effective_group_by = group_by if group_by else None
+
+    result = await view_spec_service.execute_cards_query(
+        spec=spec,
+        page=page,
+        page_size=page_size,
+        filter_text=filter,
+        group_by=effective_group_by,
+    )
+
+    # Get all view specs for this type (for view type switcher)
+    all_specs = await view_spec_service.get_view_specs_for_type(spec.target_class)
+
+    # Resolve type label
+    type_labels = await label_service.resolve_batch([spec.target_class])
+    type_label = type_labels.get(spec.target_class, spec.target_class)
+
+    # Build encoded spec IRI for URLs
+    encoded_spec_iri = quote(decoded_iri, safe="")
+
+    context = {
+        "request": request,
+        "spec": spec,
+        "spec_iri_encoded": encoded_spec_iri,
+        "cards": result["cards"],
+        "total": result["total"],
+        "page": result["page"],
+        "page_size": result["page_size"],
+        "total_pages": result["total_pages"],
+        "groups": result["groups"],
+        "group_by": effective_group_by or "",
+        "columns": result["columns"],
+        "current_filter": filter,
+        "sort_col": "",
+        "sort_dir": "asc",
+        "all_specs": all_specs,
+        "type_label": type_label,
+        "type_iri": spec.target_class,
+        "view_type": "card",
+    }
+
+    return templates.TemplateResponse(
+        request, "browser/cards_view.html", context
     )
