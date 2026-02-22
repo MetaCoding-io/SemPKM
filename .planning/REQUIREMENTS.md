@@ -18,11 +18,11 @@ Requirements for initial release. Each maps to roadmap phases.
 ### SHACL Validation & Forms
 
 - [x] **SHCL-01**: System runs SHACL validation asynchronously after each commit (non-blocking UI)
-- [ ] **SHCL-02**: User can see validation results in a lint panel showing violations and warnings per object
+- [x] **SHCL-02**: User can see validation results in a lint panel showing violations and warnings per object
 - [x] **SHCL-03**: User can create objects via forms auto-generated from SHACL shapes (sh:property, sh:order, sh:group, sh:name, sh:datatype, sh:class, sh:in, sh:defaultValue)
 - [x] **SHCL-04**: User can edit existing objects via the same SHACL-driven forms
 - [x] **SHCL-05**: System persists immutable SHACL validation reports tied to each commit
-- [ ] **SHCL-06**: Violations block conformance-required operations (publish/export); warnings do not block any operations
+- [x] **SHCL-06**: Violations block conformance-required operations (publish/export); warnings do not block any operations
 
 ### Mental Models
 
@@ -38,16 +38,16 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **VIEW-01**: User can browse objects in a table view with sortable columns, filtering, and pagination
 - [x] **VIEW-02**: User can browse objects in a cards view with summary display and optional grouping
 - [x] **VIEW-03**: User can view objects and relationships in a 2D graph with semantic-aware styling (node color by type, edge style by predicate)
-- [ ] **VIEW-04**: User can view a single object's details on an object page (properties, body, related objects)
+- [x] **VIEW-04**: User can view a single object's details on an object page (properties, body, related objects)
 - [x] **VIEW-05**: User can work in an IDE-style workspace with resizable panes and tabs
 - [x] **VIEW-06**: User can navigate and execute commands via a command palette and keyboard shortcuts
 - [x] **VIEW-07**: System executes view specs (SPARQL query + renderer type + layout config) to render views
 
 ### Object Management
 
-- [ ] **OBJ-01**: User can create new objects by selecting a type and filling out a SHACL-driven form
-- [ ] **OBJ-02**: User can edit an object's properties through its SHACL-driven form
-- [ ] **OBJ-03**: User can write and edit an object's Markdown body via an embedded editor
+- [x] **OBJ-01**: User can create new objects by selecting a type and filling out a SHACL-driven form
+- [x] **OBJ-02**: User can edit an object's properties through its SHACL-driven form
+- [x] **OBJ-03**: User can write and edit an object's Markdown body via an embedded editor
 
 ### Infrastructure Services
 
@@ -106,7 +106,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | Embedded n8n workflow engine | Scope explosion; simple webhooks are sufficient for v1 — v2+ |
 | Advanced webhook delivery (DLQ, signing, ordering) | Over-engineering for single-user v1 — v3 |
 | 3D graph visualization | Experimental, 2D is sufficient — deferred |
-| Multi-user auth / permissions | Single-user v1; design data model to not preclude it later |
+| Multi-user auth / permissions | Implemented in Phase 6 (owner/member/guest RBAC with passwordless auth) |
 | SPARQL UPDATE as external write surface | Bypasses event sourcing, breaks audit trail — by design |
 | Timeline / calendar renderers | Not core to semantic knowledge value proposition — v1.1/v2 |
 | AI/LLM integration | Moving target; SemPKM's moat is semantic structure, not AI — v2+ |
@@ -127,11 +127,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CORE-04 | Phase 1 | Complete |
 | CORE-05 | Phase 1 | Complete |
 | SHCL-01 | Phase 2 | Complete |
-| SHCL-02 | Phase 4 | Pending |
+| SHCL-02 | Phase 4 | Complete |
 | SHCL-03 | Phase 4 | Complete |
 | SHCL-04 | Phase 4 | Complete |
 | SHCL-05 | Phase 2 | Complete |
-| SHCL-06 | Phase 4 | Pending |
+| SHCL-06 | Phase 4 | Complete |
 | MODL-01 | Phase 3 | Complete |
 | MODL-02 | Phase 3 | Complete |
 | MODL-03 | Phase 3 | Complete |
@@ -141,13 +141,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VIEW-01 | Phase 5 | Complete |
 | VIEW-02 | Phase 5 | Complete |
 | VIEW-03 | Phase 5 | Complete |
-| VIEW-04 | Phase 4 | Pending |
+| VIEW-04 | Phase 4 | Complete |
 | VIEW-05 | Phase 4 | Complete |
 | VIEW-06 | Phase 4 | Complete |
 | VIEW-07 | Phase 5 | Complete |
-| OBJ-01 | Phase 4 | Pending |
-| OBJ-02 | Phase 4 | Pending |
-| OBJ-03 | Phase 4 | Pending |
+| OBJ-01 | Phase 4 | Complete |
+| OBJ-02 | Phase 4 | Complete |
+| OBJ-03 | Phase 4 | Complete |
 | INFR-01 | Phase 2 | Complete |
 | INFR-02 | Phase 2 | Complete |
 | ADMN-01 | Phase 1 | Complete |
@@ -161,4 +161,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-02-21*
-*Last updated: 2026-02-21 after roadmap creation*
+*Last updated: 2026-02-22 after milestone audit gap closure planning*
