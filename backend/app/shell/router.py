@@ -36,20 +36,6 @@ async def health_page(request: Request):
     return templates.TemplateResponse(request, "health.html")
 
 
-@router.get("/admin/")
-async def admin_page(request: Request):
-    """Render the admin portal page (placeholder).
-
-    Will be replaced by the full admin portal in plan 04-03.
-    """
-    templates = request.app.state.templates
-    if _is_htmx_request(request):
-        return templates.TemplateResponse(
-            request, "admin/index.html", block_name="content"
-        )
-    return templates.TemplateResponse(request, "admin/index.html")
-
-
 @router.get("/browser/")
 async def browser_page(request: Request):
     """Render the object browser workspace page (placeholder).

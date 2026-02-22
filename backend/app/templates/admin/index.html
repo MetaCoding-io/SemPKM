@@ -6,9 +6,23 @@
 <div class="admin-page">
     <h1>Admin Portal</h1>
     <p class="lead">Manage Mental Models, webhooks, and system configuration.</p>
-    <div class="card">
-        <h2>Coming Soon</h2>
-        <p>The admin portal will provide tools for managing Mental Models (install, remove, list) and configuring outbound webhooks.</p>
+    <div class="dashboard-cards">
+        <div class="card">
+            <h2>Mental Models</h2>
+            <p>Install, remove, and manage Mental Models that define your knowledge structure.</p>
+            <a href="/admin/models" class="btn btn-primary"
+               hx-get="/admin/models" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
+                Manage Models
+            </a>
+        </div>
+        <div class="card">
+            <h2>Webhooks</h2>
+            <p>Configure outbound webhooks to notify external services when data changes.</p>
+            <a href="/admin/webhooks" class="btn btn-primary"
+               hx-get="/admin/webhooks" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
+                Configure Webhooks
+            </a>
+        </div>
     </div>
 </div>
 {% endblock %}

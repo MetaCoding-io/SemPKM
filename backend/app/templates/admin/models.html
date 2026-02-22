@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}SemPKM - Mental Models{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+    <h1>Mental Models</h1>
+    <p class="lead">Install and manage Mental Models that define your knowledge structure.</p>
+
+    <div class="card">
+        <h2>Install Model</h2>
+        <form hx-post="/admin/models/install" hx-target="#model-table" hx-swap="outerHTML"
+              hx-indicator="#install-spinner">
+            <div class="form-row" style="align-items: end;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="model-path">Model Path</label>
+                    <input type="text" id="model-path" name="path"
+                           placeholder="/app/models/basic-pkm" required>
+                </div>
+                <div style="padding-bottom: 2px;">
+                    <button type="submit" class="btn btn-primary">Install</button>
+                    <span id="install-spinner" class="htmx-indicator loading">Installing...</span>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    {% block model_table %}
+    <div id="model-table">
+        {% if error is defined and error %}
+        <div class="error-box" id="admin-messages">{{ error }}</div>
+        {% elif success is defined and success %}
+        <div class="success-box" id="admin-messages">{{ success }}</div>
+        {% endif %}
+
+        <table class="sparql-results">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Version</th>
+                    <th>Description</th>
+                    <th>Installed</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if models %}
+                {% for model in models %}
+                <tr>
+                    <td><strong>{{ model.name }}</strong></td>
+                    <td>{{ model.version }}</td>
+                    <td>{{ model.description }}</td>
+                    <td>{{ model.installed_at[:10] if model.installed_at else "Unknown" }}</td>
+                    <td>
+                        <button class="btn btn-secondary btn-sm"
+                                hx-delete="/admin/models/{{ model.model_id }}"
+                                hx-target="#model-table"
+                                hx-swap="outerHTML"
+                                hx-confirm="Remove model {{ model.name }}?"
+                                hx-indicator="#install-spinner">
+                            Remove
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="5" style="text-align: center; color: var(--color-text-muted); padding: 2rem;">
+                        No models installed.
+                    </td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    {% endblock %}
+</div>
+{% endblock %}

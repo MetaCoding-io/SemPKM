@@ -9,8 +9,15 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from jinja2_fragments.fastapi import Jinja2Blocks
 
+from app.admin.router import router as admin_router
+from app.auth.router import router as auth_router
+from app.auth.service import AuthService
+from app.auth.tokens import load_or_create_setup_token
 from app.config import settings
 from app.commands.router import router as commands_router
+from app.db.base import Base
+from app.db.engine import create_engine
+from app.db.session import async_session_factory
 from app.shell.router import router as shell_router
 from app.events.store import EventStore
 from app.health.router import router as health_router
@@ -93,11 +100,48 @@ async def lifespan(app: FastAPI):
     webhook_service = WebhookService(client)
     app.state.webhook_service = webhook_service
 
+    # --- SQL Database Initialization ---
+    sql_engine = create_engine()
+
+    # Create all tables (safe for existing tables -- uses IF NOT EXISTS)
+    # Note: app.auth.models is already imported at module level via auth imports
+    async with sql_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    logger.info("SQL database tables created/verified")
+
+    # Store session factory on app state for dependencies
+    app.state.async_session_factory = async_session_factory
+
+    # Create AuthService and store on app state
+    auth_service = AuthService(async_session_factory)
+    app.state.auth_service = auth_service
+
+    # --- Setup Mode Detection ---
+    setup_complete = await auth_service.is_setup_complete()
+    if not setup_complete:
+        setup_token = load_or_create_setup_token()
+        app.state.setup_mode = True
+        app.state.setup_token = setup_token
+        logger.info("")
+        logger.info("=" * 60)
+        logger.info("  FIRST-RUN SETUP")
+        logger.info("  No owner found. Use this token to claim the instance:")
+        logger.info("")
+        logger.info("  Setup token: %s", setup_token)
+        logger.info("")
+        logger.info("  POST /api/auth/setup with {\"token\": \"<token>\"}")
+        logger.info("=" * 60)
+        logger.info("")
+    else:
+        app.state.setup_mode = False
+        app.state.setup_token = None
+
     logger.info("SemPKM API started successfully")
     yield
 
-    # Shutdown: stop validation queue, then close the triplestore client
+    # Shutdown: stop validation queue, dispose SQL engine, close triplestore client
     await validation_queue.stop()
+    await sql_engine.dispose()
     await client.close()
     logger.info("SemPKM API shut down")
 
@@ -121,10 +165,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers (API routers first, shell router last so /api/* takes precedence)
+# Include routers (API routers first, admin before shell, shell router last)
+app.include_router(auth_router)
 app.include_router(commands_router)
 app.include_router(health_router)
 app.include_router(models_router)
 app.include_router(sparql_router)
 app.include_router(validation_router)
+app.include_router(admin_router)
 app.include_router(shell_router)
