@@ -19,9 +19,9 @@ Progress: [█████████████████] 83%
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 14
+- Total plans completed: 15
 - Average duration: 5min
-- Total execution time: 1.1 hours
+- Total execution time: 1.2 hours
 
 **By Phase:**
 
@@ -30,11 +30,11 @@ Progress: [█████████████████] 83%
 | 1. Core Data Foundation | 4 | 23min | 6min |
 | 2. Semantic Services | 2 | 9min | 5min |
 | 3. Mental Model System | 3 | 24min | 8min |
-| 4. Admin Shell and Object Creation | 3 | 14min | 5min |
+| 4. Admin Shell and Object Creation | 4 | 19min | 5min |
 | 6. User and Team Management | 2 | 12min | 6min |
 
 **Recent Trend:**
-- Last 5 plans: 12min, 4min, 4min, 8min, 3min
+- Last 5 plans: 4min, 4min, 8min, 3min, 5min
 - Trend: stable
 
 *Updated after each plan completion*
@@ -95,6 +95,11 @@ Recent decisions affecting current work:
 - [04-03]: Admin router uses named Jinja2 blocks (model_table, webhook_list) for htmx partial swap targets
 - [04-03]: Webhook event types defined as constant list in router for template checkbox rendering
 - [04-03]: Admin router included before shell router so /admin/* routes take precedence
+- [04-04]: Browser router registered before shell router; /browser/ endpoint moved from shell to browser router
+- [04-04]: Tab state managed entirely client-side in sessionStorage per research anti-pattern guidance
+- [04-04]: Split.js sizes persisted in localStorage for cross-session pane size persistence
+- [04-04]: Command palette entries added dynamically as tree children load via htmx:afterSwap listener
+- [04-04]: Nav tree uses Jinja2 include for reusable template; tree children loaded lazily via htmx GET
 
 ### Pending Todos
 
@@ -112,5 +117,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-22
-Stopped at: Completed 06-02-PLAN.md (Authentication Core)
+Stopped at: Completed 04-04-PLAN.md (IDE Workspace Layout)
 Resume file: None
