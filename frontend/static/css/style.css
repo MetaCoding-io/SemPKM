@@ -78,8 +78,8 @@ nav a.active {
   border-bottom-color: var(--color-primary);
 }
 
-/* Main content */
-main {
+/* Main content (standalone pages without dashboard sidebar) */
+main:not(.content-area) {
   max-width: var(--max-width);
   margin: 1.5rem auto;
   padding: 0 1rem;
