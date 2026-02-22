@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-21)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations -- no blank-page syndrome, no schema setup.
-**Current focus:** Phase 6: User and Team Management -- In Progress.
+**Current focus:** Phase 5: Data Browsing and Visualization -- In Progress.
 
 ## Current Position
 
-Phase: 6 of 6 (User and Team Management)
-Plan: 3 of 4 in current phase
-Status: Plan 06-03 Complete -- Endpoint Auth Retrofit and Event Provenance
-Last activity: 2026-02-22 -- Completed 06-03 Endpoint Auth Retrofit
+Phase: 5 of 6 (Data Browsing and Visualization)
+Plan: 1 of 3 in current phase
+Status: Plan 05-01 Complete -- ViewSpecService and Table View
+Last activity: 2026-02-22 -- Completed 05-01 ViewSpecService and Table View
 
 Progress: [██████████████████] 89%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 16
+- Total plans completed: 17
 - Average duration: 5min
-- Total execution time: 1.3 hours
+- Total execution time: 1.4 hours
 
 **By Phase:**
 
@@ -31,6 +31,7 @@ Progress: [██████████████████] 89%
 | 2. Semantic Services | 2 | 9min | 5min |
 | 3. Mental Model System | 3 | 24min | 8min |
 | 4. Admin Shell and Object Creation | 4 | 19min | 5min |
+| 5. Data Browsing and Visualization | 1 | 5min | 5min |
 | 6. User and Team Management | 3 | 16min | 5min |
 
 **Recent Trend:**
@@ -102,6 +103,9 @@ Recent decisions affecting current work:
 - [04-04]: Nav tree uses Jinja2 include for reusable template; tree children loaded lazily via htmx GET
 - [06-03]: EVENT_PERFORMED_BY optional in EventStore.commit() for backward compatibility with system operations
 - [06-03]: User IRI constructed as urn:sempkm:user:{uuid} by calling router, not by EventStore
+- [05-01]: SPARQL WHERE clause extraction via regex brace-depth counting for count query and pagination recomposition
+- [05-01]: Table rows deduplicated by ?s to handle OPTIONAL cross-product results per Research Pitfall 5
+- [05-01]: Views router prefix /browser/views included before browser_router for route specificity
 
 ### Pending Todos
 
@@ -119,5 +123,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-22
-Stopped at: Completed 06-03-PLAN.md (Endpoint Auth Retrofit and Event Provenance)
+Stopped at: Completed 05-01-PLAN.md (ViewSpecService and Table View)
 Resume file: None
