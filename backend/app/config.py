@@ -15,6 +15,27 @@ class Settings(BaseSettings):
     base_namespace: str = "https://example.org/data/"
     app_version: str = "0.1.0"
 
+    # SQL database (SQLite for local, PostgreSQL for cloud)
+    database_url: str = "sqlite+aiosqlite:///./data/sempkm.db"
+
+    # Security - empty means auto-generate on first run
+    secret_key: str = ""
+    secret_key_path: str = "./data/.secret-key"
+    setup_token_path: str = "./data/.setup-token"
+
+    # Session configuration
+    session_duration_days: int = 30
+
+    # SMTP (optional - only needed for invitations and magic links)
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_from_email: str = ""
+
+    # Debug mode
+    debug: bool = False
+
     model_config = SettingsConfigDict(env_file=".env")
 
 
