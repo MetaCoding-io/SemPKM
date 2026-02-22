@@ -659,3 +659,93 @@ pre.json-output {
     grid-template-columns: 1fr;
   }
 }
+
+/* ============================================
+   Auth Pages (setup, login, invite)
+   ============================================ */
+
+.auth-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 1.5rem;
+  background: var(--color-bg);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 2rem;
+}
+
+.auth-brand {
+  font-weight: 700;
+  font-size: 1.3rem;
+  color: var(--color-primary);
+  letter-spacing: -0.02em;
+  margin-bottom: 0.25rem;
+}
+
+.auth-card h1 {
+  font-size: 1.35rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.auth-btn {
+  width: 100%;
+  padding: 0.65rem 1rem;
+  font-size: 0.95rem;
+  margin-top: 0.25rem;
+}
+
+.auth-card .form-group {
+  margin-bottom: 0.85rem;
+}
+
+.auth-card input[type="text"],
+.auth-card input[type="email"] {
+  font-size: 0.95rem;
+  padding: 0.55rem 0.75rem;
+}
+
+.auth-info {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  line-height: 1.55;
+  margin-bottom: 0.75rem;
+}
+
+/* Auth message styles */
+.auth-message {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  margin-top: 1rem;
+  line-height: 1.5;
+}
+
+.auth-message a {
+  color: inherit;
+  font-weight: 500;
+  text-decoration: underline;
+}
+
+.auth-message-success {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  color: var(--color-success);
+}
+
+.auth-message-error {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: var(--color-error);
+}
+
+.auth-message-info {
+  background: #eff6ff;
+  border: 1px solid #93c5fd;
+  color: var(--color-primary);
+}
