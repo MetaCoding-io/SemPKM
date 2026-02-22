@@ -12,10 +12,12 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 
-from app.auth.dependencies import get_current_user, get_session_token
+from app.auth.dependencies import get_current_user, get_session_token, require_role
 from app.auth.models import User
 from app.auth.schemas import (
     AuthResponse,
+    InviteRequest,
+    InviteResponse,
     LogoutResponse,
     MagicLinkRequest,
     MagicLinkResponse,
@@ -191,4 +193,23 @@ async def get_me(current_user: User = Depends(get_current_user)):
         email=current_user.email,
         role=current_user.role,
         display_name=current_user.display_name,
+    )
+
+
+@router.post("/invite", response_model=InviteResponse)
+async def invite_user(
+    body: InviteRequest,
+    request: Request,
+    current_user: User = Depends(require_role("owner")),
+):
+    """Invite a user to the instance. Owner only."""
+    auth_service = _get_auth_service(request)
+    invitation = await auth_service.create_invitation(
+        email=body.email,
+        role=body.role,
+        invited_by=current_user.id,
+    )
+    return InviteResponse(
+        message=f"Invitation sent to {body.email}",
+        invitation_id=str(invitation.id),
     )
