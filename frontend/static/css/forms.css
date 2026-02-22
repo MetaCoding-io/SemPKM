@@ -411,3 +411,25 @@ details[open] > .form-group-summary::before {
     color: var(--color-text-muted, #666);
     line-height: 1.3;
 }
+
+.type-picker-hint {
+    font-size: 0.85rem;
+    color: var(--color-text-muted, #666);
+    margin: 0 0 16px 0;
+}
+
+.type-picker-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--color-text-muted, #666);
+}
+
+.type-picker-empty p {
+    margin: 4px 0;
+}
+
+/* Save status indicator */
+.save-ok {
+    color: #2e7d32;
+    font-size: 0.82rem;
+}
