@@ -1,0 +1,32 @@
+{# Jinja2 macro for rendering SHACL property groups as collapsible sections.
+
+   Renders a group of properties wrapped in a <details> element (collapsible,
+   expanded by default). Calls render_field for each property in the group.
+
+   Usage:
+     {% from "forms/_group.html" import render_group %}
+     {{ render_group(group, properties, values) }}
+
+   Args:
+     group: PropertyGroup dataclass (iri, label, order)
+     properties: list of PropertyShape items belonging to this group
+     values: dict mapping property path -> current value(s)
+#}
+
+{% from "forms/_field.html" import render_field %}
+
+{% macro render_group(group, properties, values) %}
+<details class="form-group" open>
+    <summary class="form-group-summary" title="{{ group.iri }}">{{ group.label }}</summary>
+    <div class="form-group-content">
+        {% for prop in properties %}
+        {% set val = values.get(prop.path) if values else none %}
+        {% if val is sequence and val is not string %}
+        {{ render_field(prop, values=val) }}
+        {% else %}
+        {{ render_field(prop, value=val) }}
+        {% endif %}
+        {% endfor %}
+    </div>
+</details>
+{% endmacro %}

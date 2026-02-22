@@ -1,0 +1,149 @@
+{# Jinja2 macro for rendering SHACL-driven form fields.
+
+   Dispatches to the correct HTML input widget based on PropertyShape
+   attributes: datatype, in_values, target_class, min_count, max_count.
+
+   Usage:
+     {% from "forms/_field.html" import render_field %}
+     {{ render_field(prop, value=current_value, values=current_values) }}
+
+   Args:
+     prop: PropertyShape dataclass (path, name, datatype, target_class,
+           order, group, min_count, max_count, in_values, default_value,
+           description)
+     value: Single current value (for single-valued properties)
+     values: List of current values (for multi-valued properties)
+#}
+
+{% macro render_field(prop, value=None, values=None) %}
+{% set field_id = prop.path | replace(':', '_') | replace('/', '_') | replace('#', '_') %}
+{% set is_required = prop.min_count is not none and prop.min_count > 0 %}
+{% set is_multi = prop.max_count is none or prop.max_count > 1 %}
+{% set display_value = value if value is not none else (prop.default_value if prop.default_value else '') %}
+{% set is_default = value is none and prop.default_value is not none and prop.default_value != '' %}
+
+<div class="form-field {{ 'required' if is_required else '' }}" id="field-{{ field_id }}">
+    <label for="input-{{ field_id }}" title="{{ prop.path }}">
+        {{ prop.name }}{% if is_required %}<span class="required-marker">*</span>{% endif %}
+    </label>
+
+    {% if prop.description %}
+    <small class="field-help">{{ prop.description }}</small>
+    {% endif %}
+
+    {% if is_multi %}
+    {# Multi-valued property: render list of values with add/remove #}
+    <div class="multi-value-list" data-field="{{ prop.path }}" data-field-id="{{ field_id }}">
+        {% if values %}
+        {% for val in values %}
+        <div class="multi-value-item">
+            {{ _render_input(prop, field_id, val, loop.index0, is_required and loop.index0 == 0, false) }}
+            <button type="button" class="btn-remove-value" onclick="removeMultiValue(this)" title="Remove">&times;</button>
+        </div>
+        {% endfor %}
+        {% else %}
+        {# Show one empty input for new entries #}
+        <div class="multi-value-item">
+            {{ _render_input(prop, field_id, display_value, 0, is_required, is_default) }}
+            <button type="button" class="btn-remove-value" onclick="removeMultiValue(this)" title="Remove">&times;</button>
+        </div>
+        {% endif %}
+    </div>
+    <button type="button" class="btn-add-value" onclick="addMultiValue('{{ field_id }}', '{{ prop.path }}')">+ Add {{ prop.name }}</button>
+    {% else %}
+    {# Single-valued property #}
+    {{ _render_input(prop, field_id, display_value, none, is_required, is_default) }}
+    {% endif %}
+
+    <div class="field-validation" id="validation-{{ field_id }}"></div>
+</div>
+{% endmacro %}
+
+
+{# Internal macro: render the actual input element based on property type #}
+{% macro _render_input(prop, field_id, current_value, index, is_required, is_default) %}
+{% set input_name = prop.path ~ ('[]' if index is not none else '') %}
+{% set input_id = 'input-' ~ field_id ~ ('-' ~ index if index is not none else '') %}
+{% set css_class = 'default-value' if is_default else '' %}
+
+{% if prop.in_values %}
+    {# sh:in constraint: render as dropdown select #}
+    <select name="{{ input_name }}" id="{{ input_id }}"
+            class="form-select {{ css_class }}"
+            {{ 'required' if is_required else '' }}>
+        <option value="">-- Select --</option>
+        {% for opt in prop.in_values %}
+        <option value="{{ opt }}" {{ 'selected' if opt == current_value|string else '' }}>{{ opt }}</option>
+        {% endfor %}
+    </select>
+
+{% elif prop.target_class %}
+    {# sh:class reference: search-as-you-type input #}
+    <div class="reference-field">
+        <input type="text"
+               name="_search_{{ input_name }}"
+               id="{{ input_id }}-search"
+               class="form-input reference-search {{ css_class }}"
+               placeholder="Search {{ prop.name }}..."
+               value="{{ current_value | default('', true) }}"
+               autocomplete="off"
+               hx-get="/browser/search?type={{ prop.target_class | urlencode }}"
+               hx-trigger="input changed delay:300ms"
+               hx-target="#suggestions-{{ field_id }}{{ '-' ~ index if index is not none else '' }}"
+               hx-swap="innerHTML"
+               hx-include="this"
+               hx-params="q">
+        <input type="hidden" name="{{ input_name }}" value="{{ current_value | default('', true) }}">
+        <div id="suggestions-{{ field_id }}{{ '-' ~ index if index is not none else '' }}" class="suggestions-dropdown"></div>
+    </div>
+
+{% elif prop.datatype == 'http://www.w3.org/2001/XMLSchema#date' %}
+    <input type="date" name="{{ input_name }}" id="{{ input_id }}"
+           class="form-input {{ css_class }}"
+           value="{{ current_value | default('', true) }}"
+           {{ 'required' if is_required else '' }}>
+
+{% elif prop.datatype == 'http://www.w3.org/2001/XMLSchema#dateTime' %}
+    <input type="datetime-local" name="{{ input_name }}" id="{{ input_id }}"
+           class="form-input {{ css_class }}"
+           value="{{ current_value | default('', true) }}"
+           {{ 'required' if is_required else '' }}>
+
+{% elif prop.datatype == 'http://www.w3.org/2001/XMLSchema#boolean' %}
+    <select name="{{ input_name }}" id="{{ input_id }}"
+            class="form-select {{ css_class }}"
+            {{ 'required' if is_required else '' }}>
+        <option value="">-- Select --</option>
+        <option value="true" {{ 'selected' if current_value|string == 'true' else '' }}>Yes</option>
+        <option value="false" {{ 'selected' if current_value|string == 'false' else '' }}>No</option>
+    </select>
+
+{% elif prop.datatype == 'http://www.w3.org/2001/XMLSchema#integer' %}
+    <input type="number" name="{{ input_name }}" id="{{ input_id }}"
+           class="form-input {{ css_class }}"
+           step="1"
+           value="{{ current_value | default('', true) }}"
+           {{ 'required' if is_required else '' }}>
+
+{% elif prop.datatype in ['http://www.w3.org/2001/XMLSchema#decimal', 'http://www.w3.org/2001/XMLSchema#float', 'http://www.w3.org/2001/XMLSchema#double'] %}
+    <input type="number" name="{{ input_name }}" id="{{ input_id }}"
+           class="form-input {{ css_class }}"
+           step="0.01"
+           value="{{ current_value | default('', true) }}"
+           {{ 'required' if is_required else '' }}>
+
+{% elif prop.datatype == 'http://www.w3.org/2001/XMLSchema#anyURI' %}
+    <input type="url" name="{{ input_name }}" id="{{ input_id }}"
+           class="form-input {{ css_class }}"
+           placeholder="https://..."
+           value="{{ current_value | default('', true) }}"
+           {{ 'required' if is_required else '' }}>
+
+{% else %}
+    {# Default: xsd:string or no datatype #}
+    <input type="text" name="{{ input_name }}" id="{{ input_id }}"
+           class="form-input {{ css_class }}"
+           value="{{ current_value | default('', true) }}"
+           {{ 'required' if is_required else '' }}>
+{% endif %}
+{% endmacro %}

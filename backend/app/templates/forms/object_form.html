@@ -1,0 +1,190 @@
+{# SHACL-driven object form template.
+
+   Renders a complete create or edit form for an object type, generated from
+   SHACL NodeShape metadata. Properties are organized by groups and ordered
+   by sh:order, with required fields shown first.
+
+   Context:
+     form: NodeShapeForm dataclass (shape_iri, target_class, label, groups, properties)
+     values: dict mapping property path -> current value(s)
+     mode: "create" or "edit"
+     object_iri: IRI of the existing object (edit mode) or None (create mode)
+     success_message: Optional success message after save (string or None)
+     error_message: Optional error message (string or None)
+#}
+
+{% from "forms/_field.html" import render_field %}
+{% from "forms/_group.html" import render_group %}
+
+{% if success_message %}
+<div class="form-message form-success">{{ success_message }}</div>
+{% endif %}
+{% if error_message %}
+<div class="form-message form-error">{{ error_message }}</div>
+{% endif %}
+
+<div class="object-form-container">
+    <h2 class="form-title">
+        {% if mode == 'create' %}
+        Create {{ form.label | replace(' Shape', '') }}
+        {% else %}
+        Edit {{ form.label | replace(' Shape', '') }}
+        {% endif %}
+    </h2>
+
+    <form id="object-form"
+          {% if mode == 'create' %}
+          hx-post="/browser/objects"
+          {% else %}
+          hx-post="/browser/objects/{{ object_iri | urlencode }}/save"
+          {% endif %}
+          hx-target="#editor-area"
+          hx-swap="innerHTML"
+          hx-indicator="#form-spinner">
+
+        <input type="hidden" name="type_iri" value="{{ form.target_class }}">
+        {% if mode == 'edit' and object_iri %}
+        <input type="hidden" name="object_iri" value="{{ object_iri }}">
+        {% endif %}
+
+        {# Separate properties into required ungrouped, grouped, and optional ungrouped #}
+        {% set ns = namespace(required_props=[], optional_ungrouped=[]) %}
+        {% for prop in form.properties %}
+            {% if prop.min_count is not none and prop.min_count > 0 and not prop.group %}
+                {% set ns.required_props = ns.required_props + [prop] %}
+            {% elif not prop.group %}
+                {% set ns.optional_ungrouped = ns.optional_ungrouped + [prop] %}
+            {% endif %}
+        {% endfor %}
+
+        {# Required ungrouped fields first #}
+        {% if ns.required_props %}
+        <div class="form-section form-section-required">
+            {% for prop in ns.required_props %}
+            {% set val = values.get(prop.path) if values else none %}
+            {% if val is sequence and val is not string %}
+            {{ render_field(prop, values=val) }}
+            {% else %}
+            {{ render_field(prop, value=val) }}
+            {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {# Grouped properties rendered via _group.html macro #}
+        {% for group in form.groups %}
+        {% set ns_group = namespace(group_props=[]) %}
+        {% for prop in form.properties %}
+            {% if prop.group == group.iri %}
+                {% set ns_group.group_props = ns_group.group_props + [prop] %}
+            {% endif %}
+        {% endfor %}
+        {% if ns_group.group_props %}
+        {{ render_group(group, ns_group.group_props, values or {}) }}
+        {% endif %}
+        {% endfor %}
+
+        {# Optional ungrouped fields in Advanced section #}
+        {% if ns.optional_ungrouped %}
+        <details class="form-group form-advanced">
+            <summary class="form-group-summary">Advanced</summary>
+            <div class="form-group-content">
+                {% for prop in ns.optional_ungrouped %}
+                {% set val = values.get(prop.path) if values else none %}
+                {% if val is sequence and val is not string %}
+                {{ render_field(prop, values=val) }}
+                {% else %}
+                {{ render_field(prop, value=val) }}
+                {% endif %}
+                {% endfor %}
+            </div>
+        </details>
+        {% endif %}
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="form-submit">
+                {% if mode == 'create' %}
+                Create {{ form.label | replace(' Shape', '') }}
+                {% else %}
+                Save Changes
+                {% endif %}
+            </button>
+            <span id="form-spinner" class="htmx-indicator">Saving...</span>
+        </div>
+    </form>
+</div>
+
+<script>
+(function() {
+    'use strict';
+
+    // Multi-value add/remove functions
+    window.addMultiValue = function(fieldId, propPath) {
+        var list = document.querySelector('.multi-value-list[data-field-id="' + fieldId + '"]');
+        if (!list) return;
+
+        var items = list.querySelectorAll('.multi-value-item');
+        var newIndex = items.length;
+        var firstItem = items[0];
+        if (!firstItem) return;
+
+        var newItem = document.createElement('div');
+        newItem.className = 'multi-value-item';
+
+        // Clone the input from the first item, reset its value
+        var firstInput = firstItem.querySelector('input, select');
+        if (firstInput) {
+            var clone = firstInput.cloneNode(true);
+            clone.value = '';
+            clone.id = clone.id.replace(/-\d+$/, '-' + newIndex);
+            clone.classList.remove('default-value');
+            newItem.appendChild(clone);
+        }
+
+        var removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'btn-remove-value';
+        removeBtn.title = 'Remove';
+        removeBtn.textContent = '\u00D7';
+        removeBtn.onclick = function() { removeMultiValue(removeBtn); };
+        newItem.appendChild(removeBtn);
+
+        list.appendChild(newItem);
+    };
+
+    window.removeMultiValue = function(btn) {
+        var item = btn.closest('.multi-value-item');
+        var list = item.closest('.multi-value-list');
+        if (list.querySelectorAll('.multi-value-item').length > 1) {
+            item.remove();
+        } else {
+            // Keep at least one input, just clear the value
+            var input = item.querySelector('input, select');
+            if (input) input.value = '';
+        }
+    };
+
+    // Reference search: select a suggestion
+    window.selectReference = function(fieldId, iri, label, index) {
+        var suffix = (index !== undefined && index !== null) ? '-' + index : '';
+        var hiddenInput = document.querySelector('#field-' + fieldId + ' input[type="hidden"][name]');
+        var searchInput = document.getElementById('input-' + fieldId + suffix + '-search');
+        var suggestionsDiv = document.getElementById('suggestions-' + fieldId + suffix);
+
+        if (hiddenInput) hiddenInput.value = iri;
+        if (searchInput) searchInput.value = label;
+        if (suggestionsDiv) suggestionsDiv.innerHTML = '';
+    };
+
+    // Mark form dirty on input change
+    var form = document.getElementById('object-form');
+    if (form) {
+        form.addEventListener('input', function() {
+            var objectIri = form.querySelector('input[name="object_iri"]');
+            if (objectIri && objectIri.value && typeof window.markDirty === 'function') {
+                window.markDirty(objectIri.value);
+            }
+        });
+    }
+})();
+</script>
