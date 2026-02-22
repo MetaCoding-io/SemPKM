@@ -7,6 +7,10 @@
     <link rel="stylesheet" href="/css/style.css">
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
     <script src="/js/auth.js"></script>
+    <link rel="stylesheet" href="/css/workspace.css">
+    <link rel="stylesheet" href="/css/forms.css">
+    <script src="https://unpkg.com/split.js@1.6.5/dist/split.min.js"></script>
+    <script type="module" src="https://unpkg.com/ninja-keys?module"></script>
     {% block head %}{% endblock %}
 </head>
 <body>
@@ -75,6 +79,7 @@
         document.body.addEventListener('htmx:pushedIntoHistory', updateActiveNav);
         document.body.addEventListener('htmx:historyRestore', updateActiveNav);
     </script>
+    <script src="/js/workspace.js"></script>
     {% block scripts %}{% endblock %}
 </body>
 </html>
