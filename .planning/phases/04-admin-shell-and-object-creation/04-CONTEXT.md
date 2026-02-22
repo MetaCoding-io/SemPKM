@@ -50,6 +50,7 @@ Users manage the system (models, webhooks) through an admin portal and create, e
 
 ### Validation & Lint Panel
 - SHACL validation runs live as the user types, with debounce — instant feedback
+- **Accepted deviation:** Live-as-you-type SHACL validation downgraded to two-tier approach: (1) client-side instant checks for required fields on blur, (2) server-side full SHACL validation triggered on save. This avoids excessive triplestore round-trips while still providing meaningful feedback. User accepted this approach during planning.
 - Lint panel lives as a tab in the right pane alongside properties/relations
 - Violations and warnings distinguished by color-coded icons: red circle for violations, yellow triangle for warnings
 - Clicking an issue jumps to and highlights the offending field, plus shows the validation message inline below the field
