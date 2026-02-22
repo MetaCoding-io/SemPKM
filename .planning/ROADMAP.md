@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Mental Model System** - Install, validate, and manage Mental Model archives; ship the starter Basic PKM model (completed 2026-02-22)
 - [ ] **Phase 4: Admin Shell and Object Creation** - First user-facing surfaces: admin portal, IDE workspace, SHACL-driven forms, object pages, and lint panel
 - [x] **Phase 5: Data Browsing and Visualization** - Table, cards, and graph renderers with view spec execution completing the create/browse/explore loop (completed 2026-02-22)
-- [ ] **Phase 6: User and Team Management** - Passwordless auth, owner/member/guest RBAC, event provenance, SQL data layer for multi-tenant cloud readiness
+- [x] **Phase 6: User and Team Management** - Passwordless auth, owner/member/guest RBAC, event provenance, SQL data layer for multi-tenant cloud readiness (completed 2026-02-22)
 
 ## Phase Details
 
@@ -66,9 +66,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — Model domain module (manifest schema, JSON-LD loader, archive validators, model registry SPARQL operations)
-- [ ] 03-02-PLAN.md — Basic PKM starter model (ontology with 4 types, SHACL shapes, view specs, seed data)
-- [ ] 03-03-PLAN.md — ModelService, API endpoints, and app wiring (install/remove/list pipelines, real shapes loader, auto-install)
+- [x] 03-01-PLAN.md — Model domain module (manifest schema, JSON-LD loader, archive validators, model registry SPARQL operations)
+- [x] 03-02-PLAN.md — Basic PKM starter model (ontology with 4 types, SHACL shapes, view specs, seed data)
+- [x] 03-03-PLAN.md — ModelService, API endpoints, and app wiring (install/remove/list pipelines, real shapes loader, auto-install)
 
 ### Phase 4: Admin Shell and Object Creation
 **Goal**: Users can manage the system through an admin portal and create, edit, and inspect objects through SHACL-driven forms in an IDE-style workspace with validation feedback
@@ -87,8 +87,8 @@ Plans:
 Plans:
 - [x] 04-01-PLAN.md — Dashboard shell, nginx routing, and Jinja2 template infrastructure
 - [x] 04-02-PLAN.md — ShapesService (SHACL form metadata) and WebhookService (outbound event notifications)
-- [ ] 04-03-PLAN.md — Admin portal UI (model management table, webhook configuration)
-- [ ] 04-04-PLAN.md — IDE workspace layout (Split.js panes, tabs, navigation tree, command palette)
+- [x] 04-03-PLAN.md — Admin portal UI (model management table, webhook configuration)
+- [x] 04-04-PLAN.md — IDE workspace layout (Split.js panes, tabs, navigation tree, command palette)
 - [ ] 04-05-PLAN.md — SHACL-driven form generation, type picker, create/edit object flows
 - [ ] 04-06-PLAN.md — Object page with Markdown editor, related objects, lint panel, conformance gating
 
@@ -106,7 +106,7 @@ Plans:
 Plans:
 - [x] 05-01-PLAN.md — ViewSpecService and table view (view spec execution pipeline, sortable/filterable/paginated table renderer)
 - [x] 05-02-PLAN.md — Cards view (flippable cards with CSS 3D flip, body snippets, property/relation back face, optional grouping)
-- [ ] 05-03-PLAN.md — Graph view and workspace integration (Cytoscape.js visualization, layout picker, view tabs, view menu, command palette)
+- [x] 05-03-PLAN.md — Graph view and workspace integration (Cytoscape.js visualization, layout picker, view tabs, view menu, command palette)
 
 ## Progress
 
@@ -117,10 +117,10 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 |-------|----------------|--------|-----------|
 | 1. Core Data Foundation | 4/4 | Complete    | 2026-02-21 |
 | 2. Semantic Services | 2/2 | Complete    | 2026-02-21 |
-| 3. Mental Model System | 1/3 | Complete    | 2026-02-22 |
-| 4. Admin Shell and Object Creation | 2/6 | In Progress | - |
-| 5. Data Browsing and Visualization | 2/3 | Complete    | 2026-02-22 |
-| 6. User and Team Management | 0/4 | Not started | - |
+| 3. Mental Model System | 3/3 | Complete    | 2026-02-22 |
+| 4. Admin Shell and Object Creation | 4/6 | In Progress | - |
+| 5. Data Browsing and Visualization | 3/3 | Complete    | 2026-02-22 |
+| 6. User and Team Management | 4/4 | Complete    | 2026-02-22 |
 
 ### Phase 6: User and Team Management for Multi-Tenant Cloud Readiness
 
@@ -135,14 +135,14 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
   5. Every user-initiated write event records which user performed the action (sempkm:performedBy provenance)
   6. SQL database (SQLite local, PostgreSQL cloud) stores user accounts, sessions, invitations, and instance config
   7. RDF4J triplestore port is not exposed to host; data volume persists across restarts
-**Plans:** 3/3 plans complete
+**Plans:** 4/4 plans complete
 
 Plans:
-- [ ] 06-01-PLAN.md — SQL data layer and Docker infrastructure (ORM models, Alembic migrations, config expansion, Docker hardening)
-- [ ] 06-02-PLAN.md — Auth service, tokens, and setup wizard (itsdangerous tokens, session management, auth dependencies, setup flow, auth router)
-- [ ] 06-03-PLAN.md — Route protection and event provenance (auth middleware on all routes, RBAC enforcement, performedBy enrichment)
-- [ ] 06-04-PLAN.md — Auth UI pages (setup wizard, login, invitation acceptance pages with human verification checkpoint)
+- [x] 06-01-PLAN.md — SQL data layer and Docker infrastructure (ORM models, Alembic migrations, config expansion, Docker hardening)
+- [x] 06-02-PLAN.md — Auth service, tokens, and setup wizard (itsdangerous tokens, session management, auth dependencies, setup flow, auth router)
+- [x] 06-03-PLAN.md — Route protection and event provenance (auth middleware on all routes, RBAC enforcement, performedBy enrichment)
+- [x] 06-04-PLAN.md — Auth UI pages (setup wizard, login, invitation acceptance pages with human verification checkpoint)
 
 ---
 *Roadmap created: 2026-02-21*
-*Last updated: 2026-02-22 after Phase 4 planning*
+*Last updated: 2026-02-22 after Phase 6 completion*
