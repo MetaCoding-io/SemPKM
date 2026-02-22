@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-21)
 ## Current Position
 
 Phase: 6 of 6 (User and Team Management)
-Plan: 2 of 4 in current phase
-Status: Plan 06-02 Complete -- Authentication Core
-Last activity: 2026-02-22 -- Completed 06-02 Authentication Core
+Plan: 3 of 4 in current phase
+Status: Plan 06-03 Complete -- Endpoint Auth Retrofit and Event Provenance
+Last activity: 2026-02-22 -- Completed 06-03 Endpoint Auth Retrofit
 
-Progress: [█████████████████] 83%
+Progress: [██████████████████] 89%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 15
+- Total plans completed: 16
 - Average duration: 5min
-- Total execution time: 1.2 hours
+- Total execution time: 1.3 hours
 
 **By Phase:**
 
@@ -31,10 +31,10 @@ Progress: [█████████████████] 83%
 | 2. Semantic Services | 2 | 9min | 5min |
 | 3. Mental Model System | 3 | 24min | 8min |
 | 4. Admin Shell and Object Creation | 4 | 19min | 5min |
-| 6. User and Team Management | 2 | 12min | 6min |
+| 6. User and Team Management | 3 | 16min | 5min |
 
 **Recent Trend:**
-- Last 5 plans: 4min, 4min, 8min, 3min, 5min
+- Last 5 plans: 4min, 8min, 3min, 5min, 4min
 - Trend: stable
 
 *Updated after each plan completion*
@@ -100,6 +100,8 @@ Recent decisions affecting current work:
 - [04-04]: Split.js sizes persisted in localStorage for cross-session pane size persistence
 - [04-04]: Command palette entries added dynamically as tree children load via htmx:afterSwap listener
 - [04-04]: Nav tree uses Jinja2 include for reusable template; tree children loaded lazily via htmx GET
+- [06-03]: EVENT_PERFORMED_BY optional in EventStore.commit() for backward compatibility with system operations
+- [06-03]: User IRI constructed as urn:sempkm:user:{uuid} by calling router, not by EventStore
 
 ### Pending Todos
 
@@ -117,5 +119,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-22
-Stopped at: Completed 04-04-PLAN.md (IDE Workspace Layout)
+Stopped at: Completed 06-03-PLAN.md (Endpoint Auth Retrofit and Event Provenance)
 Resume file: None
