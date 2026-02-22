@@ -20,14 +20,33 @@ from app.commands.schemas import (
     CommandResult,
 )
 from app.config import settings
-from app.dependencies import get_triplestore_client, get_validation_queue
+from app.dependencies import get_triplestore_client, get_validation_queue, get_webhook_service
 from app.events.store import EventStore, Operation
+from app.services.webhooks import WebhookService
 from app.triplestore.client import TriplestoreClient
 from app.validation.queue import AsyncValidationQueue
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api")
+
+# Command type to webhook event type mapping
+_COMMAND_EVENT_MAP: dict[str, str] = {
+    "object.create": "object.changed",
+    "object.patch": "object.changed",
+    "body.set": "object.changed",
+    "edge.create": "edge.changed",
+    "edge.patch": "edge.changed",
+}
+
+
+def _command_to_event_type(command_type: str) -> str | None:
+    """Map a command type to a webhook event type.
+
+    Returns the event type string, or None if the command type
+    does not have a corresponding webhook event.
+    """
+    return _COMMAND_EVENT_MAP.get(command_type)
 
 # TypeAdapter for parsing both single and batch command payloads
 _command_adapter = TypeAdapter(Command)
@@ -62,6 +81,7 @@ async def execute_commands(
     request: Request,
     client: TriplestoreClient = Depends(get_triplestore_client),
     validation_queue: AsyncValidationQueue = Depends(get_validation_queue),
+    webhook_service: WebhookService = Depends(get_webhook_service),
 ) -> CommandResponse:
     """Execute one or more commands atomically.
 
@@ -103,6 +123,25 @@ async def execute_commands(
             event_iri=str(event_result.event_iri),
             timestamp=event_result.timestamp,
         )
+
+        # Dispatch webhooks (fire-and-forget, after commit)
+        # Webhook failures never break command processing
+        try:
+            for cmd in commands:
+                event_type = _command_to_event_type(cmd.command)
+                if event_type:
+                    await webhook_service.dispatch(event_type, {
+                        "event_iri": str(event_result.event_iri),
+                        "command": cmd.command,
+                        "timestamp": event_result.timestamp,
+                    })
+        except Exception:
+            logger.warning("Webhook dispatch failed", exc_info=True)
+
+        # TODO: Wire validation.completed webhook via validation queue callback
+        # The AsyncValidationQueue does not currently support completion callbacks.
+        # Once a callback mechanism is added, dispatch:
+        #   await webhook_service.dispatch("validation.completed", {...})
 
         # Build response
         results = [
