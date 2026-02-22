@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Core Data Foundation** - Event-sourced RDF data path with triplestore, command API, materialized state, and SPARQL reads (completed 2026-02-21)
 - [x] **Phase 2: Semantic Services** - Label resolution, prefix registry, and async SHACL validation engine
 - [x] **Phase 3: Mental Model System** - Install, validate, and manage Mental Model archives; ship the starter Basic PKM model (completed 2026-02-22)
-- [ ] **Phase 4: Admin Shell and Object Creation** - First user-facing surfaces: admin portal, IDE workspace, SHACL-driven forms, object pages, and lint panel
+- [x] **Phase 4: Admin Shell and Object Creation** - First user-facing surfaces: admin portal, IDE workspace, SHACL-driven forms, object pages, and lint panel (completed 2026-02-22)
 - [x] **Phase 5: Data Browsing and Visualization** - Table, cards, and graph renderers with view spec execution completing the create/browse/explore loop (completed 2026-02-22)
 - [x] **Phase 6: User and Team Management** - Passwordless auth, owner/member/guest RBAC, event provenance, SQL data layer for multi-tenant cloud readiness (completed 2026-02-22)
 
@@ -89,8 +89,8 @@ Plans:
 - [x] 04-02-PLAN.md — ShapesService (SHACL form metadata) and WebhookService (outbound event notifications)
 - [x] 04-03-PLAN.md — Admin portal UI (model management table, webhook configuration)
 - [x] 04-04-PLAN.md — IDE workspace layout (Split.js panes, tabs, navigation tree, command palette)
-- [ ] 04-05-PLAN.md — SHACL-driven form generation, type picker, create/edit object flows
-- [ ] 04-06-PLAN.md — Object page with Markdown editor, related objects, lint panel, conformance gating
+- [x] 04-05-PLAN.md — SHACL-driven form generation, type picker, create/edit object flows
+- [x] 04-06-PLAN.md — Object page with Markdown editor, related objects, lint panel, conformance gating
 
 ### Phase 5: Data Browsing and Visualization
 **Goal**: Users can browse, filter, and explore their knowledge through table, cards, and graph views powered by executable view specs
@@ -118,7 +118,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 1. Core Data Foundation | 4/4 | Complete    | 2026-02-21 |
 | 2. Semantic Services | 2/2 | Complete    | 2026-02-21 |
 | 3. Mental Model System | 3/3 | Complete    | 2026-02-22 |
-| 4. Admin Shell and Object Creation | 4/6 | In Progress | - |
+| 4. Admin Shell and Object Creation | 6/6 | Complete    | 2026-02-22 |
 | 5. Data Browsing and Visualization | 3/3 | Complete    | 2026-02-22 |
 | 6. User and Team Management | 4/4 | Complete    | 2026-02-22 |
 
