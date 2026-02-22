@@ -17,6 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Mental Model System** - Install, validate, and manage Mental Model archives; ship the starter Basic PKM model (completed 2026-02-22)
 - [ ] **Phase 4: Admin Shell and Object Creation** - First user-facing surfaces: admin portal, IDE workspace, SHACL-driven forms, object pages, and lint panel
 - [ ] **Phase 5: Data Browsing and Visualization** - Table, cards, and graph renderers with view spec execution completing the create/browse/explore loop
+- [ ] **Phase 6: User and Team Management** - Passwordless auth, owner/member/guest RBAC, event provenance, SQL data layer for multi-tenant cloud readiness
 
 ## Phase Details
 
@@ -106,7 +107,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -115,16 +116,29 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 3. Mental Model System | 1/3 | Complete    | 2026-02-22 |
 | 4. Admin Shell and Object Creation | 0/0 | Not started | - |
 | 5. Data Browsing and Visualization | 0/0 | Not started | - |
+| 6. User and Team Management | 0/4 | Not started | - |
 
-### Phase 6: User and team management for multi-tenant cloud readiness
+### Phase 6: User and Team Management for Multi-Tenant Cloud Readiness
 
-**Goal:** [To be planned]
+**Goal:** Users can authenticate, manage roles (owner/member/guest), and control access so SemPKM supports multiple users per instance with passwordless login, session-based auth, and event provenance tracking
 **Depends on:** Phase 5
-**Plans:** 0 plans
+**Requirements:** AUTH-01, AUTH-02, AUTH-03, AUTH-04, RBAC-01, RBAC-02, RBAC-03, PROV-01, PROV-02, INFRA-01, INVITE-01
+**Success Criteria** (what must be TRUE):
+  1. User can claim a local instance via setup wizard (enter terminal token, become owner) with zero-friction first-run experience
+  2. System authenticates users via passwordless magic links (cloud) or setup token (local) with session-based cookies
+  3. Owner can invite members and guests, each with appropriate access level (owner: full, member: read+write, guest: read-only)
+  4. All write endpoints require owner or member role; all read endpoints require authentication; health stays public
+  5. Every user-initiated write event records which user performed the action (sempkm:performedBy provenance)
+  6. SQL database (SQLite local, PostgreSQL cloud) stores user accounts, sessions, invitations, and instance config
+  7. RDF4J triplestore port is not exposed to host; data volume persists across restarts
+**Plans:** 4 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 6 to break down)
+- [ ] 06-01-PLAN.md — SQL data layer and Docker infrastructure (ORM models, Alembic migrations, config expansion, Docker hardening)
+- [ ] 06-02-PLAN.md — Auth service, tokens, and setup wizard (itsdangerous tokens, session management, auth dependencies, setup flow, auth router)
+- [ ] 06-03-PLAN.md — Route protection and event provenance (auth middleware on all routes, RBAC enforcement, performedBy enrichment)
+- [ ] 06-04-PLAN.md — Auth UI pages (setup wizard, login, invitation acceptance pages with human verification checkpoint)
 
 ---
 *Roadmap created: 2026-02-21*
-*Last updated: 2026-02-21 after 03-01 execution*
+*Last updated: 2026-02-22 after Phase 6 planning*
