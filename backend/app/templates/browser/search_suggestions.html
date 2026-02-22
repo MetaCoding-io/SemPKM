@@ -1,0 +1,25 @@
+{# Search suggestions dropdown for sh:class reference fields.
+   Rendered as htmx partial by /browser/search endpoint.
+
+   Context:
+     results: list of dicts with 'iri' and 'label' keys
+     type_iri: the target class IRI being searched
+     type_label: human-readable label for the target type
+     field_id: the field identifier for wiring selectReference()
+     index: the multi-value index (or None for single-valued)
+#}
+
+{% if results %}
+{% for item in results %}
+<div class="suggestion-item"
+     onclick="selectReference('{{ field_id }}', '{{ item.iri }}', '{{ item.label }}', {{ index if index is not none else 'null' }})">
+    {{ item.label }}
+</div>
+{% endfor %}
+{% endif %}
+<div class="suggestion-item create-new"
+     hx-get="/browser/objects/new?type={{ type_iri | urlencode }}"
+     hx-target="#editor-area"
+     hx-swap="innerHTML">
+    + Create new {{ type_label }}...
+</div>
