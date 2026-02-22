@@ -6,6 +6,7 @@ Uses ModelService and WebhookService via FastAPI dependency injection.
 
 import logging
 from pathlib import Path
+from typing import Optional
 
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse
@@ -17,6 +18,9 @@ from app.services.webhooks import WebhookService
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/admin")
+
+# Available webhook event types
+WEBHOOK_EVENT_TYPES = ["object.changed", "edge.changed", "validation.completed"]
 
 
 def _is_htmx_request(request: Request) -> bool:
@@ -97,6 +101,128 @@ async def admin_models_remove(
         context["success"] = f"Model '{model_id}' removed."
 
     return templates_response(request, "admin/models.html", context, block_name="model_table")
+
+
+# ---- Webhook endpoints ----
+
+
+@router.get("/webhooks")
+async def admin_webhooks(
+    request: Request,
+    webhook_service: WebhookService = Depends(get_webhook_service),
+):
+    """Render webhook configuration page with list of configured webhooks."""
+    webhooks = await webhook_service.list_configs()
+    context = {
+        "request": request,
+        "webhooks": webhooks,
+        "event_types": WEBHOOK_EVENT_TYPES,
+    }
+    if _is_htmx_request(request):
+        return templates_response(request, "admin/webhooks.html", context, block_name="content")
+    return templates_response(request, "admin/webhooks.html", context)
+
+
+@router.post("/webhooks")
+async def admin_webhooks_create(
+    request: Request,
+    webhook_service: WebhookService = Depends(get_webhook_service),
+    target_url: str = Form(...),
+    events: list[str] = Form(default=[]),
+    filters: str = Form(default=""),
+):
+    """Create a new webhook configuration.
+
+    Accepts target URL, event types (multi-select), and optional filters.
+    Returns updated webhook list partial for htmx swap.
+    """
+    # Parse comma-separated filters into list
+    filter_list = [f.strip() for f in filters.split(",") if f.strip()] if filters else []
+
+    context: dict = {
+        "request": request,
+        "event_types": WEBHOOK_EVENT_TYPES,
+    }
+
+    if not events:
+        webhooks = await webhook_service.list_configs()
+        context["webhooks"] = webhooks
+        context["error"] = "Please select at least one event type."
+        return templates_response(request, "admin/webhooks.html", context, block_name="webhook_list")
+
+    try:
+        await webhook_service.create_config(
+            target_url=target_url,
+            events=events,
+            filters=filter_list if filter_list else None,
+        )
+        context["success"] = f"Webhook created for {target_url}."
+    except Exception as e:
+        context["error"] = f"Failed to create webhook: {e}"
+        logger.warning("Webhook creation failed: %s", e)
+
+    webhooks = await webhook_service.list_configs()
+    context["webhooks"] = webhooks
+    return templates_response(request, "admin/webhooks.html", context, block_name="webhook_list")
+
+
+@router.delete("/webhooks/{webhook_id}")
+async def admin_webhooks_delete(
+    request: Request,
+    webhook_id: str,
+    webhook_service: WebhookService = Depends(get_webhook_service),
+):
+    """Delete a webhook configuration.
+
+    Returns updated webhook list partial for htmx swap.
+    """
+    context: dict = {
+        "request": request,
+        "event_types": WEBHOOK_EVENT_TYPES,
+    }
+
+    deleted = await webhook_service.delete_config(webhook_id)
+    if not deleted:
+        context["error"] = f"Webhook '{webhook_id}' not found."
+    else:
+        context["success"] = "Webhook deleted."
+
+    webhooks = await webhook_service.list_configs()
+    context["webhooks"] = webhooks
+    return templates_response(request, "admin/webhooks.html", context, block_name="webhook_list")
+
+
+@router.post("/webhooks/{webhook_id}/toggle")
+async def admin_webhooks_toggle(
+    request: Request,
+    webhook_id: str,
+    webhook_service: WebhookService = Depends(get_webhook_service),
+):
+    """Toggle a webhook's enabled/disabled state.
+
+    Returns updated webhook list partial for htmx swap.
+    """
+    context: dict = {
+        "request": request,
+        "event_types": WEBHOOK_EVENT_TYPES,
+    }
+
+    try:
+        current = await webhook_service.get_config(webhook_id)
+        if current is None:
+            context["error"] = f"Webhook '{webhook_id}' not found."
+        else:
+            new_enabled = not current.enabled
+            await webhook_service.update_config(webhook_id, enabled=new_enabled)
+            state = "enabled" if new_enabled else "disabled"
+            context["success"] = f"Webhook {state}."
+    except Exception as e:
+        context["error"] = f"Failed to toggle webhook: {e}"
+        logger.warning("Webhook toggle failed for '%s': %s", webhook_id, e)
+
+    webhooks = await webhook_service.list_configs()
+    context["webhooks"] = webhooks
+    return templates_response(request, "admin/webhooks.html", context, block_name="webhook_list")
 
 
 def templates_response(request: Request, template: str, context: dict, block_name: str | None = None):
