@@ -19,8 +19,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **SHCL-01**: System runs SHACL validation asynchronously after each commit (non-blocking UI)
 - [ ] **SHCL-02**: User can see validation results in a lint panel showing violations and warnings per object
-- [ ] **SHCL-03**: User can create objects via forms auto-generated from SHACL shapes (sh:property, sh:order, sh:group, sh:name, sh:datatype, sh:class, sh:in, sh:defaultValue)
-- [ ] **SHCL-04**: User can edit existing objects via the same SHACL-driven forms
+- [x] **SHCL-03**: User can create objects via forms auto-generated from SHACL shapes (sh:property, sh:order, sh:group, sh:name, sh:datatype, sh:class, sh:in, sh:defaultValue)
+- [x] **SHCL-04**: User can edit existing objects via the same SHACL-driven forms
 - [x] **SHCL-05**: System persists immutable SHACL validation reports tied to each commit
 - [ ] **SHCL-06**: Violations block conformance-required operations (publish/export); warnings do not block any operations
 
@@ -58,7 +58,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **ADMN-01**: User can deploy SemPKM via docker-compose up with all services (FastAPI backend, RDF4J triplestore, frontend)
 - [ ] **ADMN-02**: User can manage Mental Models (install/remove/list) through an admin portal built with htmx/vanilla web
-- [ ] **ADMN-03**: User can configure simple outbound webhooks that fire on events (object.changed, edge.changed, validation.completed)
+- [x] **ADMN-03**: User can configure simple outbound webhooks that fire on events (object.changed, edge.changed, validation.completed)
 
 ## v2 Requirements
 
@@ -128,8 +128,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CORE-05 | Phase 1 | Complete |
 | SHCL-01 | Phase 2 | Complete |
 | SHCL-02 | Phase 4 | Pending |
-| SHCL-03 | Phase 4 | Pending |
-| SHCL-04 | Phase 4 | Pending |
+| SHCL-03 | Phase 4 | Complete |
+| SHCL-04 | Phase 4 | Complete |
 | SHCL-05 | Phase 2 | Complete |
 | SHCL-06 | Phase 4 | Pending |
 | MODL-01 | Phase 3 | Complete |
@@ -152,7 +152,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INFR-02 | Phase 2 | Complete |
 | ADMN-01 | Phase 1 | Complete |
 | ADMN-02 | Phase 4 | Pending |
-| ADMN-03 | Phase 4 | Pending |
+| ADMN-03 | Phase 4 | Complete |
 
 **Coverage:**
 - v1 requirements: 32 total
