@@ -85,8 +85,8 @@ Plans:
 **Plans**: 6 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — Dashboard shell, nginx routing, and Jinja2 template infrastructure
-- [ ] 04-02-PLAN.md — ShapesService (SHACL form metadata) and WebhookService (outbound event notifications)
+- [x] 04-01-PLAN.md — Dashboard shell, nginx routing, and Jinja2 template infrastructure
+- [x] 04-02-PLAN.md — ShapesService (SHACL form metadata) and WebhookService (outbound event notifications)
 - [ ] 04-03-PLAN.md — Admin portal UI (model management table, webhook configuration)
 - [ ] 04-04-PLAN.md — IDE workspace layout (Split.js panes, tabs, navigation tree, command palette)
 - [ ] 04-05-PLAN.md — SHACL-driven form generation, type picker, create/edit object flows
@@ -117,7 +117,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 1. Core Data Foundation | 4/4 | Complete    | 2026-02-21 |
 | 2. Semantic Services | 2/2 | Complete    | 2026-02-21 |
 | 3. Mental Model System | 1/3 | Complete    | 2026-02-22 |
-| 4. Admin Shell and Object Creation | 0/6 | Not started | - |
+| 4. Admin Shell and Object Creation | 2/6 | In Progress | - |
 | 5. Data Browsing and Visualization | 0/0 | Not started | - |
 | 6. User and Team Management | 0/4 | Not started | - |
 
