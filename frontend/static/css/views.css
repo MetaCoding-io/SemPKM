@@ -449,3 +449,242 @@
     text-align: center;
     padding: 24px;
 }
+
+/* ============================================
+   Cards View
+   Flip animation, grid layout, card faces
+   ============================================ */
+
+/* --- Card Grid --- */
+
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    padding: 16px;
+}
+
+@media (max-width: 640px) {
+    .card-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* --- Flip Card --- */
+
+.flip-card {
+    perspective: 1000px;
+    height: 260px;
+    cursor: default;
+}
+
+.flip-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+}
+
+.flip-card.flipped .flip-card-inner {
+    transform: rotateY(180deg);
+}
+
+.flip-card-front,
+.flip-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 8px;
+    padding: 16px;
+    background: var(--color-surface, #fff);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+}
+
+.flip-card-front {
+    overflow: hidden;
+}
+
+.flip-card-back {
+    transform: rotateY(180deg);
+    overflow-y: auto;
+}
+
+/* --- Flip Toggle Button --- */
+
+.flip-toggle {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--color-border, #e0e0e0);
+    border-radius: 50%;
+    background: var(--color-surface, #fff);
+    color: var(--color-text-muted, #666);
+    font-size: 0.95rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    transition: background 0.15s, color 0.15s;
+    padding: 0;
+    line-height: 1;
+}
+
+.flip-toggle:hover {
+    background: #f0f0f0;
+    color: var(--color-text, #1a1a2e);
+}
+
+/* --- Card Front --- */
+
+.card-title {
+    font-size: 1.1em;
+    font-weight: 600;
+    margin-bottom: 8px;
+    cursor: pointer;
+    color: var(--color-primary, #2d5a9e);
+    padding-right: 36px;
+}
+
+.card-title:hover {
+    text-decoration: underline;
+}
+
+.card-snippet {
+    font-size: 0.9em;
+    color: var(--color-text-muted, #666);
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.5;
+}
+
+/* --- Card Back --- */
+
+.card-back-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--color-border, #e0e0e0);
+}
+
+.card-back-title {
+    font-weight: 600;
+    font-size: 0.95em;
+    color: var(--color-text, #1a1a2e);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    padding-right: 8px;
+}
+
+.card-properties {
+    margin-bottom: 8px;
+}
+
+.card-prop {
+    font-size: 0.83em;
+    padding: 2px 0;
+    line-height: 1.4;
+    color: var(--color-text, #1a1a2e);
+}
+
+.card-prop-name {
+    font-weight: 600;
+    color: #555;
+}
+
+.card-prop-empty {
+    color: var(--color-text-muted, #999);
+    font-style: italic;
+}
+
+.card-relations {
+    border-top: 1px solid var(--color-border, #e0e0e0);
+    padding-top: 6px;
+    margin-top: 6px;
+}
+
+.card-rel {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 4px;
+    font-size: 0.85em;
+    padding: 1px 0;
+}
+
+.card-rel-dir {
+    color: var(--color-text-muted, #888);
+    flex-shrink: 0;
+}
+
+.card-rel-predicate {
+    color: #888;
+    font-style: italic;
+    flex-shrink: 0;
+}
+
+.card-rel a {
+    color: var(--color-primary, #2d5a9e);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.card-rel a:hover {
+    text-decoration: underline;
+}
+
+/* --- Card Group Header --- */
+
+.card-group-header {
+    margin: 16px 16px 0 16px;
+    font-size: 1.1em;
+    font-weight: 600;
+    color: var(--color-text, #1a1a2e);
+    border-bottom: 1px solid var(--color-border, #ddd);
+    padding-bottom: 6px;
+}
+
+/* --- Group By Bar --- */
+
+.cards-group-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-top: 1px solid var(--color-border, #e0e0e0);
+    background: var(--color-surface, #fff);
+}
+
+.cards-group-label {
+    font-size: 0.83rem;
+    font-weight: 600;
+    color: var(--color-text-muted, #666);
+    white-space: nowrap;
+}
+
+.cards-group-select {
+    padding: 4px 8px;
+    border: 1px solid var(--color-border, #e0e0e0);
+    border-radius: 4px;
+    font-size: 0.83rem;
+    background: var(--color-surface, #fff);
+    color: var(--color-text, #1a1a2e);
+    cursor: pointer;
+}
+
+.cards-group-select:focus {
+    outline: none;
+    border-color: var(--color-primary, #2d5a9e);
+}

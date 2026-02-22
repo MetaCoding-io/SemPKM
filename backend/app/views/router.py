@@ -158,7 +158,7 @@ async def table_view(
     )
 
 
-@router.get("/cards/{spec_iri:path}")
+@router.get("/card/{spec_iri:path}")
 async def cards_view(
     request: Request,
     spec_iri: str,
@@ -227,7 +227,7 @@ async def cards_view(
         "all_specs": all_specs,
         "type_label": type_label,
         "type_iri": spec.target_class,
-        "view_type": "cards",
+        "view_type": "card",
     }
 
     return templates.TemplateResponse(
