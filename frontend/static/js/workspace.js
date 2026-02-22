@@ -659,5 +659,6 @@
   window.showTypePicker = showTypePicker;
   window.jumpToField = jumpToField;
   window.triggerValidation = triggerValidation;
+  window.loadRightPane = loadRightPane;
 
 })();
