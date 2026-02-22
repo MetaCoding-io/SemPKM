@@ -16,6 +16,11 @@
                 <a href="/">SemPKM</a>
             </div>
             <nav class="sidebar-nav">
+                <a href="/" class="nav-link"
+                   hx-get="/" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
+                    <span class="nav-icon">&#127968;</span>
+                    <span class="nav-label">Home</span>
+                </a>
                 <a href="/admin/" class="nav-link"
                    hx-get="/admin/" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
                     <span class="nav-icon">&#9881;</span>
