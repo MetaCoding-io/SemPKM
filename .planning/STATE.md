@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-21)
 ## Current Position
 
 Phase: 6 of 6 (User and Team Management)
-Plan: 1 of 4 in current phase
-Status: Plan 06-01 Complete -- SQL Data Layer Foundation
-Last activity: 2026-02-22 -- Completed 06-01 SQL Data Layer Foundation
+Plan: 2 of 4 in current phase
+Status: Plan 06-02 Complete -- Authentication Core
+Last activity: 2026-02-22 -- Completed 06-02 Authentication Core
 
-Progress: [████████████████] 77%
+Progress: [█████████████████] 83%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 12
+- Total plans completed: 13
 - Average duration: 5min
-- Total execution time: 0.9 hours
+- Total execution time: 1.0 hours
 
 **By Phase:**
 
@@ -30,11 +30,11 @@ Progress: [████████████████] 77%
 | 1. Core Data Foundation | 4 | 23min | 6min |
 | 2. Semantic Services | 2 | 9min | 5min |
 | 3. Mental Model System | 3 | 24min | 8min |
-| 4. Admin Shell and Object Creation | 2 | 11min | 6min |
-| 6. User and Team Management | 1 | 4min | 4min |
+| 4. Admin Shell and Object Creation | 3 | 14min | 5min |
+| 6. User and Team Management | 2 | 12min | 6min |
 
 **Recent Trend:**
-- Last 5 plans: 4min, 8min, 12min, 4min, 4min
+- Last 5 plans: 12min, 4min, 4min, 8min, 3min
 - Trend: stable
 
 *Updated after each plan completion*
@@ -88,6 +88,12 @@ Recent decisions affecting current work:
 - [06-01]: render_as_batch=True in Alembic env.py for SQLite ALTER Table compatibility
 - [06-01]: RDF4J port removed from Docker Compose host mapping (security hardening)
 - [06-01]: Auto-generated secret key path persisted to data volume
+- [06-02]: Naive UTC datetimes (_utcnow helper) for SQLite datetime comparison compatibility
+- [06-02]: Setup token is random secrets.token_urlsafe, not signed -- stored on disk, string-compared
+- [06-02]: Logout revokes session in DB via token deletion, not just cookie clearing
+- [06-02]: Magic link verify auto-creates member user for passwordless first-login
+- [Phase 04]: Admin router uses named Jinja2 blocks (model_table, webhook_list) for htmx partial swap targets
+- [Phase 04]: Webhook event types defined as constant list in router for template checkbox rendering
 
 ### Pending Todos
 
@@ -105,5 +111,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-22
-Stopped at: Completed 04-01-PLAN.md (Dashboard Shell and Template Infrastructure)
+Stopped at: Completed 06-02-PLAN.md (Authentication Core)
 Resume file: None
