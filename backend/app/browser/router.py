@@ -10,7 +10,7 @@ content updates.
 import logging
 from urllib.parse import unquote
 
-from fastapi import APIRouter, Depends, Form, Request
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
 
 from app.dependencies import (
@@ -390,4 +390,336 @@ async def get_lint(
 
     return templates.TemplateResponse(
         request, "browser/lint_panel.html", context
+    )
+
+
+@router.get("/types")
+async def type_picker(
+    request: Request,
+    shapes_service: ShapesService = Depends(get_shapes_service),
+):
+    """Render the type picker dialog listing all available object types.
+
+    Lists all SHACL NodeShapes with their target classes from installed
+    Mental Models. Each type card links to the create form via htmx GET.
+    """
+    templates = request.app.state.templates
+    types = await shapes_service.get_types()
+    context = {"request": request, "types": types}
+    return templates.TemplateResponse(
+        request, "browser/type_picker.html", context
+    )
+
+
+@router.get("/objects/new")
+async def create_form(
+    request: Request,
+    type: str,
+    shapes_service: ShapesService = Depends(get_shapes_service),
+):
+    """Render the SHACL-driven create form for a given object type.
+
+    Fetches form metadata from ShapesService for the specified type IRI
+    and renders the object_form.html template in create mode with empty
+    values. Returned as an htmx partial for the editor area.
+    """
+    templates = request.app.state.templates
+    form = await shapes_service.get_form_for_type(type)
+
+    if not form:
+        return HTMLResponse(
+            content='<div class="form-empty"><p>No form schema available for this type.</p></div>',
+            status_code=200,
+        )
+
+    context = {
+        "request": request,
+        "form": form,
+        "values": {},
+        "mode": "create",
+        "object_iri": None,
+        "success_message": None,
+        "error_message": None,
+    }
+
+    return templates.TemplateResponse(
+        request, "forms/object_form.html", context
+    )
+
+
+@router.post("/objects")
+async def create_object(
+    request: Request,
+    shapes_service: ShapesService = Depends(get_shapes_service),
+    label_service: LabelService = Depends(get_label_service),
+    client: TriplestoreClient = Depends(get_triplestore_client),
+    validation_queue: AsyncValidationQueue = Depends(get_validation_queue),
+):
+    """Process create form submission and create a new object.
+
+    Parses form data to extract the type IRI and property values,
+    dispatches an object.create command through the EventStore, and
+    re-renders the form in edit mode with the newly created object.
+    """
+    from app.commands.handlers.object_create import handle_object_create
+    from app.commands.schemas import ObjectCreateParams
+    from app.config import settings
+    from app.events.store import EventStore
+
+    templates = request.app.state.templates
+    form_data = await request.form()
+
+    type_iri = form_data.get("type_iri", "")
+    if not type_iri:
+        return HTMLResponse(
+            content='<div class="form-error">Missing type information.</div>',
+            status_code=400,
+        )
+
+    # Extract the type local name from the full IRI for the command handler
+    type_name = type_iri.rsplit("/", 1)[-1] if "/" in type_iri else type_iri
+    if "#" in type_name:
+        type_name = type_name.rsplit("#", 1)[-1]
+
+    # Build properties dict from form data, excluding hidden/meta fields
+    properties: dict[str, str | list[str]] = {}
+    skip_fields = {"type_iri", "object_iri"}
+
+    for key in form_data.keys():
+        if key in skip_fields or key.startswith("_search_"):
+            continue
+        raw_values = form_data.getlist(key)
+        # Filter out empty values
+        values = [v for v in raw_values if v and v.strip()]
+        if not values:
+            continue
+        # Strip array suffix if present
+        clean_key = key.rstrip("[]")
+        if len(values) == 1:
+            properties[clean_key] = values[0]
+        else:
+            # Multi-valued: store first value (command API uses single values per property)
+            # For multiple values of the same property, we'd need multiple commands
+            # For now, join or use first value
+            properties[clean_key] = values[0]
+
+    try:
+        params = ObjectCreateParams(
+            type=type_name,
+            properties=properties,
+        )
+        operation = await handle_object_create(params, settings.base_namespace)
+        event_store = EventStore(client)
+        event_result = await event_store.commit([operation])
+
+        # Trigger async validation
+        await validation_queue.enqueue(
+            event_iri=str(event_result.event_iri),
+            timestamp=event_result.timestamp,
+        )
+
+        # Get the created object IRI
+        created_iri = operation.affected_iris[0] if operation.affected_iris else ""
+
+        # Resolve label for the new object
+        labels = await label_service.resolve_batch([created_iri])
+        object_label = labels.get(created_iri, created_iri)
+
+        # Re-render as edit form with success message
+        form = await shapes_service.get_form_for_type(type_iri)
+        context = {
+            "request": request,
+            "form": form,
+            "values": properties,
+            "mode": "edit",
+            "object_iri": created_iri,
+            "success_message": f"Created {type_name} successfully",
+            "error_message": None,
+        }
+
+        response = templates.TemplateResponse(
+            request, "forms/object_form.html", context
+        )
+        # Set HX-Trigger header to update the tab with the new object
+        response.headers["HX-Trigger"] = (
+            f'{{"objectCreated": {{"iri": "{created_iri}", "label": "{object_label}"}}}}'
+        )
+        return response
+
+    except Exception as e:
+        logger.exception("Failed to create object")
+        form = await shapes_service.get_form_for_type(type_iri)
+        context = {
+            "request": request,
+            "form": form,
+            "values": properties,
+            "mode": "create",
+            "object_iri": None,
+            "success_message": None,
+            "error_message": f"Failed to create object: {str(e)}",
+        }
+        return templates.TemplateResponse(
+            request, "forms/object_form.html", context
+        )
+
+
+@router.post("/objects/{object_iri:path}/save")
+async def save_object(
+    request: Request,
+    object_iri: str,
+    shapes_service: ShapesService = Depends(get_shapes_service),
+    label_service: LabelService = Depends(get_label_service),
+    client: TriplestoreClient = Depends(get_triplestore_client),
+    validation_queue: AsyncValidationQueue = Depends(get_validation_queue),
+):
+    """Process edit form submission and patch an existing object.
+
+    Parses form data to detect changed properties, dispatches
+    object.patch commands for modifications, and re-renders the
+    form with updated values and a success message.
+    """
+    from app.commands.handlers.object_patch import handle_object_patch
+    from app.commands.schemas import ObjectPatchParams
+    from app.config import settings
+    from app.events.store import EventStore
+
+    templates = request.app.state.templates
+    decoded_iri = unquote(object_iri)
+    form_data = await request.form()
+
+    type_iri = form_data.get("type_iri", "")
+
+    # Build properties dict from form data
+    properties: dict[str, str] = {}
+    skip_fields = {"type_iri", "object_iri"}
+
+    for key in form_data.keys():
+        if key in skip_fields or key.startswith("_search_"):
+            continue
+        raw_values = form_data.getlist(key)
+        values = [v for v in raw_values if v and v.strip()]
+        if not values:
+            continue
+        clean_key = key.rstrip("[]")
+        properties[clean_key] = values[0]
+
+    try:
+        if properties:
+            params = ObjectPatchParams(
+                iri=decoded_iri,
+                properties=properties,
+            )
+            operation = await handle_object_patch(params, settings.base_namespace)
+            event_store = EventStore(client)
+            event_result = await event_store.commit([operation])
+
+            await validation_queue.enqueue(
+                event_iri=str(event_result.event_iri),
+                timestamp=event_result.timestamp,
+            )
+
+        # Re-render the form with current values
+        form = await shapes_service.get_form_for_type(type_iri)
+        context = {
+            "request": request,
+            "form": form,
+            "values": properties,
+            "mode": "edit",
+            "object_iri": decoded_iri,
+            "success_message": "Changes saved successfully",
+            "error_message": None,
+        }
+
+        response = templates.TemplateResponse(
+            request, "forms/object_form.html", context
+        )
+        # Trigger markClean on the tab
+        response.headers["HX-Trigger"] = (
+            f'{{"objectSaved": {{"iri": "{decoded_iri}"}}}}'
+        )
+        return response
+
+    except Exception as e:
+        logger.exception("Failed to save object %s", decoded_iri)
+        form = await shapes_service.get_form_for_type(type_iri)
+        context = {
+            "request": request,
+            "form": form,
+            "values": properties,
+            "mode": "edit",
+            "object_iri": decoded_iri,
+            "success_message": None,
+            "error_message": f"Failed to save changes: {str(e)}",
+        }
+        return templates.TemplateResponse(
+            request, "forms/object_form.html", context
+        )
+
+
+@router.get("/search")
+async def search_references(
+    request: Request,
+    type: str = "",
+    q: str = "",
+    field_id: str = "",
+    index: str | None = None,
+    label_service: LabelService = Depends(get_label_service),
+    client: TriplestoreClient = Depends(get_triplestore_client),
+):
+    """Search for instances of a type for sh:class reference fields.
+
+    Queries the current state graph for objects matching the given rdf:type
+    and filtering by label regex. Returns HTML suggestion items for the
+    search-as-you-type dropdown.
+    """
+    templates = request.app.state.templates
+
+    if not type:
+        return HTMLResponse(content="", status_code=200)
+
+    # Build SPARQL query to find instances of the type
+    sparql = f"""
+    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+    SELECT DISTINCT ?obj WHERE {{
+      GRAPH <urn:sempkm:current> {{
+        ?obj rdf:type <{type}> .
+      }}
+    }}
+    LIMIT 20
+    """
+
+    try:
+        result = await client.query(sparql)
+        bindings = result.get("results", {}).get("bindings", [])
+    except Exception:
+        logger.warning("Reference search failed for type %s", type, exc_info=True)
+        bindings = []
+
+    obj_iris = [b["obj"]["value"] for b in bindings]
+    labels = await label_service.resolve_batch(obj_iris) if obj_iris else {}
+
+    # Filter by query string if provided
+    results = []
+    query_lower = q.lower() if q else ""
+    for iri in obj_iris:
+        label = labels.get(iri, iri)
+        if not query_lower or query_lower in label.lower() or query_lower in iri.lower():
+            results.append({"iri": iri, "label": label})
+
+    # Resolve type label for the "Create new..." option
+    type_labels = await label_service.resolve_batch([type])
+    type_label = type_labels.get(type, type.rsplit("/", 1)[-1] if "/" in type else type)
+
+    context = {
+        "request": request,
+        "results": results,
+        "type_iri": type,
+        "type_label": type_label,
+        "field_id": field_id,
+        "index": int(index) if index is not None and index.isdigit() else None,
+    }
+
+    return templates.TemplateResponse(
+        request, "browser/search_suggestions.html", context
     )
