@@ -11,6 +11,7 @@ from app.services.validation import ValidationService
 from app.services.webhooks import WebhookService
 from app.triplestore.client import TriplestoreClient
 from app.validation.queue import AsyncValidationQueue
+from app.views.service import ViewSpecService
 
 
 async def get_triplestore_client(request: Request) -> TriplestoreClient:
@@ -92,3 +93,12 @@ async def get_auth_service(request: Request) -> AuthService:
     app.state.auth_service.
     """
     return request.app.state.auth_service
+
+
+async def get_view_spec_service(request: Request) -> ViewSpecService:
+    """Get the ViewSpecService instance from app state.
+
+    The service is created during app lifespan startup and stored on
+    app.state.view_spec_service.
+    """
+    return request.app.state.view_spec_service
