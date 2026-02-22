@@ -1,0 +1,127 @@
+{% include "browser/view_toolbar.html" %}
+
+{% if groups %}
+{# Grouped cards mode #}
+{% for group in groups %}
+<h3 class="card-group-header">{{ group.group_label }}</h3>
+<div class="card-grid">
+    {% for card in group.cards %}
+    <div class="flip-card" data-iri="{{ card.iri }}">
+        <div class="flip-card-inner">
+            <div class="flip-card-front">
+                <div class="card-title" onclick="openTab('{{ card.iri }}', '{{ card.label | replace("'", "\\'") }}'); return false;">{{ card.label }}</div>
+                <div class="card-snippet">{{ card.snippet }}</div>
+                <button class="flip-toggle" onclick="this.closest('.flip-card').classList.toggle('flipped')" title="Flip card">&#x21BB;</button>
+            </div>
+            <div class="flip-card-back">
+                <div class="card-back-header">
+                    <span class="card-back-title">{{ card.label }}</span>
+                    <button class="flip-toggle" onclick="this.closest('.flip-card').classList.toggle('flipped')" title="Flip card">&#x21BB;</button>
+                </div>
+                <div class="card-properties">
+                    {% for prop in card.properties %}
+                    <div class="card-prop"><span class="card-prop-name">{{ prop.name }}:</span> {{ prop.value }}</div>
+                    {% endfor %}
+                    {% if not card.properties %}
+                    <div class="card-prop card-prop-empty">No properties</div>
+                    {% endif %}
+                </div>
+                <div class="card-relations">
+                    {% for rel in card.outbound_relations %}
+                    <div class="card-rel">
+                        <span class="card-rel-dir">&#x2192;</span>
+                        <span class="card-rel-predicate">{{ rel.predicate_label }}</span>
+                        <a href="#" onclick="openTab('{{ rel.target_iri }}', '{{ rel.target_label | replace("'", "\\'") }}'); return false;">{{ rel.target_label }}</a>
+                    </div>
+                    {% endfor %}
+                    {% for rel in card.inbound_relations %}
+                    <div class="card-rel">
+                        <span class="card-rel-dir">&#x2190;</span>
+                        <span class="card-rel-predicate">{{ rel.predicate_label }}</span>
+                        <a href="#" onclick="openTab('{{ rel.target_iri }}', '{{ rel.target_label | replace("'", "\\'") }}'); return false;">{{ rel.target_label }}</a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endfor %}
+
+{% elif cards %}
+{# Flat cards mode (no grouping) #}
+<div class="card-grid">
+    {% for card in cards %}
+    <div class="flip-card" data-iri="{{ card.iri }}">
+        <div class="flip-card-inner">
+            <div class="flip-card-front">
+                <div class="card-title" onclick="openTab('{{ card.iri }}', '{{ card.label | replace("'", "\\'") }}'); return false;">{{ card.label }}</div>
+                <div class="card-snippet">{{ card.snippet }}</div>
+                <button class="flip-toggle" onclick="this.closest('.flip-card').classList.toggle('flipped')" title="Flip card">&#x21BB;</button>
+            </div>
+            <div class="flip-card-back">
+                <div class="card-back-header">
+                    <span class="card-back-title">{{ card.label }}</span>
+                    <button class="flip-toggle" onclick="this.closest('.flip-card').classList.toggle('flipped')" title="Flip card">&#x21BB;</button>
+                </div>
+                <div class="card-properties">
+                    {% for prop in card.properties %}
+                    <div class="card-prop"><span class="card-prop-name">{{ prop.name }}:</span> {{ prop.value }}</div>
+                    {% endfor %}
+                    {% if not card.properties %}
+                    <div class="card-prop card-prop-empty">No properties</div>
+                    {% endif %}
+                </div>
+                <div class="card-relations">
+                    {% for rel in card.outbound_relations %}
+                    <div class="card-rel">
+                        <span class="card-rel-dir">&#x2192;</span>
+                        <span class="card-rel-predicate">{{ rel.predicate_label }}</span>
+                        <a href="#" onclick="openTab('{{ rel.target_iri }}', '{{ rel.target_label | replace("'", "\\'") }}'); return false;">{{ rel.target_label }}</a>
+                    </div>
+                    {% endfor %}
+                    {% for rel in card.inbound_relations %}
+                    <div class="card-rel">
+                        <span class="card-rel-dir">&#x2190;</span>
+                        <span class="card-rel-predicate">{{ rel.predicate_label }}</span>
+                        <a href="#" onclick="openTab('{{ rel.target_iri }}', '{{ rel.target_label | replace("'", "\\'") }}'); return false;">{{ rel.target_label }}</a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% else %}
+<div class="view-empty-state">
+    {% if current_filter %}
+    <p>No results matching "{{ current_filter }}"</p>
+    {% else %}
+    <p>No objects found for this view.</p>
+    {% endif %}
+</div>
+{% endif %}
+
+{# Group By toolbar #}
+{% if columns %}
+<div class="cards-group-bar">
+    <label class="cards-group-label" for="group-by-select">Group by:</label>
+    <select id="group-by-select" class="cards-group-select"
+            hx-get="/browser/views/card/{{ spec_iri_encoded }}"
+            hx-target="#editor-area"
+            hx-swap="innerHTML"
+            hx-include="this"
+            name="group_by"
+            hx-vals='{"page": "1", "page_size": "{{ page_size }}", "filter": "{{ current_filter }}"}'>
+        <option value="">None</option>
+        {% for col in columns %}
+        <option value="{{ col }}"{% if group_by == col %} selected{% endif %}>{{ col | replace("_", " ") | title }}</option>
+        {% endfor %}
+    </select>
+</div>
+{% endif %}
+
+{% include "browser/pagination.html" %}

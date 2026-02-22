@@ -307,6 +307,319 @@ OFFSET {offset}"""
             "columns": spec.columns,
         }
 
+    async def execute_cards_query(
+        self,
+        spec: ViewSpec,
+        page: int = 1,
+        page_size: int = 12,
+        filter_text: str = "",
+        group_by: str | None = None,
+    ) -> dict:
+        """Execute a view spec's SPARQL query for card rendering.
+
+        Two-phase approach: (1) get distinct ?s subjects with pagination,
+        (2) fetch all properties and relationships for those subjects.
+        Resolves labels for all IRIs and truncates body snippets.
+
+        Args:
+            spec: The ViewSpec containing the SPARQL query.
+            page: Page number (1-based).
+            page_size: Number of cards per page.
+            filter_text: Text to filter results by (regex match on first column).
+            group_by: Optional property IRI to group cards by.
+
+        Returns:
+            Dict with keys: cards, total, page, page_size, total_pages,
+            groups (if group_by), group_by, columns.
+        """
+        if not spec.sparql_query:
+            return {
+                "cards": [],
+                "total": 0,
+                "page": page,
+                "page_size": page_size,
+                "total_pages": 0,
+                "groups": None,
+                "group_by": group_by,
+                "columns": spec.columns,
+            }
+
+        scoped_query = scope_to_current_graph(spec.sparql_query)
+        where_body = _extract_where_body(scoped_query)
+        from_clause = _extract_from_clause(scoped_query)
+
+        if not where_body:
+            logger.warning("Could not extract WHERE body from view spec query: %s", spec.spec_iri)
+            return {
+                "cards": [],
+                "total": 0,
+                "page": page,
+                "page_size": page_size,
+                "total_pages": 0,
+                "groups": None,
+                "group_by": group_by,
+                "columns": spec.columns,
+            }
+
+        # Inject filter if provided
+        filter_clause = ""
+        if filter_text:
+            escaped = filter_text.replace("\\", "\\\\").replace('"', '\\"')
+            first_col = spec.columns[0] if spec.columns else "s"
+            filter_clause = f'FILTER(REGEX(STR(?{first_col}), "{escaped}", "i"))'
+
+        count_where = where_body
+        if filter_clause:
+            count_where = where_body + "\n  " + filter_clause
+
+        # Count query
+        count_query = f"""SELECT (COUNT(DISTINCT ?s) AS ?total)
+{from_clause}
+WHERE {{
+  {count_where}
+}}"""
+
+        try:
+            count_result = await self._client.query(count_query)
+            count_bindings = count_result.get("results", {}).get("bindings", [])
+            total = int(count_bindings[0]["total"]["value"]) if count_bindings else 0
+        except Exception:
+            logger.warning("Count query failed for cards view spec %s", spec.spec_iri, exc_info=True)
+            total = 0
+
+        total_pages = max(1, math.ceil(total / page_size)) if total > 0 else 0
+        if page < 1:
+            page = 1
+        if total_pages > 0 and page > total_pages:
+            page = total_pages
+
+        offset = (page - 1) * page_size
+
+        # Get distinct subjects with pagination
+        data_where = where_body
+        if filter_clause:
+            data_where = where_body + "\n  " + filter_clause
+
+        subjects_query = f"""SELECT DISTINCT ?s
+{from_clause}
+WHERE {{
+  {data_where}
+}}
+LIMIT {page_size}
+OFFSET {offset}"""
+
+        try:
+            subj_result = await self._client.query(subjects_query)
+            subj_bindings = subj_result.get("results", {}).get("bindings", [])
+        except Exception:
+            logger.warning("Subjects query failed for cards view spec %s", spec.spec_iri, exc_info=True)
+            subj_bindings = []
+
+        subject_iris = []
+        seen = set()
+        for b in subj_bindings:
+            iri = b.get("s", {}).get("value", "")
+            if iri and iri not in seen:
+                subject_iris.append(iri)
+                seen.add(iri)
+
+        if not subject_iris:
+            return {
+                "cards": [],
+                "total": total,
+                "page": page,
+                "page_size": page_size,
+                "total_pages": total_pages,
+                "groups": None,
+                "group_by": group_by,
+                "columns": spec.columns,
+            }
+
+        # Fetch all properties for these subjects
+        values_clause = " ".join(f"<{iri}>" for iri in subject_iris)
+        props_query = f"""SELECT ?s ?p ?o
+FROM <urn:sempkm:current>
+WHERE {{
+  VALUES ?s {{ {values_clause} }}
+  ?s ?p ?o .
+  FILTER(isLiteral(?o))
+}}"""
+
+        try:
+            props_result = await self._client.query(props_query)
+            props_bindings = props_result.get("results", {}).get("bindings", [])
+        except Exception:
+            logger.warning("Properties query failed for cards view spec %s", spec.spec_iri, exc_info=True)
+            props_bindings = []
+
+        # Build property maps per subject
+        props_by_subject: dict[str, list[tuple[str, str]]] = {iri: [] for iri in subject_iris}
+        body_by_subject: dict[str, str] = {}
+        desc_by_subject: dict[str, str] = {}
+
+        all_iris_to_resolve: set[str] = set(subject_iris)
+
+        for b in props_bindings:
+            s = b["s"]["value"]
+            p = b["p"]["value"]
+            o_val = b["o"]["value"]
+            if s in props_by_subject:
+                props_by_subject[s].append((p, o_val))
+                all_iris_to_resolve.add(p)
+                # Track body and description for snippets
+                if p == "urn:sempkm:body":
+                    body_by_subject[s] = o_val
+                elif p == "http://purl.org/dc/terms/description":
+                    desc_by_subject[s] = o_val
+
+        # Fetch outbound relationships (IRI objects, not literals)
+        out_query = f"""PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+SELECT ?s ?predicate ?object
+FROM <urn:sempkm:current>
+WHERE {{
+  VALUES ?s {{ {values_clause} }}
+  ?s ?predicate ?object .
+  FILTER(isIRI(?object))
+  FILTER(?predicate != rdf:type)
+}}"""
+
+        try:
+            out_result = await self._client.query(out_query)
+            out_bindings = out_result.get("results", {}).get("bindings", [])
+        except Exception:
+            logger.warning("Outbound query failed for cards view spec %s", spec.spec_iri, exc_info=True)
+            out_bindings = []
+
+        outbound_by_subject: dict[str, list[tuple[str, str]]] = {iri: [] for iri in subject_iris}
+        for b in out_bindings:
+            s = b["s"]["value"]
+            pred = b["predicate"]["value"]
+            obj = b["object"]["value"]
+            if s in outbound_by_subject:
+                outbound_by_subject[s].append((pred, obj))
+                all_iris_to_resolve.add(pred)
+                all_iris_to_resolve.add(obj)
+
+        # Fetch inbound relationships
+        in_query = f"""PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+SELECT ?s ?predicate ?subject
+FROM <urn:sempkm:current>
+WHERE {{
+  VALUES ?s {{ {values_clause} }}
+  ?subject ?predicate ?s .
+  FILTER(isIRI(?subject))
+  FILTER(?predicate != rdf:type)
+}}"""
+
+        try:
+            in_result = await self._client.query(in_query)
+            in_bindings = in_result.get("results", {}).get("bindings", [])
+        except Exception:
+            logger.warning("Inbound query failed for cards view spec %s", spec.spec_iri, exc_info=True)
+            in_bindings = []
+
+        inbound_by_subject: dict[str, list[tuple[str, str]]] = {iri: [] for iri in subject_iris}
+        for b in in_bindings:
+            s = b["s"]["value"]
+            pred = b["predicate"]["value"]
+            subj = b["subject"]["value"]
+            if s in inbound_by_subject:
+                inbound_by_subject[s].append((pred, subj))
+                all_iris_to_resolve.add(pred)
+                all_iris_to_resolve.add(subj)
+
+        # Resolve all labels in one batch
+        labels = await self._label_service.resolve_batch(list(all_iris_to_resolve)) if all_iris_to_resolve else {}
+
+        # Build card data
+        cards: list[dict] = []
+        for iri in subject_iris:
+            # Snippet: prefer body, fallback to description
+            snippet = ""
+            if iri in body_by_subject:
+                snippet = body_by_subject[iri][:100]
+                if len(body_by_subject[iri]) > 100:
+                    snippet += "..."
+            elif iri in desc_by_subject:
+                snippet = desc_by_subject[iri][:100]
+                if len(desc_by_subject[iri]) > 100:
+                    snippet += "..."
+
+            # Properties list (name/value pairs with resolved labels)
+            properties = []
+            for p, v in props_by_subject[iri]:
+                # Skip body and rdf:type from property display
+                if p in ("urn:sempkm:body", "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"):
+                    continue
+                properties.append({
+                    "name": labels.get(p, _local_name(p)),
+                    "value": v,
+                })
+
+            # Outbound relations
+            outbound_relations = []
+            for pred, target in outbound_by_subject[iri]:
+                outbound_relations.append({
+                    "predicate_label": labels.get(pred, _local_name(pred)),
+                    "target_iri": target,
+                    "target_label": labels.get(target, _local_name(target)),
+                    "direction": "outbound",
+                })
+
+            # Inbound relations
+            inbound_relations = []
+            for pred, source in inbound_by_subject[iri]:
+                inbound_relations.append({
+                    "predicate_label": labels.get(pred, _local_name(pred)),
+                    "target_iri": source,
+                    "target_label": labels.get(source, _local_name(source)),
+                    "direction": "inbound",
+                })
+
+            cards.append({
+                "iri": iri,
+                "label": labels.get(iri, _local_name(iri)),
+                "snippet": snippet,
+                "properties": properties,
+                "outbound_relations": outbound_relations,
+                "inbound_relations": inbound_relations,
+            })
+
+        # Grouping by property value
+        groups = None
+        if group_by and cards:
+            group_map: dict[str, list[dict]] = {}
+            group_label = labels.get(group_by, _local_name(group_by))
+            for card in cards:
+                # Find the grouping value from properties
+                group_val = ""
+                for prop in card["properties"]:
+                    # Match by original IRI or resolved label
+                    if prop["name"] == group_label or prop["name"] == _local_name(group_by):
+                        group_val = prop["value"]
+                        break
+                if not group_val:
+                    group_val = "(No value)"
+                if group_val not in group_map:
+                    group_map[group_val] = []
+                group_map[group_val].append(card)
+
+            groups = [
+                {"group_label": k, "cards": v}
+                for k, v in sorted(group_map.items())
+            ]
+
+        return {
+            "cards": cards,
+            "total": total,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": total_pages,
+            "groups": groups,
+            "group_by": group_by,
+            "columns": spec.columns,
+        }
+
 
 def _extract_where_body(query: str) -> str:
     """Extract the content between the outermost WHERE { ... } in a SPARQL query.
