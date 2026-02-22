@@ -10,6 +10,8 @@ import logging
 from fastapi import APIRouter, Depends, Form, Query, Request
 from fastapi.responses import JSONResponse, Response
 
+from app.auth.dependencies import get_current_user
+from app.auth.models import User
 from app.dependencies import get_triplestore_client
 from app.sparql.client import inject_prefixes, scope_to_current_graph
 from app.triplestore.client import TriplestoreClient
@@ -75,6 +77,7 @@ async def _execute_sparql(
 async def sparql_get(
     query: str = Query(..., description="SPARQL query string"),
     all_graphs: bool = Query(False, description="Skip current graph scoping"),
+    user: User = Depends(get_current_user),
     client: TriplestoreClient = Depends(get_triplestore_client),
 ) -> Response:
     """Execute a SPARQL query via GET (query as URL parameter).
@@ -88,6 +91,7 @@ async def sparql_get(
 @router.post("/sparql")
 async def sparql_post(
     request: Request,
+    user: User = Depends(get_current_user),
     client: TriplestoreClient = Depends(get_triplestore_client),
 ) -> Response:
     """Execute a SPARQL query via POST.

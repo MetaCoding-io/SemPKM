@@ -11,7 +11,10 @@ from typing import Any
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 from pydantic import TypeAdapter
+from rdflib import URIRef
 
+from app.auth.dependencies import require_role
+from app.auth.models import User
 from app.commands.dispatcher import dispatch
 from app.commands.exceptions import CommandError
 from app.commands.schemas import (
@@ -79,6 +82,7 @@ def _parse_commands(body: Any) -> list[Command]:
 @router.post("/commands")
 async def execute_commands(
     request: Request,
+    user: User = Depends(require_role("owner", "member")),
     client: TriplestoreClient = Depends(get_triplestore_client),
     validation_queue: AsyncValidationQueue = Depends(get_validation_queue),
     webhook_service: WebhookService = Depends(get_webhook_service),
@@ -114,9 +118,10 @@ async def execute_commands(
             primary_iri = operation.affected_iris[0] if operation.affected_iris else ""
             command_iris.append((primary_iri, cmd.command))
 
-        # Commit all operations atomically
+        # Commit all operations atomically with user provenance
         event_store = EventStore(client)
-        event_result = await event_store.commit(operations)
+        user_iri = URIRef(f"urn:sempkm:user:{user.id}")
+        event_result = await event_store.commit(operations, performed_by=user_iri)
 
         # Trigger async validation (non-blocking)
         await validation_queue.enqueue(

@@ -9,6 +9,8 @@ from dataclasses import asdict
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
+from app.auth.dependencies import get_current_user
+from app.auth.models import User
 from app.dependencies import get_validation_queue, get_validation_service
 from app.services.validation import ValidationService
 from app.validation.queue import AsyncValidationQueue
@@ -18,6 +20,7 @@ router = APIRouter(prefix="/api")
 
 @router.get("/validation/latest")
 async def get_latest_validation(
+    user: User = Depends(get_current_user),
     validation_queue: AsyncValidationQueue = Depends(get_validation_queue),
     validation_service: ValidationService = Depends(get_validation_service),
 ):
@@ -44,6 +47,7 @@ async def get_latest_validation(
 @router.get("/validation/{event_id}")
 async def get_validation_by_event(
     event_id: str,
+    user: User = Depends(get_current_user),
     validation_service: ValidationService = Depends(get_validation_service),
 ):
     """Return the validation report summary for a specific event.
