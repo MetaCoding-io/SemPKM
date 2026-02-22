@@ -29,6 +29,13 @@ services:
       DATABASE_URL: ${DATABASE_URL:-sqlite+aiosqlite:///./data/sempkm.db}
       SECRET_KEY: ${SECRET_KEY:-}
       SESSION_DURATION_DAYS: ${SESSION_DURATION_DAYS:-30}
+      # SMTP (optional - enables magic link emails and invitations)
+      # When not configured, magic link tokens are returned directly in the browser.
+      # SMTP_HOST: ${SMTP_HOST:-}
+      # SMTP_PORT: ${SMTP_PORT:-587}
+      # SMTP_USER: ${SMTP_USER:-}
+      # SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      # SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-}
     depends_on:
       triplestore:
         condition: service_healthy
