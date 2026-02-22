@@ -6,6 +6,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl \
 
 WORKDIR /app
 
+# Create persistent data directory for SQLite and secrets
+RUN mkdir -p /app/data
+VOLUME /app/data
+
 # Copy dependency definition
 COPY pyproject.toml .
 

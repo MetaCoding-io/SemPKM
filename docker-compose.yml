@@ -1,8 +1,6 @@
 services:
   triplestore:
     image: eclipse/rdf4j-workbench:5.0.1
-    ports:
-      - "8080:8080"
     volumes:
       - rdf4j_data:/var/rdf4j
     environment:
@@ -23,10 +21,14 @@ services:
       - ./backend/app:/app/app:ro
       - ./config:/app/config:ro
       - ./models:/app/models:ro
+      - sempkm_data:/app/data
     environment:
       TRIPLESTORE_URL: ${TRIPLESTORE_URL:-http://triplestore:8080/rdf4j-server}
       REPOSITORY_ID: ${REPOSITORY_ID:-sempkm}
       BASE_NAMESPACE: ${BASE_NAMESPACE:-https://example.org/data/}
+      DATABASE_URL: ${DATABASE_URL:-sqlite+aiosqlite:///./data/sempkm.db}
+      SECRET_KEY: ${SECRET_KEY:-}
+      SESSION_DURATION_DAYS: ${SESSION_DURATION_DAYS:-30}
     depends_on:
       triplestore:
         condition: service_healthy
@@ -56,3 +58,4 @@ networks:
 
 volumes:
   rdf4j_data:
+  sempkm_data:
