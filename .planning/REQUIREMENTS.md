@@ -31,7 +31,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **MODL-03**: User can view a list of installed Mental Models with name, version, and description
 - [x] **MODL-04**: System validates manifest.yaml against schema on install (modelId, version, entrypoints, exports)
 - [x] **MODL-05**: System validates ID uniqueness, namespacing rules, and reference integrity on install
-- [ ] **MODL-06**: A starter Mental Model (Basic PKM) ships with the system providing Projects, People, Notes, and Concepts with shapes, views, and seed data
+- [x] **MODL-06**: A starter Mental Model (Basic PKM) ships with the system providing Projects, People, Notes, and Concepts with shapes, views, and seed data
 
 ### Object Browser / IDE
 
@@ -137,7 +137,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MODL-03 | Phase 3 | Complete |
 | MODL-04 | Phase 3 | Complete |
 | MODL-05 | Phase 3 | Complete |
-| MODL-06 | Phase 3 | Pending |
+| MODL-06 | Phase 3 | Complete |
 | VIEW-01 | Phase 5 | Pending |
 | VIEW-02 | Phase 5 | Pending |
 | VIEW-03 | Phase 5 | Pending |
