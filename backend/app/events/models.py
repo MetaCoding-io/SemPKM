@@ -16,5 +16,8 @@ EVENT_OPERATION = SEMPKM.operationType
 EVENT_AFFECTED = SEMPKM.affectedIRI
 EVENT_DESCRIPTION = SEMPKM.description
 
+# User provenance predicate
+EVENT_PERFORMED_BY = SEMPKM.performedBy
+
 # State graph type marker (for sentinel triple)
 STATE_GRAPH_TYPE = SEMPKM.StateGraph

@@ -23,6 +23,7 @@ from app.events.models import (
     EVENT_OPERATION,
     EVENT_AFFECTED,
     EVENT_DESCRIPTION,
+    EVENT_PERFORMED_BY,
 )
 from app.rdf.iri import mint_event_iri
 from app.rdf.namespaces import CURRENT_GRAPH_IRI
@@ -69,7 +70,11 @@ class EventStore:
     def __init__(self, client: TriplestoreClient) -> None:
         self._client = client
 
-    async def commit(self, operations: list[Operation]) -> EventResult:
+    async def commit(
+        self,
+        operations: list[Operation],
+        performed_by: URIRef | None = None,
+    ) -> EventResult:
         """Commit one or more operations as a single atomic event.
 
         Creates an immutable event named graph with metadata and data triples,
@@ -78,6 +83,9 @@ class EventStore:
 
         Args:
             operations: List of Operation dataclasses to commit atomically.
+            performed_by: Optional user IRI (e.g. urn:sempkm:user:{uuid}) to
+                record as the actor in event metadata. System operations
+                (model auto-install) omit this for graceful absence.
 
         Returns:
             EventResult with the event IRI, timestamp, and all affected IRIs.
@@ -126,6 +134,12 @@ class EventStore:
             event_triples.append(
                 (event_iri, EVENT_DESCRIPTION, Literal(combined_description))
             )
+
+            # User provenance (optional -- absent for system operations)
+            if performed_by is not None:
+                event_triples.append(
+                    (event_iri, EVENT_PERFORMED_BY, performed_by)
+                )
 
             # Data triples from all operations
             for op in operations:
