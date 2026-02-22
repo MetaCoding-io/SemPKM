@@ -379,15 +379,39 @@
   }
 
   function showTypePicker() {
-    // Placeholder: will be implemented in Plan 05 (SHACL forms)
-    console.log('Type picker will be available after Plan 05 implementation.');
-    alert('New Object: type picker coming soon (Plan 05).');
+    // Load the type picker dialog into the editor area via htmx
+    if (typeof htmx !== 'undefined') {
+      htmx.ajax('GET', '/browser/types', {
+        target: '#editor-area',
+        swap: 'innerHTML'
+      }).catch(function () {
+        var editorArea = document.getElementById('editor-area');
+        if (editorArea) {
+          editorArea.innerHTML = '<div class="editor-empty"><p>Failed to load type picker.</p></div>';
+        }
+      });
+    }
   }
 
   function triggerValidation() {
-    // Placeholder: will be wired in Plan 06
-    console.log('Validation will be available after Plan 06 implementation.');
-    alert('Run Validation: coming soon (Plan 06).');
+    var activeIri = getActiveTabIri();
+    if (!activeIri) return;
+
+    // First save the current object to trigger validation via the queue
+    saveCurrentObject();
+
+    // Switch the right pane to the lint tab and refresh
+    var lintTab = document.querySelector('.rp-tab[data-tab="lint"]');
+    if (lintTab) {
+      var tabs = lintTab.parentElement.querySelectorAll('.rp-tab');
+      tabs.forEach(function (t) { t.classList.remove('active'); });
+      lintTab.classList.add('active');
+    }
+
+    // Load lint panel after a short delay to allow validation to process
+    setTimeout(function () {
+      loadRightPane(activeIri, 'lint');
+    }, 1500);
   }
 
   function addObjectToCommandPalette(objectIri, label) {
@@ -431,7 +455,103 @@
       tabs.forEach(function (t) { t.classList.remove('active'); });
       tab.classList.add('active');
 
-      // Future: show/hide tab content based on data-tab attribute
+      // Load the appropriate content for the selected tab
+      var activeIri = getActiveTabIri();
+      if (!activeIri) return;
+
+      var tabName = tab.dataset.tab;
+      if (tabName === 'lint') {
+        loadRightPane(activeIri, 'lint');
+      } else if (tabName === 'relations') {
+        loadRightPane(activeIri, 'relations');
+      }
+    });
+  }
+
+  // --- Jump to Field (from lint panel click) ---
+
+  function jumpToField(propertyPath) {
+    if (!propertyPath) return;
+
+    // Try to find the field by encoded path ID
+    var fieldId = 'field-' + encodeURIComponent(propertyPath);
+    var element = document.getElementById(fieldId);
+
+    // Also try with the raw path as ID
+    if (!element) {
+      element = document.getElementById('field-' + propertyPath);
+    }
+
+    // Try matching by partial path (last segment after # or /)
+    if (!element) {
+      var segments = propertyPath.split(/[#\/]/);
+      var lastSegment = segments[segments.length - 1];
+      if (lastSegment) {
+        var allFields = document.querySelectorAll('.form-field');
+        allFields.forEach(function (f) {
+          if (f.id && f.id.indexOf(lastSegment) !== -1) {
+            element = f;
+          }
+        });
+      }
+    }
+
+    if (element) {
+      // Scroll the field into view
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      // Add highlight effect (flash yellow background for 2 seconds)
+      element.classList.add('field-highlight');
+      setTimeout(function () {
+        element.classList.remove('field-highlight');
+      }, 2000);
+
+      // Focus the input within the field if possible
+      var input = element.querySelector('input, select, textarea');
+      if (input) {
+        input.focus();
+      }
+
+      // Show validation message inline below the field
+      var validationDiv = element.querySelector('.field-validation');
+      if (validationDiv) {
+        validationDiv.classList.add('error');
+        if (!validationDiv.textContent.trim()) {
+          validationDiv.textContent = 'Constraint violation on this field';
+        }
+      }
+    }
+  }
+
+  // --- Client-side Required Field Validation ---
+
+  function initClientSideValidation() {
+    // Check required fields on blur for instant feedback
+    document.addEventListener('focusout', function (e) {
+      var input = e.target;
+      if (!input || !input.closest) return;
+
+      var field = input.closest('.form-field');
+      if (!field) return;
+
+      // Check if this is a required field
+      var requiredMarker = field.querySelector('.required-marker');
+      if (!requiredMarker) return;
+
+      var validationDiv = field.querySelector('.field-validation');
+      if (!validationDiv) return;
+
+      // Check if the input is empty
+      var value = input.value ? input.value.trim() : '';
+      if (!value) {
+        validationDiv.textContent = 'This field is required';
+        validationDiv.className = 'field-validation error';
+        input.style.borderColor = '#c62828';
+      } else {
+        validationDiv.textContent = '';
+        validationDiv.className = 'field-validation';
+        input.style.borderColor = '';
+      }
     });
   }
 
@@ -468,6 +588,7 @@
     initCommandPalette();
     initTreeToggle();
     initRightPaneTabs();
+    initClientSideValidation();
     restoreTabState();
   }
 
@@ -504,6 +625,30 @@
     }
   });
 
+  // --- HX-Trigger event listeners for create/edit flows ---
+
+  // When an object is created via the create form, open it in a tab
+  document.addEventListener('objectCreated', function (e) {
+    var detail = e.detail;
+    if (detail && detail.iri) {
+      var label = detail.label || detail.iri;
+      // Open a tab for the newly created object
+      var tabs = getTabs();
+      // Remove any "New Object" placeholder tab
+      tabs = tabs.filter(function (t) { return t.iri !== '__new__'; });
+      saveTabs(tabs);
+      openTab(detail.iri, label);
+    }
+  });
+
+  // When an object is saved via the edit form, mark the tab clean
+  document.addEventListener('objectSaved', function (e) {
+    var detail = e.detail;
+    if (detail && detail.iri) {
+      markClean(detail.iri);
+    }
+  });
+
   // --- Export functions globally for htmx onclick handlers ---
   window.openTab = openTab;
   window.closeTab = closeTab;
@@ -511,5 +656,8 @@
   window.markDirty = markDirty;
   window.markClean = markClean;
   window.togglePane = togglePane;
+  window.showTypePicker = showTypePicker;
+  window.jumpToField = jumpToField;
+  window.triggerValidation = triggerValidation;
 
 })();

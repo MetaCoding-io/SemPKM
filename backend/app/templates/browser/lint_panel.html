@@ -1,0 +1,105 @@
+{# Lint panel: SHACL validation results for a specific object.
+
+   Rendered as htmx partial for the right pane lint tab.
+   Accepts:
+     object_iri: IRI of the current object
+     violations: list of {message, path, source_shape}
+     warnings: list of {message, path, source_shape}
+     infos: list of {message, path, source_shape}
+     conforms: bool (True if no violations)
+     violation_count: int
+     warning_count: int
+#}
+
+<div class="lint-panel" data-object-iri="{{ object_iri }}"
+     hx-get="/browser/lint/{{ object_iri | urlencode }}"
+     hx-trigger="every 10s"
+     hx-swap="outerHTML">
+
+  {# Summary counts #}
+  <div class="lint-summary">
+    {% if violation_count > 0 %}
+    <span class="lint-count-violations">{{ violation_count }} violation{{ 's' if violation_count != 1 else '' }}</span>
+    {% endif %}
+    {% if warning_count > 0 %}
+    <span class="lint-count-warnings">{{ warning_count }} warning{{ 's' if warning_count != 1 else '' }}</span>
+    {% endif %}
+    {% if conforms and warning_count == 0 %}
+    <span class="lint-conforms">&#10003; All validations pass</span>
+    {% endif %}
+  </div>
+
+  {# Conformance gating notice #}
+  {% if not conforms %}
+  <div class="lint-conformance-notice lint-conformance-blocked">
+    Export blocked: {{ violation_count }} violation{{ 's' if violation_count != 1 else '' }} must be resolved
+  </div>
+  {% elif violation_count == 0 and warning_count == 0 %}
+  <div class="lint-conformance-notice lint-conformance-ok">
+    &#10003; Object conforms to all constraints
+  </div>
+  {% endif %}
+
+  {# Violations list #}
+  {% if violations %}
+  <ul class="lint-results-list">
+    {% for v in violations %}
+    <li class="lint-result"
+        onclick="jumpToField('{{ v.path | e }}')"
+        title="Click to jump to field">
+      <span class="lint-icon-violation">&#9679;</span>
+      <div>
+        <div class="lint-result-message">{{ v.message }}</div>
+        {% if v.path %}
+        <div class="lint-result-path">{{ v.path }}</div>
+        {% endif %}
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  {# Warnings list #}
+  {% if warnings %}
+  <ul class="lint-results-list">
+    {% for w in warnings %}
+    <li class="lint-result"
+        onclick="jumpToField('{{ w.path | e }}')"
+        title="Click to jump to field">
+      <span class="lint-icon-warning">&#9650;</span>
+      <div>
+        <div class="lint-result-message">{{ w.message }}</div>
+        {% if w.path %}
+        <div class="lint-result-path">{{ w.path }}</div>
+        {% endif %}
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% if warnings %}
+  <div class="lint-warnings-note">Warnings do not block operations</div>
+  {% endif %}
+  {% endif %}
+
+  {# Info list #}
+  {% if infos %}
+  <ul class="lint-results-list">
+    {% for i in infos %}
+    <li class="lint-result">
+      <span class="lint-icon-info">&#9432;</span>
+      <div>
+        <div class="lint-result-message">{{ i.message }}</div>
+        {% if i.path %}
+        <div class="lint-result-path">{{ i.path }}</div>
+        {% endif %}
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  {# Empty state when no results at all #}
+  {% if not violations and not warnings and not infos and not conforms %}
+  <div class="lint-empty">No validation results available. Save the object to trigger validation.</div>
+  {% endif %}
+</div>

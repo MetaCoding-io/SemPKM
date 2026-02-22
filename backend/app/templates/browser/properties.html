@@ -1,0 +1,54 @@
+{# Right pane: related objects display showing outbound and inbound edges.
+
+   Rendered as htmx partial for the right pane content area.
+   Accepts:
+     object_iri: IRI of the current object
+     outbound_grouped: dict of predicate_label -> list of {iri, label}
+     inbound_grouped: dict of predicate_label -> list of {iri, label}
+#}
+
+<div class="relations-panel" data-object-iri="{{ object_iri }}">
+  {% if not outbound_grouped and not inbound_grouped %}
+  <div class="right-empty">No related objects found.</div>
+  {% else %}
+
+  {% if outbound_grouped %}
+  <div class="relations-section">
+    <div class="relations-section-title">Outbound</div>
+    {% for predicate, targets in outbound_grouped.items() %}
+    <div class="relation-group">
+      <div class="relation-predicate">{{ predicate }}</div>
+      {% for obj in targets %}
+      <div class="relation-item"
+           onclick="openTab('{{ obj.iri | e }}', '{{ obj.label | e }}')"
+           title="{{ obj.iri }}">
+        <span class="relation-arrow">&#8594;</span>
+        <span>{{ obj.label }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if inbound_grouped %}
+  <div class="relations-section">
+    <div class="relations-section-title">Inbound</div>
+    {% for predicate, sources in inbound_grouped.items() %}
+    <div class="relation-group">
+      <div class="relation-predicate">{{ predicate }}</div>
+      {% for obj in sources %}
+      <div class="relation-item"
+           onclick="openTab('{{ obj.iri | e }}', '{{ obj.label | e }}')"
+           title="{{ obj.iri }}">
+        <span class="relation-arrow">&#8592;</span>
+        <span>{{ obj.label }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% endif %}
+</div>
