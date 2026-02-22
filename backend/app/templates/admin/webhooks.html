@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}SemPKM - Webhooks{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+    <h1>Webhooks</h1>
+    <p class="lead">Configure outbound webhooks to notify external services when data changes.</p>
+
+    <div class="card">
+        <h2>Create Webhook</h2>
+        <form hx-post="/admin/webhooks" hx-target="#webhook-list" hx-swap="outerHTML"
+              hx-indicator="#webhook-spinner">
+            <div class="form-group">
+                <label for="webhook-url">Target URL</label>
+                <input type="text" id="webhook-url" name="target_url"
+                       placeholder="https://example.com/webhook" required>
+            </div>
+            <div class="form-group">
+                <label>Events</label>
+                <div class="checkbox-group">
+                    {% for event in event_types %}
+                    <label>
+                        <input type="checkbox" name="events" value="{{ event }}">
+                        {{ event }}
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="webhook-filters">Filters <span style="font-weight: 400; color: var(--color-text-muted);">(optional, comma-separated type IRIs or namespaces)</span></label>
+                <input type="text" id="webhook-filters" name="filters"
+                       placeholder="bpkm:Person, bpkm:Note">
+            </div>
+            <div>
+                <button type="submit" class="btn btn-primary">Create</button>
+                <span id="webhook-spinner" class="htmx-indicator loading">Creating...</span>
+            </div>
+        </form>
+    </div>
+
+    {% block webhook_list %}
+    <div id="webhook-list">
+        {% if error is defined and error %}
+        <div class="error-box" id="webhook-messages">{{ error }}</div>
+        {% elif success is defined and success %}
+        <div class="success-box" id="webhook-messages">{{ success }}</div>
+        {% endif %}
+
+        {% if webhooks %}
+        <table class="sparql-results">
+            <thead>
+                <tr>
+                    <th>Target URL</th>
+                    <th>Events</th>
+                    <th>Filters</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for webhook in webhooks %}
+                <tr>
+                    <td style="word-break: break-all;">{{ webhook.target_url }}</td>
+                    <td>
+                        {% for event in webhook.events %}
+                        <span class="badge">{{ event }}</span>
+                        {% endfor %}
+                    </td>
+                    <td>
+                        {% if webhook.filters %}
+                        {% for f in webhook.filters %}
+                        <span class="badge">{{ f }}</span>
+                        {% endfor %}
+                        {% else %}
+                        <span style="color: var(--color-text-muted);">None</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if webhook.enabled %}
+                        <span class="badge badge-success">Enabled</span>
+                        {% else %}
+                        <span class="badge badge-error">Disabled</span>
+                        {% endif %}
+                    </td>
+                    <td style="white-space: nowrap;">
+                        <button class="btn-toggle {{ 'enabled' if webhook.enabled else 'disabled' }}"
+                                hx-post="/admin/webhooks/{{ webhook.id }}/toggle"
+                                hx-target="#webhook-list"
+                                hx-swap="outerHTML">
+                            {{ "Disable" if webhook.enabled else "Enable" }}
+                        </button>
+                        <button class="btn btn-secondary btn-sm"
+                                hx-delete="/admin/webhooks/{{ webhook.id }}"
+                                hx-target="#webhook-list"
+                                hx-swap="outerHTML"
+                                hx-confirm="Delete webhook?">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="card" style="text-align: center; color: var(--color-text-muted); padding: 2rem;">
+            <p>No webhooks configured.</p>
+            <p style="font-size: 0.85rem;">Create a webhook above to receive notifications when data changes.</p>
+        </div>
+        {% endif %}
+    </div>
+    {% endblock %}
+</div>
+{% endblock %}
