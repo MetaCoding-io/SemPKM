@@ -30,6 +30,7 @@ from app.services.prefixes import PrefixRegistry
 from app.services.shapes import ShapesService
 from app.services.validation import ValidationService
 from app.services.webhooks import WebhookService
+from app.views.service import ViewSpecService
 from app.sparql.router import router as sparql_router
 from app.triplestore.client import TriplestoreClient
 from app.triplestore.setup import ensure_repository
@@ -97,6 +98,10 @@ async def lifespan(app: FastAPI):
     # Create ShapesService for SHACL shape extraction (form generation)
     shapes_service = ShapesService(client)
     app.state.shapes_service = shapes_service
+
+    # Create ViewSpecService for view spec loading and execution
+    view_spec_service = ViewSpecService(client, label_service)
+    app.state.view_spec_service = view_spec_service
 
     # Create WebhookService for outbound event notifications
     webhook_service = WebhookService(client)
