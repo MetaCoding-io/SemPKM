@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-21)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations -- no blank-page syndrome, no schema setup.
-**Current focus:** Phase 3: Mental Model System -- In Progress.
+**Current focus:** Phase 6: User and Team Management -- In Progress.
 
 ## Current Position
 
-Phase: 3 of 5 (Mental Models) -- COMPLETE
-Plan: 3 of 3 in current phase
-Status: Phase 3 Complete -- Ready for Phase 4
-Last activity: 2026-02-21 -- Completed 03-03 Model Service and API Wiring
+Phase: 6 of 6 (User and Team Management)
+Plan: 1 of 4 in current phase
+Status: Plan 06-01 Complete -- SQL Data Layer Foundation
+Last activity: 2026-02-22 -- Completed 06-01 SQL Data Layer Foundation
 
-Progress: [██████████] 60%
+Progress: [████████████████] 77%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
+- Total plans completed: 10
 - Average duration: 5min
-- Total execution time: 0.6 hours
+- Total execution time: 0.7 hours
 
 **By Phase:**
 
@@ -30,9 +30,10 @@ Progress: [██████████] 60%
 | 1. Core Data Foundation | 4 | 23min | 6min |
 | 2. Semantic Services | 2 | 9min | 5min |
 | 3. Mental Model System | 3 | 24min | 8min |
+| 6. User and Team Management | 1 | 4min | 4min |
 
 **Recent Trend:**
-- Last 5 plans: 4min, 5min, 4min, 8min, 12min
+- Last 5 plans: 5min, 4min, 8min, 12min, 4min
 - Trend: stable
 
 *Updated after each plan completion*
@@ -74,6 +75,10 @@ Recent decisions affecting current work:
 - [03-03]: Seed data materialized via EventStore.commit() outside model graph transaction for event sourcing consistency
 - [03-03]: Starter model path hardcoded to /app/models/basic-pkm (container mount path)
 - [03-03]: Seed materialization failure treated as warning, not install failure
+- [06-01]: String(20) for role columns instead of Enum to avoid SQLite/PostgreSQL dialect differences
+- [06-01]: render_as_batch=True in Alembic env.py for SQLite ALTER TABLE compatibility
+- [06-01]: RDF4J port removed from Docker Compose host mapping (security hardening)
+- [06-01]: Auto-generated secret key path persisted to data volume
 
 ### Pending Todos
 
@@ -90,6 +95,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-21
-Stopped at: Completed 03-03-PLAN.md (Model Service and API Wiring) -- Phase 3 complete
+Last session: 2026-02-22
+Stopped at: Completed 06-01-PLAN.md (SQL Data Layer Foundation)
 Resume file: None
