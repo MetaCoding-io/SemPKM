@@ -1,4 +1,7 @@
 {% if total_pages > 0 %}
+{% set pag_view_type = view_type | default('table') %}
+{% set pag_base = "/browser/views/" ~ pag_view_type ~ "/" ~ spec_iri_encoded %}
+{% set pag_extra = "&group_by=" ~ (group_by | urlencode) if (group_by is defined and group_by) else "" %}
 <div class="pagination">
     <div class="pagination-info">
         Page {{ page }} of {{ total_pages }} ({{ total }} total)
@@ -7,7 +10,7 @@
         {% if page > 1 %}
         <a class="pagination-btn"
            href="#"
-           hx-get="/browser/views/table/{{ spec_iri_encoded }}?page={{ page - 1 }}&sort={{ sort_col }}&dir={{ sort_dir }}&filter={{ current_filter | urlencode }}&page_size={{ page_size }}"
+           hx-get="{{ pag_base }}?page={{ page - 1 }}&sort={{ sort_col | default('') }}&dir={{ sort_dir | default('asc') }}&filter={{ current_filter | urlencode }}&page_size={{ page_size }}{{ pag_extra }}"
            hx-target="#editor-area"
            hx-swap="innerHTML">&laquo; Prev</a>
         {% else %}
@@ -23,7 +26,7 @@
         {% if start_page > 1 %}
         <a class="pagination-num"
            href="#"
-           hx-get="/browser/views/table/{{ spec_iri_encoded }}?page=1&sort={{ sort_col }}&dir={{ sort_dir }}&filter={{ current_filter | urlencode }}&page_size={{ page_size }}"
+           hx-get="{{ pag_base }}?page=1&sort={{ sort_col | default('') }}&dir={{ sort_dir | default('asc') }}&filter={{ current_filter | urlencode }}&page_size={{ page_size }}{{ pag_extra }}"
            hx-target="#editor-area"
            hx-swap="innerHTML">1</a>
         {% if start_page > 2 %}
@@ -37,7 +40,7 @@
         {% else %}
         <a class="pagination-num"
            href="#"
-           hx-get="/browser/views/table/{{ spec_iri_encoded }}?page={{ p }}&sort={{ sort_col }}&dir={{ sort_dir }}&filter={{ current_filter | urlencode }}&page_size={{ page_size }}"
+           hx-get="{{ pag_base }}?page={{ p }}&sort={{ sort_col | default('') }}&dir={{ sort_dir | default('asc') }}&filter={{ current_filter | urlencode }}&page_size={{ page_size }}{{ pag_extra }}"
            hx-target="#editor-area"
            hx-swap="innerHTML">{{ p }}</a>
         {% endif %}
@@ -49,7 +52,7 @@
         {% endif %}
         <a class="pagination-num"
            href="#"
-           hx-get="/browser/views/table/{{ spec_iri_encoded }}?page={{ total_pages }}&sort={{ sort_col }}&dir={{ sort_dir }}&filter={{ current_filter | urlencode }}&page_size={{ page_size }}"
+           hx-get="{{ pag_base }}?page={{ total_pages }}&sort={{ sort_col | default('') }}&dir={{ sort_dir | default('asc') }}&filter={{ current_filter | urlencode }}&page_size={{ page_size }}{{ pag_extra }}"
            hx-target="#editor-area"
            hx-swap="innerHTML">{{ total_pages }}</a>
         {% endif %}
@@ -57,7 +60,7 @@
         {% if page < total_pages %}
         <a class="pagination-btn"
            href="#"
-           hx-get="/browser/views/table/{{ spec_iri_encoded }}?page={{ page + 1 }}&sort={{ sort_col }}&dir={{ sort_dir }}&filter={{ current_filter | urlencode }}&page_size={{ page_size }}"
+           hx-get="{{ pag_base }}?page={{ page + 1 }}&sort={{ sort_col | default('') }}&dir={{ sort_dir | default('asc') }}&filter={{ current_filter | urlencode }}&page_size={{ page_size }}{{ pag_extra }}"
            hx-target="#editor-area"
            hx-swap="innerHTML">Next &raquo;</a>
         {% else %}
@@ -70,9 +73,9 @@
                    min="1"
                    max="{{ total_pages }}"
                    placeholder="#"
-                   onkeydown="if(event.key==='Enter'){var p=this.value;if(p>=1&&p<={{ total_pages }}){htmx.ajax('GET','/browser/views/table/{{ spec_iri_encoded }}?page='+p+'&sort={{ sort_col }}&dir={{ sort_dir }}&filter={{ current_filter | urlencode }}&page_size={{ page_size }}',{target:'#editor-area',swap:'innerHTML'})}}">
+                   onkeydown="if(event.key==='Enter'){var p=this.value;if(p>=1&&p<={{ total_pages }}){htmx.ajax('GET','{{ pag_base }}?page='+p+'&sort={{ sort_col | default('') }}&dir={{ sort_dir | default('asc') }}&filter={{ current_filter | urlencode }}&page_size={{ page_size }}{{ pag_extra }}',{target:'#editor-area',swap:'innerHTML'})}}">
             <button class="pagination-btn btn-sm"
-                    onclick="var inp=this.previousElementSibling;var p=inp.value;if(p>=1&&p<={{ total_pages }}){htmx.ajax('GET','/browser/views/table/{{ spec_iri_encoded }}?page='+p+'&sort={{ sort_col }}&dir={{ sort_dir }}&filter={{ current_filter | urlencode }}&page_size={{ page_size }}',{target:'#editor-area',swap:'innerHTML'})}">Go</button>
+                    onclick="var inp=this.previousElementSibling;var p=inp.value;if(p>=1&&p<={{ total_pages }}){htmx.ajax('GET','{{ pag_base }}?page='+p+'&sort={{ sort_col | default('') }}&dir={{ sort_dir | default('asc') }}&filter={{ current_filter | urlencode }}&page_size={{ page_size }}{{ pag_extra }}',{target:'#editor-area',swap:'innerHTML'})}">Go</button>
         </span>
     </div>
 </div>
