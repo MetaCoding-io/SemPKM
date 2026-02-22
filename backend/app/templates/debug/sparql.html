@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}SPARQL Query - SemPKM{% endblock %}
+
+{% block head %}
+<script src="/js/app.js"></script>
+{% endblock %}
+
+{% block content %}
+<h1>SPARQL Query</h1>
+
+<div class="card">
+    <div class="form-group">
+        <label for="sparql-query">Query</label>
+        <textarea id="sparql-query" class="query-box" placeholder="Enter SPARQL query...">SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 20</textarea>
+    </div>
+
+    <div class="btn-group">
+        <button class="btn-primary" onclick="runSparqlQuery()">Run Query</button>
+        <button class="btn-secondary" onclick="injectPrefixes('sparql-query')">Add Prefixes</button>
+    </div>
+</div>
+
+<div id="sparql-error"></div>
+<div id="sparql-results"></div>
+{% endblock %}

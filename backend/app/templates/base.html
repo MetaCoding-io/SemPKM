@@ -15,50 +15,7 @@
 </head>
 <body>
     <div class="dashboard-layout">
-        <aside class="sidebar">
-            <div class="sidebar-brand">
-                <a href="/">SemPKM</a>
-            </div>
-            <nav class="sidebar-nav">
-                <a href="/" class="nav-link"
-                   hx-get="/" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
-                    <span class="nav-icon">&#127968;</span>
-                    <span class="nav-label">Home</span>
-                </a>
-                <a href="/admin/" class="nav-link"
-                   hx-get="/admin/" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
-                    <span class="nav-icon">&#9881;</span>
-                    <span class="nav-label">Admin</span>
-                </a>
-                <a href="/browser/" class="nav-link"
-                   hx-get="/browser/" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
-                    <span class="nav-icon">&#128193;</span>
-                    <span class="nav-label">Object Browser</span>
-                </a>
-                <a href="/health/" class="nav-link"
-                   hx-get="/health/" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
-                    <span class="nav-icon">&#9829;</span>
-                    <span class="nav-label">Health Check</span>
-                </a>
-                <div class="sidebar-section">Debug Tools</div>
-                <a href="/sparql.html" class="nav-link">
-                    <span class="nav-icon">&#128269;</span>
-                    <span class="nav-label">SPARQL</span>
-                </a>
-                <a href="/commands.html" class="nav-link">
-                    <span class="nav-icon">&#9654;</span>
-                    <span class="nav-label">Commands</span>
-                </a>
-                <a href="/redoc" class="nav-link" onclick="return loadDocsIframe('/redoc', this)">
-                    <span class="nav-icon">&#128196;</span>
-                    <span class="nav-label">API Docs (ReDoc)</span>
-                </a>
-                <a href="/docs" class="nav-link" onclick="return loadDocsIframe('/docs', this)">
-                    <span class="nav-icon">&#128196;</span>
-                    <span class="nav-label">API Docs (Swagger)</span>
-                </a>
-            </nav>
-        </aside>
+        {% include "components/_sidebar.html" %}
         <main class="content-area">
             <div id="app-content">
                 {% block content %}{% endblock %}

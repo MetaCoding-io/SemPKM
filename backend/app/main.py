@@ -12,6 +12,7 @@ from jinja2_fragments.fastapi import Jinja2Blocks
 from app.admin.router import router as admin_router
 from app.auth.router import router as auth_router
 from app.browser.router import router as browser_router
+from app.debug.router import router as debug_router
 from app.auth.service import AuthService
 from app.auth.tokens import load_or_create_setup_token
 from app.config import settings
@@ -175,4 +176,5 @@ app.include_router(sparql_router)
 app.include_router(validation_router)
 app.include_router(admin_router)
 app.include_router(browser_router)
+app.include_router(debug_router)
 app.include_router(shell_router)

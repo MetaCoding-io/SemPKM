@@ -32,11 +32,12 @@ def _is_htmx_request(request: Request) -> bool:
 async def admin_index(request: Request):
     """Render the admin portal landing page with links to Models and Webhooks."""
     templates = request.app.state.templates
+    context = {"active_page": "admin"}
     if _is_htmx_request(request):
         return templates.TemplateResponse(
-            request, "admin/index.html", block_name="content"
+            request, "admin/index.html", context, block_name="content"
         )
-    return templates.TemplateResponse(request, "admin/index.html")
+    return templates.TemplateResponse(request, "admin/index.html", context)
 
 
 @router.get("/models")
