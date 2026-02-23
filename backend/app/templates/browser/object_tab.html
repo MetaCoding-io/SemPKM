@@ -129,13 +129,36 @@
 
     function initVerticalSplit() {
       if (typeof Split === 'undefined') return;
-      Split(['#' + formId, '#' + editorId], {
+
+      var splitContainerId = 'object-split-{{ safe_id }}';
+
+      // Destroy any previous split instance for this container
+      if (window._sempkmSplits && window._sempkmSplits[splitContainerId]) {
+        try { window._sempkmSplits[splitContainerId].destroy(); } catch(e) {}
+        delete window._sempkmSplits[splitContainerId];
+      }
+
+      var splitInstance = Split(['#' + formId, '#' + editorId], {
         sizes: [40, 60],
         minSize: [100, 100],
         gutterSize: 5,
         direction: 'vertical',
         cursor: 'row-resize'
       });
+
+      // Track split instances globally
+      if (!window._sempkmSplits) window._sempkmSplits = {};
+      window._sempkmSplits[splitContainerId] = splitInstance;
+
+      // Register cleanup
+      if (typeof window.registerCleanup === 'function') {
+        window.registerCleanup(splitContainerId, function() {
+          splitInstance.destroy();
+          if (window._sempkmSplits) {
+            delete window._sempkmSplits[splitContainerId];
+          }
+        });
+      }
     }
 
     // Try immediate init (editor.js may already be loaded)

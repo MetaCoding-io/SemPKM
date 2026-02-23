@@ -80,6 +80,16 @@ export function initEditor(containerId, initialContent, objectIri) {
 
   editors[objectIri] = view;
 
+  // Register cleanup for htmx:beforeCleanupElement
+  if (typeof window.registerCleanup === 'function') {
+    window.registerCleanup(containerId, function() {
+      if (editors[objectIri]) {
+        editors[objectIri].destroy();
+        delete editors[objectIri];
+      }
+    });
+  }
+
   // Store savedContent reference on the view for access during save
   view._sempkmSavedContent = savedContent;
 
