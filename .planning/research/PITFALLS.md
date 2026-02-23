@@ -1,265 +1,358 @@
-# Pitfalls Research
+# Domain Pitfalls: v2.0 Tighten Web UI
 
-**Domain:** Semantic Web / RDF-based Personal Knowledge Management
-**Researched:** 2026-02-21
-**Confidence:** HIGH (architecture decisions well-documented; pitfalls derived from deep analysis of project specs, known semantic web ecosystem failure modes, and triplestore engineering constraints)
+**Domain:** Adding split panes, dark mode, settings, event log, LLM proxy, and guided tours to existing htmx/vanilla JS + FastAPI application
+**Researched:** 2026-02-23
+**Confidence:** HIGH for htmx integration pitfalls (derived from codebase analysis + documented issues); MEDIUM for LLM streaming and Shepherd.js specifics (WebSearch-verified)
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: The Ontology Astronaut Trap
+Mistakes that cause rewrites or major architectural pain.
+
+### Pitfall 1: Split.js Destroy/Recreate Fragility When Adding Editor Groups
 
 **What goes wrong:**
-The system exposes too much semantic web complexity to the end user. IRIs, prefixes, RDF types, SPARQL syntax, and graph concepts leak into the UI. Users who just want "notes and projects" are confronted with `dcterms:title`, `sh:Violation`, and `ex:hasMember`. The product feels like an academic tool, not a PKM app. Adoption dies because the target audience ("broad PKM users, not semantic web experts") bounces immediately.
+The current workspace uses a single `Split(['#nav-pane', '#editor-pane', '#right-pane'])` instance for the three-column layout. VS Code-style split panes require dynamically adding/removing editor groups (splitting the center pane into 2-3 editors side by side). Split.js has no API for dynamically adding or removing panes -- you must destroy the entire instance and recreate it with new DOM elements. During the destroy/recreate cycle, if a user is mid-drag, the gutter removal fails with "Failed to execute 'removeChild' on 'Node'" errors. The tab state (`sessionStorage`) becomes out of sync with the actual DOM because tabs are now distributed across multiple editor groups. The entire workspace flickers during reconstruction.
 
 **Why it happens:**
-Developers building on RDF are fluent in the vocabulary and forget that `rdfs:label` is gibberish to a normal person. The system is designed bottom-up from the data model rather than top-down from user tasks. SHACL-driven forms inherit SHACL naming conventions. The prefix registry, QName resolution, and IRI display logic are technically elegant but leak abstraction.
+Split.js is designed for static layouts. Its `destroy()` method removes gutters and CSS but does not handle in-flight drag events. The existing code stores tab state as a single flat array (`sempkm_open_tabs`), which assumes one tab bar. Adding editor groups means tab state must become a tree structure (groups containing tabs), but the existing `renderTabBar()`, `openTab()`, `closeTab()`, and `switchTab()` functions all assume a single tab bar and a single `#editor-area` target.
 
-**How to avoid:**
-- The label service (dcterms:title > rdfs:label > skos:prefLabel > schema:name > IRI fallback) is the RIGHT design. Enforce it ruthlessly: no IRI or QName should appear in primary UI unless the user explicitly enters "developer mode" or an inspector panel.
-- Mental Model `sh:name` and `sh:description` values must be written for humans, not ontologists. The starter model already does this well ("Title", "Status", "Members"), but enforce this as a model authoring guideline.
-- Never expose SPARQL to casual users. The SPARQL editor is a power-user/developer tool, not a primary interaction surface.
-- Test with non-technical users early (Phase 1 or 2). If they say "what's an IRI?", something leaked.
+**Consequences:**
+- Complete rewrite of tab management if not designed correctly up front
+- Loss of user's open tabs during group operations
+- Broken htmx content loading (hardcoded `#editor-area` target throughout workspace.js and all htmx partials)
 
-**Warning signs:**
-- UI mockups showing QNames or full IRIs in primary views
-- Form labels pulled directly from predicate names rather than `sh:name`
-- Error messages containing SPARQL or SHACL vocabulary
-- Onboarding flow that mentions "triples" or "graphs"
+**Prevention:**
+- Design the editor group data model FIRST before touching Split.js. Each group needs: a unique ID, its own tab array, its own active tab, and its own content container. Store as `{ groups: [{ id, tabs: [], activeTab }], layout: [sizes] }`.
+- Create a `WorkspaceLayout` manager class that wraps Split.js. This class owns the destroy/recreate cycle and debounces it (no reconstruct during drag). It maintains a mapping from group IDs to DOM container IDs.
+- Change all htmx `hx-target` attributes and `htmx.ajax()` calls to target a dynamically-determined container (`#editor-area-{groupId}`) instead of the hardcoded `#editor-area`.
+- Implement drag-to-split as a two-step operation: (1) user initiates split via button or keyboard shortcut (not drag -- drag tabs between existing groups only), (2) workspace layout manager handles the Split.js teardown/rebuild.
+- Gate the feature: if only one editor group exists, the layout behaves exactly as v1 (no Split.js nesting, no overhead).
+
+**Detection:**
+- Tab state losing items after split/unsplit operations
+- `TypeError: Cannot read properties of null` on `#editor-area` after group operations
+- Editor content loading into wrong group after switching tabs
 
 **Phase to address:**
-Phase 1 (Core Data Layer) must establish the label service. Phase 2 (UI/Forms) must enforce human-facing labels everywhere. Every phase must test against the "would my non-technical friend understand this screen?" bar.
+Must be designed in Phase 1 (architecture planning) and implemented early. All other features that load content into the editor area depend on the multi-group addressing scheme.
 
 ---
 
-### Pitfall 2: Event Sourcing Impedance Mismatch with RDF Triplestores
+### Pitfall 2: Dark Mode CSS Causes Flash of Wrong Theme (FOWT) and Misses Third-Party Components
 
 **What goes wrong:**
-Event sourcing in an RDF triplestore is a novel architecture with no established best practices. The event log grows unboundedly as named graphs. Replaying events to rebuild materialized state becomes slow. The triplestore is not optimized for the append-only, sequential-scan patterns that event stores need. SPARQL queries over the materialized "current state" graph perform differently from queries over the raw event graphs. The system ends up with two different query patterns and subtle consistency bugs between them.
+Three separate failures happen simultaneously:
+
+1. **Flash of light theme:** User has saved dark mode preference in localStorage. On page load, the browser renders the default light theme for several paint cycles before JavaScript reads localStorage and applies the `data-theme="dark"` attribute. The user sees a blinding white flash on every navigation.
+
+2. **CodeMirror ignores CSS custom properties:** CodeMirror 6 has its own theming system using `EditorView.theme()` and the `&dark`/`&light` selectors. It does NOT automatically respond to CSS custom property changes on `:root`. Changing `--color-bg` does nothing to the editor. The editor remains light-themed in a dark UI, creating a jarring contrast.
+
+3. **Third-party components miss the memo:** ninja-keys, Cytoscape.js graph view, and any `<iframe>` content (docs page) have their own styling. Toggling a `data-theme` attribute on `<html>` does not propagate into these components without explicit integration for each one.
 
 **Why it happens:**
-Event sourcing is well-understood in the CQRS/DDD world (with dedicated event stores like EventStore, Kafka, or PostgreSQL append-only tables). RDF triplestores are designed for graph queries, not sequential log traversal. Putting the event log IN the triplestore conflates two fundamentally different access patterns. Named graphs add overhead per event. The triplestore may not handle millions of small named graphs efficiently.
+The current CSS uses `var(--color-*)` custom properties defined on `:root` (see style.css lines 3-28), which is the correct foundation. But the theme toggle JavaScript runs after first paint. CodeMirror 6 uses a different styling paradigm (JavaScript-defined themes in `EditorView.theme()`, not CSS custom properties). The third-party components each have their own theming APIs that need separate integration.
 
-**How to avoid:**
-- Design the event schema and materialized state projection as completely separate concerns from day one. The event log is append-only; the materialized graph is the query surface. Never query the event log for normal operations.
-- Implement a projection checkpoint/snapshot mechanism early so replay does not need to start from event zero.
-- Set an explicit named graph budget: benchmark how many named graphs Blazegraph/RDF4J handles before performance degrades, and design compaction/archival accordingly.
-- Consider whether events truly need to be RDF, or whether events could be stored as JSON-LD documents in a side table with only the materialized state in the triplestore. The decision log says "triplestore-native event storage" but this should be validated against real performance numbers.
+**Consequences:**
+- Users complain about the flash on every page load, especially in dark environments
+- The Markdown editor (the primary writing surface) looks broken in dark mode
+- Graph visualizations remain light-themed, making dark mode feel half-finished
 
-**Warning signs:**
-- Projection rebuild taking more than a few seconds for a personal knowledge base (hundreds to low thousands of objects)
-- SPARQL queries on materialized state returning stale data
-- Growing startup time as the event log grows
-- Named graph count exceeding tens of thousands without compaction strategy
+**Prevention:**
+- **Block FOWT with a `<script>` in `<head>`**: Add a synchronous inline script BEFORE any CSS loads that reads the theme preference and sets `document.documentElement.dataset.theme` immediately. This runs before first paint. Do NOT use an external JS file for this -- it must be inline in `base.html`'s `<head>`.
+- **CodeMirror: use Compartment for theme switching**: Create both light and dark CodeMirror themes. Store the active theme in a `Compartment`. When the user toggles dark mode, dispatch a `Compartment.reconfigure()` on all active editor instances. The `editors` registry in `editor.js` already tracks all instances -- iterate and reconfigure.
+- **ninja-keys**: Override its CSS custom properties (`--ninja-accent-color`, `--ninja-text-color`, `--ninja-modal-background`) in the dark theme scope, which the existing code already partially does (workspace.css line 456-458).
+- **Cytoscape.js**: Re-apply the graph stylesheet with dark-mode-appropriate node/edge colors when theme changes. The graph view already fetches `type_colors` -- extend this to include theme-appropriate defaults.
+- **Respect `prefers-color-scheme`**: Implement three-state toggle: Light / Dark / System. Default to System. Use `window.matchMedia('(prefers-color-scheme: dark)')` with a change listener so the app responds to OS-level theme changes. The CSS `light-dark()` function has full browser support since May 2024 and can simplify color declarations.
+
+**Detection:**
+- White flash visible on page load when theme is dark
+- CodeMirror editor has white background in dark mode
+- Graph nodes have light-theme colors in dark mode
+- Third-party modal (ninja-keys command palette) looks wrong in dark mode
 
 **Phase to address:**
-Phase 1 (Core Data Layer / Event Sourcing). This is the foundational architecture bet. Get the event-to-projection pipeline right before building any UI. Build benchmarks for named graph scalability in the first week.
+Implement the `<head>` inline script and CSS custom property dark theme in the same phase. CodeMirror theme switching should be part of the same phase to avoid shipping half-broken dark mode.
 
 ---
 
-### Pitfall 3: Blazegraph is Abandonware
+### Pitfall 3: htmx afterSwap Event Listener Duplication and Library Re-initialization
 
 **What goes wrong:**
-Blazegraph has not had a release since 2.1.5 (circa 2018). The project is effectively unmaintained. Known bugs are unfixed. Security patches are not released. Java version compatibility is stale. The project was acquired by Amazon for Neptune but the open-source version is frozen. Building a new product on abandoned infrastructure creates a ticking time bomb: you inherit all its bugs, you cannot get fixes, and you face eventual forced migration.
+The existing code already has an `htmx:afterSwap` listener in `workspace.js` (lines 776-799) that re-initializes the workspace and scans for new tree leaves. Adding dark mode, Shepherd.js tours, and new UI components means MORE afterSwap listeners. Each htmx content swap potentially fires multiple listeners, and if listeners are not carefully scoped, they accumulate: the same handler fires 2x, 3x, N times after repeated swaps, causing duplicated event handlers, performance degradation, and erratic behavior.
+
+Additionally, Split.js instances inside swapped content (e.g., the form/editor vertical split in `object_tab.html`) need re-initialization after swap but their old instances are NOT cleaned up. The existing code calls `initSplit()` again on afterSwap, which creates a NEW Split.js instance without destroying the old one if the workspace element persists.
 
 **Why it happens:**
-Blazegraph was the best open-source SPARQL 1.1 triplestore when the semantic-stack project was set up. It has good SPARQL compliance and reasonable performance. But the project died. Developers who started with it have inertia.
+htmx 2.x has documented edge cases where `htmx:afterSwap` does not fire when responses begin with newlines, when multi-swap replaces the calling element, or when `hx-swap="none"` is set. The event fires on the target element, not globally, but the existing code listens on `document` (global), so it catches ALL swaps. There is no mechanism to remove stale listeners when content is replaced. The `htmx:beforeCleanupElement` event (which fires before htmx removes an element) is the correct place to tear down third-party library instances, but it is not used in the current codebase.
 
-**How to avoid:**
-- The PROJECT.md already says "Blazegraph/RDF4J" which is smart hedging. Design the data layer with a triplestore abstraction from day one. All SPARQL queries go through a repository interface, not directly to Blazegraph APIs.
-- Prefer RDF4J as the primary target. RDF4J is actively maintained by Eclipse, has regular releases, supports SHACL natively (via the SHACL Sail), and provides a clean Java API with a REST endpoint. RDF4J's native store or LMDB store can handle PKM-scale data.
-- If Blazegraph is used at all, treat it as a legacy option that the abstraction layer supports, not the primary target.
-- Alternatively, consider Oxigraph (Rust-based, actively maintained, embeddable, SPARQL 1.1 compliant) as a lighter-weight option, though its SHACL support is less mature.
+**Consequences:**
+- Memory leaks from accumulated event listeners
+- Shepherd.js tour steps firing multiple times
+- Split.js instances accumulating (duplicate gutters)
+- Intermittent bugs that appear "after using the app for a while"
 
-**Warning signs:**
-- Hitting Blazegraph bugs with no upstream fix available
-- Java version conflicts during Docker builds
-- Security scanner flagging Blazegraph dependencies
-- Needing to fork Blazegraph to fix issues
+**Prevention:**
+- **Use `htmx:beforeCleanupElement`** to tear down library instances (Split.js, CodeMirror, Shepherd tours, Cytoscape) before their container is removed from the DOM.
+- **Scope afterSwap listeners**: Instead of a single global `document.addEventListener('htmx:afterSwap', ...)`, use targeted listeners on specific containers, or check `e.detail.target.id` early in the handler and bail if it is not the expected target.
+- **Singleton pattern for workspace init**: The `init()` function in workspace.js is called multiple times but does not check if it has already run. Add an `initialized` flag or use `{ once: true }` for one-time setup, and separate one-time init from per-swap re-init.
+- **Editor cleanup**: The `destroyEditor()` function exists but is never called automatically. Register a cleanup handler that calls `destroyEditor()` when the object tab is swapped out.
+
+**Detection:**
+- Multiple gutter elements appearing in the same pane
+- Console warnings about duplicate event listeners
+- Tour popups appearing twice
+- Performance profiler showing growing listener counts
 
 **Phase to address:**
-Phase 1 (Core Data Layer). The triplestore choice must be validated early. Build the abstraction layer in Phase 1 so switching is possible. Default to RDF4J unless Blazegraph offers a specific advantage that RDF4J lacks.
+Fix the afterSwap/cleanup architecture FIRST, before adding any new features that require initialization on swap. This is a foundational fix that all subsequent features depend on.
 
 ---
 
-### Pitfall 4: SHACL-Driven UI Becomes a Straitjacket
+## Moderate Pitfalls
+
+### Pitfall 4: Settings System Scope Confusion and Schema Validation Cost
 
 **What goes wrong:**
-SHACL was designed for data validation, not UI generation. Using it as the primary UI driver works for simple forms (the starter model is a good example) but breaks down for complex interactions: conditional fields, multi-step wizards, dynamic defaults, autocomplete with SPARQL-backed suggestions, inline object creation, or rich text editing. The team spends enormous effort bending SHACL to express UI concepts it was never designed for, creating a custom "SHACL-UI" dialect that is neither standard SHACL nor a proper UI framework.
+A VS Code-style settings system with global + mental model/app-contributed settings seems straightforward, but three issues emerge:
 
-**Why it happens:**
-SHACL property shapes look tantalizingly close to form field definitions: they have path, name, datatype, min/max count, order, and group. So it seems natural to use them. But SHACL lacks: conditional visibility (`sh:if` does not exist), field dependencies, dynamic option loading, layout beyond linear ordering, action triggers, and rich widget selection. Every missing capability becomes a custom extension.
+1. **Scope resolution order is complex**: Settings can come from: built-in defaults, global user preferences, mental-model-contributed defaults, and per-workspace overrides. When a setting exists at multiple scopes, which wins? VS Code's resolution (workspace > user > default) is well-defined but requires careful implementation. Getting it wrong means settings silently fail to apply.
 
-**How to avoid:**
-- Use SHACL as the DATA CONTRACT, not the UI CONTRACT. SHACL shapes define what fields exist, their types, and their constraints. The UI layer interprets shapes but adds its own rendering logic.
-- The v1 SHACL UI Profile (sh:property, sh:path, sh:name, sh:order, sh:group, etc.) is a pragmatic subset -- good. Keep it exactly that small. Resist adding custom SHACL properties for UI behavior.
-- Define a separate, thin "view hints" layer (possibly in the view/dashboard YAML, not in SHACL) for UI-specific behavior like widget types, conditional display, or autocomplete sources.
-- When a form needs behavior SHACL cannot express, use the view/dashboard spec to override, not a SHACL extension.
+2. **JSON schema validation is expensive in the browser**: If settings use JSON Schema for validation (to support model-contributed settings with defined types), validators like `ajv` add 50-100KB to bundle size and use `eval()` by default, which violates Content Security Policy. Alternatives that avoid eval exist (`ajv` with code generation disabled) but are less performant.
 
-**Warning signs:**
-- Adding custom `sempkm:` properties to SHACL shapes for UI behavior (widget type, visibility conditions, etc.)
-- SHACL shapes growing to 50+ lines for a single field because of UI annotations
-- Form behavior that only works with SemPKM's custom SHACL interpreter, breaking standard SHACL tooling
-- Spending more than 20% of development time on SHACL-to-UI mapping edge cases
+3. **Settings changes require coordinating multiple systems**: Changing the theme setting must update CSS, CodeMirror theme compartments, Cytoscape styles, and ninja-keys. Changing editor font size must update CodeMirror config. This cross-cutting coordination is where bugs hide.
+
+**Prevention:**
+- Store settings server-side in SQLite (via the existing SQLAlchemy setup), not in localStorage. This makes settings available to the backend (for SSR decisions like default theme) and avoids localStorage's 5MB limit and lack of structure.
+- Define a simple settings registry in Python (Pydantic model with defaults). Each setting has: key, type, default, scope, and an optional JSON Schema for model-contributed settings. Validate on the server, not in the browser.
+- Use a pub/sub pattern for settings changes: `window.dispatchEvent(new CustomEvent('sempkm:setting-changed', { detail: { key, value } }))`. Each component (CodeMirror, Cytoscape, CSS theme) listens for its relevant keys. This decouples the settings UI from the consumers.
+- Start with only the settings you need for v2.0: theme (light/dark/system), editor font size, sidebar collapsed state. Do not build a generic "extensible settings framework" until it is needed.
+
+**Detection:**
+- Settings saved but not taking effect (scope resolution bug)
+- Page load slow due to JSON Schema validation of all settings
+- Theme toggle works but editor font size does not (missing subscriber)
 
 **Phase to address:**
-Phase 2 (SHACL + Forms). Establish the boundary between "SHACL for validation" and "UI rendering logic" before building the form generator. The view/dashboard YAML spec is the right escape hatch for UI-specific concerns.
+Settings system should be implemented BEFORE dark mode (dark mode is a setting). But keep the initial implementation minimal -- avoid over-engineering the schema validation until model-contributed settings are actually needed.
 
 ---
 
-### Pitfall 5: The Edge Resource Complexity Explosion
+### Pitfall 5: Event Log Explorer SPARQL Performance on Large Event Stores
 
 **What goes wrong:**
-First-class Edge resources (`sempkm:Edge` with subject/predicate/object properties) double or triple the number of resources in the graph. Every relationship between objects creates an Edge resource, its properties, and optionally a projected simple triple. SPARQL queries that would be simple triple patterns (`?project ex:hasMember ?person`) now require navigating through Edge resources. Graph visualization becomes cluttered with Edge nodes. The performance cost of creating, querying, and maintaining Edge resources is underestimated.
+The event log is stored as RDF named graphs in the triplestore. An event log viewer needs to: list events in reverse chronological order, filter by event type and object, show diffs between event states, and support pagination. SPARQL `LIMIT`/`OFFSET` pagination over named graphs becomes progressively slower as the offset increases (the triplestore must still scan all preceding results). Filtering events by type or object requires querying INTO named graphs (using `GRAPH ?g { ... }` patterns), which some triplestores handle inefficiently.
 
-**Why it happens:**
-The design decision is sound (UX needs stable edge identity for inspection, annotation, provenance). But the implementation cost of reifying every relationship is high. RDF reification has historically been a source of complexity in semantic web projects. The hybrid model (Edge resource + optional simple triple projection) means maintaining two representations of the same fact, with synchronization burden.
+For a PKM with 1,000 objects and an average of 10 events per object (10,000 named graphs), listing "recent events" with `ORDER BY DESC(?timestamp) LIMIT 20 OFFSET 200` can take seconds on RDF4J if the event graph index is not optimized.
 
-**How to avoid:**
-- Start with simple triples as the default. Only create Edge resources when the user explicitly needs edge metadata (annotations, provenance, confidence scores). This is an opt-in complexity model.
-- If all edges must be Edge resources (the current design), ensure the simple triple projection is always maintained so that SPARQL queries can use natural triple patterns. Never force view authors to query through Edge resources for basic relationship traversal.
-- Build a query helper/macro layer that abstracts Edge-aware queries so view spec authors write `?project ex:hasMember ?person` and the system handles the Edge indirection.
-- Benchmark Edge resource overhead early: create 1000 objects with 10 edges each and measure query performance vs. simple triples.
+**Prevention:**
+- **Use cursor-based pagination** instead of OFFSET pagination. Each event has a timestamp; page forward/backward using `FILTER(?timestamp < ?lastSeen)` with `LIMIT`. This is O(1) regardless of how deep into the log you are.
+- **Maintain an event index graph**: A single named graph (`sempkm:event-index`) that contains lightweight triples mapping event graph IRIs to their timestamp, type, affected object, and actor. Query the index graph for listing/filtering (fast: single graph scan), then fetch full event details on demand.
+- **Lazy diff computation**: Do not pre-compute diffs. When a user clicks on an event to see the diff, fetch the event's graph and the previous event's graph for the same object, compute the diff server-side (set difference on triples), and return the formatted diff as an htmx partial.
+- **Set hard limits**: Cap the event log viewer at displaying the most recent N events (e.g., 1,000). Older events are available only through explicit search.
 
-**Warning signs:**
-- View SPARQL queries becoming 3-4x longer to navigate Edge resources
-- Graph visualizations showing Edge nodes as clutter between real objects
-- Object creation taking noticeably longer because of Edge resource overhead
-- Mental Model authors struggling to write SPARQL that works with Edge resources
+**Detection:**
+- Event log page takes >1s to load with pagination
+- "Load more" button becomes progressively slower
+- Browser tab freezes when rendering large diff output
 
 **Phase to address:**
-Phase 1 (Core Data Layer / Edge Model). The Edge resource design must be benchmarked and the simple triple projection must be non-negotiable for query ergonomics. Build the query abstraction layer in Phase 1.
+Design the event index graph structure when implementing the event log viewer. Consider adding the index graph as part of the event write path (add a triple to the index graph for each new event).
 
 ---
 
-### Pitfall 6: Mental Model Versioning and Migration Vacuum
+### Pitfall 6: LLM Streaming Proxy -- SSE Buffering, Timeouts, and Key Exposure
 
 **What goes wrong:**
-v1 explicitly defers Mental Model migrations and user overrides. This seems reasonable but creates a cliff: once users install a Mental Model and create data against it, any change to the model (new fields, renamed properties, restructured shapes) becomes a breaking change. Users are stuck on v1 of their models forever, or face manual data migration. The "defer to v2" decision becomes "we shipped a product that cannot evolve its data schemas."
+Three distinct failure modes when adding an LLM API proxy:
 
-**Why it happens:**
-Migration is genuinely hard in RDF (there is no `ALTER TABLE`). SPARQL UPDATE can transform data but requires careful scripting. The team reasonably wants to avoid this complexity in v1. But without even a basic story for "model author updates a shape and existing data still works," the product cannot survive contact with real users.
+1. **Nginx buffers SSE responses**: The existing Docker Compose setup uses nginx as a reverse proxy for the frontend. By default, nginx buffers upstream responses. SSE (Server-Sent Events) requires unbuffered streaming. Without `proxy_buffering off` and `X-Accel-Buffering: no`, the user sees no output until the entire LLM response completes -- defeating the purpose of streaming.
 
-**How to avoid:**
-- Even in v1, design shapes to be ADDITIVE ONLY. New properties can be added with `sh:minCount 0`. Existing properties should never be renamed or removed. Document this as a hard rule for model authors.
-- Include a `schemaVersion` field in manifests and reject model updates that change existing property paths or remove fields.
-- Build a "model diff" tool (even if CLI-only in v1) that shows what changed between model versions and flags breaking changes.
-- The "constraints are assistive, not punitive" principle helps here: if a new field is added with `sh:severity sh:Warning`, existing objects just get a new lint warning, not a hard failure.
+2. **Connection timeout kills long responses**: Nginx's default `proxy_read_timeout` is 60 seconds. LLM responses (especially for long content or slow endpoints like Claude) can exceed this. The connection drops mid-response with a 504 Gateway Timeout.
 
-**Warning signs:**
-- Model authors wanting to rename properties or change datatypes
-- Users stuck on old model versions because updating would invalidate data
-- Multiple versions of the same model installed simultaneously
-- No test coverage for "install model v2 over existing v1 data"
+3. **API key exposure in browser**: If the frontend sends LLM API keys directly to the external API (bypassing the backend proxy), the keys are visible in browser DevTools Network tab. Even with a proxy, if the proxy endpoint does not require authentication, anyone on the network can use it as a free LLM gateway.
+
+**Prevention:**
+- **Configure nginx for SSE**: Add to the nginx location block for the LLM proxy endpoint: `proxy_buffering off`, `proxy_cache off`, `proxy_read_timeout 300s`, `proxy_set_header X-Accel-Buffering no`, and `chunked_transfer_encoding on`.
+- **Backend-only key storage**: API keys are stored server-side (encrypted in SQLite, never sent to the frontend). The frontend sends requests to `/api/llm/chat` on the FastAPI backend; the backend adds the API key and proxies to the configured LLM endpoint. The settings UI for LLM configuration accepts the key via a password input and stores it via a POST endpoint.
+- **Use `sse-starlette`** for the SSE endpoint instead of raw `StreamingResponse`. It handles proper SSE formatting, client disconnect detection, and heartbeat pings to keep connections alive.
+- **Rate limiting**: Add per-user rate limiting on the proxy endpoint to prevent abuse if the instance is shared.
+- **Heartbeat mechanism**: Send SSE comment lines every 15 seconds during LLM processing to prevent proxy/load balancer timeout.
+
+**Detection:**
+- LLM responses appear all at once instead of streaming token-by-token
+- 504 errors on long responses
+- API keys visible in browser Network tab
+- Users on the same network using the LLM proxy without authentication
 
 **Phase to address:**
-Phase 3 (Mental Model Manager). Even though full migration is v2, the v1 manager must enforce additive-only evolution and provide basic compatibility checking.
+LLM proxy and nginx configuration must be implemented together. Do not ship the proxy endpoint without the nginx SSE configuration.
 
 ---
 
-## Technical Debt Patterns
+### Pitfall 7: Shepherd.js Licensing Change and Dynamic Content Targeting
 
-| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
-|----------|-------------------|----------------|-----------------|
-| Storing events as RDF named graphs without compaction | Simpler implementation, everything in one store | Unbounded graph count, degrading query performance, slow startup | MVP only, with compaction designed but not implemented; must benchmark early |
-| Synchronous SHACL validation | Simpler request/response flow | Blocks writes on large graphs, slow perceived performance | Never in production; async from day one (already specified) |
-| Hardcoded label precedence without caching | Quick label resolution | N+1 query pattern: every IRI display triggers label lookup queries | MVP only; must add label cache before any list/table view with >50 items |
-| Single-threaded projection refresh | Simpler worker implementation | Projection falls behind on batch operations, stale filesystem state | v1 acceptable if batch operations are rare; must monitor projection lag |
-| Embedding SPARQL strings directly in view YAML | Easy to author views | No query validation at install time, SPARQL injection risk in param substitution, hard to test | Acceptable with IRI-only template substitution rule (already specified); add query parsing/validation in v1.1 |
-| No graph-level access control | Single-user v1, no need | Multi-user v2 requires retrofitting access control into every query and command | Acceptable for v1 single-user; design data model to support graph-level ACLs later |
+**What goes wrong:**
+Two issues:
 
-## Integration Gotchas
+1. **Licensing trap**: Shepherd.js v14+ uses AGPL-3.0 for open source but requires a commercial license ($50-$300) for commercial applications. SemPKM is self-hosted open source, so AGPL-3.0 is likely acceptable, but this needs explicit verification. If SemPKM's license is incompatible with AGPL-3.0, Shepherd.js v14 cannot be used without a commercial license.
 
-| Integration | Common Mistake | Correct Approach |
-|-------------|----------------|------------------|
-| Python + SPARQL (via SPARQLWrapper or rdflib) | Building SPARQL strings with f-strings, creating injection vulnerabilities | Use parameterized queries with SPARQL VALUES clauses or explicit IRI validation. The v1 spec's IRI-only template substitution is correct. |
-| Blazegraph/RDF4J REST API | Assuming SPARQL endpoint supports all 1.1 features identically | Test specific SPARQL features (property paths, subqueries, aggregation) against the chosen store early. RDF4J and Blazegraph have different edge-case behaviors. |
-| SHACL validation (pyshacl or RDF4J SHACL Sail) | Running validation against the entire graph on every change | Scope validation to the changed resource and its relevant shapes. Use incremental validation, not full-graph validation. |
-| Docker + triplestore persistence | Using container-internal storage for RDF data | Always mount data volumes externally. Triplestore data MUST survive container restarts. Test backup/restore before shipping. |
-| htmx + React iframe communication | Tight coupling between shell and iframe via postMessage | Define a strict, versioned message protocol between the htmx shell and React IDE. Use typed messages, not ad-hoc postMessage payloads. |
-| FastAPI + async SPARQL queries | Blocking the event loop with synchronous HTTP calls to the SPARQL endpoint | Use httpx (async) for all SPARQL endpoint communication. Never use requests or synchronous SPARQLWrapper in async FastAPI handlers. |
+2. **Tour steps target elements that do not exist yet**: htmx loads content dynamically. The explorer tree, editor area, form fields, and right pane content are all loaded via htmx after initial page render. Shepherd.js tour steps that reference these elements by CSS selector fail because the element does not exist when the tour starts. The step appears in the wrong position or not at all.
 
-## Performance Traps
+**Prevention:**
+- **Verify license compatibility**: SemPKM appears to be open source (self-hosted). If the project uses MIT or Apache-2.0, AGPL-3.0 dependency is problematic for redistribution. Consider: (a) using Shepherd.js v13 (MIT licensed, last MIT version), (b) switching to TourGuide JS (MIT licensed, actively maintained as of May 2025), or (c) purchasing the $50 Shepherd.js commercial license.
+- **Use lazy element resolution**: Shepherd.js supports passing a function to `attachTo.element` that is called in the `before-show` phase. Use this for all steps targeting htmx-rendered content.
+- **Trigger htmx loads before tour steps**: In the tour step's `beforeShowPromise`, use `htmx.ajax()` to load the required content, wait for the `htmx:afterSettle` event, then resolve the promise. This ensures the target element exists before the step attempts to attach.
+- **Guard against missing elements**: Add a `when.show` handler that checks if the target element exists. If not, skip the step or show a modal fallback instead of an attached tooltip.
 
-| Trap | Symptoms | Prevention | When It Breaks |
-|------|----------|------------|----------------|
-| Label resolution N+1 queries | Table/list views take seconds to render 50+ items because each IRI triggers a separate SPARQL query for its label | Build a batch label resolver: given a set of IRIs, resolve all labels in a single SPARQL query with VALUES clause. Cache labels aggressively (labels change rarely). | >50 items in any list view |
-| Unbounded SPARQL CONSTRUCT for graph visualization | Graph view attempts to CONSTRUCT the entire graph, transferring megabytes of triples | Always LIMIT graph queries. Use pagination or depth-bounded traversal (e.g., 2-hop from focus node). Let users expand interactively. | >500 triples in any graph query |
-| Full SHACL validation on every commit | Validation time grows linearly with graph size, eventually blocking the async pipeline | Implement targeted validation: identify which shapes are affected by the changed triples (via sh:targetClass matching the object's types) and validate only those. | >1000 objects in the graph |
-| Named graph proliferation from events | Triplestore performance degrades as named graph count grows into tens of thousands | Design event compaction from the start: after projection, older events can be archived/compacted into summary snapshots. Track named graph count as a system metric. | >10,000 events (named graphs) |
-| Eager projection refresh on batch imports | Importing 100 objects triggers 100 sequential projection updates, each writing multiple files | Debounce projection updates: batch commits should trigger a single projection sweep after the batch completes, not per-event. | Any import of >10 objects |
+**Detection:**
+- Tour steps appearing in the top-left corner (Shepherd's fallback when element not found)
+- Console errors about missing attachTo elements
+- Tours working on first run but failing on subsequent runs (stale DOM references)
 
-## Security Mistakes
+**Phase to address:**
+Evaluate the license issue BEFORE implementing. If AGPL-3.0 is incompatible, choose the alternative library early to avoid wasted integration work.
 
-| Mistake | Risk | Prevention |
-|---------|------|------------|
-| SPARQL injection via view parameter substitution | Malicious IRI values in `{{contextIri}}` could inject SPARQL clauses if not validated | The v1 spec correctly limits template substitution to IRI-type params and requires absolute IRI validation. Enforce this strictly: validate IRI format before substitution, reject anything that is not `scheme:path` format. |
-| Exposing SPARQL endpoint without authentication | Even in single-user mode, if the SPARQL endpoint is network-accessible, anyone on the network can read/modify data | Bind the SPARQL endpoint to localhost only, or put it behind the FastAPI authentication layer. Never expose Blazegraph/RDF4J's REST API directly to the network. |
-| Webhook payloads containing sensitive graph data | Outbound webhooks may inadvertently include PII or sensitive knowledge base content in event payloads | Design webhook payloads as notifications (event type + subject IRI), not data dumps. Let the automation system query back for details via the authenticated API. |
-| Mental Model archives containing malicious content | A `.sempkm-model` archive from an untrusted source could contain path traversal attacks (zip slip) or malicious SPARQL in view specs | Validate archive paths (no `../`), sandbox extracted content, parse and validate all SPARQL/SHACL before loading. Treat model installation as an untrusted-input pipeline. |
-| Docker deployment with default credentials | Blazegraph/RDF4J Docker images may ship with no authentication or default passwords | Document secure deployment: disable public endpoints, set passwords, use network isolation between containers. |
+---
 
-## UX Pitfalls
+## Minor Pitfalls
 
-| Pitfall | User Impact | Better Approach |
-|---------|-------------|-----------------|
-| Showing validation errors on first create | User creates a new Project, immediately sees red "Violation: title required" before they've had a chance to type anything | Only show validation results after the first save attempt, or use progressive disclosure: show hints inline as they type, show violations only on save/publish. |
-| Graph visualization as default view | Opening an object shows a meaningless hairball graph by default | Default to the dashboard or object page view. Graph is a power-user tool accessed on demand (the dashboard spec already handles this correctly). |
-| Requiring Mental Model installation before any use | New user installs SemPKM, sees empty screen with "Install a Mental Model to begin" | Ship with the starter model pre-installed (or auto-install on first launch). The "wow-in-10-minutes" metric requires zero setup to first value. |
-| Jargon in error messages | "SHACL Violation: sh:minCount constraint not satisfied for path dcterms:title on focus node ex:project1" | "Project is missing a required Title. Add one to fix this issue." Map SHACL violations to human-friendly messages using sh:message from shapes. |
-| Form fields in ontology order instead of task order | Properties appear in `rdfs:subClassOf` declaration order rather than meaningful workflow order | SHACL `sh:order` solves this -- enforce that all shapes have explicit ordering. Warn model authors if `sh:order` is missing. |
-| No feedback during async operations | User saves an object, validation runs async, no indication anything is happening | Show a "Validating..." indicator. Use optimistic UI: accept the save immediately, show validation results when they arrive. |
+### Pitfall 8: CSS Custom Property Naming Collision with Third-Party Libraries
 
-## "Looks Done But Isn't" Checklist
+**What goes wrong:**
+The current CSS defines variables like `--color-bg`, `--color-surface`, `--color-text` on `:root`. These are common names. Third-party libraries or future dependencies may use identical variable names, causing unexpected style overrides.
 
-- [ ] **SPARQL endpoint:** Often missing proper content negotiation (Turtle vs. JSON-LD vs. SPARQL Results JSON). Verify the endpoint handles `Accept` headers correctly for all view renderer needs.
-- [ ] **SHACL form generation:** Often missing handling of `sh:or`, `sh:class` with no instances yet (empty picker), `sh:in` with long value lists (needs search, not dropdown), and `sh:maxCount 1` vs. unbounded (single widget vs. repeatable group). Verify edge cases in the SHACL UI profile.
-- [ ] **Event sourcing:** Often missing idempotency on replay. Verify that replaying the same event sequence produces identical materialized state. Test with out-of-order events (if async projection is possible).
-- [ ] **Mental Model installation:** Often missing rollback on partial failure. If validation passes but loading fails midway, the system is in an inconsistent state. Verify atomic install (all-or-nothing).
-- [ ] **Label service:** Often missing handling of multilingual labels (`@en`, `@de`), blank nodes (no IRI to fall back on), and circular `rdfs:label` references. Verify with edge-case RDF data.
-- [ ] **Prefix registry:** Often missing conflict detection when two models declare the same prefix with different namespaces. Verify that prefix conflicts are warned/handled, not silently overwritten.
-- [ ] **View parameter substitution:** Often missing validation that the substituted IRI actually exists in the graph. A view parameterized with a deleted object IRI should show "not found," not a blank result.
-- [ ] **Projection refresh:** Often missing handling of object deletion (orphaned `.md` and sidecar files left on disk). Verify that delete events clean up projected files.
-- [ ] **Edge model:** Often missing bidirectional query support. If Project hasMember Person, querying from the Person side ("what projects am I a member of?") must also work through Edge resources. Verify reverse traversal.
+**Prevention:**
+- Namespace all SemPKM custom properties with a `--sempkm-` prefix: `--sempkm-color-bg`, `--sempkm-color-surface`, etc. This is a one-time migration of style.css and workspace.css.
+- Alternatively, keep the short names but define them on `.dashboard-layout` or `.workspace-container` instead of `:root`, limiting their scope.
+- Whichever approach: do it BEFORE adding dark mode (which will double the number of variable references).
+
+**Detection:**
+- Styles randomly breaking after adding a new third-party library
+- Dark mode applying to some elements but not others
+
+**Phase to address:**
+Do the variable rename as a preparatory step before dark mode implementation. Much cheaper to do before the dark theme doubles all variable references.
+
+---
+
+### Pitfall 9: Collapsible Sidebar State Not Surviving htmx Navigation
+
+**What goes wrong:**
+The sidebar collapse state is managed client-side (CSS class toggle). On a full page reload or browser back/forward navigation, the sidebar reverts to its default expanded state because the collapsed state was only in the DOM, not persisted.
+
+**Prevention:**
+- Persist sidebar collapsed state in the settings system (server-side) or localStorage as a stopgap.
+- On page load, the inline `<head>` script (same one that handles theme) should also read sidebar state and set the appropriate CSS class before first paint.
+- When the sidebar transitions between collapsed and expanded, use CSS transitions (not display:none) to avoid layout shifts.
+
+**Detection:**
+- Sidebar expanding on page refresh
+- Layout jump when sidebar collapses (content area width snaps instead of transitions)
+
+**Phase to address:**
+Same phase as the settings system, since sidebar state is a user preference.
+
+---
+
+### Pitfall 10: Inline onclick Handlers Create a Maintenance Nightmare
+
+**What goes wrong:**
+The current codebase uses inline `onclick` handlers extensively in both Jinja templates and JavaScript-generated HTML. Adding more interactive features (split panes, drag-to-split, context menus) will exponentially increase these inline handlers. They are hard to debug, impossible to unit test, and create XSS risks when user-provided strings (like object labels containing quotes) are interpolated.
+
+The existing `escapeJs()` function (workspace.js line 735) handles single quotes and backslashes but would miss double quotes, angle brackets, or other special characters in labels, potentially breaking the onclick attribute or enabling DOM injection.
+
+**Prevention:**
+- Migrate to event delegation: instead of `onclick="openTab('iri', 'label')"` on each element, use `data-action="open-tab" data-iri="..." data-label="..."` attributes and a single delegated listener on the workspace container.
+- This is a gradual migration -- do it feature-by-feature as each area is touched in v2.0, not as a big-bang rewrite.
+- New v2.0 features should use the delegation pattern from day one.
+
+**Detection:**
+- Broken onclick handlers when object labels contain special characters
+- Difficulty adding right-click context menus (inline onclick does not support this)
+
+**Phase to address:**
+Adopt the delegation pattern for all NEW code immediately. Migrate existing onclick handlers opportunistically when fixing bugs or touching the relevant templates.
+
+---
+
+## Phase-Specific Warnings
+
+| Phase Topic | Likely Pitfall | Mitigation |
+|---|---|---|
+| Bug fixes (body loading, editor editability) | Fixing bugs in editor.js while other features change the editor initialization path | Fix bugs FIRST before restructuring editor init for dark mode and editor groups |
+| Read-only object view | Read-only view loads into `#editor-area` but editor groups change the target | Design the multi-group addressing scheme before implementing read-only view |
+| VS Code-style split panes | Split.js destroy/recreate breaks during drag; tab state model rewrite needed | Build WorkspaceLayout manager with debounced reconstruct; redesign tab state model first |
+| Bottom panel infrastructure | Bottom panel is a fourth Split.js axis (vertical); nesting vertical inside horizontal split creates complexity | Use a separate vertical Split instance for the center column only, not nested in the main horizontal split |
+| Collapsible sidebar | Sidebar collapse animation causes layout reflow that breaks Split.js sizes | Use CSS width transition with will-change: width; recalculate Split.js sizes after transition ends |
+| Dark mode | CodeMirror, ninja-keys, Cytoscape all need separate dark mode integration | Budget time for each third-party component; do not assume CSS variables propagate |
+| Settings system | Over-engineering the settings schema; scope resolution bugs | Start with 5-10 concrete settings, not a generic framework. Add model-contributed settings later |
+| Event log explorer | SPARQL OFFSET pagination slows on large logs; diff computation is expensive | Cursor-based pagination; lazy diff loading; event index graph |
+| LLM connection config | API key stored in localStorage; nginx buffers SSE | Server-side key storage only; nginx SSE configuration mandatory |
+| Shepherd.js tutorials | License change in v14; dynamic elements not found | Verify license first; use lazy element resolution; consider v13 or TourGuide JS |
+| Node type icons in graph | Icon rendering in Cytoscape requires image URIs, not CSS | Use Cytoscape background-image style property with data URIs or hosted SVGs, not CSS classes |
+
+## Integration Risk Matrix
+
+| Feature A | Feature B | Integration Risk | Why |
+|---|---|---|---|
+| Split panes | Dark mode | MEDIUM | Split.js gutter elements need dark mode styling; must be themed explicitly |
+| Split panes | Settings system | LOW | Pane sizes already saved to localStorage; migrate to settings |
+| Dark mode | CodeMirror editor | HIGH | Requires Compartment-based theme reconfiguration per editor instance |
+| Dark mode | Graph view | MEDIUM | Cytoscape styles are JavaScript objects, not CSS; need programmatic update |
+| Dark mode | Shepherd.js tours | LOW | Shepherd CSS is overridable; add dark theme styles |
+| Settings system | LLM config | HIGH | API keys must be encrypted at rest; settings storage must handle sensitive values differently |
+| Event log | Split panes | LOW | Event log renders as a standard htmx partial; just needs correct editor group targeting |
+| Shepherd.js | htmx content | HIGH | Tour steps must wait for htmx content to load; requires beforeShowPromise integration |
+| LLM streaming | nginx proxy | HIGH | SSE requires specific nginx configuration; will not work without it |
+| Sidebar collapse | Split.js | MEDIUM | Sidebar width change requires Split.js to recalculate; use ResizeObserver or manual trigger |
+
+## "Looks Done But Isn't" Checklist for v2.0
+
+- [ ] **Dark mode toggle**: Does it work after a full page refresh? Does it work before JavaScript loads? Does it work in CodeMirror? In the graph view? In the command palette?
+- [ ] **Split panes**: Can you split, move a tab to the new group, close the group, and have the tab return to the remaining group? Does closing the last tab in a group close the group?
+- [ ] **Settings persistence**: Are settings available on the server side (for SSR theme class)? Do they survive container restarts (not just browser sessions)?
+- [ ] **Event log pagination**: Does page 50 load as fast as page 1? (If using OFFSET, it won't.)
+- [ ] **LLM streaming**: Does it work through nginx? What happens when the user navigates away mid-stream? Is the server-side connection properly cancelled?
+- [ ] **Tour with dynamic content**: Do tours work when the user has no objects open? When the explorer tree is collapsed? After an htmx navigation?
+- [ ] **Sidebar collapse + Split.js**: Does collapsing the sidebar cause the workspace content to expand smoothly, or does it leave a gap?
+- [ ] **API key security**: Is the LLM API key visible anywhere in the frontend? In browser DevTools? In server logs?
+- [ ] **Editor cleanup**: Open 10 tabs, close 8. Are the CodeMirror instances for the closed tabs destroyed, or are they leaking memory?
+- [ ] **afterSwap handlers**: Use the app for 30 minutes, navigating repeatedly. Does memory usage stay flat? Do event handler counts stay stable?
 
 ## Recovery Strategies
 
 | Pitfall | Recovery Cost | Recovery Steps |
-|---------|---------------|----------------|
-| Event log corruption / inconsistency | HIGH | Rebuild materialized state from event replay. If events are corrupt, restore from backup. This is why event log backup must be automated from day one. |
-| Blazegraph deprecation forced migration | MEDIUM | If the triplestore abstraction layer exists, swap to RDF4J or Oxigraph. Export all data as TriG, import into new store. Test all SPARQL queries against new store. Budget 1-2 weeks. |
-| SHACL UI extensions became non-standard | MEDIUM | Audit all custom SHACL properties. Migrate UI-specific annotations to view/dashboard YAML. Rewrite form generator to read from both sources during transition. |
-| Mental Model breaking changes shipped | HIGH | No automated migration in v1. Manual SPARQL UPDATE scripts to transform existing data. Requires understanding both old and new schemas. Potentially data loss if properties were removed. |
-| Edge resource overhead causing performance issues | MEDIUM | Can retrofit "lazy Edge creation" (only create Edge resource when metadata is needed). Requires updating query layer and existing Edge resources. |
-| Label service N+1 causing slow UIs | LOW | Add batch label resolution and caching. Minimal code change, large performance impact. Should be caught in development if testing with >50 objects. |
-
-## Pitfall-to-Phase Mapping
-
-| Pitfall | Prevention Phase | Verification |
-|---------|------------------|--------------|
-| Ontology Astronaut Trap | Every phase (especially Phase 2: UI) | User testing with non-technical users. No IRI/QName visible in primary UI. Error messages are human-readable. |
-| Event Sourcing Impedance Mismatch | Phase 1: Core Data Layer | Benchmark: 10,000 events in <5s projection rebuild. Named graph count monitoring. Materialized state matches expected state after replay. |
-| Blazegraph is Abandonware | Phase 1: Core Data Layer | Triplestore abstraction layer exists. All SPARQL queries tested against RDF4J. Switching stores requires config change, not code change. |
-| SHACL-Driven UI Straitjacket | Phase 2: SHACL + Forms | Clear boundary between SHACL validation properties and UI rendering logic. No custom `sempkm:` properties added to SHACL shapes for UI behavior. |
-| Edge Resource Complexity | Phase 1: Core Data Layer | Simple triple projection always maintained. View queries use natural triple patterns. Benchmark: edge-heavy graph (1000 objects, 10 edges each) queries complete in <100ms. |
-| Mental Model Versioning Vacuum | Phase 3: Mental Model Manager | Additive-only model evolution enforced. `schemaVersion` in manifests. Model update rejects breaking changes (removed/renamed properties). |
-| Label Resolution N+1 | Phase 2: UI Components | Table view with 100 items renders in <500ms. Batch label resolver implemented. Label cache exists. |
-| Named Graph Proliferation | Phase 1: Core Data Layer | Named graph count tracked as system metric. Compaction strategy designed (even if not implemented until v1.1). Benchmark at 10K and 50K events. |
-| SPARQL Injection | Phase 1: API Layer | IRI-only template substitution enforced. IRI format validation on all parameters. No f-string SPARQL construction anywhere in codebase. |
-| Mental Model Archive Security | Phase 3: Mental Model Manager | Zip slip protection. SPARQL/SHACL parsing before loading. Path traversal tests in install pipeline. |
+|---|---|---|
+| Split.js editor groups break tab state | MEDIUM | Revert to single editor pane. Redesign tab state model. Reimplement with new model. Budget 2-3 days. |
+| Dark mode flash of wrong theme | LOW | Add inline head script. 30-minute fix. |
+| CodeMirror dark mode not working | LOW | Add Compartment-based theme switching. Requires modifying editor.js init and adding reconfigure calls. 1-2 hours per editor instance. |
+| Shepherd.js license incompatibility | MEDIUM | Switch to TourGuide JS or Shepherd.js v13. API is similar but not identical. Budget 1 day for migration. |
+| Nginx blocks SSE streaming | LOW | Add nginx SSE configuration. 15-minute fix once diagnosed. But hard to diagnose if you do not know to look for it. |
+| Settings scope resolution wrong | MEDIUM | Debug which scope is winning. Fix the merge order. May require migration of existing saved settings. |
+| Event log slow on large stores | HIGH | Requires adding event index graph and rewriting pagination. Potentially needs backfill migration for existing events. Budget 2-3 days. |
+| API key leaked in browser | HIGH | Rotate compromised key immediately. Move to server-side-only key storage. Audit all network requests. |
 
 ## Sources
 
-- SemPKM PROJECT.md, vision.md, and full spec directory (primary source for architecture analysis)
-- SemPKM decision log v0.3 (confirmed architectural decisions)
-- Known history of Blazegraph project (last release 2018, acquired by Amazon for Neptune, open-source version unmaintained) -- MEDIUM confidence, based on training data; verify current status
-- RDF reification complexity is well-documented in semantic web literature (W3C RDF 1.1 Primer, "RDF Reification Considered Harmful" community discussions) -- HIGH confidence
-- SHACL specification (W3C SHACL Core, 2017) documents validation semantics; UI generation is explicitly outside SHACL scope -- HIGH confidence
-- Event sourcing patterns (Martin Fowler, Greg Young / EventStore documentation) -- HIGH confidence for general patterns, LOW confidence for RDF-specific event sourcing (novel architecture, limited prior art)
-- Named graph performance characteristics vary significantly between triplestores; Blazegraph and RDF4J have different internal architectures for named graph indexing -- MEDIUM confidence
-- Python SHACL validation via pyshacl is the primary Python SHACL library -- MEDIUM confidence, verify current status and performance characteristics
+- [htmx afterSwap event issues](https://github.com/bigskysoftware/htmx/discussions/3190) -- documents cases where afterSwap does not fire as expected; MEDIUM confidence
+- [htmx afterSwap firing with leading newlines](https://github.com/bigskysoftware/htmx/issues/2787) -- confirmed bug in htmx 2.0.x; HIGH confidence
+- [htmx SSE Extension documentation](https://htmx.org/extensions/sse/) -- official docs for SSE reconnection and configuration; HIGH confidence
+- [Split.js destroy during drag issue](https://github.com/nathancahill/split/issues/790) -- confirmed Split.js limitation; HIGH confidence
+- [Split.js dynamic property update](https://github.com/nathancahill/split/issues/765) -- confirms no dynamic pane add/remove API; HIGH confidence
+- [CodeMirror 6 dynamic theme switching](https://discuss.codemirror.net/t/dynamic-light-mode-dark-mode-how/4709) -- official forum guidance on Compartment-based theming; HIGH confidence
+- [CSS light-dark() browser support](https://caniuse.com/mdn-css_types_color_light-dark) -- supported in all major browsers since May 2024; HIGH confidence
+- [Shepherd.js license and pricing](https://docs.shepherdjs.dev/guides/license/) -- AGPL-3.0 + commercial dual license for v14+; HIGH confidence
+- [Shepherd.js dynamic content issue](https://github.com/shepherd-pro/shepherd/issues/1201) -- documents inconsistent behavior with dynamically loaded elements; MEDIUM confidence
+- [FastAPI SSE streaming guide](https://blog.gopenai.com/how-to-stream-llm-responses-in-real-time-using-fastapi-and-sse-d2a5a30f2928) -- covers nginx buffering and timeout pitfalls; MEDIUM confidence
+- [CSS dark mode complete guide](https://css-tricks.com/a-complete-guide-to-dark-mode-on-the-web/) -- comprehensive guide including FOWT prevention; HIGH confidence
+- [CSS dark mode toggle hackiness](https://code.mendhak.com/css-dark-mode-toggle-sucks/) -- documents real-world dark mode implementation frustrations; MEDIUM confidence
+- [sse-starlette](https://github.com/sysid/sse-starlette) -- recommended SSE library for Starlette/FastAPI; MEDIUM confidence
+- [LLM API security best practices](https://www.datasunrise.com/knowledge-center/ai-security/llm-api-security-tips/) -- covers proxy architecture and key management; MEDIUM confidence
+- [SPARQL query performance on large datasets](https://www.sciencedirect.com/science/article/pii/S1570826814001061) -- academic research on SPARQL optimization; HIGH confidence
+- SemPKM codebase analysis: workspace.js, editor.js, style.css, workspace.css, base.html -- direct code inspection; HIGH confidence
 
 ---
-*Pitfalls research for: Semantic Web / RDF-based Personal Knowledge Management (SemPKM)*
-*Researched: 2026-02-21*
+*Pitfalls research for: v2.0 Tighten Web UI (SemPKM)*
+*Researched: 2026-02-23*
