@@ -1,0 +1,121 @@
+{# Read-only object view: property table with type-specific formatting and rendered Markdown body.
+
+   Rendered via {% include %} inside the read face of the object flip container.
+   Reuses the same form (NodeShapeForm) metadata as the edit form for consistent
+   property ordering and labels.
+
+   Context (inherited from object_tab.html):
+     form: NodeShapeForm dataclass (or None)
+     values: dict mapping property path -> list of values
+     ref_labels: dict mapping reference IRIs -> human-readable labels
+     ref_tooltips: dict mapping reference IRIs -> tooltip text (type + name)
+     body_text: raw Markdown body string
+     safe_id: URL-safe object identifier for element IDs
+#}
+
+{% if not form %}
+<div class="object-read-view">
+  <div class="read-empty">
+    <p>No form schema available for this object type.</p>
+  </div>
+  {% if body_text %}
+  <hr class="body-separator">
+  <script type="text/plain" id="md-source-{{ safe_id }}">{{ body_text }}</script>
+  <div class="markdown-body" id="md-rendered-{{ safe_id }}">
+    <div class="markdown-loading">Rendering...</div>
+  </div>
+  <script>
+    (function() {
+      if (typeof window.renderMarkdownBody === 'function') {
+        window.renderMarkdownBody('md-source-{{ safe_id }}', 'md-rendered-{{ safe_id }}');
+      } else {
+        var src = document.getElementById('md-source-{{ safe_id }}');
+        var tgt = document.getElementById('md-rendered-{{ safe_id }}');
+        if (src && tgt) { tgt.textContent = src.textContent; }
+      }
+    })();
+  </script>
+  {% endif %}
+</div>
+{% else %}
+<div class="object-read-view">
+  {% set has_values = false %}
+  {% for prop in form.properties %}
+    {% set vals = values.get(prop.path, []) %}
+    {% if vals %}
+      {% set has_values = true %}
+    {% endif %}
+  {% endfor %}
+
+  {% if not has_values and not body_text %}
+  <div class="read-empty">
+    <p>This object has no content yet.</p>
+  </div>
+  {% else %}
+
+  {# Property table: two-column grid, GitHub sidebar style #}
+  {% set ns = namespace(any_prop=false) %}
+  {% for prop in form.properties %}
+    {% set vals = values.get(prop.path, []) %}
+    {% if vals %}{% set ns.any_prop = true %}{% endif %}
+  {% endfor %}
+
+  {% if ns.any_prop %}
+  <div class="property-table">
+    {% for prop in form.properties %}
+      {% set vals = values.get(prop.path, []) %}
+      {% if vals %}
+      <div class="property-row">
+        <div class="property-label">{{ prop.name }}</div>
+        <div class="property-value">
+          {% if prop.target_class %}
+            {# Reference property: render as clickable pills #}
+            {% for v in vals %}
+            <span class="ref-pill"
+                  onclick="openTab('{{ v }}', '{{ ref_labels.get(v, v) }}')"
+                  title="{{ ref_tooltips.get(v, ref_labels.get(v, v)) }}">
+              <span class="ref-pill-dot"></span>
+              {{ ref_labels.get(v, v) }}
+            </span>
+            {% endfor %}
+          {% elif prop.datatype == 'http://www.w3.org/2001/XMLSchema#date' or prop.datatype == 'http://www.w3.org/2001/XMLSchema#dateTime' %}
+            {% for v in vals %}{{ v | format_date }}{% if not loop.last %}, {% endif %}{% endfor %}
+          {% elif prop.datatype == 'http://www.w3.org/2001/XMLSchema#boolean' %}
+            {% for v in vals %}
+              {% if v == 'true' %}<span class="bool-icon bool-true" title="True">&#10003;</span>{% else %}<span class="bool-icon bool-false" title="False">&#10007;</span>{% endif %}
+            {% endfor %}
+          {% elif prop.datatype == 'http://www.w3.org/2001/XMLSchema#anyURI' %}
+            {% for v in vals %}<a href="{{ v }}" target="_blank" rel="noopener" class="uri-link">{{ v }}</a>{% if not loop.last %}<br>{% endif %}{% endfor %}
+          {% else %}
+            {% for v in vals %}{{ v }}{% if not loop.last %}, {% endif %}{% endfor %}
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {# Horizontal rule separator and Markdown body #}
+  {% if body_text %}
+  <hr class="body-separator">
+  <script type="text/plain" id="md-source-{{ safe_id }}">{{ body_text }}</script>
+  <div class="markdown-body" id="md-rendered-{{ safe_id }}">
+    <div class="markdown-loading">Rendering...</div>
+  </div>
+  <script>
+    (function() {
+      if (typeof window.renderMarkdownBody === 'function') {
+        window.renderMarkdownBody('md-source-{{ safe_id }}', 'md-rendered-{{ safe_id }}');
+      } else {
+        var src = document.getElementById('md-source-{{ safe_id }}');
+        var tgt = document.getElementById('md-rendered-{{ safe_id }}');
+        if (src && tgt) { tgt.textContent = src.textContent; }
+      }
+    })();
+  </script>
+  {% endif %}
+
+  {% endif %}
+</div>
+{% endif %}

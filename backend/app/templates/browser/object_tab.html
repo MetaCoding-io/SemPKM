@@ -1,54 +1,72 @@
-{# Object editor tab: split view with properties form on top, Markdown body editor below.
+{# Object tab: flip container with read-only front face and edit back face.
    Rendered as htmx partial for the center pane editor area.
-   Accepts: form (NodeShapeForm), values (dict), object_iri, object_label, body_text #}
+   Accepts: form (NodeShapeForm), values (dict[str, list[str]]), ref_labels, ref_tooltips,
+            object_iri, object_label, body_text, mode ("read" or "edit") #}
 
 {% set safe_id = object_iri | urlencode | replace('%', '_') %}
 <div class="object-tab" data-object-iri="{{ object_iri }}">
-  {# Toolbar: save button #}
+  {# Toolbar: mode toggle + save button #}
   <div class="object-toolbar">
     <span class="object-toolbar-title" title="{{ object_iri }}">{{ object_label }}</span>
     <div class="object-toolbar-actions">
-      <button class="btn btn-sm btn-primary" onclick="saveCurrentObject()" title="Save (Ctrl+S)">
+      <button class="btn btn-sm mode-toggle" id="mode-toggle-{{ safe_id }}"
+              onclick="toggleObjectMode('{{ safe_id }}', '{{ object_iri }}')"
+              title="Toggle Edit (Ctrl+E)">
+        Edit
+      </button>
+      <button class="btn btn-sm btn-primary" id="save-btn-{{ safe_id }}"
+              onclick="saveCurrentObject()" title="Save (Ctrl+S)" style="display: none;">
         Save
       </button>
     </div>
   </div>
 
-  {# Split view container: form on top, editor below #}
-  <div class="object-split" id="object-split-{{ safe_id }}">
-    {# Top section: SHACL-driven properties form #}
-    <div class="object-form-section" id="form-section-{{ safe_id }}">
-      {% if form %}
-      {% include "forms/object_form.html" %}
-      {% else %}
-      <div class="form-empty">
-        <p>No form schema available for this object type.</p>
+  {# Flip container: read face (front) and edit face (back) #}
+  <div class="object-flip-container" id="flip-{{ safe_id }}" data-mode="{{ mode }}" data-edit-initialized="false">
+    <div class="object-flip-inner" id="flip-inner-{{ safe_id }}">
+      <!-- Read-only face (front) -->
+      <div class="object-face object-face-read">
+        {% include "browser/object_read.html" %}
       </div>
-      {% endif %}
-    </div>
+      <!-- Edit face (back, pre-rotated 180deg) -->
+      <div class="object-face object-face-edit">
+        <div class="object-split" id="object-split-{{ safe_id }}">
+          {# Top section: SHACL-driven properties form #}
+          <div class="object-form-section" id="form-section-{{ safe_id }}">
+            {% if form %}
+            {% include "forms/object_form.html" %}
+            {% else %}
+            <div class="form-empty">
+              <p>No form schema available for this object type.</p>
+            </div>
+            {% endif %}
+          </div>
 
-    {# Bottom section: Markdown body editor #}
-    <div class="object-editor-section" id="editor-section-{{ safe_id }}">
-      <div class="editor-toolbar">
-        <button type="button" class="editor-btn" onclick="editorAction('bold')" title="Bold (Ctrl+B)"><b>B</b></button>
-        <button type="button" class="editor-btn" onclick="editorAction('italic')" title="Italic (Ctrl+I)"><i>I</i></button>
-        <button type="button" class="editor-btn" onclick="editorAction('heading')" title="Heading">H</button>
-        <button type="button" class="editor-btn" onclick="editorAction('link')" title="Link">&#128279;</button>
-        <span class="editor-toolbar-separator"></span>
-        <span class="editor-status" id="editor-status"></span>
+          {# Bottom section: Markdown body editor #}
+          <div class="object-editor-section" id="editor-section-{{ safe_id }}">
+            <div class="editor-toolbar">
+              <button type="button" class="editor-btn" onclick="editorAction('bold')" title="Bold (Ctrl+B)"><b>B</b></button>
+              <button type="button" class="editor-btn" onclick="editorAction('italic')" title="Italic (Ctrl+I)"><i>I</i></button>
+              <button type="button" class="editor-btn" onclick="editorAction('heading')" title="Heading">H</button>
+              <button type="button" class="editor-btn" onclick="editorAction('link')" title="Link">&#128279;</button>
+              <span class="editor-toolbar-separator"></span>
+              <span class="editor-status" id="editor-status"></span>
+            </div>
+            <div class="editor-skeleton" id="skeleton-{{ safe_id }}">
+              <div class="skeleton-line" style="width: 80%"></div>
+              <div class="skeleton-line" style="width: 60%"></div>
+              <div class="skeleton-line" style="width: 90%"></div>
+              <div class="skeleton-line" style="width: 45%"></div>
+              <div class="skeleton-line" style="width: 70%"></div>
+            </div>
+            <div class="codemirror-container" id="body-editor-{{ safe_id }}"
+                 data-object-iri="{{ object_iri }}"
+                 data-initial-content="{{ body_text | e }}"></div>
+            <textarea class="body-fallback" id="body-fallback-{{ safe_id }}"
+                      data-object-iri="{{ object_iri }}">{{ body_text | e }}</textarea>
+          </div>
+        </div>
       </div>
-      <div class="editor-skeleton" id="skeleton-{{ safe_id }}">
-        <div class="skeleton-line" style="width: 80%"></div>
-        <div class="skeleton-line" style="width: 60%"></div>
-        <div class="skeleton-line" style="width: 90%"></div>
-        <div class="skeleton-line" style="width: 45%"></div>
-        <div class="skeleton-line" style="width: 70%"></div>
-      </div>
-      <div class="codemirror-container" id="body-editor-{{ safe_id }}"
-           data-object-iri="{{ object_iri }}"
-           data-initial-content="{{ body_text | e }}"></div>
-      <textarea class="body-fallback" id="body-fallback-{{ safe_id }}"
-                data-object-iri="{{ object_iri }}">{{ body_text | e }}</textarea>
     </div>
   </div>
 </div>
@@ -58,7 +76,7 @@
   .object-split {
     display: flex;
     flex-direction: column;
-    height: calc(100% - 42px);
+    height: 100%;
     overflow: hidden;
   }
   .object-form-section,
@@ -82,112 +100,131 @@
 
 <script>
   (function() {
-    var containerId = 'body-editor-{{ safe_id }}';
-    var formId = 'form-section-{{ safe_id }}';
-    var editorId = 'editor-section-{{ safe_id }}';
-    var fallbackId = 'body-fallback-{{ safe_id }}';
-    var skeletonId = 'skeleton-{{ safe_id }}';
+    var safeId = '{{ safe_id }}';
+    var containerId = 'body-editor-' + safeId;
+    var formId = 'form-section-' + safeId;
+    var editorId = 'editor-section-' + safeId;
+    var fallbackId = 'body-fallback-' + safeId;
+    var skeletonId = 'skeleton-' + safeId;
 
-    function initBodyEditor() {
-      var container = document.getElementById(containerId);
-      if (!container) return false;
+    // Store deferred initialization function for edit mode
+    window['_initEditMode_' + safeId] = function() {
+      var flipContainer = document.getElementById('flip-' + safeId);
+      if (!flipContainer || flipContainer.dataset.editInitialized === 'true') return;
+      flipContainer.dataset.editInitialized = 'true';
 
-      var initialContent = container.dataset.initialContent || '';
-      var objectIri = container.dataset.objectIri || '';
+      function initBodyEditor() {
+        var container = document.getElementById(containerId);
+        if (!container) return false;
 
-      if (typeof window.initEditor === 'function') {
-        window.initEditor(containerId, initialContent, objectIri);
-        return true;
-      }
-      return false;
-    }
+        var initialContent = container.dataset.initialContent || '';
+        var objectIri = container.dataset.objectIri || '';
 
-    function enableFallback() {
-      var skeleton = document.getElementById(skeletonId);
-      if (skeleton) skeleton.style.display = 'none';
-
-      var fallback = document.getElementById(fallbackId);
-      if (!fallback) return;
-
-      var msg = document.createElement('div');
-      msg.className = 'editor-fallback-message';
-      msg.textContent = 'Editor failed to load. Using plain text editor.';
-      fallback.parentNode.insertBefore(msg, fallback);
-
-      fallback.style.display = 'block';
-      fallback.addEventListener('input', function () {
-        if (typeof window.markDirty === 'function') {
-          window.markDirty(fallback.dataset.objectIri || '');
+        if (typeof window.initEditor === 'function') {
+          window.initEditor(containerId, initialContent, objectIri);
+          return true;
         }
-      });
-    }
-
-    function hideSkeleton() {
-      var skeleton = document.getElementById(skeletonId);
-      if (skeleton) skeleton.style.display = 'none';
-    }
-
-    function initVerticalSplit() {
-      if (typeof Split === 'undefined') return;
-
-      var splitContainerId = 'object-split-{{ safe_id }}';
-
-      // Destroy any previous split instance for this container
-      if (window._sempkmSplits && window._sempkmSplits[splitContainerId]) {
-        try { window._sempkmSplits[splitContainerId].destroy(); } catch(e) {}
-        delete window._sempkmSplits[splitContainerId];
+        return false;
       }
 
-      var splitInstance = Split(['#' + formId, '#' + editorId], {
-        sizes: [40, 60],
-        minSize: [100, 100],
-        gutterSize: 5,
-        direction: 'vertical',
-        cursor: 'row-resize'
-      });
+      function enableFallback() {
+        var skeleton = document.getElementById(skeletonId);
+        if (skeleton) skeleton.style.display = 'none';
 
-      // Track split instances globally
-      if (!window._sempkmSplits) window._sempkmSplits = {};
-      window._sempkmSplits[splitContainerId] = splitInstance;
+        var fallback = document.getElementById(fallbackId);
+        if (!fallback) return;
 
-      // Register cleanup
-      if (typeof window.registerCleanup === 'function') {
-        window.registerCleanup(splitContainerId, function() {
-          splitInstance.destroy();
-          if (window._sempkmSplits) {
-            delete window._sempkmSplits[splitContainerId];
+        var msg = document.createElement('div');
+        msg.className = 'editor-fallback-message';
+        msg.textContent = 'Editor failed to load. Using plain text editor.';
+        fallback.parentNode.insertBefore(msg, fallback);
+
+        fallback.style.display = 'block';
+        fallback.addEventListener('input', function () {
+          if (typeof window.markDirty === 'function') {
+            window.markDirty(fallback.dataset.objectIri || '');
           }
         });
       }
-    }
 
-    // Try immediate init (editor.js may already be loaded)
-    if (initBodyEditor()) {
-      hideSkeleton();
-    } else {
-      // Load editor module via dynamic import with 3-second timeout
-      var timeout = new Promise(function(_, reject) {
-        setTimeout(function() { reject(new Error('Editor load timeout')); }, 3000);
-      });
-      var load = import('/js/editor.js').then(function(mod) {
-        if (mod && typeof mod.initEditor === 'function') {
-          window.initEditor = mod.initEditor;
-          window.editorAction = mod.editorAction;
-          window.getEditor = mod.getEditor;
-          window.destroyEditor = mod.destroyEditor;
+      function hideSkeleton() {
+        var skeleton = document.getElementById(skeletonId);
+        if (skeleton) skeleton.style.display = 'none';
+      }
+
+      function initVerticalSplit() {
+        if (typeof Split === 'undefined') return;
+
+        var splitContainerId = 'object-split-' + safeId;
+
+        // Destroy any previous split instance for this container
+        if (window._sempkmSplits && window._sempkmSplits[splitContainerId]) {
+          try { window._sempkmSplits[splitContainerId].destroy(); } catch(e) {}
+          delete window._sempkmSplits[splitContainerId];
         }
-        return initBodyEditor();
-      });
-      Promise.race([load, timeout])
-        .then(function(result) {
-          hideSkeleton();
-          if (!result) enableFallback();
-        })
-        .catch(function() {
-          enableFallback();
-        });
-    }
 
-    initVerticalSplit();
+        var splitInstance = Split(['#' + formId, '#' + editorId], {
+          sizes: [40, 60],
+          minSize: [100, 100],
+          gutterSize: 5,
+          direction: 'vertical',
+          cursor: 'row-resize'
+        });
+
+        // Track split instances globally
+        if (!window._sempkmSplits) window._sempkmSplits = {};
+        window._sempkmSplits[splitContainerId] = splitInstance;
+
+        // Register cleanup
+        if (typeof window.registerCleanup === 'function') {
+          window.registerCleanup(splitContainerId, function() {
+            splitInstance.destroy();
+            if (window._sempkmSplits) {
+              delete window._sempkmSplits[splitContainerId];
+            }
+          });
+        }
+      }
+
+      // Try immediate init (editor.js may already be loaded)
+      if (initBodyEditor()) {
+        hideSkeleton();
+      } else {
+        // Load editor module via dynamic import with 3-second timeout
+        var timeout = new Promise(function(_, reject) {
+          setTimeout(function() { reject(new Error('Editor load timeout')); }, 3000);
+        });
+        var load = import('/js/editor.js').then(function(mod) {
+          if (mod && typeof mod.initEditor === 'function') {
+            window.initEditor = mod.initEditor;
+            window.editorAction = mod.editorAction;
+            window.getEditor = mod.getEditor;
+            window.destroyEditor = mod.destroyEditor;
+          }
+          return initBodyEditor();
+        });
+        Promise.race([load, timeout])
+          .then(function(result) {
+            hideSkeleton();
+            if (!result) enableFallback();
+          })
+          .catch(function() {
+            enableFallback();
+          });
+      }
+
+      initVerticalSplit();
+    };
+
+    // If mode is 'edit' (e.g., newly created objects), initialize immediately
+    {% if mode == 'edit' %}
+    var flipInner = document.getElementById('flip-inner-' + safeId);
+    if (flipInner) flipInner.classList.add('flipped');
+    var toggleBtn = document.getElementById('mode-toggle-' + safeId);
+    if (toggleBtn) { toggleBtn.textContent = 'Done'; }
+    var saveBtn = document.getElementById('save-btn-' + safeId);
+    if (saveBtn) saveBtn.style.display = '';
+    window['_initEditMode_' + safeId]();
+    {% endif %}
   })();
 </script>

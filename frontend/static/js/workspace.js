@@ -360,6 +360,37 @@
     }
   }
 
+  // --- Object Mode Toggle (Read/Edit) ---
+
+  function toggleObjectMode(safeId, objectIri) {
+    var flipInner = document.getElementById('flip-inner-' + safeId);
+    var toggleBtn = document.getElementById('mode-toggle-' + safeId);
+    var saveBtn = document.getElementById('save-btn-' + safeId);
+    if (!flipInner) return;
+
+    var isFlipped = flipInner.classList.contains('flipped');
+
+    if (isFlipped) {
+      // Switching from edit to read: check for unsaved changes
+      var tabs = getTabs();
+      var tab = tabs.find(function (t) { return t.iri === objectIri; });
+      if (tab && tab.dirty) {
+        if (!window.confirm('Discard unsaved changes?')) return;
+        markClean(objectIri);
+      }
+      flipInner.classList.remove('flipped');
+      if (toggleBtn) toggleBtn.textContent = 'Edit';
+      if (saveBtn) saveBtn.style.display = 'none';
+    } else {
+      // Switching from read to edit: initialize edit mode if needed
+      var initFn = window['_initEditMode_' + safeId];
+      if (typeof initFn === 'function') initFn();
+      flipInner.classList.add('flipped');
+      if (toggleBtn) toggleBtn.textContent = 'Done';
+      if (saveBtn) saveBtn.style.display = '';
+    }
+  }
+
   // --- Keyboard Shortcuts ---
 
   function initKeyboardShortcuts() {
@@ -379,6 +410,17 @@
         var activeIri = getActiveTabIri();
         if (activeIri) {
           closeTab(activeIri);
+        }
+      }
+
+      // Ctrl+E / Cmd+E: Toggle read/edit mode
+      if (mod && e.key === 'e') {
+        e.preventDefault();
+        var objectTab = document.querySelector('.object-tab');
+        if (objectTab) {
+          var iri = objectTab.dataset.objectIri;
+          var safeId = encodeURIComponent(iri).replace(/%/g, '_');
+          toggleObjectMode(safeId, iri);
         }
       }
     });
@@ -404,6 +446,29 @@
             markClean(activeIri);
             // Refresh lint panel after save to show updated validation
             refreshLintAfterSave(activeIri);
+          }
+        }).catch(function (err) {
+          console.error('Body save error:', err);
+        });
+        // Editor handled save
+        return;
+      }
+    }
+
+    // Fallback: plain textarea editor
+    var activeTab = document.querySelector('.object-tab');
+    if (activeTab) {
+      var fallback = activeTab.querySelector('.body-fallback');
+      if (fallback && fallback.dataset && fallback.dataset.objectIri) {
+        var content = fallback.value || '';
+        fetch('/browser/objects/' + encodeURIComponent(fallback.dataset.objectIri) + '/body', {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: content
+        }).then(function (resp) {
+          if (resp.ok) {
+            markClean(fallback.dataset.objectIri);
+            refreshLintAfterSave(fallback.dataset.objectIri);
           }
         }).catch(function (err) {
           console.error('Body save error:', err);
@@ -812,5 +877,6 @@
   window.loadRightPane = loadRightPane;
   window.openViewTab = openViewTab;
   window.openViewMenu = openViewMenu;
+  window.toggleObjectMode = toggleObjectMode;
 
 })();
