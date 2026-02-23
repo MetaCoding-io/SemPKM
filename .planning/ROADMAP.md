@@ -158,7 +158,11 @@ Plans:
   3. All admin/* endpoints require owner role via require_role("owner")
   4. Browser-originated writes pass performed_by user IRI to EventStore.commit()
   5. Unauthenticated direct HTTP requests to any protected route receive 401/403 (not just a JS redirect)
-**Plans:** TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 07-01-PLAN.md -- Auth error handling infrastructure (custom exception handler, 403 template, EventStore provenance extension, frontend ?next= redirect-back)
+- [ ] 07-02-PLAN.md -- Route protection and provenance wiring (auth deps on all 31 HTML endpoints, provenance on 3 browser write endpoints)
 
 ### Phase 8: Integration Bug Fixes
 **Goal:** Fix remaining integration issues: wire validation.completed webhook dispatch and fix cards view URL mismatch
