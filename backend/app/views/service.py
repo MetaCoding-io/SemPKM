@@ -590,6 +590,22 @@ WHERE {{
                 "inbound_relations": inbound_relations,
             })
 
+        # Collect groupable property IRIs from card data
+        groupable_props: list[dict[str, str]] = []
+        seen_props: set[str] = set()
+        for card in cards:
+            for prop in card["properties"]:
+                prop_name = prop["name"]
+                if prop_name not in seen_props:
+                    seen_props.add(prop_name)
+                    # Find the original IRI for this property label
+                    prop_iri = ""
+                    for p, _ in props_by_subject.get(card["iri"], []):
+                        if labels.get(p, _local_name(p)) == prop_name:
+                            prop_iri = p
+                            break
+                    groupable_props.append({"name": prop_name, "iri": prop_iri})
+
         # Grouping by property value
         groups = None
         if group_by and cards:
@@ -597,17 +613,25 @@ WHERE {{
             group_label = labels.get(group_by, _local_name(group_by))
             for card in cards:
                 # Find the grouping value from properties
-                group_val = ""
+                group_vals: list[str] = []
                 for prop in card["properties"]:
                     # Match by original IRI or resolved label
                     if prop["name"] == group_label or prop["name"] == _local_name(group_by):
-                        group_val = prop["value"]
+                        raw = prop["value"]
+                        # Split comma-separated values (e.g., tags)
+                        if "," in raw:
+                            group_vals.extend(
+                                v.strip() for v in raw.split(",") if v.strip()
+                            )
+                        else:
+                            group_vals.append(raw)
                         break
-                if not group_val:
-                    group_val = "(No value)"
-                if group_val not in group_map:
-                    group_map[group_val] = []
-                group_map[group_val].append(card)
+                if not group_vals:
+                    group_vals = ["(No value)"]
+                for gv in group_vals:
+                    if gv not in group_map:
+                        group_map[gv] = []
+                    group_map[gv].append(card)
 
             groups = [
                 {"group_label": k, "cards": v}
@@ -622,7 +646,7 @@ WHERE {{
             "total_pages": total_pages,
             "groups": groups,
             "group_by": group_by,
-            "columns": spec.columns,
+            "columns": groupable_props,
         }
 
     async def execute_graph_query(self, spec: ViewSpec) -> dict:
