@@ -29,7 +29,7 @@
 **Milestone Goal:** Polish the web UI into a product-grade experience with bug fixes, read-only object views, VS Code-style workspace enhancements, dark mode, settings system, event log explorer, and LLM connection configuration.
 
 - [x] **Phase 10: Bug Fixes and Cleanup Architecture** - Fix broken core flows and establish htmx cleanup patterns that prevent listener/instance accumulation (completed 2026-02-23)
-- [ ] **Phase 11: Read-Only Object View** - Objects open in a styled read-only mode by default with an edit toggle
+- [x] **Phase 11: Read-Only Object View** - Objects open in a styled read-only mode by default with an edit toggle (completed 2026-02-23)
 - [ ] **Phase 12: Sidebar and Navigation** - Collapsible sidebar with grouped navigation sections and user menu
 - [ ] **Phase 13: Dark Mode and Visual Polish** - Tri-state theme system, rounded tabs, and styled error panels
 - [ ] **Phase 14: Split Panes and Bottom Panel** - VS Code-style editor groups with tab drag and a collapsible bottom panel
@@ -69,8 +69,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 11-01-PLAN.md — Backend enhancements (multi-value, ref labels, mode param), CDN libs, read-only template, flip container, and all CSS
-- [ ] 11-02-PLAN.md — Mode toggle JS (Edit/Done, Ctrl+E, unsaved changes), deferred editor init, body maximize/restore toggle
+- [x] 11-01-PLAN.md — Backend enhancements (multi-value, ref labels, mode param), CDN libs, read-only template, flip container, and all CSS
+- [x] 11-02-PLAN.md — Mode toggle JS (Edit/Done, Ctrl+E, unsaved changes), deferred editor init, body maximize/restore toggle
 
 ### Phase 12: Sidebar and Navigation
 **Goal**: The sidebar provides organized, collapsible navigation with a user menu that makes logout, settings access, and identity visible at a glance

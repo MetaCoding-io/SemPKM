@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations -- no blank-page syndrome, no schema setup.
-**Current focus:** v2.0 Tighten Web UI -- Phase 11: Read-Only Object View
+**Current focus:** v2.0 Tighten Web UI -- Phase 12: Sidebar and Navigation
 
 ## Current Position
 
-Phase: 11 of 18 (Read-Only Object View)
-Plan: 1 of 2 in current phase
-Status: Executing Phase 11
-Last activity: 2026-02-23 -- Completed 11-01 (read-only object view backend, template, and styling)
+Phase: 12 of 18 (Sidebar and Navigation)
+Plan: Not yet planned
+Status: Phase 11 complete, ready for Phase 12
+Last activity: 2026-02-23 -- Completed Phase 11 (read-only object view with mode toggle, body unification, polish)
 
-Progress: [##░░░░░░░░] 17% (v2.0) -- 11-01 complete (4/23 plans)
+Progress: [###░░░░░░░] 26% (v2.0) -- 11-02 complete (5/23 plans)
 
 ## Performance Metrics
 
@@ -30,6 +30,7 @@ Progress: [##░░░░░░░░] 17% (v2.0) -- 11-01 complete (4/23 plans)
 | 10    | 01   | 2min     | 2     | 3     |
 | 10    | 03   | 2min     | 2     | 6     |
 | 11    | 01   | 4min     | 2     | 7     |
+| 11    | 02   | session  | 15    | 12    |
 
 ## Accumulated Context
 
@@ -52,10 +53,14 @@ v2.0 roadmap decisions:
 - (11-01) Edit mode initialization deferred via _initEditMode_ function to prevent CodeMirror/Split.js waste on read-only views
 - (11-01) CDN-loaded marked.js + highlight.js + DOMPurify for client-side Markdown rendering (no server-side dependency)
 - (11-01) Reference tooltips show "TypeLabel: ObjectLabel" format derived from SHACL sh:class target_class
+- (11-02) JS setTimeout at animation midpoint for face visibility swap (CSS backface-visibility unreliable in complex DOM)
+- (11-02) Body predicate unification: detect SHACL Body property by name, use model-specific path for save
+- (11-02) dcterms:created/modified excluded from edit form, modified auto-updated on save
+- (11-02) Lazy-loaded ref-pill popovers reuse graph-popover CSS for visual consistency
 
 ### Pending Todos
 
-None yet.
+1. Add edit form helptext property to SHACL types (ui)
 
 ### Known Tech Debt (from v1.0)
 
@@ -72,5 +77,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 11-01-PLAN.md
-Resume: Continue with 11-02-PLAN.md (mode switch polish)
+Stopped at: Completed Phase 11 (all plans verified and committed)
+Resume: Plan and execute Phase 12 (Sidebar and Navigation)
