@@ -81,11 +81,11 @@ Plans:
   2. Sidebar navigation is organized into grouped sections (Home, Admin, Meta, Apps, Debug) with collapsible section headers
   3. Apps section contains Object Browser and SPARQL Console; Debug section contains Commands, API Docs, Health Check, and Event Log; Meta section contains Docs and Tutorials
   4. A user menu at the bottom of the sidebar shows user name/avatar and opens a popover with Settings link, Theme toggle placeholder, and working Logout action that ends the session
-**Plans**: ~2 plans
+**Plans**: 2 plans
 
 Plans:
-- [ ] 12-01: Sidebar collapse and grouped navigation sections
-- [ ] 12-02: User menu popover with logout
+- [ ] 12-01-PLAN.md — Sidebar restructure with grouped sections, Lucide icons, collapse-to-icon-rail toggle (Ctrl+B), CSS transitions, localStorage persistence
+- [ ] 12-02-PLAN.md — User menu popover with colored initials avatar, Settings/Theme placeholders, and working Logout action
 
 ### Phase 13: Dark Mode and Visual Polish
 **Goal**: Users can choose their preferred theme (system, light, or dark) with instant switching, no flash, and consistent styling across all UI components including third-party libraries
