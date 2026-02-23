@@ -8,10 +8,10 @@ updated: 2026-02-22T23:00:00Z
 
 ## Current Test
 
-number: 7
-name: Card Back Shows Properties and Relationships
+number: 9
+name: Graph View Renders Nodes and Edges
 expected: |
-  On the back of a flipped card, you should see all properties of the object plus its outbound and inbound relationships displayed as clickable links.
+  Open the graph view for a type. You should see a 2D graph with nodes (objects) and edges (relationships) rendered by Cytoscape.js. Nodes should be colored by type — either using colors from the model or auto-assigned from a palette.
 awaiting: user response
 
 ## Tests
@@ -42,11 +42,11 @@ result: pass (fixed: workspace.js used /cards/ plural but router is /card/ singu
 
 ### 7. Card Back Shows Properties and Relationships
 expected: On the back of a flipped card, you should see all properties of the object plus its outbound and inbound relationships displayed as clickable links.
-result: [pending]
+result: pass (added focus/zoom portal with separate focus and flip buttons)
 
 ### 8. Card Grouping
 expected: In the cards view toolbar, select a property from the Group By dropdown. Cards should rearrange into groups with group headers. Selecting no grouping returns to the flat grid.
-result: [pending]
+result: pass (fixed: dropdown not rendering due to empty spec.columns, moved to top, comma-split for tags, CSS specificity fix for width)
 
 ### 9. Graph View Renders Nodes and Edges
 expected: Open the graph view for a type. You should see a 2D graph with nodes (objects) and edges (relationships) rendered by Cytoscape.js. Nodes should be colored by type — either using colors from the model or auto-assigned from a palette.
@@ -87,9 +87,9 @@ result: [pending]
 ## Summary
 
 total: 17
-passed: 6
+passed: 8
 issues: 0
-pending: 11
+pending: 9
 skipped: 0
 
 ## Gaps

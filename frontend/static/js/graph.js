@@ -170,7 +170,9 @@
         data: {
           id: node.id,
           label: node.label || node.id,
-          type: node.type || ''
+          type: node.type || '',
+          typeLabel: node.type_label || '',
+          properties: node.properties || {}
         }
       });
     }
@@ -184,6 +186,7 @@
           source: edge.source,
           target: edge.target,
           label: edge.predicate_label || '',
+          fullPredicate: edge.predicate,
           predicate: edge.predicate
         }
       });
@@ -235,15 +238,160 @@
       _expandNode(cy, nodeIri);
     });
 
-    // Hover effects
+    // --- Popover (rich node bubble + simple edge tooltip) ---
+    var popover = document.createElement('div');
+    popover.className = 'graph-popover';
+    container.appendChild(popover);
+
+    var edgePopover = document.createElement('div');
+    edgePopover.className = 'graph-popover';
+    container.appendChild(edgePopover);
+
+    var _hoverTimer = null;
+    var _edgeHoverTimer = null;
+
+    function _showNodePopover(nodeEl, evt) {
+      var d = nodeEl.data();
+      var html = '<div class="graph-popover-header">' +
+                   '<span class="graph-popover-label">' + _esc(d.label) + '</span>';
+      if (d.typeLabel) {
+        html += '<span class="graph-popover-type">' + _esc(d.typeLabel) + '</span>';
+      }
+      html += '</div>';
+
+      var props = d.properties || {};
+      var keys = Object.keys(props);
+      if (keys.length > 0) {
+        html += '<div class="graph-popover-props">';
+        for (var i = 0; i < keys.length; i++) {
+          var val = String(props[keys[i]]);
+          if (val.length > 120) val = val.substring(0, 120) + '...';
+          html += '<div class="graph-popover-prop">' +
+                    '<span class="graph-popover-prop-name">' + _esc(keys[i]) + '</span>' +
+                    '<span class="graph-popover-prop-val">' + _esc(val) + '</span>' +
+                  '</div>';
+        }
+        html += '</div>';
+      } else {
+        html += '<div class="graph-popover-empty">No additional properties</div>';
+      }
+
+      popover.innerHTML = html;
+      popover.style.display = 'block';
+
+      // Position near the node
+      var pos = evt.renderedPosition || nodeEl.renderedPosition();
+      var cRect = container.getBoundingClientRect();
+      var left = pos.x + 16;
+      var top = pos.y - 12;
+
+      // Keep within container bounds
+      popover.style.left = left + 'px';
+      popover.style.top = top + 'px';
+
+      // Adjust if overflowing right edge
+      var pRect = popover.getBoundingClientRect();
+      if (pRect.right > cRect.right - 8) {
+        popover.style.left = (pos.x - pRect.width - 12) + 'px';
+      }
+      if (pRect.bottom > cRect.bottom - 8) {
+        popover.style.top = (pos.y - pRect.height + 12) + 'px';
+      }
+    }
+
+    function _hidePopover() {
+      if (_hoverTimer) { clearTimeout(_hoverTimer); _hoverTimer = null; }
+      popover.style.display = 'none';
+    }
+
+    function _showEdgePopover(edgeEl, evt) {
+      var d = edgeEl.data();
+      var html = '<div class="graph-popover-header">' +
+                   '<span class="graph-popover-label">' + _esc(d.label) + '</span>' +
+                   '<span class="graph-popover-type">edge</span>' +
+                 '</div>';
+
+      // Always show full predicate IRI
+      html += '<div class="graph-popover-props">';
+      html += '<div class="graph-popover-prop">' +
+                '<span class="graph-popover-prop-name">predicate</span>' +
+                '<span class="graph-popover-prop-val graph-popover-iri">' + _esc(d.fullPredicate || d.predicate || '') + '</span>' +
+              '</div>';
+
+      // Edge properties (for future use)
+      var props = d.properties || {};
+      var keys = Object.keys(props);
+      for (var i = 0; i < keys.length; i++) {
+        var val = String(props[keys[i]]);
+        if (val.length > 120) val = val.substring(0, 120) + '...';
+        html += '<div class="graph-popover-prop">' +
+                  '<span class="graph-popover-prop-name">' + _esc(keys[i]) + '</span>' +
+                  '<span class="graph-popover-prop-val">' + _esc(val) + '</span>' +
+                '</div>';
+      }
+      html += '</div>';
+
+      edgePopover.innerHTML = html;
+      edgePopover.style.display = 'block';
+
+      var pos = evt.renderedPosition || edgeEl.renderedMidpoint();
+      var cRect = container.getBoundingClientRect();
+      var left = pos.x + 16;
+      var top = pos.y - 12;
+
+      edgePopover.style.left = left + 'px';
+      edgePopover.style.top = top + 'px';
+
+      var pRect = edgePopover.getBoundingClientRect();
+      if (pRect.right > cRect.right - 8) {
+        edgePopover.style.left = (pos.x - pRect.width - 12) + 'px';
+      }
+      if (pRect.bottom > cRect.bottom - 8) {
+        edgePopover.style.top = (pos.y - pRect.height + 12) + 'px';
+      }
+    }
+
+    function _hideEdgePopover() {
+      if (_edgeHoverTimer) { clearTimeout(_edgeHoverTimer); _edgeHoverTimer = null; }
+      edgePopover.style.display = 'none';
+    }
+
+    function _esc(s) {
+      var d = document.createElement('span');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    // Hover effects — nodes (show popover after short delay)
     cy.on('mouseover', 'node', function (evt) {
       evt.target.addClass('hovered');
       container.style.cursor = 'pointer';
+      var target = evt.target;
+      var e = evt;
+      _hoverTimer = setTimeout(function () {
+        _showNodePopover(target, e);
+      }, 250);
     });
 
     cy.on('mouseout', 'node', function (evt) {
       evt.target.removeClass('hovered');
       container.style.cursor = 'default';
+      _hidePopover();
+    });
+
+    // Hover effects — edges (show popover after short delay)
+    cy.on('mouseover', 'edge', function (evt) {
+      container.style.cursor = 'pointer';
+      var target = evt.target;
+      var e = evt;
+      _edgeHoverTimer = setTimeout(function () {
+        _showEdgePopover(target, e);
+      }, 250);
+    });
+
+    cy.on('mouseout', 'edge', function (evt) {
+      container.style.cursor = 'default';
+      _hideEdgePopover();
     });
   }
 
@@ -274,7 +422,9 @@
               data: {
                 id: node.id,
                 label: node.label || node.id,
-                type: node.type || ''
+                type: node.type || '',
+                typeLabel: node.type_label || '',
+                properties: node.properties || {}
               }
             });
           }
@@ -291,6 +441,7 @@
                 source: edge.source,
                 target: edge.target,
                 label: edge.predicate_label || '',
+                fullPredicate: edge.predicate,
                 predicate: edge.predicate
               }
             });
