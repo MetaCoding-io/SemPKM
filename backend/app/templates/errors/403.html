@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Denied - SemPKM</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .error-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            text-align: center;
+            padding: 2rem;
+        }
+        .error-code {
+            font-size: 4rem;
+            font-weight: 700;
+            color: var(--color-error);
+            margin-bottom: 0.5rem;
+        }
+        .error-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--color-text);
+            margin-bottom: 1rem;
+        }
+        .error-message {
+            color: var(--color-text-muted);
+            max-width: 480px;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        .error-action {
+            display: inline-block;
+            padding: 0.6rem 1.5rem;
+            background: var(--color-primary);
+            color: #fff;
+            text-decoration: none;
+            border-radius: var(--radius);
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        .error-action:hover {
+            background: var(--color-primary-hover);
+        }
+    </style>
+</head>
+<body>
+    <div class="error-page">
+        <div class="error-code">403</div>
+        <h1 class="error-title">Access Denied</h1>
+        <p class="error-message">
+            You don't have permission to access this page.
+            This area requires a higher access level.
+        </p>
+        <a href="/browser/" class="error-action">Back to Workspace</a>
+    </div>
+</body>
+</html>

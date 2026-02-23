@@ -24,6 +24,7 @@ from app.events.models import (
     EVENT_AFFECTED,
     EVENT_DESCRIPTION,
     EVENT_PERFORMED_BY,
+    EVENT_PERFORMED_BY_ROLE,
 )
 from app.rdf.iri import mint_event_iri
 from app.rdf.namespaces import CURRENT_GRAPH_IRI
@@ -74,6 +75,7 @@ class EventStore:
         self,
         operations: list[Operation],
         performed_by: URIRef | None = None,
+        performed_by_role: str | None = None,
     ) -> EventResult:
         """Commit one or more operations as a single atomic event.
 
@@ -86,6 +88,8 @@ class EventStore:
             performed_by: Optional user IRI (e.g. urn:sempkm:user:{uuid}) to
                 record as the actor in event metadata. System operations
                 (model auto-install) omit this for graceful absence.
+            performed_by_role: Optional role string (e.g. "owner", "member")
+                to record alongside the actor for provenance queries.
 
         Returns:
             EventResult with the event IRI, timestamp, and all affected IRIs.
@@ -139,6 +143,12 @@ class EventStore:
             if performed_by is not None:
                 event_triples.append(
                     (event_iri, EVENT_PERFORMED_BY, performed_by)
+                )
+
+            # Role provenance (optional -- records actor's role at time of action)
+            if performed_by_role is not None:
+                event_triples.append(
+                    (event_iri, EVENT_PERFORMED_BY_ROLE, Literal(performed_by_role))
                 )
 
             # Data triples from all operations
