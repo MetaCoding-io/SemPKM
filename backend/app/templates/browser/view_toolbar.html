@@ -15,7 +15,14 @@
     <div class="view-toolbar-right">
         {% set current_view_type = view_type | default('table') %}
         {% set filter_base_url = "/browser/views/" ~ current_view_type ~ "/" ~ spec_iri_encoded %}
-        {% if spec.renderer_type != 'graph' %}
+        {% if spec.renderer_type == 'graph' %}
+        <input type="text"
+               id="view-filter"
+               class="view-filter-input"
+               placeholder="Filter {{ type_label }}..."
+               value="{{ current_filter }}"
+               oninput="if(typeof filterGraph==='function') filterGraph(this.value)">
+        {% else %}
         <input type="text"
                id="view-filter"
                class="view-filter-input"
@@ -51,20 +58,24 @@ if (!window._viewFilterRefocusBound) {
     });
 }
 function switchViewType(specIri, label, rendererType) {
+    // Read live filter value from the input (falls back to data attribute)
+    var filterInput = document.getElementById('view-filter');
+    var filter = filterInput ? filterInput.value : '';
+    if (!filter) {
+        var toolbar = document.querySelector('.view-toolbar');
+        filter = toolbar ? toolbar.getAttribute('data-current-filter') || '' : '';
+    }
     var toolbar = document.querySelector('.view-toolbar');
-    var filter = toolbar ? toolbar.getAttribute('data-current-filter') || '' : '';
     var sort = toolbar ? toolbar.getAttribute('data-current-sort') || '' : '';
     var dir = toolbar ? toolbar.getAttribute('data-current-dir') || 'asc' : 'asc';
 
-    // Build URL with preserved params
+    // Build URL with preserved params (all view types)
     var url = '/browser/views/' + rendererType + '/' + encodeURIComponent(specIri);
-    if (rendererType !== 'graph') {
-        var params = [];
-        if (filter) params.push('filter=' + encodeURIComponent(filter));
-        if (sort) params.push('sort=' + encodeURIComponent(sort));
-        if (dir && dir !== 'asc') params.push('dir=' + encodeURIComponent(dir));
-        if (params.length > 0) url += '?' + params.join('&');
-    }
+    var params = [];
+    if (filter) params.push('filter=' + encodeURIComponent(filter));
+    if (sort) params.push('sort=' + encodeURIComponent(sort));
+    if (dir && dir !== 'asc') params.push('dir=' + encodeURIComponent(dir));
+    if (params.length > 0) url += '?' + params.join('&');
 
     if (typeof htmx !== 'undefined') {
         htmx.ajax('GET', url, { target: '#editor-area', swap: 'innerHTML' });

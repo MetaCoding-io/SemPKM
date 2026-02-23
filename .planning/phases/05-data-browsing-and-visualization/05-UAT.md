@@ -1,5 +1,5 @@
 ---
-status: testing
+status: complete
 phase: 05-data-browsing-and-visualization
 source: [05-01-SUMMARY.md, 05-02-SUMMARY.md, 05-03-SUMMARY.md]
 started: 2026-02-22T23:00:00Z
@@ -8,11 +8,10 @@ updated: 2026-02-22T23:00:00Z
 
 ## Current Test
 
-number: 15
-name: Command Palette View Discovery
-expected: |
-  Open the command palette and type "Open view" or "Browse". You should see entries for available views that you can select to open.
-awaiting: user response
+number: complete
+name: All tests passed
+expected: n/a
+awaiting: n/a
 
 ## Tests
 
@@ -74,22 +73,22 @@ result: pass (redesigned: VS Code-style collapsible OBJECTS and VIEWS sections i
 
 ### 15. Command Palette View Discovery
 expected: Open the command palette and type "Open view" or "Browse". You should see entries for available views that you can select to open.
-result: [pending]
+result: pass
 
 ### 16. Filter/Sort State Persists on View Switch
 expected: In a table view, apply a filter and/or sort by a column. Then switch to the cards view using the type switcher in the toolbar. The filter and sort should carry over to the cards view.
-result: [pending]
+result: pass (fixed: switchViewType now reads live input value, passes filter to all view types including graph; added client-side graph filtering)
 
 ### 17. Clicking Object Opens Editor Tab
 expected: In any view (table row, card, or graph node), click an object. It should open in a new editor tab in the center pane. The view tab stays where it is — you don't lose your place.
-result: [pending]
+result: pass (added Open button to graph node popover with interactive hover-to-click support)
 
 ## Summary
 
 total: 17
-passed: 14
+passed: 17
 issues: 0
-pending: 3
+pending: 0
 skipped: 0
 
 ## Gaps

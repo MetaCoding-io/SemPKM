@@ -78,6 +78,14 @@
           'width': 36,
           'height': 36
         }
+      },
+      // Filtered-out elements (hidden by filter)
+      {
+        selector: '.filtered-out',
+        style: {
+          'opacity': 0.08,
+          'events': 'no'
+        }
       }
     ];
 
@@ -249,9 +257,32 @@
 
     var _hoverTimer = null;
     var _edgeHoverTimer = null;
+    var _popoverHovered = false;
+
+    // Keep node popover visible when mouse enters it
+    popover.addEventListener('mouseenter', function () {
+      _popoverHovered = true;
+      if (_hoverTimer) { clearTimeout(_hoverTimer); _hoverTimer = null; }
+    });
+    popover.addEventListener('mouseleave', function () {
+      _popoverHovered = false;
+      popover.style.display = 'none';
+    });
+
+    // Open button click handler
+    popover.addEventListener('click', function (e) {
+      var btn = e.target.closest('.graph-popover-open-btn');
+      if (!btn) return;
+      var iri = btn.getAttribute('data-node-iri');
+      if (iri && typeof window.openTab === 'function') {
+        window.openTab(iri);
+      }
+      popover.style.display = 'none';
+    });
 
     function _showNodePopover(nodeEl, evt) {
       var d = nodeEl.data();
+      var nodeIri = nodeEl.id();
       var html = '<div class="graph-popover-header">' +
                    '<span class="graph-popover-label">' + _esc(d.label) + '</span>';
       if (d.typeLabel) {
@@ -276,8 +307,13 @@
         html += '<div class="graph-popover-empty">No additional properties</div>';
       }
 
+      html += '<div class="graph-popover-footer">' +
+                '<button class="graph-popover-open-btn" data-node-iri="' + _esc(nodeIri) + '">Open</button>' +
+              '</div>';
+
       popover.innerHTML = html;
       popover.style.display = 'block';
+      _popoverHovered = false;
 
       // Position near the node
       var pos = evt.renderedPosition || nodeEl.renderedPosition();
@@ -301,7 +337,12 @@
 
     function _hidePopover() {
       if (_hoverTimer) { clearTimeout(_hoverTimer); _hoverTimer = null; }
-      popover.style.display = 'none';
+      // Delay hide to allow mouse to enter the popover
+      setTimeout(function () {
+        if (!_popoverHovered) {
+          popover.style.display = 'none';
+        }
+      }, 100);
     }
 
     function _showEdgePopover(edgeEl, evt) {
@@ -509,9 +550,42 @@
     cy.layout(layoutConfig).run();
   }
 
+  // --- Client-side Filter ---
+
+  function filterGraph(text) {
+    var cy = window._sempkmGraph;
+    if (!cy) return;
+
+    if (!text || !text.trim()) {
+      // Show all
+      cy.elements().removeClass('filtered-out');
+      return;
+    }
+
+    var q = text.toLowerCase();
+    cy.nodes().forEach(function (node) {
+      var label = (node.data('label') || '').toLowerCase();
+      if (label.indexOf(q) >= 0) {
+        node.removeClass('filtered-out');
+      } else {
+        node.addClass('filtered-out');
+      }
+    });
+
+    // Hide edges where either endpoint is filtered out
+    cy.edges().forEach(function (edge) {
+      if (edge.source().hasClass('filtered-out') || edge.target().hasClass('filtered-out')) {
+        edge.addClass('filtered-out');
+      } else {
+        edge.removeClass('filtered-out');
+      }
+    });
+  }
+
   // --- Export Globally ---
   window.initGraph = initGraph;
   window.changeLayout = changeLayout;
   window.registerLayout = registerLayout;
+  window.filterGraph = filterGraph;
 
 })();
