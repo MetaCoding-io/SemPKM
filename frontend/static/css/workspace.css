@@ -516,9 +516,24 @@ ninja-keys {
     font-weight: 600;
     color: var(--color-text, #1a1a2e);
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 60%;
+    flex-shrink: 0;
+}
+
+.object-toolbar-type {
+    font-size: 0.7rem;
+    color: var(--color-text-muted, #666);
+    background: #f0f1f4;
+    border: 1px solid var(--color-border, #ddd);
+    border-radius: 10px;
+    padding: 1px 10px;
+    margin-left: 8px;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+}
+.object-toolbar-type:hover {
+    background: #e4e6ea;
+    color: var(--color-primary, #4a90d9);
 }
 
 .object-toolbar-actions {
@@ -758,7 +773,7 @@ ninja-keys {
 .form-field select {
     width: 100%;
     padding: 6px 10px;
-    border: 1px solid var(--color-border, #e0e0e0);
+    border: 1px solid #b0b0b0;
     border-radius: 4px;
     font-size: 0.85rem;
     background: var(--color-surface, #fff);
@@ -800,7 +815,7 @@ ninja-keys {
 /* Form groups (collapsible sections) */
 .form-group {
     margin: 12px 0;
-    border: 1px solid var(--color-border, #e0e0e0);
+    border: 1px solid #b0b0b0;
     border-radius: 4px;
 }
 
@@ -1238,6 +1253,56 @@ details.form-group[open] > .form-group-summary::before {
     text-align: center;
 }
 
+/* --- Read Properties Section (collapsible) --- */
+
+.read-properties-section {
+    margin: 0 16px 8px;
+}
+.read-properties-toggle {
+    display: flex;
+    align-items: center;
+    padding: 6px 0;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--color-text-muted, #666);
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+}
+.read-properties-toggle::-webkit-details-marker { display: none; }
+.read-properties-toggle .toggle-arrow {
+    display: inline-block;
+    font-size: 0.6rem;
+    margin-right: 6px;
+    transition: transform 0.15s;
+}
+.read-properties-toggle .toggle-arrow::after { content: '\25B6'; }
+.read-properties-section[open] > .read-properties-toggle .toggle-arrow {
+    transform: rotate(90deg);
+}
+
+/* --- Form Title Row (with collapse toggle) --- */
+
+.form-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+.form-title-row .form-title { margin-bottom: 0; }
+.collapse-toggle {
+    font-size: 0.72rem;
+    color: var(--color-text-muted, #666);
+    background: none;
+    border: 1px solid var(--color-border, #ccc);
+    border-radius: 3px;
+    padding: 2px 8px;
+    cursor: pointer;
+}
+.collapse-toggle:hover {
+    background: #f0f0f0;
+}
+
 /* --- Property Table (two-column grid, GitHub sidebar style) --- */
 
 .property-table {
@@ -1247,7 +1312,7 @@ details.form-group[open] > .form-group-summary::before {
     border: 1px solid var(--color-border, #e0e0e0);
     border-radius: 6px;
     overflow: hidden;
-    margin: 16px;
+    margin-top: 4px;
 }
 
 .property-row { display: contents; }
@@ -1290,6 +1355,7 @@ details.form-group[open] > .form-group-summary::before {
     transition: background 0.15s;
     white-space: nowrap;
     margin: 2px 4px 2px 0;
+    position: relative;
 }
 
 .ref-pill:hover {
@@ -1303,6 +1369,22 @@ details.form-group[open] > .form-group-summary::before {
     border-radius: 50%;
     background: var(--color-primary, #2d5a9e);
     flex-shrink: 0;
+}
+
+/* --- Reference Pill Popover (JS-managed, reuses graph-popover classes) --- */
+
+.ref-pill-popover {
+    display: none;
+    position: fixed;
+    background: var(--color-surface, #fff);
+    border: 1px solid var(--color-border, #ddd);
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    min-width: 200px;
+    max-width: 320px;
+    z-index: 200;
+    pointer-events: auto;
+    overflow: hidden;
 }
 
 /* --- Boolean Icons --- */
@@ -1408,8 +1490,9 @@ details.form-group[open] > .form-group-summary::before {
 /* --- Mode Toggle Button --- */
 
 .mode-toggle {
-    background: var(--color-surface, #fff);
-    border: 1px solid var(--color-border, #e0e0e0);
+    background: #2ea043;
+    color: #fff;
+    border: 1px solid #2ea043;
     border-radius: 4px;
     padding: 2px 12px;
     font-size: 0.8rem;
@@ -1418,6 +1501,16 @@ details.form-group[open] > .form-group-summary::before {
 }
 
 .mode-toggle:hover {
-    background: #f0f0f0;
-    border-color: #ccc;
+    background: #268636;
+    border-color: #268636;
+}
+
+.btn-save {
+    background: #cf222e;
+    color: #fff;
+    border-color: #cf222e;
+}
+.btn-save:hover {
+    background: #a40e26;
+    border-color: #a40e26;
 }

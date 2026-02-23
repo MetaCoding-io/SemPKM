@@ -33,6 +33,7 @@ class BodySetParams(BaseModel):
 
     iri: str  # The object IRI
     body: str  # Markdown content
+    predicate: str | None = None  # Optional override; defaults to sempkm:body
 
 
 class EdgeCreateParams(BaseModel):

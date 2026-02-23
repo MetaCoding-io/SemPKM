@@ -390,6 +390,31 @@
       flipInner.classList.remove('flipped');
       if (toggleBtn) toggleBtn.textContent = 'Edit';
       if (saveBtn) saveBtn.style.display = 'none';
+      // Refresh read face with fresh data from server
+      if (readFace) {
+        fetch('/browser/object/' + encodeURIComponent(objectIri) + '?mode=read', {
+          headers: { 'HX-Request': 'true' }
+        }).then(function (resp) { return resp.text(); }).then(function (html) {
+          // Extract the read face content from the full response
+          var tmp = document.createElement('div');
+          tmp.innerHTML = html;
+          var freshRead = tmp.querySelector('.object-face-read');
+          if (freshRead) {
+            readFace.innerHTML = freshRead.innerHTML;
+            // Re-trigger markdown rendering for any md-source/md-rendered pairs
+            var mdSources = readFace.querySelectorAll('script[type="text/plain"][id^="md-source-"]');
+            mdSources.forEach(function(src) {
+              var renderedId = src.id.replace('md-source-', 'md-rendered-');
+              var tgt = document.getElementById(renderedId);
+              if (src && tgt && typeof window.renderMarkdownBody === 'function') {
+                window.renderMarkdownBody(src.id, renderedId);
+              } else if (src && tgt) {
+                tgt.textContent = src.textContent;
+              }
+            });
+          }
+        }).catch(function () { /* keep stale content on error */ });
+      }
       // Swap faces at midpoint (300ms into 600ms animation)
       setTimeout(function () {
         if (readFace) readFace.classList.remove('face-hidden');
@@ -449,13 +474,25 @@
     var activeIri = getActiveTabIri();
     if (!activeIri) return;
 
-    // Save body via editor.js (CodeMirror Ctrl+S handler)
+    // Save form properties via htmx form submission
+    var activeTab = document.querySelector('.object-tab');
+    if (activeTab) {
+      var form = activeTab.querySelector('#object-form');
+      if (form && typeof htmx !== 'undefined') {
+        htmx.trigger(form, 'submit');
+      }
+    }
+
+    // Save body via editor.js (CodeMirror)
     if (typeof window.getEditor === 'function') {
       var editor = window.getEditor(activeIri);
       if (editor) {
-        // Trigger the editor's save directly
         var content = editor.state.doc.toString();
-        fetch('/browser/objects/' + encodeURIComponent(activeIri) + '/body', {
+        var bodyContainer = activeTab ? activeTab.querySelector('.codemirror-container') : null;
+        var bodyPredicate = bodyContainer && bodyContainer.dataset.bodyPredicate ? bodyContainer.dataset.bodyPredicate : '';
+        var bodyUrl = '/browser/objects/' + encodeURIComponent(activeIri) + '/body';
+        if (bodyPredicate) bodyUrl += '?predicate=' + encodeURIComponent(bodyPredicate);
+        fetch(bodyUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain' },
           body: content
@@ -463,24 +500,24 @@
           if (resp.ok) {
             editor._sempkmSavedContent = content;
             markClean(activeIri);
-            // Refresh lint panel after save to show updated validation
             refreshLintAfterSave(activeIri);
           }
         }).catch(function (err) {
           console.error('Body save error:', err);
         });
-        // Editor handled save
         return;
       }
     }
 
     // Fallback: plain textarea editor
-    var activeTab = document.querySelector('.object-tab');
     if (activeTab) {
       var fallback = activeTab.querySelector('.body-fallback');
       if (fallback && fallback.dataset && fallback.dataset.objectIri) {
         var content = fallback.value || '';
-        fetch('/browser/objects/' + encodeURIComponent(fallback.dataset.objectIri) + '/body', {
+        var fbPredicate = fallback.dataset.bodyPredicate || '';
+        var fbUrl = '/browser/objects/' + encodeURIComponent(fallback.dataset.objectIri) + '/body';
+        if (fbPredicate) fbUrl += '?predicate=' + encodeURIComponent(fbPredicate);
+        fetch(fbUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain' },
           body: content
@@ -915,5 +952,6 @@
   window.openViewTab = openViewTab;
   window.openViewMenu = openViewMenu;
   window.toggleObjectMode = toggleObjectMode;
+  window.saveCurrentObject = saveCurrentObject;
 
 })();
