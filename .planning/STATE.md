@@ -5,21 +5,21 @@
 See: .planning/PROJECT.md (updated 2026-02-21)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations -- no blank-page syndrome, no schema setup.
-**Current focus:** Phase 7 (Route Protection and Provenance) -- gap closure for v1 hardening.
+**Current focus:** Phase 8 (Integration Bug Fixes) -- final gap closure for v1.0 milestone.
 
 ## Current Position
 
-Phase: 7 of 8 (Route Protection and Provenance) -- Complete
-Plan: 2 of 2 in Phase 7 -- Complete
-Status: Executing gap closure phases (24/24 plans)
-Last activity: 2026-02-22 -- Completed 07-02 (Route Protection)
+Phase: 8 of 8 (Integration Bug Fixes) -- Complete
+Plan: 1 of 1 in Phase 8 -- Complete
+Status: All phases complete (25/25 plans)
+Last activity: 2026-02-23 -- Completed 08-01 (Integration Bug Fixes)
 
-Progress: [████████████████████] 100% (24/24 plans complete across 8 phases)
+Progress: [████████████████████] 100% (25/25 plans complete across 8 phases)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 24
+- Total plans completed: 25
 - Average duration: 5min
 - Total execution time: ~2 hours
 
@@ -34,9 +34,10 @@ Progress: [████████████████████] 100% (2
 | 5. Data Browsing and Visualization | 3 | 15min | 5min |
 | 6. User and Team Management | 4 | 22min | 6min |
 | 7. Route Protection and Provenance | 2/2 | 8min | 4min |
+| 8. Integration Bug Fixes | 1/1 | 2min | 2min |
 
 **Recent Trend:**
-- Last 5 plans: 4min, 6min, 6min, 3min, 5min
+- Last 5 plans: 6min, 6min, 3min, 5min, 2min
 - Trend: stable
 
 *Updated after each plan completion*
@@ -130,10 +131,12 @@ Recent decisions affecting current work:
 - [07-01]: HTMX requests detected via HX-Request header for inline error fragments
 - [07-02]: views/explorer endpoint protected even though not in plan (security completeness)
 - [07-02]: API health endpoint (/api/health) intentionally left public for Docker healthchecks
+- [08-01]: on_complete callback is fire-and-forget (exception logged, never propagated) matching webhook dispatch semantics
+- [08-01]: webhook_service creation reordered before validation_queue in lifespan for dependency ordering
 
 ### Pending Todos
 
-None -- executing Phase 7 gap closure plans.
+None -- all phases complete.
 
 ### Roadmap Evolution
 
@@ -147,6 +150,6 @@ None -- executing Phase 7 gap closure plans.
 
 ## Session Continuity
 
-Last session: 2026-02-22
-Stopped at: Completed 07-02-PLAN.md (Route Protection) -- Phase 7 complete
-Resume file: Phase 8 (if planned) or project complete
+Last session: 2026-02-23
+Stopped at: Completed 08-01-PLAN.md (Integration Bug Fixes) -- Phase 8 complete, all v1.0 phases done
+Resume file: Project complete -- all 25 plans across 8 phases executed
