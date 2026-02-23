@@ -11,10 +11,11 @@
  * 3. Change imports below to local paths
  */
 
-import { EditorView, basicSetup } from "https://esm.sh/codemirror@6.65.7";
-import { markdown } from "https://esm.sh/@codemirror/lang-markdown@6";
-import { keymap } from "https://esm.sh/@codemirror/view@6";
-import { EditorState } from "https://esm.sh/@codemirror/state@6";
+import { EditorView } from "https://esm.sh/@codemirror/view@6.35.0?pin=v135";
+import { keymap } from "https://esm.sh/@codemirror/view@6.35.0?pin=v135";
+import { EditorState } from "https://esm.sh/@codemirror/state@6.4.1?pin=v135";
+import { basicSetup } from "https://esm.sh/@codemirror/basic-setup@0.19.1?pin=v135";
+import { markdown } from "https://esm.sh/@codemirror/lang-markdown@6.2.5?pin=v135";
 
 // Track active editor instances by object IRI
 var editors = {};
