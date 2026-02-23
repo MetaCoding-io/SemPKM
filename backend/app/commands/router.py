@@ -121,7 +121,7 @@ async def execute_commands(
         # Commit all operations atomically with user provenance
         event_store = EventStore(client)
         user_iri = URIRef(f"urn:sempkm:user:{user.id}")
-        event_result = await event_store.commit(operations, performed_by=user_iri)
+        event_result = await event_store.commit(operations, performed_by=user_iri, performed_by_role=user.role)
 
         # Trigger async validation (non-blocking)
         await validation_queue.enqueue(
