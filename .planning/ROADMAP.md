@@ -50,12 +50,12 @@
   3. Autocomplete dropdown for reference properties renders on top of all content (never clipped) and clicking a suggestion populates the field
   4. Views explorer section loads its tree content on workspace initialization without requiring a user click
   5. Navigating between tabs repeatedly for 30+ cycles does not accumulate duplicate event listeners, Split.js gutters, or CodeMirror instances (htmx:beforeCleanupElement tears down library instances before DOM removal)
-**Plans**: ~3 plans
+**Plans**: 3 plans
 
 Plans:
-- [ ] 10-01: Body loading fix and editor editability
-- [ ] 10-02: Autocomplete dropdown and views explorer fixes
-- [ ] 10-03: afterSwap cleanup architecture and editor group data model design
+- [ ] 10-01-PLAN.md — Body loading skeleton, Promise-based editor init with 3s timeout, CodeMirror bump, min-height fix
+- [ ] 10-02-PLAN.md — Autocomplete dropdown position:fixed escape, views explorer eager loading
+- [ ] 10-03-PLAN.md — htmx cleanup registry, library teardown registration, editor group data model design
 
 ### Phase 11: Read-Only Object View
 **Goal**: Users see a polished, readable presentation of their objects by default and switch to edit mode only when they intend to make changes
