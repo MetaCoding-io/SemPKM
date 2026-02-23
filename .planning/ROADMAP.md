@@ -20,7 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 6: User and Team Management** - Passwordless auth, owner/member/guest RBAC, event provenance, SQL data layer for multi-tenant cloud readiness (completed 2026-02-22)
 - [x] **Phase 7: Route Protection and Provenance** - Gap closure: server-side auth on browser/views/admin routes, user provenance on browser writes
 - [x] **Phase 8: Integration Bug Fixes** - Gap closure: validation.completed webhook dispatch, cards view URL mismatch fix (completed 2026-02-23)
-- [ ] **Phase 9: Provenance and Redirect Micro-Fixes** - Gap closure: API command path role provenance, invite acceptance ?next= redirect
+- [x] **Phase 9: Provenance and Redirect Micro-Fixes** - Gap closure: API command path role provenance, invite acceptance ?next= redirect (completed 2026-02-23)
 
 ## Phase Details
 
@@ -126,7 +126,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 6. User and Team Management | 4/4 | Complete    | 2026-02-22 |
 | 7. Route Protection and Provenance | 2/2 | Complete    | 2026-02-23 |
 | 8. Integration Bug Fixes | 1/1 | Complete    | 2026-02-23 |
-| 9. Provenance and Redirect Micro-Fixes | 0/1 | Pending | — |
+| 9. Provenance and Redirect Micro-Fixes | 1/1 | Complete | 2026-02-23 |
 
 ### Phase 6: User and Team Management for Multi-Tenant Cloud Readiness
 
@@ -179,7 +179,7 @@ Plans:
 **Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 08-01-PLAN.md — Validation.completed webhook dispatch and cards view URL verification
+- [x] 08-01-PLAN.md — Validation.completed webhook dispatch and cards view URL verification
 
 ### Phase 9: Provenance and Redirect Micro-Fixes
 **Goal:** Close the 2 remaining low-severity integration gaps from the v1.0 re-audit: add performed_by_role to API command commit path and honor ?next= in invite acceptance redirect
@@ -192,8 +192,8 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 09-01-PLAN.md — API command provenance fix (performed_by_role) and invite ?next= redirect verification
+- [x] 09-01-PLAN.md — API command provenance fix (performed_by_role) and invite ?next= redirect verification
 
 ---
 *Roadmap created: 2026-02-21*
-*Last updated: 2026-02-23 after gap closure phase 9 added from re-audit*
+*Last updated: 2026-02-23 after phase 9 completion -- all v1.0 gap closures done*
