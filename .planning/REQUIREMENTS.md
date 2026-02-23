@@ -31,10 +31,10 @@
 
 ### Sidebar and Navigation (NAV)
 
-- [ ] **NAV-01**: Sidebar collapses to a 48px icon rail via Ctrl+B toggle with smooth CSS transition
-- [ ] **NAV-02**: Sidebar navigation is reorganized into grouped sections: Home, Admin, Meta, Apps, Debug
-- [ ] **NAV-03**: Apps section contains Object Browser and SPARQL Console; Debug section contains Commands, API Docs, Health Check, and Event Log
-- [ ] **NAV-04**: Meta section contains a Docs & Tutorials page
+- [x] **NAV-01**: Sidebar collapses to a 48px icon rail via Ctrl+B toggle with smooth CSS transition
+- [x] **NAV-02**: Sidebar navigation is reorganized into grouped sections: Home, Admin, Meta, Apps, Debug
+- [x] **NAV-03**: Apps section contains Object Browser and SPARQL Console; Debug section contains Commands, API Docs, Health Check, and Event Log
+- [x] **NAV-04**: Meta section contains a Docs & Tutorials page
 - [ ] **NAV-05**: A VS Code-style user menu at the bottom of the sidebar shows user name/avatar with a popover containing Settings, Theme toggle, and Logout
 - [ ] **NAV-06**: Logout action in user menu ends the session and redirects to login
 
@@ -129,10 +129,10 @@
 | WORK-04 | Phase 14 | Pending |
 | WORK-05 | Phase 14 | Pending |
 | WORK-06 | Phase 13 | Pending |
-| NAV-01 | Phase 12 | Pending |
-| NAV-02 | Phase 12 | Pending |
-| NAV-03 | Phase 12 | Pending |
-| NAV-04 | Phase 12 | Pending |
+| NAV-01 | Phase 12 | Complete |
+| NAV-02 | Phase 12 | Complete |
+| NAV-03 | Phase 12 | Complete |
+| NAV-04 | Phase 12 | Complete |
 | NAV-05 | Phase 12 | Pending |
 | NAV-06 | Phase 12 | Pending |
 | DARK-01 | Phase 13 | Pending |
