@@ -5,21 +5,21 @@
 See: .planning/PROJECT.md (updated 2026-02-21)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations -- no blank-page syndrome, no schema setup.
-**Current focus:** Phase 8 (Integration Bug Fixes) -- final gap closure for v1.0 milestone.
+**Current focus:** Phase 9 (Provenance and Redirect Micro-Fixes) -- complete. All v1.0 gap closures done.
 
 ## Current Position
 
-Phase: 8 of 8 (Integration Bug Fixes) -- Complete
-Plan: 1 of 1 in Phase 8 -- Complete
-Status: All phases complete (25/25 plans)
-Last activity: 2026-02-23 -- Completed 08-01 (Integration Bug Fixes)
+Phase: 9 of 9 (Provenance and Redirect Micro-Fixes) -- Complete
+Plan: 1 of 1 in Phase 9 -- Complete
+Status: All phases complete (26/26 plans)
+Last activity: 2026-02-23 -- Completed 09-01 (Provenance and Redirect Micro-Fixes)
 
-Progress: [████████████████████] 100% (25/25 plans complete across 8 phases)
+Progress: [████████████████████] 100% (26/26 plans complete across 9 phases)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 25
+- Total plans completed: 26
 - Average duration: 5min
 - Total execution time: ~2 hours
 
@@ -35,9 +35,10 @@ Progress: [████████████████████] 100% (2
 | 6. User and Team Management | 4 | 22min | 6min |
 | 7. Route Protection and Provenance | 2/2 | 8min | 4min |
 | 8. Integration Bug Fixes | 1/1 | 2min | 2min |
+| 9. Provenance and Redirect Micro-Fixes | 1/1 | 1min | 1min |
 
 **Recent Trend:**
-- Last 5 plans: 6min, 6min, 3min, 5min, 2min
+- Last 5 plans: 6min, 3min, 5min, 2min, 1min
 - Trend: stable
 
 *Updated after each plan completion*
@@ -133,10 +134,11 @@ Recent decisions affecting current work:
 - [07-02]: API health endpoint (/api/health) intentionally left public for Docker healthchecks
 - [08-01]: on_complete callback is fire-and-forget (exception logged, never propagated) matching webhook dispatch semantics
 - [08-01]: webhook_service creation reordered before validation_queue in lifespan for dependency ordering
+- [09-01]: AUTH-03-cosmetic already resolved by Phase 7 Plan 01 (commit 8af1e65) -- no code change needed
 
 ### Pending Todos
 
-None -- all phases complete.
+None -- all phases complete (including gap closure phases 7-9).
 
 ### Roadmap Evolution
 
@@ -151,5 +153,5 @@ None -- all phases complete.
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 08-01-PLAN.md (Integration Bug Fixes) -- Phase 8 complete, all v1.0 phases done
-Resume file: Project complete -- all 25 plans across 8 phases executed
+Stopped at: Completed 09-01-PLAN.md (Provenance and Redirect Micro-Fixes) -- Phase 9 complete, all v1.0 gap closures done
+Resume file: Project complete -- all 26 plans across 9 phases executed
