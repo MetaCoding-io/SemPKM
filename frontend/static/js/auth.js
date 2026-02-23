@@ -40,7 +40,7 @@ async function checkAuthStatus() {
     if (data.setup_complete && !isAuthPage) {
       var meResp = await fetch("/api/auth/me");
       if (meResp.status === 401) {
-        window.location.href = "/login.html";
+        window.location.href = "/login.html?next=" + encodeURIComponent(window.location.pathname);
         return;
       }
     }
@@ -166,7 +166,9 @@ function handleLoginForm() {
         if (verifyResp.ok) {
           showAuthMessage(messageEl, "Login successful! Redirecting...", "success");
           setTimeout(function () {
-            window.location.href = "/";
+            var params = new URLSearchParams(window.location.search);
+            var nextUrl = params.get("next");
+            window.location.href = nextUrl || "/";
           }, 1000);
         } else {
           var verifyData = await verifyResp.json();
@@ -231,7 +233,9 @@ async function handleVerifyToken() {
       "success"
     );
     setTimeout(function () {
-      window.location.href = "/";
+      var nextParams = new URLSearchParams(window.location.search);
+      var nextUrl = nextParams.get("next");
+      window.location.href = nextUrl || "/";
     }, 1500);
   } catch (err) {
     showAuthMessage(messageEl, "Network error: " + err.message, "error");
@@ -303,7 +307,9 @@ async function handleInviteAccept() {
       "success"
     );
     setTimeout(function () {
-      window.location.href = "/";
+      var nextParams = new URLSearchParams(window.location.search);
+      var nextUrl = nextParams.get("next");
+      window.location.href = nextUrl || "/";
     }, 2000);
   } catch (err) {
     showAuthMessage(messageEl, "Network error: " + err.message, "error");
