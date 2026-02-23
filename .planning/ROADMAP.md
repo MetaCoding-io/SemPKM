@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Admin Shell and Object Creation** - First user-facing surfaces: admin portal, IDE workspace, SHACL-driven forms, object pages, and lint panel (completed 2026-02-22)
 - [x] **Phase 5: Data Browsing and Visualization** - Table, cards, and graph renderers with view spec execution completing the create/browse/explore loop (completed 2026-02-22)
 - [x] **Phase 6: User and Team Management** - Passwordless auth, owner/member/guest RBAC, event provenance, SQL data layer for multi-tenant cloud readiness (completed 2026-02-22)
-- [ ] **Phase 7: Route Protection and Provenance** - Gap closure: server-side auth on browser/views/admin routes, user provenance on browser writes
+- [x] **Phase 7: Route Protection and Provenance** - Gap closure: server-side auth on browser/views/admin routes, user provenance on browser writes
 - [ ] **Phase 8: Integration Bug Fixes** - Gap closure: validation.completed webhook dispatch, cards view URL mismatch fix
 
 ## Phase Details
@@ -123,7 +123,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 4. Admin Shell and Object Creation | 6/6 | Complete    | 2026-02-22 |
 | 5. Data Browsing and Visualization | 3/3 | Complete    | 2026-02-22 |
 | 6. User and Team Management | 4/4 | Complete    | 2026-02-22 |
-| 7. Route Protection and Provenance | 1/2 | In Progress | — |
+| 7. Route Protection and Provenance | 2/2 | Complete    | 2026-02-22 |
 | 8. Integration Bug Fixes | 0/? | Pending     | — |
 
 ### Phase 6: User and Team Management for Multi-Tenant Cloud Readiness
@@ -162,7 +162,7 @@ Plans:
 
 Plans:
 - [x] 07-01-PLAN.md -- Auth error handling infrastructure (custom exception handler, 403 template, EventStore provenance extension, frontend ?next= redirect-back)
-- [ ] 07-02-PLAN.md -- Route protection and provenance wiring (auth deps on all 31 HTML endpoints, provenance on 3 browser write endpoints)
+- [x] 07-02-PLAN.md -- Route protection and provenance wiring (auth deps on all 31 HTML endpoints, provenance on 3 browser write endpoints)
 
 ### Phase 8: Integration Bug Fixes
 **Goal:** Fix remaining integration issues: wire validation.completed webhook dispatch and fix cards view URL mismatch

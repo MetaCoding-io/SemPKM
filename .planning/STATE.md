@@ -9,17 +9,17 @@ See: .planning/PROJECT.md (updated 2026-02-21)
 
 ## Current Position
 
-Phase: 7 of 8 (Route Protection and Provenance)
-Plan: 1 of 2 in Phase 7 -- Complete
-Status: Executing gap closure phases (23/24 plans)
-Last activity: 2026-02-22 -- Completed 07-01 (Auth Infrastructure)
+Phase: 7 of 8 (Route Protection and Provenance) -- Complete
+Plan: 2 of 2 in Phase 7 -- Complete
+Status: Executing gap closure phases (24/24 plans)
+Last activity: 2026-02-22 -- Completed 07-02 (Route Protection)
 
-Progress: [███████████████████ ] 96% (23/24 plans complete across 8 phases)
+Progress: [████████████████████] 100% (24/24 plans complete across 8 phases)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 23
+- Total plans completed: 24
 - Average duration: 5min
 - Total execution time: ~2 hours
 
@@ -33,10 +33,10 @@ Progress: [███████████████████ ] 96% (23/2
 | 4. Admin Shell and Object Creation | 6 | 34min | 6min |
 | 5. Data Browsing and Visualization | 3 | 15min | 5min |
 | 6. User and Team Management | 4 | 22min | 6min |
-| 7. Route Protection and Provenance | 1/2 | 3min | 3min |
+| 7. Route Protection and Provenance | 2/2 | 8min | 4min |
 
 **Recent Trend:**
-- Last 5 plans: 4min, 4min, 6min, 6min, 3min
+- Last 5 plans: 4min, 6min, 6min, 3min, 5min
 - Trend: stable
 
 *Updated after each plan completion*
@@ -128,6 +128,8 @@ Recent decisions affecting current work:
 - [07-01]: 403 template is standalone HTML (not extending base.html) since user may not have sidebar access
 - [07-01]: Exception handler uses /api/ path prefix for HTML vs API routing distinction
 - [07-01]: HTMX requests detected via HX-Request header for inline error fragments
+- [07-02]: views/explorer endpoint protected even though not in plan (security completeness)
+- [07-02]: API health endpoint (/api/health) intentionally left public for Docker healthchecks
 
 ### Pending Todos
 
@@ -146,5 +148,5 @@ None -- executing Phase 7 gap closure plans.
 ## Session Continuity
 
 Last session: 2026-02-22
-Stopped at: Completed 07-01-PLAN.md (Auth Infrastructure)
-Resume file: .planning/phases/07-route-protection-and-provenance/07-02-PLAN.md
+Stopped at: Completed 07-02-PLAN.md (Route Protection) -- Phase 7 complete
+Resume file: Phase 8 (if planned) or project complete
