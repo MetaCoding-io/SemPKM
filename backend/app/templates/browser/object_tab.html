@@ -2,6 +2,7 @@
    Rendered as htmx partial for the center pane editor area.
    Accepts: form (NodeShapeForm), values (dict), object_iri, object_label, body_text #}
 
+{% set safe_id = object_iri | urlencode | replace('%', '_') %}
 <div class="object-tab" data-object-iri="{{ object_iri }}">
   {# Toolbar: save button #}
   <div class="object-toolbar">
@@ -14,9 +15,9 @@
   </div>
 
   {# Split view container: form on top, editor below #}
-  <div class="object-split" id="object-split-{{ object_iri | urlencode }}">
+  <div class="object-split" id="object-split-{{ safe_id }}">
     {# Top section: SHACL-driven properties form #}
-    <div class="object-form-section" id="form-section">
+    <div class="object-form-section" id="form-section-{{ safe_id }}">
       {% if form %}
       {% include "forms/object_form.html" %}
       {% else %}
@@ -27,7 +28,7 @@
     </div>
 
     {# Bottom section: Markdown body editor #}
-    <div class="object-editor-section" id="editor-section">
+    <div class="object-editor-section" id="editor-section-{{ safe_id }}">
       <div class="editor-toolbar">
         <button type="button" class="editor-btn" onclick="editorAction('bold')" title="Bold (Ctrl+B)"><b>B</b></button>
         <button type="button" class="editor-btn" onclick="editorAction('italic')" title="Italic (Ctrl+I)"><i>I</i></button>
@@ -36,9 +37,18 @@
         <span class="editor-toolbar-separator"></span>
         <span class="editor-status" id="editor-status"></span>
       </div>
-      <div class="codemirror-container" id="body-editor-{{ object_iri | urlencode }}"
+      <div class="editor-skeleton" id="skeleton-{{ safe_id }}">
+        <div class="skeleton-line" style="width: 80%"></div>
+        <div class="skeleton-line" style="width: 60%"></div>
+        <div class="skeleton-line" style="width: 90%"></div>
+        <div class="skeleton-line" style="width: 45%"></div>
+        <div class="skeleton-line" style="width: 70%"></div>
+      </div>
+      <div class="codemirror-container" id="body-editor-{{ safe_id }}"
            data-object-iri="{{ object_iri }}"
            data-initial-content="{{ body_text | e }}"></div>
+      <textarea class="body-fallback" id="body-fallback-{{ safe_id }}"
+                data-object-iri="{{ object_iri }}">{{ body_text | e }}</textarea>
     </div>
   </div>
 </div>
@@ -56,24 +66,70 @@
     overflow-y: auto;
     min-height: 0;
   }
+  .body-fallback {
+    display: none;
+    width: 100%;
+    height: 100%;
+    min-height: 160px;
+    border: 1px solid var(--color-border, #e0e0e0);
+    border-top: none;
+    padding: 10px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: 0.85rem;
+    resize: vertical;
+  }
 </style>
 
-<script type="module">
-  // Initialize CodeMirror editor for this object after template swap
-  import { initEditor } from '/js/editor.js';
-
+<script>
   (function() {
-    var containerId = 'body-editor-{{ object_iri | urlencode }}';
-    var container = document.getElementById(containerId);
-    if (container) {
+    var containerId = 'body-editor-{{ safe_id }}';
+    var formId = 'form-section-{{ safe_id }}';
+    var editorId = 'editor-section-{{ safe_id }}';
+    var fallbackId = 'body-fallback-{{ safe_id }}';
+    var skeletonId = 'skeleton-{{ safe_id }}';
+
+    function initBodyEditor() {
+      var container = document.getElementById(containerId);
+      if (!container) return false;
+
       var initialContent = container.dataset.initialContent || '';
       var objectIri = container.dataset.objectIri || '';
-      initEditor(containerId, initialContent, objectIri);
+
+      if (typeof window.initEditor === 'function') {
+        window.initEditor(containerId, initialContent, objectIri);
+        return true;
+      }
+      return false;
     }
 
-    // Initialize vertical Split.js for form/editor sections
-    if (typeof Split !== 'undefined') {
-      Split(['#form-section', '#editor-section'], {
+    function enableFallback() {
+      var skeleton = document.getElementById(skeletonId);
+      if (skeleton) skeleton.style.display = 'none';
+
+      var fallback = document.getElementById(fallbackId);
+      if (!fallback) return;
+
+      var msg = document.createElement('div');
+      msg.className = 'editor-fallback-message';
+      msg.textContent = 'Editor failed to load. Using plain text editor.';
+      fallback.parentNode.insertBefore(msg, fallback);
+
+      fallback.style.display = 'block';
+      fallback.addEventListener('input', function () {
+        if (typeof window.markDirty === 'function') {
+          window.markDirty(fallback.dataset.objectIri || '');
+        }
+      });
+    }
+
+    function hideSkeleton() {
+      var skeleton = document.getElementById(skeletonId);
+      if (skeleton) skeleton.style.display = 'none';
+    }
+
+    function initVerticalSplit() {
+      if (typeof Split === 'undefined') return;
+      Split(['#' + formId, '#' + editorId], {
         sizes: [40, 60],
         minSize: [100, 100],
         gutterSize: 5,
@@ -81,5 +137,34 @@
         cursor: 'row-resize'
       });
     }
+
+    // Try immediate init (editor.js may already be loaded)
+    if (initBodyEditor()) {
+      hideSkeleton();
+    } else {
+      // Load editor module via dynamic import with 3-second timeout
+      var timeout = new Promise(function(_, reject) {
+        setTimeout(function() { reject(new Error('Editor load timeout')); }, 3000);
+      });
+      var load = import('/js/editor.js').then(function(mod) {
+        if (mod && typeof mod.initEditor === 'function') {
+          window.initEditor = mod.initEditor;
+          window.editorAction = mod.editorAction;
+          window.getEditor = mod.getEditor;
+          window.destroyEditor = mod.destroyEditor;
+        }
+        return initBodyEditor();
+      });
+      Promise.race([load, timeout])
+        .then(function(result) {
+          hideSkeleton();
+          if (!result) enableFallback();
+        })
+        .catch(function() {
+          enableFallback();
+        });
+    }
+
+    initVerticalSplit();
   })();
 </script>
