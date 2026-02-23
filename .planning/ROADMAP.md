@@ -20,6 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 6: User and Team Management** - Passwordless auth, owner/member/guest RBAC, event provenance, SQL data layer for multi-tenant cloud readiness (completed 2026-02-22)
 - [x] **Phase 7: Route Protection and Provenance** - Gap closure: server-side auth on browser/views/admin routes, user provenance on browser writes
 - [x] **Phase 8: Integration Bug Fixes** - Gap closure: validation.completed webhook dispatch, cards view URL mismatch fix (completed 2026-02-23)
+- [ ] **Phase 9: Provenance and Redirect Micro-Fixes** - Gap closure: API command path role provenance, invite acceptance ?next= redirect
 
 ## Phase Details
 
@@ -113,7 +114,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -124,7 +125,8 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 5. Data Browsing and Visualization | 3/3 | Complete    | 2026-02-22 |
 | 6. User and Team Management | 4/4 | Complete    | 2026-02-22 |
 | 7. Route Protection and Provenance | 2/2 | Complete    | 2026-02-23 |
-| 8. Integration Bug Fixes | 0/? | Complete    | 2026-02-23 |
+| 8. Integration Bug Fixes | 1/1 | Complete    | 2026-02-23 |
+| 9. Provenance and Redirect Micro-Fixes | 0/? | Pending | — |
 
 ### Phase 6: User and Team Management for Multi-Tenant Cloud Readiness
 
@@ -179,6 +181,16 @@ Plans:
 Plans:
 - [ ] 08-01-PLAN.md — Validation.completed webhook dispatch and cards view URL verification
 
+### Phase 9: Provenance and Redirect Micro-Fixes
+**Goal:** Close the 2 remaining low-severity integration gaps from the v1.0 re-audit: add performed_by_role to API command commit path and honor ?next= in invite acceptance redirect
+**Depends on:** Phase 8
+**Requirements:** Closes PROV-02-partial and AUTH-03-cosmetic from v1.0 re-audit
+**Gap Closure:** Addresses missing role provenance on API commands and invite acceptance ?next= redirect
+**Success Criteria** (what must be TRUE):
+  1. POST /api/commands passes performed_by_role=user.role to EventStore.commit() (matching the pattern in browser/router.py)
+  2. handleInviteAccept in auth.js reads ?next= parameter and redirects to the original URL after successful invitation acceptance
+**Plans:** TBD
+
 ---
 *Roadmap created: 2026-02-21*
-*Last updated: 2026-02-22 after Phase 8 planning*
+*Last updated: 2026-02-23 after gap closure phase 9 added from re-audit*
