@@ -8,9 +8,10 @@ content updates.
 """
 
 import logging
+from datetime import datetime
 from urllib.parse import unquote
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import HTMLResponse
 from rdflib import URIRef
 
@@ -30,6 +31,15 @@ from app.validation.queue import AsyncValidationQueue
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/browser", tags=["browser"])
+
+
+def _format_date(value: str) -> str:
+    """Format ISO date string to human-readable: 'Feb 23, 2026'."""
+    try:
+        dt = datetime.fromisoformat(str(value))
+        return dt.strftime("%b %d, %Y")
+    except (ValueError, TypeError):
+        return str(value)
 
 
 def _is_htmx_request(request: Request) -> bool:
@@ -111,18 +121,23 @@ async def tree_children(
 async def get_object(
     request: Request,
     object_iri: str,
+    mode: str = Query(default="read"),
     user: User = Depends(get_current_user),
     shapes_service: ShapesService = Depends(get_shapes_service),
     label_service: LabelService = Depends(get_label_service),
     client: TriplestoreClient = Depends(get_triplestore_client),
 ):
-    """Render an object in the editor area with properties form and body editor.
+    """Render an object in the editor area with read-only view or edit form.
 
     Queries the object's current property values and body text from the
-    triplestore, resolves its type, fetches SHACL form metadata, and
-    renders the object_tab.html split view.
+    triplestore, resolves its type, fetches SHACL form metadata, resolves
+    reference labels and tooltips, and renders the object_tab.html with
+    flip container for read/edit mode switching.
     """
     templates = request.app.state.templates
+    # Register the format_date filter if not already present
+    templates.env.filters.setdefault("format_date", _format_date)
+
     decoded_iri = unquote(object_iri)
 
     props_sparql = f"""
@@ -140,7 +155,7 @@ async def get_object(
         logger.warning("Failed to query object %s", decoded_iri, exc_info=True)
         bindings = []
 
-    values: dict[str, str] = {}
+    values: dict[str, list[str]] = {}
     type_iris: list[str] = []
     body_text = ""
     rdf_type = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
@@ -155,7 +170,9 @@ async def get_object(
         elif pred == sempkm_body:
             body_text = obj_val
         else:
-            values[pred] = obj_val
+            if pred not in values:
+                values[pred] = []
+            values[pred].append(obj_val)
 
     form = None
     if type_iris:
@@ -164,6 +181,33 @@ async def get_object(
             if form:
                 break
 
+    # Resolve reference labels and tooltips for read-only view
+    ref_iris: set[str] = set()
+    type_class_iris: set[str] = set()
+    ref_type_map: dict[str, str] = {}  # ref IRI -> target_class IRI
+    if form:
+        for prop in form.properties:
+            if prop.target_class and prop.path in values:
+                type_class_iris.add(prop.target_class)
+                for v in values[prop.path]:
+                    if v.startswith("http") or v.startswith("urn:"):
+                        ref_iris.add(v)
+                        ref_type_map[v] = prop.target_class
+
+    ref_labels = await label_service.resolve_batch(list(ref_iris)) if ref_iris else {}
+    type_labels = await label_service.resolve_batch(list(type_class_iris)) if type_class_iris else {}
+
+    # Build tooltip: "TypeLabel: ObjectLabel"
+    ref_tooltips: dict[str, str] = {}
+    for iri in ref_iris:
+        obj_label = ref_labels.get(iri, iri)
+        type_iri = ref_type_map.get(iri, "")
+        type_label = type_labels.get(type_iri, "")
+        if type_label:
+            ref_tooltips[iri] = f"{type_label}: {obj_label}"
+        else:
+            ref_tooltips[iri] = obj_label
+
     labels = await label_service.resolve_batch([decoded_iri])
     object_label = labels.get(decoded_iri, decoded_iri)
 
@@ -171,10 +215,12 @@ async def get_object(
         "request": request,
         "form": form,
         "values": values,
+        "ref_labels": ref_labels,
+        "ref_tooltips": ref_tooltips,
         "object_iri": decoded_iri,
         "object_label": object_label,
         "body_text": body_text,
-        "mode": "edit",
+        "mode": mode,
     }
 
     return templates.TemplateResponse(
