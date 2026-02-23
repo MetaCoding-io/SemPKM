@@ -3,10 +3,12 @@
 import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
+from urllib.parse import quote
 
 import httpx
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from jinja2_fragments.fastapi import Jinja2Blocks
 
 from app.admin.router import router as admin_router
@@ -163,6 +165,59 @@ app = FastAPI(
 # Jinja2 template engine with block-level rendering for htmx partials
 templates = Jinja2Blocks(directory=Path(__file__).parent / "templates")
 app.state.templates = templates
+
+def _is_html_route(path: str) -> bool:
+    """Return True for HTML routes, False for API routes."""
+    return not path.startswith("/api/")
+
+
+@app.exception_handler(HTTPException)
+async def auth_exception_handler(request: Request, exc: HTTPException):
+    """Route auth errors to appropriate response format.
+
+    - API routes (/api/*): always JSON (no interception)
+    - HTML routes with 401:
+        - HTMX partial requests: inline error fragment
+        - Full page requests: 302 redirect to /login.html?next=...
+    - HTML routes with 403:
+        - HTMX partial requests: inline error fragment
+        - Full page requests: styled 403.html template
+    - All other status codes: JSON response
+    """
+    path = request.url.path
+    is_htmx = request.headers.get("HX-Request") == "true"
+
+    if _is_html_route(path):
+        if exc.status_code == 401:
+            if is_htmx:
+                return HTMLResponse(
+                    content='<div class="auth-error">Session expired. '
+                    '<a href="/login.html">Log in again</a></div>',
+                    status_code=401,
+                )
+            return RedirectResponse(
+                url=f"/login.html?next={quote(str(request.url.path), safe='/')}",
+                status_code=302,
+            )
+        if exc.status_code == 403:
+            if is_htmx:
+                return HTMLResponse(
+                    content='<div class="auth-error">Access denied. '
+                    "You do not have permission for this action.</div>",
+                    status_code=403,
+                )
+            return templates.TemplateResponse(
+                request,
+                "errors/403.html",
+                {"request": request},
+                status_code=403,
+            )
+
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail},
+    )
+
 
 # CORS middleware for dev console access
 app.add_middleware(
