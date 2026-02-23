@@ -126,7 +126,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 6. User and Team Management | 4/4 | Complete    | 2026-02-22 |
 | 7. Route Protection and Provenance | 2/2 | Complete    | 2026-02-23 |
 | 8. Integration Bug Fixes | 1/1 | Complete    | 2026-02-23 |
-| 9. Provenance and Redirect Micro-Fixes | 0/? | Pending | — |
+| 9. Provenance and Redirect Micro-Fixes | 0/1 | Pending | — |
 
 ### Phase 6: User and Team Management for Multi-Tenant Cloud Readiness
 
@@ -189,7 +189,10 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. POST /api/commands passes performed_by_role=user.role to EventStore.commit() (matching the pattern in browser/router.py)
   2. handleInviteAccept in auth.js reads ?next= parameter and redirects to the original URL after successful invitation acceptance
-**Plans:** TBD
+**Plans:** 1 plan
+
+Plans:
+- [ ] 09-01-PLAN.md — API command provenance fix (performed_by_role) and invite ?next= redirect verification
 
 ---
 *Roadmap created: 2026-02-21*
