@@ -7,14 +7,17 @@
 <div class="object-tab" data-object-iri="{{ object_iri }}">
   {# Toolbar: mode toggle + save button #}
   <div class="object-toolbar">
-    <span class="object-toolbar-title" title="{{ object_iri }}">{{ object_label }}</span>
+    <span class="object-toolbar-title">{{ object_label }}</span>
+    {% if object_type_label %}
+    <span class="object-toolbar-type" title="{{ object_iri }}" data-iri="{{ object_iri }}">{{ object_type_label }}</span>
+    {% endif %}
     <div class="object-toolbar-actions">
       <button class="btn btn-sm mode-toggle" id="mode-toggle-{{ safe_id }}"
               onclick="toggleObjectMode('{{ safe_id }}', '{{ object_iri }}')"
               title="Toggle Edit (Ctrl+E)">
         Edit
       </button>
-      <button class="btn btn-sm btn-primary" id="save-btn-{{ safe_id }}"
+      <button class="btn btn-sm btn-save" id="save-btn-{{ safe_id }}"
               onclick="saveCurrentObject()" title="Save (Ctrl+S)" style="display: none;">
         Save
       </button>
@@ -67,9 +70,11 @@
             </div>
             <div class="codemirror-container" id="body-editor-{{ safe_id }}"
                  data-object-iri="{{ object_iri }}"
+                 data-body-predicate="{{ body_predicate | default('urn:sempkm:body') }}"
                  data-initial-content="{{ body_text | e }}"></div>
             <textarea class="body-fallback" id="body-fallback-{{ safe_id }}"
-                      data-object-iri="{{ object_iri }}">{{ body_text | e }}</textarea>
+                      data-object-iri="{{ object_iri }}"
+                      data-body-predicate="{{ body_predicate | default('urn:sempkm:body') }}">{{ body_text | e }}</textarea>
           </div>
         </div>
       </div>
@@ -111,6 +116,18 @@
     var formId = 'form-section-' + safeId;
     var editorId = 'editor-section-' + safeId;
     var fallbackId = 'body-fallback-' + safeId;
+
+    // Click-to-copy IRI from type badge
+    var typeEl = document.querySelector('.object-tab[data-object-iri="{{ object_iri }}"] .object-toolbar-type');
+    if (typeEl) {
+      typeEl.addEventListener('click', function() {
+        navigator.clipboard.writeText(typeEl.dataset.iri).then(function() {
+          var orig = typeEl.textContent;
+          typeEl.textContent = 'Copied!';
+          setTimeout(function() { typeEl.textContent = orig; }, 1200);
+        });
+      });
+    }
     var skeletonId = 'skeleton-' + safeId;
 
     // Editor maximize/restore toggle (per-tab state)
