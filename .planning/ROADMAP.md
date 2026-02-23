@@ -19,7 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 5: Data Browsing and Visualization** - Table, cards, and graph renderers with view spec execution completing the create/browse/explore loop (completed 2026-02-22)
 - [x] **Phase 6: User and Team Management** - Passwordless auth, owner/member/guest RBAC, event provenance, SQL data layer for multi-tenant cloud readiness (completed 2026-02-22)
 - [x] **Phase 7: Route Protection and Provenance** - Gap closure: server-side auth on browser/views/admin routes, user provenance on browser writes
-- [ ] **Phase 8: Integration Bug Fixes** - Gap closure: validation.completed webhook dispatch, cards view URL mismatch fix
+- [x] **Phase 8: Integration Bug Fixes** - Gap closure: validation.completed webhook dispatch, cards view URL mismatch fix (completed 2026-02-23)
 
 ## Phase Details
 
@@ -124,7 +124,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 5. Data Browsing and Visualization | 3/3 | Complete    | 2026-02-22 |
 | 6. User and Team Management | 4/4 | Complete    | 2026-02-22 |
 | 7. Route Protection and Provenance | 2/2 | Complete    | 2026-02-23 |
-| 8. Integration Bug Fixes | 0/? | Pending     | — |
+| 8. Integration Bug Fixes | 0/? | Complete    | 2026-02-23 |
 
 ### Phase 6: User and Team Management for Multi-Tenant Cloud Readiness
 
@@ -174,7 +174,7 @@ Plans:
   2. WebhookService dispatches validation.completed events to configured webhooks
   3. workspace.js openViewTab() uses correct URL path for cards view (/views/card/ singular)
   4. Opening a cards view from the command palette or workspace tab system renders correctly (no 404)
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [ ] 08-01-PLAN.md — Validation.completed webhook dispatch and cards view URL verification
