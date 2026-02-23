@@ -38,17 +38,23 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ### Active
 
-<!-- Next milestone candidates. -->
+<!-- v2.0 "Tighten Web UI" scope -->
 
-- [ ] Dashboards: parameterized panels, type-based registry (objectSelf, view, lintSummary, markdown)
-- [ ] Sidebar logout button with VS Code-style user menu
-- [ ] Improved 403 error display in workspace content area
-- [ ] Full-text search across objects
-- [ ] JSON-LD export for objects/collections
-- [ ] Edge model enhancements: edge inspector panel, inline wiki-link-speed creation
-- [ ] Backlinks panel (incoming references for any object)
-- [ ] Cookie secure=True for production deployment
-- [ ] SMTP integration for magic link delivery (currently logged to console)
+- [ ] Bug fixes: body content loading, editor editability, autocomplete dropdown, views explorer loading
+- [ ] Read-only object view (styled properties + rendered Markdown body) with Edit button for form mode
+- [ ] Resizable body text area in edit mode
+- [ ] VS Code-style split panes (drag tabs to create editor groups)
+- [ ] Bottom panel infrastructure (tabbed placeholder)
+- [ ] Collapsible sidebar with reorganized navigation (Home, Admin, Meta, Apps, Debug)
+- [ ] VS Code-style user menu at bottom of sidebar (logout, settings)
+- [ ] Styled 403 permission panel (replace minimal HTMX error fragment)
+- [ ] Dark mode with theme toggle
+- [ ] Global settings system (VS Code-style: global + mental model/app-contributed settings)
+- [ ] Node type icons in graph view and object explorer
+- [ ] Event log explorer (timeline, filtering, diff view, undo)
+- [ ] LLM connection configuration (generic OpenAI-compatible API)
+- [ ] User documentation page with Shepherd.js tutorial infrastructure (1-2 basic tutorials)
+- [ ] More rounded tab styling
 
 ### Out of Scope
 
@@ -63,9 +69,22 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - 3D graph visualization — experimental, deferred
 - SPARQL UPDATE as external write surface — by design (bypasses event sourcing)
 - Real-time collaborative editing — CRDT/OT complexity, v2+ at earliest
-- AI/LLM integration — SemPKM's moat is semantic structure, not AI, v2+
+- Workflow engine (n8n-style built-in workflows) — v2.1+
+- AI Copilot functionality (chat, SPARQL generation, writing assistance) — v2.1+ (placeholder tab in v2.0)
 - Mobile native app — web-first, responsive design and eventual PWA
 - Ontology editor — consume via Mental Models; use Protege for authoring
+
+## Current Milestone: v2.0 Tighten Web UI
+
+**Goal:** Polish the web UI into a product-grade experience with bug fixes, read-only object views, VS Code-style split panes, sidebar reorganization, dark mode, settings system, and LLM connection configuration.
+
+**Target features:**
+- Fix critical UX bugs (body loading, editor editability, autocomplete, views explorer)
+- Read-only object page with Edit button
+- VS Code-style split panes and bottom panel
+- Collapsible sidebar with reorganized navigation and user menu
+- Dark mode, global settings system, node type icons
+- Event log explorer, LLM connection config, docs/tutorial infrastructure
 
 ## Context
 
@@ -114,4 +133,4 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 | Private-by-default cross-model embedding | Explicit exports prevent accidental coupling between Mental Models | — Pending (not yet exercised with multiple models) |
 
 ---
-*Last updated: 2026-02-23 after v1.0 milestone*
+*Last updated: 2026-02-23 after v2.0 milestone start*
