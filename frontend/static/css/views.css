@@ -441,6 +441,7 @@
 /* --- Graph View --- */
 
 .graph-container {
+    position: relative;
     width: 100%;
     height: calc(100% - 90px);
     min-height: 400px;
@@ -503,6 +504,108 @@
     min-height: 200px;
     color: var(--color-text-muted, #666);
     font-size: 0.9rem;
+}
+
+/* Simple edge tooltip */
+.graph-tooltip {
+    display: none;
+    position: absolute;
+    background: rgba(30, 30, 30, 0.92);
+    color: #f0f0f0;
+    font-size: 0.78rem;
+    padding: 6px 10px;
+    border-radius: 4px;
+    white-space: nowrap;
+    max-width: 400px;
+    pointer-events: none;
+    z-index: 100;
+    line-height: 1.4;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+/* Rich node popover bubble */
+.graph-popover {
+    display: none;
+    position: absolute;
+    background: var(--color-surface, #fff);
+    border: 1px solid var(--color-border, #ddd);
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    min-width: 200px;
+    max-width: 320px;
+    z-index: 200;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.graph-popover-header {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 10px 14px 8px;
+    border-bottom: 1px solid var(--color-border, #eee);
+}
+
+.graph-popover-label {
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: var(--color-text, #1a1a2e);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.graph-popover-type {
+    font-size: 0.72rem;
+    color: #fff;
+    background: var(--color-primary, #2d5a9e);
+    padding: 1px 7px;
+    border-radius: 10px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.graph-popover-props {
+    padding: 6px 14px 10px;
+}
+
+.graph-popover-prop {
+    display: flex;
+    gap: 6px;
+    padding: 3px 0;
+    font-size: 0.82rem;
+    line-height: 1.4;
+}
+
+.graph-popover-prop-name {
+    font-weight: 600;
+    color: var(--color-text-muted, #666);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.graph-popover-prop-name::after {
+    content: ':';
+}
+
+.graph-popover-prop-val {
+    color: var(--color-text, #1a1a2e);
+    word-break: break-word;
+}
+
+.graph-popover-iri {
+    font-family: monospace;
+    font-size: 0.75rem;
+    color: var(--color-text-muted, #888);
+    word-break: break-all;
+}
+
+.graph-popover-empty {
+    padding: 8px 14px 10px;
+    font-size: 0.82rem;
+    color: var(--color-text-muted, #999);
+    font-style: italic;
 }
 
 /* --- View Menu (All Views) --- */

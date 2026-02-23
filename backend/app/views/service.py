@@ -782,7 +782,7 @@ WHERE {{
             return {"nodes": [], "edges": [], "type_colors": {}}
 
         # Track nodes and edges
-        nodes_dict: dict[str, dict] = {}  # IRI -> {id, types, label}
+        nodes_dict: dict[str, dict] = {}  # IRI -> {id, types, label, properties}
         edges: list[dict] = []
 
         for s, p, o in g:
@@ -791,7 +791,7 @@ WHERE {{
 
             # Ensure subject is a node
             if s_str not in nodes_dict:
-                nodes_dict[s_str] = {"id": s_str, "types": set(), "label": ""}
+                nodes_dict[s_str] = {"id": s_str, "types": set(), "label": "", "properties": []}
 
             if p_str == str(RDF.type) and isinstance(o, URIRef):
                 # rdf:type triple -- add type to node
@@ -800,7 +800,7 @@ WHERE {{
                 # Object property -- create edge and ensure target is a node
                 o_str = str(o)
                 if o_str not in nodes_dict:
-                    nodes_dict[o_str] = {"id": o_str, "types": set(), "label": ""}
+                    nodes_dict[o_str] = {"id": o_str, "types": set(), "label": "", "properties": []}
 
                 edges.append({
                     "source": s_str,
@@ -812,9 +812,12 @@ WHERE {{
                 if p_str in LABEL_PROPERTIES:
                     pass  # URIRef objects are not label values
             else:
-                # Datatype property -- check if it's a label property
+                # Datatype property -- store for tooltips
+                o_val = str(o)
+                nodes_dict[s_str]["properties"].append((p_str, o_val))
+                # Check if it's a label property
                 if p_str in LABEL_PROPERTIES and not nodes_dict[s_str]["label"]:
-                    nodes_dict[s_str]["label"] = str(o)
+                    nodes_dict[s_str]["label"] = o_val
 
         # Resolve labels for nodes without label properties via LabelService
         iris_needing_labels = [
@@ -825,10 +828,40 @@ WHERE {{
             for iri in iris_needing_labels:
                 nodes_dict[iri]["label"] = resolved.get(iri, _local_name(iri))
 
-        # Resolve predicate labels for edges
-        pred_iris = list({e["predicate"] for e in edges})
-        if pred_iris:
-            pred_labels = await self._label_service.resolve_batch(pred_iris)
+        # Supplement: fetch all literal properties for graph nodes from current graph
+        # (CONSTRUCT results often only contain relationships + labels)
+        all_node_iris = list(nodes_dict.keys())
+        if all_node_iris:
+            values_clause = " ".join(f"<{iri}>" for iri in all_node_iris)
+            sup_query = f"""SELECT ?s ?p ?o
+FROM <urn:sempkm:current>
+WHERE {{
+  VALUES ?s {{ {values_clause} }}
+  ?s ?p ?o .
+  FILTER(isLiteral(?o))
+}}"""
+            try:
+                sup_result = await self._client.query(sup_query)
+                for b in sup_result.get("results", {}).get("bindings", []):
+                    s = b["s"]["value"]
+                    p = b["p"]["value"]
+                    o_val = b["o"]["value"]
+                    if s in nodes_dict:
+                        # Avoid duplicates from CONSTRUCT-parsed properties
+                        existing = {pi for pi, _ in nodes_dict[s]["properties"]}
+                        if p not in existing:
+                            nodes_dict[s]["properties"].append((p, o_val))
+            except Exception:
+                logger.warning("Supplementary properties query failed", exc_info=True)
+
+        # Resolve predicate labels for edges and node properties
+        pred_iris = set(e["predicate"] for e in edges)
+        for data in nodes_dict.values():
+            for p_iri, _ in data["properties"]:
+                pred_iris.add(p_iri)
+        pred_iris_list = list(pred_iris)
+        if pred_iris_list:
+            pred_labels = await self._label_service.resolve_batch(pred_iris_list)
         else:
             pred_labels = {}
 
@@ -847,23 +880,57 @@ WHERE {{
             else:
                 type_colors[t] = _color_for_type(t)
 
+        # Resolve type labels for tooltip display
+        type_labels = {}
+        if all_types:
+            type_labels = await self._label_service.resolve_batch(list(all_types))
+
         # Build output
         nodes_out = []
         for iri, data in nodes_dict.items():
             primary_type = next(iter(data["types"]), "")
+            # Resolve type label to short name
+            type_label = ""
+            if primary_type:
+                resolved_type = type_labels.get(primary_type, "")
+                if not resolved_type or ":" in resolved_type:
+                    type_label = _local_name(primary_type)
+                else:
+                    type_label = resolved_type
+            # Build tooltip properties (resolved labels, short names)
+            props = {}
+            for p_iri, p_val in data["properties"]:
+                if p_iri not in LABEL_PROPERTIES:
+                    resolved_p = pred_labels.get(p_iri, "")
+                    if not resolved_p or ":" in resolved_p:
+                        p_name = _local_name(p_iri)
+                    else:
+                        p_name = resolved_p
+                    props[p_name] = p_val
             nodes_out.append({
                 "id": iri,
                 "label": data["label"] or _local_name(iri),
                 "type": primary_type,
+                "type_label": type_label,
+                "properties": props,
             })
 
         edges_out = []
         for e in edges:
+            # Use resolved label if it's a real human-readable name,
+            # otherwise fall back to local name for short display
+            resolved = pred_labels.get(e["predicate"], "")
+            # QName fallbacks contain colons (e.g. "sempkm:model:basic-pkm:hasNote")
+            # — use _local_name for a short edge label instead
+            if not resolved or ":" in resolved:
+                short_label = _local_name(e["predicate"])
+            else:
+                short_label = resolved
             edges_out.append({
                 "source": e["source"],
                 "target": e["target"],
                 "predicate": e["predicate"],
-                "predicate_label": pred_labels.get(e["predicate"], _local_name(e["predicate"])),
+                "predicate_label": short_label,
             })
 
         return {
@@ -994,4 +1061,6 @@ def _local_name(iri: str) -> str:
         return iri.rsplit("#", 1)[-1]
     if "/" in iri:
         return iri.rsplit("/", 1)[-1]
+    if ":" in iri:
+        return iri.rsplit(":", 1)[-1]
     return iri
