@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-23)
 ## Current Position
 
 Phase: 12 of 18 (Sidebar and Navigation)
-Plan: Not yet planned
-Status: Phase 11 complete, ready for Phase 12
-Last activity: 2026-02-23 -- Completed Phase 11 (read-only object view with mode toggle, body unification, polish)
+Plan: 1 of 2
+Status: Executing Phase 12 plans
+Last activity: 2026-02-23 -- Completed 12-01 (sidebar restructure with grouped sections, Lucide icons, collapse toggle)
 
-Progress: [###░░░░░░░] 26% (v2.0) -- 11-02 complete (5/23 plans)
+Progress: [###░░░░░░░] 30% (v2.0) -- 12-01 complete (6/23 plans)
 
 ## Performance Metrics
 
@@ -31,6 +31,7 @@ Progress: [###░░░░░░░] 26% (v2.0) -- 11-02 complete (5/23 plans)
 | 10    | 03   | 2min     | 2     | 6     |
 | 11    | 01   | 4min     | 2     | 7     |
 | 11    | 02   | session  | 15    | 12    |
+| 12    | 01   | 4min     | 2     | 8     |
 
 ## Accumulated Context
 
@@ -57,6 +58,9 @@ v2.0 roadmap decisions:
 - (11-02) Body predicate unification: detect SHACL Body property by name, use model-specific path for save
 - (11-02) dcterms:created/modified excluded from edit form, modified auto-updated on save
 - (11-02) Lazy-loaded ref-pill popovers reuse graph-popover CSS for visual consistency
+- (12-01) Lucide icons via CDN with htmx:afterSwap re-initialization for dynamic content
+- (12-01) CSS custom property --sidebar-width drives synchronized sidebar/content transitions
+- (12-01) Ctrl+B remapped from Split.js pane toggle to sidebar collapse toggle
 
 ### Pending Todos
 
@@ -77,5 +81,5 @@ v2.0 roadmap decisions:
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed Phase 11 (all plans verified and committed)
-Resume: Plan and execute Phase 12 (Sidebar and Navigation)
+Stopped at: Completed 12-01-PLAN.md
+Resume: Execute 12-02 (user menu popover)
