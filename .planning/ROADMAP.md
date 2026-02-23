@@ -123,7 +123,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 4. Admin Shell and Object Creation | 6/6 | Complete    | 2026-02-22 |
 | 5. Data Browsing and Visualization | 3/3 | Complete    | 2026-02-22 |
 | 6. User and Team Management | 4/4 | Complete    | 2026-02-22 |
-| 7. Route Protection and Provenance | 0/? | Pending     | — |
+| 7. Route Protection and Provenance | 1/2 | In Progress | — |
 | 8. Integration Bug Fixes | 0/? | Pending     | — |
 
 ### Phase 6: User and Team Management for Multi-Tenant Cloud Readiness
@@ -161,7 +161,7 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 07-01-PLAN.md -- Auth error handling infrastructure (custom exception handler, 403 template, EventStore provenance extension, frontend ?next= redirect-back)
+- [x] 07-01-PLAN.md -- Auth error handling infrastructure (custom exception handler, 403 template, EventStore provenance extension, frontend ?next= redirect-back)
 - [ ] 07-02-PLAN.md -- Route protection and provenance wiring (auth deps on all 31 HTML endpoints, provenance on 3 browser write endpoints)
 
 ### Phase 8: Integration Bug Fixes

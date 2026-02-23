@@ -5,21 +5,21 @@
 See: .planning/PROJECT.md (updated 2026-02-21)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations -- no blank-page syndrome, no schema setup.
-**Current focus:** All v1 phases complete. 6/6 phases done.
+**Current focus:** Phase 7 (Route Protection and Provenance) -- gap closure for v1 hardening.
 
 ## Current Position
 
-Phase: 6 of 6 (User and Team Management) -- Complete
-Plan: 4 of 4 in Phase 6
-Status: All 6 phases complete (22/22 plans)
-Last activity: 2026-02-22 -- All phases complete
+Phase: 7 of 8 (Route Protection and Provenance)
+Plan: 1 of 2 in Phase 7 -- Complete
+Status: Executing gap closure phases (23/24 plans)
+Last activity: 2026-02-22 -- Completed 07-01 (Auth Infrastructure)
 
-Progress: [████████████████████] 100% (22/22 plans complete across 6 phases)
+Progress: [███████████████████ ] 96% (23/24 plans complete across 8 phases)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 22
+- Total plans completed: 23
 - Average duration: 5min
 - Total execution time: ~2 hours
 
@@ -33,9 +33,10 @@ Progress: [████████████████████] 100% (2
 | 4. Admin Shell and Object Creation | 6 | 34min | 6min |
 | 5. Data Browsing and Visualization | 3 | 15min | 5min |
 | 6. User and Team Management | 4 | 22min | 6min |
+| 7. Route Protection and Provenance | 1/2 | 3min | 3min |
 
 **Recent Trend:**
-- Last 5 plans: 5min, 4min, 4min, 6min, 6min
+- Last 5 plans: 4min, 4min, 6min, 6min, 3min
 - Trend: stable
 
 *Updated after each plan completion*
@@ -124,10 +125,13 @@ Recent decisions affecting current work:
 - [06-04-post]: API Docs (ReDoc + Swagger) loaded in iframe within content area, not new page
 - [06-04-post]: main:not(.content-area) CSS selector to avoid 960px width cap on dashboard pages
 - [06-04-post]: Debug router serves /sparql and /commands as Jinja2 templates (replaced nginx static rules)
+- [07-01]: 403 template is standalone HTML (not extending base.html) since user may not have sidebar access
+- [07-01]: Exception handler uses /api/ path prefix for HTML vs API routing distinction
+- [07-01]: HTMX requests detected via HX-Request header for inline error fragments
 
 ### Pending Todos
 
-None -- all v1 milestone plans complete.
+None -- executing Phase 7 gap closure plans.
 
 ### Roadmap Evolution
 
@@ -142,5 +146,5 @@ None -- all v1 milestone plans complete.
 ## Session Continuity
 
 Last session: 2026-02-22
-Stopped at: All 6 phases complete. v1 milestone done.
-Resume file: None
+Stopped at: Completed 07-01-PLAN.md (Auth Infrastructure)
+Resume file: .planning/phases/07-route-protection-and-provenance/07-02-PLAN.md
