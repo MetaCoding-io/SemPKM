@@ -66,11 +66,11 @@ Plans:
   2. User can toggle between read-only and edit mode via an Edit/Done button or Ctrl+E shortcut; newly created objects open in edit mode
   3. Reference properties in read-only mode render as clickable links that open the target object in a new tab
   4. In edit mode, the body text area is resizable via the Split.js gutter and has a maximize/restore toggle that gives the editor 100% of the object tab area
-**Plans**: ~2 plans
+**Plans**: 2 plans
 
 Plans:
-- [ ] 11-01: Read-only object view template and edit toggle
-- [ ] 11-02: Reference links, Markdown rendering, and body maximize toggle
+- [ ] 11-01-PLAN.md — Backend enhancements (multi-value, ref labels, mode param), CDN libs, read-only template, flip container, and all CSS
+- [ ] 11-02-PLAN.md — Mode toggle JS (Edit/Done, Ctrl+E, unsaved changes), deferred editor init, body maximize/restore toggle
 
 ### Phase 12: Sidebar and Navigation
 **Goal**: The sidebar provides organized, collapsible navigation with a user menu that makes logout, settings access, and identity visible at a glance
