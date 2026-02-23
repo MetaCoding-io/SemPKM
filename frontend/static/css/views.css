@@ -588,28 +588,24 @@
     }
 }
 
-/* --- Flip Card --- */
+/* --- Flip Card (in-grid) --- */
 
 .flip-card {
+    perspective: 1000px;
     height: 260px;
     cursor: default;
-}
-
-.flip-card.flipped {
-    z-index: 1001;
 }
 
 .flip-card-inner {
     position: relative;
     width: 100%;
     height: 100%;
-    transition: transform 0.6s ease;
     transform-style: preserve-3d;
-    transform: perspective(1000px) rotateY(0deg);
+    transition: transform 0.6s ease;
 }
 
 .flip-card.flipped .flip-card-inner {
-    transform: perspective(1000px) rotateY(180deg);
+    transform: rotateY(180deg);
 }
 
 .flip-card-front,
@@ -633,17 +629,57 @@
 .flip-card-back {
     transform: rotateY(180deg);
     overflow-y: auto;
-    width: min(520px, 90vw);
-    height: min(480px, 80vh);
-    left: 50%;
-    top: 50%;
-    margin-left: calc(min(520px, 90vw) / -2);
-    margin-top: calc(min(480px, 80vh) / -2);
-    position: fixed;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
 }
 
-/* Backdrop overlay when card is expanded */
+/* --- Focus Portal (on <body>, no clipping ancestors) --- */
+.card-focus-portal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: min(520px, 90vw);
+    height: min(480px, 80vh);
+    margin-left: calc(min(520px, 90vw) / -2);
+    margin-top: calc(min(480px, 80vh) / -2);
+    perspective: 1000px;
+    z-index: 1001;
+}
+
+.card-focus-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.6s ease;
+}
+
+.card-focus-inner.flipped {
+    transform: rotateY(180deg);
+}
+
+.card-focus-front,
+.card-focus-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 8px;
+    padding: 16px;
+    background: var(--color-surface, #fff);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+    box-sizing: border-box;
+}
+
+.card-focus-front {
+    overflow: hidden;
+}
+
+.card-focus-back {
+    transform: rotateY(180deg);
+    overflow-y: auto;
+}
+
+/* Backdrop overlay */
 .card-backdrop {
     position: fixed;
     inset: 0;
@@ -652,12 +688,11 @@
     cursor: pointer;
 }
 
-/* --- Flip Toggle Button --- */
+/* --- Card Action Buttons --- */
 
-.flip-toggle {
+.card-btn {
     position: absolute;
     top: 10px;
-    right: 10px;
     width: 28px;
     height: 28px;
     border: 1px solid var(--color-border, #e0e0e0);
@@ -675,9 +710,17 @@
     line-height: 1;
 }
 
-.flip-toggle:hover {
+.card-btn:hover {
     background: #f0f0f0;
     color: var(--color-text, #1a1a2e);
+}
+
+.card-btn-flip {
+    right: 10px;
+}
+
+.card-btn-focus {
+    right: 44px;
 }
 
 /* --- Card Front --- */
@@ -798,12 +841,10 @@
 /* --- Group By Bar --- */
 
 .cards-group-bar {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 8px;
     padding: 8px 16px;
-    border-top: 1px solid var(--color-border, #e0e0e0);
-    background: var(--color-surface, #fff);
 }
 
 .cards-group-label {
@@ -813,7 +854,8 @@
     white-space: nowrap;
 }
 
-.cards-group-select {
+select.cards-group-select {
+    width: 200px;
     padding: 4px 8px;
     border: 1px solid var(--color-border, #e0e0e0);
     border-radius: 4px;
