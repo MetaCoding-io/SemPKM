@@ -7,8 +7,10 @@ rendering and htmx partial block rendering.
 Note: /browser/ is now served by app.browser.router (plan 04-04).
 """
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 
+from app.auth.dependencies import get_current_user
+from app.auth.models import User
 from app.config import settings
 
 router = APIRouter()
@@ -20,7 +22,7 @@ def _is_htmx_request(request: Request) -> bool:
 
 
 @router.get("/")
-async def dashboard(request: Request):
+async def dashboard(request: Request, user: User = Depends(get_current_user)):
     """Render the dashboard home page."""
     templates = request.app.state.templates
     return templates.TemplateResponse(
@@ -29,7 +31,7 @@ async def dashboard(request: Request):
 
 
 @router.get("/health/")
-async def health_page(request: Request):
+async def health_page(request: Request, user: User = Depends(get_current_user)):
     """Render the health check page.
 
     Full page for direct navigation, content block only for htmx partial swap.
