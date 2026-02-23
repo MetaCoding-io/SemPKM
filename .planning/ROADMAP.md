@@ -123,7 +123,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 4. Admin Shell and Object Creation | 6/6 | Complete    | 2026-02-22 |
 | 5. Data Browsing and Visualization | 3/3 | Complete    | 2026-02-22 |
 | 6. User and Team Management | 4/4 | Complete    | 2026-02-22 |
-| 7. Route Protection and Provenance | 2/2 | Complete    | 2026-02-22 |
+| 7. Route Protection and Provenance | 2/2 | Complete    | 2026-02-23 |
 | 8. Integration Bug Fixes | 0/? | Pending     | — |
 
 ### Phase 6: User and Team Management for Multi-Tenant Cloud Readiness
@@ -158,7 +158,7 @@ Plans:
   3. All admin/* endpoints require owner role via require_role("owner")
   4. Browser-originated writes pass performed_by user IRI to EventStore.commit()
   5. Unauthenticated direct HTTP requests to any protected route receive 401/403 (not just a JS redirect)
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 
 Plans:
 - [x] 07-01-PLAN.md -- Auth error handling infrastructure (custom exception handler, 403 template, EventStore provenance extension, frontend ?next= redirect-back)
