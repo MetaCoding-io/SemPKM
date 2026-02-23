@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations -- no blank-page syndrome, no schema setup.
-**Current focus:** v2.0 Tighten Web UI -- Phase 10: Bug Fixes and Cleanup Architecture
+**Current focus:** v2.0 Tighten Web UI -- Phase 11: Read-Only Object View
 
 ## Current Position
 
-Phase: 10 of 18 (Bug Fixes and Cleanup Architecture)
-Plan: 3 of 3 in current phase (PHASE COMPLETE)
-Status: Phase 10 Complete
-Last activity: 2026-02-23 -- Completed 10-03 (htmx cleanup architecture and editor groups design)
+Phase: 11 of 18 (Read-Only Object View)
+Plan: 1 of 2 in current phase
+Status: Executing Phase 11
+Last activity: 2026-02-23 -- Completed 11-01 (read-only object view backend, template, and styling)
 
-Progress: [#░░░░░░░░░] 13% (v2.0) -- Phase 10 complete (3/23 plans)
+Progress: [##░░░░░░░░] 17% (v2.0) -- 11-01 complete (4/23 plans)
 
 ## Performance Metrics
 
@@ -29,6 +29,7 @@ Progress: [#░░░░░░░░░] 13% (v2.0) -- Phase 10 complete (3/23 p
 |-------|------|----------|-------|-------|
 | 10    | 01   | 2min     | 2     | 3     |
 | 10    | 03   | 2min     | 2     | 6     |
+| 11    | 01   | 4min     | 2     | 7     |
 
 ## Accumulated Context
 
@@ -47,6 +48,10 @@ v2.0 roadmap decisions:
 - (10-02) position: fixed + getBoundingClientRect for dropdown overflow escape rather than removing overflow-y: auto from form sections
 - (10-03) Cleanup registry uses element IDs as keys with arrays of teardown functions; htmx:beforeCleanupElement walks descendants
 - (10-03) Split.js instances tracked globally in window._sempkmSplits with destroy-before-recreate guard
+- (11-01) Multi-valued properties stored as dict[str, list[str]] -- backward compatible with existing edit form templates
+- (11-01) Edit mode initialization deferred via _initEditMode_ function to prevent CodeMirror/Split.js waste on read-only views
+- (11-01) CDN-loaded marked.js + highlight.js + DOMPurify for client-side Markdown rendering (no server-side dependency)
+- (11-01) Reference tooltips show "TypeLabel: ObjectLabel" format derived from SHACL sh:class target_class
 
 ### Pending Todos
 
@@ -67,5 +72,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 10-03-PLAN.md (Phase 10 complete)
-Resume: `/gsd:execute-phase 11` (next phase)
+Stopped at: Completed 11-01-PLAN.md
+Resume: Continue with 11-02-PLAN.md (mode switch polish)

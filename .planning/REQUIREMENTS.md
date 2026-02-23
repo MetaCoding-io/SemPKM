@@ -15,9 +15,9 @@
 
 ### Object View (VIEW)
 
-- [ ] **VIEW-01**: Objects open in read-only mode by default showing styled property key-value pairs and rendered Markdown body
+- [x] **VIEW-01**: Objects open in read-only mode by default showing styled property key-value pairs and rendered Markdown body
 - [ ] **VIEW-02**: User can switch between read-only and edit mode via an Edit/Done button or Ctrl+E keyboard shortcut
-- [ ] **VIEW-03**: Reference properties in read-only mode render as clickable links that open the target object in a new tab
+- [x] **VIEW-03**: Reference properties in read-only mode render as clickable links that open the target object in a new tab
 - [ ] **VIEW-04**: The Markdown body text area in edit mode is resizable via the Split.js gutter, with a maximize/restore toggle
 
 ### Workspace Layout (WORK)
@@ -119,9 +119,9 @@
 | FIX-03 | Phase 10 | Complete |
 | FIX-04 | Phase 10 | Complete |
 | FIX-05 | Phase 10 | Complete |
-| VIEW-01 | Phase 11 | Pending |
+| VIEW-01 | Phase 11 | Complete |
 | VIEW-02 | Phase 11 | Pending |
-| VIEW-03 | Phase 11 | Pending |
+| VIEW-03 | Phase 11 | Complete |
 | VIEW-04 | Phase 11 | Pending |
 | WORK-01 | Phase 14 | Pending |
 | WORK-02 | Phase 14 | Pending |
