@@ -56,21 +56,32 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - [ ] User documentation page with Shepherd.js tutorial infrastructure (1-2 basic tutorials)
 - [ ] More rounded tab styling
 
+### Future Candidates
+
+<!-- Tracked for future milestones. Not in v2.0 scope. -->
+
+- Dashboards: parameterized panels, type-based registry (objectSelf, view, lintSummary, markdown)
+- Full-text search across objects
+- JSON-LD export for objects/collections
+- Edge model enhancements: edge inspector panel, inline wiki-link-speed creation
+- Backlinks panel (incoming references for any object)
+- Cookie secure=True for production deployment
+- SMTP integration for magic link delivery (currently logged to console)
+- Workflow engine (n8n-style built-in workflows, model-provided, event triggers, external n8n callout)
+- AI Copilot (chat about data, SPARQL generation, writing assistance, relationship suggestions)
+
 ### Out of Scope
 
 - Read/write filesystem projections — v2 (read-only projection also deferred)
 - Mental Model migrations and user overrides — v2+
 - Offline/multi-device sync — v2+
-- Embedded n8n workflow engine — v2+
 - Advanced webhook delivery/security (DLQ, signing, strict ordering) — v3
 - Bidirectional ActivityPub — v2+
 - SOLID export/publish — deferred
-- Timeline/calendar renderers — v1.1/v2
+- Timeline/calendar renderers — v2+
 - 3D graph visualization — experimental, deferred
 - SPARQL UPDATE as external write surface — by design (bypasses event sourcing)
 - Real-time collaborative editing — CRDT/OT complexity, v2+ at earliest
-- Workflow engine (n8n-style built-in workflows) — v2.1+
-- AI Copilot functionality (chat, SPARQL generation, writing assistance) — v2.1+ (placeholder tab in v2.0)
 - Mobile native app — web-first, responsive design and eventual PWA
 - Ontology editor — consume via Mental Models; use Protege for authoring
 
