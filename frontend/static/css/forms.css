@@ -169,14 +169,10 @@ details[open] > .form-group-summary::before {
 }
 
 .suggestions-dropdown {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    z-index: 100;
+    position: fixed;
+    z-index: 9999;
     background: var(--color-surface, #fff);
     border: 1px solid var(--color-border, #d0d0d0);
-    border-top: none;
     border-radius: 0 0 4px 4px;
     max-height: 200px;
     overflow-y: auto;

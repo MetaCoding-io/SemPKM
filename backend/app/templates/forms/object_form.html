@@ -131,14 +131,40 @@
         var newItem = document.createElement('div');
         newItem.className = 'multi-value-item';
 
-        // Clone the input from the first item, reset its value
-        var firstInput = firstItem.querySelector('input, select');
-        if (firstInput) {
-            var clone = firstInput.cloneNode(true);
-            clone.value = '';
-            clone.id = clone.id.replace(/-\d+$/, '-' + newIndex);
-            clone.classList.remove('default-value');
-            newItem.appendChild(clone);
+        // Reference fields have a wrapper with search + hidden + suggestions
+        var referenceField = firstItem.querySelector('.reference-field');
+        if (referenceField) {
+            var refClone = referenceField.cloneNode(true);
+            var searchInput = refClone.querySelector('input[type="text"]');
+            var hiddenInput = refClone.querySelector('input[type="hidden"]');
+            var suggestionsDiv = refClone.querySelector('.suggestions-dropdown');
+
+            if (searchInput) {
+                searchInput.value = '';
+                searchInput.id = 'input-' + fieldId + '-' + newIndex + '-search';
+                searchInput.dataset.index = String(newIndex);
+                searchInput.setAttribute('hx-target', '#suggestions-' + fieldId + '-' + newIndex);
+            }
+            if (hiddenInput) {
+                hiddenInput.value = '';
+                hiddenInput.id = 'input-' + fieldId + '-' + newIndex + '-hidden';
+            }
+            if (suggestionsDiv) {
+                suggestionsDiv.id = 'suggestions-' + fieldId + '-' + newIndex;
+                suggestionsDiv.innerHTML = '';
+            }
+
+            newItem.appendChild(refClone);
+        } else {
+            // Clone the input from the first item, reset its value
+            var firstInput = firstItem.querySelector('input, select');
+            if (firstInput) {
+                var clone = firstInput.cloneNode(true);
+                clone.value = '';
+                clone.id = clone.id.replace(/-\d+$/, '-' + newIndex);
+                clone.classList.remove('default-value');
+                newItem.appendChild(clone);
+            }
         }
 
         var removeBtn = document.createElement('button');
@@ -167,7 +193,7 @@
     // Reference search: select a suggestion
     window.selectReference = function(fieldId, iri, label, index) {
         var suffix = (index !== undefined && index !== null) ? '-' + index : '';
-        var hiddenInput = document.querySelector('#field-' + fieldId + ' input[type="hidden"][name]');
+        var hiddenInput = document.getElementById('input-' + fieldId + suffix + '-hidden');
         var searchInput = document.getElementById('input-' + fieldId + suffix + '-search');
         var suggestionsDiv = document.getElementById('suggestions-' + fieldId + suffix);
 
@@ -186,5 +212,44 @@
             }
         });
     }
+
+    // Position suggestion dropdowns after htmx swaps content into them
+    document.addEventListener('htmx:afterSwap', function(evt) {
+        var target = evt.detail.target;
+        if (!target || !target.classList || !target.classList.contains('suggestions-dropdown')) return;
+
+        // Find the input that triggered the search
+        var refField = target.closest('.reference-field');
+        if (!refField) return;
+        var input = refField.querySelector('.reference-search');
+        if (!input) return;
+
+        var rect = input.getBoundingClientRect();
+        target.style.top = rect.bottom + 'px';
+        target.style.left = rect.left + 'px';
+        target.style.width = rect.width + 'px';
+    });
+
+    // Reposition open suggestion dropdowns on scroll/resize
+    function repositionDropdowns() {
+        var openDropdowns = document.querySelectorAll('.suggestions-dropdown:not(:empty)');
+        openDropdowns.forEach(function(dd) {
+            var refField = dd.closest('.reference-field');
+            if (!refField) return;
+            var input = refField.querySelector('.reference-search');
+            if (!input) return;
+            var rect = input.getBoundingClientRect();
+            dd.style.top = rect.bottom + 'px';
+            dd.style.left = rect.left + 'px';
+            dd.style.width = rect.width + 'px';
+        });
+    }
+
+    // Throttled reposition on form section scroll
+    var formSections = document.querySelectorAll('.object-form-section');
+    formSections.forEach(function(section) {
+        section.addEventListener('scroll', repositionDropdowns);
+    });
+    window.addEventListener('resize', repositionDropdowns);
 })();
 </script>
