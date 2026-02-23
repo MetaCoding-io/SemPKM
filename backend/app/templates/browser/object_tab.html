@@ -251,6 +251,10 @@
     {% if mode == 'edit' %}
     var flipInner = document.getElementById('flip-inner-' + safeId);
     if (flipInner) flipInner.classList.add('flipped');
+    var readFace = document.querySelector('#flip-inner-' + safeId + ' .object-face-read');
+    var editFace = document.querySelector('#flip-inner-' + safeId + ' .object-face-edit');
+    if (readFace) readFace.classList.add('face-hidden');
+    if (editFace) editFace.classList.add('face-visible');
     var toggleBtn = document.getElementById('mode-toggle-' + safeId);
     if (toggleBtn) { toggleBtn.textContent = 'Done'; }
     var saveBtn = document.getElementById('save-btn-' + safeId);

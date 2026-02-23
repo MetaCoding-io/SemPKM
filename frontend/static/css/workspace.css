@@ -1182,7 +1182,6 @@ details.form-group[open] > .form-group-summary::before {
 .object-flip-container {
     perspective: 1200px;
     flex: 1;
-    overflow: hidden;
     position: relative;
 }
 
@@ -1205,23 +1204,32 @@ details.form-group[open] > .form-group-summary::before {
     left: 0;
     width: 100%;
     height: 100%;
-    backface-visibility: hidden;
 }
 
 .object-face-read {
-    overflow-y: auto;
+    z-index: 2;
 }
 
 .object-face-edit {
     transform: rotateY(180deg);
-    overflow: hidden;
     background: rgba(45, 90, 158, 0.03);
+    z-index: 1;
+    visibility: hidden;
+}
+
+.object-face-read.face-hidden {
+    visibility: hidden;
+}
+
+.object-face-edit.face-visible {
+    visibility: visible;
 }
 
 /* --- Read-Only View Container --- */
 
 .object-read-view {
     height: 100%;
+    overflow-y: auto;
 }
 
 .read-empty {
