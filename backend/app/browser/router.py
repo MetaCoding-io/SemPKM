@@ -60,7 +60,7 @@ async def workspace(
     """
     templates = request.app.state.templates
     types = await shapes_service.get_types()
-    context = {"request": request, "types": types, "active_page": "browser"}
+    context = {"request": request, "types": types, "active_page": "browser", "user": user}
 
     if _is_htmx_request(request):
         return templates.TemplateResponse(
