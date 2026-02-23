@@ -2,8 +2,8 @@
  * SemPKM CodeMirror 6 Markdown Editor
  *
  * ESM module that initializes CodeMirror 6 with Markdown syntax highlighting,
- * Ctrl+S save handling, and dirty state tracking. Uses esm.sh with pinned
- * versions for reliable CDN imports.
+ * Ctrl+S save handling, and dirty state tracking. Uses esm.sh with major-version
+ * ranges (@6) to ensure all packages share the same @codemirror/state instance.
  *
  * If esm.sh causes issues, fall back to a local bundle strategy:
  * 1. npm install codemirror @codemirror/lang-markdown @codemirror/view
@@ -11,11 +11,12 @@
  * 3. Change imports below to local paths
  */
 
-import { EditorView } from "https://esm.sh/@codemirror/view@6.35.0?pin=v135";
-import { keymap } from "https://esm.sh/@codemirror/view@6.35.0?pin=v135";
-import { EditorState } from "https://esm.sh/@codemirror/state@6.4.1?pin=v135";
-import { basicSetup } from "https://esm.sh/@codemirror/basic-setup@0.19.1?pin=v135";
-import { markdown } from "https://esm.sh/@codemirror/lang-markdown@6.2.5?pin=v135";
+// Unpinned @6 ranges so esm.sh resolves all packages to the same @codemirror/state.
+// Pinned versions caused state version/target divergence (6.4.1/esnext vs 6.5.2/es2022).
+import { EditorView, keymap } from "https://esm.sh/@codemirror/view@6";
+import { EditorState } from "https://esm.sh/@codemirror/state@6";
+import { basicSetup } from "https://esm.sh/codemirror@6.0.1";
+import { markdown } from "https://esm.sh/@codemirror/lang-markdown@6";
 
 // Track active editor instances by object IRI
 var editors = {};
