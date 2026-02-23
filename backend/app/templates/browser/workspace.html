@@ -23,13 +23,13 @@
                      onclick="this.parentElement.classList.toggle('expanded')"
                      hx-get="/browser/views/explorer"
                      hx-target="#views-tree"
-                     hx-trigger="click once"
+                     hx-trigger="load"
                      hx-swap="innerHTML">
                     <span class="explorer-section-chevron">&#9656;</span>
                     <span class="explorer-section-title">VIEWS</span>
                 </div>
                 <div class="explorer-section-body" id="views-tree">
-                    <div class="tree-empty">Loading...</div>
+                    <div class="tree-empty">Loading views...</div>
                 </div>
             </div>
         </div>
