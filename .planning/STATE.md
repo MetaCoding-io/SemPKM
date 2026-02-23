@@ -23,7 +23,11 @@ Progress: [░░░░░░░░░░] 0% (v2.0)
 - Total execution time: across 9 phases
 - v2.0 estimated plans: ~23
 
-**v2.0 tracking starts on first plan execution.**
+**v2.0 Metrics:**
+
+| Phase | Plan | Duration | Tasks | Files |
+|-------|------|----------|-------|-------|
+| 10    | 01   | 2min     | 2     | 3     |
 
 ## Accumulated Context
 
@@ -37,6 +41,8 @@ v2.0 roadmap decisions:
 - WORK-06 (rounded tabs) grouped with Phase 13 (dark mode/visual polish) since both are CSS styling
 - ERR-01 (styled 403) grouped with Phase 13 (visual polish) since it is a template/styling task
 - Settings system (Phase 15) placed after dark mode (Phase 13) -- dark mode uses CSS-only approach first, migrates to settings consumer later
+- (10-01) Promise.race with 3s timeout replaces setInterval polling for editor loading -- deterministic failure time
+- (10-01) Skeleton loading uses CSS-only shimmer animation (no JS animation dependency)
 - (10-02) position: fixed + getBoundingClientRect for dropdown overflow escape rather than removing overflow-y: auto from form sections
 
 ### Pending Todos

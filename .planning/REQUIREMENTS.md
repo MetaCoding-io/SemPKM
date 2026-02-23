@@ -7,8 +7,8 @@
 
 ### Bug Fixes (FIX)
 
-- [ ] **FIX-01**: Body content loads reliably into the Markdown editor with a visible loading skeleton and graceful fallback after timeout
-- [ ] **FIX-02**: CodeMirror editor is editable with proper minimum height regardless of Split.js initialization timing
+- [x] **FIX-01**: Body content loads reliably into the Markdown editor with a visible loading skeleton and graceful fallback after timeout
+- [x] **FIX-02**: CodeMirror editor is editable with proper minimum height regardless of Split.js initialization timing
 - [x] **FIX-03**: Autocomplete dropdown for reference properties positions correctly and clicking a suggestion populates the field
 - [x] **FIX-04**: Views explorer section loads its content eagerly on workspace init (no perpetual "Loading..." state)
 - [ ] **FIX-05**: htmx afterSwap cleanup architecture prevents listener accumulation and properly destroys library instances (Split.js, CodeMirror, Cytoscape) before DOM removal
@@ -114,8 +114,8 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FIX-01 | Phase 10 | Pending |
-| FIX-02 | Phase 10 | Pending |
+| FIX-01 | Phase 10 | Complete |
+| FIX-02 | Phase 10 | Complete |
 | FIX-03 | Phase 10 | Complete |
 | FIX-04 | Phase 10 | Complete |
 | FIX-05 | Phase 10 | Pending |
