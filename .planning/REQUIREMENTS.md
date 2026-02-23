@@ -112,62 +112,60 @@
 
 ## Traceability
 
-Updated during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FIX-01 | — | Pending |
-| FIX-02 | — | Pending |
-| FIX-03 | — | Pending |
-| FIX-04 | — | Pending |
-| FIX-05 | — | Pending |
-| VIEW-01 | — | Pending |
-| VIEW-02 | — | Pending |
-| VIEW-03 | — | Pending |
-| VIEW-04 | — | Pending |
-| WORK-01 | — | Pending |
-| WORK-02 | — | Pending |
-| WORK-03 | — | Pending |
-| WORK-04 | — | Pending |
-| WORK-05 | — | Pending |
-| WORK-06 | — | Pending |
-| NAV-01 | — | Pending |
-| NAV-02 | — | Pending |
-| NAV-03 | — | Pending |
-| NAV-04 | — | Pending |
-| NAV-05 | — | Pending |
-| NAV-06 | — | Pending |
-| DARK-01 | — | Pending |
-| DARK-02 | — | Pending |
-| DARK-03 | — | Pending |
-| DARK-04 | — | Pending |
-| SETT-01 | — | Pending |
-| SETT-02 | — | Pending |
-| SETT-03 | — | Pending |
-| SETT-04 | — | Pending |
-| ICON-01 | — | Pending |
-| ICON-02 | — | Pending |
-| ICON-03 | — | Pending |
-| EVNT-01 | — | Pending |
-| EVNT-02 | — | Pending |
-| EVNT-03 | — | Pending |
-| EVNT-04 | — | Pending |
-| LLM-01 | — | Pending |
-| LLM-02 | — | Pending |
-| LLM-03 | — | Pending |
-| LLM-04 | — | Pending |
-| LLM-05 | — | Pending |
-| DOCS-01 | — | Pending |
-| DOCS-02 | — | Pending |
-| DOCS-03 | — | Pending |
-| DOCS-04 | — | Pending |
-| ERR-01 | — | Pending |
+| FIX-01 | Phase 10 | Pending |
+| FIX-02 | Phase 10 | Pending |
+| FIX-03 | Phase 10 | Pending |
+| FIX-04 | Phase 10 | Pending |
+| FIX-05 | Phase 10 | Pending |
+| VIEW-01 | Phase 11 | Pending |
+| VIEW-02 | Phase 11 | Pending |
+| VIEW-03 | Phase 11 | Pending |
+| VIEW-04 | Phase 11 | Pending |
+| WORK-01 | Phase 14 | Pending |
+| WORK-02 | Phase 14 | Pending |
+| WORK-03 | Phase 14 | Pending |
+| WORK-04 | Phase 14 | Pending |
+| WORK-05 | Phase 14 | Pending |
+| WORK-06 | Phase 13 | Pending |
+| NAV-01 | Phase 12 | Pending |
+| NAV-02 | Phase 12 | Pending |
+| NAV-03 | Phase 12 | Pending |
+| NAV-04 | Phase 12 | Pending |
+| NAV-05 | Phase 12 | Pending |
+| NAV-06 | Phase 12 | Pending |
+| DARK-01 | Phase 13 | Pending |
+| DARK-02 | Phase 13 | Pending |
+| DARK-03 | Phase 13 | Pending |
+| DARK-04 | Phase 13 | Pending |
+| SETT-01 | Phase 15 | Pending |
+| SETT-02 | Phase 15 | Pending |
+| SETT-03 | Phase 15 | Pending |
+| SETT-04 | Phase 15 | Pending |
+| ICON-01 | Phase 15 | Pending |
+| ICON-02 | Phase 15 | Pending |
+| ICON-03 | Phase 15 | Pending |
+| EVNT-01 | Phase 16 | Pending |
+| EVNT-02 | Phase 16 | Pending |
+| EVNT-03 | Phase 16 | Pending |
+| EVNT-04 | Phase 16 | Pending |
+| LLM-01 | Phase 17 | Pending |
+| LLM-02 | Phase 17 | Pending |
+| LLM-03 | Phase 17 | Pending |
+| LLM-04 | Phase 17 | Pending |
+| LLM-05 | Phase 17 | Pending |
+| DOCS-01 | Phase 18 | Pending |
+| DOCS-02 | Phase 18 | Pending |
+| DOCS-03 | Phase 18 | Pending |
+| DOCS-04 | Phase 18 | Pending |
+| ERR-01 | Phase 13 | Pending |
 
 **Coverage:**
-- v2.0 requirements: 45 total
-- Mapped to phases: 0 (pending roadmap creation)
-- Unmapped: 45
+- v2.0 requirements: 46 total
+- Mapped to phases: 46/46
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-23*
-*Last updated: 2026-02-23 after research synthesis*
+*Last updated: 2026-02-23 — roadmap traceability complete*
