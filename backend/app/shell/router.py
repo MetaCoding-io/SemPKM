@@ -26,7 +26,7 @@ async def dashboard(request: Request, user: User = Depends(get_current_user)):
     """Render the dashboard home page."""
     templates = request.app.state.templates
     return templates.TemplateResponse(
-        request, "dashboard.html", {"active_page": "home"}
+        request, "dashboard.html", {"active_page": "home", "user": user}
     )
 
 
@@ -71,6 +71,7 @@ async def health_page(request: Request, user: User = Depends(get_current_user)):
             "base_namespace": settings.base_namespace,
         },
         "session_duration_days": settings.session_duration_days,
+        "user": user,
     }
     if _is_htmx_request(request):
         return templates.TemplateResponse(

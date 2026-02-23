@@ -34,7 +34,7 @@ def _is_htmx_request(request: Request) -> bool:
 async def admin_index(request: Request, user: User = Depends(require_role("owner"))):
     """Render the admin portal landing page with links to Models and Webhooks."""
     templates = request.app.state.templates
-    context = {"active_page": "admin"}
+    context = {"active_page": "admin", "user": user}
     if _is_htmx_request(request):
         return templates.TemplateResponse(
             request, "admin/index.html", context, block_name="content"
@@ -50,7 +50,7 @@ async def admin_models(
 ):
     """Render model management page with table of installed models."""
     models = await model_service.list_models()
-    context = {"request": request, "models": models}
+    context = {"request": request, "models": models, "user": user}
     if _is_htmx_request(request):
         return templates_response(request, "admin/models.html", context, block_name="content")
     return templates_response(request, "admin/models.html", context)
@@ -124,6 +124,7 @@ async def admin_webhooks(
         "request": request,
         "webhooks": webhooks,
         "event_types": WEBHOOK_EVENT_TYPES,
+        "user": user,
     }
     if _is_htmx_request(request):
         return templates_response(request, "admin/webhooks.html", context, block_name="content")
