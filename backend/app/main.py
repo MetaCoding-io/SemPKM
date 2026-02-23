@@ -94,7 +94,24 @@ async def lifespan(app: FastAPI):
     validation_service = ValidationService(client, shapes_loader)
     app.state.validation_service = validation_service
 
-    validation_queue = AsyncValidationQueue(validation_service)
+    # Create WebhookService for outbound event notifications
+    # (must be created before validation_queue so it can be used in the callback)
+    webhook_service = WebhookService(client)
+    app.state.webhook_service = webhook_service
+
+    # Define validation completion callback for webhook dispatch
+    async def on_validation_complete(report_summary, event_iri, timestamp):
+        await webhook_service.dispatch("validation.completed", {
+            "event_iri": event_iri,
+            "timestamp": timestamp,
+            "conforms": report_summary.conforms,
+            "violations": report_summary.violation_count,
+            "warnings": report_summary.warning_count,
+        })
+
+    validation_queue = AsyncValidationQueue(
+        validation_service, on_complete=on_validation_complete
+    )
     app.state.validation_queue = validation_queue
     await validation_queue.start()
 
@@ -105,10 +122,6 @@ async def lifespan(app: FastAPI):
     # Create ViewSpecService for view spec loading and execution
     view_spec_service = ViewSpecService(client, label_service)
     app.state.view_spec_service = view_spec_service
-
-    # Create WebhookService for outbound event notifications
-    webhook_service = WebhookService(client)
-    app.state.webhook_service = webhook_service
 
     # --- SQL Database Initialization ---
     sql_engine = create_engine()

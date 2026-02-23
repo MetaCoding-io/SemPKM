@@ -9,7 +9,7 @@ is validated (since full re-validation makes intermediate results obsolete).
 import asyncio
 import logging
 from dataclasses import dataclass
-from typing import Optional
+from typing import Awaitable, Callable, Optional
 
 from app.services.validation import ValidationService
 from app.validation.report import ValidationReportSummary
@@ -36,8 +36,15 @@ class AsyncValidationQueue:
     fast polling without hitting the triplestore.
     """
 
-    def __init__(self, validation_service: ValidationService) -> None:
+    def __init__(
+        self,
+        validation_service: ValidationService,
+        on_complete: Optional[
+            Callable[[ValidationReportSummary, str, str], Awaitable[None]]
+        ] = None,
+    ) -> None:
         self._validation_service = validation_service
+        self._on_complete = on_complete
         self._queue: asyncio.Queue[ValidationJob] = asyncio.Queue()
         self._task: Optional[asyncio.Task] = None
         self._latest_report: Optional[ValidationReportSummary] = None
@@ -131,6 +138,18 @@ class AsyncValidationQueue:
                     self._latest_report.warning_count,
                     self._latest_report.info_count,
                 )
+
+                # Fire completion callback (e.g., webhook dispatch)
+                if self._on_complete:
+                    try:
+                        await self._on_complete(
+                            self._latest_report, job.event_iri, job.timestamp
+                        )
+                    except Exception:
+                        logger.warning(
+                            "Validation completion callback failed",
+                            exc_info=True,
+                        )
 
             except asyncio.CancelledError:
                 raise  # Let cancellation propagate for clean shutdown

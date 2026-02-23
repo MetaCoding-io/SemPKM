@@ -143,11 +143,6 @@ async def execute_commands(
         except Exception:
             logger.warning("Webhook dispatch failed", exc_info=True)
 
-        # TODO: Wire validation.completed webhook via validation queue callback
-        # The AsyncValidationQueue does not currently support completion callbacks.
-        # Once a callback mechanism is added, dispatch:
-        #   await webhook_service.dispatch("validation.completed", {...})
-
         # Build response
         results = [
             CommandResult(
