@@ -80,7 +80,7 @@
     }
   }
 
-  function openTab(objectIri, label) {
+  function openTab(objectIri, label, mode) {
     var tabs = getTabs();
     var existing = tabs.find(function (t) { return t.iri === objectIri; });
 
@@ -91,7 +91,7 @@
 
     setActiveTabIri(objectIri);
     renderTabBar();
-    loadObjectContent(objectIri);
+    loadObjectContent(objectIri, mode);
 
     // Add to command palette dynamically
     addObjectToCommandPalette(objectIri, label);
@@ -192,6 +192,7 @@
       var viewType = tab.viewType || 'table';
       loadViewContent(viewId, viewType);
     } else {
+      // Normal tab switch: no mode parameter (opens in read mode by default)
       loadObjectContent(tab.iri);
     }
   }
@@ -255,7 +256,7 @@
     tabBar.innerHTML = html;
   }
 
-  function loadObjectContent(objectIri) {
+  function loadObjectContent(objectIri, mode) {
     var editorArea = document.getElementById('editor-area');
     if (!editorArea) return;
 
@@ -273,9 +274,15 @@
       return;
     }
 
+    // Build URL with optional mode parameter
+    var url = '/browser/object/' + encodeURIComponent(objectIri);
+    if (mode === 'edit') {
+      url += '?mode=edit';
+    }
+
     // Use htmx to load object content into center pane
     if (typeof htmx !== 'undefined') {
-      htmx.ajax('GET', '/browser/object/' + encodeURIComponent(objectIri), {
+      htmx.ajax('GET', url, {
         target: '#editor-area',
         swap: 'innerHTML'
       }).catch(function () {
@@ -533,6 +540,23 @@
           title: 'Open View Menu',
           section: 'Views',
           handler: function () { openViewMenu(); }
+        },
+        {
+          id: 'toggle-edit-mode',
+          title: 'Toggle Edit Mode',
+          section: 'Objects',
+          hotkey: 'ctrl+e',
+          handler: function () {
+            var activeTab = document.querySelector('.object-tab');
+            if (activeTab) {
+              var objectIri = activeTab.dataset.objectIri;
+              var flipContainer = activeTab.querySelector('.object-flip-container');
+              if (flipContainer) {
+                var safeId = flipContainer.id.replace('flip-', '');
+                toggleObjectMode(safeId, objectIri);
+              }
+            }
+          }
         }
       ];
 
@@ -852,7 +876,8 @@
       // Remove any "New Object" placeholder tab
       tabs = tabs.filter(function (t) { return t.iri !== '__new__'; });
       saveTabs(tabs);
-      openTab(detail.iri, label);
+      // Newly created objects open directly in edit mode
+      openTab(detail.iri, label, 'edit');
     }
   });
 
