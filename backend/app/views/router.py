@@ -288,6 +288,7 @@ async def graph_expand(
 async def graph_view(
     request: Request,
     spec_iri: str,
+    filter: str = Query(default=""),
     user: User = Depends(get_current_user),
     view_spec_service: ViewSpecService = Depends(get_view_spec_service),
     label_service: LabelService = Depends(get_label_service),
@@ -343,7 +344,7 @@ async def graph_view(
         "type_colors": type_colors,
         "sort_col": "",
         "sort_dir": "asc",
-        "current_filter": "",
+        "current_filter": filter,
     }
 
     return templates.TemplateResponse(

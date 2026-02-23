@@ -534,8 +534,29 @@
     min-width: 200px;
     max-width: 320px;
     z-index: 200;
-    pointer-events: none;
+    pointer-events: auto;
     overflow: hidden;
+}
+
+.graph-popover-footer {
+    padding: 6px 14px 10px;
+    border-top: 1px solid var(--color-border, #eee);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.graph-popover-open-btn {
+    font-size: 0.78rem;
+    padding: 3px 12px;
+    border: 1px solid var(--color-primary, #2d5a9e);
+    background: var(--color-primary, #2d5a9e);
+    color: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.graph-popover-open-btn:hover {
+    opacity: 0.85;
 }
 
 .graph-popover-header {

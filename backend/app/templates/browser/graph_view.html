@@ -21,10 +21,16 @@
     var typeColors = {{ type_colors | tojson }};
     var availableLayouts = {{ available_layouts | tojson }};
 
+    var initialFilter = '{{ current_filter | e }}';
+
     // Wait for graph.js to be loaded, then initialize
     function tryInit() {
         if (typeof window.initGraph === 'function') {
             window.initGraph('cy-container', specIri, typeColors, availableLayouts);
+            // Apply carried-over filter after graph data loads
+            if (initialFilter && typeof window.filterGraph === 'function') {
+                setTimeout(function() { window.filterGraph(initialFilter); }, 500);
+            }
         } else {
             setTimeout(tryInit, 50);
         }
