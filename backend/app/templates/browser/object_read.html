@@ -39,15 +39,15 @@
 </div>
 {% else %}
 <div class="object-read-view">
-  {% set has_values = false %}
+  {% set ns_check = namespace(has_values=false) %}
   {% for prop in form.properties %}
     {% set vals = values.get(prop.path, []) %}
     {% if vals %}
-      {% set has_values = true %}
+      {% set ns_check.has_values = true %}
     {% endif %}
   {% endfor %}
 
-  {% if not has_values and not body_text %}
+  {% if not ns_check.has_values and not body_text %}
   <div class="read-empty">
     <p>This object has no content yet.</p>
   </div>

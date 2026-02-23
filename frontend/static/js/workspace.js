@@ -375,6 +375,8 @@
     var saveBtn = document.getElementById('save-btn-' + safeId);
     if (!flipInner) return;
 
+    var readFace = flipInner.querySelector('.object-face-read');
+    var editFace = flipInner.querySelector('.object-face-edit');
     var isFlipped = flipInner.classList.contains('flipped');
 
     if (isFlipped) {
@@ -388,6 +390,11 @@
       flipInner.classList.remove('flipped');
       if (toggleBtn) toggleBtn.textContent = 'Edit';
       if (saveBtn) saveBtn.style.display = 'none';
+      // Swap faces at midpoint (300ms into 600ms animation)
+      setTimeout(function () {
+        if (readFace) readFace.classList.remove('face-hidden');
+        if (editFace) editFace.classList.remove('face-visible');
+      }, 300);
     } else {
       // Switching from read to edit: initialize edit mode if needed
       var initFn = window['_initEditMode_' + safeId];
@@ -395,6 +402,11 @@
       flipInner.classList.add('flipped');
       if (toggleBtn) toggleBtn.textContent = 'Done';
       if (saveBtn) saveBtn.style.display = '';
+      // Swap faces at midpoint (300ms into 600ms animation)
+      setTimeout(function () {
+        if (readFace) readFace.classList.add('face-hidden');
+        if (editFace) editFace.classList.add('face-visible');
+      }, 300);
     }
   }
 
