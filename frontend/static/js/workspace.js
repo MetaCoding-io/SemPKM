@@ -572,11 +572,11 @@
           handler: function () { triggerValidation(); }
         },
         {
-          id: 'toggle-nav',
-          title: 'Toggle Navigation Panel',
+          id: 'toggle-sidebar',
+          title: 'Toggle Sidebar',
           section: 'View',
           hotkey: 'ctrl+b',
-          handler: function () { togglePane('nav-pane'); }
+          handler: function () { toggleSidebar(); }
         },
         {
           id: 'toggle-right',
