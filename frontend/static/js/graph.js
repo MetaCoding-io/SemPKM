@@ -230,6 +230,16 @@
     window._sempkmGraph = cy;
     window._sempkmTypeColors = typeColors;
 
+    // Register cleanup for htmx:beforeCleanupElement
+    if (typeof window.registerCleanup === 'function' && container.id) {
+      window.registerCleanup(container.id, function() {
+        if (window._sempkmGraph === cy) {
+          window._sempkmGraph = null;
+        }
+        cy.destroy();
+      });
+    }
+
     // --- Event Handlers ---
 
     // Click to select -- load details in right pane
