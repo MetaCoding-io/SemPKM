@@ -174,8 +174,11 @@ Plans:
   2. WebhookService dispatches validation.completed events to configured webhooks
   3. workspace.js openViewTab() uses correct URL path for cards view (/views/card/ singular)
   4. Opening a cards view from the command palette or workspace tab system renders correctly (no 404)
-**Plans:** TBD
+**Plans:** 1 plan
+
+Plans:
+- [ ] 08-01-PLAN.md — Validation.completed webhook dispatch and cards view URL verification
 
 ---
 *Roadmap created: 2026-02-21*
-*Last updated: 2026-02-22 after gap closure phases added from milestone audit*
+*Last updated: 2026-02-22 after Phase 8 planning*
