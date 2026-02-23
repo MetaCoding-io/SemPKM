@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations -- no blank-page syndrome, no schema setup.
-**Current focus:** v2.0 Tighten Web UI -- Phase 12: Sidebar and Navigation
+**Current focus:** v2.0 Tighten Web UI -- Phase 12 complete, ready for Phase 13
 
 ## Current Position
 
-Phase: 12 of 18 (Sidebar and Navigation)
-Plan: 1 of 2
-Status: Executing Phase 12 plans
-Last activity: 2026-02-23 -- Completed 12-01 (sidebar restructure with grouped sections, Lucide icons, collapse toggle)
+Phase: 12 of 18 (Sidebar and Navigation) -- COMPLETE
+Plan: 2 of 2
+Status: Phase 12 complete, ready for Phase 13
+Last activity: 2026-02-23 -- Completed 12-02 (user menu popover with avatar and logout)
 
-Progress: [###░░░░░░░] 30% (v2.0) -- 12-01 complete (6/23 plans)
+Progress: [####░░░░░░] 30% (v2.0) -- 12-02 complete (7/23 plans)
 
 ## Performance Metrics
 
@@ -32,6 +32,7 @@ Progress: [###░░░░░░░] 30% (v2.0) -- 12-01 complete (6/23 plans)
 | 11    | 01   | 4min     | 2     | 7     |
 | 11    | 02   | session  | 15    | 12    |
 | 12    | 01   | 4min     | 2     | 8     |
+| 12    | 02   | 2min     | 2     | 3     |
 
 ## Accumulated Context
 
@@ -61,6 +62,9 @@ v2.0 roadmap decisions:
 - (12-01) Lucide icons via CDN with htmx:afterSwap re-initialization for dynamic content
 - (12-01) CSS custom property --sidebar-width drives synchronized sidebar/content transitions
 - (12-01) Ctrl+B remapped from Split.js pane toggle to sidebar collapse toggle
+- (12-02) HTML Popover API (popover="auto") for user menu -- light-dismiss, top-layer stacking, focus management without custom JS
+- (12-02) Deterministic avatar color via hash of user name string, 8-color palette
+- (12-02) Popover Lucide icons re-initialized via toggle event listener on each open
 
 ### Pending Todos
 
@@ -81,5 +85,5 @@ v2.0 roadmap decisions:
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 12-01-PLAN.md
-Resume: Execute 12-02 (user menu popover)
+Stopped at: Completed 12-02-PLAN.md (Phase 12 complete)
+Resume: Begin Phase 13 (Dark Mode / Visual Polish)
