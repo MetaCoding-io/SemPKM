@@ -70,7 +70,83 @@
 }
 
 #nav-pane .pane-content {
+    padding: 0;
+}
+
+/* --- Collapsible Explorer Sections (VS Code style) --- */
+
+.explorer-section-header {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    cursor: pointer;
+    user-select: none;
+    background: #eef0f4;
+    border-top: 1px solid var(--color-border, #e0e0e0);
+    transition: background 0.1s;
+}
+
+.explorer-section:first-child .explorer-section-header {
+    border-top: none;
+}
+
+.explorer-section-header:hover {
+    background: #e4e7ed;
+}
+
+.explorer-section-chevron {
+    font-size: 0.65rem;
+    width: 12px;
+    text-align: center;
+    flex-shrink: 0;
+    transition: transform 0.15s;
+    color: var(--color-text-muted, #666);
+}
+
+.explorer-section.expanded .explorer-section-chevron {
+    transform: rotate(90deg);
+}
+
+.explorer-section-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--color-text, #1a1a2e);
+    letter-spacing: 0.04em;
+}
+
+.explorer-section-body {
+    display: none;
     padding: 4px 0;
+}
+
+.explorer-section.expanded .explorer-section-body {
+    display: block;
+}
+
+/* View group styling */
+.view-group-count {
+    margin-left: auto;
+    font-size: 0.7rem;
+    color: var(--color-text-muted, #999);
+    font-weight: 400;
+}
+
+.view-group-node:not(.expanded) + .view-group-children {
+    display: none;
+}
+
+.view-group-node.expanded + .view-group-children {
+    display: block;
+}
+
+.view-leaf {
+    padding-left: 36px;
+}
+
+.view-leaf .tree-icon {
+    font-size: 0.8rem;
+    color: var(--color-text-muted, #888);
 }
 
 /* Tree nodes (type headers) */
