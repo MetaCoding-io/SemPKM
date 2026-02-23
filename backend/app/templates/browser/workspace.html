@@ -7,10 +7,31 @@
     <div class="workspace-pane" id="nav-pane">
         <div class="pane-header">
             <span class="pane-title">Explorer</span>
-            <button class="views-btn" onclick="openViewMenu()" title="Open View Menu">Views</button>
         </div>
         <div class="pane-content" id="nav-tree">
-            {% include "browser/nav_tree.html" %}
+            <div class="explorer-section expanded" id="section-objects">
+                <div class="explorer-section-header" onclick="this.parentElement.classList.toggle('expanded')">
+                    <span class="explorer-section-chevron">&#9656;</span>
+                    <span class="explorer-section-title">OBJECTS</span>
+                </div>
+                <div class="explorer-section-body">
+                    {% include "browser/nav_tree.html" %}
+                </div>
+            </div>
+            <div class="explorer-section expanded" id="section-views">
+                <div class="explorer-section-header"
+                     onclick="this.parentElement.classList.toggle('expanded')"
+                     hx-get="/browser/views/explorer"
+                     hx-target="#views-tree"
+                     hx-trigger="click once"
+                     hx-swap="innerHTML">
+                    <span class="explorer-section-chevron">&#9656;</span>
+                    <span class="explorer-section-title">VIEWS</span>
+                </div>
+                <div class="explorer-section-body" id="views-tree">
+                    <div class="tree-empty">Loading...</div>
+                </div>
+            </div>
         </div>
     </div>
 

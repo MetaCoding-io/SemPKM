@@ -15,6 +15,8 @@ from urllib.parse import unquote, quote
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 
+from app.auth.dependencies import get_current_user
+from app.auth.models import User
 from app.dependencies import get_label_service, get_view_spec_service
 from app.services.labels import LabelService
 from app.views.service import ViewSpecService
@@ -28,6 +30,7 @@ router = APIRouter(prefix="/browser/views", tags=["views"])
 async def view_list(
     request: Request,
     type_iri: str,
+    user: User = Depends(get_current_user),
     view_spec_service: ViewSpecService = Depends(get_view_spec_service),
     label_service: LabelService = Depends(get_label_service),
 ):
@@ -76,6 +79,7 @@ async def table_view(
     sort: str = Query(default=""),
     dir: str = Query(default="asc"),
     filter: str = Query(default=""),
+    user: User = Depends(get_current_user),
     view_spec_service: ViewSpecService = Depends(get_view_spec_service),
     label_service: LabelService = Depends(get_label_service),
 ):
@@ -167,6 +171,7 @@ async def cards_view(
     page_size: int = Query(default=12, ge=1, le=100),
     filter: str = Query(default=""),
     group_by: str = Query(default=""),
+    user: User = Depends(get_current_user),
     view_spec_service: ViewSpecService = Depends(get_view_spec_service),
     label_service: LabelService = Depends(get_label_service),
 ):
@@ -240,6 +245,7 @@ async def cards_view(
 async def graph_data(
     request: Request,
     spec_iri: str,
+    user: User = Depends(get_current_user),
     view_spec_service: ViewSpecService = Depends(get_view_spec_service),
 ):
     """Return graph data as JSON for Cytoscape.js visualization.
@@ -265,6 +271,7 @@ async def graph_data(
 async def graph_expand(
     request: Request,
     node_iri: str,
+    user: User = Depends(get_current_user),
     view_spec_service: ViewSpecService = Depends(get_view_spec_service),
 ):
     """Return neighbor nodes and edges for expansion in the graph.
@@ -281,6 +288,7 @@ async def graph_expand(
 async def graph_view(
     request: Request,
     spec_iri: str,
+    user: User = Depends(get_current_user),
     view_spec_service: ViewSpecService = Depends(get_view_spec_service),
     label_service: LabelService = Depends(get_label_service),
 ):
@@ -343,9 +351,49 @@ async def graph_view(
     )
 
 
+@router.get("/explorer")
+async def views_explorer(
+    request: Request,
+    user: User = Depends(get_current_user),
+    view_spec_service: ViewSpecService = Depends(get_view_spec_service),
+    label_service: LabelService = Depends(get_label_service),
+):
+    """Return a tree-style view list for the explorer pane sidebar."""
+    templates = request.app.state.templates
+
+    all_specs = await view_spec_service.get_all_view_specs()
+
+    # Group by renderer type (table, card, graph)
+    by_type: dict[str, list] = {}
+    for spec in all_specs:
+        rtype = spec.renderer_type or "other"
+        if rtype not in by_type:
+            by_type[rtype] = []
+        by_type[rtype].append(spec)
+
+    # Order: table, card, graph, then anything else
+    type_order = ["table", "card", "graph"]
+    ordered_groups = []
+    for t in type_order:
+        if t in by_type:
+            ordered_groups.append({"type": t, "specs": by_type.pop(t)})
+    for t, specs in by_type.items():
+        ordered_groups.append({"type": t, "specs": specs})
+
+    context = {
+        "request": request,
+        "groups": ordered_groups,
+    }
+
+    return templates.TemplateResponse(
+        request, "browser/views_explorer.html", context
+    )
+
+
 @router.get("/menu")
 async def view_menu(
     request: Request,
+    user: User = Depends(get_current_user),
     view_spec_service: ViewSpecService = Depends(get_view_spec_service),
     label_service: LabelService = Depends(get_label_service),
 ):
@@ -403,6 +451,7 @@ async def view_menu(
 @router.get("/available")
 async def views_available(
     request: Request,
+    user: User = Depends(get_current_user),
     view_spec_service: ViewSpecService = Depends(get_view_spec_service),
     label_service: LabelService = Depends(get_label_service),
 ):

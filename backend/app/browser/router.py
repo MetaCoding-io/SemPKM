@@ -12,7 +12,10 @@ from urllib.parse import unquote
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
+from rdflib import URIRef
 
+from app.auth.dependencies import get_current_user, require_role
+from app.auth.models import User
 from app.dependencies import (
     get_label_service,
     get_shapes_service,
@@ -37,6 +40,7 @@ def _is_htmx_request(request: Request) -> bool:
 @router.get("/")
 async def workspace(
     request: Request,
+    user: User = Depends(get_current_user),
     shapes_service: ShapesService = Depends(get_shapes_service),
 ):
     """Render the IDE-style workspace with three-column layout.
@@ -59,6 +63,7 @@ async def workspace(
 async def tree_children(
     request: Request,
     type_iri: str,
+    user: User = Depends(get_current_user),
     shapes_service: ShapesService = Depends(get_shapes_service),
     label_service: LabelService = Depends(get_label_service),
 ):
@@ -106,6 +111,7 @@ async def tree_children(
 async def get_object(
     request: Request,
     object_iri: str,
+    user: User = Depends(get_current_user),
     shapes_service: ShapesService = Depends(get_shapes_service),
     label_service: LabelService = Depends(get_label_service),
     client: TriplestoreClient = Depends(get_triplestore_client),
@@ -180,6 +186,7 @@ async def get_object(
 async def save_body(
     request: Request,
     object_iri: str,
+    user: User = Depends(require_role("owner", "member")),
     client: TriplestoreClient = Depends(get_triplestore_client),
     validation_queue: AsyncValidationQueue = Depends(get_validation_queue),
 ):
@@ -200,7 +207,8 @@ async def save_body(
     params = BodySetParams(iri=decoded_iri, body=body_content)
     operation = await handle_body_set(params, settings.base_namespace)
     event_store = EventStore(client)
-    event_result = await event_store.commit([operation])
+    user_iri = URIRef(f"urn:sempkm:user:{user.id}")
+    event_result = await event_store.commit([operation], performed_by=user_iri, performed_by_role=user.role)
 
     await validation_queue.enqueue(
         event_iri=str(event_result.event_iri),
@@ -217,6 +225,7 @@ async def save_body(
 async def get_relations(
     request: Request,
     object_iri: str,
+    user: User = Depends(get_current_user),
     label_service: LabelService = Depends(get_label_service),
     client: TriplestoreClient = Depends(get_triplestore_client),
 ):
@@ -320,6 +329,7 @@ async def get_relations(
 async def get_lint(
     request: Request,
     object_iri: str,
+    user: User = Depends(get_current_user),
     validation_queue: AsyncValidationQueue = Depends(get_validation_queue),
     client: TriplestoreClient = Depends(get_triplestore_client),
 ):
@@ -396,6 +406,7 @@ async def get_lint(
 @router.get("/types")
 async def type_picker(
     request: Request,
+    user: User = Depends(get_current_user),
     shapes_service: ShapesService = Depends(get_shapes_service),
 ):
     """Render the type picker dialog listing all available object types.
@@ -415,6 +426,7 @@ async def type_picker(
 async def create_form(
     request: Request,
     type: str,
+    user: User = Depends(get_current_user),
     shapes_service: ShapesService = Depends(get_shapes_service),
 ):
     """Render the SHACL-driven create form for a given object type.
@@ -450,6 +462,7 @@ async def create_form(
 @router.post("/objects")
 async def create_object(
     request: Request,
+    user: User = Depends(require_role("owner", "member")),
     shapes_service: ShapesService = Depends(get_shapes_service),
     label_service: LabelService = Depends(get_label_service),
     client: TriplestoreClient = Depends(get_triplestore_client),
@@ -510,7 +523,8 @@ async def create_object(
         )
         operation = await handle_object_create(params, settings.base_namespace)
         event_store = EventStore(client)
-        event_result = await event_store.commit([operation])
+        user_iri = URIRef(f"urn:sempkm:user:{user.id}")
+        event_result = await event_store.commit([operation], performed_by=user_iri, performed_by_role=user.role)
 
         # Trigger async validation
         await validation_queue.enqueue(
@@ -567,6 +581,7 @@ async def create_object(
 async def save_object(
     request: Request,
     object_iri: str,
+    user: User = Depends(require_role("owner", "member")),
     shapes_service: ShapesService = Depends(get_shapes_service),
     label_service: LabelService = Depends(get_label_service),
     client: TriplestoreClient = Depends(get_triplestore_client),
@@ -611,7 +626,8 @@ async def save_object(
             )
             operation = await handle_object_patch(params, settings.base_namespace)
             event_store = EventStore(client)
-            event_result = await event_store.commit([operation])
+            user_iri = URIRef(f"urn:sempkm:user:{user.id}")
+            event_result = await event_store.commit([operation], performed_by=user_iri, performed_by_role=user.role)
 
             await validation_queue.enqueue(
                 event_iri=str(event_result.event_iri),
@@ -663,6 +679,7 @@ async def search_references(
     q: str = "",
     field_id: str = "",
     index: str | None = None,
+    user: User = Depends(get_current_user),
     label_service: LabelService = Depends(get_label_service),
     client: TriplestoreClient = Depends(get_triplestore_client),
 ):

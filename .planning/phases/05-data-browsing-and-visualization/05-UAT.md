@@ -8,10 +8,10 @@ updated: 2026-02-22T23:00:00Z
 
 ## Current Test
 
-number: 9
-name: Graph View Renders Nodes and Edges
+number: 15
+name: Command Palette View Discovery
 expected: |
-  Open the graph view for a type. You should see a 2D graph with nodes (objects) and edges (relationships) rendered by Cytoscape.js. Nodes should be colored by type — either using colors from the model or auto-assigned from a palette.
+  Open the command palette and type "Open view" or "Browse". You should see entries for available views that you can select to open.
 awaiting: user response
 
 ## Tests
@@ -50,27 +50,27 @@ result: pass (fixed: dropdown not rendering due to empty spec.columns, moved to 
 
 ### 9. Graph View Renders Nodes and Edges
 expected: Open the graph view for a type. You should see a 2D graph with nodes (objects) and edges (relationships) rendered by Cytoscape.js. Nodes should be colored by type — either using colors from the model or auto-assigned from a palette.
-result: [pending]
+result: pass (fixed: edge labels showed full IRI — now short local names; added rich popover tooltips for nodes with properties and edges with full predicate IRI; supplementary properties query for graph nodes)
 
 ### 10. Graph Node Interaction
 expected: Click a node in the graph — it should become selected and show details in the right pane. Double-click a node — its neighbors should expand into the graph with new nodes and edges appearing.
-result: [pending]
+result: pass
 
 ### 11. Graph Layout Picker
 expected: The graph view has a layout picker with at least three options: force-directed, hierarchical, and radial. Switching layouts rearranges the graph nodes accordingly.
-result: [pending]
+result: pass
 
 ### 12. Graph Pan and Zoom
 expected: In the graph view, use scroll wheel or pinch to zoom in/out. Click and drag on empty space to pan the view. The graph should respond smoothly.
-result: [pending]
+result: pass
 
 ### 13. Views Open as Tabs
 expected: Opening a view (table, cards, or graph) adds a tab in the center pane tab bar alongside any object tabs. You can have a table view and a graph view open simultaneously as separate tabs.
-result: [pending]
+result: pass
 
 ### 14. View Menu Grouped by Model
 expected: Click the Views button in the Explorer pane. A view menu appears listing available views grouped by source model name (e.g., "Basic PKM"). Each entry can be clicked to open that view.
-result: [pending]
+result: pass (redesigned: VS Code-style collapsible OBJECTS and VIEWS sections in explorer pane, views grouped by renderer type with lazy htmx loading)
 
 ### 15. Command Palette View Discovery
 expected: Open the command palette and type "Open view" or "Browse". You should see entries for available views that you can select to open.
@@ -87,9 +87,9 @@ result: [pending]
 ## Summary
 
 total: 17
-passed: 8
+passed: 14
 issues: 0
-pending: 9
+pending: 3
 skipped: 0
 
 ## Gaps

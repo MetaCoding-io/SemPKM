@@ -11,6 +11,8 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse
 
+from app.auth.dependencies import require_role
+from app.auth.models import User
 from app.dependencies import get_model_service, get_webhook_service
 from app.services.models import ModelService
 from app.services.webhooks import WebhookService
@@ -29,7 +31,7 @@ def _is_htmx_request(request: Request) -> bool:
 
 
 @router.get("/")
-async def admin_index(request: Request):
+async def admin_index(request: Request, user: User = Depends(require_role("owner"))):
     """Render the admin portal landing page with links to Models and Webhooks."""
     templates = request.app.state.templates
     context = {"active_page": "admin"}
@@ -43,6 +45,7 @@ async def admin_index(request: Request):
 @router.get("/models")
 async def admin_models(
     request: Request,
+    user: User = Depends(require_role("owner")),
     model_service: ModelService = Depends(get_model_service),
 ):
     """Render model management page with table of installed models."""
@@ -56,6 +59,7 @@ async def admin_models(
 @router.post("/models/install")
 async def admin_models_install(
     request: Request,
+    user: User = Depends(require_role("owner")),
     model_service: ModelService = Depends(get_model_service),
     path: str = Form(...),
 ):
@@ -83,6 +87,7 @@ async def admin_models_install(
 async def admin_models_remove(
     request: Request,
     model_id: str,
+    user: User = Depends(require_role("owner")),
     model_service: ModelService = Depends(get_model_service),
 ):
     """Remove an installed Mental Model.
@@ -110,6 +115,7 @@ async def admin_models_remove(
 @router.get("/webhooks")
 async def admin_webhooks(
     request: Request,
+    user: User = Depends(require_role("owner")),
     webhook_service: WebhookService = Depends(get_webhook_service),
 ):
     """Render webhook configuration page with list of configured webhooks."""
@@ -127,6 +133,7 @@ async def admin_webhooks(
 @router.post("/webhooks")
 async def admin_webhooks_create(
     request: Request,
+    user: User = Depends(require_role("owner")),
     webhook_service: WebhookService = Depends(get_webhook_service),
     target_url: str = Form(...),
     events: list[str] = Form(default=[]),
@@ -171,6 +178,7 @@ async def admin_webhooks_create(
 async def admin_webhooks_delete(
     request: Request,
     webhook_id: str,
+    user: User = Depends(require_role("owner")),
     webhook_service: WebhookService = Depends(get_webhook_service),
 ):
     """Delete a webhook configuration.
@@ -197,6 +205,7 @@ async def admin_webhooks_delete(
 async def admin_webhooks_toggle(
     request: Request,
     webhook_id: str,
+    user: User = Depends(require_role("owner")),
     webhook_service: WebhookService = Depends(get_webhook_service),
 ):
     """Toggle a webhook's enabled/disabled state.
