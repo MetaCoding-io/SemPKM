@@ -635,8 +635,14 @@ ninja-keys {
     margin: 0 4px;
 }
 
-.editor-status {
+.editor-maximize-btn {
     margin-left: auto;
+    font-size: 1.1rem;
+    line-height: 1;
+    padding: 2px 6px;
+}
+
+.editor-status {
     font-size: 0.75rem;
     color: var(--color-text-muted, #666);
 }

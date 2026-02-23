@@ -50,6 +50,12 @@
               <button type="button" class="editor-btn" onclick="editorAction('heading')" title="Heading">H</button>
               <button type="button" class="editor-btn" onclick="editorAction('link')" title="Link">&#128279;</button>
               <span class="editor-toolbar-separator"></span>
+              <button type="button" class="editor-btn editor-maximize-btn"
+                      id="maximize-btn-{{ safe_id }}"
+                      onclick="toggleEditorMaximize('{{ safe_id }}')"
+                      title="Maximize Editor">
+                &#9633;
+              </button>
               <span class="editor-status" id="editor-status"></span>
             </div>
             <div class="editor-skeleton" id="skeleton-{{ safe_id }}">
@@ -106,6 +112,31 @@
     var editorId = 'editor-section-' + safeId;
     var fallbackId = 'body-fallback-' + safeId;
     var skeletonId = 'skeleton-' + safeId;
+
+    // Editor maximize/restore toggle (per-tab state)
+    window._editorMaxState = window._editorMaxState || {};
+
+    window.toggleEditorMaximize = function(sid) {
+      var splitContainerId = 'object-split-' + sid;
+      var splitInstance = window._sempkmSplits && window._sempkmSplits[splitContainerId];
+      if (!splitInstance) return;
+
+      var state = window._editorMaxState[sid] || { maximized: false, savedSizes: null };
+      var btn = document.getElementById('maximize-btn-' + sid);
+
+      if (state.maximized) {
+        splitInstance.setSizes(state.savedSizes || [40, 60]);
+        state.maximized = false;
+        if (btn) { btn.innerHTML = '&#9633;'; btn.title = 'Maximize Editor'; }
+      } else {
+        state.savedSizes = splitInstance.getSizes();
+        splitInstance.setSizes([0, 100]);
+        state.maximized = true;
+        if (btn) { btn.innerHTML = '&#9635;'; btn.title = 'Restore Editor'; }
+      }
+
+      window._editorMaxState[sid] = state;
+    };
 
     // Store deferred initialization function for edit mode
     window['_initEditMode_' + safeId] = function() {
