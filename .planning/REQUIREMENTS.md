@@ -11,7 +11,7 @@
 - [x] **FIX-02**: CodeMirror editor is editable with proper minimum height regardless of Split.js initialization timing
 - [x] **FIX-03**: Autocomplete dropdown for reference properties positions correctly and clicking a suggestion populates the field
 - [x] **FIX-04**: Views explorer section loads its content eagerly on workspace init (no perpetual "Loading..." state)
-- [ ] **FIX-05**: htmx afterSwap cleanup architecture prevents listener accumulation and properly destroys library instances (Split.js, CodeMirror, Cytoscape) before DOM removal
+- [x] **FIX-05**: htmx afterSwap cleanup architecture prevents listener accumulation and properly destroys library instances (Split.js, CodeMirror, Cytoscape) before DOM removal
 
 ### Object View (VIEW)
 
@@ -118,7 +118,7 @@
 | FIX-02 | Phase 10 | Complete |
 | FIX-03 | Phase 10 | Complete |
 | FIX-04 | Phase 10 | Complete |
-| FIX-05 | Phase 10 | Pending |
+| FIX-05 | Phase 10 | Complete |
 | VIEW-01 | Phase 11 | Pending |
 | VIEW-02 | Phase 11 | Pending |
 | VIEW-03 | Phase 11 | Pending |
