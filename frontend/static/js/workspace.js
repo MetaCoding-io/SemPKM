@@ -1121,6 +1121,16 @@
 
     // Initialize command palette after workspace layout is ready
     initCommandPalette();
+
+    // Fetch and cache icon map for client-side use (graph shapes, tab icons)
+    fetch('/browser/icons', { credentials: 'include' })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        window._sempkmIcons = data;  // { tree: {...}, tab: {...}, graph: {...} }
+      })
+      .catch(function () {
+        window._sempkmIcons = { tree: {}, tab: {}, graph: {} };
+      });
   }
 
   // Wait for DOM ready

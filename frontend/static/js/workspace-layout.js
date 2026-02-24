@@ -636,6 +636,18 @@
         tabEl.appendChild(iconEl);
       }
 
+      // Insert type icon before label for typed object tabs
+      if (!isView && !tab.isSpecial && tab.typeIcon) {
+        var tabIconEl = document.createElement('i');
+        tabIconEl.setAttribute('data-lucide', tab.typeIcon);
+        tabIconEl.style.color = tab.typeColor || '';
+        tabIconEl.style.width = '14px';
+        tabIconEl.style.height = '14px';
+        tabIconEl.style.flexShrink = '0';
+        tabIconEl.style.marginRight = '4px';
+        tabEl.appendChild(tabIconEl);
+      }
+
       var labelEl = document.createElement('span');
       labelEl.className = 'tab-label';
       labelEl.textContent = tab.label || tabId;
@@ -677,6 +689,11 @@
 
     // Make tab bar a drop zone
     initTabBarDropZone(tabBar, group.id);
+
+    // Reinitialize Lucide icons in the tab bar (for type icons)
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons({ root: tabBar });
+    }
   }
 
   // -----------------------------------------------------------------------
