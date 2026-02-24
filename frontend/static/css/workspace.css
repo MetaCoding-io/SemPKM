@@ -185,6 +185,14 @@
     flex-shrink: 0;
 }
 
+.tree-node-icon,
+.tree-leaf-icon {
+    display: inline-block;
+    vertical-align: middle;
+    flex-shrink: 0;
+    margin-right: 4px;
+}
+
 .tree-label {
     white-space: nowrap;
     overflow: hidden;
