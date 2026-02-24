@@ -13,6 +13,10 @@
 
   // --- Constants ---
   var PANE_KEY = 'sempkm_pane_sizes';
+  var PANEL_KEY = 'sempkm_bottom_panel';
+
+  // --- Bottom Panel State ---
+  var panelState = { open: false, height: 30, activeTab: 'sparql', maximized: false };
 
   // --- Split.js Initialization ---
   var splitInstance = null;
@@ -280,6 +284,147 @@
     }
   }
 
+  // --- Bottom Panel ---
+
+  function restorePanelState() {
+    try {
+      var saved = localStorage.getItem(PANEL_KEY);
+      if (saved) {
+        Object.assign(panelState, JSON.parse(saved));
+      }
+    } catch (e) {
+      // localStorage unavailable or corrupt -- use defaults
+    }
+  }
+
+  function savePanelState() {
+    try {
+      localStorage.setItem(PANEL_KEY, JSON.stringify(panelState));
+    } catch (e) {
+      // localStorage unavailable
+    }
+  }
+
+  function _applyPanelState() {
+    var panel = document.getElementById('bottom-panel');
+    var handle = document.getElementById('panel-resize-handle');
+    var editorCol = document.querySelector('.editor-column');
+
+    if (!panel || !editorCol) return;
+
+    if (!panelState.open) {
+      panel.style.display = 'none';
+      if (handle) handle.classList.remove('panel-open');
+      editorCol.classList.remove('panel-maximized');
+    } else if (panelState.maximized) {
+      panel.style.display = '';
+      panel.style.height = '';
+      if (handle) handle.classList.add('panel-open');
+      editorCol.classList.add('panel-maximized');
+    } else {
+      panel.style.display = '';
+      if (handle) handle.classList.add('panel-open');
+      editorCol.classList.remove('panel-maximized');
+      // Set height in pixels (not %) to avoid pitfall with flex layout
+      var parentH = panel.parentElement ? panel.parentElement.getBoundingClientRect().height : 0;
+      if (parentH > 0) {
+        panel.style.height = (parentH * panelState.height / 100) + 'px';
+      }
+    }
+
+    // Set active panel tab and pane
+    var tabs = document.querySelectorAll('.panel-tab');
+    tabs.forEach(function (tab) { tab.classList.remove('active'); });
+    var activeTab = document.querySelector('.panel-tab[data-panel="' + panelState.activeTab + '"]');
+    if (activeTab) activeTab.classList.add('active');
+
+    var panes = document.querySelectorAll('.panel-pane');
+    panes.forEach(function (pane) { pane.classList.remove('active'); });
+    var activePaneId = 'panel-' + panelState.activeTab;
+    var activePane = document.getElementById(activePaneId);
+    if (activePane) activePane.classList.add('active');
+
+    // Re-init Lucide icons if panel is open
+    if (panelState.open && typeof lucide !== 'undefined') {
+      lucide.createIcons({ attrs: { class: ['lucide'] } });
+    }
+  }
+
+  function toggleBottomPanel() {
+    panelState.open = !panelState.open;
+    panelState.maximized = false;
+    _applyPanelState();
+    savePanelState();
+  }
+
+  function maximizeBottomPanel() {
+    if (!panelState.open) panelState.open = true;
+    panelState.maximized = !panelState.maximized;
+    _applyPanelState();
+    savePanelState();
+  }
+
+  function initBottomPanelResize() {
+    var handle = document.getElementById('panel-resize-handle');
+    var panel = document.getElementById('bottom-panel');
+    if (!handle || !panel) return;
+
+    var startY, startHeight;
+
+    function onMouseMove(e) {
+      var delta = startY - e.clientY;
+      var workspaceH = panel.parentElement ? panel.parentElement.getBoundingClientRect().height : 0;
+      var newHeight = Math.max(80, Math.min(startHeight + delta, workspaceH * 0.8));
+      panel.style.height = newHeight + 'px';
+      if (workspaceH > 0) {
+        panelState.height = (newHeight / workspaceH * 100);
+      }
+    }
+
+    function onMouseUp() {
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
+      savePanelState();
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    }
+
+    handle.addEventListener('mousedown', function (e) {
+      e.preventDefault();
+      startY = e.clientY;
+      startHeight = panel.getBoundingClientRect().height;
+      document.body.style.userSelect = 'none';
+      document.body.style.cursor = 'row-resize';
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    });
+  }
+
+  function initPanelTabs() {
+    document.querySelectorAll('.panel-tab').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        panelState.activeTab = btn.dataset.panel;
+        savePanelState();
+        _applyPanelState();
+      });
+    });
+  }
+
+  function initBottomPanel() {
+    var maximizeBtn = document.getElementById('panel-maximize-btn');
+    if (maximizeBtn) {
+      maximizeBtn.addEventListener('click', maximizeBottomPanel);
+    }
+    var closeBtn = document.getElementById('panel-close-btn');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', toggleBottomPanel);
+    }
+    initPanelTabs();
+    initBottomPanelResize();
+    restorePanelState();
+    _applyPanelState();
+  }
+
   // --- Pane Toggle ---
 
   var paneStates = {};
@@ -502,10 +647,10 @@
         }
       }
 
-      // Ctrl+J / Cmd+J: Toggle bottom panel (implemented in Plan 03)
+      // Ctrl+J / Cmd+J: Toggle bottom panel
       if (mod && e.key === 'j') {
         e.preventDefault();
-        /* Panel toggle -- implemented Plan 03 */
+        toggleBottomPanel();
       }
 
       // Ctrl+1/2/3/4: Focus editor group by index
@@ -629,6 +774,30 @@
             var layout = window._workspaceLayout;
             if (layout) window.splitRight(layout.activeGroupId);
           }
+        },
+        {
+          id: 'close-group',
+          title: 'Close Group',
+          section: 'View',
+          handler: function () {
+            var layout = window._workspaceLayout;
+            if (layout && layout.groups.length > 1) {
+              layout.removeGroup(layout.activeGroupId);
+            }
+          }
+        },
+        {
+          id: 'toggle-panel',
+          title: 'Toggle Panel',
+          section: 'View',
+          hotkey: 'ctrl+j',
+          handler: function () { toggleBottomPanel(); }
+        },
+        {
+          id: 'maximize-panel',
+          title: 'Maximize Panel',
+          section: 'View',
+          handler: function () { maximizeBottomPanel(); }
         },
         {
           id: 'toggle-explorer',
@@ -909,6 +1078,7 @@
     initTreeToggle();
     initRightPaneTabs();
     initClientSideValidation();
+    initBottomPanel();
 
     // Initialize workspace layout (migrates old tab state, builds multi-group DOM)
     if (typeof window.initWorkspaceLayout === 'function') {
@@ -987,5 +1157,7 @@
   window.openViewMenu = openViewMenu;
   window.toggleObjectMode = toggleObjectMode;
   window.saveCurrentObject = saveCurrentObject;
+  window.toggleBottomPanel = toggleBottomPanel;
+  window.maximizeBottomPanel = maximizeBottomPanel;
 
 })();
