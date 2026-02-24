@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-23)
 ## Current Position
 
 Phase: 17 of 18 (LLM Connection Configuration)
-Plan: 1 of 1 (complete)
-Status: Phase 17 plan 01 complete (Fernet-encrypted LLM API key, owner settings UI, three endpoints)
-Last activity: 2026-02-24 - Completed 17-01: LLM Connection Configuration
+Plan: 2 of 2 (complete)
+Status: Phase 17 plan 02 complete (SSE streaming proxy endpoint + nginx SSE location block)
+Last activity: 2026-02-24 - Completed 17-02: SSE Streaming Proxy Endpoint
 
-Progress: [##########] 87% (v2.0) -- 17-01 complete (21/24 plans)
+Progress: [##########] 92% (v2.0) -- 17-02 complete (22/24 plans)
 
 ## Performance Metrics
 
@@ -47,6 +47,7 @@ Progress: [##########] 87% (v2.0) -- 17-01 complete (21/24 plans)
 | 16    | 02   | 2min     | 2     | 3     |
 | 16    | 03   | 3min     | 2     | 6     |
 | 17    | 01   | 4min     | 2     | 8     |
+| 17    | 02   | 1min     | 2     | 2     |
 
 ## Accumulated Context
 
@@ -132,6 +133,9 @@ v2.0 roadmap decisions:
 - (17-01) save_config skips empty string api_key to prevent overwriting existing key with blank input
 - (17-01) api_key_set bool returned from get_config, never the key value; settings/data endpoint pops llm.api_key
 - (17-01) 600ms debounced client-side saves via fetch PUT (no form submission, instant UX feedback)
+- (17-02) aiter_lines() over aiter_bytes() for upstream SSE passthrough -- buffers across HTTP chunk boundaries for complete lines
+- (17-02) StreamingResponse X-Accel-Buffering: no as defense-in-depth even without nginx location match
+- (17-02) /browser/llm/chat/stream accessible to any authenticated user (get_current_user) for future AI Copilot
 
 ### Pending Todos
 
@@ -160,5 +164,5 @@ v2.0 roadmap decisions:
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 17-01-PLAN.md (LLM Connection Configuration)
+Stopped at: Completed 17-02-PLAN.md (SSE Streaming Proxy Endpoint)
 Resume: Begin Phase 18 (next phase)
