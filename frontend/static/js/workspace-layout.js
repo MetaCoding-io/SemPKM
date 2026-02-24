@@ -716,6 +716,14 @@
         var el = document.getElementById('editor-area-' + groupId);
         if (el) el.innerHTML = '<div class="editor-empty"><p>Failed to load content.</p></div>';
       });
+
+      // Load right-pane sections for object tabs (not views)
+      if (!tab.isView && !(tabId && tabId.indexOf('view:') === 0)) {
+        if (typeof loadRightPaneSection === 'function') {
+          loadRightPaneSection(tabId, 'relations');
+          loadRightPaneSection(tabId, 'lint');
+        }
+      }
     } else {
       editorArea.innerHTML = '<div class="editor-empty"><p>Loading...</p></div>';
     }
