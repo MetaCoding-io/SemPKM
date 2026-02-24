@@ -67,10 +67,10 @@
 
 ### LLM Configuration (LLM)
 
-- [ ] **LLM-01**: Admin can configure a generic OpenAI-compatible LLM connection (API base URL, API key, default model) via the Settings page
-- [ ] **LLM-02**: API keys are stored server-side only (encrypted in database), never exposed to the browser
-- [ ] **LLM-03**: A "Test Connection" button validates the configured endpoint and shows connection status
-- [ ] **LLM-04**: A "Fetch Models" button retrieves available models from the configured provider
+- [x] **LLM-01**: Admin can configure a generic OpenAI-compatible LLM connection (API base URL, API key, default model) via the Settings page
+- [x] **LLM-02**: API keys are stored server-side only (encrypted in database), never exposed to the browser
+- [x] **LLM-03**: A "Test Connection" button validates the configured endpoint and shows connection status
+- [x] **LLM-04**: A "Fetch Models" button retrieves available models from the configured provider
 - [ ] **LLM-05**: Backend provides a streaming proxy endpoint (SSE) for LLM chat completions with proper nginx SSE configuration
 
 ### Tutorials and Documentation (DOCS)
@@ -150,10 +150,10 @@
 | EVNT-02 | Phase 16 | Complete |
 | EVNT-03 | Phase 16 | Complete |
 | EVNT-04 | Phase 16 | Complete |
-| LLM-01 | Phase 17 | Pending |
-| LLM-02 | Phase 17 | Pending |
-| LLM-03 | Phase 17 | Pending |
-| LLM-04 | Phase 17 | Pending |
+| LLM-01 | Phase 17 | Complete |
+| LLM-02 | Phase 17 | Complete |
+| LLM-03 | Phase 17 | Complete |
+| LLM-04 | Phase 17 | Complete |
 | LLM-05 | Phase 17 | Pending |
 | DOCS-01 | Phase 18 | Pending |
 | DOCS-02 | Phase 18 | Pending |
