@@ -114,12 +114,12 @@ Plans:
   2. Tabs can be dragged between editor groups; the tab moves (not copies) to the target group
   3. Closing the last tab in an editor group removes that group and remaining groups expand to fill the space
   4. A bottom panel toggled via Ctrl+J exists below the editor area with tabbed interface (SPARQL, Event Log, AI Copilot placeholder tabs) and collapse/maximize controls
-**Plans**: ~3 plans
+**Plans**: 3 plans
 
 Plans:
-- [ ] 14-01: Editor group manager (WorkspaceLayout class, multi-group tab state, dynamic Split.js)
-- [ ] 14-02: Tab drag between groups and group lifecycle
-- [ ] 14-03: Bottom panel infrastructure with placeholder tabs
+- [ ] 14-01-PLAN.md — WorkspaceLayout class, multi-group DOM, Split.js recreation, sessionStorage migration, Ctrl+\\ and Ctrl+1-4 shortcuts
+- [ ] 14-02-PLAN.md — HTML5 tab drag-and-drop between groups, right-edge group creation, right-click context menu
+- [ ] 14-03-PLAN.md — Bottom panel DOM/CSS/JS, Ctrl+J toggle, resize handle, localStorage persistence, command palette entries
 
 ### Phase 15: Settings System and Node Type Icons
 **Goal**: A layered settings system provides extensible configuration (system defaults, mental model defaults, user overrides) and type-specific icons bring visual richness to the explorer and graph
