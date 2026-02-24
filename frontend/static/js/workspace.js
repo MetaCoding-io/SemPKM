@@ -582,8 +582,13 @@
 
   // --- Keyboard Shortcuts ---
 
+  var _keydownHandler = null;
+
   function initKeyboardShortcuts() {
-    document.addEventListener('keydown', function (e) {
+    if (_keydownHandler) {
+      document.removeEventListener('keydown', _keydownHandler);
+    }
+    _keydownHandler = function (e) {
       var isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
       var mod = isMac ? e.metaKey : e.ctrlKey;
 
@@ -662,7 +667,8 @@
           window.setActiveGroup(layout2.groups[idx].id);
         }
       }
-    });
+    };
+    document.addEventListener('keydown', _keydownHandler);
   }
 
   function saveCurrentObject() {
