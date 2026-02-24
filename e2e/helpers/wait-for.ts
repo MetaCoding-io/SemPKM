@@ -61,11 +61,12 @@ export async function waitForText(page: Page, text: string, timeoutMs = 10000) {
 
 /**
  * Wait for the workspace to be fully loaded.
- * The workspace is ready when the nav tree and editor area are present.
+ * The workspace is ready when the workspace-container is present and
+ * the nav tree has been populated by htmx.
  */
 export async function waitForWorkspace(page: Page, timeoutMs = 15000) {
-  // The workspace page has a .dashboard-layout container
-  await page.waitForSelector('.dashboard-layout', { state: 'attached', timeout: timeoutMs });
+  // Wait for the workspace-specific container (not .dashboard-layout which is on all pages)
+  await page.waitForSelector('.workspace-container', { state: 'attached', timeout: timeoutMs });
 }
 
 /**

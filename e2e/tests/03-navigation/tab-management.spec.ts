@@ -52,7 +52,7 @@ test.describe('Tab Management', () => {
     await waitForIdle(ownerPage);
 
     // Should have at least 2 tab elements
-    const tabs = ownerPage.locator('.tab-item, .tab');
+    const tabs = ownerPage.locator('.workspace-tab');
     const tabCount = await tabs.count();
     expect(tabCount).toBeGreaterThanOrEqual(2);
   });
@@ -77,7 +77,7 @@ test.describe('Tab Management', () => {
     await waitForIdle(ownerPage);
 
     // Click the first tab to switch back to it
-    const firstTab = ownerPage.locator('.tab-item, .tab').first();
+    const firstTab = ownerPage.locator('.workspace-tab').first();
     const firstTabCount = await firstTab.count();
     if (firstTabCount > 0) {
       await firstTab.click();
@@ -113,7 +113,7 @@ test.describe('Tab Management', () => {
     await waitForIdle(ownerPage);
 
     // Should only have one tab
-    const tabs = ownerPage.locator('.tab-item, .tab');
+    const tabs = ownerPage.locator('.workspace-tab');
     const tabCount = await tabs.count();
     expect(tabCount).toBe(1);
   });
