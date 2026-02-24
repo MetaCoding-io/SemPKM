@@ -273,13 +273,14 @@
 /* Tab bar */
 .tab-bar-workspace {
     display: flex;
-    align-items: stretch;
+    align-items: flex-end;
     overflow-x: auto;
     overflow-y: hidden;
     width: 100%;
     min-height: 36px;
     background: var(--color-surface-recessed);
     border-bottom: 1px solid var(--color-border);
+    padding: 0 4px;
 }
 
 .tab-bar-workspace::-webkit-scrollbar {
@@ -294,16 +295,19 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 0 12px;
-    min-height: 36px;
+    padding: 6px 12px;
+    min-height: 34px;
     font-size: 0.82rem;
     color: var(--color-text-muted);
-    border-right: 1px solid var(--color-border);
+    background: var(--color-surface-recessed);
+    border-radius: 4px 4px 0 0;
+    margin: 0 1px;
     cursor: pointer;
     white-space: nowrap;
     user-select: none;
     transition: background 0.1s, color 0.1s;
     max-width: 180px;
+    border-bottom: 2px solid transparent;
 }
 
 .workspace-tab:hover {
@@ -341,8 +345,16 @@
     padding: 0 2px;
     border-radius: 3px;
     flex-shrink: 0;
-    opacity: 0.5;
+    opacity: 0;
     transition: opacity 0.1s, background 0.1s;
+}
+
+.workspace-tab:hover .tab-close {
+    opacity: 0.5;
+}
+
+.workspace-tab.active .tab-close {
+    opacity: 0.5;
 }
 
 .tab-close:hover {
