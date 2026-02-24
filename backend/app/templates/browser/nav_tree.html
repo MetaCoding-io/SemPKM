@@ -9,7 +9,7 @@
 {% if types %}
 {% for type in types %}
 {% set type_icon = type_icons.get(type.iri, {'icon': 'circle', 'color': 'var(--color-text-faint)', 'size': 16}) if type_icons else {'icon': 'circle', 'color': 'var(--color-text-faint)', 'size': 16} %}
-<div class="tree-node" data-type-iri="{{ type.iri }}"
+<div class="tree-node" data-type-iri="{{ type.iri }}" data-testid="nav-section"
      hx-get="/browser/tree/{{ type.iri | urlencode }}"
      hx-trigger="click once"
      hx-target="#children-{{ type.iri | urlencode | replace('%', '_') }}"
