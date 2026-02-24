@@ -337,7 +337,7 @@
       // Wire group focus on click
       div.addEventListener('mousedown', function () {
         if (layout && layout.activeGroupId !== group.id) {
-          layout.setActiveGroup(group.id);
+          setActiveGroup(group.id);
         }
       });
     });
@@ -803,8 +803,16 @@
    * Focus an editor group by id.
    */
   function setActiveGroup(groupId) {
-    if (layout) {
-      layout.setActiveGroup(groupId);
+    if (!layout) return;
+    layout.setActiveGroup(groupId);
+
+    // Update right pane to reflect the newly focused group's active tab
+    var group = layout.getGroup(groupId);
+    if (group && group.activeTabId && !group.tabs.find(function (t) { return (t.id || t.iri) === group.activeTabId && t.isView; })) {
+      if (typeof loadRightPaneSection === 'function') {
+        loadRightPaneSection(group.activeTabId, 'relations');
+        loadRightPaneSection(group.activeTabId, 'lint');
+      }
     }
   }
 
