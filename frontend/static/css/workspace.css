@@ -1726,3 +1726,149 @@ details.form-group[open] > .form-group-summary::before {
     background: var(--color-border);
     margin: 4px 0;
 }
+
+/* ============================================================
+   Phase 14: Bottom Panel
+   ============================================================ */
+
+/* Resize handle above panel */
+.panel-resize-handle {
+  height: 4px;
+  background: transparent;
+  cursor: row-resize;
+  flex-shrink: 0;
+  transition: background 0.15s;
+  display: none; /* Only shown when panel is open */
+}
+
+.panel-resize-handle.panel-open {
+  display: block;
+}
+
+.panel-resize-handle:hover {
+  background: var(--color-primary);
+}
+
+/* Bottom panel container */
+.bottom-panel {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  overflow: hidden;
+  flex-shrink: 0;
+  min-height: 80px;
+}
+
+/* Panel header: tab bar + controls */
+.panel-header {
+  display: flex;
+  align-items: center;
+  height: 28px;
+  background: var(--color-surface-recessed);
+  border-bottom: 1px solid var(--color-border);
+  padding: 0 4px;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+/* Panel tab bar */
+.panel-tab-bar {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  overflow: hidden;
+  gap: 0;
+}
+
+/* Panel tabs: flat, no border-radius, smaller than editor tabs */
+.panel-tab {
+  height: 28px;
+  padding: 0 12px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.1s, border-color 0.1s;
+}
+
+.panel-tab.active {
+  color: var(--color-text);
+  border-bottom-color: var(--color-accent);
+}
+
+.panel-tab:hover:not(.active) {
+  color: var(--color-text);
+  background: var(--color-surface-hover);
+}
+
+/* Panel controls (maximize, close) */
+.panel-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+  padding-right: 2px;
+}
+
+.panel-btn {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  border-radius: 3px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+}
+
+.panel-btn:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+/* Panel content area */
+.panel-content {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+  min-height: 0;
+}
+
+/* Individual panel panes */
+.panel-pane {
+  display: none;
+  height: 100%;
+}
+
+.panel-pane.active {
+  display: block;
+}
+
+/* Placeholder text in empty panel panes */
+.panel-placeholder {
+  color: var(--color-text-muted);
+  font-size: 0.83rem;
+  font-style: italic;
+  padding: 24px 16px;
+  text-align: center;
+}
+
+/* Maximized state: editor groups shrink to 0 */
+.editor-column.panel-maximized .editor-groups-container {
+  flex: 0;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.editor-column.panel-maximized .bottom-panel {
+  flex: 1;
+}
