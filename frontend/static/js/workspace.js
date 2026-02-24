@@ -580,6 +580,27 @@
     }
   }
 
+  // --- Settings Tab ---
+
+  function openSettingsTab() {
+    var tabKey = 'special:settings';
+    var layout = window._workspaceLayout;
+    if (!layout) return;
+    var groupId = layout.activeGroupId;
+    var group = layout.getGroup ? layout.getGroup(groupId) : (layout.groups && layout.groups[groupId]);
+    if (group) {
+      var existing = group.tabs.find(function (t) { return (t.id || t.iri) === tabKey; });
+      if (existing) {
+        if (typeof switchTabInGroup === 'function') switchTabInGroup(tabKey, groupId);
+        return;
+      }
+    }
+    var tabDef = { id: tabKey, iri: tabKey, label: 'Settings', dirty: false, isView: false, isSpecial: true, specialType: 'settings' };
+    if (layout.addTabToGroup) layout.addTabToGroup(tabDef, groupId);
+    if (typeof window.loadTabInGroup === 'function') window.loadTabInGroup(groupId, tabKey);
+  }
+  window.openSettingsTab = openSettingsTab;
+
   // --- Keyboard Shortcuts ---
 
   var _keydownHandler = null;
@@ -656,6 +677,13 @@
       if (mod && e.key === 'j') {
         e.preventDefault();
         toggleBottomPanel();
+      }
+
+      // Ctrl+, / Cmd+,: Open Settings tab
+      if (mod && e.key === ',') {
+        e.preventDefault();
+        openSettingsTab();
+        return;
       }
 
       // Ctrl+1/2/3/4: Focus editor group by index
@@ -1167,3 +1195,4 @@
   window.maximizeBottomPanel = maximizeBottomPanel;
 
 })();
+

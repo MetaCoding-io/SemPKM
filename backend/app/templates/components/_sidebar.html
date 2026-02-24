@@ -128,7 +128,7 @@
         </div>
     </div>
     <div class="popover-divider"></div>
-    <a href="#" class="popover-item disabled">
+    <a href="#" class="popover-item" onclick="openSettingsTab(); var pop = document.getElementById('user-popover'); if (pop) pop.hidePopover();">
         <i data-lucide="settings" class="popover-icon"></i>
         <span>Settings</span>
     </a>
