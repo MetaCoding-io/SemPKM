@@ -1,3 +1,155 @@
 <div id="settings-page" class="settings-page">
-  <p>Settings (loading...)</p>
+
+  <!-- Search bar -->
+  <div class="settings-search-bar">
+    <i data-lucide="search" style="width:16px;height:16px;"></i>
+    <input type="text" id="settings-search" class="settings-search-input"
+           placeholder="Search settings..." oninput="filterSettings(this.value)" autocomplete="off">
+  </div>
+
+  <div class="settings-layout">
+
+    <!-- Left: category sidebar -->
+    <nav class="settings-sidebar" id="settings-sidebar">
+      {% for category_name, settings_list in categories.items() %}
+      <button class="settings-category-btn {% if loop.first %}active{% endif %}"
+              data-category="{{ category_name | lower | replace(' ', '-') }}"
+              onclick="showSettingsCategory('{{ category_name | lower | replace(' ', '-') }}')">
+        {{ category_name }}
+      </button>
+      {% endfor %}
+    </nav>
+
+    <!-- Right: settings detail panels -->
+    <div class="settings-detail" id="settings-detail">
+      {% for category_name, settings_list in categories.items() %}
+      {% set cat_id = category_name | lower | replace(' ', '-') %}
+      <div class="settings-category-panel" id="category-{{ cat_id }}"
+           data-category="{{ cat_id }}"
+           {% if not loop.first %}style="display:none"{% endif %}>
+        <div class="settings-category-header">
+          <h2 class="settings-category-title">{{ category_name }}</h2>
+          <button class="settings-reset-all-btn"
+                  onclick="resetCategorySettings('{{ cat_id }}')">
+            Reset to defaults
+          </button>
+        </div>
+
+        {% for setting in settings_list %}
+        <div class="settings-row" data-key="{{ setting.key }}"
+             data-search="{{ setting.label | lower }} {{ setting.description | lower }}">
+          <div class="settings-row-info">
+            <span class="settings-label">{{ setting.label }}</span>
+            {% if setting.description %}
+            <span class="settings-description">{{ setting.description }}</span>
+            {% endif %}
+          </div>
+          <div class="settings-row-control">
+            {% if setting.key in user_overrides %}
+            <span class="settings-modified-badge">Modified</span>
+            <button class="settings-reset-btn" onclick="resetSingleSetting('{{ setting.key }}', this)">
+              Reset
+            </button>
+            {% endif %}
+            {% with s=setting, current=resolved.get(setting.key, setting.default) %}
+            {% include "browser/_setting_input.html" %}
+            {% endwith %}
+          </div>
+        </div>
+        {% endfor %}
+
+      </div>
+      {% endfor %}
+    </div>
+
+  </div>
 </div>
+
+<script>
+(function () {
+  'use strict';
+
+  // Category switching
+  window.showSettingsCategory = function (catId) {
+    document.querySelectorAll('.settings-category-panel').forEach(function (p) {
+      p.style.display = p.dataset.category === catId ? '' : 'none';
+    });
+    document.querySelectorAll('.settings-category-btn').forEach(function (b) {
+      b.classList.toggle('active', b.dataset.category === catId);
+    });
+  };
+
+  // Search filter: hide non-matching rows; hide sidebar buttons for fully-filtered categories
+  window.filterSettings = function (query) {
+    var q = query.toLowerCase().trim();
+    document.querySelectorAll('.settings-row').forEach(function (row) {
+      var text = (row.dataset.search || '').toLowerCase();
+      var match = !q || text.includes(q);
+      row.style.display = match ? '' : 'none';
+    });
+    // Hide categories where all rows are hidden
+    document.querySelectorAll('.settings-category-panel').forEach(function (panel) {
+      var catId = panel.dataset.category;
+      var hasVisible = Array.from(panel.querySelectorAll('.settings-row'))
+        .some(function (r) { return r.style.display !== 'none'; });
+      var btn = document.querySelector('.settings-category-btn[data-category="' + catId + '"]');
+      if (btn) btn.style.display = hasVisible ? '' : 'none';
+    });
+    // If the active category became hidden, activate the first visible one
+    var activeBtn = document.querySelector('.settings-category-btn.active');
+    if (activeBtn && activeBtn.style.display === 'none') {
+      var firstVisible = document.querySelector('.settings-category-btn:not([style*="display: none"])');
+      if (firstVisible) window.showSettingsCategory(firstVisible.dataset.category);
+    }
+  };
+
+  // Instant apply: called by input onchange/oninput handlers
+  window.settingChanged = function (key, value) {
+    if (window.SemPKMSettings) window.SemPKMSettings.set(key, value);
+  };
+
+  // Reset single setting
+  window.resetSingleSetting = function (key, btn) {
+    if (!window.SemPKMSettings) return;
+    window.SemPKMSettings.reset(key).then(function (data) {
+      // Update the input to show the default value
+      var row = btn ? btn.closest('.settings-row') : document.querySelector('[data-key="' + key + '"]');
+      if (!row) return;
+      var input = row.querySelector('input, select');
+      if (input) {
+        if (input.type === 'checkbox') {
+          input.checked = data.default_value === 'true';
+        } else {
+          input.value = data.default_value || '';
+        }
+      }
+      // Remove Modified badge and Reset button
+      var badge = row.querySelector('.settings-modified-badge');
+      if (badge) badge.remove();
+      var resetBtn = row.querySelector('.settings-reset-btn');
+      if (resetBtn) resetBtn.remove();
+    });
+  };
+
+  // Reset all settings in a category
+  window.resetCategorySettings = function (catId) {
+    var panel = document.getElementById('category-' + catId);
+    if (!panel) return;
+    var rows = panel.querySelectorAll('.settings-row[data-key]');
+    var promises = [];
+    rows.forEach(function (row) {
+      var key = row.dataset.key;
+      var badge = row.querySelector('.settings-modified-badge');
+      if (badge) {
+        var resetBtn = row.querySelector('.settings-reset-btn');
+        promises.push(window.resetSingleSetting(key, resetBtn));
+      }
+    });
+  };
+
+  // Re-init Lucide icons scoped to settings page
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons({ nodes: [document.getElementById('settings-page')] });
+  }
+})();
+</script>

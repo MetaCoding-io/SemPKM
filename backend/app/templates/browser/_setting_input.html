@@ -1,0 +1,32 @@
+{% if s.input_type == 'toggle' %}
+<label class="settings-toggle">
+  <input type="checkbox"
+         class="settings-toggle-input"
+         {% if current == 'true' %}checked{% endif %}
+         onchange="settingChanged('{{ s.key }}', this.checked ? 'true' : 'false')">
+  <span class="settings-toggle-slider"></span>
+</label>
+
+{% elif s.input_type == 'select' %}
+<select class="settings-select"
+        onchange="settingChanged('{{ s.key }}', this.value)">
+  {% for opt in s.options or [] %}
+  <option value="{{ opt }}" {% if opt == current %}selected{% endif %}>
+    {{ opt | capitalize }}
+  </option>
+  {% endfor %}
+</select>
+
+{% elif s.input_type == 'color' %}
+<input type="color"
+       class="settings-color-input"
+       value="{{ current }}"
+       oninput="settingChanged('{{ s.key }}', this.value)">
+
+{% else %}
+{# Default: text input #}
+<input type="text"
+       class="settings-text-input"
+       value="{{ current }}"
+       oninput="settingChanged('{{ s.key }}', this.value)">
+{% endif %}
