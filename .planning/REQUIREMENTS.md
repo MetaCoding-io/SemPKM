@@ -71,7 +71,7 @@
 - [x] **LLM-02**: API keys are stored server-side only (encrypted in database), never exposed to the browser
 - [x] **LLM-03**: A "Test Connection" button validates the configured endpoint and shows connection status
 - [x] **LLM-04**: A "Fetch Models" button retrieves available models from the configured provider
-- [ ] **LLM-05**: Backend provides a streaming proxy endpoint (SSE) for LLM chat completions with proper nginx SSE configuration
+- [x] **LLM-05**: Backend provides a streaming proxy endpoint (SSE) for LLM chat completions with proper nginx SSE configuration
 
 ### Tutorials and Documentation (DOCS)
 
@@ -154,7 +154,7 @@
 | LLM-02 | Phase 17 | Complete |
 | LLM-03 | Phase 17 | Complete |
 | LLM-04 | Phase 17 | Complete |
-| LLM-05 | Phase 17 | Pending |
+| LLM-05 | Phase 17 | Complete |
 | DOCS-01 | Phase 18 | Pending |
 | DOCS-02 | Phase 18 | Pending |
 | DOCS-03 | Phase 18 | Pending |
