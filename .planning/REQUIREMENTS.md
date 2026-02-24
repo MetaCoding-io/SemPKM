@@ -42,7 +42,7 @@
 
 - [x] **DARK-01**: User can toggle between System, Light, and Dark theme modes via the user menu or command palette
 - [x] **DARK-02**: Theme preference persists across page reloads with no flash of wrong theme (anti-FOUC inline script)
-- [ ] **DARK-03**: Dark mode applies to all UI components including CodeMirror editor, Cytoscape graph, command palette, and Split.js gutters
+- [x] **DARK-03**: Dark mode applies to all UI components including CodeMirror editor, Cytoscape graph, command palette, and Split.js gutters
 - [x] **DARK-04**: Dark mode color tokens follow VS Code "Dark+" palette (dark surface, muted text, blue accents)
 
 ### Settings System (SETT)
@@ -137,7 +137,7 @@
 | NAV-06 | Phase 12 | Complete |
 | DARK-01 | Phase 13 | Complete |
 | DARK-02 | Phase 13 | Complete |
-| DARK-03 | Phase 13 | Pending |
+| DARK-03 | Phase 13 | Complete |
 | DARK-04 | Phase 13 | Complete |
 | SETT-01 | Phase 15 | Pending |
 | SETT-02 | Phase 15 | Pending |

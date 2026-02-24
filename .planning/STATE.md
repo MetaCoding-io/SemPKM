@@ -34,6 +34,7 @@ Progress: [#####░░░░░] 43% (v2.0) -- 13-03 complete (10/23 plans)
 | 12    | 01   | 4min     | 2     | 8     |
 | 12    | 02   | 2min     | 2     | 3     |
 | 13    | 01   | 8min     | 2     | 9     |
+| 13    | 02   | 2min     | 2     | 3     |
 | 13    | 03   | 2min     | 2     | 2     |
 
 ## Accumulated Context
@@ -73,6 +74,9 @@ v2.0 roadmap decisions:
 - (13-01) Crossfade transitions on specific layout elements only (not * universally) to prevent perf issues
 - (13-01) Active tab accent changed from primary blue to teal (var(--color-accent)) per user decision
 - (13-01) no-transition class pattern: set during FOUC prevention, removed via requestAnimationFrame
+- (13-02) Compartment.reconfigure() for CodeMirror theme switching -- preserves cursor, undo history without recreation
+- (13-02) Cytoscape style().fromJson().update() for live graph style rebuild -- avoids destruction and relayout
+- (13-02) Theme.js central dispatcher calls switchEditorThemes and switchGraphTheme directly plus event backup
 - (13-03) Tab bar align-items: flex-end for tab pop-forward visual effect
 - (13-03) Close button opacity 0 default with parent hover selectors for contextual visibility
 - (13-03) 403 page fully standalone with own anti-FOUC script and theme.css (no base.html dependency)
