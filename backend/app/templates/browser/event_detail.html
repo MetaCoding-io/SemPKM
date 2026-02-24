@@ -1,0 +1,71 @@
+<div class="event-diff-panel">
+  {% if detail.summary.operation_type == 'body.set' and detail.body_diff %}
+    {# Line-by-line body diff #}
+    <div class="diff-body">
+      <div class="diff-header">Body changes</div>
+      <div class="diff-lines">
+        {% for line in detail.body_diff %}
+        <div class="diff-line diff-line-{{ line.type }}">
+          <span class="diff-line-marker">
+            {% if line.type == 'add' %}+
+            {% elif line.type == 'remove' %}-
+            {% else %}&nbsp;
+            {% endif %}
+          </span>
+          <span class="diff-line-text">{{ line.text | e }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  {% elif detail.new_values %}
+    {# Property before/after table for object.patch, edge.patch #}
+    <table class="diff-table">
+      <thead>
+        <tr>
+          <th class="diff-col-pred">Property</th>
+          <th class="diff-col-before">Before</th>
+          <th class="diff-col-after">After</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for pred_iri, new_val in detail.new_values.items() %}
+        {% set old_val = detail.before_values.get(pred_iri, '') %}
+        <tr class="{% if old_val != new_val %}diff-row-changed{% else %}diff-row-same{% endif %}">
+          <td class="diff-col-pred">
+            <span class="diff-pred-label" title="{{ pred_iri }}">{{ pred_iri.split('/')[-1].split('#')[-1] }}</span>
+          </td>
+          <td class="diff-col-before">
+            {% if old_val %}
+            <span class="diff-val diff-val-old">{{ old_val[:200] }}{% if old_val | length > 200 %}&hellip;{% endif %}</span>
+            {% else %}
+            <span class="diff-val-empty">(new)</span>
+            {% endif %}
+          </td>
+          <td class="diff-col-after">
+            <span class="diff-val diff-val-new">{{ new_val[:200] }}{% if new_val | length > 200 %}&hellip;{% endif %}</span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+  {% elif detail.summary.operation_type == 'object.create' or detail.summary.operation_type == 'edge.create' %}
+    {# Creation: show what was created, no before state #}
+    <div class="diff-create-info">
+      <span class="diff-create-label">Created:</span>
+      {% for s, p, o in detail.data_triples[:10] %}
+      <div class="diff-create-triple">
+        <span class="diff-pred-label">{{ p.split('/')[-1].split('#')[-1] }}</span>
+        <span class="diff-val diff-val-new">{{ o[:100] }}{% if o | length > 100 %}&hellip;{% endif %}</span>
+      </div>
+      {% endfor %}
+      {% if detail.data_triples | length > 10 %}
+      <div class="diff-create-more">&hellip;and {{ detail.data_triples | length - 10 }} more triples</div>
+      {% endif %}
+    </div>
+
+  {% else %}
+    <div class="diff-no-data">No diff data available for this event type.</div>
+  {% endif %}
+</div>

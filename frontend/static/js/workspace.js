@@ -1214,6 +1214,44 @@
     }
   });
 
+  // --- Event Log: Undo ---
+
+  /**
+   * Confirm and submit an undo request for a reversible event.
+   * Creates a new compensating event via POST /browser/events/{iri}/undo,
+   * then reloads the event log panel to show the new compensating event.
+   *
+   * @param {string} eventIri - The IRI of the event to undo.
+   * @param {HTMLElement} btn - The Undo button element (disabled during request).
+   */
+  window.sempkmUndoEvent = function(eventIri, btn) {
+    if (!window.confirm('Undo this event? This will create a new compensating event.\n\nNote: Any changes made to the same fields after this event will also be reverted.')) {
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = 'Undoing\u2026';
+    fetch('/browser/events/' + encodeURIComponent(eventIri) + '/undo', {
+      method: 'POST'
+    }).then(function(res) {
+      if (res.ok) {
+        htmx.ajax('GET', '/browser/events', {
+          target: '#panel-event-log',
+          swap: 'innerHTML'
+        });
+      } else {
+        res.json().then(function(d) {
+          alert('Undo failed: ' + (d.error || 'Unknown error'));
+          btn.disabled = false;
+          btn.textContent = 'Undo';
+        });
+      }
+    }).catch(function() {
+      alert('Undo failed: network error');
+      btn.disabled = false;
+      btn.textContent = 'Undo';
+    });
+  };
+
   // --- Export functions globally for htmx onclick handlers ---
   window.openTab = openTab;
   window.closeTab = closeTab;
