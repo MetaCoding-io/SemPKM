@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations -- no blank-page syndrome, no schema setup.
-**Current focus:** v2.0 Tighten Web UI -- Phase 13 complete (UAT gaps closed)
+**Current focus:** v2.0 Tighten Web UI -- Phase 14 in progress (Split Panes and Bottom Panel)
 
 ## Current Position
 
-Phase: 13 of 18 (Dark Mode and Visual Polish)
-Plan: 4 of 4 (complete)
-Status: Phase 13 complete (incl. UAT gap closure)
-Last activity: 2026-02-24 -- Completed 13-04 (UAT gap closure: Ctrl+K, tab accent, card borders)
+Phase: 14 of 18 (Split Panes and Bottom Panel)
+Plan: 1 of 3 (complete)
+Status: Phase 14 plan 1 complete (WorkspaceLayout foundation)
+Last activity: 2026-02-24 -- Completed 14-01 (WorkspaceLayout class, multi-group DOM, workspace.js delegation)
 
-Progress: [#####░░░░░] 46% (v2.0) -- 13-04 complete (11/24 plans)
+Progress: [#####░░░░░] 50% (v2.0) -- 14-01 complete (12/24 plans)
 
 ## Performance Metrics
 
@@ -37,6 +37,7 @@ Progress: [#####░░░░░] 46% (v2.0) -- 13-04 complete (11/24 plans)
 | 13    | 02   | 2min     | 2     | 3     |
 | 13    | 03   | 2min     | 2     | 2     |
 | 13    | 04   | 2min     | 2     | 4     |
+| 14    | 01   | 4min     | 2     | 5     |
 
 ## Accumulated Context
 
@@ -84,6 +85,11 @@ v2.0 roadmap decisions:
 - (13-03) Error panel button classes prefixed btn-error- to avoid workspace .btn-primary collision
 - (13-04) Explicit Ctrl+K keydown handler in initKeyboardShortcuts() because hotkeys-js ignores events on INPUT/TEXTAREA/SELECT
 - (13-04) ninja-keys CDN pinned to v1.2.2 to prevent unpinned resolution breakage
+- (14-01) workspace-layout.js as separate IIFE module (workspace.js was 1024 lines; separation per RESEARCH.md recommendation)
+- (14-01) Ctrl+\\ reassigned from toggleSidebar to splitRight; sidebar stays on Ctrl+B (Phase 12)
+- (14-01) gutterSize:1 with CSS ::after pseudo-element for 9px pointer hit-target (Pitfall 2 solution)
+- (14-01) Tab objects normalize both .id and .iri fields for backward compat with old sessionStorage data
+- (14-01) splitRight duplicates active tab into new group (duplicate objects allowed per CONTEXT.md)
 
 ### Pending Todos
 
@@ -110,5 +116,5 @@ v2.0 roadmap decisions:
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 13-04-PLAN.md (UAT gap closure)
-Resume: Begin Phase 14 (Editor Groups)
+Stopped at: Completed 14-01-PLAN.md (WorkspaceLayout foundation)
+Resume: Continue Phase 14 -- Plan 02 (Tab Drag-and-Drop)
