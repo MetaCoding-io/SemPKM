@@ -59,6 +59,7 @@ async def settings_page(
 ):
     """Render the Settings page as an htmx partial."""
     from collections import defaultdict
+    from app.services.llm import LLMConfigService
 
     templates = request.app.state.templates
     all_settings = await settings_svc.get_all_settings()
@@ -69,12 +70,19 @@ async def settings_page(
     for s in all_settings:
         categories[s.category].append(s)
 
+    llm_config = None
+    if user.role == "owner":
+        llm_svc = LLMConfigService()
+        llm_config = await llm_svc.get_config(db)
+
     return templates.TemplateResponse(request, "browser/settings_page.html", {
         "request": request,
         "categories": dict(categories),
         "user_overrides": user_overrides,
         "resolved": resolved,
         "all_settings": all_settings,
+        "llm_config": llm_config,
+        "user": user,
     })
 
 
@@ -86,6 +94,8 @@ async def settings_data(
 ):
     """Return resolved settings as JSON for the client-side cache."""
     resolved = await settings_svc.resolve(user.id, db)
+    # Never expose the encrypted API key to the browser
+    resolved.pop("llm.api_key", None)
     return JSONResponse(content=resolved)
 
 
@@ -115,6 +125,113 @@ async def reset_setting(
     await settings_svc.reset_override(user.id, key, db)
     resolved = await settings_svc.resolve(user.id, db)
     return JSONResponse(content={"key": key, "default_value": resolved.get(key)})
+
+
+# ── LLM Connection Configuration ─────────────────────────────────────────────
+
+@router.put("/llm/config")
+async def save_llm_config(
+    request: Request,
+    user: User = Depends(require_role("owner")),
+    db: AsyncSession = Depends(get_db_session),
+):
+    """Save a single LLM config field. Owner-only — instance-wide setting.
+    Body: {"field": "api_base_url"|"api_key"|"default_model", "value": "..."}
+    """
+    from app.services.llm import LLMConfigService
+    body = await request.json()
+    field = body.get("field", "")
+    value = str(body.get("value", ""))
+    allowed = {"api_base_url", "api_key", "default_model"}
+    if field in allowed:
+        svc = LLMConfigService()
+        kwargs: dict = {field: value}
+        await svc.save_config(db, **kwargs)
+    return JSONResponse(content={"ok": True})
+
+
+@router.post("/llm/test")
+async def test_llm_connection(
+    request: Request,
+    user: User = Depends(require_role("owner")),
+    db: AsyncSession = Depends(get_db_session),
+):
+    """Test the configured LLM connection by calling GET {base_url}/v1/models.
+    Returns an HTML fragment for #llm-test-status.
+    """
+    import httpx
+    from app.services.llm import LLMConfigService
+    templates = request.app.state.templates
+    svc = LLMConfigService()
+    config = await svc.get_config(db)
+    api_key = await svc.get_decrypted_api_key(db)
+    base_url = config["api_base_url"].rstrip("/") if config["api_base_url"] else ""
+
+    if not base_url:
+        return templates.TemplateResponse(request, "browser/llm/test_result.html",
+            {"request": request, "status": "error", "message": "No API base URL configured."})
+
+    headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.get(f"{base_url}/v1/models", headers=headers)
+        if resp.status_code == 200:
+            return templates.TemplateResponse(request, "browser/llm/test_result.html",
+                {"request": request, "status": "ok", "message": "Connection successful"})
+        else:
+            return templates.TemplateResponse(request, "browser/llm/test_result.html",
+                {"request": request, "status": "error",
+                 "message": f"HTTP {resp.status_code}: {resp.text[:200]}"})
+    except httpx.TimeoutException:
+        return templates.TemplateResponse(request, "browser/llm/test_result.html",
+            {"request": request, "status": "error", "message": "Connection timed out after 10s"})
+    except Exception as e:
+        return templates.TemplateResponse(request, "browser/llm/test_result.html",
+            {"request": request, "status": "error", "message": str(e)[:200]})
+
+
+@router.post("/llm/models")
+async def fetch_llm_models(
+    request: Request,
+    user: User = Depends(require_role("owner")),
+    db: AsyncSession = Depends(get_db_session),
+):
+    """Fetch available models from the configured LLM provider.
+    Returns an HTML fragment that replaces #llm-model-select.
+    """
+    import httpx
+    from app.services.llm import LLMConfigService
+    templates = request.app.state.templates
+    svc = LLMConfigService()
+    config = await svc.get_config(db)
+    api_key = await svc.get_decrypted_api_key(db)
+    base_url = config["api_base_url"].rstrip("/") if config["api_base_url"] else ""
+    current_model = config["default_model"]
+
+    models: list[str] = []
+    error: str | None = None
+
+    if not base_url:
+        error = "No API base URL configured."
+    else:
+        headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                resp = await client.get(f"{base_url}/v1/models", headers=headers)
+            if resp.status_code == 200:
+                data = resp.json()
+                models = sorted([m["id"] for m in data.get("data", [])])
+            else:
+                error = f"HTTP {resp.status_code}"
+        except Exception as e:
+            error = str(e)[:200]
+
+    return templates.TemplateResponse(request, "browser/llm/models_select.html", {
+        "request": request,
+        "models": models,
+        "current_model": current_model,
+        "error": error,
+    })
 
 
 @router.get("/icons")

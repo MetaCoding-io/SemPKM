@@ -1,0 +1,16 @@
+{% if status == 'ok' %}
+<span class="llm-status-badge llm-status-badge--ok">
+  <i data-lucide="check-circle" style="width:14px;height:14px;"></i>
+  {{ message }}
+</span>
+{% else %}
+<span class="llm-status-badge llm-status-badge--error">
+  <i data-lucide="x-circle" style="width:14px;height:14px;"></i>
+  {{ message }}
+</span>
+{% endif %}
+<script>
+if (typeof lucide !== 'undefined') {
+  lucide.createIcons({ nodes: [document.getElementById('llm-test-status')] });
+}
+</script>
