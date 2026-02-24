@@ -146,12 +146,12 @@ Plans:
   2. Events are filterable by operation type, user, object, and date range with removable filter chips; filters combine with AND logic
   3. Clicking an object.patch or body.set event shows an inline diff of the changes (property before/after or line-by-line body diff)
   4. Reversible events (object.patch, body.set, edge.create, edge.patch) have an Undo button that creates a compensating event after user confirmation
-**Plans**: ~3 plans
+**Plans**: 3 plans
 
 Plans:
-- [ ] 16-01: Event API endpoint with cursor pagination and event index graph
-- [ ] 16-02: Event log timeline UI with filtering
-- [ ] 16-03: Inline diff view and undo operations
+- [ ] 16-01-PLAN.md — EventQueryService (SPARQL cursor pagination), GET /browser/events route, event_log.html partial, workspace.js lazy-load trigger
+- [ ] 16-02-PLAN.md — Filter controls (op type, date range), filter chips with remove links, Jinja2 dict_without filter, event log CSS (badges, chips, rows)
+- [ ] 16-03-PLAN.md — Inline diff view (property before/after, body line diff), GET detail endpoint, POST undo endpoint, Diff/Undo buttons in event rows
 
 ### Phase 17: LLM Connection Configuration
 **Goal**: Administrators can configure and validate a generic LLM connection, with API keys stored securely server-side and a streaming proxy ready for future AI features
