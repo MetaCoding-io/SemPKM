@@ -245,8 +245,9 @@
     // Click to select -- load details in right pane
     cy.on('tap', 'node', function (evt) {
       var nodeId = evt.target.id();
-      if (typeof window.loadRightPane === 'function') {
-        window.loadRightPane(nodeId, 'relations');
+      if (typeof window.loadRightPaneSection === 'function') {
+        window.loadRightPaneSection(nodeId, 'relations');
+        window.loadRightPaneSection(nodeId, 'lint');
       }
     });
 

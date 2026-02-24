@@ -4,8 +4,8 @@
             <i data-lucide="hexagon" class="brand-icon"></i>
             <span class="brand-text">SemPKM</span>
         </a>
-        <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar (Ctrl+B)">
-            <i data-lucide="panel-left"></i>
+        <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar (Ctrl+\)">
+            <i data-lucide="panel-left"></i><span class="icon-fallback">&#9776;</span>
         </button>
     </div>
     <nav class="sidebar-nav">
@@ -45,6 +45,11 @@
                 <span class="group-label">Meta</span>
             </button>
             <div class="sidebar-group-items">
+                <a href="/shortcuts" class="nav-link" data-tooltip="Shortcuts"
+                   hx-get="/shortcuts" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
+                    <i data-lucide="keyboard" class="nav-icon"></i>
+                    <span class="nav-label">Shortcuts</span>
+                </a>
                 <a href="/docs" class="nav-link disabled" data-tooltip="Docs & Tutorials">
                     <i data-lucide="book-open" class="nav-icon"></i>
                     <span class="nav-label">Docs & Tutorials</span>

@@ -289,32 +289,34 @@
         editorArea.innerHTML = '<div class="editor-empty"><p>Failed to load object.</p></div>';
       });
 
-      // Also load relations into right pane
-      loadRightPane(objectIri, 'relations');
+      // Load both right pane sections
+      loadRightPaneSection(objectIri, 'relations');
+      loadRightPaneSection(objectIri, 'lint');
     } else {
       editorArea.innerHTML = '<div class="editor-empty"><p>Loading ' + escapeHtml(objectIri) + '...</p></div>';
     }
   }
 
-  function loadRightPane(objectIri, tab) {
-    if (typeof htmx === 'undefined') return;
-
-    var target = '#right-content';
+  function loadRightPaneSection(objectIri, section) {
+    var targetId = section + '-content';
     var url;
 
-    if (tab === 'lint') {
+    if (section === 'lint') {
       url = '/browser/lint/' + encodeURIComponent(objectIri);
     } else {
       url = '/browser/relations/' + encodeURIComponent(objectIri);
     }
 
-    htmx.ajax('GET', url, {
-      target: target,
-      swap: 'innerHTML'
-    }).catch(function () {
-      var el = document.getElementById('right-content');
-      if (el) el.innerHTML = '<div class="right-empty">Failed to load content</div>';
-    });
+    fetch(url, { headers: { 'HX-Request': 'true' } })
+      .then(function (resp) { return resp.text(); })
+      .then(function (html) {
+        var el = document.getElementById(targetId);
+        if (el) el.innerHTML = html;
+      })
+      .catch(function () {
+        var el = document.getElementById(targetId);
+        if (el) el.innerHTML = '<div class="right-empty">Failed to load content</div>';
+      });
   }
 
   function showEditorEmpty() {
@@ -341,30 +343,70 @@
     var paneIndex = panes.indexOf(paneId);
     if (paneIndex === -1) return;
 
-    var currentSizes = splitInstance.getSizes();
-
     if (paneStates[paneId]) {
-      // Restore the pane
-      splitInstance.setSizes(paneStates[paneId]);
+      // Restore the pane: show it and its gutter, rebuild Split.js
+      pane.style.display = '';
+      var gutter = pane.previousElementSibling;
+      if (gutter && gutter.classList.contains('gutter')) gutter.style.display = '';
+      _rebuildSplit(paneStates[paneId]);
       delete paneStates[paneId];
     } else {
-      // Collapse the pane: save current sizes, set pane to 0
-      paneStates[paneId] = currentSizes.slice();
-      var newSizes = currentSizes.slice();
-      var redistributed = newSizes[paneIndex];
-      newSizes[paneIndex] = 0;
-      // Distribute space to other panes proportionally
-      var remaining = panes.filter(function (_, i) { return i !== paneIndex && newSizes[i] > 0; });
-      if (remaining.length > 0) {
-        var share = redistributed / remaining.length;
-        panes.forEach(function (_, i) {
-          if (i !== paneIndex && newSizes[i] > 0) {
-            newSizes[i] += share;
-          }
-        });
-      }
-      splitInstance.setSizes(newSizes);
+      // Collapse the pane: save sizes, hide it and its gutter, rebuild Split.js
+      paneStates[paneId] = splitInstance.getSizes().slice();
+      pane.style.display = 'none';
+      var gutter = pane.previousElementSibling;
+      if (gutter && gutter.classList.contains('gutter')) gutter.style.display = 'none';
+      // Rebuild with only visible panes
+      var visibleIds = [];
+      var visibleSizes = [];
+      panes.forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el && el.style.display !== 'none') {
+          visibleIds.push('#' + id);
+          visibleSizes.push(id === 'editor-pane' ? 80 : 20);
+        }
+      });
+      _rebuildSplit(null, visibleIds, visibleSizes);
     }
+  }
+
+  function _rebuildSplit(restoreSizes, visibleIds, visibleSizes) {
+    if (splitInstance) {
+      splitInstance.destroy();
+    }
+    var panes = ['nav-pane', 'editor-pane', 'right-pane'];
+    var ids = visibleIds || panes.filter(function (id) {
+      var el = document.getElementById(id);
+      return el && el.style.display !== 'none';
+    }).map(function (id) { return '#' + id; });
+
+    var minSizes = ids.map(function (id) {
+      if (id === '#editor-pane') return 300;
+      if (id === '#nav-pane') return 180;
+      return 200;
+    });
+
+    var sizes = restoreSizes || visibleSizes || null;
+    // If restoring, filter to only visible panes
+    if (restoreSizes) {
+      sizes = [];
+      panes.forEach(function (id, i) {
+        var el = document.getElementById(id);
+        if (el && el.style.display !== 'none') {
+          sizes.push(restoreSizes[i]);
+        }
+      });
+    }
+
+    splitInstance = Split(ids, {
+      sizes: sizes || ids.map(function () { return 100 / ids.length; }),
+      minSize: minSizes,
+      gutterSize: 5,
+      cursor: 'col-resize',
+      onDragEnd: function (s) {
+        try { localStorage.setItem(PANE_KEY, JSON.stringify(s)); } catch (e) {}
+      }
+    });
   }
 
   // --- Object Mode Toggle (Read/Edit) ---
@@ -457,6 +499,24 @@
         }
       }
 
+      // Ctrl+\ / Cmd+\: Toggle sidebar
+      if (mod && e.key === '\\') {
+        e.preventDefault();
+        toggleSidebar();
+      }
+
+      // Ctrl+[ / Cmd+[: Toggle explorer pane
+      if (mod && e.key === '[') {
+        e.preventDefault();
+        togglePane('nav-pane');
+      }
+
+      // Ctrl+] / Cmd+]: Toggle right panel
+      if (mod && e.key === ']') {
+        e.preventDefault();
+        togglePane('right-pane');
+      }
+
       // Ctrl+E / Cmd+E: Toggle read/edit mode
       if (mod && e.key === 'e') {
         e.preventDefault();
@@ -542,10 +602,7 @@
   function refreshLintAfterSave(objectIri) {
     // Refresh the lint panel after a short delay (validation queue processes async)
     setTimeout(function () {
-      var activeTab = document.querySelector('.rp-tab.active');
-      if (activeTab && activeTab.dataset.tab === 'lint') {
-        loadRightPane(objectIri, 'lint');
-      }
+      loadRightPaneSection(objectIri, 'lint');
     }, 2000);
   }
 
@@ -575,13 +632,21 @@
           id: 'toggle-sidebar',
           title: 'Toggle Sidebar',
           section: 'View',
-          hotkey: 'ctrl+b',
+          hotkey: 'ctrl+\\',
           handler: function () { toggleSidebar(); }
         },
         {
-          id: 'toggle-right',
-          title: 'Toggle Properties Panel',
+          id: 'toggle-explorer',
+          title: 'Toggle Explorer Panel',
           section: 'View',
+          hotkey: 'ctrl+[',
+          handler: function () { togglePane('nav-pane'); }
+        },
+        {
+          id: 'toggle-right',
+          title: 'Toggle Details Panel',
+          section: 'View',
+          hotkey: 'ctrl+]',
           handler: function () { togglePane('right-pane'); }
         },
         {
@@ -683,17 +748,12 @@
     // First save the current object to trigger validation via the queue
     saveCurrentObject();
 
-    // Switch the right pane to the lint tab and refresh
-    var lintTab = document.querySelector('.rp-tab[data-tab="lint"]');
-    if (lintTab) {
-      var tabs = lintTab.parentElement.querySelectorAll('.rp-tab');
-      tabs.forEach(function (t) { t.classList.remove('active'); });
-      lintTab.classList.add('active');
-    }
+    // Open lint section if collapsed, and refresh after delay
+    var lintDetails = document.querySelector('#lint-content')?.closest('details.right-section');
+    if (lintDetails) lintDetails.open = true;
 
-    // Load lint panel after a short delay to allow validation to process
     setTimeout(function () {
-      loadRightPane(activeIri, 'lint');
+      loadRightPaneSection(activeIri, 'lint');
     }, 1500);
   }
 
@@ -726,29 +786,9 @@
     });
   }
 
-  // --- Right Pane Tabs ---
-
+  // --- Right Pane Tabs (legacy — sections now always visible) ---
   function initRightPaneTabs() {
-    document.addEventListener('click', function (e) {
-      var tab = e.target.closest('.rp-tab');
-      if (!tab) return;
-
-      // Remove active from all sibling tabs
-      var tabs = tab.parentElement.querySelectorAll('.rp-tab');
-      tabs.forEach(function (t) { t.classList.remove('active'); });
-      tab.classList.add('active');
-
-      // Load the appropriate content for the selected tab
-      var activeIri = getActiveTabIri();
-      if (!activeIri) return;
-
-      var tabName = tab.dataset.tab;
-      if (tabName === 'lint') {
-        loadRightPane(activeIri, 'lint');
-      } else if (tabName === 'relations') {
-        loadRightPane(activeIri, 'relations');
-      }
-    });
+    // No-op: Relations and Lint are now separate collapsible sections, both loaded on object open
   }
 
   // --- Jump to Field (from lint panel click) ---
@@ -948,7 +988,7 @@
   window.showTypePicker = showTypePicker;
   window.jumpToField = jumpToField;
   window.triggerValidation = triggerValidation;
-  window.loadRightPane = loadRightPane;
+  window.loadRightPaneSection = loadRightPaneSection;
   window.openViewTab = openViewTab;
   window.openViewMenu = openViewMenu;
   window.toggleObjectMode = toggleObjectMode;

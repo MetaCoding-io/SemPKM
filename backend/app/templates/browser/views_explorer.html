@@ -1,24 +1,29 @@
+{# Views explorer tree for the left sidebar.
+
+   Context:
+     groups: list of dicts with type_iri, type_label, specs (ViewSpec list)
+#}
+
+{% if groups %}
 {% for group in groups %}
-<div class="tree-node view-group-node">
+<div class="tree-node view-group-node expanded" data-type-iri="{{ group.type_iri }}">
     <span class="tree-toggle">&#9656;</span>
-    <span class="tree-icon">
-        {% if group.type == 'table' %}&#9638;{% elif group.type == 'card' %}&#9641;{% elif group.type == 'graph' %}&#9672;{% else %}&#9654;{% endif %}
-    </span>
-    <span class="tree-label">{{ group.type | title }}s</span>
+    <span class="tree-icon">&#128193;</span>
+    <span class="tree-label">{{ group.type_label }}</span>
     <span class="view-group-count">{{ group.specs | length }}</span>
 </div>
-<div class="tree-children view-group-children">
+<div class="view-group-children">
     {% for spec in group.specs %}
     <div class="tree-leaf view-leaf"
          onclick="openViewTab('{{ spec.spec_iri }}', '{{ spec.label }}', '{{ spec.renderer_type }}')">
-        <span class="tree-icon">
+        <span class="tree-leaf-icon">
             {% if spec.renderer_type == 'table' %}&#9638;{% elif spec.renderer_type == 'card' %}&#9641;{% elif spec.renderer_type == 'graph' %}&#9672;{% else %}&#9654;{% endif %}
         </span>
-        <span class="tree-label">{{ spec.label }}</span>
+        <span class="tree-leaf-label">{{ spec.label }}</span>
     </div>
     {% endfor %}
 </div>
 {% endfor %}
-{% if not groups %}
+{% else %}
 <div class="tree-empty">No views available</div>
 {% endif %}
