@@ -30,15 +30,21 @@ async def handle_body_set(
         and materialize_deletes (old body pattern).
     """
     subject = URIRef(params.iri)
-    predicate = SEMPKM.body
+    predicate = URIRef(params.predicate) if params.predicate else SEMPKM.body
+    canonical = SEMPKM.body
     body_literal = Literal(params.body, datatype=XSD.string)
 
     # Event graph records the new body
     data_triples = [(subject, predicate, body_literal)]
 
-    # Materialization: delete old body, insert new
+    # Materialization: delete old body under target predicate, insert new
     materialize_deletes = [(subject, predicate, Variable("old_body"))]
     materialize_inserts = [(subject, predicate, body_literal)]
+
+    # If saving to a model-specific predicate, also clean up any leftover
+    # canonical urn:sempkm:body value to avoid duplication
+    if predicate != canonical:
+        materialize_deletes.append((subject, canonical, Variable("old_canonical_body")))
 
     return Operation(
         operation_type="body.set",

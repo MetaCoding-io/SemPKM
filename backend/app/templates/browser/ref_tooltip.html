@@ -1,0 +1,21 @@
+<div class="graph-popover-header">
+  <span class="graph-popover-label">{{ object_label }}</span>
+  {% if type_label %}
+  <span class="graph-popover-type">{{ type_label }}</span>
+  {% endif %}
+</div>
+{% if properties %}
+<div class="graph-popover-props">
+  {% for prop in properties %}
+  <div class="graph-popover-prop">
+    <span class="graph-popover-prop-name">{{ prop.name }}</span>
+    <span class="graph-popover-prop-val">{{ prop.value }}</span>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="graph-popover-empty">No additional properties</div>
+{% endif %}
+<div class="graph-popover-footer">
+  <button class="graph-popover-open-btn" onclick="openTab('{{ object_iri }}', '{{ object_label }}')">Open</button>
+</div>

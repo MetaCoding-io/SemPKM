@@ -1,0 +1,213 @@
+/* ============================================
+   Theme Token System
+   Single source of truth for all color values.
+   Light mode: :root
+   Dark mode: html[data-theme="dark"]
+   ============================================ */
+
+:root {
+  /* Surfaces */
+  --color-bg: #fafafa;
+  --color-surface: #ffffff;
+  --color-surface-raised: #f8f9fb;
+  --color-surface-recessed: #f4f5f7;
+  --color-surface-hover: rgba(0, 0, 0, 0.04);
+
+  /* Text */
+  --color-text: #1a1a2e;
+  --color-text-muted: #666666;
+  --color-text-faint: #999999;
+
+  /* Borders */
+  --color-border: #e0e0e0;
+  --color-border-subtle: #f0f0f0;
+
+  /* Accent (teal/cyan) */
+  --color-accent: #0d9488;
+  --color-accent-hover: #0f766e;
+  --color-accent-subtle: rgba(13, 148, 136, 0.08);
+  --color-accent-muted: rgba(13, 148, 136, 0.15);
+
+  /* Primary */
+  --color-primary: #2d5a9e;
+  --color-primary-hover: #1e3f7a;
+  --color-primary-subtle: rgba(45, 90, 158, 0.08);
+
+  /* Semantic status */
+  --color-success: #2a8a4a;
+  --color-error: #c0392b;
+  --color-warning: #d4a017;
+
+  /* Semantic backgrounds */
+  --color-success-bg: #e8f5e9;
+  --color-success-border: #a5d6a7;
+  --color-error-bg: #fef2f2;
+  --color-error-border: #fca5a5;
+  --color-warning-bg: #fffbeb;
+  --color-warning-border: #fcd34d;
+  --color-info-bg: #eff6ff;
+  --color-info-border: #93c5fd;
+
+  /* Code/editor */
+  --color-code-bg: #f5f5f5;
+
+  /* Shadows */
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-elevated: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+  /* Danger (popover, destructive actions) */
+  --color-danger: #e74c3c;
+
+  /* Misc */
+  --color-skeleton-from: #f0f0f0;
+  --color-skeleton-mid: #e0e0e0;
+  --color-focus-shadow: rgba(45, 90, 158, 0.15);
+  --color-avatar-text: #ffffff;
+  --color-highlight: rgba(255, 235, 59, 0.3);
+}
+
+html[data-theme="dark"] {
+  /* Surfaces -- softer Dark+ inspired, warmer grays */
+  --color-bg: #1e2127;
+  --color-surface: #282c34;
+  --color-surface-raised: #2c313a;
+  --color-surface-recessed: #21252b;
+  --color-surface-hover: rgba(255, 255, 255, 0.06);
+
+  /* Text */
+  --color-text: #abb2bf;
+  --color-text-muted: #7d8799;
+  --color-text-faint: #5c6370;
+
+  /* Borders -- 10-15% lighter than surface */
+  --color-border: #3e4452;
+  --color-border-subtle: #2c313a;
+
+  /* Accent (teal/cyan) */
+  --color-accent: #56b6c2;
+  --color-accent-hover: #6bc5cf;
+  --color-accent-subtle: rgba(86, 182, 194, 0.12);
+  --color-accent-muted: rgba(86, 182, 194, 0.20);
+
+  /* Primary */
+  --color-primary: #61afef;
+  --color-primary-hover: #82c0f2;
+  --color-primary-subtle: rgba(97, 175, 239, 0.12);
+
+  /* Semantic status */
+  --color-success: #98c379;
+  --color-error: #e06c75;
+  --color-warning: #e5c07b;
+
+  /* Semantic backgrounds */
+  --color-success-bg: rgba(152, 195, 121, 0.12);
+  --color-success-border: rgba(152, 195, 121, 0.30);
+  --color-error-bg: rgba(224, 108, 117, 0.12);
+  --color-error-border: rgba(224, 108, 117, 0.30);
+  --color-warning-bg: rgba(229, 192, 123, 0.12);
+  --color-warning-border: rgba(229, 192, 123, 0.30);
+  --color-info-bg: rgba(97, 175, 239, 0.12);
+  --color-info-border: rgba(97, 175, 239, 0.30);
+
+  /* Code/editor */
+  --color-code-bg: #2c313a;
+
+  /* Shadows */
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-elevated: 0 4px 12px rgba(0, 0, 0, 0.4);
+
+  /* Danger */
+  --color-danger: #e06c75;
+
+  /* Misc */
+  --color-skeleton-from: #2c313a;
+  --color-skeleton-mid: #3e4452;
+  --color-focus-shadow: rgba(97, 175, 239, 0.25);
+  --color-avatar-text: #ffffff;
+  --color-highlight: rgba(229, 192, 123, 0.25);
+}
+
+/* ============================================
+   Crossfade Transitions
+   Applied to specific layout elements only
+   (NOT * universally -- per anti-pattern guidance)
+   ============================================ */
+
+body,
+.sidebar,
+.content-area,
+.workspace-tab,
+.tab-bar-workspace,
+.editor-toolbar,
+.gutter,
+.pane-header,
+#nav-pane,
+#right-pane,
+#editor-pane,
+.user-popover,
+.view-toolbar,
+.pagination {
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+
+/* Prevent transition flash on initial load */
+.no-transition,
+.no-transition * {
+  transition: none !important;
+}
+
+/* ============================================
+   Theme Toggle Row (user popover)
+   ============================================ */
+
+.popover-theme-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 12px;
+}
+
+.theme-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  padding: 0;
+}
+
+.theme-btn:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.theme-btn.active {
+  background: var(--color-accent-subtle);
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+/* ============================================
+   ninja-keys CSS variable overrides
+   ============================================ */
+
+ninja-keys {
+  --ninja-accent-color: var(--color-accent);
+  --ninja-text-color: var(--color-text);
+  --ninja-secondary-background-color: var(--color-surface-raised);
+  --ninja-secondary-text-color: var(--color-text-muted);
+  --ninja-selected-background: var(--color-surface-hover);
+  --ninja-modal-background: var(--color-surface);
+  --ninja-modal-shadow: var(--shadow-elevated);
+  --ninja-group-text-color: var(--color-text-faint);
+  --ninja-footer-background: var(--color-surface-recessed);
+  --ninja-separate-border: 1px solid var(--color-border);
+  --ninja-z-index: 1000;
+}

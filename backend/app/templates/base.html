@@ -4,6 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}SemPKM{% endblock %}</title>
+    <script>
+    (function(){
+      var s=localStorage.getItem('sempkm_theme');
+      var t='light';
+      if(s==='dark'){t='dark';}
+      else if(s==='system'||!s){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}
+      document.documentElement.setAttribute('data-theme',t);
+      document.documentElement.classList.add('no-transition');
+    })();
+    </script>
+    <link rel="stylesheet" href="/css/theme.css">
     <link rel="stylesheet" href="/css/style.css">
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
     <script src="/js/auth.js"></script>
@@ -11,7 +22,7 @@
     <link rel="stylesheet" href="/css/forms.css">
     <link rel="stylesheet" href="/css/views.css">
     <script src="https://unpkg.com/split.js@1.6.5/dist/split.min.js"></script>
-    <script type="module" src="https://unpkg.com/ninja-keys?module"></script>
+    <script type="module" src="https://unpkg.com/ninja-keys@1.2.2?module"></script>
     <!-- Cytoscape.js graph visualization -->
     <script src="https://unpkg.com/cytoscape@3.33.1/dist/cytoscape.min.js"></script>
     <script src="https://unpkg.com/layout-base@2.0.1/layout-base.js"></script>
@@ -19,6 +30,14 @@
     <script src="https://unpkg.com/cytoscape-fcose@2.2.0/cytoscape-fcose.js"></script>
     <script src="https://unpkg.com/dagre@0.8.5/dist/dagre.min.js"></script>
     <script src="https://unpkg.com/cytoscape-dagre@2.5.0/cytoscape-dagre.js"></script>
+    <!-- Markdown rendering (Phase 11: read-only object view) -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/lib/marked.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked-highlight/lib/index.umd.js"></script>
+    <link id="hljs-theme" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+    <!-- Lucide SVG icons -->
+    <script src="https://unpkg.com/lucide@0.575.0/dist/umd/lucide.min.js"></script>
     {% block head %}{% endblock %}
 </head>
 <body>
@@ -64,6 +83,11 @@
         document.body.addEventListener('htmx:pushedIntoHistory', updateActiveNav);
         document.body.addEventListener('htmx:historyRestore', updateActiveNav);
     </script>
+    <script src="/js/cleanup.js"></script>
+    <script src="/js/markdown-render.js"></script>
+    <script type="module" src="/js/editor.js"></script>
+    <script src="/js/sidebar.js"></script>
+    <script src="/js/theme.js"></script>
     <script src="/js/workspace.js"></script>
     <script src="/js/graph.js"></script>
     <script src="/js/column-prefs.js"></script>
