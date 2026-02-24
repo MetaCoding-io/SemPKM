@@ -307,8 +307,10 @@
     }
 
     // 3. Clear and rebuild DOM
-    //    Preserve #bottom-panel-slot if it exists
+    //    Preserve bottom panel elements (real panel or placeholder slot)
     var bottomPanelSlot = document.getElementById('bottom-panel-slot');
+    var resizeHandle = document.getElementById('panel-resize-handle');
+    var bottomPanel = document.getElementById('bottom-panel');
     editorPane.innerHTML = '';
 
     // Recreate the editor-groups-container
@@ -342,11 +344,16 @@
       });
     });
 
-    // Restore bottom-panel-slot after rebuilding groups container
-    if (bottomPanelSlot) {
+    // Restore bottom panel elements after rebuilding groups container
+    if (resizeHandle) {
+      editorPane.appendChild(resizeHandle);
+    }
+    if (bottomPanel) {
+      editorPane.appendChild(bottomPanel);
+    } else if (bottomPanelSlot) {
       editorPane.appendChild(bottomPanelSlot);
     } else {
-      // Create placeholder for Plan 03
+      // Create placeholder (Plan 03 not yet executed)
       var slot = document.createElement('div');
       slot.id = 'bottom-panel-slot';
       editorPane.appendChild(slot);
