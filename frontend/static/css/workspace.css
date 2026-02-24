@@ -1884,3 +1884,166 @@ details.form-group[open] > .form-group-summary::before {
 .editor-column.panel-maximized .bottom-panel {
   flex: 1;
 }
+
+/* ===== Event Log (Phase 16) ===== */
+
+.event-log-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+.event-log-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+.event-timeline {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+.event-empty {
+  padding: 20px;
+  text-align: center;
+  color: var(--color-text-faint);
+  font-size: 0.875rem;
+}
+
+.event-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 10px;
+  border-bottom: 1px solid var(--color-border-subtle, var(--color-border));
+  font-size: 0.8125rem;
+  min-height: 32px;
+}
+.event-row:hover {
+  background: var(--color-surface-raised, var(--color-surface));
+}
+
+.event-op-badge {
+  flex-shrink: 0;
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+/* object.create -> green */
+.event-op-object-create { background: color-mix(in srgb, #59a14f 15%, transparent); color: #59a14f; border: 1px solid color-mix(in srgb, #59a14f 30%, transparent); }
+/* object.patch -> blue */
+.event-op-object-patch  { background: color-mix(in srgb, #4e79a7 15%, transparent); color: #4e79a7; border: 1px solid color-mix(in srgb, #4e79a7 30%, transparent); }
+/* body.set -> teal */
+.event-op-body-set      { background: color-mix(in srgb, var(--color-accent) 15%, transparent); color: var(--color-accent); border: 1px solid color-mix(in srgb, var(--color-accent) 30%, transparent); }
+/* edge.create -> amber */
+.event-op-edge-create   { background: color-mix(in srgb, #f28e2b 15%, transparent); color: #f28e2b; border: 1px solid color-mix(in srgb, #f28e2b 30%, transparent); }
+/* edge.patch -> red-orange */
+.event-op-edge-patch    { background: color-mix(in srgb, #e15759 15%, transparent); color: #e15759; border: 1px solid color-mix(in srgb, #e15759 30%, transparent); }
+/* fallback for other op types */
+.event-op-badge:not([class*="event-op-object-"]):not([class*="event-op-body-"]):not([class*="event-op-edge-"]) {
+  background: var(--color-surface-raised, var(--color-surface));
+  color: var(--color-text-faint);
+  border: 1px solid var(--color-border);
+}
+
+.event-affected {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.event-obj-link {
+  color: var(--color-text);
+  text-decoration: none;
+}
+.event-obj-link:hover {
+  text-decoration: underline;
+  color: var(--color-accent);
+}
+.event-affected-more {
+  color: var(--color-text-faint);
+  font-size: 0.75rem;
+}
+.event-user {
+  flex-shrink: 0;
+  color: var(--color-text-faint);
+  font-size: 0.75rem;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.event-timestamp {
+  flex-shrink: 0;
+  color: var(--color-text-faint);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  color: var(--color-accent);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 25%, transparent);
+  cursor: pointer;
+}
+.filter-chip:hover {
+  background: color-mix(in srgb, var(--color-accent) 20%, transparent);
+}
+.event-filter-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+.event-filter-select,
+.event-filter-date {
+  font-size: 0.8125rem;
+  padding: 3px 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+.event-filter-date {
+  max-width: 130px;
+}
+
+.event-load-more {
+  padding: 8px 10px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.btn-load-more {
+  font-size: 0.8125rem;
+  padding: 4px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+}
+.btn-load-more:hover {
+  background: var(--color-surface-raised, var(--color-surface));
+  border-color: var(--color-accent);
+}
