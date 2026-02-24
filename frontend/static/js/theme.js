@@ -91,4 +91,32 @@
       }
     }
   }, true);
+
+  // Settings system integration: react to sempkm:setting-changed for core.theme
+  document.addEventListener('sempkm:setting-changed', function (e) {
+    if (e.detail && e.detail.key === 'core.theme') {
+      var newTheme = e.detail.value;
+      if (typeof window.setTheme === 'function') {
+        window.setTheme(newTheme);
+      }
+      // Write-through: keep localStorage in sync so anti-FOUC fast-path is accurate
+      try { localStorage.setItem('sempkm_theme', newTheme); } catch (_) {}
+    }
+  });
+
+  // On DOMContentLoaded, sync theme from server settings if different from localStorage fast-path
+  document.addEventListener('DOMContentLoaded', function () {
+    // Small delay to let settings.js auto-fetch complete
+    setTimeout(function () {
+      var serverTheme = window.SemPKMSettings ? window.SemPKMSettings.get('core.theme') : null;
+      if (serverTheme) {
+        var localTheme;
+        try { localTheme = localStorage.getItem('sempkm_theme'); } catch (_) { localTheme = null; }
+        if (serverTheme !== localTheme && typeof window.setTheme === 'function') {
+          window.setTheme(serverTheme);
+          try { localStorage.setItem('sempkm_theme', serverTheme); } catch (_) {}
+        }
+      }
+    }, 300);
+  });
 })();
