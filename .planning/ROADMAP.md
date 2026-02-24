@@ -97,12 +97,12 @@ Plans:
   3. Dark mode color tokens follow VS Code "Dark+" palette (dark surfaces, muted text, blue accents)
   4. Tab styling uses rounded top corners (border-radius 8px) with a recessed tab bar background in both light and dark modes
   5. 403 Forbidden responses display a styled permission panel with lock icon, role explanation, and navigation buttons instead of a raw error fragment
-**Plans**: ~3 plans
+**Plans**: 3 plans
 
 Plans:
-- [ ] 13-01: CSS custom property dark theme, anti-FOUC script, and theme toggle
-- [ ] 13-02: Third-party component dark mode (CodeMirror, Cytoscape, ninja-keys, Split.js)
-- [ ] 13-03: Rounded tab styling and styled 403 panel
+- [ ] 13-01-PLAN.md — CSS custom property token system (light+dark), anti-FOUC script, theme toggle UI, full hardcoded color migration
+- [ ] 13-02-PLAN.md — Third-party component dark mode (CodeMirror Compartment, Cytoscape style rebuild, ninja-keys, highlight.js)
+- [ ] 13-03-PLAN.md — Rounded tab styling with teal accent and styled 403 permission panel
 
 ### Phase 14: Split Panes and Bottom Panel
 **Goal**: Users can work with multiple objects side-by-side in editor groups and access panel-based tools (SPARQL, Event Log, AI Copilot) in a collapsible bottom panel
