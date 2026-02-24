@@ -19,11 +19,99 @@ from app.auth.dependencies import get_current_user
 from app.auth.models import User
 from app.dependencies import get_label_service, get_view_spec_service
 from app.services.labels import LabelService
-from app.views.service import ViewSpecService
+from app.views.service import ViewSpec, ViewSpecService
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/browser/views", tags=["views"])
+
+def _group_specs_by_type(specs: list[ViewSpec], labels: dict[str, str]) -> list[dict]:
+    grouped: dict[str, list[ViewSpec]] = {}
+    for spec in specs:
+        type_iri = spec.target_class or ""
+        if type_iri not in grouped:
+            grouped[type_iri] = []
+        grouped[type_iri].append(spec)
+
+    groups: list[dict] = []
+    for type_iri, spec_list in grouped.items():
+        label = labels.get(type_iri, type_iri or "Unknown Type")
+        spec_list.sort(key=lambda s: s.label)
+        groups.append({
+            "type_iri": type_iri,
+            "type_label": label,
+            "specs": spec_list,
+        })
+
+    groups.sort(key=lambda g: g["type_label"])
+    return groups
+
+
+@router.get("/available")
+async def available_views(
+    user: User = Depends(get_current_user),
+    view_spec_service: ViewSpecService = Depends(get_view_spec_service),
+):
+    """Return all available view specs as JSON for the command palette."""
+    specs = await view_spec_service.get_all_view_specs()
+    payload = [
+        {
+            "spec_iri": spec.spec_iri,
+            "label": spec.label,
+            "renderer_type": spec.renderer_type,
+            "target_class": spec.target_class,
+        }
+        for spec in specs
+    ]
+    return JSONResponse(content=payload)
+
+
+@router.get("/explorer")
+async def views_explorer(
+    request: Request,
+    user: User = Depends(get_current_user),
+    view_spec_service: ViewSpecService = Depends(get_view_spec_service),
+    label_service: LabelService = Depends(get_label_service),
+):
+    """Render the views explorer tree for the left sidebar."""
+    templates = request.app.state.templates
+    specs = await view_spec_service.get_all_view_specs()
+
+    type_iris = {spec.target_class for spec in specs if spec.target_class}
+    labels = await label_service.resolve_batch(list(type_iris)) if type_iris else {}
+    groups = _group_specs_by_type(specs, labels) if specs else []
+
+    context = {
+        "request": request,
+        "groups": groups,
+    }
+    return templates.TemplateResponse(
+        request, "browser/views_explorer.html", context
+    )
+
+
+@router.get("/menu")
+async def views_menu(
+    request: Request,
+    user: User = Depends(get_current_user),
+    view_spec_service: ViewSpecService = Depends(get_view_spec_service),
+    label_service: LabelService = Depends(get_label_service),
+):
+    """Render a full view menu listing all views across types."""
+    templates = request.app.state.templates
+    specs = await view_spec_service.get_all_view_specs()
+
+    type_iris = {spec.target_class for spec in specs if spec.target_class}
+    labels = await label_service.resolve_batch(list(type_iris)) if type_iris else {}
+    groups = _group_specs_by_type(specs, labels) if specs else []
+
+    context = {
+        "request": request,
+        "groups": groups,
+    }
+    return templates.TemplateResponse(
+        request, "browser/views_menu.html", context
+    )
 
 
 @router.get("/list/{type_iri:path}")

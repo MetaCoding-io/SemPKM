@@ -569,6 +569,14 @@ pre.json-output {
   color: var(--color-text);
 }
 
+/* Hide fallback text when Lucide icon renders (replaces <i> with <svg>) */
+.sidebar-toggle svg ~ .icon-fallback {
+  display: none;
+}
+.icon-fallback {
+  font-size: 14px;
+}
+
 /* Sidebar nav with compact density */
 .sidebar-nav {
   display: flex;
@@ -727,8 +735,7 @@ pre.json-output {
 /* User menu popover */
 .user-popover {
   position: fixed;
-  bottom: 52px;
-  left: 8px;
+  inset: auto auto 52px 8px;
   width: 220px;
   margin: 0;
   border: 1px solid var(--color-border);
@@ -736,10 +743,6 @@ pre.json-output {
   background: var(--color-surface);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   padding: 4px 0;
-}
-
-.user-popover:popover-open {
-  display: block;
 }
 
 .popover-user-info {
@@ -815,8 +818,7 @@ pre.json-output {
 /* Collapsed sidebar: hide text, center icons */
 .dashboard-layout.sidebar-collapsed .brand-text,
 .dashboard-layout.sidebar-collapsed .group-label,
-.dashboard-layout.sidebar-collapsed .nav-label,
-.dashboard-layout.sidebar-collapsed .sidebar-toggle {
+.dashboard-layout.sidebar-collapsed .nav-label {
   display: none;
 }
 
@@ -826,7 +828,11 @@ pre.json-output {
 }
 
 .dashboard-layout.sidebar-collapsed .sidebar-brand a {
-  justify-content: center;
+  display: none;
+}
+
+.dashboard-layout.sidebar-collapsed .sidebar-toggle {
+  margin: 0 auto;
 }
 
 .dashboard-layout.sidebar-collapsed .sidebar-group-header {
@@ -884,6 +890,68 @@ pre.json-output {
 
 #app-content {
   max-width: 100%;
+}
+
+/* Shortcuts page */
+.shortcuts-page {
+  max-width: 600px;
+}
+
+.shortcuts-page h1 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.shortcuts-hint {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin-bottom: 1.5rem;
+}
+
+.shortcut-group {
+  margin-bottom: 1.5rem;
+}
+
+.shortcut-group h2 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.shortcuts-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.shortcuts-table td {
+  padding: 6px 0;
+  font-size: 0.9rem;
+}
+
+.shortcut-keys {
+  width: 200px;
+  white-space: nowrap;
+}
+
+.shortcut-desc {
+  color: var(--color-text);
+}
+
+kbd {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 0.8rem;
+  font-family: inherit;
+  background: var(--color-bg, #f5f5f5);
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 3px;
+  box-shadow: 0 1px 0 var(--color-border, #ddd);
 }
 
 .docs-iframe {

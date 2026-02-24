@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Keyboard Shortcuts - SemPKM{% endblock %}
+
+{% block content %}
+<div class="shortcuts-page">
+    <h1>Keyboard Shortcuts</h1>
+    <p class="shortcuts-hint">These shortcuts are available throughout the application. On macOS, use <kbd>Cmd</kbd> instead of <kbd>Ctrl</kbd>.</p>
+
+    <section class="shortcut-group">
+        <h2>General</h2>
+        <table class="shortcuts-table">
+            <tbody>
+                <tr>
+                    <td class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>K</kbd></td>
+                    <td class="shortcut-desc">Open command palette</td>
+                </tr>
+                <tr>
+                    <td class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>\</kbd></td>
+                    <td class="shortcut-desc">Toggle sidebar</td>
+                </tr>
+                <tr>
+                    <td class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>[</kbd></td>
+                    <td class="shortcut-desc">Toggle explorer panel</td>
+                </tr>
+                <tr>
+                    <td class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>]</kbd></td>
+                    <td class="shortcut-desc">Toggle details panel</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="shortcut-group">
+        <h2>Objects</h2>
+        <table class="shortcuts-table">
+            <tbody>
+                <tr>
+                    <td class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>N</kbd></td>
+                    <td class="shortcut-desc">Create new object</td>
+                </tr>
+                <tr>
+                    <td class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>S</kbd></td>
+                    <td class="shortcut-desc">Save current object</td>
+                </tr>
+                <tr>
+                    <td class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>E</kbd></td>
+                    <td class="shortcut-desc">Toggle read / edit mode</td>
+                </tr>
+                <tr>
+                    <td class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>W</kbd></td>
+                    <td class="shortcut-desc">Close current tab</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="shortcut-group">
+        <h2>Tools</h2>
+        <table class="shortcuts-table">
+            <tbody>
+                <tr>
+                    <td class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>V</kbd></td>
+                    <td class="shortcut-desc">Validate current object</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+</div>
+{% endblock %}

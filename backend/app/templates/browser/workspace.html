@@ -52,13 +52,26 @@
     <div class="workspace-pane" id="right-pane">
         <div class="pane-header">
             <span class="pane-title">Details</span>
-            <div class="right-pane-tabs">
-                <button class="rp-tab active" data-tab="relations">Relations</button>
-                <button class="rp-tab" data-tab="lint">Lint</button>
-            </div>
         </div>
         <div class="pane-content" id="right-content">
-            <div class="right-empty">No object selected</div>
+            <details class="right-section" open>
+                <summary class="right-section-header">
+                    <i data-lucide="chevron-right" class="right-section-chevron"></i>
+                    Relations
+                </summary>
+                <div class="right-section-body" id="relations-content">
+                    <div class="right-empty">No object selected</div>
+                </div>
+            </details>
+            <details class="right-section" open>
+                <summary class="right-section-header">
+                    <i data-lucide="chevron-right" class="right-section-chevron"></i>
+                    Lint
+                </summary>
+                <div class="right-section-body" id="lint-content">
+                    <div class="right-empty">No object selected</div>
+                </div>
+            </details>
         </div>
     </div>
 </div>
