@@ -47,10 +47,10 @@
 
 ### Settings System (SETT)
 
-- [ ] **SETT-01**: A Settings page opens as a tab in the editor area (accessible via Ctrl+, or user menu) with categorized settings and a search filter
-- [ ] **SETT-02**: Settings use a layered resolution: system defaults < mental model defaults < user overrides
-- [ ] **SETT-03**: Settings changes dispatch a `sempkm:setting-changed` DOM event that consuming components listen to
-- [ ] **SETT-04**: Mental Models can contribute settings via a `settings` key in their manifest, which appear in the Settings page under the model's category
+- [x] **SETT-01**: A Settings page opens as a tab in the editor area (accessible via Ctrl+, or user menu) with categorized settings and a search filter
+- [x] **SETT-02**: Settings use a layered resolution: system defaults < mental model defaults < user overrides
+- [x] **SETT-03**: Settings changes dispatch a `sempkm:setting-changed` DOM event that consuming components listen to
+- [x] **SETT-04**: Mental Models can contribute settings via a `settings` key in their manifest, which appear in the Settings page under the model's category
 
 ### Node Type Icons (ICON)
 
@@ -139,10 +139,10 @@
 | DARK-02 | Phase 13 | Complete |
 | DARK-03 | Phase 13 | Complete |
 | DARK-04 | Phase 13 | Complete |
-| SETT-01 | Phase 15 | Pending |
-| SETT-02 | Phase 15 | Pending |
-| SETT-03 | Phase 15 | Pending |
-| SETT-04 | Phase 15 | Pending |
+| SETT-01 | Phase 15 | Complete |
+| SETT-02 | Phase 15 | Complete |
+| SETT-03 | Phase 15 | Complete |
+| SETT-04 | Phase 15 | Complete |
 | ICON-01 | Phase 15 | Pending |
 | ICON-02 | Phase 15 | Pending |
 | ICON-03 | Phase 15 | Pending |
