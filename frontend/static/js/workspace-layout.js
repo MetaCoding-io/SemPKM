@@ -1,0 +1,637 @@
+/**
+ * SemPKM WorkspaceLayout
+ *
+ * Manages multiple editor groups (1-4 horizontal splits) within the editor pane.
+ * Implements the data model from EDITOR-GROUPS-DESIGN.md (Phase 10, plan 10-03).
+ *
+ * Exposes on window:
+ *   window._workspaceLayout   - the active WorkspaceLayout instance
+ *   window.getActiveEditorArea()
+ *   window.splitRight(groupId)
+ *   window.setActiveGroup(groupId)
+ *   window.initWorkspaceLayout()
+ */
+
+(function () {
+  'use strict';
+
+  var LAYOUT_KEY = 'sempkm_workspace_layout';
+
+  // The horizontal Split.js instance between editor groups (null when 1 group)
+  var groupSplitInstance = null;
+
+  // Reference to the layout instance (set by initWorkspaceLayout)
+  var layout = null;
+
+  // -----------------------------------------------------------------------
+  // Migration: old sempkm_open_tabs / sempkm_active_tab → sempkm_workspace_layout
+  // -----------------------------------------------------------------------
+
+  function migrateTabState() {
+    if (sessionStorage.getItem(LAYOUT_KEY)) return; // already migrated
+
+    var oldTabs = [];
+    try {
+      oldTabs = JSON.parse(sessionStorage.getItem('sempkm_open_tabs') || '[]');
+    } catch (e) {
+      oldTabs = [];
+    }
+    var oldActive = sessionStorage.getItem('sempkm_active_tab');
+
+    var newLayout = {
+      groups: [{
+        id: 'group-1',
+        tabs: oldTabs,
+        activeTabId: oldActive || (oldTabs.length > 0 ? (oldTabs[0].iri || oldTabs[0].id) : null),
+        size: 100
+      }],
+      activeGroupId: 'group-1'
+    };
+
+    try {
+      sessionStorage.setItem(LAYOUT_KEY, JSON.stringify(newLayout));
+      sessionStorage.removeItem('sempkm_open_tabs');
+      sessionStorage.removeItem('sempkm_active_tab');
+    } catch (e) {
+      // sessionStorage blocked — continue without persisting
+    }
+  }
+
+  // -----------------------------------------------------------------------
+  // WorkspaceLayout class
+  // -----------------------------------------------------------------------
+
+  function WorkspaceLayout() {
+    this.groups = [];
+    this.activeGroupId = null;
+  }
+
+  /**
+   * Add a new editor group (max 4). Returns new group id or null if at max.
+   */
+  WorkspaceLayout.prototype.addGroup = function () {
+    if (this.groups.length >= 4) return null;
+
+    var id = 'group-' + Date.now();
+    var equalSize = 100 / (this.groups.length + 1);
+
+    this.groups.forEach(function (g) { g.size = equalSize; });
+    this.groups.push({ id: id, tabs: [], activeTabId: null, size: equalSize });
+
+    this.save();
+    recreateGroupSplit(this);
+    return id;
+  };
+
+  /**
+   * Remove a group. If last group, no-op. Tabs are redistributed to left neighbor.
+   */
+  WorkspaceLayout.prototype.removeGroup = function (groupId) {
+    if (this.groups.length === 1) return; // never remove last group
+
+    var idx = this.groups.findIndex(function (g) { return g.id === groupId; });
+    if (idx === -1) return;
+
+    var removed = this.groups.splice(idx, 1)[0];
+
+    // Redistribute tabs to left neighbor (or first group if idx was 0)
+    var neighborIdx = Math.max(0, idx - 1);
+    var neighbor = this.groups[neighborIdx];
+    removed.tabs.forEach(function (t) { neighbor.tabs.push(t); });
+
+    // Recalculate equal sizes
+    var equalSize = 100 / this.groups.length;
+    this.groups.forEach(function (g) { g.size = equalSize; });
+
+    // Update active group if the removed one was active
+    if (this.activeGroupId === groupId) {
+      this.activeGroupId = neighbor.id;
+    }
+
+    this.save();
+    recreateGroupSplit(this);
+  };
+
+  /**
+   * Move a tab from one group to another, optionally at a specific position.
+   * If source group becomes empty and is not the last group, it is removed.
+   */
+  WorkspaceLayout.prototype.moveTab = function (tabId, sourceGroupId, targetGroupId, insertBeforeTabId) {
+    var sourceGroup = this.getGroup(sourceGroupId);
+    var targetGroup = this.getGroup(targetGroupId);
+    if (!sourceGroup || !targetGroup) return;
+
+    // Find and remove from source
+    var tabIdx = sourceGroup.tabs.findIndex(function (t) { return (t.id || t.iri) === tabId; });
+    if (tabIdx === -1) return;
+
+    var tab = sourceGroup.tabs.splice(tabIdx, 1)[0];
+
+    // Update source activeTabId if needed
+    if (sourceGroup.activeTabId === tabId) {
+      if (sourceGroup.tabs.length > 0) {
+        var nextIdx = Math.min(tabIdx, sourceGroup.tabs.length - 1);
+        sourceGroup.activeTabId = sourceGroup.tabs[nextIdx].id || sourceGroup.tabs[nextIdx].iri;
+      } else {
+        sourceGroup.activeTabId = null;
+      }
+    }
+
+    // Insert into target at correct position
+    if (insertBeforeTabId) {
+      var insertIdx = targetGroup.tabs.findIndex(function (t) { return (t.id || t.iri) === insertBeforeTabId; });
+      if (insertIdx !== -1) {
+        targetGroup.tabs.splice(insertIdx, 0, tab);
+      } else {
+        targetGroup.tabs.push(tab);
+      }
+    } else {
+      targetGroup.tabs.push(tab);
+    }
+
+    // If source is empty and there is more than one group, remove it
+    if (sourceGroup.tabs.length === 0 && this.groups.length > 1) {
+      this.removeGroup(sourceGroupId);
+      // removeGroup already calls save() and recreateGroupSplit()
+      return;
+    }
+
+    this.save();
+
+    // Partial re-render of both tab bars
+    renderGroupTabBar(sourceGroup);
+    renderGroupTabBar(targetGroup);
+  };
+
+  /**
+   * Add a tab object to a group.
+   */
+  WorkspaceLayout.prototype.addTabToGroup = function (tab, groupId) {
+    var group = this.getGroup(groupId);
+    if (!group) return;
+
+    var tabId = tab.id || tab.iri;
+    var existing = group.tabs.find(function (t) { return (t.id || t.iri) === tabId; });
+    if (!existing) {
+      // Normalize: ensure both .id and .iri are set
+      if (!tab.id) tab.id = tab.iri;
+      if (!tab.iri) tab.iri = tab.id;
+      group.tabs.push(tab);
+    }
+
+    group.activeTabId = tabId;
+    this.save();
+    renderGroupTabBar(group);
+  };
+
+  /**
+   * Remove a tab from a group. If it was the last tab and not the last group,
+   * remove the group. If it was the last tab of the last group, show empty state.
+   */
+  WorkspaceLayout.prototype.removeTabFromGroup = function (tabId, groupId) {
+    var group = this.getGroup(groupId);
+    if (!group) return;
+
+    var idx = group.tabs.findIndex(function (t) { return (t.id || t.iri) === tabId; });
+    if (idx === -1) return;
+
+    group.tabs.splice(idx, 1);
+
+    // Update active tab for this group
+    if (group.activeTabId === tabId) {
+      if (group.tabs.length > 0) {
+        var nextIdx = Math.min(idx, group.tabs.length - 1);
+        group.activeTabId = group.tabs[nextIdx].id || group.tabs[nextIdx].iri;
+      } else {
+        group.activeTabId = null;
+      }
+    }
+
+    // If group is now empty and it's not the only group, remove it
+    if (group.tabs.length === 0 && this.groups.length > 1) {
+      this.removeGroup(groupId);
+      return;
+    }
+
+    this.save();
+    renderGroupTabBar(group);
+
+    // If tab was active, load the new active tab or show empty state
+    if (this.activeGroupId === groupId) {
+      if (group.activeTabId) {
+        loadTabInGroup(groupId, group.activeTabId);
+      } else {
+        showGroupEmpty(groupId);
+      }
+    }
+  };
+
+  /**
+   * Set the focused editor group.
+   */
+  WorkspaceLayout.prototype.setActiveGroup = function (groupId) {
+    this.activeGroupId = groupId;
+
+    // Update active class on group containers
+    document.querySelectorAll('.editor-group').forEach(function (el) {
+      el.classList.remove('editor-group-active');
+    });
+    var activeEl = document.getElementById(groupId);
+    if (activeEl) activeEl.classList.add('editor-group-active');
+
+    this.save();
+  };
+
+  /**
+   * Get a group by id.
+   */
+  WorkspaceLayout.prototype.getGroup = function (groupId) {
+    return this.groups.find(function (g) { return g.id === groupId; }) || null;
+  };
+
+  /**
+   * Persist to sessionStorage.
+   */
+  WorkspaceLayout.prototype.save = function () {
+    try {
+      sessionStorage.setItem(LAYOUT_KEY, JSON.stringify({
+        groups: this.groups,
+        activeGroupId: this.activeGroupId
+      }));
+    } catch (e) {
+      // sessionStorage might be blocked
+    }
+  };
+
+  /**
+   * Restore from sessionStorage. Returns WorkspaceLayout or null.
+   */
+  WorkspaceLayout.restore = function () {
+    try {
+      var raw = sessionStorage.getItem(LAYOUT_KEY);
+      if (raw) {
+        var data = JSON.parse(raw);
+        var l = new WorkspaceLayout();
+        l.groups = data.groups || [];
+        l.activeGroupId = data.activeGroupId || null;
+        return l;
+      }
+    } catch (e) {
+      // corrupted storage — fall through to create fresh
+    }
+    return null;
+  };
+
+  // -----------------------------------------------------------------------
+  // DOM: recreate editor groups and Split.js instance
+  // -----------------------------------------------------------------------
+
+  function recreateGroupSplit(layoutObj) {
+    var editorPane = document.getElementById('editor-pane');
+    if (!editorPane) return;
+
+    // 1. Destroy existing horizontal split
+    if (groupSplitInstance) {
+      try { groupSplitInstance.destroy(); } catch (e) {}
+      groupSplitInstance = null;
+    }
+
+    // 2. Run cleanup for any registered instances inside the pane
+    //    (CodeMirror, per-group vertical Split.js, etc.)
+    if (typeof window.runCleanup === 'function') {
+      // Fire cleanup for each group container before clearing innerHTML
+      var existingGroups = editorPane.querySelectorAll('.editor-group');
+      existingGroups.forEach(function (el) {
+        window.runCleanup(el.id);
+      });
+    }
+
+    // 3. Clear and rebuild DOM
+    editorPane.innerHTML = '';
+
+    layoutObj.groups.forEach(function (group) {
+      var div = document.createElement('div');
+      div.className = 'editor-group';
+      div.id = group.id;
+
+      var tabBar = document.createElement('div');
+      tabBar.className = 'group-tab-bar tab-bar-workspace';
+      tabBar.id = 'tab-bar-' + group.id;
+
+      var editorArea = document.createElement('div');
+      editorArea.className = 'group-editor-area';
+      editorArea.id = 'editor-area-' + group.id;
+
+      div.appendChild(tabBar);
+      div.appendChild(editorArea);
+      editorPane.appendChild(div);
+
+      // Wire group focus on click
+      div.addEventListener('mousedown', function () {
+        if (layout && layout.activeGroupId !== group.id) {
+          layout.setActiveGroup(group.id);
+        }
+      });
+    });
+
+    // 4. Create horizontal Split.js between groups (only when 2+ groups)
+    if (layoutObj.groups.length > 1) {
+      var selectors = layoutObj.groups.map(function (g) { return '#' + g.id; });
+      var sizes = layoutObj.groups.map(function (g) { return g.size; });
+
+      groupSplitInstance = Split(selectors, {
+        sizes: sizes,
+        minSize: 200,
+        gutterSize: 1,
+        gutterClass: 'gutter-editor-groups',
+        cursor: 'col-resize',
+        onDragEnd: function (s) {
+          layoutObj.groups.forEach(function (g, i) { g.size = s[i]; });
+          layoutObj.save();
+        }
+      });
+    }
+
+    // 5. Render tab bars and restore active content in each group
+    layoutObj.groups.forEach(function (group) {
+      renderGroupTabBar(group);
+      if (group.activeTabId) {
+        loadTabInGroup(group.id, group.activeTabId);
+      } else {
+        showGroupEmpty(group.id);
+      }
+    });
+
+    // 6. Apply active group styling
+    layoutObj.setActiveGroup(layoutObj.activeGroupId);
+  }
+
+  // -----------------------------------------------------------------------
+  // Tab Bar rendering
+  // -----------------------------------------------------------------------
+
+  function renderGroupTabBar(group) {
+    var tabBar = document.getElementById('tab-bar-' + group.id);
+    if (!tabBar) return;
+
+    if (!group.tabs || group.tabs.length === 0) {
+      tabBar.innerHTML = '<div class="tab-empty-state">No objects open</div>';
+      return;
+    }
+
+    var html = '';
+    group.tabs.forEach(function (tab) {
+      var tabId = tab.id || tab.iri;
+      var isActive = tabId === group.activeTabId;
+      var isView = tab.isView || (tabId && tabId.indexOf('view:') === 0);
+
+      html += '<div class="workspace-tab' +
+        (isActive ? ' active' : '') +
+        (isView ? ' view-tab' : '') +
+        '"' +
+        ' draggable="true"' +
+        ' data-tab-id="' + _escapeHtml(tabId) + '"' +
+        ' data-group-id="' + _escapeHtml(group.id) + '"' +
+        ' onclick="switchTabInGroup(\'' + _escapeJs(tabId) + '\', \'' + _escapeJs(group.id) + '\')"' +
+        ' oncontextmenu="event.preventDefault(); /* Plan 02: context menu */"' +
+        '>';
+
+      if (isView) {
+        var vt = tab.viewType || '';
+        var icon = '&#9654;';
+        if (vt === 'table') icon = '&#9638;';
+        else if (vt === 'card') icon = '&#9641;';
+        else if (vt === 'graph') icon = '&#9672;';
+        html += '<span class="tab-view-icon" title="View: ' + _escapeHtml(vt) + '">' + icon + '</span>';
+      }
+
+      html += '<span class="tab-label">' + _escapeHtml(tab.label || tabId) + '</span>';
+
+      if (tab.dirty) {
+        html += '<span class="tab-dirty" title="Unsaved changes"></span>';
+      }
+
+      html += '<button class="tab-close"' +
+        ' onclick="event.stopPropagation(); closeTabInGroup(\'' + _escapeJs(tabId) + '\', \'' + _escapeJs(group.id) + '\')"' +
+        ' title="Close tab">&times;</button>';
+      html += '</div>';
+    });
+
+    tabBar.innerHTML = html;
+  }
+
+  // -----------------------------------------------------------------------
+  // Tab content loading
+  // -----------------------------------------------------------------------
+
+  function loadTabInGroup(groupId, tabId) {
+    var group = layout ? layout.getGroup(groupId) : null;
+    if (!group) return;
+
+    var tab = group.tabs.find(function (t) { return (t.id || t.iri) === tabId; });
+    if (!tab) return;
+
+    var editorArea = document.getElementById('editor-area-' + groupId);
+    if (!editorArea) return;
+
+    // Show loading state
+    editorArea.innerHTML = '<div class="editor-skeleton">' +
+      '<div class="skeleton-line" style="width: 60%"></div>' +
+      '<div class="skeleton-line" style="width: 80%"></div>' +
+      '<div class="skeleton-line" style="width: 40%"></div>' +
+      '</div>';
+
+    var url;
+
+    if (tab.isView || (tabId && tabId.indexOf('view:') === 0)) {
+      // View tab
+      var viewId = tab.viewId || (tabId.indexOf('view:') === 0 ? tabId.substring(5) : tabId);
+      var viewType = tab.viewType || 'table';
+      if (viewType === 'table') url = '/browser/views/table/' + encodeURIComponent(viewId);
+      else if (viewType === 'card') url = '/browser/views/card/' + encodeURIComponent(viewId);
+      else if (viewType === 'graph') url = '/browser/views/graph/' + encodeURIComponent(viewId);
+      else url = '/browser/views/table/' + encodeURIComponent(viewId);
+    } else {
+      // Object tab
+      url = '/browser/object/' + encodeURIComponent(tabId);
+    }
+
+    if (typeof htmx !== 'undefined') {
+      htmx.ajax('GET', url, {
+        target: '#editor-area-' + groupId,
+        swap: 'innerHTML'
+      }).catch(function () {
+        var el = document.getElementById('editor-area-' + groupId);
+        if (el) el.innerHTML = '<div class="editor-empty"><p>Failed to load content.</p></div>';
+      });
+    } else {
+      editorArea.innerHTML = '<div class="editor-empty"><p>Loading...</p></div>';
+    }
+  }
+
+  function showGroupEmpty(groupId) {
+    var editorArea = document.getElementById('editor-area-' + groupId);
+    if (editorArea) {
+      editorArea.innerHTML = '<div class="editor-empty">' +
+        '<p>Select an object from the Explorer to open it here.</p>' +
+        '<p class="hint">Or press <kbd>Ctrl</kbd>+<kbd>K</kbd> to open the command palette.</p>' +
+        '</div>';
+    }
+  }
+
+  // -----------------------------------------------------------------------
+  // Public API functions
+  // -----------------------------------------------------------------------
+
+  /**
+   * Returns the editor area element for the currently active group.
+   * Replaces all hard-coded document.getElementById('editor-area') calls.
+   */
+  function getActiveEditorArea() {
+    if (layout && layout.activeGroupId) {
+      return document.getElementById('editor-area-' + layout.activeGroupId);
+    }
+    // Fallback: first group
+    var firstGroup = document.querySelector('.group-editor-area');
+    return firstGroup;
+  }
+
+  /**
+   * Split the editor to the right of the given group.
+   * Loads the active tab of the source group into the new group (duplicate allowed).
+   */
+  function splitRight(groupId) {
+    if (!layout) return;
+
+    var sourceGroup = layout.getGroup(groupId || layout.activeGroupId);
+    if (!sourceGroup) return;
+
+    var newGroupId = layout.addGroup();
+    if (!newGroupId) return; // at max
+
+    // Focus the new group
+    layout.setActiveGroup(newGroupId);
+
+    // If source had an active tab, duplicate it in the new group
+    if (sourceGroup.activeTabId) {
+      var sourceTab = sourceGroup.tabs.find(function (t) {
+        return (t.id || t.iri) === sourceGroup.activeTabId;
+      });
+      if (sourceTab) {
+        var dupTab = {
+          id: sourceTab.id || sourceTab.iri,
+          iri: sourceTab.iri || sourceTab.id,
+          label: sourceTab.label,
+          dirty: false,
+          isView: sourceTab.isView || false,
+          viewType: sourceTab.viewType,
+          viewId: sourceTab.viewId
+        };
+        var newGroup = layout.getGroup(newGroupId);
+        if (newGroup) {
+          newGroup.tabs.push(dupTab);
+          newGroup.activeTabId = dupTab.id;
+          layout.save();
+          renderGroupTabBar(newGroup);
+          loadTabInGroup(newGroupId, dupTab.id);
+        }
+      }
+    }
+  }
+
+  /**
+   * Focus an editor group by id.
+   */
+  function setActiveGroup(groupId) {
+    if (layout) {
+      layout.setActiveGroup(groupId);
+    }
+  }
+
+  /**
+   * Switch to a tab within a specific group (called from rendered tab HTML).
+   */
+  function switchTabInGroup(tabId, groupId) {
+    if (!layout) return;
+
+    var group = layout.getGroup(groupId);
+    if (!group) return;
+
+    group.activeTabId = tabId;
+    layout.activeGroupId = groupId;
+    layout.save();
+
+    renderGroupTabBar(group);
+    layout.setActiveGroup(groupId);
+    loadTabInGroup(groupId, tabId);
+  }
+
+  /**
+   * Close a tab within a specific group (called from rendered tab HTML).
+   */
+  function closeTabInGroup(tabId, groupId) {
+    if (!layout) return;
+    layout.removeTabFromGroup(tabId, groupId);
+  }
+
+  // -----------------------------------------------------------------------
+  // Initialization
+  // -----------------------------------------------------------------------
+
+  function initWorkspaceLayout() {
+    // 1. Migrate old tab state if needed
+    migrateTabState();
+
+    // 2. Restore or create fresh layout
+    layout = WorkspaceLayout.restore();
+
+    if (!layout) {
+      layout = new WorkspaceLayout();
+      layout.groups = [{ id: 'group-1', tabs: [], activeTabId: null, size: 100 }];
+      layout.activeGroupId = 'group-1';
+      layout.save();
+    }
+
+    // Ensure activeGroupId is valid
+    if (!layout.getGroup(layout.activeGroupId)) {
+      layout.activeGroupId = layout.groups.length > 0 ? layout.groups[0].id : 'group-1';
+    }
+
+    // 3. Build DOM and Split.js
+    recreateGroupSplit(layout);
+
+    // 4. Export layout instance
+    window._workspaceLayout = layout;
+  }
+
+  // -----------------------------------------------------------------------
+  // Utilities
+  // -----------------------------------------------------------------------
+
+  function _escapeHtml(str) {
+    if (!str) return '';
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(String(str)));
+    return div.innerHTML;
+  }
+
+  function _escapeJs(str) {
+    if (!str) return '';
+    return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+  }
+
+  // -----------------------------------------------------------------------
+  // Window exports
+  // -----------------------------------------------------------------------
+
+  window._workspaceLayout = null; // set by initWorkspaceLayout()
+  window.getActiveEditorArea = getActiveEditorArea;
+  window.splitRight = splitRight;
+  window.setActiveGroup = setActiveGroup;
+  window.initWorkspaceLayout = initWorkspaceLayout;
+  window.switchTabInGroup = switchTabInGroup;
+  window.closeTabInGroup = closeTabInGroup;
+  window.renderGroupTabBar = renderGroupTabBar;
+  window.loadTabInGroup = loadTabInGroup;
+
+})();
