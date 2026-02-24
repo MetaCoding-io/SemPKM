@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations -- no blank-page syndrome, no schema setup.
-**Current focus:** v2.0 Tighten Web UI -- Phase 16 in progress (Event Log Explorer)
+**Current focus:** v2.0 Tighten Web UI -- Phase 17 in progress (LLM Connection Configuration)
 
 ## Current Position
 
-Phase: 16 of 18 (Event Log Explorer)
-Plan: 3 of 3 (complete)
-Status: Phase 16 plan 03 complete (inline diff view, undo functionality for reversible events)
-Last activity: 2026-02-24 - Completed 16-03: Event Log Inline Diff and Undo
+Phase: 17 of 18 (LLM Connection Configuration)
+Plan: 1 of 1 (complete)
+Status: Phase 17 plan 01 complete (Fernet-encrypted LLM API key, owner settings UI, three endpoints)
+Last activity: 2026-02-24 - Completed 17-01: LLM Connection Configuration
 
-Progress: [#########░] 83% (v2.0) -- 16-03 complete (20/24 plans)
+Progress: [##########] 87% (v2.0) -- 17-01 complete (21/24 plans)
 
 ## Performance Metrics
 
@@ -46,6 +46,7 @@ Progress: [#########░] 83% (v2.0) -- 16-03 complete (20/24 plans)
 | 16    | 01   | 12min    | 2     | 4     |
 | 16    | 02   | 2min     | 2     | 3     |
 | 16    | 03   | 3min     | 2     | 6     |
+| 17    | 01   | 4min     | 2     | 8     |
 
 ## Accumulated Context
 
@@ -127,6 +128,10 @@ v2.0 roadmap decisions:
 - (16-03) loop.index IDs used for htmx diff targets (not hx-target='next') for htmx version compatibility
 - (16-03) build_compensation() uses concrete Literal values in materialize_deletes (not Variable) -- undo targets specific known old values
 - (16-03) edge.create undo uses operation_type='edge.create.undo' to distinguish compensating event in event log
+- (17-01) PBKDF2HMAC with SHA256 derives Fernet key from secret_key; fixed salt (stability over secrecy for InstanceConfig)
+- (17-01) save_config skips empty string api_key to prevent overwriting existing key with blank input
+- (17-01) api_key_set bool returned from get_config, never the key value; settings/data endpoint pops llm.api_key
+- (17-01) 600ms debounced client-side saves via fetch PUT (no form submission, instant UX feedback)
 
 ### Pending Todos
 
@@ -155,5 +160,5 @@ v2.0 roadmap decisions:
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 16-03-PLAN.md (Event Log Explorer - Inline Diff and Undo)
-Resume: Begin Phase 17 (next phase)
+Stopped at: Completed 17-01-PLAN.md (LLM Connection Configuration)
+Resume: Begin Phase 18 (next phase)
