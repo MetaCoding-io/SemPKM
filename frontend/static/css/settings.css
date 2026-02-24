@@ -243,3 +243,58 @@
 .settings-toggle-input:checked + .settings-toggle-slider::before {
   transform: translateX(16px);
 }
+
+/* LLM Connection settings */
+.settings-action-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+}
+
+.settings-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: var(--color-surface-raised, var(--color-bg-panel));
+  color: var(--color-text-normal);
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.settings-action-btn:hover {
+  background: var(--color-bg-hover);
+}
+
+.settings-action-btn--primary {
+  background: var(--color-accent);
+  color: white;
+  border-color: var(--color-accent);
+}
+
+.settings-action-btn--primary:hover {
+  opacity: 0.9;
+}
+
+.llm-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.llm-status-badge--ok {
+  background: var(--color-success, #22c55e20);
+  color: var(--color-success, #16a34a);
+}
+
+.llm-status-badge--error {
+  background: var(--color-danger, #ef444420);
+  color: var(--color-danger, #dc2626);
+}

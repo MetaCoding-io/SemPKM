@@ -1,0 +1,89 @@
+{# LLM Connection settings partial — owner-only, rendered by settings_page.html
+   llm_config = {api_base_url: str, api_key_set: bool, default_model: str}
+#}
+
+<div class="settings-row" data-key="llm.api_base_url" data-search="llm base url endpoint openai provider">
+  <div class="settings-row-info">
+    <span class="settings-label">API Base URL</span>
+    <span class="settings-description">Base URL for any OpenAI-compatible provider (e.g. https://api.openai.com or http://localhost:11434)</span>
+  </div>
+  <div class="settings-row-control">
+    <input type="text" class="settings-text-input" id="llm-api-base-url"
+           value="{{ llm_config.api_base_url }}"
+           placeholder="https://api.openai.com"
+           oninput="llmSettingChanged('api_base_url', this.value)"
+           autocomplete="off">
+  </div>
+</div>
+
+<div class="settings-row" data-key="llm.api_key" data-search="llm api key secret token">
+  <div class="settings-row-info">
+    <span class="settings-label">API Key</span>
+    <span class="settings-description">Stored encrypted server-side. Never sent to the browser after save.</span>
+  </div>
+  <div class="settings-row-control">
+    {% if llm_config.api_key_set %}
+    <span class="settings-modified-badge">Set</span>
+    {% endif %}
+    <input type="password" class="settings-text-input" id="llm-api-key"
+           placeholder="{{ '••••••••' if llm_config.api_key_set else 'Enter API key' }}"
+           autocomplete="new-password"
+           oninput="llmSettingChanged('api_key', this.value)">
+  </div>
+</div>
+
+<div class="settings-row" data-key="llm.default_model" data-search="llm model default gpt llama">
+  <div class="settings-row-info">
+    <span class="settings-label">Default Model</span>
+    <span class="settings-description">Model identifier to use for LLM requests. Use Fetch Models to populate from your provider.</span>
+  </div>
+  <div class="settings-row-control">
+    <div id="llm-model-select">
+      <input type="text" class="settings-text-input" id="llm-default-model"
+             value="{{ llm_config.default_model }}"
+             placeholder="e.g. gpt-4o or llama3"
+             oninput="llmSettingChanged('default_model', this.value)"
+             autocomplete="off">
+    </div>
+    <button class="settings-action-btn"
+            hx-post="/browser/llm/models"
+            hx-target="#llm-model-select"
+            hx-swap="innerHTML">
+      <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i>
+      Fetch Models
+    </button>
+  </div>
+</div>
+
+<div class="settings-action-row">
+  <button class="settings-action-btn settings-action-btn--primary"
+          hx-post="/browser/llm/test"
+          hx-target="#llm-test-status"
+          hx-swap="innerHTML"
+          hx-indicator="#llm-test-spinner">
+    <i data-lucide="plug" style="width:14px;height:14px;"></i>
+    Test Connection
+  </button>
+  <span class="htmx-indicator" id="llm-test-spinner">
+    <i data-lucide="loader-2" style="width:14px;height:14px;" class="spin"></i>
+    Testing...
+  </span>
+  <span id="llm-test-status"></span>
+</div>
+
+<script>
+(function () {
+  var _pending = {};
+  window.llmSettingChanged = function (field, value) {
+    clearTimeout(_pending[field]);
+    _pending[field] = setTimeout(function () {
+      fetch('/browser/llm/config', {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ field: field, value: value })
+      });
+    }, 600);
+  };
+})();
+</script>
