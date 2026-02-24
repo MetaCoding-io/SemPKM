@@ -307,7 +307,15 @@
     }
 
     // 3. Clear and rebuild DOM
+    //    Preserve #bottom-panel-slot if it exists
+    var bottomPanelSlot = document.getElementById('bottom-panel-slot');
     editorPane.innerHTML = '';
+
+    // Recreate the editor-groups-container
+    var groupsContainer = document.createElement('div');
+    groupsContainer.className = 'editor-groups-container';
+    groupsContainer.id = 'editor-groups-container';
+    editorPane.appendChild(groupsContainer);
 
     layoutObj.groups.forEach(function (group) {
       var div = document.createElement('div');
@@ -324,7 +332,7 @@
 
       div.appendChild(tabBar);
       div.appendChild(editorArea);
-      editorPane.appendChild(div);
+      groupsContainer.appendChild(div);
 
       // Wire group focus on click
       div.addEventListener('mousedown', function () {
@@ -333,6 +341,16 @@
         }
       });
     });
+
+    // Restore bottom-panel-slot after rebuilding groups container
+    if (bottomPanelSlot) {
+      editorPane.appendChild(bottomPanelSlot);
+    } else {
+      // Create placeholder for Plan 03
+      var slot = document.createElement('div');
+      slot.id = 'bottom-panel-slot';
+      editorPane.appendChild(slot);
+    }
 
     // 4. Create horizontal Split.js between groups (only when 2+ groups)
     if (layoutObj.groups.length > 1) {
@@ -364,6 +382,210 @@
 
     // 6. Apply active group styling
     layoutObj.setActiveGroup(layoutObj.activeGroupId);
+
+    // 7. Wire right-edge drop zone on the groups container
+    initRightEdgeDropZone();
+  }
+
+  // -----------------------------------------------------------------------
+  // Drag-and-Drop state
+  // -----------------------------------------------------------------------
+
+  var isDragging = false;
+
+  // -----------------------------------------------------------------------
+  // Tab Drag initiation
+  // -----------------------------------------------------------------------
+
+  function initTabDrag(tabEl, tabId, groupId) {
+    tabEl.setAttribute('draggable', 'true');
+
+    tabEl.addEventListener('dragstart', function (e) {
+      isDragging = true;
+      e.dataTransfer.setData('text/plain', JSON.stringify({ tabId: tabId, sourceGroupId: groupId }));
+      e.dataTransfer.effectAllowed = 'move';
+
+      // Create custom ghost image: styled clone of the tab
+      var ghost = tabEl.cloneNode(true);
+      ghost.style.opacity = '0.7';
+      ghost.style.position = 'fixed';
+      ghost.style.top = '-1000px';
+      document.body.appendChild(ghost);
+      e.dataTransfer.setDragImage(ghost, 20, 10);
+      setTimeout(function () { if (ghost.parentNode) { ghost.parentNode.removeChild(ghost); } }, 0);
+
+      tabEl.classList.add('dragging');
+    });
+
+    tabEl.addEventListener('dragend', function () {
+      tabEl.classList.remove('dragging');
+      // Clear all drop indicators
+      document.querySelectorAll('.drop-indicator').forEach(function (el) {
+        el.classList.remove('drop-indicator-active');
+      });
+      document.querySelectorAll('.group-tab-bar').forEach(function (el) {
+        el.classList.remove('tab-bar-drag-over');
+      });
+      // Reset isDragging after click event has fired (Pitfall 3)
+      setTimeout(function () { isDragging = false; }, 0);
+
+      // Hide right-edge drop zone
+      var rightEdge = document.getElementById('right-edge-drop-zone');
+      if (rightEdge) rightEdge.classList.remove('active');
+    });
+  }
+
+  // -----------------------------------------------------------------------
+  // Tab Bar drop zone
+  // -----------------------------------------------------------------------
+
+  function initTabBarDropZone(tabBarEl, targetGroupId) {
+    tabBarEl.addEventListener('dragover', function (e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      tabBarEl.classList.add('tab-bar-drag-over');
+      _updateInsertionIndicator(tabBarEl, e.clientX);
+    });
+
+    tabBarEl.addEventListener('dragleave', function (e) {
+      // Only remove drag-over state if leaving the tab bar entirely
+      if (!tabBarEl.contains(e.relatedTarget)) {
+        tabBarEl.classList.remove('tab-bar-drag-over');
+        var indicator = tabBarEl.querySelector('.drop-indicator');
+        if (indicator) indicator.classList.remove('drop-indicator-active');
+      }
+    });
+
+    tabBarEl.addEventListener('drop', function (e) {
+      e.preventDefault();
+      tabBarEl.classList.remove('tab-bar-drag-over');
+      var indicator = tabBarEl.querySelector('.drop-indicator');
+      if (indicator) indicator.classList.remove('drop-indicator-active');
+
+      var raw = e.dataTransfer.getData('text/plain');
+      if (!raw) return;
+      var data;
+      try { data = JSON.parse(raw); } catch (err) { return; }
+
+      // Determine insert position from indicator position
+      var insertBeforeTabId = _getInsertBeforeTabId(tabBarEl, e.clientX);
+
+      if (layout) {
+        layout.moveTab(data.tabId, data.sourceGroupId, targetGroupId, insertBeforeTabId);
+        // Load moved tab in target group
+        loadTabInGroup(targetGroupId, data.tabId);
+      }
+    });
+  }
+
+  // -----------------------------------------------------------------------
+  // Insertion indicator helper
+  // -----------------------------------------------------------------------
+
+  function _updateInsertionIndicator(tabBarEl, clientX) {
+    var indicator = tabBarEl.querySelector('.drop-indicator');
+    if (!indicator) {
+      indicator = document.createElement('div');
+      indicator.className = 'drop-indicator';
+      tabBarEl.appendChild(indicator);
+    }
+
+    var tabs = tabBarEl.querySelectorAll('.workspace-tab');
+    var found = false;
+    var tabBarRect = tabBarEl.getBoundingClientRect();
+
+    tabs.forEach(function (tab) {
+      if (found) return;
+      var rect = tab.getBoundingClientRect();
+      var midX = rect.left + rect.width / 2;
+      if (clientX < midX) {
+        indicator.style.left = (rect.left - tabBarRect.left + tabBarEl.scrollLeft) + 'px';
+        found = true;
+      }
+    });
+
+    if (!found) {
+      indicator.style.left = tabBarEl.scrollWidth + 'px';
+    }
+
+    indicator.classList.add('drop-indicator-active');
+  }
+
+  function _getInsertBeforeTabId(tabBarEl, clientX) {
+    var tabs = tabBarEl.querySelectorAll('.workspace-tab');
+    var result = null;
+
+    tabs.forEach(function (tab) {
+      if (result !== null) return;
+      var rect = tab.getBoundingClientRect();
+      var midX = rect.left + rect.width / 2;
+      if (clientX < midX) {
+        result = tab.getAttribute('data-tab-id');
+      }
+    });
+
+    return result;
+  }
+
+  // -----------------------------------------------------------------------
+  // Right-edge drop zone
+  // -----------------------------------------------------------------------
+
+  function initRightEdgeDropZone() {
+    var container = document.getElementById('editor-groups-container');
+    if (!container) return;
+
+    // Create or get the right-edge indicator overlay
+    var rightEdge = document.getElementById('right-edge-drop-zone');
+    if (!rightEdge) {
+      rightEdge = document.createElement('div');
+      rightEdge.id = 'right-edge-drop-zone';
+      container.style.position = 'relative';
+      container.appendChild(rightEdge);
+    }
+
+    container.addEventListener('dragover', function (e) {
+      if (!layout) return;
+      var containerRect = container.getBoundingClientRect();
+      var inRightZone = e.clientX > containerRect.right - 80;
+
+      if (inRightZone && layout.groups.length < 4) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        rightEdge.classList.add('active');
+      } else {
+        rightEdge.classList.remove('active');
+      }
+    });
+
+    container.addEventListener('dragleave', function (e) {
+      if (!container.contains(e.relatedTarget)) {
+        rightEdge.classList.remove('active');
+      }
+    });
+
+    container.addEventListener('drop', function (e) {
+      var containerRect = container.getBoundingClientRect();
+      var inRightZone = e.clientX > containerRect.right - 80;
+
+      if (!inRightZone || !layout) return;
+
+      e.preventDefault();
+      rightEdge.classList.remove('active');
+
+      var raw = e.dataTransfer.getData('text/plain');
+      if (!raw) return;
+      var data;
+      try { data = JSON.parse(raw); } catch (err) { return; }
+
+      var newGroupId = layout.addGroup();
+      if (!newGroupId) return; // at max groups
+      var newGroup = layout.getGroup(newGroupId);
+      if (!newGroup) return;
+
+      layout.moveTab(data.tabId, data.sourceGroupId, newGroupId, null);
+      loadTabInGroup(newGroupId, data.tabId);
+    });
   }
 
   // -----------------------------------------------------------------------
@@ -374,50 +596,80 @@
     var tabBar = document.getElementById('tab-bar-' + group.id);
     if (!tabBar) return;
 
+    // Clear tab bar
+    tabBar.innerHTML = '';
+
     if (!group.tabs || group.tabs.length === 0) {
-      tabBar.innerHTML = '<div class="tab-empty-state">No objects open</div>';
+      var emptyEl = document.createElement('div');
+      emptyEl.className = 'tab-empty-state';
+      emptyEl.textContent = 'No objects open';
+      tabBar.appendChild(emptyEl);
+      initTabBarDropZone(tabBar, group.id);
       return;
     }
 
-    var html = '';
     group.tabs.forEach(function (tab) {
       var tabId = tab.id || tab.iri;
       var isActive = tabId === group.activeTabId;
       var isView = tab.isView || (tabId && tabId.indexOf('view:') === 0);
 
-      html += '<div class="workspace-tab' +
-        (isActive ? ' active' : '') +
-        (isView ? ' view-tab' : '') +
-        '"' +
-        ' draggable="true"' +
-        ' data-tab-id="' + _escapeHtml(tabId) + '"' +
-        ' data-group-id="' + _escapeHtml(group.id) + '"' +
-        ' onclick="switchTabInGroup(\'' + _escapeJs(tabId) + '\', \'' + _escapeJs(group.id) + '\')"' +
-        ' oncontextmenu="event.preventDefault(); /* Plan 02: context menu */"' +
-        '>';
+      var tabEl = document.createElement('div');
+      tabEl.className = 'workspace-tab' + (isActive ? ' active' : '') + (isView ? ' view-tab' : '');
+      tabEl.setAttribute('data-tab-id', tabId);
+      tabEl.setAttribute('data-group-id', group.id);
 
       if (isView) {
         var vt = tab.viewType || '';
-        var icon = '&#9654;';
-        if (vt === 'table') icon = '&#9638;';
-        else if (vt === 'card') icon = '&#9641;';
-        else if (vt === 'graph') icon = '&#9672;';
-        html += '<span class="tab-view-icon" title="View: ' + _escapeHtml(vt) + '">' + icon + '</span>';
+        var iconMap = { table: '\u25A6', card: '\u25E9', graph: '\u25C8' };
+        var iconChar = iconMap[vt] || '\u25B6';
+        var iconEl = document.createElement('span');
+        iconEl.className = 'tab-view-icon';
+        iconEl.setAttribute('title', 'View: ' + vt);
+        iconEl.textContent = iconChar;
+        tabEl.appendChild(iconEl);
       }
 
-      html += '<span class="tab-label">' + _escapeHtml(tab.label || tabId) + '</span>';
+      var labelEl = document.createElement('span');
+      labelEl.className = 'tab-label';
+      labelEl.textContent = tab.label || tabId;
+      tabEl.appendChild(labelEl);
 
       if (tab.dirty) {
-        html += '<span class="tab-dirty" title="Unsaved changes"></span>';
+        var dirtyEl = document.createElement('span');
+        dirtyEl.className = 'tab-dirty';
+        dirtyEl.setAttribute('title', 'Unsaved changes');
+        tabEl.appendChild(dirtyEl);
       }
 
-      html += '<button class="tab-close"' +
-        ' onclick="event.stopPropagation(); closeTabInGroup(\'' + _escapeJs(tabId) + '\', \'' + _escapeJs(group.id) + '\')"' +
-        ' title="Close tab">&times;</button>';
-      html += '</div>';
+      var closeBtn = document.createElement('button');
+      closeBtn.className = 'tab-close';
+      closeBtn.setAttribute('title', 'Close tab');
+      closeBtn.textContent = '\u00D7';
+      closeBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        closeTabInGroup(tabId, group.id);
+      });
+      tabEl.appendChild(closeBtn);
+
+      // Click to switch tab (with isDragging guard per Pitfall 3)
+      tabEl.addEventListener('click', function () {
+        if (isDragging) return;
+        switchTabInGroup(tabId, group.id);
+      });
+
+      // Context menu
+      tabEl.addEventListener('contextmenu', function (e) {
+        showTabContextMenu(e, tabId, group.id);
+      });
+
+      // Wire drag-and-drop
+      initTabDrag(tabEl, tabId, group.id);
+
+      tabBar.appendChild(tabEl);
     });
 
-    tabBar.innerHTML = html;
+    // Make tab bar a drop zone
+    initTabBarDropZone(tabBar, group.id);
   }
 
   // -----------------------------------------------------------------------
@@ -572,6 +824,32 @@
   function closeTabInGroup(tabId, groupId) {
     if (!layout) return;
     layout.removeTabFromGroup(tabId, groupId);
+  }
+
+  /**
+   * Show right-click context menu on a tab (implemented in Plan 02 Task 2).
+   * Stub: prevents default browser context menu until full implementation runs.
+   */
+  function showTabContextMenu(e, tabId, groupId) {
+    e.preventDefault();
+    e.stopPropagation();
+    // Full implementation added in Task 2 of Plan 02
+  }
+
+  /**
+   * Close all other tabs in a group, keeping only keepTabId.
+   * Implemented in Plan 02 Task 2.
+   */
+  function closeOtherTabsInGroup(keepTabId, groupId) {
+    if (!layout) return;
+    var group = layout.getGroup(groupId);
+    if (!group) return;
+    var toClose = group.tabs.filter(function (t) {
+      return (t.id || t.iri) !== keepTabId;
+    }).map(function (t) { return t.id || t.iri; });
+    toClose.forEach(function (tabId) {
+      layout.removeTabFromGroup(tabId, groupId);
+    });
   }
 
   // -----------------------------------------------------------------------
