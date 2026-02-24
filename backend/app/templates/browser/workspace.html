@@ -50,8 +50,47 @@
                 </div>
             </div>
         </div>
-        <!-- Bottom panel placeholder slot (implemented in Plan 03) -->
-        <div id="bottom-panel-slot"></div>
+        <!-- Panel resize handle: thin strip draggable to resize panel height -->
+        <div class="panel-resize-handle" id="panel-resize-handle"></div>
+
+        <!-- Bottom panel (hidden by default, shown via Ctrl+J or toggleBottomPanel()) -->
+        <div class="bottom-panel" id="bottom-panel" style="display: none;">
+          <div class="panel-header">
+            <div class="panel-tab-bar" id="panel-tab-bar">
+              <button class="panel-tab active" data-panel="sparql">SPARQL</button>
+              <button class="panel-tab" data-panel="event-log">EVENT LOG</button>
+              <button class="panel-tab" data-panel="ai-copilot">AI COPILOT</button>
+            </div>
+            <div class="panel-controls">
+              <button class="panel-btn" id="panel-maximize-btn" title="Maximize Panel (toggle)">
+                <i data-lucide="chevrons-up" style="width:14px;height:14px;"></i>
+              </button>
+              <button class="panel-btn" id="panel-close-btn" title="Close Panel">
+                <i data-lucide="x" style="width:14px;height:14px;"></i>
+              </button>
+            </div>
+          </div>
+          <div class="panel-content">
+            <div class="panel-pane active" id="panel-sparql">
+              <div class="panel-placeholder">
+                <i data-lucide="terminal" style="width:24px;height:24px;display:block;margin:0 auto 8px;"></i>
+                SPARQL Console — coming in Phase 16
+              </div>
+            </div>
+            <div class="panel-pane" id="panel-event-log">
+              <div class="panel-placeholder">
+                <i data-lucide="activity" style="width:24px;height:24px;display:block;margin:0 auto 8px;"></i>
+                Event Log Explorer — coming in Phase 16
+              </div>
+            </div>
+            <div class="panel-pane" id="panel-ai-copilot">
+              <div class="panel-placeholder">
+                <i data-lucide="bot" style="width:24px;height:24px;display:block;margin:0 auto 8px;"></i>
+                AI Copilot — coming in v2.1
+              </div>
+            </div>
+          </div>
+        </div>
     </div>
 
     <div class="workspace-pane" id="right-pane">
