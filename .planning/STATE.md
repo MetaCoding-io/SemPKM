@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations -- no blank-page syndrome, no schema setup.
-**Current focus:** v2.0 Tighten Web UI -- Phase 14 in progress (Split Panes and Bottom Panel)
+**Current focus:** v2.0 Tighten Web UI -- Phase 14 complete (Split Panes and Bottom Panel)
 
 ## Current Position
 
 Phase: 14 of 18 (Split Panes and Bottom Panel)
-Plan: 2 of 3 (complete)
-Status: Phase 14 plan 2 complete (Tab Drag-and-Drop and Context Menu)
-Last activity: 2026-02-24 -- Completed 14-02 (HTML5 DnD, right-edge zone, right-click context menu, DnD CSS)
+Plan: 3 of 3 (complete)
+Status: Phase 14 complete (Bottom Panel with Ctrl+J, resize, tabs, localStorage, command palette)
+Last activity: 2026-02-24 -- Completed 14-03 (bottom panel DOM/CSS/JS, UAT verified)
 
-Progress: [######░░░░] 54% (v2.0) -- 14-02 complete (13/24 plans)
+Progress: [######░░░░] 58% (v2.0) -- 14-03 complete (14/24 plans)
 
 ## Performance Metrics
 
@@ -39,6 +39,7 @@ Progress: [######░░░░] 54% (v2.0) -- 14-02 complete (13/24 plans)
 | 13    | 04   | 2min     | 2     | 4     |
 | 14    | 01   | 4min     | 2     | 5     |
 | 14    | 02   | 3min     | 2     | 2     |
+| 14    | 03   | 60min    | 3     | 4     |
 
 ## Accumulated Context
 
@@ -95,6 +96,10 @@ v2.0 roadmap decisions:
 - (14-02) recreateGroupSplit explicitly creates #editor-groups-container div (Plan 01 cleared it with innerHTML='')
 - (14-02) isDragging flag with setTimeout(0) reset on dragend guards against accidental tab switch after short drag (Pitfall 3)
 - (14-02) Context menu positions via viewport-clamped clientX/clientY with menuRect correction; Escape + click-outside dismiss
+- (14-03) CSS height transition (height: 0 -> Npx with overflow:hidden) for smooth panel open/close -- avoids layout jump from display:none toggle
+- (14-03) Bottom panel DOM detached and re-inserted around recreateGroupSplit to survive Split.js reinitialization
+- (14-03) panelState.height stored as percentage not pixels -- scales correctly on window resize
+- (14-03) DOM preservation pattern for Split.js recreation: save real DOM nodes, wipe container, re-insert before recreate
 
 ### Pending Todos
 
@@ -121,5 +126,5 @@ v2.0 roadmap decisions:
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 14-02-PLAN.md (Tab Drag-and-Drop and Context Menu)
-Resume: Continue Phase 14 -- Plan 03 (Bottom Panel)
+Stopped at: Completed 14-03-PLAN.md (Bottom Panel -- Phase 14 complete)
+Resume: Begin Phase 15 (Settings System)
