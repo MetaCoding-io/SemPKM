@@ -13,7 +13,7 @@ async def sparql_page(request: Request, user: User = Depends(get_current_user)):
     """Render the SPARQL query console."""
     templates = request.app.state.templates
     return templates.TemplateResponse(
-        request, "debug/sparql.html", {"active_page": "sparql"}
+        request, "debug/sparql.html", {"active_page": "sparql", "user": user}
     )
 
 
@@ -22,5 +22,5 @@ async def commands_page(request: Request, user: User = Depends(get_current_user)
     """Render the command executor console."""
     templates = request.app.state.templates
     return templates.TemplateResponse(
-        request, "debug/commands.html", {"active_page": "commands"}
+        request, "debug/commands.html", {"active_page": "commands", "user": user}
     )

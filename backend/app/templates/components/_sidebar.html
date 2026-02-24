@@ -107,7 +107,7 @@
     <div class="sidebar-user" id="sidebar-user-area">
         <button popovertarget="user-popover" class="user-area-btn">
             <span class="user-avatar" id="user-avatar"></span>
-            <span class="user-name">{{ user.display_name or user.email or 'User' }}</span>
+            <span class="user-name">{{ (user.display_name or user.email or 'User') if user is defined else 'User' }}</span>
         </button>
     </div>
 </aside>
@@ -116,8 +116,8 @@
     <div class="popover-user-info">
         <span class="user-avatar user-avatar-lg" id="user-avatar-popover"></span>
         <div class="popover-user-details">
-            <span class="popover-user-name">{{ user.display_name or user.email or 'User' }}</span>
-            {% if user.display_name and user.email %}
+            <span class="popover-user-name">{{ (user.display_name or user.email or 'User') if user is defined else 'User' }}</span>
+            {% if user is defined and user.display_name and user.email %}
             <span class="popover-user-email">{{ user.email }}</span>
             {% endif %}
         </div>
