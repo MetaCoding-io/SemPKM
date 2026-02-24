@@ -122,9 +122,10 @@ v2.0 roadmap decisions:
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 1 | Add copyright notice to docs site | 2026-02-24 | 1ad8949 | [1-add-copyright-notice-to-docs-site](./quick/1-add-copyright-notice-to-docs-site/) |
+| 2 | Research gist ontology applicability to SemPKM Mental Models | 2026-02-24 | af5d5ef | [2-research-how-the-gist-ontology-can-be-us](./quick/2-research-how-the-gist-ontology-can-be-us/) |
 
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 14-03-PLAN.md (Bottom Panel -- Phase 14 complete)
+Stopped at: Completed quick-002 (gist ontology research)
 Resume: Begin Phase 15 (Settings System)
