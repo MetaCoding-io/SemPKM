@@ -87,8 +87,8 @@ test.describe('Setup Wizard', () => {
     // Wait for success message
     await expect(page.locator('#setup-message')).toContainText('Instance claimed successfully', { timeout: 10000 });
 
-    // The page should redirect to the workspace after 2 seconds
-    await page.waitForURL('**/browser/**', { timeout: 10000 });
+    // The page redirects to / (dashboard) after ~2 seconds
+    await page.waitForURL(url => !url.toString().includes('setup.html'), { timeout: 10000 });
   });
 
   test('after setup, auth status reports setup_complete=true', async ({ request }) => {

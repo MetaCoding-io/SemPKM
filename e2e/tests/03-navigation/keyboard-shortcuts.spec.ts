@@ -18,8 +18,7 @@ test.describe('Keyboard Shortcuts', () => {
     // Press Ctrl+K to open command palette
     await ownerPage.keyboard.press('Control+k');
 
-    // ninja-keys should become visible (it uses open attribute or class)
-    // Wait for it to open
+    // ninja-keys should become visible (it uses the open() method)
     await ownerPage.waitForTimeout(500);
 
     // Check if ninja-keys has opened state
@@ -32,41 +31,40 @@ test.describe('Keyboard Shortcuts', () => {
     expect(isOpen).toBeTruthy();
   });
 
-  test('Ctrl+N opens type picker', async ({ ownerPage }) => {
+  test('Ctrl+N opens type picker via ninja-keys hotkey', async ({ ownerPage }) => {
     await ownerPage.goto(`${BASE_URL}/browser/`);
     await waitForWorkspace(ownerPage);
 
-    // Press Ctrl+N
+    // Ctrl+N is registered as a ninja-keys hotkey which calls showTypePicker()
+    // showTypePicker() does htmx.ajax('GET', '/browser/types', ...) into editor area
     await ownerPage.keyboard.press('Control+n');
     await waitForIdle(ownerPage);
 
     // Type picker should appear in the editor area
-    await ownerPage.waitForSelector(SEL.typePicker.overlay, { timeout: 5000 }).catch(() => {
-      // Alternative: the shortcut may open a modal or trigger htmx
-    });
+    const picker = ownerPage.locator(SEL.typePicker.overlay);
+    await expect(picker).toBeVisible({ timeout: 5000 });
 
-    // Check if type picker is visible
-    const hasPicker = await ownerPage.locator(SEL.typePicker.overlay).count();
-    // If Ctrl+N is bound, the type picker should be visible
-    // Some implementations might use a different mechanism
-    expect(hasPicker).toBeGreaterThanOrEqual(0); // Soft assertion - shortcut may vary
+    // Should show all four Basic PKM types
+    const typeOptions = ownerPage.locator(SEL.typePicker.typeOption);
+    const count = await typeOptions.count();
+    expect(count).toBe(4);
   });
 
   test('Ctrl+, opens settings page', async ({ ownerPage }) => {
     await ownerPage.goto(`${BASE_URL}/browser/`);
     await waitForWorkspace(ownerPage);
 
-    // Press Ctrl+,
+    // Ctrl+, is handled directly in the keydown handler, calling openSettingsTab()
     await ownerPage.keyboard.press('Control+,');
     await waitForIdle(ownerPage);
 
-    // Settings page should appear
+    // Settings page should appear in the editor area
     const settingsPage = ownerPage.locator(SEL.settings.page);
-    // Give it time to load
-    await ownerPage.waitForTimeout(1000);
+    await expect(settingsPage).toBeVisible({ timeout: 10000 });
 
-    const isVisible = await settingsPage.isVisible().catch(() => false);
-    // Soft assertion since the shortcut binding may vary
-    expect(typeof isVisible).toBe('boolean');
+    // Should have category buttons
+    const categoryBtns = ownerPage.locator('.settings-category-btn');
+    const count = await categoryBtns.count();
+    expect(count).toBeGreaterThan(0);
   });
 });
