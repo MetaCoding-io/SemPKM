@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations -- no blank-page syndrome, no schema setup.
-**Current focus:** v2.0 Tighten Web UI -- Phase 12 complete, ready for Phase 13
+**Current focus:** v2.0 Tighten Web UI -- Phase 13 in progress
 
 ## Current Position
 
-Phase: 12 of 18 (Sidebar and Navigation) -- COMPLETE
-Plan: 2 of 2
-Status: Phase 12 complete, ready for Phase 13
-Last activity: 2026-02-23 -- Completed 12-02 (user menu popover with avatar and logout)
+Phase: 13 of 18 (Dark Mode and Visual Polish)
+Plan: 1 of 3
+Status: 13-01 complete, ready for 13-02
+Last activity: 2026-02-24 -- Completed 13-01 (CSS token system and dark mode foundation)
 
-Progress: [####░░░░░░] 30% (v2.0) -- 12-02 complete (7/23 plans)
+Progress: [####░░░░░░] 35% (v2.0) -- 13-01 complete (8/23 plans)
 
 ## Performance Metrics
 
@@ -33,6 +33,7 @@ Progress: [####░░░░░░] 30% (v2.0) -- 12-02 complete (7/23 plans)
 | 11    | 02   | session  | 15    | 12    |
 | 12    | 01   | 4min     | 2     | 8     |
 | 12    | 02   | 2min     | 2     | 3     |
+| 13    | 01   | 8min     | 2     | 9     |
 
 ## Accumulated Context
 
@@ -65,6 +66,12 @@ v2.0 roadmap decisions:
 - (12-02) HTML Popover API (popover="auto") for user menu -- light-dismiss, top-layer stacking, focus management without custom JS
 - (12-02) Deterministic avatar color via hash of user name string, 8-color palette
 - (12-02) Popover Lucide icons re-initialized via toggle event listener on each open
+- (13-01) CSS custom property token system in theme.css as single source of truth for all colors (35+ tokens)
+- (13-01) data-theme attribute on html element for theme state (not class-based)
+- (13-01) Anti-FOUC inline script in head before stylesheets reads localStorage synchronously
+- (13-01) Crossfade transitions on specific layout elements only (not * universally) to prevent perf issues
+- (13-01) Active tab accent changed from primary blue to teal (var(--color-accent)) per user decision
+- (13-01) no-transition class pattern: set during FOUC prevention, removed via requestAnimationFrame
 
 ### Pending Todos
 
@@ -84,6 +91,6 @@ v2.0 roadmap decisions:
 
 ## Session Continuity
 
-Last session: 2026-02-23
-Stopped at: Completed 12-02-PLAN.md (Phase 12 complete)
-Resume: Begin Phase 13 (Dark Mode / Visual Polish)
+Last session: 2026-02-24
+Stopped at: Completed 13-01-PLAN.md
+Resume: Begin 13-02 (CodeMirror, Cytoscape, and third-party dark mode integration)
