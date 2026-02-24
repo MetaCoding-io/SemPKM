@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-23)
 ## Current Position
 
 Phase: 15 of 18 (Settings System and Node Type Icons)
-Plan: 1 of 3 (complete)
-Status: Phase 15 plan 01 complete (Settings infrastructure: DB model, service, API, client JS, Ctrl+,)
-Last activity: 2026-02-24 - Completed 15-01 (Settings Infrastructure)
+Plan: 3 of 3 (complete)
+Status: Phase 15 plan 03 complete (Node type icon system: IconService, Lucide tree/tab/graph icons)
+Last activity: 2026-02-24 - Completed 15-03 (Node Type Icon System)
 
-Progress: [######░░░░] 62% (v2.0) -- 15-01 complete (15/24 plans)
+Progress: [#######░░░] 71% (v2.0) -- 15-03 complete (17/24 plans)
 
 ## Performance Metrics
 
@@ -41,6 +41,7 @@ Progress: [######░░░░] 62% (v2.0) -- 15-01 complete (15/24 plans)
 | 14    | 02   | 3min     | 2     | 2     |
 | 14    | 03   | 60min    | 3     | 4     |
 | 15    | 01   | 6min     | 2     | 11    |
+| 15    | 03   | 4min     | 2     | 9     |
 
 ## Accumulated Context
 
@@ -105,6 +106,10 @@ v2.0 roadmap decisions:
 - (15-01) get_settings_service creates SettingsService per-request (stateless, no app.state needed)
 - (15-01) special:settings tab skips right-pane section loading (no relations/lint for settings page)
 - (15-01) settings.js auto-fetches on DOM ready to warm cache before consumers call SemPKMSettings.get()
+- (15-03) IconService per-request creation (stateless, matches SettingsService approach)
+- (15-03) iconToShape mapping translates Lucide icon names to Cytoscape shapes; unmapped icons default to ellipse
+- (15-03) window._sempkmIcons fetched on workspace init as client-side cache for graph shapes and tab icons
+- (15-03) basic-pkm icons use actual types (Note/Concept/Project/Person); plan examples (Source/Tag) were not in the model
 
 ### Pending Todos
 
@@ -132,5 +137,5 @@ v2.0 roadmap decisions:
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 15-01-PLAN.md (Settings Infrastructure)
-Resume: Begin 15-02 (Settings UI)
+Stopped at: Completed 15-03-PLAN.md (Node Type Icon System)
+Resume: Begin Phase 16

@@ -54,9 +54,9 @@
 
 ### Node Type Icons (ICON)
 
-- [ ] **ICON-01**: Object explorer tree displays type-specific icons (from Lucide icon set) next to each object, with color coding
-- [ ] **ICON-02**: Graph view nodes display type-appropriate colors and optional shape differentiation
-- [ ] **ICON-03**: Mental Models can declare icon and color mappings for their types in the model manifest
+- [x] **ICON-01**: Object explorer tree displays type-specific icons (from Lucide icon set) next to each object, with color coding
+- [x] **ICON-02**: Graph view nodes display type-appropriate colors and optional shape differentiation
+- [x] **ICON-03**: Mental Models can declare icon and color mappings for their types in the model manifest
 
 ### Event Log Explorer (EVNT)
 
@@ -143,9 +143,9 @@
 | SETT-02 | Phase 15 | Complete |
 | SETT-03 | Phase 15 | Complete |
 | SETT-04 | Phase 15 | Complete |
-| ICON-01 | Phase 15 | Pending |
-| ICON-02 | Phase 15 | Pending |
-| ICON-03 | Phase 15 | Pending |
+| ICON-01 | Phase 15 | Complete |
+| ICON-02 | Phase 15 | Complete |
+| ICON-03 | Phase 15 | Complete |
 | EVNT-01 | Phase 16 | Pending |
 | EVNT-02 | Phase 16 | Pending |
 | EVNT-03 | Phase 16 | Pending |
