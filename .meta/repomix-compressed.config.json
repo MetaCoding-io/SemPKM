@@ -1,0 +1,44 @@
+{
+  "input": {
+    "maxFileSize": 50000000
+  },
+  "output": {
+    "filePath": "/app/output/repomix-compressed.xml",
+    "style": "xml",
+    "compress": true,
+    "fileSummary": true,
+    "directoryStructure": true,
+    "files": true,
+    "removeComments": true,
+    "removeEmptyLines": true,
+    "topFilesLength": 10,
+    "showLineNumbers": false,
+    "git": {
+      "sortByChanges": true,
+      "sortByChangesMaxCommits": 100,
+      "includeDiffs": false,
+      "includeLogs": false
+    }
+  },
+  "ignore": {
+    "useGitignore": true,
+    "useDefaultPatterns": true,
+    "customPatterns": [
+      ".meta/**",
+      "*.lock",
+      "uv.lock",
+      "node_modules/**",
+      "__pycache__/**",
+      "*.pyc",
+      ".git/**",
+      "dist/**",
+      "build/**"
+    ]
+  },
+  "security": {
+    "enableSecurityCheck": true
+  },
+  "tokenCount": {
+    "encoding": "o200k_base"
+  }
+}
