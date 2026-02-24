@@ -132,10 +132,17 @@
         <i data-lucide="settings" class="popover-icon"></i>
         <span>Settings</span>
     </a>
-    <a href="#" class="popover-item disabled">
-        <i data-lucide="sun" class="popover-icon"></i>
-        <span>Theme</span>
-    </a>
+    <div class="popover-theme-row">
+        <button class="theme-btn" data-theme-value="light" onclick="setTheme('light')" title="Light">
+            <i data-lucide="sun" class="popover-icon"></i>
+        </button>
+        <button class="theme-btn" data-theme-value="system" onclick="setTheme('system')" title="System">
+            <i data-lucide="monitor" class="popover-icon"></i>
+        </button>
+        <button class="theme-btn" data-theme-value="dark" onclick="setTheme('dark')" title="Dark">
+            <i data-lucide="moon" class="popover-icon"></i>
+        </button>
+    </div>
     <div class="popover-divider"></div>
     <button class="popover-item popover-item-danger" onclick="handleLogout()">
         <i data-lucide="log-out" class="popover-icon"></i>

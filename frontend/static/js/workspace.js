@@ -656,6 +656,24 @@
           handler: function () { openViewMenu(); }
         },
         {
+          id: 'theme-light',
+          title: 'Theme: Light',
+          section: 'Appearance',
+          handler: function () { setTheme('light'); }
+        },
+        {
+          id: 'theme-dark',
+          title: 'Theme: Dark',
+          section: 'Appearance',
+          handler: function () { setTheme('dark'); }
+        },
+        {
+          id: 'theme-system',
+          title: 'Theme: System Default',
+          section: 'Appearance',
+          handler: function () { setTheme('system'); }
+        },
+        {
           id: 'toggle-edit-mode',
           title: 'Toggle Edit Mode',
           section: 'Objects',
