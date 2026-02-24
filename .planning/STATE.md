@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations -- no blank-page syndrome, no schema setup.
-**Current focus:** v2.0 Tighten Web UI -- Phase 13 in progress
+**Current focus:** v2.0 Tighten Web UI -- Phase 13 complete (UAT gaps closed)
 
 ## Current Position
 
 Phase: 13 of 18 (Dark Mode and Visual Polish)
-Plan: 3 of 3 (complete)
-Status: Phase 13 complete
-Last activity: 2026-02-24 -- Completed 13-03 (Rounded tabs and 403 error panel)
+Plan: 4 of 4 (complete)
+Status: Phase 13 complete (incl. UAT gap closure)
+Last activity: 2026-02-24 -- Completed 13-04 (UAT gap closure: Ctrl+K, tab accent, card borders)
 
-Progress: [#####░░░░░] 43% (v2.0) -- 13-03 complete (10/23 plans)
+Progress: [#####░░░░░] 46% (v2.0) -- 13-04 complete (11/24 plans)
 
 ## Performance Metrics
 
@@ -36,6 +36,7 @@ Progress: [#####░░░░░] 43% (v2.0) -- 13-03 complete (10/23 plans)
 | 13    | 01   | 8min     | 2     | 9     |
 | 13    | 02   | 2min     | 2     | 3     |
 | 13    | 03   | 2min     | 2     | 2     |
+| 13    | 04   | 2min     | 2     | 4     |
 
 ## Accumulated Context
 
@@ -81,6 +82,8 @@ v2.0 roadmap decisions:
 - (13-03) Close button opacity 0 default with parent hover selectors for contextual visibility
 - (13-03) 403 page fully standalone with own anti-FOUC script and theme.css (no base.html dependency)
 - (13-03) Error panel button classes prefixed btn-error- to avoid workspace .btn-primary collision
+- (13-04) Explicit Ctrl+K keydown handler in initKeyboardShortcuts() because hotkeys-js ignores events on INPUT/TEXTAREA/SELECT
+- (13-04) ninja-keys CDN pinned to v1.2.2 to prevent unpinned resolution breakage
 
 ### Pending Todos
 
@@ -101,5 +104,5 @@ v2.0 roadmap decisions:
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 13-03-PLAN.md
+Stopped at: Completed 13-04-PLAN.md (UAT gap closure)
 Resume: Begin Phase 14 (Editor Groups)
