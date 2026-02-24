@@ -952,6 +952,86 @@ async def save_object(
         )
 
 
+@router.get("/events")
+async def event_log(
+    request: Request,
+    user: User = Depends(get_current_user),
+    client: TriplestoreClient = Depends(get_triplestore_client),
+    label_service: LabelService = Depends(get_label_service),
+    db: AsyncSession = Depends(get_db_session),
+    cursor: str | None = Query(default=None),
+    op: str | None = Query(default=None),
+    user_filter: str | None = Query(default=None, alias="user"),
+    obj: str | None = Query(default=None),
+    date_from: str | None = Query(default=None),
+    date_to: str | None = Query(default=None),
+):
+    """Render the event log timeline as an htmx partial for the bottom panel."""
+    import re
+
+    from app.events.query import EventQueryService
+
+    templates = request.app.state.templates
+    query_svc = EventQueryService(client)
+    events, next_cursor = await query_svc.list_events(
+        cursor_timestamp=cursor,
+        op_type=op,
+        user_iri=user_filter,
+        object_iri=obj,
+        date_from=date_from,
+        date_to=date_to,
+    )
+
+    # Resolve labels for all affected IRIs
+    all_iris = [iri for e in events for iri in e.affected_iris if iri]
+    labels = await label_service.resolve_batch(all_iris) if all_iris else {}
+
+    # Resolve user display names via SQL lookup (user IRIs are urn:sempkm:user:{uuid})
+    user_iris = list({e.performed_by for e in events if e.performed_by})
+    user_names: dict[str, str] = {}
+    if user_iris:
+        try:
+            from app.auth.models import User as UserModel
+            from sqlalchemy import select as sa_select
+
+            for uiri in user_iris:
+                m = re.match(r"urn:sempkm:user:(.+)$", uiri)
+                if m:
+                    uuid_str = m.group(1)
+                    result = await db.execute(
+                        sa_select(UserModel).where(UserModel.id == uuid_str)
+                    )
+                    db_user = result.scalar_one_or_none()
+                    if db_user:
+                        user_names[uiri] = db_user.display_name or db_user.email
+        except Exception:
+            pass  # degrade gracefully if user lookup fails
+
+    # Build active filters list for chip rendering
+    active_filters = []
+    if op:
+        active_filters.append({"param": "op", "value": op, "label": f"op: {op}"})
+    if obj:
+        obj_label = labels.get(obj, obj[:30] + "..." if len(obj) > 30 else obj)
+        active_filters.append({"param": "obj", "value": obj, "label": f"object: {obj_label}"})
+    if user_filter:
+        active_filters.append({"param": "user", "value": user_filter, "label": f"user: {user_names.get(user_filter, user_filter)}"})
+    if date_from:
+        active_filters.append({"param": "date_from", "value": date_from, "label": f"from: {date_from}"})
+    if date_to:
+        active_filters.append({"param": "date_to", "value": date_to, "label": f"to: {date_to}"})
+
+    return templates.TemplateResponse(request, "browser/event_log.html", {
+        "request": request,
+        "events": events,
+        "labels": labels,
+        "user_names": user_names,
+        "next_cursor": next_cursor,
+        "active_filters": active_filters,
+        "current_params": dict(request.query_params),
+    })
+
+
 @router.get("/search")
 async def search_references(
     request: Request,
