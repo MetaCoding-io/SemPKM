@@ -313,22 +313,22 @@
     if (!panel || !editorCol) return;
 
     if (!panelState.open) {
-      panel.style.display = 'none';
+      panel.style.height = '0';
       if (handle) handle.classList.remove('panel-open');
       editorCol.classList.remove('panel-maximized');
     } else if (panelState.maximized) {
-      panel.style.display = '';
       panel.style.height = '';
       if (handle) handle.classList.add('panel-open');
       editorCol.classList.add('panel-maximized');
     } else {
-      panel.style.display = '';
       if (handle) handle.classList.add('panel-open');
       editorCol.classList.remove('panel-maximized');
       // Set height in pixels (not %) to avoid pitfall with flex layout
       var parentH = panel.parentElement ? panel.parentElement.getBoundingClientRect().height : 0;
       if (parentH > 0) {
         panel.style.height = (parentH * panelState.height / 100) + 'px';
+      } else {
+        panel.style.height = '30vh';
       }
     }
 

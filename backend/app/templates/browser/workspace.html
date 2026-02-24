@@ -53,8 +53,8 @@
         <!-- Panel resize handle: thin strip draggable to resize panel height -->
         <div class="panel-resize-handle" id="panel-resize-handle"></div>
 
-        <!-- Bottom panel (hidden by default, shown via Ctrl+J or toggleBottomPanel()) -->
-        <div class="bottom-panel" id="bottom-panel" style="display: none;">
+        <!-- Bottom panel (collapsed by default via height:0, opened via Ctrl+J or toggleBottomPanel()) -->
+        <div class="bottom-panel" id="bottom-panel">
           <div class="panel-header">
             <div class="panel-tab-bar" id="panel-tab-bar">
               <button class="panel-tab active" data-panel="sparql">SPARQL</button>
