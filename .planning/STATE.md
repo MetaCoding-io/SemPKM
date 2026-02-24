@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-23)
 ## Current Position
 
 Phase: 16 of 18 (Event Log Explorer)
-Plan: 1 of 3 (complete)
-Status: Phase 16 plan 01 complete (EventQueryService, GET /browser/events, event_log.html, workspace.js lazy-load)
-Last activity: 2026-02-24 - Completed 16-01: Event API Endpoint with Cursor Pagination
+Plan: 2 of 3 (complete)
+Status: Phase 16 plan 02 complete (filter chips, filter controls, click-to-filter, event log CSS)
+Last activity: 2026-02-24 - Completed 16-02: Event Log Filter UI and CSS
 
-Progress: [########░░] 75% (v2.0) -- 16-01 complete (18/24 plans)
+Progress: [########░░] 79% (v2.0) -- 16-02 complete (19/24 plans)
 
 ## Performance Metrics
 
@@ -43,6 +43,7 @@ Progress: [########░░] 75% (v2.0) -- 16-01 complete (18/24 plans)
 | 15    | 01   | 6min     | 2     | 11    |
 | 15    | 03   | 4min     | 2     | 9     |
 | 16    | 01   | 12min    | 2     | 4     |
+| 16    | 02   | 2min     | 2     | 3     |
 
 ## Accumulated Context
 
@@ -114,6 +115,9 @@ v2.0 roadmap decisions:
 - (16-01) EventQueryService uses GROUP_CONCAT SPARQL primary + Python OrderedDict fallback for affectedIRI grouping (RDF4J compatibility)
 - (16-01) Event log object links use openTab() JS (nav tree pattern) not hx-get/#editor-area (dynamic per group, not stable DOM ID)
 - (16-01) Panel lazy-load: .panel-placeholder check guards against re-loading already-loaded content in initPanelTabs() and _applyPanelState()
+- (16-02) dict_without filter registered in main.py (global Jinja2 env) not in router -- filters are env-level config, not per-route
+- (16-02) urlencode filter overridden as dict-capable (urllib.parse.urlencode) -- built-in Jinja2 urlencode handles scalars only; dict_without|urlencode chain requires dict encoding
+- (16-02) Event log object links use hx-get for click-to-filter (not openTab()) -- filtering the timeline vs navigating to the object are distinct actions
 
 ### Pending Todos
 
@@ -142,5 +146,5 @@ v2.0 roadmap decisions:
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 16-01-PLAN.md (Event Log Explorer - Event API Endpoint)
-Resume: Begin Phase 16 Plan 02
+Stopped at: Completed 16-02-PLAN.md (Event Log Explorer - Filter UI and CSS)
+Resume: Begin Phase 16 Plan 03

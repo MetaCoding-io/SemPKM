@@ -61,7 +61,7 @@
 ### Event Log Explorer (EVNT)
 
 - [x] **EVNT-01**: Event log displays a paginated timeline of all events in reverse chronological order with operation type badge, affected object link, user, and timestamp
-- [ ] **EVNT-02**: Events are filterable by operation type, user, object, and date range with removable filter chips
+- [x] **EVNT-02**: Events are filterable by operation type, user, object, and date range with removable filter chips
 - [ ] **EVNT-03**: Clicking an object.patch or body.set event shows an inline diff of the changes (property before/after or line-by-line body diff)
 - [ ] **EVNT-04**: Reversible events (object.patch, body.set, edge.create, edge.patch) have an Undo button that creates a compensating event after confirmation
 
@@ -147,7 +147,7 @@
 | ICON-02 | Phase 15 | Complete |
 | ICON-03 | Phase 15 | Complete |
 | EVNT-01 | Phase 16 | Complete |
-| EVNT-02 | Phase 16 | Pending |
+| EVNT-02 | Phase 16 | Complete |
 | EVNT-03 | Phase 16 | Pending |
 | EVNT-04 | Phase 16 | Pending |
 | LLM-01 | Phase 17 | Pending |
