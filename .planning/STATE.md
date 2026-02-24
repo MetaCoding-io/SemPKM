@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-23)
 ## Current Position
 
 Phase: 14 of 18 (Split Panes and Bottom Panel)
-Plan: 1 of 3 (complete)
-Status: Phase 14 plan 1 complete (WorkspaceLayout foundation)
-Last activity: 2026-02-24 -- Completed 14-01 (WorkspaceLayout class, multi-group DOM, workspace.js delegation)
+Plan: 2 of 3 (complete)
+Status: Phase 14 plan 2 complete (Tab Drag-and-Drop and Context Menu)
+Last activity: 2026-02-24 -- Completed 14-02 (HTML5 DnD, right-edge zone, right-click context menu, DnD CSS)
 
-Progress: [#####░░░░░] 50% (v2.0) -- 14-01 complete (12/24 plans)
+Progress: [######░░░░] 54% (v2.0) -- 14-02 complete (13/24 plans)
 
 ## Performance Metrics
 
@@ -38,6 +38,7 @@ Progress: [#####░░░░░] 50% (v2.0) -- 14-01 complete (12/24 plans)
 | 13    | 03   | 2min     | 2     | 2     |
 | 13    | 04   | 2min     | 2     | 4     |
 | 14    | 01   | 4min     | 2     | 5     |
+| 14    | 02   | 3min     | 2     | 2     |
 
 ## Accumulated Context
 
@@ -90,6 +91,10 @@ v2.0 roadmap decisions:
 - (14-01) gutterSize:1 with CSS ::after pseudo-element for 9px pointer hit-target (Pitfall 2 solution)
 - (14-01) Tab objects normalize both .id and .iri fields for backward compat with old sessionStorage data
 - (14-01) splitRight duplicates active tab into new group (duplicate objects allowed per CONTEXT.md)
+- (14-02) renderGroupTabBar refactored from innerHTML string-building to DOM createElement/appendChild for event listener attachment
+- (14-02) recreateGroupSplit explicitly creates #editor-groups-container div (Plan 01 cleared it with innerHTML='')
+- (14-02) isDragging flag with setTimeout(0) reset on dragend guards against accidental tab switch after short drag (Pitfall 3)
+- (14-02) Context menu positions via viewport-clamped clientX/clientY with menuRect correction; Escape + click-outside dismiss
 
 ### Pending Todos
 
@@ -116,5 +121,5 @@ v2.0 roadmap decisions:
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 14-01-PLAN.md (WorkspaceLayout foundation)
-Resume: Continue Phase 14 -- Plan 02 (Tab Drag-and-Drop)
+Stopped at: Completed 14-02-PLAN.md (Tab Drag-and-Drop and Context Menu)
+Resume: Continue Phase 14 -- Plan 03 (Bottom Panel)

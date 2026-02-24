@@ -23,7 +23,7 @@
 ### Workspace Layout (WORK)
 
 - [x] **WORK-01**: User can split the editor into multiple editor groups (horizontal split) via context menu "Split Right" or Ctrl+\ shortcut, up to 4 groups max
-- [ ] **WORK-02**: Each editor group has its own tab bar with independent tabs; tabs can be dragged between groups
+- [x] **WORK-02**: Each editor group has its own tab bar with independent tabs; tabs can be dragged between groups
 - [x] **WORK-03**: Closing the last tab in an editor group removes that group and remaining groups expand to fill space
 - [ ] **WORK-04**: A bottom panel with tabbed interface exists below the editor area, toggled via Ctrl+J, with collapse/maximize controls
 - [ ] **WORK-05**: Bottom panel has placeholder tabs for SPARQL console, Event Log, and AI Copilot
@@ -124,7 +124,7 @@
 | VIEW-03 | Phase 11 | Complete |
 | VIEW-04 | Phase 11 | Pending |
 | WORK-01 | Phase 14 | Complete |
-| WORK-02 | Phase 14 | Pending |
+| WORK-02 | Phase 14 | Complete |
 | WORK-03 | Phase 14 | Complete |
 | WORK-04 | Phase 14 | Pending |
 | WORK-05 | Phase 14 | Pending |
