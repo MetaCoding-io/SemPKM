@@ -35,18 +35,23 @@
         </div>
     </div>
 
-    <div class="workspace-pane" id="editor-pane">
-        <div class="pane-header">
-            <div id="tab-bar" class="tab-bar-workspace">
-                <div class="tab-empty-state">No objects open</div>
+    <div class="workspace-pane editor-column" id="editor-pane">
+        <div class="editor-groups-container" id="editor-groups-container">
+            <!-- Groups injected by workspace-layout.js initWorkspaceLayout() -->
+            <div class="editor-group" id="group-1">
+                <div class="group-tab-bar tab-bar-workspace" id="tab-bar-group-1">
+                    <div class="tab-empty-state">No objects open</div>
+                </div>
+                <div class="group-editor-area" id="editor-area-group-1">
+                    <div class="editor-empty">
+                        <p>Select an object from the Explorer to open it here.</p>
+                        <p class="hint">Or press <kbd>Ctrl</kbd>+<kbd>K</kbd> to open the command palette.</p>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="pane-content" id="editor-area">
-            <div class="editor-empty">
-                <p>Select an object from the Explorer to open it here.</p>
-                <p class="hint">Or press <kbd>Ctrl</kbd>+<kbd>K</kbd> to open the command palette.</p>
-            </div>
-        </div>
+        <!-- Bottom panel placeholder slot (implemented in Plan 03) -->
+        <div id="bottom-panel-slot"></div>
     </div>
 
     <div class="workspace-pane" id="right-pane">
@@ -78,4 +83,3 @@
 
 <ninja-keys></ninja-keys>
 {% endblock %}
-

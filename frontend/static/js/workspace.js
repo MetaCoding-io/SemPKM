@@ -1,17 +1,18 @@
 /**
  * SemPKM IDE Workspace
  *
- * Manages the three-column resizable layout (Split.js), tab state
- * (sessionStorage), keyboard shortcuts, and command palette (ninja-keys).
+ * Manages the three-column resizable layout (Split.js), keyboard shortcuts,
+ * and command palette (ninja-keys).
+ *
+ * Tab state is now delegated to WorkspaceLayout (workspace-layout.js).
+ * All openTab/closeTab/switchTab functions delegate to window._workspaceLayout.
  */
 
 (function () {
   'use strict';
 
   // --- Constants ---
-  var TAB_KEY = 'sempkm_open_tabs';
   var PANE_KEY = 'sempkm_pane_sizes';
-  var ACTIVE_TAB_KEY = 'sempkm_active_tab';
 
   // --- Split.js Initialization ---
   var splitInstance = null;
@@ -50,48 +51,42 @@
     });
   }
 
-  // --- Tab Management ---
-
-  function getTabs() {
-    try {
-      return JSON.parse(sessionStorage.getItem(TAB_KEY) || '[]');
-    } catch (e) {
-      return [];
-    }
-  }
-
-  function saveTabs(tabs) {
-    try {
-      sessionStorage.setItem(TAB_KEY, JSON.stringify(tabs));
-    } catch (e) {
-      // sessionStorage might be blocked
-    }
-  }
-
-  function getActiveTabIri() {
-    return sessionStorage.getItem(ACTIVE_TAB_KEY) || null;
-  }
-
-  function setActiveTabIri(iri) {
-    if (iri) {
-      sessionStorage.setItem(ACTIVE_TAB_KEY, iri);
-    } else {
-      sessionStorage.removeItem(ACTIVE_TAB_KEY);
-    }
-  }
+  // --- Tab Management (delegates to WorkspaceLayout) ---
 
   function openTab(objectIri, label, mode) {
-    var tabs = getTabs();
-    var existing = tabs.find(function (t) { return t.iri === objectIri; });
+    var layout = window._workspaceLayout;
+    if (layout) {
+      // Check if already open in active group
+      var activeGroup = layout.getGroup(layout.activeGroupId);
+      if (activeGroup) {
+        var existing = activeGroup.tabs.find(function (t) { return (t.id || t.iri) === objectIri; });
+        if (existing) {
+          // Switch to it
+          switchTabInGroup(objectIri, layout.activeGroupId);
+          return;
+        }
+      }
 
-    if (!existing) {
-      tabs.push({ iri: objectIri, label: label, dirty: false });
-      saveTabs(tabs);
+      layout.addTabToGroup(
+        { id: objectIri, iri: objectIri, label: label || objectIri, dirty: false, isView: false },
+        layout.activeGroupId
+      );
+      // Load the content
+      if (mode === 'edit') {
+        var editorArea = window.getActiveEditorArea();
+        if (editorArea && typeof htmx !== 'undefined') {
+          htmx.ajax('GET', '/browser/object/' + encodeURIComponent(objectIri) + '?mode=edit', {
+            target: editorArea,
+            swap: 'innerHTML'
+          });
+        }
+      } else {
+        window.loadTabInGroup(layout.activeGroupId, objectIri);
+      }
+    } else {
+      // Fallback: direct load without tab management (layout not initialized)
+      loadObjectContent(objectIri, mode);
     }
-
-    setActiveTabIri(objectIri);
-    renderTabBar();
-    loadObjectContent(objectIri, mode);
 
     // Add to command palette dynamically
     addObjectToCommandPalette(objectIri, label);
@@ -101,27 +96,31 @@
 
   function openViewTab(viewId, viewLabel, viewType) {
     var tabKey = 'view:' + viewId;
-    var tabs = getTabs();
-    var existing = tabs.find(function (t) { return t.iri === tabKey; });
+    var layout = window._workspaceLayout;
 
-    if (existing) {
-      // Tab already open -- switch to it
-      setActiveTabIri(tabKey);
-      renderTabBar();
+    if (layout) {
+      var activeGroup = layout.getGroup(layout.activeGroupId);
+      if (activeGroup) {
+        var existing = activeGroup.tabs.find(function (t) { return (t.id || t.iri) === tabKey; });
+        if (existing) {
+          switchTabInGroup(tabKey, layout.activeGroupId);
+          return;
+        }
+      }
+
+      layout.addTabToGroup(
+        { id: tabKey, iri: tabKey, label: viewLabel, dirty: false, isView: true, viewType: viewType, viewId: viewId },
+        layout.activeGroupId
+      );
+      window.loadTabInGroup(layout.activeGroupId, tabKey);
+    } else {
+      // Fallback
       loadViewContent(viewId, viewType);
-      return;
     }
-
-    tabs.push({ iri: tabKey, label: viewLabel, dirty: false, isView: true, viewType: viewType, viewId: viewId });
-    saveTabs(tabs);
-
-    setActiveTabIri(tabKey);
-    renderTabBar();
-    loadViewContent(viewId, viewType);
   }
 
   function loadViewContent(viewId, viewType) {
-    var editorArea = document.getElementById('editor-area');
+    var editorArea = window.getActiveEditorArea ? window.getActiveEditorArea() : document.getElementById('editor-area-group-1');
     if (!editorArea) return;
 
     var url;
@@ -137,7 +136,7 @@
 
     if (typeof htmx !== 'undefined') {
       htmx.ajax('GET', url, {
-        target: '#editor-area',
+        target: editorArea,
         swap: 'innerHTML'
       }).catch(function () {
         editorArea.innerHTML = '<div class="editor-empty"><p>Failed to load view.</p></div>';
@@ -146,129 +145,81 @@
   }
 
   function closeTab(objectIri) {
-    var tabs = getTabs();
-    var index = tabs.findIndex(function (t) { return t.iri === objectIri; });
-
-    if (index === -1) return;
-
-    tabs.splice(index, 1);
-    saveTabs(tabs);
-
-    var activeIri = getActiveTabIri();
-    if (activeIri === objectIri) {
-      // Switch to the nearest remaining tab or show empty state
-      if (tabs.length > 0) {
-        var nextIndex = Math.min(index, tabs.length - 1);
-        var nextTab = tabs[nextIndex];
-        setActiveTabIri(nextTab.iri);
-        _loadTabContent(nextTab);
-      } else {
-        setActiveTabIri(null);
-        showEditorEmpty();
-      }
+    var layout = window._workspaceLayout;
+    if (layout) {
+      layout.removeTabFromGroup(objectIri, layout.activeGroupId);
     }
-
-    renderTabBar();
   }
 
   function switchTab(objectIri) {
-    setActiveTabIri(objectIri);
-    renderTabBar();
-    var tabs = getTabs();
-    var tab = tabs.find(function (t) { return t.iri === objectIri; });
-    if (tab) {
-      _loadTabContent(tab);
-    } else {
-      loadObjectContent(objectIri);
+    var layout = window._workspaceLayout;
+    if (layout) {
+      switchTabInGroup(objectIri, layout.activeGroupId);
     }
   }
 
-  function _loadTabContent(tab) {
-    if (tab.isView && tab.viewId && tab.viewType) {
-      loadViewContent(tab.viewId, tab.viewType);
-    } else if (tab.iri && tab.iri.indexOf('view:') === 0) {
-      // Fallback for view tabs without viewId/viewType (e.g., restored from session)
-      var viewId = tab.iri.substring(5);
-      var viewType = tab.viewType || 'table';
-      loadViewContent(viewId, viewType);
-    } else {
-      // Normal tab switch: no mode parameter (opens in read mode by default)
-      loadObjectContent(tab.iri);
+  // Internal: switch tab in a specific group (also exposed as window.switchTabInGroup
+  // by workspace-layout.js, but we define a local alias for internal use)
+  function switchTabInGroup(tabId, groupId) {
+    if (window.switchTabInGroup) {
+      window.switchTabInGroup(tabId, groupId);
     }
   }
 
   function markDirty(objectIri) {
-    var tabs = getTabs();
-    var tab = tabs.find(function (t) { return t.iri === objectIri; });
-    if (tab) {
-      tab.dirty = true;
-      saveTabs(tabs);
-      renderTabBar();
-    }
+    var layout = window._workspaceLayout;
+    if (!layout) return;
+
+    // Mark dirty across all groups
+    var found = false;
+    layout.groups.forEach(function (group) {
+      var tab = group.tabs.find(function (t) { return (t.id || t.iri) === objectIri; });
+      if (tab) {
+        tab.dirty = true;
+        found = true;
+        window.renderGroupTabBar(group);
+      }
+    });
+    if (found) layout.save();
   }
 
   function markClean(objectIri) {
-    var tabs = getTabs();
-    var tab = tabs.find(function (t) { return t.iri === objectIri; });
-    if (tab) {
-      tab.dirty = false;
-      saveTabs(tabs);
-      renderTabBar();
-    }
+    var layout = window._workspaceLayout;
+    if (!layout) return;
+
+    var found = false;
+    layout.groups.forEach(function (group) {
+      var tab = group.tabs.find(function (t) { return (t.id || t.iri) === objectIri; });
+      if (tab) {
+        tab.dirty = false;
+        found = true;
+        window.renderGroupTabBar(group);
+      }
+    });
+    if (found) layout.save();
   }
 
-  function renderTabBar() {
-    var tabBar = document.getElementById('tab-bar');
-    if (!tabBar) return;
-
-    var tabs = getTabs();
-    var activeIri = getActiveTabIri();
-
-    if (tabs.length === 0) {
-      tabBar.innerHTML = '<div class="tab-empty-state">No objects open</div>';
-      return;
-    }
-
-    var html = '';
-    tabs.forEach(function (tab) {
-      var isActive = tab.iri === activeIri;
-      var isView = tab.isView || (tab.iri && tab.iri.indexOf('view:') === 0);
-      html += '<div class="workspace-tab' + (isActive ? ' active' : '') + (isView ? ' view-tab' : '') + '"' +
-        ' data-iri="' + escapeHtml(tab.iri) + '"' +
-        ' onclick="switchTab(\'' + escapeJs(tab.iri) + '\')">';
-      if (isView) {
-        var vt = tab.viewType || '';
-        var icon = '&#9654;';
-        if (vt === 'table') icon = '&#9638;';
-        else if (vt === 'card') icon = '&#9641;';
-        else if (vt === 'graph') icon = '&#9672;';
-        html += '<span class="tab-view-icon" title="View: ' + escapeHtml(vt) + '">' + icon + '</span>';
-      }
-      html += '<span class="tab-label">' + escapeHtml(tab.label) + '</span>';
-      if (tab.dirty) {
-        html += '<span class="tab-dirty" title="Unsaved changes"></span>';
-      }
-      html += '<button class="tab-close" onclick="event.stopPropagation(); closeTab(\'' +
-        escapeJs(tab.iri) + '\')" title="Close tab">&times;</button>';
-      html += '</div>';
-    });
-
-    tabBar.innerHTML = html;
+  function getActiveTabIri() {
+    var layout = window._workspaceLayout;
+    if (!layout) return null;
+    var group = layout.getGroup(layout.activeGroupId);
+    return group ? group.activeTabId : null;
   }
 
   function loadObjectContent(objectIri, mode) {
-    var editorArea = document.getElementById('editor-area');
+    var editorArea = window.getActiveEditorArea ? window.getActiveEditorArea() : document.getElementById('editor-area-group-1');
     if (!editorArea) return;
 
     // If IRI starts with 'view:', load as view tab
     if (objectIri && objectIri.indexOf('view:') === 0) {
-      var tabs = getTabs();
-      var tab = tabs.find(function (t) { return t.iri === objectIri; });
-      if (tab && tab.viewId && tab.viewType) {
-        loadViewContent(tab.viewId, tab.viewType);
-        return;
+      var layout = window._workspaceLayout;
+      var tab = null;
+      if (layout) {
+        layout.groups.forEach(function (g) {
+          var found = g.tabs.find(function (t) { return (t.id || t.iri) === objectIri; });
+          if (found) tab = found;
+        });
       }
-      // Fallback: try to parse view type from stored data
       var viewId = objectIri.substring(5);
       loadViewContent(viewId, (tab && tab.viewType) || 'table');
       return;
@@ -280,10 +231,10 @@
       url += '?mode=edit';
     }
 
-    // Use htmx to load object content into center pane
+    // Use htmx to load object content into active editor area
     if (typeof htmx !== 'undefined') {
       htmx.ajax('GET', url, {
-        target: '#editor-area',
+        target: editorArea,
         swap: 'innerHTML'
       }).catch(function () {
         editorArea.innerHTML = '<div class="editor-empty"><p>Failed to load object.</p></div>';
@@ -320,7 +271,7 @@
   }
 
   function showEditorEmpty() {
-    var editorArea = document.getElementById('editor-area');
+    var editorArea = window.getActiveEditorArea ? window.getActiveEditorArea() : document.getElementById('editor-area-group-1');
     if (editorArea) {
       editorArea.innerHTML = '<div class="editor-empty">' +
         '<p>Select an object from the Explorer to open it here.</p>' +
@@ -346,16 +297,16 @@
     if (paneStates[paneId]) {
       // Restore the pane: show it and its gutter, rebuild Split.js
       pane.style.display = '';
-      var gutter = pane.previousElementSibling;
-      if (gutter && gutter.classList.contains('gutter')) gutter.style.display = '';
+      var gutterPrev = pane.previousElementSibling;
+      if (gutterPrev && gutterPrev.classList.contains('gutter')) gutterPrev.style.display = '';
       _rebuildSplit(paneStates[paneId]);
       delete paneStates[paneId];
     } else {
       // Collapse the pane: save sizes, hide it and its gutter, rebuild Split.js
       paneStates[paneId] = splitInstance.getSizes().slice();
       pane.style.display = 'none';
-      var gutter = pane.previousElementSibling;
-      if (gutter && gutter.classList.contains('gutter')) gutter.style.display = 'none';
+      var gutterPrev2 = pane.previousElementSibling;
+      if (gutterPrev2 && gutterPrev2.classList.contains('gutter')) gutterPrev2.style.display = 'none';
       // Rebuild with only visible panes
       var visibleIds = [];
       var visibleSizes = [];
@@ -423,9 +374,16 @@
 
     if (isFlipped) {
       // Switching from edit to read: check for unsaved changes
-      var tabs = getTabs();
-      var tab = tabs.find(function (t) { return t.iri === objectIri; });
-      if (tab && tab.dirty) {
+      var layout = window._workspaceLayout;
+      var isDirty = false;
+      if (layout) {
+        layout.groups.forEach(function (g) {
+          var tab = g.tabs.find(function (t) { return (t.id || t.iri) === objectIri; });
+          if (tab && tab.dirty) isDirty = true;
+        });
+      }
+
+      if (isDirty) {
         if (!window.confirm('Discard unsaved changes?')) return;
         markClean(objectIri);
       }
@@ -445,7 +403,7 @@
             readFace.innerHTML = freshRead.innerHTML;
             // Re-trigger markdown rendering for any md-source/md-rendered pairs
             var mdSources = readFace.querySelectorAll('script[type="text/plain"][id^="md-source-"]');
-            mdSources.forEach(function(src) {
+            mdSources.forEach(function (src) {
               var renderedId = src.id.replace('md-source-', 'md-rendered-');
               var tgt = document.getElementById(renderedId);
               if (src && tgt && typeof window.renderMarkdownBody === 'function') {
@@ -499,10 +457,14 @@
         }
       }
 
-      // Ctrl+\ / Cmd+\: Toggle sidebar
+      // Ctrl+\ / Cmd+\: Split Right (reassigned from sidebar toggle per Phase 14 CONTEXT.md)
+      // Sidebar toggle remains on Ctrl+B (Phase 12)
       if (mod && e.key === '\\') {
         e.preventDefault();
-        toggleSidebar();
+        var layout = window._workspaceLayout;
+        if (layout) {
+          window.splitRight(layout.activeGroupId);
+        }
       }
 
       // Ctrl+[ / Cmd+[: Toggle explorer pane
@@ -520,11 +482,14 @@
       // Ctrl+E / Cmd+E: Toggle read/edit mode
       if (mod && e.key === 'e') {
         e.preventDefault();
-        var objectTab = document.querySelector('.object-tab');
-        if (objectTab) {
-          var iri = objectTab.dataset.objectIri;
-          var safeId = encodeURIComponent(iri).replace(/%/g, '_');
-          toggleObjectMode(safeId, iri);
+        var editorArea = window.getActiveEditorArea ? window.getActiveEditorArea() : null;
+        if (editorArea) {
+          var objectTab = editorArea.querySelector('.object-tab');
+          if (objectTab) {
+            var iri = objectTab.dataset.objectIri;
+            var safeId = encodeURIComponent(iri).replace(/%/g, '_');
+            toggleObjectMode(safeId, iri);
+          }
         }
       }
 
@@ -536,6 +501,22 @@
           ninja.open();
         }
       }
+
+      // Ctrl+J / Cmd+J: Toggle bottom panel (implemented in Plan 03)
+      if (mod && e.key === 'j') {
+        e.preventDefault();
+        /* Panel toggle -- implemented Plan 03 */
+      }
+
+      // Ctrl+1/2/3/4: Focus editor group by index
+      if (mod && ['1', '2', '3', '4'].indexOf(e.key) !== -1) {
+        e.preventDefault();
+        var idx = parseInt(e.key) - 1;
+        var layout2 = window._workspaceLayout;
+        if (layout2 && layout2.groups[idx]) {
+          window.setActiveGroup(layout2.groups[idx].id);
+        }
+      }
     });
   }
 
@@ -543,8 +524,10 @@
     var activeIri = getActiveTabIri();
     if (!activeIri) return;
 
+    var editorArea = window.getActiveEditorArea ? window.getActiveEditorArea() : document.getElementById('editor-area-group-1');
+    var activeTab = editorArea ? editorArea.querySelector('.object-tab') : null;
+
     // Save form properties via htmx form submission
-    var activeTab = document.querySelector('.object-tab');
     if (activeTab) {
       var form = activeTab.querySelector('#object-form');
       if (form && typeof htmx !== 'undefined') {
@@ -582,14 +565,14 @@
     if (activeTab) {
       var fallback = activeTab.querySelector('.body-fallback');
       if (fallback && fallback.dataset && fallback.dataset.objectIri) {
-        var content = fallback.value || '';
+        var fbContent = fallback.value || '';
         var fbPredicate = fallback.dataset.bodyPredicate || '';
         var fbUrl = '/browser/objects/' + encodeURIComponent(fallback.dataset.objectIri) + '/body';
         if (fbPredicate) fbUrl += '?predicate=' + encodeURIComponent(fbPredicate);
         fetch(fbUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain' },
-          body: content
+          body: fbContent
         }).then(function (resp) {
           if (resp.ok) {
             markClean(fallback.dataset.objectIri);
@@ -638,11 +621,14 @@
           handler: function () { triggerValidation(); }
         },
         {
-          id: 'toggle-sidebar',
-          title: 'Toggle Sidebar',
+          id: 'split-right',
+          title: 'Split Right',
           section: 'View',
           hotkey: 'ctrl+\\',
-          handler: function () { toggleSidebar(); }
+          handler: function () {
+            var layout = window._workspaceLayout;
+            if (layout) window.splitRight(layout.activeGroupId);
+          }
         },
         {
           id: 'toggle-explorer',
@@ -688,13 +674,16 @@
           section: 'Objects',
           hotkey: 'ctrl+e',
           handler: function () {
-            var activeTab = document.querySelector('.object-tab');
-            if (activeTab) {
-              var objectIri = activeTab.dataset.objectIri;
-              var flipContainer = activeTab.querySelector('.object-flip-container');
-              if (flipContainer) {
-                var safeId = flipContainer.id.replace('flip-', '');
-                toggleObjectMode(safeId, objectIri);
+            var editorArea = window.getActiveEditorArea ? window.getActiveEditorArea() : null;
+            if (editorArea) {
+              var activeTab = editorArea.querySelector('.object-tab');
+              if (activeTab) {
+                var objectIri = activeTab.dataset.objectIri;
+                var flipContainer = activeTab.querySelector('.object-flip-container');
+                if (flipContainer) {
+                  var safeId = flipContainer.id.replace('flip-', '');
+                  toggleObjectMode(safeId, objectIri);
+                }
               }
             }
           }
@@ -709,12 +698,12 @@
   }
 
   function openViewMenu() {
+    var editorArea = window.getActiveEditorArea ? window.getActiveEditorArea() : document.getElementById('editor-area-group-1');
     if (typeof htmx !== 'undefined') {
       htmx.ajax('GET', '/browser/views/menu', {
-        target: '#editor-area',
+        target: editorArea,
         swap: 'innerHTML'
       }).catch(function () {
-        var editorArea = document.getElementById('editor-area');
         if (editorArea) {
           editorArea.innerHTML = '<div class="editor-empty"><p>Failed to load view menu.</p></div>';
         }
@@ -754,13 +743,12 @@
   }
 
   function showTypePicker() {
-    // Load the type picker dialog into the editor area via htmx
+    var editorArea = window.getActiveEditorArea ? window.getActiveEditorArea() : document.getElementById('editor-area-group-1');
     if (typeof htmx !== 'undefined') {
       htmx.ajax('GET', '/browser/types', {
-        target: '#editor-area',
+        target: editorArea,
         swap: 'innerHTML'
       }).catch(function () {
-        var editorArea = document.getElementById('editor-area');
         if (editorArea) {
           editorArea.innerHTML = '<div class="editor-empty"><p>Failed to load type picker.</p></div>';
         }
@@ -776,7 +764,7 @@
     saveCurrentObject();
 
     // Open lint section if collapsed, and refresh after delay
-    var lintDetails = document.querySelector('#lint-content')?.closest('details.right-section');
+    var lintDetails = document.querySelector('#lint-content') && document.querySelector('#lint-content').closest('details.right-section');
     if (lintDetails) lintDetails.open = true;
 
     setTimeout(function () {
@@ -813,7 +801,7 @@
     });
   }
 
-  // --- Right Pane Tabs (legacy — sections now always visible) ---
+  // --- Right Pane Tabs (legacy -- sections now always visible) ---
   function initRightPaneTabs() {
     // No-op: Relations and Lint are now separate collapsible sections, both loaded on object open
   }
@@ -913,38 +901,22 @@
     return div.innerHTML;
   }
 
-  function escapeJs(str) {
-    return str.replace(/'/g, "\\'").replace(/\\/g, '\\\\');
-  }
-
-  // --- Restore tab state on page load ---
-
-  function restoreTabState() {
-    var tabs = getTabs();
-    if (tabs.length > 0) {
-      renderTabBar();
-      var activeIri = getActiveTabIri();
-      if (activeIri) {
-        var activeTab = tabs.find(function (t) { return t.iri === activeIri; });
-        if (activeTab) {
-          _loadTabContent(activeTab);
-        } else {
-          loadObjectContent(activeIri);
-        }
-      }
-    }
-  }
-
   // --- Initialization ---
 
   function init() {
     initSplit();
     initKeyboardShortcuts();
-    initCommandPalette();
     initTreeToggle();
     initRightPaneTabs();
     initClientSideValidation();
-    restoreTabState();
+
+    // Initialize workspace layout (migrates old tab state, builds multi-group DOM)
+    if (typeof window.initWorkspaceLayout === 'function') {
+      window.initWorkspaceLayout();
+    }
+
+    // Initialize command palette after workspace layout is ready
+    initCommandPalette();
   }
 
   // Wait for DOM ready
@@ -987,11 +959,6 @@
     var detail = e.detail;
     if (detail && detail.iri) {
       var label = detail.label || detail.iri;
-      // Open a tab for the newly created object
-      var tabs = getTabs();
-      // Remove any "New Object" placeholder tab
-      tabs = tabs.filter(function (t) { return t.iri !== '__new__'; });
-      saveTabs(tabs);
       // Newly created objects open directly in edit mode
       openTab(detail.iri, label, 'edit');
     }
