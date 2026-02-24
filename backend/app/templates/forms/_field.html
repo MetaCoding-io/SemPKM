@@ -19,7 +19,7 @@
 {% set field_id = prop.path | replace(':', '_') | replace('/', '_') | replace('#', '_') %}
 {% set is_required = prop.min_count is not none and prop.min_count > 0 %}
 {% set is_multi = prop.max_count is none or prop.max_count > 1 %}
-{% set display_value = value if value is not none else (prop.default_value if prop.default_value else '') %}
+{% set display_value = value if value is not none else (values[0] if values else (prop.default_value if prop.default_value else '')) %}
 {% set is_default = value is none and prop.default_value is not none and prop.default_value != '' %}
 
 <div class="form-field {{ 'required' if is_required else '' }}" id="field-{{ field_id }}">
@@ -87,13 +87,15 @@
                placeholder="Search {{ prop.name }}..."
                value="{{ current_value | default('', true) }}"
                autocomplete="off"
+               data-field-id="{{ field_id }}"
+               data-index="{{ index if index is not none else '' }}"
                hx-get="/browser/search?type={{ prop.target_class | urlencode }}"
                hx-trigger="input changed delay:300ms"
                hx-target="#suggestions-{{ field_id }}{{ '-' ~ index if index is not none else '' }}"
                hx-swap="innerHTML"
-               hx-include="this"
-               hx-params="q">
-        <input type="hidden" name="{{ input_name }}" value="{{ current_value | default('', true) }}">
+               hx-vals='js:{"q": this.value, "field_id": this.dataset.fieldId, "index": this.dataset.index || null}'
+               hx-params="q,field_id,index">
+        <input type="hidden" id="{{ input_id }}-hidden" name="{{ input_name }}" value="{{ current_value | default('', true) }}">
         <div id="suggestions-{{ field_id }}{{ '-' ~ index if index is not none else '' }}" class="suggestions-dropdown"></div>
     </div>
 
@@ -104,9 +106,15 @@
            {{ 'required' if is_required else '' }}>
 
 {% elif prop.datatype == 'http://www.w3.org/2001/XMLSchema#dateTime' %}
+    {% set dt_val = current_value | default('', true) %}
+    {# Strip timezone offset for datetime-local input (needs YYYY-MM-DDTHH:MM) #}
+    {% if '+' in dt_val %}{% set dt_val = dt_val.split('+')[0] %}{% endif %}
+    {% if dt_val.endswith('Z') %}{% set dt_val = dt_val[:-1] %}{% endif %}
+    {# Truncate seconds for cleaner display #}
+    {% if dt_val and dt_val|length > 16 %}{% set dt_val = dt_val[:16] %}{% endif %}
     <input type="datetime-local" name="{{ input_name }}" id="{{ input_id }}"
            class="form-input {{ css_class }}"
-           value="{{ current_value | default('', true) }}"
+           value="{{ dt_val }}"
            {{ 'required' if is_required else '' }}>
 
 {% elif prop.datatype == 'http://www.w3.org/2001/XMLSchema#boolean' %}

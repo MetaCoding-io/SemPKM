@@ -460,9 +460,14 @@ WHERE {{
         # Build property maps per subject
         props_by_subject: dict[str, list[tuple[str, str]]] = {iri: [] for iri in subject_iris}
         body_by_subject: dict[str, str] = {}
+        body_predicates: set[str] = set()
         desc_by_subject: dict[str, str] = {}
 
         all_iris_to_resolve: set[str] = set(subject_iris)
+
+        def _is_body_predicate(pred: str) -> bool:
+            """Match urn:sempkm:body and model-specific body predicates."""
+            return pred == "urn:sempkm:body" or pred.endswith(":body")
 
         for b in props_bindings:
             s = b["s"]["value"]
@@ -472,8 +477,9 @@ WHERE {{
                 props_by_subject[s].append((p, o_val))
                 all_iris_to_resolve.add(p)
                 # Track body and description for snippets
-                if p == "urn:sempkm:body":
+                if _is_body_predicate(p):
                     body_by_subject[s] = o_val
+                    body_predicates.add(p)
                 elif p == "http://purl.org/dc/terms/description":
                     desc_by_subject[s] = o_val
 
@@ -542,19 +548,19 @@ WHERE {{
             # Snippet: prefer body, fallback to description
             snippet = ""
             if iri in body_by_subject:
-                snippet = body_by_subject[iri][:100]
-                if len(body_by_subject[iri]) > 100:
+                snippet = body_by_subject[iri][:300]
+                if len(body_by_subject[iri]) > 300:
                     snippet += "..."
             elif iri in desc_by_subject:
-                snippet = desc_by_subject[iri][:100]
-                if len(desc_by_subject[iri]) > 100:
+                snippet = desc_by_subject[iri][:300]
+                if len(desc_by_subject[iri]) > 300:
                     snippet += "..."
 
             # Properties list (name/value pairs with resolved labels)
             properties = []
             for p, v in props_by_subject[iri]:
-                # Skip body and rdf:type from property display
-                if p in ("urn:sempkm:body", "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"):
+                # Skip body predicates and rdf:type from property display
+                if p == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" or _is_body_predicate(p):
                     continue
                 properties.append({
                     "name": labels.get(p, _local_name(p)),

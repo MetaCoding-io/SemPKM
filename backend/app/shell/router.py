@@ -26,8 +26,20 @@ async def dashboard(request: Request, user: User = Depends(get_current_user)):
     """Render the dashboard home page."""
     templates = request.app.state.templates
     return templates.TemplateResponse(
-        request, "dashboard.html", {"active_page": "home"}
+        request, "dashboard.html", {"active_page": "home", "user": user}
     )
+
+
+@router.get("/shortcuts")
+async def shortcuts_page(request: Request, user: User = Depends(get_current_user)):
+    """Render the keyboard shortcuts reference page."""
+    templates = request.app.state.templates
+    context = {"active_page": "shortcuts", "user": user}
+    if _is_htmx_request(request):
+        return templates.TemplateResponse(
+            request, "shortcuts.html", context, block_name="content"
+        )
+    return templates.TemplateResponse(request, "shortcuts.html", context)
 
 
 @router.get("/health/")
@@ -71,6 +83,7 @@ async def health_page(request: Request, user: User = Depends(get_current_user)):
             "base_namespace": settings.base_namespace,
         },
         "session_duration_days": settings.session_duration_days,
+        "user": user,
     }
     if _is_htmx_request(request):
         return templates.TemplateResponse(

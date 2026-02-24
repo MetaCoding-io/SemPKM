@@ -24,21 +24,26 @@
 {% endif %}
 
 <div class="object-form-container">
-    <h2 class="form-title">
-        {% if mode == 'create' %}
-        Create {{ form.label | replace(' Shape', '') }}
-        {% else %}
-        Edit {{ form.label | replace(' Shape', '') }}
-        {% endif %}
-    </h2>
+    <div class="form-title-row">
+        <h2 class="form-title">
+            {% if mode == 'create' %}
+            Create {{ form.label | replace(' Shape', '') }}
+            {% else %}
+            Edit {{ form.label | replace(' Shape', '') }}
+            {% endif %}
+        </h2>
+        <button type="button" class="btn btn-sm collapse-toggle" onclick="toggleAllSections(this)"
+                title="Expand All">&#9655;&#9665;</button>
+    </div>
 
     <form id="object-form"
           {% if mode == 'create' %}
           hx-post="/browser/objects"
+          hx-target="#editor-area"
           {% else %}
           hx-post="/browser/objects/{{ object_iri | urlencode }}/save"
+          hx-target="closest .object-form-section"
           {% endif %}
-          hx-target="#editor-area"
           hx-swap="innerHTML"
           hx-indicator="#form-spinner">
 
@@ -47,10 +52,18 @@
         <input type="hidden" name="object_iri" value="{{ object_iri }}">
         {% endif %}
 
+        {# Paths to exclude from form: body (has its own editor) and system timestamps #}
+        {% set skip_paths = [
+            body_property_path | default(''),
+            'http://purl.org/dc/terms/created',
+            'http://purl.org/dc/terms/modified',
+        ] %}
+
         {# Separate properties into required ungrouped, grouped, and optional ungrouped #}
         {% set ns = namespace(required_props=[], optional_ungrouped=[]) %}
         {% for prop in form.properties %}
-            {% if prop.min_count is not none and prop.min_count > 0 and not prop.group %}
+            {% if prop.path in skip_paths %}
+            {% elif prop.min_count is not none and prop.min_count > 0 and not prop.group %}
                 {% set ns.required_props = ns.required_props + [prop] %}
             {% elif not prop.group %}
                 {% set ns.optional_ungrouped = ns.optional_ungrouped + [prop] %}
@@ -75,7 +88,7 @@
         {% for group in form.groups %}
         {% set ns_group = namespace(group_props=[]) %}
         {% for prop in form.properties %}
-            {% if prop.group == group.iri %}
+            {% if prop.group == group.iri and prop.path not in skip_paths %}
                 {% set ns_group.group_props = ns_group.group_props + [prop] %}
             {% endif %}
         {% endfor %}
@@ -101,22 +114,31 @@
         </details>
         {% endif %}
 
+        {% if mode == 'create' %}
         <div class="form-actions">
             <button type="submit" class="btn btn-primary" id="form-submit">
-                {% if mode == 'create' %}
                 Create {{ form.label | replace(' Shape', '') }}
-                {% else %}
-                Save Changes
-                {% endif %}
             </button>
             <span id="form-spinner" class="htmx-indicator">Saving...</span>
         </div>
+        {% endif %}
     </form>
 </div>
 
 <script>
 (function() {
     'use strict';
+
+    // Collapse/Expand all sections (form groups + required section)
+    window.toggleAllSections = function(btn) {
+        var container = btn.closest('.object-form-container');
+        if (!container) return;
+        var details = container.querySelectorAll('details.form-group');
+        var anyOpen = Array.from(details).some(function(d) { return d.open; });
+        details.forEach(function(d) { d.open = !anyOpen; });
+        btn.innerHTML = anyOpen ? '\u25B7\u25C1' : '\u25BD\u25B3';
+        btn.title = anyOpen ? 'Expand All' : 'Collapse All';
+    };
 
     // Multi-value add/remove functions
     window.addMultiValue = function(fieldId, propPath) {
@@ -131,14 +153,40 @@
         var newItem = document.createElement('div');
         newItem.className = 'multi-value-item';
 
-        // Clone the input from the first item, reset its value
-        var firstInput = firstItem.querySelector('input, select');
-        if (firstInput) {
-            var clone = firstInput.cloneNode(true);
-            clone.value = '';
-            clone.id = clone.id.replace(/-\d+$/, '-' + newIndex);
-            clone.classList.remove('default-value');
-            newItem.appendChild(clone);
+        // Reference fields have a wrapper with search + hidden + suggestions
+        var referenceField = firstItem.querySelector('.reference-field');
+        if (referenceField) {
+            var refClone = referenceField.cloneNode(true);
+            var searchInput = refClone.querySelector('input[type="text"]');
+            var hiddenInput = refClone.querySelector('input[type="hidden"]');
+            var suggestionsDiv = refClone.querySelector('.suggestions-dropdown');
+
+            if (searchInput) {
+                searchInput.value = '';
+                searchInput.id = 'input-' + fieldId + '-' + newIndex + '-search';
+                searchInput.dataset.index = String(newIndex);
+                searchInput.setAttribute('hx-target', '#suggestions-' + fieldId + '-' + newIndex);
+            }
+            if (hiddenInput) {
+                hiddenInput.value = '';
+                hiddenInput.id = 'input-' + fieldId + '-' + newIndex + '-hidden';
+            }
+            if (suggestionsDiv) {
+                suggestionsDiv.id = 'suggestions-' + fieldId + '-' + newIndex;
+                suggestionsDiv.innerHTML = '';
+            }
+
+            newItem.appendChild(refClone);
+        } else {
+            // Clone the input from the first item, reset its value
+            var firstInput = firstItem.querySelector('input, select');
+            if (firstInput) {
+                var clone = firstInput.cloneNode(true);
+                clone.value = '';
+                clone.id = clone.id.replace(/-\d+$/, '-' + newIndex);
+                clone.classList.remove('default-value');
+                newItem.appendChild(clone);
+            }
         }
 
         var removeBtn = document.createElement('button');
@@ -167,7 +215,7 @@
     // Reference search: select a suggestion
     window.selectReference = function(fieldId, iri, label, index) {
         var suffix = (index !== undefined && index !== null) ? '-' + index : '';
-        var hiddenInput = document.querySelector('#field-' + fieldId + ' input[type="hidden"][name]');
+        var hiddenInput = document.getElementById('input-' + fieldId + suffix + '-hidden');
         var searchInput = document.getElementById('input-' + fieldId + suffix + '-search');
         var suggestionsDiv = document.getElementById('suggestions-' + fieldId + suffix);
 
@@ -186,5 +234,44 @@
             }
         });
     }
+
+    // Position suggestion dropdowns after htmx swaps content into them
+    document.addEventListener('htmx:afterSwap', function(evt) {
+        var target = evt.detail.target;
+        if (!target || !target.classList || !target.classList.contains('suggestions-dropdown')) return;
+
+        // Find the input that triggered the search
+        var refField = target.closest('.reference-field');
+        if (!refField) return;
+        var input = refField.querySelector('.reference-search');
+        if (!input) return;
+
+        var rect = input.getBoundingClientRect();
+        target.style.top = rect.bottom + 'px';
+        target.style.left = rect.left + 'px';
+        target.style.width = rect.width + 'px';
+    });
+
+    // Reposition open suggestion dropdowns on scroll/resize
+    function repositionDropdowns() {
+        var openDropdowns = document.querySelectorAll('.suggestions-dropdown:not(:empty)');
+        openDropdowns.forEach(function(dd) {
+            var refField = dd.closest('.reference-field');
+            if (!refField) return;
+            var input = refField.querySelector('.reference-search');
+            if (!input) return;
+            var rect = input.getBoundingClientRect();
+            dd.style.top = rect.bottom + 'px';
+            dd.style.left = rect.left + 'px';
+            dd.style.width = rect.width + 'px';
+        });
+    }
+
+    // Throttled reposition on form section scroll
+    var formSections = document.querySelectorAll('.object-form-section');
+    formSections.forEach(function(section) {
+        section.addEventListener('scroll', repositionDropdowns);
+    });
+    window.addEventListener('resize', repositionDropdowns);
 })();
 </script>

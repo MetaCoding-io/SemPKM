@@ -23,7 +23,17 @@
 
   // --- Semantic Style Builder ---
 
-  function buildSemanticStyle(typeColors) {
+  function buildSemanticStyle(typeColors, isDark) {
+    isDark = isDark || false;
+
+    var nodeColor = isDark ? '#abb2bf' : '#333';
+    var nodeBg = isDark ? '#5c6370' : '#bab0ab';
+    var nodeBorder = isDark ? '#3e4452' : '#999';
+    var edgeLineColor = isDark ? '#3e4452' : '#ccc';
+    var edgeLabelColor = isDark ? '#7d8799' : '#888';
+    var edgeTextBg = isDark ? '#282c34' : '#fff';
+    var selectedBorder = isDark ? '#56b6c2' : '#2d5a9e';
+
     var styles = [
       // Default node style
       {
@@ -37,12 +47,12 @@
           'text-wrap': 'ellipsis',
           'width': 30,
           'height': 30,
-          'background-color': '#bab0ab',
+          'background-color': nodeBg,
           'border-width': 1,
-          'border-color': '#999',
+          'border-color': nodeBorder,
           'shape': 'ellipse',
           'text-margin-y': 4,
-          'color': '#333'
+          'color': nodeColor
         }
       },
       // Default edge style
@@ -51,14 +61,14 @@
         style: {
           'curve-style': 'bezier',
           'target-arrow-shape': 'triangle',
-          'target-arrow-color': '#ccc',
-          'line-color': '#ccc',
+          'target-arrow-color': edgeLineColor,
+          'line-color': edgeLineColor,
           'width': 1.5,
           'label': 'data(label)',
           'font-size': '9px',
           'text-rotation': 'autorotate',
-          'color': '#888',
-          'text-background-color': '#fff',
+          'color': edgeLabelColor,
+          'text-background-color': edgeTextBg,
           'text-background-opacity': 0.8,
           'text-background-padding': '2px'
         }
@@ -68,7 +78,7 @@
         selector: 'node:selected',
         style: {
           'border-width': 3,
-          'border-color': '#2d5a9e'
+          'border-color': selectedBorder
         }
       },
       // Hovered node (via mouseover class)
@@ -219,7 +229,7 @@
     var cy = cytoscape({
       container: container,
       elements: elements,
-      style: buildSemanticStyle(typeColors),
+      style: buildSemanticStyle(typeColors, document.documentElement.getAttribute('data-theme') === 'dark'),
       layout: layoutConfig,
       minZoom: 0.1,
       maxZoom: 5,
@@ -230,13 +240,24 @@
     window._sempkmGraph = cy;
     window._sempkmTypeColors = typeColors;
 
+    // Register cleanup for htmx:beforeCleanupElement
+    if (typeof window.registerCleanup === 'function' && container.id) {
+      window.registerCleanup(container.id, function() {
+        if (window._sempkmGraph === cy) {
+          window._sempkmGraph = null;
+        }
+        cy.destroy();
+      });
+    }
+
     // --- Event Handlers ---
 
     // Click to select -- load details in right pane
     cy.on('tap', 'node', function (evt) {
       var nodeId = evt.target.id();
-      if (typeof window.loadRightPane === 'function') {
-        window.loadRightPane(nodeId, 'relations');
+      if (typeof window.loadRightPaneSection === 'function') {
+        window.loadRightPaneSection(nodeId, 'relations');
+        window.loadRightPaneSection(nodeId, 'lint');
       }
     });
 
@@ -495,7 +516,7 @@
         var added = cy.add(newElements);
 
         // Update styles with new type colors
-        cy.style(buildSemanticStyle(currentColors));
+        cy.style(buildSemanticStyle(currentColors, document.documentElement.getAttribute('data-theme') === 'dark'));
 
         // Run layout on ONLY the new elements (per Research Pitfall 6)
         var newNodes = added.filter('node');
@@ -582,10 +603,32 @@
     });
   }
 
+  // --- Theme Switching ---
+
+  /**
+   * Switch Cytoscape graph between dark and light styles.
+   * Rebuilds the stylesheet without destroying graph state.
+   *
+   * @param {boolean} isDark - true for dark theme, false for light
+   */
+  function switchGraphTheme(isDark) {
+    var cy = window._sempkmGraph;
+    if (!cy) return;
+
+    var styles = buildSemanticStyle(window._sempkmTypeColors || {}, isDark);
+    cy.style().fromJson(styles).update();
+  }
+
+  // Backup integration: listen for sempkm:theme-changed event
+  document.addEventListener('sempkm:theme-changed', function (e) {
+    switchGraphTheme(e.detail.theme === 'dark');
+  });
+
   // --- Export Globally ---
   window.initGraph = initGraph;
   window.changeLayout = changeLayout;
   window.registerLayout = registerLayout;
   window.filterGraph = filterGraph;
+  window.switchGraphTheme = switchGraphTheme;
 
 })();

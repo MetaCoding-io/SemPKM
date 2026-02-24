@@ -80,7 +80,7 @@
     }
   }
 
-  function openTab(objectIri, label) {
+  function openTab(objectIri, label, mode) {
     var tabs = getTabs();
     var existing = tabs.find(function (t) { return t.iri === objectIri; });
 
@@ -91,7 +91,7 @@
 
     setActiveTabIri(objectIri);
     renderTabBar();
-    loadObjectContent(objectIri);
+    loadObjectContent(objectIri, mode);
 
     // Add to command palette dynamically
     addObjectToCommandPalette(objectIri, label);
@@ -192,6 +192,7 @@
       var viewType = tab.viewType || 'table';
       loadViewContent(viewId, viewType);
     } else {
+      // Normal tab switch: no mode parameter (opens in read mode by default)
       loadObjectContent(tab.iri);
     }
   }
@@ -255,7 +256,7 @@
     tabBar.innerHTML = html;
   }
 
-  function loadObjectContent(objectIri) {
+  function loadObjectContent(objectIri, mode) {
     var editorArea = document.getElementById('editor-area');
     if (!editorArea) return;
 
@@ -273,41 +274,49 @@
       return;
     }
 
+    // Build URL with optional mode parameter
+    var url = '/browser/object/' + encodeURIComponent(objectIri);
+    if (mode === 'edit') {
+      url += '?mode=edit';
+    }
+
     // Use htmx to load object content into center pane
     if (typeof htmx !== 'undefined') {
-      htmx.ajax('GET', '/browser/object/' + encodeURIComponent(objectIri), {
+      htmx.ajax('GET', url, {
         target: '#editor-area',
         swap: 'innerHTML'
       }).catch(function () {
         editorArea.innerHTML = '<div class="editor-empty"><p>Failed to load object.</p></div>';
       });
 
-      // Also load relations into right pane
-      loadRightPane(objectIri, 'relations');
+      // Load both right pane sections
+      loadRightPaneSection(objectIri, 'relations');
+      loadRightPaneSection(objectIri, 'lint');
     } else {
       editorArea.innerHTML = '<div class="editor-empty"><p>Loading ' + escapeHtml(objectIri) + '...</p></div>';
     }
   }
 
-  function loadRightPane(objectIri, tab) {
-    if (typeof htmx === 'undefined') return;
-
-    var target = '#right-content';
+  function loadRightPaneSection(objectIri, section) {
+    var targetId = section + '-content';
     var url;
 
-    if (tab === 'lint') {
+    if (section === 'lint') {
       url = '/browser/lint/' + encodeURIComponent(objectIri);
     } else {
       url = '/browser/relations/' + encodeURIComponent(objectIri);
     }
 
-    htmx.ajax('GET', url, {
-      target: target,
-      swap: 'innerHTML'
-    }).catch(function () {
-      var el = document.getElementById('right-content');
-      if (el) el.innerHTML = '<div class="right-empty">Failed to load content</div>';
-    });
+    fetch(url, { headers: { 'HX-Request': 'true' } })
+      .then(function (resp) { return resp.text(); })
+      .then(function (html) {
+        var el = document.getElementById(targetId);
+        if (el) el.innerHTML = html;
+      })
+      .catch(function () {
+        var el = document.getElementById(targetId);
+        if (el) el.innerHTML = '<div class="right-empty">Failed to load content</div>';
+      });
   }
 
   function showEditorEmpty() {
@@ -334,29 +343,137 @@
     var paneIndex = panes.indexOf(paneId);
     if (paneIndex === -1) return;
 
-    var currentSizes = splitInstance.getSizes();
-
     if (paneStates[paneId]) {
-      // Restore the pane
-      splitInstance.setSizes(paneStates[paneId]);
+      // Restore the pane: show it and its gutter, rebuild Split.js
+      pane.style.display = '';
+      var gutter = pane.previousElementSibling;
+      if (gutter && gutter.classList.contains('gutter')) gutter.style.display = '';
+      _rebuildSplit(paneStates[paneId]);
       delete paneStates[paneId];
     } else {
-      // Collapse the pane: save current sizes, set pane to 0
-      paneStates[paneId] = currentSizes.slice();
-      var newSizes = currentSizes.slice();
-      var redistributed = newSizes[paneIndex];
-      newSizes[paneIndex] = 0;
-      // Distribute space to other panes proportionally
-      var remaining = panes.filter(function (_, i) { return i !== paneIndex && newSizes[i] > 0; });
-      if (remaining.length > 0) {
-        var share = redistributed / remaining.length;
-        panes.forEach(function (_, i) {
-          if (i !== paneIndex && newSizes[i] > 0) {
-            newSizes[i] += share;
-          }
-        });
+      // Collapse the pane: save sizes, hide it and its gutter, rebuild Split.js
+      paneStates[paneId] = splitInstance.getSizes().slice();
+      pane.style.display = 'none';
+      var gutter = pane.previousElementSibling;
+      if (gutter && gutter.classList.contains('gutter')) gutter.style.display = 'none';
+      // Rebuild with only visible panes
+      var visibleIds = [];
+      var visibleSizes = [];
+      panes.forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el && el.style.display !== 'none') {
+          visibleIds.push('#' + id);
+          visibleSizes.push(id === 'editor-pane' ? 80 : 20);
+        }
+      });
+      _rebuildSplit(null, visibleIds, visibleSizes);
+    }
+  }
+
+  function _rebuildSplit(restoreSizes, visibleIds, visibleSizes) {
+    if (splitInstance) {
+      splitInstance.destroy();
+    }
+    var panes = ['nav-pane', 'editor-pane', 'right-pane'];
+    var ids = visibleIds || panes.filter(function (id) {
+      var el = document.getElementById(id);
+      return el && el.style.display !== 'none';
+    }).map(function (id) { return '#' + id; });
+
+    var minSizes = ids.map(function (id) {
+      if (id === '#editor-pane') return 300;
+      if (id === '#nav-pane') return 180;
+      return 200;
+    });
+
+    var sizes = restoreSizes || visibleSizes || null;
+    // If restoring, filter to only visible panes
+    if (restoreSizes) {
+      sizes = [];
+      panes.forEach(function (id, i) {
+        var el = document.getElementById(id);
+        if (el && el.style.display !== 'none') {
+          sizes.push(restoreSizes[i]);
+        }
+      });
+    }
+
+    splitInstance = Split(ids, {
+      sizes: sizes || ids.map(function () { return 100 / ids.length; }),
+      minSize: minSizes,
+      gutterSize: 5,
+      cursor: 'col-resize',
+      onDragEnd: function (s) {
+        try { localStorage.setItem(PANE_KEY, JSON.stringify(s)); } catch (e) {}
       }
-      splitInstance.setSizes(newSizes);
+    });
+  }
+
+  // --- Object Mode Toggle (Read/Edit) ---
+
+  function toggleObjectMode(safeId, objectIri) {
+    var flipInner = document.getElementById('flip-inner-' + safeId);
+    var toggleBtn = document.getElementById('mode-toggle-' + safeId);
+    var saveBtn = document.getElementById('save-btn-' + safeId);
+    if (!flipInner) return;
+
+    var readFace = flipInner.querySelector('.object-face-read');
+    var editFace = flipInner.querySelector('.object-face-edit');
+    var isFlipped = flipInner.classList.contains('flipped');
+
+    if (isFlipped) {
+      // Switching from edit to read: check for unsaved changes
+      var tabs = getTabs();
+      var tab = tabs.find(function (t) { return t.iri === objectIri; });
+      if (tab && tab.dirty) {
+        if (!window.confirm('Discard unsaved changes?')) return;
+        markClean(objectIri);
+      }
+      flipInner.classList.remove('flipped');
+      if (toggleBtn) toggleBtn.textContent = 'Edit';
+      if (saveBtn) saveBtn.style.display = 'none';
+      // Refresh read face with fresh data from server
+      if (readFace) {
+        fetch('/browser/object/' + encodeURIComponent(objectIri) + '?mode=read', {
+          headers: { 'HX-Request': 'true' }
+        }).then(function (resp) { return resp.text(); }).then(function (html) {
+          // Extract the read face content from the full response
+          var tmp = document.createElement('div');
+          tmp.innerHTML = html;
+          var freshRead = tmp.querySelector('.object-face-read');
+          if (freshRead) {
+            readFace.innerHTML = freshRead.innerHTML;
+            // Re-trigger markdown rendering for any md-source/md-rendered pairs
+            var mdSources = readFace.querySelectorAll('script[type="text/plain"][id^="md-source-"]');
+            mdSources.forEach(function(src) {
+              var renderedId = src.id.replace('md-source-', 'md-rendered-');
+              var tgt = document.getElementById(renderedId);
+              if (src && tgt && typeof window.renderMarkdownBody === 'function') {
+                window.renderMarkdownBody(src.id, renderedId);
+              } else if (src && tgt) {
+                tgt.textContent = src.textContent;
+              }
+            });
+          }
+        }).catch(function () { /* keep stale content on error */ });
+      }
+      // Swap faces at midpoint (300ms into 600ms animation)
+      setTimeout(function () {
+        if (readFace) readFace.classList.remove('face-hidden');
+        if (editFace) editFace.classList.remove('face-visible');
+      }, 300);
+    } else {
+      // Switching from read to edit: initialize edit mode if needed
+      var initFn = window['_initEditMode_' + safeId];
+      if (typeof initFn === 'function') initFn();
+      flipInner.classList.add('flipped');
+      if (toggleBtn) toggleBtn.textContent = 'Done';
+      if (saveBtn) saveBtn.style.display = '';
+      // Swap faces at midpoint (300ms into 600ms animation)
+      setTimeout(function () {
+        if (readFace) readFace.classList.add('face-hidden');
+        if (editFace) editFace.classList.add('face-visible');
+      }, 300);
     }
   }
 
@@ -381,6 +498,44 @@
           closeTab(activeIri);
         }
       }
+
+      // Ctrl+\ / Cmd+\: Toggle sidebar
+      if (mod && e.key === '\\') {
+        e.preventDefault();
+        toggleSidebar();
+      }
+
+      // Ctrl+[ / Cmd+[: Toggle explorer pane
+      if (mod && e.key === '[') {
+        e.preventDefault();
+        togglePane('nav-pane');
+      }
+
+      // Ctrl+] / Cmd+]: Toggle right panel
+      if (mod && e.key === ']') {
+        e.preventDefault();
+        togglePane('right-pane');
+      }
+
+      // Ctrl+E / Cmd+E: Toggle read/edit mode
+      if (mod && e.key === 'e') {
+        e.preventDefault();
+        var objectTab = document.querySelector('.object-tab');
+        if (objectTab) {
+          var iri = objectTab.dataset.objectIri;
+          var safeId = encodeURIComponent(iri).replace(/%/g, '_');
+          toggleObjectMode(safeId, iri);
+        }
+      }
+
+      // Ctrl+K / Cmd+K: Open command palette
+      if (mod && e.key === 'k') {
+        e.preventDefault();
+        var ninja = document.querySelector('ninja-keys');
+        if (ninja) {
+          ninja.open();
+        }
+      }
     });
   }
 
@@ -388,13 +543,25 @@
     var activeIri = getActiveTabIri();
     if (!activeIri) return;
 
-    // Save body via editor.js (CodeMirror Ctrl+S handler)
+    // Save form properties via htmx form submission
+    var activeTab = document.querySelector('.object-tab');
+    if (activeTab) {
+      var form = activeTab.querySelector('#object-form');
+      if (form && typeof htmx !== 'undefined') {
+        htmx.trigger(form, 'submit');
+      }
+    }
+
+    // Save body via editor.js (CodeMirror)
     if (typeof window.getEditor === 'function') {
       var editor = window.getEditor(activeIri);
       if (editor) {
-        // Trigger the editor's save directly
         var content = editor.state.doc.toString();
-        fetch('/browser/objects/' + encodeURIComponent(activeIri) + '/body', {
+        var bodyContainer = activeTab ? activeTab.querySelector('.codemirror-container') : null;
+        var bodyPredicate = bodyContainer && bodyContainer.dataset.bodyPredicate ? bodyContainer.dataset.bodyPredicate : '';
+        var bodyUrl = '/browser/objects/' + encodeURIComponent(activeIri) + '/body';
+        if (bodyPredicate) bodyUrl += '?predicate=' + encodeURIComponent(bodyPredicate);
+        fetch(bodyUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain' },
           body: content
@@ -402,8 +569,31 @@
           if (resp.ok) {
             editor._sempkmSavedContent = content;
             markClean(activeIri);
-            // Refresh lint panel after save to show updated validation
             refreshLintAfterSave(activeIri);
+          }
+        }).catch(function (err) {
+          console.error('Body save error:', err);
+        });
+        return;
+      }
+    }
+
+    // Fallback: plain textarea editor
+    if (activeTab) {
+      var fallback = activeTab.querySelector('.body-fallback');
+      if (fallback && fallback.dataset && fallback.dataset.objectIri) {
+        var content = fallback.value || '';
+        var fbPredicate = fallback.dataset.bodyPredicate || '';
+        var fbUrl = '/browser/objects/' + encodeURIComponent(fallback.dataset.objectIri) + '/body';
+        if (fbPredicate) fbUrl += '?predicate=' + encodeURIComponent(fbPredicate);
+        fetch(fbUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: content
+        }).then(function (resp) {
+          if (resp.ok) {
+            markClean(fallback.dataset.objectIri);
+            refreshLintAfterSave(fallback.dataset.objectIri);
           }
         }).catch(function (err) {
           console.error('Body save error:', err);
@@ -421,10 +611,7 @@
   function refreshLintAfterSave(objectIri) {
     // Refresh the lint panel after a short delay (validation queue processes async)
     setTimeout(function () {
-      var activeTab = document.querySelector('.rp-tab.active');
-      if (activeTab && activeTab.dataset.tab === 'lint') {
-        loadRightPane(objectIri, 'lint');
-      }
+      loadRightPaneSection(objectIri, 'lint');
     }, 2000);
   }
 
@@ -451,16 +638,24 @@
           handler: function () { triggerValidation(); }
         },
         {
-          id: 'toggle-nav',
-          title: 'Toggle Navigation Panel',
+          id: 'toggle-sidebar',
+          title: 'Toggle Sidebar',
           section: 'View',
-          hotkey: 'ctrl+b',
+          hotkey: 'ctrl+\\',
+          handler: function () { toggleSidebar(); }
+        },
+        {
+          id: 'toggle-explorer',
+          title: 'Toggle Explorer Panel',
+          section: 'View',
+          hotkey: 'ctrl+[',
           handler: function () { togglePane('nav-pane'); }
         },
         {
           id: 'toggle-right',
-          title: 'Toggle Properties Panel',
+          title: 'Toggle Details Panel',
           section: 'View',
+          hotkey: 'ctrl+]',
           handler: function () { togglePane('right-pane'); }
         },
         {
@@ -468,6 +663,41 @@
           title: 'Open View Menu',
           section: 'Views',
           handler: function () { openViewMenu(); }
+        },
+        {
+          id: 'theme-light',
+          title: 'Theme: Light',
+          section: 'Appearance',
+          handler: function () { setTheme('light'); }
+        },
+        {
+          id: 'theme-dark',
+          title: 'Theme: Dark',
+          section: 'Appearance',
+          handler: function () { setTheme('dark'); }
+        },
+        {
+          id: 'theme-system',
+          title: 'Theme: System Default',
+          section: 'Appearance',
+          handler: function () { setTheme('system'); }
+        },
+        {
+          id: 'toggle-edit-mode',
+          title: 'Toggle Edit Mode',
+          section: 'Objects',
+          hotkey: 'ctrl+e',
+          handler: function () {
+            var activeTab = document.querySelector('.object-tab');
+            if (activeTab) {
+              var objectIri = activeTab.dataset.objectIri;
+              var flipContainer = activeTab.querySelector('.object-flip-container');
+              if (flipContainer) {
+                var safeId = flipContainer.id.replace('flip-', '');
+                toggleObjectMode(safeId, objectIri);
+              }
+            }
+          }
         }
       ];
 
@@ -545,17 +775,12 @@
     // First save the current object to trigger validation via the queue
     saveCurrentObject();
 
-    // Switch the right pane to the lint tab and refresh
-    var lintTab = document.querySelector('.rp-tab[data-tab="lint"]');
-    if (lintTab) {
-      var tabs = lintTab.parentElement.querySelectorAll('.rp-tab');
-      tabs.forEach(function (t) { t.classList.remove('active'); });
-      lintTab.classList.add('active');
-    }
+    // Open lint section if collapsed, and refresh after delay
+    var lintDetails = document.querySelector('#lint-content')?.closest('details.right-section');
+    if (lintDetails) lintDetails.open = true;
 
-    // Load lint panel after a short delay to allow validation to process
     setTimeout(function () {
-      loadRightPane(activeIri, 'lint');
+      loadRightPaneSection(activeIri, 'lint');
     }, 1500);
   }
 
@@ -588,29 +813,9 @@
     });
   }
 
-  // --- Right Pane Tabs ---
-
+  // --- Right Pane Tabs (legacy — sections now always visible) ---
   function initRightPaneTabs() {
-    document.addEventListener('click', function (e) {
-      var tab = e.target.closest('.rp-tab');
-      if (!tab) return;
-
-      // Remove active from all sibling tabs
-      var tabs = tab.parentElement.querySelectorAll('.rp-tab');
-      tabs.forEach(function (t) { t.classList.remove('active'); });
-      tab.classList.add('active');
-
-      // Load the appropriate content for the selected tab
-      var activeIri = getActiveTabIri();
-      if (!activeIri) return;
-
-      var tabName = tab.dataset.tab;
-      if (tabName === 'lint') {
-        loadRightPane(activeIri, 'lint');
-      } else if (tabName === 'relations') {
-        loadRightPane(activeIri, 'relations');
-      }
-    });
+    // No-op: Relations and Lint are now separate collapsible sections, both loaded on object open
   }
 
   // --- Jump to Field (from lint panel click) ---
@@ -787,7 +992,8 @@
       // Remove any "New Object" placeholder tab
       tabs = tabs.filter(function (t) { return t.iri !== '__new__'; });
       saveTabs(tabs);
-      openTab(detail.iri, label);
+      // Newly created objects open directly in edit mode
+      openTab(detail.iri, label, 'edit');
     }
   });
 
@@ -809,8 +1015,10 @@
   window.showTypePicker = showTypePicker;
   window.jumpToField = jumpToField;
   window.triggerValidation = triggerValidation;
-  window.loadRightPane = loadRightPane;
+  window.loadRightPaneSection = loadRightPaneSection;
   window.openViewTab = openViewTab;
   window.openViewMenu = openViewMenu;
+  window.toggleObjectMode = toggleObjectMode;
+  window.saveCurrentObject = saveCurrentObject;
 
 })();

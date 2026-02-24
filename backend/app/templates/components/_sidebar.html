@@ -1,44 +1,151 @@
-<aside class="sidebar">
+<aside class="sidebar" id="app-sidebar">
     <div class="sidebar-brand">
-        <a href="/">SemPKM</a>
+        <a href="/" hx-get="/" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
+            <i data-lucide="hexagon" class="brand-icon"></i>
+            <span class="brand-text">SemPKM</span>
+        </a>
+        <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar (Ctrl+\)">
+            <i data-lucide="panel-left"></i><span class="icon-fallback">&#9776;</span>
+        </button>
     </div>
     <nav class="sidebar-nav">
-        <a href="/" class="nav-link{{ ' active' if active_page == 'home' else '' }}"
-           hx-get="/" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
-            <span class="nav-icon">&#127968;</span>
-            <span class="nav-label">Home</span>
-        </a>
-        <a href="/admin/" class="nav-link{{ ' active' if active_page == 'admin' else '' }}"
-           hx-get="/admin/" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
-            <span class="nav-icon">&#9881;</span>
-            <span class="nav-label">Admin</span>
-        </a>
-        <a href="/browser/" class="nav-link{{ ' active' if active_page == 'browser' else '' }}"
-           hx-get="/browser/" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
-            <span class="nav-icon">&#128193;</span>
-            <span class="nav-label">Object Browser</span>
-        </a>
-        <a href="/health/" class="nav-link{{ ' active' if active_page == 'health' else '' }}"
-           hx-get="/health/" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
-            <span class="nav-icon">&#9829;</span>
-            <span class="nav-label">Health Check</span>
-        </a>
-        <div class="sidebar-section">Debug Tools</div>
-        <a href="/sparql" class="nav-link{{ ' active' if active_page == 'sparql' else '' }}">
-            <span class="nav-icon">&#128269;</span>
-            <span class="nav-label">SPARQL</span>
-        </a>
-        <a href="/commands" class="nav-link{{ ' active' if active_page == 'commands' else '' }}">
-            <span class="nav-icon">&#9654;</span>
-            <span class="nav-label">Commands</span>
-        </a>
-        <a href="/redoc" class="nav-link{{ ' active' if active_page == 'redoc' else '' }}" onclick="return loadDocsIframe('/redoc', this)">
-            <span class="nav-icon">&#128196;</span>
-            <span class="nav-label">API Docs (ReDoc)</span>
-        </a>
-        <a href="/docs" class="nav-link{{ ' active' if active_page == 'swagger' else '' }}" onclick="return loadDocsIframe('/docs', this)">
-            <span class="nav-icon">&#128196;</span>
-            <span class="nav-label">API Docs (Swagger)</span>
-        </a>
+        <!-- Admin section -->
+        <div class="sidebar-group" data-group="admin">
+            <button class="sidebar-group-header" onclick="toggleSidebarGroup(this)">
+                <i data-lucide="chevron-right" class="group-chevron"></i>
+                <span class="group-label">Admin</span>
+            </button>
+            <div class="sidebar-group-items">
+                <a href="/admin/models" class="nav-link" data-tooltip="Mental Models"
+                   hx-get="/admin/models" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
+                    <i data-lucide="brain" class="nav-icon"></i>
+                    <span class="nav-label">Mental Models</span>
+                </a>
+                <a href="/admin/users" class="nav-link disabled" data-tooltip="Users">
+                    <i data-lucide="users" class="nav-icon"></i>
+                    <span class="nav-label">Users</span>
+                </a>
+                <a href="/admin/teams" class="nav-link disabled" data-tooltip="Teams">
+                    <i data-lucide="users-round" class="nav-icon"></i>
+                    <span class="nav-label">Teams</span>
+                </a>
+                <a href="/admin/webhooks" class="nav-link" data-tooltip="Webhooks"
+                   hx-get="/admin/webhooks" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
+                    <i data-lucide="webhook" class="nav-icon"></i>
+                    <span class="nav-label">Webhooks</span>
+                </a>
+            </div>
+        </div>
+        <div class="sidebar-divider"></div>
+
+        <!-- Meta section -->
+        <div class="sidebar-group" data-group="meta">
+            <button class="sidebar-group-header" onclick="toggleSidebarGroup(this)">
+                <i data-lucide="chevron-right" class="group-chevron"></i>
+                <span class="group-label">Meta</span>
+            </button>
+            <div class="sidebar-group-items">
+                <a href="/shortcuts" class="nav-link" data-tooltip="Shortcuts"
+                   hx-get="/shortcuts" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
+                    <i data-lucide="keyboard" class="nav-icon"></i>
+                    <span class="nav-label">Shortcuts</span>
+                </a>
+                <a href="/docs" class="nav-link disabled" data-tooltip="Docs & Tutorials">
+                    <i data-lucide="book-open" class="nav-icon"></i>
+                    <span class="nav-label">Docs & Tutorials</span>
+                </a>
+            </div>
+        </div>
+        <div class="sidebar-divider"></div>
+
+        <!-- Apps section -->
+        <div class="sidebar-group" data-group="apps">
+            <button class="sidebar-group-header" onclick="toggleSidebarGroup(this)">
+                <i data-lucide="chevron-right" class="group-chevron"></i>
+                <span class="group-label">Apps</span>
+            </button>
+            <div class="sidebar-group-items">
+                <a href="/browser/" class="nav-link" data-tooltip="Object Browser"
+                   hx-get="/browser/" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
+                    <i data-lucide="folder-tree" class="nav-icon"></i>
+                    <span class="nav-label">Object Browser</span>
+                </a>
+                <a href="/sparql" class="nav-link" data-tooltip="SPARQL Console">
+                    <i data-lucide="database" class="nav-icon"></i>
+                    <span class="nav-label">SPARQL Console</span>
+                </a>
+            </div>
+        </div>
+        <div class="sidebar-divider"></div>
+
+        <!-- Debug section -->
+        <div class="sidebar-group" data-group="debug">
+            <button class="sidebar-group-header" onclick="toggleSidebarGroup(this)">
+                <i data-lucide="chevron-right" class="group-chevron"></i>
+                <span class="group-label">Debug</span>
+            </button>
+            <div class="sidebar-group-items">
+                <a href="/commands" class="nav-link" data-tooltip="Commands">
+                    <i data-lucide="terminal" class="nav-icon"></i>
+                    <span class="nav-label">Commands</span>
+                </a>
+                <a href="/redoc" class="nav-link" data-tooltip="API Docs (ReDoc)" onclick="return loadDocsIframe('/redoc', this)">
+                    <i data-lucide="file-text" class="nav-icon"></i>
+                    <span class="nav-label">API Docs (ReDoc)</span>
+                </a>
+                <a href="/docs" class="nav-link" data-tooltip="API Docs (Swagger)" onclick="return loadDocsIframe('/docs', this)">
+                    <i data-lucide="file-code" class="nav-icon"></i>
+                    <span class="nav-label">API Docs (Swagger)</span>
+                </a>
+                <a href="/health/" class="nav-link" data-tooltip="Health Check"
+                   hx-get="/health/" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
+                    <i data-lucide="heart-pulse" class="nav-icon"></i>
+                    <span class="nav-label">Health Check</span>
+                </a>
+                <a href="#" class="nav-link disabled" data-tooltip="Event Log">
+                    <i data-lucide="scroll-text" class="nav-icon"></i>
+                    <span class="nav-label">Event Log</span>
+                </a>
+            </div>
+        </div>
     </nav>
+    <div class="sidebar-user" id="sidebar-user-area">
+        <button popovertarget="user-popover" class="user-area-btn">
+            <span class="user-avatar" id="user-avatar"></span>
+            <span class="user-name">{{ (user.display_name or user.email or 'User') if user is defined else 'User' }}</span>
+        </button>
+    </div>
 </aside>
+
+<div popover="auto" id="user-popover" class="user-popover">
+    <div class="popover-user-info">
+        <span class="user-avatar user-avatar-lg" id="user-avatar-popover"></span>
+        <div class="popover-user-details">
+            <span class="popover-user-name">{{ (user.display_name or user.email or 'User') if user is defined else 'User' }}</span>
+            {% if user is defined and user.display_name and user.email %}
+            <span class="popover-user-email">{{ user.email }}</span>
+            {% endif %}
+        </div>
+    </div>
+    <div class="popover-divider"></div>
+    <a href="#" class="popover-item disabled">
+        <i data-lucide="settings" class="popover-icon"></i>
+        <span>Settings</span>
+    </a>
+    <div class="popover-theme-row">
+        <button class="theme-btn" data-theme-value="light" onclick="setTheme('light')" title="Light">
+            <i data-lucide="sun" class="popover-icon"></i>
+        </button>
+        <button class="theme-btn" data-theme-value="system" onclick="setTheme('system')" title="System">
+            <i data-lucide="monitor" class="popover-icon"></i>
+        </button>
+        <button class="theme-btn" data-theme-value="dark" onclick="setTheme('dark')" title="Dark">
+            <i data-lucide="moon" class="popover-icon"></i>
+        </button>
+    </div>
+    <div class="popover-divider"></div>
+    <button class="popover-item popover-item-danger" onclick="handleLogout()">
+        <i data-lucide="log-out" class="popover-icon"></i>
+        <span>Log out</span>
+    </button>
+</div>
