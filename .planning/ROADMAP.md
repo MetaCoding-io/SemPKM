@@ -31,7 +31,7 @@
 - [x] **Phase 10: Bug Fixes and Cleanup Architecture** - Fix broken core flows and establish htmx cleanup patterns that prevent listener/instance accumulation (completed 2026-02-23)
 - [x] **Phase 11: Read-Only Object View** - Objects open in a styled read-only mode by default with an edit toggle (completed 2026-02-23)
 - [x] **Phase 12: Sidebar and Navigation** - Collapsible sidebar with grouped navigation sections and user menu (completed 2026-02-23)
-- [ ] **Phase 13: Dark Mode and Visual Polish** - Tri-state theme system, rounded tabs, and styled error panels
+- [x] **Phase 13: Dark Mode and Visual Polish** - Tri-state theme system, rounded tabs, and styled error panels (completed 2026-02-24)
 - [ ] **Phase 14: Split Panes and Bottom Panel** - VS Code-style editor groups with tab drag and a collapsible bottom panel
 - [ ] **Phase 15: Settings System and Node Type Icons** - Layered settings infrastructure and type-specific visual richness
 - [ ] **Phase 16: Event Log Explorer** - Browsable, filterable event timeline with inline diffs and undo
@@ -201,7 +201,7 @@ Phases execute in numeric order: 10 → 11 → 12 → 13 → 14 → 15 → 16 �
 | 10. Bug Fixes and Cleanup Architecture | 3/3 | Complete    | 2026-02-23 | - |
 | 11. Read-Only Object View | 1/2 | In Progress|  | - |
 | 12. Sidebar and Navigation | 2/2 | Complete    | 2026-02-23 | - |
-| 13. Dark Mode and Visual Polish | 1/3 | In Progress|  | - |
+| 13. Dark Mode and Visual Polish | 3/3 | Complete   | 2026-02-24 | - |
 | 14. Split Panes and Bottom Panel | v2.0 | 0/3 | Not started | - |
 | 15. Settings System and Node Type Icons | v2.0 | 0/3 | Not started | - |
 | 16. Event Log Explorer | v2.0 | 0/3 | Not started | - |
