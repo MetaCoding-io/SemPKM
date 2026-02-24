@@ -280,7 +280,7 @@
     min-height: 36px;
     background: var(--color-surface-recessed);
     border-bottom: 1px solid var(--color-border);
-    padding: 0 4px;
+    padding: 4px 4px 0;
 }
 
 .tab-bar-workspace::-webkit-scrollbar {
