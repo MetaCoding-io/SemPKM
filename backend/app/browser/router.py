@@ -1032,6 +1032,63 @@ async def event_log(
     })
 
 
+@router.get("/events/{event_iri:path}/detail")
+async def event_detail(
+    request: Request,
+    event_iri: str,
+    user: User = Depends(get_current_user),
+    client: TriplestoreClient = Depends(get_triplestore_client),
+):
+    """Render an inline diff partial for a single event.
+
+    Returns an HTML fragment (no base template) suitable for insertion
+    into a .event-diff-container via htmx.
+    """
+    from app.events.query import EventQueryService
+    from urllib.parse import unquote as _unquote
+
+    templates = request.app.state.templates
+    decoded_iri = _unquote(event_iri)
+    query_svc = EventQueryService(client)
+    detail = await query_svc.get_event_detail(decoded_iri)
+    if not detail:
+        return HTMLResponse("<div class='event-diff-error'>Event not found.</div>")
+    return templates.TemplateResponse(request, "browser/event_detail.html", {
+        "request": request,
+        "detail": detail,
+    })
+
+
+@router.post("/events/{event_iri:path}/undo")
+async def undo_event(
+    request: Request,
+    event_iri: str,
+    user: User = Depends(require_role("owner", "member")),
+    client: TriplestoreClient = Depends(get_triplestore_client),
+):
+    """Create a compensating event that reverses the specified event.
+
+    Builds a compensation Operation via EventQueryService.build_compensation()
+    and commits it via EventStore. The original event is not modified.
+    """
+    from app.events.query import EventQueryService
+    from app.events.store import EventStore
+    from urllib.parse import unquote as _unquote
+
+    decoded_iri = _unquote(event_iri)
+    query_svc = EventQueryService(client)
+    detail = await query_svc.get_event_detail(decoded_iri)
+    if not detail:
+        return JSONResponse(status_code=404, content={"error": "Event not found"})
+    compensation = await query_svc.build_compensation(decoded_iri, detail)
+    if not compensation:
+        return JSONResponse(status_code=400, content={"error": "This event cannot be undone"})
+    event_store = EventStore(client)
+    user_iri = URIRef(f"urn:sempkm:user:{user.id}")
+    await event_store.commit([compensation], performed_by=user_iri, performed_by_role=user.role)
+    return JSONResponse(content={"status": "ok", "message": "Undo applied successfully"})
+
+
 @router.get("/search")
 async def search_references(
     request: Request,
