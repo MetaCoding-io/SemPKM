@@ -25,8 +25,8 @@
 - [x] **WORK-01**: User can split the editor into multiple editor groups (horizontal split) via context menu "Split Right" or Ctrl+\ shortcut, up to 4 groups max
 - [x] **WORK-02**: Each editor group has its own tab bar with independent tabs; tabs can be dragged between groups
 - [x] **WORK-03**: Closing the last tab in an editor group removes that group and remaining groups expand to fill space
-- [ ] **WORK-04**: A bottom panel with tabbed interface exists below the editor area, toggled via Ctrl+J, with collapse/maximize controls
-- [ ] **WORK-05**: Bottom panel has placeholder tabs for SPARQL console, Event Log, and AI Copilot
+- [x] **WORK-04**: A bottom panel with tabbed interface exists below the editor area, toggled via Ctrl+J, with collapse/maximize controls
+- [x] **WORK-05**: Bottom panel has placeholder tabs for SPARQL console, Event Log, and AI Copilot
 - [x] **WORK-06**: Tab styling uses rounded top corners (border-radius 8px) with a recessed tab bar background
 
 ### Sidebar and Navigation (NAV)
@@ -126,8 +126,8 @@
 | WORK-01 | Phase 14 | Complete |
 | WORK-02 | Phase 14 | Complete |
 | WORK-03 | Phase 14 | Complete |
-| WORK-04 | Phase 14 | Pending |
-| WORK-05 | Phase 14 | Pending |
+| WORK-04 | Phase 14 | Complete |
+| WORK-05 | Phase 14 | Complete |
 | WORK-06 | Phase 13 | Complete |
 | NAV-01 | Phase 12 | Complete |
 | NAV-02 | Phase 12 | Complete |
