@@ -27,7 +27,7 @@
 - [ ] **WORK-03**: Closing the last tab in an editor group removes that group and remaining groups expand to fill space
 - [ ] **WORK-04**: A bottom panel with tabbed interface exists below the editor area, toggled via Ctrl+J, with collapse/maximize controls
 - [ ] **WORK-05**: Bottom panel has placeholder tabs for SPARQL console, Event Log, and AI Copilot
-- [ ] **WORK-06**: Tab styling uses rounded top corners (border-radius 8px) with a recessed tab bar background
+- [x] **WORK-06**: Tab styling uses rounded top corners (border-radius 8px) with a recessed tab bar background
 
 ### Sidebar and Navigation (NAV)
 
@@ -82,7 +82,7 @@
 
 ### Error Handling (ERR)
 
-- [ ] **ERR-01**: 403 Forbidden responses display a styled permission panel with lock icon, role explanation, and navigation buttons instead of a raw error fragment
+- [x] **ERR-01**: 403 Forbidden responses display a styled permission panel with lock icon, role explanation, and navigation buttons instead of a raw error fragment
 
 ## Deferred to Future Milestones
 
@@ -128,7 +128,7 @@
 | WORK-03 | Phase 14 | Pending |
 | WORK-04 | Phase 14 | Pending |
 | WORK-05 | Phase 14 | Pending |
-| WORK-06 | Phase 13 | Pending |
+| WORK-06 | Phase 13 | Complete |
 | NAV-01 | Phase 12 | Complete |
 | NAV-02 | Phase 12 | Complete |
 | NAV-03 | Phase 12 | Complete |
@@ -159,7 +159,7 @@
 | DOCS-02 | Phase 18 | Pending |
 | DOCS-03 | Phase 18 | Pending |
 | DOCS-04 | Phase 18 | Pending |
-| ERR-01 | Phase 13 | Pending |
+| ERR-01 | Phase 13 | Complete |
 
 **Coverage:**
 - v2.0 requirements: 46 total
