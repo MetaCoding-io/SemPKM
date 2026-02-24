@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-23)
 ## Current Position
 
 Phase: 16 of 18 (Event Log Explorer)
-Plan: 2 of 3 (complete)
-Status: Phase 16 plan 02 complete (filter chips, filter controls, click-to-filter, event log CSS)
-Last activity: 2026-02-24 - Completed 16-02: Event Log Filter UI and CSS
+Plan: 3 of 3 (complete)
+Status: Phase 16 plan 03 complete (inline diff view, undo functionality for reversible events)
+Last activity: 2026-02-24 - Completed 16-03: Event Log Inline Diff and Undo
 
-Progress: [########░░] 79% (v2.0) -- 16-02 complete (19/24 plans)
+Progress: [#########░] 83% (v2.0) -- 16-03 complete (20/24 plans)
 
 ## Performance Metrics
 
@@ -44,6 +44,7 @@ Progress: [########░░] 79% (v2.0) -- 16-02 complete (19/24 plans)
 | 15    | 03   | 4min     | 2     | 9     |
 | 16    | 01   | 12min    | 2     | 4     |
 | 16    | 02   | 2min     | 2     | 3     |
+| 16    | 03   | 3min     | 2     | 6     |
 
 ## Accumulated Context
 
@@ -118,6 +119,9 @@ v2.0 roadmap decisions:
 - (16-02) dict_without filter registered in main.py (global Jinja2 env) not in router -- filters are env-level config, not per-route
 - (16-02) urlencode filter overridden as dict-capable (urllib.parse.urlencode) -- built-in Jinja2 urlencode handles scalars only; dict_without|urlencode chain requires dict encoding
 - (16-02) Event log object links use hx-get for click-to-filter (not openTab()) -- filtering the timeline vs navigating to the object are distinct actions
+- (16-03) loop.index IDs used for htmx diff targets (not hx-target='next') for htmx version compatibility
+- (16-03) build_compensation() uses concrete Literal values in materialize_deletes (not Variable) -- undo targets specific known old values
+- (16-03) edge.create undo uses operation_type='edge.create.undo' to distinguish compensating event in event log
 
 ### Pending Todos
 
@@ -146,5 +150,5 @@ v2.0 roadmap decisions:
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 16-02-PLAN.md (Event Log Explorer - Filter UI and CSS)
-Resume: Begin Phase 16 Plan 03
+Stopped at: Completed 16-03-PLAN.md (Event Log Explorer - Inline Diff and Undo)
+Resume: Begin Phase 17 (next phase)
