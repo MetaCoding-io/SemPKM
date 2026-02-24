@@ -14,12 +14,35 @@
 // Unpinned @6 ranges so esm.sh resolves all packages to the same @codemirror/state.
 // Pinned versions caused state version/target divergence (6.4.1/esnext vs 6.5.2/es2022).
 import { EditorView, keymap } from "https://esm.sh/@codemirror/view@6";
-import { EditorState } from "https://esm.sh/@codemirror/state@6";
+import { EditorState, Compartment } from "https://esm.sh/@codemirror/state@6";
 import { basicSetup } from "https://esm.sh/codemirror@6.0.1";
 import { markdown } from "https://esm.sh/@codemirror/lang-markdown@6";
 
+// --- Theme Compartment (shared across all editor instances) ---
+var themeCompartment = new Compartment();
+
+var darkEditorTheme = EditorView.theme({
+  '&': { backgroundColor: '#282c34', color: '#abb2bf' },
+  '.cm-cursor, .cm-dropCursor': { borderLeftColor: '#56b6c2' },
+  '.cm-gutters': { backgroundColor: '#21252b', color: '#5c6370', borderRight: '1px solid #3e4452' },
+  '.cm-activeLineGutter': { backgroundColor: '#2c313a' },
+  '.cm-activeLine': { backgroundColor: '#2c313a' },
+  '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection': { backgroundColor: '#3E4451' }
+}, { dark: true });
+
+var lightEditorTheme = EditorView.theme({
+  '&': { backgroundColor: '#ffffff', color: '#1a1a2e' },
+  '.cm-gutters': { backgroundColor: '#f8f9fb', color: '#666', borderRight: '1px solid #e0e0e0' }
+}, { dark: false });
+
 // Track active editor instances by object IRI
 var editors = {};
+
+function getCurrentTheme() {
+  return document.documentElement.getAttribute('data-theme') === 'dark'
+    ? darkEditorTheme
+    : lightEditorTheme;
+}
 
 /**
  * Initialize a CodeMirror 6 editor in the specified container.
@@ -54,6 +77,7 @@ export function initEditor(containerId, initialContent, objectIri) {
       extensions: [
         basicSetup,
         markdown(),
+        themeCompartment.of(getCurrentTheme()),
         keymap.of([
           {
             key: 'Mod-s',
@@ -213,6 +237,25 @@ export function destroyEditor(objectIri) {
     delete editors[objectIri];
   }
 }
+
+/**
+ * Switch all active CodeMirror editors between dark and light themes.
+ * Uses Compartment.reconfigure() to preserve cursor position, undo history, etc.
+ *
+ * @param {boolean} isDark - true for dark theme, false for light
+ */
+window.switchEditorThemes = function(isDark) {
+  var theme = isDark ? darkEditorTheme : lightEditorTheme;
+  var iris = Object.keys(editors);
+  for (var i = 0; i < iris.length; i++) {
+    var view = editors[iris[i]];
+    if (view) {
+      view.dispatch({
+        effects: themeCompartment.reconfigure(theme)
+      });
+    }
+  }
+};
 
 // Expose functions globally for use from non-module scripts and onclick handlers
 window.initEditor = initEditor;

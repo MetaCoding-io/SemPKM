@@ -52,7 +52,17 @@
       document.documentElement.classList.remove('no-transition');
     });
 
-    // Dispatch event for any other listeners (CodeMirror, Cytoscape, etc.)
+    // Switch CodeMirror editors via Compartment reconfigure
+    if (typeof window.switchEditorThemes === 'function') {
+      window.switchEditorThemes(resolved === 'dark');
+    }
+
+    // Switch Cytoscape graph styles
+    if (typeof window.switchGraphTheme === 'function') {
+      window.switchGraphTheme(resolved === 'dark');
+    }
+
+    // Dispatch event for any other listeners
     document.dispatchEvent(new CustomEvent('sempkm:theme-changed', {
       detail: { theme: resolved, preference: pref }
     }));
