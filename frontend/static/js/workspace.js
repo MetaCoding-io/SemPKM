@@ -527,6 +527,15 @@
           toggleObjectMode(safeId, iri);
         }
       }
+
+      // Ctrl+K / Cmd+K: Open command palette
+      if (mod && e.key === 'k') {
+        e.preventDefault();
+        var ninja = document.querySelector('ninja-keys');
+        if (ninja) {
+          ninja.open();
+        }
+      }
     });
   }
 
