@@ -45,28 +45,46 @@
     <div class="event-empty">No events recorded yet.</div>
     {% else %}
     {% for event in events %}
-    <div class="event-row" data-event-iri="{{ event.event_iri }}">
-      <span class="event-op-badge event-op-{{ event.operation_type | replace('.', '-') }}">{{ event.operation_type }}</span>
-      <span class="event-affected">
-        {% for iri in event.affected_iris[:1] %}
-          {% set label = labels.get(iri, iri.split(':')[-1] if ':' in iri else iri) %}
-          <a class="event-obj-link"
-             hx-get="/browser/events?obj={{ iri | urlencode }}"
-             hx-target="#panel-event-log"
-             hx-swap="innerHTML"
-             title="Filter by this object">{{ label }}</a>
-        {% endfor %}
-        {% if event.affected_iris | length > 1 %}
-          <span class="event-affected-more">+{{ event.affected_iris | length - 1 }} more</span>
-        {% endif %}
-      </span>
-      <span class="event-user"
-            hx-get="/browser/events?user={{ event.performed_by | urlencode }}"
-            hx-target="#panel-event-log"
-            hx-swap="innerHTML"
-            style="cursor:pointer"
-            title="Filter by this user">{{ user_names.get(event.performed_by, '') if event.performed_by else 'system' }}</span>
-      <span class="event-timestamp" title="{{ event.timestamp }}">{{ event.timestamp[:19] | replace('T', ' ') }}</span>
+    <div class="event-row-wrapper" data-event-iri="{{ event.event_iri }}">
+      <div class="event-row">
+        <span class="event-op-badge event-op-{{ event.operation_type | replace('.', '-') }}">{{ event.operation_type }}</span>
+        <span class="event-affected">
+          {% for iri in event.affected_iris[:1] %}
+            {% set label = labels.get(iri, iri.split(':')[-1] if ':' in iri else iri) %}
+            <a class="event-obj-link"
+               hx-get="/browser/events?obj={{ iri | urlencode }}"
+               hx-target="#panel-event-log"
+               hx-swap="innerHTML"
+               title="Filter by this object">{{ label }}</a>
+          {% endfor %}
+          {% if event.affected_iris | length > 1 %}
+            <span class="event-affected-more">+{{ event.affected_iris | length - 1 }} more</span>
+          {% endif %}
+        </span>
+        <span class="event-user"
+              hx-get="/browser/events?user={{ event.performed_by | urlencode }}"
+              hx-target="#panel-event-log"
+              hx-swap="innerHTML"
+              style="cursor:pointer"
+              title="Filter by this user">{{ user_names.get(event.performed_by, '') if event.performed_by else 'system' }}</span>
+        <span class="event-timestamp" title="{{ event.timestamp }}">{{ event.timestamp[:19] | replace('T', ' ') }}</span>
+        <div class="event-row-actions">
+          {% if event.operation_type in ['object.patch', 'body.set', 'object.create', 'edge.create', 'edge.patch'] %}
+          <button class="event-btn-diff"
+                  hx-get="/browser/events/{{ event.event_iri | urlencode }}/detail"
+                  hx-target="#diff-{{ loop.index }}"
+                  hx-swap="innerHTML">
+            Diff
+          </button>
+          {% endif %}
+          {% if event.operation_type in ['object.patch', 'body.set', 'edge.create', 'edge.patch'] %}
+          <button class="event-btn-undo" onclick="sempkmUndoEvent('{{ event.event_iri }}', this)">
+            Undo
+          </button>
+          {% endif %}
+        </div>
+      </div>
+      <div class="event-diff-container" id="diff-{{ loop.index }}"></div>
     </div>
     {% endfor %}
     {% endif %}
@@ -79,7 +97,7 @@
             hx-get="/browser/events?cursor={{ next_cursor | urlencode }}{% for f in active_filters %}&{{ f.param }}={{ f.value | urlencode }}{% endfor %}"
             hx-target="#event-timeline"
             hx-swap="beforeend"
-            hx-select=".event-row">
+            hx-select=".event-row-wrapper">
       Load more
     </button>
   </div>
