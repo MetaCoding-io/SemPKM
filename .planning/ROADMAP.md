@@ -130,12 +130,12 @@ Plans:
   2. Settings resolve in layered order: system defaults < mental model defaults < user overrides; changes dispatch a `sempkm:setting-changed` DOM event that consuming components react to
   3. Mental Models can contribute settings via a `settings` key in their manifest, which appear in the Settings page under the model's category
   4. Object explorer tree and graph view display type-specific Lucide icons with color coding; Mental Models can declare icon and color mappings in their manifest
-**Plans**: ~3 plans
+**Plans**: 3 plans
 
 Plans:
-- [ ] 15-01: Settings registry, store, and page UI
-- [ ] 15-02: Layered resolution and mental model contributed settings
-- [ ] 15-03: Lucide icon integration for explorer tree and graph view
+- [ ] 15-01-PLAN.md — Settings infrastructure (UserSetting ORM, migration, SettingsService, ManifestSchema extensions, FastAPI routes, settings.js, Ctrl+, shortcut)
+- [ ] 15-02-PLAN.md — Settings page UI (two-column layout, search filter, all input types, Modified indicators, dark mode as first consumer)
+- [ ] 15-03-PLAN.md — Node type icon system (IconService, explorer tree Lucide icons, editor tab icons, graph shape differentiation, basic-pkm manifest icons)
 
 ### Phase 16: Event Log Explorer
 **Goal**: Users can browse, filter, and understand the full history of changes to their knowledge base, with inline diffs and the ability to undo reversible operations
@@ -204,7 +204,7 @@ Phases execute in numeric order: 10 → 11 → 12 → 13 → 14 → 15 → 16 �
 | 12. Sidebar and Navigation | 2/2 | Complete    | 2026-02-23 | - |
 | 13. Dark Mode and Visual Polish | 4/4 | Complete    | 2026-02-24 | - |
 | 14. Split Panes and Bottom Panel | 3/3 | Complete    | 2026-02-24 | - |
-| 15. Settings System and Node Type Icons | v2.0 | 0/3 | Not started | - |
+| 15. Settings System and Node Type Icons | v2.0 | 0/3 | Planned | - |
 | 16. Event Log Explorer | v2.0 | 0/3 | Not started | - |
 | 17. LLM Connection Configuration | v2.0 | 0/2 | Not started | - |
 | 18. Tutorials and Documentation | v2.0 | 0/2 | Not started | - |
