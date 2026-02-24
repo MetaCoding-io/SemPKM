@@ -97,12 +97,13 @@ Plans:
   3. Dark mode color tokens follow VS Code "Dark+" palette (dark surfaces, muted text, blue accents)
   4. Tab styling uses rounded top corners (border-radius 8px) with a recessed tab bar background in both light and dark modes
   5. 403 Forbidden responses display a styled permission panel with lock icon, role explanation, and navigation buttons instead of a raw error fragment
-**Plans**: 3 plans
+**Plans**: 4 plans
 
 Plans:
 - [ ] 13-01-PLAN.md — CSS custom property token system (light+dark), anti-FOUC script, theme toggle UI, full hardcoded color migration
 - [ ] 13-02-PLAN.md — Third-party component dark mode (CodeMirror Compartment, Cytoscape style rebuild, ninja-keys, highlight.js)
 - [ ] 13-03-PLAN.md — Rounded tab styling with teal accent and styled 403 permission panel
+- [ ] 13-04-PLAN.md — UAT gap closure: Ctrl+K command palette fix, tab accent/radius fixes, card border fixes
 
 ### Phase 14: Split Panes and Bottom Panel
 **Goal**: Users can work with multiple objects side-by-side in editor groups and access panel-based tools (SPARQL, Event Log, AI Copilot) in a collapsible bottom panel
@@ -201,7 +202,7 @@ Phases execute in numeric order: 10 → 11 → 12 → 13 → 14 → 15 → 16 �
 | 10. Bug Fixes and Cleanup Architecture | 3/3 | Complete    | 2026-02-23 | - |
 | 11. Read-Only Object View | 1/2 | In Progress|  | - |
 | 12. Sidebar and Navigation | 2/2 | Complete    | 2026-02-23 | - |
-| 13. Dark Mode and Visual Polish | 3/3 | Complete   | 2026-02-24 | - |
+| 13. Dark Mode and Visual Polish | 3/4 | UAT Fixes   | 2026-02-24 | - |
 | 14. Split Panes and Bottom Panel | v2.0 | 0/3 | Not started | - |
 | 15. Settings System and Node Type Icons | v2.0 | 0/3 | Not started | - |
 | 16. Event Log Explorer | v2.0 | 0/3 | Not started | - |
