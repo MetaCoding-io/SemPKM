@@ -348,6 +348,18 @@
     if (panelState.open && typeof lucide !== 'undefined') {
       lucide.createIcons({ attrs: { class: ['lucide'] } });
     }
+
+    // Auto-load event log when panel opens with event-log as active tab
+    // (e.g. restoring state on page load, or toggling panel open via Ctrl+J)
+    if (panelState.open && panelState.activeTab === 'event-log') {
+      var pane = document.getElementById('panel-event-log');
+      if (pane && pane.querySelector('.panel-placeholder')) {
+        htmx.ajax('GET', '/browser/events', {
+          target: '#panel-event-log',
+          swap: 'innerHTML'
+        });
+      }
+    }
   }
 
   function toggleBottomPanel() {
@@ -406,6 +418,17 @@
         panelState.activeTab = btn.dataset.panel;
         savePanelState();
         _applyPanelState();
+
+        // Lazy-load event log on first activation (replace placeholder with real content)
+        if (btn.dataset.panel === 'event-log') {
+          var pane = document.getElementById('panel-event-log');
+          if (pane && pane.querySelector('.panel-placeholder')) {
+            htmx.ajax('GET', '/browser/events', {
+              target: '#panel-event-log',
+              swap: 'innerHTML'
+            });
+          }
+        }
       });
     });
   }

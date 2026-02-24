@@ -1,0 +1,49 @@
+<div class="event-log-container">
+  <!-- Header with filter controls (populated in Plan 16-02; placeholder for now) -->
+  <div class="event-log-header">
+    <div class="filter-chips" id="event-filter-chips">
+      {# Filter chips rendered here in Plan 16-02 #}
+    </div>
+    <div class="event-filter-controls">
+      {# Filter dropdowns added in Plan 16-02 #}
+    </div>
+  </div>
+
+  <!-- Timeline list -->
+  <div class="event-timeline" id="event-timeline">
+    {% if not events %}
+    <div class="event-empty">No events recorded yet.</div>
+    {% else %}
+    {% for event in events %}
+    <div class="event-row" data-event-iri="{{ event.event_iri }}">
+      <span class="event-op-badge event-op-{{ event.operation_type | replace('.', '-') }}">{{ event.operation_type }}</span>
+      <span class="event-affected">
+        {% for iri in event.affected_iris[:1] %}
+          {% set label = labels.get(iri, iri.split(':')[-1] if ':' in iri else iri) %}
+          <a href="#" class="event-obj-link" data-iri="{{ iri }}"
+             onclick="event.preventDefault(); openTab('{{ iri }}', '{{ label }}')">{{ label }}</a>
+        {% endfor %}
+        {% if event.affected_iris | length > 1 %}
+          <span class="event-affected-more">+{{ event.affected_iris | length - 1 }} more</span>
+        {% endif %}
+      </span>
+      <span class="event-user">{{ user_names.get(event.performed_by, '') if event.performed_by else 'system' }}</span>
+      <span class="event-timestamp" title="{{ event.timestamp }}">{{ event.timestamp[:19] | replace('T', ' ') }}</span>
+    </div>
+    {% endfor %}
+    {% endif %}
+  </div>
+
+  <!-- Cursor pagination: "Load more" button -->
+  {% if next_cursor %}
+  <div class="event-load-more">
+    <button class="btn-load-more"
+            hx-get="/browser/events?cursor={{ next_cursor | urlencode }}{% for f in active_filters %}&{{ f.param }}={{ f.value | urlencode }}{% endfor %}"
+            hx-target="#event-timeline"
+            hx-swap="beforeend"
+            hx-select=".event-row">
+      Load more
+    </button>
+  </div>
+  {% endif %}
+</div>
