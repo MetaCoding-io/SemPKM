@@ -4,59 +4,137 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Access Denied - SemPKM</title>
+    <!-- Anti-FOUC script (same as base.html) -->
+    <script>
+    (function() {
+      var stored = localStorage.getItem('sempkm_theme');
+      var theme = 'light';
+      if (stored === 'dark') theme = 'dark';
+      else if (stored === 'system' || !stored) theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+    </script>
+    <link rel="stylesheet" href="/css/theme.css">
     <link rel="stylesheet" href="/css/style.css">
+    <!-- Lucide for lock icon -->
+    <script src="https://unpkg.com/lucide@0.575.0/dist/umd/lucide.min.js"></script>
     <style>
         .error-page {
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 80vh;
-            text-align: center;
+            min-height: 100vh;
             padding: 2rem;
+            background: var(--color-bg);
         }
-        .error-code {
-            font-size: 4rem;
-            font-weight: 700;
-            color: var(--color-error);
-            margin-bottom: 0.5rem;
+
+        .error-panel {
+            max-width: 480px;
+            width: 100%;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            box-shadow: var(--shadow-elevated);
+            padding: 2.5rem;
+            text-align: center;
         }
-        .error-title {
-            font-size: 1.5rem;
+
+        .error-panel-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: var(--color-surface-recessed);
+            margin-bottom: 1.25rem;
+        }
+
+        .error-panel-icon i {
+            width: 28px;
+            height: 28px;
+            color: var(--color-text-faint);
+        }
+
+        .error-panel-title {
+            font-size: 1.25rem;
             font-weight: 600;
             color: var(--color-text);
-            margin-bottom: 1rem;
+            margin: 0 0 0.75rem 0;
         }
-        .error-message {
+
+        .error-panel-message {
             color: var(--color-text-muted);
-            max-width: 480px;
-            margin-bottom: 2rem;
             line-height: 1.6;
+            font-size: 0.9rem;
+            margin: 0 0 1.5rem 0;
         }
-        .error-action {
-            display: inline-block;
-            padding: 0.6rem 1.5rem;
-            background: var(--color-primary);
-            color: #fff;
-            text-decoration: none;
-            border-radius: var(--radius);
+
+        .error-panel-actions {
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        .btn-error-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1.25rem;
+            background: var(--color-accent);
+            color: var(--color-avatar-text);
+            border: none;
+            border-radius: 6px;
+            font-size: 0.88rem;
             font-weight: 500;
-            transition: background 0.2s;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background 0.15s;
         }
-        .error-action:hover {
-            background: var(--color-primary-hover);
+
+        .btn-error-primary:hover {
+            background: var(--color-accent-hover);
+        }
+
+        .btn-error-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1.25rem;
+            background: transparent;
+            color: var(--color-text-muted);
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            font-size: 0.88rem;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .btn-error-secondary:hover {
+            background: var(--color-surface-hover);
+            color: var(--color-text);
         }
     </style>
 </head>
 <body>
     <div class="error-page">
-        <div class="error-code">403</div>
-        <h1 class="error-title">Access Denied</h1>
-        <p class="error-message">
-            You don't have permission to access this page.
-            This area requires a higher access level.
-        </p>
-        <a href="/browser/" class="error-action">Back to Workspace</a>
+        <div class="error-panel">
+            <div class="error-panel-icon">
+                <i data-lucide="lock"></i>
+            </div>
+            <h2 class="error-panel-title">Access Denied</h2>
+            <p class="error-panel-message">
+                You don't have permission to access this resource.
+                Your current role does not include the required privileges.
+            </p>
+            <div class="error-panel-actions">
+                <a href="/" class="btn-error-primary">Go Home</a>
+                <button type="button" class="btn-error-secondary" onclick="history.back()">Go Back</button>
+            </div>
+        </div>
     </div>
+    <script>lucide.createIcons();</script>
 </body>
 </html>
