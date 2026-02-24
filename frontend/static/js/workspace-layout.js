@@ -702,7 +702,10 @@
 
     var url;
 
-    if (tab.isView || (tabId && tabId.indexOf('view:') === 0)) {
+    if (tabId === 'special:settings' || (tab && tab.specialType === 'settings')) {
+      // Settings special tab
+      url = '/browser/settings';
+    } else if (tab.isView || (tabId && tabId.indexOf('view:') === 0)) {
       // View tab
       var viewId = tab.viewId || (tabId.indexOf('view:') === 0 ? tabId.substring(5) : tabId);
       var viewType = tab.viewType || 'table';
@@ -724,8 +727,9 @@
         if (el) el.innerHTML = '<div class="editor-empty"><p>Failed to load content.</p></div>';
       });
 
-      // Load right-pane sections for object tabs (not views)
-      if (!tab.isView && !(tabId && tabId.indexOf('view:') === 0)) {
+      // Load right-pane sections for object tabs (not views or special tabs)
+      var isSpecial = tabId === 'special:settings' || (tab && tab.specialType === 'settings');
+      if (!tab.isView && !(tabId && tabId.indexOf('view:') === 0) && !isSpecial) {
         if (typeof loadRightPaneSection === 'function') {
           loadRightPaneSection(tabId, 'relations');
           loadRightPaneSection(tabId, 'lint');

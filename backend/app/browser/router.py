@@ -12,11 +12,13 @@ from datetime import datetime
 from urllib.parse import unquote
 
 from fastapi import APIRouter, Depends, Query, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from rdflib import URIRef
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import get_current_user, require_role
 from app.auth.models import User
+from app.db.session import get_db_session
 from app.dependencies import (
     get_label_service,
     get_shapes_service,
@@ -24,6 +26,7 @@ from app.dependencies import (
     get_validation_queue,
 )
 from app.services.labels import LabelService
+from app.services.settings import SettingsService
 from app.services.shapes import ShapesService
 from app.triplestore.client import TriplestoreClient
 from app.validation.queue import AsyncValidationQueue
@@ -31,6 +34,81 @@ from app.validation.queue import AsyncValidationQueue
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/browser", tags=["browser"])
+
+# Models directory path -- mirrors the Docker mount used in main.py
+_MODELS_DIR = "/app/models"
+
+
+def get_settings_service() -> SettingsService:
+    """FastAPI dependency that returns a SettingsService with the models directory."""
+    return SettingsService(installed_models_dir=_MODELS_DIR)
+
+
+@router.get("/settings")
+async def settings_page(
+    request: Request,
+    user: User = Depends(get_current_user),
+    settings_svc: SettingsService = Depends(get_settings_service),
+    db: AsyncSession = Depends(get_db_session),
+):
+    """Render the Settings page as an htmx partial."""
+    from collections import defaultdict
+
+    templates = request.app.state.templates
+    all_settings = await settings_svc.get_all_settings()
+    user_overrides = await settings_svc.get_user_overrides(user.id, db)
+    resolved = await settings_svc.resolve(user.id, db)
+
+    categories = defaultdict(list)
+    for s in all_settings:
+        categories[s.category].append(s)
+
+    return templates.TemplateResponse(request, "browser/settings_page.html", {
+        "request": request,
+        "categories": dict(categories),
+        "user_overrides": user_overrides,
+        "resolved": resolved,
+        "all_settings": all_settings,
+    })
+
+
+@router.get("/settings/data")
+async def settings_data(
+    user: User = Depends(get_current_user),
+    settings_svc: SettingsService = Depends(get_settings_service),
+    db: AsyncSession = Depends(get_db_session),
+):
+    """Return resolved settings as JSON for the client-side cache."""
+    resolved = await settings_svc.resolve(user.id, db)
+    return JSONResponse(content=resolved)
+
+
+@router.put("/settings/{key:path}")
+async def update_setting(
+    key: str,
+    request: Request,
+    user: User = Depends(get_current_user),
+    settings_svc: SettingsService = Depends(get_settings_service),
+    db: AsyncSession = Depends(get_db_session),
+):
+    """Upsert a user override. Body: {\"value\": \"...\"}"""
+    body = await request.json()
+    value = str(body.get("value", ""))
+    await settings_svc.set_override(user.id, key, value, db)
+    return JSONResponse(content={"key": key, "value": value})
+
+
+@router.delete("/settings/{key:path}")
+async def reset_setting(
+    key: str,
+    user: User = Depends(get_current_user),
+    settings_svc: SettingsService = Depends(get_settings_service),
+    db: AsyncSession = Depends(get_db_session),
+):
+    """Delete a user override, reverting to default."""
+    await settings_svc.reset_override(user.id, key, db)
+    resolved = await settings_svc.resolve(user.id, db)
+    return JSONResponse(content={"key": key, "default_value": resolved.get(key)})
 
 
 def _format_date(value: str) -> str:
