@@ -234,6 +234,75 @@ async def fetch_llm_models(
     })
 
 
+@router.post("/llm/chat/stream")
+async def llm_chat_stream(
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db_session),
+):
+    """SSE streaming proxy for LLM chat completions.
+
+    Receives JSON body: {"messages": [...], "model": "optional-override"}
+    Fetches the encrypted API key from InstanceConfig, then proxies the
+    streaming /v1/chat/completions response to the browser as text/event-stream.
+
+    Accessible to any authenticated user (owner sets config; all users stream).
+    """
+    import httpx
+    from fastapi.responses import StreamingResponse
+    from app.services.llm import LLMConfigService
+
+    svc = LLMConfigService()
+    config = await svc.get_config(db)
+    api_key = await svc.get_decrypted_api_key(db)
+    base_url = config["api_base_url"].rstrip("/") if config["api_base_url"] else ""
+
+    if not base_url:
+        async def error_stream():
+            yield 'data: {"error": "LLM not configured"}\n\n'
+            yield "data: [DONE]\n\n"
+        return StreamingResponse(
+            error_stream(),
+            media_type="text/event-stream",
+            headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+        )
+
+    body = await request.json()
+    messages = body.get("messages", [])
+    model = body.get("model") or config["default_model"]
+
+    headers: dict[str, str] = {"Content-Type": "application/json"}
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+
+    payload = {"model": model, "messages": messages, "stream": True}
+
+    async def event_stream():
+        try:
+            async with httpx.AsyncClient(timeout=300.0) as client:
+                async with client.stream(
+                    "POST",
+                    f"{base_url}/v1/chat/completions",
+                    headers=headers,
+                    json=payload,
+                ) as response:
+                    async for line in response.aiter_lines():
+                        if line:
+                            yield f"{line}\n\n"
+        except Exception as e:
+            yield f'data: {{"error": "{str(e)[:100]}"}}\n\n'
+            yield "data: [DONE]\n\n"
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
 @router.get("/icons")
 async def icons_data(
     request: Request,
