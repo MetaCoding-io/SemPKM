@@ -41,6 +41,7 @@ Progress: [#########░] 83% (v2.0) -- 16-03 complete (20/24 plans)
 | 14    | 02   | 3min     | 2     | 2     |
 | 14    | 03   | 60min    | 3     | 4     |
 | 15    | 01   | 6min     | 2     | 11    |
+| 15    | 02   | 3min     | 3     | 5     |
 | 15    | 03   | 4min     | 2     | 9     |
 | 16    | 01   | 12min    | 2     | 4     |
 | 16    | 02   | 2min     | 2     | 3     |
@@ -109,6 +110,10 @@ v2.0 roadmap decisions:
 - (15-01) get_settings_service creates SettingsService per-request (stateless, no app.state needed)
 - (15-01) special:settings tab skips right-pane section loading (no relations/lint for settings page)
 - (15-01) settings.js auto-fetches on DOM ready to warm cache before consumers call SemPKMSettings.get()
+- (15-02) settingChanged() -> SemPKMSettings.set() -> sempkm:setting-changed CustomEvent -> theme.js setTheme() -- no direct coupling between settings UI and theme module
+- (15-02) 300ms DOMContentLoaded delay for server-theme sync allows settings.js auto-fetch to complete; anti-FOUC script applied localStorage theme before first paint so delay is safe
+- (15-02) localStorage write-through on every theme change keeps anti-FOUC fast-path accurate for future page loads
+- (15-02) Modified badge and Reset button rendered server-side (Jinja2) based on user_overrides presence; removed client-side on reset without page reload
 - (15-03) IconService per-request creation (stateless, matches SettingsService approach)
 - (15-03) iconToShape mapping translates Lucide icon names to Cytoscape shapes; unmapped icons default to ellipse
 - (15-03) window._sempkmIcons fetched on workspace init as client-side cache for graph shapes and tab icons
