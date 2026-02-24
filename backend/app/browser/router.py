@@ -25,6 +25,7 @@ from app.dependencies import (
     get_triplestore_client,
     get_validation_queue,
 )
+from app.services.icons import IconService
 from app.services.labels import LabelService
 from app.services.settings import SettingsService
 from app.services.shapes import ShapesService
@@ -42,6 +43,11 @@ _MODELS_DIR = "/app/models"
 def get_settings_service() -> SettingsService:
     """FastAPI dependency that returns a SettingsService with the models directory."""
     return SettingsService(installed_models_dir=_MODELS_DIR)
+
+
+def get_icon_service() -> IconService:
+    """FastAPI dependency that returns an IconService with the models directory."""
+    return IconService(models_dir=_MODELS_DIR)
 
 
 @router.get("/settings")
@@ -111,6 +117,20 @@ async def reset_setting(
     return JSONResponse(content={"key": key, "default_value": resolved.get(key)})
 
 
+@router.get("/icons")
+async def icons_data(
+    request: Request,
+    user: User = Depends(get_current_user),
+    icon_svc: IconService = Depends(get_icon_service),
+):
+    """Return icon map for all contexts as JSON for client-side caching."""
+    return JSONResponse(content={
+        "tree": icon_svc.get_icon_map("tree"),
+        "tab": icon_svc.get_icon_map("tab"),
+        "graph": icon_svc.get_icon_map("graph"),
+    })
+
+
 def _format_date(value: str) -> str:
     """Format ISO date string to human-readable: 'Feb 23, 2026'."""
     try:
@@ -130,6 +150,7 @@ async def workspace(
     request: Request,
     user: User = Depends(get_current_user),
     shapes_service: ShapesService = Depends(get_shapes_service),
+    icon_svc: IconService = Depends(get_icon_service),
 ):
     """Render the IDE-style workspace with three-column layout.
 
@@ -138,7 +159,14 @@ async def workspace(
     """
     templates = request.app.state.templates
     types = await shapes_service.get_types()
-    context = {"request": request, "types": types, "active_page": "browser", "user": user}
+    type_icons = icon_svc.get_icon_map(context="tree")
+    context = {
+        "request": request,
+        "types": types,
+        "type_icons": type_icons,
+        "active_page": "browser",
+        "user": user,
+    }
 
     if _is_htmx_request(request):
         return templates.TemplateResponse(
@@ -154,6 +182,7 @@ async def tree_children(
     user: User = Depends(get_current_user),
     shapes_service: ShapesService = Depends(get_shapes_service),
     label_service: LabelService = Depends(get_label_service),
+    icon_svc: IconService = Depends(get_icon_service),
 ):
     """Load objects of a given type for the navigation tree.
 
@@ -189,7 +218,9 @@ async def tree_children(
         for iri in obj_iris
     ]
 
-    context = {"request": request, "objects": objects}
+    type_icon = icon_svc.get_type_icon(decoded_iri, context="tree")
+
+    context = {"request": request, "objects": objects, "type_icon": type_icon}
     return templates.TemplateResponse(
         request, "browser/tree_children.html", context
     )
@@ -204,6 +235,7 @@ async def get_object(
     shapes_service: ShapesService = Depends(get_shapes_service),
     label_service: LabelService = Depends(get_label_service),
     client: TriplestoreClient = Depends(get_triplestore_client),
+    icon_svc: IconService = Depends(get_icon_service),
 ):
     """Render an object in the editor area with read-only view or edit form.
 
@@ -312,6 +344,10 @@ async def get_object(
     object_label = labels.get(decoded_iri, decoded_iri)
     object_type_label = labels.get(type_iris[0], "") if type_iris else ""
 
+    # Resolve type icon for the tab bar
+    object_type_iri = type_iris[0] if type_iris else ""
+    type_icon = icon_svc.get_type_icon(object_type_iri, context="tab") if object_type_iri else None
+
     context = {
         "request": request,
         "form": form,
@@ -326,6 +362,7 @@ async def get_object(
         "body_predicate": body_predicate,
         "body_property_path": body_property_path,
         "mode": mode,
+        "type_icon": type_icon,
     }
 
     return templates.TemplateResponse(

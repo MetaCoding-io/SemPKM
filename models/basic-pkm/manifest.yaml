@@ -10,3 +10,60 @@ entrypoints:
   shapes: "shapes/basic-pkm.jsonld"
   views: "views/basic-pkm.jsonld"
   seed: "seed/basic-pkm.jsonld"
+icons:
+  - type: "bpkm:Note"
+    icon: "file-text"
+    color: "#4e79a7"
+    tree:
+      icon: "file-text"
+      color: "#4e79a7"
+      size: 16
+    tab:
+      icon: "file-text"
+      color: "#4e79a7"
+      size: 14
+    graph:
+      icon: "file-text"
+      color: "#4e79a7"
+  - type: "bpkm:Concept"
+    icon: "lightbulb"
+    color: "#f28e2b"
+    tree:
+      icon: "lightbulb"
+      color: "#f28e2b"
+      size: 16
+    tab:
+      icon: "lightbulb"
+      color: "#f28e2b"
+      size: 14
+    graph:
+      icon: "lightbulb"
+      color: "#f28e2b"
+  - type: "bpkm:Project"
+    icon: "folder-kanban"
+    color: "#59a14f"
+    tree:
+      icon: "folder-kanban"
+      color: "#59a14f"
+      size: 16
+    tab:
+      icon: "folder-kanban"
+      color: "#59a14f"
+      size: 14
+    graph:
+      icon: "folder-kanban"
+      color: "#59a14f"
+  - type: "bpkm:Person"
+    icon: "user"
+    color: "#76b7b2"
+    tree:
+      icon: "user"
+      color: "#76b7b2"
+      size: 16
+    tab:
+      icon: "user"
+      color: "#76b7b2"
+      size: 14
+    graph:
+      icon: "user"
+      color: "#76b7b2"

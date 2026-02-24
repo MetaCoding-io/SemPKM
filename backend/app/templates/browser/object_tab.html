@@ -111,6 +111,34 @@
 
 <script>
   (function() {
+    // Push type icon data into the tab model after htmx loads the content
+    var tabKey = '{{ object_iri }}';
+    var typeIcon = '{{ type_icon.icon if type_icon else "" }}';
+    var typeColor = '{{ type_icon.color if type_icon else "" }}';
+    if (typeIcon && window._workspaceLayout) {
+      var layoutObj = window._workspaceLayout;
+      Object.values(layoutObj.groups || {}).forEach(function (group) {
+        (group.tabs || []).forEach(function (tab) {
+          if ((tab.id || tab.iri) === tabKey) {
+            tab.typeIcon = typeIcon;
+            tab.typeColor = typeColor;
+          }
+        });
+      });
+      // Re-render the tab bar of the group that contains this tab
+      if (typeof renderGroupTabBar === 'function') {
+        (layoutObj.groups || []).forEach(function (group) {
+          if ((group.tabs || []).some(function (t) { return (t.id || t.iri) === tabKey; })) {
+            renderGroupTabBar(group);
+          }
+        });
+      }
+    }
+  })();
+</script>
+
+<script>
+  (function() {
     var safeId = '{{ safe_id }}';
     var containerId = 'body-editor-' + safeId;
     var formId = 'form-section-' + safeId;

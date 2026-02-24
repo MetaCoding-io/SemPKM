@@ -1139,8 +1139,13 @@
       }
     }
 
-    // When tree children are loaded, add objects to command palette
+    // Reinitialize Lucide icons in the swapped target (tree children, etc.)
     var target = e.detail.target;
+    if (target && typeof lucide !== 'undefined') {
+      lucide.createIcons({ root: target });
+    }
+
+    // When tree children are loaded, add objects to command palette
     if (target && target.classList && target.classList.contains('tree-children')) {
       var leaves = target.querySelectorAll('.tree-leaf');
       leaves.forEach(function (leaf) {
