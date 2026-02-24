@@ -34,7 +34,7 @@
 - [x] **Phase 13: Dark Mode and Visual Polish** - Tri-state theme system, rounded tabs, and styled error panels (completed 2026-02-24)
 - [x] **Phase 14: Split Panes and Bottom Panel** - VS Code-style editor groups with tab drag and a collapsible bottom panel (completed 2026-02-24)
 - [ ] **Phase 15: Settings System and Node Type Icons** - Layered settings infrastructure and type-specific visual richness
-- [ ] **Phase 16: Event Log Explorer** - Browsable, filterable event timeline with inline diffs and undo
+- [x] **Phase 16: Event Log Explorer** - Browsable, filterable event timeline with inline diffs and undo (completed 2026-02-24)
 - [ ] **Phase 17: LLM Connection Configuration** - Generic OpenAI-compatible LLM endpoint with server-side key storage and streaming proxy
 - [ ] **Phase 18: Tutorials and Documentation** - Driver.js guided tours and a Docs page for onboarding
 
@@ -205,7 +205,7 @@ Phases execute in numeric order: 10 → 11 → 12 → 13 → 14 → 15 → 16 �
 | 13. Dark Mode and Visual Polish | 4/4 | Complete    | 2026-02-24 | - |
 | 14. Split Panes and Bottom Panel | 3/3 | Complete    | 2026-02-24 | - |
 | 15. Settings System and Node Type Icons | 2/3 | In Progress|  | - |
-| 16. Event Log Explorer | 2/3 | In Progress|  | - |
+| 16. Event Log Explorer | 3/3 | Complete   | 2026-02-24 | - |
 | 17. LLM Connection Configuration | v2.0 | 0/2 | Not started | - |
 | 18. Tutorials and Documentation | v2.0 | 0/2 | Not started | - |
 
