@@ -648,14 +648,6 @@
     opacity: 0.7;
 }
 
-.workspace-tab.view-tab {
-    border-left: 2px solid var(--color-primary);
-}
-
-.workspace-tab.view-tab.active {
-    border-left-color: var(--color-primary);
-}
-
 /* --- Views Button in Explorer Pane --- */
 
 /* --- View Empty State --- */
@@ -722,6 +714,7 @@
     border-radius: 8px;
     padding: 16px;
     background: var(--color-surface);
+    border: 1px solid var(--color-border);
     box-shadow: var(--shadow);
     box-sizing: border-box;
 }
@@ -770,6 +763,7 @@
     border-radius: 8px;
     padding: 16px;
     background: var(--color-surface);
+    border: 1px solid var(--color-border);
     box-shadow: var(--shadow-elevated);
     box-sizing: border-box;
 }
