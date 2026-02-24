@@ -3,7 +3,7 @@
 import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
-from urllib.parse import quote
+from urllib.parse import quote, urlencode as _urlencode
 
 import httpx
 from fastapi import FastAPI, HTTPException, Request
@@ -178,6 +178,24 @@ app = FastAPI(
 # Jinja2 template engine with block-level rendering for htmx partials
 templates = Jinja2Blocks(directory=Path(__file__).parent / "templates")
 app.state.templates = templates
+
+
+def _dict_without(d: dict, key: str) -> dict:
+    """Jinja2 filter: return a copy of dict d with the given key removed."""
+    return {k: v for k, v in d.items() if k != key}
+
+
+def _urlencode_filter(value) -> str:
+    """Jinja2 filter: URL-encode a dict to query string or a scalar to percent-encoded string."""
+    if isinstance(value, dict):
+        return _urlencode(value)
+    return str(value)
+
+
+templates.env.filters["dict_without"] = _dict_without
+# Register urlencode as dict-capable filter (Jinja2 built-in only handles scalars)
+templates.env.filters["urlencode"] = _urlencode_filter
+
 
 def _is_html_route(path: str) -> bool:
     """Return True for HTML routes, False for API routes."""
