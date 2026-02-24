@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations -- no blank-page syndrome, no schema setup.
-**Current focus:** v2.0 Tighten Web UI -- Phase 14 complete (Split Panes and Bottom Panel)
+**Current focus:** v2.0 Tighten Web UI -- Phase 15 in progress (Settings System and Node Type Icons)
 
 ## Current Position
 
-Phase: 14 of 18 (Split Panes and Bottom Panel)
-Plan: 3 of 3 (complete)
-Status: Phase 14 complete (Bottom Panel with Ctrl+J, resize, tabs, localStorage, command palette)
-Last activity: 2026-02-24 - Completed quick task 002: Research how the gist ontology can be used in our system
+Phase: 15 of 18 (Settings System and Node Type Icons)
+Plan: 1 of 3 (complete)
+Status: Phase 15 plan 01 complete (Settings infrastructure: DB model, service, API, client JS, Ctrl+,)
+Last activity: 2026-02-24 - Completed 15-01 (Settings Infrastructure)
 
-Progress: [######░░░░] 58% (v2.0) -- 14-03 complete (14/24 plans)
+Progress: [######░░░░] 62% (v2.0) -- 15-01 complete (15/24 plans)
 
 ## Performance Metrics
 
@@ -40,6 +40,7 @@ Progress: [######░░░░] 58% (v2.0) -- 14-03 complete (14/24 plans)
 | 14    | 01   | 4min     | 2     | 5     |
 | 14    | 02   | 3min     | 2     | 2     |
 | 14    | 03   | 60min    | 3     | 4     |
+| 15    | 01   | 6min     | 2     | 11    |
 
 ## Accumulated Context
 
@@ -100,6 +101,10 @@ v2.0 roadmap decisions:
 - (14-03) Bottom panel DOM detached and re-inserted around recreateGroupSplit to survive Split.js reinitialization
 - (14-03) panelState.height stored as percentage not pixels -- scales correctly on window resize
 - (14-03) DOM preservation pattern for Split.js recreation: save real DOM nodes, wipe container, re-insert before recreate
+- (15-01) SettingsService uses installed_models_dir=/app/models (matches Docker mount from main.py)
+- (15-01) get_settings_service creates SettingsService per-request (stateless, no app.state needed)
+- (15-01) special:settings tab skips right-pane section loading (no relations/lint for settings page)
+- (15-01) settings.js auto-fetches on DOM ready to warm cache before consumers call SemPKMSettings.get()
 
 ### Pending Todos
 
@@ -127,5 +132,5 @@ v2.0 roadmap decisions:
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed quick-002 (gist ontology research)
-Resume: Begin Phase 15 (Settings System)
+Stopped at: Completed 15-01-PLAN.md (Settings Infrastructure)
+Resume: Begin 15-02 (Settings UI)
