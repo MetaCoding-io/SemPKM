@@ -133,6 +133,7 @@ v2.0 roadmap decisions:
 |---|-------------|------|--------|-----------|
 | 1 | Add copyright notice to docs site | 2026-02-24 | 1ad8949 | [1-add-copyright-notice-to-docs-site](./quick/1-add-copyright-notice-to-docs-site/) |
 | 2 | Research gist ontology applicability to SemPKM Mental Models | 2026-02-24 | af5d5ef | [2-research-how-the-gist-ontology-can-be-us](./quick/2-research-how-the-gist-ontology-can-be-us/) |
+| 3 | Research Hypothes.is and W3C Web Annotation technology for SemPKM integration | 2026-02-24 | 8d62fe1 | [3-research-hypothes-is-annotation-technolo](./quick/3-research-hypothes-is-annotation-technolo/) |
 
 ## Session Continuity
 
