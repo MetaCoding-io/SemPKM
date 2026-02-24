@@ -10,6 +10,36 @@ import yaml
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 
+class ManifestSettingDef(BaseModel):
+    """Setting definition contributed by a Mental Model manifest."""
+
+    key: str               # short key, e.g. "defaultNoteType" -- prefixed by modelId at service layer
+    label: str
+    description: str = ""
+    input_type: str = "text"   # "toggle" | "select" | "text" | "color"
+    options: list[str] | None = None
+    default: str = ""
+
+
+class ManifestIconContextDef(BaseModel):
+    """Per-context icon/color/size override for a type."""
+
+    icon: str
+    color: str
+    size: int | None = None
+
+
+class ManifestIconDef(BaseModel):
+    """Icon definition for a node type contributed by a Mental Model manifest."""
+
+    type: str                                        # e.g. "bpkm:Note" -- expanded against manifest prefixes
+    icon: str | None = None                          # fallback icon for all contexts
+    color: str | None = None                         # fallback color for all contexts
+    tree: ManifestIconContextDef | None = None
+    graph: ManifestIconContextDef | None = None
+    tab: ManifestIconContextDef | None = None
+
+
 class ManifestEntrypoints(BaseModel):
     """Entrypoint file paths relative to model root.
 
@@ -52,6 +82,8 @@ class ManifestSchema(BaseModel):
     namespace: str = Field(...)
     prefixes: dict[str, str] = Field(default_factory=dict)
     entrypoints: ManifestEntrypoints = Field(default_factory=ManifestEntrypoints)
+    settings: list[ManifestSettingDef] = Field(default_factory=list)
+    icons: list[ManifestIconDef] = Field(default_factory=list)
 
     @field_validator("namespace")
     @classmethod
