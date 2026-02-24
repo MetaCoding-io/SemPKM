@@ -827,18 +827,94 @@
   }
 
   /**
-   * Show right-click context menu on a tab (implemented in Plan 02 Task 2).
-   * Stub: prevents default browser context menu until full implementation runs.
+   * Show right-click context menu on a tab.
+   * Pattern from 14-RESEARCH.md Pattern 6.
    */
   function showTabContextMenu(e, tabId, groupId) {
     e.preventDefault();
     e.stopPropagation();
-    // Full implementation added in Task 2 of Plan 02
+
+    // Remove any existing context menu
+    var existing = document.getElementById('tab-context-menu');
+    if (existing) existing.remove();
+
+    var menu = document.createElement('div');
+    menu.id = 'tab-context-menu';
+    menu.className = 'context-menu';
+
+    // Build menu items
+    var items = [
+      { label: 'Close', action: function () { closeTabInGroup(tabId, groupId); } },
+      { label: 'Close Others', action: function () { closeOtherTabsInGroup(tabId, groupId); } },
+      { label: '---' },
+      { label: 'Split Right', action: function () { splitRight(groupId); } }
+    ];
+
+    // Add "Move to Group" entries when multiple groups exist
+    if (layout) {
+      var otherGroups = layout.groups.filter(function (g) { return g.id !== groupId; });
+      otherGroups.forEach(function (g, idx) {
+        var label = 'Move to Group ' + (layout.groups.indexOf(g) + 1);
+        items.push({ label: label, action: function () {
+          layout.moveTab(tabId, groupId, g.id, null);
+          loadTabInGroup(g.id, tabId);
+        }});
+      });
+    }
+
+    items.forEach(function (item) {
+      if (item.label === '---') {
+        var sep = document.createElement('div');
+        sep.className = 'context-menu-separator';
+        menu.appendChild(sep);
+        return;
+      }
+      var li = document.createElement('div');
+      li.className = 'context-menu-item';
+      li.textContent = item.label;
+      if (item.action) {
+        li.addEventListener('click', function () {
+          item.action();
+          menu.remove();
+        });
+      }
+      menu.appendChild(li);
+    });
+
+    // Append to body, then position (needs to be in DOM for getBoundingClientRect)
+    document.body.appendChild(menu);
+    var menuRect = menu.getBoundingClientRect();
+    var x = Math.min(e.clientX, window.innerWidth - menuRect.width - 8);
+    var y = Math.min(e.clientY, window.innerHeight - menuRect.height - 8);
+    menu.style.left = x + 'px';
+    menu.style.top = y + 'px';
+
+    // Dismiss on outside click
+    function dismissClick(e2) {
+      if (!menu.contains(e2.target)) {
+        menu.remove();
+        document.removeEventListener('click', dismissClick);
+        document.removeEventListener('keydown', dismissKey);
+      }
+    }
+
+    // Dismiss on Escape
+    function dismissKey(e2) {
+      if (e2.key === 'Escape') {
+        menu.remove();
+        document.removeEventListener('click', dismissClick);
+        document.removeEventListener('keydown', dismissKey);
+      }
+    }
+
+    setTimeout(function () {
+      document.addEventListener('click', dismissClick);
+      document.addEventListener('keydown', dismissKey);
+    }, 0);
   }
 
   /**
    * Close all other tabs in a group, keeping only keepTabId.
-   * Implemented in Plan 02 Task 2.
    */
   function closeOtherTabsInGroup(keepTabId, groupId) {
     if (!layout) return;
