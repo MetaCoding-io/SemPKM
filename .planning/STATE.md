@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations -- no blank-page syndrome, no schema setup.
-**Current focus:** v2.0 Tighten Web UI -- Phase 15 in progress (Settings System and Node Type Icons)
+**Current focus:** v2.0 Tighten Web UI -- Phase 16 in progress (Event Log Explorer)
 
 ## Current Position
 
-Phase: 15 of 18 (Settings System and Node Type Icons)
-Plan: 3 of 3 (complete)
-Status: Phase 15 plan 03 complete (Node type icon system: IconService, Lucide tree/tab/graph icons)
-Last activity: 2026-02-24 - Completed quick task 003: Research Hypothes.is and W3C Web Annotation technology for SemPKM integration
+Phase: 16 of 18 (Event Log Explorer)
+Plan: 1 of 3 (complete)
+Status: Phase 16 plan 01 complete (EventQueryService, GET /browser/events, event_log.html, workspace.js lazy-load)
+Last activity: 2026-02-24 - Completed 16-01: Event API Endpoint with Cursor Pagination
 
-Progress: [#######░░░] 71% (v2.0) -- 15-03 complete (17/24 plans)
+Progress: [########░░] 75% (v2.0) -- 16-01 complete (18/24 plans)
 
 ## Performance Metrics
 
@@ -42,6 +42,7 @@ Progress: [#######░░░] 71% (v2.0) -- 15-03 complete (17/24 plans)
 | 14    | 03   | 60min    | 3     | 4     |
 | 15    | 01   | 6min     | 2     | 11    |
 | 15    | 03   | 4min     | 2     | 9     |
+| 16    | 01   | 12min    | 2     | 4     |
 
 ## Accumulated Context
 
@@ -110,6 +111,9 @@ v2.0 roadmap decisions:
 - (15-03) iconToShape mapping translates Lucide icon names to Cytoscape shapes; unmapped icons default to ellipse
 - (15-03) window._sempkmIcons fetched on workspace init as client-side cache for graph shapes and tab icons
 - (15-03) basic-pkm icons use actual types (Note/Concept/Project/Person); plan examples (Source/Tag) were not in the model
+- (16-01) EventQueryService uses GROUP_CONCAT SPARQL primary + Python OrderedDict fallback for affectedIRI grouping (RDF4J compatibility)
+- (16-01) Event log object links use openTab() JS (nav tree pattern) not hx-get/#editor-area (dynamic per group, not stable DOM ID)
+- (16-01) Panel lazy-load: .panel-placeholder check guards against re-loading already-loaded content in initPanelTabs() and _applyPanelState()
 
 ### Pending Todos
 
@@ -138,5 +142,5 @@ v2.0 roadmap decisions:
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 15-03-PLAN.md (Node Type Icon System)
-Resume: Begin Phase 16
+Stopped at: Completed 16-01-PLAN.md (Event Log Explorer - Event API Endpoint)
+Resume: Begin Phase 16 Plan 02

@@ -205,7 +205,7 @@ Phases execute in numeric order: 10 → 11 → 12 → 13 → 14 → 15 → 16 �
 | 13. Dark Mode and Visual Polish | 4/4 | Complete    | 2026-02-24 | - |
 | 14. Split Panes and Bottom Panel | 3/3 | Complete    | 2026-02-24 | - |
 | 15. Settings System and Node Type Icons | 2/3 | In Progress|  | - |
-| 16. Event Log Explorer | v2.0 | 0/3 | Not started | - |
+| 16. Event Log Explorer | 1/3 | In Progress|  | - |
 | 17. LLM Connection Configuration | v2.0 | 0/2 | Not started | - |
 | 18. Tutorials and Documentation | v2.0 | 0/2 | Not started | - |
 
