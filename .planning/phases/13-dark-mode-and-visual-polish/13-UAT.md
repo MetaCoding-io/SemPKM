@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 13-dark-mode-and-visual-polish
 source: [13-01-SUMMARY.md, 13-02-SUMMARY.md, 13-03-SUMMARY.md]
 started: 2026-02-24T03:20:00Z
@@ -82,27 +82,41 @@ skipped: 1
   reason: "User reported: The command palette no longer comes up. Ctrl+K does something in FF now"
   severity: major
   test: 2
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "hotkeys-js (used by ninja-keys) silently ignores keydown events when focus is on INPUT/TEXTAREA/SELECT. Firefox then intercepts unhandled Ctrl+K to focus its search bar. App has no Ctrl+K case in initKeyboardShortcuts() to preventDefault."
+  artifacts:
+    - path: "frontend/static/js/workspace.js"
+      issue: "initKeyboardShortcuts() missing Ctrl+K case with preventDefault"
+    - path: "backend/app/templates/base.html"
+      issue: "ninja-keys CDN reference is unpinned (no version)"
+  missing:
+    - "Add Ctrl+K case to initKeyboardShortcuts() keydown handler that calls preventDefault and ninja-keys .open()"
+  debug_session: ".planning/debug/firefox-ctrlk-ninja-keys.md"
 
 - truth: "Active tab has teal bottom accent line only, tabs have 4px rounded top corners"
   status: failed
   reason: "User reported: The teal accent appears at the bottom but also sometimes the left side. The tabs aren't really rounded either"
   severity: cosmetic
   test: 5
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "Two bugs: (1) views.css .workspace-tab.view-tab has border-left: 2px solid var(--color-primary) that bleeds on all view tabs. (2) Tab bar overflow-y:hidden + align-items:flex-end clips 4px border-radius — only 2px headroom between tab top and clip boundary."
+  artifacts:
+    - path: "frontend/static/css/views.css"
+      issue: ".workspace-tab.view-tab adds permanent border-left: 2px solid teal, never removed"
+    - path: "frontend/static/css/workspace.css"
+      issue: "overflow-y:hidden on .tab-bar-workspace clips the 4px top border-radius"
+  missing:
+    - "Remove border-left from .workspace-tab.view-tab in views.css"
+    - "Add padding-top: 4px to .tab-bar-workspace so border-radius has room above clip boundary"
+  debug_session: ".planning/debug/tab-accent-bleed-and-border-radius.md"
 
 - truth: "Card views have distinctive visible borders in both dark and light mode"
   status: failed
   reason: "User reported: Cards need to have a more distinctive border in both dark and light mode"
   severity: cosmetic
   test: 7
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "Flip card faces (.flip-card-front, .flip-card-back, .card-focus-front, .card-focus-back) have no border — rely only on box-shadow: var(--shadow) which is too faint (8% opacity light, 30% dark). The .card class in style.css already has the correct pattern: border + shadow."
+  artifacts:
+    - path: "frontend/static/css/views.css"
+      issue: "Card face selectors missing border: 1px solid var(--color-border)"
+  missing:
+    - "Add border: 1px solid var(--color-border) to .flip-card-front, .flip-card-back, .card-focus-front, .card-focus-back"
+  debug_session: ".planning/debug/card-view-borders-not-distinctive.md"
