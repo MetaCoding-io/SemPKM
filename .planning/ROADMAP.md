@@ -162,11 +162,11 @@ Plans:
   2. API keys are stored server-side only (encrypted in database), never exposed to the browser; the settings UI shows a masked key after save
   3. A "Test Connection" button validates the configured endpoint and displays connection status; a "Fetch Models" button retrieves and populates available models from the provider
   4. Backend provides a streaming proxy endpoint (SSE) for LLM chat completions with proper nginx configuration (proxy_buffering off, increased read timeout)
-**Plans**: ~2 plans
+**Plans**: 2 plans
 
 Plans:
-- [ ] 17-01: LLM settings UI, server-side key storage, test and fetch endpoints
-- [ ] 17-02: SSE streaming proxy endpoint with nginx configuration
+- [ ] 17-01-PLAN.md — LLMConfigService (Fernet encryption), LLM config endpoints, Settings page LLM Connection category with masked key field
+- [ ] 17-02-PLAN.md — SSE streaming proxy endpoint for chat completions, nginx SSE location block
 
 ### Phase 18: Tutorials and Documentation
 **Goal**: New users can orient themselves through guided interactive tours, and a documentation hub provides ongoing reference
