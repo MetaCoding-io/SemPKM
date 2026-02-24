@@ -115,6 +115,32 @@
       }
     }
 
+    // Per-type node shapes from window._sempkmIcons (fetched from /browser/icons)
+    var iconToShape = {
+      'file-text': 'rectangle',
+      'lightbulb': 'diamond',
+      'book-open': 'round-rectangle',
+      'tag': 'ellipse',
+      'folder-kanban': 'round-rectangle',
+      'user': 'ellipse',
+    };
+
+    if (window._sempkmIcons && window._sempkmIcons.graph) {
+      var graphIcons = window._sempkmIcons.graph;
+      var typeIris = Object.keys(graphIcons);
+      for (var k = 0; k < typeIris.length; k++) {
+        var iri = typeIris[k];
+        var iconInfo = graphIcons[iri];
+        if (iconInfo && iconInfo.icon) {
+          var shape = iconToShape[iconInfo.icon] || 'ellipse';
+          styles.push({
+            selector: 'node[type = "' + iri + '"]',
+            style: { 'shape': shape }
+          });
+        }
+      }
+    }
+
     return styles;
   }
 
