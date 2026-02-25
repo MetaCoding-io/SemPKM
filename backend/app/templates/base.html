@@ -46,7 +46,8 @@
     {% block head %}{% endblock %}
 </head>
 <body>
-    <div class="dashboard-layout">
+    {% block body %}
+    <div class="{% block layout_class %}dashboard-layout{% endblock %}">
         {% include "components/_sidebar.html" %}
         <main class="content-area">
             <div id="app-content">
@@ -54,6 +55,7 @@
             </div>
         </main>
     </div>
+    {% endblock %}
 
     <script>
         // Highlight the active sidebar link based on current URL
