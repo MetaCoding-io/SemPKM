@@ -26,7 +26,7 @@
     </div>
 
     {% block model_table %}
-    <div id="model-table">
+    <div id="model-table" data-testid="model-list">
         {% if error is defined and error %}
         <div class="error-box" id="admin-messages">{{ error }}</div>
         {% elif success is defined and success %}
