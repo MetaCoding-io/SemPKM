@@ -4,7 +4,7 @@
 {% set obj_icon = type_icon if type_icon else {'icon': 'circle', 'color': 'var(--color-text-faint)', 'size': 14} %}
 {% if objects %}
 {% for obj in objects %}
-<div class="tree-leaf" onclick="openTab('{{ obj.iri }}', '{{ obj.label }}')">
+<div class="tree-leaf" data-testid="nav-item" onclick="openTab('{{ obj.iri }}', '{{ obj.label }}')">
     <i data-lucide="{{ obj_icon.icon }}"
        class="tree-leaf-icon"
        style="color: {{ obj_icon.color }}; width: {{ obj_icon.size or 14 }}px; height: {{ obj_icon.size or 14 }}px; flex-shrink: 0;"></i>

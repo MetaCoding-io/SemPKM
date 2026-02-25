@@ -40,7 +40,7 @@
     </div>
 
     {% block webhook_list %}
-    <div id="webhook-list">
+    <div id="webhook-list" data-testid="webhook-list">
         {% if error is defined and error %}
         <div class="error-box" id="webhook-messages">{{ error }}</div>
         {% elif success is defined and success %}
