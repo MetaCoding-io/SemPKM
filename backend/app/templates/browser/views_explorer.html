@@ -14,13 +14,13 @@
 </div>
 <div class="view-group-children">
     {% for spec in group.specs %}
-    <div class="tree-leaf view-leaf"
-         onclick="openViewTab('{{ spec.spec_iri }}', '{{ spec.label }}', '{{ spec.renderer_type }}')">
+    <a class="tree-leaf view-leaf" href="#"
+       onclick="openViewTab('{{ spec.spec_iri }}', '{{ spec.label }}', '{{ spec.renderer_type }}'); return false;">
         <span class="tree-leaf-icon">
             {% if spec.renderer_type == 'table' %}&#9638;{% elif spec.renderer_type == 'card' %}&#9641;{% elif spec.renderer_type == 'graph' %}&#9672;{% else %}&#9654;{% endif %}
         </span>
         <span class="tree-leaf-label">{{ spec.label }}</span>
-    </div>
+    </a>
     {% endfor %}
 </div>
 {% endfor %}
