@@ -98,6 +98,20 @@ async def docs_page(
     })
 
 
+@router.get("/docs/guide/{filename:path}")
+async def docs_guide_viewer(
+    filename: str,
+    request: Request,
+    user: User = Depends(get_current_user),
+) -> HTMLResponse:
+    """Render a single guide markdown file as a workspace tab fragment."""
+    templates = request.app.state.templates
+    return templates.TemplateResponse(request, "browser/docs_viewer.html", {
+        "user": user,
+        "filename": filename,
+    })
+
+
 @router.get("/settings/data")
 async def settings_data(
     user: User = Depends(get_current_user),
