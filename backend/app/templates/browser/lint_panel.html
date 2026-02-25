@@ -11,7 +11,7 @@
      warning_count: int
 #}
 
-<div class="lint-panel" data-object-iri="{{ object_iri }}"
+<div class="lint-panel" data-testid="lint-panel" data-object-iri="{{ object_iri }}"
      hx-get="/browser/lint/{{ object_iri | urlencode }}"
      hx-trigger="every 10s"
      hx-swap="outerHTML">
@@ -44,7 +44,7 @@
   {% if violations %}
   <ul class="lint-results-list">
     {% for v in violations %}
-    <li class="lint-result"
+    <li class="lint-result" data-testid="lint-violation"
         onclick="jumpToField('{{ v.path | e }}')"
         title="Click to jump to field">
       <span class="lint-icon-violation">&#9679;</span>

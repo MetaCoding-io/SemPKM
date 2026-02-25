@@ -1,6 +1,6 @@
 {% include "browser/view_toolbar.html" %}
 
-<div class="view-table-container">
+<div class="view-table-container" data-testid="table-view">
     {% if rows %}
     <table class="view-table">
         <thead>
@@ -24,7 +24,7 @@
         </thead>
         <tbody>
             {% for row in rows %}
-            <tr class="clickable">
+            <tr class="clickable" data-testid="table-row">
                 {% for col in columns %}
                 <td data-col="{{ col }}">
                     {% if loop.first %}

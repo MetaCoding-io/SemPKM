@@ -20,7 +20,7 @@
 {% endif %}
 
 {% macro render_card(card) %}
-<div class="flip-card" data-iri="{{ card.iri }}">
+<div class="flip-card" data-iri="{{ card.iri }}" data-testid="card-item">
     <div class="flip-card-inner">
         <div class="flip-card-front">
             <div class="card-title" onclick="openTab('{{ card.iri }}', '{{ card.label | replace("'", "\\'") }}'); return false;">{{ card.label }}</div>
