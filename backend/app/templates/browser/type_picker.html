@@ -14,7 +14,7 @@
         {% for type in types %}
         <a class="type-card" data-testid="type-option"
            hx-get="/browser/objects/new?type={{ type.iri | urlencode }}"
-           hx-target="#editor-area"
+           hx-target="closest .group-editor-area"
            hx-swap="innerHTML">
             <div class="type-card-label">{{ type.label | replace(' Shape', '') }}</div>
             <div class="type-card-description">Create a new {{ type.label | replace(' Shape', '') | lower }}</div>
