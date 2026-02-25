@@ -1,0 +1,72 @@
+###############################################################################
+# .meta/docker-compose.yml — Code Repository Mapping & Visualization Tools
+#
+# Usage:
+#   docker compose -f .meta/docker-compose.yml up codecharta-web     # Web Studio
+#   docker compose -f .meta/docker-compose.yml run repomix-full       # Full repo map
+#   docker compose -f .meta/docker-compose.yml run repomix-compressed # Compressed map
+#   docker compose -f .meta/docker-compose.yml run codecharta-analyze # Run analysis
+#
+# All output goes to .meta/output/
+###############################################################################
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # CodeCharta Web Studio — Interactive 3D code city visualization
+  # Open http://localhost:9100 in your browser after starting
+  # Upload .cc.json.gz files from .meta/output/codecharta/
+  # ---------------------------------------------------------------------------
+  codecharta-web:
+    image: codecharta/codecharta-visualization:latest
+    ports:
+      - "9100:80"
+    volumes:
+      - ./output/codecharta:/mnt/data:ro
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # CodeCharta Analysis — Generate code metrics (.cc.json)
+  # Runs git log parser, Tokei metrics, and raw text analysis, then merges
+  # ---------------------------------------------------------------------------
+  codecharta-analyze:
+    image: codecharta/codecharta-analysis:latest
+    volumes:
+      - ..:/mnt/repo:ro
+      - ./output/codecharta:/mnt/output
+      - ./scripts:/mnt/scripts:ro
+    working_dir: /mnt/repo
+    entrypoint: ["bash", "/mnt/scripts/codecharta-docker-entrypoint.sh"]
+    profiles:
+      - tools
+
+  # ---------------------------------------------------------------------------
+  # Repomix — Full repo map (uncompressed, all details)
+  # Output: .meta/output/repomix-output.xml
+  # ---------------------------------------------------------------------------
+  repomix-full:
+    image: ghcr.io/yamadashy/repomix:latest
+    volumes:
+      - ..:/app/repo:ro
+      - ./output:/app/output
+      - ./repomix.config.json:/app/repomix.config.json:ro
+    working_dir: /app/repo
+    command: ["--config", "/app/repomix.config.json", "."]
+    profiles:
+      - tools
+
+  # ---------------------------------------------------------------------------
+  # Repomix — Compressed repo map (~70% fewer tokens)
+  # Uses Tree-sitter to extract essential code structures only
+  # Output: .meta/output/repomix-compressed.xml
+  # ---------------------------------------------------------------------------
+  repomix-compressed:
+    image: ghcr.io/yamadashy/repomix:latest
+    volumes:
+      - ..:/app/repo:ro
+      - ./output:/app/output
+      - ./repomix-compressed.config.json:/app/repomix.config.json:ro
+    working_dir: /app/repo
+    command: ["--config", "/app/repomix.config.json", "."]
+    profiles:
+      - tools
