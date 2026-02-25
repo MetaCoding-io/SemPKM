@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations -- no blank-page syndrome, no schema setup.
-**Current focus:** v2.0 Tighten Web UI -- Phase 17 in progress (LLM Connection Configuration)
+**Current focus:** v2.0 Tighten Web UI -- Phase 18 in progress (Tutorials and Documentation)
 
 ## Current Position
 
-Phase: 17 of 18 (LLM Connection Configuration)
-Plan: 2 of 2 (complete)
-Status: Phase 17 plan 02 complete (SSE streaming proxy endpoint + nginx SSE location block)
-Last activity: 2026-02-24 - Completed 17-02: SSE Streaming Proxy Endpoint
+Phase: 18 of 18 (Tutorials and Documentation)
+Plan: 1 of 2 (in progress)
+Status: Phase 18 plan 01 complete (Driver.js CDN + Docs & Tutorials special tab)
+Last activity: 2026-02-25 - Completed 18-01: Driver.js CDN and Docs Tab Infrastructure
 
-Progress: [##########] 92% (v2.0) -- 17-02 complete (22/24 plans)
+Progress: [##########] 96% (v2.0) -- 18-01 complete (23/24 plans)
 
 ## Performance Metrics
 
@@ -48,6 +48,7 @@ Progress: [##########] 92% (v2.0) -- 17-02 complete (22/24 plans)
 | 16    | 03   | 3min     | 2     | 6     |
 | 17    | 01   | 4min     | 2     | 8     |
 | 17    | 02   | 1min     | 2     | 2     |
+| 18    | 01   | 4min     | 2     | 8     |
 
 ## Accumulated Context
 
@@ -136,6 +137,9 @@ v2.0 roadmap decisions:
 - (17-02) aiter_lines() over aiter_bytes() for upstream SSE passthrough -- buffers across HTTP chunk boundaries for complete lines
 - (17-02) StreamingResponse X-Accel-Buffering: no as defense-in-depth even without nginx location match
 - (17-02) /browser/llm/chat/stream accessible to any authenticated user (get_current_user) for future AI Copilot
+- (18-01) special:docs tab follows exact special:settings pattern -- same openDocsTab/openSettingsTab structure, same isSpecial guard extension
+- (18-01) StaticFiles mount for docs/guide/ guarded by is_dir() check to prevent startup crash when docs/ volume not mounted
+- (18-01) Driver.js CSS link placed before JS script tag in base.html (prevents unstyled overlay flash per RESEARCH.md Pitfall 4)
 
 ### Pending Todos
 
@@ -163,6 +167,6 @@ v2.0 roadmap decisions:
 
 ## Session Continuity
 
-Last session: 2026-02-24
-Stopped at: Completed 17-02-PLAN.md (SSE Streaming Proxy Endpoint)
-Resume: Begin Phase 18 (next phase)
+Last session: 2026-02-25
+Stopped at: Completed 18-01-PLAN.md (Driver.js CDN and Docs Tab Infrastructure)
+Resume: Begin 18-02 (tour step implementations)

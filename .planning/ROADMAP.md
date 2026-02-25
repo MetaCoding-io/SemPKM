@@ -207,7 +207,7 @@ Phases execute in numeric order: 10 → 11 → 12 → 13 → 14 → 15 → 16 �
 | 15. Settings System and Node Type Icons | 3/3 | Complete    | 2026-02-24 | - |
 | 16. Event Log Explorer | 3/3 | Complete    | 2026-02-24 | - |
 | 17. LLM Connection Configuration | 2/2 | Complete    | 2026-02-24 | - |
-| 18. Tutorials and Documentation | v2.0 | 0/2 | Not started | - |
+| 18. Tutorials and Documentation | 1/2 | In Progress|  | - |
 
 ---
 *Roadmap created: 2026-02-21*
