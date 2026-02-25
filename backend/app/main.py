@@ -271,3 +271,14 @@ app.include_router(views_router)
 app.include_router(browser_router)
 app.include_router(debug_router)
 app.include_router(shell_router)
+
+from fastapi.staticfiles import StaticFiles
+
+# Serve user guide Markdown files as static content.
+# docs/ lives at repo root; inside the container, backend/ is the build context
+# and the repo root docs/ must be mounted. In development with docker-compose,
+# add a volume: - ./docs:/app/docs:ro   to the api service.
+# Path resolution: /app/docs/guide/ when running in container.
+_docs_guide_path = Path(__file__).parent.parent.parent / "docs" / "guide"
+if _docs_guide_path.is_dir():
+    app.mount("/docs/guide", StaticFiles(directory=_docs_guide_path), name="docs_guide")

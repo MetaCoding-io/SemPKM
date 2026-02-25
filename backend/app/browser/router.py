@@ -86,6 +86,18 @@ async def settings_page(
     })
 
 
+@router.get("/docs")
+async def docs_page(
+    request: Request,
+    user: User = Depends(get_current_user),
+) -> HTMLResponse:
+    """Docs & Tutorials hub page rendered as a workspace tab fragment."""
+    templates = request.app.state.templates
+    return templates.TemplateResponse(request, "browser/docs_page.html", {
+        "user": user,
+    })
+
+
 @router.get("/settings/data")
 async def settings_data(
     user: User = Depends(get_current_user),
