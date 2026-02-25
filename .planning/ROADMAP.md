@@ -177,11 +177,11 @@ Plans:
   2. Driver.js (MIT licensed) is integrated for guided tours with lazy element resolution that handles htmx-rendered content
   3. A "Welcome to SemPKM" tutorial walks through the workspace (sidebar, explorer, opening objects, read/edit toggle, command palette, saving) with properly positioned step popovers
   4. A "Creating Your First Object" tutorial walks through object creation from type selection to save, with each step waiting for htmx content to load before attaching
-**Plans**: ~2 plans
+**Plans**: 2 plans
 
 Plans:
-- [ ] 18-01: Driver.js integration, tour infrastructure, and Docs page
-- [ ] 18-02: Welcome tour and first-object tutorial
+- [ ] 18-01-PLAN.md — Driver.js CDN integration, special:docs tab wiring, docs_page.html, popover CSS theming
+- [ ] 18-02-PLAN.md — tutorials.js: Welcome tour (7 steps) and Creating Your First Object tour (htmx-gated)
 
 ## Progress
 
