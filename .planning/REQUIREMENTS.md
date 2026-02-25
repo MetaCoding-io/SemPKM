@@ -77,8 +77,8 @@
 
 - [x] **DOCS-01**: A Docs & Tutorials page accessible from the Meta sidebar section lists available interactive tutorials and documentation links
 - [x] **DOCS-02**: Driver.js (MIT) is integrated for guided tours with lazy element resolution for htmx-rendered content
-- [ ] **DOCS-03**: A "Welcome to SemPKM" tutorial walks through the workspace (sidebar, explorer, opening objects, read/edit toggle, command palette, saving)
-- [ ] **DOCS-04**: A "Creating Your First Object" tutorial walks through creating an object from type selection to save
+- [x] **DOCS-03**: A "Welcome to SemPKM" tutorial walks through the workspace (sidebar, explorer, opening objects, read/edit toggle, command palette, saving)
+- [x] **DOCS-04**: A "Creating Your First Object" tutorial walks through creating an object from type selection to save
 
 ### Error Handling (ERR)
 
@@ -157,8 +157,8 @@
 | LLM-05 | Phase 17 | Complete |
 | DOCS-01 | Phase 18 | Complete |
 | DOCS-02 | Phase 18 | Complete |
-| DOCS-03 | Phase 18 | Pending |
-| DOCS-04 | Phase 18 | Pending |
+| DOCS-03 | Phase 18 | Complete |
+| DOCS-04 | Phase 18 | Complete |
 | ERR-01 | Phase 13 | Complete |
 
 **Coverage:**
