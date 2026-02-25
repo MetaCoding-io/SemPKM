@@ -35,7 +35,7 @@ export const SEL = {
     tree: '[data-testid="nav-tree"]',
     section: '[data-testid="nav-section"]',
     item: '[data-testid="nav-item"]',
-    sidebarToggle: '[data-testid="sidebar-toggle"]',
+    sidebarToggle: '.sidebar-toggle',  // No data-testid; uses CSS class
   },
 
   // Type picker
@@ -47,8 +47,7 @@ export const SEL = {
   // Object editor
   editor: {
     form: '[data-testid="object-form"]',
-    titleInput: '[data-testid="field-title"]',
-    bodyTextarea: '[data-testid="field-body"]',
+    titleInput: 'input[name*="title"], input[name*="name"], input[name*="label"]',
     saveButton: '[data-testid="save-button"]',
   },
 
@@ -56,7 +55,7 @@ export const SEL = {
   views: {
     table: '[data-testid="table-view"]',
     tableRow: '[data-testid="table-row"]',
-    cards: '[data-testid="cards-view"]',
+    cards: '.card-grid',  // No data-testid on card grid container; use CSS class
     card: '[data-testid="card-item"]',
     graph: '[data-testid="graph-view"]',
   },
@@ -76,7 +75,7 @@ export const SEL = {
   // Settings
   settings: {
     page: '[data-testid="settings-page"]',
-    darkModeToggle: '[data-testid="dark-mode-toggle"]',
+    themeBtn: '.theme-btn',  // Theme buttons in sidebar popover (light/system/dark)
   },
 
   // Command palette
