@@ -1,0 +1,82 @@
+<div id="docs-page" class="docs-page">
+
+  <div class="docs-page-header">
+    <h2 class="docs-page-title">Docs &amp; Tutorials</h2>
+    <p class="docs-page-subtitle">Get started with interactive guided tours or browse reference documentation.</p>
+  </div>
+
+  <!-- Interactive Tutorials section -->
+  <section class="docs-section">
+    <h3 class="docs-section-title">Interactive Tutorials</h3>
+    <div class="docs-cards">
+
+      <div class="docs-card">
+        <div class="docs-card-icon">
+          <i data-lucide="play-circle"></i>
+        </div>
+        <div class="docs-card-body">
+          <h4 class="docs-card-title">Welcome to SemPKM</h4>
+          <p class="docs-card-desc">A quick tour of the workspace — sidebar, explorer, reading objects, the command palette, and saving your work.</p>
+        </div>
+        <button class="btn docs-card-btn" onclick="if(typeof window.startWelcomeTour==='function'){window.startWelcomeTour();}">
+          Start Tour
+        </button>
+      </div>
+
+      <div class="docs-card">
+        <div class="docs-card-icon">
+          <i data-lucide="plus-circle"></i>
+        </div>
+        <div class="docs-card-body">
+          <h4 class="docs-card-title">Creating Your First Object</h4>
+          <p class="docs-card-desc">Step-by-step guide to choosing a type, filling out the form, and saving your first knowledge object.</p>
+        </div>
+        <button class="btn docs-card-btn" onclick="if(typeof window.startCreateObjectTour==='function'){window.startCreateObjectTour();}">
+          Start Tour
+        </button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Documentation Links section -->
+  <section class="docs-section">
+    <h3 class="docs-section-title">Documentation</h3>
+    <div class="docs-links">
+      <a href="/docs/guide/04-workspace-interface.md" target="_blank" class="docs-link-item">
+        <i data-lucide="layout-dashboard"></i>
+        <span>The Workspace Interface</span>
+      </a>
+      <a href="/docs/guide/05-working-with-objects.md" target="_blank" class="docs-link-item">
+        <i data-lucide="box"></i>
+        <span>Working with Objects</span>
+      </a>
+      <a href="/docs/guide/README.md" target="_blank" class="docs-link-item">
+        <i data-lucide="book-open"></i>
+        <span>User Guide (all chapters)</span>
+      </a>
+      <a href="/redoc" target="_blank" class="docs-link-item">
+        <i data-lucide="file-text"></i>
+        <span>API Reference (ReDoc)</span>
+      </a>
+      <a href="/docs" target="_blank" class="docs-link-item">
+        <i data-lucide="file-code"></i>
+        <span>API Reference (Swagger)</span>
+      </a>
+      <a href="/health" target="_blank" class="docs-link-item">
+        <i data-lucide="activity"></i>
+        <span>Health Check</span>
+      </a>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(function () {
+  // Re-initialize Lucide icons added by this fragment
+  if (typeof lucide !== 'undefined' && lucide.createIcons) {
+    lucide.createIcons();
+  }
+})();
+</script>
