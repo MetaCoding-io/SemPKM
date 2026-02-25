@@ -327,6 +327,7 @@
       var tabBar = document.createElement('div');
       tabBar.className = 'group-tab-bar tab-bar-workspace';
       tabBar.id = 'tab-bar-' + group.id;
+      tabBar.setAttribute('data-testid', 'tab-bar');
 
       var editorArea = document.createElement('div');
       editorArea.className = 'group-editor-area';

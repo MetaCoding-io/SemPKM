@@ -9,10 +9,11 @@
 {% if types %}
 {% for type in types %}
 {% set type_icon = type_icons.get(type.iri, {'icon': 'circle', 'color': 'var(--color-text-faint)', 'size': 16}) if type_icons else {'icon': 'circle', 'color': 'var(--color-text-faint)', 'size': 16} %}
+{% set safe_id = type.iri | replace(':', '_') | replace('/', '_') | replace('#', '_') | replace('.', '_') %}
 <div class="tree-node" data-type-iri="{{ type.iri }}" data-testid="nav-section"
      hx-get="/browser/tree/{{ type.iri | urlencode }}"
      hx-trigger="click once"
-     hx-target="#children-{{ type.iri | urlencode | replace('%', '_') }}"
+     hx-target="#children-{{ safe_id }}"
      hx-swap="innerHTML">
     <span class="tree-toggle">&#9656;</span>
     <i data-lucide="{{ type_icon.icon }}"
@@ -20,7 +21,7 @@
        style="color: {{ type_icon.color }}; width: {{ type_icon.size or 16 }}px; height: {{ type_icon.size or 16 }}px; flex-shrink: 0;"></i>
     <span class="tree-label">{{ type.label }}</span>
 </div>
-<div id="children-{{ type.iri | urlencode | replace('%', '_') }}" class="tree-children"></div>
+<div id="children-{{ safe_id }}" class="tree-children"></div>
 {% endfor %}
 {% else %}
 <div class="tree-empty">No models installed</div>
