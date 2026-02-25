@@ -722,6 +722,8 @@
     if (tabId === 'special:settings' || (tab && tab.specialType === 'settings')) {
       // Settings special tab
       url = '/browser/settings';
+    } else if (tabId === 'special:docs' || (tab && tab.specialType === 'docs')) {
+      url = '/browser/docs';
     } else if (tab.isView || (tabId && tabId.indexOf('view:') === 0)) {
       // View tab
       var viewId = tab.viewId || (tabId.indexOf('view:') === 0 ? tabId.substring(5) : tabId);
@@ -745,7 +747,8 @@
       });
 
       // Load right-pane sections for object tabs (not views or special tabs)
-      var isSpecial = tabId === 'special:settings' || (tab && tab.specialType === 'settings');
+      var isSpecial = tabId === 'special:settings' || (tab && tab.specialType === 'settings')
+                   || tabId === 'special:docs' || (tab && tab.specialType === 'docs');
       if (!tab.isView && !(tabId && tabId.indexOf('view:') === 0) && !isSpecial) {
         if (typeof loadRightPaneSection === 'function') {
           loadRightPaneSection(tabId, 'relations');

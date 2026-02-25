@@ -624,6 +624,27 @@
   }
   window.openSettingsTab = openSettingsTab;
 
+  // --- Docs Tab ---
+
+  function openDocsTab() {
+    var tabKey = 'special:docs';
+    var layout = window._workspaceLayout;
+    if (!layout) return;
+    var groupId = layout.activeGroupId;
+    var group = layout.getGroup ? layout.getGroup(groupId) : (layout.groups && layout.groups[groupId]);
+    if (group) {
+      var existing = group.tabs.find(function (t) { return (t.id || t.iri) === tabKey; });
+      if (existing) {
+        if (typeof switchTabInGroup === 'function') switchTabInGroup(tabKey, groupId);
+        return;
+      }
+    }
+    var tabDef = { id: tabKey, iri: tabKey, label: 'Docs & Tutorials', dirty: false, isView: false, isSpecial: true, specialType: 'docs' };
+    if (layout.addTabToGroup) layout.addTabToGroup(tabDef, groupId);
+    if (typeof window.loadTabInGroup === 'function') window.loadTabInGroup(groupId, tabKey);
+  }
+  window.openDocsTab = openDocsTab;
+
   // --- Keyboard Shortcuts ---
 
   var _keydownHandler = null;
