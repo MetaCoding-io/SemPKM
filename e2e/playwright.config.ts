@@ -42,5 +42,18 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
+    {
+      name: 'screenshots',
+      testMatch: /screenshots\/.*\.spec\.ts/,
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1440, height: 900 },
+        /* No retries for screenshot capture — deterministic output */
+        screenshot: 'off',
+        video: 'off',
+        trace: 'off',
+      },
+      retries: 0,
+    },
   ],
 });
