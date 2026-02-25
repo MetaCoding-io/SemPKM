@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-23)
 ## Current Position
 
 Phase: 18 of 18 (Tutorials and Documentation)
-Plan: 1 of 2 (in progress)
-Status: Phase 18 plan 01 complete (Driver.js CDN + Docs & Tutorials special tab)
-Last activity: 2026-02-25 - Completed 18-01: Driver.js CDN and Docs Tab Infrastructure
+Plan: 2 of 2 (complete)
+Status: Phase 18 complete — all plans done (DOCS-01 through DOCS-04)
+Last activity: 2026-02-24 - Completed 18-02: Driver.js Guided Tours (tutorials.js)
 
-Progress: [##########] 96% (v2.0) -- 18-01 complete (23/24 plans)
+Progress: [##########] 100% (v2.0) -- 18-02 complete (24/24 plans)
 
 ## Performance Metrics
 
@@ -49,6 +49,7 @@ Progress: [##########] 96% (v2.0) -- 18-01 complete (23/24 plans)
 | 17    | 01   | 4min     | 2     | 8     |
 | 17    | 02   | 1min     | 2     | 2     |
 | 18    | 01   | 4min     | 2     | 8     |
+| 18    | 02   | 2min     | 2     | 2     |
 
 ## Accumulated Context
 
@@ -140,6 +141,8 @@ v2.0 roadmap decisions:
 - (18-01) special:docs tab follows exact special:settings pattern -- same openDocsTab/openSettingsTab structure, same isSpecial guard extension
 - (18-01) StaticFiles mount for docs/guide/ guarded by is_dir() check to prevent startup crash when docs/ volume not mounted
 - (18-01) Driver.js CSS link placed before JS script tag in base.html (prevents unstyled overlay flash per RESEARCH.md Pitfall 4)
+- (18-02) Read/edit toggle selector is .mode-toggle (not [data-action=toggle-edit]) -- confirmed from object_tab.html template inspection
+- (18-02) getActiveEditorArea() and showTypePicker() already exposed as window globals -- no changes to workspace.js needed
 
 ### Pending Todos
 
@@ -167,6 +170,6 @@ v2.0 roadmap decisions:
 
 ## Session Continuity
 
-Last session: 2026-02-25
-Stopped at: Completed 18-01-PLAN.md (Driver.js CDN and Docs Tab Infrastructure)
-Resume: Begin 18-02 (tour step implementations)
+Last session: 2026-02-24
+Stopped at: Completed 18-02-PLAN.md (Driver.js Guided Tours — tutorials.js)
+Resume: v2.0 complete — all 24 plans across 18 phases finished
