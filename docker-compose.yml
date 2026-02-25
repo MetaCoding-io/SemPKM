@@ -23,6 +23,7 @@ services:
       - ./models:/app/models:ro
       - sempkm_data:/app/data
       - ./docs:/app/docs:ro
+    env_file: .env
     environment:
       TRIPLESTORE_URL: ${TRIPLESTORE_URL:-http://triplestore:8080/rdf4j-server}
       REPOSITORY_ID: ${REPOSITORY_ID:-sempkm}
@@ -37,11 +38,6 @@ services:
       # SMTP_USER: ${SMTP_USER:-}
       # SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       # SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-}
-      # PostHog analytics and error monitoring
-      # Set POSTHOG_ENABLED=true for cloud deployments; leave false for self-hosted
-      POSTHOG_ENABLED: ${POSTHOG_ENABLED:-false}
-      POSTHOG_API_KEY: ${POSTHOG_API_KEY:-}
-      POSTHOG_HOST: ${POSTHOG_HOST:-https://us.i.posthog.com}
     depends_on:
       triplestore:
         condition: service_healthy
