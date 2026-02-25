@@ -1,7 +1,7 @@
 """Label resolution service with SPARQL COALESCE batch queries and TTL caching.
 
 Resolves IRIs to human-readable labels using the precedence chain:
-dcterms:title > rdfs:label > skos:prefLabel > schema:name > QName fallback > truncated IRI.
+dcterms:title > rdfs:label > skos:prefLabel > schema:name > foaf:name > QName fallback > truncated IRI.
 
 Supports configurable language preferences, batch resolution in a single SPARQL
 query, and TTL-based caching with explicit invalidation.
@@ -75,6 +75,7 @@ class LabelService:
         PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
         PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
         PREFIX schema: <https://schema.org/>
+        PREFIX foaf: <http://xmlns.com/foaf/0.1/>
 
         SELECT ?iri ?label
         FROM <urn:sempkm:current>
@@ -84,7 +85,8 @@ class LabelService:
           OPTIONAL {{ ?iri rdfs:label ?r . {self._build_lang_filter("?r", lang)} }}
           OPTIONAL {{ ?iri skos:prefLabel ?s . {self._build_lang_filter("?s", lang)} }}
           OPTIONAL {{ ?iri schema:name ?n . {self._build_lang_filter("?n", lang)} }}
-          BIND(COALESCE(?t, ?r, ?s, ?n) AS ?label)
+          OPTIONAL {{ ?iri foaf:name ?f . {self._build_lang_filter("?f", lang)} }}
+          BIND(COALESCE(?t, ?r, ?s, ?n, ?f) AS ?label)
         }}
         """
 
