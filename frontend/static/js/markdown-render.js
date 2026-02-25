@@ -74,4 +74,36 @@
 
     target.innerHTML = rawHtml;
   };
+
+  /**
+   * Fetch Markdown from a URL and render it into a target element.
+   *
+   * @param {string} url      - URL to fetch raw Markdown from (e.g. '/docs/guide/01-what-is-sempkm.md')
+   * @param {string} targetId - ID of the element to receive rendered HTML
+   */
+  window.renderMarkdownFromUrl = function (url, targetId) {
+    var target = document.getElementById(targetId);
+    if (!target) return;
+
+    target.innerHTML = '<p class="docs-loading">Loading...</p>';
+
+    fetch(url)
+      .then(function (response) { return response.text(); })
+      .then(function (rawText) {
+        var md = getMarked();
+        if (!md) {
+          // Fallback: show raw text if CDN not loaded
+          target.textContent = rawText;
+          return;
+        }
+        var rawHtml = md.parse(rawText);
+        if (typeof DOMPurify !== 'undefined') {
+          rawHtml = DOMPurify.sanitize(rawHtml);
+        }
+        target.innerHTML = rawHtml;
+      })
+      .catch(function () {
+        target.innerHTML = '<p class="docs-error">Failed to load document.</p>';
+      });
+  };
 })();
