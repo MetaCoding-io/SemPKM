@@ -12,6 +12,8 @@
  *   npx playwright test tests/screenshots/capture.spec.ts --project=screenshots
  *
  * Output lands in e2e/screenshots/ (committed to the repo for website builds).
+ * Each screenshot is produced in both light and dark variants:
+ *   e.g. 01-workspace-overview.png  +  01-workspace-overview-dark.png
  */
 import { test, expect, OWNER_EMAIL } from '../../fixtures/auth';
 import { SEED, TYPES } from '../../fixtures/seed-data';
@@ -64,6 +66,41 @@ async function openObjectByLabel(page: import('@playwright/test').Page, label: s
   await page.waitForTimeout(800);
 }
 
+/**
+ * Take a screenshot in both light and dark mode.
+ * Saves light version at basePath and dark version at basePath with '-dark'
+ * inserted before the '.png' extension.
+ * Resets to light mode after both shots.
+ */
+async function screenshotBoth(
+  page: import('@playwright/test').Page,
+  basePath: string,
+) {
+  // Ensure light mode for the first shot
+  await page.evaluate(() => {
+    document.documentElement.setAttribute('data-theme', 'light');
+    localStorage.setItem('sempkm_theme', 'light');
+  });
+  await page.screenshot({ path: basePath, fullPage: false });
+
+  // Flip to dark
+  await page.evaluate(() => {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    localStorage.setItem('sempkm_theme', 'dark');
+  });
+  await page.waitForTimeout(300);
+  await page.screenshot({
+    path: basePath.replace(/\.png$/, '-dark.png'),
+    fullPage: false,
+  });
+
+  // Reset to light so subsequent tests start clean
+  await page.evaluate(() => {
+    document.documentElement.setAttribute('data-theme', 'light');
+    localStorage.setItem('sempkm_theme', 'light');
+  });
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Screenshot tests
 // ─────────────────────────────────────────────────────────────────────────────
@@ -77,10 +114,7 @@ test.describe('Marketing screenshots', () => {
     await openWorkspace(page);
     await expandNavTree(page);
 
-    await page.screenshot({
-      path: path.join(SCREENSHOTS_DIR, '01-workspace-overview.png'),
-      fullPage: false,
-    });
+    await screenshotBoth(page, path.join(SCREENSHOTS_DIR, '01-workspace-overview.png'));
   });
 
   // ── 2. Object browser — read-only view ─────────────────────────────────
@@ -90,10 +124,7 @@ test.describe('Marketing screenshots', () => {
     await expandNavTree(page);
     await openObjectByLabel(page, SEED.projects.sempkm.title);
 
-    await page.screenshot({
-      path: path.join(SCREENSHOTS_DIR, '02-object-read-project.png'),
-      fullPage: false,
-    });
+    await screenshotBoth(page, path.join(SCREENSHOTS_DIR, '02-object-read-project.png'));
   });
 
   // ── 3. Object edit mode with SHACL form ────────────────────────────────
@@ -109,10 +140,7 @@ test.describe('Marketing screenshots', () => {
     await page.waitForTimeout(1200);
     await waitForIdle(page);
 
-    await page.screenshot({
-      path: path.join(SCREENSHOTS_DIR, '03-object-edit-form.png'),
-      fullPage: false,
-    });
+    await screenshotBoth(page, path.join(SCREENSHOTS_DIR, '03-object-edit-form.png'));
   });
 
   // ── 4. Type picker ─────────────────────────────────────────────────────
@@ -125,10 +153,7 @@ test.describe('Marketing screenshots', () => {
     await waitForElement(page, '[data-testid="type-picker"]');
     await page.waitForTimeout(600);
 
-    await page.screenshot({
-      path: path.join(SCREENSHOTS_DIR, '04-type-picker.png'),
-      fullPage: false,
-    });
+    await screenshotBoth(page, path.join(SCREENSHOTS_DIR, '04-type-picker.png'));
   });
 
   // ── 5. Create new object form ──────────────────────────────────────────
@@ -147,10 +172,7 @@ test.describe('Marketing screenshots', () => {
     await waitForIdle(page);
     await page.waitForTimeout(600);
 
-    await page.screenshot({
-      path: path.join(SCREENSHOTS_DIR, '05-create-note-form.png'),
-      fullPage: false,
-    });
+    await screenshotBoth(page, path.join(SCREENSHOTS_DIR, '05-create-note-form.png'));
   });
 
   // ── 6. Table view ──────────────────────────────────────────────────────
@@ -172,10 +194,7 @@ test.describe('Marketing screenshots', () => {
       await page.waitForTimeout(1000);
     }
 
-    await page.screenshot({
-      path: path.join(SCREENSHOTS_DIR, '06-table-view.png'),
-      fullPage: false,
-    });
+    await screenshotBoth(page, path.join(SCREENSHOTS_DIR, '06-table-view.png'));
   });
 
   // ── 7. Cards view ──────────────────────────────────────────────────────
@@ -195,10 +214,7 @@ test.describe('Marketing screenshots', () => {
       await page.waitForTimeout(1000);
     }
 
-    await page.screenshot({
-      path: path.join(SCREENSHOTS_DIR, '07-cards-view.png'),
-      fullPage: false,
-    });
+    await screenshotBoth(page, path.join(SCREENSHOTS_DIR, '07-cards-view.png'));
   });
 
   // ── 8. Graph view ──────────────────────────────────────────────────────
@@ -219,10 +235,7 @@ test.describe('Marketing screenshots', () => {
       await page.waitForTimeout(2500);
     }
 
-    await page.screenshot({
-      path: path.join(SCREENSHOTS_DIR, '08-graph-view.png'),
-      fullPage: false,
-    });
+    await screenshotBoth(page, path.join(SCREENSHOTS_DIR, '08-graph-view.png'));
   });
 
   // ── 9. Command palette ─────────────────────────────────────────────────
@@ -235,10 +248,7 @@ test.describe('Marketing screenshots', () => {
     await page.keyboard.press('Control+k');
     await page.waitForTimeout(800);
 
-    await page.screenshot({
-      path: path.join(SCREENSHOTS_DIR, '09-command-palette.png'),
-      fullPage: false,
-    });
+    await screenshotBoth(page, path.join(SCREENSHOTS_DIR, '09-command-palette.png'));
   });
 
   // ── 10. Settings page ──────────────────────────────────────────────────
@@ -251,10 +261,7 @@ test.describe('Marketing screenshots', () => {
     await page.waitForTimeout(1500);
     await waitForIdle(page);
 
-    await page.screenshot({
-      path: path.join(SCREENSHOTS_DIR, '10-settings-page.png'),
-      fullPage: false,
-    });
+    await screenshotBoth(page, path.join(SCREENSHOTS_DIR, '10-settings-page.png'));
   });
 
   // ── 11. Dark mode ──────────────────────────────────────────────────────
@@ -329,10 +336,7 @@ test.describe('Marketing screenshots', () => {
     await waitForIdle(page);
     await page.waitForTimeout(1200);
 
-    await page.screenshot({
-      path: path.join(SCREENSHOTS_DIR, '13-admin-models.png'),
-      fullPage: false,
-    });
+    await screenshotBoth(page, path.join(SCREENSHOTS_DIR, '13-admin-models.png'));
   });
 
   // ── 14. Admin — Webhooks page ──────────────────────────────────────────
@@ -343,10 +347,7 @@ test.describe('Marketing screenshots', () => {
     await waitForIdle(page);
     await page.waitForTimeout(1200);
 
-    await page.screenshot({
-      path: path.join(SCREENSHOTS_DIR, '14-admin-webhooks.png'),
-      fullPage: false,
-    });
+    await screenshotBoth(page, path.join(SCREENSHOTS_DIR, '14-admin-webhooks.png'));
   });
 
   // ── 15. Multiple tabs open ─────────────────────────────────────────────
@@ -362,10 +363,7 @@ test.describe('Marketing screenshots', () => {
 
     await page.waitForTimeout(600);
 
-    await page.screenshot({
-      path: path.join(SCREENSHOTS_DIR, '15-multiple-tabs.png'),
-      fullPage: false,
-    });
+    await screenshotBoth(page, path.join(SCREENSHOTS_DIR, '15-multiple-tabs.png'));
   });
 
   // ── 16. Validation / lint panel ────────────────────────────────────────
@@ -379,18 +377,36 @@ test.describe('Marketing screenshots', () => {
     // Wait for lint content to load
     await page.waitForTimeout(1500);
 
-    // Capture just the right pane (properties + lint)
-    const rightPane = page.locator('[data-testid="properties-panel"]');
-    if (await rightPane.isVisible()) {
-      await rightPane.screenshot({
-        path: path.join(SCREENSHOTS_DIR, '16-lint-panel.png'),
-      });
-    } else {
-      await page.screenshot({
-        path: path.join(SCREENSHOTS_DIR, '16-lint-panel.png'),
-        fullPage: false,
-      });
-    }
+    // Helper to capture the right pane (or full page) in the current theme
+    const capture = async (filePath: string) => {
+      const rightPane = page.locator('[data-testid="properties-panel"]');
+      if (await rightPane.isVisible()) {
+        await rightPane.screenshot({ path: filePath });
+      } else {
+        await page.screenshot({ path: filePath, fullPage: false });
+      }
+    };
+
+    // Light mode
+    await page.evaluate(() => {
+      document.documentElement.setAttribute('data-theme', 'light');
+      localStorage.setItem('sempkm_theme', 'light');
+    });
+    await capture(path.join(SCREENSHOTS_DIR, '16-lint-panel.png'));
+
+    // Dark mode
+    await page.evaluate(() => {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      localStorage.setItem('sempkm_theme', 'dark');
+    });
+    await page.waitForTimeout(300);
+    await capture(path.join(SCREENSHOTS_DIR, '16-lint-panel-dark.png'));
+
+    // Reset
+    await page.evaluate(() => {
+      document.documentElement.setAttribute('data-theme', 'light');
+      localStorage.setItem('sempkm_theme', 'light');
+    });
   });
 
   // ── 17. Person read view ───────────────────────────────────────────────
@@ -400,10 +416,7 @@ test.describe('Marketing screenshots', () => {
     await expandNavTree(page);
     await openObjectByLabel(page, SEED.people.alice.name);
 
-    await page.screenshot({
-      path: path.join(SCREENSHOTS_DIR, '17-object-read-person.png'),
-      fullPage: false,
-    });
+    await screenshotBoth(page, path.join(SCREENSHOTS_DIR, '17-object-read-person.png'));
   });
 
   // ── 18. Concept read view ──────────────────────────────────────────────
@@ -413,10 +426,7 @@ test.describe('Marketing screenshots', () => {
     await expandNavTree(page);
     await openObjectByLabel(page, SEED.concepts.semanticWeb.label);
 
-    await page.screenshot({
-      path: path.join(SCREENSHOTS_DIR, '18-object-read-concept.png'),
-      fullPage: false,
-    });
+    await screenshotBoth(page, path.join(SCREENSHOTS_DIR, '18-object-read-concept.png'));
   });
 
   // ── 19. Setup page (unauthenticated) ───────────────────────────────────
@@ -430,10 +440,7 @@ test.describe('Marketing screenshots', () => {
     await page.goto('/login.html');
     await page.waitForTimeout(1000);
 
-    await page.screenshot({
-      path: path.join(SCREENSHOTS_DIR, '19-login-page.png'),
-      fullPage: false,
-    });
+    await screenshotBoth(page, path.join(SCREENSHOTS_DIR, '19-login-page.png'));
 
     await context.close();
   });
@@ -449,9 +456,6 @@ test.describe('Marketing screenshots', () => {
     await page.keyboard.press('Control+j');
     await page.waitForTimeout(800);
 
-    await page.screenshot({
-      path: path.join(SCREENSHOTS_DIR, '20-bottom-panel.png'),
-      fullPage: false,
-    });
+    await screenshotBoth(page, path.join(SCREENSHOTS_DIR, '20-bottom-panel.png'));
   });
 });
