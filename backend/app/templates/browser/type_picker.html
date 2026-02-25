@@ -5,14 +5,14 @@
      types: list of dicts with 'iri' and 'label' keys from ShapesService.get_types()
 #}
 
-<div class="type-picker">
+<div class="type-picker" data-testid="type-picker">
     <h2 class="type-picker-title">Create New Object</h2>
     <p class="type-picker-hint">Select a type to create a new object:</p>
 
     {% if types %}
     <div class="type-picker-grid">
         {% for type in types %}
-        <a class="type-card"
+        <a class="type-card" data-testid="type-option"
            hx-get="/browser/objects/new?type={{ type.iri | urlencode }}"
            hx-target="#editor-area"
            hx-swap="innerHTML">

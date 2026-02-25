@@ -1,0 +1,23 @@
+{
+  "name": "sempkm-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Playwright E2E tests for SemPKM",
+  "scripts": {
+    "test": "npx playwright test --project=chromium",
+    "test:headed": "npx playwright test --project=chromium --headed",
+    "test:debug": "npx playwright test --project=chromium --debug",
+    "test:ui": "npx playwright test --ui",
+    "screenshots": "npx playwright test --project=screenshots",
+    "screenshots:headed": "npx playwright test --project=screenshots --headed",
+    "report": "npx playwright show-report",
+    "env:start": "./scripts/start-test-env.sh",
+    "env:stop": "./scripts/stop-test-env.sh",
+    "env:wait": "./scripts/wait-for-healthy.sh"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.50.0",
+    "@types/node": "^25.3.0",
+    "typescript": "^5.7.0"
+  }
+}

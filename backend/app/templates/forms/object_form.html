@@ -23,7 +23,7 @@
 <div class="form-message form-error">{{ error_message }}</div>
 {% endif %}
 
-<div class="object-form-container">
+<div class="object-form-container" data-testid="object-form">
     <div class="form-title-row">
         <h2 class="form-title">
             {% if mode == 'create' %}
@@ -116,7 +116,7 @@
 
         {% if mode == 'create' %}
         <div class="form-actions">
-            <button type="submit" class="btn btn-primary" id="form-submit">
+            <button type="submit" class="btn btn-primary" id="form-submit" data-testid="save-button">
                 Create {{ form.label | replace(' Shape', '') }}
             </button>
             <span id="form-spinner" class="htmx-indicator">Saving...</span>

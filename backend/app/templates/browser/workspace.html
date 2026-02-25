@@ -3,12 +3,12 @@
 {% block title %}SemPKM - Object Browser{% endblock %}
 
 {% block content %}
-<div class="workspace-container" id="workspace">
-    <div class="workspace-pane" id="nav-pane">
+<div class="workspace-container" id="workspace" data-testid="workspace">
+    <div class="workspace-pane" id="nav-pane" data-testid="sidebar">
         <div class="pane-header">
             <span class="pane-title">Explorer</span>
         </div>
-        <div class="pane-content" id="nav-tree">
+        <div class="pane-content" id="nav-tree" data-testid="nav-tree">
             <div class="explorer-section expanded" id="section-objects">
                 <div class="explorer-section-header" onclick="this.parentElement.classList.toggle('expanded')">
                     <span class="explorer-section-chevron">&#9656;</span>
@@ -35,11 +35,11 @@
         </div>
     </div>
 
-    <div class="workspace-pane editor-column" id="editor-pane">
+    <div class="workspace-pane editor-column" id="editor-pane" data-testid="editor-area">
         <div class="editor-groups-container" id="editor-groups-container">
             <!-- Groups injected by workspace-layout.js initWorkspaceLayout() -->
             <div class="editor-group" id="group-1">
-                <div class="group-tab-bar tab-bar-workspace" id="tab-bar-group-1">
+                <div class="group-tab-bar tab-bar-workspace" id="tab-bar-group-1" data-testid="tab-bar">
                     <div class="tab-empty-state">No objects open</div>
                 </div>
                 <div class="group-editor-area" id="editor-area-group-1">
@@ -93,7 +93,7 @@
         </div>
     </div>
 
-    <div class="workspace-pane" id="right-pane">
+    <div class="workspace-pane" id="right-pane" data-testid="properties-panel">
         <div class="pane-header">
             <span class="pane-title">Details</span>
         </div>
