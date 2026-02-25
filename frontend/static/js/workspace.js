@@ -828,6 +828,13 @@
       var ninja = document.querySelector('ninja-keys');
       if (!ninja) return;
 
+      // Patch open/close to reflect state as an HTML attribute so tests
+      // and external code can detect open state via getAttribute('opened').
+      var _origOpen = ninja.open.bind(ninja);
+      var _origClose = ninja.close.bind(ninja);
+      ninja.open = function (options) { _origOpen(options); ninja.setAttribute('opened', ''); };
+      ninja.close = function () { _origClose(); ninja.removeAttribute('opened'); };
+
       ninja.data = [
         {
           id: 'new-object',
@@ -1217,13 +1224,15 @@
 
   // --- HX-Trigger event listeners for create/edit flows ---
 
-  // When an object is created via the create form, open it in a tab
+  // When an object is created via the create form, open it in a tab.
+  // Brief delay so the success message is visible before the tab loads.
   document.addEventListener('objectCreated', function (e) {
     var detail = e.detail;
     if (detail && detail.iri) {
       var label = detail.label || detail.iri;
-      // Newly created objects open directly in edit mode
-      openTab(detail.iri, label, 'edit');
+      setTimeout(function () {
+        openTab(detail.iri, label, 'edit');
+      }, 1500);
     }
   });
 

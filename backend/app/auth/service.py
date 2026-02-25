@@ -43,12 +43,24 @@ class AuthService:
             return result.first() is not None
 
     async def create_owner(self, email: str) -> User:
-        """Create the instance owner user. Raises if owner already exists."""
+        """Create the instance owner user. Raises if owner already exists.
+
+        If a user with this email already exists (e.g. created as a member
+        before setup completed), their role is promoted to owner.
+        """
         if await self.is_setup_complete():
             msg = "Owner already exists"
             raise ValueError(msg)
 
         async with self._session_factory() as session:
+            result = await session.execute(select(User).where(User.email == email))
+            existing = result.scalar_one_or_none()
+            if existing:
+                existing.role = "owner"
+                await session.commit()
+                await session.refresh(existing)
+                return existing
+
             user = User(email=email, role="owner")
             session.add(user)
             await session.commit()
