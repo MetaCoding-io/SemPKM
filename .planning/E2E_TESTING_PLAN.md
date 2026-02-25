@@ -445,6 +445,67 @@ Since SemPKM uses htmx (not a SPA), Playwright tests need to account for:
 5. **Loading indicators**: htmx adds `.htmx-request` class during swaps. Can be
    used as a "loading" signal to wait for.
 
+### Screenshot Capture for Marketing Website
+
+A dedicated `screenshots` Playwright project captures 20 full-resolution (1440×900)
+screenshots of the live app for use on the marketing site at sempkm.metacoding.io.
+
+**Run screenshots:**
+
+```bash
+cd e2e
+npm run env:start              # Launch isolated Docker test stack
+npm run env:wait               # Wait for healthy
+npm run screenshots            # Capture all 20 screenshots → e2e/screenshots/
+npm run env:stop               # Tear down
+```
+
+Or watch the browser navigate in headed mode:
+
+```bash
+npm run screenshots:headed
+```
+
+**How it works:**
+
+- Uses the `screenshots` Playwright project defined in `playwright.config.ts`
+  (1440×900 viewport, no retries, no trace/video overhead)
+- Test spec: `e2e/tests/screenshots/capture.spec.ts`
+- Output: `e2e/screenshots/*.png` (tracked in git for website builds)
+- Runs against seed data (Basic PKM: 2 Projects, 3 People, 3 Notes, 3 Concepts)
+  for deterministic, reproducible output
+- Covers both light and dark themes
+
+**Screenshot inventory:**
+
+| # | File | Description |
+|---|------|-------------|
+| 01 | `workspace-overview.png` | Full workspace with sidebar + nav tree expanded |
+| 02 | `object-read-project.png` | Project in read-only mode |
+| 03 | `object-edit-form.png` | SHACL-driven edit form + markdown editor |
+| 04 | `type-picker.png` | Create new object type selector |
+| 05 | `create-note-form.png` | Auto-generated Note creation form |
+| 06 | `table-view.png` | Table view with sortable columns |
+| 07 | `cards-view.png` | Card grid of objects |
+| 08 | `graph-view.png` | Cytoscape.js graph visualization |
+| 09 | `command-palette.png` | Ninja-keys command palette |
+| 10 | `settings-page.png` | Settings with categories/controls |
+| 11 | `dark-mode.png` | Workspace in dark theme |
+| 12 | `dark-mode-graph.png` | Graph view in dark theme |
+| 13 | `admin-models.png` | Mental Models admin page |
+| 14 | `admin-webhooks.png` | Webhook config admin page |
+| 15 | `multiple-tabs.png` | Several objects open as tabs |
+| 16 | `lint-panel.png` | SHACL validation details panel |
+| 17 | `object-read-person.png` | Person read view |
+| 18 | `object-read-concept.png` | Concept read view |
+| 19 | `login-page.png` | Unauthenticated login screen |
+| 20 | `bottom-panel.png` | SPARQL/Event Log bottom panel |
+
+To add new screenshots, append a test to `capture.spec.ts` and add the file to
+the inventory table above plus the README in `e2e/screenshots/README.md`.
+
+---
+
 ### CI Integration (Future)
 
 Once the test suite stabilizes:
