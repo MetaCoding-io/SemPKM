@@ -446,7 +446,11 @@ async def tree_children(
 
     type_icon = icon_svc.get_type_icon(decoded_iri, context="tree")
 
-    context = {"request": request, "objects": objects, "type_icon": type_icon}
+    # Resolve type label for nav tree tooltip (phase 19-02)
+    type_labels = await label_service.resolve_batch([decoded_iri])
+    type_label = type_labels.get(decoded_iri, "")
+
+    context = {"request": request, "objects": objects, "type_icon": type_icon, "type_label": type_label}
     return templates.TemplateResponse(
         request, "browser/tree_children.html", context
     )

@@ -327,6 +327,12 @@
       popover.style.display = 'none';
     });
 
+    // Graph node hover tooltip: shows typeLabel + label via .graph-popover-type and
+    // .graph-popover-label. Verified against CONTEXT.md requirement (phase 19-02):
+    // "Target locations: nav tree item hover + graph node hover".
+    // typeLabel is populated from backend node.type_label (view service.py line ~920)
+    // which resolves the primary type IRI via LabelService. The if (d.typeLabel) guard
+    // conditionally renders the type span — no changes needed to this implementation.
     function _showNodePopover(nodeEl, evt) {
       var d = nodeEl.data();
       var nodeIri = nodeEl.id();

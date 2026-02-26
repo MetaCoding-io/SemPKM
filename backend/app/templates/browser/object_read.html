@@ -88,6 +88,12 @@
               {% endfor %}
             {% elif prop.datatype == 'http://www.w3.org/2001/XMLSchema#anyURI' %}
               {% for v in vals %}<a href="{{ v }}" target="_blank" rel="noopener" class="uri-link">{{ v }}</a>{% if not loop.last %}<br>{% endif %}{% endfor %}
+            {% elif 'tags' in prop.path %}
+              {# Tags property (model:basic-pkm:tags, path IRI contains 'tags'):
+                 render each string value as a #Label pill element (phase 19-02) #}
+              {% for v in vals %}
+                <span class="tag-pill">#{{ v }}</span>
+              {% endfor %}
             {% else %}
               {% for v in vals %}{{ v }}{% if not loop.last %}, {% endif %}{% endfor %}
             {% endif %}
