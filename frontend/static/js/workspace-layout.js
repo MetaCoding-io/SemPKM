@@ -791,6 +791,17 @@
   /**
    * Split the editor to the right of the given group.
    * Loads the active tab of the source group into the new group (duplicate allowed).
+   *
+   * Split content bleed investigation (phase 19-02):
+   *   addGroup() calls recreateGroupSplit() synchronously, which builds the DOM
+   *   (including #editor-area-{newGroupId}) and shows empty state for the new group.
+   *   loadTabInGroup(newGroupId, ...) then fires htmx.ajax targeting
+   *   '#editor-area-{newGroupId}' using the newGroupId parameter directly — not
+   *   layout.activeGroupId or any other dynamic reference. The fix is therefore
+   *   not a DOM timing or groupId reference issue, but rather that the duplicate
+   *   tab must be pushed into newGroup.tabs before loadTabInGroup is called,
+   *   so the tab lookup inside loadTabInGroup succeeds. This is already done below.
+   *   No additional setTimeout or DOM guard is required.
    */
   function splitRight(groupId) {
     if (!layout) return;
@@ -856,6 +867,11 @@
 
     var group = layout.getGroup(groupId);
     if (!group) return;
+
+    // No-op guard: if the requested tab is already active, skip reload.
+    // Without this guard, clicking the active tab re-fires htmx.ajax and
+    // triggers a full content reload, which discards any in-progress edits.
+    if (group.activeTabId === tabId) return;
 
     group.activeTabId = tabId;
     layout.activeGroupId = groupId;
