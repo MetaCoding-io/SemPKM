@@ -115,6 +115,13 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - SUMMARY frontmatter uses `provides` instead of `requirements-completed`
 - Phase 6 requirements not in REQUIREMENTS.md traceability table (tracked in ROADMAP.md)
 
+## Standing Requirements (every phase)
+
+These apply to every plan, no exceptions. Executor must check both gates before writing the SUMMARY.
+
+- **E2E tests**: Any new or changed user-visible behavior must have Playwright tests added or updated in `e2e/tests/`. Tests must pass against the running stack.
+- **User guide docs**: Any user-visible feature added or changed must be reflected in `docs/` (user guide, tutorials). Create new pages if needed. If skipped (e.g. pure backend fix), state the reason explicitly in the SUMMARY.
+
 ## Constraints
 
 - **Backend**: Python + FastAPI (async, Pydantic models, OpenAPI docs)
