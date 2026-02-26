@@ -37,6 +37,7 @@
 - [x] **Phase 16: Event Log Explorer** - Browsable, filterable event timeline with inline diffs and undo (completed 2026-02-24)
 - [x] **Phase 17: LLM Connection Configuration** - Generic OpenAI-compatible LLM endpoint with server-side key storage and streaming proxy (completed 2026-02-24)
 - [x] **Phase 18: Tutorials and Documentation** - Driver.js guided tours and a Docs page for onboarding (completed 2026-02-25)
+- [ ] **Phase 19: Bug Fixes and E2E Test Hardening** - Priority bugs from CONCERNS.md audit fixed; e2e suite hardened against regressions before v2.0 ships
 
 ## Phase Details
 
@@ -183,6 +184,23 @@ Plans:
 - [ ] 18-01-PLAN.md — Driver.js CDN integration, special:docs tab wiring, docs_page.html, popover CSS theming
 - [ ] 18-02-PLAN.md — tutorials.js: Welcome tour (7 steps) and Creating Your First Object tour (htmx-gated)
 
+### Phase 19: Bug Fixes and E2E Test Hardening
+**Goal**: Ship v2.0 cleanly — priority bugs from CONCERNS.md fixed, e2e test suite hardened against regressions, standing quality gates verified
+**Depends on**: Phase 18
+**Requirements**: BUG-01, BUG-02, BUG-03, BUG-04, BUG-05, TEST-01, TEST-02
+**Success Criteria** (what must be TRUE):
+  1. Label cache invalidation is called after every write — stale labels no longer persist after rename/patch
+  2. All datetime.now() calls in browser router use timezone.utc — timestamps consistent with EventStore
+  3. EventStore is injected via DI in browser router's write handlers (not constructed ad-hoc)
+  4. CORS wildcard + credentials misconfiguration resolved; debug endpoints require owner role
+  5. E2E test suite runs ≥118/123 on chromium with no regressions from Phase 10-18 work
+  6. Critical paths have e2e coverage: object CRUD, dark mode toggle, settings save, event log, split panes, tutorial launch
+**Plans**: 2 plans
+
+Plans:
+- [ ] 19-01-PLAN.md — Priority bug fixes: label cache invalidation, datetime timezone, EventStore DI, CORS fix, debug endpoint auth guard, IRI validation, cookie secure env var
+- [ ] 19-02-PLAN.md — E2E test hardening: add tests for Phase 10-18 features, document setup wizard infrastructure issue, verify full suite passes
+
 ## Progress
 
 **Execution Order:**
@@ -208,6 +226,7 @@ Phases execute in numeric order: 10 → 11 → 12 → 13 → 14 → 15 → 16 �
 | 16. Event Log Explorer | 3/3 | Complete    | 2026-02-24 | - |
 | 17. LLM Connection Configuration | 2/2 | Complete    | 2026-02-24 | - |
 | 18. Tutorials and Documentation | 2/2 | Complete    | 2026-02-25 | - |
+| 19. Bug Fixes and E2E Test Hardening | 0/2 | Not started | - | - |
 
 ---
 *Roadmap created: 2026-02-21*
