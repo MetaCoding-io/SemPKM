@@ -8,10 +8,10 @@ content updates.
 """
 
 import logging
-from datetime import datetime
-from urllib.parse import unquote
+from datetime import datetime, timezone
+from urllib.parse import unquote, urlparse
 
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from rdflib import URIRef
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,11 +20,13 @@ from app.auth.dependencies import get_current_user, require_role
 from app.auth.models import User
 from app.db.session import get_db_session
 from app.dependencies import (
+    get_event_store,
     get_label_service,
     get_shapes_service,
     get_triplestore_client,
     get_validation_queue,
 )
+from app.events.store import EventStore
 from app.services.icons import IconService
 from app.services.labels import LabelService
 from app.services.settings import SettingsService
@@ -35,6 +37,16 @@ from app.validation.queue import AsyncValidationQueue
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/browser", tags=["browser"])
+
+
+def _validate_iri(iri: str) -> bool:
+    """Validate that a decoded IRI is an absolute URI before SPARQL interpolation."""
+    try:
+        result = urlparse(iri)
+        return bool(result.scheme and result.netloc)
+    except Exception:
+        return False
+
 
 # Models directory path -- mirrors the Docker mount used in main.py
 _MODELS_DIR = "/app/models"
@@ -405,6 +417,8 @@ async def tree_children(
     templates = request.app.state.templates
     client = request.app.state.triplestore_client
     decoded_iri = unquote(type_iri)
+    if not _validate_iri(decoded_iri):
+        raise HTTPException(status_code=400, detail="Invalid IRI")
 
     sparql = f"""
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -461,6 +475,8 @@ async def get_object(
     templates.env.filters.setdefault("format_date", _format_date)
 
     decoded_iri = unquote(object_iri)
+    if not _validate_iri(decoded_iri):
+        raise HTTPException(status_code=400, detail="Invalid IRI")
 
     props_sparql = f"""
     SELECT ?p ?o WHERE {{
@@ -594,6 +610,8 @@ async def get_tooltip(
     """Return a lightweight HTML popover for a referenced object."""
     templates = request.app.state.templates
     decoded_iri = unquote(object_iri)
+    if not _validate_iri(decoded_iri):
+        raise HTTPException(status_code=400, detail="Invalid IRI")
 
     props_sparql = f"""
     SELECT ?p ?o WHERE {{
@@ -659,6 +677,8 @@ async def save_body(
     user: User = Depends(require_role("owner", "member")),
     client: TriplestoreClient = Depends(get_triplestore_client),
     validation_queue: AsyncValidationQueue = Depends(get_validation_queue),
+    event_store: EventStore = Depends(get_event_store),
+    label_service: LabelService = Depends(get_label_service),
 ):
     """Save the Markdown body of an object.
 
@@ -669,9 +689,10 @@ async def save_body(
     from app.commands.handlers.body_set import handle_body_set
     from app.commands.schemas import BodySetParams
     from app.config import settings
-    from app.events.store import EventStore
 
     decoded_iri = unquote(object_iri)
+    if not _validate_iri(decoded_iri):
+        raise HTTPException(status_code=400, detail="Invalid IRI")
     body_content = (await request.body()).decode("utf-8")
 
     params = BodySetParams(
@@ -685,7 +706,7 @@ async def save_body(
     from rdflib import Literal, Variable
     from rdflib.namespace import XSD
     dcterms_modified_uri = URIRef("http://purl.org/dc/terms/modified")
-    now_literal = Literal(datetime.now().isoformat(), datatype=XSD.dateTime)
+    now_literal = Literal(datetime.now(timezone.utc).isoformat(), datatype=XSD.dateTime)
     subject = URIRef(decoded_iri)
     operation.materialize_deletes.append(
         (subject, dcterms_modified_uri, Variable("old_modified"))
@@ -694,9 +715,9 @@ async def save_body(
         (subject, dcterms_modified_uri, now_literal)
     )
 
-    event_store = EventStore(client)
     user_iri = URIRef(f"urn:sempkm:user:{user.id}")
     event_result = await event_store.commit([operation], performed_by=user_iri, performed_by_role=user.role)
+    label_service.invalidate(event_result.affected_iris)
 
     await validation_queue.enqueue(
         event_iri=str(event_result.event_iri),
@@ -725,6 +746,8 @@ async def get_relations(
     """
     templates = request.app.state.templates
     decoded_iri = unquote(object_iri)
+    if not _validate_iri(decoded_iri):
+        raise HTTPException(status_code=400, detail="Invalid IRI")
 
     outbound_sparql = f"""
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -829,6 +852,8 @@ async def get_lint(
     """
     templates = request.app.state.templates
     decoded_iri = unquote(object_iri)
+    if not _validate_iri(decoded_iri):
+        raise HTTPException(status_code=400, detail="Invalid IRI")
 
     latest_report = validation_queue.latest_report
 
@@ -955,6 +980,7 @@ async def create_object(
     label_service: LabelService = Depends(get_label_service),
     client: TriplestoreClient = Depends(get_triplestore_client),
     validation_queue: AsyncValidationQueue = Depends(get_validation_queue),
+    event_store: EventStore = Depends(get_event_store),
 ):
     """Process create form submission and create a new object.
 
@@ -965,7 +991,6 @@ async def create_object(
     from app.commands.handlers.object_create import handle_object_create
     from app.commands.schemas import ObjectCreateParams
     from app.config import settings
-    from app.events.store import EventStore
 
     templates = request.app.state.templates
     form_data = await request.form()
@@ -1010,9 +1035,9 @@ async def create_object(
             properties=properties,
         )
         operation = await handle_object_create(params, settings.base_namespace)
-        event_store = EventStore(client)
         user_iri = URIRef(f"urn:sempkm:user:{user.id}")
         event_result = await event_store.commit([operation], performed_by=user_iri, performed_by_role=user.role)
+        label_service.invalidate(event_result.affected_iris)
 
         # Trigger async validation
         await validation_queue.enqueue(
@@ -1074,6 +1099,7 @@ async def save_object(
     label_service: LabelService = Depends(get_label_service),
     client: TriplestoreClient = Depends(get_triplestore_client),
     validation_queue: AsyncValidationQueue = Depends(get_validation_queue),
+    event_store: EventStore = Depends(get_event_store),
 ):
     """Process edit form submission and patch an existing object.
 
@@ -1084,7 +1110,6 @@ async def save_object(
     from app.commands.handlers.object_patch import handle_object_patch
     from app.commands.schemas import ObjectPatchParams
     from app.config import settings
-    from app.events.store import EventStore
 
     templates = request.app.state.templates
     decoded_iri = unquote(object_iri)
@@ -1107,8 +1132,8 @@ async def save_object(
         clean_key = key.rstrip("[]")
         properties[clean_key] = values[0]
 
-    # Auto-set dcterms:modified to current timestamp
-    properties[dcterms_modified] = datetime.now().isoformat()
+    # Auto-set dcterms:modified to current UTC timestamp
+    properties[dcterms_modified] = datetime.now(timezone.utc).isoformat()
 
     try:
         if properties:
@@ -1117,9 +1142,9 @@ async def save_object(
                 properties=properties,
             )
             operation = await handle_object_patch(params, settings.base_namespace)
-            event_store = EventStore(client)
             user_iri = URIRef(f"urn:sempkm:user:{user.id}")
             event_result = await event_store.commit([operation], performed_by=user_iri, performed_by_role=user.role)
+            label_service.invalidate(event_result.affected_iris)
 
             await validation_queue.enqueue(
                 event_iri=str(event_result.event_iri),
@@ -1277,6 +1302,8 @@ async def undo_event(
     event_iri: str,
     user: User = Depends(require_role("owner", "member")),
     client: TriplestoreClient = Depends(get_triplestore_client),
+    event_store: EventStore = Depends(get_event_store),
+    label_service: LabelService = Depends(get_label_service),
 ):
     """Create a compensating event that reverses the specified event.
 
@@ -1284,7 +1311,6 @@ async def undo_event(
     and commits it via EventStore. The original event is not modified.
     """
     from app.events.query import EventQueryService
-    from app.events.store import EventStore
     from urllib.parse import unquote as _unquote
 
     decoded_iri = _unquote(event_iri)
@@ -1295,9 +1321,9 @@ async def undo_event(
     compensation = await query_svc.build_compensation(decoded_iri, detail)
     if not compensation:
         return JSONResponse(status_code=400, content={"error": "This event cannot be undone"})
-    event_store = EventStore(client)
     user_iri = URIRef(f"urn:sempkm:user:{user.id}")
-    await event_store.commit([compensation], performed_by=user_iri, performed_by_role=user.role)
+    event_result = await event_store.commit([compensation], performed_by=user_iri, performed_by_role=user.role)
+    label_service.invalidate(event_result.affected_iris)
     return JSONResponse(content={"status": "ok", "message": "Undo applied successfully"})
 
 
@@ -1322,6 +1348,9 @@ async def search_references(
 
     if not type:
         return HTMLResponse(content="", status_code=200)
+
+    if not _validate_iri(type):
+        raise HTTPException(status_code=400, detail="Invalid IRI")
 
     # Build SPARQL query to find instances of the type
     sparql = f"""

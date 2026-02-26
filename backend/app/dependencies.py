@@ -3,6 +3,7 @@
 from fastapi import Request
 
 from app.auth.service import AuthService
+from app.events.store import EventStore
 from app.services.labels import LabelService
 from app.services.models import ModelService
 from app.services.prefixes import PrefixRegistry
@@ -102,3 +103,12 @@ async def get_view_spec_service(request: Request) -> ViewSpecService:
     app.state.view_spec_service.
     """
     return request.app.state.view_spec_service
+
+
+async def get_event_store(request: Request) -> EventStore:
+    """Get the EventStore instance from app state.
+
+    The store is created during app lifespan startup and stored on
+    app.state.event_store.
+    """
+    return request.app.state.event_store
