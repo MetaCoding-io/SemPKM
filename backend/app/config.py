@@ -36,6 +36,12 @@ class Settings(BaseSettings):
     # Debug mode
     debug: bool = False
 
+    # PostHog analytics and error monitoring
+    # Set posthog_enabled=True for cloud deployments; leave False for self-hosted
+    posthog_enabled: bool = False
+    posthog_api_key: str = ""
+    posthog_host: str = "https://us.i.posthog.com"
+
     model_config = SettingsConfigDict(env_file=".env")
 
 

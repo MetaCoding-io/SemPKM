@@ -1,0 +1,1 @@
+- [ ] **BUG**: Searching or linking to other concepts is not working (reported during phase 13 UAT)

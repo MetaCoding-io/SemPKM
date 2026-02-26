@@ -1,0 +1,29 @@
+<div id="docs-viewer" class="docs-viewer">
+
+  <div class="docs-viewer-header">
+    <button class="docs-back-btn"
+            hx-get="/browser/docs"
+            hx-target="closest .group-editor-area"
+            hx-swap="innerHTML">
+      <i data-lucide="arrow-left"></i>
+      <span>Back to Docs</span>
+    </button>
+  </div>
+
+  <div id="docs-content" class="docs-content markdown-body">
+    <p class="docs-loading">Loading...</p>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  if (typeof lucide !== 'undefined' && lucide.createIcons) {
+    lucide.createIcons();
+  }
+  var filename = {{ filename | tojson }};
+  if (typeof window.renderMarkdownFromUrl === 'function') {
+    window.renderMarkdownFromUrl('/docs/guide/' + filename, 'docs-content');
+  }
+})();
+</script>

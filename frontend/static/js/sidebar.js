@@ -8,7 +8,7 @@
 
   /** Toggle sidebar collapse state */
   window.toggleSidebar = function() {
-    var layout = document.querySelector('.dashboard-layout');
+    var layout = document.querySelector('.dashboard-layout, .workspace-layout');
     if (!layout) return;
     var isCollapsed = layout.classList.toggle('sidebar-collapsed');
     localStorage.setItem(SIDEBAR_KEY, isCollapsed ? 'true' : 'false');
@@ -53,7 +53,7 @@
 
   /** Restore sidebar collapse state from localStorage */
   function _restoreSidebarState() {
-    var layout = document.querySelector('.dashboard-layout');
+    var layout = document.querySelector('.dashboard-layout, .workspace-layout');
     if (!layout) return;
     if (localStorage.getItem(SIDEBAR_KEY) === 'true') {
       layout.classList.add('sidebar-collapsed');

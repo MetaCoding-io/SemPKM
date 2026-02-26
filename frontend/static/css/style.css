@@ -486,13 +486,15 @@ pre.json-output {
    Dashboard Shell Layout
    ============================================ */
 
-.dashboard-layout {
+.dashboard-layout,
+.workspace-layout {
   display: flex;
   min-height: 100vh;
   --sidebar-width: 220px;
 }
 
-.dashboard-layout.sidebar-collapsed {
+.dashboard-layout.sidebar-collapsed,
+.workspace-layout.sidebar-collapsed {
   --sidebar-width: 48px;
 }
 

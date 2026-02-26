@@ -20,6 +20,7 @@ dependencies = [
     "asyncpg>=0.31",
     "itsdangerous>=2.2",
     "cryptography>=43.0",
+    "posthog>=3.7",
 ]
 
 [project.optional-dependencies]
