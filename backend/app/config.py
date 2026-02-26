@@ -33,6 +33,13 @@ class Settings(BaseSettings):
     smtp_password: str = ""
     smtp_from_email: str = ""
 
+    # CORS: comma-separated allowed origins; empty string means wildcard (no credentials)
+    # Example: CORS_ORIGINS=https://app.example.com,https://admin.example.com
+    cors_origins: str = ""
+
+    # Session cookie secure flag — set COOKIE_SECURE=false for local HTTP development
+    cookie_secure: bool = True
+
     # Debug mode
     debug: bool = False
 
