@@ -3,7 +3,7 @@
 Cookie settings:
 - httponly=True (not accessible from JavaScript)
 - samesite="lax" (sent with same-site and top-level navigation)
-- secure=False for development (should be True in production)
+- secure=settings.cookie_secure (True by default; set COOKIE_SECURE=false for local HTTP dev)
 - max_age based on settings.session_duration_days
 - key name: "sempkm_session"
 """
@@ -44,7 +44,7 @@ def _set_session_cookie(response: Response, token: str) -> None:
         value=token,
         httponly=True,
         samesite="lax",
-        secure=False,  # TODO: make configurable for production
+        secure=settings.cookie_secure,
         max_age=COOKIE_MAX_AGE,
     )
 

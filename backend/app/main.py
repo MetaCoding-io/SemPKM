@@ -262,14 +262,24 @@ async def auth_exception_handler(request: Request, exc: HTTPException):
 # the full request lifecycle and catches unhandled exceptions)
 app.add_middleware(PostHogErrorMiddleware)
 
-# CORS middleware for dev console access
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# CORS: use specific origins with credentials when configured, wildcard without credentials otherwise
+cors_origins_list = [o.strip() for o in settings.cors_origins.split(",") if o.strip()]
+if cors_origins_list:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=cors_origins_list,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+else:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=False,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 # Include routers (API routers first, then UI routers, shell router last)
 app.include_router(monitoring_router)
