@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations -- no blank-page syndrome, no schema setup.
-**Current focus:** v2.0 Tighten Web UI -- Phase 18 in progress (Tutorials and Documentation)
+**Current focus:** Phase 19 — Bug Fixes and E2E Test Hardening
 
 ## Current Position
 
-Phase: 18 of 18 (Tutorials and Documentation)
-Plan: 2 of 2 (complete)
-Status: Phase 18 complete — all plans done (DOCS-01 through DOCS-04)
-Last activity: 2026-02-24 - Completed 18-02: Driver.js Guided Tours (tutorials.js)
+Phase: 19 of 19 (Bug Fixes and E2E Test Hardening)
+Plan: 1 of 3 (complete)
+Status: Phase 19 in progress — 19-01 complete (backend security/correctness fixes)
+Last activity: 2026-02-26 - Completed 19-01: Backend Bug Fixes (EventStore DI, CORS, cookie, debug guard, IRI validation)
 
-Progress: [##########] 100% (v2.0) -- 18-02 complete (24/24 plans)
+Progress: [##########] 100% (v2.0) -- Phase 19 ongoing
 
 ## Performance Metrics
 
@@ -50,6 +50,7 @@ Progress: [##########] 100% (v2.0) -- 18-02 complete (24/24 plans)
 | 17    | 02   | 1min     | 2     | 2     |
 | 18    | 01   | 4min     | 2     | 8     |
 | 18    | 02   | 2min     | 2     | 2     |
+| 19    | 01   | 13min    | 2     | 6     |
 
 ## Accumulated Context
 
@@ -143,6 +144,10 @@ v2.0 roadmap decisions:
 - (18-01) Driver.js CSS link placed before JS script tag in base.html (prevents unstyled overlay flash per RESEARCH.md Pitfall 4)
 - (18-02) Read/edit toggle selector is .mode-toggle (not [data-action=toggle-edit]) -- confirmed from object_tab.html template inspection
 - (18-02) getActiveEditorArea() and showTypePicker() already exposed as window globals -- no changes to workspace.js needed
+- (19-01) Conditional CORS: empty CORS_ORIGINS means wildcard without credentials; non-empty means specific origins with credentials (CORS spec compliance)
+- (19-01) COOKIE_SECURE defaults True; set COOKIE_SECURE=false for local HTTP dev
+- (19-01) IRI validation uses urlparse scheme+netloc; urn: IRIs rejected (no netloc) -- acceptable since all object IRIs are https://
+- (19-01) EventStore commit result captured in undo_event to enable label_service.invalidate()
 
 ### Pending Todos
 
@@ -171,6 +176,6 @@ v2.0 roadmap decisions:
 
 ## Session Continuity
 
-Last session: 2026-02-25
-Stopped at: Completed quick task 4 (display-user-guide-markdown-files-in-doc)
-Resume: v2.0 complete — all 24 plans across 18 phases finished; quick tasks ongoing
+Last session: 2026-02-26
+Stopped at: Completed 19-01 (backend security/correctness bug fixes)
+Resume: Phase 19 plan 2 — frontend fixes (19-02)
