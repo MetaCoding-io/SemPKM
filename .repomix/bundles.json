@@ -1,0 +1,12 @@
+{
+  "bundles": {
+    "v1-621": {
+      "name": "v1",
+      "created": "2026-02-26T04:09:09.226Z",
+      "lastUsed": "2026-02-26T04:09:09.226Z",
+      "tags": [],
+      "files": [],
+      "configPath": ".repomix/config/v1-repomix.config.json"
+    }
+  }
+}
