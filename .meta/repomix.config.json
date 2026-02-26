@@ -3,7 +3,7 @@
     "maxFileSize": 50000000
   },
   "output": {
-    "filePath": "/app/output/repomix-output.xml",
+    "filePath": "repomix-output.xml",
     "style": "xml",
     "compress": false,
     "fileSummary": true,

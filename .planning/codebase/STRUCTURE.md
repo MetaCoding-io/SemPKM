@@ -1,0 +1,292 @@
+# Codebase Structure
+
+**Analysis Date:** 2026-02-25
+
+## Directory Layout
+
+```
+SemPKM/
+├── backend/                    # FastAPI Python backend
+│   ├── app/
+│   │   ├── admin/              # Admin UI router (model/webhook management)
+│   │   ├── auth/               # Passwordless auth (magic link, sessions, roles)
+│   │   ├── browser/            # IDE-style workspace router (main UI)
+│   │   ├── commands/           # Write command API (POST /api/commands)
+│   │   │   └── handlers/       # One handler per command type
+│   │   ├── db/                 # SQLAlchemy engine, session, base model
+│   │   ├── debug/              # SPARQL console, command debug UI (dev only)
+│   │   ├── events/             # Event store: immutable named graphs + materialization
+│   │   ├── health/             # GET /api/health endpoint
+│   │   ├── models/             # Mental Model loader, registry, manifest schema
+│   │   ├── monitoring/         # PostHog error middleware and client
+│   │   ├── rdf/                # IRI minting, JSON-LD utils, namespace definitions
+│   │   ├── services/           # Domain services (labels, shapes, validation, webhooks, prefixes)
+│   │   ├── shell/              # Admin shell router
+│   │   ├── sparql/             # SPARQL passthrough router + scoping utility
+│   │   ├── templates/          # Jinja2 HTML templates
+│   │   │   ├── admin/          # Admin page templates
+│   │   │   ├── browser/        # Workspace, nav tree, object tab, views templates
+│   │   │   ├── components/     # Shared partials (_sidebar.html, _tabs.html)
+│   │   │   ├── debug/          # Debug UI templates
+│   │   │   ├── errors/         # Error page templates (403.html)
+│   │   │   └── forms/          # Form partials (_field.html, _group.html, object_form.html)
+│   │   ├── triplestore/        # RDF4J async HTTP client + repository setup
+│   │   ├── validation/         # Async SHACL validation queue + report models
+│   │   ├── views/              # ViewSpec service + router
+│   │   ├── config.py           # Pydantic BaseSettings (env vars)
+│   │   ├── dependencies.py     # FastAPI dependency functions (pull from app.state)
+│   │   └── main.py             # App factory, lifespan, router registration
+│   ├── migrations/             # Alembic SQL migrations
+│   │   └── versions/           # Migration scripts
+│   ├── Dockerfile
+│   ├── alembic.ini
+│   └── pyproject.toml
+├── frontend/                   # Nginx static server + HTML auth pages
+│   ├── static/
+│   │   ├── css/                # CSS stylesheets (style.css, workspace.css, forms.css, views.css, theme.css, settings.css)
+│   │   └── js/                 # JavaScript modules
+│   ├── index.html              # Unused placeholder
+│   ├── login.html              # Auth page (served directly by nginx)
+│   ├── setup.html              # First-run setup page
+│   ├── invite.html             # Invitation acceptance page
+│   ├── Dockerfile
+│   └── nginx.conf              # Reverse proxy config
+├── models/                     # Mental Model bundles (mounted into container)
+│   └── basic-pkm/              # Bundled starter model
+│       ├── manifest.yaml       # Model metadata and entrypoints
+│       ├── ontology/           # OWL ontology (JSON-LD)
+│       ├── shapes/             # SHACL shapes for form generation (JSON-LD)
+│       ├── views/              # ViewSpec definitions (JSON-LD)
+│       └── seed/               # Seed data objects (JSON-LD)
+├── config/
+│   └── rdf4j/
+│       └── sempkm-repo.ttl     # RDF4J repository configuration (TTL)
+├── docs/                       # GitHub Pages site + user guide markdown files
+│   └── guide/                  # User guide markdown (served as /docs/guide/* by FastAPI)
+├── e2e/                        # Playwright end-to-end tests
+│   ├── tests/                  # Test files organized by feature area
+│   │   ├── 00-setup/           # Setup wizard tests
+│   │   ├── 01-objects/         # Object CRUD tests
+│   │   ├── 02-views/           # View spec tests
+│   │   ├── 03-navigation/      # Nav tree tests
+│   │   ├── 04-validation/      # SHACL validation tests
+│   │   ├── 05-admin/           # Admin panel tests
+│   │   ├── 06-settings/        # Settings tests
+│   │   └── 07-multi-user/      # Multi-user tests
+│   ├── fixtures/               # Shared Playwright fixtures
+│   ├── helpers/                # Test helper utilities
+│   └── screenshots/            # Screenshot spec tests
+├── orig_specs/                 # Original design specifications (reference only)
+├── scripts/
+│   └── reset-instance.sh       # Dev reset script
+├── .planning/                  # GSD planning documents
+│   ├── codebase/               # THIS directory: codebase analysis docs
+│   ├── milestones/             # Milestone phase plans and summaries
+│   └── phases/                 # Current phase plans
+└── docker-compose.yml          # Full stack: api + frontend + triplestore services
+```
+
+## Directory Purposes
+
+**`backend/app/commands/`:**
+- Purpose: The exclusive write path for all semantic data changes
+- Contains: `router.py` (POST /api/commands), `dispatcher.py` (handler registry), `schemas.py` (Pydantic command models), `exceptions.py`, `handlers/` (object_create, object_patch, body_set, edge_create, edge_patch)
+- Key files: `backend/app/commands/dispatcher.py`, `backend/app/commands/schemas.py`
+
+**`backend/app/events/`:**
+- Purpose: Event sourcing core — atomic commit of immutable named graphs + current state materialization
+- Contains: `store.py` (EventStore class, Operation dataclass, SPARQL builders), `models.py` (event RDF predicates), `store.py`
+- Key files: `backend/app/events/store.py`
+
+**`backend/app/services/`:**
+- Purpose: Domain service singletons instantiated at startup and injected via app.state
+- Contains: `labels.py` (LabelService with TTL cache), `models.py` (ModelService), `shapes.py` (ShapesService for SHACL form generation), `validation.py` (ValidationService, pyshacl), `webhooks.py` (WebhookService), `prefixes.py` (PrefixRegistry), `icons.py` (IconService), `settings.py` (SettingsService)
+- Key files: `backend/app/services/labels.py`, `backend/app/services/shapes.py`
+
+**`backend/app/browser/`:**
+- Purpose: The main IDE-style workspace UI — three-column layout with nav tree, object editor, views panel
+- Contains: `router.py` with endpoints for workspace, nav_tree, tree_children, object_tab, body_save, search_suggestions, type_picker, create_object, edit_object, view_menu, lint_panel
+- Key files: `backend/app/browser/router.py` (largest router, ~800+ lines)
+
+**`backend/app/templates/browser/`:**
+- Purpose: Jinja2 templates for browser UI — both full pages and htmx partial fragments
+- Key files: `workspace.html` (three-column layout), `nav_tree.html` (hierarchical RDF tree), `object_tab.html` (object detail view), `forms/object_form.html` (SHACL-driven form), `table_view.html`, `cards_view.html`, `graph_view.html`
+
+**`backend/app/triplestore/`:**
+- Purpose: Thin async wrapper around RDF4J REST API
+- Contains: `client.py` (TriplestoreClient), `setup.py` (ensure_repository — creates repo from TTL config if missing)
+- Key files: `backend/app/triplestore/client.py`
+
+**`backend/app/rdf/`:**
+- Purpose: RDF utilities — IRI minting, JSON-LD parsing, namespace definitions
+- Contains: `iri.py` (mint_object_iri, mint_event_iri), `namespaces.py` (SEMPKM, DATA, COMMON_PREFIXES, CURRENT_GRAPH_IRI), `jsonld.py`
+- Key files: `backend/app/rdf/namespaces.py`, `backend/app/rdf/iri.py`
+
+**`backend/app/models/`:**
+- Purpose: Mental Model lifecycle — loading JSON-LD bundles, validating manifests, installing into triplestore
+- Contains: `loader.py`, `manifest.py` (ManifestSchema Pydantic model), `registry.py` (SPARQL operations for model named graphs), `router.py`, `validator.py`
+- Key files: `backend/app/models/registry.py`, `backend/app/models/manifest.py`
+
+**`backend/app/auth/`:**
+- Purpose: Session-based passwordless auth system
+- Contains: `models.py` (User, UserSession, Invitation, InstanceConfig, UserSetting SQLAlchemy ORM), `service.py` (AuthService), `router.py` (/api/auth/*), `dependencies.py` (get_current_user, require_role), `tokens.py` (setup token, magic link JWT), `schemas.py`
+- Key files: `backend/app/auth/dependencies.py`, `backend/app/auth/models.py`
+
+**`backend/app/validation/`:**
+- Purpose: Background SHACL validation queue
+- Contains: `queue.py` (AsyncValidationQueue — asyncio.Task worker with coalescing), `report.py` (ValidationReport, ValidationReportSummary), `router.py` (GET /api/validation/report)
+- Key files: `backend/app/validation/queue.py`
+
+**`models/basic-pkm/`:**
+- Purpose: The bundled starter Mental Model — PKM domain with Notes, Projects, Concepts, Persons
+- Contains: `manifest.yaml` (model ID, version, namespace, entrypoints, icons), `ontology/basic-pkm.jsonld`, `shapes/basic-pkm.jsonld`, `views/basic-pkm.jsonld`, `seed/basic-pkm.jsonld`
+- Key files: `models/basic-pkm/manifest.yaml`
+
+**`frontend/static/js/`:**
+- Purpose: Client-side JavaScript for workspace interactions
+- Key files: `editor.js` (object editing, command dispatch), `workspace.js` (split pane management), `graph.js` (Cytoscape.js graph visualization), `auth.js` (session management, auth state), `sidebar.js` (sidebar toggle), `theme.js` (dark/light mode), `column-prefs.js` (table column persistence), `markdown-render.js` (marked.js rendering)
+
+**`e2e/tests/`:**
+- Purpose: Playwright sequential E2E tests organized by feature
+- Key files: `e2e/tests/00-setup/01-setup-wizard.spec.ts` (requires fresh Docker stack)
+- Pattern: Numbered directories run in order, each directory is a feature area
+
+## Key File Locations
+
+**Entry Points:**
+- `backend/app/main.py`: FastAPI app factory, lifespan, all router registrations
+- `frontend/nginx.conf`: Reverse proxy routing rules
+- `docker-compose.yml`: Service definitions (api on 8000, frontend on 80→3901, triplestore on 8080)
+
+**Configuration:**
+- `backend/app/config.py`: All environment-variable-driven settings via pydantic-settings
+- `models/basic-pkm/manifest.yaml`: Bundled model metadata
+
+**Core Logic:**
+- `backend/app/events/store.py`: EventStore — the write heart of the system
+- `backend/app/commands/dispatcher.py`: Command dispatcher and handler registry
+- `backend/app/commands/schemas.py`: All command types as discriminated union
+- `backend/app/triplestore/client.py`: RDF4J HTTP client
+- `backend/app/rdf/namespaces.py`: All RDF namespace definitions and `CURRENT_GRAPH_IRI`
+- `backend/app/sparql/client.py`: `scope_to_current_graph()` — critical for query correctness
+
+**Services:**
+- `backend/app/services/labels.py`: Label resolution with TTL cache
+- `backend/app/services/shapes.py`: SHACL shape extraction for form generation
+- `backend/app/views/service.py`: ViewSpec loading and paginated query execution
+- `backend/app/validation/queue.py`: Background SHACL validation worker
+
+**Auth:**
+- `backend/app/auth/dependencies.py`: `get_current_user`, `require_role`, `optional_current_user`
+- `backend/app/auth/models.py`: SQLAlchemy ORM models (User, UserSession, Invitation, InstanceConfig, UserSetting)
+
+**Templates:**
+- `backend/app/templates/base.html`: Base layout with htmx, CDN scripts, sidebar
+- `backend/app/templates/browser/workspace.html`: Three-column IDE workspace layout
+- `backend/app/templates/browser/nav_tree.html`: Hierarchical nav tree (htmx lazy-loaded)
+- `backend/app/templates/forms/object_form.html`: SHACL-driven object create/edit form
+
+**Testing:**
+- `e2e/`: All tests; run from this directory with `npx playwright test --project=chromium`
+- `e2e/fixtures/`: Shared test fixtures
+- `e2e/helpers/`: Test utility functions
+
+## Naming Conventions
+
+**Files:**
+- Python modules: `snake_case.py` (e.g., `object_create.py`, `labels.py`)
+- HTML templates: `snake_case.html` or `_snake_case.html` for partials (e.g., `nav_tree.html`, `_sidebar.html`, `_field.html`)
+- CSS: `kebab-case.css` (e.g., `workspace.css`, `forms.css`)
+- JS: `kebab-case.js` (e.g., `editor.js`, `workspace-layout.js`, `column-prefs.js`)
+
+**Directories:**
+- Python packages: `snake_case/` (e.g., `commands/`, `triplestore/`)
+- Template subdirs: `snake_case/` mirroring router names (e.g., `templates/browser/`)
+
+**Python:**
+- Classes: `PascalCase` (e.g., `TriplestoreClient`, `EventStore`, `LabelService`)
+- Functions/methods: `snake_case` (e.g., `handle_object_create`, `resolve_batch`)
+- Constants: `UPPER_SNAKE_CASE` (e.g., `CURRENT_GRAPH_IRI`, `HANDLER_REGISTRY`, `MODELS_GRAPH`)
+- Private functions: `_snake_case` prefix (e.g., `_register_handlers`, `_build_insert_data_sparql`)
+
+**Named Graphs (RDF):**
+- `urn:sempkm:current` — current materialized state (single graph)
+- `urn:sempkm:event:{uuid}` — immutable event graphs
+- `urn:sempkm:models` — model registry
+- `urn:sempkm:model:{id}:ontology|shapes|views|seed` — per-model artifact graphs
+
+**Command Types:**
+- Dotted namespacing: `object.create`, `object.patch`, `body.set`, `edge.create`, `edge.patch`
+
+## Where to Add New Code
+
+**New Command Type:**
+1. Add params class and command class to `backend/app/commands/schemas.py` (extend the `Command` union)
+2. Create handler `backend/app/commands/handlers/{command_name}.py` returning `Operation`
+3. Register handler in `backend/app/commands/dispatcher.py` `_register_handlers()`
+4. Add webhook mapping in `backend/app/commands/router.py` `_COMMAND_EVENT_MAP`
+
+**New Service:**
+1. Create `backend/app/services/{name}.py` with service class
+2. Instantiate in `backend/app/main.py` lifespan startup, store as `app.state.{name}_service`
+3. Add getter dependency in `backend/app/dependencies.py`
+4. Use via `Depends(get_{name}_service)` in routers
+
+**New Router / Feature Area:**
+1. Create `backend/app/{feature}/router.py` with `APIRouter(prefix="/{feature}")`
+2. Create `backend/app/{feature}/__init__.py`
+3. Import and register in `backend/app/main.py` (`app.include_router(...)`)
+4. Add templates to `backend/app/templates/{feature}/`
+
+**New Template:**
+- Full page: `backend/app/templates/{feature}/{page}.html` — extend `base.html`
+- htmx partial: Define `{% block content_block %}` in full page; router renders with `templates.TemplateResponse(block_name="content_block")` using jinja2-fragments
+
+**New Mental Model:**
+1. Create `models/{model-id}/manifest.yaml`, `ontology/`, `shapes/`, `views/`, `seed/`
+2. Mount directory into container (docker-compose volume)
+3. Install via admin UI or `ModelService.install_model()`
+
+**New SQL Table:**
+1. Add SQLAlchemy model in `backend/app/auth/models.py` (or new models file imported from there)
+2. Create Alembic migration in `backend/migrations/versions/`
+
+**Utilities:**
+- RDF/SPARQL helpers: `backend/app/rdf/` or `backend/app/sparql/`
+- Shared template filters: `backend/app/main.py` (register on `templates.env.filters`)
+
+## Special Directories
+
+**`.planning/`:**
+- Purpose: GSD planning artifacts — phase plans, summaries, research, codebase analysis
+- Generated: No
+- Committed: Yes
+
+**`.claude/worktrees/`:**
+- Purpose: Agent worktrees for parallel Claude agent execution
+- Generated: Yes (by GSD tooling)
+- Committed: No (gitignored per worktree)
+
+**`backend/.venv/`:**
+- Purpose: Python virtual environment (uv-managed)
+- Generated: Yes
+- Committed: No
+
+**`e2e/node_modules/`:**
+- Purpose: Playwright and test dependencies
+- Generated: Yes
+- Committed: No
+
+**`e2e/playwright-report/` and `e2e/test-results/`:**
+- Purpose: Playwright test output and failure screenshots
+- Generated: Yes
+- Committed: No
+
+**`.meta/output/`:**
+- Purpose: Repomix-generated codebase snapshot for AI analysis
+- Generated: Yes (by repomix)
+- Committed: Yes
+
+---
+
+*Structure analysis: 2026-02-25*
