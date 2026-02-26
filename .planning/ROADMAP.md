@@ -195,16 +195,17 @@ Plans:
   4. CORS wildcard + credentials misconfiguration resolved; debug endpoints require owner role
   5. E2E test suite runs ≥118/123 on chromium with no regressions from Phase 10-18 work
   6. Critical paths have e2e coverage: object CRUD, dark mode toggle, settings save, event log, split panes, tutorial launch
-**Plans**: 2 plans
+**Plans**: 3 plans
 
 Plans:
-- [ ] 19-01-PLAN.md — Priority bug fixes: label cache invalidation, datetime timezone, EventStore DI, CORS fix, debug endpoint auth guard, IRI validation, cookie secure env var
-- [ ] 19-02-PLAN.md — E2E test hardening: add tests for Phase 10-18 features, document setup wizard infrastructure issue, verify full suite passes
+- [ ] 19-01-PLAN.md — Backend bug fixes: label cache invalidation, datetime UTC, EventStore DI, IRI validation, CORS env var, cookie secure, debug endpoint owner guard
+- [ ] 19-02-PLAN.md — UI bug fixes: tab active guard, split content bleed, edit button first-touch, autocomplete dropdown, docs tab link, tutorial launch, tag pills, nav tree tooltips
+- [ ] 19-03-PLAN.md — E2E test hardening: split panes/event log/tutorial specs, setup wizard infrastructure comment, full suite run >= 118/123
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17 → 18
+Phases execute in numeric order: 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17 → 18 → 19
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -226,7 +227,7 @@ Phases execute in numeric order: 10 → 11 → 12 → 13 → 14 → 15 → 16 �
 | 16. Event Log Explorer | 3/3 | Complete    | 2026-02-24 | - |
 | 17. LLM Connection Configuration | 2/2 | Complete    | 2026-02-24 | - |
 | 18. Tutorials and Documentation | 2/2 | Complete    | 2026-02-25 | - |
-| 19. Bug Fixes and E2E Test Hardening | 0/2 | Not started | - | - |
+| 19. Bug Fixes and E2E Test Hardening | 0/3 | Not started | - | - |
 
 ---
 *Roadmap created: 2026-02-21*
