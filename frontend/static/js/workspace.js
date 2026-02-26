@@ -529,6 +529,17 @@
   }
 
   // --- Object Mode Toggle (Read/Edit) ---
+  // Edit button first-touch investigation (phase 19-02):
+  //   safe_id encoding: object_tab.html computes it as
+  //   {{ object_iri | urlencode | replace('%', '_') }} — the button onclick
+  //   passes '{{ safe_id }}' directly (same variable). The window key is set as
+  //   window['_initEditMode_' + safeId] in the IIFE that runs during htmx swap.
+  //   Both use the same safe_id value so no mismatch exists.
+  //   The _initEditMode_ function is defined before any click is possible (script
+  //   runs during htmx afterSwap, user cannot click before that completes).
+  //   The `if (typeof initFn === 'function') initFn()` guard at line 594 is correct.
+  //   First-touch is therefore expected to work. If a regression occurs, verify
+  //   that workspace.js loads before object_tab.html content is inserted into DOM.
 
   function toggleObjectMode(safeId, objectIri) {
     var flipInner = document.getElementById('flip-inner-' + safeId);
@@ -603,6 +614,13 @@
     }
   }
 
+  // --- Autocomplete dropdown position (phase 19-02 investigation) ---
+  // Autocomplete suggestion dropdowns use position:fixed (workspace.css line 1099)
+  // with z-index:9999 and are positioned via getBoundingClientRect() in the
+  // htmx:afterSwap handler in object_form.html (lines 238-253). The scroll/resize
+  // reposition handler in object_form.html (lines 255-275) keeps dropdowns anchored.
+  // No fix needed: position:fixed already escapes overflow:hidden containers.
+
   // --- Settings Tab ---
 
   function openSettingsTab() {
@@ -625,6 +643,12 @@
   window.openSettingsTab = openSettingsTab;
 
   // --- Docs Tab ---
+  // Docs tab investigation (phase 19-02):
+  //   _sidebar.html calls openDocsTab() via onclick. This function is exposed as
+  //   window.openDocsTab below. workspace.js loads synchronously before any user
+  //   interaction is possible. loadTabInGroup resolves 'special:docs' to /browser/docs
+  //   at workspace-layout.js line 726 (special:docs branch). No bug found — the
+  //   implementation follows the same pattern as openSettingsTab() (Phase 18-01).
 
   function openDocsTab() {
     var tabKey = 'special:docs';
@@ -1055,6 +1079,47 @@
     });
   }
 
+  // --- Nav Tree Tooltip (phase 19-02) ---
+  // Shows a graph-popover-style tooltip (type + label) on hover for nav tree leaf items.
+  // Uses event delegation so it works for dynamically loaded tree content (htmx swaps).
+  // Data attributes data-tooltip-label and data-tooltip-type are set by tree_children.html.
+
+  function initNavTreeTooltips() {
+    var tooltip = document.createElement('div');
+    tooltip.className = 'nav-tree-tooltip';
+    tooltip.innerHTML = '<div class="tooltip-type"></div><div class="tooltip-label"></div>';
+    tooltip.style.display = 'none';
+    document.body.appendChild(tooltip);
+
+    document.addEventListener('mouseover', function (e) {
+      var leaf = e.target.closest('[data-tooltip-label]');
+      if (!leaf) {
+        tooltip.style.display = 'none';
+        return;
+      }
+      var typeText = leaf.dataset.tooltipType || '';
+      var labelText = leaf.dataset.tooltipLabel || '';
+      tooltip.querySelector('.tooltip-type').textContent = typeText;
+      tooltip.querySelector('.tooltip-label').textContent = labelText;
+
+      var rect = leaf.getBoundingClientRect();
+      tooltip.style.display = 'block';
+      tooltip.style.top = rect.top + 'px';
+      tooltip.style.left = (rect.right + 8) + 'px';
+
+      // Prevent overflow past right edge of viewport
+      var tRect = tooltip.getBoundingClientRect();
+      if (tRect.right > window.innerWidth - 8) {
+        tooltip.style.left = (rect.left - tRect.width - 8) + 'px';
+      }
+    });
+
+    document.addEventListener('mouseout', function (e) {
+      var leaf = e.target.closest('[data-tooltip-label]');
+      if (leaf) tooltip.style.display = 'none';
+    });
+  }
+
   // --- Right Pane Tabs (legacy -- sections now always visible) ---
   function initRightPaneTabs() {
     // No-op: Relations and Lint are now separate collapsible sections, both loaded on object open
@@ -1161,6 +1226,7 @@
     initSplit();
     initKeyboardShortcuts();
     initTreeToggle();
+    initNavTreeTooltips();
     initRightPaneTabs();
     initClientSideValidation();
     initBottomPanel();

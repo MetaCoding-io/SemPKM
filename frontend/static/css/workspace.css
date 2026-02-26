@@ -2429,3 +2429,75 @@ details.form-group[open] > .form-group-summary::before {
   color: var(--color-error, #e05252);
   font-size: 13px;
 }
+
+/* ============================================
+   Tag Pills — phase 19-02
+   Used in object_read.html (read-only) and forms/_field.html (edit form)
+   for the model:basic-pkm:tags plain-string multi-value property
+   ============================================ */
+
+/* Tag pills — read-only view (object_read.html) */
+.tag-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    background: var(--color-accent-muted, rgba(0, 120, 212, 0.12));
+    color: var(--color-accent, #0078d4);
+    border: 1px solid var(--color-accent-border, rgba(0, 120, 212, 0.3));
+    margin: 2px 2px 2px 0;
+    white-space: nowrap;
+}
+
+/* Tag pill edit form item — used in forms/_field.html for tags property */
+.tag-pill-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--color-accent-muted, rgba(0, 120, 212, 0.12));
+    border-radius: 12px;
+    padding: 2px 4px 2px 8px;
+    margin: 2px;
+}
+
+.tag-pill-item .form-input {
+    background: transparent;
+    border: none;
+    padding: 0;
+    font-size: 0.75rem;
+    color: var(--color-accent, #0078d4);
+    width: auto;
+    min-width: 60px;
+}
+
+/* ============================================
+   Nav Tree Tooltip — phase 19-02
+   Matches graph-popover style: type label + object label on hover
+   ============================================ */
+
+.nav-tree-tooltip {
+    position: fixed;
+    z-index: 9999;
+    background: var(--color-surface-elevated, #fff);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    pointer-events: none;
+    box-shadow: var(--shadow-md, 0 4px 12px rgba(0,0,0,0.15));
+    max-width: 240px;
+}
+
+.nav-tree-tooltip .tooltip-type {
+    color: var(--color-text-muted);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.nav-tree-tooltip .tooltip-label {
+    color: var(--color-text);
+    font-weight: 500;
+    margin-top: 2px;
+}
