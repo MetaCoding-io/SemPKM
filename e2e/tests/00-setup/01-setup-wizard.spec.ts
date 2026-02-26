@@ -1,3 +1,19 @@
+/*
+ * NOTE: Infrastructure constraint — these 5 tests require a FRESH Docker stack.
+ *
+ * The setup wizard can only run once (setup_mode=true). After the wizard completes,
+ * subsequent test runs leave the stack in setup_complete=true state, causing these
+ * tests to fail because the setup form is no longer shown.
+ *
+ * STATUS: Known infrastructure issue, not an application bug.
+ * - On first run from a fresh stack (docker compose down -v && docker compose up):
+ *   all 5 tests PASS.
+ * - On subsequent runs against the same stack: all 5 tests FAIL (expected).
+ *
+ * DO NOT skip or tag these tests. They document the intended first-run flow.
+ * The 118/123 chromium baseline accounts for these 5 failures.
+ */
+
 /**
  * Setup Wizard E2E Tests
  *
