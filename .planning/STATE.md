@@ -1,3 +1,16 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: Tighten Web UI
+status: unknown
+last_updated: "2026-02-26T17:43:52.208Z"
+progress:
+  total_phases: 10
+  completed_phases: 9
+  total_plans: 27
+  completed_plans: 26
+---
+
 # Project State
 
 ## Project Reference
@@ -10,9 +23,9 @@ See: .planning/PROJECT.md (updated 2026-02-23)
 ## Current Position
 
 Phase: 19 of 19 (Bug Fixes and E2E Test Hardening)
-Plan: 1 of 3 (complete)
-Status: Phase 19 in progress — 19-01 complete (backend security/correctness fixes)
-Last activity: 2026-02-26 - Completed 19-01: Backend Bug Fixes (EventStore DI, CORS, cookie, debug guard, IRI validation)
+Plan: 2 of 3 (complete)
+Status: Phase 19 in progress — 19-02 complete (UI bug fixes, tag pills, tooltips)
+Last activity: 2026-02-26 - Completed 19-02: UI Bug Fixes and Tag Pill/Tooltip Improvements
 
 Progress: [##########] 100% (v2.0) -- Phase 19 ongoing
 
@@ -51,6 +64,7 @@ Progress: [##########] 100% (v2.0) -- Phase 19 ongoing
 | 18    | 01   | 4min     | 2     | 8     |
 | 18    | 02   | 2min     | 2     | 2     |
 | 19    | 01   | 13min    | 2     | 6     |
+| 19    | 02   | 28min    | 2     | 8     |
 
 ## Accumulated Context
 
@@ -148,6 +162,10 @@ v2.0 roadmap decisions:
 - (19-01) COOKIE_SECURE defaults True; set COOKIE_SECURE=false for local HTTP dev
 - (19-01) IRI validation uses urlparse scheme+netloc; urn: IRIs rejected (no netloc) -- acceptable since all object IRIs are https://
 - (19-01) EventStore commit result captured in undo_event to enable label_service.invalidate()
+- (19-02) Tab active guard in switchTabInGroup: if group.activeTabId === tabId return early (no htmx reload)
+- (19-02) Tag pill match uses 'tags' in prop.path — matches bpkm:tags IRI (urn:sempkm:model:basic-pkm:tags, xsd:string)
+- (19-02) Nav tree tooltip: event-delegated, single shared element, type_label resolved server-side in tree_children endpoint
+- (19-02) Graph node hover tooltip confirmed correct — typeLabel already in node data from views service, no changes needed
 
 ### Pending Todos
 
@@ -177,5 +195,5 @@ v2.0 roadmap decisions:
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: Completed 19-01 (backend security/correctness bug fixes)
-Resume: Phase 19 plan 2 — frontend fixes (19-02)
+Stopped at: Completed 19-02 (UI bug fixes, tag pills, nav tree tooltip, graph node tooltip confirmation)
+Resume: Phase 19 plan 3 — E2E test hardening (19-03)
