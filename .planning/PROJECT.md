@@ -58,17 +58,40 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ### Future Candidates
 
-<!-- Tracked for future milestones. Not in v2.0 scope. -->
+<!-- Tracked for future milestones. See .planning/research/future-milestones.md for full breakdown. -->
 
-- Dashboards: parameterized panels, type-based registry (objectSelf, view, lintSummary, markdown)
-- Full-text search across objects
-- JSON-LD export for objects/collections
-- Edge model enhancements: edge inspector panel, inline wiki-link-speed creation
-- Backlinks panel (incoming references for any object)
+<!-- Full breakdown with dependency map and parallelization strategy: .planning/research/future-milestones.md -->
+
+**v2.1 — Research & Architecture Decisions** (parallel research phases)
+- Full-text search + vector store research (RDF stores with FTS, OpenSearch, pgvector, etc.)
+- SPARQL interface research (Zazuko Yasgui, modern tooling, embed vs. iframe vs. mimic)
+- Virtual filesystem WebDAV MVP (research at .planning/research/virtual-filesystem.md)
+- UI shell architecture: theming + flexible panel layout (current arch handles this — see decision log)
+
+**v2.2 — Data Discovery & Search**
+- Full-text indexing implementation (technology from v2.1 research)
+- SPARQL interface integration (beautiful, autocomplete, object pills, saved queries, history)
+- Virtual filesystem MVP (read-only WebDAV mount, MountSpec vocabulary, Markdown+frontmatter rendering)
+
+**v2.3 — Shell & Navigation**
+- Dashboards / named layouts (Bases equivalent — user-defined, model-provided named panel arrangements)
+- Flexible panel layout (GoldenLayout or similar for drag-to-dock panel rearrangement)
+- Full theming system (CSS variable token sets, user-selectable themes, model-contributed themes)
+- App launcher concept (object browser as primary "app"; SPARQL interface, etc. as installable apps)
+
+**v2.4 — Low-Code & Workflows**
+- Low-code UI builder (compose basic components tied to SemPKM actions; Notion + Airflow inspired)
+- Minimal workflow orchestration (orchestrated forms/views, not n8n; e.g. CRM onboarding: add client → add project → add invoice → log success)
+- SMTP integration for magic link delivery
 - Cookie secure=True for production deployment
-- SMTP integration for magic link delivery (currently logged to console)
-- Workflow engine (n8n-style built-in workflows, model-provided, event triggers, external n8n callout)
+- Session cleanup job
+
+**Ongoing / cross-cutting**
+- Backlinks panel (incoming references for any object)
+- Edge model enhancements: edge inspector panel, inline wiki-link creation
+- JSON-LD export for objects/collections
 - AI Copilot (chat about data, SPARQL generation, writing assistance, relationship suggestions)
+- CONCERNS.md tech debt: EventStore DI, label cache invalidation, datetime timezone, CORS, Alembic migration runner
 
 ### Out of Scope
 
