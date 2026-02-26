@@ -23,6 +23,7 @@ services:
       - ./models:/app/models:ro
       - sempkm_data:/app/data
       - ./docs:/app/docs:ro
+    env_file: .env
     environment:
       TRIPLESTORE_URL: ${TRIPLESTORE_URL:-http://triplestore:8080/rdf4j-server}
       REPOSITORY_ID: ${REPOSITORY_ID:-sempkm}

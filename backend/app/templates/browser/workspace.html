@@ -2,6 +2,8 @@
 
 {% block title %}SemPKM - Object Browser{% endblock %}
 
+{% block layout_class %}workspace-layout{% endblock %}
+
 {% block content %}
 <div class="workspace-container" id="workspace" data-testid="workspace">
     <div class="workspace-pane" id="nav-pane" data-testid="sidebar">
@@ -18,7 +20,7 @@
                     {% include "browser/nav_tree.html" %}
                 </div>
             </div>
-            <div class="explorer-section expanded" id="section-views">
+            <div class="explorer-section" id="section-views">
                 <div class="explorer-section-header"
                      onclick="this.parentElement.classList.toggle('expanded')"
                      hx-get="/browser/views/explorer"

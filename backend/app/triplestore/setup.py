@@ -49,6 +49,12 @@ async def ensure_repository(
 
         config_ttl = config_path.read_text()
 
+        # Replace the hardcoded repo ID in the TTL with the actual repo_id.
+        # The config file uses "sempkm" but test environments use a different ID.
+        config_ttl = config_ttl.replace(
+            'config:rep.id "sempkm"', f'config:rep.id "{repo_id}"'
+        )
+
         resp = await client.put(
             repo_url,
             content=config_ttl,

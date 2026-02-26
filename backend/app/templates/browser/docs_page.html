@@ -39,22 +39,226 @@
     </div>
   </section>
 
-  <!-- Documentation Links section -->
+  <!-- Documentation section -->
   <section class="docs-section">
-    <h3 class="docs-section-title">Documentation</h3>
-    <div class="docs-links">
-      <a href="/docs/guide/04-workspace-interface.md" target="_blank" class="docs-link-item">
+    <h3 class="docs-section-title">User Guide</h3>
+    <div class="docs-chapter-list">
+
+      <button class="docs-chapter-item"
+              hx-get="/browser/docs/guide/01-what-is-sempkm.md"
+              hx-target="closest .group-editor-area"
+              hx-swap="innerHTML">
+        <i data-lucide="info"></i>
+        <span>1. What is SemPKM?</span>
+      </button>
+
+      <button class="docs-chapter-item"
+              hx-get="/browser/docs/guide/02-core-concepts.md"
+              hx-target="closest .group-editor-area"
+              hx-swap="innerHTML">
+        <i data-lucide="layers"></i>
+        <span>2. Core Concepts</span>
+      </button>
+
+      <button class="docs-chapter-item"
+              hx-get="/browser/docs/guide/03-installation-and-setup.md"
+              hx-target="closest .group-editor-area"
+              hx-swap="innerHTML">
+        <i data-lucide="download"></i>
+        <span>3. Installation and Setup</span>
+      </button>
+
+      <button class="docs-chapter-item"
+              hx-get="/browser/docs/guide/04-workspace-interface.md"
+              hx-target="closest .group-editor-area"
+              hx-swap="innerHTML">
         <i data-lucide="layout-dashboard"></i>
-        <span>The Workspace Interface</span>
-      </a>
-      <a href="/docs/guide/05-working-with-objects.md" target="_blank" class="docs-link-item">
+        <span>4. Workspace Interface</span>
+      </button>
+
+      <button class="docs-chapter-item"
+              hx-get="/browser/docs/guide/05-working-with-objects.md"
+              hx-target="closest .group-editor-area"
+              hx-swap="innerHTML">
         <i data-lucide="box"></i>
-        <span>Working with Objects</span>
-      </a>
-      <a href="/docs/guide/README.md" target="_blank" class="docs-link-item">
-        <i data-lucide="book-open"></i>
-        <span>User Guide (all chapters)</span>
-      </a>
+        <span>5. Working with Objects</span>
+      </button>
+
+      <button class="docs-chapter-item"
+              hx-get="/browser/docs/guide/06-edges-and-relationships.md"
+              hx-target="closest .group-editor-area"
+              hx-swap="innerHTML">
+        <i data-lucide="git-branch"></i>
+        <span>6. Edges and Relationships</span>
+      </button>
+
+      <button class="docs-chapter-item"
+              hx-get="/browser/docs/guide/07-browsing-and-visualizing.md"
+              hx-target="closest .group-editor-area"
+              hx-swap="innerHTML">
+        <i data-lucide="eye"></i>
+        <span>7. Browsing and Visualizing</span>
+      </button>
+
+      <button class="docs-chapter-item"
+              hx-get="/browser/docs/guide/08-keyboard-shortcuts.md"
+              hx-target="closest .group-editor-area"
+              hx-swap="innerHTML">
+        <i data-lucide="keyboard"></i>
+        <span>8. Keyboard Shortcuts</span>
+      </button>
+
+      <button class="docs-chapter-item"
+              hx-get="/browser/docs/guide/09-understanding-mental-models.md"
+              hx-target="closest .group-editor-area"
+              hx-swap="innerHTML">
+        <i data-lucide="brain"></i>
+        <span>9. Understanding Mental Models</span>
+      </button>
+
+      <button class="docs-chapter-item"
+              hx-get="/browser/docs/guide/10-managing-mental-models.md"
+              hx-target="closest .group-editor-area"
+              hx-swap="innerHTML">
+        <i data-lucide="package"></i>
+        <span>10. Managing Mental Models</span>
+      </button>
+
+      <button class="docs-chapter-item"
+              hx-get="/browser/docs/guide/11-user-management.md"
+              hx-target="closest .group-editor-area"
+              hx-swap="innerHTML">
+        <i data-lucide="users"></i>
+        <span>11. User Management</span>
+      </button>
+
+      <button class="docs-chapter-item"
+              hx-get="/browser/docs/guide/12-webhooks.md"
+              hx-target="closest .group-editor-area"
+              hx-swap="innerHTML">
+        <i data-lucide="webhook"></i>
+        <span>12. Webhooks</span>
+      </button>
+
+      <button class="docs-chapter-item"
+              hx-get="/browser/docs/guide/13-settings.md"
+              hx-target="closest .group-editor-area"
+              hx-swap="innerHTML">
+        <i data-lucide="settings"></i>
+        <span>13. Settings</span>
+      </button>
+
+      <button class="docs-chapter-item"
+              hx-get="/browser/docs/guide/14-system-health-and-debugging.md"
+              hx-target="closest .group-editor-area"
+              hx-swap="innerHTML">
+        <i data-lucide="activity"></i>
+        <span>14. System Health and Debugging</span>
+      </button>
+
+      <button class="docs-chapter-item"
+              hx-get="/browser/docs/guide/15-event-log.md"
+              hx-target="closest .group-editor-area"
+              hx-swap="innerHTML">
+        <i data-lucide="clock"></i>
+        <span>15. Event Log</span>
+      </button>
+
+      <button class="docs-chapter-item"
+              hx-get="/browser/docs/guide/16-data-model.md"
+              hx-target="closest .group-editor-area"
+              hx-swap="innerHTML">
+        <i data-lucide="database"></i>
+        <span>16. Data Model</span>
+      </button>
+
+      <button class="docs-chapter-item"
+              hx-get="/browser/docs/guide/17-command-api.md"
+              hx-target="closest .group-editor-area"
+              hx-swap="innerHTML">
+        <i data-lucide="terminal"></i>
+        <span>17. Command API</span>
+      </button>
+
+      <button class="docs-chapter-item"
+              hx-get="/browser/docs/guide/18-sparql-endpoint.md"
+              hx-target="closest .group-editor-area"
+              hx-swap="innerHTML">
+        <i data-lucide="search-code"></i>
+        <span>18. SPARQL Endpoint</span>
+      </button>
+
+      <button class="docs-chapter-item"
+              hx-get="/browser/docs/guide/19-creating-mental-models.md"
+              hx-target="closest .group-editor-area"
+              hx-swap="innerHTML">
+        <i data-lucide="plus-square"></i>
+        <span>19. Creating Mental Models</span>
+      </button>
+
+      <button class="docs-chapter-item"
+              hx-get="/browser/docs/guide/20-production-deployment.md"
+              hx-target="closest .group-editor-area"
+              hx-swap="innerHTML">
+        <i data-lucide="server"></i>
+        <span>20. Production Deployment</span>
+      </button>
+
+      <button class="docs-chapter-item docs-chapter-appendix"
+              hx-get="/browser/docs/guide/appendix-a-environment-variables.md"
+              hx-target="closest .group-editor-area"
+              hx-swap="innerHTML">
+        <i data-lucide="file-text"></i>
+        <span>Appendix A: Environment Variables</span>
+      </button>
+
+      <button class="docs-chapter-item docs-chapter-appendix"
+              hx-get="/browser/docs/guide/appendix-b-keyboard-shortcuts.md"
+              hx-target="closest .group-editor-area"
+              hx-swap="innerHTML">
+        <i data-lucide="file-text"></i>
+        <span>Appendix B: Keyboard Shortcuts</span>
+      </button>
+
+      <button class="docs-chapter-item docs-chapter-appendix"
+              hx-get="/browser/docs/guide/appendix-c-command-api-reference.md"
+              hx-target="closest .group-editor-area"
+              hx-swap="innerHTML">
+        <i data-lucide="file-text"></i>
+        <span>Appendix C: Command API Reference</span>
+      </button>
+
+      <button class="docs-chapter-item docs-chapter-appendix"
+              hx-get="/browser/docs/guide/appendix-d-glossary.md"
+              hx-target="closest .group-editor-area"
+              hx-swap="innerHTML">
+        <i data-lucide="book"></i>
+        <span>Appendix D: Glossary</span>
+      </button>
+
+      <button class="docs-chapter-item docs-chapter-appendix"
+              hx-get="/browser/docs/guide/appendix-e-troubleshooting.md"
+              hx-target="closest .group-editor-area"
+              hx-swap="innerHTML">
+        <i data-lucide="alert-triangle"></i>
+        <span>Appendix E: Troubleshooting</span>
+      </button>
+
+      <button class="docs-chapter-item docs-chapter-appendix"
+              hx-get="/browser/docs/guide/appendix-f-faq.md"
+              hx-target="closest .group-editor-area"
+              hx-swap="innerHTML">
+        <i data-lucide="help-circle"></i>
+        <span>Appendix F: FAQ</span>
+      </button>
+
+    </div>
+  </section>
+
+  <!-- External References section -->
+  <section class="docs-section">
+    <h3 class="docs-section-title">External References</h3>
+    <div class="docs-links">
       <a href="/redoc" target="_blank" class="docs-link-item">
         <i data-lucide="file-text"></i>
         <span>API Reference (ReDoc)</span>

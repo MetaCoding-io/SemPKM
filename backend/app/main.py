@@ -37,6 +37,9 @@ from app.views.service import ViewSpecService
 from app.sparql.router import router as sparql_router
 from app.triplestore.client import TriplestoreClient
 from app.triplestore.setup import ensure_repository
+from app.monitoring.middleware import PostHogErrorMiddleware
+from app.monitoring.posthog import init_posthog, shutdown_posthog
+from app.monitoring.router import router as monitoring_router
 from app.validation.queue import AsyncValidationQueue
 from app.validation.router import router as validation_router
 
@@ -52,6 +55,9 @@ async def lifespan(app: FastAPI):
     Shutdown: Close the triplestore client connection.
     """
     logger.info("Starting SemPKM API v%s", settings.app_version)
+
+    # Initialize PostHog analytics/error monitoring
+    init_posthog()
 
     # Create triplestore client and store on app state
     client = TriplestoreClient(
@@ -162,10 +168,12 @@ async def lifespan(app: FastAPI):
     logger.info("SemPKM API started successfully")
     yield
 
-    # Shutdown: stop validation queue, dispose SQL engine, close triplestore client
+    # Shutdown: stop validation queue, dispose SQL engine, close triplestore client,
+    # flush PostHog events
     await validation_queue.stop()
     await sql_engine.dispose()
     await client.close()
+    shutdown_posthog()
     logger.info("SemPKM API shut down")
 
 
@@ -250,6 +258,10 @@ async def auth_exception_handler(request: Request, exc: HTTPException):
     )
 
 
+# PostHog error-capturing middleware (must be added before CORS so it wraps
+# the full request lifecycle and catches unhandled exceptions)
+app.add_middleware(PostHogErrorMiddleware)
+
 # CORS middleware for dev console access
 app.add_middleware(
     CORSMiddleware,
@@ -260,6 +272,7 @@ app.add_middleware(
 )
 
 # Include routers (API routers first, then UI routers, shell router last)
+app.include_router(monitoring_router)
 app.include_router(auth_router)
 app.include_router(commands_router)
 app.include_router(health_router)

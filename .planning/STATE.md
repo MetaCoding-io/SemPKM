@@ -167,9 +167,10 @@ v2.0 roadmap decisions:
 | 1 | Add copyright notice to docs site | 2026-02-24 | 1ad8949 | [1-add-copyright-notice-to-docs-site](./quick/1-add-copyright-notice-to-docs-site/) |
 | 2 | Research gist ontology applicability to SemPKM Mental Models | 2026-02-24 | af5d5ef | [2-research-how-the-gist-ontology-can-be-us](./quick/2-research-how-the-gist-ontology-can-be-us/) |
 | 3 | Research Hypothes.is and W3C Web Annotation technology for SemPKM integration | 2026-02-24 | 8d62fe1 | [3-research-hypothes-is-annotation-technolo](./quick/3-research-hypothes-is-annotation-technolo/) |
+| 4 | Display user guide markdown files in Docs tab with in-tab viewer | 2026-02-25 | dd4a563 | [4-display-user-guide-markdown-files-in-doc](./quick/4-display-user-guide-markdown-files-in-doc/) |
 
 ## Session Continuity
 
-Last session: 2026-02-24
-Stopped at: Completed 18-02-PLAN.md (Driver.js Guided Tours — tutorials.js)
-Resume: v2.0 complete — all 24 plans across 18 phases finished
+Last session: 2026-02-25
+Stopped at: Completed quick task 4 (display-user-guide-markdown-files-in-doc)
+Resume: v2.0 complete — all 24 plans across 18 phases finished; quick tasks ongoing
