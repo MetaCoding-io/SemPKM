@@ -1250,11 +1250,30 @@
       });
   }
 
+  // Auto-start tour from ?tour= query param (e.g. linked from /guide page)
+  function maybeStartTour() {
+    var tour = new URLSearchParams(window.location.search).get('tour');
+    if (!tour) return;
+    // Remove the param from the URL without reloading
+    var url = new URL(window.location.href);
+    url.searchParams.delete('tour');
+    history.replaceState(null, '', url.pathname + (url.search || ''));
+    // Brief delay to let the workspace fully render before the tour overlay
+    setTimeout(function () {
+      if (tour === 'welcome' && typeof window.startWelcomeTour === 'function') {
+        window.startWelcomeTour();
+      } else if (tour === 'create-object' && typeof window.startCreateObjectTour === 'function') {
+        window.startCreateObjectTour();
+      }
+    }, 600);
+  }
+
   // Wait for DOM ready
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', function () { init(); maybeStartTour(); });
   } else {
     init();
+    maybeStartTour();
   }
 
   // Also reinitialize after htmx swaps (e.g., navigating back to /browser/)

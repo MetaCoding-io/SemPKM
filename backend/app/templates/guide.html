@@ -22,7 +22,7 @@
           <h4 class="docs-card-title">Welcome to SemPKM</h4>
           <p class="docs-card-desc">A quick tour of the workspace — sidebar, explorer, reading objects, the command palette, and saving your work.</p>
         </div>
-        <button class="btn docs-card-btn" onclick="if(typeof window.startWelcomeTour==='function'){window.startWelcomeTour();}">
+        <button class="btn docs-card-btn" onclick="window.location.href='/browser/?tour=welcome'">
           Start Tour
         </button>
       </div>
@@ -35,7 +35,7 @@
           <h4 class="docs-card-title">Creating Your First Object</h4>
           <p class="docs-card-desc">Step-by-step guide to choosing a type, filling out the form, and saving your first knowledge object.</p>
         </div>
-        <button class="btn docs-card-btn" onclick="if(typeof window.startCreateObjectTour==='function'){window.startCreateObjectTour();}">
+        <button class="btn docs-card-btn" onclick="window.location.href='/browser/?tour=create-object'">
           Start Tour
         </button>
       </div>
