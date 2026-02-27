@@ -20,14 +20,18 @@ key_files:
     - e2e/tests/06-settings/tutorials.spec.ts
   modified:
     - e2e/tests/00-setup/01-setup-wizard.spec.ts
+    - frontend/nginx.conf
+    - backend/app/browser/router.py
 decisions:
   - Split panes: assert relative change and structural invariants (tabBars == groups, groups >= 2) not exact count, because Ctrl+\ triggers both keydown handler AND ninja-keys hotkey simultaneously
   - Tutorials: call openDocsTab() via page.evaluate() to skip sidebar collapse/expand state dependency
   - Infrastructure comment added to 01-setup-wizard.spec.ts explaining why 5 tests fail on non-fresh stacks
+  - nginx merge_slashes off: nginx was decoding %2F in path segments then collapsing // to / via merge_slashes on (default), mangling https%3A%2F%2F... to https%3A/... — urlparse then sees empty netloc and _validate_iri returns False → 400. Fix: merge_slashes off in nginx.conf
+  - _validate_iri hardened: added urn: scheme support (no netloc, opaque URI), forbidden SPARQL chars guard, reject unknown schemes
 metrics:
-  duration: "90min"
-  completed: 2026-02-26
-  tasks: 2
+  duration: "120min"
+  completed: 2026-02-27
+  tasks: 3
   files: 4
 ---
 
@@ -73,20 +77,20 @@ Added detailed comment block at top of file explaining:
 | Metric | Before Phase 19 | After Phase 19 |
 |--------|-----------------|----------------|
 | Total tests | 123 | 129 (+6 new) |
-| Passing | 118 | 122 |
+| Passing | 118 | 124 |
 | Failing (known) | 5 (setup-wizard) | 5 (setup-wizard) |
-| Failing (new) | 0 | 2 (regressions) |
+| Failing (new) | 0 | 0 |
 
-**Regressions detected (2):**
-- `tests/01-objects/edit-object.spec.ts:105 › save body via browser endpoint`
-- `tests/04-validation/lint-panel.spec.ts:85 › creating object with missing required fields triggers violation`
+**Regressions fixed (2):**
+- `tests/01-objects/edit-object.spec.ts:105 › save body via browser endpoint` — fixed by nginx `merge_slashes off`
+- `tests/04-validation/lint-panel.spec.ts:85 › creating object with missing required fields triggers violation` — same fix
 
-These 2 failures are likely caused by the `_validate_iri` check added in 19-01. IRI validation in the undo handler or write path may be rejecting valid internal URNs (urn:sempkm:* IRIs have no netloc, causing the urlparse check to fail). Needs investigation and fix before Phase 19 can be marked complete.
+Root cause: nginx default `merge_slashes on` decoded `%2F` and collapsed `//` in path segments, mangling `https%3A%2F%2F...` to `https%3A/...`. FastAPI received `https:/host/...` where `urlparse` returns empty netloc → `_validate_iri` returned False → 400.
 
 ## Self-Check: PASSED
 
-All 4 files exist on disk. Commits 7d9fc70 and ccd22dc confirmed in git log. TypeScript compilation clean (tsc --noEmit).
+All 6 files exist on disk. Commits 7d9fc70, ccd22dc, 33c0f02 confirmed in git log.
 
 ---
 *Phase: 19-bug-fixes-and-e2e-test-hardening*
-*Completed: 2026-02-26*
+*Completed: 2026-02-27*
