@@ -1096,7 +1096,10 @@ details.form-group[open] > .form-group-summary::before {
 }
 
 .suggestions-dropdown {
-    position: fixed;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
     z-index: 9999;
     background: var(--color-surface);
     border: 1px solid var(--color-border);
@@ -1636,7 +1639,8 @@ details.form-group[open] > .form-group-summary::before {
 }
 
 .mode-toggle:hover {
-    filter: brightness(1.15);
+    background: transparent;
+    color: var(--color-success);
     box-shadow: 0 0 0 2px var(--color-success);
 }
 
@@ -1646,7 +1650,9 @@ details.form-group[open] > .form-group-summary::before {
     border-color: var(--color-error);
 }
 .btn-save:hover {
-    opacity: 0.85;
+    background: transparent;
+    color: var(--color-error);
+    box-shadow: 0 0 0 2px var(--color-error);
 }
 
 /* ============================================================

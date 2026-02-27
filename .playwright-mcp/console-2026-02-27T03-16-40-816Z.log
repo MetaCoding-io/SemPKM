@@ -1,0 +1,12 @@
+[   22761ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[ 1189445ms] TypeError: Cannot read properties of undefined (reading 'fieldId')
+    at eval (eval at <anonymous> (https://unpkg.com/htmx.org@2.0.4:1:36903), <anonymous>:3:52)
+    at https://unpkg.com/htmx.org@2.0.4:1:36929
+    at vn (https://unpkg.com/htmx.org@2.0.4:1:37094)
+    at bn (https://unpkg.com/htmx.org@2.0.4:1:36880)
+    at Sn (https://unpkg.com/htmx.org@2.0.4:1:37217)
+    at En (https://unpkg.com/htmx.org@2.0.4:1:37272)
+    at de (https://unpkg.com/htmx.org@2.0.4:1:42486)
+    at https://unpkg.com/htmx.org@2.0.4:1:23481
+    at https://unpkg.com/htmx.org@2.0.4:1:22416

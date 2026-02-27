@@ -237,43 +237,5 @@
         });
     }
 
-    // Position suggestion dropdowns after htmx swaps content into them
-    document.addEventListener('htmx:afterSwap', function(evt) {
-        var target = evt.detail.target;
-        if (!target || !target.classList || !target.classList.contains('suggestions-dropdown')) return;
-
-        // Find the input that triggered the search
-        var refField = target.closest('.reference-field');
-        if (!refField) return;
-        var input = refField.querySelector('.reference-search');
-        if (!input) return;
-
-        var rect = input.getBoundingClientRect();
-        target.style.top = rect.bottom + 'px';
-        target.style.left = rect.left + 'px';
-        target.style.width = rect.width + 'px';
-    });
-
-    // Reposition open suggestion dropdowns on scroll/resize
-    function repositionDropdowns() {
-        var openDropdowns = document.querySelectorAll('.suggestions-dropdown:not(:empty)');
-        openDropdowns.forEach(function(dd) {
-            var refField = dd.closest('.reference-field');
-            if (!refField) return;
-            var input = refField.querySelector('.reference-search');
-            if (!input) return;
-            var rect = input.getBoundingClientRect();
-            dd.style.top = rect.bottom + 'px';
-            dd.style.left = rect.left + 'px';
-            dd.style.width = rect.width + 'px';
-        });
-    }
-
-    // Throttled reposition on form section scroll
-    var formSections = document.querySelectorAll('.object-form-section');
-    formSections.forEach(function(section) {
-        section.addEventListener('scroll', repositionDropdowns);
-    });
-    window.addEventListener('resize', repositionDropdowns);
 })();
 </script>

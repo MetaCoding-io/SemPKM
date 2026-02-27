@@ -51,6 +51,10 @@ def _to_rdf_value(value: Any) -> URIRef | Literal:
     if isinstance(value, str):
         if value.startswith(("http://", "https://", "urn:")):
             return URIRef(value)
+        # Detect ISO 8601 datetime strings → typed xsd:dateTime literal
+        if len(value) >= 19 and value[4:5] == "-" and value[7:8] == "-" and "T" in value:
+            from rdflib.namespace import XSD
+            return Literal(value, datatype=XSD.dateTime)
         return Literal(value)
     elif isinstance(value, bool):
         return Literal(value)

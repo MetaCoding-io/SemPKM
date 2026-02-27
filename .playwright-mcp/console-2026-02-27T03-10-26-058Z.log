@@ -1,0 +1,19 @@
+[   10270ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[   22508ms] SyntaxError: Failed to execute 'querySelector' on 'Document': '#form-section-urn:sempkm:model:basic-pkm:seed-note-architecture' is not a valid selector.
+    at o (https://unpkg.com/split.js@1.6.5/dist/split.min.js:2:595)
+    at https://unpkg.com/split.js@1.6.5/dist/split.min.js:2:1219
+    at initVerticalSplit (<anonymous>:103:29)
+    at window.<computed> (<anonymous>:153:7)
+    at toggleObjectMode (http://localhost:3000/js/workspace.js:607:41)
+    at HTMLButtonElement.onclick (http://localhost:3000/browser/:1:1)
+[  158563ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  264655ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  265116ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  265123ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  270918ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
