@@ -30,6 +30,7 @@ services:
       - ./config:/app/config:ro
       - ./models:/app/models:ro
       - sempkm_test_data:/app/data
+      - ./docs:/app/docs:ro
     environment:
       TRIPLESTORE_URL: http://triplestore:8080/rdf4j-server
       REPOSITORY_ID: sempkm_test
