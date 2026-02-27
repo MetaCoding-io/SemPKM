@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-02-23)
 Phase: 19 of 19 (Bug Fixes and E2E Test Hardening) — COMPLETE
 Plan: 3 of 3 — COMPLETE
 Status: v2.0 Tighten Web UI milestone complete
-Last activity: 2026-02-27 - Fixed nginx merge_slashes regression, 124/129 E2E passing, Phase 19 closed
+Last activity: 2026-02-27 - Completed quick task 5: please integrate the user guide in docs/ to the main website in docs/index.html
 
 Progress: [##########] 100% (v2.0) -- Phase 19 ongoing
 
@@ -191,6 +191,7 @@ v2.0 roadmap decisions:
 | 2 | Research gist ontology applicability to SemPKM Mental Models | 2026-02-24 | af5d5ef | [2-research-how-the-gist-ontology-can-be-us](./quick/2-research-how-the-gist-ontology-can-be-us/) |
 | 3 | Research Hypothes.is and W3C Web Annotation technology for SemPKM integration | 2026-02-24 | 8d62fe1 | [3-research-hypothes-is-annotation-technolo](./quick/3-research-hypothes-is-annotation-technolo/) |
 | 4 | Display user guide markdown files in Docs tab with in-tab viewer | 2026-02-25 | dd4a563 | [4-display-user-guide-markdown-files-in-doc](./quick/4-display-user-guide-markdown-files-in-doc/) |
+| 5 | please integrate the user guide in docs/ to the main website in docs/index.html | 2026-02-27 | 8d2bc12 | [5-please-integrate-the-user-guide-in-docs-](./quick/5-please-integrate-the-user-guide-in-docs-/) |
 
 ## Session Continuity
 
