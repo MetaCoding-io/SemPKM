@@ -162,10 +162,12 @@ class EventStore:
             # Step 2: Materialize deletes from current state graph (before inserts)
             # Deletes must happen first so that Variable patterns like ?old_0
             # only match existing values, not values about to be inserted.
+            # One transaction_update call per pattern — RDF4J transaction
+            # endpoints don't reliably handle semicolon-joined multi-statements.
             for op in operations:
-                if op.materialize_deletes:
+                for triple_pattern in op.materialize_deletes:
                     delete_sparql = _build_delete_where_sparql(
-                        CURRENT_GRAPH_IRI, op.materialize_deletes
+                        CURRENT_GRAPH_IRI, [triple_pattern]
                     )
                     await self._client.transaction_update(txn_url, delete_sparql)
 
