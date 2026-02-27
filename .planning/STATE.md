@@ -1,14 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
+milestone: v2.0
 milestone_name: Tighten Web UI
-status: unknown
-last_updated: "2026-02-26T17:43:52.208Z"
+status: complete
+last_updated: "2026-02-27T00:00:00.000Z"
 progress:
-  total_phases: 10
-  completed_phases: 9
+  total_phases: 19
+  completed_phases: 19
   total_plans: 27
-  completed_plans: 26
+  completed_plans: 27
 ---
 
 # Project State
@@ -18,14 +18,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations -- no blank-page syndrome, no schema setup.
-**Current focus:** Phase 19 — Bug Fixes and E2E Test Hardening
+**Current focus:** v2.0 COMPLETE — all 19 phases, 27 plans done
 
 ## Current Position
 
-Phase: 19 of 19 (Bug Fixes and E2E Test Hardening)
-Plan: 2 of 3 (complete)
-Status: Phase 19 in progress — 19-02 complete (UI bug fixes, tag pills, tooltips)
-Last activity: 2026-02-26 - Completed 19-02: UI Bug Fixes and Tag Pill/Tooltip Improvements
+Phase: 19 of 19 (Bug Fixes and E2E Test Hardening) — COMPLETE
+Plan: 3 of 3 — COMPLETE
+Status: v2.0 Tighten Web UI milestone complete
+Last activity: 2026-02-27 - Fixed nginx merge_slashes regression, 124/129 E2E passing, Phase 19 closed
 
 Progress: [##########] 100% (v2.0) -- Phase 19 ongoing
 
@@ -194,6 +194,6 @@ v2.0 roadmap decisions:
 
 ## Session Continuity
 
-Last session: 2026-02-26
-Stopped at: Completed 19-02 (UI bug fixes, tag pills, nav tree tooltip, graph node tooltip confirmation)
-Resume: Phase 19 plan 3 — E2E test hardening (19-03)
+Last session: 2026-02-27
+Stopped at: v2.0 milestone complete — all 19 phases, 27 plans, 124/129 E2E passing
+Resume: Use /gsd:complete-milestone to archive v2.0 and start v3.0, or /gsd:new-milestone for v2.1

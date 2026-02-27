@@ -37,7 +37,7 @@
 - [x] **Phase 16: Event Log Explorer** - Browsable, filterable event timeline with inline diffs and undo (completed 2026-02-24)
 - [x] **Phase 17: LLM Connection Configuration** - Generic OpenAI-compatible LLM endpoint with server-side key storage and streaming proxy (completed 2026-02-24)
 - [x] **Phase 18: Tutorials and Documentation** - Driver.js guided tours and a Docs page for onboarding (completed 2026-02-25)
-- [ ] **Phase 19: Bug Fixes and E2E Test Hardening** - Priority bugs from CONCERNS.md audit fixed; e2e suite hardened against regressions before v2.0 ships
+- [x] **Phase 19: Bug Fixes and E2E Test Hardening** - Priority bugs from CONCERNS.md audit fixed; e2e suite hardened against regressions before v2.0 ships (completed 2026-02-27)
 
 ## Phase Details
 
@@ -227,7 +227,7 @@ Phases execute in numeric order: 10 → 11 → 12 → 13 → 14 → 15 → 16 �
 | 16. Event Log Explorer | 3/3 | Complete    | 2026-02-24 | - |
 | 17. LLM Connection Configuration | 2/2 | Complete    | 2026-02-24 | - |
 | 18. Tutorials and Documentation | 2/2 | Complete    | 2026-02-25 | - |
-| 19. Bug Fixes and E2E Test Hardening | 2/3 | In Progress|  | - |
+| 19. Bug Fixes and E2E Test Hardening | 3/3 | Complete   | 2026-02-27 | - |
 
 ---
 *Roadmap created: 2026-02-21*
