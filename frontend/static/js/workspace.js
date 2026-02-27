@@ -20,7 +20,8 @@
 
   // --- Split.js Initialization ---
   var splitInstance = null;
-  var savedPaneSizes = null;
+  var lastFullSizes = null;   // canonical 3-pane sizes [nav%, editor%, right%]
+  var hiddenPanes = {};       // { 'nav-pane': true, 'right-pane': true }
   var defaultSizes = [20, 50, 30];
 
   function initSplit() {
@@ -30,27 +31,29 @@
       return;
     }
 
-    // Restore saved pane sizes
+    // Restore saved pane sizes (only accept valid 3-element arrays)
     try {
       var saved = localStorage.getItem(PANE_KEY);
       if (saved) {
-        savedPaneSizes = JSON.parse(saved);
+        var parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length === 3) {
+          lastFullSizes = parsed;
+        }
       }
     } catch (e) {
-      savedPaneSizes = null;
+      lastFullSizes = null;
     }
 
     splitInstance = Split(['#nav-pane', '#editor-pane', '#right-pane'], {
-      sizes: savedPaneSizes || defaultSizes,
+      sizes: lastFullSizes || defaultSizes,
       minSize: [180, 300, 200],
       gutterSize: 5,
       cursor: 'col-resize',
       onDragEnd: function (sizes) {
-        try {
-          localStorage.setItem(PANE_KEY, JSON.stringify(sizes));
-        } catch (e) {
-          // localStorage might be full or blocked
+        if (Object.keys(hiddenPanes).length === 0) {
+          lastFullSizes = sizes.slice();
         }
+        try { localStorage.setItem(PANE_KEY, JSON.stringify(sizes)); } catch (e) {}
       }
     });
   }
@@ -450,53 +453,55 @@
 
   // --- Pane Toggle ---
 
-  var paneStates = {};
-
   function togglePane(paneId) {
     if (!splitInstance) return;
-
     var pane = document.getElementById(paneId);
     if (!pane) return;
-
     var panes = ['nav-pane', 'editor-pane', 'right-pane'];
-    var paneIndex = panes.indexOf(paneId);
-    if (paneIndex === -1) return;
+    if (panes.indexOf(paneId) === -1) return;
 
-    if (paneStates[paneId]) {
-      // Restore the pane: show it and its gutter, rebuild Split.js
+    if (hiddenPanes[paneId]) {
+      // Show: remove from hiddenPanes, un-hide DOM element and its gutter
+      delete hiddenPanes[paneId];
       pane.style.display = '';
-      var gutterPrev = pane.previousElementSibling;
-      if (gutterPrev && gutterPrev.classList.contains('gutter')) gutterPrev.style.display = '';
-      _rebuildSplit(paneStates[paneId]);
-      delete paneStates[paneId];
+      var gutter = pane.previousElementSibling;
+      if (gutter && gutter.classList.contains('gutter')) gutter.style.display = '';
     } else {
-      // Collapse the pane: save sizes, hide it and its gutter, rebuild Split.js
-      paneStates[paneId] = splitInstance.getSizes().slice();
-      pane.style.display = 'none';
-      var gutterPrev2 = pane.previousElementSibling;
-      if (gutterPrev2 && gutterPrev2.classList.contains('gutter')) gutterPrev2.style.display = 'none';
-      // Rebuild with only visible panes
-      var visibleIds = [];
-      var visibleSizes = [];
-      panes.forEach(function (id) {
-        var el = document.getElementById(id);
-        if (el && el.style.display !== 'none') {
-          visibleIds.push('#' + id);
-          visibleSizes.push(id === 'editor-pane' ? 80 : 20);
-        }
-      });
-      var sizeTotal = visibleSizes.reduce(function (a, b) { return a + b; }, 0);
-      if (sizeTotal > 0 && Math.abs(sizeTotal - 100) > 0.5) {
-        visibleSizes = visibleSizes.map(function (s) { return (s / sizeTotal) * 100; });
+      // Hide: capture lastFullSizes on first hide, add to hiddenPanes, hide DOM
+      if (Object.keys(hiddenPanes).length === 0) {
+        lastFullSizes = splitInstance.getSizes().slice();
       }
-      _rebuildSplit(null, visibleIds, visibleSizes);
+      hiddenPanes[paneId] = true;
+      pane.style.display = 'none';
+      var gutter2 = pane.previousElementSibling;
+      if (gutter2 && gutter2.classList.contains('gutter')) gutter2.style.display = 'none';
     }
+
+    _rebuildFromCanonical();
+  }
+
+  function _rebuildFromCanonical() {
+    var panes = ['nav-pane', 'editor-pane', 'right-pane'];
+    var base = lastFullSizes || defaultSizes;
+    var visibleIds = [];
+    var visibleSizes = [];
+    panes.forEach(function (id, i) {
+      var el = document.getElementById(id);
+      if (el && el.style.display !== 'none') {
+        visibleIds.push('#' + id);
+        visibleSizes.push(base[i]);
+      }
+    });
+    var total = visibleSizes.reduce(function (a, b) { return a + b; }, 0);
+    if (total > 0 && Math.abs(total - 100) > 0.5) {
+      visibleSizes = visibleSizes.map(function (s) { return (s / total) * 100; });
+    }
+    _rebuildSplit(null, visibleIds, visibleSizes);
   }
 
   function _rebuildSplit(restoreSizes, visibleIds, visibleSizes) {
-    if (splitInstance) {
-      splitInstance.destroy();
-    }
+    if (splitInstance) splitInstance.destroy();
+
     var panes = ['nav-pane', 'editor-pane', 'right-pane'];
     var ids = visibleIds || panes.filter(function (id) {
       var el = document.getElementById(id);
@@ -509,36 +514,17 @@
       return 200;
     });
 
-    var sizes = restoreSizes || visibleSizes || null;
-    // If restoring with saved 3-pane sizes but fewer visible panes,
-    // give each pane its original saved percentage and let editor absorb
-    // any missing space (rather than proportionally inflating all panes).
-    if (restoreSizes) {
-      sizes = [];
-      panes.forEach(function (id, i) {
-        var el = document.getElementById(id);
-        if (el && el.style.display !== 'none') {
-          sizes.push(restoreSizes[i]);
-        }
-      });
-      var total = sizes.reduce(function (a, b) { return a + b; }, 0);
-      if (total > 0 && Math.abs(total - 100) > 0.5) {
-        var missing = 100 - total;
-        var editorIdx = ids.indexOf('#editor-pane');
-        if (editorIdx !== -1) {
-          sizes[editorIdx] += missing;
-        } else {
-          sizes = sizes.map(function (s) { return (s / total) * 100; });
-        }
-      }
-    }
+    var sizes = visibleSizes || ids.map(function () { return 100 / ids.length; });
 
     splitInstance = Split(ids, {
-      sizes: sizes || ids.map(function () { return 100 / ids.length; }),
+      sizes: sizes,
       minSize: minSizes,
       gutterSize: 5,
       cursor: 'col-resize',
       onDragEnd: function (s) {
+        if (Object.keys(hiddenPanes).length === 0) {
+          lastFullSizes = s.slice();
+        }
         try { localStorage.setItem(PANE_KEY, JSON.stringify(s)); } catch (e) {}
       }
     });
