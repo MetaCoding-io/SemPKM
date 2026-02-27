@@ -1036,7 +1036,7 @@ async def create_object(
 
     # Build properties dict from form data, excluding hidden/meta fields
     properties: dict[str, str | list[str]] = {}
-    skip_fields = {"type_iri", "object_iri"}
+    skip_fields = {"type_iri", "object_iri", "q"}
 
     for key in form_data.keys():
         if key in skip_fields or key.startswith("_search_"):
@@ -1146,7 +1146,7 @@ async def save_object(
 
     # Build properties dict from form data
     properties: dict[str, str] = {}
-    skip_fields = {"type_iri", "object_iri"}
+    skip_fields = {"type_iri", "object_iri", "q"}
     dcterms_modified = "http://purl.org/dc/terms/modified"
 
     for key in form_data.keys():
