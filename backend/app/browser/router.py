@@ -1144,8 +1144,8 @@ async def save_object(
 
     type_iri = form_data.get("type_iri", "")
 
-    # Build properties dict from form data
-    properties: dict[str, str] = {}
+    # Build properties dict from form data (all values per key, not just the first)
+    properties: dict[str, list[str]] = {}
     skip_fields = {"type_iri", "object_iri", "q"}
     dcterms_modified = "http://purl.org/dc/terms/modified"
 
@@ -1157,10 +1157,10 @@ async def save_object(
         if not values:
             continue
         clean_key = key.rstrip("[]")
-        properties[clean_key] = values[0]
+        properties[clean_key] = values
 
     # Auto-set dcterms:modified to current UTC timestamp
-    properties[dcterms_modified] = datetime.now(timezone.utc).isoformat()
+    properties[dcterms_modified] = [datetime.now(timezone.utc).isoformat()]
 
     try:
         if properties:
@@ -1214,7 +1214,7 @@ async def save_object(
             "http://xmlns.com/foaf/0.1/name",
         ]
         import json as _json
-        new_label = next((properties[p] for p in _label_predicates if p in properties), None)
+        new_label = next((properties[p][0] for p in _label_predicates if p in properties and properties[p]), None)
         trigger_payload = {"iri": decoded_iri}
         if new_label:
             trigger_payload["label"] = new_label

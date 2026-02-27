@@ -154,6 +154,7 @@
   });
 
   document.addEventListener('mouseenter', function(e) {
+    if (!e.target || typeof e.target.closest !== 'function') return;
     var pill = e.target.closest('.ref-pill[data-ref-iri]');
     if (!pill) return;
     if (hoverTimer) clearTimeout(hoverTimer);
@@ -191,6 +192,7 @@
   }, true);
 
   document.addEventListener('mouseleave', function(e) {
+    if (!e.target || typeof e.target.closest !== 'function') return;
     var pill = e.target.closest('.ref-pill[data-ref-iri]');
     if (!pill) return;
     if (hoverTimer) { clearTimeout(hoverTimer); hoverTimer = null; }

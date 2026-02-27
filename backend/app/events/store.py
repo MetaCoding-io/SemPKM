@@ -267,28 +267,23 @@ def _build_delete_where_sparql(
 ) -> str:
     """Build SPARQL DELETE WHERE for removing triples from a named graph.
 
-    Each triple pattern in the list is matched and deleted. Patterns may
-    contain rdflib terms (URIRef, Literal) for exact matches.
+    Generates one DELETE WHERE statement per pattern, joined by ';'.
+    Each pattern is matched and deleted independently — this avoids the
+    SPARQL JOIN behaviour where all patterns must simultaneously bind
+    (which would silently skip deletes when any predicate is missing).
 
     Args:
         graph_iri: The named graph to delete from.
         triple_patterns: List of (s, p, o) triple patterns.
 
     Returns:
-        SPARQL DELETE WHERE string.
+        SPARQL UPDATE string (semicolon-separated DELETE WHERE statements).
     """
-    pattern_lines = []
+    statements = []
     for s, p, o in triple_patterns:
-        pattern_lines.append(
-            f"    {_serialize_rdf_term(s)} {_serialize_rdf_term(p)} {_serialize_rdf_term(o)} ."
-        )
-    patterns_str = "\n".join(pattern_lines)
-
-    return f"""DELETE WHERE {{
-  GRAPH <{graph_iri}> {{
-{patterns_str}
-  }}
-}}"""
+        triple = f"    {_serialize_rdf_term(s)} {_serialize_rdf_term(p)} {_serialize_rdf_term(o)} ."
+        statements.append(f"DELETE WHERE {{\n  GRAPH <{graph_iri}> {{\n{triple}\n  }}\n}}")
+    return " ;\n".join(statements)
 
 
 def _build_delete_insert_sparql(
