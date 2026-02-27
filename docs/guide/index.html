@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SemPKM User Guide</title>
 <meta name="description" content="Complete SemPKM documentation covering setup, workspace, Mental Models, administration, advanced topics, and deployment.">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css">
 <style>
 *, *::before, *::after {
   box-sizing: border-box;
@@ -149,151 +150,6 @@ a:hover {
   transition: transform 0.3s, opacity 0.3s;
 }
 
-/* ── Sections ── */
-
-section {
-  padding: 6rem 1.5rem;
-}
-
-.container {
-  max-width: var(--max-width);
-  margin: 0 auto;
-}
-
-.section-label {
-  display: inline-block;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--accent-blue);
-  margin-bottom: 1rem;
-}
-
-.section-title {
-  font-size: 2.25rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
-  margin-bottom: 1rem;
-}
-
-.section-subtitle {
-  font-size: 1.1rem;
-  color: var(--text-secondary);
-  max-width: 640px;
-  line-height: 1.7;
-}
-
-/* ── Guide Hero ── */
-
-.guide-hero {
-  padding: 9rem 1.5rem 4rem;
-  text-align: center;
-  position: relative;
-}
-
-.guide-hero::before {
-  content: '';
-  position: absolute;
-  top: -40%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 800px;
-  height: 800px;
-  background: radial-gradient(circle, rgba(232, 119, 46, 0.06) 0%, transparent 70%);
-  pointer-events: none;
-}
-
-/* ── Guide Grid ── */
-
-.guide-section {
-  padding: 2rem 1.5rem 6rem;
-}
-
-.guide-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  margin-top: 3rem;
-}
-
-.part-card {
-  padding: 1.75rem;
-  border-radius: var(--radius);
-  border: 1px solid var(--border-subtle);
-  background: var(--bg-card);
-  transition: background 0.2s, border-color 0.2s;
-}
-
-.part-card:hover {
-  background: var(--bg-card-hover);
-  border-color: rgba(232, 119, 46, 0.2);
-}
-
-.part-label {
-  display: inline-block;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--accent-blue);
-  margin-bottom: 0.5rem;
-}
-
-.part-title {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 1rem;
-  line-height: 1.3;
-}
-
-.chapter-list {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-}
-
-.chapter-list a {
-  display: block;
-  padding: 0.45rem 0.75rem;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  border-radius: var(--radius-sm);
-  transition: background 0.15s, color 0.15s;
-}
-
-.chapter-list a:hover {
-  background: var(--bg-card-hover);
-  color: var(--text-primary);
-}
-
-/* Appendices span full width */
-.appendix-card {
-  grid-column: 1 / -1;
-}
-
-.appendix-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.15rem;
-}
-
-/* ── Animations ── */
-
-.fade-in {
-  opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
-}
-
-.fade-in.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
 /* ── Footer ── */
 
 .footer {
@@ -332,27 +188,172 @@ section {
   color: var(--text-primary);
 }
 
+/* ── Reader Layout ── */
+
+.reader-layout {
+  display: flex;
+  min-height: calc(100vh - 64px);
+  margin-top: 64px;
+  max-width: var(--max-width);
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 1.5rem;
+  gap: 0;
+}
+
+.reader-sidebar {
+  width: 260px;
+  min-width: 260px;
+  border-right: 1px solid var(--border-subtle);
+  padding: 2rem 0;
+  position: sticky;
+  top: 64px;
+  height: calc(100vh - 64px);
+  overflow-y: auto;
+}
+
+.reader-content {
+  flex: 1;
+  padding: 2rem 2.5rem;
+  min-width: 0;
+  overflow-y: auto;
+}
+
+.sidebar-part-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-blue);
+  padding: 1.2rem 1rem 0.4rem;
+}
+
+.sidebar-part-label:first-child {
+  padding-top: 0;
+}
+
+.sidebar-chapter-list {
+  list-style: none;
+}
+
+.sidebar-chapter-list a {
+  display: block;
+  padding: 0.4rem 1rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  border-radius: 0;
+  transition: background 0.15s, color 0.15s;
+  border-left: 2px solid transparent;
+}
+
+.sidebar-chapter-list a:hover {
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+.sidebar-chapter-list a.sidebar-link-active {
+  color: var(--accent-blue);
+  border-left-color: var(--accent-blue);
+  background: var(--bg-card);
+  font-weight: 600;
+}
+
+/* ── Markdown body ── */
+
+.markdown-body {
+  font-family: var(--font-stack);
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--text-primary);
+}
+
+.markdown-body h1, .markdown-body h2, .markdown-body h3,
+.markdown-body h4, .markdown-body h5, .markdown-body h6 {
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  font-weight: 600;
+}
+
+.markdown-body h1 { font-size: 1.8rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.3em; }
+.markdown-body h2 { font-size: 1.4rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.3em; }
+.markdown-body h3 { font-size: 1.15rem; }
+
+.markdown-body p { margin: 0.8em 0; }
+
+.markdown-body pre {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  overflow-x: auto;
+  font-size: 0.85rem;
+}
+
+.markdown-body code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+}
+
+.markdown-body :not(pre) > code {
+  background: var(--bg-secondary);
+  padding: 0.2em 0.4em;
+  border-radius: 4px;
+  border: 1px solid var(--border-subtle);
+}
+
+.markdown-body blockquote {
+  border-left: 3px solid var(--border-subtle);
+  padding: 0.5em 1em;
+  color: var(--text-secondary);
+  margin: 0.8em 0;
+}
+
+.markdown-body img { max-width: 100%; border-radius: var(--radius-sm); }
+
+.markdown-body table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.8em 0;
+}
+
+.markdown-body th, .markdown-body td {
+  border: 1px solid var(--border-subtle);
+  padding: 6px 12px;
+  text-align: left;
+}
+
+.markdown-body th { background: var(--bg-card); font-weight: 600; }
+
+.markdown-body ul, .markdown-body ol { padding-left: 2em; margin: 0.8em 0; }
+.markdown-body li { margin: 0.3em 0; }
+
+.markdown-body a { color: var(--accent-blue); }
+.markdown-body a:hover { color: var(--accent-purple); text-decoration: underline; }
+
+.docs-loading { color: var(--text-secondary); font-style: italic; padding: 2rem 0; }
+.docs-error   { color: #f87171; font-style: italic; padding: 2rem 0; }
+
 /* ── Responsive ── */
 
 @media (max-width: 768px) {
-  section {
-    padding: 4rem 1.25rem;
+  .reader-layout {
+    flex-direction: column;
+    padding: 0;
   }
 
-  .guide-hero {
-    padding: 7rem 1.25rem 3rem;
+  .reader-sidebar {
+    width: 100%;
+    min-width: unset;
+    border-right: none;
+    border-bottom: 1px solid var(--border-subtle);
+    position: static;
+    height: auto;
+    max-height: 240px;
+    padding: 1rem 1.5rem;
   }
 
-  .section-title {
-    font-size: 1.75rem;
-  }
-
-  .guide-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .appendix-grid {
-    grid-template-columns: 1fr 1fr;
+  .reader-content {
+    padding: 1.5rem;
   }
 
   .nav-links {
@@ -382,12 +383,6 @@ section {
     text-align: center;
   }
 }
-
-@media (max-width: 480px) {
-  .appendix-grid {
-    grid-template-columns: 1fr;
-  }
-}
 </style>
 </head>
 <body>
@@ -409,115 +404,80 @@ section {
   </div>
 </nav>
 
-<!-- Hero -->
-<section class="guide-hero">
-  <div class="container">
-    <span class="section-label fade-in">Documentation</span>
-    <h1 class="section-title fade-in">SemPKM User Guide</h1>
-    <p class="section-subtitle fade-in" style="margin: 0 auto;">
-      Complete documentation covering setup, workspace, Mental Models, administration, advanced topics, and deployment.
-    </p>
-  </div>
-</section>
+<!-- Two-panel reader -->
+<div class="reader-layout">
 
-<!-- Guide Content -->
-<section class="guide-section">
-  <div class="container">
-    <div class="guide-grid">
+  <!-- Left sidebar -->
+  <aside class="reader-sidebar" id="reader-sidebar">
+    <nav>
+      <div class="sidebar-part-label">Part I &mdash; Introduction</div>
+      <ul class="sidebar-chapter-list">
+        <li><a href="#" data-file="01-what-is-sempkm.md">1. What is SemPKM?</a></li>
+        <li><a href="#" data-file="02-core-concepts.md">2. Core Concepts</a></li>
+        <li><a href="#" data-file="03-installation-and-setup.md">3. Installation and Setup</a></li>
+      </ul>
 
-      <!-- Part I -->
-      <div class="part-card fade-in">
-        <span class="part-label">Part I</span>
-        <div class="part-title">Introduction and Getting Started</div>
-        <ul class="chapter-list">
-          <li><a href="01-what-is-sempkm.md">1. What is SemPKM?</a></li>
-          <li><a href="02-core-concepts.md">2. Core Concepts</a></li>
-          <li><a href="03-installation-and-setup.md">3. Installation and Setup</a></li>
-        </ul>
-      </div>
+      <div class="sidebar-part-label">Part II &mdash; Workspace</div>
+      <ul class="sidebar-chapter-list">
+        <li><a href="#" data-file="04-workspace-interface.md">4. The Workspace Interface</a></li>
+        <li><a href="#" data-file="05-working-with-objects.md">5. Working with Objects</a></li>
+        <li><a href="#" data-file="06-edges-and-relationships.md">6. Edges and Relationships</a></li>
+        <li><a href="#" data-file="07-browsing-and-visualizing.md">7. Browsing and Visualizing Data</a></li>
+        <li><a href="#" data-file="08-keyboard-shortcuts.md">8. Keyboard Shortcuts and Command Palette</a></li>
+      </ul>
 
-      <!-- Part II -->
-      <div class="part-card fade-in">
-        <span class="part-label">Part II</span>
-        <div class="part-title">Using the Workspace</div>
-        <ul class="chapter-list">
-          <li><a href="04-workspace-interface.md">4. The Workspace Interface</a></li>
-          <li><a href="05-working-with-objects.md">5. Working with Objects</a></li>
-          <li><a href="06-edges-and-relationships.md">6. Edges and Relationships</a></li>
-          <li><a href="07-browsing-and-visualizing.md">7. Browsing and Visualizing Data</a></li>
-          <li><a href="08-keyboard-shortcuts.md">8. Keyboard Shortcuts and Command Palette</a></li>
-        </ul>
-      </div>
+      <div class="sidebar-part-label">Part III &mdash; Mental Models</div>
+      <ul class="sidebar-chapter-list">
+        <li><a href="#" data-file="09-understanding-mental-models.md">9. Understanding Mental Models</a></li>
+        <li><a href="#" data-file="10-managing-mental-models.md">10. Managing Mental Models</a></li>
+      </ul>
 
-      <!-- Part III -->
-      <div class="part-card fade-in">
-        <span class="part-label">Part III</span>
-        <div class="part-title">Mental Models</div>
-        <ul class="chapter-list">
-          <li><a href="09-understanding-mental-models.md">9. Understanding Mental Models</a></li>
-          <li><a href="10-managing-mental-models.md">10. Managing Mental Models</a></li>
-        </ul>
-      </div>
+      <div class="sidebar-part-label">Part IV &mdash; Administration</div>
+      <ul class="sidebar-chapter-list">
+        <li><a href="#" data-file="11-user-management.md">11. User Management</a></li>
+        <li><a href="#" data-file="12-webhooks.md">12. Webhooks</a></li>
+        <li><a href="#" data-file="13-settings.md">13. Settings</a></li>
+        <li><a href="#" data-file="14-system-health-and-debugging.md">14. System Health and Debugging</a></li>
+      </ul>
 
-      <!-- Part IV -->
-      <div class="part-card fade-in">
-        <span class="part-label">Part IV</span>
-        <div class="part-title">Administration</div>
-        <ul class="chapter-list">
-          <li><a href="11-user-management.md">11. User Management</a></li>
-          <li><a href="12-webhooks.md">12. Webhooks</a></li>
-          <li><a href="13-settings.md">13. Settings</a></li>
-          <li><a href="14-system-health-and-debugging.md">14. System Health and Debugging</a></li>
-        </ul>
-      </div>
+      <div class="sidebar-part-label">Part V &mdash; Event Log</div>
+      <ul class="sidebar-chapter-list">
+        <li><a href="#" data-file="15-event-log.md">15. Understanding the Event Log</a></li>
+      </ul>
 
-      <!-- Part V -->
-      <div class="part-card fade-in">
-        <span class="part-label">Part V</span>
-        <div class="part-title">The Event Log</div>
-        <ul class="chapter-list">
-          <li><a href="15-event-log.md">15. Understanding the Event Log</a></li>
-        </ul>
-      </div>
+      <div class="sidebar-part-label">Part VI &mdash; Advanced Topics</div>
+      <ul class="sidebar-chapter-list">
+        <li><a href="#" data-file="16-data-model.md">16. The Data Model</a></li>
+        <li><a href="#" data-file="17-command-api.md">17. The Command API</a></li>
+        <li><a href="#" data-file="18-sparql-endpoint.md">18. The SPARQL Endpoint</a></li>
+        <li><a href="#" data-file="19-creating-mental-models.md">19. Creating Mental Models</a></li>
+      </ul>
 
-      <!-- Part VI -->
-      <div class="part-card fade-in">
-        <span class="part-label">Part VI</span>
-        <div class="part-title">Advanced Topics</div>
-        <ul class="chapter-list">
-          <li><a href="16-data-model.md">16. The Data Model</a></li>
-          <li><a href="17-command-api.md">17. The Command API</a></li>
-          <li><a href="18-sparql-endpoint.md">18. The SPARQL Endpoint</a></li>
-          <li><a href="19-creating-mental-models.md">19. Creating Mental Models</a></li>
-        </ul>
-      </div>
+      <div class="sidebar-part-label">Part VII &mdash; Deployment</div>
+      <ul class="sidebar-chapter-list">
+        <li><a href="#" data-file="20-production-deployment.md">20. Production Deployment</a></li>
+      </ul>
 
-      <!-- Part VII -->
-      <div class="part-card fade-in">
-        <span class="part-label">Part VII</span>
-        <div class="part-title">Deployment and Operations</div>
-        <ul class="chapter-list">
-          <li><a href="20-production-deployment.md">20. Production Deployment</a></li>
-        </ul>
-      </div>
+      <div class="sidebar-part-label">Appendices</div>
+      <ul class="sidebar-chapter-list">
+        <li><a href="#" data-file="appendix-a-environment-variables.md">A. Environment Variable Reference</a></li>
+        <li><a href="#" data-file="appendix-b-keyboard-shortcuts.md">B. Keyboard Shortcut Reference</a></li>
+        <li><a href="#" data-file="appendix-c-command-api-reference.md">C. Command API Reference</a></li>
+        <li><a href="#" data-file="appendix-d-glossary.md">D. Glossary</a></li>
+        <li><a href="#" data-file="appendix-e-troubleshooting.md">E. Troubleshooting</a></li>
+        <li><a href="#" data-file="appendix-f-faq.md">F. FAQ</a></li>
+      </ul>
+    </nav>
+  </aside>
 
-      <!-- Appendices -->
-      <div class="part-card appendix-card fade-in">
-        <span class="part-label">Appendices</span>
-        <div class="part-title">Reference Material</div>
-        <div class="appendix-grid">
-          <a href="appendix-a-environment-variables.md">A. Environment Variable Reference</a>
-          <a href="appendix-b-keyboard-shortcuts.md">B. Keyboard Shortcut Reference</a>
-          <a href="appendix-c-command-api-reference.md">C. Command API Reference</a>
-          <a href="appendix-d-glossary.md">D. Glossary</a>
-          <a href="appendix-e-troubleshooting.md">E. Troubleshooting</a>
-          <a href="appendix-f-faq.md">F. FAQ</a>
-        </div>
-      </div>
-
+  <!-- Right content panel -->
+  <main class="reader-content" id="reader-content">
+    <div id="guide-content" class="markdown-body docs-content">
+      <p class="docs-loading">Loading...</p>
     </div>
-  </div>
-</section>
+  </main>
+
+</div>
 
 <!-- Footer -->
 <footer class="footer">
@@ -530,38 +490,84 @@ section {
   </div>
 </footer>
 
-<script>
-// Fade-in on scroll via IntersectionObserver
-(function() {
-  var targets = document.querySelectorAll('.fade-in');
-  if (!('IntersectionObserver' in window)) {
-    targets.forEach(function(el) { el.classList.add('visible'); });
-    return;
-  }
-  var observer = new IntersectionObserver(function(entries) {
-    entries.forEach(function(entry) {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-  targets.forEach(function(el) { observer.observe(el); });
-})();
+<script src="https://cdn.jsdelivr.net/npm/marked/lib/marked.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked-highlight/lib/index.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
 
-// Mobile nav toggle
-(function() {
-  var toggle = document.querySelector('.nav-toggle');
-  var links = document.querySelector('.nav-links');
-  toggle.addEventListener('click', function() {
-    links.classList.toggle('open');
-  });
-  // Close menu on link click
-  links.querySelectorAll('a').forEach(function(a) {
-    a.addEventListener('click', function() {
-      links.classList.remove('open');
+<script>
+(function () {
+  'use strict';
+
+  var _marked = null;
+
+  function getMarked() {
+    if (_marked) return _marked;
+    if (typeof globalThis.marked === 'undefined' ||
+        typeof globalThis.markedHighlight === 'undefined') return null;
+    var Marked = globalThis.marked.Marked;
+    var markedHighlight = globalThis.markedHighlight.markedHighlight;
+    _marked = new Marked(markedHighlight({
+      emptyLangClass: 'hljs',
+      langPrefix: 'hljs language-',
+      highlight: function (code, lang) {
+        if (typeof hljs === 'undefined') return code;
+        var language = hljs.getLanguage(lang) ? lang : 'plaintext';
+        return hljs.highlight(code, { language: language }).value;
+      }
+    }));
+    return _marked;
+  }
+
+  function loadArticle(filename, linkEl) {
+    var target = document.getElementById('guide-content');
+    if (!target) return;
+
+    // Update active state
+    document.querySelectorAll('.sidebar-chapter-list a').forEach(function (a) {
+      a.classList.remove('sidebar-link-active');
+    });
+    if (linkEl) linkEl.classList.add('sidebar-link-active');
+
+    target.innerHTML = '<p class="docs-loading">Loading...</p>';
+    target.scrollTop = 0;
+    document.querySelector('.reader-content').scrollTop = 0;
+
+    fetch(filename)
+      .then(function (r) { return r.text(); })
+      .then(function (rawText) {
+        var md = getMarked();
+        if (!md) { target.textContent = rawText; return; }
+        var rawHtml = md.parse(rawText);
+        if (typeof DOMPurify !== 'undefined') rawHtml = DOMPurify.sanitize(rawHtml);
+        target.innerHTML = rawHtml;
+      })
+      .catch(function () {
+        target.innerHTML = '<p class="docs-error">Failed to load document.</p>';
+      });
+  }
+
+  // Wire up sidebar links
+  document.querySelectorAll('.sidebar-chapter-list a[data-file]').forEach(function (a) {
+    a.addEventListener('click', function (e) {
+      e.preventDefault();
+      loadArticle(a.getAttribute('data-file'), a);
     });
   });
+
+  // Mobile nav toggle (preserve existing behavior)
+  var toggle = document.querySelector('.nav-toggle');
+  var navLinks = document.querySelector('.nav-links');
+  if (toggle && navLinks) {
+    toggle.addEventListener('click', function () { navLinks.classList.toggle('open'); });
+    navLinks.querySelectorAll('a').forEach(function (a) {
+      a.addEventListener('click', function () { navLinks.classList.remove('open'); });
+    });
+  }
+
+  // Load first chapter on init
+  var firstLink = document.querySelector('.sidebar-chapter-list a[data-file]');
+  if (firstLink) loadArticle(firstLink.getAttribute('data-file'), firstLink);
 })();
 </script>
 
