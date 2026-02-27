@@ -15,7 +15,7 @@
      values: List of current values (for multi-valued properties)
 #}
 
-{% macro render_field(prop, value=None, values=None) %}
+{% macro render_field(prop, value=None, values=None, ref_labels=None) %}
 {% set field_id = prop.path | replace(':', '_') | replace('/', '_') | replace('#', '_') %}
 {% set is_required = prop.min_count is not none and prop.min_count > 0 %}
 {% set is_multi = prop.max_count is none or prop.max_count > 1 %}
@@ -23,7 +23,7 @@
 {% set is_default = value is none and prop.default_value is not none and prop.default_value != '' %}
 
 <div class="form-field {{ 'required' if is_required else '' }}" id="field-{{ field_id }}">
-    <label for="input-{{ field_id }}" title="{{ prop.path }}">
+    <label for="input-{{ field_id }}" title="{{ prop.path | compact_iri }}">
         {{ prop.name }}{% if is_required %}<span class="required-marker">*</span>{% endif %}
     </label>
 
@@ -38,14 +38,14 @@
         {% for val in values %}
         {# Tags property (path IRI contains 'tags'): add tag-pill-item class for pill styling (phase 19-02) #}
         <div class="multi-value-item {{ 'tag-pill-item' if 'tags' in prop.path else '' }}">
-            {{ _render_input(prop, field_id, val, loop.index0, is_required and loop.index0 == 0, false) }}
+            {{ _render_input(prop, field_id, val, loop.index0, is_required and loop.index0 == 0, false, ref_labels) }}
             <button type="button" class="btn-remove-value" onclick="removeMultiValue(this)" title="Remove">&times;</button>
         </div>
         {% endfor %}
         {% else %}
         {# Show one empty input for new entries #}
         <div class="multi-value-item {{ 'tag-pill-item' if 'tags' in prop.path else '' }}">
-            {{ _render_input(prop, field_id, display_value, 0, is_required, is_default) }}
+            {{ _render_input(prop, field_id, display_value, 0, is_required, is_default, ref_labels) }}
             <button type="button" class="btn-remove-value" onclick="removeMultiValue(this)" title="Remove">&times;</button>
         </div>
         {% endif %}
@@ -53,7 +53,7 @@
     <button type="button" class="btn-add-value" onclick="addMultiValue('{{ field_id }}', '{{ prop.path }}')">+ Add {{ prop.name }}</button>
     {% else %}
     {# Single-valued property #}
-    {{ _render_input(prop, field_id, display_value, none, is_required, is_default) }}
+    {{ _render_input(prop, field_id, display_value, none, is_required, is_default, ref_labels) }}
     {% endif %}
 
     <div class="field-validation" id="validation-{{ field_id }}"></div>
@@ -62,7 +62,7 @@
 
 
 {# Internal macro: render the actual input element based on property type #}
-{% macro _render_input(prop, field_id, current_value, index, is_required, is_default) %}
+{% macro _render_input(prop, field_id, current_value, index, is_required, is_default, ref_labels=None) %}
 {% set input_name = prop.path ~ ('[]' if index is not none else '') %}
 {% set input_id = 'input-' ~ field_id ~ ('-' ~ index if index is not none else '') %}
 {% set css_class = 'default-value' if is_default else '' %}
@@ -80,13 +80,15 @@
 
 {% elif prop.target_class %}
     {# sh:class reference: search-as-you-type input #}
+    {# Show resolved label in visible input; keep raw IRI in hidden input #}
+    {% set ref_display = (ref_labels.get(current_value) if ref_labels and current_value else none) or current_value | default('', true) %}
     <div class="reference-field">
         <input type="text"
                name="q"
                id="{{ input_id }}-search"
                class="form-input reference-search {{ css_class }}"
                placeholder="Search {{ prop.name }}..."
-               value="{{ current_value | default('', true) }}"
+               value="{{ ref_display }}"
                autocomplete="off"
                data-field-id="{{ field_id }}"
                data-index="{{ index if index is not none else '' }}"

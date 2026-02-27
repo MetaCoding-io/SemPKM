@@ -200,9 +200,25 @@ def _urlencode_filter(value) -> str:
     return quote(str(value), safe="")
 
 
+def _compact_iri(iri: str) -> str:
+    """Jinja2 filter: convert a full IRI to prefix:localname, or last segment as fallback."""
+    from app.rdf.namespaces import COMMON_PREFIXES
+    # Sort by namespace length descending so longer prefixes match first
+    for prefix, namespace in sorted(COMMON_PREFIXES.items(), key=lambda x: len(x[1]), reverse=True):
+        if iri.startswith(namespace):
+            return f"{prefix}:{iri[len(namespace):]}"
+    # Fallback: last '#', '/', or ':' segment
+    for sep in ("#", "/", ":"):
+        idx = iri.rfind(sep)
+        if 0 <= idx < len(iri) - 1:
+            return iri[idx + 1:]
+    return iri
+
+
 templates.env.filters["dict_without"] = _dict_without
 # Register urlencode as dict-capable filter (Jinja2 built-in only handles scalars)
 templates.env.filters["urlencode"] = _urlencode_filter
+templates.env.filters["compact_iri"] = _compact_iri
 
 
 def _is_html_route(path: str) -> bool:

@@ -15,16 +15,16 @@
 
 {% from "forms/_field.html" import render_field %}
 
-{% macro render_group(group, properties, values) %}
+{% macro render_group(group, properties, values, ref_labels=None) %}
 <details class="form-group" open>
-    <summary class="form-group-summary" title="{{ group.iri }}">{{ group.label }}</summary>
+    <summary class="form-group-summary" title="{{ group.iri | compact_iri }}">{{ group.label }}</summary>
     <div class="form-group-content">
         {% for prop in properties %}
         {% set val = values.get(prop.path) if values else none %}
         {% if val is sequence and val is not string %}
-        {{ render_field(prop, values=val) }}
+        {{ render_field(prop, values=val, ref_labels=ref_labels) }}
         {% else %}
-        {{ render_field(prop, value=val) }}
+        {{ render_field(prop, value=val, ref_labels=ref_labels) }}
         {% endif %}
         {% endfor %}
     </div>
