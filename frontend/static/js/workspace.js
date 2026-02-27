@@ -485,6 +485,10 @@
           visibleSizes.push(id === 'editor-pane' ? 80 : 20);
         }
       });
+      var sizeTotal = visibleSizes.reduce(function (a, b) { return a + b; }, 0);
+      if (sizeTotal > 0 && Math.abs(sizeTotal - 100) > 0.5) {
+        visibleSizes = visibleSizes.map(function (s) { return (s / sizeTotal) * 100; });
+      }
       _rebuildSplit(null, visibleIds, visibleSizes);
     }
   }
