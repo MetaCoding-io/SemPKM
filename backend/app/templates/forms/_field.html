@@ -82,7 +82,7 @@
     {# sh:class reference: search-as-you-type input #}
     <div class="reference-field">
         <input type="text"
-               name="_search_{{ input_name }}"
+               name="q"
                id="{{ input_id }}-search"
                class="form-input reference-search {{ css_class }}"
                placeholder="Search {{ prop.name }}..."
@@ -94,8 +94,7 @@
                hx-trigger="input changed delay:300ms"
                hx-target="#suggestions-{{ field_id }}{{ '-' ~ index if index is not none else '' }}"
                hx-swap="innerHTML"
-               hx-vals='js:{"q": this.value, "field_id": this.dataset.fieldId, "index": this.dataset.index || null}'
-               hx-params="q,field_id,index">
+               hx-vals='{"field_id": "{{ field_id }}", "index": {{ index if index is not none else "null" }}}'>
         <input type="hidden" id="{{ input_id }}-hidden" name="{{ input_name }}" value="{{ current_value | default('', true) }}">
         <div id="suggestions-{{ field_id }}{{ '-' ~ index if index is not none else '' }}" class="suggestions-dropdown"></div>
     </div>

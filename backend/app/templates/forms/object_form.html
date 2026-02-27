@@ -166,6 +166,7 @@
                 searchInput.id = 'input-' + fieldId + '-' + newIndex + '-search';
                 searchInput.dataset.index = String(newIndex);
                 searchInput.setAttribute('hx-target', '#suggestions-' + fieldId + '-' + newIndex);
+                searchInput.setAttribute('hx-vals', JSON.stringify({field_id: fieldId, index: newIndex}));
             }
             if (hiddenInput) {
                 hiddenInput.value = '';
@@ -198,6 +199,7 @@
         newItem.appendChild(removeBtn);
 
         list.appendChild(newItem);
+        htmx.process(newItem);
     };
 
     window.removeMultiValue = function(btn) {
