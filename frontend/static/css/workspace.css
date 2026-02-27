@@ -1636,7 +1636,8 @@ details.form-group[open] > .form-group-summary::before {
 }
 
 .mode-toggle:hover {
-    opacity: 0.85;
+    filter: brightness(1.15);
+    box-shadow: 0 0 0 2px var(--color-success);
 }
 
 .btn-save {

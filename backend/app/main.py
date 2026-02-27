@@ -197,7 +197,7 @@ def _urlencode_filter(value) -> str:
     """Jinja2 filter: URL-encode a dict to query string or a scalar to percent-encoded string."""
     if isinstance(value, dict):
         return _urlencode(value)
-    return str(value)
+    return quote(str(value), safe="")
 
 
 templates.env.filters["dict_without"] = _dict_without
