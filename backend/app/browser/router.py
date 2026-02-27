@@ -40,10 +40,33 @@ router = APIRouter(prefix="/browser", tags=["browser"])
 
 
 def _validate_iri(iri: str) -> bool:
-    """Validate that a decoded IRI is an absolute URI before SPARQL interpolation."""
+    """Validate that a decoded IRI is an absolute URI before SPARQL interpolation.
+
+    Accepts both https://... object IRIs and urn:sempkm:... model/seed IRIs.
+    The Basic PKM model uses urn: scheme for all object and type IRIs
+    (e.g. urn:sempkm:model:basic-pkm:Note, urn:sempkm:model:basic-pkm:seed-note-arch).
+
+    Blocks SPARQL injection characters (>, <, ", whitespace) that would break
+    the SPARQL template interpolation <{decoded_iri}>.
+    """
+    if not iri:
+        return False
     try:
         result = urlparse(iri)
-        return bool(result.scheme and result.netloc)
+        if not result.scheme:
+            return False
+        # Reject characters that would break SPARQL angle-bracket quoting
+        forbidden = set('<>"\\{}\n\r\t ')
+        if any(c in forbidden for c in iri):
+            return False
+        # https/http IRIs must have a netloc (host)
+        if result.scheme in ("http", "https"):
+            return bool(result.netloc)
+        # urn: IRIs are opaque (no netloc) but valid semantic web IRIs
+        if result.scheme == "urn":
+            return bool(result.path)
+        # Reject unknown schemes
+        return False
     except Exception:
         return False
 
