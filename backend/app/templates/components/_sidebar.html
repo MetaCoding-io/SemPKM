@@ -50,7 +50,8 @@
                     <i data-lucide="keyboard" class="nav-icon"></i>
                     <span class="nav-label">Shortcuts</span>
                 </a>
-                <a href="#" class="nav-link" data-tooltip="Docs &amp; Tutorials" onclick="openDocsTab(); return false;">
+                <a href="/guide" class="nav-link" data-tooltip="Docs &amp; Tutorials"
+                   hx-get="/guide" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
                     <i data-lucide="book-open" class="nav-icon"></i>
                     <span class="nav-label">Docs &amp; Tutorials</span>
                 </a>
