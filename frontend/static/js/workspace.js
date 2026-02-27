@@ -506,7 +506,7 @@
     });
 
     var sizes = restoreSizes || visibleSizes || null;
-    // If restoring, filter to only visible panes
+    // If restoring, filter to only visible panes then normalize to sum to 100
     if (restoreSizes) {
       sizes = [];
       panes.forEach(function (id, i) {
@@ -515,6 +515,10 @@
           sizes.push(restoreSizes[i]);
         }
       });
+      var total = sizes.reduce(function (a, b) { return a + b; }, 0);
+      if (total > 0 && Math.abs(total - 100) > 0.5) {
+        sizes = sizes.map(function (s) { return (s / total) * 100; });
+      }
     }
 
     splitInstance = Split(ids, {
