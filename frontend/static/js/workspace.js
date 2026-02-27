@@ -606,7 +606,7 @@
       var initFn = window['_initEditMode_' + safeId];
       if (typeof initFn === 'function') initFn();
       flipInner.classList.add('flipped');
-      if (toggleBtn) toggleBtn.textContent = 'Done';
+      if (toggleBtn) toggleBtn.textContent = 'Cancel';
       if (saveBtn) saveBtn.style.display = '';
       // Swap faces at midpoint (300ms into 600ms animation)
       setTimeout(function () {
@@ -1323,11 +1323,33 @@
     }
   });
 
-  // When an object is saved via the edit form, mark the tab clean
+  // When an object is saved via the edit form, mark the tab clean and update labels
   document.addEventListener('objectSaved', function (e) {
     var detail = e.detail;
-    if (detail && detail.iri) {
-      markClean(detail.iri);
+    if (!detail || !detail.iri) return;
+    markClean(detail.iri);
+
+    if (!detail.label) return;
+    var newLabel = detail.label;
+    var iri = detail.iri;
+
+    // Update toolbar title in the object tab
+    var tabEl = document.querySelector('.object-tab[data-object-iri="' + iri + '"]');
+    if (tabEl) {
+      var titleEl = tabEl.querySelector('.object-toolbar-title');
+      if (titleEl) titleEl.textContent = newLabel;
+    }
+
+    // Update tab label in the layout model and re-render the tab bar
+    var layout = window._workspaceLayout;
+    if (layout) {
+      (layout.groups || []).forEach(function (group) {
+        var tab = (group.tabs || []).find(function (t) { return (t.id || t.iri) === iri; });
+        if (tab) {
+          tab.label = newLabel;
+          if (typeof renderGroupTabBar === 'function') renderGroupTabBar(group);
+        }
+      });
     }
   });
 
