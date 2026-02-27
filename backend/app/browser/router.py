@@ -1193,10 +1193,20 @@ async def save_object(
         response = templates.TemplateResponse(
             request, "forms/object_form.html", context
         )
-        # Trigger markClean on the tab
-        response.headers["HX-Trigger"] = (
-            f'{{"objectSaved": {{"iri": "{decoded_iri}"}}}}'
-        )
+        # Trigger markClean + label update on the tab
+        _label_predicates = [
+            "http://purl.org/dc/terms/title",
+            "http://www.w3.org/2000/01/rdf-schema#label",
+            "http://www.w3.org/2004/02/skos/core#prefLabel",
+            "http://schema.org/name",
+            "http://xmlns.com/foaf/0.1/name",
+        ]
+        import json as _json
+        new_label = next((properties[p] for p in _label_predicates if p in properties), None)
+        trigger_payload = {"iri": decoded_iri}
+        if new_label:
+            trigger_payload["label"] = new_label
+        response.headers["HX-Trigger"] = _json.dumps({"objectSaved": trigger_payload})
         return response
 
     except Exception as e:
