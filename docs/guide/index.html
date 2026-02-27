@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SemPKM User Guide</title>
+<meta name="description" content="Complete SemPKM documentation covering setup, workspace, Mental Models, administration, advanced topics, and deployment.">
+<style>
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg-primary: #0a0a0f;
+  --bg-secondary: #12121a;
+  --bg-card: #16161f;
+  --bg-card-hover: #1c1c28;
+  --border-subtle: #1e1e2e;
+  --text-primary: #e8e8f0;
+  --text-secondary: #9898b0;
+  --text-muted: #6868808a;
+  --accent-blue: #e8772e;
+  --accent-purple: #f59e0b;
+  --accent-gradient: linear-gradient(135deg, #e8772e, #f59e0b);
+  --accent-glow: rgba(232, 119, 46, 0.15);
+  --font-stack: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --font-mono: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace;
+  --max-width: 1120px;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-stack);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+a {
+  color: var(--accent-blue);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+a:hover {
+  color: var(--accent-purple);
+}
+
+/* ── Nav ── */
+
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(10, 10, 15, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.nav-inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-logo {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.nav-logo span {
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  list-style: none;
+}
+
+.nav-links a {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.nav-links a:hover {
+  color: var(--text-primary);
+}
+
+.nav-links a.nav-active {
+  color: var(--accent-blue);
+  font-weight: 600;
+}
+
+.nav-cta {
+  background: var(--accent-gradient);
+  color: #fff !important;
+  padding: 0.5rem 1.25rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.nav-cta:hover {
+  opacity: 0.9;
+}
+
+/* Mobile nav toggle */
+.nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+.nav-toggle span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--text-secondary);
+  margin: 5px 0;
+  transition: transform 0.3s, opacity 0.3s;
+}
+
+/* ── Sections ── */
+
+section {
+  padding: 6rem 1.5rem;
+}
+
+.container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+.section-label {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent-blue);
+  margin-bottom: 1rem;
+}
+
+.section-title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin-bottom: 1rem;
+}
+
+.section-subtitle {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  max-width: 640px;
+  line-height: 1.7;
+}
+
+/* ── Guide Hero ── */
+
+.guide-hero {
+  padding: 9rem 1.5rem 4rem;
+  text-align: center;
+  position: relative;
+}
+
+.guide-hero::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(circle, rgba(232, 119, 46, 0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ── Guide Grid ── */
+
+.guide-section {
+  padding: 2rem 1.5rem 6rem;
+}
+
+.guide-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 3rem;
+}
+
+.part-card {
+  padding: 1.75rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.part-card:hover {
+  background: var(--bg-card-hover);
+  border-color: rgba(232, 119, 46, 0.2);
+}
+
+.part-label {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent-blue);
+  margin-bottom: 0.5rem;
+}
+
+.part-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  line-height: 1.3;
+}
+
+.chapter-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.chapter-list a {
+  display: block;
+  padding: 0.45rem 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s, color 0.15s;
+}
+
+.chapter-list a:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+}
+
+/* Appendices span full width */
+.appendix-card {
+  grid-column: 1 / -1;
+}
+
+.appendix-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.15rem;
+}
+
+/* ── Animations ── */
+
+.fade-in {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Footer ── */
+
+.footer {
+  padding: 3rem 1.5rem;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-primary);
+}
+
+.footer-inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.footer-left {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.footer-links {
+  display: flex;
+  gap: 1.5rem;
+  list-style: none;
+}
+
+.footer-links a {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.footer-links a:hover {
+  color: var(--text-primary);
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 768px) {
+  section {
+    padding: 4rem 1.25rem;
+  }
+
+  .guide-hero {
+    padding: 7rem 1.25rem 3rem;
+  }
+
+  .section-title {
+    font-size: 1.75rem;
+  }
+
+  .guide-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .appendix-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .nav-links {
+    display: none;
+    position: absolute;
+    top: 64px;
+    left: 0;
+    right: 0;
+    background: rgba(10, 10, 15, 0.95);
+    backdrop-filter: blur(12px);
+    flex-direction: column;
+    padding: 1.5rem;
+    gap: 1.25rem;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .nav-links.open {
+    display: flex;
+  }
+
+  .nav-toggle {
+    display: block;
+  }
+
+  .footer-inner {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .appendix-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo">Sem<span>PKM</span></a>
+    <button class="nav-toggle" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links">
+      <li><a href="../index.html#features">Features</a></li>
+      <li><a href="../index.html#screenshots">Screenshots</a></li>
+      <li><a href="../index.html#deploy">Deploy</a></li>
+      <li><a href="index.html" class="nav-active">User Guide</a></li>
+      <li><a href="../index.html#signup" class="nav-cta">Get Started</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="guide-hero">
+  <div class="container">
+    <span class="section-label fade-in">Documentation</span>
+    <h1 class="section-title fade-in">SemPKM User Guide</h1>
+    <p class="section-subtitle fade-in" style="margin: 0 auto;">
+      Complete documentation covering setup, workspace, Mental Models, administration, advanced topics, and deployment.
+    </p>
+  </div>
+</section>
+
+<!-- Guide Content -->
+<section class="guide-section">
+  <div class="container">
+    <div class="guide-grid">
+
+      <!-- Part I -->
+      <div class="part-card fade-in">
+        <span class="part-label">Part I</span>
+        <div class="part-title">Introduction and Getting Started</div>
+        <ul class="chapter-list">
+          <li><a href="01-what-is-sempkm.md">1. What is SemPKM?</a></li>
+          <li><a href="02-core-concepts.md">2. Core Concepts</a></li>
+          <li><a href="03-installation-and-setup.md">3. Installation and Setup</a></li>
+        </ul>
+      </div>
+
+      <!-- Part II -->
+      <div class="part-card fade-in">
+        <span class="part-label">Part II</span>
+        <div class="part-title">Using the Workspace</div>
+        <ul class="chapter-list">
+          <li><a href="04-workspace-interface.md">4. The Workspace Interface</a></li>
+          <li><a href="05-working-with-objects.md">5. Working with Objects</a></li>
+          <li><a href="06-edges-and-relationships.md">6. Edges and Relationships</a></li>
+          <li><a href="07-browsing-and-visualizing.md">7. Browsing and Visualizing Data</a></li>
+          <li><a href="08-keyboard-shortcuts.md">8. Keyboard Shortcuts and Command Palette</a></li>
+        </ul>
+      </div>
+
+      <!-- Part III -->
+      <div class="part-card fade-in">
+        <span class="part-label">Part III</span>
+        <div class="part-title">Mental Models</div>
+        <ul class="chapter-list">
+          <li><a href="09-understanding-mental-models.md">9. Understanding Mental Models</a></li>
+          <li><a href="10-managing-mental-models.md">10. Managing Mental Models</a></li>
+        </ul>
+      </div>
+
+      <!-- Part IV -->
+      <div class="part-card fade-in">
+        <span class="part-label">Part IV</span>
+        <div class="part-title">Administration</div>
+        <ul class="chapter-list">
+          <li><a href="11-user-management.md">11. User Management</a></li>
+          <li><a href="12-webhooks.md">12. Webhooks</a></li>
+          <li><a href="13-settings.md">13. Settings</a></li>
+          <li><a href="14-system-health-and-debugging.md">14. System Health and Debugging</a></li>
+        </ul>
+      </div>
+
+      <!-- Part V -->
+      <div class="part-card fade-in">
+        <span class="part-label">Part V</span>
+        <div class="part-title">The Event Log</div>
+        <ul class="chapter-list">
+          <li><a href="15-event-log.md">15. Understanding the Event Log</a></li>
+        </ul>
+      </div>
+
+      <!-- Part VI -->
+      <div class="part-card fade-in">
+        <span class="part-label">Part VI</span>
+        <div class="part-title">Advanced Topics</div>
+        <ul class="chapter-list">
+          <li><a href="16-data-model.md">16. The Data Model</a></li>
+          <li><a href="17-command-api.md">17. The Command API</a></li>
+          <li><a href="18-sparql-endpoint.md">18. The SPARQL Endpoint</a></li>
+          <li><a href="19-creating-mental-models.md">19. Creating Mental Models</a></li>
+        </ul>
+      </div>
+
+      <!-- Part VII -->
+      <div class="part-card fade-in">
+        <span class="part-label">Part VII</span>
+        <div class="part-title">Deployment and Operations</div>
+        <ul class="chapter-list">
+          <li><a href="20-production-deployment.md">20. Production Deployment</a></li>
+        </ul>
+      </div>
+
+      <!-- Appendices -->
+      <div class="part-card appendix-card fade-in">
+        <span class="part-label">Appendices</span>
+        <div class="part-title">Reference Material</div>
+        <div class="appendix-grid">
+          <a href="appendix-a-environment-variables.md">A. Environment Variable Reference</a>
+          <a href="appendix-b-keyboard-shortcuts.md">B. Keyboard Shortcut Reference</a>
+          <a href="appendix-c-command-api-reference.md">C. Command API Reference</a>
+          <a href="appendix-d-glossary.md">D. Glossary</a>
+          <a href="appendix-e-troubleshooting.md">E. Troubleshooting</a>
+          <a href="appendix-f-faq.md">F. FAQ</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-left">&copy; Copyright MetaCoding Solutions, LLC 2016. All rights reserved.</div>
+    <ul class="footer-links">
+      <li><a href="https://github.com/SemPKM/SemPKM">GitHub</a></li>
+      <li><a href="../index.html">Back to Docs</a></li>
+    </ul>
+  </div>
+</footer>
+
+<script>
+// Fade-in on scroll via IntersectionObserver
+(function() {
+  var targets = document.querySelectorAll('.fade-in');
+  if (!('IntersectionObserver' in window)) {
+    targets.forEach(function(el) { el.classList.add('visible'); });
+    return;
+  }
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  targets.forEach(function(el) { observer.observe(el); });
+})();
+
+// Mobile nav toggle
+(function() {
+  var toggle = document.querySelector('.nav-toggle');
+  var links = document.querySelector('.nav-links');
+  toggle.addEventListener('click', function() {
+    links.classList.toggle('open');
+  });
+  // Close menu on link click
+  links.querySelectorAll('a').forEach(function(a) {
+    a.addEventListener('click', function() {
+      links.classList.remove('open');
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
