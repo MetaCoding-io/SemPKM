@@ -1180,10 +1180,22 @@ async def save_object(
 
         # Re-render the form with current values
         form = await shapes_service.get_form_for_type(type_iri)
+
+        # Resolve labels for reference values so search inputs show names not IRIs
+        ref_iris = {
+            v.strip()
+            for key in form_data.keys()
+            if key not in skip_fields and not key.startswith("_search_")
+            for v in form_data.getlist(key)
+            if v.strip() and (v.strip().startswith("http") or v.strip().startswith("urn:"))
+        }
+        save_ref_labels = await label_service.resolve_batch(list(ref_iris)) if ref_iris else {}
+
         context = {
             "request": request,
             "form": form,
             "values": properties,
+            "ref_labels": save_ref_labels,
             "mode": "edit",
             "object_iri": decoded_iri,
             "success_message": "Changes saved successfully",

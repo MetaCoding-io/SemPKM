@@ -70,15 +70,18 @@
             {% endif %}
         {% endfor %}
 
+        {# ref_labels: IRI -> label for reference field display #}
+        {% set rl = ref_labels if ref_labels is defined else {} %}
+
         {# Required ungrouped fields first #}
         {% if ns.required_props %}
         <div class="form-section form-section-required">
             {% for prop in ns.required_props %}
             {% set val = values.get(prop.path) if values else none %}
             {% if val is sequence and val is not string %}
-            {{ render_field(prop, values=val) }}
+            {{ render_field(prop, values=val, ref_labels=rl) }}
             {% else %}
-            {{ render_field(prop, value=val) }}
+            {{ render_field(prop, value=val, ref_labels=rl) }}
             {% endif %}
             {% endfor %}
         </div>
@@ -93,7 +96,7 @@
             {% endif %}
         {% endfor %}
         {% if ns_group.group_props %}
-        {{ render_group(group, ns_group.group_props, values or {}) }}
+        {{ render_group(group, ns_group.group_props, values or {}, ref_labels=rl) }}
         {% endif %}
         {% endfor %}
 
@@ -105,9 +108,9 @@
                 {% for prop in ns.optional_ungrouped %}
                 {% set val = values.get(prop.path) if values else none %}
                 {% if val is sequence and val is not string %}
-                {{ render_field(prop, values=val) }}
+                {{ render_field(prop, values=val, ref_labels=rl) }}
                 {% else %}
-                {{ render_field(prop, value=val) }}
+                {{ render_field(prop, value=val, ref_labels=rl) }}
                 {% endif %}
                 {% endfor %}
             </div>
