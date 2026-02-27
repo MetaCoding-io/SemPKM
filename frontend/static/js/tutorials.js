@@ -25,11 +25,10 @@
 
   /**
    * Returns the Driver.js driver constructor from the IIFE global.
-   * The package name 'driver.js' (with dot) means the IIFE uses
-   * window['driver.js'] as the namespace key.
+   * The IIFE exports as window.driver.js.driver (verified at runtime).
    */
   function getDriver() {
-    return window['driver.js'] && window['driver.js'].driver;
+    return window.driver && window.driver.js && window.driver.js.driver;
   }
 
   // ---------------------------------------------------------------------------
