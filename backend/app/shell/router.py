@@ -42,6 +42,30 @@ async def shortcuts_page(request: Request, user: User = Depends(get_current_user
     return templates.TemplateResponse(request, "shortcuts.html", context)
 
 
+@router.get("/guide")
+async def guide_page(request: Request, user: User = Depends(get_current_user)):
+    """Render the Docs & Tutorials hub as a standalone page."""
+    templates = request.app.state.templates
+    context = {"active_page": "guide", "user": user}
+    if _is_htmx_request(request):
+        return templates.TemplateResponse(request, "guide.html", context, block_name="content")
+    return templates.TemplateResponse(request, "guide.html", context)
+
+
+@router.get("/guide/{filename:path}")
+async def guide_article(
+    filename: str, request: Request, user: User = Depends(get_current_user)
+):
+    """Render a single user guide article as a standalone page."""
+    templates = request.app.state.templates
+    context = {"active_page": "guide", "user": user, "filename": filename}
+    if _is_htmx_request(request):
+        return templates.TemplateResponse(
+            request, "guide_article.html", context, block_name="content"
+        )
+    return templates.TemplateResponse(request, "guide_article.html", context)
+
+
 @router.get("/health/")
 async def health_page(request: Request, user: User = Depends(get_current_user)):
     """Render the health check page.

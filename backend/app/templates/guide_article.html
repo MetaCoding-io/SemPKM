@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}User Guide — SemPKM{% endblock %}
+
+{% block content %}
+<div id="docs-viewer" class="docs-viewer">
+
+  <div class="docs-viewer-header">
+    <button class="docs-back-btn"
+            hx-get="/guide"
+            hx-target="#app-content"
+            hx-swap="innerHTML"
+            hx-push-url="true">
+      <i data-lucide="arrow-left"></i>
+      <span>Back to Docs</span>
+    </button>
+  </div>
+
+  <div id="docs-content" class="docs-content markdown-body">
+    <p class="docs-loading">Loading...</p>
+  </div>
+
+</div>
+
+<script>
+var _guideArticleFilename = {{ filename | tojson }};
+(function () {
+  if (typeof lucide !== 'undefined' && lucide.createIcons) {
+    lucide.createIcons();
+  }
+})();
+</script>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  if (typeof window.renderMarkdownFromUrl === 'function') {
+    window.renderMarkdownFromUrl('/docs/guide/' + _guideArticleFilename, 'docs-content');
+  }
+})();
+</script>
+{% endblock %}
