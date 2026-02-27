@@ -1,0 +1,79 @@
+[    7905ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[    9468ms] [ERROR] The selector "#form-spinner" on hx-indicator returned no matches! @ https://unpkg.com/htmx.org@2.0.4:0
+[   28031ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[   85611ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[   85645ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[   95317ms] [ERROR] The selector "#form-spinner" on hx-indicator returned no matches! @ https://unpkg.com/htmx.org@2.0.4:0
+[   96027ms] [ERROR] The selector "#form-spinner" on hx-indicator returned no matches! @ https://unpkg.com/htmx.org@2.0.4:0
+[   99866ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  102353ms] [ERROR] The selector "#form-spinner" on hx-indicator returned no matches! @ https://unpkg.com/htmx.org@2.0.4:0
+[  149578ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  184267ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  185606ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  185614ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  187590ms] [WARNING] Measure loop restarted more than 5 times @ https://esm.sh/@codemirror/view@6.39.15/es2022/view.mjs:4
+[  187657ms] [WARNING] Measure loop restarted more than 5 times @ https://esm.sh/@codemirror/view@6.39.15/es2022/view.mjs:4
+[  190272ms] [WARNING] Measure loop restarted more than 5 times @ https://esm.sh/@codemirror/view@6.39.15/es2022/view.mjs:4
+[  190340ms] [WARNING] Measure loop restarted more than 5 times @ https://esm.sh/@codemirror/view@6.39.15/es2022/view.mjs:4
+[  251029ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  255224ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  256892ms] [WARNING] Measure loop restarted more than 5 times @ https://esm.sh/@codemirror/view@6.39.15/es2022/view.mjs:4
+[  256959ms] [WARNING] Measure loop restarted more than 5 times @ https://esm.sh/@codemirror/view@6.39.15/es2022/view.mjs:4
+[  258157ms] [WARNING] Measure loop restarted more than 5 times @ https://esm.sh/@codemirror/view@6.39.15/es2022/view.mjs:4
+[  258226ms] [WARNING] Measure loop restarted more than 5 times @ https://esm.sh/@codemirror/view@6.39.15/es2022/view.mjs:4
+[  260231ms] [ERROR] The selector "#form-spinner" on hx-indicator returned no matches! @ https://unpkg.com/htmx.org@2.0.4:0
+[  261989ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  265835ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  266933ms] [ERROR] The selector "#form-spinner" on hx-indicator returned no matches! @ https://unpkg.com/htmx.org@2.0.4:0
+[  276733ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  288061ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  288985ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  288993ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  322134ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  322140ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  327710ms] [WARNING] Measure loop restarted more than 5 times @ https://esm.sh/@codemirror/view@6.39.15/es2022/view.mjs:4
+[  327778ms] [WARNING] Measure loop restarted more than 5 times @ https://esm.sh/@codemirror/view@6.39.15/es2022/view.mjs:4
+[  339967ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  433106ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  433517ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  433676ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  441635ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  452569ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  452825ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  452831ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  454733ms] [WARNING] Measure loop restarted more than 5 times @ https://esm.sh/@codemirror/view@6.39.15/es2022/view.mjs:4
+[  454801ms] [WARNING] Measure loop restarted more than 5 times @ https://esm.sh/@codemirror/view@6.39.15/es2022/view.mjs:4
+[  471831ms] [ERROR] The selector "#form-spinner" on hx-indicator returned no matches! @ https://unpkg.com/htmx.org@2.0.4:0
+[  481689ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  486738ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  486824ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)

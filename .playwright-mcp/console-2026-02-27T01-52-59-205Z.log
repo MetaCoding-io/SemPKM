@@ -1,0 +1,5 @@
+[     399ms] Error: Selector #nav-pane did not match a DOM element
+    at o (https://unpkg.com/split.js@1.6.5/dist/split.min.js:2:624)
+    at https://unpkg.com/split.js@1.6.5/dist/split.min.js:2:1219
+    at initSplit (http://localhost:3000/js/workspace.js:43:21)
+    at HTMLDocument.init (http://localhost:3000/js/workspace.js:1226:5)

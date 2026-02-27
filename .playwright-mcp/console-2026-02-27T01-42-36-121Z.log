@@ -1,0 +1,87 @@
+[   85135ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  116135ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  119765ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  120507ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  120533ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  121769ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  124932ms] [WARNING] [SemPKM] Driver.js not loaded — cannot start Welcome tour @ http://localhost:3000/js/tutorials.js:59
+[  126469ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  129051ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  129051ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  129659ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  129659ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  154256ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  154257ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  156636ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  156636ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  156641ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  156642ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  159374ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  159375ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  159492ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  159492ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  159947ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  159947ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  168802ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  168802ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  172948ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  172948ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  172972ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  172974ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  190266ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  190266ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  279321ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  279322ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  286325ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  286326ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  286766ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  286767ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  319145ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  319145ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  400739ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  400739ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  410042ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  410043ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
