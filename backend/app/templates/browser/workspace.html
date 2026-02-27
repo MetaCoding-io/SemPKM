@@ -9,6 +9,9 @@
     <div class="workspace-pane" id="nav-pane" data-testid="sidebar">
         <div class="pane-header">
             <span class="pane-title">Explorer</span>
+            <button class="panel-btn pane-close-btn" onclick="togglePane('nav-pane')" title="Close Explorer (Ctrl+[)" style="margin-left:auto;">
+                <i data-lucide="panel-left-close" style="width:14px;height:14px;"></i>
+            </button>
         </div>
         <div class="pane-content" id="nav-tree" data-testid="nav-tree">
             <div class="explorer-section expanded" id="section-objects">
@@ -98,6 +101,9 @@
     <div class="workspace-pane" id="right-pane" data-testid="properties-panel">
         <div class="pane-header">
             <span class="pane-title">Details</span>
+            <button class="panel-btn pane-close-btn" onclick="togglePane('right-pane')" title="Close Details (Ctrl+])" style="margin-left:auto;">
+                <i data-lucide="panel-right-close" style="width:14px;height:14px;"></i>
+            </button>
         </div>
         <div class="pane-content" id="right-content">
             <details class="right-section" open>
