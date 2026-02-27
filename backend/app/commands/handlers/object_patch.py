@@ -40,16 +40,18 @@ async def handle_object_patch(
 
     for idx, (predicate_str, value) in enumerate(params.properties.items()):
         predicate = _resolve_predicate(predicate_str)
-        rdf_value = _to_rdf_value(value)
+        values = value if isinstance(value, list) else [value]
 
-        # Event graph records what was set
-        data_triples.append((subject, predicate, rdf_value))
-
-        # Materialization: delete old value, insert new
+        # Materialization: delete ALL old values for this predicate (one Variable per predicate)
         materialize_deletes.append(
             (subject, predicate, Variable(f"old_{idx}"))
         )
-        materialize_inserts.append((subject, predicate, rdf_value))
+
+        # Insert all new values; record each in event graph
+        for v in values:
+            rdf_value = _to_rdf_value(v)
+            data_triples.append((subject, predicate, rdf_value))
+            materialize_inserts.append((subject, predicate, rdf_value))
 
     return Operation(
         operation_type="object.patch",
