@@ -1030,10 +1030,6 @@ async def create_object(
         )
 
     # Extract the type local name from the full IRI for the command handler
-    type_name = type_iri.rsplit("/", 1)[-1] if "/" in type_iri else type_iri
-    if "#" in type_name:
-        type_name = type_name.rsplit("#", 1)[-1]
-
     # Build properties dict from form data, excluding hidden/meta fields
     properties: dict[str, str | list[str]] = {}
     skip_fields = {"type_iri", "object_iri", "q"}
@@ -1058,7 +1054,7 @@ async def create_object(
 
     try:
         params = ObjectCreateParams(
-            type=type_name,
+            type=type_iri,  # pass full IRI; handler resolves local name for object IRI minting
             properties=properties,
         )
         operation = await handle_object_create(params, settings.base_namespace)
@@ -1087,7 +1083,7 @@ async def create_object(
             "values": properties,
             "mode": "edit",
             "object_iri": created_iri,
-            "success_message": f"Created {type_name} successfully",
+            "success_message": f"Created {type_iri.rsplit('/', 1)[-1].rsplit(':', 1)[-1]} successfully",
             "error_message": None,
         }
 

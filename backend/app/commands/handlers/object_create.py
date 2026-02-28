@@ -78,11 +78,17 @@ async def handle_object_create(
     Returns:
         Operation with data_triples and materialize_inserts for the new object.
     """
-    object_iri = mint_object_iri(base_namespace, params.type, params.slug)
-    subject = URIRef(object_iri)
+    # Resolve type IRI: accept full IRIs directly, or build from base_namespace + local name
+    if params.type.startswith(("http://", "https://", "urn:")):
+        type_iri = URIRef(params.type)
+        # Extract local name for the object IRI path segment (after last / or :)
+        local_name = params.type.rsplit("/", 1)[-1].rsplit(":", 1)[-1]
+    else:
+        local_name = params.type
+        type_iri = URIRef(f"{base_namespace.rstrip('/')}/{local_name}")
 
-    # Type IRI: base_namespace + type name
-    type_iri = URIRef(f"{base_namespace.rstrip('/')}/{params.type}")
+    object_iri = mint_object_iri(base_namespace, local_name, params.slug)
+    subject = URIRef(object_iri)
 
     triples: list[tuple] = []
 
