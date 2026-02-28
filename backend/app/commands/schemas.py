@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field
 class ObjectCreateParams(BaseModel):
     """Parameters for creating a new object."""
 
-    type: str  # RDF type local name, e.g. "Person", "Note"
+    type: str  # RDF type: full IRI (e.g. "urn:sempkm:model:basic-pkm:Note") or local name ("Note")
     slug: str | None = None  # Optional human-readable slug; UUID fallback
     properties: dict[str, Any] = {}  # predicate -> value pairs (compact IRI or full)
 
