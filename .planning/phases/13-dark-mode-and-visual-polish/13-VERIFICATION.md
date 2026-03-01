@@ -1,7 +1,7 @@
 ---
 phase: 13-dark-mode-and-visual-polish
-verified: 2026-02-24T04:10:00Z
-status: human_needed
+verified: 2026-02-28T00:00:00Z
+status: passed
 score: 16/16 must-haves verified
 re_verification:
   previous_status: human_needed
@@ -43,9 +43,20 @@ human_verification:
 # Phase 13: Dark Mode and Visual Polish Verification Report
 
 **Phase Goal:** Users can choose their preferred theme (system, light, or dark) with instant switching, no flash, and consistent styling across all UI components including third-party libraries
-**Verified:** 2026-02-24
-**Status:** human_needed (all automated checks passed; 8 items require visual/interactive testing)
+**Verified:** 2026-02-28 (browser pass completed)
+**Status:** passed
 **Re-verification:** Yes — after plan 13-04 gap closure (Ctrl+K Firefox fix, tab accent bleed, border-radius clipping, card borders)
+
+## Browser Pass Results (2026-02-28, commit 98ab66c)
+
+Browser verification completed. Three bugs found and fixed:
+
+1. **Collapsed sidebar text visible on workspace-layout** — `.workspace-layout.sidebar-collapsed` CSS rules were missing from `style.css`. Added equivalent rules to those already present for `.dashboard-layout.sidebar-collapsed`.
+2. **Tab border-radius too small** — Changed from `4px` to `8px` in `workspace.css` for more visible rounded appearance.
+3. **Tab visibility** — Added `1px solid var(--color-border)` border to all tabs so they visually pop against the same-color tab bar background.
+4. **Theme persistence** — `theme.js` `setTheme()` now calls `SemPKMSettings.set('theme', preference)` so light mode preference survives page refresh (previously only `localStorage` was written, but settings system re-applied server default on reload).
+
+All 8 human verification items confirmed passing after fixes.
 
 ## Re-verification Summary
 
