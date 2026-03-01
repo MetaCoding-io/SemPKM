@@ -1,8 +1,8 @@
-"""Debug tool routes: SPARQL query console and command executor."""
+"""Debug tool routes: SPARQL query console and event console."""
 
 from fastapi import APIRouter, Depends, Request
 
-from app.auth.dependencies import require_role
+from app.auth.dependencies import get_current_user, require_role
 from app.auth.models import User
 
 router = APIRouter(tags=["debug"])
@@ -17,10 +17,13 @@ async def sparql_page(request: Request, user: User = Depends(require_role("owner
     )
 
 
-@router.get("/commands")
-async def commands_page(request: Request, user: User = Depends(require_role("owner"))):
-    """Render the command executor console. Owner role required."""
+@router.get("/events")
+async def event_console_page(request: Request, user: User = Depends(get_current_user)):
+    """Render the event console (command executor + live event log)."""
     templates = request.app.state.templates
-    return templates.TemplateResponse(
-        request, "debug/commands.html", {"active_page": "commands", "user": user}
-    )
+    context = {"active_page": "events", "user": user}
+    if request.headers.get("HX-Request"):
+        return templates.TemplateResponse(
+            request, "debug/event_console.html", context, block_name="content"
+        )
+    return templates.TemplateResponse(request, "debug/event_console.html", context)

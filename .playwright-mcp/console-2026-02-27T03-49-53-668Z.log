@@ -77,3 +77,44 @@
     at HTMLDocument.<anonymous> (<anonymous>:28:25)
 [  486824ms] TypeError: e.target.closest is not a function
     at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  895802ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  896062ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  899410ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  899465ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[  899755ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[  899782ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[ 1064744ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[ 1071399ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[ 1084408ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[ 1098780ms] [ERROR] The selector "#form-spinner" on hx-indicator returned no matches! @ https://unpkg.com/htmx.org@2.0.4:0
+[ 1100704ms] [ERROR] The selector "#form-spinner" on hx-indicator returned no matches! @ https://unpkg.com/htmx.org@2.0.4:0
+[ 1101830ms] [ERROR] The selector "#form-spinner" on hx-indicator returned no matches! @ https://unpkg.com/htmx.org@2.0.4:0
+[ 1103270ms] [ERROR] The selector "#form-spinner" on hx-indicator returned no matches! @ https://unpkg.com/htmx.org@2.0.4:0
+[ 1104830ms] [ERROR] The selector "#form-spinner" on hx-indicator returned no matches! @ https://unpkg.com/htmx.org@2.0.4:0
+[ 1105604ms] [ERROR] The selector "#form-spinner" on hx-indicator returned no matches! @ https://unpkg.com/htmx.org@2.0.4:0
+[ 1107614ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[ 3591408ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[ 3591524ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[ 3592727ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[ 3595749ms] [ERROR] The selector "#form-spinner" on hx-indicator returned no matches! @ https://unpkg.com/htmx.org@2.0.4:0
+[ 3639719ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)
+[ 3735334ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[ 3841267ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:28:25)
+[ 3846007ms] TypeError: e.target.closest is not a function
+    at HTMLDocument.<anonymous> (<anonymous>:65:25)

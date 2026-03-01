@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Event Console - SemPKM{% endblock %}
+
+{% block content %}
+<script src="/js/app.js"></script>
+
+<div class="event-console">
+
+  <!-- ── LEFT: Command form ── -->
+  <div class="event-console-left">
+    <div class="event-console-section-title">Execute Command</div>
+
+    <div class="tab-bar">
+      <button class="active" data-tab="form" onclick="switchTab('form')">Form</button>
+      <button data-tab="raw" onclick="switchTab('raw')">Raw JSON</button>
+    </div>
+
+    <!-- Form mode -->
+    <div id="tab-form" class="tab-content active">
+      <div class="form-group">
+        <label for="command-type">Command Type</label>
+        <select id="command-type" onchange="switchCommandForm(this.value)">
+          <option value="object.create">object.create</option>
+          <option value="object.patch">object.patch</option>
+          <option value="body.set">body.set</option>
+          <option value="edge.create">edge.create</option>
+          <option value="edge.patch">edge.patch</option>
+        </select>
+      </div>
+
+      <div id="command-fields"></div>
+
+      <div class="btn-group">
+        <button class="btn-primary" onclick="executeCommand()">Execute</button>
+      </div>
+    </div>
+
+    <!-- Raw JSON mode -->
+    <div id="tab-raw" class="tab-content">
+      <div class="form-group">
+        <label for="raw-json">Command JSON</label>
+        <textarea id="raw-json" class="json-box"
+          placeholder='{"command": "object.create", "params": {"type": "Person", "slug": "alice", "properties": {"rdfs:label": "Alice"}}}'></textarea>
+      </div>
+      <div class="btn-group">
+        <button class="btn-primary" onclick="executeRawCommand()">Execute</button>
+      </div>
+    </div>
+
+    <div id="command-error"></div>
+    <div id="command-result"></div>
+  </div>
+
+  <!-- ── RIGHT: Event log ── -->
+  <div class="event-console-right"
+       id="event-log-right"
+       hx-get="/browser/events"
+       hx-trigger="load"
+       hx-swap="innerHTML">
+    <div style="padding:20px;color:var(--color-text-faint);font-size:0.875rem;">Loading event log…</div>
+  </div>
+
+</div>
+
+<script>
+  switchCommandForm(document.getElementById('command-type').value);
+</script>
+{% endblock %}
