@@ -1,4 +1,5 @@
 <div class="event-diff-panel">
+  <button class="event-diff-close" onclick="this.closest('.event-diff-container').innerHTML=''" title="Close">&times;</button>
   {% if detail.summary.operation_type == 'body.set' and detail.body_diff %}
     {# Line-by-line body diff #}
     <div class="diff-body">
