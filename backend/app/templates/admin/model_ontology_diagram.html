@@ -1,0 +1,71 @@
+{# Ontology relationship diagram for model detail dashboard.
+   Rendered as htmx partial loaded on Relationships tab click.
+   Accepts:
+     nodes: dict of {type_name: {x, y, label, color}}
+     edges: list of {from, to, label, inverse}
+     svg_w: int, svg_h: int
+     model_id: str
+#}
+
+<div class="ontology-diagram-panel">
+    {% if not edges %}
+    <div class="diagram-empty">
+        <i data-lucide="git-branch"></i>
+        <p>No relationships defined between types in this model.</p>
+    </div>
+    {% else %}
+    <svg viewBox="0 0 {{ svg_w }} {{ svg_h }}" class="ontology-diagram-svg"
+         xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <marker id="arrowhead" markerWidth="8" markerHeight="6"
+                    refX="8" refY="3" orient="auto" fill="var(--color-text-muted)">
+                <polygon points="0 0, 8 3, 0 6" />
+            </marker>
+        </defs>
+
+        {# Render edges #}
+        {% for edge in edges %}
+        {% set src = nodes[edge['from']] %}
+        {% set tgt = nodes[edge['to']] %}
+        {% if src and tgt %}
+            {% if edge['from'] == edge['to'] %}
+            {# Self-referencing loop -- draw arc above the node #}
+            <path d="M {{ src.x - 20 }} {{ src.y - 22 }}
+                     C {{ src.x - 50 }} {{ src.y - 80 }},
+                       {{ src.x + 50 }} {{ src.y - 80 }},
+                       {{ src.x + 20 }} {{ src.y - 22 }}"
+                  fill="none" stroke="var(--color-text-faint)" stroke-width="1.5"
+                  marker-end="url(#arrowhead)" />
+            <text x="{{ src.x }}" y="{{ src.y - 68 }}"
+                  text-anchor="middle" class="edge-label">{{ edge.label }}</text>
+            {% else %}
+            {# Normal edge between two different nodes #}
+            <line x1="{{ src.x }}" y1="{{ src.y }}"
+                  x2="{{ tgt.x }}" y2="{{ tgt.y }}"
+                  stroke="var(--color-text-faint)" stroke-width="1.5"
+                  marker-end="url(#arrowhead)" />
+            <text x="{{ (src.x + tgt.x) / 2 }}" y="{{ (src.y + tgt.y) / 2 - 8 }}"
+                  text-anchor="middle" class="edge-label">{{ edge.label }}</text>
+            {% if edge.inverse %}
+            <text x="{{ (src.x + tgt.x) / 2 }}" y="{{ (src.y + tgt.y) / 2 + 14 }}"
+                  text-anchor="middle" class="edge-label edge-inverse">{{ edge.inverse }}</text>
+            {% endif %}
+            {% endif %}
+        {% endif %}
+        {% endfor %}
+
+        {# Render nodes #}
+        {% for name, node in nodes.items() %}
+        <circle cx="{{ node.x }}" cy="{{ node.y }}" r="24"
+                fill="{{ node.color }}22" stroke="{{ node.color }}" stroke-width="2" />
+        <text x="{{ node.x }}" y="{{ node.y + 4 }}"
+              text-anchor="middle" class="node-label"
+              fill="{{ node.color }}">{{ node.label }}</text>
+        {% endfor %}
+    </svg>
+    {% endif %}
+</div>
+
+<script>
+if (typeof lucide !== 'undefined') lucide.createIcons();
+</script>
