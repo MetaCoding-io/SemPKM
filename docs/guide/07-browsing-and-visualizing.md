@@ -205,8 +205,6 @@ You do not need to write view specifications yourself -- they come pre-packaged 
 
 For a deeper look at what Mental Models contain and how they shape your experience, see [Understanding Mental Models](09-understanding-mental-models.md).
 
-## What is Next
+---
 
-Now that you know how to browse your data visually, the next chapter covers the keyboard shortcuts and command palette that let you work without reaching for the mouse.
-
-[Keyboard Shortcuts and Command Palette](08-keyboard-shortcuts.md)
+**Previous:** [Chapter 6: Edges and Relationships](06-edges-and-relationships.md) | **Next:** [Chapter 8: Keyboard Shortcuts and Command Palette](08-keyboard-shortcuts.md)

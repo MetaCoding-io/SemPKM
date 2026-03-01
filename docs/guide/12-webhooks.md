@@ -240,8 +240,6 @@ Additional fields depend on the event type:
 | `violations` | integer | Number of SHACL violation-severity results |
 | `warnings` | integer | Number of SHACL warning-severity results |
 
-## What is Next
+---
 
-Now that you know how to push data outward with webhooks, the next chapter covers how to customize your SemPKM experience through the Settings system.
-
-[Settings](13-settings.md)
+**Previous:** [Chapter 11: User Management](11-user-management.md) | **Next:** [Chapter 13: Settings](13-settings.md)

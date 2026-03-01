@@ -243,8 +243,6 @@ The Basic PKM model is a starting point. SemPKM's architecture supports installi
 
 For instructions on installing and removing models, see [Managing Mental Models](10-managing-mental-models.md).
 
-## What is Next
+---
 
-Now that you understand what Mental Models are and how the Basic PKM model structures your experience, the next chapter covers the practical operations of installing, removing, and managing models through the Admin Portal.
-
-[Managing Mental Models](10-managing-mental-models.md)
+**Previous:** [Chapter 8: Keyboard Shortcuts and Command Palette](08-keyboard-shortcuts.md) | **Next:** [Chapter 10: Managing Mental Models](10-managing-mental-models.md)

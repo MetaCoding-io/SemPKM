@@ -355,8 +355,6 @@ After completing the setup wizard, verify that everything is working:
 
 <!-- Screenshot: Workspace showing the navigation tree with Basic PKM types and a Project object open in the editor -->
 
-## What is Next
+---
 
-Your SemPKM instance is installed, configured, and ready to use. The next chapters will walk you through the day-to-day workflow: creating objects, building relationships, browsing with views, and managing your knowledge graph.
-
-[What is SemPKM?](01-what-is-sempkm.md) | [Core Concepts](02-core-concepts.md)
+**Previous:** [Chapter 2: Core Concepts](02-core-concepts.md) | **Next:** [Chapter 4: The Workspace Interface](04-workspace-interface.md)

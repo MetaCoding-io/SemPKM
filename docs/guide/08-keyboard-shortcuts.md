@@ -154,8 +154,6 @@ Keyboard shortcuts in SemPKM are currently fixed and cannot be remapped through 
 
 This consistency means that if you are already comfortable with VS Code shortcuts, you will feel at home in SemPKM immediately.
 
-## What is Next
+---
 
-With the workspace shortcuts and command palette covered, the next chapter explains the Mental Models that define your types, views, and validation rules.
-
-[Understanding Mental Models](09-understanding-mental-models.md)
+**Previous:** [Chapter 7: Browsing and Visualizing Data](07-browsing-and-visualizing.md) | **Next:** [Chapter 9: Understanding Mental Models](09-understanding-mental-models.md)

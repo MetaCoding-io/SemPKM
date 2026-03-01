@@ -734,8 +734,6 @@ icons:
 
 From here, you would create matching shapes (with `sh:targetClass` pointing to `res:Paper`), views (with SPARQL queries using the full `urn:sempkm:model:research:Paper` IRI), and optional seed data following the patterns shown throughout this chapter.
 
-## What is Next
+---
 
-With your Mental Model created and tested, you may want to deploy SemPKM to a production environment. The next chapter covers securing, scaling, backing up, and resetting a production instance.
-
-[Production Deployment](20-production-deployment.md)
+**Previous:** [Chapter 18: The SPARQL Endpoint](18-sparql-endpoint.md) | **Next:** [Chapter 20: Production Deployment](20-production-deployment.md)

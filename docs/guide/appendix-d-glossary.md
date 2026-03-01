@@ -74,3 +74,7 @@ A named query-and-renderer combination that displays a collection of objects. Ea
 
 - [Core Concepts](02-core-concepts.md) -- introductory explanation of these terms in context
 - [The Data Model](16-data-model.md) -- technical details of how RDF, events, and named graphs work together
+
+---
+
+**Previous:** [Appendix C: Command API Reference](appendix-c-command-api-reference.md) | **Next:** [Appendix E: Troubleshooting](appendix-e-troubleshooting.md)

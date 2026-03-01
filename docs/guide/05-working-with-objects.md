@@ -257,4 +257,4 @@ An important design principle: validation provides **guidance, not enforcement**
 
 ---
 
-**Next:** [Edges and Relationships](06-edges-and-relationships.md) explains how objects connect to each other through typed edges and how to browse those connections.
+**Previous:** [Chapter 4: The Workspace Interface](04-workspace-interface.md) | **Next:** [Chapter 6: Edges and Relationships](06-edges-and-relationships.md)

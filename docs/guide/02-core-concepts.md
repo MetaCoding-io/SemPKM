@@ -172,4 +172,6 @@ Here is how the pieces connect using a concrete example:
 
 With these concepts in hand, you are ready to install SemPKM and start using it.
 
-[Installation and Setup](03-installation-and-setup.md)
+---
+
+**Previous:** [Chapter 1: What is SemPKM?](01-what-is-sempkm.md) | **Next:** [Chapter 3: Installation and Setup](03-installation-and-setup.md)

@@ -351,8 +351,6 @@ Before going live, verify each item:
 - [ ] Monitoring for container health (`docker compose ps`, healthcheck endpoints)
 - [ ] Log aggregation configured for the API container
 
-## What is Next
+---
 
-The appendices provide quick-reference material for environment variables, keyboard shortcuts, the Command API, a glossary of terms, troubleshooting, and frequently asked questions.
-
-[Appendix A: Environment Variable Reference](appendix-a-environment-variables.md)
+**Previous:** [Chapter 19: Creating Mental Models](19-creating-mental-models.md) | **Next:** [Appendix A: Environment Variable Reference](appendix-a-environment-variables.md)
