@@ -195,7 +195,7 @@ Plans:
 | 25. CSS Token Expansion | 1/1 | Complete    | 2026-03-01 | - |
 | 26. VFS MVP Read-Only | 3/3 | Complete    | 2026-03-01 | - |
 | 27. VFS Write + Auth | 3/3 | Complete    | 2026-03-01 | - |
-| 28. UI Polish + Integration Testing | 3/3 | Complete   | 2026-03-01 | - |
+| 28. UI Polish + Integration Testing | 3/3 | Complete    | 2026-03-01 | - |
 
 ---
 *Roadmap created: 2026-02-21*
