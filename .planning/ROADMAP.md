@@ -157,11 +157,12 @@ Plans:
   4. Playwright test file `e2e/tests/sparql-console.spec.ts` covers Yasgui load, query execution, and IRI link rendering
   5. Playwright test file `e2e/tests/fts-search.spec.ts` covers keyword search via Ctrl+K, result display, and snippet visibility
   6. Playwright test file `e2e/tests/vfs-webdav.spec.ts` covers WebDAV endpoint availability, directory listing, and file content correctness
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 28-01: Expander icon theme fixes, sidebar panel rearrangement (lightweight swap, no dockview)
-- [ ] 28-02: Object-contextual view indicator, E2E test files for SPARQL, FTS, and VFS
+- [ ] 28-01-PLAN.md — Expander icon theme fixes, sidebar panel rearrangement (lightweight swap, no dockview)
+- [ ] 28-02-PLAN.md — Object-contextual view indicator, E2E test files for SPARQL, FTS, and VFS
+- [ ] 28-03-PLAN.md — Gap closure: .panel-btn svg stroke fix, tab-type-aware accent bar, panel content clearing on deactivation
 
 ## Progress
 
@@ -194,7 +195,7 @@ Plans:
 | 25. CSS Token Expansion | 1/1 | Complete    | 2026-03-01 | - |
 | 26. VFS MVP Read-Only | 3/3 | Complete    | 2026-03-01 | - |
 | 27. VFS Write + Auth | 3/3 | Complete    | 2026-03-01 | - |
-| 28. UI Polish + Integration Testing | 2/2 | Complete    | 2026-03-01 | - |
+| 28. UI Polish + Integration Testing | 2/3 | In Progress    | 2026-03-01 | - |
 
 ---
 *Roadmap created: 2026-02-21*
