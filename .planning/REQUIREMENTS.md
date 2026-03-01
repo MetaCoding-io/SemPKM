@@ -10,8 +10,8 @@ Requirements for the Data Discovery milestone. Each maps to roadmap phases 23-28
 ### Full-Text Search
 
 - [x] **FTS-01**: User can search knowledge base by keyword (full-text search across all literal values)
-- [ ] **FTS-02**: Search results show object type, label, and matching snippet
-- [ ] **FTS-03**: Search integrated into command palette (Ctrl+K)
+- [x] **FTS-02**: Search results show object type, label, and matching snippet
+- [x] **FTS-03**: Search integrated into command palette (Ctrl+K)
 
 ### SPARQL Console
 
@@ -79,8 +79,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SPARQL-02 | Phase 23 | Complete |
 | SPARQL-03 | Phase 23 | Complete |
 | FTS-01 | Phase 24 | Complete |
-| FTS-02 | Phase 24 | Pending |
-| FTS-03 | Phase 24 | Pending |
+| FTS-02 | Phase 24 | Complete |
+| FTS-03 | Phase 24 | Complete |
 | VFS-01 | Phase 26 | Complete |
 | VFS-02 | Phase 26 | Complete |
 | VFS-03 | Phase 27 | Pending |
