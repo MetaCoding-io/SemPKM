@@ -25,6 +25,11 @@
         LLM Connection
       </button>
       {% endif %}
+      <button class="settings-category-btn"
+              data-category="virtual-filesystem"
+              onclick="showSettingsCategory('virtual-filesystem')">
+        Virtual Filesystem
+      </button>
     </nav>
 
     <!-- Right: settings detail panels -->
@@ -77,6 +82,14 @@
         {% include "browser/_llm_settings.html" %}
       </div>
       {% endif %}
+      <div class="settings-category-panel" id="category-virtual-filesystem"
+           data-category="virtual-filesystem"
+           style="display:none">
+        <div class="settings-category-header">
+          <h2 class="settings-category-title">Virtual Filesystem</h2>
+        </div>
+        {% include "browser/_vfs_settings.html" %}
+      </div>
     </div>
 
   </div>
