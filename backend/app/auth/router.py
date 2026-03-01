@@ -129,10 +129,17 @@ async def request_magic_link(body: MagicLinkRequest, request: Request):
     logger.info("Magic link token for %s: %s", body.email, token)
 
     if smtp_configured:
-        # TODO: send email with token via SMTP
-        return MagicLinkResponse(
-            message="If this email is registered, a login link has been sent."
-        )
+        from app.services.email import send_magic_link_email
+        # Use configured base URL or derive from request
+        base_url = settings.app_base_url or str(request.base_url).rstrip("/")
+        sent = await send_magic_link_email(body.email, token, base_url)
+        if not sent:
+            # SMTP delivery failed -- fall through to console fallback
+            logger.warning("SMTP delivery failed for %s, falling back to console", body.email)
+        else:
+            return MagicLinkResponse(
+                message="If this email is registered, a login link has been sent."
+            )
 
     # No SMTP — return token directly for local instances
     return MagicLinkResponse(
