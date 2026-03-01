@@ -62,9 +62,12 @@ class SemPKMWsgiAuthenticator(BaseDomainController):
                 )
                 token_row = token_result.scalar_one_or_none()
                 if token_row:
-                    # Store user info in environ for downstream use by the DAV provider
+                    # Store user info in environ for downstream use by the DAV provider.
+                    # user_id and user_role are consumed by ResourceFile.end_write()
+                    # to record event provenance (who made the change and in what role).
                     environ["sempkm.user_id"] = str(user.id)
                     environ["sempkm.user_email"] = user.email
+                    environ["sempkm.user_role"] = user.role  # "owner", "member", or "guest"
                     return True
                 return False
         finally:
