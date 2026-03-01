@@ -195,6 +195,25 @@ async def admin_model_ontology_diagram(
             "color": type_info[name]["color"],
         }
 
+    # Enrich nodes with SHACL properties and instance counts
+    # 1. Build shape-property lookup from detail["shapes"]
+    shape_props = {}
+    for shape in detail["shapes"]:
+        tc = shape["target_class"]
+        shape_props[tc] = shape["properties"]
+
+    # 2. Fetch instance counts via get_type_analytics()
+    type_iris = [t["iri"] for t in detail["types"]]
+    analytics = await model_service.get_type_analytics(type_iris)
+    count_lookup = {}
+    for t in detail["types"]:
+        count_lookup[t["local_name"]] = analytics.get(t["iri"], {}).get("count", 0)
+
+    # 3. Attach properties (max 6) and instance_count to each node
+    for name in nodes:
+        nodes[name]["properties"] = shape_props.get(name, [])[:6]
+        nodes[name]["instance_count"] = count_lookup.get(name, 0)
+
     # Compute tight viewBox from node bounds
     node_radius = 24
     padding = 80  # room for labels and self-loop arcs
