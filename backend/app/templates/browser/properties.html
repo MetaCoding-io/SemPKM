@@ -16,8 +16,12 @@
   <div class="relations-section">
     <div class="relations-section-title">Outbound</div>
     {% for predicate, targets in outbound_grouped.items() %}
-    <div class="relation-group">
-      <div class="relation-predicate">{{ predicate }}</div>
+    <details class="relation-group" {% if targets | length <= 5 %}open{% endif %}>
+      <summary class="relation-predicate">
+        <span class="relation-pred-chevron">&#9656;</span>
+        <span class="relation-pred-label">{{ predicate }}</span>
+        <span class="relation-pred-count">{{ targets | length }}</span>
+      </summary>
       {% for obj in targets %}
       <div class="relation-item"
            onclick="openTab('{{ obj.iri | e }}', '{{ obj.label | e }}')"
@@ -26,7 +30,7 @@
         <span>{{ obj.label }}</span>
       </div>
       {% endfor %}
-    </div>
+    </details>
     {% endfor %}
   </div>
   {% endif %}
@@ -35,8 +39,12 @@
   <div class="relations-section">
     <div class="relations-section-title">Inbound</div>
     {% for predicate, sources in inbound_grouped.items() %}
-    <div class="relation-group">
-      <div class="relation-predicate">{{ predicate }}</div>
+    <details class="relation-group" {% if sources | length <= 5 %}open{% endif %}>
+      <summary class="relation-predicate">
+        <span class="relation-pred-chevron">&#9656;</span>
+        <span class="relation-pred-label">{{ predicate }}</span>
+        <span class="relation-pred-count">{{ sources | length }}</span>
+      </summary>
       {% for obj in sources %}
       <div class="relation-item"
            onclick="openTab('{{ obj.iri | e }}', '{{ obj.label | e }}')"
@@ -45,7 +53,7 @@
         <span>{{ obj.label }}</span>
       </div>
       {% endfor %}
-    </div>
+    </details>
     {% endfor %}
   </div>
   {% endif %}
