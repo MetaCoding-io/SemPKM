@@ -79,6 +79,8 @@
         { id: objectIri, iri: objectIri, label: label || objectIri, dirty: false, isView: false },
         layout.activeGroupId
       );
+      // Phase 28 POLSH-03: notify contextual panel indicator when a tab is opened
+      document.dispatchEvent(new CustomEvent('sempkm:tab-activated', { detail: { tabId: objectIri } }));
       // Load the content
       if (mode === 'edit') {
         var editorArea = window.getActiveEditorArea();
@@ -1630,6 +1632,47 @@
   window.toggleBottomPanel = toggleBottomPanel;
   window.maximizeBottomPanel = maximizeBottomPanel;
   window.swapPanel = swapPanel;
+
+  // -----------------------------------------------------------------------
+  // Phase 28: Object-contextual panel indicator (POLSH-03)
+  // -----------------------------------------------------------------------
+
+  /**
+   * Toggle the contextual-panel-active class on all [data-panel-name] panels.
+   * Called when an object tab is activated (isActive=true) or when all tabs
+   * are closed (isActive=false).
+   */
+  function setContextualPanelActive(isActive) {
+    document.querySelectorAll('[data-panel-name]').forEach(function(panel) {
+      if (isActive) {
+        panel.classList.add('contextual-panel-active');
+      } else {
+        panel.classList.remove('contextual-panel-active');
+      }
+    });
+  }
+
+  // Listen for tab lifecycle events dispatched by workspace-layout.js
+  document.addEventListener('sempkm:tab-activated', function() {
+    setContextualPanelActive(true);
+  });
+
+  document.addEventListener('sempkm:tabs-empty', function() {
+    setContextualPanelActive(false);
+  });
+
+  // Restore contextual panel state based on restored tab state after init
+  // Deferred via setTimeout to ensure workspace-layout.js has set window._workspaceLayout
+  setTimeout(function() {
+    if (window._workspaceLayout) {
+      var hasActiveTab = window._workspaceLayout.groups.some(function(g) {
+        return g.activeTabId !== null && g.tabs.length > 0;
+      });
+      setContextualPanelActive(hasActiveTab);
+    }
+  }, 0);
+
+  window.setContextualPanelActive = setContextualPanelActive;
 
 })();
 

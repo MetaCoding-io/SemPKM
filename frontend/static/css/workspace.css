@@ -2573,3 +2573,17 @@ details.form-group[open] > .form-group-summary::before {
     background: var(--color-surface-recessed);
     border-top: 1px solid var(--color-border);
 }
+
+/* ============================================================
+   Phase 28: Object-contextual Panel Indicator (POLSH-03)
+   Teal accent bar on panel headers when an object is open.
+   ============================================================ */
+
+/* When a right-section panel is contextually active (object open),
+   show a 3px teal left border on the panel header.
+   Applied via [data-panel-name].contextual-panel-active class toggle in JS. */
+[data-panel-name].contextual-panel-active > summary.right-section-header {
+    border-left: 3px solid var(--color-accent);
+    padding-left: 9px; /* 12px original - 3px border = maintains visual indent */
+    transition: border-color 0.15s;
+}
