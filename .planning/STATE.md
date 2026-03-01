@@ -8,7 +8,7 @@ progress:
   total_phases: 16
   completed_phases: 12
   total_plans: 40
-  completed_plans: 32
+  completed_plans: 33
 ---
 
 # Project State
@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations — no blank-page syndrome, no schema setup.
-**Current focus:** v2.2 Data Discovery — Phase 26: VFS MVP Read-Only (1/3 plans complete)
+**Current focus:** v2.2 Data Discovery — Phase 26: VFS MVP Read-Only (2/3 plans complete)
 
 ## Current Position
 
 Phase: 26 of 28 (VFS MVP Read-Only)
-Plan: 1 of 3 complete
+Plan: 2 of 3 complete
 Status: Executing
-Last activity: 2026-03-01 — Completed 26-01 (VFS Foundation: packages, sync client, API tokens, nginx proxy)
+Last activity: 2026-03-01 — Completed 26-02 (VFS DAV Provider: collections, resources, auth)
 
-Progress: [###-------] 33% (Phase 26)
+Progress: [######----] 67% (Phase 26)
 
 ## v2.2 Phase Structure
 
@@ -36,7 +36,7 @@ Progress: [###-------] 33% (Phase 26)
 | 23 | SPARQL Console | SPARQL-01, SPARQL-02, SPARQL-03 | Nothing | Complete (2/2 plans) |
 | 24 | FTS Keyword Search | FTS-01, FTS-02, FTS-03 | Nothing (JAR prereq) | In progress (1/2 plans) |
 | 25 | CSS Token Expansion | — (v2.3 prep) | Nothing | Complete (1/1 plans) |
-| 26 | VFS MVP Read-Only | VFS-01, VFS-02 | Nothing (self-contained) | In progress (1/3 plans) |
+| 26 | VFS MVP Read-Only | VFS-01, VFS-02 | Nothing (self-contained) | In progress (2/3 plans) |
 | 27 | VFS Write + Auth | VFS-03 | Phase 26 | Not started |
 | 28 | UI Polish + Integration Testing | POLSH-01, POLSH-02, POLSH-03, POLSH-04 | Phases 23, 24, 26 | Not started |
 
@@ -56,6 +56,8 @@ All v2.2 architectural decisions committed in v2.1. See .planning/DECISIONS.md f
 - VFS-01: SyncTriplestoreClient mirrors async TriplestoreClient API with httpx.Client for WSGI thread pool use
 - VFS-02: API tokens use SHA-256 hash storage; plaintext returned exactly once on creation
 - VFS-03: verify_api_token_sync uses disposable sync SQLAlchemy engine per call for WSGI thread safety
+- VFS-04: SPARQL queries use urn:sempkm: namespace (not https://sempkm.org/ontology/) and REPLACE regex .*[/:#] for URN local names
+- VFS-05: DAV provider hierarchy: Root->Model->Type->Resource with lazy file map caching per TypeCollection
 - FTS-01: LuceneSail config uses RDF4J 5.x unified namespace (config:lucene.indexDir, config:delegate) — verified from container-generated config
 - FTS-02: Graph-scoped FTS via SPARQL GRAPH clause, not config-level reindexQuery (not supported in RDF4J 5.x config)
 
@@ -77,5 +79,5 @@ All v2.2 architectural decisions committed in v2.1. See .planning/DECISIONS.md f
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 24-01-PLAN.md (LuceneSail FTS config + SearchService)
-Resume: Continue with 24-02-PLAN.md (Search API endpoint and UI)
+Stopped at: Completed 26-02-PLAN.md (VFS DAV Provider: collections, resources, auth)
+Resume: Continue with 26-03-PLAN.md (wsgidav mount + a2wsgi bridge)
