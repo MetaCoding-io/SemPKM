@@ -2095,13 +2095,31 @@ details.form-group[open] > .form-group-summary::before {
   font-size: 0.7rem;
   padding: 2px 7px;
   border-radius: 3px;
-  border: 1px solid var(--color-border);
+  border: 1px solid transparent;
   background: transparent;
-  color: var(--color-text-faint, var(--color-text-muted));
   cursor: pointer;
 }
-.event-btn-diff:hover { color: var(--color-accent); border-color: var(--color-accent); }
-.event-btn-undo:hover { color: var(--color-diff-remove); border-color: var(--color-diff-remove); }
+.event-btn-diff:not(:disabled) {
+  color: var(--color-accent);
+  border-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
+}
+.event-btn-diff:not(:disabled):hover {
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+}
+.event-btn-undo:not(:disabled) {
+  color: var(--color-diff-remove);
+  border-color: color-mix(in srgb, var(--color-diff-remove) 40%, transparent);
+}
+.event-btn-undo:not(:disabled):hover {
+  background: color-mix(in srgb, var(--color-diff-remove) 12%, transparent);
+}
+.event-btn-diff:disabled,
+.event-btn-undo:disabled {
+  color: var(--color-text-faint);
+  border-color: transparent;
+  opacity: 0.35;
+  cursor: default;
+}
 
 /* Diff table (property before/after) */
 .diff-table {
