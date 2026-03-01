@@ -1,0 +1,117 @@
+{# VFS settings partial — all authenticated users, rendered by settings_page.html
+   api_tokens = list[ApiToken] (id, name, created_at)
+   webdav_endpoint = str (full URL to /dav/)
+#}
+
+<!-- Section 1: WebDAV Mount Endpoint -->
+<div class="vfs-endpoint-row">
+  <span class="settings-label">WebDAV Endpoint</span>
+  <span class="settings-description">Connect any WebDAV client (Finder, Explorer, Nautilus) to this URL using your SemPKM email and an API token as the password.</span>
+  <div class="vfs-endpoint-display">
+    <code class="vfs-endpoint-url" id="vfs-endpoint-url">{{ webdav_endpoint }}</code>
+    <button class="btn-icon" onclick="navigator.clipboard.writeText('{{ webdav_endpoint }}'); this.textContent='Copied!';" title="Copy endpoint URL">
+      <i data-lucide="copy" style="width:14px;height:14px;"></i>
+    </button>
+  </div>
+</div>
+
+<!-- Section 2: API Token Generation Form -->
+<div class="vfs-token-generate" id="vfs-token-generate-area">
+  <span class="settings-label">Generate API Token</span>
+  <span class="settings-description">Tokens are used as the WebDAV password. The token value is shown only once — copy it immediately.</span>
+  <form id="vfs-token-form"
+        onsubmit="return vfsSubmitTokenForm(event)">
+    <div class="vfs-token-form-row">
+      <input type="text" id="vfs-token-name" name="name" placeholder="e.g. My MacBook"
+             class="settings-text-input" required maxlength="255">
+      <button type="submit" class="btn-primary">Generate Token</button>
+    </div>
+  </form>
+  <div id="vfs-token-result"></div>
+</div>
+
+<!-- Section 3: Existing Tokens Table -->
+<div class="vfs-tokens-section">
+  <span class="settings-label">Active API Tokens</span>
+  {% if api_tokens %}
+  <table class="vfs-tokens-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Created</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="vfs-tokens-tbody">
+      {% for token in api_tokens %}
+      <tr id="vfs-token-row-{{ token.id }}">
+        <td>{{ token.name }}</td>
+        <td>{{ token.created_at.strftime('%Y-%m-%d') if token.created_at else '—' }}</td>
+        <td>
+          <button class="btn-danger-sm"
+                  onclick="vfsRevokeToken('{{ token.id }}', this)">
+            Revoke
+          </button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="vfs-no-tokens">No API tokens yet. Generate one above.</p>
+  <table class="vfs-tokens-table" style="display:none">
+    <tbody id="vfs-tokens-tbody"></tbody>
+  </table>
+  {% endif %}
+</div>
+
+<script>
+function vfsSubmitTokenForm(e) {
+  e.preventDefault();
+  var name = document.getElementById('vfs-token-name').value.trim();
+  if (!name) return false;
+  fetch('/api/auth/tokens', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({name: name})
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    document.getElementById('vfs-token-result').innerHTML =
+      '<div class="vfs-token-reveal">' +
+      '<p class="vfs-token-warning"><strong>Copy this token now.</strong> It will not be shown again.</p>' +
+      '<div class="vfs-token-value-row">' +
+      '<code class="vfs-token-value" id="vfs-new-token-value">' + data.token + '</code>' +
+      '<button class="btn-icon" onclick="navigator.clipboard.writeText(\'' + data.token + '\'); this.textContent=\'Copied!\';" title="Copy token">' +
+      '<i data-lucide="copy" style="width:14px;height:14px;"></i></button>' +
+      '</div></div>';
+    // Show the tokens table if it was hidden (empty state)
+    var hiddenTable = document.querySelector('.vfs-tokens-table[style*="display:none"]');
+    if (hiddenTable) {
+      hiddenTable.style.display = '';
+      var noTokensMsg = document.querySelector('.vfs-no-tokens');
+      if (noTokensMsg) noTokensMsg.style.display = 'none';
+    }
+    // Append the new token row to the table without reloading
+    var tbody = document.getElementById('vfs-tokens-tbody');
+    if (tbody) {
+      var tr = document.createElement('tr');
+      tr.setAttribute('id', 'vfs-token-row-' + data.id);
+      tr.innerHTML = '<td>' + data.name + '</td><td>' + new Date(data.created_at).toLocaleDateString() + '</td>' +
+        '<td><button class="btn-danger-sm" onclick="vfsRevokeToken(\'' + data.id + '\', this)">Revoke</button></td>';
+      tbody.appendChild(tr);
+    }
+    document.getElementById('vfs-token-name').value = '';
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  });
+  return false;
+}
+
+function vfsRevokeToken(tokenId, btn) {
+  if (!confirm('Revoke this token? Any WebDAV clients using it will be disconnected immediately.')) return;
+  fetch('/api/auth/tokens/' + tokenId, {method: 'DELETE'}).then(function(r) {
+    if (r.status === 204) {
+      var row = document.getElementById('vfs-token-row-' + tokenId);
+      if (row) row.remove();
+    }
+  });
+}
+</script>
