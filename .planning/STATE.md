@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Architecture Decision Gate
 status: unknown
-last_updated: "2026-03-01T02:45:24.297Z"
+last_updated: "2026-03-01T02:47:00Z"
 progress:
   total_phases: 12
   completed_phases: 11
   total_plans: 35
-  completed_plans: 33
+  completed_plans: 34
 ---
 
 # Project State
@@ -22,18 +22,18 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 
 ## Current Position
 
-Phase: 22 (Tech Debt Sprint) — complete
-Plan: 03 of 03 complete
-Status: All plans executed — Alembic migrations, SMTP/session cleanup, ViewSpec cache
-Last activity: 2026-03-01 — Phase 22 Plan 03 complete (2 tasks, 3 files, 4min)
+Phase: 20 (Architecture Decision Commit) — complete
+Plan: 04 of 04 complete
+Status: All Phase 20 plans executed — FTS, SPARQL UI, VFS, and UI Shell decisions committed
+Last activity: 2026-03-01 — Phase 20 Plan 04 complete (2 tasks, 1 file, 2min)
 
-Progress: [##########] 100% (v2.1) — Phase 22 complete
+Progress: [##########] 97% (v2.1) — Phase 20 complete, Phase 21 (Research Synthesis) next
 
 ## v2.1 Phase Summary
 
 | Phase | Goal | Requirements | Status |
 |-------|------|--------------|--------|
-| 20. Architecture Decision Commit | Formalize 4 research tracks as committed decisions | DEC-01, DEC-02, DEC-03, DEC-04 | Not started |
+| 20. Architecture Decision Commit | Formalize 4 research tracks as committed decisions | DEC-01, DEC-02, DEC-03, DEC-04 | Complete |
 | 21. Research Synthesis | Produce DECISIONS.md with v2.2 guidance | SYN-01 | Not started |
 | 22. Tech Debt Sprint | Alembic, SMTP, session cleanup, ViewSpec cache | TECH-01, TECH-02, TECH-03, TECH-04 | Complete |
 
@@ -81,6 +81,7 @@ Progress: [##########] 100% (v2.1) — Phase 22 complete
 | Phase 22 P02 | 2min | 2 tasks | 4 files |
 | Phase 22 P03 | 4min | 2 tasks | 3 files |
 | Phase 20 P03 | 2min | 2 tasks | 1 files |
+| Phase 20 P04 | 2min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -208,6 +209,12 @@ v2.1 Phase 20 execution decisions (20-03):
 - (20-03) SyncTriplestoreClient needed: DAVProvider runs in WSGI thread pool, cannot use httpx.AsyncClient
 - (20-03) API token Basic auth pattern committed (username=SemPKM username, password=revocable token) — design deferred to Phase 22c
 
+v2.1 Phase 20 execution decisions (20-04):
+- (20-04) dockview-core chosen over GoldenLayout 2: DOM reparenting in GoldenLayout breaks htmx event handlers; dockview-core has zero deps, first-class vanilla TypeScript support, CSS custom property theming via --dv-* variables
+- (20-04) Incremental Split.js migration committed: Phase A (inner editor-pane split) -> Phase B (full workspace) -> Phase C (floating panels); Phase A in v2.3, B and C deferred
+- (20-04) CSS token expansion (from ~40 to ~91 tokens, two-tier primitive + semantic architecture) is v2.2-eligible preparatory work independent of Dockview migration
+- (20-04) Bundle size measurement is a prerequisite action before deciding CDN vs vendor loading for dockview-core
+
 v2.1 Phase 22 execution decisions (22-01):
 - (22-01) asyncio.to_thread wraps Alembic command.upgrade to avoid nested event loop (env.py uses asyncio.run internally)
 - (22-01) AlembicConfig and alembic_command aliases avoid name collision with existing Config usage in main.py
@@ -256,5 +263,5 @@ None for v2.1.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 20-03-PLAN.md — VFS architecture decision committed (wsgidav + a2wsgi WebDAV, FUSE ruled out)
-Resume: Run /gsd:execute-phase 20-04 to continue Architecture Decision Commit phase (DEC-04, final decision track)
+Stopped at: Completed 20-04-PLAN.md — UI Shell architecture decision committed (dockview-core + incremental Split.js migration, GoldenLayout ruled out)
+Resume: Run /gsd:execute-phase 21 to begin Research Synthesis phase (SYN-01, produce DECISIONS.md consolidating all 4 architectural commitments)
