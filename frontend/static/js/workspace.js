@@ -1330,9 +1330,7 @@
   // -----------------------------------------------------------------------
 
   function initPanelDragDrop() {
-    var rightContent = document.getElementById('right-content');
-    var navTree = document.getElementById('nav-tree');
-    if (!rightContent || !navTree) return;
+    var draggedPanelName = null;
 
     // dragstart: must originate from a draggable="true" element inside a [data-panel-name] panel
     document.addEventListener('dragstart', function(e) {
@@ -1340,84 +1338,117 @@
       if (!handle) return;
       var panel = handle.closest('[data-panel-name]');
       if (!panel) return;
-      e.dataTransfer.setData('text/panel-name', panel.dataset.panelName);
+      draggedPanelName = panel.dataset.panelName;
+      e.dataTransfer.setData('text/panel-name', draggedPanelName);
       e.dataTransfer.effectAllowed = 'move';
       panel.classList.add('panel-dragging');
     });
 
     document.addEventListener('dragend', function() {
+      draggedPanelName = null;
       document.querySelectorAll('.panel-dragging').forEach(function(el) {
         el.classList.remove('panel-dragging');
       });
-      document.querySelectorAll('.panel-drag-over').forEach(function(el) {
-        el.classList.remove('panel-drag-over');
-      });
+      clearDropIndicators();
     });
 
-    // Wire drop zones (right-content and nav-tree)
-    [rightContent, navTree].forEach(function(zone) {
-      zone.addEventListener('dragover', function(e) {
-        // Only accept panel-name drags
-        if (!e.dataTransfer.types.includes('text/panel-name')) return;
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-        zone.classList.add('panel-drag-over');
-      });
+    // document-level dragover: find nearest [data-panel-name] and show insert indicator
+    document.addEventListener('dragover', function(e) {
+      if (!e.dataTransfer.types || e.dataTransfer.types.indexOf('text/panel-name') === -1) return;
+      var target = e.target.closest('[data-panel-name]');
+      if (!target) return;
+      if (target.dataset.panelName === draggedPanelName) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
 
-      zone.addEventListener('dragleave', function(e) {
-        if (!zone.contains(e.relatedTarget)) {
-          zone.classList.remove('panel-drag-over');
-        }
-      });
+      clearDropIndicators();
+      var rect = target.getBoundingClientRect();
+      var mid = rect.top + rect.height / 2;
+      if (e.clientY < mid) {
+        target.classList.add('panel-drop-before');
+      } else {
+        target.classList.add('panel-drop-after');
+      }
+    });
 
-      zone.addEventListener('drop', function(e) {
-        e.preventDefault();
-        zone.classList.remove('panel-drag-over');
-        var panelName = e.dataTransfer.getData('text/panel-name');
-        if (!panelName) return;
-        var targetZone = zone.dataset.dropZone; // 'left' or 'right'
-        swapPanel(panelName, targetZone);
-      });
+    // document-level drop: move panel to insert position
+    document.addEventListener('drop', function(e) {
+      var panelName = e.dataTransfer.getData('text/panel-name');
+      if (!panelName) return;
+      var target = e.target.closest('[data-panel-name]');
+      if (!target || target.dataset.panelName === panelName) {
+        clearDropIndicators();
+        return;
+      }
+      e.preventDefault();
+      var insertPos = target.classList.contains('panel-drop-before') ? 'before' : 'after';
+      clearDropIndicators();
+      movePanel(panelName, target.dataset.panelName, insertPos);
     });
   }
 
-  function swapPanel(panelName, targetZone) {
-    var panel = document.querySelector('[data-panel-name="' + panelName + '"]');
+  function clearDropIndicators() {
+    document.querySelectorAll('.panel-drop-before, .panel-drop-after').forEach(function(el) {
+      el.classList.remove('panel-drop-before', 'panel-drop-after');
+    });
+  }
+
+  /**
+   * Move a panel relative to a target panel (insert-before/after),
+   * or force it into a zone by passing forceZone with no targetName.
+   *
+   * @param {string} draggedName  - data-panel-name of panel to move
+   * @param {string|null} targetName  - data-panel-name of reference panel, or null
+   * @param {string|null} insertPos   - 'before' | 'after', or null when using forceZone
+   * @param {string} [forceZone]  - 'left' | 'right' — zone to append into (used by restore)
+   */
+  function movePanel(draggedName, targetName, insertPos, forceZone) {
+    var panel = document.querySelector('[data-panel-name="' + draggedName + '"]');
     if (!panel) return;
 
     var rightContent = document.getElementById('right-content');
     var navTree = document.getElementById('nav-tree');
     if (!rightContent || !navTree) return;
 
-    var currentZone = rightContent.contains(panel) ? 'right' : 'left';
-    if (currentZone === targetZone) return; // already there — no-op
+    var targetZone, refNode;
 
-    var header = panel.querySelector('.right-section-header');
-
-    if (targetZone === 'left') {
-      // Move to left pane (nav-tree area), appended below existing sections
-      if (header) header.classList.add('panel-header-in-left');
-      navTree.appendChild(panel);
+    if (targetName) {
+      var targetPanel = document.querySelector('[data-panel-name="' + targetName + '"]');
+      if (!targetPanel) return;
+      targetZone = rightContent.contains(targetPanel) ? 'right' : 'left';
+      refNode = insertPos === 'before' ? targetPanel : targetPanel.nextSibling;
     } else {
-      // Move back to right pane content
-      if (header) header.classList.remove('panel-header-in-left');
-      rightContent.appendChild(panel);
+      // forceZone only — append to end of the container
+      targetZone = forceZone || 'right';
+      refNode = null;
     }
 
-    savePanelPositions();
+    var container = targetZone === 'right' ? rightContent : navTree;
+
+    // Update zone indicator classes on the panel element
+    panel.classList.remove('panel-in-left', 'panel-in-right');
+    panel.classList.add(targetZone === 'left' ? 'panel-in-left' : 'panel-in-right');
+
+    // DOM move
+    container.insertBefore(panel, refNode || null);
 
     // Re-init Lucide icons in the moved panel so SVGs render
     if (typeof lucide !== 'undefined') {
       lucide.createIcons({ attrs: { class: ['lucide'] } });
     }
+
+    savePanelPositions();
   }
 
   function savePanelPositions() {
     var positions = {};
-    document.querySelectorAll('[data-panel-name]').forEach(function(panel) {
-      var name = panel.dataset.panelName;
-      var rightContent = document.getElementById('right-content');
-      positions[name] = (rightContent && rightContent.contains(panel)) ? 'right' : 'left';
+    ['#right-content', '#nav-tree'].forEach(function(sel) {
+      var container = document.querySelector(sel);
+      var zone = sel === '#right-content' ? 'right' : 'left';
+      if (!container) return;
+      container.querySelectorAll(':scope > [data-panel-name]').forEach(function(p, i) {
+        positions[p.dataset.panelName] = { zone: zone, order: i };
+      });
     });
     try {
       localStorage.setItem(PANEL_POSITIONS_KEY, JSON.stringify(positions));
@@ -1435,14 +1466,58 @@
     }
     if (!raw) return;
     try {
-      var positions = JSON.parse(raw);
-      Object.keys(positions).forEach(function(name) {
-        if (positions[name] === 'left') {
-          swapPanel(name, 'left');
+      var saved = JSON.parse(raw);
+
+      // Migrate old string format: { relations: 'right', lint: 'left' }
+      var values = Object.keys(saved).map(function(k) { return saved[k]; });
+      var needsMigration = values.some(function(v) { return typeof v === 'string'; });
+      if (needsMigration) {
+        var migrated = {};
+        var leftOrder = 0, rightOrder = 0;
+        Object.keys(saved).forEach(function(name) {
+          var zone = saved[name];
+          migrated[name] = { zone: zone, order: zone === 'left' ? leftOrder++ : rightOrder++ };
+        });
+        saved = migrated;
+      }
+
+      // Sort panels by saved order within each zone, then append in order
+      var leftPanels = [], rightPanels = [];
+      Object.keys(saved).forEach(function(name) {
+        var entry = saved[name];
+        if (entry.zone === 'left') {
+          leftPanels.push({ name: name, order: entry.order });
+        } else {
+          rightPanels.push({ name: name, order: entry.order });
         }
       });
+      leftPanels.sort(function(a, b) { return a.order - b.order; });
+      rightPanels.sort(function(a, b) { return a.order - b.order; });
+
+      var rightContent = document.getElementById('right-content');
+      var navTree = document.getElementById('nav-tree');
+      if (!rightContent || !navTree) return;
+
+      rightPanels.forEach(function(entry) {
+        var p = document.querySelector('[data-panel-name="' + entry.name + '"]');
+        if (!p) return;
+        p.classList.remove('panel-in-left', 'panel-in-right');
+        p.classList.add('panel-in-right');
+        rightContent.appendChild(p);
+      });
+      leftPanels.forEach(function(entry) {
+        var p = document.querySelector('[data-panel-name="' + entry.name + '"]');
+        if (!p) return;
+        p.classList.remove('panel-in-left', 'panel-in-right');
+        p.classList.add('panel-in-left');
+        navTree.appendChild(p);
+      });
+
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons({ attrs: { class: ['lucide'] } });
+      }
     } catch (e) {
-      // Ignore parse errors — positions revert to default (right pane)
+      // Ignore parse errors — positions revert to default
     }
   }
 
@@ -1649,7 +1724,9 @@
   window.saveCurrentObject = saveCurrentObject;
   window.toggleBottomPanel = toggleBottomPanel;
   window.maximizeBottomPanel = maximizeBottomPanel;
-  window.swapPanel = swapPanel;
+  window.movePanel = movePanel;
+  // Backward-compat shim — callers can still pass (name, 'left'/'right')
+  window.swapPanel = function(panelName, zone) { movePanel(panelName, null, null, zone); };
 
   // -----------------------------------------------------------------------
   // Phase 28: Object-contextual panel indicator (POLSH-03)

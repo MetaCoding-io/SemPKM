@@ -2560,29 +2560,50 @@ details.form-group[open] > .form-group-summary::before {
    Phase 28: Sidebar Panel Drag-and-Drop (POLSH-02)
    ============================================================ */
 
-/* Drop zone highlight when a panel is dragged over */
-[data-drop-zone].panel-drag-over {
-    background: var(--color-accent-subtle);
-    outline: 1px dashed var(--color-accent);
-    outline-offset: -2px;
-}
-
 /* Dragged panel — semi-transparent while dragging */
 .panel-dragging {
     opacity: 0.5;
 }
 
 /* Drag cursor on panel handles */
-.right-section-header[draggable="true"] {
+.right-section-header[draggable="true"],
+.explorer-section-header[draggable="true"] {
     cursor: grab;
 }
 
-.right-section-header[draggable="true"]:active {
+.right-section-header[draggable="true"]:active,
+.explorer-section-header[draggable="true"]:active {
     cursor: grabbing;
 }
 
-/* Panel header style when panel is moved to left (nav-tree) pane */
-[data-panel-name] .right-section-header.panel-header-in-left {
+/* Grip icon on explorer section headers */
+.explorer-section-header .panel-grip,
+.explorer-section-header .panel-grip svg {
+    width: 12px;
+    height: 12px;
+    opacity: 0.35;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+/* Panel insert-position indicators — shown on drag target */
+.panel-drop-before {
+    border-top: 2px solid var(--color-accent) !important;
+}
+
+.panel-drop-after {
+    border-bottom: 2px solid var(--color-accent) !important;
+}
+
+/* Cross-zone header normalization */
+/* Relations/Lint moved to left pane */
+[data-panel-name].panel-in-left .right-section-header {
+    background: var(--color-surface-recessed);
+    border-top: 1px solid var(--color-border);
+}
+
+/* Objects/Views moved to right pane — keep their existing look, just ensure border */
+[data-panel-name].panel-in-right .explorer-section-header {
     background: var(--color-surface-recessed);
     border-top: 1px solid var(--color-border);
 }

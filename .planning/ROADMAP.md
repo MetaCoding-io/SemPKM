@@ -5,7 +5,7 @@
 - ✅ **v1.0 MVP** — Phases 1-9 (shipped 2026-02-23) — [Full details](milestones/v1.0-ROADMAP.md)
 - ✅ **v2.0 Tighten Web UI** — Phases 10-19 (shipped 2026-03-01) — [Full details](milestones/v2.0-ROADMAP.md)
 - ✅ **v2.1 Architecture Decision Gate** — Phases 20-22 (shipped 2026-03-01) — [Full details](milestones/v2.1-ROADMAP.md)
-- 🚧 **v2.2 Data Discovery** — Phases 23-28 (in progress)
+- ✅ **v2.2 Data Discovery** — Phases 23-28 (shipped 2026-03-01) — [Full details](milestones/v2.2-ROADMAP.md)
 
 ## Phases
 
@@ -55,7 +55,7 @@
 
 </details>
 
-### 🚧 v2.2 Data Discovery (Phases 23-28)
+### ✅ v2.2 Data Discovery (Phases 23-28) — SHIPPED 2026-03-01
 
 **Milestone Goal:** Implement committed architectural decisions from v2.1 — SPARQL console, FTS keyword search, WebDAV VFS, CSS token expansion for v2.3 prep — then close with UI polish and integration E2E testing.
 
@@ -64,7 +64,7 @@
 - [x] **Phase 25: CSS Token Expansion** — Two-tier primitive/semantic token architecture, expanding from ~40 to ~91 tokens (completed 2026-03-01)
 - [x] **Phase 26: VFS MVP Read-Only** — wsgidav WebDAV mount via a2wsgi bridge, SyncTriplestoreClient, Markdown+frontmatter file rendering (completed 2026-03-01)
 - [x] **Phase 27: VFS Write + Auth** — Write path diff engine, API token Basic auth, MountSpec settings UI (completed 2026-03-01)
-- [x] **Phase 28: UI Polish + Integration Testing** — Expander icon fixes, sidebar panel rearrangement, contextual view indicators, Playwright E2E suites (completed 2026-03-01)
+- [x] **Phase 28: UI Polish + Integration Testing** — Expander icon fixes, full 4-panel drag-reorder (all panels draggable, insert-before/after, zone+order persisted), contextual view indicators, Playwright E2E suites (completed 2026-03-01)
 
 ## Phase Details
 
@@ -190,12 +190,12 @@ Plans:
 | 20. Architecture Decision Commit | v2.1 | 5/5 | Complete | 2026-02-28 |
 | 21. Research Synthesis | v2.1 | 1/1 | Complete | 2026-02-28 |
 | 22. Tech Debt Sprint | v2.1 | 3/3 | Complete | 2026-03-01 |
-| 23. SPARQL Console | 2/2 | Complete    | 2026-03-01 | - |
-| 24. FTS Keyword Search | 2/2 | Complete   | 2026-03-01 | - |
-| 25. CSS Token Expansion | 1/1 | Complete    | 2026-03-01 | - |
-| 26. VFS MVP Read-Only | 3/3 | Complete    | 2026-03-01 | - |
-| 27. VFS Write + Auth | 3/3 | Complete    | 2026-03-01 | - |
-| 28. UI Polish + Integration Testing | 3/3 | Complete    | 2026-03-01 | - |
+| 23. SPARQL Console | v2.2 | 2/2 | Complete | 2026-03-01 |
+| 24. FTS Keyword Search | v2.2 | 2/2 | Complete | 2026-03-01 |
+| 25. CSS Token Expansion | v2.2 | 1/1 | Complete | 2026-03-01 |
+| 26. VFS MVP Read-Only | v2.2 | 3/3 | Complete | 2026-03-01 |
+| 27. VFS Write + Auth | v2.2 | 3/3 | Complete | 2026-03-01 |
+| 28. UI Polish + Integration Testing | v2.2 | 3/3 | Complete | 2026-03-01 |
 
 ---
 *Roadmap created: 2026-02-21*
@@ -203,3 +203,4 @@ Plans:
 *v2.0 archived: 2026-03-01*
 *v2.1 archived: 2026-03-01*
 *v2.2 roadmap expanded: 2026-02-28*
+*v2.2 shipped: 2026-03-01 — full 4-panel drag-reorder enhancement landed post-ship on feature/mental-model-dashboard*

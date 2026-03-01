@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations — no blank-page syndrome, no schema setup.
-**Current focus:** v2.2 Data Discovery — Phase 28: UI Polish + Integration Testing (2/4 plans complete)
+**Current focus:** v2.2 complete — feature/mental-model-dashboard: full 4-panel drag-reorder shipped; mental model dashboard in progress
 
 ## Current Position
 
-Phase: 28 of 28 (UI Polish + Integration Testing)
-Plan: 2 of 4 complete
-Status: In Progress
-Last activity: 2026-03-01 - Completed 28-02: Contextual panel indicator + E2E integration test files
+Phase: 28 of 28 (UI Polish + Integration Testing) — **COMPLETE**
+v2.2 milestone: **SHIPPED 2026-03-01**
+Branch: feature/mental-model-dashboard
+Last activity: 2026-03-01 - Full 4-panel drag-reorder: all 4 panels draggable, insert-before/after, zone+order persisted in localStorage
 
-Progress: [###########################---] 92% (Phase 28 started)
+Progress: [##############################] 100% (v2.2 complete)
 
 ## v2.2 Phase Structure
 
@@ -105,5 +105,5 @@ All v2.2 architectural decisions committed in v2.1. See .planning/DECISIONS.md f
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: 28-03 tasks 1-3 complete — at checkpoint:human-verify (Task 4). Awaiting user UAT of panel chevrons (dark mode), accent bar tab-type awareness, and content clearing.
-Resume: After user verifies Tests 1-3 in 28-03, mark plan complete and proceed to 28-04.
+Completed: Full 4-panel drag-reorder enhancement — all 4 panels draggable, VS Code-style insert-before/after reordering within or between panes, localStorage schema migrated to {zone, order} per panel.
+Resume: v2.2 fully shipped; next work is mental model dashboard feature on feature/mental-model-dashboard branch.
