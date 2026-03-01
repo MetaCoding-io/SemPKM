@@ -56,60 +56,59 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - ✓ Driver.js guided tours (Welcome 10-step, Create Object htmx-gated) with Docs hub page — v2.0
 - ✓ Rounded tab styling (8px border-radius, recessed bar, teal accent) — v2.0
 
+### Validated (v2.1)
+
+<!-- Shipped and confirmed valuable in v2.1. -->
+
+- ✓ DEC-01: RDF4J LuceneSail committed as FTS approach — rationale documented, alternatives ruled out, v2.2 handoff written — v2.1
+- ✓ DEC-02: `@zazuko/yasgui` v4.5.0 CDN embed committed as SPARQL UI — custom YASR renderer design, localStorage persistence — v2.1
+- ✓ DEC-03: wsgidav + a2wsgi committed as VFS/WebDAV approach — FUSE ruled out, MountSpec MVP vocabulary defined — v2.1
+- ✓ DEC-04: dockview-core committed over GoldenLayout — incremental Split.js migration plan (Phase A/B/C), CSS token expansion to ~91 tokens — v2.1
+- ✓ SYN-01: DECISIONS.md created at .planning/DECISIONS.md — consolidated v2.2 architecture reference with Phases 23-27 sequencing — v2.1
+- ✓ TECH-01: Alembic migration runner at startup (replaces create_all; asyncio.to_thread bridge for env.py) — v2.1
+- ✓ TECH-02: SMTP email delivery for magic links (send_magic_link_email, console fallback, app_base_url config) — v2.1
+- ✓ TECH-03: Session cleanup job (expired sessions purged on startup, non-zero count logged) — v2.1
+- ✓ TECH-04: ViewSpecService TTL cache (300s TTL, 64 max entries, invalidation wired to model install/uninstall) — v2.1
+
 ### Active
 
-<!-- v2.1: Architecture Decision Gate — formalizing completed research + tech debt -->
+<!-- v2.2: Data Discovery — FTS, SPARQL console, VFS MVP -->
 
-- [ ] DEC-01: FTS/vector search approach committed (RDF4J LuceneSail, config, query API, phased plan)
-- [ ] DEC-02: SPARQL UI approach committed (Zazuko Yasgui CDN embed, YASR plugin strategy)
-- [ ] DEC-03: VFS technology committed (wsgidav + a2wsgi, MountSpec MVP vocab, client compat matrix)
-- [ ] DEC-04: UI shell architecture committed (Dockview-core, Split.js migration plan, CSS token vocab)
-- [ ] SYN-01: DECISIONS.md created (cross-cutting decisions, v2.2 phase structure, tech debt schedule)
-- [ ] TECH-01: Alembic migration runner at startup (replaces create_all)
-- [ ] TECH-02: SMTP email delivery (magic links sent via real email, not console)
-- [ ] TECH-03: Session cleanup job (purge expired sessions)
-- [ ] TECH-04: ViewSpecService TTL cache (reduce SPARQL queries per view lookup)
+- [ ] FTS-01: User can search knowledge base by keyword (full-text search across all literal values)
+- [ ] FTS-02: Search results show object type, label, and matching snippet
+- [ ] FTS-03: Search integrated into command palette (Ctrl+K)
+- [ ] SPARQL-01: User can execute SPARQL queries via embedded Yasgui interface
+- [ ] SPARQL-02: SPARQL results display IRIs as clickable SemPKM object links
+- [ ] SPARQL-03: Query history preserved across sessions (localStorage)
+- [ ] VFS-01: User can mount SemPKM objects as files via WebDAV (read-only)
+- [ ] VFS-02: Object bodies rendered as Markdown files with SHACL-derived frontmatter
+- [ ] VFS-03: Mount configuration accessible via Settings page
 
 ### Future Candidates
 
-<!-- Tracked for future milestones. See .planning/research/future-milestones.md for full breakdown. -->
-
-<!-- Full breakdown with dependency map and parallelization strategy: .planning/research/future-milestones.md -->
-
-**v2.1 — Research & Architecture Decisions** (parallel research phases)
-- Full-text search + vector store research (RDF stores with FTS, OpenSearch, pgvector, etc.)
-- SPARQL interface research (Zazuko Yasgui, modern tooling, embed vs. iframe vs. mimic)
-- Virtual filesystem WebDAV MVP (research at .planning/research/virtual-filesystem.md)
-- UI shell architecture: theming + flexible panel layout (current arch handles this — see decision log)
-
-**v2.2 — Data Discovery & Search**
-- Full-text indexing implementation (technology from v2.1 research)
-- SPARQL interface integration (beautiful, autocomplete, object pills, saved queries, history)
-- Virtual filesystem MVP (read-only WebDAV mount, MountSpec vocabulary, Markdown+frontmatter rendering)
+<!-- Tracked for future milestones. -->
 
 **v2.3 — Shell & Navigation**
-- Dashboards / named layouts (Bases equivalent — user-defined, model-provided named panel arrangements)
-- Flexible panel layout (GoldenLayout or similar for drag-to-dock panel rearrangement)
+- Dashboards / named layouts (user-defined, model-provided named panel arrangements)
+- Flexible panel layout: dockview-core full migration (Phase A inner editor-pane v2.3, Phase B full workspace)
+- CSS token expansion: two-tier primitive/semantic architecture (~40 → ~91 tokens) — preparatory in v2.2
 - Full theming system (CSS variable token sets, user-selectable themes, model-contributed themes)
-- App launcher concept (object browser as primary "app"; SPARQL interface, etc. as installable apps)
 
 **v2.4 — Low-Code & Workflows**
-- Low-code UI builder (compose basic components tied to SemPKM actions; Notion + Airflow inspired)
-- Minimal workflow orchestration (orchestrated forms/views, not n8n; e.g. CRM onboarding: add client → add project → add invoice → log success)
-- SMTP integration for magic link delivery
-- Cookie secure=True for production deployment
-- Session cleanup job
+- Low-code UI builder (compose basic components tied to SemPKM actions)
+- Minimal workflow orchestration (orchestrated forms/views, not n8n)
 
 **Ongoing / cross-cutting**
 - Backlinks panel (incoming references for any object)
 - Edge model enhancements: edge inspector panel, inline wiki-link creation
 - JSON-LD export for objects/collections
-- AI Copilot (chat about data, SPARQL generation, writing assistance, relationship suggestions)
-- CONCERNS.md tech debt: EventStore DI, label cache invalidation, datetime timezone, CORS, Alembic migration runner
+- AI Copilot (chat about data, SPARQL generation, writing assistance)
+- pgvector / semantic search (Phase 20b — deferred until keyword FTS validated in v2.2)
+- DOCK-01/02: Dockview drag-to-dock and named workspace layouts — v2.3
 
 ### Out of Scope
 
-- Read/write filesystem projections — v2 (read-only projection also deferred)
+- Read/write filesystem projections full sync — v2.3+ (VFS write MVP is v2.2)
 - Mental Model migrations and user overrides — v2+
 - Offline/multi-device sync — v2+
 - Advanced webhook delivery/security (DLQ, signing, strict ordering) — v3
@@ -122,34 +121,47 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Mobile native app — web-first, responsive design and eventual PWA
 - Ontology editor — consume via Mental Models; use Protege for authoring
 
-## Current Milestone: v2.1 Architecture Decision Gate
+## Current Milestone: v2.2 Data Discovery
 
-**Goal:** Formalize the 4 completed architectural research tracks into committed decision artifacts and resolve medium-priority tech debt.
+**Goal:** Implement the 4 committed architectural decisions from v2.1 — FTS keyword search (LuceneSail), SPARQL console (Yasgui CDN), Virtual Filesystem MVP (wsgidav read-only), and CSS token expansion as foundation for v2.3 UI shell work.
 
-**Target features:**
-- DEC: Commit and annotate all 4 research documents (FTS, SPARQL UI, VFS, UI shell)
-- SYN: Produce consolidated DECISIONS.md with v2.2 implementation guidance
-- TECH: Alembic migration runner, SMTP delivery, session cleanup, ViewSpecService cache
+**Phase structure (from .planning/DECISIONS.md):**
+- Phase 23: SPARQL Console (Yasgui CDN embed, no backend changes needed — ships first)
+- Phase 24: FTS Keyword Search (LuceneSail, JAR/config validation prerequisite)
+- Phase 25: CSS Token Expansion (40 → ~91 tokens, independent prerequisite for v2.3)
+- Phase 26: VFS MVP read-only (wsgidav + a2wsgi, SyncTriplestoreClient needed)
+- Phase 27: VFS Write + Auth (write path, API token auth design)
+
+**See:** `.planning/DECISIONS.md` for full architectural rationale and implementation readiness checklist.
 
 ## Context
 
-**Current state (v2.0 shipped 2026-03-01):**
+**Current state (v2.1 shipped 2026-03-01):**
 - ~119k source LOC across Python, JavaScript, CSS, HTML/Jinja2, JSON-LD
-- Tech stack: FastAPI + RDF4J + htmx/vanilla-web + SQLAlchemy (SQLite) + Driver.js + Cytoscape.js + CodeMirror + Split.js
+- Tech stack: FastAPI + RDF4J + htmx/vanilla-web + SQLAlchemy (SQLite/PostgreSQL) + Driver.js + Cytoscape.js + CodeMirror + Split.js + Alembic
 - Docker Compose deployment: 3 services (api, triplestore, frontend/nginx)
-- 19 phases, 27 plans, 53 tasks, ~360 commits
+- 22 phases, 36 plans completed across v1.0, v2.0, v2.1
+
+**New in v2.1:**
+- Alembic replaces SQLAlchemy `create_all` for schema migrations
+- SMTP email delivery for magic links (app_base_url config required in production)
+- ViewSpec TTL cache (300s, 64 entries) reduces SPARQL overhead on view lookups
+- 4 RESEARCH.md files annotated with committed decisions + v2.2 handoffs
+- DECISIONS.md consolidates all 4 decisions with Phases 23-27 sequencing and cross-cutting concerns
+
+**Known tech debt:**
+- Cookie secure=False (local dev only — production config deferred)
+- SMTP OAuth2 auth deferred (simple SMTP credentials sufficient for v2.2)
+- Dual SQLAlchemy engine instances (module-level + lifespan) — harmless for SQLite
+- `empty_shapes_loader` dead code in validation service
+- Bottom panel SPARQL/AI Copilot tabs are placeholder stubs (SPARQL tab becomes real in Phase 23)
+- Edit form helptext property not yet in SHACL types (pending todo)
+- 3 open debug sessions: card-view-borders-not-distinctive, firefox-ctrlk-ninja-keys, tab-accent-bleed-and-border-radius
 
 **Design references:**
 - v0.3 design documents in `orig_specs/` (vision, specifications, decision log, schemas)
 - `semantic-stack` reference project for triplestore Docker deployment
-
-**Known tech debt:**
-- Cookie secure=False (local dev only — production config deferred)
-- SMTP deferred (magic link tokens logged to console)
-- Dual SQLAlchemy engine instances (module-level + lifespan) — harmless for SQLite
-- `empty_shapes_loader` dead code in validation service
-- Bottom panel SPARQL/AI Copilot tabs are placeholder stubs
-- Edit form helptext property not yet in SHACL types (pending todo)
+- `.planning/DECISIONS.md` — canonical v2.2 architecture reference
 
 ## Standing Requirements (every phase)
 
@@ -163,7 +175,7 @@ These apply to every plan, no exceptions. Executor must check both gates before 
 - **Backend**: Python + FastAPI (async, Pydantic models, OpenAPI docs)
 - **Frontend**: htmx + vanilla JavaScript throughout (admin, workspace, views)
 - **Triplestore**: RDF4J 5.x, deployed via Docker (internal only, no host port exposure)
-- **Auth database**: SQLAlchemy async ORM (SQLite local, PostgreSQL for cloud)
+- **Auth database**: SQLAlchemy async ORM (SQLite local, PostgreSQL for cloud) + Alembic migrations
 - **Events**: Stored as RDF in named graphs within the triplestore (triplestore-native event sourcing)
 - **Deployment**: Self-hosted Docker Compose (3 services)
 - **Auth**: Passwordless (setup token local, magic links cloud), session-based cookies
@@ -185,6 +197,11 @@ These apply to every plan, no exceptions. Executor must check both gates before 
 | Violations gate conformance ops only | SHACL is assistive (linting), not punitive — users can always edit | ✓ Good — export/publish blocked, saves always allowed |
 | Filesystem projection deferred | Focus v1 on the core create/browse/explore loop first | ✓ Good — avoided scope creep, v1 loop is complete |
 | Private-by-default cross-model embedding | Explicit exports prevent accidental coupling between Mental Models | — Pending (not yet exercised with multiple models) |
+| DEC-01: RDF4J LuceneSail for FTS | Zero new containers, SPARQL-native, ships with RDF4J 5.0.1 | ✓ Good — committed v2.1, implementation in Phase 24 |
+| DEC-02: @zazuko/yasgui CDN embed | De facto standard, MIT-licensed, zero backend changes needed | ✓ Good — committed v2.1, implementation in Phase 23 |
+| DEC-03: wsgidav + a2wsgi for VFS | Docker-compatible, HTTP-only, FUSE requires SYS_ADMIN (rejected) | ✓ Good — committed v2.1, read-only MVP in Phase 26 |
+| DEC-04: dockview-core over GoldenLayout | GoldenLayout DOM reparenting breaks htmx handlers; dockview-core zero deps | ✓ Good — committed v2.1, Phase A migration in v2.3 |
+| asyncio.to_thread for Alembic | env.py uses asyncio.run internally; nested event loop requires thread isolation | ✓ Good — Alembic running in production (v2.1) |
 
 ---
-*Last updated: 2026-03-01 after v2.1 milestone started*
+*Last updated: 2026-03-01 after v2.1 milestone*

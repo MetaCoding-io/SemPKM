@@ -59,3 +59,13 @@
 
 ---
 
+
+## v2.1 Architecture Decision Gate (Shipped: 2026-03-01)
+
+**Phases completed:** 13 phases, 36 plans, 4 tasks
+
+**Key accomplishments:**
+- (none recorded)
+
+---
+
