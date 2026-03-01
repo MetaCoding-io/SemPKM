@@ -1,11 +1,14 @@
 """SemPKM FastAPI application with lifespan management."""
 
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 from urllib.parse import quote, urlencode as _urlencode
 
 import httpx
+from alembic import command as alembic_command
+from alembic.config import Config as AlembicConfig
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
@@ -20,7 +23,6 @@ from app.auth.service import AuthService
 from app.auth.tokens import load_or_create_setup_token
 from app.config import settings
 from app.commands.router import router as commands_router
-from app.db.base import Base
 from app.db.engine import create_engine
 from app.db.session import async_session_factory
 from app.shell.router import router as shell_router
@@ -132,11 +134,12 @@ async def lifespan(app: FastAPI):
     # --- SQL Database Initialization ---
     sql_engine = create_engine()
 
-    # Create all tables (safe for existing tables -- uses IF NOT EXISTS)
-    # Note: app.auth.models is already imported at module level via auth imports
-    async with sql_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    logger.info("SQL database tables created/verified")
+    # Run Alembic migrations instead of create_all
+    # asyncio.to_thread required: env.py uses asyncio.run() internally,
+    # which cannot nest inside FastAPI's running event loop
+    alembic_cfg = AlembicConfig("alembic.ini")
+    await asyncio.to_thread(alembic_command.upgrade, alembic_cfg, "head")
+    logger.info("SQL database migrations applied")
 
     # Store session factory on app state for dependencies
     app.state.async_session_factory = async_session_factory
@@ -144,6 +147,11 @@ async def lifespan(app: FastAPI):
     # Create AuthService and store on app state
     auth_service = AuthService(async_session_factory)
     app.state.auth_service = auth_service
+
+    # Purge expired sessions on startup
+    purged = await auth_service.cleanup_expired_sessions()
+    if purged:
+        logger.info("Purged %d expired sessions", purged)
 
     # --- Setup Mode Detection ---
     setup_complete = await auth_service.is_setup_complete()
