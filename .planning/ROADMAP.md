@@ -47,7 +47,7 @@
 
 - [ ] **Phase 20: Architecture Decision Commit** - Annotate and commit all 4 research tracks as finalized architectural decisions
 - [ ] **Phase 21: Research Synthesis** - Produce DECISIONS.md consolidating all decisions with v2.2 implementation guidance
-- [ ] **Phase 22: Tech Debt Sprint** - Implement 4 medium-priority tech debt items (Alembic, SMTP, session cleanup, ViewSpec cache)
+- [x] **Phase 22: Tech Debt Sprint** - Implement 4 medium-priority tech debt items (Alembic, SMTP, session cleanup, ViewSpec cache) (completed 2026-03-01)
 
 ## Phase Details
 
@@ -119,7 +119,7 @@ Plans:
 | 19. Bug Fixes and E2E Test Hardening | v2.0 | 3/3 | Complete | 2026-02-27 |
 | 20. Architecture Decision Commit | 2/5 | In Progress|  | - |
 | 21. Research Synthesis | v2.1 | 0/1 | Not started | - |
-| 22. Tech Debt Sprint | 2/3 | In Progress|  | - |
+| 22. Tech Debt Sprint | 3/3 | Complete   | 2026-03-01 | - |
 
 ---
 *Roadmap created: 2026-02-21*

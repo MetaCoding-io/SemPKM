@@ -8,7 +8,7 @@ progress:
   total_phases: 12
   completed_phases: 10
   total_plans: 35
-  completed_plans: 31
+  completed_plans: 32
 ---
 
 # Project State
@@ -22,12 +22,12 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 
 ## Current Position
 
-Phase: 22 (Tech Debt Sprint) — in progress
-Plan: 01 complete, 02 complete, 03 pending
-Status: Plan 01 executed — Alembic migration runner and session cleanup
-Last activity: 2026-03-01 — Phase 22 Plan 01 complete (2 tasks, 4 files, 2min)
+Phase: 22 (Tech Debt Sprint) — complete
+Plan: 03 of 03 complete
+Status: All plans executed — Alembic migrations, SMTP/session cleanup, ViewSpec cache
+Last activity: 2026-03-01 — Phase 22 Plan 03 complete (2 tasks, 3 files, 4min)
 
-Progress: [###-------] 30% (v2.1) — Phase 22 Plan 01 complete
+Progress: [##########] 100% (v2.1) — Phase 22 complete
 
 ## v2.1 Phase Summary
 
@@ -35,7 +35,7 @@ Progress: [###-------] 30% (v2.1) — Phase 22 Plan 01 complete
 |-------|------|--------------|--------|
 | 20. Architecture Decision Commit | Formalize 4 research tracks as committed decisions | DEC-01, DEC-02, DEC-03, DEC-04 | Not started |
 | 21. Research Synthesis | Produce DECISIONS.md with v2.2 guidance | SYN-01 | Not started |
-| 22. Tech Debt Sprint | Alembic, SMTP, session cleanup, ViewSpec cache | TECH-01, TECH-02, TECH-03, TECH-04 | Not started |
+| 22. Tech Debt Sprint | Alembic, SMTP, session cleanup, ViewSpec cache | TECH-01, TECH-02, TECH-03, TECH-04 | Complete |
 
 ## Performance Metrics
 
@@ -78,6 +78,7 @@ Progress: [###-------] 30% (v2.1) — Phase 22 Plan 01 complete
 | Phase 20 P02 | 2min | 2 tasks | 1 files |
 | Phase 22 P01 | 2min | 2 tasks | 4 files |
 | Phase 22 P02 | 2min | 2 tasks | 4 files |
+| Phase 22 P03 | 4min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -220,7 +221,7 @@ v2.1 Phase 22 execution decisions (22-02):
 - empty_shapes_loader dead code
 - Alembic migration runner not yet in place — DONE (Phase 22 Plan 01)
 - Session cleanup job not yet implemented — DONE (Phase 22 Plan 01)
-- ViewSpecService TTL cache not yet implemented — addressed in Phase 22
+- ~~ViewSpecService TTL cache not yet implemented~~ — completed in Phase 22 Plan 03
 - Bottom panel SPARQL/AI Copilot tabs are placeholder stubs (implementation in future milestones)
 - Edit form helptext property not yet in SHACL types (pending todo)
 
@@ -245,5 +246,5 @@ None for v2.1.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 22-01-PLAN.md — Alembic migration runner and session cleanup
-Resume: Run /gsd:execute-phase 22-03 to continue Tech Debt Sprint (ViewSpec cache TTL)
+Stopped at: Completed 22-03-PLAN.md — ViewSpec TTLCache with invalidation on model endpoints
+Resume: Phase 22 (Tech Debt Sprint) complete. All v2.1 phases may now be complete -- check phases 20 and 21 status.
