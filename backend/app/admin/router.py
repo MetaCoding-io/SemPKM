@@ -13,8 +13,7 @@ from fastapi.responses import HTMLResponse
 
 from app.auth.dependencies import require_role
 from app.auth.models import User
-from app.dependencies import get_label_service, get_model_service, get_webhook_service
-from app.services.labels import LabelService
+from app.dependencies import get_model_service, get_webhook_service
 from app.services.models import ModelService
 from app.services.webhooks import WebhookService
 
@@ -134,28 +133,79 @@ async def admin_model_detail(
     return templates_response(request, "admin/model_detail.html", context)
 
 
-@router.get("/models/{model_id}/connections")
-async def admin_model_connections(
+@router.get("/models/{model_id}/ontology-diagram")
+async def admin_model_ontology_diagram(
     request: Request,
     model_id: str,
     user: User = Depends(require_role("owner")),
     model_service: ModelService = Depends(get_model_service),
-    label_service: LabelService = Depends(get_label_service),
 ):
-    """Render connections tab content for a model detail dashboard.
+    """Render SVG ontology relationship diagram for a model.
 
-    Returns an htmx partial showing outbound and inbound connections
-    for all instances of the model's types, grouped by predicate label.
-    Always rendered as a partial (loaded via htmx tab click only).
+    Shows type-to-type relationships derived from OWL ObjectProperties.
+    Returns an htmx partial with inline SVG.
     """
-    connections = await model_service.get_model_connections(model_id, label_service)
-    if connections is None:
+    detail = await model_service.get_model_detail(model_id)
+    if detail is None:
         return HTMLResponse(
-            '<div class="connections-empty"><p>Model not found.</p></div>',
+            '<div class="diagram-empty"><p>Model not found.</p></div>',
             status_code=404,
         )
-    context = {"request": request, "connections": connections, "model_id": model_id}
-    return templates_response(request, "admin/model_connections.html", context)
+
+    # Get icon data from IconService for type colors
+    from app.services.icons import IconService
+    icon_svc = IconService(models_dir="/app/models")
+    icon_map = icon_svc.get_icon_map("tree")
+
+    # Build type info with colors
+    type_info = {}
+    for t in detail["types"]:
+        icon_data = icon_map.get(t["iri"], {"icon": "circle", "color": "#999"})
+        type_info[t["local_name"]] = {
+            "label": t["label"],
+            "color": icon_data["color"],
+        }
+
+    # Filter to ObjectProperties only, building edges
+    edges = []
+    for p in detail["properties"]:
+        if p["prop_type"] == "Object" and p["domain"] and p["range"]:
+            edges.append({
+                "from": p["domain"],
+                "to": p["range"],
+                "label": p["label"],
+                "inverse": p.get("inverse", ""),
+            })
+
+    # Compute node positions -- circular layout
+    type_names = list(type_info.keys())
+    node_count = len(type_names)
+    import math
+    # SVG dimensions
+    svg_w, svg_h = 700, 500
+    cx, cy = svg_w / 2, svg_h / 2
+    radius = min(svg_w, svg_h) * 0.35
+    nodes = {}
+    for i, name in enumerate(type_names):
+        angle = (2 * math.pi * i / node_count) - math.pi / 2  # start from top
+        x = cx + radius * math.cos(angle)
+        y = cy + radius * math.sin(angle)
+        nodes[name] = {
+            "x": round(x, 1),
+            "y": round(y, 1),
+            "label": type_info[name]["label"],
+            "color": type_info[name]["color"],
+        }
+
+    context = {
+        "request": request,
+        "model_id": model_id,
+        "nodes": nodes,
+        "edges": edges,
+        "svg_w": svg_w,
+        "svg_h": svg_h,
+    }
+    return templates_response(request, "admin/model_ontology_diagram.html", context)
 
 
 @router.post("/models/install")
