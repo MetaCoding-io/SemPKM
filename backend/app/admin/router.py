@@ -174,22 +174,20 @@ async def admin_model_ontology_diagram(
                 "from": p["domain"],
                 "to": p["range"],
                 "label": p["label"],
-                "inverse": p.get("inverse", ""),
             })
 
     # Compute node positions -- circular layout
     type_names = list(type_info.keys())
     node_count = len(type_names)
     import math
-    # SVG dimensions
-    svg_w, svg_h = 700, 500
-    cx, cy = svg_w / 2, svg_h / 2
-    radius = min(svg_w, svg_h) * 0.35
+    # Layout radius scales with node count for readability
+    base_radius = max(160, node_count * 45)
+    cx, cy = 0.0, 0.0  # center at origin; viewBox will be computed from bounds
     nodes = {}
     for i, name in enumerate(type_names):
         angle = (2 * math.pi * i / node_count) - math.pi / 2  # start from top
-        x = cx + radius * math.cos(angle)
-        y = cy + radius * math.sin(angle)
+        x = cx + base_radius * math.cos(angle)
+        y = cy + base_radius * math.sin(angle)
         nodes[name] = {
             "x": round(x, 1),
             "y": round(y, 1),
@@ -197,13 +195,99 @@ async def admin_model_ontology_diagram(
             "color": type_info[name]["color"],
         }
 
+    # Compute tight viewBox from node bounds
+    node_radius = 24
+    padding = 80  # room for labels and self-loop arcs
+    if nodes:
+        min_x = min(n["x"] for n in nodes.values()) - padding
+        max_x = max(n["x"] for n in nodes.values()) + padding
+        min_y = min(n["y"] for n in nodes.values()) - padding
+        max_y = max(n["y"] for n in nodes.values()) + padding
+    else:
+        min_x, min_y, max_x, max_y = 0, 0, 400, 300
+    view_box = f"{min_x} {min_y} {max_x - min_x} {max_y - min_y}"
+
+    # Detect bidirectional pairs and assign curve offsets
+    edge_pair_key = {}
+    for edge in edges:
+        key = frozenset([edge["from"], edge["to"]])
+        edge_pair_key.setdefault(key, []).append(edge)
+
+    for key, group in edge_pair_key.items():
+        if len(group) == 2 and group[0]["from"] != group[0]["to"]:
+            group[0]["curve_offset"] = 20
+            group[1]["curve_offset"] = -20
+        else:
+            for e in group:
+                e["curve_offset"] = 0
+
+    # Pre-compute shortened edge endpoints and curve control points
+    for edge in edges:
+        src = nodes.get(edge["from"])
+        tgt = nodes.get(edge["to"])
+        if not src or not tgt:
+            continue
+
+        if edge["from"] == edge["to"]:
+            # Self-referencing edge: compute arc start/end at circle boundary
+            edge["self_loop"] = True
+            edge["x1"] = round(src["x"] - 20, 1)
+            edge["y1"] = round(src["y"] - node_radius, 1)
+            edge["x2"] = round(src["x"] + 20, 1)
+            edge["y2"] = round(src["y"] - node_radius, 1)
+            edge["ctrl_x"] = None
+            edge["ctrl_y"] = None
+            edge["label_x"] = round(src["x"], 1)
+            edge["label_y"] = round(src["y"] - 72, 1)
+            continue
+
+        edge["self_loop"] = False
+        dx = tgt["x"] - src["x"]
+        dy = tgt["y"] - src["y"]
+        length = math.sqrt(dx * dx + dy * dy)
+        if length == 0:
+            continue
+
+        ux, uy = dx / length, dy / length  # unit vector src->tgt
+
+        # Shorten: start at circle boundary, end at circle boundary + arrowhead
+        shorten_src = node_radius
+        shorten_tgt = node_radius + 8  # 8 for arrowhead marker refX
+        x1 = src["x"] + ux * shorten_src
+        y1 = src["y"] + uy * shorten_src
+        x2 = tgt["x"] - ux * shorten_tgt
+        y2 = tgt["y"] - uy * shorten_tgt
+
+        edge["x1"] = round(x1, 1)
+        edge["y1"] = round(y1, 1)
+        edge["x2"] = round(x2, 1)
+        edge["y2"] = round(y2, 1)
+
+        curve_offset = edge.get("curve_offset", 0)
+        if curve_offset != 0:
+            # Perpendicular normal for curved edges
+            mx, my = (x1 + x2) / 2, (y1 + y2) / 2
+            nx, ny = -uy, ux  # perpendicular to direction
+            ctrl_x = mx + nx * curve_offset
+            ctrl_y = my + ny * curve_offset
+            edge["ctrl_x"] = round(ctrl_x, 1)
+            edge["ctrl_y"] = round(ctrl_y, 1)
+            # Label position near the curve apex
+            edge["label_x"] = round(ctrl_x + nx * 4, 1)
+            edge["label_y"] = round(ctrl_y + ny * 4 - 4, 1)
+        else:
+            edge["ctrl_x"] = None
+            edge["ctrl_y"] = None
+            # Label at midpoint
+            edge["label_x"] = round((x1 + x2) / 2, 1)
+            edge["label_y"] = round((y1 + y2) / 2 - 8, 1)
+
     context = {
         "request": request,
         "model_id": model_id,
         "nodes": nodes,
         "edges": edges,
-        "svg_w": svg_w,
-        "svg_h": svg_h,
+        "view_box": view_box,
     }
     return templates_response(request, "admin/model_ontology_diagram.html", context)
 
