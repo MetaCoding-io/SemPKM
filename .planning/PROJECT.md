@@ -36,25 +36,31 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - ✓ Event provenance: performed_by + performed_by_role on every user write — v1.0
 - ✓ SQL data layer for auth (SQLite local, PostgreSQL cloud-ready) — v1.0
 
+### Validated (v2.0)
+
+<!-- Shipped and confirmed valuable in v2.0. -->
+
+- ✓ Bug fixes: body content loading, editor editability, autocomplete dropdown, views explorer loading — v2.0
+- ✓ Read-only object view (styled properties + rendered Markdown body) with CSS 3D flip to edit mode — v2.0
+- ✓ Resizable body text area in edit mode (Split.js vertical gutter + maximize toggle) — v2.0
+- ✓ VS Code-style split panes (HTML5 drag-and-drop, up to 4 editor groups) — v2.0
+- ✓ Bottom panel infrastructure (SPARQL/Event Log/AI Copilot tabbed panel, Ctrl+J) — v2.0
+- ✓ Collapsible sidebar with reorganized navigation (Admin, Meta, Apps, Debug) — v2.0
+- ✓ VS Code-style user menu at bottom of sidebar (logout, settings, theme toggle) — v2.0
+- ✓ Styled 403 permission panel with Lucide lock icon and navigation buttons — v2.0
+- ✓ Dark mode with tri-state toggle (system/light/dark), anti-FOUC, 35+ CSS token system — v2.0
+- ✓ Global settings system (layered: system < model < user; VS Code-style two-column UI) — v2.0
+- ✓ Node type icons in graph view and object explorer (IconService, manifest-declared) — v2.0
+- ✓ Event log explorer (timeline, filter chips, inline diffs, undo via compensating events) — v2.0
+- ✓ LLM connection configuration (Fernet-encrypted key, SSE streaming proxy) — v2.0
+- ✓ Driver.js guided tours (Welcome 10-step, Create Object htmx-gated) with Docs hub page — v2.0
+- ✓ Rounded tab styling (8px border-radius, recessed bar, teal accent) — v2.0
+
 ### Active
 
-<!-- v2.0 "Tighten Web UI" scope -->
+<!-- v2.1 scope — to be defined via /gsd:new-milestone -->
 
-- [ ] Bug fixes: body content loading, editor editability, autocomplete dropdown, views explorer loading
-- [ ] Read-only object view (styled properties + rendered Markdown body) with Edit button for form mode
-- [ ] Resizable body text area in edit mode
-- [ ] VS Code-style split panes (drag tabs to create editor groups)
-- [ ] Bottom panel infrastructure (tabbed placeholder)
-- [ ] Collapsible sidebar with reorganized navigation (Home, Admin, Meta, Apps, Debug)
-- [ ] VS Code-style user menu at bottom of sidebar (logout, settings)
-- [ ] Styled 403 permission panel (replace minimal HTMX error fragment)
-- [ ] Dark mode with theme toggle
-- [ ] Global settings system (VS Code-style: global + mental model/app-contributed settings)
-- [ ] Node type icons in graph view and object explorer
-- [ ] Event log explorer (timeline, filtering, diff view, undo)
-- [ ] LLM connection configuration (generic OpenAI-compatible API)
-- [ ] User documentation page with Shepherd.js tutorial infrastructure (1-2 basic tutorials)
-- [ ] More rounded tab styling
+*No active requirements — next milestone not yet scoped.*
 
 ### Future Candidates
 
@@ -108,35 +114,31 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Mobile native app — web-first, responsive design and eventual PWA
 - Ontology editor — consume via Mental Models; use Protege for authoring
 
-## Current Milestone: v2.0 Tighten Web UI
+## Current State: v2.0 Shipped (2026-03-01)
 
-**Goal:** Polish the web UI into a product-grade experience with bug fixes, read-only object views, VS Code-style split panes, sidebar reorganization, dark mode, settings system, and LLM connection configuration.
+**v2.0 delivered:** Product-grade web UI — VS Code-style workspace, dark mode, settings system, event log with undo, Driver.js tours, encrypted LLM config, and type-specific node icons.
 
-**Target features:**
-- Fix critical UX bugs (body loading, editor editability, autocomplete, views explorer)
-- Read-only object page with Edit button
-- VS Code-style split panes and bottom panel
-- Collapsible sidebar with reorganized navigation and user menu
-- Dark mode, global settings system, node type icons
-- Event log explorer, LLM connection config, docs/tutorial infrastructure
+**Next:** Define v2.1 scope via `/gsd:new-milestone`. Research docs available at `.planning/research/phase-2{0-3}-*/`.
 
 ## Context
 
-**Current state (v1.0 shipped 2026-02-23):**
-- ~19,900 LOC across Python (9,230), JavaScript (2,584), HTML/Jinja2 (1,918), CSS (3,360), JSON-LD (2,643)
-- Tech stack: FastAPI + RDF4J + htmx/vanilla-web + SQLAlchemy (SQLite)
-- 227 files, 158 commits across 9 phases and 26 plans
+**Current state (v2.0 shipped 2026-03-01):**
+- ~119k source LOC across Python, JavaScript, CSS, HTML/Jinja2, JSON-LD
+- Tech stack: FastAPI + RDF4J + htmx/vanilla-web + SQLAlchemy (SQLite) + Driver.js + Cytoscape.js + CodeMirror + Split.js
 - Docker Compose deployment: 3 services (api, triplestore, frontend/nginx)
+- 19 phases, 27 plans, 53 tasks, ~360 commits
 
 **Design references:**
 - v0.3 design documents in `orig_specs/` (vision, specifications, decision log, schemas)
 - `semantic-stack` reference project for triplestore Docker deployment
 
 **Known tech debt:**
-- Dual SQLAlchemy engine instances (module-level + lifespan) — harmless for SQLite, needs fix for PostgreSQL
+- Cookie secure=False (local dev only — production config deferred)
+- SMTP deferred (magic link tokens logged to console)
+- Dual SQLAlchemy engine instances (module-level + lifespan) — harmless for SQLite
 - `empty_shapes_loader` dead code in validation service
-- SUMMARY frontmatter uses `provides` instead of `requirements-completed`
-- Phase 6 requirements not in REQUIREMENTS.md traceability table (tracked in ROADMAP.md)
+- Bottom panel SPARQL/AI Copilot tabs are placeholder stubs
+- Edit form helptext property not yet in SHACL types (pending todo)
 
 ## Standing Requirements (every phase)
 
@@ -174,4 +176,4 @@ These apply to every plan, no exceptions. Executor must check both gates before 
 | Private-by-default cross-model embedding | Explicit exports prevent accidental coupling between Mental Models | — Pending (not yet exercised with multiple models) |
 
 ---
-*Last updated: 2026-02-23 after v2.0 milestone start*
+*Last updated: 2026-03-01 after v2.0 milestone completion*
