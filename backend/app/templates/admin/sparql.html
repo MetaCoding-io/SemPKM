@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}SPARQL Console - SemPKM{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://unpkg.com/@zazuko/yasgui@4.5.0/build/yasgui.min.css">
+<script src="https://unpkg.com/@zazuko/yasgui@4.5.0/build/yasgui.min.js"></script>
+<style>
+  /* Full-height Yasgui — strip padding from the dashboard content-area */
+  .content-area { padding: 0 !important; }
+  #app-content  { height: 100%; display: flex; flex-direction: column; }
+  #admin-sparql-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 0px);
+  }
+  #yasgui-admin { flex: 1; min-height: 0; overflow: hidden; }
+  .yasgui { height: 100%; }
+</style>
+
+<div id="admin-sparql-wrap">
+  <div id="yasgui-admin"></div>
+</div>
+
+<script>
+window.SEMPKM_BASE_NAMESPACE = "{{ base_namespace }}";
+
+(function () {
+  'use strict';
+
+  var DEFAULT_QUERY = [
+    'PREFIX dcterms: <http://purl.org/dc/terms/>',
+    'PREFIX skos: <http://www.w3.org/2004/02/skos/core#>',
+    'PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>',
+    'PREFIX foaf: <http://xmlns.com/foaf/0.1/>',
+    '',
+    '# List all objects with their types and labels',
+    'SELECT ?subject ?type ?label WHERE {',
+    '  ?subject a ?type .',
+    '  OPTIONAL { ?subject dcterms:title ?t }',
+    '  OPTIONAL { ?subject skos:prefLabel ?p }',
+    '  OPTIONAL { ?subject rdfs:label ?r }',
+    '  OPTIONAL { ?subject foaf:name ?f }',
+    '  BIND(COALESCE(?t, ?p, ?r, ?f, STR(?subject)) AS ?label)',
+    '}',
+    'ORDER BY ?type ?label',
+    'LIMIT 50'
+  ].join('\n');
+
+  var KNOWN_VOCAB_PREFIXES = [
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+    'http://www.w3.org/2000/01/rdf-schema#',
+    'http://www.w3.org/2002/07/owl#',
+    'http://purl.org/dc/terms/',
+    'http://www.w3.org/2004/02/skos/core#',
+    'http://xmlns.com/foaf/0.1/',
+    'https://schema.org/',
+    'http://schema.org/',
+    'http://www.w3.org/2001/XMLSchema#',
+    'http://www.w3.org/ns/shacl#',
+    'http://www.w3.org/ns/prov#',
+    'urn:sempkm:'
+  ];
+
+  function isSemPKMObjectIri(uri) {
+    if (!uri) return false;
+    var base = window.SEMPKM_BASE_NAMESPACE;
+    if (base && uri.indexOf(base) === 0) return true;
+    if (uri.indexOf('https://') !== 0) return false;
+    for (var i = 0; i < KNOWN_VOCAB_PREFIXES.length; i++) {
+      if (uri.indexOf(KNOWN_VOCAB_PREFIXES[i]) === 0) return false;
+    }
+    try { return new URL(uri).pathname.length > 1; } catch (e) { return false; }
+  }
+
+  function shortenSemPkmIri(uri) {
+    var base = window.SEMPKM_BASE_NAMESPACE;
+    if (base && uri.indexOf(base) === 0) {
+      var local = uri.substring(base.length);
+      return local.length > 50 ? local.substring(0, 47) + '...' : local;
+    }
+    try {
+      var parts = new URL(uri).pathname.split('/').filter(Boolean);
+      if (parts.length > 0) {
+        var last = decodeURIComponent(parts[parts.length - 1]);
+        return last.length > 50 ? last.substring(0, 47) + '...' : last;
+      }
+    } catch (e) {}
+    return uri.length > 50 ? uri.substring(0, 47) + '...' : uri;
+  }
+
+  function registerYasrFormatter() {
+    if (!window.Yasgui || !Yasgui.YASR || !Yasgui.YASR.plugins || !Yasgui.YASR.plugins.table) return false;
+    var tablePlugin = Yasgui.YASR.plugins.table;
+    if (!tablePlugin.defaults) tablePlugin.defaults = {};
+    var origFormatter = tablePlugin.defaults.uriFormatter || null;
+    tablePlugin.defaults.uriFormatter = function(uri, compact) {
+      if (isSemPKMObjectIri(uri)) {
+        var label = shortenSemPkmIri(uri);
+        var safeUri = uri.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        var safeLabel = label.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        var href = '/browser/object/' + encodeURIComponent(uri);
+        return '<a class="sparql-iri-link" href="' + href + '" ' +
+          'onclick="event.preventDefault();if(window.openTab){window.openTab(\'' + safeUri + '\',\'' + safeLabel + '\');}else{window.location.href=this.href;}" ' +
+          'title="' + uri.replace(/"/g, '&quot;') + '">' + label + '</a>';
+      }
+      return origFormatter ? origFormatter(uri, compact) : null;
+    };
+    return true;
+  }
+
+  function initYasgui() {
+    if (typeof Yasgui === 'undefined') { setTimeout(initYasgui, 200); return; }
+    var container = document.getElementById('yasgui-admin');
+    if (!container || container._yasguiInstance) return;
+
+    registerYasrFormatter();
+
+    var yasgui = new Yasgui(container, {
+      requestConfig: { endpoint: '/api/sparql', method: 'POST' },
+      persistenceId: 'sempkm-sparql',   // shared with workspace bottom panel
+      copyEndpointOnNewTab: false,
+      endpointCatalogueSize: 0
+    });
+
+    try {
+      if (!localStorage.getItem('sempkm-sparql')) {
+        var tab = yasgui.getTab();
+        if (tab) tab.setQuery(DEFAULT_QUERY);
+      }
+    } catch (e) {}
+
+    container._yasguiInstance = yasgui;
+  }
+
+  // Scripts injected by htmx swap run synchronously — defer to let DOM settle
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initYasgui);
+  } else {
+    setTimeout(initYasgui, 0);
+  }
+})();
+</script>
+{% endblock %}
