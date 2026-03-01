@@ -625,16 +625,190 @@ class ModelService:
 
     async def _query_prefixes(self, model_id: str) -> dict[str, str]:
         """Get the prefix mappings from the model registry."""
-        sparql = f"""SELECT ?prefix ?namespace WHERE {{
-  GRAPH <{MODELS_GRAPH}> {{
-    <urn:sempkm:model:{model_id}> <{SEMPKM_NS}prefix> ?bnode .
-    ?bnode <{SEMPKM_NS}prefixName> ?prefix ;
-           <{SEMPKM_NS}prefixNamespace> ?namespace .
-  }}
-}}"""
         # Prefixes aren't stored in triplestore — return empty
-        # They're in the manifest.yaml file which is loaded at install time
         return {}
+
+    async def get_model_connections(
+        self, model_id: str, label_service
+    ) -> dict | None:
+        """Get live connections for all instances of this model's types.
+
+        Queries outbound and inbound triples from urn:sempkm:current,
+        grouped by predicate label and direction.
+
+        Args:
+            model_id: The model identifier.
+            label_service: LabelService instance for resolving IRI labels.
+
+        Returns:
+            Dict with outbound_grouped, inbound_grouped, total_outbound,
+            total_inbound, or None if model not found.
+        """
+        models = await registry_list_models(self._client)
+        model_info = next((m for m in models if m.model_id == model_id), None)
+        if not model_info:
+            return None
+
+        graphs = ModelGraphs(model_id)
+        namespace = model_info.namespace
+        types = await self._query_types(graphs.ontology, namespace)
+
+        if not types:
+            return {
+                "outbound_grouped": {},
+                "inbound_grouped": {},
+                "total_outbound": 0,
+                "total_inbound": 0,
+            }
+
+        type_values = " ".join(f"<{t['iri']}>" for t in types)
+        type_label_map = {t["iri"]: t["label"] for t in types}
+
+        # Query outbound connections (model instances as subjects)
+        outbound_bindings = []
+        try:
+            outbound_sparql = f"""SELECT ?subject ?subjectType ?predicate ?object WHERE {{
+  GRAPH <urn:sempkm:current> {{
+    ?subject a ?subjectType .
+    ?subject ?predicate ?object .
+    FILTER(isIRI(?object))
+    FILTER(?predicate != <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>)
+  }}
+  VALUES ?subjectType {{ {type_values} }}
+}} LIMIT 500"""
+            result = await self._client.query(outbound_sparql)
+            outbound_bindings = result.get("results", {}).get("bindings", [])
+        except Exception as e:
+            logger.warning("Failed to query outbound connections for model '%s': %s", model_id, e)
+
+        # Query inbound connections (model instances as objects)
+        inbound_bindings = []
+        try:
+            inbound_sparql = f"""SELECT ?source ?predicate ?target ?targetType WHERE {{
+  GRAPH <urn:sempkm:current> {{
+    ?target a ?targetType .
+    ?source ?predicate ?target .
+    FILTER(isIRI(?source))
+    FILTER(?predicate != <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>)
+  }}
+  VALUES ?targetType {{ {type_values} }}
+}} LIMIT 500"""
+            result = await self._client.query(inbound_sparql)
+            inbound_bindings = result.get("results", {}).get("bindings", [])
+        except Exception as e:
+            logger.warning("Failed to query inbound connections for model '%s': %s", model_id, e)
+
+        # Collect all IRIs for batch label resolution
+        all_iris = set()
+        for b in outbound_bindings:
+            all_iris.add(b["subject"]["value"])
+            all_iris.add(b["predicate"]["value"])
+            all_iris.add(b["object"]["value"])
+        for b in inbound_bindings:
+            all_iris.add(b["source"]["value"])
+            all_iris.add(b["predicate"]["value"])
+            all_iris.add(b["target"]["value"])
+
+        labels = {}
+        if all_iris:
+            try:
+                labels = await label_service.resolve_batch(list(all_iris))
+            except Exception as e:
+                logger.warning("Failed to resolve labels for connections: %s", e)
+
+        # Group outbound by predicate label
+        outbound_grouped: dict[str, list[dict]] = {}
+        for b in outbound_bindings:
+            pred_iri = b["predicate"]["value"]
+            obj_iri = b["object"]["value"]
+            pred_label = labels.get(pred_iri, pred_iri.rsplit("/", 1)[-1].rsplit("#", 1)[-1])
+            obj_label = labels.get(obj_iri, obj_iri.rsplit("/", 1)[-1].rsplit("#", 1)[-1])
+            # Determine type label for the object (if it's one of our types)
+            subj_type_iri = b["subjectType"]["value"]
+            type_label = type_label_map.get(subj_type_iri, "")
+            entry = {"iri": obj_iri, "label": obj_label, "type_label": type_label}
+            outbound_grouped.setdefault(pred_label, []).append(entry)
+
+        # Group inbound by predicate label
+        inbound_grouped: dict[str, list[dict]] = {}
+        for b in inbound_bindings:
+            pred_iri = b["predicate"]["value"]
+            source_iri = b["source"]["value"]
+            pred_label = labels.get(pred_iri, pred_iri.rsplit("/", 1)[-1].rsplit("#", 1)[-1])
+            source_label = labels.get(source_iri, source_iri.rsplit("/", 1)[-1].rsplit("#", 1)[-1])
+            target_type_iri = b["targetType"]["value"]
+            type_label = type_label_map.get(target_type_iri, "")
+            entry = {"iri": source_iri, "label": source_label, "type_label": type_label}
+            inbound_grouped.setdefault(pred_label, []).append(entry)
+
+        return {
+            "outbound_grouped": outbound_grouped,
+            "inbound_grouped": inbound_grouped,
+            "total_outbound": len(outbound_bindings),
+            "total_inbound": len(inbound_bindings),
+        }
+
+    async def get_type_analytics(self, type_iris: list[str]) -> dict[str, dict]:
+        """Get live analytics per type: instance count and top nodes by incoming links.
+
+        Args:
+            type_iris: List of full type IRIs to query.
+
+        Returns:
+            Dict keyed by type IRI with 'count' and 'top_nodes' entries.
+        """
+        analytics: dict[str, dict] = {}
+        for iri in type_iris:
+            analytics[iri] = {"count": 0, "top_nodes": []}
+
+        if not type_iris:
+            return analytics
+
+        # Batch instance counts
+        values = " ".join(f"<{iri}>" for iri in type_iris)
+        count_sparql = f"""SELECT ?type (COUNT(DISTINCT ?s) AS ?count) WHERE {{
+  GRAPH <urn:sempkm:current> {{
+    ?s a ?type .
+  }}
+  VALUES ?type {{ {values} }}
+}} GROUP BY ?type"""
+        try:
+            result = await self._client.query(count_sparql)
+            for b in result.get("results", {}).get("bindings", []):
+                t_iri = b["type"]["value"]
+                if t_iri in analytics:
+                    analytics[t_iri]["count"] = int(b["count"]["value"])
+        except Exception:
+            pass
+
+        # Top nodes per type by incoming link count
+        for iri in type_iris:
+            if analytics[iri]["count"] == 0:
+                continue
+            top_sparql = f"""SELECT ?s (SAMPLE(?lbl) AS ?label) (COUNT(DISTINCT ?ref) AS ?linkCount) WHERE {{
+  GRAPH <urn:sempkm:current> {{
+    ?s a <{iri}> .
+    OPTIONAL {{
+      ?ref ?p ?s .
+      FILTER(?p != <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>)
+    }}
+    OPTIONAL {{ ?s <http://purl.org/dc/terms/title> ?t }}
+    OPTIONAL {{ ?s <http://xmlns.com/foaf/0.1/name> ?n }}
+    OPTIONAL {{ ?s <http://www.w3.org/2004/02/skos/core#prefLabel> ?l }}
+  }}
+  BIND(COALESCE(?t, ?n, ?l, REPLACE(STR(?s), "^.*/", "")) AS ?lbl)
+}} GROUP BY ?s ORDER BY DESC(?linkCount) LIMIT 5"""
+            try:
+                result = await self._client.query(top_sparql)
+                for b in result.get("results", {}).get("bindings", []):
+                    analytics[iri]["top_nodes"].append({
+                        "label": b.get("label", {}).get("value", "?"),
+                        "link_count": int(b.get("linkCount", {}).get("value", "0")),
+                    })
+            except Exception:
+                pass
+
+        return analytics
 
 
 async def model_shapes_loader(client: TriplestoreClient) -> Graph:
