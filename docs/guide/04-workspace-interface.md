@@ -174,6 +174,16 @@ When all validations pass, a green confirmation message appears: "Object conform
 
 For details on validation behavior, see the validation section in [Working with Objects](05-working-with-objects.md).
 
+### Moving Sidebar Panels
+
+Panels in the right sidebar (Relations, Lint) can be moved to the left sidebar (Explorer pane) and back:
+
+1. Hover over a panel header — a grip icon appears on the left edge of the header
+2. Drag the panel header to the left sidebar (Explorer pane) to move it there
+3. Drag it back to the right sidebar to restore the default position
+
+Panel positions are remembered across page reloads. This is useful if you prefer to keep the Relations panel visible alongside the object tree while keeping the editor area wider.
+
 ---
 
 ## The Bottom Panel
