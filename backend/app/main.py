@@ -132,14 +132,62 @@ async def lifespan(app: FastAPI):
     app.state.view_spec_service = view_spec_service
 
     # --- SQL Database Initialization ---
-    sql_engine = create_engine()
-
-    # Run Alembic migrations instead of create_all
-    # asyncio.to_thread required: env.py uses asyncio.run() internally,
-    # which cannot nest inside FastAPI's running event loop
+    # Run Alembic migrations BEFORE creating the app engine.
+    # Alembic's env.py creates its own async engine via asyncio.run(),
+    # so we must not have a competing engine connection to the same
+    # SQLite file (SQLite allows only one writer at a time).
     alembic_cfg = AlembicConfig("alembic.ini")
-    await asyncio.to_thread(alembic_command.upgrade, alembic_cfg, "head")
+
+    def _run_migrations():
+        """Run or stamp Alembic migrations.
+
+        If the database already has tables (from the old create_all approach)
+        but no alembic_version row, stamp it at head via direct SQL so Alembic
+        treats the existing schema as current. Future migrations run normally.
+        """
+        import sqlite3
+        from pathlib import Path as _Path
+
+        db_url = settings.database_url
+        db_path = db_url.split("///")[-1] if "///" in db_url else None
+        if db_path and _Path(db_path).exists():
+            conn = sqlite3.connect(db_path)
+            try:
+                tables = {r[0] for r in conn.execute(
+                    "SELECT name FROM sqlite_master WHERE type='table'"
+                ).fetchall()}
+                has_version_row = False
+                if "alembic_version" in tables:
+                    row = conn.execute(
+                        "SELECT version_num FROM alembic_version"
+                    ).fetchone()
+                    has_version_row = row is not None
+                if "users" in tables and not has_version_row:
+                    # Stamp directly via SQL — avoids asyncio.run() nesting issues
+                    from alembic.script import ScriptDirectory
+                    script = ScriptDirectory.from_config(alembic_cfg)
+                    head = script.get_current_head()
+                    if "alembic_version" not in tables:
+                        conn.execute(
+                            "CREATE TABLE alembic_version "
+                            "(version_num VARCHAR(32) NOT NULL, "
+                            "CONSTRAINT alembic_version_pkc PRIMARY KEY (version_num))"
+                        )
+                    conn.execute(
+                        "INSERT INTO alembic_version (version_num) VALUES (?)",
+                        (head,),
+                    )
+                    conn.commit()
+                    logger.info("Existing database stamped at Alembic revision %s", head)
+                    return
+            finally:
+                conn.close()
+        alembic_command.upgrade(alembic_cfg, "head")
+
+    await asyncio.to_thread(_run_migrations)
     logger.info("SQL database migrations applied")
+
+    sql_engine = create_engine()
 
     # Store session factory on app state for dependencies
     app.state.async_session_factory = async_session_factory
