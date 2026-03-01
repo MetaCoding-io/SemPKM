@@ -47,7 +47,12 @@
                 {% if models %}
                 {% for model in models %}
                 <tr>
-                    <td><strong>{{ model.name }}</strong></td>
+                    <td>
+                        <a href="/admin/models/{{ model.model_id }}" class="model-name-link"
+                           hx-get="/admin/models/{{ model.model_id }}" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
+                            <strong>{{ model.name }}</strong>
+                        </a>
+                    </td>
                     <td>{{ model.version }}</td>
                     <td>{{ model.description }}</td>
                     <td>{{ model.installed_at[:10] if model.installed_at else "Unknown" }}</td>

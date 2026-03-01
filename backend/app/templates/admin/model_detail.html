@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+
+{% block title %}SemPKM - {{ detail.info.name }}{% endblock %}
+
+{% block content %}
+<div class="admin-page model-detail-page">
+    <div class="model-detail-header">
+        <a href="/admin/models" class="back-link"
+           hx-get="/admin/models" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
+            <i data-lucide="arrow-left"></i> Back to Models
+        </a>
+        <h1>{{ detail.info.name }}</h1>
+        <p class="lead">{{ detail.info.description }}</p>
+        <div class="model-meta-chips">
+            <span class="meta-chip"><i data-lucide="tag"></i> v{{ detail.info.version }}</span>
+            <span class="meta-chip"><i data-lucide="calendar"></i> Installed {{ detail.info.installed_at[:10] }}</span>
+            <span class="meta-chip mono"><i data-lucide="link"></i> {{ detail.info.namespace }}</span>
+        </div>
+    </div>
+
+    <!-- Types Section -->
+    <div class="detail-section">
+        <h2><i data-lucide="boxes"></i> Types</h2>
+        <p class="section-desc">OWL classes defined by this model.</p>
+        <div class="type-cards">
+            {% for t in detail.types %}
+            <div class="type-card">
+                <div class="type-card-header">
+                    <i data-lucide="{{ t.icon }}" style="color: {{ t.color }}"></i>
+                    <span class="type-name">{{ t.label }}</span>
+                </div>
+                {% if t.comment %}
+                <p class="type-desc">{{ t.comment }}</p>
+                {% endif %}
+                <code class="type-iri">{{ t.local_name }}</code>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Properties Section -->
+    <div class="detail-section">
+        <h2><i data-lucide="list"></i> Properties</h2>
+        <p class="section-desc">Datatype and object properties defined in the ontology.</p>
+
+        {% set datatype_props = [] %}
+        {% set object_props = [] %}
+        {% for p in detail.properties %}
+            {% if p.prop_type == "Datatype" %}
+                {% set _ = datatype_props.append(p) %}
+            {% else %}
+                {% set _ = object_props.append(p) %}
+            {% endif %}
+        {% endfor %}
+
+        {% if datatype_props %}
+        <h3>Datatype Properties</h3>
+        <table class="sparql-results">
+            <thead>
+                <tr>
+                    <th>Property</th>
+                    <th>Domain</th>
+                    <th>Range</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in datatype_props %}
+                <tr>
+                    <td><strong>{{ p.label }}</strong></td>
+                    <td><code>{{ p.domain }}</code></td>
+                    <td><code>{{ p.range }}</code></td>
+                    <td>{{ p.comment }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+        {% if object_props %}
+        <h3>Object Properties <span class="badge">Relationships</span></h3>
+        <table class="sparql-results">
+            <thead>
+                <tr>
+                    <th>Property</th>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Inverse</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in object_props %}
+                <tr>
+                    <td><strong>{{ p.label }}</strong></td>
+                    <td><code>{{ p.domain }}</code></td>
+                    <td><code>{{ p.range }}</code></td>
+                    <td>{% if p.inverse %}<code>{{ p.inverse }}</code>{% else %}&mdash;{% endif %}</td>
+                    <td>{{ p.comment }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+
+    <!-- Shapes Section -->
+    <div class="detail-section">
+        <h2><i data-lucide="shield-check"></i> Shapes (Form Definitions)</h2>
+        <p class="section-desc">SHACL shapes define the form fields and validation rules for each type.</p>
+
+        {% for shape in detail.shapes %}
+        <div class="shape-card card">
+            <div class="shape-header">
+                <i data-lucide="{{ shape.icon }}" style="color: {{ shape.color }}"></i>
+                <h3>{{ shape.label }}</h3>
+                <span class="meta-chip">{{ shape.property_count }} fields</span>
+            </div>
+
+            <table class="sparql-results shape-props-table">
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Property Path</th>
+                        <th>Type</th>
+                        <th>Cardinality</th>
+                        <th>Group</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for prop in shape.properties %}
+                    <tr>
+                        <td>
+                            <strong>{{ prop.name }}</strong>
+                            {% if prop.required %}<span class="required-badge">required</span>{% endif %}
+                        </td>
+                        <td><code>{{ prop.path }}</code></td>
+                        <td><code>{{ prop.type }}</code></td>
+                        <td>{{ prop.cardinality if prop.cardinality else "&mdash;" }}</td>
+                        <td>{{ prop.group if prop.group else "&mdash;" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Views Section -->
+    <div class="detail-section">
+        <h2><i data-lucide="layout-grid"></i> Views</h2>
+        <p class="section-desc">View specifications define how data is displayed in table, card, and graph renderers.</p>
+
+        <div class="view-cards">
+            {% for v in detail.views %}
+            <div class="view-card">
+                <div class="view-card-header">
+                    <i data-lucide="{{ v.icon }}" style="color: {{ v.color }}"></i>
+                    <span class="view-name">{{ v.label }}</span>
+                </div>
+                <div class="view-card-body">
+                    <div class="view-detail-row">
+                        <span class="view-detail-label">Renderer</span>
+                        <span class="renderer-badge renderer-{{ v.renderer }}">
+                            {% if v.renderer == "table" %}<i data-lucide="table-2"></i>{% endif %}
+                            {% if v.renderer == "card" %}<i data-lucide="layout-grid"></i>{% endif %}
+                            {% if v.renderer == "graph" %}<i data-lucide="git-branch"></i>{% endif %}
+                            {{ v.renderer }}
+                        </span>
+                    </div>
+                    <div class="view-detail-row">
+                        <span class="view-detail-label">Type</span>
+                        <code>{{ v.target_class }}</code>
+                    </div>
+                    {% if v.columns %}
+                    <div class="view-detail-row">
+                        <span class="view-detail-label">Columns</span>
+                        <span class="view-columns">{{ v.columns }}</span>
+                    </div>
+                    {% endif %}
+                    {% if v.sort_default %}
+                    <div class="view-detail-row">
+                        <span class="view-detail-label">Default Sort</span>
+                        <code>{{ v.sort_default }}</code>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Namespace & Technical Info -->
+    <div class="detail-section">
+        <h2><i data-lucide="code-2"></i> Technical Details</h2>
+        <table class="config-table">
+            <tr>
+                <td class="config-label">Model ID</td>
+                <td><code>{{ detail.info.model_id }}</code></td>
+            </tr>
+            <tr>
+                <td class="config-label">Namespace</td>
+                <td><code>{{ detail.info.namespace }}</code></td>
+            </tr>
+            <tr>
+                <td class="config-label">Named Graphs</td>
+                <td>
+                    <code>{{ detail.info.namespace }}ontology</code><br>
+                    <code>{{ detail.info.namespace }}shapes</code><br>
+                    <code>{{ detail.info.namespace }}views</code>
+                </td>
+            </tr>
+            <tr>
+                <td class="config-label">Types</td>
+                <td>{{ detail.types | length }}</td>
+            </tr>
+            <tr>
+                <td class="config-label">Properties</td>
+                <td>{{ detail.properties | length }}</td>
+            </tr>
+            <tr>
+                <td class="config-label">Views</td>
+                <td>{{ detail.views | length }}</td>
+            </tr>
+            <tr>
+                <td class="config-label">Shapes</td>
+                <td>{{ detail.shapes | length }}</td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<script>
+    // Re-initialize Lucide icons after htmx swap
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+</script>
+{% endblock %}

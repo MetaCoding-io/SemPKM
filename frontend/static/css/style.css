@@ -1105,6 +1105,300 @@ kbd {
 }
 
 /* ============================================
+   Model Detail Dashboard
+   ============================================ */
+
+.model-detail-page {
+  max-width: 900px;
+}
+
+.model-detail-header {
+  margin-bottom: 1.5rem;
+}
+
+.model-detail-header h1 {
+  margin-bottom: 0.25rem;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+  transition: color 0.15s;
+}
+
+.back-link:hover {
+  color: var(--color-primary);
+}
+
+.back-link i,
+.back-link svg {
+  width: 14px;
+  height: 14px;
+}
+
+.model-meta-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.meta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: var(--color-code-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 100px;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.meta-chip.mono {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.meta-chip i,
+.meta-chip svg {
+  width: 12px;
+  height: 12px;
+}
+
+.detail-section {
+  margin-bottom: 2rem;
+}
+
+.detail-section > h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.detail-section > h2 i,
+.detail-section > h2 svg {
+  width: 18px;
+  height: 18px;
+  color: var(--color-text-muted);
+}
+
+.detail-section h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 1rem 0 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-desc {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Type cards */
+.type-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.type-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+
+.type-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.type-card-header i,
+.type-card-header svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.type-name {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.type-desc {
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+  margin-bottom: 0.4rem;
+  line-height: 1.4;
+}
+
+.type-iri {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--color-text-faint);
+  background: var(--color-code-bg);
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+}
+
+/* Shape cards */
+.shape-card {
+  padding: 1rem 1.25rem;
+}
+
+.shape-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.shape-header i,
+.shape-header svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.shape-header h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.shape-props-table {
+  font-size: 0.82rem;
+}
+
+.required-badge {
+  display: inline-block;
+  background: var(--color-primary);
+  color: var(--color-avatar-text);
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  margin-left: 0.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.badge {
+  display: inline-block;
+  background: var(--color-code-bg);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  font-weight: 500;
+  padding: 0.1rem 0.45rem;
+  border-radius: 3px;
+}
+
+/* View cards */
+.view-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.75rem;
+}
+
+.view-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.view-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-code-bg);
+}
+
+.view-card-header i,
+.view-card-header svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.view-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.view-card-body {
+  padding: 0.75rem 1rem;
+}
+
+.view-detail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.25rem 0;
+  font-size: 0.82rem;
+}
+
+.view-detail-row + .view-detail-row {
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.view-detail-label {
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.renderer-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: var(--color-code-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 100px;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.renderer-badge i,
+.renderer-badge svg {
+  width: 12px;
+  height: 12px;
+}
+
+.view-columns {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+/* Model name link in table */
+.model-name-link {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.model-name-link:hover {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
+}
+
+/* ============================================
    Auth Pages (setup, login, invite)
    ============================================ */
 
