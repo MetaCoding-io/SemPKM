@@ -2,8 +2,8 @@
    Rendered as htmx partial loaded on Relationships tab click.
    Accepts:
      nodes: dict of {type_name: {x, y, label, color}}
-     edges: list of {from, to, label, inverse}
-     svg_w: int, svg_h: int
+     edges: list of {from, to, label, x1, y1, x2, y2, ctrl_x, ctrl_y, label_x, label_y, self_loop, curve_offset}
+     view_box: str (computed bounding box)
      model_id: str
 #}
 
@@ -14,11 +14,11 @@
         <p>No relationships defined between types in this model.</p>
     </div>
     {% else %}
-    <svg viewBox="0 0 {{ svg_w }} {{ svg_h }}" class="ontology-diagram-svg"
-         xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="{{ view_box }}" preserveAspectRatio="xMidYMid meet"
+         class="ontology-diagram-svg" xmlns="http://www.w3.org/2000/svg">
         <defs>
             <marker id="arrowhead" markerWidth="8" markerHeight="6"
-                    refX="8" refY="3" orient="auto" fill="var(--color-text-muted)">
+                    refX="0" refY="3" orient="auto" fill="var(--color-text-muted)">
                 <polygon points="0 0, 8 3, 0 6" />
             </marker>
         </defs>
@@ -28,28 +28,30 @@
         {% set src = nodes[edge['from']] %}
         {% set tgt = nodes[edge['to']] %}
         {% if src and tgt %}
-            {% if edge['from'] == edge['to'] %}
+            {% if edge.self_loop %}
             {# Self-referencing loop -- draw arc above the node #}
-            <path d="M {{ src.x - 20 }} {{ src.y - 22 }}
+            <path d="M {{ edge.x1 }} {{ edge.y1 }}
                      C {{ src.x - 50 }} {{ src.y - 80 }},
                        {{ src.x + 50 }} {{ src.y - 80 }},
-                       {{ src.x + 20 }} {{ src.y - 22 }}"
+                       {{ edge.x2 }} {{ edge.y2 }}"
                   fill="none" stroke="var(--color-text-faint)" stroke-width="1.5"
                   marker-end="url(#arrowhead)" />
-            <text x="{{ src.x }}" y="{{ src.y - 68 }}"
+            <text x="{{ edge.label_x }}" y="{{ edge.label_y }}"
+                  text-anchor="middle" class="edge-label">{{ edge.label }}</text>
+            {% elif edge.ctrl_x is not none %}
+            {# Curved edge (bidirectional pair) -- quadratic bezier #}
+            <path d="M {{ edge.x1 }} {{ edge.y1 }} Q {{ edge.ctrl_x }} {{ edge.ctrl_y }} {{ edge.x2 }} {{ edge.y2 }}"
+                  fill="none" stroke="var(--color-text-faint)" stroke-width="1.5"
+                  marker-end="url(#arrowhead)" />
+            <text x="{{ edge.label_x }}" y="{{ edge.label_y }}"
                   text-anchor="middle" class="edge-label">{{ edge.label }}</text>
             {% else %}
-            {# Normal edge between two different nodes #}
-            <line x1="{{ src.x }}" y1="{{ src.y }}"
-                  x2="{{ tgt.x }}" y2="{{ tgt.y }}"
-                  stroke="var(--color-text-faint)" stroke-width="1.5"
+            {# Straight edge #}
+            <path d="M {{ edge.x1 }} {{ edge.y1 }} L {{ edge.x2 }} {{ edge.y2 }}"
+                  fill="none" stroke="var(--color-text-faint)" stroke-width="1.5"
                   marker-end="url(#arrowhead)" />
-            <text x="{{ (src.x + tgt.x) / 2 }}" y="{{ (src.y + tgt.y) / 2 - 8 }}"
+            <text x="{{ edge.label_x }}" y="{{ edge.label_y }}"
                   text-anchor="middle" class="edge-label">{{ edge.label }}</text>
-            {% if edge.inverse %}
-            <text x="{{ (src.x + tgt.x) / 2 }}" y="{{ (src.y + tgt.y) / 2 + 14 }}"
-                  text-anchor="middle" class="edge-label edge-inverse">{{ edge.inverse }}</text>
-            {% endif %}
             {% endif %}
         {% endif %}
         {% endfor %}
