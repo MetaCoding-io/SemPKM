@@ -4,234 +4,198 @@
 
 {% block content %}
 <div class="admin-page model-detail-page">
+
+    <!-- Header -->
     <div class="model-detail-header">
         <a href="/admin/models" class="back-link"
            hx-get="/admin/models" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
             <i data-lucide="arrow-left"></i> Back to Models
         </a>
-        <h1>{{ detail.info.name }}</h1>
-        <p class="lead">{{ detail.info.description }}</p>
-        <div class="model-meta-chips">
-            <span class="meta-chip"><i data-lucide="tag"></i> v{{ detail.info.version }}</span>
-            <span class="meta-chip"><i data-lucide="calendar"></i> Installed {{ detail.info.installed_at[:10] }}</span>
-            <span class="meta-chip mono"><i data-lucide="link"></i> {{ detail.info.namespace }}</span>
+        <div class="model-title-row">
+            <h1>{{ detail.info.name }}</h1>
+            <span class="version-pill">v{{ detail.info.version }}</span>
+        </div>
+        <p class="model-description">{{ detail.info.description }}</p>
+        <div class="model-meta-row">
+            <span class="meta-item"><i data-lucide="calendar"></i> Installed {{ detail.info.installed_at[:10] }}</span>
+            <span class="meta-item mono"><i data-lucide="fingerprint"></i> {{ detail.info.model_id }}</span>
         </div>
     </div>
 
-    <!-- Types Section -->
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+        <div class="stat-box">
+            <span class="stat-value">{{ detail.stats.types }}</span>
+            <span class="stat-label">Types</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-value">{{ detail.stats.properties }}</span>
+            <span class="stat-label">Properties</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-value">{{ detail.stats.views }}</span>
+            <span class="stat-label">Views</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-value">{{ detail.stats.shapes }}</span>
+            <span class="stat-label">Shapes</span>
+        </div>
+    </div>
+
+    <!-- Types & Schema -->
     <div class="detail-section">
-        <h2><i data-lucide="boxes"></i> Types</h2>
-        <p class="section-desc">OWL classes defined by this model.</p>
-        <div class="type-cards">
-            {% for t in detail.types %}
-            <div class="type-card">
-                <div class="type-card-header">
-                    <i data-lucide="{{ t.icon }}" style="color: {{ t.color }}"></i>
-                    <span class="type-name">{{ t.label }}</span>
+        <h2>Types & Schema</h2>
+
+        {% for td in detail.type_details %}
+        <div class="type-detail-card" style="--type-color: {{ td.color }}">
+            <div class="type-detail-header">
+                <div class="type-detail-title">
+                    <i data-lucide="{{ td.icon }}" style="color: {{ td.color }}"></i>
+                    <h3>{{ td.label }}</h3>
+                    <code class="type-local-name">{{ td.local_name }}</code>
                 </div>
-                {% if t.comment %}
-                <p class="type-desc">{{ t.comment }}</p>
+                {% if td.comment %}
+                <p class="type-detail-desc">{{ td.comment }}</p>
                 {% endif %}
-                <code class="type-iri">{{ t.local_name }}</code>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-
-    <!-- Properties Section -->
-    <div class="detail-section">
-        <h2><i data-lucide="list"></i> Properties</h2>
-        <p class="section-desc">Datatype and object properties defined in the ontology.</p>
-
-        {% set datatype_props = [] %}
-        {% set object_props = [] %}
-        {% for p in detail.properties %}
-            {% if p.prop_type == "Datatype" %}
-                {% set _ = datatype_props.append(p) %}
-            {% else %}
-                {% set _ = object_props.append(p) %}
-            {% endif %}
-        {% endfor %}
-
-        {% if datatype_props %}
-        <h3>Datatype Properties</h3>
-        <table class="sparql-results">
-            <thead>
-                <tr>
-                    <th>Property</th>
-                    <th>Domain</th>
-                    <th>Range</th>
-                    <th>Description</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for p in datatype_props %}
-                <tr>
-                    <td><strong>{{ p.label }}</strong></td>
-                    <td><code>{{ p.domain }}</code></td>
-                    <td><code>{{ p.range }}</code></td>
-                    <td>{{ p.comment }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% endif %}
-
-        {% if object_props %}
-        <h3>Object Properties <span class="badge">Relationships</span></h3>
-        <table class="sparql-results">
-            <thead>
-                <tr>
-                    <th>Property</th>
-                    <th>From</th>
-                    <th>To</th>
-                    <th>Inverse</th>
-                    <th>Description</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for p in object_props %}
-                <tr>
-                    <td><strong>{{ p.label }}</strong></td>
-                    <td><code>{{ p.domain }}</code></td>
-                    <td><code>{{ p.range }}</code></td>
-                    <td>{% if p.inverse %}<code>{{ p.inverse }}</code>{% else %}&mdash;{% endif %}</td>
-                    <td>{{ p.comment }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% endif %}
-    </div>
-
-    <!-- Shapes Section -->
-    <div class="detail-section">
-        <h2><i data-lucide="shield-check"></i> Shapes (Form Definitions)</h2>
-        <p class="section-desc">SHACL shapes define the form fields and validation rules for each type.</p>
-
-        {% for shape in detail.shapes %}
-        <div class="shape-card card">
-            <div class="shape-header">
-                <i data-lucide="{{ shape.icon }}" style="color: {{ shape.color }}"></i>
-                <h3>{{ shape.label }}</h3>
-                <span class="meta-chip">{{ shape.property_count }} fields</span>
             </div>
 
-            <table class="sparql-results shape-props-table">
-                <thead>
-                    <tr>
-                        <th>Field</th>
-                        <th>Property Path</th>
-                        <th>Type</th>
-                        <th>Cardinality</th>
-                        <th>Group</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for prop in shape.properties %}
-                    <tr>
-                        <td>
-                            <strong>{{ prop.name }}</strong>
-                            {% if prop.required %}<span class="required-badge">required</span>{% endif %}
-                        </td>
-                        <td><code>{{ prop.path }}</code></td>
-                        <td><code>{{ prop.type }}</code></td>
-                        <td>{{ prop.cardinality if prop.cardinality else "&mdash;" }}</td>
-                        <td>{{ prop.group if prop.group else "&mdash;" }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% endfor %}
-    </div>
-
-    <!-- Views Section -->
-    <div class="detail-section">
-        <h2><i data-lucide="layout-grid"></i> Views</h2>
-        <p class="section-desc">View specifications define how data is displayed in table, card, and graph renderers.</p>
-
-        <div class="view-cards">
-            {% for v in detail.views %}
-            <div class="view-card">
-                <div class="view-card-header">
-                    <i data-lucide="{{ v.icon }}" style="color: {{ v.color }}"></i>
-                    <span class="view-name">{{ v.label }}</span>
+            <div class="type-detail-body">
+                <!-- Fields -->
+                {% if td.fields %}
+                <div class="type-subsection">
+                    <h4><i data-lucide="list"></i> Fields <span class="count-badge">{{ td.field_count }}</span></h4>
+                    <table class="fields-table">
+                        <thead>
+                            <tr>
+                                <th>Field</th>
+                                <th>Path</th>
+                                <th>Type</th>
+                                <th>Cardinality</th>
+                                <th>Group</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for f in td.fields %}
+                            <tr>
+                                <td class="field-name-cell">
+                                    {{ f.name }}
+                                    {% if f.required %}<span class="req-dot" title="Required"></span>{% endif %}
+                                </td>
+                                <td><code>{{ f.path }}</code></td>
+                                <td>
+                                    {% if "(ref)" in f.type %}
+                                    <span class="ref-badge">{{ f.type | replace(" (ref)", "") }}</span>
+                                    {% else %}
+                                    <code>{{ f.type }}</code>
+                                    {% endif %}
+                                </td>
+                                <td class="card-cell">{{ f.cardinality if f.cardinality else "" }}</td>
+                                <td class="group-cell">{{ f.group if f.group else "" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
-                <div class="view-card-body">
-                    <div class="view-detail-row">
-                        <span class="view-detail-label">Renderer</span>
-                        <span class="renderer-badge renderer-{{ v.renderer }}">
+                {% endif %}
+
+                <!-- Relationships -->
+                {% if td.relationships %}
+                <div class="type-subsection">
+                    <h4><i data-lucide="git-branch"></i> Relationships</h4>
+                    <div class="relationship-list">
+                        {% for r in td.relationships %}
+                        <div class="rel-item">
+                            <span class="rel-arrow">
+                                <strong>{{ r.label }}</strong>
+                                <i data-lucide="arrow-right"></i>
+                                <code>{{ r.range }}</code>
+                            </span>
+                            {% if r.inverse %}
+                            <span class="rel-inverse">inverse: <code>{{ r.inverse }}</code></span>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Views -->
+                {% if td.views %}
+                <div class="type-subsection">
+                    <h4><i data-lucide="eye"></i> Views <span class="count-badge">{{ td.views | length }}</span></h4>
+                    <div class="view-pill-list">
+                        {% for v in td.views %}
+                        <span class="view-pill view-pill-{{ v.renderer }}">
                             {% if v.renderer == "table" %}<i data-lucide="table-2"></i>{% endif %}
                             {% if v.renderer == "card" %}<i data-lucide="layout-grid"></i>{% endif %}
-                            {% if v.renderer == "graph" %}<i data-lucide="git-branch"></i>{% endif %}
-                            {{ v.renderer }}
+                            {% if v.renderer == "graph" %}<i data-lucide="share-2"></i>{% endif %}
+                            {{ v.label }}
+                            {% if v.columns %}<span class="view-pill-cols" title="Columns: {{ v.columns }}">{{ v.columns.split(",") | length }} cols</span>{% endif %}
                         </span>
+                        {% endfor %}
                     </div>
-                    <div class="view-detail-row">
-                        <span class="view-detail-label">Type</span>
-                        <code>{{ v.target_class }}</code>
-                    </div>
-                    {% if v.columns %}
-                    <div class="view-detail-row">
-                        <span class="view-detail-label">Columns</span>
-                        <span class="view-columns">{{ v.columns }}</span>
-                    </div>
-                    {% endif %}
-                    {% if v.sort_default %}
-                    <div class="view-detail-row">
-                        <span class="view-detail-label">Default Sort</span>
-                        <code>{{ v.sort_default }}</code>
-                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Relationships Overview -->
+    {% set object_props = [] %}
+    {% for p in detail.properties %}
+        {% if p.prop_type == "Object" %}
+            {% set _ = object_props.append(p) %}
+        {% endif %}
+    {% endfor %}
+    {% if object_props %}
+    <div class="detail-section">
+        <h2>Relationship Map</h2>
+        <div class="rel-map-card card">
+            {% for p in object_props %}
+            <div class="rel-map-row">
+                <code class="rel-map-domain">{{ p.domain }}</code>
+                <div class="rel-map-edge">
+                    <span class="rel-map-label">{{ p.label }}</span>
+                    <span class="rel-map-arrow"></span>
+                    {% if p.inverse %}
+                    <span class="rel-map-inverse-label">{{ p.inverse }}</span>
                     {% endif %}
                 </div>
+                <code class="rel-map-range">{{ p.range }}</code>
             </div>
             {% endfor %}
         </div>
     </div>
+    {% endif %}
 
-    <!-- Namespace & Technical Info -->
-    <div class="detail-section">
-        <h2><i data-lucide="code-2"></i> Technical Details</h2>
-        <table class="config-table">
-            <tr>
-                <td class="config-label">Model ID</td>
-                <td><code>{{ detail.info.model_id }}</code></td>
-            </tr>
-            <tr>
-                <td class="config-label">Namespace</td>
-                <td><code>{{ detail.info.namespace }}</code></td>
-            </tr>
-            <tr>
-                <td class="config-label">Named Graphs</td>
-                <td>
-                    <code>{{ detail.info.namespace }}ontology</code><br>
-                    <code>{{ detail.info.namespace }}shapes</code><br>
-                    <code>{{ detail.info.namespace }}views</code>
-                </td>
-            </tr>
-            <tr>
-                <td class="config-label">Types</td>
-                <td>{{ detail.types | length }}</td>
-            </tr>
-            <tr>
-                <td class="config-label">Properties</td>
-                <td>{{ detail.properties | length }}</td>
-            </tr>
-            <tr>
-                <td class="config-label">Views</td>
-                <td>{{ detail.views | length }}</td>
-            </tr>
-            <tr>
-                <td class="config-label">Shapes</td>
-                <td>{{ detail.shapes | length }}</td>
-            </tr>
-        </table>
-    </div>
+    <!-- Technical Details -->
+    <details class="detail-section tech-details">
+        <summary><h2><i data-lucide="code-2"></i> Technical Details</h2></summary>
+        <div class="tech-details-body">
+            <table class="config-table">
+                <tr>
+                    <td class="config-label">Model ID</td>
+                    <td><code>{{ detail.info.model_id }}</code></td>
+                </tr>
+                <tr>
+                    <td class="config-label">Namespace</td>
+                    <td><code>{{ detail.info.namespace }}</code></td>
+                </tr>
+                <tr>
+                    <td class="config-label">Named Graphs</td>
+                    <td class="named-graphs-list">
+                        <code>{{ detail.info.namespace }}ontology</code>
+                        <code>{{ detail.info.namespace }}shapes</code>
+                        <code>{{ detail.info.namespace }}views</code>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </details>
 </div>
 
 <script>
-    // Re-initialize Lucide icons after htmx swap
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }

@@ -81,27 +81,43 @@ async def admin_model_detail(
         t["icon"] = icon_info["icon"]
         t["color"] = icon_info["color"]
 
-    # Attach icon/color to views by target class
-    for v in detail["views"]:
-        for t in detail["types"]:
-            if t["local_name"] == v["target_class"]:
-                v["icon"] = t.get("icon", "circle")
-                v["color"] = t.get("color", "#999")
-                break
-        else:
-            v["icon"] = "circle"
-            v["color"] = "#999"
+    # Build type-centric detail: merge shapes, views, relationships per type
+    type_map = {}
+    for t in detail["types"]:
+        type_map[t["local_name"]] = {
+            **t,
+            "fields": [],
+            "field_count": 0,
+            "views": [],
+            "relationships": [],
+        }
 
-    # Attach icon/color to shapes by target class
-    for s in detail["shapes"]:
-        for t in detail["types"]:
-            if t["local_name"] == s["target_class"]:
-                s["icon"] = t.get("icon", "circle")
-                s["color"] = t.get("color", "#999")
-                break
-        else:
-            s["icon"] = "circle"
-            s["color"] = "#999"
+    for shape in detail["shapes"]:
+        tc = shape["target_class"]
+        if tc in type_map:
+            type_map[tc]["fields"] = shape["properties"]
+            type_map[tc]["field_count"] = shape["property_count"]
+
+    for v in detail["views"]:
+        tc = v["target_class"]
+        if tc in type_map:
+            type_map[tc]["views"].append(v)
+
+    for p in detail["properties"]:
+        if p["prop_type"] == "Object":
+            domain = p["domain"]
+            if domain in type_map:
+                type_map[domain]["relationships"].append(p)
+
+    detail["type_details"] = list(type_map.values())
+
+    # Stats
+    detail["stats"] = {
+        "types": len(detail["types"]),
+        "properties": len(detail["properties"]),
+        "views": len(detail["views"]),
+        "shapes": len(detail["shapes"]),
+    }
 
     context = {"request": request, "detail": detail, "user": user}
     if _is_htmx_request(request):
