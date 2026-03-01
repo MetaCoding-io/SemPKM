@@ -851,3 +851,39 @@ reindexQuery=SELECT ?s ?p ?o WHERE { GRAPH <urn:sempkm:current> { ?s ?p ?o } }
 
 6. **Lucene version compatibility in RDF4J 5.0.1.**
    GitHub issue [#5090](https://github.com/eclipse-rdf4j/rdf4j/issues/5090) discusses Lucene 9 compatibility. RDF4J 5.0.1 may still use Lucene 8. This matters if we need to add JARs manually -- we must match the Lucene major version exactly.
+
+---
+
+## v2.2 Handoff
+
+**Target:** v2.2 Data Discovery milestone, Phase 20a (keyword FTS)
+
+### Prerequisites Before Implementation
+
+1. **Verify LuceneSail JAR presence in Docker image** — exec into the running `eclipse/rdf4j-workbench:5.0.1` container and confirm `rdf4j-sail-lucene-*.jar` exists in `/usr/local/tomcat/webapps/rdf4j-server/WEB-INF/lib/`. If absent, extend the Dockerfile to add it (see Section 9, Risk 1). This is the single highest-priority validation item.
+
+2. **Validate LuceneSail Turtle config syntax for RDF4J 5.x** — the unified `tag:rdf4j.org,2023:config/` namespace was introduced in RDF4J 5.0; the exact property names for LuceneSail configuration (`luceneDir`, `reindexQuery`, etc.) need runtime validation. Check `/var/rdf4j/server/templates/` inside the container for built-in config templates.
+
+3. **Validate `FROM <urn:sempkm:current>` scoping with LuceneSail** — confirm that the `FROM` clause in SPARQL queries properly restricts LuceneSail results to the current state graph and does not surface subjects from event graphs.
+
+### Phase 20a First Steps (Keyword FTS)
+
+1. Update `config/rdf4j/sempkm-repo.ttl` — wrap NativeStore with LuceneSail delegate pattern (see Section 1, Proposed LuceneSail Configuration); add `luceneDir` pointing to a Docker volume path; add `reindexQuery` scoped to `urn:sempkm:current`
+
+2. Add `lucene_index` Docker volume to `docker-compose.yml`; document migration procedure (backup `rdf4j_data` volume, update config, restart container, verify data with SPARQL count query)
+
+3. Create `backend/app/services/search.py` — `SearchService.search(query, type_filter, limit)` executes the SPARQL FTS query pattern from Section 1 against the TriplestoreClient
+
+4. Add `GET /api/search?q=term&type=Note&limit=20` endpoint returning `{results: [{iri, title, type, score, snippet}]}`
+
+5. Integrate search UI into command palette (Ctrl+K, requirement FTS-03) — this aligns with the existing `ninja-keys` command palette from Phase 13
+
+6. Requirements satisfied: FTS-01 (keyword search), FTS-02 (result display with type + snippet), FTS-03 (command palette integration)
+
+### Phase 20b Prerequisites (Semantic Search — Deferred)
+
+Phase 20b is blocked until:
+- PostgreSQL migration is complete (SemPKM currently uses SQLite by default)
+- `sentence-transformers` and `pgvector` Python packages added to `pyproject.toml`
+
+First step when unblocked: create `search_embeddings` table with HNSW index (see Section 4, Database Schema), add `EmbeddingService` with post-commit listener pattern on `EventStore` (see Section 6, Write Path Integration).
