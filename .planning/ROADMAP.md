@@ -189,7 +189,7 @@ Plans:
 | 20. Architecture Decision Commit | v2.1 | 5/5 | Complete | 2026-02-28 |
 | 21. Research Synthesis | v2.1 | 1/1 | Complete | 2026-02-28 |
 | 22. Tech Debt Sprint | v2.1 | 3/3 | Complete | 2026-03-01 |
-| 23. SPARQL Console | v2.2 | 0/? | Not started | - |
+| 23. SPARQL Console | 1/2 | In Progress|  | - |
 | 24. FTS Keyword Search | v2.2 | 0/2 | Not started | - |
 | 25. CSS Token Expansion | v2.2 | 0/? | Not started | - |
 | 26. VFS MVP Read-Only | v2.2 | 0/? | Not started | - |
