@@ -45,6 +45,11 @@ from app.monitoring.posthog import init_posthog, shutdown_posthog
 from app.monitoring.router import router as monitoring_router
 from app.validation.queue import AsyncValidationQueue
 from app.validation.router import router as validation_router
+from wsgidav.wsgidav_app import WsgiDAVApp
+from a2wsgi import WSGIMiddleware
+from app.vfs.provider import SemPKMDAVProvider
+from app.vfs.auth import SemPKMWsgiAuthenticator
+from app.triplestore.sync_client import SyncTriplestoreClient
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -385,3 +390,32 @@ if not _docs_guide_path.is_dir():
     _docs_guide_path = Path(__file__).parent.parent.parent / "docs" / "guide"
 if _docs_guide_path.is_dir():
     app.mount("/docs/guide", StaticFiles(directory=_docs_guide_path), name="docs_guide")
+
+# --- WebDAV VFS Mount ---
+# wsgidav runs in a WSGI thread pool via a2wsgi. SyncTriplestoreClient uses
+# httpx.Client (sync) because wsgidav cannot use async clients.
+# Mounted at /dav -- nginx proxies /dav/ to this app with Authorization passthrough.
+_sync_ts_client = SyncTriplestoreClient(
+    base_url=settings.triplestore_url,
+    repository_id=settings.repository_id,
+)
+_dav_provider = SemPKMDAVProvider(sync_client=_sync_ts_client)
+
+_dav_config = {
+    "provider_mapping": {"/": _dav_provider},
+    "http_authenticator": {
+        "domain_controller": SemPKMWsgiAuthenticator,
+        "accept_basic": True,
+        "accept_digest": False,
+        "default_to_digest": False,
+    },
+    "sempkm_db_url": settings.database_url,
+    "verbose": 0,
+    "logging": {"enable_loggers": []},
+    # Read-only: disable all write methods
+    "readonly": True,
+}
+
+_wsgi_dav_app = WsgiDAVApp(_dav_config)
+_asgi_dav_app = WSGIMiddleware(_wsgi_dav_app)
+app.mount("/dav", _asgi_dav_app)
