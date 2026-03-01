@@ -7,6 +7,7 @@ from app.events.store import EventStore
 from app.services.labels import LabelService
 from app.services.models import ModelService
 from app.services.prefixes import PrefixRegistry
+from app.services.search import SearchService
 from app.services.shapes import ShapesService
 from app.services.validation import ValidationService
 from app.services.webhooks import WebhookService
@@ -112,3 +113,12 @@ async def get_event_store(request: Request) -> EventStore:
     app.state.event_store.
     """
     return request.app.state.event_store
+
+
+async def get_search_service(request: Request) -> SearchService:
+    """Get the SearchService instance from app state.
+
+    The service is created during app lifespan startup and stored on
+    app.state.search_service.
+    """
+    return request.app.state.search_service
