@@ -986,6 +986,9 @@
 
       // Dynamically load available views into command palette
       _loadViewCommandPaletteEntries(ninja);
+
+      // Initialize FTS search integration for Ctrl+K palette
+      _initFtsSearch(ninja);
     }).catch(function () {
       console.warn('ninja-keys custom element not available');
     });
@@ -1034,6 +1037,86 @@
       .catch(function () {
         // Silently fail -- views might not be available yet
       });
+  }
+
+  /**
+   * Map a type IRI to an inline SVG icon string for ninja-keys display.
+   * Matches on the local name portion of the type IRI.
+   * Falls back to a generic document icon.
+   */
+  function _typeToIcon(typeIri) {
+    if (!typeIri) return '';
+    var icons = {
+      'Note': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+      'Project': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
+      'Person': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+      'Concept': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'
+    };
+    // Match on the local name of the type IRI
+    for (var name in icons) {
+      if (typeIri.indexOf(name) !== -1) return icons[name];
+    }
+    // Default: document icon
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+  }
+
+  /**
+   * Initialize full-text search integration for the ninja-keys command palette.
+   * Listens for the 'change' event (fired when search input changes),
+   * debounces 300ms, fetches from /api/search, and injects results
+   * into the 'Search' section of the palette.
+   */
+  function _initFtsSearch(ninja) {
+    var _ftsDebounce = null;
+    var _ftsAbort = null;
+
+    ninja.addEventListener('change', function(e) {
+      var query = (e.detail && e.detail.search) ? e.detail.search : '';
+      if (!query || query.length < 2) {
+        // Remove any existing FTS results
+        ninja.data = ninja.data.filter(function(d) { return !d.id.startsWith('fts-'); });
+        return;
+      }
+
+      // Debounce 300ms
+      clearTimeout(_ftsDebounce);
+      if (_ftsAbort) { _ftsAbort.abort(); }
+
+      _ftsDebounce = setTimeout(function() {
+        var controller = new AbortController();
+        _ftsAbort = controller;
+
+        fetch('/api/search?q=' + encodeURIComponent(query) + '&limit=10', {
+          signal: controller.signal,
+          credentials: 'same-origin'
+        })
+          .then(function(resp) { return resp.ok ? resp.json() : null; })
+          .then(function(data) {
+            if (!data || !data.results) return;
+
+            // Remove previous FTS entries, keep non-FTS entries
+            var baseData = ninja.data.filter(function(d) { return !d.id.startsWith('fts-'); });
+
+            var ftsItems = data.results.map(function(r) {
+              var icon = _typeToIcon(r.type);
+              // Build title: label + truncated snippet
+              var snippet = r.snippet ? ' — ' + r.snippet.replace(/<\/?[^>]+>/g, '').substring(0, 60) : '';
+              return {
+                id: 'fts-' + r.iri,
+                title: r.label + snippet,
+                section: 'Search',
+                icon: icon,
+                handler: function() { openTab(r.iri, r.label); }
+              };
+            });
+
+            ninja.data = baseData.concat(ftsItems);
+          })
+          .catch(function() {
+            // Abort or network error — silently ignore
+          });
+      }, 300);
+    });
   }
 
   function showTypePicker() {
