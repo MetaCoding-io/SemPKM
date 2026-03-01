@@ -3,6 +3,7 @@ services:
     image: eclipse/rdf4j-workbench:5.0.1
     volumes:
       - rdf4j_data:/var/rdf4j
+      - lucene_index:/var/rdf4j/lucene
     environment:
       JAVA_OPTS: "-Xmx1g"
     healthcheck:
@@ -69,3 +70,4 @@ networks:
 volumes:
   rdf4j_data:
   sempkm_data:
+  lucene_index:
