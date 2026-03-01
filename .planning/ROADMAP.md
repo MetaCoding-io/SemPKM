@@ -6,6 +6,7 @@
 - ✅ **v2.0 Tighten Web UI** — Phases 10-19 (shipped 2026-03-01) — [Full details](milestones/v2.0-ROADMAP.md)
 - ✅ **v2.1 Architecture Decision Gate** — Phases 20-22 (shipped 2026-03-01) — [Full details](milestones/v2.1-ROADMAP.md) — [Archive](milestones/v2.1-REQUIREMENTS.md)
 - ✅ **v2.2 Data Discovery** — Phases 23-28 (shipped 2026-03-01) — [Full details](milestones/v2.2-ROADMAP.md)
+- 🚧 **v2.3 Shell, Navigation & Views** — Phases 29-34 (in progress)
 
 ## Phases
 
@@ -69,6 +70,87 @@
 
 </details>
 
+### 🚧 v2.3 Shell, Navigation & Views (In Progress)
+
+**Milestone Goal:** Complete dockview Phase A migration (replacing Split.js editor-pane area), redesign the object view to be markdown-first with manifest-driven carousel views, add named workspace layouts, improve FTS with fuzzy search, and close v2.2 bugs.
+
+- [ ] **Phase 29: FTS Fuzzy Search** — Typo-tolerant search via LuceneSail `term~1` operator with user-controlled toggle in Ctrl+K palette
+- [ ] **Phase 30: Dockview Phase A Migration** — Replace Split.js editor-pane area with dockview-core panels; remove old HTML5 drag system
+- [ ] **Phase 31: Object View Redesign** — Markdown-first object view with properties collapsed by default and single-click reveal
+- [ ] **Phase 32: Carousel Views and View Bug Fixes** — Manifest-declared per-type view tab bar, concept cards group-by fix, broken view switch buttons removed
+- [ ] **Phase 33: Named Layouts and VFS Settings Restore** — User-named workspace layout save/restore via Command Palette; VFS Settings UI restored
+- [ ] **Phase 34: E2E Test Coverage** — Remove all test.skip() from SPARQL/FTS/VFS suites; add v2.3 feature coverage
+
+## Phase Details
+
+### Phase 29: FTS Fuzzy Search
+**Goal**: Users can find objects despite typos using fuzzy matching toggled from the Ctrl+K palette
+**Depends on**: Nothing (fully independent)
+**Requirements**: FTS-04
+**Success Criteria** (what must be TRUE):
+  1. User types a misspelled query (e.g. "knowlege") in Ctrl+K palette and sees results for the correct object
+  2. User can toggle fuzzy mode on/off from within the Ctrl+K palette; the toggle state persists across sessions via localStorage
+  3. Tokens shorter than 5 characters are matched exactly even when fuzzy mode is on (no noise from short-token approximate expansion)
+  4. Multi-word queries fuzzy-match each qualifying token independently (e.g. "alice smth" finds "Alice Smith")
+**Plans**: TBD
+
+### Phase 30: Dockview Phase A Migration
+**Goal**: Users manage object tabs through dockview-core panels with native drag-to-reorder and group splitting; old HTML5 drag system is gone
+**Depends on**: Phase 29 (parallel is fine; DOCK-01 is sequenced after to isolate risk)
+**Requirements**: DOCK-01
+**Success Criteria** (what must be TRUE):
+  1. User can open multiple object tabs and drag them to reorder or split into side-by-side groups using dockview native drag handles
+  2. Workspace tab layout (group geometry) is automatically saved and restored after a browser reload
+  3. Object tabs opened inside dockview panels continue to fire `sempkm:tab-activated` and `sempkm:tabs-empty` events with the same payload shape as before
+  4. CodeMirror and Cytoscape visualizations render correctly when their containing panel is shown after being hidden (no zero-size blank panels)
+  5. htmx attributes on content loaded inside dockview panels remain active (forms submit, relations load, linting works)
+**Plans**: TBD
+
+### Phase 31: Object View Redesign
+**Goal**: Users see the object body (Markdown) by default with properties hidden; a single click reveals or collapses properties; preference is remembered per object
+**Depends on**: Phase 30 (visual coexistence with dockview panels validated before committing final layout)
+**Requirements**: VIEW-01
+**Success Criteria** (what must be TRUE):
+  1. Opening any object tab shows the rendered Markdown body immediately without properties visible
+  2. User clicks a "N properties" toggle badge and the full property list expands inline without a page reload
+  3. User collapses properties, reloads the page, and reopens the same object — properties remain collapsed (preference stored per object IRI)
+  4. The existing CSS 3D flip to edit mode is unaffected and still reachable from the view header
+**Plans**: TBD
+
+### Phase 32: Carousel Views and View Bug Fixes
+**Goal**: Object types with multiple manifest-declared views expose a tab bar; users switch views instantly; concept cards group-by works; broken view switch buttons are gone
+**Depends on**: Phase 30 (carousel bar wires into dockview panels), Phase 31 (tab bar must coexist with new object view header)
+**Requirements**: VIEW-02, BUG-01, BUG-03
+**Success Criteria** (what must be TRUE):
+  1. For an object type with multiple views declared in the manifest, a tab bar appears above the view body listing each view by name; clicking a tab switches the view instantly
+  2. The active carousel view tab persists per type IRI across sessions (returning to the type shows the same view the user last selected)
+  3. Concept cards view correctly groups objects by the configured group-by predicate without breaking layout or mixing groups
+  4. The broken graph/card/table view switch buttons are absent from the object view; the carousel tab bar is the only view-switching affordance
+**Plans**: TBD
+
+### Phase 33: Named Layouts and VFS Settings Restore
+**Goal**: Users can save, restore, and delete named workspace layouts from the Command Palette; VFS mount configuration is accessible from the Settings page
+**Depends on**: Phase 30 (named layouts require dockview `toJSON()` to be live)
+**Requirements**: DOCK-02, BUG-02
+**Success Criteria** (what must be TRUE):
+  1. User opens the Command Palette, invokes "Layout: Save as...", names the layout, and it appears as a restorable option in future palette sessions
+  2. User restores a named layout and the editor groups and panel geometry match what was saved
+  3. User deletes a named layout from the Command Palette and it no longer appears
+  4. Named layouts survive browser reload (persisted to localStorage and/or backend API)
+  5. User navigates to Settings and can see, generate, and revoke VFS API tokens from a working Settings UI
+**Plans**: TBD
+
+### Phase 34: E2E Test Coverage
+**Goal**: The full Playwright test suite passes against the live stack with no test.skip() calls; v2.3 features have coverage
+**Depends on**: Phases 29-33 complete (tests cover live features)
+**Requirements**: TEST-01, TEST-02, TEST-03, TEST-04
+**Success Criteria** (what must be TRUE):
+  1. All SPARQL console E2E tests run and pass against the live stack without any `test.skip()` wrapper
+  2. All FTS keyword search E2E tests (including fuzzy toggle behavior) run and pass against the live stack without any `test.skip()` wrapper
+  3. All WebDAV VFS E2E tests run and pass against the live stack without any `test.skip()` wrapper
+  4. New Playwright tests cover dockview panel management, carousel view switching, fuzzy FTS toggle, and named layout save/restore
+**Plans**: TBD
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -101,6 +183,12 @@
 | 26. VFS MVP Read-Only | v2.2 | 3/3 | Complete | 2026-03-01 |
 | 27. VFS Write + Auth | v2.2 | 3/3 | Complete | 2026-03-01 |
 | 28. UI Polish + Integration Testing | v2.2 | 3/3 | Complete | 2026-03-01 |
+| 29. FTS Fuzzy Search | v2.3 | 0/? | Not started | - |
+| 30. Dockview Phase A Migration | v2.3 | 0/? | Not started | - |
+| 31. Object View Redesign | v2.3 | 0/? | Not started | - |
+| 32. Carousel Views and View Bug Fixes | v2.3 | 0/? | Not started | - |
+| 33. Named Layouts and VFS Settings Restore | v2.3 | 0/? | Not started | - |
+| 34. E2E Test Coverage | v2.3 | 0/? | Not started | - |
 
 ---
 *Roadmap created: 2026-02-21*
@@ -111,3 +199,4 @@
 *v2.2 shipped: 2026-03-01 — full 4-panel drag-reorder enhancement landed post-ship on feature/mental-model-dashboard*
 *v2.2 post-ship polish: 2026-03-01 — event log user names fix, tabular grid, Diff/Undo button colors, SPARQL Console to Admin nav, Event Console page (/events), diff arrow, relations panel collapsible rollup*
 *v2.2 archived: 2026-03-01*
+*v2.3 roadmap created: 2026-03-01 — Phases 29-34 defined*
