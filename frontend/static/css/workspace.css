@@ -1856,6 +1856,21 @@ details.form-group[open] > .form-group-summary::before {
   display: block;
 }
 
+/* SPARQL Console (Phase 23): Yasgui needs explicit height to render editor */
+#panel-sparql {
+  overflow: hidden;
+}
+
+#yasgui-container {
+  height: 100%;
+  width: 100%;
+}
+
+/* Ensure Yasgui tab bar and result area fill the container */
+#yasgui-container .yasgui {
+  height: 100%;
+}
+
 /* Placeholder text in empty panel panes */
 .panel-placeholder {
   color: var(--color-text-muted);

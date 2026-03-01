@@ -432,6 +432,20 @@
             });
           }
         }
+
+        // Initialize Yasgui on first SPARQL tab activation (lazy init)
+        if (btn.dataset.panel === 'sparql') {
+          if (typeof window.initYasguiConsole === 'function') {
+            window.initYasguiConsole();
+          }
+          // Refresh CodeMirror editor if already initialized (handles panel resize)
+          if (window._yasgui) {
+            var tab = window._yasgui.getTab ? window._yasgui.getTab() : null;
+            if (tab && tab.yasqe && typeof tab.yasqe.refresh === 'function') {
+              setTimeout(function () { tab.yasqe.refresh(); }, 50);
+            }
+          }
+        }
       });
     });
   }
