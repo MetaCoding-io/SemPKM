@@ -156,6 +156,16 @@ class AuthService:
             await session.commit()
             return result.rowcount
 
+    async def cleanup_expired_sessions(self) -> int:
+        """Delete all expired sessions. Returns count deleted."""
+        now = _utcnow()
+        async with self._session_factory() as session:
+            result = await session.execute(
+                delete(UserSession).where(UserSession.expires_at <= now)
+            )
+            await session.commit()
+            return result.rowcount
+
     async def create_invitation(
         self, email: str, role: str, invited_by: uuid.UUID
     ) -> Invitation:
