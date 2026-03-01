@@ -110,6 +110,13 @@ None - no external service configuration required.
 - Phase 21 (Research Synthesis, SYN-01) is ready to begin: produce DECISIONS.md consolidating all 4 architectural decisions
 - Run `/gsd:plan-phase 21` to generate the Phase 21 plan file
 
+## Self-Check: PASSED
+
+- FOUND: `.planning/phases/20-architecture-decision-commit/20-05-SUMMARY.md`
+- FOUND: `.planning/ROADMAP.md`
+- FOUND: `.planning/STATE.md`
+- FOUND commit: `5846a97` (docs(20-dec): formalize 4 architectural decisions with rationale and v2.2 handoff)
+
 ---
 *Phase: 20-architecture-decision-commit*
 *Completed: 2026-02-28*
