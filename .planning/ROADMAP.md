@@ -61,7 +61,7 @@
 
 - [ ] **Phase 23: SPARQL Console** — Yasgui CDN embed with custom YASR renderer for SemPKM object links and localStorage persistence
 - [ ] **Phase 24: FTS Keyword Search** — RDF4J LuceneSail indexing, SPARQL FTS predicates, Ctrl+K command palette integration
-- [ ] **Phase 25: CSS Token Expansion** — Two-tier primitive/semantic token architecture, expanding from ~40 to ~91 tokens
+- [x] **Phase 25: CSS Token Expansion** — Two-tier primitive/semantic token architecture, expanding from ~40 to ~91 tokens (completed 2026-03-01)
 - [ ] **Phase 26: VFS MVP Read-Only** — wsgidav WebDAV mount via a2wsgi bridge, SyncTriplestoreClient, Markdown+frontmatter file rendering
 - [ ] **Phase 27: VFS Write + Auth** — Write path diff engine, API token Basic auth, MountSpec settings UI
 - [ ] **Phase 28: UI Polish + Integration Testing** — Expander icon fixes, sidebar panel rearrangement, contextual view indicators, Playwright E2E suites
@@ -191,7 +191,7 @@ Plans:
 | 22. Tech Debt Sprint | v2.1 | 3/3 | Complete | 2026-03-01 |
 | 23. SPARQL Console | 1/2 | In Progress|  | - |
 | 24. FTS Keyword Search | v2.2 | 0/2 | Not started | - |
-| 25. CSS Token Expansion | v2.2 | 0/? | Not started | - |
+| 25. CSS Token Expansion | 1/1 | Complete   | 2026-03-01 | - |
 | 26. VFS MVP Read-Only | v2.2 | 0/? | Not started | - |
 | 27. VFS Write + Auth | v2.2 | 0/? | Not started | - |
 | 28. UI Polish + Integration Testing | v2.2 | 0/? | Not started | - |
