@@ -298,3 +298,120 @@
   background: var(--color-danger, #ef444420);
   color: var(--color-danger, #dc2626);
 }
+
+/* ── Virtual Filesystem Settings ──────────────────────────────── */
+.vfs-endpoint-row {
+  padding: var(--spacing-4, 16px) 0;
+  border-bottom: 1px solid var(--color-border, #e2e8f0);
+}
+
+.vfs-endpoint-display {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2, 8px);
+  margin-top: var(--spacing-2, 8px);
+}
+
+.vfs-endpoint-url {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.8rem;
+  background: var(--color-surface-raised, #f7fafc);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 4px;
+  padding: 4px 8px;
+  flex: 1;
+  overflow: auto;
+  white-space: nowrap;
+}
+
+.vfs-token-generate {
+  padding: var(--spacing-4, 16px) 0;
+  border-bottom: 1px solid var(--color-border, #e2e8f0);
+}
+
+.vfs-token-form-row {
+  display: flex;
+  gap: var(--spacing-2, 8px);
+  margin-top: var(--spacing-2, 8px);
+  align-items: center;
+}
+
+.vfs-token-reveal {
+  margin-top: var(--spacing-3, 12px);
+  padding: var(--spacing-3, 12px);
+  background: var(--color-surface-tinted, #f0fdf4);
+  border: 1px solid var(--color-success-border, #86efac);
+  border-radius: 6px;
+}
+
+.vfs-token-warning {
+  color: var(--color-text-secondary, #4b5563);
+  font-size: 0.8rem;
+  margin: 0 0 var(--spacing-2, 8px) 0;
+}
+
+.vfs-token-value-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2, 8px);
+}
+
+.vfs-token-value {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.75rem;
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 4px;
+  padding: 4px 8px;
+  flex: 1;
+  overflow: auto;
+  white-space: nowrap;
+  word-break: break-all;
+}
+
+.vfs-tokens-section {
+  padding: var(--spacing-4, 16px) 0;
+}
+
+.vfs-tokens-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin-top: var(--spacing-2, 8px);
+}
+
+.vfs-tokens-table th {
+  text-align: left;
+  padding: var(--spacing-1, 4px) var(--spacing-2, 8px);
+  border-bottom: 2px solid var(--color-border, #e2e8f0);
+  color: var(--color-text-secondary, #6b7280);
+  font-weight: 600;
+}
+
+.vfs-tokens-table td {
+  padding: var(--spacing-2, 8px);
+  border-bottom: 1px solid var(--color-border-subtle, #f1f5f9);
+  vertical-align: middle;
+}
+
+.vfs-no-tokens {
+  color: var(--color-text-secondary, #6b7280);
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.btn-danger-sm {
+  background: transparent;
+  border: 1px solid var(--color-danger, #ef4444);
+  color: var(--color-danger, #ef4444);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.btn-danger-sm:hover {
+  background: var(--color-danger, #ef4444);
+  color: #fff;
+}
