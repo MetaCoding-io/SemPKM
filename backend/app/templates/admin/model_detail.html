@@ -323,29 +323,38 @@
     function flipCard(localName) {
         var inner = document.getElementById('flip-' + localName);
         if (!inner) return;
-        var isFlipped = inner.classList.toggle('flipped');
-        // Match container height to the visible face
+        var container = inner.parentElement;
         var front = inner.querySelector('.type-flip-front');
         var back = inner.querySelector('.type-flip-back');
+        var isFlipped = inner.classList.contains('flipped');
+
         if (isFlipped) {
-            inner.style.height = back.scrollHeight + 'px';
+            // Back → Front
+            inner.classList.remove('flipped');
+            container.style.height = front.scrollHeight + 'px';
+            setTimeout(function() {
+                if (front) front.classList.remove('face-hidden');
+                if (back) back.classList.remove('face-visible');
+            }, 300);
         } else {
-            inner.style.height = front.scrollHeight + 'px';
+            // Front → Back
+            // Briefly make back visible off-screen to measure height
+            back.style.visibility = 'visible';
+            container.style.height = back.scrollHeight + 'px';
+            back.style.visibility = '';
+            inner.classList.add('flipped');
+            setTimeout(function() {
+                if (front) front.classList.add('face-hidden');
+                if (back) back.classList.add('face-visible');
+            }, 300);
         }
     }
 
-    // Set initial heights after render
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('.type-flip-inner').forEach(function(inner) {
-            var front = inner.querySelector('.type-flip-front');
-            if (front) inner.style.height = front.scrollHeight + 'px';
-        });
-    });
-    // Also run immediately for htmx swaps
+    // Set initial container heights to match front face
     (function() {
-        document.querySelectorAll('.type-flip-inner').forEach(function(inner) {
-            var front = inner.querySelector('.type-flip-front');
-            if (front) inner.style.height = front.scrollHeight + 'px';
+        document.querySelectorAll('.type-flip-container').forEach(function(container) {
+            var front = container.querySelector('.type-flip-front');
+            if (front) container.style.height = front.scrollHeight + 'px';
         });
     })();
 </script>
