@@ -1828,7 +1828,11 @@ kbd {
   height: 500px;
   border: 1px solid var(--color-border-subtle);
   border-radius: 6px;
-  background: var(--color-surface);
+  background:
+      linear-gradient(var(--color-border-subtle) 1px, transparent 1px),
+      linear-gradient(90deg, var(--color-border-subtle) 1px, transparent 1px),
+      var(--color-surface);
+  background-size: 40px 40px;
 }
 
 .cy-fit-btn {
