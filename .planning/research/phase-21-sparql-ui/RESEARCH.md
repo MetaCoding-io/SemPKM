@@ -615,3 +615,38 @@ Loaded via `<script>` and `<link>` tags, consistent with all other SemPKM depend
 - `/home/james/Code/SemPKM/frontend/static/js/app.js` -- current query runner code
 - `/home/james/Code/SemPKM/backend/app/templates/base.html` -- CDN loading pattern reference
 - `/home/james/Code/SemPKM/backend/app/templates/components/_sidebar.html` -- sidebar with SPARQL Console link
+
+---
+
+## v2.2 Handoff
+
+**Target:** v2.2 Data Discovery milestone (SPARQL-01, SPARQL-02, SPARQL-03)
+
+### Prerequisites Before Implementation
+
+1. **No backend changes required** — the existing `/api/sparql` endpoint (POST, `application/x-www-form-urlencoded`, `application/sparql-results+json`) is already Yasgui-compatible with zero modifications needed
+
+2. **CDN availability** — Yasgui is loaded from unpkg (`https://unpkg.com/@zazuko/yasgui@4.5.0/`); for air-gapped deployments, vendor the files to `frontend/static/vendor/yasgui/` as a documented alternative
+
+3. **Confirm `BASE_NAMESPACE`** — the custom YASR cell renderer uses `BASE_NAMESPACE` to detect SemPKM data IRIs; confirm the exact value from the application config before implementing the renderer
+
+### First Steps
+
+1. Create `backend/app/templates/sparql/console.html` — extends `base.html`; loads Yasgui CSS/JS from unpkg CDN in `{% block head %}`; contains `<div id="yasgui-container"></div>` and initialization script (see Section 7 and Section 8 for config and template structure)
+
+2. Add SPARQL console route — move from `debug/` router to a `sparql/` router (or equivalent); change access from owner-only to any authenticated user (SPARQL queries are read-only and scoped to current graph)
+
+3. Configure Yasgui initialization with: `endpoint: "/api/sparql"`, `method: "POST"`, `persistenceId: "sempkm-sparql"`, `copyEndpointOnNewTab: false`, `endpointCatalogueSize: 0`; pre-populate default query with SemPKM prefixes (see Section 7, Prefix Handling)
+
+4. Implement custom YASR table cell renderer — override the default URI rendering to detect `BASE_NAMESPACE` IRIs and render them as `<a href="/browser/objects/{encodedIri}" class="sparql-pill">` links; use `shortenIri()` from `app.js` for display text (satisfies SPARQL-02)
+
+5. Add dark mode CSS overrides for Yasgui — add `[data-theme="dark"] .yasgui` overrides to `theme.css`; CodeMirror 5 (used internally by Yasgui) has well-documented theme CSS variables
+
+6. Requirements satisfied: SPARQL-01 (SPARQL query execution), SPARQL-02 (IRI links), SPARQL-03 (localStorage query history via Yasgui built-in)
+
+### Phase 21+ Enhancements (Deferred)
+
+- Server-side saved queries as RDF (`sempkm:SavedQuery` type, `urn:sempkm:queries` named graph) — see Section 6 for data model
+- Batch label resolution for result URIs (pill rendering with object labels, not just shortened IRIs)
+- "Query all graphs" debug toggle via `all_graphs` JSON POST parameter
+- Context-aware autocomplete using `@sib-swiss/sparql-editor` VoID metadata (requires SemPKM to generate VoID descriptions)
