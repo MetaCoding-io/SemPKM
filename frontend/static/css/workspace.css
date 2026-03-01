@@ -2543,6 +2543,11 @@ details.form-group[open] > .form-group-summary::before {
     stroke: currentColor;
 }
 
+/* Panel collapse/expand buttons (left, right, bottom pane toggles) */
+.panel-btn svg {
+    stroke: currentColor;
+}
+
 /* ============================================================
    Phase 28: Sidebar Panel Drag-and-Drop (POLSH-02)
    ============================================================ */
