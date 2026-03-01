@@ -2546,6 +2546,9 @@ details.form-group[open] > .form-group-summary::before {
 /* Panel collapse/expand buttons (left, right, bottom pane toggles) */
 .panel-btn svg {
     stroke: currentColor;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
 }
 
 /* ============================================================
