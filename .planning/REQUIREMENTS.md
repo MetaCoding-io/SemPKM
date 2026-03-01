@@ -21,7 +21,7 @@ Requirements for v2.1: Architecture Decision Gate. Formalizes completed research
 ### Tech Debt
 
 - [ ] **TECH-01**: Alembic migration runner at startup — replaces `create_all`, proper schema migration support for both SQLite and PostgreSQL
-- [ ] **TECH-02**: SMTP email delivery — magic links sent via real email (configurable SMTP settings), not logged to console
+- [x] **TECH-02**: SMTP email delivery — magic links sent via real email (configurable SMTP settings), not logged to console
 - [ ] **TECH-03**: Session cleanup job — expired sessions purged on startup or via scheduled task
 - [ ] **TECH-04**: ViewSpecService TTL cache — reduce SPARQL queries per view spec lookup (currently 2 queries per lookup)
 
@@ -68,7 +68,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DEC-04 | Phase 20 | Pending |
 | SYN-01 | Phase 21 | Pending |
 | TECH-01 | Phase 22 | Pending |
-| TECH-02 | Phase 22 | Pending |
+| TECH-02 | Phase 22 | Complete |
 | TECH-03 | Phase 22 | Pending |
 | TECH-04 | Phase 22 | Pending |
 
