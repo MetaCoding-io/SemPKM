@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Architecture Decision Gate
 status: unknown
-last_updated: "2026-03-01T02:55:46.268Z"
+last_updated: "2026-02-28T03:03:00Z"
 progress:
-  total_phases: 12
-  completed_phases: 12
-  total_plans: 35
-  completed_plans: 35
+  total_phases: 13
+  completed_phases: 13
+  total_plans: 36
+  completed_plans: 36
 ---
 
 # Project State
@@ -22,12 +22,12 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 
 ## Current Position
 
-Phase: 21 (Research Synthesis) — not started
-Plan: 05 of 05 complete (Phase 20 done)
-Status: Phase 20 complete — run /gsd:plan-phase 21
-Last activity: 2026-02-28 — Phase 20 completed: all 4 architectural decisions formalized
+Phase: 21 (Research Synthesis) — complete
+Plan: 01 of 01 complete
+Status: Phase 21 complete — DECISIONS.md created, SYN-01 satisfied
+Last activity: 2026-02-28 — Phase 21 Plan 01 complete: DECISIONS.md with v2.2 phase structure
 
-Progress: [###-------] 33% (v2.1) — Phase 20 complete
+Progress: [########--] 80% (v2.1) — Phase 21 complete
 
 ## v2.1 Phase Summary
 
@@ -83,6 +83,8 @@ Progress: [###-------] 33% (v2.1) — Phase 20 complete
 | Phase 20 P03 | 2min | 2 tasks | 1 files |
 | Phase 20 P04 | 2min | 2 tasks | 1 files |
 | Phase 20 P05 | 5min | 3 tasks | 2 files |
+| Phase 21 P01 | 3min | 2 tasks | 1 files |
+| Phase 21 P01 | 3min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -222,6 +224,13 @@ v2.1 Phase 22 execution decisions (22-01):
 - (22-01) AlembicConfig and alembic_command aliases avoid name collision with existing Config usage in main.py
 - (22-01) Startup session cleanup pattern: call cleanup after service creation, log only if non-zero purged
 
+v2.1 Phase 21 synthesis decisions (21-01):
+- (21-01) v2.2 phases 23-27 sequencing: SPARQL Console first (no prerequisites, ships immediately), FTS second (JAR verification needed first), CSS token expansion third (independent prep for v2.3 Dockview migration), VFS read-only MVP fourth (SyncTriplestoreClient needed), VFS auth+settings fifth (API token auth design required)
+- (21-01) Dockview Phase A deferred to v2.3 Phase 1; CSS token expansion (~40 to ~91 tokens) is the only UI Shell work in v2.2
+- (21-01) SyncTriplestoreClient (sync httpx.Client) is a required new component for wsgidav WSGI thread pool — cannot share the async TriplestoreClient
+- (21-01) API token auth (Basic auth with revocable token as password) must be designed before Phase 27 (VFS write+auth) but not Phase 26 (VFS read-only MVP)
+- (21-01) Three auth patterns co-exist in v2.2: session cookie (Yasgui + all browser features), API token Basic auth (wsgidav VFS), LuceneSail inherits existing SPARQL auth with no changes
+
 v2.1 Phase 22 execution decisions (22-02):
 - (22-02) send_magic_link_email returns bool (not raises) so caller can fall through to console fallback on SMTP failure
 - (22-02) Lazy import of email service inside if smtp_configured block (module only loaded when needed)
@@ -265,5 +274,5 @@ None for v2.1.
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Phase 20 complete — 4 architectural decisions formalized and committed
-Resume: Run /gsd:plan-phase 21 to begin Research Synthesis
+Stopped at: Phase 21 Plan 01 complete — DECISIONS.md created, SYN-01 satisfied
+Resume: v2.1 complete — run /gsd:plan-phase for v2.2 (Phase 23: SPARQL Console)

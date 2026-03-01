@@ -46,7 +46,7 @@
 ### 📋 v2.1 Architecture Decision Gate (Phases 20-22)
 
 - [x] **Phase 20: Architecture Decision Commit** - Annotate and commit all 4 research tracks as finalized architectural decisions
-- [ ] **Phase 21: Research Synthesis** - Produce DECISIONS.md consolidating all decisions with v2.2 implementation guidance
+- [x] **Phase 21: Research Synthesis** - Produce DECISIONS.md consolidating all decisions with v2.2 implementation guidance (completed 2026-02-28)
 - [x] **Phase 22: Tech Debt Sprint** - Implement 4 medium-priority tech debt items (Alembic, SMTP, session cleanup, ViewSpec cache) (completed 2026-03-01)
 
 ## Phase Details
@@ -77,7 +77,9 @@ Plans:
   2. DECISIONS.md has a cross-cutting concerns section covering shared infrastructure (auth scoping, SPARQL query patterns, CSS token usage)
   3. DECISIONS.md proposes a concrete v2.2 phase structure — named phases with requirements and sequencing rationale
   4. DECISIONS.md includes a tech debt schedule mapping TECH items to target milestones (those not in v2.1 get a home)
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [x] 21-01-PLAN.md — Produce DECISIONS.md with all 4 decisions, cross-cutting concerns, v2.2 phase structure (SYN-01)
 
 ### Phase 22: Tech Debt Sprint
 **Goal**: Four medium-priority tech debt items are resolved — the application uses Alembic for schema migrations, sends real emails for magic links, purges expired sessions, and caches view spec lookups
@@ -118,7 +120,7 @@ Plans:
 | 18. Tutorials and Documentation | v2.0 | 2/2 | Complete | 2026-02-25 |
 | 19. Bug Fixes and E2E Test Hardening | v2.0 | 3/3 | Complete | 2026-02-27 |
 | 20. Architecture Decision Commit | v2.1 | Complete    | 2026-03-01 | 2026-02-28 |
-| 21. Research Synthesis | v2.1 | 0/1 | Not started | - |
+| 21. Research Synthesis | v2.1 | 1/1 | Complete | 2026-02-28 |
 | 22. Tech Debt Sprint | 3/3 | Complete    | 2026-03-01 | - |
 
 ---

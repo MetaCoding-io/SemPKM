@@ -16,7 +16,7 @@ Requirements for v2.1: Architecture Decision Gate. Formalizes completed research
 
 ### Synthesis
 
-- [ ] **SYN-01**: Consolidated DECISIONS.md created — all 4 architectural decisions, cross-cutting concerns, v2.2 phase structure derived, tech debt schedule
+- [x] **SYN-01**: Consolidated DECISIONS.md created — all 4 architectural decisions, cross-cutting concerns, v2.2 phase structure derived, tech debt schedule
 
 ### Tech Debt
 
@@ -66,7 +66,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DEC-02 | Phase 20 | Complete |
 | DEC-03 | Phase 20 | Complete |
 | DEC-04 | Phase 20 | Complete |
-| SYN-01 | Phase 21 | Pending |
+| SYN-01 | Phase 21 | Complete |
 | TECH-01 | Phase 22 | Complete |
 | TECH-02 | Phase 22 | Complete |
 | TECH-03 | Phase 22 | Complete |
