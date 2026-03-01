@@ -81,13 +81,12 @@ Webhook configuration is available to the **owner** only, through the Admin Port
 1. Click **Admin** in the left sidebar (or navigate to `/admin`).
 2. On the Admin Portal landing page, click **Configure Webhooks** (or go directly to `/admin/webhooks`).
 
-<!-- Screenshot: Admin Portal landing page showing the Mental Models and Webhooks cards -->
+![Admin portal webhooks configuration page](images/14-admin-webhooks.png)
 
 ### Creating a Webhook
 
 The webhook page shows a **Create Webhook** form at the top and a list of existing webhooks below.
 
-<!-- Screenshot: Webhook configuration page with the create form and webhook list table -->
 
 To create a new webhook:
 

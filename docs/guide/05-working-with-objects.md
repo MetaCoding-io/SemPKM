@@ -15,7 +15,7 @@ To create a new object, use any of these methods:
 
 The **Type Picker** loads in the editor area, presenting a grid of cards for each available object type from your installed Mental Models. Each card shows the type name (e.g., "Note", "Person", "Project", "Concept") and a brief description.
 
-<!-- Screenshot: type picker grid showing Note, Concept, Person, and Project cards -->
+![Type picker showing available object types as cards](images/04-type-picker.png)
 
 > **Note:** The types available in the type picker come from the SHACL NodeShapes defined in your installed Mental Models. If you see "No object types available," you need to install a Mental Model first. See [Managing Mental Models](10-managing-mental-models.md).
 
@@ -33,7 +33,7 @@ The create form is organized into sections:
 
 3. **Advanced fields** (optional, ungrouped properties) are collected into a collapsible "Advanced" section at the bottom of the form. These typically include fields like description, tags, or other metadata that are not required for creation.
 
-<!-- Screenshot: create form for a Note, showing required Title field and Advanced section -->
+![Create form for a new Note with required Title field](images/05-create-note-form.png)
 
 **Field types are determined by the SHACL shape definition:**
 
@@ -71,7 +71,7 @@ After successful creation, the form reloads in **edit mode** with a success mess
 
 When you open an object from the Explorer tree, the command palette, or a reference link, it loads in **read mode** by default. Read mode presents the object in a clean, styled layout optimized for consumption rather than editing.
 
-<!-- Screenshot: a Note in read mode, showing the property table and rendered Markdown body -->
+![Project object in read-only mode showing properties](images/02-object-read-project.png)
 
 ### The Object Toolbar
 
@@ -93,6 +93,10 @@ Below the toolbar, a collapsible **Properties** section displays the object's st
 - **References** appear as colored **pill badges**. Each pill shows the referenced object's label and a colored dot. Click a pill to open the referenced object in a new tab. Hover over a pill to see a popover preview showing the referenced object's type, label, and first few properties.
 
 You can collapse the Properties section by clicking the "Properties" toggle header.
+
+Here is another example showing a Person object:
+
+![Person object in read-only mode](images/17-object-read-person.png)
 
 ### Markdown Body
 
@@ -122,7 +126,7 @@ Switch from read mode to edit mode using any of these methods:
 
 The transition uses a flip animation: the read-only view rotates out and the edit form rotates in. The toolbar button changes from "Edit" to "Done", and the **Save** button becomes visible.
 
-<!-- Screenshot: an object in edit mode showing the SHACL form and CodeMirror Markdown editor -->
+![Object edit form with SHACL-driven properties and markdown editor](images/03-object-edit-form.png)
 
 ### The Edit Layout
 
@@ -219,7 +223,7 @@ The Lint panel displays:
 - A **conformance notice**: either a red "Export blocked" message (if violations exist) or a green "Object conforms to all constraints" confirmation
 - A **results list** where each item shows the validation message and the property path that triggered it
 
-<!-- Screenshot: lint panel showing 1 violation and 1 warning -->
+![Lint panel showing SHACL validation results](images/16-lint-panel.png)
 
 **Clicking a result** in the lint panel jumps you directly to the offending field in the edit form:
 

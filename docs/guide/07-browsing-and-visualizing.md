@@ -12,7 +12,6 @@ There are three ways to open a view in SemPKM.
 
 The left sidebar contains a **Views Explorer** section that lists all available views grouped by renderer type (table, card, graph). Click any view name to open it as a new tab in the editor area.
 
-<!-- Screenshot: Views Explorer sidebar showing grouped view list -->
 
 The explorer groups views in a fixed order: tables first, then cards, then graphs. Within each group, views are sorted alphabetically by name.
 
@@ -20,7 +19,6 @@ The explorer groups views in a fixed order: tables first, then cards, then graph
 
 Open the full **View Menu** by using the command palette (`Ctrl+K`) and selecting "Open View Menu", or by clicking the view menu button in the toolbar. The View Menu shows all views from all installed models, grouped by their source model. Each entry displays the view label, its target type, and a renderer type indicator.
 
-<!-- Screenshot: View Menu showing views grouped by source model -->
 
 ### From the Command Palette
 
@@ -36,7 +34,7 @@ Each view opens as a tab in the editor area, just like object tabs. You can have
 
 Table View renders your objects as sortable, filterable rows with configurable columns. It is best suited for scanning large collections, comparing properties across objects, and finding specific items.
 
-<!-- Screenshot: Table View showing the Projects Table with several rows -->
+![Table view with sortable columns showing project data](images/06-table-view.png)
 
 ### Sorting
 
@@ -67,7 +65,6 @@ Not every column is relevant all the time. SemPKM lets you customize which colum
 3. Use the up/down arrow buttons next to each column name to reorder columns.
 4. Changes take effect immediately and are saved to your browser's local storage, so your preferences persist across sessions.
 
-<!-- Screenshot: Column Preferences dropdown showing checkboxes and reorder buttons -->
 
 Column preferences are saved per type, so your preferences for the Projects Table are independent of your preferences for the People Table.
 
@@ -85,7 +82,7 @@ The view toolbar includes a switcher that shows all available views for the curr
 
 Card View presents your objects as visual cards arranged in a responsive grid layout. Each card shows a title, a subtitle, and a content snippet on its front face, with full property details and relationship links available on the back face via a flip animation.
 
-<!-- Screenshot: Card View showing People Cards in a grid -->
+![Card view rendering objects as visual cards in a grid](images/07-cards-view.png)
 
 ### When to Use Cards Over Tables
 
@@ -128,7 +125,7 @@ If an object has no value for the grouping property, it appears under a "(No val
 
 Graph View provides an interactive 2D visualization of objects and their relationships, powered by Cytoscape.js. It shows nodes for objects and directed edges for relationships, making it the ideal view for exploring the network structure of your knowledge base.
 
-<!-- Screenshot: Graph View showing the Projects Graph with connected People and Notes -->
+![Interactive graph visualization with typed and colored nodes](images/08-graph-view.png)
 
 ### Node Colors by Type
 

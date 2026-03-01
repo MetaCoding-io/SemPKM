@@ -40,7 +40,7 @@ These shortcuts work anywhere in the workspace, regardless of which pane or pane
 
 The **command palette** is a searchable overlay that gives you access to every action in SemPKM. Press `Ctrl+K` to open it. It uses the ninja-keys web component, providing a familiar experience similar to VS Code's Command Palette or Spotlight on macOS.
 
-<!-- Screenshot: Command palette open with search results -->
+![Command palette open with search results and keyboard shortcuts](images/09-command-palette.png)
 
 ### How to Use the Palette
 

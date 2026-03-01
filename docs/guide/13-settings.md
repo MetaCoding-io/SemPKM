@@ -11,7 +11,7 @@ There are two ways to open the Settings page:
 
 The Settings page opens within the workspace, replacing the current content area.
 
-<!-- Screenshot: Settings page showing the search bar, category sidebar on the left, and settings detail panel on the right -->
+![Settings page with category sidebar and settings controls](images/10-settings-page.png)
 
 ## The Settings Interface
 
@@ -83,7 +83,6 @@ User overrides are per-user. Each person on the instance can have different sett
 
 When a setting has a user override that differs from its default, the Settings page shows a **"Modified" badge** (a small accent-colored label) next to the input control, along with a **Reset** link.
 
-<!-- Screenshot: A settings row showing the "Modified" badge and Reset link next to a changed setting -->
 
 - **Reset** (per-setting) -- Click the underlined "Reset" text next to a modified setting to delete your override and revert to the default value. The Modified badge disappears and the input updates to show the default.
 - **Reset to defaults** (per-category) -- Each category panel has a **Reset to defaults** button in its header. Clicking it resets all modified settings in that category back to their defaults.
@@ -103,6 +102,12 @@ The **Theme** setting (`core.theme`) offers three options:
 | **dark** | Always uses the dark color scheme, regardless of OS setting. |
 
 The default is `system`, which means SemPKM respects your OS preference out of the box.
+
+Here is how the workspace looks in dark mode:
+
+![Workspace in dark mode with object open](images/11-dark-mode.png)
+
+![Graph view in dark mode](images/12-dark-mode-graph.png)
 
 ### How Theme Switching Works
 
