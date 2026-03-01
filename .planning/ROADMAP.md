@@ -4,7 +4,8 @@
 
 - ✅ **v1.0 MVP** — Phases 1-9 (shipped 2026-02-23) — [Full details](milestones/v1.0-ROADMAP.md)
 - ✅ **v2.0 Tighten Web UI** — Phases 10-19 (shipped 2026-03-01) — [Full details](milestones/v2.0-ROADMAP.md)
-- 📋 **v2.1 Architecture Decision Gate** — Phases 20-22 (planned)
+- ✅ **v2.1 Architecture Decision Gate** — Phases 20-22 (shipped 2026-03-01) — [Full details](milestones/v2.1-ROADMAP.md)
+- 📋 **v2.2 Data Discovery** — Phases 23-27 (planned)
 
 ## Phases
 
@@ -43,58 +44,24 @@
 
 </details>
 
-### 📋 v2.1 Architecture Decision Gate (Phases 20-22)
+<details>
+<summary>✅ v2.1 Architecture Decision Gate (Phases 20-22) — SHIPPED 2026-03-01</summary>
 
-- [x] **Phase 20: Architecture Decision Commit** - Annotate and commit all 4 research tracks as finalized architectural decisions
-- [x] **Phase 21: Research Synthesis** - Produce DECISIONS.md consolidating all decisions with v2.2 implementation guidance (completed 2026-02-28)
-- [x] **Phase 22: Tech Debt Sprint** - Implement 4 medium-priority tech debt items (Alembic, SMTP, session cleanup, ViewSpec cache) (completed 2026-03-01)
+- [x] Phase 20: Architecture Decision Commit (5/5 plans) — completed 2026-02-28
+- [x] Phase 21: Research Synthesis (1/1 plan) — completed 2026-02-28
+- [x] Phase 22: Tech Debt Sprint (3/3 plans) — completed 2026-03-01
 
-## Phase Details
+**9 plans, ~19 tasks, 9/9 requirements satisfied**
 
-### Phase 20: Architecture Decision Commit
-**Goal**: All 4 completed research tracks are formalized as committed architectural decisions — each RESEARCH.md annotated with the chosen approach, rationale, and v2.2 implementation handoff
-**Depends on**: Nothing (research already complete in .planning/research/phase-2{0-3}-*)
-**Requirements**: DEC-01, DEC-02, DEC-03, DEC-04
-**Success Criteria** (what must be TRUE):
-  1. Each of the 4 RESEARCH.md files has a "Decision" section at the top stating the chosen approach in one clear sentence
-  2. Each RESEARCH.md records the rationale for the chosen approach and explicitly rules out the alternatives considered
-  3. Each RESEARCH.md contains a "v2.2 Handoff" section listing concrete implementation prerequisites and first steps
-  4. A reviewer reading any single RESEARCH.md can determine the committed approach without reading the others
-**Plans**: 5 plans
-Plans:
-- [x] 20-01-PLAN.md — Annotate FTS/Vector RESEARCH.md with Decision + v2.2 Handoff (DEC-01)
-- [x] 20-02-PLAN.md — Annotate SPARQL UI RESEARCH.md with Decision + v2.2 Handoff (DEC-02)
-- [x] 20-03-PLAN.md — Annotate VFS RESEARCH.md with Decision + v2.2 Handoff (DEC-03)
-- [x] 20-04-PLAN.md — Annotate UI Shell RESEARCH.md with Decision + v2.2 Handoff (DEC-04)
-- [x] 20-05-PLAN.md — Verify, commit all 4 decisions, update planning metadata
+</details>
 
-### Phase 21: Research Synthesis
-**Goal**: A single DECISIONS.md exists that consolidates all 4 architectural decisions, surfaces cross-cutting concerns, and provides a v2.2 phase structure with implementation order
-**Depends on**: Phase 20
-**Requirements**: SYN-01
-**Success Criteria** (what must be TRUE):
-  1. DECISIONS.md exists at .planning/DECISIONS.md and opens with a summary table of all 4 decisions (technology chosen, status, target milestone)
-  2. DECISIONS.md has a cross-cutting concerns section covering shared infrastructure (auth scoping, SPARQL query patterns, CSS token usage)
-  3. DECISIONS.md proposes a concrete v2.2 phase structure — named phases with requirements and sequencing rationale
-  4. DECISIONS.md includes a tech debt schedule mapping TECH items to target milestones (those not in v2.1 get a home)
-**Plans**: 1 plan
-Plans:
-- [x] 21-01-PLAN.md — Produce DECISIONS.md with all 4 decisions, cross-cutting concerns, v2.2 phase structure (SYN-01)
+### 📋 v2.2 Data Discovery (Phases 23-27)
 
-### Phase 22: Tech Debt Sprint
-**Goal**: Four medium-priority tech debt items are resolved — the application uses Alembic for schema migrations, sends real emails for magic links, purges expired sessions, and caches view spec lookups
-**Depends on**: Nothing (independent of Phases 20-21; can run in parallel)
-**Requirements**: TECH-01, TECH-02, TECH-03, TECH-04
-**Success Criteria** (what must be TRUE):
-  1. Application startup runs Alembic migrations instead of create_all; adding a new column to the auth schema requires only a migration file, not a manual DB drop
-  2. Magic link emails arrive in a real inbox when SMTP settings are configured; the console fallback still works when SMTP is not configured
-  3. Expired sessions are not present in the auth database after startup; the cleanup runs without manual intervention
-  4. A view spec lookup that was recently resolved does not trigger a SPARQL query to the triplestore (TTL cache hit is observable in logs or metrics)
-**Plans**: 3 plans
-Plans:
-- [ ] 22-01-PLAN.md — Alembic migration runner at startup + session cleanup (TECH-01, TECH-03)
-- [ ] 22-02-PLAN.md — SMTP email delivery for magic links (TECH-02)
-- [ ] 22-03-PLAN.md — ViewSpecService TTL cache + invalidation wiring (TECH-04)
+- [ ] Phase 23: SPARQL Console — Yasgui CDN embed with custom YASR renderer for SemPKM object links
+- [ ] Phase 24: FTS Keyword Search — RDF4J LuceneSail indexing, SPARQL FTS predicates, Ctrl+K integration
+- [ ] Phase 25: CSS Token Expansion — Two-tier primitive/semantic token system (40 → ~91 tokens)
+- [ ] Phase 26: Virtual Filesystem MVP — wsgidav read-only WebDAV mount, MountSpec vocabulary
+- [ ] Phase 27: VFS Write + Auth — Write path, API token Basic auth design
 
 ## Progress
 
@@ -119,12 +86,18 @@ Plans:
 | 17. LLM Connection Configuration | v2.0 | 2/2 | Complete | 2026-02-24 |
 | 18. Tutorials and Documentation | v2.0 | 2/2 | Complete | 2026-02-25 |
 | 19. Bug Fixes and E2E Test Hardening | v2.0 | 3/3 | Complete | 2026-02-27 |
-| 20. Architecture Decision Commit | v2.1 | Complete    | 2026-03-01 | 2026-02-28 |
-| 21. Research Synthesis | v2.1 | Complete    | 2026-03-01 | 2026-02-28 |
-| 22. Tech Debt Sprint | 3/3 | Complete    | 2026-03-01 | - |
+| 20. Architecture Decision Commit | v2.1 | 5/5 | Complete | 2026-02-28 |
+| 21. Research Synthesis | v2.1 | 1/1 | Complete | 2026-02-28 |
+| 22. Tech Debt Sprint | v2.1 | 3/3 | Complete | 2026-03-01 |
+| 23. SPARQL Console | v2.2 | 0/? | Not started | - |
+| 24. FTS Keyword Search | v2.2 | 0/? | Not started | - |
+| 25. CSS Token Expansion | v2.2 | 0/? | Not started | - |
+| 26. Virtual Filesystem MVP | v2.2 | 0/? | Not started | - |
+| 27. VFS Write + Auth | v2.2 | 0/? | Not started | - |
 
 ---
 *Roadmap created: 2026-02-21*
 *v1.0 archived: 2026-02-23*
 *v2.0 archived: 2026-03-01*
-*v2.1 roadmap added: 2026-03-01*
+*v2.1 archived: 2026-03-01*
+*v2.2 roadmap stub added: 2026-03-01*

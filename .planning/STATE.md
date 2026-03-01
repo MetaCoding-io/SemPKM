@@ -1,12 +1,12 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: Architecture Decision Gate
-status: unknown
-last_updated: "2026-03-01T03:08:02.492Z"
+milestone: v2.2
+milestone_name: Data Discovery
+status: between_milestones
+last_updated: "2026-03-01"
 progress:
-  total_phases: 13
-  completed_phases: 13
+  total_phases: 22
+  completed_phases: 22
   total_plans: 36
   completed_plans: 36
 ---
@@ -17,25 +17,36 @@ progress:
 
 See: .planning/PROJECT.md (updated 2026-03-01)
 
-**Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations -- no blank-page syndrome, no schema setup.
-**Current focus:** v2.1 Architecture Decision Gate — roadmap defined, ready for phase planning
+**Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations — no blank-page syndrome, no schema setup.
+**Current focus:** v2.2 Data Discovery — planning next milestone (FTS, SPARQL console, VFS MVP)
 
 ## Current Position
 
-Phase: 21 (Research Synthesis) — complete
-Plan: 01 of 01 complete
-Status: Phase 21 complete — DECISIONS.md created, SYN-01 satisfied
-Last activity: 2026-02-28 — Phase 21 Plan 01 complete: DECISIONS.md with v2.2 phase structure
+Phase: — (between milestones)
+Status: v2.1 complete — 3 phases, 9 plans, 9/9 requirements satisfied
+Last activity: 2026-03-01 — v2.1 milestone archived
 
-Progress: [########--] 80% (v2.1) — Phase 21 complete
+Progress: [██████████] 100% (v2.1 complete) — ready for v2.2
 
-## v2.1 Phase Summary
+## v2.1 Phase Summary (COMPLETE)
 
 | Phase | Goal | Requirements | Status |
 |-------|------|--------------|--------|
 | 20. Architecture Decision Commit | Formalize 4 research tracks as committed decisions | DEC-01, DEC-02, DEC-03, DEC-04 | Complete (2026-02-28) |
-| 21. Research Synthesis | Produce DECISIONS.md with v2.2 guidance | SYN-01 | Not started |
-| 22. Tech Debt Sprint | Alembic, SMTP, session cleanup, ViewSpec cache | TECH-01, TECH-02, TECH-03, TECH-04 | Complete |
+| 21. Research Synthesis | Produce DECISIONS.md with v2.2 guidance | SYN-01 | Complete (2026-02-28) |
+| 22. Tech Debt Sprint | Alembic, SMTP, session cleanup, ViewSpec cache | TECH-01, TECH-02, TECH-03, TECH-04 | Complete (2026-03-01) |
+
+## v2.2 Phase Structure (PLANNED)
+
+See `.planning/DECISIONS.md` for full rationale and implementation readiness checklist.
+
+| Phase | Name | Requirements | Depends On |
+|-------|------|--------------|------------|
+| 23. SPARQL Console | Yasgui CDN embed + custom YASR renderer | SPARQL-01, SPARQL-02, SPARQL-03 | None |
+| 24. FTS Keyword Search | LuceneSail indexing, SPARQL FTS, Ctrl+K | FTS-01, FTS-02, FTS-03 | None |
+| 25. CSS Token Expansion | 40 → ~91 tokens, two-tier architecture | — (v2.3 prerequisite) | None |
+| 26. VFS MVP read-only | wsgidav WebDAV mount, MountSpec vocab | VFS-01, VFS-02, VFS-03 | None |
+| 27. VFS Write + Auth | Write path, API token auth design | — | Phase 26 |
 
 ## Performance Metrics
 
