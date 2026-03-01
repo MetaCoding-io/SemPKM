@@ -73,14 +73,14 @@
           <button class="event-btn-diff"
                   hx-get="/browser/events/{{ event.event_iri | urlencode }}/detail"
                   hx-target="#diff-{{ loop.index }}"
-                  hx-swap="innerHTML">
-            Diff
-          </button>
+                  hx-swap="innerHTML">Diff</button>
+          {% else %}
+          <button class="event-btn-diff" disabled>Diff</button>
           {% endif %}
           {% if event.operation_type in ['object.patch', 'body.set', 'edge.create', 'edge.patch'] %}
-          <button class="event-btn-undo" onclick="sempkmUndoEvent('{{ event.event_iri }}', this)">
-            Undo
-          </button>
+          <button class="event-btn-undo" onclick="sempkmUndoEvent('{{ event.event_iri }}', this)">Undo</button>
+          {% else %}
+          <button class="event-btn-undo" disabled>Undo</button>
           {% endif %}
         </div>
       </div>
