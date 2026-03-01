@@ -53,6 +53,9 @@ All v2.2 architectural decisions committed in v2.1. See .planning/DECISIONS.md f
 - DEC-05: Yasgui CDN loaded at top of workspace block content, not base.html — workspace-only dependency
 - DEC-06: Lazy Yasgui init via DOMContentLoaded + tab click handler — prevents JS errors when panel closed
 - CSS-01: Token count expanded to 108 in :root (vs ~91 estimate) — comprehensive two-tier primitive/semantic architecture
+- VFS-01: SyncTriplestoreClient mirrors async TriplestoreClient API with httpx.Client for WSGI thread pool use
+- VFS-02: API tokens use SHA-256 hash storage; plaintext returned exactly once on creation
+- VFS-03: verify_api_token_sync uses disposable sync SQLAlchemy engine per call for WSGI thread safety
 
 ### Pending Todos
 
@@ -74,5 +77,5 @@ All v2.2 architectural decisions committed in v2.1. See .planning/DECISIONS.md f
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 23-02-PLAN.md (YASR IRI click-through and dark mode)
-Resume: Continue with remaining v2.2 phases (24, 26, 27, 28)
+Stopped at: Completed 26-01-PLAN.md (VFS Foundation: packages, sync client, API tokens, nginx proxy)
+Resume: Continue with 26-02-PLAN.md (DAV Provider implementation)

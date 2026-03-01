@@ -192,7 +192,7 @@ Plans:
 | 23. SPARQL Console | 2/2 | Complete   | 2026-03-01 | - |
 | 24. FTS Keyword Search | v2.2 | 0/2 | Not started | - |
 | 25. CSS Token Expansion | 1/1 | Complete    | 2026-03-01 | - |
-| 26. VFS MVP Read-Only | v2.2 | 0/? | Not started | - |
+| 26. VFS MVP Read-Only | 1/3 | In Progress|  | - |
 | 27. VFS Write + Auth | v2.2 | 0/? | Not started | - |
 | 28. UI Polish + Integration Testing | v2.2 | 0/? | Not started | - |
 
