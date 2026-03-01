@@ -1921,9 +1921,10 @@ details.form-group[open] > .form-group-summary::before {
 }
 
 .event-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 110px 1fr 110px 138px auto;
   align-items: center;
-  gap: 10px;
+  column-gap: 8px;
   padding: 5px 10px;
   border-bottom: 1px solid var(--color-border-subtle, var(--color-border));
   font-size: 0.8125rem;
@@ -1934,7 +1935,7 @@ details.form-group[open] > .form-group-summary::before {
 }
 
 .event-op-badge {
-  flex-shrink: 0;
+  justify-self: start;
   display: inline-block;
   padding: 2px 7px;
   border-radius: 10px;
@@ -1961,7 +1962,6 @@ details.form-group[open] > .form-group-summary::before {
 }
 
 .event-affected {
-  flex: 1;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1980,16 +1980,13 @@ details.form-group[open] > .form-group-summary::before {
   font-size: 0.75rem;
 }
 .event-user {
-  flex-shrink: 0;
   color: var(--color-text-faint);
   font-size: 0.75rem;
-  max-width: 100px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .event-timestamp {
-  flex-shrink: 0;
   color: var(--color-text-faint);
   font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
@@ -2089,10 +2086,9 @@ details.form-group[open] > .form-group-summary::before {
   border-bottom: none;
 }
 .event-row-actions {
-  flex-shrink: 0;
   display: flex;
   gap: 4px;
-  margin-left: auto;
+  justify-content: flex-end;
 }
 .event-btn-diff,
 .event-btn-undo {
