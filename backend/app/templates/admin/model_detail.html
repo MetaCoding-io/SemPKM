@@ -42,100 +42,197 @@
         </div>
     </div>
 
+    <!-- Tab Bar -->
+    <div class="model-detail-tabs">
+        <button class="model-tab active" data-tab="schema" onclick="switchModelTab('schema')">
+            <i data-lucide="list"></i> Schema
+        </button>
+        <button class="model-tab" data-tab="connections" onclick="switchModelTab('connections')"
+                hx-get="/admin/models/{{ detail.info.model_id }}/connections"
+                hx-target="#connections-content"
+                hx-swap="innerHTML"
+                hx-trigger="click once">
+            <i data-lucide="network"></i> Connections
+        </button>
+    </div>
+
+    <!-- Schema Tab Panel -->
+    <div id="schema-panel" class="model-tab-panel active">
+
     <!-- Types & Schema -->
     <div class="detail-section">
         <h2>Types & Schema</h2>
 
         {% for td in detail.type_details %}
-        <div class="type-detail-card" style="--type-color: {{ td.color }}">
-            <div class="type-detail-header">
-                <div class="type-detail-title">
-                    <i data-lucide="{{ td.icon }}" style="color: {{ td.color }}"></i>
-                    <h3>{{ td.label }}</h3>
-                    <code class="type-local-name">{{ td.local_name }}</code>
-                </div>
-                {% if td.comment %}
-                <p class="type-detail-desc">{{ td.comment }}</p>
-                {% endif %}
-            </div>
+        <div class="type-flip-container" style="--type-color: {{ td.color }}">
+            <div class="type-flip-inner" id="flip-{{ td.local_name }}">
 
-            <div class="type-detail-body">
-                <!-- Fields -->
-                {% if td.fields %}
-                <div class="type-subsection">
-                    <h4><i data-lucide="list"></i> Fields <span class="count-badge">{{ td.field_count }}</span></h4>
-                    <table class="fields-table">
-                        <thead>
-                            <tr>
-                                <th>Field</th>
-                                <th>Path</th>
-                                <th>Type</th>
-                                <th>Cardinality</th>
-                                <th>Group</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for f in td.fields %}
-                            <tr>
-                                <td class="field-name-cell">
-                                    {{ f.name }}
-                                    {% if f.required %}<span class="req-dot" title="Required"></span>{% endif %}
-                                </td>
-                                <td><code>{{ f.path }}</code></td>
-                                <td>
-                                    {% if "(ref)" in f.type %}
-                                    <span class="ref-badge">{{ f.type | replace(" (ref)", "") }}</span>
-                                    {% else %}
-                                    <code>{{ f.type }}</code>
-                                    {% endif %}
-                                </td>
-                                <td class="card-cell">{{ f.cardinality if f.cardinality else "" }}</td>
-                                <td class="group-cell">{{ f.group if f.group else "" }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% endif %}
-
-                <!-- Relationships -->
-                {% if td.relationships %}
-                <div class="type-subsection">
-                    <h4><i data-lucide="git-branch"></i> Relationships</h4>
-                    <div class="relationship-list">
-                        {% for r in td.relationships %}
-                        <div class="rel-item">
-                            <span class="rel-arrow">
-                                <strong>{{ r.label }}</strong>
-                                <i data-lucide="arrow-right"></i>
-                                <code>{{ r.range }}</code>
-                            </span>
-                            {% if r.inverse %}
-                            <span class="rel-inverse">inverse: <code>{{ r.inverse }}</code></span>
-                            {% endif %}
+                <!-- ===== FRONT: Schema ===== -->
+                <div class="type-flip-front type-detail-card">
+                    <div class="type-detail-header">
+                        <div class="type-detail-title">
+                            <i data-lucide="{{ td.icon }}" style="color: {{ td.color }}"></i>
+                            <h3>{{ td.label }}</h3>
+                            <code class="type-local-name">{{ td.local_name }}</code>
                         </div>
-                        {% endfor %}
+                        <button class="flip-btn" onclick="flipCard('{{ td.local_name }}')" title="Show analytics">
+                            <i data-lucide="bar-chart-3"></i>
+                        </button>
+                        {% if td.comment %}
+                        <p class="type-detail-desc">{{ td.comment }}</p>
+                        {% endif %}
                     </div>
-                </div>
-                {% endif %}
 
-                <!-- Views -->
-                {% if td.views %}
-                <div class="type-subsection">
-                    <h4><i data-lucide="eye"></i> Views <span class="count-badge">{{ td.views | length }}</span></h4>
-                    <div class="view-pill-list">
-                        {% for v in td.views %}
-                        <span class="view-pill view-pill-{{ v.renderer }}">
-                            {% if v.renderer == "table" %}<i data-lucide="table-2"></i>{% endif %}
-                            {% if v.renderer == "card" %}<i data-lucide="layout-grid"></i>{% endif %}
-                            {% if v.renderer == "graph" %}<i data-lucide="share-2"></i>{% endif %}
-                            {{ v.label }}
-                            {% if v.columns %}<span class="view-pill-cols" title="Columns: {{ v.columns }}">{{ v.columns.split(",") | length }} cols</span>{% endif %}
-                        </span>
-                        {% endfor %}
+                    <div class="type-detail-body">
+                        {% if td.fields %}
+                        <div class="type-subsection">
+                            <h4><i data-lucide="list"></i> Fields <span class="count-badge">{{ td.field_count }}</span></h4>
+                            <table class="fields-table">
+                                <thead>
+                                    <tr>
+                                        <th>Field</th>
+                                        <th>Path</th>
+                                        <th>Type</th>
+                                        <th>Cardinality</th>
+                                        <th>Group</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for f in td.fields %}
+                                    <tr>
+                                        <td class="field-name-cell">
+                                            {{ f.name }}
+                                            {% if f.required %}<span class="req-dot" title="Required"></span>{% endif %}
+                                        </td>
+                                        <td><code>{{ f.path }}</code></td>
+                                        <td>
+                                            {% if "(ref)" in f.type %}
+                                            <span class="ref-badge">{{ f.type | replace(" (ref)", "") }}</span>
+                                            {% else %}
+                                            <code>{{ f.type }}</code>
+                                            {% endif %}
+                                        </td>
+                                        <td class="card-cell">{{ f.cardinality if f.cardinality else "" }}</td>
+                                        <td class="group-cell">{{ f.group if f.group else "" }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% endif %}
+
+                        {% if td.relationships %}
+                        <div class="type-subsection">
+                            <h4><i data-lucide="git-branch"></i> Relationships</h4>
+                            <div class="relationship-list">
+                                {% for r in td.relationships %}
+                                <div class="rel-item">
+                                    <span class="rel-arrow">
+                                        <strong>{{ r.label }}</strong>
+                                        <i data-lucide="arrow-right"></i>
+                                        <code>{{ r.range }}</code>
+                                    </span>
+                                    {% if r.inverse %}
+                                    <span class="rel-inverse">inverse: <code>{{ r.inverse }}</code></span>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if td.views %}
+                        <div class="type-subsection">
+                            <h4><i data-lucide="eye"></i> Views <span class="count-badge">{{ td.views | length }}</span></h4>
+                            <div class="view-pill-list">
+                                {% for v in td.views %}
+                                <span class="view-pill view-pill-{{ v.renderer }}">
+                                    {% if v.renderer == "table" %}<i data-lucide="table-2"></i>{% endif %}
+                                    {% if v.renderer == "card" %}<i data-lucide="layout-grid"></i>{% endif %}
+                                    {% if v.renderer == "graph" %}<i data-lucide="share-2"></i>{% endif %}
+                                    {{ v.label }}
+                                    {% if v.columns %}<span class="view-pill-cols" title="Columns: {{ v.columns }}">{{ v.columns.split(",") | length }} cols</span>{% endif %}
+                                </span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
-                {% endif %}
+
+                <!-- ===== BACK: Analytics ===== -->
+                <div class="type-flip-back type-detail-card">
+                    <div class="type-detail-header">
+                        <div class="type-detail-title">
+                            <i data-lucide="{{ td.icon }}" style="color: {{ td.color }}"></i>
+                            <h3>{{ td.label }} &mdash; Analytics</h3>
+                        </div>
+                        <button class="flip-btn" onclick="flipCard('{{ td.local_name }}')" title="Show schema">
+                            <i data-lucide="list"></i>
+                        </button>
+                    </div>
+
+                    <div class="type-analytics-body">
+                        <!-- Left: Stats -->
+                        <div class="analytics-left">
+                            <div class="analytics-stat-hero">
+                                <span class="analytics-big-num" style="color: {{ td.color }}">{{ td.instance_count }}</span>
+                                <span class="analytics-big-label">Total {{ td.label }}s</span>
+                            </div>
+
+                            <div class="analytics-stat-row">
+                                <span class="analytics-stat-name">Fields</span>
+                                <span class="analytics-stat-val">{{ td.field_count }}</span>
+                            </div>
+                            <div class="analytics-stat-row">
+                                <span class="analytics-stat-name">Relationships</span>
+                                <span class="analytics-stat-val">{{ td.relationships | length }}</span>
+                            </div>
+                            <div class="analytics-stat-row">
+                                <span class="analytics-stat-name">Views</span>
+                                <span class="analytics-stat-val">{{ td.views | length }}</span>
+                            </div>
+
+                            <!-- TODO: avg connections per node, last modified date, growth trend -->
+                            <div class="analytics-stat-row analytics-todo">
+                                <span class="analytics-stat-name">Avg. connections</span>
+                                <span class="analytics-stat-val todo-val">&mdash;</span>
+                            </div>
+                            <div class="analytics-stat-row analytics-todo">
+                                <span class="analytics-stat-name">Last modified</span>
+                                <span class="analytics-stat-val todo-val">&mdash;</span>
+                            </div>
+                        </div>
+
+                        <!-- Right: Top nodes by incoming links -->
+                        <div class="analytics-right">
+                            <h4>Most Connected</h4>
+                            {% if td.top_nodes %}
+                            <ol class="top-nodes-list">
+                                {% for node in td.top_nodes %}
+                                <li>
+                                    <span class="top-node-label">{{ node.label }}</span>
+                                    <span class="top-node-links">
+                                        <i data-lucide="link"></i>
+                                        {{ node.link_count }}
+                                    </span>
+                                </li>
+                                {% endfor %}
+                            </ol>
+                            {% else %}
+                            <p class="analytics-empty">No instances yet</p>
+                            {% endif %}
+
+                            <!-- TODO: sparkline chart, recent activity, link distribution -->
+                            <div class="analytics-placeholder">
+                                <div class="placeholder-bar" style="width: 80%"></div>
+                                <div class="placeholder-bar" style="width: 55%"></div>
+                                <div class="placeholder-bar" style="width: 35%"></div>
+                                <span class="placeholder-label">Link distribution (coming soon)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         {% endfor %}
@@ -193,11 +290,63 @@
             </table>
         </div>
     </details>
+
+    </div><!-- end schema-panel -->
+
+    <!-- Connections Tab Panel -->
+    <div id="connections-panel" class="model-tab-panel" style="display:none;">
+        <div id="connections-content">
+            <div class="connections-loading">
+                <i data-lucide="loader-2" class="spin"></i> Loading connections...
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
+
+    function switchModelTab(tabName) {
+        // Update tab buttons
+        document.querySelectorAll('.model-tab').forEach(function(btn) {
+            btn.classList.toggle('active', btn.dataset.tab === tabName);
+        });
+        // Update panels
+        document.getElementById('schema-panel').style.display = tabName === 'schema' ? '' : 'none';
+        document.getElementById('connections-panel').style.display = tabName === 'connections' ? '' : 'none';
+        // Re-init lucide icons after htmx swap
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function flipCard(localName) {
+        var inner = document.getElementById('flip-' + localName);
+        if (!inner) return;
+        var isFlipped = inner.classList.toggle('flipped');
+        // Match container height to the visible face
+        var front = inner.querySelector('.type-flip-front');
+        var back = inner.querySelector('.type-flip-back');
+        if (isFlipped) {
+            inner.style.height = back.scrollHeight + 'px';
+        } else {
+            inner.style.height = front.scrollHeight + 'px';
+        }
+    }
+
+    // Set initial heights after render
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.type-flip-inner').forEach(function(inner) {
+            var front = inner.querySelector('.type-flip-front');
+            if (front) inner.style.height = front.scrollHeight + 'px';
+        });
+    });
+    // Also run immediately for htmx swaps
+    (function() {
+        document.querySelectorAll('.type-flip-inner').forEach(function(inner) {
+            var front = inner.querySelector('.type-flip-front');
+            if (front) inner.style.height = front.scrollHeight + 'px';
+        });
+    })();
 </script>
 {% endblock %}
