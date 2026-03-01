@@ -1128,21 +1128,64 @@ details.form-group[open] > .form-group-summary::before {
 }
 
 .relation-group {
-    margin-bottom: 10px;
+    margin-bottom: 4px;
+}
+
+/* <details> reset */
+.relation-group summary {
+    list-style: none;
+}
+.relation-group summary::-webkit-details-marker {
+    display: none;
 }
 
 .relation-predicate {
+    display: flex;
+    align-items: center;
+    gap: 5px;
     font-size: 0.78rem;
     font-weight: 500;
     color: var(--color-text-muted);
-    margin-bottom: 3px;
+    padding: 3px 4px;
+    border-radius: 3px;
+    cursor: pointer;
+    user-select: none;
+}
+.relation-predicate:hover {
+    background: var(--color-surface-raised, var(--color-surface));
+}
+.relation-pred-chevron {
+    font-size: 0.6rem;
+    flex-shrink: 0;
+    transition: transform 0.15s;
+    display: inline-block;
+}
+.relation-group[open] .relation-pred-chevron {
+    transform: rotate(90deg);
+}
+.relation-pred-label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.relation-pred-count {
+    flex-shrink: 0;
+    font-size: 0.7rem;
+    color: var(--color-text-faint);
+    background: var(--color-surface-raised, var(--color-border));
+    border-radius: 8px;
+    padding: 0 5px;
+    min-width: 18px;
+    text-align: center;
 }
 
 .relation-item {
     display: flex;
     align-items: center;
     gap: 4px;
-    padding: 3px 0 3px 12px;
+    padding: 3px 0 3px 20px;
     font-size: 0.83rem;
     cursor: pointer;
     color: var(--color-primary);
