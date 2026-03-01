@@ -191,7 +191,7 @@ Plans:
 | 22. Tech Debt Sprint | v2.1 | 3/3 | Complete | 2026-03-01 |
 | 23. SPARQL Console | 2/2 | Complete   | 2026-03-01 | - |
 | 24. FTS Keyword Search | v2.2 | 0/2 | Not started | - |
-| 25. CSS Token Expansion | 1/1 | Complete   | 2026-03-01 | - |
+| 25. CSS Token Expansion | 1/1 | Complete    | 2026-03-01 | - |
 | 26. VFS MVP Read-Only | v2.2 | 0/? | Not started | - |
 | 27. VFS Write + Auth | v2.2 | 0/? | Not started | - |
 | 28. UI Polish + Integration Testing | v2.2 | 0/? | Not started | - |
