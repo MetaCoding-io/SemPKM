@@ -225,9 +225,15 @@
       }
     }
 
-    // Phase 28 POLSH-03: dispatch tabs-empty if all groups now have no tabs
-    var allEmpty = this.groups.every(function(g) { return g.tabs.length === 0; });
-    if (allEmpty) {
+    // Phase 28 POLSH-03 (gap-closure): dispatch tabs-empty when no OBJECT tabs remain
+    // (non-object tabs — views, settings, docs — do not count as "active object context")
+    var hasObjectTab = this.groups.some(function(g) {
+      return g.tabs.some(function(t) {
+        var tid = t.id || t.iri || '';
+        return !t.isView && !tid.startsWith('view:') && !tid.startsWith('special:');
+      });
+    });
+    if (!hasObjectTab) {
       document.dispatchEvent(new CustomEvent('sempkm:tabs-empty'));
     }
   };
@@ -888,7 +894,10 @@
     loadTabInGroup(groupId, tabId);
 
     // Phase 28 POLSH-03: notify contextual panel indicator
-    document.dispatchEvent(new CustomEvent('sempkm:tab-activated', { detail: { tabId: tabId, groupId: groupId } }));
+    // Phase 28 gap-closure: add isObjectTab so workspace.js can filter non-object tabs
+    var _activatedTab = group.tabs.find(function(t) { return (t.id || t.iri) === tabId; });
+    var _isObjectTab = _activatedTab ? (!_activatedTab.isView && !tabId.startsWith('view:') && !tabId.startsWith('special:')) : false;
+    document.dispatchEvent(new CustomEvent('sempkm:tab-activated', { detail: { tabId: tabId, groupId: groupId, isObjectTab: _isObjectTab } }));
   }
 
   /**
