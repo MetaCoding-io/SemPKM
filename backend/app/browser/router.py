@@ -407,12 +407,15 @@ async def workspace(
     templates = request.app.state.templates
     types = await shapes_service.get_types()
     type_icons = icon_svc.get_icon_map(context="tree")
+    from app.config import settings
+
     context = {
         "request": request,
         "types": types,
         "type_icons": type_icons,
         "active_page": "browser",
         "user": user,
+        "base_namespace": settings.base_namespace,
     }
 
     if _is_htmx_request(request):
