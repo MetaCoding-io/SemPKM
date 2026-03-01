@@ -14,7 +14,7 @@ The **Admin Portal** is a separate section of SemPKM dedicated to system configu
 2. Select **Admin** from the menu. This navigates to the admin portal at `/admin/`.
 3. The admin landing page shows links to the available management sections: **Models** and **Webhooks**.
 
-<!-- Screenshot: Admin Portal landing page showing Models and Webhooks links -->
+![Admin portal showing Mental Models management page](images/13-admin-models.png)
 
 > **Warning:** The Admin Portal is restricted to users with the owner role. If you do not see the Admin option in your user menu, contact your instance administrator.
 
@@ -26,7 +26,6 @@ Click **Models** on the admin landing page (or navigate directly to `/admin/mode
 - An **Install Model** form for adding new models.
 - **Remove** buttons next to each installed model.
 
-<!-- Screenshot: Models management page showing installed Basic PKM model -->
 
 ## Installing a Mental Model
 
@@ -62,7 +61,6 @@ When you install a Mental Model, SemPKM performs a multi-step pipeline:
 4. If successful, the model appears in the installed models table and a success message is displayed. Any warnings (such as seed data issues) are shown alongside the success message.
 5. If installation fails, an error message explains what went wrong (e.g., manifest validation error, duplicate model, archive validation error).
 
-<!-- Screenshot: Install Model form with a path entered -->
 
 > **Tip:** The Basic PKM model is located at `models/basic-pkm/` relative to the SemPKM project root. If you ever need to reinstall it, use the full absolute path to this directory.
 

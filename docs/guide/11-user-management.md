@@ -10,6 +10,8 @@ This chapter covers how authentication works, what the different user roles mean
 
 The User model in SemPKM has no password column. Authentication is entirely token-based:
 
+![Passwordless login page](images/19-login-page.png)
+
 1. **Setup wizard** -- On first launch, SemPKM generates a one-time **setup token** and prints it to the server log. You use this token to claim the instance and become the owner.
 2. **Magic links** -- After the owner exists, any user logs in by requesting a magic link token for their email address. If SMTP is configured, this token is emailed as a clickable link. If SMTP is not configured (the default for local instances), the token is returned directly in the browser and logged to the terminal.
 3. **Session cookies** -- Once a token is verified, SemPKM creates an opaque session token (a 32-byte random string, not a JWT), stores it in the database, and sets it as an `httpOnly` cookie named `sempkm_session`. The cookie is not accessible from JavaScript, protecting against XSS attacks.
@@ -145,7 +147,6 @@ The owner can view all registered users through the Admin Portal. The user list 
 - **Role** -- owner, member, or guest
 - **Created** -- When the account was created
 
-<!-- Screenshot: Admin user list showing email, display name, role, and creation date columns -->
 
 ### Changing Roles
 

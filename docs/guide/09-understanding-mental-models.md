@@ -81,6 +81,8 @@ Icons make types instantly recognizable across the entire interface.
 
 The Basic PKM model ships with SemPKM and is automatically installed on a fresh instance if no other models are present. It provides a general-purpose personal knowledge management system built around four types.
 
+![Concept object showing SKOS-based properties from the Basic PKM model](images/18-object-read-concept.png)
+
 ### Types and Their Properties
 
 **Note** -- a note, observation, or piece of knowledge.

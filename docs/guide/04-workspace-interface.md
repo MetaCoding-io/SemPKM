@@ -4,7 +4,7 @@ SemPKM's workspace is an IDE-style environment designed for navigating, reading,
 
 This chapter walks through every region of the workspace so you know where things are and how they behave.
 
-<!-- Screenshot: full workspace with all panels visible, an object open in the editor, and the sidebar expanded -->
+![Full workspace showing sidebar, explorer tree, editor area, and details panel](images/01-workspace-overview.png)
 
 ---
 
@@ -28,7 +28,6 @@ You can drag the vertical gutters between columns to resize them. Your sizing pr
 
 The **Sidebar** is the narrow vertical bar on the far left of the screen, outside the three-column workspace. It provides global navigation across the entire SemPKM application.
 
-<!-- Screenshot: sidebar expanded, showing all section groups -->
 
 ### Navigation Sections
 
@@ -65,7 +64,6 @@ The left column of the workspace is titled **Explorer** and contains two collaps
 
 The **OBJECTS** section displays a tree view of all objects in your knowledge base, organized by type. Each type from your installed Mental Models appears as a top-level tree node with a type-specific icon and color (defined in the model's icon manifest).
 
-<!-- Screenshot: objects tree with Note, Concept, Person, and Project type nodes expanded -->
 
 **How the tree works:**
 
@@ -122,6 +120,8 @@ When no tabs are open, the editor area shows a helpful empty state:
 ### Split Panes (Editor Groups)
 
 You can split the editor area into up to **4 side-by-side editor groups**, each with its own tab bar and content area. This is useful for comparing objects, referencing one note while editing another, or keeping a graph view visible alongside an object editor.
+
+![Multiple tabs open across editor groups](images/15-multiple-tabs.png)
 
 **How to split:**
 
@@ -180,7 +180,7 @@ For details on validation behavior, see the validation section in [Working with 
 
 The bottom panel sits beneath the editor groups within the center column. It is **collapsed by default** (zero height) and can be toggled open with `Ctrl+J`.
 
-<!-- Screenshot: bottom panel open with Event Log tab active -->
+![Bottom panel open showing Event Log tab](images/20-bottom-panel.png)
 
 ### Toggling and Resizing
 
@@ -211,7 +211,7 @@ The Event Log provides a filterable timeline of every operation performed on you
 
 The **Command Palette** is a quick-access overlay for searching and executing workspace actions. Open it with `Ctrl+K`.
 
-<!-- Screenshot: command palette open with search field and available commands -->
+![Command palette overlay with searchable commands](images/09-command-palette.png)
 
 The palette is powered by the `ninja-keys` web component and supports fuzzy search across all available actions. Commands are organized into sections:
 
