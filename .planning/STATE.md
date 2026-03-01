@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 Phase: 27 of 28 (VFS Write + Auth)
 Plan: 3 of 3 complete
 Status: In Progress
-Last activity: 2026-03-01 - Completed quick task 10: Design onboarding workflow for Obsidian users with untagged notes
+Last activity: 2026-03-01 - Completed quick task 11: Add connections tab to mental model detail dashboard
 
 Progress: [##############################] 100% (Phase 27)
 
@@ -92,9 +92,10 @@ All v2.2 architectural decisions committed in v2.1. See .planning/DECISIONS.md f
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 10 | Design onboarding workflow for Obsidian users with untagged notes - import, ontology mapping via LLMs, user guide docs | 2026-03-01 | e382971 | [10-design-onboarding-workflow-for-obsidian-](./quick/10-design-onboarding-workflow-for-obsidian-/) |
+| 11 | Add connections tab to mental model detail - SPARQL outbound/inbound triples, htmx lazy-load, grouped by predicate | 2026-03-01 | edb862b | [11-add-connections-tab-to-mental-model-deta](./quick/11-add-connections-tab-to-mental-model-deta/) |
 
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 27-02-PLAN.md (VFS Write Path — body.set via WebDAV PUT)
+Stopped at: Completed quick task 11 (Add connections tab to mental model detail)
 Resume: Phase 27 plans 01, 02, 03 all complete. Proceed with Phase 28 (UI Polish + Integration Testing).
