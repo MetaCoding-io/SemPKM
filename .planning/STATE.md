@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Data Discovery
 status: unknown
-last_updated: "2026-03-01T08:00:00.000Z"
+last_updated: "2026-03-01T07:30:00.000Z"
 progress:
   total_phases: 16
   completed_phases: 14
@@ -62,6 +62,9 @@ All v2.2 architectural decisions committed in v2.1. See .planning/DECISIONS.md f
 - VFS-07: wsgidav readonly=True config set, but collection classes return 403 before wsgidav's 405 -- both block writes
 - VFS-08: ApiToken uses hard-delete for revocation (not soft-delete via revoked_at) — cleaner list queries, no filter needed
 - VFS-09: environ["sempkm.user_id"] set in SemPKMWsgiAuthenticator.basic_auth_user for DAV provider write path user context
+- VFS-10b: begin_write/end_write wsgidav hooks used for write path (not write_data which does not exist in this wsgidav version)
+- VFS-11b: set_event_store() injection method on DAVProvider — event_store wired at lifespan startup, not module load time
+- VFS-12: SHA-256 ETag on ResourceFile; wsgidav handles If-Match/412 automatically via evaluate_http_conditionals before begin_write
 - VFS-10: VFS settings CSS added to settings.css (not style.css) following project file layout convention
 - VFS-11: VFS token generation uses fetch() instead of htmx to capture and display plaintext token once in-place
 - FTS-01: LuceneSail config uses RDF4J 5.x unified namespace (config:lucene.indexDir, config:delegate) — verified from container-generated config
@@ -87,5 +90,5 @@ All v2.2 architectural decisions committed in v2.1. See .planning/DECISIONS.md f
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 27-03-PLAN.md (VFS Settings UI)
-Resume: Phase 27 complete. Proceed with Phase 28 (UI Polish + Integration Testing).
+Stopped at: Completed 27-02-PLAN.md (VFS Write Path — body.set via WebDAV PUT)
+Resume: Phase 27 plans 01, 02, 03 all complete. Proceed with Phase 28 (UI Polish + Integration Testing).

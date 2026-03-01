@@ -63,7 +63,7 @@
 - [x] **Phase 24: FTS Keyword Search** — RDF4J LuceneSail indexing, SPARQL FTS predicates, Ctrl+K command palette integration (completed 2026-03-01)
 - [x] **Phase 25: CSS Token Expansion** — Two-tier primitive/semantic token architecture, expanding from ~40 to ~91 tokens (completed 2026-03-01)
 - [x] **Phase 26: VFS MVP Read-Only** — wsgidav WebDAV mount via a2wsgi bridge, SyncTriplestoreClient, Markdown+frontmatter file rendering (completed 2026-03-01)
-- [ ] **Phase 27: VFS Write + Auth** — Write path diff engine, API token Basic auth, MountSpec settings UI
+- [x] **Phase 27: VFS Write + Auth** — Write path diff engine, API token Basic auth, MountSpec settings UI (completed 2026-03-01)
 - [ ] **Phase 28: UI Polish + Integration Testing** — Expander icon fixes, sidebar panel rearrangement, contextual view indicators, Playwright E2E suites
 
 ## Phase Details
@@ -193,7 +193,7 @@ Plans:
 | 24. FTS Keyword Search | 2/2 | Complete   | 2026-03-01 | - |
 | 25. CSS Token Expansion | 1/1 | Complete    | 2026-03-01 | - |
 | 26. VFS MVP Read-Only | 3/3 | Complete    | 2026-03-01 | - |
-| 27. VFS Write + Auth | 2/3 | In Progress|  | - |
+| 27. VFS Write + Auth | 3/3 | Complete   | 2026-03-01 | - |
 | 28. UI Polish + Integration Testing | v2.2 | 0/? | Not started | - |
 
 ---
