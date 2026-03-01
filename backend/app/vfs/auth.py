@@ -29,6 +29,10 @@ class SemPKMWsgiAuthenticator(BaseDomainController):
     def is_share_anonymous(self, path_info: str) -> bool:
         return False
 
+    def supports_http_digest_auth(self) -> bool:
+        """We only support Basic auth, not Digest."""
+        return False
+
     def basic_auth_user(
         self, realm: str, user_name: str, password: str, environ: dict
     ) -> bool:
