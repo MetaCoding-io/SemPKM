@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Architecture Decision Gate
 status: unknown
-last_updated: "2026-03-01T02:34:41.969Z"
+last_updated: "2026-03-01T02:38:04.482Z"
 progress:
   total_phases: 12
   completed_phases: 10
   total_plans: 35
-  completed_plans: 29
+  completed_plans: 31
 ---
 
 # Project State
@@ -76,6 +76,7 @@ Progress: [#---------] 10% (v2.1) — Phase 20 Plan 01 complete
 | Phase 20 P01 | 2min | 2 tasks | 1 files |
 | Phase 20 P02 | 2min | 2 tasks | 1 files |
 | Phase 20 P02 | 2min | 2 tasks | 1 files |
+| Phase 22 P02 | 2min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -195,6 +196,12 @@ v2.1 Phase 20 execution decisions (20-02):
 - (20-02) Custom YASR table cell renderer for SemPKM IRI-to-object-browser links committed as design (satisfies SPARQL-02)
 - (20-02) localStorage persistence with key sempkm-sparql committed (satisfies SPARQL-03)
 
+v2.1 Phase 22 execution decisions (22-02):
+- (22-02) send_magic_link_email returns bool (not raises) so caller can fall through to console fallback on SMTP failure
+- (22-02) Lazy import of email service inside if smtp_configured block (module only loaded when needed)
+- (22-02) SMTP failure falls through to console fallback (returns token) instead of generic "email sent" message
+- (22-02) app_base_url config setting avoids request.base_url returning internal container URL behind nginx
+
 ### Pending Todos
 
 1. Add edit form helptext property to SHACL types (ui)
@@ -202,7 +209,7 @@ v2.1 Phase 20 execution decisions (20-02):
 ### Known Tech Debt (from v1.0/v2.0)
 
 - Cookie secure=False (needs production config)
-- SMTP deferred (magic link tokens logged to console) — addressed in Phase 22
+- SMTP deferred (magic link tokens logged to console) — DONE (Phase 22 Plan 02)
 - Dual SQLAlchemy engine instances (harmless for SQLite)
 - empty_shapes_loader dead code
 - Alembic migration runner not yet in place — addressed in Phase 22

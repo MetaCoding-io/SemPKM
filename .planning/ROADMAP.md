@@ -119,7 +119,7 @@ Plans:
 | 19. Bug Fixes and E2E Test Hardening | v2.0 | 3/3 | Complete | 2026-02-27 |
 | 20. Architecture Decision Commit | 2/5 | In Progress|  | - |
 | 21. Research Synthesis | v2.1 | 0/1 | Not started | - |
-| 22. Tech Debt Sprint | v2.1 | 0/3 | Not started | - |
+| 22. Tech Debt Sprint | 2/3 | In Progress|  | - |
 
 ---
 *Roadmap created: 2026-02-21*
