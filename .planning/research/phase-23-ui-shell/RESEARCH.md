@@ -1320,3 +1320,47 @@ These questions could not be fully resolved during this research phase and shoul
 - [htmx JavaScript API](https://htmx.org/api/) -- `htmx.process()` and programmatic usage
 - [htmx Events](https://htmx.org/events/) -- lifecycle events (init, beforeProcessNode, etc.)
 - [htmx Reference](https://htmx.org/reference/) -- full attribute and event reference
+
+---
+
+## v2.2 Handoff
+
+**Target:** v2.3 Shell and Navigation milestone (DOCK-01, DOCK-02, THEME-01, THEME-02)
+
+Note: v2.2 focuses on Data Discovery (FTS, SPARQL UI, VFS). The UI Shell migration is a v2.3 deliverable. The decisions below are committed for that milestone.
+
+### Prerequisites Before Implementation
+
+1. **Measure `dockview-core` bundle size** — before committing to the CDN loading strategy, retrieve the exact minified+gzipped size from Bundlephobia (`https://bundlephobia.com/package/dockview-core`); compare to Cytoscape (~300KB gzipped, already loaded globally); if under ~400KB, load via CDN consistent with existing stack; if larger, vendor to `frontend/static/vendor/dockview/`
+
+2. **Validate htmx event handler survival on panel reparent** — build a minimal test page (outside SemPKM) with a Dockview panel containing an htmx-enhanced element, drag it to a new group, and verify that `hx-trigger` events still fire; this validates the `htmx.process()` safety-net pattern before the full migration
+
+3. **Audit `workspace-layout.js` for htmx patterns that use `closest` or ancestor-scoped selectors** — these are the patterns most likely to break on reparent; document each occurrence and prepare the `htmx.process()` call sites needed in the `onDidLayoutChange` handler
+
+4. **Define `dockview-core` component registration** — enumerate the panel content components needed (`object-editor`, `relations-panel`, `lint-panel`, `nav-tree`, `graph-view`); define the `createComponent` interface that each must implement (see Section 2 for the htmx.ajax pattern)
+
+### Phase A First Steps (Inner Editor-Pane Split)
+
+1. Load `dockview-core` CSS and JS from CDN (or vendor path) in `workspace.html` template only
+
+2. Replace the Split.js two-pane editor-groups container in `workspace-layout.js` with a `DockviewComponent` instance targeting `#editor-groups-container`; remove `recreateGroupSplit()` and associated Split.js logic
+
+3. Implement `createComponent` with `htmx.ajax('GET', ..., {target: params.containerElement, swap: 'innerHTML'})` for the `object-editor` component type — matches existing `loadTabInGroup()` pattern
+
+4. Add `onDidLayoutChange` handler calling `htmx.process()` on panel containers as safety net
+
+5. Map `--dv-*` Dockview CSS variables to existing `--color-*` and `--tab-*` tokens in `theme.css` dark mode overrides
+
+6. Requirements satisfied at Phase A completion: DOCK-01 (drag-and-drop within the editor area)
+
+### Phase B (Full Workspace — Deferred to v2.3)
+
+Promote Dockview to manage the entire workspace (sidebar, nav tree, editor groups, bottom panel). Requires redesigning `workspace.html` layout structure and migrating remaining Split.js usages. Do not attempt until Phase A is validated in production.
+
+### CSS Token Expansion (Can Begin in v2.2)
+
+The CSS token vocabulary expansion (from ~40 to ~91 tokens) is independent of the Dockview migration and can be implemented in v2.2 as a preparatory step. Add the new tokens defined in Section 4 (spacing scale, typography sizes, panel/tab, sidebar, graph, modal, focus ring tokens) to `theme.css` alongside the existing tokens. Update `workspace.css`, `style.css`, `forms.css`, and `views.css` to use the new tokens. No behavior changes — pure token formalization.
+
+### Model-Contributed Themes (v2.3)
+
+Model theme CSS files override `:root` and `html[data-theme]` semantic tokens only. The loading mechanism via dynamic `<link>` insertion (see Section 5) requires a `GET /api/models/{id}/theme.css` endpoint. Implement alongside Phase B when model manifest parsing is in place. Satisfies THEME-02.
