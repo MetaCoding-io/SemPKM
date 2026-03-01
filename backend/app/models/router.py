@@ -5,7 +5,7 @@ Provides endpoints for installing, removing, and listing Mental Models.
 
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from app.auth.dependencies import get_current_user, require_role
@@ -71,6 +71,7 @@ class ModelListResponse(BaseModel):
 )
 async def install_model(
     body: InstallRequest,
+    request: Request,
     user: User = Depends(require_role("owner")),
     model_service: ModelService = Depends(get_model_service),
 ) -> InstallResponse:
@@ -93,6 +94,9 @@ async def install_model(
             detail={"errors": result.errors},
         )
 
+    # Invalidate ViewSpec cache after successful model install
+    request.app.state.view_spec_service.invalidate_cache()
+
     return InstallResponse(
         model_id=result.model_id,
         message=f"Model '{result.model_id}' installed successfully",
@@ -110,6 +114,7 @@ async def install_model(
 )
 async def remove_model(
     model_id: str,
+    request: Request,
     user: User = Depends(require_role("owner")),
     model_service: ModelService = Depends(get_model_service),
 ) -> RemoveResponse:
@@ -137,6 +142,9 @@ async def remove_model(
                 status_code=400,
                 detail={"errors": result.errors},
             )
+
+    # Invalidate ViewSpec cache after successful model removal
+    request.app.state.view_spec_service.invalidate_cache()
 
     return RemoveResponse(
         model_id=result.model_id,
