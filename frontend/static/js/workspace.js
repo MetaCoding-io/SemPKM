@@ -80,7 +80,7 @@
         layout.activeGroupId
       );
       // Phase 28 POLSH-03: notify contextual panel indicator when a tab is opened
-      document.dispatchEvent(new CustomEvent('sempkm:tab-activated', { detail: { tabId: objectIri } }));
+      document.dispatchEvent(new CustomEvent('sempkm:tab-activated', { detail: { tabId: objectIri, isObjectTab: true } }));
       // Load the content
       if (mode === 'edit') {
         var editorArea = window.getActiveEditorArea();
@@ -1653,8 +1653,13 @@
   }
 
   // Listen for tab lifecycle events dispatched by workspace-layout.js
-  document.addEventListener('sempkm:tab-activated', function() {
-    setContextualPanelActive(true);
+  document.addEventListener('sempkm:tab-activated', function(e) {
+    // Only activate the accent bar for object tabs (not views, settings, SPARQL)
+    if (e.detail && e.detail.isObjectTab) {
+      setContextualPanelActive(true);
+    }
+    // Non-object tab: leave accent bar state unchanged
+    // (bar stays on if object tab still open elsewhere; off if no object was active)
   });
 
   document.addEventListener('sempkm:tabs-empty', function() {
@@ -1665,10 +1670,15 @@
   // Deferred via setTimeout to ensure workspace-layout.js has set window._workspaceLayout
   setTimeout(function() {
     if (window._workspaceLayout) {
-      var hasActiveTab = window._workspaceLayout.groups.some(function(g) {
-        return g.activeTabId !== null && g.tabs.length > 0;
+      // Only activate if any group's active tab is an object tab (not view/special)
+      var hasActiveObjectTab = window._workspaceLayout.groups.some(function(g) {
+        if (!g.activeTabId) return false;
+        var activeTab = g.tabs.find(function(t) { return (t.id || t.iri) === g.activeTabId; });
+        if (!activeTab) return false;
+        var tid = activeTab.id || activeTab.iri || '';
+        return !activeTab.isView && !tid.startsWith('view:') && !tid.startsWith('special:');
       });
-      setContextualPanelActive(hasActiveTab);
+      setContextualPanelActive(hasActiveObjectTab);
     }
   }, 0);
 
