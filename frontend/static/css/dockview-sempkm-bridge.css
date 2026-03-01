@@ -1,0 +1,47 @@
+/* ============================================
+   Dockview <-> SemPKM Token Bridge
+   Maps dockview-core CSS variables (--dv-*) to SemPKM semantic tokens.
+
+   STATUS: Pattern file -- NOT loaded by the application.
+   Load this AFTER theme.css in v2.3 Phase A when integrating dockview-core.
+
+   Usage (v2.3 Phase A):
+     <link rel="stylesheet" href="/static/css/theme.css">
+     <link rel="stylesheet" href="/static/css/dockview-sempkm-bridge.css">
+     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dockview-core/dist/styles/dockview.css">
+   ============================================ */
+
+:root {
+  /* --- Tab Bar --- */
+  --dv-tabs-and-actions-container-background-color: var(--tab-inactive-bg);
+  --dv-activegroup-visiblepanel-tab-background-color: var(--tab-active-bg);
+  --dv-activegroup-hiddenpanel-tab-background-color: var(--tab-inactive-bg);
+  --dv-inactivegroup-visiblepanel-tab-background-color: var(--tab-inactive-bg);
+  --dv-inactivegroup-hiddenpanel-tab-background-color: var(--tab-inactive-bg);
+  --dv-tab-close-icon: var(--color-text-muted);
+  --dv-activegroup-visiblepanel-tab-color: var(--color-text);
+  --dv-activegroup-hiddenpanel-tab-color: var(--color-text-muted);
+  --dv-inactivegroup-visiblepanel-tab-color: var(--color-text-muted);
+  --dv-inactivegroup-hiddenpanel-tab-color: var(--color-text-faint);
+
+  /* --- Panel / Group --- */
+  --dv-group-view-background-color: var(--panel-content-bg);
+  --dv-paneview-header-border-color: var(--color-border);
+  --dv-paneview-active-outline-color: var(--color-accent);
+
+  /* --- Separators / Gutters --- */
+  --dv-separator-border: var(--color-border);
+  --dv-drag-over-background-color: var(--color-accent-subtle);
+  --dv-drag-over-border-color: var(--color-accent);
+
+  /* --- Overlay / Focus Ring --- */
+  --dv-overlay-z-index: 1000;
+  --dv-active-sash-color: var(--color-accent);
+  --dv-transition-duration: 150ms;
+}
+
+/* --- Dark Mode ---
+   No overrides needed here. All --dv-* variables reference SemPKM semantic
+   tokens (--tab-*, --panel-*, --color-*), which are automatically overridden
+   in html[data-theme="dark"] by theme.css. The bridge mappings remain stable
+   across both themes. */
