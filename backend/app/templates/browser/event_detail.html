@@ -32,7 +32,8 @@
       <tbody>
         {% for pred_iri, new_val in detail.new_values.items() %}
         {% set old_val = detail.before_values.get(pred_iri, '') %}
-        <tr class="{% if old_val != new_val %}diff-row-changed{% else %}diff-row-same{% endif %}">
+        {% if old_val == new_val %}{% continue %}{% endif %}
+        <tr class="diff-row-changed">
           <td class="diff-col-pred">
             <span class="diff-pred-label" title="{{ pred_iri }}">{{ pred_iri.split('/')[-1].split('#')[-1] }}</span>
           </td>
