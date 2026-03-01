@@ -2507,3 +2507,38 @@ details.form-group[open] > .form-group-summary::before {
     font-weight: 500;
     margin-top: 2px;
 }
+
+/* ============================================================
+   Phase 28: Expander/Collapse Icon Visibility Fix (POLSH-01)
+   Ensures chevron/toggle icons are visible in both light and
+   dark themes by setting explicit color tokens instead of
+   relying on inheritance from parent elements.
+   ============================================================ */
+
+/* Sidebar group chevron (Lucide chevron-right SVG in _sidebar.html) */
+.group-chevron {
+    color: var(--color-text-muted);
+}
+.group-chevron svg {
+    color: var(--color-text-muted);
+    stroke: currentColor;
+}
+
+/* Explorer section chevron (Unicode &#9656; in workspace.html) */
+.explorer-section-chevron {
+    color: var(--color-text-muted);
+}
+
+/* Nav tree type node toggle (Unicode &#9656; in nav_tree.html) */
+.tree-toggle {
+    color: var(--color-text-muted);
+}
+
+/* Right pane section chevron (Lucide chevron-right SVG in workspace.html) */
+.right-section-chevron {
+    color: var(--color-text-muted);
+}
+.right-section-chevron svg {
+    color: var(--color-text-muted);
+    stroke: currentColor;
+}
