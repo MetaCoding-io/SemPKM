@@ -11,6 +11,10 @@
       </button>
       {% endfor %}
     </div>
+    <label class="event-autorefresh-label">
+      <input type="checkbox" id="event-autorefresh-cb" onchange="sempkmToggleAutoRefresh(this.checked)">
+      Auto-refresh (30s)
+    </label>
     <div class="event-filter-controls">
       <select class="event-filter-select" id="event-op-filter"
               hx-get="/browser/events"
@@ -103,3 +107,58 @@
   </div>
   {% endif %}
 </div>
+
+<script>
+(function () {
+  'use strict';
+  var LS_KEY = 'sempkm_event_autorefresh';
+  var INTERVAL_MS = 30000;
+
+  /* Refresh function: preserves current filter state */
+  window.sempkmRefreshEventLog = function () {
+    var el = document.getElementById('panel-event-log') ||
+             document.getElementById('event-log-right');
+    if (!el) return;
+    var params = new URLSearchParams();
+    var op   = el.querySelector('#event-op-filter');
+    var from = el.querySelector('#event-date-from');
+    var to   = el.querySelector('#event-date-to');
+    if (op   && op.value)   params.set('op',        op.value);
+    if (from && from.value) params.set('date_from', from.value);
+    if (to   && to.value)   params.set('date_to',   to.value);
+    var url = '/browser/events' + (params.toString() ? '?' + params.toString() : '');
+    htmx.ajax('GET', url, { target: el, swap: 'innerHTML' });
+  };
+
+  window.sempkmToggleAutoRefresh = function (enabled) {
+    localStorage.setItem(LS_KEY, enabled ? 'true' : 'false');
+    if (enabled) {
+      if (!window._sempkmRefreshTimer) {
+        window._sempkmRefreshTimer = setInterval(window.sempkmRefreshEventLog, INTERVAL_MS);
+      }
+    } else {
+      clearInterval(window._sempkmRefreshTimer);
+      window._sempkmRefreshTimer = null;
+    }
+  };
+
+  /* Restore checkbox state and timer on each render */
+  var enabled = localStorage.getItem(LS_KEY) === 'true';
+  var cb = document.getElementById('event-autorefresh-cb');
+  if (cb) cb.checked = enabled;
+
+  if (enabled && !window._sempkmRefreshTimer) {
+    window._sempkmRefreshTimer = setInterval(window.sempkmRefreshEventLog, INTERVAL_MS);
+  } else if (!enabled && window._sempkmRefreshTimer) {
+    clearInterval(window._sempkmRefreshTimer);
+    window._sempkmRefreshTimer = null;
+  }
+
+  /* Refresh immediately after a command is executed */
+  if (window._sempkmCmdListener) {
+    document.removeEventListener('sempkm:command-executed', window._sempkmCmdListener);
+  }
+  window._sempkmCmdListener = window.sempkmRefreshEventLog;
+  document.addEventListener('sempkm:command-executed', window._sempkmCmdListener);
+})();
+</script>

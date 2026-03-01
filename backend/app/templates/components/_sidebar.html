@@ -91,9 +91,10 @@
                 <span class="group-label">Debug</span>
             </button>
             <div class="sidebar-group-items">
-                <a href="/commands" class="nav-link" data-tooltip="Commands">
-                    <i data-lucide="terminal" class="nav-icon"></i>
-                    <span class="nav-label">Commands</span>
+                <a href="/events" class="nav-link" data-tooltip="Event Console"
+                   hx-get="/events" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
+                    <i data-lucide="scroll-text" class="nav-icon"></i>
+                    <span class="nav-label">Event Console</span>
                 </a>
                 <a href="/redoc" class="nav-link" data-tooltip="API Docs (ReDoc)" onclick="return loadDocsIframe('/redoc', this)">
                     <i data-lucide="file-text" class="nav-icon"></i>
@@ -107,10 +108,6 @@
                    hx-get="/health/" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
                     <i data-lucide="heart-pulse" class="nav-icon"></i>
                     <span class="nav-label">Health Check</span>
-                </a>
-                <a href="#" class="nav-link disabled" data-tooltip="Event Log">
-                    <i data-lucide="scroll-text" class="nav-icon"></i>
-                    <span class="nav-label">Event Log</span>
                 </a>
             </div>
         </div>

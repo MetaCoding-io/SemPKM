@@ -306,6 +306,7 @@ async function executeCommand() {
         escapeHtml(JSON.stringify(data, null, 2)) +
         "</pre>";
     }
+    document.dispatchEvent(new CustomEvent('sempkm:command-executed'));
   } catch (err) {
     if (resultDiv) resultDiv.innerHTML = "";
     showError(errorDiv, "Network error: " + err.message);
@@ -360,6 +361,7 @@ async function executeRawCommand() {
         escapeHtml(JSON.stringify(data, null, 2)) +
         "</pre>";
     }
+    document.dispatchEvent(new CustomEvent('sempkm:command-executed'));
   } catch (err) {
     if (resultDiv) resultDiv.innerHTML = "";
     showError(errorDiv, "Network error: " + err.message);
