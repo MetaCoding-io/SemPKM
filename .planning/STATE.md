@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 Phase: 27 of 28 (VFS Write + Auth)
 Plan: 3 of 3 complete
 Status: In Progress
-Last activity: 2026-03-01 — Completed 27-03 (VFS Settings UI — WebDAV endpoint + API token management)
+Last activity: 2026-03-01 - Completed quick task 10: Design onboarding workflow for Obsidian users with untagged notes
 
 Progress: [##############################] 100% (Phase 27)
 
@@ -86,6 +86,12 @@ All v2.2 architectural decisions committed in v2.1. See .planning/DECISIONS.md f
 ### Blockers/Concerns
 
 - None — Phase 27 complete; all 3 plans done
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 10 | Design onboarding workflow for Obsidian users with untagged notes - import, ontology mapping via LLMs, user guide docs | 2026-03-01 | e382971 | [10-design-onboarding-workflow-for-obsidian-](./quick/10-design-onboarding-workflow-for-obsidian-/) |
 
 ## Session Continuity
 
