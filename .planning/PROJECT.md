@@ -72,7 +72,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ### Active
 
-<!-- v2.2: Data Discovery — FTS, SPARQL console, VFS MVP -->
+<!-- v2.2: Data Discovery — FTS, SPARQL console, VFS MVP, UI Polish + Integration -->
 
 - [ ] FTS-01: User can search knowledge base by keyword (full-text search across all literal values)
 - [ ] FTS-02: Search results show object type, label, and matching snippet
@@ -83,6 +83,10 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - [ ] VFS-01: User can mount SemPKM objects as files via WebDAV (read-only)
 - [ ] VFS-02: Object bodies rendered as Markdown files with SHACL-derived frontmatter
 - [ ] VFS-03: Mount configuration accessible via Settings page
+- [ ] POLSH-01: Expander/collapse icons visible in sidebar tree in both light and dark themes
+- [ ] POLSH-02: User can move sidebar panels between left/right sidebar in object browser
+- [ ] POLSH-03: Object-contextual panels show visual indicator distinguishing them from global views
+- [ ] POLSH-04: Each v2.2 feature area (FTS, SPARQL, VFS) has a dedicated Playwright E2E integration test file
 
 ### Future Candidates
 
@@ -123,14 +127,22 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current Milestone: v2.2 Data Discovery
 
-**Goal:** Implement the 4 committed architectural decisions from v2.1 — FTS keyword search (LuceneSail), SPARQL console (Yasgui CDN), Virtual Filesystem MVP (wsgidav read-only), and CSS token expansion as foundation for v2.3 UI shell work.
+**Goal:** Implement the 4 committed architectural decisions from v2.1 — FTS keyword search (LuceneSail), SPARQL console (Yasgui CDN), Virtual Filesystem MVP (wsgidav read-only), and CSS token expansion as foundation for v2.3 UI shell work — then close with UI polish, panel rearrangement, and comprehensive E2E integration testing.
 
-**Phase structure (from .planning/DECISIONS.md):**
+**Target features:**
+- Full-text keyword search across all literal values, integrated into Ctrl+K command palette
+- SPARQL console via Yasgui CDN embed with SemPKM IRI links and localStorage persistence
+- WebDAV VFS mount (read-only), Markdown files with SHACL frontmatter, settings UI
+- UI polish: fix expander icons, VSCode-style sidebar panel rearrangement, object-contextual view indicators
+- Integration E2E tests for all new feature areas
+
+**Phase structure:**
 - Phase 23: SPARQL Console (Yasgui CDN embed, no backend changes needed — ships first)
 - Phase 24: FTS Keyword Search (LuceneSail, JAR/config validation prerequisite)
 - Phase 25: CSS Token Expansion (40 → ~91 tokens, independent prerequisite for v2.3)
 - Phase 26: VFS MVP read-only (wsgidav + a2wsgi, SyncTriplestoreClient needed)
 - Phase 27: VFS Write + Auth (write path, API token auth design)
+- Phase 28: UI Polish + Integration Testing (expander icons, panel rearrangement, E2E suites)
 
 **See:** `.planning/DECISIONS.md` for full architectural rationale and implementation readiness checklist.
 
@@ -204,4 +216,4 @@ These apply to every plan, no exceptions. Executor must check both gates before 
 | asyncio.to_thread for Alembic | env.py uses asyncio.run internally; nested event loop requires thread isolation | ✓ Good — Alembic running in production (v2.1) |
 
 ---
-*Last updated: 2026-03-01 after v2.1 milestone*
+*Last updated: 2026-02-28 after v2.2 milestone start*
