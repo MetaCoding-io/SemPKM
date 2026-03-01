@@ -31,6 +31,7 @@ from app.health.router import router as health_router
 from app.models.router import router as models_router
 from app.services.labels import LabelService
 from app.services.models import ModelService, model_shapes_loader, ensure_starter_model
+from app.services.search import SearchService
 from app.services.prefixes import PrefixRegistry
 from app.services.shapes import ShapesService
 from app.services.validation import ValidationService
@@ -82,6 +83,10 @@ async def lifespan(app: FastAPI):
 
     label_service = LabelService(client, prefix_registry)
     app.state.label_service = label_service
+
+    # Create search service for full-text keyword search (LuceneSail)
+    search_service = SearchService(client)
+    app.state.search_service = search_service
 
     # Create event store and model service
     event_store = EventStore(client)
