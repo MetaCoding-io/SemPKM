@@ -88,7 +88,11 @@ Plans:
   2. Magic link emails arrive in a real inbox when SMTP settings are configured; the console fallback still works when SMTP is not configured
   3. Expired sessions are not present in the auth database after startup; the cleanup runs without manual intervention
   4. A view spec lookup that was recently resolved does not trigger a SPARQL query to the triplestore (TTL cache hit is observable in logs or metrics)
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 22-01-PLAN.md — Alembic migration runner at startup + session cleanup (TECH-01, TECH-03)
+- [ ] 22-02-PLAN.md — SMTP email delivery for magic links (TECH-02)
+- [ ] 22-03-PLAN.md — ViewSpecService TTL cache + invalidation wiring (TECH-04)
 
 ## Progress
 
@@ -113,7 +117,7 @@ Plans:
 | 17. LLM Connection Configuration | v2.0 | 2/2 | Complete | 2026-02-24 |
 | 18. Tutorials and Documentation | v2.0 | 2/2 | Complete | 2026-02-25 |
 | 19. Bug Fixes and E2E Test Hardening | v2.0 | 3/3 | Complete | 2026-02-27 |
-| 20. Architecture Decision Commit | v2.1 | 0/5 | In progress | - |
+| 20. Architecture Decision Commit | 1/5 | In Progress|  | - |
 | 21. Research Synthesis | v2.1 | 0/1 | Not started | - |
 | 22. Tech Debt Sprint | v2.1 | 0/4 | Not started | - |
 

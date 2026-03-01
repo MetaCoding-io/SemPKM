@@ -1,14 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.1
+milestone: v1.0
 milestone_name: Architecture Decision Gate
-status: roadmap_defined
-last_updated: "2026-03-01T00:00:00.000Z"
+status: unknown
+last_updated: "2026-03-01T02:30:57.745Z"
 progress:
-  total_phases: 3
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_phases: 12
+  completed_phases: 10
+  total_plans: 34
+  completed_plans: 28
 ---
 
 # Project State
@@ -22,12 +22,12 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 
 ## Current Position
 
-Phase: 20 (Architecture Decision Commit) — not started
-Plan: —
-Status: Roadmap defined — run /gsd:plan-phase 20
-Last activity: 2026-03-01 — v2.1 roadmap created (3 phases, 9 requirements)
+Phase: 20 (Architecture Decision Commit) — in progress
+Plan: 01 complete, 02+ pending
+Status: Plan 01 executed — FTS/Vector decision committed
+Last activity: 2026-03-01 — Phase 20 Plan 01 complete (2 tasks, 1 file, 2min)
 
-Progress: [----------] 0% (v2.1) — Phase 20 not started
+Progress: [#---------] 10% (v2.1) — Phase 20 Plan 01 complete
 
 ## v2.1 Phase Summary
 
@@ -73,6 +73,7 @@ Progress: [----------] 0% (v2.1) — Phase 20 not started
 | 18    | 02   | 2min     | 2     | 2     |
 | 19    | 01   | 13min    | 2     | 6     |
 | 19    | 02   | 28min    | 2     | 8     |
+| Phase 20 P01 | 2min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -181,6 +182,11 @@ v2.1 roadmap decisions:
 - Research is complete for all 4 DEC phases; Phase 20 formalizes existing RESEARCH.md files (no new research)
 - 3 phases chosen for standard depth: natural delivery boundaries align with the 3 requirement categories (DEC, SYN, TECH)
 
+v2.1 Phase 20 execution decisions (20-01):
+- (20-01) LuceneSail chosen for FTS: zero new containers, zero sync infra, SPARQL-native integration, ships with RDF4J 5.0.1 distribution
+- (20-01) OpenSearch/Jena/Oxigraph/GraphDB explicitly ruled out with specific rationale; pgvector semantic search deferred to Phase 20b (blocked on PostgreSQL migration)
+- (20-01) Three highest-priority implementation prerequisites: (1) verify LuceneSail JAR in Docker image, (2) validate Turtle config for RDF4J 5.x unified namespace, (3) validate FROM clause graph scoping
+
 ### Pending Todos
 
 1. Add edit form helptext property to SHACL types (ui)
@@ -218,5 +224,5 @@ None for v2.1.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: v2.1 roadmap defined — 3 phases, 9 requirements, 100% coverage
-Resume: Run /gsd:plan-phase 20 to begin Architecture Decision Commit phase
+Stopped at: Completed 20-01-PLAN.md — FTS/Vector architecture decision committed (LuceneSail)
+Resume: Run /gsd:execute-phase 20-02 to continue Architecture Decision Commit phase (next decision track)
