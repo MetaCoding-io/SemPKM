@@ -1650,6 +1650,14 @@
         panel.classList.remove('contextual-panel-active');
       }
     });
+    // Phase 28 gap-closure: clear panel content when no object is active
+    // so stale data from a previously open object does not persist
+    if (!isActive) {
+      var relEl = document.getElementById('relations-content');
+      var lintEl = document.getElementById('lint-content');
+      if (relEl) relEl.innerHTML = '<div class="right-empty">No object selected</div>';
+      if (lintEl) lintEl.innerHTML = '<div class="right-empty">No object selected</div>';
+    }
   }
 
   // Listen for tab lifecycle events dispatched by workspace-layout.js
