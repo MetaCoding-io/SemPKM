@@ -56,6 +56,59 @@ async def admin_models(
     return templates_response(request, "admin/models.html", context)
 
 
+@router.get("/models/{model_id}")
+async def admin_model_detail(
+    request: Request,
+    model_id: str,
+    user: User = Depends(require_role("owner")),
+    model_service: ModelService = Depends(get_model_service),
+):
+    """Render read-only detail dashboard for an installed Mental Model."""
+    detail = await model_service.get_model_detail(model_id)
+    if detail is None:
+        models = await model_service.list_models()
+        context = {"request": request, "models": models, "error": f"Model '{model_id}' not found.", "user": user}
+        return templates_response(request, "admin/models.html", context)
+
+    # Get icon data from IconService
+    from app.services.icons import IconService
+    icon_svc = IconService(models_dir="/app/models")
+    icon_map = icon_svc.get_icon_map("tree")
+
+    # Attach icon/color to each type
+    for t in detail["types"]:
+        icon_info = icon_map.get(t["iri"], {"icon": "circle", "color": "#999"})
+        t["icon"] = icon_info["icon"]
+        t["color"] = icon_info["color"]
+
+    # Attach icon/color to views by target class
+    for v in detail["views"]:
+        for t in detail["types"]:
+            if t["local_name"] == v["target_class"]:
+                v["icon"] = t.get("icon", "circle")
+                v["color"] = t.get("color", "#999")
+                break
+        else:
+            v["icon"] = "circle"
+            v["color"] = "#999"
+
+    # Attach icon/color to shapes by target class
+    for s in detail["shapes"]:
+        for t in detail["types"]:
+            if t["local_name"] == s["target_class"]:
+                s["icon"] = t.get("icon", "circle")
+                s["color"] = t.get("color", "#999")
+                break
+        else:
+            s["icon"] = "circle"
+            s["color"] = "#999"
+
+    context = {"request": request, "detail": detail, "user": user}
+    if _is_htmx_request(request):
+        return templates_response(request, "admin/model_detail.html", context, block_name="content")
+    return templates_response(request, "admin/model_detail.html", context)
+
+
 @router.post("/models/install")
 async def admin_models_install(
     request: Request,

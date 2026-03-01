@@ -407,6 +407,235 @@ class ModelService:
         """
         return await registry_list_models(self._client)
 
+    async def get_model_detail(self, model_id: str) -> dict | None:
+        """Get detailed information about an installed model.
+
+        Queries the triplestore for ontology classes, properties,
+        SHACL shapes, and view specs from the model's named graphs.
+
+        Returns:
+            Dict with model info, types, properties, views, shapes,
+            or None if the model is not installed.
+        """
+        models = await registry_list_models(self._client)
+        model_info = next((m for m in models if m.model_id == model_id), None)
+        if not model_info:
+            return None
+
+        graphs = ModelGraphs(model_id)
+        namespace = model_info.namespace
+
+        types = await self._query_types(graphs.ontology, namespace)
+        properties = await self._query_properties(graphs.ontology, namespace)
+        views = await self._query_views(graphs.views)
+        shapes = await self._query_shapes(graphs.shapes, namespace)
+        prefixes = await self._query_prefixes(model_id)
+
+        return {
+            "info": model_info,
+            "types": types,
+            "properties": properties,
+            "views": views,
+            "shapes": shapes,
+            "prefixes": prefixes,
+        }
+
+    async def _query_types(self, ontology_graph: str, namespace: str) -> list[dict]:
+        """Extract OWL classes from the ontology graph."""
+        sparql = f"""SELECT ?class ?label ?comment WHERE {{
+  GRAPH <{ontology_graph}> {{
+    ?class a <http://www.w3.org/2002/07/owl#Class> ;
+           <http://www.w3.org/2000/01/rdf-schema#label> ?label .
+    OPTIONAL {{ ?class <http://www.w3.org/2000/01/rdf-schema#comment> ?comment }}
+  }}
+}} ORDER BY ?label"""
+        result = await self._client.query(sparql)
+        bindings = result.get("results", {}).get("bindings", [])
+        return [
+            {
+                "iri": b["class"]["value"],
+                "local_name": b["class"]["value"].replace(namespace, "") if namespace else b["class"]["value"],
+                "label": b["label"]["value"],
+                "comment": b.get("comment", {}).get("value", ""),
+            }
+            for b in bindings
+        ]
+
+    async def _query_properties(self, ontology_graph: str, namespace: str) -> list[dict]:
+        """Extract OWL properties from the ontology graph."""
+        sparql = f"""SELECT ?prop ?propType ?label ?comment ?domain ?range ?inverse WHERE {{
+  GRAPH <{ontology_graph}> {{
+    ?prop a ?propType ;
+          <http://www.w3.org/2000/01/rdf-schema#label> ?label .
+    VALUES ?propType {{
+      <http://www.w3.org/2002/07/owl#DatatypeProperty>
+      <http://www.w3.org/2002/07/owl#ObjectProperty>
+    }}
+    OPTIONAL {{ ?prop <http://www.w3.org/2000/01/rdf-schema#comment> ?comment }}
+    OPTIONAL {{ ?prop <http://www.w3.org/2000/01/rdf-schema#domain> ?domain }}
+    OPTIONAL {{ ?prop <http://www.w3.org/2000/01/rdf-schema#range> ?range }}
+    OPTIONAL {{ ?prop <http://www.w3.org/2002/07/owl#inverseOf> ?inverse }}
+  }}
+}} ORDER BY ?propType ?label"""
+        result = await self._client.query(sparql)
+        bindings = result.get("results", {}).get("bindings", [])
+
+        def _short(iri: str) -> str:
+            """Shorten IRI to local name for display."""
+            if not iri:
+                return ""
+            for prefix_map in [
+                (namespace, ""),
+                ("http://www.w3.org/2001/XMLSchema#", "xsd:"),
+                ("http://www.w3.org/2002/07/owl#", "owl:"),
+                ("http://www.w3.org/2000/01/rdf-schema#", "rdfs:"),
+                ("http://purl.org/dc/terms/", "dcterms:"),
+                ("https://schema.org/", "schema:"),
+                ("http://xmlns.com/foaf/0.1/", "foaf:"),
+                ("http://www.w3.org/2004/02/skos/core#", "skos:"),
+            ]:
+                if iri.startswith(prefix_map[0]):
+                    return prefix_map[1] + iri[len(prefix_map[0]):]
+            return iri.rsplit("/", 1)[-1].rsplit("#", 1)[-1]
+
+        return [
+            {
+                "iri": b["prop"]["value"],
+                "label": b["label"]["value"],
+                "comment": b.get("comment", {}).get("value", ""),
+                "prop_type": "Object" if "ObjectProperty" in b["propType"]["value"] else "Datatype",
+                "domain": _short(b.get("domain", {}).get("value", "")),
+                "range": _short(b.get("range", {}).get("value", "")),
+                "inverse": _short(b.get("inverse", {}).get("value", "")),
+            }
+            for b in bindings
+        ]
+
+    async def _query_views(self, views_graph: str) -> list[dict]:
+        """Extract ViewSpec definitions from the views graph."""
+        sparql = f"""SELECT ?view ?label ?targetClass ?renderer ?columns ?sortDefault WHERE {{
+  GRAPH <{views_graph}> {{
+    ?view a <urn:sempkm:vocab:ViewSpec> ;
+          <http://www.w3.org/2000/01/rdf-schema#label> ?label .
+    OPTIONAL {{ ?view <urn:sempkm:vocab:targetClass> ?targetClass }}
+    OPTIONAL {{ ?view <urn:sempkm:vocab:rendererType> ?renderer }}
+    OPTIONAL {{ ?view <urn:sempkm:vocab:columns> ?columns }}
+    OPTIONAL {{ ?view <urn:sempkm:vocab:sortDefault> ?sortDefault }}
+  }}
+}} ORDER BY ?targetClass ?renderer"""
+        result = await self._client.query(sparql)
+        bindings = result.get("results", {}).get("bindings", [])
+        return [
+            {
+                "iri": b["view"]["value"],
+                "label": b["label"]["value"],
+                "target_class": b.get("targetClass", {}).get("value", "").rsplit(":", 1)[-1],
+                "renderer": b.get("renderer", {}).get("value", ""),
+                "columns": b.get("columns", {}).get("value", ""),
+                "sort_default": b.get("sortDefault", {}).get("value", ""),
+            }
+            for b in bindings
+        ]
+
+    async def _query_shapes(self, shapes_graph: str, namespace: str) -> list[dict]:
+        """Extract SHACL NodeShape summaries from the shapes graph."""
+        # Get NodeShapes
+        sparql = f"""SELECT ?shape ?label ?targetClass WHERE {{
+  GRAPH <{shapes_graph}> {{
+    ?shape a <http://www.w3.org/ns/shacl#NodeShape> ;
+           <http://www.w3.org/2000/01/rdf-schema#label> ?label .
+    OPTIONAL {{ ?shape <http://www.w3.org/ns/shacl#targetClass> ?targetClass }}
+  }}
+}} ORDER BY ?label"""
+        result = await self._client.query(sparql)
+        shape_bindings = result.get("results", {}).get("bindings", [])
+
+        shapes = []
+        for sb in shape_bindings:
+            shape_iri = sb["shape"]["value"]
+            target = sb.get("targetClass", {}).get("value", "")
+            target_short = target.replace(namespace, "") if namespace and target else target
+
+            # Get properties for this shape
+            props_sparql = f"""SELECT ?name ?path ?datatype ?class ?minCount ?maxCount ?group ?groupLabel ?order WHERE {{
+  GRAPH <{shapes_graph}> {{
+    <{shape_iri}> <http://www.w3.org/ns/shacl#property> ?prop .
+    ?prop <http://www.w3.org/ns/shacl#name> ?name .
+    OPTIONAL {{ ?prop <http://www.w3.org/ns/shacl#path> ?path }}
+    OPTIONAL {{ ?prop <http://www.w3.org/ns/shacl#datatype> ?datatype }}
+    OPTIONAL {{ ?prop <http://www.w3.org/ns/shacl#class> ?class }}
+    OPTIONAL {{ ?prop <http://www.w3.org/ns/shacl#minCount> ?minCount }}
+    OPTIONAL {{ ?prop <http://www.w3.org/ns/shacl#maxCount> ?maxCount }}
+    OPTIONAL {{ ?prop <http://www.w3.org/ns/shacl#order> ?order }}
+    OPTIONAL {{
+      ?prop <http://www.w3.org/ns/shacl#group> ?group .
+      ?group <http://www.w3.org/2000/01/rdf-schema#label> ?groupLabel .
+    }}
+  }}
+}} ORDER BY ?order"""
+            props_result = await self._client.query(props_sparql)
+            prop_bindings = props_result.get("results", {}).get("bindings", [])
+
+            def _short_iri(iri: str) -> str:
+                if not iri:
+                    return ""
+                for prefix_map in [
+                    (namespace, ""),
+                    ("http://www.w3.org/2001/XMLSchema#", "xsd:"),
+                    ("http://purl.org/dc/terms/", "dcterms:"),
+                    ("https://schema.org/", "schema:"),
+                    ("http://xmlns.com/foaf/0.1/", "foaf:"),
+                    ("http://www.w3.org/2004/02/skos/core#", "skos:"),
+                ]:
+                    if iri.startswith(prefix_map[0]):
+                        return prefix_map[1] + iri[len(prefix_map[0]):]
+                return iri.rsplit("/", 1)[-1].rsplit("#", 1)[-1]
+
+            props = []
+            for pb in prop_bindings:
+                dt = pb.get("datatype", {}).get("value", "")
+                cls = pb.get("class", {}).get("value", "")
+                min_c = pb.get("minCount", {}).get("value", "")
+                max_c = pb.get("maxCount", {}).get("value", "")
+
+                cardinality = ""
+                if min_c and max_c:
+                    cardinality = f"{min_c}..{max_c}"
+                elif min_c:
+                    cardinality = f"{min_c}..*"
+                elif max_c:
+                    cardinality = f"0..{max_c}"
+
+                props.append({
+                    "name": pb["name"]["value"],
+                    "path": _short_iri(pb.get("path", {}).get("value", "")),
+                    "type": _short_iri(dt) if dt else (_short_iri(cls) + " (ref)" if cls else ""),
+                    "cardinality": cardinality,
+                    "group": pb.get("groupLabel", {}).get("value", ""),
+                    "required": min_c == "1",
+                })
+            shapes.append({
+                "label": sb["label"]["value"],
+                "target_class": target_short,
+                "target_class_iri": target,
+                "property_count": len(props),
+                "properties": props,
+            })
+        return shapes
+
+    async def _query_prefixes(self, model_id: str) -> dict[str, str]:
+        """Get the prefix mappings from the model registry."""
+        sparql = f"""SELECT ?prefix ?namespace WHERE {{
+  GRAPH <{MODELS_GRAPH}> {{
+    <urn:sempkm:model:{model_id}> <{SEMPKM_NS}prefix> ?bnode .
+    ?bnode <{SEMPKM_NS}prefixName> ?prefix ;
+           <{SEMPKM_NS}prefixNamespace> ?namespace .
+  }}
+}}"""
+        # Prefixes aren't stored in triplestore — return empty
+        # They're in the manifest.yaml file which is loaded at install time
+        return {}
+
 
 async def model_shapes_loader(client: TriplestoreClient) -> Graph:
     """Load SHACL shapes from all installed models.
