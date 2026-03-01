@@ -64,7 +64,7 @@
 - [x] **Phase 25: CSS Token Expansion** — Two-tier primitive/semantic token architecture, expanding from ~40 to ~91 tokens (completed 2026-03-01)
 - [x] **Phase 26: VFS MVP Read-Only** — wsgidav WebDAV mount via a2wsgi bridge, SyncTriplestoreClient, Markdown+frontmatter file rendering (completed 2026-03-01)
 - [x] **Phase 27: VFS Write + Auth** — Write path diff engine, API token Basic auth, MountSpec settings UI (completed 2026-03-01)
-- [ ] **Phase 28: UI Polish + Integration Testing** — Expander icon fixes, sidebar panel rearrangement, contextual view indicators, Playwright E2E suites
+- [x] **Phase 28: UI Polish + Integration Testing** — Expander icon fixes, sidebar panel rearrangement, contextual view indicators, Playwright E2E suites (completed 2026-03-01)
 
 ## Phase Details
 
@@ -194,7 +194,7 @@ Plans:
 | 25. CSS Token Expansion | 1/1 | Complete    | 2026-03-01 | - |
 | 26. VFS MVP Read-Only | 3/3 | Complete    | 2026-03-01 | - |
 | 27. VFS Write + Auth | 3/3 | Complete    | 2026-03-01 | - |
-| 28. UI Polish + Integration Testing | 1/2 | In Progress|  | - |
+| 28. UI Polish + Integration Testing | 2/2 | Complete   | 2026-03-01 | - |
 
 ---
 *Roadmap created: 2026-02-21*

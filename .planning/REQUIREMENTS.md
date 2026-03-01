@@ -29,8 +29,8 @@ Requirements for the Data Discovery milestone. Each maps to roadmap phases 23-28
 
 - [x] **POLSH-01**: Expander/collapse icons visible in sidebar tree in both light and dark themes
 - [x] **POLSH-02**: User can move sidebar panels between left/right sidebar in object browser
-- [ ] **POLSH-03**: Object-contextual panels show visual indicator distinguishing them from global views
-- [ ] **POLSH-04**: Each v2.2 feature area (FTS, SPARQL, VFS) has a dedicated Playwright E2E integration test file
+- [x] **POLSH-03**: Object-contextual panels show visual indicator distinguishing them from global views
+- [x] **POLSH-04**: Each v2.2 feature area (FTS, SPARQL, VFS) has a dedicated Playwright E2E integration test file
 
 ## Future Candidates
 
@@ -86,8 +86,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VFS-03 | Phase 27 | Complete |
 | POLSH-01 | Phase 28 | Complete |
 | POLSH-02 | Phase 28 | Complete |
-| POLSH-03 | Phase 28 | Pending |
-| POLSH-04 | Phase 28 | Pending |
+| POLSH-03 | Phase 28 | Complete |
+| POLSH-04 | Phase 28 | Complete |
 
 **Coverage:**
 - v2.2 requirements: 13 total

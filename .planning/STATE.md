@@ -18,14 +18,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations — no blank-page syndrome, no schema setup.
-**Current focus:** v2.2 Data Discovery — Phase 28: UI Polish + Integration Testing (1/4 plans complete)
+**Current focus:** v2.2 Data Discovery — Phase 28: UI Polish + Integration Testing (2/4 plans complete)
 
 ## Current Position
 
 Phase: 28 of 28 (UI Polish + Integration Testing)
-Plan: 1 of 4 complete
+Plan: 2 of 4 complete
 Status: In Progress
-Last activity: 2026-03-01 - Completed 28-01: Icon visibility fix + panel drag-and-drop
+Last activity: 2026-03-01 - Completed 28-02: Contextual panel indicator + E2E integration test files
 
 Progress: [###########################---] 92% (Phase 28 started)
 
@@ -73,6 +73,8 @@ All v2.2 architectural decisions committed in v2.1. See .planning/DECISIONS.md f
 - FTS-04: ninja-keys change event with e.detail.search confirmed as correct API for live search interception in v1.2.2
 - POLSH-01: All chevron/toggle icons (group-chevron, explorer-section-chevron, tree-toggle, right-section-chevron) use var(--color-text-muted) with SVG stroke override for Lucide icons
 - POLSH-02: HTML5 drag-and-drop for sidebar panels uses [data-panel-name] + [data-drop-zone] attributes; positions persisted in localStorage 'sempkm_panel_positions'
+- POLSH-03: Custom DOM events (sempkm:tab-activated/tabs-empty) decouple workspace.js from workspace-layout.js for contextual panel indicator; dispatched from openTab() and switchTabInGroup()
+- POLSH-04: E2E test files use test.skip() graceful degradation so they are valid and committable before Phase 23/24/26 complete
 
 ### Pending Todos
 
@@ -100,5 +102,5 @@ All v2.2 architectural decisions committed in v2.1. See .planning/DECISIONS.md f
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 28-01-PLAN.md (Icon visibility fix + panel drag-and-drop)
-Resume: Phase 28 plan 01 complete. Proceed with 28-02.
+Stopped at: Completed 28-02-PLAN.md (Contextual panel indicator + E2E integration test files)
+Resume: Phase 28 plan 02 complete. Proceed with 28-03.
