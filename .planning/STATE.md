@@ -100,9 +100,10 @@ All v2.2 architectural decisions committed in v2.1. See .planning/DECISIONS.md f
 | 12 | Replace connections tab with SVG ontology relationship diagram - server-rendered circular layout, no external JS | 2026-03-01 | 76e1678 | [12-replace-connections-tab-with-ontology-re](./quick/12-replace-connections-tab-with-ontology-re/) |
 | 13 | Fix ontology diagram visuals - dynamic viewBox zoom-to-fit, arrowhead boundary termination, curved bidirectional edges | 2026-03-01 | dd588ef | [13-fix-ontology-diagram-visuals-zoom-to-fit](./quick/13-fix-ontology-diagram-visuals-zoom-to-fit/) |
 | 14 | Add hover tooltips to ontology diagram nodes - SHACL properties, instance counts, graph-popover CSS reuse | 2026-03-01 | db58b97 | [14-add-hover-tooltips-to-ontology-diagram-n](./quick/14-add-hover-tooltips-to-ontology-diagram-n/) |
+| 15 | Replace custom SVG ontology diagram with Cytoscape.js - interactive graph, bezier bidirectional edges, fcose layout | 2026-03-01 | 38b18f4 | [15-replace-custom-svg-ontology-diagram-with](./quick/15-replace-custom-svg-ontology-diagram-with/) |
 
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed quick task 14 (Add hover tooltips to ontology diagram nodes)
+Stopped at: Completed quick task 15 (Replace custom SVG ontology diagram with Cytoscape.js)
 Resume: Phase 28 plan 02 complete. Proceed with 28-03 or additional quick tasks.
