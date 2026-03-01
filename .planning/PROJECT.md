@@ -56,6 +56,24 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - ✓ Driver.js guided tours (Welcome 10-step, Create Object htmx-gated) with Docs hub page — v2.0
 - ✓ Rounded tab styling (8px border-radius, recessed bar, teal accent) — v2.0
 
+### Validated (v2.2)
+
+<!-- Shipped and confirmed valuable in v2.2. -->
+
+- ✓ FTS-01: Full-text keyword search across all literal values via RDF4J LuceneSail — v2.2
+- ✓ FTS-02: Search results show object type, label, and matching text snippet — v2.2
+- ✓ FTS-03: Keyword search integrated into Ctrl+K command palette — v2.2
+- ✓ SPARQL-01: Embedded Yasgui SPARQL console in workspace bottom panel — v2.2
+- ✓ SPARQL-02: SPARQL results display IRIs as clickable SemPKM object pill links — v2.2
+- ✓ SPARQL-03: Query history and tabs preserved across sessions (localStorage) — v2.2
+- ✓ VFS-01: WebDAV mount via wsgidav + a2wsgi bridge, objects browsable as files — v2.2
+- ✓ VFS-02: Object bodies rendered as Markdown files with SHACL-derived frontmatter — v2.2
+- ✓ VFS-03: API token auth + mount config accessible from Settings page — v2.2
+- ✓ POLSH-01: Expander/collapse icons visible in sidebar tree in both light and dark themes — v2.2
+- ✓ POLSH-02: User can drag sidebar panels between left/right sidebar, position persists — v2.2
+- ✓ POLSH-03: Object-contextual panels show accent indicator; deactivate on non-object focus — v2.2
+- ✓ POLSH-04: Playwright E2E test files for SPARQL console, FTS, and VFS — v2.2
+
 ### Validated (v2.1)
 
 <!-- Shipped and confirmed valuable in v2.1. -->
@@ -72,21 +90,11 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ### Active
 
-<!-- v2.2: Data Discovery — FTS, SPARQL console, VFS MVP, UI Polish + Integration -->
+<!-- v2.3: Shell & Navigation — dockview-core migration, named layouts, full theming -->
 
-- [ ] FTS-01: User can search knowledge base by keyword (full-text search across all literal values)
-- [ ] FTS-02: Search results show object type, label, and matching snippet
-- [ ] FTS-03: Search integrated into command palette (Ctrl+K)
-- [ ] SPARQL-01: User can execute SPARQL queries via embedded Yasgui interface
-- [ ] SPARQL-02: SPARQL results display IRIs as clickable SemPKM object links
-- [ ] SPARQL-03: Query history preserved across sessions (localStorage)
-- [ ] VFS-01: User can mount SemPKM objects as files via WebDAV (read-only)
-- [ ] VFS-02: Object bodies rendered as Markdown files with SHACL-derived frontmatter
-- [ ] VFS-03: Mount configuration accessible via Settings page
-- [ ] POLSH-01: Expander/collapse icons visible in sidebar tree in both light and dark themes
-- [ ] POLSH-02: User can move sidebar panels between left/right sidebar in object browser
-- [ ] POLSH-03: Object-contextual panels show visual indicator distinguishing them from global views
-- [ ] POLSH-04: Each v2.2 feature area (FTS, SPARQL, VFS) has a dedicated Playwright E2E integration test file
+- [ ] DOCK-01: Full dockview-core migration — Phase A (inner editor-pane split replacing Split.js)
+- [ ] DOCK-02: Named workspace layouts (user-defined panel arrangements, model-provided layouts)
+- [ ] CSS-01: Full theming system (user-selectable themes, model-contributed themes)
 
 ### Future Candidates
 
@@ -125,50 +133,41 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Mobile native app — web-first, responsive design and eventual PWA
 - Ontology editor — consume via Mental Models; use Protege for authoring
 
-## Current Milestone: v2.2 Data Discovery
+## Next Milestone: v2.3 Shell & Navigation
 
-**Goal:** Implement the 4 committed architectural decisions from v2.1 — FTS keyword search (LuceneSail), SPARQL console (Yasgui CDN), Virtual Filesystem MVP (wsgidav read-only), and CSS token expansion as foundation for v2.3 UI shell work — then close with UI polish, panel rearrangement, and comprehensive E2E integration testing.
+**Goal:** Complete the dockview-core migration (Phase A — inner editor-pane, replacing Split.js), introduce named workspace layouts (user-defined panel arrangements and model-provided layouts), and implement a full theming system with user-selectable themes and model-contributed CSS token sets.
 
-**Target features:**
-- Full-text keyword search across all literal values, integrated into Ctrl+K command palette
-- SPARQL console via Yasgui CDN embed with SemPKM IRI links and localStorage persistence
-- WebDAV VFS mount (read-only), Markdown files with SHACL frontmatter, settings UI
-- UI polish: fix expander icons, VSCode-style sidebar panel rearrangement, object-contextual view indicators
-- Integration E2E tests for all new feature areas
+**Candidate features:**
+- Phase A dockview-core migration: editor groups → dockview panels, using dockview-sempkm-bridge.css from v2.2
+- Named layouts: save/restore panel arrangements, Mental Model-provided default layouts
+- Full CSS theming: user-selectable from 108-token base; model-contributed themes in manifest
+- Backlinks panel (incoming references for any object)
 
-**Phase structure:**
-- Phase 23: SPARQL Console (Yasgui CDN embed, no backend changes needed — ships first)
-- Phase 24: FTS Keyword Search (LuceneSail, JAR/config validation prerequisite)
-- Phase 25: CSS Token Expansion (40 → ~91 tokens, independent prerequisite for v2.3)
-- Phase 26: VFS MVP read-only (wsgidav + a2wsgi, SyncTriplestoreClient needed)
-- Phase 27: VFS Write + Auth (write path, API token auth design)
-- Phase 28: UI Polish + Integration Testing (expander icons, panel rearrangement, E2E suites)
-
-**See:** `.planning/DECISIONS.md` for full architectural rationale and implementation readiness checklist.
+**Prerequisite:** Run `/gsd:new-milestone` to define requirements and roadmap for v2.3.
 
 ## Context
 
-**Current state (v2.1 shipped 2026-03-01):**
-- ~119k source LOC across Python, JavaScript, CSS, HTML/Jinja2, JSON-LD
-- Tech stack: FastAPI + RDF4J + htmx/vanilla-web + SQLAlchemy (SQLite/PostgreSQL) + Driver.js + Cytoscape.js + CodeMirror + Split.js + Alembic
-- Docker Compose deployment: 3 services (api, triplestore, frontend/nginx)
-- 22 phases, 36 plans completed across v1.0, v2.0, v2.1
+**Current state (v2.2 shipped 2026-03-01):**
+- ~130k source LOC across Python, JavaScript, CSS, HTML/Jinja2, JSON-LD (estimate — grew from ~119k with VFS, FTS, token expansion, event console)
+- Tech stack: FastAPI + RDF4J (LuceneSail) + htmx/vanilla-web + SQLAlchemy (SQLite/PostgreSQL) + wsgidav + a2wsgi + Driver.js + Cytoscape.js + CodeMirror + Split.js + Alembic + Yasgui CDN + ninja-keys
+- Docker Compose deployment: 3 services (api, triplestore, frontend/nginx) — WebDAV via nginx proxy to a2wsgi mount
+- 28 phases, 62 plans completed across v1.0, v2.0, v2.1, v2.2
 
-**New in v2.1:**
-- Alembic replaces SQLAlchemy `create_all` for schema migrations
-- SMTP email delivery for magic links (app_base_url config required in production)
-- ViewSpec TTL cache (300s, 64 entries) reduces SPARQL overhead on view lookups
-- 4 RESEARCH.md files annotated with committed decisions + v2.2 handoffs
-- DECISIONS.md consolidates all 4 decisions with Phases 23-27 sequencing and cross-cutting concerns
+**New in v2.2:**
+- RDF4J LuceneSail FTS: keyword search integrated into Ctrl+K command palette with type icons and match snippets
+- Yasgui SPARQL console: CDN embed, custom YASR IRI cell renderer, dark mode, localStorage persistence
+- WebDAV VFS: wsgidav + a2wsgi, read + write, API token auth, SemPKMDAVProvider hierarchy, Settings UI
+- CSS token architecture: 108 tokens (two-tier primitive/semantic), dockview-sempkm-bridge.css for v2.3
+- UI: full 4-panel HTML5 drag-reorder, contextual accent bar (tab-type-aware), Event Console page
+- Event log: tabular CSS Grid layout, user name display fix, always-rendered Diff/Undo buttons
+- Relations panel: collapsible `<details>` per predicate with count badge
 
 **Known tech debt:**
 - Cookie secure=False (local dev only — production config deferred)
-- SMTP OAuth2 auth deferred (simple SMTP credentials sufficient for v2.2)
 - Dual SQLAlchemy engine instances (module-level + lifespan) — harmless for SQLite
 - `empty_shapes_loader` dead code in validation service
-- Bottom panel SPARQL/AI Copilot tabs are placeholder stubs (SPARQL tab becomes real in Phase 23)
 - Edit form helptext property not yet in SHACL types (pending todo)
-- 3 open debug sessions: card-view-borders-not-distinctive, firefox-ctrlk-ninja-keys, tab-accent-bleed-and-border-radius
+- E2E tests for SPARQL/FTS/VFS use test.skip() graceful degradation (pending live service validation)
 
 **Design references:**
 - v0.3 design documents in `orig_specs/` (vision, specifications, decision log, schemas)
@@ -228,6 +227,12 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | DEC-03: wsgidav + a2wsgi for VFS | Docker-compatible, HTTP-only, FUSE requires SYS_ADMIN (rejected) | ✓ Good — committed v2.1, read-only MVP in Phase 26 |
 | DEC-04: dockview-core over GoldenLayout | GoldenLayout DOM reparenting breaks htmx handlers; dockview-core zero deps | ✓ Good — committed v2.1, Phase A migration in v2.3 |
 | asyncio.to_thread for Alembic | env.py uses asyncio.run internally; nested event loop requires thread isolation | ✓ Good — Alembic running in production (v2.1) |
+| LuceneSail config: RDF4J 5.x unified namespace | config:lucene.indexDir + config:delegate (not lucene: namespace); discovered from container-generated config.ttl | ✓ Good — FTS operational in v2.2 |
+| Yasgui lazy init via tab click handler | Prevents JS errors when SPARQL panel is closed; init only on tab activation | ✓ Good — no console errors on workspace load |
+| wsgidav begin_write/end_write hooks | write_data() does not exist in installed wsgidav version; begin/end hooks are correct API | ✓ Good — VFS write path operational in v2.2 |
+| API token hard-delete revocation | Soft-delete (revoked_at) adds filter complexity; hard-delete is cleaner and immediate | ✓ Good — revocation instant, list queries clean |
+| HTML5 drag-reorder for sidebar panels | No dockview needed for simple panel position swap; [data-panel-name] + [data-drop-zone] attributes, localStorage persistence | ✓ Good — lightweight, no dependency added |
+| sempkm:tab-activated custom event | Decouples workspace.js from workspace-layout.js for contextual panel indicator; dispatched on openTab()/switchTabInGroup() | ✓ Good — clean separation, panel indicator works |
 
 ---
-*Last updated: 2026-02-28 after v2.2 milestone start*
+*Last updated: 2026-03-01 after v2.2 milestone completion*

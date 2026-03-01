@@ -62,10 +62,44 @@
 
 ## v2.1 Architecture Decision Gate (Shipped: 2026-03-01)
 
-**Phases completed:** 13 phases, 36 plans, 4 tasks
+**Phases completed:** 3 phases (20-22), 9 plans
+**Timeline:** 2026-02-28 → 2026-03-01
+
+**Delivered:** All 4 v2.2 architectural decisions committed with rationale + v2.2 handoffs (LuceneSail FTS, Yasgui SPARQL console, wsgidav VFS, dockview-core UI shell); DECISIONS.md created as canonical reference; 4 tech debt items shipped (Alembic migrations, SMTP email, session cleanup, ViewSpec cache).
 
 **Key accomplishments:**
-- (none recorded)
+- Committed DEC-01..04: LuceneSail, Yasgui CDN, wsgidav+a2wsgi, dockview-core — all 4 RESEARCH.md files annotated with decision + v2.2 handoff
+- Created DECISIONS.md consolidating all decisions with cross-cutting concerns and v2.2 phase sequencing
+- Alembic replaces SQLAlchemy `create_all` — schema migrations now version-controlled with asyncio.to_thread bridge
+- SMTP email delivery for magic links with console fallback; ViewSpec TTL cache (300s/64 entries) wired to model install events
+
+**Archives:** milestones/v2.1-ROADMAP.md, milestones/v2.1-REQUIREMENTS.md
+
+---
+
+
+## v2.2 Data Discovery (Shipped: 2026-03-01)
+
+**Phases completed:** 6 phases (23-28), 14 plans, 13/13 requirements satisfied
+**Timeline:** 2026-03-01 (intensive single-day execution)
+
+**Delivered:** Full-text keyword search via RDF4J LuceneSail integrated into the Ctrl+K command palette; embedded SPARQL console via Yasgui CDN with IRI click-through; WebDAV VFS (read + write) via wsgidav with API token auth and Settings UI; CSS token architecture expanded to 108 tokens; sidebar panel drag-reorder and contextual panel indicators; Playwright E2E test suites for all 3 feature areas. Post-ship: event log polish (tabular grid, user names, button colors), Event Console page (/events), relations panel collapsible rollup.
+
+**Key accomplishments:**
+- SPARQL Console: Yasgui v4.5.0 CDN embed with custom YASR cell renderer for SemPKM IRI pill links, dark mode CSS overrides, and localStorage query persistence
+- FTS Keyword Search: LuceneSail-wrapped NativeStore with SearchService (SPARQL magic predicates), GET /api/search endpoint, Ctrl+K palette integration with type icons and match snippets
+- CSS Token Expansion: two-tier primitive (`--_*`) / semantic (`--color-*`, `--tab-*`, `--panel-*`) architecture expanded to 108 tokens; dockview-sempkm-bridge.css pattern file for v2.3 migration
+- VFS Read-Only: wsgidav + a2wsgi WSGI bridge, SyncTriplestoreClient, SemPKMDAVProvider hierarchy (Root→Model→Type→Resource), object bodies as Markdown+SHACL-frontmatter files with TTL directory cache
+- VFS Write + Auth: SHA-256 API token model, SemPKMWsgiAuthenticator, write path with begin_write/end_write hooks → event store, ETag concurrency (SHA-256 hash), Settings UI with token generation/revocation
+- UI Polish: chevron icon token fixes (light+dark), full 4-panel HTML5 drag-reorder (insert-before/after, localStorage persistence), tab-type-aware contextual accent bar, Playwright E2E suites for SPARQL/FTS/VFS
+
+**Tech debt carried forward:**
+- Cookie secure=False (local dev only — production config deferred)
+- Dual SQLAlchemy engine instances (harmless for SQLite)
+- Edit form helptext property not yet in SHACL types
+- E2E tests for SPARQL/FTS/VFS use test.skip() graceful degradation pending live service validation
+
+**Archives:** milestones/v2.2-ROADMAP.md, milestones/v2.2-REQUIREMENTS.md
 
 ---
 

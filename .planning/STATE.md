@@ -1,80 +1,38 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
+milestone: v2.2
 milestone_name: Data Discovery
-status: unknown
-last_updated: "2026-03-01T19:16:57.862Z"
+status: complete
+last_updated: "2026-03-01T22:53:05.787Z"
 progress:
-  total_phases: 16
-  completed_phases: 16
-  total_plans: 41
-  completed_plans: 41
+  total_phases: 6
+  completed_phases: 6
+  total_plans: 14
+  completed_plans: 14
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-28)
+See: .planning/PROJECT.md (updated 2026-03-01)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations — no blank-page syndrome, no schema setup.
-**Current focus:** v2.2 complete — feature/mental-model-dashboard: full 4-panel drag-reorder shipped; mental model dashboard in progress
+**Current focus:** v2.2 archived — ready to start v2.3 Shell & Navigation with `/gsd:new-milestone`
 
 ## Current Position
 
-Phase: 28 of 28 (UI Polish + Integration Testing) — **COMPLETE**
-v2.2 milestone: **SHIPPED 2026-03-01**
-Branch: feature/mental-model-dashboard
-Last activity: 2026-03-01 - Full 4-panel drag-reorder: all 4 panels draggable, insert-before/after, zone+order persisted in localStorage
+Milestone: v2.2 Data Discovery — **ARCHIVED 2026-03-01**
+Branch: main
+Last activity: 2026-03-01 - v2.2 milestone completion: MILESTONES.md, ROADMAP.md, PROJECT.md, RETROSPECTIVE.md updated; REQUIREMENTS.md archived and deleted
 
-Progress: [##############################] 100% (v2.2 complete)
-
-## v2.2 Phase Structure
-
-| Phase | Name | Requirements | Depends On | Status |
-|-------|------|--------------|------------|--------|
-| 23 | SPARQL Console | SPARQL-01, SPARQL-02, SPARQL-03 | Nothing | Complete (2/2 plans) |
-| 24 | FTS Keyword Search | FTS-01, FTS-02, FTS-03 | Nothing (JAR prereq) | Complete (2/2 plans) |
-| 25 | CSS Token Expansion | — (v2.3 prep) | Nothing | Complete (1/1 plans) |
-| 26 | VFS MVP Read-Only | VFS-01, VFS-02 | Nothing (self-contained) | Complete (3/3 plans) |
-| 27 | VFS Write + Auth | VFS-03 | Phase 26 | Complete (3/3 plans) |
-| 28 | UI Polish + Integration Testing | POLSH-01, POLSH-02, POLSH-03, POLSH-04 | Phases 23, 24, 26 | In Progress (1/4 plans) |
+Progress: [##############################] 100% (v2.2 archived — ready for v2.3)
 
 ## Accumulated Context
 
 ### Key Decisions
 
-All v2.2 architectural decisions committed in v2.1. See .planning/DECISIONS.md for full rationale.
-
-- DEC-01: RDF4J LuceneSail for FTS — zero new containers, SPARQL-native, ships with RDF4J 5.0.1
-- DEC-02: @zazuko/yasgui v4.5.0 CDN for SPARQL Console — MIT, zero backend changes
-- DEC-03: wsgidav + a2wsgi for VFS — HTTP-only, Docker-compatible, no SYS_ADMIN required
-- DEC-04: dockview-core for UI shell — Phase A in v2.3; CSS token expansion complete (108 tokens, two-tier architecture)
-- DEC-05: Yasgui CDN loaded at top of workspace block content, not base.html — workspace-only dependency
-- DEC-06: Lazy Yasgui init via DOMContentLoaded + tab click handler — prevents JS errors when panel closed
-- CSS-01: Token count expanded to 108 in :root (vs ~91 estimate) — comprehensive two-tier primitive/semantic architecture
-- VFS-01: SyncTriplestoreClient mirrors async TriplestoreClient API with httpx.Client for WSGI thread pool use
-- VFS-02: API tokens use SHA-256 hash storage; plaintext returned exactly once on creation
-- VFS-03: verify_api_token_sync uses disposable sync SQLAlchemy engine per call for WSGI thread safety
-- VFS-04: SPARQL queries use urn:sempkm: namespace (not https://sempkm.org/ontology/) and REPLACE regex .*[/:#] for URN local names
-- VFS-05: DAV provider hierarchy: Root->Model->Type->Resource with lazy file map caching per TypeCollection
-- VFS-06: TTL cache uses threading.Lock for write safety in wsgidav's WSGI thread pool; cache keys use path-style strings
-- VFS-07: wsgidav readonly=True config set, but collection classes return 403 before wsgidav's 405 -- both block writes
-- VFS-08: ApiToken uses hard-delete for revocation (not soft-delete via revoked_at) — cleaner list queries, no filter needed
-- VFS-09: environ["sempkm.user_id"] set in SemPKMWsgiAuthenticator.basic_auth_user for DAV provider write path user context
-- VFS-10b: begin_write/end_write wsgidav hooks used for write path (not write_data which does not exist in this wsgidav version)
-- VFS-11b: set_event_store() injection method on DAVProvider — event_store wired at lifespan startup, not module load time
-- VFS-12: SHA-256 ETag on ResourceFile; wsgidav handles If-Match/412 automatically via evaluate_http_conditionals before begin_write
-- VFS-10: VFS settings CSS added to settings.css (not style.css) following project file layout convention
-- VFS-11: VFS token generation uses fetch() instead of htmx to capture and display plaintext token once in-place
-- FTS-01: LuceneSail config uses RDF4J 5.x unified namespace (config:lucene.indexDir, config:delegate) — verified from container-generated config
-- FTS-02: Graph-scoped FTS via SPARQL GRAPH clause, not config-level reindexQuery (not supported in RDF4J 5.x config)
-- FTS-03: Inline SVG type icons in ninja-keys search results (not IconService) -- simpler client-side mapping, no extra API call
-- FTS-04: ninja-keys change event with e.detail.search confirmed as correct API for live search interception in v1.2.2
-- POLSH-01: All chevron/toggle icons (group-chevron, explorer-section-chevron, tree-toggle, right-section-chevron) use var(--color-text-muted) with SVG stroke override for Lucide icons
-- POLSH-02: HTML5 drag-and-drop for sidebar panels uses [data-panel-name] + [data-drop-zone] attributes; positions persisted in localStorage 'sempkm_panel_positions'
-- POLSH-03: Custom DOM events (sempkm:tab-activated/tabs-empty) decouple workspace.js from workspace-layout.js for contextual panel indicator; dispatched from openTab() and switchTabInGroup()
-- POLSH-04: E2E test files use test.skip() graceful degradation so they are valid and committable before Phase 23/24/26 complete
+v2.2 decisions archived to PROJECT.md Key Decisions table. v2.3 decisions TBD.
 
 ### Pending Todos
 
@@ -85,32 +43,14 @@ All v2.2 architectural decisions committed in v2.1. See .planning/DECISIONS.md f
 - Cookie secure=False (local dev only — production config deferred)
 - Dual SQLAlchemy engine instances (harmless for SQLite)
 - empty_shapes_loader dead code
-- Bottom panel SPARQL tab placeholder replaced with Yasgui (Phase 23 Plan 01)
+- E2E tests for SPARQL/FTS/VFS use test.skip() graceful degradation pending live service validation
 
 ### Blockers/Concerns
 
-- None — Phase 27 complete; all 3 plans done
-
-### Quick Tasks Completed
-
-| # | Description | Date | Commit | Directory |
-|---|-------------|------|--------|-----------|
-| 10 | Design onboarding workflow for Obsidian users with untagged notes - import, ontology mapping via LLMs, user guide docs | 2026-03-01 | e382971 | [10-design-onboarding-workflow-for-obsidian-](./quick/10-design-onboarding-workflow-for-obsidian-/) |
-| 11 | Add connections tab to mental model detail - SPARQL outbound/inbound triples, htmx lazy-load, grouped by predicate | 2026-03-01 | edb862b | [11-add-connections-tab-to-mental-model-deta](./quick/11-add-connections-tab-to-mental-model-deta/) |
-| 12 | Replace connections tab with SVG ontology relationship diagram - server-rendered circular layout, no external JS | 2026-03-01 | 76e1678 | [12-replace-connections-tab-with-ontology-re](./quick/12-replace-connections-tab-with-ontology-re/) |
-| 13 | Fix ontology diagram visuals - dynamic viewBox zoom-to-fit, arrowhead boundary termination, curved bidirectional edges | 2026-03-01 | dd588ef | [13-fix-ontology-diagram-visuals-zoom-to-fit](./quick/13-fix-ontology-diagram-visuals-zoom-to-fit/) |
-| 14 | Add hover tooltips to ontology diagram nodes - SHACL properties, instance counts, graph-popover CSS reuse | 2026-03-01 | db58b97 | [14-add-hover-tooltips-to-ontology-diagram-n](./quick/14-add-hover-tooltips-to-ontology-diagram-n/) |
-| 15 | Replace custom SVG ontology diagram with Cytoscape.js - interactive graph, bezier bidirectional edges, fcose layout | 2026-03-01 | 38b18f4 | [15-replace-custom-svg-ontology-diagram-with](./quick/15-replace-custom-svg-ontology-diagram-with/) |
-| 16 | Fix event log user display names — UUID type mismatch in SQL WHERE clause (string vs uuid.UUID on SQLite) | 2026-03-01 | 1c63582 | — |
-| 17 | Event log tabular layout — CSS Grid with fixed column widths (op badge, name, user, timestamp, actions) | 2026-03-01 | 34aaaec | — |
-| 18 | Event log Diff/Undo buttons always rendered; active=teal/red, disabled=muted; aligns grid column across all rows | 2026-03-01 | 3803455 | — |
-| 19 | SPARQL Console moved to Admin nav; CLI Console placeholder added to Apps; SPARQL tab removed from workspace bottom panel | 2026-03-01 | 33d5659 | — |
-| 20 | Event Console page (/events) — split view: command form left, live event log right; auto-refresh 30s checkbox (localStorage); instant refresh on execute | 2026-03-01 | 92425e1 | — |
-| 21 | Diff table arrow → between Before and After columns | 2026-03-01 | 812eb55 | — |
-| 22 | Relations panel collapsible rollup — <details> per predicate, count badge, rotating chevron; ≤5 items auto-open | 2026-03-01 | 0f12ecc | — |
+- None
 
 ## Session Continuity
 
 Last session: 2026-03-01
-Completed: Event log polish (user names, tabular grid, button colors), Event Console page combining command executor + live log with auto-refresh, diff arrow, relations panel collapsible rollup per predicate. All ad-hoc improvements on main branch.
-Resume: v2.2 fully shipped + post-ship polish complete. Ready to run /gsd:complete-milestone to archive v2.2 and start next milestone.
+Completed: v2.2 milestone archived — MILESTONES.md updated, ROADMAP.md reorganized, PROJECT.md evolved, RETROSPECTIVE.md updated, REQUIREMENTS.md archived and deleted, git tag v2.2 created.
+Resume: v2.2 complete. Start v2.3 with `/gsd:new-milestone`.
