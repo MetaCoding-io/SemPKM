@@ -445,7 +445,11 @@
     width: 100%;
     height: calc(100% - 90px);
     min-height: 400px;
-    background: var(--color-bg);
+    background:
+        linear-gradient(var(--color-border-subtle) 1px, transparent 1px),
+        linear-gradient(90deg, var(--color-border-subtle) 1px, transparent 1px),
+        var(--color-bg);
+    background-size: 40px 40px;
     border-radius: 4px;
 }
 
