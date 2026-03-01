@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "SemPKM - Semantics-native Personal Knowledge Management"
 requires-python = ">=3.12"
 dependencies = [
+    "aiosmtplib>=3.0",
     "fastapi[standard]",
     "rdflib>=7.5.0",
     "httpx>=0.28",
