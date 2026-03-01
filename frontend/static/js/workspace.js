@@ -1459,6 +1459,19 @@
     // Initialize workspace layout (migrates old tab state, builds multi-group DOM)
     if (typeof window.initWorkspaceLayout === 'function') {
       window.initWorkspaceLayout();
+      // Restore accent bar state: ON if any open object tab, OFF if none.
+      // Must run immediately after initWorkspaceLayout so _workspaceLayout is set.
+      (function restoreAccentBar() {
+        var wl = window._workspaceLayout;
+        if (!wl) return;
+        var hasOpenObjectTab = wl.groups.some(function(g) {
+          return g.tabs.some(function(t) {
+            var tid = t.id || t.iri || '';
+            return !t.isView && !tid.startsWith('view:') && !tid.startsWith('special:');
+          });
+        });
+        setContextualPanelActive(hasOpenObjectTab);
+      }());
     }
 
     // Initialize command palette after workspace layout is ready
@@ -1662,29 +1675,17 @@
 
   // Listen for tab lifecycle events dispatched by workspace-layout.js
   document.addEventListener('sempkm:tab-activated', function(e) {
-    // Accent bar reflects CURRENT FOCUS: on for object tabs, off for settings/views
-    setContextualPanelActive(!!(e.detail && e.detail.isObjectTab));
+    // Accent bar tracks "any object tab is open", not "current tab is object".
+    // Only activate here; deactivation is handled by sempkm:tabs-empty when the
+    // last object tab closes. Switching to settings/views must not turn it off.
+    if (e.detail && e.detail.isObjectTab) {
+      setContextualPanelActive(true);
+    }
   });
 
   document.addEventListener('sempkm:tabs-empty', function() {
     setContextualPanelActive(false);
   });
-
-  // Restore contextual panel state based on restored tab state after init
-  // Deferred via setTimeout to ensure workspace-layout.js has set window._workspaceLayout
-  setTimeout(function() {
-    if (window._workspaceLayout) {
-      // Only activate if any group's active tab is an object tab (not view/special)
-      var hasActiveObjectTab = window._workspaceLayout.groups.some(function(g) {
-        if (!g.activeTabId) return false;
-        var activeTab = g.tabs.find(function(t) { return (t.id || t.iri) === g.activeTabId; });
-        if (!activeTab) return false;
-        var tid = activeTab.id || activeTab.iri || '';
-        return !activeTab.isView && !tid.startsWith('view:') && !tid.startsWith('special:');
-      });
-      setContextualPanelActive(hasActiveObjectTab);
-    }
-  }, 0);
 
   window.setContextualPanelActive = setContextualPanelActive;
 
