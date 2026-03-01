@@ -1828,7 +1828,7 @@ details.form-group[open] > .form-group-summary::before {
   background: none;
   border: none;
   border-radius: 3px;
-  color: var(--color-text-muted);
+  color: var(--color-text);
   cursor: pointer;
   transition: background 0.1s, color 0.1s;
 }

@@ -1662,12 +1662,8 @@
 
   // Listen for tab lifecycle events dispatched by workspace-layout.js
   document.addEventListener('sempkm:tab-activated', function(e) {
-    // Only activate the accent bar for object tabs (not views, settings, SPARQL)
-    if (e.detail && e.detail.isObjectTab) {
-      setContextualPanelActive(true);
-    }
-    // Non-object tab: leave accent bar state unchanged
-    // (bar stays on if object tab still open elsewhere; off if no object was active)
+    // Accent bar reflects CURRENT FOCUS: on for object tabs, off for settings/views
+    setContextualPanelActive(!!(e.detail && e.detail.isObjectTab));
   });
 
   document.addEventListener('sempkm:tabs-empty', function() {
