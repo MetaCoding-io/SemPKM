@@ -17,6 +17,7 @@ from wsgidav.dav_provider import DAVCollection
 from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN
 
 from app.triplestore.sync_client import SyncTriplestoreClient
+from app.vfs.cache import cached_get_member_names
 
 
 def _slugify(text: str) -> str:
@@ -46,19 +47,22 @@ class RootCollection(DAVCollection):
         self._client = client
 
     def get_member_names(self) -> list[str]:
-        """Return list of installed model IDs."""
-        result = self._client.query(
-            """
-            SELECT DISTINCT ?modelId FROM <urn:sempkm:models>
-            WHERE {
-              ?model a <urn:sempkm:MentalModel> ;
-                     <urn:sempkm:modelId> ?modelId .
-            }
-            """
-        )
-        return [
-            b["modelId"]["value"] for b in result["results"]["bindings"]
-        ]
+        """Return list of installed model IDs (cached)."""
+        def _load():
+            result = self._client.query(
+                """
+                SELECT DISTINCT ?modelId FROM <urn:sempkm:models>
+                WHERE {
+                  ?model a <urn:sempkm:MentalModel> ;
+                         <urn:sempkm:modelId> ?modelId .
+                }
+                """
+            )
+            return [
+                b["modelId"]["value"] for b in result["results"]["bindings"]
+            ]
+
+        return cached_get_member_names("root:models", _load)
 
     def get_member(self, name: str):
         """Return ModelCollection for a model ID."""
@@ -101,25 +105,30 @@ class ModelCollection(DAVCollection):
         self._model_id = model_id
 
     def get_member_names(self) -> list[str]:
-        """Return list of type labels in this model.
+        """Return list of type labels in this model (cached).
 
         Queries SHACL shapes from the model's shapes graph to find
         sh:targetClass values, extracts the local name as the type label.
         """
-        result = self._client.query(
-            f"""
-            PREFIX sh: <http://www.w3.org/ns/shacl#>
-            SELECT DISTINCT ?typeLabel
-            FROM <urn:sempkm:model:{self._model_id}:shapes>
-            WHERE {{
-              ?shape sh:targetClass ?class .
-              BIND(REPLACE(STR(?class), ".*[/:#]", "") AS ?typeLabel)
-            }}
-            """
-        )
-        return [
-            b["typeLabel"]["value"] for b in result["results"]["bindings"]
-        ]
+        model_id = self._model_id
+
+        def _load():
+            result = self._client.query(
+                f"""
+                PREFIX sh: <http://www.w3.org/ns/shacl#>
+                SELECT DISTINCT ?typeLabel
+                FROM <urn:sempkm:model:{model_id}:shapes>
+                WHERE {{
+                  ?shape sh:targetClass ?class .
+                  BIND(REPLACE(STR(?class), ".*[/:#]", "") AS ?typeLabel)
+                }}
+                """
+            )
+            return [
+                b["typeLabel"]["value"] for b in result["results"]["bindings"]
+            ]
+
+        return cached_get_member_names(f"model:{model_id}:types", _load)
 
     def get_member(self, name: str):
         """Return TypeCollection for a type label."""
@@ -259,8 +268,13 @@ class TypeCollection(DAVCollection):
         return self._file_map
 
     def get_member_names(self) -> list[str]:
-        """Return list of .md filenames for objects of this type."""
-        return list(self._ensure_file_map().keys())
+        """Return list of .md filenames for objects of this type (cached)."""
+        cache_key = f"type:{self._model_id}:{self._type_label}"
+
+        def _load():
+            return list(self._ensure_file_map().keys())
+
+        return cached_get_member_names(cache_key, _load)
 
     def get_member(self, name: str):
         """Return ResourceFile for a filename."""
