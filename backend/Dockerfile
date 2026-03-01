@@ -16,6 +16,10 @@ COPY pyproject.toml .
 # Install dependencies
 RUN pip install --no-cache-dir .
 
+# Copy Alembic migration configuration and scripts
+COPY alembic.ini .
+COPY migrations/ migrations/
+
 # Copy application code
 COPY app/ app/
 
