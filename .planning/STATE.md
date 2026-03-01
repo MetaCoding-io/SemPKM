@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Architecture Decision Gate
-status: planning
+status: roadmap_defined
 last_updated: "2026-03-01T00:00:00.000Z"
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -18,16 +18,24 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-01)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations -- no blank-page syndrome, no schema setup.
-**Current focus:** v2.1 Architecture Decision Gate — defining requirements
+**Current focus:** v2.1 Architecture Decision Gate — roadmap defined, ready for phase planning
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 20 (Architecture Decision Commit) — not started
 Plan: —
-Status: Defining requirements
-Last activity: 2026-03-01 — Milestone v2.1 started
+Status: Roadmap defined — run /gsd:plan-phase 20
+Last activity: 2026-03-01 — v2.1 roadmap created (3 phases, 9 requirements)
 
-Progress: [##########] 100% (v2.0) -- Phase 19 ongoing
+Progress: [----------] 0% (v2.1) — Phase 20 not started
+
+## v2.1 Phase Summary
+
+| Phase | Goal | Requirements | Status |
+|-------|------|--------------|--------|
+| 20. Architecture Decision Commit | Formalize 4 research tracks as committed decisions | DEC-01, DEC-02, DEC-03, DEC-04 | Not started |
+| 21. Research Synthesis | Produce DECISIONS.md with v2.2 guidance | SYN-01 | Not started |
+| 22. Tech Debt Sprint | Alembic, SMTP, session cleanup, ViewSpec cache | TECH-01, TECH-02, TECH-03, TECH-04 | Not started |
 
 ## Performance Metrics
 
@@ -167,21 +175,31 @@ v2.0 roadmap decisions:
 - (19-02) Nav tree tooltip: event-delegated, single shared element, type_label resolved server-side in tree_children endpoint
 - (19-02) Graph node hover tooltip confirmed correct — typeLabel already in node data from views service, no changes needed
 
+v2.1 roadmap decisions:
+- Phase 20 (DEC) runs before Phase 21 (SYN) — synthesis requires all 4 decisions to be committed first
+- Phase 22 (TECH) is independent — can run in parallel with Phases 20 and 21
+- Research is complete for all 4 DEC phases; Phase 20 formalizes existing RESEARCH.md files (no new research)
+- 3 phases chosen for standard depth: natural delivery boundaries align with the 3 requirement categories (DEC, SYN, TECH)
+
 ### Pending Todos
 
 1. Add edit form helptext property to SHACL types (ui)
 
-### Known Tech Debt (from v1.0)
+### Known Tech Debt (from v1.0/v2.0)
 
 - Cookie secure=False (needs production config)
-- SMTP deferred (magic link tokens logged to console)
+- SMTP deferred (magic link tokens logged to console) — addressed in Phase 22
 - Dual SQLAlchemy engine instances (harmless for SQLite)
 - empty_shapes_loader dead code
+- Alembic migration runner not yet in place — addressed in Phase 22
+- Session cleanup job not yet implemented — addressed in Phase 22
+- ViewSpecService TTL cache not yet implemented — addressed in Phase 22
+- Bottom panel SPARQL/AI Copilot tabs are placeholder stubs (implementation in future milestones)
+- Edit form helptext property not yet in SHACL types (pending todo)
 
 ### Blockers/Concerns
 
-- Split.js has no dynamic pane API -- editor group data model must be designed before read-only view changes `#editor-area` targeting (addressed: Phase 10 plan 10-03 designs the model, Phase 14 implements)
-- Shepherd.js v14 is AGPL-3.0 -- using Driver.js (MIT) instead (addressed in REQUIREMENTS.md)
+None for v2.1.
 
 ### Quick Tasks Completed
 
@@ -200,5 +218,5 @@ v2.0 roadmap decisions:
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: v2.0 milestone archived and tagged — ready for next milestone
-Resume: Run /gsd:new-milestone to define v2.1 scope
+Stopped at: v2.1 roadmap defined — 3 phases, 9 requirements, 100% coverage
+Resume: Run /gsd:plan-phase 20 to begin Architecture Decision Commit phase
