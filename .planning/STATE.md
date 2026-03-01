@@ -34,7 +34,7 @@ Progress: [###-------] 33% (Phase 26)
 | Phase | Name | Requirements | Depends On | Status |
 |-------|------|--------------|------------|--------|
 | 23 | SPARQL Console | SPARQL-01, SPARQL-02, SPARQL-03 | Nothing | Complete (2/2 plans) |
-| 24 | FTS Keyword Search | FTS-01, FTS-02, FTS-03 | Nothing (JAR prereq) | Not started |
+| 24 | FTS Keyword Search | FTS-01, FTS-02, FTS-03 | Nothing (JAR prereq) | In progress (1/2 plans) |
 | 25 | CSS Token Expansion | — (v2.3 prep) | Nothing | Complete (1/1 plans) |
 | 26 | VFS MVP Read-Only | VFS-01, VFS-02 | Nothing (self-contained) | In progress (1/3 plans) |
 | 27 | VFS Write + Auth | VFS-03 | Phase 26 | Not started |
@@ -56,11 +56,12 @@ All v2.2 architectural decisions committed in v2.1. See .planning/DECISIONS.md f
 - VFS-01: SyncTriplestoreClient mirrors async TriplestoreClient API with httpx.Client for WSGI thread pool use
 - VFS-02: API tokens use SHA-256 hash storage; plaintext returned exactly once on creation
 - VFS-03: verify_api_token_sync uses disposable sync SQLAlchemy engine per call for WSGI thread safety
+- FTS-01: LuceneSail config uses RDF4J 5.x unified namespace (config:lucene.indexDir, config:delegate) — verified from container-generated config
+- FTS-02: Graph-scoped FTS via SPARQL GRAPH clause, not config-level reindexQuery (not supported in RDF4J 5.x config)
 
 ### Pending Todos
 
 1. Add edit form helptext property to SHACL types (ui) — carried from v2.0
-2. Verify LuceneSail JAR in Docker image before Phase 24 begins
 
 ### Known Tech Debt
 
@@ -71,11 +72,10 @@ All v2.2 architectural decisions committed in v2.1. See .planning/DECISIONS.md f
 
 ### Blockers/Concerns
 
-- Phase 24 prerequisite: LuceneSail JAR must be verified in Docker image first; if absent, Dockerfile extension required before SearchService code
 - Phase 27 prerequisite: API token auth design must be complete before write path work begins
 
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 26-01-PLAN.md (VFS Foundation: packages, sync client, API tokens, nginx proxy)
-Resume: Continue with 26-02-PLAN.md (DAV Provider implementation)
+Stopped at: Completed 24-01-PLAN.md (LuceneSail FTS config + SearchService)
+Resume: Continue with 24-02-PLAN.md (Search API endpoint and UI)
