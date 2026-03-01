@@ -1,60 +1,74 @@
 # Requirements: SemPKM
 
-**Defined:** 2026-03-01
+**Defined:** 2026-02-28
 **Core Value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations — no blank-page syndrome, no schema setup.
 
-## v2.1 Requirements
+## v2.2 Requirements
 
-Requirements for v2.1: Architecture Decision Gate. Formalizes completed research and resolves medium-priority tech debt.
+Requirements for the Data Discovery milestone. Each maps to roadmap phases 23-28.
 
-### Decisions
+### Full-Text Search
 
-- [x] **DEC-01**: Architectural decision for full-text search committed — RDF4J LuceneSail approach, repository config, SPARQL query API design, phased plan (keyword first, vector later)
-- [x] **DEC-02**: Architectural decision for SPARQL UI committed — Zazuko Yasgui CDN embed approach, YASR plugin strategy for SemPKM object links, saved query design
-- [x] **DEC-03**: Architectural decision for virtual filesystem committed — wsgidav + a2wsgi approach, MountSpec MVP vocabulary (flat + tag-groups), WebDAV client compatibility matrix
-- [x] **DEC-04**: Architectural decision for UI shell committed — Dockview-core over GoldenLayout rationale, incremental Split.js migration plan, CSS token vocabulary expansion design
+- [ ] **FTS-01**: User can search knowledge base by keyword (full-text search across all literal values)
+- [ ] **FTS-02**: Search results show object type, label, and matching snippet
+- [ ] **FTS-03**: Search integrated into command palette (Ctrl+K)
 
-### Synthesis
+### SPARQL Console
 
-- [x] **SYN-01**: Consolidated DECISIONS.md created — all 4 architectural decisions, cross-cutting concerns, v2.2 phase structure derived, tech debt schedule
+- [ ] **SPARQL-01**: User can execute SPARQL queries via embedded Yasgui interface
+- [ ] **SPARQL-02**: SPARQL results display IRIs as clickable SemPKM object links
+- [ ] **SPARQL-03**: Query history preserved across sessions (localStorage)
 
-### Tech Debt
+### Virtual Filesystem
 
-- [x] **TECH-01**: Alembic migration runner at startup — replaces `create_all`, proper schema migration support for both SQLite and PostgreSQL
-- [x] **TECH-02**: SMTP email delivery — magic links sent via real email (configurable SMTP settings), not logged to console
-- [x] **TECH-03**: Session cleanup job — expired sessions purged on startup or via scheduled task
-- [x] **TECH-04**: ViewSpecService TTL cache — reduce SPARQL queries per view spec lookup (currently 2 queries per lookup)
+- [ ] **VFS-01**: User can mount SemPKM objects as files via WebDAV (read-only)
+- [ ] **VFS-02**: Object bodies rendered as Markdown files with SHACL-derived frontmatter
+- [ ] **VFS-03**: Mount configuration accessible via Settings page
 
-## Future Requirements
+### UI Polish & Integration
 
-### v2.2 — Data Discovery
+- [ ] **POLSH-01**: Expander/collapse icons visible in sidebar tree in both light and dark themes
+- [ ] **POLSH-02**: User can move sidebar panels between left/right sidebar in object browser
+- [ ] **POLSH-03**: Object-contextual panels show visual indicator distinguishing them from global views
+- [ ] **POLSH-04**: Each v2.2 feature area (FTS, SPARQL, VFS) has a dedicated Playwright E2E integration test file
 
-- **FTS-01**: User can search knowledge base by keyword (full-text search across all literal values)
-- **FTS-02**: Search results show object type, label, and matching snippet
-- **FTS-03**: Search integrated into command palette (Ctrl+K)
-- **SPARQL-01**: User can execute SPARQL queries via embedded Yasgui interface
-- **SPARQL-02**: SPARQL results display IRIs as clickable SemPKM object links
-- **SPARQL-03**: Query history preserved across sessions (localStorage)
-- **VFS-01**: User can mount SemPKM objects as files via WebDAV (read-only)
-- **VFS-02**: Object bodies rendered as Markdown files with SHACL-derived frontmatter
-- **VFS-03**: Mount configuration accessible via Settings page
+## Future Candidates
 
-### v2.3 — Shell & Navigation
+Tracked for future milestones. Not in v2.2 roadmap.
 
-- **DOCK-01**: User can drag-and-drop panels to arbitrary positions (Dockview integration)
-- **DOCK-02**: User can save named workspace layouts (Dashboards)
-- **THEME-01**: User can select from built-in themes (Dark+, Light, High Contrast, Solarized)
-- **THEME-02**: Mental Models can contribute theme bundles
+### Shell & Navigation (v2.3)
+
+- **DOCK-01**: Full dockview-core migration — Phase A (inner editor-pane split)
+- **DOCK-02**: Named workspace layouts (user-defined, model-provided panel arrangements)
+- **CSS-01**: Full theming system (user-selectable themes, model-contributed themes)
+
+### Low-Code & Workflows (v2.4)
+
+- **LC-01**: Low-code UI builder (compose basic components tied to SemPKM actions)
+- **LC-02**: Minimal workflow orchestration (orchestrated forms/views)
+
+### Cross-Cutting (ongoing)
+
+- **BKLNK-01**: Backlinks panel (incoming references for any object)
+- **EDGE-01**: Edge inspector panel
+- **EDGE-02**: Inline wiki-link creation
+- **EXPORT-01**: JSON-LD export for objects/collections
+- **AI-01**: AI Copilot chat (data, SPARQL generation, writing assistance)
+- **VEC-01**: pgvector/semantic search (deferred — validate keyword FTS in v2.2 first)
 
 ## Out of Scope
 
+Explicitly excluded. Documented to prevent scope creep.
+
 | Feature | Reason |
 |---------|--------|
-| SMTP OAuth2 auth | Start with simple SMTP credentials; OAuth2 is complex and can be added later |
-| pgvector / semantic search | Phase 20b (vector) deferred to after keyword FTS is validated in v2.2 |
-| Dockview full migration | v2.1 is decisions only; implementation is v2.3 |
-| Source model attribution | Lower priority, deferred to v2.2+ |
-| validation/report.py hash() fix | Lower priority, deferred to v2.2 |
+| VFS write path (Phase 27) | Requires API token auth design — deferred to end of v2.2 |
+| Full dockview-core migration | Phase A deferred to v2.3; only lightweight panel rearrangement in v2.2 |
+| SPARQL UPDATE as write surface | By design — bypasses event sourcing |
+| Real-time collaborative editing | CRDT/OT complexity, v2+ at earliest |
+| Semantic/vector search (pgvector) | Deferred until keyword FTS validated in v2.2 |
+| Mobile native app | Web-first; responsive design and eventual PWA |
+| Ontology editor | Consume via Mental Models; use Protege for authoring |
 
 ## Traceability
 
@@ -62,21 +76,27 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DEC-01 | Phase 20 | Complete |
-| DEC-02 | Phase 20 | Complete |
-| DEC-03 | Phase 20 | Complete |
-| DEC-04 | Phase 20 | Complete |
-| SYN-01 | Phase 21 | Complete |
-| TECH-01 | Phase 22 | Complete |
-| TECH-02 | Phase 22 | Complete |
-| TECH-03 | Phase 22 | Complete |
-| TECH-04 | Phase 22 | Complete |
+| SPARQL-01 | Phase 23 | Pending |
+| SPARQL-02 | Phase 23 | Pending |
+| SPARQL-03 | Phase 23 | Pending |
+| FTS-01 | Phase 24 | Pending |
+| FTS-02 | Phase 24 | Pending |
+| FTS-03 | Phase 24 | Pending |
+| VFS-01 | Phase 26 | Pending |
+| VFS-02 | Phase 26 | Pending |
+| VFS-03 | Phase 26 | Pending |
+| POLSH-01 | Phase 28 | Pending |
+| POLSH-02 | Phase 28 | Pending |
+| POLSH-03 | Phase 28 | Pending |
+| POLSH-04 | Phase 28 | Pending |
 
 **Coverage:**
-- v2.1 requirements: 9 total
-- Mapped to phases: 9
+- v2.2 requirements: 13 total
+- Mapped to phases: 13
 - Unmapped: 0 ✓
 
+*Note: Phase 25 (CSS Token Expansion) and Phase 27 (VFS Write + Auth) are infrastructure/preparatory phases with no standalone user-visible requirements — they enable v2.3 and Phase 28 respectively.*
+
 ---
-*Requirements defined: 2026-03-01*
-*Last updated: 2026-03-01 — traceability confirmed during roadmap creation*
+*Requirements defined: 2026-02-28*
+*Last updated: 2026-02-28 after initial definition*
