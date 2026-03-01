@@ -16,7 +16,7 @@ Requirements for the Data Discovery milestone. Each maps to roadmap phases 23-28
 ### SPARQL Console
 
 - [x] **SPARQL-01**: User can execute SPARQL queries via embedded Yasgui interface
-- [ ] **SPARQL-02**: SPARQL results display IRIs as clickable SemPKM object links
+- [x] **SPARQL-02**: SPARQL results display IRIs as clickable SemPKM object links
 - [x] **SPARQL-03**: Query history preserved across sessions (localStorage)
 
 ### Virtual Filesystem
@@ -76,7 +76,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | SPARQL-01 | Phase 23 | Complete |
-| SPARQL-02 | Phase 23 | Pending |
+| SPARQL-02 | Phase 23 | Complete |
 | SPARQL-03 | Phase 23 | Complete |
 | FTS-01 | Phase 24 | Pending |
 | FTS-02 | Phase 24 | Pending |
