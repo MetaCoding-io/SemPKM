@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Architecture Decision Gate
 status: unknown
-last_updated: "2026-03-01T02:38:04.482Z"
+last_updated: "2026-03-01T02:42:41.818Z"
 progress:
   total_phases: 12
-  completed_phases: 10
+  completed_phases: 11
   total_plans: 35
-  completed_plans: 32
+  completed_plans: 33
 ---
 
 # Project State
@@ -76,9 +76,11 @@ Progress: [##########] 100% (v2.1) — Phase 22 complete
 | Phase 20 P01 | 2min | 2 tasks | 1 files |
 | Phase 20 P02 | 2min | 2 tasks | 1 files |
 | Phase 20 P02 | 2min | 2 tasks | 1 files |
+| Phase 20 P03 | 2min | 2 tasks | 1 files |
 | Phase 22 P01 | 2min | 2 tasks | 4 files |
 | Phase 22 P02 | 2min | 2 tasks | 4 files |
 | Phase 22 P03 | 4min | 2 tasks | 3 files |
+| Phase 20 P03 | 2min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -198,6 +200,14 @@ v2.1 Phase 20 execution decisions (20-02):
 - (20-02) Custom YASR table cell renderer for SemPKM IRI-to-object-browser links committed as design (satisfies SPARQL-02)
 - (20-02) localStorage persistence with key sempkm-sparql committed (satisfies SPARQL-03)
 
+v2.1 Phase 20 execution decisions (20-03):
+- (20-03) wsgidav + a2wsgi WSGI/ASGI bridge chosen for WebDAV VFS — Docker-compatible, HTTP-only, no kernel-level access required
+- (20-03) FUSE explicitly ruled out: requires SYS_ADMIN Docker cap prohibited by AWS Fargate, Fly.io, Railway managed hosting
+- (20-03) Read-only first MVP: defer write path (diff engine, ETag concurrency, python-frontmatter round-trips) to Phase 22d
+- (20-03) Three new Python packages required: wsgidav>=4.3.3,<5.0, a2wsgi>=1.10, python-frontmatter>=1.1.0
+- (20-03) SyncTriplestoreClient needed: DAVProvider runs in WSGI thread pool, cannot use httpx.AsyncClient
+- (20-03) API token Basic auth pattern committed (username=SemPKM username, password=revocable token) — design deferred to Phase 22c
+
 v2.1 Phase 22 execution decisions (22-01):
 - (22-01) asyncio.to_thread wraps Alembic command.upgrade to avoid nested event loop (env.py uses asyncio.run internally)
 - (22-01) AlembicConfig and alembic_command aliases avoid name collision with existing Config usage in main.py
@@ -246,5 +256,5 @@ None for v2.1.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 22-03-PLAN.md — ViewSpec TTLCache with invalidation on model endpoints
-Resume: Phase 22 (Tech Debt Sprint) complete. All v2.1 phases may now be complete -- check phases 20 and 21 status.
+Stopped at: Completed 20-03-PLAN.md — VFS architecture decision committed (wsgidav + a2wsgi WebDAV, FUSE ruled out)
+Resume: Run /gsd:execute-phase 20-04 to continue Architecture Decision Commit phase (DEC-04, final decision track)
