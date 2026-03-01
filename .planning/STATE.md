@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Architecture Decision Gate
 status: unknown
-last_updated: "2026-03-01T02:30:57.745Z"
+last_updated: "2026-03-01T02:34:41.969Z"
 progress:
   total_phases: 12
   completed_phases: 10
-  total_plans: 34
-  completed_plans: 28
+  total_plans: 35
+  completed_plans: 29
 ---
 
 # Project State
@@ -23,9 +23,9 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 ## Current Position
 
 Phase: 20 (Architecture Decision Commit) — in progress
-Plan: 01 complete, 02+ pending
-Status: Plan 01 executed — FTS/Vector decision committed
-Last activity: 2026-03-01 — Phase 20 Plan 01 complete (2 tasks, 1 file, 2min)
+Plan: 02 complete, 03+ pending
+Status: Plan 02 executed — SPARQL UI decision committed (@zazuko/yasgui CDN embed)
+Last activity: 2026-03-01 — Phase 20 Plan 02 complete (2 tasks, 1 file, 2min)
 
 Progress: [#---------] 10% (v2.1) — Phase 20 Plan 01 complete
 
@@ -74,6 +74,8 @@ Progress: [#---------] 10% (v2.1) — Phase 20 Plan 01 complete
 | 19    | 01   | 13min    | 2     | 6     |
 | 19    | 02   | 28min    | 2     | 8     |
 | Phase 20 P01 | 2min | 2 tasks | 1 files |
+| Phase 20 P02 | 2min | 2 tasks | 1 files |
+| Phase 20 P02 | 2min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -187,6 +189,12 @@ v2.1 Phase 20 execution decisions (20-01):
 - (20-01) OpenSearch/Jena/Oxigraph/GraphDB explicitly ruled out with specific rationale; pgvector semantic search deferred to Phase 20b (blocked on PostgreSQL migration)
 - (20-01) Three highest-priority implementation prerequisites: (1) verify LuceneSail JAR in Docker image, (2) validate Turtle config for RDF4J 5.x unified namespace, (3) validate FROM clause graph scoping
 
+v2.1 Phase 20 execution decisions (20-02):
+- (20-02) @zazuko/yasgui v4.5.0 via CDN embed chosen for SPARQL Console — de facto standard, MIT-licensed, zero backend changes needed
+- (20-02) Eight alternatives explicitly ruled out: sib-swiss, Comunica, AtomGraph, custom CodeMirror build, iframe, sidecar container, npm build step, TriplyDB fork
+- (20-02) Custom YASR table cell renderer for SemPKM IRI-to-object-browser links committed as design (satisfies SPARQL-02)
+- (20-02) localStorage persistence with key sempkm-sparql committed (satisfies SPARQL-03)
+
 ### Pending Todos
 
 1. Add edit form helptext property to SHACL types (ui)
@@ -224,5 +232,5 @@ None for v2.1.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 20-01-PLAN.md — FTS/Vector architecture decision committed (LuceneSail)
-Resume: Run /gsd:execute-phase 20-02 to continue Architecture Decision Commit phase (next decision track)
+Stopped at: Completed 20-02-PLAN.md — SPARQL UI architecture decision committed (@zazuko/yasgui CDN embed)
+Resume: Run /gsd:execute-phase 20-03 to continue Architecture Decision Commit phase (next decision track)
