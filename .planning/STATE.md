@@ -22,18 +22,18 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 
 ## Current Position
 
-Phase: 20 (Architecture Decision Commit) — complete
-Plan: 04 of 04 complete
-Status: All Phase 20 plans executed — FTS, SPARQL UI, VFS, and UI Shell decisions committed
-Last activity: 2026-03-01 — Phase 20 Plan 04 complete (2 tasks, 1 file, 2min)
+Phase: 21 (Research Synthesis) — not started
+Plan: 05 of 05 complete (Phase 20 done)
+Status: Phase 20 complete — run /gsd:plan-phase 21
+Last activity: 2026-02-28 — Phase 20 completed: all 4 architectural decisions formalized
 
-Progress: [##########] 97% (v2.1) — Phase 20 complete, Phase 21 (Research Synthesis) next
+Progress: [###-------] 33% (v2.1) — Phase 20 complete
 
 ## v2.1 Phase Summary
 
 | Phase | Goal | Requirements | Status |
 |-------|------|--------------|--------|
-| 20. Architecture Decision Commit | Formalize 4 research tracks as committed decisions | DEC-01, DEC-02, DEC-03, DEC-04 | Complete |
+| 20. Architecture Decision Commit | Formalize 4 research tracks as committed decisions | DEC-01, DEC-02, DEC-03, DEC-04 | Complete (2026-02-28) |
 | 21. Research Synthesis | Produce DECISIONS.md with v2.2 guidance | SYN-01 | Not started |
 | 22. Tech Debt Sprint | Alembic, SMTP, session cleanup, ViewSpec cache | TECH-01, TECH-02, TECH-03, TECH-04 | Complete |
 
@@ -185,6 +185,7 @@ v2.0 roadmap decisions:
 - (19-02) Graph node hover tooltip confirmed correct — typeLabel already in node data from views service, no changes needed
 
 v2.1 roadmap decisions:
+- Phase 20 decisions committed: DEC-01 LuceneSail, DEC-02 Yasgui CDN, DEC-03 wsgidav+a2wsgi, DEC-04 dockview-core
 - Phase 20 (DEC) runs before Phase 21 (SYN) — synthesis requires all 4 decisions to be committed first
 - Phase 22 (TECH) is independent — can run in parallel with Phases 20 and 21
 - Research is complete for all 4 DEC phases; Phase 20 formalizes existing RESEARCH.md files (no new research)
@@ -262,6 +263,6 @@ None for v2.1.
 
 ## Session Continuity
 
-Last session: 2026-03-01
-Stopped at: Completed 20-04-PLAN.md — UI Shell architecture decision committed (dockview-core + incremental Split.js migration, GoldenLayout ruled out)
-Resume: Run /gsd:execute-phase 21 to begin Research Synthesis phase (SYN-01, produce DECISIONS.md consolidating all 4 architectural commitments)
+Last session: 2026-02-28
+Stopped at: Phase 20 complete — 4 architectural decisions formalized and committed
+Resume: Run /gsd:plan-phase 21 to begin Research Synthesis
