@@ -14,6 +14,7 @@
   // --- Constants ---
   var PANE_KEY = 'sempkm_pane_sizes';
   var PANEL_KEY = 'sempkm_bottom_panel';
+  var PANEL_POSITIONS_KEY = 'sempkm_panel_positions';
 
   // --- Bottom Panel State ---
   var panelState = { open: false, height: 30, activeTab: 'sparql', maximized: false };
@@ -1319,6 +1320,127 @@
     return div.innerHTML;
   }
 
+  // -----------------------------------------------------------------------
+  // Phase 28: Sidebar Panel Drag-and-Drop (POLSH-02)
+  // -----------------------------------------------------------------------
+
+  function initPanelDragDrop() {
+    var rightContent = document.getElementById('right-content');
+    var navTree = document.getElementById('nav-tree');
+    if (!rightContent || !navTree) return;
+
+    // dragstart: must originate from a draggable="true" element inside a [data-panel-name] panel
+    document.addEventListener('dragstart', function(e) {
+      var handle = e.target.closest('[draggable="true"]');
+      if (!handle) return;
+      var panel = handle.closest('[data-panel-name]');
+      if (!panel) return;
+      e.dataTransfer.setData('text/panel-name', panel.dataset.panelName);
+      e.dataTransfer.effectAllowed = 'move';
+      panel.classList.add('panel-dragging');
+    });
+
+    document.addEventListener('dragend', function() {
+      document.querySelectorAll('.panel-dragging').forEach(function(el) {
+        el.classList.remove('panel-dragging');
+      });
+      document.querySelectorAll('.panel-drag-over').forEach(function(el) {
+        el.classList.remove('panel-drag-over');
+      });
+    });
+
+    // Wire drop zones (right-content and nav-tree)
+    [rightContent, navTree].forEach(function(zone) {
+      zone.addEventListener('dragover', function(e) {
+        // Only accept panel-name drags
+        if (!e.dataTransfer.types.includes('text/panel-name')) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        zone.classList.add('panel-drag-over');
+      });
+
+      zone.addEventListener('dragleave', function(e) {
+        if (!zone.contains(e.relatedTarget)) {
+          zone.classList.remove('panel-drag-over');
+        }
+      });
+
+      zone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        zone.classList.remove('panel-drag-over');
+        var panelName = e.dataTransfer.getData('text/panel-name');
+        if (!panelName) return;
+        var targetZone = zone.dataset.dropZone; // 'left' or 'right'
+        swapPanel(panelName, targetZone);
+      });
+    });
+  }
+
+  function swapPanel(panelName, targetZone) {
+    var panel = document.querySelector('[data-panel-name="' + panelName + '"]');
+    if (!panel) return;
+
+    var rightContent = document.getElementById('right-content');
+    var navTree = document.getElementById('nav-tree');
+    if (!rightContent || !navTree) return;
+
+    var currentZone = rightContent.contains(panel) ? 'right' : 'left';
+    if (currentZone === targetZone) return; // already there — no-op
+
+    var header = panel.querySelector('.right-section-header');
+
+    if (targetZone === 'left') {
+      // Move to left pane (nav-tree area), appended below existing sections
+      if (header) header.classList.add('panel-header-in-left');
+      navTree.appendChild(panel);
+    } else {
+      // Move back to right pane content
+      if (header) header.classList.remove('panel-header-in-left');
+      rightContent.appendChild(panel);
+    }
+
+    savePanelPositions();
+
+    // Re-init Lucide icons in the moved panel so SVGs render
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons({ attrs: { class: ['lucide'] } });
+    }
+  }
+
+  function savePanelPositions() {
+    var positions = {};
+    document.querySelectorAll('[data-panel-name]').forEach(function(panel) {
+      var name = panel.dataset.panelName;
+      var rightContent = document.getElementById('right-content');
+      positions[name] = (rightContent && rightContent.contains(panel)) ? 'right' : 'left';
+    });
+    try {
+      localStorage.setItem(PANEL_POSITIONS_KEY, JSON.stringify(positions));
+    } catch (e) {
+      // localStorage blocked — continue without persisting
+    }
+  }
+
+  function restorePanelPositions() {
+    var raw = null;
+    try {
+      raw = localStorage.getItem(PANEL_POSITIONS_KEY);
+    } catch (e) {
+      return;
+    }
+    if (!raw) return;
+    try {
+      var positions = JSON.parse(raw);
+      Object.keys(positions).forEach(function(name) {
+        if (positions[name] === 'left') {
+          swapPanel(name, 'left');
+        }
+      });
+    } catch (e) {
+      // Ignore parse errors — positions revert to default (right pane)
+    }
+  }
+
   // --- Initialization ---
 
   function init() {
@@ -1329,6 +1451,8 @@
     initRightPaneTabs();
     initClientSideValidation();
     initBottomPanel();
+    initPanelDragDrop();
+    restorePanelPositions();
 
     // Initialize workspace layout (migrates old tab state, builds multi-group DOM)
     if (typeof window.initWorkspaceLayout === 'function') {
@@ -1505,6 +1629,7 @@
   window.saveCurrentObject = saveCurrentObject;
   window.toggleBottomPanel = toggleBottomPanel;
   window.maximizeBottomPanel = maximizeBottomPanel;
+  window.swapPanel = swapPanel;
 
 })();
 
