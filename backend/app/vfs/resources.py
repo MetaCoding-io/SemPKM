@@ -3,10 +3,17 @@
 Each object is presented as a .md file with YAML frontmatter containing
 metadata (type IRI, object IRI, label, key properties) and a Markdown body
 from the object's body predicate.
+
+Write path (PUT):
+  begin_write() returns a BytesIO buffer.
+  end_write() reads the buffer, strips frontmatter, and commits body.set via EventStore.
+  ETag concurrency (If-Match) is evaluated by wsgidav before begin_write() is called.
+  DELETE/MOVE/COPY remain blocked with HTTP 403.
 """
 
 import hashlib
 import io
+import logging
 
 from wsgidav.dav_provider import DAVNonCollection
 
@@ -16,6 +23,8 @@ from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN
 import frontmatter
 
 from app.triplestore.sync_client import SyncTriplestoreClient
+
+logger = logging.getLogger(__name__)
 
 
 # Predicates to include in frontmatter with human-readable keys
@@ -44,6 +53,12 @@ class ResourceFile(DAVNonCollection):
 
     The file content is generated on first access and cached for the
     duration of the request (same instance).
+
+    Write path:
+    - begin_write() returns a BytesIO buffer for wsgidav to stream PUT body into.
+    - end_write() parses the buffer, strips frontmatter, and commits body.set.
+    - ETag-based concurrency (If-Match) is handled by wsgidav before begin_write().
+    - DELETE/MOVE/COPY still raise HTTP 403 — only PUT body edits are supported.
     """
 
     def __init__(
@@ -54,6 +69,7 @@ class ResourceFile(DAVNonCollection):
         model_id: str,
         type_label: str,
         filename: str,
+        event_store=None,
     ) -> None:
         super().__init__(path, environ)
         self._client = client
@@ -61,6 +77,9 @@ class ResourceFile(DAVNonCollection):
         self._type_label = type_label
         self._filename = filename
         self._cached_content: bytes | None = None
+        self._event_store = event_store
+        # Buffer filled by begin_write/end_write cycle for PUT handling
+        self._write_buffer: io.BytesIO | None = None
 
     def _get_object_info(self) -> dict | None:
         """Look up object metadata from the parent TypeCollection.
@@ -163,6 +182,10 @@ class ResourceFile(DAVNonCollection):
 
         wsgidav calls this automatically and includes the value in ETag
         response headers on GET and HEAD requests.
+
+        ETag concurrency: wsgidav evaluates the If-Match header against this
+        value before calling begin_write(). Stale ETags result in 412
+        Precondition Failed without reaching our write path.
         """
         return hashlib.sha256(self._render()).hexdigest()
 
@@ -172,15 +195,85 @@ class ResourceFile(DAVNonCollection):
     def support_content_length(self) -> bool:
         return True
 
-    # Read-only enforcement
-    def begin_write(self, *, content_type=None):
-        raise DAVError(HTTP_FORBIDDEN, "Read-only filesystem")
+    # --- Write path: PUT body edits only ---
+
+    def begin_write(self, *, content_type=None) -> io.BytesIO:
+        """Start a PUT write cycle. Returns a BytesIO buffer for wsgidav to fill.
+
+        wsgidav streams the request body into the returned buffer. After streaming
+        completes, wsgidav calls end_write() to commit the change.
+
+        ETag concurrency (If-Match) has already been validated by wsgidav
+        before this method is called — no manual check needed here.
+        """
+        self._write_buffer = io.BytesIO()
+        return self._write_buffer
+
+    def end_write(self, *, with_errors: bool) -> None:
+        """Commit the buffered PUT body via the event store.
+
+        Called by wsgidav after it has finished writing the request body
+        into the buffer returned by begin_write().
+
+        Strips YAML frontmatter from the PUT body (silently ignored).
+        Only the Markdown body content is committed via body.set.
+        """
+        if with_errors or self._write_buffer is None:
+            # Something went wrong during streaming — abandon the write
+            self._write_buffer = None
+            return
+
+        from app.vfs.write import parse_dav_put_body, write_body_via_event_store
+
+        raw_bytes = self._write_buffer.getvalue()
+        self._write_buffer = None
+
+        # Strip frontmatter; extract Markdown body only
+        body = parse_dav_put_body(raw_bytes)
+
+        # Look up the RDF IRI of this resource
+        obj = self._get_object_info()
+        if obj is None:
+            logger.warning("ResourceFile.end_write: object not found for %s", self.path)
+            return
+
+        object_iri = obj["iri"]
+
+        # Extract user context from WSGI environ (set by SemPKMWsgiAuthenticator)
+        user_id = self.environ.get("sempkm.user_id")
+        user_role = self.environ.get("sempkm.user_role", "member")
+        # Build user URN for event provenance
+        user_iri_str = f"urn:sempkm:user:{user_id}" if user_id else None
+
+        if self._event_store is None:
+            logger.error(
+                "ResourceFile.end_write: event_store not wired — write to %s dropped",
+                self.path,
+            )
+            return
+
+        write_body_via_event_store(
+            object_iri=object_iri,
+            body=body,
+            event_store=self._event_store,
+            user_iri=user_iri_str,
+            user_role=user_role,
+        )
+
+        # Invalidate cached content so subsequent GETs reflect the new body
+        self._cached_content = None
+
+        logger.info(
+            "DAV PUT committed body.set for %s (user=%s)", object_iri, user_id
+        )
+
+    # --- Blocked operations: DELETE, MOVE, COPY remain read-only ---
 
     def handle_delete(self):
-        raise DAVError(HTTP_FORBIDDEN, "Read-only filesystem")
+        raise DAVError(HTTP_FORBIDDEN, "Delete not supported via WebDAV")
 
     def handle_move(self, dest_path):
-        raise DAVError(HTTP_FORBIDDEN, "Read-only filesystem")
+        raise DAVError(HTTP_FORBIDDEN, "Move not supported via WebDAV")
 
     def handle_copy(self, dest_path, *, depth_infinity=None):
-        raise DAVError(HTTP_FORBIDDEN, "Read-only filesystem")
+        raise DAVError(HTTP_FORBIDDEN, "Copy not supported via WebDAV")
