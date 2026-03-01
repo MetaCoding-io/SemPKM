@@ -62,7 +62,6 @@ Explicitly excluded. Documented to prevent scope creep.
 
 | Feature | Reason |
 |---------|--------|
-| VFS write path (Phase 27) | Requires API token auth design — deferred to end of v2.2 |
 | Full dockview-core migration | Phase A deferred to v2.3; only lightweight panel rearrangement in v2.2 |
 | SPARQL UPDATE as write surface | By design — bypasses event sourcing |
 | Real-time collaborative editing | CRDT/OT complexity, v2+ at earliest |
@@ -84,7 +83,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FTS-03 | Phase 24 | Pending |
 | VFS-01 | Phase 26 | Pending |
 | VFS-02 | Phase 26 | Pending |
-| VFS-03 | Phase 26 | Pending |
+| VFS-03 | Phase 27 | Pending |
 | POLSH-01 | Phase 28 | Pending |
 | POLSH-02 | Phase 28 | Pending |
 | POLSH-03 | Phase 28 | Pending |
@@ -95,8 +94,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 - Mapped to phases: 13
 - Unmapped: 0 ✓
 
-*Note: Phase 25 (CSS Token Expansion) and Phase 27 (VFS Write + Auth) are infrastructure/preparatory phases with no standalone user-visible requirements — they enable v2.3 and Phase 28 respectively.*
+*Note: Phase 25 (CSS Token Expansion) is an infrastructure/preparatory phase with no standalone user-visible requirements — it enables the v2.3 Dockview migration and provides consistent token coverage for new v2.2 UI surfaces (SPARQL Console, VFS Settings). Phase 27 covers VFS-03 (Settings page) because the mount configuration UI requires API token auth to be functional.*
 
 ---
 *Requirements defined: 2026-02-28*
-*Last updated: 2026-02-28 after initial definition*
+*Last updated: 2026-02-28 — traceability updated for Phases 23-28 (v2.2 roadmap)*
