@@ -5,6 +5,10 @@
 {% block layout_class %}workspace-layout{% endblock %}
 
 {% block content %}
+<!-- Yasgui SPARQL Console — Phase 23 -->
+<link rel="stylesheet" href="https://unpkg.com/@zazuko/yasgui@4.5.0/build/yasgui.min.css">
+<script src="https://unpkg.com/@zazuko/yasgui@4.5.0/build/yasgui.min.js"></script>
+
 <div class="workspace-container" id="workspace" data-testid="workspace">
     <div class="workspace-pane" id="nav-pane" data-testid="sidebar">
         <div class="pane-header">
@@ -77,10 +81,7 @@
           </div>
           <div class="panel-content">
             <div class="panel-pane active" id="panel-sparql">
-              <div class="panel-placeholder">
-                <i data-lucide="terminal" style="width:24px;height:24px;display:block;margin:0 auto 8px;"></i>
-                SPARQL Console — coming in Phase 16
-              </div>
+              <div id="yasgui-container"></div>
             </div>
             <div class="panel-pane" id="panel-event-log">
               <div class="panel-placeholder">
@@ -129,4 +130,70 @@
 </div>
 
 <ninja-keys></ninja-keys>
+
+<script>
+(function () {
+  'use strict';
+
+  var DEFAULT_QUERY = [
+    'PREFIX dcterms: <http://purl.org/dc/terms/>',
+    'PREFIX skos: <http://www.w3.org/2004/02/skos/core#>',
+    'PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>',
+    'PREFIX foaf: <http://xmlns.com/foaf/0.1/>',
+    '',
+    '# List all objects with their types and labels',
+    'SELECT ?subject ?type ?label WHERE {',
+    '  ?subject a ?type .',
+    '  OPTIONAL { ?subject dcterms:title ?t }',
+    '  OPTIONAL { ?subject skos:prefLabel ?p }',
+    '  OPTIONAL { ?subject rdfs:label ?r }',
+    '  OPTIONAL { ?subject foaf:name ?f }',
+    '  BIND(COALESCE(?t, ?p, ?r, ?f, STR(?subject)) AS ?label)',
+    '}',
+    'ORDER BY ?type ?label',
+    'LIMIT 50'
+  ].join('\n');
+
+  function initYasguiConsole() {
+    if (typeof Yasgui === 'undefined') {
+      setTimeout(initYasguiConsole, 200);
+      return;
+    }
+    var container = document.getElementById('yasgui-container');
+    if (!container || container._yasguiInstance) return;
+
+    var yasgui = new Yasgui(container, {
+      requestConfig: {
+        endpoint: '/api/sparql',
+        method: 'POST'
+      },
+      persistenceId: 'sempkm-sparql',
+      copyEndpointOnNewTab: false,
+      endpointCatalogueSize: 0
+    });
+
+    // Pre-populate default query only on first ever load (no localStorage state)
+    try {
+      if (!localStorage.getItem('sempkm-sparql')) {
+        var tab = yasgui.getTab();
+        if (tab) tab.setQuery(DEFAULT_QUERY);
+      }
+    } catch (e) { /* localStorage may be blocked */ }
+
+    container._yasguiInstance = yasgui;
+    window._yasgui = yasgui;
+  }
+
+  // Expose for workspace.js panel tab handler
+  window.initYasguiConsole = initYasguiConsole;
+
+  // Init immediately if SPARQL pane is already active on DOMContentLoaded
+  document.addEventListener('DOMContentLoaded', function () {
+    var sparqlPane = document.getElementById('panel-sparql');
+    if (sparqlPane && sparqlPane.classList.contains('active')) {
+      initYasguiConsole();
+    }
+  });
+})();
+</script>
 {% endblock %}
