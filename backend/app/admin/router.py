@@ -11,7 +11,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse
 
-from app.auth.dependencies import require_role
+from app.auth.dependencies import get_current_user, require_role
 from app.auth.models import User
 from app.dependencies import get_model_service, get_webhook_service
 from app.services.models import ModelService
@@ -395,6 +395,19 @@ async def admin_webhooks_toggle(
     webhooks = await webhook_service.list_configs()
     context["webhooks"] = webhooks
     return templates_response(request, "admin/webhooks.html", context, block_name="webhook_list")
+
+
+@router.get("/sparql")
+async def admin_sparql(request: Request, user: User = Depends(get_current_user)):
+    """Render the SPARQL query console (Yasgui). Any authenticated user."""
+    from app.config import settings
+    templates = request.app.state.templates
+    context = {"active_page": "sparql", "user": user, "base_namespace": settings.base_namespace}
+    if _is_htmx_request(request):
+        return templates.TemplateResponse(
+            request, "admin/sparql.html", context, block_name="content"
+        )
+    return templates.TemplateResponse(request, "admin/sparql.html", context)
 
 
 def templates_response(request: Request, template: str, context: dict, block_name: str | None = None):

@@ -34,6 +34,11 @@
                     <i data-lucide="webhook" class="nav-icon"></i>
                     <span class="nav-label">Webhooks</span>
                 </a>
+                <a href="/admin/sparql" class="nav-link" data-tooltip="SPARQL Console"
+                   hx-get="/admin/sparql" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
+                    <i data-lucide="database" class="nav-icon"></i>
+                    <span class="nav-label">SPARQL Console</span>
+                </a>
             </div>
         </div>
         <div class="sidebar-divider"></div>
@@ -71,9 +76,9 @@
                     <i data-lucide="folder-tree" class="nav-icon"></i>
                     <span class="nav-label">Object Browser</span>
                 </a>
-                <a href="/sparql" class="nav-link" data-tooltip="SPARQL Console">
-                    <i data-lucide="database" class="nav-icon"></i>
-                    <span class="nav-label">SPARQL Console</span>
+                <a href="#" class="nav-link disabled" data-tooltip="CLI Console — coming soon">
+                    <i data-lucide="terminal-square" class="nav-icon"></i>
+                    <span class="nav-label">CLI Console</span>
                 </a>
             </div>
         </div>
