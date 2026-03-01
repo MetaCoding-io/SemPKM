@@ -1255,16 +1255,20 @@ kbd {
   color: var(--color-text-muted);
 }
 
-/* Flip card container */
+/* Flip card — CSS 3D with midpoint visibility swap (matches object browser pattern) */
 .type-flip-container {
   perspective: 1200px;
   margin-bottom: 1rem;
+  position: relative;
+  transition: height 0.6s ease-in-out;
+  overflow: hidden;
 }
 
 .type-flip-inner {
   position: relative;
-  transition: transform 0.5s ease;
+  transition: transform 0.6s ease-in-out;
   transform-style: preserve-3d;
+  will-change: transform;
 }
 
 .type-flip-inner.flipped {
@@ -1273,22 +1277,28 @@ kbd {
 
 .type-flip-front,
 .type-flip-back {
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
 }
 
 .type-flip-front {
-  position: relative;
   z-index: 2;
 }
 
 .type-flip-back {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
   transform: rotateY(180deg);
-  overflow-y: auto;
+  z-index: 1;
+  visibility: hidden;
+}
+
+.type-flip-front.face-hidden {
+  visibility: hidden;
+}
+
+.type-flip-back.face-visible {
+  visibility: visible;
 }
 
 .flip-btn {
