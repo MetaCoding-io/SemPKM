@@ -46,6 +46,13 @@ setup to advanced topics like SPARQL queries and creating your own Mental Models
 
 20. [Production Deployment](20-production-deployment.md)
 
+## Part VIII: Discovery and Integration
+
+21. [SPARQL Console](21-sparql-console.md)
+22. [Keyword Search](22-keyword-search.md)
+23. [Virtual Filesystem (WebDAV)](23-vfs.md)
+24. [Obsidian Onboarding](24-obsidian-onboarding.md)
+
 ## Appendices
 
 - [A. Environment Variable Reference](appendix-a-environment-variables.md)
