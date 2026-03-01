@@ -13,7 +13,8 @@ from fastapi.responses import HTMLResponse
 
 from app.auth.dependencies import require_role
 from app.auth.models import User
-from app.dependencies import get_model_service, get_webhook_service
+from app.dependencies import get_label_service, get_model_service, get_webhook_service
+from app.services.labels import LabelService
 from app.services.models import ModelService
 from app.services.webhooks import WebhookService
 
@@ -109,6 +110,14 @@ async def admin_model_detail(
             if domain in type_map:
                 type_map[domain]["relationships"].append(p)
 
+    # Fetch live analytics (instance counts, top nodes)
+    type_iris = [t["iri"] for t in detail["types"]]
+    analytics = await model_service.get_type_analytics(type_iris)
+    for td in type_map.values():
+        a = analytics.get(td["iri"], {"count": 0, "top_nodes": []})
+        td["instance_count"] = a["count"]
+        td["top_nodes"] = a["top_nodes"]
+
     detail["type_details"] = list(type_map.values())
 
     # Stats
@@ -123,6 +132,30 @@ async def admin_model_detail(
     if _is_htmx_request(request):
         return templates_response(request, "admin/model_detail.html", context, block_name="content")
     return templates_response(request, "admin/model_detail.html", context)
+
+
+@router.get("/models/{model_id}/connections")
+async def admin_model_connections(
+    request: Request,
+    model_id: str,
+    user: User = Depends(require_role("owner")),
+    model_service: ModelService = Depends(get_model_service),
+    label_service: LabelService = Depends(get_label_service),
+):
+    """Render connections tab content for a model detail dashboard.
+
+    Returns an htmx partial showing outbound and inbound connections
+    for all instances of the model's types, grouped by predicate label.
+    Always rendered as a partial (loaded via htmx tab click only).
+    """
+    connections = await model_service.get_model_connections(model_id, label_service)
+    if connections is None:
+        return HTMLResponse(
+            '<div class="connections-empty"><p>Model not found.</p></div>',
+            status_code=404,
+        )
+    context = {"request": request, "connections": connections, "model_id": model_id}
+    return templates_response(request, "admin/model_connections.html", context)
 
 
 @router.post("/models/install")
