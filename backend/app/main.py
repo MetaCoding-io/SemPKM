@@ -97,6 +97,10 @@ async def lifespan(app: FastAPI):
     event_store = EventStore(client)
     app.state.event_store = event_store
 
+    # Wire event store into DAV provider for write path (PUT body.set)
+    # The DAV provider is constructed at module load time; inject event_store here.
+    _dav_provider.set_event_store(event_store)
+
     model_service = ModelService(client, event_store, prefix_registry)
     app.state.model_service = model_service
 
@@ -412,8 +416,8 @@ _dav_config = {
     "sempkm_db_url": settings.database_url,
     "verbose": 0,
     "logging": {"enable_loggers": []},
-    # Read-only: disable all write methods
-    "readonly": True,
+    # PUT is now allowed (write path via body.set event store).
+    # DELETE/MOVE/COPY/MKCOL are blocked at the ResourceFile/Collection level (HTTP 403).
 }
 
 _wsgi_dav_app = WsgiDAVApp(_dav_config)
