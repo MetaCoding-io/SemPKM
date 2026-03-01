@@ -1817,30 +1817,45 @@ kbd {
   font-weight: 600;
 }
 
-/* Ontology Diagram */
+/* Ontology Diagram (Cytoscape) */
 .ontology-diagram-panel {
   padding: 0.5rem 0;
+  position: relative;
 }
 
-.ontology-diagram-svg {
+.ontology-cy-container {
   width: 100%;
-  height: auto;
-  margin: 0 auto;
-  display: block;
+  height: 500px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 6px;
+  background: var(--color-surface);
 }
 
-.ontology-diagram-svg .node-label {
-  font-size: 13px;
-  font-weight: 600;
-  font-family: var(--font-sans);
-  pointer-events: none;
+.cy-fit-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.ontology-diagram-svg .edge-label {
-  font-size: 10px;
-  fill: var(--color-text-muted);
-  font-family: var(--font-sans);
-  pointer-events: none;
+.cy-fit-btn:hover {
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+}
+
+.cy-fit-btn i, .cy-fit-btn svg {
+  width: 14px;
+  height: 14px;
 }
 
 .diagram-empty {

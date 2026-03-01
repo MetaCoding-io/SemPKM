@@ -1,106 +1,160 @@
 {# Ontology relationship diagram for model detail dashboard.
    Rendered as htmx partial loaded on Relationships tab click.
+   Uses Cytoscape.js (globally available via CDN in base.html) for interactive graph.
    Accepts:
-     nodes: dict of {type_name: {x, y, label, color, properties, instance_count}}
-     edges: list of {from, to, label, x1, y1, x2, y2, ctrl_x, ctrl_y, label_x, label_y, self_loop, curve_offset}
-     view_box: str (computed bounding box)
+     nodes: list of {id, label, color}
+     edges: list of {id, source, target, label}
+     node_data: dict of {local_name: {label, color, instance_count, properties[]}}
+     has_edges: bool
      model_id: str
 #}
 
 <div class="ontology-diagram-panel">
-    {% if not edges %}
+    {% if not has_edges %}
     <div class="diagram-empty">
         <i data-lucide="git-branch"></i>
         <p>No relationships defined between types in this model.</p>
     </div>
     {% else %}
-    <svg viewBox="{{ view_box }}" preserveAspectRatio="xMidYMid meet"
-         class="ontology-diagram-svg" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-            <marker id="arrowhead" markerWidth="8" markerHeight="6"
-                    refX="0" refY="3" orient="auto" fill="var(--color-text-muted)">
-                <polygon points="0 0, 8 3, 0 6" />
-            </marker>
-        </defs>
-
-        {# Render edges #}
-        {% for edge in edges %}
-        {% set src = nodes[edge['from']] %}
-        {% set tgt = nodes[edge['to']] %}
-        {% if src and tgt %}
-            {% if edge.self_loop %}
-            {# Self-referencing loop -- draw arc above the node #}
-            <path d="M {{ edge.x1 }} {{ edge.y1 }}
-                     C {{ src.x - 50 }} {{ src.y - 80 }},
-                       {{ src.x + 50 }} {{ src.y - 80 }},
-                       {{ edge.x2 }} {{ edge.y2 }}"
-                  fill="none" stroke="var(--color-text-faint)" stroke-width="1.5"
-                  marker-end="url(#arrowhead)" />
-            <text x="{{ edge.label_x }}" y="{{ edge.label_y }}"
-                  text-anchor="middle" class="edge-label">{{ edge.label }}</text>
-            {% elif edge.ctrl_x is not none %}
-            {# Curved edge (bidirectional pair) -- quadratic bezier #}
-            <path d="M {{ edge.x1 }} {{ edge.y1 }} Q {{ edge.ctrl_x }} {{ edge.ctrl_y }} {{ edge.x2 }} {{ edge.y2 }}"
-                  fill="none" stroke="var(--color-text-faint)" stroke-width="1.5"
-                  marker-end="url(#arrowhead)" />
-            <text x="{{ edge.label_x }}" y="{{ edge.label_y }}"
-                  text-anchor="middle" class="edge-label">{{ edge.label }}</text>
-            {% else %}
-            {# Straight edge #}
-            <path d="M {{ edge.x1 }} {{ edge.y1 }} L {{ edge.x2 }} {{ edge.y2 }}"
-                  fill="none" stroke="var(--color-text-faint)" stroke-width="1.5"
-                  marker-end="url(#arrowhead)" />
-            <text x="{{ edge.label_x }}" y="{{ edge.label_y }}"
-                  text-anchor="middle" class="edge-label">{{ edge.label }}</text>
-            {% endif %}
-        {% endif %}
-        {% endfor %}
-
-        {# Render nodes #}
-        {% for name, node in nodes.items() %}
-        <circle cx="{{ node.x }}" cy="{{ node.y }}" r="24"
-                fill="{{ node.color }}22" stroke="{{ node.color }}" stroke-width="2"
-                class="ontology-node" data-node-name="{{ name }}" />
-        <text x="{{ node.x }}" y="{{ node.y + 4 }}"
-              text-anchor="middle" class="node-label"
-              fill="{{ node.color }}">{{ node.label }}</text>
-        {% endfor %}
-    </svg>
-
-    {# Popover container for node hover details #}
+    <button class="cy-fit-btn" id="ontology-fit-btn" title="Fit to view">
+        <i data-lucide="maximize-2"></i> Fit
+    </button>
+    <div id="ontology-cy" class="ontology-cy-container"></div>
     <div class="graph-popover" id="ontology-popover"></div>
 
-    {# Embed node property data as JSON for hover JS #}
     <script>
-    var _ontologyNodeData = {
-    {% for name, node in nodes.items() %}
-      {{ name|tojson }}: {
-        "label": {{ node.label|tojson }},
-        "color": {{ node.color|tojson }},
-        "instance_count": {{ node.instance_count }},
-        "properties": [
-          {% for prop in node.properties %}
-          {"name": {{ prop.name|tojson }}, "type": {{ prop.type|tojson }}}{% if not loop.last %},{% endif %}
-          {% endfor %}
-        ]
-      }{% if not loop.last %},{% endif %}
-    {% endfor %}
-    };
-
     (function() {
-      var popover = document.getElementById('ontology-popover');
-      if (!popover) return;
-      var panel = popover.closest('.ontology-diagram-panel');
-      if (!panel) return;
-      var hideTimer = null;
+      var nodes = {{ nodes | tojson }};
+      var edges = {{ edges | tojson }};
+      var _nodeData = {{ node_data | tojson }};
 
-      function showPopover(circle, name) {
-        var data = _ontologyNodeData[name];
-        if (!data) return;
+      // Build Cytoscape elements
+      var elements = [];
+      for (var i = 0; i < nodes.length; i++) {
+        var n = nodes[i];
+        elements.push({
+          group: 'nodes',
+          data: { id: n.id, label: n.label, color: n.color }
+        });
+      }
+      for (var j = 0; j < edges.length; j++) {
+        var e = edges[j];
+        elements.push({
+          group: 'edges',
+          data: { id: e.id, source: e.source, target: e.target, label: e.label }
+        });
+      }
+
+      // Simple color darkening helper
+      function darkenColor(hex, amount) {
+        hex = hex.replace('#', '');
+        var r = parseInt(hex.substring(0, 2), 16);
+        var g = parseInt(hex.substring(2, 4), 16);
+        var b = parseInt(hex.substring(4, 6), 16);
+        r = Math.max(0, Math.floor(r * (1 - amount)));
+        g = Math.max(0, Math.floor(g * (1 - amount)));
+        b = Math.max(0, Math.floor(b * (1 - amount)));
+        return '#' + r.toString(16).padStart(2, '0') +
+                     g.toString(16).padStart(2, '0') +
+                     b.toString(16).padStart(2, '0');
+      }
+
+      // Build per-node border-color styles (darkened version of node color)
+      var perNodeStyles = [];
+      for (var k = 0; k < nodes.length; k++) {
+        perNodeStyles.push({
+          selector: 'node[id = "' + nodes[k].id + '"]',
+          style: {
+            'border-color': darkenColor(nodes[k].color, 0.2)
+          }
+        });
+      }
+
+      var cy = cytoscape({
+        container: document.getElementById('ontology-cy'),
+        elements: elements,
+        style: [
+          {
+            selector: 'node',
+            style: {
+              'background-color': 'data(color)',
+              'label': 'data(label)',
+              'text-valign': 'bottom',
+              'text-halign': 'center',
+              'font-size': '11px',
+              'width': 40,
+              'height': 40,
+              'border-width': 2,
+              'border-color': '#999',
+              'text-margin-y': 5,
+              'color': '#333'
+            }
+          },
+          {
+            selector: 'edge',
+            style: {
+              'curve-style': 'bezier',
+              'target-arrow-shape': 'triangle',
+              'target-arrow-color': '#bbb',
+              'line-color': '#ccc',
+              'width': 1.5,
+              'label': 'data(label)',
+              'font-size': '9px',
+              'text-rotation': 'autorotate',
+              'color': '#888',
+              'text-background-color': '#fff',
+              'text-background-opacity': 0.85,
+              'text-background-padding': '2px'
+            }
+          },
+          {
+            selector: 'node.hovered',
+            style: {
+              'width': 46,
+              'height': 46
+            }
+          }
+        ].concat(perNodeStyles),
+        layout: {
+          name: 'fcose',
+          animate: true,
+          animationDuration: 600,
+          quality: 'default',
+          nodeSeparation: 120
+        },
+        minZoom: 0.3,
+        maxZoom: 3,
+        wheelSensitivity: 0.3
+      });
+
+      // Fit button
+      var fitBtn = document.getElementById('ontology-fit-btn');
+      if (fitBtn) {
+        fitBtn.addEventListener('click', function() {
+          cy.fit(undefined, 30);
+        });
+      }
+
+      // --- Hover popover ---
+      var popover = document.getElementById('ontology-popover');
+      var panel = popover ? popover.closest('.ontology-diagram-panel') : null;
+      var container = document.getElementById('ontology-cy');
+      var hideTimer = null;
+      var showTimer = null;
+
+      function escHtml(s) {
+        var d = document.createElement('span');
+        d.textContent = s;
+        return d.innerHTML;
+      }
+
+      function showPopover(nodeId, pos) {
+        var data = _nodeData[nodeId];
+        if (!data || !popover || !panel) return;
 
         var html = '<div class="graph-popover-header">' +
-          '<span class="graph-popover-label">' + data.label + '</span>' +
-          '<span class="graph-popover-type" style="background:' + data.color + '">' +
+          '<span class="graph-popover-label">' + escHtml(data.label) + '</span>' +
+          '<span class="graph-popover-type" style="background:' + escHtml(data.color) + '">' +
             data.instance_count + ' instance' + (data.instance_count !== 1 ? 's' : '') +
           '</span></div>';
 
@@ -109,8 +163,8 @@
           for (var i = 0; i < data.properties.length; i++) {
             var p = data.properties[i];
             html += '<div class="graph-popover-prop">' +
-              '<span class="graph-popover-prop-name">' + p.name + '</span>' +
-              '<span class="graph-popover-prop-val">' + (p.type || 'any') + '</span></div>';
+              '<span class="graph-popover-prop-name">' + escHtml(p.name) + '</span>' +
+              '<span class="graph-popover-prop-val">' + escHtml(p.type || 'any') + '</span></div>';
           }
           html += '</div>';
         } else {
@@ -120,11 +174,11 @@
         popover.innerHTML = html;
         popover.style.display = 'block';
 
-        // Position relative to the panel container
+        // Position relative to the container element within the panel
+        var containerRect = container.getBoundingClientRect();
         var panelRect = panel.getBoundingClientRect();
-        var circleRect = circle.getBoundingClientRect();
-        var left = circleRect.right - panelRect.left + 8;
-        var top = circleRect.top - panelRect.top - 12;
+        var left = (containerRect.left - panelRect.left) + pos.x + 16;
+        var top = (containerRect.top - panelRect.top) + pos.y - 12;
 
         popover.style.left = left + 'px';
         popover.style.top = top + 'px';
@@ -132,36 +186,44 @@
         // Adjust if overflowing right edge
         var pRect = popover.getBoundingClientRect();
         if (pRect.right > panelRect.right - 8) {
-          popover.style.left = (circleRect.left - panelRect.left - pRect.width - 8) + 'px';
+          popover.style.left = ((containerRect.left - panelRect.left) + pos.x - pRect.width - 12) + 'px';
         }
         // Adjust if overflowing bottom
         pRect = popover.getBoundingClientRect();
         if (pRect.bottom > panelRect.bottom - 8) {
-          popover.style.top = (circleRect.top - panelRect.top - pRect.height + 12) + 'px';
+          popover.style.top = ((containerRect.top - panelRect.top) + pos.y - pRect.height + 12) + 'px';
         }
       }
 
-      // Set panel to position:relative for absolute popover positioning
-      panel.style.position = 'relative';
+      // Node hover events
+      cy.on('mouseover', 'node', function(evt) {
+        evt.target.addClass('hovered');
+        if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+        var nodeId = evt.target.id();
+        var pos = evt.renderedPosition;
+        if (showTimer) clearTimeout(showTimer);
+        showTimer = setTimeout(function() {
+          showPopover(nodeId, pos);
+        }, 200);
+      });
 
-      document.querySelectorAll('.ontology-node').forEach(function(circle) {
-        circle.style.cursor = 'pointer';
-        circle.addEventListener('mouseenter', function() {
-          if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
-          showPopover(circle, circle.getAttribute('data-node-name'));
-        });
-        circle.addEventListener('mouseleave', function() {
-          hideTimer = setTimeout(function() { popover.style.display = 'none'; }, 150);
-        });
+      cy.on('mouseout', 'node', function(evt) {
+        evt.target.removeClass('hovered');
+        if (showTimer) { clearTimeout(showTimer); showTimer = null; }
+        hideTimer = setTimeout(function() {
+          if (popover) popover.style.display = 'none';
+        }, 150);
       });
 
       // Keep popover visible when mouse enters it
-      popover.addEventListener('mouseenter', function() {
-        if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
-      });
-      popover.addEventListener('mouseleave', function() {
-        popover.style.display = 'none';
-      });
+      if (popover) {
+        popover.addEventListener('mouseenter', function() {
+          if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+        });
+        popover.addEventListener('mouseleave', function() {
+          popover.style.display = 'none';
+        });
+      }
     })();
     </script>
     {% endif %}
