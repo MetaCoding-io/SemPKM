@@ -112,3 +112,11 @@ class CreateTokenResponse(BaseModel):
     id: str
     name: str
     created_at: str
+
+
+class TokenListItem(BaseModel):
+    """API token list item (no plaintext value)."""
+
+    id: str
+    name: str
+    created_at: str
