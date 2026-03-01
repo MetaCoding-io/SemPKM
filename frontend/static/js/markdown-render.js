@@ -111,6 +111,20 @@
             img.setAttribute('src', baseUrl + src);
           }
         });
+
+        // Rewrite relative .md links to use the /guide/ route with htmx
+        // so prev/next chapter navigation works without a full page reload.
+        target.querySelectorAll('a').forEach(function (a) {
+          var href = a.getAttribute('href');
+          if (href && href.endsWith('.md') && !href.startsWith('/') && !href.startsWith('http')) {
+            a.setAttribute('href', '/guide/' + href);
+            a.setAttribute('hx-get', '/guide/' + href);
+            a.setAttribute('hx-target', '#app-content');
+            a.setAttribute('hx-swap', 'innerHTML');
+            a.setAttribute('hx-push-url', 'true');
+            htmx.process(a);
+          }
+        });
       })
       .catch(function () {
         target.innerHTML = '<p class="docs-error">Failed to load document.</p>';
