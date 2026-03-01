@@ -73,4 +73,4 @@ SESSION_DURATION_DAYS=90
 
 ---
 
-**Previous:** [Chapter 20: Production Deployment](20-production-deployment.md) | **Next:** [Appendix B: Keyboard Shortcut Reference](appendix-b-keyboard-shortcuts.md)
+**Previous:** [Chapter 24: Obsidian Onboarding](24-obsidian-onboarding.md) | **Next:** [Appendix B: Keyboard Shortcut Reference](appendix-b-keyboard-shortcuts.md)

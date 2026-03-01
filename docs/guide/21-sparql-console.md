@@ -58,3 +58,7 @@ SELECT ?note ?title WHERE {
         dcterms:title ?title .
 }
 ```
+
+---
+
+**Previous:** [Chapter 20: Production Deployment](20-production-deployment.md) | **Next:** [Chapter 22: Keyword Search](22-keyword-search.md)
