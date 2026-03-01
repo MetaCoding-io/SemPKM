@@ -224,6 +224,12 @@
         showGroupEmpty(groupId);
       }
     }
+
+    // Phase 28 POLSH-03: dispatch tabs-empty if all groups now have no tabs
+    var allEmpty = this.groups.every(function(g) { return g.tabs.length === 0; });
+    if (allEmpty) {
+      document.dispatchEvent(new CustomEvent('sempkm:tabs-empty'));
+    }
   };
 
   /**
@@ -880,6 +886,9 @@
     renderGroupTabBar(group);
     layout.setActiveGroup(groupId);
     loadTabInGroup(groupId, tabId);
+
+    // Phase 28 POLSH-03: notify contextual panel indicator
+    document.dispatchEvent(new CustomEvent('sempkm:tab-activated', { detail: { tabId: tabId, groupId: groupId } }));
   }
 
   /**
