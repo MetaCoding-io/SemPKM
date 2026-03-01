@@ -47,12 +47,12 @@
         <button class="model-tab active" data-tab="schema" onclick="switchModelTab('schema')">
             <i data-lucide="list"></i> Schema
         </button>
-        <button class="model-tab" data-tab="connections" onclick="switchModelTab('connections')"
-                hx-get="/admin/models/{{ detail.info.model_id }}/connections"
-                hx-target="#connections-content"
+        <button class="model-tab" data-tab="relationships" onclick="switchModelTab('relationships')"
+                hx-get="/admin/models/{{ detail.info.model_id }}/ontology-diagram"
+                hx-target="#relationships-content"
                 hx-swap="innerHTML"
                 hx-trigger="click once">
-            <i data-lucide="network"></i> Connections
+            <i data-lucide="git-branch"></i> Relationships
         </button>
     </div>
 
@@ -238,34 +238,6 @@
         {% endfor %}
     </div>
 
-    <!-- Relationships Overview -->
-    {% set object_props = [] %}
-    {% for p in detail.properties %}
-        {% if p.prop_type == "Object" %}
-            {% set _ = object_props.append(p) %}
-        {% endif %}
-    {% endfor %}
-    {% if object_props %}
-    <div class="detail-section">
-        <h2>Relationship Map</h2>
-        <div class="rel-map-card card">
-            {% for p in object_props %}
-            <div class="rel-map-row">
-                <code class="rel-map-domain">{{ p.domain }}</code>
-                <div class="rel-map-edge">
-                    <span class="rel-map-label">{{ p.label }}</span>
-                    <span class="rel-map-arrow"></span>
-                    {% if p.inverse %}
-                    <span class="rel-map-inverse-label">{{ p.inverse }}</span>
-                    {% endif %}
-                </div>
-                <code class="rel-map-range">{{ p.range }}</code>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
-
     <!-- Technical Details -->
     <details class="detail-section tech-details">
         <summary><h2><i data-lucide="code-2"></i> Technical Details</h2></summary>
@@ -293,11 +265,11 @@
 
     </div><!-- end schema-panel -->
 
-    <!-- Connections Tab Panel -->
-    <div id="connections-panel" class="model-tab-panel" style="display:none;">
-        <div id="connections-content">
-            <div class="connections-loading">
-                <i data-lucide="loader-2" class="spin"></i> Loading connections...
+    <!-- Relationships Tab Panel -->
+    <div id="relationships-panel" class="model-tab-panel" style="display:none;">
+        <div id="relationships-content">
+            <div class="diagram-loading">
+                <i data-lucide="loader-2" class="spin"></i> Loading diagram...
             </div>
         </div>
     </div>
@@ -309,14 +281,11 @@
     }
 
     function switchModelTab(tabName) {
-        // Update tab buttons
         document.querySelectorAll('.model-tab').forEach(function(btn) {
             btn.classList.toggle('active', btn.dataset.tab === tabName);
         });
-        // Update panels
         document.getElementById('schema-panel').style.display = tabName === 'schema' ? '' : 'none';
-        document.getElementById('connections-panel').style.display = tabName === 'connections' ? '' : 'none';
-        // Re-init lucide icons after htmx swap
+        document.getElementById('relationships-panel').style.display = tabName === 'relationships' ? '' : 'none';
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
