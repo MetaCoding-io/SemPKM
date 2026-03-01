@@ -97,3 +97,18 @@ class StatusResponse(BaseModel):
 
     setup_complete: bool
     setup_mode: bool
+
+
+class CreateTokenRequest(BaseModel):
+    """Request to create a new API token."""
+
+    name: str
+
+
+class CreateTokenResponse(BaseModel):
+    """Response with the newly created API token (plaintext shown once)."""
+
+    token: str
+    id: str
+    name: str
+    created_at: str

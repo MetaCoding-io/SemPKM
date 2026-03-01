@@ -16,6 +16,8 @@ from app.auth.dependencies import get_current_user, get_session_token, require_r
 from app.auth.models import User
 from app.auth.schemas import (
     AuthResponse,
+    CreateTokenRequest,
+    CreateTokenResponse,
     InviteRequest,
     InviteResponse,
     LogoutResponse,
@@ -226,4 +228,38 @@ async def invite_user(
     return InviteResponse(
         message=f"Invitation sent to {body.email}",
         invitation_id=str(invitation.id),
+    )
+
+
+@router.post(
+    "/tokens",
+    response_model=CreateTokenResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_api_token(
+    body: CreateTokenRequest,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+):
+    """Create a new API token for the current user.
+
+    The plaintext token is returned exactly once in the response.
+    Only the SHA-256 hash is stored in the database.
+    """
+    auth_service = _get_auth_service(request)
+    if not hasattr(auth_service, "create_api_token"):
+        logger.warning("AuthService does not support create_api_token")
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED,
+            detail="API token creation not available",
+        )
+    plaintext, token_obj = await auth_service.create_api_token(
+        user_id=current_user.id,
+        name=body.name,
+    )
+    return CreateTokenResponse(
+        token=plaintext,
+        id=str(token_obj.id),
+        name=token_obj.name,
+        created_at=token_obj.created_at.isoformat(),
     )

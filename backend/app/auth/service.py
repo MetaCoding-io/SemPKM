@@ -17,7 +17,7 @@ def _utcnow() -> datetime:
     """Return current UTC time as a naive datetime for SQLite compatibility."""
     return datetime.now(UTC).replace(tzinfo=None)
 
-from app.auth.models import Invitation, User, UserSession
+from app.auth.models import ApiToken, Invitation, User, UserSession
 from app.auth.tokens import create_invitation_token, verify_invitation_token
 from app.config import settings
 
@@ -185,6 +185,90 @@ class AuthService:
             await session.commit()
             await session.refresh(invitation)
             return invitation
+
+    async def create_api_token(
+        self, user_id: uuid.UUID, name: str
+    ) -> tuple[str, ApiToken]:
+        """Create a new API token. Returns (plaintext_token, ApiToken).
+
+        The plaintext token is returned exactly once -- caller must store it.
+        The database only stores the SHA-256 hash.
+        """
+        import hashlib
+
+        plaintext = secrets.token_hex(32)  # 64-char hex string
+        token_hash = hashlib.sha256(plaintext.encode()).hexdigest()
+        async with self._session_factory() as session:
+            token = ApiToken(user_id=user_id, name=name, token_hash=token_hash)
+            session.add(token)
+            await session.commit()
+            await session.refresh(token)
+            return plaintext, token
+
+    async def verify_api_token(self, plaintext: str) -> User | None:
+        """Verify a plaintext API token, return its User or None if invalid/revoked."""
+        import hashlib
+
+        token_hash = hashlib.sha256(plaintext.encode()).hexdigest()
+        async with self._session_factory() as session:
+            result = await session.execute(
+                select(ApiToken).where(
+                    ApiToken.token_hash == token_hash,
+                    ApiToken.revoked_at.is_(None),
+                )
+            )
+            token_row = result.scalar_one_or_none()
+            if not token_row:
+                return None
+            # Update last_used_at
+            token_row.last_used_at = _utcnow()
+            await session.commit()
+            # Load user
+            user_result = await session.execute(
+                select(User).where(User.id == token_row.user_id)
+            )
+            return user_result.scalar_one_or_none()
+
+    def verify_api_token_sync(
+        self, plaintext: str, db_url: str
+    ) -> tuple[str, str] | None:
+        """Verify a plaintext API token synchronously for WSGI thread use.
+
+        Returns (user_email, user_role) or None if invalid/revoked.
+        Uses a synchronous SQLAlchemy engine -- safe to call from wsgidav threads.
+        """
+        import hashlib
+
+        from sqlalchemy import create_engine, select as sync_select
+        from sqlalchemy.orm import Session
+
+        token_hash = hashlib.sha256(plaintext.encode()).hexdigest()
+        sync_url = db_url.replace("+aiosqlite", "")
+        engine = create_engine(sync_url)
+        try:
+            with Session(engine) as session:
+                result = session.execute(
+                    sync_select(ApiToken).where(
+                        ApiToken.token_hash == token_hash,
+                        ApiToken.revoked_at.is_(None),
+                    )
+                )
+                token_row = result.scalar_one_or_none()
+                if not token_row:
+                    return None
+                # Update last_used_at
+                token_row.last_used_at = _utcnow()
+                session.commit()
+                # Load user
+                user_result = session.execute(
+                    sync_select(User).where(User.id == token_row.user_id)
+                )
+                user = user_result.scalar_one_or_none()
+                if not user:
+                    return None
+                return user.email, user.role
+        finally:
+            engine.dispose()
 
     async def accept_invitation(
         self, token: str
