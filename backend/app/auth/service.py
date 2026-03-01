@@ -205,6 +205,30 @@ class AuthService:
             await session.refresh(token)
             return plaintext, token
 
+    async def list_api_tokens(self, user_id: uuid.UUID) -> list[ApiToken]:
+        """Return all API tokens for a user, ordered by created_at ascending."""
+        async with self._session_factory() as session:
+            result = await session.execute(
+                select(ApiToken)
+                .where(ApiToken.user_id == user_id)
+                .order_by(ApiToken.created_at.asc())
+            )
+            return list(result.scalars().all())
+
+    async def revoke_api_token(
+        self, user_id: uuid.UUID, token_id: uuid.UUID
+    ) -> bool:
+        """Delete an API token row (user-scoped for safety). Returns True if deleted."""
+        async with self._session_factory() as session:
+            result = await session.execute(
+                delete(ApiToken).where(
+                    ApiToken.id == token_id,
+                    ApiToken.user_id == user_id,
+                )
+            )
+            await session.commit()
+            return result.rowcount > 0
+
     async def verify_api_token(self, plaintext: str) -> User | None:
         """Verify a plaintext API token, return its User or None if invalid/revoked."""
         import hashlib
