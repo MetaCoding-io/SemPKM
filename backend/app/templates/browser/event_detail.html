@@ -26,6 +26,7 @@
         <tr>
           <th class="diff-col-pred">Property</th>
           <th class="diff-col-before">Before</th>
+          <th class="diff-col-arrow"></th>
           <th class="diff-col-after">After</th>
         </tr>
       </thead>
@@ -44,6 +45,7 @@
             <span class="diff-val-empty">(new)</span>
             {% endif %}
           </td>
+          <td class="diff-col-arrow">&#8594;</td>
           <td class="diff-col-after">
             <span class="diff-val diff-val-new">{{ new_val[:200] }}{% if new_val | length > 200 %}&hellip;{% endif %}</span>
           </td>

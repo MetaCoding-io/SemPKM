@@ -2197,9 +2197,10 @@ details.form-group[open] > .form-group-summary::before {
   vertical-align: top;
   border-bottom: 1px solid var(--color-border-faint, var(--color-border));
 }
-.diff-col-pred { width: 30%; color: var(--color-text-muted); }
-.diff-col-before { width: 35%; }
-.diff-col-after { width: 35%; }
+.diff-col-pred   { width: 28%; color: var(--color-text-muted); }
+.diff-col-before { width: 33%; }
+.diff-col-arrow  { width: 1px; text-align: center; color: var(--color-text-faint); padding: 0 4px; white-space: nowrap; }
+.diff-col-after  { width: 33%; }
 .diff-val-old { color: var(--color-diff-remove); }
 .diff-val-new { color: var(--color-diff-add); }
 .diff-val-empty { color: var(--color-text-muted); font-style: italic; }
