@@ -204,3 +204,4 @@ Plans:
 *v2.1 archived: 2026-03-01*
 *v2.2 roadmap expanded: 2026-02-28*
 *v2.2 shipped: 2026-03-01 — full 4-panel drag-reorder enhancement landed post-ship on feature/mental-model-dashboard*
+*v2.2 post-ship polish: 2026-03-01 — event log user names fix, tabular grid, Diff/Undo button colors, SPARQL Console to Admin nav, Event Console page (/events), diff arrow, relations panel collapsible rollup*

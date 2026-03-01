@@ -101,9 +101,16 @@ All v2.2 architectural decisions committed in v2.1. See .planning/DECISIONS.md f
 | 13 | Fix ontology diagram visuals - dynamic viewBox zoom-to-fit, arrowhead boundary termination, curved bidirectional edges | 2026-03-01 | dd588ef | [13-fix-ontology-diagram-visuals-zoom-to-fit](./quick/13-fix-ontology-diagram-visuals-zoom-to-fit/) |
 | 14 | Add hover tooltips to ontology diagram nodes - SHACL properties, instance counts, graph-popover CSS reuse | 2026-03-01 | db58b97 | [14-add-hover-tooltips-to-ontology-diagram-n](./quick/14-add-hover-tooltips-to-ontology-diagram-n/) |
 | 15 | Replace custom SVG ontology diagram with Cytoscape.js - interactive graph, bezier bidirectional edges, fcose layout | 2026-03-01 | 38b18f4 | [15-replace-custom-svg-ontology-diagram-with](./quick/15-replace-custom-svg-ontology-diagram-with/) |
+| 16 | Fix event log user display names — UUID type mismatch in SQL WHERE clause (string vs uuid.UUID on SQLite) | 2026-03-01 | 1c63582 | — |
+| 17 | Event log tabular layout — CSS Grid with fixed column widths (op badge, name, user, timestamp, actions) | 2026-03-01 | 34aaaec | — |
+| 18 | Event log Diff/Undo buttons always rendered; active=teal/red, disabled=muted; aligns grid column across all rows | 2026-03-01 | 3803455 | — |
+| 19 | SPARQL Console moved to Admin nav; CLI Console placeholder added to Apps; SPARQL tab removed from workspace bottom panel | 2026-03-01 | 33d5659 | — |
+| 20 | Event Console page (/events) — split view: command form left, live event log right; auto-refresh 30s checkbox (localStorage); instant refresh on execute | 2026-03-01 | 92425e1 | — |
+| 21 | Diff table arrow → between Before and After columns | 2026-03-01 | 812eb55 | — |
+| 22 | Relations panel collapsible rollup — <details> per predicate, count badge, rotating chevron; ≤5 items auto-open | 2026-03-01 | 0f12ecc | — |
 
 ## Session Continuity
 
 Last session: 2026-03-01
-Completed: Full 4-panel drag-reorder enhancement — all 4 panels draggable, VS Code-style insert-before/after reordering within or between panes, localStorage schema migrated to {zone, order} per panel.
-Resume: v2.2 fully shipped; next work is mental model dashboard feature on feature/mental-model-dashboard branch.
+Completed: Event log polish (user names, tabular grid, button colors), Event Console page combining command executor + live log with auto-refresh, diff arrow, relations panel collapsible rollup per predicate. All ad-hoc improvements on main branch.
+Resume: v2.2 fully shipped + post-ship polish complete. Ready to run /gsd:complete-milestone to archive v2.2 and start next milestone.
