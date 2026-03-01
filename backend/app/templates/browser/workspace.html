@@ -5,9 +5,6 @@
 {% block layout_class %}workspace-layout{% endblock %}
 
 {% block content %}
-<!-- Yasgui SPARQL Console — Phase 23 -->
-<link rel="stylesheet" href="https://unpkg.com/@zazuko/yasgui@4.5.0/build/yasgui.min.css">
-<script src="https://unpkg.com/@zazuko/yasgui@4.5.0/build/yasgui.min.js"></script>
 
 <div class="workspace-container" id="workspace" data-testid="workspace">
     <div class="workspace-pane" id="nav-pane" data-testid="sidebar">
@@ -69,8 +66,7 @@
         <div class="bottom-panel" id="bottom-panel">
           <div class="panel-header">
             <div class="panel-tab-bar" id="panel-tab-bar">
-              <button class="panel-tab active" data-panel="sparql">SPARQL</button>
-              <button class="panel-tab" data-panel="event-log">EVENT LOG</button>
+              <button class="panel-tab active" data-panel="event-log">EVENT LOG</button>
               <button class="panel-tab" data-panel="ai-copilot">AI COPILOT</button>
             </div>
             <div class="panel-controls">
@@ -83,10 +79,7 @@
             </div>
           </div>
           <div class="panel-content">
-            <div class="panel-pane active" id="panel-sparql">
-              <div id="yasgui-container"></div>
-            </div>
-            <div class="panel-pane" id="panel-event-log">
+            <div class="panel-pane active" id="panel-event-log">
               <div class="panel-placeholder">
                 <i data-lucide="activity" style="width:24px;height:24px;display:block;margin:0 auto 8px;"></i>
                 Event Log Explorer — coming in Phase 16
@@ -135,187 +128,4 @@
 </div>
 
 <ninja-keys></ninja-keys>
-
-<script>
-window.SEMPKM_BASE_NAMESPACE = "{{ base_namespace }}";
-
-(function () {
-  'use strict';
-
-  var DEFAULT_QUERY = [
-    'PREFIX dcterms: <http://purl.org/dc/terms/>',
-    'PREFIX skos: <http://www.w3.org/2004/02/skos/core#>',
-    'PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>',
-    'PREFIX foaf: <http://xmlns.com/foaf/0.1/>',
-    '',
-    '# List all objects with their types and labels',
-    'SELECT ?subject ?type ?label WHERE {',
-    '  ?subject a ?type .',
-    '  OPTIONAL { ?subject dcterms:title ?t }',
-    '  OPTIONAL { ?subject skos:prefLabel ?p }',
-    '  OPTIONAL { ?subject rdfs:label ?r }',
-    '  OPTIONAL { ?subject foaf:name ?f }',
-    '  BIND(COALESCE(?t, ?p, ?r, ?f, STR(?subject)) AS ?label)',
-    '}',
-    'ORDER BY ?type ?label',
-    'LIMIT 50'
-  ].join('\n');
-
-  /* ============================================
-     YASR URI Formatter — SemPKM IRI click-through
-     Phase 23-02: Transforms SemPKM object IRIs in
-     result table cells into clickable pill links
-     that open the object in the active editor group.
-     ============================================ */
-
-  var KNOWN_VOCAB_PREFIXES = [
-    'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-    'http://www.w3.org/2000/01/rdf-schema#',
-    'http://www.w3.org/2002/07/owl#',
-    'http://purl.org/dc/terms/',
-    'http://www.w3.org/2004/02/skos/core#',
-    'http://xmlns.com/foaf/0.1/',
-    'https://schema.org/',
-    'http://schema.org/',
-    'http://www.w3.org/2001/XMLSchema#',
-    'http://www.w3.org/ns/shacl#',
-    'http://www.w3.org/ns/prov#',
-    'urn:sempkm:'
-  ];
-
-  function isSemPKMObjectIri(uri) {
-    if (!uri) return false;
-    // Use injected base namespace first (most accurate)
-    var base = window.SEMPKM_BASE_NAMESPACE;
-    if (base && uri.indexOf(base) === 0) return true;
-    // Fallback: https:// IRI with path, not a known vocabulary
-    if (uri.indexOf('https://') !== 0) return false;
-    for (var i = 0; i < KNOWN_VOCAB_PREFIXES.length; i++) {
-      if (uri.indexOf(KNOWN_VOCAB_PREFIXES[i]) === 0) return false;
-    }
-    try {
-      var p = new URL(uri);
-      return p.pathname.length > 1;
-    } catch (e) { return false; }
-  }
-
-  function shortenSemPkmIri(uri) {
-    var base = window.SEMPKM_BASE_NAMESPACE;
-    if (base && uri.indexOf(base) === 0) {
-      var local = uri.substring(base.length);
-      return local.length > 50 ? local.substring(0, 47) + '...' : local;
-    }
-    try {
-      var parts = new URL(uri).pathname.split('/').filter(Boolean);
-      if (parts.length > 0) {
-        var last = decodeURIComponent(parts[parts.length - 1]);
-        return last.length > 50 ? last.substring(0, 47) + '...' : last;
-      }
-    } catch (e) {}
-    return uri.length > 50 ? uri.substring(0, 47) + '...' : uri;
-  }
-
-  function registerYasrFormatter() {
-    if (!window.Yasgui || !Yasgui.YASR || !Yasgui.YASR.plugins || !Yasgui.YASR.plugins.table) {
-      return false;
-    }
-    var tablePlugin = Yasgui.YASR.plugins.table;
-    if (!tablePlugin.defaults) tablePlugin.defaults = {};
-    var origFormatter = tablePlugin.defaults.uriFormatter || null;
-    tablePlugin.defaults.uriFormatter = function(uri, compact) {
-      if (isSemPKMObjectIri(uri)) {
-        var label = shortenSemPkmIri(uri);
-        var safeUri = uri.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-        var safeLabel = label.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-        var href = '/browser/object/' + encodeURIComponent(uri);
-        return '<a class="sparql-iri-link" href="' + href + '" ' +
-          'onclick="event.preventDefault();if(window.openTab){window.openTab(\'' + safeUri + '\',\'' + safeLabel + '\');}else{window.location.href=this.href;}" ' +
-          'title="' + uri.replace(/"/g, '&quot;') + '">' + label + '</a>';
-      }
-      return origFormatter ? origFormatter(uri, compact) : null;
-    };
-    return true;
-  }
-
-  /* MutationObserver fallback: post-process rendered result cells
-     if YASR.plugins.table.defaults.uriFormatter is unavailable */
-  function installMutationObserverFallback(container) {
-    var observer = new MutationObserver(function(mutations) {
-      mutations.forEach(function(mutation) {
-        mutation.addedNodes.forEach(function(node) {
-          if (node.nodeType !== 1) return;
-          var anchors = node.querySelectorAll ? node.querySelectorAll('td a[href]') : [];
-          for (var i = 0; i < anchors.length; i++) {
-            var a = anchors[i];
-            if (a.classList.contains('sparql-iri-link')) continue;
-            var href = a.getAttribute('href') || '';
-            // Try to extract the URI from the href or text content
-            var uri = a.textContent.trim() || href;
-            if (isSemPKMObjectIri(uri)) {
-              a.classList.add('sparql-iri-link');
-              a.setAttribute('title', uri);
-              var safeUri = uri.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-              var safeLabel = shortenSemPkmIri(uri).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-              a.textContent = shortenSemPkmIri(uri);
-              a.setAttribute('onclick',
-                "event.preventDefault();if(window.openTab){window.openTab('" + safeUri + "','" + safeLabel + "');}else{window.location.href=this.href;}");
-            }
-          }
-        });
-      });
-    });
-    observer.observe(container, { childList: true, subtree: true });
-    return observer;
-  }
-
-  function initYasguiConsole() {
-    if (typeof Yasgui === 'undefined') {
-      setTimeout(initYasguiConsole, 200);
-      return;
-    }
-    var container = document.getElementById('yasgui-container');
-    if (!container || container._yasguiInstance) return;
-
-    // Register YASR URI formatter before instantiation
-    var formatterRegistered = registerYasrFormatter();
-
-    var yasgui = new Yasgui(container, {
-      requestConfig: {
-        endpoint: '/api/sparql',
-        method: 'POST'
-      },
-      persistenceId: 'sempkm-sparql',
-      copyEndpointOnNewTab: false,
-      endpointCatalogueSize: 0
-    });
-
-    // If YASR formatter API was unavailable, install MutationObserver fallback
-    if (!formatterRegistered) {
-      installMutationObserverFallback(container);
-    }
-
-    // Pre-populate default query only on first ever load (no localStorage state)
-    try {
-      if (!localStorage.getItem('sempkm-sparql')) {
-        var tab = yasgui.getTab();
-        if (tab) tab.setQuery(DEFAULT_QUERY);
-      }
-    } catch (e) { /* localStorage may be blocked */ }
-
-    container._yasguiInstance = yasgui;
-    window._yasgui = yasgui;
-  }
-
-  // Expose for workspace.js panel tab handler
-  window.initYasguiConsole = initYasguiConsole;
-
-  // Init immediately if SPARQL pane is already active on DOMContentLoaded
-  document.addEventListener('DOMContentLoaded', function () {
-    var sparqlPane = document.getElementById('panel-sparql');
-    if (sparqlPane && sparqlPane.classList.contains('active')) {
-      initYasguiConsole();
-    }
-  });
-})();
-</script>
 {% endblock %}
