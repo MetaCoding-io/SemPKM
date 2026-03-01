@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations — no blank-page syndrome, no schema setup.
-**Current focus:** v2.2 Data Discovery — Phase 27: VFS Write + Auth (3/3 plans complete)
+**Current focus:** v2.2 Data Discovery — Phase 28: UI Polish + Integration Testing (1/4 plans complete)
 
 ## Current Position
 
-Phase: 27 of 28 (VFS Write + Auth)
-Plan: 3 of 3 complete
+Phase: 28 of 28 (UI Polish + Integration Testing)
+Plan: 1 of 4 complete
 Status: In Progress
-Last activity: 2026-03-01 - Completed quick task 12: Replace connections tab with ontology relationship diagram
+Last activity: 2026-03-01 - Completed 28-01: Icon visibility fix + panel drag-and-drop
 
-Progress: [##############################] 100% (Phase 27)
+Progress: [###########################---] 92% (Phase 28 started)
 
 ## v2.2 Phase Structure
 
@@ -38,7 +38,7 @@ Progress: [##############################] 100% (Phase 27)
 | 25 | CSS Token Expansion | — (v2.3 prep) | Nothing | Complete (1/1 plans) |
 | 26 | VFS MVP Read-Only | VFS-01, VFS-02 | Nothing (self-contained) | Complete (3/3 plans) |
 | 27 | VFS Write + Auth | VFS-03 | Phase 26 | Complete (3/3 plans) |
-| 28 | UI Polish + Integration Testing | POLSH-01, POLSH-02, POLSH-03, POLSH-04 | Phases 23, 24, 26 | Not started |
+| 28 | UI Polish + Integration Testing | POLSH-01, POLSH-02, POLSH-03, POLSH-04 | Phases 23, 24, 26 | In Progress (1/4 plans) |
 
 ## Accumulated Context
 
@@ -71,6 +71,8 @@ All v2.2 architectural decisions committed in v2.1. See .planning/DECISIONS.md f
 - FTS-02: Graph-scoped FTS via SPARQL GRAPH clause, not config-level reindexQuery (not supported in RDF4J 5.x config)
 - FTS-03: Inline SVG type icons in ninja-keys search results (not IconService) -- simpler client-side mapping, no extra API call
 - FTS-04: ninja-keys change event with e.detail.search confirmed as correct API for live search interception in v1.2.2
+- POLSH-01: All chevron/toggle icons (group-chevron, explorer-section-chevron, tree-toggle, right-section-chevron) use var(--color-text-muted) with SVG stroke override for Lucide icons
+- POLSH-02: HTML5 drag-and-drop for sidebar panels uses [data-panel-name] + [data-drop-zone] attributes; positions persisted in localStorage 'sempkm_panel_positions'
 
 ### Pending Todos
 
@@ -98,5 +100,5 @@ All v2.2 architectural decisions committed in v2.1. See .planning/DECISIONS.md f
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed quick task 12 (Replace connections tab with ontology relationship diagram)
-Resume: Phase 27 plans 01, 02, 03 all complete. Proceed with Phase 28 (UI Polish + Integration Testing).
+Stopped at: Completed 28-01-PLAN.md (Icon visibility fix + panel drag-and-drop)
+Resume: Phase 28 plan 01 complete. Proceed with 28-02.
