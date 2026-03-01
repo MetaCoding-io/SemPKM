@@ -1824,7 +1824,6 @@ kbd {
 
 .ontology-diagram-svg {
   width: 100%;
-  max-width: 700px;
   height: auto;
   margin: 0 auto;
   display: block;
@@ -1842,11 +1841,6 @@ kbd {
   fill: var(--color-text-muted);
   font-family: var(--font-sans);
   pointer-events: none;
-}
-
-.ontology-diagram-svg .edge-inverse {
-  font-style: italic;
-  fill: var(--color-text-faint);
 }
 
 .diagram-empty {
