@@ -1,7 +1,7 @@
 ---
 gsd_state_version: 1.0
 milestone: v2.1
-milestone_name: TBD
+milestone_name: Architecture Decision Gate
 status: planning
 last_updated: "2026-03-01T00:00:00.000Z"
 progress:
@@ -18,14 +18,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-01)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations -- no blank-page syndrome, no schema setup.
-**Current focus:** v2.0 COMPLETE — all 19 phases, 27 plans done
+**Current focus:** v2.1 Architecture Decision Gate — defining requirements
 
 ## Current Position
 
-Phase: 19 of 19 (Bug Fixes and E2E Test Hardening) — COMPLETE
-Plan: 3 of 3 — COMPLETE
-Status: v2.0 Tighten Web UI milestone complete
-Last activity: 2026-02-28 - Completed quick task 9: standardize user guide navigation footers
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-01 — Milestone v2.1 started
 
 Progress: [##########] 100% (v2.0) -- Phase 19 ongoing
 
