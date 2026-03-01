@@ -23,7 +23,7 @@ Requirements for the Data Discovery milestone. Each maps to roadmap phases 23-28
 
 - [x] **VFS-01**: User can mount SemPKM objects as files via WebDAV (read-only)
 - [x] **VFS-02**: Object bodies rendered as Markdown files with SHACL-derived frontmatter
-- [ ] **VFS-03**: Mount configuration accessible via Settings page
+- [x] **VFS-03**: Mount configuration accessible via Settings page
 
 ### UI Polish & Integration
 
@@ -83,7 +83,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FTS-03 | Phase 24 | Complete |
 | VFS-01 | Phase 26 | Complete |
 | VFS-02 | Phase 26 | Complete |
-| VFS-03 | Phase 27 | Pending |
+| VFS-03 | Phase 27 | Complete |
 | POLSH-01 | Phase 28 | Pending |
 | POLSH-02 | Phase 28 | Pending |
 | POLSH-03 | Phase 28 | Pending |

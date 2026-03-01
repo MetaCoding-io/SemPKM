@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Data Discovery
 status: unknown
-last_updated: "2026-03-01T07:13:14.186Z"
+last_updated: "2026-03-01T07:24:00.000Z"
 progress:
   total_phases: 16
   completed_phases: 14
   total_plans: 40
-  completed_plans: 35
+  completed_plans: 36
 ---
 
 # Project State
@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations — no blank-page syndrome, no schema setup.
-**Current focus:** v2.2 Data Discovery — Phase 26: VFS MVP Read-Only (3/3 plans complete)
+**Current focus:** v2.2 Data Discovery — Phase 27: VFS Write + Auth (1/3 plans complete)
 
 ## Current Position
 
-Phase: 26 of 28 (VFS MVP Read-Only)
-Plan: 3 of 3 complete
-Status: Complete
-Last activity: 2026-03-01 — Completed 26-03 (VFS Mount + Cache + Verification + User Guide)
+Phase: 27 of 28 (VFS Write + Auth)
+Plan: 1 of 3 complete
+Status: In Progress
+Last activity: 2026-03-01 — Completed 27-01 (API Token Model + Auth Endpoints + WebDAV Authenticator)
 
-Progress: [##########] 100% (Phase 26)
+Progress: [##########] 33% (Phase 27)
 
 ## v2.2 Phase Structure
 
@@ -37,7 +37,7 @@ Progress: [##########] 100% (Phase 26)
 | 24 | FTS Keyword Search | FTS-01, FTS-02, FTS-03 | Nothing (JAR prereq) | Complete (2/2 plans) |
 | 25 | CSS Token Expansion | — (v2.3 prep) | Nothing | Complete (1/1 plans) |
 | 26 | VFS MVP Read-Only | VFS-01, VFS-02 | Nothing (self-contained) | Complete (3/3 plans) |
-| 27 | VFS Write + Auth | VFS-03 | Phase 26 | Not started |
+| 27 | VFS Write + Auth | VFS-03 | Phase 26 | In Progress (1/3 plans) |
 | 28 | UI Polish + Integration Testing | POLSH-01, POLSH-02, POLSH-03, POLSH-04 | Phases 23, 24, 26 | Not started |
 
 ## Accumulated Context
@@ -60,6 +60,8 @@ All v2.2 architectural decisions committed in v2.1. See .planning/DECISIONS.md f
 - VFS-05: DAV provider hierarchy: Root->Model->Type->Resource with lazy file map caching per TypeCollection
 - VFS-06: TTL cache uses threading.Lock for write safety in wsgidav's WSGI thread pool; cache keys use path-style strings
 - VFS-07: wsgidav readonly=True config set, but collection classes return 403 before wsgidav's 405 -- both block writes
+- VFS-08: ApiToken uses hard-delete for revocation (not soft-delete via revoked_at) — cleaner list queries, no filter needed
+- VFS-09: environ["sempkm.user_id"] set in SemPKMWsgiAuthenticator.basic_auth_user for DAV provider write path user context
 - FTS-01: LuceneSail config uses RDF4J 5.x unified namespace (config:lucene.indexDir, config:delegate) — verified from container-generated config
 - FTS-02: Graph-scoped FTS via SPARQL GRAPH clause, not config-level reindexQuery (not supported in RDF4J 5.x config)
 - FTS-03: Inline SVG type icons in ninja-keys search results (not IconService) -- simpler client-side mapping, no extra API call
@@ -78,10 +80,10 @@ All v2.2 architectural decisions committed in v2.1. See .planning/DECISIONS.md f
 
 ### Blockers/Concerns
 
-- Phase 27 prerequisite: API token auth design must be complete before write path work begins
+- None — Phase 27 plan 01 complete; write path (27-02) and Settings UI (27-03) ready to proceed
 
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 26-03-PLAN.md (VFS Mount + Cache + Verification + User Guide)
-Resume: Phase 26 complete. Continue with Phase 27 (VFS Write + Auth) or Phase 28 (UI Polish + Integration Testing).
+Stopped at: Completed 27-01-PLAN.md (API Token Auth Foundation)
+Resume: Phase 27 plan 1 complete. Continue with Phase 27 plan 02 (write path) or plan 03 (Settings UI).
