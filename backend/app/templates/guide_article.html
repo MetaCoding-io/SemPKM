@@ -27,8 +27,15 @@
   if (typeof lucide !== 'undefined' && lucide.createIcons) {
     lucide.createIcons();
   }
-  if (typeof window.renderMarkdownFromUrl === 'function') {
-    window.renderMarkdownFromUrl('/docs/guide/' + filename, 'docs-content');
+  function render() {
+    if (typeof window.renderMarkdownFromUrl === 'function') {
+      window.renderMarkdownFromUrl('/docs/guide/' + filename, 'docs-content');
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', render);
+  } else {
+    render();
   }
 })();
 </script>
