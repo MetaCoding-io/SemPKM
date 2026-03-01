@@ -22,20 +22,13 @@
 </div>
 
 <script>
-var _guideArticleFilename = {{ filename | tojson }};
 (function () {
+  var filename = {{ filename | tojson }};
   if (typeof lucide !== 'undefined' && lucide.createIcons) {
     lucide.createIcons();
   }
-})();
-</script>
-{% endblock %}
-
-{% block scripts %}
-<script>
-(function () {
   if (typeof window.renderMarkdownFromUrl === 'function') {
-    window.renderMarkdownFromUrl('/docs/guide/' + _guideArticleFilename, 'docs-content');
+    window.renderMarkdownFromUrl('/docs/guide/' + filename, 'docs-content');
   }
 })();
 </script>
