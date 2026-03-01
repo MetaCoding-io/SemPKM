@@ -8,7 +8,7 @@ progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -35,7 +35,7 @@ Progress: [#####░░░░░] 50% (Phase 23)
 |-------|------|--------------|------------|--------|
 | 23 | SPARQL Console | SPARQL-01, SPARQL-02, SPARQL-03 | Nothing | Plan 01 complete |
 | 24 | FTS Keyword Search | FTS-01, FTS-02, FTS-03 | Nothing (JAR prereq) | Not started |
-| 25 | CSS Token Expansion | — (v2.3 prep) | Nothing | Not started |
+| 25 | CSS Token Expansion | — (v2.3 prep) | Nothing | Complete (1/1 plans) |
 | 26 | VFS MVP Read-Only | VFS-01, VFS-02 | Nothing (self-contained) | Not started |
 | 27 | VFS Write + Auth | VFS-03 | Phase 26 | Not started |
 | 28 | UI Polish + Integration Testing | POLSH-01, POLSH-02, POLSH-03, POLSH-04 | Phases 23, 24, 26 | Not started |
@@ -49,9 +49,10 @@ All v2.2 architectural decisions committed in v2.1. See .planning/DECISIONS.md f
 - DEC-01: RDF4J LuceneSail for FTS — zero new containers, SPARQL-native, ships with RDF4J 5.0.1
 - DEC-02: @zazuko/yasgui v4.5.0 CDN for SPARQL Console — MIT, zero backend changes
 - DEC-03: wsgidav + a2wsgi for VFS — HTTP-only, Docker-compatible, no SYS_ADMIN required
-- DEC-04: dockview-core for UI shell — Phase A in v2.3; CSS token expansion (~40 to ~91) is v2.2 prep only
+- DEC-04: dockview-core for UI shell — Phase A in v2.3; CSS token expansion complete (108 tokens, two-tier architecture)
 - DEC-05: Yasgui CDN loaded at top of workspace block content, not base.html — workspace-only dependency
 - DEC-06: Lazy Yasgui init via DOMContentLoaded + tab click handler — prevents JS errors when panel closed
+- CSS-01: Token count expanded to 108 in :root (vs ~91 estimate) — comprehensive two-tier primitive/semantic architecture
 
 ### Pending Todos
 
@@ -73,5 +74,5 @@ All v2.2 architectural decisions committed in v2.1. See .planning/DECISIONS.md f
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 23-01-PLAN.md (Yasgui SPARQL Console integration)
-Resume: Execute 23-02-PLAN.md for IRI click-through and result linking
+Stopped at: Completed 25-01-PLAN.md (CSS Token Expansion)
+Resume: Continue with remaining v2.2 phases (23-02, 24, 26, 27, 28)
