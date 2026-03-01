@@ -2551,6 +2551,11 @@ details.form-group[open] > .form-group-summary::before {
     flex-shrink: 0;
 }
 
+/* Flip maximize chevron when panel is maximized */
+.editor-column.panel-maximized #panel-maximize-btn svg {
+    transform: rotate(180deg);
+}
+
 /* ============================================================
    Phase 28: Sidebar Panel Drag-and-Drop (POLSH-02)
    ============================================================ */
