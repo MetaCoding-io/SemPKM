@@ -76,6 +76,8 @@ async def admin_models_install(
         context["error"] = error_msg
         logger.warning("Model install failed: %s", error_msg)
     else:
+        # Invalidate ViewSpec cache after successful model install
+        request.app.state.view_spec_service.invalidate_cache()
         context["success"] = f"Model '{result.model_id}' installed successfully."
         if result.warnings:
             context["success"] += " Warnings: " + "; ".join(result.warnings)
@@ -104,6 +106,8 @@ async def admin_models_remove(
         context["error"] = error_msg
         logger.warning("Model remove failed for '%s': %s", model_id, error_msg)
     else:
+        # Invalidate ViewSpec cache after successful model removal
+        request.app.state.view_spec_service.invalidate_cache()
         context["success"] = f"Model '{model_id}' removed."
 
     return templates_response(request, "admin/models.html", context, block_name="model_table")
