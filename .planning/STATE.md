@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-02-23)
 Phase: 19 of 19 (Bug Fixes and E2E Test Hardening) — COMPLETE
 Plan: 3 of 3 — COMPLETE
 Status: v2.0 Tighten Web UI milestone complete
-Last activity: 2026-02-27 - Completed quick task 6: transform docs/guide/index.html into a two-panel markdown reader using marked.js CDN
+Last activity: 2026-02-27 - Completed quick task 8: integrate e2e screenshots into user guide chapters
 
 Progress: [##########] 100% (v2.0) -- Phase 19 ongoing
 
@@ -194,9 +194,10 @@ v2.0 roadmap decisions:
 | 5 | please integrate the user guide in docs/ to the main website in docs/index.html | 2026-02-27 | 8d2bc12 | [5-please-integrate-the-user-guide-in-docs-](./quick/5-please-integrate-the-user-guide-in-docs-/) |
 | 6 | transform docs/guide/index.html into a two-panel markdown reader using marked.js CDN | 2026-02-27 | d045017 | [6-transform-docs-guide-index-html-into-a-t](./quick/6-transform-docs-guide-index-html-into-a-t/) |
 | 7 | Replace carousel SVG placeholders with real screenshots (6 slides total) | 2026-02-27 | 34eb922 | [7-replace-carousel-svg-placeholders-with-r](./quick/7-replace-carousel-svg-placeholders-with-r/) |
+| 8 | Integrate e2e screenshots into user guide chapters | 2026-02-27 | 3159159 | [8-review-e2e-screenshots-and-integrate-the](./quick/8-review-e2e-screenshots-and-integrate-the/) |
 
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Completed quick task 7: replace carousel SVG placeholders with real screenshots
+Stopped at: Completed quick task 8: integrate e2e screenshots into user guide chapters
 Resume: Use /gsd:complete-milestone to archive v2.0 and start v3.0, or /gsd:new-milestone for v2.1
