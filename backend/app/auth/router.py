@@ -9,6 +9,7 @@ Cookie settings:
 """
 
 import logging
+import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 
@@ -26,6 +27,7 @@ from app.auth.schemas import (
     SetupRequest,
     SetupResponse,
     StatusResponse,
+    TokenListItem,
     VerifyTokenRequest,
 )
 from app.auth.service import AuthService
@@ -263,3 +265,40 @@ async def create_api_token(
         name=token_obj.name,
         created_at=token_obj.created_at.isoformat(),
     )
+
+
+@router.get("/tokens", response_model=list[TokenListItem])
+async def list_api_tokens(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+):
+    """List all API tokens for the current user (no plaintext values)."""
+    auth_service = _get_auth_service(request)
+    tokens = await auth_service.list_api_tokens(current_user.id)
+    return [
+        TokenListItem(
+            id=str(t.id),
+            name=t.name,
+            created_at=t.created_at.isoformat(),
+        )
+        for t in tokens
+    ]
+
+
+@router.delete(
+    "/tokens/{token_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def revoke_api_token(
+    token_id: uuid.UUID,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+):
+    """Revoke (delete) an API token. Returns 204 on success, 404 if not found."""
+    auth_service = _get_auth_service(request)
+    deleted = await auth_service.revoke_api_token(current_user.id, token_id)
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Token not found",
+        )
