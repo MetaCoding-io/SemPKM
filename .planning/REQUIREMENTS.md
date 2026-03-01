@@ -11,7 +11,7 @@ Requirements for v2.1: Architecture Decision Gate. Formalizes completed research
 
 - [x] **DEC-01**: Architectural decision for full-text search committed — RDF4J LuceneSail approach, repository config, SPARQL query API design, phased plan (keyword first, vector later)
 - [x] **DEC-02**: Architectural decision for SPARQL UI committed — Zazuko Yasgui CDN embed approach, YASR plugin strategy for SemPKM object links, saved query design
-- [ ] **DEC-03**: Architectural decision for virtual filesystem committed — wsgidav + a2wsgi approach, MountSpec MVP vocabulary (flat + tag-groups), WebDAV client compatibility matrix
+- [x] **DEC-03**: Architectural decision for virtual filesystem committed — wsgidav + a2wsgi approach, MountSpec MVP vocabulary (flat + tag-groups), WebDAV client compatibility matrix
 - [ ] **DEC-04**: Architectural decision for UI shell committed — Dockview-core over GoldenLayout rationale, incremental Split.js migration plan, CSS token vocabulary expansion design
 
 ### Synthesis
@@ -64,7 +64,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | DEC-01 | Phase 20 | Complete |
 | DEC-02 | Phase 20 | Complete |
-| DEC-03 | Phase 20 | Pending |
+| DEC-03 | Phase 20 | Complete |
 | DEC-04 | Phase 20 | Pending |
 | SYN-01 | Phase 21 | Pending |
 | TECH-01 | Phase 22 | Complete |
