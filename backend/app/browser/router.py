@@ -110,6 +110,10 @@ async def settings_page(
         llm_svc = LLMConfigService()
         llm_config = await llm_svc.get_config(db)
 
+    auth_service = request.app.state.auth_service
+    api_tokens = await auth_service.list_api_tokens(user.id)
+    webdav_endpoint = str(request.base_url).rstrip("/") + "/dav/"
+
     return templates.TemplateResponse(request, "browser/settings_page.html", {
         "request": request,
         "categories": dict(categories),
@@ -118,6 +122,8 @@ async def settings_page(
         "all_settings": all_settings,
         "llm_config": llm_config,
         "user": user,
+        "api_tokens": api_tokens,
+        "webdav_endpoint": webdav_endpoint,
     })
 
 
