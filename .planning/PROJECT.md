@@ -58,9 +58,17 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ### Active
 
-<!-- v2.1 scope — to be defined via /gsd:new-milestone -->
+<!-- v2.1: Architecture Decision Gate — formalizing completed research + tech debt -->
 
-*No active requirements — next milestone not yet scoped.*
+- [ ] DEC-01: FTS/vector search approach committed (RDF4J LuceneSail, config, query API, phased plan)
+- [ ] DEC-02: SPARQL UI approach committed (Zazuko Yasgui CDN embed, YASR plugin strategy)
+- [ ] DEC-03: VFS technology committed (wsgidav + a2wsgi, MountSpec MVP vocab, client compat matrix)
+- [ ] DEC-04: UI shell architecture committed (Dockview-core, Split.js migration plan, CSS token vocab)
+- [ ] SYN-01: DECISIONS.md created (cross-cutting decisions, v2.2 phase structure, tech debt schedule)
+- [ ] TECH-01: Alembic migration runner at startup (replaces create_all)
+- [ ] TECH-02: SMTP email delivery (magic links sent via real email, not console)
+- [ ] TECH-03: Session cleanup job (purge expired sessions)
+- [ ] TECH-04: ViewSpecService TTL cache (reduce SPARQL queries per view lookup)
 
 ### Future Candidates
 
@@ -114,11 +122,14 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Mobile native app — web-first, responsive design and eventual PWA
 - Ontology editor — consume via Mental Models; use Protege for authoring
 
-## Current State: v2.0 Shipped (2026-03-01)
+## Current Milestone: v2.1 Architecture Decision Gate
 
-**v2.0 delivered:** Product-grade web UI — VS Code-style workspace, dark mode, settings system, event log with undo, Driver.js tours, encrypted LLM config, and type-specific node icons.
+**Goal:** Formalize the 4 completed architectural research tracks into committed decision artifacts and resolve medium-priority tech debt.
 
-**Next:** Define v2.1 scope via `/gsd:new-milestone`. Research docs available at `.planning/research/phase-2{0-3}-*/`.
+**Target features:**
+- DEC: Commit and annotate all 4 research documents (FTS, SPARQL UI, VFS, UI shell)
+- SYN: Produce consolidated DECISIONS.md with v2.2 implementation guidance
+- TECH: Alembic migration runner, SMTP delivery, session cleanup, ViewSpecService cache
 
 ## Context
 
@@ -176,4 +187,4 @@ These apply to every plan, no exceptions. Executor must check both gates before 
 | Private-by-default cross-model embedding | Explicit exports prevent accidental coupling between Mental Models | — Pending (not yet exercised with multiple models) |
 
 ---
-*Last updated: 2026-03-01 after v2.0 milestone completion*
+*Last updated: 2026-03-01 after v2.1 milestone started*
