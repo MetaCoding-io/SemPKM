@@ -44,7 +44,7 @@ SemPKM does not currently have a built-in import wizard for other tools (like Ob
 
 For RDF data specifically, you could load it directly into the triplestore via the RDF4J REST API, though you would need to ensure it follows SemPKM's naming conventions and includes proper type triples.
 
-> **Tip:** See [Appendix C: Command API Reference](appendix-c-command-api-reference.md) for the full API specification to build import scripts against.
+> **Tip:** See [Appendix C: Command API Reference](appendix-c-command-api-reference.md) for the full API specification to build import scripts against. For a step-by-step Obsidian vault migration guide including LLM-assisted classification, see [Chapter 24: Obsidian Onboarding](24-obsidian-onboarding.md).
 
 ---
 
@@ -61,6 +61,8 @@ However, there are potential integration points:
 - **Parallel use:** Some users keep both tools -- Obsidian for quick daily capture, SemPKM for structured long-term knowledge.
 
 The key difference is that SemPKM relationships are typed and queryable (`hasParticipant`, `isAbout`), while Obsidian links are untyped. An import from Obsidian would need to classify each link by type as part of the migration process.
+
+For a complete walkthrough of migrating an Obsidian vault to SemPKM, see [Chapter 24: Obsidian Onboarding](24-obsidian-onboarding.md).
 
 ### Does SemPKM work on mobile?
 
