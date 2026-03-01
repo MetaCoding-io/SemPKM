@@ -724,3 +724,51 @@ python-frontmatter>=1.1.0
 ### Frontmatter Parsing
 - [python-frontmatter GitHub](https://github.com/eyeseast/python-frontmatter)
 - [Python YAML Frontmatter Packages Comparison](https://safjan.com/python-packages-yaml-front-matter-markdown/)
+
+---
+
+## v2.2 Handoff
+
+**Target:** v2.2 Data Discovery milestone (VFS-01, VFS-02, VFS-03)
+
+### Prerequisites Before Implementation
+
+1. **Add Python packages to `pyproject.toml`:**
+   ```
+   wsgidav>=4.3.3,<5.0
+   a2wsgi>=1.10
+   python-frontmatter>=1.1.0
+   ```
+   All other required packages (`pyyaml`, `rdflib`, `pyshacl`, `cachetools`, `httpx`) are already present.
+
+2. **Add nginx proxy block** — the `/dav/` path must be proxied with WebDAV-specific headers (`Depth`, `Destination`, `Overwrite`) and extended timeouts; add location block to `frontend/nginx.conf` (see Section 5, Nginx Proxy Configuration for the exact config block)
+
+3. **Create `SyncTriplestoreClient`** — the DAVProvider runs in a WSGI thread pool (via a2wsgi), so it cannot use `httpx.AsyncClient`; create a synchronous wrapper using `httpx.Client` that mirrors the `TriplestoreClient` API but uses sync HTTP calls
+
+4. **Resolve API token auth design** — WebDAV clients do not support cookie sessions; the recommended pattern is Basic auth with API tokens as the password field (username = SemPKM username, password = revocable long-lived token); this auth mechanism does not yet exist and must be designed before Phase 22c
+
+### Phase 22a First Steps (Read-Only MVP — Satisfies VFS-01, VFS-02)
+
+1. Create `backend/app/vfs/provider.py` — implement `SemPKMDAVProvider(DAVProvider)` with `get_resource_inst(path, environ)` that dispatches to mount handlers based on the configured MountSpec list
+
+2. Create `backend/app/vfs/collections.py` — implement `MountCollection(DAVCollection)` that executes the `sparqlScope` SPARQL query and returns member names; implement `FlatStrategy` returning all results as a flat directory
+
+3. Create `backend/app/vfs/resources.py` — implement `ResourceFile(DAVNonCollection)` that renders a single RDF resource as `get_content()` returning markdown+frontmatter bytes (YAML frontmatter from SHACL shape properties + markdown body from `bodyProperty`)
+
+4. Mount wsgidav in `backend/app/main.py` — `app.mount("/dav", WSGIMiddleware(WsgiDAVApp(dav_config)))` with hard-coded mount config pointing to basic-pkm Note type
+
+5. Hard-code the `flat` strategy Notes mount for the MVP — no MountSpec RDF storage yet; use a Python dict config matching the MVP MountSpec definition from Section 3
+
+6. Add `cachetools.TTLCache` for directory listings keyed by `(mount_path, directory_path)` with 30-second TTL
+
+### Phase 22b First Steps (MountSpec + Tag Groups — Satisfies VFS-03 partially)
+
+1. Implement `TagGroupCollection(DAVCollection)` — reads `directoryProperty` tag values, creates subdirectories per unique tag value, returns filtered member list per subdirectory
+
+2. Add MountSpec RDF vocabulary to `sempkm` namespace (see Section 3, Starting Vocabulary); store mount definitions in model views graph
+
+3. Create `MountSpecLoader` — queries the triplestore at startup for `sempkm:MountSpec` instances and builds the provider config; supports multiple simultaneous mount points
+
+### Write Support (Phase 22d — Deferred, High Risk)
+
+Write support requires ETag-based concurrency control, a frontmatter-to-RDF diff engine, and `python-frontmatter` parse/render round-trip testing. Do not attempt write support until the read-only MVP is validated across macOS Finder, Windows Explorer, and Linux Nautilus. See Section 4 (Write Path Integration) for the full implementation design.
