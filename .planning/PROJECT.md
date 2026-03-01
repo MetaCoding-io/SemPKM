@@ -193,6 +193,20 @@ These apply to every plan, no exceptions. Executor must check both gates before 
 - **Auth**: Passwordless (setup token local, magic links cloud), session-based cookies
 - **Standards**: RDF, SPARQL 1.1, SHACL Core (pragmatic subset), JSON-LD for models
 
+## UI Design Principles
+
+### Contextual vs. Non-Contextual Views
+
+Workspace panels and views fall into one of two categories:
+
+**Contextual** — their content depends on what the user has currently focused. They show information *about* a specific object or result set. Examples: the Relations panel, the Lint panel, an object detail page. These should only display active content (and show their accent indicator) when the user's focus is on something that provides context — e.g. an open object tab. If focus shifts to a non-contextual view, they show a "no object selected" placeholder.
+
+**Non-contextual** — their content is independent of user focus. Examples: Settings, the Docs tab, a table or card view browsing a query result set. A table view shows a collection; no single object is "chosen" until the user selects one. A graph view similarly has no selection until the user picks a node.
+
+**Implementation rule:** The accent bar and panel content are driven by the *focused* tab, not by whether *any* object tab is open. Switching to Settings or a table view turns the accent off immediately. Only when an object tab is focused — or a graph node is explicitly selected — should the contextual panels activate.
+
+This distinction must be preserved as new view types are added. Ask: "does this view inherently mean a specific object or result set is chosen?" If yes, it is contextual. If no, it is not.
+
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
