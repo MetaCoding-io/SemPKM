@@ -174,6 +174,8 @@ When all validations pass, a green confirmation message appears: "Object conform
 
 For details on validation behavior, see the validation section in [Working with Objects](05-working-with-objects.md).
 
+> **Tip:** When an object is open in the editor, the Relations and Lint panels show a teal accent bar on their left edge — this indicates the panel content is scoped to the currently open object. When no object is open, the bar is hidden.
+
 ### Moving Sidebar Panels
 
 Panels in the right sidebar (Relations, Lint) can be moved to the left sidebar (Explorer pane) and back:
