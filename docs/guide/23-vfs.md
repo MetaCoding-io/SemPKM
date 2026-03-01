@@ -157,3 +157,7 @@ Write support is planned for a future release.
 | Stale file listing | Cache has not expired yet | Wait up to 30 seconds, then refresh |
 | Cannot connect | Wrong URL or port | Verify the `/dav/` path is included in the URL |
 | macOS "connection failed" | macOS prefers HTTPS for WebDAV | Use `http://` explicitly for local dev |
+
+---
+
+**Previous:** [Chapter 22: Keyword Search](22-keyword-search.md) | **Next:** [Chapter 24: Obsidian Onboarding](24-obsidian-onboarding.md)

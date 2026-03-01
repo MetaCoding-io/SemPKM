@@ -353,4 +353,4 @@ Before going live, verify each item:
 
 ---
 
-**Previous:** [Chapter 19: Creating Mental Models](19-creating-mental-models.md) | **Next:** [Appendix A: Environment Variable Reference](appendix-a-environment-variables.md)
+**Previous:** [Chapter 19: Creating Mental Models](19-creating-mental-models.md) | **Next:** [Chapter 21: SPARQL Console](21-sparql-console.md)

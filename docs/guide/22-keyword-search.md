@@ -31,3 +31,7 @@ Search covers all objects in your current knowledge base (`urn:sempkm:current` g
 | Navigate results | Arrow keys |
 | Open selected object | Enter |
 | Close palette | Escape |
+
+---
+
+**Previous:** [Chapter 21: SPARQL Console](21-sparql-console.md) | **Next:** [Chapter 23: Virtual Filesystem (WebDAV)](23-vfs.md)
