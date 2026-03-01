@@ -22,12 +22,12 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 
 ## Current Position
 
-Phase: 20 (Architecture Decision Commit) — in progress
-Plan: 02 complete, 03+ pending
-Status: Plan 02 executed — SPARQL UI decision committed (@zazuko/yasgui CDN embed)
-Last activity: 2026-03-01 — Phase 20 Plan 02 complete (2 tasks, 1 file, 2min)
+Phase: 22 (Tech Debt Sprint) — in progress
+Plan: 01 complete, 02 complete, 03 pending
+Status: Plan 01 executed — Alembic migration runner and session cleanup
+Last activity: 2026-03-01 — Phase 22 Plan 01 complete (2 tasks, 4 files, 2min)
 
-Progress: [#---------] 10% (v2.1) — Phase 20 Plan 01 complete
+Progress: [###-------] 30% (v2.1) — Phase 22 Plan 01 complete
 
 ## v2.1 Phase Summary
 
@@ -76,6 +76,7 @@ Progress: [#---------] 10% (v2.1) — Phase 20 Plan 01 complete
 | Phase 20 P01 | 2min | 2 tasks | 1 files |
 | Phase 20 P02 | 2min | 2 tasks | 1 files |
 | Phase 20 P02 | 2min | 2 tasks | 1 files |
+| Phase 22 P01 | 2min | 2 tasks | 4 files |
 | Phase 22 P02 | 2min | 2 tasks | 4 files |
 
 ## Accumulated Context
@@ -196,6 +197,11 @@ v2.1 Phase 20 execution decisions (20-02):
 - (20-02) Custom YASR table cell renderer for SemPKM IRI-to-object-browser links committed as design (satisfies SPARQL-02)
 - (20-02) localStorage persistence with key sempkm-sparql committed (satisfies SPARQL-03)
 
+v2.1 Phase 22 execution decisions (22-01):
+- (22-01) asyncio.to_thread wraps Alembic command.upgrade to avoid nested event loop (env.py uses asyncio.run internally)
+- (22-01) AlembicConfig and alembic_command aliases avoid name collision with existing Config usage in main.py
+- (22-01) Startup session cleanup pattern: call cleanup after service creation, log only if non-zero purged
+
 v2.1 Phase 22 execution decisions (22-02):
 - (22-02) send_magic_link_email returns bool (not raises) so caller can fall through to console fallback on SMTP failure
 - (22-02) Lazy import of email service inside if smtp_configured block (module only loaded when needed)
@@ -212,8 +218,8 @@ v2.1 Phase 22 execution decisions (22-02):
 - SMTP deferred (magic link tokens logged to console) — DONE (Phase 22 Plan 02)
 - Dual SQLAlchemy engine instances (harmless for SQLite)
 - empty_shapes_loader dead code
-- Alembic migration runner not yet in place — addressed in Phase 22
-- Session cleanup job not yet implemented — addressed in Phase 22
+- Alembic migration runner not yet in place — DONE (Phase 22 Plan 01)
+- Session cleanup job not yet implemented — DONE (Phase 22 Plan 01)
 - ViewSpecService TTL cache not yet implemented — addressed in Phase 22
 - Bottom panel SPARQL/AI Copilot tabs are placeholder stubs (implementation in future milestones)
 - Edit form helptext property not yet in SHACL types (pending todo)
@@ -239,5 +245,5 @@ None for v2.1.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 20-02-PLAN.md — SPARQL UI architecture decision committed (@zazuko/yasgui CDN embed)
-Resume: Run /gsd:execute-phase 20-03 to continue Architecture Decision Commit phase (next decision track)
+Stopped at: Completed 22-01-PLAN.md — Alembic migration runner and session cleanup
+Resume: Run /gsd:execute-phase 22-03 to continue Tech Debt Sprint (ViewSpec cache TTL)
