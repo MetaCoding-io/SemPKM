@@ -45,7 +45,7 @@
 
 ### 📋 v2.1 Architecture Decision Gate (Phases 20-22)
 
-- [ ] **Phase 20: Architecture Decision Commit** - Annotate and commit all 4 research tracks as finalized architectural decisions
+- [x] **Phase 20: Architecture Decision Commit** - Annotate and commit all 4 research tracks as finalized architectural decisions
 - [ ] **Phase 21: Research Synthesis** - Produce DECISIONS.md consolidating all decisions with v2.2 implementation guidance
 - [x] **Phase 22: Tech Debt Sprint** - Implement 4 medium-priority tech debt items (Alembic, SMTP, session cleanup, ViewSpec cache) (completed 2026-03-01)
 
@@ -62,11 +62,11 @@
   4. A reviewer reading any single RESEARCH.md can determine the committed approach without reading the others
 **Plans**: 5 plans
 Plans:
-- [ ] 20-01-PLAN.md — Annotate FTS/Vector RESEARCH.md with Decision + v2.2 Handoff (DEC-01)
-- [ ] 20-02-PLAN.md — Annotate SPARQL UI RESEARCH.md with Decision + v2.2 Handoff (DEC-02)
-- [ ] 20-03-PLAN.md — Annotate VFS RESEARCH.md with Decision + v2.2 Handoff (DEC-03)
-- [ ] 20-04-PLAN.md — Annotate UI Shell RESEARCH.md with Decision + v2.2 Handoff (DEC-04)
-- [ ] 20-05-PLAN.md — Verify, commit all 4 decisions, update planning metadata
+- [x] 20-01-PLAN.md — Annotate FTS/Vector RESEARCH.md with Decision + v2.2 Handoff (DEC-01)
+- [x] 20-02-PLAN.md — Annotate SPARQL UI RESEARCH.md with Decision + v2.2 Handoff (DEC-02)
+- [x] 20-03-PLAN.md — Annotate VFS RESEARCH.md with Decision + v2.2 Handoff (DEC-03)
+- [x] 20-04-PLAN.md — Annotate UI Shell RESEARCH.md with Decision + v2.2 Handoff (DEC-04)
+- [x] 20-05-PLAN.md — Verify, commit all 4 decisions, update planning metadata
 
 ### Phase 21: Research Synthesis
 **Goal**: A single DECISIONS.md exists that consolidates all 4 architectural decisions, surfaces cross-cutting concerns, and provides a v2.2 phase structure with implementation order
@@ -117,7 +117,7 @@ Plans:
 | 17. LLM Connection Configuration | v2.0 | 2/2 | Complete | 2026-02-24 |
 | 18. Tutorials and Documentation | v2.0 | 2/2 | Complete | 2026-02-25 |
 | 19. Bug Fixes and E2E Test Hardening | v2.0 | 3/3 | Complete | 2026-02-27 |
-| 20. Architecture Decision Commit | 4/5 | In Progress|  | - |
+| 20. Architecture Decision Commit | v2.1 | 5/5 | Complete | 2026-02-28 |
 | 21. Research Synthesis | v2.1 | 0/1 | Not started | - |
 | 22. Tech Debt Sprint | 3/3 | Complete    | 2026-03-01 | - |
 
