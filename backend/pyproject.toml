@@ -22,6 +22,9 @@ dependencies = [
     "itsdangerous>=2.2",
     "cryptography>=43.0",
     "posthog>=3.7",
+    "wsgidav>=4.3.3,<5.0",
+    "a2wsgi>=1.10",
+    "python-frontmatter>=1.1.0",
 ]
 
 [project.optional-dependencies]
