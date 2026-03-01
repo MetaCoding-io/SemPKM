@@ -29,6 +29,7 @@ class User(Base):
     )
 
     sessions: Mapped[list["UserSession"]] = relationship(back_populates="user")
+    api_tokens: Mapped[list["ApiToken"]] = relationship(back_populates="user")
 
 
 class UserSession(Base):
@@ -93,7 +94,7 @@ class ApiToken(Base):
     last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
-    user: Mapped["User"] = relationship()
+    user: Mapped["User"] = relationship(back_populates="api_tokens")
 
 
 class UserSetting(Base):
