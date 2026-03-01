@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 Phase: 27 of 28 (VFS Write + Auth)
 Plan: 3 of 3 complete
 Status: In Progress
-Last activity: 2026-03-01 - Completed quick task 11: Add connections tab to mental model detail dashboard
+Last activity: 2026-03-01 - Completed quick task 12: Replace connections tab with ontology relationship diagram
 
 Progress: [##############################] 100% (Phase 27)
 
@@ -93,9 +93,10 @@ All v2.2 architectural decisions committed in v2.1. See .planning/DECISIONS.md f
 |---|-------------|------|--------|-----------|
 | 10 | Design onboarding workflow for Obsidian users with untagged notes - import, ontology mapping via LLMs, user guide docs | 2026-03-01 | e382971 | [10-design-onboarding-workflow-for-obsidian-](./quick/10-design-onboarding-workflow-for-obsidian-/) |
 | 11 | Add connections tab to mental model detail - SPARQL outbound/inbound triples, htmx lazy-load, grouped by predicate | 2026-03-01 | edb862b | [11-add-connections-tab-to-mental-model-deta](./quick/11-add-connections-tab-to-mental-model-deta/) |
+| 12 | Replace connections tab with SVG ontology relationship diagram - server-rendered circular layout, no external JS | 2026-03-01 | 76e1678 | [12-replace-connections-tab-with-ontology-re](./quick/12-replace-connections-tab-with-ontology-re/) |
 
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed quick task 11 (Add connections tab to mental model detail)
+Stopped at: Completed quick task 12 (Replace connections tab with ontology relationship diagram)
 Resume: Phase 27 plans 01, 02, 03 all complete. Proceed with Phase 28 (UI Polish + Integration Testing).
