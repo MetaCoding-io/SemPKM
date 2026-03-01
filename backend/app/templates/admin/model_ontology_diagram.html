@@ -1,7 +1,7 @@
 {# Ontology relationship diagram for model detail dashboard.
    Rendered as htmx partial loaded on Relationships tab click.
    Accepts:
-     nodes: dict of {type_name: {x, y, label, color}}
+     nodes: dict of {type_name: {x, y, label, color, properties, instance_count}}
      edges: list of {from, to, label, x1, y1, x2, y2, ctrl_x, ctrl_y, label_x, label_y, self_loop, curve_offset}
      view_box: str (computed bounding box)
      model_id: str
@@ -59,12 +59,111 @@
         {# Render nodes #}
         {% for name, node in nodes.items() %}
         <circle cx="{{ node.x }}" cy="{{ node.y }}" r="24"
-                fill="{{ node.color }}22" stroke="{{ node.color }}" stroke-width="2" />
+                fill="{{ node.color }}22" stroke="{{ node.color }}" stroke-width="2"
+                class="ontology-node" data-node-name="{{ name }}" />
         <text x="{{ node.x }}" y="{{ node.y + 4 }}"
               text-anchor="middle" class="node-label"
               fill="{{ node.color }}">{{ node.label }}</text>
         {% endfor %}
     </svg>
+
+    {# Popover container for node hover details #}
+    <div class="graph-popover" id="ontology-popover"></div>
+
+    {# Embed node property data as JSON for hover JS #}
+    <script>
+    var _ontologyNodeData = {
+    {% for name, node in nodes.items() %}
+      {{ name|tojson }}: {
+        "label": {{ node.label|tojson }},
+        "color": {{ node.color|tojson }},
+        "instance_count": {{ node.instance_count }},
+        "properties": [
+          {% for prop in node.properties %}
+          {"name": {{ prop.name|tojson }}, "type": {{ prop.type|tojson }}}{% if not loop.last %},{% endif %}
+          {% endfor %}
+        ]
+      }{% if not loop.last %},{% endif %}
+    {% endfor %}
+    };
+
+    (function() {
+      var popover = document.getElementById('ontology-popover');
+      if (!popover) return;
+      var panel = popover.closest('.ontology-diagram-panel');
+      if (!panel) return;
+      var hideTimer = null;
+
+      function showPopover(circle, name) {
+        var data = _ontologyNodeData[name];
+        if (!data) return;
+
+        var html = '<div class="graph-popover-header">' +
+          '<span class="graph-popover-label">' + data.label + '</span>' +
+          '<span class="graph-popover-type" style="background:' + data.color + '">' +
+            data.instance_count + ' instance' + (data.instance_count !== 1 ? 's' : '') +
+          '</span></div>';
+
+        if (data.properties.length > 0) {
+          html += '<div class="graph-popover-props">';
+          for (var i = 0; i < data.properties.length; i++) {
+            var p = data.properties[i];
+            html += '<div class="graph-popover-prop">' +
+              '<span class="graph-popover-prop-name">' + p.name + '</span>' +
+              '<span class="graph-popover-prop-val">' + (p.type || 'any') + '</span></div>';
+          }
+          html += '</div>';
+        } else {
+          html += '<div class="graph-popover-empty">No properties defined</div>';
+        }
+
+        popover.innerHTML = html;
+        popover.style.display = 'block';
+
+        // Position relative to the panel container
+        var panelRect = panel.getBoundingClientRect();
+        var circleRect = circle.getBoundingClientRect();
+        var left = circleRect.right - panelRect.left + 8;
+        var top = circleRect.top - panelRect.top - 12;
+
+        popover.style.left = left + 'px';
+        popover.style.top = top + 'px';
+
+        // Adjust if overflowing right edge
+        var pRect = popover.getBoundingClientRect();
+        if (pRect.right > panelRect.right - 8) {
+          popover.style.left = (circleRect.left - panelRect.left - pRect.width - 8) + 'px';
+        }
+        // Adjust if overflowing bottom
+        pRect = popover.getBoundingClientRect();
+        if (pRect.bottom > panelRect.bottom - 8) {
+          popover.style.top = (circleRect.top - panelRect.top - pRect.height + 12) + 'px';
+        }
+      }
+
+      // Set panel to position:relative for absolute popover positioning
+      panel.style.position = 'relative';
+
+      document.querySelectorAll('.ontology-node').forEach(function(circle) {
+        circle.style.cursor = 'pointer';
+        circle.addEventListener('mouseenter', function() {
+          if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+          showPopover(circle, circle.getAttribute('data-node-name'));
+        });
+        circle.addEventListener('mouseleave', function() {
+          hideTimer = setTimeout(function() { popover.style.display = 'none'; }, 150);
+        });
+      });
+
+      // Keep popover visible when mouse enters it
+      popover.addEventListener('mouseenter', function() {
+        if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+      });
+      popover.addEventListener('mouseleave', function() {
+        popover.style.display = 'none';
+      });
+    })();
+    </script>
     {% endif %}
 </div>
 
