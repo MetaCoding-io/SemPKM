@@ -257,10 +257,6 @@ The filenames default to `{modelId}.jsonld` but can be customized via the entryp
 | List | Models page table | `GET /api/models` | Shows all installed models with metadata |
 | Auto-install | Automatic on startup | Automatic on startup | Basic PKM installed if no models present |
 
-## What is Next
+---
 
-You now understand how to manage the Mental Models that power your SemPKM experience. For earlier chapters covering the workspace, editing, and validation, see:
-
-- [Browsing and Visualizing Data](07-browsing-and-visualizing.md)
-- [Keyboard Shortcuts and Command Palette](08-keyboard-shortcuts.md)
-- [Understanding Mental Models](09-understanding-mental-models.md)
+**Previous:** [Chapter 9: Understanding Mental Models](09-understanding-mental-models.md) | **Next:** [Chapter 11: User Management](11-user-management.md)

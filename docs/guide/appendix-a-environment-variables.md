@@ -70,3 +70,7 @@ SESSION_DURATION_DAYS=90
 
 - [Production Deployment](20-production-deployment.md) -- full deployment guide
 - [Installation and Setup](03-installation-and-setup.md) -- first-run configuration
+
+---
+
+**Previous:** [Chapter 20: Production Deployment](20-production-deployment.md) | **Next:** [Appendix B: Keyboard Shortcut Reference](appendix-b-keyboard-shortcuts.md)

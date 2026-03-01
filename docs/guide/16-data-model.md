@@ -274,7 +274,6 @@ do not yet satisfy all shape constraints and fix them later. This is intentional
 
 ---
 
-## Next Steps
+---
 
-Now that you understand the data model, you can use the Command API to automate
-writes. Continue to [The Command API](17-command-api.md).
+**Previous:** [Chapter 15: Understanding the Event Log](15-event-log.md) | **Next:** [Chapter 17: The Command API](17-command-api.md)

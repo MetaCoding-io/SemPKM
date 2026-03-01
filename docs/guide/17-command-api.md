@@ -455,7 +455,6 @@ curl -X POST http://localhost:8000/api/commands \
 
 ---
 
-## Next Steps
+---
 
-The Command API is for writing data. To read and query your data programmatically,
-continue to [The SPARQL Endpoint](18-sparql-endpoint.md).
+**Previous:** [Chapter 16: The Data Model](16-data-model.md) | **Next:** [Chapter 18: The SPARQL Endpoint](18-sparql-endpoint.md)

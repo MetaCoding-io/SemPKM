@@ -206,8 +206,6 @@ DELETE /browser/settings/{key}
 
 Deletes the user override for the specified key, reverting to the default. Returns the default value in the response so the UI can update.
 
-## What is Next
+---
 
-The final chapter in Part IV covers system health monitoring and the debug tools available for troubleshooting and advanced exploration.
-
-[System Health and Debugging](14-system-health-and-debugging.md)
+**Previous:** [Chapter 12: Webhooks](12-webhooks.md) | **Next:** [Chapter 14: System Health and Debugging](14-system-health-and-debugging.md)

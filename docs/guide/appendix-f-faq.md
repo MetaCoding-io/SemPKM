@@ -187,3 +187,7 @@ This is not officially supported and is recommended only for development or adva
 - [Core Concepts](02-core-concepts.md) -- detailed explanation of types, objects, edges, and events
 - [Appendix D: Glossary](appendix-d-glossary.md) -- term definitions
 - [Appendix E: Troubleshooting](appendix-e-troubleshooting.md) -- common issues and solutions
+
+---
+
+**Previous:** [Appendix E: Troubleshooting](appendix-e-troubleshooting.md)

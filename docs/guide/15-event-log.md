@@ -221,8 +221,6 @@ Provenance data is stored using the `sempkm:performedBy` and
 
 ---
 
-## Next Steps
+---
 
-The Event Log is one window into the underlying data model that powers SemPKM.
-To understand the architecture behind events, named graphs, and the current state
-graph, continue to [The Data Model](16-data-model.md).
+**Previous:** [Chapter 14: System Health and Debugging](14-system-health-and-debugging.md) | **Next:** [Chapter 16: The Data Model](16-data-model.md)

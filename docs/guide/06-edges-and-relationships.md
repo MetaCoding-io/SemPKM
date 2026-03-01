@@ -215,4 +215,4 @@ Understanding a few design principles will help you work effectively with edges 
 
 ---
 
-**Next:** [Browsing and Visualizing Data](07-browsing-and-visualizing.md) covers table views, card views, and graph views in detail, including filtering, pagination, and renderer-specific features.
+**Previous:** [Chapter 5: Working with Objects](05-working-with-objects.md) | **Next:** [Chapter 7: Browsing and Visualizing Data](07-browsing-and-visualizing.md)

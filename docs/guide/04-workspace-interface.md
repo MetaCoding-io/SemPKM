@@ -251,4 +251,4 @@ Here is a quick reference for all workspace-level shortcuts discussed in this ch
 
 ---
 
-**Next:** [Working with Objects](05-working-with-objects.md) covers creating, reading, editing, and validating your knowledge objects.
+**Previous:** [Chapter 3: Installation and Setup](03-installation-and-setup.md) | **Next:** [Chapter 5: Working with Objects](05-working-with-objects.md)

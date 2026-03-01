@@ -322,9 +322,6 @@ with a very large dataset:
 
 ---
 
-## Next Steps
+---
 
-You now have the tools to both read (SPARQL) and write (Command API) your SemPKM
-data programmatically. To learn how to define your own object types, properties,
-and validation rules, continue to
-[Creating Mental Models](19-creating-mental-models.md).
+**Previous:** [Chapter 17: The Command API](17-command-api.md) | **Next:** [Chapter 19: Creating Mental Models](19-creating-mental-models.md)

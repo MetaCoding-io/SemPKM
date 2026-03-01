@@ -80,3 +80,7 @@ The detection is automatic based on the `navigator.platform` value.
 
 - [Keyboard Shortcuts and Command Palette](08-keyboard-shortcuts.md) -- detailed usage guide
 - [The Workspace Interface](04-workspace-interface.md) -- workspace layout overview
+
+---
+
+**Previous:** [Appendix A: Environment Variable Reference](appendix-a-environment-variables.md) | **Next:** [Appendix C: Command API Reference](appendix-c-command-api-reference.md)

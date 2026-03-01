@@ -189,8 +189,6 @@ The session cookie has the following properties:
 
 > **Tip:** For production deployments behind HTTPS, you should configure the Secure flag to `true` to prevent the cookie from being transmitted over unencrypted connections. See [Production Deployment](20-production-deployment.md) for details.
 
-## What is Next
+---
 
-With users set up and authenticated, you may want to configure webhooks to notify external services when data changes in your instance. The next chapter covers webhook configuration.
-
-[Webhooks](12-webhooks.md)
+**Previous:** [Chapter 10: Managing Mental Models](10-managing-mental-models.md) | **Next:** [Chapter 12: Webhooks](12-webhooks.md)

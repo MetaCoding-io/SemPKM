@@ -273,3 +273,7 @@ This appendix covers common issues you may encounter when running SemPKM, with s
 - [Production Deployment](20-production-deployment.md) -- production configuration
 - [Appendix A: Environment Variable Reference](appendix-a-environment-variables.md) -- all configuration options
 - [Appendix F: FAQ](appendix-f-faq.md) -- frequently asked questions
+
+---
+
+**Previous:** [Appendix D: Glossary](appendix-d-glossary.md) | **Next:** [Appendix F: FAQ](appendix-f-faq.md)

@@ -63,8 +63,6 @@ Views are defined as SPARQL queries bundled with Mental Models, so new models ca
 - **SPARQL endpoint** for advanced queries and integrations
 - **Docker-based deployment** -- a single `docker compose up` to run the full stack
 
-## What is Next
+---
 
-Now that you understand what SemPKM is and why it exists, the next chapter introduces the core concepts you will encounter as you use it: Objects, Types, Properties, Edges, Mental Models, Views, Events, and Validation.
-
-[Core Concepts](02-core-concepts.md)
+**Previous:** [SemPKM User Guide](README.md) | **Next:** [Chapter 2: Core Concepts](02-core-concepts.md)

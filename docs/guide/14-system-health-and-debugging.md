@@ -332,10 +332,6 @@ Sessions expire after 30 days of inactivity (configurable via `SESSION_DURATION_
 3. Check for typos in IRIs -- they are case-sensitive.
 4. If querying event graphs, ensure the graph filter matches: `STRSTARTS(STR(?event), "urn:sempkm:event:")`.
 
-## What is Next
+---
 
-This concludes Part IV: Administration. You now know how to manage users, configure webhooks, customize settings, and monitor your system's health.
-
-The next part covers the Event Log in detail, including how events are structured, how the immutable log works, and advanced event querying.
-
-[Understanding the Event Log](15-event-log.md)
+**Previous:** [Chapter 13: Settings](13-settings.md) | **Next:** [Chapter 15: Understanding the Event Log](15-event-log.md)

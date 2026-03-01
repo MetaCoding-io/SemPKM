@@ -54,3 +54,7 @@ setup to advanced topics like SPARQL queries and creating your own Mental Models
 - [D. Glossary](appendix-d-glossary.md)
 - [E. Troubleshooting](appendix-e-troubleshooting.md)
 - [F. FAQ](appendix-f-faq.md)
+
+---
+
+**Next:** [Chapter 1: What is SemPKM?](01-what-is-sempkm.md)
