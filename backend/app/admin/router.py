@@ -140,10 +140,10 @@ async def admin_model_ontology_diagram(
     user: User = Depends(require_role("owner")),
     model_service: ModelService = Depends(get_model_service),
 ):
-    """Render SVG ontology relationship diagram for a model.
+    """Render Cytoscape.js ontology relationship diagram for a model.
 
     Shows type-to-type relationships derived from OWL ObjectProperties.
-    Returns an htmx partial with inline SVG.
+    Returns an htmx partial with Cytoscape container and inline JS initialization.
     """
     detail = await model_service.get_model_detail(model_id)
     if detail is None:
@@ -157,156 +157,58 @@ async def admin_model_ontology_diagram(
     icon_svc = IconService(models_dir="/app/models")
     icon_map = icon_svc.get_icon_map("tree")
 
-    # Build type info with colors
-    type_info = {}
+    # Build nodes list: one dict per type
+    nodes = []
     for t in detail["types"]:
         icon_data = icon_map.get(t["iri"], {"icon": "circle", "color": "#999"})
-        type_info[t["local_name"]] = {
+        nodes.append({
+            "id": t["local_name"],
             "label": t["label"],
             "color": icon_data["color"],
-        }
+        })
 
-    # Filter to ObjectProperties only, building edges
+    # Build edges list: one dict per ObjectProperty
     edges = []
-    for p in detail["properties"]:
+    for idx, p in enumerate(detail["properties"]):
         if p["prop_type"] == "Object" and p["domain"] and p["range"]:
             edges.append({
-                "from": p["domain"],
-                "to": p["range"],
+                "id": f"edge-{idx}-{p['domain']}-{p['range']}",
+                "source": p["domain"],
+                "target": p["range"],
                 "label": p["label"],
             })
 
-    # Compute node positions -- circular layout
-    type_names = list(type_info.keys())
-    node_count = len(type_names)
-    import math
-    # Layout radius scales with node count for readability
-    base_radius = max(160, node_count * 45)
-    cx, cy = 0.0, 0.0  # center at origin; viewBox will be computed from bounds
-    nodes = {}
-    for i, name in enumerate(type_names):
-        angle = (2 * math.pi * i / node_count) - math.pi / 2  # start from top
-        x = cx + base_radius * math.cos(angle)
-        y = cy + base_radius * math.sin(angle)
-        nodes[name] = {
-            "x": round(x, 1),
-            "y": round(y, 1),
-            "label": type_info[name]["label"],
-            "color": type_info[name]["color"],
-        }
-
-    # Enrich nodes with SHACL properties and instance counts
-    # 1. Build shape-property lookup from detail["shapes"]
-    shape_props = {}
+    # Build SHACL property lookup from shapes
+    shape_props: dict[str, list] = {}
     for shape in detail["shapes"]:
         tc = shape["target_class"]
         shape_props[tc] = shape["properties"]
 
-    # 2. Fetch instance counts via get_type_analytics()
+    # Fetch instance counts
     type_iris = [t["iri"] for t in detail["types"]]
     analytics = await model_service.get_type_analytics(type_iris)
-    count_lookup = {}
+
+    # Build node_data dict for hover popovers
+    node_data = {}
     for t in detail["types"]:
-        count_lookup[t["local_name"]] = analytics.get(t["iri"], {}).get("count", 0)
-
-    # 3. Attach properties (max 6) and instance_count to each node
-    for name in nodes:
-        nodes[name]["properties"] = shape_props.get(name, [])[:6]
-        nodes[name]["instance_count"] = count_lookup.get(name, 0)
-
-    # Compute tight viewBox from node bounds
-    node_radius = 24
-    padding = 80  # room for labels and self-loop arcs
-    if nodes:
-        min_x = min(n["x"] for n in nodes.values()) - padding
-        max_x = max(n["x"] for n in nodes.values()) + padding
-        min_y = min(n["y"] for n in nodes.values()) - padding
-        max_y = max(n["y"] for n in nodes.values()) + padding
-    else:
-        min_x, min_y, max_x, max_y = 0, 0, 400, 300
-    view_box = f"{min_x} {min_y} {max_x - min_x} {max_y - min_y}"
-
-    # Detect bidirectional pairs and assign curve offsets
-    edge_pair_key = {}
-    for edge in edges:
-        key = frozenset([edge["from"], edge["to"]])
-        edge_pair_key.setdefault(key, []).append(edge)
-
-    for key, group in edge_pair_key.items():
-        if len(group) == 2 and group[0]["from"] != group[0]["to"]:
-            group[0]["curve_offset"] = 20
-            group[1]["curve_offset"] = -20
-        else:
-            for e in group:
-                e["curve_offset"] = 0
-
-    # Pre-compute shortened edge endpoints and curve control points
-    for edge in edges:
-        src = nodes.get(edge["from"])
-        tgt = nodes.get(edge["to"])
-        if not src or not tgt:
-            continue
-
-        if edge["from"] == edge["to"]:
-            # Self-referencing edge: compute arc start/end at circle boundary
-            edge["self_loop"] = True
-            edge["x1"] = round(src["x"] - 20, 1)
-            edge["y1"] = round(src["y"] - node_radius, 1)
-            edge["x2"] = round(src["x"] + 20, 1)
-            edge["y2"] = round(src["y"] - node_radius, 1)
-            edge["ctrl_x"] = None
-            edge["ctrl_y"] = None
-            edge["label_x"] = round(src["x"], 1)
-            edge["label_y"] = round(src["y"] - 72, 1)
-            continue
-
-        edge["self_loop"] = False
-        dx = tgt["x"] - src["x"]
-        dy = tgt["y"] - src["y"]
-        length = math.sqrt(dx * dx + dy * dy)
-        if length == 0:
-            continue
-
-        ux, uy = dx / length, dy / length  # unit vector src->tgt
-
-        # Shorten: start at circle boundary, end at circle boundary + arrowhead
-        shorten_src = node_radius
-        shorten_tgt = node_radius + 8  # 8 for arrowhead marker refX
-        x1 = src["x"] + ux * shorten_src
-        y1 = src["y"] + uy * shorten_src
-        x2 = tgt["x"] - ux * shorten_tgt
-        y2 = tgt["y"] - uy * shorten_tgt
-
-        edge["x1"] = round(x1, 1)
-        edge["y1"] = round(y1, 1)
-        edge["x2"] = round(x2, 1)
-        edge["y2"] = round(y2, 1)
-
-        curve_offset = edge.get("curve_offset", 0)
-        if curve_offset != 0:
-            # Perpendicular normal for curved edges
-            mx, my = (x1 + x2) / 2, (y1 + y2) / 2
-            nx, ny = -uy, ux  # perpendicular to direction
-            ctrl_x = mx + nx * curve_offset
-            ctrl_y = my + ny * curve_offset
-            edge["ctrl_x"] = round(ctrl_x, 1)
-            edge["ctrl_y"] = round(ctrl_y, 1)
-            # Label position near the curve apex
-            edge["label_x"] = round(ctrl_x + nx * 4, 1)
-            edge["label_y"] = round(ctrl_y + ny * 4 - 4, 1)
-        else:
-            edge["ctrl_x"] = None
-            edge["ctrl_y"] = None
-            # Label at midpoint
-            edge["label_x"] = round((x1 + x2) / 2, 1)
-            edge["label_y"] = round((y1 + y2) / 2 - 8, 1)
+        local_name = t["local_name"]
+        icon_data = icon_map.get(t["iri"], {"icon": "circle", "color": "#999"})
+        props = shape_props.get(local_name, [])[:6]
+        count = analytics.get(t["iri"], {}).get("count", 0)
+        node_data[local_name] = {
+            "label": t["label"],
+            "color": icon_data["color"],
+            "instance_count": count,
+            "properties": [{"name": p["name"], "type": p.get("type", "any")} for p in props],
+        }
 
     context = {
         "request": request,
         "model_id": model_id,
         "nodes": nodes,
         "edges": edges,
-        "view_box": view_box,
+        "node_data": node_data,
+        "has_edges": len(edges) > 0,
     }
     return templates_response(request, "admin/model_ontology_diagram.html", context)
 
