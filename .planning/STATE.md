@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Data Discovery
 status: unknown
-last_updated: "2026-03-01T05:33:16.059Z"
+last_updated: "2026-03-01T05:48:04Z"
 progress:
   total_phases: 16
   completed_phases: 12
   total_plans: 40
-  completed_plans: 33
+  completed_plans: 34
 ---
 
 # Project State
@@ -34,7 +34,7 @@ Progress: [######----] 67% (Phase 26)
 | Phase | Name | Requirements | Depends On | Status |
 |-------|------|--------------|------------|--------|
 | 23 | SPARQL Console | SPARQL-01, SPARQL-02, SPARQL-03 | Nothing | Complete (2/2 plans) |
-| 24 | FTS Keyword Search | FTS-01, FTS-02, FTS-03 | Nothing (JAR prereq) | In progress (1/2 plans) |
+| 24 | FTS Keyword Search | FTS-01, FTS-02, FTS-03 | Nothing (JAR prereq) | Complete (2/2 plans) |
 | 25 | CSS Token Expansion | — (v2.3 prep) | Nothing | Complete (1/1 plans) |
 | 26 | VFS MVP Read-Only | VFS-01, VFS-02 | Nothing (self-contained) | In progress (2/3 plans) |
 | 27 | VFS Write + Auth | VFS-03 | Phase 26 | Not started |
@@ -60,6 +60,8 @@ All v2.2 architectural decisions committed in v2.1. See .planning/DECISIONS.md f
 - VFS-05: DAV provider hierarchy: Root->Model->Type->Resource with lazy file map caching per TypeCollection
 - FTS-01: LuceneSail config uses RDF4J 5.x unified namespace (config:lucene.indexDir, config:delegate) — verified from container-generated config
 - FTS-02: Graph-scoped FTS via SPARQL GRAPH clause, not config-level reindexQuery (not supported in RDF4J 5.x config)
+- FTS-03: Inline SVG type icons in ninja-keys search results (not IconService) -- simpler client-side mapping, no extra API call
+- FTS-04: ninja-keys change event with e.detail.search confirmed as correct API for live search interception in v1.2.2
 
 ### Pending Todos
 
@@ -79,5 +81,5 @@ All v2.2 architectural decisions committed in v2.1. See .planning/DECISIONS.md f
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 26-02-PLAN.md (VFS DAV Provider: collections, resources, auth)
-Resume: Continue with 26-03-PLAN.md (wsgidav mount + a2wsgi bridge)
+Stopped at: Completed 24-02-PLAN.md (Search API + Ctrl+K palette FTS integration)
+Resume: Phase 24 complete. Continue with Phase 26 (26-03 checkpoint resume) or Phase 27/28.
