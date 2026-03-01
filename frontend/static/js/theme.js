@@ -71,6 +71,12 @@
   window.setTheme = function (preference) {
     localStorage.setItem(THEME_KEY, preference);
     applyTheme(resolveTheme(preference));
+    // Persist to server settings so refresh survives.
+    // SemPKMSettings.set() dispatches sempkm:setting-changed, but that listener
+    // calls applyTheme() directly (not setTheme()), so there is no infinite loop.
+    if (window.SemPKMSettings && typeof window.SemPKMSettings.set === 'function') {
+      window.SemPKMSettings.set('core.theme', preference);
+    }
   };
 
   // On load: wire up third-party libs and active states.
@@ -92,15 +98,13 @@
     }
   }, true);
 
-  // Settings system integration: react to sempkm:setting-changed for core.theme
+  // Settings system integration: react to sempkm:setting-changed for core.theme.
+  // Calls applyTheme() directly (not setTheme()) to avoid re-entering SemPKMSettings.set().
   document.addEventListener('sempkm:setting-changed', function (e) {
     if (e.detail && e.detail.key === 'core.theme') {
       var newTheme = e.detail.value;
-      if (typeof window.setTheme === 'function') {
-        window.setTheme(newTheme);
-      }
-      // Write-through: keep localStorage in sync so anti-FOUC fast-path is accurate
-      try { localStorage.setItem('sempkm_theme', newTheme); } catch (_) {}
+      try { localStorage.setItem(THEME_KEY, newTheme); } catch (_) {}
+      applyTheme(resolveTheme(newTheme));
     }
   });
 

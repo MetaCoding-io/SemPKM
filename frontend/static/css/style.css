@@ -809,52 +809,65 @@ pre.json-output {
 /* Collapsed sidebar: hide text, center icons */
 .dashboard-layout.sidebar-collapsed .brand-text,
 .dashboard-layout.sidebar-collapsed .group-label,
-.dashboard-layout.sidebar-collapsed .nav-label {
+.dashboard-layout.sidebar-collapsed .nav-label,
+.workspace-layout.sidebar-collapsed .brand-text,
+.workspace-layout.sidebar-collapsed .group-label,
+.workspace-layout.sidebar-collapsed .nav-label {
   display: none;
 }
 
-.dashboard-layout.sidebar-collapsed .sidebar-brand {
+.dashboard-layout.sidebar-collapsed .sidebar-brand,
+.workspace-layout.sidebar-collapsed .sidebar-brand {
   justify-content: center;
   padding: 8px 0;
 }
 
-.dashboard-layout.sidebar-collapsed .sidebar-brand a {
+.dashboard-layout.sidebar-collapsed .sidebar-brand a,
+.workspace-layout.sidebar-collapsed .sidebar-brand a {
   display: none;
 }
 
-.dashboard-layout.sidebar-collapsed .sidebar-toggle {
+.dashboard-layout.sidebar-collapsed .sidebar-toggle,
+.workspace-layout.sidebar-collapsed .sidebar-toggle {
   margin: 0 auto;
 }
 
-.dashboard-layout.sidebar-collapsed .sidebar-group-header {
+.dashboard-layout.sidebar-collapsed .sidebar-group-header,
+.workspace-layout.sidebar-collapsed .sidebar-group-header {
   justify-content: center;
   padding: 6px 0;
 }
 
-.dashboard-layout.sidebar-collapsed .group-chevron {
+.dashboard-layout.sidebar-collapsed .group-chevron,
+.workspace-layout.sidebar-collapsed .group-chevron {
   display: none;
 }
 
-.dashboard-layout.sidebar-collapsed .sidebar-nav .nav-link {
+.dashboard-layout.sidebar-collapsed .sidebar-nav .nav-link,
+.workspace-layout.sidebar-collapsed .sidebar-nav .nav-link {
   justify-content: center;
   padding: 8px 0;
 }
 
-.dashboard-layout.sidebar-collapsed .sidebar-divider {
+.dashboard-layout.sidebar-collapsed .sidebar-divider,
+.workspace-layout.sidebar-collapsed .sidebar-divider {
   margin: 4px 8px;
 }
 
-.dashboard-layout.sidebar-collapsed .user-area-btn {
+.dashboard-layout.sidebar-collapsed .user-area-btn,
+.workspace-layout.sidebar-collapsed .user-area-btn {
   justify-content: center;
   padding: 8px 0;
 }
 
-.dashboard-layout.sidebar-collapsed .user-name {
+.dashboard-layout.sidebar-collapsed .user-name,
+.workspace-layout.sidebar-collapsed .user-name {
   display: none;
 }
 
 /* Tooltip on hover for collapsed icon rail */
-.dashboard-layout.sidebar-collapsed .nav-link[data-tooltip]:hover::after {
+.dashboard-layout.sidebar-collapsed .nav-link[data-tooltip]:hover::after,
+.workspace-layout.sidebar-collapsed .nav-link[data-tooltip]:hover::after {
   content: attr(data-tooltip);
   position: absolute;
   left: 48px;
