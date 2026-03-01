@@ -122,6 +122,7 @@
         { id: tabKey, iri: tabKey, label: viewLabel, dirty: false, isView: true, viewType: viewType, viewId: viewId },
         layout.activeGroupId
       );
+      document.dispatchEvent(new CustomEvent('sempkm:tab-activated', { detail: { tabId: tabKey, isObjectTab: false } }));
       window.loadTabInGroup(layout.activeGroupId, tabKey);
     } else {
       // Fallback
@@ -657,6 +658,7 @@
     }
     var tabDef = { id: tabKey, iri: tabKey, label: 'Settings', dirty: false, isView: false, isSpecial: true, specialType: 'settings' };
     if (layout.addTabToGroup) layout.addTabToGroup(tabDef, groupId);
+    document.dispatchEvent(new CustomEvent('sempkm:tab-activated', { detail: { tabId: tabKey, isObjectTab: false } }));
     if (typeof window.loadTabInGroup === 'function') window.loadTabInGroup(groupId, tabKey);
   }
   window.openSettingsTab = openSettingsTab;
@@ -684,6 +686,7 @@
     }
     var tabDef = { id: tabKey, iri: tabKey, label: 'Docs & Tutorials', dirty: false, isView: false, isSpecial: true, specialType: 'docs' };
     if (layout.addTabToGroup) layout.addTabToGroup(tabDef, groupId);
+    document.dispatchEvent(new CustomEvent('sempkm:tab-activated', { detail: { tabId: tabKey, isObjectTab: false } }));
     if (typeof window.loadTabInGroup === 'function') window.loadTabInGroup(groupId, tabKey);
   }
   window.openDocsTab = openDocsTab;
@@ -1459,18 +1462,20 @@
     // Initialize workspace layout (migrates old tab state, builds multi-group DOM)
     if (typeof window.initWorkspaceLayout === 'function') {
       window.initWorkspaceLayout();
-      // Restore accent bar state: ON if any open object tab, OFF if none.
+      // Restore accent bar based on the currently focused tab in each group.
+      // Accent = focused tab is an object tab; settings/views = off.
       // Must run immediately after initWorkspaceLayout so _workspaceLayout is set.
       (function restoreAccentBar() {
         var wl = window._workspaceLayout;
         if (!wl) return;
-        var hasOpenObjectTab = wl.groups.some(function(g) {
-          return g.tabs.some(function(t) {
-            var tid = t.id || t.iri || '';
-            return !t.isView && !tid.startsWith('view:') && !tid.startsWith('special:');
-          });
+        var hasFocusedObjectTab = wl.groups.some(function(g) {
+          if (!g.activeTabId) return false;
+          var activeTab = g.tabs.find(function(t) { return (t.id || t.iri) === g.activeTabId; });
+          if (!activeTab) return false;
+          var tid = activeTab.id || activeTab.iri || '';
+          return !activeTab.isView && !tid.startsWith('view:') && !tid.startsWith('special:');
         });
-        setContextualPanelActive(hasOpenObjectTab);
+        setContextualPanelActive(hasFocusedObjectTab);
       }());
     }
 
@@ -1675,12 +1680,9 @@
 
   // Listen for tab lifecycle events dispatched by workspace-layout.js
   document.addEventListener('sempkm:tab-activated', function(e) {
-    // Accent bar tracks "any object tab is open", not "current tab is object".
-    // Only activate here; deactivation is handled by sempkm:tabs-empty when the
-    // last object tab closes. Switching to settings/views must not turn it off.
-    if (e.detail && e.detail.isObjectTab) {
-      setContextualPanelActive(true);
-    }
+    // Accent bar tracks the FOCUSED tab: on for object tabs, off for settings/views.
+    // Panels are contextual — they only make sense when an object is focused.
+    setContextualPanelActive(!!(e.detail && e.detail.isObjectTab));
   });
 
   document.addEventListener('sempkm:tabs-empty', function() {
