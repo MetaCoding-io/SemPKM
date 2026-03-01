@@ -1281,22 +1281,23 @@ async def event_log(
     user_iris = list({e.performed_by for e in events if e.performed_by})
     user_names: dict[str, str] = {}
     if user_iris:
-        try:
-            from app.auth.models import User as UserModel
-            from sqlalchemy import select as sa_select
+        import uuid as _uuid
+        from app.auth.models import User as UserModel
+        from sqlalchemy import select as sa_select
 
-            for uiri in user_iris:
-                m = re.match(r"urn:sempkm:user:(.+)$", uiri)
-                if m:
-                    uuid_str = m.group(1)
+        for uiri in user_iris:
+            m = re.match(r"urn:sempkm:user:(.+)$", uiri)
+            if m:
+                try:
+                    uuid_obj = _uuid.UUID(m.group(1))
                     result = await db.execute(
-                        sa_select(UserModel).where(UserModel.id == uuid_str)
+                        sa_select(UserModel).where(UserModel.id == uuid_obj)
                     )
                     db_user = result.scalar_one_or_none()
                     if db_user:
                         user_names[uiri] = db_user.display_name or db_user.email
-        except Exception:
-            pass  # degrade gracefully if user lookup fails
+                except Exception:
+                    logger.warning("Failed to resolve user IRI %s", uiri, exc_info=True)
 
     # Build active filters list for chip rendering
     active_filters = []
