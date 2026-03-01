@@ -159,8 +159,12 @@ class ResourceFile(DAVNonCollection):
         return io.BytesIO(self._render())
 
     def get_etag(self) -> str:
-        """Return MD5 hash of rendered content as ETag."""
-        return hashlib.md5(self._render()).hexdigest()
+        """Return SHA-256 hex of rendered content as ETag.
+
+        wsgidav calls this automatically and includes the value in ETag
+        response headers on GET and HEAD requests.
+        """
+        return hashlib.sha256(self._render()).hexdigest()
 
     def support_etag(self) -> bool:
         return True
