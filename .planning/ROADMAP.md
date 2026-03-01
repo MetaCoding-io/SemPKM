@@ -3,7 +3,8 @@
 ## Milestones
 
 - ✅ **v1.0 MVP** — Phases 1-9 (shipped 2026-02-23) — [Full details](milestones/v1.0-ROADMAP.md)
-- 🚧 **v2.0 Tighten Web UI** — Phases 10-18 (in progress)
+- ✅ **v2.0 Tighten Web UI** — Phases 10-19 (shipped 2026-03-01) — [Full details](milestones/v2.0-ROADMAP.md)
+- 📋 **v2.1** — Phases 20+ (planned)
 
 ## Phases
 
@@ -24,188 +25,35 @@
 
 </details>
 
-### 🚧 v2.0 Tighten Web UI
+<details>
+<summary>✅ v2.0 Tighten Web UI (Phases 10-19) — SHIPPED 2026-03-01</summary>
 
-**Milestone Goal:** Polish the web UI into a product-grade experience with bug fixes, read-only object views, VS Code-style workspace enhancements, dark mode, settings system, event log explorer, and LLM connection configuration.
+- [x] Phase 10: Bug Fixes and Cleanup Architecture (3/3 plans) — completed 2026-02-23
+- [x] Phase 11: Read-Only Object View (2/2 plans) — completed 2026-02-23
+- [x] Phase 12: Sidebar and Navigation (2/2 plans) — completed 2026-02-23
+- [x] Phase 13: Dark Mode and Visual Polish (4/4 plans) — completed 2026-02-24
+- [x] Phase 14: Split Panes and Bottom Panel (3/3 plans) — completed 2026-02-24
+- [x] Phase 15: Settings System and Node Type Icons (3/3 plans) — completed 2026-02-24
+- [x] Phase 16: Event Log Explorer (3/3 plans) — completed 2026-02-24
+- [x] Phase 17: LLM Connection Configuration (2/2 plans) — completed 2026-02-24
+- [x] Phase 18: Tutorials and Documentation (2/2 plans) — completed 2026-02-25
+- [x] Phase 19: Bug Fixes and E2E Test Hardening (3/3 plans) — completed 2026-02-27
 
-- [x] **Phase 10: Bug Fixes and Cleanup Architecture** - Fix broken core flows and establish htmx cleanup patterns that prevent listener/instance accumulation (completed 2026-02-23)
-- [x] **Phase 11: Read-Only Object View** - Objects open in a styled read-only mode by default with an edit toggle (completed 2026-02-23)
-- [x] **Phase 12: Sidebar and Navigation** - Collapsible sidebar with grouped navigation sections and user menu (completed 2026-02-23)
-- [x] **Phase 13: Dark Mode and Visual Polish** - Tri-state theme system, rounded tabs, and styled error panels (completed 2026-02-24)
-- [x] **Phase 14: Split Panes and Bottom Panel** - VS Code-style editor groups with tab drag and a collapsible bottom panel (completed 2026-02-24)
-- [x] **Phase 15: Settings System and Node Type Icons** - Layered settings infrastructure and type-specific visual richness (completed 2026-02-24)
-- [x] **Phase 16: Event Log Explorer** - Browsable, filterable event timeline with inline diffs and undo (completed 2026-02-24)
-- [x] **Phase 17: LLM Connection Configuration** - Generic OpenAI-compatible LLM endpoint with server-side key storage and streaming proxy (completed 2026-02-24)
-- [x] **Phase 18: Tutorials and Documentation** - Driver.js guided tours and a Docs page for onboarding (completed 2026-02-25)
-- [x] **Phase 19: Bug Fixes and E2E Test Hardening** - Priority bugs from CONCERNS.md audit fixed; e2e suite hardened against regressions before v2.0 ships (completed 2026-02-27)
+**27 plans, 53 tasks, 46/46 requirements satisfied**
 
-## Phase Details
+</details>
 
-### Phase 10: Bug Fixes and Cleanup Architecture
-**Goal**: Core workspace interactions work reliably and the htmx cleanup architecture prevents resource leaks as new features are added
-**Depends on**: Phase 9 (v1.0 complete)
-**Requirements**: FIX-01, FIX-02, FIX-03, FIX-04, FIX-05
-**Success Criteria** (what must be TRUE):
-  1. Opening an object tab shows a loading skeleton, then the CodeMirror editor with body content loaded; if the editor fails to load within 3 seconds, a fallback textarea appears with a clear message
-  2. The CodeMirror editor is always editable with at least 200px height regardless of Split.js initialization timing
-  3. Autocomplete dropdown for reference properties renders on top of all content (never clipped) and clicking a suggestion populates the field
-  4. Views explorer section loads its tree content on workspace initialization without requiring a user click
-  5. Navigating between tabs repeatedly for 30+ cycles does not accumulate duplicate event listeners, Split.js gutters, or CodeMirror instances (htmx:beforeCleanupElement tears down library instances before DOM removal)
-**Plans**: 3 plans
+### 📋 v2.1 (Planned)
 
-Plans:
-- [ ] 10-01-PLAN.md — Body loading skeleton, Promise-based editor init with 3s timeout, CodeMirror bump, min-height fix
-- [ ] 10-02-PLAN.md — Autocomplete dropdown position:fixed escape, views explorer eager loading
-- [ ] 10-03-PLAN.md — htmx cleanup registry, library teardown registration, editor group data model design
+*Next milestone to be defined via `/gsd:new-milestone`.*
 
-### Phase 11: Read-Only Object View
-**Goal**: Users see a polished, readable presentation of their objects by default and switch to edit mode only when they intend to make changes
-**Depends on**: Phase 10
-**Requirements**: VIEW-01, VIEW-02, VIEW-03, VIEW-04
-**Success Criteria** (what must be TRUE):
-  1. Clicking an object in the explorer opens it in read-only mode showing styled property key-value pairs (labels, formatted values, hidden empty optionals) and rendered Markdown body
-  2. User can toggle between read-only and edit mode via an Edit/Done button or Ctrl+E shortcut; newly created objects open in edit mode
-  3. Reference properties in read-only mode render as clickable links that open the target object in a new tab
-  4. In edit mode, the body text area is resizable via the Split.js gutter and has a maximize/restore toggle that gives the editor 100% of the object tab area
-**Plans**: 2 plans
-
-Plans:
-- [x] 11-01-PLAN.md — Backend enhancements (multi-value, ref labels, mode param), CDN libs, read-only template, flip container, and all CSS
-- [x] 11-02-PLAN.md — Mode toggle JS (Edit/Done, Ctrl+E, unsaved changes), deferred editor init, body maximize/restore toggle
-
-### Phase 12: Sidebar and Navigation
-**Goal**: The sidebar provides organized, collapsible navigation with a user menu that makes logout, settings access, and identity visible at a glance
-**Depends on**: Phase 10
-**Requirements**: NAV-01, NAV-02, NAV-03, NAV-04, NAV-05, NAV-06
-**Success Criteria** (what must be TRUE):
-  1. Pressing Ctrl+B collapses the sidebar to a 48px icon rail with smooth CSS transition; pressing again expands to 220px with labels; collapsed state persists across page reloads
-  2. Sidebar navigation is organized into grouped sections (Home, Admin, Meta, Apps, Debug) with collapsible section headers
-  3. Apps section contains Object Browser and SPARQL Console; Debug section contains Commands, API Docs, Health Check, and Event Log; Meta section contains Docs and Tutorials
-  4. A user menu at the bottom of the sidebar shows user name/avatar and opens a popover with Settings link, Theme toggle placeholder, and working Logout action that ends the session
-**Plans**: 2 plans
-
-Plans:
-- [ ] 12-01-PLAN.md — Sidebar restructure with grouped sections, Lucide icons, collapse-to-icon-rail toggle (Ctrl+B), CSS transitions, localStorage persistence
-- [ ] 12-02-PLAN.md — User menu popover with colored initials avatar, Settings/Theme placeholders, and working Logout action
-
-### Phase 13: Dark Mode and Visual Polish
-**Goal**: Users can choose their preferred theme (system, light, or dark) with instant switching, no flash, and consistent styling across all UI components including third-party libraries
-**Depends on**: Phase 12 (sidebar must exist for user menu theme toggle and icon-rail dark styling)
-**Requirements**: DARK-01, DARK-02, DARK-03, DARK-04, WORK-06, ERR-01
-**Success Criteria** (what must be TRUE):
-  1. User can toggle between System, Light, and Dark theme via the user menu or command palette; preference persists across reloads with zero flash of wrong theme (inline head script applies theme before first paint)
-  2. Dark mode applies consistently to all UI components: base layout, sidebar, tabs, SHACL forms, CodeMirror editor (via Compartment reconfigure), Cytoscape graph, command palette (ninja-keys), and Split.js gutters
-  3. Dark mode color tokens follow VS Code "Dark+" palette (dark surfaces, muted text, blue accents)
-  4. Tab styling uses rounded top corners (border-radius 8px) with a recessed tab bar background in both light and dark modes
-  5. 403 Forbidden responses display a styled permission panel with lock icon, role explanation, and navigation buttons instead of a raw error fragment
-**Plans**: 4 plans
-
-Plans:
-- [ ] 13-01-PLAN.md — CSS custom property token system (light+dark), anti-FOUC script, theme toggle UI, full hardcoded color migration
-- [ ] 13-02-PLAN.md — Third-party component dark mode (CodeMirror Compartment, Cytoscape style rebuild, ninja-keys, highlight.js)
-- [ ] 13-03-PLAN.md — Rounded tab styling with teal accent and styled 403 permission panel
-- [ ] 13-04-PLAN.md — UAT gap closure: Ctrl+K command palette fix, tab accent/radius fixes, card border fixes
-
-### Phase 14: Split Panes and Bottom Panel
-**Goal**: Users can work with multiple objects side-by-side in editor groups and access panel-based tools (SPARQL, Event Log, AI Copilot) in a collapsible bottom panel
-**Depends on**: Phase 10 (cleanup architecture), Phase 11 (read-only view exists for meaningful side-by-side), Phase 13 (dark mode styling for new UI elements)
-**Requirements**: WORK-01, WORK-02, WORK-03, WORK-04, WORK-05
-**Success Criteria** (what must be TRUE):
-  1. User can split the editor into up to 4 horizontal editor groups via context menu "Split Right" or Ctrl+\ shortcut; each group has its own tab bar with independent tabs
-  2. Tabs can be dragged between editor groups; the tab moves (not copies) to the target group
-  3. Closing the last tab in an editor group removes that group and remaining groups expand to fill the space
-  4. A bottom panel toggled via Ctrl+J exists below the editor area with tabbed interface (SPARQL, Event Log, AI Copilot placeholder tabs) and collapse/maximize controls
-**Plans**: 3 plans
-
-Plans:
-- [ ] 14-01-PLAN.md — WorkspaceLayout class, multi-group DOM, Split.js recreation, sessionStorage migration, Ctrl+\\ and Ctrl+1-4 shortcuts
-- [ ] 14-02-PLAN.md — HTML5 tab drag-and-drop between groups, right-edge group creation, right-click context menu
-- [ ] 14-03-PLAN.md — Bottom panel DOM/CSS/JS, Ctrl+J toggle, resize handle, localStorage persistence, command palette entries
-
-### Phase 15: Settings System and Node Type Icons
-**Goal**: A layered settings system provides extensible configuration (system defaults, mental model defaults, user overrides) and type-specific icons bring visual richness to the explorer and graph
-**Depends on**: Phase 13 (dark mode is first settings consumer), Phase 14 (settings page opens as a tab in editor area)
-**Requirements**: SETT-01, SETT-02, SETT-03, SETT-04, ICON-01, ICON-02, ICON-03
-**Success Criteria** (what must be TRUE):
-  1. A Settings page opens as a tab in the editor area (via Ctrl+, or user menu) with categorized settings, search filter, and current values with "Modified" indicators
-  2. Settings resolve in layered order: system defaults < mental model defaults < user overrides; changes dispatch a `sempkm:setting-changed` DOM event that consuming components react to
-  3. Mental Models can contribute settings via a `settings` key in their manifest, which appear in the Settings page under the model's category
-  4. Object explorer tree and graph view display type-specific Lucide icons with color coding; Mental Models can declare icon and color mappings in their manifest
-**Plans**: 3 plans
-
-Plans:
-- [ ] 15-01-PLAN.md — Settings infrastructure (UserSetting ORM, migration, SettingsService, ManifestSchema extensions, FastAPI routes, settings.js, Ctrl+, shortcut)
-- [ ] 15-02-PLAN.md — Settings page UI (two-column layout, search filter, all input types, Modified indicators, dark mode as first consumer)
-- [ ] 15-03-PLAN.md — Node type icon system (IconService, explorer tree Lucide icons, editor tab icons, graph shape differentiation, basic-pkm manifest icons)
-
-### Phase 16: Event Log Explorer
-**Goal**: Users can browse, filter, and understand the full history of changes to their knowledge base, with inline diffs and the ability to undo reversible operations
-**Depends on**: Phase 14 (event log lives in bottom panel), Phase 10 (cleanup architecture for htmx partials)
-**Requirements**: EVNT-01, EVNT-02, EVNT-03, EVNT-04
-**Success Criteria** (what must be TRUE):
-  1. Event log displays a paginated timeline of events in reverse chronological order with operation type badge, affected object link, user, and timestamp; page 50 loads as fast as page 1 (cursor-based pagination)
-  2. Events are filterable by operation type, user, object, and date range with removable filter chips; filters combine with AND logic
-  3. Clicking an object.patch or body.set event shows an inline diff of the changes (property before/after or line-by-line body diff)
-  4. Reversible events (object.patch, body.set, edge.create, edge.patch) have an Undo button that creates a compensating event after user confirmation
-**Plans**: 3 plans
-
-Plans:
-- [ ] 16-01-PLAN.md — EventQueryService (SPARQL cursor pagination), GET /browser/events route, event_log.html partial, workspace.js lazy-load trigger
-- [ ] 16-02-PLAN.md — Filter controls (op type, date range), filter chips with remove links, Jinja2 dict_without filter, event log CSS (badges, chips, rows)
-- [ ] 16-03-PLAN.md — Inline diff view (property before/after, body line diff), GET detail endpoint, POST undo endpoint, Diff/Undo buttons in event rows
-
-### Phase 17: LLM Connection Configuration
-**Goal**: Administrators can configure and validate a generic LLM connection, with API keys stored securely server-side and a streaming proxy ready for future AI features
-**Depends on**: Phase 15 (settings system for LLM config UI)
-**Requirements**: LLM-01, LLM-02, LLM-03, LLM-04, LLM-05
-**Success Criteria** (what must be TRUE):
-  1. Admin can configure an OpenAI-compatible LLM connection (API base URL, API key, default model) via the Settings page under an LLM Connection category
-  2. API keys are stored server-side only (encrypted in database), never exposed to the browser; the settings UI shows a masked key after save
-  3. A "Test Connection" button validates the configured endpoint and displays connection status; a "Fetch Models" button retrieves and populates available models from the provider
-  4. Backend provides a streaming proxy endpoint (SSE) for LLM chat completions with proper nginx configuration (proxy_buffering off, increased read timeout)
-**Plans**: 2 plans
-
-Plans:
-- [ ] 17-01-PLAN.md — LLMConfigService (Fernet encryption), LLM config endpoints, Settings page LLM Connection category with masked key field
-- [ ] 17-02-PLAN.md — SSE streaming proxy endpoint for chat completions, nginx SSE location block
-
-### Phase 18: Tutorials and Documentation
-**Goal**: New users can orient themselves through guided interactive tours, and a documentation hub provides ongoing reference
-**Depends on**: Phase 11 (read-only view referenced in tours), Phase 12 (sidebar referenced in tours), Phase 14 (editor groups referenced in tours)
-**Requirements**: DOCS-01, DOCS-02, DOCS-03, DOCS-04
-**Success Criteria** (what must be TRUE):
-  1. A Docs and Tutorials page accessible from the Meta sidebar section lists available interactive tutorials and documentation links
-  2. Driver.js (MIT licensed) is integrated for guided tours with lazy element resolution that handles htmx-rendered content
-  3. A "Welcome to SemPKM" tutorial walks through the workspace (sidebar, explorer, opening objects, read/edit toggle, command palette, saving) with properly positioned step popovers
-  4. A "Creating Your First Object" tutorial walks through object creation from type selection to save, with each step waiting for htmx content to load before attaching
-**Plans**: 2 plans
-
-Plans:
-- [ ] 18-01-PLAN.md — Driver.js CDN integration, special:docs tab wiring, docs_page.html, popover CSS theming
-- [ ] 18-02-PLAN.md — tutorials.js: Welcome tour (7 steps) and Creating Your First Object tour (htmx-gated)
-
-### Phase 19: Bug Fixes and E2E Test Hardening
-**Goal**: Ship v2.0 cleanly — priority bugs from CONCERNS.md fixed, e2e test suite hardened against regressions, standing quality gates verified
-**Depends on**: Phase 18
-**Requirements**: BUG-01, BUG-02, BUG-03, BUG-04, BUG-05, TEST-01, TEST-02
-**Success Criteria** (what must be TRUE):
-  1. Label cache invalidation is called after every write — stale labels no longer persist after rename/patch
-  2. All datetime.now() calls in browser router use timezone.utc — timestamps consistent with EventStore
-  3. EventStore is injected via DI in browser router's write handlers (not constructed ad-hoc)
-  4. CORS wildcard + credentials misconfiguration resolved; debug endpoints require owner role
-  5. E2E test suite runs ≥118/123 on chromium with no regressions from Phase 10-18 work
-  6. Critical paths have e2e coverage: object CRUD, dark mode toggle, settings save, event log, split panes, tutorial launch
-**Plans**: 3 plans
-
-Plans:
-- [ ] 19-01-PLAN.md — Backend bug fixes: label cache invalidation, datetime UTC, EventStore DI, IRI validation, CORS env var, cookie secure, debug endpoint owner guard
-- [ ] 19-02-PLAN.md — UI bug fixes: tab active guard, split content bleed, edit button first-touch, autocomplete dropdown, docs tab link, tutorial launch, tag pills, nav tree tooltips
-- [ ] 19-03-PLAN.md — E2E test hardening: split panes/event log/tutorial specs, setup wizard infrastructure comment, full suite run >= 118/123
+Research completed for candidate phases:
+- Phase 20: Full-text search + vector store (.planning/research/phase-20-fts-vector/)
+- Phase 21: SPARQL UI (.planning/research/phase-21-sparql-ui/)
+- Phase 22: Virtual filesystem WebDAV (.planning/research/phase-22-vfs/)
+- Phase 23: UI shell architecture (.planning/research/phase-23-ui-shell/)
 
 ## Progress
-
-**Execution Order:**
-Phases execute in numeric order: 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17 → 18 → 19
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -218,18 +66,18 @@ Phases execute in numeric order: 10 → 11 → 12 → 13 → 14 → 15 → 16 �
 | 7. Route Protection and Provenance | v1.0 | 2/2 | Complete | 2026-02-23 |
 | 8. Integration Bug Fixes | v1.0 | 1/1 | Complete | 2026-02-23 |
 | 9. Provenance and Redirect Micro-Fixes | v1.0 | 1/1 | Complete | 2026-02-23 |
-| 10. Bug Fixes and Cleanup Architecture | 3/3 | Complete    | 2026-02-23 | - |
-| 11. Read-Only Object View | 1/2 | In Progress|  | - |
-| 12. Sidebar and Navigation | 2/2 | Complete    | 2026-02-23 | - |
-| 13. Dark Mode and Visual Polish | 4/4 | Complete    | 2026-02-24 | - |
-| 14. Split Panes and Bottom Panel | 3/3 | Complete    | 2026-02-24 | - |
-| 15. Settings System and Node Type Icons | 3/3 | Complete    | 2026-02-24 | - |
-| 16. Event Log Explorer | 3/3 | Complete    | 2026-02-24 | - |
-| 17. LLM Connection Configuration | 2/2 | Complete    | 2026-02-24 | - |
-| 18. Tutorials and Documentation | 2/2 | Complete    | 2026-02-25 | - |
-| 19. Bug Fixes and E2E Test Hardening | 3/3 | Complete   | 2026-02-27 | - |
+| 10. Bug Fixes and Cleanup Architecture | v2.0 | 3/3 | Complete | 2026-02-23 |
+| 11. Read-Only Object View | v2.0 | 2/2 | Complete | 2026-02-23 |
+| 12. Sidebar and Navigation | v2.0 | 2/2 | Complete | 2026-02-23 |
+| 13. Dark Mode and Visual Polish | v2.0 | 4/4 | Complete | 2026-02-24 |
+| 14. Split Panes and Bottom Panel | v2.0 | 3/3 | Complete | 2026-02-24 |
+| 15. Settings System and Node Type Icons | v2.0 | 3/3 | Complete | 2026-02-24 |
+| 16. Event Log Explorer | v2.0 | 3/3 | Complete | 2026-02-24 |
+| 17. LLM Connection Configuration | v2.0 | 2/2 | Complete | 2026-02-24 |
+| 18. Tutorials and Documentation | v2.0 | 2/2 | Complete | 2026-02-25 |
+| 19. Bug Fixes and E2E Test Hardening | v2.0 | 3/3 | Complete | 2026-02-27 |
 
 ---
 *Roadmap created: 2026-02-21*
 *v1.0 archived: 2026-02-23*
-*v2.0 roadmap added: 2026-02-23 — 9 phases, 46 requirements, ~23 plans*
+*v2.0 archived: 2026-03-01*

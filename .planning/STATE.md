@@ -1,21 +1,21 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.0
-milestone_name: Tighten Web UI
-status: complete
-last_updated: "2026-02-27T00:00:00.000Z"
+milestone: v2.1
+milestone_name: TBD
+status: planning
+last_updated: "2026-03-01T00:00:00.000Z"
 progress:
-  total_phases: 19
-  completed_phases: 19
-  total_plans: 27
-  completed_plans: 27
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-23)
+See: .planning/PROJECT.md (updated 2026-03-01)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations -- no blank-page syndrome, no schema setup.
 **Current focus:** v2.0 COMPLETE — all 19 phases, 27 plans done
@@ -199,6 +199,6 @@ v2.0 roadmap decisions:
 
 ## Session Continuity
 
-Last session: 2026-02-28
-Stopped at: Completed quick task 9: standardize user guide navigation footers
-Resume: Use /gsd:complete-milestone to archive v2.0 and start v3.0, or /gsd:new-milestone for v2.1
+Last session: 2026-03-01
+Stopped at: v2.0 milestone archived and tagged — ready for next milestone
+Resume: Run /gsd:new-milestone to define v2.1 scope

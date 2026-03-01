@@ -28,3 +28,34 @@
 
 ---
 
+
+## v2.0 Tighten Web UI (Shipped: 2026-03-01)
+
+**Phases completed:** 10 phases (10-19), 27 plans, 53 tasks
+**Timeline:** 6 days (2026-02-22 → 2026-02-28)
+**Commits:** ~202 | **Source LOC:** ~119k total (Python + JS + CSS + HTML)
+**Audit:** 46/46 requirements | 10/10 phases | 10/10 integration wires | 6/6 E2E flows | Status: tech_debt (non-blocking)
+
+**Delivered:** A product-grade web UI with VS Code-style split panes, dark mode, a layered settings system, event log explorer with inline diffs and undo, Driver.js guided tours, encrypted LLM connection configuration, and type-specific node icons — on top of the v1.0 semantic RDF platform.
+
+**Key accomplishments:**
+- Polished read-only object view with CSS 3D flip animation to edit mode, reference pills with resolved labels and type tooltips, and client-side Markdown rendering
+- Grouped collapsible sidebar with Lucide icons, icon-rail collapse (Ctrl+B), and VS Code-style user menu with Popover API
+- Dark mode: 35+ CSS custom property token system, anti-FOUC inline script, tri-state toggle (system/light/dark), full migration of ~430 hardcoded colors; CodeMirror Compartment and Cytoscape style rebuild for third-party dark mode
+- VS Code-style editor groups: WorkspaceLayout data model, HTML5 drag-and-drop tab management, Split.js destroy-and-recreate, context menu, collapsible bottom panel (SPARQL/Event Log/AI Copilot) with Ctrl+J
+- Layered settings system (system < model < user overrides) with VS Code-style two-column UI, search filter, and Modified badges; Fernet-encrypted LLM API key with streaming SSE proxy for AI Copilot
+- Browsable event log with cursor-based pagination, filter chips, inline diffs (unified format), and undo via compensating events
+- Driver.js guided tours: 10-step workspace orientation and htmx-gated object creation tutorial; Docs & Tutorials hub page
+- Node type icon system: IconService reads manifest icon/color declarations, wired into explorer tree, editor tabs, and Cytoscape graph shapes
+
+**Tech debt carried forward:**
+- Cookie secure=False (still local dev only — production config deferred)
+- SMTP deferred (magic link tokens logged to console)
+- Dual SQLAlchemy engine instances (harmless for SQLite)
+- Bottom panel SPARQL/AI Copilot tabs are placeholder stubs (implementation in future milestones)
+- Edit form helptext property not yet in SHACL types (pending todo)
+
+**Archives:** milestones/v2.0-ROADMAP.md, milestones/v2.0-REQUIREMENTS.md, milestones/v2.0-MILESTONE-AUDIT.md
+
+---
+
