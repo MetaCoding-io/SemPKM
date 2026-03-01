@@ -1,44 +1,83 @@
 /* ============================================
    Theme Token System
-   Single source of truth for all color values.
+   Two-tier architecture: primitives (--_*) + semantics (--color-*, etc.)
+   Primitives: raw values, defined ONCE in :root, NEVER overridden.
+   Semantics: reference primitives or other semantics, overridden in dark mode.
    Light mode: :root
    Dark mode: html[data-theme="dark"]
    ============================================ */
 
 :root {
-  /* Surfaces */
+  /* ============================================
+     Primitive Tokens (raw values — never change between themes)
+     ============================================ */
+
+  /* --- Primitive Color Palette --- */
+  --_color-green-500: #59a14f;
+  --_color-blue-500: #4e79a7;
+  --_color-amber-500: #f28e2b;
+  --_color-red-500: #e15759;
+  --_color-white: #ffffff;
+  --_color-black-overlay-light: rgba(0, 0, 0, 0.4);
+  --_color-black-overlay-medium: rgba(0, 0, 0, 0.5);
+  --_color-black-shadow-sm: rgba(0, 0, 0, 0.12);
+  --_color-black-shadow-md: rgba(0, 0, 0, 0.5);
+
+  /* --- Primitive Spacing Scale --- */
+  --_spacing-1: 4px;
+  --_spacing-2: 8px;
+  --_spacing-3: 12px;
+  --_spacing-4: 16px;
+  --_spacing-5: 20px;
+  --_spacing-6: 24px;
+
+  /* --- Primitive Font Size Scale --- */
+  --_font-size-xs: 0.72rem;
+  --_font-size-sm: 0.8rem;
+  --_font-size-base: 0.88rem;
+  --_font-size-md: 0.9rem;
+  --_font-size-lg: 1.0rem;
+
+  /* ============================================
+     Semantic Tokens (reference primitives or other semantics)
+     ============================================ */
+
+  /* --- Surfaces --- */
   --color-bg: #fafafa;
   --color-surface: #ffffff;
   --color-surface-raised: #f8f9fb;
   --color-surface-recessed: #f4f5f7;
   --color-surface-hover: rgba(0, 0, 0, 0.04);
+  --color-surface-elevated: var(--color-surface);
 
-  /* Text */
+  /* --- Text --- */
   --color-text: #1a1a2e;
   --color-text-muted: #666666;
   --color-text-faint: #999999;
 
-  /* Borders */
+  /* --- Borders --- */
   --color-border: #e0e0e0;
   --color-border-subtle: #f0f0f0;
+  --color-border-faint: var(--color-border-subtle);
 
-  /* Accent (teal/cyan) */
+  /* --- Accent (teal/cyan) --- */
   --color-accent: #0d9488;
   --color-accent-hover: #0f766e;
   --color-accent-subtle: rgba(13, 148, 136, 0.08);
   --color-accent-muted: rgba(13, 148, 136, 0.15);
+  --color-accent-border: var(--color-accent-muted);
 
-  /* Primary */
+  /* --- Primary --- */
   --color-primary: #2d5a9e;
   --color-primary-hover: #1e3f7a;
   --color-primary-subtle: rgba(45, 90, 158, 0.08);
 
-  /* Semantic status */
+  /* --- Semantic Status --- */
   --color-success: #2a8a4a;
   --color-error: #c0392b;
   --color-warning: #d4a017;
 
-  /* Semantic backgrounds */
+  /* --- Semantic Backgrounds --- */
   --color-success-bg: #e8f5e9;
   --color-success-border: #a5d6a7;
   --color-error-bg: #fef2f2;
@@ -48,58 +87,123 @@
   --color-info-bg: #eff6ff;
   --color-info-border: #93c5fd;
 
-  /* Code/editor */
+  /* --- Code/Editor --- */
   --color-code-bg: #f5f5f5;
 
-  /* Shadows */
+  /* --- Shadows --- */
   --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   --shadow-elevated: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.12);
+  --shadow-tour: 0 8px 24px var(--_color-black-shadow-sm);
 
-  /* Danger (popover, destructive actions) */
+  /* --- Danger (popover, destructive actions) --- */
   --color-danger: #e74c3c;
 
-  /* Misc */
+  /* --- Misc --- */
   --color-skeleton-from: #f0f0f0;
   --color-skeleton-mid: #e0e0e0;
   --color-focus-shadow: rgba(45, 90, 158, 0.15);
   --color-avatar-text: #ffffff;
   --color-highlight: rgba(255, 235, 59, 0.3);
+  --color-hover: var(--color-surface-hover);
+  --color-on-accent: var(--_color-white);
+
+  /* --- Overlay / Modal Tokens --- */
+  --color-overlay: var(--_color-black-overlay-light);
+  --color-overlay-heavy: var(--_color-black-overlay-medium);
+
+  /* --- Diff / Event Log Tokens --- */
+  --color-diff-add: var(--_color-green-500);
+  --color-diff-remove: var(--_color-red-500);
+  --color-event-object-create: var(--_color-green-500);
+  --color-event-object-patch: var(--_color-blue-500);
+  --color-event-edge-create: var(--_color-amber-500);
+  --color-event-edge-patch: var(--_color-red-500);
+
+  /* --- Tab Tokens --- */
+  --tab-height: 34px;
+  --tab-border-radius: 8px 8px 0 0;
+  --tab-font-size: var(--_font-size-sm);
+  --tab-active-border: 2px solid var(--color-accent);
+  --tab-inactive-bg: var(--color-surface-raised);
+  --tab-active-bg: var(--color-surface);
+  --tab-hover-bg: var(--color-surface-hover);
+
+  /* --- Panel Tokens --- */
+  --panel-header-height: 36px;
+  --panel-header-bg: var(--color-surface);
+  --panel-header-border: 1px solid var(--color-border);
+  --panel-header-font-size: var(--_font-size-sm);
+  --panel-content-bg: var(--color-bg);
+  --panel-gutter-width: 5px;
+  --panel-gutter-color: var(--color-border);
+
+  /* --- Sidebar Tokens --- */
+  --sidebar-width: 220px;
+  --sidebar-collapsed-width: 48px;
+  --sidebar-bg: var(--color-surface);
+  --sidebar-border: 1px solid var(--color-border);
+  --sidebar-item-font-size: 13px;
+  --sidebar-item-padding: 5px 12px;
+  --sidebar-section-font-size: 11px;
+
+  /* --- Spacing Tokens (semantic aliases) --- */
+  --spacing-xs: var(--_spacing-1);
+  --spacing-sm: var(--_spacing-2);
+  --spacing-md: var(--_spacing-3);
+  --spacing-lg: var(--_spacing-4);
+  --spacing-xl: var(--_spacing-6);
+
+  /* --- Font Size Tokens (semantic aliases) --- */
+  --font-size-xs: var(--_font-size-xs);
+  --font-size-sm: var(--_font-size-sm);
+  --font-size-base: var(--_font-size-base);
+  --font-size-md: var(--_font-size-md);
+
+  /* --- Graph Tokens --- */
+  --graph-bg: var(--color-bg);
+  --graph-toolbar-bg: var(--color-surface);
+  --graph-toolbar-border: 1px solid var(--color-border);
+  --graph-tooltip-bg: var(--color-surface-recessed);
+  --graph-popover-bg: var(--color-surface);
+  --graph-popover-border: 1px solid var(--color-border);
 }
 
 html[data-theme="dark"] {
-  /* Surfaces -- softer Dark+ inspired, warmer grays */
+  /* --- Surfaces --- */
   --color-bg: #1e2127;
   --color-surface: #282c34;
   --color-surface-raised: #2c313a;
   --color-surface-recessed: #21252b;
   --color-surface-hover: rgba(255, 255, 255, 0.06);
+  --color-surface-elevated: var(--color-surface-raised);
 
-  /* Text */
+  /* --- Text --- */
   --color-text: #abb2bf;
   --color-text-muted: #7d8799;
   --color-text-faint: #5c6370;
 
-  /* Borders -- 10-15% lighter than surface */
+  /* --- Borders --- */
   --color-border: #3e4452;
   --color-border-subtle: #2c313a;
 
-  /* Accent (teal/cyan) */
+  /* --- Accent (teal/cyan) --- */
   --color-accent: #56b6c2;
   --color-accent-hover: #6bc5cf;
   --color-accent-subtle: rgba(86, 182, 194, 0.12);
   --color-accent-muted: rgba(86, 182, 194, 0.20);
 
-  /* Primary */
+  /* --- Primary --- */
   --color-primary: #61afef;
   --color-primary-hover: #82c0f2;
   --color-primary-subtle: rgba(97, 175, 239, 0.12);
 
-  /* Semantic status */
+  /* --- Semantic Status --- */
   --color-success: #98c379;
   --color-error: #e06c75;
   --color-warning: #e5c07b;
 
-  /* Semantic backgrounds */
+  /* --- Semantic Backgrounds --- */
   --color-success-bg: rgba(152, 195, 121, 0.12);
   --color-success-border: rgba(152, 195, 121, 0.30);
   --color-error-bg: rgba(224, 108, 117, 0.12);
@@ -109,17 +213,18 @@ html[data-theme="dark"] {
   --color-info-bg: rgba(97, 175, 239, 0.12);
   --color-info-border: rgba(97, 175, 239, 0.30);
 
-  /* Code/editor */
+  /* --- Code/Editor --- */
   --color-code-bg: #2c313a;
 
-  /* Shadows */
+  /* --- Shadows --- */
   --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   --shadow-elevated: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.35);
 
-  /* Danger */
+  /* --- Danger --- */
   --color-danger: #e06c75;
 
-  /* Misc */
+  /* --- Misc --- */
   --color-skeleton-from: #2c313a;
   --color-skeleton-mid: #3e4452;
   --color-focus-shadow: rgba(97, 175, 239, 0.25);
