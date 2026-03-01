@@ -46,19 +46,25 @@ class SemPKMWsgiAuthenticator(BaseDomainController):
         engine = create_engine(self._sync_db_url)
         try:
             with Session(engine) as session:
-                result = session.execute(
-                    select(ApiToken)
-                    .join(User)
-                    .where(
-                        User.email == user_name,
+                # Load both token and user in a single join query
+                user_result = session.execute(
+                    select(User).where(User.email == user_name)
+                )
+                user = user_result.scalar_one_or_none()
+                if user is None:
+                    return False
+                token_result = session.execute(
+                    select(ApiToken).where(
+                        ApiToken.user_id == user.id,
                         ApiToken.token_hash == token_hash,
                         ApiToken.revoked_at.is_(None),
                     )
                 )
-                token_row = result.scalar_one_or_none()
+                token_row = token_result.scalar_one_or_none()
                 if token_row:
-                    # Store user info in environ for downstream use
-                    environ["sempkm.user_email"] = user_name
+                    # Store user info in environ for downstream use by the DAV provider
+                    environ["sempkm.user_id"] = str(user.id)
+                    environ["sempkm.user_email"] = user.email
                     return True
                 return False
         finally:
