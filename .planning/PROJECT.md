@@ -90,11 +90,16 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ### Active
 
-<!-- v2.3: Shell & Navigation — dockview-core migration, named layouts, full theming -->
+<!-- v2.3: Shell, Navigation & Views — dockview Phase A, object view redesign, named layouts, FTS fuzzy, bug fixes -->
 
-- [ ] DOCK-01: Full dockview-core migration — Phase A (inner editor-pane split replacing Split.js)
-- [ ] DOCK-02: Named workspace layouts (user-defined panel arrangements, model-provided layouts)
-- [ ] CSS-01: Full theming system (user-selectable themes, model-contributed themes)
+- [ ] DOCK-01: Dockview Phase A migration — replace Split.js editor-pane area with dockview-core panels
+- [ ] VIEW-01: Object view redesign — markdown-first with properties hidden by default
+- [ ] VIEW-02: Carousel views — per-type manifest-declared view rotation UI
+- [ ] DOCK-02: Named workspace layouts (user-defined save/restore, model-provided default layouts)
+- [ ] FTS-04: FTS fuzzy search — better tokenization and approximate-match support
+- [ ] BUG-01: Group-by in concept cards view broken — fix
+- [ ] BUG-02: VFS Settings UI lost during debugging — restore to working state
+- [ ] BUG-03: Graph/card/table view switch buttons broken — remove broken buttons
 
 ### Future Candidates
 
@@ -133,17 +138,17 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Mobile native app — web-first, responsive design and eventual PWA
 - Ontology editor — consume via Mental Models; use Protege for authoring
 
-## Next Milestone: v2.3 Shell & Navigation
+## Current Milestone: v2.3 Shell, Navigation & Views
 
-**Goal:** Complete the dockview-core migration (Phase A — inner editor-pane, replacing Split.js), introduce named workspace layouts (user-defined panel arrangements and model-provided layouts), and implement a full theming system with user-selectable themes and model-contributed CSS token sets.
+**Goal:** Complete dockview Phase A migration (replacing Split.js editor-pane area, fixing split bugs as a side effect), redesign the object view to be markdown-first with manifest-driven carousel views, add named workspace layouts, improve FTS with fuzzy search, and close v2.2 bugs.
 
-**Candidate features:**
-- Phase A dockview-core migration: editor groups → dockview panels, using dockview-sempkm-bridge.css from v2.2
+**Target features:**
+- Dockview Phase A: editor groups → dockview panels using dockview-sempkm-bridge.css from v2.2
+- Object view redesign: markdown-first, properties hidden by default, reveal on demand
+- Carousel views: per-type manifest-declared view rotation (cube-flip style)
 - Named layouts: save/restore panel arrangements, Mental Model-provided default layouts
-- Full CSS theming: user-selectable from 108-token base; model-contributed themes in manifest
-- Backlinks panel (incoming references for any object)
-
-**Prerequisite:** Run `/gsd:new-milestone` to define requirements and roadmap for v2.3.
+- FTS fuzzy search: better tokenization and approximate-match support
+- Bug fixes: concept cards group-by, VFS Settings UI, view switch buttons
 
 ## Context
 
@@ -235,4 +240,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | sempkm:tab-activated custom event | Decouples workspace.js from workspace-layout.js for contextual panel indicator; dispatched on openTab()/switchTabInGroup() | ✓ Good — clean separation, panel indicator works |
 
 ---
-*Last updated: 2026-03-01 after v2.2 milestone completion*
+*Last updated: 2026-03-01 after v2.3 milestone start*
