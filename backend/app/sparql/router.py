@@ -12,7 +12,8 @@ from fastapi.responses import JSONResponse, Response
 
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
-from app.dependencies import get_triplestore_client
+from app.dependencies import get_search_service, get_triplestore_client
+from app.services.search import SearchService
 from app.sparql.client import inject_prefixes, scope_to_current_graph
 from app.triplestore.client import TriplestoreClient
 
@@ -122,3 +123,35 @@ async def sparql_post(
         all_graphs = form.get("all_graphs", "false").lower() == "true"
 
     return await _execute_sparql(query, client, all_graphs=all_graphs)
+
+
+@router.get("/search")
+async def search_knowledge_base(
+    q: str = Query(..., min_length=2, description="Search query (minimum 2 characters)"),
+    limit: int = Query(20, ge=1, le=100, description="Maximum results to return"),
+    user: User = Depends(get_current_user),
+    search_service: SearchService = Depends(get_search_service),
+) -> JSONResponse:
+    """Full-text keyword search across the current knowledge base.
+
+    Searches all literal values in urn:sempkm:current using LuceneSail.
+    Results are ranked by relevance score and include IRI, type, label, and snippet.
+
+    Returns:
+        JSON: {"results": [{"iri", "type", "label", "snippet", "score"}], "count": N, "query": q}
+    """
+    results = await search_service.search(query=q, limit=limit)
+    return JSONResponse(content={
+        "query": q,
+        "count": len(results),
+        "results": [
+            {
+                "iri": r.iri,
+                "type": r.type,
+                "label": r.label,
+                "snippet": r.snippet,
+                "score": r.score,
+            }
+            for r in results
+        ],
+    })
