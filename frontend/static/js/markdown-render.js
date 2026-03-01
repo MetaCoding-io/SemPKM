@@ -101,6 +101,16 @@
           rawHtml = DOMPurify.sanitize(rawHtml);
         }
         target.innerHTML = rawHtml;
+
+        // Rebase relative image paths against the fetch URL so they resolve
+        // correctly when the page URL differs (e.g. /guide/ vs /docs/guide/).
+        var baseUrl = url.substring(0, url.lastIndexOf('/') + 1);
+        target.querySelectorAll('img').forEach(function (img) {
+          var src = img.getAttribute('src');
+          if (src && !src.startsWith('/') && !src.startsWith('http')) {
+            img.setAttribute('src', baseUrl + src);
+          }
+        });
       })
       .catch(function () {
         target.innerHTML = '<p class="docs-error">Failed to load document.</p>';
