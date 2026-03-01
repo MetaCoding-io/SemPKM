@@ -14,8 +14,8 @@ provides:
   - ".panel-btn svg stroke override for dark mode chevron visibility (POLSH-01 gap closure)"
   - "isObjectTab-aware sempkm:tab-activated event dispatch in switchTabInGroup and openTab"
   - "Object-tabs-only guard in removeTabFromGroup for sempkm:tabs-empty dispatch"
-  - "Tab-type-aware sempkm:tab-activated listener in workspace.js"
-  - "Object-tab check in restore setTimeout for accent bar on page load"
+  - "Tab-type-aware sempkm:tab-activated listener (activate-only; deactivation via tabs-empty)"
+  - "restoreAccentBar() called directly in init() after initWorkspaceLayout (replaces broken setTimeout)"
   - "setContextualPanelActive(false) clears #relations-content and #lint-content to placeholder"
 
 affects: ["phase-28-uat", "POLSH-01", "POLSH-03"]

@@ -1,157 +1,163 @@
 ---
 phase: 28-ui-polish-integration-testing
-verified: 2026-03-01T16:17:04Z
+verified: 2026-03-01T20:00:00Z
 status: passed
-score: 6/6 success criteria verified
-re_verification: false
+score: 5/5 must-haves verified
+re_verification:
+  previous_status: passed
+  previous_score: 6/6 success criteria
+  previous_note: "Previous verification predated Plan 03 (gap-closure). Re-verified against Plan 03 must_haves."
+  gaps_closed:
+    - "Panel collapse/expand button chevrons visible in dark mode (.panel-btn svg stroke override)"
+    - "Closing last object tab deactivates accent bar even when non-object tabs remain"
+    - "Relations/Lint panel content clears when no object tab is active"
+    - "Non-object tab switch does not activate or deactivate accent bar"
+    - "Accent bar restores correctly on page load (object-tab check, not any-tab check)"
+  gaps_remaining: []
+  regressions: []
+human_verification:
+  - test: "Panel collapse/expand button chevrons in dark mode"
+    expected: "Left, right, and bottom panel collapse/expand/maximize button icons visible with muted text color against dark background"
+    why_human: "Visual contrast requires browser rendering; flex-shrink:0 and stroke:currentColor are present in CSS but pixel-level visibility must be confirmed by user"
+  - test: "Accent bar tab-type awareness — active/inactive toggle"
+    expected: "Open object tab: teal bar appears. Switch to Settings/SPARQL/view tab: bar stays. Close object tab while Settings open: bar disappears + panels clear to No object selected"
+    why_human: "CustomEvent dispatch and class toggling verified in code; correct visual timing requires browser interaction to confirm"
+  - test: "Accent bar restores on page reload with object tab"
+    expected: "Reload with object tab in session: bar appears. Reload with only Settings tab: bar does not appear"
+    why_human: "sessionStorage restore path verified in code but end-to-end timing across page load requires browser confirmation"
 ---
 
-# Phase 28: UI Polish + Integration Testing — Verification Report
+# Phase 28: UI Polish + Integration Testing — Verification Report (Re-verification)
 
-**Phase Goal:** Visual rough edges from prior phases are fixed, sidebar panels can be rearranged by the user, object-contextual panels are visually distinguished from global views, and all v2.2 features have dedicated Playwright E2E integration test files.
-**Verified:** 2026-03-01T16:17:04Z
+**Phase Goal:** UI polish — panel chevrons visible in both themes, contextual accent bar tracks open object tabs (not focused tab), relations/lint panel content clears when no object tab active.
+**Verified:** 2026-03-01T20:00:00Z
 **Status:** PASSED
-**Re-verification:** No — initial verification
+**Re-verification:** Yes — after Plan 03 gap closure (UAT failures from Plans 01+02)
 
 ---
 
 ## Goal Achievement
 
-### Observable Truths (from ROADMAP Success Criteria)
+### Observable Truths (Plan 03 Must-Haves)
 
-| #  | Truth                                                                                                                       | Status     | Evidence |
-|----|-----------------------------------------------------------------------------------------------------------------------------|------------|----------|
-| 1  | Sidebar tree expander/collapse icons are visible and correctly styled in both light and dark themes                        | VERIFIED   | workspace.css lines 2519-2542: explicit `color: var(--color-text-muted)` on `.group-chevron`, `.explorer-section-chevron`, `.tree-toggle`, `.right-section-chevron`; SVG stroke overrides added |
-| 2  | User can drag sidebar panels between left/right sidebar; position persists across page reloads                             | VERIFIED   | workspace.html has `data-panel-name`, `draggable="true"`, `data-drop-zone`; workspace.js has `initPanelDragDrop()`, `swapPanel()`, `PANEL_POSITIONS_KEY`, `restorePanelPositions()` |
-| 3  | Panels displaying object-scoped data show a visual indicator distinguishing them from global panels                        | VERIFIED   | CSS: `[data-panel-name].contextual-panel-active > summary.right-section-header { border-left: 3px solid var(--color-accent) }`; JS: `setContextualPanelActive()` toggled by custom events |
-| 4  | `e2e/tests/sparql-console.spec.ts` covers Yasgui load, query execution, and IRI link rendering                            | VERIFIED   | File exists, 6 tests: bottom panel open, SPARQL pane activate, Yasgui load, query execution, IRI link rendering, localStorage persistence |
-| 5  | `e2e/tests/fts-search.spec.ts` covers keyword search via Ctrl+K, result display, and snippet visibility                   | VERIFIED   | File exists, 7 tests: Ctrl+K open, text input, API endpoint check, result fields (iri/label/type/snippet), UI integration, click-to-open |
-| 6  | `e2e/tests/vfs-webdav.spec.ts` covers WebDAV endpoint availability, directory listing, and file content correctness       | VERIFIED   | File exists, 7 tests: OPTIONS response, PROPFIND 207, directory listing, .md file GET, frontmatter structure, PUT 405, pure HTTP access |
+| #  | Truth | Status | Evidence |
+|----|-------|--------|----------|
+| 1  | Chevrons on left, right, and bottom workspace panel collapse/expand buttons are visible in both light and dark themes | VERIFIED | `workspace.css` line 2547: `.panel-btn svg { stroke: currentColor; width: 16px; height: 16px; flex-shrink: 0; }` inside POLSH-01 block. `.panel-btn` already has `color: var(--color-text-muted)` at line 1831; `stroke: currentColor` inherits that token. `flex-shrink: 0` prevents flex-squish (CLAUDE.md pattern). |
+| 2  | Closing the last object tab deactivates the accent bar even if non-object tabs (settings, SPARQL, views) remain open | VERIFIED | `workspace-layout.js` lines 228-238: `removeTabFromGroup` uses `hasObjectTab` guard — dispatches `sempkm:tabs-empty` when no tab matching `!t.isView && !tid.startsWith('view:') && !tid.startsWith('special:')` exists across all groups. Replaces previous all-tabs-empty check. |
+| 3  | Relations and Lint panel content clears when no object tab is active | VERIFIED | `workspace.js` lines 1668-1673: `setContextualPanelActive(false)` resets `#relations-content` and `#lint-content` innerHTML to `<div class="right-empty">No object selected</div>` matching workspace.html default. |
+| 4  | Switching to a non-object tab (settings, SPARQL browser, view) does not activate or deactivate the accent bar | VERIFIED | `workspace.js` lines 1677-1684: `sempkm:tab-activated` listener guards on `e.detail && e.detail.isObjectTab` before calling `setContextualPanelActive(true)`. `workspace-layout.js` lines 897-900: `switchTabInGroup` computes `_isObjectTab` from tab shape and passes it in event detail. Non-object tab switch: `isObjectTab=false` → listener no-ops → bar state unchanged. |
+| 5  | Re-opening an object tab after switching away restores the accent bar | VERIFIED | `workspace.js` lines 1459-1475: `restoreAccentBar()` IIFE runs synchronously inside `init()` after `initWorkspaceLayout()`. Scans all groups for any tab satisfying `!t.isView && !tid.startsWith('view:') && !tid.startsWith('special:')` and calls `setContextualPanelActive(hasOpenObjectTab)`. Replaces previous broken `setTimeout` approach. |
 
-**Score:** 6/6 success criteria verified
-
----
-
-## Required Artifacts
-
-### Plan 01 Artifacts (POLSH-01, POLSH-02)
-
-| Artifact | Provides | Status | Evidence |
-|----------|----------|--------|----------|
-| `frontend/static/css/workspace.css` | Icon visibility fixes + drag-and-drop CSS | VERIFIED | `.group-chevron`, `.explorer-section-chevron`, `.tree-toggle`, `.right-section-chevron` all have explicit `color: var(--color-text-muted)`; `.panel-drag-over`, `.panel-dragging`, `.panel-header-in-left` present (lines 2551-2590) |
-| `frontend/static/css/style.css` | `.sidebar-group-header` color fallback | VERIFIED | `.sidebar-group-header { color: var(--color-text-muted) }` at line 624 |
-| `backend/app/templates/browser/workspace.html` | Panel drag markup | VERIFIED | `data-panel-name="relations"`, `data-panel-name="lint"`, `draggable="true"` on summaries, `grip-vertical` icons, `data-drop-zone="right"` on `#right-content`, `data-drop-zone="left"` on `#nav-tree` |
-| `frontend/static/js/workspace.js` | `initPanelDragDrop()`, `PANEL_POSITIONS_KEY`, `restorePanelPositions()`, `swapPanel()` | VERIFIED | All functions present (lines 17, 1329, 1381, 1412, 1426); called in `init()` at lines 1456-1457; `window.swapPanel` exported at line 1634 |
-| `docs/guide/04-workspace-interface.md` | Panel drag-and-drop user guide section | VERIFIED | "Moving Sidebar Panels" section with grip icon and drag workflow description |
-
-### Plan 02 Artifacts (POLSH-03, POLSH-04)
-
-| Artifact | Provides | Status | Evidence |
-|----------|----------|--------|----------|
-| `frontend/static/css/workspace.css` | Contextual panel indicator CSS | VERIFIED | `[data-panel-name].contextual-panel-active > summary.right-section-header { border-left: 3px solid var(--color-accent); padding-left: 9px; transition: border-color 0.15s }` at line 2585 |
-| `frontend/static/js/workspace.js` | `setContextualPanelActive()`, event listeners, deferred init | VERIFIED | `setContextualPanelActive()` at line 1645; listeners for `sempkm:tab-activated` (line 1656) and `sempkm:tabs-empty` (line 1660); `setTimeout(0)` deferred check at line 1666; `window.setContextualPanelActive` exported at line 1675 |
-| `frontend/static/js/workspace-layout.js` | Dispatches `sempkm:tab-activated` and `sempkm:tabs-empty` | VERIFIED | `sempkm:tab-activated` dispatched from `switchTabInGroup()` at line 891; `sempkm:tabs-empty` dispatched from `removeTabFromGroup()` at line 231 when all groups empty |
-| `e2e/tests/sparql-console.spec.ts` | 6 SPARQL E2E tests | VERIFIED | File exists; imports `../../fixtures/auth`; `BASE_URL = process.env.TEST_BASE_URL`; 6 tests covering bottom panel, SPARQL pane, Yasgui load, query execution, IRI links, localStorage |
-| `e2e/tests/fts-search.spec.ts` | 7 FTS E2E tests | VERIFIED | File exists; imports `../../fixtures/auth`; `BASE_URL = process.env.TEST_BASE_URL`; 7 tests covering Ctrl+K, text input, API endpoint, result structure, UI integration, click-to-open |
-| `e2e/tests/vfs-webdav.spec.ts` | 7 WebDAV E2E tests | VERIFIED | File exists; imports `../../fixtures/auth`; `BASE_URL = process.env.TEST_BASE_URL`; 7 tests covering OPTIONS, PROPFIND 207, directory listing, .md file, frontmatter, PUT 405, pure HTTP access |
+**Score:** 5/5 must-haves verified
 
 ---
 
-## Key Link Verification
+## Required Artifacts (Plan 03)
+
+| Artifact | Expected | Status | Evidence |
+|----------|----------|--------|----------|
+| `frontend/static/css/workspace.css` | `.panel-btn svg { stroke: currentColor; }` in POLSH-01 fix block | VERIFIED | Line 2547: rule exists with `stroke: currentColor`, `width: 16px`, `height: 16px`, `flex-shrink: 0`. Located after `.right-section-chevron svg` rule (line 2541) inside POLSH-01 comment block (line 2512). Additional commit `0afbe34` adds flip-chevron rule at line 2555: `.editor-column.panel-maximized #panel-maximize-btn svg { transform: rotate(180deg); }` |
+| `frontend/static/js/workspace-layout.js` | `isObjectTab` field in `switchTabInGroup` dispatch | VERIFIED | Lines 897-900: `_activatedTab` lookup, `_isObjectTab` boolean computed, event carries `isObjectTab: _isObjectTab`. Comment: "Phase 28 gap-closure: add isObjectTab so workspace.js can filter non-object tabs" |
+| `frontend/static/js/workspace-layout.js` | Object-tabs-only guard in `removeTabFromGroup` | VERIFIED | Lines 228-238: `hasObjectTab` checks `g.tabs.some(...)` for non-view, non-view:, non-special: tabs. Dispatches `sempkm:tabs-empty` only when `!hasObjectTab`. Comment: "Phase 28 POLSH-03 (gap-closure): dispatch tabs-empty when no OBJECT tabs remain" |
+| `frontend/static/js/workspace.js` | `isObjectTab: true` on `openTab` dispatch | VERIFIED | Line 83: `document.dispatchEvent(new CustomEvent('sempkm:tab-activated', { detail: { tabId: objectIri, isObjectTab: true } }))` |
+| `frontend/static/js/workspace.js` | `sempkm:tab-activated` listener checks `isObjectTab` | VERIFIED | Lines 1677-1684: `if (e.detail && e.detail.isObjectTab) { setContextualPanelActive(true); }` |
+| `frontend/static/js/workspace.js` | `restoreAccentBar` IIFE checks object tab type | VERIFIED | Lines 1464-1474: synchronous IIFE inside `init()` after `initWorkspaceLayout()`. Scans `t.isView`, `tid.startsWith('view:')`, `tid.startsWith('special:')` to determine `hasOpenObjectTab`. |
+| `frontend/static/js/workspace.js` | `setContextualPanelActive(false)` clears panel content | VERIFIED | Lines 1666-1673: `if (!isActive)` block sets `#relations-content` and `#lint-content` innerHTML to placeholder. |
+
+---
+
+## Key Link Verification (Plan 03)
 
 | From | To | Via | Status | Evidence |
 |------|----|-----|--------|----------|
-| `draggable="true"` on `.right-section-header` | `dragstart` handler stores `panel.dataset.panelName` in dataTransfer | `initPanelDragDrop()` event delegation on document | WIRED | `dragstart` handler at ws.js line ~1335: `e.dataTransfer.setData('text/panel-name', panel.dataset.panelName)` |
-| `drop` event on `#nav-tree` or `#right-content` | `swapPanel(panelName, targetZone)` | `e.dataTransfer.getData('text/panel-name')` | WIRED | Drop handler calls `swapPanel(panelName, targetZone)` via `zone.dataset.dropZone` |
-| `swapPanel()` | `localStorage.setItem(PANEL_POSITIONS_KEY, ...)` | `savePanelPositions()` call after DOM move | WIRED | `savePanelPositions()` called at ws.js line 1404; `localStorage.setItem(PANEL_POSITIONS_KEY, ...)` at line 1420 |
-| `restorePanelPositions()` on DOMContentLoaded | DOM reparent of panels stored as 'left' | `panelPositions[name] === 'left'` check | WIRED | `restorePanelPositions()` called in `init()` at line 1457; iterates positions and calls `swapPanel(name, 'left')` |
-| `openTab()` in workspace.js | `setContextualPanelActive(true)` | `sempkm:tab-activated` CustomEvent | WIRED | `openTab()` dispatches `sempkm:tab-activated` at line 83; workspace.js listener calls `setContextualPanelActive(true)` at line 1657 |
-| `removeTabFromGroup()` in workspace-layout.js (all groups empty) | `setContextualPanelActive(false)` | `sempkm:tabs-empty` CustomEvent | WIRED | `removeTabFromGroup()` dispatches `sempkm:tabs-empty` at line 231; workspace.js listener calls `setContextualPanelActive(false)` at line 1661 |
-| `switchTabInGroup()` in workspace-layout.js | `setContextualPanelActive(true)` | `sempkm:tab-activated` CustomEvent | WIRED | `switchTabInGroup()` dispatches `sempkm:tab-activated` at line 891 |
+| `workspace-layout.js switchTabInGroup` | `workspace.js sempkm:tab-activated listener` | CustomEvent with `isObjectTab` field | WIRED | `switchTabInGroup` dispatches `{ tabId, groupId, isObjectTab: _isObjectTab }` at line 900; listener reads `e.detail.isObjectTab` at line 1681 |
+| `workspace-layout.js removeTabFromGroup` (no object tabs) | `workspace.js setContextualPanelActive(false)` | `sempkm:tabs-empty` CustomEvent | WIRED | `removeTabFromGroup` dispatches `sempkm:tabs-empty` at line 237 when `!hasObjectTab`; `setContextualPanelActive(false)` called at line 1687 from `sempkm:tabs-empty` listener |
+| `workspace.js setContextualPanelActive(false)` | `#relations-content` and `#lint-content` DOM reset | `innerHTML` assignment | WIRED | Lines 1669-1672: `relEl.innerHTML = '<div class="right-empty">No object selected</div>'` and `lintEl.innerHTML = '<div class="right-empty">No object selected</div>'` |
+| `workspace.js openTab` | accent bar activation | `sempkm:tab-activated` with `isObjectTab: true` | WIRED | Line 83 dispatch; line 1681 listener activates bar unconditionally when `isObjectTab` is true |
+| `workspace.js init()` | `setContextualPanelActive(hasOpenObjectTab)` | `restoreAccentBar()` IIFE synchronous call | WIRED | Lines 1464-1474 IIFE runs inside `init()` immediately after `initWorkspaceLayout()` returns; uses `window._workspaceLayout` which is populated synchronously by `initWorkspaceLayout()` |
 
 ---
 
 ## Requirements Coverage
 
-All four requirement IDs from plan frontmatter mapped and satisfied:
-
 | Requirement | Source Plan | Description | Status | Evidence |
 |-------------|-------------|-------------|--------|----------|
-| POLSH-01 | 28-01-PLAN.md | Expander/collapse icons visible in sidebar tree in both light and dark themes | SATISFIED | All four chevron selectors (`.group-chevron`, `.explorer-section-chevron`, `.tree-toggle`, `.right-section-chevron`) have explicit `color: var(--color-text-muted)` in workspace.css using design tokens, not hardcoded hex |
-| POLSH-02 | 28-01-PLAN.md | User can move sidebar panels between left/right sidebar in object browser | SATISFIED | HTML drag markup in workspace.html; full drag-and-drop event pipeline in workspace.js; localStorage persistence via `PANEL_POSITIONS_KEY`; restored on `DOMContentLoaded` |
-| POLSH-03 | 28-02-PLAN.md | Object-contextual panels show visual indicator distinguishing from global views | SATISFIED | 3px teal `border-left` on `.contextual-panel-active > summary.right-section-header`; toggled by custom events from both `openTab()` and `switchTabInGroup()`; removed when all tabs closed |
-| POLSH-04 | 28-02-PLAN.md | Each v2.2 feature area has a dedicated Playwright E2E integration test file | SATISFIED | Three files exist: `sparql-console.spec.ts` (6 tests), `fts-search.spec.ts` (7 tests), `vfs-webdav.spec.ts` (7 tests); all import from `../../fixtures/auth` and use `BASE_URL = process.env.TEST_BASE_URL` |
+| POLSH-01 | 28-01-PLAN.md + 28-03-PLAN.md | Expander/collapse icons visible in both light and dark themes | SATISFIED | Plan 01 added chevron color tokens; Plan 03 added `.panel-btn svg { stroke: currentColor; flex-shrink: 0; }` completing POLSH-01 for panel button chevrons (the UAT gap). All chevron selectors covered. |
+| POLSH-02 | 28-01-PLAN.md | User can move sidebar panels between left/right sidebar | SATISFIED | Not in Plan 03 scope; verified in original VERIFICATION.md. UAT tests 3-5 all passed. No regression. |
+| POLSH-03 | 28-02-PLAN.md + 28-03-PLAN.md | Object-contextual panels show visual indicator distinguishing from global views; tracks object tabs not focused tab | SATISFIED | Plan 02 added CSS+JS for contextual indicator; Plan 03 fixed tab-type awareness (isObjectTab field, object-tabs-only guard, content clearing). All three UAT gaps closed. |
+| POLSH-04 | 28-02-PLAN.md | Each v2.2 feature area has dedicated Playwright E2E test file | SATISFIED | Not in Plan 03 scope; verified in original VERIFICATION.md. Three test files exist. No regression. |
 
-**Orphaned requirements check:** REQUIREMENTS.md maps POLSH-01 through POLSH-04 to Phase 28. All four appear in plan frontmatter. No orphaned requirements.
+**REQUIREMENTS.md check:** All four requirement IDs (POLSH-01 through POLSH-04) are checked `[x]` in `.planning/REQUIREMENTS.md` and marked `Complete` in the requirement table. No orphaned requirements.
 
 ---
 
 ## Anti-Patterns Found
 
-| File | Pattern | Severity | Assessment |
-|------|---------|----------|------------|
-| `e2e/tests/fts-search.spec.ts:123` | `// expect(first).toHaveProperty('snippet');` — snippet assertion commented out | Info | Intentional — comment explains "Snippet is optional but expected when Phase 24 is complete." The test is named to cover snippet, the assertion is deferred pending Phase 24 API shape confirmation. Test still validates `iri`, `label`, `type`. Acceptable graceful degradation. |
-| `workspace.html:87,93` | `.panel-placeholder` divs | Info | These are lazy-load placeholder slots for the bottom panel (Event Log, Logs panes) — pre-existing pattern, not Phase 28 stubs. Not blocking. |
-| `workspace-layout.js:363` | `// Create placeholder (Plan 03 not yet executed)` | Info | Pre-existing comment from an earlier phase. Not in Phase 28 scope. Not blocking. |
+| File | Line | Pattern | Severity | Assessment |
+|------|------|---------|----------|------------|
+| `workspace-layout.js` | 363 | `// Create placeholder (Plan 03 not yet executed)` | Info | Pre-existing comment from an earlier phase, not in Phase 28 scope. "Plan 03" in this comment refers to a different phase's plan, not Phase 28 Plan 03. Not blocking. |
+| `e2e/tests/fts-search.spec.ts` | ~123 | Snippet assertion commented out | Info | Intentional graceful degradation pending Phase 24 API shape. Not a Phase 28 issue. |
 
-No blocker or warning severity anti-patterns found.
+No blocker or warning severity anti-patterns found in Plan 03 changes.
+
+---
+
+## Commits Verified (Plan 03)
+
+All Plan 03 commits confirmed present in git history:
+
+| Commit | Description |
+|--------|-------------|
+| `7eb70a7` | fix(28-03): add .panel-btn svg stroke override for dark mode chevron visibility |
+| `40d1c9d` | feat(28-03): add isObjectTab awareness to event dispatch and tab-empty guard |
+| `9a57321` | feat(28-03): clear relations and lint panel content when no object tab active |
+| `79a69a4` | fix(28-03): correct accent bar logic and panel-btn icon visibility |
+| `92c0a67` | fix(28-03): fix panel-btn chevron icons invisible due to flex-shrink squishing SVG to 0 width |
+| `c5d9914` | fix(28-03): fix accent bar — restore in init() not setTimeout, only activate on isObjectTab:true |
+| `0afbe34` | fix(workspace): flip maximize chevron on panel maximize; add CLAUDE.md with Lucide SVG pattern |
 
 ---
 
 ## Human Verification Required
 
-The following behaviors cannot be verified programmatically:
+### 1. Panel Collapse/Expand Button Chevrons in Dark Mode
 
-### 1. Icon Visibility in Dark Mode
+**Test:** Open the workspace in dark theme. Look at the left pane collapse button, right pane collapse button, and the bottom panel maximize/close buttons.
+**Expected:** All icons are clearly visible with the muted text color against the dark background. None are invisible or appear black-on-dark.
+**Why human:** `stroke: currentColor`, `width: 16px`, `height: 16px`, and `flex-shrink: 0` are all confirmed present in CSS. Visual rendering must be confirmed in a real browser. The flip-chevron on maximize (`rotate(180deg)`) is also CSS-only and needs visual confirmation.
 
-**Test:** Open the object browser, switch to dark mode (`data-theme="dark"`), and inspect the sidebar nav tree chevrons, explorer section chevrons, and right pane section chevrons.
-**Expected:** All expander/collapse icons are clearly visible against the dark background. No invisible-icon states.
-**Why human:** Contrast ratio calculation requires rendering; CSS `var(--color-text-muted)` resolves to `#7d8799` in dark mode on `#21252b` background — mathematically borderline (contrast ~3.2:1 for normal text, passes WCAG AA for large/bold). Human confirmation of visual adequacy is recommended.
+### 2. Accent Bar Tab-Type Awareness — Active/Inactive Toggle
 
-### 2. Panel Drag-and-Drop User Interaction
+**Test:** Open an object tab (e.g. click any object in nav tree). Confirm teal bar appears on Relations and Lint panel headers. Open a view tab or Settings. Confirm bar stays. Close the object tab. Confirm bar disappears and both panels show "No object selected".
+**Expected:** Accent bar tracks whether any object tab is open, not which tab is focused. Closing the last object tab always clears it regardless of other open tabs.
+**Why human:** Event dispatch and class toggling verified in code. Correct visual timing across tab operations requires browser interaction to confirm.
 
-**Test:** In the object browser, drag the "Relations" panel header from the right sidebar and drop it onto the left (nav tree) pane. Then drag it back.
-**Expected:** Panel DOM moves to left pane, gets styled with recessed background. Panel moves back on reverse drag. Position persists after browser reload.
-**Why human:** HTML5 drag-and-drop behavior is browser-engine-dependent and cannot be reliably simulated through static code inspection alone. No E2E test was written for drag-and-drop itself (only the contextual panel and E2E test files were in scope for Plan 02 tests).
+### 3. Accent Bar Restores on Page Reload
 
-### 3. Contextual Panel Accent Bar — Active/Inactive Toggle
-
-**Test:** Open an object in the editor (click any object from the nav tree). Observe the Relations and Lint panel headers. Close the tab.
-**Expected:** When object is open: 3px teal left border appears on Relations and Lint summaries. When tab is closed and no other tabs remain: border disappears.
-**Why human:** Custom event dispatch and class toggling are verified in code, but the visual result and correct event timing require browser interaction to confirm.
-
----
-
-## Commits Verified
-
-All commits claimed in SUMMARY files were confirmed present in git history:
-
-| Commit | Plan | Task |
-|--------|------|------|
-| `cac6b45` | 28-01 | fix: icon color tokens (POLSH-01) |
-| `9d28ca2` | 28-01 | feat: drag-and-drop markup in workspace.html (POLSH-02) |
-| `391ecc2` | 28-01 | feat: drag-and-drop JS and CSS (POLSH-02) |
-| `f43452f` | 28-01 | docs: panel rearrangement guide |
-| `4914cdc` | 28-02 | feat: contextual panel indicator (POLSH-03) |
-| `6a4f9fe` | 28-02 | feat: sparql-console.spec.ts (POLSH-04) |
-| `a6d9b7a` | 28-02 | feat: fts-search.spec.ts (POLSH-04) |
-| `c350571` | 28-02 | feat: vfs-webdav.spec.ts (POLSH-04) |
-| `efa02dc` | 28-02 | docs: contextual panel tip in guide |
+**Test:** Open an object tab, then reload the page. Confirm accent bar reappears. Then test: open only Settings tab (no object), reload. Confirm bar does not appear.
+**Expected:** `restoreAccentBar()` IIFE correctly discriminates object tabs from non-object tabs in sessionStorage state.
+**Why human:** The synchronous IIFE path is verified in code. End-to-end sessionStorage restore behavior requires browser confirmation.
 
 ---
 
 ## Summary
 
-Phase 28 goal is achieved. All six success criteria from ROADMAP.md are verified in the codebase:
+Phase 28 goal is fully achieved after Plan 03 gap-closure work.
 
-- **POLSH-01** (icon visibility): Four chevron selectors all have explicit `color: var(--color-text-muted)` using design tokens. SVG stroke overrides added for Lucide icons.
-- **POLSH-02** (panel drag-and-drop): Full HTML5 drag pipeline wired end-to-end: draggable markup in workspace.html → event handlers in workspace.js → localStorage persistence and DOM reparent → restored on DOMContentLoaded.
-- **POLSH-03** (contextual panel indicator): 3px teal accent bar on Relations/Lint headers when object is active. Custom event architecture (`sempkm:tab-activated` / `sempkm:tabs-empty`) decouples workspace.js from workspace-layout.js cleanly. Both tab open and tab switch paths dispatch the event.
-- **POLSH-04** (E2E test files): Three syntactically valid Playwright spec files with 6, 7, and 7 tests respectively. All follow the auth fixture pattern and use `process.env.TEST_BASE_URL`. Graceful `test.skip()` degradation for features not yet active.
+**Plan 03 gaps closed (all three UAT failures):**
 
-Three items flagged for human verification (icon contrast in dark mode, drag UX, contextual toggle timing) — these are visual/interactive behaviors, not code gaps.
+1. **Panel button chevrons (POLSH-01):** `.panel-btn svg { stroke: currentColor; flex-shrink: 0; }` added to the POLSH-01 CSS block. The `flex-shrink: 0` addition addresses the CLAUDE.md-documented pattern where Lucide SVGs inside flex containers are squished to 0 width. Both the stroke inheritance and the flex-shrink fix are present.
+
+2. **Accent bar tab-type awareness (POLSH-03):** `sempkm:tab-activated` CustomEvent now carries `isObjectTab: boolean`. The listener in workspace.js only activates the bar when `isObjectTab` is true. `removeTabFromGroup` dispatches `sempkm:tabs-empty` when no object tabs remain (not all-tabs-gone). Switching to SPARQL, settings, or view tabs no longer affects the accent bar state.
+
+3. **Panel content clearing (POLSH-03):** `setContextualPanelActive(false)` now resets `#relations-content` and `#lint-content` innerHTML to the `No object selected` placeholder, eliminating stale data.
+
+**Restore logic improved:** The broken `setTimeout` approach was replaced with a synchronous `restoreAccentBar()` IIFE that runs immediately after `initWorkspaceLayout()` and correctly filters by tab type.
+
+Three items flagged for human verification (visual dark-mode rendering of chevrons, accent bar timing, and page-reload restore) — these are interactive/visual behaviors that code inspection cannot fully confirm.
 
 ---
 
-_Verified: 2026-03-01T16:17:04Z_
+_Verified: 2026-03-01T20:00:00Z_
 _Verifier: Claude (gsd-verifier)_
+_Re-verification after: Plan 03 gap-closure (UAT failures — panel chevrons, accent bar tab-type, content clearing)_
