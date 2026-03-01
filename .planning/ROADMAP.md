@@ -94,11 +94,11 @@ Plans:
   3. Searching by a term that appears only in a property value (not the object label) still returns the object in results
   4. Search results are scoped to the current state graph (`urn:sempkm:current`) — event graph contents do not appear in results
   5. A dedicated `GET /api/search` endpoint returns structured JSON results usable by any consumer (palette, future UIs)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 24-01: LuceneSail config verification, sempkm-repo.ttl update, Docker volume, SearchService
-- [ ] 24-02: Search API endpoint, Ctrl+K palette integration, result rendering
+- [ ] 24-01-PLAN.md — LuceneSail JAR verification, sempkm-repo.ttl + Docker volume, SearchService
+- [ ] 24-02-PLAN.md — GET /api/search endpoint, Ctrl+K palette integration, result rendering
 
 ### Phase 25: CSS Token Expansion
 **Goal**: The CSS token system is expanded from ~40 to ~91 tokens using a two-tier primitive/semantic architecture, replacing all hardcoded values in workspace/style/forms/views CSS — enabling consistent theming for new surfaces in v2.2 and the Dockview migration bridge in v2.3
@@ -190,7 +190,7 @@ Plans:
 | 21. Research Synthesis | v2.1 | 1/1 | Complete | 2026-02-28 |
 | 22. Tech Debt Sprint | v2.1 | 3/3 | Complete | 2026-03-01 |
 | 23. SPARQL Console | v2.2 | 0/? | Not started | - |
-| 24. FTS Keyword Search | v2.2 | 0/? | Not started | - |
+| 24. FTS Keyword Search | v2.2 | 0/2 | Not started | - |
 | 25. CSS Token Expansion | v2.2 | 0/? | Not started | - |
 | 26. VFS MVP Read-Only | v2.2 | 0/? | Not started | - |
 | 27. VFS Write + Auth | v2.2 | 0/? | Not started | - |
