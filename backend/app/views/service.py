@@ -23,6 +23,7 @@ from app.models.registry import MODELS_GRAPH, SEMPKM_NS
 from app.services.labels import LabelService
 from app.sparql.client import scope_to_current_graph
 from app.triplestore.client import TriplestoreClient
+from cachetools import TTLCache
 
 logger = logging.getLogger(__name__)
 
@@ -53,9 +54,18 @@ class ViewSpecService:
     with pagination, sorting, and filtering for table/card rendering.
     """
 
-    def __init__(self, client: TriplestoreClient, label_service: LabelService) -> None:
+    def __init__(
+        self,
+        client: TriplestoreClient,
+        label_service: LabelService,
+        ttl: int = 300,
+        maxsize: int = 64,
+    ) -> None:
         self._client = client
         self._label_service = label_service
+        self._specs_cache: TTLCache[str, list[ViewSpec]] = TTLCache(
+            maxsize=maxsize, ttl=ttl
+        )
 
     async def get_all_view_specs(self) -> list[ViewSpec]:
         """Load all view specs from all installed model views graphs.
@@ -68,6 +78,11 @@ class ViewSpecService:
         Returns:
             List of ViewSpec dataclasses parsed from SPARQL results.
         """
+        cache_key = "all_specs"
+        if cache_key in self._specs_cache:
+            logger.debug("ViewSpec cache hit")
+            return self._specs_cache[cache_key]
+
         # 1. List installed model IDs
         model_sparql = f"""SELECT ?modelId WHERE {{
   GRAPH <{MODELS_GRAPH}> {{
@@ -135,8 +150,17 @@ WHERE {{
                 source_model=model_ids[0] if len(model_ids) == 1 else "",
             ))
 
-        logger.info("Loaded %d view specs from %d model(s)", len(specs), len(model_ids))
+        self._specs_cache[cache_key] = specs
+        logger.info(
+            "ViewSpec cache miss -- loaded %d specs from %d model(s)",
+            len(specs), len(model_ids),
+        )
         return specs
+
+    def invalidate_cache(self) -> None:
+        """Clear cached view specs after model install/uninstall."""
+        self._specs_cache.clear()
+        logger.info("ViewSpec cache invalidated")
 
     async def get_view_specs_for_type(self, type_iri: str) -> list[ViewSpec]:
         """Filter view specs by target class matching type_iri.
