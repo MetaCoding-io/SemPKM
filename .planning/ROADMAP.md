@@ -108,7 +108,12 @@ Plans:
   3. Object tabs opened inside dockview panels continue to fire `sempkm:tab-activated` and `sempkm:tabs-empty` events with the same payload shape as before
   4. CodeMirror and Cytoscape visualizations render correctly when their containing panel is shown after being hidden (no zero-size blank panels)
   5. htmx attributes on content loaded inside dockview panels remain active (forms submit, relations load, linting works)
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 30-01-PLAN.md — Core dockview init: rewrite workspace-layout.js with DockviewComponent, update workspace.html CDN, activate bridge.css
+- [ ] 30-02-PLAN.md — Caller updates: workspace.js tab functions + object_tab.html typeIcon push to dockview API
+- [ ] 30-03-PLAN.md — CSS cleanup: remove old editor-group/drag rules from workspace.css + human verification checkpoint
 
 ### Phase 31: Object View Redesign
 **Goal**: Users see the object body (Markdown) by default with properties hidden; a single click reveals or collapses properties; preference is remembered per object
