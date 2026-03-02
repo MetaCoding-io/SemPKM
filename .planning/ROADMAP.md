@@ -74,7 +74,7 @@
 
 **Milestone Goal:** Complete dockview Phase A migration (replacing Split.js editor-pane area), redesign the object view to be markdown-first with manifest-driven carousel views, add named workspace layouts, improve FTS with fuzzy search, and close v2.2 bugs.
 
-- [ ] **Phase 29: FTS Fuzzy Search** — Typo-tolerant search via LuceneSail `term~1` operator with user-controlled toggle in Ctrl+K palette
+- [x] **Phase 29: FTS Fuzzy Search** — Typo-tolerant search via LuceneSail `term~1` operator with user-controlled toggle in Ctrl+K palette (backend complete 2026-03-02; frontend 29-02 pending)
 - [ ] **Phase 30: Dockview Phase A Migration** — Replace Split.js editor-pane area with dockview-core panels; remove old HTML5 drag system
 - [ ] **Phase 31: Object View Redesign** — Markdown-first object view with properties collapsed by default and single-click reveal
 - [ ] **Phase 32: Carousel Views and View Bug Fixes** — Manifest-declared per-type view tab bar, concept cards group-by fix, broken view switch buttons removed
@@ -95,7 +95,7 @@
 **Plans**: 2 plans
 
 Plans:
-- [ ] 29-01-PLAN.md — Backend: _normalize_query() in SearchService, fuzzy param on /api/search, fuzzyPrefixLength TTL config
+- [x] 29-01-PLAN.md — Backend: _normalize_query() in SearchService, fuzzy param on /api/search, fuzzyPrefixLength TTL config (complete 2026-03-02)
 - [ ] 29-02-PLAN.md — Frontend: fuzzy toggle command in ninja-keys Ctrl+K palette with localStorage persistence
 
 ### Phase 30: Dockview Phase A Migration
@@ -187,7 +187,7 @@ Plans:
 | 26. VFS MVP Read-Only | v2.2 | 3/3 | Complete | 2026-03-01 |
 | 27. VFS Write + Auth | v2.2 | 3/3 | Complete | 2026-03-01 |
 | 28. UI Polish + Integration Testing | v2.2 | 3/3 | Complete | 2026-03-01 |
-| 29. FTS Fuzzy Search | v2.3 | 0/? | Not started | - |
+| 29. FTS Fuzzy Search | v2.3 | 1/2 | In progress | - |
 | 30. Dockview Phase A Migration | v2.3 | 0/? | Not started | - |
 | 31. Object View Redesign | v2.3 | 0/? | Not started | - |
 | 32. Carousel Views and View Bug Fixes | v2.3 | 0/? | Not started | - |
