@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Shell, Navigation & Views
-status: roadmap_ready
-last_updated: "2026-03-01T00:00:00.000Z"
+status: in_progress
+last_updated: "2026-03-02T00:12:19Z"
 progress:
   total_phases: 6
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 1
+  completed_plans: 1
 ---
 
 # Project State
@@ -18,29 +18,29 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-01)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations — no blank-page syndrome, no schema setup.
-**Current focus:** v2.3 Shell, Navigation & Views — Phase 29 ready to plan
+**Current focus:** v2.3 Shell, Navigation & Views — Phase 29 Plan 01 complete
 
 ## Current Position
 
 Phase: 29 of 34 (FTS Fuzzy Search)
-Plan: —
-Status: Ready to plan
-Last activity: 2026-03-01 — v2.3 roadmap created (Phases 29-34)
+Plan: 1/1 complete
+Status: Phase 29 complete — ready for Phase 30
+Last activity: 2026-03-02 — Phase 29 Plan 01 (FTS Fuzzy Search backend) complete
 
 Progress: [░░░░░░░░░░] 0% (0/6 phases)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0 (v2.3)
-- Average duration: —
-- Total execution time: —
+- Total plans completed: 1 (v2.3)
+- Average duration: 2 min
+- Total execution time: 2 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 29-fts-fuzzy-search | 1 | 2 min | 2 min |
 
 *Updated after each plan completion*
 
@@ -48,10 +48,13 @@ Progress: [░░░░░░░░░░] 0% (0/6 phases)
 
 ### Key Decisions
 
-Full decision log in PROJECT.md Key Decisions table. v2.3 decisions TBD.
+Full decision log in PROJECT.md Key Decisions table.
 
 - DEC-04: dockview-core 4.11.0 replaces Split.js for editor-pane area (Phase A only); CSS bridge file already in place from v2.2
 - Research: LuceneSail `term~1` fuzzy syntax confirmed HIGH confidence; 5-char length threshold to avoid short-token noise
+- 29-01: 5-char threshold for fuzzy expansion (tokens <5 chars stay exact to avoid dictionary-scan noise)
+- 29-01: ~1 edit distance only (not ~2); fuzzyPrefixLength=2 in TTL for index performance (requires volume reset)
+- 29-01: fuzzy field echoed in API response body so clients can confirm mode was applied
 
 ### Pending Todos
 
@@ -71,6 +74,6 @@ Full decision log in PROJECT.md Key Decisions table. v2.3 decisions TBD.
 
 ## Session Continuity
 
-Last session: 2026-03-01
-Stopped at: Roadmap created — ready to plan Phase 29 (FTS Fuzzy Search)
+Last session: 2026-03-02
+Stopped at: Completed 29-fts-fuzzy-search/29-01-PLAN.md
 Resume file: None
