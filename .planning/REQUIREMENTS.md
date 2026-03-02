@@ -17,7 +17,7 @@
 
 ### FTS
 
-- [ ] **FTS-04**: User can find objects with typo-tolerant fuzzy matching (edit distance ~1); fuzzy mode is a user-controlled toggle in the Ctrl+K palette; tokens <5 chars always use exact match
+- [x] **FTS-04**: User can find objects with typo-tolerant fuzzy matching (edit distance ~1); fuzzy mode is a user-controlled toggle in the Ctrl+K palette; tokens <5 chars always use exact match
 
 ### Bug Fixes
 
@@ -60,7 +60,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FTS-04 | Phase 29 | Pending |
+| FTS-04 | Phase 29 | Complete |
 | DOCK-01 | Phase 30 | Pending |
 | VIEW-01 | Phase 31 | Pending |
 | VIEW-02 | Phase 32 | Pending |
