@@ -4,8 +4,8 @@
  * Manages the three-column resizable layout (Split.js), keyboard shortcuts,
  * and command palette (ninja-keys).
  *
- * Tab state is now delegated to WorkspaceLayout (workspace-layout.js).
- * All openTab/closeTab/switchTab functions delegate to window._workspaceLayout.
+ * Tab state is now delegated to dockview (workspace-layout.js).
+ * All openTab/closeTab/switchTab functions delegate to window._dockview.
  */
 
 (function () {
@@ -60,46 +60,35 @@
     });
   }
 
-  // --- Tab Management (delegates to WorkspaceLayout) ---
+  // --- Tab Management (delegates to dockview) ---
 
   function openTab(objectIri, label, mode) {
-    var layout = window._workspaceLayout;
-    if (layout) {
-      // Check if already open in active group
-      var activeGroup = layout.getGroup(layout.activeGroupId);
-      if (activeGroup) {
-        var existing = activeGroup.tabs.find(function (t) { return (t.id || t.iri) === objectIri; });
-        if (existing) {
-          // Switch to it
-          switchTabInGroup(objectIri, layout.activeGroupId);
-          return;
-        }
-      }
-
-      layout.addTabToGroup(
-        { id: objectIri, iri: objectIri, label: label || objectIri, dirty: false, isView: false },
-        layout.activeGroupId
-      );
-      // Phase 28 POLSH-03: notify contextual panel indicator when a tab is opened
-      document.dispatchEvent(new CustomEvent('sempkm:tab-activated', { detail: { tabId: objectIri, isObjectTab: true } }));
-      // Load the content
-      if (mode === 'edit') {
-        var editorArea = window.getActiveEditorArea();
-        if (editorArea && typeof htmx !== 'undefined') {
-          htmx.ajax('GET', '/browser/object/' + encodeURIComponent(objectIri) + '?mode=edit', {
-            target: editorArea,
-            swap: 'innerHTML'
-          });
-        }
-      } else {
-        window.loadTabInGroup(layout.activeGroupId, objectIri);
-      }
-    } else {
-      // Fallback: direct load without tab management (layout not initialized)
+    var dv = window._dockview;
+    if (!dv) {
       loadObjectContent(objectIri, mode);
+      return;
     }
 
-    // Add to command palette dynamically
+    // Check if already open — focus it
+    var existing = dv.panels.find(function(p) { return p.id === objectIri; });
+    if (existing) {
+      existing.api.setActive();
+      return;
+    }
+
+    // Register tab metadata before addPanel (so createComponent can read it if needed)
+    if (!window._tabMeta) window._tabMeta = {};
+    window._tabMeta[objectIri] = { label: label || objectIri, dirty: false };
+
+    dv.api.addPanel({
+      id: objectIri,
+      component: 'object-editor',
+      params: { iri: objectIri, isView: false, isSpecial: false, mode: mode },
+      title: label || objectIri
+    });
+
+    // sempkm:tab-activated is dispatched by workspace-layout.js onDidActivePanelChange — no double-dispatch here
+
     addObjectToCommandPalette(objectIri, label);
   }
 
@@ -107,28 +96,27 @@
 
   function openViewTab(viewId, viewLabel, viewType) {
     var tabKey = 'view:' + viewId;
-    var layout = window._workspaceLayout;
-
-    if (layout) {
-      var activeGroup = layout.getGroup(layout.activeGroupId);
-      if (activeGroup) {
-        var existing = activeGroup.tabs.find(function (t) { return (t.id || t.iri) === tabKey; });
-        if (existing) {
-          switchTabInGroup(tabKey, layout.activeGroupId);
-          return;
-        }
-      }
-
-      layout.addTabToGroup(
-        { id: tabKey, iri: tabKey, label: viewLabel, dirty: false, isView: true, viewType: viewType, viewId: viewId },
-        layout.activeGroupId
-      );
-      document.dispatchEvent(new CustomEvent('sempkm:tab-activated', { detail: { tabId: tabKey, isObjectTab: false } }));
-      window.loadTabInGroup(layout.activeGroupId, tabKey);
-    } else {
-      // Fallback
+    var dv = window._dockview;
+    if (!dv) {
       loadViewContent(viewId, viewType);
+      return;
     }
+
+    var existing = dv.panels.find(function(p) { return p.id === tabKey; });
+    if (existing) {
+      existing.api.setActive();
+      return;
+    }
+
+    if (!window._tabMeta) window._tabMeta = {};
+    window._tabMeta[tabKey] = { label: viewLabel, dirty: false };
+
+    dv.api.addPanel({
+      id: tabKey,
+      component: 'view-panel',
+      params: { viewId: viewId, viewType: viewType, isView: true, isSpecial: false },
+      title: viewLabel
+    });
   }
 
   function loadViewContent(viewId, viewType) {
@@ -157,16 +145,21 @@
   }
 
   function closeTab(objectIri) {
-    var layout = window._workspaceLayout;
-    if (layout) {
-      layout.removeTabFromGroup(objectIri, layout.activeGroupId);
+    var dv = window._dockview;
+    if (!dv) return;
+    var panel = dv.panels.find(function(p) { return p.id === objectIri; });
+    if (panel) {
+      panel.api.close();
+      if (window._tabMeta) delete window._tabMeta[objectIri];
     }
   }
 
   function switchTab(objectIri) {
-    var layout = window._workspaceLayout;
-    if (layout) {
-      switchTabInGroup(objectIri, layout.activeGroupId);
+    var dv = window._dockview;
+    if (!dv) return;
+    var panel = dv.panels.find(function(p) { return p.id === objectIri; });
+    if (panel) {
+      panel.api.setActive();
     }
   }
 
@@ -179,43 +172,23 @@
   }
 
   function markDirty(objectIri) {
-    var layout = window._workspaceLayout;
-    if (!layout) return;
-
-    // Mark dirty across all groups
-    var found = false;
-    layout.groups.forEach(function (group) {
-      var tab = group.tabs.find(function (t) { return (t.id || t.iri) === objectIri; });
-      if (tab) {
-        tab.dirty = true;
-        found = true;
-        window.renderGroupTabBar(group);
-      }
-    });
-    if (found) layout.save();
+    if (!window._tabMeta) return;
+    if (window._tabMeta[objectIri]) {
+      window._tabMeta[objectIri].dirty = true;
+    }
   }
 
   function markClean(objectIri) {
-    var layout = window._workspaceLayout;
-    if (!layout) return;
-
-    var found = false;
-    layout.groups.forEach(function (group) {
-      var tab = group.tabs.find(function (t) { return (t.id || t.iri) === objectIri; });
-      if (tab) {
-        tab.dirty = false;
-        found = true;
-        window.renderGroupTabBar(group);
-      }
-    });
-    if (found) layout.save();
+    if (!window._tabMeta) return;
+    if (window._tabMeta[objectIri]) {
+      window._tabMeta[objectIri].dirty = false;
+    }
   }
 
   function getActiveTabIri() {
-    var layout = window._workspaceLayout;
-    if (!layout) return null;
-    var group = layout.getGroup(layout.activeGroupId);
-    return group ? group.activeTabId : null;
+    var dv = window._dockview;
+    if (!dv || !dv.activePanel) return null;
+    return dv.activePanel.id;
   }
 
   function loadObjectContent(objectIri, mode) {
@@ -224,16 +197,16 @@
 
     // If IRI starts with 'view:', load as view tab
     if (objectIri && objectIri.indexOf('view:') === 0) {
-      var layout = window._workspaceLayout;
-      var tab = null;
-      if (layout) {
-        layout.groups.forEach(function (g) {
-          var found = g.tabs.find(function (t) { return (t.id || t.iri) === objectIri; });
-          if (found) tab = found;
-        });
+      var dv = window._dockview;
+      var viewType = 'table';
+      if (dv) {
+        var panel = dv.panels.find(function(p) { return p.id === objectIri; });
+        if (panel && panel.params && panel.params.viewType) {
+          viewType = panel.params.viewType;
+        }
       }
       var viewId = objectIri.substring(5);
-      loadViewContent(viewId, (tab && tab.viewType) || 'table');
+      loadViewContent(viewId, viewType);
       return;
     }
 
@@ -561,13 +534,9 @@
 
     if (isFlipped) {
       // Switching from edit to read: check for unsaved changes
-      var layout = window._workspaceLayout;
       var isDirty = false;
-      if (layout) {
-        layout.groups.forEach(function (g) {
-          var tab = g.tabs.find(function (t) { return (t.id || t.iri) === objectIri; });
-          if (tab && tab.dirty) isDirty = true;
-        });
+      if (window._tabMeta && window._tabMeta[objectIri]) {
+        isDirty = window._tabMeta[objectIri].dirty;
       }
 
       if (isDirty) {
@@ -633,21 +602,21 @@
 
   function openSettingsTab() {
     var tabKey = 'special:settings';
-    var layout = window._workspaceLayout;
-    if (!layout) return;
-    var groupId = layout.activeGroupId;
-    var group = layout.getGroup ? layout.getGroup(groupId) : (layout.groups && layout.groups[groupId]);
-    if (group) {
-      var existing = group.tabs.find(function (t) { return (t.id || t.iri) === tabKey; });
-      if (existing) {
-        if (typeof switchTabInGroup === 'function') switchTabInGroup(tabKey, groupId);
-        return;
-      }
-    }
-    var tabDef = { id: tabKey, iri: tabKey, label: 'Settings', dirty: false, isView: false, isSpecial: true, specialType: 'settings' };
-    if (layout.addTabToGroup) layout.addTabToGroup(tabDef, groupId);
-    document.dispatchEvent(new CustomEvent('sempkm:tab-activated', { detail: { tabId: tabKey, isObjectTab: false } }));
-    if (typeof window.loadTabInGroup === 'function') window.loadTabInGroup(groupId, tabKey);
+    var dv = window._dockview;
+    if (!dv) return;
+
+    var existing = dv.panels.find(function(p) { return p.id === tabKey; });
+    if (existing) { existing.api.setActive(); return; }
+
+    if (!window._tabMeta) window._tabMeta = {};
+    window._tabMeta[tabKey] = { label: 'Settings', dirty: false };
+
+    dv.api.addPanel({
+      id: tabKey,
+      component: 'special-panel',
+      params: { specialType: 'settings', isView: false, isSpecial: true },
+      title: 'Settings'
+    });
   }
   window.openSettingsTab = openSettingsTab;
 
@@ -661,21 +630,21 @@
 
   function openDocsTab() {
     var tabKey = 'special:docs';
-    var layout = window._workspaceLayout;
-    if (!layout) return;
-    var groupId = layout.activeGroupId;
-    var group = layout.getGroup ? layout.getGroup(groupId) : (layout.groups && layout.groups[groupId]);
-    if (group) {
-      var existing = group.tabs.find(function (t) { return (t.id || t.iri) === tabKey; });
-      if (existing) {
-        if (typeof switchTabInGroup === 'function') switchTabInGroup(tabKey, groupId);
-        return;
-      }
-    }
-    var tabDef = { id: tabKey, iri: tabKey, label: 'Docs & Tutorials', dirty: false, isView: false, isSpecial: true, specialType: 'docs' };
-    if (layout.addTabToGroup) layout.addTabToGroup(tabDef, groupId);
-    document.dispatchEvent(new CustomEvent('sempkm:tab-activated', { detail: { tabId: tabKey, isObjectTab: false } }));
-    if (typeof window.loadTabInGroup === 'function') window.loadTabInGroup(groupId, tabKey);
+    var dv = window._dockview;
+    if (!dv) return;
+
+    var existing = dv.panels.find(function(p) { return p.id === tabKey; });
+    if (existing) { existing.api.setActive(); return; }
+
+    if (!window._tabMeta) window._tabMeta = {};
+    window._tabMeta[tabKey] = { label: 'Docs & Tutorials', dirty: false };
+
+    dv.api.addPanel({
+      id: tabKey,
+      component: 'special-panel',
+      params: { specialType: 'docs', isView: false, isSpecial: true },
+      title: 'Docs & Tutorials'
+    });
   }
   window.openDocsTab = openDocsTab;
 
@@ -710,9 +679,8 @@
       // Sidebar toggle remains on Ctrl+B (Phase 12)
       if (mod && e.key === '\\') {
         e.preventDefault();
-        var layout = window._workspaceLayout;
-        if (layout) {
-          window.splitRight(layout.activeGroupId);
+        if (typeof window.splitRight === 'function') {
+          window.splitRight();
         }
       }
 
@@ -768,9 +736,9 @@
       if (mod && ['1', '2', '3', '4'].indexOf(e.key) !== -1) {
         e.preventDefault();
         var idx = parseInt(e.key) - 1;
-        var layout2 = window._workspaceLayout;
-        if (layout2 && layout2.groups[idx]) {
-          window.setActiveGroup(layout2.groups[idx].id);
+        var dv2 = window._dockview;
+        if (dv2 && dv2.groups && dv2.groups[idx]) {
+          dv2.groups[idx].focus();
         }
       }
     };
@@ -890,8 +858,7 @@
           section: 'View',
           hotkey: 'ctrl+\\',
           handler: function () {
-            var layout = window._workspaceLayout;
-            if (layout) window.splitRight(layout.activeGroupId);
+            if (typeof window.splitRight === 'function') window.splitRight();
           }
         },
         {
@@ -899,9 +866,9 @@
           title: 'Close Group',
           section: 'View',
           handler: function () {
-            var layout = window._workspaceLayout;
-            if (layout && layout.groups.length > 1) {
-              layout.removeGroup(layout.activeGroupId);
+            var dv = window._dockview;
+            if (dv && dv.activeGroup) {
+              dv.activeGroup.api.close();
             }
           }
         },
@@ -1554,23 +1521,18 @@
     initPanelDragDrop();
     restorePanelPositions();
 
-    // Initialize workspace layout (migrates old tab state, builds multi-group DOM)
+    // Initialize workspace layout (dockview)
     if (typeof window.initWorkspaceLayout === 'function') {
       window.initWorkspaceLayout();
-      // Restore accent bar based on the currently focused tab in each group.
+      // Restore accent bar based on the currently active dockview panel.
       // Accent = focused tab is an object tab; settings/views = off.
-      // Must run immediately after initWorkspaceLayout so _workspaceLayout is set.
+      // Must run immediately after initWorkspaceLayout so _dockview is set.
       (function restoreAccentBar() {
-        var wl = window._workspaceLayout;
-        if (!wl) return;
-        var hasFocusedObjectTab = wl.groups.some(function(g) {
-          if (!g.activeTabId) return false;
-          var activeTab = g.tabs.find(function(t) { return (t.id || t.iri) === g.activeTabId; });
-          if (!activeTab) return false;
-          var tid = activeTab.id || activeTab.iri || '';
-          return !activeTab.isView && !tid.startsWith('view:') && !tid.startsWith('special:');
-        });
-        setContextualPanelActive(hasFocusedObjectTab);
+        var dv = window._dockview;
+        if (!dv || !dv.activePanel) return;
+        var panelId = dv.activePanel.id;
+        var isObjectTab = panelId && !panelId.startsWith('view:') && !panelId.startsWith('special:');
+        setContextualPanelActive(isObjectTab);
       }());
     }
 
@@ -1676,16 +1638,16 @@
       if (titleEl) titleEl.textContent = newLabel;
     }
 
-    // Update tab label in the layout model and re-render the tab bar
-    var layout = window._workspaceLayout;
-    if (layout) {
-      (layout.groups || []).forEach(function (group) {
-        var tab = (group.tabs || []).find(function (t) { return (t.id || t.iri) === iri; });
-        if (tab) {
-          tab.label = newLabel;
-          if (typeof renderGroupTabBar === 'function') renderGroupTabBar(group);
-        }
-      });
+    // Update tab label in the _tabMeta sidecar and dockview panel title
+    if (window._tabMeta && window._tabMeta[iri]) {
+      window._tabMeta[iri].label = newLabel;
+    }
+    var dv = window._dockview;
+    if (dv) {
+      var panel = dv.panels.find(function(p) { return p.id === iri; });
+      if (panel) {
+        panel.api.setTitle(newLabel);
+      }
     }
   });
 
