@@ -129,6 +129,7 @@ async def sparql_post(
 async def search_knowledge_base(
     q: str = Query(..., min_length=2, description="Search query (minimum 2 characters)"),
     limit: int = Query(20, ge=1, le=100, description="Maximum results to return"),
+    fuzzy: bool = Query(False, description="Enable fuzzy (typo-tolerant) matching for tokens >=5 chars"),
     user: User = Depends(get_current_user),
     search_service: SearchService = Depends(get_search_service),
 ) -> JSONResponse:
@@ -137,12 +138,17 @@ async def search_knowledge_base(
     Searches all literal values in urn:sempkm:current using LuceneSail.
     Results are ranked by relevance score and include IRI, type, label, and snippet.
 
+    When fuzzy=true, tokens with 5+ characters receive ~1 edit-distance expansion
+    for typo tolerance. Short tokens (<5 chars) always use exact match.
+
     Returns:
-        JSON: {"results": [{"iri", "type", "label", "snippet", "score"}], "count": N, "query": q}
+        JSON: {"results": [{"iri", "type", "label", "snippet", "score"}], "count": N,
+               "query": q, "fuzzy": bool}
     """
-    results = await search_service.search(query=q, limit=limit)
+    results = await search_service.search(query=q, limit=limit, fuzzy=fuzzy)
     return JSONResponse(content={
         "query": q,
+        "fuzzy": fuzzy,
         "count": len(results),
         "results": [
             {
