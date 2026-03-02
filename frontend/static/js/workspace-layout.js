@@ -128,9 +128,11 @@
     // Clear old sessionStorage format (migration)
     sessionStorage.removeItem('sempkm_workspace_layout');
 
-    // Create dockview
+    // Create dockview — disable built-in theme so our bridge CSS variables on :root
+    // aren't overridden by .dockview-theme-abyss (the default)
     var dv = new DockviewComponent(container, {
-      createComponent: createComponentFn
+      createComponent: createComponentFn,
+      theme: { className: '' }
     });
 
     // Wire layout change: save to sessionStorage + re-process htmx on reparented panels
