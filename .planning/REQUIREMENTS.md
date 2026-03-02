@@ -7,7 +7,7 @@
 
 ### Dockview Migration
 
-- [ ] **DOCK-01**: User can open and manage object tabs rendered in dockview-core panels (Phase A: editor-pane area replaces Split.js; old HTML5 drag system removed in same commit)
+- [x] **DOCK-01**: User can open and manage object tabs rendered in dockview-core panels (Phase A: editor-pane area replaces Split.js; old HTML5 drag system removed in same commit)
 - [ ] **DOCK-02**: User can save named workspace layouts and restore them via the Command Palette; layouts persist across sessions
 
 ### Object View
@@ -61,7 +61,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | FTS-04 | Phase 29 | Complete |
-| DOCK-01 | Phase 30 | Pending |
+| DOCK-01 | Phase 30 | Complete |
 | VIEW-01 | Phase 31 | Pending |
 | VIEW-02 | Phase 32 | Pending |
 | BUG-01 | Phase 32 | Pending |
