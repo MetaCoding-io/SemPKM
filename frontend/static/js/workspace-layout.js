@@ -23,10 +23,10 @@
 
   var DV_LAYOUT_KEY = 'sempkm_workspace_layout_dv';
 
-  // Resolve DockviewComponent from CDN global (namespaced or direct)
-  var DockviewComponent = (typeof DockviewCore !== 'undefined')
-    ? DockviewCore.DockviewComponent
-    : window.DockviewComponent;
+  // Resolve DockviewComponent from CDN global
+  // dockview-core UMD creates globalThis["dockview-core"] (hyphenated key)
+  var _dvModule = window['dockview-core'] || window.DockviewCore || window.dockview;
+  var DockviewComponent = _dvModule ? _dvModule.DockviewComponent : null;
 
   // Reference to the layout instance (set by initWorkspaceLayout)
   var layout = null;
@@ -48,12 +48,18 @@
   // -----------------------------------------------------------------------
 
   function createComponentFn(options) {
+    // dockview-core 4.11 IContentRenderer: { element: HTMLElement, init(params), dispose?() }
+    // dockview appends `element` into the panel container DOM.
+    var el = document.createElement('div');
+    el.style.cssText = 'width:100%;height:100%;overflow:auto;';
+
     if (options.name === 'object-editor') {
       return {
+        element: el,
         init: function (params) {
           var iri = params.params.iri;
           htmx.ajax('GET', '/browser/object/' + encodeURIComponent(iri), {
-            target: params.containerElement, swap: 'innerHTML'
+            target: el, swap: 'innerHTML'
           });
           // Visibility handler: re-measure CodeMirror when panel re-shown
           params.api.onDidVisibilityChange(function (event) {
@@ -69,11 +75,12 @@
     }
     if (options.name === 'view-panel') {
       return {
+        element: el,
         init: function (params) {
           var vt = params.params.viewType;
           var vid = params.params.viewId;
           var url = '/browser/views/' + vt + '/' + encodeURIComponent(vid);
-          htmx.ajax('GET', url, { target: params.containerElement, swap: 'innerHTML' });
+          htmx.ajax('GET', url, { target: el, swap: 'innerHTML' });
           params.api.onDidVisibilityChange(function (event) {
             if (!event.isVisible) return;
             if (window._cytoscapeInstances && window._cytoscapeInstances[vid]) {
@@ -86,13 +93,14 @@
     }
     if (options.name === 'special-panel') {
       return {
+        element: el,
         init: function (params) {
           var st = params.params.specialType;
-          htmx.ajax('GET', '/browser/' + st, { target: params.containerElement, swap: 'innerHTML' });
+          htmx.ajax('GET', '/browser/' + st, { target: el, swap: 'innerHTML' });
         }
       };
     }
-    return { init: function () {} };
+    return { element: el, init: function () {} };
   }
 
   // -----------------------------------------------------------------------
@@ -111,6 +119,11 @@
   function initWorkspaceLayout() {
     var container = document.getElementById('editor-groups-container');
     if (!container) return;
+
+    if (!DockviewComponent) {
+      console.error('SemPKM: DockviewComponent not available — dockview CDN may not have loaded.');
+      return;
+    }
 
     // Clear old sessionStorage format (migration)
     sessionStorage.removeItem('sempkm_workspace_layout');
@@ -194,8 +207,8 @@
    */
   function getActiveEditorArea() {
     var dv = window._dockview;
-    if (dv && dv.activePanel && dv.activePanel.view) {
-      return dv.activePanel.view.contentContainer;
+    if (dv && dv.activePanel && dv.activePanel.view && dv.activePanel.view.content) {
+      return dv.activePanel.view.content.element;
     }
     return null;
   }
