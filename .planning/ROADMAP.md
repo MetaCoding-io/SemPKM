@@ -92,7 +92,11 @@
   2. User can toggle fuzzy mode on/off from within the Ctrl+K palette; the toggle state persists across sessions via localStorage
   3. Tokens shorter than 5 characters are matched exactly even when fuzzy mode is on (no noise from short-token approximate expansion)
   4. Multi-word queries fuzzy-match each qualifying token independently (e.g. "alice smth" finds "Alice Smith")
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 29-01-PLAN.md — Backend: _normalize_query() in SearchService, fuzzy param on /api/search, fuzzyPrefixLength TTL config
+- [ ] 29-02-PLAN.md — Frontend: fuzzy toggle command in ninja-keys Ctrl+K palette with localStorage persistence
 
 ### Phase 30: Dockview Phase A Migration
 **Goal**: Users manage object tabs through dockview-core panels with native drag-to-reorder and group splitting; old HTML5 drag system is gone
