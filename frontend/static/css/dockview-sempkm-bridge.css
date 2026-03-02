@@ -1,15 +1,6 @@
-/* ============================================
-   Dockview <-> SemPKM Token Bridge
+/* === Dockview <-> SemPKM Token Bridge ===
    Maps dockview-core CSS variables (--dv-*) to SemPKM semantic tokens.
-
-   STATUS: Pattern file -- NOT loaded by the application.
-   Load this AFTER theme.css in v2.3 Phase A when integrating dockview-core.
-
-   Usage (v2.3 Phase A):
-     <link rel="stylesheet" href="/static/css/theme.css">
-     <link rel="stylesheet" href="/static/css/dockview-sempkm-bridge.css">
-     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dockview-core/dist/styles/dockview.css">
-   ============================================ */
+   Loaded by workspace.html BEFORE dockview.css so tokens are available. */
 
 :root {
   /* --- Tab Bar --- */
