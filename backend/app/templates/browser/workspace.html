@@ -4,6 +4,13 @@
 
 {% block layout_class %}workspace-layout{% endblock %}
 
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="/static/css/dockview-sempkm-bridge.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dockview-core@4.11.0/dist/styles/dockview.css">
+<script src="https://cdn.jsdelivr.net/npm/dockview-core@4.11.0/dist/dockview-core.min.js"></script>
+{% endblock %}
+
 {% block content %}
 
 <div class="workspace-container" id="workspace" data-testid="workspace">
@@ -46,18 +53,7 @@
 
     <div class="workspace-pane editor-column" id="editor-pane" data-testid="editor-area">
         <div class="editor-groups-container" id="editor-groups-container">
-            <!-- Groups injected by workspace-layout.js initWorkspaceLayout() -->
-            <div class="editor-group" id="group-1">
-                <div class="group-tab-bar tab-bar-workspace" id="tab-bar-group-1" data-testid="tab-bar">
-                    <div class="tab-empty-state">No objects open</div>
-                </div>
-                <div class="group-editor-area" id="editor-area-group-1">
-                    <div class="editor-empty">
-                        <p>Select an object from the Explorer to open it here.</p>
-                        <p class="hint">Or press <kbd>Ctrl</kbd>+<kbd>K</kbd> to open the command palette.</p>
-                    </div>
-                </div>
-            </div>
+            <!-- dockview creates all internal DOM via workspace-layout.js initWorkspaceLayout() -->
         </div>
         <!-- Panel resize handle: thin strip draggable to resize panel height -->
         <div class="panel-resize-handle" id="panel-resize-handle"></div>
