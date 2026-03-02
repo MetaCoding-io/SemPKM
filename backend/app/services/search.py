@@ -68,16 +68,47 @@ class SearchService:
     def __init__(self, client: TriplestoreClient) -> None:
         self._client = client
 
+    def _normalize_query(self, query: str, fuzzy: bool = False) -> str:
+        """Normalize a user query string for LuceneSail.
+
+        In fuzzy mode, appends ~1 (edit distance 1) to tokens with 5+ characters.
+        Tokens shorter than 5 characters always use exact match to avoid
+        dictionary-scan noise from fuzzy expansion.
+
+        Args:
+            query: Raw user query string.
+            fuzzy: Whether to apply fuzzy expansion.
+
+        Returns:
+            Normalized Lucene query string.
+        """
+        q = query.strip()
+        if not fuzzy:
+            return q
+        tokens = q.split()
+        normalized = []
+        for token in tokens:
+            # Skip tokens that already have an operator suffix (~, *, ?)
+            if len(token) >= 5 and token[-1] not in ('~', '*', '?'):
+                normalized.append(token + '~1')
+            else:
+                normalized.append(token)
+        return ' '.join(normalized)
+
     async def search(
         self,
         query: str,
         limit: int = 20,
+        fuzzy: bool = False,
     ) -> list[SearchResult]:
         """Search all literal values in urn:sempkm:current for the given query.
 
         Args:
             query: Lucene query string (e.g. "knowledge base", "knowl*")
             limit: Maximum number of results to return (default 20)
+            fuzzy: If True, applies ~1 fuzzy expansion to tokens with 5+ characters
+                   to tolerate typos. Short tokens (<5 chars) stay exact to avoid
+                   dictionary-scan noise. Default False (exact match).
 
         Returns:
             List of SearchResult ordered by relevance score descending.
@@ -85,7 +116,8 @@ class SearchService:
         if not query or not query.strip():
             return []
 
-        sparql = FTS_QUERY.format(query=query.strip(), limit=limit)
+        normalized = self._normalize_query(query, fuzzy)
+        sparql = FTS_QUERY.format(query=normalized, limit=limit)
         try:
             result = await self._client.query(sparql)
         except Exception:
