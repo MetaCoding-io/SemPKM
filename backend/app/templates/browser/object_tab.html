@@ -115,24 +115,12 @@
     var tabKey = '{{ object_iri }}';
     var typeIcon = '{{ type_icon.icon if type_icon else "" }}';
     var typeColor = '{{ type_icon.color if type_icon else "" }}';
-    if (typeIcon && window._workspaceLayout) {
-      var layoutObj = window._workspaceLayout;
-      Object.values(layoutObj.groups || {}).forEach(function (group) {
-        (group.tabs || []).forEach(function (tab) {
-          if ((tab.id || tab.iri) === tabKey) {
-            tab.typeIcon = typeIcon;
-            tab.typeColor = typeColor;
-          }
-        });
-      });
-      // Re-render the tab bar of the group that contains this tab
-      if (typeof renderGroupTabBar === 'function') {
-        (layoutObj.groups || []).forEach(function (group) {
-          if ((group.tabs || []).some(function (t) { return (t.id || t.iri) === tabKey; })) {
-            renderGroupTabBar(group);
-          }
-        });
-      }
+    if (typeIcon) {
+      if (!window._tabMeta) window._tabMeta = {};
+      if (!window._tabMeta[tabKey]) window._tabMeta[tabKey] = {};
+      window._tabMeta[tabKey].typeIcon = typeIcon;
+      window._tabMeta[tabKey].typeColor = typeColor;
+      // renderGroupTabBar is a no-op in the dockview world — dockview renders tabs natively
     }
   })();
 </script>
