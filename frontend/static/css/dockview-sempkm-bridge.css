@@ -16,6 +16,7 @@
   --dv-inactivegroup-hiddenpanel-tab-color: var(--color-text-faint);
 
   /* --- Panel / Group --- */
+  --dv-background-color: var(--panel-content-bg);
   --dv-group-view-background-color: var(--panel-content-bg);
   --dv-paneview-header-border-color: var(--color-border);
   --dv-paneview-active-outline-color: var(--color-accent);
