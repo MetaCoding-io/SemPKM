@@ -15,6 +15,7 @@
   var PANE_KEY = 'sempkm_pane_sizes';
   var PANEL_KEY = 'sempkm_bottom_panel';
   var PANEL_POSITIONS_KEY = 'sempkm_panel_positions';
+  var FUZZY_KEY = 'sempkm_fts_fuzzy';
 
   // --- Bottom Panel State ---
   var panelState = { open: false, height: 30, activeTab: 'event-log', maximized: false };
@@ -1062,11 +1063,41 @@
   function _initFtsSearch(ninja) {
     var _ftsDebounce = null;
     var _ftsAbort = null;
+    var _fuzzyEnabled = localStorage.getItem(FUZZY_KEY) === 'true';
+
+    function _updateFuzzyTitle() {
+      var idx = ninja.data.findIndex(function(d) { return d.id === 'search-fuzzy-toggle'; });
+      if (idx === -1) return;
+      var newData = ninja.data.slice();
+      newData[idx] = Object.assign({}, newData[idx], {
+        title: _fuzzyEnabled
+          ? 'Search: Fuzzy Mode ON \u2014 click to disable'
+          : 'Search: Fuzzy Mode OFF \u2014 click to enable'
+      });
+      ninja.data = newData;
+    }
+
+    // Add fuzzy toggle command. ID does NOT start with 'fts-' so it is never
+    // removed by the change listener's startsWith('fts-') filter.
+    ninja.data = ninja.data.concat([{
+      id: 'search-fuzzy-toggle',
+      title: _fuzzyEnabled
+        ? 'Search: Fuzzy Mode ON \u2014 click to disable'
+        : 'Search: Fuzzy Mode OFF \u2014 click to enable',
+      section: 'Search',
+      handler: function() {
+        _fuzzyEnabled = !_fuzzyEnabled;
+        try {
+          localStorage.setItem(FUZZY_KEY, String(_fuzzyEnabled));
+        } catch (e) {}
+        _updateFuzzyTitle();
+      }
+    }]);
 
     ninja.addEventListener('change', function(e) {
       var query = (e.detail && e.detail.search) ? e.detail.search : '';
       if (!query || query.length < 2) {
-        // Remove any existing FTS results
+        // Remove FTS result entries only (startsWith 'fts-') — toggle is 'search-fuzzy-toggle'
         ninja.data = ninja.data.filter(function(d) { return !d.id.startsWith('fts-'); });
         return;
       }
@@ -1079,7 +1110,10 @@
         var controller = new AbortController();
         _ftsAbort = controller;
 
-        fetch('/api/search?q=' + encodeURIComponent(query) + '&limit=10', {
+        var url = '/api/search?q=' + encodeURIComponent(query) + '&limit=10'
+                + (_fuzzyEnabled ? '&fuzzy=true' : '');
+
+        fetch(url, {
           signal: controller.signal,
           credentials: 'same-origin'
         })
@@ -1087,15 +1121,14 @@
           .then(function(data) {
             if (!data || !data.results) return;
 
-            // Remove previous FTS entries, keep non-FTS entries
+            // Remove previous FTS result entries, keep non-FTS entries (including toggle)
             var baseData = ninja.data.filter(function(d) { return !d.id.startsWith('fts-'); });
 
             var ftsItems = data.results.map(function(r) {
               var icon = _typeToIcon(r.type);
-              // Build title: label + truncated snippet
-              var snippet = r.snippet ? ' — ' + r.snippet.replace(/<\/?[^>]+>/g, '').substring(0, 60) : '';
+              var snippet = r.snippet ? ' \u2014 ' + r.snippet.replace(/<\/?[^>]+>/g, '').substring(0, 60) : '';
               return {
-                id: 'fts-' + r.iri,
+                id: 'fts-' + r.iri,   // Keep 'fts-' prefix — E2E test checks startsWith('fts-')
                 title: r.label + snippet,
                 section: 'Search',
                 icon: icon,
