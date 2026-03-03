@@ -21,7 +21,7 @@
 (function () {
   'use strict';
 
-  var DV_LAYOUT_KEY = 'sempkm_workspace_layout_dv';
+  var DV_LAYOUT_KEY = 'sempkm_layout_current';
 
   // Resolve DockviewComponent from CDN global
   // dockview-core UMD creates globalThis["dockview-core"] (hyphenated key)
@@ -51,6 +51,7 @@
     // dockview-core 4.11 IContentRenderer: { element: HTMLElement, init(params), dispose?() }
     // dockview appends `element` into the panel container DOM.
     var el = document.createElement('div');
+    el.classList.add('group-editor-area');
     el.style.cssText = 'width:100%;height:100%;overflow:auto;';
 
     if (options.name === 'object-editor') {
@@ -58,7 +59,10 @@
         element: el,
         init: function (params) {
           var iri = params.params.iri;
-          htmx.ajax('GET', '/browser/object/' + encodeURIComponent(iri), {
+          var mode = params.params.mode || 'read';
+          var url = '/browser/object/' + encodeURIComponent(iri);
+          if (mode !== 'read') url += '?mode=' + encodeURIComponent(mode);
+          htmx.ajax('GET', url, {
             target: el, swap: 'innerHTML'
           });
           // Visibility handler: re-measure CodeMirror when panel re-shown
@@ -125,8 +129,15 @@
       return;
     }
 
-    // Clear old sessionStorage format (migration)
-    sessionStorage.removeItem('sempkm_workspace_layout');
+    // Migration: move old sessionStorage key to localStorage if present
+    var _oldSessionKey = 'sempkm_workspace_layout_dv';
+    var _oldSessionData = sessionStorage.getItem(_oldSessionKey);
+    if (_oldSessionData) {
+      try {
+        localStorage.setItem(DV_LAYOUT_KEY, _oldSessionData);
+      } catch (e) {}
+      sessionStorage.removeItem(_oldSessionKey);
+    }
 
     // Create dockview — disable built-in theme so our bridge CSS variables on :root
     // aren't overridden by .dockview-theme-abyss (the default)
@@ -135,10 +146,10 @@
       theme: { className: '' }
     });
 
-    // Wire layout change: save to sessionStorage + re-process htmx on reparented panels
+    // Wire layout change: save to localStorage + re-process htmx on reparented panels
     dv.onDidLayoutChange(function () {
       try {
-        sessionStorage.setItem(DV_LAYOUT_KEY, JSON.stringify(dv.toJSON()));
+        localStorage.setItem(DV_LAYOUT_KEY, JSON.stringify(dv.toJSON()));
       } catch (e) {}
       document.querySelectorAll('.dv-content-container').forEach(function (el) {
         htmx.process(el);
@@ -171,10 +182,10 @@
       }
     });
 
-    // Restore saved layout or build default
+    // Restore saved layout or build default (localStorage, with sessionStorage migration fallback)
     var saved = null;
     try {
-      var raw = sessionStorage.getItem(DV_LAYOUT_KEY);
+      var raw = localStorage.getItem(DV_LAYOUT_KEY);
       if (raw) saved = JSON.parse(raw);
     } catch (e) {}
 
@@ -183,13 +194,20 @@
         dv.fromJSON(saved);
       } catch (err) {
         console.warn('SemPKM: saved dockview layout incompatible, rebuilding.', err);
-        sessionStorage.removeItem(DV_LAYOUT_KEY);
+        localStorage.removeItem(DV_LAYOUT_KEY);
         // Do NOT call dv.clear() -- causes second "Invalid grid element" error
         buildDefaultLayout(dv);
       }
     } else {
       buildDefaultLayout(dv);
     }
+
+    // Belt-and-suspenders: also save on beforeunload
+    window.addEventListener('beforeunload', function () {
+      try {
+        localStorage.setItem(DV_LAYOUT_KEY, JSON.stringify(dv.toJSON()));
+      } catch (e) {}
+    });
 
     // Export
     window._dockview = dv;
@@ -222,7 +240,11 @@
     var dv = window._dockview;
     if (!dv) return;
     var activePanel = dv.activePanel;
-    if (!activePanel) return;
+    if (!activePanel) {
+      // No active panel: create an empty group to the right
+      dv.addGroup({ direction: 'right' });
+      return;
+    }
     var newId = activePanel.id + '-split-' + Date.now();
     _tabMeta[newId] = Object.assign({}, _tabMeta[activePanel.id] || {}, { dirty: false });
     dv.addPanel({
