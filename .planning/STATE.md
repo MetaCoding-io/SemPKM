@@ -8,7 +8,7 @@ progress:
   total_phases: 11
   completed_phases: 11
   total_plans: 32
-  completed_plans: 32
+  completed_plans: 33
 ---
 
 # Project State
@@ -18,23 +18,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-01)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations — no blank-page syndrome, no schema setup.
-**Current focus:** v2.3 Shell, Navigation & Views — Phase 32 Plan 01 complete, Plan 02 next
+**Current focus:** v2.3 Shell, Navigation & Views — Phase 32 complete, Phase 33 next
 
 ## Current Position
 
-Phase: 32 of 34 (Carousel Views and View Bug Fixes) — In progress
-Current Plan: 1 of 2
-Status: Plan 01 complete — htmx target fixes, view-type-switcher removal, card accordion redesign
-Last activity: 2026-03-03 - Completed 32-01: View bug fixes and card accordion
+Phase: 32 of 34 (Carousel Views and View Bug Fixes) — Complete
+Current Plan: 2 of 2
+Status: Phase complete — carousel tab bar with two-container view switching pattern
+Last activity: 2026-03-03 - Completed 32-02: Carousel tab bar with localStorage persistence
 
-Progress: [███████░░░] 75% (4.5/6 phases)
+Progress: [████████░░] 83% (5/6 phases)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8 (v2.3)
-- Average duration: 4.0 min
-- Total execution time: 32 min
+- Total plans completed: 9 (v2.3)
+- Average duration: 3.9 min
+- Total execution time: 35 min
 
 **By Phase:**
 
@@ -43,7 +43,7 @@ Progress: [███████░░░] 75% (4.5/6 phases)
 | 29-fts-fuzzy-search | 2 | 3 min | 1.5 min |
 | 30-dockview-phase-a-migration | 3 | 15 min | 5.0 min |
 | 31-object-view-redesign | 2 | 11 min | 5.5 min |
-| 32-carousel-views-and-view-bug-fixes | 1 | 3 min | 3.0 min |
+| 32-carousel-views-and-view-bug-fixes | 2 | 6 min | 3.0 min |
 
 *Updated after each plan completion*
 
@@ -79,6 +79,9 @@ Full decision log in PROJECT.md Key Decisions table.
 - 32-01: All view htmx targets use closest .group-editor-area (not #editor-area) for dockview compatibility
 - 32-01: Card accordion collapse state is ephemeral (no localStorage persistence); all groups expanded by default
 - 32-01: "Ungrouped" replaces "(No value)" and sorts last via tuple key (x[0] == "Ungrouped", x[0])
+- 32-02: Two-container pattern eliminates _carouselSwitching flag -- carousel bar outside .carousel-view-body swap target
+- 32-02: sempkm_carousel_view localStorage key maps type_iri to spec_iri for per-type view persistence
+- 32-02: outerHTML swap with select: '.carousel-view-body' extracts only view body from response
 
 ### Pending Todos
 
@@ -111,5 +114,5 @@ Full decision log in PROJECT.md Key Decisions table.
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 32-01-PLAN.md (view bug fixes and card accordion)
-Resume file: .planning/phases/32-carousel-views-and-view-bug-fixes/32-02-PLAN.md
+Stopped at: Completed 32-02-PLAN.md (carousel tab bar with two-container pattern)
+Resume file: Phase 32 complete. Next: Phase 33
