@@ -63,13 +63,21 @@
 {% endmacro %}
 
 {% if groups %}
-{# Grouped cards mode #}
+{# Grouped cards mode — accordion sections #}
 {% for group in groups %}
-<h3 class="card-group-header">{{ group.group_label }}</h3>
-<div class="card-grid">
-    {% for card in group.cards %}
-    {{ render_card(card) }}
-    {% endfor %}
+<div class="card-group-section">
+    <div class="card-group-header" onclick="toggleCardGroup(this)">
+        <span class="card-group-chevron"><i data-lucide="chevron-down"></i></span>
+        <span class="card-group-label">{{ group.group_label }}</span>
+        <span class="card-group-count">({{ group.cards|length }})</span>
+    </div>
+    <div class="card-group-body">
+        <div class="card-grid">
+            {% for card in group.cards %}
+            {{ render_card(card) }}
+            {% endfor %}
+        </div>
+    </div>
 </div>
 {% endfor %}
 
@@ -94,6 +102,14 @@
 {% include "browser/pagination.html" %}
 
 <script>
+function toggleCardGroup(header) {
+    var body = header.nextElementSibling;
+    body.classList.toggle('collapsed');
+    header.classList.toggle('collapsed');
+}
+
+if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+
 function focusCard(card) {
     // Clone the card's inner (front + back) into a portal on body
     var inner = card.querySelector('.flip-card-inner');

@@ -657,7 +657,7 @@ WHERE {{
                             group_vals.append(raw)
                         break
                 if not group_vals:
-                    group_vals = ["(No value)"]
+                    group_vals = ["Ungrouped"]
                 for gv in group_vals:
                     if gv not in group_map:
                         group_map[gv] = []
@@ -665,7 +665,7 @@ WHERE {{
 
             groups = [
                 {"group_label": k, "cards": v}
-                for k, v in sorted(group_map.items())
+                for k, v in sorted(group_map.items(), key=lambda x: (x[0] == "Ungrouped", x[0]))
             ]
 
         return {
