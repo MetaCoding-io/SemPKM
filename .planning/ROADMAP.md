@@ -9,6 +9,7 @@
 - 🚧 **v2.3 Shell, Navigation & Views** — Phases 29-34 (in progress)
 - (future) **SPARQL Interface** -- Rich SPARQL query experience with permissions, autocomplete, pills, history, saved queries, and named query views
 - (future) **Collaboration & Federation** -- Multi-instance sync via RDF Patch, cross-instance notifications (LDN), federated identity (WebID), and future CRDT-based real-time co-editing — [Research](research/collaboration-architecture.md)
+- (future) **Identity & Authentication** -- WebID profiles, IndieAuth provider, did:web DIDs, RDF graph signing, Verifiable Credentials for knowledge attestation — [Research](research/decentralized-identity.md)
 
 ## Phases
 

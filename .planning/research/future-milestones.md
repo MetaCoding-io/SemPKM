@@ -292,10 +292,77 @@ CRDT-based concurrent editing — **build only when ecosystem is ready.**
 
 ---
 
+## Milestone: (Future) Identity & Authentication
+
+**Goal:** Make SemPKM users verifiable identities on the web. Serve WebID profiles, provide IndieAuth login, issue DID-based identifiers, sign knowledge graphs cryptographically, and issue Verifiable Credentials for knowledge attestation.
+
+**Depends on:** Can start independently (Phases A-B have no dependencies). Phases C-D depend on Collaboration & Federation milestone (cross-instance sharing needs signed graphs).
+
+**Research:** [`decentralized-identity.md`](decentralized-identity.md) — comprehensive analysis of DIDs, VCs, WebID, IndieAuth, did:web, did:plc, RDF graph signing (50+ sources)
+
+### Phase A: WebID Profiles + rel="me"
+
+Serve user URLs as RDF via content negotiation. Immediate interop with Solid ecosystem and fediverse.
+
+- Content negotiation on `/users/{username}`: Turtle for RDF clients, HTML for browsers
+- FOAF/schema.org properties from existing user data in triplestore
+- `rel="me"` links on profile pages for [RelMeAuth](https://indieweb.org/RelMeAuth) fediverse verification
+- Key tech: existing RDF4J + FastAPI content negotiation
+
+### Phase B: IndieAuth Provider
+
+[IndieAuth](https://indieauth.spec.indieweb.org/) (OAuth2 + URL-as-identity) lets SemPKM users sign into other IndieWeb services.
+
+- Authorization endpoint: `/auth/indieauth/authorize`
+- Token endpoint: `/auth/indieauth/token`
+- Server metadata at `rel=indieauth-metadata`
+- Mandatory PKCE per current spec
+- Python libs: [indieweb-utils](https://indieweb-utils.readthedocs.io/en/latest/indieauth.html), [Punyauth](https://github.com/cleverdevil/punyauth), [Alto](https://github.com/capjamesg/alto)
+
+### Phase C: did:web DID Documents + Graph Signing
+
+[did:web](https://w3c-ccg.github.io/did-method-web/) maps to existing HTTPS. Each user gets a globally resolvable DID.
+
+- Generate Ed25519 key pairs per user (server-managed, stored encrypted)
+- Serve DID Documents at `/.well-known/did.json` (instance) and `/users/{username}/did.json` (per-user)
+- Sign named graphs: [URDNA2015](https://www.w3.org/news/2024/rdf-dataset-canonicalization-is-a-w3c-recommendation/) canonicalization → SHA-256 → Ed25519 signature
+- Store proofs as RDF in triplestore (native JSON-LD)
+- Key risk: key management UX — users must never handle keys directly
+
+### Phase D: Verifiable Credentials
+
+[VC 2.0](https://www.w3.org/TR/vc-data-model-2.0/) (W3C Rec, May 2025) for knowledge attestation.
+
+- Issue authorship/contribution VCs using DID assertion keys
+- VC verification endpoint: `/api/vc/verify`
+- Credential types: authorship, membership, data integrity certificates
+- VCs stored as RDF named graphs (JSON-LD is RDF)
+- Cross-instance knowledge sharing with signed, verifiable provenance
+
+### Phase E: did:webvh Migration (Future)
+
+Upgrade from did:web to [did:webvh](https://identity.foundation/didwebvh/v0.3/) for verifiable history.
+
+- `did.jsonl` cryptographic version chain
+- Pre-rotation for key compromise recovery
+- Optional witness support
+- Python implementation exists (~1500 LOC)
+- Build when [DID Methods WG](https://w3c.github.io/did-methods-wg-charter/2025/did-methods-wg.html) standardizes web-based method
+
+### What NOT to Build
+- Full Solid Pod provider (different problem, no SPARQL)
+- AT Protocol / did:plc integration (incompatible data models, depends on plc.directory)
+- Blockchain-based DIDs (unnecessary complexity)
+- Custom DID method (use existing methods)
+- Full SSI wallet (overkill for PKM)
+
+---
+
 ## Research Artifacts
 
 - `virtual-filesystem.md` — Comprehensive prior art + design for VFS feature (ready for Phase 22 validation)
 - `collaboration-architecture.md` — SOLID, ActivityPub, RDF sync, CRDTs, hypertext collaboration research (2026-03-03)
+- `decentralized-identity.md` — DIDs, VCs, WebID, IndieAuth, RDF graph signing research (2026-03-03)
 
 ---
 
