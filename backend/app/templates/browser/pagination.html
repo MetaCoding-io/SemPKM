@@ -11,7 +11,7 @@
         <a class="pagination-btn"
            href="#"
            hx-get="{{ pag_base }}?page={{ page - 1 }}&sort={{ sort_col | default('') }}&dir={{ sort_dir | default('asc') }}&filter={{ current_filter | urlencode }}&page_size={{ page_size }}{{ pag_extra }}"
-           hx-target="#editor-area"
+           hx-target="closest .group-editor-area"
            hx-swap="innerHTML">&laquo; Prev</a>
         {% else %}
         <span class="pagination-btn disabled">&laquo; Prev</span>
@@ -27,7 +27,7 @@
         <a class="pagination-num"
            href="#"
            hx-get="{{ pag_base }}?page=1&sort={{ sort_col | default('') }}&dir={{ sort_dir | default('asc') }}&filter={{ current_filter | urlencode }}&page_size={{ page_size }}{{ pag_extra }}"
-           hx-target="#editor-area"
+           hx-target="closest .group-editor-area"
            hx-swap="innerHTML">1</a>
         {% if start_page > 2 %}
         <span class="pagination-ellipsis">&hellip;</span>
@@ -41,7 +41,7 @@
         <a class="pagination-num"
            href="#"
            hx-get="{{ pag_base }}?page={{ p }}&sort={{ sort_col | default('') }}&dir={{ sort_dir | default('asc') }}&filter={{ current_filter | urlencode }}&page_size={{ page_size }}{{ pag_extra }}"
-           hx-target="#editor-area"
+           hx-target="closest .group-editor-area"
            hx-swap="innerHTML">{{ p }}</a>
         {% endif %}
         {% endfor %}
@@ -53,7 +53,7 @@
         <a class="pagination-num"
            href="#"
            hx-get="{{ pag_base }}?page={{ total_pages }}&sort={{ sort_col | default('') }}&dir={{ sort_dir | default('asc') }}&filter={{ current_filter | urlencode }}&page_size={{ page_size }}{{ pag_extra }}"
-           hx-target="#editor-area"
+           hx-target="closest .group-editor-area"
            hx-swap="innerHTML">{{ total_pages }}</a>
         {% endif %}
 
@@ -61,7 +61,7 @@
         <a class="pagination-btn"
            href="#"
            hx-get="{{ pag_base }}?page={{ page + 1 }}&sort={{ sort_col | default('') }}&dir={{ sort_dir | default('asc') }}&filter={{ current_filter | urlencode }}&page_size={{ page_size }}{{ pag_extra }}"
-           hx-target="#editor-area"
+           hx-target="closest .group-editor-area"
            hx-swap="innerHTML">Next &raquo;</a>
         {% else %}
         <span class="pagination-btn disabled">Next &raquo;</span>
@@ -73,9 +73,9 @@
                    min="1"
                    max="{{ total_pages }}"
                    placeholder="#"
-                   onkeydown="if(event.key==='Enter'){var p=this.value;if(p>=1&&p<={{ total_pages }}){htmx.ajax('GET','{{ pag_base }}?page='+p+'&sort={{ sort_col | default('') }}&dir={{ sort_dir | default('asc') }}&filter={{ current_filter | urlencode }}&page_size={{ page_size }}{{ pag_extra }}',{target:'#editor-area',swap:'innerHTML'})}}">
+                   onkeydown="if(event.key==='Enter'){var p=this.value;if(p>=1&&p<={{ total_pages }}){htmx.ajax('GET','{{ pag_base }}?page='+p+'&sort={{ sort_col | default('') }}&dir={{ sort_dir | default('asc') }}&filter={{ current_filter | urlencode }}&page_size={{ page_size }}{{ pag_extra }}',{target:this.closest('.group-editor-area'),swap:'innerHTML'})}}">
             <button class="pagination-btn btn-sm"
-                    onclick="var inp=this.previousElementSibling;var p=inp.value;if(p>=1&&p<={{ total_pages }}){htmx.ajax('GET','{{ pag_base }}?page='+p+'&sort={{ sort_col | default('') }}&dir={{ sort_dir | default('asc') }}&filter={{ current_filter | urlencode }}&page_size={{ page_size }}{{ pag_extra }}',{target:'#editor-area',swap:'innerHTML'})}">Go</button>
+                    onclick="var inp=this.previousElementSibling;var p=inp.value;if(p>=1&&p<={{ total_pages }}){htmx.ajax('GET','{{ pag_base }}?page='+p+'&sort={{ sort_col | default('') }}&dir={{ sort_dir | default('asc') }}&filter={{ current_filter | urlencode }}&page_size={{ page_size }}{{ pag_extra }}',{target:inp.closest('.group-editor-area'),swap:'innerHTML'})}">Go</button>
         </span>
     </div>
 </div>

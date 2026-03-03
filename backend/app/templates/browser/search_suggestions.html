@@ -19,7 +19,7 @@
 {% endif %}
 <div class="suggestion-item create-new"
      hx-get="/browser/objects/new?type={{ type_iri | urlencode }}"
-     hx-target="#editor-area"
+     hx-target="closest .group-editor-area"
      hx-swap="innerHTML">
     + Create new {{ type_label }}...
 </div>

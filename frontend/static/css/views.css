@@ -36,38 +36,6 @@
     white-space: nowrap;
 }
 
-.view-type-switcher {
-    display: flex;
-    gap: 2px;
-}
-
-.view-type-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    border: 1px solid var(--color-border);
-    border-radius: 4px;
-    background: var(--color-surface);
-    color: var(--color-text-muted);
-    font-size: 0.85rem;
-    cursor: pointer;
-    text-decoration: none;
-    transition: background 0.15s, border-color 0.15s, color 0.15s;
-}
-
-.view-type-btn:hover {
-    background: var(--color-surface-hover);
-    color: var(--color-text);
-}
-
-.view-type-btn.active {
-    background: var(--color-primary);
-    color: var(--color-avatar-text);
-    border-color: var(--color-primary);
-}
-
 .view-filter-input {
     width: 200px;
     padding: 5px 10px;
