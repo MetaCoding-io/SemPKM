@@ -21,9 +21,9 @@
 
 ### Bug Fixes
 
-- [ ] **BUG-01**: User sees correctly grouped concept cards when group-by is applied
+- [x] **BUG-01**: User sees correctly grouped concept cards when group-by is applied
 - [ ] **BUG-02**: User can access and use VFS mount configuration from the Settings page
-- [ ] **BUG-03**: Broken view switch buttons are removed from the object view (replaced by VIEW-02 carousel tab bar)
+- [x] **BUG-03**: Broken view switch buttons are removed from the object view (replaced by VIEW-02 carousel tab bar)
 
 ### Testing
 
@@ -121,8 +121,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DOCK-01 | Phase 30 | Complete |
 | VIEW-01 | Phase 31 | Complete |
 | VIEW-02 | Phase 32 | Pending |
-| BUG-01 | Phase 32 | Pending |
-| BUG-03 | Phase 32 | Pending |
+| BUG-01 | Phase 32 | Complete |
+| BUG-03 | Phase 32 | Complete |
 | DOCK-02 | Phase 33 | Pending |
 | BUG-02 | Phase 33 | Pending |
 | TEST-01 | Phase 34 | Pending |
