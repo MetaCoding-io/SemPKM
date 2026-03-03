@@ -225,9 +225,77 @@ These are from CONCERNS.md. Schedule as plan slots within feature milestones rat
 
 ---
 
+## Milestone: (Future) Collaboration & Federation
+
+**Goal:** Enable multi-instance knowledge sharing with data sovereignty. Self-hosted SemPKM instances sync named graphs, notify each other of changes, and authenticate cross-instance users. Real-time co-editing deferred until CRDT-for-RDF ecosystem matures.
+
+**Depends on:** SPARQL Interface milestone (permissions infrastructure needed for cross-instance access control)
+
+**Research:** [`collaboration-architecture.md`](collaboration-architecture.md) — comprehensive analysis of SOLID, ActivityPub, RDF sync, CRDTs, and hypertext collaboration patterns (40+ sources)
+
+### Phase A: RDF Patch Change Tracking
+
+Wrap triplestore writes to emit RDF Patch log entries. Foundation for all sync.
+
+- Patch log model (SQLAlchemy or append-only file per named graph)
+- EventStore integration: each commit() emits corresponding RDF Patch entries
+- Patch replay: apply a patch sequence to bring a graph to a target version
+- Graph versioning: monotonic version counter per named graph
+
+Key tech: [RDF Patch format](https://afs.github.io/rdf-patch/), [Jelly-Patch](https://jelly-rdf.github.io/dev/) (binary, when Python impl lands)
+
+### Phase B: Named Graph Sync API
+
+HTTP sync endpoint for exchanging patches between SemPKM instances.
+
+- `GET /api/sync/{graph}?since={version}` — returns patches since version
+- `POST /api/sync/{graph}` — accept and apply incoming patches
+- Remote configuration: list of peer instances with sync direction (push/pull/both)
+- Conflict detection: reject patches when base version has diverged (manual merge)
+- [SPARQL Graph Store Protocol](https://w3c.github.io/sparql-graph-store-protocol/) for full graph bootstrap
+
+### Phase C: Cross-Instance Notifications
+
+[Linked Data Notifications (LDN)](https://www.w3.org/TR/ldn/) for change awareness + [Webmention](https://www.w3.org/TR/webmention/) for cross-references.
+
+- LDN Inbox endpoint: receive notifications as JSON-LD
+- Subscription model: instance B subscribes to graph changes on instance A
+- Notification triggers pull-based sync from Phase B
+- Webmention: when an object references a URL on another instance, notify them
+
+### Phase D: Federated Identity (WebID)
+
+[WebID](https://www.w3.org/wiki/WebID) for cross-instance user identity + ACL on shared graphs.
+
+- Each SemPKM user gets a WebID (profile URL resolving to RDF)
+- WebID authentication for incoming sync/API requests
+- Named graph ACL: grant read/write to specific WebIDs
+- Local auth system unchanged; WebID layered on top for federation
+
+### Phase E: Collaboration UI
+
+User-facing features for managing shared graphs and remote instances.
+
+- Settings: manage remote instances (add, remove, sync status)
+- Graph sharing: select named graphs to share, set permissions per WebID
+- Sync status: visual indicator of sync state per graph (synced, pending, conflict)
+- Incoming changes: notification panel for cross-instance activity
+
+### Phase F: Real-Time Collaboration (Deferred)
+
+CRDT-based concurrent editing — **build only when ecosystem is ready.**
+
+- Watch: [W3C CRDT for RDF CG](https://www.w3.org/community/crdt4rdf/), [NextGraph](https://nextgraph.org/), [m-ld](https://m-ld.org/)
+- Integrate when a mature Python/JS library exists
+- Scope: concurrent editing of individual resources within shared named graphs
+- Until then, Layer 1 (patch-based async sync) handles collaboration
+
+---
+
 ## Research Artifacts
 
 - `virtual-filesystem.md` — Comprehensive prior art + design for VFS feature (ready for Phase 22 validation)
+- `collaboration-architecture.md` — SOLID, ActivityPub, RDF sync, CRDTs, hypertext collaboration research (2026-03-03)
 
 ---
 
