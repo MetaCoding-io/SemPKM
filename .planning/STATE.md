@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Shell, Navigation & Views
 status: executing
-last_updated: "2026-03-03T03:00:19Z"
+last_updated: "2026-03-03T06:12:28Z"
 progress:
   total_phases: 11
   completed_phases: 11
-  total_plans: 31
-  completed_plans: 31
+  total_plans: 32
+  completed_plans: 32
 ---
 
 # Project State
@@ -18,23 +18,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-01)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations — no blank-page syndrome, no schema setup.
-**Current focus:** v2.3 Shell, Navigation & Views — Phase 31 complete, Phase 32 next
+**Current focus:** v2.3 Shell, Navigation & Views — Phase 32 Plan 01 complete, Plan 02 next
 
 ## Current Position
 
-Phase: 32 of 34 (Carousel Views and View Bug Fixes) — Not started
-Current Plan: 0 of ? (plans TBD)
-Status: Phase 31 complete — object view redesign with body-first layout and E2E verification
-Last activity: 2026-03-03 - Completed quick task 22: Plan future milestone for Global Lint Status
+Phase: 32 of 34 (Carousel Views and View Bug Fixes) — In progress
+Current Plan: 1 of 2
+Status: Plan 01 complete — htmx target fixes, view-type-switcher removal, card accordion redesign
+Last activity: 2026-03-03 - Completed 32-01: View bug fixes and card accordion
 
-Progress: [██████░░░░] 67% (4/6 phases)
+Progress: [███████░░░] 75% (4.5/6 phases)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7 (v2.3)
-- Average duration: 4.1 min
-- Total execution time: 29 min
+- Total plans completed: 8 (v2.3)
+- Average duration: 4.0 min
+- Total execution time: 32 min
 
 **By Phase:**
 
@@ -43,6 +43,7 @@ Progress: [██████░░░░] 67% (4/6 phases)
 | 29-fts-fuzzy-search | 2 | 3 min | 1.5 min |
 | 30-dockview-phase-a-migration | 3 | 15 min | 5.0 min |
 | 31-object-view-redesign | 2 | 11 min | 5.5 min |
+| 32-carousel-views-and-view-bug-fixes | 1 | 3 min | 3.0 min |
 
 *Updated after each plan completion*
 
@@ -75,6 +76,9 @@ Full decision log in PROJECT.md Key Decisions table.
 - 31-01: Default: collapsed when body exists, expanded when no body content
 - 31-02: expandProperties must use waitForFunction (not waitForSelector) when both read/edit face elements coexist behind 3D flip
 - 31-02: showTypePicker creates empty dockview panel when no active panel exists (empty workspace Ctrl+N)
+- 32-01: All view htmx targets use closest .group-editor-area (not #editor-area) for dockview compatibility
+- 32-01: Card accordion collapse state is ephemeral (no localStorage persistence); all groups expanded by default
+- 32-01: "Ungrouped" replaces "(No value)" and sorts last via tuple key (x[0] == "Ungrouped", x[0])
 
 ### Pending Todos
 
@@ -107,5 +111,5 @@ Full decision log in PROJECT.md Key Decisions table.
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed quick task 22: Global Lint Status future milestone documentation
-Resume file: none (clean phase boundary)
+Stopped at: Completed 32-01-PLAN.md (view bug fixes and card accordion)
+Resume file: .planning/phases/32-carousel-views-and-view-bug-fixes/32-02-PLAN.md
