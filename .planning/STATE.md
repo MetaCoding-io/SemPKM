@@ -18,23 +18,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-01)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations — no blank-page syndrome, no schema setup.
-**Current focus:** v2.3 Shell, Navigation & Views — Phase 31 Plan 01 complete, Plan 02 next
+**Current focus:** v2.3 Shell, Navigation & Views — Phase 31 complete, Phase 32 next
 
 ## Current Position
 
-Phase: 31 of 34 (Object View Redesign) — Plan 01 complete, Plan 02 next
-Current Plan: 1 of 2
-Status: Plan 31-01 complete — body-first layout with collapsible properties badge
-Last activity: 2026-03-03 - Completed quick task 19: SHACL and OWL logical inference research for mental models
+Phase: 32 of 34 (Carousel Views and View Bug Fixes) — Not started
+Current Plan: 0 of ? (plans TBD)
+Status: Phase 31 complete — object view redesign with body-first layout and E2E verification
+Last activity: 2026-03-03 - Completed Phase 31-02: E2E verification and test fixes (151/156 pass)
 
-Progress: [█████░░░░░] 50% (3/6 phases)
+Progress: [██████░░░░] 67% (4/6 phases)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6 (v2.3)
-- Average duration: 3.5 min
-- Total execution time: 21 min
+- Total plans completed: 7 (v2.3)
+- Average duration: 4.1 min
+- Total execution time: 29 min
 
 **By Phase:**
 
@@ -42,7 +42,7 @@ Progress: [█████░░░░░] 50% (3/6 phases)
 |-------|-------|-------|----------|
 | 29-fts-fuzzy-search | 2 | 3 min | 1.5 min |
 | 30-dockview-phase-a-migration | 3 | 15 min | 5.0 min |
-| 31-object-view-redesign | 1 | 3 min | 3.0 min |
+| 31-object-view-redesign | 2 | 11 min | 5.5 min |
 
 *Updated after each plan completion*
 
@@ -73,6 +73,8 @@ Full decision log in PROJECT.md Key Decisions table.
 - 31-01: Properties badge in toolbar controls both read+edit face collapse simultaneously
 - 31-01: sempkm_props_collapsed localStorage key stores per-IRI collapse preference as JSON object
 - 31-01: Default: collapsed when body exists, expanded when no body content
+- 31-02: expandProperties must use waitForFunction (not waitForSelector) when both read/edit face elements coexist behind 3D flip
+- 31-02: showTypePicker creates empty dockview panel when no active panel exists (empty workspace Ctrl+N)
 
 ### Pending Todos
 
@@ -99,9 +101,10 @@ Full decision log in PROJECT.md Key Decisions table.
 | 18 | Research Web Components for Mental Model UI contribution (htmx interop, security model, manifest design, phased roadmap) | 2026-03-03 | dcdad2c | [18-research-web-components-for-mental-model](./quick/18-research-web-components-for-mental-model/) |
 | 19 | Research SHACL and OWL logical inference for mental models (owlrl, SHACL-AF rules, DASH, 4-phase roadmap) | 2026-03-03 | fd6bd98 | [19-research-shacl-and-owl-logical-inference](./quick/19-research-shacl-and-owl-logical-inference/) |
 | 20 | Save decentralized identity research and add Identity & Authentication future milestone | 2026-03-03 | d63c2e0 | [20-save-decentralized-identity-research-and](./quick/20-save-decentralized-identity-research-and/) |
+| 21 | Design interactive Obsidian import wizard UX flow (OpenRefine-style reconciliation, fuzzy matching, htmx wizard) | 2026-03-03 | dbbaeb4 | [21-research-ux-ui-flow-for-interactive-obsi](./quick/21-research-ux-ui-flow-for-interactive-obsi/) |
 
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: E2E dockview fixes — 18 files fixed, 122 pass/34 fail, `.group-editor-area` class fix applied, need re-run
-Resume file: .planning/phases/31-object-view-redesign/.continue-here.md
+Stopped at: Completed quick task 21: interactive Obsidian import wizard UX flow design
+Resume file: none (clean phase boundary)
