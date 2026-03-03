@@ -75,7 +75,7 @@
 **Milestone Goal:** Complete dockview Phase A migration (replacing Split.js editor-pane area), redesign the object view to be markdown-first with manifest-driven carousel views, add named workspace layouts, improve FTS with fuzzy search, and close v2.2 bugs.
 
 - [x] **Phase 29: FTS Fuzzy Search** — Typo-tolerant search via LuceneSail `term~1` operator with user-controlled toggle in Ctrl+K palette (backend complete 2026-03-02; frontend 29-02 pending)
-- [ ] **Phase 30: Dockview Phase A Migration** — Replace Split.js editor-pane area with dockview-core panels; remove old HTML5 drag system
+- [x] **Phase 30: Dockview Phase A Migration** — Replace Split.js editor-pane area with dockview-core panels; remove old HTML5 drag system (complete 2026-03-02)
 - [ ] **Phase 31: Object View Redesign** — Markdown-first object view with properties collapsed by default and single-click reveal
 - [ ] **Phase 32: Carousel Views and View Bug Fixes** — Manifest-declared per-type view tab bar, concept cards group-by fix, broken view switch buttons removed
 - [ ] **Phase 33: Named Layouts and VFS Settings Restore** — User-named workspace layout save/restore via Command Palette; VFS Settings UI restored
@@ -111,9 +111,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 30-01-PLAN.md — Core dockview init: rewrite workspace-layout.js with DockviewComponent, update workspace.html CDN, activate bridge.css
-- [ ] 30-02-PLAN.md — Caller updates: workspace.js tab functions + object_tab.html typeIcon push to dockview API
-- [ ] 30-03-PLAN.md — CSS cleanup: remove old editor-group/drag rules from workspace.css + human verification checkpoint
+- [x] 30-01-PLAN.md — Core dockview init: rewrite workspace-layout.js with DockviewComponent, update workspace.html CDN, activate bridge.css (complete 2026-03-02)
+- [x] 30-02-PLAN.md — Caller updates: workspace.js tab functions + object_tab.html typeIcon push to dockview API (complete 2026-03-02)
+- [x] 30-03-PLAN.md — CSS cleanup: remove old editor-group/drag rules from workspace.css + human verification checkpoint (complete 2026-03-02)
 
 ### Phase 31: Object View Redesign
 **Goal**: Users see the object body (Markdown) by default with properties hidden; a single click reveals or collapses properties; preference is remembered per object
@@ -124,7 +124,11 @@ Plans:
   2. User clicks a "N properties" toggle badge and the full property list expands inline without a page reload
   3. User collapses properties, reloads the page, and reopens the same object — properties remain collapsed (preference stored per object IRI)
   4. The existing CSS 3D flip to edit mode is unaffected and still reachable from the view header
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 31-01-PLAN.md — Template restructuring (body-first layout, properties badge, collapsible sections, CSS transitions, localStorage persistence, Split.js removal)
+- [ ] 31-02-PLAN.md — Human verification checkpoint (8 browser scenarios)
 
 ### Phase 32: Carousel Views and View Bug Fixes
 **Goal**: Object types with multiple manifest-declared views expose a tab bar; users switch views instantly; concept cards group-by works; broken view switch buttons are gone
@@ -192,8 +196,8 @@ Plans:
 | 26. VFS MVP Read-Only | v2.2 | 3/3 | Complete | 2026-03-01 |
 | 27. VFS Write + Auth | v2.2 | 3/3 | Complete | 2026-03-01 |
 | 28. UI Polish + Integration Testing | v2.2 | 3/3 | Complete | 2026-03-01 |
-| 29. FTS Fuzzy Search | 2/2 | Complete    | 2026-03-02 | - |
-| 30. Dockview Phase A Migration | 2/3 | In Progress|  | - |
+| 29. FTS Fuzzy Search | v2.3 | 2/2 | Complete | 2026-03-02 |
+| 30. Dockview Phase A Migration | v2.3 | 3/3 | Complete | 2026-03-02 |
 | 31. Object View Redesign | v2.3 | 0/? | Not started | - |
 | 32. Carousel Views and View Bug Fixes | v2.3 | 0/? | Not started | - |
 | 33. Named Layouts and VFS Settings Restore | v2.3 | 0/? | Not started | - |
