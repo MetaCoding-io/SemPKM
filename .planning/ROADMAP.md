@@ -10,6 +10,7 @@
 - (future) **SPARQL Interface** -- Rich SPARQL query experience with permissions, autocomplete, pills, history, saved queries, and named query views
 - (future) **Collaboration & Federation** -- Multi-instance sync via RDF Patch, cross-instance notifications (LDN), federated identity (WebID), and future CRDT-based real-time co-editing — [Research](research/collaboration-architecture.md)
 - (future) **Identity & Authentication** -- WebID profiles, IndieAuth provider, did:web DIDs, RDF graph signing, Verifiable Credentials for knowledge attestation — [Research](research/decentralized-identity.md)
+- (future) **Global Lint Status** -- Workspace-wide SHACL validation dashboard with filtering, fix guidance, and click-to-edit inline triage workflow
 
 ## Phases
 
@@ -79,7 +80,7 @@
 
 - [x] **Phase 29: FTS Fuzzy Search** — Typo-tolerant search via LuceneSail `term~1` operator with user-controlled toggle in Ctrl+K palette (backend complete 2026-03-02; frontend 29-02 pending)
 - [x] **Phase 30: Dockview Phase A Migration** — Replace Split.js editor-pane area with dockview-core panels; remove old HTML5 drag system (complete 2026-03-02)
-- [ ] **Phase 31: Object View Redesign** — Markdown-first object view with properties collapsed by default and single-click reveal
+- [x] **Phase 31: Object View Redesign** — Markdown-first object view with properties collapsed by default and single-click reveal (complete 2026-03-03)
 - [ ] **Phase 32: Carousel Views and View Bug Fixes** — Manifest-declared per-type view tab bar, concept cards group-by fix, broken view switch buttons removed
 - [ ] **Phase 33: Named Layouts and VFS Settings Restore** — User-named workspace layout save/restore via Command Palette; VFS Settings UI restored
 - [ ] **Phase 34: E2E Test Coverage** — Remove all test.skip() from SPARQL/FTS/VFS suites; add v2.3 feature coverage
@@ -130,8 +131,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 31-01-PLAN.md — Template restructuring (body-first layout, properties badge, collapsible sections, CSS transitions, localStorage persistence, Split.js removal)
-- [ ] 31-02-PLAN.md — Human verification checkpoint (8 browser scenarios)
+- [x] 31-01-PLAN.md — Template restructuring (body-first layout, properties badge, collapsible sections, CSS transitions, localStorage persistence, Split.js removal) (complete 2026-03-03)
+- [x] 31-02-PLAN.md — E2E verification and test fixes (expandProperties dual-face fix, showTypePicker empty workspace fix) (complete 2026-03-03)
 
 ### Phase 32: Carousel Views and View Bug Fixes
 **Goal**: Object types with multiple manifest-declared views expose a tab bar; users switch views instantly; concept cards group-by works; broken view switch buttons are gone
@@ -204,6 +205,45 @@ Plans:
    - Key risk: Named query views must integrate with existing ViewSpecService and manifest view declaration format without breaking the current view pipeline
    - Depends on: Phase 5 (saved queries must exist), v2.3 Phase 32 (carousel view infrastructure)
 
+### (Future) Global Lint Status
+
+**Milestone Goal:** Provide a global view of SHACL validation health across the entire knowledge base. Users can see all violations, warnings, and infos at a glance, filter and search results, read actionable fix guidance for each issue, and click directly into the offending object's edit form to resolve issues in a continuous triage workflow.
+
+**Depends on:** v2.3 complete (dockview panels provide the panel infrastructure for the lint view; object view redesign provides the field-focus jump target)
+
+**Builds on existing infrastructure:**
+- `ValidationService` + `AsyncValidationQueue` (backend/app/services/validation.py, backend/app/validation/queue.py) -- already runs pyshacl after every commit
+- `ValidationReport` / `ValidationResult` dataclasses (backend/app/validation/report.py) -- already parse per-result severity, focus_node, path, message, source_shape, constraint_component
+- `lint_panel.html` -- existing per-object lint tab with jumpToField() click handler
+- `/api/validation/latest` endpoint -- existing polling endpoint for latest report summary
+- SHACL shapes in Mental Model packages (orig_specs/models/*/shapes.ttl)
+
+**Estimated Phases (sketch -- to be refined during milestone planning):**
+
+1. **Global Validation API and Data Model** -- Extend the validation pipeline to store per-object, per-result detail (not just aggregate counts) in a queryable format; new API endpoints for listing all results with pagination
+   - Requirements: LINT-01, LINT-02
+   - Key risk: Performance of full-graph SHACL validation at scale (hundreds of objects); may need incremental validation (only re-validate objects touched by the commit) rather than full re-validation
+   - Research needed: pyshacl incremental validation capabilities; whether to store individual ValidationResult triples in the triplestore or use SQLAlchemy for fast querying
+   - Likely approach: Store individual ValidationResult records in a `urn:sempkm:lint-results` named graph with focus_node, severity, path, message, source_shape; or use a new SQLAlchemy model for SQL-level filtering/pagination
+
+2. **Global Lint Dashboard UI** -- Dockview panel (or dedicated page accessible from sidebar/Command Palette) showing a filterable, searchable list of all validation results across all objects with summary counts
+   - Requirements: LINT-03, LINT-04, LINT-05, LINT-06, LINT-07
+   - Key risk: Rendering performance for large result sets; need virtual scrolling or pagination for 100+ results
+   - Likely approach: htmx-driven table with server-side filtering/sorting; severity filter toggles, type dropdown from ModelRegistry, keyword search input; summary badges in status bar or sidebar
+   - Design note: Follow existing SemPKM patterns (htmx partials, Lucide icons, CSS custom properties) -- not a JS framework component
+
+3. **Fix Guidance Engine** -- Generate human-readable, actionable fix messages from SHACL constraint metadata; built-in templates for common constraint types; Mental Model shape authors can provide custom sh:description text
+   - Requirements: LINT-08, LINT-09, LINT-10
+   - Key risk: Message quality for complex constraints (sh:or, sh:qualifiedValueShape, custom SPARQL constraints); 80/20 rule -- handle the 10 most common constraint components well, fallback gracefully for exotic ones
+   - Research needed: Full inventory of SHACL constraint components used in existing shapes; whether sh:description and sh:name are consistently populated in community SHACL shape sets
+   - Likely approach: FixGuidanceService with a template registry mapping sh:sourceConstraintComponent URIs to message templates; templates use shape metadata (sh:name, sh:description, sh:minCount value, sh:datatype value) as interpolation variables
+
+4. **Click-to-Edit Inline Triage Workflow** -- Each lint result row is a clickable link that opens (or focuses) the object in a dockview pane and scrolls to the relevant field; after save, lint view reflects the updated state
+   - Requirements: LINT-11, LINT-12, LINT-13
+   - Key risk: Field-focus accuracy (property path to DOM element mapping); the existing jumpToField() function uses property path matching which may need hardening for nested shapes or multi-valued fields
+   - Depends on: Phase 1 (results data), Phase 2 (lint dashboard UI), Phase 3 (fix guidance)
+   - Likely approach: Extend existing jumpToField() into a workspace-level function that can open-then-focus; use sempkm:tab-activated event to trigger scroll-to-field after panel loads; lint panel listens for save events to refresh its result list
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -238,7 +278,7 @@ Plans:
 | 28. UI Polish + Integration Testing | v2.2 | 3/3 | Complete | 2026-03-01 |
 | 29. FTS Fuzzy Search | v2.3 | 2/2 | Complete | 2026-03-02 |
 | 30. Dockview Phase A Migration | v2.3 | 3/3 | Complete | 2026-03-02 |
-| 31. Object View Redesign | 1/2 | In Progress|  | - |
+| 31. Object View Redesign | v2.3 | 2/2 | Complete | 2026-03-03 |
 | 32. Carousel Views and View Bug Fixes | v2.3 | 0/? | Not started | - |
 | 33. Named Layouts and VFS Settings Restore | v2.3 | 0/? | Not started | - |
 | 34. E2E Test Coverage | v2.3 | 0/? | Not started | - |
@@ -254,3 +294,4 @@ Plans:
 *v2.2 archived: 2026-03-01*
 *v2.3 roadmap created: 2026-03-01 — Phases 29-34 defined*
 *Future SPARQL Interface milestone documented: 2026-03-03 — 6 phase sketches, 15 requirements (SQ-01 through SQ-15)*
+*Future Global Lint Status milestone documented: 2026-03-03 — 4 phase sketches, 13 requirements (LINT-01 through LINT-13)*

@@ -358,6 +358,70 @@ Upgrade from did:web to [did:webvh](https://identity.foundation/didwebvh/v0.3/) 
 
 ---
 
+## Milestone: (Future) Global Lint Status
+
+**Goal:** Provide a workspace-wide SHACL validation dashboard so users can see every violation, warning, and info across all objects at a glance, filter and search results, read actionable fix guidance, and click directly into the offending object to fix issues in a continuous triage workflow.
+
+**Depends on:** v2.3 (dockview panel infrastructure, object view redesign for field-focus targets). Can start research independently.
+
+**Builds on:** Existing `ValidationService` + `AsyncValidationQueue` pipeline (runs pyshacl after every EventStore.commit()), `ValidationReport`/`ValidationResult` dataclasses, per-object `lint_panel.html`, `/api/validation/latest` endpoint.
+
+### Phase A: Global Validation Data Model and API
+
+Extend the validation pipeline to persist per-object, per-result detail and expose it via paginated API endpoints.
+
+- New storage: individual `ValidationResult` records queryable by focus_node, severity, path, constraint_component
+- Storage options: RDF named graph (`urn:sempkm:lint-results`) vs. SQLAlchemy model — research trade-offs
+- API: `GET /api/lint/results?severity=Violation&type=Note&page=1` with filtering, sorting, pagination
+- Incremental validation: only re-validate objects whose triples changed in the commit (performance at scale)
+- Existing `ValidationReportSummary` for aggregate counts remains; new detail layer adds per-result access
+
+### Phase B: Global Lint Dashboard UI
+
+Dockview panel or dedicated page showing all validation results across all objects.
+
+- Summary bar: total violations / warnings / infos with color-coded badges
+- Result list: table or card layout with object label, severity icon, property path, message, timestamp
+- Filters: severity toggles, type dropdown (from ModelRegistry), keyword search
+- Sorting: by severity, object name, property path, timestamp
+- Pagination or virtual scroll for large result sets
+- Status bar indicator: persistent badge showing knowledge base health at a glance
+- Design: htmx partials + CSS custom properties, following existing SemPKM patterns
+
+### Phase C: Fix Guidance Engine
+
+Generate human-readable, actionable fix messages from SHACL shape metadata.
+
+- Template registry: maps `sh:sourceConstraintComponent` URIs to message templates
+- Built-in templates for top 10 constraint types:
+  - `sh:MinCountConstraintComponent` → "This field requires at least {minCount} value(s) -- add a {propertyName} to fix"
+  - `sh:MaxCountConstraintComponent` → "This field allows at most {maxCount} value(s) -- remove extras to fix"
+  - `sh:DatatypeConstraintComponent` → "Expected {datatype} but got {actualValue} -- update the value format"
+  - `sh:PatternConstraintComponent` → "Value must match pattern {pattern} -- check formatting"
+  - `sh:ClassConstraintComponent` → "Value must be an instance of {class} -- select the right type"
+  - `sh:MinLengthConstraintComponent`, `sh:MaxLengthConstraintComponent`, `sh:InConstraintComponent`, `sh:NodeKindConstraintComponent`, `sh:HasValueConstraintComponent`
+- Shape-author override: if `sh:description` is set on the property shape, use it as the guidance message
+- Mental Model helptext: models can provide `sempkm:fixGuidance` annotations on shapes for domain-specific advice
+- Graceful fallback: unknown constraint types get "Constraint violated on {path} -- check the value against the shape definition"
+
+### Phase D: Click-to-Edit Triage Workflow
+
+Wire the global lint dashboard to the object editing workflow for continuous issue resolution.
+
+- Click a lint result row → open object in dockview pane (or focus existing pane) → scroll to field
+- Extend `jumpToField()` to work cross-pane (currently only works within the active object's lint tab)
+- After save: lint dashboard refreshes to show updated results (resolved issues disappear)
+- Sequential triage: user works through list top-to-bottom, fixing each issue without leaving the lint view
+- Keyboard navigation: arrow keys through lint results, Enter to open, Escape to return to lint view
+
+### What NOT to Build
+- Auto-fix engine (programmatic correction of violations) -- too risky, bypasses user intent
+- Custom validation rules outside SHACL -- SHACL is the constraint language, extend via shapes
+- Cross-object relationship validation (orphan detection, referential integrity) -- separate graph-health feature
+- Real-time collaborative lint (multi-user live updates) -- depends on Collaboration milestone
+
+---
+
 ## Research Artifacts
 
 - `virtual-filesystem.md` — Comprehensive prior art + design for VFS feature (ready for Phase 22 validation)
