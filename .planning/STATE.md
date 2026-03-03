@@ -22,19 +22,19 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 
 ## Current Position
 
-Phase: 33 of 34 (Named Layouts and VFS Settings Restore) — In Progress
-Current Plan: 1 of 2
-Status: Plan 01 complete — named layouts data layer and VFS icon fix
-Last activity: 2026-03-03 - Completed 33-01: Named layouts module and VFS icon fix
+Phase: 33 of 34 (Named Layouts and VFS Settings Restore) — Complete
+Current Plan: 2 of 2
+Status: Phase 33 complete — named layouts with command palette integration
+Last activity: 2026-03-03 - Completed 33-02: Command palette layout integration
 
-Progress: [█████████░] 88% (5.5/6 phases)
+Progress: [██████████] 100% (6/6 phases)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 10 (v2.3)
-- Average duration: 3.7 min
-- Total execution time: 37 min
+- Total plans completed: 11 (v2.3)
+- Average duration: 3.5 min
+- Total execution time: 39 min
 
 **By Phase:**
 
@@ -44,7 +44,7 @@ Progress: [█████████░] 88% (5.5/6 phases)
 | 30-dockview-phase-a-migration | 3 | 15 min | 5.0 min |
 | 31-object-view-redesign | 2 | 11 min | 5.5 min |
 | 32-carousel-views-and-view-bug-fixes | 2 | 6 min | 3.0 min |
-| 33-named-layouts-and-vfs-settings-restore | 1 | 2 min | 2.0 min |
+| 33-named-layouts-and-vfs-settings-restore | 2 | 4 min | 2.0 min |
 
 *Updated after each plan completion*
 
@@ -87,6 +87,10 @@ Full decision log in PROJECT.md Key Decisions table.
 - 33-01: sempkm_layouts registry stores named layouts as { name: { layout, savedAt } } in localStorage
 - 33-01: beforeunload handler as belt-and-suspenders alongside onDidLayoutChange for layout persistence
 - 33-01: SessionStorage migration reads old key once on init, copies to localStorage, clears sessionStorage
+- 33-02: Save As uses ninja-keys shadowRoot input for inline naming (no prompt/modal per CONTEXT.md locked decision)
+- 33-02: Layout commands in dedicated 'Layout' section of command palette
+- 33-02: User popover Layouts item opens palette directly to layout-restore parent submenu
+- 33-02: Toast notifications auto-dismiss after 3s (5s for partial restore with skipped items)
 
 ### Pending Todos
 
@@ -119,5 +123,5 @@ Full decision log in PROJECT.md Key Decisions table.
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 33-01-PLAN.md (named layouts data layer and VFS icon fix)
-Resume file: Phase 33 in progress. Next: 33-02
+Stopped at: Completed 33-02-PLAN.md (command palette layout integration)
+Resume file: Phase 33 complete. Next: Phase 34
