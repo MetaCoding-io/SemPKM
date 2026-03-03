@@ -568,6 +568,13 @@
                 tgt.textContent = src.textContent;
               }
             });
+            // Re-apply properties collapse state after read face refresh
+            if (typeof window.initPropertiesState === 'function') {
+              var badge = readFace.closest('.object-tab');
+              var badgeBtn = badge ? badge.querySelector('.properties-toggle-badge') : null;
+              var hasBody = badgeBtn ? badgeBtn.dataset.hasBody === 'true' : true;
+              window.initPropertiesState(safeId, objectIri, hasBody);
+            }
           }
         }).catch(function () { /* keep stale content on error */ });
       }
