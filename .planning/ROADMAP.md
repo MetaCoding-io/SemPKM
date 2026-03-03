@@ -7,6 +7,7 @@
 - ✅ **v2.1 Architecture Decision Gate** — Phases 20-22 (shipped 2026-03-01) — [Full details](milestones/v2.1-ROADMAP.md) — [Archive](milestones/v2.1-REQUIREMENTS.md)
 - ✅ **v2.2 Data Discovery** — Phases 23-28 (shipped 2026-03-01) — [Full details](milestones/v2.2-ROADMAP.md)
 - 🚧 **v2.3 Shell, Navigation & Views** — Phases 29-34 (in progress)
+- (future) **SPARQL Interface** -- Rich SPARQL query experience with permissions, autocomplete, pills, history, saved queries, and named query views
 
 ## Phases
 
@@ -164,6 +165,43 @@ Plans:
   4. New Playwright tests cover dockview panel management, carousel view switching, fuzzy FTS toggle, and named layout save/restore
 **Plans**: TBD
 
+### (Future) SPARQL Interface
+
+**Milestone Goal:** Transform the basic Yasgui SPARQL console into a first-class query interface with graph-aware permissions, intelligent autocomplete from loaded ontologies, visual IRI pills in the editor, server-side query history, saved/shared queries with parameterization, and named queries that serve as reusable views in the object browser.
+
+**Depends on:** v2.3 complete (dockview panels, object view redesign, named layouts provide the shell infrastructure)
+
+**Estimated Phases (sketch -- to be refined during milestone planning):**
+
+1. **SPARQL Permissions and Policies** -- Graph-scoped query execution per role, admin-configurable execution policies (timeouts, result caps, UPDATE prohibition)
+   - Requirements: SQ-01, SQ-02
+   - Key risk: Performance impact of per-query graph scoping; may need query rewriting vs. RDF4J native graph access control
+
+2. **SPARQL Autocomplete** -- Prefix, class, and property autocomplete in the query editor from prefix registry and installed Mental Model ontologies/SHACL shapes
+   - Requirements: SQ-03, SQ-04, SQ-05
+   - Key risk: Yasgui's CodeMirror integration may resist custom completers; may need to evaluate replacing Yasgui's editor with a standalone CodeMirror 6 instance + custom SPARQL mode
+   - Research needed: Yasgui plugin architecture for autocompletion, CodeMirror 6 SPARQL language support landscape
+
+3. **IRI Pills and Editor Enhancements** -- Visual pill rendering for IRIs and prefix declarations in the SPARQL editor; click-to-navigate and inline expand/collapse
+   - Requirements: SQ-06, SQ-07
+   - Key risk: CodeMirror decoration/widget API complexity; pills must not interfere with query parsing or copy-paste
+   - Research needed: CodeMirror 6 decoration widgets, similar implementations in SPARQL editors (e.g., QLever UI, Wikidata Query Service)
+
+4. **Server-Side Query History** -- Searchable, filterable query execution history persisted to the backend; cross-device access; execution metadata (duration, result count, timestamp)
+   - Requirements: SQ-08, SQ-09
+   - Key risk: Storage growth from query history; need retention policy and pagination
+   - Likely approach: New SQLAlchemy model (QueryExecution) with user FK, query text, executed_at, duration_ms, result_count, status
+
+5. **Saved Queries and Sharing** -- Named/bookmarked queries with descriptions, parameterization (template variables), sharing via links or published library
+   - Requirements: SQ-10, SQ-11, SQ-12
+   - Key risk: Template variable UX (how to define, prompt, and validate parameters); sharing permissions model
+   - Likely approach: New SQLAlchemy model (SavedQuery) with owner, query text, name, description, params JSON, is_published flag
+
+6. **Named Queries as Views** -- Promote saved queries to named views in the object browser; rendered via standard renderers (table, cards, graph); Mental Model manifest integration
+   - Requirements: SQ-13, SQ-14, SQ-15
+   - Key risk: Named query views must integrate with existing ViewSpecService and manifest view declaration format without breaking the current view pipeline
+   - Depends on: Phase 5 (saved queries must exist), v2.3 Phase 32 (carousel view infrastructure)
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -213,3 +251,4 @@ Plans:
 *v2.2 post-ship polish: 2026-03-01 — event log user names fix, tabular grid, Diff/Undo button colors, SPARQL Console to Admin nav, Event Console page (/events), diff arrow, relations panel collapsible rollup*
 *v2.2 archived: 2026-03-01*
 *v2.3 roadmap created: 2026-03-01 — Phases 29-34 defined*
+*Future SPARQL Interface milestone documented: 2026-03-03 — 6 phase sketches, 15 requirements (SQ-01 through SQ-15)*
