@@ -5,13 +5,37 @@
 
 {% set safe_id = object_iri | urlencode | replace('%', '_') %}
 <div class="object-tab" data-object-iri="{{ object_iri }}">
-  {# Toolbar: mode toggle + save button #}
+  {# Toolbar: properties badge + mode toggle + save button #}
   <div class="object-toolbar">
     <span class="object-toolbar-title">{{ object_label }}</span>
     {% if object_type_label %}
     <span class="object-toolbar-type" title="{{ object_iri }}" data-iri="{{ object_iri }}">{{ object_type_label }}</span>
     {% endif %}
     <div class="object-toolbar-actions">
+      {% set ns_count = namespace(n=0) %}
+      {% if form %}
+        {% for prop in form.properties %}
+          {% set vals = values.get(prop.path, []) %}
+          {% if vals and prop.path != body_property_path %}
+            {% set ns_count.n = ns_count.n + 1 %}
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+      {% set property_count = ns_count.n %}
+
+      {% if property_count > 0 %}
+      <button class="btn btn-sm properties-toggle-badge"
+              id="props-toggle-{{ safe_id }}"
+              data-object-iri="{{ object_iri }}"
+              data-has-body="{{ 'true' if body_text and body_text.strip() else 'false' }}"
+              data-property-count="{{ property_count }}"
+              onclick="toggleProperties('{{ safe_id }}', '{{ object_iri }}')"
+              title="Toggle properties">
+        <span class="props-badge-icon">&#9656;</span>
+        {{ property_count }} propert{{ 'y' if property_count == 1 else 'ies' }}
+      </button>
+      {% endif %}
+
       <button class="btn btn-sm mode-toggle" id="mode-toggle-{{ safe_id }}"
               onclick="toggleObjectMode('{{ safe_id }}', '{{ object_iri }}')"
               title="Toggle Edit (Ctrl+E)">
@@ -33,49 +57,42 @@
       </div>
       <!-- Edit face (back, pre-rotated 180deg) -->
       <div class="object-face object-face-edit">
-        <div class="object-split" id="object-split-{{ safe_id }}">
-          {# Top section: SHACL-driven properties form #}
-          <div class="object-form-section" id="form-section-{{ safe_id }}">
-            {% if form %}
-            {% include "forms/object_form.html" %}
-            {% else %}
-            <div class="form-empty">
-              <p>No form schema available for this object type.</p>
+        <div class="properties-collapsible" id="edit-props-{{ safe_id }}">
+          <div class="properties-inner">
+            <div class="object-form-section" id="form-section-{{ safe_id }}">
+              {% if form %}
+              {% include "forms/object_form.html" %}
+              {% else %}
+              <div class="form-empty">
+                <p>No form schema available for this object type.</p>
+              </div>
+              {% endif %}
             </div>
-            {% endif %}
           </div>
-
-          {# Bottom section: Markdown body editor #}
-          <div class="object-editor-section" id="editor-section-{{ safe_id }}">
-            <div class="editor-toolbar">
-              <button type="button" class="editor-btn" onclick="editorAction('bold')" title="Bold (Ctrl+B)"><b>B</b></button>
-              <button type="button" class="editor-btn" onclick="editorAction('italic')" title="Italic (Ctrl+I)"><i>I</i></button>
-              <button type="button" class="editor-btn" onclick="editorAction('heading')" title="Heading">H</button>
-              <button type="button" class="editor-btn" onclick="editorAction('link')" title="Link">&#128279;</button>
-              <span class="editor-toolbar-separator"></span>
-              <button type="button" class="editor-btn editor-maximize-btn"
-                      id="maximize-btn-{{ safe_id }}"
-                      onclick="toggleEditorMaximize('{{ safe_id }}')"
-                      title="Maximize Editor">
-                &#9633;
-              </button>
-              <span class="editor-status" id="editor-status"></span>
-            </div>
-            <div class="editor-skeleton" id="skeleton-{{ safe_id }}">
-              <div class="skeleton-line" style="width: 80%"></div>
-              <div class="skeleton-line" style="width: 60%"></div>
-              <div class="skeleton-line" style="width: 90%"></div>
-              <div class="skeleton-line" style="width: 45%"></div>
-              <div class="skeleton-line" style="width: 70%"></div>
-            </div>
-            <div class="codemirror-container" id="body-editor-{{ safe_id }}"
-                 data-object-iri="{{ object_iri }}"
-                 data-body-predicate="{{ body_predicate | default('urn:sempkm:body') }}"
-                 data-initial-content="{{ body_text | e }}"></div>
-            <textarea class="body-fallback" id="body-fallback-{{ safe_id }}"
-                      data-object-iri="{{ object_iri }}"
-                      data-body-predicate="{{ body_predicate | default('urn:sempkm:body') }}">{{ body_text | e }}</textarea>
+        </div>
+        <div class="object-editor-section" id="editor-section-{{ safe_id }}">
+          <div class="editor-toolbar">
+            <button type="button" class="editor-btn" onclick="editorAction('bold')" title="Bold (Ctrl+B)"><b>B</b></button>
+            <button type="button" class="editor-btn" onclick="editorAction('italic')" title="Italic (Ctrl+I)"><i>I</i></button>
+            <button type="button" class="editor-btn" onclick="editorAction('heading')" title="Heading">H</button>
+            <button type="button" class="editor-btn" onclick="editorAction('link')" title="Link">&#128279;</button>
+            <span class="editor-toolbar-separator"></span>
+            <span class="editor-status" id="editor-status"></span>
           </div>
+          <div class="editor-skeleton" id="skeleton-{{ safe_id }}">
+            <div class="skeleton-line" style="width: 80%"></div>
+            <div class="skeleton-line" style="width: 60%"></div>
+            <div class="skeleton-line" style="width: 90%"></div>
+            <div class="skeleton-line" style="width: 45%"></div>
+            <div class="skeleton-line" style="width: 70%"></div>
+          </div>
+          <div class="codemirror-container" id="body-editor-{{ safe_id }}"
+               data-object-iri="{{ object_iri }}"
+               data-body-predicate="{{ body_predicate | default('urn:sempkm:body') }}"
+               data-initial-content="{{ body_text | e }}"></div>
+          <textarea class="body-fallback" id="body-fallback-{{ safe_id }}"
+                    data-object-iri="{{ object_iri }}"
+                    data-body-predicate="{{ body_predicate | default('urn:sempkm:body') }}">{{ body_text | e }}</textarea>
         </div>
       </div>
     </div>
@@ -83,18 +100,7 @@
 </div>
 
 <style>
-  /* Inline critical styles for the vertical split; full styles in workspace.css */
-  .object-split {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    overflow: hidden;
-  }
-  .object-form-section,
-  .object-editor-section {
-    overflow-y: auto;
-    min-height: 0;
-  }
+  /* Inline critical styles for the edit face layout */
   .body-fallback {
     display: none;
     width: 100%;
@@ -120,9 +126,85 @@
       if (!window._tabMeta[tabKey]) window._tabMeta[tabKey] = {};
       window._tabMeta[tabKey].typeIcon = typeIcon;
       window._tabMeta[tabKey].typeColor = typeColor;
-      // renderGroupTabBar is a no-op in the dockview world — dockview renders tabs natively
+      // renderGroupTabBar is a no-op in the dockview world -- dockview renders tabs natively
     }
   })();
+</script>
+
+<script>
+  // Properties toggle: localStorage-backed per-object preference
+  var PROPS_PREF_KEY = 'sempkm_props_collapsed';
+
+  window.getPropsPreference = function(objectIri) {
+    try {
+      var data = JSON.parse(localStorage.getItem(PROPS_PREF_KEY) || '{}');
+      return data[objectIri]; // true=collapsed, false=expanded, undefined=no pref
+    } catch (e) { return undefined; }
+  };
+
+  window.setPropsPreference = function(objectIri, collapsed) {
+    try {
+      var data = JSON.parse(localStorage.getItem(PROPS_PREF_KEY) || '{}');
+      data[objectIri] = collapsed;
+      localStorage.setItem(PROPS_PREF_KEY, JSON.stringify(data));
+    } catch (e) {}
+  };
+
+  window.toggleProperties = function(safeId, objectIri) {
+    var readProps = document.getElementById('read-props-' + safeId);
+    var editProps = document.getElementById('edit-props-' + safeId);
+    var badge = document.getElementById('props-toggle-' + safeId);
+
+    var isExpanded = (readProps && readProps.classList.contains('expanded')) ||
+                     (editProps && editProps.classList.contains('expanded'));
+    var newCollapsed = isExpanded;
+
+    [readProps, editProps].forEach(function(el) {
+      if (!el) return;
+      if (newCollapsed) {
+        el.classList.remove('expanded');
+      } else {
+        el.classList.add('expanded');
+      }
+    });
+
+    if (badge) {
+      var icon = badge.querySelector('.props-badge-icon');
+      if (icon) icon.textContent = newCollapsed ? '\u25B8' : '\u25BE';
+    }
+
+    setPropsPreference(objectIri, newCollapsed);
+  };
+
+  window.initPropertiesState = function(safeId, objectIri, hasBody) {
+    var pref = getPropsPreference(objectIri);
+    var collapsed;
+
+    if (pref !== undefined) {
+      collapsed = pref;
+    } else {
+      collapsed = hasBody; // collapsed if body exists, expanded if empty
+    }
+
+    var readProps = document.getElementById('read-props-' + safeId);
+    var editProps = document.getElementById('edit-props-' + safeId);
+
+    if (!collapsed) {
+      [readProps, editProps].forEach(function(el) {
+        if (el) el.classList.add('expanded');
+      });
+    } else {
+      [readProps, editProps].forEach(function(el) {
+        if (el) el.classList.remove('expanded');
+      });
+    }
+
+    var badge = document.getElementById('props-toggle-' + safeId);
+    if (badge) {
+      var icon = badge.querySelector('.props-badge-icon');
+      if (icon) icon.textContent = collapsed ? '\u25B8' : '\u25BE';
+    }
+  };
 </script>
 
 <script>
@@ -145,31 +227,6 @@
       });
     }
     var skeletonId = 'skeleton-' + safeId;
-
-    // Editor maximize/restore toggle (per-tab state)
-    window._editorMaxState = window._editorMaxState || {};
-
-    window.toggleEditorMaximize = function(sid) {
-      var splitContainerId = 'object-split-' + sid;
-      var splitInstance = window._sempkmSplits && window._sempkmSplits[splitContainerId];
-      if (!splitInstance) return;
-
-      var state = window._editorMaxState[sid] || { maximized: false, savedSizes: null };
-      var btn = document.getElementById('maximize-btn-' + sid);
-
-      if (state.maximized) {
-        splitInstance.setSizes(state.savedSizes || [40, 60]);
-        state.maximized = false;
-        if (btn) { btn.innerHTML = '&#9633;'; btn.title = 'Maximize Editor'; }
-      } else {
-        state.savedSizes = splitInstance.getSizes();
-        splitInstance.setSizes([0, 100]);
-        state.maximized = true;
-        if (btn) { btn.innerHTML = '&#9635;'; btn.title = 'Restore Editor'; }
-      }
-
-      window._editorMaxState[sid] = state;
-    };
 
     // Store deferred initialization function for edit mode
     window['_initEditMode_' + safeId] = function() {
@@ -216,40 +273,6 @@
         if (skeleton) skeleton.style.display = 'none';
       }
 
-      function initVerticalSplit() {
-        if (typeof Split === 'undefined') return;
-
-        var splitContainerId = 'object-split-' + safeId;
-
-        // Destroy any previous split instance for this container
-        if (window._sempkmSplits && window._sempkmSplits[splitContainerId]) {
-          try { window._sempkmSplits[splitContainerId].destroy(); } catch(e) {}
-          delete window._sempkmSplits[splitContainerId];
-        }
-
-        var splitInstance = Split(['#' + formId, '#' + editorId], {
-          sizes: [40, 60],
-          minSize: [100, 100],
-          gutterSize: 5,
-          direction: 'vertical',
-          cursor: 'row-resize'
-        });
-
-        // Track split instances globally
-        if (!window._sempkmSplits) window._sempkmSplits = {};
-        window._sempkmSplits[splitContainerId] = splitInstance;
-
-        // Register cleanup
-        if (typeof window.registerCleanup === 'function') {
-          window.registerCleanup(splitContainerId, function() {
-            splitInstance.destroy();
-            if (window._sempkmSplits) {
-              delete window._sempkmSplits[splitContainerId];
-            }
-          });
-        }
-      }
-
       // Try immediate init (editor.js may already be loaded)
       if (initBodyEditor()) {
         hideSkeleton();
@@ -276,9 +299,11 @@
             enableFallback();
           });
       }
-
-      initVerticalSplit();
     };
+
+    // Initialize properties collapse state
+    var hasBody = {{ 'true' if body_text and body_text.strip() else 'false' }};
+    initPropertiesState(safeId, '{{ object_iri }}', hasBody);
 
     // If mode is 'edit' (e.g., newly created objects), initialize immediately
     {% if mode == 'edit' %}
