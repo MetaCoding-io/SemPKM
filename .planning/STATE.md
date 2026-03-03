@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 Phase: 32 of 34 (Carousel Views and View Bug Fixes) — Not started
 Current Plan: 0 of ? (plans TBD)
 Status: Phase 31 complete — object view redesign with body-first layout and E2E verification
-Last activity: 2026-03-03 - Completed quick task 21: Research UX/UI flow for interactive Obsidian import wizard
+Last activity: 2026-03-03 - Completed quick task 22: Plan future milestone for Global Lint Status
 
 Progress: [██████░░░░] 67% (4/6 phases)
 
@@ -102,9 +102,10 @@ Full decision log in PROJECT.md Key Decisions table.
 | 19 | Research SHACL and OWL logical inference for mental models (owlrl, SHACL-AF rules, DASH, 4-phase roadmap) | 2026-03-03 | fd6bd98 | [19-research-shacl-and-owl-logical-inference](./quick/19-research-shacl-and-owl-logical-inference/) |
 | 20 | Save decentralized identity research and add Identity & Authentication future milestone | 2026-03-03 | d63c2e0 | [20-save-decentralized-identity-research-and](./quick/20-save-decentralized-identity-research-and/) |
 | 21 | Design interactive Obsidian import wizard UX flow (OpenRefine-style reconciliation, fuzzy matching, htmx wizard) | 2026-03-03 | dbbaeb4 | [21-research-ux-ui-flow-for-interactive-obsi](./quick/21-research-ux-ui-flow-for-interactive-obsi/) |
+| 22 | Plan future milestone for Global Lint Status (13 LINT-* requirements, 4-phase sketch, fix guidance engine) | 2026-03-03 | e077d81 | [22-plan-future-milestone-for-global-lint-st](./quick/22-plan-future-milestone-for-global-lint-st/) |
 
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed quick task 21: interactive Obsidian import wizard UX flow design
+Stopped at: Completed quick task 22: Global Lint Status future milestone documentation
 Resume file: none (clean phase boundary)
