@@ -45,7 +45,7 @@ Progress: [█████████░] 95% (6.5/7 phases)
 | 31-object-view-redesign | 2 | 11 min | 5.5 min |
 | 32-carousel-views-and-view-bug-fixes | 2 | 6 min | 3.0 min |
 | 33-named-layouts-and-vfs-settings-restore | 2 | 4 min | 2.0 min |
-| 34-e2e-test-coverage | 1 | 7 min | 7.0 min |
+| 34-e2e-test-coverage | 1 | 4 min | 4.0 min |
 
 *Updated after each plan completion*
 
