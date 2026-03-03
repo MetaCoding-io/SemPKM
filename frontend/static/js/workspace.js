@@ -17,6 +17,21 @@
   var PANEL_POSITIONS_KEY = 'sempkm_panel_positions';
   var FUZZY_KEY = 'sempkm_fts_fuzzy';
 
+  // --- Toast Notifications ---
+
+  function showToast(message, duration) {
+    duration = duration || 3000;
+    var toast = document.createElement('div');
+    toast.className = 'sempkm-toast';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    requestAnimationFrame(function () { toast.classList.add('sempkm-toast--visible'); });
+    setTimeout(function () {
+      toast.classList.remove('sempkm-toast--visible');
+      setTimeout(function () { toast.remove(); }, 300);
+    }, duration);
+  }
+
   // --- Bottom Panel State ---
   var panelState = { open: false, height: 30, activeTab: 'event-log', maximized: false };
 
@@ -949,6 +964,51 @@
               }
             }
           }
+        },
+        // --- Layout Management ---
+        {
+          id: 'layout-save-as',
+          title: 'Layout: Save As...',
+          section: 'Layout',
+          children: ['layout-save-confirm']
+        },
+        {
+          id: 'layout-save-confirm',
+          title: 'Type a layout name above, then select this item to save',
+          parent: 'layout-save-as',
+          handler: function () {
+            var ninjaEl = document.querySelector('ninja-keys');
+            var name = '';
+            if (ninjaEl) {
+              // Try shadowRoot input (the search field ninja-keys uses)
+              try {
+                var input = ninjaEl.shadowRoot.querySelector('input[type="text"]');
+                if (input) name = input.value;
+              } catch (e) {}
+              // Fallback: ninja-keys may expose _search or .search property
+              if (!name && ninjaEl._search) name = ninjaEl._search;
+            }
+            name = name ? name.trim() : '';
+            if (!name) {
+              showToast('Please type a layout name in the search field first', 3000);
+              return;
+            }
+            window.SemPKMLayouts.save(name);
+            showToast('Layout "' + name + '" saved');
+            _refreshLayoutPaletteItems(ninjaEl);
+          }
+        },
+        {
+          id: 'layout-restore',
+          title: 'Layout: Restore...',
+          section: 'Layout',
+          children: []   // populated by _refreshLayoutPaletteItems
+        },
+        {
+          id: 'layout-delete',
+          title: 'Layout: Delete...',
+          section: 'Layout',
+          children: []   // populated by _refreshLayoutPaletteItems
         }
       ];
 
@@ -957,6 +1017,9 @@
 
       // Initialize FTS search integration for Ctrl+K palette
       _initFtsSearch(ninja);
+
+      // Populate layout restore/delete children from saved layouts
+      _refreshLayoutPaletteItems(ninja);
     }).catch(function () {
       console.warn('ninja-keys custom element not available');
     });
@@ -1117,6 +1180,41 @@
           });
       }, 300);
     });
+  }
+
+  // --- Named Layout Palette Items ---
+
+  function _refreshLayoutPaletteItems(ninja) {
+    var baseData = ninja.data.filter(function (d) {
+      return !d.id.startsWith('layout-restore-') && !d.id.startsWith('layout-delete-');
+    });
+    var layouts = window.SemPKMLayouts ? window.SemPKMLayouts.list() : [];
+    layouts.forEach(function (l) {
+      baseData.push({
+        id: 'layout-restore-' + l.name,
+        title: l.name,
+        parent: 'layout-restore',
+        handler: function () {
+          var result = window.SemPKMLayouts.restore(l.name);
+          if (result.success) {
+            showToast('Layout "' + l.name + '" restored');
+          } else if (result.skipped.length > 0) {
+            showToast('Layout restored with ' + result.skipped.length + ' skipped item(s)', 5000);
+          }
+        }
+      });
+      baseData.push({
+        id: 'layout-delete-' + l.name,
+        title: l.name,
+        parent: 'layout-delete',
+        handler: function () {
+          window.SemPKMLayouts.remove(l.name);
+          showToast('Layout "' + l.name + '" deleted');
+          _refreshLayoutPaletteItems(ninja);
+        }
+      });
+    });
+    ninja.data = baseData;
   }
 
   function showTypePicker() {
@@ -1806,6 +1904,7 @@
   window.toggleBottomPanel = toggleBottomPanel;
   window.maximizeBottomPanel = maximizeBottomPanel;
   window.movePanel = movePanel;
+  window.showToast = showToast;
   // Backward-compat shim — callers can still pass (name, 'left'/'right')
   window.swapPanel = function(panelName, zone) { movePanel(panelName, null, null, zone); };
 
