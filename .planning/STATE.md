@@ -18,23 +18,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-01)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations — no blank-page syndrome, no schema setup.
-**Current focus:** v2.3 Shell, Navigation & Views — Phase 32 complete, Phase 33 next
+**Current focus:** v2.3 Shell, Navigation & Views — Phase 33 in progress
 
 ## Current Position
 
-Phase: 32 of 34 (Carousel Views and View Bug Fixes) — Complete
-Current Plan: 2 of 2
-Status: Phase complete — carousel tab bar with two-container view switching pattern
-Last activity: 2026-03-03 - Completed 32-02: Carousel tab bar with localStorage persistence
+Phase: 33 of 34 (Named Layouts and VFS Settings Restore) — In Progress
+Current Plan: 1 of 2
+Status: Plan 01 complete — named layouts data layer and VFS icon fix
+Last activity: 2026-03-03 - Completed 33-01: Named layouts module and VFS icon fix
 
-Progress: [████████░░] 83% (5/6 phases)
+Progress: [█████████░] 88% (5.5/6 phases)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9 (v2.3)
-- Average duration: 3.9 min
-- Total execution time: 35 min
+- Total plans completed: 10 (v2.3)
+- Average duration: 3.7 min
+- Total execution time: 37 min
 
 **By Phase:**
 
@@ -44,6 +44,7 @@ Progress: [████████░░] 83% (5/6 phases)
 | 30-dockview-phase-a-migration | 3 | 15 min | 5.0 min |
 | 31-object-view-redesign | 2 | 11 min | 5.5 min |
 | 32-carousel-views-and-view-bug-fixes | 2 | 6 min | 3.0 min |
+| 33-named-layouts-and-vfs-settings-restore | 1 | 2 min | 2.0 min |
 
 *Updated after each plan completion*
 
@@ -82,6 +83,10 @@ Full decision log in PROJECT.md Key Decisions table.
 - 32-02: Two-container pattern eliminates _carouselSwitching flag -- carousel bar outside .carousel-view-body swap target
 - 32-02: sempkm_carousel_view localStorage key maps type_iri to spec_iri for per-type view persistence
 - 32-02: outerHTML swap with select: '.carousel-view-body' extracts only view body from response
+- 33-01: sempkm_layout_current key replaces sempkm_workspace_layout_dv (localStorage, not sessionStorage)
+- 33-01: sempkm_layouts registry stores named layouts as { name: { layout, savedAt } } in localStorage
+- 33-01: beforeunload handler as belt-and-suspenders alongside onDidLayoutChange for layout persistence
+- 33-01: SessionStorage migration reads old key once on init, copies to localStorage, clears sessionStorage
 
 ### Pending Todos
 
@@ -114,5 +119,5 @@ Full decision log in PROJECT.md Key Decisions table.
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 32-02-PLAN.md (carousel tab bar with two-container pattern)
-Resume file: Phase 32 complete. Next: Phase 33
+Stopped at: Completed 33-01-PLAN.md (named layouts data layer and VFS icon fix)
+Resume file: Phase 33 in progress. Next: 33-02
