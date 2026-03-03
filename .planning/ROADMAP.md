@@ -11,6 +11,9 @@
 - (future) **Collaboration & Federation** -- Multi-instance sync via RDF Patch, cross-instance notifications (LDN), federated identity (WebID), and future CRDT-based real-time co-editing — [Research](research/collaboration-architecture.md)
 - (future) **Identity & Authentication** -- WebID profiles, IndieAuth provider, did:web DIDs, RDF graph signing, Verifiable Credentials for knowledge attestation — [Research](research/decentralized-identity.md)
 - (future) **Global Lint Status** -- Workspace-wide SHACL validation dashboard with filtering, fix guidance, and click-to-edit inline triage workflow
+- (future) **SHACL/OWL Inference** -- OWL 2 RL inference via owlrl for automatic bidirectional links (inverseOf), RDFS entailments, SHACL-AF rules for model-contributed derivations, DASH vocabulary for richer form metadata — [Research](research/shacl-owl-inference.md)
+- (future) **Obsidian Import Wizard** -- In-app 6-step wizard replacing external Python scripts: vault scan, OpenRefine-style type mapping, property mapping with fuzzy matching, relationship mapping, preview with SHACL validation, SSE-streamed import execution — [Research](research/obsidian-import-wizard-ux.md)
+- (future) **Web Components for Mental Models** -- Allow Mental Models to contribute custom frontend UI (Jinja2 macro bundles → light DOM Custom Elements → component SDK); model-served JS/CSS via nginx, CSP-restricted, sempkm-prefixed tag names — [Research](research/web-components-for-mental-models.md)
 
 ## Phases
 
