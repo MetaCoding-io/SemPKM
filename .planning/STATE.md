@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Shell, Navigation & Views
 status: executing
-last_updated: "2026-03-02T06:25:51Z"
+last_updated: "2026-03-02T06:55:00Z"
 progress:
   total_phases: 11
   completed_phases: 11
@@ -18,30 +18,30 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-01)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations — no blank-page syndrome, no schema setup.
-**Current focus:** v2.3 Shell, Navigation & Views — Phase 30 in progress
+**Current focus:** v2.3 Shell, Navigation & Views — Phase 30 complete, Phase 31 next
 
 ## Current Position
 
-Phase: 30 of 34 (Dockview Phase A Migration)
-Plan: 2/3 complete
-Status: Phase 30 Plan 02 complete — ready for Plan 03
-Last activity: 2026-03-02 — Phase 30 Plan 02 (Workspace.js Caller Migration) complete
+Phase: 30 of 34 (Dockview Phase A Migration) — COMPLETE
+Next: Phase 31 (Object View Redesign)
+Status: Phase 30 complete — all 3 plans done, 10/10 verification scenarios pass
+Last activity: 2026-03-03 - Completed quick task 16: Document future milestone: SPARQL interface with permissions, autocomplete, UI pills, query history, saved queries, named queries with views
 
-Progress: [##░░░░░░░░] 16% (1/6 phases)
+Progress: [████░░░░░░] 33% (2/6 phases)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4 (v2.3)
-- Average duration: 2.0 min
-- Total execution time: 8 min
+- Total plans completed: 5 (v2.3)
+- Average duration: 3.4 min
+- Total execution time: 18 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 29-fts-fuzzy-search | 2 | 3 min | 1.5 min |
-| 30-dockview-phase-a-migration | 2 | 5 min | 2.5 min |
+| 30-dockview-phase-a-migration | 3 | 15 min | 5.0 min |
 
 *Updated after each plan completion*
 
@@ -65,6 +65,9 @@ Full decision log in PROJECT.md Key Decisions table.
 - 30-02: toggleObjectMode dirty check reads _tabMeta[objectIri].dirty (not layout.groups iteration)
 - 30-02: objectSaved uses panel.api.setTitle() for live dockview tab title updates
 - 30-02: Ctrl+1-4 group focus uses dv.groups[idx].focus() (dockview native)
+- 30-03: Bridge CSS must load AFTER dockview.css (corrects 30-01 decision — overrides need later load)
+- 30-03: CDN global is window['dockview-core'] (hyphenated), not DockviewCore
+- 30-03: createComponent must return { element, init() } — element property required by IContentRenderer
 
 ### Pending Todos
 
@@ -82,8 +85,14 @@ Full decision log in PROJECT.md Key Decisions table.
 - Carousel bar + 3D flip toggle visual coexistence in object view header unresolved — prototype before committing VIEW-02 implementation (Phase 32)
 - Named layout user preference storage in triplestore is a first-use pattern — validate SPARQL UPDATE design before LayoutService (Phase 33)
 
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 16 | Document future milestone: SPARQL interface with permissions, autocomplete, UI pills, query history, saved queries, named queries with views | 2026-03-03 | 2e8e2f6 | [16-document-future-milestone-sparql-interfa](./quick/16-document-future-milestone-sparql-interfa/) |
+
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 30-dockview-phase-a-migration/30-02-PLAN.md
+Stopped at: Phase 30 complete, ready for Phase 31
 Resume file: None
