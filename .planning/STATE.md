@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 Phase: 32 of 34 (Carousel Views and View Bug Fixes) — Not started
 Current Plan: 0 of ? (plans TBD)
 Status: Phase 31 complete — object view redesign with body-first layout and E2E verification
-Last activity: 2026-03-03 - Completed Phase 31-02: E2E verification and test fixes (151/156 pass)
+Last activity: 2026-03-03 - Completed quick task 21: Research UX/UI flow for interactive Obsidian import wizard
 
 Progress: [██████░░░░] 67% (4/6 phases)
 
