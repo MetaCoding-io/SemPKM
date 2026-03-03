@@ -98,9 +98,10 @@ Full decision log in PROJECT.md Key Decisions table.
 | 17 | Save collaboration architecture research to planning docs with source links and reference from future milestone | 2026-03-03 | 833da8a | [17-save-collaboration-architecture-research](./quick/17-save-collaboration-architecture-research/) |
 | 18 | Research Web Components for Mental Model UI contribution (htmx interop, security model, manifest design, phased roadmap) | 2026-03-03 | dcdad2c | [18-research-web-components-for-mental-model](./quick/18-research-web-components-for-mental-model/) |
 | 19 | Research SHACL and OWL logical inference for mental models (owlrl, SHACL-AF rules, DASH, 4-phase roadmap) | 2026-03-03 | fd6bd98 | [19-research-shacl-and-owl-logical-inference](./quick/19-research-shacl-and-owl-logical-inference/) |
+| 20 | Save decentralized identity research and add Identity & Authentication future milestone | 2026-03-03 | d63c2e0 | [20-save-decentralized-identity-research-and](./quick/20-save-decentralized-identity-research-and/) |
 
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed quick-19 (SHACL and OWL inference research)
+Stopped at: E2E dockview fixes — 18 files fixed, 122 pass/34 fail, `.group-editor-area` class fix applied, need re-run
 Resume file: .planning/phases/31-object-view-redesign/.continue-here.md
