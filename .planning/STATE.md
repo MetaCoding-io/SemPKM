@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 Phase: 31 of 34 (Object View Redesign) — Plan 01 complete, Plan 02 next
 Current Plan: 1 of 2
 Status: Plan 31-01 complete — body-first layout with collapsible properties badge
-Last activity: 2026-03-03 - Completed 31-01: Object view redesign (body-first layout, properties badge, CSS animation)
+Last activity: 2026-03-03 - Completed quick task 17: Save collaboration architecture research to planning docs with source links and reference from future milestone
 
 Progress: [█████░░░░░] 50% (3/6 phases)
 
@@ -95,6 +95,7 @@ Full decision log in PROJECT.md Key Decisions table.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 16 | Document future milestone: SPARQL interface with permissions, autocomplete, UI pills, query history, saved queries, named queries with views | 2026-03-03 | 2e8e2f6 | [16-document-future-milestone-sparql-interfa](./quick/16-document-future-milestone-sparql-interfa/) |
+| 17 | Save collaboration architecture research to planning docs with source links and reference from future milestone | 2026-03-03 | 833da8a | [17-save-collaboration-architecture-research](./quick/17-save-collaboration-architecture-research/) |
 
 ## Session Continuity
 
