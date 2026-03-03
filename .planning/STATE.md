@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Shell, Navigation & Views
 status: executing
-last_updated: "2026-03-02T06:55:00Z"
+last_updated: "2026-03-03T01:38:16Z"
 progress:
   total_phases: 11
   completed_phases: 11
-  total_plans: 30
-  completed_plans: 30
+  total_plans: 31
+  completed_plans: 31
 ---
 
 # Project State
@@ -18,23 +18,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-01)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations — no blank-page syndrome, no schema setup.
-**Current focus:** v2.3 Shell, Navigation & Views — Phase 30 complete, Phase 31 next
+**Current focus:** v2.3 Shell, Navigation & Views — Phase 31 Plan 01 complete, Plan 02 next
 
 ## Current Position
 
-Phase: 30 of 34 (Dockview Phase A Migration) — COMPLETE
-Next: Phase 31 (Object View Redesign)
-Status: Phase 30 complete — all 3 plans done, 10/10 verification scenarios pass
-Last activity: 2026-03-03 - Completed quick task 16: Document future milestone: SPARQL interface with permissions, autocomplete, UI pills, query history, saved queries, named queries with views
+Phase: 31 of 34 (Object View Redesign) — Plan 01 complete, Plan 02 next
+Current Plan: 1 of 2
+Status: Plan 31-01 complete — body-first layout with collapsible properties badge
+Last activity: 2026-03-03 - Completed 31-01: Object view redesign (body-first layout, properties badge, CSS animation)
 
-Progress: [████░░░░░░] 33% (2/6 phases)
+Progress: [█████░░░░░] 50% (3/6 phases)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5 (v2.3)
-- Average duration: 3.4 min
-- Total execution time: 18 min
+- Total plans completed: 6 (v2.3)
+- Average duration: 3.5 min
+- Total execution time: 21 min
 
 **By Phase:**
 
@@ -42,6 +42,7 @@ Progress: [████░░░░░░] 33% (2/6 phases)
 |-------|-------|-------|----------|
 | 29-fts-fuzzy-search | 2 | 3 min | 1.5 min |
 | 30-dockview-phase-a-migration | 3 | 15 min | 5.0 min |
+| 31-object-view-redesign | 1 | 3 min | 3.0 min |
 
 *Updated after each plan completion*
 
@@ -68,6 +69,10 @@ Full decision log in PROJECT.md Key Decisions table.
 - 30-03: Bridge CSS must load AFTER dockview.css (corrects 30-01 decision — overrides need later load)
 - 30-03: CDN global is window['dockview-core'] (hyphenated), not DockviewCore
 - 30-03: createComponent must return { element, init() } — element property required by IContentRenderer
+- 31-01: CSS grid-template-rows 0fr/1fr for smooth properties slide animation (no max-height hack)
+- 31-01: Properties badge in toolbar controls both read+edit face collapse simultaneously
+- 31-01: sempkm_props_collapsed localStorage key stores per-IRI collapse preference as JSON object
+- 31-01: Default: collapsed when body exists, expanded when no body content
 
 ### Pending Todos
 
@@ -93,6 +98,6 @@ Full decision log in PROJECT.md Key Decisions table.
 
 ## Session Continuity
 
-Last session: 2026-03-02
-Stopped at: Phase 30 complete, ready for Phase 31
+Last session: 2026-03-03
+Stopped at: Completed 31-01-PLAN.md
 Resume file: None
