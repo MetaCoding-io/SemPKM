@@ -1353,6 +1353,11 @@ details.form-group[open] > .form-group-summary::before {
 .properties-collapsible > .properties-inner {
     min-height: 0;
     overflow: hidden;
+    visibility: hidden;
+}
+
+.properties-collapsible.expanded > .properties-inner {
+    visibility: visible;
 }
 
 /* Ensure property table has proper spacing inside collapsible */
@@ -2646,4 +2651,29 @@ details.form-group[open] > .form-group-summary::before {
     border-left: 3px solid var(--color-accent);
     padding-left: 9px; /* 12px original - 3px border = maintains visual indent */
     transition: border-color 0.15s;
+}
+
+/* ============================================================
+   Toast Notifications
+   ============================================================ */
+.sempkm-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--color-bg-panel);
+    color: var(--color-text-normal);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 13px;
+    z-index: 10000;
+    opacity: 0;
+    transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.sempkm-toast--visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
 }
