@@ -8,6 +8,7 @@
 - ✅ **v2.2 Data Discovery** — Phases 23-28 (shipped 2026-03-01) — [Full details](milestones/v2.2-ROADMAP.md)
 - 🚧 **v2.3 Shell, Navigation & Views** — Phases 29-34 (in progress)
 - (future) **SPARQL Interface** -- Rich SPARQL query experience with permissions, autocomplete, pills, history, saved queries, and named query views
+- (future) **Collaboration & Federation** -- Multi-instance sync via RDF Patch, cross-instance notifications (LDN), federated identity (WebID), and future CRDT-based real-time co-editing — [Research](research/collaboration-architecture.md)
 
 ## Phases
 
