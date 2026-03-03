@@ -6,7 +6,7 @@
 <domain>
 ## Phase Boundary
 
-Redesign the object tab view so the rendered Markdown body is the primary content shown by default, with RDF properties hidden behind a toggle. Users can expand/collapse properties with a single click, and their preference is remembered per object IRI. The existing CSS 3D flip to edit mode must remain unaffected.
+Redesign the object tab so the Markdown body is the primary content in both view AND edit modes, with RDF properties hidden behind a toggle. Users can expand/collapse properties with a single click, and their preference is remembered per object IRI. The existing CSS 3D flip between view/edit modes must remain unaffected. Both sides of the flip card share the same body-first, properties-collapsed pattern.
 
 </domain>
 
@@ -14,16 +14,22 @@ Redesign the object tab view so the rendered Markdown body is the primary conten
 ## Implementation Decisions
 
 ### Properties toggle design
-- Toggle badge positioned in the view header toolbar, grouped with the edit button on the right side
-- Clicking the badge slides properties down inline, pushing the Markdown body down with a smooth CSS transition
+- Toggle badge positioned in the header toolbar, grouped with other controls on the right side
+- Clicking the badge slides properties down inline, pushing the body content down with a smooth CSS transition
 - Badge shows "N properties" with the actual count (e.g. "5 properties")
 - Expanded properties list appears between the fixed header and the body content area
+- **Same pattern on both sides of the flip card:** view mode shows read-only properties; edit mode shows the existing editable fieldsets (collapsible fieldsets already exist — reuse them inside the toggle)
 
 ### Body presentation
-- Markdown body fills the full width of the dockview panel with comfortable padding
+- Markdown body (view mode) or Markdown editor (edit mode) fills the full width of the dockview panel with comfortable padding
 - Fixed header at top; body content scrolls independently beneath it
 - When an object has no Markdown body (empty or missing): show subtle muted placeholder text ("No content") AND auto-expand properties by default
 - Typography matches existing app styles — no special reading-mode treatment
+
+### Edit mode consistency
+- Edit mode mirrors the same layout: body editor is primary, properties hidden behind toggle
+- The toggle in edit mode expands the existing editable fieldsets (same collapsible fieldsets that currently exist, just collapsed by default)
+- Collapse preference is shared per object IRI — if user expanded properties in view mode, they stay expanded after flipping to edit mode (and vice versa)
 
 ### View header layout
 - Title on the left, controls (properties badge + edit button) grouped on the right — standard toolbar pattern
