@@ -76,7 +76,7 @@
 
 </details>
 
-### 🚧 v2.3 Shell, Navigation & Views (In Progress)
+### v2.3 Shell, Navigation & Views (In Progress)
 
 **Milestone Goal:** Complete dockview Phase A migration (replacing Split.js editor-pane area), redesign the object view to be markdown-first with manifest-driven carousel views, add named workspace layouts, improve FTS with fuzzy search, and close v2.2 bugs.
 
@@ -172,7 +172,11 @@ Plans:
   2. All FTS keyword search E2E tests (including fuzzy toggle behavior) run and pass against the live stack without any `test.skip()` wrapper
   3. All WebDAV VFS E2E tests run and pass against the live stack without any `test.skip()` wrapper
   4. New Playwright tests cover dockview panel management, carousel view switching, fuzzy FTS toggle, and named layout save/restore
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 34-01-PLAN.md — Fix SPARQL/VFS skipped tests (rewrite SPARQL for admin page, fix VFS Basic auth), verify FTS passes
+- [ ] 34-02-PLAN.md — New v2.3 feature tests (fuzzy toggle, carousel views, named layouts)
 
 ### v2.4 Inference & Polish (Next)
 
@@ -370,7 +374,7 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 31. Object View Redesign | v2.3 | 2/2 | Complete | 2026-03-03 |
 | 32. Carousel Views and View Bug Fixes | 2/2 | Complete    | 2026-03-03 | - |
 | 33. Named Layouts and VFS Settings Restore | 2/2 | Complete    | 2026-03-03 | - |
-| 34. E2E Test Coverage | v2.3 | 0/? | Not started | - |
+| 34. E2E Test Coverage | v2.3 | 0/2 | Not started | - |
 
 ---
 *Roadmap created: 2026-02-21*
