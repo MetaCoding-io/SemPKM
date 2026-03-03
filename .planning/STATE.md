@@ -22,12 +22,12 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 
 ## Current Position
 
-Phase: 33 of 34 (Named Layouts and VFS Settings Restore) — Complete
-Current Plan: 2 of 2
-Status: Phase 33 complete — named layouts with command palette integration
-Last activity: 2026-03-03 - Completed 33-02: Command palette layout integration
+Phase: 34 of 34 (E2E Test Coverage) — In Progress
+Current Plan: 1 of 2
+Status: Completed 34-01 — SPARQL/VFS/FTS test fixes with zero test.skip()
+Last activity: 2026-03-03 - Completed 34-01: E2E test coverage fixes
 
-Progress: [██████████] 100% (6/6 phases)
+Progress: [█████████░] 95% (6.5/7 phases)
 
 ## Performance Metrics
 
@@ -45,6 +45,7 @@ Progress: [██████████] 100% (6/6 phases)
 | 31-object-view-redesign | 2 | 11 min | 5.5 min |
 | 32-carousel-views-and-view-bug-fixes | 2 | 6 min | 3.0 min |
 | 33-named-layouts-and-vfs-settings-restore | 2 | 4 min | 2.0 min |
+| 34-e2e-test-coverage | 1 | 7 min | 7.0 min |
 
 *Updated after each plan completion*
 
@@ -91,6 +92,9 @@ Full decision log in PROJECT.md Key Decisions table.
 - 33-02: Layout commands in dedicated 'Layout' section of command palette
 - 33-02: User popover Layouts item opens palette directly to layout-restore parent submenu
 - 33-02: Toast notifications auto-dismiss after 3s (5s for partial restore with skipped items)
+- 34-01: VFS WebDAV tests use vfsBasicAuth custom fixture (API token creation/cleanup per test)
+- 34-01: PROPFIND discovery for .md file paths instead of hardcoded URL-encoded titles
+- 34-01: wsgidav uses ns0: XML namespace prefix (not D:) and /basic-pkm/ model-prefixed paths
 
 ### Pending Todos
 
@@ -123,5 +127,5 @@ Full decision log in PROJECT.md Key Decisions table.
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 33-02-PLAN.md (command palette layout integration)
-Resume file: Phase 33 complete. Next: Phase 34
+Stopped at: Completed 34-01-PLAN.md (E2E test coverage fixes)
+Resume file: Phase 34 in progress. Next: 34-02
