@@ -415,3 +415,13 @@
   background: var(--color-danger, #ef4444);
   color: #fff;
 }
+
+/* VFS copy button icon sizing — CSS-only per CLAUDE.md (no inline styles) */
+.vfs-endpoint-display .btn-icon svg,
+.vfs-token-value-row .btn-icon svg,
+.vfs-token-reveal .btn-icon svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  stroke: currentColor;
+}

@@ -10,7 +10,7 @@
   <div class="vfs-endpoint-display">
     <code class="vfs-endpoint-url" id="vfs-endpoint-url">{{ webdav_endpoint }}</code>
     <button class="btn-icon" onclick="navigator.clipboard.writeText('{{ webdav_endpoint }}'); this.textContent='Copied!';" title="Copy endpoint URL">
-      <i data-lucide="copy" style="width:14px;height:14px;"></i>
+      <i data-lucide="copy"></i>
     </button>
   </div>
 </div>
@@ -81,7 +81,7 @@ function vfsSubmitTokenForm(e) {
       '<div class="vfs-token-value-row">' +
       '<code class="vfs-token-value" id="vfs-new-token-value">' + data.token + '</code>' +
       '<button class="btn-icon" onclick="navigator.clipboard.writeText(\'' + data.token + '\'); this.textContent=\'Copied!\';" title="Copy token">' +
-      '<i data-lucide="copy" style="width:14px;height:14px;"></i></button>' +
+      '<i data-lucide="copy"></i></button>' +
       '</div></div>';
     // Show the tokens table if it was hidden (empty state)
     var hiddenTable = document.querySelector('.vfs-tokens-table[style*="display:none"]');
