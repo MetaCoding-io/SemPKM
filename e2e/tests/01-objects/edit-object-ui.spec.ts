@@ -57,6 +57,17 @@ async function submitObjectForm(page: any) {
   });
 }
 
+/** Expand the properties panel if collapsed (Phase 31: properties hidden by default). */
+async function expandProperties(page: any) {
+  const badge = page.locator('.properties-toggle-badge').first();
+  if (await badge.count() === 0) return;
+  await badge.waitFor({ state: 'visible', timeout: 5000 });
+  const expanded = await page.locator('.properties-collapsible.expanded').count();
+  if (expanded > 0) return;
+  await badge.click();
+  await page.waitForSelector('.properties-collapsible.expanded', { timeout: 5000 });
+}
+
 // ---------------------------------------------------------------------------
 
 test.describe('Read View – Reference Field Regressions', () => {
@@ -69,6 +80,7 @@ test.describe('Read View – Reference Field Regressions', () => {
     await loadObjectInEditor(ownerPage, SEED.notes.architecture.iri, 'read');
     await ownerPage.waitForSelector('.object-tab', { timeout: 10000 });
     await waitForIdle(ownerPage);
+    await expandProperties(ownerPage);
 
     const refPills = ownerPage.locator('.ref-pill');
     await expect(refPills.first()).toBeVisible({ timeout: 5000 });
@@ -92,6 +104,7 @@ test.describe('Read View – Reference Field Regressions', () => {
     await loadObjectInEditor(ownerPage, SEED.notes.architecture.iri, 'read');
     await ownerPage.waitForSelector('.object-tab', { timeout: 10000 });
     await waitForIdle(ownerPage);
+    await expandProperties(ownerPage);
 
     // The architecture note has bpkm:isAbout → seed-concept-event-sourcing ("Event Sourcing")
     const eventSourcingPill = ownerPage.locator('.ref-pill', { hasText: 'Event Sourcing' });
@@ -110,6 +123,7 @@ test.describe('Read View – Reference Field Regressions', () => {
     await loadObjectInEditor(ownerPage, SEED.notes.architecture.iri, 'read');
     await ownerPage.waitForSelector('.object-tab', { timeout: 10000 });
     await waitForIdle(ownerPage);
+    await expandProperties(ownerPage);
 
     // Click a ref-pill (the interaction that originally triggered the error)
     const refPill = ownerPage.locator('.ref-pill').first();
@@ -119,7 +133,7 @@ test.describe('Read View – Reference Field Regressions', () => {
     }
 
     // Click inside the properties area
-    const propsArea = ownerPage.locator('.object-read-properties, .object-properties').first();
+    const propsArea = ownerPage.locator('.properties-collapsible, .property-table').first();
     if (await propsArea.count() > 0) {
       await propsArea.click({ position: { x: 5, y: 5 }, force: true });
     }
@@ -163,10 +177,11 @@ test.describe('Edit Mode – UI Regression Tests', () => {
     await ownerPage.waitForSelector('[data-testid="workspace"]', { timeout: 15000 });
 
     await openTab(ownerPage, SEED.notes.architecture.iri, SEED.notes.architecture.title, 'edit');
-    await ownerPage.waitForSelector('[data-testid="object-form"]', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-tab', { timeout: 10000 });
     await waitForIdle(ownerPage);
+    await expandProperties(ownerPage);
 
-    // "About Concepts" is a reference field in the Relationships group (open by default)
+    // "About Concepts" is a reference field in the Relationships group
     const aboutField = ownerPage.locator('.form-field', { hasText: 'About Concepts' }).first();
     const searchInput = aboutField.locator('input[type="text"].reference-search').first();
     await expect(searchInput).toBeVisible({ timeout: 5000 });
@@ -198,8 +213,9 @@ test.describe('Edit Mode – UI Regression Tests', () => {
     await ownerPage.waitForSelector('[data-testid="workspace"]', { timeout: 15000 });
 
     await openTab(ownerPage, SEED.notes.architecture.iri, SEED.notes.architecture.title, 'edit');
-    await ownerPage.waitForSelector('[data-testid="object-form"]', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-tab', { timeout: 10000 });
     await waitForIdle(ownerPage);
+    await expandProperties(ownerPage);
 
     const aboutField = ownerPage.locator('.form-field', { hasText: 'About Concepts' }).first();
     const firstItem = aboutField.locator('.multi-value-item').first();
@@ -243,8 +259,9 @@ test.describe('Edit Mode – UI Regression Tests', () => {
     await ownerPage.waitForSelector('[data-testid="workspace"]', { timeout: 15000 });
 
     await openTab(ownerPage, noteIri, SEED.notes.graphViz.title, 'edit');
-    await ownerPage.waitForSelector('[data-testid="object-form"]', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-tab', { timeout: 10000 });
     await waitForIdle(ownerPage);
+    await expandProperties(ownerPage);
 
     const aboutField = ownerPage.locator('.form-field', { hasText: 'About Concepts' }).first();
 
@@ -288,6 +305,7 @@ test.describe('Edit Mode – UI Regression Tests', () => {
     await loadObjectInEditor(ownerPage, noteIri, 'read');
     await ownerPage.waitForSelector('.object-tab', { timeout: 10000 });
     await waitForIdle(ownerPage);
+    await expandProperties(ownerPage);
 
     const pills = ownerPage.locator('.ref-pill');
     await expect(pills.first()).toBeVisible({ timeout: 5000 });
@@ -320,8 +338,9 @@ test.describe('Edit Mode – UI Regression Tests', () => {
     // Switch to edit mode via the toolbar toggle
     const toggleBtn = ownerPage.locator('.mode-toggle').first();
     await toggleBtn.click();
-    await ownerPage.waitForSelector('[data-testid="object-form"]', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-face-edit.face-visible', { timeout: 10000 });
     await waitForIdle(ownerPage);
+    await expandProperties(ownerPage);
 
     // Change the title (use the full dcterms:title IRI as the name attribute)
     const titleInput = ownerPage
@@ -363,8 +382,9 @@ test.describe('Edit Mode – UI Regression Tests', () => {
 
     const toggleBtn = ownerPage.locator('.mode-toggle').first();
     await toggleBtn.click();
-    await ownerPage.waitForSelector('[data-testid="object-form"]', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-face-edit.face-visible', { timeout: 10000 });
     await waitForIdle(ownerPage);
+    await expandProperties(ownerPage);
 
     const titleInput = ownerPage
       .locator('input[name="http://purl.org/dc/terms/title"]')

@@ -27,8 +27,10 @@ test.describe('Edit Object Properties', () => {
       }
     }, noteIri);
 
-    // Wait for the object form or object tab to load
-    await ownerPage.waitForSelector('.object-form-container, .object-tab', { timeout: 10000 });
+    // Wait for the object tab to load (form is inside collapsed properties section)
+    await ownerPage.waitForSelector('.object-tab', { timeout: 10000 });
+    // Verify the edit form exists in the DOM
+    await ownerPage.waitForSelector('[data-testid="object-form"]', { state: 'attached', timeout: 5000 });
   });
 
   test('patch object properties via API', async ({ ownerPage, ownerSessionToken }) => {
