@@ -72,6 +72,29 @@
 - [ ] **SQ-14**: Named query views execute their SPARQL query on demand and render results using the standard view renderers (table, cards, graph)
 - [ ] **SQ-15**: Named query views can be included in Mental Model manifests as model-provided views alongside built-in view specs
 
+### Global Lint Status (future milestone)
+
+**Global Lint Dashboard:**
+- [ ] **LINT-01**: User can open a Global Lint Status view (as a dockview panel or dedicated page) that shows all SHACL validation results across every object in the knowledge base, with summary counts by severity (violations, warnings, infos) and a per-object breakdown
+- [ ] **LINT-02**: Global lint view updates automatically after each EventStore.commit() via the existing AsyncValidationQueue; user sees the latest validation state without manual refresh
+- [ ] **LINT-03**: User can see a visual health indicator (e.g., status bar badge or sidebar icon) showing the overall knowledge base validation status at a glance (pass / N violations / N warnings)
+
+**Filtering and Search:**
+- [ ] **LINT-04**: User can filter lint results by severity level (violations only, warnings only, infos only, or combinations)
+- [ ] **LINT-05**: User can filter lint results by object type (e.g., show only Note violations, only Project violations) using the Mental Model's type registry
+- [ ] **LINT-06**: User can search/filter lint results by keyword across message text, property path, and object label
+- [ ] **LINT-07**: User can sort lint results by severity, object name, property path, or timestamp
+
+**Fix Guidance:**
+- [ ] **LINT-08**: Each lint result displays a human-readable "how to fix" message that explains what the constraint expects and how to resolve the violation (not just "constraint violated" but "This field requires at least 1 value -- add a title to fix")
+- [ ] **LINT-09**: Fix guidance messages are derived from SHACL shape metadata (sh:description, sh:name, constraint component type) and augmented with Mental Model-provided help text when available
+- [ ] **LINT-10**: Common constraint violations (sh:minCount, sh:maxCount, sh:datatype, sh:pattern, sh:class) have built-in human-friendly message templates that produce actionable guidance without requiring shape authors to write custom messages
+
+**Click-to-Edit Workflow:**
+- [ ] **LINT-11**: User can click any lint result row and the corresponding object opens in a dockview pane (or focuses the existing pane if already open), scrolled/focused to the relevant field
+- [ ] **LINT-12**: After editing and saving the object, the lint view updates to reflect whether the issue is resolved, removed from the list, or still present
+- [ ] **LINT-13**: User can work through lint results sequentially: fix one issue, see it disappear from the global list, click the next issue, fix it -- a continuous triage workflow without navigating away from the lint view
+
 ## Out of Scope
 
 | Feature | Reason |
@@ -84,6 +107,9 @@
 | Per-note property visibility stored in RDF | localStorage per-IRI is acceptable; storing UI state in data graph is an anti-pattern |
 | SPARQL UPDATE as general write surface | By design -- bypasses event sourcing; named queries are read-only SELECT/CONSTRUCT |
 | Federated SPARQL (SERVICE keyword) | Security and performance concerns; single-triplestore scope for now |
+| Automated lint auto-fix (programmatic correction of violations) | Too risky -- automated edits bypass user intent; fix guidance is sufficient |
+| Custom user-defined validation rules beyond SHACL | SHACL shapes are the validation language; custom rules belong in Mental Model shapes |
+| Cross-object relationship validation (e.g., orphan detection) | Distinct feature from per-object SHACL validation; future graph-level health check |
 
 ## Traceability
 
@@ -111,4 +137,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-03-01*
-*Last updated: 2026-03-03 after adding SPARQL Interface future requirements*
+*Last updated: 2026-03-03 after adding Global Lint Status future requirements*
