@@ -8,7 +8,7 @@
 ### Dockview Migration
 
 - [x] **DOCK-01**: User can open and manage object tabs rendered in dockview-core panels (Phase A: editor-pane area replaces Split.js; old HTML5 drag system removed in same commit)
-- [ ] **DOCK-02**: User can save named workspace layouts and restore them via the Command Palette; layouts persist across sessions
+- [x] **DOCK-02**: User can save named workspace layouts and restore them via the Command Palette; layouts persist across sessions
 
 ### Object View
 
@@ -22,7 +22,7 @@
 ### Bug Fixes
 
 - [x] **BUG-01**: User sees correctly grouped concept cards when group-by is applied
-- [ ] **BUG-02**: User can access and use VFS mount configuration from the Settings page
+- [x] **BUG-02**: User can access and use VFS mount configuration from the Settings page
 - [x] **BUG-03**: Broken view switch buttons are removed from the object view (replaced by VIEW-02 carousel tab bar)
 
 ### Testing
@@ -123,8 +123,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VIEW-02 | Phase 32 | Complete |
 | BUG-01 | Phase 32 | Complete |
 | BUG-03 | Phase 32 | Complete |
-| DOCK-02 | Phase 33 | Pending |
-| BUG-02 | Phase 33 | Pending |
+| DOCK-02 | Phase 33 | Complete |
+| BUG-02 | Phase 33 | Complete |
 | TEST-01 | Phase 34 | Pending |
 | TEST-02 | Phase 34 | Pending |
 | TEST-03 | Phase 34 | Pending |
