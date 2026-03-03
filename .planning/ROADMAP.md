@@ -85,7 +85,7 @@
 - [x] **Phase 31: Object View Redesign** — Markdown-first object view with properties collapsed by default and single-click reveal (complete 2026-03-03)
 - [x] **Phase 32: Carousel Views and View Bug Fixes** — Manifest-declared per-type view tab bar, concept cards group-by fix, broken view switch buttons removed (completed 2026-03-03)
 - [x] **Phase 33: Named Layouts and VFS Settings Restore** — User-named workspace layout save/restore via Command Palette; VFS Settings UI restored (completed 2026-03-03)
-- [ ] **Phase 34: E2E Test Coverage** — Remove all test.skip() from SPARQL/FTS/VFS suites; add v2.3 feature coverage
+- [x] **Phase 34: E2E Test Coverage** — Remove all test.skip() from SPARQL/FTS/VFS suites; add v2.3 feature coverage (completed 2026-03-03)
 
 ## Phase Details
 
@@ -374,7 +374,7 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 31. Object View Redesign | v2.3 | 2/2 | Complete | 2026-03-03 |
 | 32. Carousel Views and View Bug Fixes | 2/2 | Complete    | 2026-03-03 | - |
 | 33. Named Layouts and VFS Settings Restore | 2/2 | Complete    | 2026-03-03 | - |
-| 34. E2E Test Coverage | 1/2 | In Progress|  | - |
+| 34. E2E Test Coverage | 2/2 | Complete   | 2026-03-03 | - |
 
 ---
 *Roadmap created: 2026-02-21*

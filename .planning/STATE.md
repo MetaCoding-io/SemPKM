@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Shell, Navigation & Views
 status: unknown
-last_updated: "2026-03-03T19:23:44.488Z"
+last_updated: "2026-03-03T20:08:15.726Z"
 progress:
-  total_phases: 15
-  completed_phases: 15
-  total_plans: 38
-  completed_plans: 38
+  total_phases: 16
+  completed_phases: 16
+  total_plans: 40
+  completed_plans: 40
 ---
 
 # Project State
@@ -22,19 +22,19 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 
 ## Current Position
 
-Phase: 34 of 34 (E2E Test Coverage) — In Progress
-Current Plan: 1 of 2
-Status: Completed 34-01 — SPARQL/VFS/FTS test fixes with zero test.skip()
-Last activity: 2026-03-03 - Completed 34-01: E2E test coverage fixes
+Phase: 34 of 34 (E2E Test Coverage) — Complete
+Current Plan: 2 of 2
+Status: Phase 34 complete — all v2.3 features have E2E test coverage
+Last activity: 2026-03-03 - Completed 34-02: v2.3 feature E2E tests
 
-Progress: [█████████░] 95% (6.5/7 phases)
+Progress: [██████████] 100% (7/7 phases)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 11 (v2.3)
-- Average duration: 3.5 min
-- Total execution time: 39 min
+- Total plans completed: 13 (v2.3)
+- Average duration: 3.7 min
+- Total execution time: 48 min
 
 **By Phase:**
 
@@ -45,7 +45,7 @@ Progress: [█████████░] 95% (6.5/7 phases)
 | 31-object-view-redesign | 2 | 11 min | 5.5 min |
 | 32-carousel-views-and-view-bug-fixes | 2 | 6 min | 3.0 min |
 | 33-named-layouts-and-vfs-settings-restore | 2 | 4 min | 2.0 min |
-| 34-e2e-test-coverage | 1 | 4 min | 4.0 min |
+| 34-e2e-test-coverage | 2 | 13 min | 6.5 min |
 
 *Updated after each plan completion*
 
@@ -95,6 +95,8 @@ Full decision log in PROJECT.md Key Decisions table.
 - 34-01: VFS WebDAV tests use vfsBasicAuth custom fixture (API token creation/cleanup per test)
 - 34-01: PROPFIND discovery for .md file paths instead of hardcoded URL-encoded titles
 - 34-01: wsgidav uses ns0: XML namespace prefix (not D:) and /basic-pkm/ model-prefixed paths
+- 34-02: Used API target_class field (not type_iri) for view spec lookup in carousel tests
+- 34-02: Carousel tests use openViewTab/getTabCount helpers per TEST-04 dockview management requirement
 
 ### Pending Todos
 
@@ -127,5 +129,5 @@ Full decision log in PROJECT.md Key Decisions table.
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 34-01-PLAN.md (E2E test coverage fixes)
-Resume file: Phase 34 in progress. Next: 34-02
+Stopped at: Completed 34-02-PLAN.md (v2.3 feature E2E tests)
+Resume file: Phase 34 complete. v2.3 milestone complete.
