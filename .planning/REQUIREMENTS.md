@@ -27,9 +27,9 @@
 
 ### Testing
 
-- [ ] **TEST-01**: Playwright E2E tests for SPARQL console operations pass against live stack (no `test.skip()`)
-- [ ] **TEST-02**: Playwright E2E tests for FTS keyword search pass against live stack (no `test.skip()`)
-- [ ] **TEST-03**: Playwright E2E tests for WebDAV VFS operations pass against live stack (no `test.skip()`)
+- [x] **TEST-01**: Playwright E2E tests for SPARQL console operations pass against live stack (no `test.skip()`)
+- [x] **TEST-02**: Playwright E2E tests for FTS keyword search pass against live stack (no `test.skip()`)
+- [x] **TEST-03**: Playwright E2E tests for WebDAV VFS operations pass against live stack (no `test.skip()`)
 - [ ] **TEST-04**: Playwright E2E tests cover all v2.3 user-visible features (dockview panels, carousel view switching, fuzzy FTS, named layout save/restore)
 
 ## Future Requirements
@@ -125,9 +125,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BUG-03 | Phase 32 | Complete |
 | DOCK-02 | Phase 33 | Complete |
 | BUG-02 | Phase 33 | Complete |
-| TEST-01 | Phase 34 | Pending |
-| TEST-02 | Phase 34 | Pending |
-| TEST-03 | Phase 34 | Pending |
+| TEST-01 | Phase 34 | Complete |
+| TEST-02 | Phase 34 | Complete |
+| TEST-03 | Phase 34 | Complete |
 | TEST-04 | Phase 34 | Pending |
 
 **Coverage:**
