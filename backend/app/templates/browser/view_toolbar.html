@@ -1,16 +1,6 @@
 <div class="view-toolbar" data-current-filter="{{ current_filter }}" data-current-sort="{{ sort_col }}" data-current-dir="{{ sort_dir }}">
     <div class="view-toolbar-left">
         <span class="view-label">{{ spec.label }}</span>
-        <div class="view-type-switcher">
-            {% for s in all_specs %}
-            <a class="view-type-btn{% if s.spec_iri == spec.spec_iri %} active{% endif %}"
-               href="#"
-               onclick="switchViewType('{{ s.spec_iri }}', '{{ s.label }}', '{{ s.renderer_type }}'); return false;"
-               title="{{ s.label }}">
-                {% if s.renderer_type == 'table' %}&#9638;{% elif s.renderer_type == 'card' %}&#9641;{% elif s.renderer_type == 'graph' %}&#9672;{% else %}&#9654;{% endif %}
-            </a>
-            {% endfor %}
-        </div>
     </div>
     <div class="view-toolbar-right">
         {% set current_view_type = view_type | default('table') %}
@@ -30,7 +20,7 @@
                value="{{ current_filter }}"
                name="filter"
                hx-get="{{ filter_base_url }}"
-               hx-target="#editor-area"
+               hx-target="closest .group-editor-area"
                hx-swap="innerHTML"
                hx-trigger="keyup changed delay:300ms"
                hx-include="this"
@@ -47,7 +37,7 @@
 if (!window._viewFilterRefocusBound) {
     window._viewFilterRefocusBound = true;
     document.body.addEventListener('htmx:afterSwap', function (evt) {
-        if (evt.detail.target && evt.detail.target.id === 'editor-area') {
+        if (evt.detail.target && evt.detail.target.classList.contains('group-editor-area')) {
             var input = document.getElementById('view-filter');
             if (input && document.activeElement !== input) {
                 input.focus();
@@ -56,29 +46,5 @@ if (!window._viewFilterRefocusBound) {
             }
         }
     });
-}
-function switchViewType(specIri, label, rendererType) {
-    // Read live filter value from the input (falls back to data attribute)
-    var filterInput = document.getElementById('view-filter');
-    var filter = filterInput ? filterInput.value : '';
-    if (!filter) {
-        var toolbar = document.querySelector('.view-toolbar');
-        filter = toolbar ? toolbar.getAttribute('data-current-filter') || '' : '';
-    }
-    var toolbar = document.querySelector('.view-toolbar');
-    var sort = toolbar ? toolbar.getAttribute('data-current-sort') || '' : '';
-    var dir = toolbar ? toolbar.getAttribute('data-current-dir') || 'asc' : 'asc';
-
-    // Build URL with preserved params (all view types)
-    var url = '/browser/views/' + rendererType + '/' + encodeURIComponent(specIri);
-    var params = [];
-    if (filter) params.push('filter=' + encodeURIComponent(filter));
-    if (sort) params.push('sort=' + encodeURIComponent(sort));
-    if (dir && dir !== 'asc') params.push('dir=' + encodeURIComponent(dir));
-    if (params.length > 0) url += '?' + params.join('&');
-
-    if (typeof htmx !== 'undefined') {
-        htmx.ajax('GET', url, { target: '#editor-area', swap: 'innerHTML' });
-    }
 }
 </script>

@@ -6,7 +6,7 @@
     <label class="cards-group-label" for="group-by-select">Group by:</label>
     <select id="group-by-select" class="cards-group-select"
             hx-get="/browser/views/card/{{ spec_iri_encoded }}"
-            hx-target="#editor-area"
+            hx-target="closest .group-editor-area"
             hx-swap="innerHTML"
             hx-include="this"
             name="group_by"
