@@ -1120,8 +1120,26 @@
   }
 
   function showTypePicker() {
-    var editorArea = window.getActiveEditorArea ? window.getActiveEditorArea() : document.getElementById('editor-area-group-1');
-    if (typeof htmx !== 'undefined') {
+    var editorArea = window.getActiveEditorArea ? window.getActiveEditorArea() : null;
+
+    // If no active panel (empty workspace), create one so the type picker loads
+    // into a .group-editor-area (required by hx-target="closest .group-editor-area")
+    if (!editorArea && window._dockview) {
+      var panelId = '__new-object-' + Date.now();
+      if (!window._tabMeta) window._tabMeta = {};
+      window._tabMeta[panelId] = { label: 'New Object', dirty: false };
+      window._dockview.api.addPanel({
+        id: panelId,
+        component: 'empty',
+        params: { isView: false, isSpecial: false },
+        title: 'New Object'
+      });
+      editorArea = window.getActiveEditorArea ? window.getActiveEditorArea() : null;
+    }
+
+    if (!editorArea) editorArea = document.getElementById('editor-area-group-1');
+
+    if (typeof htmx !== 'undefined' && editorArea) {
       htmx.ajax('GET', '/browser/types', {
         target: editorArea,
         swap: 'innerHTML'
@@ -1696,6 +1714,78 @@
     });
   };
 
+  // --- Carousel View Switching ---
+
+  function switchCarouselView(tabEl, specIri, rendererType, typeIri) {
+    // Update active tab styling
+    var bar = tabEl.closest('.carousel-tab-bar');
+    bar.querySelectorAll('.carousel-tab').forEach(function(t) {
+      t.classList.remove('active');
+    });
+    tabEl.classList.add('active');
+
+    // Persist selection per type IRI
+    try {
+      var data = JSON.parse(localStorage.getItem('sempkm_carousel_view') || '{}');
+      data[typeIri] = specIri;
+      localStorage.setItem('sempkm_carousel_view', JSON.stringify(data));
+    } catch (e) { /* localStorage unavailable */ }
+
+    // Preserve current filter if present (use class selector, not ID, to avoid duplicate ID issues)
+    var panel = bar.closest('.group-editor-area');
+    var filterInput = panel ? panel.querySelector('.view-filter-input') : null;
+    var filter = filterInput ? filterInput.value : '';
+
+    // Build URL
+    var url = '/browser/views/' + rendererType + '/' + encodeURIComponent(specIri);
+    if (filter) {
+      url += '?filter=' + encodeURIComponent(filter);
+    }
+
+    // Find the view body container (two-container pattern: bar stays, body swaps)
+    var viewBody = bar.parentElement.querySelector('.carousel-view-body');
+    if (!viewBody) {
+      // Fallback: if no .carousel-view-body found, target the panel container
+      viewBody = panel;
+    }
+
+    if (viewBody && typeof htmx !== 'undefined') {
+      // Show loading indicator
+      var indicator = document.createElement('div');
+      indicator.className = 'view-loading-indicator';
+      indicator.innerHTML = '<div class="view-loading-spinner"></div>';
+      viewBody.style.position = 'relative';
+      viewBody.appendChild(indicator);
+
+      // Load view content -- outerHTML swap with select extracts only .carousel-view-body
+      // from the response, discarding the response's carousel bar
+      htmx.ajax('GET', url, { target: viewBody, swap: 'outerHTML', select: '.carousel-view-body' });
+    }
+  }
+
+  function restoreCarouselView(currentSpecIri, typeIri) {
+    try {
+      var data = JSON.parse(localStorage.getItem('sempkm_carousel_view') || '{}');
+      var savedSpecIri = data[typeIri];
+      if (!savedSpecIri || savedSpecIri === currentSpecIri) return;
+
+      // Check if the saved spec exists in the current carousel bar
+      var bar = document.querySelector('.carousel-tab-bar[data-type-iri="' + typeIri + '"]');
+      if (!bar) return;
+      var savedTab = bar.querySelector('[data-spec-iri="' + savedSpecIri + '"]');
+      if (!savedTab) {
+        // Saved view no longer exists in manifest -- clear and use current (first) silently
+        delete data[typeIri];
+        localStorage.setItem('sempkm_carousel_view', JSON.stringify(data));
+        return;
+      }
+
+      // Switch to the saved view
+      var rendererType = savedTab.getAttribute('data-renderer-type');
+      switchCarouselView(savedTab, savedSpecIri, rendererType, typeIri);
+    } catch (e) { /* localStorage unavailable */ }
+  }
+
   // --- Export functions globally for htmx onclick handlers ---
   window.openTab = openTab;
   window.closeTab = closeTab;
@@ -1709,6 +1799,8 @@
   window.loadRightPaneSection = loadRightPaneSection;
   window.openViewTab = openViewTab;
   window.openViewMenu = openViewMenu;
+  window.switchCarouselView = switchCarouselView;
+  window.restoreCarouselView = restoreCarouselView;
   window.toggleObjectMode = toggleObjectMode;
   window.saveCurrentObject = saveCurrentObject;
   window.toggleBottomPanel = toggleBottomPanel;
