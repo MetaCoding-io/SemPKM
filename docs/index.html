@@ -1754,24 +1754,37 @@ section {
   });
 })();
 
-// Signup form placeholder handler
+// Signup form — Kit (ConvertKit) integration
 function handleSignup(e) {
   e.preventDefault();
   var input = e.target.querySelector('input[type="email"]');
   var btn = e.target.querySelector('button');
   var email = input.value;
-  // Placeholder: no backend wired yet
-  btn.textContent = 'Thanks!';
+
+  btn.textContent = 'Sending...';
   btn.disabled = true;
   input.disabled = true;
-  input.value = '';
-  input.placeholder = 'We\'ll be in touch.';
-  setTimeout(function() {
-    btn.textContent = 'Notify me';
+
+  var formData = new FormData();
+  formData.append('email_address', email);
+
+  fetch('https://app.kit.com/forms/9157746/subscriptions', {
+    method: 'POST',
+    body: formData
+  }).then(function(res) {
+    if (res.ok || res.status === 200 || res.status === 302) {
+      btn.textContent = 'You\'re in!';
+      input.value = '';
+      input.placeholder = 'Check your inbox to confirm.';
+    } else {
+      throw new Error('status ' + res.status);
+    }
+  }).catch(function() {
+    btn.textContent = 'Retry';
     btn.disabled = false;
     input.disabled = false;
-    input.placeholder = 'you@example.com';
-  }, 3000);
+    input.placeholder = 'Something went wrong — try again.';
+  });
 }
 </script>
 
