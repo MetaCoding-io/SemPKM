@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 Phase: 31 of 34 (Object View Redesign) — Plan 01 complete, Plan 02 next
 Current Plan: 1 of 2
 Status: Plan 31-01 complete — body-first layout with collapsible properties badge
-Last activity: 2026-03-03 - Completed quick task 18: Research Web Components for Mental Model UI contribution
+Last activity: 2026-03-03 - Completed quick task 19: SHACL and OWL logical inference research for mental models
 
 Progress: [█████░░░░░] 50% (3/6 phases)
 
@@ -97,9 +97,10 @@ Full decision log in PROJECT.md Key Decisions table.
 | 16 | Document future milestone: SPARQL interface with permissions, autocomplete, UI pills, query history, saved queries, named queries with views | 2026-03-03 | 2e8e2f6 | [16-document-future-milestone-sparql-interfa](./quick/16-document-future-milestone-sparql-interfa/) |
 | 17 | Save collaboration architecture research to planning docs with source links and reference from future milestone | 2026-03-03 | 833da8a | [17-save-collaboration-architecture-research](./quick/17-save-collaboration-architecture-research/) |
 | 18 | Research Web Components for Mental Model UI contribution (htmx interop, security model, manifest design, phased roadmap) | 2026-03-03 | dcdad2c | [18-research-web-components-for-mental-model](./quick/18-research-web-components-for-mental-model/) |
+| 19 | Research SHACL and OWL logical inference for mental models (owlrl, SHACL-AF rules, DASH, 4-phase roadmap) | 2026-03-03 | fd6bd98 | [19-research-shacl-and-owl-logical-inference](./quick/19-research-shacl-and-owl-logical-inference/) |
 
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed quick-18 (Web Components research)
+Stopped at: Completed quick-19 (SHACL and OWL inference research)
 Resume file: .planning/phases/31-object-view-redesign/.continue-here.md
