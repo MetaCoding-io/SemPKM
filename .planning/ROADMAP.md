@@ -6,8 +6,8 @@
 - ✅ **v2.0 Tighten Web UI** — Phases 10-19 (shipped 2026-03-01) — [Full details](milestones/v2.0-ROADMAP.md)
 - ✅ **v2.1 Architecture Decision Gate** — Phases 20-22 (shipped 2026-03-01) — [Full details](milestones/v2.1-ROADMAP.md) — [Archive](milestones/v2.1-REQUIREMENTS.md)
 - ✅ **v2.2 Data Discovery** — Phases 23-28 (shipped 2026-03-01) — [Full details](milestones/v2.2-ROADMAP.md)
-- 🚧 **v2.3 Shell, Navigation & Views** — Phases 29-34 (in progress)
-- (next) **v2.4 Inference & Polish** -- OWL 2 RL inference, SHACL-AF rules, global lint dashboard, edit form helptext, and tracked bug fixes — [Research](research/shacl-owl-inference.md)
+- ✅ **v2.3 Shell, Navigation & Views** — Phases 29-34 (shipped 2026-03-03)
+- 🚧 **v2.4 Inference & Polish** — Phases 35-40 (in progress) — [Research](research/shacl-owl-inference.md)
 - (future) **SPARQL Interface** -- Rich SPARQL query experience with permissions, autocomplete, pills, history, saved queries, and named query views
 - (future) **Obsidian Import & Lint Triage** -- In-app Obsidian import wizard, SHACL fix guidance engine, and click-to-edit lint triage workflow — [Research](research/obsidian-import-wizard-ux.md)
 - (future) **Identity: WebID + IndieAuth** -- WebID profiles with content negotiation, IndieAuth provider with PKCE (Phases A-B) — [Research](research/decentralized-identity.md)
@@ -76,137 +76,107 @@
 
 </details>
 
-### v2.3 Shell, Navigation & Views (In Progress)
+<details>
+<summary>✅ v2.3 Shell, Navigation & Views (Phases 29-34) — SHIPPED 2026-03-03</summary>
 
-**Milestone Goal:** Complete dockview Phase A migration (replacing Split.js editor-pane area), redesign the object view to be markdown-first with manifest-driven carousel views, add named workspace layouts, improve FTS with fuzzy search, and close v2.2 bugs.
+- [x] Phase 29: FTS Fuzzy Search (2/2 plans) — completed 2026-03-02
+- [x] Phase 30: Dockview Phase A Migration (3/3 plans) — completed 2026-03-02
+- [x] Phase 31: Object View Redesign (2/2 plans) — completed 2026-03-03
+- [x] Phase 32: Carousel Views and View Bug Fixes (2/2 plans) — completed 2026-03-03
+- [x] Phase 33: Named Layouts and VFS Settings Restore (2/2 plans) — completed 2026-03-03
+- [x] Phase 34: E2E Test Coverage (2/2 plans) — completed 2026-03-03
 
-- [x] **Phase 29: FTS Fuzzy Search** — Typo-tolerant search via LuceneSail `term~1` operator with user-controlled toggle in Ctrl+K palette (backend complete 2026-03-02; frontend 29-02 pending)
-- [x] **Phase 30: Dockview Phase A Migration** — Replace Split.js editor-pane area with dockview-core panels; remove old HTML5 drag system (complete 2026-03-02)
-- [x] **Phase 31: Object View Redesign** — Markdown-first object view with properties collapsed by default and single-click reveal (complete 2026-03-03)
-- [x] **Phase 32: Carousel Views and View Bug Fixes** — Manifest-declared per-type view tab bar, concept cards group-by fix, broken view switch buttons removed (completed 2026-03-03)
-- [x] **Phase 33: Named Layouts and VFS Settings Restore** — User-named workspace layout save/restore via Command Palette; VFS Settings UI restored (completed 2026-03-03)
-- [x] **Phase 34: E2E Test Coverage** — Remove all test.skip() from SPARQL/FTS/VFS suites; add v2.3 feature coverage (completed 2026-03-03)
+**13 plans, 12/12 requirements satisfied**
 
-## Phase Details
+</details>
 
-### Phase 29: FTS Fuzzy Search
-**Goal**: Users can find objects despite typos using fuzzy matching toggled from the Ctrl+K palette
-**Depends on**: Nothing (fully independent)
-**Requirements**: FTS-04
-**Success Criteria** (what must be TRUE):
-  1. User types a misspelled query (e.g. "knowlege") in Ctrl+K palette and sees results for the correct object
-  2. User can toggle fuzzy mode on/off from within the Ctrl+K palette; the toggle state persists across sessions via localStorage
-  3. Tokens shorter than 5 characters are matched exactly even when fuzzy mode is on (no noise from short-token approximate expansion)
-  4. Multi-word queries fuzzy-match each qualifying token independently (e.g. "alice smth" finds "Alice Smith")
-**Plans**: 2 plans
-
-Plans:
-- [x] 29-01-PLAN.md — Backend: _normalize_query() in SearchService, fuzzy param on /api/search, fuzzyPrefixLength TTL config (complete 2026-03-02)
-- [ ] 29-02-PLAN.md — Frontend: fuzzy toggle command in ninja-keys Ctrl+K palette with localStorage persistence
-
-### Phase 30: Dockview Phase A Migration
-**Goal**: Users manage object tabs through dockview-core panels with native drag-to-reorder and group splitting; old HTML5 drag system is gone
-**Depends on**: Phase 29 (parallel is fine; DOCK-01 is sequenced after to isolate risk)
-**Requirements**: DOCK-01
-**Success Criteria** (what must be TRUE):
-  1. User can open multiple object tabs and drag them to reorder or split into side-by-side groups using dockview native drag handles
-  2. Workspace tab layout (group geometry) is automatically saved and restored after a browser reload
-  3. Object tabs opened inside dockview panels continue to fire `sempkm:tab-activated` and `sempkm:tabs-empty` events with the same payload shape as before
-  4. CodeMirror and Cytoscape visualizations render correctly when their containing panel is shown after being hidden (no zero-size blank panels)
-  5. htmx attributes on content loaded inside dockview panels remain active (forms submit, relations load, linting works)
-**Plans**: 3 plans
-
-Plans:
-- [x] 30-01-PLAN.md — Core dockview init: rewrite workspace-layout.js with DockviewComponent, update workspace.html CDN, activate bridge.css (complete 2026-03-02)
-- [x] 30-02-PLAN.md — Caller updates: workspace.js tab functions + object_tab.html typeIcon push to dockview API (complete 2026-03-02)
-- [x] 30-03-PLAN.md — CSS cleanup: remove old editor-group/drag rules from workspace.css + human verification checkpoint (complete 2026-03-02)
-
-### Phase 31: Object View Redesign
-**Goal**: Users see the object body (Markdown) by default with properties hidden; a single click reveals or collapses properties; preference is remembered per object
-**Depends on**: Phase 30 (visual coexistence with dockview panels validated before committing final layout)
-**Requirements**: VIEW-01
-**Success Criteria** (what must be TRUE):
-  1. Opening any object tab shows the rendered Markdown body immediately without properties visible
-  2. User clicks a "N properties" toggle badge and the full property list expands inline without a page reload
-  3. User collapses properties, reloads the page, and reopens the same object — properties remain collapsed (preference stored per object IRI)
-  4. The existing CSS 3D flip to edit mode is unaffected and still reachable from the view header
-**Plans**: 2 plans
-
-Plans:
-- [x] 31-01-PLAN.md — Template restructuring (body-first layout, properties badge, collapsible sections, CSS transitions, localStorage persistence, Split.js removal) (complete 2026-03-03)
-- [x] 31-02-PLAN.md — E2E verification and test fixes (expandProperties dual-face fix, showTypePicker empty workspace fix) (complete 2026-03-03)
-
-### Phase 32: Carousel Views and View Bug Fixes
-**Goal**: Object types with multiple manifest-declared views expose a tab bar; users switch views instantly; concept cards group-by works; broken view switch buttons are gone
-**Depends on**: Phase 30 (carousel bar wires into dockview panels), Phase 31 (tab bar must coexist with new object view header)
-**Requirements**: VIEW-02, BUG-01, BUG-03
-**Success Criteria** (what must be TRUE):
-  1. For an object type with multiple views declared in the manifest, a tab bar appears above the view body listing each view by name; clicking a tab switches the view instantly
-  2. The active carousel view tab persists per type IRI across sessions (returning to the type shows the same view the user last selected)
-  3. Concept cards view correctly groups objects by the configured group-by predicate without breaking layout or mixing groups
-  4. The broken graph/card/table view switch buttons are absent from the object view; the carousel tab bar is the only view-switching affordance
-**Plans**: TBD
-
-### Phase 33: Named Layouts and VFS Settings Restore
-**Goal**: Users can save, restore, and delete named workspace layouts from the Command Palette; VFS mount configuration is accessible from the Settings page
-**Depends on**: Phase 30 (named layouts require dockview `toJSON()` to be live)
-**Requirements**: DOCK-02, BUG-02
-**Success Criteria** (what must be TRUE):
-  1. User opens the Command Palette, invokes "Layout: Save as...", names the layout, and it appears as a restorable option in future palette sessions
-  2. User restores a named layout and the editor groups and panel geometry match what was saved
-  3. User deletes a named layout from the Command Palette and it no longer appears
-  4. Named layouts survive browser reload (persisted to localStorage and/or backend API)
-  5. User navigates to Settings and can see, generate, and revoke VFS API tokens from a working Settings UI
-**Plans**: 2 plans
-
-Plans:
-- [ ] 33-01-PLAN.md — Named layouts data layer (named-layouts.js, localStorage migration) + VFS Settings icon fix (BUG-02)
-- [ ] 33-02-PLAN.md — Command Palette layout commands, toast notifications, user popover Layouts item
-
-### Phase 34: E2E Test Coverage
-**Goal**: The full Playwright test suite passes against the live stack with no test.skip() calls; v2.3 features have coverage
-**Depends on**: Phases 29-33 complete (tests cover live features)
-**Requirements**: TEST-01, TEST-02, TEST-03, TEST-04
-**Success Criteria** (what must be TRUE):
-  1. All SPARQL console E2E tests run and pass against the live stack without any `test.skip()` wrapper
-  2. All FTS keyword search E2E tests (including fuzzy toggle behavior) run and pass against the live stack without any `test.skip()` wrapper
-  3. All WebDAV VFS E2E tests run and pass against the live stack without any `test.skip()` wrapper
-  4. New Playwright tests cover dockview panel management, carousel view switching, fuzzy FTS toggle, and named layout save/restore
-**Plans**: 2 plans
-
-Plans:
-- [ ] 34-01-PLAN.md — Fix SPARQL/VFS skipped tests (rewrite SPARQL for admin page, fix VFS Basic auth), verify FTS passes
-- [ ] 34-02-PLAN.md — New v2.3 feature tests (fuzzy toggle, carousel views, named layouts)
-
-### v2.4 Inference & Polish (Next)
+### v2.4 Inference & Polish (In Progress)
 
 **Milestone Goal:** Activate OWL 2 RL inference and SHACL-AF rules to deliver automatic bidirectional links and model-contributed derivations. Add a global lint dashboard for workspace-wide validation triage. Clear the backlog of tracked bugs and the edit form helptext TODO.
 
-**Depends on:** v2.3 complete
+- [ ] **Phase 35: OWL 2 RL Inference** — Add `owlrl` dependency, materialize inverse/transitive triples into `urn:sempkm:inferred` named graph on every write
+- [ ] **Phase 36: SHACL-AF Rules Support** — Enable `advanced=True` in pyshacl, add rules entrypoint to manifest, ship example rules in basic-pkm model
+- [ ] **Phase 37: Global Lint Data Model & API** — Persist per-object, per-result validation detail; paginated API endpoints with filtering by severity, type, path
+- [ ] **Phase 38: Global Lint Dashboard UI** — Filterable, sortable result table with severity badges, health indicator, auto-refresh
+- [ ] **Phase 39: Edit Form Helptext + Bug Fix Batch** — `sempkm:editHelpText` SHACL annotation in edit forms; fix accent bar, card borders, Firefox Ctrl+K, tab bleed, dark chevrons, concept search
+- [ ] **Phase 40: E2E Test Coverage for v2.4** — Playwright tests for inference, lint dashboard, helptext, and bug fix verifications
 
-**Estimated Phases (sketch -- to be refined during milestone planning):**
+## Phase Details
 
-1. **OWL 2 RL Inference** -- Add `owlrl` dependency, pass `ont_graph` and `inference='owlrl'` to pyshacl, materialize inverse triples into `urn:sempkm:inferred` named graph
-   - Key deliverable: User adds a participant to a Project; Person's detail page automatically shows the Project without manual inverse entry
-   - Research complete: [shacl-owl-inference.md](research/shacl-owl-inference.md) Section 4.3-5.3
+### Phase 35: OWL 2 RL Inference
+**Goal**: Users see automatic bidirectional links — adding a relationship in one direction automatically shows the inverse on the other object's detail page
+**Depends on**: Nothing (v2.3 complete, clean start)
+**Requirements**: INF-01
+**Success Criteria** (what must be TRUE):
+  1. User creates `ProjectA bpkm:hasParticipant PersonB`; PersonB's detail page automatically shows `participatesIn ProjectA` without manual entry
+  2. Inferred triples are stored in a dedicated `urn:sempkm:inferred` named graph, separate from user-created data
+  3. Inferred triples are visible in object views, relations panel, and graph visualization
+  4. Deleting the source triple (hasParticipant) causes the inferred inverse to be removed on the next validation cycle
+  5. Inference runs automatically on every write (integrated into the existing EventStore.commit() → AsyncValidationQueue pipeline)
+**Plans**: TBD
 
-2. **SHACL-AF Rules Support** -- Enable `advanced=True` in pyshacl, add optional `rules` entrypoint to manifest schema, allow Mental Models to contribute SHACL rules (sh:TripleRule, sh:SPARQLRule)
-   - Key deliverable: basic-pkm model ships example rules for inverse materialization and concept ancestry
-   - Research complete: [shacl-owl-inference.md](research/shacl-owl-inference.md) Section 3, 7
+### Phase 36: SHACL-AF Rules Support
+**Goal**: Mental Models can declare SHACL rules that generate derived triples; basic-pkm ships example rules for inverse materialization and concept ancestry
+**Depends on**: Phase 35 (inferred graph infrastructure must exist)
+**Requirements**: INF-02
+**Success Criteria** (what must be TRUE):
+  1. pyshacl is called with `advanced=True` and processes `sh:rule` directives in shapes graphs
+  2. Mental Model manifest supports an optional `rules` entrypoint pointing to a rules file (Turtle/JSON-LD)
+  3. basic-pkm model ships at least one example SHACL rule (e.g., inverse participant rule via sh:SPARQLRule)
+  4. Rule-derived triples are stored in the `urn:sempkm:inferred` named graph alongside OWL-derived triples
+  5. Users see rule-derived data in object views without any manual action
+**Plans**: TBD
 
-3. **Global Lint: Validation Data Model & API** -- Persist per-object, per-result validation detail in queryable storage; new paginated API endpoints for listing results with filtering by severity, type, and path
-   - Key deliverable: `GET /api/lint/results?severity=Violation&type=Note&page=1` returns structured results
-   - Builds on: existing `ValidationService` + `AsyncValidationQueue` pipeline
+### Phase 37: Global Lint Data Model & API
+**Goal**: Per-object, per-result SHACL validation detail is stored in a queryable format with paginated API endpoints for listing results
+**Depends on**: Phase 36 (inference must be stable before lint sees inferred data)
+**Requirements**: LINT-01, LINT-02
+**Success Criteria** (what must be TRUE):
+  1. Individual ValidationResult records are stored with focus_node, severity, path, message, source_shape, constraint_component
+  2. `GET /api/lint/results` returns paginated results with filtering by severity and object type
+  3. Results update automatically after each EventStore.commit() via AsyncValidationQueue (no manual refresh)
+  4. Per-object lint panel continues to work unchanged (backward compatible)
+  5. Storage approach handles hundreds of objects without significant latency (< 2s for full-graph validation)
+**Plans**: TBD
 
-4. **Global Lint: Dashboard UI** -- Dockview panel or dedicated page showing all validation results; summary bar with severity badges; filterable, sortable result table; status bar health indicator
-   - Key deliverable: User sees all violations/warnings/infos across all objects at a glance from a single view
-   - Design: htmx partials + CSS custom properties, following existing SemPKM patterns
+### Phase 38: Global Lint Dashboard UI
+**Goal**: Users can see all validation results across all objects at a glance from a single filterable, sortable view
+**Depends on**: Phase 37 (API endpoints must exist for the UI to consume)
+**Requirements**: LINT-03, LINT-04, LINT-05, LINT-06, LINT-07
+**Success Criteria** (what must be TRUE):
+  1. Global lint view is accessible from sidebar or Command Palette as a dockview panel or dedicated page
+  2. Summary bar shows total violations / warnings / infos with color-coded severity badges
+  3. User can filter results by severity level, object type, and keyword search
+  4. User can sort results by severity, object name, property path, or timestamp
+  5. Status bar or sidebar shows a persistent health indicator badge (pass / N violations)
+  6. Result list paginates or virtual-scrolls for large result sets (100+ results)
+**Plans**: TBD
 
-5. **Edit Form Helptext + Bug Fix Batch** -- Add `sempkm:editHelpText` SHACL annotation property to shapes, render as collapsible markdown in edit forms; fix all tracked CSS/UX debug issues and the concept search/linking bug
-   - Tracked bugs: accent-bar-tab-type-awareness, card-view-borders, firefox-ctrlk-ninja-keys, tab-accent-bleed, panel-chevrons-invisible-dark
-   - Backlog: concept search/linking not working
+### Phase 39: Edit Form Helptext + Bug Fix Batch
+**Goal**: Edit forms show contextual help text from SHACL annotations; all tracked CSS/UX bugs are fixed
+**Depends on**: Phases 35-38 (inference and lint stable before cosmetic fixes)
+**Requirements**: HELP-01, BUG-04, BUG-05, BUG-06, BUG-07, BUG-08, BUG-09
+**Success Criteria** (what must be TRUE):
+  1. SHACL shapes with `sempkm:editHelpText` render a collapsible markdown section below the corresponding field in edit forms
+  2. basic-pkm model includes helptext annotations on at least 3 representative fields
+  3. Tab accent bar color reflects the object's type (not uniform teal for all)
+  4. Card view borders render correctly in both light and dark themes
+  5. Firefox Ctrl+K opens ninja-keys (not Firefox address bar)
+  6. Tab accent bar does not bleed into adjacent inactive tabs
+  7. Panel chevron icons are visible in dark mode
+  8. Concept search/linking works end-to-end (search finds concepts, links are created)
+**Plans**: TBD
 
-6. **E2E Test Coverage for v2.4** -- Playwright tests for inference (bidirectional links visible), lint dashboard (filter/sort), helptext (collapsible section), and bug fix verifications
+### Phase 40: E2E Test Coverage for v2.4
+**Goal**: Playwright tests cover all v2.4 user-visible features
+**Depends on**: Phases 35-39 complete (tests cover live features)
+**Requirements**: TEST-05
+**Success Criteria** (what must be TRUE):
+  1. E2E tests verify bidirectional links appear after creating a relationship (inference working)
+  2. E2E tests verify global lint dashboard loads, filters, and sorts results correctly
+  3. E2E tests verify edit form helptext renders and collapses
+  4. E2E tests verify each bug fix (accent bar, card borders, Ctrl+K, tab bleed, dark chevrons, concept search)
+**Plans**: TBD
 
 ---
 
@@ -372,9 +342,15 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 29. FTS Fuzzy Search | v2.3 | 2/2 | Complete | 2026-03-02 |
 | 30. Dockview Phase A Migration | v2.3 | 3/3 | Complete | 2026-03-02 |
 | 31. Object View Redesign | v2.3 | 2/2 | Complete | 2026-03-03 |
-| 32. Carousel Views and View Bug Fixes | 2/2 | Complete    | 2026-03-03 | - |
-| 33. Named Layouts and VFS Settings Restore | 2/2 | Complete    | 2026-03-03 | - |
-| 34. E2E Test Coverage | 2/2 | Complete    | 2026-03-03 | - |
+| 32. Carousel Views and View Bug Fixes | v2.3 | 2/2 | Complete | 2026-03-03 |
+| 33. Named Layouts and VFS Settings Restore | v2.3 | 2/2 | Complete | 2026-03-03 |
+| 34. E2E Test Coverage | v2.3 | 2/2 | Complete | 2026-03-03 |
+| 35. OWL 2 RL Inference | v2.4 | 0/? | Planned | - |
+| 36. SHACL-AF Rules Support | v2.4 | 0/? | Planned | - |
+| 37. Global Lint Data Model & API | v2.4 | 0/? | Planned | - |
+| 38. Global Lint Dashboard UI | v2.4 | 0/? | Planned | - |
+| 39. Edit Form Helptext + Bug Fix Batch | v2.4 | 0/? | Planned | - |
+| 40. E2E Test Coverage for v2.4 | v2.4 | 0/? | Planned | - |
 
 ---
 *Roadmap created: 2026-02-21*
@@ -389,3 +365,5 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 *Future SPARQL Interface milestone documented: 2026-03-03 — 6 phase sketches, 15 requirements (SQ-01 through SQ-15)*
 *Future Global Lint Status milestone documented: 2026-03-03 — 4 phase sketches, 13 requirements (LINT-01 through LINT-13)*
 *Roadmap reordered: 2026-03-03 — v2.4 defined, milestones resequenced for agentic execution, Identity split into two milestones, Web Components moved to Potential Ideas*
+*v2.3 shipped: 2026-03-03 — 13 plans, 12 requirements (FTS-04, DOCK-01/02, VIEW-01/02, BUG-01/02/03, TEST-01/02/03/04)*
+*v2.4 roadmap created: 2026-03-03 — Phases 35-40 defined, 17 requirements (INF-01/02, LINT-01-07, HELP-01, BUG-04-09, TEST-05)*

@@ -88,30 +88,44 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - ✓ TECH-03: Session cleanup job (expired sessions purged on startup, non-zero count logged) — v2.1
 - ✓ TECH-04: ViewSpecService TTL cache (300s TTL, 64 max entries, invalidation wired to model install/uninstall) — v2.1
 
+### Validated (v2.3)
+
+<!-- Shipped and confirmed valuable in v2.3. -->
+
+- ✓ DOCK-01: Dockview Phase A migration — replace Split.js editor-pane area with dockview-core panels — v2.3
+- ✓ DOCK-02: Named workspace layouts (user-defined save/restore via Command Palette) — v2.3
+- ✓ VIEW-01: Object view redesign — markdown-first with properties hidden by default — v2.3
+- ✓ VIEW-02: Carousel views — per-type manifest-declared view tab bar — v2.3
+- ✓ FTS-04: FTS fuzzy search — typo-tolerant matching with user-controlled toggle — v2.3
+- ✓ BUG-01: Group-by in concept cards view fixed — v2.3
+- ✓ BUG-02: VFS Settings UI restored — v2.3
+- ✓ BUG-03: Broken view switch buttons removed, replaced by carousel tab bar — v2.3
+- ✓ TEST-01 through TEST-04: Full E2E test coverage for SPARQL, FTS, VFS, and v2.3 features — v2.3
+
 ### Active
 
-<!-- v2.3: Shell, Navigation & Views — dockview Phase A, object view redesign, named layouts, FTS fuzzy, bug fixes -->
+<!-- v2.4: Inference & Polish — OWL 2 RL, SHACL-AF rules, global lint dashboard, helptext, bug fixes -->
 
-- [ ] DOCK-01: Dockview Phase A migration — replace Split.js editor-pane area with dockview-core panels
-- [ ] VIEW-01: Object view redesign — markdown-first with properties hidden by default
-- [ ] VIEW-02: Carousel views — per-type manifest-declared view rotation UI
-- [ ] DOCK-02: Named workspace layouts (user-defined save/restore, model-provided default layouts)
-- [ ] FTS-04: FTS fuzzy search — better tokenization and approximate-match support
-- [ ] BUG-01: Group-by in concept cards view broken — fix
-- [ ] BUG-02: VFS Settings UI lost during debugging — restore to working state
-- [ ] BUG-03: Graph/card/table view switch buttons broken — remove broken buttons
+- [ ] INF-01: OWL 2 RL inference — automatic inverse property materialization (e.g., hasParticipant → participatesIn)
+- [ ] INF-02: SHACL-AF rules — Mental Models can ship sh:TripleRule/sh:SPARQLRule for domain-specific derivations
+- [ ] LINT-01: Global lint dashboard — workspace-wide SHACL validation results view with severity summary
+- [ ] LINT-02: Auto-refresh — global lint updates automatically after each commit via AsyncValidationQueue
+- [ ] LINT-03: Health indicator — status bar badge showing overall validation status at a glance
+- [ ] LINT-04 through LINT-07: Lint filtering — by severity, type, keyword search, and sortable columns
+- [ ] HELP-01: Edit form helptext — SHACL annotation property rendered as collapsible markdown in edit forms
+- [ ] BUG-04 through BUG-09: Bug fix batch — accent bar, card borders, Firefox Ctrl+K, tab bleed, dark chevrons, concept search
+- [ ] TEST-05: E2E test coverage for v2.4 features
 
 ### Future Candidates
 
 <!-- Tracked for future milestones. -->
 
-**v2.3 — Shell & Navigation**
-- Dashboards / named layouts (user-defined, model-provided named panel arrangements)
-- Flexible panel layout: dockview-core full migration (Phase A inner editor-pane v2.3, Phase B full workspace)
-- CSS token expansion: two-tier primitive/semantic architecture (~40 → ~91 tokens) — preparatory in v2.2
+**v2.5+ — Dockview Phase B & Theming**
+- Flexible panel layout: dockview-core Phase B (sidebar panels into dockview)
+- Model-provided default layouts in Mental Model manifest
 - Full theming system (CSS variable token sets, user-selectable themes, model-contributed themes)
 
-**v2.4 — Low-Code & Workflows**
+**Future — Low-Code & Workflows**
 - Low-code UI builder (compose basic components tied to SemPKM actions)
 - Minimal workflow orchestration (orchestrated forms/views, not n8n)
 
@@ -120,8 +134,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Edge model enhancements: edge inspector panel, inline wiki-link creation
 - JSON-LD export for objects/collections
 - AI Copilot (chat about data, SPARQL generation, writing assistance)
-- pgvector / semantic search (Phase 20b — deferred until keyword FTS validated in v2.2)
-- DOCK-01/02: Dockview drag-to-dock and named workspace layouts — v2.3
+- pgvector / semantic search (deferred until keyword FTS validated in v2.2)
 
 ### Out of Scope
 
@@ -138,41 +151,41 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Mobile native app — web-first, responsive design and eventual PWA
 - Ontology editor — consume via Mental Models; use Protege for authoring
 
-## Current Milestone: v2.3 Shell, Navigation & Views
+## Current Milestone: v2.4 Inference & Polish
 
-**Goal:** Complete dockview Phase A migration (replacing Split.js editor-pane area, fixing split bugs as a side effect), redesign the object view to be markdown-first with manifest-driven carousel views, add named workspace layouts, improve FTS with fuzzy search, and close v2.2 bugs.
+**Goal:** Activate OWL 2 RL inference and SHACL-AF rules for automatic bidirectional links and model-contributed derivations. Add a global lint dashboard for workspace-wide validation triage. Clear the bug backlog and the edit form helptext TODO.
 
 **Target features:**
-- Dockview Phase A: editor groups → dockview panels using dockview-sempkm-bridge.css from v2.2
-- Object view redesign: markdown-first, properties hidden by default, reveal on demand
-- Carousel views: per-type manifest-declared view rotation (cube-flip style)
-- Named layouts: save/restore panel arrangements, Mental Model-provided default layouts
-- FTS fuzzy search: better tokenization and approximate-match support
-- Bug fixes: concept cards group-by, VFS Settings UI, view switch buttons
+- OWL 2 RL inference: `owlrl` library materializes inverse/transitive triples into `urn:sempkm:inferred` graph
+- SHACL-AF rules: `advanced=True` in pyshacl enables sh:TripleRule/sh:SPARQLRule in Mental Model shapes
+- Global lint data model + API: per-object, per-result validation storage with paginated filtering endpoints
+- Global lint dashboard UI: filterable, sortable result table with severity badges and health indicator
+- Edit form helptext: `sempkm:editHelpText` SHACL annotation rendered as collapsible markdown
+- Bug fix batch: accent bar, card borders, Firefox Ctrl+K, tab bleed, dark chevrons, concept search/linking
 
 ## Context
 
-**Current state (v2.2 shipped 2026-03-01):**
-- ~130k source LOC across Python, JavaScript, CSS, HTML/Jinja2, JSON-LD (estimate — grew from ~119k with VFS, FTS, token expansion, event console)
-- Tech stack: FastAPI + RDF4J (LuceneSail) + htmx/vanilla-web + SQLAlchemy (SQLite/PostgreSQL) + wsgidav + a2wsgi + Driver.js + Cytoscape.js + CodeMirror + Split.js + Alembic + Yasgui CDN + ninja-keys
+**Current state (v2.3 shipped 2026-03-03):**
+- ~135k source LOC across Python, JavaScript, CSS, HTML/Jinja2, JSON-LD (estimate — grew with dockview, carousel, named layouts, E2E tests)
+- Tech stack: FastAPI + RDF4J (LuceneSail) + htmx/vanilla-web + SQLAlchemy (SQLite/PostgreSQL) + wsgidav + a2wsgi + Driver.js + Cytoscape.js + CodeMirror + dockview-core + Alembic + Yasgui CDN + ninja-keys
 - Docker Compose deployment: 3 services (api, triplestore, frontend/nginx) — WebDAV via nginx proxy to a2wsgi mount
-- 28 phases, 62 plans completed across v1.0, v2.0, v2.1, v2.2
+- 34 phases, 75 plans completed across v1.0, v2.0, v2.1, v2.2, v2.3
 
-**New in v2.2:**
-- RDF4J LuceneSail FTS: keyword search integrated into Ctrl+K command palette with type icons and match snippets
-- Yasgui SPARQL console: CDN embed, custom YASR IRI cell renderer, dark mode, localStorage persistence
-- WebDAV VFS: wsgidav + a2wsgi, read + write, API token auth, SemPKMDAVProvider hierarchy, Settings UI
-- CSS token architecture: 108 tokens (two-tier primitive/semantic), dockview-sempkm-bridge.css for v2.3
-- UI: full 4-panel HTML5 drag-reorder, contextual accent bar (tab-type-aware), Event Console page
-- Event log: tabular CSS Grid layout, user name display fix, always-rendered Diff/Undo buttons
-- Relations panel: collapsible `<details>` per predicate with count badge
+**New in v2.3:**
+- Dockview Phase A: replaced Split.js editor-pane with dockview-core panels, native drag-to-reorder and group splitting
+- Object view redesign: markdown-first, collapsible properties with per-IRI localStorage persistence
+- Carousel view tab bar: per-type manifest-declared views with two-container htmx swap pattern
+- Named layouts: save/restore/delete via Command Palette + user menu, auto-save on close
+- FTS fuzzy search: `term~1` LuceneSail operator with 5-char threshold and palette toggle
+- Card accordion: collapsible card groups with chevron/count badges, Ungrouped sorts last
+- 30 new E2E tests: SPARQL console, VFS WebDAV (Basic auth fixture), fuzzy toggle, carousel, named layouts
 
 **Known tech debt:**
 - Cookie secure=False (local dev only — production config deferred)
 - Dual SQLAlchemy engine instances (module-level + lifespan) — harmless for SQLite
 - `empty_shapes_loader` dead code in validation service
-- Edit form helptext property not yet in SHACL types (pending todo)
-- E2E tests for SPARQL/FTS/VFS use test.skip() graceful degradation (pending live service validation)
+- Edit form helptext property not yet in SHACL types (pending todo — addressed in v2.4 HELP-01)
+- OWL `owl:inverseOf` axiom declared but not materialized (addressed in v2.4 INF-01)
 
 **Design references:**
 - v0.3 design documents in `orig_specs/` (vision, specifications, decision log, schemas)
@@ -240,4 +253,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | sempkm:tab-activated custom event | Decouples workspace.js from workspace-layout.js for contextual panel indicator; dispatched on openTab()/switchTabInGroup() | ✓ Good — clean separation, panel indicator works |
 
 ---
-*Last updated: 2026-03-01 after v2.3 milestone start*
+*Last updated: 2026-03-03 after v2.4 milestone start*

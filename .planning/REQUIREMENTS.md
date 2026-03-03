@@ -1,47 +1,43 @@
-# Requirements: SemPKM v2.3
+# Requirements: SemPKM v2.4
 
-**Defined:** 2026-03-01
+**Defined:** 2026-03-03
 **Core Value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations — no blank-page syndrome, no schema setup.
 
-## v2.3 Requirements
+## v2.4 Requirements
 
-### Dockview Migration
+### OWL 2 RL Inference
 
-- [x] **DOCK-01**: User can open and manage object tabs rendered in dockview-core panels (Phase A: editor-pane area replaces Split.js; old HTML5 drag system removed in same commit)
-- [x] **DOCK-02**: User can save named workspace layouts and restore them via the Command Palette; layouts persist across sessions
+- [ ] **INF-01**: User adds a participant to a Project; the Person's detail page automatically shows the Project in their "participatesIn" list without manual inverse entry (OWL 2 RL inference materializes `owl:inverseOf` triples)
+- [ ] **INF-02**: Mental Models can ship SHACL-AF rules (sh:TripleRule, sh:SPARQLRule) that pyshacl executes with `advanced=True`; inferred triples are stored in `urn:sempkm:inferred` named graph and visible in object views and graph visualization
 
-### Object View
+### Global Lint Dashboard
 
-- [x] **VIEW-01**: Object view shows Markdown body by default with properties collapsed; user can reveal/collapse properties with one click; preference persists per object IRI
-- [x] **VIEW-02**: Object types with multiple manifest-declared views show a tab bar above the view body; user can switch between views; active view persists per type IRI
+- [ ] **LINT-01**: User can open a Global Lint Status view (as a dockview panel or dedicated page) that shows all SHACL validation results across every object in the knowledge base, with summary counts by severity (violations, warnings, infos) and a per-object breakdown
+- [ ] **LINT-02**: Global lint view updates automatically after each EventStore.commit() via the existing AsyncValidationQueue; user sees the latest validation state without manual refresh
+- [ ] **LINT-03**: User can see a visual health indicator (e.g., status bar badge or sidebar icon) showing the overall knowledge base validation status at a glance (pass / N violations / N warnings)
+- [ ] **LINT-04**: User can filter lint results by severity level (violations only, warnings only, infos only, or combinations)
+- [ ] **LINT-05**: User can filter lint results by object type (e.g., show only Note violations, only Project violations) using the Mental Model's type registry
+- [ ] **LINT-06**: User can search/filter lint results by keyword across message text, property path, and object label
+- [ ] **LINT-07**: User can sort lint results by severity, object name, property path, or timestamp
 
-### FTS
+### Edit Form Helptext
 
-- [x] **FTS-04**: User can find objects with typo-tolerant fuzzy matching (edit distance ~1); fuzzy mode is a user-controlled toggle in the Ctrl+K palette; tokens <5 chars always use exact match
+- [ ] **HELP-01**: SHACL shapes can declare `sempkm:editHelpText` annotation property; edit forms render it as collapsible markdown below the field, providing context about what to enter and why
 
 ### Bug Fixes
 
-- [x] **BUG-01**: User sees correctly grouped concept cards when group-by is applied
-- [x] **BUG-02**: User can access and use VFS mount configuration from the Settings page
-- [x] **BUG-03**: Broken view switch buttons are removed from the object view (replaced by VIEW-02 carousel tab bar)
+- [ ] **BUG-04**: Accent bar on tabs is type-aware (different accent colors per type, not just teal for all)
+- [ ] **BUG-05**: Card view borders render correctly in both light and dark themes
+- [ ] **BUG-06**: Firefox Ctrl+K opens ninja-keys command palette (not Firefox's native address bar focus)
+- [ ] **BUG-07**: Tab accent bar does not bleed into adjacent inactive tabs
+- [ ] **BUG-08**: Panel chevron icons are visible in dark mode (not invisible-on-dark)
+- [ ] **BUG-09**: Concept search and linking functionality works correctly (search finds concepts, links are created)
 
 ### Testing
 
-- [x] **TEST-01**: Playwright E2E tests for SPARQL console operations pass against live stack (no `test.skip()`)
-- [x] **TEST-02**: Playwright E2E tests for FTS keyword search pass against live stack (no `test.skip()`)
-- [x] **TEST-03**: Playwright E2E tests for WebDAV VFS operations pass against live stack (no `test.skip()`)
-- [x] **TEST-04**: Playwright E2E tests cover all v2.3 user-visible features (dockview panels, carousel view switching, fuzzy FTS, named layout save/restore)
+- [ ] **TEST-05**: Playwright E2E tests cover all v2.4 user-visible features (inference bidirectional links, lint dashboard filtering/sorting, edit form helptext, bug fix verifications)
 
 ## Future Requirements
-
-### v2.4+ Dockview
-
-- **DOCK-03**: Full dockview Phase B migration — sidebar panels into dockview (deferred: Phase A must stabilize first)
-- **DOCK-04**: Model-provided default layouts in Mental Model manifest (deferred: user layouts sufficient for v2.3)
-
-### v2.4+ Views
-
-- **VIEW-03**: Cross-model view composition and user-added views for carousel (deferred: design review needed)
 
 ### SPARQL Interface (future milestone)
 
@@ -72,69 +68,59 @@
 - [ ] **SQ-14**: Named query views execute their SPARQL query on demand and render results using the standard view renderers (table, cards, graph)
 - [ ] **SQ-15**: Named query views can be included in Mental Model manifests as model-provided views alongside built-in view specs
 
-### Global Lint Status (future milestone)
-
-**Global Lint Dashboard:**
-- [ ] **LINT-01**: User can open a Global Lint Status view (as a dockview panel or dedicated page) that shows all SHACL validation results across every object in the knowledge base, with summary counts by severity (violations, warnings, infos) and a per-object breakdown
-- [ ] **LINT-02**: Global lint view updates automatically after each EventStore.commit() via the existing AsyncValidationQueue; user sees the latest validation state without manual refresh
-- [ ] **LINT-03**: User can see a visual health indicator (e.g., status bar badge or sidebar icon) showing the overall knowledge base validation status at a glance (pass / N violations / N warnings)
-
-**Filtering and Search:**
-- [ ] **LINT-04**: User can filter lint results by severity level (violations only, warnings only, infos only, or combinations)
-- [ ] **LINT-05**: User can filter lint results by object type (e.g., show only Note violations, only Project violations) using the Mental Model's type registry
-- [ ] **LINT-06**: User can search/filter lint results by keyword across message text, property path, and object label
-- [ ] **LINT-07**: User can sort lint results by severity, object name, property path, or timestamp
+### Lint Fix Guidance & Triage (future milestone)
 
 **Fix Guidance:**
-- [ ] **LINT-08**: Each lint result displays a human-readable "how to fix" message that explains what the constraint expects and how to resolve the violation (not just "constraint violated" but "This field requires at least 1 value -- add a title to fix")
+- [ ] **LINT-08**: Each lint result displays a human-readable "how to fix" message that explains what the constraint expects and how to resolve the violation
 - [ ] **LINT-09**: Fix guidance messages are derived from SHACL shape metadata (sh:description, sh:name, constraint component type) and augmented with Mental Model-provided help text when available
-- [ ] **LINT-10**: Common constraint violations (sh:minCount, sh:maxCount, sh:datatype, sh:pattern, sh:class) have built-in human-friendly message templates that produce actionable guidance without requiring shape authors to write custom messages
+- [ ] **LINT-10**: Common constraint violations (sh:minCount, sh:maxCount, sh:datatype, sh:pattern, sh:class) have built-in human-friendly message templates that produce actionable guidance
 
 **Click-to-Edit Workflow:**
 - [ ] **LINT-11**: User can click any lint result row and the corresponding object opens in a dockview pane (or focuses the existing pane if already open), scrolled/focused to the relevant field
 - [ ] **LINT-12**: After editing and saving the object, the lint view updates to reflect whether the issue is resolved, removed from the list, or still present
-- [ ] **LINT-13**: User can work through lint results sequentially: fix one issue, see it disappear from the global list, click the next issue, fix it -- a continuous triage workflow without navigating away from the lint view
+- [ ] **LINT-13**: User can work through lint results sequentially: fix one issue, see it disappear from the global list, click the next issue, fix it — a continuous triage workflow
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
 | Animated cube-flip / 3D carousel for view rotation | HIGH cost, zero functional gain, existing flip is already a maintenance burden |
-| SHACL editor environment | v2.4 — research + custom editor design needed |
-| Low-code GUI builder (Notion/Airflow-like) | v2.4+ — major new capability, not scoped |
-| Full dockview Phase B (sidebar panels) | v2.4 — Phase A must stabilize first |
-| VFS custom setups + disable toggle | v2.4+ |
-| Per-note property visibility stored in RDF | localStorage per-IRI is acceptable; storing UI state in data graph is an anti-pattern |
-| SPARQL UPDATE as general write surface | By design -- bypasses event sourcing; named queries are read-only SELECT/CONSTRUCT |
-| Federated SPARQL (SERVICE keyword) | Security and performance concerns; single-triplestore scope for now |
-| Automated lint auto-fix (programmatic correction of violations) | Too risky -- automated edits bypass user intent; fix guidance is sufficient |
+| SHACL editor environment | Future — research + custom editor design needed |
+| Low-code GUI builder (Notion/Airflow-like) | Future — major new capability, not scoped |
+| Full dockview Phase B (sidebar panels) | v2.5 — Phase A must stabilize first |
+| VFS custom setups + disable toggle | Future |
+| SPARQL UPDATE as general write surface | By design — bypasses event sourcing |
+| Automated lint auto-fix (programmatic correction) | Too risky — automated edits bypass user intent; fix guidance is sufficient |
 | Custom user-defined validation rules beyond SHACL | SHACL shapes are the validation language; custom rules belong in Mental Model shapes |
-| Cross-object relationship validation (e.g., orphan detection) | Distinct feature from per-object SHACL validation; future graph-level health check |
+| Cross-object relationship validation (orphan detection) | Distinct feature from per-object SHACL validation; future graph-level health check |
+| RDF4J server-side inference (SchemaCachingRDFSInferencer) | Python-side owlrl is sufficient; triplestore reconfiguration deferred |
 
 ## Traceability
 
-Which phases cover which requirements. Updated during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FTS-04 | Phase 29 | Complete |
-| DOCK-01 | Phase 30 | Complete |
-| VIEW-01 | Phase 31 | Complete |
-| VIEW-02 | Phase 32 | Complete |
-| BUG-01 | Phase 32 | Complete |
-| BUG-03 | Phase 32 | Complete |
-| DOCK-02 | Phase 33 | Complete |
-| BUG-02 | Phase 33 | Complete |
-| TEST-01 | Phase 34 | Complete |
-| TEST-02 | Phase 34 | Complete |
-| TEST-03 | Phase 34 | Complete |
-| TEST-04 | Phase 34 | Complete |
+| INF-01 | Phase 35 | Planned |
+| INF-02 | Phase 36 | Planned |
+| LINT-01 | Phase 37 | Planned |
+| LINT-02 | Phase 37 | Planned |
+| LINT-03 | Phase 38 | Planned |
+| LINT-04 | Phase 38 | Planned |
+| LINT-05 | Phase 38 | Planned |
+| LINT-06 | Phase 38 | Planned |
+| LINT-07 | Phase 38 | Planned |
+| HELP-01 | Phase 39 | Planned |
+| BUG-04 | Phase 39 | Planned |
+| BUG-05 | Phase 39 | Planned |
+| BUG-06 | Phase 39 | Planned |
+| BUG-07 | Phase 39 | Planned |
+| BUG-08 | Phase 39 | Planned |
+| BUG-09 | Phase 39 | Planned |
+| TEST-05 | Phase 40 | Planned |
 
 **Coverage:**
-- v2.3 requirements: 12 total
-- Mapped to phases: 12
+- v2.4 requirements: 17 total
+- Mapped to phases: 17
 - Unmapped: 0 ✓
 
 ---
-*Requirements defined: 2026-03-01*
-*Last updated: 2026-03-03 after adding Global Lint Status future requirements*
+*Requirements defined: 2026-03-03*
