@@ -73,6 +73,77 @@
     color: var(--color-text);
 }
 
+/* --- Carousel Tab Bar --- */
+
+.carousel-tab-bar {
+    display: flex;
+    gap: 0;
+    padding: 0 12px;
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.carousel-tab {
+    padding: 8px 16px;
+    border: none;
+    background: none;
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+    white-space: nowrap;
+}
+
+.carousel-tab:hover {
+    color: var(--color-text);
+    background: var(--color-surface-hover);
+}
+
+.carousel-tab.active {
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+    font-weight: 600;
+}
+
+/* --- Carousel View Body (two-container pattern) --- */
+
+.carousel-view-body {
+    flex: 1;
+    overflow: auto;
+    position: relative;
+}
+
+/* --- View Loading Indicator --- */
+
+.view-loading-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-surface);
+    opacity: 0.7;
+    z-index: 10;
+}
+
+.view-loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--color-border);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: carousel-spin 0.8s linear infinite;
+}
+
+@keyframes carousel-spin {
+    to { transform: rotate(360deg); }
+}
+
 /* --- Table View --- */
 
 .view-table-container {
