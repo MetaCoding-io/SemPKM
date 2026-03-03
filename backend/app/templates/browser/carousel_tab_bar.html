@@ -1,0 +1,22 @@
+{# Carousel tab bar: view switching for types with multiple manifest views.
+   Only rendered when all_specs has more than 1 view.
+   Context: all_specs (list[ViewSpec]), spec (current ViewSpec), type_iri, type_label, spec_iri_encoded #}
+
+{% if all_specs|length > 1 %}
+{% set DISPLAY_NAMES = {'table': 'Table View', 'card': 'Cards View', 'graph': 'Graph View'} %}
+<div class="carousel-tab-bar" data-type-iri="{{ type_iri }}">
+    {% for s in all_specs %}
+    <button class="carousel-tab{% if s.spec_iri == spec.spec_iri %} active{% endif %}"
+            data-spec-iri="{{ s.spec_iri }}"
+            data-renderer-type="{{ s.renderer_type }}"
+            onclick="switchCarouselView(this, '{{ s.spec_iri }}', '{{ s.renderer_type }}', '{{ type_iri }}')">
+        {{ DISPLAY_NAMES.get(s.renderer_type, s.label) }}
+    </button>
+    {% endfor %}
+</div>
+<script>
+if (typeof restoreCarouselView === 'function') {
+    restoreCarouselView('{{ spec.spec_iri }}', '{{ type_iri }}');
+}
+</script>
+{% endif %}
