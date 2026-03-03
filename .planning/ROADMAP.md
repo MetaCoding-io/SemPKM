@@ -374,7 +374,7 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 31. Object View Redesign | v2.3 | 2/2 | Complete | 2026-03-03 |
 | 32. Carousel Views and View Bug Fixes | 2/2 | Complete    | 2026-03-03 | - |
 | 33. Named Layouts and VFS Settings Restore | 2/2 | Complete    | 2026-03-03 | - |
-| 34. E2E Test Coverage | 2/2 | Complete   | 2026-03-03 | - |
+| 34. E2E Test Coverage | 2/2 | Complete    | 2026-03-03 | - |
 
 ---
 *Roadmap created: 2026-02-21*
