@@ -236,7 +236,7 @@ Plans:
 | 28. UI Polish + Integration Testing | v2.2 | 3/3 | Complete | 2026-03-01 |
 | 29. FTS Fuzzy Search | v2.3 | 2/2 | Complete | 2026-03-02 |
 | 30. Dockview Phase A Migration | v2.3 | 3/3 | Complete | 2026-03-02 |
-| 31. Object View Redesign | v2.3 | 0/? | Not started | - |
+| 31. Object View Redesign | 1/2 | In Progress|  | - |
 | 32. Carousel Views and View Bug Fixes | v2.3 | 0/? | Not started | - |
 | 33. Named Layouts and VFS Settings Restore | v2.3 | 0/? | Not started | - |
 | 34. E2E Test Coverage | v2.3 | 0/? | Not started | - |

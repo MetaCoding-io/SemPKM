@@ -12,7 +12,7 @@
 
 ### Object View
 
-- [ ] **VIEW-01**: Object view shows Markdown body by default with properties collapsed; user can reveal/collapse properties with one click; preference persists per object IRI
+- [x] **VIEW-01**: Object view shows Markdown body by default with properties collapsed; user can reveal/collapse properties with one click; preference persists per object IRI
 - [ ] **VIEW-02**: Object types with multiple manifest-declared views show a tab bar above the view body; user can switch between views; active view persists per type IRI
 
 ### FTS
@@ -93,7 +93,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | FTS-04 | Phase 29 | Complete |
 | DOCK-01 | Phase 30 | Complete |
-| VIEW-01 | Phase 31 | Pending |
+| VIEW-01 | Phase 31 | Complete |
 | VIEW-02 | Phase 32 | Pending |
 | BUG-01 | Phase 32 | Pending |
 | BUG-03 | Phase 32 | Pending |
