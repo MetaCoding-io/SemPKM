@@ -63,6 +63,7 @@
           <div class="panel-header">
             <div class="panel-tab-bar" id="panel-tab-bar">
               <button class="panel-tab active" data-panel="event-log">EVENT LOG</button>
+              <button class="panel-tab" data-panel="inference">INFERENCE</button>
               <button class="panel-tab" data-panel="ai-copilot">AI COPILOT</button>
             </div>
             <div class="panel-controls">
@@ -80,6 +81,9 @@
                 <i data-lucide="activity" style="width:24px;height:24px;display:block;margin:0 auto 8px;"></i>
                 Event Log Explorer — coming in Phase 16
               </div>
+            </div>
+            <div class="panel-pane" id="panel-inference">
+              {% include 'browser/inference_panel.html' %}
             </div>
             <div class="panel-pane" id="panel-ai-copilot">
               <div class="panel-placeholder">
