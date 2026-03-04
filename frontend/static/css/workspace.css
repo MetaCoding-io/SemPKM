@@ -2802,3 +2802,102 @@ details.form-group[open] > .form-group-summary::before {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
 }
+
+/* ============================================================
+   Phase 35: Entailment Config UI
+   Admin page for per-model OWL 2 RL entailment toggles.
+   ============================================================ */
+
+.entailment-config {
+    max-width: 720px;
+    padding: 8px 0;
+}
+
+.entailment-toggle {
+    display: flex;
+    flex-direction: column;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: 4px;
+}
+
+.entailment-toggle:last-of-type {
+    border-bottom: none;
+}
+
+.entailment-label {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.entailment-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    accent-color: var(--color-accent, #4e79a7);
+}
+
+.entailment-name {
+    color: var(--color-text-normal);
+}
+
+.entailment-type-label {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--color-text-muted);
+    background: var(--color-surface-recessed);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.entailment-description {
+    margin: 4px 0 0 28px;
+    font-size: 12px;
+    color: var(--color-text-muted);
+    line-height: 1.4;
+}
+
+.entailment-examples {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin: 8px 0 0 28px;
+    font-size: 12px;
+}
+
+.examples-label {
+    color: var(--color-text-muted);
+    font-style: italic;
+    margin-right: 2px;
+}
+
+.entailment-example {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-family: var(--font-mono, monospace);
+    font-size: 11px;
+    background: var(--color-surface-recessed);
+    color: var(--color-text-normal);
+    border: 1px solid var(--color-border);
+    white-space: nowrap;
+}
+
+.entailment-no-examples {
+    margin: 6px 0 0 28px;
+    font-size: 12px;
+    font-style: italic;
+}
+
+.entailment-actions {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--color-border);
+}

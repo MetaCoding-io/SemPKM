@@ -54,6 +54,13 @@
                 hx-trigger="click once">
             <i data-lucide="git-branch"></i> Relationships
         </button>
+        <button class="model-tab" data-tab="inference" onclick="switchModelTab('inference')"
+                hx-get="/admin/models/{{ detail.info.model_id }}/entailment"
+                hx-target="#inference-content"
+                hx-swap="innerHTML"
+                hx-trigger="click once">
+            <i data-lucide="brain"></i> Inference Settings
+        </button>
     </div>
 
     <!-- Schema Tab Panel -->
@@ -273,6 +280,15 @@
             </div>
         </div>
     </div>
+
+    <!-- Inference Settings Tab Panel -->
+    <div id="inference-panel" class="model-tab-panel" style="display:none;">
+        <div id="inference-content">
+            <div class="diagram-loading">
+                <i data-lucide="loader-2" class="spin"></i> Loading inference settings...
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -286,6 +302,7 @@
         });
         document.getElementById('schema-panel').style.display = tabName === 'schema' ? '' : 'none';
         document.getElementById('relationships-panel').style.display = tabName === 'relationships' ? '' : 'none';
+        document.getElementById('inference-panel').style.display = tabName === 'inference' ? '' : 'none';
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
