@@ -79,6 +79,10 @@ async def get_inferred_triples(
     request: Request,
     entailment_type: str | None = None,
     triple_status: str | None = None,
+    object_type: str | None = None,
+    date_from: str | None = None,
+    date_to: str | None = None,
+    group_by: str | None = None,
     client: TriplestoreClient = Depends(get_triplestore_client),
     db: AsyncSession = Depends(get_db_session),
     event_store: EventStore = Depends(get_event_store),
@@ -89,6 +93,10 @@ async def get_inferred_triples(
     Query params:
         entailment_type: Filter by entailment type (e.g., "owl:inverseOf").
         triple_status: Filter by status ("active", "dismissed").
+        object_type: Filter by object type slug (e.g., "person", "project").
+        date_from: Filter by inferred_at >= date (ISO date string).
+        date_to: Filter by inferred_at <= date (ISO date string).
+        group_by: Group results by "time", "object_type", or "property_type".
 
     Returns list of inferred triple dicts, or HTML fragment for htmx.
     """
@@ -99,11 +107,19 @@ async def get_inferred_triples(
         filters["entailment_type"] = entailment_type
     if triple_status:
         filters["status"] = triple_status
+    if object_type:
+        filters["object_type"] = object_type
+    if date_from:
+        filters["date_from"] = date_from
+    if date_to:
+        filters["date_to"] = date_to
 
     triples = await service.get_inferred_triples(filters if filters else None)
 
     is_htmx = request.headers.get("HX-Request") == "true"
     if is_htmx:
+        if group_by:
+            return _render_grouped_triples_html(triples, group_by)
         return _render_triples_list_html(triples)
 
     return triples
@@ -284,6 +300,14 @@ def _render_inference_panel_html(result, triples):
     summary += "</div>"
 
     rows = _render_triple_rows(triples)
+
+    # OOB swap for last-run timestamp (updates #inference-last-run outside #inference-results)
+    timestamp_display = result.run_timestamp[:19].replace("T", " ")
+    oob_timestamp = (
+        f'<span id="inference-last-run" class="inference-last-run" '
+        f'hx-swap-oob="true">Last run: {timestamp_display}</span>'
+    )
+
     html = f"""{summary}
 <table class="inference-triples-table">
   <thead>
@@ -295,7 +319,8 @@ def _render_inference_panel_html(result, triples):
   <tbody>
 {rows}
   </tbody>
-</table>"""
+</table>
+{oob_timestamp}"""
     return HTMLResponse(content=html)
 
 
@@ -322,6 +347,65 @@ def _render_triples_list_html(triples):
   </tbody>
 </table>"""
     return HTMLResponse(content=html)
+
+
+def _extract_type_from_iri(iri: str) -> str:
+    """Extract a type-like segment from an IRI for grouping.
+
+    Examples:
+        "urn:sempkm:model:basic-pkm:person-1" -> "person"
+        "http://xmlns.com/foaf/0.1/Person" -> "Person"
+    """
+    import re
+
+    parts = iri.rsplit(":", 1)
+    if len(parts) == 2:
+        segment = parts[1]
+        return re.sub(r"-\d+$", "", segment) or segment
+    return _compact_iri(iri)
+
+
+def _render_grouped_triples_html(triples, group_by: str):
+    """Render triples grouped by the specified dimension."""
+    from collections import defaultdict
+
+    from fastapi.responses import HTMLResponse
+
+    if not triples:
+        return HTMLResponse(
+            content='<div class="inference-empty">No inferred triples.</div>'
+        )
+
+    groups = defaultdict(list)
+    for t in triples:
+        if group_by == "time":
+            key = (t.get("inferred_at") or "")[:10] or "Unknown"
+        elif group_by == "object_type":
+            subject = t.get("subject", "")
+            key = _extract_type_from_iri(subject)
+        elif group_by == "property_type":
+            key = t.get("entailment_type", "Unknown")
+        else:
+            key = "All"
+        groups[key].append(t)
+
+    html_parts = []
+    for group_key in sorted(groups.keys()):
+        group_triples = groups[group_key]
+        rows = _render_triple_rows(group_triples)
+        html_parts.append(
+            f'<div class="inference-group">'
+            f'<h4 class="inference-group-header">{group_key} ({len(group_triples)})</h4>'
+            f'<table class="inference-triples-table">'
+            f"<thead><tr>"
+            f"<th>Subject</th><th>Predicate</th><th>Object</th>"
+            f"<th>Type</th><th>Status</th><th>Actions</th>"
+            f"</tr></thead>"
+            f"<tbody>{rows}</tbody>"
+            f"</table></div>"
+        )
+
+    return HTMLResponse(content="\n".join(html_parts))
 
 
 def _render_triple_rows(triples):

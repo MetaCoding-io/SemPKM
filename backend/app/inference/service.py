@@ -202,7 +202,8 @@ class InferenceService:
         """Query urn:sempkm:inferred and join with inference_triple_state.
 
         Args:
-            filters: Optional dict with keys: entailment_type, status.
+            filters: Optional dict with keys: entailment_type, status,
+                object_type, date_from, date_to.
 
         Returns:
             List of dicts with subject, predicate, object, entailment_type,
@@ -220,6 +221,21 @@ class InferenceService:
             if "status" in filters and filters["status"]:
                 stmt = stmt.where(
                     InferenceTripleState.status == filters["status"]
+                )
+            if "object_type" in filters and filters["object_type"]:
+                type_slug = filters["object_type"]
+                stmt = stmt.where(
+                    (InferenceTripleState.subject_iri.contains(type_slug))
+                    | (InferenceTripleState.object_iri.contains(type_slug))
+                )
+            if "date_from" in filters and filters["date_from"]:
+                stmt = stmt.where(
+                    InferenceTripleState.inferred_at >= filters["date_from"]
+                )
+            if "date_to" in filters and filters["date_to"]:
+                # Include the full end day
+                stmt = stmt.where(
+                    InferenceTripleState.inferred_at <= filters["date_to"] + "T23:59:59"
                 )
 
         stmt = stmt.order_by(InferenceTripleState.inferred_at.desc())

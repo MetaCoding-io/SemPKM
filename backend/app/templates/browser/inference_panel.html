@@ -45,6 +45,43 @@
       <option value="dismissed">Dismissed</option>
       <option value="promoted">Promoted</option>
     </select>
+    <select class="inference-filter-objtype"
+            hx-get="/api/inference/triples"
+            hx-target="#inference-results"
+            hx-include="[class*='inference-filter']"
+            hx-trigger="change"
+            name="object_type">
+      <option value="">All object types</option>
+      <option value="person">Person</option>
+      <option value="project">Project</option>
+      <option value="note">Note</option>
+      <option value="concept">Concept</option>
+    </select>
+    <input type="date" class="inference-filter-datefrom"
+           hx-get="/api/inference/triples"
+           hx-target="#inference-results"
+           hx-include="[class*='inference-filter']"
+           hx-trigger="change"
+           name="date_from"
+           title="From date">
+    <input type="date" class="inference-filter-dateto"
+           hx-get="/api/inference/triples"
+           hx-target="#inference-results"
+           hx-include="[class*='inference-filter']"
+           hx-trigger="change"
+           name="date_to"
+           title="To date">
+    <select class="inference-filter-groupby"
+            hx-get="/api/inference/triples"
+            hx-target="#inference-results"
+            hx-include="[class*='inference-filter']"
+            hx-trigger="change"
+            name="group_by">
+      <option value="">No grouping</option>
+      <option value="time">Group by time inferred</option>
+      <option value="object_type">Group by object type</option>
+      <option value="property_type">Group by property type</option>
+    </select>
   </div>
 
   <!-- Triple list (htmx-loaded) -->
