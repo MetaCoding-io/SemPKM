@@ -260,11 +260,14 @@ async def admin_models_remove(
     model_id: str,
     user: User = Depends(require_role("owner")),
     model_service: ModelService = Depends(get_model_service),
+    client: TriplestoreClient = Depends(get_triplestore_client),
+    db: AsyncSession = Depends(get_db_session),
 ):
     """Remove an installed Mental Model.
 
     Returns the updated model table partial for htmx swap.
     Handles 404 (not installed) and 409 (user data exists) errors.
+    Also cleans up inference artifacts: inferred graph, triple state, settings.
     """
     result = await model_service.remove(model_id)
     models = await model_service.list_models()
@@ -277,9 +280,64 @@ async def admin_models_remove(
     else:
         # Invalidate ViewSpec cache after successful model removal
         request.app.state.view_spec_service.invalidate_cache()
+
+        # Clean up inference artifacts
+        await _cleanup_inference_on_uninstall(client, db, user.id, model_id)
+
         context["success"] = f"Model '{model_id}' removed."
 
     return templates_response(request, "admin/models.html", context, block_name="model_table")
+
+
+# ---- Inference cleanup on model uninstall ----
+
+
+async def _cleanup_inference_on_uninstall(
+    client: TriplestoreClient,
+    db: AsyncSession,
+    user_id,
+    model_id: str,
+) -> None:
+    """Clean up all inference artifacts when a model is uninstalled.
+
+    1. Drop urn:sempkm:inferred graph (inferred triples may cross-reference
+       multiple models' ontology axioms; full recompute is the correct approach)
+    2. Delete all inference_triple_state SQLite records
+    3. Remove entailment settings for this model from user settings
+
+    Args:
+        client: Triplestore client for SPARQL graph cleanup.
+        db: Database session for SQLite cleanup.
+        user_id: User ID for settings cleanup.
+        model_id: The model being uninstalled.
+    """
+    from app.models.registry import clear_inferred_graph
+    from app.inference.models import InferenceTripleState
+    from sqlalchemy import delete
+
+    # 1. Drop inferred graph
+    try:
+        await clear_inferred_graph(client)
+        logger.info("Cleared urn:sempkm:inferred graph during model uninstall")
+    except Exception as e:
+        logger.warning("Failed to clear inferred graph: %s", e)
+
+    # 2. Delete all inference_triple_state records
+    try:
+        await db.execute(delete(InferenceTripleState))
+        logger.info("Cleared inference_triple_state table during model uninstall")
+    except Exception as e:
+        logger.warning("Failed to clear inference_triple_state: %s", e)
+
+    # 3. Remove entailment settings for this model
+    try:
+        settings_svc = SettingsService()
+        for manifest_key in MANIFEST_KEY_TO_TYPE:
+            settings_key = f"inference.{model_id}.{manifest_key}"
+            await settings_svc.reset_override(user_id, settings_key, db)
+        logger.info("Removed entailment settings for model '%s'", model_id)
+    except Exception as e:
+        logger.warning("Failed to remove entailment settings: %s", e)
 
 
 # ---- Entailment Config endpoints ----
