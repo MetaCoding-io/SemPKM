@@ -9,11 +9,13 @@ Uses full recompute strategy on each run (not incremental) for simplicity
 and correctness at PKM scale.
 """
 
+import asyncio
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
 import owlrl
+import pyshacl
 from rdflib import BNode, Graph, URIRef
 from rdflib.namespace import OWL, RDF, RDFS, XSD
 from sqlalchemy import select
@@ -128,6 +130,43 @@ class InferenceService:
         owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(working)
         logger.info("Closure expansion complete: %d total triples", len(working))
 
+        # 4b. Run SHACL-AF rules (if enabled)
+        rule_new_triples: set[tuple] = set()
+        if entailment_config.get("sh:rule", False) or entailment_config.get("shacl_rules", False):
+            rules_graph = await self._load_rules_graphs()
+            if len(rules_graph) > 0:
+                pre_rules = set(working)
+                try:
+                    expanded = await asyncio.to_thread(
+                        pyshacl.shacl_rules,
+                        working,
+                        shacl_graph=rules_graph,
+                        advanced=True,
+                        iterate_rules=True,
+                    )
+                    rule_new = set(expanded) - pre_rules
+                    for t in rule_new:
+                        working.add(t)
+                    logger.info("SHACL rules produced %d new triples", len(rule_new))
+                except TypeError:
+                    # iterate_rules may not be supported -- fall back to single pass
+                    expanded = await asyncio.to_thread(
+                        pyshacl.shacl_rules,
+                        working,
+                        shacl_graph=rules_graph,
+                        advanced=True,
+                    )
+                    rule_new = set(expanded) - pre_rules
+                    for t in rule_new:
+                        working.add(t)
+                    logger.info("SHACL rules (single pass) produced %d new triples", len(rule_new))
+                # Track non-BNode rule triples for classification override
+                rule_new_triples = {
+                    (s, p, o)
+                    for s, p, o in rule_new
+                    if not isinstance(s, BNode) and not isinstance(o, BNode)
+                }
+
         # 5. Diff to extract new inferred triples
         all_after = set(working)
         new_triples = all_after - original_data_triples - ontology_triples
@@ -147,9 +186,12 @@ class InferenceService:
         # 8. Classify each triple by entailment type
         classified: list[tuple[tuple, str]] = []
         for s, p, o in new_triples:
-            etype = classify_entailment(s, p, o, ontology_graph)
-            if etype is not None:
-                classified.append(((s, p, o), etype))
+            if (s, p, o) in rule_new_triples:
+                classified.append(((s, p, o), "sh:rule"))
+            else:
+                etype = classify_entailment(s, p, o, ontology_graph)
+                if etype is not None:
+                    classified.append(((s, p, o), etype))
 
         logger.info("Classified %d of %d new triples", len(classified), len(new_triples))
 
@@ -397,6 +439,40 @@ class InferenceService:
         if turtle_bytes.strip():
             ontology.parse(data=turtle_bytes, format="turtle")
         return ontology
+
+    async def _load_rules_graphs(self) -> Graph:
+        """Load rules graphs from all installed models.
+
+        Same pattern as _load_ontology_graphs: query model registry for
+        installed models, CONSTRUCT from each model's rules graph.
+        """
+        sparql = f"""SELECT ?modelId WHERE {{
+  GRAPH <{MODELS_GRAPH}> {{
+    ?model a <{SEMPKM_NS}MentalModel> ;
+           <{SEMPKM_NS}modelId> ?modelId .
+  }}
+}}"""
+        result = await self._client.query(sparql)
+        bindings = result.get("results", {}).get("bindings", [])
+
+        if not bindings:
+            return Graph()
+
+        from_clauses = []
+        for b in bindings:
+            model_id = b["modelId"]["value"]
+            from_clauses.append(f"FROM <urn:sempkm:model:{model_id}:rules>")
+
+        construct_sparql = (
+            "CONSTRUCT { ?s ?p ?o }\n"
+            + "\n".join(from_clauses)
+            + "\nWHERE { ?s ?p ?o }"
+        )
+        turtle_bytes = await self._client.construct(construct_sparql)
+        rules = Graph()
+        if turtle_bytes.strip():
+            rules.parse(data=turtle_bytes, format="turtle")
+        return rules
 
     async def _clear_inferred_graph(self) -> None:
         """Clear all triples from urn:sempkm:inferred."""
