@@ -22,10 +22,10 @@ See: .planning/PROJECT.md (updated 2026-03-03)
 
 ## Current Position
 
-Phase: 35 of 40 (OWL 2 RL Inference) — In progress
-Current Plan: 2 of 4 complete
-Status: Plan 35-02 (Inferred Triple Display) completed
-Last activity: 2026-03-04 - Completed 35-02-PLAN.md
+Phase: 35 of 40 (OWL 2 RL Inference) -- In progress
+Current Plan: 1 of 4 complete
+Status: Plan 35-01 (Backend Inference Engine) completed
+Last activity: 2026-03-04 - Completed 35-01-PLAN.md
 
 Progress: [░░░░░░░░░░] 0% (0/6 phases)
 
@@ -33,8 +33,8 @@ Progress: [░░░░░░░░░░] 0% (0/6 phases)
 
 **Velocity:**
 - Total plans completed: 1 (v2.4)
-- Average duration: 6 min
-- Total execution time: 6 min
+- Average duration: 8 min
+- Total execution time: 8 min
 
 **Historical (v2.3):**
 - 13 plans, avg 3.7 min/plan, 48 min total
@@ -44,7 +44,7 @@ Progress: [░░░░░░░░░░] 0% (0/6 phases)
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 35 | 1 | 6 min | 6 min |
+| 35 | 1 | 8 min | 8 min |
 
 *Updated after each plan completion*
 
@@ -54,9 +54,10 @@ Progress: [░░░░░░░░░░] 0% (0/6 phases)
 
 Full decision log in PROJECT.md Key Decisions table.
 
-- 35-02: UNION pattern for relations (not FROM) to annotate source graph per triple
-- 35-02: Separate inferred properties query in get_object() for clean two-column data flow
-- 35-02: User-created triples always deduplicated over inferred (user takes precedence)
+- 35-01: Full recompute strategy for inference (not incremental) for simplicity at PKM scale
+- 35-01: SQLite table for per-triple state tracking (not RDF reification)
+- 35-01: owlrl 7.1.4 standalone for decoupled manual trigger inference
+- 35-01: Entailment classification via ontology heuristics
 
 ### Pending Todos
 
@@ -81,5 +82,5 @@ None — clean start for v2.4
 ## Session Continuity
 
 Last session: 2026-03-04
-Stopped at: Completed 35-02-PLAN.md
-Resume file: .planning/phases/35-owl2-rl-inference/35-02-SUMMARY.md
+Stopped at: Completed 35-01-PLAN.md
+Resume file: .planning/phases/35-owl2-rl-inference/35-01-SUMMARY.md

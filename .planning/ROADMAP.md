@@ -345,7 +345,7 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 32. Carousel Views and View Bug Fixes | v2.3 | 2/2 | Complete | 2026-03-03 |
 | 33. Named Layouts and VFS Settings Restore | v2.3 | 2/2 | Complete | 2026-03-03 |
 | 34. E2E Test Coverage | v2.3 | 2/2 | Complete | 2026-03-03 |
-| 35. OWL 2 RL Inference | 1/4 | In Progress|  | - |
+| 35. OWL 2 RL Inference | 2/4 | In Progress|  | - |
 | 36. SHACL-AF Rules Support | v2.4 | 0/? | Planned | - |
 | 37. Global Lint Data Model & API | v2.4 | 0/? | Planned | - |
 | 38. Global Lint Dashboard UI | v2.4 | 0/? | Planned | - |
