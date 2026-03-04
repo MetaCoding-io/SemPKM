@@ -2901,3 +2901,282 @@ details.form-group[open] > .form-group-summary::before {
     padding-top: 16px;
     border-top: 1px solid var(--color-border);
 }
+
+/* ============================================================
+   Phase 35: Inference Panel (OWL 2 RL)
+   Bottom panel tab for viewing, filtering, dismissing, and
+   promoting inferred triples.
+   ============================================================ */
+
+/* Panel layout */
+.inference-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* Header bar: Refresh button, spinner, last-run, summary */
+.inference-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0;
+}
+
+.inference-refresh-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    cursor: pointer;
+    transition: background 0.1s, border-color 0.1s;
+}
+
+.inference-refresh-btn:hover {
+    background: var(--color-surface-hover);
+    border-color: var(--color-accent);
+}
+
+.inference-refresh-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+/* Loading spinner (htmx indicator) */
+.inference-spinner {
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+    font-style: italic;
+}
+
+.inference-spinner svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.spin svg {
+    animation: spin 1s linear infinite;
+}
+
+/* Last run timestamp and summary */
+.inference-last-run {
+    color: var(--color-text-muted);
+    font-size: 0.72rem;
+}
+
+.inference-summary {
+    color: var(--color-text-muted);
+    font-size: 0.72rem;
+    margin-left: auto;
+}
+
+.inference-summary strong {
+    color: var(--color-text);
+}
+
+/* Filter bar */
+.inference-filters {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 4px 10px;
+    background: var(--color-surface-recessed);
+    border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0;
+}
+
+.inference-filter-type,
+.inference-filter-status,
+.inference-filter-group {
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    cursor: pointer;
+}
+
+.inference-filter-type:focus,
+.inference-filter-status:focus,
+.inference-filter-group:focus {
+    outline: none;
+    border-color: var(--color-accent);
+}
+
+.inference-filter-date-from,
+.inference-filter-date-to {
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: var(--color-surface);
+    color: var(--color-text);
+}
+
+.inference-filter-date-from:focus,
+.inference-filter-date-to:focus {
+    outline: none;
+    border-color: var(--color-accent);
+}
+
+/* Results area (scrollable triple list) */
+.inference-results {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+/* Triples table */
+.inference-triples-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8125rem;
+}
+
+.inference-triples-table thead th {
+    position: sticky;
+    top: 0;
+    padding: 5px 10px;
+    text-align: left;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--color-text-muted);
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    white-space: nowrap;
+    z-index: 1;
+}
+
+.inference-triples-table tbody tr {
+    border-bottom: 1px solid var(--color-border-subtle, var(--color-border));
+    transition: background 0.1s;
+}
+
+.inference-triples-table tbody tr:hover {
+    background: var(--color-surface-raised, var(--color-surface));
+}
+
+.inference-triples-table td {
+    padding: 5px 10px;
+    vertical-align: middle;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 250px;
+}
+
+/* Triple subject/object links */
+.inference-triple-subject,
+.inference-triple-object {
+    color: var(--color-text);
+    text-decoration: none;
+}
+
+.inference-triple-subject:hover,
+.inference-triple-object:hover {
+    text-decoration: underline;
+    color: var(--color-accent);
+}
+
+/* Triple predicate: code-like styling */
+.inference-triple-predicate {
+    color: var(--color-text-muted);
+    font-family: var(--font-mono, monospace);
+    font-size: 0.75rem;
+}
+
+/* Status column styling */
+.inference-triples-table tr.status-dismissed {
+    opacity: 0.5;
+}
+
+/* Action buttons: reveal on hover */
+.inference-triples-table .inference-triple-actions {
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.inference-triples-table tbody tr:hover .inference-triple-actions {
+    opacity: 1;
+}
+
+.inference-dismiss-btn,
+.inference-promote-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 6px;
+    font-size: 0.7rem;
+    border: 1px solid var(--color-border);
+    border-radius: 3px;
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.1s, color 0.1s;
+}
+
+.inference-dismiss-btn:hover {
+    background: var(--color-surface-hover);
+    color: var(--color-text);
+}
+
+.inference-promote-btn:hover {
+    background: color-mix(in srgb, var(--color-accent) 15%, transparent);
+    color: var(--color-accent);
+    border-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
+}
+
+.inference-dismiss-btn svg,
+.inference-promote-btn svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+/* Group headers (when grouping is active) */
+.inference-group-header {
+    font-weight: 600;
+    font-size: 0.75rem;
+    padding: 6px 10px;
+    background: var(--color-surface-recessed);
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    border-bottom: 1px solid var(--color-border);
+}
+
+/* Empty state */
+.inference-empty {
+    padding: 32px 20px;
+    text-align: center;
+    color: var(--color-text-faint, var(--color-text-muted));
+    font-size: 0.875rem;
+}
