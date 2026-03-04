@@ -16,6 +16,7 @@ from app.db.base import Base
 
 # Import all models so Alembic can detect them for autogenerate
 from app.auth.models import ApiToken, InstanceConfig, Invitation, User, UserSession  # noqa: F401
+from app.inference.models import InferenceTripleState  # noqa: F401
 
 # Alembic Config object
 config = context.config
