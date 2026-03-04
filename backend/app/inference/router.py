@@ -15,7 +15,7 @@ from app.auth.models import User
 from app.db.session import get_db_session
 from app.dependencies import get_event_store, get_triplestore_client
 from app.events.store import EventStore
-from app.inference.entailments import ENTAILMENT_TYPES, MANIFEST_KEY_TO_TYPE
+from app.inference.entailments import ENTAILMENT_TYPES, MANIFEST_KEY_TO_TYPE, TYPE_TO_MANIFEST_KEY
 from app.inference.service import InferenceService
 from app.triplestore.client import TriplestoreClient
 
@@ -52,8 +52,8 @@ async def run_inference(
     """
     service = _get_inference_service(client, db, event_store)
 
-    # Get entailment config (defaults for now)
-    config = await service.get_entailment_config()
+    # Get entailment config (manifest defaults + user overrides)
+    config = await service.get_entailment_config(user_id=current_user.id)
 
     # Run inference
     result = await service.run_inference(config)
@@ -188,7 +188,7 @@ async def get_inference_config(
     using manifest defaults as the baseline.
     """
     service = _get_inference_service(client, db, event_store)
-    config = await service.get_entailment_config()
+    config = await service.get_entailment_config(user_id=current_user.id)
     return {
         "entailment_types": ENTAILMENT_TYPES,
         "config": config,
@@ -223,8 +223,19 @@ async def update_inference_config(
                 detail=f"Unknown entailment type: {key}",
             )
 
-    # For now, return the submitted config (persistence via settings service
-    # will be wired in a later plan when admin UI is built)
+    # Persist via SettingsService
+    from app.services.settings import SettingsService
+
+    settings_svc = SettingsService()
+    for key, value in body.items():
+        # Normalize key: accept both manifest keys and entailment type labels
+        manifest_key = key if key in MANIFEST_KEY_TO_TYPE else TYPE_TO_MANIFEST_KEY.get(key)
+        if manifest_key:
+            settings_key = f"inference.{model_id}.{manifest_key}"
+            await settings_svc.set_override(
+                current_user.id, settings_key, str(bool(value)).lower(), db
+            )
+
     return {
         "model_id": model_id,
         "config": body,
