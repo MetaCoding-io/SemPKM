@@ -3005,7 +3005,9 @@ details.form-group[open] > .form-group-summary::before {
 
 .inference-filter-type,
 .inference-filter-status,
-.inference-filter-group {
+.inference-filter-group,
+.inference-filter-objtype,
+.inference-filter-groupby {
     padding: 2px 8px;
     font-size: 0.75rem;
     border: 1px solid var(--color-border);
@@ -3017,7 +3019,9 @@ details.form-group[open] > .form-group-summary::before {
 
 .inference-filter-type:focus,
 .inference-filter-status:focus,
-.inference-filter-group:focus {
+.inference-filter-group:focus,
+.inference-filter-objtype:focus,
+.inference-filter-groupby:focus {
     outline: none;
     border-color: var(--color-accent);
 }
@@ -3158,7 +3162,11 @@ details.form-group[open] > .form-group-summary::before {
     stroke: currentColor;
 }
 
-/* Group headers (when grouping is active) */
+/* Group containers (when grouping is active) */
+.inference-group {
+    margin-bottom: 12px;
+}
+
 .inference-group-header {
     font-weight: 600;
     font-size: 0.75rem;
