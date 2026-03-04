@@ -515,14 +515,81 @@ class InferenceService:
         except Exception as e:
             logger.warning("Failed to log inference event: %s", e)
 
-    async def get_entailment_config(self) -> dict[str, bool]:
-        """Get entailment configuration with manifest defaults.
+    async def get_entailment_config(self, user_id=None) -> dict[str, bool]:
+        """Get entailment configuration with manifest defaults and user overrides.
 
-        Returns a dict mapping entailment type labels to enabled booleans.
-        Falls back to all-disabled except owl:inverseOf if no manifest
-        defaults are available.
+        Queries installed models for manifest entailment_defaults, then applies
+        any user-specific overrides from SettingsService. If a type is enabled
+        for ANY installed model, it is enabled in the merged config.
+
+        Args:
+            user_id: Optional user UUID. When provided, SettingsService user
+                overrides are applied on top of manifest defaults.
+
+        Returns:
+            Dict mapping entailment type labels to enabled booleans.
+            Falls back to hardcoded defaults (only owl:inverseOf) if no
+            models are installed or user_id is not provided.
         """
-        # Default config: only inverseOf enabled
+        import os
+
+        import yaml
+
+        from app.services.settings import SettingsService
+
+        # Default config: only inverseOf enabled (fallback)
         config = {etype: False for etype in ENTAILMENT_TYPES}
         config["owl:inverseOf"] = True
-        return config
+
+        # Query installed models from the triplestore
+        sparql = f"""SELECT ?modelId WHERE {{
+  GRAPH <{MODELS_GRAPH}> {{
+    ?model a <{SEMPKM_NS}MentalModel> ;
+           <{SEMPKM_NS}modelId> ?modelId .
+  }}
+}}"""
+        try:
+            result = await self._client.query(sparql)
+            bindings = result.get("results", {}).get("bindings", [])
+        except Exception:
+            bindings = []
+
+        if not bindings:
+            return config
+
+        # Load manifest defaults for each model and merge
+        model_ids = [b["modelId"]["value"] for b in bindings]
+        merged_config = {etype: False for etype in ENTAILMENT_TYPES}
+
+        for model_id in model_ids:
+            manifest_path = os.path.join("/app/models", model_id, "manifest.yaml")
+            model_defaults = {key: False for key in MANIFEST_KEY_TO_TYPE}
+
+            try:
+                with open(manifest_path) as f:
+                    raw = yaml.safe_load(f)
+                if raw and "entailment_defaults" in raw:
+                    for key, val in raw["entailment_defaults"].items():
+                        if key in MANIFEST_KEY_TO_TYPE:
+                            model_defaults[key] = bool(val)
+            except Exception:
+                pass
+
+            # Apply user overrides if user_id provided
+            if user_id is not None:
+                try:
+                    settings_svc = SettingsService()
+                    overrides = await settings_svc.get_user_overrides(user_id, self._db)
+                    for manifest_key in MANIFEST_KEY_TO_TYPE:
+                        settings_key = f"inference.{model_id}.{manifest_key}"
+                        if settings_key in overrides:
+                            model_defaults[manifest_key] = overrides[settings_key] == "true"
+                except Exception:
+                    logger.warning("Failed to load user overrides for model %s", model_id)
+
+            # Merge: if enabled for ANY model, enable in merged config
+            for manifest_key, etype in MANIFEST_KEY_TO_TYPE.items():
+                if model_defaults.get(manifest_key, False):
+                    merged_config[etype] = True
+
+        return merged_config
