@@ -94,7 +94,7 @@
 
 **Milestone Goal:** Activate OWL 2 RL inference and SHACL-AF rules to deliver automatic bidirectional links and model-contributed derivations. Add a global lint dashboard for workspace-wide validation triage. Clear the backlog of tracked bugs and the edit form helptext TODO.
 
-- [ ] **Phase 35: OWL 2 RL Inference** — Add `owlrl` dependency, materialize inverse/transitive triples into `urn:sempkm:inferred` named graph on every write
+- [x] **Phase 35: OWL 2 RL Inference** — Add `owlrl` dependency, materialize inverse/transitive triples into `urn:sempkm:inferred` named graph on every write (completed 2026-03-04)
 - [ ] **Phase 36: SHACL-AF Rules Support** — Enable `advanced=True` in pyshacl, add rules entrypoint to manifest, ship example rules in basic-pkm model
 - [ ] **Phase 37: Global Lint Data Model & API** — Persist per-object, per-result validation detail; paginated API endpoints with filtering by severity, type, path
 - [ ] **Phase 38: Global Lint Dashboard UI** — Filterable, sortable result table with severity badges, health indicator, auto-refresh
@@ -345,7 +345,7 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 32. Carousel Views and View Bug Fixes | v2.3 | 2/2 | Complete | 2026-03-03 |
 | 33. Named Layouts and VFS Settings Restore | v2.3 | 2/2 | Complete | 2026-03-03 |
 | 34. E2E Test Coverage | v2.3 | 2/2 | Complete | 2026-03-03 |
-| 35. OWL 2 RL Inference | 3/4 | In Progress|  | - |
+| 35. OWL 2 RL Inference | 4/4 | Complete   | 2026-03-04 | - |
 | 36. SHACL-AF Rules Support | v2.4 | 0/? | Planned | - |
 | 37. Global Lint Data Model & API | v2.4 | 0/? | Planned | - |
 | 38. Global Lint Dashboard UI | v2.4 | 0/? | Planned | - |
