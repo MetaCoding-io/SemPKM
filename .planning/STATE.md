@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Inference & Polish
 status: active
-last_updated: "2026-03-04T06:16:33.000Z"
+last_updated: "2026-03-04T06:43:40.000Z"
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 5
+  completed_plans: 5
 ---
 
 # Project State
@@ -23,18 +23,18 @@ See: .planning/PROJECT.md (updated 2026-03-03)
 ## Current Position
 
 Phase: 35 of 40 (OWL 2 RL Inference) -- COMPLETE
-Current Plan: 4 of 4 complete
-Status: Phase 35 complete -- all 4 plans executed
-Last activity: 2026-03-04 - Completed 35-04-PLAN.md
+Current Plan: 5 of 5 complete
+Status: Phase 35 complete -- all 5 plans executed (including gap closure)
+Last activity: 2026-03-04 - Completed 35-05-PLAN.md (gap closure)
 
 Progress: [██░░░░░░░░] 17% (1/6 phases)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4 (v2.4)
+- Total plans completed: 5 (v2.4)
 - Average duration: 5 min
-- Total execution time: 21 min
+- Total execution time: 24 min
 
 **Historical (v2.3):**
 - 13 plans, avg 3.7 min/plan, 48 min total
@@ -44,7 +44,7 @@ Progress: [██░░░░░░░░] 17% (1/6 phases)
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 35 | 4 | 21 min | 5 min |
+| 35 | 5 | 24 min | 5 min |
 
 *Updated after each plan completion*
 
@@ -62,6 +62,9 @@ Full decision log in PROJECT.md Key Decisions table.
 - 35-03: Aligned filter params with actual API (entailment_type, triple_status)
 - 35-04: Entailment config uses SettingsService user overrides on top of manifest defaults
 - 35-04: Model uninstall drops entire inferred graph (not selective) for correctness
+- 35-05: Merged entailment config across all models (if enabled for ANY model, enabled globally)
+- 35-05: Used htmx OOB swap for last-run timestamp outside main target div
+- 35-05: Object type filter uses IRI substring matching for simplicity
 
 ### Pending Todos
 
@@ -86,5 +89,5 @@ None — clean start for v2.4
 ## Session Continuity
 
 Last session: 2026-03-04
-Stopped at: Completed 35-04-PLAN.md (Phase 35 complete)
-Resume file: .planning/phases/35-owl2-rl-inference/35-04-SUMMARY.md
+Stopped at: Completed 35-05-PLAN.md (Phase 35 gap closure complete)
+Resume file: .planning/phases/35-owl2-rl-inference/35-05-SUMMARY.md
