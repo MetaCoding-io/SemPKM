@@ -94,7 +94,7 @@
 
 **Milestone Goal:** Activate OWL 2 RL inference and SHACL-AF rules to deliver automatic bidirectional links and model-contributed derivations. Add a global lint dashboard for workspace-wide validation triage. Clear the backlog of tracked bugs and the edit form helptext TODO.
 
-- [x] **Phase 35: OWL 2 RL Inference** — Add `owlrl` dependency, materialize inverse/transitive triples into `urn:sempkm:inferred` named graph on every write (completed 2026-03-04)
+- [ ] **Phase 35: OWL 2 RL Inference** — Add `owlrl` dependency, materialize inverse/transitive triples into `urn:sempkm:inferred` named graph; gap closure in progress
 - [ ] **Phase 36: SHACL-AF Rules Support** — Enable `advanced=True` in pyshacl, add rules entrypoint to manifest, ship example rules in basic-pkm model
 - [ ] **Phase 37: Global Lint Data Model & API** — Persist per-object, per-result validation detail; paginated API endpoints with filtering by severity, type, path
 - [ ] **Phase 38: Global Lint Dashboard UI** — Filterable, sortable result table with severity badges, health indicator, auto-refresh
@@ -113,7 +113,12 @@
   3. Inferred triples are visible in object views, relations panel, and graph visualization
   4. Deleting the source triple (hasParticipant) causes the inferred inverse to be removed on the next validation cycle
   5. Inference runs automatically on every write (integrated into the existing EventStore.commit() → AsyncValidationQueue pipeline)
-**Plans**: TBD
+**Plans**: 5 plans
+- [x] 35-01-PLAN.md — Backend inference engine (owlrl, InferenceService, API endpoints)
+- [x] 35-02-PLAN.md — Inferred triple display (dual-graph queries, badges, dashed edges)
+- [x] 35-03-PLAN.md — Inference bottom panel (tab, filters, dismiss/promote)
+- [x] 35-04-PLAN.md — Admin entailment config (toggles, ontology examples, uninstall cleanup)
+- [ ] 35-05-PLAN.md — Gap closure (config wiring, object_type/date filters, group_by, last-run timestamp)
 
 ### Phase 36: SHACL-AF Rules Support
 **Goal**: Mental Models can declare SHACL rules that generate derived triples; basic-pkm ships example rules for inverse materialization and concept ancestry
@@ -345,7 +350,7 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 32. Carousel Views and View Bug Fixes | v2.3 | 2/2 | Complete | 2026-03-03 |
 | 33. Named Layouts and VFS Settings Restore | v2.3 | 2/2 | Complete | 2026-03-03 |
 | 34. E2E Test Coverage | v2.3 | 2/2 | Complete | 2026-03-03 |
-| 35. OWL 2 RL Inference | 4/4 | Complete   | 2026-03-04 | - |
+| 35. OWL 2 RL Inference | v2.4 | 4/5 | Gap closure | - |
 | 36. SHACL-AF Rules Support | v2.4 | 0/? | Planned | - |
 | 37. Global Lint Data Model & API | v2.4 | 0/? | Planned | - |
 | 38. Global Lint Dashboard UI | v2.4 | 0/? | Planned | - |
