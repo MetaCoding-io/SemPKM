@@ -17,6 +17,7 @@ ENTAILMENT_TYPES = [
     "rdfs:subPropertyOf",
     "owl:TransitiveProperty",
     "rdfs:domain/rdfs:range",
+    "sh:rule",
 ]
 
 # Mapping from manifest-style keys to entailment type labels
@@ -26,6 +27,7 @@ MANIFEST_KEY_TO_TYPE = {
     "rdfs_subPropertyOf": "rdfs:subPropertyOf",
     "owl_TransitiveProperty": "owl:TransitiveProperty",
     "rdfs_domain_range": "rdfs:domain/rdfs:range",
+    "shacl_rules": "sh:rule",
 }
 
 TYPE_TO_MANIFEST_KEY = {v: k for k, v in MANIFEST_KEY_TO_TYPE.items()}
