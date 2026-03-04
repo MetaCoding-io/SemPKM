@@ -99,7 +99,7 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INF-01 | Phase 35 | Planned |
+| INF-01 | Phase 35 | Complete |
 | INF-02 | Phase 36 | Planned |
 | LINT-01 | Phase 37 | Planned |
 | LINT-02 | Phase 37 | Planned |

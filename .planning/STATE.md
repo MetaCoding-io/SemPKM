@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Inference & Polish
 status: active
-last_updated: "2026-03-03T21:00:00.000Z"
+last_updated: "2026-03-04T06:16:33.000Z"
 progress:
   total_phases: 6
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  completed_phases: 1
+  total_plans: 4
+  completed_plans: 4
 ---
 
 # Project State
@@ -22,19 +22,19 @@ See: .planning/PROJECT.md (updated 2026-03-03)
 
 ## Current Position
 
-Phase: 35 of 40 (OWL 2 RL Inference) -- In progress
-Current Plan: 3 of 4 complete
-Status: Plan 35-03 (Inference Bottom Panel) completed
-Last activity: 2026-03-04 - Completed 35-03-PLAN.md
+Phase: 35 of 40 (OWL 2 RL Inference) -- COMPLETE
+Current Plan: 4 of 4 complete
+Status: Phase 35 complete -- all 4 plans executed
+Last activity: 2026-03-04 - Completed 35-04-PLAN.md
 
-Progress: [░░░░░░░░░░] 0% (0/6 phases)
+Progress: [██░░░░░░░░] 17% (1/6 phases)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3 (v2.4)
-- Average duration: 6 min
-- Total execution time: 17 min
+- Total plans completed: 4 (v2.4)
+- Average duration: 5 min
+- Total execution time: 21 min
 
 **Historical (v2.3):**
 - 13 plans, avg 3.7 min/plan, 48 min total
@@ -44,7 +44,7 @@ Progress: [░░░░░░░░░░] 0% (0/6 phases)
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 35 | 3 | 17 min | 6 min |
+| 35 | 4 | 21 min | 5 min |
 
 *Updated after each plan completion*
 
@@ -60,6 +60,8 @@ Full decision log in PROJECT.md Key Decisions table.
 - 35-01: Entailment classification via ontology heuristics
 - 35-03: Used hx-trigger="revealed" for lazy-loading inference triples
 - 35-03: Aligned filter params with actual API (entailment_type, triple_status)
+- 35-04: Entailment config uses SettingsService user overrides on top of manifest defaults
+- 35-04: Model uninstall drops entire inferred graph (not selective) for correctness
 
 ### Pending Todos
 
@@ -84,5 +86,5 @@ None — clean start for v2.4
 ## Session Continuity
 
 Last session: 2026-03-04
-Stopped at: Completed 35-03-PLAN.md
-Resume file: .planning/phases/35-owl2-rl-inference/35-03-SUMMARY.md
+Stopped at: Completed 35-04-PLAN.md (Phase 35 complete)
+Resume file: .planning/phases/35-owl2-rl-inference/35-04-SUMMARY.md
