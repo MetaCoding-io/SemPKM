@@ -7,7 +7,7 @@
 
 ### OWL 2 RL Inference
 
-- [ ] **INF-01**: User adds a participant to a Project; the Person's detail page automatically shows the Project in their "participatesIn" list without manual inverse entry (OWL 2 RL inference materializes `owl:inverseOf` triples)
+- [x] **INF-01**: User adds a participant to a Project; the Person's detail page automatically shows the Project in their "participatesIn" list without manual inverse entry (OWL 2 RL inference materializes `owl:inverseOf` triples)
 - [ ] **INF-02**: Mental Models can ship SHACL-AF rules (sh:TripleRule, sh:SPARQLRule) that pyshacl executes with `advanced=True`; inferred triples are stored in `urn:sempkm:inferred` named graph and visible in object views and graph visualization
 
 ### Global Lint Dashboard
