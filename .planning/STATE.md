@@ -22,19 +22,19 @@ See: .planning/PROJECT.md (updated 2026-03-03)
 
 ## Current Position
 
-Phase: 35 of 40 (OWL 2 RL Inference) — Not started
-Current Plan: None
-Status: Milestone initialized, ready for /gsd:discuss-phase 35
-Last activity: 2026-03-03 - v2.4 milestone setup
+Phase: 35 of 40 (OWL 2 RL Inference) — In progress
+Current Plan: 2 of 4 complete
+Status: Plan 35-02 (Inferred Triple Display) completed
+Last activity: 2026-03-04 - Completed 35-02-PLAN.md
 
 Progress: [░░░░░░░░░░] 0% (0/6 phases)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0 (v2.4)
-- Average duration: N/A
-- Total execution time: 0 min
+- Total plans completed: 1 (v2.4)
+- Average duration: 6 min
+- Total execution time: 6 min
 
 **Historical (v2.3):**
 - 13 plans, avg 3.7 min/plan, 48 min total
@@ -44,7 +44,7 @@ Progress: [░░░░░░░░░░] 0% (0/6 phases)
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| (none yet) | - | - | - |
+| 35 | 1 | 6 min | 6 min |
 
 *Updated after each plan completion*
 
@@ -54,7 +54,9 @@ Progress: [░░░░░░░░░░] 0% (0/6 phases)
 
 Full decision log in PROJECT.md Key Decisions table.
 
-(v2.4 decisions will be added as phases are planned and executed)
+- 35-02: UNION pattern for relations (not FROM) to annotate source graph per triple
+- 35-02: Separate inferred properties query in get_object() for clean two-column data flow
+- 35-02: User-created triples always deduplicated over inferred (user takes precedence)
 
 ### Pending Todos
 
@@ -79,5 +81,5 @@ None — clean start for v2.4
 ## Session Continuity
 
 Last session: 2026-03-04
-Stopped at: Phase 35 context gathered
-Resume file: .planning/phases/35-owl2-rl-inference/35-CONTEXT.md
+Stopped at: Completed 35-02-PLAN.md
+Resume file: .planning/phases/35-owl2-rl-inference/35-02-SUMMARY.md
