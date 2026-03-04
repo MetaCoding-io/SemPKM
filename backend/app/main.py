@@ -17,6 +17,7 @@ from jinja2_fragments.fastapi import Jinja2Blocks
 from app.admin.router import router as admin_router
 from app.auth.router import router as auth_router
 from app.browser.router import router as browser_router
+from app.inference.router import router as inference_router
 from app.views.router import router as views_router
 from app.debug.router import router as debug_router
 from app.auth.service import AuthService
@@ -375,6 +376,7 @@ app.include_router(health_router)
 app.include_router(models_router)
 app.include_router(sparql_router)
 app.include_router(validation_router)
+app.include_router(inference_router)
 app.include_router(admin_router)
 app.include_router(views_router)
 app.include_router(browser_router)
