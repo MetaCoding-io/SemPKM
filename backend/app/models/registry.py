@@ -49,8 +49,12 @@ class ModelGraphs:
         return f"urn:sempkm:model:{self.model_id}:seed"
 
     @property
+    def rules(self) -> str:
+        return f"urn:sempkm:model:{self.model_id}:rules"
+
+    @property
     def all_graphs(self) -> list[str]:
-        return [self.ontology, self.shapes, self.views, self.seed]
+        return [self.ontology, self.shapes, self.views, self.seed, self.rules]
 
 
 @dataclass
