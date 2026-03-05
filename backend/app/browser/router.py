@@ -22,10 +22,12 @@ from app.db.session import get_db_session
 from app.dependencies import (
     get_event_store,
     get_label_service,
+    get_lint_service,
     get_shapes_service,
     get_triplestore_client,
     get_validation_queue,
 )
+from app.lint.service import LintService
 from app.events.store import EventStore
 from app.services.icons import IconService
 from app.services.labels import LabelService
@@ -973,64 +975,39 @@ async def get_lint(
     request: Request,
     object_iri: str,
     user: User = Depends(get_current_user),
-    validation_queue: AsyncValidationQueue = Depends(get_validation_queue),
-    client: TriplestoreClient = Depends(get_triplestore_client),
+    lint_service: LintService = Depends(get_lint_service),
 ):
     """Get SHACL validation results for a specific object.
 
-    Checks the in-memory latest validation report from the queue, then
-    queries the triplestore for detailed results filtered to this object's
-    focus node. Renders the lint_panel.html partial.
+    Queries structured lint result triples from the latest run filtered
+    to this object's focus node. Renders the lint_panel.html partial.
     """
     templates = request.app.state.templates
     decoded_iri = unquote(object_iri)
     if not _validate_iri(decoded_iri):
         raise HTTPException(status_code=400, detail="Invalid IRI")
 
-    latest_report = validation_queue.latest_report
+    results = await lint_service.get_results_for_object(decoded_iri)
 
     violations: list[dict] = []
     warnings: list[dict] = []
     infos: list[dict] = []
-    conforms = True
 
-    if latest_report and latest_report.report_iri:
-        report_sparql = f"""
-        PREFIX sh: <http://www.w3.org/ns/shacl#>
-        SELECT ?severity ?path ?message ?sourceShape WHERE {{
-          GRAPH <{latest_report.report_iri}> {{
-            ?result sh:focusNode <{decoded_iri}> ;
-                    sh:resultSeverity ?severity .
-            OPTIONAL {{ ?result sh:resultPath ?path }}
-            OPTIONAL {{ ?result sh:resultMessage ?message }}
-            OPTIONAL {{ ?result sh:sourceShape ?sourceShape }}
-          }}
-        }}
-        """
+    for entry in results:
+        severity = entry["severity"]
+        item = {
+            "message": entry["message"],
+            "path": entry["path"],
+            "source_shape": entry["source_shape"],
+        }
+        if severity.endswith("Violation"):
+            violations.append(item)
+        elif severity.endswith("Warning"):
+            warnings.append(item)
+        else:
+            infos.append(item)
 
-        try:
-            result = await client.query(report_sparql)
-            for b in result.get("results", {}).get("bindings", []):
-                severity = b["severity"]["value"]
-                entry = {
-                    "message": b.get("message", {}).get("value", "Constraint violated"),
-                    "path": b.get("path", {}).get("value", ""),
-                    "source_shape": b.get("sourceShape", {}).get("value", ""),
-                }
-
-                if severity.endswith("Violation"):
-                    violations.append(entry)
-                elif severity.endswith("Warning"):
-                    warnings.append(entry)
-                else:
-                    infos.append(entry)
-
-            if violations:
-                conforms = False
-        except Exception:
-            logger.warning(
-                "Failed to query validation results for %s", decoded_iri, exc_info=True
-            )
+    conforms = len(violations) == 0
 
     context = {
         "request": request,

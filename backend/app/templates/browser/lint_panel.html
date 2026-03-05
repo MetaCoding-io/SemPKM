@@ -1,6 +1,7 @@
 {# Lint panel: SHACL validation results for a specific object.
 
    Rendered as htmx partial for the right pane lint tab.
+   Uses SSE (EventSource) for real-time updates instead of polling.
    Accepts:
      object_iri: IRI of the current object
      violations: list of {message, path, source_shape}
@@ -11,10 +12,7 @@
      warning_count: int
 #}
 
-<div class="lint-panel" data-testid="lint-panel" data-object-iri="{{ object_iri }}"
-     hx-get="/browser/lint/{{ object_iri | urlencode }}"
-     hx-trigger="every 10s"
-     hx-swap="outerHTML">
+<div class="lint-panel" data-testid="lint-panel" data-object-iri="{{ object_iri }}">
 
   {# Summary counts #}
   <div class="lint-summary">
@@ -103,3 +101,28 @@
   <div class="lint-empty">No validation results available. Save the object to trigger validation.</div>
   {% endif %}
 </div>
+
+<script data-lint-sse>
+(function() {
+  var panel = document.querySelector('[data-testid="lint-panel"]');
+  if (!panel) return;
+
+  // Avoid duplicate EventSource connections on re-render
+  if (window._lintSSE) {
+    try { window._lintSSE.close(); } catch(e) {}
+  }
+
+  var es = new EventSource('/api/lint/stream');
+  window._lintSSE = es;
+
+  es.addEventListener('validation_complete', function() {
+    var objectIri = panel.dataset.objectIri;
+    if (objectIri && typeof htmx !== 'undefined') {
+      htmx.ajax('GET', '/browser/lint/' + encodeURIComponent(objectIri), {
+        target: panel,
+        swap: 'outerHTML'
+      });
+    }
+  });
+})();
+</script>
