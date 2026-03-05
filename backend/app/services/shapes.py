@@ -22,6 +22,8 @@ from app.triplestore.client import TriplestoreClient
 
 logger = logging.getLogger(__name__)
 
+SEMPKM_EDIT_HELPTEXT = URIRef("urn:sempkm:editHelpText")
+
 
 @dataclass
 class PropertyShape:
@@ -38,6 +40,7 @@ class PropertyShape:
     in_values: list[str] = field(default_factory=list)
     default_value: str | None = None
     description: str | None = None
+    helptext: str | None = None
 
 
 @dataclass
@@ -58,6 +61,7 @@ class NodeShapeForm:
     label: str
     groups: list[PropertyGroup] = field(default_factory=list)
     properties: list[PropertyShape] = field(default_factory=list)
+    helptext: str | None = None
 
 
 class ShapesService:
@@ -157,12 +161,17 @@ WHERE {{ ?s ?p ?o }}"""
         # Sort groups by order
         groups = sorted(groups_map.values(), key=lambda g: g.order)
 
+        # sempkm:editHelpText (form-level)
+        helptexts = list(graph.objects(shape_node, SEMPKM_EDIT_HELPTEXT))
+        helptext = str(helptexts[0]) if helptexts else None
+
         return NodeShapeForm(
             shape_iri=str(shape_node),
             target_class=target_class,
             label=label,
             groups=groups,
             properties=properties,
+            helptext=helptext,
         )
 
     def _extract_property_shape(
@@ -213,6 +222,10 @@ WHERE {{ ?s ?p ?o }}"""
         descriptions = list(graph.objects(prop_node, SH.description))
         description = str(descriptions[0]) if descriptions else None
 
+        # sempkm:editHelpText
+        helptexts = list(graph.objects(prop_node, SEMPKM_EDIT_HELPTEXT))
+        helptext = str(helptexts[0]) if helptexts else None
+
         return PropertyShape(
             path=path,
             name=name,
@@ -225,6 +238,7 @@ WHERE {{ ?s ?p ?o }}"""
             in_values=in_values,
             default_value=default_value,
             description=description,
+            helptext=helptext,
         )
 
     def _extract_in_values(self, graph: Graph, prop_node) -> list[str]:

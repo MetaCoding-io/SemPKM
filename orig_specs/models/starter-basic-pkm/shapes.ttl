@@ -1,5 +1,5 @@
 @prefix ex:     <https://example.org/ont/> .
-@prefix sempkm: <https://pkm.example.com/ont/> .
+@prefix sempkm: <urn:sempkm:> .
 @prefix sh:     <http://www.w3.org/ns/shacl#> .
 @prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
@@ -49,6 +49,7 @@ ex:GroupRelations a sh:PropertyGroup ;
 
 ex:ProjectShape a sh:NodeShape ;
   sh:targetClass ex:Project ;
+  sempkm:editHelpText """Projects organize related notes, people, and concepts around a goal or initiative. Use projects to track ongoing work, research themes, or collaborative efforts.""" ;
   sh:property [
     sh:path dcterms:title ;
     sh:name "Title" ;
@@ -100,6 +101,7 @@ ex:ProjectShape a sh:NodeShape ;
 
 ex:PersonShape a sh:NodeShape ;
   sh:targetClass ex:Person ;
+  sempkm:editHelpText """People represent contacts, collaborators, or authors you interact with. Link them to projects and notes to build a network of who contributed what.""" ;
   sh:property [
     sh:path rdfs:label ;
     sh:name "Name" ;
@@ -117,6 +119,7 @@ ex:PersonShape a sh:NodeShape ;
 
 ex:ConceptShape a sh:NodeShape ;
   sh:targetClass ex:Concept ;
+  sempkm:editHelpText """Concepts are the vocabulary of your knowledge base. They represent topics, themes, or domains that notes can be about. Build a concept hierarchy with broader/narrower links to organize your thinking.""" ;
   sh:property [
     sh:path skos:prefLabel ;
     sh:name "Preferred label" ;
