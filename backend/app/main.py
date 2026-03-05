@@ -18,6 +18,8 @@ from app.admin.router import router as admin_router
 from app.auth.router import router as auth_router
 from app.browser.router import router as browser_router
 from app.inference.router import router as inference_router
+from app.lint.router import router as lint_router
+from app.lint.service import LintService
 from app.views.router import router as views_router
 from app.debug.router import router as debug_router
 from app.auth.service import AuthService
@@ -89,6 +91,10 @@ async def lifespan(app: FastAPI):
 
     label_service = LabelService(client, prefix_registry)
     app.state.label_service = label_service
+
+    # Create lint service for structured SHACL validation results
+    lint_service = LintService(client, label_service)
+    app.state.lint_service = lint_service
 
     # Create search service for full-text keyword search (LuceneSail)
     search_service = SearchService(client)
@@ -376,6 +382,7 @@ app.include_router(health_router)
 app.include_router(models_router)
 app.include_router(sparql_router)
 app.include_router(validation_router)
+app.include_router(lint_router)
 app.include_router(inference_router)
 app.include_router(admin_router)
 app.include_router(views_router)

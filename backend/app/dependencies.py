@@ -4,6 +4,7 @@ from fastapi import Request
 
 from app.auth.service import AuthService
 from app.events.store import EventStore
+from app.lint.service import LintService
 from app.services.labels import LabelService
 from app.services.models import ModelService
 from app.services.prefixes import PrefixRegistry
@@ -122,3 +123,12 @@ async def get_search_service(request: Request) -> SearchService:
     app.state.search_service.
     """
     return request.app.state.search_service
+
+
+async def get_lint_service(request: Request) -> LintService:
+    """Get the LintService instance from app state.
+
+    The service is created during app lifespan startup and stored on
+    app.state.lint_service.
+    """
+    return request.app.state.lint_service
