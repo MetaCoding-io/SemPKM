@@ -170,6 +170,14 @@
         loadRightPaneSection(panel.id, 'lint');
       }
       if (layout) layout.activeGroupId = groupId;
+
+      // Apply type-aware tab accent color
+      var meta = _tabMeta[panel.id];
+      var accentColor = (meta && meta.typeColor) ? meta.typeColor : '';
+      var container = document.getElementById('editor-groups-container');
+      if (container) {
+        container.style.setProperty('--tab-accent-color', accentColor || '');
+      }
     });
 
     // Wire panel remove: dispatch sempkm:tabs-empty when no object panels remain
