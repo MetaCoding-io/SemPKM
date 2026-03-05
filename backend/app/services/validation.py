@@ -7,6 +7,7 @@ into a ValidationReport, and stores the report as named graphs.
 
 import asyncio
 import logging
+import uuid
 from typing import Awaitable, Callable, Optional
 
 import pyshacl
@@ -48,7 +49,9 @@ class ValidationService:
         self._client = triplestore_client
         self._shapes_loader = shapes_loader
 
-    async def validate(self, event_iri: str, timestamp: str) -> ValidationReport:
+    async def validate(
+        self, event_iri: str, timestamp: str, trigger_source: str = "user_edit"
+    ) -> ValidationReport:
         """Run full SHACL validation of current state against shapes.
 
         1. Fetch current state graph via SPARQL CONSTRUCT
@@ -60,6 +63,7 @@ class ValidationService:
         Args:
             event_iri: The event IRI that triggered this validation.
             timestamp: ISO 8601 timestamp for the report.
+            trigger_source: What triggered this run (user_edit, inference, manual).
 
         Returns:
             Parsed ValidationReport with results and summary.
@@ -88,7 +92,7 @@ class ValidationService:
                 timestamp=timestamp,
             )
             # Store the synthetic report
-            await self._store_report(report, results_graph=None)
+            await self._store_report(report, results_graph=None, trigger_source=trigger_source)
             return report
 
         # 3. Run pyshacl in thread (CPU-bound work)
@@ -109,7 +113,7 @@ class ValidationService:
         )
 
         # 5. Store report
-        await self._store_report(report, results_graph=results_graph)
+        await self._store_report(report, results_graph=results_graph, trigger_source=trigger_source)
 
         return report
 
@@ -117,16 +121,19 @@ class ValidationService:
         self,
         report: ValidationReport,
         results_graph: Optional[Graph],
+        trigger_source: str = "user_edit",
     ) -> None:
         """Store validation report as named graphs in the triplestore.
 
         Stores the full pyshacl results_graph (if any) into a named graph
-        keyed by the report IRI, and inserts summary triples into the
-        shared validations graph for fast polling.
+        keyed by the report IRI, inserts summary triples into the shared
+        validations graph, and stores structured result triples in a
+        per-run named graph for queryable access.
 
         Args:
             report: The parsed ValidationReport.
             results_graph: The raw pyshacl results graph (None for synthetic reports).
+            trigger_source: What triggered this run (user_edit, inference, manual).
         """
         report_iri = report.report_iri
 
@@ -149,6 +156,50 @@ class ValidationService:
             await self._client.update(
                 f"INSERT DATA {{ GRAPH <{VALIDATIONS_GRAPH}> {{\n{triples_str}\n}} }}"
             )
+
+        # Store structured result triples in a per-run named graph
+        run_iri = f"urn:sempkm:lint-run:{uuid.uuid4()}"
+        structured_triples = report.to_structured_triples(
+            run_iri, trigger_source=trigger_source
+        )
+        if structured_triples:
+            triple_lines = []
+            for s, p, o in structured_triples:
+                triple_lines.append(
+                    f"  {_rdf_term_to_sparql(s)} {_rdf_term_to_sparql(p)} {_rdf_term_to_sparql(o)} ."
+                )
+            triples_str = "\n".join(triple_lines)
+            await self._client.update(
+                f"INSERT DATA {{ GRAPH <{run_iri}> {{\n{triples_str}\n}} }}"
+            )
+
+        # Update latest run pointer in validations graph
+        # First get current latest to make it the previous
+        await self._client.update(
+            f"""DELETE {{ GRAPH <{VALIDATIONS_GRAPH}> {{
+              <urn:sempkm:lint-latest> <urn:sempkm:previousRun> ?oldPrev .
+            }} }}
+            WHERE {{ GRAPH <{VALIDATIONS_GRAPH}> {{
+              <urn:sempkm:lint-latest> <urn:sempkm:previousRun> ?oldPrev .
+            }} }}"""
+        )
+        # Move current latest to previous, then set new latest
+        await self._client.update(
+            f"""DELETE {{ GRAPH <{VALIDATIONS_GRAPH}> {{
+              <urn:sempkm:lint-latest> <urn:sempkm:latestRun> ?old .
+            }} }}
+            INSERT {{ GRAPH <{VALIDATIONS_GRAPH}> {{
+              <urn:sempkm:lint-latest> <urn:sempkm:previousRun> ?old .
+            }} }}
+            WHERE {{ GRAPH <{VALIDATIONS_GRAPH}> {{
+              <urn:sempkm:lint-latest> <urn:sempkm:latestRun> ?old .
+            }} }}"""
+        )
+        await self._client.update(
+            f"""INSERT DATA {{ GRAPH <{VALIDATIONS_GRAPH}> {{
+              <urn:sempkm:lint-latest> <urn:sempkm:latestRun> <{run_iri}> .
+            }} }}"""
+        )
 
     async def get_latest_summary(self) -> Optional[ValidationReportSummary]:
         """Query the triplestore for the most recent validation report summary.
