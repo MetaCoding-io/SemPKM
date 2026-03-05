@@ -25,7 +25,7 @@ Playwright E2E tests covering all v2.4 user-visible features: OWL 2 RL inference
 - **Lifecycle:** Delete source edge → re-run inference → verify inferred triple removed
 - **Bottom panel:** Verify inference panel shows results, filters by object type and date work, dismiss/promote actions work
 - **Visual distinctions:** Verify inferred badges and dashed graph edges via CSS/attribute assertions
-- **Admin config:** Test toggling entailment types on/off in admin panel and verify effect on inference results
+- **Admin entailment config: DEFERRED** to a later E2E phase — not tested in phase 40
 - **SHACL-AF rules:** Separate test verifying rule-derived triples (e.g., `hasRelatedNote`) appear alongside OWL-derived triples
 
 ### Lint dashboard test scenarios (Phases 37 + 38)
@@ -37,15 +37,15 @@ Playwright E2E tests covering all v2.4 user-visible features: OWL 2 RL inference
 ### Helptext test scenarios (Phase 39)
 - Verify helptext toggle exists on edit form (both form-level and field-level)
 - Clicking toggle expands helptext content
-- Content appears (presence assertion, not rendered HTML structure)
 - Helptext collapsed by default
+- **Minimal markdown rendering checks** — verify basic formatting (bold, lists, etc.) renders correctly in helptext content
 
 ### Bug verification tests (BUG-05 through BUG-09)
-- Functional assertions in both light and dark themes (theme-specific bugs like card borders, dark chevrons)
-- **BUG-05:** Card view borders render correctly in both themes
+- **Functional assertions only** — no dual-theme testing (test in default theme only)
+- **BUG-05:** Card view borders render correctly
 - **BUG-06:** Ctrl+K opens ninja-keys command palette (Chromium only — Firefox fix is cross-browser preventDefault)
 - **BUG-07:** Tab accent bar does not bleed into adjacent inactive tabs
-- **BUG-08:** Panel chevron icons visible in dark mode
+- **BUG-08:** Panel chevron icons visible
 - **BUG-09:** Concept search/linking works end-to-end
 
 ### Type accent color verification (BUG-04 / Phase 39 feature)
@@ -67,7 +67,6 @@ Playwright E2E tests covering all v2.4 user-visible features: OWL 2 RL inference
 
 - Inference test should follow the user journey: create a relationship → click "Refresh" in inference panel → navigate to target object → see inverse link
 - Bug verification tests grouped in one file makes it easy to run just the regression checks: `npx playwright test bug-fixes`
-- Both-themes testing for visual bugs (BUG-05, BUG-07, BUG-08) catches regressions that only appear in one theme
 
 </specifics>
 
@@ -93,7 +92,6 @@ Playwright E2E tests covering all v2.4 user-visible features: OWL 2 RL inference
 - Inference panel: new bottom panel tab "Inference" — needs selector pattern
 - Lint dashboard: new bottom panel tab "LINT" — needs selector pattern
 - Helptext: edit form `?` icon and collapsible section — new UI elements to select
-- Admin entailment config: admin panel page — needs navigation path
 - Type accent colors: dockview tab border-bottom CSS — attribute/style assertion
 
 </code_context>
@@ -101,7 +99,7 @@ Playwright E2E tests covering all v2.4 user-visible features: OWL 2 RL inference
 <deferred>
 ## Deferred Ideas
 
-None — discussion stayed within phase scope
+- Admin entailment config toggle testing — deferred to a later E2E phase
 
 </deferred>
 
