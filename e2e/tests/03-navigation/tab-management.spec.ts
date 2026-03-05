@@ -6,7 +6,6 @@
  */
 import { test, expect } from '../../fixtures/auth';
 import { SEED } from '../../fixtures/seed-data';
-import { SEL } from '../../helpers/selectors';
 import { waitForWorkspace, waitForIdle } from '../../helpers/wait-for';
 
 const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3901';
@@ -25,9 +24,9 @@ test.describe('Tab Management', () => {
 
     await waitForIdle(ownerPage);
 
-    // Tab bar should now have a tab with the object name
-    const tabBar = ownerPage.locator(SEL.workspace.tabBar);
-    await expect(tabBar).not.toContainText('No objects open', { timeout: 10000 });
+    // A tab should now be visible in dockview
+    const tabs = ownerPage.locator('.dv-default-tab');
+    await expect(tabs.first()).toBeVisible({ timeout: 10000 });
   });
 
   test('opening multiple objects creates multiple tabs', async ({ ownerPage }) => {
@@ -52,7 +51,7 @@ test.describe('Tab Management', () => {
     await waitForIdle(ownerPage);
 
     // Should have at least 2 tab elements
-    const tabs = ownerPage.locator('.workspace-tab');
+    const tabs = ownerPage.locator('.dv-default-tab');
     const tabCount = await tabs.count();
     expect(tabCount).toBeGreaterThanOrEqual(2);
   });
@@ -77,13 +76,14 @@ test.describe('Tab Management', () => {
     await waitForIdle(ownerPage);
 
     // Click the first tab to switch back to it
-    const firstTab = ownerPage.locator('.workspace-tab').first();
+    const firstTab = ownerPage.locator('.dv-default-tab').first();
     const firstTabCount = await firstTab.count();
     if (firstTabCount > 0) {
       await firstTab.click();
       await waitForIdle(ownerPage);
-      // The active tab should have an active class
-      await expect(firstTab).toHaveClass(/active/);
+      // The active tab should have the dv-active-tab class on the parent .dv-tab element
+      const firstDvTab = ownerPage.locator('.dv-tab').first();
+      await expect(firstDvTab).toHaveClass(/dv-active-tab/);
     }
   });
 
@@ -113,7 +113,7 @@ test.describe('Tab Management', () => {
     await waitForIdle(ownerPage);
 
     // Should only have one tab
-    const tabs = ownerPage.locator('.workspace-tab');
+    const tabs = ownerPage.locator('.dv-default-tab');
     const tabCount = await tabs.count();
     expect(tabCount).toBe(1);
   });
