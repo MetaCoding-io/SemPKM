@@ -32,6 +32,11 @@
   --dv-transition-duration: 150ms;
 }
 
+/* Type-aware tab accent bar (BUG-04) — only on active tab in the focused group */
+#editor-groups-container .dv-active-group .dv-tab.dv-active-tab {
+  border-bottom: 2px solid var(--tab-accent-color, var(--color-accent)) !important;
+}
+
 /* --- Dark Mode ---
    No overrides needed here. All --dv-* variables reference SemPKM semantic
    tokens (--tab-*, --panel-*, --color-*), which are automatically overridden

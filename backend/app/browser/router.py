@@ -22,10 +22,12 @@ from app.db.session import get_db_session
 from app.dependencies import (
     get_event_store,
     get_label_service,
+    get_lint_service,
     get_shapes_service,
     get_triplestore_client,
     get_validation_queue,
 )
+from app.lint.service import LintService
 from app.events.store import EventStore
 from app.services.icons import IconService
 from app.services.labels import LabelService
@@ -163,6 +165,38 @@ async def canvas_page(
     return templates.TemplateResponse(request, "browser/canvas_page.html", {
         "request": request,
         "user": user,
+    })
+      
+@router.get("/lint-dashboard")
+async def lint_dashboard(
+    request: Request,
+    page: int = 1,
+    severity: str | None = None,
+    object_type: str | None = None,
+    search: str | None = None,
+    sort: str = "severity",
+    user: User = Depends(get_current_user),
+    lint_service: LintService = Depends(get_lint_service),
+    shapes_service: ShapesService = Depends(get_shapes_service),
+):
+    """Render the global lint dashboard as an htmx partial for the bottom panel."""
+    results = await lint_service.get_results(
+        page=page, per_page=50, severity=severity,
+        object_type=object_type, search=search, sort=sort,
+    )
+    status = await lint_service.get_status()
+    types = await shapes_service.get_types()
+
+    templates = request.app.state.templates
+    return templates.TemplateResponse(request, "browser/lint_dashboard.html", {
+        "results": results,
+        "status": status,
+        "types": types,
+        "current_severity": severity or "",
+        "current_type": object_type or "",
+        "current_search": search or "",
+        "current_sort": sort,
+        "current_page": page,
     })
 
 
@@ -527,6 +561,7 @@ async def get_object(
     if not _validate_iri(decoded_iri):
         raise HTTPException(status_code=400, detail="Invalid IRI")
 
+    # Query user-created properties from current graph
     props_sparql = f"""
     SELECT ?p ?o WHERE {{
       GRAPH <urn:sempkm:current> {{
@@ -560,6 +595,37 @@ async def get_object(
             if pred not in values:
                 values[pred] = []
             values[pred].append(obj_val)
+
+    # Query inferred properties from the inferred graph (for right column)
+    inferred_props_sparql = f"""
+    SELECT ?p ?o WHERE {{
+      GRAPH <urn:sempkm:inferred> {{
+        <{decoded_iri}> ?p ?o .
+      }}
+    }}
+    """
+
+    inferred_values: dict[str, list[str]] = {}
+    try:
+        inf_result = await client.query(inferred_props_sparql)
+        inf_bindings = inf_result.get("results", {}).get("bindings", [])
+        for b in inf_bindings:
+            pred = b["p"]["value"]
+            obj_val = b["o"]["value"]
+            # Skip rdf:type and body -- only show object/data properties
+            if pred == rdf_type or pred == sempkm_body:
+                continue
+            # Deduplicate: skip if same triple exists in user-created data
+            if pred in values and obj_val in values[pred]:
+                continue
+            if pred not in inferred_values:
+                inferred_values[pred] = []
+            inferred_values[pred].append(obj_val)
+    except Exception:
+        logger.warning(
+            "Failed to query inferred properties for %s",
+            decoded_iri, exc_info=True,
+        )
 
     form = None
     if type_iris:
@@ -625,10 +691,25 @@ async def get_object(
     object_type_iri = type_iris[0] if type_iris else ""
     type_icon = icon_svc.get_type_icon(object_type_iri, context="tab") if object_type_iri else None
 
+    # Resolve labels for inferred property IRIs (predicates and IRI objects)
+    inferred_iris_to_resolve: set[str] = set()
+    for pred, vals in inferred_values.items():
+        inferred_iris_to_resolve.add(pred)
+        for v in vals:
+            if v.startswith("http") or v.startswith("urn:"):
+                inferred_iris_to_resolve.add(v)
+    inferred_labels = (
+        await label_service.resolve_batch(list(inferred_iris_to_resolve))
+        if inferred_iris_to_resolve
+        else {}
+    )
+
     context = {
         "request": request,
         "form": form,
         "values": values,
+        "inferred_values": inferred_values,
+        "inferred_labels": inferred_labels,
         "ref_labels": ref_labels,
         "ref_tooltips": ref_tooltips,
         "ref_types": ref_types,
@@ -798,24 +879,47 @@ async def get_relations(
     if not _validate_iri(decoded_iri):
         raise HTTPException(status_code=400, detail="Invalid IRI")
 
+    # Use UNION pattern to query both current and inferred graphs,
+    # annotating each result with its source graph (Pitfall 5: do NOT
+    # mix FROM and GRAPH patterns in the same query).
     outbound_sparql = f"""
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-    SELECT ?predicate ?object WHERE {{
-      GRAPH <urn:sempkm:current> {{
-        <{decoded_iri}> ?predicate ?object .
-        FILTER(isIRI(?object))
-        FILTER(?predicate != rdf:type)
+    SELECT ?predicate ?object ?source WHERE {{
+      {{
+        GRAPH <urn:sempkm:current> {{
+          <{decoded_iri}> ?predicate ?object .
+          FILTER(isIRI(?object))
+          FILTER(?predicate != rdf:type)
+        }}
+        BIND("user" AS ?source)
+      }} UNION {{
+        GRAPH <urn:sempkm:inferred> {{
+          <{decoded_iri}> ?predicate ?object .
+          FILTER(isIRI(?object))
+          FILTER(?predicate != rdf:type)
+        }}
+        BIND("inferred" AS ?source)
       }}
     }}
     """
 
     inbound_sparql = f"""
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-    SELECT ?subject ?predicate WHERE {{
-      GRAPH <urn:sempkm:current> {{
-        ?subject ?predicate <{decoded_iri}> .
-        FILTER(isIRI(?subject))
-        FILTER(?predicate != rdf:type)
+    SELECT ?subject ?predicate ?source WHERE {{
+      {{
+        GRAPH <urn:sempkm:current> {{
+          ?subject ?predicate <{decoded_iri}> .
+          FILTER(isIRI(?subject))
+          FILTER(?predicate != rdf:type)
+        }}
+        BIND("user" AS ?source)
+      }} UNION {{
+        GRAPH <urn:sempkm:inferred> {{
+          ?subject ?predicate <{decoded_iri}> .
+          FILTER(isIRI(?subject))
+          FILTER(?predicate != rdf:type)
+        }}
+        BIND("inferred" AS ?source)
       }}
     }}
     """
@@ -829,6 +933,7 @@ async def get_relations(
             outbound_edges.append({
                 "predicate": b["predicate"]["value"],
                 "target": b["object"]["value"],
+                "source": b.get("source", {}).get("value", "user"),
             })
     except Exception:
         logger.warning("Failed to query outbound edges for %s", decoded_iri, exc_info=True)
@@ -838,10 +943,33 @@ async def get_relations(
         for b in in_result.get("results", {}).get("bindings", []):
             inbound_edges.append({
                 "predicate": b["predicate"]["value"],
-                "source": b["subject"]["value"],
+                "source_iri": b["subject"]["value"],
+                "source": b.get("source", {}).get("value", "user"),
             })
     except Exception:
         logger.warning("Failed to query inbound edges for %s", decoded_iri, exc_info=True)
+
+    # Deduplicate: if a triple exists in both current and inferred,
+    # keep only the user version (user-created takes precedence).
+    seen_outbound: set[tuple[str, str]] = set()
+    deduped_outbound: list[dict] = []
+    for e in outbound_edges:
+        key = (e["predicate"], e["target"])
+        if key in seen_outbound:
+            continue
+        seen_outbound.add(key)
+        deduped_outbound.append(e)
+    outbound_edges = deduped_outbound
+
+    seen_inbound: set[tuple[str, str]] = set()
+    deduped_inbound: list[dict] = []
+    for e in inbound_edges:
+        key = (e["predicate"], e["source_iri"])
+        if key in seen_inbound:
+            continue
+        seen_inbound.add(key)
+        deduped_inbound.append(e)
+    inbound_edges = deduped_inbound
 
     all_iris: set[str] = set()
     for e in outbound_edges:
@@ -849,7 +977,7 @@ async def get_relations(
         all_iris.add(e["target"])
     for e in inbound_edges:
         all_iris.add(e["predicate"])
-        all_iris.add(e["source"])
+        all_iris.add(e["source_iri"])
 
     labels = await label_service.resolve_batch(list(all_iris)) if all_iris else {}
 
@@ -861,6 +989,7 @@ async def get_relations(
         outbound_grouped[pred_label].append({
             "iri": e["target"],
             "label": labels.get(e["target"], e["target"]),
+            "source": e["source"],
         })
 
     inbound_grouped: dict[str, list[dict]] = {}
@@ -869,8 +998,9 @@ async def get_relations(
         if pred_label not in inbound_grouped:
             inbound_grouped[pred_label] = []
         inbound_grouped[pred_label].append({
-            "iri": e["source"],
-            "label": labels.get(e["source"], e["source"]),
+            "iri": e["source_iri"],
+            "label": labels.get(e["source_iri"], e["source_iri"]),
+            "source": e["source"],
         })
 
     context = {
@@ -890,64 +1020,39 @@ async def get_lint(
     request: Request,
     object_iri: str,
     user: User = Depends(get_current_user),
-    validation_queue: AsyncValidationQueue = Depends(get_validation_queue),
-    client: TriplestoreClient = Depends(get_triplestore_client),
+    lint_service: LintService = Depends(get_lint_service),
 ):
     """Get SHACL validation results for a specific object.
 
-    Checks the in-memory latest validation report from the queue, then
-    queries the triplestore for detailed results filtered to this object's
-    focus node. Renders the lint_panel.html partial.
+    Queries structured lint result triples from the latest run filtered
+    to this object's focus node. Renders the lint_panel.html partial.
     """
     templates = request.app.state.templates
     decoded_iri = unquote(object_iri)
     if not _validate_iri(decoded_iri):
         raise HTTPException(status_code=400, detail="Invalid IRI")
 
-    latest_report = validation_queue.latest_report
+    results = await lint_service.get_results_for_object(decoded_iri)
 
     violations: list[dict] = []
     warnings: list[dict] = []
     infos: list[dict] = []
-    conforms = True
 
-    if latest_report and latest_report.report_iri:
-        report_sparql = f"""
-        PREFIX sh: <http://www.w3.org/ns/shacl#>
-        SELECT ?severity ?path ?message ?sourceShape WHERE {{
-          GRAPH <{latest_report.report_iri}> {{
-            ?result sh:focusNode <{decoded_iri}> ;
-                    sh:resultSeverity ?severity .
-            OPTIONAL {{ ?result sh:resultPath ?path }}
-            OPTIONAL {{ ?result sh:resultMessage ?message }}
-            OPTIONAL {{ ?result sh:sourceShape ?sourceShape }}
-          }}
-        }}
-        """
+    for entry in results:
+        severity = entry["severity"]
+        item = {
+            "message": entry["message"],
+            "path": entry["path"],
+            "source_shape": entry["source_shape"],
+        }
+        if severity.endswith("Violation"):
+            violations.append(item)
+        elif severity.endswith("Warning"):
+            warnings.append(item)
+        else:
+            infos.append(item)
 
-        try:
-            result = await client.query(report_sparql)
-            for b in result.get("results", {}).get("bindings", []):
-                severity = b["severity"]["value"]
-                entry = {
-                    "message": b.get("message", {}).get("value", "Constraint violated"),
-                    "path": b.get("path", {}).get("value", ""),
-                    "source_shape": b.get("sourceShape", {}).get("value", ""),
-                }
-
-                if severity.endswith("Violation"):
-                    violations.append(entry)
-                elif severity.endswith("Warning"):
-                    warnings.append(entry)
-                else:
-                    infos.append(entry)
-
-            if violations:
-                conforms = False
-        except Exception:
-            logger.warning(
-                "Failed to query validation results for %s", decoded_iri, exc_info=True
-            )
+    conforms = len(violations) == 0
 
     context = {
         "request": request,

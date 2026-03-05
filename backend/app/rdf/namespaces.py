@@ -36,6 +36,7 @@ __all__ = [
     "FOAF",
     "PROV",
     "CURRENT_GRAPH_IRI",
+    "INFERRED_GRAPH_IRI",
     "COMMON_PREFIXES",
 ]
 
@@ -44,6 +45,9 @@ SCHEMA = Namespace("https://schema.org/")
 
 # The current state graph identifier
 CURRENT_GRAPH_IRI = URIRef("urn:sempkm:current")
+
+# The inferred triples graph identifier (OWL 2 RL inference results)
+INFERRED_GRAPH_IRI = URIRef("urn:sempkm:inferred")
 
 # Common prefix mappings for SPARQL injection and JSON-LD contexts
 COMMON_PREFIXES: dict[str, str] = {

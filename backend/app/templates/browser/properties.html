@@ -3,8 +3,9 @@
    Rendered as htmx partial for the right pane content area.
    Accepts:
      object_iri: IRI of the current object
-     outbound_grouped: dict of predicate_label -> list of {iri, label}
-     inbound_grouped: dict of predicate_label -> list of {iri, label}
+     outbound_grouped: dict of predicate_label -> list of {iri, label, source}
+     inbound_grouped: dict of predicate_label -> list of {iri, label, source}
+     source is "user" or "inferred" — inferred items get a subtle badge
 #}
 
 <div class="relations-panel" data-object-iri="{{ object_iri }}">
@@ -28,6 +29,9 @@
            title="{{ obj.iri }}">
         <span class="relation-arrow">&#8594;</span>
         <span>{{ obj.label }}</span>
+        {% if obj.source == "inferred" %}
+        <span class="inferred-badge" title="Inferred by OWL 2 RL reasoning">inferred</span>
+        {% endif %}
       </div>
       {% endfor %}
     </details>
@@ -51,6 +55,9 @@
            title="{{ obj.iri }}">
         <span class="relation-arrow">&#8592;</span>
         <span>{{ obj.label }}</span>
+        {% if obj.source == "inferred" %}
+        <span class="inferred-badge" title="Inferred by OWL 2 RL reasoning">inferred</span>
+        {% endif %}
       </div>
       {% endfor %}
     </details>

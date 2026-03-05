@@ -1,0 +1,48 @@
+<!-- Single inferred triple row template.
+     Server-side rendering is done by backend/app/inference/router.py
+     via _build_triple_row(). This template documents the expected HTML
+     structure for reference and can be used for Jinja rendering if needed. -->
+
+<tr id="triple-{{ triple.hash }}" class="status-{{ triple.status }}">
+  <td>
+    <a href="/browser/object/{{ triple.subject_iri | urlencode }}" class="inference-triple-subject">
+      {{ triple.subject_label }}
+    </a>
+  </td>
+  <td>
+    <span class="inference-triple-predicate">{{ triple.predicate_label }}</span>
+  </td>
+  <td>
+    <a href="/browser/object/{{ triple.object_iri | urlencode }}" class="inference-triple-object">
+      {{ triple.object_label }}
+    </a>
+  </td>
+  <td>
+    <span class="inferred-badge" title="{{ triple.entailment_type }}">{{ triple.entailment_type }}</span>
+  </td>
+  <td>{{ triple.status }}</td>
+  <td>
+    <div class="inference-triple-actions">
+      {% if triple.status == 'active' %}
+      <button class="btn btn-xs inference-dismiss-btn"
+              hx-post="/api/inference/triples/{{ triple.hash }}/dismiss"
+              hx-target="closest tr"
+              hx-swap="outerHTML"
+              title="Dismiss this inferred triple">
+        <i data-lucide="eye-off"></i> Dismiss
+      </button>
+      <button class="btn btn-xs inference-promote-btn"
+              hx-post="/api/inference/triples/{{ triple.hash }}/promote"
+              hx-target="closest tr"
+              hx-swap="outerHTML"
+              title="Promote to permanent user-created triple">
+        <i data-lucide="pin"></i> Promote
+      </button>
+      {% elif triple.status == 'dismissed' %}
+      <span class="text-muted">Dismissed</span>
+      {% elif triple.status == 'promoted' %}
+      <span class="text-muted">Promoted</span>
+      {% endif %}
+    </div>
+  </td>
+</tr>

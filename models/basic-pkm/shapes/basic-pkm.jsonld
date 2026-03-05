@@ -8,7 +8,8 @@
     "schema": "https://schema.org/",
     "foaf": "http://xmlns.com/foaf/0.1/",
     "skos": "http://www.w3.org/2004/02/skos/core#",
-    "bpkm": "urn:sempkm:model:basic-pkm:"
+    "bpkm": "urn:sempkm:model:basic-pkm:",
+    "sempkm": "urn:sempkm:"
   },
   "@graph": [
     {
@@ -41,6 +42,7 @@
       "@type": "sh:NodeShape",
       "sh:targetClass": { "@id": "bpkm:Project" },
       "rdfs:label": "Project Shape",
+      "sempkm:editHelpText": "Projects organize related notes, people, and concepts around a goal or initiative. Use projects to track ongoing work, research themes, or collaborative efforts.",
       "sh:property": [
         {
           "sh:path": { "@id": "dcterms:title" },
@@ -165,6 +167,7 @@
       "@type": "sh:NodeShape",
       "sh:targetClass": { "@id": "bpkm:Person" },
       "rdfs:label": "Person Shape",
+      "sempkm:editHelpText": "People represent contacts, collaborators, or authors you interact with. Link them to projects and notes to build a network of who contributed what.",
       "sh:property": [
         {
           "sh:path": { "@id": "foaf:name" },
@@ -280,6 +283,7 @@
       "@type": "sh:NodeShape",
       "sh:targetClass": { "@id": "bpkm:Note" },
       "rdfs:label": "Note Shape",
+      "sempkm:editHelpText": "Notes capture individual ideas, observations, or references. Each note should focus on a single thought -- you can always link related notes together via concepts and projects. Prefer creating many small notes over one large one.",
       "sh:property": [
         {
           "sh:path": { "@id": "dcterms:title" },
@@ -288,7 +292,8 @@
           "sh:minCount": 1,
           "sh:maxCount": 1,
           "sh:order": 1,
-          "sh:group": { "@id": "bpkm:NoteContentGroup" }
+          "sh:group": { "@id": "bpkm:NoteContentGroup" },
+          "sempkm:editHelpText": "A concise, descriptive title that captures the core idea. Good titles help you find notes later -- prefer specifics over generic labels."
         },
         {
           "sh:path": { "@id": "bpkm:body" },
@@ -296,7 +301,8 @@
           "sh:datatype": { "@id": "xsd:string" },
           "sh:maxCount": 1,
           "sh:order": 2,
-          "sh:group": { "@id": "bpkm:NoteContentGroup" }
+          "sh:group": { "@id": "bpkm:NoteContentGroup" },
+          "sempkm:editHelpText": "The main content of your note. Write in your own words -- paraphrasing helps retention. Markdown formatting is supported."
         },
         {
           "sh:path": { "@id": "bpkm:noteType" },
@@ -306,14 +312,16 @@
           "sh:defaultValue": "observation",
           "sh:maxCount": 1,
           "sh:order": 3,
-          "sh:group": { "@id": "bpkm:NoteContentGroup" }
+          "sh:group": { "@id": "bpkm:NoteContentGroup" },
+          "sempkm:editHelpText": "Categorize this note: **observation** for things you noticed, **idea** for new thoughts, **reference** for external sources, **meeting-note** for discussions, **journal** for reflections."
         },
         {
           "sh:path": { "@id": "bpkm:isAbout" },
           "sh:name": "About Concepts",
           "sh:class": { "@id": "bpkm:Concept" },
           "sh:order": 4,
-          "sh:group": { "@id": "bpkm:NoteRelationshipsGroup" }
+          "sh:group": { "@id": "bpkm:NoteRelationshipsGroup" },
+          "sempkm:editHelpText": "Link to the concepts this note discusses. Concept links build your knowledge graph and help surface related notes automatically."
         },
         {
           "sh:path": { "@id": "bpkm:relatedProject" },
@@ -321,7 +329,8 @@
           "sh:class": { "@id": "bpkm:Project" },
           "sh:maxCount": 1,
           "sh:order": 5,
-          "sh:group": { "@id": "bpkm:NoteRelationshipsGroup" }
+          "sh:group": { "@id": "bpkm:NoteRelationshipsGroup" },
+          "sempkm:editHelpText": "Optionally associate this note with a project. The note will appear in the project's context, making it easier to find later."
         },
         {
           "sh:path": { "@id": "dcterms:source" },
@@ -329,14 +338,16 @@
           "sh:datatype": { "@id": "xsd:anyURI" },
           "sh:maxCount": 1,
           "sh:order": 6,
-          "sh:group": { "@id": "bpkm:NoteContentGroup" }
+          "sh:group": { "@id": "bpkm:NoteContentGroup" },
+          "sempkm:editHelpText": "If this note references an external source (article, paper, website), paste the URL here for attribution and easy revisiting."
         },
         {
           "sh:path": { "@id": "bpkm:tags" },
           "sh:name": "Tags",
           "sh:datatype": { "@id": "xsd:string" },
           "sh:order": 7,
-          "sh:group": { "@id": "bpkm:NoteMetadataGroup" }
+          "sh:group": { "@id": "bpkm:NoteMetadataGroup" },
+          "sempkm:editHelpText": "Free-form tags for quick filtering. Use lowercase, hyphen-separated terms (e.g. `machine-learning`, `team-standup`). Tags complement concept links for lightweight categorization."
         },
         {
           "sh:path": { "@id": "dcterms:created" },
@@ -381,6 +392,7 @@
       "@type": "sh:NodeShape",
       "sh:targetClass": { "@id": "bpkm:Concept" },
       "rdfs:label": "Concept Shape",
+      "sempkm:editHelpText": "Concepts are the vocabulary of your knowledge base. They represent topics, themes, or domains that notes can be *about*. Build a concept hierarchy with broader/narrower links to organize your thinking.",
       "sh:property": [
         {
           "sh:path": { "@id": "skos:prefLabel" },
