@@ -364,6 +364,10 @@ ENTAILMENT_DISPLAY = {
         "display_name": "Domain/Range Type Inference",
         "description": "Types are inferred from property domain and range declarations.",
     },
+    "sh:rule": {
+        "display_name": "SHACL Rules",
+        "description": "SHACL Advanced Features (SHACL-AF) rules declared in the model's rules file. These can express arbitrary derivations beyond OWL 2 RL axioms.",
+    },
 }
 
 
@@ -513,6 +517,24 @@ async def _query_entailment_examples(
                 if parts:
                     dr_examples.append({"label_a": p_label, "label_b": ", ".join(parts)})
             examples["rdfs:domain/rdfs:range"] = dr_examples
+    except Exception:
+        pass
+
+    # sh:rule examples (SHACL-AF rules with rdfs:label)
+    rules_graph = f"urn:sempkm:model:{model_id}:rules"
+    sparql = f"""SELECT ?label WHERE {{
+  GRAPH <{rules_graph}> {{
+    ?shape <http://www.w3.org/ns/shacl#rule> ?ruleNode .
+    ?ruleNode <http://www.w3.org/2000/01/rdf-schema#label> ?label .
+  }}
+}}"""
+    try:
+        result = await client.query(sparql)
+        rule_examples = []
+        for b in result.get("results", {}).get("bindings", []):
+            rule_examples.append({"label_a": b["label"]["value"], "label_b": ""})
+        if rule_examples:
+            examples["sh:rule"] = rule_examples
     except Exception:
         pass
 
