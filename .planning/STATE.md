@@ -6,7 +6,7 @@ current_plan: 1 of 2
 status: in-progress
 stopped_at: Completed quick task 23
 last_updated: "2026-03-05T06:14:06.032Z"
-last_activity: 2026-03-05 - Completed 38-01-PLAN.md (Global lint dashboard UI)
+last_activity: 2026-03-05 - Completed quick task 23: Restyle login.html to match main UI theme
 progress:
   total_phases: 6
   completed_phases: 5
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-03-03)
 Phase: 38 of 40 (Global Lint Dashboard UI)
 Current Plan: 1 of 2
 Status: in-progress
-Last activity: 2026-03-05 - Completed 38-01-PLAN.md (Global lint dashboard UI)
+Last activity: 2026-03-05 - Completed quick task 23: Restyle login.html to match main UI theme
 
 Progress: [██████████] 100% (51/51 plans)
 
@@ -107,7 +107,9 @@ None — clean start for v2.4
 
 ### Quick Tasks Completed
 
-(none in v2.4)
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 23 | Restyle login.html to match main UI theme | 2026-03-05 | ca6569e | [23-restyle-login-html-to-match-main-ui-them](./quick/23-restyle-login-html-to-match-main-ui-them/) |
 
 ## Session Continuity
 
