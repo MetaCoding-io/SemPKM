@@ -21,57 +21,57 @@ entailment_defaults:
 icons:
   - type: "bpkm:Note"
     icon: "file-text"
-    color: "#4e79a7"
+    color: "#0d9488"
     tree:
       icon: "file-text"
-      color: "#4e79a7"
+      color: "#0d9488"
       size: 16
     tab:
       icon: "file-text"
-      color: "#4e79a7"
+      color: "#0d9488"
       size: 14
     graph:
       icon: "file-text"
-      color: "#4e79a7"
+      color: "#0d9488"
   - type: "bpkm:Concept"
     icon: "lightbulb"
-    color: "#f28e2b"
+    color: "#d97706"
     tree:
       icon: "lightbulb"
-      color: "#f28e2b"
+      color: "#d97706"
       size: 16
     tab:
       icon: "lightbulb"
-      color: "#f28e2b"
+      color: "#d97706"
       size: 14
     graph:
       icon: "lightbulb"
-      color: "#f28e2b"
+      color: "#d97706"
   - type: "bpkm:Project"
     icon: "folder-kanban"
-    color: "#59a14f"
+    color: "#4f46e5"
     tree:
       icon: "folder-kanban"
-      color: "#59a14f"
+      color: "#4f46e5"
       size: 16
     tab:
       icon: "folder-kanban"
-      color: "#59a14f"
+      color: "#4f46e5"
       size: 14
     graph:
       icon: "folder-kanban"
-      color: "#59a14f"
+      color: "#4f46e5"
   - type: "bpkm:Person"
     icon: "user"
-    color: "#76b7b2"
+    color: "#e11d48"
     tree:
       icon: "user"
-      color: "#76b7b2"
+      color: "#e11d48"
       size: 16
     tab:
       icon: "user"
-      color: "#76b7b2"
+      color: "#e11d48"
       size: 14
     graph:
       icon: "user"
-      color: "#76b7b2"
+      color: "#e11d48"
