@@ -2936,7 +2936,7 @@ details.form-group[open] > .form-group-summary::before {
   width: 260px;
   border: 1px solid var(--color-border-default);
   border-radius: 8px;
-  background: var(--color-bg-elevated);
+  background: var(--color-bg-elevated, #f8fafc);
   box-shadow: var(--shadow-md);
   padding: 10px;
   user-select: none;
@@ -2956,6 +2956,80 @@ details.form-group[open] > .form-group-summary::before {
   font-size: 11px;
   color: var(--color-text-muted);
   word-break: break-all;
+}
+
+
+.spatial-edges {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.spatial-edge-line {
+  stroke: var(--color-accent, #2563eb);
+  stroke-width: 2;
+  marker-end: url(#spatial-edge-arrow);
+  opacity: 0.85;
+}
+
+.spatial-edge-arrow-path {
+  fill: var(--color-accent, #2563eb);
+}
+
+.spatial-edge-label {
+  fill: var(--color-text-muted, #475569);
+  font-size: 11px;
+  font-family: var(--font-sans, sans-serif);
+  text-anchor: middle;
+}
+
+[data-theme="dark"] .spatial-node {
+  background: var(--color-bg-elevated, #1e293b);
+  border-color: var(--color-border-default, #334155);
+}
+
+
+.spatial-node-markdown {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border-default);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-text-default);
+}
+
+.spatial-node-markdown h1,
+.spatial-node-markdown h2,
+.spatial-node-markdown h3,
+.spatial-node-markdown h4,
+.spatial-node-markdown h5,
+.spatial-node-markdown h6 {
+  margin: 0 0 6px 0;
+  font-size: 13px;
+}
+
+.spatial-node-markdown p,
+.spatial-node-markdown ul,
+.spatial-node-markdown ol {
+  margin: 0 0 6px 0;
+}
+
+.spatial-node-markdown ul,
+.spatial-node-markdown ol {
+  padding-left: 18px;
+}
+
+.spatial-node-markdown code {
+  font-family: var(--font-mono);
+  background: var(--color-bg-subtle, rgba(127,127,127,0.12));
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+
+.spatial-node-markdown a {
+  color: var(--color-accent, #2563eb);
+  text-decoration: underline;
 /* ============================================================
    Phase 35: Entailment Config UI
    Admin page for per-model OWL 2 RL entailment toggles.

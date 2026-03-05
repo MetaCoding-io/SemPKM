@@ -28,14 +28,19 @@
         uri: 'urn:sempkm:model:basic-pkm:seed-note-arch',
         x: 160,
         y: 120,
+        markdown: '## Architecture Decision\n\n- Adopt **Track A** for packaging.\n- Add `React Flow` island in workspace.\n\n[Open project node](urn:sempkm:model:basic-pkm:seed-project-kernel)',
       },
       {
         id: 'urn:sempkm:model:basic-pkm:seed-project-kernel',
-        title: 'SemPKM Kernel Project',
+        title: 'Project: Spatial Canvas Beta',
         uri: 'urn:sempkm:model:basic-pkm:seed-project-kernel',
         x: 540,
         y: 300,
+        markdown: '### Spatial Canvas Beta\n\nThis project tracks:\n1. Canvas persistence\n2. RDF subgraph loading\n3. Markdown anchors\n\nSee [Architecture Decision](urn:sempkm:model:basic-pkm:seed-note-arch).',
       }
+    ],
+    edges: [
+      { id: 'link-1', source: 'urn:sempkm:model:basic-pkm:seed-note-arch', target: 'urn:sempkm:model:basic-pkm:seed-project-kernel', label: 'related to' }
     ]
   };
 
@@ -86,6 +91,10 @@
   }
 
   function onPointerDown(event) {
+    if (event.target && event.target.closest && event.target.closest('.spatial-node-markdown a')) {
+      return;
+    }
+
     var node = event.target.closest('.spatial-node');
     if (node) {
       state.nodeDragId = node.dataset.nodeId;
@@ -138,16 +147,41 @@
   function renderNodes() {
     if (!state.layer) return;
 
-    var html = state.nodes.map(function (node) {
+    var edgesHtml = state.edges.map(function (edge) {
+      var source = findNode(edge.source);
+      var target = findNode(edge.target);
+      if (!source || !target) return '';
+
+      var x1 = source.x + 130;
+      var y1 = source.y + 44;
+      var x2 = target.x + 130;
+      var y2 = target.y + 44;
+      var mx = Math.round((x1 + x2) / 2);
+      var my = Math.round((y1 + y2) / 2) - 10;
+
+      return [
+        '<line class="spatial-edge-line" x1="', x1, '" y1="', y1, '" x2="', x2, '" y2="', y2, '"></line>',
+        '<text class="spatial-edge-label" x="', mx, '" y="', my, '">', escapeHtml(edge.label || ''), '</text>'
+      ].join('');
+    }).join('');
+
+    var nodesHtml = state.nodes.map(function (node) {
       return [
         '<article class="spatial-node" data-node-id="', escapeHtml(node.id), '" style="left:', node.x, 'px; top:', node.y, 'px;">',
           '<header class="spatial-node-header">', escapeHtml(node.title), '</header>',
           '<div class="spatial-node-uri">', escapeHtml(node.uri), '</div>',
+          '<div class="spatial-node-markdown">', renderMarkdown(node.markdown || ''), '</div>',
         '</article>'
       ].join('');
     }).join('');
 
-    state.layer.innerHTML = html;
+    state.layer.innerHTML = [
+      '<svg class="spatial-edges" width="4000" height="4000" viewBox="0 0 4000 4000" aria-hidden="true">',
+      '<defs><marker id="spatial-edge-arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" class="spatial-edge-arrow-path"></path></marker></defs>',
+      edgesHtml,
+      '</svg>',
+      nodesHtml
+    ].join('');
   }
 
   function applyTransform() {
@@ -179,6 +213,25 @@
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;');
+  }
+
+
+  function renderMarkdown(markdownText) {
+    if (!markdownText) return '';
+
+    if (typeof globalThis.marked !== 'undefined') {
+      try {
+        var rendered = globalThis.marked.parse(markdownText);
+        if (typeof DOMPurify !== 'undefined') {
+          rendered = DOMPurify.sanitize(rendered);
+        }
+        return rendered;
+      } catch (e) {
+        // fall through to escaped plaintext
+      }
+    }
+
+    return escapeHtml(markdownText).replace(/\n/g, '<br>');
   }
 
   function resetView() {
