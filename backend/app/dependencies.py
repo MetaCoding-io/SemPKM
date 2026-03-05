@@ -4,6 +4,7 @@ from fastapi import Request
 
 from app.auth.service import AuthService
 from app.events.store import EventStore
+from app.lint.broadcast import LintBroadcast
 from app.lint.service import LintService
 from app.services.labels import LabelService
 from app.services.models import ModelService
@@ -132,3 +133,12 @@ async def get_lint_service(request: Request) -> LintService:
     app.state.lint_service.
     """
     return request.app.state.lint_service
+
+
+async def get_lint_broadcast(request: Request) -> LintBroadcast:
+    """Get the LintBroadcast instance from app state.
+
+    The broadcast manager is created during app lifespan startup and
+    stored on app.state.lint_broadcast.
+    """
+    return request.app.state.lint_broadcast
