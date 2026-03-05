@@ -147,8 +147,8 @@ Plans:
   5. Storage approach handles hundreds of objects without significant latency (< 2s for full-graph validation)
 **Plans**: 2 plans
 Plans:
-- [ ] 36-01-PLAN.md — Backend infrastructure (manifest rules entrypoint, Turtle loader, SHACL-AF rules in inference pipeline)
-- [ ] 36-02-PLAN.md — Rules content and UI (basic-pkm rules file, admin toggle, inference panel filter chip)
+- [ ] 37-01-PLAN.md — Structured result triples, LintService, paginated API endpoints (/api/lint/results, /status, /diff)
+- [ ] 37-02-PLAN.md — SSE broadcast, lint panel migration to SSE + structured results, old validation router removal
 
 ### Phase 38: Global Lint Dashboard UI
 **Goal**: Users can see all validation results across all objects at a glance from a single filterable, sortable view
@@ -367,7 +367,7 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 34. E2E Test Coverage | v2.3 | 2/2 | Complete | 2026-03-03 |
 | 35. OWL 2 RL Inference | 5/5 | Complete    | 2026-03-04 | - |
 | 36. SHACL-AF Rules Support | 2/2 | Complete    | 2026-03-05 | - |
-| 37. Global Lint Data Model & API | v2.4 | 0/? | Planned | - |
+| 37. Global Lint Data Model & API | v2.4 | 0/2 | Planned | - |
 | 38. Global Lint Dashboard UI | v2.4 | 0/? | Planned | - |
 | 39. Edit Form Helptext + Bug Fix Batch | v2.4 | 0/? | Planned | - |
 | 40. E2E Test Coverage for v2.4 | v2.4 | 0/? | Planned | - |
