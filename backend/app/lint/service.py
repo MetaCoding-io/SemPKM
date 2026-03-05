@@ -73,6 +73,61 @@ class LintService:
             return None
         return bindings[0]["run"]["value"]
 
+    async def get_results_for_object(self, object_iri: str) -> list[dict]:
+        """Query structured lint results filtered by focus_node for one object.
+
+        Returns results from the latest run matching the given object IRI.
+        Used by the per-object lint panel in the browser.
+
+        Returns:
+            List of dicts with keys: severity, message, path, source_shape.
+        """
+        run_iri = await self.get_latest_run_iri()
+        if not run_iri:
+            return []
+
+        query = f"""
+        PREFIX sh: <http://www.w3.org/ns/shacl#>
+        PREFIX sempkm: <urn:sempkm:>
+        SELECT ?severity ?message ?path ?sourceShape WHERE {{
+          GRAPH <{run_iri}> {{
+            ?result a sempkm:LintResult ;
+                    sh:focusNode <{object_iri}> ;
+                    sh:resultSeverity ?severity .
+            OPTIONAL {{ ?result sh:resultMessage ?message }}
+            OPTIONAL {{ ?result sh:resultPath ?path }}
+            OPTIONAL {{ ?result sh:sourceShape ?sourceShape }}
+          }}
+        }}
+        """
+        try:
+            result = await self._client.query(query)
+            bindings = result.get("results", {}).get("bindings", [])
+        except Exception:
+            logger.warning(
+                "Failed to query lint results for object %s", object_iri, exc_info=True
+            )
+            return []
+
+        # Resolve path labels
+        path_iris: set[str] = set()
+        for row in bindings:
+            if "path" in row:
+                path_iris.add(row["path"]["value"])
+        labels = await self._labels.resolve_batch(list(path_iris)) if path_iris else {}
+
+        items: list[dict] = []
+        for row in bindings:
+            path_iri = row.get("path", {}).get("value", "")
+            items.append({
+                "severity": row["severity"]["value"],
+                "message": row.get("message", {}).get("value", "Constraint violated"),
+                "path": labels.get(path_iri, _local_name(path_iri)) if path_iri else "",
+                "source_shape": row.get("sourceShape", {}).get("value", ""),
+            })
+
+        return items
+
     async def get_results(
         self,
         page: int = 1,

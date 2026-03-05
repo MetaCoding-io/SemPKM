@@ -48,7 +48,8 @@ from app.monitoring.middleware import PostHogErrorMiddleware
 from app.monitoring.posthog import init_posthog, shutdown_posthog
 from app.monitoring.router import router as monitoring_router
 from app.validation.queue import AsyncValidationQueue
-from app.validation.router import router as validation_router
+# Old validation router removed in 37-02 (replaced by /api/lint/*)
+# from app.validation.router import router as validation_router
 from wsgidav.wsgidav_app import WsgiDAVApp
 from a2wsgi import WSGIMiddleware
 from app.vfs.provider import SemPKMDAVProvider
@@ -400,7 +401,6 @@ app.include_router(commands_router)
 app.include_router(health_router)
 app.include_router(models_router)
 app.include_router(sparql_router)
-app.include_router(validation_router)
 app.include_router(lint_router)
 app.include_router(inference_router)
 app.include_router(admin_router)
