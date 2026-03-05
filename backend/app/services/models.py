@@ -772,7 +772,7 @@ async def ensure_starter_model(
         logger.info("No models installed, auto-installing Basic PKM starter model")
     else:
         installed = next(
-            (m for m in models if m.model_id == disk_manifest.model_id), None
+            (m for m in models if m.model_id == disk_manifest.modelId), None
         )
         if installed and installed.version == disk_manifest.version:
             logger.info(
