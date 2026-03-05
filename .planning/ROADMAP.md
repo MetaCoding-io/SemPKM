@@ -181,8 +181,8 @@ Plans:
   8. Concept search/linking works end-to-end (search finds concepts, links are created)
 **Plans**: 2 plans
 Plans:
-- [ ] 36-01-PLAN.md — Backend infrastructure (manifest rules entrypoint, Turtle loader, SHACL-AF rules in inference pipeline)
-- [ ] 36-02-PLAN.md — Rules content and UI (basic-pkm rules file, admin toggle, inference panel filter chip)
+- [ ] 39-01-PLAN.md — Helptext data model, backend extraction, form rendering, seed content (HELP-01)
+- [ ] 39-02-PLAN.md — Type-aware tab accent colors from manifest (BUG-04; BUG-05-09 verification-only)
 
 ### Phase 40: E2E Test Coverage for v2.4
 **Goal**: Playwright tests cover all v2.4 user-visible features
@@ -369,7 +369,7 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 36. SHACL-AF Rules Support | 2/2 | Complete    | 2026-03-05 | - |
 | 37. Global Lint Data Model & API | v2.4 | 0/2 | Planned | - |
 | 38. Global Lint Dashboard UI | v2.4 | 0/? | Planned | - |
-| 39. Edit Form Helptext + Bug Fix Batch | v2.4 | 0/? | Planned | - |
+| 39. Edit Form Helptext + Bug Fix Batch | v2.4 | 0/2 | Planned | - |
 | 40. E2E Test Coverage for v2.4 | v2.4 | 0/? | Planned | - |
 
 ---
