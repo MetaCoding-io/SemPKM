@@ -2,13 +2,17 @@
 gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Inference & Polish
-status: active
-last_updated: "2026-03-03T21:00:00.000Z"
+current_plan: 1 of 2
+status: in-progress
+stopped_at: Completed quick task 23
+last_updated: "2026-03-05T06:14:06.032Z"
+last_activity: 2026-03-05 - Completed quick task 23: Restyle login.html to match main UI theme
 progress:
   total_phases: 6
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  completed_phases: 5
+  total_plans: 13
+  completed_plans: 13
+  percent: 100
 ---
 
 # Project State
@@ -22,19 +26,19 @@ See: .planning/PROJECT.md (updated 2026-03-03)
 
 ## Current Position
 
-Phase: 35 of 40 (OWL 2 RL Inference) — Not started
-Current Plan: None
-Status: Milestone initialized, ready for /gsd:discuss-phase 35
-Last activity: 2026-03-03 - v2.4 milestone setup
+Phase: 38 of 40 (Global Lint Dashboard UI)
+Current Plan: 1 of 2
+Status: in-progress
+Last activity: 2026-03-05 - Completed quick task 23: Restyle login.html to match main UI theme
 
-Progress: [░░░░░░░░░░] 0% (0/6 phases)
+Progress: [██████████] 100% (51/51 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0 (v2.4)
-- Average duration: N/A
-- Total execution time: 0 min
+- Total plans completed: 6 (v2.4)
+- Average duration: 5 min
+- Total execution time: 29 min
 
 **Historical (v2.3):**
 - 13 plans, avg 3.7 min/plan, 48 min total
@@ -44,9 +48,14 @@ Progress: [░░░░░░░░░░] 0% (0/6 phases)
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| (none yet) | - | - | - |
+| 35 | 5 | 24 min | 5 min |
+| 36 | 2 | 4 min | 2 min |
+| 37 | 2 | 10 min | 5 min |
+| 39 | 1 | 1 min | 1 min |
 
 *Updated after each plan completion*
+| Phase 39 P01 | 3 | 2 tasks | 6 files |
+| Phase 38 P02 | 2 min | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -54,7 +63,31 @@ Progress: [░░░░░░░░░░] 0% (0/6 phases)
 
 Full decision log in PROJECT.md Key Decisions table.
 
-(v2.4 decisions will be added as phases are planned and executed)
+- 35-01: Full recompute strategy for inference (not incremental) for simplicity at PKM scale
+- 35-01: SQLite table for per-triple state tracking (not RDF reification)
+- 35-01: owlrl 7.1.4 standalone for decoupled manual trigger inference
+- 35-01: Entailment classification via ontology heuristics
+- 35-03: Used hx-trigger="revealed" for lazy-loading inference triples
+- 35-03: Aligned filter params with actual API (entailment_type, triple_status)
+- 35-04: Entailment config uses SettingsService user overrides on top of manifest defaults
+- 35-04: Model uninstall drops entire inferred graph (not selective) for correctness
+- 35-05: Merged entailment config across all models (if enabled for ANY model, enabled globally)
+- 35-05: Used htmx OOB swap for last-run timestamp outside main target div
+- 35-05: Object type filter uses IRI substring matching for simplicity
+- 36-01: Format detection by file extension in load_rdf_file (.ttl for Turtle, .jsonld for JSON-LD)
+- 36-01: Rule-derived triples tagged as sh:rule directly, bypassing classify_entailment
+- 36-01: TypeError fallback for iterate_rules pyshacl compatibility
+- 36-02: hasRelatedNote derived via SHACL rule (not owl:inverseOf) to demonstrate SHACL-AF value
+- 37-01: Per-run named graphs with structured result triples for queryable lint data
+- 37-01: Latest run pointer via dedicated triples (avoids ORDER BY DESC queries)
+- 37-01: Fingerprint-based diff algorithm for comparing validation runs
+- 37-02: StreamingResponse SSE with asyncio.Queue fan-out for real-time lint events
+- 37-02: Single global SSE stream shared by per-object panel and future dashboard
+- 39-02: Container-level CSS variable for accent color (not per-tab inline style) for simplicity
+- 39-02: orig_specs manifest unchanged (no icons section to update)
+- 38-01: Lazy-load lint dashboard via hx-trigger=revealed (not server-side include) to avoid coupling lint context to workspace route
+- 38-01: SPARQL search uses CONTAINS(LCASE()) across message, focusNode, and path
+- 38-01: Sort order validated against strict allowlist to prevent SPARQL injection
 
 ### Pending Todos
 
@@ -74,10 +107,12 @@ None — clean start for v2.4
 
 ### Quick Tasks Completed
 
-(none in v2.4)
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 23 | Restyle login.html to match main UI theme | 2026-03-05 | ca6569e | [23-restyle-login-html-to-match-main-ui-them](./quick/23-restyle-login-html-to-match-main-ui-them/) |
 
 ## Session Continuity
 
-Last session: 2026-03-03
-Stopped at: v2.4 milestone initialized
-Resume file: Ready for /gsd:discuss-phase 35 (OWL 2 RL Inference)
+Last session: 2026-03-05T06:14:06.030Z
+Stopped at: Completed quick task 23
+Resume file: None

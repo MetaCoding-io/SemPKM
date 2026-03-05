@@ -122,6 +122,14 @@
       "rdfs:comment": "Project context for a note",
       "rdfs:domain": { "@id": "bpkm:Note" },
       "rdfs:range": { "@id": "bpkm:Project" }
+    },
+    {
+      "@id": "bpkm:hasRelatedNote",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Has Related Note",
+      "rdfs:comment": "Notes related to this project (derived by SHACL-AF rule from relatedProject)",
+      "rdfs:domain": { "@id": "bpkm:Project" },
+      "rdfs:range": { "@id": "bpkm:Note" }
     }
   ]
 }

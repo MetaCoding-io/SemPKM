@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}SemPKM - Inference Settings: {{ model.name }}{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+
+    <div class="model-detail-header">
+        <a href="/admin/models/{{ model.model_id }}" class="back-link"
+           hx-get="/admin/models/{{ model.model_id }}" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
+            <i data-lucide="arrow-left"></i> Back to {{ model.name }}
+        </a>
+        <h1><i data-lucide="brain"></i> Inference Settings: {{ model.name }}</h1>
+        <p class="text-muted">Configure which OWL 2 RL entailment types are active for this Mental Model.
+        Changes take effect on the next inference run.</p>
+    </div>
+
+    {% if success %}
+    <div class="success-box">{{ success }}</div>
+    {% endif %}
+
+    <div class="entailment-config">
+        <form method="post"
+              action="/admin/models/{{ model.model_id }}/entailment"
+              hx-post="/admin/models/{{ model.model_id }}/entailment"
+              hx-target="#app-content"
+              hx-swap="innerHTML">
+
+            {% for entailment in entailment_types %}
+            <div class="entailment-toggle">
+                <label class="entailment-label">
+                    <input type="checkbox" name="{{ entailment.key }}"
+                           {% if entailment.enabled %}checked{% endif %}>
+                    <span class="entailment-name">{{ entailment.display_name }}</span>
+                    <code class="entailment-type-label">{{ entailment.type_label }}</code>
+                </label>
+                {% if entailment.description %}
+                <p class="entailment-description">{{ entailment.description }}</p>
+                {% endif %}
+                {% if entailment.examples %}
+                <div class="entailment-examples">
+                    <span class="examples-label">In this model:</span>
+                    {% for ex in entailment.examples %}
+                    {% if ex.label_b %}
+                    <span class="entailment-example">{{ ex.label_a }} &#8596; {{ ex.label_b }}</span>
+                    {% else %}
+                    <span class="entailment-example">{{ ex.label_a }}</span>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="entailment-no-examples">
+                    <span class="text-muted">No {{ entailment.display_name | lower }} axioms declared in this model</span>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <div class="entailment-actions">
+                <button type="submit" class="btn btn-primary">Save Configuration</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+</script>
+{% endblock %}

@@ -1,17 +1,38 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="no-transition">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign In - SemPKM</title>
+    <script>
+      (function(){
+        var s=localStorage.getItem('sempkm_theme');
+        var t='light';
+        if(s==='dark'){t='dark';}
+        else if(s==='system'||!s){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}
+        document.documentElement.setAttribute('data-theme',t);
+      })();
+    </script>
+    <link rel="stylesheet" href="/css/theme.css">
     <link rel="stylesheet" href="/css/style.css">
     <script src="/js/posthog.js"></script>
     <script src="/js/auth.js"></script>
+    <script src="/js/theme.js"></script>
 </head>
 <body>
     <div class="auth-container">
         <div class="auth-card card">
-            <div class="auth-brand">SemPKM</div>
+            <div class="auth-brand">
+              <svg class="auth-brand-icon" width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <circle cx="14" cy="6" r="3" fill="currentColor" stroke="none"/>
+                <circle cx="6" cy="22" r="3" fill="currentColor" stroke="none"/>
+                <circle cx="22" cy="22" r="3" fill="currentColor" stroke="none"/>
+                <line x1="14" y1="9" x2="6" y2="19"/>
+                <line x1="14" y1="9" x2="22" y2="19"/>
+                <line x1="9" y1="22" x2="19" y2="22"/>
+              </svg>
+              SemPKM
+            </div>
             <h1>Sign in to SemPKM</h1>
 
             <form id="loginForm" autocomplete="off">

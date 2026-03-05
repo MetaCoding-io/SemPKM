@@ -741,39 +741,66 @@ WHERE {{ ?s ?p ?o }}"""
 async def ensure_starter_model(
     model_service: ModelService, starter_path: Path
 ) -> None:
-    """Auto-install the Basic PKM starter model if no models are installed.
+    """Auto-install or upgrade the Basic PKM starter model.
 
-    Called during application startup to ensure a default model is available.
+    Called during application startup. Installs if no models exist,
+    or reinstalls if the on-disk version is newer than the installed version.
 
     Args:
         model_service: The ModelService instance.
         starter_path: Path to the Basic PKM model directory.
     """
-    try:
-        models = await model_service.list_models()
-        if models:
-            logger.info(
-                "Found %d installed model(s), skipping starter model auto-install",
-                len(models),
-            )
-            return
-    except Exception as e:
-        logger.warning("Failed to check installed models: %s", e)
-        return
-
-    logger.info("No models installed, auto-installing Basic PKM starter model")
-
     if not starter_path.exists():
         logger.error(
             "Starter model path does not exist: %s", starter_path
         )
         return
 
+    try:
+        disk_manifest = parse_manifest(starter_path)
+    except Exception as e:
+        logger.warning("Failed to parse starter model manifest: %s", e)
+        return
+
+    try:
+        models = await model_service.list_models()
+    except Exception as e:
+        logger.warning("Failed to check installed models: %s", e)
+        return
+
+    if not models:
+        logger.info("No models installed, auto-installing Basic PKM starter model")
+    else:
+        installed = next(
+            (m for m in models if m.model_id == disk_manifest.modelId), None
+        )
+        if installed and installed.version == disk_manifest.version:
+            logger.info(
+                "Starter model %s v%s is current, skipping",
+                installed.model_id,
+                installed.version,
+            )
+            return
+        if installed:
+            logger.info(
+                "Starter model upgrade: v%s -> v%s, reinstalling",
+                installed.version,
+                disk_manifest.version,
+            )
+            await clear_model_graphs(model_service._client, installed.model_id)
+            await unregister_model(model_service._client, installed.model_id)
+        else:
+            logger.info(
+                "Found %d model(s) but not starter model, installing",
+                len(models),
+            )
+
     result = await model_service.install(starter_path)
     if result.success:
         logger.info(
-            "Basic PKM starter model installed successfully (model_id=%s)",
+            "Basic PKM starter model installed successfully (model_id=%s, v%s)",
             result.model_id,
+            disk_manifest.version,
         )
     else:
         logger.error(

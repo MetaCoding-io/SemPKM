@@ -5,6 +5,7 @@ dataclasses. Generates RDF triples for persistent storage as named
 graphs in the triplestore.
 """
 
+import uuid
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -36,6 +37,25 @@ SEVERITY_MAP = {
     str(SH.Warning): "Warning",
     str(SH.Info): "Info",
 }
+
+# Reverse map: human-readable severity string to SHACL URI
+_SEVERITY_URI_MAP = {
+    "Violation": SH.Violation,
+    "Warning": SH.Warning,
+    "Info": SH.Info,
+}
+
+
+def _severity_uri(severity: str) -> URIRef:
+    """Map a human-readable severity string to its W3C SHACL URI.
+
+    Args:
+        severity: One of "Violation", "Warning", "Info".
+
+    Returns:
+        The corresponding sh:Violation, sh:Warning, or sh:Info URI.
+    """
+    return _SEVERITY_URI_MAP.get(severity, SH.Violation)
 
 
 @dataclass
@@ -169,6 +189,70 @@ class ValidationReport:
             info_count=info_count,
             timestamp=self.timestamp,
         )
+
+    def to_structured_triples(
+        self,
+        run_iri: str,
+        trigger_source: str = "user_edit",
+        source_model_map: dict[str, str] | None = None,
+    ) -> list[tuple]:
+        """Generate structured result triples for queryable storage.
+
+        Each ValidationResult becomes an individual resource with its own IRI,
+        linked to the run via sempkm:inRun. Run metadata triples are also
+        generated for the run resource itself.
+
+        Args:
+            run_iri: The IRI for this lint run (e.g. urn:sempkm:lint-run:{uuid}).
+            trigger_source: What triggered this run (user_edit, inference, manual).
+            source_model_map: Optional mapping from shape IRI to model IRI.
+
+        Returns:
+            List of (subject, predicate, object) tuples using rdflib terms.
+        """
+        triples: list[tuple] = []
+        run = URIRef(run_iri)
+
+        # Count severities
+        violation_count = sum(1 for r in self.results if r.severity == "Violation")
+        warning_count = sum(1 for r in self.results if r.severity == "Warning")
+        info_count = sum(1 for r in self.results if r.severity == "Info")
+
+        # Run metadata triples
+        triples.extend([
+            (run, RDF.type, SEMPKM.LintRun),
+            (run, SEMPKM.timestamp, Literal(self.timestamp, datatype=XSD.dateTime)),
+            (run, SEMPKM.conforms, Literal(self.conforms, datatype=XSD.boolean)),
+            (run, SEMPKM.triggerSource, Literal(trigger_source)),
+            (run, SEMPKM.violationCount, Literal(violation_count, datatype=XSD.integer)),
+            (run, SEMPKM.warningCount, Literal(warning_count, datatype=XSD.integer)),
+            (run, SEMPKM.infoCount, Literal(info_count, datatype=XSD.integer)),
+        ])
+
+        # Per-result triples
+        for result in self.results:
+            result_iri = URIRef(f"urn:sempkm:lint-result:{uuid.uuid4()}")
+            triples.extend([
+                (result_iri, RDF.type, SEMPKM.LintResult),
+                (result_iri, SEMPKM.inRun, run),
+                (result_iri, SH.focusNode, URIRef(result.focus_node)),
+                (result_iri, SH.resultSeverity, _severity_uri(result.severity)),
+                (result_iri, SH.resultMessage, Literal(result.message)),
+                (result_iri, SEMPKM.orphaned, Literal(False, datatype=XSD.boolean)),
+            ])
+            if result.path:
+                triples.append((result_iri, SH.resultPath, URIRef(result.path)))
+            if result.source_shape:
+                triples.append((result_iri, SH.sourceShape, URIRef(result.source_shape)))
+            if result.constraint_component:
+                triples.append((result_iri, SH.sourceConstraintComponent, URIRef(result.constraint_component)))
+            # Source model lookup
+            if source_model_map and result.source_shape:
+                model_iri = source_model_map.get(result.source_shape)
+                if model_iri:
+                    triples.append((result_iri, SEMPKM.sourceModel, URIRef(model_iri)))
+
+        return triples
 
     def to_summary_triples(self) -> list[tuple]:
         """Generate RDF triples for the summary named graph.
