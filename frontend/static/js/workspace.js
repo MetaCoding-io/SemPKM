@@ -1820,6 +1820,12 @@
     if (!detail || !detail.iri) return;
     markClean(detail.iri);
 
+    // Reload relations and lint panels with fresh data after save
+    if (typeof loadRightPaneSection === 'function') {
+      loadRightPaneSection(detail.iri, 'relations');
+      loadRightPaneSection(detail.iri, 'lint');
+    }
+
     if (!detail.label) return;
     var newLabel = detail.label;
     var iri = detail.iri;

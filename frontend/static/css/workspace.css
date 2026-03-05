@@ -1501,6 +1501,7 @@ details.form-group[open] > .form-group-summary::before {
 
 .object-face-read.face-hidden {
     visibility: hidden;
+    z-index: 0;
 }
 
 .object-face-edit.face-visible {

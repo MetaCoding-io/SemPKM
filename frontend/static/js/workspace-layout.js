@@ -171,12 +171,12 @@
       }
       if (layout) layout.activeGroupId = groupId;
 
-      // Apply type-aware tab accent color
+      // Apply type-aware tab accent color per-group (not container-level)
       var meta = _tabMeta[panel.id];
       var accentColor = (meta && meta.typeColor) ? meta.typeColor : '';
-      var container = document.getElementById('editor-groups-container');
-      if (container) {
-        container.style.setProperty('--tab-accent-color', accentColor || '');
+      var groupEl = panel.group ? panel.group.element : null;
+      if (groupEl) {
+        groupEl.style.setProperty('--tab-accent-color', accentColor || '');
       }
     });
 

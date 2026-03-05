@@ -337,8 +337,9 @@
       var btn = e.target.closest('.graph-popover-open-btn');
       if (!btn) return;
       var iri = btn.getAttribute('data-node-iri');
+      var label = btn.getAttribute('data-node-label');
       if (iri && typeof window.openTab === 'function') {
-        window.openTab(iri);
+        window.openTab(iri, label || undefined);
       }
       popover.style.display = 'none';
     });
@@ -377,7 +378,7 @@
       }
 
       html += '<div class="graph-popover-footer">' +
-                '<button class="graph-popover-open-btn" data-node-iri="' + _esc(nodeIri) + '">Open</button>' +
+                '<button class="graph-popover-open-btn" data-node-iri="' + _esc(nodeIri) + '" data-node-label="' + _esc(d.label) + '">Open</button>' +
               '</div>';
 
       popover.innerHTML = html;
