@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Inference & Polish
-current_plan: 5 of 5 complete
-status: completed
-stopped_at: Phase 36 context gathered
-last_updated: "2026-03-04T23:42:33.525Z"
-last_activity: 2026-03-04 - Completed 35-05-PLAN.md (gap closure)
+current_plan: 1 of 2
+status: executing
+stopped_at: Completed 36-01-PLAN.md
+last_updated: "2026-03-05T00:00:00.000Z"
+last_activity: 2026-03-04 - Completed 36-01-PLAN.md (SHACL-AF rules infrastructure)
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 7
+  completed_plans: 6
   percent: 17
 ---
 
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-03-03)
 
 ## Current Position
 
-Phase: 35 of 40 (OWL 2 RL Inference) -- COMPLETE
-Current Plan: 5 of 5 complete
-Status: Phase 35 complete -- all 5 plans executed (including gap closure)
-Last activity: 2026-03-04 - Completed 35-05-PLAN.md (gap closure)
+Phase: 36 of 40 (SHACL-AF Rules)
+Current Plan: 1 of 2
+Status: Executing phase 36
+Last activity: 2026-03-04 - Completed 36-01-PLAN.md (SHACL-AF rules infrastructure)
 
-Progress: [██░░░░░░░░] 17% (1/6 phases)
+Progress: [██████████] 98% (46/47 plans)
 
 ## Performance Metrics
 
@@ -49,6 +49,7 @@ Progress: [██░░░░░░░░] 17% (1/6 phases)
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 35 | 5 | 24 min | 5 min |
+| 36 | 1 | 2 min | 2 min |
 
 *Updated after each plan completion*
 
@@ -69,6 +70,9 @@ Full decision log in PROJECT.md Key Decisions table.
 - 35-05: Merged entailment config across all models (if enabled for ANY model, enabled globally)
 - 35-05: Used htmx OOB swap for last-run timestamp outside main target div
 - 35-05: Object type filter uses IRI substring matching for simplicity
+- 36-01: Format detection by file extension in load_rdf_file (.ttl for Turtle, .jsonld for JSON-LD)
+- 36-01: Rule-derived triples tagged as sh:rule directly, bypassing classify_entailment
+- 36-01: TypeError fallback for iterate_rules pyshacl compatibility
 
 ### Pending Todos
 
@@ -92,6 +96,6 @@ None — clean start for v2.4
 
 ## Session Continuity
 
-Last session: 2026-03-04T23:42:33.520Z
-Stopped at: Phase 36 context gathered
-Resume file: .planning/phases/36-shacl-af-rules/36-CONTEXT.md
+Last session: 2026-03-05T00:00:00.000Z
+Stopped at: Completed 36-01-PLAN.md
+Resume file: .planning/phases/36-shacl-af-rules/36-02-PLAN.md

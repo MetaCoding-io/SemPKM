@@ -366,7 +366,7 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 33. Named Layouts and VFS Settings Restore | v2.3 | 2/2 | Complete | 2026-03-03 |
 | 34. E2E Test Coverage | v2.3 | 2/2 | Complete | 2026-03-03 |
 | 35. OWL 2 RL Inference | 5/5 | Complete    | 2026-03-04 | - |
-| 36. SHACL-AF Rules Support | v2.4 | 0/2 | Planned | - |
+| 36. SHACL-AF Rules Support | 1/2 | In Progress|  | - |
 | 37. Global Lint Data Model & API | v2.4 | 0/? | Planned | - |
 | 38. Global Lint Dashboard UI | v2.4 | 0/? | Planned | - |
 | 39. Edit Form Helptext + Bug Fix Batch | v2.4 | 0/? | Planned | - |
