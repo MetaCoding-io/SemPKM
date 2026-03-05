@@ -145,6 +145,8 @@
       url = '/browser/views/card/' + encodeURIComponent(viewId);
     } else if (viewType === 'graph') {
       url = '/browser/views/graph/' + encodeURIComponent(viewId);
+    } else if (viewType === 'canvas') {
+      url = '/browser/canvas';
     } else {
       url = '/browser/views/table/' + encodeURIComponent(viewId);
     }
@@ -670,6 +672,27 @@
   }
   window.openDocsTab = openDocsTab;
 
+
+  function openCanvasTab() {
+    var tabKey = 'special:canvas';
+    var dv = window._dockview;
+    if (!dv) return;
+
+    var existing = dv.panels.find(function(p) { return p.id === tabKey; });
+    if (existing) { existing.api.setActive(); return; }
+
+    if (!window._tabMeta) window._tabMeta = {};
+    window._tabMeta[tabKey] = { label: 'Spatial Canvas', dirty: false };
+
+    dv.api.addPanel({
+      id: tabKey,
+      component: 'special-panel',
+      params: { specialType: 'canvas', isView: false, isSpecial: true },
+      title: 'Spatial Canvas'
+    });
+  }
+  window.openCanvasTab = openCanvasTab;
+
   // --- Keyboard Shortcuts ---
 
   var _keydownHandler = null;
@@ -1077,6 +1100,7 @@
 
       // Dynamically load available views into command palette
       _loadViewCommandPaletteEntries(ninja);
+      _addCanvasPaletteEntry(ninja);
 
       // Initialize FTS search integration for Ctrl+K palette
       _initFtsSearch(ninja);
@@ -1100,6 +1124,20 @@
         }
       });
     }
+  }
+
+
+  function _addCanvasPaletteEntry(ninja) {
+    if (!ninja || !ninja.data) return;
+    var exists = ninja.data.find(function (d) { return d.id === 'nav-spatial-canvas'; });
+    if (exists) return;
+
+    ninja.data = ninja.data.concat([{
+      id: 'nav-spatial-canvas',
+      title: 'Open: Spatial Canvas',
+      section: 'Views',
+      handler: function () { openCanvasTab(); }
+    }]);
   }
 
   function _loadViewCommandPaletteEntries(ninja) {
