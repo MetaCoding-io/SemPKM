@@ -23,6 +23,7 @@ class ValidationJob:
 
     event_iri: str
     timestamp: str
+    trigger_source: str = "user_edit"
 
 
 class AsyncValidationQueue:
@@ -40,7 +41,7 @@ class AsyncValidationQueue:
         self,
         validation_service: ValidationService,
         on_complete: Optional[
-            Callable[[ValidationReportSummary, str, str], Awaitable[None]]
+            Callable[[ValidationReportSummary, str, str, str], Awaitable[None]]
         ] = None,
     ) -> None:
         self._validation_service = validation_service
@@ -70,14 +71,15 @@ class AsyncValidationQueue:
                 pass
             logger.info("Validation queue worker stopped")
 
-    async def enqueue(self, event_iri: str, timestamp: str) -> None:
+    async def enqueue(self, event_iri: str, timestamp: str, trigger_source: str = "user_edit") -> None:
         """Enqueue a validation job (non-blocking).
 
         Args:
             event_iri: The event IRI that triggered validation.
             timestamp: ISO 8601 timestamp for the report.
+            trigger_source: What triggered the validation (user_edit, inference, manual).
         """
-        await self._queue.put(ValidationJob(event_iri=event_iri, timestamp=timestamp))
+        await self._queue.put(ValidationJob(event_iri=event_iri, timestamp=timestamp, trigger_source=trigger_source))
         logger.debug("Enqueued validation for %s", event_iri)
 
     @property
@@ -143,7 +145,7 @@ class AsyncValidationQueue:
                 if self._on_complete:
                     try:
                         await self._on_complete(
-                            self._latest_report, job.event_iri, job.timestamp
+                            self._latest_report, job.event_iri, job.timestamp, job.trigger_source
                         )
                     except Exception:
                         logger.warning(

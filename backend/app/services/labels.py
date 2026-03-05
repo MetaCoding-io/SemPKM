@@ -79,6 +79,7 @@ class LabelService:
 
         SELECT ?iri ?label
         FROM <urn:sempkm:current>
+        FROM <urn:sempkm:inferred>
         WHERE {{
           VALUES (?iri) {{ {values_clause} }}
           OPTIONAL {{ ?iri dcterms:title ?t . {self._build_lang_filter("?t", lang)} }}

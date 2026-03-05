@@ -126,7 +126,14 @@
       if (!window._tabMeta[tabKey]) window._tabMeta[tabKey] = {};
       window._tabMeta[tabKey].typeIcon = typeIcon;
       window._tabMeta[tabKey].typeColor = typeColor;
-      // renderGroupTabBar is a no-op in the dockview world -- dockview renders tabs natively
+    }
+    // Apply accent color if this is the active panel
+    if (typeColor && window._dockview) {
+      var dv = window._dockview;
+      var panel = dv.activePanel;
+      if (panel && panel.id === tabKey && panel.group) {
+        panel.group.element.style.setProperty('--tab-accent-color', typeColor);
+      }
     }
   })();
 </script>

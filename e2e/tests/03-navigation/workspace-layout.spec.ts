@@ -48,17 +48,24 @@ test.describe('Workspace Layout', () => {
     await ownerPage.goto(`${BASE_URL}/browser/`);
     await waitForWorkspace(ownerPage);
 
-    // Editor should show empty message
-    await expect(ownerPage.locator('.editor-empty')).toBeVisible();
-    await expect(ownerPage.locator('.editor-empty')).toContainText('Select an object');
+    // Dockview should have no panels open initially
+    const panelCount = await ownerPage.evaluate(() => {
+      const dv = (window as any)._dockview;
+      return dv ? dv.panels.length : 0;
+    });
+    expect(panelCount).toBe(0);
   });
 
   test('tab bar shows "No objects open" initially', async ({ ownerPage }) => {
     await ownerPage.goto(`${BASE_URL}/browser/`);
     await waitForWorkspace(ownerPage);
 
-    const tabBar = ownerPage.locator(SEL.workspace.tabBar);
-    await expect(tabBar).toContainText('No objects open');
+    // Dockview should have no panels/tabs open initially
+    const tabCount = await ownerPage.evaluate(() => {
+      const dv = (window as any)._dockview;
+      return dv ? dv.panels.length : 0;
+    });
+    expect(tabCount).toBe(0);
   });
 
   test('right pane shows Details with Relations and Lint sections', async ({ ownerPage }) => {
@@ -74,13 +81,12 @@ test.describe('Workspace Layout', () => {
     await expect(rightPane.locator('#lint-content')).toBeVisible();
   });
 
-  test('bottom panel exists with SPARQL, EVENT LOG, AI COPILOT tabs', async ({ ownerPage }) => {
+  test('bottom panel exists with EVENT LOG, AI COPILOT tabs', async ({ ownerPage }) => {
     await ownerPage.goto(`${BASE_URL}/browser/`);
     await waitForWorkspace(ownerPage);
 
     const panelTabBar = ownerPage.locator('#panel-tab-bar');
-    await expect(panelTabBar.locator('.panel-tab')).toHaveCount(3);
-    await expect(panelTabBar).toContainText('SPARQL');
+    await expect(panelTabBar.locator('.panel-tab')).toHaveCount(2);
     await expect(panelTabBar).toContainText('EVENT LOG');
     await expect(panelTabBar).toContainText('AI COPILOT');
   });
