@@ -97,7 +97,7 @@
 - [x] **Phase 35: OWL 2 RL Inference** — Add `owlrl` dependency, materialize inverse/transitive triples into `urn:sempkm:inferred` named graph; gap closure in progress (completed 2026-03-04)
 - [x] **Phase 36: SHACL-AF Rules Support** — Enable `advanced=True` in pyshacl, add rules entrypoint to manifest, ship example rules in basic-pkm model (completed 2026-03-05)
 - [x] **Phase 37: Global Lint Data Model & API** — Persist per-object, per-result validation detail; paginated API endpoints with filtering by severity, type, path (completed 2026-03-05)
-- [ ] **Phase 38: Global Lint Dashboard UI** — Filterable, sortable result table with severity badges, health indicator, auto-refresh
+- [x] **Phase 38: Global Lint Dashboard UI** — Filterable, sortable result table with severity badges, health indicator, auto-refresh (completed 2026-03-05)
 - [x] **Phase 39: Edit Form Helptext + Bug Fix Batch** — `sempkm:editHelpText` SHACL annotation in edit forms; fix accent bar, card borders, Firefox Ctrl+K, tab bleed, dark chevrons, concept search (completed 2026-03-05)
 - [ ] **Phase 40: E2E Test Coverage for v2.4** — Playwright tests for inference, lint dashboard, helptext, and bug fix verifications
 
@@ -368,7 +368,7 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 35. OWL 2 RL Inference | 5/5 | Complete    | 2026-03-04 | - |
 | 36. SHACL-AF Rules Support | 2/2 | Complete    | 2026-03-05 | - |
 | 37. Global Lint Data Model & API | 2/2 | Complete    | 2026-03-05 | - |
-| 38. Global Lint Dashboard UI | 1/2 | In Progress|  | - |
+| 38. Global Lint Dashboard UI | 2/2 | Complete   | 2026-03-05 | - |
 | 39. Edit Form Helptext + Bug Fix Batch | 2/2 | Complete   | 2026-03-05 | - |
 | 40. E2E Test Coverage for v2.4 | v2.4 | 0/? | Planned | - |
 
