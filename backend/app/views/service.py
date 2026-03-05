@@ -682,9 +682,11 @@ WHERE {{
     async def execute_graph_query(self, spec: ViewSpec) -> dict:
         """Execute a view spec's SPARQL CONSTRUCT query for graph visualization.
 
-        Scopes the query to the current graph, executes as CONSTRUCT to get
-        Turtle bytes, parses with rdflib, and converts to Cytoscape.js-compatible
-        JSON with nodes, edges, and type-to-color mapping.
+        Scopes the query to both current and inferred graphs, executes as
+        CONSTRUCT to get Turtle bytes, parses with rdflib, and converts to
+        Cytoscape.js-compatible JSON with nodes, edges, and type-to-color mapping.
+        Inferred edges are annotated so the frontend can render them with
+        dashed lines.
 
         Args:
             spec: The ViewSpec containing a CONSTRUCT SPARQL query.
@@ -695,6 +697,7 @@ WHERE {{
         if not spec.sparql_query:
             return {"nodes": [], "edges": [], "type_colors": {}}
 
+        # scope_to_current_graph now includes FROM <urn:sempkm:inferred> by default
         scoped_query = scope_to_current_graph(spec.sparql_query)
 
         try:
@@ -703,13 +706,32 @@ WHERE {{
             logger.warning("CONSTRUCT query failed for view spec %s", spec.spec_iri, exc_info=True)
             return {"nodes": [], "edges": [], "type_colors": {}}
 
-        return await self._parse_graph_results(turtle_bytes)
+        # Identify edges that exist only in the inferred graph (not in current)
+        # by querying the inferred graph for all object properties
+        inferred_edge_set: set[tuple[str, str, str]] = set()
+        try:
+            inf_query = """SELECT ?s ?p ?o
+WHERE {
+  GRAPH <urn:sempkm:inferred> {
+    ?s ?p ?o .
+    FILTER(isIRI(?o))
+  }
+}"""
+            inf_result = await self._client.query(inf_query)
+            for b in inf_result.get("results", {}).get("bindings", []):
+                inferred_edge_set.add((
+                    b["s"]["value"], b["p"]["value"], b["o"]["value"]
+                ))
+        except Exception:
+            logger.warning("Inferred edges identification query failed", exc_info=True)
+
+        return await self._parse_graph_results(turtle_bytes, inferred_edge_set)
 
     async def expand_neighbors(self, node_iri: str) -> dict:
         """Fetch all triples where node_iri is subject or object.
 
         Executes a SPARQL CONSTRUCT for both directions (outbound and inbound),
-        scoped to the current graph.
+        scoped to both the current and inferred graphs.
 
         Args:
             node_iri: The IRI of the node to expand.
@@ -719,6 +741,7 @@ WHERE {{
         """
         construct_query = f"""CONSTRUCT {{ ?s ?p ?o }}
 FROM <urn:sempkm:current>
+FROM <urn:sempkm:inferred>
 WHERE {{
   {{ <{node_iri}> ?p ?o . BIND(<{node_iri}> AS ?s) . FILTER(isIRI(?o)) }}
   UNION
@@ -731,7 +754,25 @@ WHERE {{
             logger.warning("Expand neighbors query failed for %s", node_iri, exc_info=True)
             return {"nodes": [], "edges": [], "type_colors": {}}
 
-        return await self._parse_graph_results(turtle_bytes)
+        # Identify which edges come from the inferred graph
+        inferred_edges_query = f"""SELECT ?s ?p ?o WHERE {{
+  GRAPH <urn:sempkm:inferred> {{
+    {{ <{node_iri}> ?p ?o . BIND(<{node_iri}> AS ?s) . FILTER(isIRI(?o)) }}
+    UNION
+    {{ ?s ?p <{node_iri}> . BIND(<{node_iri}> AS ?o) . FILTER(isIRI(?s)) }}
+  }}
+}}"""
+        inferred_edge_set: set[tuple[str, str, str]] = set()
+        try:
+            inf_result = await self._client.query(inferred_edges_query)
+            for b in inf_result.get("results", {}).get("bindings", []):
+                inferred_edge_set.add((
+                    b["s"]["value"], b["p"]["value"], b["o"]["value"]
+                ))
+        except Exception:
+            logger.warning("Inferred edges query failed for %s", node_iri, exc_info=True)
+
+        return await self._parse_graph_results(turtle_bytes, inferred_edge_set)
 
     async def get_model_layouts(self) -> list[dict]:
         """Query installed model view specs for custom layout definitions.
@@ -792,7 +833,11 @@ WHERE {{
 
         return layouts
 
-    async def _parse_graph_results(self, turtle_bytes: bytes) -> dict:
+    async def _parse_graph_results(
+        self,
+        turtle_bytes: bytes,
+        inferred_edge_set: set[tuple[str, str, str]] | None = None,
+    ) -> dict:
         """Parse Turtle CONSTRUCT results into Cytoscape.js-compatible JSON.
 
         Iterates all triples:
@@ -858,13 +903,14 @@ WHERE {{
             for iri in iris_needing_labels:
                 nodes_dict[iri]["label"] = resolved.get(iri, _local_name(iri))
 
-        # Supplement: fetch all literal properties for graph nodes from current graph
+        # Supplement: fetch all literal properties for graph nodes from both graphs
         # (CONSTRUCT results often only contain relationships + labels)
         all_node_iris = list(nodes_dict.keys())
         if all_node_iris:
             values_clause = " ".join(f"<{iri}>" for iri in all_node_iris)
             sup_query = f"""SELECT ?s ?p ?o
 FROM <urn:sempkm:current>
+FROM <urn:sempkm:inferred>
 WHERE {{
   VALUES ?s {{ {values_clause} }}
   ?s ?p ?o .
@@ -946,6 +992,7 @@ WHERE {{
             })
 
         edges_out = []
+        _inferred = inferred_edge_set or set()
         for e in edges:
             # Use resolved label if it's a real human-readable name,
             # otherwise fall back to local name for short display
@@ -956,11 +1003,14 @@ WHERE {{
                 short_label = _local_name(e["predicate"])
             else:
                 short_label = resolved
+            # Check if this edge exists in the inferred graph
+            is_inferred = (e["source"], e["predicate"], e["target"]) in _inferred
             edges_out.append({
                 "source": e["source"],
                 "target": e["target"],
                 "predicate": e["predicate"],
                 "predicate_label": short_label,
+                "inferred": is_inferred,
             })
 
         return {

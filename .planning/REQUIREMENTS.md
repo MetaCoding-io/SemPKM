@@ -7,31 +7,31 @@
 
 ### OWL 2 RL Inference
 
-- [ ] **INF-01**: User adds a participant to a Project; the Person's detail page automatically shows the Project in their "participatesIn" list without manual inverse entry (OWL 2 RL inference materializes `owl:inverseOf` triples)
-- [ ] **INF-02**: Mental Models can ship SHACL-AF rules (sh:TripleRule, sh:SPARQLRule) that pyshacl executes with `advanced=True`; inferred triples are stored in `urn:sempkm:inferred` named graph and visible in object views and graph visualization
+- [x] **INF-01**: User adds a participant to a Project; the Person's detail page automatically shows the Project in their "participatesIn" list without manual inverse entry (OWL 2 RL inference materializes `owl:inverseOf` triples)
+- [x] **INF-02**: Mental Models can ship SHACL-AF rules (sh:TripleRule, sh:SPARQLRule) that pyshacl executes with `advanced=True`; inferred triples are stored in `urn:sempkm:inferred` named graph and visible in object views and graph visualization
 
 ### Global Lint Dashboard
 
-- [ ] **LINT-01**: User can open a Global Lint Status view (as a dockview panel or dedicated page) that shows all SHACL validation results across every object in the knowledge base, with summary counts by severity (violations, warnings, infos) and a per-object breakdown
-- [ ] **LINT-02**: Global lint view updates automatically after each EventStore.commit() via the existing AsyncValidationQueue; user sees the latest validation state without manual refresh
-- [ ] **LINT-03**: User can see a visual health indicator (e.g., status bar badge or sidebar icon) showing the overall knowledge base validation status at a glance (pass / N violations / N warnings)
-- [ ] **LINT-04**: User can filter lint results by severity level (violations only, warnings only, infos only, or combinations)
-- [ ] **LINT-05**: User can filter lint results by object type (e.g., show only Note violations, only Project violations) using the Mental Model's type registry
-- [ ] **LINT-06**: User can search/filter lint results by keyword across message text, property path, and object label
-- [ ] **LINT-07**: User can sort lint results by severity, object name, property path, or timestamp
+- [x] **LINT-01**: User can open a Global Lint Status view (as a dockview panel or dedicated page) that shows all SHACL validation results across every object in the knowledge base, with summary counts by severity (violations, warnings, infos) and a per-object breakdown
+- [x] **LINT-02**: Global lint view updates automatically after each EventStore.commit() via the existing AsyncValidationQueue; user sees the latest validation state without manual refresh
+- [x] **LINT-03**: User can see a visual health indicator (e.g., status bar badge or sidebar icon) showing the overall knowledge base validation status at a glance (pass / N violations / N warnings)
+- [x] **LINT-04**: User can filter lint results by severity level (violations only, warnings only, infos only, or combinations)
+- [x] **LINT-05**: User can filter lint results by object type (e.g., show only Note violations, only Project violations) using the Mental Model's type registry
+- [x] **LINT-06**: User can search/filter lint results by keyword across message text, property path, and object label
+- [x] **LINT-07**: User can sort lint results by severity, object name, property path, or timestamp
 
 ### Edit Form Helptext
 
-- [ ] **HELP-01**: SHACL shapes can declare `sempkm:editHelpText` annotation property; edit forms render it as collapsible markdown below the field, providing context about what to enter and why
+- [x] **HELP-01**: SHACL shapes can declare `sempkm:editHelpText` annotation property; edit forms render it as collapsible markdown below the field, providing context about what to enter and why
 
 ### Bug Fixes
 
-- [ ] **BUG-04**: Accent bar on tabs is type-aware (different accent colors per type, not just teal for all)
-- [ ] **BUG-05**: Card view borders render correctly in both light and dark themes
-- [ ] **BUG-06**: Firefox Ctrl+K opens ninja-keys command palette (not Firefox's native address bar focus)
-- [ ] **BUG-07**: Tab accent bar does not bleed into adjacent inactive tabs
-- [ ] **BUG-08**: Panel chevron icons are visible in dark mode (not invisible-on-dark)
-- [ ] **BUG-09**: Concept search and linking functionality works correctly (search finds concepts, links are created)
+- [x] **BUG-04**: Accent bar on tabs is type-aware (different accent colors per type, not just teal for all)
+- [x] **BUG-05**: Card view borders render correctly in both light and dark themes
+- [x] **BUG-06**: Firefox Ctrl+K opens ninja-keys command palette (not Firefox's native address bar focus)
+- [x] **BUG-07**: Tab accent bar does not bleed into adjacent inactive tabs
+- [x] **BUG-08**: Panel chevron icons are visible in dark mode (not invisible-on-dark)
+- [x] **BUG-09**: Concept search and linking functionality works correctly (search finds concepts, links are created)
 
 ### Testing
 
@@ -99,7 +99,7 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INF-01 | Phase 35 | Planned |
+| INF-01 | Phase 35 | Complete |
 | INF-02 | Phase 36 | Planned |
 | LINT-01 | Phase 37 | Planned |
 | LINT-02 | Phase 37 | Planned |

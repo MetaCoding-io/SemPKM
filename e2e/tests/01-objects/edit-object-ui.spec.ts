@@ -21,16 +21,11 @@ import { waitForIdle } from '../../helpers/wait-for';
 
 const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3901';
 
-/** Load an object into the active editor area via htmx (no tab bar entry). */
+/** Load an object into the active editor area via dockview openTab API. */
 async function loadObjectInEditor(page: any, iri: string, mode: 'read' | 'edit' = 'read') {
   await page.evaluate(({ iri, mode }: { iri: string; mode: string }) => {
-    const target = document.querySelector('#editor-area-group-1');
-    if (target && (window as any).htmx) {
-      (window as any).htmx.ajax(
-        'GET',
-        `/browser/object/${encodeURIComponent(iri)}?mode=${mode}`,
-        { target },
-      );
+    if (typeof (window as any).openTab === 'function') {
+      (window as any).openTab(iri, iri, mode);
     }
   }, { iri, mode });
 }
@@ -65,7 +60,11 @@ async function expandProperties(page: any) {
   const expanded = await page.locator('.properties-collapsible.expanded').count();
   if (expanded > 0) return;
   await badge.click();
-  await page.waitForSelector('.properties-collapsible.expanded', { timeout: 5000 });
+  // Wait for class change (use attached, not visible — read face may be hidden behind flip)
+  await page.waitForFunction(
+    () => document.querySelectorAll('.properties-collapsible.expanded').length > 0,
+    { timeout: 5000 },
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -164,7 +163,7 @@ test.describe('Edit Mode – UI Regression Tests', () => {
 
     // Click to enter edit mode
     await toggleBtn.click();
-    await ownerPage.waitForSelector('[data-testid="object-form"]', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-face-edit.face-visible', { timeout: 10000 });
 
     // After entering edit mode the button must say "Cancel", not "Done" or anything else
     await expect(toggleBtn).toHaveText('Cancel');
@@ -332,7 +331,7 @@ test.describe('Edit Mode – UI Regression Tests', () => {
 
     // Open as a proper tab so the tab bar renders with an initial label
     await openTab(ownerPage, noteIri, SEED.notes.kickoff.title);
-    await ownerPage.waitForSelector('.tab-label', { timeout: 10000 });
+    await ownerPage.waitForSelector('.dv-default-tab-content', { timeout: 10000 });
     await waitForIdle(ownerPage);
 
     // Switch to edit mode via the toolbar toggle
@@ -353,18 +352,19 @@ test.describe('Edit Mode – UI Regression Tests', () => {
     await submitObjectForm(ownerPage);
     await ownerPage.waitForSelector('.form-success', { timeout: 10000 });
 
-    // Wait for the objectSaved event to propagate and update the tab bar label
+    // Wait for the objectSaved event to propagate and update the dockview tab title
     await ownerPage.waitForFunction(
-      (title: string) =>
-        Array.from(document.querySelectorAll('.tab-label')).some((el) =>
-          el.textContent?.includes(title),
-        ),
+      (title: string) => {
+        const dv = (window as any)._dockview;
+        if (!dv) return false;
+        return dv.panels.some((p: any) => (p.title || '').includes(title));
+      },
       updatedTitle,
       { timeout: 5000 },
     );
 
-    const tabBar = ownerPage.locator('.group-tab-bar');
-    await expect(tabBar.locator('.tab-label', { hasText: updatedTitle })).toBeVisible();
+    const tabLabels = ownerPage.locator('.dv-default-tab-content');
+    await expect(tabLabels.filter({ hasText: updatedTitle })).toBeVisible();
   });
 
   test('title change updates the object toolbar title after save', async ({ ownerPage }) => {

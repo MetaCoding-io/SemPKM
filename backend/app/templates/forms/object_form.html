@@ -36,6 +36,24 @@
                 title="Expand All">&#9655;&#9665;</button>
     </div>
 
+    {% if form.helptext %}
+    <details class="form-helptext form-helptext-top">
+        <summary class="form-helptext-summary">
+            <i data-lucide="help-circle" class="helptext-icon"></i>
+            Form Guide
+        </summary>
+        <div class="form-helptext-content markdown-body" id="helptext-form-rendered"></div>
+    </details>
+    <pre id="helptext-form-src" style="display:none">{{ form.helptext }}</pre>
+    <script>
+    (function() {
+        if (typeof renderMarkdownBody === 'function') {
+            renderMarkdownBody('helptext-form-src', 'helptext-form-rendered');
+        }
+    })();
+    </script>
+    {% endif %}
+
     <form id="object-form"
           {% if mode == 'create' %}
           hx-post="/browser/objects"
@@ -239,6 +257,22 @@
             }
         });
     }
+
+    // Toggle field-level helptext
+    window.toggleFieldHelp = function(fieldId) {
+        var el = document.getElementById('helptext-' + fieldId);
+        if (!el) return;
+        var isHidden = el.style.display === 'none';
+        el.style.display = isHidden ? 'block' : 'none';
+        if (isHidden && !el.dataset.rendered) {
+            var srcId = 'helptext-src-' + fieldId;
+            var renderedId = 'helptext-rendered-' + fieldId;
+            if (typeof renderMarkdownBody === 'function') {
+                renderMarkdownBody(srcId, renderedId);
+            }
+            el.dataset.rendered = 'true';
+        }
+    };
 
 })();
 </script>

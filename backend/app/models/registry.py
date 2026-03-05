@@ -49,8 +49,12 @@ class ModelGraphs:
         return f"urn:sempkm:model:{self.model_id}:seed"
 
     @property
+    def rules(self) -> str:
+        return f"urn:sempkm:model:{self.model_id}:rules"
+
+    @property
     def all_graphs(self) -> list[str]:
-        return [self.ontology, self.shapes, self.views, self.seed]
+        return [self.ontology, self.shapes, self.views, self.seed, self.rules]
 
 
 @dataclass
@@ -261,6 +265,26 @@ async def clear_model_graphs(
     graphs = ModelGraphs(model_id)
     for graph_iri in graphs.all_graphs:
         await client.update(f"CLEAR SILENT GRAPH <{graph_iri}>")
+
+
+async def clear_inferred_graph(
+    client: TriplestoreClient,
+) -> None:
+    """Drop the urn:sempkm:inferred named graph.
+
+    Called during model uninstall to remove all inferred triples.
+    Inferred triples may reference multiple models' ontology axioms,
+    so selective removal is not feasible. Full recompute after uninstall
+    (user clicks Refresh) rebuilds the correct state from remaining models.
+
+    Args:
+        client: The triplestore client.
+    """
+    try:
+        await client.update("CLEAR GRAPH <urn:sempkm:inferred>")
+    except Exception:
+        # Graph may not exist; that's fine
+        pass
 
 
 async def check_user_data_exists(

@@ -11,16 +11,11 @@ import { waitForIdle } from '../../helpers/wait-for';
 
 const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3901';
 
-/** Load an object into the active editor area via htmx. */
+/** Load an object into a dockview panel via the app's openTab API. */
 async function loadObjectInEditor(page: any, iri: string, mode: 'read' | 'edit' = 'read') {
   await page.evaluate(({ iri, mode }: { iri: string; mode: string }) => {
-    const target = document.querySelector('#editor-area-group-1');
-    if (target && (window as any).htmx) {
-      (window as any).htmx.ajax(
-        'GET',
-        `/browser/object/${encodeURIComponent(iri)}?mode=${mode}`,
-        { target },
-      );
+    if (typeof (window as any).openTab === 'function') {
+      (window as any).openTab(iri, iri, mode);
     }
   }, { iri, mode });
 }
@@ -45,7 +40,11 @@ async function expandProperties(page: any) {
   const expanded = await page.locator('.properties-collapsible.expanded').count();
   if (expanded > 0) return;
   await badge.click();
-  await page.waitForSelector('.properties-collapsible.expanded', { timeout: 5000 });
+  // Use waitForFunction — read face may be hidden behind 3D flip, waitForSelector requires visibility
+  await page.waitForFunction(
+    () => document.querySelectorAll('.properties-collapsible.expanded').length > 0,
+    { timeout: 5000 },
+  );
 }
 
 /** Collapse the properties panel if expanded. */

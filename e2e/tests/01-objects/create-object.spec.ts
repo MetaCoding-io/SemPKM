@@ -18,13 +18,16 @@ test.describe('Object Creation via UI', () => {
     await ownerPage.goto(`${BASE_URL}/browser/`);
     await ownerPage.waitForSelector(SEL.workspace.container, { timeout: 15000 });
 
-    // Open type picker via htmx GET /browser/types
+    // Open type picker via dockview addPanel
     await ownerPage.evaluate(() => {
-      const el = document.querySelector('#editor-area-group-1') || document.querySelector(
-        '[data-testid="editor-area"]'
-      );
-      if (el) {
-        (window as any).htmx?.ajax('GET', '/browser/types', { target: el });
+      const dv = (window as any)._dockview;
+      if (dv) {
+        dv.addPanel({
+          id: 'type-picker-' + Date.now(),
+          component: 'special-panel',
+          params: { specialType: 'types', isView: false, isSpecial: true },
+          title: 'New Object',
+        });
       }
     });
 
@@ -48,11 +51,16 @@ test.describe('Object Creation via UI', () => {
     await ownerPage.goto(`${BASE_URL}/browser/`);
     await ownerPage.waitForSelector(SEL.workspace.container, { timeout: 15000 });
 
-    // Load create form via htmx into editor area
+    // Load create form via dockview addPanel
     await ownerPage.evaluate((typeIri) => {
-      const target = document.querySelector('#editor-area-group-1');
-      if (target && (window as any).htmx) {
-        (window as any).htmx.ajax('GET', '/browser/objects/new?type=' + encodeURIComponent(typeIri), { target });
+      const dv = (window as any)._dockview;
+      if (dv) {
+        dv.addPanel({
+          id: 'new-' + Date.now(),
+          component: 'special-panel',
+          params: { specialType: 'objects/new?type=' + encodeURIComponent(typeIri), isView: false, isSpecial: true },
+          title: 'New Object',
+        });
       }
     }, TYPES.Note);
 
@@ -79,9 +87,14 @@ test.describe('Object Creation via UI', () => {
     await ownerPage.waitForSelector(SEL.workspace.container, { timeout: 15000 });
 
     await ownerPage.evaluate((typeIri) => {
-      const target = document.querySelector('#editor-area-group-1');
-      if (target && (window as any).htmx) {
-        (window as any).htmx.ajax('GET', '/browser/objects/new?type=' + encodeURIComponent(typeIri), { target });
+      const dv = (window as any)._dockview;
+      if (dv) {
+        dv.addPanel({
+          id: 'new-' + Date.now(),
+          component: 'special-panel',
+          params: { specialType: 'objects/new?type=' + encodeURIComponent(typeIri), isView: false, isSpecial: true },
+          title: 'New Object',
+        });
       }
     }, TYPES.Concept);
 
@@ -103,9 +116,14 @@ test.describe('Object Creation via UI', () => {
     await ownerPage.waitForSelector(SEL.workspace.container, { timeout: 15000 });
 
     await ownerPage.evaluate((typeIri) => {
-      const target = document.querySelector('#editor-area-group-1');
-      if (target && (window as any).htmx) {
-        (window as any).htmx.ajax('GET', '/browser/objects/new?type=' + encodeURIComponent(typeIri), { target });
+      const dv = (window as any)._dockview;
+      if (dv) {
+        dv.addPanel({
+          id: 'new-' + Date.now(),
+          component: 'special-panel',
+          params: { specialType: 'objects/new?type=' + encodeURIComponent(typeIri), isView: false, isSpecial: true },
+          title: 'New Object',
+        });
       }
     }, TYPES.Project);
 
@@ -125,9 +143,14 @@ test.describe('Object Creation via UI', () => {
     await ownerPage.waitForSelector(SEL.workspace.container, { timeout: 15000 });
 
     await ownerPage.evaluate((typeIri) => {
-      const target = document.querySelector('#editor-area-group-1');
-      if (target && (window as any).htmx) {
-        (window as any).htmx.ajax('GET', '/browser/objects/new?type=' + encodeURIComponent(typeIri), { target });
+      const dv = (window as any)._dockview;
+      if (dv) {
+        dv.addPanel({
+          id: 'new-' + Date.now(),
+          component: 'special-panel',
+          params: { specialType: 'objects/new?type=' + encodeURIComponent(typeIri), isView: false, isSpecial: true },
+          title: 'New Object',
+        });
       }
     }, TYPES.Person);
 
@@ -234,16 +257,11 @@ test.describe('Object Creation via API', () => {
     await ownerPage.goto(`${BASE_URL}/browser/`);
     await ownerPage.waitForSelector('[data-testid="workspace"]', { timeout: 15000 });
 
-    await ownerPage.evaluate((iri: string) => {
-      const target = document.querySelector('#editor-area-group-1');
-      if (target && (window as any).htmx) {
-        (window as any).htmx.ajax(
-          'GET',
-          `/browser/object/${encodeURIComponent(iri)}?mode=edit`,
-          { target },
-        );
+    await ownerPage.evaluate(({ iri }) => {
+      if (typeof (window as any).openTab === 'function') {
+        (window as any).openTab(iri, iri, 'edit');
       }
-    }, noteIri);
+    }, { iri: noteIri });
 
     // The edit form must appear — this would time out with "No form schema" if bug reappears
     // Use 'attached' state: the form is in the DOM (inside the edit flip face) even before

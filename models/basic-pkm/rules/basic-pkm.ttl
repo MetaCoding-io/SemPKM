@@ -1,0 +1,37 @@
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix bpkm:  <urn:sempkm:model:basic-pkm:> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+
+# Rule: Derive bpkm:hasRelatedNote on Projects from Notes' bpkm:relatedProject
+# This is NOT handled by OWL inverseOf -- no inverse declaration exists for relatedProject.
+# Demonstrates SHACL-AF value: arbitrary SPARQL-based derivation beyond OWL 2 RL axioms.
+
+bpkm:ProjectRelatedNoteRule
+    a sh:NodeShape ;
+    sh:targetClass bpkm:Note ;
+    sh:rule [
+        a sh:SPARQLRule ;
+        sh:order 0 ;
+        rdfs:label "Derive hasRelatedNote inverse" ;
+        rdfs:comment "When a Note has relatedProject, the Project gains hasRelatedNote back-link" ;
+        sh:prefixes bpkm:PrefixDeclarations ;
+        sh:construct """
+            CONSTRUCT {
+                ?project bpkm:hasRelatedNote $this .
+            }
+            WHERE {
+                $this bpkm:relatedProject ?project .
+            }
+        """ ;
+    ] .
+
+# Prefix declarations for SPARQL rules
+bpkm:PrefixDeclarations
+    a owl:Ontology ;
+    sh:declare [
+        sh:prefix "bpkm" ;
+        sh:namespace "urn:sempkm:model:basic-pkm:"^^xsd:anyURI ;
+    ] .

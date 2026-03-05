@@ -8,14 +8,26 @@ import logging
 from pathlib import Path
 from typing import Optional
 
+import yaml
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import get_current_user, require_role
 from app.auth.models import User
-from app.dependencies import get_model_service, get_webhook_service
+from app.db.session import get_db_session
+from app.dependencies import (
+    get_label_service,
+    get_model_service,
+    get_triplestore_client,
+    get_webhook_service,
+)
+from app.inference.entailments import ENTAILMENT_TYPES, MANIFEST_KEY_TO_TYPE, TYPE_TO_MANIFEST_KEY
+from app.services.labels import LabelService
 from app.services.models import ModelService
+from app.services.settings import SettingsService
 from app.services.webhooks import WebhookService
+from app.triplestore.client import TriplestoreClient
 
 logger = logging.getLogger(__name__)
 
@@ -248,11 +260,14 @@ async def admin_models_remove(
     model_id: str,
     user: User = Depends(require_role("owner")),
     model_service: ModelService = Depends(get_model_service),
+    client: TriplestoreClient = Depends(get_triplestore_client),
+    db: AsyncSession = Depends(get_db_session),
 ):
     """Remove an installed Mental Model.
 
     Returns the updated model table partial for htmx swap.
     Handles 404 (not installed) and 409 (user data exists) errors.
+    Also cleans up inference artifacts: inferred graph, triple state, settings.
     """
     result = await model_service.remove(model_id)
     models = await model_service.list_models()
@@ -265,9 +280,432 @@ async def admin_models_remove(
     else:
         # Invalidate ViewSpec cache after successful model removal
         request.app.state.view_spec_service.invalidate_cache()
+
+        # Clean up inference artifacts
+        await _cleanup_inference_on_uninstall(client, db, user.id, model_id)
+
         context["success"] = f"Model '{model_id}' removed."
 
     return templates_response(request, "admin/models.html", context, block_name="model_table")
+
+
+# ---- Inference cleanup on model uninstall ----
+
+
+async def _cleanup_inference_on_uninstall(
+    client: TriplestoreClient,
+    db: AsyncSession,
+    user_id,
+    model_id: str,
+) -> None:
+    """Clean up all inference artifacts when a model is uninstalled.
+
+    1. Drop urn:sempkm:inferred graph (inferred triples may cross-reference
+       multiple models' ontology axioms; full recompute is the correct approach)
+    2. Delete all inference_triple_state SQLite records
+    3. Remove entailment settings for this model from user settings
+
+    Args:
+        client: Triplestore client for SPARQL graph cleanup.
+        db: Database session for SQLite cleanup.
+        user_id: User ID for settings cleanup.
+        model_id: The model being uninstalled.
+    """
+    from app.models.registry import clear_inferred_graph
+    from app.inference.models import InferenceTripleState
+    from sqlalchemy import delete
+
+    # 1. Drop inferred graph
+    try:
+        await clear_inferred_graph(client)
+        logger.info("Cleared urn:sempkm:inferred graph during model uninstall")
+    except Exception as e:
+        logger.warning("Failed to clear inferred graph: %s", e)
+
+    # 2. Delete all inference_triple_state records
+    try:
+        await db.execute(delete(InferenceTripleState))
+        logger.info("Cleared inference_triple_state table during model uninstall")
+    except Exception as e:
+        logger.warning("Failed to clear inference_triple_state: %s", e)
+
+    # 3. Remove entailment settings for this model
+    try:
+        settings_svc = SettingsService()
+        for manifest_key in MANIFEST_KEY_TO_TYPE:
+            settings_key = f"inference.{model_id}.{manifest_key}"
+            await settings_svc.reset_override(user_id, settings_key, db)
+        logger.info("Removed entailment settings for model '%s'", model_id)
+    except Exception as e:
+        logger.warning("Failed to remove entailment settings: %s", e)
+
+
+# ---- Entailment Config endpoints ----
+
+# Display names and SPARQL queries for each entailment type
+ENTAILMENT_DISPLAY = {
+    "owl:inverseOf": {
+        "display_name": "Inverse Properties",
+        "description": "When A relates to B, the inverse relation from B to A is inferred.",
+    },
+    "rdfs:subClassOf": {
+        "display_name": "Class Hierarchy",
+        "description": "Instances of a subclass are also inferred to be instances of the superclass.",
+    },
+    "rdfs:subPropertyOf": {
+        "display_name": "Property Hierarchy",
+        "description": "When a sub-property relates two things, the super-property relation is also inferred.",
+    },
+    "owl:TransitiveProperty": {
+        "display_name": "Transitive Properties",
+        "description": "If A relates to B and B relates to C via a transitive property, A relates to C is inferred.",
+    },
+    "rdfs:domain/rdfs:range": {
+        "display_name": "Domain/Range Type Inference",
+        "description": "Types are inferred from property domain and range declarations.",
+    },
+    "sh:rule": {
+        "display_name": "SHACL Rules",
+        "description": "SHACL Advanced Features (SHACL-AF) rules declared in the model's rules file. These can express arbitrary derivations beyond OWL 2 RL axioms.",
+    },
+}
+
+
+async def _query_entailment_examples(
+    client: TriplestoreClient,
+    model_id: str,
+    label_service: LabelService,
+) -> dict[str, list[dict]]:
+    """Query the model's ontology graph for concrete examples of each entailment type.
+
+    Returns a dict mapping entailment type labels to lists of example dicts.
+    """
+    ontology_graph = f"urn:sempkm:model:{model_id}:ontology"
+    examples: dict[str, list[dict]] = {}
+
+    # owl:inverseOf examples
+    sparql = f"""SELECT ?p ?q WHERE {{
+  GRAPH <{ontology_graph}> {{
+    ?p <http://www.w3.org/2002/07/owl#inverseOf> ?q .
+  }}
+}}"""
+    try:
+        result = await client.query(sparql)
+        iris_to_resolve = []
+        pairs = []
+        for b in result.get("results", {}).get("bindings", []):
+            p_iri = b["p"]["value"]
+            q_iri = b["q"]["value"]
+            iris_to_resolve.extend([p_iri, q_iri])
+            pairs.append((p_iri, q_iri))
+
+        if pairs:
+            labels = await label_service.resolve_batch(iris_to_resolve)
+            examples["owl:inverseOf"] = [
+                {"label_a": labels.get(p, p), "label_b": labels.get(q, q)}
+                for p, q in pairs
+            ]
+    except Exception:
+        pass
+
+    # rdfs:subClassOf examples
+    sparql = f"""SELECT ?sub ?super WHERE {{
+  GRAPH <{ontology_graph}> {{
+    ?sub <http://www.w3.org/2000/01/rdf-schema#subClassOf> ?super .
+    FILTER(!isBlank(?sub)) FILTER(!isBlank(?super))
+  }}
+}}"""
+    try:
+        result = await client.query(sparql)
+        iris_to_resolve = []
+        pairs = []
+        for b in result.get("results", {}).get("bindings", []):
+            sub_iri = b["sub"]["value"]
+            super_iri = b["super"]["value"]
+            iris_to_resolve.extend([sub_iri, super_iri])
+            pairs.append((sub_iri, super_iri))
+
+        if pairs:
+            labels = await label_service.resolve_batch(iris_to_resolve)
+            examples["rdfs:subClassOf"] = [
+                {"label_a": labels.get(s, s), "label_b": labels.get(sp, sp)}
+                for s, sp in pairs
+            ]
+    except Exception:
+        pass
+
+    # rdfs:subPropertyOf examples
+    sparql = f"""SELECT ?sub ?super WHERE {{
+  GRAPH <{ontology_graph}> {{
+    ?sub <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> ?super .
+    FILTER(!isBlank(?sub)) FILTER(!isBlank(?super))
+  }}
+}}"""
+    try:
+        result = await client.query(sparql)
+        iris_to_resolve = []
+        pairs = []
+        for b in result.get("results", {}).get("bindings", []):
+            sub_iri = b["sub"]["value"]
+            super_iri = b["super"]["value"]
+            iris_to_resolve.extend([sub_iri, super_iri])
+            pairs.append((sub_iri, super_iri))
+
+        if pairs:
+            labels = await label_service.resolve_batch(iris_to_resolve)
+            examples["rdfs:subPropertyOf"] = [
+                {"label_a": labels.get(s, s), "label_b": labels.get(sp, sp)}
+                for s, sp in pairs
+            ]
+    except Exception:
+        pass
+
+    # owl:TransitiveProperty examples
+    sparql = f"""SELECT ?p WHERE {{
+  GRAPH <{ontology_graph}> {{
+    ?p a <http://www.w3.org/2002/07/owl#TransitiveProperty> .
+  }}
+}}"""
+    try:
+        result = await client.query(sparql)
+        iris_to_resolve = []
+        for b in result.get("results", {}).get("bindings", []):
+            iris_to_resolve.append(b["p"]["value"])
+
+        if iris_to_resolve:
+            labels = await label_service.resolve_batch(iris_to_resolve)
+            examples["owl:TransitiveProperty"] = [
+                {"label_a": labels.get(p, p), "label_b": "transitive"}
+                for p in iris_to_resolve
+            ]
+    except Exception:
+        pass
+
+    # rdfs:domain/rdfs:range examples
+    sparql = f"""SELECT ?p ?domain ?range WHERE {{
+  GRAPH <{ontology_graph}> {{
+    OPTIONAL {{ ?p <http://www.w3.org/2000/01/rdf-schema#domain> ?domain }}
+    OPTIONAL {{ ?p <http://www.w3.org/2000/01/rdf-schema#range> ?range }}
+    FILTER(BOUND(?domain) || BOUND(?range))
+  }}
+}} LIMIT 10"""
+    try:
+        result = await client.query(sparql)
+        iris_to_resolve = []
+        triples = []
+        for b in result.get("results", {}).get("bindings", []):
+            p_iri = b["p"]["value"]
+            d_iri = b.get("domain", {}).get("value", "")
+            r_iri = b.get("range", {}).get("value", "")
+            iris_to_resolve.append(p_iri)
+            if d_iri:
+                iris_to_resolve.append(d_iri)
+            if r_iri:
+                iris_to_resolve.append(r_iri)
+            triples.append((p_iri, d_iri, r_iri))
+
+        if triples:
+            labels = await label_service.resolve_batch(iris_to_resolve)
+            dr_examples = []
+            for p, d, r in triples:
+                p_label = labels.get(p, p)
+                parts = []
+                if d:
+                    parts.append(f"domain: {labels.get(d, d)}")
+                if r:
+                    parts.append(f"range: {labels.get(r, r)}")
+                if parts:
+                    dr_examples.append({"label_a": p_label, "label_b": ", ".join(parts)})
+            examples["rdfs:domain/rdfs:range"] = dr_examples
+    except Exception:
+        pass
+
+    # sh:rule examples (SHACL-AF rules with rdfs:label)
+    rules_graph = f"urn:sempkm:model:{model_id}:rules"
+    sparql = f"""SELECT ?label WHERE {{
+  GRAPH <{rules_graph}> {{
+    ?shape <http://www.w3.org/ns/shacl#rule> ?ruleNode .
+    ?ruleNode <http://www.w3.org/2000/01/rdf-schema#label> ?label .
+  }}
+}}"""
+    try:
+        result = await client.query(sparql)
+        rule_examples = []
+        for b in result.get("results", {}).get("bindings", []):
+            rule_examples.append({"label_a": b["label"]["value"], "label_b": ""})
+        if rule_examples:
+            examples["sh:rule"] = rule_examples
+    except Exception:
+        pass
+
+    return examples
+
+
+def _load_entailment_defaults(model_id: str) -> dict[str, bool]:
+    """Load entailment defaults from a model's manifest.yaml.
+
+    Returns a dict mapping manifest keys (e.g., 'owl_inverseOf') to booleans.
+    Falls back to all-disabled if manifest cannot be read.
+    """
+    import os
+    manifest_path = os.path.join("/app/models", model_id, "manifest.yaml")
+    defaults = {key: False for key in MANIFEST_KEY_TO_TYPE}
+
+    try:
+        with open(manifest_path) as f:
+            raw = yaml.safe_load(f)
+        if raw and "entailment_defaults" in raw:
+            for key, val in raw["entailment_defaults"].items():
+                if key in MANIFEST_KEY_TO_TYPE:
+                    defaults[key] = bool(val)
+    except Exception:
+        pass
+
+    return defaults
+
+
+async def _get_entailment_config_for_model(
+    model_id: str, user_id, db: AsyncSession
+) -> dict[str, bool]:
+    """Resolve entailment config: manifest defaults + user overrides.
+
+    Returns dict mapping manifest keys to enabled booleans.
+    """
+    defaults = _load_entailment_defaults(model_id)
+
+    # Check for user overrides via SettingsService
+    settings_svc = SettingsService()
+    overrides = await settings_svc.get_user_overrides(user_id, db)
+
+    for manifest_key in MANIFEST_KEY_TO_TYPE:
+        settings_key = f"inference.{model_id}.{manifest_key}"
+        if settings_key in overrides:
+            defaults[manifest_key] = overrides[settings_key] == "true"
+
+    return defaults
+
+
+@router.get("/models/{model_id}/entailment")
+async def admin_model_entailment(
+    request: Request,
+    model_id: str,
+    user: User = Depends(require_role("owner")),
+    model_service: ModelService = Depends(get_model_service),
+    client: TriplestoreClient = Depends(get_triplestore_client),
+    label_service: LabelService = Depends(get_label_service),
+    db: AsyncSession = Depends(get_db_session),
+):
+    """Render entailment configuration page for a model.
+
+    Shows toggles for each entailment type with concrete examples
+    from the model's ontology.
+    """
+    # Verify model exists
+    models = await model_service.list_models()
+    model_info = next((m for m in models if m.model_id == model_id), None)
+    if model_info is None:
+        return HTMLResponse(
+            '<div class="error-box">Model not found.</div>',
+            status_code=404,
+        )
+
+    # Get current config (manifest defaults + user overrides)
+    config = await _get_entailment_config_for_model(model_id, user.id, db)
+
+    # Query ontology for concrete examples
+    examples = await _query_entailment_examples(client, model_id, label_service)
+
+    # Build entailment_types list for the template
+    entailment_types = []
+    for etype in ENTAILMENT_TYPES:
+        manifest_key = TYPE_TO_MANIFEST_KEY[etype]
+        display = ENTAILMENT_DISPLAY.get(etype, {})
+        entailment_types.append({
+            "key": manifest_key,
+            "type_label": etype,
+            "display_name": display.get("display_name", etype),
+            "description": display.get("description", ""),
+            "enabled": config.get(manifest_key, False),
+            "examples": examples.get(etype, []),
+        })
+
+    context = {
+        "request": request,
+        "model": model_info,
+        "entailment_types": entailment_types,
+        "user": user,
+        "success": request.query_params.get("saved"),
+    }
+
+    if _is_htmx_request(request):
+        return templates_response(
+            request, "admin/model_entailment_config.html", context, block_name="content"
+        )
+    return templates_response(request, "admin/model_entailment_config.html", context)
+
+
+@router.post("/models/{model_id}/entailment")
+async def admin_model_entailment_save(
+    request: Request,
+    model_id: str,
+    user: User = Depends(require_role("owner")),
+    model_service: ModelService = Depends(get_model_service),
+    client: TriplestoreClient = Depends(get_triplestore_client),
+    label_service: LabelService = Depends(get_label_service),
+    db: AsyncSession = Depends(get_db_session),
+):
+    """Save entailment configuration for a model.
+
+    Reads form checkboxes and persists as user settings overrides.
+    """
+    # Verify model exists
+    models = await model_service.list_models()
+    model_info = next((m for m in models if m.model_id == model_id), None)
+    if model_info is None:
+        return HTMLResponse(
+            '<div class="error-box">Model not found.</div>',
+            status_code=404,
+        )
+
+    form_data = await request.form()
+    settings_svc = SettingsService()
+
+    for manifest_key in MANIFEST_KEY_TO_TYPE:
+        settings_key = f"inference.{model_id}.{manifest_key}"
+        # Checkbox: present in form data = true, absent = false
+        enabled = manifest_key in form_data
+        await settings_svc.set_override(user.id, settings_key, str(enabled).lower(), db)
+
+    # Re-render the page with success message
+    config = await _get_entailment_config_for_model(model_id, user.id, db)
+    examples = await _query_entailment_examples(client, model_id, label_service)
+
+    entailment_types = []
+    for etype in ENTAILMENT_TYPES:
+        mk = TYPE_TO_MANIFEST_KEY[etype]
+        display = ENTAILMENT_DISPLAY.get(etype, {})
+        entailment_types.append({
+            "key": mk,
+            "type_label": etype,
+            "display_name": display.get("display_name", etype),
+            "description": display.get("description", ""),
+            "enabled": config.get(mk, False),
+            "examples": examples.get(etype, []),
+        })
+
+    context = {
+        "request": request,
+        "model": model_info,
+        "entailment_types": entailment_types,
+        "user": user,
+        "success": "Configuration saved. Changes take effect on the next inference run.",
+    }
+
+    if _is_htmx_request(request):
+        return templates_response(
+            request, "admin/model_entailment_config.html", context, block_name="content"
+        )
+    return templates_response(request, "admin/model_entailment_config.html", context)
 
 
 # ---- Webhook endpoints ----

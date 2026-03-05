@@ -94,11 +94,11 @@
 
 **Milestone Goal:** Activate OWL 2 RL inference and SHACL-AF rules to deliver automatic bidirectional links and model-contributed derivations. Add a global lint dashboard for workspace-wide validation triage. Clear the backlog of tracked bugs and the edit form helptext TODO.
 
-- [ ] **Phase 35: OWL 2 RL Inference** — Add `owlrl` dependency, materialize inverse/transitive triples into `urn:sempkm:inferred` named graph on every write
-- [ ] **Phase 36: SHACL-AF Rules Support** — Enable `advanced=True` in pyshacl, add rules entrypoint to manifest, ship example rules in basic-pkm model
-- [ ] **Phase 37: Global Lint Data Model & API** — Persist per-object, per-result validation detail; paginated API endpoints with filtering by severity, type, path
-- [ ] **Phase 38: Global Lint Dashboard UI** — Filterable, sortable result table with severity badges, health indicator, auto-refresh
-- [ ] **Phase 39: Edit Form Helptext + Bug Fix Batch** — `sempkm:editHelpText` SHACL annotation in edit forms; fix accent bar, card borders, Firefox Ctrl+K, tab bleed, dark chevrons, concept search
+- [x] **Phase 35: OWL 2 RL Inference** — Add `owlrl` dependency, materialize inverse/transitive triples into `urn:sempkm:inferred` named graph; gap closure in progress (completed 2026-03-04)
+- [x] **Phase 36: SHACL-AF Rules Support** — Enable `advanced=True` in pyshacl, add rules entrypoint to manifest, ship example rules in basic-pkm model (completed 2026-03-05)
+- [x] **Phase 37: Global Lint Data Model & API** — Persist per-object, per-result validation detail; paginated API endpoints with filtering by severity, type, path (completed 2026-03-05)
+- [x] **Phase 38: Global Lint Dashboard UI** — Filterable, sortable result table with severity badges, health indicator, auto-refresh (completed 2026-03-05)
+- [x] **Phase 39: Edit Form Helptext + Bug Fix Batch** — `sempkm:editHelpText` SHACL annotation in edit forms; fix accent bar, card borders, Firefox Ctrl+K, tab bleed, dark chevrons, concept search (completed 2026-03-05)
 - [ ] **Phase 40: E2E Test Coverage for v2.4** — Playwright tests for inference, lint dashboard, helptext, and bug fix verifications
 
 ## Phase Details
@@ -113,7 +113,12 @@
   3. Inferred triples are visible in object views, relations panel, and graph visualization
   4. Deleting the source triple (hasParticipant) causes the inferred inverse to be removed on the next validation cycle
   5. Inference runs automatically on every write (integrated into the existing EventStore.commit() → AsyncValidationQueue pipeline)
-**Plans**: TBD
+**Plans**: 5 plans
+- [x] 35-01-PLAN.md — Backend inference engine (owlrl, InferenceService, API endpoints)
+- [x] 35-02-PLAN.md — Inferred triple display (dual-graph queries, badges, dashed edges)
+- [x] 35-03-PLAN.md — Inference bottom panel (tab, filters, dismiss/promote)
+- [x] 35-04-PLAN.md — Admin entailment config (toggles, ontology examples, uninstall cleanup)
+- [ ] 35-05-PLAN.md — Gap closure (config wiring, object_type/date filters, group_by, last-run timestamp)
 
 ### Phase 36: SHACL-AF Rules Support
 **Goal**: Mental Models can declare SHACL rules that generate derived triples; basic-pkm ships example rules for inverse materialization and concept ancestry
@@ -125,7 +130,10 @@
   3. basic-pkm model ships at least one example SHACL rule (e.g., inverse participant rule via sh:SPARQLRule)
   4. Rule-derived triples are stored in the `urn:sempkm:inferred` named graph alongside OWL-derived triples
   5. Users see rule-derived data in object views without any manual action
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 36-01-PLAN.md — Backend infrastructure (manifest rules entrypoint, Turtle loader, SHACL-AF rules in inference pipeline)
+- [ ] 36-02-PLAN.md — Rules content and UI (basic-pkm rules file, admin toggle, inference panel filter chip)
 
 ### Phase 37: Global Lint Data Model & API
 **Goal**: Per-object, per-result SHACL validation detail is stored in a queryable format with paginated API endpoints for listing results
@@ -137,7 +145,10 @@
   3. Results update automatically after each EventStore.commit() via AsyncValidationQueue (no manual refresh)
   4. Per-object lint panel continues to work unchanged (backward compatible)
   5. Storage approach handles hundreds of objects without significant latency (< 2s for full-graph validation)
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 37-01-PLAN.md — Structured result triples, LintService, paginated API endpoints (/api/lint/results, /status, /diff)
+- [ ] 37-02-PLAN.md — SSE broadcast, lint panel migration to SSE + structured results, old validation router removal
 
 ### Phase 38: Global Lint Dashboard UI
 **Goal**: Users can see all validation results across all objects at a glance from a single filterable, sortable view
@@ -150,7 +161,10 @@
   4. User can sort results by severity, object name, property path, or timestamp
   5. Status bar or sidebar shows a persistent health indicator badge (pass / N violations)
   6. Result list paginates or virtual-scrolls for large result sets (100+ results)
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 38-01-PLAN.md — Backend endpoint, dashboard template, tab registration, filters, sort, search, pagination (LINT-04, LINT-05, LINT-06, LINT-07)
+- [ ] 38-02-PLAN.md — SSE auto-refresh, health badge, Command Palette wiring (LINT-03)
 
 ### Phase 39: Edit Form Helptext + Bug Fix Batch
 **Goal**: Edit forms show contextual help text from SHACL annotations; all tracked CSS/UX bugs are fixed
@@ -165,7 +179,10 @@
   6. Tab accent bar does not bleed into adjacent inactive tabs
   7. Panel chevron icons are visible in dark mode
   8. Concept search/linking works end-to-end (search finds concepts, links are created)
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 39-01-PLAN.md — Helptext data model, backend extraction, form rendering, seed content (HELP-01)
+- [ ] 39-02-PLAN.md — Type-aware tab accent colors from manifest (BUG-04; BUG-05-09 verification-only)
 
 ### Phase 40: E2E Test Coverage for v2.4
 **Goal**: Playwright tests cover all v2.4 user-visible features
@@ -176,7 +193,10 @@
   2. E2E tests verify global lint dashboard loads, filters, and sorts results correctly
   3. E2E tests verify edit form helptext renders and collapses
   4. E2E tests verify each bug fix (accent bar, card borders, Ctrl+K, tab bleed, dark chevrons, concept search)
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 36-01-PLAN.md — Backend infrastructure (manifest rules entrypoint, Turtle loader, SHACL-AF rules in inference pipeline)
+- [ ] 36-02-PLAN.md — Rules content and UI (basic-pkm rules file, admin toggle, inference panel filter chip)
 
 ---
 
@@ -345,11 +365,11 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 32. Carousel Views and View Bug Fixes | v2.3 | 2/2 | Complete | 2026-03-03 |
 | 33. Named Layouts and VFS Settings Restore | v2.3 | 2/2 | Complete | 2026-03-03 |
 | 34. E2E Test Coverage | v2.3 | 2/2 | Complete | 2026-03-03 |
-| 35. OWL 2 RL Inference | v2.4 | 0/? | Planned | - |
-| 36. SHACL-AF Rules Support | v2.4 | 0/? | Planned | - |
-| 37. Global Lint Data Model & API | v2.4 | 0/? | Planned | - |
-| 38. Global Lint Dashboard UI | v2.4 | 0/? | Planned | - |
-| 39. Edit Form Helptext + Bug Fix Batch | v2.4 | 0/? | Planned | - |
+| 35. OWL 2 RL Inference | 5/5 | Complete    | 2026-03-04 | - |
+| 36. SHACL-AF Rules Support | 2/2 | Complete    | 2026-03-05 | - |
+| 37. Global Lint Data Model & API | 2/2 | Complete    | 2026-03-05 | - |
+| 38. Global Lint Dashboard UI | 2/2 | Complete    | 2026-03-05 | - |
+| 39. Edit Form Helptext + Bug Fix Batch | 2/2 | Complete   | 2026-03-05 | - |
 | 40. E2E Test Coverage for v2.4 | v2.4 | 0/? | Planned | - |
 
 ---

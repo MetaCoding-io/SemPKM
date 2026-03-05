@@ -25,6 +25,7 @@ dependencies = [
     "wsgidav>=4.3.3,<5.0",
     "a2wsgi>=1.10",
     "python-frontmatter>=1.1.0",
+    "owlrl>=7.0",
 ]
 
 [project.optional-dependencies]
