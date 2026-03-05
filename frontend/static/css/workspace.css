@@ -3245,3 +3245,148 @@ details.form-group[open] > .form-group-summary::before {
     color: var(--color-text-faint, var(--color-text-muted));
     font-size: 0.875rem;
 }
+
+/* ============================================
+   Lint Dashboard (Global, bottom panel)
+   ============================================ */
+
+.lint-dashboard {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.lint-dashboard-summary {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--color-border);
+    font-size: 0.8rem;
+}
+
+.lint-count-violations { color: var(--color-error); }
+.lint-count-warnings { color: var(--color-warning); }
+.lint-count-infos { color: var(--color-info); }
+.lint-conforms { color: var(--color-success); }
+
+.lint-dashboard-filters {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.lint-dashboard-filters select,
+.lint-dashboard-filters input {
+    font-size: 0.78rem;
+    padding: 4px 8px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: var(--color-bg);
+    color: var(--color-text);
+}
+
+.lint-dashboard-filters input {
+    flex: 1;
+    min-width: 120px;
+}
+
+.lint-dashboard-filters svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+.lint-dashboard-results-wrap {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.lint-dashboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+}
+
+.lint-dashboard-table th {
+    text-align: left;
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+    font-weight: 600;
+    cursor: pointer;
+    position: sticky;
+    top: 0;
+    background: var(--color-surface);
+    z-index: 1;
+}
+
+.lint-dashboard-table td {
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.lint-dashboard-row {
+    cursor: pointer;
+    transition: background 0.1s;
+}
+
+.lint-dashboard-row:hover {
+    background: var(--color-bg-hover, var(--color-surface-hover));
+}
+
+.lint-dashboard-row .severity-icon {
+    width: 16px;
+    text-align: center;
+}
+
+.lint-severity-violation { border-left: 3px solid var(--color-error); }
+.lint-severity-warning { border-left: 3px solid var(--color-warning); }
+.lint-severity-info { border-left: 3px solid var(--color-info); }
+
+.lint-type-badge {
+    font-size: 0.65rem;
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: var(--color-bg-secondary, var(--color-surface-recessed));
+    color: var(--color-text-muted);
+    margin-left: 4px;
+}
+
+.lint-dashboard-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+}
+
+.lint-badge {
+    display: none;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    margin-left: 6px;
+    border-radius: 8px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-align: center;
+    line-height: 16px;
+}
+
+.lint-badge--violations { display: inline-block; background: var(--color-error); color: #fff; }
+.lint-badge--warnings { display: inline-block; background: var(--color-warning); color: #000; }
+.lint-badge--pass { display: inline-block; background: var(--color-success); color: #fff; }
+
+.lint-dashboard-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+}
