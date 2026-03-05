@@ -1,0 +1,161 @@
+modelId: ppv
+version: "1.0.0"
+name: "Pillars, Pipelines & Vaults"
+description: "August Bradley's PPV productivity system with five-level goal hierarchy (Pillar > Value Goal > Goal Outcome > Project > Action Item), four-tier review cycles (Weekly > Monthly > Quarterly > Yearly), and rich dashboards for life management."
+namespace: "urn:sempkm:model:ppv:"
+prefixes:
+  ppv: "urn:sempkm:model:ppv:"
+entrypoints:
+  ontology: "ontology/ppv.jsonld"
+  shapes: "shapes/ppv.jsonld"
+  views: "views/ppv.jsonld"
+  seed: "seed/ppv.jsonld"
+  rules: "rules/ppv.ttl"
+entailment_defaults:
+  owl_inverseOf: true
+  rdfs_subClassOf: false
+  rdfs_subPropertyOf: false
+  owl_TransitiveProperty: false
+  rdfs_domain_range: false
+  shacl_rules: true
+icons:
+  - type: "ppv:PillarGroup"
+    icon: "layers"
+    color: "#6366f1"
+    tree:
+      icon: "layers"
+      color: "#6366f1"
+      size: 16
+    tab:
+      icon: "layers"
+      color: "#6366f1"
+      size: 14
+    graph:
+      icon: "layers"
+      color: "#6366f1"
+  - type: "ppv:Pillar"
+    icon: "mountain"
+    color: "#8b5cf6"
+    tree:
+      icon: "mountain"
+      color: "#8b5cf6"
+      size: 16
+    tab:
+      icon: "mountain"
+      color: "#8b5cf6"
+      size: 14
+    graph:
+      icon: "mountain"
+      color: "#8b5cf6"
+  - type: "ppv:ValueGoal"
+    icon: "compass"
+    color: "#0ea5e9"
+    tree:
+      icon: "compass"
+      color: "#0ea5e9"
+      size: 16
+    tab:
+      icon: "compass"
+      color: "#0ea5e9"
+      size: 14
+    graph:
+      icon: "compass"
+      color: "#0ea5e9"
+  - type: "ppv:GoalOutcome"
+    icon: "target"
+    color: "#d97706"
+    tree:
+      icon: "target"
+      color: "#d97706"
+      size: 16
+    tab:
+      icon: "target"
+      color: "#d97706"
+      size: 14
+    graph:
+      icon: "target"
+      color: "#d97706"
+  - type: "ppv:Project"
+    icon: "folder-kanban"
+    color: "#4f46e5"
+    tree:
+      icon: "folder-kanban"
+      color: "#4f46e5"
+      size: 16
+    tab:
+      icon: "folder-kanban"
+      color: "#4f46e5"
+      size: 14
+    graph:
+      icon: "folder-kanban"
+      color: "#4f46e5"
+  - type: "ppv:ActionItem"
+    icon: "square-check"
+    color: "#10b981"
+    tree:
+      icon: "square-check"
+      color: "#10b981"
+      size: 16
+    tab:
+      icon: "square-check"
+      color: "#10b981"
+      size: 14
+    graph:
+      icon: "square-check"
+      color: "#10b981"
+  - type: "ppv:WeeklyReview"
+    icon: "calendar-days"
+    color: "#f59e0b"
+    tree:
+      icon: "calendar-days"
+      color: "#f59e0b"
+      size: 16
+    tab:
+      icon: "calendar-days"
+      color: "#f59e0b"
+      size: 14
+    graph:
+      icon: "calendar-days"
+      color: "#f59e0b"
+  - type: "ppv:MonthlyReview"
+    icon: "calendar-range"
+    color: "#f97316"
+    tree:
+      icon: "calendar-range"
+      color: "#f97316"
+      size: 16
+    tab:
+      icon: "calendar-range"
+      color: "#f97316"
+      size: 14
+    graph:
+      icon: "calendar-range"
+      color: "#f97316"
+  - type: "ppv:QuarterlyReview"
+    icon: "calendar-clock"
+    color: "#ef4444"
+    tree:
+      icon: "calendar-clock"
+      color: "#ef4444"
+      size: 16
+    tab:
+      icon: "calendar-clock"
+      color: "#ef4444"
+      size: 14
+    graph:
+      icon: "calendar-clock"
+      color: "#ef4444"
+  - type: "ppv:YearlyReview"
+    icon: "calendar-heart"
+    color: "#ec4899"
+    tree:
+      icon: "calendar-heart"
+      color: "#ec4899"
+      size: 16
+    tab:
+      icon: "calendar-heart"
+      color: "#ec4899"
+      size: 14
+    graph:
+      icon: "calendar-heart"
+      color: "#ec4899"
