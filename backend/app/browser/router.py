@@ -153,6 +153,19 @@ async def docs_guide_viewer(
     })
 
 
+@router.get("/canvas")
+async def canvas_page(
+    request: Request,
+    user: User = Depends(get_current_user),
+):
+    """Render the Spatial Canvas workspace tab (M0 prototype)."""
+    templates = request.app.state.templates
+    return templates.TemplateResponse(request, "browser/canvas_page.html", {
+        "request": request,
+        "user": user,
+    })
+
+
 @router.get("/settings/data")
 async def settings_data(
     user: User = Depends(get_current_user),
