@@ -13,6 +13,7 @@
 - (future) **Identity: WebID + IndieAuth** -- WebID profiles with content negotiation, IndieAuth provider with PKCE (Phases A-B) — [Research](research/decentralized-identity.md)
 - (future) **Collaboration & Federation** -- Multi-instance sync via RDF Patch, LDN notifications, federated identity, collaboration UI — [Research](research/collaboration-architecture.md)
 - (future) **Identity: DIDs + Verifiable Credentials** -- did:web documents, RDF graph signing, VC 2.0 issuance, did:webvh migration (Phases C-E) — [Research](research/decentralized-identity.md)
+- (future) **RSS Reader & Hypothesis Integration** -- In-app feed reader with background polling, OPML import/export, Hypothesis annotation sync, W3C Web Annotation storage — [Research](../../docs/research/rss-reader-hypothesis-integration.md)
 
 ## Phases
 
@@ -319,6 +320,41 @@ Before proceeding to the SPARQL Interface milestone, the following design decisi
 3. **did:webvh Migration (Future)** -- Upgrade to did:webvh for verifiable history; cryptographic version chain; pre-rotation for key compromise recovery; build when DID Methods WG standardizes
 
 **Research:** [decentralized-identity.md](research/decentralized-identity.md) -- Phases C-E
+
+---
+
+### (Future) RSS Reader & Hypothesis Integration
+
+**Milestone Goal:** Build an in-app feed reader with background polling, content extraction, OPML import/export, and Hypothesis annotation sync — storing articles, highlights, and bookmarks as native RDF objects via the W3C Web Annotation vocabulary.
+
+**Depends on:** v2.4 complete (inference for derived article-concept links). Can start independently of SPARQL Interface.
+
+**Research:** [rss-reader-hypothesis-integration.md](/home/james/Code/SemPKM/docs/research/rss-reader-hypothesis-integration.md)
+
+**New dependencies:** `feedparser` (RSS/Atom parsing), `trafilatura` (content extraction), `listparser` (OPML import)
+
+**Estimated Phases (sketch — to be refined during milestone planning):**
+
+1. **RSS Mental Model Bundle** — New installable model (`models/rss-reader/`) with Feed, FeedSubscription, Article, FeedFolder, Highlight, Bookmark types; SHACL shapes for forms; views for Unread, Starred, Highlights, Feed List; seed data with sample feed
+   - Key vocabularies: schema:DataFeed, schema:Article, oa:Annotation, sioc:Forum, as:Read
+   - Low risk — follows established model packaging pattern (cf. basic-pkm, ppv)
+
+2. **Feed Subscription & Ingestion** — FeedService for fetch/parse/ingest; feed discovery (HTML `<link>` autodiscovery + common URL probing); articles created via existing Command API (object.create, body.set); conditional GET (ETag/Last-Modified) to avoid redundant downloads
+   - Key risk: Bulk ingestion performance (10-50 articles per feed update through EventStore)
+
+3. **Background Feed Polling** — asyncio background task in FastAPI lifespan; adaptive polling intervals (15min-12h based on feed frequency); RSS `<ttl>` and HTTP Cache-Control respect; exponential backoff on errors; dead-feed detection
+   - Key risk: Reliability — feeds go down, change URLs, return errors
+
+4. **Reader UI** — Feeds panel in sidebar; article list view (htmx); reading pane in dockview tab (reuse object tab pattern); mark read/unread (as:Read activities); star/bookmark (oa:Annotation with oa:bookmarking); OPML import/export
+   - Reuses: htmx fragment patterns, dockview tabs, markdown rendering (marked + DOMPurify)
+
+5. **Content Extraction (Reader Mode)** — trafilatura integration for fetching clean article text when RSS provides only summaries; Markdown output stored via body.set; metadata extraction (author, date, categories)
+   - Key risk: Some sites block scrapers or require JS rendering
+
+6. **Hypothesis Annotation Sync** — Hypothesis API client (thin httpx wrapper); initial full-history import; periodic poll sync; WebSocket for near-real-time (optional); annotations stored as oa:Annotation with TextQuoteSelector; highlight display alongside articles
+   - Key risk: Hypothesis API rate limits (undocumented); sync edge cases (deletions, edits, conflicts)
+
+7. **Power Features** — Keyboard shortcuts (J/K/Space/F); full-text search via RDF4J Lucene; filter/rule system for auto-organization; article-to-concept linking (manual + AI-suggested); adaptive polling tuning
 
 ---
 
