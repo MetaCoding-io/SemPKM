@@ -10,12 +10,14 @@ entrypoints:
   shapes: "shapes/basic-pkm.jsonld"
   views: "views/basic-pkm.jsonld"
   seed: "seed/basic-pkm.jsonld"
+  rules: "rules/basic-pkm.ttl"
 entailment_defaults:
   owl_inverseOf: true
   rdfs_subClassOf: false
   rdfs_subPropertyOf: false
   owl_TransitiveProperty: false
   rdfs_domain_range: false
+  shacl_rules: true
 icons:
   - type: "bpkm:Note"
     icon: "file-text"
