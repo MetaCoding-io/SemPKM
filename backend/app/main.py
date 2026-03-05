@@ -18,6 +18,7 @@ from app.admin.router import router as admin_router
 from app.auth.router import router as auth_router
 from app.browser.router import router as browser_router
 from app.inference.router import router as inference_router
+from app.lint.broadcast import LintBroadcast, SSEEvent
 from app.lint.router import router as lint_router
 from app.lint.service import LintService
 from app.views.router import router as views_router
@@ -96,6 +97,10 @@ async def lifespan(app: FastAPI):
     lint_service = LintService(client, label_service)
     app.state.lint_service = lint_service
 
+    # Create SSE broadcast manager for real-time lint event push
+    lint_broadcast = LintBroadcast()
+    app.state.lint_broadcast = lint_broadcast
+
     # Create search service for full-text keyword search (LuceneSail)
     search_service = SearchService(client)
     app.state.search_service = search_service
@@ -128,8 +133,9 @@ async def lifespan(app: FastAPI):
     webhook_service = WebhookService(client)
     app.state.webhook_service = webhook_service
 
-    # Define validation completion callback for webhook dispatch
-    async def on_validation_complete(report_summary, event_iri, timestamp):
+    # Define validation completion callback for webhook dispatch + SSE broadcast
+    async def on_validation_complete(report_summary, event_iri, timestamp, trigger_source="user_edit"):
+        # Dispatch webhook (existing behavior)
         await webhook_service.dispatch("validation.completed", {
             "event_iri": event_iri,
             "timestamp": timestamp,
@@ -137,6 +143,19 @@ async def lifespan(app: FastAPI):
             "violations": report_summary.violation_count,
             "warnings": report_summary.warning_count,
         })
+        # Broadcast SSE event to all connected clients
+        await lint_broadcast.publish(SSEEvent(
+            event="validation_complete",
+            data={
+                "run_id": report_summary.report_iri or "",
+                "conforms": report_summary.conforms,
+                "violation_count": report_summary.violation_count,
+                "warning_count": report_summary.warning_count,
+                "info_count": report_summary.info_count,
+                "timestamp": timestamp,
+                "trigger_source": trigger_source,
+            },
+        ))
 
     validation_queue = AsyncValidationQueue(
         validation_service, on_complete=on_validation_complete
