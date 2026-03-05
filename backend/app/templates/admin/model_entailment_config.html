@@ -41,7 +41,11 @@
                 <div class="entailment-examples">
                     <span class="examples-label">In this model:</span>
                     {% for ex in entailment.examples %}
+                    {% if ex.label_b %}
                     <span class="entailment-example">{{ ex.label_a }} &#8596; {{ ex.label_b }}</span>
+                    {% else %}
+                    <span class="entailment-example">{{ ex.label_a }}</span>
+                    {% endif %}
                     {% endfor %}
                 </div>
                 {% else %}
