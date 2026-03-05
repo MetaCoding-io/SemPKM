@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Inference & Polish
-current_plan: 2 of 2
-status: completed
-stopped_at: Phase 37 context gathered
+current_plan: 1 of 2
+status: in-progress
+stopped_at: Completed 37-01-PLAN.md
 last_updated: "2026-03-05T02:40:50.804Z"
 last_activity: 2026-03-05 - Completed 36-02-PLAN.md (SHACL-AF rules content & UI integration)
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 7
-  completed_plans: 7
+  completed_plans: 8
   percent: 100
 ---
 
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-03-03)
 
 ## Current Position
 
-Phase: 36 of 40 (SHACL-AF Rules)
-Current Plan: 2 of 2
-Status: Phase 36 complete
-Last activity: 2026-03-05 - Completed 36-02-PLAN.md (SHACL-AF rules content & UI integration)
+Phase: 37 of 40 (Global Lint Data Model & API)
+Current Plan: 1 of 2
+Status: in-progress
+Last activity: 2026-03-05 - Completed 37-01-PLAN.md (Lint data model, service, and REST API)
 
-Progress: [██████████] 100% (47/47 plans)
+Progress: [██████████] 100% (48/49 plans)
 
 ## Performance Metrics
 
@@ -50,6 +50,7 @@ Progress: [██████████] 100% (47/47 plans)
 |-------|-------|-------|----------|
 | 35 | 5 | 24 min | 5 min |
 | 36 | 2 | 4 min | 2 min |
+| 37 | 1 | 5 min | 5 min |
 
 *Updated after each plan completion*
 
@@ -74,6 +75,9 @@ Full decision log in PROJECT.md Key Decisions table.
 - 36-01: Rule-derived triples tagged as sh:rule directly, bypassing classify_entailment
 - 36-01: TypeError fallback for iterate_rules pyshacl compatibility
 - 36-02: hasRelatedNote derived via SHACL rule (not owl:inverseOf) to demonstrate SHACL-AF value
+- 37-01: Per-run named graphs with structured result triples for queryable lint data
+- 37-01: Latest run pointer via dedicated triples (avoids ORDER BY DESC queries)
+- 37-01: Fingerprint-based diff algorithm for comparing validation runs
 
 ### Pending Todos
 
@@ -97,6 +101,6 @@ None — clean start for v2.4
 
 ## Session Continuity
 
-Last session: 2026-03-05T02:40:50.802Z
-Stopped at: Phase 37 context gathered
-Resume file: .planning/phases/37-global-lint-data-model-api/37-CONTEXT.md
+Last session: 2026-03-05T03:28:00Z
+Stopped at: Completed 37-01-PLAN.md
+Resume file: .planning/phases/37-global-lint-data-model-api/37-01-SUMMARY.md
