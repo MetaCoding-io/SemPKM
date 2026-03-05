@@ -38,14 +38,9 @@ test.describe('Tutorials and Docs', () => {
     });
     await waitForIdle(ownerPage);
 
-    // A tab with data-tab-id="special:docs" should appear in the tab bar
-    // (workspace-layout.js: tabEl.setAttribute('data-tab-id', tabId))
-    const docsTab = ownerPage.locator('[data-tab-id="special:docs"]');
-    await expect(docsTab).toBeVisible({ timeout: 10000 });
-
-    // The tab label should read "Docs & Tutorials"
-    const tabLabel = docsTab.locator('.tab-label');
-    await expect(tabLabel).toContainText('Docs');
+    // Dockview panel for docs should be created
+    const docsTabContent = ownerPage.locator('.dv-default-tab-content');
+    await expect(docsTabContent.filter({ hasText: 'Docs' })).toBeVisible({ timeout: 10000 });
   });
 
   test('tutorial start buttons are visible in the docs page', async ({ ownerPage }) => {

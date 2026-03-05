@@ -29,9 +29,14 @@ test.describe('Graph View', () => {
 
     const encodedSpecIri = encodeURIComponent(graphSpec.spec_iri);
     await ownerPage.evaluate((iri) => {
-      const target = document.querySelector('#editor-area-group-1');
-      if (target && (window as any).htmx) {
-        (window as any).htmx.ajax('GET', '/browser/views/graph/' + iri, { target });
+      const dv = (window as any)._dockview;
+      if (dv) {
+        dv.addPanel({
+          id: 'view-' + Date.now(),
+          component: 'special-panel',
+          params: { specialType: 'views/graph/' + iri, isView: true, isSpecial: true },
+          title: 'View',
+        });
       }
     }, encodedSpecIri);
 
@@ -86,9 +91,14 @@ test.describe('Graph View', () => {
 
     const encodedSpecIri = encodeURIComponent(graphSpec.spec_iri);
     await ownerPage.evaluate((iri) => {
-      const target = document.querySelector('#editor-area-group-1');
-      if (target && (window as any).htmx) {
-        (window as any).htmx.ajax('GET', '/browser/views/graph/' + iri, { target });
+      const dv = (window as any)._dockview;
+      if (dv) {
+        dv.addPanel({
+          id: 'view-' + Date.now(),
+          component: 'special-panel',
+          params: { specialType: 'views/graph/' + iri, isView: true, isSpecial: true },
+          title: 'View',
+        });
       }
     }, encodedSpecIri);
 
@@ -119,9 +129,14 @@ test.describe('Graph View', () => {
 
     const encodedSpecIri = encodeURIComponent(graphSpec.spec_iri);
     await ownerPage.evaluate((iri) => {
-      const target = document.querySelector('#editor-area-group-1');
-      if (target && (window as any).htmx) {
-        (window as any).htmx.ajax('GET', '/browser/views/graph/' + iri, { target });
+      const dv = (window as any)._dockview;
+      if (dv) {
+        dv.addPanel({
+          id: 'view-' + Date.now(),
+          component: 'special-panel',
+          params: { specialType: 'views/graph/' + iri, isView: true, isSpecial: true },
+          title: 'View',
+        });
       }
     }, encodedSpecIri);
 
