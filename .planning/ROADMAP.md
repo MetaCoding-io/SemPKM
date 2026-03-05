@@ -100,7 +100,7 @@
 - [x] **Phase 37: Global Lint Data Model & API** — Persist per-object, per-result validation detail; paginated API endpoints with filtering by severity, type, path (completed 2026-03-05)
 - [x] **Phase 38: Global Lint Dashboard UI** — Filterable, sortable result table with severity badges, health indicator, auto-refresh (completed 2026-03-05)
 - [x] **Phase 39: Edit Form Helptext + Bug Fix Batch** — `sempkm:editHelpText` SHACL annotation in edit forms; fix accent bar, card borders, Firefox Ctrl+K, tab bleed, dark chevrons, concept search (completed 2026-03-05)
-- [ ] **Phase 40: E2E Test Coverage for v2.4** — Playwright tests for inference, lint dashboard, helptext, and bug fix verifications
+- [x] **Phase 40: E2E Test Coverage for v2.4** — Playwright tests for inference, lint dashboard, helptext, and bug fix verifications (completed 2026-03-05)
 
 ## Phase Details
 
@@ -410,7 +410,7 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 37. Global Lint Data Model & API | 2/2 | Complete    | 2026-03-05 | - |
 | 38. Global Lint Dashboard UI | 2/2 | Complete    | 2026-03-05 | - |
 | 39. Edit Form Helptext + Bug Fix Batch | 2/2 | Complete   | 2026-03-05 | - |
-| 40. E2E Test Coverage for v2.4 | 1/2 | In Progress|  | - |
+| 40. E2E Test Coverage for v2.4 | 2/2 | Complete   | 2026-03-05 | - |
 
 ---
 *Roadmap created: 2026-02-21*
