@@ -22,7 +22,7 @@
 
 ### Edit Form Helptext
 
-- [ ] **HELP-01**: SHACL shapes can declare `sempkm:editHelpText` annotation property; edit forms render it as collapsible markdown below the field, providing context about what to enter and why
+- [x] **HELP-01**: SHACL shapes can declare `sempkm:editHelpText` annotation property; edit forms render it as collapsible markdown below the field, providing context about what to enter and why
 
 ### Bug Fixes
 
