@@ -107,15 +107,12 @@
   var panel = document.querySelector('[data-testid="lint-panel"]');
   if (!panel) return;
 
-  // Avoid duplicate EventSource connections on re-render
-  if (window._lintSSE) {
-    try { window._lintSSE.close(); } catch(e) {}
+  // Reuse the shared EventSource connection (created by workspace.js)
+  if (!window._lintSSE) {
+    window._lintSSE = new EventSource('/api/lint/stream');
   }
 
-  var es = new EventSource('/api/lint/stream');
-  window._lintSSE = es;
-
-  es.addEventListener('validation_complete', function() {
+  window._lintSSE.addEventListener('validation_complete', function() {
     var objectIri = panel.dataset.objectIri;
     if (objectIri && typeof htmx !== 'undefined') {
       htmx.ajax('GET', '/browser/lint/' + encodeURIComponent(objectIri), {
