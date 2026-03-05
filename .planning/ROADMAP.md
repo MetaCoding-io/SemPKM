@@ -195,8 +195,12 @@ Plans:
   4. E2E tests verify each bug fix (accent bar, card borders, Ctrl+K, tab bleed, dark chevrons, concept search)
 **Plans**: 2 plans
 Plans:
-- [ ] 36-01-PLAN.md — Backend infrastructure (manifest rules entrypoint, Turtle loader, SHACL-AF rules in inference pipeline)
-- [ ] 36-02-PLAN.md — Rules content and UI (basic-pkm rules file, admin toggle, inference panel filter chip)
+- [ ] 40-01-PLAN.md — Inference and lint dashboard E2E tests (TEST-05)
+- [ ] 40-02-PLAN.md — Helptext and bug fix regression E2E tests (TEST-05)
+
+
+
+
 
 ---
 
@@ -370,7 +374,7 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 37. Global Lint Data Model & API | 2/2 | Complete    | 2026-03-05 | - |
 | 38. Global Lint Dashboard UI | 2/2 | Complete    | 2026-03-05 | - |
 | 39. Edit Form Helptext + Bug Fix Batch | 2/2 | Complete   | 2026-03-05 | - |
-| 40. E2E Test Coverage for v2.4 | v2.4 | 0/? | Planned | - |
+| 40. E2E Test Coverage for v2.4 | 1/2 | In Progress|  | - |
 
 ---
 *Roadmap created: 2026-02-21*
