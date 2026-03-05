@@ -65,6 +65,15 @@
           htmx.ajax('GET', url, {
             target: el, swap: 'innerHTML'
           });
+          // Re-apply accent color after htmx settles content (inline scripts set _tabMeta typeColor)
+          el.addEventListener('htmx:afterSettle', function onSettle() {
+            el.removeEventListener('htmx:afterSettle', onSettle);
+            var meta = _tabMeta[iri];
+            var groupEl = params.api.group ? params.api.group.element : null;
+            if (meta && meta.typeColor && groupEl) {
+              groupEl.style.setProperty('--tab-accent-color', meta.typeColor);
+            }
+          });
           // Visibility handler: re-measure CodeMirror when panel re-shown
           params.api.onDidVisibilityChange(function (event) {
             if (!event.isVisible) return;
