@@ -15,10 +15,10 @@
 - [x] **LINT-01**: User can open a Global Lint Status view (as a dockview panel or dedicated page) that shows all SHACL validation results across every object in the knowledge base, with summary counts by severity (violations, warnings, infos) and a per-object breakdown
 - [x] **LINT-02**: Global lint view updates automatically after each EventStore.commit() via the existing AsyncValidationQueue; user sees the latest validation state without manual refresh
 - [ ] **LINT-03**: User can see a visual health indicator (e.g., status bar badge or sidebar icon) showing the overall knowledge base validation status at a glance (pass / N violations / N warnings)
-- [ ] **LINT-04**: User can filter lint results by severity level (violations only, warnings only, infos only, or combinations)
-- [ ] **LINT-05**: User can filter lint results by object type (e.g., show only Note violations, only Project violations) using the Mental Model's type registry
-- [ ] **LINT-06**: User can search/filter lint results by keyword across message text, property path, and object label
-- [ ] **LINT-07**: User can sort lint results by severity, object name, property path, or timestamp
+- [x] **LINT-04**: User can filter lint results by severity level (violations only, warnings only, infos only, or combinations)
+- [x] **LINT-05**: User can filter lint results by object type (e.g., show only Note violations, only Project violations) using the Mental Model's type registry
+- [x] **LINT-06**: User can search/filter lint results by keyword across message text, property path, and object label
+- [x] **LINT-07**: User can sort lint results by severity, object name, property path, or timestamp
 
 ### Edit Form Helptext
 

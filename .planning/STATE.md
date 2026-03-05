@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-03-03)
 
 ## Current Position
 
-Phase: 39 of 40 (Edit Form Helptext & Bug Fixes)
-Current Plan: 2 of 2
-Status: complete
-Last activity: 2026-03-05 - Completed 39-02-PLAN.md (Type-aware tab accent colors)
+Phase: 38 of 40 (Global Lint Dashboard UI)
+Current Plan: 1 of 2
+Status: in-progress
+Last activity: 2026-03-05 - Completed 38-01-PLAN.md (Global lint dashboard UI)
 
-Progress: [██████████] 98% (50/51 plans)
+Progress: [██████████] 100% (51/51 plans)
 
 ## Performance Metrics
 
@@ -84,6 +84,9 @@ Full decision log in PROJECT.md Key Decisions table.
 - 37-02: Single global SSE stream shared by per-object panel and future dashboard
 - 39-02: Container-level CSS variable for accent color (not per-tab inline style) for simplicity
 - 39-02: orig_specs manifest unchanged (no icons section to update)
+- 38-01: Lazy-load lint dashboard via hx-trigger=revealed (not server-side include) to avoid coupling lint context to workspace route
+- 38-01: SPARQL search uses CONTAINS(LCASE()) across message, focusNode, and path
+- 38-01: Sort order validated against strict allowlist to prevent SPARQL injection
 
 ### Pending Todos
 
@@ -107,6 +110,6 @@ None — clean start for v2.4
 
 ## Session Continuity
 
-Last session: 2026-03-05T03:43:11.898Z
-Stopped at: Completed 39-01-PLAN.md
+Last session: 2026-03-05T04:07:13Z
+Stopped at: Completed 38-01-PLAN.md
 Resume file: None

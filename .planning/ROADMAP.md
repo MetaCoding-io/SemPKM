@@ -368,7 +368,7 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 35. OWL 2 RL Inference | 5/5 | Complete    | 2026-03-04 | - |
 | 36. SHACL-AF Rules Support | 2/2 | Complete    | 2026-03-05 | - |
 | 37. Global Lint Data Model & API | 2/2 | Complete    | 2026-03-05 | - |
-| 38. Global Lint Dashboard UI | v2.4 | 0/2 | Planned | - |
+| 38. Global Lint Dashboard UI | 1/2 | In Progress|  | - |
 | 39. Edit Form Helptext + Bug Fix Batch | 2/2 | Complete   | 2026-03-05 | - |
 | 40. E2E Test Coverage for v2.4 | v2.4 | 0/? | Planned | - |
 
