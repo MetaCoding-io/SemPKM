@@ -28,6 +28,8 @@ async def get_lint_results(
     object_type: str | None = None,
     run_id: str | None = None,
     detail: str | None = None,
+    search: str | None = None,
+    sort: str = "severity",
     user: User = Depends(get_current_user),
     lint_service: LintService = Depends(get_lint_service),
 ) -> LintResultsResponse:
@@ -40,6 +42,8 @@ async def get_lint_results(
         object_type: Filter by RDF type IRI of the focus node.
         run_id: Specific run IRI to query (defaults to latest).
         detail: Set to "full" to include source_shape, constraint_component, source_model.
+        search: Keyword search across message, object IRI, and property path.
+        sort: Sort order (severity, object, path). Default: severity.
     """
     return await lint_service.get_results(
         page=page,
@@ -48,6 +52,8 @@ async def get_lint_results(
         object_type=object_type,
         run_id=run_id,
         detail=(detail == "full"),
+        search=search,
+        sort=sort,
     )
 
 

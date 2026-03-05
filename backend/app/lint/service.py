@@ -136,6 +136,8 @@ class LintService:
         object_type: Optional[str] = None,
         run_id: Optional[str] = None,
         detail: bool = False,
+        search: Optional[str] = None,
+        sort: str = "severity",
     ) -> LintResultsResponse:
         """Query paginated lint results from a run's named graph.
 
@@ -190,6 +192,21 @@ class LintService:
             }}
             """
 
+        # Search filter: match across message, focusNode IRI, and path
+        search_filter = ""
+        if search:
+            # Sanitize search string to prevent SPARQL injection
+            escaped = search.replace("\\", "\\\\").replace('"', '\\"')
+            search_filter = f'FILTER(CONTAINS(LCASE(?message), LCASE("{escaped}")) || CONTAINS(LCASE(STR(?focusNode)), LCASE("{escaped}")) || (BOUND(?path) && CONTAINS(LCASE(STR(?path)), LCASE("{escaped}"))))'
+
+        # Sort order: allowlist to prevent injection
+        sort_allowlist = {
+            "severity": "ORDER BY ?severity ?focusNode",
+            "object": "ORDER BY ?focusNode ?severity",
+            "path": "ORDER BY ?path ?focusNode",
+        }
+        order_clause = sort_allowlist.get(sort, sort_allowlist["severity"])
+
         # Count query
         count_query = f"""
         PREFIX sh: <http://www.w3.org/ns/shacl#>
@@ -198,8 +215,11 @@ class LintService:
           GRAPH <{target_run}> {{
             ?result a sempkm:LintResult ;
                     sh:focusNode ?focusNode ;
-                    sh:resultSeverity ?severity .
+                    sh:resultSeverity ?severity ;
+                    sh:resultMessage ?message .
+            OPTIONAL {{ ?result sh:resultPath ?path }}
             {severity_filter}
+            {search_filter}
           }}
           {object_type_filter}
         }}
@@ -239,10 +259,11 @@ class LintService:
             OPTIONAL {{ ?result sempkm:sourceModel ?sourceModel }}
             OPTIONAL {{ ?result sempkm:orphaned ?orphaned }}
             {severity_filter}
+            {search_filter}
           }}
           {object_type_filter}
         }}
-        ORDER BY ?focusNode ?severity
+        {order_clause}
         OFFSET {offset} LIMIT {per_page}
         """
         result = await self._client.query(results_query)
