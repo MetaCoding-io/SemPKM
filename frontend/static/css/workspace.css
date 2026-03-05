@@ -825,6 +825,63 @@
     margin-bottom: 4px;
 }
 
+/* Form-level helptext (collapsible guide below form title) */
+.form-helptext-top {
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: var(--color-surface-raised);
+    margin-bottom: 12px;
+}
+.form-helptext-summary {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    cursor: pointer;
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+.form-helptext-summary .helptext-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+.form-helptext-content {
+    padding: 4px 12px 12px;
+}
+
+/* Field-level helptext toggle button */
+.btn-helptext-toggle {
+    display: inline-flex;
+    align-items: center;
+    background: none;
+    border: none;
+    padding: 0 2px;
+    cursor: pointer;
+    color: var(--color-text-faint);
+    vertical-align: middle;
+}
+.btn-helptext-toggle:hover {
+    color: var(--color-accent);
+}
+.btn-helptext-toggle svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+/* Field-level helptext content */
+.field-helptext {
+    padding: 6px 0 8px;
+    font-size: 0.85rem;
+}
+.field-helptext .markdown-body {
+    font-size: 0.85rem;
+}
+
 .form-field input,
 .form-field select {
     width: 100%;
