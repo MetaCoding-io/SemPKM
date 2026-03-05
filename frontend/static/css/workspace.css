@@ -2677,3 +2677,99 @@ details.form-group[open] > .form-group-summary::before {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
 }
+
+/* Spatial canvas prototype (M0) */
+.canvas-page {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+  min-height: 420px;
+}
+
+.canvas-page-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.canvas-page-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.canvas-page-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.canvas-page-zoom {
+  min-width: 42px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.spatial-canvas-root,
+.spatial-canvas-viewport {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.spatial-canvas-root {
+  border: 1px solid var(--color-border-default);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--color-bg-surface);
+}
+
+.spatial-canvas-viewport {
+  cursor: grab;
+  background-image:
+    linear-gradient(to right, rgba(127, 127, 127, 0.12) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(127, 127, 127, 0.12) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.spatial-canvas-viewport.is-panning {
+  cursor: grabbing;
+}
+
+.spatial-canvas-layer {
+  position: absolute;
+  inset: 0;
+  transform-origin: top left;
+}
+
+.spatial-node {
+  position: absolute;
+  width: 260px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 8px;
+  background: var(--color-bg-elevated);
+  box-shadow: var(--shadow-md);
+  padding: 10px;
+  user-select: none;
+}
+
+.spatial-node.dragging {
+  opacity: 0.88;
+}
+
+.spatial-node-header {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.spatial-node-uri {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-text-muted);
+  word-break: break-all;
+}

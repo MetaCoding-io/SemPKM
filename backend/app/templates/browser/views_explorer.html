@@ -4,6 +4,12 @@
      groups: list of dicts with type_iri, type_label, specs (ViewSpec list)
 #}
 
+<a class="tree-leaf view-leaf" href="#"
+   onclick="openCanvasTab(); return false;">
+    <span class="tree-leaf-icon">&#9635;</span>
+    <span class="tree-leaf-label">Spatial Canvas (Beta)</span>
+</a>
+
 {% if groups %}
 {% for group in groups %}
 <div class="tree-node view-group-node expanded" data-type-iri="{{ group.type_iri }}">
