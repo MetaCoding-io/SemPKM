@@ -26,12 +26,12 @@
 
 ### Bug Fixes
 
-- [ ] **BUG-04**: Accent bar on tabs is type-aware (different accent colors per type, not just teal for all)
-- [ ] **BUG-05**: Card view borders render correctly in both light and dark themes
-- [ ] **BUG-06**: Firefox Ctrl+K opens ninja-keys command palette (not Firefox's native address bar focus)
-- [ ] **BUG-07**: Tab accent bar does not bleed into adjacent inactive tabs
-- [ ] **BUG-08**: Panel chevron icons are visible in dark mode (not invisible-on-dark)
-- [ ] **BUG-09**: Concept search and linking functionality works correctly (search finds concepts, links are created)
+- [x] **BUG-04**: Accent bar on tabs is type-aware (different accent colors per type, not just teal for all)
+- [x] **BUG-05**: Card view borders render correctly in both light and dark themes
+- [x] **BUG-06**: Firefox Ctrl+K opens ninja-keys command palette (not Firefox's native address bar focus)
+- [x] **BUG-07**: Tab accent bar does not bleed into adjacent inactive tabs
+- [x] **BUG-08**: Panel chevron icons are visible in dark mode (not invisible-on-dark)
+- [x] **BUG-09**: Concept search and linking functionality works correctly (search finds concepts, links are created)
 
 ### Testing
 
