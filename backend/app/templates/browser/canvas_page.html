@@ -1,0 +1,28 @@
+<div class="canvas-page" data-testid="spatial-canvas-page">
+  <div class="canvas-page-toolbar">
+    <div class="canvas-page-title">
+      <strong>Spatial Canvas (M0)</strong>
+      <span>Pan, zoom, and drag sample resource nodes.</span>
+    </div>
+    <div class="canvas-page-actions">
+      <button class="btn-secondary" type="button" onclick="if(window.SemPKMCanvas) window.SemPKMCanvas.zoomOut()">-</button>
+      <span id="spatial-canvas-zoom" class="canvas-page-zoom">100%</span>
+      <button class="btn-secondary" type="button" onclick="if(window.SemPKMCanvas) window.SemPKMCanvas.zoomIn()">+</button>
+      <button class="btn-secondary" type="button" onclick="if(window.SemPKMCanvas) window.SemPKMCanvas.resetView()">Reset view</button>
+    </div>
+  </div>
+
+  <div id="spatial-canvas-root" class="spatial-canvas-root">
+    <div class="spatial-canvas-viewport">
+      <div class="spatial-canvas-layer"></div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      if (window.SemPKMCanvas && typeof window.SemPKMCanvas.mount === 'function') {
+        window.SemPKMCanvas.mount();
+      }
+    })();
+  </script>
+</div>
