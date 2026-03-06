@@ -3430,10 +3430,10 @@ details.form-group[open] > .form-group-summary::before {
 .lint-dashboard-summary {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 8px 12px;
-    border-bottom: 1px solid var(--color-border);
-    font-size: 0.8rem;
+    gap: 10px;
+    margin-left: auto;
+    font-size: 0.78rem;
+    white-space: nowrap;
 }
 
 .lint-count-violations { color: var(--color-error); }
@@ -3460,8 +3460,11 @@ details.form-group[open] > .form-group-summary::before {
 }
 
 .lint-dashboard-filters input {
-    flex: 1;
-    min-width: 120px;
+    width: 200px;
+}
+
+.lint-dashboard-timestamp {
+    color: var(--color-text-muted);
 }
 
 .lint-dashboard-filters svg {
