@@ -697,6 +697,27 @@
   }
   window.openCanvasTab = openCanvasTab;
 
+
+  function openVfsTab() {
+    var tabKey = 'special:vfs';
+    var dv = window._dockview;
+    if (!dv) return;
+
+    var existing = dv.panels.find(function(p) { return p.id === tabKey; });
+    if (existing) { existing.api.setActive(); return; }
+
+    if (!window._tabMeta) window._tabMeta = {};
+    window._tabMeta[tabKey] = { label: 'VFS Browser', dirty: false };
+
+    dv.api.addPanel({
+      id: tabKey,
+      component: 'special-panel',
+      params: { specialType: 'vfs', isView: false, isSpecial: true },
+      title: 'VFS Browser'
+    });
+  }
+  window.openVfsTab = openVfsTab;
+
   // --- Keyboard Shortcuts ---
 
   var _keydownHandler = null;
