@@ -428,7 +428,7 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 38. Global Lint Dashboard UI | 2/2 | Complete    | 2026-03-05 | - |
 | 39. Edit Form Helptext + Bug Fix Batch | 2/2 | Complete   | 2026-03-05 | - |
 | 40. E2E Test Coverage for v2.4 | 2/2 | Complete    | 2026-03-05 | - |
-| 41. Gap Closure — Rules Wiring, Flip Fix, VFS Browser | v2.4 | 0/? | Planned | - |
+| 41. Gap Closure — Rules Wiring, Flip Fix, VFS Browser | 2/3 | In Progress|  | - |
 
 ---
 *Roadmap created: 2026-02-21*

@@ -8,7 +8,7 @@
 ### OWL 2 RL Inference
 
 - [x] **INF-01**: User adds a participant to a Project; the Person's detail page automatically shows the Project in their "participatesIn" list without manual inverse entry (OWL 2 RL inference materializes `owl:inverseOf` triples)
-- [ ] **INF-02**: Mental Models can ship SHACL-AF rules (sh:TripleRule, sh:SPARQLRule) that pyshacl executes with `advanced=True`; inferred triples are stored in `urn:sempkm:inferred` named graph and visible in object views and graph visualization
+- [x] **INF-02**: Mental Models can ship SHACL-AF rules (sh:TripleRule, sh:SPARQLRule) that pyshacl executes with `advanced=True`; inferred triples are stored in `urn:sempkm:inferred` named graph and visible in object views and graph visualization
 
 ### Global Lint Dashboard
 
@@ -39,7 +39,7 @@
 
 ### Bug Fixes (Gap Closure)
 
-- [ ] **BUG-10**: Edit form flip card does not show read-only view content bleeding through after flipping to edit mode (permanent fix for recurring backface-visibility issue)
+- [x] **BUG-10**: Edit form flip card does not show read-only view content bleeding through after flipping to edit mode (permanent fix for recurring backface-visibility issue)
 
 ### Testing
 
@@ -108,7 +108,7 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | INF-01 | Phase 35 | Complete |
-| INF-02 | Phase 41 | Pending |
+| INF-02 | Phase 41 | Complete |
 | LINT-01 | Phase 37 | Planned |
 | LINT-02 | Phase 37 | Planned |
 | LINT-03 | Phase 38 | Planned |
@@ -124,7 +124,7 @@
 | BUG-08 | Phase 39 | Planned |
 | BUG-09 | Phase 39 | Planned |
 | VFS-01 | Phase 41 | Pending |
-| BUG-10 | Phase 41 | Pending |
+| BUG-10 | Phase 41 | Complete |
 | TEST-05 | Phase 40 | Planned |
 
 **Coverage:**

@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Inference & Polish
-current_plan: 2 of 2
-status: completed
-stopped_at: Completed 40-01-PLAN.md
-last_updated: "2026-03-05T14:24:45.019Z"
-last_activity: "2026-03-05 - Completed quick task 25: Analyze academic workspace chat and capture insights as research document"
+current_plan: 1 of 3
+status: in_progress
+stopped_at: Completed 41-02-PLAN.md
+last_updated: "2026-03-06T02:18:36.364Z"
+last_activity: "2026-03-06 - Completed 41-01: Rules graph wiring and validation enqueue"
 progress:
-  total_phases: 6
+  total_phases: 7
   completed_phases: 6
-  total_plans: 15
-  completed_plans: 15
-  percent: 100
+  total_plans: 18
+  completed_plans: 17
+  percent: 97
 ---
 
 # Project State
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-03-03)
 
 ## Current Position
 
-Phase: 40 of 40 (E2E Test Coverage v2.4)
-Current Plan: 2 of 2
-Status: complete
-Last activity: 2026-03-05 - Completed quick task 25: Analyze academic workspace chat and capture insights as research document
+Phase: 41 of 41 (Gap Closure: Rules, Flip, VFS)
+Current Plan: 1 of 3
+Status: in_progress
+Last activity: 2026-03-06 - Completed 41-01: Rules graph wiring and validation enqueue
 
-Progress: [██████████] 100% (51/51 plans)
+Progress: [██████████] 97% (56/58 plans)
 
 ## Performance Metrics
 
@@ -57,6 +57,8 @@ Progress: [██████████] 100% (51/51 plans)
 | Phase 39 P01 | 3 | 2 tasks | 6 files |
 | Phase 38 P02 | 2 min | 1 tasks | 2 files |
 | Phase 40 P01 | 40 | 2 tasks | 2 files |
+| Phase 41 P01 | 1 min | 2 tasks | 2 files |
+| Phase 41 P02 | 2 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -64,6 +66,8 @@ Progress: [██████████] 100% (51/51 plans)
 
 Full decision log in PROJECT.md Key Decisions table.
 
+- 41-01: Rules write block placed after views, before register_sparql -- matches existing pattern
+- 41-01: Validation enqueue uses trigger_source='inference_promote' to distinguish from user edits
 - 35-01: Full recompute strategy for inference (not incremental) for simplicity at PKM scale
 - 35-01: SQLite table for per-triple state tracking (not RDF reification)
 - 35-01: owlrl 7.1.4 standalone for decoupled manual trigger inference
@@ -116,6 +120,6 @@ None — clean start for v2.4
 
 ## Session Continuity
 
-Last session: 2026-03-05T08:09:46.738Z
-Stopped at: Completed 40-01-PLAN.md
+Last session: 2026-03-06T02:18:36.361Z
+Stopped at: Completed 41-02-PLAN.md
 Resume file: None
