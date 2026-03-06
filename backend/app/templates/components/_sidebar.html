@@ -96,13 +96,15 @@
                     <i data-lucide="scroll-text" class="nav-icon"></i>
                     <span class="nav-label">Event Console</span>
                 </a>
-                <a href="/redoc" class="nav-link" data-tooltip="API Docs (ReDoc)" onclick="return loadDocsIframe('/redoc', this)">
+                <a href="/redoc" class="nav-link" data-tooltip="API Docs (ReDoc)" target="_blank" rel="noopener">
                     <i data-lucide="file-text" class="nav-icon"></i>
                     <span class="nav-label">API Docs (ReDoc)</span>
+                    <i data-lucide="arrow-up-right" class="nav-external"></i>
                 </a>
-                <a href="/docs" class="nav-link" data-tooltip="API Docs (Swagger)" onclick="return loadDocsIframe('/docs', this)">
+                <a href="/docs" class="nav-link" data-tooltip="API Docs (Swagger)" target="_blank" rel="noopener">
                     <i data-lucide="file-code" class="nav-icon"></i>
                     <span class="nav-label">API Docs (Swagger)</span>
+                    <i data-lucide="arrow-up-right" class="nav-external"></i>
                 </a>
                 <a href="/health/" class="nav-link" data-tooltip="Health Check"
                    hx-get="/health/" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
