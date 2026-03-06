@@ -1,5 +1,14 @@
 # Milestones
 
+## v2.4 Inference & Polish (Shipped: 2026-03-06)
+
+**Phases completed:** 9 phases, 20 plans, 0 tasks
+
+**Key accomplishments:**
+- (none recorded)
+
+---
+
 ## v1.0 MVP (Shipped: 2026-02-23)
 
 **Phases completed:** 9 phases, 26 plans, ~354 tasks
