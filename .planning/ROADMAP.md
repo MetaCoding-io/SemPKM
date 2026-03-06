@@ -231,7 +231,9 @@ Plans:
   2. Frontend does not enter infinite retry loop when an API call fails (error handling with user feedback)
   3. VFS tree interface has clear visual hierarchy, loading states, and intuitive expand/collapse behavior
   4. Clicking an object in the VFS tree opens it in a workspace tab
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 42-01-PLAN.md — Fix VFS backend bugs (wrong method name, wrong SPARQL predicate) and htmx infinite retry loop
 
 ### Phase 43: Inference E2E Test Gap
 **Goal**: E2E test suite covers the full inference user story — create a relationship, run inference, verify the inverse triple appears
@@ -241,7 +243,9 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. `_store_inferred_triples` handles rdfs:domain/rdfs:range without SPARQL 400 errors
   2. Playwright test creates an edge, triggers inference, and asserts the inverse triple appears in the inference panel or API response
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 42-01-PLAN.md — Fix VFS backend bugs (wrong method name, wrong SPARQL predicate) and htmx infinite retry loop
 
 ---
 
