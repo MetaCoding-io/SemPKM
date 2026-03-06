@@ -35,7 +35,7 @@
 
 ### VFS Browser
 
-- [ ] **VFS-01**: Users can open an in-app VFS browser view (as a dockview tab accessible from sidebar) that displays the virtual filesystem tree (model → type → objects) without needing an external WebDAV client
+- [x] **VFS-01**: Users can open an in-app VFS browser view (as a dockview tab accessible from sidebar) that displays the virtual filesystem tree (model → type → objects) without needing an external WebDAV client
 
 ### Bug Fixes (Gap Closure)
 
@@ -123,7 +123,7 @@
 | BUG-07 | Phase 39 | Planned |
 | BUG-08 | Phase 39 | Planned |
 | BUG-09 | Phase 39 | Planned |
-| VFS-01 | Phase 41 | Pending |
+| VFS-01 | Phase 41 | Complete |
 | BUG-10 | Phase 41 | Complete |
 | TEST-05 | Phase 40 | Planned |
 
