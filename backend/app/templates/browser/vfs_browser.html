@@ -13,7 +13,7 @@
             </div>
             <div class="vfs-children" style="display:none"
                  hx-get="/browser/vfs/{{ model.id }}/types"
-                 hx-trigger="revealed"
+                 hx-trigger="revealed once"
                  hx-swap="innerHTML">
                 <div class="vfs-loading">Loading...</div>
             </div>
