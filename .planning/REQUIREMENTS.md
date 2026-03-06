@@ -43,7 +43,7 @@
 
 ### Testing
 
-- [ ] **TEST-05**: Playwright E2E tests cover all v2.4 user-visible features (inference bidirectional links, lint dashboard filtering/sorting, edit form helptext, bug fix verifications)
+- [x] **TEST-05**: Playwright E2E tests cover all v2.4 user-visible features (inference bidirectional links, lint dashboard filtering/sorting, edit form helptext, bug fix verifications)
 
 ## Future Requirements
 
@@ -125,7 +125,7 @@
 | BUG-09 | Phase 39 | Complete |
 | VFS-01 | Phase 42 | Complete |
 | BUG-10 | Phase 41 | Complete |
-| TEST-05 | Phase 43 | Pending |
+| TEST-05 | Phase 43 | Complete |
 
 **Coverage:**
 - v2.4 requirements: 19 total
