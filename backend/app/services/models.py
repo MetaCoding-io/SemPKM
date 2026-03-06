@@ -237,6 +237,10 @@ class ModelService:
                 sparql = _build_insert_data_sparql(graphs.views, archive.views)
                 await self._client.transaction_update(txn_url, sparql)
 
+            if archive.rules is not None and len(archive.rules) > 0:
+                sparql = _build_insert_data_sparql(graphs.rules, archive.rules)
+                await self._client.transaction_update(txn_url, sparql)
+
             # 7. Register model metadata within the transaction
             register_sparql = _build_register_sparql(manifest, installed_at)
             await self._client.transaction_update(txn_url, register_sparql)

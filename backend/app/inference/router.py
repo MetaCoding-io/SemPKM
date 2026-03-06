@@ -13,11 +13,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
 from app.db.session import get_db_session
-from app.dependencies import get_event_store, get_triplestore_client
+from app.dependencies import get_event_store, get_triplestore_client, get_validation_queue
 from app.events.store import EventStore
 from app.inference.entailments import ENTAILMENT_TYPES, MANIFEST_KEY_TO_TYPE, TYPE_TO_MANIFEST_KEY
 from app.inference.service import InferenceService
 from app.triplestore.client import TriplestoreClient
+from app.validation.queue import AsyncValidationQueue
 
 logger = logging.getLogger(__name__)
 
@@ -165,12 +166,14 @@ async def promote_triple(
     client: TriplestoreClient = Depends(get_triplestore_client),
     db: AsyncSession = Depends(get_db_session),
     event_store: EventStore = Depends(get_event_store),
+    validation_queue: AsyncValidationQueue = Depends(get_validation_queue),
     current_user: User = Depends(get_current_user),
 ):
     """Promote an inferred triple to user data.
 
     Copies the triple to urn:sempkm:current via EventStore.commit(),
     marks it as promoted, and removes it from urn:sempkm:inferred.
+    Enqueues re-validation after successful promotion.
 
     Args:
         triple_hash: SHA-256 hash identifying the triple.
@@ -183,6 +186,15 @@ async def promote_triple(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Triple not found: {triple_hash}",
         )
+
+    # Enqueue validation after promotion commits to EventStore
+    from datetime import datetime, timezone
+
+    await validation_queue.enqueue(
+        event_iri=f"urn:sempkm:inference:promote:{triple_hash}",
+        timestamp=datetime.now(timezone.utc).isoformat(),
+        trigger_source="inference_promote",
+    )
 
     is_htmx = request.headers.get("HX-Request") == "true"
     if is_htmx:

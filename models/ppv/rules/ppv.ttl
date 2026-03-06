@@ -1,0 +1,62 @@
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix ppv:   <urn:sempkm:model:ppv:> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+
+# Rule: Derive ppv:pillar on Projects from the GoalOutcome -> ValueGoal -> Pillar chain
+# This populates the denormalized shortcut so dashboard queries can filter by pillar directly.
+
+ppv:ProjectPillarDenormRule
+    a sh:NodeShape ;
+    sh:targetClass ppv:Project ;
+    sh:rule [
+        a sh:SPARQLRule ;
+        sh:order 0 ;
+        rdfs:label "Derive project pillar from goal chain" ;
+        rdfs:comment "When a Project links to a GoalOutcome whose ValueGoal has a Pillar, copy the Pillar link to the Project" ;
+        sh:prefixes ppv:PrefixDeclarations ;
+        sh:construct """
+            CONSTRUCT {
+                $this ppv:pillar ?pillar .
+            }
+            WHERE {
+                $this ppv:goalOutcome ?go .
+                ?go ppv:valueGoal ?vg .
+                ?vg ppv:pillar ?pillar .
+                FILTER NOT EXISTS { $this ppv:pillar ?existingPillar }
+            }
+        """ ;
+    ] .
+
+# Rule: Derive ppv:pillar on ActionItems from the Project -> GoalOutcome -> ValueGoal -> Pillar chain
+
+ppv:ActionItemPillarDenormRule
+    a sh:NodeShape ;
+    sh:targetClass ppv:ActionItem ;
+    sh:rule [
+        a sh:SPARQLRule ;
+        sh:order 1 ;
+        rdfs:label "Derive action item pillar from project chain" ;
+        rdfs:comment "When an ActionItem links to a Project that has a Pillar (direct or derived), copy the Pillar link to the ActionItem" ;
+        sh:prefixes ppv:PrefixDeclarations ;
+        sh:construct """
+            CONSTRUCT {
+                $this ppv:pillar ?pillar .
+            }
+            WHERE {
+                $this ppv:project ?proj .
+                ?proj ppv:pillar ?pillar .
+                FILTER NOT EXISTS { $this ppv:pillar ?existingPillar }
+            }
+        """ ;
+    ] .
+
+# Prefix declarations for SPARQL rules
+ppv:PrefixDeclarations
+    a owl:Ontology ;
+    sh:declare [
+        sh:prefix "ppv" ;
+        sh:namespace "urn:sempkm:model:ppv:"^^xsd:anyURI ;
+    ] .

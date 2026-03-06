@@ -560,6 +560,8 @@
         if (!window.confirm('Discard unsaved changes?')) return;
         markClean(objectIri);
       }
+      // Before removing .flipped, ensure read face is renderable
+      if (readFace) readFace.style.display = '';
       flipInner.classList.remove('flipped');
       if (toggleBtn) toggleBtn.textContent = 'Edit';
       if (saveBtn) saveBtn.style.display = 'none';
@@ -595,23 +597,25 @@
           }
         }).catch(function () { /* keep stale content on error */ });
       }
-      // Swap faces at midpoint (300ms into 600ms animation)
+      // After animation completes (600ms, not 300ms midpoint), swap face classes
       setTimeout(function () {
         if (readFace) readFace.classList.remove('face-hidden');
         if (editFace) editFace.classList.remove('face-visible');
-      }, 300);
+      }, 600);
     } else {
       // Switching from read to edit: initialize edit mode if needed
       var initFn = window['_initEditMode_' + safeId];
       if (typeof initFn === 'function') initFn();
+      // Before adding .flipped, ensure edit face is renderable
+      if (editFace) editFace.style.display = '';
       flipInner.classList.add('flipped');
       if (toggleBtn) toggleBtn.textContent = 'Cancel';
       if (saveBtn) saveBtn.style.display = '';
-      // Swap faces at midpoint (300ms into 600ms animation)
+      // After animation completes (600ms, not 300ms midpoint), swap face classes
       setTimeout(function () {
         if (readFace) readFace.classList.add('face-hidden');
         if (editFace) editFace.classList.add('face-visible');
-      }, 300);
+      }, 600);
     }
   }
 
@@ -692,6 +696,27 @@
     });
   }
   window.openCanvasTab = openCanvasTab;
+
+
+  function openVfsTab() {
+    var tabKey = 'special:vfs';
+    var dv = window._dockview;
+    if (!dv) return;
+
+    var existing = dv.panels.find(function(p) { return p.id === tabKey; });
+    if (existing) { existing.api.setActive(); return; }
+
+    if (!window._tabMeta) window._tabMeta = {};
+    window._tabMeta[tabKey] = { label: 'VFS Browser', dirty: false };
+
+    dv.api.addPanel({
+      id: tabKey,
+      component: 'special-panel',
+      params: { specialType: 'vfs', isView: false, isSpecial: true },
+      title: 'VFS Browser'
+    });
+  }
+  window.openVfsTab = openVfsTab;
 
   // --- Keyboard Shortcuts ---
 

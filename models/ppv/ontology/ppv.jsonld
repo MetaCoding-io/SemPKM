@@ -1,0 +1,404 @@
+{
+  "@context": {
+    "owl": "http://www.w3.org/2002/07/owl#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "schema": "https://schema.org/",
+    "dcterms": "http://purl.org/dc/terms/",
+    "ppv": "urn:sempkm:model:ppv:"
+  },
+  "@graph": [
+    {
+      "@id": "ppv:ontology",
+      "@type": "owl:Ontology",
+      "rdfs:label": "PPV Productivity System Ontology",
+      "dcterms:description": "August Bradley's Pillars, Pipelines & Vaults system: a five-level goal hierarchy with four-tier review cycles for intentional life management."
+    },
+
+    {
+      "@id": "ppv:PillarGroup",
+      "@type": "owl:Class",
+      "rdfs:label": "Pillar Group",
+      "rdfs:comment": "User-defined grouping for organizing pillars (e.g., Growth, Business, Home & Social)"
+    },
+    {
+      "@id": "ppv:Pillar",
+      "@type": "owl:Class",
+      "rdfs:label": "Pillar",
+      "rdfs:comment": "Top-level life area that organizes all goals, projects, and actions"
+    },
+    {
+      "@id": "ppv:ValueGoal",
+      "@type": "owl:Class",
+      "rdfs:label": "Value Goal",
+      "rdfs:comment": "Long-term aspiration linked to a Pillar, representing core values and direction"
+    },
+    {
+      "@id": "ppv:GoalOutcome",
+      "@type": "owl:Class",
+      "rdfs:label": "Goal Outcome",
+      "rdfs:comment": "Measurable result derived from a Value Goal with trackable progress"
+    },
+    {
+      "@id": "ppv:Project",
+      "@type": "owl:Class",
+      "rdfs:label": "Project",
+      "rdfs:comment": "Discrete work item with completion criteria, linked to a Goal Outcome"
+    },
+    {
+      "@id": "ppv:ActionItem",
+      "@type": "owl:Class",
+      "rdfs:label": "Action Item",
+      "rdfs:comment": "Individual task — the atomic unit of work in the PPV system"
+    },
+    {
+      "@id": "ppv:WeeklyReview",
+      "@type": "owl:Class",
+      "rdfs:label": "Weekly Review",
+      "rdfs:comment": "Weekly review cycle for pillar scoring, work review, and next-week planning"
+    },
+    {
+      "@id": "ppv:MonthlyReview",
+      "@type": "owl:Class",
+      "rdfs:label": "Monthly Review",
+      "rdfs:comment": "Monthly review cycle for aggregating weekly reviews and pillar assessment"
+    },
+    {
+      "@id": "ppv:QuarterlyReview",
+      "@type": "owl:Class",
+      "rdfs:label": "Quarterly Review",
+      "rdfs:comment": "Quarterly review cycle for deeper strategic reflection"
+    },
+    {
+      "@id": "ppv:YearlyReview",
+      "@type": "owl:Class",
+      "rdfs:label": "Yearly Review",
+      "rdfs:comment": "Yearly review cycle for annual reflection and strategic planning"
+    },
+
+    {
+      "@id": "ppv:status",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Status",
+      "rdfs:comment": "Lifecycle status of the entity (allowed values differ per type)",
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "ppv:priority",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Priority",
+      "rdfs:comment": "Relative importance/urgency level",
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "ppv:progress",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Progress",
+      "rdfs:comment": "Completion percentage as integer 0-100",
+      "rdfs:range": { "@id": "xsd:integer" }
+    },
+    {
+      "@id": "ppv:icon",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Icon",
+      "rdfs:comment": "Emoji icon for dashboard display",
+      "rdfs:domain": { "@id": "ppv:Pillar" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "ppv:color",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Color",
+      "rdfs:comment": "Color name for dashboard display",
+      "rdfs:domain": { "@id": "ppv:Pillar" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "ppv:order",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Display Order",
+      "rdfs:comment": "Display order for the Pillar on dashboards (1-10)",
+      "rdfs:domain": { "@id": "ppv:Pillar" },
+      "rdfs:range": { "@id": "xsd:integer" }
+    },
+    {
+      "@id": "ppv:targetDate",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Target Date",
+      "rdfs:comment": "Target completion date for goals",
+      "rdfs:range": { "@id": "xsd:date" }
+    },
+    {
+      "@id": "ppv:dueDate",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Due Date",
+      "rdfs:comment": "Due date for a project",
+      "rdfs:domain": { "@id": "ppv:Project" },
+      "rdfs:range": { "@id": "xsd:date" }
+    },
+    {
+      "@id": "ppv:reviewDate",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Review Date",
+      "rdfs:comment": "Next scheduled review date for a project",
+      "rdfs:domain": { "@id": "ppv:Project" },
+      "rdfs:range": { "@id": "xsd:date" }
+    },
+    {
+      "@id": "ppv:completedDate",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Completed Date",
+      "rdfs:comment": "Date when a goal outcome or project was completed",
+      "rdfs:range": { "@id": "xsd:date" }
+    },
+    {
+      "@id": "ppv:doDate",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Do Date",
+      "rdfs:comment": "When to DO the action (PPV philosophy: do date, not due date)",
+      "rdfs:domain": { "@id": "ppv:ActionItem" },
+      "rdfs:range": { "@id": "xsd:date" }
+    },
+    {
+      "@id": "ppv:completionDate",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Completion Date",
+      "rdfs:comment": "Date when the action item was completed",
+      "rdfs:domain": { "@id": "ppv:ActionItem" },
+      "rdfs:range": { "@id": "xsd:date" }
+    },
+    {
+      "@id": "ppv:done",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Done",
+      "rdfs:comment": "Whether the action item is complete",
+      "rdfs:domain": { "@id": "ppv:ActionItem" },
+      "rdfs:range": { "@id": "xsd:boolean" }
+    },
+    {
+      "@id": "ppv:context",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Context",
+      "rdfs:comment": "GTD-style execution context (home, office, errands, calls, computer, anywhere)",
+      "rdfs:domain": { "@id": "ppv:ActionItem" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "ppv:energy",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Energy",
+      "rdfs:comment": "Energy level required (low, medium, high)",
+      "rdfs:domain": { "@id": "ppv:ActionItem" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "ppv:timeEstimate",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Time Estimate",
+      "rdfs:comment": "Estimated time to complete in minutes",
+      "rdfs:domain": { "@id": "ppv:ActionItem" },
+      "rdfs:range": { "@id": "xsd:integer" }
+    },
+    {
+      "@id": "ppv:cycle",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Cycle",
+      "rdfs:comment": "Review cycle identifier (weekly, monthly, quarterly, yearly)",
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "ppv:focusObjective",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Focus Objective",
+      "rdfs:comment": "The focus objective or theme for the review week",
+      "rdfs:domain": { "@id": "ppv:WeeklyReview" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "ppv:monthName",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Month Name",
+      "rdfs:comment": "Human-readable month label (e.g., 'March 2026')",
+      "rdfs:domain": { "@id": "ppv:MonthlyReview" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "ppv:quarterName",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Quarter Name",
+      "rdfs:comment": "Human-readable quarter label (e.g., 'Q1 2026')",
+      "rdfs:domain": { "@id": "ppv:QuarterlyReview" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "ppv:year",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Year",
+      "rdfs:comment": "Year label in '2026' format",
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "ppv:yearName",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Year Name",
+      "rdfs:comment": "Human-readable year label for YearlyReview",
+      "rdfs:domain": { "@id": "ppv:YearlyReview" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "ppv:gratitude",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Gratitude",
+      "rdfs:comment": "Monthly gratitude reflection",
+      "rdfs:domain": { "@id": "ppv:MonthlyReview" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "ppv:learnedThisMonth",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Learned This Month",
+      "rdfs:comment": "Key learning from the month",
+      "rdfs:domain": { "@id": "ppv:MonthlyReview" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+
+    {
+      "@id": "ppv:pillarGroup",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Pillar Group",
+      "rdfs:comment": "Links a Pillar to its user-defined PillarGroup",
+      "rdfs:domain": { "@id": "ppv:Pillar" },
+      "rdfs:range": { "@id": "ppv:PillarGroup" }
+    },
+    {
+      "@id": "ppv:pillar",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Pillar",
+      "rdfs:comment": "Links an entity to its parent Pillar",
+      "rdfs:range": { "@id": "ppv:Pillar" }
+    },
+    {
+      "@id": "ppv:valueGoal",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Value Goal",
+      "rdfs:comment": "Links a GoalOutcome to its parent ValueGoal",
+      "rdfs:domain": { "@id": "ppv:GoalOutcome" },
+      "rdfs:range": { "@id": "ppv:ValueGoal" }
+    },
+    {
+      "@id": "ppv:goalOutcome",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Goal Outcome",
+      "rdfs:comment": "Links a Project to its parent GoalOutcome",
+      "rdfs:domain": { "@id": "ppv:Project" },
+      "rdfs:range": { "@id": "ppv:GoalOutcome" }
+    },
+    {
+      "@id": "ppv:project",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Project",
+      "rdfs:comment": "Links an ActionItem to its parent Project",
+      "rdfs:domain": { "@id": "ppv:ActionItem" },
+      "rdfs:range": { "@id": "ppv:Project" }
+    },
+
+    {
+      "@id": "ppv:hasValueGoals",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Value Goals",
+      "rdfs:comment": "Inverse of ppv:pillar — navigates from Pillar to its ValueGoals",
+      "rdfs:domain": { "@id": "ppv:Pillar" },
+      "rdfs:range": { "@id": "ppv:ValueGoal" },
+      "owl:inverseOf": { "@id": "ppv:pillar" }
+    },
+    {
+      "@id": "ppv:hasGoalOutcomes",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Goal Outcomes",
+      "rdfs:comment": "Inverse of ppv:valueGoal — navigates from ValueGoal to its GoalOutcomes",
+      "rdfs:domain": { "@id": "ppv:ValueGoal" },
+      "rdfs:range": { "@id": "ppv:GoalOutcome" },
+      "owl:inverseOf": { "@id": "ppv:valueGoal" }
+    },
+    {
+      "@id": "ppv:hasProjects",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Projects",
+      "rdfs:comment": "Inverse of ppv:goalOutcome — navigates from GoalOutcome to its Projects",
+      "rdfs:domain": { "@id": "ppv:GoalOutcome" },
+      "rdfs:range": { "@id": "ppv:Project" },
+      "owl:inverseOf": { "@id": "ppv:goalOutcome" }
+    },
+    {
+      "@id": "ppv:hasActionItems",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Action Items",
+      "rdfs:comment": "Inverse of ppv:project — navigates from Project to its ActionItems",
+      "rdfs:domain": { "@id": "ppv:Project" },
+      "rdfs:range": { "@id": "ppv:ActionItem" },
+      "owl:inverseOf": { "@id": "ppv:project" }
+    },
+
+    {
+      "@id": "ppv:month",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Month",
+      "rdfs:comment": "Links a WeeklyReview to its parent MonthlyReview",
+      "rdfs:domain": { "@id": "ppv:WeeklyReview" },
+      "rdfs:range": { "@id": "ppv:MonthlyReview" }
+    },
+    {
+      "@id": "ppv:quarter",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Quarter",
+      "rdfs:comment": "Links a MonthlyReview to its parent QuarterlyReview",
+      "rdfs:domain": { "@id": "ppv:MonthlyReview" },
+      "rdfs:range": { "@id": "ppv:QuarterlyReview" }
+    },
+    {
+      "@id": "ppv:yearLink",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Year",
+      "rdfs:comment": "Links a QuarterlyReview to its parent YearlyReview",
+      "rdfs:domain": { "@id": "ppv:QuarterlyReview" },
+      "rdfs:range": { "@id": "ppv:YearlyReview" }
+    },
+    {
+      "@id": "ppv:quarters",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Quarters",
+      "rdfs:comment": "Links a YearlyReview to its constituent QuarterlyReviews",
+      "rdfs:domain": { "@id": "ppv:YearlyReview" },
+      "rdfs:range": { "@id": "ppv:QuarterlyReview" }
+    },
+
+    {
+      "@id": "ppv:hasWeeklyReviews",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Weekly Reviews",
+      "rdfs:comment": "Inverse of ppv:month — navigates from MonthlyReview to its WeeklyReviews",
+      "rdfs:domain": { "@id": "ppv:MonthlyReview" },
+      "rdfs:range": { "@id": "ppv:WeeklyReview" },
+      "owl:inverseOf": { "@id": "ppv:month" }
+    },
+    {
+      "@id": "ppv:hasMonthlyReviews",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Monthly Reviews",
+      "rdfs:comment": "Inverse of ppv:quarter — navigates from QuarterlyReview to its MonthlyReviews",
+      "rdfs:domain": { "@id": "ppv:QuarterlyReview" },
+      "rdfs:range": { "@id": "ppv:MonthlyReview" },
+      "owl:inverseOf": { "@id": "ppv:quarter" }
+    },
+    {
+      "@id": "ppv:hasQuarterlyReviews",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Quarterly Reviews",
+      "rdfs:comment": "Inverse of ppv:yearLink — navigates from YearlyReview to its QuarterlyReviews",
+      "rdfs:domain": { "@id": "ppv:YearlyReview" },
+      "rdfs:range": { "@id": "ppv:QuarterlyReview" },
+      "owl:inverseOf": { "@id": "ppv:yearLink" }
+    }
+  ]
+}
