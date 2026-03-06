@@ -244,8 +244,9 @@ Plans:
   1. `_store_inferred_triples` handles rdfs:domain/rdfs:range without SPARQL 400 errors
   2. Playwright test creates an edge, triggers inference, and asserts the inverse triple appears in the inference panel or API response
 **Plans**: 1 plan
-Plans:
-- [ ] 42-01-PLAN.md — Fix VFS backend bugs (wrong method name, wrong SPARQL predicate) and htmx infinite retry loop
+- [ ] 43-01-PLAN.md — Fix Literal filter bug in inference service + E2E test for full inference data flow
+
+
 
 ---
 
