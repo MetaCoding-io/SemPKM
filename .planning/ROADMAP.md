@@ -101,7 +101,7 @@
 - [x] **Phase 38: Global Lint Dashboard UI** — Filterable, sortable result table with severity badges, health indicator, auto-refresh (completed 2026-03-05)
 - [x] **Phase 39: Edit Form Helptext + Bug Fix Batch** — `sempkm:editHelpText` SHACL annotation in edit forms; fix accent bar, card borders, Firefox Ctrl+K, tab bleed, dark chevrons, concept search (completed 2026-03-05)
 - [x] **Phase 40: E2E Test Coverage for v2.4** — Playwright tests for inference, lint dashboard, helptext, and bug fix verifications (completed 2026-03-05)
-- [ ] **Phase 41: Gap Closure — Rules Wiring, Flip Fix, VFS Browser** — Wire rules graph into model install, fix recurring flip card bleed-through, add in-app VFS browser view
+- [x] **Phase 41: Gap Closure — Rules Wiring, Flip Fix, VFS Browser** — Wire rules graph into model install, fix recurring flip card bleed-through, add in-app VFS browser view (completed 2026-03-06)
 
 ## Phase Details
 
@@ -428,7 +428,7 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 38. Global Lint Dashboard UI | 2/2 | Complete    | 2026-03-05 | - |
 | 39. Edit Form Helptext + Bug Fix Batch | 2/2 | Complete   | 2026-03-05 | - |
 | 40. E2E Test Coverage for v2.4 | 2/2 | Complete    | 2026-03-05 | - |
-| 41. Gap Closure — Rules Wiring, Flip Fix, VFS Browser | 2/3 | In Progress|  | - |
+| 41. Gap Closure — Rules Wiring, Flip Fix, VFS Browser | 3/3 | Complete   | 2026-03-06 | - |
 
 ---
 *Roadmap created: 2026-02-21*
