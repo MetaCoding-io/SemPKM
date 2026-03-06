@@ -7,7 +7,7 @@
 - ✅ **v2.1 Architecture Decision Gate** — Phases 20-22 (shipped 2026-03-01) — [Full details](milestones/v2.1-ROADMAP.md) — [Archive](milestones/v2.1-REQUIREMENTS.md)
 - ✅ **v2.2 Data Discovery** — Phases 23-28 (shipped 2026-03-01) — [Full details](milestones/v2.2-ROADMAP.md)
 - ✅ **v2.3 Shell, Navigation & Views** — Phases 29-34 (shipped 2026-03-03)
-- 🚧 **v2.4 Inference & Polish** — Phases 35-40 (in progress) — [Research](research/shacl-owl-inference.md)
+- 🚧 **v2.4 Inference & Polish** — Phases 35-43 (in progress) — [Research](research/shacl-owl-inference.md)
 - (future) **SPARQL Interface** -- Rich SPARQL query experience with permissions, autocomplete, pills, history, saved queries, and named query views
 - (future) **Obsidian Import & Lint Triage** -- In-app Obsidian import wizard, SHACL fix guidance engine, and click-to-edit lint triage workflow — [Research](research/obsidian-import-wizard-ux.md)
 - (future) **Identity: WebID + IndieAuth** -- WebID profiles with content negotiation, IndieAuth provider with PKCE (Phases A-B) — [Research](research/decentralized-identity.md)
@@ -102,6 +102,8 @@
 - [x] **Phase 39: Edit Form Helptext + Bug Fix Batch** — `sempkm:editHelpText` SHACL annotation in edit forms; fix accent bar, card borders, Firefox Ctrl+K, tab bleed, dark chevrons, concept search (completed 2026-03-05)
 - [x] **Phase 40: E2E Test Coverage for v2.4** — Playwright tests for inference, lint dashboard, helptext, and bug fix verifications (completed 2026-03-05)
 - [x] **Phase 41: Gap Closure — Rules Wiring, Flip Fix, VFS Browser** — Wire rules graph into model install, fix recurring flip card bleed-through, add in-app VFS browser view (completed 2026-03-06)
+- [ ] **Phase 42: VFS Browser Fix — API Errors, Retry Loop, UX** — Fix 501 errors from VFS endpoints, prevent infinite frontend retry loop, improve tree browser usability
+- [ ] **Phase 43: Inference E2E Test Gap** — Fix _store_inferred_triples bug and add E2E test for full create-edge → inference → inverse-appears flow
 
 ## Phase Details
 
@@ -218,6 +220,28 @@ Plans:
 - [ ] 41-02-PLAN.md — Permanent flip card fix + CLAUDE.md documentation
 - [ ] 41-03-PLAN.md — In-app VFS browser view (dockview tab + sidebar entry)
 
+
+### Phase 42: VFS Browser Fix — API Errors, Retry Loop, UX
+**Goal**: VFS browser tab is fully functional — endpoints return data, no infinite retries on error, tree interface is intuitive and usable
+**Depends on**: Phase 41 (VFS browser code exists)
+**Requirements**: VFS-01 (gap closure)
+**Gap Closure**: Closes VFS-01 from v2.4 audit
+**Success Criteria** (what must be TRUE):
+  1. VFS endpoints (`/browser/vfs`, `/browser/vfs/{model_id}/types`, `/browser/vfs/{model_id}/objects`) return 200 with correct data
+  2. Frontend does not enter infinite retry loop when an API call fails (error handling with user feedback)
+  3. VFS tree interface has clear visual hierarchy, loading states, and intuitive expand/collapse behavior
+  4. Clicking an object in the VFS tree opens it in a workspace tab
+**Plans**: TBD
+
+### Phase 43: Inference E2E Test Gap
+**Goal**: E2E test suite covers the full inference user story — create a relationship, run inference, verify the inverse triple appears
+**Depends on**: Phase 42 (sequential)
+**Requirements**: TEST-05 (gap closure)
+**Gap Closure**: Closes TEST-05 from v2.4 audit
+**Success Criteria** (what must be TRUE):
+  1. `_store_inferred_triples` handles rdfs:domain/rdfs:range without SPARQL 400 errors
+  2. Playwright test creates an edge, triggers inference, and asserts the inverse triple appears in the inference panel or API response
+**Plans**: TBD
 
 ---
 

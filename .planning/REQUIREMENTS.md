@@ -35,7 +35,7 @@
 
 ### VFS Browser
 
-- [x] **VFS-01**: Users can open an in-app VFS browser view (as a dockview tab accessible from sidebar) that displays the virtual filesystem tree (model → type → objects) without needing an external WebDAV client
+- [ ] **VFS-01**: Users can open an in-app VFS browser view (as a dockview tab accessible from sidebar) that displays the virtual filesystem tree (model → type → objects) without needing an external WebDAV client
 
 ### Bug Fixes (Gap Closure)
 
@@ -43,7 +43,7 @@
 
 ### Testing
 
-- [x] **TEST-05**: Playwright E2E tests cover all v2.4 user-visible features (inference bidirectional links, lint dashboard filtering/sorting, edit form helptext, bug fix verifications)
+- [ ] **TEST-05**: Playwright E2E tests cover all v2.4 user-visible features (inference bidirectional links, lint dashboard filtering/sorting, edit form helptext, bug fix verifications)
 
 ## Future Requirements
 
@@ -109,27 +109,28 @@
 |-------------|-------|--------|
 | INF-01 | Phase 35 | Complete |
 | INF-02 | Phase 41 | Complete |
-| LINT-01 | Phase 37 | Planned |
-| LINT-02 | Phase 37 | Planned |
-| LINT-03 | Phase 38 | Planned |
-| LINT-04 | Phase 38 | Planned |
-| LINT-05 | Phase 38 | Planned |
-| LINT-06 | Phase 38 | Planned |
-| LINT-07 | Phase 38 | Planned |
-| HELP-01 | Phase 39 | Planned |
-| BUG-04 | Phase 39 | Planned |
-| BUG-05 | Phase 39 | Planned |
-| BUG-06 | Phase 39 | Planned |
-| BUG-07 | Phase 39 | Planned |
-| BUG-08 | Phase 39 | Planned |
-| BUG-09 | Phase 39 | Planned |
-| VFS-01 | Phase 41 | Complete |
+| LINT-01 | Phase 37 | Complete |
+| LINT-02 | Phase 37 | Complete |
+| LINT-03 | Phase 38 | Complete |
+| LINT-04 | Phase 38 | Complete |
+| LINT-05 | Phase 38 | Complete |
+| LINT-06 | Phase 38 | Complete |
+| LINT-07 | Phase 38 | Complete |
+| HELP-01 | Phase 39 | Complete |
+| BUG-04 | Phase 39 | Complete |
+| BUG-05 | Phase 39 | Complete |
+| BUG-06 | Phase 39 | Complete |
+| BUG-07 | Phase 39 | Complete |
+| BUG-08 | Phase 39 | Complete |
+| BUG-09 | Phase 39 | Complete |
+| VFS-01 | Phase 42 | Pending |
 | BUG-10 | Phase 41 | Complete |
-| TEST-05 | Phase 40 | Planned |
+| TEST-05 | Phase 43 | Pending |
 
 **Coverage:**
 - v2.4 requirements: 19 total
-- Mapped to phases: 19
+- Satisfied: 17
+- Pending (gap closure): 2 (VFS-01, TEST-05)
 - Unmapped: 0 ✓
 
 ---
