@@ -181,7 +181,7 @@ async def vfs_browser(
         WHERE {
             ?model a <urn:sempkm:MentalModel> ;
                    <urn:sempkm:modelId> ?modelId .
-            OPTIONAL { ?model <urn:sempkm:modelName> ?modelName }
+            OPTIONAL { ?model <http://purl.org/dc/terms/title> ?modelName }
         }
         ORDER BY ?modelId
     """)
@@ -251,7 +251,7 @@ async def vfs_type_objects(
     """)
     objects = []
     iris = [b["obj"]["value"] for b in result["results"]["bindings"]]
-    labels = await label_service.get_labels(iris) if iris else {}
+    labels = await label_service.resolve_batch(iris) if iris else {}
     for iri in iris:
         objects.append({"iri": iri, "label": labels.get(iri, iri.rsplit(":", 1)[-1])})
 
