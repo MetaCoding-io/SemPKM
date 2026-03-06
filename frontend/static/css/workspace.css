@@ -1503,10 +1503,12 @@ details.form-group[open] > .form-group-summary::before {
 .object-face-read.face-hidden {
     visibility: hidden;
     z-index: 0;
+    display: none;  /* bulletproof: completely remove from rendering tree */
 }
 
 .object-face-edit.face-visible {
     visibility: visible;
+    display: block;  /* ensure present in rendering tree */
 }
 
 /* --- Read-Only View Container --- */
