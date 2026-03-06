@@ -103,7 +103,7 @@
 - [x] **Phase 40: E2E Test Coverage for v2.4** — Playwright tests for inference, lint dashboard, helptext, and bug fix verifications (completed 2026-03-05)
 - [x] **Phase 41: Gap Closure — Rules Wiring, Flip Fix, VFS Browser** — Wire rules graph into model install, fix recurring flip card bleed-through, add in-app VFS browser view (completed 2026-03-06)
 - [x] **Phase 42: VFS Browser Fix — API Errors, Retry Loop, UX** — Fix 501 errors from VFS endpoints, prevent infinite frontend retry loop, improve tree browser usability (completed 2026-03-06)
-- [ ] **Phase 43: Inference E2E Test Gap** — Fix _store_inferred_triples bug and add E2E test for full create-edge → inference → inverse-appears flow
+- [x] **Phase 43: Inference E2E Test Gap** — Fix _store_inferred_triples bug and add E2E test for full create-edge → inference → inverse-appears flow (completed 2026-03-06)
 
 ## Phase Details
 
