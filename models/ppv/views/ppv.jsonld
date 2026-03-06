@@ -1,0 +1,207 @@
+{
+  "@context": {
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "ppv": "urn:sempkm:model:ppv:",
+    "sempkm": "urn:sempkm:vocab:",
+    "dcterms": "http://purl.org/dc/terms/",
+    "schema": "https://schema.org/"
+  },
+  "@graph": [
+
+    {
+      "@id": "ppv:view-pillar-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Life Dashboard",
+      "sempkm:targetClass": { "@id": "ppv:Pillar" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?status ?icon ?color ?order WHERE { ?s a <urn:sempkm:model:ppv:Pillar> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:ppv:status> ?status } . OPTIONAL { ?s <urn:sempkm:model:ppv:icon> ?icon } . OPTIONAL { ?s <urn:sempkm:model:ppv:color> ?color } . OPTIONAL { ?s <urn:sempkm:model:ppv:order> ?order } } ORDER BY ?order",
+      "sempkm:columns": "title,status,icon,color,order",
+      "sempkm:sortDefault": "order"
+    },
+    {
+      "@id": "ppv:view-pillar-card",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Pillars Cards",
+      "sempkm:targetClass": { "@id": "ppv:Pillar" },
+      "sempkm:rendererType": "card",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?description ?status ?icon WHERE { ?s a <urn:sempkm:model:ppv:Pillar> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } . OPTIONAL { ?s <urn:sempkm:model:ppv:status> ?status } . OPTIONAL { ?s <urn:sempkm:model:ppv:icon> ?icon } }",
+      "sempkm:cardTitle": "http://purl.org/dc/terms/title",
+      "sempkm:cardSubtitle": "urn:sempkm:model:ppv:status"
+    },
+    {
+      "@id": "ppv:view-pillar-graph",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Pillar Hierarchy",
+      "sempkm:targetClass": { "@id": "ppv:Pillar" },
+      "sempkm:rendererType": "graph",
+      "sempkm:sparqlQuery": "CONSTRUCT { ?s a <urn:sempkm:model:ppv:Pillar> ; <http://purl.org/dc/terms/title> ?title ; <urn:sempkm:model:ppv:hasValueGoals> ?vg . ?vg a <urn:sempkm:model:ppv:ValueGoal> ; <http://purl.org/dc/terms/title> ?vgTitle . ?vg <urn:sempkm:model:ppv:hasGoalOutcomes> ?go . ?go a <urn:sempkm:model:ppv:GoalOutcome> ; <http://purl.org/dc/terms/title> ?goTitle } WHERE { ?s a <urn:sempkm:model:ppv:Pillar> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?vg <urn:sempkm:model:ppv:pillar> ?s ; a <urn:sempkm:model:ppv:ValueGoal> ; <http://purl.org/dc/terms/title> ?vgTitle . OPTIONAL { ?go <urn:sempkm:model:ppv:valueGoal> ?vg ; a <urn:sempkm:model:ppv:GoalOutcome> ; <http://purl.org/dc/terms/title> ?goTitle } } }"
+    },
+
+    {
+      "@id": "ppv:view-pillargroup-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Pillar Groups",
+      "sempkm:targetClass": { "@id": "ppv:PillarGroup" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?description WHERE { ?s a <urn:sempkm:model:ppv:PillarGroup> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } }",
+      "sempkm:columns": "title,description",
+      "sempkm:sortDefault": "title"
+    },
+
+    {
+      "@id": "ppv:view-valuegoal-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Goals Overview",
+      "sempkm:targetClass": { "@id": "ppv:ValueGoal" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?status ?priority ?pillarTitle ?targetDate WHERE { ?s a <urn:sempkm:model:ppv:ValueGoal> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:ppv:status> ?status } . OPTIONAL { ?s <urn:sempkm:model:ppv:priority> ?priority } . OPTIONAL { ?s <urn:sempkm:model:ppv:pillar> ?pillar . ?pillar <http://purl.org/dc/terms/title> ?pillarTitle } . OPTIONAL { ?s <urn:sempkm:model:ppv:targetDate> ?targetDate } }",
+      "sempkm:columns": "title,status,priority,pillarTitle,targetDate",
+      "sempkm:sortDefault": "priority"
+    },
+    {
+      "@id": "ppv:view-valuegoal-card",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Value Goals Cards",
+      "sempkm:targetClass": { "@id": "ppv:ValueGoal" },
+      "sempkm:rendererType": "card",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?description ?status ?priority WHERE { ?s a <urn:sempkm:model:ppv:ValueGoal> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } . OPTIONAL { ?s <urn:sempkm:model:ppv:status> ?status } . OPTIONAL { ?s <urn:sempkm:model:ppv:priority> ?priority } }",
+      "sempkm:cardTitle": "http://purl.org/dc/terms/title",
+      "sempkm:cardSubtitle": "urn:sempkm:model:ppv:status"
+    },
+
+    {
+      "@id": "ppv:view-goaloutcome-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Goal Outcomes",
+      "sempkm:targetClass": { "@id": "ppv:GoalOutcome" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?status ?progress ?targetDate ?vgTitle WHERE { ?s a <urn:sempkm:model:ppv:GoalOutcome> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:ppv:status> ?status } . OPTIONAL { ?s <urn:sempkm:model:ppv:progress> ?progress } . OPTIONAL { ?s <urn:sempkm:model:ppv:targetDate> ?targetDate } . OPTIONAL { ?s <urn:sempkm:model:ppv:valueGoal> ?vg . ?vg <http://purl.org/dc/terms/title> ?vgTitle } }",
+      "sempkm:columns": "title,status,progress,targetDate,vgTitle",
+      "sempkm:sortDefault": "status"
+    },
+    {
+      "@id": "ppv:view-goaloutcome-card",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Goal Outcomes Cards",
+      "sempkm:targetClass": { "@id": "ppv:GoalOutcome" },
+      "sempkm:rendererType": "card",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?description ?status ?progress WHERE { ?s a <urn:sempkm:model:ppv:GoalOutcome> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } . OPTIONAL { ?s <urn:sempkm:model:ppv:status> ?status } . OPTIONAL { ?s <urn:sempkm:model:ppv:progress> ?progress } }",
+      "sempkm:cardTitle": "http://purl.org/dc/terms/title",
+      "sempkm:cardSubtitle": "urn:sempkm:model:ppv:status"
+    },
+
+    {
+      "@id": "ppv:view-project-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Projects Board",
+      "sempkm:targetClass": { "@id": "ppv:Project" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?status ?priority ?progress ?startDate ?dueDate WHERE { ?s a <urn:sempkm:model:ppv:Project> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:ppv:status> ?status } . OPTIONAL { ?s <urn:sempkm:model:ppv:priority> ?priority } . OPTIONAL { ?s <urn:sempkm:model:ppv:progress> ?progress } . OPTIONAL { ?s <https://schema.org/startDate> ?startDate } . OPTIONAL { ?s <urn:sempkm:model:ppv:dueDate> ?dueDate } }",
+      "sempkm:columns": "title,status,priority,progress,startDate,dueDate",
+      "sempkm:sortDefault": "status"
+    },
+    {
+      "@id": "ppv:view-project-card",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Projects Cards",
+      "sempkm:targetClass": { "@id": "ppv:Project" },
+      "sempkm:rendererType": "card",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?description ?status ?priority WHERE { ?s a <urn:sempkm:model:ppv:Project> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } . OPTIONAL { ?s <urn:sempkm:model:ppv:status> ?status } . OPTIONAL { ?s <urn:sempkm:model:ppv:priority> ?priority } }",
+      "sempkm:cardTitle": "http://purl.org/dc/terms/title",
+      "sempkm:cardSubtitle": "urn:sempkm:model:ppv:status"
+    },
+    {
+      "@id": "ppv:view-project-graph",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Projects Graph",
+      "sempkm:targetClass": { "@id": "ppv:Project" },
+      "sempkm:rendererType": "graph",
+      "sempkm:sparqlQuery": "CONSTRUCT { ?s a <urn:sempkm:model:ppv:Project> ; <http://purl.org/dc/terms/title> ?title ; <urn:sempkm:model:ppv:goalOutcome> ?go . ?go a <urn:sempkm:model:ppv:GoalOutcome> ; <http://purl.org/dc/terms/title> ?goTitle . ?ai a <urn:sempkm:model:ppv:ActionItem> ; <http://purl.org/dc/terms/title> ?aiTitle ; <urn:sempkm:model:ppv:project> ?s } WHERE { ?s a <urn:sempkm:model:ppv:Project> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:ppv:goalOutcome> ?go . ?go <http://purl.org/dc/terms/title> ?goTitle } . OPTIONAL { ?ai <urn:sempkm:model:ppv:project> ?s ; a <urn:sempkm:model:ppv:ActionItem> ; <http://purl.org/dc/terms/title> ?aiTitle } }"
+    },
+
+    {
+      "@id": "ppv:view-action-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Action Items",
+      "sempkm:targetClass": { "@id": "ppv:ActionItem" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?status ?priority ?doDate ?context ?energy ?done ?projectTitle WHERE { ?s a <urn:sempkm:model:ppv:ActionItem> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:ppv:status> ?status } . OPTIONAL { ?s <urn:sempkm:model:ppv:priority> ?priority } . OPTIONAL { ?s <urn:sempkm:model:ppv:doDate> ?doDate } . OPTIONAL { ?s <urn:sempkm:model:ppv:context> ?context } . OPTIONAL { ?s <urn:sempkm:model:ppv:energy> ?energy } . OPTIONAL { ?s <urn:sempkm:model:ppv:done> ?done } . OPTIONAL { ?s <urn:sempkm:model:ppv:project> ?proj . ?proj <http://purl.org/dc/terms/title> ?projectTitle } }",
+      "sempkm:columns": "title,status,priority,doDate,context,energy,done,projectTitle",
+      "sempkm:sortDefault": "doDate"
+    },
+    {
+      "@id": "ppv:view-action-card",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Action Items Cards",
+      "sempkm:targetClass": { "@id": "ppv:ActionItem" },
+      "sempkm:rendererType": "card",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?description ?status ?priority ?doDate WHERE { ?s a <urn:sempkm:model:ppv:ActionItem> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } . OPTIONAL { ?s <urn:sempkm:model:ppv:status> ?status } . OPTIONAL { ?s <urn:sempkm:model:ppv:priority> ?priority } . OPTIONAL { ?s <urn:sempkm:model:ppv:doDate> ?doDate } }",
+      "sempkm:cardTitle": "http://purl.org/dc/terms/title",
+      "sempkm:cardSubtitle": "urn:sempkm:model:ppv:status"
+    },
+
+    {
+      "@id": "ppv:view-weekly-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Weekly Reviews",
+      "sempkm:targetClass": { "@id": "ppv:WeeklyReview" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?startDate ?endDate ?focusObjective WHERE { ?s a <urn:sempkm:model:ppv:WeeklyReview> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <https://schema.org/startDate> ?startDate } . OPTIONAL { ?s <https://schema.org/endDate> ?endDate } . OPTIONAL { ?s <urn:sempkm:model:ppv:focusObjective> ?focusObjective } } ORDER BY DESC(?startDate)",
+      "sempkm:columns": "title,startDate,endDate,focusObjective",
+      "sempkm:sortDefault": "startDate"
+    },
+
+    {
+      "@id": "ppv:view-monthly-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Monthly Reviews",
+      "sempkm:targetClass": { "@id": "ppv:MonthlyReview" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?monthName ?year ?gratitude WHERE { ?s a <urn:sempkm:model:ppv:MonthlyReview> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:ppv:monthName> ?monthName } . OPTIONAL { ?s <urn:sempkm:model:ppv:year> ?year } . OPTIONAL { ?s <urn:sempkm:model:ppv:gratitude> ?gratitude } } ORDER BY DESC(?year) DESC(?monthName)",
+      "sempkm:columns": "title,monthName,year,gratitude",
+      "sempkm:sortDefault": "monthName"
+    },
+
+    {
+      "@id": "ppv:view-quarterly-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Quarterly Reviews",
+      "sempkm:targetClass": { "@id": "ppv:QuarterlyReview" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?quarterName WHERE { ?s a <urn:sempkm:model:ppv:QuarterlyReview> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:ppv:quarterName> ?quarterName } } ORDER BY DESC(?quarterName)",
+      "sempkm:columns": "title,quarterName",
+      "sempkm:sortDefault": "quarterName"
+    },
+
+    {
+      "@id": "ppv:view-yearly-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Yearly Reviews",
+      "sempkm:targetClass": { "@id": "ppv:YearlyReview" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?yearName WHERE { ?s a <urn:sempkm:model:ppv:YearlyReview> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:ppv:yearName> ?yearName } } ORDER BY DESC(?yearName)",
+      "sempkm:columns": "title,yearName",
+      "sempkm:sortDefault": "yearName"
+    },
+
+    {
+      "@id": "ppv:view-review-graph",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Review Calendar",
+      "sempkm:targetClass": { "@id": "ppv:YearlyReview" },
+      "sempkm:rendererType": "graph",
+      "sempkm:sparqlQuery": "CONSTRUCT { ?yr a <urn:sempkm:model:ppv:YearlyReview> ; <http://purl.org/dc/terms/title> ?yrTitle ; <urn:sempkm:model:ppv:quarters> ?qr . ?qr a <urn:sempkm:model:ppv:QuarterlyReview> ; <http://purl.org/dc/terms/title> ?qrTitle ; <urn:sempkm:model:ppv:hasMonthlyReviews> ?mr . ?mr a <urn:sempkm:model:ppv:MonthlyReview> ; <http://purl.org/dc/terms/title> ?mrTitle ; <urn:sempkm:model:ppv:hasWeeklyReviews> ?wr . ?wr a <urn:sempkm:model:ppv:WeeklyReview> ; <http://purl.org/dc/terms/title> ?wrTitle } WHERE { ?yr a <urn:sempkm:model:ppv:YearlyReview> ; <http://purl.org/dc/terms/title> ?yrTitle . OPTIONAL { ?yr <urn:sempkm:model:ppv:quarters> ?qr . ?qr <http://purl.org/dc/terms/title> ?qrTitle . OPTIONAL { ?mr <urn:sempkm:model:ppv:quarter> ?qr ; a <urn:sempkm:model:ppv:MonthlyReview> ; <http://purl.org/dc/terms/title> ?mrTitle . OPTIONAL { ?wr <urn:sempkm:model:ppv:month> ?mr ; a <urn:sempkm:model:ppv:WeeklyReview> ; <http://purl.org/dc/terms/title> ?wrTitle } } } }"
+    },
+
+    {
+      "@id": "ppv:view-hierarchy-graph",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Full Hierarchy",
+      "sempkm:targetClass": { "@id": "ppv:Pillar" },
+      "sempkm:rendererType": "graph",
+      "sempkm:sparqlQuery": "CONSTRUCT { ?p a <urn:sempkm:model:ppv:Pillar> ; <http://purl.org/dc/terms/title> ?pTitle . ?vg a <urn:sempkm:model:ppv:ValueGoal> ; <http://purl.org/dc/terms/title> ?vgTitle ; <urn:sempkm:model:ppv:pillar> ?p . ?go a <urn:sempkm:model:ppv:GoalOutcome> ; <http://purl.org/dc/terms/title> ?goTitle ; <urn:sempkm:model:ppv:valueGoal> ?vg . ?proj a <urn:sempkm:model:ppv:Project> ; <http://purl.org/dc/terms/title> ?projTitle ; <urn:sempkm:model:ppv:goalOutcome> ?go . ?ai a <urn:sempkm:model:ppv:ActionItem> ; <http://purl.org/dc/terms/title> ?aiTitle ; <urn:sempkm:model:ppv:project> ?proj } WHERE { ?p a <urn:sempkm:model:ppv:Pillar> ; <http://purl.org/dc/terms/title> ?pTitle . OPTIONAL { ?vg <urn:sempkm:model:ppv:pillar> ?p ; a <urn:sempkm:model:ppv:ValueGoal> ; <http://purl.org/dc/terms/title> ?vgTitle . OPTIONAL { ?go <urn:sempkm:model:ppv:valueGoal> ?vg ; a <urn:sempkm:model:ppv:GoalOutcome> ; <http://purl.org/dc/terms/title> ?goTitle . OPTIONAL { ?proj <urn:sempkm:model:ppv:goalOutcome> ?go ; a <urn:sempkm:model:ppv:Project> ; <http://purl.org/dc/terms/title> ?projTitle . OPTIONAL { ?ai <urn:sempkm:model:ppv:project> ?proj ; a <urn:sempkm:model:ppv:ActionItem> ; <http://purl.org/dc/terms/title> ?aiTitle } } } } }"
+    }
+  ]
+}

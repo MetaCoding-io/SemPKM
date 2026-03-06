@@ -59,6 +59,24 @@ See memory/MEMORY.md for full details. Short version:
 
 ---
 
+## Frontend: CSS 3D Flip Card (Object Read/Edit)
+
+**Problem:** The object view uses a CSS 3D flip card to switch between read and edit modes. `backface-visibility: hidden` is the standard CSS approach but is unreliable -- it has caused content bleed-through bugs 3 times due to browser/GPU rendering differences.
+
+**Rule:** Always use the two-layer defense:
+1. `backface-visibility: hidden` on `.object-face` (works during animation)
+2. `display: none` via `.face-hidden` class (bulletproof after animation completes)
+3. Before starting any flip animation, set `style.display = ''` on the target face
+4. Wait for the FULL animation duration (600ms) before toggling face classes -- never use a midpoint timeout
+
+**Affected files:**
+- `frontend/static/css/workspace.css` -- `.object-face`, `.face-hidden`, `.face-visible` rules
+- `frontend/static/js/workspace.js` -- `toggleObjectMode()` function
+
+**Anti-pattern:** Do NOT rely solely on `backface-visibility: hidden` or `visibility: hidden`. These are CSS hints that browsers can ignore under certain compositing conditions. `display: none` is the only guaranteed way to remove an element from the rendering tree.
+
+---
+
 ## Architecture Notes
 
 - htmx drives most DOM updates; avoid full-page JS frameworks

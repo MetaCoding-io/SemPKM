@@ -166,7 +166,101 @@ async def canvas_page(
         "request": request,
         "user": user,
     })
-      
+
+
+@router.get("/vfs")
+async def vfs_browser(
+    request: Request,
+    client: TriplestoreClient = Depends(get_triplestore_client),
+    current_user: User = Depends(get_current_user),
+):
+    """VFS browser tree view as a dockview special-panel tab."""
+    result = await client.query("""
+        SELECT DISTINCT ?modelId ?modelName
+        FROM <urn:sempkm:models>
+        WHERE {
+            ?model a <urn:sempkm:MentalModel> ;
+                   <urn:sempkm:modelId> ?modelId .
+            OPTIONAL { ?model <http://purl.org/dc/terms/title> ?modelName }
+        }
+        ORDER BY ?modelId
+    """)
+    models = []
+    for b in result["results"]["bindings"]:
+        mid = b["modelId"]["value"]
+        mname = b.get("modelName", {}).get("value", mid)
+        models.append({"id": mid, "name": mname})
+
+    templates = request.app.state.templates
+    return templates.TemplateResponse(request, "browser/vfs_browser.html", {
+        "models": models,
+    })
+
+
+@router.get("/vfs/{model_id}/types")
+async def vfs_model_types(
+    model_id: str,
+    request: Request,
+    client: TriplestoreClient = Depends(get_triplestore_client),
+    current_user: User = Depends(get_current_user),
+):
+    """Return type folders for a model in the VFS tree."""
+    from app.models.registry import ModelGraphs
+
+    graphs = ModelGraphs(model_id)
+    result = await client.query(f"""
+        SELECT DISTINCT ?typeIri ?typeLabel
+        FROM <{graphs.shapes}>
+        WHERE {{
+            ?shape a <http://www.w3.org/ns/shacl#NodeShape> ;
+                   <http://www.w3.org/ns/shacl#targetClass> ?typeIri .
+            OPTIONAL {{ ?shape <http://www.w3.org/2000/01/rdf-schema#label> ?typeLabel }}
+        }}
+        ORDER BY ?typeLabel
+    """)
+    types = []
+    for b in result["results"]["bindings"]:
+        tiri = b["typeIri"]["value"]
+        tlabel = b.get("typeLabel", {}).get("value", tiri.rsplit("/", 1)[-1].rsplit("#", 1)[-1])
+        types.append({"iri": tiri, "label": tlabel})
+
+    templates = request.app.state.templates
+    return templates.TemplateResponse(request, "browser/_vfs_types.html", {
+        "model_id": model_id,
+        "types": types,
+    })
+
+
+@router.get("/vfs/{model_id}/objects")
+async def vfs_type_objects(
+    model_id: str,
+    type_iri: str = Query(...),
+    request: Request = None,
+    client: TriplestoreClient = Depends(get_triplestore_client),
+    label_service: LabelService = Depends(get_label_service),
+    current_user: User = Depends(get_current_user),
+):
+    """Return object files for a type in the VFS tree."""
+    result = await client.query(f"""
+        SELECT DISTINCT ?obj
+        FROM <urn:sempkm:current>
+        WHERE {{
+            ?obj a <{type_iri}> .
+        }}
+        ORDER BY ?obj
+    """)
+    objects = []
+    iris = [b["obj"]["value"] for b in result["results"]["bindings"]]
+    labels = await label_service.resolve_batch(iris) if iris else {}
+    for iri in iris:
+        objects.append({"iri": iri, "label": labels.get(iri, iri.rsplit(":", 1)[-1])})
+
+    templates = request.app.state.templates
+    return templates.TemplateResponse(request, "browser/_vfs_objects.html", {
+        "objects": objects,
+    })
+
+
 @router.get("/lint-dashboard")
 async def lint_dashboard(
     request: Request,
