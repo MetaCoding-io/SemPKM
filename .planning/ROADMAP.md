@@ -101,6 +101,7 @@
 - [x] **Phase 38: Global Lint Dashboard UI** — Filterable, sortable result table with severity badges, health indicator, auto-refresh (completed 2026-03-05)
 - [x] **Phase 39: Edit Form Helptext + Bug Fix Batch** — `sempkm:editHelpText` SHACL annotation in edit forms; fix accent bar, card borders, Firefox Ctrl+K, tab bleed, dark chevrons, concept search (completed 2026-03-05)
 - [x] **Phase 40: E2E Test Coverage for v2.4** — Playwright tests for inference, lint dashboard, helptext, and bug fix verifications (completed 2026-03-05)
+- [ ] **Phase 41: Gap Closure — Rules Wiring, Flip Fix, VFS Browser** — Wire rules graph into model install, fix recurring flip card bleed-through, add in-app VFS browser view
 
 ## Phase Details
 
@@ -199,8 +200,19 @@ Plans:
 - [ ] 40-01-PLAN.md — Inference and lint dashboard E2E tests (TEST-05)
 - [ ] 40-02-PLAN.md — Helptext and bug fix regression E2E tests (TEST-05)
 
-
-
+### Phase 41: Gap Closure — Rules Wiring, Flip Fix, VFS Browser
+**Goal**: Close audit gaps (rules graph wiring, inference-to-lint pipeline), permanently fix the recurring flip card bleed-through bug, and add an in-app VFS browser view for filesystem discoverability
+**Depends on**: Phases 35-40 complete
+**Requirements**: INF-02 (gap closure), VFS-01 (new)
+**Gap Closure**: Closes gaps from v2.4 audit
+**Success Criteria** (what must be TRUE):
+  1. Rules graph is written to triplestore during model install (closes INF-02 partial)
+  2. `promote_triple()` enqueues validation after commit (closes inference→lint integration gap)
+  3. Edit form does not show read-only view content bleed-through after flip (permanent fix)
+  4. Flip card fix pattern is documented in CLAUDE.md to prevent recurrence
+  5. Users can open an in-app VFS browser view showing the virtual filesystem tree (model → type → objects)
+  6. VFS browser is accessible from sidebar navigation
+**Plans**: TBD
 
 
 ---
@@ -366,6 +378,7 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 - **Low-Code UI Builder & Workflows** -- User-composed components tied to SemPKM actions (Notion + Airflow inspired); workflow orchestration for structured data collection sequences — [Research](research/future-milestones.md)
 - **Full Theming System** -- User-selectable theme bundles (Dark+, Solarized, High Contrast); model-contributed themes via manifest; theme preview in settings
 - **SHACL/OWL Inference Phases C-D** -- DASH vocabulary adoption for richer form metadata; RDF4J SchemaCachingRDFSInferencer for query-time RDFS inference — [Research](research/shacl-owl-inference.md)
+- **User-Configurable VFS (MountSpec)** -- Declarative MountSpec vocabulary for user-created virtual filesystem views; 5 directory strategies (flat, tag-groups, property-value, type-hierarchy, relationship-tree); SHACL-validated frontmatter writes; mount management UI — [Research](research/virtual-filesystem.md)
 
 ## Progress
 
@@ -411,6 +424,7 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 38. Global Lint Dashboard UI | 2/2 | Complete    | 2026-03-05 | - |
 | 39. Edit Form Helptext + Bug Fix Batch | 2/2 | Complete   | 2026-03-05 | - |
 | 40. E2E Test Coverage for v2.4 | 2/2 | Complete    | 2026-03-05 | - |
+| 41. Gap Closure — Rules Wiring, Flip Fix, VFS Browser | v2.4 | 0/? | Planned | - |
 
 ---
 *Roadmap created: 2026-02-21*

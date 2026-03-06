@@ -8,7 +8,7 @@
 ### OWL 2 RL Inference
 
 - [x] **INF-01**: User adds a participant to a Project; the Person's detail page automatically shows the Project in their "participatesIn" list without manual inverse entry (OWL 2 RL inference materializes `owl:inverseOf` triples)
-- [x] **INF-02**: Mental Models can ship SHACL-AF rules (sh:TripleRule, sh:SPARQLRule) that pyshacl executes with `advanced=True`; inferred triples are stored in `urn:sempkm:inferred` named graph and visible in object views and graph visualization
+- [ ] **INF-02**: Mental Models can ship SHACL-AF rules (sh:TripleRule, sh:SPARQLRule) that pyshacl executes with `advanced=True`; inferred triples are stored in `urn:sempkm:inferred` named graph and visible in object views and graph visualization
 
 ### Global Lint Dashboard
 
@@ -32,6 +32,14 @@
 - [x] **BUG-07**: Tab accent bar does not bleed into adjacent inactive tabs
 - [x] **BUG-08**: Panel chevron icons are visible in dark mode (not invisible-on-dark)
 - [x] **BUG-09**: Concept search and linking functionality works correctly (search finds concepts, links are created)
+
+### VFS Browser
+
+- [ ] **VFS-01**: Users can open an in-app VFS browser view (as a dockview tab accessible from sidebar) that displays the virtual filesystem tree (model → type → objects) without needing an external WebDAV client
+
+### Bug Fixes (Gap Closure)
+
+- [ ] **BUG-10**: Edit form flip card does not show read-only view content bleeding through after flipping to edit mode (permanent fix for recurring backface-visibility issue)
 
 ### Testing
 
@@ -100,7 +108,7 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | INF-01 | Phase 35 | Complete |
-| INF-02 | Phase 36 | Planned |
+| INF-02 | Phase 41 | Pending |
 | LINT-01 | Phase 37 | Planned |
 | LINT-02 | Phase 37 | Planned |
 | LINT-03 | Phase 38 | Planned |
@@ -115,11 +123,13 @@
 | BUG-07 | Phase 39 | Planned |
 | BUG-08 | Phase 39 | Planned |
 | BUG-09 | Phase 39 | Planned |
+| VFS-01 | Phase 41 | Pending |
+| BUG-10 | Phase 41 | Pending |
 | TEST-05 | Phase 40 | Planned |
 
 **Coverage:**
-- v2.4 requirements: 17 total
-- Mapped to phases: 17
+- v2.4 requirements: 19 total
+- Mapped to phases: 19
 - Unmapped: 0 ✓
 
 ---
