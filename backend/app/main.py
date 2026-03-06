@@ -53,6 +53,7 @@ from app.validation.queue import AsyncValidationQueue
 from wsgidav.wsgidav_app import WsgiDAVApp
 from a2wsgi import WSGIMiddleware
 from app.vfs.provider import SemPKMDAVProvider
+from app.vfs.router import router as vfs_browser_router
 from app.vfs.auth import SemPKMWsgiAuthenticator
 from app.triplestore.sync_client import SyncTriplestoreClient
 
@@ -405,6 +406,7 @@ app.include_router(lint_router)
 app.include_router(inference_router)
 app.include_router(admin_router)
 app.include_router(views_router)
+app.include_router(vfs_browser_router)
 app.include_router(browser_router)
 app.include_router(debug_router)
 app.include_router(shell_router)
