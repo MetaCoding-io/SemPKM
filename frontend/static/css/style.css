@@ -1281,6 +1281,8 @@ kbd {
   top: 0;
   left: 0;
   width: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .type-flip-front {

@@ -560,6 +560,9 @@
         if (!window.confirm('Discard unsaved changes?')) return;
         markClean(objectIri);
       }
+      // Show read face BEFORE animation starts — backface-visibility handles
+      // the visual midpoint at exactly 90°, so no flash/gap occurs.
+      if (readFace) readFace.classList.remove('face-hidden');
       flipInner.classList.remove('flipped');
       if (toggleBtn) toggleBtn.textContent = 'Edit';
       if (saveBtn) saveBtn.style.display = 'none';
@@ -595,23 +598,28 @@
           }
         }).catch(function () { /* keep stale content on error */ });
       }
-      // Swap faces at midpoint (300ms into 600ms animation)
-      setTimeout(function () {
-        if (readFace) readFace.classList.remove('face-hidden');
+      // Hide edit face AFTER animation completes (keeps it inert for a11y/events)
+      flipInner.addEventListener('transitionend', function handler(e) {
+        if (e.propertyName !== 'transform') return;
+        flipInner.removeEventListener('transitionend', handler);
         if (editFace) editFace.classList.remove('face-visible');
-      }, 300);
+      });
     } else {
       // Switching from read to edit: initialize edit mode if needed
       var initFn = window['_initEditMode_' + safeId];
       if (typeof initFn === 'function') initFn();
+      // Show edit face BEFORE animation starts — backface-visibility handles
+      // the visual midpoint at exactly 90°, so no flash/gap occurs.
+      if (editFace) editFace.classList.add('face-visible');
       flipInner.classList.add('flipped');
       if (toggleBtn) toggleBtn.textContent = 'Cancel';
       if (saveBtn) saveBtn.style.display = '';
-      // Swap faces at midpoint (300ms into 600ms animation)
-      setTimeout(function () {
+      // Hide read face AFTER animation completes (keeps it inert for a11y/events)
+      flipInner.addEventListener('transitionend', function handler(e) {
+        if (e.propertyName !== 'transform') return;
+        flipInner.removeEventListener('transitionend', handler);
         if (readFace) readFace.classList.add('face-hidden');
-        if (editFace) editFace.classList.add('face-visible');
-      }, 300);
+      });
     }
   }
 
