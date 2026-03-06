@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 
 import owlrl
 import pyshacl
-from rdflib import BNode, Graph, URIRef
+from rdflib import BNode, Graph, Literal, URIRef
 from rdflib.namespace import OWL, RDF, RDFS, XSD
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -176,8 +176,9 @@ class InferenceService:
             (s, p, o)
             for s, p, o in new_triples
             if not isinstance(s, BNode) and not isinstance(o, BNode)
+            and not isinstance(s, Literal) and not isinstance(o, Literal)
         }
-        logger.info("New triples after blank node filter: %d", len(new_triples))
+        logger.info("New triples after BNode/Literal filter: %d", len(new_triples))
 
         # 7. Filter out triples already in urn:sempkm:current (user takes precedence)
         new_triples = new_triples - original_data_triples
