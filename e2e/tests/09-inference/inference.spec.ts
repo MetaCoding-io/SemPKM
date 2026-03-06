@@ -167,6 +167,71 @@ test.describe('Inference', () => {
     await expect(results).toBeAttached();
   });
 
+  test('create one-sided relationship and verify inference materializes inverse', async ({ ownerPage, ownerSessionToken }) => {
+    const api = ownerPage.context().request;
+    const headers = { Cookie: `sempkm_session=${ownerSessionToken}` };
+
+    // 1. Create fresh objects (not seed data — seed has both inverse sides)
+    const createResp = await api.post(`${BASE_URL}/api/commands`, {
+      headers,
+      data: [
+        {
+          command: 'object.create',
+          params: {
+            type: 'urn:sempkm:model:basic-pkm:Project',
+            properties: { 'http://purl.org/dc/terms/title': 'Inference Test Project' },
+          },
+        },
+        {
+          command: 'object.create',
+          params: {
+            type: 'urn:sempkm:model:basic-pkm:Person',
+            properties: { 'http://xmlns.com/foaf/0.1/name': 'Inference Test Person' },
+          },
+        },
+      ],
+    });
+    expect(createResp.ok()).toBeTruthy();
+    const createData = await createResp.json();
+    const projectIri = createData.results[0].iri;
+    const personIri = createData.results[1].iri;
+    expect(projectIri).toBeTruthy();
+    expect(personIri).toBeTruthy();
+
+    // 2. Add one-sided hasParticipant (direct triple, not reified edge)
+    const patchResp = await api.post(`${BASE_URL}/api/commands`, {
+      headers,
+      data: {
+        command: 'object.patch',
+        params: {
+          iri: projectIri,
+          properties: { 'urn:sempkm:model:basic-pkm:hasParticipant': personIri },
+        },
+      },
+    });
+    expect(patchResp.ok()).toBeTruthy();
+
+    // 3. Run inference
+    const inferResp = await api.post(`${BASE_URL}/api/inference/run`, { headers });
+    expect(inferResp.ok()).toBeTruthy();
+    const inferData = await inferResp.json();
+    expect(inferData.total_inferred).toBeGreaterThan(0);
+
+    // 4. Verify inverse triple was materialized
+    const triplesResp = await api.get(`${BASE_URL}/api/inference/triples`, { headers });
+    expect(triplesResp.ok()).toBeTruthy();
+    const triples = await triplesResp.json();
+    expect(Array.isArray(triples)).toBeTruthy();
+
+    const inverseTriple = triples.find(
+      (t: any) =>
+        t.subject === personIri &&
+        t.predicate.includes('participatesIn') &&
+        t.object === projectIri
+    );
+    expect(inverseTriple).toBeTruthy();
+  });
+
   test('inference config API returns entailment types', async ({ ownerPage, ownerSessionToken }) => {
     const api = ownerPage.context().request;
 
