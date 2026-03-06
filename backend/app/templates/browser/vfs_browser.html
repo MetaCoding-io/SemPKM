@@ -1,41 +1,48 @@
-<div class="vfs-browser">
-    <div class="vfs-browser-header">
-        <h3><i data-lucide="hard-drive"></i> Virtual Filesystem</h3>
+{% extends "base.html" %}
+
+{% block title %}SemPKM - File Browser{% endblock %}
+
+{% block layout_class %}workspace-layout{% endblock %}
+
+{% block head %}
+{{ super() }}
+{% endblock %}
+
+{% block content %}
+<div class="vfs-container" id="vfs-container" data-testid="vfs-browser">
+    <!-- Left pane: file tree -->
+    <div class="vfs-tree-pane" id="vfs-tree-pane">
+        <div class="vfs-tree-header">
+            <span class="vfs-tree-title">FILES</span>
+            <button class="panel-btn" id="vfs-refresh-btn" title="Refresh file tree">
+                <i data-lucide="refresh-cw"></i>
+            </button>
+        </div>
+        <div class="vfs-tree-body" id="vfs-tree-body">
+            <div class="vfs-tree-loading">
+                <i data-lucide="loader" class="vfs-spinner"></i>
+                <span>Loading files...</span>
+            </div>
+        </div>
     </div>
-    <div class="vfs-tree">
-        {% if models %}
-        {% for model in models %}
-        <div class="vfs-node vfs-model" data-model-id="{{ model.id }}">
-            <div class="vfs-node-header" onclick="toggleVfsNode(this)">
-                <i data-lucide="chevron-right" class="vfs-chevron"></i>
-                <i data-lucide="database" class="vfs-icon"></i>
-                <span class="vfs-label">{{ model.name }}</span>
-            </div>
-            <div class="vfs-children" style="display:none"
-                 hx-get="/browser/vfs/{{ model.id }}/types"
-                 hx-trigger="revealed once"
-                 hx-swap="innerHTML">
-                <div class="vfs-loading">Loading...</div>
-            </div>
+
+    <!-- Resize handle -->
+    <div class="vfs-resize-handle" id="vfs-resize-handle"></div>
+
+    <!-- Right pane: editor area (splittable) -->
+    <div class="vfs-editor-pane" id="vfs-editor-pane">
+        <div class="vfs-editor-empty" id="vfs-editor-empty">
+            <i data-lucide="file-text"></i>
+            <p>Select a file from the tree to view its contents</p>
         </div>
-        {% endfor %}
-        {% else %}
-        <div class="vfs-empty">
-            <i data-lucide="info"></i>
-            <span>No mental models installed</span>
+        <div class="vfs-editor-tabs" id="vfs-editor-tabs" style="display:none;">
+            <div class="vfs-tab-bar" id="vfs-tab-bar"></div>
+            <div class="vfs-editor-content" id="vfs-editor-content"></div>
         </div>
-        {% endif %}
     </div>
 </div>
-<script>
-function toggleVfsNode(header) {
-    var children = header.nextElementSibling;
-    var chevron = header.querySelector('.vfs-chevron');
-    if (children) {
-        var isOpen = children.style.display !== 'none';
-        children.style.display = isOpen ? 'none' : '';
-        if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(90deg)';
-    }
-}
-if (typeof lucide !== 'undefined') lucide.createIcons();
-</script>
+{% endblock %}
+
+{% block scripts %}
+<script src="/js/vfs-browser.js"></script>
+{% endblock %}
