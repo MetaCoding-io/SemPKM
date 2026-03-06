@@ -203,7 +203,7 @@ Plans:
 ### Phase 41: Gap Closure — Rules Wiring, Flip Fix, VFS Browser
 **Goal**: Close audit gaps (rules graph wiring, inference-to-lint pipeline), permanently fix the recurring flip card bleed-through bug, and add an in-app VFS browser view for filesystem discoverability
 **Depends on**: Phases 35-40 complete
-**Requirements**: INF-02 (gap closure), VFS-01 (new)
+**Requirements**: INF-02 (gap closure), VFS-01 (new), BUG-10
 **Gap Closure**: Closes gaps from v2.4 audit
 **Success Criteria** (what must be TRUE):
   1. Rules graph is written to triplestore during model install (closes INF-02 partial)
@@ -212,7 +212,11 @@ Plans:
   4. Flip card fix pattern is documented in CLAUDE.md to prevent recurrence
   5. Users can open an in-app VFS browser view showing the virtual filesystem tree (model → type → objects)
   6. VFS browser is accessible from sidebar navigation
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 41-01-PLAN.md — Backend gap closure (rules graph write + promote validation enqueue)
+- [ ] 41-02-PLAN.md — Permanent flip card fix + CLAUDE.md documentation
+- [ ] 41-03-PLAN.md — In-app VFS browser view (dockview tab + sidebar entry)
 
 
 ---
