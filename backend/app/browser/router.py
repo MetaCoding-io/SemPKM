@@ -192,9 +192,12 @@ async def vfs_browser(
         models.append({"id": mid, "name": mname})
 
     templates = request.app.state.templates
-    return templates.TemplateResponse(request, "browser/vfs_browser.html", {
-        "models": models,
-    })
+    context = {"models": models}
+    if _is_htmx_request(request):
+        return templates.TemplateResponse(
+            request, "browser/vfs_browser.html", context, block_name="content"
+        )
+    return templates.TemplateResponse(request, "browser/vfs_browser.html", context)
 
 
 @router.get("/vfs/{model_id}/types")
