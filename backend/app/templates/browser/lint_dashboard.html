@@ -10,28 +10,7 @@
 
 <div class="lint-dashboard" id="lint-dashboard-container">
 
-  {# Summary bar #}
-  <div class="lint-dashboard-summary">
-    {% if status.conforms %}
-      <span class="lint-conforms">&#10003; All clear</span>
-    {% else %}
-      <span>{{ status.violation_count + status.warning_count + status.info_count }} issue{{ 's' if (status.violation_count + status.warning_count + status.info_count) != 1 else '' }}</span>
-      {% if status.violation_count > 0 %}
-      <span class="lint-count-violations">&#9679; {{ status.violation_count }} violation{{ 's' if status.violation_count != 1 else '' }}</span>
-      {% endif %}
-      {% if status.warning_count > 0 %}
-      <span class="lint-count-warnings">&#9650; {{ status.warning_count }} warning{{ 's' if status.warning_count != 1 else '' }}</span>
-      {% endif %}
-      {% if status.info_count > 0 %}
-      <span class="lint-count-infos">&#9432; {{ status.info_count }} info</span>
-      {% endif %}
-    {% endif %}
-    {% if status.run_timestamp %}
-    <span style="margin-left:auto; color:var(--color-text-muted);">Last run: {{ status.run_timestamp }}</span>
-    {% endif %}
-  </div>
-
-  {# Filter toolbar #}
+  {# Combined filter toolbar + summary #}
   <div class="lint-dashboard-filters">
     <select class="lint-dashboard-filter-severity"
             hx-get="/browser/lint-dashboard"
@@ -77,6 +56,25 @@
       <option value="object"{% if current_sort == 'object' %} selected{% endif %}>Sort: Object</option>
       <option value="path"{% if current_sort == 'path' %} selected{% endif %}>Sort: Path</option>
     </select>
+
+    <span class="lint-dashboard-summary">
+      {% if status.conforms %}
+        <span class="lint-conforms">&#10003; All clear</span>
+      {% else %}
+        {% if status.violation_count > 0 %}
+        <span class="lint-count-violations">&#9679; {{ status.violation_count }} violation{{ 's' if status.violation_count != 1 else '' }}</span>
+        {% endif %}
+        {% if status.warning_count > 0 %}
+        <span class="lint-count-warnings">&#9650; {{ status.warning_count }} warning{{ 's' if status.warning_count != 1 else '' }}</span>
+        {% endif %}
+        {% if status.info_count > 0 %}
+        <span class="lint-count-infos">&#9432; {{ status.info_count }} info</span>
+        {% endif %}
+      {% endif %}
+      {% if status.run_timestamp %}
+      <span class="lint-dashboard-timestamp">Last run: {{ status.run_timestamp }}</span>
+      {% endif %}
+    </span>
   </div>
 
   {# Results area #}
