@@ -620,6 +620,19 @@ pre.json-output {
   text-overflow: ellipsis;
 }
 
+.sidebar-nav .nav-external {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  margin-left: auto;
+  opacity: 0.4;
+  stroke: currentColor;
+}
+
+.sidebar-nav .nav-link:hover .nav-external {
+  opacity: 0.7;
+}
+
 /* Section group styles */
 .sidebar-group-header {
   display: flex;
@@ -810,9 +823,11 @@ pre.json-output {
 .dashboard-layout.sidebar-collapsed .brand-text,
 .dashboard-layout.sidebar-collapsed .group-label,
 .dashboard-layout.sidebar-collapsed .nav-label,
+.dashboard-layout.sidebar-collapsed .nav-external,
 .workspace-layout.sidebar-collapsed .brand-text,
 .workspace-layout.sidebar-collapsed .group-label,
-.workspace-layout.sidebar-collapsed .nav-label {
+.workspace-layout.sidebar-collapsed .nav-label,
+.workspace-layout.sidebar-collapsed .nav-external {
   display: none;
 }
 
