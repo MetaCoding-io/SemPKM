@@ -122,9 +122,10 @@ None — clean start for v2.4
 | 25 | Analyze academic workspace chat and capture insights as research document | 2026-03-05 | 26bb375 | Verified | [25-analyze-academic-workspace-chat-and-capt](./quick/25-analyze-academic-workspace-chat-and-capt/) |
 | 26 | Document 3D flip issue in known-issues doc | 2026-03-07 | f4110c0 | | [26-document-3d-flip-issue-in-known-issues-d](./quick/26-document-3d-flip-issue-in-known-issues-d/) |
 | 27 | Add Clear & Reload button to user menu | 2026-03-07 | 40662a7 | Verified | [27-add-clear-and-reload-button-to-user-menu](./quick/27-add-clear-and-reload-button-to-user-menu/) |
+| 28 | Extend E2E tests to include Firefox browser | 2026-03-07 | 13512e7 | | [28-extend-e2e-tests-to-include-firefox-brow](./quick/28-extend-e2e-tests-to-include-firefox-brow/) |
 
 ## Session Continuity
 
-Last session: 2026-03-06T04:09:33.628Z
-Stopped at: Completed 43-01-PLAN.md
+Last session: 2026-03-07T20:20:22Z
+Stopped at: Completed quick task 28
 Resume file: None
