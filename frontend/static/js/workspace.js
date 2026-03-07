@@ -560,9 +560,6 @@
         if (!window.confirm('Discard unsaved changes?')) return;
         markClean(objectIri);
       }
-      // Show read face BEFORE animation starts — backface-visibility handles
-      // the visual midpoint at exactly 90°, so no flash/gap occurs.
-      if (readFace) readFace.classList.remove('face-hidden');
       flipInner.classList.remove('flipped');
       if (toggleBtn) toggleBtn.textContent = 'Edit';
       if (saveBtn) saveBtn.style.display = 'none';
@@ -571,13 +568,11 @@
         fetch('/browser/object/' + encodeURIComponent(objectIri) + '?mode=read', {
           headers: { 'HX-Request': 'true' }
         }).then(function (resp) { return resp.text(); }).then(function (html) {
-          // Extract the read face content from the full response
           var tmp = document.createElement('div');
           tmp.innerHTML = html;
           var freshRead = tmp.querySelector('.object-face-read');
           if (freshRead) {
             readFace.innerHTML = freshRead.innerHTML;
-            // Re-trigger markdown rendering for any md-source/md-rendered pairs
             var mdSources = readFace.querySelectorAll('script[type="text/plain"][id^="md-source-"]');
             mdSources.forEach(function (src) {
               var renderedId = src.id.replace('md-source-', 'md-rendered-');
@@ -588,7 +583,6 @@
                 tgt.textContent = src.textContent;
               }
             });
-            // Re-apply properties collapse state after read face refresh
             if (typeof window.initPropertiesState === 'function') {
               var badge = readFace.closest('.object-tab');
               var badgeBtn = badge ? badge.querySelector('.properties-toggle-badge') : null;
@@ -598,28 +592,13 @@
           }
         }).catch(function () { /* keep stale content on error */ });
       }
-      // Hide edit face AFTER animation completes (keeps it inert for a11y/events)
-      flipInner.addEventListener('transitionend', function handler(e) {
-        if (e.propertyName !== 'transform') return;
-        flipInner.removeEventListener('transitionend', handler);
-        if (editFace) editFace.classList.remove('face-visible');
-      });
     } else {
       // Switching from read to edit: initialize edit mode if needed
       var initFn = window['_initEditMode_' + safeId];
       if (typeof initFn === 'function') initFn();
-      // Show edit face BEFORE animation starts — backface-visibility handles
-      // the visual midpoint at exactly 90°, so no flash/gap occurs.
-      if (editFace) editFace.classList.add('face-visible');
       flipInner.classList.add('flipped');
       if (toggleBtn) toggleBtn.textContent = 'Cancel';
       if (saveBtn) saveBtn.style.display = '';
-      // Hide read face AFTER animation completes (keeps it inert for a11y/events)
-      flipInner.addEventListener('transitionend', function handler(e) {
-        if (e.propertyName !== 'transform') return;
-        flipInner.removeEventListener('transitionend', handler);
-        if (readFace) readFace.classList.add('face-hidden');
-      });
     }
   }
 
