@@ -23,15 +23,17 @@
 {% set is_default = value is none and prop.default_value is not none and prop.default_value != '' %}
 
 <div class="form-field {{ 'required' if is_required else '' }}" id="field-{{ field_id }}">
-    <label for="input-{{ field_id }}" title="{{ prop.path | compact_iri }}">
-        {{ prop.name }}{% if is_required %}<span class="required-marker">*</span>{% endif %}
+    <div class="form-label-row">
+        <label for="input-{{ field_id }}" title="{{ prop.path | compact_iri }}">
+            {{ prop.name }}{% if is_required %}<span class="required-marker">*</span>{% endif %}
+        </label>
         {% if prop.helptext %}
         <button type="button" class="btn-helptext-toggle"
                 onclick="toggleFieldHelp('{{ field_id }}')" title="Show help">
             <i data-lucide="help-circle"></i>
         </button>
         {% endif %}
-    </label>
+    </div>
 
     {% if prop.description %}
     <small class="field-help">{{ prop.description }}</small>

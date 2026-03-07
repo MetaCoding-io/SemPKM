@@ -872,6 +872,13 @@
     padding: 4px 12px 12px;
 }
 
+/* Label + helptext button row */
+.form-label-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
 /* Field-level helptext toggle button */
 .btn-helptext-toggle {
     display: inline-flex;
