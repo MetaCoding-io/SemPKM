@@ -121,7 +121,7 @@ None — clean start for v2.4
 | 24 | Create PPV mental model (August Bradley's Pillars, Pipelines & Vaults) | 2026-03-05 | 4d25b23 | | [24-create-ppv-mental-model-with-node-types-](./quick/24-create-ppv-mental-model-with-node-types-/) |
 | 25 | Analyze academic workspace chat and capture insights as research document | 2026-03-05 | 26bb375 | Verified | [25-analyze-academic-workspace-chat-and-capt](./quick/25-analyze-academic-workspace-chat-and-capt/) |
 | 26 | Document 3D flip issue in known-issues doc | 2026-03-07 | f4110c0 | | [26-document-3d-flip-issue-in-known-issues-d](./quick/26-document-3d-flip-issue-in-known-issues-d/) |
-| 27 | Add Clear & Reload button to user menu | 2026-03-07 | 40662a7 | | [27-add-clear-and-reload-button-to-user-menu](./quick/27-add-clear-and-reload-button-to-user-menu/) |
+| 27 | Add Clear & Reload button to user menu | 2026-03-07 | 40662a7 | Verified | [27-add-clear-and-reload-button-to-user-menu](./quick/27-add-clear-and-reload-button-to-user-menu/) |
 
 ## Session Continuity
 
