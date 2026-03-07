@@ -315,24 +315,27 @@
         var isFlipped = inner.classList.contains('flipped');
 
         if (isFlipped) {
-            // Back → Front
+            // Back → Front: show front BEFORE animation, hide back AFTER.
+            // backface-visibility handles the visual midpoint at exactly 90°.
+            if (front) front.classList.remove('face-hidden');
             inner.classList.remove('flipped');
             container.style.height = front.scrollHeight + 'px';
-            setTimeout(function() {
-                if (front) front.classList.remove('face-hidden');
+            inner.addEventListener('transitionend', function handler(e) {
+                if (e.propertyName !== 'transform') return;
+                inner.removeEventListener('transitionend', handler);
                 if (back) back.classList.remove('face-visible');
-            }, 300);
+            });
         } else {
-            // Front → Back
-            // Briefly make back visible off-screen to measure height
-            back.style.visibility = 'visible';
+            // Front → Back: show back BEFORE animation (also lets us measure height),
+            // hide front AFTER.
+            if (back) back.classList.add('face-visible');
             container.style.height = back.scrollHeight + 'px';
-            back.style.visibility = '';
             inner.classList.add('flipped');
-            setTimeout(function() {
+            inner.addEventListener('transitionend', function handler(e) {
+                if (e.propertyName !== 'transform') return;
+                inner.removeEventListener('transitionend', handler);
                 if (front) front.classList.add('face-hidden');
-                if (back) back.classList.add('face-visible');
-            }, 300);
+            });
         }
     }
 
