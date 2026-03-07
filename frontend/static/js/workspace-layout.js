@@ -152,6 +152,14 @@
     // aren't overridden by .dockview-theme-abyss (the default)
     var dv = new DockviewComponent(container, {
       createComponent: createComponentFn,
+      createWatermarkComponent: function () {
+        var el = document.createElement('div');
+        el.className = 'editor-empty';
+        el.innerHTML =
+          '<p>Select an object from the Explorer to open it here.</p>' +
+          '<p class="hint">Or press <kbd>Ctrl</kbd>+<kbd>K</kbd> to open the command palette.</p>';
+        return { element: el, init: function () {} };
+      },
       theme: { className: '' }
     });
 
