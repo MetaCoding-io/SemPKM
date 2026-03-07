@@ -49,6 +49,58 @@ Lucide SVGs use `stroke` (not `fill`) for rendering. Setting `color` on the pare
 
 ---
 
+## Frontend: CSS 3D Card Flip Animation
+
+**Problem:** Card flip animations flash/flicker when JS `setTimeout` is used to swap face visibility at a hardcoded midpoint (e.g. 300ms into a 600ms transition). The timeout races against the CSS animation — if the browser's main thread is even slightly busy, both faces become invisible for a few frames.
+
+**Rule:** Let `backface-visibility: hidden` handle the visual midpoint. Toggle `visibility` with correct sequencing — never with a hardcoded `setTimeout`.
+
+**How CSS 3D flip works:**
+1. Two faces are stacked, the back face pre-rotated `rotateY(180deg)`
+2. Both faces have `backface-visibility: hidden` — the browser automatically hides whichever face points away from the viewer
+3. The parent `.flip-inner` rotates `rotateY(180deg)` via a CSS transition
+4. At exactly 90°, the GPU compositor swaps which face is visible — frame-perfect, no JS needed
+
+**The correct JS sequencing pattern:**
+```javascript
+// Flipping to show the back face:
+backFace.classList.add('face-visible');    // visibility:visible BEFORE animation
+flipInner.classList.add('flipped');        // start CSS transition
+flipInner.addEventListener('transitionend', function handler(e) {
+    if (e.propertyName !== 'transform') return;
+    flipInner.removeEventListener('transitionend', handler);
+    frontFace.classList.add('face-hidden'); // visibility:hidden AFTER animation
+});
+```
+
+**Why this order matters:**
+- Incoming face must be `visibility: visible` **before** the transition starts, so `backface-visibility` can reveal it at 90°. If it's still `visibility: hidden` at the 90° mark, both faces are invisible → black flash.
+- Outgoing face gets `visibility: hidden` **after** `transitionend` for accessibility (removes from tab order, screen readers) — not for visual purposes.
+
+**Required CSS properties on every face element:**
+```css
+.my-face {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;  /* Safari */
+}
+```
+
+**Anti-patterns (do NOT do):**
+```javascript
+// BAD — hardcoded timeout races against CSS animation
+setTimeout(function() {
+    frontFace.classList.add('face-hidden');
+    backFace.classList.add('face-visible');
+}, 300);
+```
+
+**Implementations in codebase:**
+- Cards grid view: `views.css` (`.flip-card-*`) — pure CSS, simplest, reference pattern
+- Object tab editor: `workspace.css` (`.object-face-*`) + `workspace.js` (`toggleObjectMode`)
+- Admin model detail: `style.css` (`.type-flip-*`) + `model_detail.html` (`flipCard`)
+
+---
+
 ## Docker Dev Workflow
 
 See memory/MEMORY.md for full details. Short version:
