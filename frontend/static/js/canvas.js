@@ -144,7 +144,7 @@
   }
 
   function onDragOver(event) {
-    if (!event.dataTransfer.types || event.dataTransfer.types.indexOf('text/iri') === -1) return;
+    if (!window.__canvasDragPayload) return;
     if (!isOverCanvas(event)) {
       state.viewport.classList.remove('canvas-drop-active');
       lastDragOverCanvas = null;
