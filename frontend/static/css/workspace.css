@@ -3040,6 +3040,13 @@ details.form-group[open] > .form-group-summary::before {
   z-index: 1;
 }
 
+.spatial-canvas-viewport.canvas-drop-active {
+  background-color: rgba(37, 99, 235, 0.06);
+  outline: 2px dashed var(--color-accent, #2563eb);
+  outline-offset: -2px;
+  cursor: copy;
+}
+
 .spatial-node-uri {
   font-family: var(--font-mono);
   font-size: 11px;

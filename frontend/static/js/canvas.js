@@ -59,6 +59,47 @@
     state.layer.addEventListener('click', onLayerClick);
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
+    state.viewport.addEventListener('dragover', onDragOver);
+    state.viewport.addEventListener('dragleave', onDragLeave);
+    state.viewport.addEventListener('drop', onDrop);
+  }
+
+  function onDragOver(event) {
+    if (event.dataTransfer.types.indexOf('text/iri') === -1) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'copy';
+    state.viewport.classList.add('canvas-drop-active');
+  }
+
+  function onDragLeave(event) {
+    if (!state.viewport.contains(event.relatedTarget)) {
+      state.viewport.classList.remove('canvas-drop-active');
+    }
+  }
+
+  function onDrop(event) {
+    event.preventDefault();
+    state.viewport.classList.remove('canvas-drop-active');
+    var iri = event.dataTransfer.getData('text/iri');
+    var label = event.dataTransfer.getData('text/label');
+    if (!iri) return;
+    if (findNode(iri)) {
+      setStatus('Already on canvas');
+      if (window.showToast) window.showToast('Already on canvas');
+      return;
+    }
+    var world = screenToWorld(event.clientX, event.clientY);
+    state.nodes.push({
+      id: iri,
+      title: label || 'Resource',
+      uri: iri,
+      x: Math.round(world.x),
+      y: Math.round(world.y),
+      markdown: '',
+      collapsed: false,
+    });
+    renderNodes();
+    setStatus('Added: ' + (label || iri));
   }
 
   function onWheel(event) {
