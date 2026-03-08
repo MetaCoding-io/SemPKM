@@ -1951,7 +1951,7 @@ details.form-group[open] > .form-group-summary::before {
 
 .panel-tab.active {
   color: var(--color-text);
-  border-bottom-color: var(--color-accent);
+  border-bottom-color: var(--tab-accent-color, var(--color-accent));
 }
 
 .panel-tab:hover:not(.active) {
