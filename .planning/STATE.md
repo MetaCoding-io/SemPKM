@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Polish, Import & Identity
-status: completed
-stopped_at: Completed 48-02-PLAN.md
-last_updated: "2026-03-08T05:46:46.573Z"
-last_activity: "2026-03-08 - Completed Phase 48 Plan 02: Public profile endpoint with content negotiation and e2e tests"
+status: in-progress
+stopped_at: Completed 51-01-PLAN.md
+last_updated: "2026-03-08T06:05:14Z"
+last_activity: "2026-03-08 - Completed Phase 51 Plan 01: Per-node expand/delete/chevron controls with provenance tracking"
 progress:
   total_phases: 8
-  completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  completed_phases: 1
+  total_plans: 8
+  completed_plans: 5
   percent: 15
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-07)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations — no blank-page syndrome, no schema setup.
-**Current focus:** v2.5 Polish, Import & Identity — Phase 48 executing
+**Current focus:** v2.5 Polish, Import & Identity — Phase 51 executing
 
 ## Current Position
 
-Phase: 48 of 50 (WebID Profiles)
-Plan: 2 of 2 complete
-Status: Phase 48 complete
-Last activity: 2026-03-08 - Completed Phase 48 Plan 02: Public profile endpoint with content negotiation and e2e tests
+Phase: 51 (Spatial Canvas UX)
+Plan: 1 of 3 complete
+Status: Phase 51 in progress
+Last activity: 2026-03-08 - Completed Phase 51 Plan 01: Per-node controls with provenance tracking
 
-Progress: [##░░░░░░░░] 15%
+Progress: [██████████] 96%
 
 ## Performance Metrics
 
@@ -51,12 +51,14 @@ Progress: [##░░░░░░░░] 15%
 | 37 | 2 | 10 min | 5 min |
 | 39 | 1 | 1 min | 1 min |
 | 48 | 2 | 7 min | 3.5 min |
+| 51 | 1 | 3 min | 3 min |
 
 *Updated after each plan completion*
 | Phase 45 P01 | 5 | 2 tasks | 11 files |
 | Phase 45 P02 | 4 | 2 tasks | 10 files |
 | Phase 48 P01 | 3 | 2 tasks | 9 files |
 | Phase 48 P02 | 4 | 2 tasks | 4 files |
+| Phase 51 P01 | 3 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -70,6 +72,8 @@ Full decision log in PROJECT.md Key Decisions table.
 - Phase 48: Separate KDF salt per encryption domain (webid vs llm)
 - Phase 48: Username immutable after creation, links stored as JSON in Text column
 - Phase 48: Standalone HTML profile page (not extending base.html), content negotiation via Accept header + ?format= fallback
+- Phase 51: Inline SVG constants for canvas icons to avoid Lucide re-scan overhead
+- Phase 51: Scoped collapse via expandProvenance map tracking which expand loaded which nodes
 
 ### Pending Todos
 
@@ -101,6 +105,6 @@ None — clean start for v2.5
 
 ## Session Continuity
 
-Last session: 2026-03-08T05:41:00Z
-Stopped at: Completed 48-02-PLAN.md
-Resume file: .planning/phases/48-webid-profiles/48-02-SUMMARY.md
+Last session: 2026-03-08T06:05:14Z
+Stopped at: Completed 51-01-PLAN.md
+Resume file: .planning/phases/51-spatial-canvas-ux-per-node-expand-delete-buttons-drag-drop-from-nav-tree-remove-global-load-button/51-01-SUMMARY.md
