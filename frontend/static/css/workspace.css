@@ -3051,6 +3051,17 @@ details.form-group[open] > .form-group-summary::before {
 .spatial-node-markdown a {
   color: var(--color-accent, #2563eb);
   text-decoration: underline;
+}
+
+
+.canvas-page-status {
+  min-height: 18px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.canvas-page-status.error {
+  color: var(--color-danger, #dc2626);
 /* ============================================================
    Phase 35: Entailment Config UI
    Admin page for per-model OWL 2 RL entailment toggles.

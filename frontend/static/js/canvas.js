@@ -197,6 +197,30 @@
   function renderNodes() {
     if (!state.layer) return;
 
+    var edgesHtml = state.edges.map(function (edge) {
+      var source = findNode(edge.source);
+      var target = findNode(edge.target);
+      if (!source || !target) return '';
+
+      var x1 = source.x + 130;
+      var y1 = source.y + 44;
+      var x2 = target.x + 130;
+      var y2 = target.y + 44;
+      var mx = Math.round((x1 + x2) / 2);
+      var my = Math.round((y1 + y2) / 2) - 10;
+
+      return [
+        '<line class="spatial-edge-line" x1="', x1, '" y1="', y1, '" x2="', x2, '" y2="', y2, '"></line>',
+        '<text class="spatial-edge-label" x="', mx, '" y="', my, '">', escapeHtml(edge.label || ''), '</text>'
+      ].join('');
+    }).join('');
+
+    // var nodesHtml = state.nodes.map(function (node) {
+    //   return [
+    //     '<article class="spatial-node" data-node-id="', escapeHtml(node.id), '" style="left:', node.x, 'px; top:', node.y, 'px;">',
+    //       '<header class="spatial-node-header">', escapeHtml(node.title), '</header>',
+    //       '<div class="spatial-node-uri">', escapeHtml(node.uri), '</div>',
+    //       '<div class="spatial-node-markdown">', renderMarkdown(node.markdown || ''), '</div>',
     var nodesHtml = state.nodes.map(function (node) {
       return [
         '<article class="spatial-node', (node.collapsed ? ' is-collapsed' : ''), '" data-node-id="', escapeHtml(node.id), '" style="left:', node.x, 'px; top:', node.y, 'px;">',
@@ -210,7 +234,13 @@
       ].join('');
     }).join('');
 
-    state.layer.innerHTML = nodesHtml;
+    state.layer.innerHTML = [
+      '<svg class="spatial-edges" width="4000" height="4000" viewBox="0 0 4000 4000" aria-hidden="true">',
+      '<defs><marker id="spatial-edge-arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" class="spatial-edge-arrow-path"></path></marker></defs>',
+      edgesHtml,
+      '</svg>',
+      nodesHtml
+    ].join('');
 
     var nodeBoxes = {};
     state.layer.querySelectorAll('.spatial-node').forEach(function (el) {
