@@ -2920,6 +2920,18 @@ details.form-group[open] > .form-group-summary::before {
   color: var(--color-text-muted);
 }
 
+.canvas-session-select {
+  padding: 4px 8px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 4px;
+  background: var(--color-bg-elevated);
+  color: var(--color-text-default);
+  font-size: 12px;
+  min-width: 120px;
+  max-width: 200px;
+  cursor: pointer;
+}
+
 .spatial-canvas-root,
 .spatial-canvas-viewport {
   position: relative;

@@ -9,7 +9,11 @@
       <span id="spatial-canvas-zoom" class="canvas-page-zoom">100%</span>
       <button class="btn-secondary" type="button" onclick="if(window.SemPKMCanvas) window.SemPKMCanvas.zoomIn()">+</button>
       <button class="btn-secondary" type="button" onclick="if(window.SemPKMCanvas) window.SemPKMCanvas.resetView()">Reset view</button>
+      <select id="canvas-session-select" class="canvas-session-select" title="Switch canvas session">
+        <option value="">-- No sessions --</option>
+      </select>
       <button class="btn-secondary" type="button" onclick="if(window.SemPKMCanvas) window.SemPKMCanvas.save()">Save</button>
+      <button class="btn-secondary" type="button" onclick="if(window.SemPKMCanvas) window.SemPKMCanvas.saveAs()">Save as...</button>
     </div>
   </div>
 
