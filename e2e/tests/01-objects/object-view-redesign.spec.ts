@@ -73,7 +73,7 @@ test.describe('Object View Redesign – Body-First Layout', () => {
     await waitForIdle(ownerPage);
 
     // Markdown body should be visible immediately
-    const body = ownerPage.locator('.markdown-body');
+    const body = ownerPage.locator('.object-face-read .markdown-body').first();
     await expect(body).toBeVisible({ timeout: 5000 });
 
     // Properties should be collapsed (no .expanded class)
