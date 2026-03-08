@@ -1,0 +1,20 @@
+<div id="import-area">
+    <h2>Scan Results: {{ scan_result.vault_name }}</h2>
+    <ul>
+        <li>Total files: {{ scan_result.total_files }}</li>
+        <li>Markdown: {{ scan_result.markdown_files }}</li>
+        <li>Attachments: {{ scan_result.attachment_files }}</li>
+        <li>Folders: {{ scan_result.folders }}</li>
+        <li>Note types detected: {{ scan_result.type_groups|length }}</li>
+        <li>Frontmatter keys: {{ scan_result.frontmatter_keys|length }}</li>
+        <li>Tags: {{ scan_result.tags|length }}</li>
+        <li>Warnings: {{ scan_result.warnings|length }}</li>
+        <li>Scan duration: {{ scan_result.scan_duration_seconds }}s</li>
+    </ul>
+
+    <button hx-post="/browser/import/{{ import_id }}/discard"
+            hx-target="#import-area"
+            hx-swap="innerHTML">
+        Discard Import
+    </button>
+</div>

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Import Obsidian Vault{% endblock %}
+
+{% block content %}
+<div class="import-container" style="max-width: 800px; margin: 2rem auto; padding: 1rem;">
+    <h1>Import Obsidian Vault</h1>
+
+    {% if scan_result %}
+        {% include "obsidian/partials/scan_results.html" %}
+    {% elif has_extract %}
+        {% include "obsidian/partials/scan_trigger.html" %}
+    {% else %}
+        {% include "obsidian/partials/upload_form.html" %}
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,13 @@
+<div id="import-area">
+    <p>Vault extracted. Ready to scan.</p>
+    <button hx-post="/browser/import/scan/{{ import_id }}"
+            hx-target="#import-area"
+            hx-swap="innerHTML">
+        Scan Vault
+    </button>
+    <button hx-post="/browser/import/{{ import_id }}/discard"
+            hx-target="#import-area"
+            hx-swap="innerHTML">
+        Discard
+    </button>
+</div>
