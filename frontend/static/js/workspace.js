@@ -561,6 +561,8 @@
         markClean(objectIri);
       }
       flipInner.classList.remove('flipped');
+      if (readFace) { readFace.classList.remove('face-hidden'); readFace.classList.add('face-visible'); }
+      if (editFace) { editFace.classList.remove('face-visible'); editFace.classList.add('face-hidden'); }
       if (toggleBtn) toggleBtn.textContent = 'Edit';
       if (saveBtn) saveBtn.style.display = 'none';
       // Refresh read face with fresh data from server
@@ -597,6 +599,8 @@
       var initFn = window['_initEditMode_' + safeId];
       if (typeof initFn === 'function') initFn();
       flipInner.classList.add('flipped');
+      if (editFace) { editFace.classList.remove('face-hidden'); editFace.classList.add('face-visible'); }
+      if (readFace) { readFace.classList.remove('face-visible'); readFace.classList.add('face-hidden'); }
       if (toggleBtn) toggleBtn.textContent = 'Cancel';
       if (saveBtn) saveBtn.style.display = '';
     }
