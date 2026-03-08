@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Polish, Import & Identity
-status: planning
-stopped_at: Phase 50 context gathered
-last_updated: "2026-03-08T05:30:40.072Z"
-last_activity: "2026-03-08 - Completed quick task 32: Fix spatial canvas load button and route shadowing"
+status: executing
+stopped_at: Completed 48-01-PLAN.md
+last_updated: "2026-03-08T05:34:00Z"
+last_activity: "2026-03-08 - Completed Phase 48 Plan 01: WebID data model, service, API, and settings UI"
 progress:
   total_phases: 8
   completed_phases: 1
   total_plans: 4
-  completed_plans: 2
-  percent: 0
+  completed_plans: 3
+  percent: 12
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-07)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations — no blank-page syndrome, no schema setup.
-**Current focus:** v2.5 Polish, Import & Identity — Phase 44 ready to plan
+**Current focus:** v2.5 Polish, Import & Identity — Phase 48 executing
 
 ## Current Position
 
-Phase: 44 of 50 (UI Cleanup)
-Plan: —
-Status: Ready to plan
-Last activity: 2026-03-08 - Completed quick task 32: Fix spatial canvas load button and route shadowing
+Phase: 48 of 50 (WebID Profiles)
+Plan: 1 of 2 complete
+Status: Executing
+Last activity: 2026-03-08 - Completed Phase 48 Plan 01: WebID data model, service, API, and settings UI
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [#░░░░░░░░░] 12%
 
 ## Performance Metrics
 
@@ -50,10 +50,12 @@ Progress: [░░░░░░░░░░] 0%
 | 36 | 2 | 4 min | 2 min |
 | 37 | 2 | 10 min | 5 min |
 | 39 | 1 | 1 min | 1 min |
+| 48 | 1 | 3 min | 3 min |
 
 *Updated after each plan completion*
 | Phase 45 P01 | 5 | 2 tasks | 11 files |
 | Phase 45 P02 | 4 | 2 tasks | 10 files |
+| Phase 48 P01 | 3 | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -64,6 +66,8 @@ Full decision log in PROJECT.md Key Decisions table.
 - v2.5: Three workstreams (UI, Obsidian, Identity) are independent and parallelizable
 - v2.5: WebID before IndieAuth (IndieAuth references WebID profile)
 - v2.5: Obsidian import is import-only (triage deferred to future milestone)
+- Phase 48: Separate KDF salt per encryption domain (webid vs llm)
+- Phase 48: Username immutable after creation, links stored as JSON in Text column
 
 ### Pending Todos
 
@@ -95,6 +99,6 @@ None — clean start for v2.5
 
 ## Session Continuity
 
-Last session: 2026-03-08T05:30:40.069Z
-Stopped at: Phase 50 context gathered
-Resume file: .planning/phases/50-user-guide-documentation/50-CONTEXT.md
+Last session: 2026-03-08T05:34:00Z
+Stopped at: Completed 48-01-PLAN.md
+Resume file: .planning/phases/48-webid-profiles/48-01-SUMMARY.md
