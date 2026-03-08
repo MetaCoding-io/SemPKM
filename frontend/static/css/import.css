@@ -26,7 +26,7 @@
     padding: 3rem 2rem;
     text-align: center;
     cursor: pointer;
-    transition: border-color 0.2s, background-color 0.2s;
+    transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s;
     width: 100%;
     max-width: 500px;
 }
@@ -34,7 +34,8 @@
 .import-upload-zone:hover,
 .import-upload-zone.drag-over {
     border-color: var(--color-primary, #4a90d9);
-    background-color: var(--color-bg-hover, rgba(74, 144, 217, 0.05));
+    background-color: rgba(74, 144, 217, 0.15);
+    box-shadow: inset 0 0 0 2px var(--color-primary, #4a90d9);
 }
 
 .import-upload-zone svg {

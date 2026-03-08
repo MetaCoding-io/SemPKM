@@ -123,7 +123,24 @@ async def upload_vault(
         # Remove ZIP after extraction
         zip_path.unlink(missing_ok=True)
 
-    await asyncio.to_thread(_write_and_extract)
+    try:
+        await asyncio.to_thread(_write_and_extract)
+    except zipfile.BadZipFile:
+        zip_path.unlink(missing_ok=True)
+        shutil.rmtree(extract_path, ignore_errors=True)
+        # Return styled HTML error that fits in #import-content target
+        error_html = (
+            '<div class="import-upload-wrapper">'
+            '<div class="import-existing-notice">'
+            '<p style="color: var(--color-danger, #e74c3c); font-weight: 600;">'
+            'The uploaded file is not a valid ZIP archive.</p>'
+            '<p style="margin-top: 0.5rem; color: var(--color-text-muted, #888);">'
+            'Please select a valid .zip file and try again.</p>'
+            '<div class="import-existing-actions">'
+            '<button onclick="location.reload()" class="btn btn-primary">Try Again</button>'
+            '</div></div></div>'
+        )
+        return HTMLResponse(content=error_html, status_code=400)
 
     logger.info("Vault uploaded and extracted: %s (%s)", import_id, file.filename)
 
