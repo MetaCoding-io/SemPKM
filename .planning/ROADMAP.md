@@ -145,7 +145,11 @@
   1. User can upload or specify a path to an Obsidian vault directory from within the app
   2. Scan results display file count, detected note types, frontmatter keys, wiki-link targets, and tags
   3. Scan completes without requiring any configuration or mapping decisions from the user
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 45-01-PLAN.md -- Backend obsidian module: models, scanner, SSE broadcast, router, nginx config
+- [ ] 45-02-PLAN.md -- Frontend import tab UI, sidebar/command palette integration, e2e tests
 
 ### Phase 46: Obsidian Mapping UI
 **Goal**: Users can interactively configure how Obsidian content maps to their Mental Model before importing
@@ -376,12 +380,22 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 42. VFS Browser Fix | v2.4 | 1/1 | Complete | 2026-03-06 |
 | 43. Inference E2E Test Gap | v2.4 | 1/1 | Complete | 2026-03-06 |
 | 44. UI Cleanup | v2.5 | 0/0 | Not started | - |
-| 45. Obsidian Vault Scanner | v2.5 | 0/0 | Not started | - |
+| 45. Obsidian Vault Scanner | v2.5 | 0/2 | Planning | - |
 | 46. Obsidian Mapping UI | v2.5 | 0/0 | Not started | - |
 | 47. Obsidian Batch Import | v2.5 | 0/0 | Not started | - |
 | 48. WebID Profiles | v2.5 | 0/0 | Not started | - |
 | 49. IndieAuth Provider | v2.5 | 0/0 | Not started | - |
 | 50. User Guide & Documentation | v2.5 | 0/0 | Not started | - |
+
+### Phase 51: Spatial Canvas UX: per-node expand/delete buttons, drag-drop from nav tree, remove global load button
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 50
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 51 to break down)
 
 ---
 *Roadmap created: 2026-02-21*
