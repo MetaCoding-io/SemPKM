@@ -1,0 +1,77 @@
+<div id="import-area" class="import-scanning-wrapper">
+    <div class="import-progress-section">
+        <h3>Scanning vault...</h3>
+        <div class="import-progress-bar-track">
+            <div class="import-progress-bar" id="scan-progress-bar" style="width: 0%"></div>
+        </div>
+        <p class="import-scan-status" id="scan-status-text">Preparing scan...</p>
+        <p class="import-scan-counter" id="scan-counter">0 / ? files</p>
+    </div>
+</div>
+
+<script>
+(function() {
+    var importId = '{{ import_id }}';
+    var progressBar = document.getElementById('scan-progress-bar');
+    var statusText = document.getElementById('scan-status-text');
+    var counter = document.getElementById('scan-counter');
+
+    // Start the scan
+    fetch('/browser/import/scan/' + importId, { method: 'POST', headers: { 'HX-Request': 'true' } })
+        .then(function(resp) {
+            if (resp.ok) return resp.text();
+            throw new Error('Scan failed');
+        })
+        .then(function(html) {
+            // Scan complete - replace content with results
+            var target = document.getElementById('import-content');
+            if (target) {
+                target.innerHTML = html;
+                htmx.process(target);
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }
+        })
+        .catch(function(err) {
+            statusText.textContent = 'Scan failed: ' + err.message;
+            statusText.classList.add('error');
+        });
+
+    // SSE for progress
+    var evtSource = new EventSource('/browser/import/scan/' + importId + '/stream');
+
+    evtSource.addEventListener('scan_progress', function(e) {
+        try {
+            var data = JSON.parse(e.data);
+            if (data.total > 0) {
+                var pct = Math.round((data.scanned / data.total) * 100);
+                progressBar.style.width = pct + '%';
+                counter.textContent = data.scanned + ' / ' + data.total + ' files';
+            }
+            if (data.current_file) {
+                statusText.textContent = 'Scanning: ' + data.current_file;
+            }
+        } catch (ex) {}
+    });
+
+    evtSource.addEventListener('scan_complete', function() {
+        evtSource.close();
+        progressBar.style.width = '100%';
+        statusText.textContent = 'Scan complete!';
+    });
+
+    evtSource.addEventListener('scan_error', function(e) {
+        evtSource.close();
+        try {
+            var data = JSON.parse(e.data);
+            statusText.textContent = 'Error: ' + (data.message || 'Scan failed');
+        } catch (ex) {
+            statusText.textContent = 'Scan error occurred';
+        }
+        statusText.classList.add('error');
+    });
+
+    evtSource.onerror = function() {
+        evtSource.close();
+    };
+})();
+</script>

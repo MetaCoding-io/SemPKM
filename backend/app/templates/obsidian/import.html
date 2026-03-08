@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Import Obsidian Vault{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/import.css">
+{% endblock %}
+
+{% block content %}
+<div id="import-container">
+    <div id="import-content">
+        {% if scan_result %}
+            {% include "obsidian/partials/scan_results.html" %}
+        {% elif has_extract %}
+            {% include "obsidian/partials/scan_trigger.html" %}
+        {% else %}
+            {% include "obsidian/partials/upload_form.html" %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -22,6 +22,7 @@ from app.lint.broadcast import LintBroadcast, SSEEvent
 from app.lint.router import router as lint_router
 from app.lint.service import LintService
 from app.canvas.router import router as canvas_router
+from app.obsidian.router import router as obsidian_router
 from app.views.router import router as views_router
 from app.debug.router import router as debug_router
 from app.auth.service import AuthService
@@ -55,6 +56,7 @@ from wsgidav.wsgidav_app import WsgiDAVApp
 from a2wsgi import WSGIMiddleware
 from app.vfs.provider import SemPKMDAVProvider
 from app.vfs.router import router as vfs_browser_router
+from app.webid.router import router as webid_router, public_router as webid_public_router
 from app.vfs.auth import SemPKMWsgiAuthenticator
 from app.triplestore.sync_client import SyncTriplestoreClient
 
@@ -408,7 +410,10 @@ app.include_router(inference_router)
 app.include_router(admin_router)
 app.include_router(views_router)
 app.include_router(vfs_browser_router)
+app.include_router(webid_router)
+app.include_router(webid_public_router)
 app.include_router(browser_router)
+app.include_router(obsidian_router)
 app.include_router(canvas_router)
 app.include_router(debug_router)
 app.include_router(shell_router)
