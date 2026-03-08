@@ -82,13 +82,33 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (populated by roadmapper) | | |
+| UICL-01 | Phase 44 | Pending |
+| UICL-02 | Phase 44 | Pending |
+| UICL-03 | Phase 44 | Pending |
+| OBSI-01 | Phase 45 | Pending |
+| OBSI-02 | Phase 45 | Pending |
+| OBSI-03 | Phase 46 | Pending |
+| OBSI-04 | Phase 46 | Pending |
+| OBSI-05 | Phase 46 | Pending |
+| OBSI-06 | Phase 47 | Pending |
+| OBSI-07 | Phase 47 | Pending |
+| WBID-01 | Phase 48 | Pending |
+| WBID-02 | Phase 48 | Pending |
+| WBID-03 | Phase 48 | Pending |
+| WBID-04 | Phase 48 | Pending |
+| WBID-05 | Phase 48 | Pending |
+| WBID-06 | Phase 48 | Pending |
+| IAUTH-01 | Phase 49 | Pending |
+| IAUTH-02 | Phase 49 | Pending |
+| IAUTH-03 | Phase 49 | Pending |
+| IAUTH-04 | Phase 49 | Pending |
+| IAUTH-05 | Phase 49 | Pending |
 
 **Coverage:**
 - v2.5 requirements: 20 total
-- Mapped to phases: 0
-- Unmapped: 20
+- Mapped to phases: 20
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-07*
-*Last updated: 2026-03-07 after initial definition*
+*Last updated: 2026-03-07 after roadmap creation*
