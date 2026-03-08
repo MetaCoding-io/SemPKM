@@ -396,7 +396,7 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 **Goal:** Polished spatial canvas with per-node controls, drag-drop from nav tree, and named session management
 **Requirements**: (none -- informal phase, no formal requirement IDs)
 **Depends on:** Nothing (independent)
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [ ] 51-01-PLAN.md -- Per-node expand/delete/chevron controls, provenance tracking, empty canvas hint, toolbar cleanup
