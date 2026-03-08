@@ -139,6 +139,8 @@ type AuthFixtures = {
   ownerSessionToken: string;
   /** A Playwright Page authenticated as the instance owner */
   ownerPage: Page;
+  /** An authenticated APIRequestContext for the owner (no browser needed) */
+  ownerRequest: APIRequestContext;
   /** A Playwright Page authenticated as a member user */
   memberPage: Page;
 };
@@ -166,6 +168,17 @@ export const test = base.extend<AuthFixtures>({
     }
 
     await use(token);
+    await ctx.dispose();
+  },
+
+  ownerRequest: async ({ ownerSessionToken }, use) => {
+    const ctx = await request.newContext({
+      baseURL: BASE_URL,
+      extraHTTPHeaders: {
+        Cookie: `sempkm_session=${ownerSessionToken}`,
+      },
+    });
+    await use(ctx);
     await ctx.dispose();
   },
 
