@@ -179,7 +179,7 @@ Plans:
   2. Obsidian wiki-links between notes are resolved to RDF edges between the corresponding imported objects
   3. Obsidian tags are resolved to edges (e.g., linking to Concept objects or tag resources)
   4. Imported objects are browsable in the workspace immediately after import completes
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 47-01-PLAN.md -- Backend ImportExecutor, ImportResult model, router endpoints for import execution
@@ -403,7 +403,7 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 44. UI Cleanup | 2/2 | Complete   | 2026-03-08 | - |
 | 45. Obsidian Vault Scanner | 3/3 | Complete    | 2026-03-08 | - |
 | 46. Obsidian Mapping UI | 2/3 | Complete    | 2026-03-08 | - |
-| 47. Obsidian Batch Import | v2.5 | 0/2 | Planned | - |
+| 47. Obsidian Batch Import | 1/2 | In Progress|  | - |
 | 48. WebID Profiles | 2/2 | Complete    | 2026-03-08 | - |
 | 49. IndieAuth Provider | 3/3 | Complete    | 2026-03-08 | - |
 | 50. User Guide & Documentation | v2.5 | 0/0 | Not started | - |
