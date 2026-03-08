@@ -734,7 +734,7 @@
 
   function initKeyboardShortcuts() {
     if (_keydownHandler) {
-      document.removeEventListener('keydown', _keydownHandler);
+      document.removeEventListener('keydown', _keydownHandler, true);
     }
     _keydownHandler = function (e) {
       var isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
@@ -822,7 +822,7 @@
         }
       }
     };
-    document.addEventListener('keydown', _keydownHandler);
+    document.addEventListener('keydown', _keydownHandler, true);
   }
 
   function saveCurrentObject() {
@@ -1550,6 +1550,10 @@
 
       var field = input.closest('.form-field');
       if (!field) return;
+
+      // Skip validation if focus is moving to another element within the same field
+      // (e.g., clicking the helptext toggle button)
+      if (e.relatedTarget && field.contains(e.relatedTarget)) return;
 
       // Check if this is a required field
       var requiredMarker = field.querySelector('.required-marker');
