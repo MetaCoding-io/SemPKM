@@ -614,6 +614,9 @@
 
     var content = file.editor ? file.editor.state.doc.toString() : (file.content || '');
 
+    // Strip YAML frontmatter (---\n...\n---) before rendering markdown
+    content = content.replace(/^---\n[\s\S]*?\n---\n?/, '');
+
     if (typeof globalThis.marked !== 'undefined') {
       var rawHtml = globalThis.marked.parse(content);
       if (typeof DOMPurify !== 'undefined') {
