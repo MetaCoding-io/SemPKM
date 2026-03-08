@@ -84,8 +84,10 @@
             <i data-lucide="arrow-left"></i>
             Back: Property Mapping
         </button>
-        <button class="btn btn-primary" disabled
-                title="Import will be available after Phase 47">
+        <button class="btn btn-primary"
+                hx-post="/browser/import/{{ import_id }}/execute"
+                hx-target="#import-area"
+                hx-swap="outerHTML">
             <i data-lucide="download"></i>
             Import
         </button>
