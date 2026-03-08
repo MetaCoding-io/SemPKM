@@ -237,6 +237,14 @@
     var panel = document.createElement('div');
     panel.className = 'vfs-editor-panel';
     panel.id = 'vfs-panel-' + _pathId(path);
+
+    var isMarkdown = /\.md$/i.test(path);
+    var viewTabsHtml = isMarkdown ?
+      '<div class="vfs-view-tabs" id="vfs-view-tabs-' + _pathId(path) + '">' +
+      '  <button class="vfs-view-tab active" data-view="preview">Preview</button>' +
+      '  <button class="vfs-view-tab" data-view="source">Source</button>' +
+      '</div>' : '';
+
     panel.innerHTML =
       '<div class="vfs-editor-toolbar">' +
       '  <span class="vfs-editor-path">' + _escapeHtml(path) + '</span>' +
@@ -246,11 +254,39 @@
       '  <button class="btn-sm btn-primary" id="vfs-save-btn-' + _pathId(path) + '" title="Save (Ctrl+S)" style="display:none;">' +
       '    <i data-lucide="save"></i> Save</button>' +
       '</div>' +
-      '<div class="vfs-cm-container" id="vfs-cm-' + _pathId(path) + '">' +
+      viewTabsHtml +
+      (isMarkdown ? '<div class="vfs-preview-container" id="vfs-preview-' + _pathId(path) + '"><div class="markdown-body"></div></div>' : '') +
+      '<div class="vfs-cm-container" id="vfs-cm-' + _pathId(path) + '"' + (isMarkdown ? ' style="display:none"' : '') + '>' +
       '  <div class="vfs-editor-loading"><i data-lucide="loader" class="vfs-spinner"></i> Loading...</div>' +
       '</div>';
     contentEl.appendChild(panel);
     if (typeof lucide !== 'undefined') lucide.createIcons({ root: panel });
+
+    // Wire view tab switching for markdown files
+    if (isMarkdown) {
+      var viewTabs = panel.querySelector('.vfs-view-tabs');
+      if (viewTabs) {
+        viewTabs.addEventListener('click', function (e) {
+          var btn = e.target.closest('.vfs-view-tab');
+          if (!btn) return;
+          var view = btn.getAttribute('data-view');
+          viewTabs.querySelectorAll('.vfs-view-tab').forEach(function (t) {
+            t.classList.toggle('active', t === btn);
+          });
+          var previewEl = $id('vfs-preview-' + _pathId(path));
+          var cmEl = $id('vfs-cm-' + _pathId(path));
+          if (view === 'preview') {
+            if (previewEl) previewEl.style.display = '';
+            if (cmEl) cmEl.style.display = 'none';
+            // Re-render preview from current editor content
+            _renderMarkdownPreview(path);
+          } else {
+            if (previewEl) previewEl.style.display = 'none';
+            if (cmEl) cmEl.style.display = '';
+          }
+        });
+      }
+    }
 
     // Track file
     openFiles[path] = { content: '', iri: null, label: label, editor: null, dirty: false, editable: false };
@@ -267,6 +303,10 @@
         openFiles[path].content = data.content;
         openFiles[path].iri = data.iri;
         initFileEditor(path, data.content, false);
+        // Render markdown preview if this is a .md file
+        if (/\.md$/i.test(path)) {
+          _renderMarkdownPreview(path);
+        }
       })
       .catch(function (err) {
         var cmEl = $id('vfs-cm-' + _pathId(path));
@@ -360,6 +400,19 @@
             view.dispatch({
               effects: readOnlyCompartment.reconfigure(cm.EditorState.readOnly.of(false))
             });
+            // For markdown files, switch to source view when entering edit mode
+            if (/\.md$/i.test(path)) {
+              var previewEl = $id('vfs-preview-' + _pathId(path));
+              var cmEl = $id('vfs-cm-' + _pathId(path));
+              if (previewEl) previewEl.style.display = 'none';
+              if (cmEl) cmEl.style.display = '';
+              var viewTabs = $id('vfs-view-tabs-' + _pathId(path));
+              if (viewTabs) {
+                viewTabs.querySelectorAll('.vfs-view-tab').forEach(function (t) {
+                  t.classList.toggle('active', t.getAttribute('data-view') === 'source');
+                });
+              }
+            }
           }
           if (typeof lucide !== 'undefined') lucide.createIcons({ root: editBtn });
         });
@@ -542,6 +595,28 @@
     var div = document.createElement('div');
     div.appendChild(document.createTextNode(str));
     return div.innerHTML;
+  }
+
+  /** Render markdown preview for a file path using the global marked instance */
+  function _renderMarkdownPreview(path) {
+    var file = openFiles[path];
+    if (!file) return;
+    var previewEl = $id('vfs-preview-' + _pathId(path));
+    if (!previewEl) return;
+    var mdBody = previewEl.querySelector('.markdown-body');
+    if (!mdBody) return;
+
+    var content = file.editor ? file.editor.state.doc.toString() : (file.content || '');
+
+    if (typeof globalThis.marked !== 'undefined') {
+      var rawHtml = globalThis.marked.parse(content);
+      if (typeof DOMPurify !== 'undefined') {
+        rawHtml = DOMPurify.sanitize(rawHtml);
+      }
+      mdBody.innerHTML = rawHtml;
+    } else {
+      mdBody.textContent = content;
+    }
   }
 
   // ── Boot ───────────────────────────────────────────────────────────
