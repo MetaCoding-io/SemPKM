@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Polish, Import & Identity
 status: executing
-stopped_at: Completed 48-01-PLAN.md
-last_updated: "2026-03-08T05:34:00Z"
+stopped_at: Phase 51 context gathered
+last_updated: "2026-03-08T05:43:01.459Z"
 last_activity: "2026-03-08 - Completed Phase 48 Plan 01: WebID data model, service, API, and settings UI"
 progress:
   total_phases: 8
@@ -99,6 +99,6 @@ None — clean start for v2.5
 
 ## Session Continuity
 
-Last session: 2026-03-08T05:34:00Z
-Stopped at: Completed 48-01-PLAN.md
-Resume file: .planning/phases/48-webid-profiles/48-01-SUMMARY.md
+Last session: 2026-03-08T05:43:01.457Z
+Stopped at: Phase 51 context gathered
+Resume file: .planning/phases/51-spatial-canvas-ux-per-node-expand-delete-buttons-drag-drop-from-nav-tree-remove-global-load-button/51-CONTEXT.md
