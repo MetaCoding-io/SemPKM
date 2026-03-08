@@ -76,6 +76,7 @@ Full decision log in PROJECT.md Key Decisions table.
 - Phase 48: Standalone HTML profile page (not extending base.html), content negotiation via Accept header + ?format= fallback
 - Phase 51: Inline SVG constants for canvas icons to avoid Lucide re-scan overhead
 - Phase 51: Scoped collapse via expandProvenance map tracking which expand loaded which nodes
+- Phase 51: Custom MIME types text/iri and text/label in dataTransfer for nav-tree-to-canvas drag-drop
 
 ### Pending Todos
 
@@ -107,6 +108,6 @@ None — clean start for v2.5
 
 ## Session Continuity
 
-Last session: 2026-03-08T06:10:40.996Z
-Stopped at: Completed 45-03-PLAN.md
-Resume file: None
+Last session: 2026-03-08T06:10:00Z
+Stopped at: Completed 51-02-PLAN.md
+Resume file: .planning/phases/51-spatial-canvas-ux-per-node-expand-delete-buttons-drag-drop-from-nav-tree-remove-global-load-button/51-02-SUMMARY.md
