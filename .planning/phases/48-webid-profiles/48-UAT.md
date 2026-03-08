@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 48-webid-profiles
 source: 48-01-SUMMARY.md, 48-02-SUMMARY.md
 started: 2026-03-08T06:00:00Z
@@ -65,5 +65,9 @@ skipped: 0
   reason: "User reported: The labeling is confusing, the text should not change. It should just say Published and if its unchecked the user will get that its not published"
   severity: minor
   test: 5
-  artifacts: []
-  missing: []
+  root_cause: "Label span text dynamically toggled between 'Published'/'Unpublished' on checkbox change and page load"
+  artifacts:
+    - path: "backend/app/templates/browser/_webid_settings.html"
+      issue: "Dynamic label text on publish toggle"
+  missing:
+    - "Make label static 'Published', remove dynamic textContent updates"
