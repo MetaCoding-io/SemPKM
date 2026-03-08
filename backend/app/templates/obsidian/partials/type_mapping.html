@@ -1,0 +1,80 @@
+{% set current_step = 3 %}
+{% include "obsidian/partials/step_bar.html" %}
+
+<div class="import-section">
+    <h2 class="import-section-title">
+        <i data-lucide="layers"></i>
+        Map Note Types
+    </h2>
+    <p style="font-size: 0.9rem; color: var(--color-text-muted, #888); margin-bottom: 1rem;">
+        Choose which Mental Model type each detected group should become. Select "Skip" to exclude a group from import.
+    </p>
+
+    <table class="import-detail-table type-mapping-table">
+        <thead>
+            <tr>
+                <th>Detected Group</th>
+                <th>Count</th>
+                <th>Signal</th>
+                <th>Map To</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for group in scan_result.type_groups %}
+            {% set group_key = group.type_name ~ "|" ~ group.signal_source %}
+            {% set current_mapping = mapping_config.type_mappings.get(group_key) %}
+            <tr class="type-mapping-row {% if group.type_name == 'Uncategorized' %}uncategorized{% endif %}">
+                <td>
+                    <details>
+                        <summary class="type-group-name">{{ group.type_name }}</summary>
+                        <ul class="type-group-notes">
+                            {% for note in group.sample_notes[:10] %}
+                            <li>{{ note }}</li>
+                            {% endfor %}
+                        </ul>
+                    </details>
+                </td>
+                <td>{{ group.count }}</td>
+                <td><span class="import-signal-badge">{{ group.signal_source }}</span></td>
+                <td>
+                    <select name="target_type"
+                            class="mapping-select"
+                            hx-post="/browser/import/{{ import_id }}/mapping/type"
+                            hx-include="this"
+                            hx-vals='{"group_key": "{{ group_key }}"}'
+                            hx-swap="none"
+                            hx-trigger="change">
+                        <option value="">-- Skip --</option>
+                        {% for t in available_types %}
+                        <option value="{{ t.iri }}"
+                                {% if current_mapping and current_mapping.target_type_iri == t.iri %}selected{% endif %}>
+                            {{ t.label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="mapping-nav">
+    <button class="btn btn-outline"
+            hx-get="/browser/import/{{ import_id }}/step/scan-results"
+            hx-target="#import-content"
+            hx-swap="innerHTML">
+        <i data-lucide="arrow-left"></i>
+        Back: Scan Results
+    </button>
+    <button class="btn btn-primary"
+            id="next-btn"
+            hx-get="/browser/import/{{ import_id }}/step/property-mapping"
+            hx-target="#import-content"
+            hx-swap="innerHTML">
+        Next: Property Mapping
+        <i data-lucide="arrow-right"></i>
+    </button>
+</div>
+
+<script>if (typeof lucide !== 'undefined') { lucide.createIcons(); }</script>

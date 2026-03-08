@@ -1,0 +1,116 @@
+{% set current_step = 4 %}
+{% include "obsidian/partials/step_bar.html" %}
+
+<div class="import-section">
+    <h2 class="import-section-title">
+        <i data-lucide="settings-2"></i>
+        Map Properties
+    </h2>
+    <p style="font-size: 0.9rem; color: var(--color-text-muted, #888); margin-bottom: 1rem;">
+        For each mapped type, choose which RDF property each frontmatter key should become. Select "Skip" to exclude a key.
+    </p>
+
+    {% for type_iri, type_info in type_sections.items() %}
+    <div class="property-mapping-section">
+        <h3 class="property-section-heading">{{ type_info.label }}</h3>
+
+        <div class="body-mapping-note">
+            <i data-lucide="file-text"></i>
+            Markdown body content will be imported as the object body (not configurable).
+        </div>
+
+        <table class="import-detail-table property-mapping-table">
+            <thead>
+                <tr>
+                    <th>Frontmatter Key</th>
+                    <th>Occurrences</th>
+                    <th>Sample Values</th>
+                    <th>Map To</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fm in type_info.frontmatter_keys %}
+                {% set prop_mappings = mapping_config.property_mappings.get(type_iri, {}) %}
+                {% set current_prop = prop_mappings.get(fm.key) %}
+                <tr class="property-mapping-row">
+                    <td><code>{{ fm.key }}</code></td>
+                    <td>{{ fm.count }}</td>
+                    <td class="sample-values">
+                        {% for sv in fm.sample_values[:3] %}
+                        <span class="sample-value">{{ sv }}</span>{% if not loop.last %}, {% endif %}
+                        {% endfor %}
+                    </td>
+                    <td>
+                        <select name="target_property"
+                                class="mapping-select"
+                                hx-post="/browser/import/{{ import_id }}/mapping/property"
+                                hx-include="this"
+                                hx-vals='{"type_iri": "{{ type_iri }}", "fm_key": "{{ fm.key }}"}'
+                                hx-swap="none"
+                                hx-trigger="change"
+                                onchange="toggleCustomIri(this)">
+                            <option value="">-- Skip --</option>
+                            {% for prop in type_info.properties %}
+                            <option value="{{ prop.iri }}"
+                                    {% if current_prop and current_prop.source == 'shacl' and current_prop.target_property_iri == prop.iri %}selected{% endif %}>
+                                {{ prop.label }}
+                            </option>
+                            {% endfor %}
+                            <option value="__custom__"
+                                    {% if current_prop and current_prop.source == 'custom' %}selected{% endif %}>
+                                Custom IRI...
+                            </option>
+                        </select>
+                        <input type="text"
+                               class="custom-iri-input"
+                               name="custom_iri"
+                               placeholder="https://example.org/property"
+                               {% if current_prop and current_prop.source == 'custom' %}
+                               value="{{ current_prop.target_property_iri }}"
+                               style="display: block;"
+                               {% else %}
+                               style="display: none;"
+                               {% endif %}
+                               hx-post="/browser/import/{{ import_id }}/mapping/property"
+                               hx-include="this"
+                               hx-vals='{"type_iri": "{{ type_iri }}", "fm_key": "{{ fm.key }}", "target_property": "__custom__"}'
+                               hx-swap="none"
+                               hx-trigger="change">
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="mapping-nav">
+    <button class="btn btn-outline"
+            hx-get="/browser/import/{{ import_id }}/step/type-mapping"
+            hx-target="#import-content"
+            hx-swap="innerHTML">
+        <i data-lucide="arrow-left"></i>
+        Back: Type Mapping
+    </button>
+    <button class="btn btn-primary"
+            hx-get="/browser/import/{{ import_id }}/step/preview"
+            hx-target="#import-content"
+            hx-swap="innerHTML">
+        Next: Preview
+        <i data-lucide="arrow-right"></i>
+    </button>
+</div>
+
+<script>
+function toggleCustomIri(selectEl) {
+    var customInput = selectEl.parentElement.querySelector('.custom-iri-input');
+    if (selectEl.value === '__custom__') {
+        customInput.style.display = 'block';
+        customInput.focus();
+    } else {
+        customInput.style.display = 'none';
+    }
+}
+if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+</script>
