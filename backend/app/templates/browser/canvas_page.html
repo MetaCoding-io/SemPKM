@@ -1,23 +1,24 @@
 <div class="canvas-page" data-testid="spatial-canvas-page">
   <div class="canvas-page-toolbar">
     <div class="canvas-page-title">
-      <strong>Spatial Canvas (M0)</strong>
-      <span>Pan, zoom, and drag sample resource nodes.</span>
+      <strong>Spatial Canvas</strong>
+      <span>Explore your knowledge graph spatially.</span>
     </div>
     <div class="canvas-page-actions">
       <button class="btn-secondary" type="button" onclick="if(window.SemPKMCanvas) window.SemPKMCanvas.zoomOut()">-</button>
       <span id="spatial-canvas-zoom" class="canvas-page-zoom">100%</span>
       <button class="btn-secondary" type="button" onclick="if(window.SemPKMCanvas) window.SemPKMCanvas.zoomIn()">+</button>
       <button class="btn-secondary" type="button" onclick="if(window.SemPKMCanvas) window.SemPKMCanvas.resetView()">Reset view</button>
-      <button class="btn-secondary" type="button" onclick="if(window.SemPKMCanvas) window.SemPKMCanvas.load()">Load</button>
       <button class="btn-secondary" type="button" onclick="if(window.SemPKMCanvas) window.SemPKMCanvas.save()">Save</button>
-      <button class="btn-secondary" type="button" onclick="if(window.SemPKMCanvas) window.SemPKMCanvas.loadNeighbors()">Load Neighbors</button>
     </div>
   </div>
 
   <div id="spatial-canvas-root" class="spatial-canvas-root" data-canvas-id="default">
     <div class="spatial-canvas-viewport">
       <div class="spatial-canvas-layer"></div>
+      <div class="spatial-canvas-hint" id="canvas-hint">
+        Drag items from the nav tree to start exploring
+      </div>
     </div>
   </div>
   <div id="spatial-canvas-status" class="canvas-page-status" aria-live="polite"></div>
