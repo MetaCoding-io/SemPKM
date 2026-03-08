@@ -166,8 +166,8 @@ Plans:
 **Plans:** 2/3 plans executed
 
 Plans:
-- [ ] 46-01-PLAN.md -- Backend models, scanner enhancement, and mapping endpoints
-- [ ] 46-02-PLAN.md -- Step bar, type mapping, and property mapping templates
+- [x] 46-01-PLAN.md -- Backend models, scanner enhancement, and mapping endpoints
+- [x] 46-02-PLAN.md -- Step bar, type mapping, and property mapping templates
 - [ ] 46-03-PLAN.md -- Preview template and end-to-end wizard verification
 
 ### Phase 47: Obsidian Batch Import
