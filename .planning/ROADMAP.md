@@ -179,7 +179,11 @@ Plans:
   2. Obsidian wiki-links between notes are resolved to RDF edges between the corresponding imported objects
   3. Obsidian tags are resolved to edges (e.g., linking to Concept objects or tag resources)
   4. Imported objects are browsable in the workspace immediately after import completes
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 47-01-PLAN.md -- Backend ImportExecutor, ImportResult model, router endpoints for import execution
+- [ ] 47-02-PLAN.md -- Import progress/summary UI templates, preview button wiring, e2e tests
 
 ### Phase 48: WebID Profiles
 **Goal**: Each SemPKM user is a verifiable identity on the web with a dereferenceable profile document
@@ -221,7 +225,6 @@ Plans:
   2. Each major feature has a dedicated user guide page with usage instructions and screenshots
   3. Existing pages are updated to reflect current UI state (no stale references to old layouts)
 **Plans**: TBD
-
 ---
 
 ### Design Decision Gate
@@ -400,9 +403,9 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 44. UI Cleanup | 2/2 | Complete   | 2026-03-08 | - |
 | 45. Obsidian Vault Scanner | 3/3 | Complete    | 2026-03-08 | - |
 | 46. Obsidian Mapping UI | 2/3 | Complete    | 2026-03-08 | - |
-| 47. Obsidian Batch Import | v2.5 | 0/0 | Not started | - |
+| 47. Obsidian Batch Import | v2.5 | 0/2 | Planned | - |
 | 48. WebID Profiles | 2/2 | Complete    | 2026-03-08 | - |
-| 49. IndieAuth Provider | 3/3 | Complete   | 2026-03-08 | - |
+| 49. IndieAuth Provider | 3/3 | Complete    | 2026-03-08 | - |
 | 50. User Guide & Documentation | v2.5 | 0/0 | Not started | - |
 
 ### Phase 51: Spatial Canvas UX: per-node expand/delete buttons, drag-drop from nav tree, remove global load button
