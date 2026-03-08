@@ -21,6 +21,7 @@ from app.inference.router import router as inference_router
 from app.lint.broadcast import LintBroadcast, SSEEvent
 from app.lint.router import router as lint_router
 from app.lint.service import LintService
+from app.canvas.router import router as canvas_router
 from app.views.router import router as views_router
 from app.debug.router import router as debug_router
 from app.auth.service import AuthService
@@ -408,6 +409,7 @@ app.include_router(admin_router)
 app.include_router(views_router)
 app.include_router(vfs_browser_router)
 app.include_router(browser_router)
+app.include_router(canvas_router)
 app.include_router(debug_router)
 app.include_router(shell_router)
 
