@@ -110,6 +110,8 @@ class VaultScanner:
         link_counts: dict[str, int] = {}
         type_buckets: dict[tuple[str, str], list[str]] = {}  # (type_name, signal) -> sample paths (max 10)
         type_counts: dict[tuple[str, str], int] = {}  # (type_name, signal) -> total count
+        # Per-group frontmatter key tracking
+        group_fm_keys: dict[tuple[str, str], dict[str, dict[str, Any]]] = {}
         warnings: list[ScanWarning] = []
         md_stems = {f.stem.lower() for f in md_files}
 
@@ -237,6 +239,18 @@ class VaultScanner:
             if len(type_buckets[bucket_key]) < 10:
                 type_buckets[bucket_key].append(rel_path)
 
+            # Track per-group frontmatter keys
+            if meta:
+                if bucket_key not in group_fm_keys:
+                    group_fm_keys[bucket_key] = {}
+                for key, value in meta.items():
+                    if key not in group_fm_keys[bucket_key]:
+                        group_fm_keys[bucket_key][key] = {"count": 0, "samples": set()}
+                    group_fm_keys[bucket_key][key]["count"] += 1
+                    samples = group_fm_keys[bucket_key][key]["samples"]
+                    if len(samples) < 5:
+                        samples.add(str(value)[:100])
+
         # Check for broken wiki-links
         for target, count in link_counts.items():
             if target.lower() not in md_stems:
@@ -256,6 +270,18 @@ class VaultScanner:
                 signal_source=signal_source,
                 count=type_counts.get((type_name, signal_source), 0),
                 sample_notes=type_buckets.get((type_name, signal_source), []),
+                frontmatter_keys=[
+                    FrontmatterKeySummary(
+                        key=k,
+                        count=v["count"],
+                        sample_values=list(v["samples"])[:5],
+                    )
+                    for k, v in sorted(
+                        group_fm_keys.get((type_name, signal_source), {}).items(),
+                        key=lambda x: x[1]["count"],
+                        reverse=True,
+                    )
+                ],
             )
             for (type_name, signal_source) in sorted(
                 type_counts.keys(), key=lambda k: type_counts[k], reverse=True
