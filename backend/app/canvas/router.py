@@ -37,31 +37,6 @@ def get_canvas_service() -> CanvasService:
     return CanvasService()
 
 
-@router.get("/{canvas_id}", response_model=CanvasResponse)
-async def get_canvas_document(
-    canvas_id: str,
-    user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db_session),
-    service: CanvasService = Depends(get_canvas_service),
-):
-    """Load a user-scoped canvas document by canvas_id."""
-    document, updated_at = await service.load_document(user.id, canvas_id, db)
-    return CanvasResponse(canvas_id=canvas_id, document=document, updated_at=updated_at)
-
-
-@router.put("/{canvas_id}", response_model=CanvasResponse)
-async def put_canvas_document(
-    canvas_id: str,
-    body: CanvasPutBody,
-    user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db_session),
-    service: CanvasService = Depends(get_canvas_service),
-):
-    """Save a user-scoped canvas document by canvas_id."""
-    updated_at = await service.save_document(user.id, canvas_id, body.document, db)
-    return CanvasResponse(canvas_id=canvas_id, document=body.document, updated_at=updated_at)
-
-
 @router.get("/subgraph")
 async def get_canvas_subgraph(
     root_uri: str = Query(..., description="Root resource URI"),
@@ -121,3 +96,28 @@ async def get_canvas_subgraph(
         "nodes": list(seen_nodes.values()),
         "edges": edges_out,
     }
+
+
+@router.get("/{canvas_id}", response_model=CanvasResponse)
+async def get_canvas_document(
+    canvas_id: str,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db_session),
+    service: CanvasService = Depends(get_canvas_service),
+):
+    """Load a user-scoped canvas document by canvas_id."""
+    document, updated_at = await service.load_document(user.id, canvas_id, db)
+    return CanvasResponse(canvas_id=canvas_id, document=document, updated_at=updated_at)
+
+
+@router.put("/{canvas_id}", response_model=CanvasResponse)
+async def put_canvas_document(
+    canvas_id: str,
+    body: CanvasPutBody,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db_session),
+    service: CanvasService = Depends(get_canvas_service),
+):
+    """Save a user-scoped canvas document by canvas_id."""
+    updated_at = await service.save_document(user.id, canvas_id, body.document, db)
+    return CanvasResponse(canvas_id=canvas_id, document=body.document, updated_at=updated_at)
