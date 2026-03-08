@@ -215,6 +215,16 @@ async def public_profile(
         except (json.JSONDecodeError, TypeError):
             rel_me_links = []
 
+    # Build IndieAuth discovery headers
+    metadata_url = f"{base_url}/api/indieauth/metadata"
+    authorization_endpoint = f"{base_url}/api/indieauth/authorize"
+    token_endpoint = f"{base_url}/api/indieauth/token"
+    link_header = (
+        f'<{metadata_url}>; rel="indieauth-metadata", '
+        f'<{authorization_endpoint}>; rel="authorization_endpoint", '
+        f'<{token_endpoint}>; rel="token_endpoint"'
+    )
+
     # Determine format: query param takes precedence, then Accept header
     format_param = request.query_params.get("format", "").lower()
     accept = request.headers.get("accept", "text/html")
@@ -226,7 +236,11 @@ async def public_profile(
             user.public_key_pem, rel_me_links,
         )
         turtle_content = graph.serialize(format="turtle")
-        return Response(content=turtle_content, media_type="text/turtle; charset=utf-8")
+        return Response(
+            content=turtle_content,
+            media_type="text/turtle; charset=utf-8",
+            headers={"Link": link_header},
+        )
 
     if format_param == "jsonld" or "application/ld+json" in accept:
         # JSON-LD
@@ -242,6 +256,7 @@ async def public_profile(
         return JSONResponse(
             content=json.loads(jsonld_str),
             media_type="application/ld+json",
+            headers={"Link": link_header},
         )
 
     # Default: HTML profile page
@@ -257,5 +272,9 @@ async def public_profile(
             "public_key_pem": user.public_key_pem,
             "fingerprint": fingerprint,
             "rel_me_links": rel_me_links,
+            "metadata_url": metadata_url,
+            "authorization_endpoint": authorization_endpoint,
+            "token_endpoint": token_endpoint,
         },
+        headers={"Link": link_header},
     )

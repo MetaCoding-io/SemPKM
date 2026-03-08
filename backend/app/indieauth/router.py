@@ -290,9 +290,38 @@ async def list_tokens(
     ]
 
 
+@router.get("/tokens/list")
+async def list_tokens_html(
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db_session),
+):
+    """Return authorized apps as an HTML partial for htmx."""
+    svc = IndieAuthService(db)
+    tokens = await svc.list_authorized_apps(user.id)
+    token_list = [
+        {
+            "id": str(t.id),
+            "client_id": t.client_id,
+            "client_name": t.client_name,
+            "scope": t.scope,
+            "created_at": t.created_at.isoformat() if t.created_at else None,
+            "expires_at": t.expires_at.isoformat() if t.expires_at else None,
+        }
+        for t in tokens
+    ]
+    templates = request.app.state.templates
+    return templates.TemplateResponse(
+        request,
+        "indieauth/_token_list.html",
+        {"tokens": token_list},
+    )
+
+
 @router.delete("/tokens/{token_id}")
 async def revoke_token(
     token_id: UUID,
+    request: Request,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db_session),
 ):
@@ -312,4 +341,24 @@ async def revoke_token(
 
     await db.delete(token_row)
     await db.commit()
-    return {"status": "revoked"}
+
+    # Return refreshed HTML list for htmx swap
+    svc = IndieAuthService(db)
+    tokens = await svc.list_authorized_apps(user.id)
+    token_list = [
+        {
+            "id": str(t.id),
+            "client_id": t.client_id,
+            "client_name": t.client_name,
+            "scope": t.scope,
+            "created_at": t.created_at.isoformat() if t.created_at else None,
+            "expires_at": t.expires_at.isoformat() if t.expires_at else None,
+        }
+        for t in tokens
+    ]
+    templates = request.app.state.templates
+    return templates.TemplateResponse(
+        request,
+        "indieauth/_token_list.html",
+        {"tokens": token_list},
+    )
