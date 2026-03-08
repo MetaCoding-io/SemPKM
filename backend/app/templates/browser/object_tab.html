@@ -127,10 +127,6 @@
       window._tabMeta[tabKey].typeIcon = typeIcon;
       window._tabMeta[tabKey].typeColor = typeColor;
     }
-    // Update the tab icon element (deferred from createTabComponent)
-    if (window._tabIconElements && window._tabIconElements[tabKey] && window._applyTabIcon) {
-      window._applyTabIcon(tabKey, window._tabIconElements[tabKey]);
-    }
     // Apply accent color if this is the active panel
     if (typeColor && window._dockview) {
       var dv = window._dockview;
