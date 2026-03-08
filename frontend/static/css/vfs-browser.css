@@ -471,6 +471,49 @@
 
 .vfs-cm-container .cm-editor {
     height: 100%;
+    font-size: 0.85rem;
+    text-decoration: none;
+}
+
+/* Markdown preview container */
+.vfs-preview-container {
+    flex: 1;
+    overflow: auto;
+    padding: 16px 24px;
+}
+
+.vfs-preview-container .markdown-body {
+    font-size: var(--_font-size-base, 0.88rem);
+}
+
+/* Preview/source toggle tabs */
+.vfs-view-tabs {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border-bottom: 1px solid var(--color-border-subtle);
+    background: var(--color-surface);
+    padding: 0 8px;
+}
+
+.vfs-view-tab {
+    padding: 4px 12px;
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    user-select: none;
+}
+
+.vfs-view-tab:hover {
+    color: var(--color-text);
+}
+
+.vfs-view-tab.active {
+    color: var(--color-text);
+    border-bottom-color: var(--color-primary, #4A90D9);
 }
 
 .vfs-cm-container .cm-scroller {
