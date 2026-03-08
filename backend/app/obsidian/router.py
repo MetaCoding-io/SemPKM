@@ -23,7 +23,8 @@ from app.dependencies import get_shapes_service
 from app.services.shapes import ShapesService
 
 from .broadcast import ScanBroadcast, stream_sse
-from .models import MappingConfig, TypeMapping, PropertyMapping, VaultScanResult
+from .executor import ImportExecutor
+from .models import ImportResult, MappingConfig, TypeMapping, PropertyMapping, VaultScanResult
 from .scanner import VaultScanner
 
 logger = logging.getLogger(__name__)
@@ -513,6 +514,128 @@ async def preview_step(
         },
         block_name=block_name,
     )
+
+
+# ---------------------------------------------------------------------------
+# Import execution endpoints
+# ---------------------------------------------------------------------------
+
+
+@router.post("/{import_id}/execute")
+async def import_execute(
+    request: Request,
+    import_id: str,
+    user: User = Depends(get_current_user),
+):
+    """Trigger import execution and return progress UI partial."""
+    import_dir = _get_import_dir(user, import_id)
+    scan_result = _load_scan_result(import_dir)
+    mapping_config = _load_mapping(import_dir)
+    extract_path = Path(scan_result.extract_path)
+
+    # Get dependencies from app state
+    event_store = request.app.state.event_store
+    triplestore_client = request.app.state.triplestore_client
+
+    # Create broadcast for this import (distinct key from scan)
+    broadcast = ScanBroadcast()
+    broadcast_key = f"{import_id}_import"
+    _broadcasts[broadcast_key] = broadcast
+
+    executor = ImportExecutor(
+        scan_result=scan_result,
+        mapping_config=mapping_config,
+        extract_path=extract_path,
+        event_store=event_store,
+        triplestore_client=triplestore_client,
+        user=user,
+        broadcast=broadcast,
+        import_dir=import_dir,
+    )
+
+    async def _run_import():
+        try:
+            await executor.execute()
+        finally:
+            _broadcasts.pop(broadcast_key, None)
+
+    asyncio.create_task(_run_import())
+
+    # Return minimal progress container
+    progress_html = (
+        '<div id="import-progress" '
+        f'hx-ext="sse" sse-connect="/browser/import/{import_id}/execute/stream" '
+        'sse-swap="import_progress" hx-swap="innerHTML">'
+        '<p style="color: var(--color-text-muted);">Starting import...</p>'
+        '</div>'
+    )
+    return HTMLResponse(content=progress_html)
+
+
+@router.get("/{import_id}/execute/stream")
+async def import_stream(
+    import_id: str,
+    user: User = Depends(get_current_user),
+):
+    """SSE stream for import progress events."""
+    parts = import_id.split("_", 1)
+    if len(parts) != 2 or parts[0] != str(user.id):
+        raise HTTPException(403, "Access denied")
+
+    broadcast_key = f"{import_id}_import"
+    broadcast = _broadcasts.get(broadcast_key)
+    if not broadcast:
+        async def empty():
+            yield 'event: import_error\ndata: {"message": "No active import"}\n\n'
+        return StreamingResponse(empty(), media_type="text/event-stream")
+
+    queue = broadcast.subscribe()
+    try:
+        return StreamingResponse(
+            stream_sse(
+                queue,
+                terminal_events={"import_complete", "import_error"},
+            ),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "X-Accel-Buffering": "no",
+            },
+        )
+    except Exception:
+        broadcast.unsubscribe(queue)
+        raise
+
+
+@router.get("/{import_id}/summary")
+async def import_summary(
+    request: Request,
+    import_id: str,
+    user: User = Depends(get_current_user),
+):
+    """Return post-import summary with nav refresh trigger."""
+    import_dir = _get_import_dir(user, import_id)
+    result_path = import_dir / "import_result.json"
+
+    if not result_path.exists():
+        raise HTTPException(404, "Import results not found")
+
+    result_data = json.loads(result_path.read_text())
+    scan_result = _load_scan_result(import_dir)
+
+    templates = request.app.state.templates
+    response = templates.TemplateResponse(
+        request,
+        "obsidian/partials/import_summary.html",
+        {
+            "request": request,
+            "import_result": result_data,
+            "scan_result": scan_result,
+        },
+    )
+    response.headers["HX-Trigger"] = "sempkm:nav-refresh"
+    return response
 
 
 # ---------------------------------------------------------------------------
