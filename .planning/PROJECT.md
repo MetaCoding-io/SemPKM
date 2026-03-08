@@ -164,6 +164,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Obsidian import pipeline — in-app wizard for importing Obsidian vaults (import only, triage later)
 - WebID profiles — serve WebID profile documents at user URLs with content negotiation
 - IndieAuth provider — authorization + token endpoints with PKCE, rel="me" for fediverse verification
+- User guide & documentation — catch up docs/ for all features added since v2.0
 
 ## Current State
 
