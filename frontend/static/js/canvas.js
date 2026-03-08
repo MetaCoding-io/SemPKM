@@ -24,7 +24,9 @@
     nodes: [],
     edges: [],
     expandProvenance: {},
-    canvasId: 'default'
+    canvasId: 'default',
+    isSaving: false,
+    currentSessionId: null
   };
 
   // Inline SVG icons — avoid Lucide re-scan on every renderNodes() call
@@ -50,7 +52,32 @@
     bindEvents();
     state.mounted = true;
 
-    loadCanvas(true);
+    // Session switch handler
+    var select = document.getElementById('canvas-session-select');
+    if (select) {
+      select.addEventListener('change', function() {
+        var sessionId = select.value;
+        if (!sessionId) {
+          // "New canvas" selected — clear canvas
+          state.nodes = [];
+          state.edges = [];
+          state.expandProvenance = {};
+          state.currentSessionId = null;
+          state.canvasId = 'new-' + Date.now();
+          renderNodes();
+          setStatus('New canvas');
+          return;
+        }
+        // Switch to selected session
+        state.canvasId = sessionId;
+        state.currentSessionId = sessionId;
+        // Set active on backend
+        fetch('/api/canvas/sessions/' + encodeURIComponent(sessionId) + '/activate', {method: 'PUT'});
+        loadCanvas(false);
+      });
+    }
+
+    loadSessionList();
   }
 
   function bindEvents() {
@@ -646,7 +673,78 @@
     el.classList.toggle('error', !!isError);
   }
 
+  async function loadSessionList() {
+    try {
+      var response = await fetch('/api/canvas/sessions/list');
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      var data = await response.json();
+      var sessions = data.sessions || [];
+      var activeId = data.active_session_id || null;
+
+      // Populate dropdown
+      var select = document.getElementById('canvas-session-select');
+      if (select) {
+        select.innerHTML = '';
+        var newOpt = document.createElement('option');
+        newOpt.value = '';
+        newOpt.textContent = 'New canvas';
+        select.appendChild(newOpt);
+
+        for (var i = 0; i < sessions.length; i++) {
+          var opt = document.createElement('option');
+          opt.value = sessions[i].id;
+          opt.textContent = sessions[i].name;
+          select.appendChild(opt);
+        }
+
+        if (activeId) {
+          select.value = activeId;
+        }
+      }
+
+      state.currentSessionId = activeId;
+      if (activeId) {
+        state.canvasId = activeId;
+        loadCanvas(true);
+      }
+    } catch (error) {
+      // Session list load failed — fall back to empty canvas
+    }
+  }
+
+  async function saveSessionAs() {
+    if (state.isSaving) return;
+    var name = window.prompt('Session name:', '');
+    if (!name) return;
+    state.isSaving = true;
+    try {
+      var response = await fetch('/api/canvas/sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name, document: getDocument() }),
+      });
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      var data = await response.json();
+      state.currentSessionId = data.session_id;
+      state.canvasId = data.session_id;
+      await loadSessionList();
+      setStatus('Saved as "' + name + '"');
+      if (window.showToast) window.showToast('Saved as "' + name + '"');
+    } catch (error) {
+      setStatus('Save as failed', true);
+      if (window.showToast) window.showToast('Save as failed');
+    } finally {
+      state.isSaving = false;
+    }
+  }
+
   async function saveCanvas() {
+    if (state.isSaving) return;
+    if (!state.currentSessionId) {
+      // No session yet — force save-as
+      return saveSessionAs();
+    }
+    state.isSaving = true;
     try {
       var response = await fetch('/api/canvas/' + encodeURIComponent(state.canvasId || 'default'), {
         method: 'PUT',
@@ -660,6 +758,8 @@
     } catch (error) {
       setStatus('Save failed', true);
       if (window.showToast) window.showToast('Canvas save failed');
+    } finally {
+      state.isSaving = false;
     }
   }
 
@@ -745,6 +845,7 @@
     zoomOut: zoomOut,
     resetView: resetView,
     save: saveCanvas,
+    saveAs: saveSessionAs,
     load: function () { return loadCanvas(false); },
     exportState: getDocument,
     importState: applyDocument,
