@@ -79,8 +79,14 @@ Full decision log in PROJECT.md Key Decisions table.
 
 None — clean start for v2.5
 
+### Quick Tasks Completed (v2.5)
+
+| # | Description | Date | Commit | Status | Directory |
+|---|-------------|------|--------|--------|-----------|
+| 29 | Add e2e tests for v2.4 coverage gaps (VFS, entailment, crossfade) | 2026-03-08 | 4fb9c0f | | [29-add-e2e-tests-for-v2-4-coverage-gaps-vfs](./quick/29-add-e2e-tests-for-v2-4-coverage-gaps-vfs/) |
+
 ## Session Continuity
 
-Last session: 2026-03-07
-Stopped at: Roadmap created for v2.5 milestone
+Last session: 2026-03-08T00:34:10Z
+Stopped at: Completed quick task 29
 Resume file: None
