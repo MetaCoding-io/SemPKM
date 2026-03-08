@@ -1,9 +1,18 @@
-<div id="import-area" class="import-results-wrapper">
-    <h3 style="margin-bottom: 1rem; color: var(--color-text);">Import Complete</h3>
+{% block content %}
+<div id="import-area">
+    {% set current_step = 6 %}
+    {% include "obsidian/partials/step_bar.html" %}
+
+    <div class="import-section">
+        <h3 class="import-section-title">
+            <i data-lucide="check-circle"></i>
+            Import Complete
+        </h3>
+    </div>
 
     <!-- Stat Cards -->
     <div class="import-stat-cards">
-        <div class="import-stat-card">
+        <div class="import-stat-card{% if import_result.created > 0 %} success{% endif %}">
             <span class="stat-number">{{ import_result.created }}</span>
             <span class="stat-label">Created</span>
         </div>
@@ -11,54 +20,109 @@
             <span class="stat-number">{{ import_result.edges_created }}</span>
             <span class="stat-label">Edges</span>
         </div>
-        <div class="import-stat-card">
-            <span class="stat-number">{{ import_result.skipped_existing }}</span>
+        <div class="import-stat-card{% if import_result.skipped_existing + import_result.skipped_errors > 0 %} warning{% endif %}">
+            <span class="stat-number">{{ import_result.skipped_existing + import_result.skipped_errors }}</span>
             <span class="stat-label">Skipped</span>
         </div>
         <div class="import-stat-card">
-            <span class="stat-number">{{ import_result.skipped_errors }}</span>
-            <span class="stat-label">Errors</span>
+            <span class="stat-number">{{ "%.1f"|format(import_result.duration_seconds) }}s</span>
+            <span class="stat-label">Duration</span>
         </div>
     </div>
 
-    <p style="margin: 1rem 0; color: var(--color-text-muted); font-size: 0.85rem;">
-        Completed in {{ "%.1f"|format(import_result.duration_seconds) }}s
-        {% if import_result.unresolved_links %}
-        &mdash; {{ import_result.unresolved_links|length }} unresolved wiki-link(s)
-        {% endif %}
-    </p>
+    {% if import_result.skipped_existing > 0 %}
+    <div class="import-info-notice">
+        <i data-lucide="info"></i>
+        {{ import_result.skipped_existing }} object{{ 's' if import_result.skipped_existing != 1 }} skipped (already imported or unmapped)
+    </div>
+    {% endif %}
 
     {% if import_result.errors %}
-    <details style="margin-top: 1rem;">
-        <summary style="cursor: pointer; color: var(--color-danger, #e74c3c); font-weight: 600;">
-            {{ import_result.errors|length }} error(s)
+    <details class="import-collapsible">
+        <summary>
+            <i data-lucide="alert-triangle"></i>
+            Errors ({{ import_result.errors|length }})
         </summary>
-        <ul style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--color-text-muted);">
-            {% for error in import_result.errors %}
-            <li><strong>{{ error.path }}</strong>: {{ error.message }}</li>
-            {% endfor %}
-        </ul>
+        <table class="import-detail-table">
+            <thead>
+                <tr>
+                    <th>File</th>
+                    <th>Error</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for error in import_result.errors %}
+                <tr>
+                    <td><code>{{ error.path }}</code></td>
+                    <td>{{ error.message }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </details>
     {% endif %}
 
     {% if import_result.unresolved_links %}
-    <details style="margin-top: 0.5rem;">
-        <summary style="cursor: pointer; color: var(--color-warning, #f39c12); font-weight: 600;">
-            {{ import_result.unresolved_links|length }} unresolved link(s)
+    <details class="import-collapsible">
+        <summary>
+            <i data-lucide="unlink"></i>
+            Unresolved Links ({{ import_result.unresolved_links|length }})
         </summary>
-        <ul style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--color-text-muted);">
-            {% for link in import_result.unresolved_links[:20] %}
-            <li>{{ link.target }} (from {{ link.source }})</li>
-            {% endfor %}
-            {% if import_result.unresolved_links|length > 20 %}
-            <li>... and {{ import_result.unresolved_links|length - 20 }} more</li>
-            {% endif %}
-        </ul>
+        <table class="import-detail-table">
+            <thead>
+                <tr>
+                    <th>Source Note</th>
+                    <th>Target (not found)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for link in import_result.unresolved_links[:50] %}
+                <tr>
+                    <td><code>{{ link.source }}</code></td>
+                    <td>{{ link.target }}</td>
+                </tr>
+                {% endfor %}
+                {% if import_result.unresolved_links|length > 50 %}
+                <tr>
+                    <td colspan="2" style="font-style: italic; color: var(--color-text-muted);">
+                        ... and {{ import_result.unresolved_links|length - 50 }} more
+                    </td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
     </details>
     {% endif %}
 
-    <div class="import-existing-actions" style="margin-top: 1.5rem;">
-        <a href="/browser/import" hx-get="/browser/import" hx-target="#content" hx-push-url="true"
-           class="btn btn-primary">Done</a>
+    <!-- Actions -->
+    <div class="import-actions">
+        <button class="btn btn-primary"
+                onclick="document.dispatchEvent(new CustomEvent('sempkm:nav-refresh')); window.location.href='/workspace';">
+            <i data-lucide="compass"></i>
+            Browse Imported Objects
+        </button>
+        <button class="btn btn-outline"
+                hx-get="/browser/import"
+                hx-target="#import-area"
+                hx-swap="outerHTML"
+                hx-push-url="/browser/import">
+            <i data-lucide="upload"></i>
+            Import More
+        </button>
+        {% if import_id is defined %}
+        <button class="btn btn-outline btn-danger"
+                hx-post="/browser/import/{{ import_id }}/discard"
+                hx-target="#import-area"
+                hx-swap="outerHTML"
+                hx-confirm="This will remove the extracted vault files. Imported objects will remain.">
+            <i data-lucide="trash-2"></i>
+            Discard Vault
+        </button>
+        {% endif %}
     </div>
 </div>
+
+<script>
+    if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+</script>
+{% endblock %}

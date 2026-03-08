@@ -1,0 +1,99 @@
+{% block content %}
+<div id="import-area">
+    {% set current_step = 6 %}
+    {% include "obsidian/partials/step_bar.html" %}
+
+    <div class="import-section">
+        <h3 class="import-section-title">
+            <i data-lucide="loader"></i>
+            Importing...
+        </h3>
+    </div>
+
+    <div class="import-progress-container">
+        <!-- Phase indicator -->
+        <div class="import-progress-phase" id="import-phase-text">
+            Preparing import...
+        </div>
+
+        <!-- Progress bar -->
+        <div class="import-progress-bar-track">
+            <div class="import-progress-fill" id="import-progress-fill" style="width: 0%"></div>
+        </div>
+
+        <!-- Counter -->
+        <div class="import-progress-counter" id="import-progress-counter"></div>
+
+        <!-- Scrolling log -->
+        <div class="import-log" id="import-log"></div>
+    </div>
+</div>
+
+<script>
+(function() {
+    var importId = '{{ import_id }}';
+    var logEl = document.getElementById('import-log');
+    var fillEl = document.getElementById('import-progress-fill');
+    var phaseEl = document.getElementById('import-phase-text');
+    var counterEl = document.getElementById('import-progress-counter');
+
+    var source = new EventSource('/browser/import/' + importId + '/execute/stream');
+
+    source.addEventListener('import_progress', function(e) {
+        var data = JSON.parse(e.data);
+        var pct = Math.round((data.current / data.total) * 100);
+        fillEl.style.width = pct + '%';
+
+        if (data.phase === 'objects') {
+            phaseEl.textContent = 'Importing objects...';
+            counterEl.textContent = data.current + ' of ' + data.total;
+            if (data.current_file) {
+                var line = document.createElement('div');
+                line.className = 'import-log-line';
+                line.textContent = '[' + data.current + '/' + data.total + '] ' + data.current_file;
+                logEl.appendChild(line);
+                logEl.scrollTop = logEl.scrollHeight;
+            }
+        } else if (data.phase === 'edges') {
+            phaseEl.textContent = 'Creating edges...';
+            counterEl.textContent = data.current + ' of ' + data.total + ' links';
+            if (data.current_link) {
+                var line = document.createElement('div');
+                line.className = 'import-log-line';
+                line.textContent = '[edge ' + data.current + '/' + data.total + '] ' + data.current_link;
+                logEl.appendChild(line);
+                logEl.scrollTop = logEl.scrollHeight;
+            }
+        }
+    });
+
+    source.addEventListener('import_complete', function(e) {
+        source.close();
+        // Fetch summary via htmx
+        htmx.ajax('GET', '/browser/import/' + importId + '/summary', {
+            target: '#import-area',
+            swap: 'outerHTML'
+        });
+    });
+
+    source.addEventListener('import_error', function(e) {
+        source.close();
+        var data = JSON.parse(e.data);
+        phaseEl.textContent = 'Import failed';
+        phaseEl.style.color = 'var(--color-danger, #e74c3c)';
+        var line = document.createElement('div');
+        line.className = 'import-log-line import-log-error';
+        line.textContent = 'Error: ' + data.message;
+        logEl.appendChild(line);
+        logEl.scrollTop = logEl.scrollHeight;
+    });
+
+    source.onerror = function() {
+        // SSE connection lost — may already be closed by terminal event
+        source.close();
+    };
+
+    if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+})();
+</script>
+{% endblock %}

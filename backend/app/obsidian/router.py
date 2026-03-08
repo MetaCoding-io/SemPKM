@@ -561,15 +561,12 @@ async def import_execute(
 
     asyncio.create_task(_run_import())
 
-    # Return minimal progress container
-    progress_html = (
-        '<div id="import-progress" '
-        f'hx-ext="sse" sse-connect="/browser/import/{import_id}/execute/stream" '
-        'sse-swap="import_progress" hx-swap="innerHTML">'
-        '<p style="color: var(--color-text-muted);">Starting import...</p>'
-        '</div>'
+    templates = request.app.state.templates
+    return templates.TemplateResponse(
+        request,
+        "obsidian/partials/import_progress.html",
+        {"request": request, "import_id": import_id, "current_step": 6},
     )
-    return HTMLResponse(content=progress_html)
 
 
 @router.get("/{import_id}/execute/stream")
@@ -632,6 +629,7 @@ async def import_summary(
             "request": request,
             "import_result": result_data,
             "scan_result": scan_result,
+            "import_id": import_id,
         },
     )
     response.headers["HX-Trigger"] = "sempkm:nav-refresh"
