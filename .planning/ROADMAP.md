@@ -181,7 +181,7 @@ Plans:
   2. Content negotiation on the WebID URI returns Turtle, JSON-LD, or HTML depending on the Accept header
   3. The profile HTML page includes `rel="me"` links suitable for Mastodon/fediverse verification
   4. The server generates and stores an Ed25519 key pair per user, with the public key published in the profile document
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 48-01-PLAN.md -- Data model, crypto service, settings API, and settings UI for WebID profile management
@@ -387,7 +387,7 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 45. Obsidian Vault Scanner | 2/2 | Complete   | 2026-03-08 | - |
 | 46. Obsidian Mapping UI | v2.5 | 0/0 | Not started | - |
 | 47. Obsidian Batch Import | v2.5 | 0/0 | Not started | - |
-| 48. WebID Profiles | v2.5 | 0/0 | Not started | - |
+| 48. WebID Profiles | 1/2 | In Progress|  | - |
 | 49. IndieAuth Provider | v2.5 | 0/0 | Not started | - |
 | 50. User Guide & Documentation | v2.5 | 0/0 | Not started | - |
 

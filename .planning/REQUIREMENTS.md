@@ -25,11 +25,11 @@ Requirements for v2.5 Polish, Import & Identity. Each maps to roadmap phases.
 
 ### WebID
 
-- [ ] **WBID-01**: Each user has a WebID URI (e.g. `https://instance/users/alice#me`)
+- [x] **WBID-01**: Each user has a WebID URI (e.g. `https://instance/users/alice#me`)
 - [ ] **WBID-02**: Dereferencing the WebID URI returns an RDF profile document (FOAF/schema.org properties)
 - [ ] **WBID-03**: Content negotiation serves Turtle, JSON-LD, or HTML based on Accept header
 - [ ] **WBID-04**: Profile page includes `rel="me"` links for fediverse verification
-- [ ] **WBID-05**: Server generates Ed25519 key pair per user, stores encrypted
+- [x] **WBID-05**: Server generates Ed25519 key pair per user, stores encrypted
 - [ ] **WBID-06**: Public key is published in the WebID profile document
 
 ### IndieAuth
@@ -98,11 +98,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OBSI-05 | Phase 46 | Pending |
 | OBSI-06 | Phase 47 | Pending |
 | OBSI-07 | Phase 47 | Pending |
-| WBID-01 | Phase 48 | Pending |
+| WBID-01 | Phase 48 | Complete |
 | WBID-02 | Phase 48 | Pending |
 | WBID-03 | Phase 48 | Pending |
 | WBID-04 | Phase 48 | Pending |
-| WBID-05 | Phase 48 | Pending |
+| WBID-05 | Phase 48 | Complete |
 | WBID-06 | Phase 48 | Pending |
 | IAUTH-01 | Phase 49 | Pending |
 | IAUTH-02 | Phase 49 | Pending |
