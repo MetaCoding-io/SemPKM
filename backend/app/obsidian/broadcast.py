@@ -89,17 +89,29 @@ class ScanBroadcast:
         return len(self._clients)
 
 
-async def stream_sse(queue: asyncio.Queue[SSEEvent]) -> AsyncGenerator[str, None]:
+async def stream_sse(
+    queue: asyncio.Queue[SSEEvent],
+    terminal_events: set[str] | None = None,
+) -> AsyncGenerator[str, None]:
     """Async generator yielding SSE-formatted strings from a subscriber queue.
 
     Sends a keepalive comment every 30 seconds to prevent proxy timeouts.
+
+    Args:
+        queue: The subscriber queue to read events from.
+        terminal_events: Set of event names that signal end of stream.
+            Defaults to {"scan_complete", "scan_error"} for backward
+            compatibility.
     """
+    if terminal_events is None:
+        terminal_events = {"scan_complete", "scan_error"}
+
     while True:
         try:
             event = await asyncio.wait_for(queue.get(), timeout=30.0)
             yield event.format()
             # Stop streaming after terminal events
-            if event.event in ("scan_complete", "scan_error"):
+            if event.event in terminal_events:
                 break
         except asyncio.TimeoutError:
             # Send keepalive comment
