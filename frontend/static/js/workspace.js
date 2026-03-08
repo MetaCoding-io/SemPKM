@@ -703,6 +703,7 @@
       title: 'VFS Browser'
     });
   }
+  
   window.openVfsTab = openVfsTab;
 
   // --- Keyboard Shortcuts ---
