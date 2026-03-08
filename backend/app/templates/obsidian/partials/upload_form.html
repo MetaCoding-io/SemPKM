@@ -1,0 +1,10 @@
+<div id="import-area">
+    <form hx-post="/browser/import/upload"
+          hx-target="#import-area"
+          hx-swap="innerHTML"
+          hx-encoding="multipart/form-data">
+        <label for="vault-zip">Select Obsidian vault ZIP file:</label>
+        <input type="file" id="vault-zip" name="file" accept=".zip" required>
+        <button type="submit">Upload</button>
+    </form>
+</div>
