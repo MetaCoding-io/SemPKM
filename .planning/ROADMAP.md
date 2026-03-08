@@ -117,7 +117,7 @@
 - Identity: Phases 48-49
 - Documentation: Phase 50 (after all feature phases)
 
-- [ ] **Phase 44: UI Cleanup** - VFS browser CSS fixes and audit-driven UI polish
+- [x] **Phase 44: UI Cleanup** - VFS browser CSS fixes and audit-driven UI polish (completed 2026-03-08)
 - [x] **Phase 45: Obsidian Vault Scanner** - Upload vault, parse files, extract metadata and statistics (completed 2026-03-08)
 - [ ] **Phase 46: Obsidian Mapping UI** - Map note categories to types, frontmatter to properties, preview results
 - [ ] **Phase 47: Obsidian Batch Import** - Execute import with bodies, properties, and edges via Command API
@@ -135,7 +135,7 @@
   1. VFS browser markdown preview renders text at the same base font size as the rest of the app
   2. VFS browser content does not show spurious underline styling on non-link text
   3. An audit-driven set of UI tweaks addresses rough edges identified during discuss-phase
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 44-01-PLAN.md -- VFS browser rendering fixes and CodeMirror CSS variable theming
@@ -387,7 +387,7 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 41. Gap Closure — Rules Wiring, Flip Fix, VFS Browser | v2.4 | 3/3 | Complete | 2026-03-06 |
 | 42. VFS Browser Fix | v2.4 | 1/1 | Complete | 2026-03-06 |
 | 43. Inference E2E Test Gap | v2.4 | 1/1 | Complete | 2026-03-06 |
-| 44. UI Cleanup | v2.5 | 0/2 | Planned | - |
+| 44. UI Cleanup | 2/2 | Complete   | 2026-03-08 | - |
 | 45. Obsidian Vault Scanner | 3/3 | Complete    | 2026-03-08 | - |
 | 46. Obsidian Mapping UI | v2.5 | 0/0 | Not started | - |
 | 47. Obsidian Batch Import | v2.5 | 0/0 | Not started | - |

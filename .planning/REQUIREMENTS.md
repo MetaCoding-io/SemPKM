@@ -9,9 +9,9 @@ Requirements for v2.5 Polish, Import & Identity. Each maps to roadmap phases.
 
 ### UI Cleanup
 
-- [ ] **UICL-01**: VFS browser markdown preview text renders at correct size (not zoomed in)
-- [ ] **UICL-02**: VFS browser content does not show unwanted underline styling
-- [ ] **UICL-03**: General UI polish pass — audit-driven tweaks (specifics added during discuss-phase)
+- [x] **UICL-01**: VFS browser markdown preview text renders at correct size (not zoomed in)
+- [x] **UICL-02**: VFS browser content does not show unwanted underline styling
+- [x] **UICL-03**: General UI polish pass — audit-driven tweaks (specifics added during discuss-phase)
 
 ### Obsidian Import
 
@@ -88,9 +88,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| UICL-01 | Phase 44 | Pending |
-| UICL-02 | Phase 44 | Pending |
-| UICL-03 | Phase 44 | Pending |
+| UICL-01 | Phase 44 | Complete |
+| UICL-02 | Phase 44 | Complete |
+| UICL-03 | Phase 44 | Complete |
 | OBSI-01 | Phase 45 | Complete |
 | OBSI-02 | Phase 45 | Complete |
 | OBSI-03 | Phase 46 | Pending |
