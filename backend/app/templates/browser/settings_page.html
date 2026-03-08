@@ -30,6 +30,11 @@
               onclick="showSettingsCategory('virtual-filesystem')">
         Virtual Filesystem
       </button>
+      <button class="settings-category-btn"
+              data-category="webid-profile"
+              onclick="showSettingsCategory('webid-profile')">
+        WebID Profile
+      </button>
     </nav>
 
     <!-- Right: settings detail panels -->
@@ -89,6 +94,14 @@
           <h2 class="settings-category-title">Virtual Filesystem</h2>
         </div>
         {% include "browser/_vfs_settings.html" %}
+      </div>
+      <div class="settings-category-panel" id="category-webid-profile"
+           data-category="webid-profile"
+           style="display:none">
+        <div class="settings-category-header">
+          <h2 class="settings-category-title">WebID Profile</h2>
+        </div>
+        {% include "browser/_webid_settings.html" %}
       </div>
     </div>
 
