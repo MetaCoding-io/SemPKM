@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Polish, Import & Identity
-status: in-progress
-stopped_at: Completed 51-01-PLAN.md
-last_updated: "2026-03-08T06:05:14Z"
-last_activity: "2026-03-08 - Completed Phase 51 Plan 01: Per-node expand/delete/chevron controls with provenance tracking"
+status: executing
+stopped_at: Completed 45-03-PLAN.md
+last_updated: "2026-03-08T06:10:40.998Z"
+last_activity: "2026-03-08 - Completed Phase 51 Plan 02: Nav tree drag-drop to canvas"
 progress:
   total_phases: 8
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 8
-  completed_plans: 5
-  percent: 15
+  completed_plans: 7
+  percent: 96
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-03-07)
 ## Current Position
 
 Phase: 51 (Spatial Canvas UX)
-Plan: 1 of 3 complete
+Plan: 2 of 3 complete
 Status: Phase 51 in progress
-Last activity: 2026-03-08 - Completed Phase 51 Plan 01: Per-node controls with provenance tracking
+Last activity: 2026-03-08 - Completed Phase 51 Plan 02: Nav tree drag-drop to canvas
 
 Progress: [██████████] 96%
 
@@ -59,6 +59,8 @@ Progress: [██████████] 96%
 | Phase 48 P01 | 3 | 2 tasks | 9 files |
 | Phase 48 P02 | 4 | 2 tasks | 4 files |
 | Phase 51 P01 | 3 | 2 tasks | 3 files |
+| Phase 45 P03 | 1 | 2 tasks | 6 files |
+| Phase 51 P02 | 2 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -105,6 +107,6 @@ None — clean start for v2.5
 
 ## Session Continuity
 
-Last session: 2026-03-08T06:05:14Z
-Stopped at: Completed 51-01-PLAN.md
-Resume file: .planning/phases/51-spatial-canvas-ux-per-node-expand-delete-buttons-drag-drop-from-nav-tree-remove-global-load-button/51-01-SUMMARY.md
+Last session: 2026-03-08T06:10:40.996Z
+Stopped at: Completed 45-03-PLAN.md
+Resume file: None
