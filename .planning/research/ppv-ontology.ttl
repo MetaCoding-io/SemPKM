@@ -1,0 +1,1205 @@
+# PPV Productivity System Ontology
+# Translated from System/Schema Spec.md
+# RDFS/OWL/SHACL Turtle format
+
+@prefix ppv:  <https://ppv.systems/ontology#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+
+# =============================================================================
+# ONTOLOGY DECLARATION
+# =============================================================================
+
+<https://ppv.systems/ontology>
+    a owl:Ontology ;
+    rdfs:label "PPV Productivity System Ontology" ;
+    rdfs:comment "Machine-readable RDFS/OWL/SHACL data model for August Bradley's Pillars, Pipelines, and Vaults (PPV) productivity system, as implemented in Obsidian with the Bases plugin. Derived from System/Schema Spec.md." .
+
+
+# =============================================================================
+# CLASSES
+# =============================================================================
+
+# --- Abstract base classes ---
+
+ppv:PPVEntity
+    a owl:Class ;
+    rdfs:label "PPV Entity" ;
+    rdfs:comment "Abstract base class for all entities in the PPV system. Every note in the vault corresponds to an instance of a subclass of PPVEntity." .
+
+ppv:HierarchyEntity
+    a owl:Class ;
+    rdfs:subClassOf ppv:PPVEntity ;
+    rdfs:label "Hierarchy Entity" ;
+    rdfs:comment "Abstract class for the five core hierarchy levels: Pillar, ValueGoal, GoalOutcome, Project, ActionItem. These form the core planning chain." .
+
+ppv:ReviewEntity
+    a owl:Class ;
+    rdfs:subClassOf ppv:PPVEntity ;
+    rdfs:label "Review Entity" ;
+    rdfs:comment "Abstract class for the four review cycle types: WeeklyReview, MonthlyReview, QuarterlyReview, YearlyReview." .
+
+# --- User-defined grouping concept ---
+
+ppv:PillarGroup
+    a owl:Class ;
+    rdfs:label "Pillar Group" ;
+    rdfs:comment "User-defined grouping for organizing pillars. Instances are created by the user (e.g., Growth, Business, Home & Social). Not a fixed enumeration." .
+
+# --- Concrete hierarchy classes ---
+
+ppv:Pillar
+    a owl:Class ;
+    rdfs:subClassOf ppv:HierarchyEntity ;
+    rdfs:label "Pillar" ;
+    rdfs:comment "Top-level life area that organizes all goals, projects, and actions. Examples: Health & Fitness, Career, Relationships." .
+
+ppv:ValueGoal
+    a owl:Class ;
+    rdfs:subClassOf ppv:HierarchyEntity ;
+    rdfs:label "Value Goal" ;
+    rdfs:comment "Long-term aspiration linked to a Pillar. Called 'Value Goals' in August Bradley's Notion PPV template." .
+
+ppv:GoalOutcome
+    a owl:Class ;
+    rdfs:subClassOf ppv:HierarchyEntity ;
+    rdfs:label "Goal Outcome" ;
+    rdfs:comment "Measurable result derived from a ValueGoal. Called 'Outcome Goals' in August Bradley's Notion PPV template." .
+
+ppv:Project
+    a owl:Class ;
+    rdfs:subClassOf ppv:HierarchyEntity ;
+    rdfs:label "Project" ;
+    rdfs:comment "Discrete work item with completion criteria, linked to a GoalOutcome. Consists of ActionItems." .
+
+ppv:ActionItem
+    a owl:Class ;
+    rdfs:subClassOf ppv:HierarchyEntity ;
+    rdfs:label "Action Item" ;
+    rdfs:comment "Individual task that drives project and goal completion. The atomic unit of work in the PPV system." .
+
+# --- Concrete review classes ---
+
+ppv:WeeklyReview
+    a owl:Class ;
+    rdfs:subClassOf ppv:ReviewEntity ;
+    rdfs:label "Weekly Review" ;
+    rdfs:comment "Weekly review cycle note for pillar scoring, work review, and next-week planning." .
+
+ppv:MonthlyReview
+    a owl:Class ;
+    rdfs:subClassOf ppv:ReviewEntity ;
+    rdfs:label "Monthly Review" ;
+    rdfs:comment "Monthly review cycle note for aggregating weekly reviews, pillar assessment, pipeline review, and vault maintenance." .
+
+ppv:QuarterlyReview
+    a owl:Class ;
+    rdfs:subClassOf ppv:ReviewEntity ;
+    rdfs:label "Quarterly Review" ;
+    rdfs:comment "Quarterly review cycle note for aggregating monthly reviews and conducting deeper strategic reflection." .
+
+ppv:YearlyReview
+    a owl:Class ;
+    rdfs:subClassOf ppv:ReviewEntity ;
+    rdfs:label "Yearly Review" ;
+    rdfs:comment "Yearly review cycle note for annual reflection and strategic planning." .
+
+
+# =============================================================================
+# OBJECT PROPERTIES (links between entities)
+# =============================================================================
+
+# --- Core hierarchy chain (upward / parent links) ---
+
+ppv:pillar
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "pillar" ;
+    rdfs:range ppv:Pillar ;
+    rdfs:comment "Links a ValueGoal (required), Project (optional shortcut), or ActionItem (optional shortcut) to its Pillar. The Project and ActionItem uses are denormalized shortcuts: the canonical path is ActionItem -> Project -> GoalOutcome -> ValueGoal -> Pillar, but direct pillar links are stored for convenient dashboard queries." .
+
+ppv:valueGoal
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "valueGoal" ;
+    rdfs:domain ppv:GoalOutcome ;
+    rdfs:range ppv:ValueGoal ;
+    rdfs:comment "Links a GoalOutcome to its parent ValueGoal. Required on GoalOutcome." .
+
+ppv:goalOutcome
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "goalOutcome" ;
+    rdfs:domain ppv:Project ;
+    rdfs:range ppv:GoalOutcome ;
+    rdfs:comment "Links a Project to its parent GoalOutcome. Optional (some projects may be standalone)." .
+
+ppv:project
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "project" ;
+    rdfs:domain ppv:ActionItem ;
+    rdfs:range ppv:Project ;
+    rdfs:comment "Links an ActionItem to its parent Project. Optional (some actions may be standalone)." .
+
+ppv:pillarGroup
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "pillarGroup" ;
+    rdfs:domain ppv:Pillar ;
+    rdfs:range ppv:PillarGroup ;
+    rdfs:comment "Links a Pillar to its user-defined PillarGroup (e.g., Growth, Business, Home & Social). The set of PillarGroup instances is open and user-defined; this is NOT constrained to a fixed enumeration." .
+
+# --- Review chain (upward / parent links) ---
+
+ppv:month
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "month" ;
+    rdfs:domain ppv:WeeklyReview ;
+    rdfs:range ppv:MonthlyReview ;
+    rdfs:comment "Links a WeeklyReview to its parent MonthlyReview for monthly rollup queries." .
+
+ppv:quarter
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "quarter" ;
+    rdfs:domain ppv:MonthlyReview ;
+    rdfs:range ppv:QuarterlyReview ;
+    rdfs:comment "Links a MonthlyReview to its parent QuarterlyReview for quarterly rollup queries." .
+
+ppv:yearLink
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "yearLink" ;
+    rdfs:domain ppv:QuarterlyReview ;
+    rdfs:range ppv:YearlyReview ;
+    rdfs:comment "Links a QuarterlyReview to its parent YearlyReview. Named yearLink (not year) to avoid collision with the xsd:string year datatype property on Monthly/Quarterly/Yearly reviews." .
+
+ppv:quarters
+    a owl:ObjectProperty ;
+    rdfs:label "quarters" ;
+    rdfs:domain ppv:YearlyReview ;
+    rdfs:range ppv:QuarterlyReview ;
+    rdfs:comment "Links a YearlyReview to its constituent QuarterlyReviews (multi-value). Not a FunctionalProperty because a year has up to 4 quarters." .
+
+# --- Inverse properties (downward / child direction) ---
+
+ppv:hasValueGoals
+    a owl:ObjectProperty ;
+    rdfs:label "hasValueGoals" ;
+    rdfs:comment "Inverse of ppv:pillar — navigates from a Pillar to all its ValueGoals." ;
+    owl:inverseOf ppv:pillar .
+
+ppv:hasGoalOutcomes
+    a owl:ObjectProperty ;
+    rdfs:label "hasGoalOutcomes" ;
+    rdfs:comment "Inverse of ppv:valueGoal — navigates from a ValueGoal to all its GoalOutcomes." ;
+    owl:inverseOf ppv:valueGoal .
+
+ppv:hasProjects
+    a owl:ObjectProperty ;
+    rdfs:label "hasProjects" ;
+    rdfs:comment "Inverse of ppv:goalOutcome — navigates from a GoalOutcome to all its Projects." ;
+    owl:inverseOf ppv:goalOutcome .
+
+ppv:hasActionItems
+    a owl:ObjectProperty ;
+    rdfs:label "hasActionItems" ;
+    rdfs:comment "Inverse of ppv:project — navigates from a Project to all its ActionItems." ;
+    owl:inverseOf ppv:project .
+
+ppv:hasWeeklyReviews
+    a owl:ObjectProperty ;
+    rdfs:label "hasWeeklyReviews" ;
+    rdfs:comment "Inverse of ppv:month — navigates from a MonthlyReview to all its WeeklyReviews." ;
+    owl:inverseOf ppv:month .
+
+ppv:hasMonthlyReviews
+    a owl:ObjectProperty ;
+    rdfs:label "hasMonthlyReviews" ;
+    rdfs:comment "Inverse of ppv:quarter — navigates from a QuarterlyReview to all its MonthlyReviews." ;
+    owl:inverseOf ppv:quarter .
+
+ppv:hasQuarterlyReviews
+    a owl:ObjectProperty ;
+    rdfs:label "hasQuarterlyReviews" ;
+    rdfs:comment "Inverse of ppv:yearLink — navigates from a YearlyReview to all its QuarterlyReviews." ;
+    owl:inverseOf ppv:yearLink .
+
+
+# =============================================================================
+# DATATYPE PROPERTIES
+# =============================================================================
+
+# --- Text properties (xsd:string) ---
+
+ppv:type
+    a owl:DatatypeProperty ;
+    rdfs:label "type" ;
+    rdfs:domain ppv:PPVEntity ;
+    rdfs:range xsd:string ;
+    rdfs:comment "Note type identifier. Fixed value per class: 'pillar', 'value-goal', 'goal-outcome', 'project', 'action', 'weekly-review', 'monthly-review', 'quarterly-review', 'yearly-review'. Required on all entities." .
+
+ppv:status
+    a owl:DatatypeProperty ;
+    rdfs:label "status" ;
+    rdfs:domain ppv:PPVEntity ;
+    rdfs:range xsd:string ;
+    rdfs:comment "Lifecycle status of the entity. Allowed values differ per type (see SHACL shapes). Uses Title Case matching Notion exactly. Required on all hierarchy entities and review entities." .
+
+ppv:cycle
+    a owl:DatatypeProperty ;
+    rdfs:label "cycle" ;
+    rdfs:domain ppv:ReviewEntity ;
+    rdfs:range xsd:string ;
+    rdfs:comment "Review cycle identifier. Fixed value per review type: 'weekly', 'monthly', 'quarterly', 'yearly'. Required on all review entities." .
+
+ppv:priority
+    a owl:DatatypeProperty ;
+    rdfs:label "priority" ;
+    rdfs:range xsd:string ;
+    rdfs:comment "Relative importance/urgency. Used by ValueGoal, Project, and ActionItem. ValueGoal and Project use positional priorities ('1st Priority' through '5th Priority'). ActionItem uses priority labels with emojis (e.g., 'Immediate 🔥', 'Quick ⚡'). Optional on all types." .
+
+ppv:icon
+    a owl:DatatypeProperty ;
+    rdfs:label "icon" ;
+    rdfs:domain ppv:Pillar ;
+    rdfs:range xsd:string ;
+    rdfs:comment "Emoji icon for the Pillar. Obsidian addition for dashboard display. Optional." .
+
+ppv:color
+    a owl:DatatypeProperty ;
+    rdfs:label "color" ;
+    rdfs:domain ppv:Pillar ;
+    rdfs:range xsd:string ;
+    rdfs:comment "Color name for the Pillar. Obsidian addition for dashboard display. Optional." .
+
+ppv:focusObjective
+    a owl:DatatypeProperty ;
+    rdfs:label "focusObjective" ;
+    rdfs:domain ppv:WeeklyReview ;
+    rdfs:range xsd:string ;
+    rdfs:comment "The focus objective or theme for the review week. Displayed in the planning section of the Weekly Review. Corresponds to Notion's Focus/Objective field. Optional." .
+
+ppv:monthName
+    a owl:DatatypeProperty ;
+    rdfs:label "monthName" ;
+    rdfs:domain ppv:MonthlyReview ;
+    rdfs:range xsd:string ;
+    rdfs:comment "Human-readable month label in 'February 2026' format. Used as display name and in weekly review rollup filter. Named monthName to avoid collision with the ppv:month object property. Required on MonthlyReview." .
+
+ppv:quarterName
+    a owl:DatatypeProperty ;
+    rdfs:label "quarterName" ;
+    rdfs:domain ppv:QuarterlyReview ;
+    rdfs:range xsd:string ;
+    rdfs:comment "Human-readable quarter label in 'Q1 2026' format. Used as display name. Required on QuarterlyReview." .
+
+ppv:year
+    a owl:DatatypeProperty ;
+    rdfs:label "year" ;
+    rdfs:range xsd:string ;
+    rdfs:comment "Year label in '2026' format. Used on MonthlyReview (required), QuarterlyReview (via yearLink object property to YearlyReview), and YearlyReview (required). Required on MonthlyReview and YearlyReview." .
+
+ppv:yearName
+    a owl:DatatypeProperty ;
+    rdfs:label "yearName" ;
+    rdfs:domain ppv:YearlyReview ;
+    rdfs:range xsd:string ;
+    rdfs:comment "Human-readable year label in '2026' format for YearlyReview. Required on YearlyReview." .
+
+ppv:gratitude
+    a owl:DatatypeProperty ;
+    rdfs:label "gratitude" ;
+    rdfs:domain ppv:MonthlyReview ;
+    rdfs:range xsd:string ;
+    rdfs:comment "Monthly gratitude reflection stored as a frontmatter property, matching Notion's database property approach. Optional." .
+
+ppv:learnedThisMonth
+    a owl:DatatypeProperty ;
+    rdfs:label "learnedThisMonth" ;
+    rdfs:domain ppv:MonthlyReview ;
+    rdfs:range xsd:string ;
+    rdfs:comment "Key learning from the month stored as a frontmatter property, matching Notion's database property approach. Optional." .
+
+ppv:description
+    a owl:DatatypeProperty ;
+    rdfs:label "description" ;
+    rdfs:domain ppv:ActionItem ;
+    rdfs:range xsd:string ;
+    rdfs:comment "Freeform description/notes for the ActionItem. Displayed in Action Items dashboard. Optional." .
+
+ppv:context
+    a owl:DatatypeProperty ;
+    rdfs:label "context" ;
+    rdfs:domain ppv:ActionItem ;
+    rdfs:range xsd:string ;
+    rdfs:comment "GTD-style execution context for the ActionItem. Allowed values: 'home', 'office', 'errands', 'calls', 'computer', 'anywhere'. Used for context-based filtering in Action Items dashboard. Optional." .
+
+ppv:energy
+    a owl:DatatypeProperty ;
+    rdfs:label "energy" ;
+    rdfs:domain ppv:ActionItem ;
+    rdfs:range xsd:string ;
+    rdfs:comment "Energy level required for the ActionItem. Allowed values: 'low', 'medium', 'high'. Default: 'medium'. Used for energy-based filtering in Action Items dashboard. Optional." .
+
+# --- Date properties (xsd:date) ---
+
+ppv:created
+    a owl:DatatypeProperty ;
+    rdfs:label "created" ;
+    rdfs:domain ppv:PPVEntity ;
+    rdfs:range xsd:date ;
+    rdfs:comment "ISO date when the note was created (YYYY-MM-DD). Defaults to current date. Required on all entity types." .
+
+ppv:targetDate
+    a owl:DatatypeProperty ;
+    rdfs:label "targetDate" ;
+    rdfs:range xsd:date ;
+    rdfs:comment "Target completion date. Used by ValueGoal (optional) and GoalOutcome (optional). ISO date format." .
+
+ppv:startDate
+    a owl:DatatypeProperty ;
+    rdfs:label "startDate" ;
+    rdfs:range xsd:date ;
+    rdfs:comment "Start date. Used by Project (optional) and WeeklyReview (required: Monday of review week). ISO date format." .
+
+ppv:endDate
+    a owl:DatatypeProperty ;
+    rdfs:label "endDate" ;
+    rdfs:domain ppv:WeeklyReview ;
+    rdfs:range xsd:date ;
+    rdfs:comment "End date of the weekly review period (Sunday of review week). Required on WeeklyReview. Used as upper bound for completed actions filter. ISO date format." .
+
+ppv:dueDate
+    a owl:DatatypeProperty ;
+    rdfs:label "dueDate" ;
+    rdfs:domain ppv:Project ;
+    rdfs:range xsd:date ;
+    rdfs:comment "Due date for the Project. Obsidian addition (Notion uses a date range 'Timeline Dates'; Obsidian splits this into startDate + dueDate). Used in Projects Board and Life Dashboard sorting. Optional." .
+
+ppv:reviewDate
+    a owl:DatatypeProperty ;
+    rdfs:label "reviewDate" ;
+    rdfs:domain ppv:Project ;
+    rdfs:range xsd:date ;
+    rdfs:comment "Date when the Project is next scheduled for review. Obsidian addition. Displayed in Projects Board. Optional." .
+
+ppv:completedDate
+    a owl:DatatypeProperty ;
+    rdfs:label "completedDate" ;
+    rdfs:range xsd:date ;
+    rdfs:comment "Date when the GoalOutcome or Project was completed. Obsidian addition for tracking completion history. Used in completed item sorting. Optional." .
+
+ppv:completionDate
+    a owl:DatatypeProperty ;
+    rdfs:label "completionDate" ;
+    rdfs:domain ppv:ActionItem ;
+    rdfs:range xsd:date ;
+    rdfs:comment "Date when the ActionItem was completed. Used in Weekly Review to filter completed actions within the review period. Obsidian addition. Optional." .
+
+ppv:doDate
+    a owl:DatatypeProperty ;
+    rdfs:label "doDate" ;
+    rdfs:domain ppv:ActionItem ;
+    rdfs:range xsd:date ;
+    rdfs:comment "Date when the ActionItem should be done. Corresponds to Notion 'Do Date' field (PPV philosophy: when to DO, not when it's DUE). Used in Action Items dashboard sorting. Optional." .
+
+# --- Number properties (xsd:integer) ---
+
+ppv:order
+    a owl:DatatypeProperty ;
+    rdfs:label "order" ;
+    rdfs:domain ppv:Pillar ;
+    rdfs:range xsd:integer ;
+    rdfs:comment "Display order for the Pillar on dashboards. Integer in range 1-10. Obsidian addition for dashboard display control. Optional." .
+
+ppv:progress
+    a owl:DatatypeProperty ;
+    rdfs:label "progress" ;
+    rdfs:range xsd:integer ;
+    rdfs:comment "Completion percentage as integer 0-100. Used by GoalOutcome (Notion: '% Completed') and Project. Displayed in Goals Overview, Projects Board, and Life Dashboard. Optional." .
+
+ppv:timeEstimate
+    a owl:DatatypeProperty ;
+    rdfs:label "timeEstimate" ;
+    rdfs:domain ppv:ActionItem ;
+    rdfs:range xsd:integer ;
+    rdfs:comment "Estimated time to complete the ActionItem, in minutes as integer. Obsidian addition for GTD-style time-boxing. Optional." .
+
+# --- Boolean properties (xsd:boolean) ---
+
+ppv:done
+    a owl:DatatypeProperty ;
+    rdfs:label "done" ;
+    rdfs:domain ppv:ActionItem ;
+    rdfs:range xsd:boolean ;
+    rdfs:comment "Whether the ActionItem is complete. Maps to Obsidian checkbox property (true/false). Used in Action Items dashboard to filter incomplete tasks. Optional (defaults false)." .
+
+
+# =============================================================================
+# SHACL NODE SHAPES
+# =============================================================================
+
+# --- Pillar Shape ---
+
+ppv:PillarShape
+    a sh:NodeShape ;
+    sh:targetClass ppv:Pillar ;
+    rdfs:label "Pillar Shape" ;
+    rdfs:comment "SHACL constraints for Pillar notes." ;
+
+    # Required: type
+    sh:property [
+        sh:path ppv:type ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in ( "pillar" ) ;
+        rdfs:comment "Fixed type identifier for Pillar notes."
+    ] ;
+
+    # Required: status
+    sh:property [
+        sh:path ppv:status ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in (
+            "Active"
+            "Active (Hide from Command Center)"
+            "Paused"
+            "Inactive"
+        ) ;
+        rdfs:comment "Pillar lifecycle status."
+    ] ;
+
+    # Required: created
+    sh:property [
+        sh:path ppv:created ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:date ;
+        rdfs:comment "ISO creation date. Required."
+    ] ;
+
+    # Optional: pillarGroup (user-defined class, NOT sh:in)
+    sh:property [
+        sh:path ppv:pillarGroup ;
+        sh:maxCount 1 ;
+        sh:class ppv:PillarGroup ;
+        rdfs:comment "User-defined pillar group (e.g., Growth, Business, Home & Social). Validated as instance of ppv:PillarGroup, NOT constrained to a fixed enumeration."
+    ] ;
+
+    # Optional: icon
+    sh:property [
+        sh:path ppv:icon ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:comment "Emoji icon. Optional."
+    ] ;
+
+    # Optional: color
+    sh:property [
+        sh:path ppv:color ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:comment "Color name. Optional."
+    ] ;
+
+    # Optional: order (1-10)
+    sh:property [
+        sh:path ppv:order ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 1 ;
+        sh:maxInclusive 10 ;
+        rdfs:comment "Display order 1-10. Optional."
+    ] .
+
+
+# --- Value Goal Shape ---
+
+ppv:ValueGoalShape
+    a sh:NodeShape ;
+    sh:targetClass ppv:ValueGoal ;
+    rdfs:label "Value Goal Shape" ;
+    rdfs:comment "SHACL constraints for ValueGoal notes." ;
+
+    # Required: type
+    sh:property [
+        sh:path ppv:type ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in ( "value-goal" ) ;
+        rdfs:comment "Fixed type identifier for ValueGoal notes."
+    ] ;
+
+    # Required: pillar link
+    sh:property [
+        sh:path ppv:pillar ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class ppv:Pillar ;
+        rdfs:comment "Link to parent Pillar. Required."
+    ] ;
+
+    # Required: status
+    sh:property [
+        sh:path ppv:status ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in (
+            "Underway"
+            "Paused"
+            "Waiting"
+            "Off Track"
+            "Complete"
+        ) ;
+        rdfs:comment "ValueGoal lifecycle status."
+    ] ;
+
+    # Required: created
+    sh:property [
+        sh:path ppv:created ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:date ;
+        rdfs:comment "ISO creation date. Required."
+    ] ;
+
+    # Optional: priority
+    sh:property [
+        sh:path ppv:priority ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in (
+            "1st Priority"
+            "2nd Priority"
+            "3rd Priority"
+            "4th Priority"
+            "5th Priority"
+        ) ;
+        rdfs:comment "ValueGoal priority. Optional."
+    ] ;
+
+    # Optional: targetDate
+    sh:property [
+        sh:path ppv:targetDate ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:date ;
+        rdfs:comment "Target completion date. Optional."
+    ] .
+
+
+# --- Goal Outcome Shape ---
+
+ppv:GoalOutcomeShape
+    a sh:NodeShape ;
+    sh:targetClass ppv:GoalOutcome ;
+    rdfs:label "Goal Outcome Shape" ;
+    rdfs:comment "SHACL constraints for GoalOutcome notes." ;
+
+    # Required: type
+    sh:property [
+        sh:path ppv:type ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in ( "goal-outcome" ) ;
+        rdfs:comment "Fixed type identifier for GoalOutcome notes."
+    ] ;
+
+    # Required: valueGoal link
+    sh:property [
+        sh:path ppv:valueGoal ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class ppv:ValueGoal ;
+        rdfs:comment "Link to parent ValueGoal. Required."
+    ] ;
+
+    # Required: status
+    sh:property [
+        sh:path ppv:status ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in (
+            "Active"
+            "Next Up"
+            "Future 1"
+            "Future 2"
+            "Future 3"
+            "Completed"
+        ) ;
+        rdfs:comment "GoalOutcome lifecycle status."
+    ] ;
+
+    # Required: created
+    sh:property [
+        sh:path ppv:created ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:date ;
+        rdfs:comment "ISO creation date. Required."
+    ] ;
+
+    # Optional: progress (0-100)
+    sh:property [
+        sh:path ppv:progress ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 0 ;
+        sh:maxInclusive 100 ;
+        rdfs:comment "Completion percentage 0-100. Optional."
+    ] ;
+
+    # Optional: targetDate
+    sh:property [
+        sh:path ppv:targetDate ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:date ;
+        rdfs:comment "Target completion date. Optional."
+    ] ;
+
+    # Optional: completedDate
+    sh:property [
+        sh:path ppv:completedDate ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:date ;
+        rdfs:comment "Date when goal outcome was completed. Optional."
+    ] .
+
+
+# --- Project Shape ---
+
+ppv:ProjectShape
+    a sh:NodeShape ;
+    sh:targetClass ppv:Project ;
+    rdfs:label "Project Shape" ;
+    rdfs:comment "SHACL constraints for Project notes." ;
+
+    # Required: type
+    sh:property [
+        sh:path ppv:type ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in ( "project" ) ;
+        rdfs:comment "Fixed type identifier for Project notes."
+    ] ;
+
+    # Required: status
+    sh:property [
+        sh:path ppv:status ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in (
+            "Active"
+            "On Hold"
+            "Next Up"
+            "Future"
+            "Someday/Maybe"
+            "Completed"
+        ) ;
+        rdfs:comment "Project lifecycle status."
+    ] ;
+
+    # Required: created
+    sh:property [
+        sh:path ppv:created ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:date ;
+        rdfs:comment "ISO creation date. Required."
+    ] ;
+
+    # Optional: goalOutcome link
+    sh:property [
+        sh:path ppv:goalOutcome ;
+        sh:maxCount 1 ;
+        sh:class ppv:GoalOutcome ;
+        rdfs:comment "Link to parent GoalOutcome. Optional (some projects may be standalone)."
+    ] ;
+
+    # Optional: pillar link (denormalized shortcut)
+    sh:property [
+        sh:path ppv:pillar ;
+        sh:maxCount 1 ;
+        sh:class ppv:Pillar ;
+        rdfs:comment "Direct link to Pillar (denormalized shortcut for dashboard queries). Optional."
+    ] ;
+
+    # Optional: priority
+    sh:property [
+        sh:path ppv:priority ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in (
+            "1st Priority"
+            "2nd Priority"
+            "3rd Priority"
+            "4th Priority"
+            "5th Priority"
+        ) ;
+        rdfs:comment "Project priority. Optional."
+    ] ;
+
+    # Optional: progress (0-100)
+    sh:property [
+        sh:path ppv:progress ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 0 ;
+        sh:maxInclusive 100 ;
+        rdfs:comment "Completion percentage 0-100. Optional."
+    ] ;
+
+    # Optional: startDate
+    sh:property [
+        sh:path ppv:startDate ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:date ;
+        rdfs:comment "Project start date. Optional."
+    ] ;
+
+    # Optional: dueDate
+    sh:property [
+        sh:path ppv:dueDate ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:date ;
+        rdfs:comment "Project due date. Optional."
+    ] ;
+
+    # Optional: reviewDate
+    sh:property [
+        sh:path ppv:reviewDate ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:date ;
+        rdfs:comment "Next scheduled review date. Optional."
+    ] ;
+
+    # Optional: completedDate
+    sh:property [
+        sh:path ppv:completedDate ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:date ;
+        rdfs:comment "Date when project was completed. Optional."
+    ] .
+
+
+# --- Action Item Shape ---
+
+ppv:ActionItemShape
+    a sh:NodeShape ;
+    sh:targetClass ppv:ActionItem ;
+    rdfs:label "Action Item Shape" ;
+    rdfs:comment "SHACL constraints for ActionItem notes." ;
+
+    # Required: type
+    sh:property [
+        sh:path ppv:type ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in ( "action" ) ;
+        rdfs:comment "Fixed type identifier for ActionItem notes."
+    ] ;
+
+    # Required: status
+    sh:property [
+        sh:path ppv:status ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in (
+            "Active"
+            "Waiting"
+            "Paused"
+            "Next Up"
+            "Future 1"
+            "Future 2"
+            "Future 3"
+        ) ;
+        rdfs:comment "ActionItem lifecycle status."
+    ] ;
+
+    # Required: created
+    sh:property [
+        sh:path ppv:created ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:date ;
+        rdfs:comment "ISO creation date. Required."
+    ] ;
+
+    # Optional: project link
+    sh:property [
+        sh:path ppv:project ;
+        sh:maxCount 1 ;
+        sh:class ppv:Project ;
+        rdfs:comment "Link to parent Project. Optional (some actions may be standalone)."
+    ] ;
+
+    # Optional: pillar link (denormalized shortcut)
+    sh:property [
+        sh:path ppv:pillar ;
+        sh:maxCount 1 ;
+        sh:class ppv:Pillar ;
+        rdfs:comment "Direct link to Pillar (denormalized shortcut). Optional."
+    ] ;
+
+    # Optional: priority (with emojis — UTF-8 encoded directly)
+    sh:property [
+        sh:path ppv:priority ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in (
+            "Immediate 🔥"
+            "Quick ⚡"
+            "Scheduled 📅"
+            "1st Priority 🚀"
+            "2nd Priority"
+            "3rd Priority"
+            "4th Priority"
+            "5th Priority"
+            "Errand 🚘"
+            "Remember 💭"
+        ) ;
+        rdfs:comment "ActionItem priority. Optional. Uses emoji labels matching Notion exactly."
+    ] ;
+
+    # Optional: doDate
+    sh:property [
+        sh:path ppv:doDate ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:date ;
+        rdfs:comment "Date to do the action (PPV: 'Do Date', not due date). Optional."
+    ] ;
+
+    # Optional: done
+    sh:property [
+        sh:path ppv:done ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:boolean ;
+        rdfs:comment "Completion checkbox. Optional (defaults false)."
+    ] ;
+
+    # Optional: completionDate
+    sh:property [
+        sh:path ppv:completionDate ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:date ;
+        rdfs:comment "Date the action was completed. Optional."
+    ] ;
+
+    # Optional: description
+    sh:property [
+        sh:path ppv:description ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:comment "Freeform notes about the action. Optional."
+    ] ;
+
+    # Optional: context
+    sh:property [
+        sh:path ppv:context ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in (
+            "home"
+            "office"
+            "errands"
+            "calls"
+            "computer"
+            "anywhere"
+        ) ;
+        rdfs:comment "Execution context for GTD-style filtering. Optional."
+    ] ;
+
+    # Optional: energy
+    sh:property [
+        sh:path ppv:energy ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in (
+            "low"
+            "medium"
+            "high"
+        ) ;
+        rdfs:comment "Energy level required. Optional."
+    ] ;
+
+    # Optional: timeEstimate
+    sh:property [
+        sh:path ppv:timeEstimate ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        rdfs:comment "Time estimate in minutes. Optional."
+    ] .
+
+
+# --- Weekly Review Shape ---
+
+ppv:WeeklyReviewShape
+    a sh:NodeShape ;
+    sh:targetClass ppv:WeeklyReview ;
+    rdfs:label "Weekly Review Shape" ;
+    rdfs:comment "SHACL constraints for WeeklyReview notes." ;
+
+    # Required: type
+    sh:property [
+        sh:path ppv:type ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in ( "weekly-review" ) ;
+        rdfs:comment "Fixed type identifier for WeeklyReview notes."
+    ] ;
+
+    # Required: cycle = "weekly"
+    sh:property [
+        sh:path ppv:cycle ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in ( "weekly" ) ;
+        rdfs:comment "Fixed cycle value for WeeklyReview."
+    ] ;
+
+    # Required: startDate (Monday of review week)
+    sh:property [
+        sh:path ppv:startDate ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:date ;
+        rdfs:comment "Monday of the review week (start of period for completed actions filter). Required."
+    ] ;
+
+    # Required: endDate (Sunday of review week)
+    sh:property [
+        sh:path ppv:endDate ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:date ;
+        rdfs:comment "Sunday of the review week (end of period for completed actions filter). Required."
+    ] ;
+
+    # Required: month link
+    sh:property [
+        sh:path ppv:month ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class ppv:MonthlyReview ;
+        rdfs:comment "Link to parent MonthlyReview for monthly rollup queries. Required."
+    ] ;
+
+    # Required: created
+    sh:property [
+        sh:path ppv:created ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:date ;
+        rdfs:comment "ISO creation date. Required."
+    ] ;
+
+    # Optional: focusObjective
+    sh:property [
+        sh:path ppv:focusObjective ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:comment "Focus objective for the week. Optional."
+    ] .
+
+
+# --- Monthly Review Shape ---
+
+ppv:MonthlyReviewShape
+    a sh:NodeShape ;
+    sh:targetClass ppv:MonthlyReview ;
+    rdfs:label "Monthly Review Shape" ;
+    rdfs:comment "SHACL constraints for MonthlyReview notes." ;
+
+    # Required: type
+    sh:property [
+        sh:path ppv:type ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in ( "monthly-review" ) ;
+        rdfs:comment "Fixed type identifier for MonthlyReview notes."
+    ] ;
+
+    # Required: cycle = "monthly"
+    sh:property [
+        sh:path ppv:cycle ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in ( "monthly" ) ;
+        rdfs:comment "Fixed cycle value for MonthlyReview."
+    ] ;
+
+    # Required: monthName ("February 2026" format)
+    sh:property [
+        sh:path ppv:monthName ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:comment "Month name in 'February 2026' format. Required."
+    ] ;
+
+    # Required: year
+    sh:property [
+        sh:path ppv:year ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:comment "Year in '2026' format. Required."
+    ] ;
+
+    # Required: created
+    sh:property [
+        sh:path ppv:created ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:date ;
+        rdfs:comment "ISO creation date. Required."
+    ] ;
+
+    # Optional: quarter link
+    sh:property [
+        sh:path ppv:quarter ;
+        sh:maxCount 1 ;
+        sh:class ppv:QuarterlyReview ;
+        rdfs:comment "Link to parent QuarterlyReview for quarterly rollup. Optional."
+    ] ;
+
+    # Optional: gratitude
+    sh:property [
+        sh:path ppv:gratitude ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:comment "Monthly gratitude reflection. Optional."
+    ] ;
+
+    # Optional: learnedThisMonth
+    sh:property [
+        sh:path ppv:learnedThisMonth ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:comment "Key learning from the month. Optional."
+    ] .
+
+
+# --- Quarterly Review Shape ---
+
+ppv:QuarterlyReviewShape
+    a sh:NodeShape ;
+    sh:targetClass ppv:QuarterlyReview ;
+    rdfs:label "Quarterly Review Shape" ;
+    rdfs:comment "SHACL constraints for QuarterlyReview notes." ;
+
+    # Required: type
+    sh:property [
+        sh:path ppv:type ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in ( "quarterly-review" ) ;
+        rdfs:comment "Fixed type identifier for QuarterlyReview notes."
+    ] ;
+
+    # Required: cycle = "quarterly"
+    sh:property [
+        sh:path ppv:cycle ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in ( "quarterly" ) ;
+        rdfs:comment "Fixed cycle value for QuarterlyReview."
+    ] ;
+
+    # Required: quarterName ("Q1 2026" format)
+    sh:property [
+        sh:path ppv:quarterName ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:comment "Quarter name in 'Q1 2026' format. Required."
+    ] ;
+
+    # Required: created
+    sh:property [
+        sh:path ppv:created ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:date ;
+        rdfs:comment "ISO creation date. Required."
+    ] ;
+
+    # Optional: yearLink (link to YearlyReview)
+    sh:property [
+        sh:path ppv:yearLink ;
+        sh:maxCount 1 ;
+        sh:class ppv:YearlyReview ;
+        rdfs:comment "Link to parent YearlyReview for yearly rollup. Optional."
+    ] .
+
+
+# --- Yearly Review Shape ---
+
+ppv:YearlyReviewShape
+    a sh:NodeShape ;
+    sh:targetClass ppv:YearlyReview ;
+    rdfs:label "Yearly Review Shape" ;
+    rdfs:comment "SHACL constraints for YearlyReview notes." ;
+
+    # Required: type
+    sh:property [
+        sh:path ppv:type ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in ( "yearly-review" ) ;
+        rdfs:comment "Fixed type identifier for YearlyReview notes."
+    ] ;
+
+    # Required: cycle = "yearly"
+    sh:property [
+        sh:path ppv:cycle ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in ( "yearly" ) ;
+        rdfs:comment "Fixed cycle value for YearlyReview."
+    ] ;
+
+    # Required: yearName ("2026" format)
+    sh:property [
+        sh:path ppv:yearName ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:comment "Year in '2026' format. Required."
+    ] ;
+
+    # Required: created
+    sh:property [
+        sh:path ppv:created ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:date ;
+        rdfs:comment "ISO creation date. Required."
+    ] ;
+
+    # Optional: quarters (list of links to QuarterlyReviews)
+    sh:property [
+        sh:path ppv:quarters ;
+        sh:class ppv:QuarterlyReview ;
+        rdfs:comment "Links to constituent QuarterlyReviews (up to 4). No maxCount — multi-value list. Optional."
+    ] .
+
+# =============================================================================
+# END OF ONTOLOGY
+# =============================================================================
