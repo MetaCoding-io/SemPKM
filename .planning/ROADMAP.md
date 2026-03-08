@@ -118,7 +118,7 @@
 - Documentation: Phase 50 (after all feature phases)
 
 - [ ] **Phase 44: UI Cleanup** - VFS browser CSS fixes and audit-driven UI polish
-- [ ] **Phase 45: Obsidian Vault Scanner** - Upload vault, parse files, extract metadata and statistics
+- [x] **Phase 45: Obsidian Vault Scanner** - Upload vault, parse files, extract metadata and statistics (completed 2026-03-08)
 - [ ] **Phase 46: Obsidian Mapping UI** - Map note categories to types, frontmatter to properties, preview results
 - [ ] **Phase 47: Obsidian Batch Import** - Execute import with bodies, properties, and edges via Command API
 - [ ] **Phase 48: WebID Profiles** - Serve RDF profile documents with content negotiation, keys, and rel="me"
@@ -145,7 +145,7 @@
   1. User can upload or specify a path to an Obsidian vault directory from within the app
   2. Scan results display file count, detected note types, frontmatter keys, wiki-link targets, and tags
   3. Scan completes without requiring any configuration or mapping decisions from the user
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 45-01-PLAN.md -- Backend obsidian module: models, scanner, SSE broadcast, router, nginx config
@@ -380,7 +380,7 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 42. VFS Browser Fix | v2.4 | 1/1 | Complete | 2026-03-06 |
 | 43. Inference E2E Test Gap | v2.4 | 1/1 | Complete | 2026-03-06 |
 | 44. UI Cleanup | v2.5 | 0/0 | Not started | - |
-| 45. Obsidian Vault Scanner | 1/2 | In Progress|  | - |
+| 45. Obsidian Vault Scanner | 2/2 | Complete   | 2026-03-08 | - |
 | 46. Obsidian Mapping UI | v2.5 | 0/0 | Not started | - |
 | 47. Obsidian Batch Import | v2.5 | 0/0 | Not started | - |
 | 48. WebID Profiles | v2.5 | 0/0 | Not started | - |
