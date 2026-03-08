@@ -163,7 +163,12 @@ Plans:
   1. User can map each detected Obsidian note category to a Mental Model type
   2. User can map each frontmatter key to an RDF property for the corresponding type
   3. User can preview the resulting objects (with types, properties, and bodies) before committing the import
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 46-01-PLAN.md -- Backend models, scanner enhancement, and mapping endpoints
+- [ ] 46-02-PLAN.md -- Step bar, type mapping, and property mapping templates
+- [ ] 46-03-PLAN.md -- Preview template and end-to-end wizard verification
 
 ### Phase 47: Obsidian Batch Import
 **Goal**: Users can execute the configured import and get a complete set of interconnected RDF objects
