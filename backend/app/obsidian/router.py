@@ -15,11 +15,15 @@ from time import time
 from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 
+from fastapi import Form
+
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
+from app.dependencies import get_shapes_service
+from app.services.shapes import ShapesService
 
 from .broadcast import ScanBroadcast, stream_sse
-from .models import VaultScanResult
+from .models import MappingConfig, TypeMapping, PropertyMapping, VaultScanResult
 from .scanner import VaultScanner
 
 logger = logging.getLogger(__name__)
@@ -290,3 +294,283 @@ async def get_results(
         "obsidian/partials/scan_results.html",
         {"request": request, "scan_result": result, "import_id": import_id},
     )
+
+
+# ---------------------------------------------------------------------------
+# Helper functions for mapping wizard
+# ---------------------------------------------------------------------------
+
+
+def _get_import_dir(user: User, import_id: str) -> Path:
+    """Validate import_id ownership and return import directory path."""
+    parts = import_id.split("_", 1)
+    if len(parts) != 2 or parts[0] != str(user.id):
+        raise HTTPException(403, "Access denied")
+    return _user_imports_dir(user) / parts[1]
+
+
+def _load_scan_result(import_dir: Path) -> VaultScanResult:
+    """Load scan_result.json from import directory."""
+    result_path = import_dir / "scan_result.json"
+    if not result_path.exists():
+        raise HTTPException(404, "Scan results not found")
+    return VaultScanResult.from_dict(json.loads(result_path.read_text()))
+
+
+def _load_mapping(import_dir: Path) -> MappingConfig:
+    """Load mapping_config.json, returning empty MappingConfig if missing."""
+    mapping_path = import_dir / "mapping_config.json"
+    if mapping_path.exists():
+        return MappingConfig.from_dict(json.loads(mapping_path.read_text()))
+    return MappingConfig()
+
+
+def _save_mapping(import_dir: Path, config: MappingConfig) -> None:
+    """Write mapping_config.json to import directory."""
+    mapping_path = import_dir / "mapping_config.json"
+    mapping_path.write_text(json.dumps(config.to_dict(), indent=2))
+
+
+# ---------------------------------------------------------------------------
+# Wizard step endpoints (GET, return HTML partials)
+# ---------------------------------------------------------------------------
+
+
+@router.get("/{import_id}/step/type-mapping")
+async def type_mapping_step(
+    request: Request,
+    import_id: str,
+    user: User = Depends(get_current_user),
+    shapes_service: ShapesService = Depends(get_shapes_service),
+):
+    """Serve the type-mapping wizard step."""
+    import_dir = _get_import_dir(user, import_id)
+    scan_result = _load_scan_result(import_dir)
+    mapping_config = _load_mapping(import_dir)
+    available_types = await shapes_service.get_types()
+
+    templates = request.app.state.templates
+    block_name = "content" if request.headers.get("HX-Request") == "true" else None
+    return templates.TemplateResponse(
+        request,
+        "obsidian/partials/type_mapping.html",
+        {
+            "request": request,
+            "scan_result": scan_result,
+            "mapping_config": mapping_config,
+            "available_types": available_types,
+            "import_id": import_id,
+            "current_step": 3,
+        },
+        block_name=block_name,
+    )
+
+
+@router.get("/{import_id}/step/property-mapping")
+async def property_mapping_step(
+    request: Request,
+    import_id: str,
+    user: User = Depends(get_current_user),
+    shapes_service: ShapesService = Depends(get_shapes_service),
+):
+    """Serve the property-mapping wizard step."""
+    import_dir = _get_import_dir(user, import_id)
+    scan_result = _load_scan_result(import_dir)
+    mapping_config = _load_mapping(import_dir)
+
+    # Build per-type property data: merge groups mapped to same type
+    per_type_data = {}  # type_iri -> {label, shacl_properties, frontmatter_keys}
+    for group_key, tm in mapping_config.type_mappings.items():
+        if tm is None:
+            continue
+        type_iri = tm.target_type_iri
+        if type_iri not in per_type_data:
+            form = await shapes_service.get_form_for_type(type_iri)
+            per_type_data[type_iri] = {
+                "label": tm.target_type_label,
+                "shacl_properties": form.properties if form else [],
+                "frontmatter_keys": {},  # key -> {count, sample_values}
+            }
+        # Find the group in scan_result to get its frontmatter_keys
+        parts = group_key.split("|", 1)
+        if len(parts) == 2:
+            type_name, signal = parts
+            for g in scan_result.type_groups:
+                if g.type_name == type_name and g.signal_source == signal:
+                    for fk in g.frontmatter_keys:
+                        existing = per_type_data[type_iri]["frontmatter_keys"]
+                        if fk.key in existing:
+                            existing[fk.key]["count"] += fk.count
+                            # Combine samples up to 5
+                            combined = existing[fk.key]["sample_values"]
+                            for sv in fk.sample_values:
+                                if sv not in combined and len(combined) < 5:
+                                    combined.append(sv)
+                        else:
+                            existing[fk.key] = {
+                                "count": fk.count,
+                                "sample_values": list(fk.sample_values),
+                            }
+                    break
+
+    templates = request.app.state.templates
+    block_name = "content" if request.headers.get("HX-Request") == "true" else None
+    return templates.TemplateResponse(
+        request,
+        "obsidian/partials/property_mapping.html",
+        {
+            "request": request,
+            "per_type_data": per_type_data,
+            "mapping_config": mapping_config,
+            "import_id": import_id,
+            "current_step": 4,
+        },
+        block_name=block_name,
+    )
+
+
+@router.get("/{import_id}/step/preview")
+async def preview_step(
+    request: Request,
+    import_id: str,
+    user: User = Depends(get_current_user),
+):
+    """Serve the preview wizard step with sample note transformations."""
+    import_dir = _get_import_dir(user, import_id)
+    scan_result = _load_scan_result(import_dir)
+    mapping_config = _load_mapping(import_dir)
+
+    import frontmatter as fm_lib
+
+    previews = []  # [{type_label, notes: [{path, properties: [{key, value}], has_body}]}]
+    extract_path = Path(scan_result.extract_path)
+
+    for group_key, tm in mapping_config.type_mappings.items():
+        if tm is None:
+            continue
+        type_iri = tm.target_type_iri
+        prop_map = mapping_config.property_mappings.get(type_iri, {})
+
+        # Find sample notes from matching group
+        parts = group_key.split("|", 1)
+        sample_notes = []
+        if len(parts) == 2:
+            type_name, signal = parts
+            for g in scan_result.type_groups:
+                if g.type_name == type_name and g.signal_source == signal:
+                    sample_notes = g.sample_notes[:3]
+                    break
+
+        notes = []
+        for note_path in sample_notes:
+            full_path = extract_path / note_path
+            if not full_path.exists():
+                # Try with vault subdirectory
+                for child in extract_path.iterdir():
+                    candidate = child / note_path
+                    if candidate.exists():
+                        full_path = candidate
+                        break
+            try:
+                post = fm_lib.load(str(full_path))
+                meta = post.metadata or {}
+                body = post.content or ""
+            except Exception:
+                meta = {}
+                body = ""
+
+            properties = []
+            for fm_key, pm in prop_map.items():
+                if pm is not None and fm_key in meta:
+                    properties.append({
+                        "key": pm.target_property_label,
+                        "value": str(meta[fm_key])[:200],
+                    })
+
+            notes.append({
+                "path": note_path,
+                "properties": properties,
+                "has_body": bool(body.strip()),
+            })
+
+        if notes:
+            previews.append({
+                "type_label": tm.target_type_label,
+                "type_iri": type_iri,
+                "notes": notes,
+            })
+
+    templates = request.app.state.templates
+    block_name = "content" if request.headers.get("HX-Request") == "true" else None
+    return templates.TemplateResponse(
+        request,
+        "obsidian/partials/preview.html",
+        {
+            "request": request,
+            "previews": previews,
+            "import_id": import_id,
+            "current_step": 5,
+        },
+        block_name=block_name,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Auto-save endpoints (POST)
+# ---------------------------------------------------------------------------
+
+
+@router.post("/{import_id}/mapping/type")
+async def save_type_mapping(
+    request: Request,
+    import_id: str,
+    group_key: str = Form(...),
+    target_type: str = Form(""),
+    target_label: str = Form(""),
+    user: User = Depends(get_current_user),
+):
+    """Auto-save a single type mapping."""
+    import_dir = _get_import_dir(user, import_id)
+    config = _load_mapping(import_dir)
+
+    if target_type:
+        config.type_mappings[group_key] = TypeMapping(
+            target_type_iri=target_type,
+            target_type_label=target_label or target_type,
+        )
+    else:
+        config.type_mappings[group_key] = None
+
+    _save_mapping(import_dir, config)
+    return HTMLResponse("")
+
+
+@router.post("/{import_id}/mapping/property")
+async def save_property_mapping(
+    request: Request,
+    import_id: str,
+    type_iri: str = Form(...),
+    fm_key: str = Form(...),
+    target_property: str = Form(""),
+    property_label: str = Form(""),
+    source: str = Form("shacl"),
+    user: User = Depends(get_current_user),
+):
+    """Auto-save a single property mapping."""
+    import_dir = _get_import_dir(user, import_id)
+    config = _load_mapping(import_dir)
+
+    if type_iri not in config.property_mappings:
+        config.property_mappings[type_iri] = {}
+
+    if target_property:
+        config.property_mappings[type_iri][fm_key] = PropertyMapping(
+            target_property_iri=target_property,
+            target_property_label=property_label or target_property,
+            source=source,
+        )
+    else:
+        config.property_mappings[type_iri][fm_key] = None
+
+    _save_mapping(import_dir, config)
+    return HTMLResponse("")
