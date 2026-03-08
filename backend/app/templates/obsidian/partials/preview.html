@@ -1,0 +1,98 @@
+{% block content %}
+<div id="import-area">
+    {% include "obsidian/partials/step_bar.html" %}
+
+    {% if previews %}
+    <!-- Summary Table -->
+    <div class="import-section">
+        <h3 class="import-section-title">
+            <i data-lucide="table-2"></i>
+            Mapping Summary
+        </h3>
+        <table class="preview-summary-table">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Sample Notes</th>
+                    <th>Properties Mapped</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in previews %}
+                <tr>
+                    <td>{{ p.type_label }}</td>
+                    <td>{{ p.notes|length }}</td>
+                    <td>{{ p.notes[0].properties|length if p.notes else 0 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Sample Objects per Type -->
+    {% for p in previews %}
+    <div class="preview-type-section">
+        <h4 class="import-section-title">
+            <i data-lucide="box"></i>
+            {{ p.type_label }}
+        </h4>
+        {% for note in p.notes %}
+        <div class="preview-sample-card">
+            <div class="preview-card-title">
+                <i data-lucide="file-text"></i>
+                {{ note.path }}
+            </div>
+            {% if note.properties %}
+            <div class="preview-kv-list">
+                {% for prop in note.properties %}
+                <div class="preview-kv-row">
+                    <span class="preview-kv-key">{{ prop.key }}</span>
+                    <span class="preview-kv-value">{{ prop.value }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="preview-kv-row">
+                <span class="preview-kv-key" style="font-style: italic;">No mapped properties with values</span>
+            </div>
+            {% endif %}
+            {% if note.has_body %}
+            <div class="preview-body-indicator">
+                <i data-lucide="check-circle"></i>
+                Has body content
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endfor %}
+
+    {% else %}
+    <!-- No types mapped -->
+    <div class="preview-empty">
+        <i data-lucide="info"></i>
+        <p>No types are mapped. Go back to type mapping to map at least one group.</p>
+    </div>
+    {% endif %}
+
+    <!-- Navigation -->
+    <div class="import-actions">
+        <button class="btn btn-outline"
+                hx-get="/browser/import/{{ import_id }}/step/property-mapping"
+                hx-target="#import-area"
+                hx-swap="outerHTML">
+            <i data-lucide="arrow-left"></i>
+            Back: Property Mapping
+        </button>
+        <button class="btn btn-primary" disabled
+                title="Import will be available after Phase 47">
+            <i data-lucide="download"></i>
+            Import
+        </button>
+    </div>
+</div>
+
+<script>
+    if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+</script>
+{% endblock %}
