@@ -8,6 +8,13 @@
 
 {% block content %}
 <div id="import-container">
+    {% set current_step = 1 %}
+    {% if scan_result %}
+        {% set current_step = 2 %}
+    {% elif has_extract %}
+        {% set current_step = 2 %}
+    {% endif %}
+    {% include "obsidian/partials/step_bar.html" %}
     <div id="import-content">
         {% if scan_result %}
             {% include "obsidian/partials/scan_results.html" %}

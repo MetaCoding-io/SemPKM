@@ -1,0 +1,27 @@
+<!-- Wizard Step Bar - receives current_step (1-6) -->
+<div class="import-step-bar">
+    {% set steps = [
+        (1, "Upload"),
+        (2, "Scan"),
+        (3, "Types"),
+        (4, "Properties"),
+        (5, "Preview"),
+        (6, "Import"),
+    ] %}
+    {% for num, label in steps %}
+    <div class="step-item {% if num == current_step %}step-active{% elif num < current_step %}step-complete{% endif %}">
+        <div class="step-circle">
+            {% if num < current_step %}
+                <i data-lucide="check"></i>
+            {% else %}
+                {{ num }}
+            {% endif %}
+        </div>
+        <span class="step-label">{{ label }}</span>
+    </div>
+    {% if not loop.last %}
+    <div class="step-connector {% if num < current_step %}step-connector-complete{% endif %}"></div>
+    {% endif %}
+    {% endfor %}
+</div>
+<script>if (typeof lucide !== 'undefined') { lucide.createIcons(); }</script>
