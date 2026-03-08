@@ -145,7 +145,7 @@
   1. User can upload or specify a path to an Obsidian vault directory from within the app
   2. Scan results display file count, detected note types, frontmatter keys, wiki-link targets, and tags
   3. Scan completes without requiring any configuration or mapping decisions from the user
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 45-01-PLAN.md -- Backend obsidian module: models, scanner, SSE broadcast, router, nginx config
@@ -380,7 +380,7 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 42. VFS Browser Fix | v2.4 | 1/1 | Complete | 2026-03-06 |
 | 43. Inference E2E Test Gap | v2.4 | 1/1 | Complete | 2026-03-06 |
 | 44. UI Cleanup | v2.5 | 0/0 | Not started | - |
-| 45. Obsidian Vault Scanner | v2.5 | 0/2 | Planning | - |
+| 45. Obsidian Vault Scanner | 1/2 | In Progress|  | - |
 | 46. Obsidian Mapping UI | v2.5 | 0/0 | Not started | - |
 | 47. Obsidian Batch Import | v2.5 | 0/0 | Not started | - |
 | 48. WebID Profiles | v2.5 | 0/0 | Not started | - |
