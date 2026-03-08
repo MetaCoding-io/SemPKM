@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Polish, Import & Identity
 status: completed
-stopped_at: Phase 46 context gathered
-last_updated: "2026-03-08T07:24:32.341Z"
-last_activity: "2026-03-08 - Completed Phase 51 Plan 03: Named canvas sessions"
+stopped_at: Completed 44-02-PLAN.md
+last_updated: "2026-03-08T07:27:23.237Z"
+last_activity: "2026-03-08 - Completed Phase 44 Plan 02: Workspace UI Polish"
 progress:
   total_phases: 8
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 10
-  completed_plans: 8
+  completed_plans: 10
   percent: 100
 ---
 
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 
 ## Current Position
 
-Phase: 51 (Spatial Canvas UX)
-Plan: 3 of 3 complete
-Status: Phase 51 complete
-Last activity: 2026-03-08 - Completed Phase 51 Plan 03: Named canvas sessions
+Phase: 44 (UI Cleanup)
+Plan: 2 of 2 complete
+Status: Phase 44 Plan 02 complete
+Last activity: 2026-03-08 - Completed Phase 44 Plan 02: Workspace UI Polish
 
 Progress: [██████████] 100%
 
@@ -62,6 +62,7 @@ Progress: [██████████] 100%
 | Phase 45 P03 | 1 | 2 tasks | 6 files |
 | Phase 51 P02 | 2 | 2 tasks | 3 files |
 | Phase 51 P03 | 3 | 2 tasks | 6 files |
+| Phase 44 P02 | 4 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -80,6 +81,8 @@ Full decision log in PROJECT.md Key Decisions table.
 - Phase 51: Custom MIME types text/iri and text/label in dataTransfer for nav-tree-to-canvas drag-drop
 - Phase 45: Tool pages use htmx page navigation, not dockview tabs
 - Phase 45: Return styled HTML on BadZipFile instead of JSON HTTPException for htmx targets
+- Phase 44: Single unified CodeMirror theme using CSS variables instead of dual dark/light themes
+- Phase 44: Preview/Source tab toggle for markdown VFS files, reusing global marked.js
 
 ### Pending Todos
 
@@ -111,6 +114,6 @@ None — clean start for v2.5
 
 ## Session Continuity
 
-Last session: 2026-03-08T07:24:32.339Z
-Stopped at: Phase 46 context gathered
-Resume file: .planning/phases/46-obsidian-mapping-ui/46-CONTEXT.md
+Last session: 2026-03-08T07:27:16.218Z
+Stopped at: Completed 44-02-PLAN.md
+Resume file: None
