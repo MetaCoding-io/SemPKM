@@ -21,31 +21,16 @@
     nodeDragId: null,
     nodeDragOffsetX: 0,
     nodeDragOffsetY: 0,
-    nodes: [
-      {
-        id: 'urn:sempkm:model:basic-pkm:seed-note-arch',
-        title: 'Architecture Decision',
-        uri: 'urn:sempkm:model:basic-pkm:seed-note-arch',
-        x: 160,
-        y: 120,
-        markdown: '## Architecture Decision\n\n- Adopt **Track A** for packaging.\n- Add `React Flow` island in workspace.\n\n[Open project node](urn:sempkm:model:basic-pkm:seed-project-kernel)',
-        collapsed: false,
-      },
-      {
-        id: 'urn:sempkm:model:basic-pkm:seed-project-kernel',
-        title: 'Project: Spatial Canvas Beta',
-        uri: 'urn:sempkm:model:basic-pkm:seed-project-kernel',
-        x: 540,
-        y: 300,
-        markdown: '### Spatial Canvas Beta\n\nThis project tracks:\n1. Canvas persistence\n2. RDF subgraph loading\n3. Markdown anchors\n\nSee [Architecture Decision](urn:sempkm:model:basic-pkm:seed-note-arch).',
-        collapsed: false,
-      }
-    ],
-    edges: [
-      { id: 'link-1', source: 'urn:sempkm:model:basic-pkm:seed-note-arch', target: 'urn:sempkm:model:basic-pkm:seed-project-kernel', label: 'related to' }
-    ],
+    nodes: [],
+    edges: [],
+    expandProvenance: {},
     canvasId: 'default'
   };
+
+  // Inline SVG icons — avoid Lucide re-scan on every renderNodes() call
+  var SVG_CHEVRON = '<svg class="spatial-icon spatial-icon-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>';
+  var SVG_PLUS = '<svg class="spatial-icon spatial-icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>';
+  var SVG_X = '<svg class="spatial-icon spatial-icon-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
 
   function mountCanvas() {
     var root = document.getElementById('spatial-canvas-root');
@@ -98,7 +83,7 @@
   }
 
   function onPointerDown(event) {
-    if (event.target && event.target.closest && (event.target.closest('.spatial-node-markdown a') || event.target.closest('.spatial-node-toggle'))) {
+    if (event.target && event.target.closest && (event.target.closest('.spatial-node-markdown a') || event.target.closest('.spatial-node-chevron') || event.target.closest('.spatial-node-expand') || event.target.closest('.spatial-node-delete'))) {
       return;
     }
 
@@ -122,14 +107,33 @@
   }
 
   function onLayerClick(event) {
-    var toggleBtn = event.target.closest('.spatial-node-toggle');
-    if (toggleBtn) {
-      var toggleNode = toggleBtn.closest('.spatial-node');
-      if (!toggleNode) return;
-      var model = findNode(toggleNode.dataset.nodeId);
+    // Chevron click — toggle body collapsed/expanded
+    var chevronBtn = event.target.closest('.spatial-node-chevron');
+    if (chevronBtn) {
+      var chevronNode = chevronBtn.closest('.spatial-node');
+      if (!chevronNode) return;
+      var model = findNode(chevronNode.dataset.nodeId);
       if (!model) return;
       model.collapsed = !model.collapsed;
       renderNodes();
+      return;
+    }
+
+    // Delete click — remove node
+    var deleteBtn = event.target.closest('.spatial-node-delete');
+    if (deleteBtn) {
+      var deleteNode = deleteBtn.closest('.spatial-node');
+      if (!deleteNode) return;
+      removeNode(deleteNode.dataset.nodeId);
+      return;
+    }
+
+    // Expand click — toggle expand/collapse neighbors
+    var expandBtn = event.target.closest('.spatial-node-expand');
+    if (expandBtn) {
+      var expandNode = expandBtn.closest('.spatial-node');
+      if (!expandNode) return;
+      toggleExpand(expandNode.dataset.nodeId);
       return;
     }
 
@@ -161,6 +165,123 @@
       });
       setStatus('Added linked node: ' + href);
       renderNodes();
+    }
+  }
+
+  function removeNode(nodeId) {
+    // Filter out the node
+    state.nodes = state.nodes.filter(function (n) { return n.id !== nodeId; });
+    // Filter out edges referencing this node
+    state.edges = state.edges.filter(function (e) { return e.source !== nodeId && e.target !== nodeId; });
+    // Clean up provenance: remove nodeId from any expand's child list
+    var provenanceKeys = Object.keys(state.expandProvenance);
+    for (var i = 0; i < provenanceKeys.length; i++) {
+      var key = provenanceKeys[i];
+      var children = state.expandProvenance[key];
+      var idx = children.indexOf(nodeId);
+      if (idx !== -1) {
+        children.splice(idx, 1);
+      }
+    }
+    // Delete this node's own provenance if it was expanded
+    delete state.expandProvenance[nodeId];
+    renderNodes();
+  }
+
+  function toggleExpand(nodeId) {
+    if (state.expandProvenance[nodeId]) {
+      // Collapse: remove nodes exclusively owned by this expand
+      var childIds = state.expandProvenance[nodeId];
+      // Build set of all provenance-referenced nodes (except this expand)
+      var referencedElsewhere = {};
+      var provenanceKeys = Object.keys(state.expandProvenance);
+      for (var i = 0; i < provenanceKeys.length; i++) {
+        if (provenanceKeys[i] === nodeId) continue;
+        var otherChildren = state.expandProvenance[provenanceKeys[i]];
+        for (var j = 0; j < otherChildren.length; j++) {
+          referencedElsewhere[otherChildren[j]] = true;
+        }
+      }
+      // Remove only exclusively owned nodes
+      var toRemove = {};
+      for (var k = 0; k < childIds.length; k++) {
+        if (!referencedElsewhere[childIds[k]]) {
+          toRemove[childIds[k]] = true;
+        }
+      }
+      state.nodes = state.nodes.filter(function (n) { return !toRemove[n.id]; });
+      state.edges = state.edges.filter(function (e) { return !toRemove[e.source] && !toRemove[e.target]; });
+      delete state.expandProvenance[nodeId];
+      renderNodes();
+      setStatus('Collapsed neighbors');
+    } else {
+      expandNode(nodeId);
+    }
+  }
+
+  async function expandNode(nodeId) {
+    var model = findNode(nodeId);
+    if (!model) return;
+
+    try {
+      var response = await fetch('/api/canvas/subgraph?root_uri=' + encodeURIComponent(model.uri) + '&depth=1');
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      var data = await response.json();
+
+      if (!data || !Array.isArray(data.nodes)) return;
+
+      var existingIds = {};
+      state.nodes.forEach(function (n) { existingIds[n.id] = true; });
+
+      var newNodeIds = [];
+      var newNodes = data.nodes.filter(function (n) {
+        var nid = String(n.id || '');
+        return nid && !existingIds[nid];
+      });
+
+      newNodes.forEach(function (node, idx) {
+        var nid = String(node.id || '');
+        var angle = (idx / Math.max(newNodes.length, 1)) * Math.PI * 2;
+        var radius = 200;
+        state.nodes.push({
+          id: nid,
+          title: String(node.label || node.id || 'Resource'),
+          uri: nid,
+          x: Math.round(model.x + Math.cos(angle) * radius),
+          y: Math.round(model.y + Math.sin(angle) * radius),
+          markdown: 'Loaded from RDF subgraph\n\nURI: `' + nid + '`',
+          collapsed: false,
+        });
+        newNodeIds.push(nid);
+        existingIds[nid] = true;
+      });
+
+      // Merge edges (dedup)
+      if (Array.isArray(data.edges)) {
+        var existingEdgeIds = {};
+        state.edges.forEach(function (e) { existingEdgeIds[e.id] = true; });
+        data.edges.forEach(function (edge) {
+          var source = String(edge.source || '');
+          var target = String(edge.target || '');
+          var predicate = String(edge.predicate || 'relatedTo');
+          if (!source || !target) return;
+          var edgeId = source + '|' + predicate + '|' + target;
+          if (existingEdgeIds[edgeId]) return;
+          state.edges.push({
+            id: edgeId,
+            source: source,
+            target: target,
+            label: String(edge.predicate_label || predicate),
+          });
+          existingEdgeIds[edgeId] = true;
+        });
+      }
+
+      state.expandProvenance[nodeId] = newNodeIds;
+      renderNodes();
+      setStatus('Expanded ' + newNodeIds.length + ' neighbors');
+    } catch (error) {
+      setStatus('Expand failed', true);
     }
   }
 
@@ -216,11 +337,15 @@
     }).join('');
 
     var nodesHtml = state.nodes.map(function (node) {
+      var isExpanded = !!state.expandProvenance[node.id];
+      var isOpen = !node.collapsed;
       return [
-        '<article class="spatial-node', (node.collapsed ? ' is-collapsed' : ''), '" data-node-id="', escapeHtml(node.id), '" style="left:', node.x, 'px; top:', node.y, 'px;">',
+        '<article class="spatial-node', (node.collapsed ? ' is-collapsed' : ''), (isExpanded ? ' is-expanded' : ''), '" data-node-id="', escapeHtml(node.id), '" style="left:', node.x, 'px; top:', node.y, 'px;">',
           '<header class="spatial-node-header">',
+            '<button class="spatial-node-chevron', (isOpen ? ' is-open' : ''), '" type="button" title="Toggle body">', SVG_CHEVRON, '</button>',
             '<span class="spatial-node-title">', escapeHtml(node.title), '</span>',
-            '<button class="spatial-node-toggle" type="button">', (node.collapsed ? 'Expand' : 'Collapse'), '</button>',
+            '<button class="spatial-node-expand" type="button" title="Expand neighbors">', SVG_PLUS, '</button>',
+            '<button class="spatial-node-delete" type="button" title="Remove from canvas">', SVG_X, '</button>',
           '</header>',
           '<div class="spatial-node-uri">', escapeHtml(node.uri), '</div>',
           (node.collapsed ? '' : '<div class="spatial-node-markdown">' + renderMarkdown(node.markdown || '') + '</div>'),
@@ -310,6 +435,10 @@
     ].join('');
 
     state.layer.insertAdjacentHTML('afterbegin', svgHtml);
+
+    // Toggle hint visibility based on whether canvas has nodes
+    var hint = document.getElementById('canvas-hint');
+    if (hint) hint.style.display = state.nodes.length > 0 ? 'none' : '';
   }
 
   function applyTransform() {
@@ -429,6 +558,7 @@
         return { id: e.id, source: e.source, target: e.target, label: e.label || '' };
       }),
       viewport: { x: state.translateX, y: state.translateY, zoom: state.scale },
+      expandProvenance: state.expandProvenance,
     };
   }
 
@@ -462,6 +592,7 @@
       state.translateY = Number(document.viewport.y || 0);
       state.scale = Number(document.viewport.zoom || 1);
     }
+    state.expandProvenance = document.expandProvenance || {};
     renderNodes();
     applyTransform();
     updateZoomLabel();
@@ -497,7 +628,6 @@
       if (!response.ok) throw new Error('HTTP ' + response.status);
       var data = await response.json();
       if (data && data.document) {
-        // Only apply if the saved document has nodes -- otherwise keep current state
         var hasContent = Array.isArray(data.document.nodes) && data.document.nodes.length > 0;
         if (hasContent) {
           applyDocument(data.document);
@@ -505,10 +635,8 @@
             setStatus('Loaded ' + (data.updated_at || ''));
             if (window.showToast) window.showToast('Canvas loaded');
           }
-        } else if (!silent) {
-          setStatus('No saved canvas found');
-          if (window.showToast) window.showToast('No saved canvas — showing demo nodes');
         }
+        // Empty canvas: hint text handles the empty state, no toast needed
       }
     } catch (error) {
       if (!silent) {
@@ -570,25 +698,6 @@
     applyTransform();
   }
 
-  async function loadNeighbors() {
-    var seed = null;
-    if (state.nodes.length > 0) seed = state.nodes[0].uri;
-    var rootUri = window.prompt('Root URI to expand', seed || '');
-    if (!rootUri) return;
-
-    try {
-      var response = await fetch('/api/canvas/subgraph?root_uri=' + encodeURIComponent(rootUri) + '&depth=1');
-      if (!response.ok) throw new Error('HTTP ' + response.status);
-      var data = await response.json();
-      mergeSubgraph(data);
-      setStatus('Loaded neighbors for ' + rootUri);
-      if (window.showToast) window.showToast('Neighbors loaded');
-    } catch (error) {
-      setStatus('Neighbor load failed', true);
-      if (window.showToast) window.showToast('Neighbor load failed');
-    }
-  }
-
   window.SemPKMCanvas = {
     mount: mountCanvas,
     zoomIn: zoomIn,
@@ -598,8 +707,6 @@
     load: function () { return loadCanvas(false); },
     exportState: getDocument,
     importState: applyDocument,
-    loadNeighbors: loadNeighbors,
-    expandNeighbors: loadNeighbors,
   };
 
   document.body.addEventListener('htmx:afterSwap', function (event) {
