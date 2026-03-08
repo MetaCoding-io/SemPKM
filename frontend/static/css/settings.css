@@ -416,6 +416,108 @@
   color: #fff;
 }
 
+/* WebID Profile settings */
+.webid-fingerprint {
+  font-size: 11px;
+  word-break: break-all;
+  max-width: 280px;
+  line-height: 1.6;
+  color: var(--color-text-muted);
+  display: block;
+  margin-bottom: 6px;
+}
+
+.webid-value {
+  font-size: 13px;
+}
+
+.webid-uri-link {
+  font-size: 13px;
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.webid-uri-link:hover {
+  text-decoration: underline;
+}
+
+.webid-key-display {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.webid-key-display .settings-action-btn svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  stroke: currentColor;
+}
+
+.webid-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.webid-error-msg {
+  color: var(--color-danger, #ef4444);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.webid-username-form {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.webid-link-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.webid-link-input {
+  flex: 1;
+  min-width: 200px;
+}
+
+.webid-links-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.webid-links-actions .settings-action-btn svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  stroke: currentColor;
+}
+
+.btn-danger-sm {
+  background: transparent;
+  border: 1px solid var(--color-danger, #ef4444);
+  color: var(--color-danger, #ef4444);
+  border-radius: 4px;
+  padding: 2px 8px;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  transition: background 0.1s;
+}
+
+.btn-danger-sm:hover {
+  background: var(--color-danger, #ef4444);
+  color: #fff;
+}
+
 /* VFS copy button icon sizing — CSS-only per CLAUDE.md (no inline styles) */
 .vfs-endpoint-display .btn-icon svg,
 .vfs-token-value-row .btn-icon svg,
