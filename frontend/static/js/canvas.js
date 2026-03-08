@@ -215,12 +215,6 @@
       ].join('');
     }).join('');
 
-    // var nodesHtml = state.nodes.map(function (node) {
-    //   return [
-    //     '<article class="spatial-node" data-node-id="', escapeHtml(node.id), '" style="left:', node.x, 'px; top:', node.y, 'px;">',
-    //       '<header class="spatial-node-header">', escapeHtml(node.title), '</header>',
-    //       '<div class="spatial-node-uri">', escapeHtml(node.uri), '</div>',
-    //       '<div class="spatial-node-markdown">', renderMarkdown(node.markdown || ''), '</div>',
     var nodesHtml = state.nodes.map(function (node) {
       return [
         '<article class="spatial-node', (node.collapsed ? ' is-collapsed' : ''), '" data-node-id="', escapeHtml(node.id), '" style="left:', node.x, 'px; top:', node.y, 'px;">',
@@ -503,10 +497,17 @@
       if (!response.ok) throw new Error('HTTP ' + response.status);
       var data = await response.json();
       if (data && data.document) {
-        applyDocument(data.document);
-        if (!silent) {
-          setStatus('Loaded ' + (data.updated_at || ''));
-          if (window.showToast) window.showToast('Canvas loaded');
+        // Only apply if the saved document has nodes -- otherwise keep current state
+        var hasContent = Array.isArray(data.document.nodes) && data.document.nodes.length > 0;
+        if (hasContent) {
+          applyDocument(data.document);
+          if (!silent) {
+            setStatus('Loaded ' + (data.updated_at || ''));
+            if (window.showToast) window.showToast('Canvas loaded');
+          }
+        } else if (!silent) {
+          setStatus('No saved canvas found');
+          if (window.showToast) window.showToast('No saved canvas — showing demo nodes');
         }
       }
     } catch (error) {
