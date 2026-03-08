@@ -8,7 +8,7 @@
 - ✅ **v2.2 Data Discovery** — Phases 23-28 (shipped 2026-03-01) — [Full details](milestones/v2.2-ROADMAP.md)
 - ✅ **v2.3 Shell, Navigation & Views** — Phases 29-34 (shipped 2026-03-03)
 - ✅ **v2.4 Inference & Polish** — Phases 35-43 (shipped 2026-03-06) — [Full details](milestones/v2.4-ROADMAP.md) — [Requirements](milestones/v2.4-REQUIREMENTS.md)
-- **v2.5 Polish, Import & Identity** — Phases 44-49 (in progress)
+- **v2.5 Polish, Import & Identity** — Phases 44-50 (in progress)
 - (future) **SPARQL Interface** -- Rich SPARQL query experience with permissions, autocomplete, pills, history, saved queries, and named query views
 - (future) **Collaboration & Federation** -- Multi-instance sync via RDF Patch, LDN notifications, federated identity, collaboration UI — [Research](research/collaboration-architecture.md)
 - (future) **Identity: DIDs + Verifiable Credentials** -- did:web documents, RDF graph signing, VC 2.0 issuance, did:webvh migration (Phases C-E) — [Research](research/decentralized-identity.md)
@@ -107,7 +107,7 @@
 
 </details>
 
-### v2.5 Polish, Import & Identity (Phases 44-49)
+### v2.5 Polish, Import & Identity (Phases 44-50)
 
 **Milestone Goal:** UI polish pass, Obsidian vault import pipeline, and WebID + IndieAuth identity foundation for future collaboration.
 
@@ -115,6 +115,7 @@
 - UI Cleanup: Phase 44
 - Obsidian Import: Phases 45-47
 - Identity: Phases 48-49
+- Documentation: Phase 50 (after all feature phases)
 
 - [ ] **Phase 44: UI Cleanup** - VFS browser CSS fixes and audit-driven UI polish
 - [ ] **Phase 45: Obsidian Vault Scanner** - Upload vault, parse files, extract metadata and statistics
@@ -122,6 +123,7 @@
 - [ ] **Phase 47: Obsidian Batch Import** - Execute import with bodies, properties, and edges via Command API
 - [ ] **Phase 48: WebID Profiles** - Serve RDF profile documents with content negotiation, keys, and rel="me"
 - [ ] **Phase 49: IndieAuth Provider** - Authorization and token endpoints with PKCE and consent screen
+- [ ] **Phase 50: User Guide & Documentation** - Catch up user guide for all features added since v2.0
 
 ## Phase Details
 
@@ -186,6 +188,16 @@
   2. An IndieWeb client can complete the full OAuth2 authorization code flow with PKCE against the SemPKM authorization endpoint
   3. The token endpoint issues access tokens after code exchange and supports token introspection
   4. User sees a consent screen showing the requesting application name and requested scopes before granting access
+**Plans**: TBD
+
+### Phase 50: User Guide & Documentation
+**Goal**: User guide reflects all features shipped since v2.0, giving users comprehensive self-service documentation
+**Depends on**: Phases 44-49 (runs after all feature phases to document final state)
+**Requirements**: DOCS-01, DOCS-02, DOCS-03
+**Success Criteria** (what must be TRUE):
+  1. User guide in `docs/` covers all v2.2-v2.5 features (SPARQL console, FTS, VFS, dockview, inference, lint dashboard, helptext, Obsidian import, WebID, IndieAuth)
+  2. Each major feature has a dedicated user guide page with usage instructions and screenshots
+  3. Existing pages are updated to reflect current UI state (no stale references to old layouts)
 **Plans**: TBD
 
 ---
@@ -369,6 +381,7 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 47. Obsidian Batch Import | v2.5 | 0/0 | Not started | - |
 | 48. WebID Profiles | v2.5 | 0/0 | Not started | - |
 | 49. IndieAuth Provider | v2.5 | 0/0 | Not started | - |
+| 50. User Guide & Documentation | v2.5 | 0/0 | Not started | - |
 
 ---
 *Roadmap created: 2026-02-21*

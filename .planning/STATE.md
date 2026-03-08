@@ -6,9 +6,9 @@ current_plan: —
 status: ready_to_plan
 stopped_at: —
 last_updated: "2026-03-07"
-last_activity: "2026-03-07 - Roadmap created for v2.5 (Phases 44-49)"
+last_activity: "2026-03-07 - Roadmap created for v2.5 (Phases 44-50)"
 progress:
-  total_phases: 6
+  total_phases: 7
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-03-07)
 
 ## Current Position
 
-Phase: 44 of 49 (UI Cleanup)
+Phase: 44 of 50 (UI Cleanup)
 Plan: —
 Status: Ready to plan
 Last activity: 2026-03-08 - Completed quick task 31: Fix Firefox e2e failures
