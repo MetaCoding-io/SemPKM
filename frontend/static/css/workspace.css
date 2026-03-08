@@ -2968,8 +2968,76 @@ details.form-group[open] > .form-group-summary::before {
 }
 
 .spatial-node-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   font-weight: 600;
   margin-bottom: 6px;
+}
+
+.spatial-node-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.spatial-node-chevron,
+.spatial-node-expand,
+.spatial-node-delete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.spatial-node-chevron:hover,
+.spatial-node-expand:hover,
+.spatial-node-delete:hover {
+  background: var(--color-bg-subtle);
+  color: var(--color-text-default);
+}
+
+.spatial-node-delete:hover {
+  color: var(--color-danger, #dc2626);
+}
+
+.spatial-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.spatial-node-chevron .spatial-icon {
+  transition: transform 0.15s ease;
+}
+
+.spatial-node-chevron.is-open .spatial-icon {
+  transform: rotate(90deg);
+}
+
+.spatial-node.is-expanded .spatial-node-expand {
+  color: var(--color-accent, #2563eb);
+}
+
+.spatial-canvas-hint {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--color-text-faint);
+  font-size: 15px;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .spatial-node-uri {
