@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authorize Application - SemPKM</title>
+    <style>
+        :root {
+            --bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --text: #1a1a2e;
+            --text-muted: #6c757d;
+            --border: #dee2e6;
+            --primary: #2d6a4f;
+            --primary-hover: #1b4332;
+            --danger: #6c757d;
+            --danger-hover: #5a6268;
+            --scope-bg: #e8f5e9;
+            --scope-icon: #2d6a4f;
+            --link: #2d6a4f;
+            --shadow: rgba(0, 0, 0, 0.08);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #121212;
+                --card-bg: #1e1e1e;
+                --text: #e0e0e0;
+                --text-muted: #9e9e9e;
+                --border: #333333;
+                --primary: #4caf50;
+                --primary-hover: #388e3c;
+                --danger: #757575;
+                --danger-hover: #616161;
+                --scope-bg: #1b3a1b;
+                --scope-icon: #66bb6a;
+                --link: #66bb6a;
+                --shadow: rgba(0, 0, 0, 0.3);
+            }
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .consent-container {
+            width: 100%;
+            max-width: 460px;
+        }
+
+        .brand {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .client-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: var(--bg);
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .client-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .client-logo-placeholder {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: var(--primary);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .client-details { flex: 1; min-width: 0; }
+
+        .client-name {
+            font-weight: 600;
+            font-size: 1rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .client-url {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .section-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .scope-list {
+            list-style: none;
+            margin-bottom: 1.5rem;
+        }
+
+        .scope-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            background: var(--scope-bg);
+            border-radius: 6px;
+            margin-bottom: 0.375rem;
+        }
+
+        .scope-check {
+            color: var(--scope-icon);
+            font-weight: 700;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .scope-name { font-weight: 500; font-size: 0.9rem; }
+        .scope-desc { font-size: 0.8rem; color: var(--text-muted); }
+
+        .identity {
+            padding: 0.75rem 1rem;
+            background: var(--bg);
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .identity strong { font-weight: 600; }
+
+        .redirect-notice {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            word-break: break-all;
+        }
+
+        .redirect-notice a {
+            color: var(--link);
+            text-decoration: none;
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .btn-approve {
+            background: var(--primary);
+            color: #fff;
+        }
+        .btn-approve:hover { background: var(--primary-hover); }
+
+        .btn-deny {
+            background: var(--danger);
+            color: #fff;
+        }
+        .btn-deny:hover { background: var(--danger-hover); }
+    </style>
+</head>
+<body>
+    <div class="consent-container">
+        <div class="brand">SemPKM</div>
+        <div class="card">
+            <h1>Authorize Application</h1>
+
+            <div class="client-info">
+                {% if client_info.logo %}
+                    <img class="client-logo" src="{{ client_info.logo }}" alt="{{ client_info.name }}">
+                {% else %}
+                    <div class="client-logo-placeholder">{{ client_info.name[0] | upper }}</div>
+                {% endif %}
+                <div class="client-details">
+                    <div class="client-name">{{ client_info.name }}</div>
+                    <div class="client-url">{{ client_info.url }}</div>
+                </div>
+            </div>
+
+            <div class="section-label">This application will be able to:</div>
+            <ul class="scope-list">
+                {% for s in scopes %}
+                <li class="scope-item">
+                    <span class="scope-check">&#10003;</span>
+                    <div>
+                        <div class="scope-name">{{ s.name }}</div>
+                        <div class="scope-desc">{{ s.description }}</div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+
+            <div class="identity">
+                Signing in as <strong>{{ user.display_name or user.username }}</strong>
+                <br><span style="font-size:0.8rem;color:var(--text-muted)">{{ profile_url }}</span>
+            </div>
+
+            <div class="redirect-notice">
+                You will be redirected to: <a href="{{ redirect_uri }}">{{ redirect_uri }}</a>
+            </div>
+
+            <form method="post" action="/api/indieauth/authorize">
+                <input type="hidden" name="client_id" value="{{ client_id }}">
+                <input type="hidden" name="redirect_uri" value="{{ redirect_uri }}">
+                <input type="hidden" name="scope" value="{{ scope }}">
+                <input type="hidden" name="code_challenge" value="{{ code_challenge }}">
+                <input type="hidden" name="code_challenge_method" value="{{ code_challenge_method }}">
+                <input type="hidden" name="state" value="{{ state }}">
+
+                <div class="actions">
+                    <button type="submit" name="action" value="deny" class="btn btn-deny">Deny</button>
+                    <button type="submit" name="action" value="approve" class="btn btn-approve">Authorize</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
