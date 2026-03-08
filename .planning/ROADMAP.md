@@ -181,7 +181,11 @@ Plans:
   2. Content negotiation on the WebID URI returns Turtle, JSON-LD, or HTML depending on the Accept header
   3. The profile HTML page includes `rel="me"` links suitable for Mastodon/fediverse verification
   4. The server generates and stores an Ed25519 key pair per user, with the public key published in the profile document
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 48-01-PLAN.md -- Data model, crypto service, settings API, and settings UI for WebID profile management
+- [ ] 48-02-PLAN.md -- Public profile endpoint with content negotiation (Turtle/JSON-LD/HTML) and e2e tests
 
 ### Phase 49: IndieAuth Provider
 **Goal**: Users can sign into IndieWeb-compatible services using their SemPKM URL as their identity
