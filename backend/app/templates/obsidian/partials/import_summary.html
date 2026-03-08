@@ -1,0 +1,64 @@
+<div id="import-area" class="import-results-wrapper">
+    <h3 style="margin-bottom: 1rem; color: var(--color-text);">Import Complete</h3>
+
+    <!-- Stat Cards -->
+    <div class="import-stat-cards">
+        <div class="import-stat-card">
+            <span class="stat-number">{{ import_result.created }}</span>
+            <span class="stat-label">Created</span>
+        </div>
+        <div class="import-stat-card">
+            <span class="stat-number">{{ import_result.edges_created }}</span>
+            <span class="stat-label">Edges</span>
+        </div>
+        <div class="import-stat-card">
+            <span class="stat-number">{{ import_result.skipped_existing }}</span>
+            <span class="stat-label">Skipped</span>
+        </div>
+        <div class="import-stat-card">
+            <span class="stat-number">{{ import_result.skipped_errors }}</span>
+            <span class="stat-label">Errors</span>
+        </div>
+    </div>
+
+    <p style="margin: 1rem 0; color: var(--color-text-muted); font-size: 0.85rem;">
+        Completed in {{ "%.1f"|format(import_result.duration_seconds) }}s
+        {% if import_result.unresolved_links %}
+        &mdash; {{ import_result.unresolved_links|length }} unresolved wiki-link(s)
+        {% endif %}
+    </p>
+
+    {% if import_result.errors %}
+    <details style="margin-top: 1rem;">
+        <summary style="cursor: pointer; color: var(--color-danger, #e74c3c); font-weight: 600;">
+            {{ import_result.errors|length }} error(s)
+        </summary>
+        <ul style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--color-text-muted);">
+            {% for error in import_result.errors %}
+            <li><strong>{{ error.path }}</strong>: {{ error.message }}</li>
+            {% endfor %}
+        </ul>
+    </details>
+    {% endif %}
+
+    {% if import_result.unresolved_links %}
+    <details style="margin-top: 0.5rem;">
+        <summary style="cursor: pointer; color: var(--color-warning, #f39c12); font-weight: 600;">
+            {{ import_result.unresolved_links|length }} unresolved link(s)
+        </summary>
+        <ul style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--color-text-muted);">
+            {% for link in import_result.unresolved_links[:20] %}
+            <li>{{ link.target }} (from {{ link.source }})</li>
+            {% endfor %}
+            {% if import_result.unresolved_links|length > 20 %}
+            <li>... and {{ import_result.unresolved_links|length - 20 }} more</li>
+            {% endif %}
+        </ul>
+    </details>
+    {% endif %}
+
+    <div class="import-existing-actions" style="margin-top: 1.5rem;">
+        <a href="/browser/import" hx-get="/browser/import" hx-target="#content" hx-push-url="true"
+           class="btn btn-primary">Done</a>
+    </div>
+</div>
