@@ -502,3 +502,135 @@
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+/* ==========================================================================
+   Preview Step (Step 5)
+   ========================================================================== */
+
+/* --- Summary Table --- */
+.preview-summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+}
+
+.preview-summary-table th {
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 2px solid var(--color-border, #ccc);
+    color: var(--color-text-muted, #888);
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.preview-summary-table td {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--color-border-light, #eee);
+    color: var(--color-text-primary, #333);
+}
+
+/* --- Type Section --- */
+.preview-type-section {
+    margin-bottom: 1.5rem;
+}
+
+/* --- Sample Card --- */
+.preview-sample-card {
+    border: 1px solid var(--color-border, #ccc);
+    border-radius: var(--border-radius, 6px);
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    background: var(--color-bg-primary, #fff);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.preview-card-title {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--color-text-primary, #333);
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--color-border-light, #eee);
+}
+
+.preview-card-title svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: var(--color-text-muted, #888);
+}
+
+/* --- Key-Value Rows --- */
+.preview-kv-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.preview-kv-row {
+    display: flex;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+    padding: 0.15rem 0;
+}
+
+.preview-kv-key {
+    color: var(--color-text-muted, #888);
+    min-width: 120px;
+    flex-shrink: 0;
+    font-weight: 500;
+}
+
+.preview-kv-value {
+    color: var(--color-text-primary, #333);
+    word-break: break-word;
+}
+
+/* --- Body Indicator --- */
+.preview-body-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.8rem;
+    color: var(--color-success, #27ae60);
+    margin-top: 0.4rem;
+    padding-top: 0.4rem;
+    border-top: 1px solid var(--color-border-light, #eee);
+}
+
+.preview-body-indicator svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+/* --- Empty State --- */
+.preview-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 30vh;
+    text-align: center;
+    color: var(--color-text-muted, #888);
+}
+
+.preview-empty svg {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    stroke: currentColor;
+    margin-bottom: 0.75rem;
+}
+
+.preview-empty p {
+    font-size: 0.95rem;
+    max-width: 400px;
+}
