@@ -394,7 +394,7 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 ### Phase 51: Spatial Canvas UX: per-node expand/delete buttons, drag-drop from nav tree, remove global load button
 
 **Goal:** Polished spatial canvas with per-node controls, drag-drop from nav tree, and named session management
-**Requirements**: CANVAS-01, CANVAS-02, CANVAS-03, CANVAS-04, CANVAS-05, CANVAS-06, CANVAS-07, CANVAS-08, CANVAS-09
+**Requirements**: (none -- informal phase, no formal requirement IDs)
 **Depends on:** Nothing (independent)
 **Plans:** 3 plans
 
