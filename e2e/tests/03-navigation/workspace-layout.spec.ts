@@ -86,9 +86,11 @@ test.describe('Workspace Layout', () => {
     await waitForWorkspace(ownerPage);
 
     const panelTabBar = ownerPage.locator('#panel-tab-bar');
-    await expect(panelTabBar.locator('.panel-tab')).toHaveCount(2);
+    await expect(panelTabBar.locator('.panel-tab')).toHaveCount(4);
     await expect(panelTabBar).toContainText('EVENT LOG');
+    await expect(panelTabBar).toContainText('INFERENCE');
     await expect(panelTabBar).toContainText('AI COPILOT');
+    await expect(panelTabBar).toContainText('LINT');
   });
 
   test('command palette (ninja-keys) is present in DOM', async ({ ownerPage }) => {
