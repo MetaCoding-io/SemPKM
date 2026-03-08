@@ -9,6 +9,11 @@
   {% endfor %}
   <link rel="alternate" type="text/turtle" href="{{ profile_url }}">
   <link rel="alternate" type="application/ld+json" href="{{ profile_url }}">
+  {% if metadata_url %}
+  <link rel="indieauth-metadata" href="{{ metadata_url }}">
+  <link rel="authorization_endpoint" href="{{ authorization_endpoint }}">
+  <link rel="token_endpoint" href="{{ token_endpoint }}">
+  {% endif %}
   <style>
     :root {
       --bg: #fafafa;

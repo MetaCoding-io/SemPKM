@@ -1,0 +1,35 @@
+{% if tokens %}
+<table class="settings-table" style="width:100%; border-collapse:collapse; margin-top:0.75rem;">
+  <thead>
+    <tr style="text-align:left; border-bottom:1px solid var(--color-border, #e0e0e0);">
+      <th style="padding:0.5rem;">Application</th>
+      <th style="padding:0.5rem;">Scopes</th>
+      <th style="padding:0.5rem;">Authorized</th>
+      <th style="padding:0.5rem;"></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for t in tokens %}
+    <tr style="border-bottom:1px solid var(--color-border, #e0e0e0);">
+      <td style="padding:0.5rem;">{{ t.client_name or t.client_id }}</td>
+      <td style="padding:0.5rem;"><code>{{ t.scope }}</code></td>
+      <td style="padding:0.5rem;">{{ t.created_at[:10] if t.created_at else "N/A" }}</td>
+      <td style="padding:0.5rem;">
+        <button class="btn btn-sm btn-danger"
+                hx-delete="/api/indieauth/tokens/{{ t.id }}"
+                hx-target="#indieauth-apps-list"
+                hx-swap="innerHTML"
+                hx-confirm="Revoke access for {{ t.client_name or t.client_id }}?"
+                style="font-size:0.8rem; padding:0.25rem 0.5rem; cursor:pointer;">
+          Revoke
+        </button>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="settings-empty-state" style="color:var(--color-text-muted, #888); margin-top:0.75rem;">
+  No applications authorized.
+</p>
+{% endif %}

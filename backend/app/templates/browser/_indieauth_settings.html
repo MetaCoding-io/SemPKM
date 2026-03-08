@@ -1,0 +1,13 @@
+<div class="settings-section" id="indieauth-settings">
+  <h3 class="settings-section-title">Authorized Applications</h3>
+  <p class="settings-section-description">
+    Applications you have authorized to access your profile via IndieAuth.
+  </p>
+
+  <div id="indieauth-apps-list"
+       hx-get="/api/indieauth/tokens/list"
+       hx-trigger="load"
+       hx-swap="innerHTML">
+    <p class="settings-loading">Loading authorized apps...</p>
+  </div>
+</div>
