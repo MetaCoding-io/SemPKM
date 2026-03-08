@@ -34,6 +34,9 @@
   // Tab metadata sidecar: { [panelId]: { label, dirty, typeIcon, typeColor } }
   var _tabMeta = {};
 
+  // Tab icon elements: { [panelId]: HTMLElement } — allows deferred icon update
+  var _tabIconElements = {};
+
   // -----------------------------------------------------------------------
   // WorkspaceLayout class (minimal metadata sidecar)
   // -----------------------------------------------------------------------
@@ -117,6 +120,80 @@
   }
 
   // -----------------------------------------------------------------------
+  // createTabComponent factory (custom tab with type icon)
+  // -----------------------------------------------------------------------
+
+  function createTabComponentFn(options) {
+    var wrapper = document.createElement('div');
+    wrapper.style.cssText = 'display:flex;align-items:center;gap:4px;padding:0 8px;height:100%;overflow:hidden;';
+
+    var iconEl = document.createElement('i');
+    iconEl.className = 'dv-tab-type-icon';
+
+    var titleEl = document.createElement('span');
+    titleEl.style.cssText = 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+
+    wrapper.appendChild(iconEl);
+    wrapper.appendChild(titleEl);
+
+    return {
+      element: wrapper,
+      init: function (params) {
+        var panelId = params.api.id;
+        titleEl.textContent = params.api.title || '';
+
+        // Store icon element reference for deferred updates from object_tab.html
+        _tabIconElements[panelId] = iconEl;
+
+        // Try to set icon from _tabMeta (may not be available yet)
+        _applyTabIcon(panelId, iconEl);
+      },
+      update: function (params) {
+        titleEl.textContent = params.api.title || '';
+      },
+      dispose: function () {
+        // Clean up icon element reference
+        for (var key in _tabIconElements) {
+          if (_tabIconElements[key] === iconEl) {
+            delete _tabIconElements[key];
+            break;
+          }
+        }
+      }
+    };
+  }
+
+  /**
+   * Apply type icon from _tabMeta to an icon element.
+   * Called from createTabComponent.init() and from object_tab.html after meta is set.
+   */
+  function _applyTabIcon(panelId, iconEl) {
+    if (!iconEl) return;
+    var meta = _tabMeta[panelId];
+    if (meta && meta.typeIcon) {
+      iconEl.setAttribute('data-lucide', meta.typeIcon);
+      iconEl.removeAttribute('class');
+      iconEl.className = 'dv-tab-type-icon';
+      if (typeof lucide !== 'undefined' && lucide.createIcons) {
+        lucide.createIcons({ nodes: [iconEl] });
+      }
+      // Lucide replaces <i> with <svg>, so find the new element
+      // The SVG will be in the same position in the parent
+      var parent = iconEl.parentNode;
+      if (parent) {
+        var svgEl = parent.querySelector('svg.dv-tab-type-icon, svg[data-lucide]');
+        if (svgEl) {
+          // Update the stored reference to point to the SVG
+          _tabIconElements[panelId] = svgEl;
+          if (meta.typeColor) {
+            svgEl.style.color = meta.typeColor;
+          }
+        }
+      }
+    }
+  }
+
+  // -----------------------------------------------------------------------
   // Default layout builder
   // -----------------------------------------------------------------------
 
@@ -152,6 +229,7 @@
     // aren't overridden by .dockview-theme-abyss (the default)
     var dv = new DockviewComponent(container, {
       createComponent: createComponentFn,
+      createTabComponent: createTabComponentFn,
       createWatermarkComponent: function () {
         var el = document.createElement('div');
         el.className = 'editor-empty';
@@ -194,6 +272,11 @@
       var groupEl = panel.group ? panel.group.element : null;
       if (groupEl) {
         groupEl.style.setProperty('--tab-accent-color', accentColor || '');
+      }
+      // Propagate accent to right pane so sidebar panels inherit the active tab's color
+      var rightPane = document.getElementById('right-pane');
+      if (rightPane) {
+        rightPane.style.setProperty('--tab-accent-color', accentColor || '');
       }
     });
 
@@ -432,6 +515,8 @@
   window._workspaceLayout = null;  // set by initWorkspaceLayout()
   window._dockview = null;          // set by initWorkspaceLayout()
   window._tabMeta = {};             // set by initWorkspaceLayout()
+  window._tabIconElements = _tabIconElements;
+  window._applyTabIcon = _applyTabIcon;
   window.getActiveEditorArea = getActiveEditorArea;
   window.splitRight = splitRight;
   window.setActiveGroup = setActiveGroup;

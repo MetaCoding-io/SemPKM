@@ -32,6 +32,15 @@
   --dv-transition-duration: 150ms;
 }
 
+/* Tab type icon (Lucide SVG inside custom tab component) */
+.dv-tab-type-icon,
+.dv-tab .dv-tab-type-icon ~ svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  stroke: currentColor;
+}
+
 /* Type-aware tab accent bar (BUG-04) — only on active tab in the focused group */
 #editor-groups-container .dv-active-group .dv-tab.dv-active-tab {
   border-bottom: 2px solid var(--tab-accent-color, var(--color-accent)) !important;
