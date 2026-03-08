@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Polish, Import & Identity
 status: executing
-stopped_at: Phase 51 context gathered
-last_updated: "2026-03-08T05:43:01.459Z"
-last_activity: "2026-03-08 - Completed Phase 48 Plan 01: WebID data model, service, API, and settings UI"
+stopped_at: Completed 48-02-PLAN.md
+last_updated: "2026-03-08T05:41:00Z"
+last_activity: "2026-03-08 - Completed Phase 48 Plan 02: Public profile endpoint with content negotiation and e2e tests"
 progress:
   total_phases: 8
   completed_phases: 1
   total_plans: 4
-  completed_plans: 3
-  percent: 12
+  completed_plans: 4
+  percent: 15
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-07)
 ## Current Position
 
 Phase: 48 of 50 (WebID Profiles)
-Plan: 1 of 2 complete
-Status: Executing
-Last activity: 2026-03-08 - Completed Phase 48 Plan 01: WebID data model, service, API, and settings UI
+Plan: 2 of 2 complete
+Status: Phase 48 complete
+Last activity: 2026-03-08 - Completed Phase 48 Plan 02: Public profile endpoint with content negotiation and e2e tests
 
-Progress: [#░░░░░░░░░] 12%
+Progress: [##░░░░░░░░] 15%
 
 ## Performance Metrics
 
@@ -50,12 +50,13 @@ Progress: [#░░░░░░░░░] 12%
 | 36 | 2 | 4 min | 2 min |
 | 37 | 2 | 10 min | 5 min |
 | 39 | 1 | 1 min | 1 min |
-| 48 | 1 | 3 min | 3 min |
+| 48 | 2 | 7 min | 3.5 min |
 
 *Updated after each plan completion*
 | Phase 45 P01 | 5 | 2 tasks | 11 files |
 | Phase 45 P02 | 4 | 2 tasks | 10 files |
 | Phase 48 P01 | 3 | 2 tasks | 9 files |
+| Phase 48 P02 | 4 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -68,6 +69,7 @@ Full decision log in PROJECT.md Key Decisions table.
 - v2.5: Obsidian import is import-only (triage deferred to future milestone)
 - Phase 48: Separate KDF salt per encryption domain (webid vs llm)
 - Phase 48: Username immutable after creation, links stored as JSON in Text column
+- Phase 48: Standalone HTML profile page (not extending base.html), content negotiation via Accept header + ?format= fallback
 
 ### Pending Todos
 
@@ -99,6 +101,6 @@ None — clean start for v2.5
 
 ## Session Continuity
 
-Last session: 2026-03-08T05:43:01.457Z
-Stopped at: Phase 51 context gathered
-Resume file: .planning/phases/51-spatial-canvas-ux-per-node-expand-delete-buttons-drag-drop-from-nav-tree-remove-global-load-button/51-CONTEXT.md
+Last session: 2026-03-08T05:41:00Z
+Stopped at: Completed 48-02-PLAN.md
+Resume file: .planning/phases/48-webid-profiles/48-02-SUMMARY.md
