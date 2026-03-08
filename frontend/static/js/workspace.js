@@ -1052,7 +1052,10 @@
           id: 'import-vault',
           title: 'Import Vault',
           section: 'Navigation',
-          handler: function () { openImportTab(); }
+          handler: function () {
+            htmx.ajax('GET', '/browser/import', {target: '#app-content', swap: 'innerHTML'});
+            history.pushState({}, '', '/browser/import');
+          }
         },
         {
           id: 'theme-light',

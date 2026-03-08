@@ -11,17 +11,12 @@ import path from 'path';
 const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3901';
 
 test.describe('Obsidian Vault Upload', () => {
-  test('open Import Vault tab from sidebar and upload vault ZIP', async ({ ownerPage }) => {
-    await ownerPage.goto(`${BASE_URL}/browser/`);
-    await ownerPage.waitForSelector('.workspace-layout', { timeout: 15000 });
-    await waitForIdle(ownerPage);
+  test('open Import Vault page from sidebar and upload vault ZIP', async ({ ownerPage }) => {
+    // Navigate directly to the import page (it's a full app page, not a dockview tab)
+    await ownerPage.goto(`${BASE_URL}/browser/import`);
+    await ownerPage.waitForSelector('#import-container', { timeout: 15000 });
 
-    // Click Import Vault in sidebar
-    const importLink = ownerPage.locator('a[data-tooltip="Import Vault"]');
-    await expect(importLink).toBeVisible({ timeout: 5000 });
-    await importLink.click();
-
-    // Wait for import tab to load with upload zone
+    // Wait for upload zone to be visible
     const uploadZone = ownerPage.locator('.import-upload-zone');
     await expect(uploadZone).toBeVisible({ timeout: 10000 });
 

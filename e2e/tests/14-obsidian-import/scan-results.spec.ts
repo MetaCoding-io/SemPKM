@@ -15,14 +15,9 @@ const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3901';
 
 test.describe('Obsidian Scan Results', () => {
   test.beforeEach(async ({ ownerPage }) => {
-    await ownerPage.goto(`${BASE_URL}/browser/`);
-    await ownerPage.waitForSelector('.workspace-layout', { timeout: 15000 });
-    await waitForIdle(ownerPage);
-
-    // Open import tab - should show existing results or upload form
-    await ownerPage.evaluate(() => {
-      (window as any).openImportTab();
-    });
+    // Navigate directly to the import page (full app page, not dockview tab)
+    await ownerPage.goto(`${BASE_URL}/browser/import`);
+    await ownerPage.waitForSelector('#import-container', { timeout: 15000 });
 
     // Check if results are already showing (from previous test run)
     const hasResults = await ownerPage.locator('.import-stat-cards').isVisible({ timeout: 5000 }).catch(() => false);
