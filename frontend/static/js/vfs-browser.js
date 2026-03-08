@@ -328,23 +328,32 @@
       if (!file) return;
 
       var readOnlyCompartment = new cm.Compartment();
-      var themeCompartment = new cm.Compartment();
 
-      var darkTheme = cm.EditorView.theme({
-        '&': { backgroundColor: '#282c34', color: '#abb2bf' },
-        '.cm-cursor, .cm-dropCursor': { borderLeftColor: '#56b6c2' },
-        '.cm-gutters': { backgroundColor: '#21252b', color: '#5c6370', borderRight: '1px solid #3e4452' },
-        '.cm-activeLineGutter': { backgroundColor: '#2c313a' },
-        '.cm-activeLine': { backgroundColor: '#2c313a' },
-        '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection': { backgroundColor: '#3E4451' }
-      }, { dark: true });
-
-      var lightTheme = cm.EditorView.theme({
-        '&': { backgroundColor: '#ffffff', color: '#1a1a2e' },
-        '.cm-gutters': { backgroundColor: '#f8f9fb', color: '#666', borderRight: '1px solid #e0e0e0' }
-      }, { dark: false });
-
-      var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      // Unified theme using CSS variables — resolves dynamically for light/dark
+      var unifiedTheme = cm.EditorView.theme({
+        '&': {
+          backgroundColor: 'var(--color-surface)',
+          color: 'var(--color-text)',
+          fontSize: '0.85rem'
+        },
+        '.cm-cursor, .cm-dropCursor': {
+          borderLeftColor: 'var(--color-accent)'
+        },
+        '.cm-gutters': {
+          backgroundColor: 'var(--color-surface-raised)',
+          color: 'var(--color-text-faint)',
+          borderRight: '1px solid var(--color-border)'
+        },
+        '.cm-activeLineGutter': {
+          backgroundColor: 'var(--color-surface-hover)'
+        },
+        '.cm-activeLine': {
+          backgroundColor: 'var(--color-surface-hover)'
+        },
+        '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection': {
+          backgroundColor: 'var(--color-accent-subtle)'
+        }
+      });
 
       var view = new cm.EditorView({
         state: cm.EditorState.create({
@@ -352,7 +361,7 @@
           extensions: [
             cm.basicSetup,
             cm.markdown(),
-            themeCompartment.of(isDark ? darkTheme : lightTheme),
+            unifiedTheme,
             readOnlyCompartment.of(cm.EditorState.readOnly.of(!editable)),
             cm.keymap.of([{
               key: 'Mod-s',
@@ -374,9 +383,6 @@
 
       file.editor = view;
       file._readOnlyCompartment = readOnlyCompartment;
-      file._themeCompartment = themeCompartment;
-      file._darkTheme = darkTheme;
-      file._lightTheme = lightTheme;
       file._savedContent = content;
 
       // Wire edit button
