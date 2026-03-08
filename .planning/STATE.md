@@ -84,7 +84,7 @@ None — clean start for v2.5
 | # | Description | Date | Commit | Status | Directory |
 |---|-------------|------|--------|--------|-----------|
 | 29 | Add e2e tests for v2.4 coverage gaps (VFS, entailment, crossfade) | 2026-03-08 | 4fb9c0f | | [29-add-e2e-tests-for-v2-4-coverage-gaps-vfs](./quick/29-add-e2e-tests-for-v2-4-coverage-gaps-vfs/) |
-| 30 | Investigate Firefox e2e test failures (12/223 fail, 3 root causes) | 2026-03-08 | 1a29e5c | | [30-investigate-firefox-e2e-test-failures-an](./quick/30-investigate-firefox-e2e-test-failures-an/) |
+| 30 | Investigate Firefox e2e test failures (12/223 fail, 3 root causes) | 2026-03-08 | f042b00 | | [30-investigate-firefox-e2e-test-failures-an](./quick/30-investigate-firefox-e2e-test-failures-an/) |
 
 ## Session Continuity
 
