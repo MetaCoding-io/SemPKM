@@ -38,7 +38,7 @@ Requirements for v2.5 Polish, Import & Identity. Each maps to roadmap phases.
 - [x] **IAUTH-02**: Authorization endpoint handles OAuth2 authorization code flow with mandatory PKCE
 - [x] **IAUTH-03**: Token endpoint issues access tokens after code exchange
 - [x] **IAUTH-04**: Token endpoint supports token verification (introspection)
-- [ ] **IAUTH-05**: User sees consent screen showing requesting app and requested scopes
+- [x] **IAUTH-05**: User sees consent screen showing requesting app and requested scopes
 
 ### Documentation
 
@@ -108,7 +108,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | IAUTH-02 | Phase 49 | Complete |
 | IAUTH-03 | Phase 49 | Complete |
 | IAUTH-04 | Phase 49 | Complete |
-| IAUTH-05 | Phase 49 | Pending |
+| IAUTH-05 | Phase 49 | Complete |
 | DOCS-01 | Phase 50 | Pending |
 | DOCS-02 | Phase 50 | Pending |
 | DOCS-03 | Phase 50 | Pending |
