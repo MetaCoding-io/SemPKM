@@ -147,7 +147,6 @@
     if (!window.__canvasDragPayload) return;
     if (!isOverCanvas(event)) {
       state.viewport.classList.remove('canvas-drop-active');
-      lastDragOverCanvas = null;
       return;
     }
     event.preventDefault();
@@ -158,9 +157,12 @@
   }
 
   function onDragLeave(event) {
+    // Only remove visual hint; do NOT clear lastDragOverCanvas here.
+    // Dockview overlays cause spurious dragleave events while the pointer
+    // is still visually over the canvas, which would wipe the position
+    // needed by the dragend fallback.
     if (!isOverCanvas(event)) {
       state.viewport.classList.remove('canvas-drop-active');
-      lastDragOverCanvas = null;
     }
   }
 
