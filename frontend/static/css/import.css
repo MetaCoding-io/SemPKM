@@ -504,6 +504,273 @@
 }
 
 /* ==========================================================================
+   Wizard Step Bar
+   ========================================================================== */
+
+.import-step-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin-bottom: 1.5rem;
+    padding: 1rem 0;
+}
+
+.step-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    flex-shrink: 0;
+}
+
+.step-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid var(--color-border, #ccc);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text-muted, #888);
+    background: var(--color-bg-primary, #fff);
+    transition: all 0.2s;
+}
+
+.step-circle svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+.step-active .step-circle {
+    background: var(--color-primary, #4a90d9);
+    border-color: var(--color-primary, #4a90d9);
+    color: #fff;
+}
+
+.step-complete .step-circle {
+    background: var(--color-success, #27ae60);
+    border-color: var(--color-success, #27ae60);
+    color: #fff;
+}
+
+.step-label {
+    font-size: 0.75rem;
+    color: var(--color-text-muted, #888);
+    white-space: nowrap;
+}
+
+.step-active .step-label {
+    color: var(--color-primary, #4a90d9);
+    font-weight: 600;
+}
+
+.step-complete .step-label {
+    color: var(--color-success, #27ae60);
+}
+
+.step-connector {
+    width: 40px;
+    height: 2px;
+    background: var(--color-border, #ccc);
+    margin: 0 0.25rem;
+    margin-bottom: 1.1rem;
+}
+
+.step-connector-complete {
+    background: var(--color-success, #27ae60);
+}
+
+@media (max-width: 600px) {
+    .step-label {
+        display: none;
+    }
+    .step-circle {
+        width: 26px;
+        height: 26px;
+        font-size: 0.75rem;
+    }
+    .step-circle svg {
+        width: 13px;
+        height: 13px;
+    }
+    .step-connector {
+        width: 20px;
+        margin-bottom: 0;
+    }
+}
+
+/* ==========================================================================
+   Type Mapping Table
+   ========================================================================== */
+
+.type-mapping-table {
+    margin-bottom: 1rem;
+}
+
+.type-mapping-row.uncategorized {
+    opacity: 0.65;
+}
+
+.type-mapping-row .type-group-name {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--color-text-primary, #333);
+}
+
+.type-mapping-row .type-group-notes {
+    list-style: none;
+    padding: 0.25rem 0 0.25rem 1rem;
+    margin: 0.25rem 0 0;
+    font-size: 0.8rem;
+    color: var(--color-text-secondary, #666);
+}
+
+.type-mapping-row .type-group-notes li {
+    padding: 0.15rem 0;
+}
+
+.mapping-select {
+    width: 100%;
+    max-width: 220px;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid var(--color-border, #ccc);
+    border-radius: var(--border-radius, 4px);
+    background: var(--color-bg-primary, #fff);
+    color: var(--color-text-primary, #333);
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.mapping-select:focus {
+    outline: none;
+    border-color: var(--color-primary, #4a90d9);
+    box-shadow: 0 0 0 2px rgba(74, 144, 217, 0.2);
+}
+
+/* ==========================================================================
+   Property Mapping
+   ========================================================================== */
+
+.property-mapping-section {
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--color-border, #ccc);
+    border-radius: var(--border-radius, 6px);
+    overflow: hidden;
+}
+
+.property-section-heading {
+    margin: 0;
+    padding: 0.6rem 0.75rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    background: var(--color-bg-secondary, #f5f5f5);
+    color: var(--color-text-primary, #333);
+    border-bottom: 1px solid var(--color-border, #ccc);
+}
+
+.property-mapping-table {
+    margin: 0;
+}
+
+.sample-values {
+    font-size: 0.8rem;
+    color: var(--color-text-muted, #888);
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sample-value {
+    font-style: italic;
+}
+
+.custom-iri-input {
+    width: 100%;
+    max-width: 220px;
+    padding: 0.3rem 0.5rem;
+    border: 1px solid var(--color-border, #ccc);
+    border-radius: var(--border-radius, 4px);
+    background: var(--color-bg-primary, #fff);
+    color: var(--color-text-primary, #333);
+    font-size: 0.8rem;
+    margin-top: 0.35rem;
+    font-family: monospace;
+}
+
+.custom-iri-input:focus {
+    outline: none;
+    border-color: var(--color-primary, #4a90d9);
+    box-shadow: 0 0 0 2px rgba(74, 144, 217, 0.2);
+}
+
+.body-mapping-note {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    font-style: italic;
+    color: var(--color-text-muted, #888);
+    background: var(--color-bg-secondary, #f5f5f5);
+    border-bottom: 1px solid var(--color-border-light, #eee);
+}
+
+.body-mapping-note svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+/* ==========================================================================
+   Mapping Navigation (Back/Next buttons)
+   ========================================================================== */
+
+.mapping-nav {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: space-between;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border, #ccc);
+}
+
+.mapping-nav .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius, 6px);
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.mapping-nav .btn svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+.mapping-nav .btn-outline {
+    background: transparent;
+    border: 1px solid var(--color-border, #ccc);
+    color: var(--color-text-primary, #333);
+}
+
+.mapping-nav .btn-primary {
+    background: var(--color-primary, #4a90d9);
+    color: #fff;
+    border: none;
+}
+
+/* ==========================================================================
    Preview Step (Step 5)
    ========================================================================== */
 
