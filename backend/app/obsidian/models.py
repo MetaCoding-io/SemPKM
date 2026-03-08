@@ -1,8 +1,8 @@
-"""Data models for Obsidian vault scan results.
+"""Data models for Obsidian vault scan and import results.
 
-Dataclasses representing the structured output of a vault scan:
-file counts, detected note types, frontmatter keys, tags, wiki-link
-targets, and warnings.
+Dataclasses representing the structured output of a vault scan and
+import execution: file counts, detected note types, frontmatter keys,
+tags, wiki-link targets, warnings, and import results.
 """
 
 from __future__ import annotations
@@ -250,3 +250,28 @@ class VaultScanResult:
             ],
             scan_duration_seconds=data.get("scan_duration_seconds", 0.0),
         )
+
+
+@dataclass
+class ImportResult:
+    """Result of an Obsidian vault import execution."""
+
+    created: int = 0
+    skipped_existing: int = 0
+    skipped_errors: int = 0
+    edges_created: int = 0
+    unresolved_links: list[tuple[str, str]] = field(default_factory=list)  # (source_path, target_name)
+    errors: list[tuple[str, str]] = field(default_factory=list)  # (path, error_message)
+    duration_seconds: float = 0.0
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize to a JSON-compatible dictionary."""
+        return {
+            "created": self.created,
+            "skipped_existing": self.skipped_existing,
+            "skipped_errors": self.skipped_errors,
+            "edges_created": self.edges_created,
+            "unresolved_links": [{"source": s, "target": t} for s, t in self.unresolved_links],
+            "errors": [{"path": p, "message": m} for p, m in self.errors],
+            "duration_seconds": self.duration_seconds,
+        }
