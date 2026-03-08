@@ -1,18 +1,18 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.4
-milestone_name: Inference & Polish
-current_plan: 1 of 1
-status: completed
-stopped_at: Completed 43-01-PLAN.md
-last_updated: "2026-03-06T14:23:26.722Z"
-last_activity: "2026-03-06 - Completed 42-01: VFS Browser bug fixes"
+milestone: v2.5
+milestone_name: Polish, Import & Identity
+current_plan: —
+status: defining_requirements
+stopped_at: —
+last_updated: "2026-03-07"
+last_activity: "2026-03-07 - Milestone v2.5 started"
 progress:
-  total_phases: 9
-  completed_phases: 9
-  total_plans: 20
-  completed_plans: 20
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -22,16 +22,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-03)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations — no blank-page syndrome, no schema setup.
-**Current focus:** v2.4 Inference & Polish — Phase 35 next
+**Current focus:** v2.5 Polish, Import & Identity — defining requirements
 
 ## Current Position
 
-Phase: 42 of 42 (VFS Browser Fix)
-Current Plan: 1 of 1
-Status: completed
-Last activity: 2026-03-07 - Completed quick task 28: Extend e2e tests to include Firefox browser
-
-Progress: [██████████] 100% (59/59 plans)
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-07 — Milestone v2.5 started
 
 ## Performance Metrics
 

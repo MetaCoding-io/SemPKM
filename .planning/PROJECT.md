@@ -116,9 +116,9 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ### Active
 
-<!-- Next milestone requirements will be defined via /gsd:new-milestone -->
+<!-- v2.5 Polish, Import & Identity -->
 
-(No active requirements — next milestone not yet planned)
+(Requirements being defined — see REQUIREMENTS.md)
 
 ### Future Candidates
 
@@ -155,6 +155,16 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Mobile native app — web-first, responsive design and eventual PWA
 - Ontology editor — consume via Mental Models; use Protege for authoring
 
+## Current Milestone: v2.5 Polish, Import & Identity
+
+**Goal:** UI polish pass, Obsidian vault import pipeline, and WebID + IndieAuth identity foundation for future collaboration.
+
+**Target features:**
+- UI cleanup phase — small tweaks, VFS CSS fixes, rough edges (details during discuss-phase)
+- Obsidian import pipeline — in-app wizard for importing Obsidian vaults (import only, triage later)
+- WebID profiles — serve WebID profile documents at user URLs with content negotiation
+- IndieAuth provider — authorization + token endpoints with PKCE, rel="me" for fediverse verification
+
 ## Current State
 
 **Latest shipped: v2.4 Inference & Polish (2026-03-06)**
@@ -168,11 +178,11 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Bug fix batch — 7 fixes (accent bar, card borders, flip card, dark chevrons, concept search, Firefox Ctrl+K, tab bleed)
 - E2E tests for all v2.4 features including full inference data flow test
 
-**Next milestone:** Not yet planned — run `/gsd:new-milestone`
+**Current milestone:** v2.5 Polish, Import & Identity
 
 ## Context
 
-**Current state (v2.4 shipped 2026-03-06):**
+**Current state (v2.5 started 2026-03-07):**
 - ~140k source LOC across Python, JavaScript, CSS, HTML/Jinja2, JSON-LD
 - Tech stack: FastAPI + RDF4J (LuceneSail) + htmx/vanilla-web + SQLAlchemy (SQLite/PostgreSQL) + wsgidav + a2wsgi + Driver.js + Cytoscape.js + CodeMirror + dockview-core + Alembic + Yasgui CDN + ninja-keys + owlrl + pyshacl
 - Docker Compose deployment: 3 services (api, triplestore, frontend/nginx)
@@ -249,4 +259,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | sempkm:tab-activated custom event | Decouples workspace.js from workspace-layout.js for contextual panel indicator; dispatched on openTab()/switchTabInGroup() | ✓ Good — clean separation, panel indicator works |
 
 ---
-*Last updated: 2026-03-03 after v2.4 milestone start*
+*Last updated: 2026-03-07 after v2.5 milestone start*
