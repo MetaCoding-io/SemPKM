@@ -121,7 +121,7 @@
 - [x] **Phase 45: Obsidian Vault Scanner** - Upload vault, parse files, extract metadata and statistics (completed 2026-03-08)
 - [ ] **Phase 46: Obsidian Mapping UI** - Map note categories to types, frontmatter to properties, preview results
 - [ ] **Phase 47: Obsidian Batch Import** - Execute import with bodies, properties, and edges via Command API
-- [ ] **Phase 48: WebID Profiles** - Serve RDF profile documents with content negotiation, keys, and rel="me"
+- [x] **Phase 48: WebID Profiles** - Serve RDF profile documents with content negotiation, keys, and rel="me" (completed 2026-03-08)
 - [ ] **Phase 49: IndieAuth Provider** - Authorization and token endpoints with PKCE and consent screen
 - [ ] **Phase 50: User Guide & Documentation** - Catch up user guide for all features added since v2.0
 
@@ -181,7 +181,7 @@ Plans:
   2. Content negotiation on the WebID URI returns Turtle, JSON-LD, or HTML depending on the Accept header
   3. The profile HTML page includes `rel="me"` links suitable for Mastodon/fediverse verification
   4. The server generates and stores an Ed25519 key pair per user, with the public key published in the profile document
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 48-01-PLAN.md -- Data model, crypto service, settings API, and settings UI for WebID profile management
@@ -387,7 +387,7 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 45. Obsidian Vault Scanner | 2/2 | Complete   | 2026-03-08 | - |
 | 46. Obsidian Mapping UI | v2.5 | 0/0 | Not started | - |
 | 47. Obsidian Batch Import | v2.5 | 0/0 | Not started | - |
-| 48. WebID Profiles | 1/2 | In Progress|  | - |
+| 48. WebID Profiles | 2/2 | Complete   | 2026-03-08 | - |
 | 49. IndieAuth Provider | v2.5 | 0/0 | Not started | - |
 | 50. User Guide & Documentation | v2.5 | 0/0 | Not started | - |
 
