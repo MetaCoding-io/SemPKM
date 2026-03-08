@@ -1,0 +1,1059 @@
+{
+  "@context": {
+    "sh": "http://www.w3.org/ns/shacl#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "schema": "https://schema.org/",
+    "ppv": "urn:sempkm:model:ppv:",
+    "sempkm": "urn:sempkm:"
+  },
+  "@graph": [
+
+    {
+      "@id": "ppv:PillarGroupBasicGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Basic Info",
+      "sh:order": 1
+    },
+    {
+      "@id": "ppv:PillarGroupMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 2
+    },
+    {
+      "@id": "ppv:PillarGroupShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "ppv:PillarGroup" },
+      "rdfs:label": "Pillar Group Shape",
+      "sempkm:editHelpText": "Pillar Groups organize your Pillars into broad categories (e.g., Growth, Business, Home & Social). Create groups that reflect the major areas of your life.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Name",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "ppv:PillarGroupBasicGroup" },
+          "sempkm:editHelpText": "A short label for this group (e.g., Growth, Business, Home & Social)."
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "ppv:PillarGroupBasicGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "ppv:PillarGroupMetadataGroup" }
+        }
+      ]
+    },
+
+    {
+      "@id": "ppv:PillarBasicGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Basic Info",
+      "sh:order": 1
+    },
+    {
+      "@id": "ppv:PillarAppearanceGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Appearance",
+      "sh:order": 2
+    },
+    {
+      "@id": "ppv:PillarRelationshipsGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Relationships",
+      "sh:order": 3
+    },
+    {
+      "@id": "ppv:PillarMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 4
+    },
+    {
+      "@id": "ppv:PillarShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "ppv:Pillar" },
+      "rdfs:label": "Pillar Shape",
+      "sempkm:editHelpText": "Pillars are the top-level life areas in your PPV system. Each pillar represents a major domain (e.g., Health & Fitness, Career, Relationships). All goals, projects, and actions cascade from pillars.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Name",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "ppv:PillarBasicGroup" },
+          "sempkm:editHelpText": "The name of this life pillar (e.g., Health & Fitness, Career Development, Relationships)."
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "ppv:PillarBasicGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:status" },
+          "sh:name": "Status",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["Active", "Paused", "Inactive"] },
+          "sh:defaultValue": "Active",
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "ppv:PillarBasicGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:pillarGroup" },
+          "sh:name": "Pillar Group",
+          "sh:class": { "@id": "ppv:PillarGroup" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "ppv:PillarRelationshipsGroup" },
+          "sempkm:editHelpText": "Which broad category does this pillar belong to?"
+        },
+        {
+          "sh:path": { "@id": "ppv:icon" },
+          "sh:name": "Icon",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "ppv:PillarAppearanceGroup" },
+          "sempkm:editHelpText": "An emoji icon for dashboard display."
+        },
+        {
+          "sh:path": { "@id": "ppv:color" },
+          "sh:name": "Color",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "ppv:PillarAppearanceGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:order" },
+          "sh:name": "Display Order",
+          "sh:datatype": { "@id": "xsd:integer" },
+          "sh:maxCount": 1,
+          "sh:order": 7,
+          "sh:group": { "@id": "ppv:PillarAppearanceGroup" },
+          "sempkm:editHelpText": "Position on the Life Dashboard (1-10)."
+        },
+        {
+          "sh:path": { "@id": "ppv:hasValueGoals" },
+          "sh:name": "Value Goals",
+          "sh:class": { "@id": "ppv:ValueGoal" },
+          "sh:order": 8,
+          "sh:group": { "@id": "ppv:PillarRelationshipsGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 9,
+          "sh:group": { "@id": "ppv:PillarMetadataGroup" }
+        }
+      ]
+    },
+
+    {
+      "@id": "ppv:ValueGoalBasicGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Basic Info",
+      "sh:order": 1
+    },
+    {
+      "@id": "ppv:ValueGoalDatesGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Dates",
+      "sh:order": 2
+    },
+    {
+      "@id": "ppv:ValueGoalRelationshipsGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Relationships",
+      "sh:order": 3
+    },
+    {
+      "@id": "ppv:ValueGoalMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 4
+    },
+    {
+      "@id": "ppv:ValueGoalShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "ppv:ValueGoal" },
+      "rdfs:label": "Value Goal Shape",
+      "sempkm:editHelpText": "Value Goals are long-term aspirations tied to a Pillar. They express your core values and desired direction. Break them down into measurable Goal Outcomes.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "ppv:ValueGoalBasicGroup" },
+          "sempkm:editHelpText": "What do you aspire to achieve in this area of life?"
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "ppv:ValueGoalBasicGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:pillar" },
+          "sh:name": "Pillar",
+          "sh:class": { "@id": "ppv:Pillar" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "ppv:ValueGoalRelationshipsGroup" },
+          "sempkm:editHelpText": "Which life pillar does this value goal belong to?"
+        },
+        {
+          "sh:path": { "@id": "ppv:status" },
+          "sh:name": "Status",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["Underway", "Paused", "Waiting", "Off Track", "Complete"] },
+          "sh:defaultValue": "Underway",
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "ppv:ValueGoalBasicGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:priority" },
+          "sh:name": "Priority",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["1st Priority", "2nd Priority", "3rd Priority", "4th Priority", "5th Priority"] },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "ppv:ValueGoalBasicGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:targetDate" },
+          "sh:name": "Target Date",
+          "sh:datatype": { "@id": "xsd:date" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "ppv:ValueGoalDatesGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:hasGoalOutcomes" },
+          "sh:name": "Goal Outcomes",
+          "sh:class": { "@id": "ppv:GoalOutcome" },
+          "sh:order": 7,
+          "sh:group": { "@id": "ppv:ValueGoalRelationshipsGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 8,
+          "sh:group": { "@id": "ppv:ValueGoalMetadataGroup" }
+        }
+      ]
+    },
+
+    {
+      "@id": "ppv:GoalOutcomeBasicGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Basic Info",
+      "sh:order": 1
+    },
+    {
+      "@id": "ppv:GoalOutcomeDatesGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Dates",
+      "sh:order": 2
+    },
+    {
+      "@id": "ppv:GoalOutcomeRelationshipsGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Relationships",
+      "sh:order": 3
+    },
+    {
+      "@id": "ppv:GoalOutcomeMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 4
+    },
+    {
+      "@id": "ppv:GoalOutcomeShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "ppv:GoalOutcome" },
+      "rdfs:label": "Goal Outcome Shape",
+      "sempkm:editHelpText": "Goal Outcomes are measurable results derived from Value Goals. They should be specific enough to track progress (0-100%) and have clear completion criteria.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "ppv:GoalOutcomeBasicGroup" },
+          "sempkm:editHelpText": "A specific, measurable outcome (e.g., 'Run a half marathon', 'Publish 12 articles')."
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "ppv:GoalOutcomeBasicGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:valueGoal" },
+          "sh:name": "Value Goal",
+          "sh:class": { "@id": "ppv:ValueGoal" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "ppv:GoalOutcomeRelationshipsGroup" },
+          "sempkm:editHelpText": "Which value goal does this outcome serve?"
+        },
+        {
+          "sh:path": { "@id": "ppv:status" },
+          "sh:name": "Status",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["Active", "Next Up", "Future 1", "Future 2", "Future 3", "Completed"] },
+          "sh:defaultValue": "Active",
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "ppv:GoalOutcomeBasicGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:progress" },
+          "sh:name": "Progress %",
+          "sh:datatype": { "@id": "xsd:integer" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "ppv:GoalOutcomeBasicGroup" },
+          "sempkm:editHelpText": "Completion percentage (0-100)."
+        },
+        {
+          "sh:path": { "@id": "ppv:targetDate" },
+          "sh:name": "Target Date",
+          "sh:datatype": { "@id": "xsd:date" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "ppv:GoalOutcomeDatesGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:completedDate" },
+          "sh:name": "Completed Date",
+          "sh:datatype": { "@id": "xsd:date" },
+          "sh:maxCount": 1,
+          "sh:order": 7,
+          "sh:group": { "@id": "ppv:GoalOutcomeDatesGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:hasProjects" },
+          "sh:name": "Projects",
+          "sh:class": { "@id": "ppv:Project" },
+          "sh:order": 8,
+          "sh:group": { "@id": "ppv:GoalOutcomeRelationshipsGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 9,
+          "sh:group": { "@id": "ppv:GoalOutcomeMetadataGroup" }
+        }
+      ]
+    },
+
+    {
+      "@id": "ppv:ProjectBasicGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Basic Info",
+      "sh:order": 1
+    },
+    {
+      "@id": "ppv:ProjectDatesGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Dates",
+      "sh:order": 2
+    },
+    {
+      "@id": "ppv:ProjectRelationshipsGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Relationships",
+      "sh:order": 3
+    },
+    {
+      "@id": "ppv:ProjectMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 4
+    },
+    {
+      "@id": "ppv:ProjectShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "ppv:Project" },
+      "rdfs:label": "Project Shape",
+      "sempkm:editHelpText": "Projects are discrete work items with clear completion criteria. Link them to a Goal Outcome for strategic alignment, or create standalone projects for tactical work.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "ppv:ProjectBasicGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "ppv:ProjectBasicGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:status" },
+          "sh:name": "Status",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["Active", "On Hold", "Next Up", "Future", "Someday/Maybe", "Completed"] },
+          "sh:defaultValue": "Active",
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "ppv:ProjectBasicGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:priority" },
+          "sh:name": "Priority",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["1st Priority", "2nd Priority", "3rd Priority", "4th Priority", "5th Priority"] },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "ppv:ProjectBasicGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:progress" },
+          "sh:name": "Progress %",
+          "sh:datatype": { "@id": "xsd:integer" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "ppv:ProjectBasicGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:goalOutcome" },
+          "sh:name": "Goal Outcome",
+          "sh:class": { "@id": "ppv:GoalOutcome" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "ppv:ProjectRelationshipsGroup" },
+          "sempkm:editHelpText": "Which goal outcome does this project contribute to?"
+        },
+        {
+          "sh:path": { "@id": "ppv:pillar" },
+          "sh:name": "Pillar",
+          "sh:class": { "@id": "ppv:Pillar" },
+          "sh:maxCount": 1,
+          "sh:order": 7,
+          "sh:group": { "@id": "ppv:ProjectRelationshipsGroup" },
+          "sempkm:editHelpText": "Direct pillar link (shortcut for dashboard queries)."
+        },
+        {
+          "sh:path": { "@id": "schema:startDate" },
+          "sh:name": "Start Date",
+          "sh:datatype": { "@id": "xsd:date" },
+          "sh:maxCount": 1,
+          "sh:order": 8,
+          "sh:group": { "@id": "ppv:ProjectDatesGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:dueDate" },
+          "sh:name": "Due Date",
+          "sh:datatype": { "@id": "xsd:date" },
+          "sh:maxCount": 1,
+          "sh:order": 9,
+          "sh:group": { "@id": "ppv:ProjectDatesGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:reviewDate" },
+          "sh:name": "Review Date",
+          "sh:datatype": { "@id": "xsd:date" },
+          "sh:maxCount": 1,
+          "sh:order": 10,
+          "sh:group": { "@id": "ppv:ProjectDatesGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:completedDate" },
+          "sh:name": "Completed Date",
+          "sh:datatype": { "@id": "xsd:date" },
+          "sh:maxCount": 1,
+          "sh:order": 11,
+          "sh:group": { "@id": "ppv:ProjectDatesGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:hasActionItems" },
+          "sh:name": "Action Items",
+          "sh:class": { "@id": "ppv:ActionItem" },
+          "sh:order": 12,
+          "sh:group": { "@id": "ppv:ProjectRelationshipsGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 13,
+          "sh:group": { "@id": "ppv:ProjectMetadataGroup" }
+        }
+      ]
+    },
+
+    {
+      "@id": "ppv:ActionItemBasicGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Basic Info",
+      "sh:order": 1
+    },
+    {
+      "@id": "ppv:ActionItemExecutionGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Execution",
+      "sh:order": 2
+    },
+    {
+      "@id": "ppv:ActionItemRelationshipsGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Relationships",
+      "sh:order": 3
+    },
+    {
+      "@id": "ppv:ActionItemMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 4
+    },
+    {
+      "@id": "ppv:ActionItemShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "ppv:ActionItem" },
+      "rdfs:label": "Action Item Shape",
+      "sempkm:editHelpText": "Action Items are the atomic units of work. Use Do Date (not due date) to plan when you will actually do the work. Filter by context and energy to pick the right task for your current situation.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "ppv:ActionItemBasicGroup" },
+          "sempkm:editHelpText": "A clear, actionable description starting with a verb (e.g., 'Draft proposal', 'Call dentist')."
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Notes",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "ppv:ActionItemBasicGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:status" },
+          "sh:name": "Status",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["Active", "Waiting", "Paused", "Next Up", "Future 1", "Future 2", "Future 3"] },
+          "sh:defaultValue": "Active",
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "ppv:ActionItemBasicGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:priority" },
+          "sh:name": "Priority",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["Immediate", "Quick", "Scheduled", "1st Priority", "2nd Priority", "3rd Priority", "4th Priority", "5th Priority", "Errand", "Remember"] },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "ppv:ActionItemBasicGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:done" },
+          "sh:name": "Done",
+          "sh:datatype": { "@id": "xsd:boolean" },
+          "sh:defaultValue": false,
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "ppv:ActionItemBasicGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:doDate" },
+          "sh:name": "Do Date",
+          "sh:datatype": { "@id": "xsd:date" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "ppv:ActionItemExecutionGroup" },
+          "sempkm:editHelpText": "When will you DO this? (PPV philosophy: schedule when to work, not when it's due.)"
+        },
+        {
+          "sh:path": { "@id": "ppv:context" },
+          "sh:name": "Context",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["home", "office", "errands", "calls", "computer", "anywhere"] },
+          "sh:maxCount": 1,
+          "sh:order": 7,
+          "sh:group": { "@id": "ppv:ActionItemExecutionGroup" },
+          "sempkm:editHelpText": "GTD-style context: where/how can you do this?"
+        },
+        {
+          "sh:path": { "@id": "ppv:energy" },
+          "sh:name": "Energy",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["low", "medium", "high"] },
+          "sh:defaultValue": "medium",
+          "sh:maxCount": 1,
+          "sh:order": 8,
+          "sh:group": { "@id": "ppv:ActionItemExecutionGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:timeEstimate" },
+          "sh:name": "Time Estimate (min)",
+          "sh:datatype": { "@id": "xsd:integer" },
+          "sh:maxCount": 1,
+          "sh:order": 9,
+          "sh:group": { "@id": "ppv:ActionItemExecutionGroup" },
+          "sempkm:editHelpText": "Estimated minutes to complete."
+        },
+        {
+          "sh:path": { "@id": "ppv:completionDate" },
+          "sh:name": "Completion Date",
+          "sh:datatype": { "@id": "xsd:date" },
+          "sh:maxCount": 1,
+          "sh:order": 10,
+          "sh:group": { "@id": "ppv:ActionItemExecutionGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:project" },
+          "sh:name": "Project",
+          "sh:class": { "@id": "ppv:Project" },
+          "sh:maxCount": 1,
+          "sh:order": 11,
+          "sh:group": { "@id": "ppv:ActionItemRelationshipsGroup" },
+          "sempkm:editHelpText": "Which project does this action belong to?"
+        },
+        {
+          "sh:path": { "@id": "ppv:pillar" },
+          "sh:name": "Pillar",
+          "sh:class": { "@id": "ppv:Pillar" },
+          "sh:maxCount": 1,
+          "sh:order": 12,
+          "sh:group": { "@id": "ppv:ActionItemRelationshipsGroup" },
+          "sempkm:editHelpText": "Direct pillar link (shortcut for dashboard queries)."
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 13,
+          "sh:group": { "@id": "ppv:ActionItemMetadataGroup" }
+        }
+      ]
+    },
+
+    {
+      "@id": "ppv:WeeklyReviewBasicGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Basic Info",
+      "sh:order": 1
+    },
+    {
+      "@id": "ppv:WeeklyReviewDatesGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Period",
+      "sh:order": 2
+    },
+    {
+      "@id": "ppv:WeeklyReviewRelationshipsGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Relationships",
+      "sh:order": 3
+    },
+    {
+      "@id": "ppv:WeeklyReviewMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 4
+    },
+    {
+      "@id": "ppv:WeeklyReviewShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "ppv:WeeklyReview" },
+      "rdfs:label": "Weekly Review Shape",
+      "sempkm:editHelpText": "Weekly Reviews are your primary rhythm. Score each pillar, review completed work, and plan the coming week with a focus objective.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "ppv:WeeklyReviewBasicGroup" },
+          "sempkm:editHelpText": "e.g., 'Week of March 3, 2026'"
+        },
+        {
+          "sh:path": { "@id": "ppv:cycle" },
+          "sh:name": "Cycle",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["weekly"] },
+          "sh:defaultValue": "weekly",
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "ppv:WeeklyReviewBasicGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:focusObjective" },
+          "sh:name": "Focus Objective",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "ppv:WeeklyReviewBasicGroup" },
+          "sempkm:editHelpText": "What is the main theme or objective for this week?"
+        },
+        {
+          "sh:path": { "@id": "schema:startDate" },
+          "sh:name": "Week Start (Monday)",
+          "sh:datatype": { "@id": "xsd:date" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "ppv:WeeklyReviewDatesGroup" }
+        },
+        {
+          "sh:path": { "@id": "schema:endDate" },
+          "sh:name": "Week End (Sunday)",
+          "sh:datatype": { "@id": "xsd:date" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "ppv:WeeklyReviewDatesGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:month" },
+          "sh:name": "Month",
+          "sh:class": { "@id": "ppv:MonthlyReview" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "ppv:WeeklyReviewRelationshipsGroup" },
+          "sempkm:editHelpText": "Which monthly review does this week roll up into?"
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 7,
+          "sh:group": { "@id": "ppv:WeeklyReviewMetadataGroup" }
+        }
+      ]
+    },
+
+    {
+      "@id": "ppv:MonthlyReviewBasicGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Basic Info",
+      "sh:order": 1
+    },
+    {
+      "@id": "ppv:MonthlyReviewReflectionGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Reflection",
+      "sh:order": 2
+    },
+    {
+      "@id": "ppv:MonthlyReviewRelationshipsGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Relationships",
+      "sh:order": 3
+    },
+    {
+      "@id": "ppv:MonthlyReviewMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 4
+    },
+    {
+      "@id": "ppv:MonthlyReviewShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "ppv:MonthlyReview" },
+      "rdfs:label": "Monthly Review Shape",
+      "sempkm:editHelpText": "Monthly Reviews aggregate weekly reviews, assess pillar health, review the pipeline, and maintain your vault. Include gratitude and learning reflections.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "ppv:MonthlyReviewBasicGroup" },
+          "sempkm:editHelpText": "e.g., 'March 2026'"
+        },
+        {
+          "sh:path": { "@id": "ppv:cycle" },
+          "sh:name": "Cycle",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["monthly"] },
+          "sh:defaultValue": "monthly",
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "ppv:MonthlyReviewBasicGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:monthName" },
+          "sh:name": "Month Name",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "ppv:MonthlyReviewBasicGroup" },
+          "sempkm:editHelpText": "e.g., 'March 2026'"
+        },
+        {
+          "sh:path": { "@id": "ppv:year" },
+          "sh:name": "Year",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "ppv:MonthlyReviewBasicGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:gratitude" },
+          "sh:name": "Gratitude",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "ppv:MonthlyReviewReflectionGroup" },
+          "sempkm:editHelpText": "What are you grateful for this month?"
+        },
+        {
+          "sh:path": { "@id": "ppv:learnedThisMonth" },
+          "sh:name": "Learned This Month",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "ppv:MonthlyReviewReflectionGroup" },
+          "sempkm:editHelpText": "What was your key learning this month?"
+        },
+        {
+          "sh:path": { "@id": "ppv:quarter" },
+          "sh:name": "Quarter",
+          "sh:class": { "@id": "ppv:QuarterlyReview" },
+          "sh:maxCount": 1,
+          "sh:order": 7,
+          "sh:group": { "@id": "ppv:MonthlyReviewRelationshipsGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:hasWeeklyReviews" },
+          "sh:name": "Weekly Reviews",
+          "sh:class": { "@id": "ppv:WeeklyReview" },
+          "sh:order": 8,
+          "sh:group": { "@id": "ppv:MonthlyReviewRelationshipsGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 9,
+          "sh:group": { "@id": "ppv:MonthlyReviewMetadataGroup" }
+        }
+      ]
+    },
+
+    {
+      "@id": "ppv:QuarterlyReviewBasicGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Basic Info",
+      "sh:order": 1
+    },
+    {
+      "@id": "ppv:QuarterlyReviewRelationshipsGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Relationships",
+      "sh:order": 2
+    },
+    {
+      "@id": "ppv:QuarterlyReviewMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 3
+    },
+    {
+      "@id": "ppv:QuarterlyReviewShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "ppv:QuarterlyReview" },
+      "rdfs:label": "Quarterly Review Shape",
+      "sempkm:editHelpText": "Quarterly Reviews aggregate monthly reviews and provide space for deeper strategic reflection on your pillars and goals.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "ppv:QuarterlyReviewBasicGroup" },
+          "sempkm:editHelpText": "e.g., 'Q1 2026'"
+        },
+        {
+          "sh:path": { "@id": "ppv:cycle" },
+          "sh:name": "Cycle",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["quarterly"] },
+          "sh:defaultValue": "quarterly",
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "ppv:QuarterlyReviewBasicGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:quarterName" },
+          "sh:name": "Quarter Name",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "ppv:QuarterlyReviewBasicGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:yearLink" },
+          "sh:name": "Year",
+          "sh:class": { "@id": "ppv:YearlyReview" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "ppv:QuarterlyReviewRelationshipsGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:hasMonthlyReviews" },
+          "sh:name": "Monthly Reviews",
+          "sh:class": { "@id": "ppv:MonthlyReview" },
+          "sh:order": 5,
+          "sh:group": { "@id": "ppv:QuarterlyReviewRelationshipsGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "ppv:QuarterlyReviewMetadataGroup" }
+        }
+      ]
+    },
+
+    {
+      "@id": "ppv:YearlyReviewBasicGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Basic Info",
+      "sh:order": 1
+    },
+    {
+      "@id": "ppv:YearlyReviewRelationshipsGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Relationships",
+      "sh:order": 2
+    },
+    {
+      "@id": "ppv:YearlyReviewMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 3
+    },
+    {
+      "@id": "ppv:YearlyReviewShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "ppv:YearlyReview" },
+      "rdfs:label": "Yearly Review Shape",
+      "sempkm:editHelpText": "Yearly Reviews provide the highest level of strategic reflection. Review all quarters, assess life direction, and plan the year ahead.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "ppv:YearlyReviewBasicGroup" },
+          "sempkm:editHelpText": "e.g., '2026 Annual Review'"
+        },
+        {
+          "sh:path": { "@id": "ppv:cycle" },
+          "sh:name": "Cycle",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["yearly"] },
+          "sh:defaultValue": "yearly",
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "ppv:YearlyReviewBasicGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:yearName" },
+          "sh:name": "Year Name",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "ppv:YearlyReviewBasicGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:quarters" },
+          "sh:name": "Quarters",
+          "sh:class": { "@id": "ppv:QuarterlyReview" },
+          "sh:order": 4,
+          "sh:group": { "@id": "ppv:YearlyReviewRelationshipsGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "ppv:YearlyReviewMetadataGroup" }
+        }
+      ]
+    }
+  ]
+}

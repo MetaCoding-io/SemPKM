@@ -102,19 +102,23 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - ✓ BUG-03: Broken view switch buttons removed, replaced by carousel tab bar — v2.3
 - ✓ TEST-01 through TEST-04: Full E2E test coverage for SPARQL, FTS, VFS, and v2.3 features — v2.3
 
+### Validated (v2.4)
+
+<!-- Shipped and confirmed valuable in v2.4. -->
+
+- ✓ INF-01: OWL 2 RL inference — automatic inverse property materialization (owlrl, inferred named graph) — v2.4
+- ✓ INF-02: SHACL-AF rules — Mental Models ship sh:TripleRule/sh:SPARQLRule, pyshacl advanced=True — v2.4
+- ✓ LINT-01 through LINT-07: Global lint dashboard — filterable, sortable validation view with SSE auto-refresh, health badge — v2.4
+- ✓ HELP-01: Edit form helptext — sempkm:editHelpText SHACL annotation, collapsible markdown — v2.4
+- ✓ BUG-04 through BUG-10: Bug fix batch — accent bar, card borders, Firefox Ctrl+K, tab bleed, dark chevrons, concept search, flip card bleed-through — v2.4
+- ✓ VFS-01: In-app VFS browser — dockview tab with tree navigation (model → type → objects) — v2.4
+- ✓ TEST-05: E2E test coverage for v2.4 features (inference data flow, lint dashboard, helptext) — v2.4
+
 ### Active
 
-<!-- v2.4: Inference & Polish — OWL 2 RL, SHACL-AF rules, global lint dashboard, helptext, bug fixes -->
+<!-- v2.5 Polish, Import & Identity -->
 
-- [ ] INF-01: OWL 2 RL inference — automatic inverse property materialization (e.g., hasParticipant → participatesIn)
-- [ ] INF-02: SHACL-AF rules — Mental Models can ship sh:TripleRule/sh:SPARQLRule for domain-specific derivations
-- [ ] LINT-01: Global lint dashboard — workspace-wide SHACL validation results view with severity summary
-- [ ] LINT-02: Auto-refresh — global lint updates automatically after each commit via AsyncValidationQueue
-- [ ] LINT-03: Health indicator — status bar badge showing overall validation status at a glance
-- [ ] LINT-04 through LINT-07: Lint filtering — by severity, type, keyword search, and sortable columns
-- [ ] HELP-01: Edit form helptext — SHACL annotation property rendered as collapsible markdown in edit forms
-- [ ] BUG-04 through BUG-09: Bug fix batch — accent bar, card borders, Firefox Ctrl+K, tab bleed, dark chevrons, concept search
-- [ ] TEST-05: E2E test coverage for v2.4 features
+(Requirements being defined — see REQUIREMENTS.md)
 
 ### Future Candidates
 
@@ -151,41 +155,43 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Mobile native app — web-first, responsive design and eventual PWA
 - Ontology editor — consume via Mental Models; use Protege for authoring
 
-## Current Milestone: v2.4 Inference & Polish
+## Current Milestone: v2.5 Polish, Import & Identity
 
-**Goal:** Activate OWL 2 RL inference and SHACL-AF rules for automatic bidirectional links and model-contributed derivations. Add a global lint dashboard for workspace-wide validation triage. Clear the bug backlog and the edit form helptext TODO.
+**Goal:** UI polish pass, Obsidian vault import pipeline, and WebID + IndieAuth identity foundation for future collaboration.
 
 **Target features:**
-- OWL 2 RL inference: `owlrl` library materializes inverse/transitive triples into `urn:sempkm:inferred` graph
-- SHACL-AF rules: `advanced=True` in pyshacl enables sh:TripleRule/sh:SPARQLRule in Mental Model shapes
-- Global lint data model + API: per-object, per-result validation storage with paginated filtering endpoints
-- Global lint dashboard UI: filterable, sortable result table with severity badges and health indicator
-- Edit form helptext: `sempkm:editHelpText` SHACL annotation rendered as collapsible markdown
-- Bug fix batch: accent bar, card borders, Firefox Ctrl+K, tab bleed, dark chevrons, concept search/linking
+- UI cleanup phase — small tweaks, VFS CSS fixes, rough edges (details during discuss-phase)
+- Obsidian import pipeline — in-app wizard for importing Obsidian vaults (import only, triage later)
+- WebID profiles — serve WebID profile documents at user URLs with content negotiation
+- IndieAuth provider — authorization + token endpoints with PKCE, rel="me" for fediverse verification
+
+## Current State
+
+**Latest shipped: v2.4 Inference & Polish (2026-03-06)**
+
+**What shipped in v2.4:**
+- OWL 2 RL inference engine — owlrl materializes inverse/transitive triples into `urn:sempkm:inferred` graph
+- SHACL-AF rules — Mental Models ship sh:TripleRule/sh:SPARQLRule, pyshacl advanced=True
+- Global lint dashboard — filterable, sortable validation results with SSE auto-refresh and health badge
+- Edit form helptext — sempkm:editHelpText SHACL annotation as collapsible markdown
+- In-app VFS browser — dockview tab with tree navigation (model → type → objects)
+- Bug fix batch — 7 fixes (accent bar, card borders, flip card, dark chevrons, concept search, Firefox Ctrl+K, tab bleed)
+- E2E tests for all v2.4 features including full inference data flow test
+
+**Current milestone:** v2.5 Polish, Import & Identity
 
 ## Context
 
-**Current state (v2.3 shipped 2026-03-03):**
-- ~135k source LOC across Python, JavaScript, CSS, HTML/Jinja2, JSON-LD (estimate — grew with dockview, carousel, named layouts, E2E tests)
-- Tech stack: FastAPI + RDF4J (LuceneSail) + htmx/vanilla-web + SQLAlchemy (SQLite/PostgreSQL) + wsgidav + a2wsgi + Driver.js + Cytoscape.js + CodeMirror + dockview-core + Alembic + Yasgui CDN + ninja-keys
-- Docker Compose deployment: 3 services (api, triplestore, frontend/nginx) — WebDAV via nginx proxy to a2wsgi mount
-- 34 phases, 75 plans completed across v1.0, v2.0, v2.1, v2.2, v2.3
-
-**New in v2.3:**
-- Dockview Phase A: replaced Split.js editor-pane with dockview-core panels, native drag-to-reorder and group splitting
-- Object view redesign: markdown-first, collapsible properties with per-IRI localStorage persistence
-- Carousel view tab bar: per-type manifest-declared views with two-container htmx swap pattern
-- Named layouts: save/restore/delete via Command Palette + user menu, auto-save on close
-- FTS fuzzy search: `term~1` LuceneSail operator with 5-char threshold and palette toggle
-- Card accordion: collapsible card groups with chevron/count badges, Ungrouped sorts last
-- 30 new E2E tests: SPARQL console, VFS WebDAV (Basic auth fixture), fuzzy toggle, carousel, named layouts
+**Current state (v2.5 started 2026-03-07):**
+- ~140k source LOC across Python, JavaScript, CSS, HTML/Jinja2, JSON-LD
+- Tech stack: FastAPI + RDF4J (LuceneSail) + htmx/vanilla-web + SQLAlchemy (SQLite/PostgreSQL) + wsgidav + a2wsgi + Driver.js + Cytoscape.js + CodeMirror + dockview-core + Alembic + Yasgui CDN + ninja-keys + owlrl + pyshacl
+- Docker Compose deployment: 3 services (api, triplestore, frontend/nginx)
+- 43 phases, 95 plans completed across v1.0, v2.0, v2.1, v2.2, v2.3, v2.4
 
 **Known tech debt:**
 - Cookie secure=False (local dev only — production config deferred)
 - Dual SQLAlchemy engine instances (module-level + lifespan) — harmless for SQLite
-- `empty_shapes_loader` dead code in validation service
-- Edit form helptext property not yet in SHACL types (pending todo — addressed in v2.4 HELP-01)
-- OWL `owl:inverseOf` axiom declared but not materialized (addressed in v2.4 INF-01)
+- Seed data has both inverse sides pre-populated (owl:inverseOf produces 0 new triples with current data)
 
 **Design references:**
 - v0.3 design documents in `orig_specs/` (vision, specifications, decision log, schemas)
@@ -253,4 +259,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | sempkm:tab-activated custom event | Decouples workspace.js from workspace-layout.js for contextual panel indicator; dispatched on openTab()/switchTabInGroup() | ✓ Good — clean separation, panel indicator works |
 
 ---
-*Last updated: 2026-03-03 after v2.4 milestone start*
+*Last updated: 2026-03-07 after v2.5 milestone start*

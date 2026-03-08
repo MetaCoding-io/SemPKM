@@ -7,12 +7,12 @@
 - ✅ **v2.1 Architecture Decision Gate** — Phases 20-22 (shipped 2026-03-01) — [Full details](milestones/v2.1-ROADMAP.md) — [Archive](milestones/v2.1-REQUIREMENTS.md)
 - ✅ **v2.2 Data Discovery** — Phases 23-28 (shipped 2026-03-01) — [Full details](milestones/v2.2-ROADMAP.md)
 - ✅ **v2.3 Shell, Navigation & Views** — Phases 29-34 (shipped 2026-03-03)
-- 🚧 **v2.4 Inference & Polish** — Phases 35-40 (in progress) — [Research](research/shacl-owl-inference.md)
+- ✅ **v2.4 Inference & Polish** — Phases 35-43 (shipped 2026-03-06) — [Full details](milestones/v2.4-ROADMAP.md) — [Requirements](milestones/v2.4-REQUIREMENTS.md)
+- **v2.5 Polish, Import & Identity** — Phases 44-49 (in progress)
 - (future) **SPARQL Interface** -- Rich SPARQL query experience with permissions, autocomplete, pills, history, saved queries, and named query views
-- (future) **Obsidian Import & Lint Triage** -- In-app Obsidian import wizard, SHACL fix guidance engine, and click-to-edit lint triage workflow — [Research](research/obsidian-import-wizard-ux.md)
-- (future) **Identity: WebID + IndieAuth** -- WebID profiles with content negotiation, IndieAuth provider with PKCE (Phases A-B) — [Research](research/decentralized-identity.md)
 - (future) **Collaboration & Federation** -- Multi-instance sync via RDF Patch, LDN notifications, federated identity, collaboration UI — [Research](research/collaboration-architecture.md)
 - (future) **Identity: DIDs + Verifiable Credentials** -- did:web documents, RDF graph signing, VC 2.0 issuance, did:webvh migration (Phases C-E) — [Research](research/decentralized-identity.md)
+- (future) **RSS Reader & Hypothesis Integration** -- In-app feed reader with background polling, OPML import/export, Hypothesis annotation sync, W3C Web Annotation storage — [Research](../../docs/research/rss-reader-hypothesis-integration.md)
 
 ## Phases
 
@@ -90,92 +90,102 @@
 
 </details>
 
-### v2.4 Inference & Polish (In Progress)
+<details>
+<summary>✅ v2.4 Inference & Polish (Phases 35-43) — SHIPPED 2026-03-06</summary>
 
-**Milestone Goal:** Activate OWL 2 RL inference and SHACL-AF rules to deliver automatic bidirectional links and model-contributed derivations. Add a global lint dashboard for workspace-wide validation triage. Clear the backlog of tracked bugs and the edit form helptext TODO.
+- [x] Phase 35: OWL 2 RL Inference (5/5 plans) — completed 2026-03-04
+- [x] Phase 36: SHACL-AF Rules Support (2/2 plans) — completed 2026-03-05
+- [x] Phase 37: Global Lint Data Model & API (2/2 plans) — completed 2026-03-05
+- [x] Phase 38: Global Lint Dashboard UI (2/2 plans) — completed 2026-03-05
+- [x] Phase 39: Edit Form Helptext + Bug Fix Batch (2/2 plans) — completed 2026-03-05
+- [x] Phase 40: E2E Test Coverage for v2.4 (2/2 plans) — completed 2026-03-05
+- [x] Phase 41: Gap Closure — Rules Wiring, Flip Fix, VFS Browser (3/3 plans) — completed 2026-03-06
+- [x] Phase 42: VFS Browser Fix (1/1 plan) — completed 2026-03-06
+- [x] Phase 43: Inference E2E Test Gap (1/1 plan) — completed 2026-03-06
 
-- [ ] **Phase 35: OWL 2 RL Inference** — Add `owlrl` dependency, materialize inverse/transitive triples into `urn:sempkm:inferred` named graph on every write
-- [ ] **Phase 36: SHACL-AF Rules Support** — Enable `advanced=True` in pyshacl, add rules entrypoint to manifest, ship example rules in basic-pkm model
-- [ ] **Phase 37: Global Lint Data Model & API** — Persist per-object, per-result validation detail; paginated API endpoints with filtering by severity, type, path
-- [ ] **Phase 38: Global Lint Dashboard UI** — Filterable, sortable result table with severity badges, health indicator, auto-refresh
-- [ ] **Phase 39: Edit Form Helptext + Bug Fix Batch** — `sempkm:editHelpText` SHACL annotation in edit forms; fix accent bar, card borders, Firefox Ctrl+K, tab bleed, dark chevrons, concept search
-- [ ] **Phase 40: E2E Test Coverage for v2.4** — Playwright tests for inference, lint dashboard, helptext, and bug fix verifications
+**20 plans, 19/19 requirements satisfied**
+
+</details>
+
+### v2.5 Polish, Import & Identity (Phases 44-49)
+
+**Milestone Goal:** UI polish pass, Obsidian vault import pipeline, and WebID + IndieAuth identity foundation for future collaboration.
+
+**Workstreams (parallelizable):**
+- UI Cleanup: Phase 44
+- Obsidian Import: Phases 45-47
+- Identity: Phases 48-49
+
+- [ ] **Phase 44: UI Cleanup** - VFS browser CSS fixes and audit-driven UI polish
+- [ ] **Phase 45: Obsidian Vault Scanner** - Upload vault, parse files, extract metadata and statistics
+- [ ] **Phase 46: Obsidian Mapping UI** - Map note categories to types, frontmatter to properties, preview results
+- [ ] **Phase 47: Obsidian Batch Import** - Execute import with bodies, properties, and edges via Command API
+- [ ] **Phase 48: WebID Profiles** - Serve RDF profile documents with content negotiation, keys, and rel="me"
+- [ ] **Phase 49: IndieAuth Provider** - Authorization and token endpoints with PKCE and consent screen
 
 ## Phase Details
 
-### Phase 35: OWL 2 RL Inference
-**Goal**: Users see automatic bidirectional links — adding a relationship in one direction automatically shows the inverse on the other object's detail page
-**Depends on**: Nothing (v2.3 complete, clean start)
-**Requirements**: INF-01
+### Phase 44: UI Cleanup
+**Goal**: Users see a polished, consistent UI with VFS browser rendering issues fixed
+**Depends on**: Nothing (independent workstream)
+**Requirements**: UICL-01, UICL-02, UICL-03
 **Success Criteria** (what must be TRUE):
-  1. User creates `ProjectA bpkm:hasParticipant PersonB`; PersonB's detail page automatically shows `participatesIn ProjectA` without manual entry
-  2. Inferred triples are stored in a dedicated `urn:sempkm:inferred` named graph, separate from user-created data
-  3. Inferred triples are visible in object views, relations panel, and graph visualization
-  4. Deleting the source triple (hasParticipant) causes the inferred inverse to be removed on the next validation cycle
-  5. Inference runs automatically on every write (integrated into the existing EventStore.commit() → AsyncValidationQueue pipeline)
+  1. VFS browser markdown preview renders text at the same base font size as the rest of the app
+  2. VFS browser content does not show spurious underline styling on non-link text
+  3. An audit-driven set of UI tweaks addresses rough edges identified during discuss-phase
 **Plans**: TBD
 
-### Phase 36: SHACL-AF Rules Support
-**Goal**: Mental Models can declare SHACL rules that generate derived triples; basic-pkm ships example rules for inverse materialization and concept ancestry
-**Depends on**: Phase 35 (inferred graph infrastructure must exist)
-**Requirements**: INF-02
+### Phase 45: Obsidian Vault Scanner
+**Goal**: Users can point SemPKM at an Obsidian vault and see a clear summary of what it contains
+**Depends on**: Nothing (independent workstream)
+**Requirements**: OBSI-01, OBSI-02
 **Success Criteria** (what must be TRUE):
-  1. pyshacl is called with `advanced=True` and processes `sh:rule` directives in shapes graphs
-  2. Mental Model manifest supports an optional `rules` entrypoint pointing to a rules file (Turtle/JSON-LD)
-  3. basic-pkm model ships at least one example SHACL rule (e.g., inverse participant rule via sh:SPARQLRule)
-  4. Rule-derived triples are stored in the `urn:sempkm:inferred` named graph alongside OWL-derived triples
-  5. Users see rule-derived data in object views without any manual action
+  1. User can upload or specify a path to an Obsidian vault directory from within the app
+  2. Scan results display file count, detected note types, frontmatter keys, wiki-link targets, and tags
+  3. Scan completes without requiring any configuration or mapping decisions from the user
 **Plans**: TBD
 
-### Phase 37: Global Lint Data Model & API
-**Goal**: Per-object, per-result SHACL validation detail is stored in a queryable format with paginated API endpoints for listing results
-**Depends on**: Phase 36 (inference must be stable before lint sees inferred data)
-**Requirements**: LINT-01, LINT-02
+### Phase 46: Obsidian Mapping UI
+**Goal**: Users can interactively configure how Obsidian content maps to their Mental Model before importing
+**Depends on**: Phase 45
+**Requirements**: OBSI-03, OBSI-04, OBSI-05
 **Success Criteria** (what must be TRUE):
-  1. Individual ValidationResult records are stored with focus_node, severity, path, message, source_shape, constraint_component
-  2. `GET /api/lint/results` returns paginated results with filtering by severity and object type
-  3. Results update automatically after each EventStore.commit() via AsyncValidationQueue (no manual refresh)
-  4. Per-object lint panel continues to work unchanged (backward compatible)
-  5. Storage approach handles hundreds of objects without significant latency (< 2s for full-graph validation)
+  1. User can map each detected Obsidian note category to a Mental Model type
+  2. User can map each frontmatter key to an RDF property for the corresponding type
+  3. User can preview the resulting objects (with types, properties, and bodies) before committing the import
 **Plans**: TBD
 
-### Phase 38: Global Lint Dashboard UI
-**Goal**: Users can see all validation results across all objects at a glance from a single filterable, sortable view
-**Depends on**: Phase 37 (API endpoints must exist for the UI to consume)
-**Requirements**: LINT-03, LINT-04, LINT-05, LINT-06, LINT-07
+### Phase 47: Obsidian Batch Import
+**Goal**: Users can execute the configured import and get a complete set of interconnected RDF objects
+**Depends on**: Phase 46
+**Requirements**: OBSI-06, OBSI-07
 **Success Criteria** (what must be TRUE):
-  1. Global lint view is accessible from sidebar or Command Palette as a dockview panel or dedicated page
-  2. Summary bar shows total violations / warnings / infos with color-coded severity badges
-  3. User can filter results by severity level, object type, and keyword search
-  4. User can sort results by severity, object name, property path, or timestamp
-  5. Status bar or sidebar shows a persistent health indicator badge (pass / N violations)
-  6. Result list paginates or virtual-scrolls for large result sets (100+ results)
+  1. Batch import creates objects with correct bodies, properties, and type assignments via the Command API
+  2. Obsidian wiki-links between notes are resolved to RDF edges between the corresponding imported objects
+  3. Obsidian tags are resolved to edges (e.g., linking to Concept objects or tag resources)
+  4. Imported objects are browsable in the workspace immediately after import completes
 **Plans**: TBD
 
-### Phase 39: Edit Form Helptext + Bug Fix Batch
-**Goal**: Edit forms show contextual help text from SHACL annotations; all tracked CSS/UX bugs are fixed
-**Depends on**: Phases 35-38 (inference and lint stable before cosmetic fixes)
-**Requirements**: HELP-01, BUG-04, BUG-05, BUG-06, BUG-07, BUG-08, BUG-09
+### Phase 48: WebID Profiles
+**Goal**: Each SemPKM user is a verifiable identity on the web with a dereferenceable profile document
+**Depends on**: Nothing (independent workstream)
+**Requirements**: WBID-01, WBID-02, WBID-03, WBID-04, WBID-05, WBID-06
 **Success Criteria** (what must be TRUE):
-  1. SHACL shapes with `sempkm:editHelpText` render a collapsible markdown section below the corresponding field in edit forms
-  2. basic-pkm model includes helptext annotations on at least 3 representative fields
-  3. Tab accent bar color reflects the object's type (not uniform teal for all)
-  4. Card view borders render correctly in both light and dark themes
-  5. Firefox Ctrl+K opens ninja-keys (not Firefox address bar)
-  6. Tab accent bar does not bleed into adjacent inactive tabs
-  7. Panel chevron icons are visible in dark mode
-  8. Concept search/linking works end-to-end (search finds concepts, links are created)
+  1. Each user has a WebID URI (e.g., `https://instance/users/alice#me`) that resolves to an RDF profile document
+  2. Content negotiation on the WebID URI returns Turtle, JSON-LD, or HTML depending on the Accept header
+  3. The profile HTML page includes `rel="me"` links suitable for Mastodon/fediverse verification
+  4. The server generates and stores an Ed25519 key pair per user, with the public key published in the profile document
 **Plans**: TBD
 
-### Phase 40: E2E Test Coverage for v2.4
-**Goal**: Playwright tests cover all v2.4 user-visible features
-**Depends on**: Phases 35-39 complete (tests cover live features)
-**Requirements**: TEST-05
+### Phase 49: IndieAuth Provider
+**Goal**: Users can sign into IndieWeb-compatible services using their SemPKM URL as their identity
+**Depends on**: Phase 48 (IndieAuth references the WebID profile URL)
+**Requirements**: IAUTH-01, IAUTH-02, IAUTH-03, IAUTH-04, IAUTH-05
 **Success Criteria** (what must be TRUE):
-  1. E2E tests verify bidirectional links appear after creating a relationship (inference working)
-  2. E2E tests verify global lint dashboard loads, filters, and sorts results correctly
-  3. E2E tests verify edit form helptext renders and collapses
-  4. E2E tests verify each bug fix (accent bar, card borders, Ctrl+K, tab bleed, dark chevrons, concept search)
+  1. The server exposes `rel="indieauth-metadata"` for client discovery on the user's profile page
+  2. An IndieWeb client can complete the full OAuth2 authorization code flow with PKCE against the SemPKM authorization endpoint
+  3. The token endpoint issues access tokens after code exchange and supports token introspection
+  4. User sees a consent screen showing the requesting application name and requested scopes before granting access
 **Plans**: TBD
 
 ---
@@ -185,8 +195,7 @@
 Before proceeding to the SPARQL Interface milestone, the following design decisions need resolution:
 
 1. **SPARQL Interface direction** -- Extend Yasgui with custom plugins, or replace with standalone CodeMirror 6 + custom SPARQL mode? Affects scope of Phases 2-3.
-2. **Obsidian Import Wizard UX** -- Approve the 6-step flow from [research](research/obsidian-import-wizard-ux.md)? LLM-assisted classification vs folder-based rules?
-3. **Global Lint Phases C-D** -- Build fix guidance engine and click-to-edit triage in the next milestone, or defer further?
+2. **Global Lint Phases C-D** -- Build fix guidance engine and click-to-edit triage in the next milestone, or defer further?
 
 ---
 
@@ -194,7 +203,7 @@ Before proceeding to the SPARQL Interface milestone, the following design decisi
 
 **Milestone Goal:** Transform the basic Yasgui SPARQL console into a first-class query interface with graph-aware permissions, intelligent autocomplete from loaded ontologies, visual IRI pills in the editor, server-side query history, saved/shared queries with parameterization, and named queries that serve as reusable views in the object browser.
 
-**Depends on:** v2.4 complete. Ordered after Design Decision Gate to resolve SPARQL UI direction.
+**Depends on:** v2.5 complete. Ordered after Design Decision Gate to resolve SPARQL UI direction.
 
 **Estimated Phases (sketch -- to be refined during milestone planning):**
 
@@ -227,47 +236,11 @@ Before proceeding to the SPARQL Interface milestone, the following design decisi
    - Key risk: Named query views must integrate with existing ViewSpecService and manifest view declaration format without breaking the current view pipeline
    - Depends on: Phase 5 (saved queries must exist), v2.3 Phase 32 (carousel view infrastructure)
 
-### (Future) Obsidian Import & Lint Triage
-
-**Milestone Goal:** Replace external Python import scripts with an in-app 6-step wizard for Obsidian vault import. Complete the global lint experience with fix guidance messages and a click-to-edit triage workflow.
-
-**Depends on:** SPARQL Interface complete; v2.4 Global Lint Phases provide the dashboard infrastructure
-
-**Estimated Phases (sketch):**
-
-1. **Obsidian Vault Scanner** -- In-app vault upload, file tree parsing, frontmatter/tag/link extraction, summary statistics
-2. **Type & Property Mapping** -- OpenRefine-style reconciliation UI for mapping vault content to Mental Model types and properties; fuzzy matching suggestions
-3. **Relationship Mapping & Preview** -- Map Obsidian links to RDF relationships; SHACL validation preview of import results
-4. **Import Execution** -- SSE-streamed batch import via Command API; progress tracking; rollback on failure
-5. **Lint Fix Guidance Engine** -- Generate actionable fix messages from SHACL constraint metadata; template registry for top 10 constraint types; shape-author `sh:description` overrides
-   - Requirements: LINT-08, LINT-09, LINT-10
-6. **Lint Click-to-Edit Triage** -- Lint result rows open object in dockview pane and scroll to field; sequential triage workflow; keyboard navigation
-   - Requirements: LINT-11, LINT-12, LINT-13
-
-**Research:** [obsidian-import-wizard-ux.md](research/obsidian-import-wizard-ux.md)
-
----
-
-### (Future) Identity: WebID + IndieAuth
-
-**Milestone Goal:** Make SemPKM users verifiable identities on the web. Serve WebID profiles via content negotiation and provide IndieAuth login for interop with the IndieWeb ecosystem.
-
-**Depends on:** Can start independently (no milestone dependencies)
-
-**Estimated Phases (sketch):**
-
-1. **WebID Profiles + rel="me"** -- Content negotiation on `/users/{username}` (Turtle for RDF clients, HTML for browsers); FOAF/schema.org properties; `rel="me"` links for fediverse verification
-2. **IndieAuth Provider** -- Authorization endpoint, token endpoint, server metadata at `rel=indieauth-metadata`, mandatory PKCE; users can sign into IndieWeb services with their SemPKM URL
-
-**Research:** [decentralized-identity.md](research/decentralized-identity.md) -- Phases A-B
-
----
-
 ### (Future) Collaboration & Federation
 
 **Milestone Goal:** Enable multi-instance knowledge sharing with data sovereignty. SemPKM instances sync named graphs, notify each other of changes, and authenticate cross-instance users.
 
-**Depends on:** Identity: WebID + IndieAuth (WebID provides the identity layer for federation)
+**Depends on:** v2.5 Identity phases (WebID provides the identity layer for federation)
 
 **Estimated Phases (sketch):**
 
@@ -298,6 +271,41 @@ Before proceeding to the SPARQL Interface milestone, the following design decisi
 
 ---
 
+### (Future) RSS Reader & Hypothesis Integration
+
+**Milestone Goal:** Build an in-app feed reader with background polling, content extraction, OPML import/export, and Hypothesis annotation sync — storing articles, highlights, and bookmarks as native RDF objects via the W3C Web Annotation vocabulary.
+
+**Depends on:** v2.4 complete (inference for derived article-concept links). Can start independently of SPARQL Interface.
+
+**Research:** [rss-reader-hypothesis-integration.md](/home/james/Code/SemPKM/docs/research/rss-reader-hypothesis-integration.md)
+
+**New dependencies:** `feedparser` (RSS/Atom parsing), `trafilatura` (content extraction), `listparser` (OPML import)
+
+**Estimated Phases (sketch -- to be refined during milestone planning):**
+
+1. **RSS Mental Model Bundle** — New installable model (`models/rss-reader/`) with Feed, FeedSubscription, Article, FeedFolder, Highlight, Bookmark types; SHACL shapes for forms; views for Unread, Starred, Highlights, Feed List; seed data with sample feed
+   - Key vocabularies: schema:DataFeed, schema:Article, oa:Annotation, sioc:Forum, as:Read
+   - Low risk — follows established model packaging pattern (cf. basic-pkm, ppv)
+
+2. **Feed Subscription & Ingestion** — FeedService for fetch/parse/ingest; feed discovery (HTML `<link>` autodiscovery + common URL probing); articles created via existing Command API (object.create, body.set); conditional GET (ETag/Last-Modified) to avoid redundant downloads
+   - Key risk: Bulk ingestion performance (10-50 articles per feed update through EventStore)
+
+3. **Background Feed Polling** — asyncio background task in FastAPI lifespan; adaptive polling intervals (15min-12h based on feed frequency); RSS `<ttl>` and HTTP Cache-Control respect; exponential backoff on errors; dead-feed detection
+   - Key risk: Reliability — feeds go down, change URLs, return errors
+
+4. **Reader UI** — Feeds panel in sidebar; article list view (htmx); reading pane in dockview tab (reuse object tab pattern); mark read/unread (as:Read activities); star/bookmark (oa:Annotation with oa:bookmarking); OPML import/export
+   - Reuses: htmx fragment patterns, dockview tabs, markdown rendering (marked + DOMPurify)
+
+5. **Content Extraction (Reader Mode)** — trafilatura integration for fetching clean article text when RSS provides only summaries; Markdown output stored via body.set; metadata extraction (author, date, categories)
+   - Key risk: Some sites block scrapers or require JS rendering
+
+6. **Hypothesis Annotation Sync** — Hypothesis API client (thin httpx wrapper); initial full-history import; periodic poll sync; WebSocket for near-real-time (optional); annotations stored as oa:Annotation with TextQuoteSelector; highlight display alongside articles
+   - Key risk: Hypothesis API rate limits (undocumented); sync edge cases (deletions, edits, conflicts)
+
+7. **Power Features** — Keyboard shortcuts (J/K/Space/F); full-text search via RDF4J Lucene; filter/rule system for auto-organization; article-to-concept linking (manual + AI-suggested); adaptive polling tuning
+
+---
+
 ### Potential Ideas
 
 Ideas with research completed but not yet committed to the roadmap. May be promoted to milestones in future planning sessions.
@@ -306,6 +314,7 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 - **Low-Code UI Builder & Workflows** -- User-composed components tied to SemPKM actions (Notion + Airflow inspired); workflow orchestration for structured data collection sequences — [Research](research/future-milestones.md)
 - **Full Theming System** -- User-selectable theme bundles (Dark+, Solarized, High Contrast); model-contributed themes via manifest; theme preview in settings
 - **SHACL/OWL Inference Phases C-D** -- DASH vocabulary adoption for richer form metadata; RDF4J SchemaCachingRDFSInferencer for query-time RDFS inference — [Research](research/shacl-owl-inference.md)
+- **User-Configurable VFS (MountSpec)** -- Declarative MountSpec vocabulary for user-created virtual filesystem views; 5 directory strategies (flat, tag-groups, property-value, type-hierarchy, relationship-tree); SHACL-validated frontmatter writes; mount management UI — [Research](research/virtual-filesystem.md)
 
 ## Progress
 
@@ -345,12 +354,21 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 32. Carousel Views and View Bug Fixes | v2.3 | 2/2 | Complete | 2026-03-03 |
 | 33. Named Layouts and VFS Settings Restore | v2.3 | 2/2 | Complete | 2026-03-03 |
 | 34. E2E Test Coverage | v2.3 | 2/2 | Complete | 2026-03-03 |
-| 35. OWL 2 RL Inference | v2.4 | 0/? | Planned | - |
-| 36. SHACL-AF Rules Support | v2.4 | 0/? | Planned | - |
-| 37. Global Lint Data Model & API | v2.4 | 0/? | Planned | - |
-| 38. Global Lint Dashboard UI | v2.4 | 0/? | Planned | - |
-| 39. Edit Form Helptext + Bug Fix Batch | v2.4 | 0/? | Planned | - |
-| 40. E2E Test Coverage for v2.4 | v2.4 | 0/? | Planned | - |
+| 35. OWL 2 RL Inference | v2.4 | 5/5 | Complete | 2026-03-04 |
+| 36. SHACL-AF Rules Support | v2.4 | 2/2 | Complete | 2026-03-05 |
+| 37. Global Lint Data Model & API | v2.4 | 2/2 | Complete | 2026-03-05 |
+| 38. Global Lint Dashboard UI | v2.4 | 2/2 | Complete | 2026-03-05 |
+| 39. Edit Form Helptext + Bug Fix Batch | v2.4 | 2/2 | Complete | 2026-03-05 |
+| 40. E2E Test Coverage for v2.4 | v2.4 | 2/2 | Complete | 2026-03-05 |
+| 41. Gap Closure — Rules Wiring, Flip Fix, VFS Browser | v2.4 | 3/3 | Complete | 2026-03-06 |
+| 42. VFS Browser Fix | v2.4 | 1/1 | Complete | 2026-03-06 |
+| 43. Inference E2E Test Gap | v2.4 | 1/1 | Complete | 2026-03-06 |
+| 44. UI Cleanup | v2.5 | 0/0 | Not started | - |
+| 45. Obsidian Vault Scanner | v2.5 | 0/0 | Not started | - |
+| 46. Obsidian Mapping UI | v2.5 | 0/0 | Not started | - |
+| 47. Obsidian Batch Import | v2.5 | 0/0 | Not started | - |
+| 48. WebID Profiles | v2.5 | 0/0 | Not started | - |
+| 49. IndieAuth Provider | v2.5 | 0/0 | Not started | - |
 
 ---
 *Roadmap created: 2026-02-21*
@@ -367,3 +385,4 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 *Roadmap reordered: 2026-03-03 — v2.4 defined, milestones resequenced for agentic execution, Identity split into two milestones, Web Components moved to Potential Ideas*
 *v2.3 shipped: 2026-03-03 — 13 plans, 12 requirements (FTS-04, DOCK-01/02, VIEW-01/02, BUG-01/02/03, TEST-01/02/03/04)*
 *v2.4 roadmap created: 2026-03-03 — Phases 35-40 defined, 17 requirements (INF-01/02, LINT-01-07, HELP-01, BUG-04-09, TEST-05)*
+*v2.5 roadmap created: 2026-03-07 — Phases 44-49 defined, 20 requirements (UICL-01-03, OBSI-01-07, WBID-01-06, IAUTH-01-05), 3 parallel workstreams*

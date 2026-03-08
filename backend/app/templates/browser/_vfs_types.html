@@ -1,0 +1,19 @@
+{% for t in types %}
+<div class="vfs-node vfs-type">
+    <div class="vfs-node-header" onclick="toggleVfsNode(this)">
+        <i data-lucide="chevron-right" class="vfs-chevron"></i>
+        <i data-lucide="folder" class="vfs-icon"></i>
+        <span class="vfs-label">{{ t.label }}</span>
+    </div>
+    <div class="vfs-children" style="display:none"
+         hx-get="/browser/vfs/{{ model_id }}/objects?type_iri={{ t.iri | urlencode }}"
+         hx-trigger="revealed once"
+         hx-swap="innerHTML">
+        <div class="vfs-loading">Loading...</div>
+    </div>
+</div>
+{% endfor %}
+{% if not types %}
+<div class="vfs-empty-node">No types defined</div>
+{% endif %}
+<script>if (typeof lucide !== 'undefined') lucide.createIcons();</script>

@@ -3,6 +3,7 @@
  *
  * Tests that SHACL validation runs asynchronously after object mutations,
  * and that the lint panel in the right pane displays results correctly.
+ * Lint panel uses SSE (EventSource) for real-time updates.
  */
 import { test, expect } from '../../fixtures/auth';
 import { SEED, TYPES } from '../../fixtures/seed-data';
@@ -120,7 +121,7 @@ test.describe('SHACL Validation & Lint Panel', () => {
     expect(html).toContain('lint-panel');
   });
 
-  test('lint panel auto-refreshes (hx-trigger every 10s)', async ({ ownerPage }) => {
+  test('lint panel uses SSE for real-time updates', async ({ ownerPage }) => {
     await ownerPage.goto(`${BASE_URL}/browser/`);
     await waitForWorkspace(ownerPage);
 
@@ -133,13 +134,19 @@ test.describe('SHACL Validation & Lint Panel', () => {
     await waitForIdle(ownerPage);
     await ownerPage.waitForTimeout(3000);
 
-    // Check that the lint panel has the auto-refresh trigger attribute
+    // Check that the lint panel does NOT have polling attributes (SSE replaces polling)
     const lintPanel = ownerPage.locator(SEL.lint.panel);
     const panelCount = await lintPanel.count();
 
     if (panelCount > 0) {
+      // No hx-trigger polling attribute should be present
       const trigger = await lintPanel.getAttribute('hx-trigger');
-      expect(trigger).toContain('every 10s');
+      expect(trigger).toBeNull();
+
+      // The lint panel should have the SSE script (data-lint-sse)
+      const sseScript = ownerPage.locator('script[data-lint-sse]');
+      const scriptCount = await sseScript.count();
+      expect(scriptCount).toBeGreaterThan(0);
     }
   });
 });

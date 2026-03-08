@@ -23,6 +23,7 @@
     <link rel="stylesheet" href="/css/forms.css">
     <link rel="stylesheet" href="/css/views.css">
     <link rel="stylesheet" href="/css/settings.css">
+    <link rel="stylesheet" href="/css/vfs-browser.css">
     <script src="https://unpkg.com/split.js@1.6.5/dist/split.min.js"></script>
     <script type="module" src="https://unpkg.com/ninja-keys@1.2.2?module"></script>
     <!-- Cytoscape.js graph visualization -->
@@ -62,16 +63,21 @@
         // Highlight the active sidebar link based on current URL
         function updateActiveNav() {
             var path = window.location.pathname;
-            document.querySelectorAll('.sidebar-nav .nav-link').forEach(function(link) {
+            var bestLink = null;
+            var bestLen = 0;
+            var links = document.querySelectorAll('.sidebar-nav .nav-link');
+            links.forEach(function(link) {
+                link.classList.remove('active');
                 var href = link.getAttribute('href');
-                if (path === '/' && href === '/') {
-                    link.classList.add('active');
-                } else if (href !== '/' && path.startsWith(href)) {
-                    link.classList.add('active');
-                } else {
-                    link.classList.remove('active');
+                if (!href || href === '#') return;
+                var match = (path === '/' && href === '/') ||
+                            (href !== '/' && path.startsWith(href));
+                if (match && href.length > bestLen) {
+                    bestLen = href.length;
+                    bestLink = link;
                 }
             });
+            if (bestLink) bestLink.classList.add('active');
         }
         updateActiveNav();
         checkAuthStatus();

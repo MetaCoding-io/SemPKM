@@ -1,126 +1,114 @@
-# Requirements: SemPKM v2.4
+# Requirements: SemPKM v2.5
 
-**Defined:** 2026-03-03
+**Defined:** 2026-03-07
 **Core Value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations — no blank-page syndrome, no schema setup.
 
-## v2.4 Requirements
+## v2.5 Requirements
 
-### OWL 2 RL Inference
+Requirements for v2.5 Polish, Import & Identity. Each maps to roadmap phases.
 
-- [ ] **INF-01**: User adds a participant to a Project; the Person's detail page automatically shows the Project in their "participatesIn" list without manual inverse entry (OWL 2 RL inference materializes `owl:inverseOf` triples)
-- [ ] **INF-02**: Mental Models can ship SHACL-AF rules (sh:TripleRule, sh:SPARQLRule) that pyshacl executes with `advanced=True`; inferred triples are stored in `urn:sempkm:inferred` named graph and visible in object views and graph visualization
+### UI Cleanup
 
-### Global Lint Dashboard
+- [ ] **UICL-01**: VFS browser markdown preview text renders at correct size (not zoomed in)
+- [ ] **UICL-02**: VFS browser content does not show unwanted underline styling
+- [ ] **UICL-03**: General UI polish pass — audit-driven tweaks (specifics added during discuss-phase)
 
-- [ ] **LINT-01**: User can open a Global Lint Status view (as a dockview panel or dedicated page) that shows all SHACL validation results across every object in the knowledge base, with summary counts by severity (violations, warnings, infos) and a per-object breakdown
-- [ ] **LINT-02**: Global lint view updates automatically after each EventStore.commit() via the existing AsyncValidationQueue; user sees the latest validation state without manual refresh
-- [ ] **LINT-03**: User can see a visual health indicator (e.g., status bar badge or sidebar icon) showing the overall knowledge base validation status at a glance (pass / N violations / N warnings)
-- [ ] **LINT-04**: User can filter lint results by severity level (violations only, warnings only, infos only, or combinations)
-- [ ] **LINT-05**: User can filter lint results by object type (e.g., show only Note violations, only Project violations) using the Mental Model's type registry
-- [ ] **LINT-06**: User can search/filter lint results by keyword across message text, property path, and object label
-- [ ] **LINT-07**: User can sort lint results by severity, object name, property path, or timestamp
+### Obsidian Import
 
-### Edit Form Helptext
+- [ ] **OBSI-01**: User can upload/point to an Obsidian vault directory for scanning
+- [ ] **OBSI-02**: Scan results show file count, detected types, frontmatter keys, link targets, and tags
+- [ ] **OBSI-03**: User can interactively map Obsidian note categories to Mental Model types
+- [ ] **OBSI-04**: User can map frontmatter keys to RDF properties for each type
+- [ ] **OBSI-05**: User can preview mapped objects before committing import
+- [ ] **OBSI-06**: Batch import creates objects with bodies, properties, and edges via Command API
+- [ ] **OBSI-07**: Wiki-links and tags are resolved to edges between imported objects
 
-- [ ] **HELP-01**: SHACL shapes can declare `sempkm:editHelpText` annotation property; edit forms render it as collapsible markdown below the field, providing context about what to enter and why
+### WebID
 
-### Bug Fixes
+- [ ] **WBID-01**: Each user has a WebID URI (e.g. `https://instance/users/alice#me`)
+- [ ] **WBID-02**: Dereferencing the WebID URI returns an RDF profile document (FOAF/schema.org properties)
+- [ ] **WBID-03**: Content negotiation serves Turtle, JSON-LD, or HTML based on Accept header
+- [ ] **WBID-04**: Profile page includes `rel="me"` links for fediverse verification
+- [ ] **WBID-05**: Server generates Ed25519 key pair per user, stores encrypted
+- [ ] **WBID-06**: Public key is published in the WebID profile document
 
-- [ ] **BUG-04**: Accent bar on tabs is type-aware (different accent colors per type, not just teal for all)
-- [ ] **BUG-05**: Card view borders render correctly in both light and dark themes
-- [ ] **BUG-06**: Firefox Ctrl+K opens ninja-keys command palette (not Firefox's native address bar focus)
-- [ ] **BUG-07**: Tab accent bar does not bleed into adjacent inactive tabs
-- [ ] **BUG-08**: Panel chevron icons are visible in dark mode (not invisible-on-dark)
-- [ ] **BUG-09**: Concept search and linking functionality works correctly (search finds concepts, links are created)
+### IndieAuth
 
-### Testing
-
-- [ ] **TEST-05**: Playwright E2E tests cover all v2.4 user-visible features (inference bidirectional links, lint dashboard filtering/sorting, edit form helptext, bug fix verifications)
+- [ ] **IAUTH-01**: Server exposes `rel="indieauth-metadata"` link for client discovery
+- [ ] **IAUTH-02**: Authorization endpoint handles OAuth2 authorization code flow with mandatory PKCE
+- [ ] **IAUTH-03**: Token endpoint issues access tokens after code exchange
+- [ ] **IAUTH-04**: Token endpoint supports token verification (introspection)
+- [ ] **IAUTH-05**: User sees consent screen showing requesting app and requested scopes
 
 ## Future Requirements
 
-### SPARQL Interface (future milestone)
+Deferred to future milestones. Tracked but not in current roadmap.
 
-**Permissions:**
-- [ ] **SQ-01**: User's SPARQL queries are automatically scoped to graphs they have permission to read; owner can opt into all-graphs mode; members/guests cannot access event graphs or other users' draft graphs
-- [ ] **SQ-02**: Admin can define SPARQL execution policies (e.g., query timeout limits, result size caps, UPDATE prohibition) per role
+### Obsidian Import (Triage)
 
-**Autocomplete:**
-- [ ] **SQ-03**: SPARQL editor offers prefix autocomplete from the project's prefix registry (user > model > LOV > built-in layers)
-- [ ] **SQ-04**: SPARQL editor offers class and property autocomplete derived from installed Mental Model ontologies and SHACL shapes
-- [ ] **SQ-05**: Autocomplete suggestions show human-readable labels alongside IRIs (using the label service precedence chain)
+- **OBSI-08**: SHACL fix guidance engine suggests fixes for validation violations on imported data
+- **OBSI-09**: Click-to-edit lint triage workflow for reviewing imported objects
+- **OBSI-10**: LLM-assisted type classification for ambiguous notes
 
-**UI Pills:**
-- [ ] **SQ-06**: IRIs and prefixed names in the SPARQL editor render as compact, styled pills showing the human-readable label; clicking a pill navigates to the object or expands the full IRI
-- [ ] **SQ-07**: Prefix declarations in the query header render as collapsed pill chips that can be expanded/removed inline
+### Identity (Advanced)
 
-**Query History:**
-- [ ] **SQ-08**: User can browse a searchable, filterable history of previously executed queries with execution timestamp, duration, and result count
-- [ ] **SQ-09**: Query history is persisted server-side (not just localStorage) and accessible across devices/sessions
+- **IDNT-01**: did:web DID Documents served at resolution paths
+- **IDNT-02**: RDF graph signing with URDNA2015 canonicalization + Ed25519
+- **IDNT-03**: Verifiable Credentials issuance (authorship attestation)
+- **IDNT-04**: did:webvh migration for verifiable identity history
 
-**Saved Queries:**
-- [ ] **SQ-10**: User can save/bookmark a SPARQL query with a name and optional description; saved queries appear in a dedicated panel or palette section
-- [ ] **SQ-11**: User can share a saved query with other workspace members via a shareable link or by publishing it to a shared query library
-- [ ] **SQ-12**: Saved queries support parameterization (template variables like `$type` or `$label` that prompt the user on execution)
+### Collaboration
 
-**Named Queries as Views:**
-- [ ] **SQ-13**: User can promote a saved query to a "named query" that appears as a reusable view in the object browser's view switcher
-- [ ] **SQ-14**: Named query views execute their SPARQL query on demand and render results using the standard view renderers (table, cards, graph)
-- [ ] **SQ-15**: Named query views can be included in Mental Model manifests as model-provided views alongside built-in view specs
-
-### Lint Fix Guidance & Triage (future milestone)
-
-**Fix Guidance:**
-- [ ] **LINT-08**: Each lint result displays a human-readable "how to fix" message that explains what the constraint expects and how to resolve the violation
-- [ ] **LINT-09**: Fix guidance messages are derived from SHACL shape metadata (sh:description, sh:name, constraint component type) and augmented with Mental Model-provided help text when available
-- [ ] **LINT-10**: Common constraint violations (sh:minCount, sh:maxCount, sh:datatype, sh:pattern, sh:class) have built-in human-friendly message templates that produce actionable guidance
-
-**Click-to-Edit Workflow:**
-- [ ] **LINT-11**: User can click any lint result row and the corresponding object opens in a dockview pane (or focuses the existing pane if already open), scrolled/focused to the relevant field
-- [ ] **LINT-12**: After editing and saving the object, the lint view updates to reflect whether the issue is resolved, removed from the list, or still present
-- [ ] **LINT-13**: User can work through lint results sequentially: fix one issue, see it disappear from the global list, click the next issue, fix it — a continuous triage workflow
+- **COLLAB-01**: RDF Patch change log for named graph sync
+- **COLLAB-02**: Linked Data Notifications for cross-instance awareness
+- **COLLAB-03**: Cross-instance permissions using WebID
 
 ## Out of Scope
 
+Explicitly excluded. Documented to prevent scope creep.
+
 | Feature | Reason |
 |---------|--------|
-| Animated cube-flip / 3D carousel for view rotation | HIGH cost, zero functional gain, existing flip is already a maintenance burden |
-| SHACL editor environment | Future — research + custom editor design needed |
-| Low-code GUI builder (Notion/Airflow-like) | Future — major new capability, not scoped |
-| Full dockview Phase B (sidebar panels) | v2.5 — Phase A must stabilize first |
-| VFS custom setups + disable toggle | Future |
-| SPARQL UPDATE as general write surface | By design — bypasses event sourcing |
-| Automated lint auto-fix (programmatic correction) | Too risky — automated edits bypass user intent; fix guidance is sufficient |
-| Custom user-defined validation rules beyond SHACL | SHACL shapes are the validation language; custom rules belong in Mental Model shapes |
-| Cross-object relationship validation (orphan detection) | Distinct feature from per-object SHACL validation; future graph-level health check |
-| RDF4J server-side inference (SchemaCachingRDFSInferencer) | Python-side owlrl is sufficient; triplestore reconfiguration deferred |
+| Full Solid Pod server | Different problem (app-data separation), no SPARQL |
+| AT Protocol / did:plc integration | Incompatible data models, enormous effort |
+| Real-time CRDT co-editing | W3C CRDT for RDF CG still pre-standard |
+| Full ActivityPub S2S federation | Wrong use case for PKM, enormous complexity |
+| Blockchain-based DIDs | Unnecessary complexity for self-hosted app |
+| Obsidian vault write-back/sync | One-way import only for v2.5 |
 
 ## Traceability
 
+Which phases cover which requirements. Updated during roadmap creation.
+
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INF-01 | Phase 35 | Planned |
-| INF-02 | Phase 36 | Planned |
-| LINT-01 | Phase 37 | Planned |
-| LINT-02 | Phase 37 | Planned |
-| LINT-03 | Phase 38 | Planned |
-| LINT-04 | Phase 38 | Planned |
-| LINT-05 | Phase 38 | Planned |
-| LINT-06 | Phase 38 | Planned |
-| LINT-07 | Phase 38 | Planned |
-| HELP-01 | Phase 39 | Planned |
-| BUG-04 | Phase 39 | Planned |
-| BUG-05 | Phase 39 | Planned |
-| BUG-06 | Phase 39 | Planned |
-| BUG-07 | Phase 39 | Planned |
-| BUG-08 | Phase 39 | Planned |
-| BUG-09 | Phase 39 | Planned |
-| TEST-05 | Phase 40 | Planned |
+| UICL-01 | Phase 44 | Pending |
+| UICL-02 | Phase 44 | Pending |
+| UICL-03 | Phase 44 | Pending |
+| OBSI-01 | Phase 45 | Pending |
+| OBSI-02 | Phase 45 | Pending |
+| OBSI-03 | Phase 46 | Pending |
+| OBSI-04 | Phase 46 | Pending |
+| OBSI-05 | Phase 46 | Pending |
+| OBSI-06 | Phase 47 | Pending |
+| OBSI-07 | Phase 47 | Pending |
+| WBID-01 | Phase 48 | Pending |
+| WBID-02 | Phase 48 | Pending |
+| WBID-03 | Phase 48 | Pending |
+| WBID-04 | Phase 48 | Pending |
+| WBID-05 | Phase 48 | Pending |
+| WBID-06 | Phase 48 | Pending |
+| IAUTH-01 | Phase 49 | Pending |
+| IAUTH-02 | Phase 49 | Pending |
+| IAUTH-03 | Phase 49 | Pending |
+| IAUTH-04 | Phase 49 | Pending |
+| IAUTH-05 | Phase 49 | Pending |
 
 **Coverage:**
-- v2.4 requirements: 17 total
-- Mapped to phases: 17
-- Unmapped: 0 ✓
+- v2.5 requirements: 20 total
+- Mapped to phases: 20
+- Unmapped: 0
 
 ---
-*Requirements defined: 2026-03-03*
+*Requirements defined: 2026-03-07*
+*Last updated: 2026-03-07 after roadmap creation*

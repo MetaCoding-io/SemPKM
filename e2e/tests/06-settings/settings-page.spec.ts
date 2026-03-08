@@ -15,11 +15,10 @@ test.describe('Settings Page', () => {
     await ownerPage.goto(`${BASE_URL}/browser/`);
     await waitForWorkspace(ownerPage);
 
-    // Load settings page via htmx into the editor area
+    // Open settings tab via the global helper (uses dockview internally)
     await ownerPage.evaluate(() => {
-      const target = document.querySelector('#editor-area-group-1');
-      if (target && (window as any).htmx) {
-        (window as any).htmx.ajax('GET', '/browser/settings', { target });
+      if (typeof (window as any).openSettingsTab === 'function') {
+        (window as any).openSettingsTab();
       }
     });
 
@@ -41,9 +40,8 @@ test.describe('Settings Page', () => {
     await waitForWorkspace(ownerPage);
 
     await ownerPage.evaluate(() => {
-      const target = document.querySelector('#editor-area-group-1');
-      if (target && (window as any).htmx) {
-        (window as any).htmx.ajax('GET', '/browser/settings', { target });
+      if (typeof (window as any).openSettingsTab === 'function') {
+        (window as any).openSettingsTab();
       }
     });
 
@@ -67,9 +65,8 @@ test.describe('Settings Page', () => {
     await waitForWorkspace(ownerPage);
 
     await ownerPage.evaluate(() => {
-      const target = document.querySelector('#editor-area-group-1');
-      if (target && (window as any).htmx) {
-        (window as any).htmx.ajax('GET', '/browser/settings', { target });
+      if (typeof (window as any).openSettingsTab === 'function') {
+        (window as any).openSettingsTab();
       }
     });
 

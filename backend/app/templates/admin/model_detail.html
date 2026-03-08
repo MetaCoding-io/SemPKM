@@ -54,6 +54,13 @@
                 hx-trigger="click once">
             <i data-lucide="git-branch"></i> Relationships
         </button>
+        <button class="model-tab" data-tab="inference" onclick="switchModelTab('inference')"
+                hx-get="/admin/models/{{ detail.info.model_id }}/entailment"
+                hx-target="#inference-content"
+                hx-swap="innerHTML"
+                hx-trigger="click once">
+            <i data-lucide="brain"></i> Inference Settings
+        </button>
     </div>
 
     <!-- Schema Tab Panel -->
@@ -273,6 +280,15 @@
             </div>
         </div>
     </div>
+
+    <!-- Inference Settings Tab Panel -->
+    <div id="inference-panel" class="model-tab-panel" style="display:none;">
+        <div id="inference-content">
+            <div class="diagram-loading">
+                <i data-lucide="loader-2" class="spin"></i> Loading inference settings...
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -286,6 +302,7 @@
         });
         document.getElementById('schema-panel').style.display = tabName === 'schema' ? '' : 'none';
         document.getElementById('relationships-panel').style.display = tabName === 'relationships' ? '' : 'none';
+        document.getElementById('inference-panel').style.display = tabName === 'inference' ? '' : 'none';
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
@@ -298,24 +315,27 @@
         var isFlipped = inner.classList.contains('flipped');
 
         if (isFlipped) {
-            // Back → Front
+            // Back → Front: show front BEFORE animation, hide back AFTER.
+            // backface-visibility handles the visual midpoint at exactly 90°.
+            if (front) front.classList.remove('face-hidden');
             inner.classList.remove('flipped');
             container.style.height = front.scrollHeight + 'px';
-            setTimeout(function() {
-                if (front) front.classList.remove('face-hidden');
+            inner.addEventListener('transitionend', function handler(e) {
+                if (e.propertyName !== 'transform') return;
+                inner.removeEventListener('transitionend', handler);
                 if (back) back.classList.remove('face-visible');
-            }, 300);
+            });
         } else {
-            // Front → Back
-            // Briefly make back visible off-screen to measure height
-            back.style.visibility = 'visible';
+            // Front → Back: show back BEFORE animation (also lets us measure height),
+            // hide front AFTER.
+            if (back) back.classList.add('face-visible');
             container.style.height = back.scrollHeight + 'px';
-            back.style.visibility = '';
             inner.classList.add('flipped');
-            setTimeout(function() {
+            inner.addEventListener('transitionend', function handler(e) {
+                if (e.propertyName !== 'transform') return;
+                inner.removeEventListener('transitionend', handler);
                 if (front) front.classList.add('face-hidden');
-                if (back) back.classList.add('face-visible');
-            }, 300);
+            });
         }
     }
 

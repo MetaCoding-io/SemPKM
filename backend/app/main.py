@@ -17,6 +17,10 @@ from jinja2_fragments.fastapi import Jinja2Blocks
 from app.admin.router import router as admin_router
 from app.auth.router import router as auth_router
 from app.browser.router import router as browser_router
+from app.inference.router import router as inference_router
+from app.lint.broadcast import LintBroadcast, SSEEvent
+from app.lint.router import router as lint_router
+from app.lint.service import LintService
 from app.canvas.router import router as canvas_router
 from app.views.router import router as views_router
 from app.debug.router import router as debug_router
@@ -45,10 +49,12 @@ from app.monitoring.middleware import PostHogErrorMiddleware
 from app.monitoring.posthog import init_posthog, shutdown_posthog
 from app.monitoring.router import router as monitoring_router
 from app.validation.queue import AsyncValidationQueue
-from app.validation.router import router as validation_router
+# Old validation router removed in 37-02 (replaced by /api/lint/*)
+# from app.validation.router import router as validation_router
 from wsgidav.wsgidav_app import WsgiDAVApp
 from a2wsgi import WSGIMiddleware
 from app.vfs.provider import SemPKMDAVProvider
+from app.vfs.router import router as vfs_browser_router
 from app.vfs.auth import SemPKMWsgiAuthenticator
 from app.triplestore.sync_client import SyncTriplestoreClient
 
@@ -90,6 +96,14 @@ async def lifespan(app: FastAPI):
     label_service = LabelService(client, prefix_registry)
     app.state.label_service = label_service
 
+    # Create lint service for structured SHACL validation results
+    lint_service = LintService(client, label_service)
+    app.state.lint_service = lint_service
+
+    # Create SSE broadcast manager for real-time lint event push
+    lint_broadcast = LintBroadcast()
+    app.state.lint_broadcast = lint_broadcast
+
     # Create search service for full-text keyword search (LuceneSail)
     search_service = SearchService(client)
     app.state.search_service = search_service
@@ -122,8 +136,9 @@ async def lifespan(app: FastAPI):
     webhook_service = WebhookService(client)
     app.state.webhook_service = webhook_service
 
-    # Define validation completion callback for webhook dispatch
-    async def on_validation_complete(report_summary, event_iri, timestamp):
+    # Define validation completion callback for webhook dispatch + SSE broadcast
+    async def on_validation_complete(report_summary, event_iri, timestamp, trigger_source="user_edit"):
+        # Dispatch webhook (existing behavior)
         await webhook_service.dispatch("validation.completed", {
             "event_iri": event_iri,
             "timestamp": timestamp,
@@ -131,6 +146,19 @@ async def lifespan(app: FastAPI):
             "violations": report_summary.violation_count,
             "warnings": report_summary.warning_count,
         })
+        # Broadcast SSE event to all connected clients
+        await lint_broadcast.publish(SSEEvent(
+            event="validation_complete",
+            data={
+                "run_id": report_summary.report_iri or "",
+                "conforms": report_summary.conforms,
+                "violation_count": report_summary.violation_count,
+                "warning_count": report_summary.warning_count,
+                "info_count": report_summary.info_count,
+                "timestamp": timestamp,
+                "trigger_source": trigger_source,
+            },
+        ))
 
     validation_queue = AsyncValidationQueue(
         validation_service, on_complete=on_validation_complete
@@ -375,9 +403,11 @@ app.include_router(commands_router)
 app.include_router(health_router)
 app.include_router(models_router)
 app.include_router(sparql_router)
-app.include_router(validation_router)
+app.include_router(lint_router)
+app.include_router(inference_router)
 app.include_router(admin_router)
 app.include_router(views_router)
+app.include_router(vfs_browser_router)
 app.include_router(browser_router)
 app.include_router(canvas_router)
 app.include_router(debug_router)

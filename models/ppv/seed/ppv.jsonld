@@ -1,0 +1,377 @@
+{
+  "@context": {
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "schema": "https://schema.org/",
+    "ppv": "urn:sempkm:model:ppv:"
+  },
+  "@graph": [
+
+    {
+      "@id": "ppv:seed-group-growth",
+      "@type": "ppv:PillarGroup",
+      "dcterms:title": "Growth",
+      "dcterms:description": "Pillars focused on personal development and self-improvement.",
+      "dcterms:created": { "@value": "2026-01-01T09:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "ppv:seed-group-business",
+      "@type": "ppv:PillarGroup",
+      "dcterms:title": "Business",
+      "dcterms:description": "Pillars focused on career, finances, and professional endeavors.",
+      "dcterms:created": { "@value": "2026-01-01T09:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "ppv:seed-group-home",
+      "@type": "ppv:PillarGroup",
+      "dcterms:title": "Home & Social",
+      "dcterms:description": "Pillars focused on relationships, home life, and community.",
+      "dcterms:created": { "@value": "2026-01-01T09:00:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "ppv:seed-pillar-health",
+      "@type": "ppv:Pillar",
+      "dcterms:title": "Health & Fitness",
+      "dcterms:description": "Physical health, exercise routines, nutrition, sleep, and overall wellness.",
+      "ppv:status": "Active",
+      "ppv:icon": "💪",
+      "ppv:color": "green",
+      "ppv:order": { "@value": "1", "@type": "xsd:integer" },
+      "ppv:pillarGroup": { "@id": "ppv:seed-group-growth" },
+      "dcterms:created": { "@value": "2026-01-01T09:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "ppv:seed-pillar-career",
+      "@type": "ppv:Pillar",
+      "dcterms:title": "Career Development",
+      "dcterms:description": "Professional growth, skill building, career trajectory, and workplace effectiveness.",
+      "ppv:status": "Active",
+      "ppv:icon": "🚀",
+      "ppv:color": "blue",
+      "ppv:order": { "@value": "2", "@type": "xsd:integer" },
+      "ppv:pillarGroup": { "@id": "ppv:seed-group-business" },
+      "dcterms:created": { "@value": "2026-01-01T09:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "ppv:seed-pillar-relationships",
+      "@type": "ppv:Pillar",
+      "dcterms:title": "Relationships",
+      "dcterms:description": "Family bonds, friendships, romantic relationship, and community connections.",
+      "ppv:status": "Active",
+      "ppv:icon": "❤️",
+      "ppv:color": "red",
+      "ppv:order": { "@value": "3", "@type": "xsd:integer" },
+      "ppv:pillarGroup": { "@id": "ppv:seed-group-home" },
+      "dcterms:created": { "@value": "2026-01-01T09:00:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "ppv:seed-vg-fitness",
+      "@type": "ppv:ValueGoal",
+      "dcterms:title": "Maintain Peak Physical Fitness",
+      "dcterms:description": "Sustain a consistent exercise routine and healthy body composition through strength training, cardio, and flexibility work.",
+      "ppv:pillar": { "@id": "ppv:seed-pillar-health" },
+      "ppv:status": "Underway",
+      "ppv:priority": "1st Priority",
+      "dcterms:created": { "@value": "2026-01-01T09:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "ppv:seed-vg-nutrition",
+      "@type": "ppv:ValueGoal",
+      "dcterms:title": "Optimize Nutrition & Recovery",
+      "dcterms:description": "Develop sustainable eating habits and recovery practices that fuel performance and well-being.",
+      "ppv:pillar": { "@id": "ppv:seed-pillar-health" },
+      "ppv:status": "Underway",
+      "ppv:priority": "2nd Priority",
+      "dcterms:created": { "@value": "2026-01-01T09:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "ppv:seed-vg-leadership",
+      "@type": "ppv:ValueGoal",
+      "dcterms:title": "Develop Leadership Capability",
+      "dcterms:description": "Build the skills, knowledge, and presence to lead effectively at the next level.",
+      "ppv:pillar": { "@id": "ppv:seed-pillar-career" },
+      "ppv:status": "Underway",
+      "ppv:priority": "1st Priority",
+      "dcterms:created": { "@value": "2026-01-01T09:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "ppv:seed-vg-skills",
+      "@type": "ppv:ValueGoal",
+      "dcterms:title": "Master Technical Skills",
+      "dcterms:description": "Deepen expertise in core technical domains to stay at the cutting edge.",
+      "ppv:pillar": { "@id": "ppv:seed-pillar-career" },
+      "ppv:status": "Underway",
+      "ppv:priority": "2nd Priority",
+      "dcterms:created": { "@value": "2026-01-01T09:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "ppv:seed-vg-family",
+      "@type": "ppv:ValueGoal",
+      "dcterms:title": "Strengthen Family Bonds",
+      "dcterms:description": "Invest quality time and attention in family relationships, creating lasting memories and deep connection.",
+      "ppv:pillar": { "@id": "ppv:seed-pillar-relationships" },
+      "ppv:status": "Underway",
+      "ppv:priority": "1st Priority",
+      "dcterms:created": { "@value": "2026-01-01T09:00:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "ppv:seed-go-halfmarathon",
+      "@type": "ppv:GoalOutcome",
+      "dcterms:title": "Run a Half Marathon",
+      "dcterms:description": "Complete a half marathon (21.1km) by September 2026.",
+      "ppv:valueGoal": { "@id": "ppv:seed-vg-fitness" },
+      "ppv:status": "Active",
+      "ppv:progress": { "@value": "25", "@type": "xsd:integer" },
+      "ppv:targetDate": { "@value": "2026-09-15", "@type": "xsd:date" },
+      "dcterms:created": { "@value": "2026-01-15T10:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "ppv:seed-go-strength",
+      "@type": "ppv:GoalOutcome",
+      "dcterms:title": "Achieve 3x Body Weight Total Lift",
+      "dcterms:description": "Reach combined squat/bench/deadlift total of 3x body weight.",
+      "ppv:valueGoal": { "@id": "ppv:seed-vg-fitness" },
+      "ppv:status": "Next Up",
+      "ppv:progress": { "@value": "60", "@type": "xsd:integer" },
+      "ppv:targetDate": { "@value": "2026-12-31", "@type": "xsd:date" },
+      "dcterms:created": { "@value": "2026-01-15T10:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "ppv:seed-go-mealprep",
+      "@type": "ppv:GoalOutcome",
+      "dcterms:title": "Establish Weekly Meal Prep Routine",
+      "dcterms:description": "Prep all weekday meals on Sunday — consistent for 12 consecutive weeks.",
+      "ppv:valueGoal": { "@id": "ppv:seed-vg-nutrition" },
+      "ppv:status": "Active",
+      "ppv:progress": { "@value": "40", "@type": "xsd:integer" },
+      "ppv:targetDate": { "@value": "2026-06-01", "@type": "xsd:date" },
+      "dcterms:created": { "@value": "2026-01-20T10:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "ppv:seed-go-presentation",
+      "@type": "ppv:GoalOutcome",
+      "dcterms:title": "Deliver Keynote at Industry Conference",
+      "dcterms:description": "Prepare and deliver a 30-minute keynote on semantic knowledge management.",
+      "ppv:valueGoal": { "@id": "ppv:seed-vg-leadership" },
+      "ppv:status": "Active",
+      "ppv:progress": { "@value": "10", "@type": "xsd:integer" },
+      "ppv:targetDate": { "@value": "2026-10-01", "@type": "xsd:date" },
+      "dcterms:created": { "@value": "2026-02-01T10:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "ppv:seed-go-familydinners",
+      "@type": "ppv:GoalOutcome",
+      "dcterms:title": "Weekly Family Dinner Tradition",
+      "dcterms:description": "Host a dedicated family dinner every Sunday for 6 months straight.",
+      "ppv:valueGoal": { "@id": "ppv:seed-vg-family" },
+      "ppv:status": "Active",
+      "ppv:progress": { "@value": "50", "@type": "xsd:integer" },
+      "ppv:targetDate": { "@value": "2026-07-01", "@type": "xsd:date" },
+      "dcterms:created": { "@value": "2026-01-05T10:00:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "ppv:seed-proj-runplan",
+      "@type": "ppv:Project",
+      "dcterms:title": "Half Marathon Training Plan",
+      "dcterms:description": "16-week progressive running plan building from 5K base to half marathon distance.",
+      "ppv:goalOutcome": { "@id": "ppv:seed-go-halfmarathon" },
+      "ppv:status": "Active",
+      "ppv:priority": "1st Priority",
+      "ppv:progress": { "@value": "30", "@type": "xsd:integer" },
+      "schema:startDate": { "@value": "2026-02-01", "@type": "xsd:date" },
+      "ppv:dueDate": { "@value": "2026-09-01", "@type": "xsd:date" },
+      "dcterms:created": { "@value": "2026-02-01T10:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "ppv:seed-proj-mealprep",
+      "@type": "ppv:Project",
+      "dcterms:title": "Meal Prep System Setup",
+      "dcterms:description": "Design recipes, buy containers, establish Sunday prep workflow.",
+      "ppv:goalOutcome": { "@id": "ppv:seed-go-mealprep" },
+      "ppv:status": "Active",
+      "ppv:priority": "2nd Priority",
+      "ppv:progress": { "@value": "60", "@type": "xsd:integer" },
+      "schema:startDate": { "@value": "2026-01-20", "@type": "xsd:date" },
+      "ppv:dueDate": { "@value": "2026-03-15", "@type": "xsd:date" },
+      "dcterms:created": { "@value": "2026-01-20T10:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "ppv:seed-proj-keynote",
+      "@type": "ppv:Project",
+      "dcterms:title": "Conference Keynote Preparation",
+      "dcterms:description": "Research, outline, draft slides, rehearse, and deliver the keynote.",
+      "ppv:goalOutcome": { "@id": "ppv:seed-go-presentation" },
+      "ppv:status": "Next Up",
+      "ppv:priority": "1st Priority",
+      "ppv:progress": { "@value": "5", "@type": "xsd:integer" },
+      "schema:startDate": { "@value": "2026-06-01", "@type": "xsd:date" },
+      "ppv:dueDate": { "@value": "2026-09-25", "@type": "xsd:date" },
+      "dcterms:created": { "@value": "2026-02-01T10:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "ppv:seed-proj-dinnerrecipes",
+      "@type": "ppv:Project",
+      "dcterms:title": "Build Family Dinner Recipe Collection",
+      "dcterms:description": "Curate 20 go-to family dinner recipes that everyone enjoys.",
+      "ppv:goalOutcome": { "@id": "ppv:seed-go-familydinners" },
+      "ppv:status": "Active",
+      "ppv:priority": "2nd Priority",
+      "ppv:progress": { "@value": "45", "@type": "xsd:integer" },
+      "schema:startDate": { "@value": "2026-01-10", "@type": "xsd:date" },
+      "ppv:dueDate": { "@value": "2026-04-01", "@type": "xsd:date" },
+      "dcterms:created": { "@value": "2026-01-10T10:00:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "ppv:seed-action-shoes",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "Buy new running shoes",
+      "dcterms:description": "Visit running store for gait analysis and buy shoes rated for half marathon distance.",
+      "ppv:project": { "@id": "ppv:seed-proj-runplan" },
+      "ppv:status": "Active",
+      "ppv:priority": "Immediate",
+      "ppv:done": false,
+      "ppv:doDate": { "@value": "2026-03-08", "@type": "xsd:date" },
+      "ppv:context": "errands",
+      "ppv:energy": "low",
+      "ppv:timeEstimate": { "@value": "60", "@type": "xsd:integer" },
+      "dcterms:created": { "@value": "2026-03-01T10:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "ppv:seed-action-10k",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "Complete 10K training run",
+      "dcterms:description": "Week 6 long run: 10K at easy pace.",
+      "ppv:project": { "@id": "ppv:seed-proj-runplan" },
+      "ppv:status": "Next Up",
+      "ppv:priority": "Scheduled",
+      "ppv:done": false,
+      "ppv:doDate": { "@value": "2026-03-15", "@type": "xsd:date" },
+      "ppv:context": "anywhere",
+      "ppv:energy": "high",
+      "ppv:timeEstimate": { "@value": "70", "@type": "xsd:integer" },
+      "dcterms:created": { "@value": "2026-03-01T10:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "ppv:seed-action-containers",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "Order glass meal prep containers",
+      "ppv:project": { "@id": "ppv:seed-proj-mealprep" },
+      "ppv:status": "Active",
+      "ppv:priority": "Quick",
+      "ppv:done": false,
+      "ppv:doDate": { "@value": "2026-03-05", "@type": "xsd:date" },
+      "ppv:context": "computer",
+      "ppv:energy": "low",
+      "ppv:timeEstimate": { "@value": "15", "@type": "xsd:integer" },
+      "dcterms:created": { "@value": "2026-03-01T10:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "ppv:seed-action-recipes",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "Research 5 batch-cooking chicken recipes",
+      "ppv:project": { "@id": "ppv:seed-proj-mealprep" },
+      "ppv:status": "Active",
+      "ppv:priority": "2nd Priority",
+      "ppv:done": false,
+      "ppv:doDate": { "@value": "2026-03-06", "@type": "xsd:date" },
+      "ppv:context": "computer",
+      "ppv:energy": "medium",
+      "ppv:timeEstimate": { "@value": "30", "@type": "xsd:integer" },
+      "dcterms:created": { "@value": "2026-03-01T10:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "ppv:seed-action-abstract",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "Draft conference keynote abstract",
+      "dcterms:description": "Write 200-word abstract for the conference CFP submission.",
+      "ppv:project": { "@id": "ppv:seed-proj-keynote" },
+      "ppv:status": "Future 1",
+      "ppv:priority": "Scheduled",
+      "ppv:done": false,
+      "ppv:doDate": { "@value": "2026-04-15", "@type": "xsd:date" },
+      "ppv:context": "computer",
+      "ppv:energy": "high",
+      "ppv:timeEstimate": { "@value": "45", "@type": "xsd:integer" },
+      "dcterms:created": { "@value": "2026-02-01T10:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "ppv:seed-action-familyrecipe",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "Ask mom for her lasagna recipe",
+      "ppv:project": { "@id": "ppv:seed-proj-dinnerrecipes" },
+      "ppv:status": "Active",
+      "ppv:priority": "Quick",
+      "ppv:done": false,
+      "ppv:doDate": { "@value": "2026-03-04", "@type": "xsd:date" },
+      "ppv:context": "calls",
+      "ppv:energy": "low",
+      "ppv:timeEstimate": { "@value": "10", "@type": "xsd:integer" },
+      "dcterms:created": { "@value": "2026-03-01T10:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "ppv:seed-action-groceries",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "Buy ingredients for Sunday dinner",
+      "ppv:project": { "@id": "ppv:seed-proj-dinnerrecipes" },
+      "ppv:status": "Active",
+      "ppv:priority": "Errand",
+      "ppv:done": false,
+      "ppv:doDate": { "@value": "2026-03-07", "@type": "xsd:date" },
+      "ppv:context": "errands",
+      "ppv:energy": "low",
+      "ppv:timeEstimate": { "@value": "45", "@type": "xsd:integer" },
+      "dcterms:created": { "@value": "2026-03-01T10:00:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "ppv:seed-review-yearly-2026",
+      "@type": "ppv:YearlyReview",
+      "dcterms:title": "2026 Annual Review",
+      "ppv:cycle": "yearly",
+      "ppv:yearName": "2026",
+      "ppv:quarters": [
+        { "@id": "ppv:seed-review-q1-2026" }
+      ],
+      "dcterms:created": { "@value": "2026-01-01T09:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "ppv:seed-review-q1-2026",
+      "@type": "ppv:QuarterlyReview",
+      "dcterms:title": "Q1 2026",
+      "ppv:cycle": "quarterly",
+      "ppv:quarterName": "Q1 2026",
+      "ppv:yearLink": { "@id": "ppv:seed-review-yearly-2026" },
+      "dcterms:created": { "@value": "2026-01-01T09:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "ppv:seed-review-march-2026",
+      "@type": "ppv:MonthlyReview",
+      "dcterms:title": "March 2026",
+      "ppv:cycle": "monthly",
+      "ppv:monthName": "March 2026",
+      "ppv:year": "2026",
+      "ppv:quarter": { "@id": "ppv:seed-review-q1-2026" },
+      "ppv:gratitude": "Grateful for consistent running habit finally clicking after years of false starts.",
+      "ppv:learnedThisMonth": "Learned that meal prepping on Sunday saves both time and decision fatigue during the week.",
+      "dcterms:created": { "@value": "2026-03-01T09:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "ppv:seed-review-week-mar3",
+      "@type": "ppv:WeeklyReview",
+      "dcterms:title": "Week of March 3, 2026",
+      "ppv:cycle": "weekly",
+      "ppv:focusObjective": "Lock in meal prep system and complete Week 5 training runs",
+      "schema:startDate": { "@value": "2026-03-03", "@type": "xsd:date" },
+      "schema:endDate": { "@value": "2026-03-09", "@type": "xsd:date" },
+      "ppv:month": { "@id": "ppv:seed-review-march-2026" },
+      "dcterms:created": { "@value": "2026-03-03T09:00:00Z", "@type": "xsd:dateTime" }
+    }
+  ]
+}

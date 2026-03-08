@@ -45,11 +45,6 @@ test.describe('Edge (Relationship) Creation', () => {
     await ownerPage.evaluate((iri) => {
       if (typeof (window as any).openTab === 'function') {
         (window as any).openTab(iri, 'Architecture Decision');
-      } else {
-        const target = document.querySelector('#editor-area-group-1');
-        if (target && (window as any).htmx) {
-          (window as any).htmx.ajax('GET', '/browser/object/' + encodeURIComponent(iri), { target });
-        }
       }
     }, noteIri);
 

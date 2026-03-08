@@ -1,0 +1,95 @@
+<div class="inference-panel">
+  <!-- Header bar with Refresh button and last-run timestamp -->
+  <div class="inference-panel-header">
+    <button class="btn btn-sm inference-refresh-btn"
+            hx-post="/api/inference/run"
+            hx-target="#inference-results"
+            hx-swap="innerHTML"
+            hx-indicator="#inference-spinner">
+      <i data-lucide="refresh-cw"></i> Refresh
+    </button>
+    <span class="inference-spinner htmx-indicator" id="inference-spinner">
+      <i data-lucide="loader" class="spin"></i> Running inference...
+    </span>
+    <span class="inference-last-run" id="inference-last-run">
+      <!-- Populated after first run -->
+    </span>
+    <span class="inference-summary" id="inference-summary">
+      <!-- e.g., "12 inferred triples" -- populated after run -->
+    </span>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="inference-filters">
+    <select class="inference-filter-type"
+            hx-get="/api/inference/triples"
+            hx-target="#inference-results"
+            hx-include="[class*='inference-filter']"
+            hx-trigger="change"
+            name="entailment_type">
+      <option value="">All types</option>
+      <option value="owl:inverseOf">owl:inverseOf</option>
+      <option value="rdfs:subClassOf">rdfs:subClassOf</option>
+      <option value="rdfs:subPropertyOf">rdfs:subPropertyOf</option>
+      <option value="owl:TransitiveProperty">owl:TransitiveProperty</option>
+      <option value="rdfs:domain/rdfs:range">rdfs:domain/rdfs:range</option>
+      <option value="sh:rule">sh:rule</option>
+    </select>
+    <select class="inference-filter-status"
+            hx-get="/api/inference/triples"
+            hx-target="#inference-results"
+            hx-include="[class*='inference-filter']"
+            hx-trigger="change"
+            name="triple_status">
+      <option value="">All statuses</option>
+      <option value="active">Active</option>
+      <option value="dismissed">Dismissed</option>
+      <option value="promoted">Promoted</option>
+    </select>
+    <select class="inference-filter-objtype"
+            hx-get="/api/inference/triples"
+            hx-target="#inference-results"
+            hx-include="[class*='inference-filter']"
+            hx-trigger="change"
+            name="object_type">
+      <option value="">All object types</option>
+      <option value="person">Person</option>
+      <option value="project">Project</option>
+      <option value="note">Note</option>
+      <option value="concept">Concept</option>
+    </select>
+    <input type="date" class="inference-filter-datefrom"
+           hx-get="/api/inference/triples"
+           hx-target="#inference-results"
+           hx-include="[class*='inference-filter']"
+           hx-trigger="change"
+           name="date_from"
+           title="From date">
+    <input type="date" class="inference-filter-dateto"
+           hx-get="/api/inference/triples"
+           hx-target="#inference-results"
+           hx-include="[class*='inference-filter']"
+           hx-trigger="change"
+           name="date_to"
+           title="To date">
+    <select class="inference-filter-groupby"
+            hx-get="/api/inference/triples"
+            hx-target="#inference-results"
+            hx-include="[class*='inference-filter']"
+            hx-trigger="change"
+            name="group_by">
+      <option value="">No grouping</option>
+      <option value="time">Group by time inferred</option>
+      <option value="object_type">Group by object type</option>
+      <option value="property_type">Group by property type</option>
+    </select>
+  </div>
+
+  <!-- Triple list (htmx-loaded) -->
+  <div class="inference-results" id="inference-results"
+       hx-get="/api/inference/triples"
+       hx-trigger="revealed"
+       hx-swap="innerHTML">
+    <!-- Loaded via htmx on panel open -->
+  </div>
+</div>

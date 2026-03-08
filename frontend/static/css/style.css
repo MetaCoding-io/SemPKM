@@ -620,6 +620,19 @@ pre.json-output {
   text-overflow: ellipsis;
 }
 
+.sidebar-nav .nav-external {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  margin-left: auto;
+  opacity: 0.4;
+  stroke: currentColor;
+}
+
+.sidebar-nav .nav-link:hover .nav-external {
+  opacity: 0.7;
+}
+
 /* Section group styles */
 .sidebar-group-header {
   display: flex;
@@ -810,9 +823,11 @@ pre.json-output {
 .dashboard-layout.sidebar-collapsed .brand-text,
 .dashboard-layout.sidebar-collapsed .group-label,
 .dashboard-layout.sidebar-collapsed .nav-label,
+.dashboard-layout.sidebar-collapsed .nav-external,
 .workspace-layout.sidebar-collapsed .brand-text,
 .workspace-layout.sidebar-collapsed .group-label,
-.workspace-layout.sidebar-collapsed .nav-label {
+.workspace-layout.sidebar-collapsed .nav-label,
+.workspace-layout.sidebar-collapsed .nav-external {
   display: none;
 }
 
@@ -1281,6 +1296,8 @@ kbd {
   top: 0;
   left: 0;
   width: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .type-flip-front {
@@ -1916,21 +1933,45 @@ kbd {
   justify-content: center;
   min-height: 100vh;
   padding: 1.5rem;
-  background: var(--color-bg);
+  background:
+    radial-gradient(ellipse at 20% 50%, var(--color-accent-subtle) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, var(--color-primary-subtle) 0%, transparent 50%),
+    var(--color-bg);
 }
 
 .auth-card {
   width: 100%;
   max-width: 420px;
-  padding: 2rem;
+  padding: 2.5rem 2rem 2rem;
+  box-shadow: var(--shadow-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
+}
+
+.auth-card::before {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 3px;
+  background: var(--color-accent);
+  border-radius: 2px;
+  margin-bottom: 1.25rem;
 }
 
 .auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-weight: 700;
   font-size: 1.3rem;
-  color: var(--color-primary);
+  color: var(--color-accent);
   letter-spacing: -0.02em;
   margin-bottom: 0.25rem;
+}
+
+.auth-brand-icon {
+  flex-shrink: 0;
 }
 
 .auth-card h1 {
@@ -1943,7 +1984,18 @@ kbd {
   width: 100%;
   padding: 0.65rem 1rem;
   font-size: 0.95rem;
-  margin-top: 0.25rem;
+  margin-top: 0.5rem;
+  border-radius: 8px;
+  background: var(--color-accent);
+  border: none;
+  color: var(--color-on-accent);
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.15s ease;
+}
+
+.auth-btn:hover {
+  background: var(--color-accent-hover);
 }
 
 .auth-card .form-group {
@@ -1953,7 +2005,26 @@ kbd {
 .auth-card input[type="text"],
 .auth-card input[type="email"] {
   font-size: 0.95rem;
-  padding: 0.55rem 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface-recessed);
+  color: var(--color-text);
+  width: 100%;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.auth-card input[type="text"]:focus,
+.auth-card input[type="email"]:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-focus-shadow);
+}
+
+.auth-container,
+.auth-card,
+.auth-card input {
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
 }
 
 .auth-info {

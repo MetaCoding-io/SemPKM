@@ -10,17 +10,25 @@ queries may return results from ALL named graphs including event graphs.
 
 import re
 
-from app.rdf.namespaces import COMMON_PREFIXES, CURRENT_GRAPH_IRI
+from app.rdf.namespaces import COMMON_PREFIXES, CURRENT_GRAPH_IRI, INFERRED_GRAPH_IRI
 
 CURRENT_GRAPH = str(CURRENT_GRAPH_IRI)
+INFERRED_GRAPH = str(INFERRED_GRAPH_IRI)
 
 
-def scope_to_current_graph(query: str, all_graphs: bool = False) -> str:
+def scope_to_current_graph(
+    query: str,
+    all_graphs: bool = False,
+    include_inferred: bool = True,
+) -> str:
     """Inject FROM <urn:sempkm:current> into SPARQL queries.
 
     Scopes SELECT and CONSTRUCT queries to the current state graph by
-    inserting a FROM clause before the WHERE keyword. Leaves the query
-    unchanged if:
+    inserting a FROM clause before the WHERE keyword. When include_inferred
+    is True, also injects FROM <urn:sempkm:inferred> so inferred triples
+    are included in query results.
+
+    Leaves the query unchanged if:
     - all_graphs=True (explicit admin/debug bypass)
     - Query already contains a FROM clause
     - Query already contains a GRAPH clause referencing the current graph
@@ -28,9 +36,11 @@ def scope_to_current_graph(query: str, all_graphs: bool = False) -> str:
     Args:
         query: The SPARQL query string.
         all_graphs: If True, skip scoping (for admin/debug use).
+        include_inferred: If True, also include the inferred graph
+            (default True). Set to False to query only user-created data.
 
     Returns:
-        The query with FROM clause injected, or unchanged if scoping
+        The query with FROM clause(s) injected, or unchanged if scoping
         is not needed.
     """
     if all_graphs:
@@ -47,9 +57,10 @@ def scope_to_current_graph(query: str, all_graphs: bool = False) -> str:
     if CURRENT_GRAPH in query:
         return query
 
-    # Inject FROM <current> before WHERE for SELECT and CONSTRUCT queries
-    # Match WHERE keyword (case-insensitive) that's not inside a string literal
+    # Inject FROM <current> (and optionally FROM <inferred>) before WHERE
     from_clause = f"FROM <{CURRENT_GRAPH}>\n"
+    if include_inferred:
+        from_clause += f"FROM <{INFERRED_GRAPH}>\n"
 
     # Find WHERE keyword position (case-insensitive, word boundary)
     where_match = re.search(r'\bWHERE\b', query, re.IGNORECASE)

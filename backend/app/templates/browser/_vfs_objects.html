@@ -1,0 +1,13 @@
+{% for obj in objects %}
+<div class="vfs-node vfs-object">
+    <a href="#" class="vfs-node-header vfs-file-link"
+       onclick="if(typeof openTab==='function'){openTab('{{ obj.iri }}','{{ obj.label | e }}');}return false;">
+        <i data-lucide="file-text" class="vfs-icon"></i>
+        <span class="vfs-label">{{ obj.label }}</span>
+    </a>
+</div>
+{% endfor %}
+{% if not objects %}
+<div class="vfs-empty-node">No objects</div>
+{% endif %}
+<script>if (typeof lucide !== 'undefined') lucide.createIcons();</script>
