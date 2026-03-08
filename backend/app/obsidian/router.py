@@ -123,7 +123,7 @@ async def upload_vault(
 
         # Extract ZIP
         with zipfile.ZipFile(zip_path, "r") as zf:
-            zf.extractall(extract_path, filter="data")
+            zf.extractall(extract_path)
 
         # Remove ZIP after extraction
         zip_path.unlink(missing_ok=True)
@@ -351,7 +351,6 @@ async def type_mapping_step(
     available_types = await shapes_service.get_types()
 
     templates = request.app.state.templates
-    block_name = "content" if request.headers.get("HX-Request") == "true" else None
     return templates.TemplateResponse(
         request,
         "obsidian/partials/type_mapping.html",
@@ -363,7 +362,6 @@ async def type_mapping_step(
             "import_id": import_id,
             "current_step": 3,
         },
-        block_name=block_name,
     )
 
 
@@ -380,17 +378,19 @@ async def property_mapping_step(
     mapping_config = _load_mapping(import_dir)
 
     # Build per-type property data: merge groups mapped to same type
-    per_type_data = {}  # type_iri -> {label, shacl_properties, frontmatter_keys}
+    # Template expects: type_sections[type_iri] = {label, properties, frontmatter_keys}
+    # where frontmatter_keys is a list of objects with .key, .count, .sample_values
+    type_sections: dict[str, dict] = {}
     for group_key, tm in mapping_config.type_mappings.items():
         if tm is None:
             continue
         type_iri = tm.target_type_iri
-        if type_iri not in per_type_data:
+        if type_iri not in type_sections:
             form = await shapes_service.get_form_for_type(type_iri)
-            per_type_data[type_iri] = {
+            type_sections[type_iri] = {
                 "label": tm.target_type_label,
-                "shacl_properties": form.properties if form else [],
-                "frontmatter_keys": {},  # key -> {count, sample_values}
+                "properties": form.properties if form else [],
+                "frontmatter_keys": {},  # key -> {count, sample_values} (dict for merging)
             }
         # Find the group in scan_result to get its frontmatter_keys
         parts = group_key.split("|", 1)
@@ -399,10 +399,9 @@ async def property_mapping_step(
             for g in scan_result.type_groups:
                 if g.type_name == type_name and g.signal_source == signal:
                     for fk in g.frontmatter_keys:
-                        existing = per_type_data[type_iri]["frontmatter_keys"]
+                        existing = type_sections[type_iri]["frontmatter_keys"]
                         if fk.key in existing:
                             existing[fk.key]["count"] += fk.count
-                            # Combine samples up to 5
                             combined = existing[fk.key]["sample_values"]
                             for sv in fk.sample_values:
                                 if sv not in combined and len(combined) < 5:
@@ -414,19 +413,25 @@ async def property_mapping_step(
                             }
                     break
 
+    # Convert frontmatter_keys from dict to list of objects for template iteration
+    for type_iri, section in type_sections.items():
+        fk_dict = section["frontmatter_keys"]
+        section["frontmatter_keys"] = [
+            {"key": k, "count": v["count"], "sample_values": v["sample_values"]}
+            for k, v in fk_dict.items()
+        ]
+
     templates = request.app.state.templates
-    block_name = "content" if request.headers.get("HX-Request") == "true" else None
     return templates.TemplateResponse(
         request,
         "obsidian/partials/property_mapping.html",
         {
             "request": request,
-            "per_type_data": per_type_data,
+            "type_sections": type_sections,
             "mapping_config": mapping_config,
             "import_id": import_id,
             "current_step": 4,
         },
-        block_name=block_name,
     )
 
 
@@ -582,6 +587,14 @@ async def import_stream(
     broadcast_key = f"{import_id}_import"
     broadcast = _broadcasts.get(broadcast_key)
     if not broadcast:
+        # Import may have already completed before SSE connected (race condition)
+        import_dir = _get_import_dir(user, import_id)
+        result_path = import_dir / "import_result.json"
+        if result_path.exists():
+            result_data = json.loads(result_path.read_text())
+            async def completed():
+                yield f'event: import_complete\ndata: {json.dumps(result_data)}\n\n'
+            return StreamingResponse(completed(), media_type="text/event-stream")
         async def empty():
             yield 'event: import_error\ndata: {"message": "No active import"}\n\n'
         return StreamingResponse(empty(), media_type="text/event-stream")

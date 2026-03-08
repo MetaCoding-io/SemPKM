@@ -154,7 +154,10 @@
 
     <!-- Actions -->
     <div class="import-actions">
-        <button class="btn btn-primary" disabled title="Available in Phase 46">
+        <button class="btn btn-primary"
+                hx-get="/browser/import/{{ import_id }}/step/type-mapping"
+                hx-target="#import-content"
+                hx-swap="innerHTML">
             <i data-lucide="arrow-right"></i>
             Continue to Mapping
         </button>
