@@ -16,7 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
-from app.config import settings
+from app.auth.tokens import _get_secret_key
 from app.db.session import get_db_session
 from app.webid.schemas import RelMeLinksUpdate, UsernameSetup, WebIDProfileResponse
 from app.webid.service import (
@@ -86,7 +86,7 @@ async def set_username(
 
     # Generate key pair
     public_pem, private_pem = generate_ed25519_keypair()
-    encrypted_private = encrypt_private_key(private_pem, settings.secret_key)
+    encrypted_private = encrypt_private_key(private_pem, _get_secret_key())
 
     user.username = body.username
     user.public_key_pem = public_pem
@@ -170,7 +170,7 @@ async def regenerate_key(
         )
 
     public_pem, private_pem = generate_ed25519_keypair()
-    encrypted_private = encrypt_private_key(private_pem, settings.secret_key)
+    encrypted_private = encrypt_private_key(private_pem, _get_secret_key())
 
     user.public_key_pem = public_pem
     user.private_key_encrypted = encrypted_private
