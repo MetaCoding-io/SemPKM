@@ -384,7 +384,7 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 42. VFS Browser Fix | v2.4 | 1/1 | Complete | 2026-03-06 |
 | 43. Inference E2E Test Gap | v2.4 | 1/1 | Complete | 2026-03-06 |
 | 44. UI Cleanup | v2.5 | 0/0 | Not started | - |
-| 45. Obsidian Vault Scanner | 3/3 | Complete   | 2026-03-08 | - |
+| 45. Obsidian Vault Scanner | 3/3 | Complete    | 2026-03-08 | - |
 | 46. Obsidian Mapping UI | v2.5 | 0/0 | Not started | - |
 | 47. Obsidian Batch Import | v2.5 | 0/0 | Not started | - |
 | 48. WebID Profiles | 2/2 | Complete    | 2026-03-08 | - |
