@@ -1,10 +1,90 @@
-<div id="import-area">
+<div id="import-area" class="import-upload-wrapper">
     <form hx-post="/browser/import/upload"
-          hx-target="#import-area"
+          hx-target="#import-content"
           hx-swap="innerHTML"
-          hx-encoding="multipart/form-data">
-        <label for="vault-zip">Select Obsidian vault ZIP file:</label>
-        <input type="file" id="vault-zip" name="file" accept=".zip" required>
-        <button type="submit">Upload</button>
+          hx-encoding="multipart/form-data"
+          class="import-upload-form">
+
+        <div class="import-upload-zone" id="upload-drop-zone">
+            <i data-lucide="upload-cloud" class="upload-zone-icon"></i>
+            <p class="upload-zone-title">Upload your Obsidian vault as a ZIP file</p>
+            <p class="upload-zone-hint">Drag and drop or click to browse</p>
+            <input type="file" id="vault-zip" name="file" accept=".zip" required class="upload-file-input">
+            <label for="vault-zip" class="btn btn-primary upload-browse-btn">
+                <i data-lucide="upload"></i>
+                Choose ZIP File
+            </label>
+        </div>
+
+        <div class="upload-selected-file" id="selected-file-info" style="display:none;">
+            <i data-lucide="file-archive"></i>
+            <span id="selected-file-name"></span>
+            <button type="submit" class="btn btn-primary">
+                <i data-lucide="upload"></i>
+                Upload &amp; Scan
+            </button>
+        </div>
     </form>
+
+    {% if import_id %}
+    <div class="import-existing-notice">
+        <p>A previous import was detected.</p>
+        <div class="import-existing-actions">
+            <button hx-post="/browser/import/scan/{{ import_id }}"
+                    hx-target="#import-content"
+                    hx-swap="innerHTML"
+                    class="btn btn-primary">
+                Resume Previous Import
+            </button>
+            <button hx-post="/browser/import/{{ import_id }}/discard"
+                    hx-target="#import-content"
+                    hx-swap="innerHTML"
+                    class="btn btn-outline">
+                Discard &amp; Start Over
+            </button>
+        </div>
+    </div>
+    {% endif %}
 </div>
+
+<script>
+(function() {
+    var zone = document.getElementById('upload-drop-zone');
+    var input = document.getElementById('vault-zip');
+    var info = document.getElementById('selected-file-info');
+    var nameEl = document.getElementById('selected-file-name');
+    if (!zone || !input) return;
+
+    // Drag-and-drop visual feedback
+    ['dragenter', 'dragover'].forEach(function(evt) {
+        zone.addEventListener(evt, function(e) {
+            e.preventDefault();
+            zone.classList.add('drag-over');
+        });
+    });
+    ['dragleave', 'drop'].forEach(function(evt) {
+        zone.addEventListener(evt, function(e) {
+            e.preventDefault();
+            zone.classList.remove('drag-over');
+        });
+    });
+    zone.addEventListener('drop', function(e) {
+        if (e.dataTransfer.files.length > 0) {
+            input.files = e.dataTransfer.files;
+            input.dispatchEvent(new Event('change'));
+        }
+    });
+
+    // Show selected file name
+    input.addEventListener('change', function() {
+        if (input.files.length > 0) {
+            nameEl.textContent = input.files[0].name;
+            info.style.display = 'flex';
+            zone.style.display = 'none';
+        }
+    });
+
+    // Re-init Lucide icons
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+})();
+</script>
