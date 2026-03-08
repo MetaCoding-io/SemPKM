@@ -36,6 +36,94 @@ class NoteTypeGroup:
     signal_source: str  # e.g. "frontmatter:type", "folder:Projects", "tag:meeting"
     count: int
     sample_notes: list[str] = field(default_factory=list)  # up to 10 sample paths
+    frontmatter_keys: list[FrontmatterKeySummary] = field(default_factory=list)
+
+
+@dataclass
+class TypeMapping:
+    """Maps an Obsidian note type group to an RDF type."""
+
+    target_type_iri: str
+    target_type_label: str
+
+
+@dataclass
+class PropertyMapping:
+    """Maps a frontmatter key to an RDF property."""
+
+    target_property_iri: str
+    target_property_label: str
+    source: str  # "shacl" or "custom"
+
+
+@dataclass
+class MappingConfig:
+    """Complete mapping configuration for an Obsidian import."""
+
+    version: int = 1
+    type_mappings: dict[str, TypeMapping | None] = field(default_factory=dict)
+    # key: "type_name|signal_source", value: TypeMapping or None (skip)
+    property_mappings: dict[str, dict[str, PropertyMapping | None]] = field(default_factory=dict)
+    # key: target_type_iri, value: {frontmatter_key: PropertyMapping or None}
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize to a JSON-compatible dictionary."""
+        type_map = {}
+        for k, v in self.type_mappings.items():
+            if v is None:
+                type_map[k] = None
+            else:
+                type_map[k] = {
+                    "target_type_iri": v.target_type_iri,
+                    "target_type_label": v.target_type_label,
+                }
+        prop_map = {}
+        for type_iri, fm_dict in self.property_mappings.items():
+            prop_map[type_iri] = {}
+            for fm_key, pm in fm_dict.items():
+                if pm is None:
+                    prop_map[type_iri][fm_key] = None
+                else:
+                    prop_map[type_iri][fm_key] = {
+                        "target_property_iri": pm.target_property_iri,
+                        "target_property_label": pm.target_property_label,
+                        "source": pm.source,
+                    }
+        return {
+            "version": self.version,
+            "type_mappings": type_map,
+            "property_mappings": prop_map,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> MappingConfig:
+        """Deserialize from a dictionary (e.g. loaded from JSON)."""
+        type_mappings: dict[str, TypeMapping | None] = {}
+        for k, v in data.get("type_mappings", {}).items():
+            if v is None:
+                type_mappings[k] = None
+            else:
+                type_mappings[k] = TypeMapping(
+                    target_type_iri=v["target_type_iri"],
+                    target_type_label=v["target_type_label"],
+                )
+        property_mappings: dict[str, dict[str, PropertyMapping | None]] = {}
+        for type_iri, fm_dict in data.get("property_mappings", {}).items():
+            property_mappings[type_iri] = {}
+            for fm_key, pm in fm_dict.items():
+                if pm is None:
+                    property_mappings[type_iri][fm_key] = None
+                else:
+                    property_mappings[type_iri][fm_key] = PropertyMapping(
+                        target_property_iri=pm["target_property_iri"],
+                        target_property_label=pm["target_property_label"],
+                        source=pm["source"],
+                    )
+        return cls(
+            version=data.get("version", 1),
+            type_mappings=type_mappings,
+            property_mappings=property_mappings,
+        )
 
 
 @dataclass
@@ -84,6 +172,10 @@ class VaultScanResult:
                     "signal_source": g.signal_source,
                     "count": g.count,
                     "sample_notes": g.sample_notes,
+                    "frontmatter_keys": [
+                        {"key": k.key, "count": k.count, "sample_values": k.sample_values}
+                        for k in g.frontmatter_keys
+                    ],
                 }
                 for g in self.type_groups
             ],
@@ -123,6 +215,14 @@ class VaultScanResult:
                     signal_source=g["signal_source"],
                     count=g["count"],
                     sample_notes=g.get("sample_notes", []),
+                    frontmatter_keys=[
+                        FrontmatterKeySummary(
+                            key=k["key"],
+                            count=k["count"],
+                            sample_values=k.get("sample_values", []),
+                        )
+                        for k in g.get("frontmatter_keys", [])
+                    ],
                 )
                 for g in data.get("type_groups", [])
             ],

@@ -170,6 +170,11 @@ async def trigger_scan(
     if not extract_path.is_dir():
         raise HTTPException(404, "Import not found or already discarded")
 
+    # Delete stale mapping config on re-scan
+    mapping_path = import_dir / "mapping_config.json"
+    if mapping_path.exists():
+        mapping_path.unlink()
+
     # Create broadcast for this scan
     broadcast = ScanBroadcast()
     _broadcasts[import_id] = broadcast
