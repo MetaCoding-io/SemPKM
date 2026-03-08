@@ -15,7 +15,8 @@ from app.canvas.schemas import (
 )
 from app.canvas.service import CanvasService
 from app.db.session import get_db_session
-from app.dependencies import get_view_spec_service
+from app.dependencies import get_triplestore_client, get_view_spec_service
+from app.triplestore.client import TriplestoreClient
 from app.views.service import ViewSpecService
 
 router = APIRouter(prefix="/api/canvas", tags=["canvas"])
@@ -101,6 +102,34 @@ async def get_canvas_subgraph(
         "nodes": list(seen_nodes.values()),
         "edges": edges_out,
     }
+
+
+@router.get("/body")
+async def get_node_body(
+    iri: str = Query(..., description="Object IRI"),
+    user: User = Depends(get_current_user),
+    client: TriplestoreClient = Depends(get_triplestore_client),
+):
+    """Return the urn:sempkm:body text for a given object IRI."""
+    if not _is_valid_iri(iri):
+        raise HTTPException(status_code=400, detail="Invalid IRI")
+
+    sparql = f"""
+    SELECT ?body WHERE {{
+      GRAPH <urn:sempkm:current> {{
+        <{iri}> ?p ?body .
+        FILTER(STRENDS(STR(?p), ":body") || STR(?p) = "urn:sempkm:body")
+      }}
+    }} LIMIT 1
+    """
+    try:
+        result = await client.query(sparql)
+        bindings = result.get("results", {}).get("bindings", [])
+        body = bindings[0]["body"]["value"] if bindings else ""
+    except Exception:
+        body = ""
+
+    return {"iri": iri, "body": body}
 
 
 # ------------------------------------------------------------------

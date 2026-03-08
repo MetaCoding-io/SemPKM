@@ -9,7 +9,7 @@
    handler in workspace.js to show a graph-popover-style tooltip on hover (phase 19-02) #}
 <div class="tree-leaf" data-testid="nav-item"
      draggable="true"
-     ondragstart="event.dataTransfer.setData('text/iri', '{{ obj.iri }}'); event.dataTransfer.setData('text/label', '{{ obj.label }}'); event.dataTransfer.effectAllowed = 'copy';"
+     ondragstart="event.dataTransfer.setData('text/iri', '{{ obj.iri }}'); event.dataTransfer.setData('text/label', '{{ obj.label }}'); event.dataTransfer.effectAllowed = 'copy'; window.__canvasDragPayload = { iri: '{{ obj.iri }}', label: '{{ obj.label }}' };"
      data-tooltip-label="{{ obj.label }}"
      data-tooltip-type="{{ type_label | default('') }}"
      onclick="openTab('{{ obj.iri }}', '{{ obj.label }}')">
