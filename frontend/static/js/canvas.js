@@ -372,7 +372,7 @@
       newNodes.forEach(function (node, idx) {
         var nid = String(node.id || '');
         var angle = (idx / Math.max(newNodes.length, 1)) * Math.PI * 2;
-        var radius = 200;
+        var radius = 350;
         state.nodes.push({
           id: nid,
           title: String(node.label || node.id || 'Resource'),
@@ -484,13 +484,9 @@
       ].join('');
     }).join('');
 
-    state.layer.innerHTML = [
-      '<svg class="spatial-edges" width="4000" height="4000" viewBox="0 0 4000 4000" aria-hidden="true">',
-      '<defs><marker id="spatial-edge-arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" class="spatial-edge-arrow-path"></path></marker></defs>',
-      edgesHtml,
-      '</svg>',
-      nodesHtml
-    ].join('');
+    // Render node HTML only; edges are drawn in the second pass below
+    // using edgePoint() for proper box-edge termination.
+    state.layer.innerHTML = nodesHtml;
 
     var nodeBoxes = {};
     state.layer.querySelectorAll('.spatial-node').forEach(function (el) {
@@ -647,8 +643,25 @@
 
   function resetView() {
     state.scale = 1;
-    state.translateX = 0;
-    state.translateY = 0;
+    if (state.nodes.length === 0) {
+      state.translateX = 0;
+      state.translateY = 0;
+    } else {
+      // Compute bounding box of all nodes in world coordinates
+      var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      state.nodes.forEach(function (n) {
+        if (n.x < minX) minX = n.x;
+        if (n.y < minY) minY = n.y;
+        if (n.x > maxX) maxX = n.x;
+        if (n.y > maxY) maxY = n.y;
+      });
+      var cx = (minX + maxX) / 2;
+      var cy = (minY + maxY) / 2;
+      // Center the content bounding box within the viewport
+      var rect = state.viewport.getBoundingClientRect();
+      state.translateX = rect.width / 2 - cx * state.scale;
+      state.translateY = rect.height / 2 - cy * state.scale;
+    }
     applyTransform();
     updateZoomLabel();
   }
