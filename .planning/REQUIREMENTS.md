@@ -17,8 +17,8 @@ Requirements for v2.5 Polish, Import & Identity. Each maps to roadmap phases.
 
 - [x] **OBSI-01**: User can upload/point to an Obsidian vault directory for scanning
 - [x] **OBSI-02**: Scan results show file count, detected types, frontmatter keys, link targets, and tags
-- [ ] **OBSI-03**: User can interactively map Obsidian note categories to Mental Model types
-- [ ] **OBSI-04**: User can map frontmatter keys to RDF properties for each type
+- [x] **OBSI-03**: User can interactively map Obsidian note categories to Mental Model types
+- [x] **OBSI-04**: User can map frontmatter keys to RDF properties for each type
 - [ ] **OBSI-05**: User can preview mapped objects before committing import
 - [ ] **OBSI-06**: Batch import creates objects with bodies, properties, and edges via Command API
 - [ ] **OBSI-07**: Wiki-links and tags are resolved to edges between imported objects
@@ -93,8 +93,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UICL-03 | Phase 44 | Complete |
 | OBSI-01 | Phase 45 | Complete |
 | OBSI-02 | Phase 45 | Complete |
-| OBSI-03 | Phase 46 | Pending |
-| OBSI-04 | Phase 46 | Pending |
+| OBSI-03 | Phase 46 | Complete |
+| OBSI-04 | Phase 46 | Complete |
 | OBSI-05 | Phase 46 | Pending |
 | OBSI-06 | Phase 47 | Pending |
 | OBSI-07 | Phase 47 | Pending |
