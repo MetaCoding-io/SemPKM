@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Polish, Import & Identity
-status: planning
-stopped_at: Phase 45 context gathered
-last_updated: "2026-03-08T04:19:55.069Z"
-last_activity: "2026-03-08 - Completed quick task 32: Fix spatial canvas load button and route shadowing"
+status: completed
+stopped_at: Completed 48-02-PLAN.md
+last_updated: "2026-03-08T05:46:46.573Z"
+last_activity: "2026-03-08 - Completed Phase 48 Plan 02: Public profile endpoint with content negotiation and e2e tests"
 progress:
-  total_phases: 7
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_phases: 8
+  completed_phases: 2
+  total_plans: 4
+  completed_plans: 4
+  percent: 15
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-07)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations — no blank-page syndrome, no schema setup.
-**Current focus:** v2.5 Polish, Import & Identity — Phase 44 ready to plan
+**Current focus:** v2.5 Polish, Import & Identity — Phase 48 executing
 
 ## Current Position
 
-Phase: 44 of 50 (UI Cleanup)
-Plan: —
-Status: Ready to plan
-Last activity: 2026-03-08 - Completed quick task 32: Fix spatial canvas load button and route shadowing
+Phase: 48 of 50 (WebID Profiles)
+Plan: 2 of 2 complete
+Status: Phase 48 complete
+Last activity: 2026-03-08 - Completed Phase 48 Plan 02: Public profile endpoint with content negotiation and e2e tests
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [##░░░░░░░░] 15%
 
 ## Performance Metrics
 
@@ -50,8 +50,13 @@ Progress: [░░░░░░░░░░] 0%
 | 36 | 2 | 4 min | 2 min |
 | 37 | 2 | 10 min | 5 min |
 | 39 | 1 | 1 min | 1 min |
+| 48 | 2 | 7 min | 3.5 min |
 
 *Updated after each plan completion*
+| Phase 45 P01 | 5 | 2 tasks | 11 files |
+| Phase 45 P02 | 4 | 2 tasks | 10 files |
+| Phase 48 P01 | 3 | 2 tasks | 9 files |
+| Phase 48 P02 | 4 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -62,6 +67,9 @@ Full decision log in PROJECT.md Key Decisions table.
 - v2.5: Three workstreams (UI, Obsidian, Identity) are independent and parallelizable
 - v2.5: WebID before IndieAuth (IndieAuth references WebID profile)
 - v2.5: Obsidian import is import-only (triage deferred to future milestone)
+- Phase 48: Separate KDF salt per encryption domain (webid vs llm)
+- Phase 48: Username immutable after creation, links stored as JSON in Text column
+- Phase 48: Standalone HTML profile page (not extending base.html), content negotiation via Accept header + ?format= fallback
 
 ### Pending Todos
 
@@ -78,6 +86,10 @@ Full decision log in PROJECT.md Key Decisions table.
 
 None — clean start for v2.5
 
+### Roadmap Evolution
+
+- Phase 51 added: Spatial Canvas UX: per-node expand/delete buttons, drag-drop from nav tree, remove global load button
+
 ### Quick Tasks Completed (v2.5)
 
 | # | Description | Date | Commit | Status | Directory |
@@ -89,6 +101,6 @@ None — clean start for v2.5
 
 ## Session Continuity
 
-Last session: 2026-03-08T04:19:55.067Z
-Stopped at: Phase 45 context gathered
-Resume file: .planning/phases/45-obsidian-vault-scanner/45-CONTEXT.md
+Last session: 2026-03-08T05:41:00Z
+Stopped at: Completed 48-02-PLAN.md
+Resume file: .planning/phases/48-webid-profiles/48-02-SUMMARY.md

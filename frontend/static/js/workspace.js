@@ -706,6 +706,28 @@
   
   window.openVfsTab = openVfsTab;
 
+  // --- Import Vault Tab ---
+
+  function openImportTab() {
+    var tabKey = 'special:import';
+    var dv = window._dockview;
+    if (!dv) return;
+
+    var existing = dv.panels.find(function(p) { return p.id === tabKey; });
+    if (existing) { existing.api.setActive(); return; }
+
+    if (!window._tabMeta) window._tabMeta = {};
+    window._tabMeta[tabKey] = { label: 'Import Vault', dirty: false };
+
+    dv.api.addPanel({
+      id: tabKey,
+      component: 'special-panel',
+      params: { specialType: 'import', isView: false, isSpecial: true },
+      title: 'Import Vault'
+    });
+  }
+  window.openImportTab = openImportTab;
+
   // --- Keyboard Shortcuts ---
 
   var _keydownHandler = null;
@@ -1025,6 +1047,12 @@
           title: 'Open View Menu',
           section: 'Views',
           handler: function () { openViewMenu(); }
+        },
+        {
+          id: 'import-vault',
+          title: 'Import Vault',
+          section: 'Navigation',
+          handler: function () { openImportTab(); }
         },
         {
           id: 'theme-light',

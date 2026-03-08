@@ -1,0 +1,267 @@
+{# WebID Profile settings partial — rendered by settings_page.html
+   Loads profile data via fetch on init, then manages state client-side.
+#}
+
+<div id="webid-settings-container">
+  <div id="webid-loading" class="settings-description">Loading WebID profile...</div>
+  <div id="webid-error" style="display:none" class="settings-description"></div>
+
+  <!-- Username Setup (shown when no username set) -->
+  <div id="webid-setup" style="display:none">
+    <div class="settings-row" data-search="webid username claim identity">
+      <div class="settings-row-info">
+        <span class="settings-label">Choose Username</span>
+        <span class="settings-description">Your WebID will be based on this username. Lowercase letters, numbers, and hyphens only (3-63 characters). This cannot be changed later.</span>
+      </div>
+      <div class="settings-row-control">
+        <div class="webid-username-form">
+          <input type="text" id="webid-username-input" class="settings-text-input"
+                 placeholder="e.g. alice or my-name"
+                 pattern="[a-z0-9][a-z0-9-]*[a-z0-9]" minlength="3" maxlength="63"
+                 autocomplete="off"
+                 oninput="this.value = this.value.toLowerCase().replace(/[^a-z0-9-]/g, '')">
+          <button class="btn-primary" onclick="webidClaimUsername()">Claim Username</button>
+        </div>
+        <div id="webid-username-error" class="webid-error-msg" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Display (shown when username is set) -->
+  <div id="webid-profile" style="display:none">
+
+    <div class="settings-row" data-search="webid username identity uri">
+      <div class="settings-row-info">
+        <span class="settings-label">Username</span>
+        <span class="settings-description">Your permanent WebID username.</span>
+      </div>
+      <div class="settings-row-control">
+        <code id="webid-username-display" class="webid-value"></code>
+      </div>
+    </div>
+
+    <div class="settings-row" data-search="webid uri identifier">
+      <div class="settings-row-info">
+        <span class="settings-label">WebID URI</span>
+        <span class="settings-description">Your unique decentralized identity URI.</span>
+      </div>
+      <div class="settings-row-control">
+        <a id="webid-uri-display" href="#" target="_blank" class="webid-uri-link"></a>
+      </div>
+    </div>
+
+    <div class="settings-row" data-search="webid publish public visible">
+      <div class="settings-row-info">
+        <span class="settings-label">Published</span>
+        <span class="settings-description">When published, your profile is publicly accessible. When unpublished, it returns 404.</span>
+      </div>
+      <div class="settings-row-control">
+        <label class="webid-toggle">
+          <input type="checkbox" id="webid-published-toggle" onchange="webidTogglePublish(this.checked)">
+          <span id="webid-published-label">Unpublished</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="settings-row" data-search="webid key fingerprint ed25519 cryptography">
+      <div class="settings-row-info">
+        <span class="settings-label">Public Key</span>
+        <span class="settings-description">Ed25519 public key for identity verification.</span>
+      </div>
+      <div class="settings-row-control">
+        <div class="webid-key-display">
+          <code id="webid-fingerprint" class="webid-fingerprint"></code>
+          <button class="settings-action-btn" onclick="webidCopyPEM()" title="Copy public key PEM to clipboard">
+            <i data-lucide="copy"></i> Copy PEM
+          </button>
+          <button class="settings-action-btn" onclick="webidRegenerateKey()" title="Generate a new key pair (discards old key)">
+            <i data-lucide="refresh-cw"></i> Regenerate Key
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- rel="me" Links Section -->
+    <div class="settings-row" data-search="webid links rel me fediverse mastodon verification">
+      <div class="settings-row-info">
+        <span class="settings-label">Profile Links (rel="me")</span>
+        <span class="settings-description">Add links to your other profiles for fediverse verification. The linked profile must link back to your WebID profile URL.</span>
+      </div>
+      <div class="settings-row-control webid-links-control">
+        <div id="webid-links-list"></div>
+        <div class="webid-links-actions">
+          <button class="settings-action-btn" onclick="webidAddLinkRow()">
+            <i data-lucide="plus"></i> Add Link
+          </button>
+          <button class="btn-primary" id="webid-save-links-btn" onclick="webidSaveLinks()" style="display:none">
+            Save Links
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Hidden element to store PEM for clipboard copy -->
+<textarea id="webid-pem-store" style="display:none" aria-hidden="true"></textarea>
+
+<script>
+(function () {
+  'use strict';
+
+  var _profileData = null;
+
+  // Load profile on init
+  fetch('/api/webid/profile', { credentials: 'include' })
+    .then(function (r) {
+      if (!r.ok) throw new Error('Failed to load profile');
+      return r.json();
+    })
+    .then(function (data) {
+      _profileData = data;
+      document.getElementById('webid-loading').style.display = 'none';
+      if (data.username) {
+        renderProfile(data);
+      } else {
+        document.getElementById('webid-setup').style.display = '';
+      }
+    })
+    .catch(function (err) {
+      document.getElementById('webid-loading').style.display = 'none';
+      var errDiv = document.getElementById('webid-error');
+      errDiv.textContent = 'Error loading WebID profile: ' + err.message;
+      errDiv.style.display = '';
+    });
+
+  function renderProfile(data) {
+    document.getElementById('webid-profile').style.display = '';
+    document.getElementById('webid-setup').style.display = 'none';
+    document.getElementById('webid-username-display').textContent = data.username;
+    var uriEl = document.getElementById('webid-uri-display');
+    uriEl.textContent = data.webid_uri;
+    uriEl.href = data.webid_uri ? data.webid_uri.replace('#me', '') : '#';
+    document.getElementById('webid-published-toggle').checked = data.published;
+    document.getElementById('webid-published-label').textContent = data.published ? 'Published' : 'Unpublished';
+    document.getElementById('webid-fingerprint').textContent = data.public_key_fingerprint || '';
+    document.getElementById('webid-pem-store').value = data.public_key_pem || '';
+    renderLinks(data.links || []);
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons({ nodes: [document.getElementById('webid-settings-container')] });
+    }
+  }
+
+  function renderLinks(links) {
+    var container = document.getElementById('webid-links-list');
+    container.innerHTML = '';
+    links.forEach(function (url, i) {
+      appendLinkRow(url);
+    });
+    document.getElementById('webid-save-links-btn').style.display = links.length > 0 ? '' : 'none';
+  }
+
+  function appendLinkRow(url) {
+    var container = document.getElementById('webid-links-list');
+    var row = document.createElement('div');
+    row.className = 'webid-link-row';
+    row.innerHTML = '<input type="url" class="settings-text-input webid-link-input" ' +
+      'value="' + (url || '') + '" placeholder="https://mastodon.social/@you" autocomplete="off">' +
+      '<button class="btn-danger-sm" onclick="this.parentElement.remove(); webidShowSaveBtn();" title="Remove link">&times;</button>';
+    container.appendChild(row);
+    document.getElementById('webid-save-links-btn').style.display = '';
+  }
+
+  // Expose functions to global scope
+  window.webidClaimUsername = function () {
+    var input = document.getElementById('webid-username-input');
+    var username = input.value.trim();
+    var errDiv = document.getElementById('webid-username-error');
+    errDiv.style.display = 'none';
+
+    if (username.length < 3) {
+      errDiv.textContent = 'Username must be at least 3 characters';
+      errDiv.style.display = '';
+      return;
+    }
+
+    fetch('/api/webid/username', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: username })
+    }).then(function (r) {
+      if (r.ok) return r.json();
+      return r.json().then(function (err) { throw new Error(err.detail || 'Failed'); });
+    }).then(function (data) {
+      _profileData = data;
+      renderProfile(data);
+    }).catch(function (err) {
+      errDiv.textContent = err.message;
+      errDiv.style.display = '';
+    });
+  };
+
+  window.webidTogglePublish = function (checked) {
+    var endpoint = checked ? '/api/webid/publish' : '/api/webid/unpublish';
+    fetch(endpoint, { method: 'POST', credentials: 'include' })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        _profileData = data;
+        document.getElementById('webid-published-label').textContent = data.published ? 'Published' : 'Unpublished';
+      });
+  };
+
+  window.webidCopyPEM = function () {
+    var pem = document.getElementById('webid-pem-store').value;
+    if (pem && navigator.clipboard) {
+      navigator.clipboard.writeText(pem);
+    }
+  };
+
+  window.webidRegenerateKey = function () {
+    if (!confirm('Regenerate your key pair? The old key will be permanently discarded. Any systems relying on your current public key will need updating.')) {
+      return;
+    }
+    fetch('/api/webid/regenerate-key', { method: 'POST', credentials: 'include' })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        _profileData = data;
+        document.getElementById('webid-fingerprint').textContent = data.public_key_fingerprint || '';
+        document.getElementById('webid-pem-store').value = data.public_key_pem || '';
+      });
+  };
+
+  window.webidAddLinkRow = function () {
+    appendLinkRow('');
+  };
+
+  window.webidShowSaveBtn = function () {
+    var rows = document.querySelectorAll('.webid-link-row');
+    document.getElementById('webid-save-links-btn').style.display = rows.length > 0 ? '' : 'none';
+  };
+
+  window.webidSaveLinks = function () {
+    var inputs = document.querySelectorAll('.webid-link-input');
+    var links = [];
+    inputs.forEach(function (inp) {
+      var val = inp.value.trim();
+      if (val) links.push(val);
+    });
+    fetch('/api/webid/links', {
+      method: 'PUT',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ links: links })
+    }).then(function (r) {
+      if (r.ok) return r.json();
+      return r.json().then(function (err) { throw new Error(err.detail || 'Failed to save links'); });
+    }).then(function (data) {
+      _profileData = data;
+      renderLinks(data.links || []);
+    }).catch(function (err) {
+      alert('Error saving links: ' + err.message);
+    });
+  };
+
+})();
+</script>

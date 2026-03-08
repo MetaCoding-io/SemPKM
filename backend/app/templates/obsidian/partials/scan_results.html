@@ -1,0 +1,176 @@
+<div id="import-area" class="import-results-wrapper">
+    <!-- Stat Cards -->
+    <div class="import-stat-cards">
+        <div class="import-stat-card">
+            <span class="stat-number">{{ scan_result.markdown_files }}</span>
+            <span class="stat-label">Notes</span>
+        </div>
+        <div class="import-stat-card">
+            <span class="stat-number">{{ scan_result.tags|length }}</span>
+            <span class="stat-label">Tags</span>
+        </div>
+        <div class="import-stat-card">
+            <span class="stat-number">{{ scan_result.wikilink_targets|length }}</span>
+            <span class="stat-label">Links</span>
+        </div>
+        <div class="import-stat-card">
+            <span class="stat-number">{{ scan_result.attachment_files }}</span>
+            <span class="stat-label">Attachments</span>
+        </div>
+    </div>
+
+    <!-- Detected Types -->
+    {% if scan_result.type_groups %}
+    <div class="import-section">
+        <h3 class="import-section-title">
+            <i data-lucide="layers"></i>
+            Detected Types
+        </h3>
+        {% for group in scan_result.type_groups %}
+        <div class="import-type-group {% if group.type_name == 'Uncategorized' %}uncategorized{% endif %}">
+            <details>
+                <summary class="type-group-header">
+                    <span class="type-group-name">{{ group.type_name }}</span>
+                    <span class="type-group-count">{{ group.count }} note{{ 's' if group.count != 1 else '' }}</span>
+                    <span class="import-signal-badge">{{ group.signal_source }}</span>
+                </summary>
+                <ul class="type-group-notes">
+                    {% for note in group.sample_notes[:10] %}
+                    <li>{{ note }}</li>
+                    {% endfor %}
+                    {% if group.count > 10 %}
+                    <li class="type-group-more">and {{ group.count - 10 }} more...</li>
+                    {% endif %}
+                </ul>
+            </details>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Frontmatter Keys -->
+    {% if scan_result.frontmatter_keys %}
+    <details class="import-collapsible">
+        <summary>
+            <i data-lucide="key"></i>
+            Frontmatter Keys ({{ scan_result.frontmatter_keys|length }})
+        </summary>
+        <table class="import-detail-table">
+            <thead>
+                <tr><th>Key</th><th>Count</th><th>Sample Values</th></tr>
+            </thead>
+            <tbody>
+                {% for fk in scan_result.frontmatter_keys %}
+                <tr>
+                    <td><code>{{ fk.key }}</code></td>
+                    <td>{{ fk.count }}</td>
+                    <td>{{ fk.sample_values[:5]|join(', ') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </details>
+    {% endif %}
+
+    <!-- Tags -->
+    {% if scan_result.tags %}
+    <details class="import-collapsible">
+        <summary>
+            <i data-lucide="hash"></i>
+            Tags ({{ scan_result.tags|length }})
+        </summary>
+        <div class="import-tag-list">
+            {% for tag in scan_result.tags %}
+            <div class="import-tag-item">
+                <span class="tag-name">#{{ tag.tag }}</span>
+                <span class="tag-count">{{ tag.count }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </details>
+    {% endif %}
+
+    <!-- Wiki-link Targets -->
+    {% if scan_result.wikilink_targets %}
+    <details class="import-collapsible">
+        <summary>
+            <i data-lucide="link"></i>
+            Wiki-link Targets ({{ scan_result.wikilink_targets|length }})
+        </summary>
+        <div class="import-tag-list">
+            {% for wl in scan_result.wikilink_targets %}
+            <div class="import-tag-item">
+                <span class="tag-name">[[{{ wl.target }}]]</span>
+                <span class="tag-count">{{ wl.count }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </details>
+    {% endif %}
+
+    <!-- Folders -->
+    {% if scan_result.folders %}
+    <details class="import-collapsible">
+        <summary>
+            <i data-lucide="folder"></i>
+            Folders ({{ scan_result.folders }})
+        </summary>
+        <p class="import-folders-note">{{ scan_result.folders }} unique folder{{ 's' if scan_result.folders != 1 else '' }} detected in vault.</p>
+    </details>
+    {% endif %}
+
+    <!-- Warnings -->
+    {% if scan_result.warnings %}
+    <div class="import-section import-warnings-section">
+        <h3 class="import-section-title">
+            <i data-lucide="alert-triangle"></i>
+            Warnings ({{ scan_result.warnings|length }})
+        </h3>
+        {% set warning_categories = {} %}
+        {% for w in scan_result.warnings %}
+            {% if w.category not in warning_categories %}
+                {% set _ = warning_categories.update({w.category: []}) %}
+            {% endif %}
+            {% set _ = warning_categories[w.category].append(w) %}
+        {% endfor %}
+        {% for cat, warnings in warning_categories.items() %}
+        <details class="import-collapsible">
+            <summary>
+                {{ cat|replace('_', ' ')|title }} ({{ warnings|length }})
+            </summary>
+            <ul class="import-warning-list">
+                {% for w in warnings %}
+                <li class="import-warning severity-{{ w.severity }}">
+                    <span class="warning-badge {{ w.severity }}">{{ w.severity }}</span>
+                    <span class="warning-file">{{ w.file_path }}</span>
+                    <span class="warning-message">{{ w.message }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </details>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Actions -->
+    <div class="import-actions">
+        <button class="btn btn-primary" disabled title="Available in Phase 46">
+            <i data-lucide="arrow-right"></i>
+            Continue to Mapping
+        </button>
+        <button hx-post="/browser/import/{{ import_id }}/discard"
+                hx-target="#import-content"
+                hx-swap="innerHTML"
+                class="btn btn-outline btn-danger">
+            <i data-lucide="trash-2"></i>
+            Discard Import
+        </button>
+    </div>
+
+    <!-- Scan Duration -->
+    <p class="import-scan-duration">Scanned in {{ "%.1f"|format(scan_result.scan_duration_seconds) }}s</p>
+</div>
+
+<script>
+if (typeof lucide !== 'undefined') lucide.createIcons();
+</script>

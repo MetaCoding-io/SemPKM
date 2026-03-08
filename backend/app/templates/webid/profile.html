@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ display_name or "User" }} - WebID Profile</title>
+  {% for link in rel_me_links %}
+  <link rel="me" href="{{ link }}">
+  {% endfor %}
+  <link rel="alternate" type="text/turtle" href="{{ profile_url }}">
+  <link rel="alternate" type="application/ld+json" href="{{ profile_url }}">
+  <style>
+    :root {
+      --bg: #fafafa;
+      --bg-card: #ffffff;
+      --text: #1a1a2e;
+      --text-muted: #555;
+      --accent: #4a6cf7;
+      --accent-hover: #3b5de7;
+      --border: #e0e0e0;
+      --mono-bg: #f0f0f4;
+      --brand: #4a6cf7;
+      --success: #16a34a;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f0f1a;
+        --bg-card: #1a1a2e;
+        --text: #e0e0e8;
+        --text-muted: #999;
+        --accent: #6b8aff;
+        --accent-hover: #8da4ff;
+        --border: #2a2a3e;
+        --mono-bg: #16162a;
+        --brand: #6b8aff;
+        --success: #22c55e;
+      }
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 600px;
+      width: 100%;
+    }
+    .brand {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .brand-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--brand);
+      letter-spacing: 0.05em;
+    }
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+    }
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+    }
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+    .section { margin-bottom: 1.5rem; }
+    .section:last-child { margin-bottom: 0; }
+    .mono-block {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--mono-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.5rem 0.75rem;
+      font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+      font-size: 0.85rem;
+      word-break: break-all;
+    }
+    .mono-block code { flex: 1; }
+    .copy-btn {
+      flex-shrink: 0;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+      color: var(--accent);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .copy-btn:hover { background: var(--accent); color: #fff; }
+    .fingerprint-text {
+      font-family: "SF Mono", "Fira Code", monospace;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      word-break: break-all;
+    }
+    .links-list { list-style: none; }
+    .links-list li { margin-bottom: 0.5rem; }
+    .links-list a {
+      color: var(--accent);
+      text-decoration: none;
+      word-break: break-all;
+    }
+    .links-list a:hover { text-decoration: underline; }
+    .footer {
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 1rem;
+    }
+    .footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .footer a:hover { text-decoration: underline; }
+    .footer .sep { margin: 0 0.3rem; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="brand">
+      <span class="brand-name">SemPKM</span>
+    </div>
+
+    <div class="card">
+      <h1>{{ display_name or "User" }}</h1>
+
+      <div class="section">
+        <div class="section-label">WebID URI</div>
+        <div class="mono-block">
+          <code id="webid-uri">{{ webid_uri }}</code>
+          <button class="copy-btn" onclick="copyText('webid-uri')">Copy</button>
+        </div>
+      </div>
+
+      {% if fingerprint %}
+      <div class="section">
+        <div class="section-label">Public Key Fingerprint (SHA-256)</div>
+        <div class="fingerprint-text">{{ fingerprint }}</div>
+        <button class="copy-btn" style="margin-top: 0.5rem;" onclick="copyPem()">Copy PEM</button>
+      </div>
+      {% endif %}
+
+      {% if rel_me_links %}
+      <div class="section">
+        <div class="section-label">Profile Links</div>
+        <ul class="links-list">
+          {% for link in rel_me_links %}
+          <li><a href="{{ link }}" rel="me">{{ link }}</a></li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="footer">
+      View as
+      <a href="{{ profile_url }}?format=turtle">Turtle</a>
+      <span class="sep">|</span>
+      <a href="{{ profile_url }}?format=jsonld">JSON-LD</a>
+    </div>
+  </div>
+
+  {% if public_key_pem %}
+  <pre id="pem-data" class="hidden">{{ public_key_pem }}</pre>
+  {% endif %}
+
+  <script>
+    function copyText(elId) {
+      var el = document.getElementById(elId);
+      if (el && navigator.clipboard) {
+        navigator.clipboard.writeText(el.textContent.trim());
+      }
+    }
+    function copyPem() {
+      var el = document.getElementById('pem-data');
+      if (el && navigator.clipboard) {
+        navigator.clipboard.writeText(el.textContent.trim());
+      }
+    }
+  </script>
+</body>
+</html>

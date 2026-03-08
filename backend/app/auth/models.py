@@ -9,7 +9,8 @@ application layer.
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, String, UniqueConstraint, func
+import sqlalchemy as sa
+from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -26,6 +27,15 @@ class User(Base):
     role: Mapped[str] = mapped_column(String(20), default="member")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
+    )
+
+    # WebID profile columns (Phase 48)
+    username: Mapped[str | None] = mapped_column(String(63), unique=True, index=True, nullable=True)
+    public_key_pem: Mapped[str | None] = mapped_column(Text(), nullable=True)
+    private_key_encrypted: Mapped[str | None] = mapped_column(Text(), nullable=True)
+    webid_links: Mapped[str | None] = mapped_column(Text(), nullable=True)
+    webid_published: Mapped[bool | None] = mapped_column(
+        Boolean(), server_default=sa.false(), nullable=True
     )
 
     sessions: Mapped[list["UserSession"]] = relationship(back_populates="user")

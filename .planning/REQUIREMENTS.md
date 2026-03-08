@@ -15,8 +15,8 @@ Requirements for v2.5 Polish, Import & Identity. Each maps to roadmap phases.
 
 ### Obsidian Import
 
-- [ ] **OBSI-01**: User can upload/point to an Obsidian vault directory for scanning
-- [ ] **OBSI-02**: Scan results show file count, detected types, frontmatter keys, link targets, and tags
+- [x] **OBSI-01**: User can upload/point to an Obsidian vault directory for scanning
+- [x] **OBSI-02**: Scan results show file count, detected types, frontmatter keys, link targets, and tags
 - [ ] **OBSI-03**: User can interactively map Obsidian note categories to Mental Model types
 - [ ] **OBSI-04**: User can map frontmatter keys to RDF properties for each type
 - [ ] **OBSI-05**: User can preview mapped objects before committing import
@@ -25,12 +25,12 @@ Requirements for v2.5 Polish, Import & Identity. Each maps to roadmap phases.
 
 ### WebID
 
-- [ ] **WBID-01**: Each user has a WebID URI (e.g. `https://instance/users/alice#me`)
-- [ ] **WBID-02**: Dereferencing the WebID URI returns an RDF profile document (FOAF/schema.org properties)
-- [ ] **WBID-03**: Content negotiation serves Turtle, JSON-LD, or HTML based on Accept header
-- [ ] **WBID-04**: Profile page includes `rel="me"` links for fediverse verification
-- [ ] **WBID-05**: Server generates Ed25519 key pair per user, stores encrypted
-- [ ] **WBID-06**: Public key is published in the WebID profile document
+- [x] **WBID-01**: Each user has a WebID URI (e.g. `https://instance/users/alice#me`)
+- [x] **WBID-02**: Dereferencing the WebID URI returns an RDF profile document (FOAF/schema.org properties)
+- [x] **WBID-03**: Content negotiation serves Turtle, JSON-LD, or HTML based on Accept header
+- [x] **WBID-04**: Profile page includes `rel="me"` links for fediverse verification
+- [x] **WBID-05**: Server generates Ed25519 key pair per user, stores encrypted
+- [x] **WBID-06**: Public key is published in the WebID profile document
 
 ### IndieAuth
 
@@ -91,19 +91,19 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UICL-01 | Phase 44 | Pending |
 | UICL-02 | Phase 44 | Pending |
 | UICL-03 | Phase 44 | Pending |
-| OBSI-01 | Phase 45 | Pending |
-| OBSI-02 | Phase 45 | Pending |
+| OBSI-01 | Phase 45 | Complete |
+| OBSI-02 | Phase 45 | Complete |
 | OBSI-03 | Phase 46 | Pending |
 | OBSI-04 | Phase 46 | Pending |
 | OBSI-05 | Phase 46 | Pending |
 | OBSI-06 | Phase 47 | Pending |
 | OBSI-07 | Phase 47 | Pending |
-| WBID-01 | Phase 48 | Pending |
-| WBID-02 | Phase 48 | Pending |
-| WBID-03 | Phase 48 | Pending |
-| WBID-04 | Phase 48 | Pending |
-| WBID-05 | Phase 48 | Pending |
-| WBID-06 | Phase 48 | Pending |
+| WBID-01 | Phase 48 | Complete |
+| WBID-02 | Phase 48 | Complete |
+| WBID-03 | Phase 48 | Complete |
+| WBID-04 | Phase 48 | Complete |
+| WBID-05 | Phase 48 | Complete |
+| WBID-06 | Phase 48 | Complete |
 | IAUTH-01 | Phase 49 | Pending |
 | IAUTH-02 | Phase 49 | Pending |
 | IAUTH-03 | Phase 49 | Pending |

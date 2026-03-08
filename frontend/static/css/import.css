@@ -1,0 +1,503 @@
+/* ==========================================================================
+   Obsidian Vault Import Tab Styles
+   ========================================================================== */
+
+/* --- Layout --- */
+#import-container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 1.5rem;
+    overflow-y: auto;
+    height: 100%;
+}
+
+/* --- Upload Zone --- */
+.import-upload-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+}
+
+.import-upload-zone {
+    border: 2px dashed var(--color-border, #ccc);
+    border-radius: var(--border-radius, 8px);
+    padding: 3rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background-color 0.2s;
+    width: 100%;
+    max-width: 500px;
+}
+
+.import-upload-zone:hover,
+.import-upload-zone.drag-over {
+    border-color: var(--color-primary, #4a90d9);
+    background-color: var(--color-bg-hover, rgba(74, 144, 217, 0.05));
+}
+
+.import-upload-zone svg {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    stroke: var(--color-text-muted, #888);
+    margin-bottom: 1rem;
+}
+
+.upload-zone-title {
+    font-size: 1.1rem;
+    color: var(--color-text-primary, #333);
+    margin: 0 0 0.5rem;
+}
+
+.upload-zone-hint {
+    font-size: 0.85rem;
+    color: var(--color-text-muted, #888);
+    margin: 0 0 1rem;
+}
+
+.upload-file-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+}
+
+.upload-browse-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.upload-browse-btn svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+.upload-selected-file {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    border: 1px solid var(--color-border, #ccc);
+    border-radius: var(--border-radius, 8px);
+    margin-top: 1rem;
+    width: 100%;
+    max-width: 500px;
+}
+
+.upload-selected-file svg {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    stroke: var(--color-text-muted, #888);
+}
+
+.upload-selected-file span {
+    flex: 1;
+    font-weight: 500;
+}
+
+/* --- Existing Import Notice --- */
+.import-existing-notice {
+    margin-top: 2rem;
+    padding: 1rem;
+    border: 1px solid var(--color-border, #ccc);
+    border-radius: var(--border-radius, 8px);
+    text-align: center;
+    max-width: 500px;
+    width: 100%;
+}
+
+.import-existing-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    margin-top: 0.75rem;
+}
+
+/* --- Progress / Scanning --- */
+.import-scanning-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 40vh;
+}
+
+.import-progress-section {
+    width: 100%;
+    max-width: 500px;
+    text-align: center;
+}
+
+.import-progress-bar-track {
+    width: 100%;
+    height: 8px;
+    background: var(--color-bg-secondary, #eee);
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 1rem 0;
+}
+
+.import-progress-bar {
+    height: 100%;
+    background: var(--color-primary, #4a90d9);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.import-scan-status {
+    font-size: 0.9rem;
+    color: var(--color-text-muted, #888);
+    margin: 0.5rem 0 0.25rem;
+    word-break: break-all;
+}
+
+.import-scan-status.error {
+    color: var(--color-danger, #e74c3c);
+}
+
+.import-scan-counter {
+    font-size: 0.85rem;
+    color: var(--color-text-muted, #888);
+}
+
+/* --- Stat Cards --- */
+.import-stat-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.import-stat-card {
+    border: 1px solid var(--color-border, #ccc);
+    border-radius: var(--border-radius, 8px);
+    padding: 1.25rem 1rem;
+    text-align: center;
+    background: var(--color-bg-primary, #fff);
+}
+
+.import-stat-card .stat-number {
+    display: block;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-text-primary, #333);
+    line-height: 1.2;
+}
+
+.import-stat-card .stat-label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--color-text-muted, #888);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 0.25rem;
+}
+
+@media (max-width: 768px) {
+    .import-stat-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* --- Sections --- */
+.import-section {
+    margin-bottom: 1.5rem;
+}
+
+.import-section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.1rem;
+    margin: 0 0 0.75rem;
+    color: var(--color-text-primary, #333);
+}
+
+.import-section-title svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+/* --- Type Groups --- */
+.import-type-group {
+    border: 1px solid var(--color-border, #ccc);
+    border-radius: var(--border-radius, 6px);
+    margin-bottom: 0.5rem;
+    overflow: hidden;
+}
+
+.import-type-group.uncategorized {
+    border-left: 4px solid #f0ad4e;
+    background: rgba(240, 173, 78, 0.06);
+}
+
+.type-group-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0.75rem;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+.type-group-name {
+    font-weight: 600;
+    color: var(--color-text-primary, #333);
+}
+
+.type-group-count {
+    font-size: 0.85rem;
+    color: var(--color-text-muted, #888);
+}
+
+.import-signal-badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    padding: 0.15em 0.5em;
+    border-radius: 9999px;
+    background: var(--color-bg-secondary, #eee);
+    color: var(--color-text-muted, #888);
+    margin-left: auto;
+    white-space: nowrap;
+}
+
+.type-group-notes {
+    list-style: none;
+    padding: 0 0.75rem 0.5rem;
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--color-text-secondary, #666);
+}
+
+.type-group-notes li {
+    padding: 0.2rem 0;
+}
+
+.type-group-more {
+    font-style: italic;
+    color: var(--color-text-muted, #888);
+}
+
+/* --- Collapsible Sections --- */
+.import-collapsible {
+    border: 1px solid var(--color-border, #ccc);
+    border-radius: var(--border-radius, 6px);
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+}
+
+.import-collapsible > summary {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0.75rem;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: var(--color-text-primary, #333);
+}
+
+.import-collapsible > summary svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+/* --- Detail Table --- */
+.import-detail-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.import-detail-table th {
+    text-align: left;
+    padding: 0.4rem 0.75rem;
+    border-bottom: 1px solid var(--color-border, #ccc);
+    color: var(--color-text-muted, #888);
+    font-weight: 500;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+}
+
+.import-detail-table td {
+    padding: 0.35rem 0.75rem;
+    border-bottom: 1px solid var(--color-border-light, #eee);
+    color: var(--color-text-secondary, #666);
+}
+
+.import-detail-table code {
+    font-size: 0.85em;
+    background: var(--color-bg-secondary, #f5f5f5);
+    padding: 0.1em 0.3em;
+    border-radius: 3px;
+}
+
+/* --- Tag / Link List --- */
+.import-tag-list {
+    padding: 0.5rem 0.75rem;
+}
+
+.import-tag-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.25rem 0;
+    font-size: 0.85rem;
+}
+
+.import-tag-item .tag-name {
+    color: var(--color-text-primary, #333);
+}
+
+.import-tag-item .tag-count {
+    color: var(--color-text-muted, #888);
+    font-size: 0.8rem;
+    min-width: 2rem;
+    text-align: right;
+}
+
+/* --- Warnings --- */
+.import-warnings-section {
+    margin-top: 1.5rem;
+}
+
+.import-warning-list {
+    list-style: none;
+    padding: 0.5rem 0.75rem;
+    margin: 0;
+}
+
+.import-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.4rem 0;
+    font-size: 0.85rem;
+    border-left: 3px solid transparent;
+    padding-left: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.import-warning.severity-warning {
+    border-left-color: #f0ad4e;
+}
+
+.import-warning.severity-error {
+    border-left-color: #e74c3c;
+}
+
+.import-warning.severity-info {
+    border-left-color: #5bc0de;
+}
+
+.warning-badge {
+    font-size: 0.7rem;
+    padding: 0.1em 0.4em;
+    border-radius: 3px;
+    text-transform: uppercase;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.warning-badge.warning {
+    background: rgba(240, 173, 78, 0.15);
+    color: #c87f0a;
+}
+
+.warning-badge.error {
+    background: rgba(231, 76, 60, 0.15);
+    color: #c0392b;
+}
+
+.warning-badge.info {
+    background: rgba(91, 192, 222, 0.15);
+    color: #31b0d5;
+}
+
+.warning-file {
+    color: var(--color-text-muted, #888);
+    font-family: monospace;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+
+.warning-message {
+    color: var(--color-text-secondary, #666);
+}
+
+/* --- Folders note --- */
+.import-folders-note {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    color: var(--color-text-muted, #888);
+}
+
+/* --- Actions --- */
+.import-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border, #ccc);
+}
+
+.import-actions .btn svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+.import-actions .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+/* --- Scan Duration --- */
+.import-scan-duration {
+    font-size: 0.8rem;
+    color: var(--color-text-muted, #888);
+    margin-top: 1rem;
+    text-align: right;
+}
+
+/* --- Button Styles (reuse existing or define minimal) --- */
+.import-actions .btn-outline {
+    background: transparent;
+    border: 1px solid var(--color-border, #ccc);
+    color: var(--color-text-primary, #333);
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius, 6px);
+    cursor: pointer;
+}
+
+.import-actions .btn-danger {
+    border-color: var(--color-danger, #e74c3c);
+    color: var(--color-danger, #e74c3c);
+}
+
+.import-actions .btn-primary {
+    background: var(--color-primary, #4a90d9);
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius, 6px);
+    cursor: pointer;
+}
+
+.import-actions .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
