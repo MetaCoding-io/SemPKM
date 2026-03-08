@@ -403,7 +403,7 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 44. UI Cleanup | 2/2 | Complete   | 2026-03-08 | - |
 | 45. Obsidian Vault Scanner | 3/3 | Complete    | 2026-03-08 | - |
 | 46. Obsidian Mapping UI | 2/3 | Complete    | 2026-03-08 | - |
-| 47. Obsidian Batch Import | 2/2 | Complete   | 2026-03-08 | - |
+| 47. Obsidian Batch Import | 2/2 | Complete    | 2026-03-08 | - |
 | 48. WebID Profiles | 2/2 | Complete    | 2026-03-08 | - |
 | 49. IndieAuth Provider | 3/3 | Complete    | 2026-03-08 | - |
 | 50. User Guide & Documentation | v2.5 | 0/0 | Not started | - |
