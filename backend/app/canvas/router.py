@@ -7,7 +7,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
-from app.canvas.schemas import CanvasPutBody, CanvasResponse
+from app.canvas.schemas import (
+    CanvasPutBody,
+    CanvasResponse,
+    SessionCreateBody,
+    SessionListResponse,
+)
 from app.canvas.service import CanvasService
 from app.db.session import get_db_session
 from app.dependencies import get_view_spec_service
@@ -96,6 +101,67 @@ async def get_canvas_subgraph(
         "nodes": list(seen_nodes.values()),
         "edges": edges_out,
     }
+
+
+# ------------------------------------------------------------------
+# Session management endpoints (MUST be before /{canvas_id} routes)
+# ------------------------------------------------------------------
+
+
+@router.get("/sessions/list", response_model=SessionListResponse)
+async def list_canvas_sessions(
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db_session),
+    service: CanvasService = Depends(get_canvas_service),
+):
+    """List all saved canvas sessions, with one-time migration of default canvas."""
+    await service.migrate_default_canvas(user.id, db)
+    sessions = await service.list_sessions(user.id, db)
+    active = await service.get_active_session_id(user.id, db)
+    return SessionListResponse(sessions=sessions, active_session_id=active)
+
+
+@router.post("/sessions")
+async def create_canvas_session(
+    body: SessionCreateBody,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db_session),
+    service: CanvasService = Depends(get_canvas_service),
+):
+    """Create a new named canvas session."""
+    session_id = await service.save_session_as(user.id, body.name, body.document, db)
+    return {"session_id": session_id, "name": body.name}
+
+
+@router.delete("/sessions/{session_id}")
+async def delete_canvas_session(
+    session_id: str,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db_session),
+    service: CanvasService = Depends(get_canvas_service),
+):
+    """Delete a saved canvas session."""
+    deleted = await service.delete_session(user.id, session_id, db)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return {"deleted": True}
+
+
+@router.put("/sessions/{session_id}/activate")
+async def activate_canvas_session(
+    session_id: str,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db_session),
+    service: CanvasService = Depends(get_canvas_service),
+):
+    """Set a session as the active canvas session."""
+    await service.set_active_session(user.id, session_id, db)
+    return {"active_session_id": session_id}
+
+
+# ------------------------------------------------------------------
+# Canvas document endpoints
+# ------------------------------------------------------------------
 
 
 @router.get("/{canvas_id}", response_model=CanvasResponse)
