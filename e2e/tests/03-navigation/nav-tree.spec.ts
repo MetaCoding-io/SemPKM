@@ -73,9 +73,8 @@ test.describe('Navigation Tree', () => {
       await treeItems.first().click();
       await waitForIdle(ownerPage);
 
-      // Tab bar should now show a tab (not empty state)
-      const tabBar = ownerPage.locator(SEL.workspace.tabBar);
-      await expect(tabBar).not.toContainText('No objects open', { timeout: 10000 });
+      // After clicking a nav item, an object tab should open
+      await ownerPage.waitForSelector('.object-tab', { timeout: 10000 });
     }
   });
 

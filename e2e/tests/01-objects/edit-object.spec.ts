@@ -19,13 +19,12 @@ test.describe('Edit Object Properties', () => {
     await ownerPage.goto(`${BASE_URL}/browser/`);
     await ownerPage.waitForSelector(SEL.workspace.container, { timeout: 15000 });
 
-    // Load object in edit mode via htmx
-    await ownerPage.evaluate((iri) => {
-      const target = document.querySelector('#editor-area-group-1');
-      if (target && (window as any).htmx) {
-        (window as any).htmx.ajax('GET', '/browser/object/' + encodeURIComponent(iri) + '?mode=edit', { target });
+    // Load object in edit mode via dockview openTab API
+    await ownerPage.evaluate(({ iri, mode }) => {
+      if (typeof (window as any).openTab === 'function') {
+        (window as any).openTab(iri, iri, mode || 'read');
       }
-    }, noteIri);
+    }, { iri: noteIri, mode: 'edit' });
 
     // Wait for the object tab to load (form is inside collapsed properties section)
     await ownerPage.waitForSelector('.object-tab', { timeout: 10000 });

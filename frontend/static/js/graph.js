@@ -73,6 +73,17 @@
           'text-background-padding': '2px'
         }
       },
+      // Inferred edge style (dashed line to distinguish from user-created)
+      {
+        selector: 'edge.inferred-edge',
+        style: {
+          'line-style': 'dashed',
+          'line-dash-pattern': [6, 3],
+          'line-color': isDark ? '#5a6070' : '#aab',
+          'target-arrow-color': isDark ? '#5a6070' : '#aab',
+          'width': 1.2
+        }
+      },
       // Selected node
       {
         selector: 'node:selected',
@@ -223,7 +234,7 @@
 
     for (var j = 0; j < data.edges.length; j++) {
       var edge = data.edges[j];
-      elements.push({
+      var edgeEl = {
         group: 'edges',
         data: {
           id: edge.source + '-' + edge.predicate + '-' + edge.target,
@@ -231,9 +242,14 @@
           target: edge.target,
           label: edge.predicate_label || '',
           fullPredicate: edge.predicate,
-          predicate: edge.predicate
+          predicate: edge.predicate,
+          inferred: edge.inferred || false
         }
-      });
+      };
+      if (edge.inferred) {
+        edgeEl.classes = 'inferred-edge';
+      }
+      elements.push(edgeEl);
     }
 
     // Determine layout -- use fcose if available, fall back to cose
@@ -321,8 +337,9 @@
       var btn = e.target.closest('.graph-popover-open-btn');
       if (!btn) return;
       var iri = btn.getAttribute('data-node-iri');
+      var label = btn.getAttribute('data-node-label');
       if (iri && typeof window.openTab === 'function') {
-        window.openTab(iri);
+        window.openTab(iri, label || undefined);
       }
       popover.style.display = 'none';
     });
@@ -361,7 +378,7 @@
       }
 
       html += '<div class="graph-popover-footer">' +
-                '<button class="graph-popover-open-btn" data-node-iri="' + _esc(nodeIri) + '">Open</button>' +
+                '<button class="graph-popover-open-btn" data-node-iri="' + _esc(nodeIri) + '" data-node-label="' + _esc(d.label) + '">Open</button>' +
               '</div>';
 
       popover.innerHTML = html;
@@ -528,7 +545,7 @@
           var edge = data.edges[j];
           var edgeId = edge.source + '-' + edge.predicate + '-' + edge.target;
           if (!cy.getElementById(edgeId).length) {
-            newElements.push({
+            var newEdge = {
               group: 'edges',
               data: {
                 id: edgeId,
@@ -536,9 +553,14 @@
                 target: edge.target,
                 label: edge.predicate_label || '',
                 fullPredicate: edge.predicate,
-                predicate: edge.predicate
+                predicate: edge.predicate,
+                inferred: edge.inferred || false
               }
-            });
+            };
+            if (edge.inferred) {
+              newEdge.classes = 'inferred-edge';
+            }
+            newElements.push(newEdge);
           }
         }
 

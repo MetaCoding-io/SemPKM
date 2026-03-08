@@ -561,6 +561,8 @@
         markClean(objectIri);
       }
       flipInner.classList.remove('flipped');
+      if (readFace) { readFace.classList.remove('face-hidden'); readFace.classList.add('face-visible'); }
+      if (editFace) { editFace.classList.remove('face-visible'); editFace.classList.add('face-hidden'); }
       if (toggleBtn) toggleBtn.textContent = 'Edit';
       if (saveBtn) saveBtn.style.display = 'none';
       // Refresh read face with fresh data from server
@@ -568,13 +570,11 @@
         fetch('/browser/object/' + encodeURIComponent(objectIri) + '?mode=read', {
           headers: { 'HX-Request': 'true' }
         }).then(function (resp) { return resp.text(); }).then(function (html) {
-          // Extract the read face content from the full response
           var tmp = document.createElement('div');
           tmp.innerHTML = html;
           var freshRead = tmp.querySelector('.object-face-read');
           if (freshRead) {
             readFace.innerHTML = freshRead.innerHTML;
-            // Re-trigger markdown rendering for any md-source/md-rendered pairs
             var mdSources = readFace.querySelectorAll('script[type="text/plain"][id^="md-source-"]');
             mdSources.forEach(function (src) {
               var renderedId = src.id.replace('md-source-', 'md-rendered-');
@@ -585,7 +585,6 @@
                 tgt.textContent = src.textContent;
               }
             });
-            // Re-apply properties collapse state after read face refresh
             if (typeof window.initPropertiesState === 'function') {
               var badge = readFace.closest('.object-tab');
               var badgeBtn = badge ? badge.querySelector('.properties-toggle-badge') : null;
@@ -595,23 +594,15 @@
           }
         }).catch(function () { /* keep stale content on error */ });
       }
-      // Swap faces at midpoint (300ms into 600ms animation)
-      setTimeout(function () {
-        if (readFace) readFace.classList.remove('face-hidden');
-        if (editFace) editFace.classList.remove('face-visible');
-      }, 300);
     } else {
       // Switching from read to edit: initialize edit mode if needed
       var initFn = window['_initEditMode_' + safeId];
       if (typeof initFn === 'function') initFn();
       flipInner.classList.add('flipped');
+      if (editFace) { editFace.classList.remove('face-hidden'); editFace.classList.add('face-visible'); }
+      if (readFace) { readFace.classList.remove('face-visible'); readFace.classList.add('face-hidden'); }
       if (toggleBtn) toggleBtn.textContent = 'Cancel';
       if (saveBtn) saveBtn.style.display = '';
-      // Swap faces at midpoint (300ms into 600ms animation)
-      setTimeout(function () {
-        if (readFace) readFace.classList.add('face-hidden');
-        if (editFace) editFace.classList.add('face-visible');
-      }, 300);
     }
   }
 
@@ -692,6 +683,28 @@
     });
   }
   window.openCanvasTab = openCanvasTab;
+
+
+  function openVfsTab() {
+    var tabKey = 'special:vfs';
+    var dv = window._dockview;
+    if (!dv) return;
+
+    var existing = dv.panels.find(function(p) { return p.id === tabKey; });
+    if (existing) { existing.api.setActive(); return; }
+
+    if (!window._tabMeta) window._tabMeta = {};
+    window._tabMeta[tabKey] = { label: 'VFS Browser', dirty: false };
+
+    dv.api.addPanel({
+      id: tabKey,
+      component: 'special-panel',
+      params: { specialType: 'vfs', isView: false, isSpecial: true },
+      title: 'VFS Browser'
+    });
+  }
+  
+  window.openVfsTab = openVfsTab;
 
   // --- Keyboard Shortcuts ---
 
@@ -868,6 +881,58 @@
     }, 2000);
   }
 
+  // --- Lint Dashboard: Health Badge & SSE Auto-refresh ---
+
+  function updateLintBadge(data) {
+    var badge = document.getElementById('lint-badge');
+    if (!badge) return;
+    // Remove all modifier classes
+    badge.className = 'lint-badge';
+    if (data.violation_count > 0) {
+      badge.textContent = data.violation_count;
+      badge.classList.add('lint-badge--violations');
+      badge.style.display = 'inline-block';
+    } else if (data.warning_count > 0) {
+      badge.textContent = data.warning_count;
+      badge.classList.add('lint-badge--warnings');
+      badge.style.display = 'inline-block';
+    } else if (data.conforms === true) {
+      badge.textContent = '\u2713';
+      badge.classList.add('lint-badge--pass');
+      badge.style.display = 'inline-block';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  function initLintDashboardSSE() {
+    if (!window._lintSSE) {
+      window._lintSSE = new EventSource('/api/lint/stream');
+    }
+    window._lintSSE.addEventListener('validation_complete', function(e) {
+      var data = JSON.parse(e.data);
+      // Update the health badge
+      updateLintBadge(data);
+      // If the lint dashboard pane is currently visible, refresh its content
+      var pane = document.getElementById('panel-lint-dashboard');
+      if (pane && pane.classList.contains('active')) {
+        var params = new URLSearchParams();
+        var sev = pane.querySelector('[name="severity"]');
+        if (sev && sev.value) params.set('severity', sev.value);
+        var typ = pane.querySelector('[name="object_type"]');
+        if (typ && typ.value) params.set('object_type', typ.value);
+        var srch = pane.querySelector('[name="search"]');
+        if (srch && srch.value) params.set('search', srch.value);
+        var srt = pane.querySelector('[name="sort"]');
+        if (srt && srt.value) params.set('sort', srt.value);
+        htmx.ajax('GET', '/browser/lint-dashboard?' + params.toString(), {
+          target: '#lint-dashboard-results',
+          swap: 'innerHTML'
+        });
+      }
+    });
+  }
+
   // --- Command Palette ---
 
   function initCommandPalette() {
@@ -929,6 +994,17 @@
           title: 'Maximize Panel',
           section: 'View',
           handler: function () { maximizeBottomPanel(); }
+        },
+        {
+          id: 'toggle-lint-dashboard',
+          title: 'Toggle Lint Dashboard',
+          section: 'View',
+          handler: function () {
+            panelState.activeTab = 'lint-dashboard';
+            if (!panelState.open) panelState.open = true;
+            _applyPanelState();
+            savePanelState();
+          }
         },
         {
           id: 'toggle-explorer',
@@ -1700,6 +1776,13 @@
     // Initialize command palette after workspace layout is ready
     initCommandPalette();
 
+    // Initialize lint dashboard SSE and health badge
+    initLintDashboardSSE();
+    fetch('/api/lint/status', { credentials: 'include' })
+      .then(function (r) { return r.json(); })
+      .then(function (data) { updateLintBadge(data); })
+      .catch(function () { /* no lint status available yet */ });
+
     // Fetch and cache icon map for client-side use (graph shapes, tab icons)
     fetch('/browser/icons', { credentials: 'include' })
       .then(function (r) { return r.json(); })
@@ -1787,6 +1870,12 @@
     var detail = e.detail;
     if (!detail || !detail.iri) return;
     markClean(detail.iri);
+
+    // Reload relations and lint panels with fresh data after save
+    if (typeof loadRightPaneSection === 'function') {
+      loadRightPaneSection(detail.iri, 'relations');
+      loadRightPaneSection(detail.iri, 'lint');
+    }
 
     if (!detail.label) return;
     var newLabel = detail.label;

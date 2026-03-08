@@ -29,9 +29,14 @@ test.describe('Cards View', () => {
 
     const encodedSpecIri = encodeURIComponent(cardSpec.spec_iri);
     await ownerPage.evaluate((iri) => {
-      const target = document.querySelector('#editor-area-group-1');
-      if (target && (window as any).htmx) {
-        (window as any).htmx.ajax('GET', '/browser/views/card/' + iri, { target });
+      const dv = (window as any)._dockview;
+      if (dv) {
+        dv.addPanel({
+          id: 'view-' + Date.now(),
+          component: 'special-panel',
+          params: { specialType: 'views/card/' + iri, isView: true, isSpecial: true },
+          title: 'View',
+        });
       }
     }, encodedSpecIri);
 
@@ -62,9 +67,14 @@ test.describe('Cards View', () => {
 
     const encodedSpecIri = encodeURIComponent(cardSpec.spec_iri);
     await ownerPage.evaluate((iri) => {
-      const target = document.querySelector('#editor-area-group-1');
-      if (target && (window as any).htmx) {
-        (window as any).htmx.ajax('GET', '/browser/views/card/' + iri, { target });
+      const dv = (window as any)._dockview;
+      if (dv) {
+        dv.addPanel({
+          id: 'view-' + Date.now(),
+          component: 'special-panel',
+          params: { specialType: 'views/card/' + iri, isView: true, isSpecial: true },
+          title: 'View',
+        });
       }
     }, encodedSpecIri);
 
@@ -93,9 +103,14 @@ test.describe('Cards View', () => {
 
     const encodedSpecIri = encodeURIComponent(cardSpec.spec_iri);
     await ownerPage.evaluate((iri) => {
-      const target = document.querySelector('#editor-area-group-1');
-      if (target && (window as any).htmx) {
-        (window as any).htmx.ajax('GET', '/browser/views/card/' + iri, { target });
+      const dv = (window as any)._dockview;
+      if (dv) {
+        dv.addPanel({
+          id: 'view-' + Date.now(),
+          component: 'special-panel',
+          params: { specialType: 'views/card/' + iri, isView: true, isSpecial: true },
+          title: 'View',
+        });
       }
     }, encodedSpecIri);
 
@@ -128,9 +143,14 @@ test.describe('Cards View', () => {
 
     const encodedSpecIri = encodeURIComponent(cardSpec.spec_iri);
     await ownerPage.evaluate((iri) => {
-      const target = document.querySelector('#editor-area-group-1');
-      if (target && (window as any).htmx) {
-        (window as any).htmx.ajax('GET', '/browser/views/card/' + iri, { target });
+      const dv = (window as any)._dockview;
+      if (dv) {
+        dv.addPanel({
+          id: 'view-' + Date.now(),
+          component: 'special-panel',
+          params: { specialType: 'views/card/' + iri, isView: true, isSpecial: true },
+          title: 'View',
+        });
       }
     }, encodedSpecIri);
 
@@ -142,9 +162,7 @@ test.describe('Cards View', () => {
     await cardTitle.click();
     await waitForIdle(ownerPage);
 
-    // Editor should now show the object (not the cards view anymore)
-    // The tab bar should have a new tab
-    const tabBar = ownerPage.locator(SEL.workspace.tabBar);
-    await expect(tabBar).not.toContainText('No objects open', { timeout: 10000 });
+    // After clicking card, a new object tab should open
+    await ownerPage.waitForSelector('.object-tab', { timeout: 10000 });
   });
 });

@@ -14,6 +14,39 @@ from rdflib import Graph
 from app.models.manifest import ManifestSchema
 
 
+def load_rdf_file(file_path: Path) -> Graph:
+    """Load an RDF file into an rdflib Graph, detecting format by extension.
+
+    Supports Turtle (.ttl, .turtle) and JSON-LD (.jsonld, .json) files.
+
+    Args:
+        file_path: Path to the RDF file.
+
+    Returns:
+        An rdflib Graph containing the parsed triples.
+
+    Raises:
+        FileNotFoundError: If the file does not exist.
+        ValueError: If the file extension is not supported, or if a JSON-LD
+            file contains remote @context URLs.
+    """
+    if not file_path.exists():
+        raise FileNotFoundError(f"RDF file not found: {file_path}")
+
+    suffix = file_path.suffix.lower()
+    if suffix in (".ttl", ".turtle"):
+        g = Graph()
+        g.parse(str(file_path), format="turtle")
+        return g
+    elif suffix in (".jsonld", ".json"):
+        return load_jsonld_file(file_path)
+    else:
+        raise ValueError(
+            f"Unsupported RDF file extension '{suffix}' for {file_path}. "
+            "Supported: .ttl, .turtle, .jsonld, .json"
+        )
+
+
 def load_jsonld_file(file_path: Path) -> Graph:
     """Load a JSON-LD file into an rdflib Graph.
 
@@ -98,6 +131,7 @@ class ModelArchive:
     shapes: Graph
     views: Graph
     seed: Graph | None
+    rules: Graph | None
 
 
 def load_archive(model_dir: Path, manifest: ManifestSchema) -> ModelArchive:
@@ -129,10 +163,17 @@ def load_archive(model_dir: Path, manifest: ManifestSchema) -> ModelArchive:
         if seed_path.exists():
             seed = load_jsonld_file(seed_path)
 
+    rules: Graph | None = None
+    if manifest.entrypoints.rules is not None:
+        rules_path = model_dir / manifest.entrypoints.rules
+        if rules_path.exists():
+            rules = load_rdf_file(rules_path)
+
     return ModelArchive(
         manifest=manifest,
         ontology=ontology,
         shapes=shapes,
         views=views,
         seed=seed,
+        rules=rules,
     )

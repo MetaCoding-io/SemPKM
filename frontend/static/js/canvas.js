@@ -29,6 +29,7 @@
         x: 160,
         y: 120,
         markdown: '## Architecture Decision\n\n- Adopt **Track A** for packaging.\n- Add `React Flow` island in workspace.\n\n[Open project node](urn:sempkm:model:basic-pkm:seed-project-kernel)',
+        collapsed: false,
       },
       {
         id: 'urn:sempkm:model:basic-pkm:seed-project-kernel',
@@ -37,6 +38,7 @@
         x: 540,
         y: 300,
         markdown: '### Spatial Canvas Beta\n\nThis project tracks:\n1. Canvas persistence\n2. RDF subgraph loading\n3. Markdown anchors\n\nSee [Architecture Decision](urn:sempkm:model:basic-pkm:seed-note-arch).',
+        collapsed: false,
       }
     ],
     edges: [
@@ -69,6 +71,7 @@
   function bindEvents() {
     state.viewport.addEventListener('wheel', onWheel, { passive: false });
     state.viewport.addEventListener('pointerdown', onPointerDown);
+    state.layer.addEventListener('click', onLayerClick);
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
   }
@@ -95,7 +98,7 @@
   }
 
   function onPointerDown(event) {
-    if (event.target && event.target.closest && event.target.closest('.spatial-node-markdown a')) {
+    if (event.target && event.target.closest && (event.target.closest('.spatial-node-markdown a') || event.target.closest('.spatial-node-toggle'))) {
       return;
     }
 
@@ -116,6 +119,49 @@
     state.panStartX = event.clientX;
     state.panStartY = event.clientY;
     state.viewport.classList.add('is-panning');
+  }
+
+  function onLayerClick(event) {
+    var toggleBtn = event.target.closest('.spatial-node-toggle');
+    if (toggleBtn) {
+      var toggleNode = toggleBtn.closest('.spatial-node');
+      if (!toggleNode) return;
+      var model = findNode(toggleNode.dataset.nodeId);
+      if (!model) return;
+      model.collapsed = !model.collapsed;
+      renderNodes();
+      return;
+    }
+
+    var link = event.target.closest('.spatial-node-markdown a');
+    if (link) {
+      event.preventDefault();
+      var href = link.getAttribute('href') || '';
+      var sourceEl = link.closest('.spatial-node');
+      var source = sourceEl ? findNode(sourceEl.dataset.nodeId) : null;
+      if (!href) return;
+      var target = findNode(href);
+      if (target) {
+        setStatus('Focused existing node: ' + href);
+        return;
+      }
+      var shouldAdd = window.confirm('Add target node to canvas?\n' + href);
+      if (!shouldAdd) return;
+
+      var baseX = source ? source.x + 320 : 260;
+      var baseY = source ? source.y + 40 : 220;
+      state.nodes.push({
+        id: href,
+        title: 'Linked Resource',
+        uri: href,
+        x: baseX,
+        y: baseY,
+        markdown: 'Added from markdown link\n\nURI: `' + href + '`',
+        collapsed: false,
+      });
+      setStatus('Added linked node: ' + href);
+      renderNodes();
+    }
   }
 
   function onPointerMove(event) {
@@ -169,12 +215,21 @@
       ].join('');
     }).join('');
 
+    // var nodesHtml = state.nodes.map(function (node) {
+    //   return [
+    //     '<article class="spatial-node" data-node-id="', escapeHtml(node.id), '" style="left:', node.x, 'px; top:', node.y, 'px;">',
+    //       '<header class="spatial-node-header">', escapeHtml(node.title), '</header>',
+    //       '<div class="spatial-node-uri">', escapeHtml(node.uri), '</div>',
+    //       '<div class="spatial-node-markdown">', renderMarkdown(node.markdown || ''), '</div>',
     var nodesHtml = state.nodes.map(function (node) {
       return [
-        '<article class="spatial-node" data-node-id="', escapeHtml(node.id), '" style="left:', node.x, 'px; top:', node.y, 'px;">',
-          '<header class="spatial-node-header">', escapeHtml(node.title), '</header>',
+        '<article class="spatial-node', (node.collapsed ? ' is-collapsed' : ''), '" data-node-id="', escapeHtml(node.id), '" style="left:', node.x, 'px; top:', node.y, 'px;">',
+          '<header class="spatial-node-header">',
+            '<span class="spatial-node-title">', escapeHtml(node.title), '</span>',
+            '<button class="spatial-node-toggle" type="button">', (node.collapsed ? 'Expand' : 'Collapse'), '</button>',
+          '</header>',
           '<div class="spatial-node-uri">', escapeHtml(node.uri), '</div>',
-          '<div class="spatial-node-markdown">', renderMarkdown(node.markdown || ''), '</div>',
+          (node.collapsed ? '' : '<div class="spatial-node-markdown">' + renderMarkdown(node.markdown || '') + '</div>'),
         '</article>'
       ].join('');
     }).join('');
@@ -186,6 +241,81 @@
       '</svg>',
       nodesHtml
     ].join('');
+
+    var nodeBoxes = {};
+    state.layer.querySelectorAll('.spatial-node').forEach(function (el) {
+      var id = el.dataset.nodeId;
+      var model = findNode(id);
+      if (!id || !model) return;
+      nodeBoxes[id] = {
+        x: model.x,
+        y: model.y,
+        width: el.offsetWidth,
+        height: el.offsetHeight,
+      };
+    });
+
+    var markdownEdges = [];
+    var anchorDotsHtml = [];
+
+    state.layer.querySelectorAll('.spatial-node').forEach(function (nodeEl) {
+      var sourceId = nodeEl.dataset.nodeId;
+      var sourceBox = nodeBoxes[sourceId];
+      if (!sourceBox) return;
+
+      nodeEl.querySelectorAll('.spatial-node-markdown a[href]').forEach(function (linkEl, idx) {
+        var href = linkEl.getAttribute('href') || '';
+        if (!href) return;
+        var linkRect = linkEl.getBoundingClientRect();
+        var nodeRect = nodeEl.getBoundingClientRect();
+        var anchorY = sourceBox.y + (linkRect.top - nodeRect.top) + (linkRect.height / 2);
+        var anchorX = sourceBox.x + sourceBox.width;
+        var targetNode = findNode(href);
+
+        anchorDotsHtml.push('<circle class="spatial-anchor-dot" cx="' + Math.round(anchorX) + '" cy="' + Math.round(anchorY) + '" r="3"></circle>');
+
+        if (targetNode) {
+          markdownEdges.push({
+            id: 'md|' + sourceId + '|' + href + '|' + idx,
+            source: sourceId,
+            target: href,
+            label: 'link',
+            anchorX: anchorX,
+            anchorY: anchorY,
+          });
+        }
+      });
+    });
+
+    var combinedEdges = state.edges.concat(markdownEdges);
+
+    var edgesHtml = combinedEdges.map(function (edge) {
+      var source = nodeBoxes[edge.source];
+      var target = nodeBoxes[edge.target];
+      if (!source || !target) return '';
+
+      var start = (typeof edge.anchorX === 'number' && typeof edge.anchorY === 'number')
+        ? { x: edge.anchorX, y: edge.anchorY }
+        : edgePoint(source, target);
+      var end = edgePoint(target, source);
+      var mx = Math.round((start.x + end.x) / 2);
+      var my = Math.round((start.y + end.y) / 2) - 10;
+
+      return [
+        '<line class="spatial-edge-line', (edge.id.indexOf('md|') === 0 ? ' spatial-edge-line-markdown' : ''), '" x1="', Math.round(start.x), '" y1="', Math.round(start.y), '" x2="', Math.round(end.x), '" y2="', Math.round(end.y), '"></line>',
+        '<text class="spatial-edge-label" x="', mx, '" y="', my, '">', escapeHtml(edge.label || ''), '</text>'
+      ].join('');
+    }).join('');
+
+    var svgHtml = [
+      '<svg class="spatial-edges" width="5000" height="5000" viewBox="0 0 5000 5000" aria-hidden="true">',
+      '<defs><marker id="spatial-edge-arrow" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" class="spatial-edge-arrow-path"></path></marker></defs>',
+      edgesHtml,
+      anchorDotsHtml.join(''),
+      '</svg>'
+    ].join('');
+
+    state.layer.insertAdjacentHTML('afterbegin', svgHtml);
   }
 
   function applyTransform() {
@@ -198,6 +328,29 @@
       if (state.nodes[i].id === id) return state.nodes[i];
     }
     return null;
+  }
+
+  function edgePoint(fromBox, toBox) {
+    var cx = fromBox.x + (fromBox.width / 2);
+    var cy = fromBox.y + (fromBox.height / 2);
+    var tx = toBox.x + (toBox.width / 2);
+    var ty = toBox.y + (toBox.height / 2);
+
+    var dx = tx - cx;
+    var dy = ty - cy;
+
+    if (dx === 0 && dy === 0) {
+      return { x: cx, y: cy };
+    }
+
+    var scaleX = (fromBox.width / 2) / Math.max(Math.abs(dx), 0.0001);
+    var scaleY = (fromBox.height / 2) / Math.max(Math.abs(dy), 0.0001);
+    var scale = Math.min(scaleX, scaleY);
+
+    return {
+      x: cx + (dx * scale),
+      y: cy + (dy * scale),
+    };
   }
 
   function screenToWorld(clientX, clientY) {
@@ -275,6 +428,7 @@
           x: n.x,
           y: n.y,
           markdown: n.markdown || '',
+          collapsed: !!n.collapsed,
         };
       }),
       edges: state.edges.map(function (e) {
@@ -295,6 +449,7 @@
           x: Number(n.x || 0),
           y: Number(n.y || 0),
           markdown: String(n.markdown || ''),
+          collapsed: !!n.collapsed,
         };
       });
     }
@@ -443,6 +598,7 @@
     exportState: getDocument,
     importState: applyDocument,
     loadNeighbors: loadNeighbors,
+    expandNeighbors: loadNeighbors,
   };
 
   document.body.addEventListener('htmx:afterSwap', function (event) {

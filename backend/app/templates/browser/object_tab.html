@@ -126,7 +126,14 @@
       if (!window._tabMeta[tabKey]) window._tabMeta[tabKey] = {};
       window._tabMeta[tabKey].typeIcon = typeIcon;
       window._tabMeta[tabKey].typeColor = typeColor;
-      // renderGroupTabBar is a no-op in the dockview world -- dockview renders tabs natively
+    }
+    // Apply accent color if this is the active panel
+    if (typeColor && window._dockview) {
+      var dv = window._dockview;
+      var panel = dv.activePanel;
+      if (panel && panel.id === tabKey && panel.group) {
+        panel.group.element.style.setProperty('--tab-accent-color', typeColor);
+      }
     }
   })();
 </script>
@@ -309,10 +316,6 @@
     {% if mode == 'edit' %}
     var flipInner = document.getElementById('flip-inner-' + safeId);
     if (flipInner) flipInner.classList.add('flipped');
-    var readFace = document.querySelector('#flip-inner-' + safeId + ' .object-face-read');
-    var editFace = document.querySelector('#flip-inner-' + safeId + ' .object-face-edit');
-    if (readFace) readFace.classList.add('face-hidden');
-    if (editFace) editFace.classList.add('face-visible');
     var toggleBtn = document.getElementById('mode-toggle-' + safeId);
     if (toggleBtn) { toggleBtn.textContent = 'Cancel'; }
     var saveBtn = document.getElementById('save-btn-' + safeId);

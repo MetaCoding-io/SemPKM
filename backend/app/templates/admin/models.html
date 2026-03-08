@@ -57,6 +57,12 @@
                     <td>{{ model.description }}</td>
                     <td>{{ model.installed_at[:10] if model.installed_at else "Unknown" }}</td>
                     <td>
+                        <a href="/admin/models/{{ model.model_id }}/entailment"
+                           class="btn btn-secondary btn-sm"
+                           hx-get="/admin/models/{{ model.model_id }}/entailment"
+                           hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
+                            Inference
+                        </a>
                         <button class="btn btn-secondary btn-sm"
                                 hx-delete="/admin/models/{{ model.model_id }}"
                                 hx-target="#model-table"

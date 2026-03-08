@@ -51,6 +51,7 @@ class ManifestEntrypoints(BaseModel):
     shapes: str = "shapes/{modelId}.jsonld"
     views: str = "views/{modelId}.jsonld"
     seed: str | None = "seed/{modelId}.jsonld"
+    rules: str | None = None
 
 
 class ManifestSchema(BaseModel):
@@ -104,6 +105,8 @@ class ManifestSchema(BaseModel):
         ep.views = ep.views.replace("{modelId}", self.modelId)
         if ep.seed is not None:
             ep.seed = ep.seed.replace("{modelId}", self.modelId)
+        if ep.rules is not None:
+            ep.rules = ep.rules.replace("{modelId}", self.modelId)
         return self
 
 

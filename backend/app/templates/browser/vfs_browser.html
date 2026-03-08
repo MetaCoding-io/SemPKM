@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}SemPKM - File Browser{% endblock %}
+
+{% block layout_class %}workspace-layout{% endblock %}
+
+{% block head %}
+{{ super() }}
+{% endblock %}
+
+{% block content %}
+<div class="vfs-container" id="vfs-container" data-testid="vfs-browser">
+    <!-- Left pane: file tree -->
+    <div class="vfs-tree-pane" id="vfs-tree-pane">
+        <div class="vfs-tree-header">
+            <span class="vfs-tree-title">FILES</span>
+            <button class="panel-btn" id="vfs-refresh-btn" title="Refresh file tree">
+                <i data-lucide="refresh-cw"></i>
+            </button>
+        </div>
+        <div class="vfs-tree-body" id="vfs-tree-body">
+            <div class="vfs-tree-loading">
+                <i data-lucide="loader" class="vfs-spinner"></i>
+                <span>Loading files...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resize handle -->
+    <div class="vfs-resize-handle" id="vfs-resize-handle"></div>
+
+    <!-- Right pane: editor area (splittable) -->
+    <div class="vfs-editor-pane" id="vfs-editor-pane">
+        <div class="vfs-editor-empty" id="vfs-editor-empty">
+            <i data-lucide="file-text"></i>
+            <p>Select a file from the tree to view its contents</p>
+        </div>
+        <div class="vfs-editor-tabs" id="vfs-editor-tabs" style="display:none;">
+            <div class="vfs-tab-bar" id="vfs-tab-bar"></div>
+            <div class="vfs-editor-content" id="vfs-editor-content"></div>
+        </div>
+    </div>
+</div>
+
+<script src="/js/vfs-browser.js"></script>
+{% endblock %}

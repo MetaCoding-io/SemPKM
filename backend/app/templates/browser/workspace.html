@@ -63,7 +63,9 @@
           <div class="panel-header">
             <div class="panel-tab-bar" id="panel-tab-bar">
               <button class="panel-tab active" data-panel="event-log">EVENT LOG</button>
+              <button class="panel-tab" data-panel="inference">INFERENCE</button>
               <button class="panel-tab" data-panel="ai-copilot">AI COPILOT</button>
+              <button class="panel-tab" data-panel="lint-dashboard">LINT <span class="lint-badge" id="lint-badge"></span></button>
             </div>
             <div class="panel-controls">
               <button class="panel-btn" id="panel-maximize-btn" title="Maximize Panel (toggle)">
@@ -81,11 +83,20 @@
                 Event Log Explorer — coming in Phase 16
               </div>
             </div>
+            <div class="panel-pane" id="panel-inference">
+              {% include 'browser/inference_panel.html' %}
+            </div>
             <div class="panel-pane" id="panel-ai-copilot">
               <div class="panel-placeholder">
                 <i data-lucide="bot" style="width:24px;height:24px;display:block;margin:0 auto 8px;"></i>
                 AI Copilot — coming in v2.1
               </div>
+            </div>
+            <div class="panel-pane" id="panel-lint-dashboard"
+                 hx-get="/browser/lint-dashboard"
+                 hx-trigger="revealed"
+                 hx-swap="innerHTML">
+              <div class="lint-dashboard-empty">Loading lint results...</div>
             </div>
           </div>
         </div>
