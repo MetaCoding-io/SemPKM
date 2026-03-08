@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-03-07)
 Phase: 44 of 49 (UI Cleanup)
 Plan: —
 Status: Ready to plan
-Last activity: 2026-03-07 — Roadmap created for v2.5 (6 phases, 20 requirements)
+Last activity: 2026-03-08 - Completed quick task 29: Add e2e tests for v2.4 coverage gaps
 
 Progress: [░░░░░░░░░░] 0%
 
