@@ -81,7 +81,8 @@
                     <i data-lucide="hard-drive" class="nav-icon"></i>
                     <span class="nav-label">File Browser</span>
                 </a>
-                <a href="#" onclick="openImportTab(); return false;" class="nav-link" data-tooltip="Import Vault">
+                <a href="/browser/import" class="nav-link" data-tooltip="Import Vault"
+                   hx-get="/browser/import" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
                     <i data-lucide="upload" class="nav-icon"></i>
                     <span class="nav-label">Import Vault</span>
                 </a>
