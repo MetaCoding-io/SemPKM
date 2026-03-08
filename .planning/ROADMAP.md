@@ -119,7 +119,7 @@
 
 - [x] **Phase 44: UI Cleanup** - VFS browser CSS fixes and audit-driven UI polish (completed 2026-03-08)
 - [x] **Phase 45: Obsidian Vault Scanner** - Upload vault, parse files, extract metadata and statistics (completed 2026-03-08)
-- [ ] **Phase 46: Obsidian Mapping UI** - Map note categories to types, frontmatter to properties, preview results
+- [x] **Phase 46: Obsidian Mapping UI** - Map note categories to types, frontmatter to properties, preview results (completed 2026-03-08)
 - [ ] **Phase 47: Obsidian Batch Import** - Execute import with bodies, properties, and edges via Command API
 - [x] **Phase 48: WebID Profiles** - Serve RDF profile documents with content negotiation, keys, and rel="me" (completed 2026-03-08)
 - [ ] **Phase 49: IndieAuth Provider** - Authorization and token endpoints with PKCE and consent screen
@@ -163,7 +163,7 @@ Plans:
   1. User can map each detected Obsidian note category to a Mental Model type
   2. User can map each frontmatter key to an RDF property for the corresponding type
   3. User can preview the resulting objects (with types, properties, and bodies) before committing the import
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [x] 46-01-PLAN.md -- Backend models, scanner enhancement, and mapping endpoints
@@ -399,7 +399,7 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 43. Inference E2E Test Gap | v2.4 | 1/1 | Complete | 2026-03-06 |
 | 44. UI Cleanup | 2/2 | Complete   | 2026-03-08 | - |
 | 45. Obsidian Vault Scanner | 3/3 | Complete    | 2026-03-08 | - |
-| 46. Obsidian Mapping UI | 2/3 | In Progress|  | - |
+| 46. Obsidian Mapping UI | 2/3 | Complete    | 2026-03-08 | - |
 | 47. Obsidian Batch Import | v2.5 | 0/0 | Not started | - |
 | 48. WebID Profiles | 2/2 | Complete    | 2026-03-08 | - |
 | 49. IndieAuth Provider | 1/3 | In Progress|  | - |
