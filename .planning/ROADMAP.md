@@ -122,7 +122,7 @@
 - [x] **Phase 46: Obsidian Mapping UI** - Map note categories to types, frontmatter to properties, preview results (completed 2026-03-08)
 - [ ] **Phase 47: Obsidian Batch Import** - Execute import with bodies, properties, and edges via Command API
 - [x] **Phase 48: WebID Profiles** - Serve RDF profile documents with content negotiation, keys, and rel="me" (completed 2026-03-08)
-- [ ] **Phase 49: IndieAuth Provider** - Authorization and token endpoints with PKCE and consent screen
+- [x] **Phase 49: IndieAuth Provider** - Authorization and token endpoints with PKCE and consent screen (completed 2026-03-08)
 - [ ] **Phase 50: User Guide & Documentation** - Catch up user guide for all features added since v2.0
 
 ## Phase Details
@@ -205,7 +205,7 @@ Plans:
   2. An IndieWeb client can complete the full OAuth2 authorization code flow with PKCE against the SemPKM authorization endpoint
   3. The token endpoint issues access tokens after code exchange and supports token introspection
   4. User sees a consent screen showing the requesting application name and requested scopes before granting access
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [ ] 49-01-PLAN.md -- Data model, migration, service layer, scopes, schemas (foundation)
@@ -402,7 +402,7 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 46. Obsidian Mapping UI | 2/3 | Complete    | 2026-03-08 | - |
 | 47. Obsidian Batch Import | v2.5 | 0/0 | Not started | - |
 | 48. WebID Profiles | 2/2 | Complete    | 2026-03-08 | - |
-| 49. IndieAuth Provider | 2/3 | In Progress|  | - |
+| 49. IndieAuth Provider | 3/3 | Complete   | 2026-03-08 | - |
 | 50. User Guide & Documentation | v2.5 | 0/0 | Not started | - |
 
 ### Phase 51: Spatial Canvas UX: per-node expand/delete buttons, drag-drop from nav tree, remove global load button

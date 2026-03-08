@@ -34,7 +34,7 @@ Requirements for v2.5 Polish, Import & Identity. Each maps to roadmap phases.
 
 ### IndieAuth
 
-- [ ] **IAUTH-01**: Server exposes `rel="indieauth-metadata"` link for client discovery
+- [x] **IAUTH-01**: Server exposes `rel="indieauth-metadata"` link for client discovery
 - [x] **IAUTH-02**: Authorization endpoint handles OAuth2 authorization code flow with mandatory PKCE
 - [x] **IAUTH-03**: Token endpoint issues access tokens after code exchange
 - [x] **IAUTH-04**: Token endpoint supports token verification (introspection)
@@ -104,7 +104,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | WBID-04 | Phase 48 | Complete |
 | WBID-05 | Phase 48 | Complete |
 | WBID-06 | Phase 48 | Complete |
-| IAUTH-01 | Phase 49 | Pending |
+| IAUTH-01 | Phase 49 | Complete |
 | IAUTH-02 | Phase 49 | Complete |
 | IAUTH-03 | Phase 49 | Complete |
 | IAUTH-04 | Phase 49 | Complete |
