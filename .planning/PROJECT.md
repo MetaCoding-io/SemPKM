@@ -114,11 +114,18 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - ✓ VFS-01: In-app VFS browser — dockview tab with tree navigation (model → type → objects) — v2.4
 - ✓ TEST-05: E2E test coverage for v2.4 features (inference data flow, lint dashboard, helptext) — v2.4
 
+### Validated (v2.5)
+
+<!-- Shipped and confirmed valuable in v2.5. -->
+
+- ✓ OBSI-01: User can upload Obsidian vault ZIP for scanning — Phase 45
+- ✓ OBSI-02: Scan results show file count, detected types, frontmatter keys, link targets, and tags — Phase 45
+
 ### Active
 
 <!-- v2.5 Polish, Import & Identity -->
 
-(Requirements being defined — see REQUIREMENTS.md)
+(Remaining requirements — see REQUIREMENTS.md)
 
 ### Future Candidates
 
@@ -259,5 +266,7 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | HTML5 drag-reorder for sidebar panels | No dockview needed for simple panel position swap; [data-panel-name] + [data-drop-zone] attributes, localStorage persistence | ✓ Good — lightweight, no dependency added |
 | sempkm:tab-activated custom event | Decouples workspace.js from workspace-layout.js for contextual panel indicator; dispatched on openTab()/switchTabInGroup() | ✓ Good — clean separation, panel indicator works |
 
+| htmx page navigation for tool pages | Tool pages (Import Vault) should be htmx full-page navigation, not dockview tabs | ✓ Good — consistent with VFS browser pattern |
+
 ---
-*Last updated: 2026-03-07 after v2.5 milestone start*
+*Last updated: 2026-03-08 after Phase 45*

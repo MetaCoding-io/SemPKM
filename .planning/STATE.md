@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Polish, Import & Identity
 status: executing
-stopped_at: Completed 51-02-PLAN.md
-last_updated: "2026-03-08T06:13:46.373Z"
+stopped_at: Phase 45 complete, ready to continue remaining phases
+last_updated: "2026-03-08T06:15:09.513Z"
 last_activity: "2026-03-08 - Completed Phase 51 Plan 02: Nav tree drag-drop to canvas"
 progress:
   total_phases: 8
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 8
-  completed_plans: 7
+  completed_plans: 8
   percent: 96
 ---
 
@@ -18,10 +18,10 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-07)
+See: .planning/PROJECT.md (updated 2026-03-08)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations — no blank-page syndrome, no schema setup.
-**Current focus:** v2.5 Polish, Import & Identity — Phase 51 executing
+**Current focus:** v2.5 Polish, Import & Identity — Phase 45 complete, advancing
 
 ## Current Position
 
@@ -77,6 +77,8 @@ Full decision log in PROJECT.md Key Decisions table.
 - Phase 51: Inline SVG constants for canvas icons to avoid Lucide re-scan overhead
 - Phase 51: Scoped collapse via expandProvenance map tracking which expand loaded which nodes
 - Phase 51: Custom MIME types text/iri and text/label in dataTransfer for nav-tree-to-canvas drag-drop
+- Phase 45: Tool pages use htmx page navigation, not dockview tabs
+- Phase 45: Return styled HTML on BadZipFile instead of JSON HTTPException for htmx targets
 
 ### Pending Todos
 
@@ -108,6 +110,6 @@ None — clean start for v2.5
 
 ## Session Continuity
 
-Last session: 2026-03-08T06:10:00Z
-Stopped at: Completed 51-02-PLAN.md
-Resume file: .planning/phases/51-spatial-canvas-ux-per-node-expand-delete-buttons-drag-drop-from-nav-tree-remove-global-load-button/51-02-SUMMARY.md
+Last session: 2026-03-08
+Stopped at: Phase 45 complete, ready to continue remaining phases
+Resume file: None
