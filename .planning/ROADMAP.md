@@ -135,7 +135,11 @@
   1. VFS browser markdown preview renders text at the same base font size as the rest of the app
   2. VFS browser content does not show spurious underline styling on non-link text
   3. An audit-driven set of UI tweaks addresses rough edges identified during discuss-phase
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 44-01-PLAN.md -- VFS browser rendering fixes and CodeMirror CSS variable theming
+- [ ] 44-02-PLAN.md -- Tab type icons, sidebar accent, helptext validation, keyboard shortcuts, event console
 
 ### Phase 45: Obsidian Vault Scanner
 **Goal**: Users can point SemPKM at an Obsidian vault and see a clear summary of what it contains
@@ -383,7 +387,7 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 41. Gap Closure — Rules Wiring, Flip Fix, VFS Browser | v2.4 | 3/3 | Complete | 2026-03-06 |
 | 42. VFS Browser Fix | v2.4 | 1/1 | Complete | 2026-03-06 |
 | 43. Inference E2E Test Gap | v2.4 | 1/1 | Complete | 2026-03-06 |
-| 44. UI Cleanup | v2.5 | 0/0 | Not started | - |
+| 44. UI Cleanup | v2.5 | 0/2 | Planned | - |
 | 45. Obsidian Vault Scanner | 3/3 | Complete    | 2026-03-08 | - |
 | 46. Obsidian Mapping UI | v2.5 | 0/0 | Not started | - |
 | 47. Obsidian Batch Import | v2.5 | 0/0 | Not started | - |
