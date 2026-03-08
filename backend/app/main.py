@@ -56,6 +56,7 @@ from wsgidav.wsgidav_app import WsgiDAVApp
 from a2wsgi import WSGIMiddleware
 from app.vfs.provider import SemPKMDAVProvider
 from app.vfs.router import router as vfs_browser_router
+from app.webid.router import router as webid_router
 from app.vfs.auth import SemPKMWsgiAuthenticator
 from app.triplestore.sync_client import SyncTriplestoreClient
 
@@ -409,6 +410,7 @@ app.include_router(inference_router)
 app.include_router(admin_router)
 app.include_router(views_router)
 app.include_router(vfs_browser_router)
+app.include_router(webid_router)
 app.include_router(browser_router)
 app.include_router(obsidian_router)
 app.include_router(canvas_router)
