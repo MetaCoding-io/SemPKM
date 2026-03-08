@@ -86,36 +86,35 @@
     state.layer.addEventListener('click', onLayerClick);
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
-    state.viewport.addEventListener('dragover', onDragOver);
-    state.viewport.addEventListener('dragleave', onDragLeave);
-    state.viewport.addEventListener('drop', onDrop);
+    // Drag-drop from nav tree: use capture phase on document so we see events
+    // before dockview's tab drag-drop system can intercept them.
+    document.addEventListener('dragover', onDragOver, true);
+    document.addEventListener('dragleave', onDragLeave, true);
+    document.addEventListener('drop', onDrop, true);
+    // Fallback: dockview often swallows the 'drop' event entirely.
+    // dragend always fires on the source element regardless — use it as a
+    // backup if we tracked a valid drag position over the canvas.
+    document.addEventListener('dragend', onDragEnd, true);
   }
 
-  function onDragOver(event) {
-    if (event.dataTransfer.types.indexOf('text/iri') === -1) return;
-    event.preventDefault();
-    event.dataTransfer.dropEffect = 'copy';
-    state.viewport.classList.add('canvas-drop-active');
+  // Track last known drag position over canvas for the dragend fallback.
+  var lastDragOverCanvas = null;
+
+  function isOverCanvas(event) {
+    if (!state.viewport) return false;
+    var rect = state.viewport.getBoundingClientRect();
+    return event.clientX >= rect.left && event.clientX <= rect.right &&
+           event.clientY >= rect.top && event.clientY <= rect.bottom;
   }
 
-  function onDragLeave(event) {
-    if (!state.viewport.contains(event.relatedTarget)) {
-      state.viewport.classList.remove('canvas-drop-active');
-    }
-  }
-
-  function onDrop(event) {
-    event.preventDefault();
-    state.viewport.classList.remove('canvas-drop-active');
-    var iri = event.dataTransfer.getData('text/iri');
-    var label = event.dataTransfer.getData('text/label');
+  function addNodeFromDrag(iri, label, clientX, clientY) {
     if (!iri) return;
     if (findNode(iri)) {
       setStatus('Already on canvas');
       if (window.showToast) window.showToast('Already on canvas');
       return;
     }
-    var world = screenToWorld(event.clientX, event.clientY);
+    var world = screenToWorld(clientX, clientY);
     state.nodes.push({
       id: iri,
       title: label || 'Resource',
@@ -127,6 +126,66 @@
     });
     renderNodes();
     setStatus('Added: ' + (label || iri));
+    fetchNodeBody(iri);
+  }
+
+  function fetchNodeBody(iri) {
+    fetch('/api/canvas/body?iri=' + encodeURIComponent(iri))
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (!data || !data.body) return;
+        var node = findNode(iri);
+        if (node) {
+          node.markdown = data.body;
+          renderNodes();
+        }
+      })
+      .catch(function () { /* silent — body is optional */ });
+  }
+
+  function onDragOver(event) {
+    if (!event.dataTransfer.types || event.dataTransfer.types.indexOf('text/iri') === -1) return;
+    if (!isOverCanvas(event)) {
+      state.viewport.classList.remove('canvas-drop-active');
+      lastDragOverCanvas = null;
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    event.dataTransfer.dropEffect = 'copy';
+    state.viewport.classList.add('canvas-drop-active');
+    lastDragOverCanvas = { x: event.clientX, y: event.clientY };
+  }
+
+  function onDragLeave(event) {
+    if (!isOverCanvas(event)) {
+      state.viewport.classList.remove('canvas-drop-active');
+      lastDragOverCanvas = null;
+    }
+  }
+
+  function onDrop(event) {
+    if (!isOverCanvas(event)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    state.viewport.classList.remove('canvas-drop-active');
+    lastDragOverCanvas = null;
+    var iri = event.dataTransfer.getData('text/iri');
+    var label = event.dataTransfer.getData('text/label');
+    addNodeFromDrag(iri, label, event.clientX, event.clientY);
+  }
+
+  function onDragEnd(event) {
+    // Always clean up visual state.
+    state.viewport.classList.remove('canvas-drop-active');
+    // Fallback: if drop never fired but we had a valid position over the
+    // canvas, use the side-channel payload set by tree_children.html.
+    if (lastDragOverCanvas && window.__canvasDragPayload) {
+      var payload = window.__canvasDragPayload;
+      addNodeFromDrag(payload.iri, payload.label, lastDragOverCanvas.x, lastDragOverCanvas.y);
+    }
+    lastDragOverCanvas = null;
+    window.__canvasDragPayload = null;
   }
 
   function onWheel(event) {
@@ -228,11 +287,12 @@
         uri: href,
         x: baseX,
         y: baseY,
-        markdown: 'Added from markdown link\n\nURI: `' + href + '`',
+        markdown: '',
         collapsed: false,
       });
       setStatus('Added linked node: ' + href);
       renderNodes();
+      fetchNodeBody(href);
     }
   }
 
@@ -317,11 +377,12 @@
           uri: nid,
           x: Math.round(model.x + Math.cos(angle) * radius),
           y: Math.round(model.y + Math.sin(angle) * radius),
-          markdown: 'Loaded from RDF subgraph\n\nURI: `' + nid + '`',
+          markdown: '',
           collapsed: false,
         });
         newNodeIds.push(nid);
         existingIds[nid] = true;
+        fetchNodeBody(nid);
       });
 
       // Merge edges (dedup)
@@ -810,9 +871,10 @@
         uri: nodeId,
         x: Math.round((centerX - state.translateX) / state.scale + Math.cos(angle) * radius),
         y: Math.round((centerY - state.translateY) / state.scale + Math.sin(angle) * radius),
-        markdown: 'Loaded from RDF subgraph\n\nURI: `' + nodeId + '`',
+        markdown: '',
       });
       existingNodeIds[nodeId] = true;
+      fetchNodeBody(nodeId);
     });
 
     if (Array.isArray(payload.edges)) {
