@@ -40,6 +40,12 @@ Requirements for v2.5 Polish, Import & Identity. Each maps to roadmap phases.
 - [ ] **IAUTH-04**: Token endpoint supports token verification (introspection)
 - [ ] **IAUTH-05**: User sees consent screen showing requesting app and requested scopes
 
+### Documentation
+
+- [ ] **DOCS-01**: User guide in `docs/` covers all features shipped since v2.0 (SPARQL console, FTS, VFS, dockview, inference, lint dashboard, helptext, Obsidian import, WebID, IndieAuth)
+- [ ] **DOCS-02**: Each major feature has a dedicated user guide page with usage instructions
+- [ ] **DOCS-03**: Existing user guide pages are updated to reflect current UI state (no stale references)
+
 ## Future Requirements
 
 Deferred to future milestones. Tracked but not in current roadmap.
@@ -103,10 +109,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | IAUTH-03 | Phase 49 | Pending |
 | IAUTH-04 | Phase 49 | Pending |
 | IAUTH-05 | Phase 49 | Pending |
+| DOCS-01 | Phase 50 | Pending |
+| DOCS-02 | Phase 50 | Pending |
+| DOCS-03 | Phase 50 | Pending |
 
 **Coverage:**
-- v2.5 requirements: 20 total
-- Mapped to phases: 20
+- v2.5 requirements: 23 total
+- Mapped to phases: 23
 - Unmapped: 0
 
 ---
