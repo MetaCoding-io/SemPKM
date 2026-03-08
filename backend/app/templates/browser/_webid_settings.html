@@ -58,7 +58,7 @@
       <div class="settings-row-control">
         <label class="webid-toggle">
           <input type="checkbox" id="webid-published-toggle" onchange="webidTogglePublish(this.checked)">
-          <span id="webid-published-label">Unpublished</span>
+          <span id="webid-published-label">Published</span>
         </label>
       </div>
     </div>
@@ -142,7 +142,6 @@
     uriEl.textContent = data.webid_uri;
     uriEl.href = data.webid_uri ? data.webid_uri.replace('#me', '') : '#';
     document.getElementById('webid-published-toggle').checked = data.published;
-    document.getElementById('webid-published-label').textContent = data.published ? 'Published' : 'Unpublished';
     document.getElementById('webid-fingerprint').textContent = data.public_key_fingerprint || '';
     document.getElementById('webid-pem-store').value = data.public_key_pem || '';
     renderLinks(data.links || []);
@@ -207,8 +206,7 @@
       .then(function (r) { return r.json(); })
       .then(function (data) {
         _profileData = data;
-        document.getElementById('webid-published-label').textContent = data.published ? 'Published' : 'Unpublished';
-      });
+          });
   };
 
   window.webidCopyPEM = function () {
