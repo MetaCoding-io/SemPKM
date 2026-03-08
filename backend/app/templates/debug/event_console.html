@@ -64,6 +64,15 @@
 </div>
 
 <script>
-  switchCommandForm(document.getElementById('command-type').value);
+  // Ensure app.js (which defines switchCommandForm) is loaded before calling
+  if (typeof switchCommandForm === 'function') {
+    switchCommandForm(document.getElementById('command-type').value);
+  } else {
+    document.addEventListener('DOMContentLoaded', function() {
+      if (typeof switchCommandForm === 'function') {
+        switchCommandForm(document.getElementById('command-type').value);
+      }
+    });
+  }
 </script>
 {% endblock %}
