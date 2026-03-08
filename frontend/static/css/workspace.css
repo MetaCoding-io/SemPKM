@@ -2853,7 +2853,7 @@ details.form-group[open] > .form-group-summary::before {
    show a 3px teal left border on the panel header.
    Applied via [data-panel-name].contextual-panel-active class toggle in JS. */
 [data-panel-name].contextual-panel-active > summary.right-section-header {
-    border-left: 3px solid var(--color-accent);
+    border-left: 3px solid var(--tab-accent-color, var(--color-accent));
     padding-left: 9px; /* 12px original - 3px border = maintains visual indent */
     transition: border-color 0.15s;
 }
