@@ -163,7 +163,7 @@ Plans:
   1. User can map each detected Obsidian note category to a Mental Model type
   2. User can map each frontmatter key to an RDF property for the corresponding type
   3. User can preview the resulting objects (with types, properties, and bodies) before committing the import
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 
 Plans:
 - [ ] 46-01-PLAN.md -- Backend models, scanner enhancement, and mapping endpoints
@@ -399,7 +399,7 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 43. Inference E2E Test Gap | v2.4 | 1/1 | Complete | 2026-03-06 |
 | 44. UI Cleanup | 2/2 | Complete   | 2026-03-08 | - |
 | 45. Obsidian Vault Scanner | 3/3 | Complete    | 2026-03-08 | - |
-| 46. Obsidian Mapping UI | 1/3 | In Progress|  | - |
+| 46. Obsidian Mapping UI | 2/3 | In Progress|  | - |
 | 47. Obsidian Batch Import | v2.5 | 0/0 | Not started | - |
 | 48. WebID Profiles | 2/2 | Complete    | 2026-03-08 | - |
 | 49. IndieAuth Provider | v2.5 | 0/3 | Planning complete | - |
