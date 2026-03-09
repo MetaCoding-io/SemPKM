@@ -109,6 +109,60 @@
 
 ---
 
+## Milestone: v2.5 — Polish, Import & Identity
+
+**Shipped:** 2026-03-09
+**Phases:** 8 (44-51) | **Plans:** 22 | **Duration:** 3 days (2026-03-07 → 2026-03-09)
+**Commits:** 184 | **Files:** 257 | **Lines:** +28,502 / -1,649
+
+### What Was Built
+
+- **Obsidian Import Wizard** — Full 6-step in-app wizard (upload → scan → type mapping → property mapping → preview → batch import) with SSE progress, wiki-link/tag edge resolution, two-pass import (objects then edges)
+- **WebID Profiles** — Per-user Ed25519 key pairs (Fernet-encrypted), RDF profile documents (FOAF + W3C Security Vocabulary), content negotiation (Turtle/JSON-LD/HTML), `rel="me"` links for Mastodon/fediverse verification
+- **IndieAuth Provider** — Full OAuth2 authorization code flow with mandatory PKCE, consent screen, token introspection, refresh token rotation, authorized apps management UI, metadata discovery endpoint
+- **Spatial Canvas UX** — Per-node expand/delete/chevron controls with provenance-scoped collapse, HTML5 drag-drop from nav tree with custom MIME types, named session management (save-as, auto-restore, session index)
+- **UI Polish** — CodeMirror CSS variable theming, dockview tab type icons, dynamic sidebar accent colors, capture-phase keyboard shortcuts, VFS markdown preview toggle
+- **User Guide** — 27 chapters across 9 parts covering all features from v2.0-v2.5, 11 new glossary terms, screenshot capture spec
+
+### What Worked
+
+- **Three parallel workstreams**: UI cleanup, Obsidian import, and Identity ran independently. Phase 44 (UI), 45-47 (Obsidian), and 48-49 (Identity) had zero dependency conflicts. Documentation (Phase 50) correctly sequenced after all feature phases.
+- **SSE race condition handling**: The pattern of saving import_result.json server-side and serving it via GET when the SSE broadcast has already closed solved a real timing bug in Phase 47. Reusable for any SSE-based progress workflow.
+- **htmx page navigation for tool pages**: Decision to use htmx full-page navigation (not dockview tabs) for Import Vault was correct — tool pages need full-page state, not tab-scoped state.
+- **Phase 51 added mid-milestone**: Spatial Canvas UX was added during execution as an informal phase. It shipped cleanly with 3 plans, demonstrating roadmap flexibility.
+- **Alt-key shortcuts**: Switching from Ctrl to Alt prefix for app shortcuts resolved browser shortcut conflicts (Ctrl+J downloads, Ctrl+K address bar).
+
+### What Was Inefficient
+
+- **Chrome drag-drop DataTransfer restrictions**: Chrome restricts reading `dataTransfer.getData()` during dragover events (only in drop). Required a side-channel payload check pattern that took multiple iterations to discover.
+- **Import wizard CSS not loading initially**: The import page CSS was in a separate file but not loaded by the base template. Required a debugging session to identify the missing stylesheet include.
+- **Phase 46 plan count mismatch**: Roadmap said 3/3 plans but progress table said 2/3. Minor bookkeeping inconsistency from mid-execution plan structure changes.
+
+### Patterns Established
+
+- **SSE + saved result fallback**: For any long-running async operation, save the result to disk and serve it via GET endpoint as a fallback when SSE broadcast closes before client connects.
+- **Custom MIME types in DnD**: Using `text/iri` and `text/label` custom MIME types in HTML5 dataTransfer provides clean data channels without parsing hacks.
+- **Inline SVG constants for dynamic DOM**: When creating DOM nodes dynamically (canvas nodes), use inline SVG string constants instead of Lucide `data-lucide` attributes to avoid re-scan overhead.
+- **Separate KDF salts per encryption domain**: WebID keys and LLM keys use separate Fernet key derivation domains for key compromise isolation.
+- **Standalone HTML templates for public pages**: WebID profile and IndieAuth consent screen don't extend base.html — they're self-contained for external consumption.
+
+### Key Lessons
+
+1. **Browser DnD APIs have significant cross-browser differences.** Chrome's DataTransfer restrictions during dragover require workarounds that Firefox doesn't need. Always test DnD in both browsers.
+2. **Wizard-style multi-step flows in htmx work best with htmx partials per step.** Each step is a separate template partial, auto-saved via hx-trigger="change", with step bar as a shared partial.
+3. **Content negotiation is straightforward with FastAPI's Request.headers["accept"].** The Accept header parsing + ?format= query param fallback pattern is simple and spec-compliant.
+4. **Ed25519 key management is simple with Python's cryptography library.** Key generation, serialization (PEM), and Fernet-encrypted storage is under 100 lines of code.
+5. **Documentation phases are faster when features are already shipped.** Phase 50 (4 plans) completed in one session because all features were final — no moving target.
+
+### Cost Observations
+
+- Model: Quality profile (Opus for planning/verification, executor agents)
+- 8 phases completed in 3 days, 22 plans
+- Phase 51 added organically mid-milestone
+- Notable: Obsidian import (3 phases, 8 plans) was the largest feature workstream; identity (2 phases, 5 plans) was surprisingly compact given its OAuth2 complexity
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -119,6 +173,7 @@
 | v2.0 | 10 | 27 | Wave-based parallelization, Split.js pitfall avoidance, CSS token system |
 | v2.1 | 3 | 9 | Architecture decision formalization pattern; synthesis-before-implementation |
 | v2.2 | 6 | 14 | DECISIONS.md handoff payoff; gsd:quick post-ship batch; sync client wrapper for WSGI contexts |
+| v2.5 | 8 | 22 | 3 parallel workstreams; SSE+fallback pattern; standalone HTML for public pages; DnD cross-browser lessons |
 
 ### Cumulative Quality
 
@@ -126,6 +181,7 @@
 |-----------|--------------|-----------|--------------|
 | v2.1 | 3/3 | 100% | 0 |
 | v2.2 | 6/6 | 100% | 1 (28-03 gap closure for chevrons + accent bar) |
+| v2.5 | 8/8 | 100% | 0 |
 
 ### Top Lessons (Verified Across Milestones)
 

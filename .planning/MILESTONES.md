@@ -1,5 +1,27 @@
 # Milestones
 
+## v2.5 Polish, Import & Identity (Shipped: 2026-03-09)
+
+**Phases completed:** 8 phases (44-51), 22 plans
+**Timeline:** 3 days (2026-03-07 → 2026-03-09)
+**Commits:** 184 | **Files:** 257 | **Lines:** +28,502 / -1,649
+**Codebase:** ~47K Python, ~7K JS
+**Requirements:** 23/23 complete
+
+**Delivered:** Full Obsidian vault import wizard (upload → scan → type mapping → property mapping → preview → batch import with SSE progress); WebID identity layer (Ed25519 keys, RDF profile documents with content negotiation, fediverse rel="me" verification); IndieAuth provider (OAuth2 + PKCE, consent screen, token management); spatial canvas UX overhaul (per-node controls, nav tree drag-drop, named sessions); comprehensive user guide (27 chapters covering v2.0-v2.5).
+
+**Key accomplishments:**
+- Obsidian Import Wizard — full ZIP upload → scan → type/property mapping → preview → batch import pipeline with SSE progress, wiki-link and tag edge resolution
+- WebID Profiles — per-user Ed25519 key pairs (Fernet-encrypted), RDF profile documents (FOAF + W3C Security Vocabulary), content negotiation (Turtle/JSON-LD/HTML), `rel="me"` links for Mastodon/fediverse verification
+- IndieAuth Provider — OAuth2 authorization code flow with mandatory PKCE, consent screen, token introspection, refresh token rotation, authorized apps management UI
+- Spatial Canvas UX — per-node expand/delete/chevron controls with provenance-scoped collapse, HTML5 drag-drop from nav tree with custom MIME types, named session management (save-as, auto-restore, session index)
+- UI Polish — CodeMirror CSS variable theming, dockview tab type icons, dynamic sidebar accent colors, capture-phase keyboard shortcuts, VFS markdown preview toggle
+- User Guide — 27 chapters across 9 parts covering all features from v2.0-v2.5, glossary with 11 new terms, screenshot capture spec
+
+**Archives:** milestones/v2.5-ROADMAP.md, milestones/v2.5-REQUIREMENTS.md
+
+---
+
 ## v2.4 Inference & Polish (Shipped: 2026-03-06)
 
 **Phases completed:** 9 phases, 20 plans, 0 tasks

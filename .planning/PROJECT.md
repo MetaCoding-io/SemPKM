@@ -2,7 +2,7 @@
 
 ## What This Is
 
-SemPKM is a semantics-native personal knowledge management platform where users store RDF data and interact with it through typed objects, relationships, and views — powered by installable "Mental Models" that bundle ontologies, SHACL shapes, views, and seed data into instant PKM experiences. It's a self-hosted web application with a Python/FastAPI backend and an htmx/vanilla-web frontend: admin portal for model and webhook management, IDE-style workspace for object creation and editing, and multi-renderer data browsing (table, cards, graph).
+SemPKM is a semantics-native personal knowledge management platform where users store RDF data and interact with it through typed objects, relationships, and views — powered by installable "Mental Models" that bundle ontologies, SHACL shapes, views, and seed data into instant PKM experiences. It's a self-hosted web application with a Python/FastAPI backend and an htmx/vanilla-web frontend: admin portal for model and webhook management, IDE-style workspace for object creation and editing, multi-renderer data browsing (table, cards, graph, spatial canvas), Obsidian vault import, and decentralized identity (WebID + IndieAuth).
 
 ## Core Value
 
@@ -118,14 +118,36 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 <!-- Shipped and confirmed valuable in v2.5. -->
 
-- ✓ OBSI-01: User can upload Obsidian vault ZIP for scanning — Phase 45
-- ✓ OBSI-02: Scan results show file count, detected types, frontmatter keys, link targets, and tags — Phase 45
+- ✓ UICL-01: VFS browser markdown preview renders at correct font size — v2.5
+- ✓ UICL-02: VFS browser content free of unwanted underline styling — v2.5
+- ✓ UICL-03: UI polish pass — tab type icons, sidebar accent, helptext validation, keyboard shortcuts — v2.5
+- ✓ OBSI-01: User can upload Obsidian vault ZIP for scanning — v2.5
+- ✓ OBSI-02: Scan results show file count, detected types, frontmatter keys, link targets, and tags — v2.5
+- ✓ OBSI-03: Interactive mapping of Obsidian note categories to Mental Model types — v2.5
+- ✓ OBSI-04: Frontmatter key to RDF property mapping per type — v2.5
+- ✓ OBSI-05: Preview of mapped objects before committing import — v2.5
+- ✓ OBSI-06: Batch import creates objects with bodies, properties, and edges via Command API — v2.5
+- ✓ OBSI-07: Wiki-links and tags resolved to edges between imported objects — v2.5
+- ✓ WBID-01: Each user has a WebID URI (e.g. `https://instance/users/alice#me`) — v2.5
+- ✓ WBID-02: Dereferencing WebID URI returns RDF profile document — v2.5
+- ✓ WBID-03: Content negotiation serves Turtle, JSON-LD, or HTML — v2.5
+- ✓ WBID-04: Profile page includes `rel="me"` links for fediverse verification — v2.5
+- ✓ WBID-05: Server generates Ed25519 key pair per user, stores encrypted — v2.5
+- ✓ WBID-06: Public key published in WebID profile document — v2.5
+- ✓ IAUTH-01: Server exposes `rel="indieauth-metadata"` for client discovery — v2.5
+- ✓ IAUTH-02: OAuth2 authorization code flow with mandatory PKCE — v2.5
+- ✓ IAUTH-03: Token endpoint issues access tokens after code exchange — v2.5
+- ✓ IAUTH-04: Token endpoint supports verification/introspection — v2.5
+- ✓ IAUTH-05: Consent screen showing requesting app and requested scopes — v2.5
+- ✓ DOCS-01: User guide covers all features shipped since v2.0 — v2.5
+- ✓ DOCS-02: Each major feature has dedicated user guide page — v2.5
+- ✓ DOCS-03: Existing pages updated to reflect current UI state — v2.5
 
 ### Active
 
-<!-- v2.5 Polish, Import & Identity -->
+<!-- Next milestone requirements will be defined via /gsd:new-milestone -->
 
-(Remaining requirements — see REQUIREMENTS.md)
+(None — define via `/gsd:new-milestone`)
 
 ### Future Candidates
 
@@ -162,39 +184,27 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Mobile native app — web-first, responsive design and eventual PWA
 - Ontology editor — consume via Mental Models; use Protege for authoring
 
-## Current Milestone: v2.5 Polish, Import & Identity
-
-**Goal:** UI polish pass, Obsidian vault import pipeline, and WebID + IndieAuth identity foundation for future collaboration.
-
-**Target features:**
-- UI cleanup phase — small tweaks, VFS CSS fixes, rough edges (details during discuss-phase)
-- Obsidian import pipeline — in-app wizard for importing Obsidian vaults (import only, triage later)
-- WebID profiles — serve WebID profile documents at user URLs with content negotiation
-- IndieAuth provider — authorization + token endpoints with PKCE, rel="me" for fediverse verification
-- User guide & documentation — catch up docs/ for all features added since v2.0
-
 ## Current State
 
-**Latest shipped: v2.4 Inference & Polish (2026-03-06)**
+**Latest shipped: v2.5 Polish, Import & Identity (2026-03-09)**
 
-**What shipped in v2.4:**
-- OWL 2 RL inference engine — owlrl materializes inverse/transitive triples into `urn:sempkm:inferred` graph
-- SHACL-AF rules — Mental Models ship sh:TripleRule/sh:SPARQLRule, pyshacl advanced=True
-- Global lint dashboard — filterable, sortable validation results with SSE auto-refresh and health badge
-- Edit form helptext — sempkm:editHelpText SHACL annotation as collapsible markdown
-- In-app VFS browser — dockview tab with tree navigation (model → type → objects)
-- Bug fix batch — 7 fixes (accent bar, card borders, flip card, dark chevrons, concept search, Firefox Ctrl+K, tab bleed)
-- E2E tests for all v2.4 features including full inference data flow test
+**What shipped in v2.5:**
+- Obsidian Import Wizard — full in-app ZIP upload → scan → type/property mapping → preview → batch import pipeline with SSE progress
+- WebID Profiles — Ed25519 key pairs, RDF profile documents with content negotiation (Turtle/JSON-LD/HTML), `rel="me"` fediverse verification
+- IndieAuth Provider — OAuth2 authorization code flow with PKCE, consent screen, token introspection, authorized apps UI
+- Spatial Canvas UX — per-node expand/delete controls, HTML5 drag-drop from nav tree, named session management
+- UI Polish — CodeMirror CSS variable theming, dockview tab type icons, sidebar accent colors, keyboard shortcuts
+- User Guide — 27 chapters covering all v2.0-v2.5 features, glossary, appendices, screenshot spec
 
-**Current milestone:** v2.5 Polish, Import & Identity
+**Next milestone:** TBD — run `/gsd:new-milestone` to plan
 
 ## Context
 
-**Current state (v2.5 started 2026-03-07):**
-- ~140k source LOC across Python, JavaScript, CSS, HTML/Jinja2, JSON-LD
-- Tech stack: FastAPI + RDF4J (LuceneSail) + htmx/vanilla-web + SQLAlchemy (SQLite/PostgreSQL) + wsgidav + a2wsgi + Driver.js + Cytoscape.js + CodeMirror + dockview-core + Alembic + Yasgui CDN + ninja-keys + owlrl + pyshacl
+**Current state (v2.5 shipped 2026-03-09):**
+- ~54k source LOC (47k Python, 7k JS) + CSS, HTML/Jinja2, JSON-LD
+- Tech stack: FastAPI + RDF4J (LuceneSail) + htmx/vanilla-web + SQLAlchemy (SQLite/PostgreSQL) + wsgidav + a2wsgi + Driver.js + Cytoscape.js + CodeMirror + dockview-core + Alembic + Yasgui CDN + ninja-keys + owlrl + pyshacl + mf2py
 - Docker Compose deployment: 3 services (api, triplestore, frontend/nginx)
-- 43 phases, 95 plans completed across v1.0, v2.0, v2.1, v2.2, v2.3, v2.4
+- 51 phases, 117 plans completed across v1.0, v2.0, v2.1, v2.2, v2.3, v2.4, v2.5
 
 **Known tech debt:**
 - Cookie secure=False (local dev only — production config deferred)
@@ -267,6 +277,13 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | sempkm:tab-activated custom event | Decouples workspace.js from workspace-layout.js for contextual panel indicator; dispatched on openTab()/switchTabInGroup() | ✓ Good — clean separation, panel indicator works |
 
 | htmx page navigation for tool pages | Tool pages (Import Vault) should be htmx full-page navigation, not dockview tabs | ✓ Good — consistent with VFS browser pattern |
+| Separate KDF salt per encryption domain | WebID keys and LLM keys use separate Fernet derivation domains | ✓ Good — key compromise isolation |
+| Username immutable after creation | WebID URIs must be stable; links stored as JSON in Text column | ✓ Good — URI stability guaranteed |
+| Standalone HTML profile page | WebID profile doesn't extend base.html; content negotiation via Accept + ?format= | ✓ Good — lightweight, works for RDF clients |
+| Inline SVG for canvas icons | Avoids Lucide re-scan overhead on dynamic canvas nodes | ✓ Good — instant render, no async dependency |
+| Custom MIME types for drag-drop | text/iri and text/label in dataTransfer for nav-tree-to-canvas DnD | ✓ Good — clean data channel, no parsing needed |
+| SSE race condition fix for imports | Serve saved import_result.json when SSE broadcast closes before client connects | ✓ Good — reliable import status delivery |
+| Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-03-08 after Phase 45*
+*Last updated: 2026-03-09 after v2.5 milestone*
