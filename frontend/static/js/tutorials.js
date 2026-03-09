@@ -103,7 +103,7 @@
           element: '#editor-pane',
           popover: {
             title: 'Editor Area',
-            description: 'The object you opened appears as a tab here. You can split the editor into multiple groups with Ctrl+\\.',
+            description: 'The object you opened appears as a tab here. You can split the editor into multiple groups with Alt+\\.',
             side: 'left',
             align: 'start'
           }
@@ -117,7 +117,7 @@
           },
           popover: {
             title: 'Read / Edit Toggle',
-            description: 'Objects open in read mode by default. Click this button (or press Ctrl+E) to switch to edit mode where you can change properties and edit the body.',
+            description: 'Objects open in read mode by default. Click this button (or press Alt+E) to switch to edit mode where you can change properties and edit the body.',
             side: 'bottom',
             align: 'center'
           }
@@ -138,7 +138,7 @@
           },
           popover: {
             title: 'Command Palette',
-            description: 'Press Ctrl+K (or Cmd+K on Mac) to open the command palette. Search for any action, object, or view.',
+            description: 'Press Alt+K (or F1) to open the command palette. Search for any action, object, or view.',
             side: 'bottom',
             align: 'center'
           }
@@ -147,14 +147,14 @@
           // Centered — no element — explains Ctrl+S saving
           popover: {
             title: 'Saving Your Work',
-            description: 'When you have made edits, press <strong>Ctrl+S</strong> to save. The tab\'s dirty indicator (a colored dot) clears after a successful save, and SHACL validation runs automatically.'
+            description: 'When you have made edits, press <strong>Alt+S</strong> to save. The tab\'s dirty indicator (a colored dot) clears after a successful save, and SHACL validation runs automatically.'
           }
         },
         {
           // No element = centered popover (tour end)
           popover: {
             title: "You're all set!",
-            description: 'Explore the other tutorials on this page, or start creating objects with Ctrl+N.',
+            description: 'Explore the other tutorials on this page, or start creating objects with Alt+N.',
             showButtons: ['done']
           }
         }
