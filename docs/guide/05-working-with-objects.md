@@ -69,7 +69,7 @@ After successful creation, the form reloads in **edit mode** with a success mess
 
 ## Reading an Object (Read Mode)
 
-When you open an object from the Explorer tree, the command palette, or a reference link, it loads in **read mode** by default. Read mode presents the object in a clean, styled layout optimized for consumption rather than editing.
+When you open an object from the Explorer tree, the command palette, or a reference link, it loads in **read mode** by default. Read mode presents the object in a markdown-first layout optimized for reading.
 
 ![Project object in read-only mode showing properties](images/02-object-read-project.png)
 
@@ -82,9 +82,23 @@ At the top of every object tab is a toolbar showing:
 - An **Edit button** to switch to edit mode
 - A **Save button** (hidden in read mode, visible in edit mode)
 
+### Markdown Body (Primary Content)
+
+The read view is **markdown-first**: the object's Markdown body content is rendered prominently as styled HTML at the top of the view. This puts your free-form writing front and center. The rendering supports full Markdown syntax including:
+
+- Headings, paragraphs, bold, italic
+- Code blocks with syntax highlighting
+- Block quotes, tables, images
+- Ordered and unordered lists
+- Links (rendered as clickable)
+
+The body section is only displayed when the object has body content. If there is no body, the view leads with the property table instead.
+
+> **Tip:** The body is stored using a configurable predicate. The Basic PKM model uses a dedicated body property, but SemPKM also supports the canonical `urn:sempkm:body` predicate. This is handled transparently -- you don't need to worry about the underlying predicate.
+
 ### Property Table
 
-Below the toolbar, a collapsible **Properties** section displays the object's structured data in a two-column grid layout (property name on the left, value on the right). The property table uses type-aware formatting:
+Below the body (or at the top if there is no body), a collapsible **Properties** section displays the object's structured data in a two-column grid layout (property name on the left, value on the right). The property table uses type-aware formatting:
 
 - **Text values** are displayed as plain text
 - **Dates** are formatted as human-readable strings (e.g., "Feb 23, 2026")
@@ -98,20 +112,6 @@ Here is another example showing a Person object:
 
 ![Person object in read-only mode](images/17-object-read-person.png)
 
-### Markdown Body
-
-Below the property table (separated by a horizontal rule), the object's **Markdown body** is rendered as styled HTML. The rendering supports full Markdown syntax including:
-
-- Headings, paragraphs, bold, italic
-- Code blocks with syntax highlighting
-- Block quotes, tables, images
-- Ordered and unordered lists
-- Links (rendered as clickable)
-
-The body section is only displayed when the object has body content. If there is no body, the section is omitted entirely.
-
-> **Tip:** The body is stored using a configurable predicate. The Basic PKM model uses a dedicated body property, but SemPKM also supports the canonical `urn:sempkm:body` predicate. This is handled transparently -- you don't need to worry about the underlying predicate.
-
 ---
 
 ## Editing an Object (Edit Mode)
@@ -124,7 +124,7 @@ Switch from read mode to edit mode using any of these methods:
 - Press `Ctrl+E`
 - Use the command palette (`Ctrl+K`) and select **Toggle Edit Mode**
 
-The transition uses a flip animation: the read-only view rotates out and the edit form rotates in. The toolbar button changes from "Edit" to "Done", and the **Save** button becomes visible.
+The transition uses a crossfade animation: the read-only view fades out and the edit form fades in over 0.25 seconds. The toolbar button changes from "Edit" to "Done", and the **Save** button becomes visible.
 
 ![Object edit form with SHACL-driven properties and markdown editor](images/03-object-edit-form.png)
 
@@ -136,6 +136,16 @@ Edit mode splits the object tab into two vertically resizable sections:
 2. **Body editor section** (bottom) -- a CodeMirror 6 Markdown editor for the object's free-form content
 
 A horizontal gutter between the two sections lets you drag to adjust their relative heights. The default split is 40% form / 60% editor.
+
+### SHACL Helptext
+
+Edit forms can display **contextual help text** to guide you through each field:
+
+- **Form-level guide:** If the Mental Model defines a helptext description on the SHACL NodeShape, a collapsible **Form Guide** section appears at the top of the edit form (marked with a help-circle icon). Click it to expand and read guidance about how to fill out the form. The guide content supports Markdown formatting.
+
+- **Field-level help:** Individual properties can also have help text (defined via `sh:description` or a custom helptext predicate in the SHACL shape). When a field has help text, a small help icon button appears next to the field label. Click it to toggle an inline help panel below the field that explains what the field is for, what values are expected, or provides examples.
+
+Helptext is automatic -- it appears whenever the Mental Model's SHACL shapes include descriptions. Model authors can add descriptions to any property shape to improve the editing experience for their users.
 
 ### Editing Properties
 
