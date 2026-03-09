@@ -2,3 +2,4 @@
 .playwright-mcp/*
 test-results/.last-run.json*.png
 .claude/worktrees/
+*.zip
