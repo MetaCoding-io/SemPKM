@@ -1,6 +1,6 @@
 <div class="event-diff-panel">
   <button class="event-diff-close" onclick="this.closest('.event-diff-container').innerHTML=''" title="Close">&times;</button>
-  {% if detail.summary.operation_type == 'body.set' and detail.body_diff %}
+  {% if 'body.set' in detail.summary.operation_type and detail.body_diff %}
     {# Line-by-line body diff #}
     <div class="diff-body">
       <div class="diff-header">Body changes</div>
@@ -55,7 +55,7 @@
       </tbody>
     </table>
 
-  {% elif detail.summary.operation_type == 'object.create' or detail.summary.operation_type == 'edge.create' %}
+  {% elif 'object.create' in detail.summary.operation_type or 'edge.create' in detail.summary.operation_type %}
     {# Creation: show what was created, no before state #}
     <div class="diff-create-info">
       <span class="diff-create-label">Created:</span>

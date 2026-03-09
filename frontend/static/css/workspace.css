@@ -3563,6 +3563,7 @@ details.form-group[open] > .form-group-summary::before {
 .lint-dashboard-filters {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 8px;
     padding: 8px 12px;
     border-bottom: 1px solid var(--color-border);
@@ -3579,7 +3580,9 @@ details.form-group[open] > .form-group-summary::before {
 }
 
 .lint-dashboard-filters input {
-    width: 200px;
+    flex: 1;
+    min-width: 120px;
+    max-width: 300px;
 }
 
 .lint-dashboard-timestamp {
