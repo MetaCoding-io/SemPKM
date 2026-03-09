@@ -258,7 +258,7 @@
         el.className = 'editor-empty';
         el.innerHTML =
           '<p>Select an object from the Explorer to open it here.</p>' +
-          '<p class="hint">Or press <kbd>Ctrl</kbd>+<kbd>K</kbd> to open the command palette.</p>';
+          '<p class="hint">Or press <kbd>F1</kbd> to open the command palette.</p>';
         return { element: el, init: function () {} };
       },
       theme: { className: '' }

@@ -277,7 +277,7 @@
     if (editorArea) {
       editorArea.innerHTML = '<div class="editor-empty">' +
         '<p>Select an object from the Explorer to open it here.</p>' +
-        '<p class="hint">Or press <kbd>Ctrl</kbd>+<kbd>K</kbd> to open the command palette.</p>' +
+        '<p class="hint">Or press <kbd>F1</kbd> to open the command palette.</p>' +
         '</div>';
     }
   }
@@ -737,17 +737,17 @@
       document.removeEventListener('keydown', _keydownHandler, true);
     }
     _keydownHandler = function (e) {
-      var isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-      var mod = isMac ? e.metaKey : e.ctrlKey;
+      // Alt-based shortcuts avoid all browser Ctrl+key conflicts
+      var alt = e.altKey && !e.ctrlKey && !e.metaKey;
 
-      // Ctrl+S / Cmd+S: Save current object
-      if (mod && e.key === 's') {
+      // Alt+S: Save current object
+      if (alt && e.key === 's') {
         e.preventDefault();
         saveCurrentObject();
       }
 
-      // Ctrl+W / Cmd+W: Close current tab
-      if (mod && e.key === 'w') {
+      // Alt+W: Close current tab
+      if (alt && e.key === 'w') {
         e.preventDefault();
         var activeIri = getActiveTabIri();
         if (activeIri) {
@@ -755,29 +755,28 @@
         }
       }
 
-      // Ctrl+\ / Cmd+\: Split Right (reassigned from sidebar toggle per Phase 14 CONTEXT.md)
-      // Sidebar toggle remains on Ctrl+B (Phase 12)
-      if (mod && e.key === '\\') {
+      // Alt+\: Split Right
+      if (alt && e.key === '\\') {
         e.preventDefault();
         if (typeof window.splitRight === 'function') {
           window.splitRight();
         }
       }
 
-      // Ctrl+[ / Cmd+[: Toggle explorer pane
-      if (mod && e.key === '[') {
+      // Alt+[: Toggle explorer pane
+      if (alt && e.key === '[') {
         e.preventDefault();
         togglePane('nav-pane');
       }
 
-      // Ctrl+] / Cmd+]: Toggle right panel
-      if (mod && e.key === ']') {
+      // Alt+]: Toggle right panel
+      if (alt && e.key === ']') {
         e.preventDefault();
         togglePane('right-pane');
       }
 
-      // Ctrl+E / Cmd+E: Toggle read/edit mode
-      if (mod && e.key === 'e') {
+      // Alt+E: Toggle read/edit mode
+      if (alt && e.key === 'e') {
         e.preventDefault();
         var editorArea = window.getActiveEditorArea ? window.getActiveEditorArea() : null;
         if (editorArea) {
@@ -790,8 +789,8 @@
         }
       }
 
-      // Ctrl+K / Cmd+K: Open command palette
-      if (mod && e.key === 'k') {
+      // Alt+K or F1: Open command palette
+      if ((alt && e.key === 'k') || e.key === 'F1') {
         e.preventDefault();
         var ninja = document.querySelector('ninja-keys');
         if (ninja) {
@@ -799,21 +798,27 @@
         }
       }
 
-      // Ctrl+J / Cmd+J: Toggle bottom panel
-      if (mod && e.key === 'j') {
+      // Alt+N: New object (open type picker)
+      if (alt && e.key === 'n') {
+        e.preventDefault();
+        showTypePicker();
+      }
+
+      // Alt+J: Toggle bottom panel
+      if (alt && e.key === 'j') {
         e.preventDefault();
         toggleBottomPanel();
       }
 
-      // Ctrl+, / Cmd+,: Open Settings tab
-      if (mod && e.key === ',') {
+      // Alt+,: Open Settings tab
+      if (alt && e.key === ',') {
         e.preventDefault();
         openSettingsTab();
         return;
       }
 
-      // Ctrl+1/2/3/4: Focus editor group by index
-      if (mod && ['1', '2', '3', '4'].indexOf(e.key) !== -1) {
+      // Alt+1/2/3/4: Focus editor group by index
+      if (alt && ['1', '2', '3', '4'].indexOf(e.key) !== -1) {
         e.preventDefault();
         var idx = parseInt(e.key) - 1;
         var dv2 = window._dockview;
@@ -974,21 +979,21 @@
           id: 'new-object',
           title: 'New Object',
           section: 'Objects',
-          hotkey: 'ctrl+n',
+          hotkey: 'alt+n',
           handler: function () { showTypePicker(); }
         },
         {
           id: 'run-validation',
           title: 'Run Validation',
           section: 'Tools',
-          hotkey: 'ctrl+shift+v',
+          hotkey: 'alt+shift+v',
           handler: function () { triggerValidation(); }
         },
         {
           id: 'split-right',
           title: 'Split Right',
           section: 'View',
-          hotkey: 'ctrl+\\',
+          hotkey: 'alt+\\',
           handler: function () {
             if (typeof window.splitRight === 'function') window.splitRight();
           }
@@ -1008,7 +1013,7 @@
           id: 'toggle-panel',
           title: 'Toggle Panel',
           section: 'View',
-          hotkey: 'ctrl+j',
+          hotkey: 'alt+j',
           handler: function () { toggleBottomPanel(); }
         },
         {
@@ -1032,14 +1037,14 @@
           id: 'toggle-explorer',
           title: 'Toggle Explorer Panel',
           section: 'View',
-          hotkey: 'ctrl+[',
+          hotkey: 'alt+[',
           handler: function () { togglePane('nav-pane'); }
         },
         {
           id: 'toggle-right',
           title: 'Toggle Details Panel',
           section: 'View',
-          hotkey: 'ctrl+]',
+          hotkey: 'alt+]',
           handler: function () { togglePane('right-pane'); }
         },
         {
@@ -1079,7 +1084,7 @@
           id: 'toggle-edit-mode',
           title: 'Toggle Edit Mode',
           section: 'Objects',
-          hotkey: 'ctrl+e',
+          hotkey: 'alt+e',
           handler: function () {
             var editorArea = window.getActiveEditorArea ? window.getActiveEditorArea() : null;
             if (editorArea) {

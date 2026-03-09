@@ -251,7 +251,7 @@
       '  <span class="vfs-editor-status" id="vfs-status-' + _pathId(path) + '"></span>' +
       '  <button class="btn-sm" id="vfs-edit-btn-' + _pathId(path) + '" title="Toggle edit mode">' +
       '    <i data-lucide="pencil"></i> Edit</button>' +
-      '  <button class="btn-sm btn-primary" id="vfs-save-btn-' + _pathId(path) + '" title="Save (Ctrl+S)" style="display:none;">' +
+      '  <button class="btn-sm btn-primary" id="vfs-save-btn-' + _pathId(path) + '" title="Save (Alt+S)" style="display:none;">' +
       '    <i data-lucide="save"></i> Save</button>' +
       '</div>' +
       viewTabsHtml +
