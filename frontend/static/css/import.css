@@ -48,7 +48,7 @@
 
 .upload-zone-title {
     font-size: 1.1rem;
-    color: var(--color-text-primary, #333);
+    color: var(--color-text);
     margin: 0 0 0.5rem;
 }
 
@@ -139,7 +139,7 @@
 .import-progress-bar-track {
     width: 100%;
     height: 8px;
-    background: var(--color-bg-secondary, #eee);
+    background: var(--color-surface-raised);
     border-radius: 4px;
     overflow: hidden;
     margin: 1rem 0;
@@ -181,14 +181,14 @@
     border-radius: var(--border-radius, 8px);
     padding: 1.25rem 1rem;
     text-align: center;
-    background: var(--color-bg-primary, #fff);
+    background: var(--color-surface);
 }
 
 .import-stat-card .stat-number {
     display: block;
     font-size: 2rem;
     font-weight: 700;
-    color: var(--color-text-primary, #333);
+    color: var(--color-text);
     line-height: 1.2;
 }
 
@@ -218,7 +218,7 @@
     gap: 0.5rem;
     font-size: 1.1rem;
     margin: 0 0 0.75rem;
-    color: var(--color-text-primary, #333);
+    color: var(--color-text);
 }
 
 .import-section-title svg {
@@ -252,7 +252,7 @@
 
 .type-group-name {
     font-weight: 600;
-    color: var(--color-text-primary, #333);
+    color: var(--color-text);
 }
 
 .type-group-count {
@@ -265,7 +265,7 @@
     font-size: 0.7rem;
     padding: 0.15em 0.5em;
     border-radius: 9999px;
-    background: var(--color-bg-secondary, #eee);
+    background: var(--color-surface-raised);
     color: var(--color-text-muted, #888);
     margin-left: auto;
     white-space: nowrap;
@@ -276,7 +276,7 @@
     padding: 0 0.75rem 0.5rem;
     margin: 0;
     font-size: 0.85rem;
-    color: var(--color-text-secondary, #666);
+    color: var(--color-text-muted);
 }
 
 .type-group-notes li {
@@ -304,7 +304,7 @@
     cursor: pointer;
     font-weight: 500;
     font-size: 0.95rem;
-    color: var(--color-text-primary, #333);
+    color: var(--color-text);
 }
 
 .import-collapsible > summary svg {
@@ -333,13 +333,13 @@
 
 .import-detail-table td {
     padding: 0.35rem 0.75rem;
-    border-bottom: 1px solid var(--color-border-light, #eee);
-    color: var(--color-text-secondary, #666);
+    border-bottom: 1px solid var(--color-border-subtle);
+    color: var(--color-text-muted);
 }
 
 .import-detail-table code {
     font-size: 0.85em;
-    background: var(--color-bg-secondary, #f5f5f5);
+    background: var(--color-surface-raised);
     padding: 0.1em 0.3em;
     border-radius: 3px;
 }
@@ -358,7 +358,7 @@
 }
 
 .import-tag-item .tag-name {
-    color: var(--color-text-primary, #333);
+    color: var(--color-text);
 }
 
 .import-tag-item .tag-count {
@@ -442,7 +442,7 @@
 }
 
 .warning-message {
-    color: var(--color-text-secondary, #666);
+    color: var(--color-text-muted);
 }
 
 /* --- Folders note --- */
@@ -486,7 +486,7 @@
 .import-actions .btn-outline {
     background: transparent;
     border: 1px solid var(--color-border, #ccc);
-    color: var(--color-text-primary, #333);
+    color: var(--color-text);
     padding: 0.5rem 1rem;
     border-radius: var(--border-radius, 6px);
     cursor: pointer;
@@ -543,7 +543,7 @@
     font-size: 0.85rem;
     font-weight: 600;
     color: var(--color-text-muted, #888);
-    background: var(--color-bg-primary, #fff);
+    background: var(--color-surface);
     transition: all 0.2s;
 }
 
@@ -627,7 +627,7 @@
 .type-mapping-row .type-group-name {
     cursor: pointer;
     font-weight: 600;
-    color: var(--color-text-primary, #333);
+    color: var(--color-text);
 }
 
 .type-mapping-row .type-group-notes {
@@ -635,7 +635,7 @@
     padding: 0.25rem 0 0.25rem 1rem;
     margin: 0.25rem 0 0;
     font-size: 0.8rem;
-    color: var(--color-text-secondary, #666);
+    color: var(--color-text-muted);
 }
 
 .type-mapping-row .type-group-notes li {
@@ -648,8 +648,8 @@
     padding: 0.35rem 0.5rem;
     border: 1px solid var(--color-border, #ccc);
     border-radius: var(--border-radius, 4px);
-    background: var(--color-bg-primary, #fff);
-    color: var(--color-text-primary, #333);
+    background: var(--color-surface);
+    color: var(--color-text);
     font-size: 0.85rem;
     cursor: pointer;
 }
@@ -676,8 +676,8 @@
     padding: 0.6rem 0.75rem;
     font-size: 0.95rem;
     font-weight: 600;
-    background: var(--color-bg-secondary, #f5f5f5);
-    color: var(--color-text-primary, #333);
+    background: var(--color-surface-raised);
+    color: var(--color-text);
     border-bottom: 1px solid var(--color-border, #ccc);
 }
 
@@ -704,8 +704,8 @@
     padding: 0.3rem 0.5rem;
     border: 1px solid var(--color-border, #ccc);
     border-radius: var(--border-radius, 4px);
-    background: var(--color-bg-primary, #fff);
-    color: var(--color-text-primary, #333);
+    background: var(--color-surface);
+    color: var(--color-text);
     font-size: 0.8rem;
     margin-top: 0.35rem;
     font-family: monospace;
@@ -725,8 +725,8 @@
     font-size: 0.85rem;
     font-style: italic;
     color: var(--color-text-muted, #888);
-    background: var(--color-bg-secondary, #f5f5f5);
-    border-bottom: 1px solid var(--color-border-light, #eee);
+    background: var(--color-surface-raised);
+    border-bottom: 1px solid var(--color-border-subtle);
 }
 
 .body-mapping-note svg {
@@ -769,7 +769,7 @@
 .mapping-nav .btn-outline {
     background: transparent;
     border: 1px solid var(--color-border, #ccc);
-    color: var(--color-text-primary, #333);
+    color: var(--color-text);
 }
 
 .mapping-nav .btn-primary {
@@ -803,8 +803,8 @@
 
 .preview-summary-table td {
     padding: 0.5rem 0.75rem;
-    border-bottom: 1px solid var(--color-border-light, #eee);
-    color: var(--color-text-primary, #333);
+    border-bottom: 1px solid var(--color-border-subtle);
+    color: var(--color-text);
 }
 
 /* --- Type Section --- */
@@ -818,7 +818,7 @@
     border-radius: var(--border-radius, 6px);
     padding: 0.75rem 1rem;
     margin-bottom: 0.5rem;
-    background: var(--color-bg-primary, #fff);
+    background: var(--color-surface);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
@@ -828,10 +828,10 @@
     gap: 0.4rem;
     font-weight: 600;
     font-size: 0.9rem;
-    color: var(--color-text-primary, #333);
+    color: var(--color-text);
     margin-bottom: 0.5rem;
     padding-bottom: 0.4rem;
-    border-bottom: 1px solid var(--color-border-light, #eee);
+    border-bottom: 1px solid var(--color-border-subtle);
 }
 
 .preview-card-title svg {
@@ -863,7 +863,7 @@
 }
 
 .preview-kv-value {
-    color: var(--color-text-primary, #333);
+    color: var(--color-text);
     word-break: break-word;
 }
 
@@ -876,7 +876,7 @@
     color: var(--color-success, #27ae60);
     margin-top: 0.4rem;
     padding-top: 0.4rem;
-    border-top: 1px solid var(--color-border-light, #eee);
+    border-top: 1px solid var(--color-border-subtle);
 }
 
 .preview-body-indicator svg {
@@ -921,7 +921,7 @@
 .import-progress-phase {
     font-size: 0.95rem;
     font-weight: 600;
-    color: var(--color-text-primary, #333);
+    color: var(--color-text);
     margin-bottom: 0.5rem;
 }
 
@@ -940,8 +940,8 @@
 }
 
 .import-log {
-    background: var(--color-bg-tertiary, #1a1a2e);
-    color: var(--color-text-on-dark, #ccc);
+    background: var(--color-surface-recessed);
+    color: var(--color-text);
     font-family: monospace;
     font-size: 0.8rem;
     max-height: 300px;
@@ -983,7 +983,7 @@
     padding: 0.6rem 0.75rem;
     font-size: 0.85rem;
     color: var(--color-text-muted, #888);
-    background: var(--color-bg-secondary, #f5f5f5);
+    background: var(--color-surface-raised);
     border: 1px solid var(--color-border, #ccc);
     border-radius: var(--border-radius, 6px);
     margin-bottom: 1rem;
