@@ -224,7 +224,14 @@ Plans:
   1. User guide in `docs/` covers all v2.2-v2.5 features (SPARQL console, FTS, VFS, dockview, inference, lint dashboard, helptext, Obsidian import, WebID, IndieAuth)
   2. Each major feature has a dedicated user guide page with usage instructions and screenshots
   3. Existing pages are updated to reflect current UI state (no stale references to old layouts)
-**Plans**: TBD
+**Plans:** 4 plans
+
+Plans:
+- [ ] 50-01-PLAN.md -- Update stale workspace chapters (Ch 4, 5, 7, 8): dockview, crossfade, carousel, shortcuts
+- [ ] 50-02-PLAN.md -- Add lint dashboard/inference sections (Ch 14, 16) and expand SPARQL/FTS chapters (Ch 21, 22)
+- [ ] 50-03-PLAN.md -- Rewrite Ch 24 (Obsidian Import) and create new Part IX chapters (Ch 25 WebID, Ch 26 IndieAuth)
+- [ ] 50-04-PLAN.md -- Update appendices, README/outline sync, and screenshot capture spec
+
 ---
 
 ### Design Decision Gate
@@ -406,7 +413,7 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 47. Obsidian Batch Import | 2/2 | Complete    | 2026-03-08 | - |
 | 48. WebID Profiles | 2/2 | Complete    | 2026-03-08 | - |
 | 49. IndieAuth Provider | 3/3 | Complete    | 2026-03-08 | - |
-| 50. User Guide & Documentation | v2.5 | 0/0 | Not started | - |
+| 50. User Guide & Documentation | v2.5 | 0/4 | Not started | - |
 
 ### Phase 51: Spatial Canvas UX: per-node expand/delete buttons, drag-drop from nav tree, remove global load button
 
