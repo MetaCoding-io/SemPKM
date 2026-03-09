@@ -2,7 +2,7 @@
 
 SemPKM's workspace is built for keyboard-driven productivity. Every frequent action has a shortcut, and the command palette gives you instant access to every command in the system. This chapter documents all available shortcuts and the full list of command palette actions.
 
-> **Note:** SemPKM uses the platform-standard modifier key. On macOS, use `Cmd` wherever this chapter shows `Ctrl`. The shortcuts are automatically mapped to the correct modifier for your operating system.
+> **Note:** SemPKM uses `Alt` as its modifier key to avoid conflicts with browser shortcuts (`Ctrl+W`, `Ctrl+N`, etc.). The `Alt` key works consistently across all platforms and browsers.
 
 ## Global Keyboard Shortcuts
 
@@ -12,39 +12,32 @@ These shortcuts work anywhere in the workspace, regardless of which pane or pane
 
 | Shortcut | Action | Description |
 |----------|--------|-------------|
-| `Ctrl+K` | Open Command Palette | Opens the searchable command palette. Start typing to filter commands, then press Enter to execute. |
-| `Ctrl+B` | Toggle Sidebar | Shows or hides the left navigation sidebar. Collapses to an icon rail showing only Lucide icons. |
-| `Ctrl+J` | Toggle Bottom Panel | Shows or hides the bottom panel (SPARQL console, Event Log). |
-| `Ctrl+[` | Toggle Explorer Pane | Collapses or expands the left explorer pane. |
-| `Ctrl+]` | Toggle Details Pane | Collapses or expands the right details pane (Relations, Lint). |
-| `Ctrl+,` | Open Settings | Opens the Settings tab in the editor area. |
+| `Alt+K` (or `F1`) | Open Command Palette | Opens the searchable command palette. Start typing to filter commands, then press Enter to execute. |
+| `Alt+J` | Toggle Bottom Panel | Shows or hides the bottom panel (SPARQL console, Event Log). |
+| `Alt+[` | Toggle Explorer Pane | Collapses or expands the left explorer pane. |
+| `Alt+]` | Toggle Details Pane | Collapses or expands the right details pane (Relations, Lint). |
+| `Alt+,` | Open Settings | Opens the Settings tab in the editor area. |
 
 ### Editor and Tabs
 
 | Shortcut | Action | Description |
 |----------|--------|-------------|
-| `Ctrl+S` | Save | Saves the current object -- both form properties and body content. After saving, the lint panel refreshes automatically. |
-| `Ctrl+E` | Toggle Edit Mode | Switches the current object between read mode and edit mode. In read mode, you see rendered properties and formatted markdown. In edit mode, you get the editable form and the code editor. A crossfade animation shows the transition. |
-| `Ctrl+W` | Close Tab | Closes the currently active tab. If the tab has unsaved changes, you are not prompted (dirty state is tracked but closure is immediate). |
-| `Ctrl+N` | New Object | Opens the type picker, letting you choose which type of object to create. |
-| `Ctrl+\` | Split Right | Creates a new editor group to the right of the current one, splitting the editor area. Useful for viewing two objects or views side by side. |
-| `Ctrl+1` through `Ctrl+4` | Focus Editor Group | Switches keyboard focus to editor group 1, 2, 3, or 4 (if that many groups exist). |
-
-### Validation
-
-| Shortcut | Action | Description |
-|----------|--------|-------------|
-| `Ctrl+Shift+V` | Run Validation | Saves the current object and triggers SHACL validation. The lint panel in the right sidebar updates with any constraint violations after a short delay. |
+| `Alt+S` | Save | Saves the current object -- both form properties and body content. After saving, the lint panel refreshes automatically. |
+| `Alt+E` | Toggle Edit Mode | Switches the current object between read mode and edit mode. In read mode, you see rendered properties and formatted markdown. In edit mode, you get the editable form and the code editor. A crossfade animation shows the transition. |
+| `Alt+W` | Close Tab | Closes the currently active tab. If the tab has unsaved changes, you are not prompted (dirty state is tracked but closure is immediate). |
+| `Alt+N` | New Object | Opens the type picker, letting you choose which type of object to create. |
+| `Alt+\` | Split Right | Creates a new editor group to the right of the current one, splitting the editor area. Useful for viewing two objects or views side by side. |
+| `Alt+1` through `Alt+4` | Focus Editor Group | Switches keyboard focus to editor group 1, 2, 3, or 4 (if that many groups exist). |
 
 ## The Command Palette
 
-The **command palette** is a searchable overlay that gives you access to every action in SemPKM. Press `Ctrl+K` to open it. It uses the ninja-keys web component, providing a familiar experience similar to VS Code's Command Palette or Spotlight on macOS.
+The **command palette** is a searchable overlay that gives you access to every action in SemPKM. Press `Alt+K` (or `F1`) to open it. It uses the ninja-keys web component, providing a familiar experience similar to VS Code's Command Palette or Spotlight on macOS.
 
 ![Command palette open with search results and keyboard shortcuts](images/09-command-palette.png)
 
 ### How to Use the Palette
 
-1. Press `Ctrl+K` to open the palette.
+1. Press `Alt+K` (or `F1`) to open the palette.
 2. Start typing to filter commands. The palette matches against command titles using fuzzy search.
 3. Use the arrow keys to navigate the results list.
 4. Press Enter to execute the selected command.
@@ -58,26 +51,26 @@ The command palette organizes commands into sections. Here is the complete list 
 
 | Command | Shortcut | Description |
 |---------|----------|-------------|
-| New Object | `Ctrl+N` | Opens the type picker to create a new object. |
-| Toggle Edit Mode | `Ctrl+E` | Switches the active object between read and edit mode. |
+| New Object | `Alt+N` | Opens the type picker to create a new object. |
+| Toggle Edit Mode | `Alt+E` | Switches the active object between read and edit mode. |
 
 **Tools**
 
 | Command | Shortcut | Description |
 |---------|----------|-------------|
-| Run Validation | `Ctrl+Shift+V` | Saves and validates the current object against SHACL shapes. |
+| Run Validation | -- | Saves and validates the current object against SHACL shapes. |
 
 **View**
 
 | Command | Shortcut | Description |
 |---------|----------|-------------|
-| Split Right | `Ctrl+\` | Splits the editor area by adding a new group to the right. |
+| Split Right | `Alt+\` | Splits the editor area by adding a new group to the right. |
 | Close Group | -- | Closes the current editor group (only available if more than one group exists). |
-| Toggle Panel | `Ctrl+J` | Shows or hides the bottom panel. |
+| Toggle Panel | `Alt+J` | Shows or hides the bottom panel. |
 | Maximize Panel | -- | Toggles the bottom panel between normal and maximized height. |
 | Toggle Lint Dashboard | -- | Opens the lint dashboard in the bottom panel. |
-| Toggle Explorer Panel | `Ctrl+[` | Collapses or expands the left explorer pane. |
-| Toggle Details Panel | `Ctrl+]` | Collapses or expands the right details pane. |
+| Toggle Explorer Panel | `Alt+[` | Collapses or expands the left explorer pane. |
+| Toggle Details Panel | `Alt+]` | Collapses or expands the right details pane. |
 
 **Layout**
 
@@ -118,62 +111,61 @@ Here are some practical patterns for working efficiently with keyboard shortcuts
 
 ### Quick Object Creation
 
-1. Press `Ctrl+K` to open the palette.
+1. Press `Alt+K` to open the palette.
 2. Type "new" and select "New Object".
 3. Choose a type from the picker (e.g., Note).
 4. The new object opens directly in edit mode. Fill in the form fields.
-5. Press `Ctrl+S` to save.
+5. Press `Alt+S` to save.
 
 ### Switching Between Views and Objects
 
-1. Press `Ctrl+K` and type part of a view name (e.g., "proj table") to find "Browse: Table: Projects Table".
+1. Press `Alt+K` and type part of a view name (e.g., "proj table") to find "Browse: Table: Projects Table".
 2. Press Enter to open the view.
 3. Click a row in the table to open an object.
-4. Press `Ctrl+K` and type part of the object's name to switch back to it later.
+4. Press `Alt+K` and type part of the object's name to switch back to it later.
 
 ### Side-by-Side Comparison
 
 1. Open the first object you want to compare.
-2. Press `Ctrl+\` to split the editor.
-3. The new editor group becomes active. Press `Ctrl+K` and open the second object.
-4. Use `Ctrl+1` and `Ctrl+2` to switch focus between the two groups.
+2. Press `Alt+\` to split the editor.
+3. The new editor group becomes active. Press `Alt+K` and open the second object.
+4. Use `Alt+1` and `Alt+2` to switch focus between the two groups.
 
 ### Quick Validation Workflow
 
-1. Open an object and press `Ctrl+E` to enter edit mode.
+1. Open an object and press `Alt+E` to enter edit mode.
 2. Make your changes.
-3. Press `Ctrl+S` to save.
-4. Press `Ctrl+Shift+V` to run validation.
-5. Check the right panel's Lint section for any issues.
-6. If a lint issue points to a specific field, click it to jump directly to that field in the form.
+3. Press `Alt+S` to save. Validation runs automatically after saving.
+4. Check the right panel's Lint section for any issues.
+5. If a lint issue points to a specific field, click it to jump directly to that field in the form.
 
 ### Managing Screen Space
 
-- Press `Ctrl+[` to hide the explorer when you do not need the navigation tree.
-- Press `Ctrl+]` to hide the details pane when you do not need relations or lint.
-- Press `Ctrl+J` to toggle the bottom panel for SPARQL queries or the event log.
+- Press `Alt+[` to hide the explorer when you do not need the navigation tree.
+- Press `Alt+]` to hide the details pane when you do not need relations or lint.
+- Press `Alt+J` to toggle the bottom panel for SPARQL queries or the event log.
 - These shortcuts let you maximize the editor area on smaller screens and restore the panels when needed.
 
 > **Tip:** All pane sizes are remembered across sessions. When you toggle a panel open or closed, SemPKM saves the layout to your browser's local storage and restores it on your next visit.
 
 ### Saving and Restoring Layouts
 
-- Use `Ctrl+K` and select **Layout: Save As...** to name and save your current workspace arrangement.
-- Use `Ctrl+K` and select **Layout: Restore...** to switch between saved layouts.
+- Use `Alt+K` and select **Layout: Save As...** to name and save your current workspace arrangement.
+- Use `Alt+K` and select **Layout: Restore...** to switch between saved layouts.
 - This is useful for maintaining different workspaces for different tasks -- a research layout, a review layout, a writing layout.
 
 ## Customization
 
-Keyboard shortcuts in SemPKM are currently fixed and cannot be remapped through the UI. The shortcut bindings are designed to match conventions from VS Code and other IDE-style applications:
+Keyboard shortcuts in SemPKM are currently fixed and cannot be remapped through the UI. SemPKM uses the `Alt` modifier key instead of `Ctrl` to avoid conflicts with browser-reserved shortcuts (like `Ctrl+W` closing tabs or `Ctrl+N` opening new windows). The key letters mirror VS Code conventions where possible:
 
-- `Ctrl+K` for command palette (same as VS Code)
-- `Ctrl+S` for save (universal)
-- `Ctrl+E` for edit mode toggle
-- `Ctrl+J` for bottom panel toggle (same as VS Code terminal)
-- `Ctrl+,` for settings (same as VS Code)
-- `Ctrl+\` for split editor (same as VS Code)
+- `Alt+K` for command palette (VS Code uses `Ctrl+K`)
+- `Alt+S` for save (VS Code uses `Ctrl+S`)
+- `Alt+E` for edit mode toggle
+- `Alt+J` for bottom panel toggle (VS Code uses `Ctrl+J`)
+- `Alt+,` for settings (VS Code uses `Ctrl+,`)
+- `Alt+\` for split editor (VS Code uses `Ctrl+\`)
 
-This consistency means that if you are already comfortable with VS Code shortcuts, you will feel at home in SemPKM immediately.
+The `F1` key also opens the command palette, matching the VS Code convention.
 
 ---
 

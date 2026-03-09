@@ -20,7 +20,7 @@ When you open the **Object Browser** (from the sidebar under Apps), the workspac
 
 Unlike a fixed-column layout, dockview lets you reorganize panels by dragging tabs between groups, splitting groups, and resizing boundaries freely. Your layout is saved automatically to local storage and restored on your next visit.
 
-> **Tip:** If you need more room in the editor, hide the Explorer with `Ctrl+[` or the Details panel with `Ctrl+]`. Both are toggles -- press the same shortcut again to bring the panel back.
+> **Tip:** If you need more room in the editor, hide the Explorer with `Alt+[` or the Details panel with `Alt+]`. Both are toggles -- press the same shortcut again to bring the panel back.
 
 ---
 
@@ -42,9 +42,9 @@ Click a group header to collapse or expand its links. The collapsed/expanded sta
 
 ### Collapsing to Icon Rail
 
-When the sidebar is expanded, it shows both icons and text labels for each link. Press `Ctrl+B` (or click the toggle button next to the SemPKM brand logo) to collapse the sidebar into a narrow **icon rail** that shows only the Lucide icons. This gives more horizontal space to the workspace panels.
+When the sidebar is expanded, it shows both icons and text labels for each link. Click the toggle button next to the SemPKM brand logo to collapse the sidebar into a narrow **icon rail** that shows only the Lucide icons. This gives more horizontal space to the workspace panels.
 
-Press `Ctrl+B` again to expand the sidebar back to full width.
+Click the toggle button again to expand the sidebar back to full width.
 
 ### User Menu
 
@@ -110,14 +110,14 @@ Every object, view, or settings page you open appears as a **tab** in the tab ba
 **Tab interactions:**
 
 - **Click** a tab to switch to it
-- **Click the close button** (or press `Ctrl+W`) to close the active tab
+- **Click the close button** (or press `Alt+W`) to close the active tab
 - **Right-click** a tab to open a context menu with options: Close, Close Others, Split Right, and (when multiple groups exist) Move to Group
 - **Drag and drop** tabs to reorder them within a tab bar, move them between groups, or drag to the edge of the editor area to create a new split group
 
 When no tabs are open, the editor area shows a helpful empty state:
 
 > Select an object from the Explorer to open it here.
-> Or press Ctrl+K to open the command palette.
+> Or press Alt+K to open the command palette.
 
 ### Editor Groups (Split Panes)
 
@@ -127,14 +127,14 @@ Dockview organizes tabs into **editor groups**. Each group has its own tab bar a
 
 **How to create groups:**
 
-- Press `Ctrl+\` to split right from the currently active group.
-- Use the command palette (`Ctrl+K`) and choose "Split Right."
+- Press `Alt+\` to split right from the currently active group.
+- Use the command palette (`Alt+K`) and choose "Split Right."
 - Right-click a tab and select "Split Right."
 - Drag a tab to the edge of the editor area -- dockview shows drop zones that let you create new groups to the left, right, top, or bottom.
 
 **Managing groups:**
 
-- Press `Ctrl+1` through `Ctrl+4` to focus a specific editor group by position.
+- Press `Alt+1` through `Alt+4` to focus a specific editor group by position.
 - Click anywhere inside a group to make it the active group. The active group is indicated by an accent-colored top border on its tab bar.
 - Close a group by closing all tabs within it -- the empty group is automatically removed unless it is the last one.
 - Drag the borders between groups to resize their relative widths.
@@ -148,19 +148,19 @@ SemPKM lets you save and restore named workspace layouts through the command pal
 **Saving a layout:**
 
 1. Arrange your editor groups and tabs the way you want.
-2. Press `Ctrl+K` to open the command palette.
+2. Press `Alt+K` to open the command palette.
 3. Select **Save Layout As...** and type a name for the layout.
 4. The current arrangement of groups, tabs, and sizes is saved to local storage.
 
 **Restoring a layout:**
 
-1. Press `Ctrl+K` and select **Restore Layout**.
+1. Press `Alt+K` and select **Restore Layout**.
 2. Choose from the list of saved layouts.
 3. The workspace rearranges to match the saved configuration.
 
 **Deleting a layout:**
 
-1. Press `Ctrl+K` and select **Delete Layout**.
+1. Press `Alt+K` and select **Delete Layout**.
 2. Choose the layout to remove.
 
 Named layouts are useful for switching between different work modes -- for example, a "Research" layout with a graph view alongside notes, or a "Review" layout with the lint panel prominently visible.
@@ -214,13 +214,13 @@ Panel positions are remembered across page reloads. This is useful if you prefer
 
 ## The Bottom Panel
 
-The bottom panel sits beneath the editor groups within the center column. It is **collapsed by default** (zero height) and can be toggled open with `Ctrl+J`.
+The bottom panel sits beneath the editor groups within the center column. It is **collapsed by default** (zero height) and can be toggled open with `Alt+J`.
 
 ![Bottom panel open showing Event Log tab](images/20-bottom-panel.png)
 
 ### Toggling and Resizing
 
-- Press `Ctrl+J` to toggle the bottom panel open or closed
+- Press `Alt+J` to toggle the bottom panel open or closed
 - Drag the resize handle at the top of the panel to adjust its height
 - Click the **maximize button** (chevrons-up icon) in the panel header to expand the panel to fill the entire editor column, hiding the editor groups. Click again to restore.
 - Click the **close button** (X icon) in the panel header to collapse the panel
@@ -245,7 +245,7 @@ The Event Log provides a filterable timeline of every operation performed on you
 
 ## The Command Palette
 
-The **Command Palette** is a quick-access overlay for searching and executing workspace actions. Open it with `Ctrl+K`.
+The **Command Palette** is a quick-access overlay for searching and executing workspace actions. Open it with `Alt+K` (or `F1`).
 
 ![Command palette overlay with searchable commands](images/09-command-palette.png)
 
@@ -253,14 +253,14 @@ The palette is powered by the `ninja-keys` web component and supports fuzzy sear
 
 | Section | Commands |
 |---------|----------|
-| **Objects** | New Object (`Ctrl+N`), Toggle Edit Mode (`Ctrl+E`), and recently opened objects |
-| **Tools** | Run Validation (`Ctrl+Shift+V`) |
-| **View** | Split Right (`Ctrl+\`), Toggle Panel (`Ctrl+J`), Maximize Panel, Toggle Explorer Panel (`Ctrl+[`), Toggle Details Panel (`Ctrl+]`), Close Group |
+| **Objects** | New Object (`Alt+N`), Toggle Edit Mode (`Alt+E`), and recently opened objects |
+| **Tools** | Run Validation |
+| **View** | Split Right (`Alt+\`), Toggle Panel (`Alt+J`), Maximize Panel, Toggle Explorer Panel (`Alt+[`), Toggle Details Panel (`Alt+]`), Close Group |
 | **Layouts** | Save Layout As..., Restore Layout (with list of saved layouts), Delete Layout |
 | **Views** | Browse any available view (dynamically loaded from installed Mental Models) |
 | **Appearance** | Theme: Light, Theme: Dark, Theme: System Default |
 
-The palette dynamically grows as you use the workspace: every object you open and every view available in your installed models is added as a searchable command. This means you can quickly jump to any object by pressing `Ctrl+K` and typing part of its name.
+The palette dynamically grows as you use the workspace: every object you open and every view available in your installed models is added as a searchable command. This means you can quickly jump to any object by pressing `Alt+K` and typing part of its name.
 
 > **Tip:** The command palette shows keyboard shortcuts next to applicable commands, making it a convenient way to discover shortcuts you might not know about yet.
 
@@ -272,19 +272,16 @@ Here is a quick reference for all workspace-level shortcuts discussed in this ch
 
 | Shortcut | Action |
 |----------|--------|
-| `Ctrl+B` | Toggle sidebar collapse |
-| `Ctrl+K` | Open command palette |
-| `Ctrl+J` | Toggle bottom panel |
-| `Ctrl+\` | Split editor right |
-| `Ctrl+[` | Toggle Explorer panel |
-| `Ctrl+]` | Toggle Details panel |
-| `Ctrl+W` | Close active tab |
-| `Ctrl+S` | Save current object |
-| `Ctrl+E` | Toggle read/edit mode |
-| `Ctrl+,` | Open Settings tab |
-| `Ctrl+1` to `Ctrl+4` | Focus editor group 1-4 |
-
-> **Note:** On macOS, use `Cmd` in place of `Ctrl` for all shortcuts.
+| `Alt+K` (or `F1`) | Open command palette |
+| `Alt+J` | Toggle bottom panel |
+| `Alt+\` | Split editor right |
+| `Alt+[` | Toggle Explorer panel |
+| `Alt+]` | Toggle Details panel |
+| `Alt+W` | Close active tab |
+| `Alt+S` | Save current object |
+| `Alt+E` | Toggle read/edit mode |
+| `Alt+,` | Open Settings tab |
+| `Alt+1` to `Alt+4` | Focus editor group 1-4 |
 
 ---
 

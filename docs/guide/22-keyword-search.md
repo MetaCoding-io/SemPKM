@@ -23,7 +23,7 @@ Search covers all objects in your current knowledge base (`urn:sempkm:current` g
 
 ### Opening the Command Palette
 
-Press **Ctrl+K** (or **Cmd+K** on macOS) to open the command palette. The palette appears as a centered overlay with a text input at the top.
+Press **Alt+K** (or **F1**) to open the command palette. The palette appears as a centered overlay with a text input at the top.
 
 ### Searching
 
@@ -69,7 +69,7 @@ IRIs, punctuation, and special characters are tokenized by the Lucene analyzer. 
 
 | Action | Shortcut |
 |--------|----------|
-| Open command palette | **Ctrl+K** (or **Cmd+K** on macOS) |
+| Open command palette | **Alt+K** (or **F1**) |
 | Navigate results | **Arrow keys** |
 | Open selected object | **Enter** |
 | Close palette | **Escape** |
@@ -87,7 +87,7 @@ The command palette search and the SPARQL Console serve different purposes:
 
 | Aspect | Keyword Search | SPARQL Console |
 |--------|---------------|----------------|
-| Access | **Ctrl+K** | **Ctrl+J** > SPARQL tab |
+| Access | **Alt+K** | **Alt+J** > SPARQL tab |
 | Query style | Natural language keywords | Structured SPARQL queries |
 | Best for | Quick lookup by remembered words | Complex filters, joins, aggregations |
 | Results | Ranked list with snippets | Tabular data with exact values |

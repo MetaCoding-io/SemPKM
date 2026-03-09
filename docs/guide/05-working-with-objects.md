@@ -10,8 +10,8 @@ Objects are the fundamental units of knowledge in SemPKM. A Note, a Concept, a P
 
 To create a new object, use any of these methods:
 
-- Press `Ctrl+K` to open the command palette, then select **New Object**
-- Use the keyboard shortcut `Ctrl+N`
+- Press `Alt+K` to open the command palette, then select **New Object**
+- Use the keyboard shortcut `Alt+N`
 
 The **Type Picker** loads in the editor area, presenting a grid of cards for each available object type from your installed Mental Models. Each card shows the type name (e.g., "Note", "Person", "Project", "Concept") and a brief description.
 
@@ -121,8 +121,8 @@ Here is another example showing a Person object:
 Switch from read mode to edit mode using any of these methods:
 
 - Click the **Edit** button in the object toolbar
-- Press `Ctrl+E`
-- Use the command palette (`Ctrl+K`) and select **Toggle Edit Mode**
+- Press `Alt+E`
+- Use the command palette (`Alt+K`) and select **Toggle Edit Mode**
 
 The transition uses a crossfade animation: the read-only view fades out and the edit form fades in over 0.25 seconds. The toolbar button changes from "Edit" to "Done", and the **Save** button becomes visible.
 
@@ -172,7 +172,7 @@ The editor supports both **dark and light themes**, automatically matching the w
 
 Save your changes using any of these methods:
 
-- Press `Ctrl+S` (works from anywhere in the workspace)
+- Press `Alt+S` (works from anywhere in the workspace)
 - Click the **Save** button in the object toolbar
 
 When you save, two operations happen in parallel:
@@ -192,7 +192,7 @@ Both operations create immutable events in the event log. After a successful sav
 To return to read mode:
 
 - Click the **Done** button (which replaced "Edit" during edit mode)
-- Press `Ctrl+E` again
+- Press `Alt+E` again
 
 If you have unsaved changes, a confirmation dialog asks: "Discard unsaved changes?" Choose OK to discard and return to read mode, or Cancel to stay in edit mode and continue working.
 
@@ -256,13 +256,13 @@ An important design principle: validation provides **guidance, not enforcement**
 
 | Task | How |
 |------|-----|
-| Create an object | `Ctrl+K` then "New Object", or `Ctrl+N` |
-| Open an object | Click in Explorer tree, or `Ctrl+K` and search by name |
-| Switch to edit mode | `Ctrl+E` or click Edit button |
-| Save changes | `Ctrl+S` or click Save button |
-| Return to read mode | `Ctrl+E` or click Done button |
-| Close an object tab | `Ctrl+W` or click the tab close button |
-| Run validation | `Ctrl+Shift+V`, or save (validation runs automatically) |
+| Create an object | `Alt+K` then "New Object", or `Alt+N` |
+| Open an object | Click in Explorer tree, or `Alt+K` and search by name |
+| Switch to edit mode | `Alt+E` or click Edit button |
+| Save changes | `Alt+S` or click Save button |
+| Return to read mode | `Alt+E` or click Done button |
+| Close an object tab | `Alt+W` or click the tab close button |
+| Run validation | Save the object (validation runs automatically) |
 | Jump to a lint result | Click the result in the Lint panel |
 
 ---
