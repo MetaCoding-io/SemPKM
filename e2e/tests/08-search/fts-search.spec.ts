@@ -1,7 +1,7 @@
 /**
  * FTS Keyword Search E2E Tests
  *
- * Tests the GET /api/search endpoint and the Ctrl+K command palette
+ * Tests the GET /api/search endpoint and the Alt+K command palette
  * FTS integration. Requires a running stack with indexed seed data.
  *
  * Uses the auth fixture (ownerPage) for authenticated access.
@@ -39,11 +39,11 @@ test.describe('FTS Keyword Search', () => {
     expect(result.status).toBe(422);
   });
 
-  test('Ctrl+K opens command palette', async ({ ownerPage }) => {
+  test('Alt+K opens command palette', async ({ ownerPage }) => {
     await ownerPage.goto(`${BASE_URL}/browser/`);
     await waitForWorkspace(ownerPage);
 
-    await ownerPage.keyboard.press('Control+k');
+    await ownerPage.keyboard.press('Alt+k');
     await ownerPage.waitForTimeout(500);
 
     const isOpen = await ownerPage.evaluate(() => {
@@ -64,7 +64,7 @@ test.describe('FTS Keyword Search', () => {
       await route.continue();
     });
 
-    await ownerPage.keyboard.press('Control+k');
+    await ownerPage.keyboard.press('Alt+k');
     await ownerPage.waitForTimeout(500);
 
     // Type a query into ninja-keys (it captures keyboard input in its shadow DOM input)
@@ -87,7 +87,7 @@ test.describe('FTS Keyword Search', () => {
       await route.continue();
     });
 
-    await ownerPage.keyboard.press('Control+k');
+    await ownerPage.keyboard.press('Alt+k');
     await ownerPage.waitForTimeout(500);
 
     // Type a single character
@@ -101,7 +101,7 @@ test.describe('FTS Keyword Search', () => {
     await ownerPage.goto(`${BASE_URL}/browser/`);
     await waitForWorkspace(ownerPage);
 
-    await ownerPage.keyboard.press('Control+k');
+    await ownerPage.keyboard.press('Alt+k');
     await ownerPage.waitForTimeout(500);
 
     await ownerPage.keyboard.type('note', { delay: 50 });
@@ -122,7 +122,7 @@ test.describe('FTS Keyword Search', () => {
     await ownerPage.goto(`${BASE_URL}/browser/`);
     await waitForWorkspace(ownerPage);
 
-    await ownerPage.keyboard.press('Control+k');
+    await ownerPage.keyboard.press('Alt+k');
     await ownerPage.waitForTimeout(500);
 
     // Verify it opened

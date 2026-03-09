@@ -159,7 +159,7 @@ test.describe('User guide screenshots', () => {
     await openWorkspace(page);
     await expandNavTree(page);
 
-    await page.keyboard.press('Control+k');
+    await page.keyboard.press('Alt+k');
     await page.waitForTimeout(800);
 
     await screenshotLight(page, 'guide-command-palette.png');
@@ -170,7 +170,7 @@ test.describe('User guide screenshots', () => {
     await openWorkspace(page);
 
     // Open bottom panel
-    await page.keyboard.press('Control+j');
+    await page.keyboard.press('Alt+j');
     await page.waitForTimeout(800);
 
     // Click SPARQL tab if available

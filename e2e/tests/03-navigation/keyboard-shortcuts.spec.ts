@@ -1,8 +1,8 @@
 /**
  * Keyboard Shortcuts E2E Tests
  *
- * Tests workspace keyboard shortcuts: Ctrl+K for command palette,
- * Ctrl+N for type picker, Ctrl+, for settings.
+ * Tests workspace keyboard shortcuts: Alt+K for command palette,
+ * Alt+N for type picker, Alt+, for settings.
  */
 import { test, expect } from '../../fixtures/auth';
 import { SEL } from '../../helpers/selectors';
@@ -11,12 +11,12 @@ import { waitForWorkspace, waitForIdle } from '../../helpers/wait-for';
 const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3901';
 
 test.describe('Keyboard Shortcuts', () => {
-  test('Ctrl+K opens command palette', async ({ ownerPage }) => {
+  test('Alt+K opens command palette', async ({ ownerPage }) => {
     await ownerPage.goto(`${BASE_URL}/browser/`);
     await waitForWorkspace(ownerPage);
 
-    // Press Ctrl+K to open command palette
-    await ownerPage.keyboard.press('Control+k');
+    // Press Alt+K to open command palette
+    await ownerPage.keyboard.press('Alt+k');
 
     // ninja-keys should become visible (it uses the open() method)
     await ownerPage.waitForTimeout(500);
@@ -31,13 +31,12 @@ test.describe('Keyboard Shortcuts', () => {
     expect(isOpen).toBeTruthy();
   });
 
-  test('Ctrl+N opens type picker via ninja-keys hotkey', async ({ ownerPage }) => {
+  test('Alt+N opens type picker', async ({ ownerPage }) => {
     await ownerPage.goto(`${BASE_URL}/browser/`);
     await waitForWorkspace(ownerPage);
 
-    // Ctrl+N is registered as a ninja-keys hotkey which calls showTypePicker()
-    // showTypePicker() does htmx.ajax('GET', '/browser/types', ...) into editor area
-    await ownerPage.keyboard.press('Control+n');
+    // Alt+N calls showTypePicker() directly via keydown handler
+    await ownerPage.keyboard.press('Alt+n');
     await waitForIdle(ownerPage);
 
     // Type picker should appear in the editor area
@@ -50,12 +49,12 @@ test.describe('Keyboard Shortcuts', () => {
     expect(count).toBe(4);
   });
 
-  test('Ctrl+, opens settings page', async ({ ownerPage }) => {
+  test('Alt+, opens settings page', async ({ ownerPage }) => {
     await ownerPage.goto(`${BASE_URL}/browser/`);
     await waitForWorkspace(ownerPage);
 
-    // Ctrl+, is handled directly in the keydown handler, calling openSettingsTab()
-    await ownerPage.keyboard.press('Control+,');
+    // Alt+, calls openSettingsTab() via keydown handler
+    await ownerPage.keyboard.press('Alt+,');
     await waitForIdle(ownerPage);
 
     // Settings page should appear in the editor area

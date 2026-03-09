@@ -16,7 +16,7 @@ test.describe('Fuzzy FTS Toggle', () => {
     await ownerPage.goto(`${BASE_URL}/browser/`);
     await waitForWorkspace(ownerPage);
 
-    await ownerPage.keyboard.press('Control+k');
+    await ownerPage.keyboard.press('Alt+k');
     await ownerPage.waitForTimeout(500);
 
     const hasToggle = await ownerPage.evaluate(() => {
@@ -84,7 +84,7 @@ test.describe('Fuzzy FTS Toggle', () => {
     });
 
     // Open palette and type a search query
-    await ownerPage.keyboard.press('Control+k');
+    await ownerPage.keyboard.press('Alt+k');
     await ownerPage.waitForTimeout(500);
     await ownerPage.keyboard.type('note', { delay: 50 });
 
@@ -112,7 +112,7 @@ test.describe('Fuzzy FTS Toggle', () => {
     // Open palette and type a misspelled query
     // 'knowlege' is missing the 'd' from 'knowledge'
     // Seed data has 'Knowledge Management' concept
-    await ownerPage.keyboard.press('Control+k');
+    await ownerPage.keyboard.press('Alt+k');
     await ownerPage.waitForTimeout(500);
     await ownerPage.keyboard.type('knowlege', { delay: 50 });
 

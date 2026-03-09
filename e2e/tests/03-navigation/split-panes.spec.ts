@@ -39,7 +39,7 @@ test.describe('Split Panes', () => {
 
     // Press Ctrl+\ — triggers splitRight() (may fire via keydown + ninja-keys hotkey).
     // Verifies that at least one group exists and the shortcut does not crash.
-    await ownerPage.keyboard.press('Control+Backslash');
+    await ownerPage.keyboard.press('Alt+Backslash');
     await waitForIdle(ownerPage);
 
     // After split: group count should be >= initial (groups increased OR already at max)
@@ -63,7 +63,7 @@ test.describe('Split Panes', () => {
     }, { timeout: 5000 });
 
     // Press Ctrl+\ to ensure we have split panes
-    await ownerPage.keyboard.press('Control+Backslash');
+    await ownerPage.keyboard.press('Alt+Backslash');
     await waitForIdle(ownerPage);
 
     // Structural invariant: each dockview group has its own tab container
