@@ -5,9 +5,9 @@ milestone_name: Power User & Collaboration
 status: active
 stopped_at: null
 last_updated: "2026-03-09"
-last_activity: "2026-03-09 — Milestone v2.6 started"
+last_activity: "2026-03-09 — Roadmap created for v2.6 (7 phases, 37 requirements)"
 progress:
-  total_phases: 0
+  total_phases: 7
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,58 +21,34 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-09)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations — no blank-page syndrome, no schema setup.
-**Current focus:** Defining requirements for v2.6
+**Current focus:** Phase 52 — Bug Fixes & Security
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 52 of 58 (Bug Fixes & Security)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-03-09 — Milestone v2.6 started
+Status: Ready to plan
+Last activity: 2026-03-09 — Roadmap created for v2.6
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6 (v2.4)
-- Average duration: 5 min
-- Total execution time: 29 min
+- Total plans completed: 0 (v2.6)
+- Average duration: —
+- Total execution time: —
 
-**Historical (v2.3):**
-- 13 plans, avg 3.7 min/plan, 48 min total
+**Historical (v2.5):**
+- 22 plans, avg 4 min/plan
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 35 | 5 | 24 min | 5 min |
-| 36 | 2 | 4 min | 2 min |
-| 37 | 2 | 10 min | 5 min |
-| 39 | 1 | 1 min | 1 min |
-| 48 | 2 | 7 min | 3.5 min |
-| 51 | 1 | 3 min | 3 min |
+| - | - | - | - |
 
 *Updated after each plan completion*
-| Phase 45 P01 | 5 | 2 tasks | 11 files |
-| Phase 45 P02 | 4 | 2 tasks | 10 files |
-| Phase 48 P01 | 3 | 2 tasks | 9 files |
-| Phase 48 P02 | 4 | 2 tasks | 4 files |
-| Phase 51 P01 | 3 | 2 tasks | 3 files |
-| Phase 45 P03 | 1 | 2 tasks | 6 files |
-| Phase 51 P02 | 2 | 2 tasks | 3 files |
-| Phase 51 P03 | 3 | 2 tasks | 6 files |
-| Phase 44 P02 | 4 | 2 tasks | 6 files |
-| Phase 46 P01 | 3 | 2 tasks | 3 files |
-| Phase 46 P02 | 3 | 2 tasks | 5 files |
-| Phase 46 P03 | 1 | 2 tasks | 2 files |
-| Phase 49 P01 | 2 | 2 tasks | 7 files |
-| Phase 49 P02 | 2 | 2 tasks | 3 files |
-| Phase 49 P03 | 4 | 2 tasks | 7 files |
-| Phase 47 P01 | 3 | 2 tasks | 5 files |
-| Phase 47 P02 | 20 | 2 tasks | 7 files |
-| Phase 50 P03 | 4 | 2 tasks | 3 files |
-| Phase 50 P02 | 3 | 2 tasks | 4 files |
-| Phase 50 P01 | 6 | 2 tasks | 4 files |
-| Phase 50 P04 | 5 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -80,23 +56,10 @@ Last activity: 2026-03-09 — Milestone v2.6 started
 
 Full decision log in PROJECT.md Key Decisions table.
 
-- v2.5: Three workstreams (UI, Obsidian, Identity) are independent and parallelizable
-- v2.5: WebID before IndieAuth (IndieAuth references WebID profile)
-- v2.5: Obsidian import is import-only (triage deferred to future milestone)
-- Phase 48: Separate KDF salt per encryption domain (webid vs llm)
-- Phase 48: Username immutable after creation, links stored as JSON in Text column
-- Phase 48: Standalone HTML profile page (not extending base.html), content negotiation via Accept header + ?format= fallback
-- Phase 51: Inline SVG constants for canvas icons to avoid Lucide re-scan overhead
-- Phase 51: Scoped collapse via expandProvenance map tracking which expand loaded which nodes
-- Phase 51: Custom MIME types text/iri and text/label in dataTransfer for nav-tree-to-canvas drag-drop
-- Phase 45: Tool pages use htmx page navigation, not dockview tabs
-- Phase 45: Return styled HTML on BadZipFile instead of JSON HTTPException for htmx targets
-- Phase 47: SSE race condition fix: serve saved import_result.json when broadcast closes before client connects
-- Phase 44: Single unified CodeMirror theme using CSS variables instead of dual dark/light themes
-- Phase 44: Preview/Source tab toggle for markdown VFS files, reusing global marked.js
-- Phase 50: Ch 24 rewritten from scratch (232 lines replacing 971-line manual Python workflow)
-- Phase 50: Token lifetimes documented from source: 60s auth code, 1h access, 30d refresh
-- Phase 50: Layout save via command palette only (no Ctrl+Shift+S shortcut exists)
+- v2.6: Bug fixes and security gate (Phase 52) before new features
+- v2.6: SPARQL phases sequenced 52 -> 53 -> 54 (permissions -> core -> advanced)
+- v2.6: Phases 55, 57, 58 independent after Phase 52 (can run in any order)
+- v2.6: Federation last (highest complexity, lowest urgency for personal-first deployments)
 
 ### Pending Todos
 
@@ -110,23 +73,10 @@ Full decision log in PROJECT.md Key Decisions table.
 
 ### Blockers/Concerns
 
-None — clean start for v2.5
-
-### Roadmap Evolution
-
-- Phase 51 added: Spatial Canvas UX: per-node expand/delete buttons, drag-drop from nav tree, remove global load button
-
-### Quick Tasks Completed (v2.5)
-
-| # | Description | Date | Commit | Status | Directory |
-|---|-------------|------|--------|--------|-----------|
-| 29 | Add e2e tests for v2.4 coverage gaps (VFS, entailment, crossfade) | 2026-03-08 | 4fb9c0f | | [29-add-e2e-tests-for-v2-4-coverage-gaps-vfs](./quick/29-add-e2e-tests-for-v2-4-coverage-gaps-vfs/) |
-| 30 | Investigate Firefox e2e test failures (12/223 fail, 3 root causes) | 2026-03-08 | f042b00 | | [30-investigate-firefox-e2e-test-failures-an](./quick/30-investigate-firefox-e2e-test-failures-an/) |
-| 31 | Fix Firefox e2e failures: add face-visible toggling, fix test selectors | 2026-03-08 | 17dc8e5 | | [31-fix-firefox-e2e-failures-add-face-visibl](./quick/31-fix-firefox-e2e-failures-add-face-visibl/) |
-| 32 | Fix spatial canvas load button and route shadowing | 2026-03-08 | bf3288d | | [32-fix-spatial-canvas-load-button-and-verif](./quick/32-fix-spatial-canvas-load-button-and-verif/) |
+None — clean start for v2.6
 
 ## Session Continuity
 
-Last session: 2026-03-09T04:33:57.270Z
-Stopped at: Completed 50-04-PLAN.md
+Last session: 2026-03-09
+Stopped at: Roadmap created for v2.6
 Resume file: None

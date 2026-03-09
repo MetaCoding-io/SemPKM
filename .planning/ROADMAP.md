@@ -9,9 +9,8 @@
 - ✅ **v2.3 Shell, Navigation & Views** — Phases 29-34 (shipped 2026-03-03)
 - ✅ **v2.4 Inference & Polish** — Phases 35-43 (shipped 2026-03-06) — [Full details](milestones/v2.4-ROADMAP.md) — [Requirements](milestones/v2.4-REQUIREMENTS.md)
 - ✅ **v2.5 Polish, Import & Identity** — Phases 44-51 (shipped 2026-03-09) — [Full details](milestones/v2.5-ROADMAP.md) — [Requirements](milestones/v2.5-REQUIREMENTS.md)
-- (future) **SPARQL Interface** -- Rich SPARQL query experience with permissions, autocomplete, pills, history, saved queries, and named query views
-- (future) **Collaboration & Federation** -- Multi-instance sync via RDF Patch, LDN notifications, federated identity, collaboration UI — [Research](research/collaboration-architecture.md)
-- (future) **Identity: DIDs + Verifiable Credentials** -- did:web documents, RDF graph signing, VC 2.0 issuance, did:webvh migration (Phases C-E) — [Research](research/decentralized-identity.md)
+- 🚧 **v2.6 Power User & Collaboration** — Phases 52-58 (in progress)
+- (future) **Identity: DIDs + Verifiable Credentials** -- did:web documents, RDF graph signing, VC 2.0 issuance, did:webvh migration — [Research](research/decentralized-identity.md)
 - (future) **RSS Reader & Hypothesis Integration** -- In-app feed reader with background polling, OPML import/export, Hypothesis annotation sync, W3C Web Annotation storage — [Research](../../docs/research/rss-reader-hypothesis-integration.md)
 
 ## Phases
@@ -123,70 +122,126 @@
 
 </details>
 
----
+### 🚧 v2.6 Power User & Collaboration (In Progress)
 
-### Design Decision Gate
+**Milestone Goal:** Elevate SemPKM from a personal tool to a power-user and collaboration-ready platform with advanced SPARQL workflows, federation, custom VFS projections, and UI polish across all views.
 
-Before proceeding to the SPARQL Interface milestone, the following design decisions need resolution:
+- [ ] **Phase 52: Bug Fixes & Security** - Fix event log diffs, lint layout, and gate SPARQL queries by role
+- [ ] **Phase 53: SPARQL Power User** - Server-side history, saved queries, ontology autocomplete, IRI pills
+- [ ] **Phase 54: SPARQL Advanced** - Shared queries and named queries promoted to nav tree views
+- [ ] **Phase 55: Browser UI Polish** - Object browser multi-select/delete, edge inspector, VFS breadcrumbs and preview
+- [ ] **Phase 56: VFS MountSpec** - Declarative mount vocabulary, 5 directory strategies, SHACL frontmatter writes, management UI
+- [ ] **Phase 57: Spatial Canvas** - Snap-to-grid, edge labels, keyboard nav, bulk drag-drop, wiki-link edges
+- [ ] **Phase 58: Federation** - RDF Patch serialization, named graph sync, LDN notifications, federated auth, collaboration UI
 
-1. **SPARQL Interface direction** -- Extend Yasgui with custom plugins, or replace with standalone CodeMirror 6 + custom SPARQL mode? Affects scope of Phases 2-3.
-2. **Global Lint Phases C-D** -- Build fix guidance engine and click-to-edit triage in the next milestone, or defer further?
+## Phase Details
 
----
+### Phase 52: Bug Fixes & Security
+**Goal**: Known regressions are fixed and SPARQL access is properly gated by user role
+**Depends on**: Nothing (first phase of v2.6)
+**Requirements**: SPARQL-01, FIX-01, FIX-02
+**Success Criteria** (what must be TRUE):
+  1. Guest users cannot access the SPARQL console; members query only the current graph; owners can query all graphs
+  2. Event log inline diffs render correctly for all operation types (create, patch, delete, body.set, edge ops)
+  3. Lint dashboard filter controls and table display at correct width on narrow and wide viewports
+**Plans**: TBD
 
-### (Future) SPARQL Interface
+Plans:
+- [ ] 52-01: TBD
+- [ ] 52-02: TBD
 
-**Milestone Goal:** Transform the basic Yasgui SPARQL console into a first-class query interface with graph-aware permissions, intelligent autocomplete from loaded ontologies, visual IRI pills in the editor, server-side query history, saved/shared queries with parameterization, and named queries that serve as reusable views in the object browser.
+### Phase 53: SPARQL Power User
+**Goal**: Power users have a productive SPARQL workflow with persistent history, saved queries, smart autocomplete, and rich result display
+**Depends on**: Phase 52
+**Requirements**: SPARQL-02, SPARQL-03, SPARQL-05, SPARQL-06
+**Success Criteria** (what must be TRUE):
+  1. User's SPARQL query history persists server-side and is accessible from any device after login
+  2. User can save a query with a name and description, and retrieve it later from a saved queries list
+  3. SPARQL result cells containing IRIs display as labeled pills with type icons that open workspace tabs on click
+  4. SPARQL editor suggests prefixes, classes, and predicates from installed Mental Models as the user types
+**Plans**: TBD
 
-**Depends on:** v2.5 complete. Ordered after Design Decision Gate to resolve SPARQL UI direction.
+Plans:
+- [ ] 53-01: TBD
+- [ ] 53-02: TBD
 
-**Estimated Phases (sketch -- to be refined during milestone planning):**
+### Phase 54: SPARQL Advanced
+**Goal**: Users can share queries with collaborators and promote saved queries into browsable views in the nav tree
+**Depends on**: Phase 53
+**Requirements**: SPARQL-04, SPARQL-07
+**Success Criteria** (what must be TRUE):
+  1. User can share a saved query with another user who can view and run it (read-only)
+  2. User can promote a saved query to a named view that appears in the nav tree alongside model-defined views
+  3. Named query views execute the saved SPARQL and render results using the standard view infrastructure
+**Plans**: TBD
 
-1. **SPARQL Permissions and Policies** -- Graph-scoped query execution per role, admin-configurable execution policies (timeouts, result caps, UPDATE prohibition)
-   - Requirements: SQ-01, SQ-02
-   - Key risk: Performance impact of per-query graph scoping; may need query rewriting vs. RDF4J native graph access control
+Plans:
+- [ ] 54-01: TBD
 
-2. **SPARQL Autocomplete** -- Prefix, class, and property autocomplete in the query editor from prefix registry and installed Mental Model ontologies/SHACL shapes
-   - Requirements: SQ-03, SQ-04, SQ-05
-   - Key risk: Yasgui's CodeMirror integration may resist custom completers; may need to evaluate replacing Yasgui's editor with a standalone CodeMirror 6 instance + custom SPARQL mode
-   - Research needed: Yasgui plugin architecture for autocompletion, CodeMirror 6 SPARQL language support landscape
+### Phase 55: Browser UI Polish
+**Goal**: Object browser and VFS browser have polished, productive interactions for daily use
+**Depends on**: Phase 52
+**Requirements**: OBUI-01, OBUI-02, OBUI-03, OBUI-04, OBUI-05, VFSX-01, VFSX-02, VFSX-03
+**Success Criteria** (what must be TRUE):
+  1. Nav tree header has refresh and plus buttons that reload the object list and jump to create-object flow respectively
+  2. User can shift-click to select multiple objects in the nav tree and bulk delete them with a single action
+  3. Clicking a relationship in the Relations panel expands to show edge provenance, metadata, and type information
+  4. VFS browser shows a clickable breadcrumb trail for path navigation and a side-by-side raw/rendered preview for open files
+  5. VFS browser file operations have consistent icons and loading states
+**Plans**: TBD
 
-3. **IRI Pills and Editor Enhancements** -- Visual pill rendering for IRIs and prefix declarations in the SPARQL editor; click-to-navigate and inline expand/collapse
-   - Requirements: SQ-06, SQ-07
-   - Key risk: CodeMirror decoration/widget API complexity; pills must not interfere with query parsing or copy-paste
-   - Research needed: CodeMirror 6 decoration widgets, similar implementations in SPARQL editors (e.g., QLever UI, Wikidata Query Service)
+Plans:
+- [ ] 55-01: TBD
+- [ ] 55-02: TBD
 
-4. **Server-Side Query History** -- Searchable, filterable query execution history persisted to the backend; cross-device access; execution metadata (duration, result count, timestamp)
-   - Requirements: SQ-08, SQ-09
-   - Key risk: Storage growth from query history; need retention policy and pagination
-   - Likely approach: New SQLAlchemy model (QueryExecution) with user FK, query text, executed_at, duration_ms, result_count, status
+### Phase 56: VFS MountSpec
+**Goal**: Users can create custom VFS directory structures using declarative mount definitions with multiple organization strategies
+**Depends on**: Phase 55
+**Requirements**: VFS-01, VFS-02, VFS-03, VFS-04, VFS-05
+**Success Criteria** (what must be TRUE):
+  1. MountSpec RDF vocabulary is defined and documented, supporting declarative directory structure definitions
+  2. User can create a mount choosing from 5 strategies (by-type, by-date, by-tag, by-property, flat) and browse it via WebDAV
+  3. VFS provider correctly dispatches file requests to the appropriate strategy based on mount path prefix
+  4. Editing a file's YAML frontmatter via WebDAV writes back to RDF properties using SHACL shape mappings
+  5. Settings page has a mount management UI for creating, editing, and deleting custom mounts
+**Plans**: TBD
 
-5. **Saved Queries and Sharing** -- Named/bookmarked queries with descriptions, parameterization (template variables), sharing via links or published library
-   - Requirements: SQ-10, SQ-11, SQ-12
-   - Key risk: Template variable UX (how to define, prompt, and validate parameters); sharing permissions model
-   - Likely approach: New SQLAlchemy model (SavedQuery) with owner, query text, name, description, params JSON, is_published flag
+Plans:
+- [ ] 56-01: TBD
+- [ ] 56-02: TBD
 
-6. **Named Queries as Views** -- Promote saved queries to named views in the object browser; rendered via standard renderers (table, cards, graph); Mental Model manifest integration
-   - Requirements: SQ-13, SQ-14, SQ-15
-   - Key risk: Named query views must integrate with existing ViewSpecService and manifest view declaration format without breaking the current view pipeline
-   - Depends on: Phase 5 (saved queries must exist), v2.3 Phase 32 (carousel view infrastructure)
+### Phase 57: Spatial Canvas
+**Goal**: Spatial canvas is a productive visual thinking tool with alignment aids, rich edge display, and keyboard-driven interaction
+**Depends on**: Phase 52
+**Requirements**: CANV-01, CANV-02, CANV-03, CANV-04, CANV-05
+**Success Criteria** (what must be TRUE):
+  1. Nodes snap to a grid when dragged, producing visually aligned layouts
+  2. Edges between connected nodes display their relationship labels
+  3. User can navigate and interact with canvas nodes using keyboard shortcuts
+  4. User can multi-select objects in the nav tree and drag-drop them onto the canvas as a batch
+  5. Wiki-links in an object's markdown body are parsed and rendered as edges connecting to their target nodes on the canvas
+**Plans**: TBD
 
-### (Future) Collaboration & Federation
+Plans:
+- [ ] 57-01: TBD
+- [ ] 57-02: TBD
 
-**Milestone Goal:** Enable multi-instance knowledge sharing with data sovereignty. SemPKM instances sync named graphs, notify each other of changes, and authenticate cross-instance users.
+### Phase 58: Federation
+**Goal**: SemPKM instances can sync knowledge and exchange notifications with other instances using standard protocols
+**Depends on**: Phase 52
+**Requirements**: FED-01, FED-02, FED-03, FED-04, FED-05, FED-06, FED-07, FED-08, FED-09, FED-10
+**Success Criteria** (what must be TRUE):
+  1. Events can be serialized as RDF Patch format and exported since a given sequence number via API
+  2. User can register a remote SemPKM instance and pull/apply patches without creating infinite sync loops
+  3. User can send a notification (shared concept) to a remote instance's LDN inbox, and view/act on received notifications
+  4. Incoming federation requests are authenticated via HTTP Signatures against WebID public keys
+  5. Collaboration UI shows registered remote instances, their sync status, and incoming changes
+**Plans**: TBD
 
-**Depends on:** v2.5 Identity phases (WebID provides the identity layer for federation)
-
-**Estimated Phases (sketch):**
-
-1. **RDF Patch Change Tracking** -- Patch log model, EventStore integration, patch replay, graph versioning
-2. **Named Graph Sync API** -- HTTP sync endpoints for exchanging patches between instances; conflict detection
-3. **Cross-Instance Notifications** -- LDN inbox endpoint, subscription model, Webmention for cross-references
-4. **Federated Identity (WebID Auth)** -- WebID authentication for incoming sync/API requests; named graph ACL per WebID
-5. **Collaboration UI** -- Settings for remote instances, graph sharing permissions, sync status indicators, incoming changes panel
-6. **Real-Time Collaboration (Deferred)** -- CRDT-based concurrent editing; build only when ecosystem is ready (W3C CRDT for RDF CG, NextGraph, m-ld)
-
-**Research:** [collaboration-architecture.md](research/collaboration-architecture.md)
+Plans:
+- [ ] 58-01: TBD
+- [ ] 58-02: TBD
+- [ ] 58-03: TBD
 
 ---
 
@@ -214,31 +269,6 @@ Before proceeding to the SPARQL Interface milestone, the following design decisi
 
 **Research:** [rss-reader-hypothesis-integration.md](/home/james/Code/SemPKM/docs/research/rss-reader-hypothesis-integration.md)
 
-**New dependencies:** `feedparser` (RSS/Atom parsing), `trafilatura` (content extraction), `listparser` (OPML import)
-
-**Estimated Phases (sketch -- to be refined during milestone planning):**
-
-1. **RSS Mental Model Bundle** — New installable model (`models/rss-reader/`) with Feed, FeedSubscription, Article, FeedFolder, Highlight, Bookmark types; SHACL shapes for forms; views for Unread, Starred, Highlights, Feed List; seed data with sample feed
-   - Key vocabularies: schema:DataFeed, schema:Article, oa:Annotation, sioc:Forum, as:Read
-   - Low risk — follows established model packaging pattern (cf. basic-pkm, ppv)
-
-2. **Feed Subscription & Ingestion** — FeedService for fetch/parse/ingest; feed discovery (HTML `<link>` autodiscovery + common URL probing); articles created via existing Command API (object.create, body.set); conditional GET (ETag/Last-Modified) to avoid redundant downloads
-   - Key risk: Bulk ingestion performance (10-50 articles per feed update through EventStore)
-
-3. **Background Feed Polling** — asyncio background task in FastAPI lifespan; adaptive polling intervals (15min-12h based on feed frequency); RSS `<ttl>` and HTTP Cache-Control respect; exponential backoff on errors; dead-feed detection
-   - Key risk: Reliability — feeds go down, change URLs, return errors
-
-4. **Reader UI** — Feeds panel in sidebar; article list view (htmx); reading pane in dockview tab (reuse object tab pattern); mark read/unread (as:Read activities); star/bookmark (oa:Annotation with oa:bookmarking); OPML import/export
-   - Reuses: htmx fragment patterns, dockview tabs, markdown rendering (marked + DOMPurify)
-
-5. **Content Extraction (Reader Mode)** — trafilatura integration for fetching clean article text when RSS provides only summaries; Markdown output stored via body.set; metadata extraction (author, date, categories)
-   - Key risk: Some sites block scrapers or require JS rendering
-
-6. **Hypothesis Annotation Sync** — Hypothesis API client (thin httpx wrapper); initial full-history import; periodic poll sync; WebSocket for near-real-time (optional); annotations stored as oa:Annotation with TextQuoteSelector; highlight display alongside articles
-   - Key risk: Hypothesis API rate limits (undocumented); sync edge cases (deletions, edits, conflicts)
-
-7. **Power Features** — Keyboard shortcuts (J/K/Space/F); full-text search via RDF4J Lucene; filter/rule system for auto-organization; article-to-concept linking (manual + AI-suggested); adaptive polling tuning
-
 ---
 
 ### Potential Ideas
@@ -251,6 +281,10 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 - **User-Configurable VFS (MountSpec)** -- Declarative MountSpec vocabulary for user-created virtual filesystem views; 5 directory strategies (flat, tag-groups, property-value, type-hierarchy, relationship-tree); SHACL-validated frontmatter writes; mount management UI — [Research](research/virtual-filesystem.md)
 
 ## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 52 -> 53 -> 54 -> 55 -> 56 -> 57 -> 58
+(Phases 55, 57, 58 depend only on 52 and could run after 52 in any order)
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -305,6 +339,13 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 49. IndieAuth Provider | v2.5 | 3/3 | Complete | 2026-03-08 |
 | 50. User Guide & Documentation | v2.5 | 4/4 | Complete | 2026-03-09 |
 | 51. Spatial Canvas UX | v2.5 | 3/3 | Complete | 2026-03-09 |
+| 52. Bug Fixes & Security | v2.6 | 0/? | Not started | - |
+| 53. SPARQL Power User | v2.6 | 0/? | Not started | - |
+| 54. SPARQL Advanced | v2.6 | 0/? | Not started | - |
+| 55. Browser UI Polish | v2.6 | 0/? | Not started | - |
+| 56. VFS MountSpec | v2.6 | 0/? | Not started | - |
+| 57. Spatial Canvas | v2.6 | 0/? | Not started | - |
+| 58. Federation | v2.6 | 0/? | Not started | - |
 
 ---
 *Roadmap created: 2026-02-21*
@@ -314,4 +355,5 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 *v2.2 archived: 2026-03-01*
 *v2.3 shipped: 2026-03-03*
 *v2.4 shipped: 2026-03-06*
-*v2.5 shipped: 2026-03-09 — 8 phases, 22 plans, 23 requirements (UICL-01-03, OBSI-01-07, WBID-01-06, IAUTH-01-05, DOCS-01-03)*
+*v2.5 shipped: 2026-03-09*
+*v2.6 roadmap created: 2026-03-09 — 7 phases, 37 requirements (SPARQL-01-07, FED-01-10, VFS-01-05, VFSX-01-03, OBUI-01-05, FIX-01-02, CANV-01-05)*
