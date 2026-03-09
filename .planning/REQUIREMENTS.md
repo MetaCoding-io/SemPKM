@@ -9,7 +9,7 @@ Requirements for v2.6 Power User & Collaboration. Each maps to roadmap phases.
 
 ### SPARQL Interface
 
-- [ ] **SPARQL-01**: SPARQL queries are gated by role — guest has no access, member queries current graph only, owner queries all graphs
+- [x] **SPARQL-01**: SPARQL queries are gated by role — guest has no access, member queries current graph only, owner queries all graphs
 - [ ] **SPARQL-02**: User's SPARQL query history is persisted server-side and accessible across devices
 - [ ] **SPARQL-03**: User can save a SPARQL query with a name and description
 - [ ] **SPARQL-04**: User can share a saved query with other users (read-only)
@@ -96,7 +96,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SPARQL-01 | Phase 52 | Pending |
+| SPARQL-01 | Phase 52 | Complete |
 | SPARQL-02 | Phase 53 | Pending |
 | SPARQL-03 | Phase 53 | Pending |
 | SPARQL-04 | Phase 54 | Pending |
