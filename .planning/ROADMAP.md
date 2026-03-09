@@ -413,7 +413,7 @@ Ideas with research completed but not yet committed to the roadmap. May be promo
 | 47. Obsidian Batch Import | 2/2 | Complete    | 2026-03-08 | - |
 | 48. WebID Profiles | 2/2 | Complete    | 2026-03-08 | - |
 | 49. IndieAuth Provider | 3/3 | Complete    | 2026-03-08 | - |
-| 50. User Guide & Documentation | 4/4 | Complete   | 2026-03-09 | - |
+| 50. User Guide & Documentation | 4/4 | Complete    | 2026-03-09 | - |
 
 ### Phase 51: Spatial Canvas UX: per-node expand/delete buttons, drag-drop from nav tree, remove global load button
 
