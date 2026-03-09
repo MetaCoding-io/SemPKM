@@ -101,8 +101,7 @@ Full decision log in PROJECT.md Key Decisions table.
 
 ### Pending Todos
 
-1. Add edit form helptext property to SHACL types (ui) — Phase 39 HELP-01
-2. Materialize owl:inverseOf triples — Phase 35 INF-01
+1. Materialize owl:inverseOf triples — Phase 35 INF-01
 
 ### Known Tech Debt
 

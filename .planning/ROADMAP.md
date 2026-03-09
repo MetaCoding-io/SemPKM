@@ -245,7 +245,6 @@ Before proceeding to the SPARQL Interface milestone, the following design decisi
 
 Ideas with research completed but not yet committed to the roadmap. May be promoted to milestones in future planning sessions.
 
-- **Web Components for Mental Models** -- Allow Mental Models to contribute custom frontend UI (Jinja2 macro bundles → light DOM Custom Elements → component SDK); model-served JS/CSS via nginx, CSP-restricted, sempkm-prefixed tag names — [Research](research/web-components-for-mental-models.md)
 - **Low-Code UI Builder & Workflows** -- User-composed components tied to SemPKM actions (Notion + Airflow inspired); workflow orchestration for structured data collection sequences — [Research](research/future-milestones.md)
 - **Full Theming System** -- User-selectable theme bundles (Dark+, Solarized, High Contrast); model-contributed themes via manifest; theme preview in settings
 - **SHACL/OWL Inference Phases C-D** -- DASH vocabulary adoption for richer form metadata; RDF4J SchemaCachingRDFSInferencer for query-time RDFS inference — [Research](research/shacl-owl-inference.md)
