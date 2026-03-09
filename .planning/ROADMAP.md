@@ -122,7 +122,7 @@
 
 </details>
 
-### 🚧 v2.6 Power User & Collaboration (In Progress)
+### v2.6 Power User & Collaboration (In Progress)
 
 **Milestone Goal:** Elevate SemPKM from a personal tool to a power-user and collaboration-ready platform with advanced SPARQL workflows, federation, custom VFS projections, and UI polish across all views.
 
@@ -144,11 +144,11 @@
   1. Guest users cannot access the SPARQL console; members query only the current graph; owners can query all graphs
   2. Event log inline diffs render correctly for all operation types (create, patch, delete, body.set, edge ops)
   3. Lint dashboard filter controls and table display at correct width on narrow and wide viewports
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 52-01: TBD
-- [ ] 52-02: TBD
+- [ ] 52-01-PLAN.md — Fix lint dashboard layout and event log compound event display + object.create undo
+- [ ] 52-02-PLAN.md — SPARQL role-based access control (API gating + UI hiding)
 
 ### Phase 53: SPARQL Power User
 **Goal**: Power users have a productive SPARQL workflow with persistent history, saved queries, smart autocomplete, and rich result display
@@ -339,7 +339,7 @@ Phases execute in numeric order: 52 -> 53 -> 54 -> 55 -> 56 -> 57 -> 58
 | 49. IndieAuth Provider | v2.5 | 3/3 | Complete | 2026-03-08 |
 | 50. User Guide & Documentation | v2.5 | 4/4 | Complete | 2026-03-09 |
 | 51. Spatial Canvas UX | v2.5 | 3/3 | Complete | 2026-03-09 |
-| 52. Bug Fixes & Security | v2.6 | 0/? | Not started | - |
+| 52. Bug Fixes & Security | v2.6 | 0/2 | Not started | - |
 | 53. SPARQL Power User | v2.6 | 0/? | Not started | - |
 | 54. SPARQL Advanced | v2.6 | 0/? | Not started | - |
 | 55. Browser UI Polish | v2.6 | 0/? | Not started | - |
