@@ -148,8 +148,8 @@ test.describe('Marketing screenshots', () => {
   test('04 — type picker overlay', async ({ ownerPage: page }) => {
     await openWorkspace(page);
 
-    // Open type picker via Ctrl+N (or click "New" button)
-    await page.keyboard.press('Control+n');
+    // Open type picker via Alt+N (or click "New" button)
+    await page.keyboard.press('Alt+n');
     await waitForElement(page, '[data-testid="type-picker"]');
     await page.waitForTimeout(600);
 
@@ -162,7 +162,7 @@ test.describe('Marketing screenshots', () => {
     await openWorkspace(page);
 
     // Open type picker and select Note
-    await page.keyboard.press('Control+n');
+    await page.keyboard.press('Alt+n');
     await waitForElement(page, '[data-testid="type-picker"]');
     await page.waitForTimeout(400);
 
@@ -245,7 +245,7 @@ test.describe('Marketing screenshots', () => {
     await expandNavTree(page);
 
     // Open command palette
-    await page.keyboard.press('Control+k');
+    await page.keyboard.press('Alt+k');
     await page.waitForTimeout(800);
 
     await screenshotBoth(page, path.join(SCREENSHOTS_DIR, '09-command-palette.png'));
@@ -256,7 +256,7 @@ test.describe('Marketing screenshots', () => {
   test('10 — settings page', async ({ ownerPage: page }) => {
     await openWorkspace(page);
 
-    // Open settings via Ctrl+,
+    // Open settings via Alt+,
     await page.keyboard.press('Control+,');
     await page.waitForTimeout(1500);
     await waitForIdle(page);
@@ -452,8 +452,8 @@ test.describe('Marketing screenshots', () => {
     await expandNavTree(page);
     await openObjectByLabel(page, SEED.projects.sempkm.title);
 
-    // Open bottom panel via Ctrl+J
-    await page.keyboard.press('Control+j');
+    // Open bottom panel via Alt+J
+    await page.keyboard.press('Alt+j');
     await page.waitForTimeout(800);
 
     await screenshotBoth(page, path.join(SCREENSHOTS_DIR, '20-bottom-panel.png'));

@@ -2,7 +2,7 @@
  * Event Log E2E Tests
  *
  * Tests the event log bottom panel:
- * - Ctrl+J opens the bottom panel
+ * - Alt+J opens the bottom panel
  * - Clicking the Event Log tab lazy-loads event rows via htmx
  * - Events display operation type, affected object, and timestamp
  *
@@ -22,7 +22,7 @@ import { waitForWorkspace, waitForIdle } from '../../helpers/wait-for';
 const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3901';
 
 test.describe('Event Log', () => {
-  test('Ctrl+J opens the bottom panel', async ({ ownerPage }) => {
+  test('Alt+J opens the bottom panel', async ({ ownerPage }) => {
     await ownerPage.goto(`${BASE_URL}/browser/`);
     await waitForWorkspace(ownerPage);
 
@@ -33,8 +33,8 @@ test.describe('Event Log', () => {
     const initialHeight = await bottomPanel.evaluate((el: HTMLElement) => el.style.height);
     expect(initialHeight).toBe('0px');
 
-    // Ctrl+J calls toggleBottomPanel() which sets a non-zero height
-    await ownerPage.keyboard.press('Control+j');
+    // Alt+J calls toggleBottomPanel() which sets a non-zero height
+    await ownerPage.keyboard.press('Alt+j');
     await waitForIdle(ownerPage);
 
     // Panel height should now be non-zero (panel is open)
@@ -48,7 +48,7 @@ test.describe('Event Log', () => {
     await waitForWorkspace(ownerPage);
 
     // Open bottom panel
-    await ownerPage.keyboard.press('Control+j');
+    await ownerPage.keyboard.press('Alt+j');
     await waitForIdle(ownerPage);
 
     // Click the EVENT LOG tab (data-panel="event-log")

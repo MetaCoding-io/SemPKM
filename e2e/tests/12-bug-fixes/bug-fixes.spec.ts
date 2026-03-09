@@ -104,13 +104,13 @@ test.describe('Bug Fix Regressions', () => {
     expect(hasBorder).toBe(true);
   });
 
-  test('BUG-06: Ctrl+K opens command palette', async ({ ownerPage }) => {
+  test('BUG-06: Alt+K opens command palette', async ({ ownerPage }) => {
     await ownerPage.goto(`${BASE_URL}/browser/`);
     await ownerPage.waitForSelector(SEL.workspace.container, { timeout: 15000 });
     await waitForIdle(ownerPage);
 
-    // Press Ctrl+K to open command palette
-    await ownerPage.keyboard.press('Control+k');
+    // Press Alt+K to open command palette
+    await ownerPage.keyboard.press('Alt+k');
 
     // Wait for ninja-keys to have the "opened" attribute (shadow DOM web component)
     const ninjaKeys = ownerPage.locator('ninja-keys');
@@ -226,8 +226,8 @@ test.describe('Bug Fix Regressions', () => {
     await ownerPage.waitForSelector(SEL.workspace.container, { timeout: 15000 });
     await waitForIdle(ownerPage);
 
-    // Open command palette with Ctrl+K
-    await ownerPage.keyboard.press('Control+k');
+    // Open command palette with Alt+K
+    await ownerPage.keyboard.press('Alt+k');
     const ninjaKeys = ownerPage.locator('ninja-keys');
     await expect(ninjaKeys).toHaveAttribute('opened', '', { timeout: 5000 });
 

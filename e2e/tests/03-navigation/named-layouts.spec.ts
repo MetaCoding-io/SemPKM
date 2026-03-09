@@ -135,7 +135,7 @@ test.describe('Named Layouts', () => {
     await ownerPage.goto(`${BASE_URL}/browser/`);
     await waitForWorkspace(ownerPage);
 
-    await ownerPage.keyboard.press('Control+k');
+    await ownerPage.keyboard.press('Alt+k');
     await ownerPage.waitForTimeout(500);
 
     const hasCommands = await ownerPage.evaluate(() => {
