@@ -836,8 +836,8 @@ async def admin_webhooks_toggle(
 
 
 @router.get("/sparql")
-async def admin_sparql(request: Request, user: User = Depends(get_current_user)):
-    """Render the SPARQL query console (Yasgui). Any authenticated user."""
+async def admin_sparql(request: Request, user: User = Depends(require_role("owner", "member"))):
+    """Render the SPARQL query console (Yasgui). Requires at least member role."""
     from app.config import settings
     templates = request.app.state.templates
     context = {"active_page": "sparql", "user": user, "base_namespace": settings.base_namespace}

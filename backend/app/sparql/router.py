@@ -7,19 +7,41 @@ queries to the current state graph to prevent event graph data leakage.
 
 import logging
 
-from fastapi import APIRouter, Depends, Form, Query, Request
+from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request
 from fastapi.responses import JSONResponse, Response
 
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
 from app.dependencies import get_search_service, get_triplestore_client
 from app.services.search import SearchService
-from app.sparql.client import inject_prefixes, scope_to_current_graph
+from app.sparql.client import check_member_query_safety, inject_prefixes, scope_to_current_graph
 from app.triplestore.client import TriplestoreClient
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api")
+
+
+def _enforce_sparql_role(user: User, query: str, all_graphs: bool) -> None:
+    """Check user role permissions for SPARQL query execution.
+
+    Args:
+        user: The authenticated user.
+        query: The SPARQL query string.
+        all_graphs: Whether the user requested cross-graph access.
+
+    Raises:
+        HTTPException: 403 if the user's role does not permit the request.
+    """
+    if user.role == "guest":
+        raise HTTPException(status_code=403, detail="SPARQL access denied")
+    if user.role == "member":
+        if all_graphs:
+            raise HTTPException(
+                status_code=403,
+                detail="Requires owner role for all_graphs",
+            )
+        check_member_query_safety(query)
 
 
 async def _execute_sparql(
@@ -85,7 +107,9 @@ async def sparql_get(
 
     Standard SPARQL Protocol GET endpoint. Queries are automatically
     scoped to the current state graph unless all_graphs=true.
+    Guests are denied access; members cannot use all_graphs or FROM/GRAPH clauses.
     """
+    _enforce_sparql_role(user, query, all_graphs)
     return await _execute_sparql(query, client, all_graphs=all_graphs)
 
 
@@ -102,7 +126,7 @@ async def sparql_post(
     - application/json: Convenience format ({"query": "...", "all_graphs": false})
 
     Queries are automatically scoped to the current state graph unless
-    all_graphs is set to true.
+    all_graphs is set to true. Guests are denied; members have restricted access.
     """
     content_type = request.headers.get("content-type", "")
 
@@ -122,6 +146,7 @@ async def sparql_post(
         query = form.get("query", "")
         all_graphs = form.get("all_graphs", "false").lower() == "true"
 
+    _enforce_sparql_role(user, query, all_graphs)
     return await _execute_sparql(query, client, all_graphs=all_graphs)
 
 
