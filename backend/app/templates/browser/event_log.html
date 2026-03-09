@@ -51,7 +51,9 @@
     {% for event in events %}
     <div class="event-row-wrapper" data-event-iri="{{ event.event_iri }}">
       <div class="event-row">
-        <span class="event-op-badge event-op-{{ event.operation_type | replace('.', '-') }}">{{ event.operation_type }}</span>
+        {% set ops = event.operation_type.split(',') %}
+        {% set primary_op = ops[0].strip() %}
+        <span class="event-op-badge event-op-{{ primary_op | replace('.', '-') }}">{{ primary_op }}{% if ops | length > 1 %} <span class="event-op-compound">+{{ ops | length - 1 }}</span>{% endif %}</span>
         <span class="event-affected">
           {% for iri in event.affected_iris[:1] %}
             {% set label = labels.get(iri, iri.split(':')[-1] if ':' in iri else iri) %}
@@ -73,7 +75,7 @@
               title="Filter by this user">{{ user_names.get(event.performed_by, '') if event.performed_by else 'system' }}</span>
         <span class="event-timestamp" title="{{ event.timestamp }}">{{ event.timestamp[:19] | replace('T', ' ') }}</span>
         <div class="event-row-actions">
-          {% if event.operation_type in ['object.patch', 'body.set', 'object.create', 'edge.create', 'edge.patch'] %}
+          {% if event.operation_type in ['object.patch', 'body.set', 'object.create', 'edge.create', 'edge.patch'] or ',' in event.operation_type %}
           <button class="event-btn-diff"
                   hx-get="/browser/events/{{ event.event_iri | urlencode }}/detail"
                   hx-target="#diff-{{ loop.index }}"
@@ -81,7 +83,7 @@
           {% else %}
           <button class="event-btn-diff" disabled>Diff</button>
           {% endif %}
-          {% if event.operation_type in ['object.patch', 'body.set', 'edge.create', 'edge.patch'] %}
+          {% if event.operation_type in ['object.patch', 'body.set', 'edge.create', 'edge.patch', 'object.create'] or ',' in event.operation_type %}
           <button class="event-btn-undo" onclick="sempkmUndoEvent('{{ event.event_iri }}', this)">Undo</button>
           {% else %}
           <button class="event-btn-undo" disabled>Undo</button>

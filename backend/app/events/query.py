@@ -18,6 +18,35 @@ from app.triplestore.client import TriplestoreClient
 
 logger = logging.getLogger(__name__)
 
+# Priority-ordered list for determining the primary operation in compound events
+_OP_PRIORITY = [
+    "object.create",
+    "object.patch",
+    "body.set",
+    "edge.create",
+    "edge.patch",
+    "edge.create.undo",
+]
+
+
+def get_primary_operation(op_type_str: str) -> tuple[str, list[str]]:
+    """Extract the primary operation from a possibly compound operation type.
+
+    Splits on commas and returns (primary_op, secondary_ops) where primary_op
+    is the highest-priority operation found, and secondary_ops are the rest.
+    If only one operation, returns (op, []).
+    """
+    parts = [p.strip() for p in op_type_str.split(",") if p.strip()]
+    if len(parts) <= 1:
+        return (parts[0] if parts else op_type_str, [])
+    # Find highest-priority operation
+    for candidate in _OP_PRIORITY:
+        if candidate in parts:
+            remaining = [p for p in parts if p != candidate]
+            return (candidate, remaining)
+    # Fallback: first part is primary
+    return (parts[0], parts[1:])
+
 
 @dataclass
 class EventSummary:
