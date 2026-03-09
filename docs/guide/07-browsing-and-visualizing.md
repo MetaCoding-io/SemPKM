@@ -215,6 +215,8 @@ You do not need to write view specifications yourself -- they come pre-packaged 
 
 For a deeper look at what Mental Models contain and how they shape your experience, see [Understanding Mental Models](09-understanding-mental-models.md).
 
+> **Looking for freeform exploration?** The views described in this chapter show pre-defined collections of objects. If you want to build a custom visual map by hand -- dragging objects onto a canvas, expanding neighborhoods, and saving named sessions -- see [Chapter 27: Spatial Canvas](27-spatial-canvas.md).
+
 ---
 
 **Previous:** [Chapter 6: Edges and Relationships](06-edges-and-relationships.md) | **Next:** [Chapter 8: Keyboard Shortcuts and Command Palette](08-keyboard-shortcuts.md)
