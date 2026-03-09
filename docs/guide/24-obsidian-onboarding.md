@@ -173,7 +173,7 @@ Once the import is complete, your Obsidian notes are full SemPKM objects. You ca
 - **View relationships** -- check the Relations panel to see wiki-link edges
 - **Use the graph view** -- visualize how your imported notes connect to each other
 - **Run SHACL validation** -- the Lint panel flags any objects missing required properties
-- **Search** -- press **Ctrl+K** to search imported notes by keyword
+- **Search** -- press **Alt+K** to search imported notes by keyword
 
 Imported objects behave identically to objects created directly in SemPKM.
 

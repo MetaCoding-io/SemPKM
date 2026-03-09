@@ -6,7 +6,7 @@ SemPKM has a layered settings system that lets you personalize your workspace wh
 
 There are two ways to open the Settings page:
 
-- **Keyboard shortcut:** Press `Ctrl+,` (comma) to jump directly to Settings.
+- **Keyboard shortcut:** Press `Alt+,` (comma) to jump directly to Settings.
 - **User menu:** Click your user avatar or name in the top-right corner to open the user popover, then select **Settings**.
 
 The Settings page opens within the workspace, replacing the current content area.

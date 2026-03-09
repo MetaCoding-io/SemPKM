@@ -100,7 +100,7 @@ This appendix covers common issues you may encounter when running SemPKM, with s
 
 ### Cannot edit objects (form is read-only)
 
-**Symptom:** Opening an object shows the read view, but clicking **Edit** or pressing `Ctrl+E` does not switch to edit mode.
+**Symptom:** Opening an object shows the read view, but clicking **Edit** or pressing `Alt+E` does not switch to edit mode.
 
 **Cause:** The edit/read flip container may not have initialized properly, typically due to a JavaScript error or a partial page load.
 
@@ -125,9 +125,9 @@ This appendix covers common issues you may encounter when running SemPKM, with s
 
 **Solution:**
 
-1. Wait a few seconds and click the object again (or press `Ctrl+E` twice to flip back to read mode) to trigger a Lint Panel refresh.
+1. Wait a few seconds and click the object again (or press `Alt+E` twice to flip back to read mode) to trigger a Lint Panel refresh.
 
-2. Manually trigger validation via the command palette: press `Ctrl+K`, type "Run Validation", and select it.
+2. Manually trigger validation via the command palette: press `Alt+K`, type "Run Validation", and select it.
 
 3. Check the API logs for validation errors:
    ```bash

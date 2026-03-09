@@ -50,7 +50,7 @@ The most common way to create an edge is through **reference properties** in an 
 
 Suppose you are editing a Note and the form has an "Author" field that references the Person type:
 
-1. Open the Note and enter edit mode (`Ctrl+E`)
+1. Open the Note and enter edit mode (`Alt+E`)
 2. In the "Author" field, start typing the person's name
 3. SemPKM queries the triplestore for all Person instances matching your text
 4. A **suggestions dropdown** appears below the field, showing matching results
@@ -58,7 +58,7 @@ Suppose you are editing a Note and the form has an "Author" field that reference
 <!-- Screenshot: reference search field with dropdown suggestions showing Person names -->
 
 4. Click a suggestion to select it. The field displays the person's label, and the underlying IRI is stored in a hidden form field.
-5. Save the object (`Ctrl+S`)
+5. Save the object (`Alt+S`)
 
 When you save, the property value is stored as a triple linking the Note to the Person via the "Author" predicate. This triple is an edge in the knowledge graph.
 
@@ -158,7 +158,7 @@ Browsing relationships is a navigation activity. The typical pattern is:
 3. Click a related object to open it in a new tab (or in a split group)
 4. Continue following links to explore your knowledge graph
 
-Each click opens the target object in the currently active editor group. If you want to keep the original object visible while exploring a related one, split the editor first (`Ctrl+\`) and click the link -- it opens in the active group while the other group keeps the original object.
+Each click opens the target object in the currently active editor group. If you want to keep the original object visible while exploring a related one, split the editor first (`Alt+\`) and click the link -- it opens in the active group while the other group keeps the original object.
 
 ### Graph View
 
@@ -170,7 +170,7 @@ To open a graph view:
 2. Find a graph view (indicated by the graph icon) under the relevant type group
 3. Click to open it as a tab in the editor area
 
-Alternatively, use the command palette (`Ctrl+K`) and search for "Browse: Graph:" followed by the view name.
+Alternatively, use the command palette (`Alt+K`) and search for "Browse: Graph:" followed by the view name.
 
 <!-- Screenshot: graph view showing interconnected Notes, Concepts, People, and Projects -->
 

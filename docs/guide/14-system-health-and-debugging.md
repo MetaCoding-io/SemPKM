@@ -307,7 +307,7 @@ The Lint Dashboard gives you a bird's-eye view of every SHACL validation issue a
 
 #### Accessing the Lint Dashboard
 
-Open the bottom panel with **Ctrl+J**, then click the **Lint** tab. The dashboard loads the latest validation report automatically.
+Open the bottom panel with **Alt+J**, then click the **Lint** tab. The dashboard loads the latest validation report automatically.
 
 <!-- Screenshot: Lint Dashboard showing the filter toolbar, summary counts, and a table of violations -->
 

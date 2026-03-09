@@ -17,18 +17,18 @@ The explorer groups views in a fixed order: tables first, then cards, then graph
 
 ### From the View Menu
 
-Open the full **View Menu** by using the command palette (`Ctrl+K`) and selecting "Open View Menu", or by clicking the view menu button in the toolbar. The View Menu shows all views from all installed models, grouped by their source model. Each entry displays the view label, its target type, and a renderer type indicator.
+Open the full **View Menu** by using the command palette (`Alt+K`) and selecting "Open View Menu", or by clicking the view menu button in the toolbar. The View Menu shows all views from all installed models, grouped by their source model. Each entry displays the view label, its target type, and a renderer type indicator.
 
 
 ### From the Command Palette
 
-Press `Ctrl+K` to open the command palette. All available views are registered as palette commands with the format "Browse: Table: Projects Table" or "Browse: Graph: People Graph". Start typing the view name to filter, then press Enter to open it.
+Press `Alt+K` to open the command palette. All available views are registered as palette commands with the format "Browse: Table: Projects Table" or "Browse: Graph: People Graph". Start typing the view name to filter, then press Enter to open it.
 
-> **Tip:** The command palette is the fastest way to switch between views. Press `Ctrl+K`, type a few letters of the view name, and hit Enter.
+> **Tip:** The command palette is the fastest way to switch between views. Press `Alt+K`, type a few letters of the view name, and hit Enter.
 
 ### View Tabs
 
-Each view opens as a tab in the editor area, just like object tabs. You can have multiple views open simultaneously, switch between them by clicking their tabs, and close them with the tab close button or `Ctrl+W`. View tabs persist across sessions alongside your object tabs.
+Each view opens as a tab in the editor area, just like object tabs. You can have multiple views open simultaneously, switch between them by clicking their tabs, and close them with the tab close button or `Alt+W`. View tabs persist across sessions alongside your object tabs.
 
 ## Carousel View Navigation
 

@@ -6,7 +6,7 @@ The SPARQL Console lets you query your entire knowledge base using SPARQL 1.1 --
 
 ### Opening the Console
 
-Press **Ctrl+J** to open the bottom panel, then click the **SPARQL** tab. The console opens with a default query that lists all triples in your knowledge base:
+Press **Alt+J** to open the bottom panel, then click the **SPARQL** tab. The console opens with a default query that lists all triples in your knowledge base:
 
 ```sparql
 SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 20
