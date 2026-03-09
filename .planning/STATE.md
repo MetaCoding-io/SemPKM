@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Polish, Import & Identity
-status: executing
-stopped_at: Completed 50-04-PLAN.md
-last_updated: "2026-03-09T04:36:39.886Z"
-last_activity: "2026-03-09 - Completed Phase 50 Plan 01: Update Stale UI Chapters"
+status: complete
+stopped_at: Milestone v2.5 shipped
+last_updated: "2026-03-09"
+last_activity: "2026-03-09 - Milestone v2.5 Polish, Import & Identity shipped"
 progress:
   total_phases: 8
   completed_phases: 8
@@ -18,19 +18,18 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-08)
+See: .planning/PROJECT.md (updated 2026-03-09)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations — no blank-page syndrome, no schema setup.
-**Current focus:** v2.5 Polish, Import & Identity — Phase 45 complete, advancing
+**Current focus:** Planning next milestone — run `/gsd:new-milestone`
 
 ## Current Position
 
-Phase: 50 (User Guide & Documentation)
-Plan: 3 of 3 complete
-Status: Phase 50 in progress
-Last activity: 2026-03-09 - Completed Phase 50 Plan 01: Update Stale UI Chapters
+Milestone: v2.5 Polish, Import & Identity — SHIPPED 2026-03-09
+Status: Complete — 8 phases, 22 plans, 23/23 requirements
+Last activity: 2026-03-09 - Milestone v2.5 shipped
 
-Progress: [██████████] 100%
+Progress: [██████████] 100% — MILESTONE COMPLETE
 
 ## Performance Metrics
 
