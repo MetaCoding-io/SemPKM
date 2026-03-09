@@ -2,6 +2,35 @@
 
 Project-specific conventions and hard-won patterns. Follow these to avoid known pitfalls.
 
+### Code Intelligence
+
+Prefer LSP over Grep/Glob/Read for code navigation:
+- `goToDefinition` / `goToImplementation` to jump to source
+- `findReferences` to see all usages across the codebase
+- `workspaceSymbol` to find where something is defined
+- `documentSymbol` to list all symbols in a file
+- `hover` for type info without reading the file
+- `incomingCalls` / `outgoingCalls` for call hierarchy
+
+Before renaming or changing a function signature, use
+`findReferences` to find all call sites first.
+
+Use Grep/Glob only for text/pattern searches (comments,
+strings, config values) where LSP doesn't help.
+
+After writing or editing code, check LSP diagnostics before
+moving on. Fix any type errors or missing imports immediately.
+
+
+## Tooling for shell interactions 
+
+Is it about finding FILES? use 'fd' 
+Is it about finding TEXT/strings? use 'rg' 
+Is it about finding CODE STRUCTURE? use 'ast-grep'
+Is it about SELECTING from multiple results? pipe to 'fzf' 
+Is it about interacting with JSON? use 'jq' 
+Is it about interacting with YAML or XML? use 'yq'
+
 ---
 
 ## Frontend: Lucide Icons in Flex Containers

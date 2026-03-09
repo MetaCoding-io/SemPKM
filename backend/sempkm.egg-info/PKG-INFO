@@ -1,0 +1,32 @@
+Metadata-Version: 2.4
+Name: sempkm
+Version: 0.1.0
+Summary: SemPKM - Semantics-native Personal Knowledge Management
+Requires-Python: >=3.12
+Requires-Dist: aiosmtplib>=3.0
+Requires-Dist: fastapi[standard]
+Requires-Dist: rdflib>=7.5.0
+Requires-Dist: httpx>=0.28
+Requires-Dist: pydantic-settings
+Requires-Dist: jinja2
+Requires-Dist: jinja2-fragments
+Requires-Dist: uvicorn
+Requires-Dist: pyshacl>=0.31.0
+Requires-Dist: cachetools>=7.0
+Requires-Dist: pyyaml>=6.0
+Requires-Dist: sqlalchemy[asyncio]>=2.0.46
+Requires-Dist: alembic>=1.18
+Requires-Dist: aiosqlite>=0.22
+Requires-Dist: asyncpg>=0.31
+Requires-Dist: itsdangerous>=2.2
+Requires-Dist: cryptography>=43.0
+Requires-Dist: posthog>=3.7
+Requires-Dist: wsgidav<5.0,>=4.3.3
+Requires-Dist: a2wsgi>=1.10
+Requires-Dist: python-frontmatter>=1.1.0
+Requires-Dist: owlrl>=7.0
+Requires-Dist: mf2py>=2.0
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"
+Requires-Dist: pytest-asyncio; extra == "dev"
+Requires-Dist: httpx; extra == "dev"
