@@ -339,7 +339,7 @@ Phases execute in numeric order: 52 -> 53 -> 54 -> 55 -> 56 -> 57 -> 58
 | 49. IndieAuth Provider | v2.5 | 3/3 | Complete | 2026-03-08 |
 | 50. User Guide & Documentation | v2.5 | 4/4 | Complete | 2026-03-09 |
 | 51. Spatial Canvas UX | v2.5 | 3/3 | Complete | 2026-03-09 |
-| 52. Bug Fixes & Security | 2/2 | Complete   | 2026-03-09 | - |
+| 52. Bug Fixes & Security | 2/2 | Complete    | 2026-03-09 | - |
 | 53. SPARQL Power User | v2.6 | 0/? | Not started | - |
 | 54. SPARQL Advanced | v2.6 | 0/? | Not started | - |
 | 55. Browser UI Polish | v2.6 | 0/? | Not started | - |
