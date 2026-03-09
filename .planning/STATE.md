@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Polish, Import & Identity
-status: completed
-stopped_at: Completed 50-03-PLAN.md
-last_updated: "2026-03-09T04:23:00Z"
-last_activity: "2026-03-09 - Completed Phase 50 Plan 03: Feature Chapters (Obsidian, WebID, IndieAuth)"
+status: executing
+stopped_at: Completed 50-01-PLAN.md
+last_updated: "2026-03-09T04:26:00.000Z"
+last_activity: "2026-03-09 - Completed Phase 50 Plan 01: Update Stale UI Chapters"
 progress:
   total_phases: 8
   completed_phases: 7
   total_plans: 22
-  completed_plans: 20
+  completed_plans: 21
   percent: 100
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 Phase: 50 (User Guide & Documentation)
 Plan: 3 of 3 complete
 Status: Phase 50 in progress
-Last activity: 2026-03-09 - Completed Phase 50 Plan 03: Feature Chapters (Obsidian, WebID, IndieAuth)
+Last activity: 2026-03-09 - Completed Phase 50 Plan 01: Update Stale UI Chapters
 
 Progress: [██████████] 100%
 
@@ -73,6 +73,7 @@ Progress: [██████████] 100%
 | Phase 47 P02 | 20 | 2 tasks | 7 files |
 | Phase 50 P03 | 4 | 2 tasks | 3 files |
 | Phase 50 P02 | 3 | 2 tasks | 4 files |
+| Phase 50 P01 | 6 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -96,6 +97,7 @@ Full decision log in PROJECT.md Key Decisions table.
 - Phase 44: Preview/Source tab toggle for markdown VFS files, reusing global marked.js
 - Phase 50: Ch 24 rewritten from scratch (232 lines replacing 971-line manual Python workflow)
 - Phase 50: Token lifetimes documented from source: 60s auth code, 1h access, 30d refresh
+- Phase 50: Layout save via command palette only (no Ctrl+Shift+S shortcut exists)
 
 ### Pending Todos
 
@@ -127,6 +129,6 @@ None — clean start for v2.5
 
 ## Session Continuity
 
-Last session: 2026-03-09T04:23:00Z
-Stopped at: Completed 50-03-PLAN.md
+Last session: 2026-03-09T04:26:00Z
+Stopped at: Completed 50-01-PLAN.md
 Resume file: None
