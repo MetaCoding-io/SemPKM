@@ -20,6 +20,12 @@ This appendix lists every environment variable recognized by SemPKM, drawn direc
 | `SMTP_USER` | Username for SMTP authentication. | (empty) | When SMTP is enabled |
 | `SMTP_PASSWORD` | Password for SMTP authentication. | (empty) | When SMTP is enabled |
 | `SMTP_FROM_EMAIL` | The "From" email address used in outgoing emails (magic links, invitations). | (empty) | When SMTP is enabled |
+| `APP_BASE_URL` | Public base URL for the application (e.g., `https://app.example.com`). Used to generate WebID profile URIs and email links. When empty, derived from incoming request headers. | (empty -- derived from request) | For WebID / IndieAuth |
+| `CORS_ORIGINS` | Comma-separated list of allowed CORS origins (e.g., `https://app.example.com,https://admin.example.com`). When empty, defaults to wildcard (no credentials). | (empty -- wildcard) | No |
+| `COOKIE_SECURE` | Whether session cookies require HTTPS. Set to `false` for local HTTP development. Must be `true` in production behind HTTPS. | `true` | No |
+| `POSTHOG_ENABLED` | Enable PostHog analytics and error monitoring. Set to `true` for cloud deployments; leave `false` for self-hosted. | `false` | No |
+| `POSTHOG_API_KEY` | PostHog project API key. Required when `POSTHOG_ENABLED` is `true`. | (empty) | When PostHog is enabled |
+| `POSTHOG_HOST` | PostHog ingestion endpoint URL. | `https://us.i.posthog.com` | No |
 | `DEBUG` | Enable debug mode. When `true`, produces verbose logging and enables development-only features. Do not enable in production. | `false` | No |
 
 ## Docker Compose Variables
@@ -73,4 +79,4 @@ SESSION_DURATION_DAYS=90
 
 ---
 
-**Previous:** [Chapter 24: Obsidian Onboarding](24-obsidian-onboarding.md) | **Next:** [Appendix B: Keyboard Shortcut Reference](appendix-b-keyboard-shortcuts.md)
+**Previous:** [Chapter 26: IndieAuth](26-indieauth.md) | **Next:** [Appendix B: Keyboard Shortcut Reference](appendix-b-keyboard-shortcuts.md)

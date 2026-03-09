@@ -1,10 +1,9 @@
 # SemPKM User Guide — Documentation Outline
 
-> **Status:** DRAFT OUTLINE — awaiting review before content is written.
+> **Status:** IMPLEMENTED — all chapters written and up-to-date as of v2.5.
 >
-> This document proposes the structure for a comprehensive user guide for SemPKM.
-> Each section includes a brief description of what will be covered so you can
-> assess scope, ordering, and emphasis before any prose is written.
+> This document describes the structure of the SemPKM user guide.
+> Each section includes a brief description of what is covered.
 
 ---
 
@@ -439,10 +438,36 @@ Taking SemPKM beyond `docker compose up`.
 
 ---
 
+## Part IX: Identity and Federation
+
+### 25. WebID Profiles
+Personal identity on the decentralized web.
+
+- **What is a WebID** — a URL that serves as both a human-readable profile and a machine-readable identity document
+- **Your SemPKM WebID** — automatic profile at `{APP_BASE_URL}/id/{username}`
+- **Profile content** — display name, links, public information
+- **Content negotiation** — HTML for browsers, JSON-LD/Turtle for Linked Data clients
+- **Configuring APP_BASE_URL** — required for WebID URIs to resolve correctly
+- **WebID and the Linked Data ecosystem** — how your identity connects to the broader web
+
+### 26. IndieAuth
+Using your SemPKM identity to authenticate with other services.
+
+- **What is IndieAuth** — an OAuth 2.0-based protocol for decentralized authentication
+- **SemPKM as an IndieAuth provider** — sign into third-party services using your SemPKM URL
+- **The authorization flow** — discovery, authorization request, consent, token exchange
+- **PKCE security** — Proof Key for Code Exchange protects against code interception
+- **Token lifetimes** — 60s authorization codes, 1h access tokens, 30d refresh tokens
+- **Supported grant types** — authorization_code with PKCE
+- **Client discovery** — how third-party services discover your IndieAuth endpoints
+- **Troubleshooting** — common issues with IndieAuth flows
+
+---
+
 ## Appendices
 
 ### A. Environment Variable Reference
-Complete table of all environment variables with descriptions, defaults, and when they're required.
+Complete table of all environment variables with descriptions, defaults, and when they're required. Includes `APP_BASE_URL`, `CORS_ORIGINS`, `COOKIE_SECURE`, and PostHog analytics settings.
 
 ### B. Keyboard Shortcut Reference
 Complete table of all keyboard shortcuts organized by context (global, editor, sidebar, bottom panel).
@@ -451,7 +476,7 @@ Complete table of all keyboard shortcuts organized by context (global, editor, s
 Complete reference for all command types with request/response schemas and examples.
 
 ### D. Glossary
-Alphabetical definitions of all domain terms: Object, Edge, Mental Model, Shape, View, Event, Ontology, IRI, SHACL, SPARQL, Named Graph, Type, Property, Validation, Lint, etc.
+Alphabetical definitions of all domain terms: Object, Edge, Mental Model, Shape, View, Event, Ontology, IRI, SHACL, SPARQL, Named Graph, Type, Property, Validation, Lint, WebID, IndieAuth, PKCE, Carousel View, Lint Dashboard, Entailment, Inference, SHACL-AF Rule, Obsidian Import, Content Negotiation, etc.
 
 ### E. Troubleshooting
 Common issues and solutions:
@@ -462,15 +487,19 @@ Common issues and solutions:
 - "I can't edit objects" — role/permissions check
 - Container startup ordering issues
 - Triplestore memory issues
+- Obsidian import issues (zip upload, frontmatter mapping, stuck imports)
+- WebID / identity issues (profile 404, content negotiation, IndieAuth failures)
 
 ### F. FAQ
-- Can I use SemPKM with Obsidian? (Filesystem projection — future feature)
-- Can I import data from other tools? (Current: manual creation; future: CSV import)
+- Can I use SemPKM with Obsidian? (Yes — built-in Obsidian Import wizard for vault migration)
+- Can I import data from other tools? (Obsidian: built-in wizard; others: via Command API scripts)
 - Can multiple users work at the same time? (Yes — multi-user with roles, but no real-time collaborative editing)
 - How is my data stored? (RDF in a triplestore + SQLite/PostgreSQL for auth)
 - Is my data locked in? (No — RDF is a W3C standard; JSON-LD export planned)
 - Can I write my own Mental Model? (Yes — see Chapter 19)
 - What's the difference between an edge and a property? (Properties are literal values on an object; edges are typed relationships to other objects)
+- What is WebID and do I need it? (Personal identity URL, auto-created for each user)
+- Can I sign into other services with SemPKM? (Yes — via IndieAuth provider)
 
 ---
 
@@ -486,4 +515,4 @@ Common issues and solutions:
 
 ---
 
-*Outline version: 1.0 — ready for review*
+*Outline version: 2.0 — updated for v2.5 (Parts I-IX complete)*

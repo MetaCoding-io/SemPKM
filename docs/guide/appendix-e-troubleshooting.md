@@ -250,6 +250,106 @@ This appendix covers common issues you may encounter when running SemPKM, with s
 
 ---
 
+## Obsidian Import Issues
+
+### Zip file upload fails or is rejected
+
+**Symptom:** Uploading an Obsidian vault `.zip` file produces an error, or the file is silently rejected.
+
+**Cause:** The file may exceed the maximum upload size, may not be a valid zip archive, or may not contain recognizable Markdown files.
+
+**Solution:**
+
+1. Ensure the file is a standard `.zip` archive (not `.rar`, `.7z`, or `.tar.gz`).
+2. Check that the zip contains `.md` files. The importer scans for Markdown files and ignores everything else.
+3. For very large vaults, split the zip into smaller batches and import in multiple passes.
+4. Check the API logs for specific error messages:
+   ```bash
+   docker compose logs api | grep -i "import\|upload\|zip"
+   ```
+
+### Frontmatter properties not recognized
+
+**Symptom:** After importing, objects are missing properties that were present as YAML frontmatter in the original Obsidian notes.
+
+**Cause:** The property mapping step may not have mapped Obsidian frontmatter keys to SemPKM properties. Only explicitly mapped properties are imported.
+
+**Solution:**
+
+- During the import wizard's property mapping step, review the detected frontmatter keys and map each one to the appropriate SemPKM property.
+- Unmapped keys are ignored during import. You can re-import the same vault with updated mappings.
+- See [Chapter 24: Obsidian Onboarding](24-obsidian-onboarding.md) for a detailed walkthrough of the mapping step.
+
+### Import appears stuck or does not complete
+
+**Symptom:** The import progress bar stops advancing, or the import summary never appears.
+
+**Cause:** Large vaults with many files can take several minutes. If the SSE (Server-Sent Events) connection drops, the progress UI may freeze while the import continues in the background.
+
+**Solution:**
+
+1. Check the API logs for ongoing import activity:
+   ```bash
+   docker compose logs api --tail=20
+   ```
+2. If the import is still running, wait for it to complete. Refreshing the page will show the final summary once the import finishes.
+3. If the import has genuinely stalled, restart the API container and re-import:
+   ```bash
+   docker compose restart api
+   ```
+
+---
+
+## WebID and Identity Issues
+
+### WebID profile page returns 404
+
+**Symptom:** Visiting `{APP_BASE_URL}/id/{username}` returns a 404 Not Found error.
+
+**Cause:** The user may not have a WebID profile configured, or `APP_BASE_URL` may not be set correctly.
+
+**Solution:**
+
+1. Verify the username exists in the user management page (Admin > Users).
+2. Check that `APP_BASE_URL` is set to the correct public URL of your SemPKM instance:
+   ```bash
+   docker compose exec api printenv APP_BASE_URL
+   ```
+3. If `APP_BASE_URL` is empty, the system derives URLs from request headers, which may not work behind a reverse proxy. Set it explicitly in your environment.
+
+### Content negotiation not returning Linked Data
+
+**Symptom:** Requesting a WebID URL with `Accept: application/ld+json` returns HTML instead of JSON-LD.
+
+**Cause:** The reverse proxy (nginx) may be stripping or overriding the `Accept` header before it reaches the API.
+
+**Solution:**
+
+1. Test directly against the API (bypassing nginx):
+   ```bash
+   curl -H "Accept: application/ld+json" http://localhost:8001/id/{username}
+   ```
+2. If that works but the nginx-proxied URL does not, check your nginx configuration for `proxy_set_header` directives that may override request headers.
+3. You can also use the `?format=jsonld` or `?format=turtle` query parameter as a fallback that bypasses content negotiation.
+
+### IndieAuth login fails at a third-party service
+
+**Symptom:** Attempting to sign into an IndieAuth-compatible service using your SemPKM URL fails during the authorization flow.
+
+**Cause:** Common causes include `APP_BASE_URL` not matching the URL you entered at the third-party service, or the third-party service being unable to reach your SemPKM instance (e.g., running on `localhost`).
+
+**Solution:**
+
+1. Ensure `APP_BASE_URL` exactly matches the URL you use to identify yourself (including `https://`).
+2. The third-party service must be able to reach your SemPKM instance over the network. `localhost` URLs will not work with external services.
+3. Verify your WebID profile is accessible from the internet if authenticating with an external service.
+4. Check the API logs for OAuth-related errors:
+   ```bash
+   docker compose logs api | grep -i "indieauth\|oauth\|authorize"
+   ```
+
+---
+
 ## General Tips
 
 - **Always check logs first.** Most issues produce informative error messages in the API or triplestore logs.
