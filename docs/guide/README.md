@@ -53,6 +53,11 @@ setup to advanced topics like SPARQL queries and creating your own Mental Models
 23. [Virtual Filesystem (WebDAV)](23-vfs.md)
 24. [Obsidian Onboarding](24-obsidian-onboarding.md)
 
+## Part IX: Identity and Federation
+
+25. [WebID Profiles](25-webid-profiles.md)
+26. [IndieAuth](26-indieauth.md)
+
 ## Appendices
 
 - [A. Environment Variable Reference](appendix-a-environment-variables.md)

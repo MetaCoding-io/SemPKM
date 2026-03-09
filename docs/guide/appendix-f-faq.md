@@ -36,15 +36,15 @@ The exported N-Quads file can be imported into any other RDF-compatible tool or 
 
 ### Can I import data from other tools?
 
-SemPKM does not currently have a built-in import wizard for other tools (like Obsidian vaults or Notion exports). However, because data is written through the Command API, you can build import scripts that:
+SemPKM has a built-in Obsidian Import wizard that lets you upload a `.zip` of your Obsidian vault and migrate notes into typed SemPKM objects. The wizard walks you through scanning your vault, mapping folders and tags to SemPKM types, configuring property mappings, and importing in batch with real-time progress tracking. See [Chapter 24: Obsidian Onboarding](24-obsidian-onboarding.md) for a complete walkthrough.
+
+For other tools, you can build import scripts using the Command API:
 
 1. Parse your source data (Markdown files, CSV, JSON).
 2. Map it to your Mental Model's types and properties.
 3. Submit `object.create` and `edge.create` commands via `POST /api/commands`.
 
-For RDF data specifically, you could load it directly into the triplestore via the RDF4J REST API, though you would need to ensure it follows SemPKM's naming conventions and includes proper type triples.
-
-> **Tip:** See [Appendix C: Command API Reference](appendix-c-command-api-reference.md) for the full API specification to build import scripts against. For a step-by-step Obsidian vault migration guide including LLM-assisted classification, see [Chapter 24: Obsidian Onboarding](24-obsidian-onboarding.md).
+> **Tip:** See [Appendix C: Command API Reference](appendix-c-command-api-reference.md) for the full API specification to build import scripts against.
 
 ---
 
@@ -52,17 +52,11 @@ For RDF data specifically, you could load it directly into the triplestore via t
 
 ### Can I use SemPKM with Obsidian?
 
-Not directly -- SemPKM and Obsidian use fundamentally different storage models. Obsidian stores data as Markdown files in a local folder with `[[wiki-links]]` for connections. SemPKM stores data as typed RDF triples in a triplestore with formally defined relationships.
+Yes. SemPKM includes a built-in Obsidian Import wizard that lets you migrate your vault into SemPKM. Upload a `.zip` of your vault, map folders and tags to SemPKM types, configure property mappings, and import in batch. The wizard handles frontmatter parsing, wiki-link resolution, and type classification automatically.
 
-However, there are potential integration points:
+SemPKM and Obsidian use different storage models (typed RDF triples vs. flat Markdown files), so this is a one-way migration rather than a live sync. However, the Virtual Filesystem (WebDAV) feature lets you browse SemPKM objects as Markdown files after import, providing a familiar file-based view.
 
-- **Export:** You could write a script that queries SemPKM via SPARQL and generates Markdown files with frontmatter and wiki-links for use in Obsidian.
-- **Import:** Conversely, you could parse an Obsidian vault and create SemPKM objects via the Command API.
-- **Parallel use:** Some users keep both tools -- Obsidian for quick daily capture, SemPKM for structured long-term knowledge.
-
-The key difference is that SemPKM relationships are typed and queryable (`hasParticipant`, `isAbout`), while Obsidian links are untyped. An import from Obsidian would need to classify each link by type as part of the migration process.
-
-For a complete walkthrough of migrating an Obsidian vault to SemPKM, see [Chapter 24: Obsidian Onboarding](24-obsidian-onboarding.md).
+For a complete walkthrough, see [Chapter 24: Obsidian Onboarding](24-obsidian-onboarding.md).
 
 ### Does SemPKM work on mobile?
 
@@ -118,6 +112,35 @@ Yes. Each Mental Model operates in its own namespace and named graph. You can in
 ### What happens to my data if I remove a Mental Model?
 
 Removing a Mental Model deletes its ontology, shapes, and view definitions from the triplestore. However, objects you created using that model's types remain in the current state graph. They will still exist as RDF data but will lose their form rendering (no shapes means no auto-generated forms) and will not appear in model-specific views. You can still access them via SPARQL.
+
+---
+
+## Identity and Federation
+
+### What is WebID and do I need it?
+
+WebID is a decentralized identity standard where your identity is a URL that points to a profile document. In SemPKM, each user automatically gets a WebID at `{APP_BASE_URL}/id/{username}`. The profile page shows your public information and serves machine-readable Linked Data (JSON-LD or Turtle) to automated clients.
+
+You do not need to configure anything for WebID to work -- it is created automatically when your user account is created. WebID becomes useful when you want to:
+
+- Use your SemPKM identity to sign into other services (via IndieAuth)
+- Share a public profile URL that links to your knowledge contributions
+- Participate in the decentralized Linked Data ecosystem
+
+See [Chapter 25: WebID Profiles](25-webid-profiles.md) for details.
+
+### Can I sign into other services with SemPKM?
+
+Yes. SemPKM acts as an IndieAuth provider, which means you can use your SemPKM URL as your identity when signing into any IndieAuth-compatible service (such as Micropub clients, IndieWeb tools, and other federated applications).
+
+The flow works like this:
+
+1. Enter your SemPKM URL at the third-party service's login page.
+2. The service discovers your IndieAuth endpoints via your WebID profile.
+3. You are redirected to SemPKM to approve the authorization request.
+4. After approval, you are signed into the third-party service.
+
+This requires `APP_BASE_URL` to be set to a publicly accessible URL. See [Chapter 26: IndieAuth](26-indieauth.md) for a complete walkthrough.
 
 ---
 
