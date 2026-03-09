@@ -274,6 +274,80 @@ do not yet satisfy all shape constraints and fix them later. This is intentional
 
 ---
 
+## OWL Inference
+
+SemPKM can automatically derive new facts from your existing data using OWL 2 RL inference. This means the system reasons about your knowledge base and adds triples that are logically implied by your data and your Mental Model's ontology -- without you having to create them manually.
+
+### What Inference Does
+
+When inference is enabled, the system examines the OWL axioms defined in your Mental Model's ontology and applies them to your data. For example:
+
+- **Inverse properties:** If your model declares that `bpkm:relatedTo` is the inverse of `bpkm:relatedTo` (symmetric), then creating a relationship from Note A to Note B automatically creates the reverse relationship from Note B to Note A.
+- **Subclass hierarchy:** If `bpkm:TechnicalNote` is declared as a subclass of `bpkm:Note`, then every Technical Note is automatically also a Note -- it appears in Note queries and views.
+- **Transitive properties:** If `skos:broader` is transitive, and Concept A is broader than Concept B, and B is broader than C, then A is automatically broader than C.
+- **Domain and range:** If a property's domain is `Person` and its range is `Project`, the system can infer the types of the subject and object from how the property is used.
+
+### Configuring Inference
+
+Inference is configured per Mental Model from the Admin area:
+
+1. Navigate to **Admin > Mental Models**
+2. Click on a model (e.g., **Basic PKM**)
+3. Click **Inference Settings**
+4. Toggle individual entailment types on or off:
+   - **Inverse Properties** (`owl:inverseOf`) -- Derive reverse relationships
+   - **Subclass Reasoning** (`rdfs:subClassOf`) -- Propagate class membership up the hierarchy
+   - **Subproperty Reasoning** (`rdfs:subPropertyOf`) -- Treat subproperties as instances of their parent
+   - **Domain/Range** (`rdfs:domain`, `rdfs:range`) -- Infer types from property usage
+   - **Transitive Properties** (`owl:TransitiveProperty`) -- Follow transitive chains
+5. Click **Save** -- changes take effect on the next inference run
+
+### Where Inferred Triples Live
+
+Inferred triples are stored in a dedicated inference named graph, separate from your manually created data in `urn:sempkm:current`. This separation means:
+
+- You can always distinguish inferred data from asserted data
+- Deleting or reconfiguring inference rules does not touch your original triples
+- The inference graph is rebuilt when rules change or data is updated
+
+You can view inferred triples for any object in the workspace by opening the **Inference** panel in the bottom pane.
+
+> **Tip:** If you do not see inferred triples appearing after enabling inference, check that your Mental Model's ontology actually defines the relevant OWL axioms. The Basic PKM model includes inverse property declarations (e.g., `bpkm:mentionedIn` is the inverse of `bpkm:mentions`) that produce visible results.
+
+### SHACL-AF Rules
+
+In addition to OWL inference, SemPKM supports **SHACL Advanced Features (SHACL-AF) rules**. While OWL inference works with standard logical axioms, SHACL-AF rules let Mental Model authors define custom triple-generation logic using SPARQL.
+
+#### How SHACL-AF Rules Work
+
+A SHACL-AF rule is defined in a Mental Model's shapes file as a `sh:rule` attached to a node shape. The rule contains a SPARQL CONSTRUCT pattern that generates new triples when certain conditions are met. For example, a rule might:
+
+- Automatically link a Note to related Concepts based on shared tags
+- Generate a `dcterms:modified` timestamp whenever an object is updated
+- Create summary relationships that aggregate information from multiple sources
+
+#### When Rules Run
+
+SHACL-AF rules are evaluated as part of the inference pipeline:
+
+1. An object is created or updated via the command API
+2. The inference engine runs after the event is committed
+3. SHACL-AF rules are evaluated against the affected data
+4. Generated triples are stored in the inference named graph
+
+Like OWL-inferred triples, rule-generated triples live in the inference graph and do not modify your original data.
+
+#### Rules vs. OWL Inference
+
+| Aspect | OWL Inference | SHACL-AF Rules |
+|--------|---------------|----------------|
+| Defined by | OWL axioms in the ontology | SPARQL CONSTRUCT in shapes |
+| Logic | Standard logical entailment | Custom, arbitrary SPARQL patterns |
+| Use case | Class hierarchies, inverse properties | Domain-specific derived data |
+| Configuration | Toggle per entailment type in Admin | Bundled with the Mental Model |
+
+> **For Advanced Users:** To write your own SHACL-AF rules, add a `sh:rule` property to a `sh:NodeShape` in your Mental Model's shapes file. The rule uses `sh:SPARQLRule` with a `sh:construct` query. See the W3C SHACL Advanced Features specification for the full syntax. Rules are evaluated by the pyshacl engine and must produce valid RDF triples.
+
 ---
 
 **Previous:** [Chapter 15: Understanding the Event Log](15-event-log.md) | **Next:** [Chapter 17: The Command API](17-command-api.md)

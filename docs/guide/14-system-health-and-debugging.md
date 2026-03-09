@@ -301,6 +301,61 @@ For patch and set operations, each event row includes:
 
 > **Note:** The Event Log uses cursor-based pagination, loading 50 events at a time. Click **Load more** at the bottom to fetch the next page.
 
+### Global Lint Dashboard
+
+The Lint Dashboard gives you a bird's-eye view of every SHACL validation issue across your entire knowledge base. While the per-object Lint panel (see [Chapter 16: The Data Model](16-data-model.md)) shows violations for a single object, the Global Lint Dashboard aggregates all violations, warnings, and informational messages into one filterable table.
+
+#### Accessing the Lint Dashboard
+
+Open the bottom panel with **Ctrl+J**, then click the **Lint** tab. The dashboard loads the latest validation report automatically.
+
+<!-- Screenshot: Lint Dashboard showing the filter toolbar, summary counts, and a table of violations -->
+
+#### What the Dashboard Shows
+
+The dashboard displays a table of all validation results from the most recent SHACL validation run. Each row includes:
+
+- **Severity** -- Color-coded badge: red for **Violation**, amber for **Warning**, blue for **Info**
+- **Object** -- The offending object, shown as a clickable link that opens it in the workspace
+- **Object type** -- The RDF type of the object (e.g., Note, Person, Project)
+- **Property** -- The specific property that triggered the validation result (e.g., `dcterms:title`, `foaf:name`)
+- **Message** -- A human-readable description of what went wrong (e.g., "Less than 1 values" for a required property that is missing)
+
+#### Filtering Results
+
+The toolbar at the top of the dashboard provides four filters that work in combination:
+
+- **Severity** dropdown -- Show only Violations, Warnings, or Info messages
+- **Object type** dropdown -- Filter by type (e.g., show only Note violations). The dropdown is populated from your installed Mental Model shapes.
+- **Search** text field -- Free-text search across violation messages. Useful for finding all instances of a specific constraint (e.g., search "minCount" to find all missing required properties).
+- **Sort** -- Order results by severity, object, or message
+
+Filters apply immediately via htmx -- no page reload needed.
+
+#### Understanding Violations
+
+SHACL violations come from the constraints defined in your Mental Model shapes. Each shape describes the expected structure for an object type. Common violations include:
+
+| Violation | Meaning | How to Fix |
+|-----------|---------|------------|
+| "Less than 1 values" | A required property is missing | Open the object and fill in the property |
+| "More than 1 values" | A property that allows only one value has multiple | Remove the extra values |
+| "Value does not have datatype" | A property value has the wrong type (e.g., text instead of date) | Edit the property and enter a value of the correct type |
+| "Value does not have class" | A relationship points to an object of the wrong type | Update the relationship to point to an object of the expected type |
+
+#### Using the Dashboard for Data Cleanup
+
+The Lint Dashboard is most useful as a data cleanup tool. A typical workflow:
+
+1. Open the Lint Dashboard and filter to **Violations** only
+2. Sort by **Object type** to work through one type at a time
+3. Click an object link to open it in the workspace
+4. Fix the issue in the edit form
+5. Save -- the object's lint status updates on the next validation run
+6. Return to the Lint Dashboard to continue with the next violation
+
+> **For Advanced Users:** The SHACL shapes that drive lint validation are defined in your Mental Model's shapes file. You can add custom SHACL constraints to produce custom lint rules. For example, adding a `sh:pattern` constraint to a property shape will flag objects whose property values do not match the regex pattern. Custom shapes are installed alongside the model -- see [Chapter 16: The Data Model](16-data-model.md) for details on how shapes work.
+
 ## Troubleshooting Common Issues
 
 ### Triplestore Shows "Down"
