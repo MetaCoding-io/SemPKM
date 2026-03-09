@@ -1,6 +1,6 @@
 # Codebase Structure
 
-**Analysis Date:** 2026-02-25
+**Analysis Date:** 2026-03-09
 
 ## Directory Layout
 
@@ -11,28 +11,38 @@ SemPKM/
 │   │   ├── admin/              # Admin UI router (model/webhook management)
 │   │   ├── auth/               # Passwordless auth (magic link, sessions, roles)
 │   │   ├── browser/            # IDE-style workspace router (main UI)
+│   │   ├── canvas/             # Spatial canvas workspace (save/load, neighbor loading)
 │   │   ├── commands/           # Write command API (POST /api/commands)
 │   │   │   └── handlers/       # One handler per command type
 │   │   ├── db/                 # SQLAlchemy engine, session, base model
 │   │   ├── debug/              # SPARQL console, command debug UI (dev only)
 │   │   ├── events/             # Event store: immutable named graphs + materialization
 │   │   ├── health/             # GET /api/health endpoint
+│   │   ├── indieauth/          # IndieAuth OAuth2 provider (authorization, token, PKCE)
+│   │   ├── inference/          # OWL 2 RL inference engine (forward-chaining, entailments)
+│   │   ├── lint/               # Structured SHACL lint results (paginated API, SSE stream)
 │   │   ├── models/             # Mental Model loader, registry, manifest schema
-│   │   ├── monitoring/         # PostHog error middleware and client
+│   │   ├── monitoring/         # PostHog error middleware and analytics client
+│   │   ├── obsidian/           # Obsidian vault import (ZIP upload, scan, streaming progress)
 │   │   ├── rdf/                # IRI minting, JSON-LD utils, namespace definitions
 │   │   ├── services/           # Domain services (labels, shapes, validation, webhooks, prefixes)
-│   │   ├── shell/              # Admin shell router
+│   │   ├── shell/              # Admin shell router (dashboard, admin, health pages)
 │   │   ├── sparql/             # SPARQL passthrough router + scoping utility
 │   │   ├── templates/          # Jinja2 HTML templates
-│   │   │   ├── admin/          # Admin page templates
-│   │   │   ├── browser/        # Workspace, nav tree, object tab, views templates
+│   │   │   ├── admin/          # Admin page templates (7 templates)
+│   │   │   ├── browser/        # Workspace, nav tree, object tab, views templates (39 templates)
 │   │   │   ├── components/     # Shared partials (_sidebar.html, _tabs.html)
 │   │   │   ├── debug/          # Debug UI templates
 │   │   │   ├── errors/         # Error page templates (403.html)
-│   │   │   └── forms/          # Form partials (_field.html, _group.html, object_form.html)
+│   │   │   ├── forms/          # Form partials (_field.html, _group.html, object_form.html)
+│   │   │   ├── indieauth/      # IndieAuth authorization consent UI (2 templates)
+│   │   │   ├── obsidian/       # Obsidian import UI templates (10 templates)
+│   │   │   └── webid/          # WebID profile page template (1 template)
 │   │   ├── triplestore/        # RDF4J async HTTP client + repository setup
 │   │   ├── validation/         # Async SHACL validation queue + report models
+│   │   ├── vfs/                # Virtual filesystem / WebDAV (tree, content, collections, write, cache)
 │   │   ├── views/              # ViewSpec service + router
+│   │   ├── webid/              # WebID profile (username, key generation, publish)
 │   │   ├── config.py           # Pydantic BaseSettings (env vars)
 │   │   ├── dependencies.py     # FastAPI dependency functions (pull from app.state)
 │   │   └── main.py             # App factory, lifespan, router registration
@@ -43,8 +53,34 @@ SemPKM/
 │   └── pyproject.toml
 ├── frontend/                   # Nginx static server + HTML auth pages
 │   ├── static/
-│   │   ├── css/                # CSS stylesheets (style.css, workspace.css, forms.css, views.css, theme.css, settings.css)
-│   │   └── js/                 # JavaScript modules
+│   │   ├── css/                # CSS stylesheets (9 files)
+│   │   │   ├── style.css       # Base application styles
+│   │   │   ├── workspace.css   # Workspace layout and object editor
+│   │   │   ├── forms.css       # SHACL-driven form styles
+│   │   │   ├── views.css       # Table, cards, graph view styles
+│   │   │   ├── theme.css       # CSS custom properties (light/dark)
+│   │   │   ├── settings.css    # Settings page styles
+│   │   │   ├── dockview-sempkm-bridge.css  # Dockview theme variable bridge
+│   │   │   ├── import.css      # Obsidian import UI styles
+│   │   │   └── vfs-browser.css # VFS file browser panel styles
+│   │   └── js/                 # JavaScript modules (17 files)
+│   │       ├── app.js          # Application bootstrap and event wiring
+│   │       ├── auth.js         # Session management, auth state
+│   │       ├── canvas.js       # Spatial canvas interactions (Cytoscape.js)
+│   │       ├── cleanup.js      # Resource cleanup utilities
+│   │       ├── column-prefs.js # Table column persistence (localStorage)
+│   │       ├── editor.js       # Object editing, command dispatch
+│   │       ├── graph.js        # Graph visualization (Cytoscape.js)
+│   │       ├── markdown-render.js  # marked.js rendering + DOMPurify
+│   │       ├── named-layouts.js    # Named layout save/restore
+│   │       ├── posthog.js      # PostHog analytics SDK loader
+│   │       ├── settings.js     # Settings page interactions
+│   │       ├── sidebar.js      # Sidebar toggle
+│   │       ├── theme.js        # Dark/light mode toggle
+│   │       ├── tutorials.js    # Driver.js guided tour overlays
+│   │       ├── vfs-browser.js  # VFS file browser panel
+│   │       ├── workspace.js    # Split pane management, object tab logic
+│   │       └── workspace-layout.js  # Dockview workspace layout manager
 │   ├── index.html              # Unused placeholder
 │   ├── login.html              # Auth page (served directly by nginx)
 │   ├── setup.html              # First-run setup page
@@ -52,12 +88,19 @@ SemPKM/
 │   ├── Dockerfile
 │   └── nginx.conf              # Reverse proxy config
 ├── models/                     # Mental Model bundles (mounted into container)
-│   └── basic-pkm/              # Bundled starter model
-│       ├── manifest.yaml       # Model metadata and entrypoints
-│       ├── ontology/           # OWL ontology (JSON-LD)
-│       ├── shapes/             # SHACL shapes for form generation (JSON-LD)
-│       ├── views/              # ViewSpec definitions (JSON-LD)
-│       └── seed/               # Seed data objects (JSON-LD)
+│   ├── basic-pkm/              # Bundled starter model (Notes, Projects, Concepts, Persons)
+│   │   ├── manifest.yaml       # Model metadata and entrypoints
+│   │   ├── ontology/           # OWL ontology (JSON-LD)
+│   │   ├── shapes/             # SHACL shapes for form generation (JSON-LD)
+│   │   ├── views/              # ViewSpec definitions (JSON-LD)
+│   │   └── seed/               # Seed data objects (JSON-LD)
+│   └── ppv/                    # PPV (Personal Productivity Vault) model bundle
+│       ├── manifest.yaml       # Model metadata
+│       ├── ontology/           # OWL ontology
+│       ├── rules/              # Business rules
+│       ├── shapes/             # SHACL shapes
+│       ├── views/              # ViewSpec definitions
+│       └── seed/               # Seed data
 ├── config/
 │   └── rdf4j/
 │       └── sempkm-repo.ttl     # RDF4J repository configuration (TTL)
@@ -65,17 +108,27 @@ SemPKM/
 │   └── guide/                  # User guide markdown (served as /docs/guide/* by FastAPI)
 ├── e2e/                        # Playwright end-to-end tests
 │   ├── tests/                  # Test files organized by feature area
-│   │   ├── 00-setup/           # Setup wizard tests
-│   │   ├── 01-objects/         # Object CRUD tests
-│   │   ├── 02-views/           # View spec tests
-│   │   ├── 03-navigation/      # Nav tree tests
-│   │   ├── 04-validation/      # SHACL validation tests
-│   │   ├── 05-admin/           # Admin panel tests
-│   │   ├── 06-settings/        # Settings tests
-│   │   └── 07-multi-user/      # Multi-user tests
+│   │   ├── 00-setup/           # Setup wizard tests (2 specs)
+│   │   ├── 01-objects/         # Object CRUD tests (6 specs)
+│   │   ├── 02-views/           # View spec tests (4 specs)
+│   │   ├── 03-navigation/      # Nav tree tests (6 specs)
+│   │   ├── 04-validation/      # SHACL validation tests (1 spec)
+│   │   ├── 05-admin/           # Admin panel tests (4 specs)
+│   │   ├── 06-settings/        # Settings tests (5 specs)
+│   │   ├── 07-multi-user/      # Multi-user tests (2 specs)
+│   │   ├── 08-search/          # Full-text search tests (2 specs)
+│   │   ├── 09-inference/       # OWL inference tests (1 spec)
+│   │   ├── 10-lint-dashboard/  # Lint dashboard tests (1 spec)
+│   │   ├── 11-helptext/        # Help text tests (1 spec)
+│   │   ├── 12-bug-fixes/       # Regression bug fix tests (1 spec)
+│   │   ├── 13-v24-coverage/    # v2.4 coverage tests (3 specs)
+│   │   ├── 14-obsidian-import/ # Obsidian import tests (3 specs)
+│   │   ├── 15-webid/           # WebID profile tests (1 spec)
+│   │   ├── 16-indieauth/       # IndieAuth flow tests (1 spec)
+│   │   └── screenshots/        # Marketing screenshot capture (2 specs)
 │   ├── fixtures/               # Shared Playwright fixtures
 │   ├── helpers/                # Test helper utilities
-│   └── screenshots/            # Screenshot spec tests
+│   └── screenshots/            # Screenshot output directory
 ├── orig_specs/                 # Original design specifications (reference only)
 ├── scripts/
 │   └── reset-instance.sh       # Dev reset script
@@ -137,17 +190,76 @@ SemPKM/
 - Contains: `queue.py` (AsyncValidationQueue — asyncio.Task worker with coalescing), `report.py` (ValidationReport, ValidationReportSummary), `router.py` (GET /api/validation/report)
 - Key files: `backend/app/validation/queue.py`
 
+**`backend/app/canvas/`:**
+- Purpose: Spatial canvas workspace — save/load canvas state, load RDF neighbor nodes for graph exploration
+- Contains: `router.py` (canvas API endpoints), `service.py` (CanvasService), `schemas.py` (Pydantic models)
+- Key files: `backend/app/canvas/service.py`
+
+**`backend/app/indieauth/`:**
+- Purpose: IndieAuth OAuth2 provider — authorization code flow with PKCE for IndieWeb identity
+- Contains: `router.py` (authorization, token, introspection, metadata endpoints), `service.py` (IndieAuthService), `models.py` (SQLAlchemy models), `schemas.py`, `scopes.py` (scope definitions)
+- Key files: `backend/app/indieauth/service.py`, `backend/app/indieauth/router.py`
+
+**`backend/app/inference/`:**
+- Purpose: OWL 2 RL forward-chaining inference engine — inferred triples stored in `urn:sempkm:inferred`
+- Contains: `service.py` (InferenceService), `entailments.py` (entailment type classification), `models.py` (data models), `router.py` (inference trigger endpoint)
+- Key files: `backend/app/inference/service.py`, `backend/app/inference/entailments.py`
+
+**`backend/app/lint/`:**
+- Purpose: Structured SHACL lint results API — paginated, filterable access to validation results
+- Contains: `router.py` (REST endpoints + SSE stream), `service.py` (LintService), `models.py` (result models), `broadcast.py` (SSE broadcast)
+- Key files: `backend/app/lint/service.py`, `backend/app/lint/router.py`
+
+**`backend/app/obsidian/`:**
+- Purpose: Obsidian vault import — ZIP upload, markdown scanning, streaming progress, RDF conversion
+- Contains: `router.py` (upload/scan/stream/discard endpoints), `scanner.py` (vault scanner), `executor.py` (import executor), `models.py` (import models), `broadcast.py` (progress SSE)
+- Key files: `backend/app/obsidian/router.py`, `backend/app/obsidian/scanner.py`
+
+**`backend/app/vfs/`:**
+- Purpose: Virtual filesystem / WebDAV — file-browser UI and API for navigating RDF data as files
+- Contains: `router.py` (browser page + API endpoints), `provider.py` (VFS provider), `collections.py` (collection handling), `resources.py` (resource rendering), `write.py` (write operations), `cache.py` (response caching), `auth.py` (WebDAV auth)
+- Key files: `backend/app/vfs/router.py`, `backend/app/vfs/provider.py`
+
+**`backend/app/webid/`:**
+- Purpose: WebID profile management — username setup, RSA key generation, link management, public profile
+- Contains: `router.py` (API + public profile endpoints), `service.py` (WebIdService), `schemas.py` (Pydantic models)
+- Key files: `backend/app/webid/router.py`, `backend/app/webid/service.py`
+
+**`backend/app/monitoring/`:**
+- Purpose: PostHog error middleware and analytics client — captures 5xx exceptions to PostHog
+- Contains: `middleware.py` (PostHogErrorMiddleware), `posthog.py` (PostHog client), `router.py` (monitoring endpoints)
+- Key files: `backend/app/monitoring/middleware.py`
+
+**`backend/app/shell/`:**
+- Purpose: Admin shell router — serves dashboard, admin, and health pages with htmx partial support
+- Contains: `router.py` (shell page endpoints)
+- Key files: `backend/app/shell/router.py`
+
 **`models/basic-pkm/`:**
 - Purpose: The bundled starter Mental Model — PKM domain with Notes, Projects, Concepts, Persons
 - Contains: `manifest.yaml` (model ID, version, namespace, entrypoints, icons), `ontology/basic-pkm.jsonld`, `shapes/basic-pkm.jsonld`, `views/basic-pkm.jsonld`, `seed/basic-pkm.jsonld`
 - Key files: `models/basic-pkm/manifest.yaml`
 
+**`models/ppv/`:**
+- Purpose: PPV (Personal Productivity Vault) Mental Model — extended PKM domain with productivity types
+- Contains: `manifest.yaml`, `ontology/`, `shapes/`, `views/`, `seed/`, `rules/` (business rules)
+- Key files: `models/ppv/manifest.yaml`
+
 **`frontend/static/js/`:**
-- Purpose: Client-side JavaScript for workspace interactions
-- Key files: `editor.js` (object editing, command dispatch), `workspace.js` (split pane management), `graph.js` (Cytoscape.js graph visualization), `auth.js` (session management, auth state), `sidebar.js` (sidebar toggle), `theme.js` (dark/light mode), `column-prefs.js` (table column persistence), `markdown-render.js` (marked.js rendering)
+- Purpose: Client-side JavaScript for workspace interactions (17 files)
+- Core files: `app.js` (bootstrap), `editor.js` (object editing, command dispatch), `workspace.js` (split pane management, ~2100 lines), `workspace-layout.js` (Dockview layout manager), `auth.js` (session management)
+- Visualization: `graph.js` (Cytoscape.js graph visualization), `canvas.js` (spatial canvas, ~940 lines)
+- UI: `sidebar.js` (sidebar toggle), `theme.js` (dark/light mode), `column-prefs.js` (table column persistence), `markdown-render.js` (marked.js rendering), `named-layouts.js` (layout persistence), `settings.js` (settings page)
+- Features: `vfs-browser.js` (VFS file browser), `tutorials.js` (Driver.js guided tours), `posthog.js` (PostHog analytics), `cleanup.js` (resource cleanup)
+
+**`frontend/static/css/`:**
+- Purpose: CSS stylesheets (9 files)
+- Core: `style.css` (base), `workspace.css` (workspace layout), `forms.css` (SHACL forms), `views.css` (table/cards/graph), `theme.css` (CSS custom properties), `settings.css` (settings page)
+- Features: `dockview-sempkm-bridge.css` (Dockview theme bridge), `import.css` (Obsidian import UI), `vfs-browser.css` (VFS browser panel)
 
 **`e2e/tests/`:**
-- Purpose: Playwright sequential E2E tests organized by feature
+- Purpose: Playwright sequential E2E tests organized by feature (17 directories, ~46 spec files)
+- Directories: `00-setup/` through `16-indieauth/` plus `screenshots/`
 - Key files: `e2e/tests/00-setup/01-setup-wizard.spec.ts` (requires fresh Docker stack)
 - Pattern: Numbered directories run in order, each directory is a feature area
 
@@ -175,10 +287,18 @@ SemPKM/
 - `backend/app/services/shapes.py`: SHACL shape extraction for form generation
 - `backend/app/views/service.py`: ViewSpec loading and paginated query execution
 - `backend/app/validation/queue.py`: Background SHACL validation worker
+- `backend/app/inference/service.py`: OWL 2 RL inference engine
+- `backend/app/lint/service.py`: Structured lint results service
+- `backend/app/canvas/service.py`: Spatial canvas persistence
+- `backend/app/vfs/provider.py`: Virtual filesystem provider
+- `backend/app/webid/service.py`: WebID profile management
+- `backend/app/indieauth/service.py`: IndieAuth OAuth2 provider
 
-**Auth:**
+**Auth & Identity:**
 - `backend/app/auth/dependencies.py`: `get_current_user`, `require_role`, `optional_current_user`
 - `backend/app/auth/models.py`: SQLAlchemy ORM models (User, UserSession, Invitation, InstanceConfig, UserSetting)
+- `backend/app/indieauth/router.py`: IndieAuth OAuth2 endpoints (authorization, token, introspection)
+- `backend/app/webid/router.py`: WebID profile endpoints + public profile page
 
 **Templates:**
 - `backend/app/templates/base.html`: Base layout with htmx, CDN scripts, sidebar
@@ -289,4 +409,4 @@ SemPKM/
 
 ---
 
-*Structure analysis: 2026-02-25*
+*Structure analysis: 2026-03-09*
