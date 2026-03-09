@@ -247,7 +247,7 @@ WHERE {{
 
         # For create operations, skip backward query — no before state
         before_values: dict[str, str] = {}
-        if op_type not in ("object.create", "edge.create") and subject_iri and new_values:
+        if "object.create" not in op_type and "edge.create" not in op_type and subject_iri and new_values:
             for pred_iri in new_values:
                 old_val = await self._query_before_value(subject_iri, pred_iri, timestamp)
                 if old_val is not None:
@@ -255,7 +255,7 @@ WHERE {{
 
         # Compute body_diff for body.set events
         body_diff: list[dict] | None = None
-        if op_type == "body.set" and new_values and before_values:
+        if "body.set" in op_type and new_values and before_values:
             # The body predicate is the one in new_values
             body_pred = next(iter(new_values), None)
             if body_pred:
@@ -438,6 +438,33 @@ LIMIT 1"""
                 description=f"Undo edge.patch: {event_iri}",
                 data_triples=data_triples,
                 materialize_inserts=materialize_inserts,
+                materialize_deletes=materialize_deletes,
+            )
+
+        elif "object.create" in op_type:
+            # Undo object creation by removing all triples from materialized state
+            if not subject_iri or not detail.data_triples:
+                return None
+            materialize_deletes = []
+            for s_str, p_str, o_str in detail.data_triples:
+                try:
+                    s = URIRef(s_str)
+                    p = URIRef(p_str)
+                    if o_str.startswith("http") or o_str.startswith("urn"):
+                        o = URIRef(o_str)
+                    else:
+                        o = Literal(o_str)
+                    materialize_deletes.append((s, p, o))
+                except Exception:
+                    pass
+            if not materialize_deletes:
+                return None
+            return Operation(
+                operation_type="object.create.undo",
+                affected_iris=detail.summary.affected_iris,
+                description=f"Undo object.create: {event_iri}",
+                data_triples=[],
+                materialize_inserts=[],
                 materialize_deletes=materialize_deletes,
             )
 
