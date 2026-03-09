@@ -1,6 +1,6 @@
 # Architecture
 
-**Analysis Date:** 2026-02-25
+**Analysis Date:** 2026-03-09
 
 ## Pattern Overview
 
@@ -50,6 +50,34 @@
 - Depends on: SQLite/PostgreSQL via SQLAlchemy (aiosqlite), httpOnly cookie `sempkm_session`
 - Used by: All protected routers via `Depends(require_role(...))`
 
+**IndieAuth Layer:**
+- Purpose: IndieAuth OAuth2 provider — authorization code flow with PKCE for IndieWeb identity
+- Location: `backend/app/indieauth/`
+- Contains: `service.py` (IndieAuthService), `router.py` (authorization, token, introspection, metadata), `models.py` (SQLAlchemy: AuthorizationCode, AccessToken), `schemas.py`, `scopes.py`
+- Depends on: Auth layer (user sessions), SQLAlchemy
+- Used by: External IndieWeb clients requesting authorization
+
+**WebID Layer:**
+- Purpose: WebID profile management — username, RSA key generation, link management, public profile
+- Location: `backend/app/webid/`
+- Contains: `service.py` (WebIdService), `router.py` (API endpoints + public `/users/{username}`), `schemas.py`
+- Depends on: Auth layer, TriplestoreClient
+- Used by: IndieAuth (identity verification), public profile pages
+
+**Inference Layer:**
+- Purpose: OWL 2 RL forward-chaining inference — generates inferred triples from ontology axioms
+- Location: `backend/app/inference/`
+- Contains: `service.py` (InferenceService — loads ontology+data, runs owlrl, diffs, stores), `entailments.py` (entailment type classification: rdfs:subClassOf, owl:inverseOf, etc.), `models.py`, `router.py`
+- Depends on: TriplestoreClient, rdflib, owlrl
+- Used by: Manual trigger via API; inferred triples stored in `urn:sempkm:inferred`
+
+**Lint Layer:**
+- Purpose: Structured SHACL lint results — paginated REST API and SSE streaming
+- Location: `backend/app/lint/`
+- Contains: `service.py` (LintService), `router.py` (GET results/status/diff, SSE stream), `models.py`, `broadcast.py`
+- Depends on: ValidationService, TriplestoreClient
+- Used by: Browser workspace lint panel
+
 **Template / UI Layer:**
 - Purpose: Server-rendered HTML with htmx partials for dynamic updates
 - Location: `backend/app/templates/`
@@ -71,11 +99,39 @@
 - Depends on: TriplestoreClient, rdflib (JSON-LD parsing)
 - Used by: ViewSpecService, ShapesService, ModelService
 
+**Canvas Layer:**
+- Purpose: Spatial canvas workspace — persist/restore canvas state, load RDF neighbor nodes
+- Location: `backend/app/canvas/`
+- Contains: `service.py` (CanvasService), `router.py` (canvas API endpoints), `schemas.py`
+- Depends on: TriplestoreClient
+- Used by: Browser canvas view via `frontend/static/js/canvas.js`
+
+**VFS / WebDAV Layer:**
+- Purpose: Virtual filesystem — browse RDF data as a file/folder hierarchy
+- Location: `backend/app/vfs/`
+- Contains: `provider.py` (VfsProvider), `router.py` (file-browser page + API), `collections.py`, `resources.py`, `write.py`, `cache.py`, `auth.py`
+- Depends on: TriplestoreClient, Auth layer
+- Used by: VFS browser panel via `frontend/static/js/vfs-browser.js`
+
+**Obsidian Import Layer:**
+- Purpose: Import Obsidian vault ZIP files into the knowledge graph
+- Location: `backend/app/obsidian/`
+- Contains: `router.py` (upload/scan/stream/discard), `scanner.py` (markdown vault scanner), `executor.py` (import executor), `models.py`, `broadcast.py` (SSE progress)
+- Depends on: EventStore, TriplestoreClient, commands
+- Used by: Obsidian import UI templates
+
+**Monitoring Layer:**
+- Purpose: PostHog error middleware — captures unhandled 5xx exceptions
+- Location: `backend/app/monitoring/`
+- Contains: `middleware.py` (PostHogErrorMiddleware), `posthog.py` (client), `router.py`
+- Depends on: PostHog SDK (optional)
+- Used by: FastAPI middleware stack
+
 **Frontend Static Assets:**
-- Purpose: CSS theming, JS modules for workspace interactions, graph visualization
+- Purpose: CSS theming (9 files), JS modules (17 files) for workspace interactions, graph visualization
 - Location: `frontend/static/`
-- Contains: `css/` (style.css, workspace.css, forms.css, views.css, theme.css, settings.css), `js/` (app.js, editor.js, workspace.js, graph.js, auth.js, etc.)
-- Depends on: htmx 2.0.4, Cytoscape.js, Split.js, marked.js, DOMPurify, Lucide icons, Driver.js (all loaded from CDN)
+- Contains: `css/` (style.css, workspace.css, forms.css, views.css, theme.css, settings.css, dockview-sempkm-bridge.css, import.css, vfs-browser.css), `js/` (app.js, editor.js, workspace.js, workspace-layout.js, graph.js, canvas.js, vfs-browser.js, auth.js, named-layouts.js, tutorials.js, posthog.js, cleanup.js, etc.)
+- Depends on: htmx 2.0.4, Cytoscape.js, Split.js, marked.js, DOMPurify, Lucide icons, Driver.js, Dockview (all loaded from CDN)
 - Used by: All HTML pages
 
 ## Data Flow
@@ -199,4 +255,4 @@
 
 ---
 
-*Architecture analysis: 2026-02-25*
+*Architecture analysis: 2026-03-09*
