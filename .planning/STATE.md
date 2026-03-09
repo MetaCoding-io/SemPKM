@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.5
-milestone_name: Polish, Import & Identity
-status: complete
-stopped_at: Milestone v2.5 shipped
+milestone: v2.6
+milestone_name: Power User & Collaboration
+status: active
+stopped_at: null
 last_updated: "2026-03-09"
-last_activity: "2026-03-09 - Milestone v2.5 Polish, Import & Identity shipped"
+last_activity: "2026-03-09 — Milestone v2.6 started"
 progress:
-  total_phases: 8
-  completed_phases: 8
-  total_plans: 22
-  completed_plans: 22
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -21,15 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-09)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations — no blank-page syndrome, no schema setup.
-**Current focus:** Planning next milestone — run `/gsd:new-milestone`
+**Current focus:** Defining requirements for v2.6
 
 ## Current Position
 
-Milestone: v2.5 Polish, Import & Identity — SHIPPED 2026-03-09
-Status: Complete — 8 phases, 22 plans, 23/23 requirements
-Last activity: 2026-03-09 - Milestone v2.5 shipped
-
-Progress: [██████████] 100% — MILESTONE COMPLETE
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-09 — Milestone v2.6 started
 
 ## Performance Metrics
 
