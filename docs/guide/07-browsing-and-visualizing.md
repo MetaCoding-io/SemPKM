@@ -2,7 +2,7 @@
 
 SemPKM provides three distinct ways to browse your knowledge base: **Table View** for structured scanning and sorting, **Card View** for visual overviews, and **Graph View** for exploring how objects connect. Each view is defined by a view specification shipped with a Mental Model, so the views you see depend on which models you have installed. The Basic PKM model includes table, card, and graph views for all four types -- Notes, Concepts, Projects, and People.
 
-This chapter covers how to open views, what each renderer offers, and how to customize your browsing experience.
+This chapter covers how to open views, what each renderer offers, and how to switch between views using the carousel navigation bar.
 
 ## Opening Views
 
@@ -29,6 +29,20 @@ Press `Ctrl+K` to open the command palette. All available views are registered a
 ### View Tabs
 
 Each view opens as a tab in the editor area, just like object tabs. You can have multiple views open simultaneously, switch between them by clicking their tabs, and close them with the tab close button or `Ctrl+W`. View tabs persist across sessions alongside your object tabs.
+
+## Carousel View Navigation
+
+When you open a view for a particular type, the view page displays a **carousel tab bar** at the top. This bar shows all available views for that type as clickable tabs -- for example, when viewing Notes, the carousel might show tabs for "Notes Table", "Notes Cards", and "Notes Graph".
+
+### Switching Views with the Carousel
+
+Click any tab in the carousel bar to switch to that view. The view content area below the bar updates to show the selected view while the carousel bar itself remains fixed at the top. The active tab is highlighted with an underline accent.
+
+The carousel remembers your last-selected view per type in local storage. When you return to a type's view page later, it automatically loads the view you were last using for that type.
+
+### How the Carousel Differs from Opening New Tabs
+
+The carousel switches views **in place** within the same editor tab -- it does not open a new tab for each view. This keeps your tab bar clean when you are exploring different renderings of the same data set. If you want separate tabs for different views, open them individually from the command palette or the Views Explorer sidebar.
 
 ## Table View
 
@@ -73,10 +87,6 @@ Column preferences are saved per type, so your preferences for the Projects Tabl
 ### Clicking Rows
 
 Each row in a table view is clickable. Click the first column (the object's title or name) to open that object in a new tab in the editor area. This lets you quickly drill into an item from a table scan.
-
-### View Type Switcher
-
-The view toolbar includes a switcher that shows all available views for the current type. If you are looking at the "Projects Table", the switcher also lists "Projects Cards" and "Projects Graph", letting you jump to a different rendering of the same data set.
 
 ## Card View
 
