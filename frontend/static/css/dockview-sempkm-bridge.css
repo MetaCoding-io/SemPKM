@@ -37,6 +37,62 @@
   border-bottom: 2px solid var(--tab-accent-color, var(--color-accent)) !important;
 }
 
+/* Tab type icon — injected by custom tab renderer */
+.sempkm-tab-icon {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-right: 4px;
+}
+.sempkm-tab-icon svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  stroke: currentColor;
+}
+
+/* Replicate default tab layout with icon */
+.dv-default-tab {
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  height: 100%;
+  gap: 0;
+}
+.dv-default-tab .dv-default-tab-content {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dv-default-tab .dv-default-tab-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-left: 4px;
+  cursor: pointer;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.dv-tab:hover .dv-default-tab-action,
+.dv-tab.dv-active-tab .dv-default-tab-action {
+  opacity: 1;
+}
+.dv-default-tab-action:hover {
+  background: var(--color-bg-hover, rgba(128,128,128,0.2));
+}
+/* Close icon via CSS pseudo-element */
+.dv-default-tab-action::before {
+  content: '×';
+  font-size: 16px;
+  line-height: 1;
+  color: var(--color-text-muted);
+}
+
 /* --- Dark Mode ---
    No overrides needed here. All --dv-* variables reference SemPKM semantic
    tokens (--tab-*, --panel-*, --color-*), which are automatically overridden

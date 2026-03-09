@@ -45,6 +45,102 @@
   }
 
   // -----------------------------------------------------------------------
+  // Custom tab renderer with type icon support
+  // -----------------------------------------------------------------------
+
+  function createTabComponentFn(options) {
+    // Replicate dockview's default tab structure: dv-default-tab > [icon] + content + action
+    var el = document.createElement('div');
+    el.className = 'dv-default-tab';
+
+    var iconWrap = document.createElement('span');
+    iconWrap.className = 'sempkm-tab-icon';
+    iconWrap.style.display = 'none';
+
+    var content = document.createElement('div');
+    content.className = 'dv-default-tab-content';
+
+    var action = document.createElement('div');
+    action.className = 'dv-default-tab-action';
+    action.addEventListener('pointerdown', function (e) { e.preventDefault(); });
+    action.addEventListener('click', function () {
+      if (_tabApi) _tabApi.close();
+    });
+
+    el.append(iconWrap, content, action);
+
+    var _tabApi = null;
+    var _title = '';
+    var _currentIcon = '';
+
+    function render() {
+      content.textContent = _title || '';
+
+      // Look up icon from _tabMeta
+      var meta = _tabApi ? _tabMeta[_tabApi.id] : null;
+      if (meta && meta.typeIcon) {
+        iconWrap.style.display = '';
+        if (_currentIcon !== meta.typeIcon) {
+          _currentIcon = meta.typeIcon;
+          // Create a fresh <i data-lucide> child inside the wrapper span
+          iconWrap.innerHTML = '';
+          var ico = document.createElement('i');
+          ico.setAttribute('data-lucide', meta.typeIcon);
+          iconWrap.appendChild(ico);
+          if (meta.typeColor) iconWrap.style.color = meta.typeColor;
+          if (window.lucide && window.lucide.createIcons) {
+            window.lucide.createIcons({ root: iconWrap });
+          }
+        }
+      } else {
+        iconWrap.style.display = 'none';
+      }
+    }
+
+    return {
+      element: el,
+      init: function (params) {
+        _tabApi = params.api;
+        _title = params.title || '';
+        render();
+
+        // Listen for title changes
+        params.api.onDidTitleChange(function (e) {
+          _title = e.title || '';
+          render();
+        });
+
+        // Re-render when tab meta updates (icon arrives after htmx settles)
+        el._sempkmRender = render;
+      },
+      update: function () {
+        render();
+      },
+      dispose: function () {
+        _tabApi = null;
+      }
+    };
+  }
+
+  /**
+   * Re-render a tab's icon after _tabMeta is updated (e.g. after htmx settles).
+   * Finds the custom tab renderer element by walking dockview's panel → tab structure.
+   */
+  function rerenderTabIcon(panelId) {
+    var dv = window._dockview;
+    if (!dv) return;
+    var panel = dv.getGroupPanel(panelId);
+    if (!panel || !panel.group) return;
+    // Walk group header tabs to find the one matching this panel
+    var headerEl = panel.group.header && panel.group.header.element;
+    if (!headerEl) return;
+    var tabs = headerEl.querySelectorAll('.dv-default-tab');
+    tabs.forEach(function (tabEl) {
+      if (tabEl._sempkmRender) tabEl._sempkmRender();
+    });
+  }
+
+  // -----------------------------------------------------------------------
   // createComponent factory
   // -----------------------------------------------------------------------
 
@@ -66,7 +162,7 @@
           htmx.ajax('GET', url, {
             target: el, swap: 'innerHTML'
           });
-          // Re-apply accent color after htmx settles content (inline scripts set _tabMeta typeColor)
+          // Re-apply accent color + tab icon after htmx settles content (inline scripts set _tabMeta typeColor/typeIcon)
           el.addEventListener('htmx:afterSettle', function onSettle() {
             el.removeEventListener('htmx:afterSettle', onSettle);
             var meta = _tabMeta[iri];
@@ -74,6 +170,8 @@
             if (meta && meta.typeColor && groupEl) {
               groupEl.style.setProperty('--tab-accent-color', meta.typeColor);
             }
+            // Trigger tab icon re-render (icon data arrives via inline script in object_tab.html)
+            rerenderTabIcon(iri);
           });
           // Visibility handler: re-measure CodeMirror when panel re-shown
           params.api.onDidVisibilityChange(function (event) {
@@ -153,6 +251,8 @@
     // aren't overridden by .dockview-theme-abyss (the default)
     var dv = new DockviewComponent(container, {
       createComponent: createComponentFn,
+      defaultTabComponent: 'sempkm-tab',
+      createTabComponent: createTabComponentFn,
       createWatermarkComponent: function () {
         var el = document.createElement('div');
         el.className = 'editor-empty';
