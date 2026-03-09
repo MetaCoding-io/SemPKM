@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Polish, Import & Identity
 status: completed
-stopped_at: Completed 50-02-PLAN.md
-last_updated: "2026-03-09T04:23:04.075Z"
-last_activity: "2026-03-08 - Completed Phase 47 Plan 02: Import Progress UI and E2E Tests"
+stopped_at: Completed 50-03-PLAN.md
+last_updated: "2026-03-09T04:23:00Z"
+last_activity: "2026-03-09 - Completed Phase 50 Plan 03: Feature Chapters (Obsidian, WebID, IndieAuth)"
 progress:
   total_phases: 8
   completed_phases: 7
   total_plans: 22
-  completed_plans: 19
+  completed_plans: 20
   percent: 100
 ---
 
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 
 ## Current Position
 
-Phase: 47 (Obsidian Batch Import)
-Plan: 2 of 2 complete
-Status: Phase 47 complete
-Last activity: 2026-03-08 - Completed Phase 47 Plan 02: Import Progress UI and E2E Tests
+Phase: 50 (User Guide & Documentation)
+Plan: 3 of 3 complete
+Status: Phase 50 in progress
+Last activity: 2026-03-09 - Completed Phase 50 Plan 03: Feature Chapters (Obsidian, WebID, IndieAuth)
 
 Progress: [██████████] 100%
 
@@ -71,6 +71,7 @@ Progress: [██████████] 100%
 | Phase 49 P03 | 4 | 2 tasks | 7 files |
 | Phase 47 P01 | 3 | 2 tasks | 5 files |
 | Phase 47 P02 | 20 | 2 tasks | 7 files |
+| Phase 50 P03 | 4 | 2 tasks | 3 files |
 | Phase 50 P02 | 3 | 2 tasks | 4 files |
 
 ## Accumulated Context
@@ -93,6 +94,8 @@ Full decision log in PROJECT.md Key Decisions table.
 - Phase 47: SSE race condition fix: serve saved import_result.json when broadcast closes before client connects
 - Phase 44: Single unified CodeMirror theme using CSS variables instead of dual dark/light themes
 - Phase 44: Preview/Source tab toggle for markdown VFS files, reusing global marked.js
+- Phase 50: Ch 24 rewritten from scratch (232 lines replacing 971-line manual Python workflow)
+- Phase 50: Token lifetimes documented from source: 60s auth code, 1h access, 30d refresh
 
 ### Pending Todos
 
@@ -124,6 +127,6 @@ None — clean start for v2.5
 
 ## Session Continuity
 
-Last session: 2026-03-09T04:23:04.073Z
-Stopped at: Completed 50-02-PLAN.md
+Last session: 2026-03-09T04:23:00Z
+Stopped at: Completed 50-03-PLAN.md
 Resume file: None
