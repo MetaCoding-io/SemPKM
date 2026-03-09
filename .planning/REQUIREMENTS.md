@@ -54,8 +54,8 @@ Requirements for v2.6 Power User & Collaboration. Each maps to roadmap phases.
 
 ### Bug Fixes
 
-- [ ] **FIX-01**: Event log diffs render correctly for all operation types
-- [ ] **FIX-02**: Lint dashboard controls display at correct width on all viewports
+- [x] **FIX-01**: Event log diffs render correctly for all operation types
+- [x] **FIX-02**: Lint dashboard controls display at correct width on all viewports
 
 ### Spatial Canvas
 
@@ -126,8 +126,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OBUI-03 | Phase 55 | Pending |
 | OBUI-04 | Phase 55 | Pending |
 | OBUI-05 | Phase 55 | Pending |
-| FIX-01 | Phase 52 | Pending |
-| FIX-02 | Phase 52 | Pending |
+| FIX-01 | Phase 52 | Complete |
+| FIX-02 | Phase 52 | Complete |
 | CANV-01 | Phase 57 | Pending |
 | CANV-02 | Phase 57 | Pending |
 | CANV-03 | Phase 57 | Pending |
