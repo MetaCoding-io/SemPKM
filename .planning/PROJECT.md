@@ -145,9 +145,16 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ### Active
 
-<!-- Next milestone requirements will be defined via /gsd:new-milestone -->
+<!-- Current milestone: v2.6 -->
 
-(None — define via `/gsd:new-milestone`)
+- [ ] SPARQL Interface — permissions, autocomplete, IRI pills, server-side history, saved/shared queries, named queries as views
+- [ ] Collaboration & Federation — RDF Patch, named graph sync, LDN notifications, federated WebID auth, collaboration UI
+- [ ] User Custom VFS (MountSpec) — declarative vocabulary, 5 directory strategies, SHACL frontmatter writes, management UI
+- [ ] VFS Browser UX Polish — navigation, preview pane, breadcrumbs, file operations
+- [ ] Object Browser UI Improvements — refresh/plus icons, multi-select, contextual delete, edge inspector, view filtering
+- [ ] Event Log Fixes — missing diffs, rendering issues
+- [ ] Lint Dashboard Fixes — layout width, walkthrough improvements
+- [ ] Spatial Canvas UI Improvements — UX enhancements TBD during phase planning
 
 ### Future Candidates
 
@@ -196,7 +203,21 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - UI Polish — CodeMirror CSS variable theming, dockview tab type icons, sidebar accent colors, keyboard shortcuts
 - User Guide — 27 chapters covering all v2.0-v2.5 features, glossary, appendices, screenshot spec
 
-**Next milestone:** TBD — run `/gsd:new-milestone` to plan
+**Current milestone:** v2.6 Power User & Collaboration
+
+## Current Milestone: v2.6 Power User & Collaboration
+
+**Goal:** Elevate SemPKM from a personal tool to a power-user and collaboration-ready platform with advanced SPARQL workflows, federation, custom VFS projections, and UI polish across all views.
+
+**Target features:**
+- SPARQL Interface (permissions, autocomplete, IRI pills, history, saved queries, named queries as views)
+- Collaboration & Federation (RDF Patch, named graph sync, LDN, federated WebID auth, collaboration UI)
+- User Custom VFS (MountSpec vocabulary, 5 directory strategies, SHACL writes, management UI)
+- VFS Browser UX Polish (navigation, preview, breadcrumbs)
+- Object Browser UI Improvements (refresh/plus icons, multi-select, edge inspector, view filtering)
+- Event Log Fixes (missing diffs, rendering)
+- Lint Dashboard Fixes (layout, walkthrough)
+- Spatial Canvas UI Improvements
 
 ## Context
 
@@ -286,4 +307,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-03-09 after v2.5 milestone*
+*Last updated: 2026-03-09 after v2.6 milestone started*
