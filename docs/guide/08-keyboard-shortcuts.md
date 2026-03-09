@@ -13,9 +13,9 @@ These shortcuts work anywhere in the workspace, regardless of which pane or pane
 | Shortcut | Action | Description |
 |----------|--------|-------------|
 | `Ctrl+K` | Open Command Palette | Opens the searchable command palette. Start typing to filter commands, then press Enter to execute. |
-| `Ctrl+B` | Toggle Sidebar | Shows or hides the left navigation sidebar. |
+| `Ctrl+B` | Toggle Sidebar | Shows or hides the left navigation sidebar. Collapses to an icon rail showing only Lucide icons. |
 | `Ctrl+J` | Toggle Bottom Panel | Shows or hides the bottom panel (SPARQL console, Event Log). |
-| `Ctrl+[` | Toggle Explorer Pane | Collapses or expands the left explorer pane in the three-column layout. |
+| `Ctrl+[` | Toggle Explorer Pane | Collapses or expands the left explorer pane. |
 | `Ctrl+]` | Toggle Details Pane | Collapses or expands the right details pane (Relations, Lint). |
 | `Ctrl+,` | Open Settings | Opens the Settings tab in the editor area. |
 
@@ -23,17 +23,17 @@ These shortcuts work anywhere in the workspace, regardless of which pane or pane
 
 | Shortcut | Action | Description |
 |----------|--------|-------------|
-| `Ctrl+S` | Save | Saves the current object -- both form properties and body content. If a CodeMirror editor is active, saves the body text. If a form is active, submits the form. After saving, the lint panel refreshes automatically. |
-| `Ctrl+E` | Toggle Edit Mode | Switches the current object between read mode and edit mode. In read mode, you see rendered properties and formatted markdown. In edit mode, you get the editable form and the code editor. A flip animation shows the transition. |
+| `Ctrl+S` | Save | Saves the current object -- both form properties and body content. After saving, the lint panel refreshes automatically. |
+| `Ctrl+E` | Toggle Edit Mode | Switches the current object between read mode and edit mode. In read mode, you see rendered properties and formatted markdown. In edit mode, you get the editable form and the code editor. A crossfade animation shows the transition. |
 | `Ctrl+W` | Close Tab | Closes the currently active tab. If the tab has unsaved changes, you are not prompted (dirty state is tracked but closure is immediate). |
+| `Ctrl+N` | New Object | Opens the type picker, letting you choose which type of object to create. |
 | `Ctrl+\` | Split Right | Creates a new editor group to the right of the current one, splitting the editor area. Useful for viewing two objects or views side by side. |
 | `Ctrl+1` through `Ctrl+4` | Focus Editor Group | Switches keyboard focus to editor group 1, 2, 3, or 4 (if that many groups exist). |
 
-### Objects
+### Validation
 
 | Shortcut | Action | Description |
 |----------|--------|-------------|
-| `Ctrl+N` | New Object | Opens the type picker, letting you choose which type of object to create. Available via the command palette. |
 | `Ctrl+Shift+V` | Run Validation | Saves the current object and triggers SHACL validation. The lint panel in the right sidebar updates with any constraint violations after a short delay. |
 
 ## The Command Palette
@@ -75,8 +75,23 @@ The command palette organizes commands into sections. Here is the complete list 
 | Close Group | -- | Closes the current editor group (only available if more than one group exists). |
 | Toggle Panel | `Ctrl+J` | Shows or hides the bottom panel. |
 | Maximize Panel | -- | Toggles the bottom panel between normal and maximized height. |
+| Toggle Lint Dashboard | -- | Opens the lint dashboard in the bottom panel. |
 | Toggle Explorer Panel | `Ctrl+[` | Collapses or expands the left explorer pane. |
 | Toggle Details Panel | `Ctrl+]` | Collapses or expands the right details pane. |
+
+**Layout**
+
+| Command | Description |
+|---------|-------------|
+| Layout: Save As... | Saves the current workspace arrangement (groups, tabs, sizes) as a named layout. Type the name in the search field, then confirm. |
+| Layout: Restore... | Restores a previously saved named layout. Shows a list of saved layouts to choose from. |
+| Layout: Delete... | Deletes a saved named layout. |
+
+**Navigation**
+
+| Command | Description |
+|---------|-------------|
+| Import Vault | Opens the Obsidian vault import wizard. |
 
 **Views**
 
@@ -87,7 +102,7 @@ The command palette organizes commands into sections. Here is the complete list 
 In addition to the static commands above, the command palette dynamically registers entries for:
 
 - **All available views** -- each installed view specification appears as a "Browse:" command (e.g., "Browse: Table: Projects Table", "Browse: Cards: People Cards", "Browse: Graph: Notes Graph"). Selecting one opens the view in a new tab.
-- **Recently opened objects** -- as you open objects from the explorer tree, they are added to the palette as "Open:" commands for quick re-access.
+- **Recently opened objects** -- as you open objects from the explorer tree, they are added to the palette as searchable commands for quick re-access.
 
 **Appearance**
 
@@ -139,7 +154,13 @@ Here are some practical patterns for working efficiently with keyboard shortcuts
 - Press `Ctrl+J` to toggle the bottom panel for SPARQL queries or the event log.
 - These shortcuts let you maximize the editor area on smaller screens and restore the panels when needed.
 
-> **Tip:** All pane sizes are remembered across sessions. When you drag a pane boundary to resize it, or toggle a panel open or closed, SemPKM saves the layout to your browser's local storage and restores it on your next visit.
+> **Tip:** All pane sizes are remembered across sessions. When you toggle a panel open or closed, SemPKM saves the layout to your browser's local storage and restores it on your next visit.
+
+### Saving and Restoring Layouts
+
+- Use `Ctrl+K` and select **Layout: Save As...** to name and save your current workspace arrangement.
+- Use `Ctrl+K` and select **Layout: Restore...** to switch between saved layouts.
+- This is useful for maintaining different workspaces for different tasks -- a research layout, a review layout, a writing layout.
 
 ## Customization
 

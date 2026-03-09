@@ -1,6 +1,6 @@
 # Chapter 4: The Workspace Interface
 
-SemPKM's workspace is an IDE-style environment designed for navigating, reading, and editing semantic objects. It uses a three-column resizable layout built on Split.js, with a sidebar for global navigation, an explorer for browsing objects and views, a tabbed editor area with split pane support, and a details panel for relationships and validation results.
+SemPKM's workspace is an IDE-style environment designed for navigating, reading, and editing semantic objects. It uses a flexible panel system built on dockview, with a sidebar for global navigation, an explorer for browsing objects and views, a tabbed editor area with drag-and-drop group management, and a details panel for relationships and validation results.
 
 This chapter walks through every region of the workspace so you know where things are and how they behave.
 
@@ -10,15 +10,15 @@ This chapter walks through every region of the workspace so you know where thing
 
 ## Overall Layout
 
-When you open the **Object Browser** (from the sidebar under Apps), the workspace loads with three resizable columns:
+When you open the **Object Browser** (from the sidebar under Apps), the workspace loads with a flexible panel layout powered by dockview:
 
-| Column | Default Width | Purpose |
-|--------|--------------|---------|
-| **Explorer** (left) | 20% | Object tree and views tree |
-| **Editor Area** (center) | 50% | Tabbed object viewer/editor, plus bottom panel |
-| **Details** (right) | 30% | Relations and lint (validation) panels |
+| Region | Purpose |
+|--------|---------|
+| **Explorer** (left) | Object tree and views tree |
+| **Editor Area** (center) | Tabbed object viewer/editor organized into draggable groups, plus a bottom panel |
+| **Details** (right) | Relations and lint (validation) panels |
 
-You can drag the vertical gutters between columns to resize them. Your sizing preferences are saved automatically to local storage and restored on your next visit.
+Unlike a fixed-column layout, dockview lets you reorganize panels by dragging tabs between groups, splitting groups, and resizing boundaries freely. Your layout is saved automatically to local storage and restored on your next visit.
 
 > **Tip:** If you need more room in the editor, hide the Explorer with `Ctrl+[` or the Details panel with `Ctrl+]`. Both are toggles -- press the same shortcut again to bring the panel back.
 
@@ -26,7 +26,7 @@ You can drag the vertical gutters between columns to resize them. Your sizing pr
 
 ## The Sidebar
 
-The **Sidebar** is the narrow vertical bar on the far left of the screen, outside the three-column workspace. It provides global navigation across the entire SemPKM application.
+The **Sidebar** is the narrow vertical bar on the far left of the screen, outside the dockview workspace. It provides global navigation across the entire SemPKM application.
 
 
 ### Navigation Sections
@@ -42,7 +42,7 @@ Click a group header to collapse or expand its links. The collapsed/expanded sta
 
 ### Collapsing to Icon Rail
 
-When the sidebar is expanded, it shows both icons and text labels for each link. Press `Ctrl+B` (or click the toggle button next to the SemPKM brand logo) to collapse the sidebar into a narrow **icon rail** that shows only the Lucide icons. This gives more horizontal space to the workspace columns.
+When the sidebar is expanded, it shows both icons and text labels for each link. Press `Ctrl+B` (or click the toggle button next to the SemPKM brand logo) to collapse the sidebar into a narrow **icon rail** that shows only the Lucide icons. This gives more horizontal space to the workspace panels.
 
 Press `Ctrl+B` again to expand the sidebar back to full width.
 
@@ -93,7 +93,7 @@ Click any view leaf node to open it as a tab in the editor area. View tabs are v
 
 ## The Editor Area (Center Column)
 
-The center column is where you do most of your work. It contains a tabbed editor with support for multiple **editor groups** arranged side-by-side.
+The center column is where you do most of your work. It uses a **dockview** panel system that organizes tabs into flexible **editor groups**.
 
 ### Tabs
 
@@ -105,41 +105,65 @@ Every object, view, or settings page you open appears as a **tab** in the tab ba
 - A **dirty indicator** -- a small colored dot that appears when you have unsaved changes
 - A **close button** that appears on hover or when the tab is active
 
+**Tab accent colors:** Active tabs display an accent color bar that matches the type's color from the Mental Model's icon manifest. For example, a Note tab might show a blue accent, while a Person tab shows teal. This color appears on the active tab within the active editor group.
+
 **Tab interactions:**
 
 - **Click** a tab to switch to it
 - **Click the close button** (or press `Ctrl+W`) to close the active tab
 - **Right-click** a tab to open a context menu with options: Close, Close Others, Split Right, and (when multiple groups exist) Move to Group
-- **Drag and drop** tabs to reorder them within a tab bar, move them between groups, or drag to the right edge of the editor area to create a new split group
+- **Drag and drop** tabs to reorder them within a tab bar, move them between groups, or drag to the edge of the editor area to create a new split group
 
 When no tabs are open, the editor area shows a helpful empty state:
 
 > Select an object from the Explorer to open it here.
 > Or press Ctrl+K to open the command palette.
 
-### Split Panes (Editor Groups)
+### Editor Groups (Split Panes)
 
-You can split the editor area into up to **4 side-by-side editor groups**, each with its own tab bar and content area. This is useful for comparing objects, referencing one note while editing another, or keeping a graph view visible alongside an object editor.
+Dockview organizes tabs into **editor groups**. Each group has its own tab bar and content area. You can have multiple groups arranged side-by-side, allowing you to view two or more objects simultaneously.
 
 ![Multiple tabs open across editor groups](images/15-multiple-tabs.png)
 
-**How to split:**
+**How to create groups:**
 
-- Press `Ctrl+\` to split right from the currently active group. The active tab is duplicated in the new group.
+- Press `Ctrl+\` to split right from the currently active group.
 - Use the command palette (`Ctrl+K`) and choose "Split Right."
 - Right-click a tab and select "Split Right."
-- Drag a tab to the right edge drop zone of the editor area to create a new group with that tab.
+- Drag a tab to the edge of the editor area -- dockview shows drop zones that let you create new groups to the left, right, top, or bottom.
 
 **Managing groups:**
 
 - Press `Ctrl+1` through `Ctrl+4` to focus a specific editor group by position.
 - Click anywhere inside a group to make it the active group. The active group is indicated by an accent-colored top border on its tab bar.
-- Close a group by right-clicking a tab and choosing "Close Group" from the command palette, or by closing all tabs in a group (the empty group is automatically removed unless it is the last one).
-- When a group is removed, its remaining tabs are redistributed to its left neighbor.
+- Close a group by closing all tabs within it -- the empty group is automatically removed unless it is the last one.
+- Drag the borders between groups to resize their relative widths.
 
-Groups are separated by thin draggable gutters. Drag these to resize the relative widths of your editor groups.
+> **Tip:** Your editor group layout, including which tabs are open in each group and their sizes, is persisted automatically and restored when you return to the workspace.
 
-> **Tip:** Your editor group layout, including which tabs are open in each group and their sizes, is persisted in session storage and restored when you return to the workspace.
+### Named Layouts
+
+SemPKM lets you save and restore named workspace layouts through the command palette:
+
+**Saving a layout:**
+
+1. Arrange your editor groups and tabs the way you want.
+2. Press `Ctrl+K` to open the command palette.
+3. Select **Save Layout As...** and type a name for the layout.
+4. The current arrangement of groups, tabs, and sizes is saved to local storage.
+
+**Restoring a layout:**
+
+1. Press `Ctrl+K` and select **Restore Layout**.
+2. Choose from the list of saved layouts.
+3. The workspace rearranges to match the saved configuration.
+
+**Deleting a layout:**
+
+1. Press `Ctrl+K` and select **Delete Layout**.
+2. Choose the layout to remove.
+
+Named layouts are useful for switching between different work modes -- for example, a "Research" layout with a graph view alongside notes, or a "Review" layout with the lint panel prominently visible.
 
 ---
 
@@ -232,6 +256,7 @@ The palette is powered by the `ninja-keys` web component and supports fuzzy sear
 | **Objects** | New Object (`Ctrl+N`), Toggle Edit Mode (`Ctrl+E`), and recently opened objects |
 | **Tools** | Run Validation (`Ctrl+Shift+V`) |
 | **View** | Split Right (`Ctrl+\`), Toggle Panel (`Ctrl+J`), Maximize Panel, Toggle Explorer Panel (`Ctrl+[`), Toggle Details Panel (`Ctrl+]`), Close Group |
+| **Layouts** | Save Layout As..., Restore Layout (with list of saved layouts), Delete Layout |
 | **Views** | Browse any available view (dynamically loaded from installed Mental Models) |
 | **Appearance** | Theme: Light, Theme: Dark, Theme: System Default |
 
@@ -243,7 +268,7 @@ The palette dynamically grows as you use the workspace: every object you open an
 
 ## Keyboard Shortcut Summary
 
-Here is a quick reference for all workspace-level shortcuts discussed in this chapter:
+Here is a quick reference for all workspace-level shortcuts discussed in this chapter. For the full list, see [Keyboard Shortcuts and Command Palette](08-keyboard-shortcuts.md).
 
 | Shortcut | Action |
 |----------|--------|
