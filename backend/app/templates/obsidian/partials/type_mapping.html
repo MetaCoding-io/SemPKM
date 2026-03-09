@@ -1,5 +1,14 @@
 {% set current_step = 3 %}
-{% include "obsidian/partials/step_bar.html" %}
+{% include "obsidian/partials/step_bar.html" with context %}
+<script>
+(function() {
+    var oob = document.querySelector('#import-content > #import-step-bar');
+    if (oob) {
+        var target = document.querySelector('#import-container > #import-step-bar');
+        if (target) target.replaceWith(oob);
+    }
+})();
+</script>
 
 <div class="import-section">
     <h2 class="import-section-title">
