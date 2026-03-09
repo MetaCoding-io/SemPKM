@@ -1,6 +1,17 @@
+{% set current_step = 5 %}
+{% include "obsidian/partials/step_bar.html" with context %}
+<script>
+(function() {
+    var oob = document.querySelector('#import-content > #import-step-bar');
+    if (oob) {
+        var target = document.querySelector('#import-container > #import-step-bar');
+        if (target) target.replaceWith(oob);
+    }
+})();
+</script>
+
 {% block content %}
 <div id="import-area">
-    {% include "obsidian/partials/step_bar.html" %}
 
     {% if previews %}
     <!-- Summary Table -->

@@ -1,3 +1,14 @@
+{% set current_step = 2 %}
+{% include "obsidian/partials/step_bar.html" with context %}
+<script>
+(function() {
+    var oob = document.querySelector('#import-content > #import-step-bar');
+    if (oob) {
+        var target = document.querySelector('#import-container > #import-step-bar');
+        if (target) target.replaceWith(oob);
+    }
+})();
+</script>
 <div id="import-area" class="import-results-wrapper">
     <!-- Stat Cards -->
     <div class="import-stat-cards">
@@ -142,8 +153,10 @@
                 {% for w in warnings %}
                 <li class="import-warning severity-{{ w.severity }}">
                     <span class="warning-badge {{ w.severity }}">{{ w.severity }}</span>
-                    <span class="warning-file">{{ w.file_path }}</span>
-                    <span class="warning-message">{{ w.message }}</span>
+                    <div class="warning-content">
+                        <span class="warning-file">{{ w.file_path }}</span>
+                        <span class="warning-message">{{ w.message }}</span>
+                    </div>
                 </li>
                 {% endfor %}
             </ul>

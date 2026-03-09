@@ -388,6 +388,14 @@
     border-left: 3px solid transparent;
     padding-left: 0.5rem;
     margin-bottom: 0.25rem;
+    min-width: 0;
+}
+
+.warning-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
 }
 
 .import-warning.severity-warning {
@@ -430,7 +438,7 @@
     color: var(--color-text-muted, #888);
     font-family: monospace;
     font-size: 0.8rem;
-    flex-shrink: 0;
+    word-break: break-all;
 }
 
 .warning-message {

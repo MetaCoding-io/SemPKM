@@ -1,3 +1,15 @@
+{% set current_step = 2 %}
+{% include "obsidian/partials/step_bar.html" with context %}
+<script>
+(function() {
+    var oob = document.querySelector('#import-content > #import-step-bar');
+    if (oob) {
+        var target = document.querySelector('#import-container > #import-step-bar');
+        if (target) target.replaceWith(oob);
+    }
+})();
+</script>
+
 <div id="import-area" class="import-scanning-wrapper">
     <div class="import-progress-section">
         <h3>Scanning vault...</h3>
