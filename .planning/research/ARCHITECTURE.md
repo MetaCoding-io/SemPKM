@@ -1,644 +1,864 @@
-# Architecture Research: SemPKM v2.3 Shell, Navigation & Views
+# Architecture Research: SemPKM v2.6 Power User & Collaboration
 
-**Domain:** Integration architecture for dockview Phase A, carousel views, named layouts, FTS fuzzy
-**Researched:** 2026-03-01
-**Confidence:** HIGH (based on direct codebase analysis, prior phase-23 research doc, and existing DECISIONS.md)
+**Domain:** Integration architecture for SPARQL permissions, RDF Patch sync, LDN notifications, MountSpec VFS, and UI improvements
+**Researched:** 2026-03-09
+**Confidence:** MEDIUM (existing codebase analysis HIGH; federation/LDN protocol details MEDIUM; no prior art in this codebase for multi-instance sync)
 
 ---
 
 ## System Overview
 
-The four v2.3 features integrate into an existing three-layer architecture:
+v2.6 adds five major capability domains to the existing three-layer architecture. The diagram below shows new components (marked NEW) and modified components (marked MOD) alongside existing infrastructure:
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                        Browser (htmx + vanilla JS)                       │
-│                                                                           │
-│  workspace.html          workspace.js         workspace-layout.js         │
-│  ┌───────────────┐       ┌─────────────┐     ┌──────────────────────┐   │
-│  │  nav-pane     │       │ openTab()   │────▶│ WorkspaceLayout       │   │
-│  │  editor-pane  │       │ openViewTab │     │  .groups[]            │   │
-│  │  right-pane   │       │ togglePane()│     │  addGroup()           │   │
-│  └───────────────┘       └─────────────┘     │  recreateGroupSplit() │   │
-│                                              │  loadTabInGroup()     │   │
-│  Split.js (outer panes)  ◀── kept v2.3 ──▶  │  ← Phase A replaces   │   │
-│  dockview-core (inner)   ◀── NEW Phase A ──  │  recreateGroupSplit() │   │
-│                                              └──────────────────────┘   │
-│                                                                           │
-│  carousel-view.js (NEW)  view_switcher template (modified)                │
-│  named-layouts.js (NEW)  command palette entries (modified)               │
-└───────────────────────────────────────────────────────────────────────────┘
-                                    │ htmx.ajax / fetch
-┌───────────────────────────────────────────────────────────────────────────┐
-│                        FastAPI Backend                                     │
-│                                                                           │
-│  browser/router.py   views/router.py   sparql/router.py                  │
-│  ┌──────────────┐   ┌──────────────┐  ┌─────────────────────┐           │
-│  │ /browser/    │   │ /browser/    │  │ /api/search          │           │
-│  │  object/{iri}│   │  views/      │  │  SearchService       │           │
-│  │  settings    │   │  table/card/ │  │  (FTS fuzzy changes) │           │
-│  └──────────────┘   │  graph/      │  └─────────────────────┘           │
-│                     │  carousel/   │                                      │
-│                     │  (NEW)       │  /api/layouts (NEW)                 │
-│                     └──────────────┘   LayoutService (NEW)               │
-│                                                                           │
-│  views/service.py (ViewSpecService)   models/manifest.py (schema mod)    │
-└───────────────────────────────────────────────────────────────────────────┘
-                                    │ SPARQL / LuceneSail
-┌───────────────────────────────────────────────────────────────────────────┐
-│                        RDF4J Triplestore                                  │
-│  urn:sempkm:current  urn:sempkm:model:{id}:views  urn:sempkm:events      │
-│  LuceneSail index (FTS, fuzzy query syntax support)                      │
-└───────────────────────────────────────────────────────────────────────────┘
++-----------------------------------------------------------------------------------+
+|                        Browser (htmx + vanilla JS)                                |
+|                                                                                   |
+|  Yasgui (MOD)              workspace.js (MOD)        vfs-browser.js (MOD)        |
+|  +-------------------+    +------------------+       +---------------------+      |
+|  | Autocomplete API  |    | Multi-select     |       | MountSpec UI        |      |
+|  | IRI pill renderer |    | Edge inspector   |       | Breadcrumbs         |      |
+|  | Server-side hist  |    | Refresh/plus btns|       | Preview pane        |      |
+|  +-------------------+    +------------------+       +---------------------+      |
+|                                                                                   |
+|  sparql-console.js (MOD)  collaboration-ui.js (NEW)  canvas.js (MOD)             |
+|  +-------------------+    +------------------+       +---------------------+      |
+|  | Saved queries UI  |    | Remote instance  |       | UX improvements     |      |
+|  | Share query links |    | Sync status      |       +---------------------+      |
+|  | Named query→view  |    | Conflict display |                                   |
+|  +-------------------+    +------------------+                                    |
++-----------------------------------------------------------------------------------+
+                                    | htmx.ajax / fetch / SSE
++-----------------------------------------------------------------------------------+
+|                        FastAPI Backend                                             |
+|                                                                                   |
+|  sparql/ (MOD)             federation/ (NEW)          vfs/ (MOD)                  |
+|  +-------------------+    +------------------+       +---------------------+      |
+|  | PermissionsGuard  |    | RDFPatchService  |       | MountSpecService    |      |
+|  | /api/sparql/hist  |    | LDNInbox         |       | 5 dir strategies    |      |
+|  | /api/sparql/saved |    | LDNSender        |       | SHACL frontmatter   |      |
+|  | /api/sparql/auto  |    | SyncEngine       |       |   write path        |      |
+|  +-------------------+    | WebIDAuthN       |       | /api/vfs/mounts     |      |
+|                            +------------------+       +---------------------+      |
+|                                                                                   |
+|  browser/ (MOD)            events/ (MOD)              lint/ (MOD)                 |
+|  +-------------------+    +------------------+       +---------------------+      |
+|  | Edge inspector ep |    | Diff rendering   |       | Layout width fix    |      |
+|  | Multi-select ops  |    | fixes            |       | Walkthrough fix     |      |
+|  | View filtering    |    +------------------+       +---------------------+      |
+|  +-------------------+                                                            |
+|                                                                                   |
+|  commands/ (MOD — new command types for federation)                               |
++-----------------------------------------------------------------------------------+
+                                    | SPARQL / HTTP
++-----------------------------------------------------------------------------------+
+|                        RDF4J Triplestore                                          |
+|  urn:sempkm:current     urn:sempkm:inferred      urn:sempkm:event:*             |
+|  urn:sempkm:sparql:*    urn:sempkm:sync:*         urn:sempkm:ldn:*              |
+|  urn:sempkm:mount:*     urn:sempkm:validations                                  |
+|  (NEW named graphs)     LuceneSail FTS index                                     |
++-----------------------------------------------------------------------------------+
 ```
 
 ---
 
-## Feature 1: Dockview Phase A — Editor-Pane Migration
+## 1. SPARQL Interface Enhancements
 
-### What Changes
+### 1.1 SPARQL Permissions
 
-Phase A replaces the Split.js editor-groups split managed by `workspace-layout.js` with a `dockview-core` DockviewComponent instance. The outer three-column split (nav-pane / editor-pane / right-pane) run by `workspace.js` via Split.js is **not** touched in Phase A.
+**Current state:** `sparql/router.py` requires `get_current_user` (any authenticated user can run any SPARQL query). The `all_graphs` flag lets any user bypass graph scoping.
 
-### Integration Points
+**Integration approach:** Add a `PermissionsGuard` middleware layer in the SPARQL router that checks the user's role before query execution.
 
-**workspace-layout.js** is the primary target. The function `recreateGroupSplit()` (lines 301-408) builds the DOM and creates/destroys the Split.js instance between groups. This function is replaced wholesale by a dockview initialization call.
+| Query Capability | guest | member | owner |
+|-----------------|-------|--------|-------|
+| Read current graph | YES | YES | YES |
+| Read inferred graph | YES | YES | YES |
+| Read all_graphs (event data) | NO | NO | YES |
+| Execute CONSTRUCT | NO | YES | YES |
+| Execute ASK | YES | YES | YES |
 
-Current `recreateGroupSplit()` responsibilities, mapped to dockview equivalents:
-
-| Current (Split.js) | Dockview Phase A Replacement |
-|--------------------|------------------------------|
-| Creates `#editor-groups-container` div | Becomes the dockview root element (existing `#editor-groups-container`) |
-| Creates `.editor-group` divs with `.group-tab-bar` and `.group-editor-area` | Dockview owns tab bars and group containers natively |
-| Creates horizontal Split.js instance between groups | Dockview handles group splits with its own sash/resize |
-| Calls `renderGroupTabBar(group)` per group | Dockview renders tab bars natively via its `tabComponent` |
-| Calls `loadTabInGroup(groupId, tabId)` per group | `createComponent` callback calls `htmx.ajax()` on `params.containerElement` |
-| `onDragEnd` saves split sizes to sessionStorage | `onDidLayoutChange` serializes to sessionStorage via `dockview.toJSON()` |
-
-**workspace.js** changes are smaller: `openTab()`, `openViewTab()`, `splitRight()` currently call `layout.addTabToGroup()` which triggers `recreateGroupSplit()`. With dockview, these functions instead call `dockview.api.addPanel()` with appropriate panel options. The window export names (`window.openTab`, `window.splitRight`) remain unchanged — callers in HTML templates are unaffected.
-
-**workspace.html** changes: The static initial HTML inside `#editor-groups-container` (the `#group-1` div with `#tab-bar-group-1` and `#editor-area-group-1`) is replaced with an empty container div. Dockview creates all internal DOM. The `bottom-panel` and `panel-resize-handle` elements outside the groups container are unaffected.
-
-**dockview-sempkm-bridge.css** is activated: load order in `workspace.html` becomes:
-```
-theme.css → dockview-sempkm-bridge.css → dockview-core CDN CSS
-```
-This bridge file already exists at `frontend/static/css/dockview-sempkm-bridge.css` as a pattern-only file from v2.2. It maps all `--dv-*` variables to SemPKM `--color-*` / `--tab-*` / `--panel-*` tokens.
-
-### dockview Component Registration
-
-Two panel content components must be registered at init time:
-
-```javascript
-const dockview = new DockviewComponent(
-  document.getElementById('editor-groups-container'),
-  {
-    createComponent: (options) => {
-      if (options.name === 'object-editor') {
-        return {
-          init: (params) => {
-            htmx.ajax('GET', '/browser/object/' + encodeURIComponent(params.params.iri), {
-              target: params.containerElement, swap: 'innerHTML'
-            });
-          }
-        };
-      }
-      if (options.name === 'view-panel') {
-        return {
-          init: (params) => {
-            const url = '/browser/views/' + params.params.viewType + '/' + encodeURIComponent(params.params.viewId);
-            htmx.ajax('GET', url, { target: params.containerElement, swap: 'innerHTML' });
-          }
-        };
-      }
-      if (options.name === 'special-panel') {
-        return {
-          init: (params) => {
-            htmx.ajax('GET', '/browser/' + params.params.specialType, {
-              target: params.containerElement, swap: 'innerHTML'
-            });
-          }
-        };
-      }
-    },
-    createTabComponent: (options) => { /* optional custom tab renderer */ }
-  }
-);
-```
-
-The `params.containerElement` is a plain DOM element. This matches the existing `htmx.ajax()` call in `loadTabInGroup()` exactly — the only change is the target element reference.
-
-### WorkspaceLayout Data Model Changes
-
-`WorkspaceLayout` currently stores:
-```json
-{
-  "groups": [{ "id": "group-1", "tabs": [...], "activeTabId": "...", "size": 50 }],
-  "activeGroupId": "group-1"
-}
-```
-
-With dockview, the canonical layout state is owned by dockview's `toJSON()`. The `WorkspaceLayout` class either:
-1. **Thin wrapper**: Delegates all state reads to `dockview.toJSON()` and writes to `dockview.api.addPanel()`. The class persists `dockview.toJSON()` to sessionStorage instead of its own format.
-2. **Retained for tab metadata**: `WorkspaceLayout` keeps the tab metadata structure (label, dirty, typeIcon) as a sidecar dict keyed by panel ID. Dockview stores only the panel IDs and IRIs in its serialization.
-
-Option 2 is the cleaner migration path. Keep `WorkspaceLayout` as a tab metadata registry; dockview owns the layout geometry. Persist both as `sempkm_workspace_layout_v2` (new key) to avoid collisions with the existing sessionStorage key.
-
-### htmx Re-wiring Required
-
-1. **`sempkm:tab-activated` event**: Currently dispatched from `switchTabInGroup()` and `openTab()` in `workspace-layout.js`. With dockview, wire to `dockview.onDidActivePanelChange` event instead. Same event shape: `{ tabId, groupId, isObjectTab }`.
-
-2. **`sempkm:tabs-empty` event**: Currently dispatched from `removeTabFromGroup()` when no object tabs remain. Wire to `dockview.onDidRemovePanel` callback that checks remaining panels.
-
-3. **`htmx.process()` after panel moves**: The `dockview.onDidLayoutChange` handler should call `htmx.process(changedPanel.view.contentContainer)` to re-establish htmx attribute bindings after drag-to-reorder events (not required for tab switches within same group).
-
-4. **`loadRightPaneSection()`**: Called from `setActiveGroup()` and `switchTabInGroup()` to update the Relations and Lint panels in the right pane. Wire to `dockview.onDidActivePanelChange` instead.
-
-### New vs Modified Files (Phase A)
-
-| File | Status | Change |
-|------|--------|--------|
-| `frontend/static/js/workspace-layout.js` | MODIFIED | Replace `recreateGroupSplit()`, `groupSplitInstance`, HTML5 drag-drop logic with dockview API calls. Keep `WorkspaceLayout` class as metadata registry. |
-| `frontend/static/js/workspace.js` | MODIFIED | `openTab()`, `openViewTab()`, `splitRight()` call `dockview.api.addPanel()` instead of `layout.addTabToGroup()`. Wire events to dockview callbacks. |
-| `backend/app/templates/browser/workspace.html` | MODIFIED | Remove static `#group-1` inner HTML. Add dockview CDN `<link>` and `<script>`. Load `dockview-sempkm-bridge.css`. |
-| `frontend/static/css/dockview-sempkm-bridge.css` | MODIFIED (activated) | Remove "STATUS: Pattern file — NOT loaded" comment. This file is now loaded. |
-| `frontend/static/css/workspace.css` | MODIFIED | Remove `.editor-group`, `.group-tab-bar`, `.group-editor-area`, `gutter-editor-groups` styles. Dockview owns tab bar and group styling. Adjust `.editor-groups-container` to be a full-height dockview host. |
-
----
-
-## Feature 2: Carousel Views
-
-### What Carousel Means
-
-When a user opens an object of type `bpkm:Note`, a carousel bar appears showing all `sempkm:ViewSpec` instances with `sempkm:targetClass: bpkm:Note`. The user clicks (or keyboard-navigates) through them — each switch loads a different view (table, card, graph) for that type. This is "view rotation" per type: instead of navigating away to pick a view from the sidebar, the user cycles views in-place at the top of the editor area.
-
-### Manifest Schema Changes
-
-The current `basic-pkm/views/basic-pkm.jsonld` already declares `sempkm:targetClass` on each `sempkm:ViewSpec`. The data needed for carousel is already present. No schema changes to the JSON-LD view specs are required.
-
-The manifest `manifest.yaml` does not declare views inline — it uses the `entrypoints.views` path to a JSON-LD file. No changes to `ManifestSchema` in `backend/app/models/manifest.py` are needed for carousel.
-
-What IS needed: a **per-type default view order** mechanism. The manifest could declare:
-
-```yaml
-# manifest.yaml addition (new optional key)
-viewOrder:
-  - type: "bpkm:Note"
-    defaultView: "bpkm:view-note-table"
-    order: ["bpkm:view-note-table", "bpkm:view-note-card", "bpkm:view-note-graph"]
-```
-
-However, this adds manifest complexity. The simpler approach: use `sempkm:viewOrder` as an integer property directly on ViewSpec entries in the JSON-LD file:
-
-```json
-{
-  "@id": "bpkm:view-note-table",
-  "@type": "sempkm:ViewSpec",
-  "sempkm:targetClass": { "@id": "bpkm:Note" },
-  "sempkm:viewOrder": 1,
-  "sempkm:isDefaultView": true,
-  ...
-}
-```
-
-This is the recommended approach. It keeps ordering co-located with the view spec itself, survives model install/uninstall correctly, and requires only two new `sempkm:` vocabulary properties.
-
-### Backend Changes
-
-`ViewSpec` dataclass in `backend/app/views/service.py` gains two new optional fields:
+**Implementation:** Modify `_execute_sparql()` in `sparql/router.py` to accept the `User` object and check role constraints before execution. This is a guard check, not a query rewrite -- the existing `scope_to_current_graph()` already handles graph isolation.
 
 ```python
-@dataclass
-class ViewSpec:
+# In sparql/router.py - modified _execute_sparql signature
+async def _execute_sparql(
+    query: str,
+    client: TriplestoreClient,
+    user: User,
+    all_graphs: bool = False,
+) -> Response:
+    # Permission check: only owners can use all_graphs
+    if all_graphs and user.role != "owner":
+        return JSONResponse(status_code=403, content={"error": "all_graphs requires owner role"})
+
+    # Permission check: guests cannot use CONSTRUCT
+    query_type = _detect_query_type(query)
+    if query_type == "CONSTRUCT" and user.role == "guest":
+        return JSONResponse(status_code=403, content={"error": "CONSTRUCT requires member role"})
     ...
-    view_order: int = 99          # NEW: sort order within type, lower = first
-    is_default_view: bool = False  # NEW: which view opens by default for this type
 ```
 
-`ViewSpecService.get_all_view_specs()` SPARQL query gains two `OPTIONAL` clauses:
+**Files modified:** `backend/app/sparql/router.py` (add permission checks to existing endpoints)
+**Files new:** None -- this is a modification, not a new module
+
+### 1.2 SPARQL Autocomplete
+
+**Current state:** Yasgui CDN embed uses LOV API for prefix/class autocomplete by default.
+
+**Integration approach:** Add a backend `/api/sparql/autocomplete` endpoint that returns completions from the triplestore's actual data. Override Yasgui's default autocomplete with a custom completer that queries this endpoint.
+
+```
+GET /api/sparql/autocomplete?type=prefix     -> returns installed prefix:namespace pairs
+GET /api/sparql/autocomplete?type=class      -> returns rdf:type values from current graph
+GET /api/sparql/autocomplete?type=property   -> returns distinct predicates from current graph
+GET /api/sparql/autocomplete?type=iri&q=...  -> returns IRIs matching prefix
+```
+
+The backend queries are simple SPARQL SELECTs against `urn:sempkm:current`:
 
 ```sparql
-OPTIONAL { ?spec <urn:sempkm:vocab:viewOrder> ?order }
-OPTIONAL { ?spec <urn:sempkm:vocab:isDefaultView> ?isDefault }
+# Classes
+SELECT DISTINCT ?class WHERE {
+  GRAPH <urn:sempkm:current> { ?s a ?class }
+}
+
+# Properties
+SELECT DISTINCT ?prop WHERE {
+  GRAPH <urn:sempkm:current> { ?s ?prop ?o }
+}
+
+# IRIs matching prefix
+SELECT DISTINCT ?iri ?label WHERE {
+  GRAPH <urn:sempkm:current> {
+    ?iri ?p ?o .
+    OPTIONAL { ?iri dcterms:title ?label }
+    FILTER(STRSTARTS(STR(?iri), ?prefix))
+  }
+} LIMIT 50
 ```
 
-A new endpoint is added to `backend/app/views/router.py`:
-
-```
-GET /browser/views/carousel/{type_iri:path}
-```
-
-Returns an HTML partial (not JSON) containing the carousel bar for a given type. The partial lists all view specs for the type sorted by `view_order`, with the current view highlighted. This endpoint is called by htmx when an object is opened (or when a type-contextual tab is activated).
-
-The existing `get_view_specs_for_type()` method already does the right query — the new endpoint just adds sorting and renders the carousel template.
-
-### Frontend Changes
-
-A new template `backend/app/templates/browser/carousel_bar.html` renders the view switcher row. It is an htmx partial that loads into a `#carousel-bar` div inside the editor area, above the view content.
-
-The view templates (`table_view.html`, `cards_view.html`, `graph_view.html`) currently include `all_specs` in context and render a simple view-type switcher (the "broken buttons" mentioned in BUG-03). These switcher buttons are replaced by (or rendered from) the carousel bar partial.
-
-`workspace.js` gains a `loadCarouselBar(typeIri, currentSpecIri)` function that calls:
+**Yasgui integration:** The `@zazuko/yasgui` CDN embed supports custom autocompleters. On the frontend, configure YASQE (the editor component inside Yasgui) to use the SemPKM autocomplete endpoint instead of LOV:
 
 ```javascript
-htmx.ajax('GET', '/browser/views/carousel/' + encodeURIComponent(typeIri) + '?current=' + encodeURIComponent(currentSpecIri), {
-  target: '#carousel-bar-' + activeGroupId,
-  swap: 'innerHTML'
+// In sparql-console initialization (workspace bottom panel)
+yasqe.setAutocomplete('class', {
+  autoShow: true,
+  async getCompletions() {
+    const resp = await fetch('/api/sparql/autocomplete?type=class');
+    return (await resp.json()).completions;
+  }
 });
 ```
 
-The carousel bar is wired into `loadTabInGroup()` — after loading a view tab, the carousel bar is also refreshed. For object tabs (not view tabs), no carousel bar is shown (or it shows the object-level view options if VIEW-01 "object view redesign" implements per-object carousel).
+**Files new:** `backend/app/sparql/autocomplete.py` (autocomplete service with SPARQL queries)
+**Files modified:** `backend/app/sparql/router.py` (mount autocomplete endpoints), frontend SPARQL console init code
 
-### New vs Modified Files (Carousel)
+### 1.3 IRI Pills in Results
 
-| File | Status | Change |
-|------|--------|--------|
-| `backend/app/views/service.py` | MODIFIED | Add `view_order` and `is_default_view` to `ViewSpec`. Update SPARQL query. Add `get_view_specs_for_type()` sort by `view_order`. |
-| `backend/app/views/router.py` | MODIFIED | Add `GET /browser/views/carousel/{type_iri:path}` endpoint. |
-| `backend/app/templates/browser/carousel_bar.html` | NEW | Carousel bar partial: view spec pills per type, clickable to switch. |
-| `backend/app/templates/browser/table_view.html` | MODIFIED | Remove broken view switcher buttons (BUG-03). Add `#carousel-bar-{groupId}` div. |
-| `backend/app/templates/browser/cards_view.html` | MODIFIED | Same as table_view. |
-| `backend/app/templates/browser/graph_view.html` | MODIFIED | Same as table_view. |
-| `frontend/static/js/workspace.js` | MODIFIED | Add `loadCarouselBar()`. Call it from view tab activation path. |
-| `models/basic-pkm/views/basic-pkm.jsonld` | MODIFIED | Add `sempkm:viewOrder` and `sempkm:isDefaultView` to each ViewSpec. |
+**Current state:** `SPARQL-02` already renders IRIs as clickable pill links in SPARQL results. This is implemented via a custom YASR (result renderer) plugin.
 
----
-
-## Feature 3: Named Workspace Layouts
-
-### Persistence Decision: localStorage + Backend API
-
-Two options:
-
-1. **localStorage only**: Fast, no server round-trip, no auth concerns. But layouts are lost when localStorage is cleared, not portable across devices, and Mental Model-provided layouts cannot be pre-populated.
-
-2. **Backend API (triplestore)**: Durable, cross-device, allows model-provided defaults. Adds a server call on save/load.
-
-**Recommendation: localStorage fast-path with backend API for named saves.** Session layout (the live working state) lives in localStorage as `sempkm_workspace_layout_v2`. Named layouts (user-saved "Research Mode", "Writing Mode") are stored via backend API in the triplestore as user preferences. Mental Model-provided layouts are stored in the model's views graph as `sempkm:WorkspaceLayout` instances and read at load time.
-
-This matches the pattern already established by the phase-23 research (Section 3 of RESEARCH.md).
-
-### Backend (Named Layouts API)
-
-New module: `backend/app/layouts/` (router.py + service.py)
+**Enhancement:** Extend the pill renderer to show labels (not just IRIs). The existing `LabelService.resolve_labels()` takes a batch of IRIs and returns labels. Add a `/api/labels/batch` endpoint:
 
 ```
-GET  /api/layouts          — list user's named layouts + model-provided layouts
-POST /api/layouts          — save current layout as named layout
-GET  /api/layouts/{name}   — load a specific named layout (returns dockview JSON)
-DELETE /api/layouts/{name} — delete a user-saved layout
+POST /api/labels/batch { "iris": ["urn:...", "urn:..."] }
+-> { "labels": { "urn:...": "My Note", "urn:...": "Concept X" } }
 ```
 
-`LayoutService` stores user layouts as RDF in the triplestore under a user-specific named graph `urn:sempkm:user:{user_id}:layouts`. Each layout is a `sempkm:WorkspaceLayout` resource with:
-- `sempkm:layoutName` (string)
-- `sempkm:layoutConfig` (JSON string — dockview `toJSON()` output)
-- `sempkm:isDefault` (boolean)
-- `sempkm:dockviewVersion` (string, for future migration guards)
-- `dcterms:modified` (datetime)
+The YASR plugin calls this endpoint after rendering results, then updates pill text with resolved labels.
 
-Model-provided layouts are stored in the model's views graph as `sempkm:WorkspaceLayout` instances alongside ViewSpec instances. `ViewSpecService.get_model_layouts()` already has a partial implementation of this query (it currently returns layout algorithm configs for graph views). This method is extended (or a new `get_model_workspace_layouts()` is added) to return full named workspace layout definitions.
+**Files new:** Batch label endpoint (could be in `browser/router.py` or new `labels/router.py`)
+**Files modified:** Frontend YASR plugin code
 
-### Frontend (Named Layouts)
+### 1.4 Server-Side Query History
 
-A new `frontend/static/js/named-layouts.js` module handles:
+**Current state:** Yasgui stores query history in `localStorage` (client-side only, SPARQL-03).
 
-```javascript
-// Auto-save on layout change (debounced 2s)
-dockview.onDidLayoutChange(debounce(() => {
-  localStorage.setItem('sempkm_workspace_layout_v2', JSON.stringify(dockview.toJSON()));
-}, 2000));
+**Integration approach:** Add server-side history storage in SQL (not triplestore -- history is user metadata, not RDF data).
 
-// Save as named layout
-function saveNamedLayout(name) {
-  return fetch('/api/layouts', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, config: dockview.toJSON() })
-  });
-}
-
-// Load named layout
-function loadNamedLayout(name) {
-  return fetch('/api/layouts/' + encodeURIComponent(name))
-    .then(r => r.json())
-    .then(data => {
-      dockview.fromJSON(data.config);
-      // Re-process htmx on all newly created panels
-      document.querySelectorAll('.dv-content-container').forEach(el => htmx.process(el));
-    });
-}
-```
-
-The command palette (`ninja-keys` in `workspace.js`) gains entries for "Save Layout as..." and "Load Layout: {name}" loaded dynamically from `GET /api/layouts`.
-
-### New vs Modified Files (Named Layouts)
-
-| File | Status | Change |
-|------|--------|--------|
-| `backend/app/layouts/` | NEW directory | `router.py` + `service.py` for CRUD on named layouts |
-| `backend/app/main.py` | MODIFIED | Mount layouts router |
-| `frontend/static/js/named-layouts.js` | NEW | `saveNamedLayout()`, `loadNamedLayout()`, auto-save debounce, localStorage persistence |
-| `frontend/static/js/workspace.js` | MODIFIED | Load named-layouts.js, add command palette entries for layout save/load |
-| `backend/app/templates/browser/workspace.html` | MODIFIED | Load `named-layouts.js` |
-
-Note: named layouts depend on Phase A (dockview must be initialized before `dockview.toJSON()` is available). Named layouts ship in the same phase or immediately after Phase A.
-
----
-
-## Feature 4: FTS Fuzzy Search
-
-### Current State
-
-`SearchService` in `backend/app/services/search.py` runs this query pattern:
-
-```sparql
-?iri search:matches [
-  search:query "knowledge base" ;
-  search:score ?score ;
-  search:snippet ?snippet
-]
-```
-
-LuceneSail interprets the `search:query` value as a standard Lucene query string. The current implementation passes the raw user query string directly into `search:query`. This means the user must already know Lucene syntax to use wildcards (`knowl*`) or fuzzy matching (`knowlege~`).
-
-### FTS-04 Change: Query Normalization
-
-The `SearchService.search()` method adds a query normalization step before passing to SPARQL. The normalization appends a `~` (Lucene fuzzy edit-distance operator) to each term unless the user has already used query syntax:
+**New SQL table:**
 
 ```python
-def _normalize_query(self, raw: str) -> str:
-    """Append fuzzy operator to bare terms for approximate matching.
+class SparqlQueryHistory(Base):
+    __tablename__ = "sparql_query_history"
 
-    Rules:
-    - If query contains Lucene operators (AND, OR, NOT, *, ?, ~, ", :, +, -)
-      treat as a power-user query and pass through unchanged.
-    - Otherwise, split on whitespace and append ~ to each term.
-      "knowledge base" → "knowledge~ base~"
-    """
-    LUCENE_OPERATORS = set('*?~":()+')
-    LUCENE_KEYWORDS = {'AND', 'OR', 'NOT'}
-    terms = raw.strip().split()
-    if any(c in raw for c in LUCENE_OPERATORS) or any(t.upper() in LUCENE_KEYWORDS for t in terms):
-        return raw  # pass through unchanged
-    return ' '.join(t + '~' for t in terms)
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    query_text: Mapped[str] = mapped_column(Text())
+    executed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    duration_ms: Mapped[int | None] = mapped_column(nullable=True)
+    result_count: Mapped[int | None] = mapped_column(nullable=True)
 ```
 
-The `~` operator in Lucene uses edit-distance 2 by default (configurable: `~1` for edit-distance 1). For PKM search, `~` (edit-distance 2) is appropriate. This handles common typos like "knowlege~" matching "knowledge".
+**Endpoints:**
 
-Additionally, for multi-word queries, wrap in a phrase-with-slop or use OR logic. The recommended normalization for a two-word query "knowledge base":
-- Raw passthrough for power users: `knowledge AND base` or `"knowledge base"`
-- Fuzzy normalization for bare terms: `knowledge~ base~` (both terms must appear with fuzzy matching)
+```
+GET  /api/sparql/history         -> paginated history for current user
+POST /api/sparql/history         -> record a query execution (called after each SPARQL run)
+DELETE /api/sparql/history/{id}  -> delete a history entry
+```
 
-### Backend Changes
+**Why SQL not triplestore:** Query history is user-scoped CRUD data with pagination -- exactly what SQL excels at. Putting it in the triplestore would create noisy named graphs unrelated to knowledge data.
 
-`backend/app/services/search.py`:
-1. Add `_normalize_query()` method to `SearchService`
-2. Call it in `search()` before building the SPARQL string: `normalized = self._normalize_query(query.strip())`
-3. Optionally add a `fuzzy: bool = True` parameter to allow callers to disable fuzzy for exact searches (command palette might want exact prefix matching)
+**Files new:** `backend/app/sparql/history.py` (service + model), Alembic migration
+**Files modified:** `backend/app/sparql/router.py` (auto-record after execution), frontend SPARQL console
 
-The `FTS_QUERY` template and SPARQL structure are unchanged. Only the value passed to `search:query` changes.
+### 1.5 Saved & Shared Queries
 
-The `/api/search` endpoint (in `browser/router.py` or a dedicated `search/router.py`) gains an optional `fuzzy=false` query parameter for callers that need exact matching.
+**Integration approach:** Extend the SQL history model with a "saved queries" concept.
 
-### Confidence on Lucene Fuzzy Syntax
+```python
+class SavedSparqlQuery(Base):
+    __tablename__ = "saved_sparql_queries"
 
-The `~` fuzzy operator is standard Lucene syntax supported by LuceneSail — LuceneSail uses Apache Lucene's QueryParser internally, which supports the full Lucene query syntax including `~`. This is HIGH confidence from the LuceneSail documentation and Lucene query syntax reference.
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    name: Mapped[str] = mapped_column(String(255))
+    query_text: Mapped[str] = mapped_column(Text())
+    description: Mapped[str | None] = mapped_column(Text(), nullable=True)
+    is_shared: Mapped[bool] = mapped_column(Boolean(), default=False)
+    share_token: Mapped[str | None] = mapped_column(String(64), unique=True, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+```
 
-Edit-distance defaults: Lucene 9.x (used by RDF4J 5.x) uses `~` for edit-distance 2. This can be tuned per-term: `knowledge~1` for edit-distance 1 (less permissive), `knowledge~2` for edit-distance 2.
+Shared queries are accessible via `GET /api/sparql/shared/{share_token}` without authentication (read-only).
 
-### New vs Modified Files (FTS Fuzzy)
+**Files new:** `backend/app/sparql/saved.py`, Alembic migration
+**Files modified:** Frontend SPARQL console (save/load UI)
 
-| File | Status | Change |
-|------|--------|--------|
-| `backend/app/services/search.py` | MODIFIED | Add `_normalize_query()`. Call in `search()`. Optional `fuzzy` parameter. |
-| Backend search endpoint | MODIFIED | Add `fuzzy=true` query param. |
+### 1.6 Named Queries as Views
 
-This is the smallest change of the four features — two files, one new method.
+**Integration approach:** A saved query can be "promoted" to a ViewSpec. This bridges the SPARQL console and the view system.
+
+When a user promotes a saved query, the system creates a `sempkm:ViewSpec` in a user-specific views named graph (`urn:sempkm:user:{user_id}:views`) with the query text, a table renderer, and columns inferred from the query's SELECT variables.
+
+The existing `ViewSpecService` already queries across model views graphs -- extend it to also query user views graphs.
+
+**Files modified:** `backend/app/views/service.py` (query user views graphs), `backend/app/sparql/saved.py` (promote endpoint)
 
 ---
 
-## Data Flow Changes
+## 2. Collaboration & Federation
 
-### Dockview Phase A: Tab Open Flow
+### 2.1 RDF Patch Format
 
-```
-User clicks tree node
-    ↓
-onclick="openTab(iri, label)"         [workspace.js — unchanged call site]
-    ↓
-openTab() in workspace.js
-    ↓
-dockview.api.addPanel({              [NEW — replaces layout.addTabToGroup()]
-  id: iri,
-  component: 'object-editor',
-  params: { iri: iri },
-  title: label
-})
-    ↓
-dockview createComponent callback
-    ↓
-htmx.ajax('GET', '/browser/object/'+iri, {  [same as current loadTabInGroup()]
-  target: params.containerElement,
-  swap: 'innerHTML'
-})
-    ↓
-Backend: browser/router.py → object.html partial
-    ↓
-DOM updated in dockview container element
-    ↓
-dockview.onDidActivePanelChange fires
-    ↓
-document.dispatchEvent('sempkm:tab-activated', {isObjectTab: true})  [same event]
-    ↓
-workspace.js panel indicator updates (unchanged listener)
-```
+**What it is:** RDF Patch is a format for describing changes to an RDF dataset as a series of add/delete operations in N-Triples-like syntax. SemPKM's event store already captures this information -- each `Operation` has `materialize_inserts` and `materialize_deletes`.
 
-### Carousel Views: View Switch Flow
+**Integration approach:** Add an RDF Patch serializer that converts `Operation` objects to the RDF Patch text format:
 
 ```
-User opens view tab (table view for bpkm:Note)
-    ↓
-loadTabInGroup() / dockview createComponent (view-panel)
-    ↓
-htmx.ajax('/browser/views/table/'+specIri) → table_view.html partial
-    ↓
-table_view.html renders with #carousel-bar-{groupId} div
-    ↓
-loadCarouselBar(typeIri, currentSpecIri) in workspace.js
-    ↓
-htmx.ajax('/browser/views/carousel/'+typeIri+'?current='+specIri)
-    ↓
-carousel_bar.html partial: pills for [Table][Card][Graph] with active state
-    ↓
-User clicks "Card" pill
-    ↓
-onclick="openViewTab(cardSpecIri, 'People Cards', 'card')"
-    ↓
-Existing openViewTab() flow — loads new view tab or switches to existing
+H id <urn:sempkm:event:abc123> .
+H prev <urn:sempkm:event:abc122> .
+A <urn:ex:note1> <dcterms:title> "My Note" .
+D <urn:ex:note1> <dcterms:title> "Old Title" .
 ```
 
-### Named Layout: Save Flow
+This is a new serialization layer on top of the existing event store, not a replacement.
+
+**New module:** `backend/app/federation/patch.py`
+
+```python
+class RDFPatchSerializer:
+    """Serialize Operation objects to RDF Patch format."""
+
+    def serialize(self, operation: Operation, event_iri: str, prev_event_iri: str | None) -> str:
+        lines = [f"H id <{event_iri}> ."]
+        if prev_event_iri:
+            lines.append(f"H prev <{prev_event_iri}> .")
+        for s, p, o in operation.materialize_deletes:
+            lines.append(f"D {_serialize(s)} {_serialize(p)} {_serialize(o)} .")
+        for s, p, o in operation.materialize_inserts:
+            lines.append(f"A {_serialize(s)} {_serialize(p)} {_serialize(o)} .")
+        lines.append("TX .")
+        return "\n".join(lines)
+```
+
+**Endpoint:** `GET /api/federation/patches?since={event_iri}` returns a stream of RDF Patch entries since the given event, for consumption by remote instances.
+
+### 2.2 Named Graph Sync
+
+**Design:** Each SemPKM instance has a sync identity derived from its WebID/instance URL. Sync operates on the `urn:sempkm:current` graph only -- event graphs and system graphs are not synced.
+
+**Sync flow:**
 
 ```
-User clicks "Save Layout" in command palette
-    ↓
-saveNamedLayout(name) in named-layouts.js
-    ↓
-dockview.toJSON() → layout JSON object
-    ↓
-POST /api/layouts { name, config: JSON.stringify(layoutJson) }
-    ↓
-LayoutService.save_layout(user_id, name, config_str)
-    ↓
-SPARQL UPDATE: insert sempkm:WorkspaceLayout into urn:sempkm:user:{id}:layouts
+Instance A                                      Instance B
+    |                                                |
+    |-- POST /api/federation/patches?since=X ------->|
+    |<-- RDF Patch stream (A, D operations) ---------|
+    |                                                |
+    | Apply patches via EventStore.commit()          |
+    | (creates local events for audit trail)          |
+    |                                                |
+    |-- POST /api/federation/ack { last_applied } -->|
+    |                                                |
 ```
 
-### FTS Fuzzy: Search Flow
+**New module:** `backend/app/federation/sync.py` (SyncEngine)
+
+The SyncEngine is a background task (not middleware) that periodically polls configured remote instances. Configuration stored in SQL:
+
+```python
+class FederationPeer(Base):
+    __tablename__ = "federation_peers"
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    instance_url: Mapped[str] = mapped_column(String(2048), unique=True)
+    display_name: Mapped[str | None] = mapped_column(String(255))
+    last_synced_event: Mapped[str | None] = mapped_column(String(2048))  # event IRI
+    sync_direction: Mapped[str] = mapped_column(String(20))  # "pull", "push", "bidirectional"
+    enabled: Mapped[bool] = mapped_column(Boolean(), default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+```
+
+**Conflict resolution:** Last-writer-wins per triple, using event timestamps. Conflicts are logged to a `urn:sempkm:sync:conflicts` named graph for manual review.
+
+### 2.3 LDN (Linked Data Notifications)
+
+**What it is:** W3C Recommendation for a protocol where senders POST JSON-LD notifications to an inbox URL, and consumers GET notifications from it.
+
+**Integration approach:** SemPKM acts as both LDN Sender (outbound notifications) and LDN Receiver (inbox).
+
+**Inbox:** A new endpoint at `/api/ldn/inbox` that accepts JSON-LD POST notifications and stores them in the triplestore under `urn:sempkm:ldn:inbox:{notification_id}` named graphs.
 
 ```
-User types "knowlege" in Ctrl+K palette
-    ↓
-_initFtsSearch() debounce 300ms fires in workspace.js (unchanged)
-    ↓
-GET /api/search?q=knowlege&limit=10
-    ↓
-SearchService.search("knowlege")
-    ↓
-_normalize_query("knowlege") → "knowlege~"       [NEW]
-    ↓
-FTS_QUERY with search:query "knowlege~"
-    ↓
-LuceneSail fuzzy match: "knowlege~" matches "knowledge" (edit-distance 1)
-    ↓
-SearchResult list returned, rendered as command palette entries (unchanged)
+POST /api/ldn/inbox
+Content-Type: application/ld+json
+
+{
+  "@context": "https://www.w3.org/ns/activitystreams",
+  "@type": "Announce",
+  "actor": "https://remote.instance/users/bob#me",
+  "object": "urn:sempkm:model:basic-pkm:seed-note-arch",
+  "target": "https://this.instance/api/ldn/inbox"
+}
 ```
+
+**Sender:** When federation sync occurs, or when a shared query is created, the system can send LDN notifications to configured peers' inboxes.
+
+**Discovery:** The inbox URL is advertised via HTTP Link header on the WebID profile: `Link: </api/ldn/inbox>; rel="http://www.w3.org/ns/ldp#inbox"`.
+
+**New module:** `backend/app/federation/ldn.py` (LDNInbox, LDNSender)
+**Files modified:** `backend/app/webid/router.py` (add inbox Link header)
+
+### 2.4 Federated WebID Authentication
+
+**Current state:** WebID profiles exist (v2.5). IndieAuth provides OAuth2 flows. Each user has Ed25519 keys.
+
+**Integration approach for federation auth:** When Instance A fetches patches from Instance B, it authenticates using HTTP Signatures (RFC 9421) with the requesting user's Ed25519 key. Instance B verifies by dereferencing the WebID to get the public key.
+
+```
+Instance A -> GET /api/federation/patches
+  Authorization: Signature keyId="https://instance-a/users/alice#me",
+                 algorithm="ed25519",
+                 headers="(request-target) date",
+                 signature="base64..."
+
+Instance B:
+  1. Extract keyId (WebID URI)
+  2. Dereference WebID -> get public key
+  3. Verify signature
+  4. Check if WebID is in allowed peers list
+```
+
+**New module:** `backend/app/federation/auth.py` (signature creation and verification)
+**Dependencies:** `cryptography` (already installed for Fernet), `httpx` (already installed)
+
+### 2.5 Collaboration UI
+
+A new workspace panel (sidebar or dockview tab) showing:
+- Configured federation peers with sync status (last sync time, pending patches count)
+- LDN inbox notifications with accept/dismiss actions
+- Sync conflict list with resolution options
+
+**Files new:** `backend/app/federation/router.py`, templates for collaboration UI
+**Files modified:** `backend/app/templates/browser/workspace.html` (add collaboration panel option)
+
+---
+
+## 3. User Custom VFS (MountSpec)
+
+### 3.1 MountSpec Vocabulary
+
+**Current state:** VFS provider (`vfs/provider.py`) has a fixed hierarchy: `/model-id/type-label/filename.md`. Users cannot customize directory structure.
+
+**MountSpec design:** A declarative RDF vocabulary that defines how objects map to filesystem paths.
+
+```turtle
+@prefix mount: <urn:sempkm:vocab:mount:> .
+
+<urn:sempkm:mount:my-notes>
+    a mount:MountSpec ;
+    mount:label "My Notes" ;
+    mount:strategy mount:ByType ;           # directory strategy
+    mount:targetModel "basic-pkm" ;
+    mount:targetTypes ( bpkm:Note bpkm:Concept ) ;
+    mount:pathTemplate "{type}/{label}.md" ;
+    mount:owner <urn:sempkm:user:abc> .
+```
+
+### 3.2 Five Directory Strategies
+
+Each strategy defines how objects are organized into directories:
+
+| Strategy | Path Pattern | Example |
+|----------|-------------|---------|
+| `ByType` | `/{type_label}/{object_label}.md` | `/Notes/Architecture.md` |
+| `ByDate` | `/{year}/{month}/{object_label}.md` | `/2026/03/Architecture.md` |
+| `ByProperty` | `/{property_value}/{object_label}.md` | `/Work/Project Alpha.md` |
+| `Flat` | `/{object_label}.md` | `/Architecture.md` |
+| `ByTag` | `/{tag}/{object_label}.md` | `/architecture/My Note.md` |
+
+**Implementation:** Extend `SemPKMDAVProvider.get_resource_inst()` to support mount-specific path routing. Each mount gets a top-level directory entry. The provider inspects the first path segment to determine if it is a default mount (model-id) or a user mount (mount label).
+
+```python
+# Modified provider.py
+def get_resource_inst(self, path: str, environ: dict):
+    parts = [p for p in path.strip("/").split("/") if p]
+
+    if len(parts) == 0:
+        return RootCollection(path, environ, self._client, self._mount_service)
+
+    # Check if first segment is a user mount
+    mount = self._mount_service.get_mount_by_label(parts[0], user_id=environ.get("sempkm.user_id"))
+    if mount:
+        return self._resolve_mount_path(mount, parts[1:], path, environ)
+
+    # Fall back to existing model-based routing
+    ...
+```
+
+### 3.3 MountSpecService
+
+**New module:** `backend/app/vfs/mounts.py`
+
+```python
+class MountSpecService:
+    """Manage user-defined VFS mount configurations."""
+
+    def __init__(self, client: TriplestoreClient):
+        self._client = client
+
+    async def list_mounts(self, user_id: str) -> list[MountSpec]:
+        """List all mount specs for a user."""
+        # Query urn:sempkm:mount:* graphs
+
+    async def create_mount(self, user_id: str, spec: MountSpecCreate) -> MountSpec:
+        """Create a new mount spec, stored as RDF in triplestore."""
+
+    async def resolve_path(self, mount: MountSpec, object_data: dict) -> str:
+        """Given an object, return its filesystem path under this mount."""
+```
+
+**Storage:** MountSpecs stored as RDF in `urn:sempkm:user:{user_id}:mounts` named graph.
+
+### 3.4 SHACL Frontmatter Writes
+
+**Current state:** VFS write path (`vfs/write.py`) strips frontmatter and commits only the body via `body.set`.
+
+**Enhancement:** Parse frontmatter YAML keys and map them back to RDF properties using SHACL shape definitions. When a user edits frontmatter in their editor (VS Code, Obsidian), the changed property values are committed as `object.patch` commands.
+
+```python
+# Extended write path
+def parse_and_commit_frontmatter(raw_bytes: bytes, object_iri: str, shapes_service, event_store):
+    post = frontmatter.loads(raw_bytes.decode("utf-8"))
+    body = post.content
+    metadata = post.metadata
+
+    # Get SHACL shape for this object's type
+    shape = shapes_service.get_shape_for_iri(object_iri)
+
+    # Map frontmatter keys back to predicates using _PREDICATE_LABELS reverse map
+    operations = []
+    for key, value in metadata.items():
+        predicate = _reverse_label_map.get(key)
+        if predicate:
+            operations.append(build_patch_operation(object_iri, predicate, value))
+
+    # Also commit body
+    operations.append(build_body_set_operation(object_iri, body))
+
+    # Atomic commit
+    event_store.commit(operations)
+```
+
+**Files modified:** `backend/app/vfs/write.py`, `backend/app/vfs/resources.py`
+**Files new:** `backend/app/vfs/mounts.py`, `backend/app/vfs/strategies.py`
+
+### 3.5 Management UI
+
+A settings sub-page (or dockview tab) for managing VFS mounts:
+- List existing mounts with edit/delete
+- Create new mount: select strategy, target types, path template
+- Preview: show example paths for sample objects
+
+**Files new:** Template for mount management UI, endpoint in `vfs/router.py`
+
+---
+
+## 4. VFS Browser UX Polish
+
+**Current state:** VFS browser (`vfs-browser.js`) shows a tree with model > type > objects. No breadcrumbs, no preview pane, limited navigation.
+
+### Integration Points
+
+| Enhancement | Backend Change | Frontend Change |
+|-------------|---------------|-----------------|
+| Breadcrumbs | None (path info in existing response) | Parse path segments, render breadcrumb bar |
+| Preview pane | None (already renders markdown) | Split browser into tree + preview layout |
+| Navigation improvements | None | Keyboard nav, back/forward buttons |
+| File operations | None planned for v2.6 | UI affordances only |
+
+**Files modified:** `frontend/static/js/vfs-browser.js`, `frontend/static/css/vfs-browser.css`, `backend/app/templates/browser/vfs_browser.html`
+
+---
+
+## 5. Object Browser UI Improvements
+
+### 5.1 Refresh/Plus Icons in Nav Tree
+
+**Current state:** Nav tree nodes show type label only. No action buttons.
+
+**Change:** Add inline icon buttons (Lucide) for "refresh this branch" and "create new object of this type" directly in tree nodes.
+
+**Files modified:** `backend/app/templates/browser/nav_tree.html`, `frontend/static/css/workspace.css`
+
+### 5.2 Multi-Select
+
+**Integration approach:** Add checkbox selection to table/card views. Selected objects can be batch-deleted, batch-exported, or batch-tagged.
+
+Backend needs a batch delete endpoint:
+
+```
+POST /api/commands/batch-delete
+{ "iris": ["urn:...", "urn:..."] }
+```
+
+This dispatches multiple `object.patch` commands (setting `sempkm:deleted true`) in a single transaction.
+
+**Files modified:** `frontend/static/js/workspace.js`, table/card view templates, `backend/app/commands/router.py`
+
+### 5.3 Edge Inspector
+
+A dockview panel (or right-pane section) showing all edges for the currently focused object with:
+- Edge IRI, source, target, predicate
+- Edge metadata (created, modified, provenance)
+- Delete/edit actions per edge
+
+**Files new:** `backend/app/templates/browser/edge_inspector.html`
+**Files modified:** `backend/app/browser/router.py` (new endpoint), `frontend/static/js/workspace.js`
+
+### 5.4 View Filtering
+
+Add filter controls to table/card views: filter by property value, date range, or label substring.
+
+**Backend:** The existing `ViewSpecService.execute_query()` already supports pagination and sorting. Add a `filters` parameter that injects FILTER clauses into the SPARQL query.
+
+**Files modified:** `backend/app/views/service.py`, `backend/app/views/router.py`, table/card view templates
+
+---
+
+## 6. Event Log & Lint Dashboard Fixes
+
+### Event Log Fixes
+
+**Current state:** `events/query.py` EventQueryService provides diffs but some diff rendering has issues.
+
+**Fix scope:** Template-level fixes in event log templates, not architectural changes. The `body_diff` field in `EventDetail` already computes diffs via `difflib` -- rendering issues are CSS/template bugs.
+
+**Files modified:** Event log templates, `frontend/static/css/workspace.css`
+
+### Lint Dashboard Fixes
+
+**Current state:** `lint/` module with LintService, broadcast, and router.
+
+**Fix scope:** CSS layout width issues, walkthrough (Driver.js tour) improvements.
+
+**Files modified:** Lint dashboard templates, CSS, possibly `frontend/static/js/tutorials.js`
+
+---
+
+## 7. Spatial Canvas UI
+
+**Current state:** `canvas/` module with Cytoscape.js integration, named sessions.
+
+**Enhancement scope:** UX improvements TBD during phase planning. Architectural impact is minimal -- canvas is well-isolated.
+
+**Files modified:** `frontend/static/js/canvas.js`, canvas templates
 
 ---
 
 ## Component Boundary Summary
 
-| Component | Owns | Does NOT Own |
-|-----------|------|-------------|
-| `workspace.js` | Outer pane sizes (Split.js), command palette, keyboard shortcuts, event routing | Tab bars, group splits, panel content loading |
-| `workspace-layout.js` (modified) | Tab metadata (label, dirty, typeIcon) per panel ID, dockview init, sessionStorage persistence | Layout geometry (now owned by dockview), DOM structure |
-| `dockview-core` (new) | Tab bars, group creation/destruction, drag-to-reorder, sash resize, panel serialization | Content loaded into panels (htmx does this) |
-| `named-layouts.js` (new) | Named layout CRUD, auto-save debounce | Layout display UI (command palette does this) |
-| `ViewSpecService` | Loading ViewSpec from triplestore, executing SPARQL queries, `view_order` / `is_default_view` | Carousel rendering (router + template does this) |
-| `SearchService` | Query normalization, LuceneSail FTS execution | Search UI (command palette does this) |
-| `LayoutService` (new) | Persisting named layouts to triplestore | Layout serialization format (dockview + named-layouts.js do this) |
+| Component | Owns | Communicates With |
+|-----------|------|-------------------|
+| `sparql/router.py` (MOD) | Permission checks, autocomplete, history recording | TriplestoreClient, AuthService, SQL DB |
+| `sparql/history.py` (NEW) | Query history CRUD, saved queries | SQL DB (Alembic migration) |
+| `federation/patch.py` (NEW) | RDF Patch serialization | EventStore (read-only) |
+| `federation/sync.py` (NEW) | Background sync polling, patch application | EventStore (write), remote HTTP, FederationPeer SQL |
+| `federation/ldn.py` (NEW) | LDN inbox/sender protocol | TriplestoreClient (notification storage), httpx (outbound) |
+| `federation/auth.py` (NEW) | HTTP Signature creation/verification | WebID service (key access), httpx (WebID dereference) |
+| `federation/router.py` (NEW) | REST API for federation config + patches | All federation services |
+| `vfs/mounts.py` (NEW) | MountSpec CRUD, path resolution | TriplestoreClient, ShapesService |
+| `vfs/strategies.py` (NEW) | 5 directory strategy implementations | MountSpecService, LabelService |
+| `vfs/provider.py` (MOD) | Path routing with mount awareness | MountSpecService |
+| `vfs/write.py` (MOD) | SHACL-aware frontmatter write path | ShapesService, EventStore |
+| `browser/router.py` (MOD) | Edge inspector, multi-select, view filter | TriplestoreClient, LabelService |
+| `views/service.py` (MOD) | User views graphs, filter injection | TriplestoreClient |
+
+---
+
+## Data Flow Changes
+
+### SPARQL Autocomplete Flow
+
+```
+User types "bpkm:" in YASQE editor
+    |
+YASQE custom autocompleter fires
+    |
+GET /api/sparql/autocomplete?type=class&q=bpkm:
+    |
+AutocompleteService.get_classes(prefix="bpkm:")
+    |
+SPARQL: SELECT DISTINCT ?class WHERE { ?s a ?class . FILTER(STRSTARTS(STR(?class), "urn:sempkm:model:basic-pkm:")) }
+    |
+Returns: [{ iri: "bpkm:Note", label: "Note" }, { iri: "bpkm:Concept", label: "Concept" }]
+    |
+YASQE shows completion dropdown
+```
+
+### RDF Patch Sync Flow
+
+```
+SyncEngine background task wakes up (every 60s configurable)
+    |
+For each enabled FederationPeer:
+    |
+GET https://remote.instance/api/federation/patches?since={last_synced_event}
+  Authorization: HTTP Signature with local user's Ed25519 key
+    |
+Remote instance:
+  1. Verify HTTP Signature against sender's WebID public key
+  2. Check sender is in allowed peers
+  3. Query EventStore for events since requested event IRI
+  4. Serialize as RDF Patch stream
+  5. Return text/x-rdf-patch response
+    |
+Local SyncEngine:
+  1. Parse RDF Patch (A/D operations)
+  2. For each patch transaction:
+     a. Build Operation(materialize_inserts=A_triples, materialize_deletes=D_triples)
+     b. EventStore.commit([operation], performed_by=remote_webid, performed_by_role="federation")
+  3. Update FederationPeer.last_synced_event
+  4. If conflict detected (triple exists with different value):
+     Log to urn:sempkm:sync:conflicts graph
+```
+
+### MountSpec VFS Path Resolution Flow
+
+```
+User mounts VFS via WebDAV client
+    |
+GET /vfs/My Notes/Architecture.md
+    |
+SemPKMDAVProvider.get_resource_inst("/My Notes/Architecture.md")
+    |
+MountSpecService.get_mount_by_label("My Notes", user_id)
+    -> Returns MountSpec(strategy=ByType, targetTypes=[bpkm:Note])
+    |
+StrategyResolver.resolve("/My Notes", "Architecture.md", mount_spec)
+    -> ByTypeStrategy: lookup object with label "Architecture" of type bpkm:Note
+    -> Returns object_iri, type_iri
+    |
+ResourceFile(path, environ, client, ...) -- renders as before
+```
+
+### LDN Notification Flow
+
+```
+Instance A creates a shared query
+    |
+LDNSender.send_notification(
+    target_inbox="https://instance-b/api/ldn/inbox",
+    notification={
+        "@type": "Announce",
+        "actor": "https://instance-a/users/alice#me",
+        "object": { "@id": "https://instance-a/api/sparql/shared/abc123", "@type": "SparqlQuery" },
+        "summary": "Alice shared a SPARQL query"
+    }
+)
+    |
+POST https://instance-b/api/ldn/inbox
+Content-Type: application/ld+json
+Authorization: HTTP Signature
+    |
+Instance B LDN Inbox:
+  1. Validate JSON-LD structure
+  2. Store in urn:sempkm:ldn:inbox:{uuid} named graph
+  3. Return 201 Created with Location header
+    |
+Instance B user sees notification in Collaboration UI panel
+```
+
+---
+
+## New Named Graphs
+
+| Named Graph | Purpose | Owner |
+|-------------|---------|-------|
+| `urn:sempkm:user:{id}:views` | User-created ViewSpecs (promoted from saved queries) | User |
+| `urn:sempkm:user:{id}:mounts` | User MountSpec definitions | User |
+| `urn:sempkm:sync:conflicts` | Federation sync conflicts | System |
+| `urn:sempkm:ldn:inbox:{id}` | Individual LDN notifications | System |
+
+---
+
+## New SQL Tables (Alembic Migrations)
+
+| Table | Purpose | Rationale for SQL vs RDF |
+|-------|---------|--------------------------|
+| `sparql_query_history` | Per-user query execution log | High-churn CRUD, pagination, not knowledge data |
+| `saved_sparql_queries` | Named/shared queries | User metadata, share tokens, not knowledge data |
+| `federation_peers` | Remote instance configuration | Config data with last-sync cursor, not RDF |
 
 ---
 
 ## Build Order (Dependency Graph)
 
 ```
-FTS Fuzzy (FTS-04)                      ← INDEPENDENT, ship first
-    ↓ no blockers
+Phase group 1: Independent, no cross-deps
+  [SPARQL Permissions]         <- Smallest change, immediate security value
+  [Event Log Fixes]            <- Template-level fixes, zero risk
+  [Lint Dashboard Fixes]       <- CSS fixes, zero risk
+  [Spatial Canvas UX]          <- Isolated module
 
-Dockview Phase A (DOCK-01)             ← requires CSS bridge already in place (done v2.2)
-    ↓
-    ├── Carousel Views (VIEW-02)        ← requires view router; can proceed in parallel
-    │       depends on: ViewSpecService changes (small), new endpoint, new template
-    │
-    └── Named Layouts (DOCK-02)         ← requires dockview.toJSON() available (needs DOCK-01)
-            depends on: new LayoutService, new API routes, dockview Phase A complete
+Phase group 2: SPARQL Interface (sequential within)
+  [SPARQL Autocomplete]        <- Needs autocomplete endpoint
+  [SPARQL Server History]      <- Needs SQL migration
+  [SPARQL Saved Queries]       <- Builds on history model
+  [Named Queries as Views]     <- Depends on saved queries + ViewSpecService mod
+  [IRI Pills Enhancement]      <- Independent of history, batch labels endpoint
+
+Phase group 3: Object Browser (parallel)
+  [Nav Tree Refresh/Plus]      <- Template change
+  [Multi-Select]               <- Frontend + batch endpoint
+  [Edge Inspector]             <- New panel, new endpoint
+  [View Filtering]             <- ViewSpecService filter injection
+
+Phase group 4: VFS (sequential)
+  [MountSpec Vocabulary]       <- Define RDF vocabulary first
+  [MountSpec Service]          <- CRUD for mount specs
+  [Directory Strategies]       <- 5 strategy implementations
+  [SHACL Frontmatter Writes]   <- Depends on ShapesService integration
+  [VFS Browser UX Polish]      <- Can proceed in parallel
+  [Mount Management UI]        <- Depends on service layer
+
+Phase group 5: Federation (sequential, highest complexity)
+  [RDF Patch Serializer]       <- Pure function, no deps
+  [Federation Auth]            <- HTTP Signatures, WebID key access
+  [Patch Sync Engine]          <- Depends on patch serializer + auth
+  [LDN Inbox/Sender]           <- Independent of sync, but same auth
+  [Collaboration UI]           <- Depends on all federation services
 ```
 
-Recommended phase sequence:
-
-1. **FTS-04** (2 files, lowest risk — ship independently, immediate user value)
-2. **DOCK-01** (Phase A — largest change, but well-scoped to workspace-layout.js)
-3. **VIEW-02** (Carousel — can start in parallel with DOCK-01 since backend is independent; frontend carousel bar wires into dockview panels after DOCK-01 stabilizes)
-4. **DOCK-02** (Named layouts — depends on DOCK-01 dockview.toJSON() being live)
-
-BUG-01/02/03 can be fixed anytime independently (no cross-feature dependencies).
+**Recommended phase ordering rationale:**
+1. Groups 1-3 can proceed in parallel (no cross-dependencies)
+2. Group 4 (VFS) depends only on existing ShapesService
+3. Group 5 (Federation) is the most complex and should be last -- it builds on WebID (v2.5) and requires new protocol implementations
+4. Within each group, the listed order respects internal dependencies
 
 ---
 
-## Architectural Patterns to Follow
+## Patterns to Follow
 
-### Pattern: htmx Target is Always a Named Container
+### Pattern: SQL for User Metadata, RDF for Knowledge Data
 
-All `htmx.ajax()` calls use explicit container IDs, never relative selectors like `closest`. This ensures calls survive dockview panel reparenting.
+Query history, saved queries, and federation peer config are user CRUD data -- use SQL with Alembic migrations. MountSpecs and user ViewSpecs are knowledge-adjacent data that benefit from RDF querying -- store in triplestore named graphs.
 
-```javascript
-// Good: explicit container element reference
-htmx.ajax('GET', url, { target: params.containerElement, swap: 'innerHTML' });
+### Pattern: Event Store for All Writes
 
-// Bad: ancestor-scoped selector (breaks after dockview reparent)
-htmx.ajax('GET', url, { target: 'closest .group-editor-area', swap: 'innerHTML' });
-```
+Federation sync must go through `EventStore.commit()` even for remotely-sourced patches. This preserves the audit trail, triggers validation, and fires webhooks. Never bypass the event store with direct triplestore updates.
 
-### Pattern: Dockview Events Drive SemPKM Events
+### Pattern: HTTP Signatures for Federation Auth
 
-SemPKM custom events (`sempkm:tab-activated`, `sempkm:tabs-empty`) are dispatched from dockview event callbacks, not from SemPKM data model mutations. This keeps the event contract stable for all consumers (panel indicator, lint panel, relations panel) while the internals migrate.
+Use RFC 9421 HTTP Signatures with Ed25519 keys (already generated per user in v2.5). Verify by dereferencing the sender's WebID to retrieve their public key. This avoids shared secrets and leverages the existing WebID infrastructure.
 
-### Pattern: ViewSpec is Renderer-Agnostic
+### Pattern: Background Tasks via asyncio.create_task
 
-The `ViewSpec` dataclass does not know about carousel, dockview, or any UI concept. It is pure data (IRI, label, SPARQL query, renderer type). The carousel bar is a rendering layer on top of `ViewSpec` data — `ViewSpecService` methods return data, templates decide how to present it.
-
-### Pattern: Layout JSON is Versioned
-
-All stored layout JSON (localStorage and triplestore) includes a `dockviewVersion` field. When loading, check this field and skip loading (fall back to default) if the major version does not match the loaded dockview-core version. This prevents silently broken layouts after a dockview major upgrade.
+The SyncEngine should run as a periodic background task created during app lifespan, similar to the existing `AsyncValidationQueue`. Use `asyncio.create_task()` with a sleep loop, not a full task queue system (Celery/Redis would be overengineering for single-instance sync).
 
 ---
 
 ## Anti-Patterns to Avoid
 
-### Anti-Pattern: Modifying dockview Internal DOM
+### Anti-Pattern: Direct Triplestore Writes for Sync
 
-**What:** Using querySelector on dockview-generated elements (class names like `dv-content-container`, `dv-tabs-and-actions-container`) to inject custom behavior.
+**What:** Federation sync writing directly to the triplestore via `client.update()`, bypassing EventStore.
+**Why bad:** Breaks the event-sourced audit trail, skips SHACL validation, skips webhooks.
+**Instead:** Always create proper Operations and commit via EventStore, with `performed_by` set to the remote WebID and `performed_by_role` set to "federation".
 
-**Why bad:** dockview class names are not part of the public API and change between versions. CSS customization must go through `--dv-*` CSS variables in the bridge file only.
+### Anti-Pattern: Storing Query History in the Triplestore
 
-**Instead:** Use dockview's public API (`dockview.api`, `panel.api`, `onDidActivePanelChange`) for all behavioral integration.
+**What:** Creating named graphs for each SPARQL query execution.
+**Why bad:** Query history is high-churn data (dozens of entries per session). Triplestore named graphs are designed for knowledge data, not logging. Would pollute SPARQL queries and slow down graph listing.
+**Instead:** Use SQL tables with proper indexes and pagination.
 
-### Anti-Pattern: Storing Tab Content in dockview Panel Params
+### Anti-Pattern: Custom WebSocket Protocol for Sync
 
-**What:** Putting the full object IRI and all metadata in the dockview panel params that are serialized by `toJSON()`.
+**What:** Building a real-time WebSocket sync channel between instances.
+**Why bad:** Adds persistent connection management, reconnection logic, and stateful protocol complexity. SemPKM is a personal tool used by 1-5 users.
+**Instead:** Polling-based sync with configurable interval (60s default). Simple, stateless, debuggable.
 
-**Why bad:** IRIs are fine in params (that is intentional). But putting display metadata (label, dirty state, typeIcon) in dockview params means they live in two places (WorkspaceLayout metadata map + dockview params), creating sync bugs.
+### Anti-Pattern: Monolithic Federation Module
 
-**Instead:** Store only the minimal routing parameters in dockview panel params (`iri`, `viewType`, `viewId`). Keep all display metadata in `WorkspaceLayout`'s tab metadata map, keyed by panel ID.
-
-### Anti-Pattern: Carousel Bar Inside Panel HTML
-
-**What:** Embedding the carousel bar HTML directly inside `table_view.html` / `cards_view.html` by including a template fragment there.
-
-**Why bad:** When the user switches view type (e.g., table → card), the entire panel content swaps, which would destroy the carousel bar and require it to be re-rendered as part of every view response — coupling view responses to carousel state.
-
-**Instead:** The carousel bar lives in a separate `#carousel-bar-{groupId}` div outside the view content area. It is loaded once when a view tab activates and persists across in-place view switches. The view content area (`#view-content-{groupId}`) swaps independently.
+**What:** One large `federation.py` file handling patches, sync, LDN, and auth.
+**Why bad:** These are distinct concerns with different lifecycles and dependencies.
+**Instead:** Separate modules (`patch.py`, `sync.py`, `ldn.py`, `auth.py`) under a `federation/` package.
 
 ---
 
-## Scaling Considerations
+## Scalability Considerations
 
-These features are single-user local deployments. Scaling is not a concern for v2.3. The architecture choices that matter for correctness at SemPKM scale:
-
-| Concern | Approach |
-|---------|----------|
-| Named layouts in triplestore | Use dedicated user layout graph (`urn:sempkm:user:{id}:layouts`) — keep separate from domain data |
-| Carousel ViewSpec query | Already cached in ViewSpecService 300s TTL — carousel bar is fast |
-| dockview bundle size | CDN-loaded, scoped to workspace page only — no impact on admin/setup pages |
-| LuceneSail fuzzy overhead | Edit-distance 2 is O(n * edit_distance^2) — acceptable for PKM-scale datasets (<10K objects) |
+| Concern | At 1 user | At 5 users | At 2 federated instances |
+|---------|-----------|------------|--------------------------|
+| SPARQL autocomplete | Direct triplestore query (~50ms) | Same, cached 30s | Same, local data only |
+| Query history | SQLite fine | SQLite fine | Per-instance, not synced |
+| Sync polling | N/A | N/A | 1 HTTP request per interval per peer |
+| LDN inbox | N/A | N/A | Stored as named graphs, manual curation keeps count low |
+| MountSpec resolution | On each VFS request, SPARQL lookup | Cached mount specs recommended (TTL 300s) | Not synced |
 
 ---
 
 ## Sources
 
-- `frontend/static/js/workspace-layout.js` — direct codebase analysis (1073 lines)
-- `frontend/static/js/workspace.js` — direct codebase analysis (openTab, openViewTab, switchTabInGroup)
-- `backend/app/views/service.py` — ViewSpecService, ViewSpec dataclass
-- `backend/app/views/router.py` — view endpoints, all_specs context
-- `backend/app/models/manifest.py` — ManifestSchema, no views: key
-- `models/basic-pkm/views/basic-pkm.jsonld` — existing ViewSpec structure
-- `backend/app/services/search.py` — SearchService FTS_QUERY, current normalization
-- `frontend/static/css/dockview-sempkm-bridge.css` — --dv-* token mapping
-- `.planning/research/phase-23-ui-shell/RESEARCH.md` — dockview htmx integration patterns, toJSON format, layout storage design
-- `.planning/DECISIONS.md` — DEC-04 dockview rationale, Phase A/B/C migration plan
-- `backend/app/templates/browser/workspace.html` — current HTML structure
+- `backend/app/sparql/router.py` -- current SPARQL endpoint, permission model
+- `backend/app/sparql/client.py` -- graph scoping, prefix injection
+- `backend/app/events/store.py` -- EventStore, Operation dataclass
+- `backend/app/commands/dispatcher.py` -- 5-command API
+- `backend/app/commands/router.py` -- command execution with provenance
+- `backend/app/vfs/provider.py` -- current WebDAV provider routing
+- `backend/app/vfs/resources.py` -- ResourceFile, frontmatter rendering
+- `backend/app/vfs/write.py` -- VFS write path, body.set bridge
+- `backend/app/auth/models.py` -- User model, SQL tables
+- `backend/app/auth/dependencies.py` -- role-based auth guards
+- `backend/app/webid/` -- WebID profile, Ed25519 keys
+- `backend/app/indieauth/` -- OAuth2 flows
+- `backend/app/views/service.py` -- ViewSpecService
+- `backend/app/lint/service.py` -- LintService
+- `backend/app/events/query.py` -- EventQueryService
+- [RDF Patch specification](https://afs.github.io/rdf-patch/)
+- [Apache Jena RDF Patch docs](https://jena.apache.org/documentation/rdf-patch/)
+- [W3C Linked Data Notifications](https://www.w3.org/TR/ldn/)
+- [py-ldnlib Python LDN library](https://github.com/trellis-ldp/py-ldnlib)
+- [Yasgui documentation (Triply)](https://docs.triply.cc/yasgui/)
+- [TriplyDB Yasgui GitHub](https://github.com/TriplyDB/Yasgui)
+- [sib-swiss/sparql-editor (YASGUI-based)](https://github.com/sib-swiss/sparql-editor)
+- [W3C Linked Data Patch Format](https://www.w3.org/TR/ldpatch/)
+- [CodeMirror autocompletion API](https://codemirror.net/examples/autocompletion/)
 
 ---
 
-*Architecture research for: SemPKM v2.3 Shell, Navigation & Views*
-*Researched: 2026-03-01*
+*Architecture research for: SemPKM v2.6 Power User & Collaboration*
+*Researched: 2026-03-09*

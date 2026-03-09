@@ -1,298 +1,197 @@
-# Feature Research: v2.3 Shell, Navigation & Views
+# Feature Landscape: v2.6 Power User & Collaboration
 
-**Domain:** IDE-style PKM workspace — object view redesign, carousel views, named layouts, fuzzy FTS
-**Researched:** 2026-03-01
-**Confidence:** MEDIUM-HIGH (Obsidian/Notion/LuceneSail patterns verified via web search; dockview API confirmed via official docs; carousel UX inferred from Notion tab patterns + VS Code model)
+**Domain:** Semantic PKM platform -- SPARQL power tools, RDF federation/sync, custom VFS projections, UI polish
+**Researched:** 2026-03-09
+**Overall confidence:** MEDIUM (standards well-documented; integration complexity with existing SemPKM architecture requires validation)
 
 ---
 
 ## Scope
 
-This file covers only the **new features in v2.3**. The general PKM feature landscape (table stakes vs. differentiators for the whole product) lives in `.planning/milestones/research/FEATURES.md`. The four feature areas researched here:
+This file covers the **new features planned for v2.6**. Eight feature areas organized into three tiers: table stakes (expected by power users of semantic tools), differentiators (rare in PKM space), and anti-features (scope to avoid).
 
-1. **Object view redesign** — markdown-first, properties hidden by default
-2. **Carousel views** — per-type manifest-declared view rotation
-3. **Named layouts** — save/restore panel arrangements
-4. **FTS fuzzy search** — approximate-match on top of existing LuceneSail FTS
+Feature areas:
+1. SPARQL Interface enhancements (permissions, autocomplete, IRI pills, history, saved/shared queries, named queries as views)
+2. Collaboration & Federation (RDF Patch, named graph sync, LDN notifications, federated WebID auth, collaboration UI)
+3. User Custom VFS (MountSpec vocabulary, directory strategies, SHACL writes, management UI)
+4. VFS Browser UX Polish
+5. Object Browser UI Improvements
+6. Event Log Fixes
+7. Lint Dashboard Fixes
+8. Spatial Canvas UI Improvements
 
 ---
 
-## Feature Landscape
+## Table Stakes
 
-### Table Stakes (Users Expect These)
+Features power users of semantic/knowledge tools expect. Missing these makes the existing features feel half-finished.
 
-Features that users of mature PKM tools assume exist. Missing these makes v2.3 feel incomplete or regressive.
+| Feature | Why Expected | Complexity | Dependencies | Notes |
+|---------|--------------|------------|--------------|-------|
+| SPARQL role-based permissions | Every multi-user triplestore (GraphDB, Stardog, Virtuoso) gates SPARQL by role. Current SemPKM requires `get_current_user` but all authenticated users get identical access. Guests running arbitrary SPARQL is a data leak. | LOW | Existing RBAC (owner/member/guest roles) | Restrict `all_graphs` to owner. Guest = read-only, no `all_graphs`. Member = read current graph. Owner = full access. Query rewriting already exists in `sparql/client.py`. |
+| SPARQL server-side history | Yasgui stores history in localStorage -- lost on browser clear, not accessible across devices. GraphDB, Blazegraph Workbench, and Virtuoso all persist query history server-side. | LOW | SQLAlchemy auth DB for storage | Store query text + timestamp + user_id in SQL. API: GET/POST `/api/sparql/history`. Cap at 100 per user with FIFO eviction. |
+| SPARQL saved queries | GraphDB, Stardog Studio, and QLever UI all let users save and name queries. Power users accumulate a library of useful queries. Without save, they paste into text files. | MEDIUM | Server-side history (above) | SQL table: id, user_id, name, query, description, is_shared, created_at. CRUD API. Yasgui tab integration or sidebar list. |
+| SPARQL IRI pill links in results | Already partially implemented (SPARQL-02 in v2.2) -- results display IRIs as clickable pill links. Needs polish: resolve labels, show type icon, open in workspace tab. | LOW | Label service, icon service | Enhance existing YASR custom renderer. Fetch labels via batch `/api/labels` endpoint. |
+| VFS browser breadcrumbs | Every file browser (VS Code, Finder, Nautilus) has breadcrumb path navigation. Current VFS browser has tree-only navigation. | LOW | Existing VFS browser | Render clickable path segments above content pane. Click segment = navigate to that directory level. |
+| VFS browser preview pane | VS Code, GitHub, and every modern file browser show file content alongside the tree. Current VFS browser opens files in CodeMirror tabs but lacks quick preview. | LOW | Existing VFS browser + CodeMirror | Render markdown preview in right pane on single-click; double-click opens editable tab. |
+| Object browser refresh button | Users expect to manually refresh data views. Current nav tree has no refresh control. | LOW | Existing browser router | Add refresh icon button to nav tree header. Re-fetch `/browser/nav-tree` via htmx. |
+| Object browser create (plus) button | Every object management UI has a "new" button in the object list. Current creation flow is command palette only. | LOW | Existing type picker + create flow | Plus icon in nav tree header. Click opens type picker, then create form. |
+| Event log diff rendering fixes | Event log explorer shipped in v2.0 with known missing-diff and rendering issues. Users expect diffs to render for all operation types. | MEDIUM | Event query service | Investigate which operation types produce empty `before_values`. Fix SPARQL queries in `events/query.py` to extract before-state for patch operations. |
+| Lint dashboard layout fixes | Dashboard shipped in v2.4 with layout width issues on narrow viewports. Walkthrough missing for new users. | LOW | Existing lint dashboard | CSS fixes for responsive width. Add Driver.js walkthrough step for lint panel. |
 
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Properties hidden/collapsed by default in object view | Notion (2024 Layout Builder) puts properties in optional hidden-by-default side panel. Obsidian users overwhelmingly request default-collapsed properties — it's the top properties UX complaint (active forum thread 2023-2025, still unimplemented natively). Content should be visible without scrolling past metadata. | LOW | Toggle link: "N hidden properties / Show". State persists per-session or per-object via `localStorage`. Pure CSS + JS toggle; no backend changes. |
-| Single-click reveal for collapsed properties | Users expect one click to expand the properties section inline. Two-step flows (modal, separate page) are rejected in every tool. | LOW | `<details>/<summary>` or custom expand chevron. No animation required — instant show/hide is acceptable and matches Notion's approach. |
-| View switcher for object-level views | Notion database view tabs (Table / Board / Calendar) are the dominant mental model. Users expect to switch between "markdown view" and "diagram view" without leaving the object. Tab-based (not animated) is the universal standard. | MEDIUM | Tab bar above content area. Notion, Obsidian (Reading/Editing toggle), and VS Code all use instant tab switches without animation. |
-| Layout persistence across sessions | VS Code restores the last-used layout on reopen. Users expect workspace arrangement to survive page reload. | LOW | dockview `toJSON()`/`fromJSON()` + `localStorage`. Confirmed available in dockview-core API. |
-| Fuzzy/approximate matching in search | Every modern search (Obsidian file switcher, Notion search) expects "roam" to find "roaming". Exact-only keyword search frustrates users who mistype. | LOW | LuceneSail supports `term~` tilde syntax natively (Levenshtein distance, configurable). No new infrastructure — query transformation only in `SearchService`. |
+---
 
-### Differentiators (Competitive Advantage)
+## Differentiators
 
-Features that go beyond what any single competitor offers. These justify the v2.3 milestone.
+Features that set SemPKM apart from other PKM tools. Not expected, but high value for the target audience.
 
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| Manifest-declared carousel views per type | No consumer PKM lets Mental Model authors declare "this type supports these three view modes." Notion has database views but they're user-configured, not type-schema-declared. This is a new UX primitive — Mental Model authors curate the view experience. | HIGH | Requires `sempkm:showInCarousel` + `sempkm:carouselOrder` on ViewSpec. Backend must serve ordered view list per type. Frontend renders tab bar from that list. |
-| Model-provided named layouts | VS Code has per-workspace layouts (one per project, no names). SemPKM can offer model-provided defaults: "The Research model opens with Graph on left, Object detail on right." No PKM tool has this as a model-declared default. | MEDIUM | dockview `fromJSON()` with model-bundled JSON layout object. The manifest `exports.dashboards` array already has a slot for this — extend or repurpose as `exports.layouts`. |
-| User-named saved layouts with Command Palette restore | VS Code extensions (Restore Editors) do this; VS Code native does not (open GitHub issue #156160). SemPKM can have it natively, integrated into the existing ninja-keys Command Palette. | MEDIUM | `localStorage` array of `{id, name, layout: SerializedDockview}`. Save via "Save Layout As..." in Command Palette, restore via "Restore layout: [name]". |
-| LuceneSail wildcard + fuzzy composing | `alice~ smith~` to find approximate multi-word names in one pass. Standard Lucene supports this but no PKM tool exposes it meaningfully. | LOW | Pure query transformation in `SearchService`. Expose as "Fuzzy" toggle in Ctrl+K palette. |
+| Feature | Value Proposition | Complexity | Dependencies | Notes |
+|---------|-------------------|------------|--------------|-------|
+| SPARQL ontology-aware autocomplete | SIB Swiss SPARQL Editor (2025) demonstrated context-aware autocomplete using VoID metadata. SemPKM has SHACL shapes and installed ontologies -- richer metadata than VoID. Autocomplete that knows "if subject is a `Note`, valid predicates are `dcterms:title`, `sempkm:body`..." is a genuine differentiator. | HIGH | SHACL shapes service, prefix registry | Two approaches: (1) Build VoID descriptions from installed models, serve to SIB editor web component. (2) Custom autocomplete endpoint that queries SHACL shapes for valid predicates given a subject class. Approach 2 is simpler for SemPKM since shapes are already parsed. Serve completions as JSON from `/api/sparql/completions?class=X`. |
+| SPARQL named queries as views | Save a SPARQL query, give it a name, and it appears as a browsable "view" in the nav tree -- like a database view. No other PKM tool does this. Power users write custom reports and pin them. | HIGH | Saved queries (above), view spec service | Create a ViewSpec dynamically from a saved query. Renderer = table (default) or user-specified. Register in nav tree under "Custom Views" section. Requires view spec schema extension for user-defined views vs model-defined views. |
+| SPARQL shared queries | Multi-user query sharing. Owner saves a query, marks it "shared", other users see it in their saved queries list. Collaboration primitive for teams exploring data together. | LOW | Saved queries with `is_shared` flag | Filter shared queries in list endpoint. Read-only for non-owners. |
+| RDF Patch event serialization | SemPKM already has event-sourced writes as RDF named graphs. Serializing events as RDF Patch format (A/D operations) enables: export change logs, replay on another instance, incremental backup. The RDF Patch spec uses simple A (add) / D (delete) operations per triple -- maps directly onto SemPKM's `object.create`, `object.patch`, `body.set` events. | MEDIUM | Event store | New serializer: `events/patch.py`. Convert event named graph triples to RDF Patch text format. API endpoint: GET `/api/events/{id}/patch`. Bulk export: GET `/api/events/patches?since=timestamp`. |
+| Named graph sync via RDF Patch log | RDF Delta pattern: maintain a patch log, remote instances pull patches they haven't seen. Enables offline-first sync between SemPKM instances. | HIGH | RDF Patch serialization (above) | Patch log = ordered sequence of patches with sequence numbers. API: GET `/api/sync/log?since=N`, POST `/api/sync/apply` (receive patches). Conflict resolution needed for concurrent edits -- last-writer-wins per subject IRI is simplest. |
+| LDN inbox for cross-instance notifications | W3C Recommendation (stable spec). Resource advertises inbox via `Link: <inbox-url>; rel="http://www.w3.org/ns/ldp#inbox"`. Senders POST JSON-LD notifications. Enables: "Alice shared a concept with Bob's SemPKM instance." | MEDIUM | WebID profiles (already shipped) | New router: `/api/ldn/inbox`. Store notifications as RDF in dedicated named graph. Discovery: add `Link` header to WebID profile responses. Consume: list/read notifications in workspace UI. ActivityStreams 2.0 vocabulary for notification payloads. |
+| Federated WebID authentication | Verify a remote WebID by dereferencing the profile document, checking the public key matches the request signature. Enables cross-instance identity without a central auth server. | HIGH | WebID profiles + Ed25519 keys (already shipped) | HTTP Signature verification: check `Authorization: Signature ...` header, dereference WebID URI, extract public key from RDF profile, verify signature. Python: `cryptography` library for Ed25519 verify. New middleware or dependency. |
+| User Custom VFS (MountSpec) | Users define their own directory structures for the WebDAV mount. Current VFS is hardcoded: `/{model}/{type}/{object}.md`. A MountSpec lets users create custom "views" like `/by-date/2026/03/`, `/by-tag/philosophy/`, `/projects/active/`. | HIGH | Existing VFS provider | New RDF vocabulary: `sempkm:MountSpec`, `sempkm:DirectoryStrategy`, `sempkm:pathTemplate`. Five strategies: by-type (current), by-date, by-tag, by-property, flat. MountSpec stored as RDF in user's config graph. Provider dispatches to strategy based on path prefix. |
+| MountSpec SHACL frontmatter writes | When user edits a `.md` file via WebDAV and changes frontmatter, parse YAML frontmatter and map keys back to RDF properties via SHACL shape definitions. Enables Obsidian-as-editor workflow. | HIGH | MountSpec (above), SHACL shapes service, VFS write path | Parse YAML frontmatter on `end_write`. Map keys to predicates using SHACL `sh:path` from the object's shape. Generate `object.patch` events for changed properties. Complex: must handle property types (literals, IRIs, dates), multi-valued properties, new vs changed vs deleted properties. |
+| Multi-select in object browser | Select multiple objects for bulk operations (delete, tag, move). Standard in file managers and Notion databases, rare in PKM tools. | MEDIUM | Existing nav tree | Checkbox selection mode. Toolbar with bulk actions. Backend: batch delete endpoint. |
+| Edge inspector panel | Click an edge in the graph view or relations panel, see its properties, provenance, and annotation. SemPKM has first-class edges (`sempkm:Edge`) -- this surfaces their metadata. | MEDIUM | Edge model, relations panel | New panel section or popover. Query edge IRI for properties. Show: created_by, created_at, edge type, annotations. |
+| Spatial canvas UX improvements | Current canvas is a C0 prototype. Improvements: snap-to-grid, edge labels, minimap, keyboard navigation, group selection. | MEDIUM | Existing canvas.js | Incremental enhancements. Snap-to-grid is most impactful for usability. Edge labels require rendering text along SVG path. |
 
-### Anti-Features (Commonly Requested, Often Problematic)
+---
 
-| Feature | Why Requested | Why Problematic | Alternative |
-|---------|---------------|-----------------|-------------|
-| Animated cube-flip / 3D carousel between views | "Looks cool" — Notion-style smooth view transitions, or extending the existing CSS 3D flip to view switching. | HIGH implementation cost for zero functional gain. CSS 3D transforms break on resize, dark mode, and embedded iframes. The existing read/edit flip is already a maintenance burden — expanding it would compound the problem. | Tab-based switcher, instant show/hide. This is what Notion, Obsidian, and VS Code all use. |
-| Per-note property visibility stored in RDF | "I want this note's properties always visible" — per-object persistent preference in the triplestore. | Adds a new triple per object per user preference. Pollutes the data graph with UI state. Requires event-sourcing even for UI prefs, or a separate non-RDF store with more complexity. | Session-local `localStorage` keyed by object IRI. Resets on cache clear, which is acceptable for a UI preference. |
-| Auto-detected view type from content | "If the body looks like a Mermaid diagram, show diagram view automatically." | Content inspection is unreliable. False positives frustrate users. Requires heuristics or ML. All reference tools use explicit user selection. | User manually selects view. Mental Model authors declare which views are available for each type — user picks from the carousel. |
-| Global layout overriding all workspaces | "One layout for all projects, like a default template." | VS Code itself doesn't have this natively (open GitHub issue #156160) because it creates conflicts between workspace-specific needs. Zed also has no global named layouts. | Per-workspace layout persistence. Model-provided layouts as sensible starting points for new workspaces. |
+## Anti-Features
+
+Features to explicitly NOT build in v2.6. Including rationale and what to do instead.
+
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| SPARQL UPDATE as write surface | Bypasses event sourcing -- all writes must go through Command API to maintain immutable event log, provenance, and SHACL validation. Allowing SPARQL UPDATE creates two write paths with divergent guarantees. | Keep SPARQL read-only. Use Command API for all mutations. Document this as an intentional design constraint. |
+| Real-time collaborative editing (CRDT/OT) | Enormous complexity (several person-years). SemPKM is self-hosted, typically single-user or small team. CRDT for RDF triples is an unsolved research problem. | Support async collaboration: saved/shared queries, LDN notifications for cross-instance sharing, named graph sync for eventual consistency. |
+| Full ActivityPub federation | AP is designed for social media (follow, like, boost). PKM semantics don't map to AP's actor model cleanly. Implementation is massive (WebFinger, inbox forwarding, delivery, signatures). | Use LDN for targeted notifications between known instances. LDN is simpler, W3C Recommendation, and sufficient for "share a concept with Bob." |
+| Full SOLID pod compatibility | SOLID's Web Access Control (WAC) and container model are extensive specs. Building full compliance is a multi-month effort that doesn't serve the core PKM use case. | Publish WebID profiles (already done). Support LDN inbox. These are the SOLID-adjacent features that provide value without full pod implementation. |
+| Custom SPARQL UI replacing Yasgui | Yasgui is the de facto standard SPARQL editor. Building a custom one means maintaining syntax highlighting, validation, result rendering, and tab management. | Extend Yasgui with custom YASR plugins (for IRI pills) and a completion endpoint. Use Yasgui's plugin architecture rather than replacing it. |
+| Bidirectional VFS sync | Full two-way sync between WebDAV and triplestore creates conflict resolution nightmares (which version wins? what about concurrent edits?). | Support one-way write (WebDAV -> triplestore via frontmatter parsing) with conflict detection (reject if object modified since last read). One-way is the Obsidian vault import pattern and what users expect. |
+| Complex permission model for SPARQL | Row-level security, per-graph ACLs, query rewriting proxies (mu-authorization pattern). Overkill for self-hosted small-team PKM. | Simple role-based gating: guest = no SPARQL, member = current graph only, owner = all graphs. Three levels, no per-graph ACLs. |
 
 ---
 
 ## Feature Dependencies
 
 ```
-[Object view redesign: markdown-first]
-    └──depends on──> [Existing read-only object view (v2.0 CSS 3D flip)]
-    └──uses──> [CSS token system (v2.2 108-token architecture)]
-    └──independent of──> [DOCK-01 (no dockview required for this feature)]
+SPARQL Permissions ──────────────────────────> (standalone, no deps)
+SPARQL Server-side History ──────────────────> (standalone, needs SQL migration)
+SPARQL Saved Queries ────────────────────────> depends on: Server-side History
+SPARQL Shared Queries ───────────────────────> depends on: Saved Queries
+SPARQL Named Queries as Views ───────────────> depends on: Saved Queries + ViewSpec service
+SPARQL IRI Pill Enhancement ─────────────────> depends on: Label service batch endpoint
+SPARQL Ontology-Aware Autocomplete ──────────> depends on: SHACL shapes service (exists)
 
-[Carousel views (VIEW-02)]
-    └──requires schema change──> [ViewSpec: sempkm:showInCarousel, sempkm:carouselOrder]
-    └──requires new endpoint──> [GET /api/objects/{iri}/views returning ordered view list]
-    └──requires frontend work──> [Tab bar component in object view header]
-    └──affects existing model──> [basic-pkm.jsonld ViewSpecs need carousel metadata]
-    └──fixes as side effect──> [BUG-03: broken view switch buttons]
-    └──conflicts with──> [Animated cube-flip anti-feature]
+RDF Patch Serialization ─────────────────────> depends on: Event store (exists)
+Named Graph Sync ────────────────────────────> depends on: RDF Patch Serialization
+LDN Inbox ───────────────────────────────────> depends on: WebID profiles (exists)
+Federated WebID Auth ────────────────────────> depends on: WebID profiles + LDN Inbox
+Collaboration UI ────────────────────────────> depends on: LDN Inbox + Shared Queries
 
-[Named layouts: user-saved (DOCK-02 part A)]
-    └──requires first──> [DOCK-01: dockview Phase A must be live to have api.toJSON()]
-    └──uses──> [dockview api.toJSON() / api.fromJSON() — confirmed in official docs]
-    └──integrates with──> [Ctrl+K command palette (ninja-keys infrastructure)]
+MountSpec Vocabulary ────────────────────────> (standalone RDF vocabulary definition)
+Directory Strategies ────────────────────────> depends on: MountSpec Vocabulary + existing VFS provider
+SHACL Frontmatter Writes ────────────────────> depends on: Directory Strategies + SHACL shapes service
+MountSpec Management UI ─────────────────────> depends on: MountSpec Vocabulary + Directory Strategies
 
-[Named layouts: model-provided (DOCK-02 part B)]
-    └──requires first──> [DOCK-01]
-    └──requires schema change──> [manifest.schema.json: exports.layouts array]
-    └──requires backend work──> [Mental Model loader: extract and store layout JSON on install]
-
-[FTS fuzzy search (FTS-04)]
-    └──requires existing──> [FTS-01/02/03 (v2.2 LuceneSail) — already shipped]
-    └──no new infrastructure──> [Tilde syntax is native Lucene QueryParser pass-through]
-    └──integrates with──> [Ctrl+K palette fuzzy toggle, SearchService.search() parameter]
-    └──independent of──> [DOCK-01, VIEW-02, VIEW-01]
+VFS Browser Polish ──────────────────────────> depends on: existing VFS browser (exists)
+Object Browser Improvements ─────────────────> depends on: existing browser router (exists)
+Event Log Fixes ─────────────────────────────> depends on: existing event query service (exists)
+Lint Dashboard Fixes ────────────────────────> depends on: existing lint service (exists)
+Spatial Canvas Improvements ─────────────────> depends on: existing canvas.js (exists)
 ```
 
-### Dependency Notes
+---
 
-- **Carousel views require manifest schema changes.** `sempkm:showInCarousel` and `sempkm:carouselOrder` must be added to the ViewSpec vocabulary and the basic-pkm model. This is a minor but breaking change to the model format — all existing ViewSpecs that should appear in the carousel need these properties added. The manifest JSON schema (`orig_specs/spec/mental-model/manifest.schema.json`) does not need changes since these are ViewSpec-level properties, not manifest-level.
+## MVP Recommendation
 
-- **Named layouts require dockview Phase A first.** `api.toJSON()` is the dockview serialization method. Until dockview replaces Split.js (DOCK-01), there is no serializable layout object. Named layouts (DOCK-02) cannot ship before DOCK-01 completes.
+### Phase 1 -- SPARQL Power Tools (ship first)
+Highest value-to-effort ratio. All build on existing infrastructure.
 
-- **FTS fuzzy is fully independent.** The tilde operator (`roam~`) is native Apache Lucene query parser syntax, which LuceneSail passes through unchanged. Only `SearchService.search()` needs a `fuzzy` parameter. This can ship in any phase order — even before DOCK-01.
+1. **SPARQL permissions** -- LOW effort, closes a security gap
+2. **SPARQL server-side history** -- LOW effort, SQL migration + simple API
+3. **SPARQL saved queries** -- MEDIUM effort, unlocks sharing and named views
+4. **SPARQL IRI pill enhancement** -- LOW effort, polish existing feature
 
-- **Object view redesign is the lowest-risk feature.** Pure frontend CSS/HTML change to `object_view.html`. No backend API changes, no manifest changes, no infrastructure. Can ship first as a standalone phase.
+### Phase 2 -- UI Fixes & Object Browser
+Clears tech debt before adding new UI features.
+
+5. **Event log diff fixes** -- MEDIUM effort, clears known bugs
+6. **Lint dashboard fixes** -- LOW effort, CSS + walkthrough
+7. **Object browser refresh/plus icons** -- LOW effort, high UX impact
+8. **VFS browser breadcrumbs + preview** -- LOW effort, standard patterns
+
+### Phase 3 -- VFS & MountSpec
+Build custom VFS after fixing the browser UX.
+
+9. **MountSpec vocabulary** -- MEDIUM effort, RDF vocabulary design
+10. **Directory strategies** -- HIGH effort, 5 strategy implementations
+11. **SHACL frontmatter writes** -- HIGH effort, complex parsing + mapping
+12. **MountSpec management UI** -- MEDIUM effort, settings page extension
+
+### Phase 4 -- Autocomplete & Named Views
+Most complex SPARQL features. Needs SHACL shapes metadata.
+
+13. **SPARQL ontology-aware autocomplete** -- HIGH effort, new endpoint + Yasgui integration
+14. **SPARQL named queries as views** -- HIGH effort, ViewSpec extension
+15. **SPARQL shared queries** -- LOW effort (if saved queries exist)
+
+### Phase 5 -- Federation & Collaboration
+Most novel features. Highest risk, lowest urgency for single-user deployments.
+
+16. **RDF Patch serialization** -- MEDIUM effort, new serializer
+17. **LDN inbox** -- MEDIUM effort, new router + notification store
+18. **Named graph sync** -- HIGH effort, sync protocol + conflict resolution
+19. **Federated WebID auth** -- HIGH effort, cryptographic verification
+20. **Collaboration UI** -- MEDIUM effort, notification panel + sharing flows
+
+### Phase 6 -- Canvas & Multi-select
+Polish features, lower priority.
+
+21. **Spatial canvas improvements** -- MEDIUM effort, incremental UX
+22. **Multi-select in object browser** -- MEDIUM effort, new selection mode
+23. **Edge inspector** -- MEDIUM effort, new panel component
+
+**Defer to v2.7+:**
+- MountSpec SHACL frontmatter writes (complex, depends on MountSpec being validated first)
+- Named graph sync (needs RDF Patch to be proven first)
+- Federated WebID auth (needs LDN inbox to be proven first)
 
 ---
 
-## MVP Definition for v2.3
+## Complexity Assessment
 
-### Ship With (v2.3 Core)
-
-- [x] **Markdown-first object view (VIEW-01)** — properties collapsed by default, single-click reveal, `localStorage` persistence per object IRI. Zero backend changes. Unblocked immediately.
-- [x] **FTS fuzzy search (FTS-04)** — `fuzzy` parameter in `SearchService.search()`, "Fuzzy" toggle in Ctrl+K palette. Zero new infrastructure. Unblocked immediately.
-- [x] **Dockview Phase A (DOCK-01)** — prerequisite for named layouts. High effort but already committed in DEC-04.
-- [x] **Named layouts: user-saved (DOCK-02)** — `localStorage` layout array, save/restore via Command Palette. Requires DOCK-01.
-
-### Add If DOCK-01 Completes Early
-
-- [ ] **Carousel views: frontend tab switcher (VIEW-02)** — tab bar reads from ViewSpec data, instant switch, no animation. Requires manifest schema + backend endpoint.
-- [ ] **Model-provided default layouts** — manifest `exports.layouts`, applied on model install.
-
-### Defer to v2.4+
-
-- [ ] **Named layouts: model-provided (full manifest integration)** — requires manifest schema extension + model loader. Medium complexity, lower immediate user value than user-saved layouts.
-- [ ] **Carousel views: advanced composition** — cross-model view carousels, user-added views to carousel. Needs design review.
-
----
-
-## Feature Prioritization Matrix
-
-| Feature | User Value | Implementation Cost | Priority |
-|---------|------------|---------------------|----------|
-| Markdown-first object view (properties hidden) | HIGH | LOW | P1 |
-| FTS fuzzy search (tilde operator) | HIGH | LOW | P1 |
-| Dockview Phase A (DOCK-01) | HIGH | HIGH | P1 (prerequisite for layout features) |
-| Named layouts: user-saved | MEDIUM | MEDIUM | P2 (after DOCK-01) |
-| Bug fixes (BUG-01, BUG-03) | MEDIUM | LOW | P1 (fold into VIEW-02 or standalone) |
-| Carousel views: manifest + tab switcher | MEDIUM | MEDIUM | P2 |
-| Named layouts: model-provided | LOW | MEDIUM | P3 |
-| Bug fix BUG-02 (VFS Settings UI) | MEDIUM | LOW | P2 (independent, restore only) |
-
----
-
-## Competitor Feature Analysis
-
-### Property Drawer UX Patterns
-
-| Tool | Default State | Reveal Mechanism | Persistence |
-|------|--------------|-----------------|-------------|
-| Notion 2024 (Layout Builder) | Properties in optional right side panel, **hidden by default** | Toggle panel button top-right of page | Per-database, user preference |
-| Notion classic | All properties visible; individual properties hideable | "X hidden properties / Show" link at bottom of list | Per-database-view setting |
-| Obsidian v1.4+ | Properties shown at top of note; **no collapse-by-default setting** (active unimplemented feature request 2023-2025) | Manual click on chevron per-note only | Per-note, resets on reopen |
-| Logseq | Inline `key:: value` block properties; system props hidden by `:block-hidden-properties` config | Config-based or CSS; no UX toggle | Global config only |
-
-**Takeaway for SemPKM:** Notion's "X hidden properties / Show" link (classic) is the right pattern for the object view — simpler than a side panel (no dockview required), fits the single-panel object view, and is the most recognizable progressive disclosure pattern in the space. Show 0-1 "pinned" properties always; hide the rest under the reveal link.
-
-### View Switcher UX Patterns
-
-| Tool | Trigger | Animation | State Persistence |
-|------|---------|-----------|------------------|
-| Notion database views | Tab bar above content | None (instant) | Per-database, per-user |
-| VS Code editors | Tab bar, "Open to Side" context menu | None (instant) | Per-workspace file |
-| Obsidian (Reading/Editing toggle) | Toggle button in tab header | None (instant) | Per-file |
-| Obsidian plugins (e.g., Kanban) | Right-click tab context menu | None (instant) | Per-file, per plugin |
-
-**Takeaway for SemPKM:** Tab bar is the universal approach. No tool in the space uses animated view rotation in production. Tabs: show view names (e.g., "Markdown", "Graph", "Diagram"); active tab uses accent color matching existing tab styling; tab bar sits in the object view header above the body content.
-
-### Named Layout UX Patterns
-
-| Tool | Mechanism | Scope | User-Named? |
-|------|-----------|-------|-------------|
-| VS Code native | Auto-save/restore per `.code-workspace` file | Per workspace file | No (one layout per workspace) |
-| VS Code Restore Editors extension | Command Palette "Save/Restore Saved Layout" | Per workspace folder | Yes |
-| VS Code Profiles | Full profile creation with layout | Global | Yes (profile name) |
-| Zed editor | `~/.config/zed/` workspace serialization | Per workspace | No |
-| dockview `api.toJSON()` | Returns `SerializedDockview` JSON object | Per instance | No native names — caller manages |
-
-**Takeaway for SemPKM:** VS Code native is the mental model users have (auto-restore last layout). The Restore Editors extension pattern (named + Command Palette) is the upgrade that users want but VS Code doesn't provide natively (confirmed via open GitHub issue). SemPKM can deliver this natively with minimal effort since ninja-keys is already integrated.
-
-### FTS Fuzzy Syntax (LuceneSail)
-
-| Syntax | Meaning | Example Match |
-|--------|---------|---------------|
-| `roam~` | Fuzzy, edit distance ≤ 2 (default) | roam, foam, roams, roaming |
-| `roam~1` | Fuzzy, edit distance ≤ 1 (tighter) | roam, roams, foam |
-| `alic*` | Prefix wildcard | alice, alicia, alicent |
-| `"hotel airport"~5` | Proximity: within 5 words | "hotel near the airport" |
-| `alice~ smith~` | Fuzzy on each word | alise smyth, alica smit |
-
-**Takeaway for SemPKM:** Auto-append `~1` (not `~2`) to each term when fuzzy mode is enabled — edit distance 1 reduces false positives while still catching common typos ("aliec" → "alice"). Do not use decimal similarity values (legacy Lucene; causes ParseException in newer versions). The `SearchService` transformation: split on whitespace, skip tokens that already contain `~`, `*`, `?`, or are quoted phrases, append `~1` to the rest.
-
----
-
-## Implementation Notes by Feature
-
-### Feature 1: Markdown-First Object View (VIEW-01)
-
-**What to build:** In `object_view.html` (read-only mode), reorder layout to show body Markdown content prominently first. Move properties into a collapsible `<details>` section above or below the title with a `<summary>` showing the count. Default: closed.
-
-**Key behaviors:**
-- Properties section `open` state stored in `localStorage` as `sempkm_props_open_{base64IRI}` = `true|false`
-- Default: `false` (body-first on first load for any object)
-- The existing CSS 3D flip to edit mode is unaffected — this changes only the read-only view layout
-- "N properties" badge visible in the `<summary>` even when collapsed, so users know content exists
-- "Pinned" properties (title, type) remain always visible above the collapsible block — they are the object identity, not detail
-
-**Affected files:** `backend/app/templates/workspace/object_view.html`, `frontend/static/css/workspace.css`
-
-**Confidence:** HIGH — pure template + CSS change, well-understood from Notion/Obsidian research
-
-### Feature 2: Carousel Views (VIEW-02)
-
-**What to build:**
-1. Extend ViewSpec vocabulary: add `sempkm:showInCarousel` (boolean) and `sempkm:carouselOrder` (integer) to the sempkm ontology
-2. Update `models/basic-pkm/views/basic-pkm.jsonld` to mark ViewSpecs with these properties
-3. Add backend method: `ViewSpecService.get_carousel_views(type_iri)` returning ordered list of `{id, label, rendererType}`
-4. In `object_view.html`, add a tab bar above the body that shows available carousel views; htmx-swaps the content area on tab click
-5. Active view state stored in `localStorage` as `sempkm_active_view_{typeIRI}` = `"{viewSpecId}"`
-
-**Key behaviors:**
-- Only ViewSpecs with `sempkm:showInCarousel: true` appear in the tab bar
-- The "default" view (lowest `sempkm:carouselOrder`) loads first unless `localStorage` has a saved preference
-- At most 5 tabs shown (Mental Model author responsibility to curate; more than 5 is an anti-pattern)
-- Tab styling uses existing `.tab`, `.tab-active` CSS classes for consistency
-
-**Risk:** The 3D flip edit toggle sits in the same object view header. The carousel tab bar must coexist without visual clutter. Design must be validated before implementation.
-
-**Confidence:** MEDIUM — backend and vocabulary are straightforward; the frontend interaction with the flip toggle needs prototyping
-
-### Feature 3: Named Layouts (DOCK-02)
-
-**What to build (after DOCK-01):**
-- `localStorage` key `sempkm_layouts`: `Array<{id: string, name: string, layout: SerializedDockview, savedAt: ISO8601}>`
-- ninja-keys actions: "Layout: Save as...", "Layout: Restore [name]", "Layout: Delete [name]"
-- Error recovery: if `fromJSON()` throws (e.g., panel component names changed after model uninstall), catch the error, remove the broken entry from `sempkm_layouts`, and load the default layout
-- Model-provided layouts stored separately in `sempkm_model_layouts`: `Array<{modelId, name, layout}>` populated on model install, cleared on model uninstall
-
-**dockview API (confirmed):**
-```javascript
-// Save
-const layout = api.toJSON(); // returns SerializedDockview
-// Restore
-api.fromJSON(layout); // throws if invalid, clears state
-// Listen for changes
-api.onDidLayoutChange(() => { /* auto-save if needed */ });
-```
-
-**Confidence:** HIGH for user-saved layouts. MEDIUM for model-provided layouts (manifest schema extension needed).
-
-### Feature 4: FTS Fuzzy Search (FTS-04)
-
-**What to build:**
-- Add `fuzzy: bool = False` parameter to `SearchService.search(query, type_filter, limit, fuzzy=False)`
-- When `fuzzy=True`: split query on whitespace, for each token that does not contain `~`, `*`, `?`, or start/end with `"`, append `~1`
-- Add "Fuzzy" toggle to the Ctrl+K palette search UI (checkbox or button); persist toggle state in `localStorage` as `sempkm_fts_fuzzy`
-- Default `fuzzy=False` to preserve existing exact-keyword behavior
-
-**Query transformation examples:**
-```
-Input: "alice smith"          → fuzzy off: "alice smith"
-Input: "alice smith"          → fuzzy on:  "alice~1 smith~1"
-Input: "alice*"               → fuzzy on:  "alice*"  (wildcard, no change)
-Input: "\"alice smith\"~5"    → fuzzy on:  "\"alice smith\"~5"  (proximity phrase, no change)
-Input: "alice smith~"         → fuzzy on:  "alice~1 smith~"  (already has ~, no double-append)
-```
-
-**Confidence:** HIGH — LuceneSail passes query strings directly to Apache Lucene QueryParser. Tilde syntax confirmed via rdf4j.org official docs and rdf4j-users Google Groups.
-
----
-
-## Bug Fix Context
-
-The following v2.2 bugs affect or are adjacent to features being redesigned in v2.3:
-
-| Bug | Affected Feature | Recommended Fix |
-|-----|-----------------|-----------------|
-| BUG-03: Graph/card/table view switch buttons broken | Carousel views (VIEW-02) | Remove broken buttons as part of adding proper carousel tab bar. The carousel tab bar replaces them. |
-| BUG-01: Group-by in concept cards view broken | Carousel views (VIEW-02) | Likely a SPARQL query or renderer config issue in `view-concept-card`. Fix concurrently with VIEW-02 basic-pkm model updates. |
-| BUG-02: VFS Settings UI lost during debugging | Independent | Restore as a standalone bug-fix phase. Not related to view redesign or carousel. |
+| Feature Area | Effort | Risk | Notes |
+|-------------|--------|------|-------|
+| SPARQL permissions | LOW | LOW | Straightforward role check on existing endpoint |
+| SPARQL history/saved | LOW-MEDIUM | LOW | Standard CRUD, SQL migration |
+| SPARQL autocomplete | HIGH | MEDIUM | Need to design completion metadata extraction from SHACL shapes; Yasgui integration may need custom CodeMirror extension |
+| SPARQL named views | HIGH | MEDIUM | ViewSpec schema needs extension for user-defined vs model-defined views |
+| RDF Patch | MEDIUM | LOW | Well-defined spec, SemPKM events map cleanly to A/D operations |
+| Named graph sync | HIGH | HIGH | Conflict resolution is the hard part; last-writer-wins may lose data |
+| LDN inbox | MEDIUM | LOW | W3C Recommendation, well-specified protocol |
+| Federated WebID | HIGH | HIGH | HTTP Signatures are fiddly; WebID-TLS is deprecated, HTTP Signatures not fully standardized |
+| MountSpec vocabulary | MEDIUM | MEDIUM | RDF vocabulary design requires iteration; 5 strategies are ambitious |
+| MountSpec SHACL writes | HIGH | HIGH | YAML-to-RDF mapping through SHACL shapes is novel; edge cases (multi-value, IRI refs) are complex |
+| UI fixes (event log, lint, browser) | LOW-MEDIUM | LOW | Known bugs, standard patterns |
+| Spatial canvas | MEDIUM | LOW | Incremental improvements to existing code |
 
 ---
 
 ## Sources
 
-- [Obsidian Properties — official help](https://help.obsidian.md/properties) — MEDIUM confidence, official current docs
-- [Add setting to collapse Properties by default — Obsidian Forum](https://forum.obsidian.md/t/add-setting-to-collapse-fold-properties-across-all-notes-by-default/67943) — confirms native collapse-by-default does NOT exist as of 2025; HIGH confidence (multiple active community threads)
-- [Notion Layout Builder 2024 — Notion layouts guide](https://www.simonesmerilli.com/life/notion-layouts) — MEDIUM confidence (third-party tutorial, 2024)
-- [Hide Notion Properties tutorial 2024](https://templatesfornotion.com/post/hide-notion-properties) — MEDIUM confidence; confirms "X hidden properties / Show" UX pattern
-- [Notion database views guide](https://www.notion.com/help/guides/using-database-views) — HIGH confidence (official Notion docs); tab-based instant switching
-- [Full-Text Indexing With the Lucene SAIL — rdf4j.org](https://rdf4j.org/documentation/programming/lucene/) — HIGH confidence (official RDF4J docs); tilde fuzzy syntax
-- [LuceneSail GitHub doc](https://github.com/eclipse-rdf4j/rdf4j-doc/blob/master/site/content/documentation/programming/lucene.md) — HIGH confidence (official source); wildcard + fuzzy syntax
-- [Saving State — dockview.dev](https://dockview.dev/docs/core/state/save/) — HIGH confidence (official dockview docs); `api.toJSON()` confirmed
-- [Loading State — dockview.dev](https://dockview.dev/docs/core/state/load/) — HIGH confidence; `fromJSON()` error handling
-- [VS Code Custom Layout docs](https://code.visualstudio.com/docs/configure/custom-layout) — HIGH confidence (official); layout save behavior
-- [Option to save panel layouts globally — VS Code issue #156160](https://github.com/microsoft/vscode/issues/156160) — HIGH confidence; confirms VS Code has NO native global named layouts
-- [Restore Editors VS Code extension](https://marketplace.visualstudio.com/items?itemName=amodio.restore-editors) — MEDIUM confidence; named layout UX reference
-- SemPKM `.planning/PROJECT.md` — HIGH confidence; existing feature inventory and v2.3 requirements
-- SemPKM `.planning/DECISIONS.md` — HIGH confidence; DEC-04 dockview migration plan, CSS token architecture
-- SemPKM `models/basic-pkm/views/basic-pkm.jsonld` — HIGH confidence (first-party); existing ViewSpec structure
-- SemPKM `orig_specs/spec/mental-model/manifest.schema.json` — HIGH confidence (first-party); manifest schema
-
----
-
-*Feature research for: v2.3 Shell, Navigation & Views*
-*Researched: 2026-03-01*
+- [RDF Patch specification](https://afs.github.io/rdf-patch/) -- Format for recording changes to RDF datasets
+- [RDF Delta](https://afs.github.io/rdf-delta/) -- System for synchronizing RDF datasets via patch logs
+- [W3C Linked Data Notifications](https://www.w3.org/TR/ldn/) -- W3C Recommendation for decentralized notification protocol
+- [SIB Swiss SPARQL Editor](https://github.com/sib-swiss/sparql-editor) -- Context-aware SPARQL autocomplete using VoID/SHACL metadata
+- [A user-friendly SPARQL query editor (2025)](https://arxiv.org/abs/2503.02688) -- Academic paper on SPARQL autocomplete approaches
+- [GraphDB saved queries](https://graphdb.ontotext.com/documentation/11.2/sparql-queries.html) -- Reference implementation for saved/shared SPARQL queries
+- [mu-authorization SPARQL proxy](https://github.com/mu-semtech/mu-authorization) -- Query rewriting authorization for SPARQL endpoints
+- [Yasgui documentation (Triply)](https://docs.triply.cc/yasgui/) -- Official Yasgui features and customization
+- [RGS system for RDF sync (AAMAS 2024)](https://www.ifaamas.org/Proceedings/aamas2024/pdfs/p2827.pdf) -- RDF graph synchronization with merge/rebase

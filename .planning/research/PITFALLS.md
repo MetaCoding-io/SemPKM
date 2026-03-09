@@ -1,337 +1,389 @@
-# Pitfalls Research
+# Domain Pitfalls
 
-**Domain:** v2.3 Shell, Navigation & Views — dockview-core migration, manifest-driven carousel views, named layouts, LuceneSail fuzzy FTS
-**Researched:** 2026-03-01
-**Confidence:** HIGH for dockview-core lifecycle and htmx integration (codebase analysis + GitHub issues); HIGH for LuceneSail fuzzy API (official javadoc); MEDIUM for carousel schema patterns (synthesized from manifest structure analysis); MEDIUM for named layout invalidation patterns (dockview issue tracker + general serialization research)
+**Domain:** v2.6 Power User & Collaboration -- SPARQL permissions, RDF sync/federation, MountSpec VFS, UI improvements
+**Researched:** 2026-03-09
+**Confidence:** HIGH for SPARQL permission scoping (codebase analysis + triplestore security docs); MEDIUM for RDF Patch/federation (W3C specs + limited real-world implementation reports); HIGH for VFS/MountSpec (codebase analysis + wsgidav docs); MEDIUM for LDN (W3C spec, sparse implementation experience reports)
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: htmx Attributes Silenced After Dockview Panel Init
+### Pitfall 1: SPARQL Permissions Bypass via `all_graphs=True` and Unscoped Query Patterns
 
 **What goes wrong:**
-When dockview creates a panel, its `init(params)` hook fires and you inject HTML via `params.containerElement.innerHTML = ...` or via `htmx.ajax()`. Any `hx-*` attributes in that HTML are dead — htmx was not involved in the injection and never processed the new nodes. Clicks, triggers, and boosts all silently do nothing.
+The current SPARQL endpoint (`/api/sparql`) has an `all_graphs` query parameter that bypasses graph scoping entirely. Any authenticated user can pass `all_graphs=true` and read event graph data, including other users' provenance metadata, compensating events, and deleted object history. When SPARQL permissions are added, this existing bypass remains unless explicitly addressed. A "guest" user with SPARQL console access can see the full event history of every user's writes.
+
+Separately, `scope_to_current_graph()` only injects `FROM` clauses -- it does not prevent users from writing `GRAPH ?g { ... }` patterns that enumerate all named graphs. A user can write `SELECT ?g WHERE { GRAPH ?g { ?s ?p ?o } } LIMIT 100` and discover every event graph IRI in the system, even when `all_graphs=false`.
 
 **Why it happens:**
-htmx attaches event listeners during `htmx:load`, which fires only for content that htmx itself swaps in via its request cycle. DOM mutations performed by third-party code (including dockview's internal DOM reparenting during drag-to-dock) are invisible to htmx. HTMX does not use a MutationObserver; it only processes nodes it controls.
+The scoping logic was designed for convenience (inject defaults), not security (enforce boundaries). It checks for `FROM` or `GRAPH <urn:sempkm:current>` in the query text but does not detect arbitrary `GRAPH ?variable` patterns. The `all_graphs` parameter was added for admin/debug use but has no role check -- any authenticated user can use it.
 
-Additionally, when a user drags a panel to a new group, dockview physically moves `params.containerElement` to a new position in the DOM. Any htmx state bound to that element's ancestors (e.g., `hx-boost`, `hx-indicator` climbing to a parent) may now point to a different ancestor or none at all. The htmx internal state for the moved element is not invalidated — it stays bound to the old ancestor chain.
+**Consequences:**
+- Guest/member users can read event provenance (who edited what, when)
+- Users can discover deleted objects via event graph contents
+- Users can read inferred graph contents even if inference data should be filtered
+- Full event history is a privacy leak in multi-user deployments
 
-**How to avoid:**
-Call `htmx.process(params.containerElement)` at the end of every panel `init()` hook that injects `hx-*` markup. This is the canonical re-init call. In the `onDidLayoutChange` handler (fired after any drag-reorder), also call `htmx.process()` on the moved panel's container element. For panels loaded via `htmx.ajax()`, htmx processes the swapped content itself — no extra call needed, but verify via integration test.
+**Prevention:**
+1. Gate `all_graphs=true` behind `require_role("owner")` immediately. This is a one-line fix in `sparql/router.py`.
+2. For SPARQL permissions, do NOT attempt to parse and rewrite arbitrary SPARQL to enforce graph restrictions. This is a solved-hard problem (query rewriting is fragile, breaks with subqueries, and has edge cases with CONSTRUCT/DESCRIBE). Instead: proxy the query through RDF4J's own dataset restriction mechanism. RDF4J supports `default-graph-uri` and `named-graph-uri` parameters on its SPARQL endpoint -- set these server-side before forwarding the query, so the triplestore itself enforces the graph boundary.
+3. Strip any user-supplied `FROM` / `FROM NAMED` clauses before forwarding. Users should not be able to override the server-enforced graph scope.
 
-Audit `workspace-layout.js` for any `hx-target` selectors that climb an ancestor chain using `closest`. These will break after panel reparenting. Replace them with ID-based targets or `hx-target="this"`.
-
-```javascript
-// Panel component init — re-register htmx on injected content
-return {
-  init: function(params) {
-    htmx.ajax('GET', url, {
-      target: params.containerElement,
-      swap: 'innerHTML'
-    });
-    // htmx.ajax swaps via htmx — no extra process() needed here.
-    // But for any innerHTML set directly:
-    // params.containerElement.innerHTML = someHtml;
-    // htmx.process(params.containerElement);
-  }
-};
-```
-
-**Warning signs:**
-- htmx-powered buttons in panels do nothing after drag-to-dock
-- `hx-get` links that work when panel first opens but stop working after moving panel to a new group
-- No network requests visible in DevTools when clicking htmx elements in moved panels
+**Detection:**
+- Audit log: any query containing `all_graphs=true` from a non-owner user
+- Test: submit `SELECT ?g WHERE { GRAPH ?g { ?s ?p ?o } }` as a guest -- if it returns event graph IRIs, permissions are broken
 
 **Phase to address:**
-DOCK-01 Phase A. Verify with an integration test: open a panel, drag it to a new group, click an htmx element, confirm a network request fires.
+SPARQL Interface (permissions phase). Must be the FIRST sub-feature implemented before autocomplete, history, or saved queries -- everything else builds on a permission-safe SPARQL layer.
 
 ---
 
-### Pitfall 2: CodeMirror and Cytoscape Render as Zero-Width Under Dockview's Default Rendering Mode
+### Pitfall 2: RDF Patch / Named Graph Sync Creates Ghost Triples in Current State
 
 **What goes wrong:**
-Dockview's default rendering mode is `onlyWhenVisible`. When a panel is hidden (e.g., user switches to another tab in the same group), dockview removes the panel's container element from the DOM tree. The element still exists in memory but is detached. CodeMirror and Cytoscape both measure the container dimensions at initialization and cache them. When the panel becomes visible again and the container is reattached, CodeMirror shows an unstyled textarea or a 0px-height editor; Cytoscape shows a blank white box. Both components need an explicit re-measure call after reattach.
+SemPKM's write path is event-sourced: every mutation goes through `EventStore.commit()`, which creates an immutable event graph AND materializes changes into `urn:sempkm:current`. RDF Patch sync that writes directly to named graphs (bypassing EventStore) creates triples that exist in the triplestore but have no corresponding event. These "ghost triples" cause:
+- Event log shows no record of the change
+- Undo (compensating events) cannot reverse the change
+- SHACL validation never runs on the synced data
+- The lint dashboard shows a clean state for objects that may violate constraints
+
+If sync writes to `urn:sempkm:current` directly, the materialized state diverges from the event history. If sync creates its own named graphs, those graphs are invisible to queries scoped to `urn:sempkm:current` unless the scoping logic is updated.
 
 **Why it happens:**
-Both CodeMirror (5 and 6) and Cytoscape.js compute their viewport dimensions from the DOM at init time and do not automatically re-layout on reattachment. `ResizeObserver` callbacks fire with `contentRect.width = 0` and `contentRect.height = 0` while the container is detached, which some observers interpret as "nothing to do." When the container is reattached at its true size, many observers do not re-fire unless the size actually changes from the last observed value.
+RDF Patch is a transport format -- it describes graph-level ADD/DELETE operations. It has no concept of application-level events, SHACL validation, or materialization. Naively applying patches to the triplestore treats it as a dumb quad store, bypassing the entire application layer that makes SemPKM's data model work.
 
-**How to avoid:**
-Use dockview's `onDidVisibilityChange` event on each panel's API to detect the moment the panel becomes visible:
+**Consequences:**
+- Data integrity: materialized state diverges from event log
+- Auditability: synced changes have no provenance
+- Validation: synced objects skip SHACL, may violate shapes
+- Undo: cannot undo synced changes via compensating events
 
-```javascript
-return {
-  init: function(params) {
-    var editor = initCodeMirror(params.containerElement);
+**Prevention:**
+RDF Patch ingestion MUST be translated into Command API operations, not applied as raw triplestore writes. The sync receiver should:
+1. Parse the RDF Patch into add/delete triple sets
+2. Group changes by affected object IRI
+3. For each object, construct the appropriate Command API call (`object.create`, `object.patch`, `edge.create`, etc.)
+4. Let EventStore.commit() handle materialization, provenance, and validation
 
-    var disposable = params.api.onDidVisibilityChange(function(event) {
-      if (event.isVisible) {
-        // CodeMirror 6
-        editor.requestMeasure();
-        // CodeMirror 5
-        // editor.refresh();
-      }
-    });
-    // Store disposable for cleanup in dispose()
-    params._disposables = [disposable];
-  },
-  dispose: function(params) {
-    (params._disposables || []).forEach(function(d) { d.dispose(); });
-  }
-};
-```
+This is slower than raw patch application but preserves all invariants. For bulk sync (initial federation setup), consider a "sync import" mode that batches operations into fewer events but still goes through EventStore.
 
-For Cytoscape: call `cy.resize()` in the same `onDidVisibilityChange` handler. For the graph view specifically, also call `cy.fit()` unless the user has explicitly panned — track pan state with a flag.
+If raw patch application is needed for performance (large datasets), create a dedicated `urn:sempkm:federated:{remote-id}` named graph per remote peer and update the graph scoping to include federated graphs. But this is a significant architectural expansion -- do not attempt it in v2.6.
 
-Alternatively, switch the rendering mode to `always` for panels known to contain CodeMirror or Cytoscape. This keeps them in the DOM but hidden with `display: none`. The trade-off is slightly higher memory use; acceptable for the typical 1-4 open panels in SemPKM.
-
-**Warning signs:**
-- CodeMirror editor appears blank or as a single line when panel is re-focused after being hidden
-- Cytoscape graph is blank white on first show after switching back to a graph tab
-- Gutter/line numbers in CodeMirror are misaligned
-- `cy.width()` or `cy.height()` returns 0 in the graph view component
+**Detection:**
+- Query: `SELECT (COUNT(*) AS ?n) WHERE { GRAPH <urn:sempkm:current> { ?s ?p ?o } }` vs total events materialized -- significant discrepancy means ghost triples exist
+- Any triple in `urn:sempkm:current` that cannot be traced to an event graph
 
 **Phase to address:**
-DOCK-01 Phase A. Document the `onDidVisibilityChange` + refresh pattern in a shared `panel-utils.js` helper so it is not forgotten for future panel types.
+Collaboration & Federation (RDF Patch phase). Design the patch-to-command translation layer BEFORE implementing any sync protocol. Validate with a round-trip test: create object locally, export as patch, delete locally, re-import patch, verify event log contains the re-creation.
 
 ---
 
-### Pitfall 3: Dockview `fromJSON()` Broken State When a Panel Component Name No Longer Exists
+### Pitfall 3: MountSpec Multiple Directory Strategies with Conflicting Paths
 
 **What goes wrong:**
-Named layouts are serialized with `api.toJSON()` and restored with `api.fromJSON()`. The serialized JSON contains component names (strings) that must match registered panel factories. If a component name in a saved layout no longer exists — because the panel was renamed, removed from the codebase, or the layout was saved with a Mental Model-contributed panel that was subsequently uninstalled — `fromJSON()` throws an error. In versions of dockview prior to approximately v4.x, calling `api.clear()` inside the `catch` block then threw a second error ("Invalid grid element"), leaving the API in an unrecoverable state requiring a full page reload and manual localStorage clear.
+The current VFS has exactly one directory strategy: `/{model-id}/{type-label}/{filename}.md`. MountSpec introduces 5 strategies (e.g., by-type, by-tag, by-date, flat, custom SPARQL). When multiple strategies are active simultaneously, the same RDF object appears at multiple paths. WebDAV clients (Obsidian, VS Code, macOS Finder) cache directory listings and treat each path as a distinct file. Editing the same object via two different paths creates a write conflict: both PUTs arrive at the VFS write handler with different paths but the same object IRI, and whichever completes last wins silently.
+
+Worse: wsgidav's lock manager uses the path as the lock key. A LOCK on `/by-type/Note/my-note.md` does not prevent writes to `/by-tag/research/my-note.md` -- they are different resources from wsgidav's perspective, even though they map to the same RDF object.
 
 **Why it happens:**
-The dockview serialization format stores component names as strings with no schema version. There is no built-in migration or graceful degradation. The most common trigger in SemPKM will be: a Mental Model is uninstalled, its model-provided default layout is deleted from the backend, but the user's session storage still has a persisted named layout referencing panel components from that model. On next load, `fromJSON()` fails.
+The wsgidav `DAVProvider.get_resource_inst()` receives a path and returns a resource. The current implementation maps path segments to SPARQL queries. With multiple strategies, the mapping becomes many-to-one (many paths, one object). wsgidav has no concept of resource identity beyond the path -- it cannot know that two paths point to the same underlying object.
 
-**How to avoid:**
-Wrap `fromJSON()` in a `try/catch` inside the `onReady` callback (not outside it). On catch, discard the saved layout and build the default layout programmatically. Do not call `api.clear()` after a failed `fromJSON()` — rely on the graceful reset behavior in current dockview versions.
+**Consequences:**
+- Silent data loss: last-write-wins when editing via different strategy paths
+- Lock bypass: locking one path does not lock the object at other paths
+- Client confusion: rename/move in one strategy view has no effect in another
+- Cache staleness: editing via one path does not invalidate the client's cache of the other path
 
-```javascript
-dockview.ready(function(event) {
-  var saved = null;
-  try {
-    saved = JSON.parse(sessionStorage.getItem('sempkm_workspace_layout_dv'));
-  } catch (e) { /* corrupted JSON */ }
+**Prevention:**
+1. Designate exactly ONE strategy as the "canonical path" for writes. All other strategies serve read-only virtual paths. This mirrors wsgidav's own virtual_dav_provider example where only the `by_key` path is writable and `by_tag`/`by_status` are read-only aliases.
+2. In non-canonical strategy collections, override `create_empty_resource()` and `begin_write()` to raise `HTTP_FORBIDDEN` with a message directing users to the canonical path.
+3. Store the canonical path in the MountSpec vocabulary so the VFS browser can show a "go to editable location" link for read-only aliases.
+4. For the lock manager: inject a custom `LockManager` subclass that maps all path variants of an object to the same lock token using the object IRI as the lock key (not the path). This is non-trivial but necessary for correctness.
 
-  if (saved) {
-    try {
-      event.api.fromJSON(saved);
-      return;
-    } catch (err) {
-      console.warn('SemPKM: saved layout incompatible, rebuilding default.', err);
-      sessionStorage.removeItem('sempkm_workspace_layout_dv');
-      // Do NOT call event.api.clear() here — rely on dockview's graceful reset.
-    }
-  }
-  buildDefaultLayout(event.api);
-});
-```
-
-Add a `_layoutVersion` field to every serialized layout blob. Before calling `fromJSON()`, validate that the version matches the current schema version AND that all component names in the blob are registered. Reject and rebuild if either check fails.
-
-For model-provided default layouts, the backend should validate component names against the installed Mental Models before serving the layout JSON. A layout that references an uninstalled model's panel components must be flagged as invalid.
-
-**Warning signs:**
-- Workspace renders as a blank white area on load (dockview in broken state)
-- Console shows "Invalid grid element" or similar dockview internal errors
-- Users report workspace not loading after uninstalling a Mental Model
+**Detection:**
+- Test: mount two strategies, open the same object in both, edit in both, verify one edit is not silently lost
+- Test: LOCK via one path, attempt PUT via another path to the same object, verify 423 Locked
 
 **Phase to address:**
-DOCK-02 (Named layouts). The validation and fallback logic must be in place before any named layout feature ships. Pair with a Playwright test: install a model, create a named layout referencing model panels, uninstall the model, reload, verify workspace renders correctly.
+User Custom VFS (MountSpec). The canonical-path-is-writable rule must be established in the MountSpec vocabulary design before implementing any strategy beyond the existing by-type strategy.
 
 ---
 
-### Pitfall 4: Carousel Manifest Schema Break Without a Migration Path
+### Pitfall 4: Federated WebID Auth Trusts Remote WebID Documents Without Verification
 
 **What goes wrong:**
-VIEW-02 (Carousel views) requires adding new fields to the Mental Model manifest — specifically, a `views` block on type declarations in manifest.yaml that lists the carousel rotation slots. If this schema addition is not backward-compatible (i.e., if the Pydantic model makes the new field required rather than optional), then all existing installed Mental Models (including `basic-pkm`) fail manifest validation on load. The model manager raises a validation error for every installed model, rendering the entire app unusable until models are manually re-archived with the new fields.
+Federated WebID authentication works by: (1) remote user presents a WebID URI, (2) local server dereferences the WebID URI to fetch the profile document, (3) profile document contains a public key, (4) local server verifies the request was signed with the corresponding private key. The critical vulnerability: the local server fetches an RDF document from an arbitrary URL on the internet and trusts its contents to make authorization decisions. An attacker who controls a web server can host a fake WebID profile claiming to be any identity, and the local SemPKM instance will accept it.
+
+Additionally, if the WebID URI is an `https://` URL on a domain the attacker controls, they can serve different profile documents to different requesters (MITM the verification step itself). The local server has no way to distinguish a legitimate WebID from a spoofed one without additional trust anchors.
 
 **Why it happens:**
-`ManifestSchema` is a Pydantic `BaseModel`. Adding a required field to it causes `ManifestSchema.model_validate(raw)` to raise `ValidationError` for any manifest.yaml that does not include the new field. Existing on-disk archives (already extracted into `~/.sempkm/models/`) are not automatically re-validated — they are validated at load time on every startup. A breaking schema change therefore breaks every existing installation simultaneously.
+WebID-TLS was designed for a world where the TLS client certificate itself provided the trust anchor (the certificate is signed by a CA, and the WebID URI in the certificate's SAN field is the identity claim). When moving to HTTP Signatures (which SemPKM uses via Ed25519 keys), the TLS trust anchor is lost. The public key in the WebID document is self-asserted -- there is no CA chain to verify.
 
-**How to avoid:**
-All new manifest fields that implement carousel views MUST be optional with a default value. Example:
+**Consequences:**
+- Identity spoofing: attacker creates a WebID at `https://evil.example/alice#me` and claims to be "Alice"
+- Privilege escalation: if the local instance grants permissions based on WebID URI patterns (e.g., "trust all users from `https://trusted-instance.example/`"), the attacker hosts a WebID on a similar-looking domain
+- SSRF vector: the local server fetches arbitrary URLs during authentication, which can be pointed at internal services
 
-```python
-class ManifestTypeViewDef(BaseModel):
-    type: str
-    carousel: list[str] = Field(default_factory=list)  # ordered list of view IDs
-    defaultView: str | None = None
+**Prevention:**
+1. Never grant permissions based solely on a WebID URI. Require an explicit "trust relationship" between instances: the local admin must configure a list of trusted remote instance base URLs. Only WebID URIs from trusted instances are accepted.
+2. Implement SSRF protection on the WebID fetch: block private IP ranges, localhost, and link-local addresses. Use a dedicated HTTP client with strict timeouts (3s connect, 5s read) and no redirect following.
+3. Cache fetched WebID profiles with a short TTL (5 minutes) and verify the public key matches on every request. If the key changes between cached fetches, reject the authentication and log a warning.
+4. Consider using IndieAuth (which SemPKM already has) as the federation auth mechanism instead of raw WebID verification. IndieAuth provides an authorization code flow that verifies the remote user actually controls their identity endpoint -- it does not rely on trusting fetched documents.
 
-class ManifestSchema(BaseModel):
-    # ... existing fields ...
-    typeViews: list[ManifestTypeViewDef] = Field(default_factory=list)  # NEW — optional
-```
-
-Never add a required field to `ManifestSchema` without simultaneously creating a migration script that rewrites all installed manifests. The migration script path should be `backend/migrations/manifests/` and run as part of the application startup manifest re-validation step.
-
-Test the schema change by loading the existing `basic-pkm` manifest.yaml (which will NOT have the new fields) and verifying it still passes validation. Add this as a unit test in `tests/test_manifest.py`.
-
-**Warning signs:**
-- `ManifestSchema.model_validate(raw)` raises `ValidationError` for `basic-pkm` after adding the new field
-- Admin portal shows all models as "validation error" on the Models page
-- Object explorer shows no types (models failed to load)
+**Detection:**
+- Test: create a WebID at a test URL, attempt to authenticate against the local instance without being in the trusted list, verify rejection
+- Monitor: log all WebID fetch URLs and alert on fetches to unusual domains
 
 **Phase to address:**
-VIEW-02 (Carousel views). Add a manifest schema backward-compatibility test before writing any carousel rendering code. Run the test in CI against the shipped `basic-pkm` manifest.yaml.
+Collaboration & Federation (federated WebID auth). The trusted instance allowlist must be implemented BEFORE any remote authentication is accepted. Do not ship "open federation" that trusts any WebID.
 
 ---
 
-### Pitfall 5: Named Layout Stale References to Session-Only Tab IDs
+### Pitfall 5: SPARQL Saved/Shared Queries Execute with Sharer's Implicit Permissions
 
 **What goes wrong:**
-Named layouts saved by the user include tab content state — specifically, the IRI of the object open in each panel. When a named layout is restored in a new session, those IRIs may reference objects that have since been deleted, objects the current user does not have permission to view, or views contributed by an uninstalled Mental Model. The workspace restores successfully in dockview terms (component names are valid), but individual panels fail to load their content, showing error states or blank panels. The user cannot tell if the named layout itself is broken or if the objects are just gone.
+When saved queries are shared between users, the query executes in the context of the user who runs it, not the user who created it. This sounds correct -- but the query text itself may contain hardcoded graph URIs, IRI patterns, or `all_graphs=true` flags that were valid for the sharer's permission level but not for the runner. If a shared query bypasses graph scoping (because the sharer was an admin), and the runner is a guest, the guest now has admin-level read access through the saved query.
+
+Conversely, if permissions are enforced at execution time (correct), a shared query that worked for the admin may silently return empty results for a guest, with no indication that permissions are the cause. The guest sees an empty result set and assumes the query is broken.
 
 **Why it happens:**
-dockview's `toJSON()` serializes both the panel structure AND any params passed to each panel at creation time. If panel params include the IRI of the currently-open object, those IRIs are persisted verbatim. On restore, `htmx.ajax()` is called with the stale IRI and hits the backend, which returns a 404 or 403. The panel loads an error partial, but the layout structure itself is valid from dockview's perspective.
+SPARQL queries are opaque text strings. There is no metadata about what permissions were assumed when the query was written. Graph scoping (`scope_to_current_graph`) strips user-supplied `FROM` clauses -- but a saved query may have been authored to work with `all_graphs=true`, which is a separate code path.
 
-**How to avoid:**
-Named layouts should serialize only the panel type (e.g., `object-editor`, `relations-panel`, `graph-view`) and the panel's position/size, NOT the content (IRI). Content is session state; layout is persistent state. These are two different things.
+**Consequences:**
+- Privilege escalation if queries bypass scoping
+- Confusing empty results if queries require permissions the runner lacks
+- Trust erosion: shared queries that "work for me but not for you" undermine collaboration
 
-Store content state (open tabs and their IRIs) separately in sessionStorage under the existing `sempkm_workspace_layout` key, exactly as today. The named layout blob stores only the structural shape of the workspace. When a named layout is applied, it sets up the panel structure and then loads the session's last-known content into each panel.
+**Prevention:**
+1. Saved queries MUST NOT store execution parameters like `all_graphs`. Only the query text is saved. Execution parameters are always determined at runtime from the runner's session.
+2. When displaying shared query results, if the result set is empty and the query is shared, show a hint: "This query returned no results. If the query works for the author, you may not have permission to access the referenced data."
+3. Add a `required_role` field to saved queries. If the author marks a query as requiring "owner" access, the UI shows a lock icon and prevents non-owners from running it (rather than returning confusing empty results).
 
-If a user explicitly wants to save "layout + content" (a named snapshot that remembers which objects were open), make this a deliberate second feature called a "workspace snapshot" — not the default named layout behavior.
-
-**Warning signs:**
-- Named layout restores show blank panels instead of the last-open objects
-- Console shows 404 errors for IRIs after applying a named layout
-- User reports "my layout is broken" but the actual problem is deleted objects
+**Detection:**
+- Test: admin saves a query using `all_graphs=true`, shares with guest, guest runs it -- verify guest gets scoped results (not all-graphs results)
 
 **Phase to address:**
-DOCK-02 (Named layouts). Define the separation between structural layout state and content state in the design doc before implementation. Validate with a test: save a named layout with objects A and B open, delete object A from the triplestore, restore the named layout, verify panel for object A shows a "not found" placeholder rather than a workspace error.
+SPARQL Interface (saved/shared queries). Implement after permissions are solid.
 
 ---
 
 ## Moderate Pitfalls
 
-### Pitfall 6: Carousel Animation Over-Engineering
+### Pitfall 6: SPARQL Autocomplete Floods RDF4J with Schema Introspection Queries
 
 **What goes wrong:**
-The "cube-flip style" carousel described in the milestone context implies a 3D CSS transform animation (perspective, rotateY, translateZ). Implementing this correctly requires: a wrapper element for perspective context, individual face elements for "front" (current view) and "back" (incoming view), careful `backface-visibility: hidden` rules, and coordinating the animation duration with the htmx content swap lifecycle. Over-engineered implementations add 200-400ms of animation time during which the panel is non-interactive, break when panels are resized mid-animation, and cause visual glitches in Firefox when `transform-style: preserve-3d` is combined with `overflow: hidden` on any ancestor.
+Ontology-aware autocomplete requires knowing the available classes, properties, and their domains/ranges. A naive implementation fires a SPARQL query on every keystroke to fetch matching terms from the triplestore. On a dataset with hundreds of properties across multiple Mental Models, each autocomplete request takes 200-500ms (SPARQL round-trip through the API proxy to RDF4J). With typical typing speed (5-10 keystrokes/second), the query queue grows faster than it drains, causing UI lag and triplestore load spikes.
+
+The Yasgui CDN build already includes basic autocomplete (prefixed names, keywords), but it queries the SPARQL endpoint itself for class/property lists. On non-Qlever endpoints like RDF4J, this can take several seconds per request.
 
 **How to avoid:**
-Start with a simpler, working animation before adding 3D effects. A fade crossfade or a vertical slide (translateY) is sufficient for v2.3 and avoids the `preserve-3d` / `overflow: hidden` ancestor conflict. Use CSS transitions, not keyframe animations, so the browser can optimize with `will-change: transform`.
+Cache the schema introspection results server-side. On model install/uninstall, precompute and cache:
+- All class IRIs with labels (from SHACL `sh:targetClass` and `rdf:type rdfs:Class/owl:Class`)
+- All property IRIs with labels, domains, and ranges (from SHACL `sh:path` and `rdfs:domain`/`rdfs:range`)
+- All prefix mappings
 
-Constrain the animation: the carousel should only animate on user-initiated view rotation (clicking a cycle button), not on panel resize or tab switch. Guard with a flag:
+Serve this as a static JSON endpoint (`/api/sparql/schema`) that Yasgui's custom completer fetches once on init and caches in memory. The frontend filters locally -- no per-keystroke SPARQL queries.
 
-```javascript
-var _isAnimating = false;
-function rotateCarousel(panelEl, direction) {
-  if (_isAnimating) return;
-  _isAnimating = true;
-  // ... apply class, swap content, remove class ...
-  panelEl.addEventListener('transitionend', function() {
-    _isAnimating = false;
-  }, { once: true });
-}
-```
-
-Cap animation duration at 150ms. Respect `prefers-reduced-motion`: if the media query is active, skip the animation entirely and swap content immediately.
+Debounce any remaining dynamic completions (e.g., IRI suggestions from instance data) to 300ms minimum. Cancel in-flight requests when new input arrives.
 
 **Warning signs:**
-- Panel content is visible through the "back" of the flip (missing `backface-visibility: hidden`)
-- Animation stutter when panel width is less than ~300px
-- Firefox shows a blank white flash during the flip
+- Typing in the SPARQL editor feels laggy (>200ms between keystroke and suggestion popup)
+- RDF4J access log shows repeated schema queries during editing
+- Browser DevTools network tab shows queued pending requests to `/api/sparql`
 
 **Phase to address:**
-VIEW-02 (Carousel views). Keep the animation implementation in a single CSS class pair (`carousel-flip-out` / `carousel-flip-in`) so it can be swapped out without touching the carousel logic.
+SPARQL Interface (autocomplete). Build the cached schema endpoint before wiring autocomplete into Yasgui.
 
 ---
 
-### Pitfall 7: LuceneSail Fuzzy Query Applied to Short Tokens Produces Noise
+### Pitfall 7: IRI Pill Rendering in SPARQL Results Breaks with Non-Object IRIs
 
 **What goes wrong:**
-Adding the `~` fuzzy operator to every search term (e.g., `knowledge~1`) causes LuceneSail to match a significant portion of the Lucene term dictionary for short words. A 3-letter token like `rdf~1` matches any token within 1 edit distance — including `pdf`, `rdg`, `adf`, `sdf`, etc. For a PKM with technical vocabulary (IRIs, prefixes, ontology terms), this produces results that look like random noise, making fuzzy search feel broken.
-
-Lucene's FuzzyQuery maxes out at edit distance 2. Setting `~2` on any term shorter than 5 characters degrades to a near-full-dictionary scan.
+The current Yasgui custom renderer converts IRI results into clickable pill links that open SemPKM object tabs. This works for object IRIs (which exist in `urn:sempkm:current` and have labels). But SPARQL results frequently contain non-object IRIs: ontology class URIs (`rdfs:Class`), property URIs (`dcterms:title`), blank node identifiers, event graph IRIs (`urn:sempkm:event:...`), and external URIs (`http://dbpedia.org/...`). Rendering all of these as clickable pills that attempt to open object tabs results in 404 errors, blank panels, or confusing "object not found" states.
 
 **How to avoid:**
-Apply the fuzzy operator conditionally based on token length. Only append `~1` for tokens of 5+ characters; leave shorter tokens as exact matches. This mirrors Elasticsearch's default behavior (`fuzziness: AUTO`):
+Classify IRIs before rendering:
+1. **Object IRIs** (in `urn:sempkm:current` with `rdf:type`): render as clickable pills that open object tabs
+2. **Ontology/schema IRIs** (classes, properties): render as styled pills with a different color, clicking opens a schema info popover (not an object tab)
+3. **Event graph IRIs** (`urn:sempkm:event:*`): render as timestamped event links (open event log filtered to that event)
+4. **External IRIs**: render as external links (open in new browser tab)
+5. **Unknown IRIs**: render as plain text with copy-on-click
 
-```python
-def _build_fuzzy_query(raw_query: str) -> str:
-    """Apply fuzzy operator only to tokens >= 5 characters."""
-    tokens = raw_query.strip().split()
-    parts = []
-    for tok in tokens:
-        # Strip existing operators before measuring
-        clean = tok.rstrip('~*?')
-        if len(clean) >= 5 and not any(c in tok for c in ['~', '*', '?', '"']):
-            parts.append(tok + '~1')
-        else:
-            parts.append(tok)
-    return ' '.join(parts)
-```
-
-Expose the fuzzy toggle as a user-controlled option (e.g., a toggle in the search UI), defaulting to off. Let users opt into fuzzy when they know they are making typos, rather than applying it automatically to all queries.
-
-Also set `fuzzyPrefixLength` in the LuceneSail config to 2 or 3. This requires the first 2-3 characters to match exactly, preventing the extreme noise case where a 5-character token matches unrelated 5-character tokens by pure edit-distance coincidence.
+The classification requires a lookup. Do NOT make a per-IRI SPARQL query. Instead, batch-classify all IRIs in a result set with a single query: `ASK WHERE { GRAPH <urn:sempkm:current> { <{iri}> a ?type } }` for each unique IRI, batched into a single `VALUES` clause.
 
 **Warning signs:**
-- FTS returns 50+ results for a 4-letter search term with fuzzy enabled
-- Results include object titles with no apparent relationship to the query
-- Search for a known object title returns the wrong object first
+- Clicking a pill in SPARQL results opens a blank or error panel
+- SPARQL results showing class/property URIs all have the same "object" styling
 
 **Phase to address:**
-FTS-04 (Fuzzy search). Implement the length-conditional fuzzy logic in `SearchService` before exposing any fuzzy UI. Validate with a test dataset: search for `note~1` should not match `nome`, `node`, `note`, `nope`, `mote` all at the same score.
+SPARQL Interface (IRI pills enhancement). Implement classification before expanding pill rendering beyond the current behavior.
 
 ---
 
-### Pitfall 8: LuceneSail Index Out of Sync After Docker Volume Manipulation
+### Pitfall 8: LDN Inbox Becomes an Open Write Endpoint for Spam
 
 **What goes wrong:**
-The Lucene index is stored in a separate Docker volume (`lucene_index`) that is mounted into the RDF4J container. If the `rdf4j_data` volume (the NativeStore) is restored from a backup but the `lucene_index` volume is not restored from the same backup point, the FTS index is out of sync with the triplestore data. Searches return IRIs for objects that have been deleted, or fail to return IRIs for objects that were added after the backup date of the Lucene index.
+The LDN specification requires that the inbox endpoint accepts POST requests from any sender -- this is by design (anyone should be able to send a notification). Without rate limiting and content validation, the inbox becomes an unauthenticated write endpoint that spammers, bots, and fuzzers can flood with arbitrary JSON-LD payloads. Each notification is stored (per LDN spec), consuming storage. If notifications trigger side effects (e.g., federation sync, UI alerts), spam notifications cause cascading resource consumption.
 
 **How to avoid:**
-Document the two-volume backup requirement explicitly. Both `rdf4j_data` and `lucene_index` volumes must be backed up and restored together — they are not independent.
-
-Add an index health check on startup: execute `SELECT (COUNT(*) AS ?n) WHERE { GRAPH <urn:sempkm:current> { ?s ?p ?o } }` and compare the count against a cached count stored in the Lucene index directory's metadata. A significant discrepancy (>10%) should log a warning and optionally trigger a reindex.
-
-If a reindex is needed, it can be triggered programmatically via the RDF4J REST API or by calling `LuceneSail.reindex()`. Document the procedure in `docs/admin/backup-restore.md`.
+1. Rate limit the inbox endpoint: 10 notifications per minute per source IP, 100 per hour. Return `429 Too Many Requests` when exceeded.
+2. Validate notification payloads against a minimal JSON-LD shape: require `@type`, `actor`, `object`, and `target` fields. Reject malformed payloads with `400 Bad Request` before storing.
+3. Do NOT process notifications synchronously. Store them in a queue (or SQLite table) and process asynchronously with a background worker. This prevents a slow notification from blocking the HTTP response.
+4. Add an admin UI to view and manage pending notifications. Notifications from untrusted sources should require admin approval before triggering any side effects.
+5. Consider requiring authentication (via HTTP Signatures with a known WebID) for notifications that trigger write operations (e.g., sync requests). Read-only notifications (e.g., "I linked to your object") can be accepted anonymously.
 
 **Warning signs:**
-- FTS returns stale results (deleted objects appear in search)
-- FTS misses recently added objects
-- After restoring from backup, search returns half the expected results
+- Database/storage growing unexpectedly (spam notifications accumulating)
+- Notifications from unknown origins appearing in the UI
+- Sync or federation actions triggered by external POST requests without admin knowledge
 
 **Phase to address:**
-FTS-04 (Fuzzy search). The backup documentation and health check should be added as part of the fuzzy search phase since that phase requires verifying the LuceneSail configuration in detail.
+Collaboration & Federation (LDN notifications). Implement rate limiting and payload validation as part of the inbox endpoint, not as a later hardening step.
 
 ---
 
-### Pitfall 9: Dockview Drag-and-Drop Conflicts with Existing HTML5 Tab Drag
+### Pitfall 9: MountSpec SHACL Frontmatter Writes Corrupt Properties on Partial Update
 
 **What goes wrong:**
-SemPKM's current workspace-layout.js implements a full custom HTML5 drag-and-drop system for tab reordering: `dragstart`, `dragend`, `dragover`, `dragleave`, `drop` events on `.workspace-tab` elements. After migrating to dockview-core, the workspace will have TWO drag-and-drop systems active: dockview's internal drag system (for panel group splitting and reordering) and the existing HTML5 tab drag system. These systems conflict on `dragover` and `drop` events, causing: dropped tabs that create new dockview groups unexpectedly, the existing insertion indicator appearing in wrong positions, and `isDragging` state getting stuck when dockview intercepts a drag event the custom system was tracking.
+The current VFS write path (`vfs/write.py`) strips YAML frontmatter and commits only the Markdown body via `body.set`. MountSpec extends this to also write back frontmatter fields as RDF property changes. The danger: a WebDAV client may write a file with partial or stale frontmatter. If the user edits only the body in their text editor, the frontmatter echoed back is the version from when the file was last read -- which may be stale if another user or the web UI changed a property in the meantime.
+
+The write handler sees the stale frontmatter as "the user's intended property values" and overwrites the current values, silently reverting the other user's change. This is a classic lost-update problem, but it is invisible because it happens through a side channel (file save) rather than an explicit property edit.
 
 **How to avoid:**
-During Phase A migration, completely remove the existing HTML5 tab drag implementation from workspace-layout.js. Do not attempt to run both systems in parallel. Dockview provides its own tab drag-and-drop with group splitting out of the box — there is no benefit to maintaining the custom implementation.
-
-Before removing the custom drag system, audit which behaviors it provides that dockview does not: specifically, the insertion indicator (vertical line showing where the tab will land). Verify dockview's built-in drag indicator meets the SemPKM visual design, or add a CSS override for `--dv-drag-over-background-color` and `--dv-drag-over-border-color` in `dockview-sempkm-bridge.css` to match the existing design.
-
-The `isDragging` global flag in workspace-layout.js (used to guard tab click handlers) must be removed along with the custom drag system — dockview handles the click-vs-drag distinction internally.
+1. Include a version/ETag in the frontmatter (e.g., `# etag: abc123`). On write, compare the ETag against the current object version. If they differ, reject the write with `412 Precondition Failed` (HTTP) or `409 Conflict` (WebDAV).
+2. Alternatively: make frontmatter writes opt-in per MountSpec configuration. Default behavior: frontmatter is read-only (informational). Users who want bidirectional frontmatter sync must explicitly enable it in their MountSpec, with a warning about conflict risks.
+3. If bidirectional sync is enabled without ETags: at minimum, compare the incoming frontmatter values against the current state. Only write properties that actually changed (diff-then-patch). This prevents "echoing back stale values" from causing overwrites when only the body changed.
 
 **Warning signs:**
-- Dragging a tab creates a new group unexpectedly (dockview intercepted the drop)
-- Dropping a tab causes it to disappear (both systems handled the drop)
-- Console shows `DataTransfer.getData` returning empty string (dockview prevented the default)
+- Properties reverting to old values after saving a file in a text editor
+- Event log shows `object.patch` events from VFS writes that the user did not intend
 
 **Phase to address:**
-DOCK-01 Phase A. Remove the custom drag system in the same commit that adds dockview. Do not leave a transitional state where both systems coexist, even briefly.
+User Custom VFS (SHACL frontmatter writes). The ETag or diff-then-patch approach must be designed before implementing bidirectional frontmatter.
 
 ---
 
-## Technical Debt Patterns
+### Pitfall 10: Named Queries as Views Bypass ViewSpec Cache and Authorization
 
-| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
-|----------|-------------------|----------------|-----------------|
-| Keep Split.js for bottom panel resize during Phase A | Avoids scope creep; Phase A focuses on editor groups only | Split.js and dockview both run simultaneously in the same page, with different drag systems | Acceptable for Phase A only; Phase B must remove Split.js entirely |
-| Serialize tab content (IRIs) in named layouts | Simpler implementation — one blob stores everything | Stale IRIs in restored layouts cause silent panel load failures; breaks after object deletion | Never acceptable for named layouts; use session/layout separation |
-| Apply `~1` fuzzy to all query tokens unconditionally | One-line implementation; no per-token logic | Catastrophic noise for short tokens (3-4 chars); makes search feel broken | Never acceptable; minimum 5-character threshold required |
-| Optional manifest fields with no schema version | Backward-compatible without migrations | Accumulation of legacy fields; no way to know which manifest version a model uses | Acceptable for v2.3 additions; add a `schemaVersion` field to manifest before v3.0 |
-| `always` rendering mode for all dockview panels | Eliminates CodeMirror/Cytoscape visibility refresh bugs | Higher memory use when many panels are open; hidden panels continue running JS | Acceptable for PKM-scale (typically 1-4 panels); reassess if user testing shows >8 panels common |
+**What goes wrong:**
+When saved SPARQL queries are exposed as "views" (named queries as views), they enter the same rendering pipeline as Mental Model-defined ViewSpecs. But ViewSpecs have a server-side TTL cache (`ViewSpecService`, 300s TTL, 64 max entries) that caches query results. If named query views are also cached, a user who creates a query and then changes the underlying data will see stale results for up to 5 minutes. If named query views are NOT cached, they bypass the cache and hit RDF4J directly on every load, creating an inconsistency where model views are fast (cached) and user views are slow (uncached).
+
+Additionally, ViewSpecs are scoped to the current graph via `scope_to_current_graph()`. Named queries from users may already have their own `FROM` clauses. If the named query is wrapped in the ViewSpec pipeline, double-scoping may occur (injecting `FROM <urn:sempkm:current>` into a query that already has `FROM <urn:sempkm:current>`, which is harmless, or into a query with a different `FROM`, which breaks it).
+
+**How to avoid:**
+1. Named query views should use a SEPARATE cache from model ViewSpecs. Use a shorter TTL (60s) and a per-user cache key (since different users may have different SPARQL permissions).
+2. Before executing a named query as a view, apply the same scoping pipeline as regular SPARQL queries. If the query already contains `FROM` clauses, respect them only if the user has permission -- otherwise strip and re-inject.
+3. Add an explicit "refresh" action in the view UI so users can bypass the cache when needed.
+
+**Warning signs:**
+- Named query views showing stale data after edits
+- Named query views significantly slower than model-defined views
+- Queries with custom `FROM` clauses returning unexpected results when used as views
+
+**Phase to address:**
+SPARQL Interface (named queries as views). Design the caching strategy alongside the view rendering integration.
+
+---
+
+### Pitfall 11: Object Browser Multi-Select Delete Races with Event Sourcing
+
+**What goes wrong:**
+Multi-select delete in the object browser sends one delete command per selected object. With 20 objects selected, 20 `EventStore.commit()` calls execute. Each commit begins an RDF4J transaction, writes an event graph, materializes deletes, and commits. If two transactions attempt to delete the same triple (e.g., a shared edge), one succeeds and the other fails with a conflict. The user sees a partial deletion: 18 of 20 objects deleted, 2 failed silently or with cryptic errors.
+
+**How to avoid:**
+Batch multi-select operations into a SINGLE `EventStore.commit()` call with multiple `Operation` instances. The `commit()` method already supports `operations: list[Operation]` -- use it. This ensures all deletes are atomic: either all succeed or all fail.
+
+Limit batch size to prevent excessively long transactions: cap at 50 objects per batch. For larger selections, chunk into 50-object batches with a progress indicator.
+
+**Warning signs:**
+- Multi-select delete leaves some objects un-deleted with no clear error
+- Event log shows multiple delete events instead of one batch event
+- RDF4J logs show transaction conflict errors during bulk operations
+
+**Phase to address:**
+Object Browser UI Improvements (multi-select). Use the existing batch commit API from day one.
+
+---
+
+## Minor Pitfalls
+
+### Pitfall 12: Server-Side SPARQL History Grows Unbounded
+
+**What goes wrong:**
+Moving SPARQL query history from localStorage to server-side storage (SQLite) without a retention policy means every query every user runs is stored forever. A power user running 50 queries/day accumulates 18,000 rows/year. With query text averaging 500 bytes, this is modest storage-wise but causes UI performance issues: loading "all history" into the history panel becomes slow, and search/filter over unbounded history adds latency.
+
+**How to avoid:**
+- Default retention: keep last 500 queries per user, auto-prune oldest on insert
+- Add a "pinned" flag so users can mark important queries that survive pruning
+- Paginate the history UI: show last 20 queries initially, load more on scroll
+- Add a "clear history" button for users who want a fresh start
+
+**Phase to address:**
+SPARQL Interface (server-side history). Set the retention policy in the initial migration, not as a follow-up.
+
+---
+
+### Pitfall 13: Edge Inspector Panel Causes N+1 SPARQL Queries
+
+**What goes wrong:**
+An edge inspector that shows edge details (source, target, type, properties, provenance) for each edge in the relations panel fires one SPARQL query per edge. An object with 30 relations triggers 30 queries when the edge inspector is opened. Each query is a round-trip through the API to RDF4J.
+
+**How to avoid:**
+Fetch all edge details for an object in a single SPARQL query using `VALUES` or a `CONSTRUCT` pattern that returns the full edge subgraph. Parse the results client-side. The relations panel already loads edge data -- extend that query to include the additional fields the inspector needs, rather than adding a separate query per edge.
+
+**Phase to address:**
+Object Browser UI Improvements (edge inspector). Design the query as an extension of the existing relations query.
+
+---
+
+### Pitfall 14: VFS Browser Breadcrumb Navigation Breaks with URL-Encoded IRIs
+
+**What goes wrong:**
+VFS paths contain model IDs and type labels that may include characters requiring URL encoding. Breadcrumb navigation builds clickable segments from the path. If the path is `/basic-pkm/People/Alice%20Smith.md`, naive breadcrumb splitting on `/` produces correct segments. But if a MountSpec strategy uses IRI fragments in paths (e.g., a flat strategy with `https%3A%2F%2F...` encoded IRIs), the breadcrumb splits on the encoded slashes, producing nonsensical segments.
+
+**How to avoid:**
+Breadcrumbs should be built from the MountSpec hierarchy metadata (model > strategy > category > file), NOT by splitting the URL path. Each level of the hierarchy knows its own label and path -- compose breadcrumbs from that data structure, not from string manipulation.
+
+**Phase to address:**
+VFS Browser UX Polish (breadcrumbs). Use the hierarchy metadata from the MountSpec, not the raw URL path.
+
+---
+
+### Pitfall 15: Spatial Canvas Performance Degrades with Many Nodes
+
+**What goes wrong:**
+The spatial canvas uses Cytoscape.js for rendering. As the number of nodes on a canvas grows beyond ~200, layout computations and re-renders become sluggish. Adding features like per-node expand/delete controls (already shipped in v2.5) adds DOM elements per node. If v2.6 adds more interactive features (inline editing, hover cards), each additional DOM element per node multiplies the performance impact.
+
+**How to avoid:**
+- Use Cytoscape's `cy.batch()` for bulk DOM operations
+- Implement virtual rendering: only render nodes visible in the current viewport
+- Cap the default node count at 150 with a "load more" mechanism
+- Profile with Chrome DevTools Performance tab before adding new per-node UI elements
+
+**Phase to address:**
+Spatial Canvas UI Improvements. Profile the current state before adding features.
+
+---
+
+## Phase-Specific Warnings
+
+| Phase Topic | Likely Pitfall | Mitigation |
+|-------------|---------------|------------|
+| SPARQL Permissions | `all_graphs` bypass available to all users (Pitfall 1) | Gate behind owner role immediately; proxy via RDF4J dataset params |
+| SPARQL Autocomplete | Per-keystroke schema queries flood triplestore (Pitfall 6) | Precompute schema cache; serve as static JSON |
+| SPARQL IRI Pills | Non-object IRIs open broken tabs (Pitfall 7) | Classify IRIs before rendering; batch lookup |
+| SPARQL History | Unbounded storage growth (Pitfall 12) | 500-per-user retention limit from day one |
+| SPARQL Saved/Shared Queries | Permission escalation via shared queries (Pitfall 5) | Never store execution params; always scope at runtime |
+| SPARQL Named Query Views | Cache inconsistency and double-scoping (Pitfall 10) | Separate cache; strip and re-inject FROM clauses |
+| RDF Patch Sync | Ghost triples bypass event store (Pitfall 2) | Translate patches to Command API operations |
+| LDN Notifications | Open inbox becomes spam vector (Pitfall 8) | Rate limit + payload validation + async processing |
+| Federated WebID Auth | Untrusted remote WebID documents (Pitfall 4) | Trusted instance allowlist; SSRF protection; prefer IndieAuth |
+| MountSpec Strategies | Write conflicts from multi-path aliasing (Pitfall 3) | One canonical writable path; others read-only |
+| SHACL Frontmatter Writes | Lost updates from stale frontmatter (Pitfall 9) | ETag or diff-then-patch; opt-in bidirectional sync |
+| Object Multi-Select | Race conditions on batch delete (Pitfall 11) | Single EventStore.commit() with multiple Operations |
+| Edge Inspector | N+1 SPARQL queries (Pitfall 13) | Single CONSTRUCT query for all edges |
+| VFS Breadcrumbs | URL-encoded IRIs break path splitting (Pitfall 14) | Build from hierarchy metadata, not path strings |
+| Spatial Canvas UX | DOM bloat per node (Pitfall 15) | Profile before adding features; cap node count |
 
 ---
 
@@ -339,13 +391,15 @@ DOCK-01 Phase A. Remove the custom drag system in the same commit that adds dock
 
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| dockview-core + htmx | Setting `innerHTML` directly in `init()` without calling `htmx.process()` | Use `htmx.ajax()` for content loading (htmx processes its own swaps), or call `htmx.process(containerElement)` after any direct innerHTML set |
-| dockview-core + CodeMirror | Initializing the editor in `init()` without a visibility change handler | Subscribe to `params.api.onDidVisibilityChange`, call `editor.requestMeasure()` / `editor.refresh()` on becoming visible |
-| dockview-core + Cytoscape.js | Calling `cy.layout().run()` in `init()` when panel may be hidden | Defer `cy.layout().run()` to `onDidVisibilityChange` with `isVisible: true`; also call `cy.resize()` first |
-| LuceneSail + fuzzy operator | Appending `~` to short tokens (< 5 chars) | Implement `_build_fuzzy_query()` with length-conditional fuzzy; set `fuzzyPrefixLength=2` in LuceneSail config |
-| dockview `fromJSON` + Mental Model uninstall | Calling `api.clear()` in the catch block after `fromJSON()` fails | Rely on dockview's graceful reset; remove invalid layout from storage and call `buildDefaultLayout()` |
-| Carousel + htmx swap | Triggering the CSS animation class and the htmx content swap independently | Start the CSS transition, then swap content on `transitionend`; or swap first and fade in — never both simultaneously |
-| Named layouts + session content | Saving open IRIs into the named layout blob | Keep panel structure (layout) separate from tab content (session); only serialize structure in named layout |
+| SPARQL permissions + Yasgui | Yasgui sends queries directly to triplestore URL | All queries MUST route through `/api/sparql` proxy (which enforces scoping); configure Yasgui's endpoint to point at the proxy, never at RDF4J directly |
+| RDF Patch + Event Store | Applying patches as raw SPARQL UPDATE | Translate patches to Command API operations; let EventStore handle materialization |
+| MountSpec + wsgidav locks | Assuming path-based locks protect the object | Implement IRI-based lock mapping or make non-canonical paths read-only |
+| LDN + federation sync | Processing notifications synchronously in the HTTP handler | Store in queue, process async; rate limit the inbox |
+| WebID auth + SSRF | Fetching arbitrary URLs during auth without filtering | Block private IPs, localhost, link-local; strict timeouts; no redirects |
+| Named queries + ViewSpec cache | Sharing the same cache between model views and user queries | Separate caches with different TTLs and per-user keys |
+| Multi-select + EventStore | Sending one commit per selected object | Batch into single commit with multiple Operations |
+| Autocomplete + RDF4J | Firing SPARQL query per keystroke for schema suggestions | Precompute schema JSON; filter client-side |
+| Frontmatter write-back + concurrent edits | Echoing stale frontmatter values as intended edits | ETag comparison or diff-then-patch on write |
 
 ---
 
@@ -353,25 +407,33 @@ DOCK-01 Phase A. Remove the custom drag system in the same commit that adds dock
 
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| LuceneSail `~2` fuzzy on 3-char tokens | Search returns hundreds of results; UI unresponsive for 2-3s | Apply fuzzy only to tokens >= 5 chars; cap at `~1` | Immediately — even with < 100 objects |
-| dockview `onlyWhenVisible` + ResizeObserver | ResizeObserver fires with 0px; panels never get correct size | Use `always` rendering mode for panels with complex visualizations, or refresh on `onDidVisibilityChange` | Any panel that has a chart, graph, or editor |
-| Large serialized layout blob in sessionStorage | sessionStorage write slow; exceeding 5MB quota | Serialize only panel structure, not content; compress with JSON | At approximately 50+ named layouts with IRI content |
-| Wildcard `*` queries in LuceneSail | Full index scan; no score ordering | Educate users; restrict wildcard to suffix position only (`term*`); never leading wildcard (`*term`) | Immediately on any dataset |
+| Per-keystroke autocomplete SPARQL | UI lag, triplestore load spikes | Cached schema JSON endpoint | Immediately with >10 properties |
+| N+1 edge inspector queries | Edge inspector takes 5-10s to populate | Single CONSTRUCT query for all edges | Objects with >10 edges |
+| Unbounded query history | History panel load time > 2s | 500-per-user cap, pagination | After ~1 month of active use |
+| Per-IRI classification for pills | SPARQL result rendering slow for large result sets | Batch VALUES query for all unique IRIs | Result sets with >50 IRIs |
+| LDN notification flood | Storage growth, async worker saturation | Rate limit (10/min/IP), payload validation | Immediately if inbox URL is discovered |
+| Sync patch application bypassing event store | Event log out of sync, cannot undo | Translate to Command API | First sync operation |
+| Canvas DOM elements per node | Layout janky above 200 nodes | Virtual rendering, node count cap | Canvas sessions with many nodes |
 
 ---
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **Dockview Phase A migration**: htmx-powered elements in panels work after the panel is dragged to a new group — verify by checking DevTools network tab shows requests after drag.
-- [ ] **CodeMirror in dockview panel**: Editor renders correctly after being hidden and re-shown (switch to another tab and back). Gutter line numbers align with content.
-- [ ] **Cytoscape in dockview panel**: Graph renders at correct size after being hidden and re-shown. Nodes are not invisible or overlapping in the top-left corner.
-- [ ] **Named layout save/restore**: A saved layout restores the panel structure but does NOT restore the open object content (content comes from session state, not layout state).
-- [ ] **Named layout + model uninstall**: After uninstalling a Mental Model, a previously saved layout that referenced model-specific panels falls back to the default layout gracefully, without a blank workspace or console errors.
-- [ ] **Carousel manifest schema backward compatibility**: The existing `basic-pkm/manifest.yaml` (with no carousel fields) still passes `ManifestSchema.model_validate()` without errors after adding carousel schema fields.
-- [ ] **Fuzzy FTS with short tokens**: A search for `rdf~1` does not return hundreds of noise results. A search for `project~1` returns objects containing "project" first, then near-matches.
-- [ ] **Carousel animation respects prefers-reduced-motion**: With `@media (prefers-reduced-motion: reduce)` active, the carousel view rotation happens instantly with no animation.
-- [ ] **Bottom panel preserved during dockview Phase A**: The existing bottom panel (SPARQL/Event Log/Copilot) is not disrupted by the editor-groups-area dockview migration. The vertical resize handle between editor area and bottom panel still works.
-- [ ] **Dockview drag-and-drop replaces custom system**: After Phase A, no `dragstart`/`dragend`/`dragover` event listeners from the old workspace-layout.js are still active. Verify with browser DevTools event listener inspector.
+- [ ] **SPARQL permissions**: `all_graphs=true` rejects non-owner users (not just scoping -- actual 403)
+- [ ] **SPARQL permissions**: `GRAPH ?g { ... }` query patterns do not return event graph IRIs for non-owner users
+- [ ] **SPARQL autocomplete**: typing in the editor does not fire SPARQL queries (check DevTools network tab)
+- [ ] **SPARQL IRI pills**: clicking a class/property IRI in results does NOT open an object tab (opens schema popover or external link instead)
+- [ ] **SPARQL saved queries**: a guest running an admin's shared query gets scoped results, not admin-level access
+- [ ] **RDF Patch sync**: every synced change appears in the event log with provenance
+- [ ] **RDF Patch sync**: synced objects pass SHACL validation (or show violations in lint dashboard)
+- [ ] **LDN inbox**: 100 rapid POST requests from the same IP result in 429 responses, not 100 stored notifications
+- [ ] **WebID federation**: WebID from a non-trusted instance is rejected with clear error message
+- [ ] **WebID federation**: WebID fetch does not follow redirects to private IPs (SSRF test)
+- [ ] **MountSpec multi-strategy**: editing a file via a non-canonical path returns 403, not silent overwrite
+- [ ] **SHACL frontmatter**: saving a file with stale frontmatter returns 409/412, not silent property reversion
+- [ ] **Multi-select delete**: selecting 20 objects and deleting produces exactly 1 event in the event log
+- [ ] **Edge inspector**: opening the inspector on an object with 30 edges fires exactly 1 SPARQL query (check DevTools)
+- [ ] **Named query views**: editing an object and immediately viewing via named query shows updated data (cache freshness)
 
 ---
 
@@ -379,50 +441,37 @@ DOCK-01 Phase A. Remove the custom drag system in the same commit that adds dock
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| htmx silenced in dockview panels | LOW (once diagnosed) | Add `htmx.process(containerElement)` calls; hard to diagnose without knowing to look for it |
-| CodeMirror/Cytoscape zero-size in panels | LOW | Add `onDidVisibilityChange` handler; or switch to `always` rendering mode globally |
-| fromJSON broken state on startup | LOW (via fallback) | Remove corrupted layout key from sessionStorage; implement `try/catch` with `buildDefaultLayout()` fallback |
-| Manifest schema break on new required field | HIGH | Roll back the Pydantic change; convert field to optional; write a migration script if on-disk manifests need updating |
-| Fuzzy FTS noise | LOW | Disable fuzzy via feature flag; fix `_build_fuzzy_query()` to apply length threshold |
-| Named layout stale IRI references | MEDIUM | Remove IRI storage from layout serialization format; existing saved layouts may need migration script to strip content |
-| Drag-and-drop conflict during migration | MEDIUM | Rollback to pre-Phase A if both systems coexist; commit removal of old drag system in same PR as dockview addition |
-
----
-
-## Pitfall-to-Phase Mapping
-
-| Pitfall | Prevention Phase | Verification |
-|---------|------------------|--------------|
-| htmx silenced after panel init/reparent | DOCK-01 Phase A | Playwright test: drag panel to new group, click htmx button, verify network request fires |
-| CodeMirror/Cytoscape zero-size | DOCK-01 Phase A | Manual test: switch away from editor tab and back; screenshot comparison |
-| fromJSON broken state on model uninstall | DOCK-02 Named layouts | Playwright test: save named layout, uninstall referenced model, reload, verify default layout loads |
-| Manifest schema break on carousel fields | VIEW-02 Carousel views | Unit test: validate existing basic-pkm manifest.yaml passes after schema change |
-| Named layout stale IRI serialization | DOCK-02 Named layouts | Test: save layout with object A open, delete object A, restore layout, verify panel shows "not found" not error |
-| Carousel animation over-engineering | VIEW-02 Carousel views | Test with `prefers-reduced-motion: reduce`; test at narrow panel width (< 300px) |
-| Fuzzy FTS noise on short tokens | FTS-04 Fuzzy search | Unit test: `_build_fuzzy_query('rdf notes')` does not append `~` to `rdf` |
-| Lucene index out of sync after backup restore | FTS-04 Fuzzy search | Document backup procedure; add startup health check log message |
-| Drag system conflict during migration | DOCK-01 Phase A | Code review gate: no `dragstart` listeners in workspace-layout.js after merge |
+| SPARQL `all_graphs` bypass | LOW | Add `require_role("owner")` check; one-line fix |
+| Ghost triples from raw sync | HIGH | Must identify all ghost triples (no event provenance), delete from current graph, and either re-sync through event store or accept data loss |
+| MountSpec write conflicts | MEDIUM | Compare event log for competing writes; manually resolve conflicting property values; make non-canonical paths read-only |
+| Spoofed WebID authentication | HIGH | Audit all actions performed by the spoofed identity; revoke access; implement trusted instance allowlist; notify affected users |
+| Stale frontmatter overwrites | MEDIUM | Use event log to identify VFS-originated property changes; compensating events to restore correct values |
+| Spam LDN notifications | LOW | Bulk-delete notifications from untrusted sources; add rate limiting |
+| Unbounded query history | LOW | Run `DELETE FROM sparql_history WHERE id NOT IN (SELECT id FROM sparql_history WHERE user_id = ? ORDER BY created_at DESC LIMIT 500)` per user |
+| N+1 edge queries | LOW | Replace per-edge queries with single CONSTRUCT; no data migration needed |
+| IRI pills opening broken tabs | LOW | Add classification logic; no data migration needed |
 
 ---
 
 ## Sources
 
-- [dockview-core Rendering Panels documentation](https://dockview.dev/docs/core/panels/rendering/) — `onlyWhenVisible` vs `always` rendering modes, DOM removal behavior; HIGH confidence
-- [dockview GitHub Issue #341 — fromJSON broken state](https://github.com/mathuo/dockview/issues/341) — confirmed broken state when `api.clear()` called after failed `fromJSON()`; HIGH confidence
-- [dockview GitHub Issue #718 — keep alive panels](https://github.com/mathuo/dockview/issues/718) — use case for `always` mode with iFrames and stateful panels; HIGH confidence
-- [dockview GitHub Issue #996 — components disappear after addFloatingGroup/moveTo](https://github.com/mathuo/dockview/issues/996) — panel content loss on DOM reparenting; HIGH confidence
-- [dockview Loading State documentation](https://dockview.dev/docs/core/state/load/) — official `fromJSON()` error recovery pattern; HIGH confidence
-- [dockview Saving State documentation](https://dockview.dev/docs/core/state/save/) — `toJSON()` / `onDidLayoutChange` patterns; HIGH confidence
-- [htmx `htmx.process()` documentation](https://htmx.org/api/) — official API for re-initializing htmx on external DOM mutations; HIGH confidence
-- [htmx external DOM mutation article](https://www.bennadel.com/blog/4799-what-happens-when-you-mutate-the-dom-outside-of-htmx.htm) — htmx does not observe external mutations; HIGH confidence
-- [RDF4J LuceneSail 5.1.3 JavaDoc](https://rdf4j.org/javadoc/latest/org/eclipse/rdf4j/sail/lucene/LuceneSail.html) — `fuzzyPrefixLength`, `defaultNumDocs`, `LUCENE_DIR_KEY` parameters; HIGH confidence
-- [RDF4J LuceneSail documentation](https://rdf4j.org/documentation/programming/lucene/) — fuzzy syntax, wildcard support, reindex procedure; HIGH confidence
-- [Lucene fuzzy search percentage thread (rdf4j-users)](https://groups.google.com/g/rdf4j-users/c/k04xjxM_wBI) — edit distance integer 0-2, not fractional similarity; HIGH confidence (confirmed by multiple replies)
-- [Apache Lucene FuzzyQuery](https://lucene.apache.org/core/7_3_1/core/org/apache/lucene/search/FuzzyQuery.html) — max edit distance 2, prefixLength semantics; HIGH confidence
-- [RDF4J 4.0 release notes](https://rdf4j.org/release-notes/4.0.0/) — Lucene library upgrade 7.7 → 8.5, reindex requirement on version upgrade; HIGH confidence
-- SemPKM codebase analysis: `workspace-layout.js` (1074 lines), `dockview-sempkm-bridge.css`, `manifest.py`, `search.py` — direct inspection; HIGH confidence
-- SemPKM `DECISIONS.md` DEC-04 section — dockview Phase A scope, htmx integration prerequisites, `containerElement` pattern; HIGH confidence
+- [RDF Patch specification](https://afs.github.io/rdf-patch/) -- ADD/DELETE operation format; HIGH confidence
+- [RDF Patch (Apache Jena)](https://afs.github.io/rdf-delta/rdf-patch.html) -- format details, blank node handling; HIGH confidence
+- [W3C Linked Data Notifications](https://www.w3.org/TR/ldn/) -- inbox protocol, security considerations; HIGH confidence
+- [Stardog Named Graph Security](https://docs.stardog.com/operating-stardog/security/named-graph-security) -- silent graph filtering pitfall, write permission enforcement; HIGH confidence (conceptual patterns apply to any triplestore)
+- [GraphDB Quad-based Access Control](https://graphdb.ontotext.com/documentation/10.5/quad-based-access-control.html) -- fine-grained statement-level access patterns; HIGH confidence
+- [Virtuoso SPARQL Security](https://docs.openlinksw.com/virtuoso/rdfgraphsecurityunddefperm/) -- default permission risks, anonymous SPARQL access; HIGH confidence
+- [SPARQL Autocomplete on Large Knowledge Graphs](https://dl.acm.org/doi/10.1145/3511808.3557093) -- per-request query overhead, Qlever approach; MEDIUM confidence
+- [Lightweight SPARQL Editor with Autocomplete](https://arxiv.org/html/2503.02688v1) -- metadata-driven approach, YASGUI limitations; MEDIUM confidence
+- [SIB Swiss SPARQL Editor](https://www.npmjs.com/package/@sib-swiss/sparql-editor) -- implementation patterns; MEDIUM confidence
+- [WsgiDAV Virtual DAV Provider](https://wsgidav.readthedocs.io/en/maintain_1.x/_generated/wsgidav.samples.virtual_dav_provider.html) -- multi-path aliasing, real vs virtual paths; HIGH confidence
+- [WsgiDAV Documentation](https://wsgidav.readthedocs.io/) -- provider architecture, lock management; HIGH confidence
+- [WebID-TLS Specification](https://dvcs.w3.org/hg/WebID/raw-file/tip/spec/tls-respec.html) -- trust model, certificate-based identity; MEDIUM confidence
+- [Solid WebID authentication discussion](https://github.com/solid/solid/issues/22) -- WebID-TLS limitations, HTTP Signatures alternative; MEDIUM confidence
+- [RDF4J REST API](https://rdf4j.org/documentation/reference/rest-api/) -- dataset parameters, default-graph-uri, named-graph-uri; HIGH confidence
+- [RDF4J DROP GRAPH bug #1548](https://github.com/eclipse/rdf4j/issues/1548) -- DROP GRAPH on non-existing graph deletes all graphs; HIGH confidence
+- SemPKM codebase analysis: `sparql/router.py`, `sparql/client.py`, `events/store.py`, `vfs/provider.py`, `vfs/write.py`, `auth/dependencies.py`, `auth/models.py` -- direct inspection; HIGH confidence
 
 ---
-*Pitfalls research for: v2.3 Shell, Navigation & Views (SemPKM)*
-*Researched: 2026-03-01*
+*Pitfalls research for: v2.6 Power User & Collaboration (SemPKM)*
+*Researched: 2026-03-09*
