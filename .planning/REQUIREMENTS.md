@@ -96,49 +96,49 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SPARQL-01 | — | Pending |
-| SPARQL-02 | — | Pending |
-| SPARQL-03 | — | Pending |
-| SPARQL-04 | — | Pending |
-| SPARQL-05 | — | Pending |
-| SPARQL-06 | — | Pending |
-| SPARQL-07 | — | Pending |
-| FED-01 | — | Pending |
-| FED-02 | — | Pending |
-| FED-03 | — | Pending |
-| FED-04 | — | Pending |
-| FED-05 | — | Pending |
-| FED-06 | — | Pending |
-| FED-07 | — | Pending |
-| FED-08 | — | Pending |
-| FED-09 | — | Pending |
-| FED-10 | — | Pending |
-| VFS-01 | — | Pending |
-| VFS-02 | — | Pending |
-| VFS-03 | — | Pending |
-| VFS-04 | — | Pending |
-| VFS-05 | — | Pending |
-| VFSX-01 | — | Pending |
-| VFSX-02 | — | Pending |
-| VFSX-03 | — | Pending |
-| OBUI-01 | — | Pending |
-| OBUI-02 | — | Pending |
-| OBUI-03 | — | Pending |
-| OBUI-04 | — | Pending |
-| OBUI-05 | — | Pending |
-| FIX-01 | — | Pending |
-| FIX-02 | — | Pending |
-| CANV-01 | — | Pending |
-| CANV-02 | — | Pending |
-| CANV-03 | — | Pending |
-| CANV-04 | — | Pending |
-| CANV-05 | — | Pending |
+| SPARQL-01 | Phase 52 | Pending |
+| SPARQL-02 | Phase 53 | Pending |
+| SPARQL-03 | Phase 53 | Pending |
+| SPARQL-04 | Phase 54 | Pending |
+| SPARQL-05 | Phase 53 | Pending |
+| SPARQL-06 | Phase 53 | Pending |
+| SPARQL-07 | Phase 54 | Pending |
+| FED-01 | Phase 58 | Pending |
+| FED-02 | Phase 58 | Pending |
+| FED-03 | Phase 58 | Pending |
+| FED-04 | Phase 58 | Pending |
+| FED-05 | Phase 58 | Pending |
+| FED-06 | Phase 58 | Pending |
+| FED-07 | Phase 58 | Pending |
+| FED-08 | Phase 58 | Pending |
+| FED-09 | Phase 58 | Pending |
+| FED-10 | Phase 58 | Pending |
+| VFS-01 | Phase 56 | Pending |
+| VFS-02 | Phase 56 | Pending |
+| VFS-03 | Phase 56 | Pending |
+| VFS-04 | Phase 56 | Pending |
+| VFS-05 | Phase 56 | Pending |
+| VFSX-01 | Phase 55 | Pending |
+| VFSX-02 | Phase 55 | Pending |
+| VFSX-03 | Phase 55 | Pending |
+| OBUI-01 | Phase 55 | Pending |
+| OBUI-02 | Phase 55 | Pending |
+| OBUI-03 | Phase 55 | Pending |
+| OBUI-04 | Phase 55 | Pending |
+| OBUI-05 | Phase 55 | Pending |
+| FIX-01 | Phase 52 | Pending |
+| FIX-02 | Phase 52 | Pending |
+| CANV-01 | Phase 57 | Pending |
+| CANV-02 | Phase 57 | Pending |
+| CANV-03 | Phase 57 | Pending |
+| CANV-04 | Phase 57 | Pending |
+| CANV-05 | Phase 57 | Pending |
 
 **Coverage:**
 - v2.6 requirements: 37 total
-- Mapped to phases: 0
-- Unmapped: 37 ⚠️
+- Mapped to phases: 37
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-09*
-*Last updated: 2026-03-09 after initial definition*
+*Last updated: 2026-03-09 — traceability updated with phase mappings*
