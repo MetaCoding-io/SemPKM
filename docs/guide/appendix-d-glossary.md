@@ -79,6 +79,9 @@ A SHACL Advanced Features rule that generates new triples from existing data. Un
 **Shape**
 A SHACL node shape that describes the expected structure of a specific type. Each shape lists property constraints (what fields should exist, their data types, whether they are required, allowed values) and property groups (how fields are organized in the form). Shapes drive both form generation and data validation. See also: SHACL, Mental Model.
 
+**Spatial Canvas**
+An interactive freeform workspace for exploring your knowledge graph visually. Unlike auto-layout graph views, the canvas starts empty and lets you build a custom map by dragging objects from the navigation tree, expanding neighborhoods, and arranging nodes by hand. Named sessions let you save and switch between different explorations. See [Chapter 27: Spatial Canvas](27-spatial-canvas.md).
+
 **SPARQL**
 SPARQL Protocol and RDF Query Language. The standard query language for RDF data, analogous to SQL for relational databases. SemPKM uses SPARQL internally for all data retrieval and manipulation. View specifications contain SPARQL queries that power table, card, and graph views. The bottom panel includes a SPARQL console for running ad-hoc queries.
 

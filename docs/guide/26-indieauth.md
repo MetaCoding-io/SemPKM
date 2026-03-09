@@ -218,4 +218,4 @@ Some browsers block third-party cookies, which can prevent the consent screen fr
 
 ---
 
-**Previous:** [Chapter 25: WebID Profiles](25-webid-profiles.md) | **Next:** [Appendix A: Environment Variable Reference](appendix-a-environment-variables.md)
+**Previous:** [Chapter 25: WebID Profiles](25-webid-profiles.md) | **Next:** [Chapter 27: Spatial Canvas](27-spatial-canvas.md)
