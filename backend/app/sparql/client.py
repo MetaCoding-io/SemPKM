@@ -10,10 +10,38 @@ queries may return results from ALL named graphs including event graphs.
 
 import re
 
+from fastapi import HTTPException
+
 from app.rdf.namespaces import COMMON_PREFIXES, CURRENT_GRAPH_IRI, INFERRED_GRAPH_IRI
 
 CURRENT_GRAPH = str(CURRENT_GRAPH_IRI)
 INFERRED_GRAPH = str(INFERRED_GRAPH_IRI)
+
+
+def check_member_query_safety(query: str) -> None:
+    """Validate that a SPARQL query is safe for member-role users.
+
+    Members are restricted to the current graph only. Queries containing
+    FROM or GRAPH clauses are rejected because they could be used to
+    access data outside the scoped current graph.
+
+    Args:
+        query: The raw SPARQL query string.
+
+    Raises:
+        HTTPException: 403 if FROM or GRAPH clauses are detected.
+    """
+    upper = query.upper()
+    if re.search(r'\bFROM\s+', upper):
+        raise HTTPException(
+            status_code=403,
+            detail="FROM/GRAPH clauses not allowed for member role",
+        )
+    if re.search(r'\bGRAPH\s+', upper):
+        raise HTTPException(
+            status_code=403,
+            detail="FROM/GRAPH clauses not allowed for member role",
+        )
 
 
 def scope_to_current_graph(
