@@ -10,12 +10,13 @@ Requirements for v2.6 Power User & Collaboration. Each maps to roadmap phases.
 ### SPARQL Interface
 
 - [x] **SPARQL-01**: SPARQL queries are gated by role — guest has no access, member queries current graph only, owner queries all graphs
-- [ ] **SPARQL-02**: User's SPARQL query history is persisted server-side and accessible across devices
-- [ ] **SPARQL-03**: User can save a SPARQL query with a name and description
+- [x] **SPARQL-02**: User's SPARQL query history is persisted server-side and accessible across devices
+- [x] **SPARQL-03**: User can save a SPARQL query with a name and description
 - [ ] **SPARQL-04**: User can share a saved query with other users (read-only)
-- [ ] **SPARQL-05**: SPARQL result IRIs display as labeled pills with type icons that open in workspace tabs
-- [ ] **SPARQL-06**: SPARQL editor provides ontology-aware autocomplete for prefixes, classes, and predicates from installed models
+- [x] **SPARQL-05**: SPARQL result IRIs display as labeled pills with type icons that open in workspace tabs
+- [x] **SPARQL-06**: SPARQL editor provides ontology-aware autocomplete for prefixes, classes, and predicates from installed models
 - [ ] **SPARQL-07**: User can promote a saved query to a named view browsable in the nav tree
+- [ ] **SPARQL-08**: Ensure user cannot modify the graph via SPARQL, as we still want all writes to go thru the Command API
 
 ### Collaboration & Federation
 
@@ -40,9 +41,8 @@ Requirements for v2.6 Power User & Collaboration. Each maps to roadmap phases.
 
 ### VFS Browser UX
 
-- [ ] **VFSX-01**: VFS browser shows clickable breadcrumb path navigation
-- [ ] **VFSX-02**: VFS browser shows side-by-side view for open files with raw content and rendered markdown preview
-- [ ] **VFSX-03**: VFS browser file operations are polished (consistent icons, loading states)
+- [ ] **VFSX-01**: VFS browser shows side-by-side view for open files with raw content and rendered markdown preview
+- [ ] **VFSX-02**: VFS browser file operations are polished (consistent icons, loading states)
 
 ### Object Browser UI
 
@@ -62,8 +62,8 @@ Requirements for v2.6 Power User & Collaboration. Each maps to roadmap phases.
 - [ ] **CANV-01**: Spatial canvas has snap-to-grid alignment
 - [ ] **CANV-02**: Spatial canvas shows edge labels between connected nodes
 - [ ] **CANV-03**: Spatial canvas has keyboard navigation support
-- [ ] **CANV-04**: User can multi-select objects in the nav tree and drag-drop them onto the canvas in bulk
-- [ ] **CANV-05**: Wiki-links in an object's markdown body are parsed and rendered as edges connecting to their target nodes on the canvas
+- [ ] **CANV-04**: User can multi-select objects in the nav tree and drag-drop them onto the canvas in bulk. Wait for **OBUI-03** to be implemented
+- [ ] **CANV-05**: Wiki-links in an object's markdown body are parsed and rendered as edges connecting to their target nodes on the canvas, with a different color than rdf links
 
 ## Future Requirements
 
@@ -86,9 +86,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | SPARQL UPDATE as write surface | Bypasses event sourcing — all writes must go through Command API |
 | Full ActivityPub federation | AP is designed for social media; LDN is simpler and sufficient |
 | Full SOLID pod compatibility | WAC and container model are extensive; WebID + LDN is sufficient |
-| Custom SPARQL UI replacing Yasgui | Extend Yasgui with plugins rather than replacing it |
 | Complex per-graph SPARQL ACLs | Simple 3-role gating is sufficient for self-hosted PKM |
-| Real-time collaborative editing | CRDT for RDF triples is unsolved; async collaboration first |
 
 ## Traceability
 
@@ -97,12 +95,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | SPARQL-01 | Phase 52 | Complete |
-| SPARQL-02 | Phase 53 | Pending |
-| SPARQL-03 | Phase 53 | Pending |
+| SPARQL-02 | Phase 53 | Complete |
+| SPARQL-03 | Phase 53 | Complete |
 | SPARQL-04 | Phase 54 | Pending |
-| SPARQL-05 | Phase 53 | Pending |
-| SPARQL-06 | Phase 53 | Pending |
+| SPARQL-05 | Phase 53 | Complete |
+| SPARQL-06 | Phase 53 | Complete |
 | SPARQL-07 | Phase 54 | Pending |
+| SPARQL-08 | Phase 54 | Pending |
 | FED-01 | Phase 58 | Pending |
 | FED-02 | Phase 58 | Pending |
 | FED-03 | Phase 58 | Pending |
@@ -120,7 +119,6 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VFS-05 | Phase 56 | Pending |
 | VFSX-01 | Phase 55 | Pending |
 | VFSX-02 | Phase 55 | Pending |
-| VFSX-03 | Phase 55 | Pending |
 | OBUI-01 | Phase 55 | Pending |
 | OBUI-02 | Phase 55 | Pending |
 | OBUI-03 | Phase 55 | Pending |
