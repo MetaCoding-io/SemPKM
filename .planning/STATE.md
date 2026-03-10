@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-03-09)
 Phase: 52 of 58 (Bug Fixes & Security)
 Plan: 2 of 2 (SPARQL Role Gating — complete)
 Status: Executing
-Last activity: 2026-03-09 - Completed plan 52-02 (SPARQL role gating)
+Last activity: 2026-03-10 - Completed quick task 34: Merge inferred properties into relations panel, remove separate Inferred panel
 
 Progress: [▓░░░░░░░░░] 7%
 
