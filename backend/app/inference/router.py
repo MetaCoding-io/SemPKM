@@ -311,7 +311,7 @@ def _render_inference_panel_html(result, triples):
         summary += f" | {result.preserved_dismissed} dismissed"
     summary += "</div>"
 
-    rows = _render_triple_rows(triples)
+    cards = _render_triple_cards(triples)
 
     # OOB swap for last-run timestamp (updates #inference-last-run outside #inference-results)
     timestamp_display = result.run_timestamp[:19].replace("T", " ")
@@ -321,17 +321,9 @@ def _render_inference_panel_html(result, triples):
     )
 
     html = f"""{summary}
-<table class="inference-triples-table">
-  <thead>
-    <tr>
-      <th>Subject</th><th>Predicate</th><th>Object</th>
-      <th>Type</th><th>Status</th><th>Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-{rows}
-  </tbody>
-</table>
+<div class="inference-cards">
+{cards}
+</div>
 {oob_timestamp}"""
     return HTMLResponse(content=html)
 
@@ -346,18 +338,8 @@ def _render_triples_list_html(triples):
             "Click Refresh to run inference.</div>"
         )
 
-    rows = _render_triple_rows(triples)
-    html = f"""<table class="inference-triples-table">
-  <thead>
-    <tr>
-      <th>Subject</th><th>Predicate</th><th>Object</th>
-      <th>Type</th><th>Status</th><th>Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-{rows}
-  </tbody>
-</table>"""
+    cards = _render_triple_cards(triples)
+    html = f'<div class="inference-cards">\n{cards}\n</div>'
     return HTMLResponse(content=html)
 
 
@@ -404,32 +386,27 @@ def _render_grouped_triples_html(triples, group_by: str):
     html_parts = []
     for group_key in sorted(groups.keys()):
         group_triples = groups[group_key]
-        rows = _render_triple_rows(group_triples)
+        cards = _render_triple_cards(group_triples)
         html_parts.append(
             f'<div class="inference-group">'
             f'<h4 class="inference-group-header">{group_key} ({len(group_triples)})</h4>'
-            f'<table class="inference-triples-table">'
-            f"<thead><tr>"
-            f"<th>Subject</th><th>Predicate</th><th>Object</th>"
-            f"<th>Type</th><th>Status</th><th>Actions</th>"
-            f"</tr></thead>"
-            f"<tbody>{rows}</tbody>"
-            f"</table></div>"
+            f'<div class="inference-cards">{cards}</div>'
+            f"</div>"
         )
 
     return HTMLResponse(content="\n".join(html_parts))
 
 
-def _render_triple_rows(triples):
-    """Render table rows for a list of triples."""
-    rows = []
+def _render_triple_cards(triples):
+    """Render card elements for a list of triples."""
+    cards = []
     for t in triples:
-        rows.append(_build_triple_row(t))
-    return "\n".join(rows)
+        cards.append(_build_triple_card(t))
+    return "\n".join(cards)
 
 
-def _build_triple_row(t):
-    """Build a single table row for a triple."""
+def _build_triple_card(t):
+    """Build a single card element for a triple."""
     h = t["triple_hash"]
     s_display = _compact_iri(t["subject"])
     p_display = _compact_iri(t["predicate"])
@@ -439,28 +416,43 @@ def _build_triple_row(t):
     actions = ""
     if t["status"] == "active":
         actions = (
+            f'<div class="inference-card-actions">'
             f'<button class="btn btn-xs" '
             f'hx-post="/api/inference/triples/{h}/dismiss" '
-            f'hx-target="closest tr" hx-swap="outerHTML">Dismiss</button> '
+            f'hx-target="closest .inference-card" hx-swap="outerHTML">Dismiss</button> '
             f'<button class="btn btn-xs btn-primary" '
             f'hx-post="/api/inference/triples/{h}/promote" '
-            f'hx-target="closest tr" hx-swap="outerHTML">Promote</button>'
+            f'hx-target="closest .inference-card" hx-swap="outerHTML">Promote</button>'
+            f"</div>"
         )
     elif t["status"] == "dismissed":
-        actions = '<span class="text-muted">Dismissed</span>'
+        actions = (
+            '<div class="inference-card-actions" style="opacity:1">'
+            '<span class="text-muted">Dismissed</span></div>'
+        )
     elif t["status"] == "promoted":
-        actions = '<span class="text-muted">Promoted</span>'
+        actions = (
+            '<div class="inference-card-actions" style="opacity:1">'
+            '<span class="text-muted">Promoted</span></div>'
+        )
 
     return (
-        f'    <tr id="triple-{h}" class="{status_class}">'
-        f"<td>{s_display}</td><td>{p_display}</td><td>{o_display}</td>"
-        f"<td>{t['entailment_type']}</td><td>{t['status']}</td>"
-        f"<td>{actions}</td></tr>"
+        f'<div id="triple-{h}" class="inference-card {status_class}">'
+        f'<div class="inference-card-triple">'
+        f'<span class="inference-card-subject">{s_display}</span>'
+        f'<span class="inference-card-predicate">{p_display}</span>'
+        f'<span class="inference-card-object">{o_display}</span>'
+        f"</div>"
+        f'<div class="inference-card-meta">'
+        f'<span class="inference-card-type-badge">{t["entailment_type"]}</span>'
+        f"</div>"
+        f"{actions}"
+        f"</div>"
     )
 
 
 def _render_triple_row_html(triple):
-    """Render a single triple row for htmx swap."""
+    """Render a single triple card for htmx swap."""
     from fastapi.responses import HTMLResponse
 
-    return HTMLResponse(content=_build_triple_row(triple))
+    return HTMLResponse(content=_build_triple_card(triple))
