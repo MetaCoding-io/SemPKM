@@ -12,6 +12,8 @@ from app.canvas.schemas import (
     CanvasResponse,
     SessionCreateBody,
     SessionListResponse,
+    WikilinkResolveRequest,
+    WikilinkResolveResponse,
 )
 from app.canvas.service import CanvasService
 from app.db.session import get_db_session
@@ -186,6 +188,61 @@ async def activate_canvas_session(
     """Set a session as the active canvas session."""
     await service.set_active_session(user.id, session_id, db)
     return {"active_session_id": session_id}
+
+
+# ------------------------------------------------------------------
+# Wiki-link resolution
+# ------------------------------------------------------------------
+
+
+@router.post("/resolve-wikilinks", response_model=WikilinkResolveResponse)
+async def resolve_wikilinks(
+    body: WikilinkResolveRequest,
+    user: User = Depends(get_current_user),
+    client: TriplestoreClient = Depends(get_triplestore_client),
+):
+    """Resolve wiki-link title text to object IRIs via label matching."""
+    if not body.titles:
+        return WikilinkResolveResponse(resolved={})
+
+    # Build SPARQL string literals for each title (properly escaped)
+    escaped_titles = []
+    for title in body.titles:
+        safe = title.replace("\\", "\\\\").replace('"', '\\"')
+        escaped_titles.append(f'"{safe}"')
+    titles_list = ", ".join(escaped_titles)
+
+    sparql = f"""
+    SELECT ?title ?iri WHERE {{
+      GRAPH <urn:sempkm:current> {{
+        ?iri ?labelProp ?title .
+        VALUES ?labelProp {{
+          <http://purl.org/dc/terms/title>
+          <http://www.w3.org/2000/01/rdf-schema#label>
+          <http://www.w3.org/2004/02/skos/core#prefLabel>
+          <https://schema.org/name>
+          <http://xmlns.com/foaf/0.1/name>
+        }}
+      }}
+      FILTER(?title IN ({titles_list}))
+    }}
+    """
+
+    resolved: dict[str, str | None] = {t: None for t in body.titles}
+
+    try:
+        result = await client.query(sparql)
+        bindings = result.get("results", {}).get("bindings", [])
+        for binding in bindings:
+            title_val = binding.get("title", {}).get("value", "")
+            iri_val = binding.get("iri", {}).get("value", "")
+            # First match wins (don't overwrite if already resolved)
+            if title_val in resolved and resolved[title_val] is None and iri_val:
+                resolved[title_val] = iri_val
+    except Exception:
+        pass  # Return what we have (all None if query failed)
+
+    return WikilinkResolveResponse(resolved=resolved)
 
 
 # ------------------------------------------------------------------
