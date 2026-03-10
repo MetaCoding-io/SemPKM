@@ -5,7 +5,7 @@ milestone_name: Power User & Collaboration
 status: executing
 stopped_at: Phase 55 context gathered
 last_updated: "2026-03-10T05:03:00.954Z"
-last_activity: "2026-03-10 - Completed quick task 35: Fix nav tree collapse not working"
+last_activity: "2026-03-10 - Completed quick task 36: Vertical split layout for lint and inference panels"
 progress:
   total_phases: 7
   completed_phases: 1
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-03-09)
 Phase: 52 of 58 (Bug Fixes & Security)
 Plan: 2 of 2 (SPARQL Role Gating — complete)
 Status: Executing
-Last activity: 2026-03-10 - Completed quick task 35: Fix nav tree collapse not working
+Last activity: 2026-03-10 - Completed quick task 36: Vertical split layout for lint and inference panels
 
 Progress: [▓░░░░░░░░░] 7%
 
@@ -86,6 +86,7 @@ None — clean start for v2.6
 | 33 | Create central codebase documentation outlining all components, file locations, and purposes | 2026-03-09 | 5e9485b | [33-create-central-codebase-documentation-ou](./quick/33-create-central-codebase-documentation-ou/) |
 | 34 | Merge inferred properties into main property table, remove two-column layout | 2026-03-10 | d2720a3 | [34-merge-inferred-properties-into-relations](./quick/34-merge-inferred-properties-into-relations/) |
 | 35 | Fix nav tree collapse not working - add missing CSS display rules | 2026-03-10 | 285ccd2 | [35-fix-nav-tree-collapse-not-working-add-mi](./quick/35-fix-nav-tree-collapse-not-working-add-mi/) |
+| 36 | Vertical split layout for lint and inference panels with card-based inference results | 2026-03-10 | b359d08 | [36-vertical-split-layout-for-lint-and-infer](./quick/36-vertical-split-layout-for-lint-and-infer/) |
 
 ## Session Continuity
 
