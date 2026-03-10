@@ -49,8 +49,8 @@ Requirements for v2.6 Power User & Collaboration. Each maps to roadmap phases.
 
 - [x] **OBUI-01**: Nav tree header has a refresh button to reload the object list
 - [x] **OBUI-02**: Nav tree header has a plus button to jump to the create new object flow
-- [ ] **OBUI-03**: User can select multiple objects via shift-click in the nav tree
-- [ ] **OBUI-04**: User can bulk delete selected objects
+- [x] **OBUI-03**: User can select multiple objects via shift-click in the nav tree
+- [x] **OBUI-04**: User can bulk delete selected objects
 - [x] **OBUI-05**: Clicking a relationship in the Relations panel expands to show edge provenance, metadata, and type
 
 ### Bug Fixes
@@ -123,8 +123,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VFSX-03 | Phase 55 | Complete |
 | OBUI-01 | Phase 55 | Complete |
 | OBUI-02 | Phase 55 | Complete |
-| OBUI-03 | Phase 55 | Pending |
-| OBUI-04 | Phase 55 | Pending |
+| OBUI-03 | Phase 55 | Complete |
+| OBUI-04 | Phase 55 | Complete |
 | OBUI-05 | Phase 55 | Complete |
 | FIX-01 | Phase 52 | Complete |
 | FIX-02 | Phase 52 | Complete |
