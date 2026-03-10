@@ -38,3 +38,21 @@ def cached_get_member_names(cache_key: str, loader):
         listing_cache[cache_key] = result
 
     return result
+
+
+def clear_mount_cache() -> None:
+    """Remove all mount-related and root cache keys.
+
+    Called after mount CRUD operations so the WebDAV provider and root
+    listing pick up changes without waiting for TTL expiry.
+
+    Clears keys starting with "mount:" (mount directory listings) and
+    "root:" (root listing that includes mount directories).
+    """
+    with _cache_lock:
+        keys_to_remove = [
+            k for k in listing_cache
+            if k.startswith("mount:") or k.startswith("root:")
+        ]
+        for k in keys_to_remove:
+            del listing_cache[k]

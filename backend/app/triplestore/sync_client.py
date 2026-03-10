@@ -31,6 +31,14 @@ class SyncTriplestoreClient:
         resp.raise_for_status()
         return resp.json()
 
+    def update(self, sparql: str) -> None:
+        """Execute a SPARQL UPDATE (INSERT/DELETE) synchronously."""
+        resp = self._client.post(
+            f"{self._repo_url}/statements",
+            data={"update": sparql},
+        )
+        resp.raise_for_status()
+
     def close(self) -> None:
         """Close the underlying httpx client."""
         self._client.close()
