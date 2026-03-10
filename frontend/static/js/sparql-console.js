@@ -52,6 +52,8 @@ var vocabCache = [];
 var prefixCache = {};
 var cachedModelVersion = null;
 var DISPLAY_LIMIT = 200;
+var currentSavedQueryId = null;
+var currentSavedQueryName = '';
 
 // Known vocabulary prefixes (object IRIs are those NOT matching these)
 var KNOWN_VOCAB_PREFIXES = [
@@ -255,7 +257,20 @@ async function executeQuery() {
     var totalRows = bindings.length;
 
     if (infoEl) {
-      infoEl.textContent = totalRows + ' row' + (totalRows !== 1 ? 's' : '') + ' (' + elapsed + 'ms)';
+      infoEl.innerHTML = '';
+      infoEl.appendChild(document.createTextNode(
+        totalRows + ' row' + (totalRows !== 1 ? 's' : '') + ' (' + elapsed + 'ms)'
+      ));
+      if (currentSavedQueryId) {
+        var viewBtn = document.createElement('button');
+        viewBtn.className = 'sparql-save-view-btn';
+        viewBtn.textContent = 'Save as View';
+        viewBtn.title = 'Promote this saved query to a browsable view';
+        viewBtn.addEventListener('click', function() {
+          openPromoteDialog(currentSavedQueryId, currentSavedQueryName, queryText);
+        });
+        infoEl.appendChild(viewBtn);
+      }
     }
 
     renderResultTable(tableWrap, vars, bindings, enrichment, 0);
@@ -599,6 +614,10 @@ async function loadSaved() {
     container.querySelectorAll('.sparql-saved-item').forEach(function(item) {
       item.querySelector('.sparql-dropdown-item-main').addEventListener('click', function() {
         var qt = item.getAttribute('data-query-text');
+        var qid = item.getAttribute('data-query-id');
+        var name = item.querySelector('.sparql-dropdown-item-name');
+        currentSavedQueryId = qid;
+        currentSavedQueryName = name ? name.textContent.trim() : '';
         setEditorContent(qt);
         closeAllDropdowns();
       });
@@ -622,7 +641,11 @@ async function loadSaved() {
       if (promoteBtn) {
         promoteBtn.addEventListener('click', function(e) {
           e.stopPropagation();
-          // Placeholder for Plan 54-02
+          var qid = item.getAttribute('data-query-id');
+          var name = item.querySelector('.sparql-dropdown-item-name');
+          var queryName = name ? name.textContent.trim() : '';
+          var qt = item.getAttribute('data-query-text') || '';
+          openPromoteDialog(qid, queryName, qt);
         });
       }
     });
@@ -884,6 +907,94 @@ function escapeJs(str) {
   return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n');
 }
 
+// --- Promote Dialog ---
+
+function openPromoteDialog(queryId, queryName, queryText) {
+  var dialog = document.getElementById('promote-dialog');
+  if (!dialog) return;
+
+  document.getElementById('promote-query-id').value = queryId;
+  document.getElementById('promote-label').value = queryName || '';
+
+  // Show/hide graph warning based on query content and selected renderer
+  var graphWarning = document.getElementById('promote-graph-warning');
+  var hasGraphVars = queryText && /\?source\b/.test(queryText) && /\?target\b/.test(queryText);
+
+  var rendererRadios = dialog.querySelectorAll('input[name="renderer_type"]');
+  rendererRadios.forEach(function(radio) {
+    radio.addEventListener('change', function() {
+      if (graphWarning) {
+        graphWarning.style.display = (this.value === 'graph' && !hasGraphVars) ? '' : 'none';
+      }
+    });
+  });
+
+  // Reset to table
+  var tableRadio = dialog.querySelector('input[name="renderer_type"][value="table"]');
+  if (tableRadio) tableRadio.checked = true;
+  if (graphWarning) graphWarning.style.display = 'none';
+
+  // Init Lucide icons in the dialog
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons({ root: dialog });
+  }
+
+  dialog.showModal();
+}
+
+function handlePromoteSubmit() {
+  var dialog = document.getElementById('promote-dialog');
+  if (!dialog) return;
+
+  var form = document.getElementById('promote-form');
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    var queryId = document.getElementById('promote-query-id').value;
+    var displayLabel = document.getElementById('promote-label').value.trim();
+    var rendererType = form.querySelector('input[name="renderer_type"]:checked');
+    var renderer = rendererType ? rendererType.value : 'table';
+
+    if (!displayLabel) {
+      showBriefMessage('View name is required');
+      return;
+    }
+
+    fetch('/api/sparql/saved/' + queryId + '/promote', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ display_label: displayLabel, renderer_type: renderer })
+    }).then(function(resp) {
+      if (resp.ok) {
+        showBriefMessage('Promoted!');
+        dialog.close();
+        // Refresh My Views in nav tree
+        refreshMyViews();
+      } else if (resp.status === 409) {
+        showBriefMessage('Already promoted');
+        dialog.close();
+      } else {
+        resp.json().then(function(data) {
+          showBriefMessage(data.detail || 'Promote failed');
+        }).catch(function() {
+          showBriefMessage('Promote failed');
+        });
+      }
+    }).catch(function() {
+      showBriefMessage('Promote failed');
+    });
+  });
+}
+
+function refreshMyViews() {
+  var myViewsTree = document.getElementById('my-views-tree');
+  if (myViewsTree && typeof htmx !== 'undefined') {
+    htmx.ajax('GET', '/browser/my-views', { target: '#my-views-tree', swap: 'innerHTML' });
+  }
+}
+
 // --- Initialization ---
 
 function bindToolbarEvents() {
@@ -953,4 +1064,5 @@ export function initSparqlConsole() {
   createEditor(container);
   bindToolbarEvents();
   fetchVocabulary();
+  handlePromoteSubmit();
 }
