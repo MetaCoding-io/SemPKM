@@ -2559,3 +2559,540 @@
 
 })();
 
+// =========================================================================
+// Mount Management (VFS Settings) — Phase 56-03
+// =========================================================================
+(function() {
+  'use strict';
+
+  // Cache for loaded mounts (used by mountEdit to avoid refetch)
+  var _mountsCache = [];
+
+  /**
+   * Initialize the mount form: populate dropdowns and load existing mounts.
+   * Called when the VFS settings section is loaded.
+   */
+  function initMountForm() {
+    var section = document.getElementById('vfs-mount-section');
+    if (!section) return;
+
+    // Auto-populate path from name on blur
+    var nameInput = document.getElementById('mount-name');
+    var pathInput = document.getElementById('mount-path');
+    if (nameInput && pathInput) {
+      nameInput.addEventListener('blur', function() {
+        if (pathInput.value.trim() === '' && nameInput.value.trim() !== '') {
+          pathInput.value = slugify(nameInput.value);
+        }
+      });
+    }
+
+    // Load properties for strategy-specific dropdowns
+    fetch('/api/vfs/mounts/properties')
+      .then(function(r) { return r.ok ? r.json() : { properties: [] }; })
+      .then(function(data) {
+        var props = data.properties || [];
+        populatePropertySelect('mount-group-property', props);
+        populatePropertySelect('mount-date-property', props);
+      })
+      .catch(function() {
+        // Properties endpoint unavailable — leave default "Loading..." options
+      });
+
+    // Load saved queries for scope dropdown
+    fetch('/api/sparql/queries')
+      .then(function(r) { return r.ok ? r.json() : []; })
+      .then(function(queries) {
+        var scopeSelect = document.getElementById('mount-scope');
+        if (!scopeSelect) return;
+        // Keep existing "All objects" option, clear dynamically added ones
+        while (scopeSelect.options.length > 1) {
+          scopeSelect.remove(1);
+        }
+        // Add saved queries
+        (queries || []).forEach(function(q) {
+          var opt = document.createElement('option');
+          opt.value = 'query:' + q.id;
+          opt.textContent = q.name;
+          scopeSelect.appendChild(opt);
+        });
+        // Add "Custom SPARQL..." option
+        var customOpt = document.createElement('option');
+        customOpt.value = 'custom';
+        customOpt.textContent = 'Custom SPARQL...';
+        scopeSelect.appendChild(customOpt);
+      })
+      .catch(function() {
+        // Saved queries endpoint unavailable — leave "All objects" only
+      });
+
+    // Load existing mounts
+    loadMountList();
+  }
+
+  /**
+   * Populate a <select> element with property options.
+   */
+  function populatePropertySelect(selectId, properties) {
+    var sel = document.getElementById(selectId);
+    if (!sel) return;
+    sel.innerHTML = '';
+    var emptyOpt = document.createElement('option');
+    emptyOpt.value = '';
+    emptyOpt.textContent = '-- Select property --';
+    sel.appendChild(emptyOpt);
+    properties.forEach(function(prop) {
+      var opt = document.createElement('option');
+      opt.value = prop.iri;
+      var label = prop.name;
+      if (prop.types && prop.types.length > 0) {
+        label += ' (' + prop.types.join(', ') + ')';
+      }
+      opt.textContent = label;
+      sel.appendChild(opt);
+    });
+  }
+
+  /**
+   * Generate a URL-safe slug from a name string.
+   */
+  function slugify(text) {
+    return text
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .substring(0, 64);
+  }
+
+  /**
+   * Show/hide strategy-specific form fields based on selected strategy.
+   */
+  function mountStrategyChanged(strategy) {
+    // Hide all strategy-specific fields
+    var fields = document.querySelectorAll('#mount-strategy-fields .mount-form-row');
+    fields.forEach(function(el) { el.style.display = 'none'; });
+
+    // Show relevant fields based on strategy
+    if (strategy === 'by-tag') {
+      document.querySelectorAll('.mount-field-by-tag').forEach(function(el) {
+        el.style.display = '';
+      });
+    } else if (strategy === 'by-property') {
+      document.querySelectorAll('.mount-field-by-property').forEach(function(el) {
+        el.style.display = '';
+      });
+    } else if (strategy === 'by-date') {
+      document.querySelectorAll('.mount-field-by-date').forEach(function(el) {
+        el.style.display = '';
+      });
+    }
+    // flat and by-type show nothing extra
+  }
+
+  /**
+   * Handle scope dropdown changes — show/hide custom SPARQL textarea.
+   */
+  function mountScopeChanged(value) {
+    var sparqlRow = document.getElementById('mount-sparql-row');
+    if (sparqlRow) {
+      sparqlRow.style.display = value === 'custom' ? '' : 'none';
+    }
+  }
+
+  /**
+   * Show an error message in the mount form area.
+   */
+  function showMountError(msg) {
+    var el = document.getElementById('mount-form-error');
+    if (el) {
+      el.textContent = msg;
+    }
+  }
+
+  /**
+   * Clear the mount form error message.
+   */
+  function clearMountError() {
+    var el = document.getElementById('mount-form-error');
+    if (el) el.textContent = '';
+  }
+
+  /**
+   * Collect form field values into an object for API calls.
+   */
+  function collectFormData() {
+    var strategy = document.getElementById('mount-strategy').value;
+    var scopeSelect = document.getElementById('mount-scope');
+    var scopeVal = scopeSelect ? scopeSelect.value : 'all';
+
+    var data = {
+      name: document.getElementById('mount-name').value.trim(),
+      path: document.getElementById('mount-path').value.trim(),
+      strategy: strategy,
+      visibility: document.getElementById('mount-visibility').value
+    };
+
+    // Strategy-specific fields
+    if (strategy === 'by-tag' || strategy === 'by-property') {
+      var groupProp = document.getElementById('mount-group-property');
+      if (groupProp && groupProp.value) {
+        data.group_by_property = groupProp.value;
+      }
+    }
+    if (strategy === 'by-date') {
+      var dateProp = document.getElementById('mount-date-property');
+      if (dateProp && dateProp.value) {
+        data.date_property = dateProp.value;
+      }
+    }
+
+    // Scope handling
+    if (scopeVal === 'all') {
+      // No scope filter
+    } else if (scopeVal === 'custom') {
+      var sparqlEl = document.getElementById('mount-sparql');
+      if (sparqlEl && sparqlEl.value.trim()) {
+        data.sparql_scope = sparqlEl.value.trim();
+      }
+    } else if (scopeVal.startsWith('query:')) {
+      data.saved_query_id = scopeVal.replace('query:', '');
+    }
+
+    return data;
+  }
+
+  /**
+   * Submit mount form — create or update a mount definition.
+   */
+  function mountSubmitForm(event) {
+    event.preventDefault();
+    clearMountError();
+
+    var data = collectFormData();
+    var editId = document.getElementById('mount-edit-id').value;
+    var isEdit = editId && editId.length > 0;
+
+    var url = isEdit ? '/api/vfs/mounts/' + editId : '/api/vfs/mounts';
+    var method = isEdit ? 'PUT' : 'POST';
+
+    fetch(url, {
+      method: method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    })
+      .then(function(r) {
+        if (r.ok) return r.json();
+        return r.json().then(function(errData) {
+          throw new Error(errData.detail || 'Failed to save mount');
+        });
+      })
+      .then(function() {
+        // Success — clear form and reload list
+        resetMountForm();
+        loadMountList();
+      })
+      .catch(function(err) {
+        showMountError(err.message || 'Failed to save mount');
+      });
+
+    return false;
+  }
+
+  /**
+   * Preview the directory structure for the current form values.
+   */
+  function mountPreview() {
+    clearMountError();
+
+    var data = collectFormData();
+    var previewEl = document.getElementById('mount-preview');
+    var treeEl = document.getElementById('mount-preview-tree');
+    if (!previewEl || !treeEl) return;
+
+    treeEl.innerHTML = 'Loading preview...';
+    previewEl.style.display = '';
+
+    fetch('/api/vfs/mounts/preview', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    })
+      .then(function(r) {
+        if (r.ok) return r.json();
+        return r.json().then(function(errData) {
+          throw new Error(errData.detail || 'Preview failed');
+        });
+      })
+      .then(function(result) {
+        renderPreviewTree(treeEl, result.directories || []);
+      })
+      .catch(function(err) {
+        treeEl.innerHTML = '<span style="color:var(--color-danger)">' +
+          escapeHtml(err.message || 'Preview failed') + '</span>';
+      });
+  }
+
+  /**
+   * Render a directory tree structure in the preview area.
+   */
+  function renderPreviewTree(container, directories) {
+    if (!directories || directories.length === 0) {
+      container.innerHTML = '<span class="mount-list-empty">No directories to preview</span>';
+      return;
+    }
+    var html = '';
+    directories.forEach(function(dir) {
+      html += renderPreviewDir(dir, 0);
+    });
+    container.innerHTML = html;
+  }
+
+  /**
+   * Recursively render a single directory entry.
+   */
+  function renderPreviewDir(dir, depth) {
+    var indent = depth * 16;
+    var html = '<div class="mount-preview-folder" style="padding-left:' + indent + 'px">';
+    html += escapeHtml(dir.name);
+    if (typeof dir.file_count === 'number') {
+      html += ' <span class="mount-preview-count">(' + dir.file_count + ' files)</span>';
+    }
+    html += '</div>';
+    if (dir.children && dir.children.length > 0) {
+      dir.children.forEach(function(child) {
+        html += renderPreviewDir(child, depth + 1);
+      });
+    }
+    return html;
+  }
+
+  /**
+   * Load and render the list of existing mounts.
+   */
+  function loadMountList() {
+    fetch('/api/vfs/mounts')
+      .then(function(r) { return r.ok ? r.json() : []; })
+      .then(function(mounts) {
+        _mountsCache = mounts;
+        renderMountList(mounts);
+      })
+      .catch(function() {
+        renderMountList([]);
+      });
+  }
+
+  /**
+   * Render the list of active mounts in the DOM.
+   */
+  function renderMountList(mounts) {
+    var container = document.getElementById('mount-list-items');
+    if (!container) return;
+
+    if (!mounts || mounts.length === 0) {
+      container.innerHTML = '<p class="mount-list-empty">No custom mounts yet.</p>';
+      return;
+    }
+
+    var html = '';
+    mounts.forEach(function(m) {
+      html += '<div class="mount-list-item" id="mount-item-' + escapeHtml(m.id) + '">';
+      html += '  <div class="mount-list-item-info">';
+      html += '    <span class="mount-list-item-name">' + escapeHtml(m.name) + '</span>';
+      html += '    <span class="mount-list-item-meta">/dav/' + escapeHtml(m.path) +
+              '/ &middot; ' + escapeHtml(m.strategy) +
+              ' &middot; ' + escapeHtml(m.visibility) + '</span>';
+      html += '  </div>';
+      html += '  <div class="mount-list-item-actions">';
+      html += '    <button class="btn-secondary-sm" onclick="mountEdit(\'' +
+              escapeAttr(m.id) + '\')">Edit</button>';
+      html += '    <button class="btn-danger-sm" onclick="mountDelete(\'' +
+              escapeAttr(m.id) + '\', \'' + escapeAttr(m.name) + '\')">Delete</button>';
+      html += '  </div>';
+      html += '</div>';
+    });
+    container.innerHTML = html;
+  }
+
+  /**
+   * Enter edit mode for a mount: populate the form with its values.
+   */
+  function mountEdit(id) {
+    var mount = _mountsCache.find(function(m) { return m.id === id; });
+    if (!mount) {
+      // Refetch if not cached
+      fetch('/api/vfs/mounts')
+        .then(function(r) { return r.ok ? r.json() : []; })
+        .then(function(mounts) {
+          _mountsCache = mounts;
+          var m = mounts.find(function(x) { return x.id === id; });
+          if (m) populateEditForm(m);
+        });
+      return;
+    }
+    populateEditForm(mount);
+  }
+
+  /**
+   * Fill form fields with a mount's current values for editing.
+   */
+  function populateEditForm(mount) {
+    document.getElementById('mount-edit-id').value = mount.id;
+    document.getElementById('mount-name').value = mount.name || '';
+    document.getElementById('mount-path').value = mount.path || '';
+    document.getElementById('mount-strategy').value = mount.strategy || 'flat';
+    document.getElementById('mount-visibility').value = mount.visibility || 'personal';
+
+    // Trigger strategy field visibility
+    mountStrategyChanged(mount.strategy || 'flat');
+
+    // Set strategy-specific fields
+    if (mount.group_by_property) {
+      var groupProp = document.getElementById('mount-group-property');
+      if (groupProp) groupProp.value = mount.group_by_property;
+    }
+    if (mount.date_property) {
+      var dateProp = document.getElementById('mount-date-property');
+      if (dateProp) dateProp.value = mount.date_property;
+    }
+
+    // Set scope
+    var scopeSelect = document.getElementById('mount-scope');
+    if (scopeSelect) {
+      if (mount.saved_query_id) {
+        scopeSelect.value = 'query:' + mount.saved_query_id;
+      } else if (mount.sparql_scope) {
+        scopeSelect.value = 'custom';
+        mountScopeChanged('custom');
+        var sparqlEl = document.getElementById('mount-sparql');
+        if (sparqlEl) sparqlEl.value = mount.sparql_scope;
+      } else {
+        scopeSelect.value = 'all';
+      }
+    }
+
+    // Update UI to reflect edit mode
+    var submitBtn = document.getElementById('mount-submit-btn');
+    if (submitBtn) submitBtn.textContent = 'Update Mount';
+    var cancelBtn = document.getElementById('mount-cancel-btn');
+    if (cancelBtn) cancelBtn.style.display = '';
+
+    clearMountError();
+
+    // Scroll to form
+    var section = document.getElementById('vfs-mount-section');
+    if (section) section.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  /**
+   * Cancel edit mode: clear form and restore "Create" state.
+   */
+  function mountCancelEdit() {
+    resetMountForm();
+  }
+
+  /**
+   * Reset mount form to initial "Create" state.
+   */
+  function resetMountForm() {
+    document.getElementById('mount-edit-id').value = '';
+    document.getElementById('mount-name').value = '';
+    document.getElementById('mount-path').value = '';
+    document.getElementById('mount-strategy').value = 'flat';
+    document.getElementById('mount-visibility').value = 'personal';
+
+    // Reset scope
+    var scopeSelect = document.getElementById('mount-scope');
+    if (scopeSelect) scopeSelect.value = 'all';
+    mountScopeChanged('all');
+
+    // Hide strategy fields
+    mountStrategyChanged('flat');
+
+    // Reset preview
+    var previewEl = document.getElementById('mount-preview');
+    if (previewEl) previewEl.style.display = 'none';
+
+    // Reset buttons
+    var submitBtn = document.getElementById('mount-submit-btn');
+    if (submitBtn) submitBtn.textContent = 'Create Mount';
+    var cancelBtn = document.getElementById('mount-cancel-btn');
+    if (cancelBtn) cancelBtn.style.display = 'none';
+
+    clearMountError();
+  }
+
+  /**
+   * Delete a mount by ID after confirmation.
+   */
+  function mountDelete(id, name) {
+    if (!confirm('Are you sure you want to delete the mount "' + name + '"? The directory will no longer appear in WebDAV.')) {
+      return;
+    }
+    fetch('/api/vfs/mounts/' + id, { method: 'DELETE' })
+      .then(function(r) {
+        if (r.status === 204 || r.ok) {
+          var row = document.getElementById('mount-item-' + id);
+          if (row) row.remove();
+          // Check if list is now empty
+          var container = document.getElementById('mount-list-items');
+          if (container && container.children.length === 0) {
+            container.innerHTML = '<p class="mount-list-empty">No custom mounts yet.</p>';
+          }
+          // Update cache
+          _mountsCache = _mountsCache.filter(function(m) { return m.id !== id; });
+        }
+      })
+      .catch(function(err) {
+        showMountError('Failed to delete mount: ' + (err.message || 'Unknown error'));
+      });
+  }
+
+  /**
+   * Escape HTML special characters for safe insertion.
+   */
+  function escapeHtml(str) {
+    if (!str) return '';
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+  }
+
+  /**
+   * Escape a string for use in an HTML attribute (single-quoted).
+   */
+  function escapeAttr(str) {
+    if (!str) return '';
+    return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  }
+
+  // Expose functions globally for inline event handlers
+  window.initMountForm = initMountForm;
+  window.mountStrategyChanged = mountStrategyChanged;
+  window.mountScopeChanged = mountScopeChanged;
+  window.mountSubmitForm = mountSubmitForm;
+  window.mountPreview = mountPreview;
+  window.mountEdit = mountEdit;
+  window.mountCancelEdit = mountCancelEdit;
+  window.mountDelete = mountDelete;
+  window.loadMountList = loadMountList;
+  window.renderMountList = renderMountList;
+
+  // Auto-initialize: if VFS mount section already exists in DOM, init immediately.
+  // Also listen for htmx swaps that may load the VFS settings partial.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      initMountForm();
+    });
+  } else {
+    initMountForm();
+  }
+
+  // Re-initialize after htmx swaps (settings tab loaded via htmx)
+  document.addEventListener('htmx:afterSettle', function() {
+    if (document.getElementById('vfs-mount-section')) {
+      initMountForm();
+    }
+  });
+
+})();
+
