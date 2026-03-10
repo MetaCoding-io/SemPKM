@@ -1,0 +1,25 @@
+<dialog id="promote-dialog" class="sempkm-dialog">
+    <form method="dialog" id="promote-form">
+        <h3>Promote to View</h3>
+        <input type="hidden" id="promote-query-id" name="query_id">
+        <div class="form-group">
+            <label for="promote-label">View Name</label>
+            <input type="text" id="promote-label" name="display_label" required maxlength="255" class="form-control">
+        </div>
+        <div class="form-group">
+            <label>Renderer</label>
+            <div class="renderer-picker">
+                <label class="renderer-option"><input type="radio" name="renderer_type" value="table" checked> <i data-lucide="table"></i> Table</label>
+                <label class="renderer-option"><input type="radio" name="renderer_type" value="card"> <i data-lucide="layout-grid"></i> Cards</label>
+                <label class="renderer-option"><input type="radio" name="renderer_type" value="graph"> <i data-lucide="share-2"></i> Graph</label>
+            </div>
+            <div id="promote-graph-warning" class="form-hint" style="display:none; color: var(--color-warning);">
+                Warning: Graph renderer requires ?source and ?target variables in the query.
+            </div>
+        </div>
+        <div class="dialog-actions">
+            <button type="button" class="btn btn-secondary" onclick="this.closest('dialog').close()">Cancel</button>
+            <button type="submit" class="btn btn-primary">Promote</button>
+        </div>
+    </form>
+</dialog>

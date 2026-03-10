@@ -29,7 +29,7 @@ from app.services.labels import LabelService
 from app.services.prefixes import PrefixRegistry
 from app.services.search import SearchService
 from app.sparql.client import check_member_query_safety, inject_prefixes, scope_to_current_graph
-from app.sparql.models import SavedSparqlQuery, SharedQueryAccess, SparqlQueryHistory
+from app.sparql.models import PromotedQueryView, SavedSparqlQuery, SharedQueryAccess, SparqlQueryHistory
 from app.sparql.schemas import (
     QueryHistoryOut,
     SavedQueryCreate,
@@ -709,6 +709,156 @@ async def fork_shared_query(
     await db.flush()
     await db.refresh(forked)
     return SavedQueryOut.model_validate(forked)
+
+
+# ---------------------------------------------------------------------------
+# Promotion endpoints
+# ---------------------------------------------------------------------------
+
+_VALID_RENDERERS = {"table", "card", "graph"}
+
+
+@router.post("/sparql/saved/{query_id}/promote", status_code=201)
+async def promote_query(
+    query_id: uuid.UUID,
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db_session),
+) -> JSONResponse:
+    """Promote a saved query to a named view in the nav tree.
+
+    Creates a PromotedQueryView linking the saved query to view metadata.
+    Only the query owner can promote. Returns 409 if already promoted.
+    """
+    _enforce_sparql_role(user, "", False)
+
+    # Verify ownership
+    result = await db.execute(
+        select(SavedSparqlQuery).where(
+            SavedSparqlQuery.id == query_id,
+            SavedSparqlQuery.user_id == user.id,
+        )
+    )
+    if result.scalar_one_or_none() is None:
+        raise HTTPException(status_code=404, detail="Saved query not found")
+
+    # Check if already promoted
+    existing = await db.execute(
+        select(PromotedQueryView).where(PromotedQueryView.query_id == query_id)
+    )
+    if existing.scalar_one_or_none() is not None:
+        raise HTTPException(status_code=409, detail="Query is already promoted")
+
+    # Parse body
+    try:
+        body = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid JSON body")
+
+    display_label = body.get("display_label", "").strip()
+    renderer_type = body.get("renderer_type", "table")
+
+    if not display_label:
+        raise HTTPException(status_code=400, detail="display_label is required")
+    if renderer_type not in _VALID_RENDERERS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"renderer_type must be one of: {', '.join(sorted(_VALID_RENDERERS))}",
+        )
+
+    pv = PromotedQueryView(
+        query_id=query_id,
+        user_id=user.id,
+        display_label=display_label,
+        renderer_type=renderer_type,
+    )
+    db.add(pv)
+    await db.flush()
+    await db.refresh(pv)
+
+    return JSONResponse(
+        status_code=201,
+        content={
+            "id": str(pv.id),
+            "spec_iri": f"urn:sempkm:user-view:{pv.id}",
+        },
+    )
+
+
+@router.delete("/sparql/saved/{query_id}/promote")
+async def demote_query(
+    query_id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db_session),
+) -> Response:
+    """Demote a promoted view back to just a saved query.
+
+    Deletes the PromotedQueryView row. The underlying saved query remains intact.
+    Only the query owner can demote.
+    """
+    _enforce_sparql_role(user, "", False)
+
+    # Verify ownership of the saved query
+    sq_result = await db.execute(
+        select(SavedSparqlQuery).where(
+            SavedSparqlQuery.id == query_id,
+            SavedSparqlQuery.user_id == user.id,
+        )
+    )
+    if sq_result.scalar_one_or_none() is None:
+        raise HTTPException(status_code=404, detail="Saved query not found")
+
+    result = await db.execute(
+        select(PromotedQueryView).where(PromotedQueryView.query_id == query_id)
+    )
+    pv = result.scalar_one_or_none()
+    if pv is None:
+        raise HTTPException(status_code=404, detail="Query is not promoted")
+
+    await db.delete(pv)
+    return Response(status_code=204)
+
+
+@router.get("/sparql/saved/{query_id}/promotion")
+async def get_promotion_status(
+    query_id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db_session),
+) -> JSONResponse:
+    """Check if a saved query is promoted. Owner-only."""
+    _enforce_sparql_role(user, "", False)
+
+    # Verify ownership
+    sq_result = await db.execute(
+        select(SavedSparqlQuery).where(
+            SavedSparqlQuery.id == query_id,
+            SavedSparqlQuery.user_id == user.id,
+        )
+    )
+    if sq_result.scalar_one_or_none() is None:
+        raise HTTPException(status_code=404, detail="Saved query not found")
+
+    result = await db.execute(
+        select(PromotedQueryView).where(PromotedQueryView.query_id == query_id)
+    )
+    pv = result.scalar_one_or_none()
+
+    if pv:
+        return JSONResponse(content={
+            "promoted": True,
+            "view_id": str(pv.id),
+            "spec_iri": f"urn:sempkm:user-view:{pv.id}",
+            "display_label": pv.display_label,
+            "renderer_type": pv.renderer_type,
+        })
+
+    return JSONResponse(content={
+        "promoted": False,
+        "view_id": None,
+        "spec_iri": None,
+        "display_label": None,
+        "renderer_type": None,
+    })
 
 
 # ---------------------------------------------------------------------------

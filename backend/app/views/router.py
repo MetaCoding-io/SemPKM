@@ -14,9 +14,11 @@ from urllib.parse import unquote, quote
 
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
+from app.db.session import get_db_session
 from app.dependencies import get_label_service, get_view_spec_service
 from app.services.labels import LabelService
 from app.views.service import ViewSpec, ViewSpecService
@@ -170,6 +172,7 @@ async def table_view(
     user: User = Depends(get_current_user),
     view_spec_service: ViewSpecService = Depends(get_view_spec_service),
     label_service: LabelService = Depends(get_label_service),
+    db: AsyncSession = Depends(get_db_session),
 ):
     """Render a table view for a given view spec IRI.
 
@@ -184,7 +187,9 @@ async def table_view(
     templates = request.app.state.templates
     decoded_iri = unquote(spec_iri)
 
-    spec = await view_spec_service.get_view_spec_by_iri(decoded_iri)
+    spec = await view_spec_service.get_view_spec_by_iri(
+        decoded_iri, user_id=user.id, db=db,
+    )
     if not spec:
         return HTMLResponse(
             content='<div class="editor-empty"><p>View spec not found.</p></div>',
@@ -211,16 +216,22 @@ async def table_view(
         # Capitalize and clean up variable names as headers
         column_labels[col] = col.replace("_", " ").title()
 
-    # Resolve labels for all object IRIs in rows (for clickable first column)
-    obj_iris = [row["s"] for row in result["rows"] if row.get("s")]
-    labels = await label_service.resolve_batch(obj_iris) if obj_iris else {}
+    # For user views: skip type switcher and use "Custom View" label
+    if spec.source_model == "user":
+        all_specs: list[ViewSpec] = []
+        type_label = "Custom View"
+        labels: dict[str, str] = {}
+    else:
+        # Resolve labels for all object IRIs in rows (for clickable first column)
+        obj_iris = [row["s"] for row in result["rows"] if row.get("s")]
+        labels = await label_service.resolve_batch(obj_iris) if obj_iris else {}
 
-    # Get all view specs for this type (for view type switcher)
-    all_specs = await view_spec_service.get_view_specs_for_type(spec.target_class)
+        # Get all view specs for this type (for view type switcher)
+        all_specs = await view_spec_service.get_view_specs_for_type(spec.target_class)
 
-    # Resolve type label
-    type_labels = await label_service.resolve_batch([spec.target_class])
-    type_label = type_labels.get(spec.target_class, spec.target_class)
+        # Resolve type label
+        type_labels = await label_service.resolve_batch([spec.target_class])
+        type_label = type_labels.get(spec.target_class, spec.target_class)
 
     # Build encoded spec IRI for URLs
     encoded_spec_iri = quote(decoded_iri, safe="")
@@ -244,6 +255,7 @@ async def table_view(
         "type_label": type_label,
         "type_iri": spec.target_class,
         "view_type": "table",
+        "source_model": spec.source_model,
     }
 
     return templates.TemplateResponse(
@@ -262,6 +274,7 @@ async def cards_view(
     user: User = Depends(get_current_user),
     view_spec_service: ViewSpecService = Depends(get_view_spec_service),
     label_service: LabelService = Depends(get_label_service),
+    db: AsyncSession = Depends(get_db_session),
 ):
     """Render a cards view for a given view spec IRI.
 
@@ -275,7 +288,9 @@ async def cards_view(
     templates = request.app.state.templates
     decoded_iri = unquote(spec_iri)
 
-    spec = await view_spec_service.get_view_spec_by_iri(decoded_iri)
+    spec = await view_spec_service.get_view_spec_by_iri(
+        decoded_iri, user_id=user.id, db=db,
+    )
     if not spec:
         return HTMLResponse(
             content='<div class="editor-empty"><p>View spec not found.</p></div>',
@@ -293,12 +308,17 @@ async def cards_view(
         group_by=effective_group_by,
     )
 
-    # Get all view specs for this type (for view type switcher)
-    all_specs = await view_spec_service.get_view_specs_for_type(spec.target_class)
+    # For user views: skip type switcher and use "Custom View" label
+    if spec.source_model == "user":
+        all_specs: list[ViewSpec] = []
+        type_label = "Custom View"
+    else:
+        # Get all view specs for this type (for view type switcher)
+        all_specs = await view_spec_service.get_view_specs_for_type(spec.target_class)
 
-    # Resolve type label
-    type_labels = await label_service.resolve_batch([spec.target_class])
-    type_label = type_labels.get(spec.target_class, spec.target_class)
+        # Resolve type label
+        type_labels = await label_service.resolve_batch([spec.target_class])
+        type_label = type_labels.get(spec.target_class, spec.target_class)
 
     # Build encoded spec IRI for URLs
     encoded_spec_iri = quote(decoded_iri, safe="")
@@ -322,6 +342,7 @@ async def cards_view(
         "type_label": type_label,
         "type_iri": spec.target_class,
         "view_type": "card",
+        "source_model": spec.source_model,
     }
 
     return templates.TemplateResponse(
@@ -335,6 +356,7 @@ async def graph_data(
     spec_iri: str,
     user: User = Depends(get_current_user),
     view_spec_service: ViewSpecService = Depends(get_view_spec_service),
+    db: AsyncSession = Depends(get_db_session),
 ):
     """Return graph data as JSON for Cytoscape.js visualization.
 
@@ -344,7 +366,9 @@ async def graph_data(
     """
     decoded_iri = unquote(spec_iri)
 
-    spec = await view_spec_service.get_view_spec_by_iri(decoded_iri)
+    spec = await view_spec_service.get_view_spec_by_iri(
+        decoded_iri, user_id=user.id, db=db,
+    )
     if not spec:
         return JSONResponse(
             content={"nodes": [], "edges": [], "type_colors": {}},
@@ -380,6 +404,7 @@ async def graph_view(
     user: User = Depends(get_current_user),
     view_spec_service: ViewSpecService = Depends(get_view_spec_service),
     label_service: LabelService = Depends(get_label_service),
+    db: AsyncSession = Depends(get_db_session),
 ):
     """Render the graph view container with Cytoscape.js initialization.
 
@@ -390,19 +415,26 @@ async def graph_view(
     templates = request.app.state.templates
     decoded_iri = unquote(spec_iri)
 
-    spec = await view_spec_service.get_view_spec_by_iri(decoded_iri)
+    spec = await view_spec_service.get_view_spec_by_iri(
+        decoded_iri, user_id=user.id, db=db,
+    )
     if not spec:
         return HTMLResponse(
             content='<div class="editor-empty"><p>View spec not found.</p></div>',
             status_code=404,
         )
 
-    # Get all view specs for this type (for view type switcher)
-    all_specs = await view_spec_service.get_view_specs_for_type(spec.target_class)
+    # For user views: skip type switcher and use "Custom View" label
+    if spec.source_model == "user":
+        all_specs: list[ViewSpec] = []
+        type_label = "Custom View"
+    else:
+        # Get all view specs for this type (for view type switcher)
+        all_specs = await view_spec_service.get_view_specs_for_type(spec.target_class)
 
-    # Resolve type label
-    type_labels = await label_service.resolve_batch([spec.target_class])
-    type_label = type_labels.get(spec.target_class, spec.target_class)
+        # Resolve type label
+        type_labels = await label_service.resolve_batch([spec.target_class])
+        type_label = type_labels.get(spec.target_class, spec.target_class)
 
     # Build available layouts: 3 built-in + model-contributed
     built_in_layouts = [
