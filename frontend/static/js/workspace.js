@@ -984,6 +984,19 @@
     });
   }
 
+  // --- Nav Tree Refresh ---
+
+  function refreshNavTree() {
+    var body = document.querySelector('#section-objects .explorer-section-body');
+    if (!body) return;
+    htmx.ajax('GET', '/browser/nav-tree', { target: body, swap: 'innerHTML' }).then(function () {
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+      // Re-populate per-type Create entries in command palette
+      var ninja = document.querySelector('ninja-keys');
+      if (ninja) _addTypeCreateEntries(ninja);
+    });
+  }
+
   // --- Command Palette ---
 
   function initCommandPalette() {
@@ -2083,6 +2096,7 @@
   window.markClean = markClean;
   window.togglePane = togglePane;
   window.showTypePicker = showTypePicker;
+  window.refreshNavTree = refreshNavTree;
   window.jumpToField = jumpToField;
   window.triggerValidation = triggerValidation;
   window.loadRightPaneSection = loadRightPaneSection;

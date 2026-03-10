@@ -115,6 +115,38 @@
     letter-spacing: 0.04em;
 }
 
+/* Hover-reveal action buttons in explorer section headers (VS Code pattern) */
+.explorer-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: auto;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.explorer-section-header:hover .explorer-header-actions {
+    opacity: 1;
+}
+
+/* Also show when selection is active (badge visible) */
+.explorer-header-actions.has-selection {
+    opacity: 1;
+}
+
+.explorer-action-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+.selection-badge {
+    font-size: 11px;
+    color: var(--color-text-muted);
+    padding: 0 4px;
+}
+
 .explorer-section-body {
     display: none;
     padding: 4px 0;
