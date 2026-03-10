@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import signal
 from contextlib import asynccontextmanager
 from pathlib import Path
 from urllib.parse import quote, urlencode as _urlencode
@@ -78,8 +79,31 @@ async def lifespan(app: FastAPI):
     # When uvicorn reloads, request.is_disconnected() does NOT fire for SSE
     # streams, so generators with `while True` loops hang forever.  This event
     # lets them exit within one iteration.
+    #
+    # IMPORTANT: uvicorn waits for all connections to close BEFORE calling the
+    # lifespan __aexit__ (the code after `yield`).  So we cannot set the event
+    # there — it would deadlock.  Instead we install a signal handler that
+    # fires the event as soon as SIGTERM/SIGINT arrives (before uvicorn starts
+    # waiting).  We chain to the previous handler so uvicorn's own shutdown
+    # still proceeds normally.
     shutdown_event = asyncio.Event()
     app.state.shutdown_event = shutdown_event
+
+    loop = asyncio.get_running_loop()
+
+    def _on_shutdown_signal(sig, frame):
+        """Set shutdown event on SIGTERM/SIGINT so SSE generators exit."""
+        shutdown_event.set()
+
+    # Install signal handlers — chain with existing ones so uvicorn still
+    # receives the signal and initiates its own shutdown sequence.
+    for sig in (signal.SIGTERM, signal.SIGINT):
+        prev_handler = signal.getsignal(sig)
+        def _chained(signum, frame, _prev=prev_handler):
+            _on_shutdown_signal(signum, frame)
+            if callable(_prev) and _prev not in (signal.SIG_DFL, signal.SIG_IGN):
+                _prev(signum, frame)
+        signal.signal(sig, _chained)
 
     # Initialize PostHog analytics/error monitoring
     init_posthog()
