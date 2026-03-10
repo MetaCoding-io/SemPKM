@@ -34,6 +34,9 @@
   var SVG_PLUS = '<svg class="spatial-icon spatial-icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>';
   var SVG_X = '<svg class="spatial-icon spatial-icon-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
 
+  var GRID = 24;
+  function snapToGrid(value) { return Math.round(value / GRID) * GRID; }
+
   function mountCanvas() {
     var root = document.getElementById('spatial-canvas-root');
     if (!root) return;
@@ -119,8 +122,8 @@
       id: iri,
       title: label || 'Resource',
       uri: iri,
-      x: Math.round(world.x),
-      y: Math.round(world.y),
+      x: snapToGrid(world.x),
+      y: snapToGrid(world.y),
       markdown: '',
       collapsed: false,
     });
@@ -377,8 +380,8 @@
           id: nid,
           title: String(node.label || node.id || 'Resource'),
           uri: nid,
-          x: Math.round(model.x + Math.cos(angle) * radius),
-          y: Math.round(model.y + Math.sin(angle) * radius),
+          x: snapToGrid(model.x + Math.cos(angle) * radius),
+          y: snapToGrid(model.y + Math.sin(angle) * radius),
           markdown: '',
           collapsed: false,
         });
@@ -421,8 +424,8 @@
       var node = findNode(state.nodeDragId);
       if (!node) return;
       var world = screenToWorld(event.clientX, event.clientY);
-      node.x = Math.round(world.x - state.nodeDragOffsetX);
-      node.y = Math.round(world.y - state.nodeDragOffsetY);
+      node.x = snapToGrid(world.x - state.nodeDragOffsetX);
+      node.y = snapToGrid(world.y - state.nodeDragOffsetY);
       renderNodes();
       return;
     }

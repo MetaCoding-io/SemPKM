@@ -3205,6 +3205,11 @@ details.form-group[open] > .form-group-summary::before {
   font-size: 11px;
   font-family: var(--font-sans, sans-serif);
   text-anchor: middle;
+  paint-order: stroke;
+  stroke: var(--color-bg-surface, #ffffff);
+  stroke-width: 3px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 [data-theme="dark"] .spatial-node {
@@ -4128,7 +4133,7 @@ details.form-group[open] > .form-group-summary::before {
 }
 
 .sparql-editor-wrap {
-    flex: 1;
+    flex: 0 0 25%;
     min-width: 0;
     overflow: hidden;
     display: flex;
