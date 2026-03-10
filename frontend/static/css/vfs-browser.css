@@ -587,6 +587,14 @@
     flex-shrink: 0;
 }
 
+.vfs-loading-spinner--sm {
+    width: 12px;
+    height: 12px;
+    border-width: 1.5px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
 /* Loading spinner for file content */
 .vfs-editor-loading {
     display: flex;
@@ -596,4 +604,123 @@
     color: var(--color-text-muted);
     gap: 8px;
     font-size: 0.85rem;
+}
+
+/* ── Saved flash animation ──────────────────── */
+
+.vfs-saved-flash {
+    display: inline-block;
+    font-size: 0.75rem;
+    color: #27AE60;
+    font-weight: 600;
+    animation: vfs-flash-fade 1.8s ease forwards;
+    pointer-events: none;
+}
+
+@keyframes vfs-flash-fade {
+    0%   { opacity: 1; }
+    60%  { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* ── Toast notifications ────────────────────── */
+
+.vfs-toast {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 100;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    pointer-events: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.vfs-toast--visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.vfs-toast--success {
+    background: #27AE60;
+    color: #fff;
+}
+
+.vfs-toast--error {
+    background: #E74C3C;
+    color: #fff;
+}
+
+.vfs-toast--info {
+    background: var(--color-surface-raised);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+}
+
+/* ── WebDAV help banner ─────────────────────── */
+
+.vfs-help-banner {
+    border-bottom: 1px solid var(--color-border);
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    background: var(--color-surface);
+}
+
+.vfs-help-banner summary {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    user-select: none;
+    font-size: 0.75rem;
+    color: var(--color-text-faint);
+}
+
+.vfs-help-banner summary:hover {
+    color: var(--color-text-muted);
+    background: var(--color-surface-hover);
+}
+
+.vfs-help-banner summary svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+.vfs-help-banner .vfs-help-content {
+    padding: 8px 12px 12px;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    border-top: 1px solid var(--color-border-subtle);
+}
+
+.vfs-help-banner .vfs-help-content code {
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    font-size: 0.72rem;
+    padding: 1px 4px;
+    background: var(--color-surface-raised);
+    border-radius: 3px;
+    border: 1px solid var(--color-border);
+}
+
+.vfs-help-banner .vfs-help-content h4 {
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin: 8px 0 4px;
+    color: var(--color-text);
+}
+
+.vfs-help-banner .vfs-help-content h4:first-child {
+    margin-top: 0;
+}
+
+.vfs-help-banner .vfs-help-content p {
+    margin: 4px 0;
 }
