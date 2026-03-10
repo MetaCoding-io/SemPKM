@@ -358,6 +358,19 @@
         });
       }
     }
+
+    // Lazy-load SPARQL console on first activation
+    if (panelState.open && panelState.activeTab === 'sparql') {
+      if (!window._sparqlConsoleInit) {
+        window._sparqlConsoleInit = true;
+        import('/js/sparql-console.js').then(function(mod) {
+          mod.initSparqlConsole();
+        }).catch(function(err) {
+          console.error('Failed to load SPARQL console:', err);
+          window._sparqlConsoleInit = false;
+        });
+      }
+    }
   }
 
   function toggleBottomPanel() {

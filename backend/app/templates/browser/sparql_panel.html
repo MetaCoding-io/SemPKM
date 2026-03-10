@@ -1,0 +1,72 @@
+<div class="sparql-panel" id="sparql-panel">
+  <div class="sparql-toolbar">
+    <button class="sparql-toolbar-btn sparql-run-btn" id="sparql-run-btn" title="Run Query (Ctrl+Enter)">
+      <i data-lucide="play"></i>
+      <span>Run</span>
+    </button>
+    <button class="sparql-toolbar-btn" id="sparql-save-btn" title="Save Query">
+      <i data-lucide="save"></i>
+      <span>Save</span>
+    </button>
+    <div class="sparql-dropdown-wrap">
+      <button class="sparql-toolbar-btn" id="sparql-history-btn" title="Query History">
+        <i data-lucide="clock"></i>
+        <span>History</span>
+      </button>
+      <div class="sparql-dropdown" id="sparql-history-dropdown" style="display:none;">
+        <div class="sparql-dropdown-header">
+          <span>Recent Queries</span>
+          <button class="sparql-dropdown-action" id="sparql-clear-history-btn" title="Clear History">
+            <i data-lucide="trash-2"></i>
+          </button>
+        </div>
+        <div class="sparql-dropdown-items" id="sparql-history-items">
+          <div class="sparql-dropdown-empty">No history yet</div>
+        </div>
+      </div>
+    </div>
+    <div class="sparql-dropdown-wrap">
+      <button class="sparql-toolbar-btn" id="sparql-saved-btn" title="Saved Queries">
+        <i data-lucide="bookmark"></i>
+        <span>Saved</span>
+      </button>
+      <div class="sparql-dropdown" id="sparql-saved-dropdown" style="display:none;">
+        <div class="sparql-dropdown-header">
+          <span>Saved Queries</span>
+        </div>
+        <div class="sparql-dropdown-items" id="sparql-saved-items">
+          <div class="sparql-dropdown-empty">No saved queries</div>
+        </div>
+      </div>
+    </div>
+    <div class="sparql-toolbar-spacer"></div>
+    {% if user is defined and user.role == 'owner' %}
+    <label class="sparql-all-graphs-label" title="Query across all named graphs">
+      <input type="checkbox" id="sparql-all-graphs" />
+      <span>All Graphs</span>
+    </label>
+    {% endif %}
+  </div>
+  <div class="sparql-main">
+    <div class="sparql-editor-wrap">
+      <div id="sparql-editor"></div>
+    </div>
+    <div class="sparql-results-wrap">
+      <div class="sparql-results-info" id="sparql-results-info"></div>
+      <div class="sparql-results-table-wrap" id="sparql-results-table-wrap">
+        <div class="sparql-results-placeholder">
+          Run a query to see results here
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="sparql-cell-history" id="sparql-cell-history">
+    <div class="sparql-cell-history-header" id="sparql-cell-history-header" style="display:none;">
+      <span>Session History</span>
+      <button class="sparql-dropdown-action" id="sparql-clear-cells-btn" title="Clear Session History">
+        <i data-lucide="trash-2"></i>
+      </button>
+    </div>
+    <div class="sparql-cell-history-items" id="sparql-cell-history-items"></div>
+  </div>
+</div>
