@@ -3365,6 +3365,10 @@ details.form-group[open] > .form-group-summary::before {
     font-weight: 500;
 }
 
+.inference-card-link {
+    cursor: pointer;
+}
+
 .inference-card-subject:hover,
 .inference-card-object:hover {
     text-decoration: underline;
@@ -3484,12 +3488,19 @@ details.form-group[open] > .form-group-summary::before {
 .lint-dashboard-sidebar select,
 .lint-dashboard-sidebar input {
     width: 100%;
-    font-size: 0.78rem;
+    font-size: 0.75rem;
     padding: 4px 8px;
     border: 1px solid var(--color-border);
     border-radius: 4px;
-    background: var(--color-bg);
+    background: var(--color-surface);
     color: var(--color-text);
+    cursor: pointer;
+}
+
+.lint-dashboard-sidebar select:focus,
+.lint-dashboard-sidebar input:focus {
+    outline: none;
+    border-color: var(--color-accent);
 }
 
 .lint-dashboard-sidebar-summary {
