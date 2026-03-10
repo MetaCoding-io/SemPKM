@@ -78,6 +78,7 @@ Full decision log in PROJECT.md Key Decisions table.
 ### Pending Todos
 
 1. Materialize owl:inverseOf triples — Phase 35 INF-01
+2. Build MCP server for AI agent access to SemPKM
 
 ### Known Tech Debt
 
