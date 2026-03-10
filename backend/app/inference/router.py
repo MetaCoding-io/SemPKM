@@ -407,11 +407,32 @@ def _render_triple_cards(triples):
 
 def _build_triple_card(t):
     """Build a single card element for a triple."""
+    from html import escape
+
     h = t["triple_hash"]
-    s_display = _compact_iri(t["subject"])
+    s_iri = t["subject"]
+    o_iri = t["object"]
+    s_display = _compact_iri(s_iri)
     p_display = _compact_iri(t["predicate"])
-    o_display = _compact_iri(t["object"])
+    o_display = _compact_iri(o_iri)
     status_class = f"status-{t['status']}"
+
+    # Make subject and object clickable to open in dockview
+    s_iri_escaped = escape(s_iri, quote=True)
+    o_iri_escaped = escape(o_iri, quote=True)
+    s_label_escaped = escape(s_display, quote=True).replace("'", "\\'")
+    o_label_escaped = escape(o_display, quote=True).replace("'", "\\'")
+
+    s_link = (
+        f'<a href="#" class="inference-card-subject inference-card-link" '
+        f"onclick=\"openTab('{s_iri_escaped}', '{s_label_escaped}'); return false;\">"
+        f'{s_display}</a>'
+    )
+    o_link = (
+        f'<a href="#" class="inference-card-object inference-card-link" '
+        f"onclick=\"openTab('{o_iri_escaped}', '{o_label_escaped}'); return false;\">"
+        f'{o_display}</a>'
+    )
 
     actions = ""
     if t["status"] == "active":
@@ -439,9 +460,9 @@ def _build_triple_card(t):
     return (
         f'<div id="triple-{h}" class="inference-card {status_class}">'
         f'<div class="inference-card-triple">'
-        f'<span class="inference-card-subject">{s_display}</span>'
+        f'{s_link}'
         f'<span class="inference-card-predicate">{p_display}</span>'
-        f'<span class="inference-card-object">{o_display}</span>'
+        f'{o_link}'
         f"</div>"
         f'<div class="inference-card-meta">'
         f'<span class="inference-card-type-badge">{t["entailment_type"]}</span>'
