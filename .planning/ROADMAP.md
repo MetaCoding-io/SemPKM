@@ -241,12 +241,13 @@ Plans:
   3. User can send a notification (shared concept) to a remote instance's LDN inbox, and view/act on received notifications
   4. Incoming federation requests are authenticated via HTTP Signatures against WebID public keys
   5. Collaboration UI shows registered remote instances, their sync status, and incoming changes
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 58-01: TBD
-- [ ] 58-02: TBD
-- [ ] 58-03: TBD
+- [ ] 58-01-PLAN.md — RDF Patch serialization, EventStore graph targeting + syncSource, patch export API
+- [ ] 58-02-PLAN.md — HTTP Signatures (RFC 9421), WebFinger endpoint, LDN inbox receiver
+- [ ] 58-03-PLAN.md — Shared graph management, sync pull/apply, invitation flow, notification sending
+- [ ] 58-04-PLAN.md — Inbox UI panel, collaboration panel, nav tree SHARED section, federation CSS/JS
 
 ---
 
@@ -350,7 +351,7 @@ Phases execute in numeric order: 52 -> 53 -> 54 -> 55 -> 56 -> 57 -> 58
 | 55. Browser UI Polish | 4/4 | Complete   | 2026-03-10 | - |
 | 56. VFS MountSpec | 3/3 | Complete    | 2026-03-10 | - |
 | 57. Spatial Canvas | 3/3 | Complete    | 2026-03-10 | - |
-| 58. Federation | v2.6 | 0/? | Not started | - |
+| 58. Federation | v2.6 | 0/4 | Not started | - |
 
 ---
 *Roadmap created: 2026-02-21*
