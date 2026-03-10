@@ -29,12 +29,15 @@ from app.services.labels import LabelService
 from app.services.prefixes import PrefixRegistry
 from app.services.search import SearchService
 from app.sparql.client import check_member_query_safety, inject_prefixes, scope_to_current_graph
-from app.sparql.models import SavedSparqlQuery, SparqlQueryHistory
+from app.sparql.models import SavedSparqlQuery, SharedQueryAccess, SparqlQueryHistory
 from app.sparql.schemas import (
     QueryHistoryOut,
     SavedQueryCreate,
     SavedQueryOut,
     SavedQueryUpdate,
+    ShareableUserOut,
+    SharedQueryOut,
+    ShareUpdateRequest,
     VocabularyItem,
     VocabularyOut,
 )
@@ -433,20 +436,76 @@ async def sparql_history_clear(
 # ---------------------------------------------------------------------------
 
 
-@router.get("/sparql/saved")
-async def saved_query_list(
+@router.get("/sparql/users")
+async def list_shareable_users(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db_session),
-) -> list[SavedQueryOut]:
-    """List user's saved SPARQL queries (newest first)."""
+) -> list[ShareableUserOut]:
+    """List all non-guest users for the share picker."""
     _enforce_sparql_role(user, "", False)
+    result = await db.execute(
+        select(User).where(User.role != "guest")
+    )
+    rows = result.scalars().all()
+    return [ShareableUserOut.model_validate(r) for r in rows]
+
+
+@router.get("/sparql/saved")
+async def saved_query_list(
+    include_shared: bool = Query(False, description="Include queries shared with me"),
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db_session),
+) -> list[SavedQueryOut] | dict:
+    """List user's saved SPARQL queries (newest first).
+
+    When include_shared=true, returns a JSON object with two keys:
+    my_queries (list[SavedQueryOut]) and shared_with_me (list[SharedQueryOut]).
+    When include_shared=false (default), returns list[SavedQueryOut] for backward compat.
+    """
+    _enforce_sparql_role(user, "", False)
+
+    # Own queries
     result = await db.execute(
         select(SavedSparqlQuery)
         .where(SavedSparqlQuery.user_id == user.id)
         .order_by(SavedSparqlQuery.created_at.desc())
     )
-    rows = result.scalars().all()
-    return [SavedQueryOut.model_validate(r) for r in rows]
+    my_rows = result.scalars().all()
+    my_queries = [SavedQueryOut.model_validate(r) for r in my_rows]
+
+    if not include_shared:
+        return my_queries
+
+    # Shared with me
+    shared_result = await db.execute(
+        select(SharedQueryAccess, SavedSparqlQuery, User)
+        .join(SavedSparqlQuery, SharedQueryAccess.query_id == SavedSparqlQuery.id)
+        .join(User, SavedSparqlQuery.user_id == User.id)
+        .where(SharedQueryAccess.shared_with_user_id == user.id)
+        .order_by(SavedSparqlQuery.updated_at.desc())
+    )
+    shared_rows = shared_result.all()
+    shared_queries = []
+    for access, query, owner in shared_rows:
+        is_updated = (
+            access.last_viewed_at is None
+            or query.updated_at > access.last_viewed_at
+        )
+        shared_queries.append(SharedQueryOut(
+            id=query.id,
+            name=query.name,
+            description=query.description,
+            query_text=query.query_text,
+            created_at=query.created_at,
+            updated_at=query.updated_at,
+            owner_name=owner.display_name or owner.email,
+            is_updated=is_updated,
+        ))
+
+    return {
+        "my_queries": [q.model_dump(mode="json") for q in my_queries],
+        "shared_with_me": [q.model_dump(mode="json") for q in shared_queries],
+    }
 
 
 @router.post("/sparql/saved", status_code=201)
@@ -520,6 +579,136 @@ async def saved_query_delete(
 
     await db.delete(saved)
     return Response(status_code=204)
+
+
+# ---------------------------------------------------------------------------
+# Sharing endpoints
+# ---------------------------------------------------------------------------
+
+
+@router.get("/sparql/saved/{query_id}/shares")
+async def get_query_shares(
+    query_id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db_session),
+) -> list[uuid.UUID]:
+    """List user IDs this query is currently shared with. Owner-only."""
+    _enforce_sparql_role(user, "", False)
+
+    # Verify ownership
+    result = await db.execute(
+        select(SavedSparqlQuery).where(
+            SavedSparqlQuery.id == query_id,
+            SavedSparqlQuery.user_id == user.id,
+        )
+    )
+    if result.scalar_one_or_none() is None:
+        raise HTTPException(status_code=404, detail="Saved query not found")
+
+    shares_result = await db.execute(
+        select(SharedQueryAccess.shared_with_user_id)
+        .where(SharedQueryAccess.query_id == query_id)
+    )
+    return list(shares_result.scalars().all())
+
+
+@router.put("/sparql/saved/{query_id}/shares")
+async def update_query_shares(
+    query_id: uuid.UUID,
+    body: ShareUpdateRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db_session),
+) -> Response:
+    """Set sharing for a query. Replaces all current shares. Owner-only."""
+    _enforce_sparql_role(user, "", False)
+
+    # Verify ownership
+    result = await db.execute(
+        select(SavedSparqlQuery).where(
+            SavedSparqlQuery.id == query_id,
+            SavedSparqlQuery.user_id == user.id,
+        )
+    )
+    if result.scalar_one_or_none() is None:
+        raise HTTPException(status_code=404, detail="Saved query not found")
+
+    # Filter out self-sharing
+    target_user_ids = [uid for uid in body.user_ids if uid != user.id]
+
+    # Remove all existing shares
+    await db.execute(
+        delete(SharedQueryAccess).where(SharedQueryAccess.query_id == query_id)
+    )
+
+    # Create new shares
+    for uid in target_user_ids:
+        db.add(SharedQueryAccess(query_id=query_id, shared_with_user_id=uid))
+
+    await db.flush()
+    return Response(status_code=200)
+
+
+@router.post("/sparql/saved/{query_id}/mark-viewed", status_code=204)
+async def mark_shared_query_viewed(
+    query_id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db_session),
+) -> Response:
+    """Mark a shared query as viewed by the current user (clears Updated badge)."""
+    _enforce_sparql_role(user, "", False)
+
+    result = await db.execute(
+        select(SharedQueryAccess).where(
+            SharedQueryAccess.query_id == query_id,
+            SharedQueryAccess.shared_with_user_id == user.id,
+        )
+    )
+    access = result.scalar_one_or_none()
+    if access is not None:
+        access.last_viewed_at = func.now()
+        await db.flush()
+
+    return Response(status_code=204)
+
+
+@router.post("/sparql/saved/{query_id}/fork", status_code=201)
+async def fork_shared_query(
+    query_id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db_session),
+) -> SavedQueryOut:
+    """Fork a shared query as the current user's own copy."""
+    _enforce_sparql_role(user, "", False)
+
+    # Verify the query is shared with this user
+    result = await db.execute(
+        select(SharedQueryAccess).where(
+            SharedQueryAccess.query_id == query_id,
+            SharedQueryAccess.shared_with_user_id == user.id,
+        )
+    )
+    if result.scalar_one_or_none() is None:
+        raise HTTPException(status_code=404, detail="Shared query not found")
+
+    # Get the original query
+    query_result = await db.execute(
+        select(SavedSparqlQuery).where(SavedSparqlQuery.id == query_id)
+    )
+    original = query_result.scalar_one_or_none()
+    if original is None:
+        raise HTTPException(status_code=404, detail="Original query not found")
+
+    # Create the fork
+    forked = SavedSparqlQuery(
+        user_id=user.id,
+        name=f"Copy of {original.name}",
+        description=original.description,
+        query_text=original.query_text,
+    )
+    db.add(forked)
+    await db.flush()
+    await db.refresh(forked)
+    return SavedQueryOut.model_validate(forked)
 
 
 # ---------------------------------------------------------------------------
