@@ -188,11 +188,13 @@ Plans:
   3. Clicking a relationship in the Relations panel expands to show edge provenance, metadata, and type information
   4. VFS browser shows a side-by-side raw/rendered preview for open files
   5. VFS browser file operations have consistent icons and loading states
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 55-01: TBD
-- [ ] 55-02: TBD
+- [ ] 55-01-PLAN.md — Nav tree header controls (refresh/plus) and command palette per-type Create entries
+- [ ] 55-02-PLAN.md — Multi-select (shift/ctrl-click) and bulk delete with confirmation dialog
+- [ ] 55-03-PLAN.md — Edge inspector with inline provenance display and edge delete
+- [ ] 55-04-PLAN.md — VFS side-by-side preview, file operation polish, and WebDAV help
 
 ### Phase 56: VFS MountSpec
 **Goal**: Users can create custom VFS directory structures using declarative mount definitions with multiple organization strategies
@@ -342,7 +344,7 @@ Phases execute in numeric order: 52 -> 53 -> 54 -> 55 -> 56 -> 57 -> 58
 | 52. Bug Fixes & Security | 2/2 | Complete    | 2026-03-09 | - |
 | 53. SPARQL Power User | v2.6 | 0/2 | Not started | - |
 | 54. SPARQL Advanced | v2.6 | 0/? | Not started | - |
-| 55. Browser UI Polish | v2.6 | 0/? | Not started | - |
+| 55. Browser UI Polish | v2.6 | 0/4 | Not started | - |
 | 56. VFS MountSpec | v2.6 | 0/? | Not started | - |
 | 57. Spatial Canvas | v2.6 | 0/? | Not started | - |
 | 58. Federation | v2.6 | 0/? | Not started | - |
