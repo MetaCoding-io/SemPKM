@@ -3,8 +3,8 @@
    Rendered as htmx partial for the right pane content area.
    Accepts:
      object_iri: IRI of the current object
-     outbound_grouped: dict of predicate_label -> list of {iri, label, source}
-     inbound_grouped: dict of predicate_label -> list of {iri, label, source}
+     outbound_grouped: dict of predicate_label -> list of {iri, label, source, predicate_iri}
+     inbound_grouped: dict of predicate_label -> list of {iri, label, source, predicate_iri}
      source is "user" or "inferred" — inferred items get a subtle badge
 #}
 
@@ -25,14 +25,24 @@
       </summary>
       {% for obj in targets %}
       <div class="relation-item"
-           onclick="openTab('{{ obj.iri | e }}', '{{ obj.label | e }}')"
+           data-subject-iri="{{ object_iri | e }}"
+           data-predicate-iri="{{ obj.predicate_iri | e }}"
+           data-target-iri="{{ obj.iri | e }}"
+           data-source="{{ obj.source | e }}"
+           onclick="toggleEdgeDetail(this)"
            title="{{ obj.iri }}">
         <span class="relation-arrow">&#8594;</span>
-        <span>{{ obj.label }}</span>
+        <span class="relation-item-label">{{ obj.label }}</span>
         {% if obj.source == "inferred" %}
         <span class="inferred-badge" title="Inferred by OWL 2 RL reasoning">inferred</span>
         {% endif %}
+        <button class="relation-open-btn panel-btn"
+                onclick="event.stopPropagation(); openTab('{{ obj.iri | e }}', '{{ obj.label | e }}')"
+                title="Open in tab">
+          <i data-lucide="external-link"></i>
+        </button>
       </div>
+      <div class="relation-detail" style="display:none"></div>
       {% endfor %}
     </details>
     {% endfor %}
@@ -51,14 +61,24 @@
       </summary>
       {% for obj in sources %}
       <div class="relation-item"
-           onclick="openTab('{{ obj.iri | e }}', '{{ obj.label | e }}')"
+           data-subject-iri="{{ obj.iri | e }}"
+           data-predicate-iri="{{ obj.predicate_iri | e }}"
+           data-target-iri="{{ object_iri | e }}"
+           data-source="{{ obj.source | e }}"
+           onclick="toggleEdgeDetail(this)"
            title="{{ obj.iri }}">
         <span class="relation-arrow">&#8592;</span>
-        <span>{{ obj.label }}</span>
+        <span class="relation-item-label">{{ obj.label }}</span>
         {% if obj.source == "inferred" %}
         <span class="inferred-badge" title="Inferred by OWL 2 RL reasoning">inferred</span>
         {% endif %}
+        <button class="relation-open-btn panel-btn"
+                onclick="event.stopPropagation(); openTab('{{ obj.iri | e }}', '{{ obj.label | e }}')"
+                title="Open in tab">
+          <i data-lucide="external-link"></i>
+        </button>
       </div>
+      <div class="relation-detail" style="display:none"></div>
       {% endfor %}
     </details>
     {% endfor %}
