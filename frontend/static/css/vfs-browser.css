@@ -463,6 +463,41 @@
     color: #E74C3C;
 }
 
+/* ── Side-by-side split layout ──────────────── */
+
+.vfs-split-container {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+.vfs-split-left {
+    flex: 1;
+    overflow: hidden;
+    min-width: 20%;
+    display: flex;
+    flex-direction: column;
+}
+
+.vfs-split-handle {
+    width: 4px;
+    background: var(--color-border);
+    cursor: col-resize;
+    flex-shrink: 0;
+    transition: background 0.15s;
+}
+
+.vfs-split-handle:hover,
+.vfs-split-handle.dragging {
+    background: var(--color-primary, #4A90D9);
+}
+
+.vfs-split-right {
+    flex: 1;
+    overflow: auto;
+    min-width: 20%;
+}
+
 /* CodeMirror container */
 .vfs-cm-container {
     flex: 1;
@@ -473,6 +508,10 @@
     height: 100%;
     font-size: 0.85rem;
     text-decoration: none;
+}
+
+.vfs-cm-container .cm-scroller {
+    overflow: auto;
 }
 
 /* Markdown preview container */
@@ -486,38 +525,66 @@
     font-size: var(--_font-size-base, 0.88rem);
 }
 
-/* Preview/source toggle tabs */
-.vfs-view-tabs {
+/* ── Toolbar button icon sizing ─────────────── */
+
+.vfs-toolbar-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+/* ── Preview toggle button in tab ───────────── */
+
+.vfs-tab-preview-btn {
     display: flex;
     align-items: center;
-    gap: 0;
-    border-bottom: 1px solid var(--color-border-subtle);
-    background: var(--color-surface);
-    padding: 0 8px;
-}
-
-.vfs-view-tab {
-    padding: 4px 12px;
-    font-size: 0.78rem;
-    color: var(--color-text-muted);
-    background: none;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 3px;
     border: none;
-    border-bottom: 2px solid transparent;
+    background: none;
+    color: var(--color-text-faint);
     cursor: pointer;
-    user-select: none;
+    padding: 0;
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 0.1s, background 0.1s;
 }
 
-.vfs-view-tab:hover {
+.vfs-tab:hover .vfs-tab-preview-btn,
+.vfs-tab.active .vfs-tab-preview-btn {
+    opacity: 1;
+}
+
+.vfs-tab-preview-btn:hover {
+    background: var(--color-surface-hover);
     color: var(--color-text);
 }
 
-.vfs-view-tab.active {
-    color: var(--color-text);
-    border-bottom-color: var(--color-primary, #4A90D9);
+.vfs-tab-preview-btn.active {
+    opacity: 1;
+    color: var(--color-primary, #4A90D9);
 }
 
-.vfs-cm-container .cm-scroller {
-    overflow: auto;
+.vfs-tab-preview-btn svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+/* ── CSS loading spinner ────────────────────── */
+
+.vfs-loading-spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--color-border);
+    border-top-color: var(--color-primary, #4A90D9);
+    border-radius: 50%;
+    animation: vfs-spin 0.6s linear infinite;
+    flex-shrink: 0;
 }
 
 /* Loading spinner for file content */

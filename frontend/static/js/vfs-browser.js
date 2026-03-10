@@ -9,6 +9,7 @@
  *   model → type (folder) → file (.md)
  *
  * File tabs support multiple open files, dirty tracking, and close.
+ * Markdown files support side-by-side raw/rendered preview (toggle via button).
  */
 
 (function () {
@@ -16,12 +17,15 @@
 
   // ── State ──────────────────────────────────────────────────────────
 
-  var openFiles = {};      // { path: { content, iri, label, editor, dirty, editable } }
+  var openFiles = {};      // { path: { content, iri, label, editor, dirty, editable, previewOn } }
   var activeFilePath = null;
   var treeData = null;
 
   // CodeMirror module cache (loaded dynamically)
   var _cmModules = null;
+
+  // Debounce timers for live preview sync
+  var _previewTimers = {};
 
   // ── DOM refs ───────────────────────────────────────────────────────
 
@@ -229,67 +233,48 @@
     if (emptyEl) emptyEl.style.display = 'none';
     if (tabsEl) tabsEl.style.display = 'flex';
 
-    // Create tab
-    addTab(path, label);
+    var isMarkdown = /\.md$/i.test(path);
 
-    // Create editor panel
+    // Create tab (with preview toggle button for markdown files)
+    addTab(path, label, isMarkdown);
+
+    // Create editor panel with side-by-side layout for markdown
     var contentEl = $id('vfs-editor-content');
     var panel = document.createElement('div');
     panel.className = 'vfs-editor-panel';
     panel.id = 'vfs-panel-' + _pathId(path);
 
-    var isMarkdown = /\.md$/i.test(path);
-    var viewTabsHtml = isMarkdown ?
-      '<div class="vfs-view-tabs" id="vfs-view-tabs-' + _pathId(path) + '">' +
-      '  <button class="vfs-view-tab active" data-view="preview">Preview</button>' +
-      '  <button class="vfs-view-tab" data-view="source">Source</button>' +
-      '</div>' : '';
+    var pid = _pathId(path);
 
     panel.innerHTML =
       '<div class="vfs-editor-toolbar">' +
       '  <span class="vfs-editor-path">' + _escapeHtml(path) + '</span>' +
-      '  <span class="vfs-editor-status" id="vfs-status-' + _pathId(path) + '"></span>' +
-      '  <button class="btn-sm" id="vfs-edit-btn-' + _pathId(path) + '" title="Toggle edit mode">' +
-      '    <i data-lucide="pencil"></i> Edit</button>' +
-      '  <button class="btn-sm btn-primary" id="vfs-save-btn-' + _pathId(path) + '" title="Save (Alt+S)" style="display:none;">' +
-      '    <i data-lucide="save"></i> Save</button>' +
+      '  <span class="vfs-editor-status" id="vfs-status-' + pid + '"></span>' +
+      '  <button class="btn-sm vfs-toolbar-btn" id="vfs-edit-btn-' + pid + '" title="Click to edit">' +
+      '    <i data-lucide="lock"></i></button>' +
+      '  <button class="btn-sm btn-primary vfs-toolbar-btn" id="vfs-save-btn-' + pid + '" title="Save (Ctrl+S)" style="display:none;">' +
+      '    <i data-lucide="save"></i></button>' +
       '</div>' +
-      viewTabsHtml +
-      (isMarkdown ? '<div class="vfs-preview-container" id="vfs-preview-' + _pathId(path) + '"><div class="markdown-body"></div></div>' : '') +
-      '<div class="vfs-cm-container" id="vfs-cm-' + _pathId(path) + '"' + (isMarkdown ? ' style="display:none"' : '') + '>' +
-      '  <div class="vfs-editor-loading"><i data-lucide="loader" class="vfs-spinner"></i> Loading...</div>' +
+      '<div class="vfs-split-container" id="vfs-split-' + pid + '">' +
+      '  <div class="vfs-split-left">' +
+      '    <div class="vfs-cm-container" id="vfs-cm-' + pid + '">' +
+      '      <div class="vfs-editor-loading"><div class="vfs-loading-spinner"></div> Loading...</div>' +
+      '    </div>' +
+      '  </div>' +
+      (isMarkdown ?
+        '  <div class="vfs-split-handle" id="vfs-handle-' + pid + '" style="display:none"></div>' +
+        '  <div class="vfs-split-right" id="vfs-split-right-' + pid + '" style="display:none">' +
+        '    <div class="vfs-preview-container" id="vfs-preview-' + pid + '">' +
+        '      <div class="markdown-body"></div>' +
+        '    </div>' +
+        '  </div>'
+        : '') +
       '</div>';
     contentEl.appendChild(panel);
     if (typeof lucide !== 'undefined') lucide.createIcons({ root: panel });
 
-    // Wire view tab switching for markdown files
-    if (isMarkdown) {
-      var viewTabs = panel.querySelector('.vfs-view-tabs');
-      if (viewTabs) {
-        viewTabs.addEventListener('click', function (e) {
-          var btn = e.target.closest('.vfs-view-tab');
-          if (!btn) return;
-          var view = btn.getAttribute('data-view');
-          viewTabs.querySelectorAll('.vfs-view-tab').forEach(function (t) {
-            t.classList.toggle('active', t === btn);
-          });
-          var previewEl = $id('vfs-preview-' + _pathId(path));
-          var cmEl = $id('vfs-cm-' + _pathId(path));
-          if (view === 'preview') {
-            if (previewEl) previewEl.style.display = '';
-            if (cmEl) cmEl.style.display = 'none';
-            // Re-render preview from current editor content
-            _renderMarkdownPreview(path);
-          } else {
-            if (previewEl) previewEl.style.display = 'none';
-            if (cmEl) cmEl.style.display = '';
-          }
-        });
-      }
-    }
-
     // Track file
-    openFiles[path] = { content: '', iri: null, label: label, editor: null, dirty: false, editable: false };
+    openFiles[path] = { content: '', iri: null, label: label, editor: null, dirty: false, editable: false, previewOn: false };
 
     switchToFile(path);
 
@@ -303,10 +288,6 @@
         openFiles[path].content = data.content;
         openFiles[path].iri = data.iri;
         initFileEditor(path, data.content, false);
-        // Render markdown preview if this is a .md file
-        if (/\.md$/i.test(path)) {
-          _renderMarkdownPreview(path);
-        }
       })
       .catch(function (err) {
         var cmEl = $id('vfs-cm-' + _pathId(path));
@@ -319,7 +300,8 @@
 
   function initFileEditor(path, content, editable) {
     loadCodeMirror().then(function (cm) {
-      var containerId = 'vfs-cm-' + _pathId(path);
+      var pid = _pathId(path);
+      var containerId = 'vfs-cm-' + pid;
       var container = $id(containerId);
       if (!container) return;
       container.innerHTML = '';
@@ -327,9 +309,10 @@
       var file = openFiles[path];
       if (!file) return;
 
+      var isMarkdown = /\.md$/i.test(path);
       var readOnlyCompartment = new cm.Compartment();
 
-      // Unified theme using CSS variables — resolves dynamically for light/dark
+      // Unified theme using CSS variables -- resolves dynamically for light/dark
       var unifiedTheme = cm.EditorView.theme({
         '&': {
           backgroundColor: 'var(--color-surface)',
@@ -374,6 +357,10 @@
               if (update.docChanged && file.editable) {
                 file.dirty = true;
                 updateTabDirty(path, true);
+                // Debounced live preview sync for markdown files
+                if (isMarkdown && file.previewOn) {
+                  _schedulePreviewUpdate(path);
+                }
               }
             })
           ]
@@ -385,15 +372,26 @@
       file._readOnlyCompartment = readOnlyCompartment;
       file._savedContent = content;
 
-      // Wire edit button
-      var editBtn = $id('vfs-edit-btn-' + _pathId(path));
-      var saveBtn = $id('vfs-save-btn-' + _pathId(path));
+      // Render initial preview if this is markdown
+      if (isMarkdown) {
+        _renderMarkdownPreview(path);
+      }
+
+      // Init split-pane resize handle for markdown
+      if (isMarkdown) {
+        _initSplitResize(pid);
+      }
+
+      // Wire edit toggle button (lock/unlock icons)
+      var editBtn = $id('vfs-edit-btn-' + pid);
+      var saveBtn = $id('vfs-save-btn-' + pid);
       if (editBtn) {
         editBtn.addEventListener('click', function () {
           if (file.editable) {
             // Switch back to read-only
             file.editable = false;
-            editBtn.innerHTML = '<i data-lucide="pencil"></i> Edit';
+            editBtn.innerHTML = '<i data-lucide="lock"></i>';
+            editBtn.title = 'Click to edit';
             if (saveBtn) saveBtn.style.display = 'none';
             view.dispatch({
               effects: readOnlyCompartment.reconfigure(cm.EditorState.readOnly.of(true))
@@ -401,24 +399,12 @@
           } else {
             // Switch to edit mode
             file.editable = true;
-            editBtn.innerHTML = '<i data-lucide="eye"></i> Read';
+            editBtn.innerHTML = '<i data-lucide="lock-open"></i>';
+            editBtn.title = 'Click to lock';
             if (saveBtn) saveBtn.style.display = '';
             view.dispatch({
               effects: readOnlyCompartment.reconfigure(cm.EditorState.readOnly.of(false))
             });
-            // For markdown files, switch to source view when entering edit mode
-            if (/\.md$/i.test(path)) {
-              var previewEl = $id('vfs-preview-' + _pathId(path));
-              var cmEl = $id('vfs-cm-' + _pathId(path));
-              if (previewEl) previewEl.style.display = 'none';
-              if (cmEl) cmEl.style.display = '';
-              var viewTabs = $id('vfs-view-tabs-' + _pathId(path));
-              if (viewTabs) {
-                viewTabs.querySelectorAll('.vfs-view-tab').forEach(function (t) {
-                  t.classList.toggle('active', t.getAttribute('data-view') === 'source');
-                });
-              }
-            }
           }
           if (typeof lucide !== 'undefined') lucide.createIcons({ root: editBtn });
         });
@@ -427,6 +413,87 @@
         saveBtn.addEventListener('click', function () { saveFile(path); });
       }
     });
+  }
+
+  // ── Preview toggle ────────────────────────────────────────────────
+
+  function togglePreview(path) {
+    var file = openFiles[path];
+    if (!file) return;
+    var pid = _pathId(path);
+    var handle = $id('vfs-handle-' + pid);
+    var right = $id('vfs-split-right-' + pid);
+    var splitLeft = $id('vfs-split-' + pid);
+    var leftPane = splitLeft ? splitLeft.querySelector('.vfs-split-left') : null;
+    var toggleBtn = $id('vfs-preview-toggle-' + pid);
+
+    file.previewOn = !file.previewOn;
+
+    if (file.previewOn) {
+      // Show preview pane
+      if (handle) handle.style.display = '';
+      if (right) right.style.display = '';
+      if (leftPane) leftPane.style.flex = '0 0 50%';
+      if (toggleBtn) toggleBtn.classList.add('active');
+      _renderMarkdownPreview(path);
+    } else {
+      // Hide preview pane
+      if (handle) handle.style.display = 'none';
+      if (right) right.style.display = 'none';
+      if (leftPane) leftPane.style.flex = '1';
+      if (toggleBtn) toggleBtn.classList.remove('active');
+    }
+  }
+
+  // ── Debounced preview update ──────────────────────────────────────
+
+  function _schedulePreviewUpdate(path) {
+    if (_previewTimers[path]) clearTimeout(_previewTimers[path]);
+    _previewTimers[path] = setTimeout(function () {
+      _renderMarkdownPreview(path);
+      delete _previewTimers[path];
+    }, 300);
+  }
+
+  // ── Split pane resize ─────────────────────────────────────────────
+
+  function _initSplitResize(pid) {
+    var handle = $id('vfs-handle-' + pid);
+    var splitContainer = $id('vfs-split-' + pid);
+    if (!handle || !splitContainer) return;
+
+    var leftPane = splitContainer.querySelector('.vfs-split-left');
+    var rightPane = splitContainer.querySelector('.vfs-split-right');
+    if (!leftPane || !rightPane) return;
+
+    var dragging = false;
+
+    handle.addEventListener('mousedown', function (e) {
+      e.preventDefault();
+      dragging = true;
+      handle.classList.add('dragging');
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    });
+
+    function onMove(e) {
+      if (!dragging) return;
+      var rect = splitContainer.getBoundingClientRect();
+      var totalWidth = rect.width;
+      var offsetX = e.clientX - rect.left;
+      var leftPct = (offsetX / totalWidth) * 100;
+      // Enforce minimum 20% each side
+      leftPct = Math.max(20, Math.min(leftPct, 80));
+      leftPane.style.flex = '0 0 ' + leftPct + '%';
+      rightPane.style.flex = '0 0 ' + (100 - leftPct) + '%';
+    }
+
+    function onUp() {
+      dragging = false;
+      handle.classList.remove('dragging');
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    }
   }
 
   // ── File save ──────────────────────────────────────────────────────
@@ -473,13 +540,14 @@
 
   // ── Tab management ─────────────────────────────────────────────────
 
-  function addTab(path, label) {
+  function addTab(path, label, isMarkdown) {
     var bar = $id('vfs-tab-bar');
     if (!bar) return;
 
+    var pid = _pathId(path);
     var tab = document.createElement('div');
     tab.className = 'vfs-tab';
-    tab.id = 'vfs-tab-' + _pathId(path);
+    tab.id = 'vfs-tab-' + pid;
     tab.setAttribute('data-path', path);
 
     var tabLabel = document.createElement('span');
@@ -487,6 +555,20 @@
     tabLabel.textContent = label;
     tabLabel.title = path;
     tab.appendChild(tabLabel);
+
+    // Preview toggle button (markdown files only)
+    if (isMarkdown) {
+      var previewBtn = document.createElement('button');
+      previewBtn.className = 'vfs-tab-preview-btn';
+      previewBtn.id = 'vfs-preview-toggle-' + pid;
+      previewBtn.title = 'Toggle preview';
+      previewBtn.innerHTML = '<i data-lucide="book-open"></i>';
+      previewBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        togglePreview(path);
+      });
+      tab.appendChild(previewBtn);
+    }
 
     var closeBtn = document.createElement('button');
     closeBtn.className = 'vfs-tab-close';
@@ -526,6 +608,11 @@
     var file = openFiles[path];
     if (file && file.editor) {
       file.editor.destroy();
+    }
+    // Clean up preview debounce timer
+    if (_previewTimers[path]) {
+      clearTimeout(_previewTimers[path]);
+      delete _previewTimers[path];
     }
     delete openFiles[path];
 
