@@ -705,10 +705,25 @@ async def get_object(
         else {}
     )
 
+    # Build read_values: user values + inferred values merged, each tagged with source.
+    # Keeps original `values` dict untouched for the edit form.
+    read_values: dict[str, list[dict]] = {}
+    for pred, vals in values.items():
+        read_values[pred] = [{"value": v, "source": "user"} for v in vals]
+    for pred, vals in inferred_values.items():
+        if pred not in read_values:
+            read_values[pred] = []
+        for v in vals:
+            read_values[pred].append({"value": v, "source": "inferred"})
+
+    # Merge inferred labels into ref_labels so the template has a single label lookup
+    ref_labels.update(inferred_labels)
+
     context = {
         "request": request,
         "form": form,
         "values": values,
+        "read_values": read_values,
         "inferred_values": inferred_values,
         "inferred_labels": inferred_labels,
         "ref_labels": ref_labels,
