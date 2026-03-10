@@ -8,11 +8,12 @@
 {# data-tooltip-label and data-tooltip-type are read by the initNavTreeTooltips()
    handler in workspace.js to show a graph-popover-style tooltip on hover (phase 19-02) #}
 <div class="tree-leaf" data-testid="nav-item"
+     data-iri="{{ obj.iri }}"
      draggable="true"
      ondragstart="event.dataTransfer.setData('text/iri', '{{ obj.iri }}'); event.dataTransfer.setData('text/label', '{{ obj.label }}'); event.dataTransfer.effectAllowed = 'copy'; window.__canvasDragPayload = { iri: '{{ obj.iri }}', label: '{{ obj.label }}' };"
      data-tooltip-label="{{ obj.label }}"
      data-tooltip-type="{{ type_label | default('') }}"
-     onclick="openTab('{{ obj.iri }}', '{{ obj.label }}')">
+     onclick="handleTreeLeafClick(event, '{{ obj.iri }}', '{{ obj.label }}')">
     <i data-lucide="{{ obj_icon.icon }}"
        class="tree-leaf-icon"
        style="color: {{ obj_icon.color }}; width: {{ obj_icon.size or 14 }}px; height: {{ obj_icon.size or 14 }}px; flex-shrink: 0;"></i>
