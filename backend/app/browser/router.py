@@ -1173,6 +1173,78 @@ async def get_edge_provenance(
     })
 
 
+@router.post("/edge/delete")
+async def delete_edge(
+    request: Request,
+    user: User = Depends(require_role("owner", "member")),
+    client: TriplestoreClient = Depends(get_triplestore_client),
+    event_store: EventStore = Depends(get_event_store),
+    label_service: LabelService = Depends(get_label_service),
+):
+    """Delete a user-asserted edge by removing its materialized triple.
+
+    Accepts subject, predicate, target IRIs. Creates a deletion event
+    with materialize_deletes to remove the triple from the current graph.
+    Also removes the edge resource if one exists.
+    """
+    body = await request.json()
+    subject_iri = body.get("subject")
+    predicate_iri = body.get("predicate")
+    target_iri = body.get("target")
+
+    if not subject_iri or not predicate_iri or not target_iri:
+        raise HTTPException(status_code=400, detail="Missing subject, predicate, or target")
+
+    if not _validate_iri(subject_iri) or not _validate_iri(predicate_iri) or not _validate_iri(target_iri):
+        raise HTTPException(status_code=400, detail="Invalid IRI")
+
+    subject = URIRef(subject_iri)
+    predicate = URIRef(predicate_iri)
+    target = URIRef(target_iri)
+
+    # Delete the direct triple from current graph
+    materialize_deletes = [(subject, predicate, target)]
+
+    # Also find and delete any edge resource for this triple
+    edge_query = f"""
+    SELECT ?edge WHERE {{
+      GRAPH <urn:sempkm:current> {{
+        ?edge a <urn:sempkm:Edge> ;
+              <urn:sempkm:source> <{subject_iri}> ;
+              <urn:sempkm:predicate> <{predicate_iri}> ;
+              <urn:sempkm:target> <{target_iri}> .
+      }}
+    }}
+    """
+    try:
+        result = await client.query(edge_query)
+        bindings = result.get("results", {}).get("bindings", [])
+        for b in bindings:
+            edge_iri = URIRef(b["edge"]["value"])
+            from rdflib import Variable
+            # Delete all triples where the edge resource is subject
+            materialize_deletes.append((edge_iri, Variable("p"), Variable("o")))
+    except Exception:
+        logger.warning("Failed to query edge resource for deletion", exc_info=True)
+
+    operation = Operation(
+        operation_type="edge.delete",
+        affected_iris=[subject_iri, target_iri],
+        description=f"Deleted edge: {subject_iri} -> {target_iri}",
+        data_triples=[],
+        materialize_inserts=[],
+        materialize_deletes=materialize_deletes,
+    )
+
+    user_iri = URIRef(f"urn:sempkm:user:{user.id}")
+    event_result = await event_store.commit(
+        [operation], performed_by=user_iri, performed_by_role=user.role
+    )
+    label_service.invalidate(event_result.affected_iris)
+
+    return JSONResponse({"event_iri": str(event_result.event_iri)})
+
+
 @router.get("/lint/{object_iri:path}")
 async def get_lint(
     request: Request,

@@ -1252,6 +1252,154 @@ details.form-group[open] > .form-group-summary::before {
 }
 
 /* ============================================
+   Edge Detail — expandable provenance panel below relation items
+   ============================================ */
+
+.relation-item .relation-open-btn {
+    margin-left: auto;
+    opacity: 0;
+    transition: opacity 0.15s;
+    background: none;
+    border: none;
+    padding: 2px;
+    cursor: pointer;
+    color: var(--color-text-muted);
+    display: flex;
+    align-items: center;
+}
+.relation-item:hover .relation-open-btn {
+    opacity: 1;
+}
+.relation-open-btn svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+.relation-item-expanded {
+    background: var(--color-surface-raised, var(--color-surface));
+}
+.relation-item-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.relation-detail {
+    padding: 8px 12px 8px 28px;
+    font-size: 12px;
+    color: var(--color-text-muted);
+    border-left: 2px solid var(--color-border);
+    margin-left: 12px;
+    margin-bottom: 4px;
+}
+.relation-detail-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 4px;
+    align-items: baseline;
+}
+.relation-detail-label {
+    color: var(--color-text-faint);
+    min-width: 60px;
+    flex-shrink: 0;
+    font-size: 11px;
+}
+.relation-detail-value {
+    color: var(--color-text);
+}
+.relation-detail .event-link {
+    color: var(--color-accent, var(--color-primary));
+    cursor: pointer;
+    text-decoration: underline;
+}
+.relation-detail .event-link:hover {
+    color: var(--color-primary-hover);
+}
+.relation-detail-loading,
+.relation-detail-error {
+    color: var(--color-text-faint);
+    font-style: italic;
+}
+.relation-detail .btn-danger-sm {
+    font-size: 11px;
+    padding: 2px 8px;
+    background: var(--color-danger, #dc2626);
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    margin-top: 4px;
+}
+.relation-detail .btn-danger-sm:hover {
+    background: #b91c1c;
+}
+
+/* ============================================
+   Confirm Dialog — reusable modal for destructive actions
+   ============================================ */
+
+.confirm-dialog {
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 20px;
+    max-width: 420px;
+    background: var(--color-bg-primary, #1e1e1e);
+    color: var(--color-text);
+    font-family: inherit;
+}
+.confirm-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.5);
+}
+.confirm-dialog-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+}
+.confirm-dialog-body p {
+    margin: 0 0 8px 0;
+    font-size: 13px;
+    color: var(--color-text-muted);
+}
+.confirm-dialog-list {
+    max-height: 200px;
+    overflow-y: auto;
+    margin: 8px 0;
+    padding-left: 20px;
+    font-size: 12px;
+}
+.confirm-dialog-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 16px;
+}
+.confirm-dialog .btn-danger {
+    background: var(--color-danger, #dc2626);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 16px;
+    cursor: pointer;
+    font-size: 13px;
+}
+.confirm-dialog .btn-danger:hover {
+    background: #b91c1c;
+}
+.confirm-dialog .btn-cancel {
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    padding: 6px 16px;
+    cursor: pointer;
+    color: var(--color-text);
+    font-size: 13px;
+}
+.confirm-dialog .btn-cancel:hover {
+    background: var(--color-surface-raised, var(--color-surface));
+}
+
+/* ============================================
    Inferred Badge — subtle pill label for OWL 2 RL inferred triples
    ============================================ */
 
