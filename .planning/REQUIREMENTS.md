@@ -51,7 +51,7 @@ Requirements for v2.6 Power User & Collaboration. Each maps to roadmap phases.
 - [x] **OBUI-02**: Nav tree header has a plus button to jump to the create new object flow
 - [ ] **OBUI-03**: User can select multiple objects via shift-click in the nav tree
 - [ ] **OBUI-04**: User can bulk delete selected objects
-- [ ] **OBUI-05**: Clicking a relationship in the Relations panel expands to show edge provenance, metadata, and type
+- [x] **OBUI-05**: Clicking a relationship in the Relations panel expands to show edge provenance, metadata, and type
 
 ### Bug Fixes
 
@@ -125,7 +125,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OBUI-02 | Phase 55 | Complete |
 | OBUI-03 | Phase 55 | Pending |
 | OBUI-04 | Phase 55 | Pending |
-| OBUI-05 | Phase 55 | Pending |
+| OBUI-05 | Phase 55 | Complete |
 | FIX-01 | Phase 52 | Complete |
 | FIX-02 | Phase 52 | Complete |
 | CANV-01 | Phase 57 | Pending |
