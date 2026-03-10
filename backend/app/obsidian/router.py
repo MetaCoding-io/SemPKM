@@ -212,6 +212,7 @@ async def trigger_scan(
 
 @router.get("/scan/{import_id}/stream")
 async def scan_stream(
+    request: Request,
     import_id: str,
     user: User = Depends(get_current_user),
 ):
@@ -230,7 +231,7 @@ async def scan_stream(
     queue = broadcast.subscribe()
     try:
         return StreamingResponse(
-            stream_sse(queue),
+            stream_sse(queue, shutdown_event=request.app.state.shutdown_event),
             media_type="text/event-stream",
             headers={
                 "Cache-Control": "no-cache",
@@ -576,6 +577,7 @@ async def import_execute(
 
 @router.get("/{import_id}/execute/stream")
 async def import_stream(
+    request: Request,
     import_id: str,
     user: User = Depends(get_current_user),
 ):
@@ -605,6 +607,7 @@ async def import_stream(
             stream_sse(
                 queue,
                 terminal_events={"import_complete", "import_error"},
+                shutdown_event=request.app.state.shutdown_event,
             ),
             media_type="text/event-stream",
             headers={

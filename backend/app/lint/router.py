@@ -90,19 +90,36 @@ async def lint_stream(
     Auto-reconnects are handled by the browser EventSource API.
     """
 
+    shutdown_event = request.app.state.shutdown_event
+
     async def event_generator():
         queue = broadcast.subscribe()
         try:
-            while True:
+            while not shutdown_event.is_set():
                 # Check if client disconnected
                 if await request.is_disconnected():
                     break
                 try:
-                    event = await asyncio.wait_for(queue.get(), timeout=30.0)
-                    yield event.format()
-                except asyncio.TimeoutError:
-                    # Send keepalive comment to prevent connection timeout
-                    yield ": keepalive\n\n"
+                    # Race queue.get() against shutdown signal so the
+                    # generator exits promptly during uvicorn reload.
+                    get_task = asyncio.ensure_future(queue.get())
+                    shutdown_task = asyncio.ensure_future(shutdown_event.wait())
+                    done, pending = await asyncio.wait(
+                        {get_task, shutdown_task},
+                        timeout=30.0,
+                        return_when=asyncio.FIRST_COMPLETED,
+                    )
+                    for task in pending:
+                        task.cancel()
+                    if shutdown_task in done:
+                        break
+                    if get_task in done:
+                        yield get_task.result().format()
+                    else:
+                        # Timeout — send keepalive
+                        yield ": keepalive\n\n"
+                except asyncio.CancelledError:
+                    break
         finally:
             broadcast.unsubscribe(queue)
 
