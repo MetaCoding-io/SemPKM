@@ -18,9 +18,26 @@
                 <i data-lucide="refresh-cw"></i>
             </button>
         </div>
+        <details class="vfs-help-banner">
+            <summary><i data-lucide="info"></i> Connect your OS to this WebDAV endpoint</summary>
+            <div class="vfs-help-content">
+                <p>Mount this file browser as a network drive to edit files with your favorite editor.</p>
+                <p>WebDAV URL: <code id="vfs-webdav-url"></code></p>
+                <script>
+                    document.getElementById('vfs-webdav-url').textContent = location.origin + '/vfs/dav/';
+                </script>
+                <h4>macOS</h4>
+                <p>Finder &rarr; Go &rarr; Connect to Server (Cmd+K) &rarr; paste the URL above</p>
+                <h4>Windows</h4>
+                <p>File Explorer &rarr; Map Network Drive &rarr; paste the URL above</p>
+                <h4>Linux</h4>
+                <p>Use your file manager's "Connect to Server" or run:<br>
+                <code>sudo mount -t davfs {url} /mnt/sempkm</code></p>
+            </div>
+        </details>
         <div class="vfs-tree-body" id="vfs-tree-body">
             <div class="vfs-tree-loading">
-                <i data-lucide="loader" class="vfs-spinner"></i>
+                <div class="vfs-loading-spinner"></div>
                 <span>Loading files...</span>
             </div>
         </div>

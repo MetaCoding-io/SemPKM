@@ -72,9 +72,8 @@
     if (!body) return;
     body.innerHTML =
       '<div class="vfs-tree-loading">' +
-      '<i data-lucide="loader" class="vfs-spinner"></i>' +
+      '<div class="vfs-loading-spinner"></div>' +
       '<span>Loading files...</span></div>';
-    if (typeof lucide !== 'undefined') lucide.createIcons({ root: body });
 
     fetch('/api/vfs/tree')
       .then(function (r) { return r.json(); })
@@ -292,6 +291,7 @@
       .catch(function (err) {
         var cmEl = $id('vfs-cm-' + _pathId(path));
         if (cmEl) cmEl.innerHTML = '<div class="vfs-editor-loading" style="color:var(--color-danger,#e74c3c)">Failed to load file</div>';
+        showVfsToast('Failed to load file: ' + err.message, 'error');
         console.error('VFS file load error:', err);
       });
   }
@@ -503,11 +503,18 @@
     if (!file || !file.editor || !file.editable) return;
 
     var content = file.editor.state.doc.toString();
-    var statusEl = $id('vfs-status-' + _pathId(path));
+    var pid = _pathId(path);
+    var statusEl = $id('vfs-status-' + pid);
+    var saveBtn = $id('vfs-save-btn-' + pid);
 
+    // Show saving state
     if (statusEl) {
-      statusEl.textContent = 'Saving...';
+      statusEl.innerHTML = '<div class="vfs-loading-spinner vfs-loading-spinner--sm"></div> Saving...';
       statusEl.className = 'vfs-editor-status saving';
+    }
+    if (saveBtn) {
+      saveBtn.disabled = true;
+      saveBtn.style.opacity = '0.6';
     }
 
     fetch('/api/vfs/file?path=' + encodeURIComponent(path), {
@@ -523,10 +530,12 @@
         file.dirty = false;
         file._savedContent = content;
         updateTabDirty(path, false);
+        // Show saved flash
+        _showSavedFlash(pid);
+        showVfsToast('File saved', 'success');
         if (statusEl) {
-          statusEl.textContent = 'Saved';
-          statusEl.className = 'vfs-editor-status saved';
-          setTimeout(function () { statusEl.textContent = ''; statusEl.className = 'vfs-editor-status'; }, 2000);
+          statusEl.textContent = '';
+          statusEl.className = 'vfs-editor-status';
         }
       })
       .catch(function (err) {
@@ -534,8 +543,57 @@
           statusEl.textContent = 'Save failed';
           statusEl.className = 'vfs-editor-status error';
         }
+        showVfsToast('Save failed: ' + err.message, 'error');
         console.error('VFS save error:', err);
+      })
+      .finally(function () {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.style.opacity = '';
+        }
       });
+  }
+
+  // ── Saved flash indicator ─────────────────────────────────────────
+
+  function _showSavedFlash(pid) {
+    var toolbar = $id('vfs-status-' + pid);
+    if (!toolbar) return;
+    var parentEl = toolbar.parentElement;
+    if (!parentEl) return;
+
+    // Remove any existing flash
+    var existing = parentEl.querySelector('.vfs-saved-flash');
+    if (existing) existing.remove();
+
+    var flash = document.createElement('span');
+    flash.className = 'vfs-saved-flash';
+    flash.textContent = 'Saved';
+    parentEl.insertBefore(flash, toolbar.nextSibling);
+
+    // Remove after animation
+    setTimeout(function () { flash.remove(); }, 1800);
+  }
+
+  // ── Toast notifications ───────────────────────────────────────────
+
+  function showVfsToast(message, type) {
+    var container = $id('vfs-editor-pane') || $id('vfs-container');
+    if (!container) return;
+
+    var toast = document.createElement('div');
+    toast.className = 'vfs-toast vfs-toast--' + (type || 'info');
+    toast.textContent = message;
+    container.appendChild(toast);
+
+    // Trigger reflow then show
+    toast.offsetHeight; // force reflow
+    toast.classList.add('vfs-toast--visible');
+
+    setTimeout(function () {
+      toast.classList.remove('vfs-toast--visible');
+      setTimeout(function () { toast.remove(); }, 300);
+    }, 3000);
   }
 
   // ── Tab management ─────────────────────────────────────────────────
