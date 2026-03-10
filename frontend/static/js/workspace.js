@@ -2123,6 +2123,222 @@
     } catch (e) { /* localStorage unavailable */ }
   }
 
+  // -----------------------------------------------------------------------
+  // Phase 55-03: Edge inspector, confirm dialog, edge delete
+  // -----------------------------------------------------------------------
+
+  /**
+   * Toggle the edge detail panel below a relation item.
+   * On first expansion, fetches provenance data from /browser/edge-provenance.
+   */
+  function toggleEdgeDetail(itemEl) {
+    var detail = itemEl.nextElementSibling;
+    if (!detail || !detail.classList.contains('relation-detail')) return;
+
+    // Toggle off if already visible
+    if (detail.style.display !== 'none') {
+      detail.style.display = 'none';
+      itemEl.classList.remove('relation-item-expanded');
+      return;
+    }
+
+    // Show and fetch provenance
+    detail.style.display = '';
+    itemEl.classList.add('relation-item-expanded');
+    detail.innerHTML = '<div class="relation-detail-loading">Loading...</div>';
+
+    var subjectIri = itemEl.getAttribute('data-subject-iri');
+    var predicateIri = itemEl.getAttribute('data-predicate-iri');
+    var targetIri = itemEl.getAttribute('data-target-iri');
+    var source = itemEl.getAttribute('data-source') || 'user';
+
+    var url = '/browser/edge-provenance?' +
+      'subject=' + encodeURIComponent(subjectIri) +
+      '&predicate=' + encodeURIComponent(predicateIri) +
+      '&target=' + encodeURIComponent(targetIri) +
+      '&source=' + encodeURIComponent(source);
+
+    fetch(url, { credentials: 'same-origin' })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var html = '';
+
+        // Predicate QName
+        html += '<div class="relation-detail-row">' +
+          '<span class="relation-detail-label">Predicate</span>' +
+          '<span class="relation-detail-value">' + _escHtml(data.predicate_qname) + '</span>' +
+          '</div>';
+
+        // Source
+        var sourceText = data.source === 'inferred'
+          ? 'Inferred by OWL 2 RL reasoning'
+          : 'User-asserted';
+        html += '<div class="relation-detail-row">' +
+          '<span class="relation-detail-label">Source</span>' +
+          '<span class="relation-detail-value">' + sourceText + '</span>' +
+          '</div>';
+
+        // Timestamp and author
+        if (data.timestamp) {
+          var dateStr = new Date(data.timestamp).toLocaleString();
+          var byStr = data.performed_by ? ' by ' + _escHtml(data.performed_by) : '';
+          html += '<div class="relation-detail-row">' +
+            '<span class="relation-detail-label">Created</span>' +
+            '<span class="relation-detail-value">' + dateStr + byStr + '</span>' +
+            '</div>';
+        }
+
+        // Event link
+        if (data.event_iri) {
+          html += '<div class="relation-detail-row">' +
+            '<span class="relation-detail-label">Event</span>' +
+            '<span class="relation-detail-value">' +
+            '<span class="event-link" onclick="showEventInLog()">' +
+            'View in Event Log</span></span>' +
+            '</div>';
+        }
+
+        // Delete button for user-asserted edges only
+        if (data.source !== 'inferred') {
+          html += '<div class="relation-detail-row">' +
+            '<button class="btn-danger-sm" onclick="deleteEdge(\'' +
+            _escAttr(subjectIri) + '\', \'' +
+            _escAttr(predicateIri) + '\', \'' +
+            _escAttr(targetIri) + '\')">Delete relationship</button>' +
+            '</div>';
+        }
+
+        detail.innerHTML = html;
+
+        // Re-init lucide icons in the detail area
+        if (typeof lucide !== 'undefined') {
+          lucide.createIcons({ nodes: [detail] });
+        }
+      })
+      .catch(function() {
+        detail.innerHTML = '<div class="relation-detail-error">Could not load edge provenance</div>';
+      });
+  }
+
+  /** HTML-escape helper */
+  function _escHtml(str) {
+    if (!str) return '';
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  /** Attribute-safe escape (for embedding in onclick strings) */
+  function _escAttr(str) {
+    if (!str) return '';
+    return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
+  }
+
+  /**
+   * Open the bottom panel to the event log tab.
+   * Since the event log doesn't support deep-linking, we just open it to
+   * show recent events (relevant event will be near the top).
+   */
+  function showEventInLog() {
+    panelState.open = true;
+    panelState.activeTab = 'event-log';
+    savePanelState();
+    _applyPanelState();
+  }
+
+  /**
+   * Show a reusable confirmation dialog using the native <dialog> element.
+   * @param {string} title - Dialog title
+   * @param {string} message - Descriptive message
+   * @param {string[]|null} itemList - Optional list of items to display
+   * @param {Function} onConfirm - Callback when user confirms
+   * @param {string} [confirmText="Delete"] - Text for the confirm button
+   */
+  function showConfirmDialog(title, message, itemList, onConfirm, confirmText) {
+    confirmText = confirmText || 'Delete';
+    var dialog = document.createElement('dialog');
+    dialog.className = 'confirm-dialog';
+
+    var html = '<h3 class="confirm-dialog-title">' + _escHtml(title) + '</h3>';
+    html += '<div class="confirm-dialog-body">';
+    html += '<p>' + _escHtml(message) + '</p>';
+
+    if (itemList && itemList.length > 0) {
+      html += '<ul class="confirm-dialog-list">';
+      for (var i = 0; i < itemList.length; i++) {
+        html += '<li>' + _escHtml(itemList[i]) + '</li>';
+      }
+      html += '</ul>';
+    }
+
+    html += '</div>';
+    html += '<div class="confirm-dialog-actions">';
+    html += '<button class="btn-cancel" type="button">Cancel</button>';
+    html += '<button class="btn-danger" type="button">' + _escHtml(confirmText) + '</button>';
+    html += '</div>';
+
+    dialog.innerHTML = html;
+    document.body.appendChild(dialog);
+
+    var cancelBtn = dialog.querySelector('.btn-cancel');
+    var confirmBtn = dialog.querySelector('.btn-danger');
+
+    function cleanup() {
+      dialog.close();
+      dialog.remove();
+    }
+
+    cancelBtn.addEventListener('click', cleanup);
+    confirmBtn.addEventListener('click', function() {
+      onConfirm();
+      cleanup();
+    });
+    dialog.addEventListener('cancel', cleanup); // Escape key
+
+    dialog.showModal();
+  }
+
+  /**
+   * Delete a user-asserted edge with confirmation.
+   */
+  function deleteEdge(subjectIri, predicateIri, targetIri) {
+    showConfirmDialog(
+      'Delete relationship',
+      'Delete this relationship? This cannot be undone.',
+      null,
+      function() {
+        fetch('/browser/edge/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({
+            subject: subjectIri,
+            predicate: predicateIri,
+            target: targetIri,
+          }),
+        })
+        .then(function(r) {
+          if (!r.ok) throw new Error('Delete failed');
+          return r.json();
+        })
+        .then(function() {
+          showToast('Relationship deleted');
+          // Reload the relations panel for the current object
+          var panel = document.querySelector('.relations-panel');
+          if (panel) {
+            var objectIri = panel.getAttribute('data-object-iri');
+            if (objectIri) {
+              loadRightPaneSection(objectIri, 'relations');
+            }
+          }
+        })
+        .catch(function() {
+          showToast('Failed to delete relationship');
+        });
+      }
+    );
+  }
+
   // --- Export functions globally for htmx onclick handlers ---
   window.openTab = openTab;
   window.closeTab = closeTab;
@@ -2145,6 +2361,10 @@
   window.maximizeBottomPanel = maximizeBottomPanel;
   window.movePanel = movePanel;
   window.showToast = showToast;
+  window.toggleEdgeDetail = toggleEdgeDetail;
+  window.showEventInLog = showEventInLog;
+  window.showConfirmDialog = showConfirmDialog;
+  window.deleteEdge = deleteEdge;
   // Backward-compat shim — callers can still pass (name, 'left'/'right')
   window.swapPanel = function(panelName, zone) { movePanel(panelName, null, null, zone); };
 
