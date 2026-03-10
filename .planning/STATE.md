@@ -86,7 +86,7 @@ None — clean start for v2.6
 | 33 | Create central codebase documentation outlining all components, file locations, and purposes | 2026-03-09 | 5e9485b | [33-create-central-codebase-documentation-ou](./quick/33-create-central-codebase-documentation-ou/) |
 | 34 | Merge inferred properties into main property table, remove two-column layout | 2026-03-10 | d2720a3 | [34-merge-inferred-properties-into-relations](./quick/34-merge-inferred-properties-into-relations/) |
 | 35 | Fix nav tree collapse not working - add missing CSS display rules | 2026-03-10 | 285ccd2 | [35-fix-nav-tree-collapse-not-working-add-mi](./quick/35-fix-nav-tree-collapse-not-working-add-mi/) |
-| 36 | Vertical split layout for lint and inference panels with card-based inference results | 2026-03-10 | b359d08 | [36-vertical-split-layout-for-lint-and-infer](./quick/36-vertical-split-layout-for-lint-and-infer/) |
+| 36 | Vertical split layout for lint and inference panels with card-based inference results | 2026-03-10 | c515481 | [36-vertical-split-layout-for-lint-and-infer](./quick/36-vertical-split-layout-for-lint-and-infer/) |
 
 ## Session Continuity
 
