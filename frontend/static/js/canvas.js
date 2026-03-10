@@ -281,6 +281,78 @@
       .catch(function () { /* silent — body is optional */ });
   }
 
+  /**
+   * Place multiple nodes in a 3-column grid layout at the drop point and
+   * auto-discover edges between all canvas nodes afterward.
+   */
+  function addNodesFromBulkDrop(items, clientX, clientY) {
+    var world = screenToWorld(clientX, clientY);
+    var baseX = snapToGrid(world.x);
+    var baseY = snapToGrid(world.y);
+    var cols = 3;
+    var colWidth = 260 + GRID; // node width (260px) + 1 grid gap
+    var rowHeight = 120 + GRID; // estimated node height + gap
+
+    var addedIris = [];
+    var placed = 0;
+    items.forEach(function(item) {
+      if (findNode(item.iri)) return; // skip duplicates silently
+      var col = placed % cols;
+      var row = Math.floor(placed / cols);
+      state.nodes.push({
+        id: item.iri,
+        title: item.label || 'Resource',
+        uri: item.iri,
+        x: snapToGrid(baseX + col * colWidth),
+        y: snapToGrid(baseY + row * rowHeight),
+        markdown: '',
+        collapsed: false,
+      });
+      addedIris.push(item.iri);
+      fetchNodeBody(item.iri);
+      placed++;
+    });
+
+    if (addedIris.length > 0) {
+      renderNodes();
+      setStatus('Added ' + addedIris.length + ' nodes');
+      fetchBulkEdges(addedIris);
+    }
+  }
+
+  /**
+   * Fetch all edges between canvas nodes from the backend batch-edges
+   * endpoint, then merge any new edges into state and re-render.
+   */
+  function fetchBulkEdges(newIris) {
+    // Include all existing canvas node IRIs for complete edge discovery
+    var allIris = state.nodes.map(function(n) { return n.id; });
+    fetch('/api/canvas/batch-edges', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ iris: allIris }),
+    })
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(data) {
+      if (!data || !Array.isArray(data.edges)) return;
+      var existingEdgeIds = {};
+      state.edges.forEach(function(e) { existingEdgeIds[e.id] = true; });
+      data.edges.forEach(function(edge) {
+        var edgeId = edge.source + '|' + edge.predicate + '|' + edge.target;
+        if (existingEdgeIds[edgeId]) return;
+        state.edges.push({
+          id: edgeId,
+          source: edge.source,
+          target: edge.target,
+          label: edge.predicate_label || edge.predicate,
+        });
+        existingEdgeIds[edgeId] = true;
+      });
+      renderNodes();
+    })
+    .catch(function() { /* silent -- edges are optional enhancement */ });
+  }
+
   function onDragOver(event) {
     if (!window.__canvasDragPayload) return;
     if (!isOverCanvas(event)) {
@@ -310,9 +382,25 @@
     event.stopPropagation();
     state.viewport.classList.remove('canvas-drop-active');
     lastDragOverCanvas = null;
+
+    // Check for bulk drop payload (multi-select drag from nav tree)
+    var payload = window.__canvasDragPayload;
+    if (payload && Array.isArray(payload.items) && payload.items.length > 1) {
+      if (payload.items.length > 20) {
+        if (!window.confirm('Drop ' + payload.items.length + ' nodes? This may crowd the canvas.')) {
+          window.__canvasDragPayload = null;
+          return;
+        }
+      }
+      addNodesFromBulkDrop(payload.items, event.clientX, event.clientY);
+      window.__canvasDragPayload = null;
+      return;
+    }
+
     var iri = event.dataTransfer.getData('text/iri');
     var label = event.dataTransfer.getData('text/label');
     addNodeFromDrag(iri, label, event.clientX, event.clientY);
+    window.__canvasDragPayload = null;
   }
 
   function onDragEnd(event) {
@@ -322,7 +410,19 @@
     // canvas, use the side-channel payload set by tree_children.html.
     if (lastDragOverCanvas && window.__canvasDragPayload) {
       var payload = window.__canvasDragPayload;
-      addNodeFromDrag(payload.iri, payload.label, lastDragOverCanvas.x, lastDragOverCanvas.y);
+      // Check for bulk drop payload (multi-select drag)
+      if (Array.isArray(payload.items) && payload.items.length > 1) {
+        if (payload.items.length > 20) {
+          if (!window.confirm('Drop ' + payload.items.length + ' nodes? This may crowd the canvas.')) {
+            lastDragOverCanvas = null;
+            window.__canvasDragPayload = null;
+            return;
+          }
+        }
+        addNodesFromBulkDrop(payload.items, lastDragOverCanvas.x, lastDragOverCanvas.y);
+      } else {
+        addNodeFromDrag(payload.iri, payload.label, lastDragOverCanvas.x, lastDragOverCanvas.y);
+      }
     }
     lastDragOverCanvas = null;
     window.__canvasDragPayload = null;

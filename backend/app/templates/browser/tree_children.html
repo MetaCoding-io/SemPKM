@@ -10,7 +10,7 @@
 <div class="tree-leaf" data-testid="nav-item"
      data-iri="{{ obj.iri }}"
      draggable="true"
-     ondragstart="event.dataTransfer.setData('text/iri', '{{ obj.iri }}'); event.dataTransfer.setData('text/label', '{{ obj.label }}'); event.dataTransfer.effectAllowed = 'copy'; window.__canvasDragPayload = { iri: '{{ obj.iri }}', label: '{{ obj.label }}' };"
+     ondragstart="var items; var thisIri = '{{ obj.iri }}'; var thisLabel = '{{ obj.label }}'; if (window.getSelectedIris) { var sel = window.getSelectedIris(); var inSel = sel.some(function(s) { return s.iri === thisIri; }); if (inSel &amp;&amp; sel.length > 1) { items = sel; } } if (!items) { items = [{ iri: thisIri, label: thisLabel }]; } event.dataTransfer.setData('text/iri', thisIri); event.dataTransfer.setData('text/label', thisLabel); event.dataTransfer.effectAllowed = 'copy'; window.__canvasDragPayload = items.length > 1 ? { items: items } : { iri: thisIri, label: thisLabel };"
      data-tooltip-label="{{ obj.label }}"
      data-tooltip-type="{{ type_label | default('') }}"
      onclick="handleTreeLeafClick(event, '{{ obj.iri }}', '{{ obj.label }}')">
