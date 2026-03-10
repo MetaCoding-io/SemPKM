@@ -1,4 +1,4 @@
-{# Read-only object view: property table with type-specific formatting and rendered Markdown body.
+{# Read-only object view: unified property table with type-specific formatting and rendered Markdown body.
 
    Rendered via {% include %} inside the read face of the object flip container.
    Reuses the same form (NodeShapeForm) metadata as the edit form for consistent
@@ -6,10 +6,10 @@
 
    Context (inherited from object_tab.html):
      form: NodeShapeForm dataclass (or None)
-     values: dict mapping property path -> list of values
-     inferred_values: dict mapping property IRI -> list of inferred values
-     inferred_labels: dict mapping IRIs -> human-readable labels
-     ref_labels: dict mapping reference IRIs -> human-readable labels
+     values: dict mapping property path -> list of values (used by edit form)
+     read_values: dict mapping property path -> list of {value, source} dicts
+                  (merged user + inferred properties with source tracking)
+     ref_labels: dict mapping IRIs -> human-readable labels (includes inferred labels)
      ref_tooltips: dict mapping reference IRIs -> tooltip text (type + name)
      body_text: raw Markdown body string
      safe_id: URL-safe object identifier for element IDs
@@ -40,74 +40,113 @@
 </div>
 {% else %}
 <div class="object-read-view">
+  {# Check if there are any properties (user or inferred) #}
   {% set ns_check = namespace(has_values=false) %}
   {% for prop in form.properties %}
-    {% set vals = values.get(prop.path, []) %}
+    {% set vals = read_values.get(prop.path, []) %}
     {% if vals %}
       {% set ns_check.has_values = true %}
     {% endif %}
   {% endfor %}
+  {# Also check for inferred-only properties not in the form #}
+  {% set form_paths = [] %}
+  {% for prop in form.properties %}
+    {% set _ = form_paths.append(prop.path) %}
+  {% endfor %}
+  {% for pred, items in read_values.items() %}
+    {% if pred not in form_paths %}
+      {% set ns_check.has_values = true %}
+    {% endif %}
+  {% endfor %}
 
-  {# Check if there are any inferred properties #}
-  {% set has_inferred = inferred_values is defined and inferred_values %}
-
-  {% if not ns_check.has_values and not body_text and not has_inferred %}
+  {% if not ns_check.has_values and not body_text %}
   <div class="read-empty">
     <p>This object has no content yet.</p>
   </div>
   {% else %}
 
-  {# Two-column layout: user properties left, inferred properties right #}
-  <div class="object-read-columns{% if not has_inferred %} object-read-columns--single{% endif %}">
-
-  {# Left column: user-created properties #}
-  <div class="object-read-user-column">
-
-  {# Property table: two-column grid, GitHub sidebar style #}
+  {# Property table: unified grid with user + inferred properties inline #}
   {% set ns = namespace(any_prop=false) %}
   {% for prop in form.properties %}
-    {% set vals = values.get(prop.path, []) %}
+    {% set vals = read_values.get(prop.path, []) %}
     {% if vals %}{% set ns.any_prop = true %}{% endif %}
+  {% endfor %}
+  {# Check inferred-only properties too #}
+  {% for pred, items in read_values.items() %}
+    {% if pred not in form_paths %}
+      {% set inferred_items = items | selectattr("source", "equalto", "inferred") | list %}
+      {% if inferred_items %}{% set ns.any_prop = true %}{% endif %}
+    {% endif %}
   {% endfor %}
 
   {% if ns.any_prop %}
   <div class="properties-collapsible" id="read-props-{{ safe_id }}">
     <div class="properties-inner">
       <div class="property-table">
+        {# Form-defined properties (user + inferred merged) #}
         {% for prop in form.properties %}
-          {% set vals = values.get(prop.path, []) %}
+          {% set vals = read_values.get(prop.path, []) %}
           {% if vals %}
           <div class="property-row">
             <div class="property-label">{{ prop.name }}</div>
             <div class="property-value">
               {% if prop.target_class %}
                 {# Reference property: render as clickable pills with lazy popover #}
-                {% for v in vals %}
-                <span class="ref-pill" data-ref-iri="{{ v }}"
-                      onclick="openTab('{{ v }}', '{{ ref_labels.get(v, v) }}')">
+                {% for item in vals %}
+                <span class="ref-pill" data-ref-iri="{{ item.value }}"
+                      onclick="openTab('{{ item.value }}', '{{ ref_labels.get(item.value, item.value) }}')">
                   <span class="ref-pill-dot"></span>
-                  {{ ref_labels.get(v, v) }}
+                  {{ ref_labels.get(item.value, item.value) }}
+                  {% if item.source == "inferred" %}
+                  <span class="inferred-badge" title="Inferred by OWL 2 RL reasoning">inferred</span>
+                  {% endif %}
                 </span>
                 {% endfor %}
               {% elif prop.datatype == 'http://www.w3.org/2001/XMLSchema#date' or prop.datatype == 'http://www.w3.org/2001/XMLSchema#dateTime' %}
-                {% for v in vals %}{{ v | format_date }}{% if not loop.last %}, {% endif %}{% endfor %}
+                {% for item in vals %}{{ item.value | format_date }}{% if not loop.last %}, {% endif %}{% endfor %}
               {% elif prop.datatype == 'http://www.w3.org/2001/XMLSchema#boolean' %}
-                {% for v in vals %}
-                  {% if v == 'true' %}<span class="bool-icon bool-true" title="True">&#10003;</span>{% else %}<span class="bool-icon bool-false" title="False">&#10007;</span>{% endif %}
+                {% for item in vals %}
+                  {% if item.value == 'true' %}<span class="bool-icon bool-true" title="True">&#10003;</span>{% else %}<span class="bool-icon bool-false" title="False">&#10007;</span>{% endif %}
                 {% endfor %}
               {% elif prop.datatype == 'http://www.w3.org/2001/XMLSchema#anyURI' %}
-                {% for v in vals %}<a href="{{ v }}" target="_blank" rel="noopener" class="uri-link">{{ v }}</a>{% if not loop.last %}<br>{% endif %}{% endfor %}
+                {% for item in vals %}<a href="{{ item.value }}" target="_blank" rel="noopener" class="uri-link">{{ item.value }}</a>{% if not loop.last %}<br>{% endif %}{% endfor %}
               {% elif 'tags' in prop.path %}
                 {# Tags property (model:basic-pkm:tags, path IRI contains 'tags'):
                    render each string value as a #Label pill element (phase 19-02) #}
-                {% for v in vals %}
-                  <span class="tag-pill">#{{ v }}</span>
+                {% for item in vals %}
+                  <span class="tag-pill">#{{ item.value }}</span>
                 {% endfor %}
               {% else %}
-                {% for v in vals %}{{ v }}{% if not loop.last %}, {% endif %}{% endfor %}
+                {% for item in vals %}{{ item.value }}{% if item.source == "inferred" %} <span class="inferred-badge" title="Inferred by OWL 2 RL reasoning">inferred</span>{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}
               {% endif %}
             </div>
           </div>
+          {% endif %}
+        {% endfor %}
+
+        {# Inferred-only properties (predicates not in SHACL form) #}
+        {% for pred, items in read_values.items() %}
+          {% if pred not in form_paths %}
+            {% set inferred_items = items | selectattr("source", "equalto", "inferred") | list %}
+            {% if inferred_items %}
+            <div class="property-row">
+              <div class="property-label">{{ ref_labels.get(pred, pred) }}</div>
+              <div class="property-value">
+                {% for item in inferred_items %}
+                  {% if item.value.startswith('http') or item.value.startswith('urn:') %}
+                  <span class="ref-pill" data-ref-iri="{{ item.value }}"
+                        onclick="openTab('{{ item.value }}', '{{ ref_labels.get(item.value, item.value) }}')">
+                    <span class="ref-pill-dot"></span>
+                    {{ ref_labels.get(item.value, item.value) }}
+                    <span class="inferred-badge" title="Inferred by OWL 2 RL reasoning">inferred</span>
+                  </span>
+                  {% else %}
+                  <span>{{ item.value }} <span class="inferred-badge" title="Inferred by OWL 2 RL reasoning">inferred</span></span>
+                  {% endif %}
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
           {% endif %}
         {% endfor %}
       </div>
@@ -135,41 +174,6 @@
   {% else %}
   <div class="body-placeholder">No content</div>
   {% endif %}
-
-  </div>{# end .object-read-user-column #}
-
-  {# Right column: inferred properties (only shown when present) #}
-  {% if has_inferred %}
-  <div class="inferred-column">
-    <div class="inferred-column-header">
-      <span class="inferred-column-title">Inferred</span>
-      <span class="inferred-badge" title="Properties discovered by OWL 2 RL reasoning">inferred</span>
-    </div>
-    <div class="property-table">
-      {% for pred_iri, inf_vals in inferred_values.items() %}
-      <div class="property-row">
-        <div class="property-label">{{ inferred_labels.get(pred_iri, pred_iri) }}</div>
-        <div class="property-value">
-          {% for v in inf_vals %}
-            {% if v.startswith('http') or v.startswith('urn:') %}
-            <span class="ref-pill" data-ref-iri="{{ v }}"
-                  onclick="openTab('{{ v }}', '{{ inferred_labels.get(v, v) }}')">
-              <span class="ref-pill-dot"></span>
-              {{ inferred_labels.get(v, v) }}
-              <span class="inferred-badge" title="Inferred by OWL 2 RL reasoning">inferred</span>
-            </span>
-            {% else %}
-            <span>{{ v }}<span class="inferred-badge" title="Inferred by OWL 2 RL reasoning">inferred</span></span>
-            {% endif %}
-          {% endfor %}
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-  {% endif %}
-
-  </div>{# end .object-read-columns #}
 
   {% endif %}
 </div>
