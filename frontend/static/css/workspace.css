@@ -4474,3 +4474,146 @@ details.form-group[open] > .form-group-summary::before {
     background: var(--color-primary);
     color: #fff;
 }
+
+/* ── Mount Management (VFS Settings) ─────────────────────────── */
+.vfs-mount-section {
+    margin-top: var(--spacing-xl, 24px);
+    padding: var(--spacing-4, 16px) 0;
+}
+
+.mount-form-row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs, 4px);
+    margin-bottom: var(--spacing-md, 12px);
+}
+
+.mount-form-label {
+    font-size: var(--font-sm, 13px);
+    font-weight: 500;
+    color: var(--color-text, var(--color-text-normal));
+}
+
+.mount-path-hint {
+    font-size: var(--font-xs, 11px);
+    color: var(--color-text-muted);
+}
+.mount-path-hint em {
+    color: var(--color-accent);
+}
+
+.mount-form-actions {
+    display: flex;
+    gap: var(--spacing-sm, 8px);
+    margin-top: var(--spacing-md, 12px);
+}
+
+.mount-form-error {
+    color: var(--color-danger, #ef4444);
+    font-size: var(--font-sm, 13px);
+    margin-bottom: var(--spacing-sm, 8px);
+}
+.mount-form-error:empty {
+    display: none;
+}
+
+.mount-sparql-input {
+    width: 100%;
+    font-family: var(--font-mono, monospace);
+    font-size: var(--font-xs, 11px);
+    resize: vertical;
+    min-height: 80px;
+}
+
+.mount-preview {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md, 6px);
+    padding: var(--spacing-md, 12px);
+    margin-top: var(--spacing-md, 12px);
+    background: var(--color-bg-secondary, var(--color-surface));
+}
+
+.mount-preview-label {
+    font-size: var(--font-sm, 13px);
+    font-weight: 500;
+    color: var(--color-text-muted);
+    margin-bottom: var(--spacing-sm, 8px);
+    display: block;
+}
+
+.mount-preview-tree {
+    font-family: var(--font-mono, monospace);
+    font-size: var(--font-xs, 11px);
+    line-height: 1.6;
+    color: var(--color-text, var(--color-text-normal));
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.mount-preview-folder {
+    padding-left: var(--spacing-md, 12px);
+}
+
+.mount-preview-count {
+    color: var(--color-text-muted);
+    font-size: var(--font-xs, 11px);
+}
+
+/* Mount list items */
+.mount-list {
+    margin-top: var(--spacing-md, 12px);
+}
+
+.mount-list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-sm, 8px) var(--spacing-md, 12px);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md, 6px);
+    margin-bottom: var(--spacing-sm, 8px);
+    background: var(--color-bg, var(--color-surface));
+}
+
+.mount-list-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.mount-list-item-name {
+    font-weight: 500;
+    color: var(--color-text, var(--color-text-normal));
+}
+
+.mount-list-item-meta {
+    font-size: var(--font-xs, 11px);
+    color: var(--color-text-muted);
+}
+
+.mount-list-item-actions {
+    display: flex;
+    gap: var(--spacing-sm, 8px);
+}
+
+.mount-list-empty {
+    color: var(--color-text-muted);
+    font-size: var(--font-sm, 13px);
+    padding: var(--spacing-sm, 8px) 0;
+}
+
+/* btn-secondary-sm for mount list edit buttons */
+.btn-secondary-sm {
+    background: transparent;
+    border: 1px solid var(--color-border);
+    color: var(--color-text, var(--color-text-normal));
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: background 0.1s;
+}
+
+.btn-secondary-sm:hover {
+    background: var(--color-surface-hover, var(--color-border));
+}
