@@ -45,6 +45,37 @@ class SavedQueryOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class ShareableUserOut(BaseModel):
+    """Response schema for a user eligible for query sharing."""
+
+    id: uuid.UUID
+    email: str
+    display_name: str | None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SharedQueryOut(BaseModel):
+    """Response schema for a shared query (received from another user)."""
+
+    id: uuid.UUID
+    name: str
+    description: str | None
+    query_text: str
+    created_at: datetime
+    updated_at: datetime
+    owner_name: str
+    is_updated: bool
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ShareUpdateRequest(BaseModel):
+    """Request schema for setting the share list of a query."""
+
+    user_ids: list[uuid.UUID]
+
+
 class VocabularyItem(BaseModel):
     """A single vocabulary entity (class, property, or datatype)."""
 
