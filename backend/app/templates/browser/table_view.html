@@ -29,7 +29,16 @@
             <tr class="clickable" data-testid="table-row">
                 {% for col in columns %}
                 <td data-col="{{ col }}">
-                    {% if loop.first %}
+                    {% if source_model == 'user' %}
+                        {% if row[col] and row[col].startswith('http') %}
+                    <a href="#" class="table-row-link"
+                       onclick="if(window.openTab){openTab('{{ row[col] }}', '{{ row[col] | replace("'", "\\'") }}')};return false;">
+                        {{ row[col] }}
+                    </a>
+                        {% else %}
+                    {{ row[col] }}
+                        {% endif %}
+                    {% elif loop.first %}
                     <a href="#" class="table-row-link"
                        onclick="openTab('{{ row.s }}', '{{ labels.get(row.s, row[col]) | replace("'", "\\'") }}'); return false;">
                         {{ row[col] or labels.get(row.s, row.s) }}

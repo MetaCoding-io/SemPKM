@@ -27,7 +27,9 @@ from app.dependencies import (
     get_shapes_service,
     get_triplestore_client,
     get_validation_queue,
+    get_view_spec_service,
 )
+from app.views.service import ViewSpecService
 from app.lint.service import LintService
 from app.events.store import EventStore
 from app.services.icons import IconService
@@ -1901,4 +1903,54 @@ async def search_references(
 
     return templates.TemplateResponse(
         request, "browser/search_suggestions.html", context
+    )
+
+
+# ---------------------------------------------------------------------------
+# My Views (promoted queries) endpoint
+# ---------------------------------------------------------------------------
+
+
+@router.get("/my-views")
+async def my_views(
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db_session),
+    view_spec_service: ViewSpecService = Depends(get_view_spec_service),
+):
+    """Return promoted view entries for the 'My Views' nav tree section.
+
+    Renders browser/my_views.html with the user's promoted ViewSpecs
+    including query_id for the demote action.
+    """
+    templates = request.app.state.templates
+
+    specs = await view_spec_service.get_user_promoted_view_specs(user.id, db)
+
+    if not specs:
+        return HTMLResponse(
+            content='<div class="tree-empty">No promoted views yet</div>'
+        )
+
+    # Also fetch query_ids for demote buttons by querying PromotedQueryView
+    from sqlalchemy import select as sa_select
+    from app.sparql.models import PromotedQueryView
+
+    pv_result = await db.execute(
+        sa_select(PromotedQueryView)
+        .where(PromotedQueryView.user_id == user.id)
+    )
+    pv_rows = pv_result.scalars().all()
+    # Map spec_iri -> query_id for the template
+    query_id_map = {
+        f"urn:sempkm:user-view:{pv.id}": str(pv.query_id) for pv in pv_rows
+    }
+
+    context = {
+        "request": request,
+        "specs": specs,
+        "query_id_map": query_id_map,
+    }
+    return templates.TemplateResponse(
+        request, "browser/my_views.html", context
     )
