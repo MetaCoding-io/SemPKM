@@ -222,11 +222,12 @@ Plans:
   3. User can navigate and interact with canvas nodes using keyboard shortcuts
   4. User can multi-select objects in the nav tree and drag-drop them onto the canvas as a batch
   5. Wiki-links in an object's markdown body are parsed and rendered as edges connecting to their target nodes on the canvas
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 57-01: TBD
-- [ ] 57-02: TBD
+- [ ] 57-01-PLAN.md — Snap-to-grid alignment, edge label polish, and keyboard navigation
+- [ ] 57-02-PLAN.md — Wiki-link edge rendering with ghost nodes and resolve endpoint
+- [ ] 57-03-PLAN.md — Bulk drag-drop from nav tree with auto-edge discovery
 
 ### Phase 58: Federation
 **Goal**: SemPKM instances can sync knowledge and exchange notifications with other instances using standard protocols
