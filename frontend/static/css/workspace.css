@@ -4690,3 +4690,149 @@ details.form-group[open] > .form-group-summary::before {
 .btn-secondary-sm:hover {
     background: var(--color-surface-hover, var(--color-border));
 }
+
+/* ============================================
+   My Views nav tree section
+   ============================================ */
+
+#section-my-views .tree-leaf {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 8px 2px 20px;
+    cursor: pointer;
+}
+
+#section-my-views .tree-leaf:hover {
+    background: var(--color-surface-hover, var(--color-bg-secondary));
+}
+
+#section-my-views .tree-leaf-label {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+}
+
+#section-my-views .tree-leaf-icon svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+#section-my-views .tree-leaf-action {
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+#section-my-views .tree-leaf:hover .tree-leaf-action {
+    opacity: 1;
+}
+
+.sparql-demote-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+/* ============================================
+   Promote dialog
+   ============================================ */
+
+#promote-dialog {
+    background: var(--color-bg-primary, var(--color-bg));
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 20px;
+    min-width: 320px;
+    color: var(--color-text, var(--color-text-normal));
+}
+
+#promote-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+#promote-dialog h3 {
+    margin: 0 0 16px;
+    font-size: 16px;
+}
+
+#promote-dialog .form-group {
+    margin-bottom: 12px;
+}
+
+#promote-dialog .form-group label {
+    display: block;
+    font-size: 13px;
+    margin-bottom: 4px;
+    color: var(--color-text-muted);
+}
+
+#promote-dialog .form-control {
+    width: 100%;
+    padding: 6px 8px;
+    font-size: 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: var(--color-bg-secondary, var(--color-surface));
+    color: var(--color-text, var(--color-text-normal));
+    box-sizing: border-box;
+}
+
+.renderer-picker {
+    display: flex;
+    gap: 12px;
+    margin-top: 4px;
+}
+
+.renderer-option {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.renderer-option svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+.form-hint {
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+/* ============================================
+   Save as View button in results info
+   ============================================ */
+
+.sparql-save-view-btn {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 12px;
+    padding: 2px 8px;
+    font-size: 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--color-primary);
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.sparql-save-view-btn:hover {
+    background: var(--color-surface-hover, var(--color-bg-secondary));
+}
