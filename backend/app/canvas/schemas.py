@@ -53,3 +53,26 @@ class WikilinkResolveResponse(BaseModel):
     """Response for wiki-link title resolution."""
 
     resolved: dict[str, str | None]  # {title: iri_or_null}
+
+
+class BatchEdgesRequest(BaseModel):
+    """Request body for discovering edges between a set of IRIs."""
+
+    iris: list[str] = Field(
+        ..., min_length=1, max_length=100, description="IRIs to find edges between"
+    )
+
+
+class BatchEdge(BaseModel):
+    """A single edge between two IRIs."""
+
+    source: str
+    target: str
+    predicate: str
+    predicate_label: str
+
+
+class BatchEdgesResponse(BaseModel):
+    """Response for batch edge discovery."""
+
+    edges: list[BatchEdge]
