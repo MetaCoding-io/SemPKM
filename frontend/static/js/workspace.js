@@ -457,6 +457,17 @@
     initPanelTabs();
     initBottomPanelResize();
     restorePanelState();
+
+    // Handle ?panel=sparql URL parameter (from sidebar link or admin redirect)
+    var urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('panel') === 'sparql') {
+      panelState.open = true;
+      panelState.activeTab = 'sparql';
+      savePanelState();
+      // Clean up URL
+      history.replaceState({}, '', window.location.pathname);
+    }
+
     _applyPanelState();
   }
 

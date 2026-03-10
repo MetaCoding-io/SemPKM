@@ -837,15 +837,13 @@ async def admin_webhooks_toggle(
 
 @router.get("/sparql")
 async def admin_sparql(request: Request, user: User = Depends(require_role("owner", "member"))):
-    """Render the SPARQL query console (Yasgui). Requires at least member role."""
-    from app.config import settings
-    templates = request.app.state.templates
-    context = {"active_page": "sparql", "user": user, "base_namespace": settings.base_namespace}
-    if _is_htmx_request(request):
-        return templates.TemplateResponse(
-            request, "admin/sparql.html", context, block_name="content"
-        )
-    return templates.TemplateResponse(request, "admin/sparql.html", context)
+    """Redirect to workspace with SPARQL panel auto-opened.
+
+    Previously rendered the Yasgui SPARQL console; now redirects to the
+    integrated SPARQL panel in the workspace bottom panel.
+    """
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse("/browser?panel=sparql", status_code=302)
 
 
 def templates_response(request: Request, template: str, context: dict, block_name: str | None = None):
