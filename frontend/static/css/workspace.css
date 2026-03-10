@@ -3076,6 +3076,8 @@ details.form-group[open] > .form-group-summary::before {
 
 .canvas-page-status.error {
   color: var(--color-danger, #dc2626);
+}
+
 /* ============================================================
    Phase 35: Entailment Config UI
    Admin page for per-model OWL 2 RL entailment toggles.
