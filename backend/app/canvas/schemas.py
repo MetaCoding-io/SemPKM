@@ -39,3 +39,17 @@ class SessionListResponse(BaseModel):
 
     sessions: list[SessionEntry]
     active_session_id: str | None = None
+
+
+class WikilinkResolveRequest(BaseModel):
+    """Request body for resolving wiki-link titles to IRIs."""
+
+    titles: list[str] = Field(
+        ..., max_length=50, description="Wiki-link display text to resolve to IRIs"
+    )
+
+
+class WikilinkResolveResponse(BaseModel):
+    """Response for wiki-link title resolution."""
+
+    resolved: dict[str, str | None]  # {title: iri_or_null}
