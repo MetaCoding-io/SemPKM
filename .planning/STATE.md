@@ -84,9 +84,10 @@ None — clean start for v2.6
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 33 | Create central codebase documentation outlining all components, file locations, and purposes | 2026-03-09 | 5e9485b | [33-create-central-codebase-documentation-ou](./quick/33-create-central-codebase-documentation-ou/) |
+| 34 | Merge inferred properties into main property table, remove two-column layout | 2026-03-10 | d2720a3 | [34-merge-inferred-properties-into-relations](./quick/34-merge-inferred-properties-into-relations/) |
 
 ## Session Continuity
 
-Last session: 2026-03-09T07:27:32.399Z
-Stopped at: Completed 52-01-PLAN.md
+Last session: 2026-03-10T04:19:52Z
+Stopped at: Completed quick task 34
 Resume file: None
