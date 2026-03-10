@@ -3,13 +3,13 @@
  *
  * Verifies multi-select drag from nav tree to canvas with grid placement and edge discovery.
  */
-import { test, expect } from '../../fixtures/auth';
+import { test } from '../../fixtures/auth';
 
 test.describe('Spatial Canvas: Bulk Drop', () => {
-  test.todo('multi-selected nav tree items drop as group on canvas');
-  test.todo('dropped nodes appear in 3-column grid layout at drop point');
-  test.todo('dropped node positions snap to 24px grid');
-  test.todo('edges between dropped group are auto-discovered and rendered');
-  test.todo('duplicate nodes are silently skipped');
-  test.todo('dropping more than 20 nodes shows confirmation dialog');
+  test.skip('multi-selected nav tree items drop as group on canvas', async () => {});
+  test.skip('dropped nodes appear in 3-column grid layout at drop point', async () => {});
+  test.skip('dropped node positions snap to 24px grid', async () => {});
+  test.skip('edges between dropped group are auto-discovered and rendered', async () => {});
+  test.skip('duplicate nodes are silently skipped', async () => {});
+  test.skip('dropping more than 20 nodes shows confirmation dialog', async () => {});
 });
