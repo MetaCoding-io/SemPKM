@@ -43,6 +43,7 @@ Requirements for v2.6 Power User & Collaboration. Each maps to roadmap phases.
 
 - [ ] **VFSX-01**: VFS browser shows side-by-side view for open files with raw content and rendered markdown preview
 - [ ] **VFSX-02**: VFS browser file operations are polished (consistent icons, loading states)
+- [ ] **VFSX-03**: VFS browser has inline help about connecting the user's OS to the WebDAV endpoint
 
 ### Object Browser UI
 
@@ -119,6 +120,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VFS-05 | Phase 56 | Pending |
 | VFSX-01 | Phase 55 | Pending |
 | VFSX-02 | Phase 55 | Pending |
+| VFSX-03 | Phase 55 | Pending |
 | OBUI-01 | Phase 55 | Pending |
 | OBUI-02 | Phase 55 | Pending |
 | OBUI-03 | Phase 55 | Pending |
@@ -133,10 +135,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CANV-05 | Phase 57 | Pending |
 
 **Coverage:**
-- v2.6 requirements: 37 total
-- Mapped to phases: 37
+- v2.6 requirements: 38 total
+- Mapped to phases: 38
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-09*
-*Last updated: 2026-03-09 — traceability updated with phase mappings*
+*Last updated: 2026-03-10 — added VFSX-03 (WebDAV inline help), traceability updated*
