@@ -538,34 +538,64 @@ async function loadSaved() {
   container.innerHTML = '<div class="sparql-dropdown-loading">Loading...</div>';
 
   try {
-    var resp = await fetch('/api/sparql/saved', { credentials: 'include' });
+    var resp = await fetch('/api/sparql/saved?include_shared=true', { credentials: 'include' });
     if (!resp.ok) throw new Error('Failed to load saved queries');
-    var entries = await resp.json();
+    var data = await resp.json();
 
-    if (!entries || entries.length === 0) {
+    var myQueries = data.my_queries || [];
+    var sharedQueries = data.shared_with_me || [];
+
+    if (myQueries.length === 0 && sharedQueries.length === 0) {
       container.innerHTML = '<div class="sparql-dropdown-empty">No saved queries</div>';
       return;
     }
 
     var html = '';
-    entries.forEach(function(entry) {
-      var desc = entry.description || '';
-      if (desc.length > 50) desc = desc.substring(0, 47) + '...';
 
-      html += '<div class="sparql-dropdown-item sparql-saved-item" data-query-id="' + entry.id + '" data-query-text="' + escapeAttr(entry.query_text) + '">';
-      html += '<div class="sparql-dropdown-item-main">';
-      html += '<span class="sparql-dropdown-item-name">' + escapeHtml(entry.name) + '</span>';
-      if (desc) {
-        html += '<span class="sparql-dropdown-item-desc">' + escapeHtml(desc) + '</span>';
+    // My Queries section
+    if (myQueries.length > 0) {
+      html += '<div class="sparql-dropdown-section-header">My Queries</div>';
+      myQueries.forEach(function(entry) {
+        var desc = entry.description || '';
+        if (desc.length > 50) desc = desc.substring(0, 47) + '...';
+
+        html += '<div class="sparql-dropdown-item sparql-saved-item" data-query-id="' + entry.id + '" data-query-text="' + escapeAttr(entry.query_text) + '">';
+        html += '<div class="sparql-dropdown-item-main">';
+        html += '<span class="sparql-dropdown-item-name">' + escapeHtml(entry.name) + '</span>';
+        if (desc) {
+          html += '<span class="sparql-dropdown-item-desc">' + escapeHtml(desc) + '</span>';
+        }
+        html += '</div>';
+        html += '<button class="sparql-share-btn" title="Share query" data-query-id-ref="' + entry.id + '"><i data-lucide="share-2"></i></button>';
+        html += '<button class="sparql-promote-btn" title="Promote to view" data-query-id-ref="' + entry.id + '"><i data-lucide="pin"></i></button>';
+        html += '<button class="sparql-delete-btn" title="Delete saved query" data-query-id-ref="' + entry.id + '"><i data-lucide="trash-2"></i></button>';
+        html += '</div>';
+      });
+    }
+
+    // Shared with Me section
+    if (sharedQueries.length > 0) {
+      if (myQueries.length > 0) {
+        html += '<div class="sparql-dropdown-divider"></div>';
       }
-      html += '</div>';
-      html += '<button class="sparql-delete-btn" title="Delete saved query" data-query-id-ref="' + entry.id + '"><i data-lucide="trash-2"></i></button>';
-      html += '</div>';
-    });
+      html += '<div class="sparql-dropdown-section-header">Shared with Me</div>';
+      sharedQueries.forEach(function(entry) {
+        html += '<div class="sparql-dropdown-item sparql-shared-item" data-query-id="' + entry.id + '" data-query-text="' + escapeAttr(entry.query_text) + '">';
+        html += '<div class="sparql-dropdown-item-main">';
+        html += '<span class="sparql-dropdown-item-name">' + escapeHtml(entry.name) + '</span>';
+        html += '<span class="sparql-shared-owner">from ' + escapeHtml(entry.owner_name) + '</span>';
+        if (entry.is_updated) {
+          html += '<span class="sparql-updated-badge" title="Updated since last viewed"></span>';
+        }
+        html += '</div>';
+        html += '<button class="sparql-fork-btn" title="Save as my own" data-query-id-ref="' + entry.id + '"><i data-lucide="copy-plus"></i></button>';
+        html += '</div>';
+      });
+    }
 
     container.innerHTML = html;
 
-    // Bind click handlers
+    // Bind click handlers for owned queries
     container.querySelectorAll('.sparql-saved-item').forEach(function(item) {
       item.querySelector('.sparql-dropdown-item-main').addEventListener('click', function() {
         var qt = item.getAttribute('data-query-text');
@@ -580,6 +610,44 @@ async function loadSaved() {
           deleteSavedQuery(qid);
         });
       }
+      var shareBtn = item.querySelector('.sparql-share-btn');
+      if (shareBtn) {
+        shareBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          var qid = item.getAttribute('data-query-id');
+          toggleSharePicker(item, qid);
+        });
+      }
+      var promoteBtn = item.querySelector('.sparql-promote-btn');
+      if (promoteBtn) {
+        promoteBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          // Placeholder for Plan 54-02
+        });
+      }
+    });
+
+    // Bind click handlers for shared queries
+    container.querySelectorAll('.sparql-shared-item').forEach(function(item) {
+      item.querySelector('.sparql-dropdown-item-main').addEventListener('click', function() {
+        var qt = item.getAttribute('data-query-text');
+        var qid = item.getAttribute('data-query-id');
+        setEditorContent(qt);
+        // Mark as viewed to clear Updated badge
+        fetch('/api/sparql/saved/' + qid + '/mark-viewed', {
+          method: 'POST',
+          credentials: 'include'
+        }).catch(function() {});
+        closeAllDropdowns();
+      });
+      var forkBtn = item.querySelector('.sparql-fork-btn');
+      if (forkBtn) {
+        forkBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          var qid = item.getAttribute('data-query-id');
+          forkSharedQuery(qid);
+        });
+      }
     });
 
     if (typeof lucide !== 'undefined') {
@@ -587,6 +655,97 @@ async function loadSaved() {
     }
   } catch (err) {
     container.innerHTML = '<div class="sparql-dropdown-empty">Error loading saved queries</div>';
+  }
+}
+
+// --- Share Picker ---
+
+async function toggleSharePicker(itemEl, queryId) {
+  // If picker already open, close it
+  var existing = itemEl.querySelector('.sparql-share-picker');
+  if (existing) {
+    existing.remove();
+    return;
+  }
+
+  // Close any other open pickers
+  document.querySelectorAll('.sparql-share-picker').forEach(function(p) { p.remove(); });
+
+  var panel = document.getElementById('sparql-panel');
+  var currentUserId = panel ? panel.getAttribute('data-current-user-id') : '';
+
+  try {
+    // Fetch users and current shares in parallel
+    var [usersResp, sharesResp] = await Promise.all([
+      fetch('/api/sparql/users', { credentials: 'include' }),
+      fetch('/api/sparql/saved/' + queryId + '/shares', { credentials: 'include' })
+    ]);
+    if (!usersResp.ok || !sharesResp.ok) throw new Error('Failed to load share data');
+
+    var users = await usersResp.json();
+    var sharedIds = await sharesResp.json();
+    var sharedSet = new Set(sharedIds.map(String));
+
+    // Filter out current user
+    var eligibleUsers = users.filter(function(u) {
+      return String(u.id) !== currentUserId;
+    });
+
+    if (eligibleUsers.length === 0) {
+      showBriefMessage('No users to share with');
+      return;
+    }
+
+    var pickerHtml = '';
+    eligibleUsers.forEach(function(u) {
+      var checked = sharedSet.has(String(u.id)) ? ' checked' : '';
+      var displayName = u.display_name || u.email;
+      pickerHtml += '<label><input type="checkbox" value="' + u.id + '"' + checked + '> ' + escapeHtml(displayName) + '</label>';
+    });
+
+    var picker = document.createElement('div');
+    picker.className = 'sparql-share-picker';
+    picker.innerHTML = pickerHtml;
+    itemEl.appendChild(picker);
+
+    // Bind checkbox change handlers
+    picker.querySelectorAll('input[type="checkbox"]').forEach(function(cb) {
+      cb.addEventListener('change', function() {
+        var checkedIds = [];
+        picker.querySelectorAll('input[type="checkbox"]:checked').forEach(function(c) {
+          checkedIds.push(c.value);
+        });
+        fetch('/api/sparql/saved/' + queryId + '/shares', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ user_ids: checkedIds })
+        }).catch(function() {
+          showBriefMessage('Share update failed');
+        });
+      });
+    });
+  } catch (err) {
+    showBriefMessage('Failed to load share picker');
+  }
+}
+
+// --- Fork Shared Query ---
+
+async function forkSharedQuery(queryId) {
+  try {
+    var resp = await fetch('/api/sparql/saved/' + queryId + '/fork', {
+      method: 'POST',
+      credentials: 'include'
+    });
+    if (resp.ok) {
+      showBriefMessage('Forked!');
+      loadSaved();
+    } else {
+      showBriefMessage('Fork failed');
+    }
+  } catch (err) {
+    showBriefMessage('Fork failed');
   }
 }
 
