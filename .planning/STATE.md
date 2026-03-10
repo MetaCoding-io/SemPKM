@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.6
 milestone_name: Power User & Collaboration
 status: executing
-stopped_at: Completed 54-01-PLAN.md
-last_updated: "2026-03-10T07:10:00Z"
-last_activity: "2026-03-10 - Completed 54-01: query sharing"
+stopped_at: Completed 54-02-PLAN.md
+last_updated: "2026-03-10T07:21:00Z"
+last_activity: "2026-03-10 - Completed 54-02: view promotion"
 progress:
   total_phases: 7
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 16
-  completed_plans: 15
-  percent: 97
+  completed_plans: 16
+  percent: 100
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-03-09)
 
 ## Current Position
 
-Phase: 54 of 58 (SPARQL Advanced)
-Plan: 1 of 2 (Query Sharing -- complete)
+Phase: 54 of 58 (SPARQL Advanced) -- COMPLETE
+Plan: 2 of 2 (View Promotion -- complete)
 Status: Executing
-Last activity: 2026-03-10 - Completed 54-01: query sharing
+Last activity: 2026-03-10 - Completed 54-02: view promotion
 
-Progress: [██████████] 97%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -64,6 +64,7 @@ Progress: [██████████] 97%
 | Phase 56 P03 | 3 | 2 tasks | 3 files |
 | Phase 56 P02 | 5 | 2 tasks | 6 files |
 | Phase 54 P01 | 4 | 2 tasks | 8 files |
+| Phase 54 P02 | 7 | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -116,6 +117,10 @@ Full decision log in PROJECT.md Key Decisions table.
 - 54-01: Share picker uses immediate PUT on checkbox change, no Apply button needed
 - 54-01: include_shared=false default on GET /sparql/saved preserves backward compatibility
 - 54-01: Updated badge: null last_viewed_at treated as always updated (new shares always show badge)
+- 54-02: User-promoted ViewSpecs NOT cached -- fetched from SQLite per request to avoid cache invalidation
+- 54-02: User view count uses COUNT(*) instead of COUNT(DISTINCT ?s) for arbitrary variables
+- 54-02: URI values in user views render as plain clickable links per user decision
+- 54-02: Demote uses JS fetch + htmx refresh since DELETE 204 returns no swappable content
 
 ### Pending Todos
 
@@ -145,6 +150,6 @@ None — clean start for v2.6
 
 ## Session Continuity
 
-Last session: 2026-03-10T07:10:00Z
-Stopped at: Completed 54-01-PLAN.md
+Last session: 2026-03-10T07:21:00Z
+Stopped at: Completed 54-02-PLAN.md
 Resume file: None

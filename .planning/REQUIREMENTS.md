@@ -15,7 +15,7 @@ Requirements for v2.6 Power User & Collaboration. Each maps to roadmap phases.
 - [x] **SPARQL-04**: User can share a saved query with other users (read-only)
 - [x] **SPARQL-05**: SPARQL result IRIs display as labeled pills with type icons that open in workspace tabs
 - [x] **SPARQL-06**: SPARQL editor provides ontology-aware autocomplete for prefixes, classes, and predicates from installed models
-- [ ] **SPARQL-07**: User can promote a saved query to a named view browsable in the nav tree
+- [x] **SPARQL-07**: User can promote a saved query to a named view browsable in the nav tree
 - [ ] **SPARQL-08**: Ensure user cannot modify the graph via SPARQL, as we still want all writes to go thru the Command API
 
 ### Collaboration & Federation
@@ -101,7 +101,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SPARQL-04 | Phase 54 | Complete |
 | SPARQL-05 | Phase 53 | Complete |
 | SPARQL-06 | Phase 53 | Complete |
-| SPARQL-07 | Phase 54 | Pending |
+| SPARQL-07 | Phase 54 | Complete |
 | SPARQL-08 | Phase 54 | Pending |
 | FED-01 | Phase 58 | Pending |
 | FED-02 | Phase 58 | Pending |
