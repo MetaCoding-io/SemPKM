@@ -74,6 +74,13 @@ async def lifespan(app: FastAPI):
     """
     logger.info("Starting SemPKM API v%s", settings.app_version)
 
+    # Create cooperative shutdown signal for SSE generators.
+    # When uvicorn reloads, request.is_disconnected() does NOT fire for SSE
+    # streams, so generators with `while True` loops hang forever.  This event
+    # lets them exit within one iteration.
+    shutdown_event = asyncio.Event()
+    app.state.shutdown_event = shutdown_event
+
     # Initialize PostHog analytics/error monitoring
     init_posthog()
 
@@ -270,8 +277,10 @@ async def lifespan(app: FastAPI):
     logger.info("SemPKM API started successfully")
     yield
 
-    # Shutdown: stop validation queue, dispose SQL engine, close triplestore client,
-    # flush PostHog events
+    # Shutdown: signal SSE generators first so they exit before we tear down
+    # the services they depend on, then stop validation queue, dispose SQL
+    # engine, close triplestore client, flush PostHog events.
+    shutdown_event.set()
     await validation_queue.stop()
     await sql_engine.dispose()
     await client.close()

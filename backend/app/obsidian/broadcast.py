@@ -92,6 +92,7 @@ class ScanBroadcast:
 async def stream_sse(
     queue: asyncio.Queue[SSEEvent],
     terminal_events: set[str] | None = None,
+    shutdown_event: asyncio.Event | None = None,
 ) -> AsyncGenerator[str, None]:
     """Async generator yielding SSE-formatted strings from a subscriber queue.
 
@@ -102,17 +103,41 @@ async def stream_sse(
         terminal_events: Set of event names that signal end of stream.
             Defaults to {"scan_complete", "scan_error"} for backward
             compatibility.
+        shutdown_event: Optional cooperative shutdown signal.  When set the
+            generator exits promptly so uvicorn reload does not hang.
     """
     if terminal_events is None:
         terminal_events = {"scan_complete", "scan_error"}
 
-    while True:
+    while not (shutdown_event and shutdown_event.is_set()):
         try:
-            event = await asyncio.wait_for(queue.get(), timeout=30.0)
-            yield event.format()
-            # Stop streaming after terminal events
-            if event.event in terminal_events:
-                break
+            if shutdown_event:
+                # Race queue.get() against shutdown signal.
+                get_task = asyncio.ensure_future(queue.get())
+                shutdown_task = asyncio.ensure_future(shutdown_event.wait())
+                done, pending = await asyncio.wait(
+                    {get_task, shutdown_task},
+                    timeout=30.0,
+                    return_when=asyncio.FIRST_COMPLETED,
+                )
+                for task in pending:
+                    task.cancel()
+                if shutdown_task in done:
+                    break
+                if get_task in done:
+                    event = get_task.result()
+                    yield event.format()
+                    if event.event in terminal_events:
+                        break
+                else:
+                    yield ": keepalive\n\n"
+            else:
+                event = await asyncio.wait_for(queue.get(), timeout=30.0)
+                yield event.format()
+                if event.event in terminal_events:
+                    break
         except asyncio.TimeoutError:
             # Send keepalive comment
             yield ": keepalive\n\n"
+        except asyncio.CancelledError:
+            break
