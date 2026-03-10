@@ -128,7 +128,7 @@
 
 - [x] **Phase 52: Bug Fixes & Security** - Fix event log diffs, lint layout, and gate SPARQL queries by role (completed 2026-03-09)
 - [x] **Phase 53: SPARQL Power User** - Server-side history, saved queries, ontology autocomplete, IRI pills (completed 2026-03-10)
-- [ ] **Phase 54: SPARQL Advanced** - Shared queries and named queries promoted to nav tree views
+- [x] **Phase 54: SPARQL Advanced** - Shared queries and named queries promoted to nav tree views (completed 2026-03-10)
 - [x] **Phase 55: Browser UI Polish** - Object browser multi-select/delete, edge inspector, VFS breadcrumbs and preview (completed 2026-03-10)
 - [x] **Phase 56: VFS MountSpec** - Declarative mount vocabulary, 5 directory strategies, SHACL frontmatter writes, management UI (completed 2026-03-10)
 - [x] **Phase 57: Spatial Canvas** - Snap-to-grid, edge labels, keyboard nav, bulk drag-drop, wiki-link edges (completed 2026-03-10)
@@ -346,7 +346,7 @@ Phases execute in numeric order: 52 -> 53 -> 54 -> 55 -> 56 -> 57 -> 58
 | 51. Spatial Canvas UX | v2.5 | 3/3 | Complete | 2026-03-09 |
 | 52. Bug Fixes & Security | 2/2 | Complete    | 2026-03-09 | - |
 | 53. SPARQL Power User | v2.6 | 2/2 | Complete | 2026-03-10 |
-| 54. SPARQL Advanced | 1/2 | In Progress|  | - |
+| 54. SPARQL Advanced | 2/2 | Complete   | 2026-03-10 | - |
 | 55. Browser UI Polish | 4/4 | Complete   | 2026-03-10 | - |
 | 56. VFS MountSpec | 3/3 | Complete    | 2026-03-10 | - |
 | 57. Spatial Canvas | 3/3 | Complete    | 2026-03-10 | - |
