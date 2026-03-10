@@ -40,11 +40,12 @@ created: 2026-03-10
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
 | 55-01-01 | 01 | 1 | OBUI-01 | manual-only | Visual verification via playwright-cli | N/A | ⬜ pending |
 | 55-01-02 | 01 | 1 | OBUI-02 | manual-only | Visual verification via playwright-cli | N/A | ⬜ pending |
-| 55-02-01 | 02 | 1 | OBUI-03 | manual-only | Visual verification via playwright-cli | N/A | ⬜ pending |
-| 55-02-02 | 02 | 1 | OBUI-04 | smoke | `cd /home/james/Code/SemPKM/e2e && npx playwright test --project=chromium --grep "delete" -x` | ❌ W0 | ⬜ pending |
-| 55-03-01 | 03 | 2 | OBUI-05 | manual-only | Visual verification via playwright-cli | N/A | ⬜ pending |
-| 55-04-01 | 04 | 2 | VFSX-01 | manual-only | Visual verification via playwright-cli | N/A | ⬜ pending |
-| 55-04-02 | 04 | 2 | VFSX-02 | manual-only | Visual verification via playwright-cli | N/A | ⬜ pending |
+| 55-02-01 | 02 | 2 | OBUI-03 | manual-only | Visual verification via playwright-cli | N/A | ⬜ pending |
+| 55-02-02 | 02 | 2 | OBUI-04 | smoke | `cd /home/james/Code/SemPKM/e2e && npx playwright test --project=chromium --grep "delete" -x` | ❌ W0 | ⬜ pending |
+| 55-03-01 | 03 | 1 | OBUI-05 | manual-only | Visual verification via playwright-cli | N/A | ⬜ pending |
+| 55-04-01 | 04 | 1 | VFSX-01 | manual-only | Visual verification via playwright-cli | N/A | ⬜ pending |
+| 55-04-02 | 04 | 1 | VFSX-02 | manual-only | Visual verification via playwright-cli | N/A | ⬜ pending |
+| 55-04-03 | 04 | 1 | VFSX-03 | manual-only | Visual verification via playwright-cli | N/A | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
