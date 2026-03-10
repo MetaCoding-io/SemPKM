@@ -26,7 +26,8 @@
     expandProvenance: {},
     canvasId: 'default',
     isSaving: false,
-    currentSessionId: null
+    currentSessionId: null,
+    selectedNodeId: null
   };
 
   // Inline SVG icons — avoid Lucide re-scan on every renderNodes() call
@@ -36,6 +37,131 @@
 
   var GRID = 24;
   function snapToGrid(value) { return Math.round(value / GRID) * GRID; }
+
+  /**
+   * Return nodes sorted in spatial order: top-to-bottom, left-to-right.
+   */
+  function nodesSpatialOrder() {
+    return state.nodes.slice().sort(function (a, b) {
+      if (a.y !== b.y) return a.y - b.y;
+      return a.x - b.x;
+    });
+  }
+
+  /**
+   * Cycle the node selection forward (+1) or backward (-1) in spatial order.
+   */
+  function cycleSelection(direction) {
+    if (state.nodes.length === 0) return;
+    var sorted = nodesSpatialOrder();
+    if (!state.selectedNodeId) {
+      state.selectedNodeId = sorted[direction > 0 ? 0 : sorted.length - 1].id;
+      renderNodes();
+      return;
+    }
+    var currentIdx = -1;
+    for (var i = 0; i < sorted.length; i++) {
+      if (sorted[i].id === state.selectedNodeId) { currentIdx = i; break; }
+    }
+    if (currentIdx === -1) {
+      state.selectedNodeId = sorted[0].id;
+    } else {
+      var next = currentIdx + direction;
+      if (next >= sorted.length) next = 0;
+      if (next < 0) next = sorted.length - 1;
+      state.selectedNodeId = sorted[next].id;
+    }
+    renderNodes();
+  }
+
+  /**
+   * Keyboard handler for canvas interactions.
+   * Guards against capturing keys while typing in inputs or other panels.
+   */
+  function onKeyDown(event) {
+    // Guard: do not capture keys when an input element has focus
+    var tag = document.activeElement ? document.activeElement.tagName : '';
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    // Guard: do not capture keys when focus is inside dockview tabs or CodeMirror
+    if (document.activeElement && document.activeElement.closest &&
+        (document.activeElement.closest('.dv-tabs-container') || document.activeElement.closest('.cm-editor'))) return;
+    // Guard: only process if canvas is mounted
+    if (!state.mounted || !state.viewport) return;
+
+    var key = event.key;
+
+    // Ctrl+S / Cmd+S — save canvas (works even without selection)
+    if (key === 's' && (event.ctrlKey || event.metaKey)) {
+      event.preventDefault();
+      saveCanvas();
+      return;
+    }
+
+    // Tab / Shift+Tab — cycle selection (works even without current selection)
+    if (key === 'Tab') {
+      event.preventDefault();
+      cycleSelection(event.shiftKey ? -1 : 1);
+      return;
+    }
+
+    // All remaining keys require a selected node
+    if (!state.selectedNodeId) return;
+    var node = findNode(state.selectedNodeId);
+    if (!node) return;
+
+    var step = event.shiftKey ? GRID * 5 : GRID;
+
+    switch (key) {
+      case 'ArrowUp':
+        event.preventDefault();
+        node.y -= step;
+        renderNodes();
+        break;
+      case 'ArrowDown':
+        event.preventDefault();
+        node.y += step;
+        renderNodes();
+        break;
+      case 'ArrowLeft':
+        event.preventDefault();
+        node.x -= step;
+        renderNodes();
+        break;
+      case 'ArrowRight':
+        event.preventDefault();
+        node.x += step;
+        renderNodes();
+        break;
+      case 'Delete':
+      case 'Backspace':
+        event.preventDefault();
+        var sorted = nodesSpatialOrder();
+        var removedIdx = -1;
+        for (var i = 0; i < sorted.length; i++) {
+          if (sorted[i].id === state.selectedNodeId) { removedIdx = i; break; }
+        }
+        removeNode(state.selectedNodeId);
+        // Auto-select next node in spatial order after deletion
+        if (state.nodes.length > 0) {
+          var remaining = nodesSpatialOrder();
+          var nextIdx = Math.min(removedIdx, remaining.length - 1);
+          if (nextIdx < 0) nextIdx = 0;
+          state.selectedNodeId = remaining[nextIdx].id;
+        } else {
+          state.selectedNodeId = null;
+        }
+        renderNodes();
+        break;
+      case 'Enter':
+        event.preventDefault();
+        toggleExpand(state.selectedNodeId);
+        break;
+      case 'Escape':
+        state.selectedNodeId = null;
+        renderNodes();
+        break;
+    }
+  }
 
   function mountCanvas() {
     var root = document.getElementById('spatial-canvas-root');
@@ -98,6 +224,8 @@
     // dragend always fires on the source element regardless — use it as a
     // backup if we tracked a valid drag position over the canvas.
     document.addEventListener('dragend', onDragEnd, true);
+    // Keyboard navigation for canvas nodes
+    document.addEventListener('keydown', onKeyDown);
   }
 
   // Track last known drag position over canvas for the dragend fallback.
@@ -222,6 +350,11 @@
     var node = event.target.closest('.spatial-node');
     if (node) {
       state.nodeDragId = node.dataset.nodeId;
+      // Click-to-select: set selected node on pointer down
+      if (state.selectedNodeId !== state.nodeDragId) {
+        state.selectedNodeId = state.nodeDragId;
+        renderNodes();
+      }
       var model = findNode(state.nodeDragId);
       if (!model) return;
 
@@ -230,6 +363,12 @@
       state.nodeDragOffsetY = world.y - model.y;
       node.classList.add('dragging');
       return;
+    }
+
+    // Clicking on canvas background deselects
+    if (state.selectedNodeId) {
+      state.selectedNodeId = null;
+      renderNodes();
     }
 
     state.isPanning = true;
@@ -473,8 +612,9 @@
     var nodesHtml = state.nodes.map(function (node) {
       var isExpanded = !!state.expandProvenance[node.id];
       var isOpen = !node.collapsed;
+      var isSelected = state.selectedNodeId === node.id;
       return [
-        '<article class="spatial-node', (node.collapsed ? ' is-collapsed' : ''), (isExpanded ? ' is-expanded' : ''), '" data-node-id="', escapeHtml(node.id), '" style="left:', node.x, 'px; top:', node.y, 'px;">',
+        '<article class="spatial-node', (node.collapsed ? ' is-collapsed' : ''), (isExpanded ? ' is-expanded' : ''), (isSelected ? ' spatial-node-selected' : ''), '" data-node-id="', escapeHtml(node.id), '" style="left:', node.x, 'px; top:', node.y, 'px;">',
           '<header class="spatial-node-header">',
             '<button class="spatial-node-chevron', (isOpen ? ' is-open' : ''), '" type="button" title="Toggle body">', SVG_CHEVRON, '</button>',
             '<span class="spatial-node-title">', escapeHtml(node.title), '</span>',

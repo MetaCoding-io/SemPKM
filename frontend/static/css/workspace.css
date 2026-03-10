@@ -3094,6 +3094,13 @@ details.form-group[open] > .form-group-summary::before {
   opacity: 0.88;
 }
 
+.spatial-node-selected {
+  outline: 2px solid var(--color-accent, #2563eb);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+  z-index: 10;
+}
+
 .spatial-node-header {
   display: flex;
   align-items: center;
