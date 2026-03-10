@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.6
 milestone_name: Power User & Collaboration
 status: executing
-stopped_at: Completed 57-03-PLAN.md
-last_updated: "2026-03-10T06:46:06.460Z"
-last_activity: "2026-03-10 - Completed 57-03: bulk drag-drop with auto-edge discovery"
+stopped_at: Completed 56-01-PLAN.md
+last_updated: "2026-03-10T06:47:44Z"
+last_activity: "2026-03-10 - Completed 56-01: MountSpec vocabulary and CRUD API"
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 14
-  completed_plans: 11
-  percent: 96
+  completed_plans: 12
+  percent: 97
 ---
 
 # Project State
@@ -60,6 +60,7 @@ Progress: [██████████] 96%
 | Phase 57 P01 | 4 | 3 tasks | 7 files |
 | Phase 57 P02 | 4 | 2 tasks | 4 files |
 | Phase 57 P03 | 3 | 2 tasks | 5 files |
+| Phase 56 P01 | 4 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -97,6 +98,9 @@ Full decision log in PROJECT.md Key Decisions table.
 - 57-03: Multi-item drag detection checks if dragged item is in selection AND >1 items, else single-item fallback
 - 57-03: fetchBulkEdges sends ALL canvas node IRIs for complete cross-group edge discovery
 - 57-03: Confirmation dialog threshold at 20 nodes to prevent accidental canvas crowding
+- 56-01: Async mount_router uses inline SPARQL rather than wrapping sync service to avoid sync/async bridge complexity
+- 56-01: Preview endpoint caps at 50 directory groups and 100 objects per folder for responsive UI
+- 56-01: SyncTriplestoreClient extended with update() method mirroring async client pattern
 
 ### Pending Todos
 
@@ -125,6 +129,6 @@ None — clean start for v2.6
 
 ## Session Continuity
 
-Last session: 2026-03-10T06:46:06.458Z
-Stopped at: Completed 57-03-PLAN.md
+Last session: 2026-03-10T06:47:44Z
+Stopped at: Completed 56-01-PLAN.md
 Resume file: None
