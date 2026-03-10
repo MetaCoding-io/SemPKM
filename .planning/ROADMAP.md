@@ -206,11 +206,12 @@ Plans:
   3. VFS provider correctly dispatches file requests to the appropriate strategy based on mount path prefix
   4. Editing a file's YAML frontmatter via WebDAV writes back to RDF properties using SHACL shape mappings
   5. Settings page has a mount management UI for creating, editing, and deleting custom mounts
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 56-01: TBD
-- [ ] 56-02: TBD
+- [ ] 56-01-PLAN.md — MountSpec RDF vocabulary, MountService CRUD, and mount management API endpoints
+- [ ] 56-02-PLAN.md — Strategy collections, provider dispatch, MountedResourceFile with SHACL frontmatter and property write-back
+- [ ] 56-03-PLAN.md — Mount management settings UI with dynamic form, live preview, and CRUD interactions
 
 ### Phase 57: Spatial Canvas
 **Goal**: Spatial canvas is a productive visual thinking tool with alignment aids, rich edge display, and keyboard-driven interaction
@@ -346,8 +347,8 @@ Phases execute in numeric order: 52 -> 53 -> 54 -> 55 -> 56 -> 57 -> 58
 | 53. SPARQL Power User | v2.6 | 2/2 | Complete | 2026-03-10 |
 | 54. SPARQL Advanced | v2.6 | 0/? | Not started | - |
 | 55. Browser UI Polish | 4/4 | Complete   | 2026-03-10 | - |
-| 56. VFS MountSpec | v2.6 | 0/? | Not started | - |
-| 57. Spatial Canvas | v2.6 | 0/? | Not started | - |
+| 56. VFS MountSpec | v2.6 | 0/3 | Planned | - |
+| 57. Spatial Canvas | v2.6 | 0/3 | Planned | - |
 | 58. Federation | v2.6 | 0/? | Not started | - |
 
 ---
