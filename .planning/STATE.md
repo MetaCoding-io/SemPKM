@@ -97,6 +97,7 @@ None — clean start for v2.6
 | 34 | Merge inferred properties into main property table, remove two-column layout | 2026-03-10 | d2720a3 | [34-merge-inferred-properties-into-relations](./quick/34-merge-inferred-properties-into-relations/) |
 | 35 | Fix nav tree collapse not working - add missing CSS display rules | 2026-03-10 | 285ccd2 | [35-fix-nav-tree-collapse-not-working-add-mi](./quick/35-fix-nav-tree-collapse-not-working-add-mi/) |
 | 36 | Vertical split layout for lint and inference panels with card-based inference results | 2026-03-10 | c515481 | [36-vertical-split-layout-for-lint-and-infer](./quick/36-vertical-split-layout-for-lint-and-infer/) |
+| 37 | Fix uvicorn hot-reload hanging on file changes due to SSE generator deadlock | 2026-03-10 | 4e3805e | [37-fix-uvicorn-hot-reload-hanging-on-file-c](./quick/37-fix-uvicorn-hot-reload-hanging-on-file-c/) |
 
 ## Session Continuity
 
