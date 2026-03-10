@@ -8,6 +8,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
 from app.canvas.schemas import (
+    BatchEdge,
+    BatchEdgesRequest,
+    BatchEdgesResponse,
     CanvasPutBody,
     CanvasResponse,
     SessionCreateBody,
@@ -243,6 +246,89 @@ async def resolve_wikilinks(
         pass  # Return what we have (all None if query failed)
 
     return WikilinkResolveResponse(resolved=resolved)
+
+
+# ------------------------------------------------------------------
+# Batch edge discovery
+# ------------------------------------------------------------------
+
+
+@router.post("/batch-edges", response_model=BatchEdgesResponse)
+async def batch_edges(
+    body: BatchEdgesRequest,
+    user: User = Depends(get_current_user),
+    client: TriplestoreClient = Depends(get_triplestore_client),
+):
+    """Find all RDF edges between a given set of IRIs."""
+    # Validate IRIs and build SPARQL VALUES entries
+    valid_iris = [iri for iri in body.iris if _is_valid_iri(iri)]
+    if not valid_iris:
+        return BatchEdgesResponse(edges=[])
+
+    values_clause = " ".join(f"<{iri}>" for iri in valid_iris)
+
+    sparql = f"""
+    SELECT DISTINCT ?s ?p ?o ?plabel WHERE {{
+      {{
+        GRAPH <urn:sempkm:current> {{
+          ?s ?p ?o .
+          FILTER(isIRI(?o))
+        }}
+      }}
+      UNION
+      {{
+        GRAPH <urn:sempkm:inferred> {{
+          ?s ?p ?o .
+          FILTER(isIRI(?o))
+        }}
+      }}
+      VALUES ?s {{ {values_clause} }}
+      VALUES ?o {{ {values_clause} }}
+      OPTIONAL {{
+        GRAPH <urn:sempkm:current> {{
+          ?p <http://www.w3.org/2000/01/rdf-schema#label> ?plabel .
+        }}
+      }}
+    }}
+    """
+
+    seen: set[tuple[str, str, str]] = set()
+    edges: list[BatchEdge] = []
+
+    try:
+        result = await client.query(sparql)
+        bindings = result.get("results", {}).get("bindings", [])
+        for binding in bindings:
+            s = binding.get("s", {}).get("value", "")
+            p = binding.get("p", {}).get("value", "")
+            o = binding.get("o", {}).get("value", "")
+            key = (s, p, o)
+            if key in seen:
+                continue
+            seen.add(key)
+
+            plabel = binding.get("plabel", {}).get("value", "")
+            if not plabel:
+                # Fallback: extract local name from predicate IRI
+                if "#" in p:
+                    plabel = p.rsplit("#", 1)[-1]
+                elif "/" in p:
+                    plabel = p.rsplit("/", 1)[-1]
+                else:
+                    plabel = p
+
+            edges.append(
+                BatchEdge(
+                    source=s,
+                    target=o,
+                    predicate=p,
+                    predicate_label=plabel,
+                )
+            )
+    except Exception:
+        pass  # Return whatever we collected
+
+    return BatchEdgesResponse(edges=edges)
 
 
 # ------------------------------------------------------------------

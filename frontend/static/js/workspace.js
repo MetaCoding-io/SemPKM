@@ -2502,6 +2502,13 @@
   window.showToast = showToast;
   window.handleTreeLeafClick = handleTreeLeafClick;
   window.clearSelection = clearSelection;
+  window.getSelectedIris = function() {
+    return Array.from(selectedIris).map(function(iri) {
+      var leafEl = document.querySelector('.tree-leaf[data-iri="' + CSS.escape(iri) + '"]');
+      var label = leafEl ? (leafEl.querySelector('.tree-leaf-label')?.textContent || 'Resource') : 'Resource';
+      return { iri: iri, label: label };
+    });
+  };
   window.bulkDeleteSelected = bulkDeleteSelected;
   window.toggleEdgeDetail = toggleEdgeDetail;
   window.showEventInLog = showEventInLog;
