@@ -65,6 +65,106 @@
   {% endif %}
 </div>
 
+<!-- Section 4: Custom Mounts -->
+<div class="vfs-mount-section" id="vfs-mount-section">
+  <span class="settings-label">Custom Mounts</span>
+  <span class="settings-description">
+    Create directory structures that organize your objects by tag, date, type, or any property.
+    Mounts appear alongside model directories in WebDAV.
+  </span>
+
+  <div id="mount-form-error" class="mount-form-error"></div>
+
+  <form id="mount-form" onsubmit="return mountSubmitForm(event)">
+    <!-- Hidden field for edit mode -->
+    <input type="hidden" id="mount-edit-id" value="">
+
+    <div class="mount-form-row">
+      <label class="mount-form-label" for="mount-name">Mount Name</label>
+      <input type="text" id="mount-name" class="settings-text-input"
+             placeholder="My Notes by Tag" required maxlength="100">
+    </div>
+
+    <div class="mount-form-row">
+      <label class="mount-form-label" for="mount-path">Path Prefix</label>
+      <input type="text" id="mount-path" class="settings-text-input"
+             placeholder="notes-by-tag" required
+             pattern="[a-z0-9][a-z0-9-]*" title="Lowercase letters, numbers, hyphens only"
+             maxlength="64">
+      <span class="mount-path-hint">Appears as /dav/<em>path-prefix</em>/ in WebDAV</span>
+    </div>
+
+    <div class="mount-form-row">
+      <label class="mount-form-label" for="mount-strategy">Strategy</label>
+      <select id="mount-strategy" class="settings-select" onchange="mountStrategyChanged(this.value)">
+        <option value="flat">Flat (all files in one folder)</option>
+        <option value="by-type">By Type (one folder per object type)</option>
+        <option value="by-date">By Date (year/month folders)</option>
+        <option value="by-tag">By Tag (one folder per tag value)</option>
+        <option value="by-property">By Property (group by any property)</option>
+      </select>
+    </div>
+
+    <!-- Dynamic strategy-specific fields (shown/hidden by JS) -->
+    <div id="mount-strategy-fields">
+      <div class="mount-form-row mount-field-by-tag mount-field-by-property" style="display:none">
+        <label class="mount-form-label" for="mount-group-property">Group By Property</label>
+        <select id="mount-group-property" class="settings-select">
+          <option value="">Loading properties...</option>
+        </select>
+      </div>
+      <div class="mount-form-row mount-field-by-date" style="display:none">
+        <label class="mount-form-label" for="mount-date-property">Date Field</label>
+        <select id="mount-date-property" class="settings-select">
+          <option value="">Loading properties...</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="mount-form-row">
+      <label class="mount-form-label" for="mount-scope">Scope</label>
+      <select id="mount-scope" class="settings-select" onchange="mountScopeChanged(this.value)">
+        <option value="all">All objects</option>
+        <!-- Populated from saved queries API -->
+      </select>
+    </div>
+
+    <!-- Custom SPARQL textarea (shown when scope is "custom") -->
+    <div class="mount-form-row" id="mount-sparql-row" style="display:none">
+      <label class="mount-form-label" for="mount-sparql">Custom SPARQL Filter</label>
+      <textarea id="mount-sparql" class="settings-text-input mount-sparql-input"
+                placeholder="?s a ex:Note . ?s ex:hasTag ?tag ."
+                rows="4"></textarea>
+    </div>
+
+    <div class="mount-form-row">
+      <label class="mount-form-label" for="mount-visibility">Visibility</label>
+      <select id="mount-visibility" class="settings-select">
+        <option value="personal">Personal (only me)</option>
+        <option value="shared">Shared (all users)</option>
+      </select>
+    </div>
+
+    <!-- Preview area -->
+    <div id="mount-preview" class="mount-preview" style="display:none">
+      <span class="mount-preview-label">Preview</span>
+      <div id="mount-preview-tree" class="mount-preview-tree"></div>
+    </div>
+
+    <div class="mount-form-actions">
+      <button type="button" class="btn-secondary" onclick="mountPreview()">Preview</button>
+      <button type="submit" class="btn-primary" id="mount-submit-btn">Create Mount</button>
+      <button type="button" class="btn-secondary" id="mount-cancel-btn" style="display:none" onclick="mountCancelEdit()">Cancel</button>
+    </div>
+  </form>
+
+  <!-- Active mounts list -->
+  <div id="mount-list" class="mount-list">
+    <span class="settings-label" style="margin-top:var(--spacing-lg)">Active Mounts</span>
+    <div id="mount-list-items"></div>
+  </div>
+</div>
+
 <script>
 function vfsSubmitTokenForm(e) {
   e.preventDefault();
