@@ -9,145 +9,162 @@
 #}
 
 <div class="lint-dashboard" id="lint-dashboard-container">
+  <div class="lint-dashboard-body">
 
-  {# Combined filter toolbar + summary #}
-  <div class="lint-dashboard-filters">
-    <select class="lint-dashboard-filter-severity"
-            hx-get="/browser/lint-dashboard"
-            hx-target="#lint-dashboard-results"
-            hx-include="[class*='lint-dashboard-filter']"
-            hx-trigger="change"
-            name="severity">
-      <option value="">All severities</option>
-      <option value="Violation"{% if current_severity == 'Violation' %} selected{% endif %}>Violations</option>
-      <option value="Warning"{% if current_severity == 'Warning' %} selected{% endif %}>Warnings</option>
-      <option value="Info"{% if current_severity == 'Info' %} selected{% endif %}>Info</option>
-    </select>
-
-    <select class="lint-dashboard-filter-type"
-            hx-get="/browser/lint-dashboard"
-            hx-target="#lint-dashboard-results"
-            hx-include="[class*='lint-dashboard-filter']"
-            hx-trigger="change"
-            name="object_type">
-      <option value="">All types</option>
-      {% for t in types %}
-      <option value="{{ t.iri }}"{% if current_type == t.iri %} selected{% endif %}>{{ t.label }}</option>
-      {% endfor %}
-    </select>
-
-    <input type="text"
-           class="lint-dashboard-filter-search"
-           placeholder="Search messages..."
-           name="search"
-           value="{{ current_search }}"
-           hx-get="/browser/lint-dashboard"
-           hx-target="#lint-dashboard-results"
-           hx-include="[class*='lint-dashboard-filter']"
-           hx-trigger="keyup changed delay:300ms">
-
-    <select class="lint-dashboard-filter-sort"
-            hx-get="/browser/lint-dashboard"
-            hx-target="#lint-dashboard-results"
-            hx-include="[class*='lint-dashboard-filter']"
-            hx-trigger="change"
-            name="sort">
-      <option value="severity"{% if current_sort == 'severity' %} selected{% endif %}>Sort: Severity</option>
-      <option value="object"{% if current_sort == 'object' %} selected{% endif %}>Sort: Object</option>
-      <option value="path"{% if current_sort == 'path' %} selected{% endif %}>Sort: Path</option>
-    </select>
-
-    <span class="lint-dashboard-summary">
-      {% if status.conforms %}
-        <span class="lint-conforms">&#10003; All clear</span>
-      {% else %}
-        {% if status.violation_count > 0 %}
-        <span class="lint-count-violations">&#9679; {{ status.violation_count }} violation{{ 's' if status.violation_count != 1 else '' }}</span>
-        {% endif %}
-        {% if status.warning_count > 0 %}
-        <span class="lint-count-warnings">&#9650; {{ status.warning_count }} warning{{ 's' if status.warning_count != 1 else '' }}</span>
-        {% endif %}
-        {% if status.info_count > 0 %}
-        <span class="lint-count-infos">&#9432; {{ status.info_count }} info</span>
-        {% endif %}
-      {% endif %}
-      {% if status.run_timestamp %}
-      <span class="lint-dashboard-timestamp">Last run: {{ status.run_timestamp }}</span>
-      {% endif %}
-    </span>
-  </div>
-
-  {# Results area #}
-  <div class="lint-dashboard-results-wrap" id="lint-dashboard-results">
-    {% if not status.run_id %}
-      <div class="lint-dashboard-empty">
-        No validation results yet. Save an object to trigger validation.
+    {# Left sidebar: filters + summary #}
+    <div class="lint-dashboard-sidebar">
+      <div class="lint-dashboard-sidebar-group">
+        <label>Severity</label>
+        <select class="lint-dashboard-filter-severity"
+                hx-get="/browser/lint-dashboard"
+                hx-target="#lint-dashboard-results"
+                hx-include="[class*='lint-dashboard-filter']"
+                hx-trigger="change"
+                name="severity">
+          <option value="">All severities</option>
+          <option value="Violation"{% if current_severity == 'Violation' %} selected{% endif %}>Violations</option>
+          <option value="Warning"{% if current_severity == 'Warning' %} selected{% endif %}>Warnings</option>
+          <option value="Info"{% if current_severity == 'Info' %} selected{% endif %}>Info</option>
+        </select>
       </div>
-    {% elif status.conforms and results.total == 0 and not current_severity and not current_type and not current_search %}
-      <div class="lint-dashboard-empty">
-        &#10003; All clear — no issues found.
-      </div>
-    {% elif results.total == 0 %}
-      <div class="lint-dashboard-empty">
-        No results match your filters.
-      </div>
-    {% else %}
-      <table class="lint-dashboard-table">
-        <thead>
-          <tr>
-            <th style="width:40px;">Sev</th>
-            <th>Object</th>
-            <th>Property</th>
-            <th>Message</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for item in results.results %}
-          <tr class="lint-dashboard-row lint-severity-{{ item.severity | lower }}"
-              onclick="openTab('{{ item.focus_node }}', '{{ item.object_label | e }}')"
-              title="{{ item.message | e }}">
-            <td class="severity-icon">
-              {% if item.severity == 'Violation' %}
-                <span class="lint-icon-violation">&#9679;</span>
-              {% elif item.severity == 'Warning' %}
-                <span class="lint-icon-warning">&#9650;</span>
-              {% else %}
-                <span class="lint-icon-info">&#9432;</span>
-              {% endif %}
-            </td>
-            <td>
-              {{ item.object_label }}
-              {% if item.object_type_label %}
-                <span class="lint-type-badge">{{ item.object_type_label }}</span>
-              {% endif %}
-            </td>
-            <td>{{ item.path_label or '' }}</td>
-            <td>{{ item.message }}</td>
-          </tr>
+
+      <div class="lint-dashboard-sidebar-group">
+        <label>Type</label>
+        <select class="lint-dashboard-filter-type"
+                hx-get="/browser/lint-dashboard"
+                hx-target="#lint-dashboard-results"
+                hx-include="[class*='lint-dashboard-filter']"
+                hx-trigger="change"
+                name="object_type">
+          <option value="">All types</option>
+          {% for t in types %}
+          <option value="{{ t.iri }}"{% if current_type == t.iri %} selected{% endif %}>{{ t.label }}</option>
           {% endfor %}
-        </tbody>
-      </table>
+        </select>
+      </div>
 
-      {# Pagination #}
-      {% if results.total_pages > 1 %}
-      <div class="lint-dashboard-pagination">
-        {% if current_page > 1 %}
-        <a href="#"
-           hx-get="/browser/lint-dashboard?page={{ current_page - 1 }}"
-           hx-target="#lint-dashboard-results"
-           hx-include="[class*='lint-dashboard-filter']"
-           class="btn btn-sm">Prev</a>
+      <div class="lint-dashboard-sidebar-group">
+        <label>Search</label>
+        <input type="text"
+               class="lint-dashboard-filter-search"
+               placeholder="Search messages..."
+               name="search"
+               value="{{ current_search }}"
+               hx-get="/browser/lint-dashboard"
+               hx-target="#lint-dashboard-results"
+               hx-include="[class*='lint-dashboard-filter']"
+               hx-trigger="keyup changed delay:300ms">
+      </div>
+
+      <div class="lint-dashboard-sidebar-group">
+        <label>Sort</label>
+        <select class="lint-dashboard-filter-sort"
+                hx-get="/browser/lint-dashboard"
+                hx-target="#lint-dashboard-results"
+                hx-include="[class*='lint-dashboard-filter']"
+                hx-trigger="change"
+                name="sort">
+          <option value="severity"{% if current_sort == 'severity' %} selected{% endif %}>Severity</option>
+          <option value="object"{% if current_sort == 'object' %} selected{% endif %}>Object</option>
+          <option value="path"{% if current_sort == 'path' %} selected{% endif %}>Path</option>
+        </select>
+      </div>
+
+      <div class="lint-dashboard-sidebar-summary">
+        {% if status.conforms %}
+          <span class="lint-conforms">&#10003; All clear</span>
+        {% else %}
+          {% if status.violation_count > 0 %}
+          <span class="lint-count-violations">&#9679; {{ status.violation_count }} violation{{ 's' if status.violation_count != 1 else '' }}</span>
+          {% endif %}
+          {% if status.warning_count > 0 %}
+          <span class="lint-count-warnings">&#9650; {{ status.warning_count }} warning{{ 's' if status.warning_count != 1 else '' }}</span>
+          {% endif %}
+          {% if status.info_count > 0 %}
+          <span class="lint-count-infos">&#9432; {{ status.info_count }} info</span>
+          {% endif %}
         {% endif %}
-        <span>Page {{ current_page }} of {{ results.total_pages }} ({{ results.total }} results)</span>
-        {% if current_page < results.total_pages %}
-        <a href="#"
-           hx-get="/browser/lint-dashboard?page={{ current_page + 1 }}"
-           hx-target="#lint-dashboard-results"
-           hx-include="[class*='lint-dashboard-filter']"
-           class="btn btn-sm">Next</a>
+        {% if status.run_timestamp %}
+        <span class="lint-dashboard-timestamp">Last run: {{ status.run_timestamp }}</span>
         {% endif %}
       </div>
-      {% endif %}
-    {% endif %}
+    </div>
+
+    {# Right main: results area #}
+    <div class="lint-dashboard-main">
+      <div class="lint-dashboard-results-wrap" id="lint-dashboard-results">
+        {% if not status.run_id %}
+          <div class="lint-dashboard-empty">
+            No validation results yet. Save an object to trigger validation.
+          </div>
+        {% elif status.conforms and results.total == 0 and not current_severity and not current_type and not current_search %}
+          <div class="lint-dashboard-empty">
+            &#10003; All clear — no issues found.
+          </div>
+        {% elif results.total == 0 %}
+          <div class="lint-dashboard-empty">
+            No results match your filters.
+          </div>
+        {% else %}
+          <table class="lint-dashboard-table">
+            <thead>
+              <tr>
+                <th style="width:40px;">Sev</th>
+                <th>Object</th>
+                <th>Property</th>
+                <th>Message</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in results.results %}
+              <tr class="lint-dashboard-row lint-severity-{{ item.severity | lower }}"
+                  onclick="openTab('{{ item.focus_node }}', '{{ item.object_label | e }}')"
+                  title="{{ item.message | e }}">
+                <td class="severity-icon">
+                  {% if item.severity == 'Violation' %}
+                    <span class="lint-icon-violation">&#9679;</span>
+                  {% elif item.severity == 'Warning' %}
+                    <span class="lint-icon-warning">&#9650;</span>
+                  {% else %}
+                    <span class="lint-icon-info">&#9432;</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {{ item.object_label }}
+                  {% if item.object_type_label %}
+                    <span class="lint-type-badge">{{ item.object_type_label }}</span>
+                  {% endif %}
+                </td>
+                <td>{{ item.path_label or '' }}</td>
+                <td>{{ item.message }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+
+          {# Pagination #}
+          {% if results.total_pages > 1 %}
+          <div class="lint-dashboard-pagination">
+            {% if current_page > 1 %}
+            <a href="#"
+               hx-get="/browser/lint-dashboard?page={{ current_page - 1 }}"
+               hx-target="#lint-dashboard-results"
+               hx-include="[class*='lint-dashboard-filter']"
+               class="btn btn-sm">Prev</a>
+            {% endif %}
+            <span>Page {{ current_page }} of {{ results.total_pages }} ({{ results.total }} results)</span>
+            {% if current_page < results.total_pages %}
+            <a href="#"
+               hx-get="/browser/lint-dashboard?page={{ current_page + 1 }}"
+               hx-target="#lint-dashboard-results"
+               hx-include="[class*='lint-dashboard-filter']"
+               class="btn btn-sm">Next</a>
+            {% endif %}
+          </div>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+
   </div>
 </div>
