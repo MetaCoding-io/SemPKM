@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.6
 milestone_name: Power User & Collaboration
 status: executing
-stopped_at: Completed 56-02-PLAN.md
-last_updated: "2026-03-10T07:03:25.931Z"
-last_activity: "2026-03-10 - Completed 56-03: mount management UI"
+stopped_at: Completed 54-01-PLAN.md
+last_updated: "2026-03-10T07:10:00Z"
+last_activity: "2026-03-10 - Completed 54-01: query sharing"
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 16
-  completed_plans: 14
-  percent: 96
+  completed_plans: 15
+  percent: 97
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-09)
 
 **Core value:** Install a Mental Model and immediately create, browse, and explore structured knowledge through auto-generated forms, views, and graph visualizations — no blank-page syndrome, no schema setup.
-**Current focus:** Phase 53 — SPARQL Power User
+**Current focus:** Phase 54 — SPARQL Advanced
 
 ## Current Position
 
-Phase: 56 of 58 (VFS MountSpec)
-Plan: 3 of 3 (Mount Management UI -- complete)
+Phase: 54 of 58 (SPARQL Advanced)
+Plan: 1 of 2 (Query Sharing -- complete)
 Status: Executing
-Last activity: 2026-03-10 - Completed 56-03: mount management UI
+Last activity: 2026-03-10 - Completed 54-01: query sharing
 
-Progress: [██████████] 96%
+Progress: [██████████] 97%
 
 ## Performance Metrics
 
@@ -63,6 +63,7 @@ Progress: [██████████] 96%
 | Phase 56 P01 | 4 | 2 tasks | 5 files |
 | Phase 56 P03 | 3 | 2 tasks | 3 files |
 | Phase 56 P02 | 5 | 2 tasks | 6 files |
+| Phase 54 P01 | 4 | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -111,6 +112,10 @@ Full decision log in PROJECT.md Key Decisions table.
 - 56-02: Object references in frontmatter use {label, iri} dict format for human-readable editing
 - 56-02: By-date strategy uses two-level Year/Month hierarchy with MM-MonthName folder format
 - 56-02: _uncategorized folder uses FILTER NOT EXISTS to capture objects missing grouping property
+- 54-01: PromotedQueryView model created in same migration 008 as SharedQueryAccess for migration efficiency
+- 54-01: Share picker uses immediate PUT on checkbox change, no Apply button needed
+- 54-01: include_shared=false default on GET /sparql/saved preserves backward compatibility
+- 54-01: Updated badge: null last_viewed_at treated as always updated (new shares always show badge)
 
 ### Pending Todos
 
@@ -140,6 +145,6 @@ None — clean start for v2.6
 
 ## Session Continuity
 
-Last session: 2026-03-10T06:58:36.036Z
-Stopped at: Completed 56-02-PLAN.md
+Last session: 2026-03-10T07:10:00Z
+Stopped at: Completed 54-01-PLAN.md
 Resume file: None
