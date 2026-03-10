@@ -127,7 +127,7 @@
 **Milestone Goal:** Elevate SemPKM from a personal tool to a power-user and collaboration-ready platform with advanced SPARQL workflows, federation, custom VFS projections, and UI polish across all views.
 
 - [x] **Phase 52: Bug Fixes & Security** - Fix event log diffs, lint layout, and gate SPARQL queries by role (completed 2026-03-09)
-- [ ] **Phase 53: SPARQL Power User** - Server-side history, saved queries, ontology autocomplete, IRI pills
+- [x] **Phase 53: SPARQL Power User** - Server-side history, saved queries, ontology autocomplete, IRI pills (completed 2026-03-10)
 - [ ] **Phase 54: SPARQL Advanced** - Shared queries and named queries promoted to nav tree views
 - [ ] **Phase 55: Browser UI Polish** - Object browser multi-select/delete, edge inspector, VFS breadcrumbs and preview
 - [ ] **Phase 56: VFS MountSpec** - Declarative mount vocabulary, 5 directory strategies, SHACL frontmatter writes, management UI
@@ -162,8 +162,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 53-01-PLAN.md — Backend data layer: SQLAlchemy models, migration, CRUD endpoints for history, saved queries, vocabulary, and enriched results
-- [ ] 53-02-PLAN.md — SPARQL panel UI: CM6 editor, result table with IRI pills, cell history, history/saved dropdowns, autocomplete, admin page removal
+- [x] 53-01-PLAN.md — Backend data layer: SQLAlchemy models, migration, CRUD endpoints for history, saved queries, vocabulary, and enriched results
+- [x] 53-02-PLAN.md — SPARQL panel UI: CM6 editor, result table with IRI pills, cell history, history/saved dropdowns, autocomplete, admin page removal
 
 ### Phase 54: SPARQL Advanced
 **Goal**: Users can share queries with collaborators and promote saved queries into browsable views in the nav tree
@@ -342,7 +342,7 @@ Phases execute in numeric order: 52 -> 53 -> 54 -> 55 -> 56 -> 57 -> 58
 | 50. User Guide & Documentation | v2.5 | 4/4 | Complete | 2026-03-09 |
 | 51. Spatial Canvas UX | v2.5 | 3/3 | Complete | 2026-03-09 |
 | 52. Bug Fixes & Security | 2/2 | Complete    | 2026-03-09 | - |
-| 53. SPARQL Power User | 1/2 | In Progress|  | - |
+| 53. SPARQL Power User | v2.6 | 2/2 | Complete | 2026-03-10 |
 | 54. SPARQL Advanced | v2.6 | 0/? | Not started | - |
 | 55. Browser UI Polish | v2.6 | 0/4 | Not started | - |
 | 56. VFS MountSpec | v2.6 | 0/? | Not started | - |
