@@ -66,6 +66,9 @@
               <button class="panel-tab" data-panel="inference">INFERENCE</button>
               <button class="panel-tab" data-panel="ai-copilot">AI COPILOT</button>
               <button class="panel-tab" data-panel="lint-dashboard">LINT <span class="lint-badge" id="lint-badge"></span></button>
+              {% if user is defined and user.role != 'guest' %}
+              <button class="panel-tab" data-panel="sparql">SPARQL</button>
+              {% endif %}
             </div>
             <div class="panel-controls">
               <button class="panel-btn" id="panel-maximize-btn" title="Maximize Panel (toggle)">
@@ -98,6 +101,11 @@
                  hx-swap="innerHTML">
               <div class="lint-dashboard-empty">Loading lint results...</div>
             </div>
+            {% if user is defined and user.role != 'guest' %}
+            <div class="panel-pane" id="panel-sparql">
+              {% include 'browser/sparql_panel.html' %}
+            </div>
+            {% endif %}
           </div>
         </div>
     </div>

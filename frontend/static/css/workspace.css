@@ -3726,3 +3726,502 @@ details.form-group[open] > .form-group-summary::before {
     flex-shrink: 0;
     stroke: currentColor;
 }
+
+/* ============================================
+   SPARQL Panel
+   ============================================ */
+
+.sparql-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* --- Toolbar --- */
+.sparql-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-surface);
+    flex-shrink: 0;
+}
+
+.sparql-toolbar-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+    cursor: pointer;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s;
+}
+.sparql-toolbar-btn:hover {
+    background: var(--color-surface-hover);
+    color: var(--color-text);
+}
+.sparql-toolbar-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+.sparql-run-btn {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+.sparql-run-btn:hover {
+    background: var(--color-primary);
+    color: #fff;
+}
+.sparql-run-btn:hover svg {
+    stroke: #fff;
+}
+
+.sparql-toolbar-spacer {
+    flex: 1;
+}
+
+.sparql-all-graphs-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    user-select: none;
+}
+.sparql-all-graphs-label input[type="checkbox"] {
+    margin: 0;
+}
+
+/* --- Dropdown --- */
+.sparql-dropdown-wrap {
+    position: relative;
+}
+.sparql-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 100;
+    background: var(--color-surface-raised, var(--color-surface));
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    max-height: 300px;
+    overflow-y: auto;
+    min-width: 320px;
+    margin-top: 2px;
+}
+.sparql-dropdown-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--color-border);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.sparql-dropdown-action {
+    display: inline-flex;
+    align-items: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text-muted);
+    padding: 2px;
+    border-radius: 3px;
+}
+.sparql-dropdown-action:hover {
+    color: var(--color-danger, #c62828);
+    background: var(--color-surface-hover);
+}
+.sparql-dropdown-action svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+.sparql-dropdown-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--color-border);
+    gap: 8px;
+}
+.sparql-dropdown-item:last-child {
+    border-bottom: none;
+}
+.sparql-dropdown-item:hover {
+    background: var(--color-surface-hover);
+}
+.sparql-dropdown-item-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    cursor: pointer;
+}
+.sparql-dropdown-item-label {
+    font-size: 0.82rem;
+    color: var(--color-text);
+    font-family: var(--font-mono, monospace);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.sparql-dropdown-item-time {
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+}
+.sparql-dropdown-item-name {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--color-text);
+}
+.sparql-dropdown-item-desc {
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+}
+.sparql-dropdown-empty,
+.sparql-dropdown-loading {
+    padding: 12px;
+    text-align: center;
+    color: var(--color-text-muted);
+    font-size: 0.82rem;
+}
+.sparql-star-btn,
+.sparql-delete-btn {
+    display: inline-flex;
+    align-items: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text-muted);
+    padding: 2px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+.sparql-star-btn:hover {
+    color: var(--color-warning, #f9a825);
+}
+.sparql-delete-btn:hover {
+    color: var(--color-danger, #c62828);
+}
+.sparql-star-btn svg,
+.sparql-delete-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+/* --- Main: Editor + Results side-by-side --- */
+.sparql-main {
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+    overflow: hidden;
+    min-height: 0;
+}
+
+.sparql-editor-wrap {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.sparql-editor-wrap .cm-editor {
+    height: 100%;
+    flex: 1;
+}
+.sparql-editor-wrap .cm-scroller {
+    overflow: auto;
+}
+
+.sparql-results-wrap {
+    flex: 1;
+    min-width: 0;
+    overflow: auto;
+    border-left: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+}
+
+.sparql-results-info {
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0;
+    min-height: 24px;
+}
+
+.sparql-results-table-wrap {
+    flex: 1;
+    overflow: auto;
+}
+
+.sparql-results-placeholder {
+    padding: 24px;
+    text-align: center;
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+}
+
+.sparql-error {
+    padding: 12px;
+    color: var(--color-danger, #c62828);
+    background: var(--color-danger-bg, rgba(198, 40, 40, 0.08));
+    border-radius: 4px;
+    margin: 8px;
+    font-size: 0.85rem;
+    white-space: pre-wrap;
+    font-family: var(--font-mono, monospace);
+}
+
+/* --- Result Table --- */
+.sparql-results-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    font-family: var(--font-mono, monospace);
+}
+.sparql-results-table th {
+    position: sticky;
+    top: 0;
+    background: var(--color-surface);
+    padding: 4px 8px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    border-bottom: 2px solid var(--color-border);
+    white-space: nowrap;
+    z-index: 1;
+}
+.sparql-results-table td {
+    padding: 4px 8px;
+    border-bottom: 1px solid var(--color-border);
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.sparql-results-table tr:hover td {
+    background: var(--color-surface-hover);
+}
+
+.sparql-uri {
+    color: var(--color-primary);
+    font-size: 0.82rem;
+}
+.sparql-bnode {
+    font-style: italic;
+    color: var(--color-text-muted);
+}
+.sparql-literal {
+    color: var(--color-text);
+}
+.sparql-lang {
+    color: var(--color-text-muted);
+    font-size: 0.72rem;
+    margin-left: 2px;
+}
+.sparql-null {
+    color: var(--color-text-muted);
+}
+
+/* --- IRI Pill --- */
+.sparql-iri-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--color-surface-raised, var(--color-surface));
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 1px 8px 1px 4px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    white-space: nowrap;
+    transition: border-color 0.15s;
+    font-family: var(--font-sans, sans-serif);
+}
+.sparql-iri-pill:hover {
+    border-color: var(--color-accent, var(--color-primary));
+}
+
+.sparql-pill-icon {
+    display: flex;
+    align-items: center;
+}
+.sparql-pill-icon svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+.sparql-pill-label {
+    color: var(--color-text);
+    text-decoration: none;
+}
+
+/* --- Load More --- */
+.sparql-load-more {
+    padding: 8px;
+    text-align: center;
+}
+.sparql-load-more-btn {
+    padding: 4px 16px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+    cursor: pointer;
+    font-size: 0.82rem;
+}
+.sparql-load-more-btn:hover {
+    background: var(--color-surface-hover);
+    color: var(--color-text);
+}
+
+/* --- Cell History --- */
+.sparql-cell-history {
+    border-top: 1px solid var(--color-border);
+    max-height: 30%;
+    overflow-y: auto;
+    background: var(--color-bg);
+    flex-shrink: 0;
+}
+.sparql-cell-history-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-surface);
+}
+.sparql-cell-item {
+    border-bottom: 1px solid var(--color-border);
+}
+.sparql-cell-summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    color: var(--color-text);
+}
+.sparql-cell-summary:hover {
+    background: var(--color-surface-hover);
+}
+.sparql-cell-chevron {
+    transition: transform 0.15s;
+    color: var(--color-text-muted);
+    font-size: 0.7rem;
+    flex-shrink: 0;
+}
+.sparql-cell-item.expanded .sparql-cell-chevron {
+    transform: rotate(90deg);
+}
+.sparql-cell-query-preview {
+    flex: 1;
+    min-width: 0;
+    font-family: var(--font-mono, monospace);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.78rem;
+}
+.sparql-cell-badge {
+    font-size: 0.72rem;
+    padding: 1px 6px;
+    border-radius: 8px;
+    background: var(--color-surface-hover);
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.sparql-cell-time {
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.sparql-cell-detail {
+    display: none;
+    padding: 8px 12px;
+    border-top: 1px solid var(--color-border);
+    background: var(--color-surface);
+}
+.sparql-cell-item.expanded .sparql-cell-detail {
+    display: block;
+}
+.sparql-cell-query-full {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.78rem;
+    padding: 8px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    overflow-x: auto;
+    margin: 0 0 8px 0;
+    white-space: pre-wrap;
+}
+.sparql-cell-results-wrap {
+    max-height: 200px;
+    overflow: auto;
+}
+.sparql-mini-table {
+    font-size: 0.75rem;
+}
+.sparql-cell-more {
+    padding: 4px 8px;
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+    text-align: center;
+}
+
+/* CM6 autocomplete type badges */
+.sparql-panel .cm-tooltip-autocomplete .cm-completionDetail {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.75em;
+    padding: 0 4px;
+    border-radius: 3px;
+    background: var(--color-surface-hover);
+    color: var(--color-text-muted);
+    margin-left: 4px;
+}
+
+/* CM6 autocomplete dropdown theme */
+.sparql-panel .cm-tooltip-autocomplete {
+    background: var(--color-surface-raised, var(--color-surface));
+    border: 1px solid var(--color-border);
+}
+.sparql-panel .cm-tooltip-autocomplete > ul > li {
+    color: var(--color-text);
+}
+.sparql-panel .cm-tooltip-autocomplete > ul > li[aria-selected] {
+    background: var(--color-primary);
+    color: #fff;
+}
