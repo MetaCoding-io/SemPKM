@@ -130,7 +130,7 @@
 - [x] **Phase 53: SPARQL Power User** - Server-side history, saved queries, ontology autocomplete, IRI pills (completed 2026-03-10)
 - [ ] **Phase 54: SPARQL Advanced** - Shared queries and named queries promoted to nav tree views
 - [x] **Phase 55: Browser UI Polish** - Object browser multi-select/delete, edge inspector, VFS breadcrumbs and preview (completed 2026-03-10)
-- [ ] **Phase 56: VFS MountSpec** - Declarative mount vocabulary, 5 directory strategies, SHACL frontmatter writes, management UI
+- [x] **Phase 56: VFS MountSpec** - Declarative mount vocabulary, 5 directory strategies, SHACL frontmatter writes, management UI (completed 2026-03-10)
 - [x] **Phase 57: Spatial Canvas** - Snap-to-grid, edge labels, keyboard nav, bulk drag-drop, wiki-link edges (completed 2026-03-10)
 - [ ] **Phase 58: Federation** - RDF Patch serialization, named graph sync, LDN notifications, federated auth, collaboration UI
 
@@ -348,7 +348,7 @@ Phases execute in numeric order: 52 -> 53 -> 54 -> 55 -> 56 -> 57 -> 58
 | 53. SPARQL Power User | v2.6 | 2/2 | Complete | 2026-03-10 |
 | 54. SPARQL Advanced | v2.6 | 0/2 | Planned | - |
 | 55. Browser UI Polish | 4/4 | Complete   | 2026-03-10 | - |
-| 56. VFS MountSpec | 2/3 | In Progress|  | - |
+| 56. VFS MountSpec | 3/3 | Complete   | 2026-03-10 | - |
 | 57. Spatial Canvas | 3/3 | Complete    | 2026-03-10 | - |
 | 58. Federation | v2.6 | 0/? | Not started | - |
 

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.6
 milestone_name: Power User & Collaboration
 status: executing
-stopped_at: Completed 56-03-PLAN.md
-last_updated: "2026-03-10T06:56:06.826Z"
+stopped_at: Completed 56-02-PLAN.md
+last_updated: "2026-03-10T06:58:36.039Z"
 last_activity: "2026-03-10 - Completed 56-03: mount management UI"
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 16
-  completed_plans: 13
+  completed_plans: 14
   percent: 96
 ---
 
@@ -62,6 +62,7 @@ Progress: [██████████] 96%
 | Phase 57 P03 | 3 | 2 tasks | 5 files |
 | Phase 56 P01 | 4 | 2 tasks | 5 files |
 | Phase 56 P03 | 3 | 2 tasks | 3 files |
+| Phase 56 P02 | 5 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -105,6 +106,11 @@ Full decision log in PROJECT.md Key Decisions table.
 - 56-03: Mount JS in separate IIFE with window exposure for inline onclick handlers
 - 56-03: Scope dropdown uses query: prefix for saved query IDs to distinguish from special values
 - 56-03: Auto-slug from mount name on blur only when path field is empty
+- 56-02: ETag derived from object IRI (not content hash) for cross-path concurrency on multi-folder mounts
+- 56-02: SHACL property shapes cached 5 minutes since shapes only change on model install
+- 56-02: Object references in frontmatter use {label, iri} dict format for human-readable editing
+- 56-02: By-date strategy uses two-level Year/Month hierarchy with MM-MonthName folder format
+- 56-02: _uncategorized folder uses FILTER NOT EXISTS to capture objects missing grouping property
 
 ### Pending Todos
 
@@ -134,6 +140,6 @@ None — clean start for v2.6
 
 ## Session Continuity
 
-Last session: 2026-03-10T06:56:32Z
-Stopped at: Completed quick-38
+Last session: 2026-03-10T06:58:36.036Z
+Stopped at: Completed 56-02-PLAN.md
 Resume file: None
