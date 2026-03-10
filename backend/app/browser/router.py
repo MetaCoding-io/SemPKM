@@ -1245,6 +1245,107 @@ async def delete_edge(
     return JSONResponse({"event_iri": str(event_result.event_iri)})
 
 
+@router.post("/objects/delete")
+async def bulk_delete_objects(
+    request: Request,
+    user: User = Depends(require_role("owner", "member")),
+    client: TriplestoreClient = Depends(get_triplestore_client),
+    event_store: EventStore = Depends(get_event_store),
+    label_service: LabelService = Depends(get_label_service),
+):
+    """Bulk delete objects by removing all their triples from the current graph.
+
+    Accepts a JSON body with {"iris": ["iri1", "iri2", ...]}. For each IRI,
+    queries all triples where that IRI is the subject in urn:sempkm:current,
+    then creates an Operation with materialize_deletes to remove them via
+    the event store (maintaining immutable audit trail).
+    """
+    body = await request.json()
+    iris = body.get("iris", [])
+
+    if not iris or not isinstance(iris, list):
+        raise HTTPException(status_code=400, detail="Missing or invalid 'iris' array")
+
+    # Validate all IRIs first
+    for iri in iris:
+        if not _validate_iri(iri):
+            raise HTTPException(status_code=400, detail=f"Invalid IRI: {iri}")
+
+    from rdflib import Variable
+
+    operations = []
+    all_affected = []
+
+    for iri in iris:
+        # Query all triples where this IRI is the subject in the current graph
+        sparql = f"""
+        SELECT ?p ?o WHERE {{
+          GRAPH <urn:sempkm:current> {{
+            <{iri}> ?p ?o .
+          }}
+        }}
+        """
+        try:
+            result = await client.query(sparql)
+            bindings = result.get("results", {}).get("bindings", [])
+        except Exception:
+            logger.warning("Failed to query triples for %s during bulk delete", iri, exc_info=True)
+            bindings = []
+
+        if not bindings:
+            continue
+
+        materialize_deletes = []
+        subject = URIRef(iri)
+        for b in bindings:
+            pred_val = b["p"]["value"]
+            obj_binding = b["o"]
+            pred = URIRef(pred_val)
+
+            if obj_binding["type"] == "uri":
+                obj = URIRef(obj_binding["value"])
+            elif obj_binding["type"] == "bnode":
+                from rdflib import BNode
+                obj = BNode(obj_binding["value"])
+            else:
+                from rdflib import Literal
+                datatype = obj_binding.get("datatype")
+                lang = obj_binding.get("xml:lang")
+                if datatype:
+                    obj = Literal(obj_binding["value"], datatype=URIRef(datatype))
+                elif lang:
+                    obj = Literal(obj_binding["value"], lang=lang)
+                else:
+                    obj = Literal(obj_binding["value"])
+
+            materialize_deletes.append((subject, pred, obj))
+
+        operation = Operation(
+            operation_type="object.delete",
+            affected_iris=[iri],
+            description=f"Deleted object: {iri}",
+            data_triples=[],
+            materialize_inserts=[],
+            materialize_deletes=materialize_deletes,
+        )
+        operations.append(operation)
+        all_affected.append(iri)
+
+    if not operations:
+        return JSONResponse({"event_iri": None, "deleted_count": 0})
+
+    user_iri = URIRef(f"urn:sempkm:user:{user.id}")
+    event_result = await event_store.commit(
+        operations, performed_by=user_iri, performed_by_role=user.role
+    )
+    label_service.invalidate(event_result.affected_iris)
+
+    return JSONResponse({
+        "event_iri": str(event_result.event_iri),
+        "deleted_count": len(operations),
+    })
+
+
 @router.get("/lint/{object_iri:path}")
 async def get_lint(
     request: Request,

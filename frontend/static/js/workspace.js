@@ -1079,6 +1079,50 @@
     }
   });
 
+  function bulkDeleteSelected() {
+    if (selectedIris.size === 0) return;
+
+    // Collect labels for selected IRIs from DOM
+    var labels = [];
+    selectedIris.forEach(function(iri) {
+      var leaf = document.querySelector('#section-objects .tree-leaf[data-iri="' + CSS.escape(iri) + '"]');
+      if (leaf) {
+        var labelEl = leaf.querySelector('.tree-leaf-label');
+        labels.push(labelEl ? labelEl.textContent : iri);
+      } else {
+        labels.push(iri);
+      }
+    });
+
+    var irisArray = Array.from(selectedIris);
+    var count = irisArray.length;
+
+    showConfirmDialog(
+      'Delete objects',
+      'Delete ' + count + ' object' + (count !== 1 ? 's' : '') + '? This cannot be undone.',
+      labels,
+      function() {
+        fetch('/browser/objects/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ iris: irisArray })
+        })
+        .then(function(resp) {
+          if (!resp.ok) throw new Error('Delete failed: ' + resp.status);
+          return resp.json();
+        })
+        .then(function(data) {
+          clearSelection();
+          refreshNavTree();
+          showToast('Deleted ' + (data.deleted_count || count) + ' object' + ((data.deleted_count || count) !== 1 ? 's' : ''));
+        })
+        .catch(function(err) {
+          showToast('Failed to delete objects: ' + err.message);
+        });
+      }
+    );
+  }
+
   // --- Nav Tree Refresh ---
 
   function refreshNavTree() {
@@ -2458,6 +2502,7 @@
   window.showToast = showToast;
   window.handleTreeLeafClick = handleTreeLeafClick;
   window.clearSelection = clearSelection;
+  window.bulkDeleteSelected = bulkDeleteSelected;
   window.toggleEdgeDetail = toggleEdgeDetail;
   window.showEventInLog = showEventInLog;
   window.showConfirmDialog = showConfirmDialog;
