@@ -35,8 +35,8 @@
                     <span class="nav-label">Webhooks</span>
                 </a>
                 {% if user is defined and user.role != 'guest' %}
-                <a href="/admin/sparql" class="nav-link" data-tooltip="SPARQL Console"
-                   hx-get="/admin/sparql" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
+                <a href="/browser?panel=sparql" class="nav-link" data-tooltip="SPARQL Console"
+                   hx-boost="false">
                     <i data-lucide="database" class="nav-icon"></i>
                     <span class="nav-label">SPARQL Console</span>
                 </a>
