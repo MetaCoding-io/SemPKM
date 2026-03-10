@@ -159,11 +159,11 @@ Plans:
   2. User can save a query with a name and description, and retrieve it later from a saved queries list
   3. SPARQL result cells containing IRIs display as labeled pills with type icons that open workspace tabs on click
   4. SPARQL editor suggests prefixes, classes, and predicates from installed Mental Models as the user types
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 53-01: TBD
-- [ ] 53-02: TBD
+- [ ] 53-01-PLAN.md — Backend data layer: SQLAlchemy models, migration, CRUD endpoints for history, saved queries, vocabulary, and enriched results
+- [ ] 53-02-PLAN.md — SPARQL panel UI: CM6 editor, result table with IRI pills, cell history, history/saved dropdowns, autocomplete, admin page removal
 
 ### Phase 54: SPARQL Advanced
 **Goal**: Users can share queries with collaborators and promote saved queries into browsable views in the nav tree
@@ -186,7 +186,7 @@ Plans:
   1. Nav tree header has refresh and plus buttons that reload the object list and jump to create-object flow respectively
   2. User can shift-click to select multiple objects in the nav tree and bulk delete them with a single action
   3. Clicking a relationship in the Relations panel expands to show edge provenance, metadata, and type information
-  4. VFS browser shows a clickable breadcrumb trail for path navigation and a side-by-side raw/rendered preview for open files
+  4. VFS browser shows a side-by-side raw/rendered preview for open files
   5. VFS browser file operations have consistent icons and loading states
 **Plans**: TBD
 
@@ -340,7 +340,7 @@ Phases execute in numeric order: 52 -> 53 -> 54 -> 55 -> 56 -> 57 -> 58
 | 50. User Guide & Documentation | v2.5 | 4/4 | Complete | 2026-03-09 |
 | 51. Spatial Canvas UX | v2.5 | 3/3 | Complete | 2026-03-09 |
 | 52. Bug Fixes & Security | 2/2 | Complete    | 2026-03-09 | - |
-| 53. SPARQL Power User | v2.6 | 0/? | Not started | - |
+| 53. SPARQL Power User | v2.6 | 0/2 | Not started | - |
 | 54. SPARQL Advanced | v2.6 | 0/? | Not started | - |
 | 55. Browser UI Polish | v2.6 | 0/? | Not started | - |
 | 56. VFS MountSpec | v2.6 | 0/? | Not started | - |
