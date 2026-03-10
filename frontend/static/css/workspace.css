@@ -3219,9 +3219,58 @@ details.form-group[open] > .form-group-summary::before {
   stroke-linejoin: round;
 }
 
+/* Wiki-link edge styling -- dashed green, distinct from solid blue RDF edges */
+.spatial-edge-line-markdown {
+  stroke: var(--color-canvas-wikilink, #16a34a);
+  stroke-dasharray: 6 3;
+  stroke-width: 1.5;
+  opacity: 0.75;
+  marker-end: none;
+}
+
+.spatial-anchor-dot-wikilink {
+  fill: var(--color-canvas-wikilink, #16a34a);
+}
+
+/* Ghost node -- semi-transparent stub for unresolved wiki-link targets */
+.spatial-ghost-node {
+  position: absolute;
+  padding: 4px 10px;
+  background: var(--color-bg-surface, #ffffff);
+  border: 1px dashed var(--color-canvas-wikilink, #16a34a);
+  border-radius: 6px;
+  opacity: 0.55;
+  cursor: pointer;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  transition: opacity 0.15s ease;
+  z-index: 5;
+}
+.spatial-ghost-node:hover {
+  opacity: 0.9;
+  background: var(--color-bg-elevated);
+}
+.spatial-ghost-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+  display: inline-block;
+}
+
 [data-theme="dark"] .spatial-node {
   background: var(--color-bg-elevated, #1e293b);
   border-color: var(--color-border-default, #334155);
+}
+
+[data-theme="dark"] .spatial-edge-line-markdown {
+  stroke: #4ade80;
+}
+[data-theme="dark"] .spatial-anchor-dot-wikilink {
+  fill: #4ade80;
+}
+[data-theme="dark"] .spatial-ghost-node {
+  border-color: #4ade80;
 }
 
 

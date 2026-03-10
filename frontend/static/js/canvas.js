@@ -38,6 +38,13 @@
   var GRID = 24;
   function snapToGrid(value) { return Math.round(value / GRID) * GRID; }
 
+  // Wiki-link regex — matches [[target]], [[target|alias]], [[target#heading|alias]]
+  // Same pattern as backend/app/obsidian/scanner.py WIKILINK_RE
+  var WIKILINK_RE = /(?<!!)\[\[([^\]\|#]+)(?:#[^\]\|]*)?\s*(?:\|([^\]]*))?\]\]/g;
+
+  // Maps lowercase title to IRI for on-canvas nodes (rebuilt each renderNodes call)
+  var wikiLinkTitleMap = {};
+
   /**
    * Return nodes sorted in spatial order: top-to-bottom, left-to-right.
    */
@@ -408,6 +415,54 @@
       return;
     }
 
+    // Ghost node click — resolve wiki-link and add full node
+    var ghostNode = event.target.closest('.spatial-ghost-node');
+    if (ghostNode) {
+      var ghostTitle = ghostNode.getAttribute('data-ghost-title');
+      if (!ghostTitle) return;
+      var ghostX = parseInt(ghostNode.style.left, 10) || 0;
+      var ghostY = parseInt(ghostNode.style.top, 10) || 0;
+      // Resolve title to IRI via backend
+      fetch('/api/canvas/resolve-wikilinks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ titles: [ghostTitle] }),
+      })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (data) {
+          if (!data || !data.resolved) {
+            if (window.showToast) window.showToast('Object not found: ' + ghostTitle);
+            return;
+          }
+          var iri = data.resolved[ghostTitle];
+          if (!iri) {
+            if (window.showToast) window.showToast('Object not found: ' + ghostTitle);
+            return;
+          }
+          if (findNode(iri)) {
+            setStatus('Already on canvas');
+            renderNodes();
+            return;
+          }
+          state.nodes.push({
+            id: iri,
+            title: ghostTitle,
+            uri: iri,
+            x: snapToGrid(ghostX),
+            y: snapToGrid(ghostY),
+            markdown: '',
+            collapsed: false,
+          });
+          setStatus('Added: ' + ghostTitle);
+          renderNodes();
+          fetchNodeBody(iri);
+        })
+        .catch(function () {
+          if (window.showToast) window.showToast('Object not found: ' + ghostTitle);
+        });
+      return;
+    }
+
     var link = event.target.closest('.spatial-node-markdown a');
     if (link) {
       event.preventDefault();
@@ -415,6 +470,8 @@
       var sourceEl = link.closest('.spatial-node');
       var source = sourceEl ? findNode(sourceEl.dataset.nodeId) : null;
       if (!href) return;
+      // Skip wikilink: scheme — those are handled by ghost node clicks
+      if (href.indexOf('wikilink:') === 0) return;
       var target = findNode(href);
       if (target) {
         setStatus('Focused existing node: ' + href);
@@ -591,6 +648,15 @@
   function renderNodes() {
     if (!state.layer) return;
 
+    // Rebuild wiki-link title map from current on-canvas nodes
+    wikiLinkTitleMap = {};
+    for (var ti = 0; ti < state.nodes.length; ti++) {
+      var n = state.nodes[ti];
+      if (n.title) {
+        wikiLinkTitleMap[n.title.toLowerCase()] = n.id;
+      }
+    }
+
     var edgesHtml = state.edges.map(function (edge) {
       var source = findNode(edge.source);
       var target = findNode(edge.target);
@@ -646,6 +712,7 @@
 
     var markdownEdges = [];
     var anchorDotsHtml = [];
+    var ghostNodes = [];
 
     state.layer.querySelectorAll('.spatial-node').forEach(function (nodeEl) {
       var sourceId = nodeEl.dataset.nodeId;
@@ -659,6 +726,40 @@
         var nodeRect = nodeEl.getBoundingClientRect();
         var anchorY = sourceBox.y + (linkRect.top - nodeRect.top) + (linkRect.height / 2);
         var anchorX = sourceBox.x + sourceBox.width;
+        var linkLabel = linkEl.textContent || 'link';
+
+        // Handle wikilink: scheme hrefs (unresolved wiki-links)
+        if (href.indexOf('wikilink:') === 0) {
+          var decodedTarget = decodeURIComponent(href.substring(9));
+          // Check if the target can now be resolved on canvas (title map was rebuilt)
+          var resolvedIri = wikiLinkTitleMap[decodedTarget.toLowerCase()];
+          if (resolvedIri && findNode(resolvedIri)) {
+            // Target is on canvas — draw a markdown edge to it
+            anchorDotsHtml.push('<circle class="spatial-anchor-dot spatial-anchor-dot-wikilink" cx="' + Math.round(anchorX) + '" cy="' + Math.round(anchorY) + '" r="3"></circle>');
+            markdownEdges.push({
+              id: 'md|' + sourceId + '|' + resolvedIri + '|' + idx,
+              source: sourceId,
+              target: resolvedIri,
+              label: linkLabel,
+              anchorX: anchorX,
+              anchorY: anchorY,
+            });
+          } else {
+            // Target not on canvas — create ghost node
+            anchorDotsHtml.push('<circle class="spatial-anchor-dot spatial-anchor-dot-wikilink" cx="' + Math.round(anchorX) + '" cy="' + Math.round(anchorY) + '" r="3"></circle>');
+            ghostNodes.push({
+              id: 'ghost:' + decodedTarget,
+              label: decodedTarget,
+              sourceId: sourceId,
+              sourceBox: sourceBox,
+              anchorX: anchorX,
+              anchorY: anchorY,
+            });
+          }
+          return;
+        }
+
+        // Standard href — check if target is on canvas
         var targetNode = findNode(href);
 
         anchorDotsHtml.push('<circle class="spatial-anchor-dot" cx="' + Math.round(anchorX) + '" cy="' + Math.round(anchorY) + '" r="3"></circle>');
@@ -668,7 +769,7 @@
             id: 'md|' + sourceId + '|' + href + '|' + idx,
             source: sourceId,
             target: href,
-            label: 'link',
+            label: linkLabel,
             anchorX: anchorX,
             anchorY: anchorY,
           });
@@ -696,15 +797,37 @@
       ].join('');
     }).join('');
 
+    // Build ghost node HTML and ghost edge SVG lines
+    var ghostHtml = '';
+    var ghostEdgesHtml = '';
+    var ghostDedup = {};
+    for (var gi = 0; gi < ghostNodes.length; gi++) {
+      var g = ghostNodes[gi];
+      if (ghostDedup[g.id]) continue;
+      ghostDedup[g.id] = true;
+      var gx = snapToGrid(g.sourceBox.x + g.sourceBox.width + 60);
+      var gy = snapToGrid(g.anchorY - 16);
+      ghostHtml += '<article class="spatial-ghost-node" data-ghost-title="' + escapeHtml(g.label) + '" data-ghost-source="' + escapeHtml(g.sourceId) + '" style="left:' + gx + 'px; top:' + gy + 'px;"><span class="spatial-ghost-label">' + escapeHtml(g.label) + '</span></article>';
+      // Dashed green line from anchor dot to ghost node center
+      var ghostCenterX = gx + 40;
+      var ghostCenterY = gy + 12;
+      ghostEdgesHtml += '<line class="spatial-edge-line spatial-edge-line-markdown" x1="' + Math.round(g.anchorX) + '" y1="' + Math.round(g.anchorY) + '" x2="' + ghostCenterX + '" y2="' + ghostCenterY + '"></line>';
+    }
+
     var svgHtml = [
       '<svg class="spatial-edges" width="5000" height="5000" viewBox="0 0 5000 5000" aria-hidden="true">',
       '<defs><marker id="spatial-edge-arrow" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" class="spatial-edge-arrow-path"></path></marker></defs>',
       edgesHtml,
+      ghostEdgesHtml,
       anchorDotsHtml.join(''),
       '</svg>'
     ].join('');
 
     state.layer.insertAdjacentHTML('afterbegin', svgHtml);
+    // Append ghost nodes after all other elements
+    if (ghostHtml) {
+      state.layer.insertAdjacentHTML('beforeend', ghostHtml);
+    }
 
     // Toggle hint visibility based on whether canvas has nodes
     var hint = document.getElementById('canvas-hint');
@@ -769,11 +892,24 @@
   function renderMarkdown(markdownText) {
     if (!markdownText) return '';
 
+    // Pre-process wiki-links before markdown parsing
+    var preprocessed = markdownText.replace(WIKILINK_RE, function (match, target, alias) {
+      var displayText = alias || target;
+      var lowerTarget = target.trim().toLowerCase();
+      var resolvedIri = wikiLinkTitleMap[lowerTarget];
+      if (resolvedIri) {
+        // Target is on canvas — render as a standard markdown link to the IRI
+        return '[' + displayText + '](' + resolvedIri + ')';
+      }
+      // Target not on canvas — use wikilink: scheme for ghost node detection
+      return '[' + displayText + '](wikilink:' + encodeURIComponent(target.trim()) + ')';
+    });
+
     if (typeof globalThis.marked !== 'undefined') {
       try {
-        var rendered = globalThis.marked.parse(markdownText);
+        var rendered = globalThis.marked.parse(preprocessed);
         if (typeof DOMPurify !== 'undefined') {
-          rendered = DOMPurify.sanitize(rendered);
+          rendered = DOMPurify.sanitize(rendered, { ADD_URI_SAFE_PROTOCOLS: ['wikilink'] });
         }
         return rendered;
       } catch (e) {
@@ -781,7 +917,7 @@
       }
     }
 
-    return escapeHtml(markdownText).replace(/\n/g, '<br>');
+    return escapeHtml(preprocessed).replace(/\n/g, '<br>');
   }
 
   function resetView() {
