@@ -47,8 +47,9 @@ class RootCollection(DAVCollection):
         self._client = client
 
     def get_member_names(self) -> list[str]:
-        """Return list of installed model IDs (cached)."""
+        """Return list of installed model IDs plus mount directory names (cached)."""
         def _load():
+            # Model directories
             result = self._client.query(
                 """
                 SELECT DISTINCT ?modelId FROM <urn:sempkm:models>
@@ -58,15 +59,37 @@ class RootCollection(DAVCollection):
                 }
                 """
             )
-            return [
+            names = [
                 b["modelId"]["value"] for b in result["results"]["bindings"]
             ]
+
+            # Mount directories
+            from app.vfs.mount_service import SyncMountService
+            user_iri = self.environ.get("sempkm.user_id", "")
+            if user_iri and not user_iri.startswith("urn:"):
+                user_iri = f"urn:sempkm:user:{user_iri}"
+            mounts = SyncMountService(self._client).list_mounts(user_iri)
+            for m in mounts:
+                if m.path not in names:
+                    names.append(m.path)
+
+            return names
 
         return cached_get_member_names("root:models", _load)
 
     def get_member(self, name: str):
-        """Return ModelCollection for a model ID."""
+        """Return ModelCollection for a model ID, or MountRootCollection for a mount prefix."""
         member_path = f"{self.path.rstrip('/')}/{name}"
+
+        # Check if this is a mount prefix
+        from app.vfs.mount_service import SyncMountService
+        mount = SyncMountService(self._client).get_mount_by_prefix(name)
+        if mount is not None:
+            from app.vfs.mount_collections import MountRootCollection
+            return MountRootCollection(
+                member_path, self.environ, self._client, mount,
+            )
+
         return ModelCollection(member_path, self.environ, self._client, model_id=name)
 
     # Read-only enforcement
