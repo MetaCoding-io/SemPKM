@@ -204,6 +204,14 @@
     padding-left: 8px;
 }
 
+.tree-node:not(.expanded) + .tree-children {
+    display: none;
+}
+
+.tree-node.expanded + .tree-children {
+    display: block;
+}
+
 /* Tree leaf nodes (individual objects) */
 .tree-leaf {
     display: flex;
