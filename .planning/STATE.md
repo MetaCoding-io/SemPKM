@@ -130,9 +130,10 @@ None — clean start for v2.6
 | 35 | Fix nav tree collapse not working - add missing CSS display rules | 2026-03-10 | 285ccd2 | [35-fix-nav-tree-collapse-not-working-add-mi](./quick/35-fix-nav-tree-collapse-not-working-add-mi/) |
 | 36 | Vertical split layout for lint and inference panels with card-based inference results | 2026-03-10 | c515481 | [36-vertical-split-layout-for-lint-and-infer](./quick/36-vertical-split-layout-for-lint-and-infer/) |
 | 37 | Fix uvicorn hot-reload hanging on file changes due to SSE generator deadlock | 2026-03-10 | 4e3805e | [37-fix-uvicorn-hot-reload-hanging-on-file-c](./quick/37-fix-uvicorn-hot-reload-hanging-on-file-c/) |
+| 38 | Fix Pyright LSP config to resolve Docker backend venv from project root | 2026-03-10 | d08d16d | [38-fix-pyright-lsp-config-to-resolve-docker](./quick/38-fix-pyright-lsp-config-to-resolve-docker/) |
 
 ## Session Continuity
 
-Last session: 2026-03-10T06:56:06.824Z
-Stopped at: Completed 56-03-PLAN.md
+Last session: 2026-03-10T06:56:32Z
+Stopped at: Completed quick-38
 Resume file: None
