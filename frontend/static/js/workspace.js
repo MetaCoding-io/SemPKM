@@ -1014,7 +1014,7 @@
       ninja.data = [
         {
           id: 'new-object',
-          title: 'New Object',
+          title: 'Create new object',
           section: 'Objects',
           hotkey: 'alt+n',
           handler: function () { showTypePicker(); }
@@ -1193,6 +1193,9 @@
 
       // Populate layout restore/delete children from saved layouts
       _refreshLayoutPaletteItems(ninja);
+
+      // Add per-type Create entries from nav tree DOM
+      _addTypeCreateEntries(ninja);
     }).catch(function () {
       console.warn('ninja-keys custom element not available');
     });
@@ -1401,6 +1404,38 @@
         }
       });
     });
+    ninja.data = baseData;
+  }
+
+  /**
+   * Add per-type "Create X" entries to the command palette by reading
+   * type nodes from the nav tree DOM.  Existing create-* entries are
+   * removed first so the list stays in sync after a tree refresh.
+   */
+  function _addTypeCreateEntries(ninja) {
+    if (!ninja || !ninja.data) return;
+
+    // Remove any previous per-type create entries
+    var baseData = ninja.data.filter(function (d) {
+      return !d.id.startsWith('create-type-');
+    });
+
+    var typeNodes = document.querySelectorAll('#section-objects .tree-node[data-type-iri]');
+    typeNodes.forEach(function (node) {
+      var labelEl = node.querySelector('.tree-label');
+      if (!labelEl) return;
+      var typeLabel = labelEl.textContent.trim();
+      if (!typeLabel) return;
+
+      var id = 'create-type-' + typeLabel.toLowerCase().replace(/\s+/g, '-');
+      baseData.push({
+        id: id,
+        title: 'Create ' + typeLabel,
+        section: 'Objects',
+        handler: function () { showTypePicker(); }
+      });
+    });
+
     ninja.data = baseData;
   }
 
