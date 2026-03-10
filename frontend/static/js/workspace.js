@@ -984,6 +984,101 @@
     });
   }
 
+  // --- Multi-Select State (Phase 55, Plan 02) ---
+
+  var selectedIris = new Set();
+  var lastClickedLeaf = null;
+
+  function handleTreeLeafClick(e, iri, label) {
+    if (e.shiftKey && lastClickedLeaf) {
+      e.preventDefault();
+      selectRange(lastClickedLeaf, iri);
+    } else if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      toggleSelection(iri);
+      lastClickedLeaf = iri;
+    } else {
+      clearSelection();
+      openTab(iri, label);
+      lastClickedLeaf = iri;
+    }
+    updateSelectionUI();
+  }
+
+  function selectRange(fromIri, toIri) {
+    var leaves = Array.from(document.querySelectorAll('#section-objects .tree-leaf[data-iri]'));
+    var fromIdx = -1;
+    var toIdx = -1;
+    for (var i = 0; i < leaves.length; i++) {
+      var leafIri = leaves[i].getAttribute('data-iri');
+      if (leafIri === fromIri) fromIdx = i;
+      if (leafIri === toIri) toIdx = i;
+    }
+    if (fromIdx === -1 || toIdx === -1) return;
+    var lo = Math.min(fromIdx, toIdx);
+    var hi = Math.max(fromIdx, toIdx);
+    selectedIris.clear();
+    for (var j = lo; j <= hi; j++) {
+      selectedIris.add(leaves[j].getAttribute('data-iri'));
+    }
+  }
+
+  function toggleSelection(iri) {
+    if (selectedIris.has(iri)) {
+      selectedIris.delete(iri);
+    } else {
+      selectedIris.add(iri);
+    }
+  }
+
+  function clearSelection() {
+    selectedIris.clear();
+    var leaves = document.querySelectorAll('#section-objects .tree-leaf.selected');
+    for (var i = 0; i < leaves.length; i++) {
+      leaves[i].classList.remove('selected');
+    }
+    updateSelectionUI();
+  }
+
+  function updateSelectionUI() {
+    // Apply/remove .selected class on all tree-leaf elements
+    var allLeaves = document.querySelectorAll('#section-objects .tree-leaf[data-iri]');
+    for (var i = 0; i < allLeaves.length; i++) {
+      var iri = allLeaves[i].getAttribute('data-iri');
+      if (selectedIris.has(iri)) {
+        allLeaves[i].classList.add('selected');
+      } else {
+        allLeaves[i].classList.remove('selected');
+      }
+    }
+
+    // Show/hide selection badge and trash button
+    var badge = document.getElementById('selection-badge');
+    var count = document.getElementById('selection-count');
+    var trashBtn = document.getElementById('bulk-delete-btn');
+    var actions = document.querySelector('#section-objects .explorer-header-actions');
+
+    if (selectedIris.size > 0) {
+      if (badge) { badge.style.display = ''; }
+      if (count) { count.textContent = selectedIris.size + ' selected'; }
+      if (trashBtn) { trashBtn.style.display = ''; }
+      if (actions) { actions.classList.add('has-selection'); }
+    } else {
+      if (badge) { badge.style.display = 'none'; }
+      if (count) { count.textContent = ''; }
+      if (trashBtn) { trashBtn.style.display = 'none'; }
+      if (actions) { actions.classList.remove('has-selection'); }
+    }
+  }
+
+  // Re-apply .selected class after htmx partial swaps (type node expansion)
+  document.addEventListener('htmx:afterSwap', function(e) {
+    var section = document.getElementById('section-objects');
+    if (section && section.contains(e.detail.target)) {
+      updateSelectionUI();
+    }
+  });
+
   // --- Nav Tree Refresh ---
 
   function refreshNavTree() {
@@ -2361,6 +2456,8 @@
   window.maximizeBottomPanel = maximizeBottomPanel;
   window.movePanel = movePanel;
   window.showToast = showToast;
+  window.handleTreeLeafClick = handleTreeLeafClick;
+  window.clearSelection = clearSelection;
   window.toggleEdgeDetail = toggleEdgeDetail;
   window.showEventInLog = showEventInLog;
   window.showConfirmDialog = showConfirmDialog;

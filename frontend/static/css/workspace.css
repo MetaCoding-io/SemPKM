@@ -266,6 +266,14 @@
     color: var(--color-primary);
 }
 
+.tree-leaf.selected {
+    background: var(--color-accent-muted, rgba(59, 130, 246, 0.15));
+}
+
+.tree-leaf.selected:hover {
+    background: var(--color-accent-muted, rgba(59, 130, 246, 0.22));
+}
+
 .tree-leaf-icon {
     font-size: 0.8rem;
     flex-shrink: 0;
