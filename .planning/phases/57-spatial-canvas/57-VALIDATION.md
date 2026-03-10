@@ -2,8 +2,8 @@
 phase: 57
 slug: spatial-canvas
 status: draft
-nyquist_compliant: false
-wave_0_complete: false
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-10
 ---
 
@@ -38,11 +38,12 @@ created: 2026-03-10
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 57-01-01 | 01 | 1 | CANV-01 | E2E | `npx playwright test tests/17-spatial-canvas/snap-to-grid.spec.ts -x` | ❌ W0 | ⬜ pending |
-| 57-01-02 | 01 | 1 | CANV-02 | E2E | `npx playwright test tests/17-spatial-canvas/edge-labels.spec.ts -x` | ❌ W0 | ⬜ pending |
-| 57-01-03 | 01 | 1 | CANV-03 | E2E | `npx playwright test tests/17-spatial-canvas/keyboard-nav.spec.ts -x` | ❌ W0 | ⬜ pending |
-| 57-02-01 | 02 | 1 | CANV-04 | E2E | `npx playwright test tests/17-spatial-canvas/bulk-drop.spec.ts -x` | ❌ W0 | ⬜ pending |
-| 57-02-02 | 02 | 1 | CANV-05 | E2E | `npx playwright test tests/17-spatial-canvas/wiki-link-edges.spec.ts -x` | ❌ W0 | ⬜ pending |
+| 57-01-00 | 01 | 0 | ALL | Stub | `cd /home/james/Code/SemPKM/e2e && ls tests/17-spatial-canvas/*.spec.ts \| wc -l` (expect 5) | -- | ⬜ pending |
+| 57-01-01 | 01 | 1 | CANV-01 | E2E | `npx playwright test tests/17-spatial-canvas/snap-to-grid.spec.ts -x` | W0 | ⬜ pending |
+| 57-01-02 | 01 | 1 | CANV-02 | E2E | `npx playwright test tests/17-spatial-canvas/edge-labels.spec.ts -x` | W0 | ⬜ pending |
+| 57-01-03 | 01 | 1 | CANV-03 | E2E | `npx playwright test tests/17-spatial-canvas/keyboard-nav.spec.ts -x` | W0 | ⬜ pending |
+| 57-03-01 | 03 | 3 | CANV-04 | E2E | `npx playwright test tests/17-spatial-canvas/bulk-drop.spec.ts -x` | W0 | ⬜ pending |
+| 57-02-01 | 02 | 2 | CANV-05 | E2E | `npx playwright test tests/17-spatial-canvas/wiki-link-edges.spec.ts -x` | W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -50,15 +51,16 @@ created: 2026-03-10
 
 ## Wave 0 Requirements
 
-- [ ] `e2e/tests/17-spatial-canvas/` directory — create for all canvas tests
-- [ ] `e2e/tests/17-spatial-canvas/snap-to-grid.spec.ts` — stub for CANV-01
-- [ ] `e2e/tests/17-spatial-canvas/edge-labels.spec.ts` — stub for CANV-02
-- [ ] `e2e/tests/17-spatial-canvas/keyboard-nav.spec.ts` — stub for CANV-03
-- [ ] `e2e/tests/17-spatial-canvas/bulk-drop.spec.ts` — stub for CANV-04
-- [ ] `e2e/tests/17-spatial-canvas/wiki-link-edges.spec.ts` — stub for CANV-05
+- [x] `e2e/tests/17-spatial-canvas/` directory — created by Plan 57-01 Task 0
+- [x] `e2e/tests/17-spatial-canvas/snap-to-grid.spec.ts` — stub for CANV-01
+- [x] `e2e/tests/17-spatial-canvas/edge-labels.spec.ts` — stub for CANV-02
+- [x] `e2e/tests/17-spatial-canvas/keyboard-nav.spec.ts` — stub for CANV-03
+- [x] `e2e/tests/17-spatial-canvas/bulk-drop.spec.ts` — stub for CANV-04
+- [x] `e2e/tests/17-spatial-canvas/wiki-link-edges.spec.ts` — stub for CANV-05
 - [ ] Test data: objects with `[[wiki-link]]` syntax in body text for CANV-05 testing
 
 *Existing infrastructure covers framework install — Playwright already configured.*
+*Wave 0 stubs created by Plan 57-01 Task 0.*
 
 ---
 
@@ -73,11 +75,11 @@ created: 2026-03-10
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 30s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 30s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** passed
