@@ -173,10 +173,11 @@ Plans:
   1. User can share a saved query with another user who can view and run it (read-only)
   2. User can promote a saved query to a named view that appears in the nav tree alongside model-defined views
   3. Named query views execute the saved SPARQL and render results using the standard view infrastructure
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 54-01: TBD
+- [ ] 54-01-PLAN.md — Query sharing: data models, migration, share/unshare/fork endpoints, share UI with user picker and Shared with Me section
+- [ ] 54-02-PLAN.md — View promotion: promote/demote endpoints, ViewSpec integration, My Views nav tree section, promote dialog
 
 ### Phase 55: Browser UI Polish
 **Goal**: Object browser and VFS browser have polished, productive interactions for daily use
@@ -345,10 +346,10 @@ Phases execute in numeric order: 52 -> 53 -> 54 -> 55 -> 56 -> 57 -> 58
 | 51. Spatial Canvas UX | v2.5 | 3/3 | Complete | 2026-03-09 |
 | 52. Bug Fixes & Security | 2/2 | Complete    | 2026-03-09 | - |
 | 53. SPARQL Power User | v2.6 | 2/2 | Complete | 2026-03-10 |
-| 54. SPARQL Advanced | v2.6 | 0/? | Not started | - |
+| 54. SPARQL Advanced | v2.6 | 0/2 | Planned | - |
 | 55. Browser UI Polish | 4/4 | Complete   | 2026-03-10 | - |
 | 56. VFS MountSpec | 1/3 | In Progress|  | - |
-| 57. Spatial Canvas | 3/3 | Complete   | 2026-03-10 | - |
+| 57. Spatial Canvas | 3/3 | Complete    | 2026-03-10 | - |
 | 58. Federation | v2.6 | 0/? | Not started | - |
 
 ---
