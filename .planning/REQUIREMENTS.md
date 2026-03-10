@@ -37,7 +37,7 @@ Requirements for v2.6 Power User & Collaboration. Each maps to roadmap phases.
 - [ ] **VFS-02**: User can create a mount with one of 5 directory strategies (by-type, by-date, by-tag, by-property, flat)
 - [ ] **VFS-03**: VFS provider dispatches to the correct strategy based on mount path prefix
 - [ ] **VFS-04**: Editing a file's YAML frontmatter via WebDAV maps changes back to RDF properties via SHACL shapes
-- [ ] **VFS-05**: Mount management UI in Settings for creating, editing, and deleting mounts
+- [x] **VFS-05**: Mount management UI in Settings for creating, editing, and deleting mounts
 
 ### VFS Browser UX
 
@@ -117,7 +117,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VFS-02 | Phase 56 | Pending |
 | VFS-03 | Phase 56 | Pending |
 | VFS-04 | Phase 56 | Pending |
-| VFS-05 | Phase 56 | Pending |
+| VFS-05 | Phase 56 | Complete |
 | VFSX-01 | Phase 55 | Complete |
 | VFSX-02 | Phase 55 | Complete |
 | VFSX-03 | Phase 55 | Complete |
