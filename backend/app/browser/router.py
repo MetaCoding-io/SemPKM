@@ -23,6 +23,7 @@ from app.dependencies import (
     get_event_store,
     get_label_service,
     get_lint_service,
+    get_prefix_registry,
     get_shapes_service,
     get_triplestore_client,
     get_validation_queue,
@@ -31,6 +32,7 @@ from app.lint.service import LintService
 from app.events.store import EventStore
 from app.services.icons import IconService
 from app.services.labels import LabelService
+from app.services.prefixes import PrefixRegistry
 from app.services.settings import SettingsService
 from app.services.shapes import ShapesService
 from app.triplestore.client import TriplestoreClient
@@ -477,6 +479,28 @@ async def workspace(
             request, "browser/workspace.html", context, block_name="content"
         )
     return templates.TemplateResponse(request, "browser/workspace.html", context)
+
+
+@router.get("/nav-tree")
+async def nav_tree(
+    request: Request,
+    user: User = Depends(get_current_user),
+    shapes_service: ShapesService = Depends(get_shapes_service),
+    icon_svc: IconService = Depends(get_icon_service),
+):
+    """Return the nav tree partial (type nodes only, collapsed).
+
+    Used by refreshNavTree() in workspace.js to reload the OBJECTS section.
+    """
+    templates = request.app.state.templates
+    types = await shapes_service.get_types()
+    type_icons = icon_svc.get_icon_map(context="tree")
+
+    return templates.TemplateResponse(
+        request,
+        "browser/nav_tree.html",
+        {"request": request, "types": types, "type_icons": type_icons},
+    )
 
 
 @router.get("/tree/{type_iri:path}")
@@ -1006,6 +1030,7 @@ async def get_relations(
             "iri": e["target"],
             "label": labels.get(e["target"], e["target"]),
             "source": e["source"],
+            "predicate_iri": e["predicate"],
         })
 
     inbound_grouped: dict[str, list[dict]] = {}
@@ -1017,6 +1042,7 @@ async def get_relations(
             "iri": e["source_iri"],
             "label": labels.get(e["source_iri"], e["source_iri"]),
             "source": e["source"],
+            "predicate_iri": e["predicate"],
         })
 
     context = {
@@ -1029,6 +1055,122 @@ async def get_relations(
     return templates.TemplateResponse(
         request, "browser/properties.html", context
     )
+
+
+@router.get("/edge-provenance")
+async def get_edge_provenance(
+    request: Request,
+    subject: str = Query(...),
+    predicate: str = Query(...),
+    target: str = Query(...),
+    source: str = Query("user"),
+    user: User = Depends(get_current_user),
+    client: TriplestoreClient = Depends(get_triplestore_client),
+    prefix_registry: PrefixRegistry = Depends(get_prefix_registry),
+):
+    """Return edge provenance metadata as JSON.
+
+    Queries event named graphs to find when a specific edge triple was
+    created. For inferred edges, returns inference metadata without
+    event lookup. Returns predicate QName, timestamp, author, source,
+    and event IRI.
+    """
+    if not _validate_iri(subject) or not _validate_iri(predicate) or not _validate_iri(target):
+        raise HTTPException(status_code=400, detail="Invalid IRI")
+
+    predicate_qname = prefix_registry.compact(predicate)
+
+    if source == "inferred":
+        return JSONResponse({
+            "predicate_qname": predicate_qname,
+            "source": "inferred",
+            "description": "Inferred by OWL 2 RL reasoning",
+            "event_iri": None,
+            "timestamp": None,
+            "performed_by": None,
+        })
+
+    # Try edge resource query first (edges created via edge.create command)
+    edge_resource_sparql = f"""
+    SELECT ?event ?timestamp ?performedBy WHERE {{
+      GRAPH ?event {{
+        ?event <urn:sempkm:timestamp> ?timestamp .
+        OPTIONAL {{ ?event <urn:sempkm:performedBy> ?performedBy }}
+        ?edge a <urn:sempkm:Edge> ;
+              <urn:sempkm:source> <{subject}> ;
+              <urn:sempkm:predicate> <{predicate}> ;
+              <urn:sempkm:target> <{target}> .
+      }}
+      FILTER(STRSTARTS(STR(?event), "urn:sempkm:event:"))
+    }}
+    ORDER BY DESC(?timestamp)
+    LIMIT 1
+    """
+
+    # Fallback: direct triple query (properties set during object.create/patch)
+    direct_triple_sparql = f"""
+    SELECT ?event ?timestamp ?performedBy WHERE {{
+      GRAPH ?event {{
+        ?event <urn:sempkm:timestamp> ?timestamp .
+        OPTIONAL {{ ?event <urn:sempkm:performedBy> ?performedBy }}
+        <{subject}> <{predicate}> <{target}> .
+      }}
+      FILTER(STRSTARTS(STR(?event), "urn:sempkm:event:"))
+    }}
+    ORDER BY DESC(?timestamp)
+    LIMIT 1
+    """
+
+    event_iri = None
+    timestamp = None
+    performed_by = None
+
+    try:
+        result = await client.query(edge_resource_sparql)
+        bindings = result.get("results", {}).get("bindings", [])
+        if not bindings:
+            result = await client.query(direct_triple_sparql)
+            bindings = result.get("results", {}).get("bindings", [])
+
+        if bindings:
+            b = bindings[0]
+            event_iri = b["event"]["value"]
+            timestamp = b["timestamp"]["value"]
+            if "performedBy" in b:
+                performed_by = b["performedBy"]["value"]
+    except Exception:
+        logger.warning(
+            "Failed to query edge provenance for %s %s %s",
+            subject, predicate, target, exc_info=True,
+        )
+
+    # Resolve performer label if we have an IRI
+    performed_by_label = None
+    if performed_by:
+        if performed_by.startswith("urn:sempkm:user:"):
+            user_id = performed_by.rsplit(":", 1)[-1]
+            from sqlalchemy import text
+            try:
+                db_factory = request.app.state.async_session_factory
+                async with db_factory() as session:
+                    row = await session.execute(
+                        text("SELECT username FROM users WHERE id = :uid"),
+                        {"uid": int(user_id)},
+                    )
+                    username = row.scalar()
+                    performed_by_label = username or f"User {user_id}"
+            except Exception:
+                performed_by_label = f"User {user_id}"
+        else:
+            performed_by_label = performed_by
+
+    return JSONResponse({
+        "predicate_qname": predicate_qname,
+        "source": "user",
+        "event_iri": event_iri,
+        "timestamp": timestamp,
+        "performed_by": performed_by_label,
+    })
 
 
 @router.get("/lint/{object_iri:path}")

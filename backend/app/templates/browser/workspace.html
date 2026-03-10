@@ -28,6 +28,12 @@
                     <i data-lucide="grip-vertical" class="panel-grip"></i>
                     <span class="explorer-section-chevron">&#9656;</span>
                     <span class="explorer-section-title">OBJECTS</span>
+                    <span class="explorer-header-actions">
+                        <span class="selection-badge" id="selection-badge" style="display:none"><span id="selection-count"></span></span>
+                        <button class="panel-btn explorer-action-btn" id="bulk-delete-btn" style="display:none" onclick="event.stopPropagation()" title="Delete selected"><i data-lucide="trash-2"></i></button>
+                        <button class="panel-btn explorer-action-btn" onclick="event.stopPropagation(); refreshNavTree()" title="Refresh"><i data-lucide="refresh-cw"></i></button>
+                        <button class="panel-btn explorer-action-btn" onclick="event.stopPropagation(); document.querySelector('ninja-keys').open()" title="New Object"><i data-lucide="plus"></i></button>
+                    </span>
                 </div>
                 <div class="explorer-section-body">
                     {% include "browser/nav_tree.html" %}
