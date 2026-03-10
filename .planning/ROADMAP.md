@@ -346,7 +346,7 @@ Phases execute in numeric order: 52 -> 53 -> 54 -> 55 -> 56 -> 57 -> 58
 | 51. Spatial Canvas UX | v2.5 | 3/3 | Complete | 2026-03-09 |
 | 52. Bug Fixes & Security | 2/2 | Complete    | 2026-03-09 | - |
 | 53. SPARQL Power User | v2.6 | 2/2 | Complete | 2026-03-10 |
-| 54. SPARQL Advanced | v2.6 | 0/2 | Planned | - |
+| 54. SPARQL Advanced | 1/2 | In Progress|  | - |
 | 55. Browser UI Polish | 4/4 | Complete   | 2026-03-10 | - |
 | 56. VFS MountSpec | 3/3 | Complete    | 2026-03-10 | - |
 | 57. Spatial Canvas | 3/3 | Complete    | 2026-03-10 | - |
