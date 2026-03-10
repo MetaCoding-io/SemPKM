@@ -60,9 +60,9 @@ Requirements for v2.6 Power User & Collaboration. Each maps to roadmap phases.
 
 ### Spatial Canvas
 
-- [ ] **CANV-01**: Spatial canvas has snap-to-grid alignment
-- [ ] **CANV-02**: Spatial canvas shows edge labels between connected nodes
-- [ ] **CANV-03**: Spatial canvas has keyboard navigation support
+- [x] **CANV-01**: Spatial canvas has snap-to-grid alignment
+- [x] **CANV-02**: Spatial canvas shows edge labels between connected nodes
+- [x] **CANV-03**: Spatial canvas has keyboard navigation support
 - [ ] **CANV-04**: User can multi-select objects in the nav tree and drag-drop them onto the canvas in bulk. Wait for **OBUI-03** to be implemented
 - [ ] **CANV-05**: Wiki-links in an object's markdown body are parsed and rendered as edges connecting to their target nodes on the canvas, with a different color than rdf links
 
@@ -128,9 +128,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OBUI-05 | Phase 55 | Complete |
 | FIX-01 | Phase 52 | Complete |
 | FIX-02 | Phase 52 | Complete |
-| CANV-01 | Phase 57 | Pending |
-| CANV-02 | Phase 57 | Pending |
-| CANV-03 | Phase 57 | Pending |
+| CANV-01 | Phase 57 | Complete |
+| CANV-02 | Phase 57 | Complete |
+| CANV-03 | Phase 57 | Complete |
 | CANV-04 | Phase 57 | Pending |
 | CANV-05 | Phase 57 | Pending |
 
