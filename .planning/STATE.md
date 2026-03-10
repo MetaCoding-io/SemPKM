@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-03-09)
 Phase: 52 of 58 (Bug Fixes & Security)
 Plan: 2 of 2 (SPARQL Role Gating — complete)
 Status: Executing
-Last activity: 2026-03-10 - Completed quick task 34: Merge inferred properties into relations panel, remove separate Inferred panel
+Last activity: 2026-03-10 - Completed quick task 35: Fix nav tree collapse not working
 
 Progress: [▓░░░░░░░░░] 7%
 
@@ -85,6 +85,7 @@ None — clean start for v2.6
 |---|-------------|------|--------|-----------|
 | 33 | Create central codebase documentation outlining all components, file locations, and purposes | 2026-03-09 | 5e9485b | [33-create-central-codebase-documentation-ou](./quick/33-create-central-codebase-documentation-ou/) |
 | 34 | Merge inferred properties into main property table, remove two-column layout | 2026-03-10 | d2720a3 | [34-merge-inferred-properties-into-relations](./quick/34-merge-inferred-properties-into-relations/) |
+| 35 | Fix nav tree collapse not working - add missing CSS display rules | 2026-03-10 | 285ccd2 | [35-fix-nav-tree-collapse-not-working-add-mi](./quick/35-fix-nav-tree-collapse-not-working-add-mi/) |
 
 ## Session Continuity
 
