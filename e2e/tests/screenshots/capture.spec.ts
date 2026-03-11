@@ -244,9 +244,10 @@ test.describe('Marketing screenshots', () => {
     await openWorkspace(page);
     await expandNavTree(page);
 
-    // Open command palette
+    // Open command palette via Alt+K and wait for the ninja-keys overlay
     await page.keyboard.press('Alt+k');
-    await page.waitForTimeout(800);
+    await page.waitForSelector('ninja-keys[opened]', { state: 'attached', timeout: 5000 });
+    await page.waitForTimeout(600);
 
     await screenshotBoth(page, path.join(SCREENSHOTS_DIR, '09-command-palette.png'));
   });
@@ -328,15 +329,49 @@ test.describe('Marketing screenshots', () => {
     });
   });
 
-  // ── 13. Admin — Mental Models page ─────────────────────────────────────
+  // ── 13. Admin — Mental Models list page ────────────────────────────────
 
-  test('13 — admin mental models page', async ({ ownerPage: page }) => {
+  test('13 — admin mental models list', async ({ ownerPage: page }) => {
     await page.setViewportSize(VIEWPORT);
     await page.goto('/admin/models');
     await waitForIdle(page);
     await page.waitForTimeout(1200);
 
     await screenshotBoth(page, path.join(SCREENSHOTS_DIR, '13-admin-models.png'));
+  });
+
+  // ── 13b. Admin — Mental Model detail (Basic PKM) ─────────────────────
+
+  test('13b — admin mental model detail (Basic PKM)', async ({ ownerPage: page }) => {
+    await page.setViewportSize(VIEWPORT);
+    await page.goto('/admin/models/basic-pkm');
+    await waitForIdle(page);
+    await page.waitForTimeout(1200);
+
+    await screenshotBoth(page, path.join(SCREENSHOTS_DIR, '13b-admin-model-detail.png'));
+  });
+
+  // ── 13c. Admin — Ontology diagram (Basic PKM) ────────────────────────
+
+  test('13c — admin ontology diagram (Basic PKM)', async ({ ownerPage: page }) => {
+    await page.setViewportSize(VIEWPORT);
+    await page.goto('/admin/models/basic-pkm/ontology-diagram');
+    await waitForIdle(page);
+    // Diagram may need extra render time for SVG/canvas
+    await page.waitForTimeout(2000);
+
+    await screenshotBoth(page, path.join(SCREENSHOTS_DIR, '13c-ontology-diagram.png'));
+  });
+
+  // ── 13d. Admin — Entailment config (Basic PKM) ───────────────────────
+
+  test('13d — admin entailment config (Basic PKM)', async ({ ownerPage: page }) => {
+    await page.setViewportSize(VIEWPORT);
+    await page.goto('/admin/models/basic-pkm/entailment');
+    await waitForIdle(page);
+    await page.waitForTimeout(1200);
+
+    await screenshotBoth(page, path.join(SCREENSHOTS_DIR, '13d-entailment-config.png'));
   });
 
   // ── 14. Admin — Webhooks page ──────────────────────────────────────────
@@ -445,7 +480,7 @@ test.describe('Marketing screenshots', () => {
     await context.close();
   });
 
-  // ── 20. Bottom panel (SPARQL / Event Log) ──────────────────────────────
+  // ── 20. Bottom panel (Event Log) ────────────────────────────────────────
 
   test('20 — bottom panel open', async ({ ownerPage: page }) => {
     await openWorkspace(page);
@@ -457,5 +492,39 @@ test.describe('Marketing screenshots', () => {
     await page.waitForTimeout(800);
 
     await screenshotBoth(page, path.join(SCREENSHOTS_DIR, '20-bottom-panel.png'));
+  });
+
+  // ── 21. VFS file browser ──────────────────────────────────────────────
+
+  test('21 — virtual filesystem browser', async ({ ownerPage: page }) => {
+    await page.setViewportSize(VIEWPORT);
+    await page.goto('/browser/vfs');
+    await waitForIdle(page);
+    await page.waitForTimeout(1500);
+
+    await screenshotBoth(page, path.join(SCREENSHOTS_DIR, '21-vfs-browser.png'));
+  });
+
+  // ── 22. Spatial canvas ────────────────────────────────────────────────
+
+  test('22 — spatial canvas', async ({ ownerPage: page }) => {
+    await page.setViewportSize(VIEWPORT);
+    await page.goto('/browser/canvas');
+    await waitForIdle(page);
+    // Canvas may need extra time for the graph to render
+    await page.waitForTimeout(2500);
+
+    await screenshotBoth(page, path.join(SCREENSHOTS_DIR, '22-spatial-canvas.png'));
+  });
+
+  // ── 23. SPARQL console ────────────────────────────────────────────────
+
+  test('23 — sparql console', async ({ ownerPage: page }) => {
+    await page.setViewportSize(VIEWPORT);
+    await page.goto('/admin/sparql');
+    await waitForIdle(page);
+    await page.waitForTimeout(1500);
+
+    await screenshotBoth(page, path.join(SCREENSHOTS_DIR, '23-sparql-console.png'));
   });
 });
