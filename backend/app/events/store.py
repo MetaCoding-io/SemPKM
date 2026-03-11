@@ -27,7 +27,7 @@ from app.events.models import (
     EVENT_PERFORMED_BY_ROLE,
 )
 from app.rdf.iri import mint_event_iri
-from app.rdf.namespaces import CURRENT_GRAPH_IRI
+from app.rdf.namespaces import CURRENT_GRAPH_IRI, SEMPKM
 from app.triplestore.client import TriplestoreClient
 
 
@@ -76,11 +76,14 @@ class EventStore:
         operations: list[Operation],
         performed_by: URIRef | None = None,
         performed_by_role: str | None = None,
+        target_graph: str | None = None,
+        sync_source: str | None = None,
     ) -> EventResult:
         """Commit one or more operations as a single atomic event.
 
         Creates an immutable event named graph with metadata and data triples,
-        then materializes all inserts/deletes into the current state graph.
+        then materializes all inserts/deletes into the current state graph
+        (or a specified target graph for federation).
         Both happen in a single RDF4J transaction.
 
         Args:
@@ -90,6 +93,13 @@ class EventStore:
                 (model auto-install) omit this for graceful absence.
             performed_by_role: Optional role string (e.g. "owner", "member")
                 to record alongside the actor for provenance queries.
+            target_graph: Optional graph IRI to materialize into instead of
+                CURRENT_GRAPH_IRI. Used for federation shared graphs
+                (e.g. urn:sempkm:shared:{uuid}). Default None uses
+                CURRENT_GRAPH_IRI for backward compatibility.
+            sync_source: Optional remote instance URL to record as the
+                origin of this event. Events with a syncSource are excluded
+                from patch export to that source (loop prevention).
 
         Returns:
             EventResult with the event IRI, timestamp, and all affected IRIs.
@@ -151,6 +161,18 @@ class EventStore:
                     (event_iri, EVENT_PERFORMED_BY_ROLE, Literal(performed_by_role))
                 )
 
+            # Federation: sync source provenance (loop prevention)
+            if sync_source is not None:
+                event_triples.append(
+                    (event_iri, SEMPKM.syncSource, URIRef(sync_source))
+                )
+
+            # Federation: record which graph this event targets
+            if target_graph is not None:
+                event_triples.append(
+                    (event_iri, SEMPKM.graphTarget, URIRef(target_graph))
+                )
+
             # Data triples from all operations
             for op in operations:
                 event_triples.extend(op.data_triples)
@@ -159,7 +181,12 @@ class EventStore:
             event_sparql = _build_insert_data_sparql(event_iri, event_triples)
             await self._client.transaction_update(txn_url, event_sparql)
 
-            # Step 2: Materialize deletes from current state graph (before inserts)
+            # Determine materialization graph (shared graph or default current)
+            materialize_graph = (
+                URIRef(target_graph) if target_graph else CURRENT_GRAPH_IRI
+            )
+
+            # Step 2: Materialize deletes from state graph (before inserts)
             # Deletes must happen first so that Variable patterns like ?old_0
             # only match existing values, not values about to be inserted.
             # One transaction_update call per pattern — RDF4J transaction
@@ -167,18 +194,18 @@ class EventStore:
             for op in operations:
                 for triple_pattern in op.materialize_deletes:
                     delete_sparql = _build_delete_where_sparql(
-                        CURRENT_GRAPH_IRI, [triple_pattern]
+                        materialize_graph, [triple_pattern]
                     )
                     await self._client.transaction_update(txn_url, delete_sparql)
 
-            # Step 3: Materialize inserts into current state graph
+            # Step 3: Materialize inserts into state graph
             all_inserts: list[tuple] = []
             for op in operations:
                 all_inserts.extend(op.materialize_inserts)
 
             if all_inserts:
                 insert_sparql = _build_insert_data_sparql(
-                    CURRENT_GRAPH_IRI, all_inserts
+                    materialize_graph, all_inserts
                 )
                 await self._client.transaction_update(txn_url, insert_sparql)
 
