@@ -20,6 +20,8 @@ DATA = Namespace(settings.base_namespace)
 # Additional vocabularies not in rdflib.namespace
 FOAF = Namespace("http://xmlns.com/foaf/0.1/")
 PROV = Namespace("http://www.w3.org/ns/prov#")
+LDP = Namespace("http://www.w3.org/ns/ldp#")
+AS = Namespace("https://www.w3.org/ns/activitystreams#")
 
 # Standard vocabularies (re-exported for convenience)
 __all__ = [
@@ -35,6 +37,8 @@ __all__ = [
     "SCHEMA",
     "FOAF",
     "PROV",
+    "LDP",
+    "AS",
     "CURRENT_GRAPH_IRI",
     "INFERRED_GRAPH_IRI",
     "COMMON_PREFIXES",
@@ -62,4 +66,6 @@ COMMON_PREFIXES: dict[str, str] = {
     "skos": str(SKOS),
     "foaf": str(FOAF),
     "prov": str(PROV),
+    "ldp": str(LDP),
+    "as": str(AS),
 }
