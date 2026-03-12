@@ -59,7 +59,7 @@ This milestone is complete only when all are true:
 - [x] **S03: Backend Test Foundation** `risk:medium` `depends:[S01,S02]`
   > After this: `backend/tests/` has pytest infrastructure with async fixtures, and unit tests cover SPARQL escaping, IRI validation, auth token logic, and scope_to_current_graph edge cases.
 
-- [ ] **S04: Browser Router Refactor** `risk:medium` `depends:[S03]`
+- [x] **S04: Browser Router Refactor** `risk:medium` `depends:[S03]`
   > After this: the 1956-line browser/router.py is split into domain sub-routers (settings, objects, events, search, LLM, views) — all existing E2E tests pass with zero URL changes.
 
 - [ ] **S05: Dependency Pinning & Cleanup** `risk:low` `depends:[]`
