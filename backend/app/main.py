@@ -48,6 +48,10 @@ from app.sparql.router import router as sparql_router
 from app.triplestore.client import TriplestoreClient
 from app.triplestore.setup import ensure_repository
 from app.monitoring.middleware import PostHogErrorMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from app.auth.rate_limit import limiter
 from app.monitoring.posthog import init_posthog, shutdown_posthog
 from app.monitoring.router import router as monitoring_router
 from app.validation.queue import AsyncValidationQueue
@@ -412,6 +416,14 @@ async def auth_exception_handler(request: Request, exc: HTTPException):
         content={"detail": exc.detail},
     )
 
+
+# --- Rate limiting (slowapi) ---
+# In-memory per-IP rate limiting for auth endpoints. The Limiter instance
+# and decorators live in app.auth.rate_limit / app.auth.router; the
+# middleware, state binding, and exception handler are registered here.
+app.state.limiter = limiter
+app.add_middleware(SlowAPIMiddleware)
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # PostHog error-capturing middleware (must be added before CORS so it wraps
 # the full request lifecycle and catches unhandled exceptions)

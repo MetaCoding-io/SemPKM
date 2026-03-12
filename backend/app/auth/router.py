@@ -15,6 +15,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 
 from app.auth.dependencies import get_current_user, get_session_token, require_role
 from app.auth.models import User
+from app.auth.rate_limit import limiter
 from app.auth.schemas import (
     AuthResponse,
     CreateTokenRequest,
@@ -119,6 +120,7 @@ async def setup(
 
 
 @router.post("/magic-link", response_model=MagicLinkResponse)
+@limiter.limit("5/minute")
 async def request_magic_link(body: MagicLinkRequest, request: Request):
     """Request a magic link login email.
 
@@ -129,9 +131,6 @@ async def request_magic_link(body: MagicLinkRequest, request: Request):
     token = create_magic_link_token(body.email)
     smtp_configured = bool(settings.smtp_host)
 
-    # Always log to terminal for local development
-    logger.info("Magic link token for %s: %s", body.email, token)
-
     if smtp_configured:
         from app.services.email import send_magic_link_email
         # Use configured base URL or derive from request
@@ -140,12 +139,15 @@ async def request_magic_link(body: MagicLinkRequest, request: Request):
         if not sent:
             # SMTP delivery failed -- fall through to console fallback
             logger.warning("SMTP delivery failed for %s, falling back to console", body.email)
+            logger.info("Magic link token for %s: %s", body.email, token)
         else:
             return MagicLinkResponse(
                 message="If this email is registered, a login link has been sent."
             )
 
-    # No SMTP — return token directly for local instances
+    # No SMTP — log token and return it directly for local instances
+    if not smtp_configured:
+        logger.info("Magic link token for %s: %s", body.email, token)
     return MagicLinkResponse(
         message="No email configured. Use the token below to log in.",
         token=token,
@@ -153,6 +155,7 @@ async def request_magic_link(body: MagicLinkRequest, request: Request):
 
 
 @router.post("/verify", response_model=AuthResponse)
+@limiter.limit("10/minute")
 async def verify_token(
     body: VerifyTokenRequest,
     request: Request,

@@ -336,11 +336,63 @@ Use this token to complete the setup wizard and create a new owner account, just
 
 > **Warning:** Resetting does not delete triplestore data. If you need a completely clean slate (including all object data), you must also delete the RDF4J volume: `docker compose down -v` (this removes all Docker volumes for the project).
 
+## Namespace Configuration
+
+SemPKM uses the `BASE_NAMESPACE` setting as the IRI prefix for every object and named graph in the triplestore. For example, with the default namespace, an object might receive the IRI `https://example.org/data/abc123` and its event graphs would live under the same prefix.
+
+The default value is:
+
+```
+BASE_NAMESPACE=https://example.org/data/
+```
+
+### Why the Default is Dangerous in Production
+
+`example.org` is a shared placeholder domain. If multiple SemPKM instances use the same namespace, their IRIs will collide — object `abc123` on your instance and object `abc123` on someone else's instance would have identical IRIs. This causes real problems during:
+
+- **Data federation** — querying across instances returns ambiguous results because the same IRI refers to different objects on different instances
+- **Data migration** — importing an N-Quads export from one instance into another silently merges or overwrites objects that share IRIs
+- **Linked Data interoperability** — IRIs are meant to be globally unique identifiers; reusing `example.org` violates this contract
+
+### Setting BASE_NAMESPACE Correctly
+
+Choose a namespace rooted in a domain you control:
+
+```
+BASE_NAMESPACE=https://yourdomain.com/data/
+```
+
+The value must:
+- End with a trailing slash (`/`)
+- Be a valid IRI prefix (use `https://`)
+- Be unique to this SemPKM instance
+
+> **Warning:** Set `BASE_NAMESPACE` **before creating any data**. Every object and event graph IRI is minted using this prefix. Changing it after data exists does not rename existing IRIs — those objects become orphaned (the application generates new IRIs with the new prefix while old data remains under the old one). If you must change it after the fact, you would need to rewrite all IRIs in the triplestore manually.
+
+### Example Configuration
+
+Add to your `.env` file or Docker Compose environment:
+
+```
+BASE_NAMESPACE=https://sempkm.example.com/data/
+```
+
+For organizations running multiple instances (e.g. staging and production), use distinct namespaces:
+
+```
+# Production
+BASE_NAMESPACE=https://knowledge.acme.com/data/
+
+# Staging
+BASE_NAMESPACE=https://knowledge-staging.acme.com/data/
+```
+
 ## Production Checklist
 
 Before going live, verify each item:
 
 - [ ] `SECRET_KEY` set as a persistent environment variable (not auto-generated)
+- [ ] `BASE_NAMESPACE` set to your domain (not the default `example.org`)
 - [ ] SMTP configured for magic link email delivery
 - [ ] Reverse proxy with TLS termination in front of SemPKM
 - [ ] Ports 3000 and 8001 bound to `127.0.0.1` (not exposed to the internet)

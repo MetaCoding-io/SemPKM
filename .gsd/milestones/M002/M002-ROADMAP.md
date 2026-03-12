@@ -50,7 +50,7 @@ This milestone is complete only when all are true:
 
 ## Slices
 
-- [ ] **S01: Security Hardening** `risk:medium` `depends:[]`
+- [x] **S01: Security Hardening** `risk:medium` `depends:[]`
   > After this: auth endpoints have rate limiting, magic link tokens aren't logged in production, event console is owner-only, SPARQL filter text is properly escaped, and BASE_NAMESPACE deployment is documented.
 
 - [ ] **S02: Correctness Fixes** `risk:low` `depends:[]`
