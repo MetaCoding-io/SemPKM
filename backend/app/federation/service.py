@@ -544,6 +544,40 @@ class FederationService:
         )
 
     # ------------------------------------------------------------------
+    # Remote instance discovery
+    # ------------------------------------------------------------------
+
+    async def discover_remote_instance_url(
+        self, graph_iri: str, local_webid: str
+    ) -> str | None:
+        """Find a remote member's instance URL for a shared graph.
+
+        Queries the federation graph for members of the shared graph,
+        excludes the local user, and derives the instance URL from the
+        first remote member's WebID.
+        """
+        sparql = f"""
+        SELECT DISTINCT ?member WHERE {{
+          GRAPH <{FEDERATION_GRAPH}> {{
+            <{graph_iri}> <{SEMPKM.member}> ?member .
+          }}
+          FILTER(?member != <{local_webid}>)
+        }}
+        LIMIT 1
+        """
+        results = await self._client.query(sparql)
+        bindings = results.get("results", {}).get("bindings", [])
+        if not bindings:
+            return None
+        webid = bindings[0].get("member", {}).get("value", "")
+        if not webid:
+            return None
+        # Derive instance URL from WebID pattern
+        if "/users/" in webid:
+            return webid.split("/users/")[0]
+        return webid.rsplit("/", 1)[0]
+
+    # ------------------------------------------------------------------
     # Sync flow
     # ------------------------------------------------------------------
 
