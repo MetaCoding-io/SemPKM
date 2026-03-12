@@ -27,6 +27,7 @@ dependencies = [
     "python-frontmatter>=1.1.0",
     "owlrl>=7.0",
     "mf2py>=2.0",
+    "http-message-signatures>=2.0.1",
 ]
 
 [project.optional-dependencies]
