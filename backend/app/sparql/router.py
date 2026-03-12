@@ -28,6 +28,7 @@ from app.services.icons import IconService
 from app.services.labels import LabelService
 from app.services.prefixes import PrefixRegistry
 from app.services.search import SearchService
+from app.federation.service import FederationService
 from app.sparql.client import check_member_query_safety, inject_prefixes, scope_to_current_graph
 from app.sparql.models import PromotedQueryView, SavedSparqlQuery, SharedQueryAccess, SparqlQueryHistory
 from app.sparql.schemas import (
@@ -93,10 +94,46 @@ def _enforce_sparql_role(user: User, query: str, all_graphs: bool) -> None:
         check_member_query_safety(query)
 
 
+async def _resolve_user_shared_graphs(
+    user: User, client: TriplestoreClient
+) -> list[str] | None:
+    """Resolve shared graph IRIs for a user's SPARQL scoping.
+
+    If the user has a published WebID, queries FederationService for the
+    list of shared graphs the user is a member of. Returns None on failure
+    or if the user has no WebID (graceful fallback -- no shared graphs).
+
+    Args:
+        user: The authenticated user.
+        client: Triplestore client instance.
+
+    Returns:
+        List of shared graph IRI strings, or None if not applicable.
+    """
+    if not getattr(user, "webid_published", False):
+        return None
+
+    try:
+        from app.events.store import EventStore
+
+        webid_uri = f"urn:sempkm:user:{user.id}"
+        # Use webid_url if available, else fall back to user IRI
+        if hasattr(user, "webid_url") and user.webid_url:
+            webid_uri = user.webid_url
+
+        service = FederationService(client, EventStore(client))
+        graphs = await service.get_user_shared_graphs(webid_uri)
+        return graphs if graphs else None
+    except Exception:
+        logger.warning("Failed to resolve shared graphs for user %s", user.id, exc_info=True)
+        return None
+
+
 async def _execute_sparql(
     query: str,
     client: TriplestoreClient,
     all_graphs: bool = False,
+    shared_graphs: list[str] | None = None,
 ) -> dict | None:
     """Process a SPARQL query: inject prefixes, scope to current graph, execute.
 
@@ -104,6 +141,8 @@ async def _execute_sparql(
         query: Raw SPARQL query string from the user.
         client: Triplestore client for query execution.
         all_graphs: If True, skip current graph scoping (admin/debug).
+        shared_graphs: Optional list of shared graph IRIs to include
+            in SPARQL FROM clauses so shared graph data is visible.
 
     Returns:
         Parsed SPARQL JSON results dict on success, or None on error
@@ -114,7 +153,9 @@ async def _execute_sparql(
 
     # Apply prefix injection then graph scoping
     processed = inject_prefixes(query)
-    processed = scope_to_current_graph(processed, all_graphs=all_graphs)
+    processed = scope_to_current_graph(
+        processed, all_graphs=all_graphs, shared_graphs=shared_graphs
+    )
 
     logger.debug("Executing SPARQL: %s", processed[:200])
 
@@ -278,6 +319,9 @@ async def sparql_get(
     Standard SPARQL Protocol GET endpoint. Queries are automatically
     scoped to the current state graph unless all_graphs=true.
     Guests are denied access; members cannot use all_graphs or FROM/GRAPH clauses.
+
+    If the user has a published WebID, shared graph data is also included
+    in query results via additional FROM clauses.
     """
     _enforce_sparql_role(user, query, all_graphs)
 
@@ -287,8 +331,14 @@ async def sparql_get(
             content={"error": "Empty query"},
         )
 
+    # Resolve user's shared graphs for SPARQL scoping
+    user_shared_graphs = await _resolve_user_shared_graphs(user, client)
+
     try:
-        result = await _execute_sparql(query, client, all_graphs=all_graphs)
+        result = await _execute_sparql(
+            query, client, all_graphs=all_graphs,
+            shared_graphs=user_shared_graphs,
+        )
         if result is None:
             return JSONResponse(status_code=400, content={"error": "Empty query"})
         return JSONResponse(
@@ -354,8 +404,14 @@ async def sparql_post(
             content={"error": "Empty query"},
         )
 
+    # Resolve user's shared graphs for SPARQL scoping
+    user_shared_graphs = await _resolve_user_shared_graphs(user, client)
+
     try:
-        result = await _execute_sparql(query, client, all_graphs=all_graphs)
+        result = await _execute_sparql(
+            query, client, all_graphs=all_graphs,
+            shared_graphs=user_shared_graphs,
+        )
         if result is None:
             return JSONResponse(status_code=400, content={"error": "Empty query"})
 

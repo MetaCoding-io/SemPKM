@@ -48,13 +48,15 @@ def scope_to_current_graph(
     query: str,
     all_graphs: bool = False,
     include_inferred: bool = True,
+    shared_graphs: list[str] | None = None,
 ) -> str:
     """Inject FROM <urn:sempkm:current> into SPARQL queries.
 
     Scopes SELECT and CONSTRUCT queries to the current state graph by
     inserting a FROM clause before the WHERE keyword. When include_inferred
     is True, also injects FROM <urn:sempkm:inferred> so inferred triples
-    are included in query results.
+    are included in query results. When shared_graphs is provided, adds
+    FROM clauses for each shared graph so their data is included.
 
     Leaves the query unchanged if:
     - all_graphs=True (explicit admin/debug bypass)
@@ -66,6 +68,8 @@ def scope_to_current_graph(
         all_graphs: If True, skip scoping (for admin/debug use).
         include_inferred: If True, also include the inferred graph
             (default True). Set to False to query only user-created data.
+        shared_graphs: Optional list of shared graph IRIs to include
+            in FROM clauses. Default None preserves backward compatibility.
 
     Returns:
         The query with FROM clause(s) injected, or unchanged if scoping
@@ -85,10 +89,13 @@ def scope_to_current_graph(
     if CURRENT_GRAPH in query:
         return query
 
-    # Inject FROM <current> (and optionally FROM <inferred>) before WHERE
+    # Inject FROM <current> (and optionally FROM <inferred> and shared graphs) before WHERE
     from_clause = f"FROM <{CURRENT_GRAPH}>\n"
     if include_inferred:
         from_clause += f"FROM <{INFERRED_GRAPH}>\n"
+    if shared_graphs:
+        for sg in shared_graphs:
+            from_clause += f"FROM <{sg}>\n"
 
     # Find WHERE keyword position (case-insensitive, word boundary)
     where_match = re.search(r'\bWHERE\b', query, re.IGNORECASE)
