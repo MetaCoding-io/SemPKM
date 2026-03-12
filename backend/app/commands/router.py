@@ -111,6 +111,15 @@ async def execute_commands(
         operations: list[Operation] = []
         command_iris: list[tuple[str, str]] = []  # (iri, command_type)
 
+        # Extract optional target_graph from the request body
+        # Supports creating objects directly in a shared graph
+        target_graph: str | None = None
+        if isinstance(body, dict):
+            target_graph = body.get("target_graph")
+        elif isinstance(body, list) and body:
+            # For batch commands, target_graph on the first item applies to all
+            target_graph = body[0].get("target_graph") if isinstance(body[0], dict) else None
+
         for cmd in commands:
             operation = await dispatch(cmd, settings.base_namespace)
             operations.append(operation)
@@ -121,7 +130,12 @@ async def execute_commands(
         # Commit all operations atomically with user provenance
         event_store = EventStore(client)
         user_iri = URIRef(f"urn:sempkm:user:{user.id}")
-        event_result = await event_store.commit(operations, performed_by=user_iri, performed_by_role=user.role)
+        event_result = await event_store.commit(
+            operations,
+            performed_by=user_iri,
+            performed_by_role=user.role,
+            target_graph=target_graph,
+        )
 
         # Trigger async validation (non-blocking)
         await validation_queue.enqueue(
@@ -142,6 +156,23 @@ async def execute_commands(
                     })
         except Exception:
             logger.warning("Webhook dispatch failed", exc_info=True)
+
+        # Federation: send sync-alert to remote members if targeting a shared graph
+        if target_graph and target_graph.startswith("urn:sempkm:shared:"):
+            try:
+                from app.federation.service import FederationService
+
+                fed_service = FederationService(client, event_store)
+                await fed_service.notify_remote_members_of_change(
+                    shared_graph_iri=target_graph,
+                    local_webid=str(user_iri),
+                    event_count=len(operations),
+                )
+            except Exception:
+                logger.warning(
+                    "Federation sync alert failed for %s", target_graph,
+                    exc_info=True,
+                )
 
         # Build response
         results = [
