@@ -56,7 +56,7 @@ This milestone is complete only when all are true:
 - [x] **S02: Correctness Fixes** `risk:low` `depends:[]`
   > After this: validation report IRIs use stable hashing, scope_to_current_graph handles SPARQL keywords in string literals, and source_model is attributed correctly with multiple models.
 
-- [ ] **S03: Backend Test Foundation** `risk:medium` `depends:[S01,S02]`
+- [x] **S03: Backend Test Foundation** `risk:medium` `depends:[S01,S02]`
   > After this: `backend/tests/` has pytest infrastructure with async fixtures, and unit tests cover SPARQL escaping, IRI validation, auth token logic, and scope_to_current_graph edge cases.
 
 - [ ] **S04: Browser Router Refactor** `risk:medium` `depends:[S03]`
