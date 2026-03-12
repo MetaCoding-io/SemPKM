@@ -60,9 +60,9 @@
                                 onchange="toggleCustomIri(this)">
                             <option value="">-- Skip --</option>
                             {% for prop in type_info.properties %}
-                            <option value="{{ prop.iri }}"
-                                    {% if current_prop and current_prop.source == 'shacl' and current_prop.target_property_iri == prop.iri %}selected{% endif %}>
-                                {{ prop.label }}
+                            <option value="{{ prop.path }}"
+                                    {% if current_prop and current_prop.source == 'shacl' and current_prop.target_property_iri == prop.path %}selected{% endif %}>
+                                {{ prop.name }}
                             </option>
                             {% endfor %}
                             <option value="__custom__"

@@ -83,7 +83,7 @@ class VaultScanner:
         for dirpath, dirnames, filenames in os.walk(vault_root):
             dp = Path(dirpath)
             # Skip hidden directories
-            dirnames[:] = [d for d in dirnames if not d.startswith(".")]
+            dirnames[:] = [d for d in dirnames if not d.startswith(".") and d != "__MACOSX"]
             if dp != vault_root:
                 folders.add(dp)
             for fn in filenames:
@@ -113,6 +113,20 @@ class VaultScanner:
         # Per-group frontmatter key tracking
         group_fm_keys: dict[tuple[str, str], dict[str, dict[str, Any]]] = {}
         warnings: list[ScanWarning] = []
+
+        # Filter out empty-stem files (e.g. "Books/.md") and warn
+        empty_stem = [f for f in md_files if not f.stem]
+        if empty_stem:
+            for f in empty_stem:
+                rel = str(f.relative_to(vault_root))
+                warnings.append(ScanWarning(
+                    severity="warning",
+                    category="skipped_empty_stem",
+                    message="Skipped markdown file with empty stem (no title)",
+                    file_path=rel,
+                ))
+                logger.warning("Skipped empty-stem file: %s", rel)
+            md_files = [f for f in md_files if f.stem]
         md_stems = {f.stem.lower() for f in md_files}
 
         for i, md_file in enumerate(md_files):
@@ -341,7 +355,7 @@ class VaultScanner:
         """
         entries = list(self.extract_path.iterdir())
         # Filter out hidden files/dirs at top level
-        visible = [e for e in entries if not e.name.startswith(".")]
+        visible = [e for e in entries if not e.name.startswith(".") and e.name != "__MACOSX"]
 
         if len(visible) == 1 and visible[0].is_dir():
             candidate = visible[0]

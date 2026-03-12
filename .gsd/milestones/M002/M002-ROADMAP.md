@@ -68,7 +68,7 @@ This milestone is complete only when all are true:
 - [x] **S06: Federation Bug Fix & Dual-Instance Testing** `risk:high` `depends:[S01]`
   > After this: Sync Now button auto-discovers remote URLs and works; docker-compose.federation-test.yml runs two instances; E2E test proves invite → accept → sync flow.
 
-- [ ] **S07: Obsidian Ideaverse Import** `risk:medium` `depends:[]`
+- [x] **S07: Obsidian Ideaverse Import** `risk:medium` `depends:[]`
   > After this: user has uploaded Ideaverse Pro 2.5 (905 notes), mapped types, imported, and verified that wiki-links resolve to edges and frontmatter maps to properties. Any bugs found during import are fixed.
 
 ## Boundary Map

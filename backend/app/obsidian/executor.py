@@ -89,8 +89,17 @@ class ImportExecutor:
             # Filter out hidden directories
             md_files = [
                 f for f in md_files
-                if not any(part.startswith(".") for part in f.relative_to(vault_root).parts)
+                if not any(
+                    part.startswith(".") or part == "__MACOSX"
+                    for part in f.relative_to(vault_root).parts
+                )
             ]
+            # Filter out empty-stem files (e.g. "Books/.md")
+            empty_stem = [f for f in md_files if not f.stem]
+            for f in empty_stem:
+                rel = str(f.relative_to(vault_root))
+                logger.warning("Skipped empty-stem file: %s", rel)
+            md_files = [f for f in md_files if f.stem]
 
             total_notes = len(md_files)
 
@@ -419,7 +428,7 @@ class ImportExecutor:
     def _detect_vault_root(self) -> Path:
         """Auto-detect vault root directory (same logic as scanner)."""
         entries = list(self.extract_path.iterdir())
-        visible = [e for e in entries if not e.name.startswith(".")]
+        visible = [e for e in entries if not e.name.startswith(".") and e.name != "__MACOSX"]
 
         if len(visible) == 1 and visible[0].is_dir():
             candidate = visible[0]
