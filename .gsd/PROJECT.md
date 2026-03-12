@@ -156,6 +156,19 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - ✓ Lint Dashboard Fixes — layout width, walkthrough improvements — v2.6
 - ✓ Spatial Canvas UI Improvements — snap-to-grid, edge labels, keyboard nav, bulk drag-drop, wiki-link edges — v2.6
 
+### Validated (M002 — Hardening & Polish)
+
+<!-- Validated during M002 hardening milestone (2026-03-12). -->
+
+- ✓ SEC-01–05: Security hardening — rate-limited auth, conditional token logging, owner-only event console, SPARQL regex escaping, BASE_NAMESPACE docs — M002
+- ✓ COR-01–03: Correctness fixes — stable validation hash, SPARQL string-literal-safe scoping, per-spec source_model attribution — M002
+- ✓ TEST-01–04: Backend test foundation — pytest infrastructure with 130 unit tests covering SPARQL escaping, IRI validation, auth tokens, scoping edge cases — M002
+- ✓ REF-01: Browser router refactored from 1956-line monolith to 8 domain sub-modules with zero behavior change — M002
+- ✓ DEP-01–02: Dependency pinning — ~= compatible release pins, uv.lock committed — M002
+- ✓ PERF-01: Event detail N+1 user lookup replaced with batched WHERE IN query — M002
+- ✓ FED-11–13: Federation fixes — Sync Now auto-discovery, dual-instance docker-compose, 8-step E2E test — M002
+- ✓ OBSI-08–10: Ideaverse Pro 2.5 vault imported (895 objects, 1767 edges), wiki-links and frontmatter verified — M002
+
 ### Active
 
 <!-- No active milestone. Next milestone TBD. -->
@@ -197,7 +210,17 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current State
 
-**Latest shipped: v2.6 Power User & Collaboration (2026-03-12)**
+**Latest shipped: v2.6 Power User & Collaboration (2026-03-12) + M002 Hardening & Polish (2026-03-12)**
+
+**What shipped in M002 (Hardening & Polish):**
+- Security: rate-limited auth (slowapi), conditional token logging, owner-only event console, SPARQL regex escaping, BASE_NAMESPACE deployment docs
+- Correctness: stable validation IRI hash, string-literal-safe SPARQL scoping, per-spec source_model attribution
+- Testing: backend pytest infrastructure with 130 unit tests (<3s, no Docker)
+- Refactoring: browser router split from 1956-line monolith to 8 domain sub-modules
+- Dependencies: ~= compatible release pins, uv.lock committed
+- Performance: batched event detail user lookup (WHERE IN)
+- Federation: Sync Now auto-discovery, dual-instance docker-compose, 8-step Playwright E2E
+- Obsidian: Ideaverse Pro 2.5 vault imported (895 objects, 1767 wiki-link edges), frontmatter mapped
 
 **What shipped in v2.6:**
 - SPARQL Power User — role-based access control, server-side history, saved queries, ontology-aware autocomplete, IRI pills, CM6 editor
@@ -210,20 +233,26 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 **Previous:** v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
 
-**Current milestone:** M002 — Hardening & Polish
+**Current milestone:** None — M002 complete. Next milestone TBD.
 
 ## Context
 
-**Current state (v2.6 shipped 2026-03-12):**
+**Current state (M002 complete 2026-03-12):**
 - ~54k source LOC (47k Python, 7k JS) + CSS, HTML/Jinja2, JSON-LD
-- Tech stack: FastAPI + RDF4J (LuceneSail) + htmx/vanilla-web + SQLAlchemy (SQLite/PostgreSQL) + wsgidav + a2wsgi + Driver.js + Cytoscape.js + CodeMirror + dockview-core + Alembic + Yasgui CDN + ninja-keys + owlrl + pyshacl + mf2py + http-message-signatures
-- Docker Compose deployment: 3 services (api, triplestore, frontend/nginx)
-- 58 phases, 80 plans completed across v1.0, v2.0, v2.1, v2.2, v2.3, v2.4, v2.5, v2.6
+- Tech stack: FastAPI + RDF4J (LuceneSail) + htmx/vanilla-web + SQLAlchemy (SQLite/PostgreSQL) + wsgidav + a2wsgi + Driver.js + Cytoscape.js + CodeMirror + dockview-core + Alembic + Yasgui CDN + ninja-keys + owlrl + pyshacl + mf2py + http-message-signatures + slowapi
+- Docker Compose deployment: 3 services (api, triplestore, frontend/nginx) + federation test compose (2 instances)
+- 58 phases, 80 plans completed across v1.0–v2.6; M002 hardening milestone (7 slices) complete
+- Backend test suite: 130 pytest unit tests, <3s, no Docker dependency
+- All dependencies pinned (~= compatible release) with uv.lock committed
+- Browser router refactored into 8 domain sub-modules (was 1956-line monolith)
 
 **Known tech debt:**
 - Cookie secure=False (local dev only — production config deferred)
 - Dual SQLAlchemy engine instances (module-level + lifespan) — harmless for SQLite
 - Seed data has both inverse sides pre-populated (owl:inverseOf produces 0 new triples with current data)
+- Edge duplication in triplestore (~16x per reified edge) — pre-existing in event store materialization pipeline
+- Firefox E2E auth fixture flaking — intermittent "Magic link request did not return a token" failures
+- Federation patches endpoint requires session auth but is called server-to-server without credentials — needs HTTP Signature verification
 
 **Design references:**
 - v0.3 design documents in `orig_specs/` (vision, specifications, decision log, schemas)
@@ -301,4 +330,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-03-12 after M002 milestone started*
+*Last updated: 2026-03-12 after M002 milestone completed*

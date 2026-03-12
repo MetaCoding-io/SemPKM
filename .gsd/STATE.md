@@ -1,8 +1,8 @@
 # GSD State
 
 **Active Milestone:** M002 — Hardening & Polish
-**Active Slice:** S07 — Obsidian Ideaverse Import
-**Phase:** planning
+**Active Slice:** None
+**Phase:** completing-milestone
 **Requirements Status:** 22 active · 38 validated · 3 deferred · 0 out of scope
 
 ## Milestone Registry
@@ -16,4 +16,4 @@
 - None
 
 ## Next Action
-Plan slice S07 (Obsidian Ideaverse Import).
+All slices complete in M002. Write milestone summary.

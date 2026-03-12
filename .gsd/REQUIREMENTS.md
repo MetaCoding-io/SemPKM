@@ -4,249 +4,185 @@ This file is the explicit capability and coverage contract for the project.
 
 ## Active
 
-### SEC-01 — Auth endpoints have per-IP rate limiting
-- Class: compliance/security
-- Status: active
-- Description: `/api/auth/magic-link` and `/api/auth/verify` enforce per-IP rate limits to prevent enumeration and brute-force attacks.
-- Why it matters: Without rate limiting, an attacker can enumerate valid emails via timing or brute-force magic link tokens (10-minute window).
-- Source: research (CONCERNS.md)
-- Primary owning slice: M002/S01
-- Supporting slices: none
-- Validation: unmapped
-- Notes: Magic link tokens expire after 10 minutes. slowapi or fastapi-limiter are candidates.
-
-### SEC-02 — Magic link token not logged when SMTP is configured
-- Class: compliance/security
-- Status: active
-- Description: When SMTP is configured and email delivery succeeds, the magic link token is not written to the application log.
-- Why it matters: In production with SMTP, the plaintext token in logs defeats the purpose of email-based auth.
-- Source: research (CONCERNS.md)
-- Primary owning slice: M002/S01
-- Supporting slices: none
-- Validation: unmapped
-- Notes: Currently `logger.info("Magic link token for %s: %s", ...)` runs unconditionally at auth/router.py:133.
-
-### SEC-03 — Event console requires owner role
-- Class: compliance/security
-- Status: active
-- Description: The `/events` debug endpoint requires `require_role("owner")`, matching the SPARQL console.
-- Why it matters: The event console exposes raw command execution — should not be accessible to member/guest roles.
-- Source: research (CONCERNS.md)
-- Primary owning slice: M002/S01
-- Supporting slices: none
-- Validation: unmapped
-- Notes: SPARQL console already uses `require_role("owner")`. Event console uses `get_current_user`.
-
-### SEC-04 — SPARQL filter text properly escaped against regex injection
-- Class: compliance/security
-- Status: active
-- Description: User-provided filter text in SPARQL REGEX clauses is fully escaped to prevent regex injection or unexpected query behavior.
-- Why it matters: Currently only `\` and `"` are escaped. Other SPARQL/regex special characters could alter query semantics.
-- Source: research (CONCERNS.md)
-- Primary owning slice: M002/S01
-- Supporting slices: M002/S03
-- Validation: unmapped
-- Notes: Affects `views/service.py` filter text handling. Unit tests in S03 will cover the escaping function.
-
-### SEC-05 — base_namespace deployment documented with production guidance
-- Class: operability
-- Status: active
-- Description: Deployment documentation explains that `BASE_NAMESPACE` must be set to a real domain for production, with consequences of using the `example.org` default.
-- Why it matters: If deployed without overriding, all object IRIs collide with other instances using the default.
-- Source: research (CONCERNS.md)
-- Primary owning slice: M002/S01
-- Supporting slices: none
-- Validation: unmapped
-- Notes: config.py defaults to `https://example.org/data/`.
-
-### COR-01 — Validation report IRI uses stable hash
-- Class: core-capability
-- Status: active
-- Description: `validation/report.py` uses a deterministic hash (e.g. `hashlib.sha256`) instead of Python's `hash()` for the fallback validation IRI.
-- Why it matters: `hash()` is randomized across processes since Python 3.3. Validation reports become unreachable across restarts if the fallback path is hit.
-- Source: research (CONCERNS.md)
-- Primary owning slice: M002/S02
-- Supporting slices: none
-- Validation: unmapped
-- Notes: Line 175 in validation/report.py.
-
-### COR-02 — scope_to_current_graph handles FROM/GRAPH in string literals
-- Class: core-capability
-- Status: active
-- Description: `scope_to_current_graph()` does not falsely detect FROM/GRAPH keywords inside SPARQL string literals or comments.
-- Why it matters: A query with these words inside string literals would incorrectly be treated as already scoped, skipping graph injection.
-- Source: research (CONCERNS.md)
-- Primary owning slice: M002/S02
-- Supporting slices: M002/S03
-- Validation: unmapped
-- Notes: Affects sparql/client.py. Unit tests in S03 will cover edge cases.
-
-### COR-03 — source_model attributed correctly with multiple models installed
-- Class: core-capability
-- Status: active
-- Description: `ViewSpecService` correctly attributes `source_model` to the originating model even when multiple models are installed.
-- Why it matters: Currently falls back to empty string when >1 model is installed, losing view provenance.
-- Source: research (CONCERNS.md)
-- Primary owning slice: M002/S02
-- Supporting slices: none
-- Validation: unmapped
-- Notes: views/service.py line 189. Needs per-spec model graph matching.
-
-### TEST-01 — Backend pytest infrastructure exists with conftest and fixtures
-- Class: quality-attribute
-- Status: active
-- Description: `backend/tests/` directory exists with conftest.py, async fixtures for triplestore client, event store, and database session.
-- Why it matters: Zero backend unit tests exist. This establishes the foundation for all future backend testing.
-- Source: research (CONCERNS.md)
-- Primary owning slice: M002/S03
-- Supporting slices: none
-- Validation: unmapped
-- Notes: pyproject.toml already has pytest and pytest-asyncio in dev dependencies.
-
-### TEST-02 — SPARQL serialization/escaping has unit tests
-- Class: quality-attribute
-- Status: active
-- Description: Unit tests cover `_serialize_rdf_term()`, SPARQL string escaping, and `scope_to_current_graph()` including edge cases (literals with special chars, string literals containing SPARQL keywords).
-- Why it matters: SPARQL generation is the most injection-sensitive code path. Untested escaping is a correctness and security risk.
-- Source: research (CONCERNS.md)
-- Primary owning slice: M002/S03
-- Supporting slices: none
-- Validation: unmapped
-- Notes: Covers events/store.py serialization and sparql/client.py scoping.
-
-### TEST-03 — IRI validation has unit tests
-- Class: quality-attribute
-- Status: active
-- Description: Unit tests cover `_validate_iri()` with valid IRIs (https, urn), invalid IRIs (injection chars, relative paths), and edge cases.
-- Why it matters: IRI validation is the primary defense against SPARQL injection from user-controlled URL path segments.
-- Source: user
-- Primary owning slice: M002/S03
-- Supporting slices: none
-- Validation: unmapped
-- Notes: Covers browser/router.py `_validate_iri()`.
-
-### TEST-04 — Auth token logic has unit tests
-- Class: quality-attribute
-- Status: active
-- Description: Unit tests cover magic link token creation, verification, expiry, and setup token lifecycle.
-- Why it matters: Auth token logic is security-critical and currently untested.
-- Source: research (CONCERNS.md)
-- Primary owning slice: M002/S03
-- Supporting slices: none
-- Validation: unmapped
-- Notes: Covers auth/tokens.py.
-
-### REF-01 — Browser router split into domain sub-routers with zero behavior change
-- Class: quality-attribute
-- Status: active
-- Description: The 1956-line `browser/router.py` is split into sub-routers by domain (settings, objects, events, search, LLM, etc.) with all existing E2E tests passing unchanged.
-- Why it matters: The monolith makes navigation, testing, and modification increasingly costly. Sub-routers enable focused work per domain.
-- Source: research (CONCERNS.md)
-- Primary owning slice: M002/S04
-- Supporting slices: none
-- Validation: unmapped
-- Notes: Zero behavior change required. All routes keep the same URL paths.
-
-### DEP-01 — pyproject.toml dependency versions pinned
-- Class: operability
-- Status: active
-- Description: All dependencies in `pyproject.toml` use exact or compatible-release pins instead of bare `>=` floors.
-- Why it matters: Bare version floors allow silent breaking changes on fresh installs or CI rebuilds.
-- Source: research (CONCERNS.md)
-- Primary owning slice: M002/S05
-- Supporting slices: none
-- Validation: unmapped
-- Notes: Currently all deps specify `>=` only.
-
-### DEP-02 — uv.lock committed to source control
-- Class: operability
-- Status: active
-- Description: `uv.lock` (or equivalent lockfile) is committed and respected in Docker builds for reproducible installs.
-- Why it matters: Ensures all environments install identical dependency versions.
-- Source: research (CONCERNS.md)
-- Primary owning slice: M002/S05
-- Supporting slices: none
-- Validation: unmapped
-- Notes: No lockfile currently exists.
-
-### PERF-01 — Event detail user lookup batched
-- Class: quality-attribute
-- Status: active
-- Description: Event log detail endpoint batches user display name lookups instead of issuing one SQL query per event.
-- Why it matters: N+1 query pattern causes linear SQL traffic growth with event count.
-- Source: research (CONCERNS.md)
-- Primary owning slice: M002/S05
-- Supporting slices: none
-- Validation: unmapped
-- Notes: Currently loops through unique user IRIs with one SELECT each.
-
-### FED-11 — Sync Now button auto-discovers remote URL from shared graph metadata
-- Class: core-capability
-- Status: active
-- Description: The Sync Now button works without requiring the user to manually provide a remote instance URL. The endpoint auto-discovers remote URLs from shared graph member metadata in the federation RDF graph.
-- Why it matters: This is a blocking bug — Sync Now always returns HTTP 400 because federation.js sends an empty remote_instance_url.
-- Source: execution (Phase 58 verification gap)
-- Primary owning slice: M002/S06
-- Supporting slices: none
-- Validation: unmapped
-- Notes: Per CONTEXT.md design: "no separate register remote step — remotes derived from shared graphs."
-
-### FED-12 — Federation dual-instance docker-compose for E2E testing
-- Class: quality-attribute
-- Status: active
-- Description: A `docker-compose.federation-test.yml` spins up two complete SemPKM instances (separate triplestores, databases, ports) for testing federation flows.
-- Why it matters: Federation cannot be tested with a single instance. Two real instances are needed to verify sync, LDN, and HTTP Signatures.
-- Source: user
-- Primary owning slice: M002/S06
-- Supporting slices: none
-- Validation: unmapped
-- Notes: Based on existing docker-compose.test.yml pattern. Instances need different BASE_NAMESPACE values.
-
-### FED-13 — Federation E2E test covers invite → accept → sync flow
-- Class: quality-attribute
-- Status: active
-- Description: A Playwright E2E test exercises the full federation flow: instance A invites instance B to a shared graph, B accepts, A creates an object in the shared graph, B syncs and sees it.
-- Why it matters: Federation is the most complex cross-instance feature. Without E2E coverage, regressions are invisible.
-- Source: user
-- Primary owning slice: M002/S06
-- Supporting slices: none
-- Validation: unmapped
-- Notes: May need API-level setup steps since federation involves two browser sessions.
-
-### OBSI-08 — Ideaverse Pro 2.5 vault imports successfully
-- Class: core-capability
-- Status: active
-- Description: The Ideaverse Pro 2.5 vault (905 .md files) uploads, scans, maps, and imports through the import wizard without errors.
-- Why it matters: The import wizard was built with a small test fixture. A real 905-note vault is the stress test.
-- Source: user
-- Primary owning slice: M002/S07
-- Supporting slices: none
-- Validation: unmapped
-- Notes: ZIP file already in repo root. Manual user-driven import.
-
-### OBSI-09 — Wiki-links in imported notes resolve to edges between objects
-- Class: core-capability
-- Status: active
-- Description: After importing the Ideaverse vault, wiki-links between notes are resolved to `dcterms:references` edges connecting the imported objects.
-- Why it matters: Wiki-link resolution is the core value of importing an Obsidian vault — without it, the knowledge graph has no connections.
-- Source: user
-- Primary owning slice: M002/S07
-- Supporting slices: none
-- Validation: unmapped
-- Notes: Two-pass executor: Pass 1 creates objects, Pass 2 resolves wiki-links. User verifies in Relations panel and graph view.
-
-### OBSI-10 — Frontmatter from imported notes maps to RDF properties
-- Class: core-capability
-- Status: active
-- Description: Frontmatter keys mapped during the import wizard appear as RDF properties on the imported objects.
-- Why it matters: Frontmatter is how Obsidian users structure metadata. If it doesn't carry over, the import loses structured data.
-- Source: user
-- Primary owning slice: M002/S07
-- Supporting slices: none
-- Validation: unmapped
-- Notes: User maps frontmatter keys to RDF predicates in the mapping step.
+<!-- No active requirements. All M002 requirements validated. -->
 
 ## Validated
+
+### SEC-01 — Auth endpoints have per-IP rate limiting
+- Status: validated
+- Class: compliance/security
+- Source: research (CONCERNS.md)
+- Primary Slice: M002/S01
+
+slowapi rate limiting: 5/min on magic-link, 10/min on verify. HTTP 429 after limit exceeded.
+
+### SEC-02 — Magic link token not logged when SMTP is configured
+- Status: validated
+- Class: compliance/security
+- Source: research (CONCERNS.md)
+- Primary Slice: M002/S01
+
+Token logging conditional on SMTP not configured or SMTP delivery failure fallback.
+
+### SEC-03 — Event console requires owner role
+- Status: validated
+- Class: compliance/security
+- Source: research (CONCERNS.md)
+- Primary Slice: M002/S01
+
+require_role("owner") on event_console_page in debug/router.py.
+
+### SEC-04 — SPARQL filter text properly escaped against regex injection
+- Status: validated
+- Class: compliance/security
+- Source: research (CONCERNS.md)
+- Primary Slice: M002/S01
+
+escape_sparql_regex() in sparql/utils.py escapes 14 metacharacters. 19 unit tests.
+
+### SEC-05 — base_namespace deployment documented with production guidance
+- Status: validated
+- Class: operability
+- Source: research (CONCERNS.md)
+- Primary Slice: M002/S01
+
+Namespace Configuration section in docs/guide/20-production-deployment.md.
+
+### COR-01 — Validation report IRI uses stable hash
+- Status: validated
+- Class: core-capability
+- Source: research (CONCERNS.md)
+- Primary Slice: M002/S02
+
+hashlib.sha256 in validation/report.py replaces non-deterministic hash().
+
+### COR-02 — scope_to_current_graph handles FROM/GRAPH in string literals
+- Status: validated
+- Class: core-capability
+- Source: research (CONCERNS.md)
+- Primary Slice: M002/S02
+
+_strip_sparql_strings() preprocessor removes string literals before keyword detection. 6 unit tests.
+
+### COR-03 — source_model attributed correctly with multiple models installed
+- Status: validated
+- Class: core-capability
+- Source: research (CONCERNS.md)
+- Primary Slice: M002/S02
+
+GRAPH ?g with VALUES clause constraining graph IRIs for per-spec model attribution.
+
+### TEST-01 — Backend pytest infrastructure exists with conftest and fixtures
+- Status: validated
+- Class: quality-attribute
+- Source: research (CONCERNS.md)
+- Primary Slice: M002/S03
+
+backend/tests/conftest.py with fixtures; 130 tests in <3s.
+
+### TEST-02 — SPARQL serialization/escaping has unit tests
+- Status: validated
+- Class: quality-attribute
+- Source: research (CONCERNS.md)
+- Primary Slice: M002/S03
+
+test_rdf_serialization.py and test_sparql_utils.py cover serialization, escaping, and scoping edge cases.
+
+### TEST-03 — IRI validation has unit tests
+- Status: validated
+- Class: quality-attribute
+- Source: user
+- Primary Slice: M002/S03
+
+test_iri_validation.py covers valid IRIs, invalid IRIs, injection chars, and edge cases.
+
+### TEST-04 — Auth token logic has unit tests
+- Status: validated
+- Class: quality-attribute
+- Source: research (CONCERNS.md)
+- Primary Slice: M002/S03
+
+test_auth_tokens.py covers creation, verification, expiry (max_age_seconds=0), setup token lifecycle.
+
+### REF-01 — Browser router split into domain sub-routers with zero behavior change
+- Status: validated
+- Class: quality-attribute
+- Source: research (CONCERNS.md)
+- Primary Slice: M002/S04
+
+8 sub-modules, 33 routes preserved, route audit matches pre-refactor count.
+
+### DEP-01 — pyproject.toml dependency versions pinned
+- Status: validated
+- Class: operability
+- Source: research (CONCERNS.md)
+- Primary Slice: M002/S05
+
+All 24 dependencies use ~= compatible release pins.
+
+### DEP-02 — uv.lock committed to source control
+- Status: validated
+- Class: operability
+- Source: research (CONCERNS.md)
+- Primary Slice: M002/S05
+
+backend/uv.lock exists and committed.
+
+### PERF-01 — Event detail user lookup batched
+- Status: validated
+- Class: quality-attribute
+- Source: research (CONCERNS.md)
+- Primary Slice: M002/S05
+
+Single WHERE IN query via resolve_user_names() replaces N+1 loop.
+
+### FED-11 — Sync Now button auto-discovers remote URL from shared graph metadata
+- Status: validated
+- Class: core-capability
+- Source: execution (Phase 58 verification gap)
+- Primary Slice: M002/S06
+
+discover_remote_instance_url() auto-resolves from federation graph metadata.
+
+### FED-12 — Federation dual-instance docker-compose for E2E testing
+- Status: validated
+- Class: quality-attribute
+- Source: user
+- Primary Slice: M002/S06
+
+docker-compose.federation-test.yml with two complete instances (ports 3911/3912).
+
+### FED-13 — Federation E2E test covers invite → accept → sync flow
+- Status: validated
+- Class: quality-attribute
+- Source: user
+- Primary Slice: M002/S06
+
+8-step Playwright E2E test in federation-sync.spec.ts passes in ~2s.
+
+### OBSI-08 — Ideaverse Pro 2.5 vault imports successfully
+- Status: validated
+- Class: core-capability
+- Source: user
+- Primary Slice: M002/S07
+
+895 objects created, 1767 edges, 29.9s import time from Ideaverse Pro 2.5 ZIP.
+
+### OBSI-09 — Wiki-links in imported notes resolve to edges between objects
+- Status: validated
+- Class: core-capability
+- Source: user
+- Primary Slice: M002/S07
+
+1767 dcterms:references edges from wiki-link resolution. Verified in Relations panel.
+
+### OBSI-10 — Frontmatter from imported notes maps to RDF properties
+- Status: validated
+- Class: core-capability
+- Source: user
+- Primary Slice: M002/S07
+
+Mapped keys (created, source, title, noteType) visible as RDF properties in workspace UI.
 
 ### SPARQL-01 — SPARQL queries are gated by role — guest has no access, member queries current graph only, owner queries all graphs
 - Status: validated
@@ -626,28 +562,28 @@ Wiki-links in an object's markdown body are parsed and rendered as edges connect
 
 | ID | Class | Status | Primary owner | Supporting | Proof |
 |---|---|---|---|---|---|
-| SEC-01 | compliance/security | active | M002/S01 | none | unmapped |
-| SEC-02 | compliance/security | active | M002/S01 | none | unmapped |
-| SEC-03 | compliance/security | active | M002/S01 | none | unmapped |
-| SEC-04 | compliance/security | active | M002/S01 | M002/S03 | unmapped |
-| SEC-05 | operability | active | M002/S01 | none | unmapped |
-| COR-01 | core-capability | active | M002/S02 | none | unmapped |
-| COR-02 | core-capability | active | M002/S02 | M002/S03 | unmapped |
-| COR-03 | core-capability | active | M002/S02 | none | unmapped |
-| TEST-01 | quality-attribute | active | M002/S03 | none | unmapped |
-| TEST-02 | quality-attribute | active | M002/S03 | none | unmapped |
-| TEST-03 | quality-attribute | active | M002/S03 | none | unmapped |
-| TEST-04 | quality-attribute | active | M002/S03 | none | unmapped |
-| REF-01 | quality-attribute | active | M002/S04 | none | unmapped |
-| DEP-01 | operability | active | M002/S05 | none | unmapped |
-| DEP-02 | operability | active | M002/S05 | none | unmapped |
-| PERF-01 | quality-attribute | active | M002/S05 | none | unmapped |
-| FED-11 | core-capability | active | M002/S06 | none | unmapped |
-| FED-12 | quality-attribute | active | M002/S06 | none | unmapped |
-| FED-13 | quality-attribute | active | M002/S06 | none | unmapped |
-| OBSI-08 | core-capability | active | M002/S07 | none | unmapped |
-| OBSI-09 | core-capability | active | M002/S07 | none | unmapped |
-| OBSI-10 | core-capability | active | M002/S07 | none | unmapped |
+| SEC-01 | compliance/security | validated | M002/S01 | none | slowapi rate limiting, HTTP 429 verified |
+| SEC-02 | compliance/security | validated | M002/S01 | none | conditional token logging |
+| SEC-03 | compliance/security | validated | M002/S01 | none | require_role("owner") on event console |
+| SEC-04 | compliance/security | validated | M002/S01 | M002/S03 | escape_sparql_regex + 19 unit tests |
+| SEC-05 | operability | validated | M002/S01 | none | deployment docs section |
+| COR-01 | core-capability | validated | M002/S02 | none | hashlib.sha256 in report.py |
+| COR-02 | core-capability | validated | M002/S02 | M002/S03 | _strip_sparql_strings + 6 unit tests |
+| COR-03 | core-capability | validated | M002/S02 | none | GRAPH ?g source_model query |
+| TEST-01 | quality-attribute | validated | M002/S03 | none | conftest.py + 130 tests |
+| TEST-02 | quality-attribute | validated | M002/S03 | none | test_rdf_serialization + test_sparql_utils |
+| TEST-03 | quality-attribute | validated | M002/S03 | none | test_iri_validation |
+| TEST-04 | quality-attribute | validated | M002/S03 | none | test_auth_tokens |
+| REF-01 | quality-attribute | validated | M002/S04 | none | 8 sub-modules, 33 routes preserved |
+| DEP-01 | operability | validated | M002/S05 | none | ~= pins in pyproject.toml |
+| DEP-02 | operability | validated | M002/S05 | none | uv.lock committed |
+| PERF-01 | quality-attribute | validated | M002/S05 | none | batched WHERE IN query |
+| FED-11 | core-capability | validated | M002/S06 | none | discover_remote_instance_url |
+| FED-12 | quality-attribute | validated | M002/S06 | none | docker-compose.federation-test.yml |
+| FED-13 | quality-attribute | validated | M002/S06 | none | 8-step Playwright E2E test |
+| OBSI-08 | core-capability | validated | M002/S07 | none | 895 objects imported |
+| OBSI-09 | core-capability | validated | M002/S07 | none | 1767 wiki-link edges |
+| OBSI-10 | core-capability | validated | M002/S07 | none | frontmatter properties in UI |
 | MCP-01 | core-capability | deferred | none | none | unmapped |
 | ADMIN-01 | admin/support | deferred | none | none | unmapped |
 | ADMIN-02 | admin/support | deferred | none | none | unmapped |
@@ -657,9 +593,8 @@ Wiki-links in an object's markdown body are parsed and rendered as edges connect
 
 ## Coverage Summary
 
-- Active requirements: 22
-- Mapped to slices: 22
-- Validated: 38 (from M001)
+- Active requirements: 0
+- Validated: 60 (38 from M001 + 22 from M002)
 - Deferred: 3
 - Out of scope: 3
 - Unmapped active requirements: 0
