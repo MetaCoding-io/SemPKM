@@ -31,7 +31,10 @@ Is it about SELECTING from multiple results? pipe to 'fzf'
 Is it about interacting with JSON? use 'jq' 
 Is it about interacting with YAML or XML? use 'yq'
 
----
+## Codebase
+
+The [`CODEBASE.md`](CODEBASE.md) file has all that you want with respect to code organization and how the repository is organized.
+
 
 ## Frontend: Lucide Icons in Flex Containers
 
