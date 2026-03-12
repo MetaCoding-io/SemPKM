@@ -1,7 +1,7 @@
 # GSD State
 
 **Active Milestone:** M002 — Hardening & Polish
-**Active Slice:** S04 — Browser Router Refactor
+**Active Slice:** S05 — Dependency Pinning & Cleanup
 **Phase:** planning
 **Requirements Status:** 22 active · 38 validated · 3 deferred · 0 out of scope
 
@@ -16,4 +16,4 @@
 - None
 
 ## Next Action
-Plan slice S04 (Browser Router Refactor).
+Plan slice S05 (Dependency Pinning & Cleanup).

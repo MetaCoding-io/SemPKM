@@ -8,7 +8,7 @@ structural invalidity, and injection payloads.
 
 import pytest
 
-from app.browser.router import _validate_iri
+from app.browser._helpers import _validate_iri
 
 
 # ── Valid IRIs (acceptance) ──────────────────────────────────────────
