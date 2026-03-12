@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.6
 milestone_name: Power User & Collaboration
 status: executing
-stopped_at: Phase 58 context gathered
-last_updated: "2026-03-11T01:20:59.340Z"
-last_activity: "2026-03-11 - Completed 58-01: RDF Patch & Event Sync Foundation"
+stopped_at: Completed 58-02-PLAN.md
+last_updated: "2026-03-11T02:08:51.000Z"
+last_activity: "2026-03-11 - Completed 58-02: HTTP Signatures, WebFinger, LDN Inbox"
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 20
-  completed_plans: 17
-  percent: 25
+  completed_plans: 18
+  percent: 50
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-09)
 ## Current Position
 
 Phase: 58 of 58 (Federation)
-Plan: 1 of 4 (RDF Patch & Event Sync Foundation -- complete)
+Plan: 2 of 4 (HTTP Signatures, WebFinger, LDN Inbox -- complete)
 Status: Executing
-Last activity: 2026-03-11 - Completed 58-01: RDF Patch & Event Sync Foundation
+Last activity: 2026-03-11 - Completed 58-02: HTTP Signatures, WebFinger, LDN Inbox
 
-Progress: [███-------] 25%
+Progress: [█████-----] 50%
 
 ## Performance Metrics
 
@@ -66,6 +66,7 @@ Progress: [███-------] 25%
 | Phase 54 P01 | 4 | 2 tasks | 8 files |
 | Phase 54 P02 | 7 | 2 tasks | 10 files |
 | Phase 58 P01 | 5 | 2 tasks | 7 files |
+| Phase 58 P02 | 7 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -122,6 +123,9 @@ Full decision log in PROJECT.md Key Decisions table.
 - 54-02: User view count uses COUNT(*) instead of COUNT(DISTINCT ?s) for arbitrary variables
 - 54-02: URI values in user views render as plain clickable links per user decision
 - 54-02: Demote uses JS fetch + htmx refresh since DELETE 204 returns no swappable content
+- 58-02: HTTP Signatures use requests.PreparedRequest as adapter for http-message-signatures library (expects requests, not httpx)
+- 58-02: Key ID in signatures is sender's WebID URI for direct key lookup
+- 58-02: Notification JSON-LD stored as SPARQL INSERT DATA triples (not rdflib JSON-LD parsing)
 
 ### Pending Todos
 
@@ -151,6 +155,6 @@ None — clean start for v2.6
 
 ## Session Continuity
 
-Last session: 2026-03-10T13:42:39.503Z
-Stopped at: Phase 58 context gathered
-Resume file: .planning/phases/58-federation/58-CONTEXT.md
+Last session: 2026-03-11T02:08:51.000Z
+Stopped at: Completed 58-02-PLAN.md
+Resume file: .planning/phases/58-federation/58-02-SUMMARY.md
