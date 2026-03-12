@@ -4,25 +4,24 @@
  * Verifies the test Docker stack is running and healthy before tests execute.
  * Does NOT start/stop Docker — that's handled by the npm scripts so
  * developers can keep the stack running across test iterations.
+ *
+ * When ONLY the 'federation' project is being run (via --project=federation),
+ * checks the federation instances instead of the regular test stack.
  */
-import { request } from '@playwright/test';
+import { request, type FullConfig } from '@playwright/test';
 
-const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3901';
-const HEALTH_URL = `${BASE_URL}/api/health`;
 const MAX_RETRIES = 15;
 const RETRY_DELAY_MS = 2000;
 
-async function globalSetup() {
-  console.log(`\nVerifying test environment at ${BASE_URL}...`);
-
+async function checkHealth(url: string, label: string): Promise<void> {
   for (let i = 0; i < MAX_RETRIES; i++) {
     try {
       const context = await request.newContext();
-      const response = await context.get(HEALTH_URL);
+      const response = await context.get(url);
       await context.dispose();
 
       if (response.ok()) {
-        console.log(`Test environment healthy after ${i + 1} attempts.\n`);
+        console.log(`  ✓ ${label} healthy after ${i + 1} attempts.`);
         return;
       }
     } catch {
@@ -30,15 +29,34 @@ async function globalSetup() {
     }
 
     if (i < MAX_RETRIES - 1) {
-      console.log(`  Attempt ${i + 1}/${MAX_RETRIES} — retrying in ${RETRY_DELAY_MS}ms...`);
+      console.log(`  Attempt ${i + 1}/${MAX_RETRIES} for ${label} — retrying in ${RETRY_DELAY_MS}ms...`);
       await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
     }
   }
 
   throw new Error(
-    `Test environment not healthy after ${MAX_RETRIES} attempts.\n` +
-    `Start it with: cd e2e && npm run env:start`
+    `${label} not healthy after ${MAX_RETRIES} attempts.`
   );
+}
+
+async function globalSetup(config: FullConfig) {
+  // When TEST_FEDERATION=1, check federation instances instead of regular test stack.
+  // Set automatically when running: TEST_FEDERATION=1 npx playwright test --project=federation
+  // Or detect from command line args: --project=federation
+  const isFederation = process.env.TEST_FEDERATION === '1' ||
+    process.argv.some(arg => arg === 'federation' || arg === '--project=federation');
+
+  if (isFederation) {
+    console.log('\nVerifying federation test environment...');
+    await checkHealth('http://localhost:3911/api/health', 'Federation Instance A');
+    await checkHealth('http://localhost:3912/api/health', 'Federation Instance B');
+    console.log('Federation environment ready.\n');
+  } else {
+    const baseURL = process.env.TEST_BASE_URL || 'http://localhost:3901';
+    console.log(`\nVerifying test environment at ${baseURL}...`);
+    await checkHealth(`${baseURL}/api/health`, 'Test environment');
+    console.log('');
+  }
 }
 
 export default globalSetup;

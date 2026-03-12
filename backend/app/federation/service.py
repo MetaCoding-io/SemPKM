@@ -554,7 +554,11 @@ class FederationService:
 
         Queries the federation graph for members of the shared graph,
         excludes the local user, and derives the instance URL from the
-        first remote member's WebID.
+        first remote member's WebID that is an HTTP(S) URL.
+
+        Local WebIDs use ``urn:sempkm:user:{uuid}`` which cannot be
+        used for URL derivation, so only ``http://`` / ``https://``
+        WebIDs are considered.
         """
         sparql = f"""
         SELECT DISTINCT ?member WHERE {{
@@ -563,15 +567,27 @@ class FederationService:
           }}
           FILTER(?member != <{local_webid}>)
         }}
-        LIMIT 1
         """
         results = await self._client.query(sparql)
         bindings = results.get("results", {}).get("bindings", [])
         if not bindings:
             return None
-        webid = bindings[0].get("member", {}).get("value", "")
-        if not webid:
+
+        # Filter to HTTP(S) WebIDs — local URN WebIDs cannot be used
+        # for instance URL derivation.
+        http_webids = [
+            b.get("member", {}).get("value", "")
+            for b in bindings
+            if b.get("member", {}).get("value", "").startswith(("http://", "https://"))
+        ]
+        if not http_webids:
+            logger.warning(
+                "No remote HTTP(S) members found for shared graph %s",
+                graph_iri,
+            )
             return None
+
+        webid = http_webids[0]
         # Derive instance URL from WebID pattern
         if "/users/" in webid:
             return webid.split("/users/")[0]

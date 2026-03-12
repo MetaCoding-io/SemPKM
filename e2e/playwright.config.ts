@@ -59,5 +59,19 @@ export default defineConfig({
       },
       retries: 0,
     },
+    {
+      name: 'federation',
+      testMatch: /18-federation\/.*\.spec\.ts/,
+      use: {
+        baseURL: 'http://localhost:3911',
+        /* No browser needed — federation tests are API-only */
+        trace: 'on-first-retry',
+        screenshot: 'off',
+        video: 'off',
+      },
+      /* Sequential execution, single worker — stateful cross-instance flow */
+      fullyParallel: false,
+      retries: 0,
+    },
   ],
 });

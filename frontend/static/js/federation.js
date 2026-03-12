@@ -82,7 +82,7 @@
             var res = await fetch('/api/federation/shared-graphs/' + graphId + '/sync', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ remote_instance_url: '' })
+                body: JSON.stringify({})
             });
 
             if (!res.ok) {
