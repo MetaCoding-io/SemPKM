@@ -1,7 +1,7 @@
 # GSD State
 
 **Active Milestone:** M002 — Hardening & Polish
-**Active Slice:** S05 — Dependency Pinning & Cleanup
+**Active Slice:** S06 — Federation Bug Fix & Dual-Instance Testing
 **Phase:** planning
 **Requirements Status:** 22 active · 38 validated · 3 deferred · 0 out of scope
 
@@ -16,4 +16,4 @@
 - None
 
 ## Next Action
-Plan slice S05 (Dependency Pinning & Cleanup).
+Plan slice S06 (Federation Bug Fix & Dual-Instance Testing).

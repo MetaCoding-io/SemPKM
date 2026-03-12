@@ -2,10 +2,12 @@
 
 import logging
 import re
+import uuid as _uuid
 
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from rdflib import URIRef
+from sqlalchemy import select as sa_select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import get_current_user, require_role
@@ -21,6 +23,50 @@ from app.services.labels import LabelService
 from app.triplestore.client import TriplestoreClient
 
 logger = logging.getLogger(__name__)
+
+_USER_IRI_RE = re.compile(r"^urn:sempkm:user:(.+)$")
+
+
+async def resolve_user_names(
+    db: AsyncSession, user_iris: list[str]
+) -> dict[str, str]:
+    """Batch-resolve user IRIs to display names via a single SQL query.
+
+    Parses ``urn:sempkm:user:{uuid}`` IRIs, skips any that don't match
+    or contain invalid UUIDs, and returns ``{iri: display_name_or_email}``.
+    """
+    if not user_iris:
+        return {}
+
+    # Parse valid UUIDs from IRIs, building iri↔uuid mapping
+    iri_to_uuid: dict[str, _uuid.UUID] = {}
+    for iri in user_iris:
+        m = _USER_IRI_RE.match(iri)
+        if not m:
+            logger.warning("Failed to resolve user IRI %s: no pattern match", iri)
+            continue
+        try:
+            iri_to_uuid[iri] = _uuid.UUID(m.group(1))
+        except ValueError:
+            logger.warning("Failed to resolve user IRI %s: invalid UUID", iri)
+
+    if not iri_to_uuid:
+        return {}
+
+    # Single batched query
+    uuid_list = list(iri_to_uuid.values())
+    result = await db.execute(sa_select(User).where(User.id.in_(uuid_list)))
+    db_users = result.scalars().all()
+
+    # Build reverse lookup: uuid → db_user
+    uuid_to_user = {u.id: u for u in db_users}
+
+    user_names: dict[str, str] = {}
+    for iri, uid in iri_to_uuid.items():
+        db_user = uuid_to_user.get(uid)
+        if db_user:
+            user_names[iri] = db_user.display_name or db_user.email
+    return user_names
 
 events_router = APIRouter(tags=["events"])
 
@@ -57,29 +103,9 @@ async def event_log(
     all_iris = [iri for e in events for iri in e.affected_iris if iri]
     labels = await label_service.resolve_batch(all_iris) if all_iris else {}
 
-    # Resolve user display names via SQL lookup (user IRIs are urn:sempkm:user:{uuid})
+    # Resolve user display names via batched SQL lookup (single WHERE IN query)
     user_iris = list({e.performed_by for e in events if e.performed_by})
-    user_names: dict[str, str] = {}
-    if user_iris:
-        import uuid as _uuid
-
-        from sqlalchemy import select as sa_select
-
-        from app.auth.models import User as UserModel
-
-        for uiri in user_iris:
-            m = re.match(r"urn:sempkm:user:(.+)$", uiri)
-            if m:
-                try:
-                    uuid_obj = _uuid.UUID(m.group(1))
-                    result = await db.execute(
-                        sa_select(UserModel).where(UserModel.id == uuid_obj)
-                    )
-                    db_user = result.scalar_one_or_none()
-                    if db_user:
-                        user_names[uiri] = db_user.display_name or db_user.email
-                except Exception:
-                    logger.warning("Failed to resolve user IRI %s", uiri, exc_info=True)
+    user_names = await resolve_user_names(db, user_iris)
 
     # Build active filters list for chip rendering
     active_filters = []
