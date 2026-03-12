@@ -1,0 +1,65 @@
+{# Inbox notification list - rendered by /api/federation/inbox-partial.
+   Receives: notifications (list of dicts), unread_count (int). #}
+
+{% if notifications %}
+<div class="notification-list">
+    {% for notif in notifications %}
+    <div class="notification-item {% if notif.state == 'unread' %}unread{% endif %}"
+         id="notif-{{ notif.id }}">
+        <div class="notification-header">
+            <span class="notification-icon">
+                {% if notif.type == 'Offer' %}
+                <i data-lucide="mail-plus"></i>
+                {% elif notif.type == 'Announce' %}
+                <i data-lucide="megaphone"></i>
+                {% elif notif.type == 'Update' %}
+                <i data-lucide="refresh-cw"></i>
+                {% else %}
+                <i data-lucide="message-square"></i>
+                {% endif %}
+            </span>
+            <span class="notification-meta">
+                <span class="notification-actor">{{ notif.actor_label or notif.actor }}</span>
+                <span class="notification-time">{{ notif.receivedAt_human }}</span>
+            </span>
+            {% if notif.state == 'unread' %}
+            <span class="notification-unread-dot"></span>
+            {% endif %}
+        </div>
+        <div class="notification-summary">{{ notif.summary or notif.content or 'No details' }}</div>
+        <div class="notification-actions">
+            {% if notif.type == 'Offer' %}
+            <button class="primary"
+                    hx-post="/api/federation/invitations/{{ notif.id }}/accept"
+                    hx-target="#inbox-content"
+                    hx-swap="innerHTML"
+                    hx-headers='{"X-Refresh-Inbox": "true"}'>Accept</button>
+            <button hx-post="/api/federation/invitations/{{ notif.id }}/decline"
+                    hx-target="#inbox-content"
+                    hx-swap="innerHTML"
+                    hx-headers='{"X-Refresh-Inbox": "true"}'>Decline</button>
+            {% elif notif.type == 'Announce' %}
+            <button class="primary" onclick="dismissNotification('{{ notif.id }}', 'acted')">Import</button>
+            {% if notif.object_iri %}
+            <a href="/browser?iri={{ notif.object_iri }}" class="notification-link-btn">Open</a>
+            {% endif %}
+            <button onclick="dismissNotification('{{ notif.id }}')">Dismiss</button>
+            {% elif notif.type == 'Update' %}
+            <button class="primary" onclick="syncFromNotification('{{ notif.id }}', '{{ notif.target }}')">Sync Now</button>
+            <button onclick="dismissNotification('{{ notif.id }}')">Dismiss</button>
+            {% else %}
+            {% if notif.state == 'unread' %}
+            <button onclick="markNotificationRead('{{ notif.id }}')">Mark Read</button>
+            {% endif %}
+            <button onclick="dismissNotification('{{ notif.id }}')">Dismiss</button>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="right-empty federation-empty">
+    <i data-lucide="inbox"></i>
+    <span>No notifications</span>
+</div>
+{% endif %}
