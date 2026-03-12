@@ -229,10 +229,15 @@ async def sync_shared_graph(
 
     remote_url = body.get("remote_instance_url", "")
     if not remote_url:
-        raise HTTPException(
-            400,
-            "remote_instance_url required in request body",
+        # Auto-discover from shared graph's remote members
+        remote_url = await service.discover_remote_instance_url(
+            graph_iri, user_webid
         )
+        if not remote_url:
+            raise HTTPException(
+                400,
+                "No remote members found for this shared graph",
+            )
 
     return await service.sync_shared_graph(
         graph_iri=graph_iri,
