@@ -123,4 +123,89 @@ export class ApiClient {
     });
     return { status: resp.status(), data: await resp.json() };
   }
+
+  // ---- WebID Methods ----
+
+  /** POST /api/webid/username — claim a WebID username */
+  async setWebIDUsername(username: string) {
+    const resp = await this.request.post(`${this.baseURL}/api/webid/username`, {
+      data: { username },
+    });
+    return { status: resp.status(), data: await resp.json() };
+  }
+
+  /** POST /api/webid/publish — publish WebID profile */
+  async publishWebID() {
+    const resp = await this.request.post(`${this.baseURL}/api/webid/publish`);
+    return { status: resp.status(), data: await resp.json() };
+  }
+
+  /** GET /api/webid/profile — get WebID profile data */
+  async getWebIDProfile() {
+    const resp = await this.request.get(`${this.baseURL}/api/webid/profile`);
+    return { status: resp.status(), data: await resp.json() };
+  }
+
+  // ---- Federation Methods ----
+
+  /** POST /api/federation/shared-graphs — create a shared graph */
+  async createSharedGraph(name: string, model?: string) {
+    const data: Record<string, string> = { name };
+    if (model) data.required_model = model;
+    const resp = await this.request.post(`${this.baseURL}/api/federation/shared-graphs`, {
+      data,
+    });
+    return { status: resp.status(), data: await resp.json() };
+  }
+
+  /** GET /api/federation/shared-graphs — list shared graphs */
+  async getSharedGraphs() {
+    const resp = await this.request.get(`${this.baseURL}/api/federation/shared-graphs`);
+    return { status: resp.status(), data: await resp.json() };
+  }
+
+  /** POST /api/federation/shared-graphs/{graphId}/copy — copy object to shared graph */
+  async copyObjectToSharedGraph(graphId: string, objectIri: string) {
+    const resp = await this.request.post(
+      `${this.baseURL}/api/federation/shared-graphs/${graphId}/copy`,
+      { data: { object_iri: objectIri } },
+    );
+    return { status: resp.status(), data: await resp.json() };
+  }
+
+  /** POST /api/federation/shared-graphs/{graphId}/sync — trigger sync */
+  async syncSharedGraph(graphId: string, remoteInstanceUrl?: string) {
+    const data: Record<string, string> = {};
+    if (remoteInstanceUrl) data.remote_instance_url = remoteInstanceUrl;
+    const resp = await this.request.post(
+      `${this.baseURL}/api/federation/shared-graphs/${graphId}/sync`,
+      { data },
+    );
+    return { status: resp.status(), data: await resp.json() };
+  }
+
+  /** GET /api/federation/shared-graphs/{graphId}/objects — list objects in shared graph */
+  async listSharedGraphObjects(graphId: string) {
+    const resp = await this.request.get(
+      `${this.baseURL}/api/federation/shared-graphs/${graphId}/objects`,
+    );
+    return { status: resp.status(), data: await resp.json() };
+  }
+
+  /** POST /api/federation/invitations/{notificationId}/accept — accept invitation */
+  async acceptInvitation(notificationId: string) {
+    const resp = await this.request.post(
+      `${this.baseURL}/api/federation/invitations/${notificationId}/accept`,
+    );
+    return { status: resp.status(), data: await resp.json() };
+  }
+
+  /** GET /api/inbox — list notifications */
+  async getNotifications(state?: string) {
+    const url = state
+      ? `${this.baseURL}/api/inbox?state=${state}`
+      : `${this.baseURL}/api/inbox`;
+    const resp = await this.request.get(url);
+    return { status: resp.status(), data: await resp.json() };
+  }
 }

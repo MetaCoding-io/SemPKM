@@ -42,6 +42,27 @@ function readSetupToken(): string {
   }
 }
 
+/** Read the setup token from a federation test instance (api-a or api-b) */
+export function readFederationSetupToken(instance: 'a' | 'b'): string {
+  const root = repoRoot();
+  const service = `api-${instance}`;
+  try {
+    return execSync(
+      `docker compose -f docker-compose.federation-test.yml exec -T ${service} cat /app/data/.setup-token`,
+      { cwd: root, encoding: 'utf-8', timeout: 10000 },
+    ).trim();
+  } catch {
+    // Fallback: grep from logs
+    const logs = execSync(
+      `docker compose -f docker-compose.federation-test.yml logs ${service} 2>&1`,
+      { cwd: root, encoding: 'utf-8', timeout: 10000 },
+    );
+    const match = logs.match(/Setup token:\s+(\S+)/);
+    if (!match) throw new Error(`Could not extract setup token from federation ${service}`);
+    return match[1];
+  }
+}
+
 /**
  * Complete instance setup if not already done.
  * Returns the session cookie value for the owner.

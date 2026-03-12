@@ -1,0 +1,136 @@
+# Dual-instance Docker Compose for federation E2E testing.
+# Stands up two complete SemPKM stacks (A and B) on a shared network
+# so they can reach each other for cross-instance federation flows.
+#
+# Instance A: frontend-a (3911), api-a (8911), triplestore-a
+# Instance B: frontend-b (3912), api-b (8912), triplestore-b
+#
+# Usage:
+#   docker compose -f docker-compose.federation-test.yml up -d --build
+#   docker compose -f docker-compose.federation-test.yml down -v
+#
+services:
+  # ── Instance A ──────────────────────────────────────────────────
+
+  triplestore-a:
+    image: eclipse/rdf4j-workbench:5.0.1
+    volumes:
+      - rdf4j_fed_a_data:/var/rdf4j
+    environment:
+      JAVA_OPTS: "-Xmx512m"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/rdf4j-server/protocol"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - sempkm-federation
+
+  api-a:
+    build: ./backend
+    ports:
+      - "8911:8000"
+    volumes:
+      - ./backend/app:/app/app
+      - ./config:/app/config:ro
+      - ./models:/app/models:ro
+      - sempkm_fed_a_data:/app/data
+      - ./docs:/app/docs:ro
+    environment:
+      TRIPLESTORE_URL: http://triplestore-a:8080/rdf4j-server
+      REPOSITORY_ID: sempkm_fed_a
+      BASE_NAMESPACE: https://instance-a.test/data/
+      DATABASE_URL: sqlite+aiosqlite:///./data/sempkm_fed_a.db
+      SECRET_KEY: fed-test-key-a-do-not-use-in-production
+      SESSION_DURATION_DAYS: 1
+      APP_BASE_URL: http://frontend-a:80
+    depends_on:
+      triplestore-a:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - sempkm-federation
+
+  frontend-a:
+    image: nginx:stable-alpine
+    ports:
+      - "3911:80"
+    volumes:
+      - ./frontend/static:/usr/share/nginx/html:ro
+      - ./e2e/federation/nginx-a.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      api-a:
+        condition: service_healthy
+    networks:
+      - sempkm-federation
+
+  # ── Instance B ──────────────────────────────────────────────────
+
+  triplestore-b:
+    image: eclipse/rdf4j-workbench:5.0.1
+    volumes:
+      - rdf4j_fed_b_data:/var/rdf4j
+    environment:
+      JAVA_OPTS: "-Xmx512m"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/rdf4j-server/protocol"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - sempkm-federation
+
+  api-b:
+    build: ./backend
+    ports:
+      - "8912:8000"
+    volumes:
+      - ./backend/app:/app/app
+      - ./config:/app/config:ro
+      - ./models:/app/models:ro
+      - sempkm_fed_b_data:/app/data
+      - ./docs:/app/docs:ro
+    environment:
+      TRIPLESTORE_URL: http://triplestore-b:8080/rdf4j-server
+      REPOSITORY_ID: sempkm_fed_b
+      BASE_NAMESPACE: https://instance-b.test/data/
+      DATABASE_URL: sqlite+aiosqlite:///./data/sempkm_fed_b.db
+      SECRET_KEY: fed-test-key-b-do-not-use-in-production
+      SESSION_DURATION_DAYS: 1
+      APP_BASE_URL: http://frontend-b:80
+    depends_on:
+      triplestore-b:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - sempkm-federation
+
+  frontend-b:
+    image: nginx:stable-alpine
+    ports:
+      - "3912:80"
+    volumes:
+      - ./frontend/static:/usr/share/nginx/html:ro
+      - ./e2e/federation/nginx-b.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      api-b:
+        condition: service_healthy
+    networks:
+      - sempkm-federation
+
+networks:
+  sempkm-federation:
+
+volumes:
+  rdf4j_fed_a_data:
+  sempkm_fed_a_data:
+  rdf4j_fed_b_data:
+  sempkm_fed_b_data:

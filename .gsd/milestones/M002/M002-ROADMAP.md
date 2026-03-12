@@ -65,7 +65,7 @@ This milestone is complete only when all are true:
 - [x] **S05: Dependency Pinning & Cleanup** `risk:low` `depends:[]`
   > After this: pyproject.toml has pinned versions, uv.lock is committed, and event detail user lookup is batched instead of N+1.
 
-- [ ] **S06: Federation Bug Fix & Dual-Instance Testing** `risk:high` `depends:[S01]`
+- [x] **S06: Federation Bug Fix & Dual-Instance Testing** `risk:high` `depends:[S01]`
   > After this: Sync Now button auto-discovers remote URLs and works; docker-compose.federation-test.yml runs two instances; E2E test proves invite → accept → sync flow.
 
 - [ ] **S07: Obsidian Ideaverse Import** `risk:medium` `depends:[]`

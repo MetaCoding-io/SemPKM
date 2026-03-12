@@ -595,6 +595,96 @@
       "toolCalls": 0,
       "assistantMessages": 2,
       "userMessages": 0
+    },
+    {
+      "type": "research-slice",
+      "id": "M002/S06",
+      "model": "claude-opus-4-6",
+      "startedAt": 1773305025619,
+      "finishedAt": 1773305246224,
+      "tokens": {
+        "input": 29,
+        "output": 8247,
+        "cacheRead": 2209237,
+        "cacheWrite": 74651,
+        "total": 2292164
+      },
+      "cost": 1.7775072499999995,
+      "toolCalls": 0,
+      "assistantMessages": 27,
+      "userMessages": 0
+    },
+    {
+      "type": "plan-slice",
+      "id": "M002/S06",
+      "model": "claude-opus-4-6",
+      "startedAt": 1773305246226,
+      "finishedAt": 1773305554490,
+      "tokens": {
+        "input": 35,
+        "output": 11870,
+        "cacheRead": 1991829,
+        "cacheWrite": 46139,
+        "total": 2049873
+      },
+      "cost": 1.5812082499999998,
+      "toolCalls": 0,
+      "assistantMessages": 33,
+      "userMessages": 0
+    },
+    {
+      "type": "execute-task",
+      "id": "M002/S06/T01",
+      "model": "claude-opus-4-6",
+      "startedAt": 1773305554492,
+      "finishedAt": 1773305695704,
+      "tokens": {
+        "input": 22,
+        "output": 5574,
+        "cacheRead": 739871,
+        "cacheWrite": 16000,
+        "total": 761467
+      },
+      "cost": 0.6093954999999999,
+      "toolCalls": 0,
+      "assistantMessages": 20,
+      "userMessages": 0
+    },
+    {
+      "type": "execute-task",
+      "id": "M002/S06/T02",
+      "model": "claude-opus-4-6",
+      "startedAt": 1773305695705,
+      "finishedAt": 1773306059165,
+      "tokens": {
+        "input": 41,
+        "output": 9659,
+        "cacheRead": 1777408,
+        "cacheWrite": 27910,
+        "total": 1815018
+      },
+      "cost": 1.3048214999999999,
+      "toolCalls": 0,
+      "assistantMessages": 39,
+      "userMessages": 0
+    },
+    {
+      "type": "execute-task",
+      "id": "M002/S06/T03",
+      "model": "claude-opus-4-6",
+      "startedAt": 1773306059166,
+      "finishedAt": 1773306765114,
+      "tokens": {
+        "input": 80,
+        "output": 25113,
+        "cacheRead": 5780910,
+        "cacheWrite": 80370,
+        "total": 5886473
+      },
+      "cost": 4.0209925,
+      "toolCalls": 0,
+      "assistantMessages": 78,
+      "userMessages": 0
     }
   ]
 }
