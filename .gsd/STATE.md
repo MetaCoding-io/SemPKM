@@ -1,19 +1,19 @@
 # GSD State
 
-**Active Milestone:** None
+**Active Milestone:** M002 — Hardening & Polish
 **Active Slice:** None
-**Phase:** idle
-**Requirements Status:** 0 active · 60 validated · 3 deferred · 3 out of scope
+**Phase:** complete
+**Requirements Status:** 0 active · 60 validated · 3 deferred · 0 out of scope
 
 ## Milestone Registry
 - ✅ **M001:** Migration
 - ✅ **M002:** Hardening & Polish
 
 ## Recent Decisions
-- D007–D019: M002 architecture and pattern decisions (see .gsd/DECISIONS.md)
+- None recorded
 
 ## Blockers
 - None
 
 ## Next Action
-M002 complete. All 22 requirements validated. Next milestone TBD.
+All milestones complete.
