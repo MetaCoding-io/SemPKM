@@ -1,0 +1,503 @@
+/* ==========================================================================
+   Federation UI Styles
+   Inbox badge, sync dots, toast notifications, notification items,
+   shared graph cards, collaboration panel, shared nav section.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Inbox Badge
+   -------------------------------------------------------------------------- */
+
+.inbox-badge {
+    background: var(--color-accent);
+    color: var(--color-bg);
+    border-radius: 50%;
+    min-width: 18px;
+    height: 18px;
+    font-size: 11px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    padding: 0 4px;
+}
+
+/* --------------------------------------------------------------------------
+   Sync Status Dots
+   -------------------------------------------------------------------------- */
+
+.sync-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-left: 6px;
+    flex-shrink: 0;
+}
+
+.sync-green {
+    background: var(--color-success, #4caf50);
+}
+
+.sync-yellow {
+    background: var(--color-warning, #ff9800);
+}
+
+.sync-gray {
+    background: var(--color-text-muted);
+}
+
+/* --------------------------------------------------------------------------
+   Toast Notifications
+   -------------------------------------------------------------------------- */
+
+.federation-toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 10px 18px;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 13px;
+    z-index: 10000;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.3s, transform 0.3s;
+    max-width: 360px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.federation-toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.federation-toast-info {
+    background: var(--color-accent);
+}
+
+.federation-toast-success {
+    background: var(--color-success, #4caf50);
+}
+
+.federation-toast-error {
+    background: var(--color-error, #f44336);
+}
+
+/* --------------------------------------------------------------------------
+   Notification Items
+   -------------------------------------------------------------------------- */
+
+.notification-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.notification-item {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.notification-item.unread {
+    background: var(--color-bg-hover);
+}
+
+.notification-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+}
+
+.notification-icon svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+.notification-meta {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+}
+
+.notification-actor {
+    font-weight: 500;
+    font-size: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.notification-time {
+    font-size: 11px;
+    color: var(--color-text-muted);
+}
+
+.notification-unread-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    flex-shrink: 0;
+}
+
+.notification-summary {
+    font-size: 12px;
+    color: var(--color-text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.notification-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.notification-actions button,
+.notification-actions .notification-link-btn {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg);
+    color: var(--color-text);
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+}
+
+.notification-actions button:hover,
+.notification-actions .notification-link-btn:hover {
+    background: var(--color-bg-hover);
+}
+
+.notification-actions button.primary {
+    background: var(--color-accent);
+    color: #fff;
+    border-color: var(--color-accent);
+}
+
+.notification-actions button.primary:hover {
+    opacity: 0.9;
+}
+
+/* --------------------------------------------------------------------------
+   Shared Graph Cards (Collaboration Panel)
+   -------------------------------------------------------------------------- */
+
+.collab-section {
+    margin-bottom: 12px;
+}
+
+.collab-section-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 0;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    letter-spacing: 0.05em;
+}
+
+.collab-section-title {
+    flex: 1;
+}
+
+.collab-action-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+.shared-graphs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.shared-graph-card {
+    padding: 8px 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+}
+
+.shared-graph-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+    font-size: 13px;
+}
+
+.shared-graph-header svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+.shared-graph-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.shared-graph-desc {
+    font-size: 12px;
+    color: var(--color-text-muted);
+    margin-top: 2px;
+}
+
+.shared-graph-meta {
+    display: flex;
+    gap: 10px;
+    font-size: 11px;
+    color: var(--color-text-muted);
+    margin-top: 4px;
+}
+
+.pending-badge {
+    color: var(--color-warning, #ff9800);
+    font-weight: 500;
+}
+
+.shared-graph-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+}
+
+.shared-graph-actions button {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg);
+    color: var(--color-text);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.shared-graph-actions button:hover {
+    background: var(--color-bg-hover);
+}
+
+.shared-graph-actions button.primary {
+    background: var(--color-accent);
+    color: #fff;
+    border-color: var(--color-accent);
+}
+
+.shared-graph-actions button svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+/* --------------------------------------------------------------------------
+   Inline Forms (Create graph, Invite)
+   -------------------------------------------------------------------------- */
+
+.collab-inline-form {
+    padding: 8px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.collab-input {
+    width: 100%;
+    padding: 5px 8px;
+    font-size: 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 3px;
+    background: var(--color-bg);
+    color: var(--color-text);
+    box-sizing: border-box;
+}
+
+.collab-textarea {
+    resize: vertical;
+    min-height: 36px;
+}
+
+.collab-form-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.collab-form-actions button {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 3px;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg);
+    color: var(--color-text);
+    cursor: pointer;
+}
+
+.collab-form-actions button.primary {
+    background: var(--color-accent);
+    color: #fff;
+    border-color: var(--color-accent);
+}
+
+.invite-form {
+    margin-top: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.invite-input {
+    width: 100%;
+}
+
+/* --------------------------------------------------------------------------
+   Contacts List
+   -------------------------------------------------------------------------- */
+
+.contacts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    font-size: 12px;
+}
+
+.contact-item svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+    color: var(--color-text-muted);
+}
+
+.contact-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.contact-label {
+    font-weight: 500;
+}
+
+.contact-url {
+    font-size: 11px;
+    color: var(--color-text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.contact-last-seen {
+    font-size: 11px;
+    color: var(--color-text-muted);
+    flex-shrink: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Federation Empty States
+   -------------------------------------------------------------------------- */
+
+.federation-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 16px 10px;
+}
+
+.federation-empty svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    opacity: 0.4;
+    flex-shrink: 0;
+}
+
+.federation-empty span {
+    font-size: 12px;
+    color: var(--color-text-muted);
+    text-align: center;
+}
+
+/* --------------------------------------------------------------------------
+   Shared Nav Section (Left Pane)
+   -------------------------------------------------------------------------- */
+
+.shared-graph-group {
+    margin-bottom: 4px;
+}
+
+.shared-graph-nav-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 8px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--color-text);
+}
+
+.shared-graph-nav-header:hover {
+    background: var(--color-bg-hover);
+}
+
+.shared-graph-nav-header svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    stroke: currentColor;
+    opacity: 0.6;
+}
+
+.shared-graph-group.collapsed .tree-type-group {
+    display: none;
+}
+
+.shared-object {
+    cursor: pointer;
+}
+
+.shared-object:hover {
+    background: var(--color-bg-hover);
+}
+
+.shared-object .shared-icon {
+    display: inline-flex;
+}
+
+.shared-object .shared-icon svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    stroke: currentColor;
+    opacity: 0.5;
+}
