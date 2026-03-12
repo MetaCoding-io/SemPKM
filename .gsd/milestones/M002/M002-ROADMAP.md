@@ -62,7 +62,7 @@ This milestone is complete only when all are true:
 - [x] **S04: Browser Router Refactor** `risk:medium` `depends:[S03]`
   > After this: the 1956-line browser/router.py is split into domain sub-routers (settings, objects, events, search, LLM, views) — all existing E2E tests pass with zero URL changes.
 
-- [ ] **S05: Dependency Pinning & Cleanup** `risk:low` `depends:[]`
+- [x] **S05: Dependency Pinning & Cleanup** `risk:low` `depends:[]`
   > After this: pyproject.toml has pinned versions, uv.lock is committed, and event detail user lookup is batched instead of N+1.
 
 - [ ] **S06: Federation Bug Fix & Dual-Instance Testing** `risk:high` `depends:[S01]`
