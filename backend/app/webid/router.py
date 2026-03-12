@@ -215,14 +215,16 @@ async def public_profile(
         except (json.JSONDecodeError, TypeError):
             rel_me_links = []
 
-    # Build IndieAuth discovery headers
+    # Build IndieAuth discovery headers + LDN inbox discovery
     metadata_url = f"{base_url}/api/indieauth/metadata"
     authorization_endpoint = f"{base_url}/api/indieauth/authorize"
     token_endpoint = f"{base_url}/api/indieauth/token"
+    inbox_url = f"{base_url}/api/inbox"
     link_header = (
         f'<{metadata_url}>; rel="indieauth-metadata", '
         f'<{authorization_endpoint}>; rel="authorization_endpoint", '
-        f'<{token_endpoint}>; rel="token_endpoint"'
+        f'<{token_endpoint}>; rel="token_endpoint", '
+        f'<{inbox_url}>; rel="http://www.w3.org/ns/ldp#inbox"'
     )
 
     # Determine format: query param takes precedence, then Accept header
@@ -235,6 +237,11 @@ async def public_profile(
             profile_url, webid_uri, user.display_name,
             user.public_key_pem, rel_me_links,
         )
+        # Add ldp:inbox triple for federation inbox discovery
+        from rdflib import URIRef
+        from app.rdf.namespaces import LDP
+        graph.bind("ldp", LDP)
+        graph.add((URIRef(webid_uri), LDP.inbox, URIRef(inbox_url)))
         turtle_content = graph.serialize(format="turtle")
         return Response(
             content=turtle_content,
@@ -248,9 +255,15 @@ async def public_profile(
             profile_url, webid_uri, user.display_name,
             user.public_key_pem, rel_me_links,
         )
+        # Add ldp:inbox triple for federation inbox discovery
+        from rdflib import URIRef
+        from app.rdf.namespaces import LDP
+        graph.bind("ldp", LDP)
+        graph.add((URIRef(webid_uri), LDP.inbox, URIRef(inbox_url)))
         webid_context = {
             "foaf": "http://xmlns.com/foaf/0.1/",
             "sec": "https://w3id.org/security#",
+            "ldp": "http://www.w3.org/ns/ldp#",
         }
         jsonld_str = graph.serialize(format="json-ld", context=webid_context)
         return JSONResponse(

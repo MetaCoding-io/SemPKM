@@ -59,6 +59,8 @@ from app.vfs.provider import SemPKMDAVProvider
 from app.vfs.router import router as vfs_browser_router
 from app.vfs.mount_router import router as vfs_mount_router
 from app.federation.router import router as federation_router
+from app.federation.webfinger import webfinger_router
+from app.federation.inbox import inbox_router
 from app.webid.router import router as webid_router, public_router as webid_public_router
 from app.indieauth.router import router as indieauth_router, public_router as indieauth_public_router
 from app.vfs.auth import SemPKMWsgiAuthenticator
@@ -450,6 +452,8 @@ app.include_router(vfs_mount_router)
 app.include_router(indieauth_router)
 app.include_router(indieauth_public_router)
 app.include_router(federation_router)
+app.include_router(webfinger_router)
+app.include_router(inbox_router)
 app.include_router(webid_router)
 app.include_router(webid_public_router)
 app.include_router(browser_router)
