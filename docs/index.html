@@ -727,6 +727,106 @@ section {
   fill: currentColor;
 }
 
+/* ── Obsidian Import ── */
+
+.import-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  margin-top: 3rem;
+}
+
+.import-step {
+  padding: 1.5rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+}
+
+.import-step:hover {
+  background: var(--bg-card-hover);
+  border-color: rgba(232, 119, 46, 0.2);
+  transform: translateY(-2px);
+}
+
+.import-step-number {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 50%;
+  background: var(--accent-gradient);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.import-step-content h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+}
+
+.import-step-content p {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.import-step-content code {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  background: rgba(232, 119, 46, 0.1);
+  color: var(--accent-blue);
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+}
+
+.import-highlights {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  margin-top: 2rem;
+}
+
+.import-highlight-card {
+  padding: 1.5rem;
+  border-radius: var(--radius);
+  border: 1px solid rgba(232, 119, 46, 0.2);
+  background: linear-gradient(135deg, rgba(232, 119, 46, 0.04), rgba(245, 158, 11, 0.02));
+}
+
+.import-highlight-card h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.import-highlight-card p {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.import-highlight-card code {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  background: rgba(232, 119, 46, 0.1);
+  color: var(--accent-blue);
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+}
+
 /* ── Animations ── */
 
 .fade-in {
@@ -761,6 +861,14 @@ section {
   }
 
   .features-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .import-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .import-highlights {
     grid-template-columns: 1fr;
   }
 
@@ -813,6 +921,7 @@ section {
     <ul class="nav-links">
       <li><a href="#features">Features</a></li>
       <li><a href="#screenshots">Screenshots</a></li>
+      <li><a href="#obsidian-import">Import</a></li>
       <li><a href="#deploy">Deploy</a></li>
       <li><a href="guide/index.html">User Guide</a></li>
       <li><a href="#signup" class="nav-cta">Get Started</a></li>
@@ -920,15 +1029,47 @@ section {
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
         </div>
         <h3>Graph Visualization</h3>
-        <p>Semantic-aware 2D and 3D graph views with type-based styling, predicate-driven edges, and lenses for focused exploration.</p>
+        <p>Semantic-aware graph views with type-based styling, predicate-driven edges, and multiple layouts &mdash; force-directed, tree, and radial.</p>
       </div>
 
       <div class="feature-card fade-in">
         <div class="feature-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
         </div>
-        <h3>SPARQL-Powered Views</h3>
-        <p>Tables, cards, forms, object pages, and graph views &mdash; all backed by SPARQL queries. Compose them into parameterized dashboards.</p>
+        <h3>SPARQL Console &amp; Views</h3>
+        <p>Tables, cards, and graph views backed by SPARQL queries. Plus a built-in interactive SPARQL console for ad-hoc exploration of your data.</p>
+      </div>
+
+      <div class="feature-card fade-in">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
+        </div>
+        <h3>Spatial Canvas</h3>
+        <p>Drag and drop objects onto an infinite spatial canvas. Arrange your knowledge visually, connect ideas freely, and think in two dimensions.</p>
+      </div>
+
+      <div class="feature-card fade-in">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>
+        </div>
+        <h3>Command Palette</h3>
+        <p>Press Ctrl+K to launch the command palette. Quickly navigate objects, switch views, and trigger actions &mdash; all from the keyboard.</p>
+      </div>
+
+      <div class="feature-card fade-in">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+        </div>
+        <h3>SHACL Lint &amp; Validation</h3>
+        <p>Live SHACL validation on every object. A dedicated lint dashboard shows conformance status at a glance &mdash; catch constraint violations instantly.</p>
+      </div>
+
+      <div class="feature-card fade-in">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <h3>Inference Engine</h3>
+        <p>Define rules in your Mental Models and let SemPKM infer new relationships automatically. Derived edges are tagged as inferred for full transparency.</p>
       </div>
 
       <div class="feature-card fade-in">
@@ -937,6 +1078,30 @@ section {
         </div>
         <h3>Standards-Based, No Lock-In</h3>
         <p>Built on RDF, JSON-LD, SPARQL, and SHACL. Export anything. Project your graph as files for Obsidian. Publish via SOLID and ActivityPub.</p>
+      </div>
+
+      <div class="feature-card fade-in">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        </div>
+        <h3>Webhook Automations</h3>
+        <p>Configure outbound webhooks that fire on object changes, edge updates, or validation events. Filter by type and integrate with any external service.</p>
+      </div>
+
+      <div class="feature-card fade-in">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </div>
+        <h3>WebID &amp; IndieAuth</h3>
+        <p>Decentralized identity built in. Create a WebID profile, authenticate with IndieAuth, and manage authorized apps &mdash; no centralized auth provider needed.</p>
+      </div>
+
+      <div class="feature-card fade-in">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        </div>
+        <h3>LLM Integration</h3>
+        <p>Connect your own LLM for AI-powered features. Configure the connection in settings and get intelligent assistance across your knowledge graph.</p>
       </div>
 
       <div class="feature-card fade-in">
@@ -960,7 +1125,7 @@ section {
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
         </div>
         <h3>And More Coming Soon</h3>
-        <p>Filesystem projections for Obsidian, webhook automations, ActivityPub publishing, Mental Model marketplace, and much more on the roadmap.</p>
+        <p>ActivityPub publishing, Mental Model marketplace, collaborative editing, and much more on the roadmap.</p>
       </div>
 
     </div>
@@ -980,264 +1145,163 @@ section {
 
         <!-- Slide 1: Object Browser -->
         <div class="carousel-slide">
-          <img src="../screenshots/01-workspace-overview-dark.png" alt="SemPKM workspace overview showing object browser with sidebar navigation, tabbed editor pane, and property inspector">
+          <img src="screenshots/01-workspace-overview-dark.png" alt="SemPKM workspace overview showing object browser with sidebar navigation, tabbed editor pane, and property inspector">
           <div class="carousel-caption">
             <h3>Object Browser</h3>
             <p>Inspect any object with its properties, relationships, and live SHACL validation status.</p>
           </div>
         </div>
 
-        <!-- Slide 2: Graph View -->
+        <!-- Slide 2: Object Detail — Project -->
         <div class="carousel-slide">
-          <svg viewBox="0 0 1200 675" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <filter id="glowOrange" x="-50%" y="-50%" width="200%" height="200%">
-                <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur"/>
-                <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0  0.5 0 0 0 0  0 0 0 0 0  0 0 0 0.6 0"/>
-                <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
-              </filter>
-              <filter id="glowPurple" x="-50%" y="-50%" width="200%" height="200%">
-                <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur"/>
-                <feColorMatrix in="blur" type="matrix" values="0.5 0 0 0 0  0 0.3 0 0 0  0 0 1 0 0  0 0 0 0.6 0"/>
-                <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
-              </filter>
-              <filter id="glowGreen" x="-50%" y="-50%" width="200%" height="200%">
-                <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur"/>
-                <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0  0 0.8 0 0 0  0 0 0.4 0 0  0 0 0 0.5 0"/>
-                <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
-              </filter>
-              <filter id="tooltipShadow" x="-10%" y="-10%" width="120%" height="120%">
-                <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="rgba(0,0,0,0.5)"/>
-              </filter>
-              <radialGradient id="gradOrange" cx="40%" cy="35%">
-                <stop offset="0%" stop-color="rgba(232,119,46,0.35)"/>
-                <stop offset="100%" stop-color="rgba(232,119,46,0.08)"/>
-              </radialGradient>
-              <radialGradient id="gradPurple" cx="40%" cy="35%">
-                <stop offset="0%" stop-color="rgba(139,92,246,0.35)"/>
-                <stop offset="100%" stop-color="rgba(139,92,246,0.08)"/>
-              </radialGradient>
-              <radialGradient id="gradGreen" cx="40%" cy="35%">
-                <stop offset="0%" stop-color="rgba(34,197,94,0.35)"/>
-                <stop offset="100%" stop-color="rgba(34,197,94,0.08)"/>
-              </radialGradient>
-            </defs>
-            <rect width="1200" height="675" fill="#0e0e16"/>
+          <img src="screenshots/02-object-read-project-dark.png" alt="SemPKM object detail view showing project properties, participants, and inferred relationships">
+          <div class="carousel-caption">
+            <h3>Project Detail View</h3>
+            <p>Rich object pages show properties, typed relationships (inbound and outbound), and inferred edges — all in one place.</p>
+          </div>
+        </div>
 
-            <!-- Toolbar -->
-            <rect x="0" y="0" width="1200" height="44" fill="#12121a" stroke="#1e1e2e" stroke-width="1"/>
-            <text x="20" y="28" fill="#e8772e" font-family="sans-serif" font-size="13" font-weight="600">Graph View</text>
-            <rect x="120" y="10" width="80" height="24" rx="4" fill="#1c1c28"/>
-            <text x="134" y="27" fill="#9898b0" font-family="sans-serif" font-size="11">Tree</text>
-            <rect x="208" y="10" width="80" height="24" rx="4" fill="transparent" stroke="#1e1e2e" stroke-width="1"/>
-            <text x="222" y="27" fill="#686880" font-family="sans-serif" font-size="11">Force</text>
-            <rect x="296" y="10" width="80" height="24" rx="4" fill="transparent" stroke="#1e1e2e" stroke-width="1"/>
-            <text x="314" y="27" fill="#686880" font-family="sans-serif" font-size="11">Radial</text>
-            <rect x="400" y="10" width="100" height="24" rx="4" fill="transparent" stroke="#1e1e2e" stroke-width="1"/>
-            <text x="414" y="27" fill="#686880" font-family="sans-serif" font-size="11">Filter types</text>
+        <!-- Slide 3: Object Detail — Person -->
+        <div class="carousel-slide">
+          <img src="screenshots/17-object-read-person-dark.png" alt="SemPKM person detail view showing name, job title, organization, tags, and relationship panel">
+          <div class="carousel-caption">
+            <h3>Person Detail View</h3>
+            <p>Every type gets a structured detail page. Person objects show name, job title, organization, tags, and project memberships.</p>
+          </div>
+        </div>
 
-            <!-- Layout: Project (top) -> Tasks (middle row) -> People (bottom row) -->
-            <!-- Project: y=120, Tasks: y=340, People: y=555 -->
-
-            <!-- === EDGES === -->
-            <!-- Project -> Tasks (:hasTask) - downward tree edges -->
-            <path d="M540 155 L540 220 L200 220 L200 310" fill="none" stroke="#e8772e" stroke-width="1.5" opacity="0.5"/>
-            <path d="M540 155 L540 220 L420 220 L420 310" fill="none" stroke="#e8772e" stroke-width="1.5" opacity="0.5"/>
-            <path d="M540 155 L540 310" fill="none" stroke="#e8772e" stroke-width="1.5" opacity="0.5"/>
-            <path d="M540 155 L540 220 L740 220 L740 310" fill="none" stroke="#e8772e" stroke-width="1.5" opacity="0.5"/>
-            <path d="M540 155 L540 220 L960 220 L960 310" fill="none" stroke="#e8772e" stroke-width="1.5" opacity="0.5"/>
-
-            <!-- Tasks -> People (:assignedTo) - downward -->
-            <path d="M200 370 L200 440 L300 440 L300 525" fill="none" stroke="#8b5cf6" stroke-width="1.2" opacity="0.4"/>
-            <path d="M420 370 L420 440 L300 440 L300 525" fill="none" stroke="#8b5cf6" stroke-width="1.2" opacity="0.4"/>
-            <path d="M540 370 L540 440 L600 440 L600 525" fill="none" stroke="#8b5cf6" stroke-width="1.2" opacity="0.4"/>
-            <path d="M740 370 L740 440 L600 440 L600 525" fill="none" stroke="#8b5cf6" stroke-width="1.2" opacity="0.4"/>
-            <path d="M960 370 L960 440 L900 440 L900 525" fill="none" stroke="#8b5cf6" stroke-width="1.2" opacity="0.4"/>
-
-            <!-- Task dependency (dashed) -->
-            <line x1="250" y1="340" x2="370" y2="340" stroke="#686880" stroke-width="1" opacity="0.4" stroke-dasharray="5 3"/>
-            <line x1="470" y1="340" x2="490" y2="340" stroke="#686880" stroke-width="1" opacity="0.4" stroke-dasharray="5 3"/>
-            <line x1="790" y1="340" x2="910" y2="340" stroke="#686880" stroke-width="1" opacity="0.4" stroke-dasharray="5 3"/>
-
-            <!-- === EDGE LABELS === -->
-            <!-- :hasTask (on the vertical trunk) -->
-            <rect x="548" y="178" width="60" height="16" rx="3" fill="rgba(10,10,15,0.7)"/>
-            <text x="578" y="190" fill="#9898b0" font-family="monospace" font-size="8" text-anchor="middle">:hasTask</text>
-            <!-- :assignedTo labels -->
-            <rect x="248" y="430" width="78" height="16" rx="3" fill="rgba(10,10,15,0.7)"/>
-            <text x="287" y="442" fill="#9898b0" font-family="monospace" font-size="8" text-anchor="middle">:assignedTo</text>
-            <rect x="558" y="430" width="78" height="16" rx="3" fill="rgba(10,10,15,0.7)"/>
-            <text x="597" y="442" fill="#9898b0" font-family="monospace" font-size="8" text-anchor="middle">:assignedTo</text>
-            <rect x="858" y="430" width="78" height="16" rx="3" fill="rgba(10,10,15,0.7)"/>
-            <text x="897" y="442" fill="#9898b0" font-family="monospace" font-size="8" text-anchor="middle">:assignedTo</text>
-            <!-- :dependsOn labels -->
-            <rect x="275" y="326" width="76" height="16" rx="3" fill="rgba(10,10,15,0.7)"/>
-            <text x="313" y="338" fill="#686880" font-family="monospace" font-size="8" text-anchor="middle">:dependsOn</text>
-            <rect x="822" y="326" width="76" height="16" rx="3" fill="rgba(10,10,15,0.7)"/>
-            <text x="860" y="338" fill="#686880" font-family="monospace" font-size="8" text-anchor="middle">:dependsOn</text>
-
-            <!-- === NODES === -->
-
-            <!-- PROJECT: Website Redesign (top center, y=120) -->
-            <g filter="url(#glowOrange)">
-              <circle cx="540" cy="120" r="38" fill="url(#gradOrange)" stroke="#e8772e" stroke-width="2"/>
-            </g>
-            <!-- Clipboard with checkboxes icon -->
-            <rect x="528" y="106" width="24" height="30" rx="3" fill="none" stroke="#e8772e" stroke-width="1.5" opacity="0.7"/>
-            <rect x="534" y="102" width="12" height="6" rx="2" fill="none" stroke="#e8772e" stroke-width="1.2" opacity="0.7"/>
-            <rect x="532" y="114" width="8" height="6" rx="1" fill="none" stroke="#e8772e" stroke-width="0.8" opacity="0.6"/>
-            <polyline points="533,117 535,119 539,115" fill="none" stroke="#e8772e" stroke-width="0.8" opacity="0.6"/>
-            <line x1="543" y1="117" x2="550" y2="117" stroke="#e8772e" stroke-width="0.8" opacity="0.5"/>
-            <rect x="532" y="123" width="8" height="6" rx="1" fill="none" stroke="#e8772e" stroke-width="0.8" opacity="0.6"/>
-            <polyline points="533,126 535,128 539,124" fill="none" stroke="#e8772e" stroke-width="0.8" opacity="0.6"/>
-            <line x1="543" y1="126" x2="550" y2="126" stroke="#e8772e" stroke-width="0.8" opacity="0.5"/>
-            <rect x="532" y="132" width="8" height="2" rx="1" fill="none" stroke="#e8772e" stroke-width="0.8" opacity="0.4"/>
-            <text x="540" y="154" fill="#e8e8f0" font-family="sans-serif" font-size="10" font-weight="700" text-anchor="middle">Website Redesign</text>
-
-            <!-- TASK ROW (y=340) -->
-
-            <!-- TASK: Design Mockups (x=200) -->
-            <g filter="url(#glowGreen)">
-              <circle cx="200" cy="340" r="26" fill="url(#gradGreen)" stroke="#22c55e" stroke-width="1.5"/>
-            </g>
-            <rect x="192" y="332" width="16" height="16" rx="3" fill="none" stroke="#22c55e" stroke-width="1.2" opacity="0.6"/>
-            <polyline points="195,340 199,344 207,336" fill="none" stroke="#22c55e" stroke-width="1.3" opacity="0.6"/>
-            <text x="200" y="362" fill="#e8e8f0" font-family="sans-serif" font-size="8" text-anchor="middle">Design Mockups</text>
-
-            <!-- TASK: Build Frontend (x=420) -->
-            <g filter="url(#glowGreen)">
-              <circle cx="420" cy="340" r="26" fill="url(#gradGreen)" stroke="#22c55e" stroke-width="1.5"/>
-            </g>
-            <rect x="412" y="332" width="16" height="16" rx="3" fill="none" stroke="#22c55e" stroke-width="1.2" opacity="0.6"/>
-            <polyline points="415,340 419,344 427,336" fill="none" stroke="#22c55e" stroke-width="1.3" opacity="0.6"/>
-            <text x="420" y="362" fill="#e8e8f0" font-family="sans-serif" font-size="8" text-anchor="middle">Build Frontend</text>
-
-            <!-- TASK: Write Content (x=540, directly below project) -->
-            <g filter="url(#glowGreen)">
-              <circle cx="540" cy="340" r="26" fill="url(#gradGreen)" stroke="#22c55e" stroke-width="1.5"/>
-            </g>
-            <rect x="532" y="332" width="16" height="16" rx="3" fill="none" stroke="#22c55e" stroke-width="1.2" opacity="0.6"/>
-            <text x="540" y="362" fill="#e8e8f0" font-family="sans-serif" font-size="8" text-anchor="middle">Write Content</text>
-
-            <!-- TASK: QA Testing (x=740) -->
-            <g filter="url(#glowGreen)">
-              <circle cx="740" cy="340" r="26" fill="url(#gradGreen)" stroke="#22c55e" stroke-width="1.5"/>
-            </g>
-            <rect x="732" y="332" width="16" height="16" rx="3" fill="none" stroke="#22c55e" stroke-width="1.2" opacity="0.6"/>
-            <text x="740" y="362" fill="#e8e8f0" font-family="sans-serif" font-size="8" text-anchor="middle">QA Testing</text>
-
-            <!-- TASK: Deploy to Prod (x=960) -->
-            <g filter="url(#glowGreen)">
-              <circle cx="960" cy="340" r="26" fill="url(#gradGreen)" stroke="#22c55e" stroke-width="1.5"/>
-            </g>
-            <rect x="952" y="332" width="16" height="16" rx="3" fill="none" stroke="#22c55e" stroke-width="1.2" opacity="0.6"/>
-            <text x="960" y="362" fill="#e8e8f0" font-family="sans-serif" font-size="8" text-anchor="middle">Deploy to Prod</text>
-
-            <!-- PEOPLE ROW (y=555) -->
-
-            <!-- PERSON: Alice (x=300) -->
-            <g filter="url(#glowPurple)">
-              <circle cx="300" cy="555" r="26" fill="url(#gradPurple)" stroke="#8b5cf6" stroke-width="1.5"/>
-            </g>
-            <circle cx="300" cy="547" r="5" fill="none" stroke="#8b5cf6" stroke-width="1.2" opacity="0.6"/>
-            <path d="M291 562 Q291 555 300 555 Q309 555 309 562" fill="none" stroke="#8b5cf6" stroke-width="1.2" opacity="0.6"/>
-            <text x="300" y="576" fill="#e8e8f0" font-family="sans-serif" font-size="9" text-anchor="middle">Alice</text>
-
-            <!-- PERSON: Bob (x=600) -->
-            <g filter="url(#glowPurple)">
-              <circle cx="600" cy="555" r="26" fill="url(#gradPurple)" stroke="#8b5cf6" stroke-width="1.5"/>
-            </g>
-            <circle cx="600" cy="547" r="5" fill="none" stroke="#8b5cf6" stroke-width="1.2" opacity="0.6"/>
-            <path d="M591 562 Q591 555 600 555 Q609 555 609 562" fill="none" stroke="#8b5cf6" stroke-width="1.2" opacity="0.6"/>
-            <text x="600" y="576" fill="#e8e8f0" font-family="sans-serif" font-size="9" text-anchor="middle">Bob</text>
-
-            <!-- PERSON: Carol (x=900) -->
-            <g filter="url(#glowPurple)">
-              <circle cx="900" cy="555" r="26" fill="url(#gradPurple)" stroke="#8b5cf6" stroke-width="1.5"/>
-            </g>
-            <circle cx="900" cy="547" r="5" fill="none" stroke="#8b5cf6" stroke-width="1.2" opacity="0.6"/>
-            <path d="M891 562 Q891 555 900 555 Q909 555 909 562" fill="none" stroke="#8b5cf6" stroke-width="1.2" opacity="0.6"/>
-            <text x="900" y="576" fill="#e8e8f0" font-family="sans-serif" font-size="9" text-anchor="middle">Carol</text>
-
-            <!-- === TOOLTIP on "Build Frontend" node === -->
-            <!-- Connector line from tooltip to node -->
-            <line x1="420" y1="314" x2="420" y2="282" stroke="rgba(34,197,94,0.5)" stroke-width="1" stroke-dasharray="3 2"/>
-            <!-- Tooltip card -->
-            <g filter="url(#tooltipShadow)">
-              <rect x="312" y="118" width="216" height="164" rx="8" fill="#16161f" stroke="rgba(34,197,94,0.4)" stroke-width="1"/>
-            </g>
-            <!-- Tooltip header bar -->
-            <rect x="312" y="118" width="216" height="30" rx="8" fill="#1a1a24"/>
-            <rect x="312" y="140" width="216" height="8" fill="#1a1a24"/>
-            <circle cx="328" cy="133" r="4" fill="#22c55e" opacity="0.6"/>
-            <text x="338" y="137" fill="#e8e8f0" font-family="sans-serif" font-size="11" font-weight="700">Build Frontend</text>
-            <rect x="460" y="126" width="42" height="16" rx="4" fill="rgba(34,197,94,0.15)"/>
-            <text x="468" y="138" fill="#22c55e" font-family="sans-serif" font-size="9" font-weight="600">Task</text>
-            <!-- Tooltip rows -->
-            <text x="326" y="166" fill="#686880" font-family="sans-serif" font-size="10">Status</text>
-            <rect x="410" y="155" width="64" height="18" rx="4" fill="rgba(232,119,46,0.15)"/>
-            <text x="422" y="168" fill="#e8772e" font-family="sans-serif" font-size="10" font-weight="600">In Progress</text>
-            <text x="326" y="190" fill="#686880" font-family="sans-serif" font-size="10">Due Date</text>
-            <text x="410" y="190" fill="#e8e8f0" font-family="sans-serif" font-size="10">2026-03-15</text>
-            <text x="326" y="214" fill="#686880" font-family="sans-serif" font-size="10">Assigned To</text>
-            <text x="410" y="214" fill="#8b5cf6" font-family="sans-serif" font-size="10">Alice</text>
-            <text x="326" y="238" fill="#686880" font-family="sans-serif" font-size="10">Description</text>
-            <text x="410" y="238" fill="#9898b0" font-family="sans-serif" font-size="10">Implement React UI</text>
-            <text x="326" y="262" fill="#686880" font-family="sans-serif" font-size="10">Priority</text>
-            <rect x="410" y="251" width="40" height="18" rx="4" fill="rgba(245,158,11,0.15)"/>
-            <text x="418" y="264" fill="#f59e0b" font-family="sans-serif" font-size="10" font-weight="600">High</text>
-            <!-- Arrow pointing down to node -->
-            <polygon points="413,282 427,282 420,290" fill="#16161f" stroke="rgba(34,197,94,0.4)" stroke-width="1"/>
-
-            <!-- Legend -->
-            <rect x="20" y="594" width="220" height="72" rx="8" fill="rgba(18,18,26,0.9)" stroke="#1e1e2e" stroke-width="1"/>
-            <text x="40" y="613" fill="#686880" font-family="sans-serif" font-size="9" font-weight="600" letter-spacing="0.5">NODE TYPES</text>
-            <circle cx="40" cy="631" r="6" fill="url(#gradOrange)" stroke="#e8772e" stroke-width="1"/>
-            <text x="54" y="635" fill="#9898b0" font-family="sans-serif" font-size="10">Project</text>
-            <circle cx="40" cy="651" r="6" fill="url(#gradGreen)" stroke="#22c55e" stroke-width="1"/>
-            <text x="54" y="655" fill="#9898b0" font-family="sans-serif" font-size="10">Task</text>
-            <circle cx="130" cy="631" r="6" fill="url(#gradPurple)" stroke="#8b5cf6" stroke-width="1"/>
-            <text x="144" y="635" fill="#9898b0" font-family="sans-serif" font-size="10">Person</text>
-          </svg>
+        <!-- Slide 4: Graph View -->
+        <div class="carousel-slide">
+          <img src="screenshots/08-graph-view-dark.png" alt="SemPKM graph view showing knowledge graph with force-directed layout and labeled edges">
           <div class="carousel-caption">
             <h3>Graph Visualization</h3>
-            <p>Semantic tree layouts show project structure at a glance. Hover any node to inspect its properties.</p>
+            <p>Multiple graph layouts — tree, force-directed, and radial — with labeled edges and type-based node styling.</p>
           </div>
         </div>
 
-        <!-- Slide 3: Graph View -->
+        <!-- Slide 5: Cards View -->
         <div class="carousel-slide">
-          <img src="../screenshots/08-graph-view-dark.png" alt="SemPKM graph view showing knowledge graph with tree layout and node tooltips">
+          <img src="screenshots/07-cards-view-dark.png" alt="SemPKM cards view showing concepts displayed as card grid with grouping options">
           <div class="carousel-caption">
-            <h3>Graph View</h3>
-            <p>Multiple graph layouts — tree, force-directed, and radial — for better usability across different graph shapes.</p>
+            <h3>Cards View</h3>
+            <p>Browse objects as visual cards with grouping and filtering. Great for concepts, notes, and visual overviews.</p>
           </div>
         </div>
 
-        <!-- Slide 4: Dark Mode Graph -->
+        <!-- Slide 6: SPARQL-Powered Tables -->
         <div class="carousel-slide">
-          <img src="../screenshots/12-dark-mode-graph.png" alt="SemPKM graph visualization in dark mode showing force-directed layout">
-          <div class="carousel-caption">
-            <h3>Dark Mode Graph</h3>
-            <p>Switch between layouts to best fit your data — tree hierarchies, force clusters, or radial expansions.</p>
-          </div>
-        </div>
-
-        <!-- Slide 5: SPARQL-Powered Tables -->
-        <div class="carousel-slide">
-          <img src="../screenshots/06-table-view-dark.png" alt="SemPKM table view showing SPARQL query results as a sortable filterable table">
+          <img src="screenshots/06-table-view-dark.png" alt="SemPKM table view showing SPARQL query results as a sortable filterable table">
           <div class="carousel-caption">
             <h3>SPARQL-Powered Tables</h3>
-            <p>Write SPARQL queries and see results as sortable, filterable tables with live data from your graph.</p>
+            <p>View your data as sortable, filterable tables with pagination and live data from your knowledge graph.</p>
           </div>
         </div>
 
-        <!-- Slide 6: SHACL-Driven Forms -->
+        <!-- Slide 7: SHACL-Driven Forms -->
         <div class="carousel-slide">
-          <img src="../screenshots/03-object-edit-form-dark.png" alt="SemPKM SHACL-driven edit form with auto-generated fields and real-time validation">
+          <img src="screenshots/03-object-edit-form-dark.png" alt="SemPKM SHACL-driven edit form with auto-generated fields and real-time validation">
           <div class="carousel-caption">
             <h3>SHACL-Driven Forms</h3>
             <p>Forms auto-generated from SHACL shapes with real-time validation, type pickers, and constraint hints.</p>
+          </div>
+        </div>
+
+        <!-- Slide 8: Create New Object -->
+        <div class="carousel-slide">
+          <img src="screenshots/04-type-picker-dark.png" alt="SemPKM type picker showing available shapes — Person, Concept, Note, Project — for creating new objects">
+          <div class="carousel-caption">
+            <h3>Create New Object</h3>
+            <p>Pick a type from your installed Mental Models and create a new object. Types are defined by SHACL shapes.</p>
+          </div>
+        </div>
+
+        <!-- Slide 9: Command Palette -->
+        <div class="carousel-slide">
+          <img src="screenshots/09-command-palette-dark.png" alt="SemPKM command palette overlay for quick keyboard-driven navigation and actions">
+          <div class="carousel-caption">
+            <h3>Command Palette</h3>
+            <p>Press Alt+K to launch the command palette. Navigate objects, switch views, and trigger actions from the keyboard.</p>
+          </div>
+        </div>
+
+        <!-- Slide 10: Multiple Tabs -->
+        <div class="carousel-slide">
+          <img src="screenshots/15-multiple-tabs-dark.png" alt="SemPKM workspace with multiple tabs open showing dockview layout">
+          <div class="carousel-caption">
+            <h3>Multi-Tab Workspace</h3>
+            <p>Open multiple objects and views side-by-side in a dockable tab layout. Type icons on each tab for quick identification.</p>
+          </div>
+        </div>
+
+        <!-- Slide 11: Mental Model Detail -->
+        <div class="carousel-slide">
+          <img src="screenshots/13b-admin-model-detail-dark.png" alt="SemPKM admin page showing Basic PKM Mental Model detail with types, shapes, and analytics">
+          <div class="carousel-caption">
+            <h3>Mental Model Detail</h3>
+            <p>The Basic PKM model ships with Person, Project, Note, and Concept types — each with SHACL shapes, views, and relationships.</p>
+          </div>
+        </div>
+
+        <!-- Slide 11b: Ontology Diagram -->
+        <div class="carousel-slide">
+          <img src="screenshots/13c-ontology-diagram-dark.png" alt="SemPKM ontology diagram showing type relationships in the Basic PKM Mental Model">
+          <div class="carousel-caption">
+            <h3>Ontology Diagram</h3>
+            <p>Visual diagram of type relationships within a Mental Model. See how Person, Project, Note, and Concept types connect.</p>
+          </div>
+        </div>
+
+        <!-- Slide 12: Webhooks -->
+        <div class="carousel-slide">
+          <img src="screenshots/14-admin-webhooks-dark.png" alt="SemPKM webhook configuration page with event types and type filters">
+          <div class="carousel-caption">
+            <h3>Webhook Automations</h3>
+            <p>Configure outbound webhooks that fire on object changes, edge updates, or validation events with type-based filters.</p>
+          </div>
+        </div>
+
+        <!-- Slide 13: VFS File Browser -->
+        <div class="carousel-slide">
+          <img src="screenshots/21-vfs-browser-dark.png" alt="SemPKM virtual filesystem showing knowledge graph projected as a markdown file tree">
+          <div class="carousel-caption">
+            <h3>Virtual Filesystem</h3>
+            <p>Your knowledge graph projected as a markdown file tree. Browse, edit, and sync with Obsidian or any file-based tool.</p>
+          </div>
+        </div>
+
+        <!-- Slide 14: Spatial Canvas -->
+        <div class="carousel-slide">
+          <img src="screenshots/22-spatial-canvas-dark.png" alt="SemPKM spatial canvas with draggable objects arranged on an infinite 2D surface">
+          <div class="carousel-caption">
+            <h3>Spatial Canvas</h3>
+            <p>Drag objects onto an infinite canvas. Arrange, connect, and think visually — every placement is saved automatically.</p>
+          </div>
+        </div>
+
+        <!-- Slide 15: SPARQL Console -->
+        <div class="carousel-slide">
+          <img src="screenshots/23-sparql-console-dark.png" alt="SemPKM interactive SPARQL console with syntax highlighting and results table">
+          <div class="carousel-caption">
+            <h3>SPARQL Console</h3>
+            <p>An interactive SPARQL console with syntax highlighting, auto-complete, and tabular results for ad-hoc graph queries.</p>
+          </div>
+        </div>
+
+        <!-- Slide 16: Settings -->
+        <div class="carousel-slide">
+          <img src="screenshots/10-settings-page-dark.png" alt="SemPKM settings page with sections for General, LLM Connection, Virtual Filesystem, WebID Profile, and Authorized Apps">
+          <div class="carousel-caption">
+            <h3>Settings &amp; Configuration</h3>
+            <p>Configure themes, LLM connections, WebID profiles, virtual filesystem, and authorized apps &mdash; all from one panel.</p>
+          </div>
+        </div>
+
+        <!-- Slide 17: Event Log -->
+        <div class="carousel-slide">
+          <img src="screenshots/20-bottom-panel-dark.png" alt="SemPKM workspace showing the bottom panel with a live event log of object and edge changes">
+          <div class="carousel-caption">
+            <h3>Event Log</h3>
+            <p>A live event log in the bottom panel shows every object and edge change as it happens — full auditability built in.</p>
           </div>
         </div>
 
@@ -1246,6 +1310,77 @@ section {
       <button class="carousel-btn carousel-next" aria-label="Next slide">&#8250;</button>
     </div>
     <div class="carousel-dots" id="carouselDots"></div>
+  </div>
+</section>
+
+<!-- Obsidian Import -->
+<section id="obsidian-import">
+  <div class="container">
+    <span class="section-label fade-in">Obsidian Import</span>
+    <h2 class="section-title fade-in">Bring your Obsidian vault with you</h2>
+    <p class="section-subtitle fade-in">
+      Already have an Obsidian vault? SemPKM's built-in import wizard converts your markdown notes into typed, queryable knowledge objects in six guided steps.
+    </p>
+
+    <div class="import-steps fade-in">
+      <div class="import-step">
+        <div class="import-step-number">1</div>
+        <div class="import-step-content">
+          <h3>Upload Your Vault</h3>
+          <p>Drag and drop your vault as a ZIP file. SemPKM detects and resumes previous in-progress imports automatically.</p>
+        </div>
+      </div>
+      <div class="import-step">
+        <div class="import-step-number">2</div>
+        <div class="import-step-content">
+          <h3>Scan &amp; Analyze</h3>
+          <p>Live scanning with real-time progress. Detects note types from frontmatter, folder names, and tags. Shows stats, warnings, and detected groups.</p>
+        </div>
+      </div>
+      <div class="import-step">
+        <div class="import-step-number">3</div>
+        <div class="import-step-content">
+          <h3>Map Types</h3>
+          <p>Map each detected group to a Mental Model type &mdash; Person, Project, Note, Concept &mdash; or skip groups you don't need.</p>
+        </div>
+      </div>
+      <div class="import-step">
+        <div class="import-step-number">4</div>
+        <div class="import-step-content">
+          <h3>Map Properties</h3>
+          <p>Frontmatter keys are matched to RDF properties from your SHACL shapes. Custom IRI support for anything that doesn't map cleanly.</p>
+        </div>
+      </div>
+      <div class="import-step">
+        <div class="import-step-number">5</div>
+        <div class="import-step-content">
+          <h3>Preview</h3>
+          <p>See sample objects with their mapped properties before committing. Verify everything looks right before the import runs.</p>
+        </div>
+      </div>
+      <div class="import-step">
+        <div class="import-step-number">6</div>
+        <div class="import-step-content">
+          <h3>Import &amp; Resolve</h3>
+          <p>Two-pass import: first creates typed objects, then resolves <code>[[wiki-links]]</code> into RDF edges. Full progress log and error reporting.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="import-highlights fade-in">
+      <div class="import-highlight-card">
+        <h4>Smart Type Detection</h4>
+        <p>Frontmatter fields, folder structure, and tags are analyzed in priority order to automatically categorize your notes.</p>
+      </div>
+      <div class="import-highlight-card">
+        <h4>Wiki-Link Resolution</h4>
+        <p><code>[[links]]</code> become typed <code>dcterms:references</code> edges. Aliases are preserved. Unresolved targets are reported.</p>
+      </div>
+      <div class="import-highlight-card">
+        <h4>Safe Re-Import</h4>
+        <p>Each imported note is tracked via <code>sempkm:importSource</code>. Re-importing a vault skips duplicates automatically.</p>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -1296,7 +1431,7 @@ section {
 <!-- Footer -->
 <footer class="footer">
   <div class="footer-inner">
-    <div class="footer-left">&copy; Copyright MetaCoding Solutions, LLC 2016. All rights reserved.</div>
+    <div class="footer-left">&copy; Copyright MetaCoding Solutions, LLC 2025. All rights reserved.</div>
     <ul class="footer-links">
       <li><a href="guide/index.html">User Guide</a></li>
       <li><a href="https://github.com/metacoding-io/sempkm">GitHub</a></li>

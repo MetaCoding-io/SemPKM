@@ -34,11 +34,17 @@ npm run screenshots:headed
 | `10-settings-page.png` | Settings page with categories and controls |
 | `11-dark-mode.png` | Workspace in dark mode with object open |
 | `12-dark-mode-graph.png` | Graph view in dark mode |
-| `13-admin-models.png` | Admin page showing installed Mental Models |
+| `13-admin-models.png` | Admin page listing installed Mental Models |
+| `13b-admin-model-detail.png` | Basic PKM model detail page (types, shapes, analytics) |
+| `13c-ontology-diagram.png` | Basic PKM ontology diagram (type relationships) |
+| `13d-entailment-config.png` | Basic PKM entailment / inference rule configuration |
 | `14-admin-webhooks.png` | Admin page for webhook configuration |
 | `15-multiple-tabs.png` | Multiple object tabs open simultaneously |
 | `16-lint-panel.png` | Details panel with SHACL validation results |
 | `17-object-read-person.png` | Person object in read-only mode |
 | `18-object-read-concept.png` | Concept object in read-only mode |
 | `19-login-page.png` | Passwordless login page (unauthenticated) |
-| `20-bottom-panel.png` | Bottom panel open (SPARQL / Event Log tabs) |
+| `20-bottom-panel.png` | Bottom panel open with Event Log |
+| `21-vfs-browser.png` | Virtual Filesystem file browser (markdown projections) |
+| `22-spatial-canvas.png` | Spatial canvas with draggable objects |
+| `23-sparql-console.png` | Interactive SPARQL console (Yasgui) |
