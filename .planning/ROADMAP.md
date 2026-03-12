@@ -132,7 +132,7 @@
 - [x] **Phase 55: Browser UI Polish** - Object browser multi-select/delete, edge inspector, VFS breadcrumbs and preview (completed 2026-03-10)
 - [x] **Phase 56: VFS MountSpec** - Declarative mount vocabulary, 5 directory strategies, SHACL frontmatter writes, management UI (completed 2026-03-10)
 - [x] **Phase 57: Spatial Canvas** - Snap-to-grid, edge labels, keyboard nav, bulk drag-drop, wiki-link edges (completed 2026-03-10)
-- [ ] **Phase 58: Federation** - RDF Patch serialization, named graph sync, LDN notifications, federated auth, collaboration UI
+- [x] **Phase 58: Federation** - RDF Patch serialization, named graph sync, LDN notifications, federated auth, collaboration UI (completed 2026-03-12)
 
 ## Phase Details
 
@@ -351,7 +351,7 @@ Phases execute in numeric order: 52 -> 53 -> 54 -> 55 -> 56 -> 57 -> 58
 | 55. Browser UI Polish | 4/4 | Complete   | 2026-03-10 | - |
 | 56. VFS MountSpec | 3/3 | Complete    | 2026-03-10 | - |
 | 57. Spatial Canvas | 3/3 | Complete    | 2026-03-10 | - |
-| 58. Federation | 3/4 | In Progress|  | - |
+| 58. Federation | 4/4 | Complete   | 2026-03-12 | - |
 
 ---
 *Roadmap created: 2026-02-21*
