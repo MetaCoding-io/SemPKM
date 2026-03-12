@@ -11,6 +11,7 @@ Provides endpoints for:
 """
 
 import logging
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
@@ -31,7 +32,7 @@ from app.federation.schemas import (
     SyncResult,
 )
 from app.federation.service import FederationService
-from app.rdf.namespaces import SEMPKM, XSD
+from app.rdf.namespaces import AS, SEMPKM, XSD
 from app.triplestore.client import TriplestoreClient
 
 logger = logging.getLogger(__name__)
@@ -460,6 +461,195 @@ async def export_patches(
 
 
 # ---------------------------------------------------------------------------
+# HTML partials (htmx endpoints for UI panels)
+# ---------------------------------------------------------------------------
+
+
+@router.get("/inbox-partial")
+async def inbox_partial(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    client: TriplestoreClient = Depends(get_triplestore_client),
+):
+    """Render inbox notification list as HTML partial for htmx swap."""
+    templates = request.app.state.templates
+
+    # Query notifications
+    sparql = f"""
+    SELECT ?graph ?type ?actor ?summary ?state ?receivedAt ?content ?target
+    WHERE {{
+      GRAPH ?graph {{
+        ?notif a ?type .
+        ?notif <{SEMPKM}notificationState> ?state .
+        ?notif <{SEMPKM}receivedAt> ?receivedAt .
+        OPTIONAL {{ ?notif <{AS}actor> ?actor }}
+        OPTIONAL {{ ?notif <{AS}summary> ?summary }}
+        OPTIONAL {{ ?notif <{AS}content> ?content }}
+        OPTIONAL {{ ?notif <{AS}target> ?target }}
+      }}
+      FILTER(STRSTARTS(STR(?graph), "urn:sempkm:inbox:"))
+    }}
+    ORDER BY DESC(?receivedAt)
+    LIMIT 50
+    """
+
+    results = await client.query(sparql)
+    bindings = results.get("results", {}).get("bindings", [])
+
+    notifications = []
+    unread_count = 0
+    for row in bindings:
+        graph_iri = row.get("graph", {}).get("value", "")
+        notif_id = graph_iri.replace("urn:sempkm:inbox:", "")
+        type_val = row.get("type", {}).get("value", "")
+        type_name = type_val.rsplit("#", 1)[-1] if "#" in type_val else type_val.rsplit("/", 1)[-1]
+        state = row.get("state", {}).get("value", "")
+        received = row.get("receivedAt", {}).get("value", "")
+        actor_raw = row.get("actor", {}).get("value", "")
+
+        if state == "unread":
+            unread_count += 1
+
+        notifications.append({
+            "id": notif_id,
+            "type": type_name,
+            "actor": actor_raw,
+            "actor_label": actor_raw.rsplit("/", 1)[-1] if "/" in actor_raw else actor_raw,
+            "summary": row.get("summary", {}).get("value", ""),
+            "content": row.get("content", {}).get("value", ""),
+            "state": state,
+            "receivedAt": received,
+            "receivedAt_human": _humanize_time(received),
+            "target": row.get("target", {}).get("value", ""),
+            "object_iri": "",
+        })
+
+    return templates.TemplateResponse(request, "browser/partials/inbox_list.html", {
+        "notifications": notifications,
+        "unread_count": unread_count,
+    })
+
+
+@router.get("/collab-partial")
+async def collab_partial(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    service: FederationService = Depends(get_federation_service),
+):
+    """Render collaboration panel content as HTML partial for htmx swap."""
+    templates = request.app.state.templates
+    user_webid = _get_user_webid(current_user)
+
+    shared_graphs_raw = await service.list_shared_graphs(user_webid)
+    contacts_raw = await service.list_contacts(user_webid)
+
+    # Enrich shared graphs with UI fields
+    shared_graphs = []
+    for g in shared_graphs_raw:
+        graph_id = g.graph_iri.replace("urn:sempkm:shared:", "")
+        sync_status = _sync_status(g.last_sync)
+        shared_graphs.append({
+            "graph_iri": g.graph_iri,
+            "graph_id": graph_id,
+            "name": g.name,
+            "description": g.description,
+            "members": g.members,
+            "last_sync": g.last_sync,
+            "last_sync_human": _humanize_time(g.last_sync) if g.last_sync else None,
+            "pending_count": g.pending_count,
+            "sync_status": sync_status,
+        })
+
+    contacts = []
+    for c in contacts_raw:
+        contacts.append({
+            "webid": c.webid,
+            "label": c.label,
+            "instance_url": c.instance_url,
+            "last_seen": c.last_seen,
+            "last_seen_human": _humanize_time(c.last_seen) if c.last_seen else None,
+        })
+
+    return templates.TemplateResponse(request, "browser/partials/collab_content.html", {
+        "shared_graphs": shared_graphs,
+        "contacts": contacts,
+    })
+
+
+@router.get("/shared-nav")
+async def shared_nav(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    service: FederationService = Depends(get_federation_service),
+    client: TriplestoreClient = Depends(get_triplestore_client),
+):
+    """Render shared nav section as HTML partial for htmx swap."""
+    templates = request.app.state.templates
+    user_webid = _get_user_webid(current_user)
+
+    shared_graphs_raw = await service.list_shared_graphs(user_webid)
+
+    shared_graphs = []
+    for g in shared_graphs_raw:
+        graph_iri = g.graph_iri
+        sync_status = _sync_status(g.last_sync)
+
+        # Query objects in this shared graph grouped by type
+        sparql = f"""
+        SELECT DISTINCT ?s ?type ?label WHERE {{
+          GRAPH <{graph_iri}> {{
+            ?s a ?type .
+            OPTIONAL {{
+              ?s <http://purl.org/dc/terms/title> ?t .
+            }}
+            OPTIONAL {{
+              ?s <http://www.w3.org/2000/01/rdf-schema#label> ?l .
+            }}
+            OPTIONAL {{
+              ?s <http://www.w3.org/2004/02/skos/core#prefLabel> ?p .
+            }}
+            OPTIONAL {{
+              ?s <http://xmlns.com/foaf/0.1/name> ?f .
+            }}
+            BIND(COALESCE(?t, ?l, ?p, ?f, REPLACE(STR(?s), "^.*/", "")) AS ?label)
+          }}
+        }}
+        ORDER BY ?type ?label
+        LIMIT 200
+        """
+
+        results = await client.query(sparql)
+        bindings = results.get("results", {}).get("bindings", [])
+
+        # Group by type
+        type_groups: dict[str, list[dict]] = {}
+        for row in bindings:
+            obj_iri = row.get("s", {}).get("value", "")
+            obj_type = row.get("type", {}).get("value", "")
+            obj_label = row.get("label", {}).get("value", "")
+            type_label = obj_type.rsplit("#", 1)[-1] if "#" in obj_type else obj_type.rsplit("/", 1)[-1]
+            if type_label not in type_groups:
+                type_groups[type_label] = []
+            type_groups[type_label].append({"iri": obj_iri, "label": obj_label})
+
+        objects_by_type = [
+            {"label": tl, "objects": objs}
+            for tl, objs in sorted(type_groups.items())
+        ]
+
+        shared_graphs.append({
+            "name": g.name,
+            "graph_iri": graph_iri,
+            "sync_status": sync_status,
+            "objects_by_type": objects_by_type,
+        })
+
+    return templates.TemplateResponse(request, "browser/partials/shared_nav_content.html", {
+        "shared_graphs": shared_graphs,
+    })
+
+
+# ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
@@ -494,3 +684,48 @@ def _binding_to_term(binding: dict) -> URIRef | Literal:
         return URIRef(f"urn:skolem:{value}")
     else:
         return URIRef(value)
+
+
+def _humanize_time(iso_str: str | None) -> str:
+    """Convert an ISO timestamp string to a human-friendly relative time."""
+    if not iso_str:
+        return ""
+    try:
+        dt = datetime.fromisoformat(iso_str.replace("Z", "+00:00"))
+        now = datetime.now(timezone.utc)
+        diff = now - dt
+        seconds = diff.total_seconds()
+        if seconds < 60:
+            return "just now"
+        elif seconds < 3600:
+            mins = int(seconds // 60)
+            return f"{mins}m ago"
+        elif seconds < 86400:
+            hrs = int(seconds // 3600)
+            return f"{hrs}h ago"
+        else:
+            days = int(seconds // 86400)
+            return f"{days}d ago"
+    except (ValueError, TypeError):
+        return iso_str[:16] if len(iso_str) > 16 else iso_str
+
+
+def _sync_status(last_sync: str | None) -> str:
+    """Return sync status color class based on last_sync timestamp.
+
+    green: synced within 24 hours
+    yellow: synced but >24 hours ago
+    gray: never synced
+    """
+    if not last_sync:
+        return "gray"
+    try:
+        dt = datetime.fromisoformat(last_sync.replace("Z", "+00:00"))
+        now = datetime.now(timezone.utc)
+        diff = now - dt
+        if diff.total_seconds() < 86400:
+            return "green"
+        else:
+            return "yellow"
+    except (ValueError, TypeError):
+        return "gray"

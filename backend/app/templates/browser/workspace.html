@@ -8,7 +8,9 @@
 {{ super() }}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dockview-core@4.11.0/dist/styles/dockview.css">
 <link rel="stylesheet" href="/css/dockview-sempkm-bridge.css">
+<link rel="stylesheet" href="/css/federation.css">
 <script src="https://cdn.jsdelivr.net/npm/dockview-core@4.11.0/dist/dockview-core.min.js"></script>
+<script src="/js/federation.js" defer></script>
 {% endblock %}
 
 {% block content %}
@@ -69,6 +71,7 @@
                     <div class="tree-empty">Loading views...</div>
                 </div>
             </div>
+            {% include "browser/partials/shared_nav_section.html" %}
         </div>
     </div>
 
@@ -159,6 +162,8 @@
                     <div class="right-empty">No object selected</div>
                 </div>
             </details>
+            {% include "browser/partials/inbox_panel.html" %}
+            {% include "browser/partials/collaboration_panel.html" %}
         </div>
     </div>
 </div>

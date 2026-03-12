@@ -1,0 +1,17 @@
+{# Collaboration panel - right pane section for shared graphs and contacts.
+   Loaded via htmx from /api/federation/collab-partial.
+   Shows shared graphs with sync status and contact list. #}
+
+<details class="right-section" data-panel-name="collaboration">
+    <summary class="right-section-header" draggable="true">
+        <i data-lucide="grip-vertical" class="panel-grip"></i>
+        <i data-lucide="chevron-right" class="right-section-chevron"></i>
+        COLLABORATION
+    </summary>
+    <div class="right-section-body" id="collab-content"
+         hx-get="/api/federation/collab-partial"
+         hx-trigger="load"
+         hx-swap="innerHTML">
+        <div class="right-empty">Loading collaboration data...</div>
+    </div>
+</details>

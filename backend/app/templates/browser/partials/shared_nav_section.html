@@ -1,0 +1,18 @@
+{# SHARED section for nav tree - shows shared graph objects grouped by type.
+   Loaded on workspace init and refreshable via /api/federation/shared-nav.
+   Receives: shared_graphs (list with objects_by_type grouping). #}
+
+<div class="explorer-section" id="section-shared" data-panel-name="shared"
+     hx-get="/api/federation/shared-nav"
+     hx-trigger="load"
+     hx-swap="outerHTML">
+    <div class="explorer-section-header" draggable="true"
+         onclick="this.parentElement.classList.toggle('expanded')">
+        <i data-lucide="grip-vertical" class="panel-grip"></i>
+        <span class="explorer-section-chevron">&#9656;</span>
+        <span class="explorer-section-title">SHARED</span>
+    </div>
+    <div class="explorer-section-body">
+        <div class="tree-empty">Loading shared graphs...</div>
+    </div>
+</div>

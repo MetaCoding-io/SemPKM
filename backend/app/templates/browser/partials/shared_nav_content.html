@@ -1,0 +1,41 @@
+{# SHARED nav section content - rendered by /api/federation/shared-nav.
+   Receives: shared_graphs (list with objects_by_type grouping). #}
+
+<div class="explorer-section" id="section-shared" data-panel-name="shared">
+    <div class="explorer-section-header" draggable="true"
+         onclick="this.parentElement.classList.toggle('expanded')">
+        <i data-lucide="grip-vertical" class="panel-grip"></i>
+        <span class="explorer-section-chevron">&#9656;</span>
+        <span class="explorer-section-title">SHARED</span>
+    </div>
+    <div class="explorer-section-body">
+        {% if shared_graphs %}
+        {% for graph in shared_graphs %}
+        <div class="shared-graph-group">
+            <div class="shared-graph-nav-header" onclick="this.parentElement.classList.toggle('collapsed')">
+                <i data-lucide="share-2"></i>
+                <span>{{ graph.name }}</span>
+                <span class="sync-dot sync-{{ graph.sync_status }}"></span>
+            </div>
+            {% for type_group in graph.objects_by_type %}
+            <div class="tree-type-group">
+                <span class="type-label">{{ type_group.label }}</span>
+                {% for obj in type_group.objects %}
+                <div class="tree-leaf shared-object" data-iri="{{ obj.iri }}"
+                     onclick="openTab('{{ obj.iri }}', '{{ obj.label | e }}')">
+                    <i data-lucide="share-2" class="shared-icon"></i>
+                    <span>{{ obj.label }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+            {% if not graph.objects_by_type %}
+            <div class="tree-empty">No objects in this graph</div>
+            {% endif %}
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="tree-empty">No shared graphs</div>
+        {% endif %}
+    </div>
+</div>

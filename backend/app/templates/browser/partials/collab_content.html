@@ -1,0 +1,94 @@
+{# Collaboration panel content - rendered by /api/federation/collab-partial.
+   Receives: shared_graphs (list), contacts (list). #}
+
+<div class="collab-section">
+    <div class="collab-section-header">
+        <span class="collab-section-title">Shared Graphs</span>
+        <button class="panel-btn collab-action-btn" onclick="showCreateSharedGraph()" title="New Shared Graph">
+            <i data-lucide="plus"></i>
+        </button>
+    </div>
+    <div id="create-shared-graph-form" style="display:none" class="collab-inline-form">
+        <input type="text" id="new-graph-name" placeholder="Graph name" class="collab-input">
+        <textarea id="new-graph-desc" placeholder="Description (optional)" class="collab-input collab-textarea" rows="2"></textarea>
+        <div class="collab-form-actions">
+            <button class="primary" onclick="submitCreateSharedGraph()">Create</button>
+            <button onclick="hideCreateSharedGraph()">Cancel</button>
+        </div>
+    </div>
+    {% if shared_graphs %}
+    <div class="shared-graphs-list">
+        {% for graph in shared_graphs %}
+        <div class="shared-graph-card" data-graph-iri="{{ graph.graph_iri }}">
+            <div class="shared-graph-header">
+                <i data-lucide="share-2"></i>
+                <span class="shared-graph-name">{{ graph.name }}</span>
+                <span class="sync-dot sync-{{ graph.sync_status }}"></span>
+            </div>
+            {% if graph.description %}
+            <div class="shared-graph-desc">{{ graph.description }}</div>
+            {% endif %}
+            <div class="shared-graph-meta">
+                <span>{{ graph.members | length }} member{{ 's' if graph.members | length != 1 else '' }}</span>
+                {% if graph.last_sync %}
+                <span>Last sync: {{ graph.last_sync_human }}</span>
+                {% else %}
+                <span>Never synced</span>
+                {% endif %}
+                {% if graph.pending_count > 0 %}
+                <span class="pending-badge">{{ graph.pending_count }} pending</span>
+                {% endif %}
+            </div>
+            <div class="shared-graph-actions">
+                <button class="primary" onclick="syncSharedGraph('{{ graph.graph_id }}')">
+                    <i data-lucide="refresh-cw"></i> Sync Now
+                </button>
+                <button onclick="showInviteForm('{{ graph.graph_iri }}')">
+                    <i data-lucide="user-plus"></i> Invite
+                </button>
+            </div>
+            <div class="invite-form" id="invite-form-{{ graph.graph_id }}" style="display:none">
+                <input type="text" placeholder="user@domain or WebID URL" class="collab-input invite-input"
+                       id="invite-handle-{{ graph.graph_id }}">
+                <div class="collab-form-actions">
+                    <button class="primary" onclick="submitInvite('{{ graph.graph_iri }}', '{{ graph.graph_id }}')">Send</button>
+                    <button onclick="document.getElementById('invite-form-{{ graph.graph_id }}').style.display='none'">Cancel</button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="right-empty federation-empty">
+        <i data-lucide="share-2"></i>
+        <span>No shared graphs yet. Create one or accept an invitation.</span>
+    </div>
+    {% endif %}
+</div>
+
+<div class="collab-section">
+    <div class="collab-section-header">
+        <span class="collab-section-title">Contacts</span>
+    </div>
+    {% if contacts %}
+    <div class="contacts-list">
+        {% for contact in contacts %}
+        <div class="contact-item">
+            <i data-lucide="user"></i>
+            <div class="contact-info">
+                <span class="contact-label">{{ contact.label }}</span>
+                <span class="contact-url">{{ contact.instance_url }}</span>
+            </div>
+            {% if contact.last_seen %}
+            <span class="contact-last-seen">{{ contact.last_seen_human }}</span>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="right-empty federation-empty">
+        <i data-lucide="users"></i>
+        <span>No contacts yet</span>
+    </div>
+    {% endif %}
+</div>
