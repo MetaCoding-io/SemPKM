@@ -137,30 +137,33 @@ class ViewSpecService:
             logger.info("No installed models found for view spec extraction")
             return []
 
-        # 2. Build FROM clauses for each model's views graph
-        from_clauses = []
+        # 2. Build reverse map from graph IRI → model ID
         model_ids = []
+        graph_to_model: dict[str, str] = {}
         for b in bindings:
             model_id = b["modelId"]["value"]
             model_ids.append(model_id)
             views_iri = f"urn:sempkm:model:{model_id}:views"
-            from_clauses.append(f"FROM <{views_iri}>")
+            graph_to_model[views_iri] = model_id
 
-        from_str = "\n".join(from_clauses)
+        # VALUES clause constrains ?g to only model view graphs
+        values_entries = " ".join(f"<{iri}>" for iri in graph_to_model)
 
-        # 3. Query view spec properties
-        specs_sparql = f"""SELECT ?spec ?label ?targetClass ?renderer ?query ?columns ?sortDefault ?cardTitle ?cardSubtitle
-{from_str}
+        # 3. Query view spec properties using GRAPH ?g pattern
+        specs_sparql = f"""SELECT ?g ?spec ?label ?targetClass ?renderer ?query ?columns ?sortDefault ?cardTitle ?cardSubtitle
 WHERE {{
-  ?spec a <{SEMPKM_VOCAB}ViewSpec> .
-  OPTIONAL {{ ?spec <http://www.w3.org/2000/01/rdf-schema#label> ?label }}
-  OPTIONAL {{ ?spec <{SEMPKM_VOCAB}targetClass> ?targetClass }}
-  OPTIONAL {{ ?spec <{SEMPKM_VOCAB}rendererType> ?renderer }}
-  OPTIONAL {{ ?spec <{SEMPKM_VOCAB}sparqlQuery> ?query }}
-  OPTIONAL {{ ?spec <{SEMPKM_VOCAB}columns> ?columns }}
-  OPTIONAL {{ ?spec <{SEMPKM_VOCAB}sortDefault> ?sortDefault }}
-  OPTIONAL {{ ?spec <{SEMPKM_VOCAB}cardTitle> ?cardTitle }}
-  OPTIONAL {{ ?spec <{SEMPKM_VOCAB}cardSubtitle> ?cardSubtitle }}
+  VALUES ?g {{ {values_entries} }}
+  GRAPH ?g {{
+    ?spec a <{SEMPKM_VOCAB}ViewSpec> .
+    OPTIONAL {{ ?spec <http://www.w3.org/2000/01/rdf-schema#label> ?label }}
+    OPTIONAL {{ ?spec <{SEMPKM_VOCAB}targetClass> ?targetClass }}
+    OPTIONAL {{ ?spec <{SEMPKM_VOCAB}rendererType> ?renderer }}
+    OPTIONAL {{ ?spec <{SEMPKM_VOCAB}sparqlQuery> ?query }}
+    OPTIONAL {{ ?spec <{SEMPKM_VOCAB}columns> ?columns }}
+    OPTIONAL {{ ?spec <{SEMPKM_VOCAB}sortDefault> ?sortDefault }}
+    OPTIONAL {{ ?spec <{SEMPKM_VOCAB}cardTitle> ?cardTitle }}
+    OPTIONAL {{ ?spec <{SEMPKM_VOCAB}cardSubtitle> ?cardSubtitle }}
+  }}
 }}"""
 
         try:
@@ -176,6 +179,7 @@ WHERE {{
             spec_iri = b["spec"]["value"]
             columns_str = b.get("columns", {}).get("value", "")
             columns = [c.strip() for c in columns_str.split(",") if c.strip()] if columns_str else []
+            g_value = b.get("g", {}).get("value", "")
 
             specs.append(ViewSpec(
                 spec_iri=spec_iri,
@@ -187,7 +191,7 @@ WHERE {{
                 sort_default=b.get("sortDefault", {}).get("value", ""),
                 card_title=b.get("cardTitle", {}).get("value", ""),
                 card_subtitle=b.get("cardSubtitle", {}).get("value", ""),
-                source_model=model_ids[0] if len(model_ids) == 1 else "",
+                source_model=graph_to_model.get(g_value, ""),
             ))
 
         self._specs_cache[cache_key] = specs

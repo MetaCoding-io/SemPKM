@@ -1,7 +1,7 @@
 # GSD State
 
 **Active Milestone:** M002 — Hardening & Polish
-**Active Slice:** S02 — Correctness Fixes
+**Active Slice:** S03 — Backend Test Foundation
 **Phase:** planning
 **Requirements Status:** 22 active · 38 validated · 3 deferred · 0 out of scope
 
@@ -16,4 +16,4 @@
 - None
 
 ## Next Action
-Plan slice S02 (Correctness Fixes).
+Plan slice S03 (Backend Test Foundation).

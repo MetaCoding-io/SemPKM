@@ -53,7 +53,7 @@ This milestone is complete only when all are true:
 - [x] **S01: Security Hardening** `risk:medium` `depends:[]`
   > After this: auth endpoints have rate limiting, magic link tokens aren't logged in production, event console is owner-only, SPARQL filter text is properly escaped, and BASE_NAMESPACE deployment is documented.
 
-- [ ] **S02: Correctness Fixes** `risk:low` `depends:[]`
+- [x] **S02: Correctness Fixes** `risk:low` `depends:[]`
   > After this: validation report IRIs use stable hashing, scope_to_current_graph handles SPARQL keywords in string literals, and source_model is attributed correctly with multiple models.
 
 - [ ] **S03: Backend Test Foundation** `risk:medium` `depends:[S01,S02]`

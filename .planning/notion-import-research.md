@@ -16,10 +16,10 @@
 | **Standalone Page** | Free-form blocks (text, headings, toggles, callouts, etc.) | **Note object** with markdown body | No structured properties beyond title — content-first |
 | **Nested Sub-page** | Page inside another page | **Object with parent edge** | `dcterms:isPartOf` or similar relationship |
 | **Relation property** | Cross-database link (DB A row → DB B row) | **Edge (RDF triple)** | The most valuable signal — these ARE the knowledge graph |
-| **Rollup property** | Computed aggregation from relations | **Skip / derived** | These are views, not data — can be recomputed via SPARQL |
-| **Formula property** | Computed value | **Skip / derived** | Same — computed, not stored |
+| **Rollup property** | Computed aggregation from relations | **Preserve in DashboardSpec** | Encodes analytical intent — see Section 8 |
+| **Formula property** | Computed value | **Preserve in DashboardSpec** | Encodes business logic — see Section 8 |
 | **Select / Multi-select** | Enum / tag values | **Category / schema:keywords** | Multi-select → multiple triples |
-| **Dashboard page** | A page whose body is all database views, filters, embeds | **Skip or import as Note** | Layout info, not knowledge — offer user the choice |
+| **Dashboard page** | A page whose body is all database views, filters, embeds | **DashboardSpec object** | Metadata preserved for user reference and AI copilot reconstruction |
 
 ### The Three Content Tiers
 
@@ -29,7 +29,7 @@ Users need to understand that their Notion workspace contains three fundamentall
 
 2. **Rich Content** (standalone pages, database row bodies) — free-form writing that we convert to markdown. Valuable as note bodies, but no structured properties.
 
-3. **Layout/Views** (dashboards, linked views, galleries, boards, calendars) — these are *presentations* of data, not data itself. SemPKM reconstructs views from the data model, so importing the layout is unnecessary.
+3. **Layout/Views** (dashboards, linked views, galleries, boards, calendars) — these are *presentations* of data, not data itself. SemPKM reconstructs views from the data model, so importing the layout is unnecessary — but we **preserve the metadata** so users can rebuild and an AI copilot can assist.
 
 ---
 
@@ -64,7 +64,7 @@ Workspace Name/
 - Relations in CSV are stored as page titles (strings), not IDs — fragile for resolution
 - No explicit schema metadata — must infer property types from CSV column values
 - Callouts, toggles, synced blocks get lossy markdown conversion
-- Rollup/Formula columns appear in CSV as computed values (no semantic meaning)
+- Rollup/Formula columns appear in CSV as computed values (no semantic meaning without context)
 - User must manually export (can't automate from our side)
 
 ### Option B: Notion API (Live Connection)
@@ -84,6 +84,7 @@ Workspace Name/
 - User can scope exactly which databases/pages to share (fine-grained)
 - Incremental sync possible (webhooks, last_edited_time filtering)
 - The 2025 Markdown Content API makes body extraction much simpler
+- **Rollups and formulas are explicitly typed** — full configuration available (source relation, aggregation function, formula expression)
 
 **Cons:**
 - Requires user to create an Integration and share pages — more setup friction
@@ -125,7 +126,7 @@ The Notion MCP (Option C) is excellent for *development and research* (exploring
 Upload ZIP → Scan → Type Mapping → Property Mapping → Preview → Import
 ```
 
-### Proposed Notion Flow (7 steps)
+### Proposed Notion Flow (8 steps)
 
 ```
 Upload ZIP → Parse → Classify → Type Mapping → Property Mapping → Relation Mapping → Preview → Import
@@ -133,7 +134,7 @@ Upload ZIP → Parse → Classify → Type Mapping → Property Mapping → Rela
 
 The key additions vs Obsidian:
 - **Parse** replaces Scan — parses CSVs (not frontmatter) and .md files
-- **Classify** — new step where user classifies each database/page group as "Structured Data", "Content Page", or "Skip"
+- **Classify** — new step where user classifies each database/page group as "Structured Data", "Content Page", "Dashboard / View", etc.
 - **Relation Mapping** — new step specific to Notion's cross-database Relations
 
 #### Step 1: Upload
@@ -216,7 +217,8 @@ For each mapped database:
   - `Checkbox` columns (true/false) → suggest boolean properties
   - `URL` columns → suggest URL properties
   - `Relation` columns → handled in next step (skip here)
-  - `Rollup` / `Formula` columns → suggest "Skip (computed)"
+  - `Rollup` / `Formula` columns → suggest "Preserve as dashboard hint" (flag for DashboardSpec)
+  - `Number` columns → suggest numeric properties
 
 #### Step 6: Relation Mapping (NEW — Notion-specific)
 This step is unique to Notion because Notion Relations are first-class:
@@ -235,6 +237,7 @@ Same as Obsidian — show sample transformed objects with their properties and e
 Additional Notion-specific preview elements:
 - Show sample relation edges: `"Q1 Product Launch" → ppv:alignsWithGoal → "Grow Revenue"`
 - Show content pages with markdown body preview
+- Show dashboard specs that will be preserved (with referenced DB names and derived field counts)
 - Highlight any relation targets that couldn't be resolved
 
 #### Step 8: Import (Execute)
@@ -243,6 +246,7 @@ Two-pass execution (mirrors Obsidian pattern):
 **Pass 1: Create Objects**
 - For each database row → create RDF object with mapped properties
 - For each content page → create Note object with markdown body
+- For each dashboard page → create DashboardSpec object with preserved metadata
 - Track `notionPageId` as `sempkm:importSource` for deduplication
 
 **Pass 2: Create Edges**
@@ -383,7 +387,7 @@ class NotionMappingConfig:
     """Complete mapping configuration for a Notion import."""
     version: int = 1
     
-    # DB classification: db_name → "structured" | "content" | "skip"
+    # DB classification: db_name → "structured" | "content" | "dashboard" | "bookmark" | "skip"
     classifications: dict[str, str]
     
     # Type mappings: db_name → TypeMapping (same as Obsidian)
@@ -414,8 +418,8 @@ class RelationMapping:
 | **Step bar template** | **Reuse directly** — just pass different step labels |
 | **Upload form template** | **Reuse directly** — identical UX (accept ZIP) |
 | **Import progress template** | **Reuse directly** — identical SSE-driven progress |
-| **Import summary template** | **Adapt** — add relation stats |
-| **ImportExecutor** | **Adapt** — Pass 1 reads CSV instead of frontmatter, Pass 2 resolves Relations instead of wiki-links |
+| **Import summary template** | **Adapt** — add relation stats + dashboard specs preserved count |
+| **ImportExecutor** | **Adapt** — Pass 1 reads CSV instead of frontmatter, Pass 2 resolves Relations instead of wiki-links, also creates DashboardSpec objects |
 | **Models (TypeMapping, PropertyMapping)** | **Reuse** — extract to shared module |
 | **Scanner** | **New** — NotionZIPScanner with CSV parsing, ID stripping, relation detection |
 
@@ -442,13 +446,13 @@ backend/app/templates/notion/
     ├── step_bar.html           # Could share with obsidian via include
     ├── upload_form.html        # Nearly identical to obsidian
     ├── scan_results.html       # Notion-specific: databases, pages, relations
-    ├── classify.html           # NEW: structured/content/skip classification
+    ├── classify.html           # NEW: structured/content/dashboard/bookmark/skip classification
     ├── type_mapping.html       # Adapted from obsidian
     ├── property_mapping.html   # Adapted from obsidian
     ├── relation_mapping.html   # NEW: relation → predicate mapping
-    ├── preview.html            # Adapted with relation preview
+    ├── preview.html            # Adapted with relation + dashboard spec preview
     ├── import_progress.html    # Reuse obsidian's
-    └── import_summary.html     # Adapted with relation stats
+    └── import_summary.html     # Adapted with relation stats + dashboard specs
 ```
 
 ---
@@ -487,8 +491,10 @@ Beyond databases and standalone pages, Notion workspaces contain many other cont
 
 | Notion Content | What It Is | Preservation Strategy |
 |---------------|------------|----------------------|
-| **Dashboard pages** | Pages composed of DB views, filters, charts, embeds | → Record as `ImportedDashboardSpec` (see below) |
-| **Database views** | Board, Gallery, Calendar, Timeline, Chart configurations | → Record view type + filters + sort + grouping |
+| **Dashboard pages** | Pages composed of DB views, filters, charts, embeds | → Record as `DashboardSpec` object (see Section 8) |
+| **Database views** | Board, Gallery, Calendar, Timeline, Chart configurations | → Record view type + filters + sort + grouping in DashboardSpec |
+| **Rollup properties** | Computed aggregations | → Preserve in DashboardSpec as derived-field hints. Records which relation was rolled up, what aggregation was used (count, sum, etc.), giving the AI copilot enough to reconstruct equivalent SPARQL aggregations or ViewSpec computed fields |
+| **Formula properties** | Computed values | → Preserve in DashboardSpec as formula specs. The formula text itself (e.g., `if(Status == "Done", "✅", "⏳")`) encodes business logic the user cared about. Snapshot values can optionally be imported as static text properties |
 | **Automations** | Trigger→action rules on databases | → Record as text description in dashboard spec |
 | **Favorites / Sidebar order** | Personal nav organization | → Record as ordered list for reference |
 | **Page hierarchy** | Parent/child page nesting | → Preserve via `dcterms:isPartOf` edges |
@@ -505,14 +511,12 @@ Beyond databases and standalone pages, Notion workspaces contain many other cont
 | **AI Agents** | Platform-bound LLM workflows — no export representation |
 | **Connected/Synced DBs** | External data (Jira, GitHub) exports as a static snapshot — import if user wants, but warn it's stale |
 | **Integrations** | API connections, Zapier/Make rules — platform plumbing |
-| **Rollup properties** | Computed aggregations — preserve in DashboardSpec (see Section 8) as derived-field hints. Records which relation was rolled up, what aggregation was used (count, sum, etc.), giving the AI copilot enough to reconstruct equivalent SPARQL aggregations or ViewSpec computed fields |
-| **Formula properties** | Computed values — preserve in DashboardSpec as formula specs. The formula text itself (e.g., `if(Status == "Done", "✅", "⏳")`) encodes business logic the user cared about. Snapshot values can optionally be imported as static text properties |
 
 ---
 
 ## 8. Dashboard & View Metadata Preservation
 
-### The Problem You Identified
+### The Problem
 When a user skips a "dashboard" page, that page represented *intent* — how they organized and viewed their data. Discarding it entirely loses that signal. Even if we can't recreate the exact Notion layout, we should capture *what the user was trying to see* so they (or an AI copilot) can rebuild it later.
 
 ### What We Can Extract from Dashboard Pages
@@ -524,7 +528,7 @@ Even in a ZIP export, dashboard pages contain useful signals:
 3. **View names** — if the page title follows patterns like "Weekly Dashboard", "Project Tracker Overview"
 4. **Page hierarchy** — where the dashboard sat in the workspace tree (what it was "about")
 
-### Proposed: `ImportedDashboardSpec` Object
+### Proposed: `DashboardSpec` Object
 
 When the user classifies a page as "Dashboard / View" in the Classify step, instead of silently skipping it, create a lightweight metadata record:
 
@@ -608,6 +612,7 @@ The `derivedField` entries capture rollups and formulas from the databases refer
    - The original page title and context
    - Which databases/types were referenced
    - View type hints (board, calendar, etc.)
+   - Derived field specs (rollups, formulas) — the computations the user wanted
    - The raw markdown for any custom instructions or layout notes
    - The full import context (what types those databases mapped to)
 
@@ -623,6 +628,7 @@ In the **Classify** step, when user marks something as "Dashboard / View":
 │                                                         │
 │ ℹ️ This page references: Action Items, Projects,       │
 │    Goal Outcomes                                        │
+│ 📐 2 rollups, 1 formula detected in referenced DBs     │
 │                                                         │
 │ Dashboard metadata will be preserved so you can         │
 │ rebuild this view later. The raw content is saved        │
@@ -636,7 +642,7 @@ And in the **Import Summary**:
 ✅ Import Complete
    📋 247 objects created
    🔗 89 edges created  
-   📊 3 dashboard specs preserved     ← new
+   📊 3 dashboard specs preserved (5 rollups, 2 formulas recorded)
    ⚠️ 4 unresolved relations
 ```
 
@@ -657,7 +663,7 @@ A cell like `"Tag1, Tag2, Tag3"` needs to be split into multiple RDF triples. Ne
 Notion allows databases inside pages inside databases. The ZIP flattens this somewhat. Scanner needs to handle arbitrary nesting of folders.
 
 ### 5. Dashboard Pages
-These pages are mostly `![[embed]]` references to database views. In the ZIP export, they become nearly empty markdown with broken embed references. Best to detect and suggest "Skip."
+These pages are mostly `![[embed]]` references to database views. In the ZIP export, they become nearly empty markdown with broken embed references. Best to detect and preserve as DashboardSpec rather than import as content.
 
 ### 6. Date Formatting
 Notion exports dates in various formats depending on locale and property settings. Need robust date parsing (dateutil or similar).
@@ -670,7 +676,7 @@ Some Notion properties are file uploads. These appear in the CSV as URLs (S3 pre
 
 ---
 
-## 8. Future: API-Based Import (Phase 2)
+## 10. Future: API-Based Import (Phase 2)
 
 Once ZIP import is solid, add an API-connected flow:
 
@@ -686,17 +692,18 @@ Once ZIP import is solid, add an API-connected flow:
 
 ### Step 3: Same Wizard
 - Type Mapping, Property Mapping, Relation Mapping, Preview, Import
-- But with richer data: explicit property types, real relation IDs (not title-matching), formulas/rollups flagged properly
+- But with richer data: explicit property types, real relation IDs (not title-matching), formulas/rollups flagged properly with full configuration
 
 ### Advantages over ZIP
 - Explicit property types (no inference needed)
 - Relation resolution by ID (not title matching — no ambiguity)
 - Incremental re-import (only new/changed rows)
 - Page body as Enhanced Markdown (better fidelity than ZIP export)
+- **Rollup and formula configurations are fully available** — source relation, aggregation type, formula expression are all in the API response, making DashboardSpec derived fields much richer
 
 ---
 
-## 10. Summary: Build Order
+## 11. Summary: Build Order
 
 | Phase | Scope | Effort |
 |-------|-------|--------|
@@ -704,8 +711,8 @@ Once ZIP import is solid, add an API-connected flow:
 | **Phase 2** | Notion ZIP scanner (CSV parsing, ID stripping, relation detection, dashboard detection) | Medium |
 | **Phase 3** | Notion wizard steps 1-3 (Upload, Parse, Classify — with all 5 classification options) | Medium |
 | **Phase 4** | Notion wizard steps 4-6 (Type/Property/Relation mapping) — adapt from Obsidian | Medium |
-| **Phase 5** | Notion executor — objects, edges, content pages, **DashboardSpec preservation** | Medium |
-| **Phase 6** | Preview step + import summary (showing dashboard specs preserved count) | Small |
+| **Phase 5** | Notion executor — objects, edges, content pages, **DashboardSpec preservation** (including rollup/formula derived fields) | Medium |
+| **Phase 6** | Preview step + import summary (showing dashboard specs + derived field counts) | Small |
 | **Phase 7** | Comments import (opt-in), bookmark extraction, wiki verification metadata | Small |
-| **Future** | Notion API live-connection import | Large |
+| **Future** | Notion API live-connection import (with full rollup/formula config from API) | Large |
 | **Future** | AI copilot dashboard reconstruction from DashboardSpec objects | Medium |

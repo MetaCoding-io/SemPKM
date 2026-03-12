@@ -17,6 +17,49 @@ from app.rdf.namespaces import COMMON_PREFIXES, CURRENT_GRAPH_IRI, INFERRED_GRAP
 CURRENT_GRAPH = str(CURRENT_GRAPH_IRI)
 INFERRED_GRAPH = str(INFERRED_GRAPH_IRI)
 
+# Regex for SPARQL string literals and comments.
+# Order matters: triple-quoted forms must be tried before single-quoted
+# to avoid partial matches.  Escaped quotes inside strings are handled
+# by the non-greedy interior combined with the escaped-quote alternative.
+_SPARQL_STRINGS_RE = re.compile(
+    r'"""(?:[^"\\]|\\.|"(?!""))*"""'   # """..."""
+    r"|'''(?:[^'\\]|\\.|'(?!''))*'''"  # '''...'''
+    r'|"(?:[^"\\]|\\.)*"'             # "..."
+    r"|'(?:[^'\\]|\\.)*'"             # '...'
+    r"|#[^\n]*",                       # # comment to EOL
+    re.DOTALL,
+)
+
+
+def _strip_sparql_strings(query: str) -> str:
+    """Blank out SPARQL string literal contents and comments.
+
+    Replaces the *interior* of string literals with spaces (preserving
+    delimiters and overall length) and replaces ``#``-comments with
+    spaces.  This allows keyword detection (FROM, GRAPH, …) to run on
+    the result without false-positives on keywords that appear inside
+    strings or comments.
+
+    Handles all four SPARQL string forms (``"…"``, ``'…'``,
+    ``\"\"\"…\"\"\"``, ``'''…'''``) plus hash-comments.
+    """
+
+    def _blank(m: re.Match) -> str:
+        text = m.group()
+        if text.startswith("#"):
+            # Replace entire comment with spaces
+            return " " * len(text)
+        # Determine delimiter length (3 for triple-quoted, 1 for single)
+        if text.startswith('"""') or text.startswith("'''"):
+            dlen = 3
+        else:
+            dlen = 1
+        # Keep delimiters, blank interior with spaces
+        interior_len = len(text) - 2 * dlen
+        return text[:dlen] + " " * interior_len + text[-dlen:]
+
+    return _SPARQL_STRINGS_RE.sub(_blank, query)
+
 
 def check_member_query_safety(query: str) -> None:
     """Validate that a SPARQL query is safe for member-role users.
@@ -31,7 +74,7 @@ def check_member_query_safety(query: str) -> None:
     Raises:
         HTTPException: 403 if FROM or GRAPH clauses are detected.
     """
-    upper = query.upper()
+    upper = _strip_sparql_strings(query).upper()
     if re.search(r'\bFROM\s+', upper):
         raise HTTPException(
             status_code=403,
@@ -78,11 +121,13 @@ def scope_to_current_graph(
     if all_graphs:
         return query
 
-    # Check if query already has FROM or GRAPH clauses
-    upper = query.upper()
+    # Check if query already has FROM or GRAPH clauses.
+    # Strip string literals and comments first to avoid false-positives
+    # on keywords like FROM/GRAPH that appear inside strings or comments.
+    stripped_upper = _strip_sparql_strings(query).upper()
 
     # Already has FROM clause -- user is explicitly controlling graph scope
-    if re.search(r'\bFROM\s+', upper):
+    if re.search(r'\bFROM\s+', stripped_upper):
         return query
 
     # Already has GRAPH clause referencing current graph

@@ -5,6 +5,7 @@ dataclasses. Generates RDF triples for persistent storage as named
 graphs in the triplestore.
 """
 
+import hashlib
 import uuid
 from dataclasses import dataclass, field
 from typing import Optional
@@ -171,8 +172,9 @@ class ValidationReport:
         if self.event_iri.startswith(prefix):
             uuid = self.event_iri[len(prefix):]
             return f"urn:sempkm:validation:{uuid}"
-        # Fallback: use event_iri hash
-        return f"urn:sempkm:validation:{hash(self.event_iri)}"
+        # Fallback: use deterministic SHA-256 hex digest of event IRI
+        digest = hashlib.sha256(self.event_iri.encode()).hexdigest()
+        return f"urn:sempkm:validation:{digest}"
 
     def summary(self) -> ValidationReportSummary:
         """Generate a lightweight summary with counts by severity."""
