@@ -26,6 +26,8 @@ Requires-Dist: a2wsgi>=1.10
 Requires-Dist: python-frontmatter>=1.1.0
 Requires-Dist: owlrl>=7.0
 Requires-Dist: mf2py>=2.0
+Requires-Dist: http-message-signatures>=2.0.1
+Requires-Dist: slowapi>=0.1.9
 Provides-Extra: dev
 Requires-Dist: pytest; extra == "dev"
 Requires-Dist: pytest-asyncio; extra == "dev"
