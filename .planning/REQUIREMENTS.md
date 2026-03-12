@@ -25,10 +25,10 @@ Requirements for v2.6 Power User & Collaboration. Each maps to roadmap phases.
 - [ ] **FED-03**: User can register a remote SemPKM instance for sync
 - [ ] **FED-04**: Named graph sync pulls patches from remote instance and applies via EventStore
 - [ ] **FED-05**: Sync prevents infinite loops via syncSource tagging on federation-originated events
-- [ ] **FED-06**: Server exposes LDN inbox endpoint discoverable via Link header on WebID profiles
+- [x] **FED-06**: Server exposes LDN inbox endpoint discoverable via Link header on WebID profiles
 - [ ] **FED-07**: User can send a notification (e.g. shared concept) to a remote instance's LDN inbox
 - [ ] **FED-08**: User can view and act on received LDN notifications in the workspace
-- [ ] **FED-09**: Incoming federation requests are authenticated via HTTP Signatures against WebID public keys
+- [x] **FED-09**: Incoming federation requests are authenticated via HTTP Signatures against WebID public keys
 - [ ] **FED-10**: Collaboration UI shows registered remote instances, sync status, and incoming changes
 
 ### User Custom VFS (MountSpec)
@@ -108,10 +108,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FED-03 | Phase 58 | Pending |
 | FED-04 | Phase 58 | Pending |
 | FED-05 | Phase 58 | Pending |
-| FED-06 | Phase 58 | Pending |
+| FED-06 | Phase 58 | Complete |
 | FED-07 | Phase 58 | Pending |
 | FED-08 | Phase 58 | Pending |
-| FED-09 | Phase 58 | Pending |
+| FED-09 | Phase 58 | Complete |
 | FED-10 | Phase 58 | Pending |
 | VFS-01 | Phase 56 | Complete |
 | VFS-02 | Phase 56 | Complete |
