@@ -12,3 +12,5 @@
 | D004 | M002 | scope | Browser router refactor approach | Split into domain sub-routers, zero behavior change | Preserves all URL paths and htmx wiring; E2E tests are the safety net | No |
 | D005 | M002 | scope | Federation testing approach | Dual-instance docker-compose for E2E testing | Single instance can't test federation; permanent dev setup not needed | Yes — if federation becomes daily workflow |
 | D006 | M002 | scope | Obsidian import testing approach | Manual user-driven import of real Ideaverse vault, fix bugs found | Automated testing of 905-note vault import is fragile; user judgment needed for mapping quality | No |
+| D007 | M002/S01 | tech | Rate limiting library | slowapi with in-memory backend, per-route decorators (no global default) | Battle-tested (wraps flask-limiter), no Redis needed for single-instance, supports `get_remote_address` for real client IP behind nginx | Yes — add Redis backend if scaling to multiple workers |
+| D008 | M002/S01 | tech | SPARQL regex escaping placement | Standalone `backend/app/sparql/utils.py` module | Must be importable without pulling in views service; S03 will unit-test it directly | No |

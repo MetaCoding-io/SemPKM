@@ -26,6 +26,7 @@ from app.models.registry import MODELS_GRAPH, SEMPKM_NS
 from app.services.labels import LabelService
 from app.sparql.client import scope_to_current_graph
 from app.sparql.models import PromotedQueryView, SavedSparqlQuery
+from app.sparql.utils import escape_sparql_regex
 from app.triplestore.client import TriplestoreClient
 from cachetools import TTLCache
 
@@ -359,8 +360,7 @@ WHERE {{
         # Inject filter if provided
         filter_clause = ""
         if filter_text:
-            # Escape special regex chars in user input
-            escaped = filter_text.replace("\\", "\\\\").replace('"', '\\"')
+            escaped = escape_sparql_regex(filter_text)
             # Match against the first column variable (typically ?title, ?name, ?label)
             first_col = spec.columns[0] if spec.columns else "s"
             filter_clause = f'FILTER(REGEX(STR(?{first_col}), "{escaped}", "i"))'
@@ -513,7 +513,7 @@ OFFSET {offset}"""
         # Inject filter if provided
         filter_clause = ""
         if filter_text:
-            escaped = filter_text.replace("\\", "\\\\").replace('"', '\\"')
+            escaped = escape_sparql_regex(filter_text)
             first_col = spec.columns[0] if spec.columns else "s"
             filter_clause = f'FILTER(REGEX(STR(?{first_col}), "{escaped}", "i"))'
 

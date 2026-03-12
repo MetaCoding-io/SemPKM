@@ -18,8 +18,8 @@ async def sparql_page(request: Request, user: User = Depends(require_role("owner
 
 
 @router.get("/events")
-async def event_console_page(request: Request, user: User = Depends(get_current_user)):
-    """Render the event console (command executor + live event log)."""
+async def event_console_page(request: Request, user: User = Depends(require_role("owner"))):
+    """Render the event console (command executor + live event log). Owner role required."""
     templates = request.app.state.templates
     context = {"active_page": "events", "user": user}
     if request.headers.get("HX-Request"):

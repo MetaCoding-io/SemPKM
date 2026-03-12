@@ -28,6 +28,7 @@ dependencies = [
     "owlrl>=7.0",
     "mf2py>=2.0",
     "http-message-signatures>=2.0.1",
+    "slowapi>=0.1.9",
 ]
 
 [project.optional-dependencies]
