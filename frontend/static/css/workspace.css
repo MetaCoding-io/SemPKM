@@ -3967,7 +3967,9 @@ details.form-group[open] > .form-group-summary::before {
 
 /* Grip icon on explorer section headers */
 .explorer-section-header .panel-grip,
-.explorer-section-header .panel-grip svg {
+.explorer-section-header .panel-grip svg,
+.right-section-header .panel-grip,
+.right-section-header .panel-grip svg {
     width: 12px;
     height: 12px;
     opacity: 0.35;
@@ -4009,6 +4011,19 @@ details.form-group[open] > .form-group-summary::before {
     border-left: 3px solid var(--tab-accent-color, var(--color-accent));
     padding-left: 9px; /* 12px original - 3px border = maintains visual indent */
     transition: border-color 0.15s;
+}
+
+/* INBOX and COLLABORATION use a fixed accent — not the contextual tab color */
+[data-panel-name="inbox"].contextual-panel-active > summary.right-section-header,
+[data-panel-name="collaboration"].contextual-panel-active > summary.right-section-header {
+    border-left-color: var(--color-warning, #e67e22);
+}
+
+/* Also show the accent when no object is open (these panels are always relevant) */
+[data-panel-name="inbox"] > summary.right-section-header,
+[data-panel-name="collaboration"] > summary.right-section-header {
+    border-left: 3px solid var(--color-warning, #e67e22);
+    padding-left: 9px;
 }
 
 /* ============================================================
