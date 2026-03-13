@@ -43,6 +43,17 @@ Interactive import flow for Notion workspace exports (ZIP first, API later), mir
 
 ---
 
+## VFS Mount Spec v2
+
+**Queued:** 2026-03-13  
+**Status:** Designed  
+
+Next-generation mount capabilities: saved query scoping, composable strategy chains (multi-level folders), type filters without SPARQL, preview improvements, filename templates. Write support deferred to its own milestone.
+
+**Design:** `.gsd/design/VFS-V2-DESIGN.md`
+
+---
+
 ## Ontology Viewer & Gist Upper Ontology
 
 **Queued:** 2026-03-12  
