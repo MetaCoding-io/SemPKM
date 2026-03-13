@@ -239,6 +239,22 @@
     color: var(--color-primary, #4A90D9);
 }
 
+.vfs-mount-empty {
+    padding: 8px 12px;
+    font-size: 0.78rem;
+    color: var(--color-text-faint, #888);
+    line-height: 1.5;
+}
+
+.vfs-mount-empty-link {
+    color: var(--color-primary, #4A90D9);
+    text-decoration: none;
+}
+
+.vfs-mount-empty-link:hover {
+    text-decoration: underline;
+}
+
 .vfs-mount-highlight {
     animation: vfs-mount-pulse 0.6s ease-out 2;
 }
