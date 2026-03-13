@@ -145,7 +145,7 @@
         </div>
     </div>
     <div class="popover-divider"></div>
-    <a href="#" class="popover-item" onclick="openSettingsTab(); var pop = document.getElementById('user-popover'); if (pop) pop.hidePopover();">
+    <a href="/browser/settings" class="popover-item" onclick="if (window._dockview && typeof openSettingsTab === 'function') { event.preventDefault(); openSettingsTab(); } var pop = document.getElementById('user-popover'); if (pop) pop.hidePopover();">
         <i data-lucide="settings" class="popover-icon"></i>
         <span>Settings</span>
     </a>
