@@ -1,68 +1,61 @@
 /**
  * Miscellaneous Endpoints E2E Tests
  *
- * Tests remaining API endpoints with zero e2e coverage:
- * - GET /api/monitoring/config — PostHog config
- * - GET /browser/icons — icon mappings JSON
- * - GET /browser/my-views — user's view links HTML
+ * Tests remaining API endpoints with zero prior e2e coverage:
+ * - GET /api/monitoring/config — PostHog config (public, no auth required)
+ * - GET /browser/icons — icon mappings JSON (tree, tab, graph contexts)
+ * - GET /browser/my-views — user's promoted view links HTML fragment
+ * - GET /browser/nav-tree — nav tree HTML
+ * - GET /browser/explorer/tree — explorer tree HTML
+ *
+ * Consolidated into 1 test() to stay within the 5/minute magic-link rate limit.
  */
 import { test, expect, BASE_URL } from '../../fixtures/auth';
 
-test.describe('Monitoring Config', () => {
-  test('monitoring config endpoint returns PostHog configuration', async ({ ownerRequest }) => {
-    const resp = await ownerRequest.get(`${BASE_URL}/api/monitoring/config`);
-    expect(resp.ok()).toBeTruthy();
+test('misc endpoints return correct response shapes', async ({ ownerRequest }) => {
+  // --- GET /api/monitoring/config (PostHog config — public endpoint) ---
+  const monResp = await ownerRequest.get(`${BASE_URL}/api/monitoring/config`);
+  expect(monResp.ok()).toBeTruthy();
+  const monData = await monResp.json();
+  // PostHogConfig model: enabled (bool), api_key (str), host (str)
+  expect(typeof monData.enabled).toBe('boolean');
+  expect(typeof monData.api_key).toBe('string');
+  expect(typeof monData.host).toBe('string');
 
-    const data = await resp.json();
-    expect(data).toBeDefined();
-    // PostHog config may have api_key (possibly empty/null) and host fields
-    // The response shape matches the PostHogConfig pydantic model
-  });
-});
+  // --- GET /browser/icons ---
+  const iconsResp = await ownerRequest.get(`${BASE_URL}/browser/icons`);
+  expect(iconsResp.ok()).toBeTruthy();
+  const iconsData = await iconsResp.json();
+  expect(iconsData).toBeDefined();
+  // Icon map has tree, tab, graph contexts
+  expect(typeof iconsData.tree).toBe('object');
+  expect(typeof iconsData.tab).toBe('object');
+  expect(typeof iconsData.graph).toBe('object');
+  // At least one icon mapping should exist (from installed models)
+  const allKeys = [
+    ...Object.keys(iconsData.tree || {}),
+    ...Object.keys(iconsData.tab || {}),
+    ...Object.keys(iconsData.graph || {}),
+  ];
+  expect(allKeys.length).toBeGreaterThan(0);
 
-test.describe('Icons Endpoint', () => {
-  test('icons endpoint returns JSON with icon mappings', async ({ ownerRequest }) => {
-    const resp = await ownerRequest.get(`${BASE_URL}/browser/icons`);
-    expect(resp.ok()).toBeTruthy();
+  // --- GET /browser/my-views ---
+  const viewsResp = await ownerRequest.get(`${BASE_URL}/browser/my-views`);
+  expect(viewsResp.ok()).toBeTruthy();
+  const viewsHtml = await viewsResp.text();
+  expect(viewsHtml.length).toBeGreaterThan(0);
+  // Returns either promoted view links or an empty-state message
+  expect(viewsHtml).toMatch(/<div|<a|view|No promoted/i);
 
-    const data = await resp.json();
-    expect(data).toBeDefined();
-    expect(typeof data).toBe('object');
+  // --- GET /browser/nav-tree ---
+  const navResp = await ownerRequest.get(`${BASE_URL}/browser/nav-tree`);
+  expect(navResp.ok()).toBeTruthy();
+  const navHtml = await navResp.text();
+  expect(navHtml.length).toBeGreaterThan(0);
 
-    // Should have at least one icon mapping (for the installed model types)
-    const keys = Object.keys(data);
-    expect(keys.length).toBeGreaterThan(0);
-  });
-});
-
-test.describe('My Views Endpoint', () => {
-  test('my-views endpoint returns HTML fragment', async ({ ownerRequest }) => {
-    const resp = await ownerRequest.get(`${BASE_URL}/browser/my-views`);
-    expect(resp.ok()).toBeTruthy();
-
-    const html = await resp.text();
-    expect(html.length).toBeGreaterThan(0);
-    // Should contain view links or view menu items
-    expect(html).toMatch(/<|view|table|card|graph/i);
-  });
-});
-
-test.describe('Nav Tree Endpoint', () => {
-  test('nav-tree endpoint returns HTML', async ({ ownerRequest }) => {
-    const resp = await ownerRequest.get(`${BASE_URL}/browser/nav-tree`);
-    expect(resp.ok()).toBeTruthy();
-
-    const html = await resp.text();
-    expect(html.length).toBeGreaterThan(0);
-  });
-});
-
-test.describe('Explorer Tree Endpoint', () => {
-  test('explorer tree endpoint returns HTML', async ({ ownerRequest }) => {
-    const resp = await ownerRequest.get(`${BASE_URL}/browser/explorer/tree`);
-    expect(resp.ok()).toBeTruthy();
-
-    const html = await resp.text();
-    expect(html.length).toBeGreaterThan(0);
-  });
+  // --- GET /browser/explorer/tree ---
+  const explorerResp = await ownerRequest.get(`${BASE_URL}/browser/explorer/tree`);
+  expect(explorerResp.ok()).toBeTruthy();
+  const explorerHtml = await explorerResp.text();
+  expect(explorerHtml.length).toBeGreaterThan(0);
 });

@@ -169,16 +169,19 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - ✓ FED-11–13: Federation fixes — Sync Now auto-discovery, dual-instance docker-compose, 8-step E2E test — M002
 - ✓ OBSI-08–10: Ideaverse Pro 2.5 vault imported (895 objects, 1767 edges), wiki-links and frontmatter verified — M002
 
-### Active (M003 — Workspace UX & Knowledge Organization)
+### Validated (M003 — Workspace UX & Knowledge Organization)
 
-- Explorer mode dropdown: switchable navigation strategies (by-type, by-hierarchy, by-tag, VFS mounts)
-- Tag system fix (comma-separated → individual triples) + tag pills with # prefix
-- Per-user favorites with FAVORITES explorer section
-- Threaded collaborative comments on objects
-- Ontology viewer: TBox Explorer, ABox Browser, RBox Legend
-- Gist 14.0.0 as upper ontology foundation
-- In-app class creation (name, icon, parent, properties → OWL + SHACL)
-- Admin model detail stats and charts
+<!-- Shipped and confirmed in M003. -->
+
+- ✓ Explorer mode dropdown: switchable navigation strategies (by-type, by-hierarchy, by-tag, VFS mounts) — M003
+- ✓ Tag system fix (comma-separated → individual triples) + tag pills with # prefix + tag explorer mode — M003
+- ✓ Per-user favorites with SQL storage, star toggle, FAVORITES explorer section — M003
+- ✓ Threaded collaborative comments on objects via RDF EventStore — M003
+- ✓ Ontology viewer: TBox Explorer, ABox Browser, RBox Legend — M003
+- ✓ Gist 14.0.0 loaded as upper ontology foundation, mental model alignment — M003
+- ✓ In-app class creation (name, icon, parent, properties → OWL + SHACL) — M003
+- ✓ Admin model detail real stats and Chart.js charts — M003
+- ✓ E2E test coverage gap fill: 82 spec files total — M003
 
 ### Future Candidates
 
@@ -188,19 +191,8 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Notion workspace import wizard (ZIP first, API later), mirroring Obsidian pattern
 - Research: `.planning/notion-import-research.md`
 
-**Ontology Viewer & Gist** (ONTO-01, ONTO-02) — researched
-- TBox Explorer, ABox Browser, RBox Legend — purpose-built views
-- Gist 14.0.0 upper ontology as cross-model hierarchy foundation
-- Research: `.planning/ontology-viewer-research.md`
-
 **MCP Server** (MCP-01)
 - AI agent access to SemPKM via Model Context Protocol
-
-**Workspace UX** (UX-01 through UX-04)
-- Object hierarchy via dcterms:isPartOf
-- Tag explorer panel
-- Object comments via rdfs:comment
-- Favorites & favorites view
 
 **Dockview Phase B & Theming**
 - Flexible panel layout: dockview-core Phase B (sidebar panels into dockview)
@@ -235,39 +227,34 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current State
 
-**Latest shipped: v2.6 Power User & Collaboration (2026-03-12) + M002 Hardening & Polish (2026-03-12)**
+**Latest shipped: M003 Workspace UX & Knowledge Organization (2026-03-12)**
 
-**What shipped in M002 (Hardening & Polish):**
-- Security: rate-limited auth (slowapi), conditional token logging, owner-only event console, SPARQL regex escaping, BASE_NAMESPACE deployment docs
-- Correctness: stable validation IRI hash, string-literal-safe SPARQL scoping, per-spec source_model attribution
-- Testing: backend pytest infrastructure with 130 unit tests (<3s, no Docker)
-- Refactoring: browser router split from 1956-line monolith to 8 domain sub-modules
-- Dependencies: ~= compatible release pins, uv.lock committed
-- Performance: batched event detail user lookup (WHERE IN)
-- Federation: Sync Now auto-discovery, dual-instance docker-compose, 8-step Playwright E2E
-- Obsidian: Ideaverse Pro 2.5 vault imported (895 objects, 1767 wiki-link edges), frontmatter mapped
+**What shipped in M003 (Workspace UX & Knowledge Organization):**
+- Explorer modes: mode dropdown with by-type, by-hierarchy, by-tag, and VFS mount modes
+- Hierarchy: dcterms:isPartOf parent/child nesting with lazy arbitrary-depth expansion
+- VFS explorer: mount specs as selectable modes, 5 strategies adapted for htmx trees
+- Tags: comma-separated → individual triples fix, # pills, tag explorer mode, migration endpoint
+- Favorites: SQL-backed per-user favorites with star toggle and FAVORITES explorer section
+- Comments: threaded RDF comments via EventStore with author badges and timestamps
+- Ontology: TBox/ABox/RBox viewer with gist 14.0.0 loaded as cross-graph foundation
+- Class creation: name, icon, parent, properties → OWL class + SHACL shape in user-types graph
+- Admin charts: Chart.js sparkline + link distribution replacing TODO placeholders
+- E2E coverage: 82 spec files total covering all shipped features
+- Gap: no user guide docs updated for M003 features
 
-**What shipped in v2.6:**
-- SPARQL Power User — role-based access control, server-side history, saved queries, ontology-aware autocomplete, IRI pills, CM6 editor
-- SPARQL Advanced — query sharing between users, promoted queries as named views in nav tree
-- Browser UI Polish — nav tree refresh/plus buttons, multi-select/bulk delete, edge inspector, VFS breadcrumbs and preview
-- VFS MountSpec — declarative mount vocabulary, 5 directory strategies, SHACL frontmatter writes, mount management UI
-- Spatial Canvas — snap-to-grid alignment, edge labels, keyboard navigation, bulk drag-drop from nav tree, wiki-link edges
-- Federation — RDF Patch serialization, named graph sync, LDN notifications, HTTP Signature auth, collaboration UI
-- Bug Fixes — event log compound events, lint dashboard layout, SPARQL role gating
+**Previous milestones:** M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
 
-**Previous:** v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
-
-**Current milestone:** M003 — Workspace UX & Knowledge Organization (9 slices: explorer modes, hierarchy, VFS explorer, tags, favorites, comments, ontology viewer, class creation, admin charts)
+**Current milestone:** None active — M003 complete. See `.gsd/QUEUE.md` for queued milestones.
 
 ## Context
 
-**Current state (M002 complete 2026-03-12):**
+**Current state (M003 complete 2026-03-12):**
 - ~54k source LOC (47k Python, 7k JS) + CSS, HTML/Jinja2, JSON-LD
 - Tech stack: FastAPI + RDF4J (LuceneSail) + htmx/vanilla-web + SQLAlchemy (SQLite/PostgreSQL) + wsgidav + a2wsgi + Driver.js + Cytoscape.js + CodeMirror + dockview-core + Alembic + Yasgui CDN + ninja-keys + owlrl + pyshacl + mf2py + http-message-signatures + slowapi
 - Docker Compose deployment: 3 services (api, triplestore, frontend/nginx) + federation test compose (2 instances)
-- 58 phases, 80 plans completed across v1.0–v2.6; M002 hardening milestone (7 slices) complete
-- Backend test suite: 130 pytest unit tests, <3s, no Docker dependency
+- 58 phases, 80 plans completed across v1.0–v2.6; M002 (7 slices) + M003 (10 slices) milestones complete
+- Backend test suite: 140+ pytest unit tests, <3s, no Docker dependency
+- E2E test suite: 82 Playwright spec files covering all shipped features
 - All dependencies pinned (~= compatible release) with uv.lock committed
 - Browser router refactored into 8 domain sub-modules (was 1956-line monolith)
 
@@ -278,6 +265,9 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Edge duplication in triplestore (~16x per reified edge) — pre-existing in event store materialization pipeline
 - Firefox E2E auth fixture flaking — intermittent "Magic link request did not return a token" failures
 - Federation patches endpoint requires session auth but is called server-to-server without credentials — needs HTTP Signature verification
+- M003 features have no user guide documentation — 8 new features lack docs pages
+- Tag migration (/admin/migrate-tags) must be manually triggered after upgrade from pre-M003
+- All 10 M003 slice summaries are doctor-created placeholders (task summaries are authoritative)
 
 **Design references:**
 - v0.3 design documents in `orig_specs/` (vision, specifications, decision log, schemas)
@@ -355,4 +345,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-03-12 after M002 milestone completed*
+*Last updated: 2026-03-12 after M003 milestone completed*

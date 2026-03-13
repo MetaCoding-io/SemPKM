@@ -1,6 +1,6 @@
 # SemPKM Codebase Guide
 
-**Last updated:** 2026-03-09
+**Last updated:** 2026-03-12
 
 ## Overview
 
@@ -212,26 +212,39 @@ Models are mounted read-only into the container at `/app/models/` and installed 
 
 ## E2E Tests
 
+82 spec files across 28 directories (80 functional + 2 screenshot capture).
+
 | Directory | Test Area | Specs |
 |-----------|-----------|-------|
-| `00-setup/` | Setup wizard, magic link auth | 2 |
-| `01-objects/` | Object CRUD (create, edit, batch, edges) | 6 |
-| `02-views/` | View renderers (table, cards, graph) | 4 |
-| `03-navigation/` | Nav tree, tabs, keyboard shortcuts | 6 |
-| `04-validation/` | SHACL lint panel | 1 |
-| `05-admin/` | Admin portal (access control, models, webhooks) | 4 |
-| `06-settings/` | Dark mode, settings page | 5 |
-| `07-multi-user/` | Member permissions, sessions | 2 |
-| `08-search/` | Full-text search | 2 |
+| `00-setup/` | Setup wizard, magic link auth, health check | 3 |
+| `01-objects/` | Object CRUD, deletion, edges, edge.patch, markdown, tooltips | 11 |
+| `02-views/` | Table, cards, graph, pagination, column prefs | 7 |
+| `03-navigation/` | Nav tree, tabs, keyboard shortcuts, sidebar reorder, layouts | 7 |
+| `04-validation/` | Lint API, validation lifecycle, lint panel | 3 |
+| `05-admin/` | Admin portal, models, webhooks, SPARQL, debug pages | 9 |
+| `06-settings/` | Settings, dark mode, events, LLM config, docs, misc endpoints | 9 |
+| `07-multi-user/` | Member permissions, sessions, invite flow | 3 |
+| `08-search/` | Full-text search, fuzzy toggle | 2 |
 | `09-inference/` | OWL inference engine | 1 |
 | `10-lint-dashboard/` | Lint dashboard | 1 |
 | `11-helptext/` | Help text / tooltips | 1 |
 | `12-bug-fixes/` | Regression tests | 1 |
-| `13-v24-coverage/` | v2.4 release coverage | 3 |
+| `13-v24-coverage/` | v2.4 coverage, VFS browser, VFS mountspec | 4 |
 | `14-obsidian-import/` | Obsidian vault import | 3 |
 | `15-webid/` | WebID profile | 1 |
 | `16-indieauth/` | IndieAuth OAuth2 flow | 1 |
-| `screenshots/` | Marketing screenshot capture | 2 |
+| `17-spatial-canvas/` | Canvas UI + API (sessions, subgraph, wiki-links) | 2 |
+| `18-federation/` | Federation UI partials, federation sync | 2 |
+| `19-explorer-modes/` | Explorer mode switching (by-type, hierarchy, by-tag) | 1 |
+| `20-favorites/` | Favorites star toggle and sidebar | 1 |
+| `20-tags/` | Tag pills and tag explorer | 1 |
+| `20-vfs-explorer/` | VFS explorer mount mode | 1 |
+| `21-comments/` | Comments thread, soft-delete | 1 |
+| `22-ontology/` | Ontology viewer (TBox, ABox, RBox) | 1 |
+| `23-class-creation/` | User-created classes | 1 |
+| `99-rate-limiting/` | Auth rate limiting (429) | 1 |
+| `screenshots/` | Marketing + guide screenshot capture | 2 |
+| *(root)* | VFS WebDAV | 1 |
 
 **Run:** `cd e2e && npx playwright test --project=chromium` (sequential, 1 worker)
 

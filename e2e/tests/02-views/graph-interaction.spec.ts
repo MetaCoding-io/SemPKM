@@ -1,106 +1,132 @@
 /**
  * Graph View Interaction E2E Tests
  *
- * Tests graph view node rendering and click-through to open object tabs.
+ * Tests graph view node rendering via Cytoscape.js, data endpoint,
+ * and node click → open object tab interaction.
+ *
+ * Consolidated into 1 test() to stay within the 5/minute magic-link rate limit.
+ * Uses both API-only and UI-based verification.
  */
 import { test, expect, BASE_URL } from '../../fixtures/auth';
-import { SEL } from '../../helpers/selectors';
 import { waitForIdle } from '../../helpers/wait-for';
 
 test.describe('Graph View Interaction', () => {
-  test('graph view renders with Cytoscape nodes', async ({ ownerPage, ownerSessionToken }) => {
-    const api = await ownerPage.context().request;
-    const specsResp = await api.get(`${BASE_URL}/browser/views/available`, {
-      headers: { Cookie: `sempkm_session=${ownerSessionToken}` },
-    });
+  test('graph data endpoint, node rendering, and node click to open tab', async ({ ownerPage, ownerRequest, ownerSessionToken }) => {
+    // 1. Get available view specs to find a graph view
+    const specsResp = await ownerRequest.get(`${BASE_URL}/browser/views/available`);
+    expect(specsResp.ok()).toBeTruthy();
     const specs = await specsResp.json();
     const graphSpec = specs.find((s: any) => s.renderer_type === 'graph');
 
-    if (!graphSpec) return; // Skip if no graph view is configured
+    if (!graphSpec) {
+      // No graph view configured — skip gracefully
+      test.skip();
+      return;
+    }
 
+    const specIri = encodeURIComponent(graphSpec.spec_iri);
+
+    // 2. Verify graph data endpoint returns valid JSON with nodes
+    const dataResp = await ownerRequest.get(
+      `${BASE_URL}/browser/views/graph/${specIri}/data`,
+    );
+    expect(dataResp.ok()).toBeTruthy();
+    const graphData = await dataResp.json();
+    expect(graphData).toHaveProperty('nodes');
+    expect(graphData).toHaveProperty('edges');
+    expect(graphData.nodes.length).toBeGreaterThan(0);
+    // Each node should have id and label
+    const firstNode = graphData.nodes[0];
+    expect(firstNode).toHaveProperty('id');
+    expect(firstNode).toHaveProperty('label');
+
+    // 3. Verify graph expand endpoint works for a known node
+    const expandResp = await ownerRequest.get(
+      `${BASE_URL}/browser/views/graph/expand/${encodeURIComponent(firstNode.id)}`,
+    );
+    expect(expandResp.ok()).toBeTruthy();
+    const expandData = await expandResp.json();
+    expect(expandData).toHaveProperty('nodes');
+    expect(expandData).toHaveProperty('edges');
+
+    // 4. Open the graph view in the workspace UI
     await ownerPage.goto(`${BASE_URL}/browser/`);
-    await ownerPage.waitForSelector(SEL.workspace.container, { timeout: 15000 });
+    await ownerPage.waitForSelector('.workspace-container', { timeout: 15000 });
 
-    const encodedSpecIri = encodeURIComponent(graphSpec.spec_iri);
-    await ownerPage.evaluate((iri) => {
-      const dv = (window as any)._dockview;
-      if (dv) {
-        dv.addPanel({
-          id: 'graph-' + Date.now(),
-          component: 'special-panel',
-          params: { specialType: 'views/graph/' + iri, isView: true, isSpecial: true },
-          title: 'Graph View',
-        });
+    // Use the application's openViewTab function to open the graph properly
+    await ownerPage.evaluate(({ specIri, label }) => {
+      if (typeof (window as any).openViewTab === 'function') {
+        (window as any).openViewTab(specIri, label, 'graph');
       }
-    }, encodedSpecIri);
+    }, { specIri: graphSpec.spec_iri, label: graphSpec.label });
 
-    // Wait for graph container
-    await ownerPage.waitForSelector(SEL.views.graph + ', .graph-container, canvas', { timeout: 15000 });
-    await waitForIdle(ownerPage);
+    // Wait for the graph container to appear
+    await ownerPage.waitForSelector('[data-testid="graph-view"], #cy-container', { timeout: 15000 });
 
-    // Verify Cytoscape is initialized with nodes
+    // Wait for Cytoscape to initialize with data (async fetch)
+    await ownerPage.waitForFunction(
+      () => {
+        const cy = (window as any)._sempkmGraph;
+        return cy && cy.nodes().length > 0;
+      },
+      { timeout: 15000 },
+    );
+
+    // 5. Verify Cytoscape has nodes matching the API data
     const nodeCount = await ownerPage.evaluate(() => {
-      const cy = (window as any)._graphCy || (window as any).cy;
+      const cy = (window as any)._sempkmGraph;
       return cy ? cy.nodes().length : 0;
     });
-
     expect(nodeCount).toBeGreaterThan(0);
-  });
 
-  test('clicking a graph node opens the object tab', async ({ ownerPage, ownerSessionToken }) => {
-    const api = await ownerPage.context().request;
-    const specsResp = await api.get(`${BASE_URL}/browser/views/available`, {
-      headers: { Cookie: `sempkm_session=${ownerSessionToken}` },
+    // 6. Simulate a node click (tap) — should trigger right pane load
+    const clickResult = await ownerPage.evaluate(() => {
+      const cy = (window as any)._sempkmGraph;
+      if (!cy || cy.nodes().length === 0) return null;
+      const node = cy.nodes()[0];
+      const data = node.data();
+      // Emit tap event to trigger the tap handler
+      node.emit('tap');
+      return { id: data.id, label: data.label };
     });
-    const specs = await specsResp.json();
-    const graphSpec = specs.find((s: any) => s.renderer_type === 'graph');
+    expect(clickResult).not.toBeNull();
 
-    if (!graphSpec) return;
-
-    await ownerPage.goto(`${BASE_URL}/browser/`);
-    await ownerPage.waitForSelector(SEL.workspace.container, { timeout: 15000 });
-
-    const encodedSpecIri = encodeURIComponent(graphSpec.spec_iri);
-    await ownerPage.evaluate((iri) => {
-      const dv = (window as any)._dockview;
-      if (dv) {
-        dv.addPanel({
-          id: 'graph-click-' + Date.now(),
-          component: 'special-panel',
-          params: { specialType: 'views/graph/' + iri, isView: true, isSpecial: true },
-          title: 'Graph View',
-        });
-      }
-    }, encodedSpecIri);
-
-    await ownerPage.waitForSelector(SEL.views.graph + ', .graph-container, canvas', { timeout: 15000 });
+    // Wait for any async effects of the tap
     await waitForIdle(ownerPage);
 
-    // Get the first node's data and simulate a click
-    const clickResult = await ownerPage.evaluate(() => {
-      const cy = (window as any)._graphCy || (window as any).cy;
-      if (!cy || cy.nodes().length === 0) return null;
+    // 7. Test the graph popover open button — simulate hover + click open
+    //    The graph uses a popover that shows on node hover with an "Open" button
+    //    that calls window.openTab(iri, label). Verify openTab is callable.
+    const openTabResult = await ownerPage.evaluate((nodeData) => {
+      if (typeof (window as any).openTab === 'function' && nodeData) {
+        (window as any).openTab(nodeData.id, nodeData.label);
+        return true;
+      }
+      return false;
+    }, clickResult);
 
-      const firstNode = cy.nodes()[0];
-      const nodeData = firstNode.data();
-
-      // Trigger a tap event on the node (same as clicking)
-      firstNode.emit('tap');
-
-      return { id: nodeData.id, label: nodeData.label || nodeData.id };
-    });
-
-    if (clickResult) {
-      // After clicking a node, an object tab should open
+    if (openTabResult) {
+      // Wait for the tab to open
       await ownerPage.waitForTimeout(2000);
       await waitForIdle(ownerPage);
 
-      // Check if a new panel/tab was opened
-      const tabCount = await ownerPage.evaluate(() => {
+      // Verify a new panel was opened in dockview
+      const panelCount = await ownerPage.evaluate(() => {
         const dv = (window as any)._dockview;
         return dv ? dv.panels.length : 0;
       });
-      expect(tabCount).toBeGreaterThanOrEqual(1);
+      // Should have at least 2 panels: the graph view + the opened object
+      expect(panelCount).toBeGreaterThanOrEqual(2);
     }
+
+    // 8. Verify graph view HTML endpoint also works (for htmx partial rendering)
+    const viewResp = await ownerRequest.get(
+      `${BASE_URL}/browser/views/graph/${specIri}`,
+      { headers: { Accept: 'text/html' } },
+    );
+    expect(viewResp.ok()).toBeTruthy();
+    const viewHtml = await viewResp.text();
+    expect(viewHtml).toContain('cy-container');
+    expect(viewHtml).toContain('graph-container');
   });
 });
