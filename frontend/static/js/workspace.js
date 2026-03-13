@@ -2043,6 +2043,70 @@
     } catch (e) { /* localStorage unavailable */ }
   }
 
+  /**
+   * Fetch VFS mounts and inject them as <option> entries in the explorer
+   * mode dropdown. Wraps mount options in an <optgroup> for visual
+   * separation from built-in modes.
+   *
+   * After injection, re-checks localStorage for a stored mount: mode
+   * that initExplorerMode() could not restore (mount options weren't in
+   * the DOM yet at that point).
+   */
+  function initExplorerMountOptions() {
+    var dropdown = document.getElementById('explorer-mode-select');
+    if (!dropdown) return;
+
+    fetch('/api/vfs/mounts', { credentials: 'include' })
+      .then(function (r) {
+        if (!r.ok) throw new Error('Mount fetch failed: ' + r.status);
+        return r.json();
+      })
+      .then(function (mounts) {
+        if (!Array.isArray(mounts) || mounts.length === 0) return;
+
+        // Remove any previously injected mount optgroup (idempotent)
+        var existing = dropdown.querySelector('optgroup[label="VFS Mounts"]');
+        if (existing) existing.remove();
+
+        var optgroup = document.createElement('optgroup');
+        optgroup.label = 'VFS Mounts';
+
+        mounts.forEach(function (m) {
+          var opt = document.createElement('option');
+          opt.value = 'mount:' + m.id;
+          opt.textContent = m.name + ' (' + m.strategy + ')';
+          optgroup.appendChild(opt);
+        });
+
+        dropdown.appendChild(optgroup);
+
+        // Re-check stored mode now that mount options exist in the DOM.
+        // initExplorerMode() already ran but skipped mount: values since
+        // those options weren't available yet.
+        try {
+          var storedMode = localStorage.getItem(EXPLORER_MODE_KEY);
+          if (storedMode && storedMode.indexOf('mount:') === 0) {
+            // Validate the option exists (mount may have been deleted)
+            var options = dropdown.querySelectorAll('option');
+            var valid = false;
+            for (var i = 0; i < options.length; i++) {
+              if (options[i].value === storedMode) { valid = true; break; }
+            }
+            if (valid && dropdown.value !== storedMode) {
+              dropdown.value = storedMode;
+              htmx.trigger(dropdown, 'change');
+            }
+            // If not valid, the stored mode is stale — leave fallback
+            // mode (by-type) set by initExplorerMode().
+          }
+        } catch (e) { /* localStorage unavailable */ }
+      })
+      .catch(function (err) {
+        // Fetch failure is non-fatal — dropdown works with built-in modes
+        console.warn('SemPKM: could not load VFS mounts for explorer dropdown:', err.message || err);
+      });
+  }
+
   // --- Initialization ---
 
   function init() {
@@ -2076,6 +2140,9 @@
 
     // --- Explorer mode: clear selection on switch, persist in localStorage ---
     initExplorerMode();
+
+    // --- Inject VFS mount options into explorer dropdown (async, non-blocking) ---
+    initExplorerMountOptions();
 
     // Initialize lint dashboard SSE and health badge
     initLintDashboardSSE();

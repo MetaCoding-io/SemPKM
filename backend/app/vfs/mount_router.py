@@ -199,7 +199,7 @@ async def list_mounts(
     user_iri = f"urn:sempkm:user:{user.id}"
     result = await client.query(
         f"""
-        SELECT ?mount ?name ?path ?strategy ?groupByProp ?dateProp
+        SELECT DISTINCT ?mount ?name ?path ?strategy ?groupByProp ?dateProp
                ?scope ?savedQueryId ?createdBy ?visibility ?createdAt
         FROM <{GRAPH_MOUNTS}>
         WHERE {{

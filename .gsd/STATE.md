@@ -1,7 +1,7 @@
 # GSD State
 
 **Active Milestone:** M003 — Workspace UX & Knowledge Organization
-**Active Slice:** S03 — VFS-Driven Explorer Modes
+**Active Slice:** S04 — Tag System Fix & Tag Explorer
 **Phase:** planning
 **Requirements Status:** 21 active · 60 validated · 4 deferred · 0 out of scope
 
@@ -17,4 +17,4 @@
 - None
 
 ## Next Action
-Plan slice S03 (VFS-Driven Explorer Modes).
+Plan slice S04 (Tag System Fix & Tag Explorer).

@@ -43,6 +43,9 @@ export const SEL = {
     modeSelect: '#explorer-mode-select',
     treeBody: '#explorer-tree-body',
     placeholder: '[data-testid="explorer-placeholder"]',
+    mountOption: 'option[value^="mount:"]',
+    mountFolderNode: '[data-testid="mount-folder"]',
+    mountObjectLeaf: '[data-testid="mount-object"]',
   },
 
   // Type picker

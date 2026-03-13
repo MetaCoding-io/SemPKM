@@ -65,7 +65,7 @@ This milestone is complete only when all are true:
 - [x] **S02: Hierarchy Explorer Mode** `risk:medium` `depends:[S01]`
   > After this: User switches to "By Hierarchy" mode and sees objects nested by dcterms:isPartOf with lazy-expanding arbitrary depth. Root objects (no parent) appear at top level.
 
-- [ ] **S03: VFS-Driven Explorer Modes** `risk:medium` `depends:[S01]`
+- [x] **S03: VFS-Driven Explorer Modes** `risk:medium` `depends:[S01]`
   > After this: Each user-created VFS mount appears as a selectable explorer mode. Objects are organized by the mount's directory strategy (by-date, by-tag, by-property, flat) and clicking opens the full object tab — not a flat file.
 
 - [ ] **S04: Tag System Fix & Tag Explorer** `risk:medium` `depends:[S01]`
@@ -85,6 +85,9 @@ This milestone is complete only when all are true:
 
 - [ ] **S09: Admin Model Detail Stats & Charts** `risk:low` `depends:[]`
   > After this: Admin model detail page shows real computed stats (avg connections, last modified, growth trend) and visual charts (activity sparkline, link distribution) replacing the TODO placeholders.
+
+- [ ] **S10: E2E Test Coverage Gaps** `risk:low` `depends:[]`
+  > After this: All shipped features have Playwright e2e test coverage — object/edge deletion, edge.patch, event undo, spatial canvas, bottom-panel SPARQL, admin model install/uninstall, rate limiting, LLM config, federation UI, SPARQL advanced features, pagination, tooltips, edge provenance, markdown rendering, health check, column preferences, sidebar panel drag-drop, graph node interaction, and all 27 existing canvas stubs are implemented.
 
 ## Boundary Map
 
@@ -203,3 +206,13 @@ Produces:
 
 Consumes:
 - nothing (independent)
+
+### S10 → (terminal)
+
+Produces:
+- ~20 new e2e spec files filling all identified coverage gaps
+- Implemented tests replacing all 27 `test.skip()` stubs in 17-spatial-canvas
+- Complete e2e coverage map: every shipped backend route and UI feature has at least one e2e test
+
+Consumes:
+- nothing (independent, test-only — no production code changes)

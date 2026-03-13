@@ -1,0 +1,28 @@
+{# Mount tree: root folder nodes for a VFS mount strategy.
+   Each folder can be expanded via htmx to lazy-load children (objects or sub-folders).
+
+   Context:
+     folders: list of dicts with 'value' and 'label' keys
+     mount_id: UUID string of the mount
+     mount_name: display name of the mount
+     empty_message: optional message when folders list is empty (strategy misconfiguration)
+#}
+{% if folders %}
+{% for folder in folders %}
+{% set safe_id = (mount_id ~ '_' ~ folder.value) | replace(':', '_') | replace('/', '_') | replace('#', '_') | replace('.', '_') %}
+<div class="tree-node" data-testid="mount-folder"
+     hx-get="/browser/explorer/mount-children?mount_id={{ mount_id }}&amp;folder={{ folder.value | urlencode }}"
+     hx-trigger="click once"
+     hx-target="#mount-children-{{ safe_id }}"
+     hx-swap="innerHTML">
+    <span class="tree-toggle">&#9656;</span>
+    <i data-lucide="folder"
+       class="tree-node-icon"
+       style="color: var(--color-text-muted); width: 16px; height: 16px; flex-shrink: 0;"></i>
+    <span class="tree-label">{{ folder.label }}</span>
+</div>
+<div id="mount-children-{{ safe_id }}" class="tree-children"></div>
+{% endfor %}
+{% else %}
+<div class="tree-empty">{{ empty_message | default('No folders found') }}</div>
+{% endif %}
