@@ -2631,6 +2631,64 @@
   window.showEventInLog = showEventInLog;
   window.showConfirmDialog = showConfirmDialog;
   window.deleteEdge = deleteEdge;
+
+  // -----------------------------------------------------------------------
+  // Favorites: star toggle
+  // -----------------------------------------------------------------------
+
+  /**
+   * Toggle the favorite (star) state for an object IRI.
+   * POSTs to /browser/favorites/toggle, updates ALL star buttons for this IRI
+   * across open tabs, and triggers favoritesRefreshed so the FAVORITES section
+   * refreshes via htmx.
+   */
+  function toggleFavorite(iri) {
+    var formData = new FormData();
+    formData.append('object_iri', iri);
+
+    fetch('/browser/favorites/toggle', {
+      method: 'POST',
+      body: formData,
+      credentials: 'same-origin',
+    })
+    .then(function(resp) {
+      if (!resp.ok) {
+        console.error('toggleFavorite: server returned ' + resp.status);
+        return;
+      }
+      // Determine new state from response — the server returns HTML with
+      // class "is-favorited" when the object is now favorited.
+      return resp.text().then(function(html) {
+        var isFavorited = html.indexOf('is-favorited') !== -1;
+
+        // Update ALL star buttons matching this IRI (multiple tabs may have the same object)
+        document.querySelectorAll('.star-btn[data-iri="' + iri + '"]').forEach(function(btn) {
+          if (isFavorited) {
+            btn.classList.add('is-favorited');
+            btn.title = 'Remove from favorites';
+          } else {
+            btn.classList.remove('is-favorited');
+            btn.title = 'Add to favorites';
+          }
+        });
+
+        // Re-render Lucide icons on the updated buttons
+        if (typeof lucide !== 'undefined') {
+          lucide.createIcons();
+        }
+
+        // Dispatch favoritesRefreshed so htmx refreshes the FAVORITES section
+        if (typeof htmx !== 'undefined') {
+          htmx.trigger(document.body, 'favoritesRefreshed');
+        }
+      });
+    })
+    .catch(function(err) {
+      console.error('toggleFavorite: fetch failed', err);
+    });
+  }
+  window.toggleFavorite = toggleFavorite;
+
   // Backward-compat shim — callers can still pass (name, 'left'/'right')
   window.swapPanel = function(panelName, zone) { movePanel(panelName, null, null, zone); };
 

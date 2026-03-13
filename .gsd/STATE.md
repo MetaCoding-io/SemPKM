@@ -1,7 +1,7 @@
 # GSD State
 
 **Active Milestone:** M003 — Workspace UX & Knowledge Organization
-**Active Slice:** S05 — Favorites System
+**Active Slice:** S06 — Threaded Object Comments
 **Phase:** planning
 **Requirements Status:** 21 active · 60 validated · 4 deferred · 0 out of scope
 
@@ -17,4 +17,4 @@
 - None
 
 ## Next Action
-Plan slice S05 (Favorites System).
+Plan slice S06 (Threaded Object Comments).

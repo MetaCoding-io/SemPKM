@@ -24,6 +24,7 @@
             </button>
         </div>
         <div class="pane-content" id="nav-tree" data-testid="nav-tree">
+            {% include "browser/partials/favorites_section.html" %}
             <div class="explorer-section expanded" id="section-objects" data-panel-name="objects">
                 <div class="explorer-section-header" draggable="true"
                      onclick="this.parentElement.classList.toggle('expanded')">

@@ -88,6 +88,15 @@ export const SEL = {
     themeBtn: '.theme-btn',  // Theme buttons in sidebar popover (light/system/dark)
   },
 
+  // Favorites
+  favorites: {
+    section: '#section-favorites',
+    sectionBody: '#favorites-tree-body',
+    item: '[data-testid="favorites-item"]',
+    starBtn: '.star-btn',
+    hint: '#favorites-tree-body .tree-empty',
+  },
+
   // Command palette
   commandPalette: {
     overlay: 'ninja-keys',
