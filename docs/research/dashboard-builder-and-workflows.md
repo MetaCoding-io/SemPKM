@@ -10,10 +10,11 @@
 
 1. [Problem Statement](#problem-statement)
 2. [State of the Art](#state-of-the-art)
-3. [What SemPKM Already Has](#what-sempkm-already-has)
-4. [Architecture Design](#architecture-design)
-5. [Implementation Plan](#implementation-plan)
-6. [Open Questions](#open-questions)
+3. [Key Projects & Tools Deep Dive](#key-projects--tools-deep-dive)
+4. [What SemPKM Already Has](#what-sempkm-already-has)
+5. [Architecture Design](#architecture-design)
+6. [Implementation Plan](#implementation-plan)
+7. [Open Questions](#open-questions)
 
 ---
 
@@ -164,7 +165,98 @@ These tools provide:
 
 ---
 
-## 3. What SemPKM Already Has
+## 3. Key Projects & Tools Deep Dive
+
+### 3.1 BESSER-PEARL: Full Architecture
+
+[BESSER](https://github.com/BESSER-PEARL/BESSER) (Building bEtter Smart Software fastER) is a Python-based open-source low-code platform led by Jordi Cabot at the Luxembourg Institute of Science and Technology (LIST). Out of 151 surveyed open-source low-code tools, only 9 use any type of model — BESSER is one of them.
+
+**B-UML (BESSER's Universal Modeling Language)** is the foundation — a Python-based simplified UML that's divided into sublanguages:
+
+| Sublanguage | What It Models |
+|---|---|
+| **Structural model** | Classes, Properties, Associations, Generalizations (≈ UML class diagram) |
+| **GUI model** | 4 layers: structural organization (GUIModel > Modules > Screens > ViewContainers), visual composition (ViewElements: buttons, forms, lists), presentation (Layout, Position, Size), interaction (data bindings, actions) |
+| **State Machine model** | Events, Actions, States with Bodies (action sequences), Sessions, Conditions, Transitions |
+| **Object model** | Instance-level specifications |
+| **OCL specification** | Constraints |
+| **Agent model** | AI agent specifications |
+
+**Code Generators (Model-to-Text via Jinja):** Django (with admin + UI), Python classes, Java, Pydantic, SQLAlchemy, SQL schema, REST API, Flutter, **RDF** (outputs `vocabulary.ttl` in Turtle), JSON Schema, PyTorch, TensorFlow.
+
+**The GUI Metamodel** is most relevant to us:
+```
+GUIModel > Module > Screen > ViewContainer > ViewElement
+                                   ↓
+                              Layout (Position, Size, Alignment)
+                                   ↓
+                              DataBindings + Actions
+```
+
+This is exactly the hierarchical structure we need for DashboardSpec. Each ViewContainer maps to a "slot" in our grid layout, each ViewElement maps to a block type.
+
+**RDF Generator:** Transforms B-UML structural models into RDF/RDFS vocabularies — Classes → `rdfs:Class`, Properties → `rdf:Property` with `rdfs:domain`/`rdfs:range`. This proves B-UML ↔ RDF is viable, but the flow is currently one-directional (B-UML → RDF). SemPKM would need the reverse: **ontology → structural model → UI generation**.
+
+**Model Building:** Models can be created via Python API, PlantUML grammar, Draw.io import, **image-to-model (LLM)**, and a browser-based graphical editor.
+
+### 3.2 LinkedDataHub (Most Relevant Existing System)
+
+[LinkedDataHub](https://github.com/AtomGraph/LinkedDataHub) by AtomGraph is the **only production system** that builds full applications directly from RDF data with a declarative UI layer:
+
+- Applications defined as RDF data (not source code)
+- Every document is a named graph in a Graph Store
+- UI rendering via XSLT 3.0 declarative transformations
+- Version 5 (2025) adds: block-centric content model (each block = RDF resource with its own URI), dual-phase rendering (server XHTML+RDFa, then client-side SaxonJS hydration), and **AI agent integration via Web-Algebra** (natural language → JSON-formatted RDF operations, with MCP support)
+
+This is the closest existing system to what SemPKM is building. Key difference: they use XSLT for rendering, we use htmx + Jinja2.
+
+### 3.3 NocoBase (Architecture Reference)
+
+[NocoBase](https://github.com/nocobase/nocobase) is the closest open-source implementation to "model-driven custom views on structured data":
+
+- Data models defined independently via a plugin microkernel
+- UI defined as JSON schemas, **decoupled from data models**
+- Pattern: **Collection (data model) → Block (UI component) → Page (layout)**
+
+This maps naturally to SemPKM's: **Ontology class → ViewSpec/Block → Dashboard**
+
+### 3.4 Open-Source Dashboard Builder Landscape (2026)
+
+| Tool | Approach | Relevance |
+|---|---|---|
+| **ToolJet** | Drag-and-drop + data connectors, AI-native | Component model reference |
+| **Appsmith** | Widget-based, strong JS customization | Event wiring patterns |
+| **NocoBase** | Data-model-driven, plugin microkernel | Closest to MDSE principles |
+| **Baserow** | Spreadsheet-first (Django/Vue), open Airtable | Pages/dashboards model |
+| **Metabase** | BI/analytics, visual query builder | Data exploration UX |
+| **Grafana** | Monitoring dashboards, multi-source | Panel layout system reference |
+| **Directus** | Headless CMS, custom dashboard panels | Panel composition model |
+
+### 3.5 Workflow-Relevant Tools
+
+**BESSER State Machine model** — Events, States with Bodies, Conditions, Transitions, concurrent Sessions with private data. Suitable for multi-step PKM processes.
+
+**BESSER Agentic BPMN** — BPMN extension for human-agent collaborative workflows (SEAA 2025).
+
+**n8n** — 400+ integrations, AI-native workflow automation. Good for backend automation but too complex for guided user workflows.
+
+**Tana** — "Command nodes" that chain search → filter → transform → create. Workflows are first-class objects in the knowledge graph.
+
+### 3.6 Emerging Trend: Generative UI (2026)
+
+The field is shifting toward AI agents dynamically generating interfaces. OpenAI's ChatKit, Anthropic's MCP Apps, and frameworks like Emergent allow LLMs to produce rich interactive UIs on the fly. This is a convergence of MDSE's "model → UI" pattern with LLM capabilities.
+
+**Implication for SemPKM:** If DashboardSpecs are stored as structured data (RDF or JSON), an AI copilot could generate dashboard definitions from natural language: "Create a dashboard showing my untagged notes this week alongside my active projects."
+
+### 3.7 Academic References
+
+- **Dashboard metamodel pattern** (ACM 2024): Decomposes into user (role-based filtering), layout (pages > containers > rows/columns), and components (visualizations with marks, channels, scales). Maps well to our DashboardSpec.
+- **OWL2UI** (2020): Generates web forms from OWL ontologies — validates our SHACL → form pipeline.
+- **Sparnatural**: TypeScript component for visual SPARQL query building from SHACL specs. Demonstrates ontology-driven UI adaptation.
+
+---
+
+## 4. What SemPKM Already Has
 
 ### Existing Building Blocks
 
@@ -192,7 +284,7 @@ These tools provide:
 
 ---
 
-## 4. Architecture Design
+## 5. Architecture Design
 
 ### 4.1 Core Concept: DashboardSpec
 
@@ -369,7 +461,7 @@ State is client-side (sessionStorage or in-memory). Workflows are ephemeral sess
 
 ---
 
-## 5. Implementation Plan
+## 6. Implementation Plan
 
 ### Phase 1: Dashboard Foundation (Build)
 
@@ -488,7 +580,7 @@ State is client-side (sessionStorage or in-memory). Workflows are ephemeral sess
 
 ---
 
-## 6. Build vs. Integrate Decision Matrix
+## 7. Build vs. Integrate Decision Matrix
 
 | Capability | Build | Integrate | Recommendation |
 |---|---|---|---|
@@ -512,7 +604,7 @@ The only integration points are CSS/JS libraries for specific features (charting
 
 ---
 
-## 7. Open Questions
+## 8. Open Questions
 
 1. **Dashboard storage format:** SQLite JSON vs. RDF named graphs? JSON is faster to iterate on, RDF is more consistent with the architecture. Could start JSON, migrate later.
 
@@ -528,7 +620,7 @@ The only integration points are CSS/JS libraries for specific features (charting
 
 ---
 
-## 8. Relation to MDSE Principles
+## 9. Relation to MDSE Principles
 
 The proposed architecture follows Model-Driven Software Engineering principles naturally:
 
@@ -551,7 +643,7 @@ This is pure MDSE: **define once at the metamodel level, instantiate many times 
 
 ---
 
-## 9. Summary
+## 10. Summary
 
 ### What we're building
 
@@ -569,3 +661,27 @@ SemPKM's unique combination of RDF data, SHACL-driven forms, SPARQL-backed views
 2. **Phase 2** — Interactive dashboards (cross-view binding, forms, object embeds)
 3. **Phase 3** — Guided workflows (stepper, context passing, templates)
 4. **Phase 4** — Advanced features (freeform layout, scheduling, mobile)
+
+---
+
+## 11. Sources & References
+
+- [BESSER GitHub](https://github.com/BESSER-PEARL/BESSER) — core platform
+- [BESSER Documentation](https://besser.readthedocs.io/en/latest/) — B-UML sublanguages, generators
+- [Building BESSER: An Open-Source Low-Code Platform (arXiv 2024)](https://arxiv.org/html/2405.13620v1)
+- [BESSER GUI Model Docs](https://besser.readthedocs.io/en/latest/buml_language/model_types/gui.html)
+- [BESSER State Machine Model Docs](https://besser.readthedocs.io/en/latest/buml_language/model_types/state_machine.html)
+- [BESSER RDF Generator](https://besser.readthedocs.io/en/stable/generators/rdf.html)
+- [BESSER Web Modeling Editor](https://github.com/BESSER-PEARL/BESSER-Web-Modeling-Editor)
+- [BESSER Agentic BPMN](https://github.com/BESSER-PEARL/agentic-bpmn)
+- [About Jordi Cabot](https://modeling-languages.com/about-jordi-cabot/)
+- [Dashboard of Open Source Low-Code Tools](https://modeling-languages.com/dashboard-of-open-source-low-code-tools/)
+- [Low-code and MDE: Two Sides of the Same Coin? (Springer)](https://link.springer.com/article/10.1007/s10270-021-00970-2)
+- [LinkedDataHub by AtomGraph](https://github.com/AtomGraph/LinkedDataHub)
+- [LinkedDataHub v5 Announcement](https://atomgraph.com/blog/linkeddatahub-5/)
+- [Sparnatural Visual SPARQL Query Builder](https://sparnatural.eu/)
+- [NocoBase](https://github.com/nocobase/nocobase)
+- [Model-Driven Dashboard Generation (ACM 2024)](https://dl.acm.org/doi/pdf/10.1145/3643655.3643876)
+- [n8n Workflow Automation](https://n8n.io/)
+- [Directus Dashboards](https://directus.io/)
+- [Grafana](https://grafana.com/)
