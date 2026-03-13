@@ -3344,3 +3344,228 @@
 
 })();
 
+
+/* ============================================
+   Class Creation Form — icon picker, property editor, parent picker
+   ============================================ */
+(function() {
+
+  // --- Predicate options ---
+  var PREDICATES = [
+    { iri: 'http://purl.org/dc/terms/title', label: 'dcterms:title' },
+    { iri: 'http://purl.org/dc/terms/description', label: 'dcterms:description' },
+    { iri: 'http://purl.org/dc/terms/date', label: 'dcterms:date' },
+    { iri: 'http://schema.org/name', label: 'schema:name' },
+    { iri: 'http://schema.org/url', label: 'schema:url' },
+    { iri: 'http://schema.org/startDate', label: 'schema:startDate' },
+    { iri: 'http://schema.org/endDate', label: 'schema:endDate' },
+    { iri: 'http://xmlns.com/foaf/0.1/name', label: 'foaf:name' },
+    { iri: 'http://www.w3.org/2004/02/skos/core#note', label: 'skos:note' },
+  ];
+
+  // --- Datatype options ---
+  var DATATYPES = [
+    { iri: 'http://www.w3.org/2001/XMLSchema#string', label: 'xsd:string' },
+    { iri: 'http://www.w3.org/2001/XMLSchema#integer', label: 'xsd:integer' },
+    { iri: 'http://www.w3.org/2001/XMLSchema#decimal', label: 'xsd:decimal' },
+    { iri: 'http://www.w3.org/2001/XMLSchema#boolean', label: 'xsd:boolean' },
+    { iri: 'http://www.w3.org/2001/XMLSchema#date', label: 'xsd:date' },
+    { iri: 'http://www.w3.org/2001/XMLSchema#dateTime', label: 'xsd:dateTime' },
+    { iri: 'http://www.w3.org/2001/XMLSchema#anyURI', label: 'xsd:anyURI' },
+  ];
+
+  var propertyCounter = 0;
+
+  // --- Icon Picker ---
+
+  window.selectIcon = function(cell, iconName) {
+    // Deselect all cells
+    var grid = cell.closest('.icon-picker-grid');
+    var cells = grid.querySelectorAll('.icon-picker-cell');
+    for (var i = 0; i < cells.length; i++) {
+      cells[i].classList.remove('icon-selected');
+    }
+    // Select this cell
+    cell.classList.add('icon-selected');
+    // Update hidden input
+    var hidden = document.getElementById('ccf-icon');
+    if (hidden) hidden.value = iconName;
+  };
+
+  window.filterIconPicker = function(query) {
+    var grid = document.getElementById('icon-picker-grid');
+    if (!grid) return;
+    var cells = grid.querySelectorAll('.icon-picker-cell');
+    var q = query.toLowerCase().trim();
+    for (var i = 0; i < cells.length; i++) {
+      var name = cells[i].getAttribute('data-icon') || '';
+      cells[i].style.display = (!q || name.indexOf(q) !== -1) ? '' : 'none';
+    }
+  };
+
+  // --- Color Picker ---
+
+  window.selectIconColor = function(swatch, color) {
+    var row = swatch.closest('.color-picker-row');
+    var swatches = row.querySelectorAll('.color-swatch');
+    for (var i = 0; i < swatches.length; i++) {
+      swatches[i].classList.remove('color-swatch--selected');
+    }
+    swatch.classList.add('color-swatch--selected');
+    var hidden = document.getElementById('ccf-icon-color');
+    if (hidden) hidden.value = color;
+  };
+
+  // --- Parent Class Picker ---
+
+  window.selectParentClass = function(option, iri, label) {
+    // Store the IRI
+    var hidden = document.getElementById('ccf-parent-iri');
+    if (hidden) hidden.value = iri;
+    // Update display
+    var labelEl = document.getElementById('ccf-parent-label');
+    if (labelEl) {
+      var tag = labelEl.querySelector('.parent-class-tag');
+      if (tag) tag.textContent = label;
+    }
+    // Clear search + results
+    var search = document.getElementById('ccf-parent-search');
+    if (search) search.value = '';
+    var results = document.getElementById('ccf-parent-results');
+    if (results) results.innerHTML = '';
+  };
+
+  window.clearParentClass = function() {
+    var hidden = document.getElementById('ccf-parent-iri');
+    if (hidden) hidden.value = 'http://www.w3.org/2002/07/owl#Thing';
+    var labelEl = document.getElementById('ccf-parent-label');
+    if (labelEl) {
+      var tag = labelEl.querySelector('.parent-class-tag');
+      if (tag) tag.textContent = 'owl:Thing';
+    }
+  };
+
+  // --- Property Editor ---
+
+  function buildPredicateOptions() {
+    var html = '<option value="">— select predicate —</option>';
+    for (var i = 0; i < PREDICATES.length; i++) {
+      html += '<option value="' + PREDICATES[i].iri + '">' + PREDICATES[i].label + '</option>';
+    }
+    html += '<option value="__custom__">Custom IRI…</option>';
+    return html;
+  }
+
+  function buildDatatypeOptions() {
+    var html = '';
+    for (var i = 0; i < DATATYPES.length; i++) {
+      html += '<option value="' + DATATYPES[i].iri + '"' +
+              (i === 0 ? ' selected' : '') + '>' + DATATYPES[i].label + '</option>';
+    }
+    return html;
+  }
+
+  window.addPropertyRow = function() {
+    var container = document.getElementById('property-rows');
+    if (!container) return;
+
+    propertyCounter++;
+    var rowId = 'prop-row-' + propertyCounter;
+
+    var row = document.createElement('div');
+    row.className = 'property-row';
+    row.id = rowId;
+    row.setAttribute('data-testid', 'property-row');
+    row.innerHTML =
+      '<div class="prop-field">' +
+        '<label>Name</label>' +
+        '<input type="text" class="prop-name" placeholder="Property name" autocomplete="off">' +
+      '</div>' +
+      '<div class="prop-field">' +
+        '<label>Predicate</label>' +
+        '<select class="prop-predicate" onchange="handlePredicateChange(this)">' +
+          buildPredicateOptions() +
+        '</select>' +
+        '<input type="text" class="prop-custom-iri" placeholder="Custom IRI (http://…)" style="display:none; margin-top:4px;" autocomplete="off">' +
+      '</div>' +
+      '<div class="prop-field">' +
+        '<label>Datatype</label>' +
+        '<select class="prop-datatype">' +
+          buildDatatypeOptions() +
+        '</select>' +
+      '</div>' +
+      '<button type="button" class="prop-remove" onclick="removePropertyRow(\'' + rowId + '\')" title="Remove property">' +
+        '<i data-lucide="trash-2"></i>' +
+      '</button>';
+
+    container.appendChild(row);
+
+    // Initialize lucide icons in the new row
+    if (window.lucide) {
+      lucide.createIcons({ nodes: [row] });
+    }
+  };
+
+  window.removePropertyRow = function(rowId) {
+    var row = document.getElementById(rowId);
+    if (row) row.remove();
+  };
+
+  window.handlePredicateChange = function(select) {
+    var customInput = select.parentElement.querySelector('.prop-custom-iri');
+    if (!customInput) return;
+    customInput.style.display = (select.value === '__custom__') ? 'block' : 'none';
+    if (select.value !== '__custom__') {
+      customInput.value = '';
+    }
+  };
+
+  // --- Serialize properties to JSON hidden input ---
+
+  window.serializeProperties = function() {
+    var rows = document.querySelectorAll('.property-row');
+    var props = [];
+    for (var i = 0; i < rows.length; i++) {
+      var nameInput = rows[i].querySelector('.prop-name');
+      var predSelect = rows[i].querySelector('.prop-predicate');
+      var customIri = rows[i].querySelector('.prop-custom-iri');
+      var dtSelect = rows[i].querySelector('.prop-datatype');
+
+      var name = nameInput ? nameInput.value.trim() : '';
+      var predicate = predSelect ? predSelect.value : '';
+      if (predicate === '__custom__' && customIri) {
+        predicate = customIri.value.trim();
+      }
+      var datatype = dtSelect ? dtSelect.value : '';
+
+      if (name && predicate) {
+        props.push({
+          name: name,
+          predicate_iri: predicate,
+          datatype_iri: datatype
+        });
+      }
+    }
+    var hidden = document.getElementById('ccf-properties');
+    if (hidden) hidden.value = JSON.stringify(props);
+  };
+
+  // Close parent class dropdown when clicking outside
+  document.addEventListener('click', function(e) {
+    var picker = document.querySelector('.parent-class-picker');
+    if (picker && !picker.contains(e.target)) {
+      var results = document.getElementById('ccf-parent-results');
+      if (results) results.innerHTML = '';
+    }
+  });
+
+  // Listen for classCreated to close form and show success
+  document.addEventListener('htmx:afterRequest', function(e) {
+    if (e.detail && e.detail.elt && e.detail.elt.id === 'create-class-form') {
+      // If the response was successful (200), form can stay to show message
+      // The HX-Trigger: classCreated will auto-refresh the TBox tree
+    }
+  });
+
+})();
+

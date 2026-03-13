@@ -50,9 +50,18 @@ def get_settings_service() -> SettingsService:
     return SettingsService(installed_models_dir=_MODELS_DIR)
 
 
-def get_icon_service() -> IconService:
-    """FastAPI dependency that returns an IconService with the models directory."""
-    return IconService(models_dir=_MODELS_DIR)
+def get_icon_service(request: Request) -> IconService:
+    """FastAPI dependency that returns an IconService with the models directory.
+
+    Also injects user-type icon overrides from app.state.user_type_icons
+    (populated by the create-class endpoint) so that user-created types
+    show correct icons in the TBox tree, workspace, and type pickers.
+    """
+    svc = IconService(models_dir=_MODELS_DIR)
+    user_icons = getattr(request.app.state, "user_type_icons", None)
+    if user_icons:
+        svc.set_user_type_icons(user_icons)
+    return svc
 
 
 def _format_date(value: str) -> str:

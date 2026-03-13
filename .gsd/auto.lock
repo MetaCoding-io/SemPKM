@@ -1,9 +1,9 @@
 {
   "pid": 34192,
-  "startedAt": "2026-03-13T10:22:40.468Z",
+  "startedAt": "2026-03-13T11:29:22.868Z",
   "unitType": "reassess-roadmap",
-  "unitId": "M003/S07",
-  "unitStartedAt": "2026-03-13T10:22:40.468Z",
-  "completedUnits": 46,
-  "sessionFile": "/home/james/.gsd/sessions/--home-james-Code-SemPKM--/2026-03-13T10-22-40-467Z_32c8c292-3ed3-4c63-bd09-777cddb90f1c.jsonl"
+  "unitId": "M003/S08",
+  "unitStartedAt": "2026-03-13T11:29:22.868Z",
+  "completedUnits": 53,
+  "sessionFile": "/home/james/.gsd/sessions/--home-james-Code-SemPKM--/2026-03-13T11-29-22-867Z_3506e5e7-8d48-4281-b821-76aa3eddc450.jsonl"
 }

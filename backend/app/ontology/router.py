@@ -6,16 +6,19 @@ Provides htmx endpoints for:
 - ABox Browser: instance counts per type with drill-down to instance lists
 - RBox Legend: property reference table with domain/range columns
 - Main ontology page: three-tab layout hosting TBox/ABox/RBox
+- Class creation/deletion: user-defined types in urn:sempkm:user-types
 """
 
+import json
 import logging
 from urllib.parse import unquote
 
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, Form, Query, Request
 from fastapi.responses import HTMLResponse
 
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
+from app.ontology.service import USER_TYPES_GRAPH
 
 logger = logging.getLogger(__name__)
 
@@ -203,3 +206,224 @@ async def rbox_legend(
             "error": error,
         },
     )
+
+
+# ------------------------------------------------------------------
+# TBox class search (for parent class picker)
+# ------------------------------------------------------------------
+
+
+@ontology_router.get("/ontology/tbox/search")
+async def tbox_search(
+    request: Request,
+    q: str = Query(""),
+    user: User = Depends(get_current_user),
+) -> HTMLResponse:
+    """Search classes by label for the parent class picker dropdown.
+
+    Returns an HTML list of matching classes (label + IRI) for selection.
+    """
+    if not q.strip():
+        return HTMLResponse(content="", status_code=200)
+
+    ontology_service = request.app.state.ontology_service
+    try:
+        classes = await ontology_service.search_classes(q.strip())
+    except Exception:
+        logger.error("TBox search failed for q=%s", q, exc_info=True)
+        classes = []
+
+    if not classes:
+        return HTMLResponse(
+            content='<div class="parent-class-empty">No classes found</div>',
+            status_code=200,
+        )
+
+    # Build HTML list of results
+    items = []
+    for cls in classes:
+        escaped_iri = cls["iri"].replace("&", "&amp;").replace('"', "&quot;")
+        escaped_label = cls["label"].replace("&", "&amp;").replace("<", "&lt;")
+        items.append(
+            f'<div class="parent-class-option" '
+            f'onclick="selectParentClass(this, \'{escaped_iri}\', \'{escaped_label}\')" '
+            f'data-iri="{escaped_iri}" data-label="{escaped_label}">'
+            f'<span class="parent-class-option-label">{escaped_label}</span>'
+            f'<span class="parent-class-option-iri">{escaped_iri}</span>'
+            f'</div>'
+        )
+
+    return HTMLResponse(content="\n".join(items), status_code=200)
+
+
+# ------------------------------------------------------------------
+# Class creation form
+# ------------------------------------------------------------------
+
+
+@ontology_router.get("/ontology/create-class-form")
+async def create_class_form(
+    request: Request,
+    user: User = Depends(get_current_user),
+) -> HTMLResponse:
+    """Render the class creation form template."""
+    templates = request.app.state.templates
+    return templates.TemplateResponse(
+        request,
+        "browser/ontology/create_class_form.html",
+        {},
+    )
+
+
+# ------------------------------------------------------------------
+# Class creation and deletion
+# ------------------------------------------------------------------
+
+
+@ontology_router.post("/ontology/create-class")
+async def create_class(
+    request: Request,
+    name: str = Form(...),
+    icon: str = Form(""),
+    icon_color: str = Form(""),
+    parent_iri: str = Form(...),
+    properties: str = Form("[]"),
+    user: User = Depends(get_current_user),
+) -> HTMLResponse:
+    """Create a user-defined OWL class with SHACL NodeShape.
+
+    Accepts form data with class definition, creates OWL + SHACL triples
+    in the urn:sempkm:user-types named graph. Returns an HTML confirmation
+    snippet with HX-Trigger header for TBox auto-refresh.
+
+    Returns:
+        200 with HTML snippet and HX-Trigger: classCreated on success.
+        422 with error message on validation failure.
+    """
+    # Parse properties JSON
+    try:
+        props_list = json.loads(properties)
+        if not isinstance(props_list, list):
+            raise ValueError("properties must be a JSON array")
+    except (json.JSONDecodeError, ValueError) as exc:
+        logger.warning("create-class: invalid properties JSON: %s", exc)
+        return HTMLResponse(
+            content=f'<div class="error-message">Invalid properties format: {exc}</div>',
+            status_code=422,
+        )
+
+    ontology_service = request.app.state.ontology_service
+
+    try:
+        result = await ontology_service.create_class(
+            name=name.strip(),
+            parent_iri=parent_iri.strip(),
+            properties=props_list,
+            icon_name=icon.strip() or None,
+            icon_color=icon_color.strip() or None,
+        )
+    except ValueError as exc:
+        logger.warning("create-class validation error: %s", exc)
+        return HTMLResponse(
+            content=f'<div class="error-message">{exc}</div>',
+            status_code=422,
+        )
+    except Exception:
+        logger.error("create-class failed", exc_info=True)
+        return HTMLResponse(
+            content='<div class="error-message">Server error creating class</div>',
+            status_code=500,
+        )
+
+    # Update user-type icon cache on IconService if available
+    _update_icon_cache(request, result["class_iri"], icon.strip(), icon_color.strip())
+
+    response = HTMLResponse(
+        content=(
+            f'<div class="success-message">'
+            f'Created class <strong>{name.strip()}</strong>'
+            f'<br><code>{result["class_iri"]}</code>'
+            f'</div>'
+        ),
+        status_code=200,
+    )
+    response.headers["HX-Trigger"] = "classCreated"
+    return response
+
+
+@ontology_router.delete("/ontology/delete-class")
+async def delete_class(
+    request: Request,
+    class_iri: str = Query(...),
+    user: User = Depends(get_current_user),
+) -> HTMLResponse:
+    """Delete a user-defined class and its SHACL NodeShape.
+
+    Only classes in the urn:sempkm:user-types namespace can be deleted.
+    Removes all OWL + SHACL triples for the class from the triplestore.
+
+    Returns:
+        200 with HX-Trigger: classDeleted on success.
+        403 if the class IRI is not in the user-types namespace.
+    """
+    if not class_iri.startswith(f"{USER_TYPES_GRAPH}:"):
+        logger.warning(
+            "delete-class rejected: IRI not in user-types namespace: %s",
+            class_iri,
+        )
+        return HTMLResponse(
+            content='<div class="error-message">Only user-created classes can be deleted</div>',
+            status_code=403,
+        )
+
+    ontology_service = request.app.state.ontology_service
+
+    try:
+        result = await ontology_service.delete_class(class_iri)
+    except Exception:
+        logger.error("delete-class failed for %s", class_iri, exc_info=True)
+        return HTMLResponse(
+            content='<div class="error-message">Server error deleting class</div>',
+            status_code=500,
+        )
+
+    # Remove from icon cache
+    _remove_from_icon_cache(request, class_iri)
+
+    response = HTMLResponse(
+        content=f'<div class="success-message">Deleted class <code>{class_iri}</code></div>',
+        status_code=200,
+    )
+    response.headers["HX-Trigger"] = "classDeleted"
+    return response
+
+
+# ------------------------------------------------------------------
+# Icon cache helpers
+# ------------------------------------------------------------------
+
+
+def _update_icon_cache(
+    request: Request,
+    class_iri: str,
+    icon_name: str,
+    icon_color: str,
+) -> None:
+    """Update the app-level user-type icon cache after class creation."""
+    icon_cache = getattr(request.app.state, "user_type_icons", None)
+    if icon_cache is None:
+        request.app.state.user_type_icons = {}
+        icon_cache = request.app.state.user_type_icons
+
+    if icon_name:
+        icon_cache[class_iri] = {
+            "icon": icon_name,
+            "color": icon_color or "var(--color-text-faint)",
+        }
+
+
+def _remove_from_icon_cache(request: Request, class_iri: str) -> None:
+    """Remove a class from the app-level user-type icon cache."""
+    icon_cache = getattr(request.app.state, "user_type_icons", None)
+    if icon_cache and class_iri in icon_cache:
+        del icon_cache[class_iri]

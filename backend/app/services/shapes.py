@@ -97,11 +97,13 @@ class ShapesService:
             return Graph()
 
         # 2. Build CONSTRUCT with FROM clauses for each model's shapes graph
+        #    + user-types graph for user-created class shapes
         from_clauses = []
         for b in bindings:
             model_id = b["modelId"]["value"]
             shapes_iri = f"urn:sempkm:model:{model_id}:shapes"
             from_clauses.append(f"FROM <{shapes_iri}>")
+        from_clauses.append("FROM <urn:sempkm:user-types>")
 
         from_str = "\n".join(from_clauses)
         construct_sparql = f"""CONSTRUCT {{ ?s ?p ?o }}

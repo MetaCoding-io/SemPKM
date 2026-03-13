@@ -38,12 +38,26 @@
             hx-trigger="click once">
       RBox <span class="ontology-tab-hint">Properties</span>
     </button>
+
+    {# Create Class button — right-aligned in tab bar #}
+    <button class="btn-sm ccf-trigger-btn" data-testid="create-class-btn"
+            onclick="toggleClassCreationForm()"
+            title="Create a new class">
+      <i data-lucide="plus"></i> Create Class
+    </button>
+  </div>
+
+  {# Class creation form container — loaded via htmx on demand #}
+  <div id="class-creation-container" class="ccf-container" style="display:none;"
+       hx-get="/browser/ontology/create-class-form"
+       hx-trigger="loadForm"
+       hx-swap="innerHTML">
   </div>
 
   <div class="ontology-tab-content">
     <div id="ontology-tbox" class="ontology-pane ontology-pane--active" data-testid="tbox-tree"
          hx-get="/browser/ontology/tbox"
-         hx-trigger="load"
+         hx-trigger="load, classCreated from:body, classDeleted from:body"
          hx-swap="innerHTML">
       <div class="ontology-loading">Loading TBox…</div>
     </div>
@@ -72,5 +86,25 @@ function switchOntologyTab(btn, tabId) {
   }
   var target = document.getElementById('ontology-' + tabId);
   if (target) target.classList.add('ontology-pane--active');
+}
+
+function toggleClassCreationForm() {
+  var container = document.getElementById('class-creation-container');
+  if (!container) return;
+
+  if (container.style.display === 'none') {
+    container.style.display = 'block';
+    // Trigger htmx to load form if not already loaded
+    if (!container.querySelector('.class-creation-form')) {
+      htmx.trigger(container, 'loadForm');
+    }
+  } else {
+    container.style.display = 'none';
+  }
+}
+
+function closeClassCreationForm() {
+  var container = document.getElementById('class-creation-container');
+  if (container) container.style.display = 'none';
 }
 </script>
