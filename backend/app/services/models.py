@@ -36,6 +36,88 @@ logger = logging.getLogger(__name__)
 # SemPKM vocabulary namespace
 SEMPKM_NS = "urn:sempkm:"
 
+# --- Analytics helper functions ---
+
+_LINK_BUCKETS = [
+    ("0", 0, 0),
+    ("1-2", 1, 2),
+    ("3-5", 3, 5),
+    ("6-10", 6, 10),
+    ("11+", 11, None),
+]
+
+
+def _extract_last_modified(bindings: list[dict]) -> str | None:
+    """Extract ISO date string from a MAX(?mod) SPARQL result.
+
+    Returns the value string if present and non-empty, else None.
+    """
+    if not bindings:
+        return None
+    val = bindings[0].get("lastMod", {}).get("value", "")
+    return val if val else None
+
+
+def _iso_week_key(ts_str: str) -> str | None:
+    """Convert an ISO datetime string to 'YYYY-Www' week key.
+
+    Returns None if the timestamp cannot be parsed.
+    """
+    try:
+        # Handle both 'T'-separated and space-separated formats
+        dt = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
+        iso_cal = dt.isocalendar()
+        return f"{iso_cal.year}-W{iso_cal.week:02d}"
+    except (ValueError, AttributeError):
+        return None
+
+
+def _pad_weekly_trend(
+    week_counts: dict[str, int], now: datetime
+) -> list[dict[str, object]]:
+    """Return 8 weekly buckets ending at the current week, filling gaps with 0.
+
+    Args:
+        week_counts: Dict of 'YYYY-Www' -> count from query results.
+        now: Current datetime (UTC) for determining the 8-week window.
+
+    Returns:
+        List of 8 dicts with 'week' (str) and 'count' (int), oldest first.
+    """
+    from datetime import timedelta
+
+    result = []
+    for i in range(7, -1, -1):
+        dt = now - timedelta(weeks=i)
+        iso_cal = dt.isocalendar()
+        key = f"{iso_cal.year}-W{iso_cal.week:02d}"
+        result.append({"week": key, "count": week_counts.get(key, 0)})
+    return result
+
+
+def _bucket_link_counts(link_counts: list[int]) -> list[dict[str, object]]:
+    """Bucket a list of per-instance link counts into histogram buckets.
+
+    Buckets: 0, 1-2, 3-5, 6-10, 11+
+
+    Args:
+        link_counts: List of integers, one per instance.
+
+    Returns:
+        List of dicts with 'bucket' (str) and 'count' (int).
+    """
+    buckets = {label: 0 for label, _, _ in _LINK_BUCKETS}
+    for c in link_counts:
+        for label, lo, hi in _LINK_BUCKETS:
+            if hi is None:
+                if c >= lo:
+                    buckets[label] += 1
+                    break
+            elif lo <= c <= hi:
+                buckets[label] += 1
+                break
+    return [{"bucket": label, "count": buckets[label]} for label, _, _ in _LINK_BUCKETS]
+
 
 @dataclass
 class InstallResult:
@@ -633,17 +715,25 @@ class ModelService:
         return {}
 
     async def get_type_analytics(self, type_iris: list[str]) -> dict[str, dict]:
-        """Get live analytics per type: instance count and top nodes by incoming links.
+        """Get live analytics per type: counts, top nodes, connections, dates, trends, distributions.
 
         Args:
             type_iris: List of full type IRIs to query.
 
         Returns:
-            Dict keyed by type IRI with 'count' and 'top_nodes' entries.
+            Dict keyed by type IRI with keys: count, top_nodes,
+            avg_connections, last_modified, growth_trend, link_distribution.
         """
         analytics: dict[str, dict] = {}
         for iri in type_iris:
-            analytics[iri] = {"count": 0, "top_nodes": []}
+            analytics[iri] = {
+                "count": 0,
+                "top_nodes": [],
+                "avg_connections": 0.0,
+                "last_modified": None,
+                "growth_trend": [],
+                "link_distribution": [],
+            }
 
         if not type_iris:
             return analytics
@@ -691,6 +781,145 @@ class ModelService:
                     })
             except Exception:
                 pass
+
+        # --- Avg connections per type ---
+        for iri in type_iris:
+            inst_count = analytics[iri]["count"]
+            if inst_count == 0:
+                continue
+            avg_conn_sparql = f"""SELECT (COUNT(?link) AS ?totalLinks) WHERE {{
+  GRAPH <urn:sempkm:current> {{
+    ?s a <{iri}> .
+    {{
+      ?s ?p ?o .
+      FILTER(?p != <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>)
+      BIND(?p AS ?link)
+    }} UNION {{
+      ?o2 ?p2 ?s .
+      FILTER(?p2 != <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>)
+      BIND(?p2 AS ?link)
+    }}
+  }}
+}}"""
+            try:
+                result = await self._client.query(avg_conn_sparql)
+                bindings = result.get("results", {}).get("bindings", [])
+                if bindings:
+                    total = int(bindings[0].get("totalLinks", {}).get("value", "0"))
+                    analytics[iri]["avg_connections"] = round(total / inst_count, 1)
+            except Exception:
+                logger.warning("avg_connections query failed for type <%s>", iri)
+
+        # --- Last modified per type ---
+        for iri in type_iris:
+            if analytics[iri]["count"] == 0:
+                continue
+            # Primary: dcterms:modified on instances
+            last_mod_sparql = f"""SELECT (MAX(?mod) AS ?lastMod) WHERE {{
+  GRAPH <urn:sempkm:current> {{
+    ?s a <{iri}> .
+    ?s <http://purl.org/dc/terms/modified> ?mod .
+  }}
+}}"""
+            try:
+                result = await self._client.query(last_mod_sparql)
+                bindings = result.get("results", {}).get("bindings", [])
+                last_mod = _extract_last_modified(bindings)
+                if last_mod:
+                    analytics[iri]["last_modified"] = last_mod
+                    continue
+                # Fallback: latest event timestamp for instances of this type
+                fallback_sparql = f"""SELECT (MAX(?ts) AS ?lastMod) WHERE {{
+  GRAPH ?ev {{
+    ?ev <urn:sempkm:operationType> ?op ;
+        <urn:sempkm:affectedIRI> ?aff ;
+        <urn:sempkm:timestamp> ?ts .
+    FILTER(CONTAINS(STR(?op), "object"))
+  }}
+  FILTER(STRSTARTS(STR(?ev), "urn:sempkm:event:"))
+  GRAPH <urn:sempkm:current> {{
+    ?aff a <{iri}> .
+  }}
+}}"""
+                result = await self._client.query(fallback_sparql)
+                bindings = result.get("results", {}).get("bindings", [])
+                last_mod = _extract_last_modified(bindings)
+                if last_mod:
+                    analytics[iri]["last_modified"] = last_mod
+            except Exception:
+                logger.warning("last_modified query failed for type <%s>", iri)
+
+        # --- Growth trend per type (last 8 weeks) ---
+        from datetime import timedelta
+        now = datetime.now(timezone.utc)
+        eight_weeks_ago = now - timedelta(weeks=8)
+        cutoff_iso = eight_weeks_ago.strftime("%Y-%m-%dT%H:%M:%S")
+        for iri in type_iris:
+            if analytics[iri]["count"] == 0:
+                analytics[iri]["growth_trend"] = _pad_weekly_trend({}, now)
+                continue
+            growth_sparql = f"""PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?ts WHERE {{
+  GRAPH ?ev {{
+    ?ev <urn:sempkm:operationType> ?op ;
+        <urn:sempkm:affectedIRI> ?aff ;
+        <urn:sempkm:timestamp> ?ts .
+    FILTER(CONTAINS(STR(?op), "object.create"))
+    FILTER(?ts >= "{cutoff_iso}"^^xsd:dateTime)
+  }}
+  FILTER(STRSTARTS(STR(?ev), "urn:sempkm:event:"))
+  GRAPH <urn:sempkm:current> {{
+    ?aff a <{iri}> .
+  }}
+}}"""
+            try:
+                result = await self._client.query(growth_sparql)
+                bindings = result.get("results", {}).get("bindings", [])
+                week_counts: dict[str, int] = {}
+                for b in bindings:
+                    ts_str = b.get("ts", {}).get("value", "")
+                    if ts_str:
+                        week_key = _iso_week_key(ts_str)
+                        if week_key:
+                            week_counts[week_key] = week_counts.get(week_key, 0) + 1
+                analytics[iri]["growth_trend"] = _pad_weekly_trend(week_counts, now)
+            except Exception:
+                logger.warning("growth_trend query failed for type <%s>", iri)
+                analytics[iri]["growth_trend"] = _pad_weekly_trend({}, now)
+
+        # --- Link distribution per type ---
+        for iri in type_iris:
+            if analytics[iri]["count"] == 0:
+                continue
+            link_dist_sparql = f"""SELECT ?s (COUNT(?link) AS ?linkCount) WHERE {{
+  GRAPH <urn:sempkm:current> {{
+    ?s a <{iri}> .
+    {{
+      ?s ?p ?o .
+      FILTER(?p != <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>)
+      BIND(?p AS ?link)
+    }} UNION {{
+      ?o2 ?p2 ?s .
+      FILTER(?p2 != <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>)
+      BIND(?p2 AS ?link)
+    }}
+  }}
+}} GROUP BY ?s"""
+            try:
+                result = await self._client.query(link_dist_sparql)
+                bindings = result.get("results", {}).get("bindings", [])
+                link_counts = []
+                for b in bindings:
+                    link_counts.append(
+                        int(b.get("linkCount", {}).get("value", "0"))
+                    )
+                # Include zero-link instances (not returned by query)
+                instances_with_links = len(link_counts)
+                zero_link_count = analytics[iri]["count"] - instances_with_links
+                link_counts.extend([0] * zero_link_count)
+                analytics[iri]["link_distribution"] = _bucket_link_counts(link_counts)
+            except Exception:
+                logger.warning("link_distribution query failed for type <%s>", iri)
 
         return analytics
 
