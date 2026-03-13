@@ -1,0 +1,34 @@
+{# Comments section — threaded comments for an object.
+   Returned as an htmx partial by /browser/object/{iri}/comments.
+   Context: comments (nested tree), comment_count (int),
+            object_iri (str), current_user (User) #}
+{% from "browser/partials/comment_thread.html" import render_comment %}
+
+<div class="comments-section" id="comments-section">
+    {# New comment form #}
+    <form class="comment-form"
+          hx-post="/browser/object/{{ object_iri | urlencode }}/comments"
+          hx-target="#comments-content"
+          hx-swap="innerHTML">
+        <textarea name="body" placeholder="Add a comment..." required rows="2"></textarea>
+        <button type="submit" class="comment-submit-btn">Post</button>
+    </form>
+
+    {# Comment count badge #}
+    {% if comment_count > 0 %}
+    <div class="comments-count-badge">
+        {{ comment_count }} comment{{ 's' if comment_count != 1 else '' }}
+    </div>
+    {% endif %}
+
+    {# Comment list #}
+    <div class="comments-list">
+        {% if comments %}
+            {% for comment in comments %}
+                {{ render_comment(comment, object_iri, 0) }}
+            {% endfor %}
+        {% else %}
+            <div class="comments-empty">No comments yet. Be the first to comment.</div>
+        {% endif %}
+    </div>
+</div>

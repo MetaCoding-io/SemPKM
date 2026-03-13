@@ -242,9 +242,10 @@
         editorArea.innerHTML = '<div class="editor-empty"><p>Failed to load object.</p></div>';
       });
 
-      // Load both right pane sections
+      // Load right pane sections
       loadRightPaneSection(objectIri, 'relations');
       loadRightPaneSection(objectIri, 'lint');
+      loadRightPaneSection(objectIri, 'comments');
     } else {
       editorArea.innerHTML = '<div class="editor-empty"><p>Loading ' + escapeHtml(objectIri) + '...</p></div>';
     }
@@ -256,6 +257,8 @@
 
     if (section === 'lint') {
       url = '/browser/lint/' + encodeURIComponent(objectIri);
+    } else if (section === 'comments') {
+      url = '/browser/object/' + encodeURIComponent(objectIri) + '/comments';
     } else {
       url = '/browser/relations/' + encodeURIComponent(objectIri);
     }
@@ -264,7 +267,18 @@
       .then(function (resp) { return resp.text(); })
       .then(function (html) {
         var el = document.getElementById(targetId);
-        if (el) el.innerHTML = html;
+        if (el) {
+          el.innerHTML = html;
+          // For comments section: set hx-get URL so the commentsRefreshed
+          // htmx trigger can auto-refresh the content
+          if (section === 'comments') {
+            el.setAttribute('hx-get', url);
+            // Re-process htmx attributes on the new content
+            if (window.htmx) htmx.process(el);
+          }
+          // Re-init Lucide icons for any new content
+          if (typeof lucide !== 'undefined') lucide.createIcons({ root: el });
+        }
       })
       .catch(function () {
         var el = document.getElementById(targetId);
@@ -2239,10 +2253,11 @@
     if (!detail || !detail.iri) return;
     markClean(detail.iri);
 
-    // Reload relations and lint panels with fresh data after save
+    // Reload right pane sections with fresh data after save
     if (typeof loadRightPaneSection === 'function') {
       loadRightPaneSection(detail.iri, 'relations');
       loadRightPaneSection(detail.iri, 'lint');
+      loadRightPaneSection(detail.iri, 'comments');
     }
 
     if (!detail.label) return;
@@ -2595,6 +2610,27 @@
     );
   }
 
+  // --- Comment reply form toggle ---
+  function toggleReplyForm(btn) {
+    var commentItem = btn.closest('.comment-item');
+    if (!commentItem) return;
+    var replyForm = commentItem.querySelector(':scope > .comment-reply-form');
+    if (!replyForm) return;
+    var isHidden = replyForm.style.display === 'none' || !replyForm.style.display;
+    replyForm.style.display = isHidden ? 'block' : 'none';
+    if (isHidden) {
+      var textarea = replyForm.querySelector('textarea');
+      if (textarea) textarea.focus();
+    }
+  }
+
+  // --- htmx afterSettle: re-init Lucide icons after htmx content swaps ---
+  document.body.addEventListener('htmx:afterSettle', function(e) {
+    if (typeof lucide !== 'undefined' && e.detail && e.detail.elt) {
+      lucide.createIcons({ root: e.detail.elt });
+    }
+  });
+
   // --- Export functions globally for htmx onclick handlers ---
   window.openTab = openTab;
   window.closeTab = closeTab;
@@ -2607,6 +2643,7 @@
   window.jumpToField = jumpToField;
   window.triggerValidation = triggerValidation;
   window.loadRightPaneSection = loadRightPaneSection;
+  window.toggleReplyForm = toggleReplyForm;
   window.openViewTab = openViewTab;
   window.openViewMenu = openViewMenu;
   window.switchCarouselView = switchCarouselView;
