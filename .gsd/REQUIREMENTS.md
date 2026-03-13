@@ -523,6 +523,83 @@ Wiki-links in an object's markdown body are parsed and rendered as edges connect
 - Validation: unmapped
 - Notes: TODO comment in model_detail.html:233.
 
+### NOTION-01 — Notion workspace import wizard
+- Class: core-capability
+- Status: deferred
+- Description: Interactive import flow for Notion workspace exports (ZIP first, API later). Databases → types, rows → objects, relations → edges, with dashboard/rollup/formula metadata preservation as DashboardSpec objects.
+- Why it matters: Notion is the most common PKM tool users migrate from. Structured import preserves their knowledge graph.
+- Source: user
+- Primary owning slice: none
+- Supporting slices: none
+- Validation: unmapped
+- Notes: Full research at `.planning/notion-import-research.md`. Mirrors Obsidian wizard pattern with added Classify and Relation Mapping steps.
+
+### ONTO-01 — Ontology viewer with TBox/ABox/RBox separation
+- Class: core-capability
+- Status: deferred
+- Description: Integrated ontology visualization — TBox Explorer (class hierarchy across mental models), ABox Browser (instances by type), RBox Legend (property reference). Purpose-built views, not an embedded generic editor.
+- Why it matters: Users can't currently see the schema landscape across installed mental models or understand how their data relates to the ontology.
+- Source: user
+- Primary owning slice: none
+- Supporting slices: none
+- Validation: unmapped
+- Notes: Full research at `.planning/ontology-viewer-research.md`. Cytoscape.js for graph views, htmx trees for hierarchy.
+
+### ONTO-02 — Gist upper ontology as foundation
+- Class: core-capability
+- Status: deferred
+- Description: Gist 14.0.0 loaded as foundation ontology. Mental model classes aligned to gist hierarchy (e.g. basic-pkm:Note rdfs:subClassOf gist:IntellectualProperty). Enables cross-model hierarchy browsing.
+- Why it matters: Provides a shared conceptual backbone so classes from different mental models have meaningful common ancestors.
+- Source: user
+- Primary owning slice: none
+- Supporting slices: none
+- Validation: unmapped
+- Notes: Full research at `.planning/ontology-viewer-research.md`. CC BY 4.0 license. Pin to 14.0.0, update deliberately.
+
+### UX-01 — Object hierarchy via dcterms:isPartOf
+- Class: core-capability
+- Status: deferred
+- Description: Objects nestable in explorer by parent/child relationships (e.g. Project containing Action Items), not just by type.
+- Why it matters: Hierarchical organization is a natural way to structure knowledge — flat type lists don't capture containment.
+- Source: user
+- Primary owning slice: none
+- Supporting slices: none
+- Validation: unmapped
+- Notes: Explore connection to VFS spec or as parallel navigation axis.
+
+### UX-02 — Tag explorer panel
+- Class: core-capability
+- Status: deferred
+- Description: Dedicated view/panel for browsing and navigating by `schema:keywords` tags. Tag counts, click to filter, possibly tag hierarchy.
+- Why it matters: Tags are a cross-cutting navigation axis orthogonal to types and hierarchy.
+- Source: user
+- Primary owning slice: none
+- Supporting slices: none
+- Validation: unmapped
+- Notes: none
+
+### UX-03 — Object comments via rdfs:comment
+- Class: core-capability
+- Status: deferred
+- Description: Users can add comments/annotations to any object. Threaded or flat discussion.
+- Why it matters: Enables lightweight collaboration and personal annotation without editing the object itself.
+- Source: user
+- Primary owning slice: none
+- Supporting slices: none
+- Validation: unmapped
+- Notes: none
+
+### UX-04 — Favorites and favorites view
+- Class: core-capability
+- Status: deferred
+- Description: Users can star/favorite objects. Dedicated favorites view for quick access to frequently used items.
+- Why it matters: Quick access to high-traffic objects without searching or navigating the tree.
+- Source: user
+- Primary owning slice: none
+- Supporting slices: none
+- Validation: unmapped
+- Notes: none
+
 ## Out of Scope
 
 ### FED-CRDT — CRDT-based real-time sync
@@ -587,6 +664,13 @@ Wiki-links in an object's markdown body are parsed and rendered as edges connect
 | MCP-01 | core-capability | deferred | none | none | unmapped |
 | ADMIN-01 | admin/support | deferred | none | none | unmapped |
 | ADMIN-02 | admin/support | deferred | none | none | unmapped |
+| NOTION-01 | core-capability | deferred | none | none | unmapped |
+| ONTO-01 | core-capability | deferred | none | none | unmapped |
+| ONTO-02 | core-capability | deferred | none | none | unmapped |
+| UX-01 | core-capability | deferred | none | none | unmapped |
+| UX-02 | core-capability | deferred | none | none | unmapped |
+| UX-03 | core-capability | deferred | none | none | unmapped |
+| UX-04 | core-capability | deferred | none | none | unmapped |
 | FED-CRDT | core-capability | out-of-scope | none | none | n/a |
 | FED-AUTO | core-capability | out-of-scope | none | none | n/a |
 | FED-FEDI | integration | out-of-scope | none | none | n/a |
@@ -595,6 +679,7 @@ Wiki-links in an object's markdown body are parsed and rendered as edges connect
 
 - Active requirements: 0
 - Validated: 60 (38 from M001 + 22 from M002)
-- Deferred: 3
+- Deferred: 10
 - Out of scope: 3
+- Unmapped active requirements: 0
 - Unmapped active requirements: 0

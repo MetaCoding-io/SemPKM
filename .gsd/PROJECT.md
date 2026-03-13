@@ -175,14 +175,32 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ### Future Candidates
 
-<!-- Tracked for future milestones. -->
+<!-- Tracked for future milestones. See .gsd/QUEUE.md for full queue and .gsd/REQUIREMENTS.md for deferred requirements. -->
 
-**v2.5+ — Dockview Phase B & Theming**
+**Notion Import** (NOTION-01) — researched
+- Notion workspace import wizard (ZIP first, API later), mirroring Obsidian pattern
+- Research: `.planning/notion-import-research.md`
+
+**Ontology Viewer & Gist** (ONTO-01, ONTO-02) — researched
+- TBox Explorer, ABox Browser, RBox Legend — purpose-built views
+- Gist 14.0.0 upper ontology as cross-model hierarchy foundation
+- Research: `.planning/ontology-viewer-research.md`
+
+**MCP Server** (MCP-01)
+- AI agent access to SemPKM via Model Context Protocol
+
+**Workspace UX** (UX-01 through UX-04)
+- Object hierarchy via dcterms:isPartOf
+- Tag explorer panel
+- Object comments via rdfs:comment
+- Favorites & favorites view
+
+**Dockview Phase B & Theming**
 - Flexible panel layout: dockview-core Phase B (sidebar panels into dockview)
 - Model-provided default layouts in Mental Model manifest
 - Full theming system (CSS variable token sets, user-selectable themes, model-contributed themes)
 
-**Future — Low-Code & Workflows**
+**Low-Code & Workflows**
 - Low-code UI builder (compose basic components tied to SemPKM actions)
 - Minimal workflow orchestration (orchestrated forms/views, not n8n)
 
