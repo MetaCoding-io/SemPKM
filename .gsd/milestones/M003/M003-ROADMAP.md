@@ -77,7 +77,7 @@ This milestone is complete only when all are true:
 - [x] **S06: Threaded Object Comments** `risk:medium` `depends:[]`
   > After this: Users can add comments on any object. Comments are threaded (reply-to nesting), show author and timestamp, and are visible to all users on the instance.
 
-- [ ] **S07: Ontology Viewer & Gist Foundation** `risk:high` `depends:[]`
+- [x] **S07: Ontology Viewer & Gist Foundation** `risk:high` `depends:[]`
   > After this: Workspace has an ontology viewer with TBox Explorer (class hierarchy across gist + all models), ABox Browser (instances by type with counts), and RBox Legend (property domains/ranges). Gist 14.0.0 is loaded and fully visible in the hierarchy.
 
 - [ ] **S08: In-App Class Creation** `risk:high` `depends:[S07]`

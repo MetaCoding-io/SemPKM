@@ -36,6 +36,7 @@ from app.shell.router import router as shell_router
 from app.events.store import EventStore
 from app.health.router import router as health_router
 from app.models.router import router as models_router
+from app.ontology.service import OntologyService
 from app.services.labels import LabelService
 from app.services.models import ModelService, model_shapes_loader, ensure_starter_model
 from app.services.search import SearchService
@@ -165,6 +166,15 @@ async def lifespan(app: FastAPI):
     # models/ directory is mounted at /app/models in the container
     starter_model_path = Path("/app/models/basic-pkm")
     await ensure_starter_model(model_service, starter_model_path)
+
+    # Load gist upper ontology into the triplestore (idempotent)
+    ontology_service = OntologyService(client)
+    app.state.ontology_service = ontology_service
+    gist_path = Path("/app/ontologies/gist/gistCore14.0.0.ttl")
+    try:
+        await ontology_service.ensure_gist_loaded(gist_path)
+    except Exception:
+        logger.error("gist ontology load failed — TBox queries will be incomplete")
 
     # Create validation service with real shapes loader (replaces empty_shapes_loader)
     async def shapes_loader():

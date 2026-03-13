@@ -102,4 +102,17 @@ export const SEL = {
     overlay: 'ninja-keys',
     input: 'ninja-keys input',
   },
+
+  // Ontology viewer
+  ontology: {
+    ontologyPage: '[data-testid="ontology-page"]',
+    tboxTree: '[data-testid="tbox-tree"]',
+    tboxNode: '[data-testid="tbox-node"]',
+    aboxBrowser: '[data-testid="abox-browser"]',
+    aboxTypeRow: '[data-testid="abox-type-row"]',
+    rboxLegend: '[data-testid="rbox-legend"]',
+    tabTbox: '[data-testid="ontology-tab-tbox"]',
+    tabAbox: '[data-testid="ontology-tab-abox"]',
+    tabRbox: '[data-testid="ontology-tab-rbox"]',
+  },
 } as const;

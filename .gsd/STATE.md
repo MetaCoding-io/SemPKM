@@ -1,7 +1,7 @@
 # GSD State
 
 **Active Milestone:** M003 — Workspace UX & Knowledge Organization
-**Active Slice:** S07 — Ontology Viewer & Gist Foundation
+**Active Slice:** S08 — In-App Class Creation
 **Phase:** planning
 **Requirements Status:** 21 active · 60 validated · 4 deferred · 0 out of scope
 
@@ -17,4 +17,4 @@
 - None
 
 ## Next Action
-Plan slice S07 (Ontology Viewer & Gist Foundation).
+Plan slice S08 (In-App Class Creation).

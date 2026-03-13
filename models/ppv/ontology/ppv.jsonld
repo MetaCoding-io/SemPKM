@@ -6,7 +6,8 @@
     "xsd": "http://www.w3.org/2001/XMLSchema#",
     "schema": "https://schema.org/",
     "dcterms": "http://purl.org/dc/terms/",
-    "ppv": "urn:sempkm:model:ppv:"
+    "ppv": "urn:sempkm:model:ppv:",
+    "gist": "https://w3id.org/semanticarts/ns/ontology/gist/"
   },
   "@graph": [
     {
@@ -44,7 +45,8 @@
       "@id": "ppv:Project",
       "@type": "owl:Class",
       "rdfs:label": "Project",
-      "rdfs:comment": "Discrete work item with completion criteria, linked to a Goal Outcome"
+      "rdfs:comment": "Discrete work item with completion criteria, linked to a Goal Outcome",
+      "rdfs:subClassOf": { "@id": "gist:Task" }
     },
     {
       "@id": "ppv:ActionItem",

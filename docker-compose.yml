@@ -22,6 +22,7 @@ services:
       - ./backend/app:/app/app
       - ./config:/app/config:ro
       - ./models:/app/models:ro
+      - ./backend/ontologies:/app/ontologies:ro
       - sempkm_data:/app/data
       - ./docs:/app/docs:ro
     env_file: .env

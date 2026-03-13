@@ -1,0 +1,22 @@
+{# ABox instance list: instances of a specific class, clickable to open tabs.
+
+   Context:
+     instances: list of dicts with 'iri', 'label' keys
+     class_iri: IRI of the parent class
+     error: bool indicating whether the query failed
+#}
+{% if error %}
+<div class="tree-empty">Failed to load instances.</div>
+{% elif instances %}
+{% for inst in instances %}
+<div class="abox-instance"
+     data-testid="abox-instance"
+     data-iri="{{ inst.iri }}"
+     onclick="if(window.openTab) openTab('{{ inst.iri }}', '{{ inst.label | replace("'", "\\'") }}')">
+    <span class="abox-instance-icon">&#9679;</span>
+    <span class="abox-instance-label" title="{{ inst.iri }}">{{ inst.label }}</span>
+</div>
+{% endfor %}
+{% else %}
+<div class="tree-empty">No instances of this type.</div>
+{% endif %}

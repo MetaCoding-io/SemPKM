@@ -766,6 +766,28 @@
   }
   window.openImportTab = openImportTab;
 
+  // --- Ontology Viewer Tab ---
+
+  function openOntologyTab() {
+    var tabKey = 'special:ontology';
+    var dv = window._dockview;
+    if (!dv) return;
+
+    var existing = dv.panels.find(function(p) { return p.id === tabKey; });
+    if (existing) { existing.api.setActive(); return; }
+
+    if (!window._tabMeta) window._tabMeta = {};
+    window._tabMeta[tabKey] = { label: 'Ontology Viewer', dirty: false };
+
+    dv.api.addPanel({
+      id: tabKey,
+      component: 'special-panel',
+      params: { specialType: 'ontology', isView: false, isSpecial: true },
+      title: 'Ontology Viewer'
+    });
+  }
+  window.openOntologyTab = openOntologyTab;
+
   // --- Keyboard Shortcuts ---
 
   var _keydownHandler = null;
@@ -1350,6 +1372,7 @@
       // Dynamically load available views into command palette
       _loadViewCommandPaletteEntries(ninja);
       _addCanvasPaletteEntry(ninja);
+      _addOntologyPaletteEntry(ninja);
 
       // Initialize FTS search integration for Ctrl+K palette
       _initFtsSearch(ninja);
@@ -1389,6 +1412,19 @@
       title: 'Open: Spatial Canvas',
       section: 'Views',
       handler: function () { openCanvasTab(); }
+    }]);
+  }
+
+  function _addOntologyPaletteEntry(ninja) {
+    if (!ninja || !ninja.data) return;
+    var exists = ninja.data.find(function (d) { return d.id === 'nav-ontology-viewer'; });
+    if (exists) return;
+
+    ninja.data = ninja.data.concat([{
+      id: 'nav-ontology-viewer',
+      title: 'Open: Ontology Viewer',
+      section: 'Views',
+      handler: function () { openOntologyTab(); }
     }]);
   }
 

@@ -1,0 +1,38 @@
+{# ABox Browser: types with instance counts, clickable for drill-down.
+
+   Context:
+     types: list of dicts with 'iri', 'label', 'count' keys
+     error: bool indicating whether the query failed
+#}
+{% if error and not types %}
+<div class="tree-empty">Failed to load instance data. Check SPARQL connection.</div>
+{% elif types %}
+<div class="abox-summary">{{ types | length }} types with instances</div>
+{% for t in types %}
+<div class="abox-type-row"
+     data-testid="abox-type-row"
+     data-iri="{{ t.iri }}"
+     hx-get="/browser/ontology/abox/instances?class={{ t.iri | urlencode }}"
+     hx-target="#abox-instances-{{ loop.index }}"
+     hx-swap="innerHTML"
+     hx-trigger="click once"
+     onclick="this.classList.toggle('abox-type-row--expanded')">
+    <span class="abox-type-toggle">&#9656;</span>
+    <span class="abox-type-label" title="{{ t.iri }}">{{ t.label }}</span>
+    <span class="abox-count-badge">{{ t.count }}</span>
+    {% set ns = t.iri %}
+    {% if 'gist/' in ns %}
+    <span class="tbox-source-badge badge-gist">gist</span>
+    {% elif 'basic-pkm' in ns %}
+    <span class="tbox-source-badge badge-bpkm">basic-pkm</span>
+    {% elif 'ppv' in ns %}
+    <span class="tbox-source-badge badge-ppv">ppv</span>
+    {% elif 'user-types' in ns %}
+    <span class="tbox-source-badge badge-user">user</span>
+    {% endif %}
+</div>
+<div id="abox-instances-{{ loop.index }}" class="abox-instance-list"></div>
+{% endfor %}
+{% else %}
+<div class="tree-empty">No instances found in the knowledge base.</div>
+{% endif %}

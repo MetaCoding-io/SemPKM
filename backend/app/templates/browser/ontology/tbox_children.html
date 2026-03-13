@@ -1,0 +1,39 @@
+{# TBox children: subclasses of a parent class loaded via htmx.
+   Same recursive pattern as the root tree — each child can expand further.
+
+   Context:
+     classes: list of dicts with 'iri', 'label', 'has_subclasses' keys
+#}
+{% if classes %}
+{% for cls in classes %}
+{% set safe_id = cls.iri | replace(':', '_') | replace('/', '_') | replace('#', '_') | replace('.', '_') %}
+<div class="tree-node{% if not cls.has_subclasses %} tree-leaf{% endif %}" data-testid="tbox-node" data-iri="{{ cls.iri }}"
+     {% if cls.has_subclasses %}
+     hx-get="/browser/ontology/tbox/children?parent={{ cls.iri | urlencode }}"
+     hx-trigger="click once"
+     hx-target="#tbox-children-{{ safe_id }}"
+     hx-swap="innerHTML"
+     {% endif %}>
+    {% if cls.has_subclasses %}
+    <span class="tree-toggle">&#9656;</span>
+    {% else %}
+    <span class="tree-toggle tree-toggle-leaf">&#8226;</span>
+    {% endif %}
+    <span class="tbox-icon">&#9670;</span>
+    <span class="tree-label tbox-label" title="{{ cls.iri }}">{{ cls.label }}</span>
+    {% set ns = cls.iri %}
+    {% if 'gist/' in ns %}
+    <span class="tbox-source-badge badge-gist">gist</span>
+    {% elif 'basic-pkm' in ns %}
+    <span class="tbox-source-badge badge-bpkm">basic-pkm</span>
+    {% elif 'ppv' in ns %}
+    <span class="tbox-source-badge badge-ppv">ppv</span>
+    {% elif 'user-types' in ns %}
+    <span class="tbox-source-badge badge-user">user</span>
+    {% endif %}
+</div>
+<div id="tbox-children-{{ safe_id }}" class="tree-children"></div>
+{% endfor %}
+{% else %}
+<div class="tree-empty tree-empty-leaf">No subclasses</div>
+{% endif %}
