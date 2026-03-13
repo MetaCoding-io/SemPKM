@@ -87,12 +87,13 @@ test.describe('Navigation Tree', () => {
     // Section should start expanded
     await expect(objectsSection).toHaveClass(/expanded/);
 
-    // Click header to collapse
-    await objectsSection.locator('.explorer-section-header').click();
+    // Click header chevron to collapse (avoid clicking the mode dropdown
+    // which has event.stopPropagation and would swallow the click)
+    await objectsSection.locator('.explorer-section-chevron').click();
     await expect(objectsSection).not.toHaveClass(/expanded/);
 
     // Click again to expand
-    await objectsSection.locator('.explorer-section-header').click();
+    await objectsSection.locator('.explorer-section-chevron').click();
     await expect(objectsSection).toHaveClass(/expanded/);
   });
 });

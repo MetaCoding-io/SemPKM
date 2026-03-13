@@ -1,0 +1,10 @@
+{# Explorer placeholder for modes not yet implemented.
+
+   Context:
+     mode_label: str — display name of the mode (e.g. "Hierarchy", "Tag")
+     icon_name: str — Lucide icon name (e.g. "compass", "tag")
+#}
+<div class="tree-empty" data-testid="explorer-placeholder">
+    <i data-lucide="{{ icon_name }}"></i>
+    <span>{{ mode_label }} mode &mdash; coming soon</span>
+</div>

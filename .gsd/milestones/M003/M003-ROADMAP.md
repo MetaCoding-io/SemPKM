@@ -59,7 +59,7 @@ This milestone is complete only when all are true:
 
 ## Slices
 
-- [ ] **S01: Explorer Mode Infrastructure** `risk:medium` `depends:[]`
+- [x] **S01: Explorer Mode Infrastructure** `risk:medium` `depends:[]`
   > After this: Explorer has a working dropdown that switches between "By Type" (current behavior) and placeholder modes — the tree re-renders via htmx on mode change.
 
 - [ ] **S02: Hierarchy Explorer Mode** `risk:medium` `depends:[S01]`
