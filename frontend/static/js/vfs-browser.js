@@ -161,12 +161,13 @@
 
     // ── User mount trees (exclude model mounts — already shown above) ──
     var customMounts = (mounts || []).filter(function (m) { return m.source !== 'model'; });
-    if (customMounts.length > 0) {
-      var mountSeparator = document.createElement('div');
-      mountSeparator.className = 'vfs-tree-separator';
-      mountSeparator.innerHTML = '<span class="vfs-tree-separator-label">CUSTOM MOUNTS</span>';
-      body.appendChild(mountSeparator);
 
+    var mountSeparator = document.createElement('div');
+    mountSeparator.className = 'vfs-tree-separator';
+    mountSeparator.innerHTML = '<span class="vfs-tree-separator-label">CUSTOM MOUNTS</span>';
+    body.appendChild(mountSeparator);
+
+    if (customMounts.length > 0) {
       customMounts.forEach(function (mount) {
         var strategyLabel = mount.strategy.replace(/-/g, ' ').replace('by ', 'by-');
         var mountNode = createNode({
@@ -183,6 +184,13 @@
         });
         body.appendChild(mountNode);
       });
+    } else {
+      var emptyMount = document.createElement('div');
+      emptyMount.className = 'vfs-mount-empty';
+      emptyMount.innerHTML =
+        '<span>No custom mounts yet.</span> ' +
+        '<a href="#" class="vfs-mount-empty-link" onclick="openMountSettings(); return false;">Create one in Settings</a>';
+      body.appendChild(emptyMount);
     }
 
     if (typeof lucide !== 'undefined') lucide.createIcons({ root: body });
