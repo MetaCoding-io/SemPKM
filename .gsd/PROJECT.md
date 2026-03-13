@@ -169,9 +169,16 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - ✓ FED-11–13: Federation fixes — Sync Now auto-discovery, dual-instance docker-compose, 8-step E2E test — M002
 - ✓ OBSI-08–10: Ideaverse Pro 2.5 vault imported (895 objects, 1767 edges), wiki-links and frontmatter verified — M002
 
-### Active
+### Active (M003 — Workspace UX & Knowledge Organization)
 
-<!-- No active milestone. Next milestone TBD. -->
+- Explorer mode dropdown: switchable navigation strategies (by-type, by-hierarchy, by-tag, VFS mounts)
+- Tag system fix (comma-separated → individual triples) + tag pills with # prefix
+- Per-user favorites with FAVORITES explorer section
+- Threaded collaborative comments on objects
+- Ontology viewer: TBox Explorer, ABox Browser, RBox Legend
+- Gist 14.0.0 as upper ontology foundation
+- In-app class creation (name, icon, parent, properties → OWL + SHACL)
+- Admin model detail stats and charts
 
 ### Future Candidates
 
@@ -224,7 +231,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - SPARQL UPDATE as external write surface — by design (bypasses event sourcing)
 - Real-time collaborative editing — CRDT/OT complexity, v2+ at earliest
 - Mobile native app — web-first, responsive design and eventual PWA
-- Ontology editor — consume via Mental Models; use Protege for authoring
+- Full ontology editor — M003 adds basic class creation; Protege for advanced OWL authoring
 
 ## Current State
 
@@ -251,7 +258,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 **Previous:** v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
 
-**Current milestone:** None — M002 complete. Next milestone TBD.
+**Current milestone:** M003 — Workspace UX & Knowledge Organization (9 slices: explorer modes, hierarchy, VFS explorer, tags, favorites, comments, ontology viewer, class creation, admin charts)
 
 ## Context
 
