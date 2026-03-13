@@ -1,20 +1,20 @@
 # GSD State
 
-**Active Milestone:** M003 — Workspace UX & Knowledge Organization
-**Active Slice:** S10 — E2E Test Coverage Gaps
-**Phase:** executing
-**Requirements Status:** 21 active · 60 validated · 4 deferred · 0 out of scope
+**Active Milestone:** None
+**Active Slice:** None
+**Phase:** idle
+**Requirements Status:** 0 active · 81 validated · 4 deferred · 0 out of scope
 
 ## Milestone Registry
 - ✅ **M001:** Migration
 - ✅ **M002:** Hardening & Polish
-- 🔄 **M003:** Workspace UX & Knowledge Organization
+- ✅ **M003:** Workspace UX & Knowledge Organization
 
 ## Recent Decisions
-- None recorded
+- D069: Rate-limit e2e tests in 99- prefix directory
 
 ## Blockers
 - None
 
 ## Next Action
-Execute T01: Object & edge deletion tests in slice S10.
+M003 complete. See `.gsd/QUEUE.md` for queued milestones.

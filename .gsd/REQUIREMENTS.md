@@ -4,238 +4,177 @@ This file is the explicit capability and coverage contract for the project.
 
 ## Active
 
-### EXP-01 — Explorer mode dropdown with switchable navigation strategies
-- Class: core-capability
-- Status: active
-- Description: The OBJECTS section in the explorer pane has a dropdown that switches between different organizational modes. Selecting a mode re-renders the tree via htmx.
-- Why it matters: Users need multiple ways to navigate knowledge — flat-by-type is insufficient for large collections.
-- Source: user
-- Primary owning slice: M003/S01
-- Supporting slices: M003/S02, M003/S03, M003/S04
-- Validation: unmapped
-- Notes: Dropdown replaces OBJECTS section content in-place. Modes include by-type, by-hierarchy, by-tag, and VFS mounts.
-
-### EXP-02 — By-type mode (current behavior) as default explorer mode
-- Class: core-capability
-- Status: active
-- Description: The current by-type tree (type nodes with lazy-loaded object children) is preserved as the default explorer mode.
-- Why it matters: Existing behavior must not regress when the mode system is added.
-- Source: user
-- Primary owning slice: M003/S01
-- Supporting slices: none
-- Validation: unmapped
-- Notes: Refactored from hardcoded into a mode handler.
-
-### EXP-03 — Hierarchy mode via dcterms:isPartOf with arbitrary nesting depth
-- Class: core-capability
-- Status: active
-- Description: Explorer hierarchy mode shows objects nested by dcterms:isPartOf parent/child relationships with lazy-expanding arbitrary depth.
-- Why it matters: Hierarchical organization is a natural way to structure knowledge — flat type lists don't capture containment.
-- Source: user
-- Primary owning slice: M003/S02
-- Supporting slices: none
-- Validation: unmapped
-- Notes: Root objects (no isPartOf parent) appear at top level. No hard depth limit.
-
-### EXP-04 — VFS mount specs visible as explorer modes
-- Class: core-capability
-- Status: active
-- Description: Each user-created VFS mount appears as a selectable mode in the explorer dropdown. Objects are organized by the mount's directory strategy.
-- Why it matters: VFS specs are a powerful organizational vocabulary — they should drive the explorer, not just WebDAV file access.
-- Source: user
-- Primary owning slice: M003/S03
-- Supporting slices: none
-- Validation: unmapped
-- Notes: Reuses VFS strategy SPARQL builders adapted for htmx tree rendering.
-
-### EXP-05 — VFS explorer shows full rich objects with same click-to-open behavior
-- Class: core-capability
-- Status: active
-- Description: Clicking an object in a VFS-organized explorer mode opens the full object tab, same as clicking in the by-type view.
-- Why it matters: The VFS spec changes organization, not behavior — users expect full object access regardless of navigation mode.
-- Source: user
-- Primary owning slice: M003/S03
-- Supporting slices: none
-- Validation: unmapped
-- Notes: Objects are rich (iri, label, type icon), not flat markdown filenames.
-
-### TAG-01 — Tag parsing fix: comma-separated schema:keywords split into individual triples
-- Class: core-capability
-- Status: active
-- Description: When schema:keywords values contain comma-separated lists, they are split into individual RDF triples on save. A one-time migration fixes existing data.
-- Why it matters: Comma-separated tag strings can't be queried individually — they break tag-based filtering and navigation.
-- Source: user
-- Primary owning slice: M003/S04
-- Supporting slices: none
-- Validation: unmapped
-- Notes: Affects seed data from base mental model. Obsidian import already splits correctly.
-
-### TAG-02 — Tags render as pills with # prefix in object view and properties panel
-- Class: core-capability
-- Status: active
-- Description: schema:keywords values display as styled pill components with a # prefix character.
-- Why it matters: Tags should be visually distinct from other properties — pills with # are the standard PKM convention.
-- Source: user
-- Primary owning slice: M003/S04
-- Supporting slices: none
-- Validation: unmapped
-- Notes: Each tag is a separate pill, not a comma-separated string.
-
-### TAG-03 — Tag explorer mode in explorer dropdown
-- Class: core-capability
-- Status: active
-- Description: Explorer has a "By Tag" mode that groups objects by their schema:keywords tags, with tag counts.
-- Why it matters: Tags are a cross-cutting navigation axis orthogonal to types and hierarchy.
-- Source: user
-- Primary owning slice: M003/S04
-- Supporting slices: none
-- Validation: unmapped
-- Notes: Builds on VFS by-tag strategy SPARQL.
-
-### FAV-01 — Per-user favorites: star/unstar objects
-- Class: core-capability
-- Status: active
-- Description: Users can toggle a star/favorite on any object. Favorites are per-user (stored in SQL, not RDF).
-- Why it matters: Quick access to high-traffic objects without searching or navigating the tree.
-- Source: user
-- Primary owning slice: M003/S05
-- Supporting slices: none
-- Validation: unmapped
-- Notes: Star button visible on object views.
-
-### FAV-02 — FAVORITES collapsible section in explorer pane
-- Class: core-capability
-- Status: active
-- Description: A FAVORITES collapsible section in the explorer pane shows all starred objects for the current user.
-- Why it matters: Favorites need a persistent, always-accessible surface in the workspace.
-- Source: user
-- Primary owning slice: M003/S05
-- Supporting slices: none
-- Validation: unmapped
-- Notes: Separate section from OBJECTS, not a mode in the dropdown.
-
-### CMT-01 — Threaded collaborative comments on objects
-- Class: core-capability
-- Status: active
-- Description: Users can add threaded comments on any object. Comments support reply-to nesting, are visible to all users, and stored in the RDF knowledge graph.
-- Why it matters: Enables lightweight collaboration and annotation without editing the object itself.
-- Source: user
-- Primary owning slice: M003/S06
-- Supporting slices: none
-- Validation: unmapped
-- Notes: Stored via EventStore operations for consistency and auditability.
-
-### CMT-02 — Comment panel in object view with author attribution and timestamps
-- Class: core-capability
-- Status: active
-- Description: Object view includes a comment panel showing threaded comments with author names, timestamps, and reply actions.
-- Why it matters: Comments need a usable UI surface with clear attribution.
-- Source: user
-- Primary owning slice: M003/S06
-- Supporting slices: none
-- Validation: unmapped
-- Notes: Threaded (reply-to nesting), not flat list.
-
-### ONTO-01 — TBox Explorer: unified class hierarchy across all installed models
-- Class: core-capability
-- Status: active
-- Description: Ontology viewer shows a TBox Explorer with the full class hierarchy spanning gist upper ontology and all installed mental models. Gist classes fully visible.
-- Why it matters: Users can't currently see the schema landscape across installed mental models or understand how their data types relate.
-- Source: user
-- Primary owning slice: M003/S07
-- Supporting slices: none
-- Validation: unmapped
-- Notes: Full research at `.planning/ontology-viewer-research.md`. Collapsible tree, gist classes on equal footing.
-
-### ONTO-02 — ABox Browser: instances grouped by type with counts
-- Class: core-capability
-- Status: active
-- Description: Ontology viewer includes an ABox Browser showing instances grouped by their RDF type with per-type counts.
-- Why it matters: Users need to see what data they have and how it's distributed across types.
-- Source: user
-- Primary owning slice: M003/S07
-- Supporting slices: none
-- Validation: unmapped
-- Notes: Clicking a class shows its instances. Navigation to object tabs.
-
-### ONTO-03 — RBox Legend: property reference with domains, ranges, and characteristics
-- Class: core-capability
-- Status: active
-- Description: Ontology viewer includes an RBox Legend showing all properties with their domains, ranges, and characteristics (transitive, symmetric, etc.).
-- Why it matters: Users need to understand what relationships are available and how they connect types.
-- Source: user
-- Primary owning slice: M003/S07
-- Supporting slices: none
-- Validation: unmapped
-- Notes: Grouped by object properties vs datatype properties.
-
-### GIST-01 — Gist 14.0.0 loaded as foundation ontology in named graph
-- Class: core-capability
-- Status: active
-- Description: Gist 14.0.0 OWL ontology loaded into RDF4J as a named graph, queryable via SPARQL.
-- Why it matters: Provides a shared conceptual backbone so classes from different mental models have meaningful common ancestors.
-- Source: user
-- Primary owning slice: M003/S07
-- Supporting slices: M003/S08
-- Validation: unmapped
-- Notes: Pin to 14.0.0, update deliberately. CC BY 4.0 license. Namespace: `https://w3id.org/semanticarts/ns/ontology/gist/`.
-
-### GIST-02 — Mental model classes aligned to gist hierarchy
-- Class: core-capability
-- Status: active
-- Description: Mental model classes have rdfs:subClassOf relationships to appropriate gist classes (e.g. bpkm:Note rdfs:subClassOf gist:IntellectualProperty).
-- Why it matters: Without alignment, gist is just another isolated ontology. Alignment enables cross-model hierarchy browsing.
-- Source: user
-- Primary owning slice: M003/S07
-- Supporting slices: none
-- Validation: unmapped
-- Notes: Manual alignment for existing models. Future models can declare alignment in their ontology.
-
-### TYPE-01 — In-app class creation: name, icon, parent class, basic properties
-- Class: core-capability
-- Status: active
-- Description: Users can create a new RDF class through a form UI — specifying name, icon, parent class (from ontology), and properties with datatypes.
-- Why it matters: Users should be able to extend their knowledge schema without editing model packages or writing OWL by hand.
-- Source: user
-- Primary owning slice: M003/S08
-- Supporting slices: none
-- Validation: unmapped
-- Notes: Created classes stored in `urn:sempkm:user-types` named graph.
-
-### TYPE-02 — Created classes generate valid OWL class + SHACL shape
-- Class: core-capability
-- Status: active
-- Description: When a user creates a class, the system generates OWL class triples and a SHACL NodeShape that integrates with the existing form generation pipeline.
-- Why it matters: Created types must be first-class citizens — usable for object creation with auto-generated forms.
-- Source: user
-- Primary owning slice: M003/S08
-- Supporting slices: none
-- Validation: unmapped
-- Notes: Must be discoverable by ShapesService. Must appear in type picker for object creation.
-
-### ADMIN-01 — Model detail page stats: avg connections, last modified, growth trend
-- Class: admin/support
-- Status: active
-- Description: Admin model detail page shows computed stats replacing the TODO placeholders: average connections per node, last modified date, growth trend.
-- Why it matters: Gives model administrators insight into knowledge graph health and activity.
-- Source: execution (code TODO)
-- Primary owning slice: M003/S09
-- Supporting slices: none
-- Validation: unmapped
-- Notes: TODO comment in model_detail.html:~203.
-
-### ADMIN-02 — Model detail page charts: sparkline, activity, link distribution
-- Class: admin/support
-- Status: active
-- Description: Admin model detail page shows visual charts replacing the placeholder bars: activity sparkline, link distribution visualization.
-- Why it matters: Visual analytics for model health monitoring.
-- Source: execution (code TODO)
-- Primary owning slice: M003/S09
-- Supporting slices: none
-- Validation: unmapped
-- Notes: TODO comment in model_detail.html:~233. Lightweight chart library (agent's choice).
+(No active requirements — all M003 requirements validated.)
 
 ## Validated
+
+### EXP-01 — Explorer mode dropdown with switchable navigation strategies
+- Status: validated
+- Class: core-capability
+- Source: user
+- Primary Slice: M003/S01
+
+EXPLORER_MODES registry with by-type, hierarchy, by-tag handlers + mount: prefix dispatch in workspace.py. E2E spec: explorer-mode-switching.spec.ts.
+
+### EXP-02 — By-type mode (current behavior) as default explorer mode
+- Status: validated
+- Class: core-capability
+- Source: user
+- Primary Slice: M003/S01
+
+_handle_by_type() handler delegates to nav_tree.html. /browser/nav-tree kept for backwards compat.
+
+### EXP-03 — Hierarchy mode via dcterms:isPartOf with arbitrary nesting depth
+- Status: validated
+- Class: core-capability
+- Source: user
+- Primary Slice: M003/S02
+
+_handle_hierarchy() queries dcterms:isPartOf roots; /explorer/children for lazy expansion. Unit tests: test_hierarchy_explorer.py.
+
+### EXP-04 — VFS mount specs visible as explorer modes
+- Status: validated
+- Class: core-capability
+- Source: user
+- Primary Slice: M003/S03
+
+mount:{uuid} options in explorer dropdown; _handle_mount dispatches to 5 VFS strategies. E2E spec: vfs-explorer.spec.ts.
+
+### EXP-05 — VFS explorer shows full rich objects with same click-to-open behavior
+- Status: validated
+- Class: core-capability
+- Source: user
+- Primary Slice: M003/S03
+
+VFS mount tree leaves use same handleTreeLeafClick/openTab as by-type tree. Objects rendered with labels and type icons.
+
+### TAG-01 — Tag parsing fix: comma-separated schema:keywords split into individual triples
+- Status: validated
+- Class: core-capability
+- Source: user
+- Primary Slice: M003/S04
+
+split_tag_values() on save in object_patch.py; /admin/migrate-tags endpoint; seed data updated to arrays. Unit tests: test_tag_splitting.py.
+
+### TAG-02 — Tags render as pills with # prefix in object view and properties panel
+- Status: validated
+- Class: core-capability
+- Source: user
+- Primary Slice: M003/S04
+
+Tag pill CSS in workspace.css; tag_tree.html with # prefix. E2E spec: tag-explorer.spec.ts.
+
+### TAG-03 — Tag explorer mode in explorer dropdown
+- Status: validated
+- Class: core-capability
+- Source: user
+- Primary Slice: M003/S04
+
+_handle_by_tag() handler with UNION SPARQL across bpkm:tags and schema:keywords. Unit tests: test_tag_explorer.py.
+
+### FAV-01 — Per-user favorites: star/unstar objects
+- Status: validated
+- Class: core-capability
+- Source: user
+- Primary Slice: M003/S05
+
+UserFavorite SQL model; /favorites/toggle; star button on objects; Alembic migration 009. E2E spec: favorites.spec.ts.
+
+### FAV-02 — FAVORITES collapsible section in explorer pane
+- Status: validated
+- Class: core-capability
+- Source: user
+- Primary Slice: M003/S05
+
+FAVORITES section above OBJECTS in workspace.html; /favorites/list; HX-Trigger favoritesRefreshed auto-refresh.
+
+### CMT-01 — Threaded collaborative comments on objects
+- Status: validated
+- Class: core-capability
+- Source: user
+- Primary Slice: M003/S06
+
+sempkm:Comment RDF vocabulary; comment.create/reply/delete via EventStore; threaded via replyTo. E2E spec: comments.spec.ts.
+
+### CMT-02 — Comment panel in object view with author attribution and timestamps
+- Status: validated
+- Class: core-capability
+- Source: user
+- Primary Slice: M003/S06
+
+comments_section.html with author badges (batch-resolved from SQL), relative timestamps, reply forms, recursive comment_thread.html partial.
+
+### ONTO-01 — TBox Explorer: unified class hierarchy across all installed models
+- Status: validated
+- Class: core-capability
+- Source: user
+- Primary Slice: M003/S07
+
+TBox tree via /ontology/tbox with cross-graph FROM clause aggregation (gist + model + user-types). E2E spec: ontology-viewer.spec.ts confirms gist classes visible.
+
+### ONTO-02 — ABox Browser: instances grouped by type with counts
+- Status: validated
+- Class: core-capability
+- Source: user
+- Primary Slice: M003/S07
+
+ABox tab via /ontology/abox; types with instance counts > 0; drill-down via /ontology/abox/instances.
+
+### ONTO-03 — RBox Legend: property reference with domains, ranges, and characteristics
+- Status: validated
+- Class: core-capability
+- Source: user
+- Primary Slice: M003/S07
+
+RBox tab via /ontology/rbox; object + datatype properties with domains and ranges in rbox_legend.html.
+
+### GIST-01 — Gist 14.0.0 loaded as foundation ontology in named graph
+- Status: validated
+- Class: core-capability
+- Source: user
+- Primary Slice: M003/S07
+
+gistCore14.0.0.ttl bundled in backend/ontologies/gist/; loaded into urn:sempkm:ontology:gist via batched INSERT DATA. CC BY 4.0.
+
+### GIST-02 — Mental model classes aligned to gist hierarchy
+- Status: validated
+- Class: core-capability
+- Source: user
+- Primary Slice: M003/S07
+
+basic-pkm: Project→gist:Task, Person→gist:Person, Note→gist:FormattedContent, Concept→gist:KnowledgeConcept. ppv: Project→gist:Task.
+
+### TYPE-01 — In-app class creation: name, icon, parent class, basic properties
+- Status: validated
+- Class: core-capability
+- Source: user
+- Primary Slice: M003/S08
+
+Create class form with name, icon picker, parent selector, property editor. /ontology/create-class POST. E2E spec: class-creation.spec.ts.
+
+### TYPE-02 — Created classes generate valid OWL class + SHACL shape
+- Status: validated
+- Class: core-capability
+- Source: user
+- Primary Slice: M003/S08
+
+OntologyService.create_class() generates OWL class + SHACL NodeShape in urn:sempkm:user-types. Discoverable by ShapesService. Unit tests: test_class_creation.py.
+
+### ADMIN-01 — Model detail page stats: avg connections, last modified, growth trend
+- Status: validated
+- Class: admin/support
+- Source: execution (code TODO)
+- Primary Slice: M003/S09
+
+SPARQL-computed avg_connections, last_modified, growth_trend in model_detail.html. E2E spec: admin-model-detail.spec.ts.
+
+### ADMIN-02 — Model detail page charts: sparkline, activity, link distribution
+- Status: validated
+- Class: admin/support
+- Source: execution (code TODO)
+- Primary Slice: M003/S09
+
+Chart.js 4.4 CDN; growth sparkline (8-week) + link distribution (5-bucket histogram). Lazy init on flip transitionend.
 
 ### SEC-01 — Auth endpoints have per-IP rate limiting
 - Status: validated
@@ -802,27 +741,27 @@ Wiki-links in an object's markdown body are parsed and rendered as edges connect
 
 | ID | Class | Status | Primary owner | Supporting | Proof |
 |---|---|---|---|---|---|
-| EXP-01 | core-capability | active | M003/S01 | M003/S02, S03, S04 | unmapped |
-| EXP-02 | core-capability | active | M003/S01 | none | unmapped |
-| EXP-03 | core-capability | active | M003/S02 | none | unmapped |
-| EXP-04 | core-capability | active | M003/S03 | none | unmapped |
-| EXP-05 | core-capability | active | M003/S03 | none | unmapped |
-| TAG-01 | core-capability | active | M003/S04 | none | unmapped |
-| TAG-02 | core-capability | active | M003/S04 | none | unmapped |
-| TAG-03 | core-capability | active | M003/S04 | none | unmapped |
-| FAV-01 | core-capability | active | M003/S05 | none | unmapped |
-| FAV-02 | core-capability | active | M003/S05 | none | unmapped |
-| CMT-01 | core-capability | active | M003/S06 | none | unmapped |
-| CMT-02 | core-capability | active | M003/S06 | none | unmapped |
-| ONTO-01 | core-capability | active | M003/S07 | none | unmapped |
-| ONTO-02 | core-capability | active | M003/S07 | none | unmapped |
-| ONTO-03 | core-capability | active | M003/S07 | none | unmapped |
-| GIST-01 | core-capability | active | M003/S07 | M003/S08 | unmapped |
-| GIST-02 | core-capability | active | M003/S07 | none | unmapped |
-| TYPE-01 | core-capability | active | M003/S08 | none | unmapped |
-| TYPE-02 | core-capability | active | M003/S08 | none | unmapped |
-| ADMIN-01 | admin/support | active | M003/S09 | none | unmapped |
-| ADMIN-02 | admin/support | active | M003/S09 | none | unmapped |
+| EXP-01 | core-capability | validated | M003/S01 | M003/S02, S03, S04 | EXPLORER_MODES registry + E2E |
+| EXP-02 | core-capability | validated | M003/S01 | none | _handle_by_type handler |
+| EXP-03 | core-capability | validated | M003/S02 | none | hierarchy mode + lazy expand |
+| EXP-04 | core-capability | validated | M003/S03 | none | mount:{uuid} dispatch + E2E |
+| EXP-05 | core-capability | validated | M003/S03 | none | rich objects in mount trees |
+| TAG-01 | core-capability | validated | M003/S04 | none | split_tag_values + migration |
+| TAG-02 | core-capability | validated | M003/S04 | none | tag pill CSS + # prefix |
+| TAG-03 | core-capability | validated | M003/S04 | none | by-tag mode + UNION SPARQL |
+| FAV-01 | core-capability | validated | M003/S05 | none | SQL table + toggle + E2E |
+| FAV-02 | core-capability | validated | M003/S05 | none | FAVORITES section + auto-refresh |
+| CMT-01 | core-capability | validated | M003/S06 | none | RDF comments + EventStore + E2E |
+| CMT-02 | core-capability | validated | M003/S06 | none | threaded display + author badges |
+| ONTO-01 | core-capability | validated | M003/S07 | none | TBox cross-graph hierarchy + E2E |
+| ONTO-02 | core-capability | validated | M003/S07 | none | ABox instance counts + drill-down |
+| ONTO-03 | core-capability | validated | M003/S07 | none | RBox property reference table |
+| GIST-01 | core-capability | validated | M003/S07 | M003/S08 | gistCore14.0.0 loaded in named graph |
+| GIST-02 | core-capability | validated | M003/S07 | none | rdfs:subClassOf in basic-pkm + ppv |
+| TYPE-01 | core-capability | validated | M003/S08 | none | create class form + E2E |
+| TYPE-02 | core-capability | validated | M003/S08 | none | OWL + SHACL generation |
+| ADMIN-01 | admin/support | validated | M003/S09 | none | SPARQL-computed stats |
+| ADMIN-02 | admin/support | validated | M003/S09 | none | Chart.js sparkline + histogram |
 | SEC-01 | compliance/security | validated | M002/S01 | none | slowapi rate limiting |
 | SEC-02 | compliance/security | validated | M002/S01 | none | conditional token logging |
 | SEC-03 | compliance/security | validated | M002/S01 | none | require_role on event console |
@@ -855,9 +794,8 @@ Wiki-links in an object's markdown body are parsed and rendered as edges connect
 
 ## Coverage Summary
 
-- Active requirements: 21
-- Mapped to slices: 21
-- Validated: 60 (38 from M001 + 22 from M002)
+- Active requirements: 0
+- Validated: 81 (38 from M001 + 22 from M002 + 21 from M003)
 - Deferred: 4
 - Out of scope: 3
 - Unmapped active requirements: 0
