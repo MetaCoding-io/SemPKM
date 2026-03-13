@@ -62,7 +62,7 @@ This milestone is complete only when all are true:
 - [x] **S01: Explorer Mode Infrastructure** `risk:medium` `depends:[]`
   > After this: Explorer has a working dropdown that switches between "By Type" (current behavior) and placeholder modes — the tree re-renders via htmx on mode change.
 
-- [ ] **S02: Hierarchy Explorer Mode** `risk:medium` `depends:[S01]`
+- [x] **S02: Hierarchy Explorer Mode** `risk:medium` `depends:[S01]`
   > After this: User switches to "By Hierarchy" mode and sees objects nested by dcterms:isPartOf with lazy-expanding arbitrary depth. Root objects (no parent) appear at top level.
 
 - [ ] **S03: VFS-Driven Explorer Modes** `risk:medium` `depends:[S01]`
