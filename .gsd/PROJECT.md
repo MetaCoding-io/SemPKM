@@ -280,7 +280,19 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 These apply to every plan, no exceptions. Executor must check both gates before writing the SUMMARY.
 
 - **E2E tests**: Any new or changed user-visible behavior must have Playwright tests added or updated in `e2e/tests/`. Tests must pass against the running stack.
-- **User guide docs**: Any user-visible feature added or changed must be reflected in `docs/` (user guide, tutorials). Create new pages if needed. If skipped (e.g. pure backend fix), state the reason explicitly in the SUMMARY.
+- **User guide docs**: Any user-visible feature added or changed must be reflected in `docs/guide/` (user guide pages). Create new pages or update existing pages as needed. **This is a planning-time requirement, not an afterthought** — every slice plan that adds user-visible features MUST include a dedicated docs task (typically the final task before or alongside E2E tests). If skipped (e.g. pure backend fix, refactor, test-only slice), state the reason explicitly in the slice plan and SUMMARY.
+
+### Enforcement
+
+During **slice planning**, the planner must:
+1. Check whether the slice adds or changes user-visible features
+2. If yes, include an explicit task for updating `docs/guide/` (new page or existing page update)
+3. The docs task should be planned with the same rigor as implementation tasks — specify which pages to create/update and what content to cover
+
+During **milestone completion**, the reviewer must:
+1. Verify every user-visible feature has corresponding docs coverage
+2. Document any gaps explicitly in the milestone summary
+3. A milestone with docs gaps should note `verification_result: passed-with-gaps` (not `passed`)
 
 ## Constraints
 
