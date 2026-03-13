@@ -1495,6 +1495,42 @@
       "toolCalls": 0,
       "assistantMessages": 166,
       "userMessages": 0
+    },
+    {
+      "type": "execute-task",
+      "id": "M003/S06/T03",
+      "model": "claude-opus-4-6",
+      "startedAt": 1773393154753,
+      "finishedAt": 1773394290845,
+      "tokens": {
+        "input": 111,
+        "output": 25019,
+        "cacheRead": 8884535,
+        "cacheWrite": 92500,
+        "total": 9002165
+      },
+      "cost": 5.646422499999999,
+      "toolCalls": 0,
+      "assistantMessages": 109,
+      "userMessages": 0
+    },
+    {
+      "type": "reassess-roadmap",
+      "id": "M003/S06",
+      "model": "claude-opus-4-6",
+      "startedAt": 1773394290853,
+      "finishedAt": 1773394335888,
+      "tokens": {
+        "input": 7,
+        "output": 1758,
+        "cacheRead": 252197,
+        "cacheWrite": 31799,
+        "total": 285761
+      },
+      "cost": 0.36882725000000005,
+      "toolCalls": 0,
+      "assistantMessages": 5,
+      "userMessages": 0
     }
   ]
 }
