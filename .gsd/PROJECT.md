@@ -284,10 +284,18 @@ These apply to every plan, no exceptions. Executor must check both gates before 
 
 ### Enforcement
 
-During **slice planning**, the planner must:
+During **roadmap planning**, every milestone that ships user-visible features MUST include two trailing coverage slices:
+1. **E2E Test Coverage** slice — audits and fills test gaps across all shipped features
+2. **User Guide Docs** slice — writes/updates `docs/guide/` pages for all new features
+
+These are planned at roadmap time (not bolted on later) and depend on nothing, so they can run after any feature slice completes. This mirrors the M003 pattern where S10 caught E2E gaps — but extends it to docs.
+
+During **slice planning**, the planner must also:
 1. Check whether the slice adds or changes user-visible features
 2. If yes, include an explicit task for updating `docs/guide/` (new page or existing page update)
 3. The docs task should be planned with the same rigor as implementation tasks — specify which pages to create/update and what content to cover
+
+The trailing docs slice acts as a safety net. Individual slice docs tasks are the first line of defense.
 
 During **milestone completion**, the reviewer must:
 1. Verify every user-visible feature has corresponding docs coverage
