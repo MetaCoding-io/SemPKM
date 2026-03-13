@@ -303,31 +303,34 @@ async def get_comments(
     # Batch-resolve author display names from SQL users table
     if author_uris:
         # Extract UUIDs from urn:sempkm:user:{uuid} URIs
+        # DB stores UUIDs without dashes; RDF URIs may have dashes
         uuid_to_uri: dict[str, str] = {}
         for uri in author_uris:
             prefix = "urn:sempkm:user:"
             if uri.startswith(prefix):
-                user_uuid = uri[len(prefix):]
+                user_uuid = uri[len(prefix):].replace("-", "")
                 uuid_to_uri[user_uuid] = uri
 
         if uuid_to_uri:
-            # Single query to resolve all display names
+            # Single query to resolve all display names (with email fallback)
             placeholders = ", ".join(f":uid_{i}" for i in range(len(uuid_to_uri)))
-            query_str = f"SELECT id, display_name FROM users WHERE id IN ({placeholders})"
+            query_str = f"SELECT id, display_name, email FROM users WHERE id IN ({placeholders})"
             params = {
                 f"uid_{i}": uid for i, uid in enumerate(uuid_to_uri.keys())
             }
             db_result = await db.execute(text(query_str), params)
             rows = db_result.fetchall()
 
-            # Build URI → display_name map
+            # Build URI → display_name map (prefer display_name, fall back to email)
             uri_to_name: dict[str, str] = {}
             for row in rows:
                 user_id_str = str(row[0])
                 display_name = row[1]
+                email = row[2]
+                name = display_name or email
                 uri = uuid_to_uri.get(user_id_str)
-                if uri and display_name:
-                    uri_to_name[uri] = display_name
+                if uri and name:
+                    uri_to_name[uri] = name
 
             # Apply display names to comments
             for comment in flat_comments:
