@@ -1,6 +1,7 @@
 """Workspace sub-router — layout, navigation tree, icons, and views."""
 
 import logging
+import re
 from typing import Callable
 from urllib.parse import unquote
 
@@ -19,9 +20,44 @@ from app.dependencies import (
 from app.services.icons import IconService
 from app.services.labels import LabelService
 from app.services.shapes import ShapesService
+from app.vfs.mount_service import (
+    CREATED_AT,
+    CREATED_BY,
+    DATE_PROPERTY,
+    DIRECTORY_STRATEGY,
+    GRAPH_MOUNTS,
+    GROUP_BY_PROPERTY,
+    MOUNT_NAME,
+    MOUNT_PATH,
+    NS_MOUNT,
+    NS_SEMPKM,
+    SAVED_QUERY_ID,
+    SPARQL_SCOPE,
+    VISIBILITY,
+    MountDefinition,
+)
+from app.vfs.strategies import (
+    build_scope_filter,
+    query_date_month_folders,
+    query_date_year_folders,
+    query_flat_objects,
+    query_has_uncategorized,
+    query_objects_by_date,
+    query_objects_by_property,
+    query_objects_by_tag,
+    query_objects_by_type,
+    query_property_folders,
+    query_tag_folders,
+    query_type_folders,
+    query_uncategorized_objects,
+)
 from app.views.service import ViewSpecService
 
 from ._helpers import _is_htmx_request, _validate_iri, get_icon_service
+
+_UUID_RE = re.compile(
+    r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.IGNORECASE
+)
 
 logger = logging.getLogger(__name__)
 
@@ -128,6 +164,274 @@ EXPLORER_MODES: dict[str, Callable] = {
 }
 
 
+# ---------------------------------------------------------------------------
+# VFS mount explorer helpers
+# ---------------------------------------------------------------------------
+
+_MONTH_NAMES = [
+    "", "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+]
+
+
+async def _get_mount_definition(
+    client, mount_id: str
+) -> MountDefinition | None:
+    """Fetch a MountDefinition by ID via async SPARQL query.
+
+    Reuses the SPARQL pattern from ``mount_router._get_mount_by_id_async``
+    but accepts any async triplestore client directly.
+    """
+    mount_iri = f"{NS_MOUNT}{mount_id}"
+    result = await client.query(
+        f"""
+        SELECT ?name ?path ?strategy ?groupByProp ?dateProp
+               ?scope ?savedQueryId ?createdBy ?visibility ?createdAt
+        FROM <{GRAPH_MOUNTS}>
+        WHERE {{
+          <{mount_iri}> a <{NS_SEMPKM}MountSpec> ;
+                        <{MOUNT_NAME}> ?name ;
+                        <{MOUNT_PATH}> ?path ;
+                        <{DIRECTORY_STRATEGY}> ?strategy ;
+                        <{CREATED_BY}> ?createdBy ;
+                        <{VISIBILITY}> ?visibility .
+          OPTIONAL {{ <{mount_iri}> <{GROUP_BY_PROPERTY}> ?groupByProp }}
+          OPTIONAL {{ <{mount_iri}> <{DATE_PROPERTY}> ?dateProp }}
+          OPTIONAL {{ <{mount_iri}> <{SPARQL_SCOPE}> ?scope }}
+          OPTIONAL {{ <{mount_iri}> <{SAVED_QUERY_ID}> ?savedQueryId }}
+          OPTIONAL {{ <{mount_iri}> <{CREATED_AT}> ?createdAt }}
+        }}
+        LIMIT 1
+        """
+    )
+    bindings = result.get("results", {}).get("bindings", [])
+    if not bindings:
+        return None
+
+    b = bindings[0]
+    return MountDefinition(
+        id=mount_id,
+        name=b["name"]["value"],
+        path=b["path"]["value"],
+        strategy=b["strategy"]["value"],
+        group_by_property=b.get("groupByProp", {}).get("value"),
+        date_property=b.get("dateProp", {}).get("value"),
+        sparql_scope=b.get("scope", {}).get("value", "all"),
+        saved_query_id=b.get("savedQueryId", {}).get("value"),
+        created_by=b["createdBy"]["value"],
+        visibility=b["visibility"]["value"],
+        created_at=b.get("createdAt", {}).get("value", ""),
+    )
+
+
+async def _execute_sparql_select(client, sparql: str) -> list[dict]:
+    """Run a SPARQL SELECT and return the bindings list, or [] on failure."""
+    try:
+        result = await client.query(sparql)
+        return result.get("results", {}).get("bindings", [])
+    except Exception:
+        logger.warning("SPARQL query failed", exc_info=True)
+        return []
+
+
+async def _execute_sparql_ask(client, sparql: str) -> bool:
+    """Run a SPARQL ASK and return the boolean result."""
+    try:
+        result = await client.query(sparql)
+        return result.get("boolean", False)
+    except Exception:
+        logger.warning("SPARQL ASK query failed", exc_info=True)
+        return False
+
+
+def _bindings_to_objects(
+    bindings: list[dict],
+    labels: dict[str, str],
+    icon_svc: IconService,
+) -> list[dict]:
+    """Convert SPARQL bindings to object dicts for mount tree templates."""
+    objects = []
+    seen = set()
+    for b in bindings:
+        iri = b["iri"]["value"]
+        if iri in seen:
+            continue
+        seen.add(iri)
+        label = b.get("label", {}).get("value") or labels.get(iri, iri)
+        type_iri = b.get("typeIri", {}).get("value", "")
+        objects.append({
+            "iri": iri,
+            "label": label,
+            "icon": icon_svc.get_type_icon(type_iri, context="tree") if type_iri else {
+                "icon": "circle", "color": "var(--color-text-faint)", "size": 14,
+            },
+        })
+    return objects
+
+
+async def _handle_mount(
+    request: Request,
+    mount_id: str,
+    label_service: LabelService,
+    icon_svc: IconService,
+    **_kwargs,
+) -> HTMLResponse:
+    """Render the explorer tree for a VFS mount by dispatching to its strategy."""
+    templates = request.app.state.templates
+    client = request.app.state.triplestore_client
+
+    mount = await _get_mount_definition(client, mount_id)
+    if mount is None:
+        raise HTTPException(status_code=400, detail=f"Unknown mount: {mount_id}")
+
+    logger.debug(
+        "Mount explorer tree requested: mount_id=%s, strategy=%s",
+        mount_id, mount.strategy,
+    )
+
+    scope_filter = build_scope_filter(mount)
+    strategy = mount.strategy
+
+    # ── flat: render objects directly ──
+    if strategy == "flat":
+        sparql = query_flat_objects(scope_filter)
+        bindings = await _execute_sparql_select(client, sparql)
+        obj_iris = [b["iri"]["value"] for b in bindings]
+        labels = await label_service.resolve_batch(obj_iris) if obj_iris else {}
+        objects = _bindings_to_objects(bindings, labels, icon_svc)
+        return templates.TemplateResponse(
+            request,
+            "browser/mount_tree_objects.html",
+            {"request": request, "objects": objects},
+        )
+
+    # ── by-type: type folders ──
+    if strategy == "by-type":
+        sparql = query_type_folders(scope_filter)
+        bindings = await _execute_sparql_select(client, sparql)
+        folders = [
+            {"value": b["typeIri"]["value"], "label": b["typeLabel"]["value"]}
+            for b in bindings
+        ]
+        return templates.TemplateResponse(
+            request,
+            "browser/mount_tree.html",
+            {
+                "request": request,
+                "folders": folders,
+                "mount_id": mount_id,
+                "mount_name": mount.name,
+            },
+        )
+
+    # ── by-date: year folders ──
+    if strategy == "by-date":
+        if not mount.date_property:
+            return templates.TemplateResponse(
+                request,
+                "browser/mount_tree.html",
+                {
+                    "request": request,
+                    "folders": [],
+                    "mount_id": mount_id,
+                    "mount_name": mount.name,
+                    "empty_message": "No date property configured for this mount.",
+                },
+            )
+        sparql = query_date_year_folders(mount.date_property, scope_filter)
+        bindings = await _execute_sparql_select(client, sparql)
+        folders = [
+            {"value": b["year"]["value"], "label": b["year"]["value"]}
+            for b in bindings
+        ]
+        return templates.TemplateResponse(
+            request,
+            "browser/mount_tree.html",
+            {
+                "request": request,
+                "folders": folders,
+                "mount_id": mount_id,
+                "mount_name": mount.name,
+            },
+        )
+
+    # ── by-tag: tag value folders ──
+    if strategy == "by-tag":
+        if not mount.group_by_property:
+            return templates.TemplateResponse(
+                request,
+                "browser/mount_tree.html",
+                {
+                    "request": request,
+                    "folders": [],
+                    "mount_id": mount_id,
+                    "mount_name": mount.name,
+                    "empty_message": "No tag property configured for this mount.",
+                },
+            )
+        sparql = query_tag_folders(mount.group_by_property, scope_filter)
+        bindings = await _execute_sparql_select(client, sparql)
+        folders = [
+            {"value": b["tagValue"]["value"], "label": b["tagValue"]["value"]}
+            for b in bindings
+        ]
+        # Check for uncategorized
+        ask_sparql = query_has_uncategorized(mount.group_by_property, scope_filter)
+        if await _execute_sparql_ask(client, ask_sparql):
+            folders.append({"value": "_uncategorized", "label": "Uncategorized"})
+        return templates.TemplateResponse(
+            request,
+            "browser/mount_tree.html",
+            {
+                "request": request,
+                "folders": folders,
+                "mount_id": mount_id,
+                "mount_name": mount.name,
+            },
+        )
+
+    # ── by-property: property value folders ──
+    if strategy == "by-property":
+        if not mount.group_by_property:
+            return templates.TemplateResponse(
+                request,
+                "browser/mount_tree.html",
+                {
+                    "request": request,
+                    "folders": [],
+                    "mount_id": mount_id,
+                    "mount_name": mount.name,
+                    "empty_message": "No grouping property configured for this mount.",
+                },
+            )
+        sparql = query_property_folders(mount.group_by_property, scope_filter)
+        bindings = await _execute_sparql_select(client, sparql)
+        folders = [
+            {"value": b["groupValue"]["value"], "label": b["groupLabel"]["value"]}
+            for b in bindings
+        ]
+        # Check for uncategorized
+        ask_sparql = query_has_uncategorized(mount.group_by_property, scope_filter)
+        if await _execute_sparql_ask(client, ask_sparql):
+            folders.append({"value": "_uncategorized", "label": "Uncategorized"})
+        return templates.TemplateResponse(
+            request,
+            "browser/mount_tree.html",
+            {
+                "request": request,
+                "folders": folders,
+                "mount_id": mount_id,
+                "mount_name": mount.name,
+            },
+        )
+
+    # Unknown strategy — shouldn't happen but handle gracefully
+    raise HTTPException(
+        status_code=400,
+        detail=f"Unknown strategy '{strategy}' on mount {mount_id}",
+    )
+
+
 @workspace_router.get("/icons")
 async def icons_data(
     request: Request,
@@ -202,8 +506,24 @@ async def explorer_tree(
     """Return explorer tree content for the requested mode.
 
     Dispatches to the appropriate handler from EXPLORER_MODES.
+    Handles ``mount:<uuid>`` prefix to route to VFS mount handler.
     Returns 400 for unknown modes.
     """
+    # ── Mount prefix dispatch ──
+    if mode.startswith("mount:"):
+        mount_id = mode[6:]  # strip "mount:" prefix
+        if not _UUID_RE.match(mount_id):
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid mount_id format",
+            )
+        return await _handle_mount(
+            request=request,
+            mount_id=mount_id,
+            label_service=label_service,
+            icon_svc=icon_svc,
+        )
+
     handler = EXPLORER_MODES.get(mode)
     if handler is None:
         raise HTTPException(
@@ -345,6 +665,153 @@ async def explorer_children(
         "browser/hierarchy_children.html",
         {"request": request, "objects": objects},
     )
+
+
+@workspace_router.get("/explorer/mount-children")
+async def mount_children(
+    request: Request,
+    mount_id: str,
+    folder: str,
+    subfolder: str | None = None,
+    user: User = Depends(get_current_user),
+    label_service: LabelService = Depends(get_label_service),
+    icon_svc: IconService = Depends(get_icon_service),
+):
+    """Return folder contents for VFS mount lazy expansion.
+
+    Dispatches to the correct strategy query builder based on the
+    mount's strategy. For ``by-date``, supports two-level expansion
+    (year → months, year+month → objects).
+    """
+    templates = request.app.state.templates
+    client = request.app.state.triplestore_client
+
+    if not _UUID_RE.match(mount_id):
+        raise HTTPException(status_code=400, detail="Invalid mount_id format")
+
+    mount = await _get_mount_definition(client, mount_id)
+    if mount is None:
+        raise HTTPException(status_code=400, detail=f"Unknown mount: {mount_id}")
+
+    logger.debug(
+        "Mount children requested: mount_id=%s, folder=%s, strategy=%s",
+        mount_id, folder, mount.strategy,
+    )
+
+    scope_filter = build_scope_filter(mount)
+    strategy = mount.strategy
+
+    # ── flat: no folders, should not be called ──
+    if strategy == "flat":
+        return HTMLResponse("")
+
+    # ── by-type: folder value is the type IRI → list objects of that type ──
+    if strategy == "by-type":
+        sparql = query_objects_by_type(folder, scope_filter)
+        bindings = await _execute_sparql_select(client, sparql)
+        obj_iris = [b["iri"]["value"] for b in bindings]
+        labels = await label_service.resolve_batch(obj_iris) if obj_iris else {}
+        objects = _bindings_to_objects(bindings, labels, icon_svc)
+        return templates.TemplateResponse(
+            request,
+            "browser/mount_tree_objects.html",
+            {"request": request, "objects": objects},
+        )
+
+    # ── by-date: year → month folders, or year+month → objects ──
+    if strategy == "by-date":
+        if not mount.date_property:
+            return HTMLResponse("")
+
+        if subfolder is None:
+            # Expand year → show month sub-folders
+            sparql = query_date_month_folders(
+                mount.date_property, folder, scope_filter
+            )
+            bindings = await _execute_sparql_select(client, sparql)
+            folders_list = [
+                {
+                    "value": b["month"]["value"],
+                    "label": _MONTH_NAMES[int(b["monthNum"]["value"])]
+                    if 1 <= int(b["monthNum"]["value"]) <= 12
+                    else b["month"]["value"],
+                }
+                for b in bindings
+            ]
+            return templates.TemplateResponse(
+                request,
+                "browser/mount_tree_folders.html",
+                {
+                    "request": request,
+                    "folders": folders_list,
+                    "mount_id": mount_id,
+                    "parent_folder": folder,
+                },
+            )
+        else:
+            # Expand year+month → show objects
+            sparql = query_objects_by_date(
+                mount.date_property, folder, int(subfolder), scope_filter
+            )
+            bindings = await _execute_sparql_select(client, sparql)
+            obj_iris = [b["iri"]["value"] for b in bindings]
+            labels = await label_service.resolve_batch(obj_iris) if obj_iris else {}
+            objects = _bindings_to_objects(bindings, labels, icon_svc)
+            return templates.TemplateResponse(
+                request,
+                "browser/mount_tree_objects.html",
+                {"request": request, "objects": objects},
+            )
+
+    # ── by-tag: folder value is the tag → list objects with that tag ──
+    if strategy == "by-tag":
+        if not mount.group_by_property:
+            return HTMLResponse("")
+
+        if folder == "_uncategorized":
+            sparql = query_uncategorized_objects(
+                mount.group_by_property, scope_filter
+            )
+        else:
+            sparql = query_objects_by_tag(
+                mount.group_by_property, folder, scope_filter
+            )
+        bindings = await _execute_sparql_select(client, sparql)
+        obj_iris = [b["iri"]["value"] for b in bindings]
+        labels = await label_service.resolve_batch(obj_iris) if obj_iris else {}
+        objects = _bindings_to_objects(bindings, labels, icon_svc)
+        return templates.TemplateResponse(
+            request,
+            "browser/mount_tree_objects.html",
+            {"request": request, "objects": objects},
+        )
+
+    # ── by-property: folder value is the property value → list objects ──
+    if strategy == "by-property":
+        if not mount.group_by_property:
+            return HTMLResponse("")
+
+        if folder == "_uncategorized":
+            sparql = query_uncategorized_objects(
+                mount.group_by_property, scope_filter
+            )
+        else:
+            # Determine if folder value is an IRI
+            is_iri = folder.startswith("http://") or folder.startswith("https://") or folder.startswith("urn:")
+            sparql = query_objects_by_property(
+                mount.group_by_property, folder, is_iri, scope_filter
+            )
+        bindings = await _execute_sparql_select(client, sparql)
+        obj_iris = [b["iri"]["value"] for b in bindings]
+        labels = await label_service.resolve_batch(obj_iris) if obj_iris else {}
+        objects = _bindings_to_objects(bindings, labels, icon_svc)
+        return templates.TemplateResponse(
+            request,
+            "browser/mount_tree_objects.html",
+            {"request": request, "objects": objects},
+        )
+
+    return HTMLResponse("")
 
 
 @workspace_router.get("/my-views")
