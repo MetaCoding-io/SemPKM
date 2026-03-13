@@ -6,6 +6,7 @@ from app.auth.service import AuthService
 from app.events.store import EventStore
 from app.lint.broadcast import LintBroadcast
 from app.lint.service import LintService
+from app.ontology.service import OntologyService
 from app.services.labels import LabelService
 from app.services.models import ModelService
 from app.services.prefixes import PrefixRegistry
@@ -142,3 +143,12 @@ async def get_lint_broadcast(request: Request) -> LintBroadcast:
     stored on app.state.lint_broadcast.
     """
     return request.app.state.lint_broadcast
+
+
+async def get_ontology_service(request: Request) -> OntologyService:
+    """Get the OntologyService instance from app state.
+
+    The service is created during app lifespan startup and stored on
+    app.state.ontology_service.
+    """
+    return request.app.state.ontology_service

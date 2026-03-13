@@ -35,6 +35,7 @@ class PrefixRegistry:
         "foaf": "http://xmlns.com/foaf/0.1/",
         "prov": "http://www.w3.org/ns/prov#",
         "sempkm": "urn:sempkm:",
+        "gist": "https://w3id.org/semanticarts/ns/ontology/gist/",
     }
 
     def __init__(self) -> None:

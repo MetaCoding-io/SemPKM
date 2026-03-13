@@ -22,6 +22,7 @@ FOAF = Namespace("http://xmlns.com/foaf/0.1/")
 PROV = Namespace("http://www.w3.org/ns/prov#")
 LDP = Namespace("http://www.w3.org/ns/ldp#")
 AS = Namespace("https://www.w3.org/ns/activitystreams#")
+GIST = Namespace("https://w3id.org/semanticarts/ns/ontology/gist/")
 
 # Standard vocabularies (re-exported for convenience)
 __all__ = [
@@ -39,6 +40,7 @@ __all__ = [
     "PROV",
     "LDP",
     "AS",
+    "GIST",
     "CURRENT_GRAPH_IRI",
     "INFERRED_GRAPH_IRI",
     "COMMON_PREFIXES",
@@ -68,4 +70,5 @@ COMMON_PREFIXES: dict[str, str] = {
     "prov": str(PROV),
     "ldp": str(LDP),
     "as": str(AS),
+    "gist": str(GIST),
 }

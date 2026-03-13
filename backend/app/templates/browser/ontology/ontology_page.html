@@ -1,0 +1,76 @@
+{# Ontology Viewer: three-tab layout for TBox, ABox, and RBox.
+   TBox loads immediately; ABox and RBox load lazily on tab click.
+   This template is fetched by the special-panel component via
+   GET /browser/ontology.
+#}
+<div class="ontology-viewer" data-testid="ontology-page">
+  <div class="ontology-header">
+    <h3>
+      <span class="ontology-header-icon">&#9670;</span>
+      Ontology Viewer
+    </h3>
+  </div>
+
+  <div class="ontology-tabs">
+    <button class="ontology-tab ontology-tab--active"
+            data-tab="tbox"
+            data-testid="ontology-tab-tbox"
+            onclick="switchOntologyTab(this, 'tbox')">
+      TBox <span class="ontology-tab-hint">Classes</span>
+    </button>
+    <button class="ontology-tab"
+            data-tab="abox"
+            data-testid="ontology-tab-abox"
+            onclick="switchOntologyTab(this, 'abox')"
+            hx-get="/browser/ontology/abox"
+            hx-target="#ontology-abox"
+            hx-swap="innerHTML"
+            hx-trigger="click once">
+      ABox <span class="ontology-tab-hint">Instances</span>
+    </button>
+    <button class="ontology-tab"
+            data-tab="rbox"
+            data-testid="ontology-tab-rbox"
+            onclick="switchOntologyTab(this, 'rbox')"
+            hx-get="/browser/ontology/rbox"
+            hx-target="#ontology-rbox"
+            hx-swap="innerHTML"
+            hx-trigger="click once">
+      RBox <span class="ontology-tab-hint">Properties</span>
+    </button>
+  </div>
+
+  <div class="ontology-tab-content">
+    <div id="ontology-tbox" class="ontology-pane ontology-pane--active" data-testid="tbox-tree"
+         hx-get="/browser/ontology/tbox"
+         hx-trigger="load"
+         hx-swap="innerHTML">
+      <div class="ontology-loading">Loading TBox…</div>
+    </div>
+    <div id="ontology-abox" class="ontology-pane" data-testid="abox-browser">
+      <div class="ontology-loading">Click the ABox tab to load instance data.</div>
+    </div>
+    <div id="ontology-rbox" class="ontology-pane" data-testid="rbox-legend">
+      <div class="ontology-loading">Click the RBox tab to load property data.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchOntologyTab(btn, tabId) {
+  // Update tab buttons
+  var tabs = btn.parentElement.querySelectorAll('.ontology-tab');
+  for (var i = 0; i < tabs.length; i++) {
+    tabs[i].classList.remove('ontology-tab--active');
+  }
+  btn.classList.add('ontology-tab--active');
+
+  // Update panes
+  var panes = btn.closest('.ontology-viewer').querySelectorAll('.ontology-pane');
+  for (var j = 0; j < panes.length; j++) {
+    panes[j].classList.remove('ontology-pane--active');
+  }
+  var target = document.getElementById('ontology-' + tabId);
+  if (target) target.classList.add('ontology-pane--active');
+}
+</script>

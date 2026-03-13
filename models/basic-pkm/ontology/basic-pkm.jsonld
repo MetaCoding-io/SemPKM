@@ -8,7 +8,8 @@
     "dcterms": "http://purl.org/dc/terms/",
     "foaf": "http://xmlns.com/foaf/0.1/",
     "skos": "http://www.w3.org/2004/02/skos/core#",
-    "bpkm": "urn:sempkm:model:basic-pkm:"
+    "bpkm": "urn:sempkm:model:basic-pkm:",
+    "gist": "https://w3id.org/semanticarts/ns/ontology/gist/"
   },
   "@graph": [
     {
@@ -22,25 +23,29 @@
       "@id": "bpkm:Project",
       "@type": "owl:Class",
       "rdfs:label": "Project",
-      "rdfs:comment": "A project or initiative being tracked"
+      "rdfs:comment": "A project or initiative being tracked",
+      "rdfs:subClassOf": { "@id": "gist:Task" }
     },
     {
       "@id": "bpkm:Person",
       "@type": "owl:Class",
       "rdfs:label": "Person",
-      "rdfs:comment": "A person known to the user"
+      "rdfs:comment": "A person known to the user",
+      "rdfs:subClassOf": { "@id": "gist:Person" }
     },
     {
       "@id": "bpkm:Note",
       "@type": "owl:Class",
       "rdfs:label": "Note",
-      "rdfs:comment": "A note, observation, or piece of knowledge"
+      "rdfs:comment": "A note, observation, or piece of knowledge",
+      "rdfs:subClassOf": { "@id": "gist:FormattedContent" }
     },
     {
       "@id": "bpkm:Concept",
       "@type": "owl:Class",
       "rdfs:label": "Concept",
-      "rdfs:comment": "An abstract concept, topic, or domain area"
+      "rdfs:comment": "An abstract concept, topic, or domain area",
+      "rdfs:subClassOf": { "@id": "gist:KnowledgeConcept" }
     },
 
     {

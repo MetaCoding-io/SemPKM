@@ -1,0 +1,69 @@
+{# RBox Legend: property reference table with domain/range columns.
+
+   Context:
+     object_properties: list of dicts with 'iri', 'label', 'domain_iri',
+                        'domain_label', 'range_iri', 'range_label' keys
+     datatype_properties: same shape as object_properties
+     error: bool indicating whether the query failed
+#}
+{% if error and not object_properties and not datatype_properties %}
+<div class="tree-empty">Failed to load property data. Check SPARQL connection.</div>
+{% elif not object_properties and not datatype_properties %}
+<div class="tree-empty">No properties found in ontology graphs.</div>
+{% else %}
+
+{% if object_properties %}
+<div class="rbox-section">
+  <h4 class="rbox-section-title">
+    Object Properties
+    <span class="rbox-section-count">{{ object_properties | length }}</span>
+  </h4>
+  <table class="rbox-table" data-testid="rbox-object-table">
+    <thead>
+      <tr>
+        <th>Property</th>
+        <th>Domain</th>
+        <th>Range</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in object_properties %}
+      <tr title="{{ p.iri }}">
+        <td class="rbox-prop-name">{{ p.label }}</td>
+        <td class="rbox-domain">{{ p.domain_label or '—' }}</td>
+        <td class="rbox-range">{{ p.range_label or '—' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% if datatype_properties %}
+<div class="rbox-section">
+  <h4 class="rbox-section-title">
+    Datatype Properties
+    <span class="rbox-section-count">{{ datatype_properties | length }}</span>
+  </h4>
+  <table class="rbox-table" data-testid="rbox-datatype-table">
+    <thead>
+      <tr>
+        <th>Property</th>
+        <th>Domain</th>
+        <th>Range</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in datatype_properties %}
+      <tr title="{{ p.iri }}">
+        <td class="rbox-prop-name">{{ p.label }}</td>
+        <td class="rbox-domain">{{ p.domain_label or '—' }}</td>
+        <td class="rbox-range">{{ p.range_label or '—' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% endif %}
