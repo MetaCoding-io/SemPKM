@@ -19,6 +19,8 @@ Append-only log of queued future milestones and ideas.
 
 4. **Favorites & Favorites View** — Users can star/favorite objects. Dedicated favorites view for quick access to frequently used items.
 
+5. **Hierarchical Tag Tree** — Tags using `/` as delimiter (e.g. `garden/cultivate`, `output/newsletter`) should nest in the By Tag explorer mode. Group by prefix so `#garden` becomes a parent folder containing `cultivate`, `plant`, `question`, etc. Currently renders as a flat list. Affects: `_handle_by_tag()` in workspace.py, `tag_tree.html` template.
+
 ---
 
 ## MCP Server for AI Agent Access
