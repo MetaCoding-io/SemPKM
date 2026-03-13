@@ -219,6 +219,36 @@
     flex-shrink: 0;
 }
 
+/* ── Mount separator ─────────────────────────── */
+
+.vfs-tree-separator {
+    padding: 10px 12px 4px;
+    border-top: 1px solid var(--color-border-subtle, #333);
+    margin-top: 6px;
+}
+
+.vfs-tree-separator-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--color-text-faint, #888);
+}
+
+.vfs-tree-icon--mount {
+    color: var(--color-primary, #4A90D9);
+}
+
+.vfs-mount-highlight {
+    animation: vfs-mount-pulse 0.6s ease-out 2;
+}
+
+@keyframes vfs-mount-pulse {
+    0% { background: transparent; }
+    50% { background: var(--color-primary-soft, rgba(74, 144, 217, 0.1)); }
+    100% { background: transparent; }
+}
+
 /* ── Resize handle ───────────────────────────── */
 
 .vfs-resize-handle {

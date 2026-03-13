@@ -75,11 +75,17 @@
       '<div class="vfs-loading-spinner"></div>' +
       '<span>Loading files...</span></div>';
 
-    fetch('/api/vfs/tree')
-      .then(function (r) { return r.json(); })
-      .then(function (data) {
-        treeData = data;
-        renderTree(data);
+    // Fetch both model tree and user mounts in parallel
+    Promise.all([
+      fetch('/api/vfs/tree').then(function (r) { return r.json(); }),
+      fetch('/api/vfs/mounts', { credentials: 'include' })
+        .then(function (r) { return r.ok ? r.json() : []; })
+        .catch(function () { return []; })
+    ])
+      .then(function (results) {
+        treeData = results[0];
+        var mounts = results[1];
+        renderTree(treeData, mounts);
       })
       .catch(function (err) {
         body.innerHTML = '<div class="vfs-tree-loading" style="color:var(--color-danger,#e74c3c)">Failed to load file tree</div>';
@@ -89,60 +95,103 @@
 
   // ── Tree rendering ─────────────────────────────────────────────────
 
-  function renderTree(models) {
+  function renderTree(models, mounts) {
     var body = $id('vfs-tree-body');
     if (!body) return;
     body.innerHTML = '';
 
-    if (!models || models.length === 0) {
+    var hasContent = (models && models.length > 0) || (mounts && mounts.length > 0);
+    if (!hasContent) {
       body.innerHTML = '<div class="vfs-tree-loading">No files found</div>';
       return;
     }
 
-    models.forEach(function (model) {
-      var modelNode = createNode({
-        label: model.label,
-        icon: 'database',
-        iconClass: 'vfs-tree-icon--folder',
-        expandable: true,
-        level: 0,
-        expanded: true,
-        badge: model.children ? model.children.length + ' types' : ''
-      });
-      body.appendChild(modelNode);
-
-      var modelChildren = modelNode.querySelector('.vfs-tree-children');
-
-      (model.children || []).forEach(function (typeEntry) {
-        var typeNode = createNode({
-          label: typeEntry.label,
-          icon: 'folder',
+    // ── Model trees (installed mental models) ──
+    if (models && models.length > 0) {
+      models.forEach(function (model) {
+        var modelNode = createNode({
+          label: model.label,
+          icon: 'database',
           iconClass: 'vfs-tree-icon--folder',
           expandable: true,
-          level: 1,
-          expanded: false,
-          badge: typeEntry.children ? typeEntry.children.length : ''
+          level: 0,
+          expanded: true,
+          badge: model.children ? model.children.length + ' types' : ''
         });
-        modelChildren.appendChild(typeNode);
+        body.appendChild(modelNode);
 
-        var typeChildren = typeNode.querySelector('.vfs-tree-children');
+        var modelChildren = modelNode.querySelector('.vfs-tree-children');
 
-        (typeEntry.children || []).forEach(function (file) {
-          var fileNode = createNode({
-            label: file.label,
-            icon: 'file-text',
-            iconClass: 'vfs-tree-icon--file',
-            expandable: false,
-            level: 2,
-            filePath: file.id,
-            fileIri: file.iri
+        (model.children || []).forEach(function (typeEntry) {
+          var typeNode = createNode({
+            label: typeEntry.label,
+            icon: 'folder',
+            iconClass: 'vfs-tree-icon--folder',
+            expandable: true,
+            level: 1,
+            expanded: false,
+            badge: typeEntry.children ? typeEntry.children.length : ''
           });
-          typeChildren.appendChild(fileNode);
+          modelChildren.appendChild(typeNode);
+
+          var typeChildren = typeNode.querySelector('.vfs-tree-children');
+
+          (typeEntry.children || []).forEach(function (file) {
+            var fileNode = createNode({
+              label: file.label,
+              icon: 'file-text',
+              iconClass: 'vfs-tree-icon--file',
+              expandable: false,
+              level: 2,
+              filePath: file.id,
+              fileIri: file.iri
+            });
+            typeChildren.appendChild(fileNode);
+          });
         });
       });
-    });
+    }
+
+    // ── User mount trees ──
+    if (mounts && mounts.length > 0) {
+      var mountSeparator = document.createElement('div');
+      mountSeparator.className = 'vfs-tree-separator';
+      mountSeparator.innerHTML = '<span class="vfs-tree-separator-label">CUSTOM MOUNTS</span>';
+      body.appendChild(mountSeparator);
+
+      mounts.forEach(function (mount) {
+        var strategyLabel = mount.strategy.replace(/-/g, ' ').replace('by ', 'by-');
+        var mountNode = createNode({
+          label: mount.name,
+          icon: _mountStrategyIcon(mount.strategy),
+          iconClass: 'vfs-tree-icon--mount',
+          expandable: true,
+          level: 0,
+          expanded: false,
+          badge: strategyLabel,
+          lazyLoad: true,
+          mountId: mount.id,
+          mountStrategy: mount.strategy
+        });
+        body.appendChild(mountNode);
+      });
+    }
 
     if (typeof lucide !== 'undefined') lucide.createIcons({ root: body });
+  }
+
+  /**
+   * Return a Lucide icon name based on the mount strategy.
+   */
+  function _mountStrategyIcon(strategy) {
+    switch (strategy) {
+      case 'by-type': return 'shapes';
+      case 'by-date': return 'calendar';
+      case 'by-tag': return 'tag';
+      case 'by-property': return 'list-tree';
+      case 'flat': return 'files';
+      default: return 'hard-drive';
+    }
   }
 
   function createNode(opts) {
@@ -202,6 +251,11 @@
 
       row.addEventListener('click', function () {
         node.classList.toggle('expanded');
+        // Lazy-load mount folder contents on first expand
+        if (opts.lazyLoad && !node._loaded) {
+          node._loaded = true;
+          _loadMountChildren(children, opts.mountId, opts.mountStrategy);
+        }
       });
     } else if (opts.filePath) {
       row.addEventListener('click', function () {
@@ -216,6 +270,230 @@
 
     return node;
   }
+
+  // ── Mount lazy loading ─────────────────────────────────────────────
+
+  /**
+   * Load the top-level folder contents for a VFS mount via the explorer
+   * API and render them as child nodes in the VFS browser tree.
+   *
+   * For flat mounts, loads objects directly.
+   * For strategy mounts, loads folder nodes that can expand further.
+   */
+  function _loadMountChildren(container, mountId, strategy) {
+    container.innerHTML =
+      '<div class="vfs-tree-loading" style="padding:4px 0 4px 24px;font-size:12px">' +
+      '<div class="vfs-loading-spinner" style="width:12px;height:12px"></div>' +
+      '<span>Loading...</span></div>';
+
+    fetch('/browser/explorer/tree?mode=mount:' + encodeURIComponent(mountId), { credentials: 'include' })
+      .then(function (r) { return r.text(); })
+      .then(function (html) {
+        // The explorer endpoint returns HTML tree nodes. We need to parse
+        // the returned objects/folders and re-render as VFS tree nodes.
+        var tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+
+        container.innerHTML = '';
+
+        // Look for tree-leaf elements (objects) — flat or leaf-level responses
+        var leaves = tempDiv.querySelectorAll('.tree-leaf');
+        var folders = tempDiv.querySelectorAll('.tree-node');
+
+        if (folders.length > 0) {
+          _renderMountFolders(container, folders, mountId);
+        } else if (leaves.length > 0) {
+          _renderMountLeaves(container, leaves, 1);
+        } else {
+          container.innerHTML =
+            '<div class="vfs-tree-loading" style="padding:4px 0 4px 24px;font-size:12px;opacity:0.6">No files in this mount</div>';
+        }
+
+        if (typeof lucide !== 'undefined') lucide.createIcons({ root: container });
+      })
+      .catch(function (err) {
+        container.innerHTML =
+          '<div class="vfs-tree-loading" style="padding:4px 0 4px 24px;font-size:12px;color:var(--color-danger)">Failed to load</div>';
+        console.error('Mount tree load error:', err);
+      });
+  }
+
+  /**
+   * Render folder nodes from explorer HTML response as VFS tree nodes.
+   */
+  function _renderMountFolders(container, folderEls, mountId) {
+    folderEls.forEach(function (el) {
+      var labelEl = el.querySelector('.tree-label');
+      var label = labelEl ? labelEl.textContent.trim() : 'Folder';
+      var countEl = el.querySelector('.tree-count');
+      var count = countEl ? countEl.textContent.trim() : '';
+
+      var folderNode = createNode({
+        label: label,
+        icon: 'folder',
+        iconClass: 'vfs-tree-icon--folder',
+        expandable: true,
+        level: 1,
+        expanded: false,
+        badge: count
+      });
+
+      // Set up lazy expansion for folder children
+      var childContainer = folderNode.querySelector('.vfs-tree-children');
+      var folderRow = folderNode.querySelector('.vfs-tree-row');
+      var loaded = false;
+
+      // Extract the hx-get URL from the original element for child loading
+      var hxGet = el.getAttribute('hx-get') || '';
+
+      folderRow.addEventListener('click', function () {
+        if (loaded) return;
+        loaded = true;
+        _loadMountFolderChildren(childContainer, hxGet);
+      });
+
+      container.appendChild(folderNode);
+    });
+  }
+
+  /**
+   * Load sub-folder or object children from an explorer children endpoint.
+   */
+  function _loadMountFolderChildren(container, url) {
+    if (!url) {
+      container.innerHTML =
+        '<div class="vfs-tree-loading" style="padding:4px 0 4px 24px;font-size:12px;opacity:0.6">No items</div>';
+      return;
+    }
+
+    container.innerHTML =
+      '<div class="vfs-tree-loading" style="padding:4px 0 4px 24px;font-size:12px">' +
+      '<div class="vfs-loading-spinner" style="width:12px;height:12px"></div>' +
+      '<span>Loading...</span></div>';
+
+    fetch(url, { credentials: 'include' })
+      .then(function (r) { return r.text(); })
+      .then(function (html) {
+        var tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+
+        container.innerHTML = '';
+
+        var subFolders = tempDiv.querySelectorAll('.tree-node');
+        var leaves = tempDiv.querySelectorAll('.tree-leaf');
+
+        if (subFolders.length > 0) {
+          // Nested folders (e.g. by-date year → month)
+          subFolders.forEach(function (el) {
+            var labelEl = el.querySelector('.tree-label');
+            var label = labelEl ? labelEl.textContent.trim() : 'Folder';
+            var hxGet = el.getAttribute('hx-get') || '';
+
+            var subNode = createNode({
+              label: label,
+              icon: 'folder',
+              iconClass: 'vfs-tree-icon--folder',
+              expandable: true,
+              level: 2,
+              expanded: false
+            });
+
+            var subChildren = subNode.querySelector('.vfs-tree-children');
+            var subRow = subNode.querySelector('.vfs-tree-row');
+            var subLoaded = false;
+
+            subRow.addEventListener('click', function () {
+              if (subLoaded) return;
+              subLoaded = true;
+              _loadMountFolderChildren(subChildren, hxGet);
+            });
+
+            container.appendChild(subNode);
+          });
+        }
+
+        if (leaves.length > 0) {
+          _renderMountLeaves(container, leaves, subFolders.length > 0 ? 3 : 2);
+        }
+
+        if (subFolders.length === 0 && leaves.length === 0) {
+          container.innerHTML =
+            '<div class="vfs-tree-loading" style="padding:4px 0 4px 24px;font-size:12px;opacity:0.6">Empty folder</div>';
+        }
+
+        if (typeof lucide !== 'undefined') lucide.createIcons({ root: container });
+      })
+      .catch(function (err) {
+        container.innerHTML =
+          '<div class="vfs-tree-loading" style="padding:4px 0 4px 24px;font-size:12px;color:var(--color-danger)">Failed to load</div>';
+        console.error('Mount folder children error:', err);
+      });
+  }
+
+  /**
+   * Render leaf (object) nodes from explorer HTML tree-leaf elements.
+   */
+  function _renderMountLeaves(container, leafEls, level) {
+    leafEls.forEach(function (el) {
+      var labelEl = el.querySelector('.tree-label') || el.querySelector('.tree-leaf-label');
+      var label = labelEl ? labelEl.textContent.trim() : 'Object';
+      var iri = el.getAttribute('data-iri') || el.getAttribute('onclick') || '';
+
+      // Extract IRI from onclick handler if needed (handleTreeLeafClick('iri','label'))
+      var iriMatch = iri.match(/handleTreeLeafClick\s*\(\s*'([^']+)'/);
+      if (iriMatch) iri = iriMatch[1];
+      else if (!iri.startsWith('http') && !iri.startsWith('urn:')) iri = '';
+
+      var fileNode = createNode({
+        label: label,
+        icon: 'file-text',
+        iconClass: 'vfs-tree-icon--file',
+        expandable: false,
+        level: level
+      });
+
+      if (iri) {
+        var row = fileNode.querySelector('.vfs-tree-row');
+        row.addEventListener('click', function () {
+          // Open the object in the workspace via openTab (if available)
+          if (typeof window.openTab === 'function') {
+            window.openTab(iri, label);
+          } else {
+            window.location.href = '/browser/object/' + encodeURIComponent(iri);
+          }
+        });
+        row.style.cursor = 'pointer';
+      }
+
+      container.appendChild(fileNode);
+    });
+  }
+
+  /**
+   * Open the Settings tab scrolled to the Custom Mounts section.
+   * Used by the "+" button in the VFS browser header.
+   */
+  function openMountSettings() {
+    // Open settings tab if available in workspace context
+    if (typeof window.openSettingsTab === 'function') {
+      window.openSettingsTab();
+      // Wait for settings to render, then scroll to mount section
+      setTimeout(function () {
+        var mountSection = document.getElementById('vfs-mount-section');
+        if (mountSection) {
+          mountSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          mountSection.classList.add('vfs-mount-highlight');
+          setTimeout(function () { mountSection.classList.remove('vfs-mount-highlight'); }, 2000);
+        }
+      }, 500);
+    } else {
+      // Fallback: navigate directly
+      window.location.href = '/browser/settings#vfs-mount-section';
+    }
+  }
+
+  // Expose for the + button onclick
+  window.openMountSettings = openMountSettings;
 
   // ── File opening ───────────────────────────────────────────────────
 
