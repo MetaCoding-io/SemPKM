@@ -47,6 +47,17 @@ Interactive import flow for Notion workspace exports (ZIP first, API later), mir
 
 ---
 
+## Data Quality & Backend Error Fixes
+
+**Queued:** 2026-03-13  
+**Status:** Documented  
+
+Two known backend error classes found during M003 testing: (1) malformed `xsd:dateTime` literals from Obsidian import containing text after the date portion (rdflib warnings, non-fatal), and (2) validation report store returning HTTP 415 from RDF4J (validation works but report not persisted). Neither blocks normal usage.
+
+**Details:** `.gsd/design/KNOWN-BACKEND-ERRORS.md`
+
+---
+
 ## VFS Mount Spec v2
 
 **Queued:** 2026-03-13  
