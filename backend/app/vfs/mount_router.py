@@ -195,7 +195,38 @@ async def list_mounts(
     user: User = Depends(get_current_user),
     client: TriplestoreClient = Depends(get_triplestore_client),
 ):
-    """List mounts visible to the current user (shared + personal)."""
+    """List all mounts visible to the current user.
+
+    Returns both:
+    - Model mounts (read-only, source="model") — auto-generated from
+      installed mental models
+    - Custom mounts (editable, source="custom") — user-created MountSpecs
+    """
+    # ── Model mounts (read-only) ─────────────────────────────────────
+    models_result = await client.query("""
+        SELECT DISTINCT ?modelId FROM <urn:sempkm:models>
+        WHERE {
+          ?model a <urn:sempkm:MentalModel> ;
+                 <urn:sempkm:modelId> ?modelId .
+        }
+        ORDER BY ?modelId
+    """)
+
+    mounts: list[dict] = []
+    for b in models_result["results"]["bindings"]:
+        model_id = b["modelId"]["value"]
+        mounts.append({
+            "id": f"model:{model_id}",
+            "name": model_id,
+            "path": model_id,
+            "strategy": "by-type",
+            "source": "model",
+            "visibility": "shared",
+            "created_by": "",
+            "created_at": "",
+        })
+
+    # ── Custom mounts (editable) ─────────────────────────────────────
     user_iri = f"urn:sempkm:user:{user.id}"
     result = await client.query(
         f"""
@@ -223,7 +254,6 @@ async def list_mounts(
         """
     )
 
-    mounts = []
     for b in result["results"]["bindings"]:
         mount_iri = b["mount"]["value"]
         mount_id = (
@@ -231,21 +261,21 @@ async def list_mounts(
             if mount_iri.startswith(NS_MOUNT)
             else mount_iri
         )
-        mounts.append(
-            MountDefinition(
-                id=mount_id,
-                name=b["name"]["value"],
-                path=b["path"]["value"],
-                strategy=b["strategy"]["value"],
-                group_by_property=b.get("groupByProp", {}).get("value"),
-                date_property=b.get("dateProp", {}).get("value"),
-                sparql_scope=b.get("scope", {}).get("value", "all"),
-                saved_query_id=b.get("savedQueryId", {}).get("value"),
-                created_by=b["createdBy"]["value"],
-                visibility=b["visibility"]["value"],
-                created_at=b.get("createdAt", {}).get("value", ""),
-            ).to_dict()
-        )
+        d = MountDefinition(
+            id=mount_id,
+            name=b["name"]["value"],
+            path=b["path"]["value"],
+            strategy=b["strategy"]["value"],
+            group_by_property=b.get("groupByProp", {}).get("value"),
+            date_property=b.get("dateProp", {}).get("value"),
+            sparql_scope=b.get("scope", {}).get("value", "all"),
+            saved_query_id=b.get("savedQueryId", {}).get("value"),
+            created_by=b["createdBy"]["value"],
+            visibility=b["visibility"]["value"],
+            created_at=b.get("createdAt", {}).get("value", ""),
+        ).to_dict()
+        d["source"] = "custom"
+        mounts.append(d)
 
     return JSONResponse(mounts)
 
