@@ -1,8 +1,8 @@
 # GSD State
 
 **Active Milestone:** M003 — Workspace UX & Knowledge Organization
-**Active Slice:** S09 — Admin Model Detail Stats & Charts
-**Phase:** planning
+**Active Slice:** S10 — E2E Test Coverage Gaps
+**Phase:** executing
 **Requirements Status:** 21 active · 60 validated · 4 deferred · 0 out of scope
 
 ## Milestone Registry
@@ -17,4 +17,4 @@
 - None
 
 ## Next Action
-Plan slice S09 (Admin Model Detail Stats & Charts).
+Execute T01: Object & edge deletion tests in slice S10.

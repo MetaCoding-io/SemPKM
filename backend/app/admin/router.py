@@ -125,9 +125,13 @@ async def admin_model_detail(
     type_iris = [t["iri"] for t in detail["types"]]
     analytics = await model_service.get_type_analytics(type_iris)
     for td in type_map.values():
-        a = analytics.get(td["iri"], {"count": 0, "top_nodes": []})
+        a = analytics.get(td["iri"], {"count": 0, "top_nodes": [], "avg_connections": 0.0, "last_modified": None, "growth_trend": [], "link_distribution": []})
         td["instance_count"] = a["count"]
         td["top_nodes"] = a["top_nodes"]
+        td["avg_connections"] = a["avg_connections"]
+        td["last_modified"] = a["last_modified"]
+        td["growth_trend"] = a["growth_trend"]
+        td["link_distribution"] = a["link_distribution"]
 
     detail["type_details"] = list(type_map.values())
 
