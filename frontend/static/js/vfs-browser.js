@@ -34,6 +34,13 @@
   // ── Init ───────────────────────────────────────────────────────────
 
   function init() {
+    // Render Lucide icons in the header (needed when loaded inside dockview
+    // panels where the main-page Lucide scan has already completed)
+    var container = $id('vfs-container');
+    if (container && typeof lucide !== 'undefined') {
+      lucide.createIcons({ root: container });
+    }
+
     loadTree();
     initResize();
 
@@ -472,24 +479,49 @@
   /**
    * Open the Settings tab scrolled to the Custom Mounts section.
    * Used by the "+" button in the VFS browser header.
+   *
+   * In the workspace (dockview active), opens a Settings panel tab.
+   * On the standalone VFS page, navigates to /browser/settings.
    */
   function openMountSettings() {
-    // Open settings tab if available in workspace context
-    if (typeof window.openSettingsTab === 'function') {
+    // Check if dockview workspace is actually active (not just function exists)
+    if (window._dockview && typeof window.openSettingsTab === 'function') {
       window.openSettingsTab();
-      // Wait for settings to render, then scroll to mount section
-      setTimeout(function () {
-        var mountSection = document.getElementById('vfs-mount-section');
-        if (mountSection) {
-          mountSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          mountSection.classList.add('vfs-mount-highlight');
-          setTimeout(function () { mountSection.classList.remove('vfs-mount-highlight'); }, 2000);
-        }
-      }, 500);
+      // Wait for settings to render, then switch to VFS category and scroll to mounts
+      _waitForSettingsAndShowMounts();
     } else {
-      // Fallback: navigate directly
+      // Standalone VFS page or no dockview — navigate directly
       window.location.href = '/browser/settings#vfs-mount-section';
     }
+  }
+
+  /**
+   * Poll for the settings VFS category button and click it, then scroll
+   * to the Custom Mounts section. Settings content loads via htmx so we
+   * need to wait for both the category nav and the mount section to appear.
+   */
+  function _waitForSettingsAndShowMounts(attempts) {
+    if (!attempts) attempts = 0;
+    if (attempts > 20) return; // give up after ~2s
+
+    var vfsBtn = document.querySelector('.settings-category-btn[data-category="virtual-filesystem"]');
+    if (!vfsBtn) {
+      setTimeout(function () { _waitForSettingsAndShowMounts(attempts + 1); }, 100);
+      return;
+    }
+
+    // Click the VFS category tab
+    vfsBtn.click();
+
+    // Wait for the mount section to render (htmx loads VFS content)
+    setTimeout(function () {
+      var mountSection = document.getElementById('vfs-mount-section');
+      if (mountSection) {
+        mountSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        mountSection.classList.add('vfs-mount-highlight');
+        setTimeout(function () { mountSection.classList.remove('vfs-mount-highlight'); }, 2000);
+      }
+    }, 300);
   }
 
   // Expose for the + button onclick
