@@ -13,8 +13,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from rdflib import URIRef
 
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.auth.dependencies import get_current_user, require_role
 from app.auth.models import User
+from app.db.session import get_db_session
 from app.dependencies import (
     get_event_store,
     get_label_service,
@@ -24,6 +28,7 @@ from app.dependencies import (
     get_triplestore_client,
     get_validation_queue,
 )
+from app.favorites.models import UserFavorite
 from app.events.store import EventStore, Operation
 from app.lint.service import LintService
 from app.services.icons import IconService
@@ -54,6 +59,7 @@ async def get_object(
     label_service: LabelService = Depends(get_label_service),
     client: TriplestoreClient = Depends(get_triplestore_client),
     icon_svc: IconService = Depends(get_icon_service),
+    db: AsyncSession = Depends(get_db_session),
 ):
     """Render an object in the editor area with read-only view or edit form.
 
@@ -227,6 +233,15 @@ async def get_object(
     # Merge inferred labels into ref_labels so the template has a single label lookup
     ref_labels.update(inferred_labels)
 
+    # Check if the current user has favorited this object
+    fav_result = await db.execute(
+        select(UserFavorite.id).where(
+            UserFavorite.user_id == user.id,
+            UserFavorite.object_iri == decoded_iri,
+        ).limit(1)
+    )
+    is_favorite = fav_result.scalar_one_or_none() is not None
+
     context = {
         "request": request,
         "form": form,
@@ -245,6 +260,7 @@ async def get_object(
         "body_property_path": body_property_path,
         "mode": mode,
         "type_icon": type_icon,
+        "is_favorite": is_favorite,
     }
 
     return templates.TemplateResponse(

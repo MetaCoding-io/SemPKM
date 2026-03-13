@@ -1,0 +1,18 @@
+{# FAVORITES section for explorer pane — shows user's starred objects.
+   Lazy-loads via hx-get on init and refreshes when favoritesRefreshed fires.
+   Uses the same explorer-section pattern as shared_nav_section.html. #}
+
+<div class="explorer-section expanded" id="section-favorites" data-panel-name="favorites">
+    <div class="explorer-section-header" draggable="true"
+         onclick="this.parentElement.classList.toggle('expanded')">
+        <i data-lucide="grip-vertical" class="panel-grip"></i>
+        <span class="explorer-section-chevron">&#9656;</span>
+        <span class="explorer-section-title">FAVORITES</span>
+    </div>
+    <div class="explorer-section-body" id="favorites-tree-body"
+         hx-get="/browser/favorites/list"
+         hx-trigger="load, favoritesRefreshed from:body"
+         hx-swap="innerHTML">
+        <div class="tree-empty">Loading favorites...</div>
+    </div>
+</div>

@@ -12,6 +12,15 @@
     <span class="object-toolbar-type" title="{{ object_iri }}" data-iri="{{ object_iri }}">{{ object_type_label }}</span>
     {% endif %}
     <div class="object-toolbar-actions">
+      {# Star / favorite button #}
+      <button class="star-btn{% if is_favorite %} is-favorited{% endif %}"
+              id="star-btn-{{ safe_id }}"
+              data-iri="{{ object_iri }}"
+              onclick="toggleFavorite('{{ object_iri }}')"
+              title="{{ 'Remove from favorites' if is_favorite else 'Add to favorites' }}">
+        <i data-lucide="star"></i>
+      </button>
+
       {% set ns_count = namespace(n=0) %}
       {% if form %}
         {% for prop in form.properties %}

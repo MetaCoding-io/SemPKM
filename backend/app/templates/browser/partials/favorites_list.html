@@ -1,0 +1,17 @@
+{# Favorites list — tree-leaf nodes for starred objects.
+   Returned as an htmx partial by /browser/favorites/list.
+   Context: objects (list of {iri, label, icon: {icon, color, size}}) #}
+{% if objects %}
+{% for obj in objects %}
+<div class="tree-leaf" data-testid="favorites-item"
+     data-iri="{{ obj.iri }}"
+     onclick="handleTreeLeafClick(event, '{{ obj.iri }}', '{{ obj.label }}')">
+    <i data-lucide="{{ obj.icon.icon }}"
+       class="tree-leaf-icon"
+       style="color: {{ obj.icon.color }}; width: {{ obj.icon.size or 14 }}px; height: {{ obj.icon.size or 14 }}px; flex-shrink: 0;"></i>
+    <span class="tree-leaf-label">{{ obj.label }}</span>
+</div>
+{% endfor %}
+{% else %}
+<div class="tree-empty">Star objects to add them here</div>
+{% endif %}
