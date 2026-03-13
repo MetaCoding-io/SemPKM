@@ -159,14 +159,15 @@
       });
     }
 
-    // ── User mount trees ──
-    if (mounts && mounts.length > 0) {
+    // ── User mount trees (exclude model mounts — already shown above) ──
+    var customMounts = (mounts || []).filter(function (m) { return m.source !== 'model'; });
+    if (customMounts.length > 0) {
       var mountSeparator = document.createElement('div');
       mountSeparator.className = 'vfs-tree-separator';
       mountSeparator.innerHTML = '<span class="vfs-tree-separator-label">CUSTOM MOUNTS</span>';
       body.appendChild(mountSeparator);
 
-      mounts.forEach(function (mount) {
+      customMounts.forEach(function (mount) {
         var strategyLabel = mount.strategy.replace(/-/g, ' ').replace('by ', 'by-');
         var mountNode = createNode({
           label: mount.name,
