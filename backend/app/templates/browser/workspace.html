@@ -30,6 +30,18 @@
                     <i data-lucide="grip-vertical" class="panel-grip"></i>
                     <span class="explorer-section-chevron">&#9656;</span>
                     <span class="explorer-section-title">OBJECTS</span>
+                    <select id="explorer-mode-select" name="mode" class="explorer-mode-select"
+                            hx-get="/browser/explorer/tree"
+                            hx-include="this"
+                            hx-target="#explorer-tree-body"
+                            hx-trigger="change"
+                            hx-swap="innerHTML"
+                            hx-on::after-swap="if(typeof lucide!=='undefined')lucide.createIcons()"
+                            onclick="event.stopPropagation()">
+                        <option value="by-type" selected>By Type</option>
+                        <option value="hierarchy">Hierarchy</option>
+                        <option value="by-tag">By Tag</option>
+                    </select>
                     <span class="explorer-header-actions">
                         <span class="selection-badge" id="selection-badge" style="display:none"><span id="selection-count"></span></span>
                         <button class="panel-btn explorer-action-btn" id="bulk-delete-btn" style="display:none" onclick="event.stopPropagation(); bulkDeleteSelected()" title="Delete selected"><i data-lucide="trash-2"></i></button>
@@ -37,7 +49,7 @@
                         <button class="panel-btn explorer-action-btn" onclick="event.stopPropagation(); document.querySelector('ninja-keys').open()" title="New Object"><i data-lucide="plus"></i></button>
                     </span>
                 </div>
-                <div class="explorer-section-body">
+                <div class="explorer-section-body" id="explorer-tree-body">
                     {% include "browser/nav_tree.html" %}
                 </div>
             </div>

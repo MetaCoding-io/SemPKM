@@ -1072,10 +1072,17 @@
   }
 
   // Re-apply .selected class after htmx partial swaps (type node expansion)
+  // Also re-populate command palette type-create entries after explorer tree swaps
   document.addEventListener('htmx:afterSwap', function(e) {
     var section = document.getElementById('section-objects');
     if (section && section.contains(e.detail.target)) {
       updateSelectionUI();
+      // After explorer tree body swap, refresh command palette type-create entries
+      var treeBody = document.getElementById('explorer-tree-body');
+      if (e.detail.target === treeBody) {
+        var ninja = document.querySelector('ninja-keys');
+        if (ninja) _addTypeCreateEntries(ninja);
+      }
     }
   });
 
@@ -1126,9 +1133,12 @@
   // --- Nav Tree Refresh ---
 
   function refreshNavTree() {
-    var body = document.querySelector('#section-objects .explorer-section-body');
+    var body = document.getElementById('explorer-tree-body');
     if (!body) return;
-    htmx.ajax('GET', '/browser/nav-tree', { target: body, swap: 'innerHTML' }).then(function () {
+    var modeSelect = document.getElementById('explorer-mode-select');
+    var mode = modeSelect ? modeSelect.value : 'by-type';
+    var url = '/browser/explorer/tree?mode=' + encodeURIComponent(mode);
+    htmx.ajax('GET', url, { target: body, swap: 'innerHTML' }).then(function () {
       if (typeof lucide !== 'undefined') lucide.createIcons();
       // Re-populate per-type Create entries in command palette
       var ninja = document.querySelector('ninja-keys');
@@ -1554,12 +1564,15 @@
   function _addTypeCreateEntries(ninja) {
     if (!ninja || !ninja.data) return;
 
+    var typeNodes = document.querySelectorAll('#section-objects .tree-node[data-type-iri]');
+    // If no type nodes in DOM (e.g. non-by-type mode), keep existing entries
+    if (typeNodes.length === 0) return;
+
     // Remove any previous per-type create entries
     var baseData = ninja.data.filter(function (d) {
       return !d.id.startsWith('create-type-');
     });
 
-    var typeNodes = document.querySelectorAll('#section-objects .tree-node[data-type-iri]');
     typeNodes.forEach(function (node) {
       var labelEl = node.querySelector('.tree-label');
       if (!labelEl) return;
@@ -1996,6 +2009,40 @@
     }
   }
 
+  // --- Explorer Mode State ---
+
+  var EXPLORER_MODE_KEY = 'sempkm_explorer_mode';
+
+  function initExplorerMode() {
+    var dropdown = document.getElementById('explorer-mode-select');
+    if (!dropdown) return;
+
+    // Clear selection and persist mode on every mode change
+    dropdown.addEventListener('change', function () {
+      clearSelection();
+      lastClickedLeaf = null;
+      try { localStorage.setItem(EXPLORER_MODE_KEY, this.value); } catch (e) { /* localStorage unavailable */ }
+    });
+
+    // Restore persisted mode on page load
+    try {
+      var storedMode = localStorage.getItem(EXPLORER_MODE_KEY);
+      if (storedMode) {
+        // Validate that the stored mode is actually an option in the dropdown
+        var options = dropdown.querySelectorAll('option');
+        var valid = false;
+        for (var i = 0; i < options.length; i++) {
+          if (options[i].value === storedMode) { valid = true; break; }
+        }
+        if (valid && storedMode !== dropdown.value) {
+          dropdown.value = storedMode;
+          // Trigger htmx change to load the stored mode's tree
+          htmx.trigger(dropdown, 'change');
+        }
+      }
+    } catch (e) { /* localStorage unavailable */ }
+  }
+
   // --- Initialization ---
 
   function init() {
@@ -2026,6 +2073,9 @@
 
     // Initialize command palette after workspace layout is ready
     initCommandPalette();
+
+    // --- Explorer mode: clear selection on switch, persist in localStorage ---
+    initExplorerMode();
 
     // Initialize lint dashboard SSE and health badge
     initLintDashboardSSE();

@@ -1,6 +1,7 @@
 """Workspace sub-router — layout, navigation tree, icons, and views."""
 
 import logging
+from typing import Callable
 from urllib.parse import unquote
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -25,6 +26,62 @@ from ._helpers import _is_htmx_request, _validate_iri, get_icon_service
 logger = logging.getLogger(__name__)
 
 workspace_router = APIRouter(tags=["workspace"])
+
+
+# ---------------------------------------------------------------------------
+# Explorer mode handlers
+# ---------------------------------------------------------------------------
+
+async def _handle_by_type(
+    request: Request,
+    shapes_service: ShapesService,
+    icon_svc: IconService,
+) -> HTMLResponse:
+    """Render the nav tree grouped by RDF type (default explorer mode)."""
+    templates = request.app.state.templates
+    types = await shapes_service.get_types()
+    type_icons = icon_svc.get_icon_map(context="tree")
+
+    return templates.TemplateResponse(
+        request,
+        "browser/nav_tree.html",
+        {"request": request, "types": types, "type_icons": type_icons},
+    )
+
+
+async def _handle_hierarchy(request: Request, **_kwargs) -> HTMLResponse:
+    """Placeholder for hierarchy explorer mode."""
+    templates = request.app.state.templates
+    return templates.TemplateResponse(
+        request,
+        "browser/explorer_placeholder.html",
+        {
+            "request": request,
+            "mode_label": "Hierarchy",
+            "icon_name": "compass",
+        },
+    )
+
+
+async def _handle_by_tag(request: Request, **_kwargs) -> HTMLResponse:
+    """Placeholder for by-tag explorer mode."""
+    templates = request.app.state.templates
+    return templates.TemplateResponse(
+        request,
+        "browser/explorer_placeholder.html",
+        {
+            "request": request,
+            "mode_label": "Tag",
+            "icon_name": "tag",
+        },
+    )
+
+
+EXPLORER_MODES: dict[str, Callable] = {
+    "by-type": _handle_by_type,
+    "hierarchy": _handle_hierarchy,
+    "by-tag": _handle_by_tag,
+}
 
 
 @workspace_router.get("/icons")
@@ -84,15 +141,36 @@ async def nav_tree(
     """Return the nav tree partial (type nodes only, collapsed).
 
     Used by refreshNavTree() in workspace.js to reload the OBJECTS section.
+    Delegates to the by-type handler for consistency.
     """
-    templates = request.app.state.templates
-    types = await shapes_service.get_types()
-    type_icons = icon_svc.get_icon_map(context="tree")
+    return await _handle_by_type(request, shapes_service, icon_svc)
 
-    return templates.TemplateResponse(
-        request,
-        "browser/nav_tree.html",
-        {"request": request, "types": types, "type_icons": type_icons},
+
+@workspace_router.get("/explorer/tree")
+async def explorer_tree(
+    request: Request,
+    mode: str = "by-type",
+    user: User = Depends(get_current_user),
+    shapes_service: ShapesService = Depends(get_shapes_service),
+    icon_svc: IconService = Depends(get_icon_service),
+):
+    """Return explorer tree content for the requested mode.
+
+    Dispatches to the appropriate handler from EXPLORER_MODES.
+    Returns 400 for unknown modes.
+    """
+    handler = EXPLORER_MODES.get(mode)
+    if handler is None:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unknown explorer mode: {mode}",
+        )
+
+    logger.debug("Explorer tree requested: mode=%s", mode)
+    return await handler(
+        request=request,
+        shapes_service=shapes_service,
+        icon_svc=icon_svc,
     )
 
 

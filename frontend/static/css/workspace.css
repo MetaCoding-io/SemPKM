@@ -134,6 +134,33 @@
     opacity: 1;
 }
 
+/* Mode dropdown in explorer section header */
+.explorer-mode-select {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--color-text-muted);
+    background: transparent;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 1px 2px;
+    max-width: 90px;
+    flex-shrink: 0;
+}
+
+.explorer-mode-select:hover,
+.explorer-mode-select:focus {
+    color: var(--color-text);
+    background: var(--color-surface-hover);
+    border-radius: 3px;
+}
+
+.explorer-mode-select option {
+    background: var(--color-surface);
+    color: var(--color-text);
+}
+
 .explorer-action-btn svg {
     width: 14px;
     height: 14px;

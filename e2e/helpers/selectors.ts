@@ -38,6 +38,13 @@ export const SEL = {
     sidebarToggle: '.sidebar-toggle',  // No data-testid; uses CSS class
   },
 
+  // Explorer mode switching
+  explorer: {
+    modeSelect: '#explorer-mode-select',
+    treeBody: '#explorer-tree-body',
+    placeholder: '[data-testid="explorer-placeholder"]',
+  },
+
   // Type picker
   typePicker: {
     overlay: '[data-testid="type-picker"]',
