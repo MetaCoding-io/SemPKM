@@ -3137,27 +3137,65 @@
     if (!container) return;
 
     if (!mounts || mounts.length === 0) {
-      container.innerHTML = '<p class="mount-list-empty">No custom mounts yet.</p>';
+      container.innerHTML = '<p class="mount-list-empty">No mounts configured.</p>';
       return;
     }
 
+    // Separate model (read-only) mounts from custom (editable) mounts
+    var modelMounts = mounts.filter(function(m) { return m.source === 'model'; });
+    var customMounts = mounts.filter(function(m) { return m.source !== 'model'; });
+
     var html = '';
-    mounts.forEach(function(m) {
-      html += '<div class="mount-list-item" id="mount-item-' + escapeHtml(m.id) + '">';
-      html += '  <div class="mount-list-item-info">';
-      html += '    <span class="mount-list-item-name">' + escapeHtml(m.name) + '</span>';
-      html += '    <span class="mount-list-item-meta">/dav/' + escapeHtml(m.path) +
-              '/ &middot; ' + escapeHtml(m.strategy) +
-              ' &middot; ' + escapeHtml(m.visibility) + '</span>';
-      html += '  </div>';
-      html += '  <div class="mount-list-item-actions">';
-      html += '    <button class="btn-secondary-sm" onclick="mountEdit(\'' +
-              escapeAttr(m.id) + '\')">Edit</button>';
-      html += '    <button class="btn-danger-sm" onclick="mountDelete(\'' +
-              escapeAttr(m.id) + '\', \'' + escapeAttr(m.name) + '\')">Delete</button>';
-      html += '  </div>';
+
+    // Model mounts (read-only)
+    if (modelMounts.length > 0) {
+      html += '<div class="mount-list-group">';
+      html += '<span class="mount-list-group-label">Mental Models</span>';
+      modelMounts.forEach(function(m) {
+        html += '<div class="mount-list-item mount-list-item--model">';
+        html += '  <div class="mount-list-item-info">';
+        html += '    <span class="mount-list-item-name">' + escapeHtml(m.name) + '</span>';
+        html += '    <span class="mount-list-item-meta">/dav/' + escapeHtml(m.path) +
+                '/ &middot; ' + escapeHtml(m.strategy) +
+                ' &middot; read-only</span>';
+        html += '  </div>';
+        html += '  <div class="mount-list-item-actions">';
+        html += '    <span class="mount-list-badge mount-list-badge--system">System</span>';
+        html += '  </div>';
+        html += '</div>';
+      });
       html += '</div>';
-    });
+    }
+
+    // Custom mounts (editable)
+    if (customMounts.length > 0) {
+      html += '<div class="mount-list-group">';
+      html += '<span class="mount-list-group-label">Custom Mounts</span>';
+      customMounts.forEach(function(m) {
+        html += '<div class="mount-list-item" id="mount-item-' + escapeHtml(m.id) + '">';
+        html += '  <div class="mount-list-item-info">';
+        html += '    <span class="mount-list-item-name">' + escapeHtml(m.name) + '</span>';
+        html += '    <span class="mount-list-item-meta">/dav/' + escapeHtml(m.path) +
+                '/ &middot; ' + escapeHtml(m.strategy) +
+                ' &middot; ' + escapeHtml(m.visibility) + '</span>';
+        html += '  </div>';
+        html += '  <div class="mount-list-item-actions">';
+        html += '    <button class="btn-secondary-sm" onclick="mountEdit(\'' +
+                escapeAttr(m.id) + '\')">Edit</button>';
+        html += '    <button class="btn-danger-sm" onclick="mountDelete(\'' +
+                escapeAttr(m.id) + '\', \'' + escapeAttr(m.name) + '\')">Delete</button>';
+        html += '  </div>';
+        html += '</div>';
+      });
+      html += '</div>';
+    } else if (modelMounts.length > 0) {
+      // Models exist but no custom mounts — prompt to create one
+      html += '<div class="mount-list-group">';
+      html += '<span class="mount-list-group-label">Custom Mounts</span>';
+      html += '<p class="mount-list-empty">No custom mounts yet. Use the form above to create one.</p>';
+      html += '</div>';
+    }
+
     container.innerHTML = html;
   }
 
