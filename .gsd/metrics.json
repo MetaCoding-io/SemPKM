@@ -937,6 +937,24 @@
       "toolCalls": 0,
       "assistantMessages": 147,
       "userMessages": 1
+    },
+    {
+      "type": "reassess-roadmap",
+      "id": "M003/S01",
+      "model": "claude-opus-4-6",
+      "startedAt": 1773381969347,
+      "finishedAt": 1773382020725,
+      "tokens": {
+        "input": 6,
+        "output": 1945,
+        "cacheRead": 192074,
+        "cacheWrite": 32732,
+        "total": 226757
+      },
+      "cost": 0.349267,
+      "toolCalls": 0,
+      "assistantMessages": 4,
+      "userMessages": 0
     }
   ]
 }
