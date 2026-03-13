@@ -63,7 +63,7 @@
       "@id": "bpkm:tags",
       "@type": "owl:DatatypeProperty",
       "rdfs:label": "Tags",
-      "rdfs:comment": "Comma-separated tags for categorization",
+      "rdfs:comment": "Tags for categorization (individual values)",
       "rdfs:range": { "@id": "xsd:string" }
     },
     {

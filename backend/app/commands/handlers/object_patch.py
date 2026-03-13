@@ -5,11 +5,43 @@ for old values and insert triples for new values, applied to the current state
 graph during materialization.
 """
 
+import logging
+
 from rdflib import URIRef, Variable
 
 from app.commands.schemas import ObjectPatchParams
 from app.commands.handlers.object_create import _resolve_predicate, _to_rdf_value
 from app.events.store import Operation
+
+logger = logging.getLogger(__name__)
+
+
+def is_tag_property(predicate_iri: str) -> bool:
+    """Return True if the predicate IRI identifies a tag/keyword property.
+
+    Matches IRIs whose path component contains 'tags' or 'keywords',
+    covering bpkm:tags, schema:keywords, and similar conventions.
+    """
+    lowered = predicate_iri.lower()
+    # Check path segments — look for /tags or :tags or /keywords or :keywords
+    return "tags" in lowered or "keywords" in lowered
+
+
+def split_tag_values(value: str) -> list[str]:
+    """Split a comma-separated tag string into individual trimmed tags.
+
+    Handles whitespace trimming, empty segments, and edge cases:
+    - "a,b,c" -> ["a", "b", "c"]
+    - "a, b , c" -> ["a", "b", "c"]
+    - "a,,b" -> ["a", "b"]
+    - "" -> []
+    - "  " -> []
+    """
+    parts = value.split(",")
+    result = [p.strip() for p in parts if p.strip()]
+    if result:
+        logger.debug("Tag split: %s -> %s", value, result)
+    return result
 
 
 async def handle_object_patch(

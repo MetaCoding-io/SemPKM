@@ -1072,7 +1072,11 @@ async def save_object(
     object.patch commands for modifications, and re-renders the
     form with updated values and a success message.
     """
-    from app.commands.handlers.object_patch import handle_object_patch
+    from app.commands.handlers.object_patch import (
+        handle_object_patch,
+        is_tag_property,
+        split_tag_values,
+    )
     from app.commands.schemas import ObjectPatchParams
     from app.config import settings
 
@@ -1096,6 +1100,14 @@ async def save_object(
             continue
         clean_key = key.rstrip("[]")
         properties[clean_key] = values
+
+    # Split comma-separated tag values into individual entries
+    for prop_key in list(properties.keys()):
+        if is_tag_property(prop_key):
+            split_values = []
+            for v in properties[prop_key]:
+                split_values.extend(split_tag_values(v))
+            properties[prop_key] = split_values
 
     # Auto-set dcterms:modified to current UTC timestamp
     properties[dcterms_modified] = [datetime.now(timezone.utc).isoformat()]

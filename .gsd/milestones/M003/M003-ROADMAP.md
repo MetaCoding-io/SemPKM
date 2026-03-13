@@ -68,7 +68,7 @@ This milestone is complete only when all are true:
 - [x] **S03: VFS-Driven Explorer Modes** `risk:medium` `depends:[S01]`
   > After this: Each user-created VFS mount appears as a selectable explorer mode. Objects are organized by the mount's directory strategy (by-date, by-tag, by-property, flat) and clicking opens the full object tab — not a flat file.
 
-- [ ] **S04: Tag System Fix & Tag Explorer** `risk:medium` `depends:[S01]`
+- [x] **S04: Tag System Fix & Tag Explorer** `risk:medium` `depends:[S01]`
   > After this: Comma-separated schema:keywords values are split into individual triples. Tags render as #-prefixed pills in object views. "By Tag" mode in the explorer groups objects by tag with counts.
 
 - [ ] **S05: Favorites System** `risk:low` `depends:[S01]`

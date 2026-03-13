@@ -9,14 +9,16 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth.dependencies import get_current_user
+from app.auth.dependencies import get_current_user, require_role
 from app.auth.models import User
 from app.db.session import get_db_session
 from app.dependencies import (
     get_label_service,
     get_shapes_service,
+    get_triplestore_client,
     get_view_spec_service,
 )
+from app.triplestore.client import TriplestoreClient
 from app.services.icons import IconService
 from app.services.labels import LabelService
 from app.services.shapes import ShapesService
@@ -37,6 +39,8 @@ from app.vfs.mount_service import (
     MountDefinition,
 )
 from app.vfs.strategies import (
+    _LABEL_COALESCE,
+    _LABEL_OPTIONALS,
     build_scope_filter,
     query_date_month_folders,
     query_date_year_folders,
@@ -143,17 +147,45 @@ async def _handle_hierarchy(
     )
 
 
-async def _handle_by_tag(request: Request, **_kwargs) -> HTMLResponse:
-    """Placeholder for by-tag explorer mode."""
+async def _handle_by_tag(
+    request: Request,
+    label_service: LabelService,
+    icon_svc: IconService,
+    **_kwargs,
+) -> HTMLResponse:
+    """Render the explorer tree grouped by tag values across bpkm:tags and schema:keywords."""
     templates = request.app.state.templates
+    client = request.app.state.triplestore_client
+
+    sparql = """
+    SELECT ?tagValue (COUNT(DISTINCT ?iri) AS ?count)
+    FROM <urn:sempkm:current>
+    WHERE {
+      { ?iri <urn:sempkm:model:basic-pkm:tags> ?tagValue }
+      UNION
+      { ?iri <https://schema.org/keywords> ?tagValue }
+    }
+    GROUP BY ?tagValue
+    ORDER BY ?tagValue
+    """
+
+    bindings = await _execute_sparql_select(client, sparql)
+
+    folders = [
+        {
+            "value": b["tagValue"]["value"],
+            "label": b["tagValue"]["value"],
+            "count": int(b["count"]["value"]),
+        }
+        for b in bindings
+    ]
+
+    logger.debug("By-tag explorer: %d tag folders", len(folders))
+
     return templates.TemplateResponse(
         request,
-        "browser/explorer_placeholder.html",
-        {
-            "request": request,
-            "mode_label": "Tag",
-            "icon_name": "tag",
-        },
+        "browser/tag_tree.html",
+        {"request": request, "folders": folders},
     )
 
 
@@ -667,6 +699,58 @@ async def explorer_children(
     )
 
 
+@workspace_router.get("/explorer/tag-children")
+async def tag_children(
+    request: Request,
+    tag: str | None = None,
+    user: User = Depends(get_current_user),
+    label_service: LabelService = Depends(get_label_service),
+    icon_svc: IconService = Depends(get_icon_service),
+):
+    """Return objects that have a specific tag value (across bpkm:tags and schema:keywords).
+
+    Used by htmx lazy-loading in the by-tag explorer tree.
+    """
+    if not tag:
+        raise HTTPException(status_code=400, detail="Missing required parameter: tag")
+
+    templates = request.app.state.templates
+    client = request.app.state.triplestore_client
+
+    escaped_tag = _sparql_escape(tag)
+    sparql = f"""
+    SELECT ?iri ?label ?typeIri
+    FROM <urn:sempkm:current>
+    WHERE {{
+      {{
+        ?iri <urn:sempkm:model:basic-pkm:tags> "{escaped_tag}" .
+      }}
+      UNION
+      {{
+        ?iri <https://schema.org/keywords> "{escaped_tag}" .
+      }}
+      ?iri a ?typeIri .
+      {_LABEL_OPTIONALS}
+      BIND({_LABEL_COALESCE} AS ?label)
+      FILTER(?typeIri != <http://www.w3.org/2000/01/rdf-schema#Resource>)
+    }}
+    ORDER BY ?label
+    """
+
+    bindings = await _execute_sparql_select(client, sparql)
+    obj_iris = [b["iri"]["value"] for b in bindings]
+    labels = await label_service.resolve_batch(obj_iris) if obj_iris else {}
+    objects = _bindings_to_objects(bindings, labels, icon_svc)
+
+    logger.debug("Tag children for '%s': %d objects", tag, len(objects))
+
+    return templates.TemplateResponse(
+        request,
+        "browser/tag_tree_objects.html",
+        {"request": request, "objects": objects},
+    )
+
+
 @workspace_router.get("/explorer/mount-children")
 async def mount_children(
     request: Request,
@@ -858,3 +942,106 @@ async def my_views(
     return templates.TemplateResponse(
         request, "browser/my_views.html", context
     )
+
+
+@workspace_router.post("/admin/migrate-tags")
+async def migrate_tags(
+    request: Request,
+    user: User = Depends(require_role("owner")),
+    client: TriplestoreClient = Depends(get_triplestore_client),
+):
+    """One-time migration: split comma-separated bpkm:tags into individual triples.
+
+    Finds all bpkm:tags literals containing a comma in the current graph,
+    deletes them, and inserts individual trimmed tag triples. Idempotent:
+    re-running when no comma-separated values exist is a no-op.
+
+    Requires owner role.
+    """
+    from app.commands.handlers.object_patch import split_tag_values
+
+    graph_iri = "urn:sempkm:current"
+    tags_predicate = "urn:sempkm:model:basic-pkm:tags"
+
+    # Query for all comma-containing tag values
+    query = f"""
+    SELECT ?s ?val WHERE {{
+        GRAPH <{graph_iri}> {{
+            ?s <{tags_predicate}> ?val .
+        }}
+        FILTER(CONTAINS(STR(?val), ","))
+    }}
+    """
+
+    try:
+        result = await client.query(query)
+    except Exception:
+        logger.exception("Tag migration: failed to query comma-separated tags")
+        raise HTTPException(status_code=500, detail="Failed to query tags")
+
+    bindings = result.get("results", {}).get("bindings", [])
+
+    if not bindings:
+        logger.info("Tag migration: no comma-separated tags found — nothing to do")
+        return JSONResponse({"migrated": 0, "detail": "No comma-separated tags found"})
+
+    migrated_count = 0
+
+    for binding in bindings:
+        subject = binding["s"]["value"]
+        old_value = binding["val"]["value"]
+        new_tags = split_tag_values(old_value)
+
+        if not new_tags:
+            # Edge case: value was only commas/whitespace — just delete
+            delete_sparql = f"""
+            DELETE DATA {{
+                GRAPH <{graph_iri}> {{
+                    <{subject}> <{tags_predicate}> "{_sparql_escape(old_value)}" .
+                }}
+            }}
+            """
+            await client.update(delete_sparql)
+            migrated_count += 1
+            continue
+
+        # Build delete + insert in one update
+        insert_triples = "\n".join(
+            f'        <{subject}> <{tags_predicate}> "{_sparql_escape(tag)}" .'
+            for tag in new_tags
+        )
+        update_sparql = f"""
+        DELETE DATA {{
+            GRAPH <{graph_iri}> {{
+                <{subject}> <{tags_predicate}> "{_sparql_escape(old_value)}" .
+            }}
+        }} ;
+        INSERT DATA {{
+            GRAPH <{graph_iri}> {{
+{insert_triples}
+            }}
+        }}
+        """
+        try:
+            await client.update(update_sparql)
+            migrated_count += 1
+            logger.debug(
+                "Tag migration: split %s -> %s for %s",
+                old_value, new_tags, subject,
+            )
+        except Exception:
+            logger.exception(
+                "Tag migration: failed to update tags for %s", subject
+            )
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to migrate tags for {subject}",
+            )
+
+    logger.info("Tag migration: migrated %d comma-separated tag values", migrated_count)
+    return JSONResponse({"migrated": migrated_count})
+
+
+def _sparql_escape(value: str) -> str:
+    """Escape special characters for SPARQL string literals."""
+    return value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
