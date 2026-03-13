@@ -4,7 +4,7 @@
  * Tests the explorer mode dropdown and mode-switching behavior:
  * - Dropdown visible with three mode options, by-type default shows nav sections
  * - Switching to hierarchy shows empty state or hierarchy nodes
- * - Switching to by-tag shows placeholder, switching back restores real tree
+ * - Switching to by-tag shows real tag folders, switching back restores by-type tree
  * - Lazy expansion works after mode round-trip
  * - Multi-select state clears on mode switch
  *
@@ -87,7 +87,7 @@ test.describe('Explorer Mode Switching', () => {
     await expect(sections).toHaveCount(0);
   });
 
-  test('switching to by-tag shows placeholder and switching back restores real tree', async ({ ownerPage }) => {
+  test('switching to by-tag shows tag folders and switching back restores real tree', async ({ ownerPage }) => {
     await ownerPage.goto(`${BASE_URL}/browser/`);
     await waitForWorkspace(ownerPage);
 
@@ -95,11 +95,19 @@ test.describe('Explorer Mode Switching', () => {
     await ownerPage.selectOption(SEL.explorer.modeSelect, 'by-tag');
     await waitForIdle(ownerPage);
 
-    const placeholder = ownerPage.locator(SEL.explorer.placeholder);
-    await expect(placeholder).toBeVisible({ timeout: 5000 });
-    await expect(placeholder).toContainText('Tag');
-
     const treeBody = ownerPage.locator(SEL.explorer.treeBody);
+
+    // By-tag now shows real tag folders (not a placeholder)
+    const tagFolders = treeBody.locator('[data-testid="tag-folder"]');
+    await expect(tagFolders.first()).toBeVisible({ timeout: 10000 });
+    const folderCount = await tagFolders.count();
+    expect(folderCount).toBeGreaterThanOrEqual(1);
+
+    // Placeholder should NOT be present (replaced by real content)
+    const placeholder = treeBody.locator(SEL.explorer.placeholder);
+    await expect(placeholder).toHaveCount(0);
+
+    // Nav sections from by-type should NOT be present
     const sections = treeBody.locator(SEL.nav.section);
     await expect(sections).toHaveCount(0);
 
@@ -112,8 +120,8 @@ test.describe('Explorer Mode Switching', () => {
     const count = await sections.count();
     expect(count).toBeGreaterThanOrEqual(1);
 
-    // Placeholder should be gone
-    await expect(placeholder).toHaveCount(0);
+    // Tag folders should be gone
+    await expect(tagFolders).toHaveCount(0);
   });
 
   test('lazy expansion works after mode round-trip', async ({ ownerPage }) => {

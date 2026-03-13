@@ -1,0 +1,25 @@
+{# Tag tree objects: leaf nodes for by-tag explorer folder expansion.
+   Renders object leaves matching the mount_tree_objects.html pattern for
+   click-through via handleTreeLeafClick.
+
+   Context:
+     objects: list of dicts with 'iri', 'label', 'icon' keys
+              icon is {icon, color, size} from IconService.get_type_icon()
+#}
+{% if objects %}
+{% for obj in objects %}
+{% set obj_icon = obj.icon if obj.icon else {'icon': 'circle', 'color': 'var(--color-text-faint)', 'size': 14} %}
+<div class="tree-leaf" data-testid="tag-object"
+     data-iri="{{ obj.iri }}"
+     draggable="true"
+     ondragstart="var thisIri = '{{ obj.iri }}'; var thisLabel = '{{ obj.label }}'; event.dataTransfer.setData('text/iri', thisIri); event.dataTransfer.setData('text/label', thisLabel); event.dataTransfer.effectAllowed = 'copy'; window.__canvasDragPayload = { iri: thisIri, label: thisLabel };"
+     onclick="handleTreeLeafClick(event, '{{ obj.iri }}', '{{ obj.label }}')">
+    <i data-lucide="{{ obj_icon.icon }}"
+       class="tree-leaf-icon"
+       style="color: {{ obj_icon.color }}; width: {{ obj_icon.size or 14 }}px; height: {{ obj_icon.size or 14 }}px; flex-shrink: 0;"></i>
+    <span class="tree-leaf-label">{{ obj.label }}</span>
+</div>
+{% endfor %}
+{% else %}
+<div class="tree-empty">No objects</div>
+{% endif %}
