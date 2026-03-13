@@ -80,7 +80,7 @@ This milestone is complete only when all are true:
 - [x] **S07: Ontology Viewer & Gist Foundation** `risk:high` `depends:[]`
   > After this: Workspace has an ontology viewer with TBox Explorer (class hierarchy across gist + all models), ABox Browser (instances by type with counts), and RBox Legend (property domains/ranges). Gist 14.0.0 is loaded and fully visible in the hierarchy.
 
-- [ ] **S08: In-App Class Creation** `risk:high` `depends:[S07]`
+- [x] **S08: In-App Class Creation** `risk:high` `depends:[S07]`
   > After this: User creates a new class via form (name, icon, parent class, properties with datatypes). The class appears in the ontology viewer, and objects of that type can be created with auto-generated SHACL forms.
 
 - [ ] **S09: Admin Model Detail Stats & Charts** `risk:low` `depends:[]`

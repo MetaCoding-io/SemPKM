@@ -3,8 +3,12 @@
 Reads the `icons` field from each installed model's manifest.yaml and
 builds a flat dict keyed by full type IRI (with prefix expansion).
 Provides per-context (tree, graph, tab) icon and color lookups.
+
+Also supports user-type icons loaded from the triplestore via SPARQL
+(urn:sempkm:user-types graph, sempkm:typeIcon / sempkm:typeColor predicates).
 """
 
+import logging
 import os
 from dataclasses import dataclass
 from typing import Any
@@ -12,6 +16,8 @@ from typing import Any
 import yaml
 
 from ..models.manifest import ManifestSchema
+
+logger = logging.getLogger(__name__)
 
 FALLBACK_ICON = "circle"
 FALLBACK_COLOR = "var(--color-text-faint)"
@@ -113,7 +119,11 @@ class IconService:
         self._cache = None
 
     def get_icon_map(self, context: str = "tree") -> dict[str, dict]:
-        """Return {type_iri: {icon, color, size}} for the given context."""
+        """Return {type_iri: {icon, color, size}} for the given context.
+
+        Merges manifest-based icons with user-type icon overrides.
+        User-type icons are added with size=None (no per-context sizes).
+        """
         cache = self._get_cache()
         result: dict[str, dict] = {}
         for type_iri, type_map in cache.items():
@@ -123,12 +133,95 @@ class IconService:
                 "color": ctx.color,
                 "size": ctx.size,
             }
+
+        # Merge user-type icons (lower priority — don't override manifest icons)
+        user_icons = getattr(self, "_user_type_icons", None)
+        if user_icons:
+            for type_iri, entry in user_icons.items():
+                if type_iri not in result:
+                    result[type_iri] = {
+                        "icon": entry.get("icon", FALLBACK_ICON),
+                        "color": entry.get("color", FALLBACK_COLOR),
+                        "size": None,
+                    }
+
         return result
 
+    def set_user_type_icons(self, icons: dict[str, dict]) -> None:
+        """Set user-type icon overrides from an external source.
+
+        Args:
+            icons: Dict mapping class IRI to {"icon": str, "color": str}.
+                   Typically populated from app.state.user_type_icons by the
+                   caller (router or dependency).
+        """
+        self._user_type_icons = icons
+
     def get_type_icon(self, type_iri: str, context: str = "tree") -> dict:
-        """Return icon dict for a single type IRI, or fallback if not found."""
+        """Return icon dict for a single type IRI, or fallback if not found.
+
+        Checks manifest-based cache first, then user-type icon overrides.
+        """
         m = self._get_cache().get(type_iri)
         if m:
             ctx = getattr(m, context, FALLBACK_CONTEXT)
             return {"icon": ctx.icon, "color": ctx.color, "size": ctx.size}
+
+        # Check user-type icons (from triplestore, set via set_user_type_icons)
+        user_icons = getattr(self, "_user_type_icons", None)
+        if user_icons and type_iri in user_icons:
+            entry = user_icons[type_iri]
+            return {
+                "icon": entry.get("icon", FALLBACK_ICON),
+                "color": entry.get("color", FALLBACK_COLOR),
+                "size": None,
+            }
+
         return {"icon": FALLBACK_ICON, "color": FALLBACK_COLOR, "size": None}
+
+
+# ------------------------------------------------------------------
+# Async loader for user-type icons from triplestore
+# ------------------------------------------------------------------
+
+USER_TYPES_GRAPH = "urn:sempkm:user-types"
+SEMPKM_NS = "urn:sempkm:"
+
+
+async def load_user_type_icons(client: Any) -> dict[str, dict]:
+    """Load user-type icon metadata from the triplestore.
+
+    Queries the urn:sempkm:user-types graph for classes that have
+    sempkm:typeIcon and/or sempkm:typeColor predicates.
+
+    Args:
+        client: TriplestoreClient (async) with a .query() method.
+
+    Returns:
+        Dict mapping class IRI to {"icon": str, "color": str}.
+    """
+    sparql = f"""SELECT ?class ?icon ?color WHERE {{
+  GRAPH <{USER_TYPES_GRAPH}> {{
+    ?class a <http://www.w3.org/2002/07/owl#Class> .
+    OPTIONAL {{ ?class <{SEMPKM_NS}typeIcon> ?icon . }}
+    OPTIONAL {{ ?class <{SEMPKM_NS}typeColor> ?color . }}
+  }}
+  FILTER(BOUND(?icon) || BOUND(?color))
+}}"""
+
+    try:
+        result = await client.query(sparql)
+        bindings = result.get("results", {}).get("bindings", [])
+    except Exception:
+        logger.warning("Failed to load user-type icons from triplestore", exc_info=True)
+        return {}
+
+    icons: dict[str, dict] = {}
+    for b in bindings:
+        class_iri = b["class"]["value"]
+        icon_name = b.get("icon", {}).get("value", FALLBACK_ICON)
+        icon_color = b.get("color", {}).get("value", FALLBACK_COLOR)
+        icons[class_iri] = {"icon": icon_name, "color": icon_color}
+
+    logger.info("Loaded %d user-type icons from triplestore", len(icons))
+    return icons

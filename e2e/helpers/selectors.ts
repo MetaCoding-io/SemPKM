@@ -115,4 +115,19 @@ export const SEL = {
     tabAbox: '[data-testid="ontology-tab-abox"]',
     tabRbox: '[data-testid="ontology-tab-rbox"]',
   },
+  // Class creation
+  classCreation: {
+    createButton: '[data-testid="create-class-btn"]',
+    form: '[data-testid="class-creation-form"]',
+    nameInput: '#ccf-name',
+    iconGrid: '#icon-picker-grid',
+    iconCell: '.icon-picker-cell',
+    parentSearch: '#ccf-parent-search',
+    parentIri: '#ccf-parent-iri',
+    propertyRows: '#property-rows',
+    addPropertyButton: '.btn-add-property',
+    submitButton: '[data-testid="ccf-submit"]',
+    resultContainer: '[data-testid="ccf-result"]',
+    deleteButton: '[data-testid="tbox-delete-btn"]',
+  },
 } as const;

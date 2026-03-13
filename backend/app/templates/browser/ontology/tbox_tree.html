@@ -33,6 +33,14 @@
     <span class="tbox-source-badge badge-ppv">ppv</span>
     {% elif 'user-types' in ns %}
     <span class="tbox-source-badge badge-user">user</span>
+    <button type="button" class="tbox-delete-btn" data-testid="tbox-delete-btn"
+            title="Delete this class"
+            hx-delete="/browser/ontology/delete-class?class_iri={{ cls.iri | urlencode }}"
+            hx-confirm="Delete this class? Objects of this type will lose their type."
+            hx-swap="none"
+            onclick="event.stopPropagation();">
+      <i data-lucide="trash-2"></i>
+    </button>
     {% endif %}
 </div>
 <div id="tbox-children-{{ safe_id }}" class="tree-children"></div>

@@ -10,10 +10,13 @@ to present a unified class hierarchy.
 """
 
 import logging
+import re
 import time
+import uuid
 from pathlib import Path
 
 from rdflib import BNode, Graph, Literal, URIRef
+from rdflib.namespace import OWL, RDF, RDFS, SH, XSD
 
 from app.models.registry import MODELS_GRAPH, SEMPKM_NS
 from app.triplestore.client import TriplestoreClient
@@ -30,6 +33,21 @@ GIST_NS = "https://w3id.org/semanticarts/ns/ontology/gist/"
 
 # Batch size for INSERT DATA operations (triples per batch)
 BATCH_SIZE = 500
+
+# SemPKM predicates for user-type metadata
+SEMPKM_TYPE_ICON = URIRef(f"{SEMPKM_NS}typeIcon")
+SEMPKM_TYPE_COLOR = URIRef(f"{SEMPKM_NS}typeColor")
+
+# Allowed datatypes for user-defined properties
+ALLOWED_DATATYPES = {
+    str(XSD.string),
+    str(XSD.integer),
+    str(XSD.decimal),
+    str(XSD.boolean),
+    str(XSD.date),
+    str(XSD.dateTime),
+    str(XSD.anyURI),
+}
 
 
 def _rdf_term_to_sparql(term) -> str:
@@ -302,6 +320,61 @@ ORDER BY ?label"""
         logger.debug(
             "TBox children of %s: %d subclasses", parent_iri, len(classes)
         )
+        return classes
+
+    async def search_classes(self, query: str, limit: int = 20) -> list[dict]:
+        """Search classes by label across all ontology graphs.
+
+        Case-insensitive CONTAINS filter on class labels.
+
+        Args:
+            query: Search string to match against class labels.
+            limit: Maximum number of results.
+
+        Returns:
+            List of dicts with keys: iri, label.
+        """
+        if not query or not query.strip():
+            return []
+
+        graph_iris = await self.get_ontology_graph_iris()
+        from_clauses = self._build_from_clauses(graph_iris)
+
+        # Escape single quotes in query for SPARQL string literal
+        safe_query = query.strip().replace("\\", "\\\\").replace("'", "\\'")
+
+        sparql = f"""PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT DISTINCT ?class ?label
+{from_clauses}
+WHERE {{
+  ?class a owl:Class .
+  FILTER(isIRI(?class))
+  OPTIONAL {{ ?class skos:prefLabel ?skosLabel .
+              FILTER(LANG(?skosLabel) = "" || LANG(?skosLabel) = "en") }}
+  OPTIONAL {{ ?class rdfs:label ?rdfsLabel .
+              FILTER(LANG(?rdfsLabel) = "" || LANG(?rdfsLabel) = "en") }}
+  BIND(COALESCE(?skosLabel, ?rdfsLabel,
+       REPLACE(STR(?class), "^.*/|^.*#|^.*:", "", "")) AS ?label)
+  FILTER(CONTAINS(LCASE(STR(?label)), LCASE('{safe_query}')))
+}}
+ORDER BY ?label
+LIMIT {limit}"""
+
+        result = await self._client.query(sparql)
+        bindings = result.get("results", {}).get("bindings", [])
+
+        classes = []
+        for b in bindings:
+            iri = b["class"]["value"]
+            label = b.get("label", {}).get(
+                "value", iri.rsplit("/", 1)[-1].rsplit("#", 1)[-1]
+            )
+            classes.append({"iri": iri, "label": label})
+
+        logger.debug("TBox search '%s': %d results", query, len(classes))
         return classes
 
     async def _batch_has_subclasses(
@@ -579,4 +652,269 @@ ORDER BY ?propType ?label"""
         return {
             "object_properties": object_props,
             "datatype_properties": datatype_props,
+        }
+
+    # ------------------------------------------------------------------
+    # User-defined class creation and deletion
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _mint_class_iris(name: str) -> tuple[str, str]:
+        """Mint a class IRI and shape IRI with UUID suffix for collision prevention.
+
+        Slugifies the name (alphanumeric only) and appends 8 hex chars from uuid4.
+
+        Returns:
+            Tuple of (class_iri, shape_iri).
+        """
+        slug = re.sub(r"[^A-Za-z0-9]+", "", name.strip())
+        if not slug:
+            slug = "Class"
+        hex_suffix = uuid.uuid4().hex[:8]
+        class_iri = f"{USER_TYPES_GRAPH}:{slug}-{hex_suffix}"
+        shape_iri = f"{USER_TYPES_GRAPH}:{slug}Shape-{hex_suffix}"
+        return class_iri, shape_iri
+
+    @staticmethod
+    def _validate_class_input(
+        name: str,
+        parent_iri: str,
+        properties: list[dict],
+    ) -> None:
+        """Validate inputs for class creation.
+
+        Raises ValueError with a descriptive message on invalid input.
+        """
+        if not name or not name.strip():
+            raise ValueError("Class name must not be empty")
+
+        if not (parent_iri.startswith("http") or parent_iri.startswith("urn:")):
+            raise ValueError(
+                f"Parent IRI must start with 'http' or 'urn:': {parent_iri}"
+            )
+
+        for i, prop in enumerate(properties):
+            prop_name = prop.get("name", "")
+            if not prop_name or not prop_name.strip():
+                raise ValueError(f"Property name at index {i} must not be empty")
+
+            pred_iri = prop.get("predicate_iri", "")
+            if not (pred_iri.startswith("http") or pred_iri.startswith("urn:")):
+                raise ValueError(
+                    f"Property predicate IRI at index {i} is invalid: {pred_iri}"
+                )
+
+            dt_iri = prop.get("datatype_iri", "")
+            if dt_iri and dt_iri not in ALLOWED_DATATYPES:
+                raise ValueError(
+                    f"Datatype '{dt_iri}' at index {i} is not in the allowed list. "
+                    f"Allowed: {sorted(ALLOWED_DATATYPES)}"
+                )
+
+    @staticmethod
+    def _generate_class_triples(
+        class_iri: str,
+        name: str,
+        parent_iri: str,
+        icon_name: str | None = None,
+        icon_color: str | None = None,
+    ) -> list[tuple]:
+        """Generate OWL class triples for a user-defined class.
+
+        Produces:
+        - <classIRI> a owl:Class
+        - <classIRI> rdfs:label "name"
+        - <classIRI> rdfs:subClassOf <parent>
+        - Optionally: sempkm:typeIcon, sempkm:typeColor
+        """
+        class_uri = URIRef(class_iri)
+        triples: list[tuple] = [
+            (class_uri, RDF.type, OWL.Class),
+            (class_uri, RDFS.label, Literal(name)),
+            (class_uri, RDFS.subClassOf, URIRef(parent_iri)),
+        ]
+
+        if icon_name:
+            triples.append((class_uri, SEMPKM_TYPE_ICON, Literal(icon_name)))
+        if icon_color:
+            triples.append((class_uri, SEMPKM_TYPE_COLOR, Literal(icon_color)))
+
+        return triples
+
+    @staticmethod
+    def _generate_shape_triples(
+        class_iri: str,
+        shape_iri: str,
+        name: str,
+        properties: list[dict],
+    ) -> list[tuple]:
+        """Generate SHACL NodeShape triples for a user-defined class.
+
+        Produces:
+        - <shapeIRI> a sh:NodeShape
+        - <shapeIRI> sh:targetClass <classIRI>
+        - <shapeIRI> rdfs:label "{name} Shape"
+        - For each property: blank-node sh:property with sh:path, sh:name,
+          sh:datatype, sh:order
+        """
+        shape_uri = URIRef(shape_iri)
+        class_uri = URIRef(class_iri)
+
+        triples: list[tuple] = [
+            (shape_uri, RDF.type, SH.NodeShape),
+            (shape_uri, SH.targetClass, class_uri),
+            (shape_uri, RDFS.label, Literal(f"{name} Shape")),
+        ]
+
+        for i, prop in enumerate(properties):
+            bnode = BNode()
+            triples.append((shape_uri, SH.property, bnode))
+            triples.append((bnode, SH.path, URIRef(prop["predicate_iri"])))
+            triples.append((bnode, SH.name, Literal(prop["name"])))
+            triples.append(
+                (bnode, SH.datatype, URIRef(prop["datatype_iri"]))
+            )
+            triples.append(
+                (bnode, SH.order, Literal(i + 1, datatype=XSD.integer))
+            )
+
+        return triples
+
+    @staticmethod
+    def _build_delete_class_sparql(class_iri: str) -> str:
+        """Build SPARQL DELETE WHERE to remove all class triples.
+
+        Removes all triples with the class IRI as subject in the
+        user-types graph.
+        """
+        return (
+            f"DELETE WHERE {{ "
+            f"GRAPH <{USER_TYPES_GRAPH}> {{ <{class_iri}> ?p ?o . }} "
+            f"}}"
+        )
+
+    @staticmethod
+    def _build_delete_shape_sparql(shape_iri: str) -> tuple[str, str]:
+        """Build SPARQL to remove shape triples and their blank-node properties.
+
+        Returns two separate SPARQL UPDATE statements (executed sequentially):
+        1. Delete blank-node property shape triples (sh:property → bnode → triples)
+        2. Delete the shape node itself
+        """
+        # Step 1: Delete blank-node property triples reachable via sh:property
+        delete_bnodes = (
+            f"DELETE WHERE {{ "
+            f"GRAPH <{USER_TYPES_GRAPH}> {{ "
+            f"<{shape_iri}> <{SH.property}> ?bn . ?bn ?pp ?oo . "
+            f"}} "
+            f"}}"
+        )
+        # Step 2: Delete the shape node's own triples
+        delete_shape = (
+            f"DELETE WHERE {{ "
+            f"GRAPH <{USER_TYPES_GRAPH}> {{ "
+            f"<{shape_iri}> ?p ?o . "
+            f"}} "
+            f"}}"
+        )
+        return (delete_bnodes, delete_shape)
+
+    async def create_class(
+        self,
+        name: str,
+        parent_iri: str,
+        properties: list[dict],
+        icon_name: str | None = None,
+        icon_color: str | None = None,
+    ) -> dict:
+        """Create a user-defined class with OWL + SHACL triples.
+
+        Validates inputs, mints IRIs, generates triples, and writes them
+        to the user-types named graph via batched INSERT DATA.
+
+        Args:
+            name: Human-readable class name.
+            parent_iri: IRI of the parent class.
+            properties: List of property defs, each with name, predicate_iri,
+                        datatype_iri.
+            icon_name: Optional Lucide icon name.
+            icon_color: Optional hex color string.
+
+        Returns:
+            Dict with class_iri, shape_iri, triple_count, property_count.
+
+        Raises:
+            ValueError: On invalid input.
+        """
+        self._validate_class_input(name, parent_iri, properties)
+
+        class_iri, shape_iri = self._mint_class_iris(name)
+
+        class_triples = self._generate_class_triples(
+            class_iri=class_iri,
+            name=name,
+            parent_iri=parent_iri,
+            icon_name=icon_name,
+            icon_color=icon_color,
+        )
+        shape_triples = self._generate_shape_triples(
+            class_iri=class_iri,
+            shape_iri=shape_iri,
+            name=name,
+            properties=properties,
+        )
+
+        all_triples = class_triples + shape_triples
+        sparql = _build_insert_data_sparql(USER_TYPES_GRAPH, all_triples)
+        await self._client.update(sparql)
+
+        logger.info(
+            "Created class %s: %d triples, %d properties",
+            class_iri,
+            len(all_triples),
+            len(properties),
+        )
+
+        return {
+            "class_iri": class_iri,
+            "shape_iri": shape_iri,
+            "triple_count": len(all_triples),
+            "property_count": len(properties),
+        }
+
+    async def delete_class(self, class_iri: str) -> dict:
+        """Delete a user-defined class and its shape from the triplestore.
+
+        Removes all triples for the class and its shape from the
+        user-types named graph.
+
+        Args:
+            class_iri: IRI of the class to delete.
+
+        Returns:
+            Dict with class_iri and status.
+        """
+        # Derive shape IRI from class IRI (replace the slug with slugShape)
+        # Convention: class = ...:{Slug}-{hex}, shape = ...:{Slug}Shape-{hex}
+        parts = class_iri.rsplit("-", 1)
+        if len(parts) == 2:
+            shape_iri = f"{parts[0]}Shape-{parts[1]}"
+        else:
+            shape_iri = f"{class_iri}Shape"
+
+        # Delete shape triples (including blank-node property shapes)
+        bn_sparql, shape_sparql = self._build_delete_shape_sparql(shape_iri)
+        await self._client.update(bn_sparql)
+        await self._client.update(shape_sparql)
+
+        # Delete class triples
+        class_sparql = self._build_delete_class_sparql(class_iri)
+        await self._client.update(class_sparql)
+
+        logger.info("Deleted class %s and shape %s", class_iri, shape_iri)
+
+        return {
+            "class_iri": class_iri,
+            "shape_iri": shape_iri,
+            "status": "deleted",
         }

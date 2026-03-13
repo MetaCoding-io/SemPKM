@@ -366,6 +366,35 @@
     color: #8b5cf6;
 }
 
+/* Delete button on user-type TBox nodes — hover-reveal */
+.tbox-delete-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px;
+    margin-left: auto;
+    color: var(--color-text-muted);
+    border-radius: 3px;
+    flex-shrink: 0;
+    line-height: 1;
+}
+.tbox-delete-btn:hover {
+    color: var(--color-danger, #ef4444);
+    background: rgba(239, 68, 68, 0.1);
+}
+.tbox-delete-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+.tree-node:hover .tbox-delete-btn {
+    display: inline-flex;
+}
+
 .tree-toggle-leaf {
     color: var(--color-text-faint, var(--color-text-muted));
     font-size: 0.5rem;
@@ -468,6 +497,470 @@
     padding: var(--space-md);
     color: var(--color-text-muted);
     font-size: var(--font-size-sm);
+}
+
+/* "Create Class" trigger button in tab bar */
+.ccf-trigger-btn {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: var(--color-surface);
+    color: var(--color-primary);
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    flex-shrink: 0;
+}
+
+.ccf-trigger-btn:hover {
+    background: var(--color-primary-subtle, rgba(99, 102, 241, 0.1));
+    border-color: var(--color-primary);
+}
+
+.ccf-trigger-btn svg {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+/* --- Class Creation Form container --- */
+
+.ccf-container {
+    border-bottom: 1px solid var(--color-border);
+    max-height: 50vh;
+    overflow-y: auto;
+    flex-shrink: 0;
+}
+
+.class-creation-form {
+    padding: var(--space-md);
+    background: var(--color-surface);
+}
+
+.ccf-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-md);
+}
+
+.ccf-title {
+    margin: 0;
+    font-size: var(--font-size-lg);
+    color: var(--color-text);
+}
+
+.ccf-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.ccf-close:hover {
+    background: var(--color-surface-hover);
+    color: var(--color-text);
+}
+
+.ccf-close svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+.ccf-required {
+    color: var(--color-error);
+}
+
+.class-creation-form .form-field {
+    margin-bottom: var(--space-md);
+}
+
+.class-creation-form .form-field label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: 4px;
+}
+
+.class-creation-form .form-field input[type="text"] {
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    font-size: 0.85rem;
+    background: var(--color-surface);
+    color: var(--color-text);
+    transition: border-color 0.15s;
+}
+
+.class-creation-form .form-field input[type="text"]:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px var(--color-focus-shadow);
+}
+
+/* --- Icon Picker --- */
+
+.icon-picker-search {
+    width: 100%;
+    padding: 5px 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    font-size: 0.8rem;
+    background: var(--color-surface);
+    color: var(--color-text);
+    margin-bottom: 6px;
+}
+
+.icon-picker-search:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+.icon-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
+    gap: 3px;
+    max-height: 160px;
+    overflow-y: auto;
+    padding: 4px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: var(--color-surface-recessed, var(--color-bg));
+}
+
+.icon-picker-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: 4px;
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.icon-picker-cell:hover {
+    border-color: var(--color-border);
+    color: var(--color-text);
+    background: var(--color-surface-hover);
+}
+
+.icon-picker-cell.icon-selected {
+    border-color: var(--color-primary);
+    background: var(--color-primary-subtle, rgba(99, 102, 241, 0.1));
+    color: var(--color-primary);
+}
+
+.icon-picker-cell svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+/* --- Color Picker --- */
+
+.color-picker-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.color-swatch {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 3px;
+    border: 2px solid transparent;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+    transition: border-color 0.15s;
+}
+
+.color-swatch span {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+}
+
+.color-swatch:hover {
+    border-color: var(--color-border);
+}
+
+.color-swatch.color-swatch--selected {
+    border-color: var(--color-primary);
+}
+
+/* --- Parent Class Picker --- */
+
+.parent-class-picker {
+    position: relative;
+}
+
+.parent-class-search {
+    width: 100%;
+    padding: 5px 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    font-size: 0.8rem;
+    background: var(--color-surface);
+    color: var(--color-text);
+}
+
+.parent-class-search:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+.parent-class-selected {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 4px;
+    font-size: 0.8rem;
+}
+
+.parent-class-tag {
+    padding: 2px 8px;
+    background: var(--color-primary-subtle, rgba(99, 102, 241, 0.1));
+    color: var(--color-primary);
+    border-radius: 3px;
+    font-size: 0.78rem;
+    font-weight: 500;
+}
+
+.parent-class-clear {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    border-radius: 3px;
+}
+
+.parent-class-clear:hover {
+    background: var(--color-surface-hover);
+    color: var(--color-text);
+}
+
+.parent-class-clear svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+.parent-class-results {
+    position: absolute;
+    z-index: 10;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 200px;
+    overflow-y: auto;
+    background: var(--color-surface-raised, var(--color-surface));
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    margin-top: 2px;
+}
+
+.parent-class-results:empty {
+    display: none;
+}
+
+.parent-class-option {
+    padding: 6px 10px;
+    cursor: pointer;
+    transition: background 0.1s;
+}
+
+.parent-class-option:hover {
+    background: var(--color-primary-subtle, rgba(99, 102, 241, 0.08));
+}
+
+.parent-class-option-label {
+    display: block;
+    font-size: 0.82rem;
+    color: var(--color-text);
+    font-weight: 500;
+}
+
+.parent-class-option-iri {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.parent-class-empty {
+    padding: 8px 10px;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    font-style: italic;
+}
+
+/* --- Property Editor --- */
+
+.property-editor {
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    padding: var(--space-sm);
+    background: var(--color-surface-recessed, var(--color-bg));
+}
+
+.property-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.property-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 8px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+}
+
+.property-row .prop-field {
+    flex: 1;
+    min-width: 0;
+}
+
+.property-row .prop-field label {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+    margin-bottom: 2px;
+    font-weight: 500;
+}
+
+.property-row .prop-field input,
+.property-row .prop-field select {
+    width: 100%;
+    padding: 4px 8px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    font-size: 0.8rem;
+    background: var(--color-surface);
+    color: var(--color-text);
+}
+
+.property-row .prop-field input:focus,
+.property-row .prop-field select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+.prop-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 16px;
+}
+
+.prop-remove:hover {
+    background: var(--color-error-bg, rgba(239, 68, 68, 0.1));
+    color: var(--color-error);
+}
+
+.prop-remove svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+.btn-add-property {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+    padding: 4px 10px;
+    border: 1px dashed var(--color-border);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--color-text-muted);
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.btn-add-property:hover {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.btn-add-property svg {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+/* --- Class creation form messages --- */
+.class-creation-form .error-message {
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    background: var(--color-error-bg, rgba(239, 68, 68, 0.08));
+    color: var(--color-error);
+    border: 1px solid var(--color-error-border, rgba(239, 68, 68, 0.2));
+    margin-top: var(--space-sm);
+}
+
+.class-creation-form .success-message {
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    background: var(--color-success-bg, rgba(16, 185, 129, 0.08));
+    color: var(--color-success, #10b981);
+    border: 1px solid var(--color-success-border, rgba(16, 185, 129, 0.2));
+    margin-top: var(--space-sm);
 }
 
 /* --- ABox Browser --- */
