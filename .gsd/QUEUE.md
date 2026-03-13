@@ -1,10 +1,10 @@
 # GSD Queue
 
-Append-only log of queued future milestones.
+Append-only log of queued future milestones and ideas.
 
 ---
 
-## M003: Workspace UX Enhancements
+## Workspace UX Enhancements
 
 **Queued:** 2026-03-12  
 **Status:** Idea collection  
@@ -18,3 +18,36 @@ Append-only log of queued future milestones.
 3. **Object Comments via `rdfs:comment`** — Users can add comments/annotations to any object. Threaded or flat discussion on objects.
 
 4. **Favorites & Favorites View** — Users can star/favorite objects. Dedicated favorites view for quick access to frequently used items.
+
+---
+
+## MCP Server for AI Agent Access
+
+**Queued:** 2026-03-10  
+**Status:** Idea — deferred from M002  
+
+MCP server exposing object browse/search, SPARQL query, graph traversal, and write operations to AI agents via the Model Context Protocol. Enables Claude, GPT, etc. to interact with the knowledge base directly.
+
+**Research:** `.planning/todos/pending/2026-03-10-build-mcp-server-for-ai-agent-access-to-sempkm.md`
+
+---
+
+## Notion Import Wizard
+
+**Queued:** 2026-03-12  
+**Status:** Researched  
+
+Interactive import flow for Notion workspace exports (ZIP first, API later), mirroring the Obsidian import wizard pattern. Covers databases → types, rows → objects, relations → edges, with dashboard/rollup/formula metadata preservation.
+
+**Research:** `.planning/notion-import-research.md`
+
+---
+
+## Ontology Viewer & Gist Upper Ontology
+
+**Queued:** 2026-03-12  
+**Status:** Researched  
+
+Integrated ontology visualization with TBox/ABox/RBox separation. Three purpose-built views: TBox Explorer (class hierarchy across mental models), ABox Browser (instances by type), RBox Legend (property reference). Gist 14.0.0 as upper ontology foundation, with mental model classes aligned to gist hierarchy.
+
+**Research:** `.planning/ontology-viewer-research.md`
