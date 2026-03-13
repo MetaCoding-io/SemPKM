@@ -1,0 +1,48 @@
+{# Recursive macro for rendering a comment and its replies.
+   Each comment shows author, relative time, body, and action buttons.
+   Nesting is capped visually at 4 levels (80px max indent). #}
+
+{% macro render_comment(comment, object_iri, level) %}
+<div class="comment-item{% if comment.body == '[deleted]' %} comment-deleted{% endif %}"
+     data-comment-iri="{{ comment.iri }}"
+     style="margin-left: {{ [level * 20, 80] | min }}px">
+    <div class="comment-meta">
+        <span class="comment-author">{{ comment.author_name or 'Unknown' }}</span>
+        <span class="comment-time" title="{{ comment.timestamp }}">{{ comment.relative_time }}</span>
+    </div>
+    <div class="comment-body{% if comment.body == '[deleted]' %} deleted{% endif %}">{{ comment.body }}</div>
+    <div class="comment-actions">
+        {% if comment.body != '[deleted]' %}
+        <button class="comment-action-btn comment-reply-btn" type="button"
+                onclick="toggleReplyForm(this)">
+            <i data-lucide="reply"></i> Reply
+        </button>
+        {% endif %}
+        {% if comment.can_delete %}
+        <button class="comment-action-btn comment-delete-btn"
+                hx-delete="/browser/comments/{{ comment.iri | urlencode }}"
+                hx-target="#comments-content"
+                hx-swap="innerHTML"
+                hx-confirm="Delete this comment?">
+            <i data-lucide="trash-2"></i>
+        </button>
+        {% endif %}
+    </div>
+    <div class="comment-reply-form" style="display:none">
+        <form hx-post="/browser/object/{{ object_iri | urlencode }}/comments"
+              hx-target="#comments-content"
+              hx-swap="innerHTML">
+            <input type="hidden" name="reply_to" value="{{ comment.iri }}">
+            <textarea name="body" placeholder="Reply..." rows="2" required></textarea>
+            <button type="submit" class="comment-submit-btn">Reply</button>
+        </form>
+    </div>
+    {% if comment.replies %}
+    <div class="comment-thread-line">
+        {% for reply in comment.replies %}
+            {{ render_comment(reply, object_iri, level + 1) }}
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endmacro %}

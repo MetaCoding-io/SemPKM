@@ -286,6 +286,7 @@
       if (isObjectTab && typeof loadRightPaneSection === 'function') {
         loadRightPaneSection(panel.id, 'relations');
         loadRightPaneSection(panel.id, 'lint');
+        loadRightPaneSection(panel.id, 'comments');
       }
       if (layout) layout.activeGroupId = groupId;
 
