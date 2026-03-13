@@ -36,6 +36,7 @@ async def _handle_by_type(
     request: Request,
     shapes_service: ShapesService,
     icon_svc: IconService,
+    **_kwargs,
 ) -> HTMLResponse:
     """Render the nav tree grouped by RDF type (default explorer mode)."""
     templates = request.app.state.templates
@@ -49,17 +50,60 @@ async def _handle_by_type(
     )
 
 
-async def _handle_hierarchy(request: Request, **_kwargs) -> HTMLResponse:
-    """Placeholder for hierarchy explorer mode."""
+async def _handle_hierarchy(
+    request: Request,
+    label_service: LabelService,
+    icon_svc: IconService,
+    **_kwargs,
+) -> HTMLResponse:
+    """Render hierarchy tree with root objects (no dcterms:isPartOf parent)."""
     templates = request.app.state.templates
+    client = request.app.state.triplestore_client
+
+    sparql = """
+    PREFIX dcterms: <http://purl.org/dc/terms/>
+    SELECT ?obj ?type WHERE {
+      GRAPH <urn:sempkm:current> {
+        ?obj a ?type .
+        FILTER NOT EXISTS { ?obj dcterms:isPartOf ?parent . }
+      }
+    }
+    """
+
+    try:
+        result = await client.query(sparql)
+        bindings = result.get("results", {}).get("bindings", [])
+    except Exception:
+        logger.warning("Failed to query hierarchy roots", exc_info=True)
+        bindings = []
+
+    # De-duplicate: pick first type per object
+    obj_types: dict[str, str] = {}
+    for b in bindings:
+        iri = b["obj"]["value"]
+        if iri not in obj_types:
+            obj_types[iri] = b["type"]["value"]
+
+    logger.debug("Hierarchy roots query returned %d objects", len(obj_types))
+
+    # Resolve labels and icons
+    obj_iris = list(obj_types.keys())
+    labels = await label_service.resolve_batch(obj_iris) if obj_iris else {}
+
+    objects = [
+        {
+            "iri": iri,
+            "label": labels.get(iri, iri),
+            "type_iri": type_iri,
+            "icon": icon_svc.get_type_icon(type_iri, context="tree"),
+        }
+        for iri, type_iri in obj_types.items()
+    ]
+
     return templates.TemplateResponse(
         request,
-        "browser/explorer_placeholder.html",
-        {
-            "request": request,
-            "mode_label": "Hierarchy",
-            "icon_name": "compass",
-        },
+        "browser/hierarchy_tree.html",
+        {"request": request, "objects": objects},
     )
 
 
@@ -153,6 +197,7 @@ async def explorer_tree(
     user: User = Depends(get_current_user),
     shapes_service: ShapesService = Depends(get_shapes_service),
     icon_svc: IconService = Depends(get_icon_service),
+    label_service: LabelService = Depends(get_label_service),
 ):
     """Return explorer tree content for the requested mode.
 
@@ -171,6 +216,7 @@ async def explorer_tree(
         request=request,
         shapes_service=shapes_service,
         icon_svc=icon_svc,
+        label_service=label_service,
     )
 
 
@@ -228,6 +274,76 @@ async def tree_children(
     context = {"request": request, "objects": objects, "type_icon": type_icon, "type_label": type_label}
     return templates.TemplateResponse(
         request, "browser/tree_children.html", context
+    )
+
+
+@workspace_router.get("/explorer/children")
+async def explorer_children(
+    request: Request,
+    parent: str,
+    user: User = Depends(get_current_user),
+    label_service: LabelService = Depends(get_label_service),
+    icon_svc: IconService = Depends(get_icon_service),
+):
+    """Return child objects of a parent IRI for hierarchy expansion.
+
+    Queries objects that have dcterms:isPartOf pointing to the parent.
+    Used by htmx lazy-loading in the hierarchy tree.
+    """
+    templates = request.app.state.templates
+    client = request.app.state.triplestore_client
+
+    if not _validate_iri(parent):
+        raise HTTPException(status_code=400, detail="Invalid IRI")
+
+    sparql = f"""
+    PREFIX dcterms: <http://purl.org/dc/terms/>
+    SELECT ?obj ?type WHERE {{
+      GRAPH <urn:sempkm:current> {{
+        ?obj dcterms:isPartOf <{parent}> .
+        ?obj a ?type .
+      }}
+    }}
+    """
+
+    try:
+        result = await client.query(sparql)
+        bindings = result.get("results", {}).get("bindings", [])
+    except Exception:
+        logger.warning(
+            "Failed to query hierarchy children for %s", parent, exc_info=True
+        )
+        bindings = []
+
+    # De-duplicate: pick first type per object
+    obj_types: dict[str, str] = {}
+    for b in bindings:
+        iri = b["obj"]["value"]
+        if iri not in obj_types:
+            obj_types[iri] = b["type"]["value"]
+
+    logger.debug(
+        "Hierarchy children query for %s returned %d objects", parent, len(obj_types)
+    )
+
+    # Resolve labels and icons
+    obj_iris = list(obj_types.keys())
+    labels = await label_service.resolve_batch(obj_iris) if obj_iris else {}
+
+    objects = [
+        {
+            "iri": iri,
+            "label": labels.get(iri, iri),
+            "type_iri": type_iri,
+            "icon": icon_svc.get_type_icon(type_iri, context="tree"),
+        }
+        for iri, type_iri in obj_types.items()
+    ]
+
+    return templates.TemplateResponse(
+        request,
+        "browser/hierarchy_children.html",
+        {"request": request, "objects": objects},
     )
 
 

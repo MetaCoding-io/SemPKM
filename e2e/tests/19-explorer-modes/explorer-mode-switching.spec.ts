@@ -3,7 +3,7 @@
  *
  * Tests the explorer mode dropdown and mode-switching behavior:
  * - Dropdown visible with three mode options, by-type default shows nav sections
- * - Switching to hierarchy shows placeholder content
+ * - Switching to hierarchy shows empty state or hierarchy nodes
  * - Switching to by-tag shows placeholder, switching back restores real tree
  * - Lazy expansion works after mode round-trip
  * - Multi-select state clears on mode switch
@@ -52,7 +52,7 @@ test.describe('Explorer Mode Switching', () => {
     await expect(placeholder).toHaveCount(0);
   });
 
-  test('switching to hierarchy shows placeholder', async ({ ownerPage }) => {
+  test('switching to hierarchy shows empty state or hierarchy nodes', async ({ ownerPage }) => {
     await ownerPage.goto(`${BASE_URL}/browser/`);
     await waitForWorkspace(ownerPage);
 
@@ -60,15 +60,29 @@ test.describe('Explorer Mode Switching', () => {
     await ownerPage.selectOption(SEL.explorer.modeSelect, 'hierarchy');
     await waitForIdle(ownerPage);
 
-    // Wait for the placeholder to appear
-    const placeholder = ownerPage.locator(SEL.explorer.placeholder);
-    await expect(placeholder).toBeVisible({ timeout: 5000 });
+    const treeBody = ownerPage.locator(SEL.explorer.treeBody);
 
-    // Placeholder should mention "Hierarchy"
-    await expect(placeholder).toContainText('Hierarchy');
+    // Placeholder (data-testid="explorer-placeholder") should NOT be present —
+    // hierarchy now returns real content or a descriptive empty state
+    const placeholder = treeBody.locator(SEL.explorer.placeholder);
+    await expect(placeholder).toHaveCount(0);
+
+    // Hierarchy mode should show either hierarchy nodes OR an empty-state message
+    const hierarchyNodes = treeBody.locator('[data-testid="hierarchy-node"]');
+    const emptyState = treeBody.locator('.tree-empty');
+
+    // At least one of the two must be visible
+    const nodeCount = await hierarchyNodes.count();
+    const emptyCount = await emptyState.count();
+    expect(nodeCount + emptyCount).toBeGreaterThanOrEqual(1);
+
+    // If empty state is shown, it should mention "hierarchy" (case-insensitive)
+    if (emptyCount > 0) {
+      const text = await emptyState.innerText();
+      expect(text.toLowerCase()).toContain('hierarchy');
+    }
 
     // Nav sections from by-type should NOT be present
-    const treeBody = ownerPage.locator(SEL.explorer.treeBody);
     const sections = treeBody.locator(SEL.nav.section);
     await expect(sections).toHaveCount(0);
   });
@@ -109,7 +123,10 @@ test.describe('Explorer Mode Switching', () => {
     // Switch to hierarchy then back to by-type
     await ownerPage.selectOption(SEL.explorer.modeSelect, 'hierarchy');
     await waitForIdle(ownerPage);
-    await expect(ownerPage.locator(SEL.explorer.placeholder)).toBeVisible({ timeout: 5000 });
+    // Hierarchy now shows real content or empty state (not placeholder)
+    const treeBody2 = ownerPage.locator(SEL.explorer.treeBody);
+    const hierarchyContent = treeBody2.locator('[data-testid="hierarchy-node"], .tree-empty');
+    await expect(hierarchyContent.first()).toBeVisible({ timeout: 5000 });
 
     await ownerPage.selectOption(SEL.explorer.modeSelect, 'by-type');
     await waitForIdle(ownerPage);

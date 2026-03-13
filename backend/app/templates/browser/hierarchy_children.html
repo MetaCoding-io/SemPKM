@@ -1,0 +1,27 @@
+{# Hierarchy children: objects with dcterms:isPartOf pointing to the parent.
+   Each child is a tree-node that can itself be expanded recursively.
+
+   Context:
+     objects: list of dicts with 'iri', 'label', 'type_iri', 'icon' keys
+              icon is {icon, color, size} from IconService.get_type_icon()
+#}
+{% if objects %}
+{% for obj in objects %}
+{% set safe_id = obj.iri | replace(':', '_') | replace('/', '_') | replace('#', '_') | replace('.', '_') %}
+<div class="tree-node" data-testid="hierarchy-node" data-iri="{{ obj.iri }}"
+     hx-get="/browser/explorer/children?parent={{ obj.iri | urlencode }}"
+     hx-trigger="click once"
+     hx-target="#hierarchy-children-{{ safe_id }}"
+     hx-swap="innerHTML">
+    <span class="tree-toggle">&#9656;</span>
+    <i data-lucide="{{ obj.icon.icon }}"
+       class="tree-node-icon"
+       style="color: {{ obj.icon.color }}; width: {{ obj.icon.size or 16 }}px; height: {{ obj.icon.size or 16 }}px; flex-shrink: 0;"></i>
+    <span class="tree-label"
+          onclick="event.stopPropagation(); handleTreeLeafClick(event, '{{ obj.iri }}', '{{ obj.label }}')">{{ obj.label }}</span>
+</div>
+<div id="hierarchy-children-{{ safe_id }}" class="tree-children"></div>
+{% endfor %}
+{% else %}
+<div class="tree-empty">No children</div>
+{% endif %}
