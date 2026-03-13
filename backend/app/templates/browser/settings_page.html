@@ -208,5 +208,16 @@
   if (typeof lucide !== 'undefined') {
     lucide.createIcons({ nodes: [document.getElementById('settings-page')] });
   }
+
+  // Deep-link: if URL hash points to a section, switch to it
+  // e.g. #vfs-mount-section → show virtual-filesystem category and scroll
+  var hash = window.location.hash;
+  if (hash === '#vfs-mount-section') {
+    window.showSettingsCategory('virtual-filesystem');
+    setTimeout(function () {
+      var el = document.getElementById('vfs-mount-section');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  }
 })();
 </script>
