@@ -1,8 +1,8 @@
 # GSD State
 
-**Active Milestone:** None
-**Active Slice:** None
-**Phase:** idle — ready for M004 planning
+**Active Milestone:** M004 — Ontology & Type System Completion
+**Active Slice:** None (roadmap planned, ready for S01)
+**Phase:** planned
 **Requirements Status:** 0 active · 81 validated · 4 deferred · 0 out of scope
 
 ## Milestone Registry
@@ -32,4 +32,4 @@
 - None
 
 ## Next Action
-Plan M004 from queued items.
+Plan and execute M004/S01 — Property Creation + Class Edit
