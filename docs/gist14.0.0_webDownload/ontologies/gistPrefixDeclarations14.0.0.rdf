@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE rdf:RDF [
+	<!ENTITY gist "https://w3id.org/semanticarts/ns/ontology/gist/">
+	<!ENTITY owl "http://www.w3.org/2002/07/owl#">
+	<!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+	<!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#">
+	<!ENTITY sh "http://www.w3.org/ns/shacl#">
+	<!ENTITY skos "http://www.w3.org/2004/02/skos/core#">
+	<!ENTITY xsd "http://www.w3.org/2001/XMLSchema#">
+]>
+<rdf:RDF
+	xmlns:gist="https://w3id.org/semanticarts/ns/ontology/gist/"
+	xmlns:owl="http://www.w3.org/2002/07/owl#"
+	xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+	xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+	xmlns:sh="http://www.w3.org/ns/shacl#"
+	xmlns:skos="http://www.w3.org/2004/02/skos/core#"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema#">
+	
+	<owl:Ontology rdf:about="https://w3id.org/semanticarts/ontology/gistPrefixDeclarations">
+		<owl:versionIRI rdf:resource="https://w3id.org/semanticarts/ontology/gistPrefixDeclarations14.0.0"/>
+		<skos:definition rdf:datatype="&xsd;string">Defines prefix declarations, which pair a prefix with a namespace, used in the gist ontology.</skos:definition>
+		<skos:prefLabel rdf:datatype="&xsd;string">gist Prefix Declarations</skos:prefLabel>
+		<skos:scopeNote rdf:datatype="&xsd;string">These prefixes are provided to support applications such as visualizers. Note that importing this file breaks OWL 2 DL conformance because SHACL is not an OWL ontology.</skos:scopeNote>
+		<gist:license rdf:datatype="&xsd;anyURI">https://creativecommons.org/licenses/by/4.0/</gist:license>
+	</owl:Ontology>
+	
+	<sh:PrefixDeclaration rdf:about="&gist;_PrefixDeclaration_gist">
+		<sh:namespace rdf:datatype="&xsd;anyURI">https://w3id.org/semanticarts/ns/ontology/gist/</sh:namespace>
+		<sh:prefix rdf:datatype="&xsd;string">gist</sh:prefix>
+	</sh:PrefixDeclaration>
+	
+	<sh:PrefixDeclaration rdf:about="&gist;_PrefixDeclaration_owl">
+		<sh:namespace rdf:datatype="&xsd;anyURI">http://www.w3.org/2002/07/owl#</sh:namespace>
+		<sh:prefix rdf:datatype="&xsd;string">owl</sh:prefix>
+	</sh:PrefixDeclaration>
+	
+	<sh:PrefixDeclaration rdf:about="&gist;_PrefixDeclaration_rdf">
+		<sh:namespace rdf:datatype="&xsd;anyURI">http://www.w3.org/1999/02/22-rdf-syntax-ns#</sh:namespace>
+		<sh:prefix rdf:datatype="&xsd;string">rdf</sh:prefix>
+	</sh:PrefixDeclaration>
+	
+	<sh:PrefixDeclaration rdf:about="&gist;_PrefixDeclaration_rdfs">
+		<sh:namespace rdf:datatype="&xsd;anyURI">http://www.w3.org/2000/01/rdf-schema#</sh:namespace>
+		<sh:prefix rdf:datatype="&xsd;string">rdfs</sh:prefix>
+	</sh:PrefixDeclaration>
+	
+	<sh:PrefixDeclaration rdf:about="&gist;_PrefixDeclaration_sh">
+		<sh:namespace rdf:datatype="&xsd;anyURI">http://www.w3.org/ns/shacl#</sh:namespace>
+		<sh:prefix rdf:datatype="&xsd;string">sh</sh:prefix>
+	</sh:PrefixDeclaration>
+	
+	<sh:PrefixDeclaration rdf:about="&gist;_PrefixDeclaration_skos">
+		<sh:namespace rdf:datatype="&xsd;anyURI">http://www.w3.org/2004/02/skos/core#</sh:namespace>
+		<sh:prefix rdf:datatype="&xsd;string">skos</sh:prefix>
+	</sh:PrefixDeclaration>
+	
+	<sh:PrefixDeclaration rdf:about="&gist;_PrefixDeclaration_xsd">
+		<sh:namespace rdf:datatype="&xsd;anyURI">http://www.w3.org/2001/XMLSchema#</sh:namespace>
+		<sh:prefix rdf:datatype="&xsd;string">xsd</sh:prefix>
+	</sh:PrefixDeclaration>
+
+</rdf:RDF>

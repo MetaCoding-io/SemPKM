@@ -73,7 +73,13 @@
       {% for p in cls.properties %}
       <tr>
         <td class="tbox-detail-key">{{ p.label }}</td>
-        <td class="tbox-detail-val">→ {{ p.range_label or '—' }}</td>
+        <td class="tbox-detail-val">→
+          {% if p.range_iri and 'XMLSchema' not in p.range_iri and p.range_label %}
+          <span class="tbox-detail-class-link" onclick="loadClassDetail('{{ p.range_iri }}')" title="{{ p.range_iri }}">{{ p.range_label }}</span>
+          {% else %}
+          {{ p.range_label or '—' }}
+          {% endif %}
+        </td>
       </tr>
       {% endfor %}
     </table>

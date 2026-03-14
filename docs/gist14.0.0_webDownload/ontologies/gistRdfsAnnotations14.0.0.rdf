@@ -1,0 +1,1636 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE rdf:RDF [
+	<!ENTITY gist "https://w3id.org/semanticarts/ns/ontology/gist/">
+	<!ENTITY owl "http://www.w3.org/2002/07/owl#">
+	<!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+	<!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#">
+	<!ENTITY xsd "http://www.w3.org/2001/XMLSchema#">
+]>
+<rdf:RDF
+	xmlns:gist="https://w3id.org/semanticarts/ns/ontology/gist/"
+	xmlns:owl="http://www.w3.org/2002/07/owl#"
+	xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+	xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema#">
+	
+	<rdf:Description rdf:about="https://w3id.org/semanticarts/ns/data/gist/_Aspect_altitude">
+		<rdfs:label rdf:datatype="&xsd;string">altitude</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The aspect altitude.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="https://w3id.org/semanticarts/ns/data/gist/_Aspect_area">
+		<rdfs:label rdf:datatype="&xsd;string">area</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The aspect area.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="https://w3id.org/semanticarts/ns/data/gist/_Aspect_duration">
+		<rdfs:label rdf:datatype="&xsd;string">duration</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The aspect duration.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="https://w3id.org/semanticarts/ns/data/gist/_Aspect_financial_balance">
+		<rdfs:label rdf:datatype="&xsd;string">balance</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The aspect financial balance.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="https://w3id.org/semanticarts/ns/data/gist/_Aspect_mass">
+		<rdfs:label rdf:datatype="&xsd;string">mass</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The aspect mass.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="https://w3id.org/semanticarts/ns/data/gist/_Aspect_monetary_value">
+		<rdfs:label rdf:datatype="&xsd;string">monetary value</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The aspect monetary value.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="https://w3id.org/semanticarts/ns/data/gist/_Aspect_probability">
+		<rdfs:label rdf:datatype="&xsd;string">probability</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The aspect probability.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="https://w3id.org/semanticarts/ns/data/gist/_Aspect_volume">
+		<rdfs:label rdf:datatype="&xsd;string">volume</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The aspect volume.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Account">
+		<rdfs:label rdf:datatype="&xsd;string">Account</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: An agreement having a balance.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A bank account, a credit card account, an accounts receivable account.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Address">
+		<rdfs:label rdf:datatype="&xsd;string">Address</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A reference to a place (real or virtual) that can be located by some routing algorithm and where messages or things can be sent or received.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A PO Box, a URL to a PDF file.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;AddressUsageType">
+		<rdfs:label rdf:datatype="&xsd;string">Address Usage Type</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A category indicating the context or manner in which an address may be used.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Billing, business, personal, postal, residence.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: If you are using temporal relations involving addresses, this category should be used to qualify the temporal relation rather than the address itself, since the same address may have different uses in different contexts, by different people and organizations, or at different times.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Agreement">
+		<rdfs:label rdf:datatype="&xsd;string">Agreement</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A mutually understood arrangement in which two or more parties make commitments to one another.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A gym membership is an agreement in which the member commits to paying the gym a certain price and the gym commits to allowing access to their facilities.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: While an agreement has two or more parties, and contains commitments which bind those parties, it will not always be necessary to instantiate each individual commitment.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Aspect">
+		<rdfs:label rdf:datatype="&xsd;string">Aspect</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A measurable characteristic.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Length, weight, cost, cycle time, defect rate.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Depending on implementation, every aspect should be related to a unit group either directly or through a broader aspect. For example, angle of incidence could be related to the broader concept of angle, which in turn is related to a unit group, or it could be related directly to the unit group without the hierarchical relationship.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Assignment">
+		<rdfs:label rdf:datatype="&xsd;string">Assignment</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A temporal relationship between an assignee, the thing assigned, and the resource that made the assignment.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: An employee is assigned to a task by a supervisor. A person is assigned to a position.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Based on the Open World Assumption, the assigner may not be asserted or known.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: For some assignments, such as the assignment of a person to a task, it may seem equally correct in ordinary speech to say it is an assignment of a task to a person. Since gist:isAssignmentTo and gist:isAssignmentOf have no formal domains or ranges, the choice of which predicate to use for which is left as an implementation decision. Consistency is a key consideration.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Behavior">
+		<rdfs:label rdf:datatype="&xsd;string">Behavior</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A category indicating the nature of an activity.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Drilling and cutting are two different kinds of manufacturing event.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Building">
+		<rdfs:label rdf:datatype="&xsd;string">Building</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A relatively permanent man-made structure situated on a plot of land, having a roof and walls, commonly used for dwelling, entertaining, or working.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A house, school, store, factory, chicken coop.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Negative examples: houseboats (not built on land), caves (not man-made), food trucks and RVs (not permanently situated).</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: User discretion can be applied to edge cases: e.g., is a traditional yurt &apos;relatively permanently situated&apos; although it is portable and has a tent-like construction?</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;BundledCatalogItem">
+		<rdfs:label rdf:datatype="&xsd;string">Bundled Catalog Item</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Any combination of descriptions of things offered together.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A kit containing several parts offered together; a product plus a warranty.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;CatalogItem">
+		<rdfs:label rdf:datatype="&xsd;string">Catalog Item</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A description of a product or service to be delivered, given in a sufficient level of detail that a receiver could determine whether delivery constituted discharge of the obligation to deliver.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: In short, an unambiguous characterization of what it is that a potential buyer is paying for.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Category">
+		<rdfs:label rdf:datatype="&xsd;string">Category</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A concept or label used to categorize other instances without specifying any formal semantics.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Tags used in folksonomies; formal definitions from other systems.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Often a type can be modeled either as an owl:Class or as a gist:Category. Use the latter if you don&apos;t care much about the formal structure of the different types, or if there is a whole hierarchy of types that are going to be managed by a group separate from the ontology developers. The formal structure may be defined elsewhere and linked to, if necessary.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Collection">
+		<rdfs:label rdf:datatype="&xsd;string">Collection</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A grouping of things.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A jury is a group of people; a financial ledger is a collection of transaction entries; a route is an (ordered) collection of segments.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Individuals are placed in the collection using the gist:isMemberOf property. Collections typically are created because the members are functionally connected in some way. This definition allows a collection to have zero members.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Commitment">
+		<rdfs:label rdf:datatype="&xsd;string">Commitment</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A promise made by a single party to one or more parties to do or not do something or act in a particular way.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Upon selling a treasury bill, the U.S. government makes a commitment to pay the purchaser a stated amount of money at a stated time.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: When signing an NDA, the signatory commits to keeping specified information confidential.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: A commitment is unilateral in that it is binding on only one party. This contrasts with gist:Agreement, which consists of commitments that bind two or more parties.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: A single commitment may be made to multiple parties at once; it is a single commitment rather than multiple commitments if the same action would fulfill the obligation to all the parties simultaneously. For example, a performer makes a single commitment to hold a performance to all ticket purchasers; by holding the performance, the commitment to all parties is fulfilled in a single action.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: The manner in which a commitment is binding may vary. In a business context, we are typically interested in commitments that are legally binding.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Component">
+		<rdfs:label rdf:datatype="&xsd;string">Component</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Something that, while having an independent existence, is inherently part of or designed to be part of a larger entity, such as a system or network.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: A component may be designed or intended as part of a whole without actually being so; e.g., a car steering wheel that is not installed in any car.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Many things are in a trivial sense a part of a larger thing, but are not considered components because they are not inherently part of that larger thing. For example, while a book may be part of a library (a collection of books), it is not inherently so, and thus is not a component. A playing card, on the other hand, could be considered a component in (member of) a deck of cards. This may be use case-dependent; e.g., car parts might be modeled as components in an automobile manufacturing context but not in a retail auto parts store.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Physical substances, such as ingredients in a cake batter, do not meet the independent existence criterion, so are not components.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This class is not disjoint with gist:Composite, because a component may itself break down into smaller components.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This is an abstract class that is not directly instantiated. Users will define subclasses that are meaningful to their domain of interest.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Composite">
+		<rdfs:label rdf:datatype="&xsd;string">Composite</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Something which is made up of various parts or elements that are independently identifiable.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A library (collection of books); a network of pipes and valves; a computer network of routers and computers.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Some composites, like systems, networks, and ordered collections, have internal organization, while others, such as unordered collections, typically do not.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This class is not disjoint with gist:Component, because a composite can itself be a component of a larger composite.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This is an abstract class that will not be directly instantiated.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;ContemporaryEvent">
+		<rdfs:label rdf:datatype="&xsd;string">Contemporary Event</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: An event that has started but has not yet ended.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: When the event actually ends, it will cease being contemporary.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Content">
+		<rdfs:label rdf:datatype="&xsd;string">Content</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Information available in some medium.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A document, program, image.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Categories are not content until they are written down.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;ContentExpression">
+		<rdfs:label rdf:datatype="&xsd;string">Content Expression</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Intellectual property reduced to text, audio, etc.  If it contains text (written or spoken), it will be expressed in a language.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;ContingentEvent">
+		<rdfs:label rdf:datatype="&xsd;string">Contingent Event</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: An event with a probability of happening in the future, and usually dependent upon some other event or condition.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A fire insurance payout is contingent on a particular building burning down; selling 20 shares of stock in a given company is contingent on the price dropping below $200/share; the death benefit payout on a life insurance policy is contingent on the death of the insured person.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;ContingentObligation">
+		<rdfs:label rdf:datatype="&xsd;string">Contingent Obligation</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: An obligation that is not yet firm. There is some contingent event whose occurrence will cause the obligation to become firm.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: A contingent obligation might have a getter counterparty (as in the case of insurance); but it might not (as in the case of an offer).</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Contract">
+		<rdfs:label rdf:datatype="&xsd;string">Contract</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: An agreement which can be enforced by law.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;ContractTerm">
+		<rdfs:label rdf:datatype="&xsd;string">Contract Term</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A specification of some aspect of a contract.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;ControlledVocabulary">
+		<rdfs:label rdf:datatype="&xsd;string">Controlled Vocabulary</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A collection of terms approved and managed by some organization or person.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: A controlled vocabulary is similar to a skos:ConceptScheme, but it could also be used for things that are not concepts, such as organizations, US presidents, geographic regions, etc. Hierarchical relationships between instances of the controlled vocabulary are possible.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;CountryGeoRegion">
+		<rdfs:label rdf:datatype="&xsd;string">Country Geographic Region</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A geographic region governed by exactly one country government.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;CountryGovernment">
+		<rdfs:label rdf:datatype="&xsd;string">Country Government</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A government organization which asserts both sovereignty (i.e., it is not governed by some other government organization) and governance over an entity generally recognized as a country.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: While a country government may enter into treaties with other country governments, there are no governing relationships among the treaty members.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;DegreeOfCommitment">
+		<rdfs:label rdf:datatype="&xsd;string">Degree Of Commitment</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The difficulty of reversing a commitment.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A car rental typically has a lower degree of commitment than an airfare reservation.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Determination">
+		<rdfs:label rdf:datatype="&xsd;string">Determination</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: An event whose purpose is to establish a specific result, value, or outcome, usually by research, measuring, evaluating, or calculating.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Measuring the sulphur content of crude oil; evaluating a loan application for approval; estimating the price of gas for the next three months; determining whether and by how much an interest rate should change; classifying a purchase into a budget category.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Discipline">
+		<rdfs:label rdf:datatype="&xsd;string">Discipline</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: An area of study or practice.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Finance, accounting, project management, acoustics, ballistics.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;ElectronicAddress">
+		<rdfs:label rdf:datatype="&xsd;string">Electronic Address</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">ALT: Virtual Address</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: An address referring to a locatable virtual place that does not physically exist but is made by software or electronics to appear to do so.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A file system path, website URL, IP address, email address, mobile or landline telephone number.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;ElectronicAddressType">
+		<rdfs:label rdf:datatype="&xsd;string">Electronic Address Type</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A category indicating a kind of electronic address. Such a category is usually based on the technology that enables routing to the address referent.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A URL, file system path, email address, mobile telephone number.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Equipment">
+		<rdfs:label rdf:datatype="&xsd;string">Equipment</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Human-made, tangible property other than land or buildings used to perform a task or activity.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A machine, a router, a car, a baseball bat.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;EquipmentType">
+		<rdfs:label rdf:datatype="&xsd;string">Equipment Type</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A category of equipment.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Event">
+		<rdfs:label rdf:datatype="&xsd;string">Event</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Something that occurs over a period of time, often characterized as an activity being carried out by some person, organization, or software application or brought about by natural forces.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A transaction, conference, baseball game, earthquake.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: An event does not necessarily have either planned or actual start or end datetimes. For example, a conference can be in the planning phase without any dates selected, but is nevertheless an (unscheduled) event. The subclasses of gist:Event state particular restrictions on planned and actual start and end dates.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: An event occurs during a time interval, which is distinct from the event.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;EventSpecification">
+		<rdfs:label rdf:datatype="&xsd;string">Event Specification</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A characterization of an event that might happen.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: An insurance company defines the characteristics of a weather event that must be satisfied for it to qualify as a hail storm covered in its homeowner&apos;s policy; a bank defines the point at which a borrower defaults on a loan.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This concept is useful for risk assessment and insurance policies.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;FormattedContent">
+		<rdfs:label rdf:datatype="&xsd;string">Formatted Content</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Content which is in a particular format.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: An HTML website, a PDF document, a JPG image.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Function">
+		<rdfs:label rdf:datatype="&xsd;string">Function</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The activity that a human-made item is intended to perform.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Transmit electricity, provide ballast, control ambient temperature.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;GeneralMediaType">
+		<rdfs:label rdf:datatype="&xsd;string">General Media Type</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The real-world media type for content.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Audio, still image, video, textual, physical (e.g., a statue), performance (e.g., a play), oil or pastel for a painting.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;GeoLocation">
+		<rdfs:label rdf:datatype="&xsd;string">Geographic Location</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A physical location, with the earth as a frame of reference.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: A geographic location may be a point, region, or volume.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;GeoPoint">
+		<rdfs:label rdf:datatype="&xsd;string">Geographic Point</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: An individual point on or above the Earth&apos;s surface, identified by latitude, longitude and altitude. Altitude is the distance measured from sea level. If altitude is missing, the point is assumed to be at the Earth&apos;s surface. These points are described using decimal latitude/longitude.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;GeoRegion">
+		<rdfs:label rdf:datatype="&xsd;string">Geographic Region</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A bounded region (or set of regions) on the surface of the Earth.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: The bounded shape that defines the region occupied by Crater Lake; the bounded area known as the contiguous USA.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: A geographic region could be non-contiguous; e.g., the region governed by the US federal government is the contiguous area of the lower 48 states plus Alaska, Hawaii, and overseas territories. Child classes in lower ontologies can make this distinction.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;GeoRoute">
+		<rdfs:label rdf:datatype="&xsd;string">Geographic Route</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: An ordered set of geographic points that defines a path from a starting point to an ending point.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: A geographic route could describe a bus route by identifying the points where the bus stops. A geographic route could describe the boundary of a polygonal geographic region (it does not have to be a travelled route).</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;GeoVolume">
+		<rdfs:label rdf:datatype="&xsd;string">Geographic Volume</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A three-dimensional space on or near the surface of the Earth, such as an oil reservoir, the body of a lake, or an airspace.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;GovernedGeoRegion">
+		<rdfs:label rdf:datatype="&xsd;string">Governed Geographic Region</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A geographic region governed by at least one government organization.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Geographic regions do not need not be physically contiguous in order to constitute a governed geographic region; e.g., Alaska and Hawaii are part of the region governed by the United States.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;GovernmentOrganization">
+		<rdfs:label rdf:datatype="&xsd;string">Government Organization</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: An independent organization exercising political and/or regulatory authority over a political unit, people, geographical region, etc., as well as performing certain functions for this unit or body.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Negative example: A corporation, which is owned and therefore not independent.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: The State of Washington Office of Financial Management; the Food and Drug Administration; the Scottish Parliament.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Includes administrative, regulatory, and enforcement organizations created or sanctioned by country or sub-country governments.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;HistoricalEvent">
+		<rdfs:label rdf:datatype="&xsd;string">Historical Event</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: An event which occurred in time, with an actual end earlier than the present moment.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;ID">
+		<rdfs:label rdf:datatype="&xsd;string">ID</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Content that is used to uniquely identify something or someone.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: SSN for a person; serial number for a product; employee ID for a person.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Used in conjunction with gist:isIdentifiedBy.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;IntellectualProperty">
+		<rdfs:label rdf:datatype="&xsd;string">Intellectual Property</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: An intangible work, invention, or concept, independent of its being expressed in text, audio, video, image, or live performance. IP can also be tacit knowledge, know-how, or skill.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: The Old Man and The Sea; the Page Rank algorithm; the brand Coca Cola.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: For literature this could be called the &apos;Work&apos;, except that &apos;work&apos; is a highly overloaded term (expenditure of energy, resource consumption, art).  Often the first expression precedes our recognition of the IP, but subsequent expressions are known to be derivatives of the IP, even if they are expression-to-expression translations (or copies).</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This concept includes works that are out of copyright or were never formally registered; the defining feature is not that it is legally protected but that it is an intangible creation of the human mind.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Intention">
+		<rdfs:label rdf:datatype="&xsd;string">Intention</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A goal, desire, or aspiration.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: The &apos;teleological&apos; aspect of a system that indicates things are done with a purpose.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;IntergovernmentalOrganization">
+		<rdfs:label rdf:datatype="&xsd;string">Intergovernmental Organization</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: An organization whose members are government organizations. This can comprise regional, municipal, state/province, or national level entities.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: The United Nations, the European Union, the Metropolitan Transit Authority.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;KnowledgeConcept">
+		<rdfs:label rdf:datatype="&xsd;string">Knowledge Concept</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: An abstract concept that arises from the distillation of experience. It is similar to a category but, rather than being a simple tag, it has rich structure.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Most domains will define a few subclasses, such as gene, protein, chemical, disease, subject matter, industry, method.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Some knowledge is about specific instances that already exist in the knowledge graph. We may have knowledge that Judge Jones is more lenient on repeat offenders in the morning; we may know that the earliest killing frost in Fort Collins is the last week of September.
+
+These fit the broader definition of knowledge, the distillation of experience. But they do not require any new instances.  Judge Jones and Fort Collins already exist and have a place in our knowledge graph.
+
+But some knowledge requires that we synthesize new instances in order to have a place to consolidate the knowledge.  A disease isn&apos;t a tangible thing, like a person or a building. A disease is a prediction that a person&apos;s health will decline in a predictable way (without treatment and with treatment). The number of diseases continues to grow as we collectively learn more and more granular distinctions. Lung cancer used to be a single disease, but now we have dozens of fine-grained distinctions; e.g., non-lymphoma small cell fusiform is different from alveolar adenocarcinoma because we now know the prognosis and treatment are different.
+
+This superclass is meant as a place for subclasses that will have the instances that represent the foci of the knowledge we have acquired. Note the distinction between a particular portion of, say, gold, which instantiates gist:PhysicalSubstance, and the concept of gold, which instantiates gist:KnowledgeConcept.
+
+In some ontologies what we are calling knowledge concepts are defined as classes; e.g., non-lymphoma small cell fusiform and alveolar adenocarcinoma would be two classes rather than two instances. But using a class makes it harder to connect the concept to other instances in a knowledge graph, and furthermore such classes would lack instances.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Landmark">
+		<rdfs:label rdf:datatype="&xsd;string">Landmark</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Something permanently attached to the Earth.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Language">
+		<rdfs:label rdf:datatype="&xsd;string">Language</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A recognized, organized set of symbols and grammar.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Natural languages such as English and Spanish; computer languages such as OWL, Python, and XML.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;LivingThing">
+		<rdfs:label rdf:datatype="&xsd;string">Living Thing</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Something that is currently, or at some point in time was, alive.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A cat, a mushroom, a tree.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Negative examples: fictional life forms such as unicorns or Mickey Mouse.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Not all life forms have exactly two parents, so the restriction only specifies a minimum of one.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Magnitude">
+		<rdfs:label rdf:datatype="&xsd;string">Magnitude</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The amount of a measurable characteristic (aspect).</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A model of car could have a wheelbase of 113.2 inches. In this example, the aspect is wheelbase, the unit of measure is inch, and the numeric value is 113.2.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: An accuracy can be assigned to a magnitude using the property has accuracy.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;MediaType">
+		<rdfs:label rdf:datatype="&xsd;string">Media Type</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A digitized type that computer applications can recognize.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: application/sparql-results+xml</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: The unique text for an IANA media type is the concatenation of the &apos;Type name&apos;, a slash &apos;/&apos;, and the &apos;Subtype name&apos; as provided on the page displayed when you resolve the URI of the media type.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Medium">
+		<rdfs:label rdf:datatype="&xsd;string">Medium</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A physical material on which a work can be rendered, represented, or implemented.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Paper, clay, a computer monitor.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Message">
+		<rdfs:label rdf:datatype="&xsd;string">Message</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A specific instance of content sent from a sender to at least one other recipient.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: An email, voice, or web service message; a phone call.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Network">
+		<rdfs:label rdf:datatype="&xsd;string">Network</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A composite consisting of nodes connected by links.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A physical network could include connected computers or routers, whereas a social network would consist of related person or organization members (or their proxies, such as accounts).</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;NetworkLink">
+		<rdfs:label rdf:datatype="&xsd;string">Network Link</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: An abstract representation of the connection between two or more nodes in a network.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A network link may be physical, such as pipes, wired or wireless networks, but may also be a link in a non-physical network, such as organizational structures or social networks.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Each newtork link is connected to a network node via the property gist:links or one of its subproperties.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;NetworkNode">
+		<rdfs:label rdf:datatype="&xsd;string">Network Node</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A node in a network.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A person&apos;s account is a node in a social network; a valve is a node in a network of pipes.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Offer">
+		<rdfs:label rdf:datatype="&xsd;string">Offer</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A contingent commitment to buy, sell, swap or provide one or more described or identified goods or services in exchange for another (or others).</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: An offer to sell a book for a given price; an offer to purchase real estate for a particular price; an offer to swap a sea kayak for a mountain bike; currency exchange. A donation may be modeled as an offer to receive money typically in exchange for $0.00, but sometimes for items of value such as coffee mugs or T-shirts.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Dates on an offer represent the time period the offer is valid for, as in &apos;25% off through October 25, 2025&apos;.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;OrderedCollection">
+		<rdfs:label rdf:datatype="&xsd;string">Ordered Collection</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A collection whose members are ordered in some way.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Includes partially ordered collections as well as collections in which members occupy the same position in a &apos;tie.&apos; All members of an ordered collection are ordered members.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;OrderedMember">
+		<rdfs:label rdf:datatype="&xsd;string">Ordered Member</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A member of an ordered collection serving as a proxy for a real world item, which can appear in different orders in different collections. The ordered member appears in exactly one ordered collection.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A person may rank 12th in the Boston Marathon but 29th in the New York City Marathon.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: An ordered member points to the real world item via the providesOrderFor property. Ordering information is represented either as a number in a sequence, or by preceding or following another ordered member.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Organization">
+		<rdfs:label rdf:datatype="&xsd;string">Organization</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A structured entity formed to achieve specific goals, typically involving members with defined roles.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Legal entities like companies; non-legal entities like clubs, committees, or departments.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Not all organizations have members, e.g. shell companies.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: While typically the members of organizations are people, in some cases they are other organizations; e.g., the members of the United Nations are country governments.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Permission">
+		<rdfs:label rdf:datatype="&xsd;string">Permission</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A description of things one is permitted to do.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Permission could be broad, such as free speech, but more often is very specific, such as the right to enter a particular property.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Person">
+		<rdfs:label rdf:datatype="&xsd;string">Person</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A human being who was or is alive.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Negative example: fictional characters.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;PhysicalActionType">
+		<rdfs:label rdf:datatype="&xsd;string">Physical Action Type</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A category indicating the type of an action based on its effect in the physical world.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Lifting a garage door, turning off a valve, dropping cadmium rods.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;PhysicalAddress">
+		<rdfs:label rdf:datatype="&xsd;string">Physical Address</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: An address that refers to a locatable place within the physical universe.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: 1600 Pennsylvania Avenue NW, Washington, DC 20500; PO Box 7704, San Francisco, CA 94120-7704; Room 317 in the Louvre Museum.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;PhysicalAddressType">
+		<rdfs:label rdf:datatype="&xsd;string">Physical Address Type</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A category indicating local customary characterizations of physical addresses.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Street address, PO box, FPO code.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;PhysicalEvent">
+		<rdfs:label rdf:datatype="&xsd;string">Physical Event</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: An event that can be said to have occurred at some place in space.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A meeting, a car accident.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Negative examples: Excludes events that have no meaningful location, such as financial events or project milestones.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;PhysicalIdentifiableItem">
+		<rdfs:label rdf:datatype="&xsd;string">Physical Identifiable Item</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A discrete physical object which, if subdivided, will result in parts that are distinguishable in nature from the whole and in general also from the other parts.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A computer, a book, a car.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This concept generally corresponds to count nouns in English. By contrast, physical substances, such as an amount of water, flour, or sand, are mass nouns. Physical identifiable items are made up of physical substances; e.g., a cake is made up of butter, flour, and sugar; a statue is made of bronze. If you divide a physical substance such as an amount of water into parts, you have two amounts of water otherwise indistinguishable from one another; if you divide a physical identifiable item such as a computer into parts, each part is different from the whole.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;PhysicalSubstance">
+		<rdfs:label rdf:datatype="&xsd;string">Physical Substance</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: An undifferentiated amount of physical material which, when subdivided, results in each part being indistinguishable in nature from the whole and from every other part.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: An amount of water, penicillin, sand, or gold.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Negative example: the concept of gold.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: An instance of this class has weight and takes up space. We mean the physical gold in a ring, not the concept of gold that shows up in the periodic table. The latter would be an instance of gist:KnowledgeConcept.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This concept generally corresponds to mass nouns in English. By contrast, instances of PhysicalIdentifiableItem, such as a computer, book, or car, are count nouns. PhysicalIdentifiableItems are made up of PhysicalSubstances; e.g., a cake is made up of butter, flour, and sugar; a ring is made of gold. If you divide a PhysicalSubstance such as an amount of water into parts, you have different amounts of water otherwise indistinguishable from one another; if you divide a PhysicalIdentifiableItem such as a computer into parts, each part will be distinguishable from the original whole.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;ProductCategory">
+		<rdfs:label rdf:datatype="&xsd;string">Product Category</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Any of many ways of categorizing products.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Automobile models, NATO product codes.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;ProductSpecification">
+		<rdfs:label rdf:datatype="&xsd;string">Product Specification</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Offering something which could be physically warehoused or digitally stored.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Project">
+		<rdfs:label rdf:datatype="&xsd;string">Project</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A task, usually of longer duration, made up of other tasks.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Designing an insurance product; adding a new feature to a software application; assessing the level of risk for a mortgage application.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;ReferenceValue">
+		<rdfs:label rdf:datatype="&xsd;string">Reference Value</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A magnitude that was neither measured nor estimated but set by fiat.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: The sales goal for a company.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;RenderedContent">
+		<rdfs:label rdf:datatype="&xsd;string">Rendered Content</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Content which has been physically expressed.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Words printed on paper; audio played on speakers; images displayed on monitors.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Requirement">
+		<rdfs:label rdf:datatype="&xsd;string">Requirement</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The obligation of a person or organization to behave in a certain way.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: In the US, drivers must drive on the right side of the road.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Restriction">
+		<rdfs:label rdf:datatype="&xsd;string">Restriction</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A description of things one is prevented from doing.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: In the US, tax laws restrict the amount of money a person can put in retirement accounts over the course of a year.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;ScheduledEvent">
+		<rdfs:label rdf:datatype="&xsd;string">Scheduled Event</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: An event with a planned start datetime.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: If the event already started, but has not yet ended, it is a contemporary event with an actual start datetime. If the event is over, it is a historical event having an actual end datetime. The event always retains its planned start datetime, and thus continues to be a scheduled event.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;ScheduledTask">
+		<rdfs:label rdf:datatype="&xsd;string">Scheduled Task</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A task with a planned start datetime.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: If work on the task has already started, but has not yet ended, it will have an actual start datetime. If the task is completed, it will also have an actual end datetime. The task always retains its planned start time, and thus continues to be a scheduled task.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;SchemaMetaData">
+		<rdfs:label rdf:datatype="&xsd;string">Schema Meta Data</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Superclass for all types of metadata.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Relational concepts, such as tables and columns; tool inputs, such as queries and R2RML maps.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: The definition of this class needs additional work.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;ServiceSpecification">
+		<rdfs:label rdf:datatype="&xsd;string">Service Specification</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A description of something that can be done for a person or organization (which produces some form of an act).</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Specification">
+		<rdfs:label rdf:datatype="&xsd;string">Specification</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: One or more characteristics that specify what it means to be a particular type of thing, such as a material, product, service or event. A specification is sufficiently precise to allow evaluating conformance to the specification.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: The specification of the iPhone 14; hypothetical events covered by a homeowner&apos;s insurance policy.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Although a characterization of how to do something is often called a specification, the intended meaning here is limited to specifying what something is. The focus is on the what, not the how. Use gist:TaskTemplate for specifying the how, such as a plan or process specification.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;SubCountryGovernment">
+		<rdfs:label rdf:datatype="&xsd;string">Sub-Country Government</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The government of a governed geographic region other than a country which is under the direct or indirect control of a country government.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Note that the predicate gist:isGovernedBy is used both for the relationship a governed geographic region has to its government and for the relationship a sub-region government has to the government of the larger region.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: There are many types of sub-regions of a country and the governments thereof (as well as different terms, like &apos;province&apos; and &apos;state,&apos; which refer to essentially the same type of thing). We should not automatically assume &apos;state,&apos; &apos;county,&apos; and &apos;city.&apos; Subclasses or categories can be defined if greater specificity is needed.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This class applies only to organizations governing geographic regions. Regulatory and bureaucratic organizations are members of the more generic gist:GovernmentOrganization class.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;System">
+		<rdfs:label rdf:datatype="&xsd;string">System</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A composite with component parts that contribute to the goal of the system.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Tag">
+		<rdfs:label rdf:datatype="&xsd;string">Tag</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A term in a folksonomy used to categorize things. Tags can be made up on the fly by users.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Whether to use gist:containedText or gist:uniqueText on tags is an implementation decision. Since the latter is a subproperty of the former, the restriction remains valid either way.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Task">
+		<rdfs:label rdf:datatype="&xsd;string">Task</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: An activity or piece of work that is either proposed, planned, scheduled, underway, or completed.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Something that could potentially be executed, which is merely described but not proposed in any specific way, such as a business process for onboarding a new employee, or the steps in a recipe for making polyethylene from ethylene, is not a task but rather a task template.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This term is broader than the English word &apos;task,&apos; which implies assignment, responsibility, or duty. In ordinary English going to a concert has a goal but is (generally) done for pleasure rather than out of obligation, and would not be considered a task, while according to the gist definition it is a task. The expansion of meaning is deliberate, so that anything that has a goal and can be specified by a task template is a task.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Use the property gist:isBasedOn to link a task back to the task template.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;TaskTemplate">
+		<rdfs:label rdf:datatype="&xsd;string">Task Template</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: An outline of a task of a particular type, which is the basis for executing such tasks.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A business process for onboarding new employees.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: A task template may define a single activity or a series of activities; the level of granularity can be varied according to use case. For example, in a new employee onboarding process, signing up for benefits might be one activity, or it might be broken down into signing up for health insurance, signing up for dental insurance, etc.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Use the property isBasedOn to link the Task back to the TaskTemplate.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Template">
+		<rdfs:label rdf:datatype="&xsd;string">Template</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Something used to make objects in its own image.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A die in manufacturing is used to make stamped parts; a form provides a structure and fields to be filled in; a cookie cutter is a template for cookies.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Use gist:isBasedOn to link the object made from the template back to the template.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;TemporalRelation">
+		<rdfs:label rdf:datatype="&xsd;string">Temporal Relation</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A relationship existing for a period of time.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: The relationship between a person and their employer; the relationship between a person or business and an address.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: A temporal relation must have a minimum of two participants. For example, both the employer and the employee are participants in a temporal relation representing a period of employment. Note that &apos;participant&apos; does not imply agency; a non-sentient being can participate in a temporal relation. For example, both a person and a house could be participants in a hypothetical relation &apos;lives at.&apos;</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Text">
+		<rdfs:label rdf:datatype="&xsd;string">Text</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Content expressed as words and numbers.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Negative example: graphical content.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;TimeInterval">
+		<rdfs:label rdf:datatype="&xsd;string">Time Interval</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A span of time with a known start time, end time, and duration. As long as two of the three are known, the third can be inferred.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: 7pm to 9pm on Jan 1, 2001; fiscal year 2023 (according to some particular definition of fiscal year); the week starting at midnight of January 12, 2023 and lasting exactly 168 hours.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: An ongoing state of affairs with an unknown end time in the future cannot be a time interval; e.g. the lifespan of a living person cannot be a time interval, as the end time is unknown.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This is distinct from a duration, which describes how long a time interval lasts (e.g., one hour; 3 days; 22 minutes).</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;Transaction">
+		<rdfs:label rdf:datatype="&xsd;string">Transaction</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: An exchange or transfer of goods, services, or funds.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Different sorts of transactions can have different datetime precisions. For example, an electronic transaction would have a gist:actualEndMicrosecond.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;UnitGroup">
+		<rdfs:label rdf:datatype="&xsd;string">Unit Group</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A collection of units of measure that can all be used to measure the same aspects.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: The units of measure bit, byte, kilobit, kilobyte, etc. are all in the same unit group because they can all be used to measure an amount of data.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Typically there is one unit group per aspect. An example of an aspect with two unit groups is vehicle efficiency, which can be measured by miles per gallon (distance per volume) or by liters per 100 kilometers (volume per distance). These two units of measure need to be in different unit groups because they have different values of exponents. When adding a unit of measure to a unit group, make sure it has the same exponents as the other members of the unit group.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;UnitOfMeasure">
+		<rdfs:label rdf:datatype="&xsd;string">Unit of Measure</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A standard amount used to measure or specify things.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: An acre is a unit for measuring area.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;actualEndDate">
+		<rdfs:label rdf:datatype="&xsd;string">actual end date</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The actual date that something ended, with precision of one day.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: &apos;2021-06-01T00:00:00-6:00&apos;^^xsd:dateTime</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Used for things where the precision of a date is sufficient, such as most projects, tasks, and the like. Recommended usage is to zero out the hours through microseconds to avoid spurious precision.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;actualEndDateTime">
+		<rdfs:label rdf:datatype="&xsd;string">actual end date time</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The actual date and time that something ended, with no implied precision.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This is an abstraction over the various precisions of actual end time, and is not expected to be asserted directly. Values of predicates with different precisions can be compared since they are all formally xsd:datetimes.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;actualEndMicrosecond">
+		<rdfs:label rdf:datatype="&xsd;string">actual end microsecond</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The actual time that something ended, expressed as a system time used for timestamps.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: &apos;2021-06-01T08:03:27.12324-6:00&apos;^^xsd:dateTime</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: A system time will be as precise as the system can supply, typically at least milliseconds, sometimes microseconds. The convention for timestamps, such as recording a transaction, is to specify just the end point; the start time is rarely needed.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;actualEndMinute">
+		<rdfs:label rdf:datatype="&xsd;string">actual end minute</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The actual date and time that something ended, with precision of one minute.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: &apos;2021-06-01T08:32:00-6:00&apos;^^xsd:dateTime</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Used for things like meetings and time card entries, where the hour and minute are important. Recommended usage is to zero out the seconds and microseconds to avoid spurious precision.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;actualEndYear">
+		<rdfs:label rdf:datatype="&xsd;string">actual end year</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The actual date that something ended, with precision of one year.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: &apos;2021-01-01T00:00:00-6:00&apos;^^xsd:dateTime</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: The tenure of the previous chairman of the board ended in 2021.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Used for things where the precision of a year is sufficient. Recommended usage is to zero out the hours through microseconds to avoid spurious precision. Note that it is not valid to zero out months and days, so arbitrary values must be included.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;actualStartDate">
+		<rdfs:label rdf:datatype="&xsd;string">actual start date</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The actual date that something started, with precision of one day.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: &apos;2021-06-01T00:00:00-6:00&apos;^^xsd:dateTime</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Used for things where the precision of a date is sufficient, such as most projects, tasks, and the like. Recommended usage is to zero out the hours through microseconds to avoid spurious precision.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;actualStartDateTime">
+		<rdfs:label rdf:datatype="&xsd;string">actual start date time</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The actual date and time that something started, with no implied precision.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This is an abstraction over the various precisions of actual start time, and is not expected to be asserted directly. Values of predicates with different precisions can be compared since they are all formally xsd:datetimes.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;actualStartMicrosecond">
+		<rdfs:label rdf:datatype="&xsd;string">actual start microsecond</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The actual time that something started, expressed as a system time used for timestamps.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: &apos;2021-06-01T08:03:27.12324-6:00&apos;^^xsd:dateTime</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: A system time will be as precise as the system can supply, typically at least milliseconds, sometimes microseconds. The convention for timestamps, such as recording a transaction, is to specify just the end point; the start time is rarely needed. This property is defined for the cases when you do need to capture the runtime of a system process, and is then used in conjunction with gist:actualEndMicrosecond.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;actualStartMinute">
+		<rdfs:label rdf:datatype="&xsd;string">actual start minute</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The actual date and time that something started, with precision of one minute.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: &apos;2021-06-01T08:32:00-6:00&apos;^^xsd:dateTime</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Used for things like meetings and time card entries, where the hour and minute are important. Recommended usage is to zero out the seconds and microseconds to avoid spurious precision.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;actualStartYear">
+		<rdfs:label rdf:datatype="&xsd;string">actual start year</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The actual date that something started, with precision of one year.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: &apos;2021-01-01T00:00:00-6:00&apos;^^xsd:dateTime</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: The tenure of the current chairman of the board began in 2021.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Used for things where the precision of a year is sufficient. Recommended usage is to zero out the hours through microseconds to avoid spurious precision. Note that it is not valid to zero out months and days, so arbitrary values must be included.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;allows">
+		<rdfs:label rdf:datatype="&xsd;string">allows</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates a permission to a particular activity or type of activity it allows.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: An easement grants a right to cross or otherwise use someone else&apos;s land for a specified purpose.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;atDateTime">
+		<rdfs:label rdf:datatype="&xsd;string">at date time</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The date and time at which something did or will occur, with variants for precision, start and end, and actual vs. planned.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This is the top level property for asserting time, and is not expected to be asserted directly.
+
+The subproperties allow the ontologist to do three things:
+1) Distinguish start and end times.
+2) Indicate whether a time is planned or actual. This is useful for everything from project management to calendar appointments and the like. It is also useful for date effectivities; i.e., something valid up to a planned date).
+3) Distinguish varying levels of precision; sort of a simple version of the Allen functions.
+
+All datetimes are of the same format: &apos;2021-06-01T08:03:27.12324-6:00&apos;^^xsd:dateTime. This is compatible with and a subset of ISO 8601.
+
+Time zone offset, such as -6:00 (of which there are a few dozen) is recognized in the date itself, as shown. The actual time zone standard (of which there are 131) may optionally be attached to the event or other object itself.
+
+There will be many historical dates that do not have a time zone offset (e.g., Lincoln&apos;s birthday, as well as about 75% of all legacy systems), and in that case the offset can be omitted.
+
+The conventions for precision that are repeated in each property name are as follows:
+	- *DateTime is an abstraction over the various precisions of its subproperties.
+	- *Date refers to a calendar date (e.g., birthdays and invoice dates) and is assumed to have precision of one day. Time zone offset is allowed.
+	- *Minute refers to clock time; e.g., a meeting will start at 9:15 with a timezone offset. Precision is assumed to have precision of one minute.
+	- *Microsecond refers to system time, and it will be as precise as the system can supply; typically at least milliseconds, sometime microseconds.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;birthDate">
+		<rdfs:label rdf:datatype="&xsd;string">birth date</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The date some living thing was or will be born, with precision of one day.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: &apos;2021-06-01T00:00:00-6:00&apos;^^xsd:dateTime</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This is a subproperty of gist:startDateTime rather than gist:actualStartDate because some living things have yet to be born. This property refers to a calendar date and is assumed to precision of one day (time zone offset is allowed). It is recommended to zero out the hours through microseconds to avoid spurious precision. Implementations requiring a birthdate to the minute can define a subproperty.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;comesFromAgent">
+		<rdfs:label rdf:datatype="&xsd;string">comes from agent</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates something to the originating agent.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A package is shipped by a person; a purchase order is emailed to a vendor by an organization.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This is not the inverse of gist:goesToAgent, as both properties have the message or shipment as the subject.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This property is intended to describe the physical or electronic transfer of something, such as a package or email, from one agent to another, whereas gist:hasGiver is typically used in more abstract contexts such as agreements, obligations, contracts, etc. However, there are contexts in which either may be appropriate, such as the giving of a gift.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;comesFromPlace">
+		<rdfs:label rdf:datatype="&xsd;string">comes from place</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates something to its place of origin.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A letter has a return address indicating its origin; a delivery route originates at a distribution center; a trail originates at the trailhead.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;conformsTo">
+		<rdfs:label rdf:datatype="&xsd;string">conforms to</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The subject is consistent with or satisfies the requirements, rules, or expectations established by the object.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Meet an obligation; adhere to a specification or standard; meet terms and conditions of an offer; comply with a regulation.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;containedText">
+		<rdfs:label rdf:datatype="&xsd;string">contained text</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A string that is closely associated with an individual.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: The string associated with a tag or with text content.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;contributesTo">
+		<rdfs:label rdf:datatype="&xsd;string">contributes to</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates a part of a system to the system whose goals or function it contributes to.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;conversionFactor">
+		<rdfs:label rdf:datatype="&xsd;string">conversion factor</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A value that relates a unit of measure to units of the International System of Units.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: In the equation 1 inch = 0.0254 meters, the value 0.0254 is the conversion factor of inch.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: To convert a numeric value from one unit of measure to another, multiply by the conversion factor of the first unit and then divide by the conversion factor of the second unit.
+
+	For example, to convert 27 feet to yards:
+
+		the conversion factor of foot is 0.3048
+		the conversion factor of yard is 0.9144
+
+		so
+
+		27 feet = (27 x 0.3048) / 0.9144 = 9 yards</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;conversionOffset">
+		<rdfs:label rdf:datatype="&xsd;string">conversion offset</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: 
+		A value used along with a conversion factor to relate a unit to its corresponding unit in the International System of Units. In the equation below, the conversion offset is 459.669607 and the conversion factor is 5/9.
+
+		y degrees Fahrenheit = (y + 459.669607) x 5/9 degrees Kelvin
+
+		To convert from Fahrenheit to Kelvin, first add the offset and then multiply by the conversion factor.
+
+		To convert from Kelvin to Fahrenheit, reverse the steps: first divide by the conversion factor and then subtract the offset.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;deathDate">
+		<rdfs:label rdf:datatype="&xsd;string">death date</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The date some living thing died.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: &apos;2021-06-01T00:00:00-6:00&apos;^^xsd:dateTime</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Refers to a calendar date and is assumed to have precision of one day (time zone offset is allowed). Recommended usage is to zero out the hours through microseconds to avoid spurious precision. Implementations requiring a death date to the minute can define a subproperty.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;description">
+		<rdfs:label rdf:datatype="&xsd;string">description</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A statement about someone or something&apos;s attributes or characteristics.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: &apos;The Empire State Building is a 102-story Art Deco skyscraper in midtown Manhattan in New York City. It was designed by Shreve, Lamb &amp; Harmon and built from 1930 to 1931.&apos;</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A person does not have a definition, but might be described as being six feet tall with brown hair and blue eyes; an ontology class or taxonomy term has a definition.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This property is used to describe instance data which is not part of the ontology. A definition and a description have different semantics. Use skos:definition for a statement of the meaning of a thing and gist:description to describe a thing&apos;s attributes, characteristics, or features.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;domainIncludes">
+		<rdfs:label rdf:datatype="&xsd;string">domain includes</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates a property to a class that the property is expected to be used on.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: The domain of the property gist:containedText includes gist:Tag and gist:Text.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: There may be multiple domainIncludes assertions on a single property.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This property is used to guide the ontology user; like all annotation properties, it does not play a role in inference.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;encryptedText">
+		<rdfs:label rdf:datatype="&xsd;string">encrypted text</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Encoded text produced from readable data by an algorithm so that it can only be understood or restored with a decryption key.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;endDateTime">
+		<rdfs:label rdf:datatype="&xsd;string">end date time</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The date and time that something ends.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This property is neutral along two dimensions: precision (e.g., day, second, millisecond) and actual vs. planned. As such, it will generally not be asserted directly except in special cases (e.g., for time intervals).</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Values of predicates with different precisions can be compared since they are all formally xsd:datetimes.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;exponentOfAmpere">
+		<rdfs:label rdf:datatype="&xsd;string">exponent of ampere</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The exponent of ampere in a product of powers of base units.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: In the equation &apos;1 milliampere = 0.001 x ampere&apos;
+
+		the conversionFactor for milliampere is 0.001
+		the exponent of ampere is 1
+		all other exponents are zero
+
+		Every member of a unit group containing milliampere must be a multiple of ampere.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;exponentOfBit">
+		<rdfs:label rdf:datatype="&xsd;string">exponent of bit</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The exponent of bit in a product of powers of base units.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: In the equation &apos;1 megabit per second = 1000000 x bit per second&apos;
+
+		the conversion factor for megabit per second is 1000000
+		the exponent of bit is 1
+		the exponent of second is -1
+		all other exponents are zero
+
+		Every member of a unit group containing megabit per second must be a multiple of bit per second.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;exponentOfCandela">
+		<rdfs:label rdf:datatype="&xsd;string">exponent of candela</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The exponent of candela in a product of powers of base units.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: In the equation &apos;1 candlepower = 1 x candela&apos;
+
+		the conversion factor for candlepower is 1
+		the exponent of candela is 1
+		all other exponents are zero
+
+		Every member of a unit group containing candlepower must be a multiple of candela.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;exponentOfKelvin">
+		<rdfs:label rdf:datatype="&xsd;string">exponent of Kelvin</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The exponent of Kelvin in a product of powers of base units.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: In the equation &apos;y degrees Fahrenheit = (y + 459.6669607) x 5/9 degrees Kelvin&apos;
+
+		the conversion offset for degree Fahrenheit is 459.6669607
+		the conversion factor for degree Fahrenheit is 5/9
+		the exponent of Kelvin is 1
+		all other exponents are zero
+
+		Every member of a unit group containing degree Fahrenheit will have a similar equation, with different offset or conversion factor (or both).</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;exponentOfKilogram">
+		<rdfs:label rdf:datatype="&xsd;string">exponent of kilogram</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The exponent of kilogram in a product of powers of base units.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: In the equation &apos;1 millimole per gram = 1 x mole per kilogram&apos;
+
+		the conversion factor for millimole per gram is 1
+		the exponent of mole is 1
+		the exponent of kilogram is -1
+		all other exponents are zero
+
+		Every member of a unit group containing millimole per gram must be a multiple of mole per kilogram.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;exponentOfMeter">
+		<rdfs:label rdf:datatype="&xsd;string">exponent of meter</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The exponent of meter in a product of powers of base units.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: In the equation &apos;1 microgram per milliliter = 0.001 x kilogram per meterCubed&apos;
+
+		the conversion factor for microgram per milliliter is 0.001
+		the exponent of kilogram is 1
+		the exponent of meter is -3
+		all other exponents are zero
+
+		Every member of a unit group containing microgram per milliliter must be a multiple of kilogram per meterCubed.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;exponentOfMole">
+		<rdfs:label rdf:datatype="&xsd;string">exponent of mole</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The exponent of mole in a product of powers of base units.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: In the equation &apos;1 katal = 1 x mole per second&apos;
+
+		the conversion factor for katal is 1
+		the exponent of mole is 1
+		the exponent of second is -1
+		all other exponents are zero
+
+		Every member of a unit group containing katal must be a multiple of mole per second.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;exponentOfNumber">
+		<rdfs:label rdf:datatype="&xsd;string">exponent of number</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The exponent of number in a product of powers of base units.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: In the equation &apos;1 beat per minute = 0.016667 x number per second&apos;
+
+		the conversion factor for beat per minute is 0.016667
+		the exponent of number is 1
+		the exponent of second is -1
+		all other exponents are zero
+
+		Every member of a unit group containing beat per minute must be a multiple of number per second.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Use when the unit of measure involves a count or other number.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;exponentOfOther">
+		<rdfs:label rdf:datatype="&xsd;string">exponent of other</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Indicates whether a unit of measure can be expressed in terms of the standard exponents (as shown in the examples).</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Decibel, pH, and octave are units of measure that are logarithmic. Their unit groups have exponent of other = 1.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Set the value to 0 if the units of measure in the unit group can be expressed using the standard set of exponents (as in the examples).
+
+		Otherwise set the value to 1, which typically means the units of measure in the group use a logarithmic scale.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;exponentOfRadian">
+		<rdfs:label rdf:datatype="&xsd;string">exponent of radian</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The exponent of radian in a product of powers of base units.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: In the equation &apos;1 revolution = 6.283 x radian&apos;
+
+		the conversion factor for revolution is 6.283
+		the exponent of radian is 1
+		all other exponents are zero
+
+		Every member of a unit group containing revolution must be a multiple of radian.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;exponentOfSecond">
+		<rdfs:label rdf:datatype="&xsd;string">exponent of second</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The exponent of second in a product of powers of base units.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: In the equation &apos;1 watt-hour = 3600 x kilogram meterSquared per secondSquared&apos;
+
+		the conversion factor for watt-hour is 3600
+		the exponent of kilogram is 1
+		the exponent of meter is 2
+		the exponent of second is -2
+		all other exponents are zero
+
+		Every member of a unit group containing watt-hour must be a multiple of kilogram meterSquared per secondSquared.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;exponentOfSteradian">
+		<rdfs:label rdf:datatype="&xsd;string">exponent of steradian</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The exponent of steradian in a product of powers of base units.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: In the equation &apos;1 watt per square meter steradian = 1 x kilogram per secondCubed steradian&apos;
+
+		the conversion factor for watt per square meter steradian is 1
+		the exponent of kilogram is 1
+		the exponent of second is -3
+		the exponent of steradian is -1
+		all other exponents are zero
+
+		Every member of a unit group containing watt per square meter steradian must a multiple of kilogram per secondCubed steradian.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Steradian is a measure of solid angle.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;exponentOfUSDollar">
+		<rdfs:label rdf:datatype="&xsd;string">exponent of US dollar</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The exponent of US Dollar in a product of powers of base units.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: In the equation &apos;1 million dollars per week = 1.65344 x dollar per second&apos;
+
+		the conversion factor for million dollars per week is 1.65344
+		the exponent of US Dollar is 1
+		the exponent of second is -1
+		all other exponents are zero
+
+		Every member of a unit group containing million dollars per week must be a multiple of dollar per second.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: The factors for converting from one currency to another change constantly.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;goesToAgent">
+		<rdfs:label rdf:datatype="&xsd;string">goes to agent</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates something to the agent that receives it.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A package is sent to a person; a purchase order email is received by a vendor.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This is not the inverse of gist:comesFromAgent, as both properties have the message or shipment as the subject.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This property is intended to describe the physical or electronic transfer of something, such as a package or email, from one agent to another, whereas gist:hasRecipient is typically used in more abstract contexts such as agreements, obligations, contracts, etc. However, there are contexts in which either may be appropriate, such as the recieving of a gift.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;goesToPlace">
+		<rdfs:label rdf:datatype="&xsd;string">goes to place</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates something to its destination place.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A letter has an address indicating its destination; a segment of a delivery route terminates at a delivery location; a trail terminates at an intersection with another trail.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;hasAccuracy">
+		<rdfs:label rdf:datatype="&xsd;string">has accuracy</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates a magnitude to another magnitude that describes its accuracy.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Temperature accurate to tenth of a degree C; length accurate to the nearest centimeter.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: gist uses the ISO-5725 definition of accuracy, which is a combination of trueness (a measure of systemic error) and precision (a measure of random error). The accuracy of a measurement method describes how close its measurements are to actual values. Similarly, the accuracy of an individual measurement is its likely closeness to the actual value. When we say a temperature measurement is accurate to within a tenth of a degree, it means with a certain probability such as 95%.
+
+Note that the unit of measure of the accuracy has to be compatible with the unit of measure of the original magnitude (e.g. something measured in meters could have a accuracy in terms of millimeters or any other unit that measures distance).</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;hasAddend">
+		<rdfs:label rdf:datatype="&xsd;string">has addend</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates an aspect to another aspect that is an additive component of it.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: In the equation &apos;profit = revenue - expenses&apos;, revenue is an addend and expenses is a subtrahend.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Commonly used with financial metrics.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;hasAddress">
+		<rdfs:label rdf:datatype="&xsd;string">has address</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates something to its physical or electronic address.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A brick-and-mortar store has a street address; a person can be contacted electronically via an email address.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;hasAspect">
+		<rdfs:label rdf:datatype="&xsd;string">has aspect</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates a magnitude to its aspect (measurable characteristic).</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;hasBiologicalParent">
+		<rdfs:label rdf:datatype="&xsd;string">has biological parent</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates a living thing to its biological parent.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;hasBroader">
+		<rdfs:label rdf:datatype="&xsd;string">has broader</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates a thing to another thing with a broader meaning.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: The aspect distance is broader than the aspect height.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;hasDirectBroader">
+		<rdfs:label rdf:datatype="&xsd;string">has direct broader</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates a thing to another thing with a broader meaning, when there is no intermediate between them.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Unlike gist:hasBroader, this property is not transitive. It is safest to use this property when semantic directness is inherent in the relationship. Otherwise, there is a risk of making a hasDirectBroader assertion and then later inserting an intermediate part; this will result in making an asserted triple false even though there was no change in the world. When in doubt, use the transitive version gist:hasBroader.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;hasDivisor">
+		<rdfs:label rdf:datatype="&xsd;string">has divisor</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates a unit of measure to another unit of measure that is a divisor, or relates an aspect to another aspect that is a divisor.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Miles per hour has miles as a multiplier and hour as a divisor; speed has distance as a multiplier and duration as a divisor.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Provides a supplemental method of decomposing a unit of measure or an aspect into component factors. Enables dimensional analysis such as miles per hour x hours = miles.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;hasGiver">
+		<rdfs:label rdf:datatype="&xsd;string">has giver</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates something to the participant that provides it.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: An offer is made by a giver; an obligation has a giver who is obligated to another person; a gift is presented by the giver.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This property is often used in abstract contexts such as agreements, obligations, contracts, etc., whereas gist:comesFromAgent is intended to describe the physical or electronic transfer of something, such as a package or email, from one agent to another. However, there are contexts in which either may be appropriate, such as the giving of a gift.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;hasGoal">
+		<rdfs:label rdf:datatype="&xsd;string">has goal</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates something to the end towards which it directs effort.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: The sales division of a company has the goal of acquiring new customers and contracts.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;hasIncumbent">
+		<rdfs:label rdf:datatype="&xsd;string">has incumbent</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates a position to the thing or person that currently holds that position.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: To create a temporal view, define a subclass of gist:TemporalRelation for this property (e.g., Incumbency).</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;hasMagnitude">
+		<rdfs:label rdf:datatype="&xsd;string">has magnitude</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates a thing to a magnitude.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A car or model of car has magnitudes for length, width, weight, average miles per gallon, etc.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;hasMultiplier">
+		<rdfs:label rdf:datatype="&xsd;string">has multiplier</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates a unit of measure to another unit of measure that is a factor, or relates an aspect to another aspect that is a factor.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Miles per hour has miles as a multiplier and hours as a divisor; speed has distance as a multiplier and duration as a divisor.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Provides a supplemental method of decomposing a unit of measure or aspect into component factors. Enables dimensional analysis such as miles per hour x hours = miles.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;hasNavigationalParent">
+		<rdfs:label rdf:datatype="&xsd;string">has navigational parent</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates a child category to a parent category in an informal (e.g., faceted) hierarchy.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Refrigerator handles are not refrigerators, but it may be useful to represent their relationship hierarchically for a faceted UI filter.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;hasParticipant">
+		<rdfs:label rdf:datatype="&xsd;string">has participant</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates something (e.g. an agreement) to things that play a role, or take part or are otherwise involved in some way.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: An event of transferring money has a participating account that receives the money.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: The thing with participants will often be an agreement, event or obligation. Participation does not imply agency.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This will most often be used as an abstract property. Use subproperties that indicate the nature of the participation (e.g. hasBorrower, hasVenue).</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;hasParty">
+		<rdfs:label rdf:datatype="&xsd;string">has party</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates an event, agreement, or obligation to a participating person or organization.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Loan agreements have lender and borrower parties.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Subproperties may be defined to describe specific parties, such as hasLender and hasBorrower for a loan.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;hasPhysicalLocation">
+		<rdfs:label rdf:datatype="&xsd;string">has physical location</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates something to its physical location.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This property does not distinguish between things whose locations are stable and those whose locations change over time; e.g., a fire hydrant vs. a car.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;hasRecipient">
+		<rdfs:label rdf:datatype="&xsd;string">has recipient</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates something to the participant that receives or is intended to receive it.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: An offer is made to a recipient; an obligation has a recipient to whom another person is obligated; a gift is bestowed upon a recipient.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This property is used in abstract contexts such as agreements, obligations, contracts, etc., whereas gist:goesToAgent is intended to describe the physical or electronic transfer of something, such as a package or email, from one agent to another. However, there are contexts in which either may be appropriate, such as the giving of a gift.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;hasSubtrahend">
+		<rdfs:label rdf:datatype="&xsd;string">has subtrahend</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates an aspect to another aspect that is a subtracted component of it.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: In the equation &apos;profit = revenue - expenses&apos;, revenue is an addend and expenses is a subtrahend.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Commonly used with financial metrics.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;hasUniqueBroader">
+		<rdfs:label rdf:datatype="&xsd;string">has unique broader</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates a thing to a unique other thing with a broader meaning.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;hasUniqueNavigationalParent">
+		<rdfs:label rdf:datatype="&xsd;string">has unique navigational parent</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates a subject category to a unique parent category in an informal (e.g., faceted) hierarchy.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;hasUnitGroup">
+		<rdfs:label rdf:datatype="&xsd;string">has unit group</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates an aspect to a unit group. The aspect can be measured using any of the members of the unit group.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: The aspect distance can have a unit group that includes the units meter, inch, foot, etc.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;hasUnitOfMeasure">
+		<rdfs:label rdf:datatype="&xsd;string">has unit of measure</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates a magnitude to its unit of measure.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: The magnitude 87 inches of height has unit of measure inches.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;idText">
+		<rdfs:label rdf:datatype="&xsd;string">id text</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A text string that identifies an individual.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: The id text for a car is &apos;4Y1SL65848Z411439&apos;; the id text for the HR department of some company is H31415.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: A common use case would be for pre-existing internal company identifiers.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Often, there will be just one identifying text string. More would be appropriate if the individual had different identifiers, such as employee number and social security number. A good way to model that would be to have functional subproperties of idText, such as departmentNumber.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This property is an alternative to using the property gist:isIdentifiedBy in conjunction with instances of the class gist:ID.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;isAbout">
+		<rdfs:label rdf:datatype="&xsd;string">is about</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Subject matter of a document.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;isAffectedBy">
+		<rdfs:label rdf:datatype="&xsd;string">is affected by</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates an affected thing to the source of the effect.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;isAllocatedBy">
+		<rdfs:label rdf:datatype="&xsd;string">is allocated by</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates something to whomever or whatever assigns or distributes it.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A U.S. Social Security number is allocated by the U.S. Social Security Administration; the media type https://www.iana.org/assignments/media-types/text/csv is allocated by the Internet Assigned Numbers Authority (IANA).</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: The allocator may be a person, organization, or automated process.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;isAssignmentOf">
+		<rdfs:label rdf:datatype="&xsd;string">is assignment of</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates an assignment to the resource it assigns.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Assignment of a person to a project.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: People, organizations, monetary amounts, equipment can all be assigned.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: While typically this predicate will be used with assignment subjects, there may be other use cases, and therefore a domain is not specified.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;isAssignmentTo">
+		<rdfs:label rdf:datatype="&xsd;string">is assignment to</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates something (typically an assignment) to the thing the resource is assigned to, such as a project, position, organization, pay rate, or billing rate.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: While typically this predicate will be used with gist:Assignment subjects, there may be other use cases, and therefore a domain is not specified.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;isBasedOn">
+		<rdfs:label rdf:datatype="&xsd;string">is based on</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The object is a foundation for, a starting point for, gave rise to, or justifies the subject.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A document is based on a document template; a metric computing the average income of a population is based on the metric for individual income.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;isCategorizedBy">
+		<rdfs:label rdf:datatype="&xsd;string">is categorized by</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates something to a taxonomy term or other less formally defined classification.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;isConnectedTo">
+		<rdfs:label rdf:datatype="&xsd;string">is connected to</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A non-owning, non-causal, non-subordinate (i.e., peer-to-peer) relationship.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;isDirectPartOf">
+		<rdfs:label rdf:datatype="&xsd;string">is direct part of</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The relationship between a part and a whole where the part has independent existence and there are no other parts in between.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Because the part has independent existence, there is no cascading delete.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: It is safest to use this property when semantic directness is inherent in the relationship, rather than simply expressing a chosen granularity. For example, a spark plug is a direct part of an engine block; there cannot be any intermediate parts. Otherwise, there is a risk of making an isDirectPartOf assertion and then later inserting an intermediate part; this will result in making an asserted triple false even though there was no change in the world. When in doubt, use the transitive version gist:isPartOf.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;isExpressedIn">
+		<rdfs:label rdf:datatype="&xsd;string">is expressed in</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates something to the language it is expressed in.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;isFirstMemberOf">
+		<rdfs:label rdf:datatype="&xsd;string">is first member of</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates the first member of an ordered collection to the collection.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Given the Open World Assumption, the absence of a predecessor does not entail that an ordered member is the first member of an ordered collection. This property is used to explicitly indicate the first member. Since ordered collections need not be strictly ordered, there can be more than one first member.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;isGeoContainedIn">
+		<rdfs:label rdf:datatype="&xsd;string">is geographically contained in</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates one geographic location to another that contains it.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;isGovernedBy">
+		<rdfs:label rdf:datatype="&xsd;string">is governed by</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates an entity to another entity that controls, directs, determines or has a guiding influence or authority over it.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A country geographic region is governed by a country government; the installation and use of software is governed by a license.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;isIdentifiedBy">
+		<rdfs:label rdf:datatype="&xsd;string">is identified by</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates something to a content object that uniquely identifies it.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This is like a URI: a thing can have more than one ID, but each ID can refer to only one thing. Note that it is possible to have two IDs with the same text that refer to different things.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;isMadeUpOf">
+		<rdfs:label rdf:datatype="&xsd;string">is made up of</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates something to a substance that it is made up of.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A vase is made of clay; water is made up of hydrogen and oxygen.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;isMemberOf">
+		<rdfs:label rdf:datatype="&xsd;string">is member of</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates a member individual to the thing, such as a collection or organization, that it is a member of.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;isPartOf">
+		<rdfs:label rdf:datatype="&xsd;string">is part of</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The relationship between a part and a whole where the part has independent existence.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Because the part has independent existence, there is no cascading delete.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: The transitive version of gist:isDirectPartOf.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;isProducedBy">
+		<rdfs:label rdf:datatype="&xsd;string">is produced by</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates something to the thing that created, composed, or brought it into existence.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A deliverable is produces by a task.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A measurement is produced by a sensor.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A painting is produced by a person.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;isRecognizedBy">
+		<rdfs:label rdf:datatype="&xsd;string">is recognized by</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates something to a party that formally acknowledges its existence, validity, or legality.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: The existence of a particular company is recognized by the state.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;isRecordedAt">
+		<rdfs:label rdf:datatype="&xsd;string">is recorded at</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The date that something was posted (which is not necessarily the date it occurred). It must be after the date of occurrence, but could be before or after the planned date.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: The date and time a customer payment or stock purchase was posted.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Precision may vary according to context.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;isRenderedOn">
+		<rdfs:label rdf:datatype="&xsd;string">is rendered on</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates content to the media on which it is rendered.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A document is rendered on a computer screen; a piece of music is rendered through speakers.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;isSupersededBy">
+		<rdfs:label rdf:datatype="&xsd;string">is superseded by</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates a deprecated term to a term that replaces it, which is either an exact (in the case of simple renaming) or approximate (in the case of renaming and some semantic change) semantic match.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: gist:connectedTo was superseded by gist:isConnectedTo (renaming with no semantic change).</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;isTriggeredBy">
+		<rdfs:label rdf:datatype="&xsd;string">is triggered by</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates a contingency, such as an event or obligation, to the event that gives rise to it.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Fire insurance is contingent on a particular building burning down; the death benefit payout on a life insurance policy is contingent on the death of the insured person.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: For obligations, this property describes what must happen to trigger the contingent obligation. Other uses include controls, processes, etc.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;isUnderJurisdictionOf">
+		<rdfs:label rdf:datatype="&xsd;string">is under jurisdiction of</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates a law, contract, etc., to the system of law or government which has the power, right, or authority to interpret and apply it.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;latitude">
+		<rdfs:label rdf:datatype="&xsd;string">latitude</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Degrees above or below the equator.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;license">
+		<rdfs:label rdf:datatype="&xsd;string">license</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates something to its conditions of use.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: The gist ontology is licensed under the CC By 4.0 license.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Could refer to a license object by URI or name or could consist of the license text itself.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;links">
+		<rdfs:label rdf:datatype="&xsd;string">links</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates a network link to a network node that it connects to another node. Used when the connection is undirected or the direction is not known.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;linksFrom">
+		<rdfs:label rdf:datatype="&xsd;string">links from</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates a network link to its origin network node. Unlike the superproperty, this represents a directed connection.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;linksTo">
+		<rdfs:label rdf:datatype="&xsd;string">links to</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates a network link to its destination network node. Unlike the superproperty, this represents a directed connection.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;longitude">
+		<rdfs:label rdf:datatype="&xsd;string">longitude</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Degrees from the prime meridian.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;name">
+		<rdfs:label rdf:datatype="&xsd;string">name</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates an individual to (one of) its name(s).</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;numericValue">
+		<rdfs:label rdf:datatype="&xsd;string">numeric value</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The actual value of a magnitude.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;occursIn">
+		<rdfs:label rdf:datatype="&xsd;string">occurs in</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates something, such as an event, to the geographic location where it did, does, or will happen.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;offersToProvide">
+		<rdfs:label rdf:datatype="&xsd;string">offers to provide</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates an offer to the thing being made available for exchange.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: An offer to provide a specific product in exchange for an amount of money or to pay a certain price for a home that is for sale.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This will most often be a good or service, but could be an amount of money, e.g., for currency exchange.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;offersToReceive">
+		<rdfs:label rdf:datatype="&xsd;string">offers to receive</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates an offer to the thing expected in return for the offered item.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A vendor makes an offer to receive a particular amount of money in exchange for the offered product; an offer to receive a home in exchange for an amount of money.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This will most often be an amount of money, but could be anything of value, as in swaps.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;owns">
+		<rdfs:label rdf:datatype="&xsd;string">owns</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates a party to something that it possesses and controls.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: The ultimate form of ownership is the right to destroy.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: There is a long list of potential range classes.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;plannedEndDate">
+		<rdfs:label rdf:datatype="&xsd;string">planned end date</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The date that something is or was planned to end, with precision of one day.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: &apos;2021-06-01T00:00:00-6:00&apos;^^xsd:dateTime</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Used for anything with a planned end date, such as when a lease will expire, when an offer is no longer available, etc. Typically a planned date is in the future when first captured, but when tasks run late, we leave the plan where it was and compare it to the actual. Recommended usage is to zero out the hours through microseconds to avoid spurious precision.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;plannedEndDateTime">
+		<rdfs:label rdf:datatype="&xsd;string">planned end date time</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The date that something is or was planned to end, with no implied precision.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This is an abstraction over the various precisions of planned end time, and is not expected to be asserted directly. Values of predicates with different precisions can be compared since they are all formally xsd:datetimes.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This property, unlike gist:actualEndDateTime, does not have a subproperty for microsecond precision, because planned times typically are not expressed at that level of granularity. Typically a planned date is in the future when first captured, but when tasks run late, we leave the plan where it was and compare it to the actual.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;plannedEndMinute">
+		<rdfs:label rdf:datatype="&xsd;string">planned end minute</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The date and time that something is or was planned to end, with precision of one minute.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: &apos;2021-06-01T08:32:00-6:00&apos;^^xsd:dateTime</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Used for things like meetings and time card entries, where the hour and minute are important. Recommended usage is to zero out the seconds and microseconds to avoid spurious precision.Typically a planned date is in the future when first captured, but when tasks run late, we leave the plan where it was and compare it to the actual.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;plannedEndYear">
+		<rdfs:label rdf:datatype="&xsd;string">planned end year</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The date that something is or was planned to end, with precision of one year.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: &apos;2021-01-01T00:00:00-6:00&apos;^^xsd:dateTime</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: The automobile manufacturer announced that it will stop producing gas-powered vehicles in 2035.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Used for anything with a planned end date where precision of one year is sufficient. Typically a planned date is in the future when first captured, but when tasks run late, we leave the plan where it was and compare it to the actual. Recommended usage is to zero out the hours through microseconds to avoid spurious precision. Note that it is not valid to zero out months and days, so arbitrary values must be included.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;plannedStartDate">
+		<rdfs:label rdf:datatype="&xsd;string">planned start date</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The date that something is or was planned to start, with precision of one day.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: &apos;2021-06-01T00:00:00-6:00&apos;^^xsd:dateTime</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Used for anything with a planned start date, such as when a lease will start, when a configuration becomes available, etc. Typically a planned date is in the future when first captured, but when tasks run late, we leave the plan where it was and compare it to the actual. Recommended usage is to zero out the hours through microseconds to avoid spurious precision.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;plannedStartDateTime">
+		<rdfs:label rdf:datatype="&xsd;string">planned start date time</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The date and time that something is or was planned to start, with no implied precision.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This is an abstraction over the various precisions of planned start time, and is not expected to be asserted directly. Values of predicates with different precisions can be compared since they are all formally xsd:datetimes.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This property, unlike gist:actualStartDateTime, does not have a subproperty for microsecond precision, because planned times typically are not expressed at that level of granularity. Typically a planned date is in the future when first captured, but when tasks run late, we leave the plan where it was and compare it to the actual.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;plannedStartMinute">
+		<rdfs:label rdf:datatype="&xsd;string">planned start minute</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The date and time that something is or was planned to start, with precision of one minute.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: &apos;2021-06-01T08:32:00-6:00&apos;^^xsd:dateTime</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Used for things like meetings and time card entries, where the hour and minute are important. Typically a planned date is in the future when first captured, but when tasks run late, we leave the plan where it was and compare it to the actual. Recommended usage is to zero out the seconds and microseconds to avoid spurious precision.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;plannedStartYear">
+		<rdfs:label rdf:datatype="&xsd;string">planned start year</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The date that something is or was planned to start, with precision of one year.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: &apos;2021-01-01T00:00:00-6:00&apos;^^xsd:dateTime</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: The automobile manufacturer announced that its full line-up will include only electric cars starting in 2035.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Used for anything with a planned start date where precision of one year is sufficient. Typically a planned date is in the future when first captured, but when tasks run late, we leave the plan where it was and compare it to the actual. Recommended usage is to zero out the hours through microseconds to avoid spurious precision. Note that it is not valid to zero out months and days, so arbitrary values must be included.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;precedes">
+		<rdfs:label rdf:datatype="&xsd;string">precedes</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A generic ordering relation indicating that the subject comes before the object.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: The less-than symbol is often used to represent this relation.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This is the transitive version of gist:precedesDirectly.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Typically this predicate would be used asymmetricallly and irreflexively, but the ontology does not formalize this.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;precedesDirectly">
+		<rdfs:label rdf:datatype="&xsd;string">precedes directly</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A generic ordering relation indicating that the subject comes immediately before the object.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: If two items in an ordered collection share the same position, they both directly precede the following element.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: It is safest to use this property only when the directness has a semantic correspondence with the world. Only break a direct link by inserting an intermediate item when that change corresponds to a change in the world.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Typically this predicate would be used asymmetricallly and irreflexively, but the ontology does not formalize this.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;prevents">
+		<rdfs:label rdf:datatype="&xsd;string">prevents</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates an intention to behavior that it prohibits.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: A city ordinance prohibits jaywalking.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;providesOrderFor">
+		<rdfs:label rdf:datatype="&xsd;string">provides order for</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Links a member of an ordered collection to the real-world item it represents in that collection.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;rangeIncludes">
+		<rdfs:label rdf:datatype="&xsd;string">range includes</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates a property to a class that is an expected type of its values.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: The range of the property gist:isCategorizedBy includes gist:Category.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: There may be multiple rangeIncludes assertions on a single property.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This property is used to guide the ontology user; like all annotation properties, it does not play a role in inference.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;refersTo">
+		<rdfs:label rdf:datatype="&xsd;string">refers to</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Relates something to another resource that it points to, indicates, or references.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;requires">
+		<rdfs:label rdf:datatype="&xsd;string">requires</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The subject needs the object or makes it necessary, mandatory, or compulsory.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: Humans require air; solar power requires sunshine.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This predicate is defined generally enough to encompass a few different meanings of the English word &apos;requires&apos;:
+
+		1. To need something or to make something necessary.
+		2. To order or demand something, or to order someone to do something, especially because of a rule or law.
+		3. To make it officially necessary for someone to do something.
+
+	Implementations requiring a more specific meaning should define subproperties.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;sequence">
+		<rdfs:label rdf:datatype="&xsd;string">sequence</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: For ordering ordered lists.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;startDateTime">
+		<rdfs:label rdf:datatype="&xsd;string">start date time</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The date and time that something starts.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: This property is neutral along two dimensions: precision (e.g., day, second, millisecond) and actual vs. planned. As such, it will generally not be asserted directly except in special cases (e.g., for time intervals).</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Values of predicates with different precisions can be compared since they are all formally xsd:datetimes.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;symbol">
+		<rdfs:label rdf:datatype="&xsd;string">symbol</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: A symbol for something using only ASCII characters.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: The ASCII symbol for square meter is m^2.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="&gist;uniqueText">
+		<rdfs:label rdf:datatype="&xsd;string">unique text</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: The unique string value of some content object, to be used when there is no possibility of having more than one value.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">EXAMPLE: The unique string for a vehicle identification number.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: Note that the uniqueness only goes in one direction: a product catalog number might also be an employee ID.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="https://w3id.org/semanticarts/ontology/gistCore">
+		<rdfs:label rdf:datatype="&xsd;string">gist</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: gist is a minimalist upper ontology created by Semantic Arts.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="https://w3id.org/semanticarts/ontology/gistMediaTypes">
+		<rdfs:label rdf:datatype="&xsd;string">gist Media Types</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Definitions of IANA Media Types.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="https://w3id.org/semanticarts/ontology/gistPrefixDeclarations">
+		<rdfs:label rdf:datatype="&xsd;string">gist Prefix Declarations</rdfs:label>
+		<rdfs:comment rdf:datatype="&xsd;string">DEFINITION: Defines prefix declarations, which pair a prefix with a namespace, used in the gist ontology.</rdfs:comment>
+		<rdfs:comment rdf:datatype="&xsd;string">NOTE: These prefixes are provided to support applications such as visualizers. Note that importing this file breaks OWL 2 DL conformance because SHACL is not an OWL ontology.</rdfs:comment>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="https://www.iana.org/assignments/media-types/application/json">
+		<rdfs:label rdf:datatype="&xsd;string">JSON</rdfs:label>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="https://www.iana.org/assignments/media-types/application/ld+json">
+		<rdfs:label rdf:datatype="&xsd;string">JSON-LD</rdfs:label>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="https://www.iana.org/assignments/media-types/application/n-quads">
+		<rdfs:label rdf:datatype="&xsd;string">N-Quads</rdfs:label>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="https://www.iana.org/assignments/media-types/application/n-triples">
+		<rdfs:label rdf:datatype="&xsd;string">N-Triples</rdfs:label>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="https://www.iana.org/assignments/media-types/application/rdf+xml">
+		<rdfs:label rdf:datatype="&xsd;string">RDF/XML</rdfs:label>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="https://www.iana.org/assignments/media-types/application/sparql-results+json">
+		<rdfs:label rdf:datatype="&xsd;string">SPARQL 1.1 Query Results JSON</rdfs:label>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="https://www.iana.org/assignments/media-types/application/sparql-results+xml">
+		<rdfs:label rdf:datatype="&xsd;string">SPARQL 1.1 Query Results XML</rdfs:label>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="https://www.iana.org/assignments/media-types/application/trig">
+		<rdfs:label rdf:datatype="&xsd;string">TriG</rdfs:label>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="https://www.iana.org/assignments/media-types/text/csv">
+		<rdfs:label rdf:datatype="&xsd;string">CSV</rdfs:label>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="https://www.iana.org/assignments/media-types/text/html">
+		<rdfs:label rdf:datatype="&xsd;string">HTML</rdfs:label>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="https://www.iana.org/assignments/media-types/text/plain">
+		<rdfs:label rdf:datatype="&xsd;string">Plain Text</rdfs:label>
+	</rdf:Description>
+	
+	<rdf:Description rdf:about="https://www.iana.org/assignments/media-types/text/turtle">
+		<rdfs:label rdf:datatype="&xsd;string">Turtle</rdfs:label>
+	</rdf:Description>
+
+</rdf:RDF>

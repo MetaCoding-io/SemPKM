@@ -1,0 +1,651 @@
+[
+	{
+		"@id" : "https://w3id.org/semanticarts/ontology/gistSubClassAssertions",
+		"@type" : "owl:Ontology",
+		"owl:imports" : { "@id" : "https://w3id.org/semanticarts/ontology/gistCore14.0.0" },
+		"owl:versionIRI" : { "@id" : "https://w3id.org/semanticarts/ontology/gistSubClassAssertions14.0.0" },
+		"skos:definition" : {
+			"@type" : "xsd:string",
+			"@value" : "Supplementary subclass assertions for gistCore."
+		},
+		"skos:prefLabel" : {
+			"@type" : "xsd:string",
+			"@value" : "gist Subclass Assertions"
+		},
+		"skos:scopeNote" : {
+			"@type" : "xsd:string",
+			"@value" : "This ontology contains supplementary subclass assertions to aid some automated reasoners. For example, while an OWL DL reasoner infers from the class equivalence that gist:Commitment is a subclass of gist:Intention, an RL reasoner does not. More precisely, the ontology contains (1) direct subclass assertions derived using an OWL DL reasoner and (2) the subclass assertions that are already explicit in gistCore."
+		},
+		"gist:license" : {
+			"@type" : "xsd:string",
+			"@value" : "https://creativecommons.org/licenses/by/4.0/"
+		},
+		"@context" : {
+			
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdf" : "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+			"owl" : "http://www.w3.org/2002/07/owl#",
+			"skos" : "http://www.w3.org/2004/02/skos/core#"
+		}
+	},
+	{
+		"@id" : "gist:Account",
+		"rdfs:subClassOf" : { "@id" : "gist:Agreement" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:Address",
+		"rdfs:subClassOf" : { "@id" : "gist:Content" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:AddressUsageType",
+		"rdfs:subClassOf" : { "@id" : "gist:Category" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:Agreement",
+		"rdfs:subClassOf" : { "@id" : "gist:Intention" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:Assignment",
+		"rdfs:subClassOf" : { "@id" : "gist:TemporalRelation" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:Behavior",
+		"rdfs:subClassOf" : { "@id" : "gist:Category" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:Building",
+		"rdfs:subClassOf" : { "@id" : "gist:Landmark" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:BundledCatalogItem",
+		"rdfs:subClassOf" : { "@id" : "gist:CatalogItem" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:CatalogItem",
+		"rdfs:subClassOf" : { "@id" : "gist:Specification" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:Collection",
+		"rdfs:subClassOf" : { "@id" : "gist:Composite" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:Commitment",
+		"rdfs:subClassOf" : { "@id" : "gist:Intention" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:ContemporaryEvent",
+		"rdfs:subClassOf" : { "@id" : "gist:Event" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:ContentExpression",
+		"rdfs:subClassOf" : { "@id" : "gist:Content" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:ContingentEvent",
+		"rdfs:subClassOf" : { "@id" : "gist:Event" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:ContingentObligation",
+		"rdfs:subClassOf" : { "@id" : "gist:Commitment" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:Contract",
+		"rdfs:subClassOf" : { "@id" : "gist:Agreement" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:ContractTerm",
+		"rdfs:subClassOf" : { "@id" : "gist:Specification" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:ControlledVocabulary",
+		"rdfs:subClassOf" : { "@id" : "gist:Collection" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:CountryGeoRegion",
+		"rdfs:subClassOf" : { "@id" : "gist:GovernedGeoRegion" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:CountryGovernment",
+		"rdfs:subClassOf" : { "@id" : "gist:GovernmentOrganization" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:DegreeOfCommitment",
+		"rdfs:subClassOf" : { "@id" : "gist:Category" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:Determination",
+		"rdfs:subClassOf" : { "@id" : "gist:Event" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:Discipline",
+		"rdfs:subClassOf" : { "@id" : "gist:Category" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:ElectronicAddress",
+		"rdfs:subClassOf" : { "@id" : "gist:Address" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:ElectronicAddressType",
+		"rdfs:subClassOf" : { "@id" : "gist:Category" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:Equipment",
+		"rdfs:subClassOf" : { "@id" : "gist:PhysicalIdentifiableItem" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:EquipmentType",
+		"rdfs:subClassOf" : { "@id" : "gist:Category" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:EventSpecification",
+		"rdfs:subClassOf" : { "@id" : "gist:Specification" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:FormattedContent",
+		"rdfs:subClassOf" : { "@id" : "gist:ContentExpression" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:Function",
+		"rdfs:subClassOf" : { "@id" : "gist:Intention" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:GeneralMediaType",
+		"rdfs:subClassOf" : { "@id" : "gist:Category" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:GeoPoint",
+		"rdfs:subClassOf" : { "@id" : "gist:GeoLocation" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:GeoRegion",
+		"rdfs:subClassOf" : { "@id" : "gist:GeoLocation" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:GeoRoute",
+		"rdfs:subClassOf" : { "@id" : "gist:OrderedCollection" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:GeoVolume",
+		"rdfs:subClassOf" : { "@id" : "gist:GeoLocation" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:GovernedGeoRegion",
+		"rdfs:subClassOf" : { "@id" : "gist:GeoRegion" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:GovernmentOrganization",
+		"rdfs:subClassOf" : { "@id" : "gist:Organization" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:HistoricalEvent",
+		"rdfs:subClassOf" : { "@id" : "gist:Event" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:ID",
+		"rdfs:subClassOf" : { "@id" : "gist:Content" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:IntergovernmentalOrganization",
+		"rdfs:subClassOf" : { "@id" : "gist:Organization" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:KnowledgeConcept",
+		"rdfs:subClassOf" : { "@id" : "gist:IntellectualProperty" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:Landmark",
+		"rdfs:subClassOf" : { "@id" : "gist:PhysicalIdentifiableItem" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:LivingThing",
+		"rdfs:subClassOf" : { "@id" : "gist:PhysicalIdentifiableItem" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:MediaType",
+		"rdfs:subClassOf" : { "@id" : "gist:Category" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:Medium",
+		"rdfs:subClassOf" : { "@id" : "gist:Category" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:Message",
+		"rdfs:subClassOf" : { "@id" : "gist:ContentExpression" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:Network",
+		"rdfs:subClassOf" : { "@id" : "gist:Composite" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:NetworkLink",
+		"rdfs:subClassOf" : { "@id" : "gist:Component" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:NetworkNode",
+		"rdfs:subClassOf" : { "@id" : "gist:Component" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:Offer",
+		"rdfs:subClassOf" : { "@id" : "gist:ContingentObligation" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:OrderedCollection",
+		"rdfs:subClassOf" : { "@id" : "gist:Collection" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:OrderedMember",
+		"rdfs:subClassOf" : { "@id" : "gist:Component" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:Permission",
+		"rdfs:subClassOf" : { "@id" : "gist:Intention" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:Person",
+		"rdfs:subClassOf" : { "@id" : "gist:LivingThing" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:PhysicalActionType",
+		"rdfs:subClassOf" : { "@id" : "gist:Category" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:PhysicalAddress",
+		"rdfs:subClassOf" : { "@id" : "gist:Address" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:PhysicalAddressType",
+		"rdfs:subClassOf" : { "@id" : "gist:Category" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:PhysicalEvent",
+		"rdfs:subClassOf" : { "@id" : "gist:Event" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:ProductCategory",
+		"rdfs:subClassOf" : { "@id" : "gist:Category" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:ProductSpecification",
+		"rdfs:subClassOf" : { "@id" : "gist:CatalogItem" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:Project",
+		"rdfs:subClassOf" : { "@id" : "gist:Task" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:ReferenceValue",
+		"rdfs:subClassOf" : { "@id" : "gist:Magnitude" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:RenderedContent",
+		"rdfs:subClassOf" : { "@id" : "gist:FormattedContent" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:Requirement",
+		"rdfs:subClassOf" : { "@id" : "gist:Intention" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:Restriction",
+		"rdfs:subClassOf" : { "@id" : "gist:Intention" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:ScheduledEvent",
+		"rdfs:subClassOf" : { "@id" : "gist:Event" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:ScheduledTask",
+		"rdfs:subClassOf" : [
+			{ "@id" : "gist:ScheduledEvent" },
+			{ "@id" : "gist:Task" }
+			
+		],
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:ServiceSpecification",
+		"rdfs:subClassOf" : { "@id" : "gist:CatalogItem" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:Specification",
+		"rdfs:subClassOf" : { "@id" : "gist:Intention" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:SubCountryGovernment",
+		"rdfs:subClassOf" : { "@id" : "gist:GovernmentOrganization" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:System",
+		"rdfs:subClassOf" : { "@id" : "gist:Composite" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:Tag",
+		"rdfs:subClassOf" : { "@id" : "gist:Category" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:Task",
+		"rdfs:subClassOf" : { "@id" : "gist:Event" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:TaskTemplate",
+		"rdfs:subClassOf" : { "@id" : "gist:Template" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:Text",
+		"rdfs:subClassOf" : { "@id" : "gist:ContentExpression" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:Transaction",
+		"rdfs:subClassOf" : { "@id" : "gist:Event" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	},
+	{
+		"@id" : "gist:UnitGroup",
+		"rdfs:subClassOf" : { "@id" : "gist:Collection" },
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+		}
+	}
+]
