@@ -340,6 +340,161 @@ ORDER BY ?label"""
         )
         return classes
 
+    async def get_class_detail(self, class_iri: str) -> dict:
+        """Get detailed metadata for a single class.
+
+        Returns rdfs:comment, parent classes, sibling classes, subclass
+        count, instance count, and properties where this class is the
+        domain.
+        """
+        graph_iris = await self.get_ontology_graph_iris()
+        from_clauses = self._build_from_clauses(graph_iris)
+
+        # Single query to get comment, parents, subclass count, instance count
+        sparql = f"""PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT ?label ?comment ?parentIri ?parentLabel
+       (COUNT(DISTINCT ?sub) AS ?subclassCount)
+       (COUNT(DISTINCT ?inst) AS ?instanceCount)
+{from_clauses}
+WHERE {{
+  <{class_iri}> a owl:Class .
+  OPTIONAL {{ <{class_iri}> skos:prefLabel ?skosLabel .
+              FILTER(LANG(?skosLabel) = "" || LANG(?skosLabel) = "en") }}
+  OPTIONAL {{ <{class_iri}> rdfs:label ?rdfsLabel .
+              FILTER(LANG(?rdfsLabel) = "" || LANG(?rdfsLabel) = "en") }}
+  BIND(COALESCE(?skosLabel, ?rdfsLabel,
+       REPLACE(STR(<{class_iri}>), "^.*/|^.*#|^.*:", "", "")) AS ?label)
+  OPTIONAL {{ <{class_iri}> rdfs:comment ?comment .
+              FILTER(LANG(?comment) = "" || LANG(?comment) = "en") }}
+  OPTIONAL {{
+    <{class_iri}> rdfs:subClassOf ?parentIri .
+    FILTER(isIRI(?parentIri) && ?parentIri != owl:Thing)
+    OPTIONAL {{ ?parentIri skos:prefLabel ?pSkos .
+                FILTER(LANG(?pSkos) = "" || LANG(?pSkos) = "en") }}
+    OPTIONAL {{ ?parentIri rdfs:label ?pRdfs .
+                FILTER(LANG(?pRdfs) = "" || LANG(?pRdfs) = "en") }}
+    BIND(COALESCE(?pSkos, ?pRdfs,
+         REPLACE(STR(?parentIri), "^.*/|^.*#|^.*:", "", "")) AS ?parentLabel)
+  }}
+  OPTIONAL {{ ?sub rdfs:subClassOf <{class_iri}> . FILTER(isIRI(?sub)) }}
+  OPTIONAL {{ ?inst a <{class_iri}> . FILTER(isIRI(?inst)) }}
+}}
+GROUP BY ?label ?comment ?parentIri ?parentLabel"""
+
+        result = await self._client.query(sparql)
+        bindings = result.get("results", {}).get("bindings", [])
+
+        label = class_iri.rsplit("/", 1)[-1].rsplit("#", 1)[-1]
+        comment = ""
+        parents = {}
+        subclass_count = 0
+        instance_count = 0
+
+        for b in bindings:
+            if "label" in b:
+                label = b["label"]["value"]
+            if "comment" in b and b["comment"]["value"]:
+                comment = b["comment"]["value"]
+            if "parentIri" in b and b["parentIri"]["value"]:
+                p_iri = b["parentIri"]["value"]
+                p_label = b.get("parentLabel", {}).get(
+                    "value", p_iri.rsplit("/", 1)[-1].rsplit("#", 1)[-1]
+                )
+                parents[p_iri] = p_label
+            sc = b.get("subclassCount", {}).get("value", "0")
+            subclass_count = max(subclass_count, int(sc))
+            ic = b.get("instanceCount", {}).get("value", "0")
+            instance_count = max(instance_count, int(ic))
+
+        parent_classes = [{"iri": k, "label": v} for k, v in parents.items()]
+
+        # Get siblings: classes that share the same parent(s)
+        siblings = []
+        if parent_classes:
+            parent_iri = parent_classes[0]["iri"]
+            sib_sparql = f"""PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT DISTINCT ?sib ?sibLabel
+{from_clauses}
+WHERE {{
+  ?sib rdfs:subClassOf <{parent_iri}> .
+  ?sib a owl:Class .
+  FILTER(isIRI(?sib) && ?sib != <{class_iri}>)
+  OPTIONAL {{ ?sib skos:prefLabel ?sSkos .
+              FILTER(LANG(?sSkos) = "" || LANG(?sSkos) = "en") }}
+  OPTIONAL {{ ?sib rdfs:label ?sRdfs .
+              FILTER(LANG(?sRdfs) = "" || LANG(?sRdfs) = "en") }}
+  BIND(COALESCE(?sSkos, ?sRdfs,
+       REPLACE(STR(?sib), "^.*/|^.*#|^.*:", "", "")) AS ?sibLabel)
+}}
+ORDER BY ?sibLabel"""
+            sib_result = await self._client.query(sib_sparql)
+            sib_bindings = sib_result.get("results", {}).get("bindings", [])
+            for sb in sib_bindings:
+                siblings.append({
+                    "iri": sb["sib"]["value"],
+                    "label": sb.get("sibLabel", {}).get(
+                        "value",
+                        sb["sib"]["value"].rsplit("/", 1)[-1].rsplit("#", 1)[-1],
+                    ),
+                })
+
+        # Get properties where this class is the domain
+        prop_sparql = f"""PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT DISTINCT ?prop ?propLabel ?range ?rangeLabel
+{from_clauses}
+WHERE {{
+  ?prop rdfs:domain <{class_iri}> .
+  {{ ?prop a owl:ObjectProperty }} UNION {{ ?prop a owl:DatatypeProperty }}
+  OPTIONAL {{ ?prop skos:prefLabel ?pSkos .
+              FILTER(LANG(?pSkos) = "" || LANG(?pSkos) = "en") }}
+  OPTIONAL {{ ?prop rdfs:label ?pRdfs .
+              FILTER(LANG(?pRdfs) = "" || LANG(?pRdfs) = "en") }}
+  BIND(COALESCE(?pSkos, ?pRdfs,
+       REPLACE(STR(?prop), "^.*/|^.*#|^.*:", "", "")) AS ?propLabel)
+  OPTIONAL {{
+    ?prop rdfs:range ?range .
+    OPTIONAL {{ ?range skos:prefLabel ?rSkos .
+                FILTER(LANG(?rSkos) = "" || LANG(?rSkos) = "en") }}
+    OPTIONAL {{ ?range rdfs:label ?rRdfs .
+                FILTER(LANG(?rRdfs) = "" || LANG(?rRdfs) = "en") }}
+    BIND(COALESCE(?rSkos, ?rRdfs,
+         REPLACE(STR(?range), "^.*/|^.*#|^.*:", "", "")) AS ?rangeLabel)
+  }}
+}}
+ORDER BY ?propLabel"""
+        prop_result = await self._client.query(prop_sparql)
+        prop_bindings = prop_result.get("results", {}).get("bindings", [])
+        properties = []
+        for pb in prop_bindings:
+            properties.append({
+                "iri": pb["prop"]["value"],
+                "label": pb.get("propLabel", {}).get("value", ""),
+                "range_label": pb.get("rangeLabel", {}).get("value", ""),
+            })
+
+        source = _property_source(class_iri)
+
+        return {
+            "iri": class_iri,
+            "label": label,
+            "comment": comment,
+            "source": source,
+            "parent_classes": parent_classes,
+            "sibling_classes": siblings,
+            "subclass_count": subclass_count,
+            "instance_count": instance_count,
+            "properties": properties,
+        }
+
     async def search_classes(self, query: str, limit: int = 20) -> list[dict]:
         """Search classes by label across all ontology graphs.
 

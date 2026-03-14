@@ -1,0 +1,83 @@
+{# TBox Class Detail: shows metadata about a selected class.
+
+   Context:
+     cls: dict with keys: iri, label, comment, source, parent_classes,
+          sibling_classes, properties, instance_count
+     error: optional error message
+#}
+{% if error %}
+<div class="tree-empty">{{ error }}</div>
+{% else %}
+<div class="tbox-detail-content">
+  <div class="tbox-detail-header">
+    <span class="tbox-icon">◆</span>
+    <h4 class="tbox-detail-title">{{ cls.label }}</h4>
+    <span class="tbox-source-badge badge-{{ cls.source }}">{{ cls.source }}</span>
+  </div>
+
+  <div class="tbox-detail-iri" title="{{ cls.iri }}">{{ cls.iri }}</div>
+
+  {% if cls.comment %}
+  <div class="tbox-detail-section">
+    <div class="tbox-detail-section-label">Description</div>
+    <p class="tbox-detail-comment">{{ cls.comment }}</p>
+  </div>
+  {% endif %}
+
+  <div class="tbox-detail-section">
+    <div class="tbox-detail-section-label">Hierarchy</div>
+    <table class="tbox-detail-table">
+      {% if cls.parent_classes %}
+      <tr>
+        <td class="tbox-detail-key">Parent{{ 's' if cls.parent_classes | length > 1 }}</td>
+        <td>
+          {% for p in cls.parent_classes %}
+          <span class="tbox-detail-class-link" onclick="loadClassDetail('{{ p.iri }}')" title="{{ p.iri }}">{{ p.label }}</span>{{ ', ' if not loop.last }}
+          {% endfor %}
+        </td>
+      </tr>
+      {% endif %}
+      {% if cls.sibling_classes %}
+      <tr>
+        <td class="tbox-detail-key">Siblings</td>
+        <td>
+          {% for s in cls.sibling_classes[:10] %}
+          <span class="tbox-detail-class-link" onclick="loadClassDetail('{{ s.iri }}')" title="{{ s.iri }}">{{ s.label }}</span>{{ ', ' if not loop.last }}
+          {% endfor %}
+          {% if cls.sibling_classes | length > 10 %}
+          <span class="tbox-detail-more">+{{ cls.sibling_classes | length - 10 }} more</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endif %}
+      {% if cls.subclass_count is defined %}
+      <tr>
+        <td class="tbox-detail-key">Subclasses</td>
+        <td>{{ cls.subclass_count }}</td>
+      </tr>
+      {% endif %}
+    </table>
+  </div>
+
+  {% if cls.instance_count > 0 %}
+  <div class="tbox-detail-section">
+    <div class="tbox-detail-section-label">Instances</div>
+    <p class="tbox-detail-stat">{{ cls.instance_count }} object{{ 's' if cls.instance_count != 1 }}</p>
+  </div>
+  {% endif %}
+
+  {% if cls.properties %}
+  <div class="tbox-detail-section">
+    <div class="tbox-detail-section-label">Properties</div>
+    <table class="tbox-detail-table">
+      {% for p in cls.properties %}
+      <tr>
+        <td class="tbox-detail-key">{{ p.label }}</td>
+        <td class="tbox-detail-val">→ {{ p.range_label or '—' }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+  {% endif %}
+</div>
+{% endif %}

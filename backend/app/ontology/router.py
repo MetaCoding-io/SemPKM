@@ -109,6 +109,39 @@ async def tbox_children(
 
 
 # ------------------------------------------------------------------
+# TBox Class Detail
+# ------------------------------------------------------------------
+
+
+@ontology_router.get("/ontology/tbox/detail")
+async def tbox_detail(
+    request: Request,
+    iri: str = Query(...),
+    user: User = Depends(get_current_user),
+) -> HTMLResponse:
+    """Render detail panel for a selected TBox class.
+
+    Shows rdfs:comment, parent classes, sibling classes, subclass count,
+    instance count, and properties with this class as domain.
+    """
+    ontology_service = request.app.state.ontology_service
+    try:
+        cls = await ontology_service.get_class_detail(iri)
+        error = None
+    except Exception:
+        logger.error("Failed to load class detail for %s", iri, exc_info=True)
+        cls = None
+        error = "Failed to load class details."
+
+    templates = request.app.state.templates
+    return templates.TemplateResponse(
+        request,
+        "browser/ontology/tbox_detail.html",
+        {"cls": cls, "error": error},
+    )
+
+
+# ------------------------------------------------------------------
 # ABox Browser
 # ------------------------------------------------------------------
 
