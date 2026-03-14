@@ -50,7 +50,7 @@ This milestone is complete only when all are true:
 - [x] **S02: Delete + Instance Warnings** `risk:medium` `depends:[S01]`
   > After this: user deletes custom classes and properties with instance-count warnings, confirmation dialogs, and clean removal from TBox/RBox
 
-- [ ] **S03: Custom Section on Mental Models + Property Edit** `risk:low` `depends:[S01,S02]`
+- [x] **S03: Custom Section on Mental Models + Property Edit** `risk:low` `depends:[S01,S02]`
   > After this: Mental Models page shows "Custom" section listing all user-created types and properties with edit/delete actions inline; user can edit a property's name, domain, and range from both the Custom section and the RBox tab
 
 - [ ] **S04: Create-New-Object Tab Fix** `risk:low` `depends:[]`

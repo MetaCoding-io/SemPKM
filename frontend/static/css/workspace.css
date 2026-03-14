@@ -435,8 +435,33 @@
     flex-shrink: 0;
     stroke: currentColor;
 }
-tr:hover .rbox-delete-btn {
+tr:hover .rbox-delete-btn,
+tr:hover .rbox-edit-btn {
     display: inline-flex;
+}
+.rbox-edit-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px;
+    color: var(--color-text-muted);
+    border-radius: 3px;
+    flex-shrink: 0;
+    line-height: 1;
+    margin-right: 4px;
+}
+.rbox-edit-btn:hover {
+    color: var(--color-primary, #3b82f6);
+    background: rgba(59, 130, 246, 0.1);
+}
+.rbox-edit-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
 }
 
 /* Delete confirmation modal content */

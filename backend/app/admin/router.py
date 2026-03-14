@@ -70,11 +70,17 @@ async def admin_models(
     except Exception:
         logger.warning("Failed to load gist summary for admin page", exc_info=True)
         gist_summary = None
+    try:
+        custom_types = await ontology_service.list_user_types()
+    except Exception:
+        logger.warning("Failed to load custom types for admin page", exc_info=True)
+        custom_types = {"classes": [], "object_properties": [], "datatype_properties": []}
     context = {
         "request": request,
         "models": models,
         "user": user,
         "gist": gist_summary,
+        "custom_types": custom_types,
     }
     if _is_htmx_request(request):
         return templates_response(request, "admin/models.html", context, block_name="content")

@@ -501,6 +501,70 @@ pre.json-output {
   text-decoration: none;
 }
 
+/* Custom types section (Mental Models page) */
+.custom-empty-state {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.custom-empty-state a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.custom-empty-state a:hover {
+  text-decoration: underline;
+}
+
+.custom-subsection-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 12px 0 6px;
+}
+
+.custom-types-table .custom-actions {
+  white-space: nowrap;
+}
+
+.custom-types-table .custom-actions .btn {
+  margin-right: 4px;
+}
+
+.custom-type-icon {
+  margin-right: 4px;
+  font-size: 0.9rem;
+}
+
+.custom-type-icon svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  stroke: currentColor;
+  vertical-align: -2px;
+}
+
+.custom-type-badge {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  border-radius: 3px;
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+
+.custom-type-badge--object {
+  background: var(--color-primary-subtle, rgba(99, 102, 241, 0.1));
+  color: var(--color-primary, #6366f1);
+}
+
+.custom-type-badge--datatype {
+  background: var(--color-success-bg, rgba(34, 197, 94, 0.1));
+  color: var(--color-success, #22c55e);
+}
+
 /* Webhook badges */
 .badge {
   display: inline-block;

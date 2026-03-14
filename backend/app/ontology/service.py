@@ -1934,3 +1934,242 @@ SELECT ?label WHERE {{
             "triple_count": len(all_triples),
             "property_count": len(properties),
         }
+
+    # ------------------------------------------------------------------
+    # List all user-created types (classes + properties)
+    # ------------------------------------------------------------------
+
+    async def list_user_types(self) -> dict:
+        """Query all user-created classes and properties from user-types graph.
+
+        Returns:
+            Dict with keys: classes, object_properties, datatype_properties.
+            Each class has: iri, label, icon, color, parent_label.
+            Each property has: iri, label, type, domain_label, range_label.
+        """
+        sparql = f"""PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX sempkm: <{SEMPKM_NS}>
+
+SELECT ?iri ?label ?rdfType ?icon ?color ?parentLabel ?domainLabel ?rangeLabel
+FROM <{USER_TYPES_GRAPH}>
+WHERE {{
+  ?iri rdfs:label ?label .
+  ?iri a ?rdfType .
+  FILTER(?rdfType IN (owl:Class, owl:ObjectProperty, owl:DatatypeProperty))
+  OPTIONAL {{ ?iri sempkm:typeIcon ?icon . }}
+  OPTIONAL {{ ?iri sempkm:typeColor ?color . }}
+  OPTIONAL {{
+    ?iri rdfs:subClassOf ?parent .
+    ?parent rdfs:label ?parentLabel .
+  }}
+  OPTIONAL {{
+    ?iri rdfs:domain ?domain .
+    ?domain rdfs:label ?domainLabel .
+  }}
+  OPTIONAL {{
+    ?iri rdfs:range ?range .
+    ?range rdfs:label ?rangeLabel .
+  }}
+}}
+ORDER BY ?rdfType ?label"""
+
+        result = await self._client.query(sparql)
+        bindings = result.get("results", {}).get("bindings", [])
+
+        classes: list[dict] = []
+        object_properties: list[dict] = []
+        datatype_properties: list[dict] = []
+
+        for b in bindings:
+            rdf_type = b.get("rdfType", {}).get("value", "")
+            iri = b.get("iri", {}).get("value", "")
+            label = b.get("label", {}).get("value", "")
+
+            if rdf_type == str(OWL.Class):
+                classes.append({
+                    "iri": iri,
+                    "label": label,
+                    "icon": b.get("icon", {}).get("value", ""),
+                    "color": b.get("color", {}).get("value", ""),
+                    "parent_label": b.get("parentLabel", {}).get("value", ""),
+                })
+            elif rdf_type == str(OWL.ObjectProperty):
+                object_properties.append({
+                    "iri": iri,
+                    "label": label,
+                    "type": "object",
+                    "domain_label": b.get("domainLabel", {}).get("value", ""),
+                    "range_label": b.get("rangeLabel", {}).get("value", ""),
+                })
+            elif rdf_type == str(OWL.DatatypeProperty):
+                datatype_properties.append({
+                    "iri": iri,
+                    "label": label,
+                    "type": "datatype",
+                    "domain_label": b.get("domainLabel", {}).get("value", ""),
+                    "range_label": b.get("rangeLabel", {}).get("value", ""),
+                })
+
+        logger.info(
+            "list_user_types: %d classes, %d properties",
+            len(classes),
+            len(object_properties) + len(datatype_properties),
+        )
+
+        return {
+            "classes": classes,
+            "object_properties": object_properties,
+            "datatype_properties": datatype_properties,
+        }
+
+    # ------------------------------------------------------------------
+    # Property editing
+    # ------------------------------------------------------------------
+
+    async def get_property_for_edit(self, property_iri: str) -> dict | None:
+        """Query current state of a user-defined property for pre-populating
+        the edit form.
+
+        Returns dict with: iri, label, prop_type, domain_iri, domain_label,
+        range_iri, range_label, description.
+        Returns None if property not found.
+        """
+        meta_sparql = f"""PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?label ?rdfType ?domain ?range ?description
+FROM <{USER_TYPES_GRAPH}>
+WHERE {{
+  <{property_iri}> rdfs:label ?label .
+  <{property_iri}> a ?rdfType .
+  FILTER(?rdfType IN (owl:ObjectProperty, owl:DatatypeProperty))
+  OPTIONAL {{ <{property_iri}> rdfs:domain ?domain . }}
+  OPTIONAL {{ <{property_iri}> rdfs:range ?range . }}
+  OPTIONAL {{ <{property_iri}> rdfs:comment ?description . }}
+}}
+LIMIT 1"""
+
+        result = await self._client.query(meta_sparql)
+        bindings = result.get("results", {}).get("bindings", [])
+        if not bindings:
+            return None
+
+        b = bindings[0]
+        rdf_type = b.get("rdfType", {}).get("value", "")
+        prop_type = "object" if rdf_type == str(OWL.ObjectProperty) else "datatype"
+
+        domain_iri = b.get("domain", {}).get("value", "")
+        range_iri = b.get("range", {}).get("value", "")
+
+        # Cross-graph label resolution for domain/range
+        domain_label = ""
+        range_label = ""
+
+        if domain_iri:
+            domain_label = await self._resolve_cross_graph_label(domain_iri)
+        if range_iri:
+            range_label = await self._resolve_cross_graph_label(range_iri)
+
+        return {
+            "iri": property_iri,
+            "label": b.get("label", {}).get("value", ""),
+            "prop_type": prop_type,
+            "domain_iri": domain_iri,
+            "domain_label": domain_label,
+            "range_iri": range_iri,
+            "range_label": range_label,
+            "description": b.get("description", {}).get("value", ""),
+        }
+
+    async def _resolve_cross_graph_label(self, iri: str) -> str:
+        """Resolve a label for an IRI across all graphs.
+
+        Uses UNION pattern over skos:prefLabel and rdfs:label
+        (same approach as get_class_for_edit parent label resolution).
+        """
+        label_sparql = f"""PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+SELECT ?label WHERE {{
+  {{ <{iri}> skos:prefLabel ?label . }}
+  UNION
+  {{ <{iri}> rdfs:label ?label . }}
+}} LIMIT 1"""
+        label_result = await self._client.query(label_sparql)
+        label_bindings = label_result.get("results", {}).get("bindings", [])
+        if label_bindings:
+            return label_bindings[0].get("label", {}).get("value", "")
+        return ""
+
+    async def edit_property(
+        self,
+        property_iri: str,
+        name: str,
+        prop_type: str,
+        domain_iri: str | None = None,
+        range_iri: str | None = None,
+        description: str | None = None,
+    ) -> dict:
+        """Edit a user-defined property by full replacement (delete-then-reinsert).
+
+        The property IRI is preserved. The property type (object/datatype)
+        is passed through and preserved.
+
+        Args:
+            property_iri: IRI of the property to edit.
+            name: Updated property name.
+            prop_type: "object" or "datatype".
+            domain_iri: Updated domain class IRI (optional).
+            range_iri: Updated range class/datatype IRI (optional).
+            description: Updated description (optional).
+
+        Returns:
+            Dict with property_iri, prop_type, triple_count.
+
+        Raises:
+            ValueError: On invalid input.
+        """
+        # Validate inputs
+        if not name or not name.strip():
+            raise ValueError("Property name must not be empty")
+        if prop_type not in ("object", "datatype"):
+            raise ValueError(
+                f"prop_type must be 'object' or 'datatype', got '{prop_type}'"
+            )
+        if domain_iri and not (
+            domain_iri.startswith("http") or domain_iri.startswith("urn:")
+        ):
+            raise ValueError(f"Domain IRI is invalid: {domain_iri}")
+        if range_iri and not (
+            range_iri.startswith("http") or range_iri.startswith("urn:")
+        ):
+            raise ValueError(f"Range IRI is invalid: {range_iri}")
+
+        # Step 1: Delete all triples for this property in user-types graph
+        delete_sparql = (
+            f"DELETE WHERE {{ "
+            f"GRAPH <{USER_TYPES_GRAPH}> {{ <{property_iri}> ?p ?o . }} "
+            f"}}"
+        )
+        await self._client.update(delete_sparql)
+
+        # Step 2: Re-insert with updated values
+        triples = self._generate_property_triples(
+            prop_iri=property_iri,
+            name=name,
+            prop_type=prop_type,
+            domain_iri=domain_iri,
+            range_iri=range_iri,
+            description=description,
+        )
+
+        sparql = _build_insert_data_sparql(USER_TYPES_GRAPH, triples)
+        await self._client.update(sparql)
+
+        logger.info("Edited property %s (%d triples)", property_iri, len(triples))
+
+        return {
+            "property_iri": property_iri,
+            "prop_type": prop_type,
+            "triple_count": len(triples),
+        }

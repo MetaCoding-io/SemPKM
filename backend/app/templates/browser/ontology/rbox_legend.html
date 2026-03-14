@@ -40,6 +40,11 @@
           <td class="rbox-range">{{ p.range_label or '—' }}</td>
           {% if is_user %}
           <td class="rbox-actions-cell">
+            <button type="button" class="rbox-edit-btn" data-testid="rbox-edit-btn"
+                    title="Edit this property"
+                    onclick="openPropertyEditForm('{{ p.iri | urlencode }}')">
+              <i data-lucide="pencil"></i>
+            </button>
             <button type="button" class="rbox-delete-btn" data-testid="rbox-delete-btn"
                     title="Delete this property"
                     hx-delete="/browser/ontology/delete-property?property_iri={{ p.iri | urlencode }}"

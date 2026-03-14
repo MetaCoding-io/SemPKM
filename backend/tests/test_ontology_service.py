@@ -4,7 +4,7 @@ FROM clause assembly, and SPARQL query shape validation for TBox/ABox/RBox."""
 import pytest
 from rdflib import BNode, Graph, Literal, URIRef
 from rdflib.namespace import OWL, RDF, RDFS, XSD
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from app.ontology.service import (
     BATCH_SIZE,
@@ -699,3 +699,442 @@ class TestGetClassForEdit:
         assert result["parent_label"] == "owl:Thing"
         assert len(result["properties"]) == 1
         assert result["properties"][0]["name"] == "Title"
+
+
+# --- list_user_types ---
+
+
+class TestListUserTypes:
+    """Tests for list_user_types query and categorization."""
+
+    @pytest.mark.asyncio
+    async def test_sparql_uses_from_user_types(self):
+        """SPARQL query uses FROM <urn:sempkm:user-types> clause."""
+        mock_client = MagicMock()
+        mock_client.query = AsyncMock(return_value={
+            "results": {"bindings": []},
+        })
+        svc = OntologyService(mock_client)
+        await svc.list_user_types()
+
+        sparql = mock_client.query.call_args[0][0]
+        assert f"FROM <{USER_TYPES_GRAPH}>" in sparql
+
+    @pytest.mark.asyncio
+    async def test_empty_results(self):
+        """Returns empty lists when no user types exist."""
+        mock_client = MagicMock()
+        mock_client.query = AsyncMock(return_value={
+            "results": {"bindings": []},
+        })
+        svc = OntologyService(mock_client)
+        result = await svc.list_user_types()
+
+        assert result == {
+            "classes": [],
+            "object_properties": [],
+            "datatype_properties": [],
+        }
+
+    @pytest.mark.asyncio
+    async def test_categorizes_classes(self):
+        """owl:Class results are placed in 'classes' list."""
+        mock_client = MagicMock()
+        mock_client.query = AsyncMock(return_value={
+            "results": {"bindings": [{
+                "iri": {"value": "urn:sempkm:user-types:MyClass-abc"},
+                "label": {"value": "My Class"},
+                "rdfType": {"value": str(OWL.Class)},
+                "icon": {"value": "star"},
+                "color": {"value": "#ff0000"},
+                "parentLabel": {"value": "Thing"},
+            }]},
+        })
+        svc = OntologyService(mock_client)
+        result = await svc.list_user_types()
+
+        assert len(result["classes"]) == 1
+        assert result["classes"][0]["iri"] == "urn:sempkm:user-types:MyClass-abc"
+        assert result["classes"][0]["label"] == "My Class"
+        assert result["classes"][0]["icon"] == "star"
+        assert result["classes"][0]["color"] == "#ff0000"
+        assert result["classes"][0]["parent_label"] == "Thing"
+        assert len(result["object_properties"]) == 0
+        assert len(result["datatype_properties"]) == 0
+
+    @pytest.mark.asyncio
+    async def test_categorizes_object_and_datatype_properties(self):
+        """Object and datatype properties are placed in correct lists."""
+        mock_client = MagicMock()
+        mock_client.query = AsyncMock(return_value={
+            "results": {"bindings": [
+                {
+                    "iri": {"value": "urn:sempkm:user-types:authoredBy-abc"},
+                    "label": {"value": "Authored By"},
+                    "rdfType": {"value": str(OWL.ObjectProperty)},
+                    "domainLabel": {"value": "Note"},
+                    "rangeLabel": {"value": "Person"},
+                },
+                {
+                    "iri": {"value": "urn:sempkm:user-types:pageCount-def"},
+                    "label": {"value": "Page Count"},
+                    "rdfType": {"value": str(OWL.DatatypeProperty)},
+                    "domainLabel": {"value": "Book"},
+                    "rangeLabel": {"value": ""},
+                },
+            ]},
+        })
+        svc = OntologyService(mock_client)
+        result = await svc.list_user_types()
+
+        assert len(result["object_properties"]) == 1
+        assert result["object_properties"][0]["type"] == "object"
+        assert result["object_properties"][0]["domain_label"] == "Note"
+        assert result["object_properties"][0]["range_label"] == "Person"
+
+        assert len(result["datatype_properties"]) == 1
+        assert result["datatype_properties"][0]["type"] == "datatype"
+        assert result["datatype_properties"][0]["domain_label"] == "Book"
+
+
+# --- get_property_for_edit ---
+
+
+class TestGetPropertyForEdit:
+    """Tests for get_property_for_edit query and cross-graph label resolution."""
+
+    @pytest.mark.asyncio
+    async def test_returns_none_when_not_found(self):
+        """Returns None when property does not exist."""
+        mock_client = MagicMock()
+        mock_client.query = AsyncMock(return_value={
+            "results": {"bindings": []},
+        })
+        svc = OntologyService(mock_client)
+        result = await svc.get_property_for_edit("urn:nonexistent")
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_returns_property_data_object(self):
+        """Returns correct dict for an ObjectProperty with cross-graph labels."""
+        mock_client = MagicMock()
+        mock_client.query = AsyncMock(side_effect=[
+            # Property metadata query
+            {"results": {"bindings": [{
+                "label": {"value": "Authored By"},
+                "rdfType": {"value": str(OWL.ObjectProperty)},
+                "domain": {"value": "urn:test:Note"},
+                "range": {"value": "urn:test:Person"},
+                "description": {"value": "Author relationship"},
+            }]}},
+            # Cross-graph label for domain
+            {"results": {"bindings": [{"label": {"value": "Note"}}]}},
+            # Cross-graph label for range
+            {"results": {"bindings": [{"label": {"value": "Person"}}]}},
+        ])
+        svc = OntologyService(mock_client)
+        result = await svc.get_property_for_edit("urn:sempkm:user-types:authoredBy-abc")
+
+        assert result is not None
+        assert result["iri"] == "urn:sempkm:user-types:authoredBy-abc"
+        assert result["label"] == "Authored By"
+        assert result["prop_type"] == "object"
+        assert result["domain_iri"] == "urn:test:Note"
+        assert result["domain_label"] == "Note"
+        assert result["range_iri"] == "urn:test:Person"
+        assert result["range_label"] == "Person"
+        assert result["description"] == "Author relationship"
+
+    @pytest.mark.asyncio
+    async def test_returns_datatype_property(self):
+        """Correctly identifies DatatypeProperty prop_type."""
+        mock_client = MagicMock()
+        mock_client.query = AsyncMock(side_effect=[
+            {"results": {"bindings": [{
+                "label": {"value": "Page Count"},
+                "rdfType": {"value": str(OWL.DatatypeProperty)},
+            }]}},
+        ])
+        svc = OntologyService(mock_client)
+        result = await svc.get_property_for_edit("urn:sempkm:user-types:pageCount-def")
+
+        assert result is not None
+        assert result["prop_type"] == "datatype"
+        assert result["domain_iri"] == ""
+        assert result["range_iri"] == ""
+
+
+# --- edit_property ---
+
+
+class TestEditProperty:
+    """Tests for edit_property delete-then-reinsert and validation."""
+
+    @pytest.mark.asyncio
+    async def test_empty_name_raises(self):
+        mock_client = MagicMock()
+        svc = OntologyService(mock_client)
+        with pytest.raises(ValueError, match="name must not be empty"):
+            await svc.edit_property(
+                property_iri="urn:test:prop",
+                name="",
+                prop_type="object",
+            )
+
+    @pytest.mark.asyncio
+    async def test_invalid_prop_type_raises(self):
+        mock_client = MagicMock()
+        svc = OntologyService(mock_client)
+        with pytest.raises(ValueError, match="must be 'object' or 'datatype'"):
+            await svc.edit_property(
+                property_iri="urn:test:prop",
+                name="Test",
+                prop_type="relation",
+            )
+
+    @pytest.mark.asyncio
+    async def test_edit_calls_delete_then_insert(self):
+        """Edit property calls DELETE then INSERT DATA."""
+        mock_client = MagicMock()
+        mock_client.update = AsyncMock()
+        svc = OntologyService(mock_client)
+
+        result = await svc.edit_property(
+            property_iri="urn:sempkm:user-types:authoredBy-abc",
+            name="Written By",
+            prop_type="object",
+            domain_iri="urn:test:Note",
+            range_iri="urn:test:Person",
+        )
+
+        # 1 delete + 1 insert
+        assert mock_client.update.call_count == 2
+
+        # First call is DELETE
+        delete_sparql = mock_client.update.call_args_list[0][0][0]
+        assert "DELETE WHERE" in delete_sparql
+        assert f"GRAPH <{USER_TYPES_GRAPH}>" in delete_sparql
+        assert "urn:sempkm:user-types:authoredBy-abc" in delete_sparql
+
+        # Second call is INSERT DATA
+        insert_sparql = mock_client.update.call_args_list[1][0][0]
+        assert "INSERT DATA" in insert_sparql
+        assert "Written By" in insert_sparql
+
+    @pytest.mark.asyncio
+    async def test_edit_preserves_iri(self):
+        """Edit does not re-mint the property IRI — preserves original."""
+        mock_client = MagicMock()
+        mock_client.update = AsyncMock()
+        svc = OntologyService(mock_client)
+
+        original_iri = "urn:sempkm:user-types:myProp-11112222"
+        result = await svc.edit_property(
+            property_iri=original_iri,
+            name="Renamed Prop",
+            prop_type="datatype",
+        )
+        assert result["property_iri"] == original_iri
+        assert result["prop_type"] == "datatype"
+        assert result["triple_count"] == 2  # rdf:type + rdfs:label
+
+    @pytest.mark.asyncio
+    async def test_edit_with_all_optional_fields(self):
+        """Edit with domain, range, and description includes all triples."""
+        mock_client = MagicMock()
+        mock_client.update = AsyncMock()
+        svc = OntologyService(mock_client)
+
+        result = await svc.edit_property(
+            property_iri="urn:sempkm:user-types:prop-abc",
+            name="Full Prop",
+            prop_type="object",
+            domain_iri="urn:test:Domain",
+            range_iri="urn:test:Range",
+            description="A description",
+        )
+        # rdf:type + rdfs:label + rdfs:domain + rdfs:range + rdfs:comment = 5
+        assert result["triple_count"] == 5
+
+
+# --- Route-level tests for edit-property endpoints ---
+
+
+def _make_mock_request(ontology_service=None, templates=None):
+    """Build a mock Request with app.state wired up."""
+    req = MagicMock()
+    req.app.state.ontology_service = ontology_service or MagicMock()
+    req.app.state.templates = templates or MagicMock()
+    return req
+
+
+def _make_mock_user():
+    """Build a mock authenticated user."""
+    user = MagicMock()
+    user.username = "tester"
+    return user
+
+
+class TestEditPropertyFormRoute:
+    """Tests for GET /ontology/edit-property-form route handler."""
+
+    @pytest.mark.asyncio
+    async def test_namespace_guard_returns_403(self):
+        """Non-user-types IRI triggers 403."""
+        from app.ontology.router import edit_property_form
+
+        req = _make_mock_request()
+        resp = await edit_property_form(
+            request=req,
+            property_iri="http://example.org/foreignProp",
+            user=_make_mock_user(),
+        )
+        assert resp.status_code == 403
+        assert b"Only user-created properties" in resp.body
+
+    @pytest.mark.asyncio
+    async def test_not_found_returns_404(self):
+        """Property IRI in user namespace but not found in store → 404."""
+        from app.ontology.router import edit_property_form
+
+        svc = MagicMock()
+        svc.get_property_for_edit = AsyncMock(return_value=None)
+        req = _make_mock_request(ontology_service=svc)
+
+        iri = f"{USER_TYPES_GRAPH}:testProp-abc"
+        resp = await edit_property_form(
+            request=req, property_iri=iri, user=_make_mock_user()
+        )
+        assert resp.status_code == 404
+        assert b"Property not found" in resp.body
+
+    @pytest.mark.asyncio
+    async def test_success_renders_template(self):
+        """Valid user property IRI → 200 with template rendered."""
+        from app.ontology.router import edit_property_form
+
+        prop_data = {
+            "iri": f"{USER_TYPES_GRAPH}:myProp-123",
+            "label": "My Prop",
+            "prop_type": "object",
+            "domain_iri": "",
+            "domain_label": "",
+            "range_iri": "",
+            "range_label": "",
+            "description": "",
+        }
+        svc = MagicMock()
+        svc.get_property_for_edit = AsyncMock(return_value=prop_data)
+        templates = MagicMock()
+        templates.TemplateResponse = MagicMock(return_value="<html>OK</html>")
+        req = _make_mock_request(ontology_service=svc, templates=templates)
+
+        iri = f"{USER_TYPES_GRAPH}:myProp-123"
+        resp = await edit_property_form(
+            request=req, property_iri=iri, user=_make_mock_user()
+        )
+
+        templates.TemplateResponse.assert_called_once()
+        call_args = templates.TemplateResponse.call_args
+        assert call_args[0][1] == "browser/ontology/edit_property_form.html"
+        assert call_args[0][2]["prop"] == prop_data
+
+
+class TestEditPropertyRoute:
+    """Tests for POST /ontology/edit-property route handler."""
+
+    @pytest.mark.asyncio
+    async def test_namespace_guard_returns_403(self):
+        """Non-user-types IRI triggers 403."""
+        from app.ontology.router import edit_property as edit_property_route
+
+        req = _make_mock_request()
+        resp = await edit_property_route(
+            request=req,
+            property_iri="http://example.org/foreignProp",
+            name="Test",
+            prop_type="object",
+            domain_iri="",
+            range_iri="",
+            description="",
+            user=_make_mock_user(),
+        )
+        assert resp.status_code == 403
+        assert b"Only user-created properties" in resp.body
+
+    @pytest.mark.asyncio
+    async def test_success_returns_200_with_hx_trigger(self):
+        """Valid edit returns 200 with HX-Trigger: propertyEdited."""
+        from app.ontology.router import edit_property as edit_property_route
+
+        svc = MagicMock()
+        svc.edit_property = AsyncMock(
+            return_value={
+                "property_iri": f"{USER_TYPES_GRAPH}:prop-123",
+                "prop_type": "object",
+                "triple_count": 3,
+            }
+        )
+        req = _make_mock_request(ontology_service=svc)
+
+        resp = await edit_property_route(
+            request=req,
+            property_iri=f"{USER_TYPES_GRAPH}:prop-123",
+            name="Updated Prop",
+            prop_type="object",
+            domain_iri="urn:test:Domain",
+            range_iri="urn:test:Range",
+            description="A desc",
+            user=_make_mock_user(),
+        )
+        assert resp.status_code == 200
+        assert resp.headers.get("HX-Trigger") == "propertyEdited"
+        assert b"Updated property" in resp.body
+
+    @pytest.mark.asyncio
+    async def test_validation_error_returns_422(self):
+        """Service raises ValueError → 422."""
+        from app.ontology.router import edit_property as edit_property_route
+
+        svc = MagicMock()
+        svc.edit_property = AsyncMock(
+            side_effect=ValueError("name must not be empty")
+        )
+        req = _make_mock_request(ontology_service=svc)
+
+        resp = await edit_property_route(
+            request=req,
+            property_iri=f"{USER_TYPES_GRAPH}:prop-123",
+            name="",
+            prop_type="object",
+            domain_iri="",
+            range_iri="",
+            description="",
+            user=_make_mock_user(),
+        )
+        assert resp.status_code == 422
+        assert b"name must not be empty" in resp.body
+
+    @pytest.mark.asyncio
+    async def test_server_error_returns_500(self):
+        """Unexpected exception → 500."""
+        from app.ontology.router import edit_property as edit_property_route
+
+        svc = MagicMock()
+        svc.edit_property = AsyncMock(
+            side_effect=RuntimeError("SPARQL timeout")
+        )
+        req = _make_mock_request(ontology_service=svc)
+
+        resp = await edit_property_route(
+            request=req,
+            property_iri=f"{USER_TYPES_GRAPH}:prop-123",
+            name="Test",
+            prop_type="object",
+            domain_iri="",
+            range_iri="",
+            description="",
+            user=_make_mock_user(),
+        )
+        assert resp.status_code == 500
+        assert b"Server error editing property" in resp.body
