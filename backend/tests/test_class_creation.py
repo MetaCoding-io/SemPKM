@@ -492,6 +492,8 @@ class TestCreateClassEndpoint:
         response = await create_class(
             request=request,
             name="  ",
+            description="",
+            example="",
             icon="",
             icon_color="",
             parent_iri="http://www.w3.org/2002/07/owl#Thing",
@@ -513,6 +515,8 @@ class TestCreateClassEndpoint:
         response = await create_class(
             request=request,
             name="Test Class",
+            description="",
+            example="",
             icon="",
             icon_color="",
             parent_iri="http://www.w3.org/2002/07/owl#Thing",
@@ -548,6 +552,8 @@ class TestCreateClassEndpoint:
         response = await create_class(
             request=request,
             name="Test Task",
+            description="",
+            example="",
             icon="check-square",
             icon_color="#4CAF50",
             parent_iri="http://www.w3.org/2002/07/owl#Thing",
@@ -571,6 +577,8 @@ class TestCreateClassEndpoint:
             }],
             icon_name="check-square",
             icon_color="#4CAF50",
+            description=None,
+            example=None,
         )
 
     @pytest.mark.asyncio
@@ -592,6 +600,8 @@ class TestCreateClassEndpoint:
         response = await create_class(
             request=request,
             name="Note",
+            description="",
+            example="",
             icon="file-text",
             icon_color="#2196F3",
             parent_iri="http://www.w3.org/2002/07/owl#Thing",
