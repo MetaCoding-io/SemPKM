@@ -1,7 +1,7 @@
 # GSD State
 
 **Active Milestone:** M004 — Ontology & Type System Completion
-**Active Slice:** S04 — Create-New-Object Tab Fix
+**Active Slice:** S05 — Docs & Test Coverage
 **Phase:** planning
 **Requirements Status:** 0 active · 81 validated · 4 deferred · 0 out of scope
 
@@ -18,4 +18,4 @@
 - None
 
 ## Next Action
-Plan slice S04 (Create-New-Object Tab Fix).
+Plan slice S05 (Docs & Test Coverage).
