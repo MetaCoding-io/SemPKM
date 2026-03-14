@@ -277,7 +277,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Federation patches endpoint requires session auth but is called server-to-server without credentials — needs HTTP Signature verification
 - M003 docs coverage addressed (7 guide chapters updated post-M003)
 - Tag migration (/admin/migrate-tags) must be manually triggered after upgrade from pre-M003
-- All 10 M003 slice summaries are doctor-created placeholders (task summaries are authoritative); M004 S01 has no summary at all
+- All 10 M003 slice summaries are doctor-created placeholders (task summaries are authoritative)
 - SHACL shapes not auto-updated when property domain/range changes (D075) — acceptable but may confuse users
 - Malformed xsd:dateTime literals from Obsidian import (non-fatal rdflib warnings) — see .gsd/design/KNOWN-BACKEND-ERRORS.md
 - Validation report store returns HTTP 415 from RDF4J (validation works, report not persisted) — see .gsd/design/KNOWN-BACKEND-ERRORS.md
