@@ -1,0 +1,214 @@
+{# Property creation form: allows users to define a new OWL property
+   (Object Property or Datatype Property) with domain, range, and description.
+
+   Loaded via htmx into the property creation modal.
+   Submits via htmx POST to /browser/ontology/create-property.
+#}
+<div class="property-creation-form" data-testid="property-creation-form">
+  <div class="ccf-header">
+    <h4 class="ccf-title">Create New Property</h4>
+    <button type="button" class="btn-sm ccf-close" onclick="closePropertyCreationForm()" title="Close">
+      <i data-lucide="x"></i>
+    </button>
+  </div>
+
+  <form id="create-property-form"
+        hx-post="/browser/ontology/create-property"
+        hx-target="#cpf-result"
+        hx-swap="innerHTML">
+
+    <div class="ccf-section">
+      <div class="ccf-section-label">Property Definition</div>
+
+      {# Name #}
+      <div class="form-field">
+        <label for="cpf-name">Property Name <span class="ccf-required">*</span></label>
+        <p class="ccf-help">The display name for this property (e.g. "authored by", "has title").</p>
+        <input type="text" id="cpf-name" name="name" required
+               placeholder="e.g. authored by, has deadline…"
+               autocomplete="off">
+      </div>
+
+      {# Property Type #}
+      <div class="form-field">
+        <label>Property Type <span class="ccf-required">*</span></label>
+        <p class="ccf-help">Object properties link to other objects. Datatype properties hold literal values (text, numbers, dates).</p>
+        <div class="cpf-type-radios">
+          <label class="cpf-radio-label">
+            <input type="radio" name="prop_type" value="object" checked
+                   onchange="cpfToggleRangeField()">
+            <span>Object Property</span>
+            <span class="cpf-radio-hint">Links to another object</span>
+          </label>
+          <label class="cpf-radio-label">
+            <input type="radio" name="prop_type" value="datatype"
+                   onchange="cpfToggleRangeField()">
+            <span>Datatype Property</span>
+            <span class="cpf-radio-hint">Holds a literal value</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="ccf-section">
+      <div class="ccf-section-label">Domain &amp; Range</div>
+
+      {# Domain (source class) #}
+      <div class="form-field">
+        <label for="cpf-domain">Domain (Source Class)</label>
+        <p class="ccf-help">Which class of objects can have this property. Leave empty for any class.</p>
+        <input type="text" id="cpf-domain-search" placeholder="Search classes…"
+               autocomplete="off"
+               hx-get="/browser/ontology/tbox/search"
+               hx-trigger="input changed delay:300ms"
+               hx-target="#cpf-domain-results"
+               hx-swap="innerHTML"
+               name="_domain_search">
+        <div id="cpf-domain-results" class="ccf-search-results"></div>
+        <input type="hidden" id="cpf-domain" name="domain_iri" value="">
+        <div id="cpf-domain-selected" class="ccf-selected-item" style="display:none;">
+          <span class="ccf-selected-label"></span>
+          <button type="button" class="ccf-selected-clear" onclick="cpfClearField('domain')">&times;</button>
+        </div>
+      </div>
+
+      {# Range — object property: class picker; datatype property: datatype dropdown #}
+      <div class="form-field" id="cpf-range-object-field">
+        <label for="cpf-range-search">Range (Target Class)</label>
+        <p class="ccf-help">Which class of objects this property points to.</p>
+        <input type="text" id="cpf-range-search" placeholder="Search classes…"
+               autocomplete="off"
+               hx-get="/browser/ontology/tbox/search"
+               hx-trigger="input changed delay:300ms"
+               hx-target="#cpf-range-results"
+               hx-swap="innerHTML"
+               name="_range_search">
+        <div id="cpf-range-results" class="ccf-search-results"></div>
+        <input type="hidden" id="cpf-range-object" name="" value="">
+        <div id="cpf-range-object-selected" class="ccf-selected-item" style="display:none;">
+          <span class="ccf-selected-label"></span>
+          <button type="button" class="ccf-selected-clear" onclick="cpfClearField('range-object')">&times;</button>
+        </div>
+      </div>
+
+      <div class="form-field" id="cpf-range-datatype-field" style="display:none;">
+        <label for="cpf-range-datatype">Range (Value Type)</label>
+        <p class="ccf-help">What kind of literal value this property holds.</p>
+        <select id="cpf-range-datatype" name="">
+          <option value="http://www.w3.org/2001/XMLSchema#string">xsd:string (text)</option>
+          <option value="http://www.w3.org/2001/XMLSchema#integer">xsd:integer (whole number)</option>
+          <option value="http://www.w3.org/2001/XMLSchema#decimal">xsd:decimal (decimal number)</option>
+          <option value="http://www.w3.org/2001/XMLSchema#boolean">xsd:boolean (true/false)</option>
+          <option value="http://www.w3.org/2001/XMLSchema#date">xsd:date</option>
+          <option value="http://www.w3.org/2001/XMLSchema#dateTime">xsd:dateTime</option>
+          <option value="http://www.w3.org/2001/XMLSchema#anyURI">xsd:anyURI (URL)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="ccf-section">
+      <div class="ccf-section-label">Metadata</div>
+
+      {# Description #}
+      <div class="form-field">
+        <label for="cpf-description">Description</label>
+        <p class="ccf-help">Explain what this property means. Stored as <code>rdfs:comment</code>.</p>
+        <textarea id="cpf-description" name="description" rows="2"
+                  placeholder="e.g. The person who wrote this document…"></textarea>
+      </div>
+    </div>
+
+    <div class="ccf-actions">
+      <div id="cpf-result"></div>
+      <button type="button" class="btn-sm" onclick="closePropertyCreationForm()">Cancel</button>
+      <button type="submit" class="btn-sm btn-primary">Create Property</button>
+    </div>
+  </form>
+</div>
+
+<script>
+(function() {
+  // Toggle range field between class picker (object) and datatype dropdown
+  window.cpfToggleRangeField = function() {
+    var isObject = document.querySelector('input[name="prop_type"]:checked').value === 'object';
+    var objField = document.getElementById('cpf-range-object-field');
+    var dtField = document.getElementById('cpf-range-datatype-field');
+
+    if (isObject) {
+      objField.style.display = '';
+      dtField.style.display = 'none';
+      // Set the active name attribute for submission
+      document.getElementById('cpf-range-object').name = 'range_iri';
+      document.getElementById('cpf-range-datatype').name = '';
+    } else {
+      objField.style.display = 'none';
+      dtField.style.display = '';
+      document.getElementById('cpf-range-object').name = '';
+      document.getElementById('cpf-range-datatype').name = 'range_iri';
+    }
+  };
+
+  // Initialize — object property is default
+  document.getElementById('cpf-range-object').name = 'range_iri';
+
+  // Search result click handlers (domain and range)
+  document.addEventListener('click', function(e) {
+    var item = e.target.closest('.ccf-search-item');
+    if (!item) return;
+
+    var iri = item.getAttribute('data-iri');
+    var label = item.getAttribute('data-label') || item.textContent.trim();
+
+    // Determine which field this belongs to
+    var parent = item.closest('.form-field');
+    if (!parent) return;
+
+    if (parent.querySelector('#cpf-domain-search')) {
+      document.getElementById('cpf-domain').value = iri;
+      document.getElementById('cpf-domain-search').style.display = 'none';
+      document.getElementById('cpf-domain-results').innerHTML = '';
+      var sel = document.getElementById('cpf-domain-selected');
+      sel.querySelector('.ccf-selected-label').textContent = label;
+      sel.style.display = 'flex';
+    } else if (parent.querySelector('#cpf-range-search')) {
+      document.getElementById('cpf-range-object').value = iri;
+      document.getElementById('cpf-range-search').style.display = 'none';
+      document.getElementById('cpf-range-results').innerHTML = '';
+      var sel2 = document.getElementById('cpf-range-object-selected');
+      sel2.querySelector('.ccf-selected-label').textContent = label;
+      sel2.style.display = 'flex';
+    }
+  });
+
+  // Clear selected field
+  window.cpfClearField = function(field) {
+    if (field === 'domain') {
+      document.getElementById('cpf-domain').value = '';
+      document.getElementById('cpf-domain-search').style.display = '';
+      document.getElementById('cpf-domain-selected').style.display = 'none';
+    } else if (field === 'range-object') {
+      document.getElementById('cpf-range-object').value = '';
+      document.getElementById('cpf-range-search').style.display = '';
+      document.getElementById('cpf-range-object-selected').style.display = 'none';
+    }
+  };
+
+  // Close modal on successful creation
+  document.body.addEventListener('propertyCreated', function() {
+    closePropertyCreationForm();
+    if (typeof _showGlobalToast === 'function') {
+      _showGlobalToast('Property created successfully', 'info');
+    }
+    // Reset form
+    var form = document.getElementById('create-property-form');
+    if (form) form.reset();
+    // Reset search fields
+    cpfClearField('domain');
+    cpfClearField('range-object');
+    cpfToggleRangeField();
+  });
+
+  // Re-init lucide icons
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+})();
+</script>
