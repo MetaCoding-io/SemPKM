@@ -298,6 +298,101 @@ Click the **+ Create Class** button in the TBox tab to open the class creation m
 
 The new class is stored in the user types graph and immediately appears in the TBox tree with a "user" badge. You can then create objects of this type from the Object Browser.
 
+### Creating Properties
+
+Click the **+ Create Property** button in the RBox tab header to open the property creation modal:
+
+1. **Name** — Enter a display name for the property (e.g., "has deadline", "relates to").
+2. **Type** — Select **Object Property** (links between objects) or **Datatype Property** (a literal value like text, date, or number). This choice is permanent and cannot be changed after creation.
+3. **Domain** — Choose which class this property belongs to. The domain class determines which object forms will include this property. Use the search field to find a class from any source (gist, model, or user-created).
+4. **Range** — For object properties, select the target class that this relationship points to. For datatype properties, select the value type (e.g., `xsd:string`, `xsd:dateTime`, `xsd:integer`).
+5. **Description** — Optionally add a description explaining the property's purpose.
+6. Click **Create Property** to save.
+
+The new property is stored in the user types graph and immediately appears in the RBox table under the "user" group with a green **user** badge. The table displays the property in **Domain → Property → Range** format.
+
+> **Tip:** Use object properties to model relationships between your objects (e.g., "Project → has deadline → xsd:dateTime" as a datatype property, or "Paper → cites → Paper" as an object property). Use datatype properties for simple attributes like titles, dates, and descriptions.
+
+### Editing Classes
+
+You can edit any user-created class directly from the TBox tree:
+
+1. Hover over a user-created class node (marked with a green **user** badge) in the TBox tree to reveal the action buttons.
+2. Click the **pencil icon** (edit button) to open the edit form.
+3. The edit form loads pre-populated with the class's current values:
+   - **Name** — Update the display name.
+   - **Description** — Change or add the class definition.
+   - **Example** — Update usage examples.
+   - **Appearance** — Change the Lucide icon and color.
+   - **Hierarchy** — Reparent the class by selecting a different parent class.
+   - **Instance Properties** — Add or remove properties that define the fields on objects of this class.
+4. Click **Save Changes** to apply.
+
+Changes take effect immediately — the TBox tree refreshes to show the updated name, icon, and hierarchy position. Any object forms for this class will reflect the new properties on next load.
+
+> **Note:** Only classes with a green **user** badge can be edited. Classes from installed Mental Models (orange badge) and gist upper ontology classes (blue badge) are read-only.
+
+### Editing Properties
+
+You can edit any user-created property from the RBox tab or the Custom section on the Mental Models page:
+
+1. Hover over a user-created property row in the RBox table (under the "user" group) to reveal the action buttons.
+2. Click the **pencil icon** (edit button) to open the property edit form.
+3. The edit form loads pre-populated with the property's current values:
+   - **Name** — Update the display name.
+   - **Type** — Shown as read-only (Object Property or Datatype Property). The property type cannot be changed after creation — if you need a different type, delete the property and create a new one.
+   - **Domain** — Change which class this property belongs to.
+   - **Range** — Change the target class (for object properties) or value type (for datatype properties).
+   - **Description** — Update the description.
+4. Click **Save Changes** to apply.
+
+The RBox table refreshes to show the updated property details.
+
+> **Warning:** Changing a property's domain or range does not automatically update SHACL shapes that reference the property. Existing objects will retain their current values, but form validation may behave differently if the range changes.
+
+### Deleting Classes
+
+Deleting a user-created class permanently removes its definition and SHACL shape from the system. Because this can affect existing data, SemPKM uses a two-step confirmation process:
+
+1. Hover over a user-created class node in the TBox tree and click the **trash icon** (delete button).
+2. A confirmation dialog appears showing:
+   - **The class name** you are about to delete.
+   - **Instance count** — the number of objects of this type currently in your knowledge base (shown in red if greater than zero).
+   - **Subclass count** — the number of child classes that inherit from this class (shown in amber if greater than zero).
+3. Review the counts carefully:
+   - If instances exist, deleting the class removes its type definition and forms — existing objects will remain in the knowledge base but will no longer have associated shapes for form generation.
+   - If subclasses exist, they will lose their parent class relationship.
+4. Click **Confirm Delete** to proceed, or **Cancel** to abort.
+
+On confirmation, the class and its SHACL shape are removed from the user types graph. The TBox tree refreshes automatically and the class disappears.
+
+> **Warning:** Deletion is permanent. If objects of this type exist, they will still be in your knowledge base but will not have forms or validation. Consider whether you need to delete or migrate those objects first.
+
+### Deleting Properties
+
+Deleting a user-created property is simpler than deleting a class, since properties do not have instances of their own:
+
+1. Hover over a user-created property row in the RBox table to reveal the action buttons.
+2. Click the **trash icon** (delete button).
+3. A browser confirmation dialog asks you to confirm the deletion.
+4. Click **OK** to delete, or **Cancel** to abort.
+
+The property is removed from the user types graph and the RBox table refreshes automatically.
+
+### Custom Section on Mental Models
+
+The **Mental Models** admin page (`/admin/models`) includes a **Custom** section that provides an overview of all your user-created types and properties in one place.
+
+The Custom section displays three groups:
+
+- **Classes** — All user-created classes with their icon, name, and available actions.
+- **Object Properties** — All user-created object properties showing Domain → Property → Range.
+- **Datatype Properties** — All user-created datatype properties showing Domain → Property → Range.
+
+Each item has inline **Edit** and **Delete** action buttons, providing the same functionality as the TBox and RBox tabs in the Ontology Viewer but from a centralized management view.
+
+> **Tip:** Use the Custom section for a quick inventory of everything you've created. It's especially useful when you have multiple custom classes and properties and want to manage them without switching between TBox and RBox tabs.
+
 ---
 
 **Previous:** [Chapter 9: Understanding Mental Models](09-understanding-mental-models.md) | **Next:** [Chapter 11: User Management](11-user-management.md)

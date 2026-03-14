@@ -56,7 +56,7 @@ This milestone is complete only when all are true:
 - [x] **S04: Create-New-Object Tab Fix** `risk:low` `depends:[]`
   > After this: clicking "New Object" always opens a fresh dockview tab, preserving the user's current view
 
-- [ ] **S05: Docs & Test Coverage** `risk:low` `depends:[S01,S02,S03,S04]`
+- [x] **S05: Docs & Test Coverage** `risk:low` `depends:[S01,S02,S03,S04]`
   > After this: user guide pages updated for property creation, type CRUD, Custom section; unit tests cover all new service methods
 
 ## Boundary Map

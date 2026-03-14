@@ -183,6 +183,20 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - ✓ Admin model detail real stats and Chart.js charts — M003 (chart htmx loading bug fixed post-M003)
 - ✓ E2E test coverage gap fill: 82 spec files total — M003
 
+### Validated (M004 — Ontology & Type System Completion)
+
+<!-- Shipped and confirmed in M004 (2026-03-14). -->
+
+- ✓ PROP-01: In-app property creation (ObjectProperty and DatatypeProperty) from RBox tab — M004
+- ✓ PROP-02: Property editing (rename, change domain/range) from RBox and Custom section — M004
+- ✓ PROP-03: Property deletion with confirmation — M004
+- ✓ TYPE-05: Class editing (rename, icon, parent, properties, SHACL shape replacement) — M004
+- ✓ TYPE-06: Class deletion with instance-count and subclass-count warnings — M004
+- ✓ TYPE-07: Custom section on Mental Models page listing user types/properties — M004
+- ✓ TAB-01: Create-new-object opens fresh dockview tab — M004
+- ✓ User guide: 6 new sections in chapter 10 covering all M004 features — M004
+- ✓ Unit test coverage: 114 ontology tests, 386 total backend tests — M004
+
 ### Future Candidates
 
 <!-- Tracked for future milestones. See .gsd/QUEUE.md for full queue and .gsd/REQUIREMENTS.md for deferred requirements. -->
@@ -223,38 +237,34 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - SPARQL UPDATE as external write surface — by design (bypasses event sourcing)
 - Real-time collaborative editing — CRDT/OT complexity, v2+ at earliest
 - Mobile native app — web-first, responsive design and eventual PWA
-- Full ontology editor — M003 has backend code for basic class creation (not yet wired to UI); Protege for advanced OWL authoring
+- Full ontology editor — M004 completed full CRUD for classes and properties; Protege still needed for advanced OWL authoring (TYPE-03 deferred)
 
 ## Current State
 
-**Latest shipped: M003 Workspace UX & Knowledge Organization (2026-03-12)**
+**Latest shipped: M004 Ontology & Type System Completion (2026-03-14)**
 
-**What shipped in M003 (Workspace UX & Knowledge Organization):**
-- Explorer modes: mode dropdown with by-type, by-hierarchy, by-tag, and VFS mount modes
-- Hierarchy: dcterms:isPartOf parent/child nesting with lazy arbitrary-depth expansion
-- VFS explorer: mount specs as selectable modes, 5 strategies adapted for htmx trees
-- Tags: comma-separated → individual triples fix, # pills, tag explorer mode, migration endpoint
-- Favorites: SQL-backed per-user favorites with star toggle and FAVORITES explorer section
-- Comments: threaded RDF comments via EventStore with author badges and timestamps
-- Ontology: TBox/ABox/RBox viewer with gist 14.0.0 loaded as cross-graph foundation
-- Class creation: "+ Create Class" button on Ontology Viewer opens full form (name, icon picker, parent, properties)
-- Admin charts: Chart.js sparkline + link distribution (htmx loading bug fixed post-M003)
-- E2E coverage: 82 spec files total covering all shipped features
-- User guide: 7 chapters updated covering all M003 features (explorer modes, favorites, comments, gist, ontology viewer, class creation, VFS mounts, settings)
+**What shipped in M004 (Ontology & Type System Completion):**
+- Property CRUD: create ObjectProperty/DatatypeProperty from RBox tab, edit (rename, change domain/range), delete with confirmation
+- Class edit: rename, change icon/color, reparent, add/remove properties with full SHACL shape replacement
+- Class delete: two-step confirmation with instance-count and subclass-count warnings
+- Custom section on Mental Models page: three-tier view (Upper Ontology → Installed Models → Custom) with inline edit/delete
+- Create-new-object tab fix: always opens fresh dockview tab preserving current view
+- User guide: 6 new sections in chapter 10 documenting all M004 features
+- Unit tests: 114 ontology tests, 386 total backend tests passing
 
-**Previous milestones:** M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
+**Previous milestones:** M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
 
-**Current milestone:** None active — M003 complete. See `.gsd/QUEUE.md` for queued milestones.
+**Current milestone:** None active — M004 complete. See `.gsd/QUEUE.md` for queued milestones.
 
 ## Context
 
-**Current state (M003 complete 2026-03-12):**
+**Current state (M004 complete 2026-03-14):**
 - ~54k source LOC (47k Python, 7k JS) + CSS, HTML/Jinja2, JSON-LD
 - Tech stack: FastAPI + RDF4J (LuceneSail) + htmx/vanilla-web + SQLAlchemy (SQLite/PostgreSQL) + wsgidav + a2wsgi + Driver.js + Cytoscape.js + CodeMirror + dockview-core + Alembic + Yasgui CDN + ninja-keys + owlrl + pyshacl + mf2py + http-message-signatures + slowapi
 - Docker Compose deployment: 3 services (api, triplestore, frontend/nginx) + federation test compose (2 instances)
-- 58 phases, 80 plans completed across v1.0–v2.6; M002 (7 slices) + M003 (10 slices) milestones complete
-- Backend test suite: 140+ pytest unit tests, <3s, no Docker dependency
-- E2E test suite: 82 Playwright spec files covering all shipped features
+- 58 phases, 80 plans completed across v1.0–v2.6; M002 (7 slices) + M003 (10 slices) + M004 (5 slices) milestones complete
+- Backend test suite: 386 pytest unit tests, <4s, no Docker dependency
+- E2E test suite: 83 Playwright spec files covering all shipped features
 - All dependencies pinned (~= compatible release) with uv.lock committed
 - Browser router refactored into 8 domain sub-modules (was 1956-line monolith)
 
@@ -267,7 +277,8 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Federation patches endpoint requires session auth but is called server-to-server without credentials — needs HTTP Signature verification
 - M003 docs coverage addressed (7 guide chapters updated post-M003)
 - Tag migration (/admin/migrate-tags) must be manually triggered after upgrade from pre-M003
-- All 10 M003 slice summaries are doctor-created placeholders (task summaries are authoritative)
+- All 10 M003 slice summaries are doctor-created placeholders (task summaries are authoritative); M004 S01 has no summary at all
+- SHACL shapes not auto-updated when property domain/range changes (D075) — acceptable but may confuse users
 - Malformed xsd:dateTime literals from Obsidian import (non-fatal rdflib warnings) — see .gsd/design/KNOWN-BACKEND-ERRORS.md
 - Validation report store returns HTTP 415 from RDF4J (validation works, report not persisted) — see .gsd/design/KNOWN-BACKEND-ERRORS.md
 - Comment author UUID format mismatch (RDF dashed vs SQL undashed) — fixed post-M003 but pattern may recur
@@ -368,4 +379,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-03-14 after M003 docs + testing completion*
+*Last updated: 2026-03-14 after M004 Ontology & Type System Completion*

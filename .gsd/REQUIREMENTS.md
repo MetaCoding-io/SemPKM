@@ -656,6 +656,62 @@ User can multi-select objects in the nav tree and drag-drop them onto the canvas
 
 Wiki-links in an object's markdown body are parsed and rendered as edges connecting to their target nodes on the canvas, with a different color than RDF links.
 
+### PROP-01 — In-app property creation (ObjectProperty and DatatypeProperty)
+- Status: validated
+- Class: core-capability
+- Source: user
+- Primary Slice: M004/S01
+
+OntologyService.create_property() creates OWL ObjectProperty or DatatypeProperty with rdfs:label, rdfs:domain, rdfs:range in urn:sempkm:user-types graph. POST /browser/ontology/create-property endpoint with form-based UI on RBox tab. Unit tests: test_class_creation.py.
+
+### PROP-02 — Property editing (rename, change domain/range)
+- Status: validated
+- Class: core-capability
+- Source: user
+- Primary Slice: M004/S03
+
+OntologyService.edit_property() updates label, domain, and range via DELETE/INSERT SPARQL. Accessible from both RBox tab and Custom section on Mental Models. PUT /browser/ontology/edit-property endpoint.
+
+### PROP-03 — Property deletion with confirmation
+- Status: validated
+- Class: core-capability
+- Source: user
+- Primary Slice: M004/S02
+
+OntologyService.delete_property() removes all triples for a user-created property. DELETE /browser/ontology/delete-property endpoint with user-types IRI guard. Unit tests: test_class_creation.py.
+
+### TYPE-05 — Class editing (rename, icon, parent, add/remove properties, SHACL shape update)
+- Status: validated
+- Class: core-capability
+- Source: user
+- Primary Slice: M004/S01
+
+OntologyService.edit_class() updates label, icon, color, parent, and properties — replaces SHACL NodeShape via full shape regeneration. POST /browser/ontology/edit-class endpoint with edit_class_form.html modal.
+
+### TYPE-06 — Class deletion with instance-count warnings and confirmation
+- Status: validated
+- Class: core-capability
+- Source: user
+- Primary Slice: M004/S02
+
+OntologyService.delete_class() removes OWL class + SHACL shape triples. GET /browser/ontology/delete-class-check endpoint shows instance/subclass counts with confirmation dialog. DELETE /browser/ontology/delete-class endpoint with user-types IRI guard. Unit tests: test_class_creation.py.
+
+### TYPE-07 — Custom section on Mental Models page listing user types/properties
+- Status: validated
+- Class: core-capability
+- Source: user
+- Primary Slice: M004/S03
+
+OntologyService.list_user_types() queries user-types graph for classes and properties. Mental Models page renders "Custom" section with edit/delete actions inline. Accessible from /browser/mental-models.
+
+### TAB-01 — Create-new-object opens fresh dockview tab
+- Status: validated
+- Class: core-capability
+- Source: user
+- Primary Slice: M004/S04
+
+Fixed openTab() in workspace.js to always open create-new-object in a fresh dockview tab instead of overwriting the active tab. Preserves user's current view.
+
 ## Deferred
 
 ### TYPE-03 — Full SHACL shape editor with advanced constraints
@@ -784,6 +840,13 @@ Wiki-links in an object's markdown body are parsed and rendered as edges connect
 | OBSI-08 | core-capability | validated | M002/S07 | none | 895 objects imported |
 | OBSI-09 | core-capability | validated | M002/S07 | none | 1767 wiki-link edges |
 | OBSI-10 | core-capability | validated | M002/S07 | none | frontmatter properties in UI |
+| PROP-01 | core-capability | validated | M004/S01 | none | create_property service + endpoint |
+| PROP-02 | core-capability | validated | M004/S03 | none | edit_property service + endpoint |
+| PROP-03 | core-capability | validated | M004/S02 | none | delete_property service + endpoint |
+| TYPE-05 | core-capability | validated | M004/S01 | none | edit_class with SHACL shape replacement |
+| TYPE-06 | core-capability | validated | M004/S02 | none | delete_class with instance warnings |
+| TYPE-07 | core-capability | validated | M004/S03 | none | Custom section on Mental Models |
+| TAB-01 | core-capability | validated | M004/S04 | none | fresh dockview tab for new objects |
 | TYPE-03 | core-capability | deferred | none | none | unmapped |
 | TYPE-04 | core-capability | deferred | none | none | unmapped |
 | MCP-01 | core-capability | deferred | none | none | unmapped |
@@ -795,7 +858,7 @@ Wiki-links in an object's markdown body are parsed and rendered as edges connect
 ## Coverage Summary
 
 - Active requirements: 0
-- Validated: 81 (38 from M001 + 22 from M002 + 21 from M003)
+- Validated: 88 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004)
 - Deferred: 4
 - Out of scope: 3
 - Unmapped active requirements: 0
