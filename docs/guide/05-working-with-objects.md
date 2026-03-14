@@ -108,6 +108,8 @@ Below the body (or at the top if there is no body), a collapsible **Properties**
 
 You can collapse the Properties section by clicking the "Properties" toggle header.
 
+> **Tags:** If an object has tags (via `schema:keywords`), they appear as colored pills below the object properties. Each tag is clickable and filters the explorer to show other objects with the same tag.
+
 Here is another example showing a Person object:
 
 ![Person object in read-only mode](images/17-object-read-person.png)

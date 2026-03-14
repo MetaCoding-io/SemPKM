@@ -257,6 +257,47 @@ The filenames default to `{modelId}.jsonld` but can be customized via the entryp
 | List | Models page table | `GET /api/models` | Shows all installed models with metadata |
 | Auto-install | Automatic on startup | Automatic on startup | Basic PKM installed if no models present |
 
+## The Ontology Viewer
+
+The **Ontology Viewer** provides a visual exploration tool for browsing all classes, properties, and relationships defined by your installed Mental Models and the gist upper ontology. Open it from the command palette (`F1` → "Open: Ontology Viewer").
+
+### TBox — Class Hierarchy
+
+The **TBox** (terminological box) tab shows all classes organized as an expandable tree. Root classes appear at the top level, with subclasses nested beneath their parents.
+
+Each tree node shows:
+- The class label (e.g., "Event", "Task", "Project")
+- A colored **source badge** — "gist" (blue) for upper ontology classes, model name (orange) for installed model classes, "user" (green) for classes you created
+
+Click any class to see its detail panel on the right:
+- **Description** — the class definition (from `rdfs:comment` or `skos:definition`)
+- **Examples** — usage examples (from gist annotations)
+- **Notes** — additional context and clarifications
+- **Hierarchy** — parent classes and subclass count
+- **Instances** — count of objects of this type in your knowledge base
+
+**Hide gist filter:** Check the "Hide gist" checkbox above the tree to show only your model classes grouped under their gist parent classes. This gives a focused view of just the types you work with directly.
+
+### RBox — Property Legend
+
+The **RBox** (relational box) tab shows all properties (relationships and attributes) defined across your models, organized into two sections:
+
+- **Object Properties** — relationships between objects (e.g., "is about", "has author")
+- **Datatype Properties** — attributes with literal values (e.g., "title", "created date")
+
+Properties are displayed in a table with three columns reading left to right: **Domain → Property → Range** (e.g., "Note → is about → Concept"). Properties are grouped by their source model with collapsible section headers.
+
+### Creating Custom Classes
+
+Click the **+ Create Class** button in the TBox tab to open the class creation modal:
+
+1. **Identity** — Enter a display name, description (`rdfs:comment`), and optional usage example (`skos:example`)
+2. **Appearance** — Choose a Lucide icon and color for the class
+3. **Hierarchy** — Optionally select a parent class (defaults to `owl:Thing`)
+4. **Instance Properties** — Define which fields objects of this class will have. Each property maps to an RDF predicate (e.g., `rdfs:comment`, `dcterms:title`). A default "Description" property is pre-populated.
+
+The new class is stored in the user types graph and immediately appears in the TBox tree with a "user" badge. You can then create objects of this type from the Object Browser.
+
 ---
 
 **Previous:** [Chapter 9: Understanding Mental Models](09-understanding-mental-models.md) | **Next:** [Chapter 11: User Management](11-user-management.md)

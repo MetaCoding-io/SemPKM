@@ -158,6 +158,31 @@ Write support is planned for a future release.
 | Cannot connect | Wrong URL or port | Verify the `/dav/` path is included in the URL |
 | macOS "connection failed" | macOS prefers HTTPS for WebDAV | Use `http://` explicitly for local dev |
 
+## Custom Mounts
+
+In addition to the default model-based mount (which projects your Mental Model types as folders), you can create **custom mounts** that define your own virtual directory structures.
+
+### Creating a Custom Mount
+
+1. Navigate to **Settings** → **Virtual Filesystem** section
+2. Under "Custom Mounts," click **Add Mount**
+3. Configure the mount:
+   - **Name** — a display label for the mount
+   - **Strategy** — how objects are organized into folders (e.g., by type, by property value)
+   - **Filters** — optional type or query restrictions
+4. Click **Save**
+
+### Viewing Mounts in the Explorer
+
+Custom mounts appear in the Object Explorer when you select **VFS Mounts** mode from the mode dropdown. The explorer shows:
+
+- **Model mounts** at the top — read-only directory trees generated from your installed Mental Models (shown with a "System" badge and dashed border)
+- **Custom mounts** below — your user-defined mounts with Edit and Delete actions
+
+The **+** button in the VFS browser header navigates to Settings → Virtual Filesystem, where you can create new mounts.
+
+Each mount tree lazy-loads: folders and files are fetched on demand as you expand them.
+
 ---
 
 **Previous:** [Chapter 22: Keyword Search](22-keyword-search.md) | **Next:** [Chapter 24: Obsidian Onboarding](24-obsidian-onboarding.md)

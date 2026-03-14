@@ -4,12 +4,14 @@ SemPKM has a layered settings system that lets you personalize your workspace wh
 
 ## Accessing Settings
 
-There are two ways to open the Settings page:
+Settings is a **standalone page** accessible from multiple entry points:
 
-- **Keyboard shortcut:** Press `Alt+,` (comma) to jump directly to Settings.
-- **User menu:** Click your user avatar or name in the top-right corner to open the user popover, then select **Settings**.
+- Click **Settings** in the sidebar (under Apps)
+- Click your user avatar and select **Settings** from the popover
+- Press `Alt+,` from anywhere in the application
+- Click the **+** button in the VFS browser to jump directly to the Virtual Filesystem section
 
-The Settings page opens within the workspace, replacing the current content area.
+Settings always opens as a full page (not a workspace tab), with its own sidebar for section navigation.
 
 ![Settings page with category sidebar and settings controls](images/10-settings-page.png)
 

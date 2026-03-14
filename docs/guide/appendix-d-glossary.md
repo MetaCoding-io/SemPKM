@@ -4,6 +4,9 @@ Alphabetical definitions of key terms used throughout the SemPKM documentation a
 
 ---
 
+**ABox**
+(Assertional Box) The set of individual instances (objects) in a knowledge base, as opposed to the class definitions (TBox).
+
 **Carousel View**
 A tabbed browsing interface for Mental Model views that groups table, card, and graph views into a single page with a tab strip. Each tab loads a different view of the same type's data, letting you switch between display formats without navigating away. See [Chapter 7: Browsing and Visualizing Data](07-browsing-and-visualizing.md).
 
@@ -21,6 +24,12 @@ An immutable, timestamped record of a change made to the knowledge base. Every m
 
 **Event Sourcing**
 The architectural pattern used by SemPKM where every state change is stored as an immutable event rather than directly modifying the current state. The "current state" graph is a materialized view derived from replaying all events. This provides full history, undo capability, and temporal queries.
+
+**Favorites**
+Objects starred by the user for quick access. Shown in the FAVORITES section of the Explorer panel.
+
+**Gist**
+A minimalist upper ontology (v14.0.0) by Semantic Arts that provides foundational classes and properties. Auto-loaded in SemPKM as the semantic foundation for all Mental Models.
 
 **IndieAuth**
 An authentication and authorization protocol built on OAuth 2.0 that uses personal URLs (like WebID profiles) as identities. SemPKM acts as an IndieAuth provider, allowing you to sign into other IndieAuth-compatible services using your SemPKM identity. See [Chapter 26: IndieAuth](26-indieauth.md).
@@ -67,6 +76,9 @@ Proof Key for Code Exchange. A security extension to the OAuth 2.0 authorization
 **Property**
 A named attribute of an object. Properties can hold literal values (strings, dates, numbers, URIs) or references to other objects. In RDF terms, a property is a predicate in a subject-predicate-object triple. SemPKM distinguishes between datatype properties (literal values) and object properties (references to other resources). See also: Edge, Object.
 
+**RBox**
+(Relational Box) The set of properties (object properties and datatype properties) defined in an ontology. Viewable in the Ontology Viewer's RBox tab.
+
 **RDF**
 Resource Description Framework. The W3C standard data model that underpins SemPKM. All data is stored as triples: subject-predicate-object statements. For example, "Alice Chen" (subject) "has job title" (predicate) "Lead Developer" (object). RDF enables flexible, schema-on-read data that can be queried, linked, and extended without migrations.
 
@@ -85,6 +97,9 @@ An interactive freeform workspace for exploring your knowledge graph visually. U
 **SPARQL**
 SPARQL Protocol and RDF Query Language. The standard query language for RDF data, analogous to SQL for relational databases. SemPKM uses SPARQL internally for all data retrieval and manipulation. View specifications contain SPARQL queries that power table, card, and graph views. The bottom panel includes a SPARQL console for running ad-hoc queries.
 
+**TBox**
+(Terminological Box) The set of class definitions and their hierarchy in an ontology. Viewable in the Ontology Viewer's TBox tab.
+
 **Triple**
 The atomic unit of data in RDF: a subject-predicate-object statement. For example: `<Person/alice> <foaf:name> "Alice Chen"` is a triple stating that the resource `Person/alice` has the name "Alice Chen". All data in SemPKM -- objects, properties, edges, events -- is ultimately stored as triples.
 
@@ -93,6 +108,9 @@ A database optimized for storing and querying RDF triples. SemPKM uses Eclipse R
 
 **Type**
 A classification for objects, defined as an OWL class in a Mental Model's ontology. The Basic PKM model defines four types: Note, Concept, Project, and Person. Each type has associated SHACL shapes (for forms and validation) and view specifications (for browsing). When you create a new object, you choose its type.
+
+**Upper Ontology**
+A high-level, domain-independent ontology that provides general concepts (like Event, Person, Organization) that domain-specific models extend. In SemPKM, gist serves as the upper ontology.
 
 **Validation**
 The process of checking an object's data against its SHACL shape. Validation runs asynchronously after every save operation. Results appear in the Lint Panel and include violation severity (warning or error), the affected property, and a human-readable message. Validation is non-blocking -- you can always save your work regardless of validation results. See also: SHACL, Lint.

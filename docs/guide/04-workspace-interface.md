@@ -75,6 +75,31 @@ The tree uses lazy loading: child objects are only fetched from the server when 
 
 > **Note:** When you create a new object, the tree does not automatically refresh. Collapse and re-expand the relevant type node to see newly created objects, or use the command palette to open them directly.
 
+#### Explorer Modes
+
+The OBJECTS section header includes a **mode selector** dropdown that lets you switch how objects are organized in the tree:
+
+| Mode | Description |
+|------|-------------|
+| **By Type** (default) | Groups objects under their type (Project, Note, Concept, etc.) |
+| **Hierarchy** | Groups objects by `dcterms:isPartOf` parent-child relationships |
+| **By Tag** | Groups objects by their `schema:keywords` tags |
+| **VFS Mounts** | Shows configured virtual filesystem mount trees (see [Virtual Filesystem](23-vfs.md)) |
+
+Switch modes by clicking the dropdown next to "OBJECTS" and selecting a mode. The tree reloads to show objects organized according to the selected mode. Your mode selection is remembered across page reloads.
+
+#### Favorites
+
+The **FAVORITES** section appears at the top of the Explorer, above OBJECTS. To add an object to your favorites:
+
+1. Open any object in the editor
+2. Click the **star icon** (☆) in the object header bar, next to the type badge
+3. The star fills in gold and the object appears in the FAVORITES section
+
+Favorites persist across page reloads and browser sessions — they are stored server-side on your user account. Click any favorite to open it directly. Click the filled star again to remove an object from favorites.
+
+When the FAVORITES section is empty, it shows the hint: *"Star objects to add them here."*
+
 ### The Views Section
 
 The **VIEWS** section lists all available views from your installed Mental Models, organized by the type they apply to. Each group header shows the type label and a count of available views.
@@ -199,6 +224,32 @@ When all validations pass, a green confirmation message appears: "Object conform
 For details on validation behavior, see the validation section in [Working with Objects](05-working-with-objects.md).
 
 > **Tip:** When an object is open in the editor, the Relations and Lint panels show a teal accent bar on their left edge — this indicates the panel content is scoped to the currently open object. When no object is open, the bar is hidden.
+
+### Comments Section
+
+The **COMMENTS** section lets you add threaded discussions to any object. When an object is open in the editor, the Comments panel shows existing comments and a text input for adding new ones.
+
+**Adding a comment:**
+
+1. Type your comment in the text area
+2. Click **Post** (or press `Ctrl+Enter`)
+3. Your comment appears with your display name and a timestamp
+
+**Replying to comments:**
+
+- Click **Reply** on any existing comment to start a threaded reply
+- Replies are indented beneath the parent comment
+- Thread depth is unlimited
+
+Comments are stored server-side and visible to all users with access to the object.
+
+### Inbox Section
+
+The **INBOX** section shows notifications relevant to your account — such as mentions, assignment changes, or collaboration requests. When empty, it displays "No notifications."
+
+### Collaboration Section
+
+The **COLLABORATION** section shows shared activity on the current object — other users' recent edits or comments. This section is collapsed by default.
 
 ### Moving Sidebar Panels
 
