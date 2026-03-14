@@ -494,6 +494,13 @@ pre.json-output {
   line-height: 1.4;
 }
 
+.upper-ontology-btn {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 0.82rem;
+  text-decoration: none;
+}
+
 /* Webhook badges */
 .badge {
   display: inline-block;
