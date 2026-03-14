@@ -651,25 +651,12 @@
   // reposition handler in object_form.html (lines 255-275) keeps dropdowns anchored.
   // No fix needed: position:fixed already escapes overflow:hidden containers.
 
-  // --- Settings Tab ---
+  // --- Settings (standalone page, not a dockview tab) ---
 
-  function openSettingsTab() {
-    var tabKey = 'special:settings';
-    var dv = window._dockview;
-    if (!dv) return;
-
-    var existing = dv.panels.find(function(p) { return p.id === tabKey; });
-    if (existing) { existing.api.setActive(); return; }
-
-    if (!window._tabMeta) window._tabMeta = {};
-    window._tabMeta[tabKey] = { label: 'Settings', dirty: false };
-
-    dv.api.addPanel({
-      id: tabKey,
-      component: 'special-panel',
-      params: { specialType: 'settings', isView: false, isSpecial: true },
-      title: 'Settings'
-    });
+  function openSettingsTab(hash) {
+    var url = '/browser/settings';
+    if (hash) url += '#' + hash;
+    window.location.href = url;
   }
   window.openSettingsTab = openSettingsTab;
 
