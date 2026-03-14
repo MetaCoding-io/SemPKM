@@ -69,6 +69,17 @@ Next-generation mount capabilities: saved query scoping, composable strategy cha
 
 ---
 
+## In-App Relationship (Property) Creation
+
+**Queued:** 2026-03-13  
+**Status:** Idea  
+
+Users can create OWL Object Properties and Datatype Properties from the RBox tab, mirroring the "+ Create Class" flow on TBox. A "+ Create Property" button on the RBox tab opens a modal with: property name, domain class (source), range class or datatype (target), description (`rdfs:comment`), and property characteristics (functional, symmetric, etc.). Stored in `urn:sempkm:user-types` graph alongside user-created classes.
+
+**Context:** Currently only classes can be created in-app. Relationships between classes must be hand-written in model ontology files. This would let users define connections like "authored by" (Person → Research Paper) directly from the Ontology Viewer.
+
+---
+
 ## Ontology Viewer & Gist Upper Ontology
 
 **Queued:** 2026-03-12  
