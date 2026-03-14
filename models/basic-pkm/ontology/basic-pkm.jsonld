@@ -24,7 +24,7 @@
       "@type": "owl:Class",
       "rdfs:label": "Project",
       "rdfs:comment": "A project or initiative being tracked",
-      "rdfs:subClassOf": { "@id": "gist:Task" }
+      "rdfs:subClassOf": { "@id": "gist:Project" }
     },
     {
       "@id": "bpkm:Person",
