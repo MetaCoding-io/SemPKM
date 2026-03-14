@@ -444,6 +444,113 @@ async def delete_class(
 
 
 # ------------------------------------------------------------------
+# Delete property
+# ------------------------------------------------------------------
+
+
+@ontology_router.delete("/ontology/delete-property")
+async def delete_property(
+    request: Request,
+    property_iri: str = Query(...),
+    user: User = Depends(get_current_user),
+) -> HTMLResponse:
+    """Delete a user-defined property from the user-types graph.
+
+    Only properties in the urn:sempkm:user-types namespace can be deleted.
+
+    Returns:
+        200 with HX-Trigger: propertyDeleted on success.
+        403 if the property IRI is not in the user-types namespace.
+        500 on SPARQL failure.
+    """
+    if not property_iri.startswith(f"{USER_TYPES_GRAPH}:"):
+        logger.warning(
+            "delete-property rejected: IRI not in user-types namespace: %s",
+            property_iri,
+        )
+        return HTMLResponse(
+            content='<div class="error-message">Only user-created properties can be deleted</div>',
+            status_code=403,
+        )
+
+    ontology_service = request.app.state.ontology_service
+
+    try:
+        await ontology_service.delete_property(property_iri)
+    except Exception:
+        logger.error(
+            "delete-property failed for %s", property_iri, exc_info=True
+        )
+        return HTMLResponse(
+            content='<div class="error-message">Server error deleting property</div>',
+            status_code=500,
+        )
+
+    response = HTMLResponse(
+        content=f'<div class="success-message">Deleted property <code>{property_iri}</code></div>',
+        status_code=200,
+    )
+    response.headers["HX-Trigger"] = "propertyDeleted"
+    return response
+
+
+# ------------------------------------------------------------------
+# Delete class check (pre-delete confirmation info)
+# ------------------------------------------------------------------
+
+
+@ontology_router.get("/ontology/delete-class-check")
+async def delete_class_check(
+    request: Request,
+    class_iri: str = Query(...),
+    user: User = Depends(get_current_user),
+) -> HTMLResponse:
+    """Return a confirmation HTML fragment with instance/subclass counts.
+
+    Used by the UI to show a confirmation modal before class deletion.
+
+    Returns:
+        200 with HTML confirmation fragment.
+        403 if the class IRI is not in the user-types namespace.
+        500 on SPARQL failure.
+    """
+    if not class_iri.startswith(f"{USER_TYPES_GRAPH}:"):
+        logger.warning(
+            "delete-class-check rejected: IRI not in user-types namespace: %s",
+            class_iri,
+        )
+        return HTMLResponse(
+            content='<div class="error-message">Only user-created classes can be deleted</div>',
+            status_code=403,
+        )
+
+    ontology_service = request.app.state.ontology_service
+
+    try:
+        info = await ontology_service.get_delete_class_info(class_iri)
+    except Exception:
+        logger.error(
+            "delete-class-check failed for %s", class_iri, exc_info=True
+        )
+        return HTMLResponse(
+            content='<div class="error-message">Server error loading class info</div>',
+            status_code=500,
+        )
+
+    templates = request.app.state.templates
+    return templates.TemplateResponse(
+        request,
+        "browser/ontology/delete_class_confirm.html",
+        {
+            "class_iri": info["class_iri"],
+            "label": info["label"],
+            "instance_count": info["instance_count"],
+            "subclass_count": info["subclass_count"],
+        },
+    )
+
+
+# ------------------------------------------------------------------
 # Property creation
 # ------------------------------------------------------------------
 

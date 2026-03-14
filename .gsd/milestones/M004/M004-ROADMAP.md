@@ -47,7 +47,7 @@ This milestone is complete only when all are true:
 - [x] **S01: Property Creation + Class Edit** `risk:high` `depends:[]`
   > After this: user creates a property from RBox tab and edits an existing class (rename, change icon, add/remove properties) — both reflected live in Ontology Viewer
 
-- [ ] **S02: Delete + Instance Warnings** `risk:medium` `depends:[S01]`
+- [x] **S02: Delete + Instance Warnings** `risk:medium` `depends:[S01]`
   > After this: user deletes custom classes and properties with instance-count warnings, confirmation dialogs, and clean removal from TBox/RBox
 
 - [ ] **S03: Custom Section on Mental Models** `risk:low` `depends:[S01]`
