@@ -258,11 +258,9 @@
     text-overflow: ellipsis;
 }
 
-/* Tree children container */
+/* Tree children container (Object Browser explorer tree) */
 .tree-children {
-    padding-left: 20px;
-    border-left: 1px solid var(--color-border, rgba(128, 128, 128, 0.15));
-    margin-left: 18px;
+    padding-left: 8px;
 }
 
 .tree-node:not(.expanded) + .tree-children {
@@ -622,10 +620,60 @@
     font-size: 0.85rem;
 }
 
-/* Selected node highlight */
+/* --------------------------------------------------------
+   TBox tree — independent from Object Browser .tree-* rules
+   -------------------------------------------------------- */
+.tbox-node {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 0.84rem;
+    font-weight: 500;
+    color: var(--color-text);
+    user-select: none;
+    border-radius: 3px;
+}
+
+.tbox-node:hover {
+    background: var(--color-surface-hover, rgba(128, 128, 128, 0.06));
+}
+
 .tbox-node--selected {
     background: var(--color-primary-subtle, rgba(99, 102, 241, 0.12));
-    border-radius: 4px;
+}
+
+.tbox-toggle {
+    font-size: 0.7rem;
+    width: 14px;
+    text-align: center;
+    flex-shrink: 0;
+    transition: transform 0.15s;
+    color: var(--color-text-muted);
+}
+
+.tbox-toggle--leaf {
+    font-size: 1rem;
+    line-height: 0.7;
+}
+
+.tbox-node.expanded .tbox-toggle {
+    transform: rotate(90deg);
+}
+
+.tbox-children {
+    padding-left: 16px;
+    margin-left: 14px;
+    border-left: 1px solid var(--color-border, rgba(128, 128, 128, 0.15));
+}
+
+.tbox-node:not(.expanded) + .tbox-children {
+    display: none;
+}
+
+.tbox-node.expanded + .tbox-children {
+    display: block;
 }
 
 .ontology-loading {

@@ -103,12 +103,12 @@ function loadClassDetail(iri) {
   if (!detail) return;
 
   // Highlight selected node
-  var nodes = document.querySelectorAll('.tbox-tree-pane .tree-node, .tbox-tree-pane .tree-leaf');
+  var nodes = document.querySelectorAll('.tbox-tree-pane .tbox-node');
   for (var i = 0; i < nodes.length; i++) {
     nodes[i].classList.remove('tbox-node--selected');
   }
   // Find and highlight the clicked node
-  var clicked = document.querySelector('[data-iri="' + CSS.escape(iri) + '"]');
+  var clicked = document.querySelector('.tbox-tree-pane [data-iri="' + CSS.escape(iri) + '"]');
   if (clicked) clicked.classList.add('tbox-node--selected');
 
   // Load detail via htmx
@@ -116,16 +116,28 @@ function loadClassDetail(iri) {
   htmx.ajax('GET', '/browser/ontology/tbox/detail?iri=' + encodeURIComponent(iri), {target: '#tbox-detail', swap: 'innerHTML'});
 }
 
-// Delegated click handler for tree nodes — load detail without interfering with expand/collapse
-document.addEventListener('click', function(e) {
-  var label = e.target.closest('.tbox-label');
-  if (!label) return;
-  var node = label.closest('[data-iri]');
-  if (!node) return;
-  var iri = node.getAttribute('data-iri');
-  if (iri) {
-    e.stopPropagation();
-    loadClassDetail(iri);
-  }
-});
+// Delegated click handler for TBox tree — handles both expand/collapse and detail loading
+(function() {
+  var treePane = null;
+
+  document.addEventListener('click', function(e) {
+    // Only handle clicks inside the TBox tree pane
+    if (!treePane) treePane = document.querySelector('.tbox-tree-pane');
+    if (!treePane || !treePane.contains(e.target)) return;
+
+    var node = e.target.closest('.tbox-node');
+    if (!node) return;
+
+    // Toggle expand/collapse for parent nodes
+    if (node.classList.contains('tbox-node--parent')) {
+      node.classList.toggle('expanded');
+    }
+
+    // Load detail for any node (parent or leaf)
+    var iri = node.getAttribute('data-iri');
+    if (iri) {
+      loadClassDetail(iri);
+    }
+  });
+})();
 </script>
