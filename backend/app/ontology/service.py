@@ -9,6 +9,7 @@ aggregation across gist + all installed model ontology graphs + user-types
 to present a unified class hierarchy.
 """
 
+import asyncio
 import logging
 import re
 import time
@@ -346,18 +347,19 @@ ORDER BY ?label"""
         Returns rdfs:comment, parent classes, sibling classes, subclass
         count, instance count, and properties where this class is the
         domain.
+
+        Uses separate queries for each dimension to avoid GROUP BY
+        cross-product issues that inflate counts.
         """
         graph_iris = await self.get_ontology_graph_iris()
         from_clauses = self._build_from_clauses(graph_iris)
 
-        # Single query to get comment, parents, subclass count, instance count
-        sparql = f"""PREFIX owl: <http://www.w3.org/2002/07/owl#>
+        # 1) Label, comment/definition, parents (no aggregation needed)
+        meta_sparql = f"""PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
 SELECT ?label ?comment ?parentIri ?parentLabel
-       (COUNT(DISTINCT ?sub) AS ?subclassCount)
-       (COUNT(DISTINCT ?inst) AS ?instanceCount)
 {from_clauses}
 WHERE {{
   <{class_iri}> a owl:Class .
@@ -367,8 +369,11 @@ WHERE {{
               FILTER(LANG(?rdfsLabel) = "" || LANG(?rdfsLabel) = "en") }}
   BIND(COALESCE(?skosLabel, ?rdfsLabel,
        REPLACE(STR(<{class_iri}>), "^.*/|^.*#|^.*:", "", "")) AS ?label)
-  OPTIONAL {{ <{class_iri}> rdfs:comment ?comment .
-              FILTER(LANG(?comment) = "" || LANG(?comment) = "en") }}
+  OPTIONAL {{ <{class_iri}> rdfs:comment ?rdfsComment .
+              FILTER(LANG(?rdfsComment) = "" || LANG(?rdfsComment) = "en") }}
+  OPTIONAL {{ <{class_iri}> skos:definition ?skosDef .
+              FILTER(LANG(?skosDef) = "" || LANG(?skosDef) = "en") }}
+  BIND(COALESCE(?rdfsComment, ?skosDef) AS ?comment)
   OPTIONAL {{
     <{class_iri}> rdfs:subClassOf ?parentIri .
     FILTER(isIRI(?parentIri) && ?parentIri != owl:Thing)
@@ -379,21 +384,36 @@ WHERE {{
     BIND(COALESCE(?pSkos, ?pRdfs,
          REPLACE(STR(?parentIri), "^.*/|^.*#|^.*:", "", "")) AS ?parentLabel)
   }}
-  OPTIONAL {{ ?sub rdfs:subClassOf <{class_iri}> . FILTER(isIRI(?sub)) }}
-  OPTIONAL {{ ?inst a <{class_iri}> . FILTER(isIRI(?inst)) }}
-}}
-GROUP BY ?label ?comment ?parentIri ?parentLabel"""
+}}"""
 
-        result = await self._client.query(sparql)
-        bindings = result.get("results", {}).get("bindings", [])
+        # 2) Subclass count (separate to avoid cross-product)
+        sub_sparql = f"""PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
+SELECT (COUNT(DISTINCT ?sub) AS ?cnt)
+{from_clauses}
+WHERE {{
+  ?sub rdfs:subClassOf <{class_iri}> . FILTER(isIRI(?sub))
+}}"""
+
+        # 3) Instance count — check both ontology graphs and the default graph
+        inst_sparql = f"""SELECT (COUNT(DISTINCT ?inst) AS ?cnt) WHERE {{
+  ?inst a <{class_iri}> . FILTER(isIRI(?inst))
+}}"""
+
+        # Run all three in parallel
+        meta_result, sub_result, inst_result = await asyncio.gather(
+            self._client.query(meta_sparql),
+            self._client.query(sub_sparql),
+            self._client.query(inst_sparql),
+        )
+
+        # Parse metadata
+        meta_bindings = meta_result.get("results", {}).get("bindings", [])
         label = class_iri.rsplit("/", 1)[-1].rsplit("#", 1)[-1]
         comment = ""
         parents = {}
-        subclass_count = 0
-        instance_count = 0
 
-        for b in bindings:
+        for b in meta_bindings:
             if "label" in b:
                 label = b["label"]["value"]
             if "comment" in b and b["comment"]["value"]:
@@ -404,12 +424,15 @@ GROUP BY ?label ?comment ?parentIri ?parentLabel"""
                     "value", p_iri.rsplit("/", 1)[-1].rsplit("#", 1)[-1]
                 )
                 parents[p_iri] = p_label
-            sc = b.get("subclassCount", {}).get("value", "0")
-            subclass_count = max(subclass_count, int(sc))
-            ic = b.get("instanceCount", {}).get("value", "0")
-            instance_count = max(instance_count, int(ic))
 
         parent_classes = [{"iri": k, "label": v} for k, v in parents.items()]
+
+        # Parse counts
+        sub_bindings = sub_result.get("results", {}).get("bindings", [])
+        subclass_count = int(sub_bindings[0]["cnt"]["value"]) if sub_bindings else 0
+
+        inst_bindings = inst_result.get("results", {}).get("bindings", [])
+        instance_count = int(inst_bindings[0]["cnt"]["value"]) if inst_bindings else 0
 
         # Get siblings: classes that share the same parent(s)
         siblings = []
