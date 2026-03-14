@@ -149,11 +149,11 @@
                 </td>
                 <td>{{ cls.parent_label or '—' }}</td>
                 <td class="custom-actions">
-                    <a href="/browser/#ontology-viewer"
-                       class="btn btn-sm btn-warning"
-                       title="Edit in Ontology Viewer">
+                    <button class="btn btn-sm btn-warning"
+                            onclick="openAdminClassEdit('{{ cls.iri | urlencode }}')"
+                            title="Edit class">
                         Edit
-                    </a>
+                    </button>
                     <button class="btn btn-sm btn-danger"
                             hx-delete="/browser/ontology/delete-class?class_iri={{ cls.iri | urlencode }}"
                             hx-confirm="Delete class '{{ cls.label }}'? This cannot be undone."
@@ -221,6 +221,13 @@
     {% endif %}
     </div>
 
+    {# Class-edit modal overlay for admin page #}
+    <div id="admin-class-edit-overlay" class="ccf-overlay" style="display:none;"
+         onclick="if(event.target===this)closeAdminClassEdit()">
+        <div class="ccf-modal" id="admin-class-edit-container">
+        </div>
+    </div>
+
     {# Property-edit modal overlay for admin page #}
     <div id="admin-property-edit-overlay" class="ccf-overlay" style="display:none;"
          onclick="if(event.target===this)closeAdminPropertyEdit()">
@@ -229,6 +236,44 @@
     </div>
 
     <script>
+    // Provide fallback close functions for workspace form templates loaded on admin page
+    if (typeof closeClassEditForm === 'undefined') {
+        window.closeClassEditForm = function() { closeAdminClassEdit(); };
+    }
+    if (typeof closeClassCreationForm === 'undefined') {
+        window.closeClassCreationForm = function() {};
+    }
+
+    function openAdminClassEdit(encodedIri) {
+        var overlay = document.getElementById('admin-class-edit-overlay');
+        var container = document.getElementById('admin-class-edit-container');
+        if (!overlay || !container) return;
+
+        overlay.style.display = 'flex';
+        container.innerHTML = '<div style="padding:32px;text-align:center;color:var(--color-text-muted);">Loading…</div>';
+        htmx.ajax('GET', '/browser/ontology/edit-class-form?class_iri=' + decodeURIComponent(encodedIri), {
+            target: '#admin-class-edit-container',
+            swap: 'innerHTML'
+        });
+        setTimeout(function() {
+            var input = container.querySelector('input[type="text"]');
+            if (input) input.focus();
+        }, 300);
+    }
+
+    function closeAdminClassEdit() {
+        var overlay = document.getElementById('admin-class-edit-overlay');
+        var container = document.getElementById('admin-class-edit-container');
+        if (overlay) overlay.style.display = 'none';
+        if (container) container.innerHTML = '';
+    }
+
+    // On classEdited event — close modal and reload page
+    document.body.addEventListener('classEdited', function() {
+        closeAdminClassEdit();
+        window.location.reload();
+    });
+
     function openAdminPropertyEdit(encodedIri) {
         var overlay = document.getElementById('admin-property-edit-overlay');
         var container = document.getElementById('admin-property-edit-container');
@@ -259,9 +304,15 @@
         window.location.reload();
     });
 
-    // Close admin property edit modal on Escape
+    // Close admin modals on Escape
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
+            var classOverlay = document.getElementById('admin-class-edit-overlay');
+            if (classOverlay && classOverlay.style.display !== 'none') {
+                closeAdminClassEdit();
+                e.stopPropagation();
+                return;
+            }
             var overlay = document.getElementById('admin-property-edit-overlay');
             if (overlay && overlay.style.display !== 'none') {
                 closeAdminPropertyEdit();
