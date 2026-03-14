@@ -362,9 +362,8 @@ details[open] > .form-group-summary::before {
    ============================================ */
 
 .type-picker {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 8px 0;
+    max-width: 720px;
+    padding: 24px 32px;
 }
 
 .type-picker-title {
@@ -376,7 +375,7 @@ details[open] > .form-group-summary::before {
 
 .type-picker-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
     gap: 12px;
 }
 
