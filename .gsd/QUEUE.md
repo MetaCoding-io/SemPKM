@@ -95,6 +95,15 @@ The Mental Models page would gain three sections: Upper Ontology (gist, read-onl
 
 ---
 
+## "Create New Object" Opens in New Tab
+
+**Queued:** 2026-03-13  
+**Status:** Bug  
+
+Creating a new object overwrites the content of the currently active dockview tab instead of opening a fresh tab. Expected behavior: "Create New" should always open a new tab (like clicking an object in the explorer does), preserving whatever the user was looking at. Likely the create action targets the active panel's content area rather than calling `openTab()` to create a new panel.
+
+---
+
 ## Ontology Viewer & Gist Upper Ontology
 
 **Queued:** 2026-03-12  
