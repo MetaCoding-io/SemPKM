@@ -125,8 +125,8 @@ requirement_outcomes:
     to_status: validated
     proof: "Chart.js 4.4 via CDN; growth sparkline (8-week window) and link distribution (5-bucket histogram) charts; lazy init on flip transitionend (D066)"
 duration: "~8 hours execution across 10 slices + S10 E2E coverage gap fill"
-verification_result: passed-with-gaps
-completed_at: 2026-03-12T22:19:00.000Z
+verification_result: passed
+completed_at: 2026-03-14T01:52:00.000Z
 ---
 
 # M003: Workspace UX & Knowledge Organization
@@ -194,19 +194,7 @@ Filled all identified coverage gaps with ~20 new/updated E2E spec files. Replace
 | Admin model detail: real stats and charts | ✅ | Chart.js + SPARQL aggregates replace TODOs |
 | Success criteria re-checked against live stack | ⚠️ | **Original verification was insufficient** — checked code/test existence, not live functionality. Live browser testing (2026-03-13) found class creation missing and charts broken via htmx. |
 | E2E tests cover all new features | ✅ | 82 spec files; new specs in 19-23 directories |
-| User guide docs updated | ❌ | **No docs/ changes in M003** — all features lack user guide pages |
-
-### Documentation Gap
-
-M003 shipped no user guide documentation updates. The following features have no docs pages:
-- Explorer modes (by-type, hierarchy, by-tag, VFS mounts)
-- Tag system and tag pills
-- Favorites
-- Threaded comments
-- Ontology viewer (TBox/ABox/RBox)
-- Admin model detail charts
-
-This is a gap against the standing requirement "User guide docs updated for all new features." The gap is documented here for the next milestone to address.
+| User guide docs updated | ✅ | 7 guide chapters updated (04, 05, 09, 10, 13, 23, appendix-d) covering all M003 features — commit 3adccb9 |
 
 ### Bug Fix: Chart.js htmx Loading
 
@@ -240,7 +228,7 @@ Admin charts (ADMIN-02) rendered correctly on full page load but were blank when
 
 ### What the next milestone should know
 - All slice summaries are doctor-created placeholders — they lack detail on what actually happened. Task summaries within each slice are the authoritative source.
-- The `docs/` gap is real: 8 new features have no user guide pages. The next milestone should either include a docs slice or the next feature work should include docs.
+- The `docs/` gap was closed post-M003 (7 guide chapters updated in commit 3adccb9).
 - The explorer mode registry is designed for extension — adding a new mode is: write a handler function, register it in `EXPLORER_MODES`, add an `<option>` to the dropdown template.
 - Gist loading happens at app startup via `OntologyService.ensure_gist_loaded()`. It's idempotent but loads ~3k triples in batches of 500. Takes ~1-2s on first run.
 
@@ -260,7 +248,7 @@ Admin charts (ADMIN-02) rendered correctly on full page load but were blank when
 - **VFS strategy reuse worked well** — the adapter gap between WebDAV and htmx was smaller than feared. Direct import of strategy SPARQL builders with a thin rendering adapter was sufficient.
 - **Gist cross-graph queries were straightforward** — FROM clause aggregation worked across gist + model + user-types graphs without needing SPARQL federation.
 - **Comment threading in RDF was simpler than expected** — flat SELECT + Python tree assembly was cleaner than recursive SPARQL and performed well.
-- **Docs were consistently skipped** — every slice focused on implementation and E2E tests but none wrote user guide pages. The standing requirement was not enforced.
+- **Docs were initially skipped** — every slice focused on implementation and E2E tests but none wrote user guide pages. Addressed post-M003 with focused updates to 7 guide chapters. Roadmap and plan templates now enforce trailing docs slices.
 
 ## Files Created/Modified
 

@@ -240,7 +240,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Class creation: "+ Create Class" button on Ontology Viewer opens full form (name, icon picker, parent, properties)
 - Admin charts: Chart.js sparkline + link distribution (htmx loading bug fixed post-M003)
 - E2E coverage: 82 spec files total covering all shipped features
-- Gap: no user guide docs updated for M003 features
+- User guide: 7 chapters updated covering all M003 features (explorer modes, favorites, comments, gist, ontology viewer, class creation, VFS mounts, settings)
 
 **Previous milestones:** M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
 
@@ -265,7 +265,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Edge duplication in triplestore (~16x per reified edge) — pre-existing in event store materialization pipeline
 - Firefox E2E auth fixture flaking — intermittent "Magic link request did not return a token" failures
 - Federation patches endpoint requires session auth but is called server-to-server without credentials — needs HTTP Signature verification
-- M003 features have no user guide documentation — 8 new features lack docs pages
+- M003 docs coverage addressed (7 guide chapters updated post-M003)
 - Tag migration (/admin/migrate-tags) must be manually triggered after upgrade from pre-M003
 - All 10 M003 slice summaries are doctor-created placeholders (task summaries are authoritative)
 - Malformed xsd:dateTime literals from Obsidian import (non-fatal rdflib warnings) — see .gsd/design/KNOWN-BACKEND-ERRORS.md
@@ -368,4 +368,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-03-13 after M003 live browser testing corrections*
+*Last updated: 2026-03-14 after M003 docs + testing completion*
