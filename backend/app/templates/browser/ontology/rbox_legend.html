@@ -21,16 +21,16 @@
   <table class="rbox-table" data-testid="rbox-object-table">
     <thead>
       <tr>
-        <th>Property</th>
         <th>Domain</th>
+        <th>Property</th>
         <th>Range</th>
       </tr>
     </thead>
     <tbody>
       {% for p in object_properties %}
       <tr title="{{ p.iri }}">
-        <td class="rbox-prop-name">{{ p.label }}</td>
         <td class="rbox-domain">{{ p.domain_label or '—' }}</td>
+        <td class="rbox-prop-name">{{ p.label }}</td>
         <td class="rbox-range">{{ p.range_label or '—' }}</td>
       </tr>
       {% endfor %}
@@ -48,16 +48,16 @@
   <table class="rbox-table" data-testid="rbox-datatype-table">
     <thead>
       <tr>
-        <th>Property</th>
         <th>Domain</th>
+        <th>Property</th>
         <th>Range</th>
       </tr>
     </thead>
     <tbody>
       {% for p in datatype_properties %}
       <tr title="{{ p.iri }}">
-        <td class="rbox-prop-name">{{ p.label }}</td>
         <td class="rbox-domain">{{ p.domain_label or '—' }}</td>
+        <td class="rbox-prop-name">{{ p.label }}</td>
         <td class="rbox-range">{{ p.range_label or '—' }}</td>
       </tr>
       {% endfor %}
