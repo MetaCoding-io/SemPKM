@@ -7,23 +7,20 @@
     <h1>Mental Models</h1>
     <p class="lead">Install and manage Mental Models that define your knowledge structure.</p>
 
-    <div class="card">
-        <h2>Install Model</h2>
-        <form hx-post="/admin/models/install" hx-target="#model-table" hx-swap="outerHTML"
-              hx-indicator="#install-spinner">
-            <div class="form-row" style="align-items: end;">
-                <div class="form-group" style="margin-bottom: 0;">
-                    <label for="model-path">Model Path</label>
-                    <input type="text" id="model-path" name="path"
-                           placeholder="/app/models/basic-pkm" required>
-                </div>
-                <div style="padding-bottom: 2px;">
-                    <button type="submit" class="btn btn-primary">Install</button>
-                    <span id="install-spinner" class="htmx-indicator loading">Installing...</span>
-                </div>
-            </div>
-        </form>
-    </div>
+    <form hx-post="/admin/models/install" hx-target="#model-table" hx-swap="outerHTML"
+          hx-indicator="#install-spinner"
+          style="display: flex; align-items: end; gap: 12px; margin-bottom: 1.5rem;">
+        <div style="flex: 1; max-width: 500px;">
+            <label for="model-path" style="display: block; margin-bottom: 4px; font-weight: 500; font-size: 0.85rem;">Install Model</label>
+            <input type="text" id="model-path" name="path"
+                   class="form-input"
+                   placeholder="/app/models/basic-pkm" required>
+        </div>
+        <div>
+            <button type="submit" class="btn btn-primary">Install</button>
+            <span id="install-spinner" class="htmx-indicator loading">Installing...</span>
+        </div>
+    </form>
 
     {% block model_table %}
     <div id="model-table" data-testid="model-list">
@@ -58,12 +55,12 @@
                     <td>{{ model.installed_at[:10] if model.installed_at else "Unknown" }}</td>
                     <td>
                         <a href="/admin/models/{{ model.model_id }}/entailment"
-                           class="btn btn-secondary btn-sm"
+                           class="btn btn-warning btn-sm"
                            hx-get="/admin/models/{{ model.model_id }}/entailment"
                            hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
                             Inference
                         </a>
-                        <button class="btn btn-secondary btn-sm"
+                        <button class="btn btn-danger btn-sm"
                                 hx-delete="/admin/models/{{ model.model_id }}"
                                 hx-target="#model-table"
                                 hx-swap="outerHTML"
