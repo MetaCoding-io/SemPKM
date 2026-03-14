@@ -3,7 +3,7 @@
 **Active Milestone:** None
 **Active Slice:** None
 **Phase:** idle
-**Requirements Status:** 2 active (TYPE-01, TYPE-02) · 79 validated · 4 deferred · 0 out of scope
+**Requirements Status:** 0 active · 81 validated · 4 deferred · 0 out of scope
 
 ## Milestone Registry
 - ✅ **M001:** Migration
@@ -11,7 +11,7 @@
 - ✅ **M003:** Workspace UX & Knowledge Organization
 
 ## Recent Decisions
-- TYPE-01/TYPE-02 reverted from validated → active (class creation UI never wired up)
+- TYPE-01/TYPE-02 confirmed validated — class creation form is on Ontology Viewer (not model detail page as initially assumed)
 - Chart.js htmx loading bug fixed post-M003
 - Known backend errors documented in .gsd/design/KNOWN-BACKEND-ERRORS.md
 

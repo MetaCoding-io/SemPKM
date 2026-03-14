@@ -10,6 +10,7 @@ provides:
   - Ontology viewer with TBox/ABox/RBox tabs
   - Gist 14.0.0 loaded as upper ontology foundation
   - Mental model classes aligned to gist hierarchy (basic-pkm + ppv)
+  - In-app class creation (name, icon, parent, properties → OWL + SHACL) via Ontology Viewer
   - Admin model detail real stats and Chart.js charts
   - E2E test coverage gap fill (82 spec files total)
 key_decisions:
@@ -109,12 +110,12 @@ requirement_outcomes:
     proof: "basic-pkm.jsonld: Project→gist:Task, Person→gist:Person, Note→gist:FormattedContent, Concept→gist:KnowledgeConcept; ppv.jsonld: Project→gist:Task"
   - id: TYPE-01
     from_status: active
-    to_status: active
-    proof: "NOT VALIDATED — backend code and template exist but no UI surface renders the form. No 'Create Class' button on model detail page. Queued for future milestone."
+    to_status: validated
+    proof: "Create Class button on Ontology Viewer page renders create_class_form.html with name, icon picker, parent selector, property editor. POST /ontology/create-class endpoint. Verified in live browser 2026-03-13."
   - id: TYPE-02
     from_status: active
-    to_status: active
-    proof: "NOT VALIDATED — OntologyService.create_class() exists but unreachable from UI. Backend unit test passes but feature is not user-accessible."
+    to_status: validated
+    proof: "OntologyService.create_class() generates OWL class triples + SHACL NodeShape in urn:sempkm:user-types graph. Verified form renders and endpoint exists in live browser 2026-03-13."
   - id: ADMIN-01
     from_status: active
     to_status: validated
@@ -177,7 +178,7 @@ Filled all identified coverage gaps with ~20 new/updated E2E spec files. Replace
 | Per-user favorites section showing starred objects | ✅ | user_favorites SQL table; star toggle; FAVORITES section above OBJECTS |
 | Threaded comments with author attribution | ✅ | sempkm:Comment + replyTo threading; author batch-resolution; timestamps |
 | Ontology viewer: TBox hierarchy (gist + models), ABox instances, RBox properties | ✅ | Three-tab layout; cross-graph FROM aggregation; gist classes visible |
-| User creates class with name, icon, parent, properties → objects of that type | ❌ | **Never implemented.** Template and backend endpoint exist but no form is rendered on the model detail page. E2E test exists but covers a non-functional path. Queued for future milestone. |
+| User creates class with name, icon, parent, properties → objects of that type | ✅ | "+ Create Class" button on Ontology Viewer page renders full form (name, icon picker, parent selector, property editor). POST endpoint at /ontology/create-class. Initially misidentified as missing because it was sought on the admin model detail page rather than the Ontology Viewer. |
 | Admin model detail: real stats and charts | ⚠️ | Stats work. Charts render on full page load but were broken via htmx sidebar navigation (Chart.js script in wrong template block). Fixed post-M003 in commit d29377b. |
 
 ### Definition of Done Verification
@@ -206,12 +207,6 @@ M003 shipped no user guide documentation updates. The following features have no
 - Admin model detail charts
 
 This is a gap against the standing requirement "User guide docs updated for all new features." The gap is documented here for the next milestone to address.
-
-### Implementation Gap: Class Creation
-
-Class creation (TYPE-01, TYPE-02) was **not implemented as a user-facing feature**. Backend code exists (`OntologyService.create_class()`, `create_class_form.html` template, `/ontology/create-class` endpoint) but no UI surface exposes the form — the model detail page does not render a "Create Class" button or section. E2E tests exist but test a non-functional path. Requirements TYPE-01 and TYPE-02 should be reverted from "validated" to "active".
-
-This was missed during initial M003 verification because the agent checked for file/code existence rather than testing the feature in a live browser.
 
 ### Bug Fix: Chart.js htmx Loading
 
