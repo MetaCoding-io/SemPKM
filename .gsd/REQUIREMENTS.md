@@ -145,20 +145,20 @@ gistCore14.0.0.ttl bundled in backend/ontologies/gist/; loaded into urn:sempkm:o
 basic-pkm: Project→gist:Task, Person→gist:Person, Note→gist:FormattedContent, Concept→gist:KnowledgeConcept. ppv: Project→gist:Task.
 
 ### TYPE-01 — In-app class creation: name, icon, parent class, basic properties
-- Status: active
+- Status: validated
 - Class: core-capability
 - Source: user
-- Primary Slice: M003/S08 (incomplete)
+- Primary Slice: M003/S08
 
-Backend code exists (create_class_form.html, /ontology/create-class POST, E2E spec) but no UI surface renders the form — model detail page has no "Create Class" button. Feature is unreachable by users. Reverted from validated during live browser testing 2026-03-13.
+"+ Create Class" button on Ontology Viewer page renders full form (name, icon picker, parent selector, property editor). POST /ontology/create-class endpoint. Verified in live browser 2026-03-13.
 
 ### TYPE-02 — Created classes generate valid OWL class + SHACL shape
-- Status: active
+- Status: validated
 - Class: core-capability
 - Source: user
-- Primary Slice: M003/S08 (incomplete)
+- Primary Slice: M003/S08
 
-Backend implementation exists (OntologyService.create_class(), unit tests pass) but unreachable from UI since TYPE-01 form is not rendered. Reverted from validated during live browser testing 2026-03-13.
+OntologyService.create_class() generates OWL class + SHACL NodeShape in urn:sempkm:user-types graph. Discoverable by ShapesService. Verified form + endpoint exist in live browser 2026-03-13.
 
 ### ADMIN-01 — Model detail page stats: avg connections, last modified, growth trend
 - Status: validated
@@ -758,8 +758,8 @@ Wiki-links in an object's markdown body are parsed and rendered as edges connect
 | ONTO-03 | core-capability | validated | M003/S07 | none | RBox property reference table |
 | GIST-01 | core-capability | validated | M003/S07 | M003/S08 | gistCore14.0.0 loaded in named graph |
 | GIST-02 | core-capability | validated | M003/S07 | none | rdfs:subClassOf in basic-pkm + ppv |
-| TYPE-01 | core-capability | active | M003/S08 | none | backend exists, no UI surface — reverted 2026-03-13 |
-| TYPE-02 | core-capability | active | M003/S08 | none | backend exists, unreachable from UI — reverted 2026-03-13 |
+| TYPE-01 | core-capability | validated | M003/S08 | none | Create Class form on Ontology Viewer, verified 2026-03-13 |
+| TYPE-02 | core-capability | validated | M003/S08 | none | OWL + SHACL generation, verified 2026-03-13 |
 | ADMIN-01 | admin/support | validated | M003/S09 | none | SPARQL-computed stats |
 | ADMIN-02 | admin/support | validated | M003/S09 | none | Chart.js sparkline + histogram |
 | SEC-01 | compliance/security | validated | M002/S01 | none | slowapi rate limiting |
