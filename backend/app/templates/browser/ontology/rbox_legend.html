@@ -15,7 +15,7 @@
 {% macro render_property_table(properties, testid) %}
 {% for source, props in properties | groupby('source') %}
 <div class="rbox-group rbox-group--expanded">
-  <button class="rbox-group-toggle" onclick="this.parentElement.classList.toggle('rbox-group--expanded')">
+  <button class="rbox-group-toggle" type="button">
     <span class="rbox-group-arrow">▸</span>
     <span class="rbox-group-badge rbox-group-badge--{{ source }}">{{ source }}</span>
     <span class="rbox-group-count">{{ props | list | length }}</span>
@@ -65,5 +65,16 @@
   {{ render_property_table(datatype_properties, 'rbox-datatype-table') }}
 </div>
 {% endif %}
+
+<script>
+(function() {
+  document.getElementById('ontology-rbox').addEventListener('click', function(e) {
+    var toggle = e.target.closest('.rbox-group-toggle');
+    if (toggle) {
+      toggle.parentElement.classList.toggle('rbox-group--expanded');
+    }
+  });
+})();
+</script>
 
 {% endif %}

@@ -1131,21 +1131,24 @@
     gap: 6px;
     background: none;
     border: none;
-    padding: 4px 0;
+    padding: 6px 8px;
+    margin: 0 -8px;
     cursor: pointer;
-    width: 100%;
+    width: calc(100% + 16px);
     text-align: left;
+    border-radius: 4px;
 }
 
 .rbox-group-toggle:hover {
-    opacity: 0.8;
+    background: var(--color-bg-hover, rgba(128, 128, 128, 0.08));
 }
 
 .rbox-group-arrow {
-    font-size: 0.75rem;
+    font-size: 0.85rem;
     color: var(--color-text-muted);
     transition: transform 0.15s;
     display: inline-block;
+    min-width: 12px;
 }
 
 .rbox-group--expanded > .rbox-group-toggle .rbox-group-arrow {
