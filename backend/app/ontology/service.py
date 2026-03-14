@@ -51,6 +51,58 @@ ALLOWED_DATATYPES = {
 }
 
 
+def _extract_implied_subclasses(gist_path: Path) -> list[tuple[str, str]]:
+    """Extract implied rdfs:subClassOf from owl:equivalentClass + intersectionOf.
+
+    Gist defines most hierarchy via OWL class expressions rather than
+    explicit rdfs:subClassOf. This function parses the gist Turtle file
+    and finds patterns like:
+
+        gist:Foo owl:equivalentClass [
+            owl:intersectionOf ( gist:Bar [...restrictions...] )
+        ]
+
+    which implies gist:Foo rdfs:subClassOf gist:Bar.
+
+    Returns list of (child_iri, parent_iri) tuples.
+    """
+    from rdflib.collection import Collection
+
+    g = Graph()
+    g.parse(gist_path, format="turtle")
+
+    gist_ns = GIST_NS
+    implied: list[tuple[str, str]] = []
+
+    for cls in g.subjects(RDF.type, OWL.Class):
+        if not isinstance(cls, URIRef) or gist_ns not in str(cls):
+            continue
+
+        # Skip if it already has an explicit named subClassOf
+        has_explicit = any(
+            isinstance(p, URIRef) and p != OWL.Thing
+            for p in g.objects(cls, RDFS.subClassOf)
+        )
+        if has_explicit:
+            continue
+
+        # Check owl:equivalentClass for intersectionOf with named gist class
+        for eq in g.objects(cls, OWL.equivalentClass):
+            for intersection_node in g.objects(eq, OWL.intersectionOf):
+                try:
+                    members = list(Collection(g, intersection_node))
+                    named_parents = [
+                        m for m in members
+                        if isinstance(m, URIRef) and gist_ns in str(m)
+                    ]
+                    if named_parents:
+                        implied.append((str(cls), str(named_parents[0])))
+                except Exception:
+                    pass
+
+    return implied
+
+
 def _property_source(iri: str) -> str:
     """Determine the source label for a property IRI.
 
@@ -253,6 +305,69 @@ class OntologyService:
                     logger.error(
                         "Failed to load gist annotations", exc_info=True
                     )
+
+        # Materialize implied rdfs:subClassOf from owl:equivalentClass +
+        # owl:intersectionOf. Gist defines most of its hierarchy this way
+        # rather than using explicit rdfs:subClassOf, so our tree queries
+        # miss ~42 parent-child relationships without this step.
+        await self._ensure_gist_implied_subclasses(gist_path)
+
+    async def _ensure_gist_implied_subclasses(self, gist_path: Path) -> None:
+        """Materialize implied rdfs:subClassOf from owl:equivalentClass.
+
+        Gist uses owl:equivalentClass with owl:intersectionOf to define
+        classes. When the intersection includes a named gist class, that
+        implies a subclass relationship. We extract these and insert them
+        as explicit rdfs:subClassOf triples so the TBox tree can show
+        the full hierarchy without an OWL reasoner.
+
+        Idempotent — checks for a sentinel triple before inserting.
+        """
+        # Check sentinel: a custom annotation triple that only we insert.
+        # Cannot use the materialized subClassOf triples as sentinels because
+        # RDF4J's query-time OWL inference makes ASK return true even before
+        # we insert them.
+        sentinel_iri = f"{GIST_NS}__implied_subclasses_materialized"
+        sentinel_sparql = (
+            f"ASK {{ GRAPH <{GIST_GRAPH}> {{ "
+            f"<{sentinel_iri}> a <{SEMPKM_NS}MaterializationMarker> "
+            f"}} }}"
+        )
+        result = await self._client.query(sentinel_sparql)
+        if result.get("boolean", False):
+            logger.info("gist implied subclasses already materialized, skipping")
+            return
+
+        try:
+            implied = _extract_implied_subclasses(gist_path)
+            if not implied:
+                logger.info("No implied subclass relationships found in gist")
+                return
+
+            # Build INSERT DATA with the implied triples + sentinel
+            lines = []
+            for child_iri, parent_iri in implied:
+                lines.append(
+                    f"  <{child_iri}> <{RDFS.subClassOf}> <{parent_iri}> ."
+                )
+            # Sentinel marker so we don't re-insert on next startup
+            lines.append(
+                f"  <{sentinel_iri}> a <{SEMPKM_NS}MaterializationMarker> ."
+            )
+            sparql = (
+                f"INSERT DATA {{ GRAPH <{GIST_GRAPH}> {{\n"
+                + "\n".join(lines)
+                + "\n} }"
+            )
+            await self._client.update(sparql)
+            logger.info(
+                "Materialized %d implied rdfs:subClassOf triples for gist",
+                len(implied),
+            )
+        except Exception:
+            logger.error(
+                "Failed to materialize gist implied subclasses", exc_info=True
+            )
 
     async def get_gist_summary(self) -> dict | None:
         """Get summary metadata about the loaded gist upper ontology.
