@@ -1,7 +1,7 @@
 # GSD State
 
 **Active Milestone:** M004 — Ontology & Type System Completion
-**Active Slice:** S03 — Custom Section on Mental Models
+**Active Slice:** S03 — Custom Section on Mental Models + Property Edit
 **Phase:** planning
 **Requirements Status:** 0 active · 81 validated · 4 deferred · 0 out of scope
 
@@ -18,4 +18,4 @@
 - None
 
 ## Next Action
-Plan slice S03 (Custom Section on Mental Models).
+Plan slice S03 (Custom Section on Mental Models + Property Edit).
