@@ -77,6 +77,28 @@ Icon definitions in the manifest assign **visual identifiers** to each type. Eac
 
 Icons make types instantly recognizable across the entire interface.
 
+## The Gist Upper Ontology
+
+SemPKM includes **gist** (v14.0.0), a minimalist upper ontology created by [Semantic Arts](https://semanticarts.com). Gist provides a shared foundation of general-purpose concepts that all Mental Models can extend.
+
+**What gist provides:**
+
+- **96 classes** covering fundamental categories: Event, Organization, Person, Content, Intention, and more
+- **65 object properties** and **50 datatype properties** for common relationships
+- **Rich annotations** — definitions, examples, usage notes, and alternative labels for every class
+
+Gist loads automatically at startup and cannot be removed. It appears on the Mental Models page as the "Upper Ontology" card with a blue accent border, showing its version, description, and class/property statistics.
+
+**Why gist matters:**
+
+When you install a Mental Model like Basic PKM, its types are aligned to gist's hierarchy. For example:
+- `bpkm:Note` extends `gist:FormattedContent`
+- `bpkm:Project` extends `gist:Project` (which extends `gist:Task`, which extends `gist:Event`)
+- `bpkm:Person` extends `gist:Person`
+- `bpkm:Concept` extends `gist:KnowledgeConcept`
+
+This alignment means your knowledge automatically connects to a well-defined semantic foundation, enabling richer queries and interoperability between models.
+
 ## The Basic PKM Mental Model
 
 The Basic PKM model ships with SemPKM and is automatically installed on a fresh instance if no other models are present. It provides a general-purpose personal knowledge management system built around four types.
