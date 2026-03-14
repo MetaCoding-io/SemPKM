@@ -210,5 +210,9 @@
 
   // Re-init lucide icons
   if (typeof lucide !== 'undefined') lucide.createIcons();
+
+  // htmx needs to process the form since it was dynamically loaded
+  var form = document.getElementById('create-property-form');
+  if (form && typeof htmx !== 'undefined') htmx.process(form);
 })();
 </script>
