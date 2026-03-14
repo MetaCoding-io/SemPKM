@@ -14,11 +14,13 @@
 
 {% macro render_property_table(properties, testid) %}
 {% for source, props in properties | groupby('source') %}
+{% set prop_list = props | list %}
+{% set is_user = (source == 'user') %}
 <div class="rbox-group rbox-group--expanded">
   <button class="rbox-group-toggle" type="button">
     <span class="rbox-group-arrow">▸</span>
     <span class="rbox-group-badge rbox-group-badge--{{ source }}">{{ source }}</span>
-    <span class="rbox-group-count">{{ props | list | length }}</span>
+    <span class="rbox-group-count">{{ prop_list | length }}</span>
   </button>
   <div class="rbox-group-body">
     <table class="rbox-table" data-testid="{{ testid }}-{{ source }}">
@@ -27,14 +29,26 @@
           <th>Domain</th>
           <th>Property</th>
           <th>Range</th>
+          {% if is_user %}<th class="rbox-actions-col">Actions</th>{% endif %}
         </tr>
       </thead>
       <tbody>
-        {% for p in props | list %}
+        {% for p in prop_list %}
         <tr title="{{ p.iri }}">
           <td class="rbox-domain">{{ p.domain_label or '—' }}</td>
           <td class="rbox-prop-name">{{ p.label }}</td>
           <td class="rbox-range">{{ p.range_label or '—' }}</td>
+          {% if is_user %}
+          <td class="rbox-actions-cell">
+            <button type="button" class="rbox-delete-btn" data-testid="rbox-delete-btn"
+                    title="Delete this property"
+                    hx-delete="/browser/ontology/delete-property?property_iri={{ p.iri | urlencode }}"
+                    hx-confirm="Delete this property? It will be removed from the ontology."
+                    hx-swap="none">
+              <i data-lucide="trash-2"></i>
+            </button>
+          </td>
+          {% endif %}
         </tr>
         {% endfor %}
       </tbody>

@@ -404,6 +404,99 @@
     display: inline-flex;
 }
 
+/* Delete button on user-type RBox property rows — hover-reveal */
+.rbox-actions-col {
+    width: 60px;
+    text-align: center;
+}
+.rbox-actions-cell {
+    text-align: center;
+}
+.rbox-delete-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px;
+    color: var(--color-text-muted);
+    border-radius: 3px;
+    flex-shrink: 0;
+    line-height: 1;
+}
+.rbox-delete-btn:hover {
+    color: var(--color-danger, #ef4444);
+    background: rgba(239, 68, 68, 0.1);
+}
+.rbox-delete-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+tr:hover .rbox-delete-btn {
+    display: inline-flex;
+}
+
+/* Delete confirmation modal content */
+.delete-confirm-content {
+    padding: 24px;
+}
+.delete-confirm-title {
+    margin: 0 0 4px 0;
+    font-size: 1.1rem;
+}
+.delete-confirm-iri {
+    margin: 0 0 16px 0;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    word-break: break-all;
+}
+.delete-confirm-warning {
+    padding: 10px 14px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+}
+.delete-confirm-warning--red {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--color-danger, #ef4444);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+}
+.delete-confirm-warning--amber {
+    background: rgba(245, 158, 11, 0.1);
+    color: #d97706;
+    border: 1px solid rgba(245, 158, 11, 0.25);
+}
+.delete-confirm-safe {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+}
+.delete-confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+.delete-confirm-actions .btn-secondary {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+}
+.delete-confirm-actions .btn-secondary:hover {
+    background: var(--color-surface-hover);
+}
+.delete-confirm-actions .btn-danger {
+    background: var(--color-danger, #ef4444);
+    border: 1px solid var(--color-danger, #ef4444);
+    color: #fff;
+}
+.delete-confirm-actions .btn-danger:hover {
+    background: #dc2626;
+    border-color: #dc2626;
+}
+
 .tree-toggle-leaf {
     color: var(--color-text-faint, var(--color-text-muted));
     font-size: 0.5rem;

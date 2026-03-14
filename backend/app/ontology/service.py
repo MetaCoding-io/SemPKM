@@ -106,8 +106,9 @@ def _extract_implied_subclasses(gist_path: Path) -> list[tuple[str, str]]:
 def _property_source(iri: str) -> str:
     """Determine the source label for a property IRI.
 
-    Returns 'gist' for gist ontology properties, or extracts the model
-    name from urn:sempkm:model:{name}: IRIs.  Falls back to 'other'.
+    Returns 'user' for user-types IRIs, 'gist' for gist ontology
+    properties, or extracts the model name from urn:sempkm:model:{name}:
+    IRIs.  Falls back to 'other'.
     """
     if GIST_NS in iri:
         return "gist"
@@ -116,6 +117,10 @@ def _property_source(iri: str) -> str:
         parts = iri.split(":")
         if len(parts) >= 5:
             return parts[3]
+    # Check user-types before generic sempkm since user-types IRIs also
+    # start with urn:sempkm:
+    if iri.startswith(f"{USER_TYPES_GRAPH}:"):
+        return "user"
     if iri.startswith(str(SEMPKM_NS)):
         return "sempkm"
     return "other"
@@ -1651,6 +1656,98 @@ ORDER BY ?propType ?label"""
             "property_iri": prop_iri,
             "prop_type": prop_type,
             "triple_count": len(triples),
+        }
+
+    async def delete_property(self, property_iri: str) -> dict:
+        """Delete a user-defined property from the user-types graph.
+
+        Removes all triples where the property IRI is the subject in
+        the user-types named graph.
+
+        Args:
+            property_iri: IRI of the property to delete.
+
+        Returns:
+            Dict with property_iri and status.
+        """
+        sparql = (
+            f"DELETE WHERE {{ "
+            f"GRAPH <{USER_TYPES_GRAPH}> {{ <{property_iri}> ?p ?o . }} "
+            f"}}"
+        )
+        await self._client.update(sparql)
+        logger.info("Deleted property %s", property_iri)
+
+        return {"property_iri": property_iri, "status": "deleted"}
+
+    async def get_delete_class_info(self, class_iri: str) -> dict:
+        """Get pre-delete info for a class: label, instance count, subclass count.
+
+        Used by the confirmation modal before class deletion.
+
+        Args:
+            class_iri: IRI of the class to inspect.
+
+        Returns:
+            Dict with class_iri, label, instance_count, subclass_count.
+        """
+        graph_iris = await self.get_ontology_graph_iris()
+        from_clauses = self._build_from_clauses(graph_iris)
+
+        # Label query
+        label_sparql = f"""PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT ?label
+{from_clauses}
+WHERE {{
+  OPTIONAL {{ <{class_iri}> skos:prefLabel ?skosLabel .
+              FILTER(LANG(?skosLabel) = "" || LANG(?skosLabel) = "en") }}
+  OPTIONAL {{ <{class_iri}> rdfs:label ?rdfsLabel .
+              FILTER(LANG(?rdfsLabel) = "" || LANG(?rdfsLabel) = "en") }}
+  BIND(COALESCE(?skosLabel, ?rdfsLabel,
+       REPLACE(STR(<{class_iri}>), "^.*/|^.*#|^.*:", "", "")) AS ?label)
+}}
+LIMIT 1"""
+
+        # Subclass count across ontology graphs
+        sub_sparql = f"""PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT (COUNT(DISTINCT ?sub) AS ?cnt)
+{from_clauses}
+WHERE {{
+  ?sub rdfs:subClassOf <{class_iri}> . FILTER(isIRI(?sub))
+}}"""
+
+        # Instance count in default graph
+        inst_sparql = f"""SELECT (COUNT(DISTINCT ?inst) AS ?cnt) WHERE {{
+  ?inst a <{class_iri}> . FILTER(isIRI(?inst))
+}}"""
+
+        label_result, sub_result, inst_result = await asyncio.gather(
+            self._client.query(label_sparql),
+            self._client.query(sub_sparql),
+            self._client.query(inst_sparql),
+        )
+
+        # Parse label
+        label_bindings = label_result.get("results", {}).get("bindings", [])
+        label = class_iri.rsplit("/", 1)[-1].rsplit("#", 1)[-1].rsplit(":", 1)[-1]
+        if label_bindings and label_bindings[0].get("label", {}).get("value"):
+            label = label_bindings[0]["label"]["value"]
+
+        # Parse counts
+        sub_bindings = sub_result.get("results", {}).get("bindings", [])
+        subclass_count = int(sub_bindings[0]["cnt"]["value"]) if sub_bindings else 0
+
+        inst_bindings = inst_result.get("results", {}).get("bindings", [])
+        instance_count = int(inst_bindings[0]["cnt"]["value"]) if inst_bindings else 0
+
+        return {
+            "class_iri": class_iri,
+            "label": label,
+            "instance_count": instance_count,
+            "subclass_count": subclass_count,
         }
 
     # ------------------------------------------------------------------

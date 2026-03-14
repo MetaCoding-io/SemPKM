@@ -42,10 +42,7 @@
     </button>
     <button type="button" class="tbox-delete-btn" data-testid="tbox-delete-btn"
             title="Delete this class"
-            hx-delete="/browser/ontology/delete-class?class_iri={{ cls.iri | urlencode }}"
-            hx-confirm="Delete this class? Objects of this type will lose their type."
-            hx-swap="none"
-            onclick="event.stopPropagation();">
+            onclick="event.stopPropagation(); openDeleteClassConfirm('{{ cls.iri }}');">
       <i data-lucide="trash-2"></i>
     </button>
     {% endif %}
@@ -82,6 +79,11 @@
               title="Edit this class"
               onclick="event.stopPropagation(); openClassEditForm('{{ child.iri }}');">
         <i data-lucide="pencil"></i>
+      </button>
+      <button type="button" class="tbox-delete-btn" data-testid="tbox-delete-btn"
+              title="Delete this class"
+              onclick="event.stopPropagation(); openDeleteClassConfirm('{{ child.iri }}');">
+        <i data-lucide="trash-2"></i>
       </button>
       {% endif %}
   </div>

@@ -1,0 +1,43 @@
+{# Delete class confirmation fragment.
+
+   Shown inside a modal before class deletion. Displays instance and
+   subclass counts as warnings, with Cancel and Confirm Delete buttons.
+
+   Context:
+     class_iri: str — IRI of the class to delete
+     label: str — human-readable class label
+     instance_count: int — number of instances of this class
+     subclass_count: int — number of direct subclasses
+#}
+<div class="delete-confirm-content">
+  <h4 class="delete-confirm-title">Delete "{{ label }}"?</h4>
+  <p class="delete-confirm-iri">{{ class_iri }}</p>
+
+  {% if instance_count > 0 %}
+  <div class="delete-confirm-warning delete-confirm-warning--red">
+    <strong>{{ instance_count }}</strong> instance{{ 's' if instance_count != 1 }} will lose
+    {{ 'its' if instance_count == 1 else 'their' }} type
+  </div>
+  {% endif %}
+
+  {% if subclass_count > 0 %}
+  <div class="delete-confirm-warning delete-confirm-warning--amber">
+    <strong>{{ subclass_count }}</strong> subclass{{ 'es' if subclass_count != 1 }} will become
+    root class{{ 'es' if subclass_count != 1 }}
+  </div>
+  {% endif %}
+
+  {% if instance_count == 0 and subclass_count == 0 %}
+  <p class="delete-confirm-safe">This class has no instances or subclasses.</p>
+  {% endif %}
+
+  <div class="delete-confirm-actions">
+    <button type="button" class="btn btn-secondary" onclick="closeDeleteConfirm()">Cancel</button>
+    <button type="button" class="btn btn-danger"
+            hx-delete="/browser/ontology/delete-class?class_iri={{ class_iri | urlencode }}"
+            hx-swap="none"
+            hx-on::after-request="if(event.detail.successful) closeDeleteConfirm()">
+      Confirm Delete
+    </button>
+  </div>
+</div>

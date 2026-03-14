@@ -931,3 +931,373 @@ class TestTboxSearchEndpoint:
         assert response.status_code == 200
         body = response.body.decode()
         assert "No classes found" in body
+
+
+# ---------------------------------------------------------------------------
+# _property_source for user-types IRIs
+# ---------------------------------------------------------------------------
+
+class TestPropertySource:
+    """Verify _property_source returns correct source labels."""
+
+    def test_user_types_iri_returns_user(self):
+        """user-types IRI must return 'user'."""
+        from app.ontology.service import _property_source
+
+        result = _property_source("urn:sempkm:user-types:MyProp-abc123")
+        assert result == "user"
+
+    def test_user_types_class_iri_returns_user(self):
+        """user-types class IRI must also return 'user'."""
+        from app.ontology.service import _property_source
+
+        result = _property_source("urn:sempkm:user-types:MyClass-def456")
+        assert result == "user"
+
+    def test_sempkm_ns_returns_sempkm(self):
+        """Other sempkm namespace IRIs still return 'sempkm'."""
+        from app.ontology.service import _property_source
+
+        result = _property_source("urn:sempkm:someProp")
+        assert result == "sempkm"
+
+    def test_gist_iri_returns_gist(self):
+        """Gist IRIs return 'gist'."""
+        from app.ontology.service import _property_source
+
+        result = _property_source(
+            "https://w3id.org/semanticarts/ns/ontology/gist/hasMember"
+        )
+        assert result == "gist"
+
+    def test_model_iri_returns_model_name(self):
+        """Model IRIs return the model id segment."""
+        from app.ontology.service import _property_source
+
+        result = _property_source("urn:sempkm:model:basic-pkm:HasNote")
+        assert result == "basic-pkm"
+
+    def test_other_iri_returns_other(self):
+        """Unknown IRIs return 'other'."""
+        from app.ontology.service import _property_source
+
+        result = _property_source("http://example.org/someProp")
+        assert result == "other"
+
+
+# ---------------------------------------------------------------------------
+# delete_property() service method
+# ---------------------------------------------------------------------------
+
+class TestDeleteProperty:
+    """Verify delete_property() generates correct SPARQL."""
+
+    @pytest.mark.asyncio
+    async def test_delete_property_sparql(self):
+        """delete_property generates DELETE WHERE targeting user-types graph."""
+        svc = _make_ontology_service()
+        prop_iri = "urn:sempkm:user-types:myProp-abcd1234"
+
+        result = await svc.delete_property(prop_iri)
+
+        assert result == {"property_iri": prop_iri, "status": "deleted"}
+
+        # Verify the SPARQL passed to client.update
+        svc._client.update.assert_awaited_once()
+        sparql = svc._client.update.call_args[0][0]
+        assert f"<{prop_iri}>" in sparql
+        assert f"GRAPH <{USER_TYPES_GRAPH}>" in sparql
+        assert "DELETE WHERE" in sparql
+        assert "?p ?o" in sparql
+
+    @pytest.mark.asyncio
+    async def test_delete_property_different_iri(self):
+        """delete_property works with different property IRIs."""
+        svc = _make_ontology_service()
+        prop_iri = "urn:sempkm:user-types:anotherProp-99990000"
+
+        result = await svc.delete_property(prop_iri)
+
+        assert result["property_iri"] == prop_iri
+        assert result["status"] == "deleted"
+
+        sparql = svc._client.update.call_args[0][0]
+        assert f"<{prop_iri}>" in sparql
+
+
+# ---------------------------------------------------------------------------
+# get_delete_class_info() service method
+# ---------------------------------------------------------------------------
+
+class TestGetDeleteClassInfo:
+    """Verify get_delete_class_info() parses counts correctly."""
+
+    @pytest.mark.asyncio
+    async def test_get_delete_class_info_parses_counts(self):
+        """get_delete_class_info returns correct instance/subclass counts."""
+        mock_client = AsyncMock()
+
+        # Side effects: get_ontology_graph_iris, then 3 parallel queries
+        mock_client.query = AsyncMock(side_effect=[
+            # get_ontology_graph_iris
+            {"results": {"bindings": []}},
+            # label query
+            {"results": {"bindings": [
+                {"label": {"value": "My Task"}}
+            ]}},
+            # subclass count
+            {"results": {"bindings": [
+                {"cnt": {"value": "3"}}
+            ]}},
+            # instance count
+            {"results": {"bindings": [
+                {"cnt": {"value": "42"}}
+            ]}},
+        ])
+
+        svc = OntologyService(mock_client)
+        result = await svc.get_delete_class_info(
+            "urn:sempkm:user-types:Task-abcd1234"
+        )
+
+        assert result["class_iri"] == "urn:sempkm:user-types:Task-abcd1234"
+        assert result["label"] == "My Task"
+        assert result["instance_count"] == 42
+        assert result["subclass_count"] == 3
+
+    @pytest.mark.asyncio
+    async def test_get_delete_class_info_zero_counts(self):
+        """get_delete_class_info returns 0 when no instances/subclasses."""
+        mock_client = AsyncMock()
+
+        mock_client.query = AsyncMock(side_effect=[
+            # get_ontology_graph_iris
+            {"results": {"bindings": []}},
+            # label query
+            {"results": {"bindings": [
+                {"label": {"value": "Empty Class"}}
+            ]}},
+            # subclass count — zero
+            {"results": {"bindings": [
+                {"cnt": {"value": "0"}}
+            ]}},
+            # instance count — zero
+            {"results": {"bindings": [
+                {"cnt": {"value": "0"}}
+            ]}},
+        ])
+
+        svc = OntologyService(mock_client)
+        result = await svc.get_delete_class_info(
+            "urn:sempkm:user-types:EmptyClass-00001111"
+        )
+
+        assert result["instance_count"] == 0
+        assert result["subclass_count"] == 0
+        assert result["label"] == "Empty Class"
+
+    @pytest.mark.asyncio
+    async def test_get_delete_class_info_fallback_label(self):
+        """get_delete_class_info falls back to local name when no label."""
+        mock_client = AsyncMock()
+
+        mock_client.query = AsyncMock(side_effect=[
+            # get_ontology_graph_iris
+            {"results": {"bindings": []}},
+            # label query — empty bindings (no label found)
+            {"results": {"bindings": []}},
+            # subclass count
+            {"results": {"bindings": [
+                {"cnt": {"value": "0"}}
+            ]}},
+            # instance count
+            {"results": {"bindings": [
+                {"cnt": {"value": "0"}}
+            ]}},
+        ])
+
+        svc = OntologyService(mock_client)
+        result = await svc.get_delete_class_info(
+            "urn:sempkm:user-types:NoLabel-ff001122"
+        )
+
+        # Should extract local name from IRI
+        assert result["label"] == "NoLabel-ff001122"
+
+
+# ---------------------------------------------------------------------------
+# DELETE /ontology/delete-property endpoint
+# ---------------------------------------------------------------------------
+
+class TestDeletePropertyEndpoint:
+    """Verify DELETE /ontology/delete-property endpoint behavior."""
+
+    @pytest.mark.asyncio
+    async def test_delete_property_rejects_non_user_types_iri(self):
+        """IRIs not starting with urn:sempkm:user-types: must get 403."""
+        from app.ontology.router import delete_property
+
+        request = MagicMock()
+        request.app.state = _make_fake_app_state()
+
+        response = await delete_property(
+            request=request,
+            property_iri="https://w3id.org/semanticarts/ns/ontology/gist/hasMember",
+            user=MagicMock(),
+        )
+
+        assert response.status_code == 403
+        assert b"user-created" in response.body.lower() or b"Only" in response.body
+
+    @pytest.mark.asyncio
+    async def test_delete_property_success_returns_hx_trigger(self):
+        """Successful deletion must return 200 with HX-Trigger: propertyDeleted."""
+        from app.ontology.router import delete_property
+
+        mock_svc = _make_ontology_service()
+        mock_svc.delete_property = AsyncMock(return_value={
+            "property_iri": "urn:sempkm:user-types:myProp-abcd1234",
+            "status": "deleted",
+        })
+
+        request = MagicMock()
+        request.app.state = _make_fake_app_state(mock_svc)
+
+        response = await delete_property(
+            request=request,
+            property_iri="urn:sempkm:user-types:myProp-abcd1234",
+            user=MagicMock(),
+        )
+
+        assert response.status_code == 200
+        assert response.headers.get("HX-Trigger") == "propertyDeleted"
+        mock_svc.delete_property.assert_awaited_once_with(
+            "urn:sempkm:user-types:myProp-abcd1234"
+        )
+
+    @pytest.mark.asyncio
+    async def test_delete_property_server_error_returns_500(self):
+        """SPARQL failure must return 500."""
+        from app.ontology.router import delete_property
+
+        mock_svc = _make_ontology_service()
+        mock_svc.delete_property = AsyncMock(
+            side_effect=Exception("SPARQL connection refused")
+        )
+
+        request = MagicMock()
+        request.app.state = _make_fake_app_state(mock_svc)
+
+        response = await delete_property(
+            request=request,
+            property_iri="urn:sempkm:user-types:myProp-abcd1234",
+            user=MagicMock(),
+        )
+
+        assert response.status_code == 500
+        assert b"Server error" in response.body
+
+
+# ---------------------------------------------------------------------------
+# GET /ontology/delete-class-check endpoint
+# ---------------------------------------------------------------------------
+
+class TestDeleteClassCheckEndpoint:
+    """Verify GET /ontology/delete-class-check endpoint behavior."""
+
+    @pytest.mark.asyncio
+    async def test_delete_class_check_rejects_non_user_types_iri(self):
+        """IRIs not starting with urn:sempkm:user-types: must get 403."""
+        from app.ontology.router import delete_class_check
+
+        request = MagicMock()
+        request.app.state = _make_fake_app_state()
+
+        response = await delete_class_check(
+            request=request,
+            class_iri="https://w3id.org/semanticarts/ns/ontology/gist/Task",
+            user=MagicMock(),
+        )
+
+        assert response.status_code == 403
+        assert b"user-created" in response.body.lower() or b"Only" in response.body
+
+    @pytest.mark.asyncio
+    async def test_delete_class_check_success_returns_html(self):
+        """Successful check returns HTML with instance/subclass counts."""
+        from app.ontology.router import delete_class_check
+
+        mock_svc = _make_ontology_service()
+        mock_svc.get_delete_class_info = AsyncMock(return_value={
+            "class_iri": "urn:sempkm:user-types:Task-abcd1234",
+            "label": "My Task",
+            "instance_count": 5,
+            "subclass_count": 2,
+        })
+
+        # We need a real Jinja2Templates to render the template
+        from jinja2 import Environment, FileSystemLoader
+        import os
+
+        templates_dir = os.path.join(
+            os.path.dirname(__file__), "..", "app", "templates"
+        )
+        env = Environment(loader=FileSystemLoader(templates_dir))
+
+        # Mock templates.TemplateResponse to render via jinja2
+        def fake_template_response(req, template_name, context):
+            from fastapi.responses import HTMLResponse
+
+            tmpl = env.get_template(template_name)
+            html = tmpl.render(**context)
+            return HTMLResponse(content=html, status_code=200)
+
+        state = _make_fake_app_state(mock_svc)
+        state.templates = MagicMock()
+        state.templates.TemplateResponse = fake_template_response
+
+        request = MagicMock()
+        request.app.state = state
+
+        response = await delete_class_check(
+            request=request,
+            class_iri="urn:sempkm:user-types:Task-abcd1234",
+            user=MagicMock(),
+        )
+
+        assert response.status_code == 200
+        body = response.body.decode()
+        # Verify instance count warning is present
+        assert "5" in body
+        assert "instance" in body.lower()
+        # Verify subclass count warning is present
+        assert "2" in body
+        assert "subclass" in body.lower()
+        # Verify both buttons are present
+        assert "Cancel" in body
+        assert "Confirm Delete" in body
+        # Verify the confirm button targets the delete-class endpoint
+        assert "delete-class" in body
+        assert "My Task" in body
+
+    @pytest.mark.asyncio
+    async def test_delete_class_check_server_error_returns_500(self):
+        """SPARQL failure must return 500."""
+        from app.ontology.router import delete_class_check
+
+        mock_svc = _make_ontology_service()
+        mock_svc.get_delete_class_info = AsyncMock(
+            side_effect=Exception("SPARQL connection refused")
+        )
+
+        request = MagicMock()
+        request.app.state = _make_fake_app_state(mock_svc)
+
+        response = await delete_class_check(
+            request=request,
+            class_iri="urn:sempkm:user-types:Task-abcd1234",
+            user=MagicMock(),
+        )
+
+        assert response.status_code == 500
+        assert b"Server error" in response.body

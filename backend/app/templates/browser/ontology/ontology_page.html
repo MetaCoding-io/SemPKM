@@ -66,6 +66,13 @@
     </div>
   </div>
 
+  {# Delete confirmation modal — fetches instance/subclass counts from server #}
+  <div id="delete-confirm-overlay" class="ccf-overlay" style="display:none;"
+       onclick="if(event.target===this)closeDeleteConfirm()">
+    <div class="ccf-modal" id="delete-confirm-container">
+    </div>
+  </div>
+
   <div class="ontology-tab-content">
     {# TBox: split into tree (left) and detail (right) #}
     <div id="ontology-tbox" class="ontology-pane ontology-pane--active" data-testid="tbox-tree">
@@ -95,7 +102,7 @@
     </div>
     <div id="ontology-rbox" class="ontology-pane" data-testid="rbox-legend"
          hx-get="/browser/ontology/rbox"
-         hx-trigger="propertyCreated from:body"
+         hx-trigger="propertyCreated from:body, propertyDeleted from:body"
          hx-swap="innerHTML">
       <div class="ontology-loading">Click the RBox tab to load property data.</div>
     </div>
@@ -168,6 +175,25 @@ function closePropertyCreationForm() {
   if (overlay) overlay.style.display = 'none';
 }
 
+// --- Delete confirmation modal ---
+function openDeleteClassConfirm(classIri) {
+  var overlay = document.getElementById('delete-confirm-overlay');
+  var container = document.getElementById('delete-confirm-container');
+  if (!overlay || !container) return;
+
+  overlay.style.display = 'flex';
+  container.innerHTML = '<div class="ontology-loading" style="padding:32px;text-align:center;">Loading…</div>';
+  htmx.ajax('GET', '/browser/ontology/delete-class-check?class_iri=' + encodeURIComponent(classIri), {
+    target: '#delete-confirm-container',
+    swap: 'innerHTML'
+  });
+}
+
+function closeDeleteConfirm() {
+  var overlay = document.getElementById('delete-confirm-overlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
 // --- Class edit modal ---
 function openClassEditForm(classIri) {
   var overlay = document.getElementById('class-edit-overlay');
@@ -195,6 +221,7 @@ function closeClassEditForm() {
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
     var overlays = [
+      document.getElementById('delete-confirm-overlay'),
       document.getElementById('class-creation-overlay'),
       document.getElementById('property-creation-overlay'),
       document.getElementById('class-edit-overlay'),
