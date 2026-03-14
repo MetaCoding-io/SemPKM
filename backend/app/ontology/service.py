@@ -196,6 +196,84 @@ class OntologyService:
             logger.error("Failed to load gist", exc_info=True)
             raise
 
+    async def get_gist_summary(self) -> dict | None:
+        """Get summary metadata about the loaded gist upper ontology.
+
+        Returns dict with label, description, version, class_count,
+        object_property_count, datatype_property_count, or None if
+        gist is not loaded.
+        """
+        if not await self.is_gist_loaded():
+            return None
+
+        # Ontology metadata
+        meta_sparql = f"""PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT ?label ?definition ?historyNote
+FROM <{GIST_GRAPH}>
+WHERE {{
+  ?ont a owl:Ontology .
+  OPTIONAL {{ ?ont skos:prefLabel ?label }}
+  OPTIONAL {{ ?ont skos:definition ?definition }}
+  OPTIONAL {{ ?ont skos:historyNote ?historyNote }}
+}}"""
+        meta_result = await self._client.query(meta_sparql)
+        meta_bindings = meta_result.get("results", {}).get("bindings", [])
+
+        label = "gist"
+        description = ""
+        version = ""
+        if meta_bindings:
+            b = meta_bindings[0]
+            label = b.get("label", {}).get("value", "gist")
+            description = b.get("definition", {}).get("value", "")
+            history = b.get("historyNote", {}).get("value", "")
+            # Extract version from first line of history note
+            if history:
+                import re as _re
+                m = _re.search(r"gist\s+(\d+\.\d+\.\d+)", history)
+                if m:
+                    version = m.group(1)
+
+        # Counts
+        count_sparql = f"""PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+SELECT
+  (COUNT(DISTINCT ?class) AS ?classCount)
+  (COUNT(DISTINCT ?op) AS ?opCount)
+  (COUNT(DISTINCT ?dp) AS ?dpCount)
+FROM <{GIST_GRAPH}>
+WHERE {{
+  {{ ?class a owl:Class . FILTER(isIRI(?class)) }}
+  UNION
+  {{ ?op a owl:ObjectProperty . FILTER(isIRI(?op)) }}
+  UNION
+  {{ ?dp a owl:DatatypeProperty . FILTER(isIRI(?dp)) }}
+}}"""
+        count_result = await self._client.query(count_sparql)
+        count_bindings = count_result.get("results", {}).get("bindings", [])
+
+        class_count = 0
+        op_count = 0
+        dp_count = 0
+        if count_bindings:
+            cb = count_bindings[0]
+            class_count = int(cb.get("classCount", {}).get("value", "0"))
+            op_count = int(cb.get("opCount", {}).get("value", "0"))
+            dp_count = int(cb.get("dpCount", {}).get("value", "0"))
+
+        return {
+            "label": label,
+            "description": description,
+            "version": version,
+            "class_count": class_count,
+            "object_property_count": op_count,
+            "datatype_property_count": dp_count,
+            "graph_iri": GIST_GRAPH,
+            "namespace": GIST_NS,
+        }
+
     # ------------------------------------------------------------------
     # TBox query methods — cross-graph class hierarchy
     # ------------------------------------------------------------------

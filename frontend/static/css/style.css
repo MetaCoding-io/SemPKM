@@ -411,6 +411,89 @@ pre.json-output {
   margin-bottom: 0.25rem;
 }
 
+.admin-page .section-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  margin-bottom: 8px;
+}
+
+/* Upper Ontology card */
+.upper-ontology-section {
+  margin-bottom: 8px;
+}
+
+.upper-ontology-card {
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-primary, #6366f1);
+  border-radius: 6px;
+  padding: 16px 20px;
+  background: var(--color-bg-subtle, rgba(99, 102, 241, 0.03));
+}
+
+.upper-ontology-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.upper-ontology-icon {
+  font-size: 1.4rem;
+  color: var(--color-primary, #6366f1);
+}
+
+.upper-ontology-name {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.upper-ontology-meta {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.upper-ontology-meta a {
+  color: var(--color-primary, #6366f1);
+  text-decoration: none;
+}
+
+.upper-ontology-meta a:hover {
+  text-decoration: underline;
+}
+
+.upper-ontology-desc {
+  font-size: 0.85rem;
+  margin: 0 0 10px 0;
+  line-height: 1.5;
+}
+
+.upper-ontology-stats {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 10px;
+}
+
+.upper-ontology-stat {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.upper-ontology-stat strong {
+  color: var(--color-text);
+}
+
+.upper-ontology-note {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin: 0;
+  line-height: 1.4;
+}
+
 /* Webhook badges */
 .badge {
   display: inline-block;
