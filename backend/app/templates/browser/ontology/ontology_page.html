@@ -31,11 +31,15 @@
     </button>
   </div>
 
-  {# Class creation form container — loaded via htmx on demand #}
-  <div id="class-creation-container" class="ccf-container" style="display:none;"
-       hx-get="/browser/ontology/create-class-form"
-       hx-trigger="loadForm"
-       hx-swap="innerHTML">
+  {# Class creation modal — loaded via htmx on demand #}
+  <div id="class-creation-overlay" class="ccf-overlay" style="display:none;"
+       onclick="if(event.target===this)closeClassCreationForm()">
+    <div class="ccf-modal"
+         id="class-creation-container"
+         hx-get="/browser/ontology/create-class-form"
+         hx-trigger="loadForm"
+         hx-swap="innerHTML">
+    </div>
   </div>
 
   <div class="ontology-tab-content">
@@ -88,23 +92,40 @@ function switchOntologyTab(btn, tabId) {
 }
 
 function toggleClassCreationForm() {
+  var overlay = document.getElementById('class-creation-overlay');
   var container = document.getElementById('class-creation-container');
-  if (!container) return;
+  if (!overlay || !container) return;
 
-  if (container.style.display === 'none') {
-    container.style.display = 'block';
+  if (overlay.style.display === 'none') {
+    overlay.style.display = 'flex';
     if (!container.querySelector('.class-creation-form')) {
       htmx.trigger(container, 'loadForm');
     }
+    // Focus first input after form loads
+    setTimeout(function() {
+      var input = container.querySelector('input[type="text"]');
+      if (input) input.focus();
+    }, 150);
   } else {
-    container.style.display = 'none';
+    overlay.style.display = 'none';
   }
 }
 
 function closeClassCreationForm() {
-  var container = document.getElementById('class-creation-container');
-  if (container) container.style.display = 'none';
+  var overlay = document.getElementById('class-creation-overlay');
+  if (overlay) overlay.style.display = 'none';
 }
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    var overlay = document.getElementById('class-creation-overlay');
+    if (overlay && overlay.style.display !== 'none') {
+      overlay.style.display = 'none';
+      e.stopPropagation();
+    }
+  }
+});
 
 // Load class detail when a TBox node is clicked
 function loadClassDetail(iri) {

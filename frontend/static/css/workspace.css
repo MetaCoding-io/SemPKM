@@ -789,30 +789,47 @@
     stroke: currentColor;
 }
 
-/* --- Class Creation Form container --- */
+/* --- Class Creation Modal --- */
 
-.ccf-container {
-    border-bottom: 1px solid var(--color-border);
-    max-height: 50vh;
+.ccf-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(2px);
+}
+
+.ccf-modal {
+    width: 560px;
+    max-width: calc(100vw - 64px);
+    max-height: calc(100vh - 80px);
     overflow-y: auto;
-    flex-shrink: 0;
+    background: var(--color-surface, #fff);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.18), 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .class-creation-form {
-    padding: var(--space-md);
-    background: var(--color-surface);
+    padding: 28px 32px 24px;
 }
 
 .ccf-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: var(--space-md);
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--color-border);
 }
 
 .ccf-title {
     margin: 0;
-    font-size: var(--font-size-lg);
+    font-size: 1.1rem;
+    font-weight: 600;
     color: var(--color-text);
 }
 
@@ -820,72 +837,79 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
     padding: 0;
     border: none;
     background: transparent;
     color: var(--color-text-muted);
     cursor: pointer;
-    border-radius: 4px;
+    border-radius: 6px;
+    transition: background 0.15s, color 0.15s;
 }
 
 .ccf-close:hover {
-    background: var(--color-surface-hover);
+    background: var(--color-surface-hover, rgba(0,0,0,0.06));
     color: var(--color-text);
 }
 
 .ccf-close svg {
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
     flex-shrink: 0;
     stroke: currentColor;
 }
 
 .ccf-required {
-    color: var(--color-error);
+    color: var(--color-error, #ef4444);
 }
 
 .class-creation-form .form-field {
-    margin-bottom: var(--space-md);
+    margin-bottom: 20px;
+}
+
+.class-creation-form .form-actions {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--color-border);
 }
 
 .class-creation-form .form-field label {
     display: block;
-    font-size: 0.8rem;
+    font-size: 0.82rem;
     font-weight: 600;
     color: var(--color-text);
-    margin-bottom: 4px;
+    margin-bottom: 6px;
 }
 
 .class-creation-form .form-field input[type="text"] {
     width: 100%;
-    padding: 6px 10px;
+    padding: 8px 12px;
     border: 1px solid var(--color-border);
-    border-radius: 4px;
-    font-size: 0.85rem;
-    background: var(--color-surface);
+    border-radius: 6px;
+    font-size: 0.88rem;
+    background: var(--color-bg, #fafafa);
     color: var(--color-text);
-    transition: border-color 0.15s;
+    transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 .class-creation-form .form-field input[type="text"]:focus {
     outline: none;
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 2px var(--color-focus-shadow);
+    box-shadow: 0 0 0 3px var(--color-focus-shadow, rgba(99, 102, 241, 0.12));
 }
 
 /* --- Icon Picker --- */
 
 .icon-picker-search {
     width: 100%;
-    padding: 5px 10px;
+    padding: 8px 12px;
     border: 1px solid var(--color-border);
-    border-radius: 4px;
-    font-size: 0.8rem;
-    background: var(--color-surface);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    background: var(--color-bg, #fafafa);
     color: var(--color-text);
-    margin-bottom: 6px;
+    margin-bottom: 8px;
 }
 
 .icon-picker-search:focus {
@@ -895,13 +919,13 @@
 
 .icon-picker-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
-    gap: 3px;
-    max-height: 160px;
+    grid-template-columns: repeat(auto-fill, minmax(38px, 1fr));
+    gap: 4px;
+    max-height: 140px;
     overflow-y: auto;
-    padding: 4px;
+    padding: 6px;
     border: 1px solid var(--color-border);
-    border-radius: 4px;
+    border-radius: 6px;
     background: var(--color-surface-recessed, var(--color-bg));
 }
 
@@ -984,11 +1008,11 @@
 
 .parent-class-search {
     width: 100%;
-    padding: 5px 10px;
+    padding: 8px 12px;
     border: 1px solid var(--color-border);
-    border-radius: 4px;
-    font-size: 0.8rem;
-    background: var(--color-surface);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    background: var(--color-bg, #fafafa);
     color: var(--color-text);
 }
 
@@ -1096,8 +1120,8 @@
 
 .property-editor {
     border: 1px solid var(--color-border);
-    border-radius: 4px;
-    padding: var(--space-sm);
+    border-radius: 6px;
+    padding: 12px;
     background: var(--color-surface-recessed, var(--color-bg));
 }
 
