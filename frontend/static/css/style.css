@@ -213,6 +213,7 @@ textarea.json-box {
 /* Buttons */
 button,
 .btn {
+  display: inline-block;
   font-family: var(--font-sans);
   font-size: 0.9rem;
   padding: 0.5rem 1rem;
@@ -220,6 +221,8 @@ button,
   border-radius: var(--radius);
   cursor: pointer;
   font-weight: 500;
+  text-decoration: none;
+  text-align: center;
   transition: background 0.15s, transform 0.1s;
 }
 
@@ -369,12 +372,23 @@ pre.json-output {
   font-size: 0.8rem;
 }
 
-.btn-danger {
-  background: var(--color-error);
+.btn.btn-warning {
+  background: var(--color-warning, #e67e22);
   color: var(--color-avatar-text);
+  border-color: var(--color-warning, #e67e22);
 }
 
-.btn-danger:hover {
+.btn.btn-warning:hover {
+  opacity: 0.85;
+}
+
+.btn.btn-danger {
+  background: var(--color-error);
+  color: var(--color-avatar-text);
+  border-color: var(--color-error);
+}
+
+.btn.btn-danger:hover {
   opacity: 0.85;
 }
 
