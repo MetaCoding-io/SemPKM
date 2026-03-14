@@ -373,6 +373,7 @@ WHERE {{ ?s ?p ?o }}"""
             PropertyShape(
                 path="http://purl.org/dc/terms/title",
                 name="Title",
+                description="The display name for this object.",
                 datatype="http://www.w3.org/2001/XMLSchema#string",
                 order=1.0,
                 min_count=1,
@@ -381,6 +382,7 @@ WHERE {{ ?s ?p ?o }}"""
             PropertyShape(
                 path="http://www.w3.org/2000/01/rdf-schema#comment",
                 name="Description",
+                description="A short description of what this object is about.",
                 datatype="http://www.w3.org/2001/XMLSchema#string",
                 order=2.0,
                 min_count=0,
