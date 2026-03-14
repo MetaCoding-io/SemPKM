@@ -2188,6 +2188,14 @@
     // Initialize command palette after workspace layout is ready
     initCommandPalette();
 
+    // --- Handle deep-link hash to auto-open special tabs ---
+    if (window.location.hash === '#ontology-viewer' && typeof openOntologyTab === 'function') {
+      // Small delay to ensure dockview is fully initialized
+      setTimeout(function() { openOntologyTab(); }, 100);
+      // Clean hash from URL
+      if (history.replaceState) history.replaceState(null, '', window.location.pathname);
+    }
+
     // --- Explorer mode: clear selection on switch, persist in localStorage ---
     initExplorerMode();
 
