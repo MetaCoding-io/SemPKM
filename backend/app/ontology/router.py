@@ -444,6 +444,185 @@ async def delete_class(
 
 
 # ------------------------------------------------------------------
+# Property creation
+# ------------------------------------------------------------------
+
+
+@ontology_router.get("/ontology/create-property-form")
+async def create_property_form(
+    request: Request,
+    user: User = Depends(get_current_user),
+) -> HTMLResponse:
+    """Render the property creation form template."""
+    templates = request.app.state.templates
+    return templates.TemplateResponse(
+        request,
+        "browser/ontology/create_property_form.html",
+        {},
+    )
+
+
+@ontology_router.post("/ontology/create-property")
+async def create_property(
+    request: Request,
+    name: str = Form(...),
+    prop_type: str = Form(...),
+    domain_iri: str = Form(""),
+    range_iri: str = Form(""),
+    description: str = Form(""),
+    user: User = Depends(get_current_user),
+) -> HTMLResponse:
+    """Create a user-defined OWL property.
+
+    Returns:
+        200 with HX-Trigger: propertyCreated on success.
+        422 on validation failure.
+    """
+    ontology_service = request.app.state.ontology_service
+
+    try:
+        result = await ontology_service.create_property(
+            name=name.strip(),
+            prop_type=prop_type.strip(),
+            domain_iri=domain_iri.strip() or None,
+            range_iri=range_iri.strip() or None,
+            description=description.strip() or None,
+        )
+    except ValueError as exc:
+        logger.warning("create-property validation error: %s", exc)
+        return HTMLResponse(
+            content=f'<div class="error-message">{exc}</div>',
+            status_code=422,
+        )
+    except Exception:
+        logger.error("create-property failed", exc_info=True)
+        return HTMLResponse(
+            content='<div class="error-message">Server error creating property</div>',
+            status_code=500,
+        )
+
+    response = HTMLResponse(
+        content=(
+            f'<div class="success-message">'
+            f'Created {prop_type} property <strong>{name.strip()}</strong>'
+            f'<br><code>{result["property_iri"]}</code>'
+            f'</div>'
+        ),
+        status_code=200,
+    )
+    response.headers["HX-Trigger"] = "propertyCreated"
+    return response
+
+
+# ------------------------------------------------------------------
+# Class editing
+# ------------------------------------------------------------------
+
+
+@ontology_router.get("/ontology/edit-class-form")
+async def edit_class_form(
+    request: Request,
+    class_iri: str = Query(...),
+    user: User = Depends(get_current_user),
+) -> HTMLResponse:
+    """Render the class edit form pre-populated with current values."""
+    ontology_service = request.app.state.ontology_service
+    class_data = await ontology_service.get_class_for_edit(
+        unquote(class_iri)
+    )
+
+    if not class_data:
+        return HTMLResponse(
+            content='<div class="error-message">Class not found</div>',
+            status_code=404,
+        )
+
+    templates = request.app.state.templates
+    return templates.TemplateResponse(
+        request,
+        "browser/ontology/edit_class_form.html",
+        {"cls": class_data},
+    )
+
+
+@ontology_router.post("/ontology/edit-class")
+async def edit_class(
+    request: Request,
+    class_iri: str = Form(...),
+    name: str = Form(...),
+    description: str = Form(""),
+    example: str = Form(""),
+    icon: str = Form(""),
+    icon_color: str = Form(""),
+    parent_iri: str = Form(...),
+    properties: str = Form("[]"),
+    user: User = Depends(get_current_user),
+) -> HTMLResponse:
+    """Edit a user-defined class (full replacement).
+
+    Returns:
+        200 with HX-Trigger: classEdited on success.
+        403 if not a user-types class.
+        422 on validation failure.
+    """
+    if not class_iri.startswith(f"{USER_TYPES_GRAPH}:"):
+        return HTMLResponse(
+            content='<div class="error-message">Only user-created classes can be edited</div>',
+            status_code=403,
+        )
+
+    try:
+        props_list = json.loads(properties)
+        if not isinstance(props_list, list):
+            raise ValueError("properties must be a JSON array")
+    except (json.JSONDecodeError, ValueError) as exc:
+        return HTMLResponse(
+            content=f'<div class="error-message">Invalid properties format: {exc}</div>',
+            status_code=422,
+        )
+
+    ontology_service = request.app.state.ontology_service
+
+    try:
+        result = await ontology_service.edit_class(
+            class_iri=class_iri.strip(),
+            name=name.strip(),
+            parent_iri=parent_iri.strip(),
+            properties=props_list,
+            icon_name=icon.strip() or None,
+            icon_color=icon_color.strip() or None,
+            description=description.strip() or None,
+            example=example.strip() or None,
+        )
+    except ValueError as exc:
+        logger.warning("edit-class validation error: %s", exc)
+        return HTMLResponse(
+            content=f'<div class="error-message">{exc}</div>',
+            status_code=422,
+        )
+    except Exception:
+        logger.error("edit-class failed for %s", class_iri, exc_info=True)
+        return HTMLResponse(
+            content='<div class="error-message">Server error editing class</div>',
+            status_code=500,
+        )
+
+    # Update icon cache
+    _update_icon_cache(request, class_iri, icon.strip(), icon_color.strip())
+
+    response = HTMLResponse(
+        content=(
+            f'<div class="success-message">'
+            f'Updated class <strong>{name.strip()}</strong>'
+            f'</div>'
+        ),
+        status_code=200,
+    )
+    response.headers["HX-Trigger"] = "classEdited"
+    return response
+
+
+# ------------------------------------------------------------------
 # Icon cache helpers
 # ------------------------------------------------------------------
 
