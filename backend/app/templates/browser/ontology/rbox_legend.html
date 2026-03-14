@@ -14,28 +14,32 @@
 
 {% macro render_property_table(properties, testid) %}
 {% for source, props in properties | groupby('source') %}
-<div class="rbox-group">
-  <div class="rbox-group-label">
+<div class="rbox-group rbox-group--expanded">
+  <button class="rbox-group-toggle" onclick="this.parentElement.classList.toggle('rbox-group--expanded')">
+    <span class="rbox-group-arrow">▸</span>
     <span class="rbox-group-badge rbox-group-badge--{{ source }}">{{ source }}</span>
+    <span class="rbox-group-count">{{ props | list | length }}</span>
+  </button>
+  <div class="rbox-group-body">
+    <table class="rbox-table" data-testid="{{ testid }}-{{ source }}">
+      <thead>
+        <tr>
+          <th>Domain</th>
+          <th>Property</th>
+          <th>Range</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in props | list %}
+        <tr title="{{ p.iri }}">
+          <td class="rbox-domain">{{ p.domain_label or '—' }}</td>
+          <td class="rbox-prop-name">{{ p.label }}</td>
+          <td class="rbox-range">{{ p.range_label or '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
-  <table class="rbox-table" data-testid="{{ testid }}-{{ source }}">
-    <thead>
-      <tr>
-        <th>Domain</th>
-        <th>Property</th>
-        <th>Range</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for p in props | list %}
-      <tr title="{{ p.iri }}">
-        <td class="rbox-domain">{{ p.domain_label or '—' }}</td>
-        <td class="rbox-prop-name">{{ p.label }}</td>
-        <td class="rbox-range">{{ p.range_label or '—' }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
 </div>
 {% endfor %}
 {% endmacro %}

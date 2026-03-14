@@ -1117,8 +1117,44 @@
     margin-bottom: var(--space-md);
 }
 
-.rbox-group-label {
-    margin: var(--space-sm) 0 var(--space-xs);
+.rbox-group-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    padding: 4px 0;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+}
+
+.rbox-group-toggle:hover {
+    opacity: 0.8;
+}
+
+.rbox-group-arrow {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    transition: transform 0.15s;
+    display: inline-block;
+}
+
+.rbox-group--expanded > .rbox-group-toggle .rbox-group-arrow {
+    transform: rotate(90deg);
+}
+
+.rbox-group-body {
+    display: none;
+}
+
+.rbox-group--expanded > .rbox-group-body {
+    display: block;
+}
+
+.rbox-group-count {
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
 }
 
 .rbox-group-badge {
