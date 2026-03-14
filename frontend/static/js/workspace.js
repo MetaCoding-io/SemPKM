@@ -777,13 +777,13 @@
     if (existing) { existing.api.setActive(); return; }
 
     if (!window._tabMeta) window._tabMeta = {};
-    window._tabMeta[tabKey] = { label: 'Ontology Viewer', dirty: false };
+    window._tabMeta[tabKey] = { label: '◆ Ontology Viewer', dirty: false };
 
     dv.api.addPanel({
       id: tabKey,
       component: 'special-panel',
       params: { specialType: 'ontology', isView: false, isSpecial: true },
-      title: 'Ontology Viewer'
+      title: '◆ Ontology Viewer'
     });
   }
   window.openOntologyTab = openOntologyTab;
