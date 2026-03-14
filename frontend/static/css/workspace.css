@@ -495,6 +495,136 @@
     display: block;
 }
 
+/* TBox split layout: tree left, detail right */
+.tbox-split {
+    display: flex;
+    height: 100%;
+    gap: 1px;
+}
+
+.tbox-tree-pane {
+    flex: 0 0 320px;
+    overflow-y: auto;
+    padding: 0 8px;
+    border-right: 1px solid var(--color-border);
+}
+
+.tbox-detail-pane {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 24px;
+}
+
+.tbox-detail-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--color-text-muted);
+    gap: 8px;
+}
+
+.tbox-detail-empty-icon {
+    font-size: 2rem;
+    opacity: 0.3;
+}
+
+.tbox-detail-empty p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+/* Detail content */
+.tbox-detail-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.tbox-detail-title {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.tbox-detail-iri {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    font-family: monospace;
+    margin-bottom: 16px;
+    word-break: break-all;
+}
+
+.tbox-detail-section {
+    margin-bottom: 16px;
+}
+
+.tbox-detail-section-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted);
+    margin-bottom: 4px;
+}
+
+.tbox-detail-comment {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--color-text);
+}
+
+.tbox-detail-table {
+    width: 100%;
+    font-size: 0.85rem;
+    border-collapse: collapse;
+}
+
+.tbox-detail-table td {
+    padding: 4px 8px 4px 0;
+    vertical-align: top;
+}
+
+.tbox-detail-key {
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    font-weight: 500;
+    width: 100px;
+}
+
+.tbox-detail-val {
+    color: var(--color-text-muted);
+}
+
+.tbox-detail-class-link {
+    color: var(--color-primary);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.tbox-detail-class-link:hover {
+    text-decoration: underline;
+}
+
+.tbox-detail-more {
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+}
+
+.tbox-detail-stat {
+    margin: 0;
+    font-size: 0.85rem;
+}
+
+/* Selected node highlight */
+.tbox-node--selected {
+    background: var(--color-primary-subtle, rgba(99, 102, 241, 0.12));
+    border-radius: 4px;
+}
+
 .ontology-loading {
     padding: var(--space-md);
     color: var(--color-text-muted);

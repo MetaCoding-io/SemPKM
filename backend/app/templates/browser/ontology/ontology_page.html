@@ -1,5 +1,6 @@
-{# Ontology Viewer: three-tab layout for TBox, ABox, and RBox.
-   TBox loads immediately; ABox and RBox load lazily on tab click.
+{# Ontology Viewer: two-tab layout for TBox (Classes) and RBox (Properties).
+   TBox loads immediately with a split tree+detail layout.
+   RBox loads lazily on tab click.
    This template is fetched by the special-panel component via
    GET /browser/ontology.
 #}
@@ -10,16 +11,6 @@
             data-testid="ontology-tab-tbox"
             onclick="switchOntologyTab(this, 'tbox')">
       TBox <span class="ontology-tab-hint">Classes</span>
-    </button>
-    <button class="ontology-tab"
-            data-tab="abox"
-            data-testid="ontology-tab-abox"
-            onclick="switchOntologyTab(this, 'abox')"
-            hx-get="/browser/ontology/abox"
-            hx-target="#ontology-abox"
-            hx-swap="innerHTML"
-            hx-trigger="click once">
-      ABox <span class="ontology-tab-hint">Instances</span>
     </button>
     <button class="ontology-tab"
             data-tab="rbox"
@@ -48,14 +39,22 @@
   </div>
 
   <div class="ontology-tab-content">
-    <div id="ontology-tbox" class="ontology-pane ontology-pane--active" data-testid="tbox-tree"
-         hx-get="/browser/ontology/tbox"
-         hx-trigger="load, classCreated from:body, classDeleted from:body"
-         hx-swap="innerHTML">
-      <div class="ontology-loading">Loading TBox…</div>
-    </div>
-    <div id="ontology-abox" class="ontology-pane" data-testid="abox-browser">
-      <div class="ontology-loading">Click the ABox tab to load instance data.</div>
+    {# TBox: split into tree (left) and detail (right) #}
+    <div id="ontology-tbox" class="ontology-pane ontology-pane--active" data-testid="tbox-tree">
+      <div class="tbox-split">
+        <div class="tbox-tree-pane"
+             hx-get="/browser/ontology/tbox"
+             hx-trigger="load, classCreated from:body, classDeleted from:body"
+             hx-swap="innerHTML">
+          <div class="ontology-loading">Loading TBox…</div>
+        </div>
+        <div class="tbox-detail-pane" id="tbox-detail">
+          <div class="tbox-detail-empty">
+            <span class="tbox-detail-empty-icon">◆</span>
+            <p>Select a class to view its details</p>
+          </div>
+        </div>
+      </div>
     </div>
     <div id="ontology-rbox" class="ontology-pane" data-testid="rbox-legend">
       <div class="ontology-loading">Click the RBox tab to load property data.</div>
@@ -65,14 +64,12 @@
 
 <script>
 function switchOntologyTab(btn, tabId) {
-  // Update tab buttons
   var tabs = btn.parentElement.querySelectorAll('.ontology-tab');
   for (var i = 0; i < tabs.length; i++) {
     tabs[i].classList.remove('ontology-tab--active');
   }
   btn.classList.add('ontology-tab--active');
 
-  // Update panes
   var panes = btn.closest('.ontology-viewer').querySelectorAll('.ontology-pane');
   for (var j = 0; j < panes.length; j++) {
     panes[j].classList.remove('ontology-pane--active');
@@ -87,7 +84,6 @@ function toggleClassCreationForm() {
 
   if (container.style.display === 'none') {
     container.style.display = 'block';
-    // Trigger htmx to load form if not already loaded
     if (!container.querySelector('.class-creation-form')) {
       htmx.trigger(container, 'loadForm');
     }
@@ -100,4 +96,36 @@ function closeClassCreationForm() {
   var container = document.getElementById('class-creation-container');
   if (container) container.style.display = 'none';
 }
+
+// Load class detail when a TBox node is clicked
+function loadClassDetail(iri) {
+  var detail = document.getElementById('tbox-detail');
+  if (!detail) return;
+
+  // Highlight selected node
+  var nodes = document.querySelectorAll('.tbox-tree-pane .tree-node, .tbox-tree-pane .tree-leaf');
+  for (var i = 0; i < nodes.length; i++) {
+    nodes[i].classList.remove('tbox-node--selected');
+  }
+  // Find and highlight the clicked node
+  var clicked = document.querySelector('[data-iri="' + CSS.escape(iri) + '"]');
+  if (clicked) clicked.classList.add('tbox-node--selected');
+
+  // Load detail via htmx
+  detail.innerHTML = '<div class="ontology-loading">Loading…</div>';
+  htmx.ajax('GET', '/browser/ontology/tbox/detail?iri=' + encodeURIComponent(iri), {target: '#tbox-detail', swap: 'innerHTML'});
+}
+
+// Delegated click handler for tree nodes — load detail without interfering with expand/collapse
+document.addEventListener('click', function(e) {
+  var label = e.target.closest('.tbox-label');
+  if (!label) return;
+  var node = label.closest('[data-iri]');
+  if (!node) return;
+  var iri = node.getAttribute('data-iri');
+  if (iri) {
+    e.stopPropagation();
+    loadClassDetail(iri);
+  }
+});
 </script>
