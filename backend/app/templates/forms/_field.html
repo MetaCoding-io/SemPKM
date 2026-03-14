@@ -37,6 +37,18 @@
 
     {% if prop.description %}
     <small class="field-help">{{ prop.description }}</small>
+    {% elif 'title' in prop.path %}
+    <small class="field-help">The display name for this object.</small>
+    {% elif 'comment' in prop.path or prop.name == 'Description' %}
+    <small class="field-help">A short description or summary.</small>
+    {% elif 'status' in prop.path|lower or prop.name == 'Status' %}
+    <small class="field-help">Track where this stands right now.</small>
+    {% elif 'priority' in prop.path|lower or prop.name == 'Priority' %}
+    <small class="field-help">How urgent or important this is.</small>
+    {% elif prop.target_class %}
+    <small class="field-help">Search and link to an existing {{ prop.name|lower }}.</small>
+    {% elif 'tags' in prop.path or 'keywords' in prop.path %}
+    <small class="field-help">Add tags to help organize and find this object.</small>
     {% endif %}
 
     {% if prop.helptext %}
