@@ -608,6 +608,15 @@ pre.json-output {
   pointer-events: none;
 }
 
+.sidebar-nav .nav-lock-icon {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  margin-left: auto;
+  opacity: 0.6;
+  stroke: currentColor;
+}
+
 .sidebar-nav .nav-icon {
   width: 16px;
   height: 16px;

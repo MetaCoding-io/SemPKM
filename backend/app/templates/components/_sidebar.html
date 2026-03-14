@@ -16,6 +16,7 @@
                 <span class="group-label">Admin</span>
             </button>
             <div class="sidebar-group-items">
+                {% if user is defined and user.role == 'owner' %}
                 <a href="/admin/models" class="nav-link" data-tooltip="Mental Models"
                    hx-get="/admin/models" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
                     <i data-lucide="brain" class="nav-icon"></i>
@@ -34,6 +35,13 @@
                     <i data-lucide="webhook" class="nav-icon"></i>
                     <span class="nav-label">Webhooks</span>
                 </a>
+                {% else %}
+                <span class="nav-link disabled nav-hint" data-tooltip="Requires owner role">
+                    <i data-lucide="brain" class="nav-icon"></i>
+                    <span class="nav-label">Mental Models</span>
+                    <i data-lucide="lock" class="nav-lock-icon"></i>
+                </span>
+                {% endif %}
                 {% if user is defined and user.role != 'guest' %}
                 <a href="/browser?panel=sparql" class="nav-link" data-tooltip="SPARQL Console"
                    hx-boost="false">

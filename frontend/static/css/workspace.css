@@ -4050,6 +4050,14 @@ details.form-group[open] > .form-group-summary::before {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
 }
+.sempkm-toast--warning {
+    border-color: var(--color-warning, #e67e22);
+    background: color-mix(in srgb, var(--color-warning, #e67e22) 12%, var(--color-bg-panel));
+}
+.sempkm-toast--error {
+    border-color: var(--color-danger, #e74c3c);
+    background: color-mix(in srgb, var(--color-danger, #e74c3c) 12%, var(--color-bg-panel));
+}
 
 /* Spatial canvas prototype (M0) */
 .canvas-page {
