@@ -1618,13 +1618,18 @@
       if (!labelEl) return;
       var typeLabel = labelEl.textContent.trim();
       if (!typeLabel) return;
+      var typeIri = node.getAttribute('data-type-iri');
+      // Strip trailing " Shape" for display (tree shows shape names)
+      var displayLabel = typeLabel.replace(/\s+Shape$/, '');
 
-      var id = 'create-type-' + typeLabel.toLowerCase().replace(/\s+/g, '-');
+      var id = 'create-type-' + displayLabel.toLowerCase().replace(/\s+/g, '-');
       baseData.push({
         id: id,
-        title: 'Create ' + typeLabel,
+        title: 'Create ' + displayLabel,
         section: 'Objects',
-        handler: function () { showTypePicker(); }
+        handler: (function (iri, label) {
+          return function () { showCreateFormForType(iri, label); };
+        })(typeIri, displayLabel)
       });
     });
 
@@ -1632,22 +1637,31 @@
   }
 
   function showTypePicker() {
+    showCreateFormForType(null, null);
+  }
+
+  /**
+   * Open a create form for a specific type (skipping the type picker),
+   * or show the type picker if no typeIri is given.
+   */
+  function showCreateFormForType(typeIri, typeLabel) {
     var editorArea = null;
+    var tabTitle = typeIri ? 'New ' + typeLabel : 'New Object';
 
     // Always create a fresh dockview panel so the type picker never
     // overwrites the content of an existing tab.
     if (window._dockview) {
       var panelId = '__new-object-' + Date.now();
       if (!window._tabMeta) window._tabMeta = {};
-      window._tabMeta[panelId] = { label: 'New Object', dirty: false };
+      window._tabMeta[panelId] = { label: tabTitle, dirty: false };
       window._dockview.api.addPanel({
         id: panelId,
         component: 'empty',
         params: { isView: false, isSpecial: false },
-        title: 'New Object'
+        title: tabTitle
       });
       _newObjectPanelId = panelId;
-      console.debug('[workspace] showTypePicker: created temp panel', panelId);
+      console.debug('[workspace] showCreateFormForType: created temp panel', panelId);
       editorArea = window.getActiveEditorArea ? window.getActiveEditorArea() : null;
     }
 
@@ -1655,12 +1669,15 @@
     if (!editorArea) editorArea = document.getElementById('editor-area-group-1');
 
     if (typeof htmx !== 'undefined' && editorArea) {
-      htmx.ajax('GET', '/browser/types', {
+      var url = typeIri
+        ? '/browser/objects/new?type=' + encodeURIComponent(typeIri)
+        : '/browser/types';
+      htmx.ajax('GET', url, {
         target: editorArea,
         swap: 'innerHTML'
       }).catch(function () {
         if (editorArea) {
-          editorArea.innerHTML = '<div class="editor-empty"><p>Failed to load type picker.</p></div>';
+          editorArea.innerHTML = '<div class="editor-empty"><p>Failed to load form.</p></div>';
         }
       });
     }

@@ -161,6 +161,21 @@ See memory/MEMORY.md for full details. Short version:
 
 ---
 
+## Browser Testing: Click Targeting
+
+**Problem:** When using `browser_click` with a CSS selector that doesn't match any DOM element, the tool silently falls back to getByRole/text-content heuristics. This frequently resolves to the wrong element — especially the `#explorer-mode-select` dropdown in the explorer pane, which contains generic text like "By Type" and sits in a high-z-index area.
+
+**Symptoms:** Action reports `SOFT-FAIL (no observable state change)`, and `focus` jumps to `select#explorer-mode-select` instead of the intended target.
+
+**Rules for browser_click in this codebase:**
+
+1. **Always use `browser_find` first** to discover the actual selector before clicking. Never guess class names.
+2. **Prefer specific selectors** like `details.form-advanced summary` over invented ones like `.form-advanced-toggle`.
+3. **If a click reports focus on `select#explorer-mode-select`**, the click missed — the selector didn't match. Re-discover the element with `browser_find` and retry.
+4. **For elements inside the editor area**, scope finds with `browser_find` using `selector=".group-editor-area"` to avoid matching explorer pane elements.
+
+---
+
 ## Architecture Notes
 
 - htmx drives most DOM updates; avoid full-page JS frameworks
