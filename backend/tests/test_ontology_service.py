@@ -17,6 +17,8 @@ from app.ontology.service import (
     OntologyService,
 )
 
+SH_NS = "http://www.w3.org/ns/shacl#"
+
 
 # --- _split_triples_into_batches ---
 
@@ -469,3 +471,231 @@ class TestBatchHasSubclasses:
 
         assert result == {"urn:test:A": True}
         assert "urn:test:B" not in result
+
+
+# --- Property creation ---
+
+
+class TestMintPropertyIri:
+    """Tests for property IRI minting."""
+
+    def test_camel_case_slug(self):
+        """Property IRI uses camelCase slug."""
+        iri = OntologyService._mint_property_iri("Has Author")
+        # Should start with lowercase
+        assert ":hasAuthor-" in iri
+        assert iri.startswith(f"{USER_TYPES_GRAPH}:")
+
+    def test_uuid_suffix(self):
+        """Property IRI has 8-char hex suffix."""
+        iri = OntologyService._mint_property_iri("test")
+        suffix = iri.rsplit("-", 1)[1]
+        assert len(suffix) == 8
+        int(suffix, 16)  # should not raise
+
+    def test_empty_name_uses_default(self):
+        """Empty name falls back to 'property' slug."""
+        iri = OntologyService._mint_property_iri("   ")
+        assert ":property-" in iri
+
+    def test_uniqueness(self):
+        """Two calls with same name produce different IRIs."""
+        iri1 = OntologyService._mint_property_iri("Same Name")
+        iri2 = OntologyService._mint_property_iri("Same Name")
+        assert iri1 != iri2
+
+
+class TestGeneratePropertyTriples:
+    """Tests for OWL property triple generation."""
+
+    def test_object_property(self):
+        """Object property generates owl:ObjectProperty type triple."""
+        triples = OntologyService._generate_property_triples(
+            prop_iri="urn:test:hasAuthor-abc",
+            name="Has Author",
+            prop_type="object",
+            domain_iri="urn:test:Note",
+            range_iri="urn:test:Person",
+            description="The author of this note",
+        )
+        subjects = {str(t[0]) for t in triples}
+        predicates = {str(t[1]) for t in triples}
+        objects = {str(t[2]) for t in triples}
+
+        assert "urn:test:hasAuthor-abc" in subjects
+        assert str(OWL.ObjectProperty) in objects
+        assert str(RDFS.label) in predicates
+        assert str(RDFS.domain) in predicates
+        assert str(RDFS.range) in predicates
+        assert str(RDFS.comment) in predicates
+        assert len(triples) == 5  # type, label, domain, range, comment
+
+    def test_datatype_property(self):
+        """Datatype property generates owl:DatatypeProperty type triple."""
+        triples = OntologyService._generate_property_triples(
+            prop_iri="urn:test:hasTitle-abc",
+            name="Has Title",
+            prop_type="datatype",
+        )
+        objects = {str(t[2]) for t in triples}
+        assert str(OWL.DatatypeProperty) in objects
+        assert len(triples) == 2  # type, label only
+
+    def test_optional_fields_omitted(self):
+        """Without domain/range/description, only type and label emitted."""
+        triples = OntologyService._generate_property_triples(
+            prop_iri="urn:test:prop-abc",
+            name="Simple",
+            prop_type="object",
+        )
+        assert len(triples) == 2
+
+
+class TestCreatePropertyValidation:
+    """Tests for create_property input validation."""
+
+    @pytest.mark.asyncio
+    async def test_empty_name_raises(self):
+        mock_client = MagicMock()
+        svc = OntologyService(mock_client)
+        with pytest.raises(ValueError, match="name must not be empty"):
+            await svc.create_property(name="", prop_type="object")
+
+    @pytest.mark.asyncio
+    async def test_invalid_prop_type_raises(self):
+        mock_client = MagicMock()
+        svc = OntologyService(mock_client)
+        with pytest.raises(ValueError, match="must be 'object' or 'datatype'"):
+            await svc.create_property(name="test", prop_type="relation")
+
+    @pytest.mark.asyncio
+    async def test_invalid_domain_raises(self):
+        mock_client = MagicMock()
+        svc = OntologyService(mock_client)
+        with pytest.raises(ValueError, match="Domain IRI is invalid"):
+            await svc.create_property(
+                name="test", prop_type="object", domain_iri="not-a-uri"
+            )
+
+    @pytest.mark.asyncio
+    async def test_successful_creation(self):
+        """Successful creation calls client.update and returns result dict."""
+        mock_client = MagicMock()
+        mock_client.update = AsyncMock()
+        svc = OntologyService(mock_client)
+
+        result = await svc.create_property(
+            name="Authored By",
+            prop_type="object",
+            domain_iri="urn:test:Note",
+            range_iri="urn:test:Person",
+            description="Author relationship",
+        )
+
+        assert "property_iri" in result
+        assert result["prop_type"] == "object"
+        assert result["triple_count"] == 5
+        mock_client.update.assert_called_once()
+        sparql = mock_client.update.call_args[0][0]
+        assert "INSERT DATA" in sparql
+        assert f"GRAPH <{USER_TYPES_GRAPH}>" in sparql
+
+
+# --- Class editing ---
+
+
+class TestEditClass:
+    """Tests for edit_class (full replacement strategy)."""
+
+    @pytest.mark.asyncio
+    async def test_edit_deletes_then_reinserts(self):
+        """Edit class calls delete (3 SPARQL updates) then insert (1 update)."""
+        mock_client = MagicMock()
+        mock_client.update = AsyncMock()
+        svc = OntologyService(mock_client)
+
+        result = await svc.edit_class(
+            class_iri="urn:sempkm:user-types:MyClass-abcd1234",
+            name="Renamed Class",
+            parent_iri="http://www.w3.org/2002/07/owl#Thing",
+            properties=[{
+                "name": "Title",
+                "predicate_iri": "http://purl.org/dc/terms/title",
+                "datatype_iri": "http://www.w3.org/2001/XMLSchema#string",
+            }],
+            icon_name="star",
+            icon_color="#ff0000",
+        )
+
+        # 3 deletes (blank nodes, shape, class) + 1 insert
+        assert mock_client.update.call_count == 4
+        assert result["class_iri"] == "urn:sempkm:user-types:MyClass-abcd1234"
+        assert result["shape_iri"] == "urn:sempkm:user-types:MyClassShape-abcd1234"
+        assert result["property_count"] == 1
+
+        # Last call should be INSERT DATA
+        insert_sparql = mock_client.update.call_args_list[3][0][0]
+        assert "INSERT DATA" in insert_sparql
+        assert "Renamed Class" in insert_sparql
+
+    @pytest.mark.asyncio
+    async def test_edit_preserves_iri(self):
+        """Edit does not re-mint the class IRI — it preserves the original."""
+        mock_client = MagicMock()
+        mock_client.update = AsyncMock()
+        svc = OntologyService(mock_client)
+
+        original_iri = "urn:sempkm:user-types:TestClass-11112222"
+        result = await svc.edit_class(
+            class_iri=original_iri,
+            name="Changed Name",
+            parent_iri="http://www.w3.org/2002/07/owl#Thing",
+            properties=[],
+        )
+        assert result["class_iri"] == original_iri
+
+
+class TestGetClassForEdit:
+    """Tests for get_class_for_edit query structure."""
+
+    @pytest.mark.asyncio
+    async def test_returns_none_when_not_found(self):
+        mock_client = MagicMock()
+        mock_client.query = AsyncMock(return_value={
+            "results": {"bindings": []},
+        })
+        svc = OntologyService(mock_client)
+        result = await svc.get_class_for_edit("urn:nonexistent")
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_returns_class_data(self):
+        mock_client = MagicMock()
+        mock_client.query = AsyncMock(side_effect=[
+            # Class metadata query
+            {"results": {"bindings": [{
+                "label": {"value": "My Class"},
+                "parent": {"value": "http://www.w3.org/2002/07/owl#Thing"},
+                "icon": {"value": "star"},
+                "color": {"value": "#ff0000"},
+                "description": {"value": "A test class"},
+            }]}},
+            # Shape properties query
+            {"results": {"bindings": [{
+                "name": {"value": "Title"},
+                "path": {"value": "http://purl.org/dc/terms/title"},
+                "datatype": {"value": "http://www.w3.org/2001/XMLSchema#string"},
+                "order": {"value": "1"},
+            }]}},
+        ])
+        svc = OntologyService(mock_client)
+        result = await svc.get_class_for_edit("urn:sempkm:user-types:MyClass-abc123")
+
+        assert result is not None
+        assert result["label"] == "My Class"
+        assert result["icon_name"] == "star"
+        assert result["icon_color"] == "#ff0000"
+        assert result["description"] == "A test class"
+        assert result["parent_label"] == "owl:Thing"
+        assert len(result["properties"]) == 1
+        assert result["properties"][0]["name"] == "Title"

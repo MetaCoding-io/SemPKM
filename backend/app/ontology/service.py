@@ -1529,3 +1529,311 @@ ORDER BY ?propType ?label"""
             "shape_iri": shape_iri,
             "status": "deleted",
         }
+
+    # ------------------------------------------------------------------
+    # User-defined property creation
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _mint_property_iri(name: str) -> str:
+        """Mint a property IRI with UUID suffix.
+
+        Returns:
+            Property IRI string.
+        """
+        slug = re.sub(r"[^A-Za-z0-9]+", "", name.strip())
+        if not slug:
+            slug = "property"
+        # camelCase: lowercase first char
+        slug = slug[0].lower() + slug[1:] if len(slug) > 1 else slug.lower()
+        hex_suffix = uuid.uuid4().hex[:8]
+        return f"{USER_TYPES_GRAPH}:{slug}-{hex_suffix}"
+
+    @staticmethod
+    def _generate_property_triples(
+        prop_iri: str,
+        name: str,
+        prop_type: str,
+        domain_iri: str | None = None,
+        range_iri: str | None = None,
+        description: str | None = None,
+    ) -> list[tuple]:
+        """Generate OWL property triples.
+
+        Args:
+            prop_iri: The minted property IRI.
+            name: Human-readable property name.
+            prop_type: "object" for owl:ObjectProperty, "datatype" for
+                       owl:DatatypeProperty.
+            domain_iri: Optional domain class IRI.
+            range_iri: Optional range class/datatype IRI.
+            description: Optional description (rdfs:comment).
+
+        Returns:
+            List of (subject, predicate, object) triples.
+        """
+        prop_uri = URIRef(prop_iri)
+        owl_type = OWL.ObjectProperty if prop_type == "object" else OWL.DatatypeProperty
+
+        triples: list[tuple] = [
+            (prop_uri, RDF.type, owl_type),
+            (prop_uri, RDFS.label, Literal(name)),
+        ]
+
+        if domain_iri:
+            triples.append((prop_uri, RDFS.domain, URIRef(domain_iri)))
+        if range_iri:
+            triples.append((prop_uri, RDFS.range, URIRef(range_iri)))
+        if description:
+            triples.append((prop_uri, RDFS.comment, Literal(description)))
+
+        return triples
+
+    async def create_property(
+        self,
+        name: str,
+        prop_type: str,
+        domain_iri: str | None = None,
+        range_iri: str | None = None,
+        description: str | None = None,
+    ) -> dict:
+        """Create a user-defined OWL property.
+
+        Args:
+            name: Human-readable property name.
+            prop_type: "object" or "datatype".
+            domain_iri: Optional domain class IRI.
+            range_iri: Optional range class/datatype IRI.
+            description: Optional description.
+
+        Returns:
+            Dict with property_iri, prop_type, triple_count.
+
+        Raises:
+            ValueError: On invalid input.
+        """
+        if not name or not name.strip():
+            raise ValueError("Property name must not be empty")
+        if prop_type not in ("object", "datatype"):
+            raise ValueError(
+                f"prop_type must be 'object' or 'datatype', got '{prop_type}'"
+            )
+        if domain_iri and not (
+            domain_iri.startswith("http") or domain_iri.startswith("urn:")
+        ):
+            raise ValueError(f"Domain IRI is invalid: {domain_iri}")
+        if range_iri and not (
+            range_iri.startswith("http") or range_iri.startswith("urn:")
+        ):
+            raise ValueError(f"Range IRI is invalid: {range_iri}")
+
+        prop_iri = self._mint_property_iri(name)
+        triples = self._generate_property_triples(
+            prop_iri=prop_iri,
+            name=name,
+            prop_type=prop_type,
+            domain_iri=domain_iri,
+            range_iri=range_iri,
+            description=description,
+        )
+
+        sparql = _build_insert_data_sparql(USER_TYPES_GRAPH, triples)
+        await self._client.update(sparql)
+
+        logger.info(
+            "Created %s property %s (%d triples)",
+            prop_type,
+            prop_iri,
+            len(triples),
+        )
+
+        return {
+            "property_iri": prop_iri,
+            "prop_type": prop_type,
+            "triple_count": len(triples),
+        }
+
+    # ------------------------------------------------------------------
+    # User-defined class editing
+    # ------------------------------------------------------------------
+
+    async def get_class_for_edit(self, class_iri: str) -> dict | None:
+        """Query current state of a user-defined class for pre-populating
+        the edit form.
+
+        Returns dict with: iri, label, parent_iri, parent_label,
+        icon_name, icon_color, description, example, properties[].
+        Returns None if class not found.
+        """
+        # Query class metadata
+        meta_sparql = f"""PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX sempkm: <{SEMPKM_NS}>
+
+SELECT ?label ?parent ?parentLabel ?icon ?color ?description ?example
+FROM <{USER_TYPES_GRAPH}>
+WHERE {{
+  <{class_iri}> a owl:Class ;
+                rdfs:label ?label .
+  OPTIONAL {{ <{class_iri}> rdfs:subClassOf ?parent .
+              OPTIONAL {{ ?parent rdfs:label ?parentLabel . }} }}
+  OPTIONAL {{ <{class_iri}> sempkm:typeIcon ?icon . }}
+  OPTIONAL {{ <{class_iri}> sempkm:typeColor ?color . }}
+  OPTIONAL {{ <{class_iri}> rdfs:comment ?description . }}
+  OPTIONAL {{ <{class_iri}> skos:example ?example . }}
+}}
+LIMIT 1"""
+
+        result = await self._client.query(meta_sparql)
+        bindings = result.get("results", {}).get("bindings", [])
+        if not bindings:
+            return None
+
+        b = bindings[0]
+
+        # Query shape properties
+        # Derive shape IRI from class IRI
+        parts = class_iri.rsplit("-", 1)
+        if len(parts) == 2:
+            shape_iri = f"{parts[0]}Shape-{parts[1]}"
+        else:
+            shape_iri = f"{class_iri}Shape"
+
+        props_sparql = f"""PREFIX sh: <http://www.w3.org/ns/shacl#>
+
+SELECT ?path ?name ?datatype ?order
+FROM <{USER_TYPES_GRAPH}>
+WHERE {{
+  <{shape_iri}> sh:property ?prop .
+  ?prop sh:path ?path ;
+        sh:name ?name .
+  OPTIONAL {{ ?prop sh:datatype ?datatype . }}
+  OPTIONAL {{ ?prop sh:order ?order . }}
+}}
+ORDER BY ?order"""
+
+        props_result = await self._client.query(props_sparql)
+        props_bindings = props_result.get("results", {}).get("bindings", [])
+
+        properties = []
+        for pb in props_bindings:
+            properties.append({
+                "name": pb.get("name", {}).get("value", ""),
+                "predicate_iri": pb.get("path", {}).get("value", ""),
+                "datatype_iri": pb.get("datatype", {}).get("value", str(XSD.string)),
+            })
+
+        # Resolve parent label from gist or other graphs if not in user-types
+        parent_iri = b.get("parent", {}).get("value", str(OWL.Thing))
+        parent_label = b.get("parentLabel", {}).get("value", "")
+        if not parent_label and parent_iri != str(OWL.Thing):
+            # Try resolving from other graphs
+            label_sparql = f"""PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+SELECT ?label WHERE {{
+  {{ <{parent_iri}> skos:prefLabel ?label . }}
+  UNION
+  {{ <{parent_iri}> rdfs:label ?label . }}
+}} LIMIT 1"""
+            label_result = await self._client.query(label_sparql)
+            label_bindings = label_result.get("results", {}).get("bindings", [])
+            if label_bindings:
+                parent_label = label_bindings[0].get("label", {}).get("value", "")
+
+        if parent_iri == str(OWL.Thing):
+            parent_label = "owl:Thing"
+
+        return {
+            "iri": class_iri,
+            "label": b.get("label", {}).get("value", ""),
+            "parent_iri": parent_iri,
+            "parent_label": parent_label,
+            "icon_name": b.get("icon", {}).get("value", ""),
+            "icon_color": b.get("color", {}).get("value", ""),
+            "description": b.get("description", {}).get("value", ""),
+            "example": b.get("example", {}).get("value", ""),
+            "properties": properties,
+        }
+
+    async def edit_class(
+        self,
+        class_iri: str,
+        name: str,
+        parent_iri: str,
+        properties: list[dict],
+        icon_name: str | None = None,
+        icon_color: str | None = None,
+        description: str | None = None,
+        example: str | None = None,
+    ) -> dict:
+        """Edit a user-defined class by full replacement.
+
+        Deletes all existing triples for the class and its SHACL shape,
+        then re-inserts with updated values. The class IRI and shape IRI
+        are preserved (not re-minted).
+
+        Args:
+            class_iri: IRI of the class to edit.
+            name: Updated class name.
+            parent_iri: Updated parent class IRI.
+            properties: Updated property definitions.
+            icon_name: Updated icon name.
+            icon_color: Updated icon color.
+            description: Updated description.
+            example: Updated example.
+
+        Returns:
+            Dict with class_iri, shape_iri, triple_count, property_count.
+        """
+        self._validate_class_input(name, parent_iri, properties)
+
+        # Derive shape IRI
+        parts = class_iri.rsplit("-", 1)
+        if len(parts) == 2:
+            shape_iri = f"{parts[0]}Shape-{parts[1]}"
+        else:
+            shape_iri = f"{class_iri}Shape"
+
+        # Step 1: Delete old triples
+        bn_sparql, shape_sparql = self._build_delete_shape_sparql(shape_iri)
+        await self._client.update(bn_sparql)
+        await self._client.update(shape_sparql)
+
+        class_sparql = self._build_delete_class_sparql(class_iri)
+        await self._client.update(class_sparql)
+
+        # Step 2: Re-insert with new values
+        class_triples = self._generate_class_triples(
+            class_iri=class_iri,
+            name=name,
+            parent_iri=parent_iri,
+            icon_name=icon_name,
+            icon_color=icon_color,
+            description=description,
+            example=example,
+        )
+        shape_triples = self._generate_shape_triples(
+            class_iri=class_iri,
+            shape_iri=shape_iri,
+            name=name,
+            properties=properties,
+        )
+
+        all_triples = class_triples + shape_triples
+        sparql = _build_insert_data_sparql(USER_TYPES_GRAPH, all_triples)
+        await self._client.update(sparql)
+
+        logger.info(
+            "Edited class %s: %d triples, %d properties",
+            class_iri,
+            len(all_triples),
+            len(properties),
+        )
+
+        return {
+            "class_iri": class_iri,
+            "shape_iri": shape_iri,
+            "triple_count": len(all_triples),
+            "property_count": len(properties),
+        }
