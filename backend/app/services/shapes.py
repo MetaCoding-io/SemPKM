@@ -348,7 +348,9 @@ WHERE {{ ?s ?p ?o }}"""
         """Get form metadata for a specific target class.
 
         Fetches all shapes and finds the one whose sh:targetClass matches
-        the given type IRI.
+        the given type IRI.  If the shape has no properties (e.g. a custom
+        class with a bare SHACL shape), injects default Title and Description
+        fields so the create form is always usable.
 
         Args:
             type_iri: The target class IRI to find a form for.
@@ -359,8 +361,32 @@ WHERE {{ ?s ?p ?o }}"""
         forms = await self.get_node_shapes()
         for form in forms:
             if form.target_class == type_iri:
+                if not form.properties:
+                    form.properties = self._default_properties()
                 return form
         return None
+
+    @staticmethod
+    def _default_properties() -> list[PropertyShape]:
+        """Return minimal Title + Description fields for bare shapes."""
+        return [
+            PropertyShape(
+                path="http://purl.org/dc/terms/title",
+                name="Title",
+                datatype="http://www.w3.org/2001/XMLSchema#string",
+                order=1.0,
+                min_count=1,
+                max_count=1,
+            ),
+            PropertyShape(
+                path="http://www.w3.org/2000/01/rdf-schema#comment",
+                name="Description",
+                datatype="http://www.w3.org/2001/XMLSchema#string",
+                order=2.0,
+                min_count=0,
+                max_count=1,
+            ),
+        ]
 
     async def get_types(self) -> list[dict]:
         """Return list of available types for the type picker.
