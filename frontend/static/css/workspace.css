@@ -940,7 +940,8 @@ tr:hover .rbox-edit-btn {
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.18), 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-.class-creation-form {
+.class-creation-form,
+.property-creation-form {
     padding: 28px 32px 24px;
 }
 
