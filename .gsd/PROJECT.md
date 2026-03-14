@@ -179,8 +179,8 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - ✓ Threaded collaborative comments on objects via RDF EventStore — M003
 - ✓ Ontology viewer: TBox Explorer, ABox Browser, RBox Legend — M003
 - ✓ Gist 14.0.0 loaded as upper ontology foundation, mental model alignment — M003
-- ✓ In-app class creation (name, icon, parent, properties → OWL + SHACL) — M003
-- ✓ Admin model detail real stats and Chart.js charts — M003
+- ✗ In-app class creation — backend code exists but no UI surface renders the form (TYPE-01/TYPE-02 reverted to active, queued)
+- ✓ Admin model detail real stats and Chart.js charts — M003 (chart htmx loading bug fixed post-M003)
 - ✓ E2E test coverage gap fill: 82 spec files total — M003
 
 ### Future Candidates
@@ -223,7 +223,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - SPARQL UPDATE as external write surface — by design (bypasses event sourcing)
 - Real-time collaborative editing — CRDT/OT complexity, v2+ at earliest
 - Mobile native app — web-first, responsive design and eventual PWA
-- Full ontology editor — M003 adds basic class creation; Protege for advanced OWL authoring
+- Full ontology editor — M003 has backend code for basic class creation (not yet wired to UI); Protege for advanced OWL authoring
 
 ## Current State
 
@@ -237,8 +237,8 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Favorites: SQL-backed per-user favorites with star toggle and FAVORITES explorer section
 - Comments: threaded RDF comments via EventStore with author badges and timestamps
 - Ontology: TBox/ABox/RBox viewer with gist 14.0.0 loaded as cross-graph foundation
-- Class creation: name, icon, parent, properties → OWL class + SHACL shape in user-types graph
-- Admin charts: Chart.js sparkline + link distribution replacing TODO placeholders
+- Class creation: **NOT SHIPPED** — backend code exists but no UI surface (TYPE-01/TYPE-02 reverted to active)
+- Admin charts: Chart.js sparkline + link distribution (htmx loading bug fixed post-M003)
 - E2E coverage: 82 spec files total covering all shipped features
 - Gap: no user guide docs updated for M003 features
 
@@ -268,6 +268,10 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - M003 features have no user guide documentation — 8 new features lack docs pages
 - Tag migration (/admin/migrate-tags) must be manually triggered after upgrade from pre-M003
 - All 10 M003 slice summaries are doctor-created placeholders (task summaries are authoritative)
+- Class creation (TYPE-01/TYPE-02) backend exists but is unreachable from UI — needs "Create Class" button on model detail page
+- Malformed xsd:dateTime literals from Obsidian import (non-fatal rdflib warnings) — see .gsd/design/KNOWN-BACKEND-ERRORS.md
+- Validation report store returns HTTP 415 from RDF4J (validation works, report not persisted) — see .gsd/design/KNOWN-BACKEND-ERRORS.md
+- Comment author UUID format mismatch (RDF dashed vs SQL undashed) — fixed post-M003 but pattern may recur
 
 **Design references:**
 - v0.3 design documents in `orig_specs/` (vision, specifications, decision log, schemas)
@@ -365,4 +369,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-03-12 after M003 milestone completed*
+*Last updated: 2026-03-13 after M003 live browser testing corrections*
