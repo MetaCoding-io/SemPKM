@@ -117,7 +117,7 @@ M004 completed the in-app type authoring story that M003 started with class crea
 
 ### What's fragile
 - **SHACL shapes not updated on property domain/range edit** (D075) — existing shapes referencing the property still point to the correct IRI, but OWL-level domain/range constraints may not match what the shape expects. This could confuse users if they edit a property's domain after using it in a class shape.
-- **S01 has no slice summary** — task summaries exist via git history but the formal S01-SUMMARY.md was never written. The doctor did not create a placeholder for S01 (it did for S02-S05).
+- **S01 summary was reconstructed** — original execution didn't write S01-SUMMARY.md; reconstructed from git commit d4e74e5, the S01 plan, and 15 passing unit tests.
 - **3 pre-existing test failures in TestCreateClassEndpoint** were caused by S01 adding Form parameters without updating tests — fixed in S05 T02 but indicates that router-level tests calling handlers directly are brittle when signatures change.
 
 ### Authoritative diagnostics
