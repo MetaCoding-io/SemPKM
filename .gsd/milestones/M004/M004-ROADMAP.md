@@ -50,8 +50,8 @@ This milestone is complete only when all are true:
 - [x] **S02: Delete + Instance Warnings** `risk:medium` `depends:[S01]`
   > After this: user deletes custom classes and properties with instance-count warnings, confirmation dialogs, and clean removal from TBox/RBox
 
-- [ ] **S03: Custom Section on Mental Models** `risk:low` `depends:[S01]`
-  > After this: Mental Models page shows "Custom" section listing all user-created types and properties with edit/delete actions inline
+- [ ] **S03: Custom Section on Mental Models + Property Edit** `risk:low` `depends:[S01,S02]`
+  > After this: Mental Models page shows "Custom" section listing all user-created types and properties with edit/delete actions inline; user can edit a property's name, domain, and range from both the Custom section and the RBox tab
 
 - [ ] **S04: Create-New-Object Tab Fix** `risk:low` `depends:[]`
   > After this: clicking "New Object" always opens a fresh dockview tab, preserving the user's current view
@@ -74,14 +74,18 @@ Produces:
 Consumes:
 - nothing (first slice)
 
-### S01 → S03
+### S01+S02 → S03
 
 Produces:
 - `OntologyService.list_user_types()` — returns all classes/properties in user-types graph
+- `OntologyService.edit_property()` — updates property label, domain, range
 - Edit/delete service methods from S01+S02
 
 Consumes:
-- nothing (first slice)
+- `OntologyService.create_property()` from S01
+- `OntologyService.edit_class()` from S01
+- `OntologyService.delete_class()` from S02
+- `OntologyService.delete_property()` from S02
 
 ### S02 → S05
 
