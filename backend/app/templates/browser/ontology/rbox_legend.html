@@ -50,6 +50,7 @@
     Object Properties
     <span class="rbox-section-count">{{ object_properties | length }}</span>
   </h4>
+  <p class="rbox-section-help">Relationships between objects — link one resource to another.</p>
   {{ render_property_table(object_properties, 'rbox-object-table') }}
 </div>
 {% endif %}
@@ -60,6 +61,7 @@
     Datatype Properties
     <span class="rbox-section-count">{{ datatype_properties | length }}</span>
   </h4>
+  <p class="rbox-section-help">Attributes with literal values — text, numbers, dates, and booleans.</p>
   {{ render_property_table(datatype_properties, 'rbox-datatype-table') }}
 </div>
 {% endif %}
