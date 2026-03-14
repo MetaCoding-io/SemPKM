@@ -80,6 +80,21 @@ Users can create OWL Object Properties and Datatype Properties from the RBox tab
 
 ---
 
+## Full CRUD for Custom Types & Relationships
+
+**Queued:** 2026-03-13  
+**Status:** Idea  
+
+Complete lifecycle management for user-created classes and properties in `urn:sempkm:user-types`. Currently only Create exists (via the Ontology Viewer modal). Needs:
+
+- **Edit**: Rename class/property, change description/example, update icon/color, reparent in hierarchy, add/remove/reorder SHACL properties on a class shape.
+- **Delete**: Remove class and its SHACL shape (endpoint exists but no UI). Warn if instances exist. Cascade option for orphaned instances.
+- **View/Manage**: Dedicated "Custom" section on the Mental Models admin page showing all user-created types and relationships with edit/delete actions — parallel to the "Installed Models" table but for the `urn:sempkm:user-types` graph.
+
+The Mental Models page would gain three sections: Upper Ontology (gist, read-only), Installed Models (basic-pkm etc., install/remove), Custom (user types/properties, full CRUD).
+
+---
+
 ## Ontology Viewer & Gist Upper Ontology
 
 **Queued:** 2026-03-12  
