@@ -2636,11 +2636,20 @@ tr:hover .rbox-edit-btn {
 
 /* Field-level helptext content */
 .field-helptext {
-    padding: 6px 0 8px;
-    font-size: 0.85rem;
+    padding: 2px 0 4px;
+    font-size: 0.82rem;
+    color: var(--color-text-muted);
+    line-height: 1.4;
 }
 .field-helptext .markdown-body {
-    font-size: 0.85rem;
+    font-size: 0.82rem;
+    line-height: 1.4;
+}
+.field-helptext .markdown-body p {
+    margin: 0;
+}
+.field-helptext .markdown-body p + p {
+    margin-top: 0.3em;
 }
 
 .form-field input,
