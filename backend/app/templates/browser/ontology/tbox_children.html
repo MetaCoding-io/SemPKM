@@ -7,7 +7,8 @@
 {% if classes %}
 {% for cls in classes %}
 {% set safe_id = cls.iri | replace(':', '_') | replace('/', '_') | replace('#', '_') | replace('.', '_') %}
-<div class="tbox-node{% if cls.has_subclasses %} tbox-node--parent{% endif %}" data-testid="tbox-node" data-iri="{{ cls.iri }}"
+{% set source = 'gist' if 'gist/' in cls.iri else ('model' if 'basic-pkm' in cls.iri or 'ppv' in cls.iri else 'user') %}
+<div class="tbox-node{% if cls.has_subclasses %} tbox-node--parent{% endif %}" data-testid="tbox-node" data-iri="{{ cls.iri }}" data-source="{{ source }}"
      {% if cls.has_subclasses %}
      hx-get="/browser/ontology/tbox/children?parent={{ cls.iri | urlencode }}"
      hx-trigger="click once"

@@ -57,16 +57,24 @@ async def ontology_page(
 @ontology_router.get("/ontology/tbox")
 async def tbox_tree(
     request: Request,
+    hide_gist: str | None = None,
     user: User = Depends(get_current_user),
 ) -> HTMLResponse:
     """Render the TBox Explorer root class hierarchy tree.
 
     Queries all ontology graphs for root classes (no rdfs:subClassOf parent
     or only owl:Thing parent) and renders them as expandable tree nodes.
+
+    When *hide_gist=1*, returns only non-gist classes plus any gist
+    classes that are direct parents of model/user classes (shown as
+    hierarchy context with their children pre-expanded).
     """
     ontology_service = request.app.state.ontology_service
     try:
-        classes = await ontology_service.get_root_classes()
+        if hide_gist == "1":
+            classes = await ontology_service.get_model_classes_with_parents()
+        else:
+            classes = await ontology_service.get_root_classes()
     except Exception:
         logger.error("Failed to load TBox root classes", exc_info=True)
         classes = []

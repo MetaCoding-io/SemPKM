@@ -504,10 +504,46 @@
 
 .tbox-tree-pane {
     flex: 0 0 320px;
-    overflow-y: auto;
-    padding: 0 8px;
+    display: flex;
+    flex-direction: column;
     border-right: 1px solid var(--color-border);
 }
+
+.tbox-filter-bar {
+    flex-shrink: 0;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tbox-filter-toggle {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    user-select: none;
+}
+
+.tbox-filter-toggle input[type="checkbox"] {
+    margin: 0;
+    cursor: pointer;
+}
+
+.tbox-filter-label {
+    white-space: nowrap;
+}
+
+.tbox-tree-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 8px;
+}
+
+
 
 .tbox-detail-pane {
     flex: 1;
