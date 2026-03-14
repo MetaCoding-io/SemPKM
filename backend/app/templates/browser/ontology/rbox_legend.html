@@ -2,7 +2,7 @@
 
    Context:
      object_properties: list of dicts with 'iri', 'label', 'domain_iri',
-                        'domain_label', 'range_iri', 'range_label' keys
+                        'domain_label', 'range_iri', 'range_label', 'source' keys
      datatype_properties: same shape as object_properties
      error: bool indicating whether the query failed
 #}
@@ -12,13 +12,13 @@
 <div class="tree-empty">No properties found in ontology graphs.</div>
 {% else %}
 
-{% if object_properties %}
-<div class="rbox-section">
-  <h4 class="rbox-section-title">
-    Object Properties
-    <span class="rbox-section-count">{{ object_properties | length }}</span>
-  </h4>
-  <table class="rbox-table" data-testid="rbox-object-table">
+{% macro render_property_table(properties, testid) %}
+{% for source, props in properties | groupby('source') %}
+<div class="rbox-group">
+  <div class="rbox-group-label">
+    <span class="rbox-group-badge rbox-group-badge--{{ source }}">{{ source }}</span>
+  </div>
+  <table class="rbox-table" data-testid="{{ testid }}-{{ source }}">
     <thead>
       <tr>
         <th>Domain</th>
@@ -27,7 +27,7 @@
       </tr>
     </thead>
     <tbody>
-      {% for p in object_properties %}
+      {% for p in props | list %}
       <tr title="{{ p.iri }}">
         <td class="rbox-domain">{{ p.domain_label or '—' }}</td>
         <td class="rbox-prop-name">{{ p.label }}</td>
@@ -37,6 +37,17 @@
     </tbody>
   </table>
 </div>
+{% endfor %}
+{% endmacro %}
+
+{% if object_properties %}
+<div class="rbox-section">
+  <h4 class="rbox-section-title">
+    Object Properties
+    <span class="rbox-section-count">{{ object_properties | length }}</span>
+  </h4>
+  {{ render_property_table(object_properties, 'rbox-object-table') }}
+</div>
 {% endif %}
 
 {% if datatype_properties %}
@@ -45,24 +56,7 @@
     Datatype Properties
     <span class="rbox-section-count">{{ datatype_properties | length }}</span>
   </h4>
-  <table class="rbox-table" data-testid="rbox-datatype-table">
-    <thead>
-      <tr>
-        <th>Domain</th>
-        <th>Property</th>
-        <th>Range</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for p in datatype_properties %}
-      <tr title="{{ p.iri }}">
-        <td class="rbox-domain">{{ p.domain_label or '—' }}</td>
-        <td class="rbox-prop-name">{{ p.label }}</td>
-        <td class="rbox-range">{{ p.range_label or '—' }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  {{ render_property_table(datatype_properties, 'rbox-datatype-table') }}
 </div>
 {% endif %}
 
