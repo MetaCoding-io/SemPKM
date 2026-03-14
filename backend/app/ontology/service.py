@@ -50,6 +50,24 @@ ALLOWED_DATATYPES = {
 }
 
 
+def _property_source(iri: str) -> str:
+    """Determine the source label for a property IRI.
+
+    Returns 'gist' for gist ontology properties, or extracts the model
+    name from urn:sempkm:model:{name}: IRIs.  Falls back to 'other'.
+    """
+    if GIST_NS in iri:
+        return "gist"
+    if iri.startswith("urn:sempkm:model:"):
+        # urn:sempkm:model:basic-pkm:HasNote → basic-pkm
+        parts = iri.split(":")
+        if len(parts) >= 5:
+            return parts[3]
+    if iri.startswith(str(SEMPKM_NS)):
+        return "sempkm"
+    return "other"
+
+
 def _rdf_term_to_sparql(term) -> str:
     """Serialize an rdflib term to SPARQL syntax.
 
@@ -636,6 +654,7 @@ ORDER BY ?propType ?label"""
                 "domain_label": b.get("domainLabel", {}).get("value", ""),
                 "range_iri": b.get("range", {}).get("value", ""),
                 "range_label": b.get("rangeLabel", {}).get("value", ""),
+                "source": _property_source(b["prop"]["value"]),
             }
             if "ObjectProperty" in b["propType"]["value"]:
                 object_props.append(prop)
