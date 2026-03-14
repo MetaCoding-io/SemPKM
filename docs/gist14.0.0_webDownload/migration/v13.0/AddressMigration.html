@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.0/css/bootstrap-combined.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: sans-serif;
+        }
+        code, pre {
+            font-family: monospace;
+        }
+        h1 code,
+        h2 code,
+        h3 code,
+        h4 code,
+        h5 code,
+        h6 code {
+            font-size: inherit;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+<h1>Migrating Addresses to gist 13.0.0</h1>
+
+<h2>Overview</h2>
+
+<p>gist 13.0.0 introduces a new model of physical and electronic addresses (see <a href="../../docs/models/AddressGuidance.html">full documentation of the model</a>). Because the new model shifts a large part of the semantics from classes to user-defined categories, the migration can be only partially automated. This guide documents the steps required to migrate your data and ontology extensions into the new model without loss of meaning.</p>
+
+<h2>Automated Steps</h2>
+
+<p>The following replacements can be automated by running the migration scripts provided:</p>
+
+<table>
+<thead>
+<tr>
+  <th style="text-align:left;">gist 12</th>
+  <th style="text-align:left;">gist 13</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td style="text-align:left;"><code>gist:hasCommunicationAddress</code></td>
+  <td style="text-align:left;"><code>gist:hasAddress</code></td>
+</tr>
+<tr>
+  <td style="text-align:left;"><code>gist:StreetAddress</code></td>
+  <td style="text-align:left;"><code>gist:PhysicalAddress</code></td>
+</tr>
+<tr>
+  <td style="text-align:left;"><code>gist:PostalAddress</code></td>
+  <td style="text-align:left;"><code>gist:PhysicalAddress</code></td>
+</tr>
+<tr>
+  <td style="text-align:left;"><code>gist:EmailAddress</code></td>
+  <td style="text-align:left;"><code>gist:ElectronicAddress</code></td>
+</tr>
+<tr>
+  <td style="text-align:left;"><code>gist:ElectronicMessageAddress</code></td>
+  <td style="text-align:left;"><code>gist:ElectronicAddress</code></td>
+</tr>
+<tr>
+  <td style="text-align:left;"><code>gist:TelephoneNumber</code></td>
+  <td style="text-align:left;"><code>gist:ElectronicAddress</code></td>
+</tr>
+</tbody>
+</table>
+
+<h2>Manual Steps</h2>
+
+<h3>Address Types</h3>
+
+<p>In gist 13.0.0 there are only two subclasses of <code>gist:Address</code>, <code>gist:ElectronicAddress</code> and <code>gist:PhysicalAddress</code>. It defines two new category classes, <code>gist:ElectronicAddressType</code> and <code>gist:PhysicalAddressType</code>, but does not define any instances. Instances should be defined in your own namespace.</p>
+
+<p>In particular (using sample namespace prefix <code>my:</code> for your namespace):</p>
+
+<table>
+<thead>
+<tr>
+  <th style="text-align:left;">gist 12 Class</th>
+  <th style="text-align:left;">gist 13 Category</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td style="text-align:left;"><code>gist:StreetAddress</code></td>
+  <td style="text-align:left;"><code>my:_PhysicalAddressType_street_address</code></td>
+</tr>
+<tr>
+  <td style="text-align:left;"><code>gist:PostalAddress</code></td>
+  <td style="text-align:left;"><code>my:_PhysicalAddressType_postal_address</code></td>
+</tr>
+<tr>
+  <td style="text-align:left;"><code>gist:EmailAddress</code></td>
+  <td style="text-align:left;"><code>my:_ElectronicAddressType_email_address</code></td>
+</tr>
+<tr>
+  <td style="text-align:left;"><code>gist:ElectronicMessageAddress</code></td>
+  <td style="text-align:left;"><code>my:_ElectronicAddressType_electronic_message_address</code></td>
+</tr>
+<tr>
+  <td style="text-align:left;"><code>gist:TelephoneNumber</code></td>
+  <td style="text-align:left;"><code>my:_ElectronicAddressType_telephone_number</code></td>
+</tr>
+</tbody>
+</table>
+
+<p>And of course you can define additional categories as needed to model your use cases.</p>
+
+<p>Sample instance data changes:</p>
+
+<table>
+<thead>
+<tr>
+  <th style="text-align:left;">gist 12</th>
+  <th style="text-align:left;">gist 13</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td style="text-align:left;"><code>my:toms_email a gist:EmailAddress .</code></td>
+  <td style="text-align:left;"><code>my:toms_email a gist:ElectronicAddress ; gist:isCategorizedBy my:_ElectronicAddressType_email .</code></td>
+</tr>
+</tbody>
+</table>
+
+<p>Sample extension ontology changes:</p>
+
+<table>
+<thead>
+<tr>
+  <th style="text-align:left;">gist 12</th>
+  <th style="text-align:left;">gist 13</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td style="text-align:left;"><code>ex:MobilePhoneNumber rdfs:subClassOf gist:TelephoneNumber .</code></td>
+  <td style="text-align:left;"><code>ex:_AddressType_mobile_phone a gist:AddressType .</code></td>
+</tr>
+</tbody>
+</table>
+
+<h3>Address Usage Types</h3>
+
+<p>gist 12 and earlier defined a general relationship <code>gist:hasAddress</code> between address-holder and address, with one more specific subproperty <code>gist:hasCommunicationAddress</code> to distinguish an address used, say, for personal communications from one used for, e.g., receiving packages. gist 13 transfers this distinction to a new category class <code>gist:AddressUsageType</code>. You might define <code>my:_AddressUsageType_personal</code> and <code>my:_AddressUsageType_receiving</code> to make this distinction.</p>
+
+<p>The new model provides flexibility to express more nuanced types of address usage and communication preferences than has previously been available. Consult the <a href="../../docs/models/AddressGuidance.html">full documentation of the model</a> to learn how to take advantage of these options.</p>
+
+</div>
+</body>
+</html>

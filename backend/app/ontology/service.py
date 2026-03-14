@@ -579,6 +579,7 @@ ORDER BY ?propLabel"""
             properties.append({
                 "iri": pb["prop"]["value"],
                 "label": pb.get("propLabel", {}).get("value", ""),
+                "range_iri": pb.get("range", {}).get("value", ""),
                 "range_label": pb.get("rangeLabel", {}).get("value", ""),
             })
 

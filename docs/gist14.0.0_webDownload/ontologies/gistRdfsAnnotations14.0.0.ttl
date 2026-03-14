@@ -1,0 +1,1983 @@
+@prefix gist: <https://w3id.org/semanticarts/ns/ontology/gist/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://w3id.org/semanticarts/ns/data/gist/_Aspect_altitude>
+	rdfs:label "altitude"^^xsd:string ;
+	rdfs:comment "DEFINITION: The aspect altitude."^^xsd:string ;
+	.
+
+<https://w3id.org/semanticarts/ns/data/gist/_Aspect_area>
+	rdfs:label "area"^^xsd:string ;
+	rdfs:comment "DEFINITION: The aspect area."^^xsd:string ;
+	.
+
+<https://w3id.org/semanticarts/ns/data/gist/_Aspect_duration>
+	rdfs:label "duration"^^xsd:string ;
+	rdfs:comment "DEFINITION: The aspect duration."^^xsd:string ;
+	.
+
+<https://w3id.org/semanticarts/ns/data/gist/_Aspect_financial_balance>
+	rdfs:label "balance"^^xsd:string ;
+	rdfs:comment "DEFINITION: The aspect financial balance."^^xsd:string ;
+	.
+
+<https://w3id.org/semanticarts/ns/data/gist/_Aspect_mass>
+	rdfs:label "mass"^^xsd:string ;
+	rdfs:comment "DEFINITION: The aspect mass."^^xsd:string ;
+	.
+
+<https://w3id.org/semanticarts/ns/data/gist/_Aspect_monetary_value>
+	rdfs:label "monetary value"^^xsd:string ;
+	rdfs:comment "DEFINITION: The aspect monetary value."^^xsd:string ;
+	.
+
+<https://w3id.org/semanticarts/ns/data/gist/_Aspect_probability>
+	rdfs:label "probability"^^xsd:string ;
+	rdfs:comment "DEFINITION: The aspect probability."^^xsd:string ;
+	.
+
+<https://w3id.org/semanticarts/ns/data/gist/_Aspect_volume>
+	rdfs:label "volume"^^xsd:string ;
+	rdfs:comment "DEFINITION: The aspect volume."^^xsd:string ;
+	.
+
+gist:Account
+	rdfs:label "Account"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: An agreement having a balance."^^xsd:string ,
+		"EXAMPLE: A bank account, a credit card account, an accounts receivable account."^^xsd:string
+		;
+	.
+
+gist:Address
+	rdfs:label "Address"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A reference to a place (real or virtual) that can be located by some routing algorithm and where messages or things can be sent or received."^^xsd:string ,
+		"EXAMPLE: A PO Box, a URL to a PDF file."^^xsd:string
+		;
+	.
+
+gist:AddressUsageType
+	rdfs:label "Address Usage Type"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A category indicating the context or manner in which an address may be used."^^xsd:string ,
+		"EXAMPLE: Billing, business, personal, postal, residence."^^xsd:string ,
+		"NOTE: If you are using temporal relations involving addresses, this category should be used to qualify the temporal relation rather than the address itself, since the same address may have different uses in different contexts, by different people and organizations, or at different times."^^xsd:string
+		;
+	.
+
+gist:Agreement
+	rdfs:label "Agreement"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A mutually understood arrangement in which two or more parties make commitments to one another."^^xsd:string ,
+		"EXAMPLE: A gym membership is an agreement in which the member commits to paying the gym a certain price and the gym commits to allowing access to their facilities."^^xsd:string ,
+		"NOTE: While an agreement has two or more parties, and contains commitments which bind those parties, it will not always be necessary to instantiate each individual commitment."^^xsd:string
+		;
+	.
+
+gist:Aspect
+	rdfs:label "Aspect"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A measurable characteristic."^^xsd:string ,
+		"EXAMPLE: Length, weight, cost, cycle time, defect rate."^^xsd:string ,
+		"NOTE: Depending on implementation, every aspect should be related to a unit group either directly or through a broader aspect. For example, angle of incidence could be related to the broader concept of angle, which in turn is related to a unit group, or it could be related directly to the unit group without the hierarchical relationship."^^xsd:string
+		;
+	.
+
+gist:Assignment
+	rdfs:label "Assignment"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A temporal relationship between an assignee, the thing assigned, and the resource that made the assignment."^^xsd:string ,
+		"EXAMPLE: An employee is assigned to a task by a supervisor. A person is assigned to a position."^^xsd:string ,
+		"NOTE: Based on the Open World Assumption, the assigner may not be asserted or known."^^xsd:string ,
+		"NOTE: For some assignments, such as the assignment of a person to a task, it may seem equally correct in ordinary speech to say it is an assignment of a task to a person. Since gist:isAssignmentTo and gist:isAssignmentOf have no formal domains or ranges, the choice of which predicate to use for which is left as an implementation decision. Consistency is a key consideration."^^xsd:string
+		;
+	.
+
+gist:Behavior
+	rdfs:label "Behavior"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A category indicating the nature of an activity."^^xsd:string ,
+		"EXAMPLE: Drilling and cutting are two different kinds of manufacturing event."^^xsd:string
+		;
+	.
+
+gist:Building
+	rdfs:label "Building"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A relatively permanent man-made structure situated on a plot of land, having a roof and walls, commonly used for dwelling, entertaining, or working."^^xsd:string ,
+		"EXAMPLE: A house, school, store, factory, chicken coop."^^xsd:string ,
+		"EXAMPLE: Negative examples: houseboats (not built on land), caves (not man-made), food trucks and RVs (not permanently situated)."^^xsd:string ,
+		"NOTE: User discretion can be applied to edge cases: e.g., is a traditional yurt 'relatively permanently situated' although it is portable and has a tent-like construction?"^^xsd:string
+		;
+	.
+
+gist:BundledCatalogItem
+	rdfs:label "Bundled Catalog Item"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Any combination of descriptions of things offered together."^^xsd:string ,
+		"EXAMPLE: A kit containing several parts offered together; a product plus a warranty."^^xsd:string
+		;
+	.
+
+gist:CatalogItem
+	rdfs:label "Catalog Item"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A description of a product or service to be delivered, given in a sufficient level of detail that a receiver could determine whether delivery constituted discharge of the obligation to deliver."^^xsd:string ,
+		"NOTE: In short, an unambiguous characterization of what it is that a potential buyer is paying for."^^xsd:string
+		;
+	.
+
+gist:Category
+	rdfs:label "Category"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A concept or label used to categorize other instances without specifying any formal semantics."^^xsd:string ,
+		"EXAMPLE: Tags used in folksonomies; formal definitions from other systems."^^xsd:string ,
+		"NOTE: Often a type can be modeled either as an owl:Class or as a gist:Category. Use the latter if you don't care much about the formal structure of the different types, or if there is a whole hierarchy of types that are going to be managed by a group separate from the ontology developers. The formal structure may be defined elsewhere and linked to, if necessary."^^xsd:string
+		;
+	.
+
+gist:Collection
+	rdfs:label "Collection"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A grouping of things."^^xsd:string ,
+		"EXAMPLE: A jury is a group of people; a financial ledger is a collection of transaction entries; a route is an (ordered) collection of segments."^^xsd:string ,
+		"NOTE: Individuals are placed in the collection using the gist:isMemberOf property. Collections typically are created because the members are functionally connected in some way. This definition allows a collection to have zero members."^^xsd:string
+		;
+	.
+
+gist:Commitment
+	rdfs:label "Commitment"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A promise made by a single party to one or more parties to do or not do something or act in a particular way."^^xsd:string ,
+		"EXAMPLE: Upon selling a treasury bill, the U.S. government makes a commitment to pay the purchaser a stated amount of money at a stated time."^^xsd:string ,
+		"EXAMPLE: When signing an NDA, the signatory commits to keeping specified information confidential."^^xsd:string ,
+		"NOTE: A commitment is unilateral in that it is binding on only one party. This contrasts with gist:Agreement, which consists of commitments that bind two or more parties."^^xsd:string ,
+		"NOTE: A single commitment may be made to multiple parties at once; it is a single commitment rather than multiple commitments if the same action would fulfill the obligation to all the parties simultaneously. For example, a performer makes a single commitment to hold a performance to all ticket purchasers; by holding the performance, the commitment to all parties is fulfilled in a single action."^^xsd:string ,
+		"NOTE: The manner in which a commitment is binding may vary. In a business context, we are typically interested in commitments that are legally binding."^^xsd:string
+		;
+	.
+
+gist:Component
+	rdfs:label "Component"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Something that, while having an independent existence, is inherently part of or designed to be part of a larger entity, such as a system or network."^^xsd:string ,
+		"NOTE: A component may be designed or intended as part of a whole without actually being so; e.g., a car steering wheel that is not installed in any car."^^xsd:string ,
+		"NOTE: Many things are in a trivial sense a part of a larger thing, but are not considered components because they are not inherently part of that larger thing. For example, while a book may be part of a library (a collection of books), it is not inherently so, and thus is not a component. A playing card, on the other hand, could be considered a component in (member of) a deck of cards. This may be use case-dependent; e.g., car parts might be modeled as components in an automobile manufacturing context but not in a retail auto parts store."^^xsd:string ,
+		"NOTE: Physical substances, such as ingredients in a cake batter, do not meet the independent existence criterion, so are not components."^^xsd:string ,
+		"NOTE: This class is not disjoint with gist:Composite, because a component may itself break down into smaller components."^^xsd:string ,
+		"NOTE: This is an abstract class that is not directly instantiated. Users will define subclasses that are meaningful to their domain of interest."^^xsd:string
+		;
+	.
+
+gist:Composite
+	rdfs:label "Composite"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Something which is made up of various parts or elements that are independently identifiable."^^xsd:string ,
+		"EXAMPLE: A library (collection of books); a network of pipes and valves; a computer network of routers and computers."^^xsd:string ,
+		"NOTE: Some composites, like systems, networks, and ordered collections, have internal organization, while others, such as unordered collections, typically do not."^^xsd:string ,
+		"NOTE: This class is not disjoint with gist:Component, because a composite can itself be a component of a larger composite."^^xsd:string ,
+		"NOTE: This is an abstract class that will not be directly instantiated."^^xsd:string
+		;
+	.
+
+gist:ContemporaryEvent
+	rdfs:label "Contemporary Event"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: An event that has started but has not yet ended."^^xsd:string ,
+		"NOTE: When the event actually ends, it will cease being contemporary."^^xsd:string
+		;
+	.
+
+gist:Content
+	rdfs:label "Content"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Information available in some medium."^^xsd:string ,
+		"EXAMPLE: A document, program, image."^^xsd:string ,
+		"NOTE: Categories are not content until they are written down."^^xsd:string
+		;
+	.
+
+gist:ContentExpression
+	rdfs:label "Content Expression"^^xsd:string ;
+	rdfs:comment "DEFINITION: Intellectual property reduced to text, audio, etc.  If it contains text (written or spoken), it will be expressed in a language."^^xsd:string ;
+	.
+
+gist:ContingentEvent
+	rdfs:label "Contingent Event"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: An event with a probability of happening in the future, and usually dependent upon some other event or condition."^^xsd:string ,
+		"EXAMPLE: A fire insurance payout is contingent on a particular building burning down; selling 20 shares of stock in a given company is contingent on the price dropping below $200/share; the death benefit payout on a life insurance policy is contingent on the death of the insured person."^^xsd:string
+		;
+	.
+
+gist:ContingentObligation
+	rdfs:label "Contingent Obligation"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: An obligation that is not yet firm. There is some contingent event whose occurrence will cause the obligation to become firm."^^xsd:string ,
+		"NOTE: A contingent obligation might have a getter counterparty (as in the case of insurance); but it might not (as in the case of an offer)."^^xsd:string
+		;
+	.
+
+gist:Contract
+	rdfs:label "Contract"^^xsd:string ;
+	rdfs:comment "DEFINITION: An agreement which can be enforced by law."^^xsd:string ;
+	.
+
+gist:ContractTerm
+	rdfs:label "Contract Term"^^xsd:string ;
+	rdfs:comment "DEFINITION: A specification of some aspect of a contract."^^xsd:string ;
+	.
+
+gist:ControlledVocabulary
+	rdfs:label "Controlled Vocabulary"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A collection of terms approved and managed by some organization or person."^^xsd:string ,
+		"NOTE: A controlled vocabulary is similar to a skos:ConceptScheme, but it could also be used for things that are not concepts, such as organizations, US presidents, geographic regions, etc. Hierarchical relationships between instances of the controlled vocabulary are possible."^^xsd:string
+		;
+	.
+
+gist:CountryGeoRegion
+	rdfs:label "Country Geographic Region"^^xsd:string ;
+	rdfs:comment "DEFINITION: A geographic region governed by exactly one country government."^^xsd:string ;
+	.
+
+gist:CountryGovernment
+	rdfs:label "Country Government"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A government organization which asserts both sovereignty (i.e., it is not governed by some other government organization) and governance over an entity generally recognized as a country."^^xsd:string ,
+		"NOTE: While a country government may enter into treaties with other country governments, there are no governing relationships among the treaty members."^^xsd:string
+		;
+	.
+
+gist:DegreeOfCommitment
+	rdfs:label "Degree Of Commitment"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The difficulty of reversing a commitment."^^xsd:string ,
+		"EXAMPLE: A car rental typically has a lower degree of commitment than an airfare reservation."^^xsd:string
+		;
+	.
+
+gist:Determination
+	rdfs:label "Determination"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: An event whose purpose is to establish a specific result, value, or outcome, usually by research, measuring, evaluating, or calculating."^^xsd:string ,
+		"EXAMPLE: Measuring the sulphur content of crude oil; evaluating a loan application for approval; estimating the price of gas for the next three months; determining whether and by how much an interest rate should change; classifying a purchase into a budget category."^^xsd:string
+		;
+	.
+
+gist:Discipline
+	rdfs:label "Discipline"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: An area of study or practice."^^xsd:string ,
+		"EXAMPLE: Finance, accounting, project management, acoustics, ballistics."^^xsd:string
+		;
+	.
+
+gist:ElectronicAddress
+	rdfs:label "Electronic Address"^^xsd:string ;
+	rdfs:comment
+		"ALT: Virtual Address"^^xsd:string ,
+		"DEFINITION: An address referring to a locatable virtual place that does not physically exist but is made by software or electronics to appear to do so."^^xsd:string ,
+		"EXAMPLE: A file system path, website URL, IP address, email address, mobile or landline telephone number."^^xsd:string
+		;
+	.
+
+gist:ElectronicAddressType
+	rdfs:label "Electronic Address Type"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A category indicating a kind of electronic address. Such a category is usually based on the technology that enables routing to the address referent."^^xsd:string ,
+		"EXAMPLE: A URL, file system path, email address, mobile telephone number."^^xsd:string
+		;
+	.
+
+gist:Equipment
+	rdfs:label "Equipment"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Human-made, tangible property other than land or buildings used to perform a task or activity."^^xsd:string ,
+		"EXAMPLE: A machine, a router, a car, a baseball bat."^^xsd:string
+		;
+	.
+
+gist:EquipmentType
+	rdfs:label "Equipment Type"^^xsd:string ;
+	rdfs:comment "DEFINITION: A category of equipment."^^xsd:string ;
+	.
+
+gist:Event
+	rdfs:label "Event"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Something that occurs over a period of time, often characterized as an activity being carried out by some person, organization, or software application or brought about by natural forces."^^xsd:string ,
+		"EXAMPLE: A transaction, conference, baseball game, earthquake."^^xsd:string ,
+		"NOTE: An event does not necessarily have either planned or actual start or end datetimes. For example, a conference can be in the planning phase without any dates selected, but is nevertheless an (unscheduled) event. The subclasses of gist:Event state particular restrictions on planned and actual start and end dates."^^xsd:string ,
+		"NOTE: An event occurs during a time interval, which is distinct from the event."^^xsd:string
+		;
+	.
+
+gist:EventSpecification
+	rdfs:label "Event Specification"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A characterization of an event that might happen."^^xsd:string ,
+		"EXAMPLE: An insurance company defines the characteristics of a weather event that must be satisfied for it to qualify as a hail storm covered in its homeowner's policy; a bank defines the point at which a borrower defaults on a loan."^^xsd:string ,
+		"NOTE: This concept is useful for risk assessment and insurance policies."^^xsd:string
+		;
+	.
+
+gist:FormattedContent
+	rdfs:label "Formatted Content"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Content which is in a particular format."^^xsd:string ,
+		"EXAMPLE: An HTML website, a PDF document, a JPG image."^^xsd:string
+		;
+	.
+
+gist:Function
+	rdfs:label "Function"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The activity that a human-made item is intended to perform."^^xsd:string ,
+		"EXAMPLE: Transmit electricity, provide ballast, control ambient temperature."^^xsd:string
+		;
+	.
+
+gist:GeneralMediaType
+	rdfs:label "General Media Type"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The real-world media type for content."^^xsd:string ,
+		"EXAMPLE: Audio, still image, video, textual, physical (e.g., a statue), performance (e.g., a play), oil or pastel for a painting."^^xsd:string
+		;
+	.
+
+gist:GeoLocation
+	rdfs:label "Geographic Location"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A physical location, with the earth as a frame of reference."^^xsd:string ,
+		"NOTE: A geographic location may be a point, region, or volume."^^xsd:string
+		;
+	.
+
+gist:GeoPoint
+	rdfs:label "Geographic Point"^^xsd:string ;
+	rdfs:comment "DEFINITION: An individual point on or above the Earth's surface, identified by latitude, longitude and altitude. Altitude is the distance measured from sea level. If altitude is missing, the point is assumed to be at the Earth's surface. These points are described using decimal latitude/longitude."^^xsd:string ;
+	.
+
+gist:GeoRegion
+	rdfs:label "Geographic Region"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A bounded region (or set of regions) on the surface of the Earth."^^xsd:string ,
+		"EXAMPLE: The bounded shape that defines the region occupied by Crater Lake; the bounded area known as the contiguous USA."^^xsd:string ,
+		"NOTE: A geographic region could be non-contiguous; e.g., the region governed by the US federal government is the contiguous area of the lower 48 states plus Alaska, Hawaii, and overseas territories. Child classes in lower ontologies can make this distinction."^^xsd:string
+		;
+	.
+
+gist:GeoRoute
+	rdfs:label "Geographic Route"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: An ordered set of geographic points that defines a path from a starting point to an ending point."^^xsd:string ,
+		"NOTE: A geographic route could describe a bus route by identifying the points where the bus stops. A geographic route could describe the boundary of a polygonal geographic region (it does not have to be a travelled route)."^^xsd:string
+		;
+	.
+
+gist:GeoVolume
+	rdfs:label "Geographic Volume"^^xsd:string ;
+	rdfs:comment "DEFINITION: A three-dimensional space on or near the surface of the Earth, such as an oil reservoir, the body of a lake, or an airspace."^^xsd:string ;
+	.
+
+gist:GovernedGeoRegion
+	rdfs:label "Governed Geographic Region"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A geographic region governed by at least one government organization."^^xsd:string ,
+		"NOTE: Geographic regions do not need not be physically contiguous in order to constitute a governed geographic region; e.g., Alaska and Hawaii are part of the region governed by the United States."^^xsd:string
+		;
+	.
+
+gist:GovernmentOrganization
+	rdfs:label "Government Organization"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: An independent organization exercising political and/or regulatory authority over a political unit, people, geographical region, etc., as well as performing certain functions for this unit or body."^^xsd:string ,
+		"EXAMPLE: Negative example: A corporation, which is owned and therefore not independent."^^xsd:string ,
+		"EXAMPLE: The State of Washington Office of Financial Management; the Food and Drug Administration; the Scottish Parliament."^^xsd:string ,
+		"NOTE: Includes administrative, regulatory, and enforcement organizations created or sanctioned by country or sub-country governments."^^xsd:string
+		;
+	.
+
+gist:HistoricalEvent
+	rdfs:label "Historical Event"^^xsd:string ;
+	rdfs:comment "DEFINITION: An event which occurred in time, with an actual end earlier than the present moment."^^xsd:string ;
+	.
+
+gist:ID
+	rdfs:label "ID"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Content that is used to uniquely identify something or someone."^^xsd:string ,
+		"EXAMPLE: SSN for a person; serial number for a product; employee ID for a person."^^xsd:string ,
+		"NOTE: Used in conjunction with gist:isIdentifiedBy."^^xsd:string
+		;
+	.
+
+gist:IntellectualProperty
+	rdfs:label "Intellectual Property"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: An intangible work, invention, or concept, independent of its being expressed in text, audio, video, image, or live performance. IP can also be tacit knowledge, know-how, or skill."^^xsd:string ,
+		"EXAMPLE: The Old Man and The Sea; the Page Rank algorithm; the brand Coca Cola."^^xsd:string ,
+		"NOTE: For literature this could be called the 'Work', except that 'work' is a highly overloaded term (expenditure of energy, resource consumption, art).  Often the first expression precedes our recognition of the IP, but subsequent expressions are known to be derivatives of the IP, even if they are expression-to-expression translations (or copies)."^^xsd:string ,
+		"NOTE: This concept includes works that are out of copyright or were never formally registered; the defining feature is not that it is legally protected but that it is an intangible creation of the human mind."^^xsd:string
+		;
+	.
+
+gist:Intention
+	rdfs:label "Intention"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A goal, desire, or aspiration."^^xsd:string ,
+		"NOTE: The 'teleological' aspect of a system that indicates things are done with a purpose."^^xsd:string
+		;
+	.
+
+gist:IntergovernmentalOrganization
+	rdfs:label "Intergovernmental Organization"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: An organization whose members are government organizations. This can comprise regional, municipal, state/province, or national level entities."^^xsd:string ,
+		"EXAMPLE: The United Nations, the European Union, the Metropolitan Transit Authority."^^xsd:string
+		;
+	.
+
+gist:KnowledgeConcept
+	rdfs:label "Knowledge Concept"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: An abstract concept that arises from the distillation of experience. It is similar to a category but, rather than being a simple tag, it has rich structure."^^xsd:string ,
+		"EXAMPLE: Most domains will define a few subclasses, such as gene, protein, chemical, disease, subject matter, industry, method."^^xsd:string ,
+		"""NOTE: Some knowledge is about specific instances that already exist in the knowledge graph. We may have knowledge that Judge Jones is more lenient on repeat offenders in the morning; we may know that the earliest killing frost in Fort Collins is the last week of September.
+
+These fit the broader definition of knowledge, the distillation of experience. But they do not require any new instances.  Judge Jones and Fort Collins already exist and have a place in our knowledge graph.
+
+But some knowledge requires that we synthesize new instances in order to have a place to consolidate the knowledge.  A disease isn't a tangible thing, like a person or a building. A disease is a prediction that a person's health will decline in a predictable way (without treatment and with treatment). The number of diseases continues to grow as we collectively learn more and more granular distinctions. Lung cancer used to be a single disease, but now we have dozens of fine-grained distinctions; e.g., non-lymphoma small cell fusiform is different from alveolar adenocarcinoma because we now know the prognosis and treatment are different.
+
+This superclass is meant as a place for subclasses that will have the instances that represent the foci of the knowledge we have acquired. Note the distinction between a particular portion of, say, gold, which instantiates gist:PhysicalSubstance, and the concept of gold, which instantiates gist:KnowledgeConcept.
+
+In some ontologies what we are calling knowledge concepts are defined as classes; e.g., non-lymphoma small cell fusiform and alveolar adenocarcinoma would be two classes rather than two instances. But using a class makes it harder to connect the concept to other instances in a knowledge graph, and furthermore such classes would lack instances."""^^xsd:string
+		;
+	.
+
+gist:Landmark
+	rdfs:label "Landmark"^^xsd:string ;
+	rdfs:comment "DEFINITION: Something permanently attached to the Earth."^^xsd:string ;
+	.
+
+gist:Language
+	rdfs:label "Language"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A recognized, organized set of symbols and grammar."^^xsd:string ,
+		"EXAMPLE: Natural languages such as English and Spanish; computer languages such as OWL, Python, and XML."^^xsd:string
+		;
+	.
+
+gist:LivingThing
+	rdfs:label "Living Thing"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Something that is currently, or at some point in time was, alive."^^xsd:string ,
+		"EXAMPLE: A cat, a mushroom, a tree."^^xsd:string ,
+		"EXAMPLE: Negative examples: fictional life forms such as unicorns or Mickey Mouse."^^xsd:string ,
+		"NOTE: Not all life forms have exactly two parents, so the restriction only specifies a minimum of one."^^xsd:string
+		;
+	.
+
+gist:Magnitude
+	rdfs:label "Magnitude"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The amount of a measurable characteristic (aspect)."^^xsd:string ,
+		"EXAMPLE: A model of car could have a wheelbase of 113.2 inches. In this example, the aspect is wheelbase, the unit of measure is inch, and the numeric value is 113.2."^^xsd:string ,
+		"NOTE: An accuracy can be assigned to a magnitude using the property has accuracy."^^xsd:string
+		;
+	.
+
+gist:MediaType
+	rdfs:label "Media Type"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A digitized type that computer applications can recognize."^^xsd:string ,
+		"EXAMPLE: application/sparql-results+xml"^^xsd:string ,
+		"NOTE: The unique text for an IANA media type is the concatenation of the 'Type name', a slash '/', and the 'Subtype name' as provided on the page displayed when you resolve the URI of the media type."^^xsd:string
+		;
+	.
+
+gist:Medium
+	rdfs:label "Medium"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A physical material on which a work can be rendered, represented, or implemented."^^xsd:string ,
+		"EXAMPLE: Paper, clay, a computer monitor."^^xsd:string
+		;
+	.
+
+gist:Message
+	rdfs:label "Message"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A specific instance of content sent from a sender to at least one other recipient."^^xsd:string ,
+		"EXAMPLE: An email, voice, or web service message; a phone call."^^xsd:string
+		;
+	.
+
+gist:Network
+	rdfs:label "Network"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A composite consisting of nodes connected by links."^^xsd:string ,
+		"EXAMPLE: A physical network could include connected computers or routers, whereas a social network would consist of related person or organization members (or their proxies, such as accounts)."^^xsd:string
+		;
+	.
+
+gist:NetworkLink
+	rdfs:label "Network Link"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: An abstract representation of the connection between two or more nodes in a network."^^xsd:string ,
+		"EXAMPLE: A network link may be physical, such as pipes, wired or wireless networks, but may also be a link in a non-physical network, such as organizational structures or social networks."^^xsd:string ,
+		"NOTE: Each newtork link is connected to a network node via the property gist:links or one of its subproperties."^^xsd:string
+		;
+	.
+
+gist:NetworkNode
+	rdfs:label "Network Node"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A node in a network."^^xsd:string ,
+		"EXAMPLE: A person's account is a node in a social network; a valve is a node in a network of pipes."^^xsd:string
+		;
+	.
+
+gist:Offer
+	rdfs:label "Offer"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A contingent commitment to buy, sell, swap or provide one or more described or identified goods or services in exchange for another (or others)."^^xsd:string ,
+		"EXAMPLE: An offer to sell a book for a given price; an offer to purchase real estate for a particular price; an offer to swap a sea kayak for a mountain bike; currency exchange. A donation may be modeled as an offer to receive money typically in exchange for $0.00, but sometimes for items of value such as coffee mugs or T-shirts."^^xsd:string ,
+		"NOTE: Dates on an offer represent the time period the offer is valid for, as in '25% off through October 25, 2025'."^^xsd:string
+		;
+	.
+
+gist:OrderedCollection
+	rdfs:label "Ordered Collection"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A collection whose members are ordered in some way."^^xsd:string ,
+		"NOTE: Includes partially ordered collections as well as collections in which members occupy the same position in a 'tie.' All members of an ordered collection are ordered members."^^xsd:string
+		;
+	.
+
+gist:OrderedMember
+	rdfs:label "Ordered Member"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A member of an ordered collection serving as a proxy for a real world item, which can appear in different orders in different collections. The ordered member appears in exactly one ordered collection."^^xsd:string ,
+		"EXAMPLE: A person may rank 12th in the Boston Marathon but 29th in the New York City Marathon."^^xsd:string ,
+		"NOTE: An ordered member points to the real world item via the providesOrderFor property. Ordering information is represented either as a number in a sequence, or by preceding or following another ordered member."^^xsd:string
+		;
+	.
+
+gist:Organization
+	rdfs:label "Organization"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A structured entity formed to achieve specific goals, typically involving members with defined roles."^^xsd:string ,
+		"EXAMPLE: Legal entities like companies; non-legal entities like clubs, committees, or departments."^^xsd:string ,
+		"NOTE: Not all organizations have members, e.g. shell companies."^^xsd:string ,
+		"NOTE: While typically the members of organizations are people, in some cases they are other organizations; e.g., the members of the United Nations are country governments."^^xsd:string
+		;
+	.
+
+gist:Permission
+	rdfs:label "Permission"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A description of things one is permitted to do."^^xsd:string ,
+		"EXAMPLE: Permission could be broad, such as free speech, but more often is very specific, such as the right to enter a particular property."^^xsd:string
+		;
+	.
+
+gist:Person
+	rdfs:label "Person"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A human being who was or is alive."^^xsd:string ,
+		"EXAMPLE: Negative example: fictional characters."^^xsd:string
+		;
+	.
+
+gist:PhysicalActionType
+	rdfs:label "Physical Action Type"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A category indicating the type of an action based on its effect in the physical world."^^xsd:string ,
+		"EXAMPLE: Lifting a garage door, turning off a valve, dropping cadmium rods."^^xsd:string
+		;
+	.
+
+gist:PhysicalAddress
+	rdfs:label "Physical Address"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: An address that refers to a locatable place within the physical universe."^^xsd:string ,
+		"EXAMPLE: 1600 Pennsylvania Avenue NW, Washington, DC 20500; PO Box 7704, San Francisco, CA 94120-7704; Room 317 in the Louvre Museum."^^xsd:string
+		;
+	.
+
+gist:PhysicalAddressType
+	rdfs:label "Physical Address Type"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A category indicating local customary characterizations of physical addresses."^^xsd:string ,
+		"EXAMPLE: Street address, PO box, FPO code."^^xsd:string
+		;
+	.
+
+gist:PhysicalEvent
+	rdfs:label "Physical Event"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: An event that can be said to have occurred at some place in space."^^xsd:string ,
+		"EXAMPLE: A meeting, a car accident."^^xsd:string ,
+		"EXAMPLE: Negative examples: Excludes events that have no meaningful location, such as financial events or project milestones."^^xsd:string
+		;
+	.
+
+gist:PhysicalIdentifiableItem
+	rdfs:label "Physical Identifiable Item"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A discrete physical object which, if subdivided, will result in parts that are distinguishable in nature from the whole and in general also from the other parts."^^xsd:string ,
+		"EXAMPLE: A computer, a book, a car."^^xsd:string ,
+		"NOTE: This concept generally corresponds to count nouns in English. By contrast, physical substances, such as an amount of water, flour, or sand, are mass nouns. Physical identifiable items are made up of physical substances; e.g., a cake is made up of butter, flour, and sugar; a statue is made of bronze. If you divide a physical substance such as an amount of water into parts, you have two amounts of water otherwise indistinguishable from one another; if you divide a physical identifiable item such as a computer into parts, each part is different from the whole."^^xsd:string
+		;
+	.
+
+gist:PhysicalSubstance
+	rdfs:label "Physical Substance"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: An undifferentiated amount of physical material which, when subdivided, results in each part being indistinguishable in nature from the whole and from every other part."^^xsd:string ,
+		"EXAMPLE: An amount of water, penicillin, sand, or gold."^^xsd:string ,
+		"EXAMPLE: Negative example: the concept of gold."^^xsd:string ,
+		"NOTE: An instance of this class has weight and takes up space. We mean the physical gold in a ring, not the concept of gold that shows up in the periodic table. The latter would be an instance of gist:KnowledgeConcept."^^xsd:string ,
+		"NOTE: This concept generally corresponds to mass nouns in English. By contrast, instances of PhysicalIdentifiableItem, such as a computer, book, or car, are count nouns. PhysicalIdentifiableItems are made up of PhysicalSubstances; e.g., a cake is made up of butter, flour, and sugar; a ring is made of gold. If you divide a PhysicalSubstance such as an amount of water into parts, you have different amounts of water otherwise indistinguishable from one another; if you divide a PhysicalIdentifiableItem such as a computer into parts, each part will be distinguishable from the original whole."^^xsd:string
+		;
+	.
+
+gist:ProductCategory
+	rdfs:label "Product Category"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Any of many ways of categorizing products."^^xsd:string ,
+		"EXAMPLE: Automobile models, NATO product codes."^^xsd:string
+		;
+	.
+
+gist:ProductSpecification
+	rdfs:label "Product Specification"^^xsd:string ;
+	rdfs:comment "DEFINITION: Offering something which could be physically warehoused or digitally stored."^^xsd:string ;
+	.
+
+gist:Project
+	rdfs:label "Project"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A task, usually of longer duration, made up of other tasks."^^xsd:string ,
+		"EXAMPLE: Designing an insurance product; adding a new feature to a software application; assessing the level of risk for a mortgage application."^^xsd:string
+		;
+	.
+
+gist:ReferenceValue
+	rdfs:label "Reference Value"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A magnitude that was neither measured nor estimated but set by fiat."^^xsd:string ,
+		"EXAMPLE: The sales goal for a company."^^xsd:string
+		;
+	.
+
+gist:RenderedContent
+	rdfs:label "Rendered Content"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Content which has been physically expressed."^^xsd:string ,
+		"EXAMPLE: Words printed on paper; audio played on speakers; images displayed on monitors."^^xsd:string
+		;
+	.
+
+gist:Requirement
+	rdfs:label "Requirement"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The obligation of a person or organization to behave in a certain way."^^xsd:string ,
+		"EXAMPLE: In the US, drivers must drive on the right side of the road."^^xsd:string
+		;
+	.
+
+gist:Restriction
+	rdfs:label "Restriction"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A description of things one is prevented from doing."^^xsd:string ,
+		"EXAMPLE: In the US, tax laws restrict the amount of money a person can put in retirement accounts over the course of a year."^^xsd:string
+		;
+	.
+
+gist:ScheduledEvent
+	rdfs:label "Scheduled Event"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: An event with a planned start datetime."^^xsd:string ,
+		"NOTE: If the event already started, but has not yet ended, it is a contemporary event with an actual start datetime. If the event is over, it is a historical event having an actual end datetime. The event always retains its planned start datetime, and thus continues to be a scheduled event."^^xsd:string
+		;
+	.
+
+gist:ScheduledTask
+	rdfs:label "Scheduled Task"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A task with a planned start datetime."^^xsd:string ,
+		"NOTE: If work on the task has already started, but has not yet ended, it will have an actual start datetime. If the task is completed, it will also have an actual end datetime. The task always retains its planned start time, and thus continues to be a scheduled task."^^xsd:string
+		;
+	.
+
+gist:SchemaMetaData
+	rdfs:label "Schema Meta Data"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Superclass for all types of metadata."^^xsd:string ,
+		"EXAMPLE: Relational concepts, such as tables and columns; tool inputs, such as queries and R2RML maps."^^xsd:string ,
+		"NOTE: The definition of this class needs additional work."^^xsd:string
+		;
+	.
+
+gist:ServiceSpecification
+	rdfs:label "Service Specification"^^xsd:string ;
+	rdfs:comment "DEFINITION: A description of something that can be done for a person or organization (which produces some form of an act)."^^xsd:string ;
+	.
+
+gist:Specification
+	rdfs:label "Specification"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: One or more characteristics that specify what it means to be a particular type of thing, such as a material, product, service or event. A specification is sufficiently precise to allow evaluating conformance to the specification."^^xsd:string ,
+		"EXAMPLE: The specification of the iPhone 14; hypothetical events covered by a homeowner's insurance policy."^^xsd:string ,
+		"NOTE: Although a characterization of how to do something is often called a specification, the intended meaning here is limited to specifying what something is. The focus is on the what, not the how. Use gist:TaskTemplate for specifying the how, such as a plan or process specification."^^xsd:string
+		;
+	.
+
+gist:SubCountryGovernment
+	rdfs:label "Sub-Country Government"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The government of a governed geographic region other than a country which is under the direct or indirect control of a country government."^^xsd:string ,
+		"NOTE: Note that the predicate gist:isGovernedBy is used both for the relationship a governed geographic region has to its government and for the relationship a sub-region government has to the government of the larger region."^^xsd:string ,
+		"NOTE: There are many types of sub-regions of a country and the governments thereof (as well as different terms, like 'province' and 'state,' which refer to essentially the same type of thing). We should not automatically assume 'state,' 'county,' and 'city.' Subclasses or categories can be defined if greater specificity is needed."^^xsd:string ,
+		"NOTE: This class applies only to organizations governing geographic regions. Regulatory and bureaucratic organizations are members of the more generic gist:GovernmentOrganization class."^^xsd:string
+		;
+	.
+
+gist:System
+	rdfs:label "System"^^xsd:string ;
+	rdfs:comment "DEFINITION: A composite with component parts that contribute to the goal of the system."^^xsd:string ;
+	.
+
+gist:Tag
+	rdfs:label "Tag"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A term in a folksonomy used to categorize things. Tags can be made up on the fly by users."^^xsd:string ,
+		"NOTE: Whether to use gist:containedText or gist:uniqueText on tags is an implementation decision. Since the latter is a subproperty of the former, the restriction remains valid either way."^^xsd:string
+		;
+	.
+
+gist:Task
+	rdfs:label "Task"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: An activity or piece of work that is either proposed, planned, scheduled, underway, or completed."^^xsd:string ,
+		"NOTE: Something that could potentially be executed, which is merely described but not proposed in any specific way, such as a business process for onboarding a new employee, or the steps in a recipe for making polyethylene from ethylene, is not a task but rather a task template."^^xsd:string ,
+		"NOTE: This term is broader than the English word 'task,' which implies assignment, responsibility, or duty. In ordinary English going to a concert has a goal but is (generally) done for pleasure rather than out of obligation, and would not be considered a task, while according to the gist definition it is a task. The expansion of meaning is deliberate, so that anything that has a goal and can be specified by a task template is a task."^^xsd:string ,
+		"NOTE: Use the property gist:isBasedOn to link a task back to the task template."^^xsd:string
+		;
+	.
+
+gist:TaskTemplate
+	rdfs:label "Task Template"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: An outline of a task of a particular type, which is the basis for executing such tasks."^^xsd:string ,
+		"EXAMPLE: A business process for onboarding new employees."^^xsd:string ,
+		"NOTE: A task template may define a single activity or a series of activities; the level of granularity can be varied according to use case. For example, in a new employee onboarding process, signing up for benefits might be one activity, or it might be broken down into signing up for health insurance, signing up for dental insurance, etc."^^xsd:string ,
+		"NOTE: Use the property isBasedOn to link the Task back to the TaskTemplate."^^xsd:string
+		;
+	.
+
+gist:Template
+	rdfs:label "Template"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Something used to make objects in its own image."^^xsd:string ,
+		"EXAMPLE: A die in manufacturing is used to make stamped parts; a form provides a structure and fields to be filled in; a cookie cutter is a template for cookies."^^xsd:string ,
+		"NOTE: Use gist:isBasedOn to link the object made from the template back to the template."^^xsd:string
+		;
+	.
+
+gist:TemporalRelation
+	rdfs:label "Temporal Relation"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A relationship existing for a period of time."^^xsd:string ,
+		"EXAMPLE: The relationship between a person and their employer; the relationship between a person or business and an address."^^xsd:string ,
+		"NOTE: A temporal relation must have a minimum of two participants. For example, both the employer and the employee are participants in a temporal relation representing a period of employment. Note that 'participant' does not imply agency; a non-sentient being can participate in a temporal relation. For example, both a person and a house could be participants in a hypothetical relation 'lives at.'"^^xsd:string
+		;
+	.
+
+gist:Text
+	rdfs:label "Text"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Content expressed as words and numbers."^^xsd:string ,
+		"EXAMPLE: Negative example: graphical content."^^xsd:string
+		;
+	.
+
+gist:TimeInterval
+	rdfs:label "Time Interval"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A span of time with a known start time, end time, and duration. As long as two of the three are known, the third can be inferred."^^xsd:string ,
+		"EXAMPLE: 7pm to 9pm on Jan 1, 2001; fiscal year 2023 (according to some particular definition of fiscal year); the week starting at midnight of January 12, 2023 and lasting exactly 168 hours."^^xsd:string ,
+		"NOTE: An ongoing state of affairs with an unknown end time in the future cannot be a time interval; e.g. the lifespan of a living person cannot be a time interval, as the end time is unknown."^^xsd:string ,
+		"NOTE: This is distinct from a duration, which describes how long a time interval lasts (e.g., one hour; 3 days; 22 minutes)."^^xsd:string
+		;
+	.
+
+gist:Transaction
+	rdfs:label "Transaction"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: An exchange or transfer of goods, services, or funds."^^xsd:string ,
+		"NOTE: Different sorts of transactions can have different datetime precisions. For example, an electronic transaction would have a gist:actualEndMicrosecond."^^xsd:string
+		;
+	.
+
+gist:UnitGroup
+	rdfs:label "Unit Group"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A collection of units of measure that can all be used to measure the same aspects."^^xsd:string ,
+		"EXAMPLE: The units of measure bit, byte, kilobit, kilobyte, etc. are all in the same unit group because they can all be used to measure an amount of data."^^xsd:string ,
+		"NOTE: Typically there is one unit group per aspect. An example of an aspect with two unit groups is vehicle efficiency, which can be measured by miles per gallon (distance per volume) or by liters per 100 kilometers (volume per distance). These two units of measure need to be in different unit groups because they have different values of exponents. When adding a unit of measure to a unit group, make sure it has the same exponents as the other members of the unit group."^^xsd:string
+		;
+	.
+
+gist:UnitOfMeasure
+	rdfs:label "Unit of Measure"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A standard amount used to measure or specify things."^^xsd:string ,
+		"EXAMPLE: An acre is a unit for measuring area."^^xsd:string
+		;
+	.
+
+gist:actualEndDate
+	rdfs:label "actual end date"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The actual date that something ended, with precision of one day."^^xsd:string ,
+		"EXAMPLE: '2021-06-01T00:00:00-6:00'^^xsd:dateTime"^^xsd:string ,
+		"NOTE: Used for things where the precision of a date is sufficient, such as most projects, tasks, and the like. Recommended usage is to zero out the hours through microseconds to avoid spurious precision."^^xsd:string
+		;
+	.
+
+gist:actualEndDateTime
+	rdfs:label "actual end date time"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The actual date and time that something ended, with no implied precision."^^xsd:string ,
+		"NOTE: This is an abstraction over the various precisions of actual end time, and is not expected to be asserted directly. Values of predicates with different precisions can be compared since they are all formally xsd:datetimes."^^xsd:string
+		;
+	.
+
+gist:actualEndMicrosecond
+	rdfs:label "actual end microsecond"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The actual time that something ended, expressed as a system time used for timestamps."^^xsd:string ,
+		"EXAMPLE: '2021-06-01T08:03:27.12324-6:00'^^xsd:dateTime"^^xsd:string ,
+		"NOTE: A system time will be as precise as the system can supply, typically at least milliseconds, sometimes microseconds. The convention for timestamps, such as recording a transaction, is to specify just the end point; the start time is rarely needed."^^xsd:string
+		;
+	.
+
+gist:actualEndMinute
+	rdfs:label "actual end minute"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The actual date and time that something ended, with precision of one minute."^^xsd:string ,
+		"EXAMPLE: '2021-06-01T08:32:00-6:00'^^xsd:dateTime"^^xsd:string ,
+		"NOTE: Used for things like meetings and time card entries, where the hour and minute are important. Recommended usage is to zero out the seconds and microseconds to avoid spurious precision."^^xsd:string
+		;
+	.
+
+gist:actualEndYear
+	rdfs:label "actual end year"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The actual date that something ended, with precision of one year."^^xsd:string ,
+		"EXAMPLE: '2021-01-01T00:00:00-6:00'^^xsd:dateTime"^^xsd:string ,
+		"EXAMPLE: The tenure of the previous chairman of the board ended in 2021."^^xsd:string ,
+		"NOTE: Used for things where the precision of a year is sufficient. Recommended usage is to zero out the hours through microseconds to avoid spurious precision. Note that it is not valid to zero out months and days, so arbitrary values must be included."^^xsd:string
+		;
+	.
+
+gist:actualStartDate
+	rdfs:label "actual start date"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The actual date that something started, with precision of one day."^^xsd:string ,
+		"EXAMPLE: '2021-06-01T00:00:00-6:00'^^xsd:dateTime"^^xsd:string ,
+		"NOTE: Used for things where the precision of a date is sufficient, such as most projects, tasks, and the like. Recommended usage is to zero out the hours through microseconds to avoid spurious precision."^^xsd:string
+		;
+	.
+
+gist:actualStartDateTime
+	rdfs:label "actual start date time"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The actual date and time that something started, with no implied precision."^^xsd:string ,
+		"NOTE: This is an abstraction over the various precisions of actual start time, and is not expected to be asserted directly. Values of predicates with different precisions can be compared since they are all formally xsd:datetimes."^^xsd:string
+		;
+	.
+
+gist:actualStartMicrosecond
+	rdfs:label "actual start microsecond"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The actual time that something started, expressed as a system time used for timestamps."^^xsd:string ,
+		"EXAMPLE: '2021-06-01T08:03:27.12324-6:00'^^xsd:dateTime"^^xsd:string ,
+		"NOTE: A system time will be as precise as the system can supply, typically at least milliseconds, sometimes microseconds. The convention for timestamps, such as recording a transaction, is to specify just the end point; the start time is rarely needed. This property is defined for the cases when you do need to capture the runtime of a system process, and is then used in conjunction with gist:actualEndMicrosecond."^^xsd:string
+		;
+	.
+
+gist:actualStartMinute
+	rdfs:label "actual start minute"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The actual date and time that something started, with precision of one minute."^^xsd:string ,
+		"EXAMPLE: '2021-06-01T08:32:00-6:00'^^xsd:dateTime"^^xsd:string ,
+		"NOTE: Used for things like meetings and time card entries, where the hour and minute are important. Recommended usage is to zero out the seconds and microseconds to avoid spurious precision."^^xsd:string
+		;
+	.
+
+gist:actualStartYear
+	rdfs:label "actual start year"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The actual date that something started, with precision of one year."^^xsd:string ,
+		"EXAMPLE: '2021-01-01T00:00:00-6:00'^^xsd:dateTime"^^xsd:string ,
+		"EXAMPLE: The tenure of the current chairman of the board began in 2021."^^xsd:string ,
+		"NOTE: Used for things where the precision of a year is sufficient. Recommended usage is to zero out the hours through microseconds to avoid spurious precision. Note that it is not valid to zero out months and days, so arbitrary values must be included."^^xsd:string
+		;
+	.
+
+gist:allows
+	rdfs:label "allows"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates a permission to a particular activity or type of activity it allows."^^xsd:string ,
+		"EXAMPLE: An easement grants a right to cross or otherwise use someone else's land for a specified purpose."^^xsd:string
+		;
+	.
+
+gist:atDateTime
+	rdfs:label "at date time"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The date and time at which something did or will occur, with variants for precision, start and end, and actual vs. planned."^^xsd:string ,
+		"""NOTE: This is the top level property for asserting time, and is not expected to be asserted directly.
+
+The subproperties allow the ontologist to do three things:
+1) Distinguish start and end times.
+2) Indicate whether a time is planned or actual. This is useful for everything from project management to calendar appointments and the like. It is also useful for date effectivities; i.e., something valid up to a planned date).
+3) Distinguish varying levels of precision; sort of a simple version of the Allen functions.
+
+All datetimes are of the same format: '2021-06-01T08:03:27.12324-6:00'^^xsd:dateTime. This is compatible with and a subset of ISO 8601.
+
+Time zone offset, such as -6:00 (of which there are a few dozen) is recognized in the date itself, as shown. The actual time zone standard (of which there are 131) may optionally be attached to the event or other object itself.
+
+There will be many historical dates that do not have a time zone offset (e.g., Lincoln's birthday, as well as about 75% of all legacy systems), and in that case the offset can be omitted.
+
+The conventions for precision that are repeated in each property name are as follows:
+	- *DateTime is an abstraction over the various precisions of its subproperties.
+	- *Date refers to a calendar date (e.g., birthdays and invoice dates) and is assumed to have precision of one day. Time zone offset is allowed.
+	- *Minute refers to clock time; e.g., a meeting will start at 9:15 with a timezone offset. Precision is assumed to have precision of one minute.
+	- *Microsecond refers to system time, and it will be as precise as the system can supply; typically at least milliseconds, sometime microseconds.
+"""^^xsd:string
+		;
+	.
+
+gist:birthDate
+	rdfs:label "birth date"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The date some living thing was or will be born, with precision of one day."^^xsd:string ,
+		"EXAMPLE: '2021-06-01T00:00:00-6:00'^^xsd:dateTime"^^xsd:string ,
+		"NOTE: This is a subproperty of gist:startDateTime rather than gist:actualStartDate because some living things have yet to be born. This property refers to a calendar date and is assumed to precision of one day (time zone offset is allowed). It is recommended to zero out the hours through microseconds to avoid spurious precision. Implementations requiring a birthdate to the minute can define a subproperty."^^xsd:string
+		;
+	.
+
+gist:comesFromAgent
+	rdfs:label "comes from agent"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates something to the originating agent."^^xsd:string ,
+		"EXAMPLE: A package is shipped by a person; a purchase order is emailed to a vendor by an organization."^^xsd:string ,
+		"NOTE: This is not the inverse of gist:goesToAgent, as both properties have the message or shipment as the subject."^^xsd:string ,
+		"NOTE: This property is intended to describe the physical or electronic transfer of something, such as a package or email, from one agent to another, whereas gist:hasGiver is typically used in more abstract contexts such as agreements, obligations, contracts, etc. However, there are contexts in which either may be appropriate, such as the giving of a gift."^^xsd:string
+		;
+	.
+
+gist:comesFromPlace
+	rdfs:label "comes from place"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates something to its place of origin."^^xsd:string ,
+		"EXAMPLE: A letter has a return address indicating its origin; a delivery route originates at a distribution center; a trail originates at the trailhead."^^xsd:string
+		;
+	.
+
+gist:conformsTo
+	rdfs:label "conforms to"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The subject is consistent with or satisfies the requirements, rules, or expectations established by the object."^^xsd:string ,
+		"EXAMPLE: Meet an obligation; adhere to a specification or standard; meet terms and conditions of an offer; comply with a regulation."^^xsd:string
+		;
+	.
+
+gist:containedText
+	rdfs:label "contained text"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A string that is closely associated with an individual."^^xsd:string ,
+		"EXAMPLE: The string associated with a tag or with text content."^^xsd:string
+		;
+	.
+
+gist:contributesTo
+	rdfs:label "contributes to"^^xsd:string ;
+	rdfs:comment "DEFINITION: Relates a part of a system to the system whose goals or function it contributes to."^^xsd:string ;
+	.
+
+gist:conversionFactor
+	rdfs:label "conversion factor"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A value that relates a unit of measure to units of the International System of Units."^^xsd:string ,
+		"EXAMPLE: In the equation 1 inch = 0.0254 meters, the value 0.0254 is the conversion factor of inch."^^xsd:string ,
+		"""NOTE: To convert a numeric value from one unit of measure to another, multiply by the conversion factor of the first unit and then divide by the conversion factor of the second unit.
+
+	For example, to convert 27 feet to yards:
+
+		the conversion factor of foot is 0.3048
+		the conversion factor of yard is 0.9144
+
+		so
+
+		27 feet = (27 x 0.3048) / 0.9144 = 9 yards"""^^xsd:string
+		;
+	.
+
+gist:conversionOffset
+	rdfs:label "conversion offset"^^xsd:string ;
+	rdfs:comment """DEFINITION: 
+		A value used along with a conversion factor to relate a unit to its corresponding unit in the International System of Units. In the equation below, the conversion offset is 459.669607 and the conversion factor is 5/9.
+
+		y degrees Fahrenheit = (y + 459.669607) x 5/9 degrees Kelvin
+
+		To convert from Fahrenheit to Kelvin, first add the offset and then multiply by the conversion factor.
+
+		To convert from Kelvin to Fahrenheit, reverse the steps: first divide by the conversion factor and then subtract the offset."""^^xsd:string ;
+	.
+
+gist:deathDate
+	rdfs:label "death date"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The date some living thing died."^^xsd:string ,
+		"EXAMPLE: '2021-06-01T00:00:00-6:00'^^xsd:dateTime"^^xsd:string ,
+		"NOTE: Refers to a calendar date and is assumed to have precision of one day (time zone offset is allowed). Recommended usage is to zero out the hours through microseconds to avoid spurious precision. Implementations requiring a death date to the minute can define a subproperty."^^xsd:string
+		;
+	.
+
+gist:description
+	rdfs:label "description"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A statement about someone or something's attributes or characteristics."^^xsd:string ,
+		"EXAMPLE: 'The Empire State Building is a 102-story Art Deco skyscraper in midtown Manhattan in New York City. It was designed by Shreve, Lamb & Harmon and built from 1930 to 1931.'"^^xsd:string ,
+		"EXAMPLE: A person does not have a definition, but might be described as being six feet tall with brown hair and blue eyes; an ontology class or taxonomy term has a definition."^^xsd:string ,
+		"NOTE: This property is used to describe instance data which is not part of the ontology. A definition and a description have different semantics. Use skos:definition for a statement of the meaning of a thing and gist:description to describe a thing's attributes, characteristics, or features."^^xsd:string
+		;
+	.
+
+gist:domainIncludes
+	rdfs:label "domain includes"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates a property to a class that the property is expected to be used on."^^xsd:string ,
+		"EXAMPLE: The domain of the property gist:containedText includes gist:Tag and gist:Text."^^xsd:string ,
+		"NOTE: There may be multiple domainIncludes assertions on a single property."^^xsd:string ,
+		"NOTE: This property is used to guide the ontology user; like all annotation properties, it does not play a role in inference."^^xsd:string
+		;
+	.
+
+gist:encryptedText
+	rdfs:label "encrypted text"^^xsd:string ;
+	rdfs:comment "DEFINITION: Encoded text produced from readable data by an algorithm so that it can only be understood or restored with a decryption key."^^xsd:string ;
+	.
+
+gist:endDateTime
+	rdfs:label "end date time"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The date and time that something ends."^^xsd:string ,
+		"NOTE: This property is neutral along two dimensions: precision (e.g., day, second, millisecond) and actual vs. planned. As such, it will generally not be asserted directly except in special cases (e.g., for time intervals)."^^xsd:string ,
+		"NOTE: Values of predicates with different precisions can be compared since they are all formally xsd:datetimes."^^xsd:string
+		;
+	.
+
+gist:exponentOfAmpere
+	rdfs:label "exponent of ampere"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The exponent of ampere in a product of powers of base units."^^xsd:string ,
+		"""EXAMPLE: In the equation '1 milliampere = 0.001 x ampere'
+
+		the conversionFactor for milliampere is 0.001
+		the exponent of ampere is 1
+		all other exponents are zero
+
+		Every member of a unit group containing milliampere must be a multiple of ampere."""^^xsd:string
+		;
+	.
+
+gist:exponentOfBit
+	rdfs:label "exponent of bit"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The exponent of bit in a product of powers of base units."^^xsd:string ,
+		"""EXAMPLE: In the equation '1 megabit per second = 1000000 x bit per second'
+
+		the conversion factor for megabit per second is 1000000
+		the exponent of bit is 1
+		the exponent of second is -1
+		all other exponents are zero
+
+		Every member of a unit group containing megabit per second must be a multiple of bit per second."""^^xsd:string
+		;
+	.
+
+gist:exponentOfCandela
+	rdfs:label "exponent of candela"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The exponent of candela in a product of powers of base units."^^xsd:string ,
+		"""EXAMPLE: In the equation '1 candlepower = 1 x candela'
+
+		the conversion factor for candlepower is 1
+		the exponent of candela is 1
+		all other exponents are zero
+
+		Every member of a unit group containing candlepower must be a multiple of candela."""^^xsd:string
+		;
+	.
+
+gist:exponentOfKelvin
+	rdfs:label "exponent of Kelvin"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The exponent of Kelvin in a product of powers of base units."^^xsd:string ,
+		"""EXAMPLE: In the equation 'y degrees Fahrenheit = (y + 459.6669607) x 5/9 degrees Kelvin'
+
+		the conversion offset for degree Fahrenheit is 459.6669607
+		the conversion factor for degree Fahrenheit is 5/9
+		the exponent of Kelvin is 1
+		all other exponents are zero
+
+		Every member of a unit group containing degree Fahrenheit will have a similar equation, with different offset or conversion factor (or both)."""^^xsd:string
+		;
+	.
+
+gist:exponentOfKilogram
+	rdfs:label "exponent of kilogram"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The exponent of kilogram in a product of powers of base units."^^xsd:string ,
+		"""EXAMPLE: In the equation '1 millimole per gram = 1 x mole per kilogram'
+
+		the conversion factor for millimole per gram is 1
+		the exponent of mole is 1
+		the exponent of kilogram is -1
+		all other exponents are zero
+
+		Every member of a unit group containing millimole per gram must be a multiple of mole per kilogram."""^^xsd:string
+		;
+	.
+
+gist:exponentOfMeter
+	rdfs:label "exponent of meter"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The exponent of meter in a product of powers of base units."^^xsd:string ,
+		"""EXAMPLE: In the equation '1 microgram per milliliter = 0.001 x kilogram per meterCubed'
+
+		the conversion factor for microgram per milliliter is 0.001
+		the exponent of kilogram is 1
+		the exponent of meter is -3
+		all other exponents are zero
+
+		Every member of a unit group containing microgram per milliliter must be a multiple of kilogram per meterCubed."""^^xsd:string
+		;
+	.
+
+gist:exponentOfMole
+	rdfs:label "exponent of mole"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The exponent of mole in a product of powers of base units."^^xsd:string ,
+		"""EXAMPLE: In the equation '1 katal = 1 x mole per second'
+
+		the conversion factor for katal is 1
+		the exponent of mole is 1
+		the exponent of second is -1
+		all other exponents are zero
+
+		Every member of a unit group containing katal must be a multiple of mole per second."""^^xsd:string
+		;
+	.
+
+gist:exponentOfNumber
+	rdfs:label "exponent of number"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The exponent of number in a product of powers of base units."^^xsd:string ,
+		"""EXAMPLE: In the equation '1 beat per minute = 0.016667 x number per second'
+
+		the conversion factor for beat per minute is 0.016667
+		the exponent of number is 1
+		the exponent of second is -1
+		all other exponents are zero
+
+		Every member of a unit group containing beat per minute must be a multiple of number per second."""^^xsd:string ,
+		"NOTE: Use when the unit of measure involves a count or other number."^^xsd:string
+		;
+	.
+
+gist:exponentOfOther
+	rdfs:label "exponent of other"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Indicates whether a unit of measure can be expressed in terms of the standard exponents (as shown in the examples)."^^xsd:string ,
+		"EXAMPLE: Decibel, pH, and octave are units of measure that are logarithmic. Their unit groups have exponent of other = 1."^^xsd:string ,
+		"""NOTE: Set the value to 0 if the units of measure in the unit group can be expressed using the standard set of exponents (as in the examples).
+
+		Otherwise set the value to 1, which typically means the units of measure in the group use a logarithmic scale."""^^xsd:string
+		;
+	.
+
+gist:exponentOfRadian
+	rdfs:label "exponent of radian"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The exponent of radian in a product of powers of base units."^^xsd:string ,
+		"""EXAMPLE: In the equation '1 revolution = 6.283 x radian'
+
+		the conversion factor for revolution is 6.283
+		the exponent of radian is 1
+		all other exponents are zero
+
+		Every member of a unit group containing revolution must be a multiple of radian."""^^xsd:string
+		;
+	.
+
+gist:exponentOfSecond
+	rdfs:label "exponent of second"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The exponent of second in a product of powers of base units."^^xsd:string ,
+		"""EXAMPLE: In the equation '1 watt-hour = 3600 x kilogram meterSquared per secondSquared'
+
+		the conversion factor for watt-hour is 3600
+		the exponent of kilogram is 1
+		the exponent of meter is 2
+		the exponent of second is -2
+		all other exponents are zero
+
+		Every member of a unit group containing watt-hour must be a multiple of kilogram meterSquared per secondSquared."""^^xsd:string
+		;
+	.
+
+gist:exponentOfSteradian
+	rdfs:label "exponent of steradian"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The exponent of steradian in a product of powers of base units."^^xsd:string ,
+		"""EXAMPLE: In the equation '1 watt per square meter steradian = 1 x kilogram per secondCubed steradian'
+
+		the conversion factor for watt per square meter steradian is 1
+		the exponent of kilogram is 1
+		the exponent of second is -3
+		the exponent of steradian is -1
+		all other exponents are zero
+
+		Every member of a unit group containing watt per square meter steradian must a multiple of kilogram per secondCubed steradian."""^^xsd:string ,
+		"NOTE: Steradian is a measure of solid angle."^^xsd:string
+		;
+	.
+
+gist:exponentOfUSDollar
+	rdfs:label "exponent of US dollar"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The exponent of US Dollar in a product of powers of base units."^^xsd:string ,
+		"""EXAMPLE: In the equation '1 million dollars per week = 1.65344 x dollar per second'
+
+		the conversion factor for million dollars per week is 1.65344
+		the exponent of US Dollar is 1
+		the exponent of second is -1
+		all other exponents are zero
+
+		Every member of a unit group containing million dollars per week must be a multiple of dollar per second."""^^xsd:string ,
+		"NOTE: The factors for converting from one currency to another change constantly."^^xsd:string
+		;
+	.
+
+gist:goesToAgent
+	rdfs:label "goes to agent"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates something to the agent that receives it."^^xsd:string ,
+		"EXAMPLE: A package is sent to a person; a purchase order email is received by a vendor."^^xsd:string ,
+		"NOTE: This is not the inverse of gist:comesFromAgent, as both properties have the message or shipment as the subject."^^xsd:string ,
+		"NOTE: This property is intended to describe the physical or electronic transfer of something, such as a package or email, from one agent to another, whereas gist:hasRecipient is typically used in more abstract contexts such as agreements, obligations, contracts, etc. However, there are contexts in which either may be appropriate, such as the recieving of a gift."^^xsd:string
+		;
+	.
+
+gist:goesToPlace
+	rdfs:label "goes to place"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates something to its destination place."^^xsd:string ,
+		"EXAMPLE: A letter has an address indicating its destination; a segment of a delivery route terminates at a delivery location; a trail terminates at an intersection with another trail."^^xsd:string
+		;
+	.
+
+gist:hasAccuracy
+	rdfs:label "has accuracy"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates a magnitude to another magnitude that describes its accuracy."^^xsd:string ,
+		"EXAMPLE: Temperature accurate to tenth of a degree C; length accurate to the nearest centimeter."^^xsd:string ,
+		"""NOTE: gist uses the ISO-5725 definition of accuracy, which is a combination of trueness (a measure of systemic error) and precision (a measure of random error). The accuracy of a measurement method describes how close its measurements are to actual values. Similarly, the accuracy of an individual measurement is its likely closeness to the actual value. When we say a temperature measurement is accurate to within a tenth of a degree, it means with a certain probability such as 95%.
+
+Note that the unit of measure of the accuracy has to be compatible with the unit of measure of the original magnitude (e.g. something measured in meters could have a accuracy in terms of millimeters or any other unit that measures distance)."""^^xsd:string
+		;
+	.
+
+gist:hasAddend
+	rdfs:label "has addend"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates an aspect to another aspect that is an additive component of it."^^xsd:string ,
+		"EXAMPLE: In the equation 'profit = revenue - expenses', revenue is an addend and expenses is a subtrahend."^^xsd:string ,
+		"NOTE: Commonly used with financial metrics."^^xsd:string
+		;
+	.
+
+gist:hasAddress
+	rdfs:label "has address"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates something to its physical or electronic address."^^xsd:string ,
+		"EXAMPLE: A brick-and-mortar store has a street address; a person can be contacted electronically via an email address."^^xsd:string
+		;
+	.
+
+gist:hasAspect
+	rdfs:label "has aspect"^^xsd:string ;
+	rdfs:comment "DEFINITION: Relates a magnitude to its aspect (measurable characteristic)."^^xsd:string ;
+	.
+
+gist:hasBiologicalParent
+	rdfs:label "has biological parent"^^xsd:string ;
+	rdfs:comment "DEFINITION: Relates a living thing to its biological parent."^^xsd:string ;
+	.
+
+gist:hasBroader
+	rdfs:label "has broader"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates a thing to another thing with a broader meaning."^^xsd:string ,
+		"EXAMPLE: The aspect distance is broader than the aspect height."^^xsd:string
+		;
+	.
+
+gist:hasDirectBroader
+	rdfs:label "has direct broader"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates a thing to another thing with a broader meaning, when there is no intermediate between them."^^xsd:string ,
+		"NOTE: Unlike gist:hasBroader, this property is not transitive. It is safest to use this property when semantic directness is inherent in the relationship. Otherwise, there is a risk of making a hasDirectBroader assertion and then later inserting an intermediate part; this will result in making an asserted triple false even though there was no change in the world. When in doubt, use the transitive version gist:hasBroader."^^xsd:string
+		;
+	.
+
+gist:hasDivisor
+	rdfs:label "has divisor"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates a unit of measure to another unit of measure that is a divisor, or relates an aspect to another aspect that is a divisor."^^xsd:string ,
+		"EXAMPLE: Miles per hour has miles as a multiplier and hour as a divisor; speed has distance as a multiplier and duration as a divisor."^^xsd:string ,
+		"NOTE: Provides a supplemental method of decomposing a unit of measure or an aspect into component factors. Enables dimensional analysis such as miles per hour x hours = miles."^^xsd:string
+		;
+	.
+
+gist:hasGiver
+	rdfs:label "has giver"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates something to the participant that provides it."^^xsd:string ,
+		"EXAMPLE: An offer is made by a giver; an obligation has a giver who is obligated to another person; a gift is presented by the giver."^^xsd:string ,
+		"NOTE: This property is often used in abstract contexts such as agreements, obligations, contracts, etc., whereas gist:comesFromAgent is intended to describe the physical or electronic transfer of something, such as a package or email, from one agent to another. However, there are contexts in which either may be appropriate, such as the giving of a gift."^^xsd:string
+		;
+	.
+
+gist:hasGoal
+	rdfs:label "has goal"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates something to the end towards which it directs effort."^^xsd:string ,
+		"EXAMPLE: The sales division of a company has the goal of acquiring new customers and contracts."^^xsd:string
+		;
+	.
+
+gist:hasIncumbent
+	rdfs:label "has incumbent"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates a position to the thing or person that currently holds that position."^^xsd:string ,
+		"NOTE: To create a temporal view, define a subclass of gist:TemporalRelation for this property (e.g., Incumbency)."^^xsd:string
+		;
+	.
+
+gist:hasMagnitude
+	rdfs:label "has magnitude"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates a thing to a magnitude."^^xsd:string ,
+		"EXAMPLE: A car or model of car has magnitudes for length, width, weight, average miles per gallon, etc."^^xsd:string
+		;
+	.
+
+gist:hasMultiplier
+	rdfs:label "has multiplier"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates a unit of measure to another unit of measure that is a factor, or relates an aspect to another aspect that is a factor."^^xsd:string ,
+		"EXAMPLE: Miles per hour has miles as a multiplier and hours as a divisor; speed has distance as a multiplier and duration as a divisor."^^xsd:string ,
+		"NOTE: Provides a supplemental method of decomposing a unit of measure or aspect into component factors. Enables dimensional analysis such as miles per hour x hours = miles."^^xsd:string
+		;
+	.
+
+gist:hasNavigationalParent
+	rdfs:label "has navigational parent"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates a child category to a parent category in an informal (e.g., faceted) hierarchy."^^xsd:string ,
+		"EXAMPLE: Refrigerator handles are not refrigerators, but it may be useful to represent their relationship hierarchically for a faceted UI filter."^^xsd:string
+		;
+	.
+
+gist:hasParticipant
+	rdfs:label "has participant"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates something (e.g. an agreement) to things that play a role, or take part or are otherwise involved in some way."^^xsd:string ,
+		"EXAMPLE: An event of transferring money has a participating account that receives the money."^^xsd:string ,
+		"NOTE: The thing with participants will often be an agreement, event or obligation. Participation does not imply agency."^^xsd:string ,
+		"NOTE: This will most often be used as an abstract property. Use subproperties that indicate the nature of the participation (e.g. hasBorrower, hasVenue)."^^xsd:string
+		;
+	.
+
+gist:hasParty
+	rdfs:label "has party"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates an event, agreement, or obligation to a participating person or organization."^^xsd:string ,
+		"EXAMPLE: Loan agreements have lender and borrower parties."^^xsd:string ,
+		"NOTE: Subproperties may be defined to describe specific parties, such as hasLender and hasBorrower for a loan."^^xsd:string
+		;
+	.
+
+gist:hasPhysicalLocation
+	rdfs:label "has physical location"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates something to its physical location."^^xsd:string ,
+		"NOTE: This property does not distinguish between things whose locations are stable and those whose locations change over time; e.g., a fire hydrant vs. a car."^^xsd:string
+		;
+	.
+
+gist:hasRecipient
+	rdfs:label "has recipient"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates something to the participant that receives or is intended to receive it."^^xsd:string ,
+		"EXAMPLE: An offer is made to a recipient; an obligation has a recipient to whom another person is obligated; a gift is bestowed upon a recipient."^^xsd:string ,
+		"NOTE: This property is used in abstract contexts such as agreements, obligations, contracts, etc., whereas gist:goesToAgent is intended to describe the physical or electronic transfer of something, such as a package or email, from one agent to another. However, there are contexts in which either may be appropriate, such as the giving of a gift."^^xsd:string
+		;
+	.
+
+gist:hasSubtrahend
+	rdfs:label "has subtrahend"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates an aspect to another aspect that is a subtracted component of it."^^xsd:string ,
+		"EXAMPLE: In the equation 'profit = revenue - expenses', revenue is an addend and expenses is a subtrahend."^^xsd:string ,
+		"NOTE: Commonly used with financial metrics."^^xsd:string
+		;
+	.
+
+gist:hasUniqueBroader
+	rdfs:label "has unique broader"^^xsd:string ;
+	rdfs:comment "DEFINITION: Relates a thing to a unique other thing with a broader meaning."^^xsd:string ;
+	.
+
+gist:hasUniqueNavigationalParent
+	rdfs:label "has unique navigational parent"^^xsd:string ;
+	rdfs:comment "DEFINITION: Relates a subject category to a unique parent category in an informal (e.g., faceted) hierarchy."^^xsd:string ;
+	.
+
+gist:hasUnitGroup
+	rdfs:label "has unit group"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates an aspect to a unit group. The aspect can be measured using any of the members of the unit group."^^xsd:string ,
+		"EXAMPLE: The aspect distance can have a unit group that includes the units meter, inch, foot, etc."^^xsd:string
+		;
+	.
+
+gist:hasUnitOfMeasure
+	rdfs:label "has unit of measure"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates a magnitude to its unit of measure."^^xsd:string ,
+		"EXAMPLE: The magnitude 87 inches of height has unit of measure inches."^^xsd:string
+		;
+	.
+
+gist:idText
+	rdfs:label "id text"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A text string that identifies an individual."^^xsd:string ,
+		"EXAMPLE: The id text for a car is '4Y1SL65848Z411439'; the id text for the HR department of some company is H31415."^^xsd:string ,
+		"NOTE: A common use case would be for pre-existing internal company identifiers."^^xsd:string ,
+		"NOTE: Often, there will be just one identifying text string. More would be appropriate if the individual had different identifiers, such as employee number and social security number. A good way to model that would be to have functional subproperties of idText, such as departmentNumber."^^xsd:string ,
+		"NOTE: This property is an alternative to using the property gist:isIdentifiedBy in conjunction with instances of the class gist:ID."^^xsd:string
+		;
+	.
+
+gist:isAbout
+	rdfs:label "is about"^^xsd:string ;
+	rdfs:comment "DEFINITION: Subject matter of a document."^^xsd:string ;
+	.
+
+gist:isAffectedBy
+	rdfs:label "is affected by"^^xsd:string ;
+	rdfs:comment "DEFINITION: Relates an affected thing to the source of the effect."^^xsd:string ;
+	.
+
+gist:isAllocatedBy
+	rdfs:label "is allocated by"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates something to whomever or whatever assigns or distributes it."^^xsd:string ,
+		"EXAMPLE: A U.S. Social Security number is allocated by the U.S. Social Security Administration; the media type https://www.iana.org/assignments/media-types/text/csv is allocated by the Internet Assigned Numbers Authority (IANA)."^^xsd:string ,
+		"NOTE: The allocator may be a person, organization, or automated process."^^xsd:string
+		;
+	.
+
+gist:isAssignmentOf
+	rdfs:label "is assignment of"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates an assignment to the resource it assigns."^^xsd:string ,
+		"EXAMPLE: Assignment of a person to a project."^^xsd:string ,
+		"NOTE: People, organizations, monetary amounts, equipment can all be assigned."^^xsd:string ,
+		"NOTE: While typically this predicate will be used with assignment subjects, there may be other use cases, and therefore a domain is not specified."^^xsd:string
+		;
+	.
+
+gist:isAssignmentTo
+	rdfs:label "is assignment to"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates something (typically an assignment) to the thing the resource is assigned to, such as a project, position, organization, pay rate, or billing rate."^^xsd:string ,
+		"NOTE: While typically this predicate will be used with gist:Assignment subjects, there may be other use cases, and therefore a domain is not specified."^^xsd:string
+		;
+	.
+
+gist:isBasedOn
+	rdfs:label "is based on"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The object is a foundation for, a starting point for, gave rise to, or justifies the subject."^^xsd:string ,
+		"EXAMPLE: A document is based on a document template; a metric computing the average income of a population is based on the metric for individual income."^^xsd:string
+		;
+	.
+
+gist:isCategorizedBy
+	rdfs:label "is categorized by"^^xsd:string ;
+	rdfs:comment "DEFINITION: Relates something to a taxonomy term or other less formally defined classification."^^xsd:string ;
+	.
+
+gist:isConnectedTo
+	rdfs:label "is connected to"^^xsd:string ;
+	rdfs:comment "DEFINITION: A non-owning, non-causal, non-subordinate (i.e., peer-to-peer) relationship."^^xsd:string ;
+	.
+
+gist:isDirectPartOf
+	rdfs:label "is direct part of"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The relationship between a part and a whole where the part has independent existence and there are no other parts in between."^^xsd:string ,
+		"NOTE: Because the part has independent existence, there is no cascading delete."^^xsd:string ,
+		"NOTE: It is safest to use this property when semantic directness is inherent in the relationship, rather than simply expressing a chosen granularity. For example, a spark plug is a direct part of an engine block; there cannot be any intermediate parts. Otherwise, there is a risk of making an isDirectPartOf assertion and then later inserting an intermediate part; this will result in making an asserted triple false even though there was no change in the world. When in doubt, use the transitive version gist:isPartOf."^^xsd:string
+		;
+	.
+
+gist:isExpressedIn
+	rdfs:label "is expressed in"^^xsd:string ;
+	rdfs:comment "DEFINITION: Relates something to the language it is expressed in."^^xsd:string ;
+	.
+
+gist:isFirstMemberOf
+	rdfs:label "is first member of"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates the first member of an ordered collection to the collection."^^xsd:string ,
+		"NOTE: Given the Open World Assumption, the absence of a predecessor does not entail that an ordered member is the first member of an ordered collection. This property is used to explicitly indicate the first member. Since ordered collections need not be strictly ordered, there can be more than one first member."^^xsd:string
+		;
+	.
+
+gist:isGeoContainedIn
+	rdfs:label "is geographically contained in"^^xsd:string ;
+	rdfs:comment "DEFINITION: Relates one geographic location to another that contains it."^^xsd:string ;
+	.
+
+gist:isGovernedBy
+	rdfs:label "is governed by"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates an entity to another entity that controls, directs, determines or has a guiding influence or authority over it."^^xsd:string ,
+		"EXAMPLE: A country geographic region is governed by a country government; the installation and use of software is governed by a license."^^xsd:string
+		;
+	.
+
+gist:isIdentifiedBy
+	rdfs:label "is identified by"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates something to a content object that uniquely identifies it."^^xsd:string ,
+		"NOTE: This is like a URI: a thing can have more than one ID, but each ID can refer to only one thing. Note that it is possible to have two IDs with the same text that refer to different things."^^xsd:string
+		;
+	.
+
+gist:isMadeUpOf
+	rdfs:label "is made up of"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates something to a substance that it is made up of."^^xsd:string ,
+		"EXAMPLE: A vase is made of clay; water is made up of hydrogen and oxygen."^^xsd:string
+		;
+	.
+
+gist:isMemberOf
+	rdfs:label "is member of"^^xsd:string ;
+	rdfs:comment "DEFINITION: Relates a member individual to the thing, such as a collection or organization, that it is a member of."^^xsd:string ;
+	.
+
+gist:isPartOf
+	rdfs:label "is part of"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The relationship between a part and a whole where the part has independent existence."^^xsd:string ,
+		"NOTE: Because the part has independent existence, there is no cascading delete."^^xsd:string ,
+		"NOTE: The transitive version of gist:isDirectPartOf."^^xsd:string
+		;
+	.
+
+gist:isProducedBy
+	rdfs:label "is produced by"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates something to the thing that created, composed, or brought it into existence."^^xsd:string ,
+		"EXAMPLE: A deliverable is produces by a task."^^xsd:string ,
+		"EXAMPLE: A measurement is produced by a sensor."^^xsd:string ,
+		"EXAMPLE: A painting is produced by a person."^^xsd:string
+		;
+	.
+
+gist:isRecognizedBy
+	rdfs:label "is recognized by"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates something to a party that formally acknowledges its existence, validity, or legality."^^xsd:string ,
+		"EXAMPLE: The existence of a particular company is recognized by the state."^^xsd:string
+		;
+	.
+
+gist:isRecordedAt
+	rdfs:label "is recorded at"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The date that something was posted (which is not necessarily the date it occurred). It must be after the date of occurrence, but could be before or after the planned date."^^xsd:string ,
+		"EXAMPLE: The date and time a customer payment or stock purchase was posted."^^xsd:string ,
+		"NOTE: Precision may vary according to context."^^xsd:string
+		;
+	.
+
+gist:isRenderedOn
+	rdfs:label "is rendered on"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates content to the media on which it is rendered."^^xsd:string ,
+		"EXAMPLE: A document is rendered on a computer screen; a piece of music is rendered through speakers."^^xsd:string
+		;
+	.
+
+gist:isSupersededBy
+	rdfs:label "is superseded by"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates a deprecated term to a term that replaces it, which is either an exact (in the case of simple renaming) or approximate (in the case of renaming and some semantic change) semantic match."^^xsd:string ,
+		"EXAMPLE: gist:connectedTo was superseded by gist:isConnectedTo (renaming with no semantic change)."^^xsd:string
+		;
+	.
+
+gist:isTriggeredBy
+	rdfs:label "is triggered by"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates a contingency, such as an event or obligation, to the event that gives rise to it."^^xsd:string ,
+		"EXAMPLE: Fire insurance is contingent on a particular building burning down; the death benefit payout on a life insurance policy is contingent on the death of the insured person."^^xsd:string ,
+		"NOTE: For obligations, this property describes what must happen to trigger the contingent obligation. Other uses include controls, processes, etc."^^xsd:string
+		;
+	.
+
+gist:isUnderJurisdictionOf
+	rdfs:label "is under jurisdiction of"^^xsd:string ;
+	rdfs:comment "DEFINITION: Relates a law, contract, etc., to the system of law or government which has the power, right, or authority to interpret and apply it."^^xsd:string ;
+	.
+
+gist:latitude
+	rdfs:label "latitude"^^xsd:string ;
+	rdfs:comment "DEFINITION: Degrees above or below the equator."^^xsd:string ;
+	.
+
+gist:license
+	rdfs:label "license"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates something to its conditions of use."^^xsd:string ,
+		"EXAMPLE: The gist ontology is licensed under the CC By 4.0 license."^^xsd:string ,
+		"NOTE: Could refer to a license object by URI or name or could consist of the license text itself."^^xsd:string
+		;
+	.
+
+gist:links
+	rdfs:label "links"^^xsd:string ;
+	rdfs:comment "DEFINITION: Relates a network link to a network node that it connects to another node. Used when the connection is undirected or the direction is not known."^^xsd:string ;
+	.
+
+gist:linksFrom
+	rdfs:label "links from"^^xsd:string ;
+	rdfs:comment "DEFINITION: Relates a network link to its origin network node. Unlike the superproperty, this represents a directed connection."^^xsd:string ;
+	.
+
+gist:linksTo
+	rdfs:label "links to"^^xsd:string ;
+	rdfs:comment "DEFINITION: Relates a network link to its destination network node. Unlike the superproperty, this represents a directed connection."^^xsd:string ;
+	.
+
+gist:longitude
+	rdfs:label "longitude"^^xsd:string ;
+	rdfs:comment "DEFINITION: Degrees from the prime meridian."^^xsd:string ;
+	.
+
+gist:name
+	rdfs:label "name"^^xsd:string ;
+	rdfs:comment "DEFINITION: Relates an individual to (one of) its name(s)."^^xsd:string ;
+	.
+
+gist:numericValue
+	rdfs:label "numeric value"^^xsd:string ;
+	rdfs:comment "DEFINITION: The actual value of a magnitude."^^xsd:string ;
+	.
+
+gist:occursIn
+	rdfs:label "occurs in"^^xsd:string ;
+	rdfs:comment "DEFINITION: Relates something, such as an event, to the geographic location where it did, does, or will happen."^^xsd:string ;
+	.
+
+gist:offersToProvide
+	rdfs:label "offers to provide"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates an offer to the thing being made available for exchange."^^xsd:string ,
+		"EXAMPLE: An offer to provide a specific product in exchange for an amount of money or to pay a certain price for a home that is for sale."^^xsd:string ,
+		"NOTE: This will most often be a good or service, but could be an amount of money, e.g., for currency exchange."^^xsd:string
+		;
+	.
+
+gist:offersToReceive
+	rdfs:label "offers to receive"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates an offer to the thing expected in return for the offered item."^^xsd:string ,
+		"EXAMPLE: A vendor makes an offer to receive a particular amount of money in exchange for the offered product; an offer to receive a home in exchange for an amount of money."^^xsd:string ,
+		"NOTE: This will most often be an amount of money, but could be anything of value, as in swaps."^^xsd:string
+		;
+	.
+
+gist:owns
+	rdfs:label "owns"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates a party to something that it possesses and controls."^^xsd:string ,
+		"NOTE: The ultimate form of ownership is the right to destroy."^^xsd:string ,
+		"NOTE: There is a long list of potential range classes."^^xsd:string
+		;
+	.
+
+gist:plannedEndDate
+	rdfs:label "planned end date"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The date that something is or was planned to end, with precision of one day."^^xsd:string ,
+		"EXAMPLE: '2021-06-01T00:00:00-6:00'^^xsd:dateTime"^^xsd:string ,
+		"NOTE: Used for anything with a planned end date, such as when a lease will expire, when an offer is no longer available, etc. Typically a planned date is in the future when first captured, but when tasks run late, we leave the plan where it was and compare it to the actual. Recommended usage is to zero out the hours through microseconds to avoid spurious precision."^^xsd:string
+		;
+	.
+
+gist:plannedEndDateTime
+	rdfs:label "planned end date time"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The date that something is or was planned to end, with no implied precision."^^xsd:string ,
+		"NOTE: This is an abstraction over the various precisions of planned end time, and is not expected to be asserted directly. Values of predicates with different precisions can be compared since they are all formally xsd:datetimes."^^xsd:string ,
+		"NOTE: This property, unlike gist:actualEndDateTime, does not have a subproperty for microsecond precision, because planned times typically are not expressed at that level of granularity. Typically a planned date is in the future when first captured, but when tasks run late, we leave the plan where it was and compare it to the actual."^^xsd:string
+		;
+	.
+
+gist:plannedEndMinute
+	rdfs:label "planned end minute"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The date and time that something is or was planned to end, with precision of one minute."^^xsd:string ,
+		"EXAMPLE: '2021-06-01T08:32:00-6:00'^^xsd:dateTime"^^xsd:string ,
+		"NOTE: Used for things like meetings and time card entries, where the hour and minute are important. Recommended usage is to zero out the seconds and microseconds to avoid spurious precision.Typically a planned date is in the future when first captured, but when tasks run late, we leave the plan where it was and compare it to the actual."^^xsd:string
+		;
+	.
+
+gist:plannedEndYear
+	rdfs:label "planned end year"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The date that something is or was planned to end, with precision of one year."^^xsd:string ,
+		"EXAMPLE: '2021-01-01T00:00:00-6:00'^^xsd:dateTime"^^xsd:string ,
+		"EXAMPLE: The automobile manufacturer announced that it will stop producing gas-powered vehicles in 2035."^^xsd:string ,
+		"NOTE: Used for anything with a planned end date where precision of one year is sufficient. Typically a planned date is in the future when first captured, but when tasks run late, we leave the plan where it was and compare it to the actual. Recommended usage is to zero out the hours through microseconds to avoid spurious precision. Note that it is not valid to zero out months and days, so arbitrary values must be included."^^xsd:string
+		;
+	.
+
+gist:plannedStartDate
+	rdfs:label "planned start date"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The date that something is or was planned to start, with precision of one day."^^xsd:string ,
+		"EXAMPLE: '2021-06-01T00:00:00-6:00'^^xsd:dateTime"^^xsd:string ,
+		"NOTE: Used for anything with a planned start date, such as when a lease will start, when a configuration becomes available, etc. Typically a planned date is in the future when first captured, but when tasks run late, we leave the plan where it was and compare it to the actual. Recommended usage is to zero out the hours through microseconds to avoid spurious precision."^^xsd:string
+		;
+	.
+
+gist:plannedStartDateTime
+	rdfs:label "planned start date time"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The date and time that something is or was planned to start, with no implied precision."^^xsd:string ,
+		"NOTE: This is an abstraction over the various precisions of planned start time, and is not expected to be asserted directly. Values of predicates with different precisions can be compared since they are all formally xsd:datetimes."^^xsd:string ,
+		"NOTE: This property, unlike gist:actualStartDateTime, does not have a subproperty for microsecond precision, because planned times typically are not expressed at that level of granularity. Typically a planned date is in the future when first captured, but when tasks run late, we leave the plan where it was and compare it to the actual."^^xsd:string
+		;
+	.
+
+gist:plannedStartMinute
+	rdfs:label "planned start minute"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The date and time that something is or was planned to start, with precision of one minute."^^xsd:string ,
+		"EXAMPLE: '2021-06-01T08:32:00-6:00'^^xsd:dateTime"^^xsd:string ,
+		"NOTE: Used for things like meetings and time card entries, where the hour and minute are important. Typically a planned date is in the future when first captured, but when tasks run late, we leave the plan where it was and compare it to the actual. Recommended usage is to zero out the seconds and microseconds to avoid spurious precision."^^xsd:string
+		;
+	.
+
+gist:plannedStartYear
+	rdfs:label "planned start year"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The date that something is or was planned to start, with precision of one year."^^xsd:string ,
+		"EXAMPLE: '2021-01-01T00:00:00-6:00'^^xsd:dateTime"^^xsd:string ,
+		"EXAMPLE: The automobile manufacturer announced that its full line-up will include only electric cars starting in 2035."^^xsd:string ,
+		"NOTE: Used for anything with a planned start date where precision of one year is sufficient. Typically a planned date is in the future when first captured, but when tasks run late, we leave the plan where it was and compare it to the actual. Recommended usage is to zero out the hours through microseconds to avoid spurious precision. Note that it is not valid to zero out months and days, so arbitrary values must be included."^^xsd:string
+		;
+	.
+
+gist:precedes
+	rdfs:label "precedes"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A generic ordering relation indicating that the subject comes before the object."^^xsd:string ,
+		"NOTE: The less-than symbol is often used to represent this relation."^^xsd:string ,
+		"NOTE: This is the transitive version of gist:precedesDirectly."^^xsd:string ,
+		"NOTE: Typically this predicate would be used asymmetricallly and irreflexively, but the ontology does not formalize this."^^xsd:string
+		;
+	.
+
+gist:precedesDirectly
+	rdfs:label "precedes directly"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A generic ordering relation indicating that the subject comes immediately before the object."^^xsd:string ,
+		"NOTE: If two items in an ordered collection share the same position, they both directly precede the following element."^^xsd:string ,
+		"NOTE: It is safest to use this property only when the directness has a semantic correspondence with the world. Only break a direct link by inserting an intermediate item when that change corresponds to a change in the world."^^xsd:string ,
+		"NOTE: Typically this predicate would be used asymmetricallly and irreflexively, but the ontology does not formalize this."^^xsd:string
+		;
+	.
+
+gist:prevents
+	rdfs:label "prevents"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates an intention to behavior that it prohibits."^^xsd:string ,
+		"EXAMPLE: A city ordinance prohibits jaywalking."^^xsd:string
+		;
+	.
+
+gist:providesOrderFor
+	rdfs:label "provides order for"^^xsd:string ;
+	rdfs:comment "DEFINITION: Links a member of an ordered collection to the real-world item it represents in that collection."^^xsd:string ;
+	.
+
+gist:rangeIncludes
+	rdfs:label "range includes"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Relates a property to a class that is an expected type of its values."^^xsd:string ,
+		"EXAMPLE: The range of the property gist:isCategorizedBy includes gist:Category."^^xsd:string ,
+		"NOTE: There may be multiple rangeIncludes assertions on a single property."^^xsd:string ,
+		"NOTE: This property is used to guide the ontology user; like all annotation properties, it does not play a role in inference."^^xsd:string
+		;
+	.
+
+gist:refersTo
+	rdfs:label "refers to"^^xsd:string ;
+	rdfs:comment "DEFINITION: Relates something to another resource that it points to, indicates, or references."^^xsd:string ;
+	.
+
+gist:requires
+	rdfs:label "requires"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The subject needs the object or makes it necessary, mandatory, or compulsory."^^xsd:string ,
+		"EXAMPLE: Humans require air; solar power requires sunshine."^^xsd:string ,
+		"""NOTE: This predicate is defined generally enough to encompass a few different meanings of the English word 'requires':
+
+		1. To need something or to make something necessary.
+		2. To order or demand something, or to order someone to do something, especially because of a rule or law.
+		3. To make it officially necessary for someone to do something.
+
+	Implementations requiring a more specific meaning should define subproperties."""^^xsd:string
+		;
+	.
+
+gist:sequence
+	rdfs:label "sequence"^^xsd:string ;
+	rdfs:comment "DEFINITION: For ordering ordered lists."^^xsd:string ;
+	.
+
+gist:startDateTime
+	rdfs:label "start date time"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The date and time that something starts."^^xsd:string ,
+		"NOTE: This property is neutral along two dimensions: precision (e.g., day, second, millisecond) and actual vs. planned. As such, it will generally not be asserted directly except in special cases (e.g., for time intervals)."^^xsd:string ,
+		"NOTE: Values of predicates with different precisions can be compared since they are all formally xsd:datetimes."^^xsd:string
+		;
+	.
+
+gist:symbol
+	rdfs:label "symbol"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: A symbol for something using only ASCII characters."^^xsd:string ,
+		"EXAMPLE: The ASCII symbol for square meter is m^2."^^xsd:string
+		;
+	.
+
+gist:uniqueText
+	rdfs:label "unique text"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: The unique string value of some content object, to be used when there is no possibility of having more than one value."^^xsd:string ,
+		"EXAMPLE: The unique string for a vehicle identification number."^^xsd:string ,
+		"NOTE: Note that the uniqueness only goes in one direction: a product catalog number might also be an employee ID."^^xsd:string
+		;
+	.
+
+<https://w3id.org/semanticarts/ontology/gistCore>
+	rdfs:label "gist"^^xsd:string ;
+	rdfs:comment "DEFINITION: gist is a minimalist upper ontology created by Semantic Arts."^^xsd:string ;
+	.
+
+<https://w3id.org/semanticarts/ontology/gistMediaTypes>
+	rdfs:label "gist Media Types"^^xsd:string ;
+	rdfs:comment "DEFINITION: Definitions of IANA Media Types."^^xsd:string ;
+	.
+
+<https://w3id.org/semanticarts/ontology/gistPrefixDeclarations>
+	rdfs:label "gist Prefix Declarations"^^xsd:string ;
+	rdfs:comment
+		"DEFINITION: Defines prefix declarations, which pair a prefix with a namespace, used in the gist ontology."^^xsd:string ,
+		"NOTE: These prefixes are provided to support applications such as visualizers. Note that importing this file breaks OWL 2 DL conformance because SHACL is not an OWL ontology."^^xsd:string
+		;
+	.
+
+<https://www.iana.org/assignments/media-types/application/json>
+	rdfs:label "JSON"^^xsd:string ;
+	.
+
+<https://www.iana.org/assignments/media-types/application/ld+json>
+	rdfs:label "JSON-LD"^^xsd:string ;
+	.
+
+<https://www.iana.org/assignments/media-types/application/n-quads>
+	rdfs:label "N-Quads"^^xsd:string ;
+	.
+
+<https://www.iana.org/assignments/media-types/application/n-triples>
+	rdfs:label "N-Triples"^^xsd:string ;
+	.
+
+<https://www.iana.org/assignments/media-types/application/rdf+xml>
+	rdfs:label "RDF/XML"^^xsd:string ;
+	.
+
+<https://www.iana.org/assignments/media-types/application/sparql-results+json>
+	rdfs:label "SPARQL 1.1 Query Results JSON"^^xsd:string ;
+	.
+
+<https://www.iana.org/assignments/media-types/application/sparql-results+xml>
+	rdfs:label "SPARQL 1.1 Query Results XML"^^xsd:string ;
+	.
+
+<https://www.iana.org/assignments/media-types/application/trig>
+	rdfs:label "TriG"^^xsd:string ;
+	.
+
+<https://www.iana.org/assignments/media-types/text/csv>
+	rdfs:label "CSV"^^xsd:string ;
+	.
+
+<https://www.iana.org/assignments/media-types/text/html>
+	rdfs:label "HTML"^^xsd:string ;
+	.
+
+<https://www.iana.org/assignments/media-types/text/plain>
+	rdfs:label "Plain Text"^^xsd:string ;
+	.
+
+<https://www.iana.org/assignments/media-types/text/turtle>
+	rdfs:label "Turtle"^^xsd:string ;
+	.
+

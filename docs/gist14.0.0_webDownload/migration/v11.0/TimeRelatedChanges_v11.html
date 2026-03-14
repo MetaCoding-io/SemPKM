@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.0/css/bootstrap-combined.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: sans-serif;
+        }
+        code, pre {
+            font-family: monospace;
+        }
+        h1 code,
+        h2 code,
+        h3 code,
+        h4 code,
+        h5 code,
+        h6 code {
+            font-size: inherit;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+<h1>Time-Related Changes in gist v11</h1>
+
+<p>Version 11 of gist includes two important changes to how we handle time.  First, we have deleted the <code>gist:TimeInstant</code> class and the object properties that used it.  In their place, we have added the <code>gist:atDateTime</code> data property with a number of sub-properties.  We have found that using data properties for all time-related relationships is both easier and more intuitive, and wanted gist to better support that.</p>
+
+<p>This will be of greatest impact where you are using <code>gist:TimeInstant</code> class instances with <code>gist:Event</code> and <code>gist:TemporalRelation</code> instances, both of which rely on the <code>gist:hasStart</code> and <code>gist:hasEnd</code> properties.</p>
+
+<p>The nature of these changes and the forms your data make take mean it is impossible to provide scripted code for data conversion.  Instead, we offer this guidance to assist you.</p>
+
+<h2>Replacing gist:TimeInstant instances, gist:hasActual, gist:hasPlanned, gist:hasStart, gist:hasEnd</h2>
+
+<p>To accommodate the deletion of the <code>TimeInstant</code> class and its associated object properties, we have added a number of new sub-properties to the <code>gist:atDateTime</code> data property.  The new datatype sub-properties serve two different functions.</p>
+
+<p>First, they allow you to explicitly call out the precision of the object data: date, year, minute, or microsecond.  The selection of precision is your choice.  But note that all the properties take the same <code>xsd:dateTime</code> range.  Any enforcement of your desired data precision will be up to you.</p>
+
+<p>Second, the new sub-properties give you the semantic distinctions between start and end datetimes, and planned vs actual.</p>
+
+<p>When adapting your existing <code>TimeInstant</code> data, there are several decisions you will need to make.</p>
+
+<h3><strong>EXAMPLE</strong></h3>
+
+<p>Say you have the following use of TimeInstant in your extant data.</p>
+
+<p><code>:_x gist:hasPlannedEnd :_ti .</code><br />
+<code>:_ti a gist:DateInstant ;</code><br />
+<code>gist:localDateTime "2022-03-16T01:01:01Z-04:00"^^xsd:dateTime .</code></p>
+
+<p>Let's look at the decisions you will need to make in choosing how to adapt these triples to the new paradigm.</p>
+
+<ol>
+<li><p>The extant instance is in the <code>gist:DateInstant</code> class.  Given the original <code>TimeInstant</code> instance was declared to be a <code>DateInstant</code>, we recommend that you use the <code>gist:plannedEndDate</code> property in your conversion.  But because the object literal includes precision to the minute level, you may choose a different property, depending upon the next decision.</p></li>
+<li><p>Since the object literal includes precision to the minute level, <strong>do you want to retain the precision or drop it?</strong><br />
+If you wish to drop the precision, your will need to change your object literal to <code>"2022-03-16T00:00:00Z-04:00"^^xsd:dateTime</code>.<br />
+If you choose to retain the precision, <strong>do you want the data property to reflect that precision level</strong>? If so, you should choose the <code>gist:plannedEndMinute</code> data property:</p></li>
+</ol>
+
+<p><code>:_x gist:plannedEndMinute "2022-03-16T01:01:01Z-04:00"^^xsd:dateTime .</code></p>
+
+<p>If you don't want the precision in the property name, you should use the <code>gist:plannedEndDate</code> or <code>gist:plannedEndDateTime</code> property:</p>
+
+<p><code>:_x gist:plannedEndDate "2022-03-16T01:01:01Z-04:00"^^xsd:dateTime .</code><br />
+ <code>:_x gist:plannedEndDateTime "2022-03-16T01:01:01Z-04:00"^^xsd:dateTime .</code></p>
+
+<p>In any of these three cases, the object literal is the same.</p>
+
+<ol start="3">
+<li>The extant data includes the time zone offset.  <strong>Do you want to retain the offset or drop it</strong>?
+If you want to drop it, the literal value becomes either <code>"2022-03-16T01:01:01"^^xsd:dateTime</code> or <code>"2022-03-16T00:00:00"^^xsd:dateTime</code>, depending upon the choices you made above.
+If you wish to retain the time zone offset, <strong>do you want to retain it in the literal value or express it as a separate value altogether</strong>?
+If you wish to retain it in the literal, then no change is necessary.  This is our recommended approach.
+If you wish to express it as a separate value, then the literal becomes either <code>"2022-03-16T01:01:01"^^xsd:dateTime</code> or <code>"2022-03-16T00:00:00"^^xsd:dateTime</code>, depending upon the choices you made above.  Then you can assert relationships between the Subject <code>:_x</code> and the appropriate instances of <code>TimeZone</code>.</li>
+</ol>
+
+<h2>Other changes</h2>
+
+<h3>Replacing gist:wasLastModifiedAt and gist:isRecordedAt</h3>
+
+<p>There is no property in gist version 11 corresponding to <code>gist:wasLastModifiedAt</code> or <code>gist:isRecordedAt</code>.  You should create a new data property in your domain, e.g., <code>ex:lastModifiedAtDateTime</code>, <code>ex:recordedAtDateTime</code>.  The conversion guidance given above can then be applied.</p>
+
+<h3>Replacing gist:isSameTimeAs</h3>
+
+<p>If you are using the <code>gist:isSameTimeAs</code> from version 10, there is no corresponding conversion in gist version 11.  However, you can create a new object property in your domain to assert temporal alignment between subjects, e.g., <code>ex:hasSameEndTime</code>.  Say in your extant data you have two <code>TimeInstants</code> with these assertions:</p>
+
+<p><code>:_x gist:isSameTimeAs :y</code><br />
+<code>:_x gist:hasPlannedEnd :_tiX .</code><br />
+<code>:_tiX a gist:DateInstant ;</code><br />
+<code>gist:localDateTime "2022-03-16T01:01:01Z-04:00"^^xsd:dateTime .</code><br />
+<code>:_y gist:hasPlannedEnd :_tiY .</code><br />
+<code>:_tiY a gist:DateInstant ;</code><br />
+<code>gist:universalDateTime "2022-03-16T05:01:01Z+00:00"^^xsd:dateTime .</code>  </p>
+
+<p>After following the `TimeInstant replacement instructions, you might have these two assertions:</p>
+
+<p><code>:_x gist:actualEndMinute "2022-03-16T01:01:01Z-04:00"^^xsd:dateTime .</code><br />
+ <code>:_y gist:actualEndMinute "2022-03-16T05:01:01Z+00:00"^^xsd:dateTime .</code></p>
+
+<p>Now you can apply your new object property:</p>
+
+<p><code>:_x ex:hasSameEndTime :_y .</code></p>
+
+<p><strong>Note:</strong> this assumes that your original data were correct, and that the literal values associated with the <code>TimeInstant</code>s were, in fact, the same.</p>
+
+<h3>Replacing gist:localDateTime, gist:localTime</h3>
+
+<p>There is no corresponding direct conversion for these properties. If you are using either of them, the literals almost certainly already use the timezone offset.  So this becomes just another exercise in replacing the TimeInstant, described above.</p>
+
+<h3>Replacing gist:universalDateTime, gist:universalTime</h3>
+
+<p>There is no corresponding direct conversion for these properties. If you are using either of them, you need to determine if your literals include the zero-value time offset <code>Z+00:00</code> or have no offset at all.  In the former case, you can proceed with the instructions for replacing the TimeInstant.  In the latter case, you will need to add the <code>Z+00:00</code> offset to your literals as part of you conversion process, and then follow the TimeInstant replacement instructions.</p>
+
+<h3>Replacing gist:universalDateTime, gist:universalDate</h3>
+
+<p>If the International Date Line figures into your local-vs-universal date calculations, be sure to take this into consideration when choosing a replacement data property from version 11.</p>
+
+</div>
+</body>
+</html>

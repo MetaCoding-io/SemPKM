@@ -1,0 +1,149 @@
+[
+	{
+		"@id" : "https://w3id.org/semanticarts/ontology/gistPrefixDeclarations",
+		"@type" : "owl:Ontology",
+		"owl:versionIRI" : { "@id" : "https://w3id.org/semanticarts/ontology/gistPrefixDeclarations14.0.0" },
+		"skos:definition" : {
+			"@type" : "xsd:string",
+			"@value" : "Defines prefix declarations, which pair a prefix with a namespace, used in the gist ontology."
+		},
+		"skos:prefLabel" : {
+			"@type" : "xsd:string",
+			"@value" : "gist Prefix Declarations"
+		},
+		"skos:scopeNote" : {
+			"@type" : "xsd:string",
+			"@value" : "These prefixes are provided to support applications such as visualizers. Note that importing this file breaks OWL 2 DL conformance because SHACL is not an OWL ontology."
+		},
+		"gist:license" : {
+			"@type" : "xsd:anyURI",
+			"@value" : "https://creativecommons.org/licenses/by/4.0/"
+		},
+		"@context" : {
+			
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdf" : "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+			"owl" : "http://www.w3.org/2002/07/owl#",
+			"skos" : "http://www.w3.org/2004/02/skos/core#"
+		}
+	},
+	{
+		"@id" : "gist:_PrefixDeclaration_gist",
+		"@type" : "sh:PrefixDeclaration",
+		"sh:namespace" : {
+			"@type" : "xsd:anyURI",
+			"@value" : "https://w3id.org/semanticarts/ns/ontology/gist/"
+		},
+		"sh:prefix" : {
+			"@type" : "xsd:string",
+			"@value" : "gist"
+		},
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdf" : "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+			"sh" : "http://www.w3.org/ns/shacl#"
+		}
+	},
+	{
+		"@id" : "gist:_PrefixDeclaration_owl",
+		"@type" : "sh:PrefixDeclaration",
+		"sh:namespace" : {
+			"@type" : "xsd:anyURI",
+			"@value" : "http://www.w3.org/2002/07/owl#"
+		},
+		"sh:prefix" : {
+			"@type" : "xsd:string",
+			"@value" : "owl"
+		},
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdf" : "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+			"sh" : "http://www.w3.org/ns/shacl#"
+		}
+	},
+	{
+		"@id" : "gist:_PrefixDeclaration_rdf",
+		"@type" : "sh:PrefixDeclaration",
+		"sh:namespace" : {
+			"@type" : "xsd:anyURI",
+			"@value" : "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+		},
+		"sh:prefix" : {
+			"@type" : "xsd:string",
+			"@value" : "rdf"
+		},
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdf" : "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+			"sh" : "http://www.w3.org/ns/shacl#"
+		}
+	},
+	{
+		"@id" : "gist:_PrefixDeclaration_rdfs",
+		"@type" : "sh:PrefixDeclaration",
+		"sh:namespace" : {
+			"@type" : "xsd:anyURI",
+			"@value" : "http://www.w3.org/2000/01/rdf-schema#"
+		},
+		"sh:prefix" : {
+			"@type" : "xsd:string",
+			"@value" : "rdfs"
+		},
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdf" : "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+			"sh" : "http://www.w3.org/ns/shacl#"
+		}
+	},
+	{
+		"@id" : "gist:_PrefixDeclaration_sh",
+		"@type" : "sh:PrefixDeclaration",
+		"sh:namespace" : {
+			"@type" : "xsd:anyURI",
+			"@value" : "http://www.w3.org/ns/shacl#"
+		},
+		"sh:prefix" : {
+			"@type" : "xsd:string",
+			"@value" : "sh"
+		},
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdf" : "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+			"sh" : "http://www.w3.org/ns/shacl#"
+		}
+	},
+	{
+		"@id" : "gist:_PrefixDeclaration_skos",
+		"@type" : "sh:PrefixDeclaration",
+		"sh:namespace" : {
+			"@type" : "xsd:anyURI",
+			"@value" : "http://www.w3.org/2004/02/skos/core#"
+		},
+		"sh:prefix" : {
+			"@type" : "xsd:string",
+			"@value" : "skos"
+		},
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdf" : "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+			"sh" : "http://www.w3.org/ns/shacl#"
+		}
+	},
+	{
+		"@id" : "gist:_PrefixDeclaration_xsd",
+		"@type" : "sh:PrefixDeclaration",
+		"sh:namespace" : {
+			"@type" : "xsd:anyURI",
+			"@value" : "http://www.w3.org/2001/XMLSchema#"
+		},
+		"sh:prefix" : {
+			"@type" : "xsd:string",
+			"@value" : "xsd"
+		},
+		"@context" : {
+			"gist" : "https://w3id.org/semanticarts/ns/ontology/gist/",
+			"rdf" : "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+			"sh" : "http://www.w3.org/ns/shacl#"
+		}
+	}
+]

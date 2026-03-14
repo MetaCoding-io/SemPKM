@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE rdf:RDF [
+	<!ENTITY gist "https://w3id.org/semanticarts/ns/ontology/gist/">
+	<!ENTITY media-app "https://www.iana.org/assignments/media-types/application/">
+	<!ENTITY media-txt "https://www.iana.org/assignments/media-types/text/">
+	<!ENTITY owl "http://www.w3.org/2002/07/owl#">
+	<!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+	<!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#">
+	<!ENTITY skos "http://www.w3.org/2004/02/skos/core#">
+	<!ENTITY xsd "http://www.w3.org/2001/XMLSchema#">
+]>
+<rdf:RDF
+	xmlns:gist="https://w3id.org/semanticarts/ns/ontology/gist/"
+	xmlns:media-app="https://www.iana.org/assignments/media-types/application/"
+	xmlns:media-txt="https://www.iana.org/assignments/media-types/text/"
+	xmlns:owl="http://www.w3.org/2002/07/owl#"
+	xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+	xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+	xmlns:skos="http://www.w3.org/2004/02/skos/core#"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema#">
+	
+	<owl:Ontology rdf:about="https://w3id.org/semanticarts/ontology/gistMediaTypes">
+		<owl:imports rdf:resource="https://w3id.org/semanticarts/ontology/gistCore14.0.0"/>
+		<owl:versionIRI rdf:resource="https://w3id.org/semanticarts/ontology/gistMediaTypes14.0.0"/>
+		<skos:definition rdf:datatype="&xsd;string">Definitions of IANA Media Types.</skos:definition>
+		<skos:prefLabel rdf:datatype="&xsd;string">gist Media Types</skos:prefLabel>
+		<gist:license rdf:datatype="&xsd;anyURI">https://creativecommons.org/licenses/by/4.0/</gist:license>
+	</owl:Ontology>
+	
+	<gist:MediaType rdf:about="&media-app;json">
+		<skos:prefLabel rdf:datatype="&xsd;string">JSON</skos:prefLabel>
+		<gist:uniqueText rdf:datatype="&xsd;string">application/json</gist:uniqueText>
+	</gist:MediaType>
+	
+	<gist:MediaType rdf:about="https://www.iana.org/assignments/media-types/application/ld+json">
+		<skos:prefLabel rdf:datatype="&xsd;string">JSON-LD</skos:prefLabel>
+		<gist:uniqueText rdf:datatype="&xsd;string">application/ld+json</gist:uniqueText>
+	</gist:MediaType>
+	
+	<gist:MediaType rdf:about="&media-app;n-quads">
+		<skos:prefLabel rdf:datatype="&xsd;string">N-Quads</skos:prefLabel>
+		<gist:uniqueText rdf:datatype="&xsd;string">application/n-quads</gist:uniqueText>
+	</gist:MediaType>
+	
+	<gist:MediaType rdf:about="&media-app;n-triples">
+		<skos:prefLabel rdf:datatype="&xsd;string">N-Triples</skos:prefLabel>
+		<gist:uniqueText rdf:datatype="&xsd;string">application/n-triples</gist:uniqueText>
+	</gist:MediaType>
+	
+	<gist:MediaType rdf:about="https://www.iana.org/assignments/media-types/application/rdf+xml">
+		<skos:prefLabel rdf:datatype="&xsd;string">RDF/XML</skos:prefLabel>
+		<gist:uniqueText rdf:datatype="&xsd;string">application/rdf+xml</gist:uniqueText>
+	</gist:MediaType>
+	
+	<gist:MediaType rdf:about="https://www.iana.org/assignments/media-types/application/sparql-results+json">
+		<skos:prefLabel rdf:datatype="&xsd;string">SPARQL 1.1 Query Results JSON</skos:prefLabel>
+		<gist:uniqueText rdf:datatype="&xsd;string">application/sparql-results+json</gist:uniqueText>
+	</gist:MediaType>
+	
+	<gist:MediaType rdf:about="https://www.iana.org/assignments/media-types/application/sparql-results+xml">
+		<skos:prefLabel rdf:datatype="&xsd;string">SPARQL 1.1 Query Results XML</skos:prefLabel>
+		<gist:uniqueText rdf:datatype="&xsd;string">application/sparql-results+xml</gist:uniqueText>
+	</gist:MediaType>
+	
+	<gist:MediaType rdf:about="&media-app;trig">
+		<skos:prefLabel rdf:datatype="&xsd;string">TriG</skos:prefLabel>
+		<gist:uniqueText rdf:datatype="&xsd;string">application/trig</gist:uniqueText>
+	</gist:MediaType>
+	
+	<gist:MediaType rdf:about="&media-txt;csv">
+		<skos:prefLabel rdf:datatype="&xsd;string">CSV</skos:prefLabel>
+		<gist:uniqueText rdf:datatype="&xsd;string">text/csv</gist:uniqueText>
+	</gist:MediaType>
+	
+	<gist:MediaType rdf:about="&media-txt;html">
+		<skos:prefLabel rdf:datatype="&xsd;string">HTML</skos:prefLabel>
+		<gist:uniqueText rdf:datatype="&xsd;string">text/html</gist:uniqueText>
+	</gist:MediaType>
+	
+	<gist:MediaType rdf:about="&media-txt;plain">
+		<skos:prefLabel rdf:datatype="&xsd;string">Plain Text</skos:prefLabel>
+		<gist:uniqueText rdf:datatype="&xsd;string">text/plain</gist:uniqueText>
+	</gist:MediaType>
+	
+	<gist:MediaType rdf:about="&media-txt;turtle">
+		<skos:prefLabel rdf:datatype="&xsd;string">Turtle</skos:prefLabel>
+		<gist:uniqueText rdf:datatype="&xsd;string">text/turtle</gist:uniqueText>
+	</gist:MediaType>
+
+</rdf:RDF>
