@@ -19,9 +19,11 @@ from app.db.session import get_db_session
 from app.dependencies import (
     get_label_service,
     get_model_service,
+    get_ontology_service,
     get_triplestore_client,
     get_webhook_service,
 )
+from app.ontology.service import OntologyService
 from app.inference.entailments import ENTAILMENT_TYPES, MANIFEST_KEY_TO_TYPE, TYPE_TO_MANIFEST_KEY
 from app.services.labels import LabelService
 from app.services.models import ModelService
@@ -59,10 +61,21 @@ async def admin_models(
     request: Request,
     user: User = Depends(require_role("owner")),
     model_service: ModelService = Depends(get_model_service),
+    ontology_service: OntologyService = Depends(get_ontology_service),
 ):
     """Render model management page with table of installed models."""
     models = await model_service.list_models()
-    context = {"request": request, "models": models, "user": user}
+    try:
+        gist_summary = await ontology_service.get_gist_summary()
+    except Exception:
+        logger.warning("Failed to load gist summary for admin page", exc_info=True)
+        gist_summary = None
+    context = {
+        "request": request,
+        "models": models,
+        "user": user,
+        "gist": gist_summary,
+    }
     if _is_htmx_request(request):
         return templates_response(request, "admin/models.html", context, block_name="content")
     return templates_response(request, "admin/models.html", context)

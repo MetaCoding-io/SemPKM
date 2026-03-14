@@ -7,6 +7,34 @@
     <h1>Mental Models</h1>
     <p class="lead">Install and manage Mental Models that define your knowledge structure.</p>
 
+    {# Upper Ontology section — gist #}
+    {% if gist %}
+    <div class="upper-ontology-section">
+        <h3 class="section-label">Upper Ontology</h3>
+        <div class="upper-ontology-card">
+            <div class="upper-ontology-header">
+                <span class="upper-ontology-icon">◆</span>
+                <div>
+                    <h4 class="upper-ontology-name">{{ gist.label }}</h4>
+                    <span class="upper-ontology-meta">v{{ gist.version }} · by Semantic Arts · <a href="https://www.semanticarts.com/gist/" target="_blank" rel="noopener">semanticarts.com</a></span>
+                </div>
+            </div>
+            <p class="upper-ontology-desc">{{ gist.description }}</p>
+            <div class="upper-ontology-stats">
+                <span class="upper-ontology-stat"><strong>{{ gist.class_count }}</strong> classes</span>
+                <span class="upper-ontology-stat"><strong>{{ gist.object_property_count }}</strong> object properties</span>
+                <span class="upper-ontology-stat"><strong>{{ gist.datatype_property_count }}</strong> datatype properties</span>
+            </div>
+            <p class="upper-ontology-note">
+                The upper ontology provides a shared foundation of general-purpose concepts
+                that all Mental Models can extend. It is loaded automatically and cannot be removed.
+            </p>
+        </div>
+    </div>
+    {% endif %}
+
+    <h3 class="section-label" style="margin-top: 24px;">Installed Models</h3>
+
     <form hx-post="/admin/models/install" hx-target="#model-table" hx-swap="outerHTML"
           hx-indicator="#install-spinner"
           style="display: flex; align-items: end; gap: 12px; margin-bottom: 1.5rem;">
