@@ -41,42 +41,42 @@
 
 ## Tasks
 
-- [ ] **T01: Backend — create_property service method** `est:30m`
+- [x] **T01: Backend — create_property service method** `est:30m`
   - Why: Need the core logic for generating OWL property triples (ObjectProperty or DatatypeProperty) with domain, range, label, description
   - Files: `backend/app/ontology/service.py`
   - Do: Add `create_property(name, prop_type, domain_iri, range_iri, description)` method. Mint property IRI with UUID. Generate triples: `a owl:ObjectProperty/DatatypeProperty`, `rdfs:label`, `rdfs:domain`, `rdfs:range`, `rdfs:comment`. INSERT DATA into user-types graph. Add `_mint_property_iri()` and `_generate_property_triples()` helpers.
   - Verify: `pytest backend/tests/test_ontology_service.py -v`
   - Done when: Unit test creates a property and verifies triple generation
 
-- [ ] **T02: Backend — edit_class service method** `est:45m`
+- [x] **T02: Backend — edit_class service method** `est:45m`
   - Why: Need to update an existing class's metadata and SHACL shape. Strategy: delete all existing triples for the class + shape, then re-insert with new values (full replacement).
   - Files: `backend/app/ontology/service.py`
   - Do: Add `edit_class(class_iri, name, parent_iri, properties, icon_name, icon_color, description, example)`. Derive shape IRI from class IRI. Delete old class + shape triples (reuse existing delete helpers). Re-insert new triples via `_generate_class_triples` + `_generate_shape_triples`. Add `get_class_for_edit(class_iri)` that queries current state for pre-populating the edit form (label, parent, icon, color, description, example, shape properties).
   - Verify: `pytest backend/tests/test_ontology_service.py -v`
   - Done when: Unit test round-trips create → get_for_edit → edit → get_for_edit and verifies changes
 
-- [ ] **T03: Routes — create-property and edit-class endpoints** `est:20m`
+- [x] **T03: Routes — create-property and edit-class endpoints** `est:20m`
   - Why: Wire the service methods to HTTP endpoints for the frontend
   - Files: `backend/app/ontology/router.py`
   - Do: `POST /browser/ontology/create-property` accepting Form params (name, prop_type, domain_iri, range_iri, description). `GET /browser/ontology/edit-class-form?class_iri=...` returning pre-populated edit form. `POST /browser/ontology/edit-class` accepting Form params. Both return htmx-compatible HTML responses.
   - Verify: Restart API container, check routes registered
   - Done when: Both endpoints respond (can test via curl or browser)
 
-- [ ] **T04: Frontend — create property modal** `est:30m`
+- [x] **T04: Frontend — create property modal** `est:30m`
   - Why: Users need a form to create properties from the RBox tab
   - Files: `backend/app/templates/browser/ontology/create_property_form.html`, `backend/app/templates/browser/ontology/rbox_legend.html`, `frontend/static/css/workspace.css`
   - Do: Add "+ Create Property" button to `rbox_legend.html` (in the section header area). Create `create_property_form.html` modal (reuse `.ccf-overlay`/`.ccf-modal` pattern from create class). Fields: name, type (radio: Object Property / Datatype Property), domain (class autocomplete reusing tbox-search), range (class autocomplete for object props, datatype dropdown for datatype props), description textarea. On submit, htmx POST to create-property. Success: close modal, trigger RBox reload.
   - Verify: Browser — open RBox tab, click "+", fill form, submit
   - Done when: Property appears in RBox table after creation
 
-- [ ] **T05: Frontend — edit class modal** `est:30m`
+- [x] **T05: Frontend — edit class modal** `est:30m`
   - Why: Users need to edit existing custom classes
   - Files: `backend/app/templates/browser/ontology/edit_class_form.html`, `backend/app/templates/browser/ontology/ontology_page.html`, `frontend/static/js/workspace.js`
   - Do: Add edit action (pencil icon) on TBox nodes with `data-source="user"`. Click triggers htmx GET to `/browser/ontology/edit-class-form?class_iri=...` which loads into the same `.ccf-overlay` modal. Form is identical to create-class but pre-populated. On submit, POST to edit-class. Success: close modal, refresh TBox tree + detail panel.
   - Verify: Browser — create a test class, click edit icon, change name/icon, submit, verify changes
   - Done when: Edited class shows new name and properties in TBox
 
-- [ ] **T06: Unit tests** `est:20m`
+- [x] **T06: Unit tests** `est:20m`
   - Why: Cover new service methods
   - Files: `backend/tests/test_ontology_service.py`
   - Do: Add tests for `_generate_property_triples()` (object prop, datatype prop, with/without domain/range/description), `_mint_property_iri()`. Add tests for edit class triple generation (verify old triples removed pattern). Test `get_class_for_edit` response shape.

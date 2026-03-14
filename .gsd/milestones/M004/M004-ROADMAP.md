@@ -44,7 +44,7 @@ This milestone is complete only when all are true:
 
 ## Slices
 
-- [ ] **S01: Property Creation + Class Edit** `risk:high` `depends:[]`
+- [x] **S01: Property Creation + Class Edit** `risk:high` `depends:[]`
   > After this: user creates a property from RBox tab and edits an existing class (rename, change icon, add/remove properties) — both reflected live in Ontology Viewer
 
 - [ ] **S02: Delete + Instance Warnings** `risk:medium` `depends:[S01]`

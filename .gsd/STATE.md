@@ -1,7 +1,7 @@
 # GSD State
 
 **Active Milestone:** M004 — Ontology & Type System Completion
-**Active Slice:** None (roadmap planned, ready for S01)
+**Active Slice:** S01 complete, ready for S02
 **Phase:** planned
 **Requirements Status:** 0 active · 81 validated · 4 deferred · 0 out of scope
 
