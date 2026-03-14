@@ -180,8 +180,8 @@
                     </div>
 
                     <div class="type-analytics-body">
-                        <!-- Left: Stats -->
-                        <div class="analytics-left">
+                        <!-- Left column: instance stats + growth -->
+                        <div class="analytics-col">
                             <div class="analytics-stat-hero">
                                 <span class="analytics-big-num" style="color: {{ td.color }}">{{ td.instance_count }}</span>
                                 <span class="analytics-big-label">Total {{ td.label }}s</span>
@@ -199,7 +199,6 @@
                                 <span class="analytics-stat-name">Views</span>
                                 <span class="analytics-stat-val">{{ td.views | length }}</span>
                             </div>
-
                             <div class="analytics-stat-row">
                                 <span class="analytics-stat-name">Avg. connections</span>
                                 <span class="analytics-stat-val">{% if td.instance_count > 0 %}{{ "%.1f"|format(td.avg_connections) }}{% else %}&mdash;{% endif %}</span>
@@ -208,11 +207,25 @@
                                 <span class="analytics-stat-name">Last modified</span>
                                 <span class="analytics-stat-val">{% if td.last_modified %}{{ td.last_modified[:10] }}{% else %}&mdash;{% endif %}</span>
                             </div>
+
+                            {% if td.instance_count > 0 %}
+                            <div class="chart-section">
+                                <h4 class="chart-heading">Growth (last 8 weeks)</h4>
+                                <div class="chart-container chart-container-sparkline">
+                                    <canvas id="chart-growth-{{ td.local_name }}" data-growth='{{ td.growth_trend | tojson }}'></canvas>
+                                </div>
+                            </div>
+                            {% endif %}
                         </div>
 
-                        <!-- Right: Top nodes by incoming links -->
-                        <div class="analytics-right">
-                            <h4>Most Connected</h4>
+                        <!-- Right column: link stats + distribution -->
+                        <div class="analytics-col">
+                            <div class="analytics-stat-hero">
+                                <span class="analytics-big-num" style="color: {{ td.color }}">{{ td.total_links }}</span>
+                                <span class="analytics-big-label">Total Links</span>
+                            </div>
+
+                            <h4 class="analytics-col-heading">Most Connected</h4>
                             {% if td.top_nodes %}
                             <ol class="top-nodes-list">
                                 {% for node in td.top_nodes %}
@@ -230,18 +243,10 @@
                             {% endif %}
 
                             {% if td.instance_count > 0 %}
-                            <div class="charts-row">
-                                <div class="chart-section">
-                                    <h4 class="chart-heading">Growth (last 8 weeks)</h4>
-                                    <div class="chart-container chart-container-sparkline">
-                                        <canvas id="chart-growth-{{ td.local_name }}" data-growth='{{ td.growth_trend | tojson }}'></canvas>
-                                    </div>
-                                </div>
-                                <div class="chart-section">
-                                    <h4 class="chart-heading">Link Distribution</h4>
-                                    <div class="chart-container chart-container-bar">
-                                        <canvas id="chart-links-{{ td.local_name }}" data-links='{{ td.link_distribution | tojson }}'></canvas>
-                                    </div>
+                            <div class="chart-section">
+                                <h4 class="chart-heading">Link Distribution</h4>
+                                <div class="chart-container chart-container-bar">
+                                    <canvas id="chart-links-{{ td.local_name }}" data-links='{{ td.link_distribution | tojson }}'></canvas>
                                 </div>
                             </div>
                             {% else %}
