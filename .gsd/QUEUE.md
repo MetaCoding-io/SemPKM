@@ -4,6 +4,29 @@ Append-only log of queued future milestones and ideas.
 
 ---
 
+## Rethink Views: Generic Views with Query Binding
+
+**Queued:** 2026-03-14  
+**Status:** Idea  
+
+The current VIEWS section is cluttered with per-type duplicates (e.g., "Concept Graph", "Concept Card", "Note Card", "Project Card"). These should be **generic view types** — Graph View, Card View, Table View — that work across all objects by default and can optionally be scoped via saved queries or type filters.
+
+**Problems with current approach:**
+- VIEWS section is crowded with near-duplicates (one per type × view mode)
+- Adding a new type multiplies the view count
+- Users see "Concept Card" and "Note Card" as separate things when they're the same view with a type filter
+
+**Proposed model:**
+- **Generic views**: Graph, Card, Table (and future: Timeline, Kanban, etc.) — each is a single entry
+- **Default scope**: All objects (no type filter)
+- **Optional binding**: Connect a view to a saved SPARQL query for custom scoping
+- **In-view filtering**: Type filter dropdown/pills within the view itself (like faceted search)
+- **Saved view instances**: Users can save a configured view (e.g., "My Project Cards" = Card view + Project type filter + sort by modified) as a named entry under MY VIEWS
+
+This connects to the VFS v2 saved query scoping work — views and VFS mounts could share the same query binding mechanism.
+
+---
+
 ## Workspace UX Enhancements
 
 **Queued:** 2026-03-12  
