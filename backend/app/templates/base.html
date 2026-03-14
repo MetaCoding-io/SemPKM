@@ -96,6 +96,36 @@
         // Update active state after htmx navigation
         document.body.addEventListener('htmx:pushedIntoHistory', updateActiveNav);
         document.body.addEventListener('htmx:historyRestore', updateActiveNav);
+
+        // Global htmx error handler — surface 403/401 as user-visible toasts
+        document.body.addEventListener('htmx:responseError', function(e) {
+            var status = e.detail.xhr ? e.detail.xhr.status : 0;
+            var msg = '';
+            if (status === 403) {
+                msg = 'Access denied — you don\u2019t have permission for this page.';
+            } else if (status === 401) {
+                msg = 'Session expired — please log in again.';
+            } else if (status >= 500) {
+                msg = 'Server error (' + status + ') — please try again later.';
+            } else if (status >= 400) {
+                msg = 'Request failed (' + status + ').';
+            }
+            if (msg) {
+                _showGlobalToast(msg, status >= 500 ? 'error' : 'warning');
+            }
+        });
+
+        function _showGlobalToast(message, type) {
+            var toast = document.createElement('div');
+            toast.className = 'sempkm-toast sempkm-toast--' + (type || 'info');
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            requestAnimationFrame(function() { toast.classList.add('sempkm-toast--visible'); });
+            setTimeout(function() {
+                toast.classList.remove('sempkm-toast--visible');
+                setTimeout(function() { toast.remove(); }, 300);
+            }, 4000);
+        }
     </script>
     <script src="/js/cleanup.js"></script>
     <script src="/js/markdown-render.js"></script>
