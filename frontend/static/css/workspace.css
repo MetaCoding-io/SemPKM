@@ -2540,10 +2540,7 @@ tr:hover .rbox-edit-btn {
    SHACL Form Styles
    ============================================ */
 
-.object-form-container {
-    max-width: 640px;
-    padding: 24px 32px;
-}
+/* Form container padding lives in forms.css */
 
 .form-title {
     font-size: 1.1rem;
