@@ -53,7 +53,7 @@ This milestone is complete only when all are true:
 - [x] **S03: Custom Section on Mental Models + Property Edit** `risk:low` `depends:[S01,S02]`
   > After this: Mental Models page shows "Custom" section listing all user-created types and properties with edit/delete actions inline; user can edit a property's name, domain, and range from both the Custom section and the RBox tab
 
-- [ ] **S04: Create-New-Object Tab Fix** `risk:low` `depends:[]`
+- [x] **S04: Create-New-Object Tab Fix** `risk:low` `depends:[]`
   > After this: clicking "New Object" always opens a fresh dockview tab, preserving the user's current view
 
 - [ ] **S05: Docs & Test Coverage** `risk:low` `depends:[S01,S02,S03,S04]`

@@ -1012,6 +1012,9 @@
   var selectedIris = new Set();
   var lastClickedLeaf = null;
 
+  // --- New-Object Temp Panel Tracker ---
+  var _newObjectPanelId = null;
+
   function handleTreeLeafClick(e, iri, label) {
     if (e.shiftKey && lastClickedLeaf) {
       e.preventDefault();
@@ -1629,11 +1632,11 @@
   }
 
   function showTypePicker() {
-    var editorArea = window.getActiveEditorArea ? window.getActiveEditorArea() : null;
+    var editorArea = null;
 
-    // If no active panel (empty workspace), create one so the type picker loads
-    // into a .group-editor-area (required by hx-target="closest .group-editor-area")
-    if (!editorArea && window._dockview) {
+    // Always create a fresh dockview panel so the type picker never
+    // overwrites the content of an existing tab.
+    if (window._dockview) {
       var panelId = '__new-object-' + Date.now();
       if (!window._tabMeta) window._tabMeta = {};
       window._tabMeta[panelId] = { label: 'New Object', dirty: false };
@@ -1643,9 +1646,12 @@
         params: { isView: false, isSpecial: false },
         title: 'New Object'
       });
+      _newObjectPanelId = panelId;
+      console.debug('[workspace] showTypePicker: created temp panel', panelId);
       editorArea = window.getActiveEditorArea ? window.getActiveEditorArea() : null;
     }
 
+    // Fallback for non-dockview environments
     if (!editorArea) editorArea = document.getElementById('editor-area-group-1');
 
     if (typeof htmx !== 'undefined' && editorArea) {
@@ -2274,6 +2280,11 @@
       var label = detail.label || detail.iri;
       setTimeout(function () {
         openTab(detail.iri, label, 'edit');
+        // Clean up the temporary "New Object" panel now that the real tab is open
+        if (_newObjectPanelId) {
+          closeTab(_newObjectPanelId);
+          _newObjectPanelId = null;
+        }
       }, 1500);
     }
   });
