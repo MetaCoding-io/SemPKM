@@ -7,7 +7,7 @@
 {% if classes %}
 {% for cls in classes %}
 {% set safe_id = cls.iri | replace(':', '_') | replace('/', '_') | replace('#', '_') | replace('.', '_') %}
-<div class="tree-node{% if not cls.has_subclasses %} tree-leaf{% endif %}" data-testid="tbox-node" data-iri="{{ cls.iri }}"
+<div class="tbox-node{% if cls.has_subclasses %} tbox-node--parent{% endif %}" data-testid="tbox-node" data-iri="{{ cls.iri }}"
      {% if cls.has_subclasses %}
      hx-get="/browser/ontology/tbox/children?parent={{ cls.iri | urlencode }}"
      hx-trigger="click once"
@@ -15,11 +15,11 @@
      hx-swap="innerHTML"
      {% endif %}>
     {% if cls.has_subclasses %}
-    <span class="tree-toggle">&#9656;</span>
+    <span class="tbox-toggle">&#9656;</span>
     {% else %}
-    <span class="tree-toggle tree-toggle-leaf">&#8226;</span>
+    <span class="tbox-toggle tbox-toggle--leaf">·</span>
     {% endif %}
-    <span class="tbox-icon">&#9670;</span>
+    <span class="tbox-icon">◆</span>
     <span class="tree-label tbox-label" title="{{ cls.iri }}">{{ cls.label }}</span>
     {% set ns = cls.iri %}
     {% if 'gist/' in ns %}
@@ -40,7 +40,9 @@
     </button>
     {% endif %}
 </div>
-<div id="tbox-children-{{ safe_id }}" class="tree-children"></div>
+{% if cls.has_subclasses %}
+<div id="tbox-children-{{ safe_id }}" class="tbox-children"></div>
+{% endif %}
 {% endfor %}
 {% else %}
 <div class="tree-empty tree-empty-leaf">No subclasses</div>
