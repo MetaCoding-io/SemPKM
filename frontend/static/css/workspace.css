@@ -578,6 +578,47 @@
     color: var(--color-text);
 }
 
+.tbox-detail-alt {
+    margin: 6px 0 0;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    font-style: italic;
+}
+
+.tbox-detail-tag {
+    font-weight: 600;
+    font-style: normal;
+}
+
+.tbox-detail-annotations {
+    margin-top: 10px;
+}
+
+.tbox-detail-annot-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted);
+    margin-bottom: 4px;
+}
+
+.tbox-detail-annot-list {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: var(--color-text);
+}
+
+.tbox-detail-annot-list li {
+    margin-bottom: 4px;
+}
+
+.tbox-detail-annot-list li:last-child {
+    margin-bottom: 0;
+}
+
 .tbox-detail-table {
     width: 100%;
     font-size: 0.85rem;

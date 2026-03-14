@@ -140,61 +140,119 @@ class OntologyService:
         result = await self._client.query(sparql)
         return result.get("boolean", False)
 
-    async def ensure_gist_loaded(self, gist_path: Path) -> None:
+    async def _are_gist_annotations_loaded(self) -> bool:
+        """Check whether gist RDFS annotations have been loaded.
+
+        Tests for the presence of an rdfs:comment on gist:Account,
+        which only exists in the annotations file (not gistCore).
+        """
+        sparql = (
+            f"ASK {{ GRAPH <{GIST_GRAPH}> {{ "
+            f"<{GIST_NS}Account> <http://www.w3.org/2000/01/rdf-schema#comment> ?c "
+            f"}} }}"
+        )
+        result = await self._client.query(sparql)
+        return result.get("boolean", False)
+
+    async def _load_ttl_into_gist_graph(
+        self, ttl_path: Path, label: str
+    ) -> int:
+        """Parse a Turtle file and insert its triples into the gist graph.
+
+        Returns the number of triples inserted.
+        """
+        g = Graph()
+        g.parse(ttl_path, format="turtle")
+        all_triples = list(g)
+        triple_count = len(all_triples)
+
+        batches = _split_triples_into_batches(all_triples)
+        txn_url = await self._client.begin_transaction()
+        try:
+            for i, batch in enumerate(batches):
+                sparql = _build_insert_data_sparql(GIST_GRAPH, batch)
+                await self._client.transaction_update(txn_url, sparql)
+                logger.debug(
+                    "Inserted %s batch %d/%d (%d triples)",
+                    label,
+                    i + 1,
+                    len(batches),
+                    len(batch),
+                )
+            await self._client.commit_transaction(txn_url)
+        except Exception:
+            await self._client.rollback_transaction(txn_url)
+            raise
+
+        return triple_count
+
+    async def ensure_gist_loaded(
+        self,
+        gist_path: Path,
+        *,
+        annotations_path: Path | None = None,
+    ) -> None:
         """Load gist ontology into the triplestore if not already present.
 
         Parses the Turtle file with rdflib, splits triples into batches of
         ≤500, and executes each batch as INSERT DATA within a transaction.
         Skips loading if the version check ASK query returns true.
 
+        If *annotations_path* is provided and the annotations haven't been
+        loaded yet, loads them into the same gist graph. This is idempotent
+        — safe to call on every startup.
+
         Args:
             gist_path: Path to the gistCore Turtle file.
+            annotations_path: Optional path to gistRdfsAnnotations Turtle file.
         """
-        if await self.is_gist_loaded():
-            logger.info("gist already loaded, skipping")
-            return
-
-        if not gist_path.exists():
-            logger.error("gist ontology file not found: %s", gist_path)
-            raise FileNotFoundError(f"gist ontology file not found: {gist_path}")
-
         start = time.monotonic()
-        try:
-            # Parse gist Turtle with rdflib
-            g = Graph()
-            g.parse(gist_path, format="turtle")
-            all_triples = list(g)
-            triple_count = len(all_triples)
+        core_loaded = await self.is_gist_loaded()
 
-            # Split into batches
-            batches = _split_triples_into_batches(all_triples)
-
-            # Execute batches within a transaction
-            txn_url = await self._client.begin_transaction()
+        if core_loaded:
+            logger.info("gist core already loaded, skipping")
+        else:
+            if not gist_path.exists():
+                logger.error("gist ontology file not found: %s", gist_path)
+                raise FileNotFoundError(
+                    f"gist ontology file not found: {gist_path}"
+                )
             try:
-                for i, batch in enumerate(batches):
-                    sparql = _build_insert_data_sparql(GIST_GRAPH, batch)
-                    await self._client.transaction_update(txn_url, sparql)
-                    logger.debug(
-                        "Inserted batch %d/%d (%d triples)",
-                        i + 1,
-                        len(batches),
-                        len(batch),
-                    )
-                await self._client.commit_transaction(txn_url)
+                count = await self._load_ttl_into_gist_graph(
+                    gist_path, "gist core"
+                )
+                elapsed = time.monotonic() - start
+                logger.info(
+                    "Loaded gist core 14.0.0: %d triples in %.1fs",
+                    count,
+                    elapsed,
+                )
+            except FileNotFoundError:
+                raise
             except Exception:
-                await self._client.rollback_transaction(txn_url)
+                logger.error("Failed to load gist core", exc_info=True)
                 raise
 
-            elapsed = time.monotonic() - start
-            logger.info(
-                "Loaded gist 14.0.0: %d triples in %.1fs", triple_count, elapsed
-            )
-        except FileNotFoundError:
-            raise
-        except Exception:
-            logger.error("Failed to load gist", exc_info=True)
-            raise
+        # Load RDFS annotations (definitions, examples, notes) if provided
+        if annotations_path and annotations_path.exists():
+            if await self._are_gist_annotations_loaded():
+                logger.info("gist annotations already loaded, skipping")
+            else:
+                try:
+                    ann_start = time.monotonic()
+                    count = await self._load_ttl_into_gist_graph(
+                        annotations_path, "gist annotations"
+                    )
+                    elapsed = time.monotonic() - ann_start
+                    logger.info(
+                        "Loaded gist annotations: %d triples in %.1fs",
+                        count,
+                        elapsed,
+                    )
+                except Exception:
+                    logger.error(
+                        "Failed to load gist annotations", exc_info=True
+                    )
 
     async def get_gist_summary(self) -> dict | None:
         """Get summary metadata about the loaded gist upper ontology.
@@ -432,12 +490,12 @@ ORDER BY ?label"""
         graph_iris = await self.get_ontology_graph_iris()
         from_clauses = self._build_from_clauses(graph_iris)
 
-        # 1) Label, comment/definition, parents (no aggregation needed)
+        # 1) Label, skos:definition, parents (no aggregation needed)
         meta_sparql = f"""PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
-SELECT ?label ?comment ?parentIri ?parentLabel
+SELECT ?label ?skosDef ?parentIri ?parentLabel
 {from_clauses}
 WHERE {{
   <{class_iri}> a owl:Class .
@@ -447,11 +505,8 @@ WHERE {{
               FILTER(LANG(?rdfsLabel) = "" || LANG(?rdfsLabel) = "en") }}
   BIND(COALESCE(?skosLabel, ?rdfsLabel,
        REPLACE(STR(<{class_iri}>), "^.*/|^.*#|^.*:", "", "")) AS ?label)
-  OPTIONAL {{ <{class_iri}> rdfs:comment ?rdfsComment .
-              FILTER(LANG(?rdfsComment) = "" || LANG(?rdfsComment) = "en") }}
   OPTIONAL {{ <{class_iri}> skos:definition ?skosDef .
               FILTER(LANG(?skosDef) = "" || LANG(?skosDef) = "en") }}
-  BIND(COALESCE(?rdfsComment, ?skosDef) AS ?comment)
   OPTIONAL {{
     <{class_iri}> rdfs:subClassOf ?parentIri .
     FILTER(isIRI(?parentIri) && ?parentIri != owl:Thing)
@@ -462,6 +517,17 @@ WHERE {{
     BIND(COALESCE(?pSkos, ?pRdfs,
          REPLACE(STR(?parentIri), "^.*/|^.*#|^.*:", "", "")) AS ?parentLabel)
   }}
+}}"""
+
+        # 1b) All rdfs:comment values (separate to avoid cross-product with
+        #     parents — gist annotations can have multiple comments per class)
+        comments_sparql = f"""PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?comment
+{from_clauses}
+WHERE {{
+  <{class_iri}> rdfs:comment ?comment .
+  FILTER(LANG(?comment) = "" || LANG(?comment) = "en")
 }}"""
 
         # 2) Subclass count (separate to avoid cross-product)
@@ -478,24 +544,27 @@ WHERE {{
   ?inst a <{class_iri}> . FILTER(isIRI(?inst))
 }}"""
 
-        # Run all three in parallel
-        meta_result, sub_result, inst_result = await asyncio.gather(
-            self._client.query(meta_sparql),
-            self._client.query(sub_sparql),
-            self._client.query(inst_sparql),
+        # Run all four in parallel
+        meta_result, comments_result, sub_result, inst_result = (
+            await asyncio.gather(
+                self._client.query(meta_sparql),
+                self._client.query(comments_sparql),
+                self._client.query(sub_sparql),
+                self._client.query(inst_sparql),
+            )
         )
 
         # Parse metadata
         meta_bindings = meta_result.get("results", {}).get("bindings", [])
         label = class_iri.rsplit("/", 1)[-1].rsplit("#", 1)[-1]
-        comment = ""
+        skos_def = ""
         parents = {}
 
         for b in meta_bindings:
             if "label" in b:
                 label = b["label"]["value"]
-            if "comment" in b and b["comment"]["value"]:
-                comment = b["comment"]["value"]
+            if "skosDef" in b and b["skosDef"]["value"]:
+                skos_def = b["skosDef"]["value"]
             if "parentIri" in b and b["parentIri"]["value"]:
                 p_iri = b["parentIri"]["value"]
                 p_label = b.get("parentLabel", {}).get(
@@ -504,6 +573,43 @@ WHERE {{
                 parents[p_iri] = p_label
 
         parent_classes = [{"iri": k, "label": v} for k, v in parents.items()]
+
+        # Parse rdfs:comment values into structured annotations.
+        # The gist annotations file uses prefixed labels:
+        #   "DEFINITION: ...", "EXAMPLE: ...", "NOTE: ...", "ALT: ..."
+        # Classes may have multiple rdfs:comment triples.
+        comment_bindings = comments_result.get("results", {}).get(
+            "bindings", []
+        )
+        raw_comments = list(
+            {b["comment"]["value"] for b in comment_bindings if "comment" in b}
+        )
+
+        definition = ""
+        examples: list[str] = []
+        notes: list[str] = []
+        alt_labels: list[str] = []
+        plain_comments: list[str] = []
+
+        for c in raw_comments:
+            text = c.strip()
+            if text.startswith("DEFINITION:"):
+                definition = text[len("DEFINITION:"):].strip()
+            elif text.startswith("EXAMPLE:"):
+                examples.append(text[len("EXAMPLE:"):].strip())
+            elif text.startswith("NOTE:"):
+                notes.append(text[len("NOTE:"):].strip())
+            elif text.startswith("ALT:"):
+                alt_labels.append(text[len("ALT:"):].strip())
+            else:
+                plain_comments.append(text)
+
+        # Build the primary description: prefer DEFINITION from rdfs:comment,
+        # fall back to skos:definition, then any plain rdfs:comment
+        comment = definition or skos_def
+        if not comment and plain_comments:
+            comment = plain_comments[0]
+            plain_comments = plain_comments[1:]
 
         # Parse counts
         sub_bindings = sub_result.get("results", {}).get("bindings", [])
@@ -589,6 +695,9 @@ ORDER BY ?propLabel"""
             "iri": class_iri,
             "label": label,
             "comment": comment,
+            "examples": examples,
+            "notes": notes + plain_comments,
+            "alt_labels": alt_labels,
             "source": source,
             "parent_classes": parent_classes,
             "sibling_classes": siblings,
