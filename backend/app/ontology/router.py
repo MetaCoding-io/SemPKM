@@ -730,6 +730,111 @@ async def edit_class(
 
 
 # ------------------------------------------------------------------
+# Property editing
+# ------------------------------------------------------------------
+
+
+@ontology_router.get("/ontology/edit-property-form")
+async def edit_property_form(
+    request: Request,
+    property_iri: str = Query(...),
+    user: User = Depends(get_current_user),
+) -> HTMLResponse:
+    """Render the property edit form pre-populated with current values."""
+    decoded_iri = unquote(property_iri)
+
+    if not decoded_iri.startswith(f"{USER_TYPES_GRAPH}:"):
+        logger.warning(
+            "edit-property-form namespace guard: %s", decoded_iri
+        )
+        return HTMLResponse(
+            content='<div class="error-message">Only user-created properties can be edited</div>',
+            status_code=403,
+        )
+
+    ontology_service = request.app.state.ontology_service
+    prop_data = await ontology_service.get_property_for_edit(decoded_iri)
+
+    if not prop_data:
+        return HTMLResponse(
+            content='<div class="error-message">Property not found</div>',
+            status_code=404,
+        )
+
+    templates = request.app.state.templates
+    return templates.TemplateResponse(
+        request,
+        "browser/ontology/edit_property_form.html",
+        {"prop": prop_data},
+    )
+
+
+@ontology_router.post("/ontology/edit-property")
+async def edit_property(
+    request: Request,
+    property_iri: str = Form(...),
+    name: str = Form(...),
+    prop_type: str = Form(...),
+    domain_iri: str = Form(""),
+    range_iri: str = Form(""),
+    description: str = Form(""),
+    user: User = Depends(get_current_user),
+) -> HTMLResponse:
+    """Edit a user-defined property.
+
+    Returns:
+        200 with HX-Trigger: propertyEdited on success.
+        403 if not a user-types property.
+        422 on validation failure.
+    """
+    if not property_iri.startswith(f"{USER_TYPES_GRAPH}:"):
+        logger.warning(
+            "edit-property namespace guard: %s", property_iri
+        )
+        return HTMLResponse(
+            content='<div class="error-message">Only user-created properties can be edited</div>',
+            status_code=403,
+        )
+
+    ontology_service = request.app.state.ontology_service
+
+    try:
+        result = await ontology_service.edit_property(
+            property_iri=property_iri.strip(),
+            name=name.strip(),
+            prop_type=prop_type.strip(),
+            domain_iri=domain_iri.strip() or None,
+            range_iri=range_iri.strip() or None,
+            description=description.strip() or None,
+        )
+    except ValueError as exc:
+        logger.warning("edit-property validation error: %s", exc)
+        return HTMLResponse(
+            content=f'<div class="error-message">{exc}</div>',
+            status_code=422,
+        )
+    except Exception:
+        logger.error(
+            "edit-property failed for %s", property_iri, exc_info=True
+        )
+        return HTMLResponse(
+            content='<div class="error-message">Server error editing property</div>',
+            status_code=500,
+        )
+
+    response = HTMLResponse(
+        content=(
+            f'<div class="success-message">'
+            f'Updated property <strong>{name.strip()}</strong>'
+            f'</div>'
+        ),
+        status_code=200,
+    )
+    response.headers["HX-Trigger"] = "propertyEdited"
+    return response
+
+
+# ------------------------------------------------------------------
 # Icon cache helpers
 # ------------------------------------------------------------------
 

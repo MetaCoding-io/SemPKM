@@ -1,0 +1,211 @@
+{# Property edit form: pre-populated with current property values.
+   Loaded via htmx into the property-edit modal.
+   Submits via htmx POST to /browser/ontology/edit-property.
+
+   Context:
+     prop: dict with iri, label, prop_type, domain_iri, domain_label,
+           range_iri, range_label, description
+#}
+<div class="property-creation-form" data-testid="property-edit-form">
+  <div class="ccf-header">
+    <h4 class="ccf-title">Edit Property</h4>
+    <button type="button" class="btn-sm ccf-close" onclick="closePropertyEditForm()" title="Close">
+      <i data-lucide="x"></i>
+    </button>
+  </div>
+
+  <form id="edit-property-form"
+        hx-post="/browser/ontology/edit-property"
+        hx-target="#epf-result"
+        hx-swap="innerHTML">
+
+    <input type="hidden" name="property_iri" value="{{ prop.iri }}">
+    <input type="hidden" name="prop_type" value="{{ prop.prop_type }}">
+
+    <div class="ccf-section">
+      <div class="ccf-section-label">Property Definition</div>
+
+      {# Name #}
+      <div class="form-field">
+        <label for="epf-name">Property Name <span class="ccf-required">*</span></label>
+        <p class="ccf-help">The display name for this property.</p>
+        <input type="text" id="epf-name" name="name" required
+               value="{{ prop.label }}"
+               autocomplete="off">
+      </div>
+
+      {# Property Type (read-only) #}
+      <div class="form-field">
+        <label>Property Type</label>
+        <p class="ccf-help">Property type cannot be changed after creation.</p>
+        <div class="cpf-type-radios">
+          <label class="cpf-radio-label epf-type-readonly">
+            <input type="radio" name="_prop_type_display" value="object"
+                   {% if prop.prop_type == 'object' %}checked{% endif %}
+                   disabled>
+            <span>Object Property</span>
+            <span class="cpf-radio-hint">Links to another object</span>
+          </label>
+          <label class="cpf-radio-label epf-type-readonly">
+            <input type="radio" name="_prop_type_display" value="datatype"
+                   {% if prop.prop_type == 'datatype' %}checked{% endif %}
+                   disabled>
+            <span>Datatype Property</span>
+            <span class="cpf-radio-hint">Holds a literal value</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="ccf-section">
+      <div class="ccf-section-label">Domain &amp; Range</div>
+
+      {# Domain (source class) #}
+      <div class="form-field">
+        <label for="epf-domain">Domain (Source Class)</label>
+        <p class="ccf-help">Which class of objects can have this property. Leave empty for any class.</p>
+        <input type="text" id="epf-domain-search" placeholder="Search classes…"
+               autocomplete="off"
+               hx-get="/browser/ontology/tbox/search"
+               hx-trigger="input changed delay:300ms"
+               hx-target="#epf-domain-results"
+               hx-swap="innerHTML"
+               name="_domain_search"
+               {% if prop.domain_iri %}style="display:none;"{% endif %}>
+        <div id="epf-domain-results" class="ccf-search-results"></div>
+        <input type="hidden" id="epf-domain" name="domain_iri" value="{{ prop.domain_iri or '' }}">
+        <div id="epf-domain-selected" class="ccf-selected-item"
+             {% if not prop.domain_iri %}style="display:none;"{% endif %}>
+          <span class="ccf-selected-label">{{ prop.domain_label or prop.domain_iri or '' }}</span>
+          <button type="button" class="ccf-selected-clear" onclick="epfClearField('domain')">&times;</button>
+        </div>
+      </div>
+
+      {# Range — object property: class picker; datatype property: datatype dropdown #}
+      <div class="form-field" id="epf-range-object-field"
+           {% if prop.prop_type != 'object' %}style="display:none;"{% endif %}>
+        <label for="epf-range-search">Range (Target Class)</label>
+        <p class="ccf-help">Which class of objects this property points to.</p>
+        <input type="text" id="epf-range-search" placeholder="Search classes…"
+               autocomplete="off"
+               hx-get="/browser/ontology/tbox/search"
+               hx-trigger="input changed delay:300ms"
+               hx-target="#epf-range-results"
+               hx-swap="innerHTML"
+               name="_range_search"
+               {% if prop.prop_type == 'object' and prop.range_iri %}style="display:none;"{% endif %}>
+        <div id="epf-range-results" class="ccf-search-results"></div>
+        <input type="hidden" id="epf-range-object"
+               name="{% if prop.prop_type == 'object' %}range_iri{% endif %}"
+               value="{{ prop.range_iri if prop.prop_type == 'object' else '' }}">
+        <div id="epf-range-object-selected" class="ccf-selected-item"
+             {% if not (prop.prop_type == 'object' and prop.range_iri) %}style="display:none;"{% endif %}>
+          <span class="ccf-selected-label">{{ prop.range_label or prop.range_iri or '' }}</span>
+          <button type="button" class="ccf-selected-clear" onclick="epfClearField('range-object')">&times;</button>
+        </div>
+      </div>
+
+      <div class="form-field" id="epf-range-datatype-field"
+           {% if prop.prop_type != 'datatype' %}style="display:none;"{% endif %}>
+        <label for="epf-range-datatype">Range (Value Type)</label>
+        <p class="ccf-help">What kind of literal value this property holds.</p>
+        <select id="epf-range-datatype"
+                name="{% if prop.prop_type == 'datatype' %}range_iri{% endif %}">
+          {% set dt_options = [
+            ('http://www.w3.org/2001/XMLSchema#string', 'xsd:string (text)'),
+            ('http://www.w3.org/2001/XMLSchema#integer', 'xsd:integer (whole number)'),
+            ('http://www.w3.org/2001/XMLSchema#decimal', 'xsd:decimal (decimal number)'),
+            ('http://www.w3.org/2001/XMLSchema#boolean', 'xsd:boolean (true/false)'),
+            ('http://www.w3.org/2001/XMLSchema#date', 'xsd:date'),
+            ('http://www.w3.org/2001/XMLSchema#dateTime', 'xsd:dateTime'),
+            ('http://www.w3.org/2001/XMLSchema#anyURI', 'xsd:anyURI (URL)'),
+          ] %}
+          {% for val, label in dt_options %}
+          <option value="{{ val }}" {% if prop.range_iri == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="ccf-section">
+      <div class="ccf-section-label">Metadata</div>
+
+      {# Description #}
+      <div class="form-field">
+        <label for="epf-description">Description</label>
+        <p class="ccf-help">Explain what this property means. Stored as <code>rdfs:comment</code>.</p>
+        <textarea id="epf-description" name="description" rows="2"
+                  placeholder="e.g. The person who wrote this document…">{{ prop.description or '' }}</textarea>
+      </div>
+    </div>
+
+    <div class="ccf-actions">
+      <div id="epf-result"></div>
+      <button type="button" class="btn-sm" onclick="closePropertyEditForm()">Cancel</button>
+      <button type="submit" class="btn-sm btn-primary">Save Changes</button>
+    </div>
+  </form>
+</div>
+
+<script>
+(function() {
+  // Search result click handlers (domain and range)
+  document.addEventListener('click', function(e) {
+    var item = e.target.closest('.ccf-search-item');
+    if (!item) return;
+
+    var iri = item.getAttribute('data-iri');
+    var label = item.getAttribute('data-label') || item.textContent.trim();
+
+    // Determine which field this belongs to
+    var parent = item.closest('.form-field');
+    if (!parent) return;
+
+    if (parent.querySelector('#epf-domain-search')) {
+      document.getElementById('epf-domain').value = iri;
+      document.getElementById('epf-domain-search').style.display = 'none';
+      document.getElementById('epf-domain-results').innerHTML = '';
+      var sel = document.getElementById('epf-domain-selected');
+      sel.querySelector('.ccf-selected-label').textContent = label;
+      sel.style.display = 'flex';
+    } else if (parent.querySelector('#epf-range-search')) {
+      document.getElementById('epf-range-object').value = iri;
+      document.getElementById('epf-range-search').style.display = 'none';
+      document.getElementById('epf-range-results').innerHTML = '';
+      var sel2 = document.getElementById('epf-range-object-selected');
+      sel2.querySelector('.ccf-selected-label').textContent = label;
+      sel2.style.display = 'flex';
+    }
+  });
+
+  // Clear selected field
+  window.epfClearField = function(field) {
+    if (field === 'domain') {
+      document.getElementById('epf-domain').value = '';
+      document.getElementById('epf-domain-search').style.display = '';
+      document.getElementById('epf-domain-selected').style.display = 'none';
+    } else if (field === 'range-object') {
+      document.getElementById('epf-range-object').value = '';
+      document.getElementById('epf-range-search').style.display = '';
+      document.getElementById('epf-range-object-selected').style.display = 'none';
+    }
+  };
+
+  // Close modal on successful edit
+  document.body.addEventListener('propertyEdited', function() {
+    if (typeof closePropertyEditForm === 'function') {
+      closePropertyEditForm();
+    }
+    if (typeof _showGlobalToast === 'function') {
+      _showGlobalToast('Property updated successfully', 'info');
+    }
+  });
+
+  // Re-init lucide icons
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+
+  // htmx needs to process the form since it was dynamically loaded
+  var form = document.getElementById('edit-property-form');
+  if (form && typeof htmx !== 'undefined') htmx.process(form);
+})();
+</script>

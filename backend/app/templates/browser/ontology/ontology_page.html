@@ -66,6 +66,13 @@
     </div>
   </div>
 
+  {# Property edit modal #}
+  <div id="property-edit-overlay" class="ccf-overlay" style="display:none;"
+       onclick="if(event.target===this)closePropertyEditForm()">
+    <div class="ccf-modal" id="property-edit-container">
+    </div>
+  </div>
+
   {# Delete confirmation modal — fetches instance/subclass counts from server #}
   <div id="delete-confirm-overlay" class="ccf-overlay" style="display:none;"
        onclick="if(event.target===this)closeDeleteConfirm()">
@@ -102,7 +109,7 @@
     </div>
     <div id="ontology-rbox" class="ontology-pane" data-testid="rbox-legend"
          hx-get="/browser/ontology/rbox"
-         hx-trigger="propertyCreated from:body, propertyDeleted from:body"
+         hx-trigger="propertyCreated from:body, propertyDeleted from:body, propertyEdited from:body"
          hx-swap="innerHTML">
       <div class="ontology-loading">Click the RBox tab to load property data.</div>
     </div>
@@ -217,6 +224,39 @@ function closeClassEditForm() {
   if (overlay) overlay.style.display = 'none';
 }
 
+// --- Property edit modal ---
+function openPropertyEditForm(encodedIri) {
+  var overlay = document.getElementById('property-edit-overlay');
+  var container = document.getElementById('property-edit-container');
+  if (!overlay || !container) return;
+
+  overlay.style.display = 'flex';
+  container.innerHTML = '<div class="ontology-loading" style="padding:32px;text-align:center;">Loading…</div>';
+  htmx.ajax('GET', '/browser/ontology/edit-property-form?property_iri=' + encodedIri, {
+    target: '#property-edit-container',
+    swap: 'innerHTML'
+  });
+  setTimeout(function() {
+    var input = container.querySelector('input[type="text"]');
+    if (input) input.focus();
+  }, 300);
+}
+
+function closePropertyEditForm() {
+  var overlay = document.getElementById('property-edit-overlay');
+  var container = document.getElementById('property-edit-container');
+  if (overlay) overlay.style.display = 'none';
+  if (container) container.innerHTML = '';
+}
+
+// Listen for propertyEdited event — close modal, show toast, RBox refreshes via hx-trigger
+document.body.addEventListener('propertyEdited', function() {
+  closePropertyEditForm();
+  if (typeof showToast === 'function') {
+    showToast('Property updated');
+  }
+});
+
 // Close any open modal on Escape key
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
@@ -225,6 +265,7 @@ document.addEventListener('keydown', function(e) {
       document.getElementById('class-creation-overlay'),
       document.getElementById('property-creation-overlay'),
       document.getElementById('class-edit-overlay'),
+      document.getElementById('property-edit-overlay'),
     ];
     for (var i = 0; i < overlays.length; i++) {
       if (overlays[i] && overlays[i].style.display !== 'none') {

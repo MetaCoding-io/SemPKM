@@ -113,5 +113,162 @@
         </table>
     </div>
     {% endblock %}
+
+    {# Custom user-created types section #}
+    <h3 class="section-label" style="margin-top: 24px;">Custom</h3>
+
+    {% set has_classes = custom_types and custom_types.classes | length > 0 %}
+    {% set has_props = custom_types and (custom_types.object_properties | length + custom_types.datatype_properties | length) > 0 %}
+
+    {% if not has_classes and not has_props %}
+    <div class="custom-empty-state">
+        <p>No custom types or properties yet.</p>
+        <p>Use the <a href="/browser/#ontology-viewer">Ontology Viewer</a> to create your own classes and properties.</p>
+    </div>
+    {% endif %}
+
+    <div id="custom-section-content">
+    {% if has_classes %}
+    <h4 class="custom-subsection-label">Classes</h4>
+    <table class="sparql-results custom-types-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Parent</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cls in custom_types.classes %}
+            <tr>
+                <td>
+                    <span class="custom-type-icon" {% if cls.color %}style="color: {{ cls.color }}"{% endif %}>
+                        {% if cls.icon %}<i data-lucide="{{ cls.icon }}"></i>{% else %}◆{% endif %}
+                    </span>
+                    {{ cls.label }}
+                </td>
+                <td>{{ cls.parent_label or '—' }}</td>
+                <td class="custom-actions">
+                    <a href="/browser/#ontology-viewer"
+                       class="btn btn-sm btn-warning"
+                       title="Edit in Ontology Viewer">
+                        Edit
+                    </a>
+                    <button class="btn btn-sm btn-danger"
+                            hx-delete="/browser/ontology/delete-class?class_iri={{ cls.iri | urlencode }}"
+                            hx-confirm="Delete class '{{ cls.label }}'? This cannot be undone."
+                            hx-target="closest tr"
+                            hx-swap="outerHTML swap:0.3s"
+                            hx-on::after-request="if(event.detail.successful) window.location.reload()">
+                        Delete
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    {% if has_props %}
+    <h4 class="custom-subsection-label">Properties</h4>
+    <table class="sparql-results custom-types-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Domain</th>
+                <th>Range</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% set all_props = [] %}
+            {% for p in custom_types.object_properties %}
+                {% set _ = all_props.append(p) %}
+            {% endfor %}
+            {% for p in custom_types.datatype_properties %}
+                {% set _ = all_props.append(p) %}
+            {% endfor %}
+            {% for prop in all_props %}
+            <tr>
+                <td>{{ prop.label }}</td>
+                <td>
+                    <span class="custom-type-badge custom-type-badge--{{ prop.type }}">
+                        {{ prop.type | capitalize }}
+                    </span>
+                </td>
+                <td>{{ prop.domain_label or '—' }}</td>
+                <td>{{ prop.range_label or '—' }}</td>
+                <td class="custom-actions">
+                    <button class="btn btn-sm btn-warning"
+                            onclick="openAdminPropertyEdit('{{ prop.iri | urlencode }}')"
+                            title="Edit property">
+                        Edit
+                    </button>
+                    <button class="btn btn-sm btn-danger"
+                            hx-delete="/browser/ontology/delete-property?property_iri={{ prop.iri | urlencode }}"
+                            hx-confirm="Delete property '{{ prop.label }}'? This cannot be undone."
+                            hx-target="closest tr"
+                            hx-swap="outerHTML swap:0.3s"
+                            hx-on::after-request="if(event.detail.successful) window.location.reload()">
+                        Delete
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+    </div>
+
+    {# Property-edit modal overlay for admin page #}
+    <div id="admin-property-edit-overlay" class="ccf-overlay" style="display:none;"
+         onclick="if(event.target===this)closeAdminPropertyEdit()">
+        <div class="ccf-modal" id="admin-property-edit-container">
+        </div>
+    </div>
+
+    <script>
+    function openAdminPropertyEdit(encodedIri) {
+        var overlay = document.getElementById('admin-property-edit-overlay');
+        var container = document.getElementById('admin-property-edit-container');
+        if (!overlay || !container) return;
+
+        overlay.style.display = 'flex';
+        container.innerHTML = '<div style="padding:32px;text-align:center;color:var(--color-text-muted);">Loading…</div>';
+        htmx.ajax('GET', '/browser/ontology/edit-property-form?property_iri=' + encodedIri, {
+            target: '#admin-property-edit-container',
+            swap: 'innerHTML'
+        });
+        setTimeout(function() {
+            var input = container.querySelector('input[type="text"]');
+            if (input) input.focus();
+        }, 300);
+    }
+
+    function closeAdminPropertyEdit() {
+        var overlay = document.getElementById('admin-property-edit-overlay');
+        var container = document.getElementById('admin-property-edit-container');
+        if (overlay) overlay.style.display = 'none';
+        if (container) container.innerHTML = '';
+    }
+
+    // On propertyEdited event — close modal and reload page to refresh Custom section
+    document.body.addEventListener('propertyEdited', function() {
+        closeAdminPropertyEdit();
+        window.location.reload();
+    });
+
+    // Close admin property edit modal on Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            var overlay = document.getElementById('admin-property-edit-overlay');
+            if (overlay && overlay.style.display !== 'none') {
+                closeAdminPropertyEdit();
+                e.stopPropagation();
+            }
+        }
+    });
+    </script>
 </div>
 {% endblock %}
