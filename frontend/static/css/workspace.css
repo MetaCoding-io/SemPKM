@@ -260,7 +260,9 @@
 
 /* Tree children container */
 .tree-children {
-    padding-left: 8px;
+    padding-left: 20px;
+    border-left: 1px solid var(--color-border, rgba(128, 128, 128, 0.15));
+    margin-left: 18px;
 }
 
 .tree-node:not(.expanded) + .tree-children {
