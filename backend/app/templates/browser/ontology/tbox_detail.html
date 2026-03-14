@@ -17,10 +17,35 @@
 
   <div class="tbox-detail-iri" title="{{ cls.iri }}">{{ cls.iri }}</div>
 
-  {% if cls.comment %}
+  {% if cls.comment or cls.examples or cls.notes %}
   <div class="tbox-detail-section">
     <div class="tbox-detail-section-label">Description</div>
+    {% if cls.comment %}
     <p class="tbox-detail-comment">{{ cls.comment }}</p>
+    {% endif %}
+    {% if cls.alt_labels %}
+    <p class="tbox-detail-alt"><span class="tbox-detail-tag">Also known as:</span> {{ cls.alt_labels | join(', ') }}</p>
+    {% endif %}
+    {% if cls.examples %}
+    <div class="tbox-detail-annotations">
+      <div class="tbox-detail-annot-label">Examples</div>
+      <ul class="tbox-detail-annot-list">
+        {% for ex in cls.examples %}
+        <li>{{ ex }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+    {% if cls.notes %}
+    <div class="tbox-detail-annotations">
+      <div class="tbox-detail-annot-label">Notes</div>
+      <ul class="tbox-detail-annot-list">
+        {% for note in cls.notes %}
+        <li>{{ note }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
   </div>
   {% endif %}
 

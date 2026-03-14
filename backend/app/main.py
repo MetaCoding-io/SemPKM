@@ -172,10 +172,15 @@ async def lifespan(app: FastAPI):
     ontology_service = OntologyService(client)
     app.state.ontology_service = ontology_service
     gist_path = Path("/app/ontologies/gist/gistCore14.0.0.ttl")
+    gist_annotations_path = Path(
+        "/app/ontologies/gist/gistRdfsAnnotations14.0.0.ttl"
+    )
     try:
-        await ontology_service.ensure_gist_loaded(gist_path)
+        await ontology_service.ensure_gist_loaded(
+            gist_path, annotations_path=gist_annotations_path
+        )
     except Exception:
-        logger.error("gist ontology load failed — TBox queries will be incomplete")
+        logger.error("gist ontology load failed — TBox queries will be incomplete", exc_info=True)
 
     # Load user-type icons from triplestore into app.state for IconService
     try:
