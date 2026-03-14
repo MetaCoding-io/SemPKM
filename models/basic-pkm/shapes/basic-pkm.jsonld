@@ -36,107 +36,205 @@
       "rdfs:label": "Metadata",
       "sh:order": 4
     },
-
     {
       "@id": "bpkm:ProjectShape",
       "@type": "sh:NodeShape",
-      "sh:targetClass": { "@id": "bpkm:Project" },
+      "sh:targetClass": {
+        "@id": "bpkm:Project"
+      },
       "rdfs:label": "Project Shape",
       "sempkm:editHelpText": "Projects organize related notes, people, and concepts around a goal or initiative. Use projects to track ongoing work, research themes, or collaborative efforts.",
       "sh:property": [
         {
-          "sh:path": { "@id": "dcterms:title" },
+          "sh:path": {
+            "@id": "dcterms:title"
+          },
           "sh:name": "Title",
-          "sh:datatype": { "@id": "xsd:string" },
+          "sh:datatype": {
+            "@id": "xsd:string"
+          },
           "sh:minCount": 1,
           "sh:maxCount": 1,
           "sh:order": 1,
-          "sh:group": { "@id": "bpkm:ProjectBasicInfoGroup" }
+          "sh:group": {
+            "@id": "bpkm:ProjectBasicInfoGroup"
+          },
+          "sh:description": "The display name for this project.",
+          "sempkm:editHelpText": "A clear project name that distinguishes it from others. Include enough context to recognize it at a glance -- e.g. \"Q2 Website Redesign\" rather than just \"Redesign\"."
         },
         {
-          "sh:path": { "@id": "dcterms:description" },
+          "sh:path": {
+            "@id": "dcterms:description"
+          },
           "sh:name": "Description",
-          "sh:datatype": { "@id": "xsd:string" },
+          "sh:datatype": {
+            "@id": "xsd:string"
+          },
           "sh:maxCount": 1,
           "sh:order": 2,
-          "sh:group": { "@id": "bpkm:ProjectBasicInfoGroup" }
+          "sh:group": {
+            "@id": "bpkm:ProjectBasicInfoGroup"
+          },
+          "sh:description": "A brief summary of what this project is about.",
+          "sempkm:editHelpText": "Summarize the project's purpose and scope. What problem does it solve? What does \"done\" look like? A few sentences is enough."
         },
         {
-          "sh:path": { "@id": "bpkm:status" },
+          "sh:path": {
+            "@id": "bpkm:status"
+          },
           "sh:name": "Status",
-          "sh:datatype": { "@id": "xsd:string" },
-          "sh:in": { "@list": ["active", "completed", "on-hold", "cancelled"] },
+          "sh:datatype": {
+            "@id": "xsd:string"
+          },
+          "sh:in": {
+            "@list": [
+              "active",
+              "completed",
+              "on-hold",
+              "cancelled"
+            ]
+          },
           "sh:defaultValue": "active",
           "sh:maxCount": 1,
           "sh:order": 3,
-          "sh:group": { "@id": "bpkm:ProjectBasicInfoGroup" }
+          "sh:group": {
+            "@id": "bpkm:ProjectBasicInfoGroup"
+          },
+          "sh:description": "Track where this project stands right now.",
+          "sempkm:editHelpText": "Where the project stands right now. Update this as the project progresses -- it helps you quickly scan which projects need attention."
         },
         {
-          "sh:path": { "@id": "bpkm:priority" },
+          "sh:path": {
+            "@id": "bpkm:priority"
+          },
           "sh:name": "Priority",
-          "sh:datatype": { "@id": "xsd:string" },
-          "sh:in": { "@list": ["low", "medium", "high", "critical"] },
+          "sh:datatype": {
+            "@id": "xsd:string"
+          },
+          "sh:in": {
+            "@list": [
+              "low",
+              "medium",
+              "high",
+              "critical"
+            ]
+          },
           "sh:defaultValue": "medium",
           "sh:maxCount": 1,
           "sh:order": 4,
-          "sh:group": { "@id": "bpkm:ProjectBasicInfoGroup" }
+          "sh:group": {
+            "@id": "bpkm:ProjectBasicInfoGroup"
+          },
+          "sh:description": "How urgent or important this project is.",
+          "sempkm:editHelpText": "Relative importance compared to your other projects. Use this to decide what to work on when time is limited."
         },
         {
-          "sh:path": { "@id": "schema:startDate" },
+          "sh:path": {
+            "@id": "schema:startDate"
+          },
           "sh:name": "Start Date",
-          "sh:datatype": { "@id": "xsd:date" },
+          "sh:datatype": {
+            "@id": "xsd:date"
+          },
           "sh:maxCount": 1,
           "sh:order": 5,
-          "sh:group": { "@id": "bpkm:ProjectDatesGroup" }
+          "sh:group": {
+            "@id": "bpkm:ProjectDatesGroup"
+          },
+          "sh:description": "When this project began or is planned to begin.",
+          "sempkm:editHelpText": "When this project kicked off or is planned to begin. Useful for tracking timelines and reviewing past work."
         },
         {
-          "sh:path": { "@id": "schema:endDate" },
+          "sh:path": {
+            "@id": "schema:endDate"
+          },
           "sh:name": "End Date",
-          "sh:datatype": { "@id": "xsd:date" },
+          "sh:datatype": {
+            "@id": "xsd:date"
+          },
           "sh:maxCount": 1,
           "sh:order": 6,
-          "sh:group": { "@id": "bpkm:ProjectDatesGroup" }
+          "sh:group": {
+            "@id": "bpkm:ProjectDatesGroup"
+          },
+          "sh:description": "When this project finished or is expected to finish.",
+          "sempkm:editHelpText": "When this project wrapped up or is expected to finish. Leave blank for ongoing projects."
         },
         {
-          "sh:path": { "@id": "bpkm:tags" },
+          "sh:path": {
+            "@id": "bpkm:tags"
+          },
           "sh:name": "Tags",
-          "sh:datatype": { "@id": "xsd:string" },
+          "sh:datatype": {
+            "@id": "xsd:string"
+          },
           "sh:order": 7,
-          "sh:group": { "@id": "bpkm:ProjectMetadataGroup" }
+          "sh:group": {
+            "@id": "bpkm:ProjectMetadataGroup"
+          },
+          "sh:description": "Free-form labels to help organize and find this project.",
+          "sempkm:editHelpText": "Free-form tags for quick filtering. Use lowercase, hyphen-separated terms (e.g. `work`, `side-project`, `writing`). Tags help when you have many projects."
         },
         {
-          "sh:path": { "@id": "bpkm:hasParticipant" },
+          "sh:path": {
+            "@id": "bpkm:hasParticipant"
+          },
           "sh:name": "Participants",
-          "sh:class": { "@id": "bpkm:Person" },
+          "sh:class": {
+            "@id": "bpkm:Person"
+          },
           "sh:order": 8,
-          "sh:group": { "@id": "bpkm:ProjectRelationshipsGroup" }
+          "sh:group": {
+            "@id": "bpkm:ProjectRelationshipsGroup"
+          },
+          "sh:description": "People involved in this project.",
+          "sempkm:editHelpText": "People involved in this project. Linking participants lets you see all of someone's projects from their profile."
         },
         {
-          "sh:path": { "@id": "bpkm:hasNote" },
+          "sh:path": {
+            "@id": "bpkm:hasNote"
+          },
           "sh:name": "Notes",
-          "sh:class": { "@id": "bpkm:Note" },
+          "sh:class": {
+            "@id": "bpkm:Note"
+          },
           "sh:order": 9,
-          "sh:group": { "@id": "bpkm:ProjectRelationshipsGroup" }
+          "sh:group": {
+            "@id": "bpkm:ProjectRelationshipsGroup"
+          },
+          "sh:description": "Notes related to this project.",
+          "sempkm:editHelpText": "Notes related to this project. Linking notes here keeps project context together and makes research easier to find."
         },
         {
-          "sh:path": { "@id": "dcterms:created" },
+          "sh:path": {
+            "@id": "dcterms:created"
+          },
           "sh:name": "Created",
-          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:datatype": {
+            "@id": "xsd:dateTime"
+          },
           "sh:maxCount": 1,
           "sh:order": 10,
-          "sh:group": { "@id": "bpkm:ProjectMetadataGroup" }
+          "sh:group": {
+            "@id": "bpkm:ProjectMetadataGroup"
+          }
         },
         {
-          "sh:path": { "@id": "dcterms:modified" },
+          "sh:path": {
+            "@id": "dcterms:modified"
+          },
           "sh:name": "Modified",
-          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:datatype": {
+            "@id": "xsd:dateTime"
+          },
           "sh:maxCount": 1,
           "sh:order": 11,
-          "sh:group": { "@id": "bpkm:ProjectMetadataGroup" }
+          "sh:group": {
+            "@id": "bpkm:ProjectMetadataGroup"
+          }
         }
       ]
     },
-
     {
       "@id": "bpkm:PersonBasicInfoGroup",
       "@type": "sh:PropertyGroup",
@@ -161,104 +259,188 @@
       "rdfs:label": "Metadata",
       "sh:order": 4
     },
-
     {
       "@id": "bpkm:PersonShape",
       "@type": "sh:NodeShape",
-      "sh:targetClass": { "@id": "bpkm:Person" },
+      "sh:targetClass": {
+        "@id": "bpkm:Person"
+      },
       "rdfs:label": "Person Shape",
       "sempkm:editHelpText": "People represent contacts, collaborators, or authors you interact with. Link them to projects and notes to build a network of who contributed what.",
       "sh:property": [
         {
-          "sh:path": { "@id": "foaf:name" },
+          "sh:path": {
+            "@id": "foaf:name"
+          },
           "sh:name": "Name",
-          "sh:datatype": { "@id": "xsd:string" },
+          "sh:datatype": {
+            "@id": "xsd:string"
+          },
           "sh:minCount": 1,
           "sh:maxCount": 1,
           "sh:order": 1,
-          "sh:group": { "@id": "bpkm:PersonBasicInfoGroup" }
+          "sh:group": {
+            "@id": "bpkm:PersonBasicInfoGroup"
+          },
+          "sh:description": "Full name of this person.",
+          "sempkm:editHelpText": "Full name as you'd recognize them. Use whatever form is most natural -- \"Jane Smith\" or \"Dr. Jane Smith\" are both fine."
         },
         {
-          "sh:path": { "@id": "foaf:mbox" },
+          "sh:path": {
+            "@id": "foaf:mbox"
+          },
           "sh:name": "Email",
-          "sh:datatype": { "@id": "xsd:string" },
+          "sh:datatype": {
+            "@id": "xsd:string"
+          },
           "sh:maxCount": 1,
           "sh:order": 2,
-          "sh:group": { "@id": "bpkm:PersonContactGroup" }
+          "sh:group": {
+            "@id": "bpkm:PersonContactGroup"
+          },
+          "sh:description": "Primary email address.",
+          "sempkm:editHelpText": "Primary email address. Useful for quick reference -- you won't need to dig through other apps to find it."
         },
         {
-          "sh:path": { "@id": "schema:jobTitle" },
+          "sh:path": {
+            "@id": "schema:jobTitle"
+          },
           "sh:name": "Job Title",
-          "sh:datatype": { "@id": "xsd:string" },
+          "sh:datatype": {
+            "@id": "xsd:string"
+          },
           "sh:maxCount": 1,
           "sh:order": 3,
-          "sh:group": { "@id": "bpkm:PersonBasicInfoGroup" }
+          "sh:group": {
+            "@id": "bpkm:PersonBasicInfoGroup"
+          },
+          "sh:description": "Their role or position.",
+          "sempkm:editHelpText": "Their current role or position. Helps you remember context when you revisit this person later."
         },
         {
-          "sh:path": { "@id": "schema:worksFor" },
+          "sh:path": {
+            "@id": "schema:worksFor"
+          },
           "sh:name": "Organization",
-          "sh:datatype": { "@id": "xsd:string" },
+          "sh:datatype": {
+            "@id": "xsd:string"
+          },
           "sh:maxCount": 1,
           "sh:order": 4,
-          "sh:group": { "@id": "bpkm:PersonBasicInfoGroup" }
+          "sh:group": {
+            "@id": "bpkm:PersonBasicInfoGroup"
+          },
+          "sh:description": "Company or institution they belong to.",
+          "sempkm:editHelpText": "Company, institution, or group they belong to. Helpful for remembering where you know someone from."
         },
         {
-          "sh:path": { "@id": "foaf:phone" },
+          "sh:path": {
+            "@id": "foaf:phone"
+          },
           "sh:name": "Phone",
-          "sh:datatype": { "@id": "xsd:string" },
+          "sh:datatype": {
+            "@id": "xsd:string"
+          },
           "sh:maxCount": 1,
           "sh:order": 5,
-          "sh:group": { "@id": "bpkm:PersonContactGroup" }
+          "sh:group": {
+            "@id": "bpkm:PersonContactGroup"
+          },
+          "sh:description": "Phone number.",
+          "sempkm:editHelpText": "Phone number in any format. Include country code for international contacts."
         },
         {
-          "sh:path": { "@id": "schema:url" },
+          "sh:path": {
+            "@id": "schema:url"
+          },
           "sh:name": "URL",
-          "sh:datatype": { "@id": "xsd:anyURI" },
+          "sh:datatype": {
+            "@id": "xsd:anyURI"
+          },
           "sh:maxCount": 1,
           "sh:order": 6,
-          "sh:group": { "@id": "bpkm:PersonContactGroup" }
+          "sh:group": {
+            "@id": "bpkm:PersonContactGroup"
+          },
+          "sh:description": "Website or profile link.",
+          "sempkm:editHelpText": "Personal website, LinkedIn profile, or other relevant link. One URL that best represents this person."
         },
         {
-          "sh:path": { "@id": "dcterms:description" },
+          "sh:path": {
+            "@id": "dcterms:description"
+          },
           "sh:name": "Notes",
-          "sh:datatype": { "@id": "xsd:string" },
+          "sh:datatype": {
+            "@id": "xsd:string"
+          },
           "sh:maxCount": 1,
           "sh:order": 7,
-          "sh:group": { "@id": "bpkm:PersonBasicInfoGroup" }
+          "sh:group": {
+            "@id": "bpkm:PersonBasicInfoGroup"
+          },
+          "sh:description": "Anything else worth remembering about this person.",
+          "sempkm:editHelpText": "Anything worth remembering about this person -- how you met, shared interests, conversation notes. Free-form text."
         },
         {
-          "sh:path": { "@id": "bpkm:tags" },
+          "sh:path": {
+            "@id": "bpkm:tags"
+          },
           "sh:name": "Tags",
-          "sh:datatype": { "@id": "xsd:string" },
+          "sh:datatype": {
+            "@id": "xsd:string"
+          },
           "sh:order": 8,
-          "sh:group": { "@id": "bpkm:PersonMetadataGroup" }
+          "sh:group": {
+            "@id": "bpkm:PersonMetadataGroup"
+          },
+          "sh:description": "Labels to categorize this person (e.g. colleague, mentor).",
+          "sempkm:editHelpText": "Free-form tags for categorization. Use terms like `colleague`, `mentor`, `client`, `conference-contact` to group people."
         },
         {
-          "sh:path": { "@id": "bpkm:participatesIn" },
+          "sh:path": {
+            "@id": "bpkm:participatesIn"
+          },
           "sh:name": "Projects",
-          "sh:class": { "@id": "bpkm:Project" },
+          "sh:class": {
+            "@id": "bpkm:Project"
+          },
           "sh:order": 9,
-          "sh:group": { "@id": "bpkm:PersonRelationshipsGroup" }
+          "sh:group": {
+            "@id": "bpkm:PersonRelationshipsGroup"
+          },
+          "sh:description": "Projects this person is involved in.",
+          "sempkm:editHelpText": "Projects this person is involved in. Linking here creates a two-way connection visible from both sides."
         },
         {
-          "sh:path": { "@id": "dcterms:created" },
+          "sh:path": {
+            "@id": "dcterms:created"
+          },
           "sh:name": "Created",
-          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:datatype": {
+            "@id": "xsd:dateTime"
+          },
           "sh:maxCount": 1,
           "sh:order": 10,
-          "sh:group": { "@id": "bpkm:PersonMetadataGroup" }
+          "sh:group": {
+            "@id": "bpkm:PersonMetadataGroup"
+          }
         },
         {
-          "sh:path": { "@id": "dcterms:modified" },
+          "sh:path": {
+            "@id": "dcterms:modified"
+          },
           "sh:name": "Modified",
-          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:datatype": {
+            "@id": "xsd:dateTime"
+          },
           "sh:maxCount": 1,
           "sh:order": 11,
-          "sh:group": { "@id": "bpkm:PersonMetadataGroup" }
+          "sh:group": {
+            "@id": "bpkm:PersonMetadataGroup"
+          }
         }
       ]
     },
-
     {
       "@id": "bpkm:NoteContentGroup",
       "@type": "sh:PropertyGroup",
@@ -277,97 +459,166 @@
       "rdfs:label": "Metadata",
       "sh:order": 3
     },
-
     {
       "@id": "bpkm:NoteShape",
       "@type": "sh:NodeShape",
-      "sh:targetClass": { "@id": "bpkm:Note" },
+      "sh:targetClass": {
+        "@id": "bpkm:Note"
+      },
       "rdfs:label": "Note Shape",
       "sempkm:editHelpText": "Notes capture individual ideas, observations, or references. Each note should focus on a single thought -- you can always link related notes together via concepts and projects. Prefer creating many small notes over one large one.",
       "sh:property": [
         {
-          "sh:path": { "@id": "dcterms:title" },
+          "sh:path": {
+            "@id": "dcterms:title"
+          },
           "sh:name": "Title",
-          "sh:datatype": { "@id": "xsd:string" },
+          "sh:datatype": {
+            "@id": "xsd:string"
+          },
           "sh:minCount": 1,
           "sh:maxCount": 1,
           "sh:order": 1,
-          "sh:group": { "@id": "bpkm:NoteContentGroup" },
-          "sempkm:editHelpText": "A concise, descriptive title that captures the core idea. Good titles help you find notes later -- prefer specifics over generic labels."
+          "sh:group": {
+            "@id": "bpkm:NoteContentGroup"
+          },
+          "sempkm:editHelpText": "A concise, descriptive title that captures the core idea. Good titles help you find notes later -- prefer specifics over generic labels.",
+          "sh:description": "A concise title that captures the core idea."
         },
         {
-          "sh:path": { "@id": "bpkm:body" },
+          "sh:path": {
+            "@id": "bpkm:body"
+          },
           "sh:name": "Body",
-          "sh:datatype": { "@id": "xsd:string" },
+          "sh:datatype": {
+            "@id": "xsd:string"
+          },
           "sh:maxCount": 1,
           "sh:order": 2,
-          "sh:group": { "@id": "bpkm:NoteContentGroup" },
-          "sempkm:editHelpText": "The main content of your note. Write in your own words -- paraphrasing helps retention. Markdown formatting is supported."
+          "sh:group": {
+            "@id": "bpkm:NoteContentGroup"
+          },
+          "sempkm:editHelpText": "The main content of your note. Write in your own words -- paraphrasing helps retention. Markdown formatting is supported.",
+          "sh:description": "The main content of your note. Markdown supported."
         },
         {
-          "sh:path": { "@id": "bpkm:noteType" },
+          "sh:path": {
+            "@id": "bpkm:noteType"
+          },
           "sh:name": "Type",
-          "sh:datatype": { "@id": "xsd:string" },
-          "sh:in": { "@list": ["observation", "idea", "reference", "meeting-note", "journal"] },
+          "sh:datatype": {
+            "@id": "xsd:string"
+          },
+          "sh:in": {
+            "@list": [
+              "observation",
+              "idea",
+              "reference",
+              "meeting-note",
+              "journal"
+            ]
+          },
           "sh:defaultValue": "observation",
           "sh:maxCount": 1,
           "sh:order": 3,
-          "sh:group": { "@id": "bpkm:NoteContentGroup" },
-          "sempkm:editHelpText": "Categorize this note: **observation** for things you noticed, **idea** for new thoughts, **reference** for external sources, **meeting-note** for discussions, **journal** for reflections."
+          "sh:group": {
+            "@id": "bpkm:NoteContentGroup"
+          },
+          "sempkm:editHelpText": "Categorize this note: **observation** for things you noticed, **idea** for new thoughts, **reference** for external sources, **meeting-note** for discussions, **journal** for reflections.",
+          "sh:description": "What kind of note this is (observation, idea, reference, etc.)."
         },
         {
-          "sh:path": { "@id": "bpkm:isAbout" },
+          "sh:path": {
+            "@id": "bpkm:isAbout"
+          },
           "sh:name": "About Concepts",
-          "sh:class": { "@id": "bpkm:Concept" },
+          "sh:class": {
+            "@id": "bpkm:Concept"
+          },
           "sh:order": 4,
-          "sh:group": { "@id": "bpkm:NoteRelationshipsGroup" },
-          "sempkm:editHelpText": "Link to the concepts this note discusses. Concept links build your knowledge graph and help surface related notes automatically."
+          "sh:group": {
+            "@id": "bpkm:NoteRelationshipsGroup"
+          },
+          "sempkm:editHelpText": "Link to the concepts this note discusses. Concept links build your knowledge graph and help surface related notes automatically.",
+          "sh:description": "Concepts this note discusses or relates to."
         },
         {
-          "sh:path": { "@id": "bpkm:relatedProject" },
+          "sh:path": {
+            "@id": "bpkm:relatedProject"
+          },
           "sh:name": "Related Project",
-          "sh:class": { "@id": "bpkm:Project" },
+          "sh:class": {
+            "@id": "bpkm:Project"
+          },
           "sh:maxCount": 1,
           "sh:order": 5,
-          "sh:group": { "@id": "bpkm:NoteRelationshipsGroup" },
-          "sempkm:editHelpText": "Optionally associate this note with a project. The note will appear in the project's context, making it easier to find later."
+          "sh:group": {
+            "@id": "bpkm:NoteRelationshipsGroup"
+          },
+          "sempkm:editHelpText": "Optionally associate this note with a project. The note will appear in the project's context, making it easier to find later.",
+          "sh:description": "The project this note belongs to, if any."
         },
         {
-          "sh:path": { "@id": "dcterms:source" },
+          "sh:path": {
+            "@id": "dcterms:source"
+          },
           "sh:name": "Source URL",
-          "sh:datatype": { "@id": "xsd:anyURI" },
+          "sh:datatype": {
+            "@id": "xsd:anyURI"
+          },
           "sh:maxCount": 1,
           "sh:order": 6,
-          "sh:group": { "@id": "bpkm:NoteContentGroup" },
-          "sempkm:editHelpText": "If this note references an external source (article, paper, website), paste the URL here for attribution and easy revisiting."
+          "sh:group": {
+            "@id": "bpkm:NoteContentGroup"
+          },
+          "sempkm:editHelpText": "If this note references an external source (article, paper, website), paste the URL here for attribution and easy revisiting.",
+          "sh:description": "Link to the original source (article, paper, website)."
         },
         {
-          "sh:path": { "@id": "bpkm:tags" },
+          "sh:path": {
+            "@id": "bpkm:tags"
+          },
           "sh:name": "Tags",
-          "sh:datatype": { "@id": "xsd:string" },
+          "sh:datatype": {
+            "@id": "xsd:string"
+          },
           "sh:order": 7,
-          "sh:group": { "@id": "bpkm:NoteMetadataGroup" },
-          "sempkm:editHelpText": "Free-form tags for quick filtering. Use lowercase, hyphen-separated terms (e.g. `machine-learning`, `team-standup`). Tags complement concept links for lightweight categorization."
+          "sh:group": {
+            "@id": "bpkm:NoteMetadataGroup"
+          },
+          "sempkm:editHelpText": "Free-form tags for quick filtering. Use lowercase, hyphen-separated terms (e.g. `machine-learning`, `team-standup`). Tags complement concept links for lightweight categorization.",
+          "sh:description": "Free-form labels for quick filtering."
         },
         {
-          "sh:path": { "@id": "dcterms:created" },
+          "sh:path": {
+            "@id": "dcterms:created"
+          },
           "sh:name": "Created",
-          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:datatype": {
+            "@id": "xsd:dateTime"
+          },
           "sh:maxCount": 1,
           "sh:order": 8,
-          "sh:group": { "@id": "bpkm:NoteMetadataGroup" }
+          "sh:group": {
+            "@id": "bpkm:NoteMetadataGroup"
+          }
         },
         {
-          "sh:path": { "@id": "dcterms:modified" },
+          "sh:path": {
+            "@id": "dcterms:modified"
+          },
           "sh:name": "Modified",
-          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:datatype": {
+            "@id": "xsd:dateTime"
+          },
           "sh:maxCount": 1,
           "sh:order": 9,
-          "sh:group": { "@id": "bpkm:NoteMetadataGroup" }
+          "sh:group": {
+            "@id": "bpkm:NoteMetadataGroup"
+          }
         }
       ]
     },
-
     {
       "@id": "bpkm:ConceptDefinitionGroup",
       "@type": "sh:PropertyGroup",
@@ -386,89 +637,166 @@
       "rdfs:label": "Metadata",
       "sh:order": 3
     },
-
     {
       "@id": "bpkm:ConceptShape",
       "@type": "sh:NodeShape",
-      "sh:targetClass": { "@id": "bpkm:Concept" },
+      "sh:targetClass": {
+        "@id": "bpkm:Concept"
+      },
       "rdfs:label": "Concept Shape",
       "sempkm:editHelpText": "Concepts are the vocabulary of your knowledge base. They represent topics, themes, or domains that notes can be *about*. Build a concept hierarchy with broader/narrower links to organize your thinking.",
       "sh:property": [
         {
-          "sh:path": { "@id": "skos:prefLabel" },
+          "sh:path": {
+            "@id": "skos:prefLabel"
+          },
           "sh:name": "Label",
-          "sh:datatype": { "@id": "xsd:string" },
+          "sh:datatype": {
+            "@id": "xsd:string"
+          },
           "sh:minCount": 1,
           "sh:maxCount": 1,
           "sh:order": 1,
-          "sh:group": { "@id": "bpkm:ConceptDefinitionGroup" }
+          "sh:group": {
+            "@id": "bpkm:ConceptDefinitionGroup"
+          },
+          "sh:description": "The primary name for this concept.",
+          "sempkm:editHelpText": "The primary name for this concept -- the term you'd naturally use when thinking or writing about it."
         },
         {
-          "sh:path": { "@id": "skos:altLabel" },
+          "sh:path": {
+            "@id": "skos:altLabel"
+          },
           "sh:name": "Alternative Labels",
-          "sh:datatype": { "@id": "xsd:string" },
+          "sh:datatype": {
+            "@id": "xsd:string"
+          },
           "sh:order": 2,
-          "sh:group": { "@id": "bpkm:ConceptDefinitionGroup" }
+          "sh:group": {
+            "@id": "bpkm:ConceptDefinitionGroup"
+          },
+          "sh:description": "Synonyms or other names for this concept.",
+          "sempkm:editHelpText": "Synonyms, abbreviations, or alternate spellings. Helps you find this concept even when using different terminology."
         },
         {
-          "sh:path": { "@id": "skos:definition" },
+          "sh:path": {
+            "@id": "skos:definition"
+          },
           "sh:name": "Definition",
-          "sh:datatype": { "@id": "xsd:string" },
+          "sh:datatype": {
+            "@id": "xsd:string"
+          },
           "sh:maxCount": 1,
           "sh:order": 3,
-          "sh:group": { "@id": "bpkm:ConceptDefinitionGroup" }
+          "sh:group": {
+            "@id": "bpkm:ConceptDefinitionGroup"
+          },
+          "sh:description": "What this concept means in your own words.",
+          "sempkm:editHelpText": "What this concept means in your own words. Writing a definition deepens understanding -- even a rough one is valuable."
         },
         {
-          "sh:path": { "@id": "skos:broader" },
+          "sh:path": {
+            "@id": "skos:broader"
+          },
           "sh:name": "Broader Concepts",
-          "sh:class": { "@id": "bpkm:Concept" },
+          "sh:class": {
+            "@id": "bpkm:Concept"
+          },
           "sh:order": 4,
-          "sh:group": { "@id": "bpkm:ConceptHierarchyGroup" }
+          "sh:group": {
+            "@id": "bpkm:ConceptHierarchyGroup"
+          },
+          "sh:description": "Parent concepts that this one falls under.",
+          "sempkm:editHelpText": "Parent concepts that this one falls under. For example, \"Machine Learning\" is broader than \"Neural Networks\". Builds a concept hierarchy."
         },
         {
-          "sh:path": { "@id": "skos:narrower" },
+          "sh:path": {
+            "@id": "skos:narrower"
+          },
           "sh:name": "Narrower Concepts",
-          "sh:class": { "@id": "bpkm:Concept" },
+          "sh:class": {
+            "@id": "bpkm:Concept"
+          },
           "sh:order": 5,
-          "sh:group": { "@id": "bpkm:ConceptHierarchyGroup" }
+          "sh:group": {
+            "@id": "bpkm:ConceptHierarchyGroup"
+          },
+          "sh:description": "More specific concepts within this one.",
+          "sempkm:editHelpText": "More specific concepts within this one. The inverse of \"broader\" -- helps you navigate from general to specific."
         },
         {
-          "sh:path": { "@id": "skos:related" },
+          "sh:path": {
+            "@id": "skos:related"
+          },
           "sh:name": "Related Concepts",
-          "sh:class": { "@id": "bpkm:Concept" },
+          "sh:class": {
+            "@id": "bpkm:Concept"
+          },
           "sh:order": 6,
-          "sh:group": { "@id": "bpkm:ConceptHierarchyGroup" }
+          "sh:group": {
+            "@id": "bpkm:ConceptHierarchyGroup"
+          },
+          "sh:description": "Concepts that are related but not hierarchically.",
+          "sempkm:editHelpText": "Concepts that are connected but not hierarchically. Use for lateral associations -- e.g. \"Design Thinking\" related to \"User Research\"."
         },
         {
-          "sh:path": { "@id": "schema:url" },
+          "sh:path": {
+            "@id": "schema:url"
+          },
           "sh:name": "Reference URL",
-          "sh:datatype": { "@id": "xsd:anyURI" },
+          "sh:datatype": {
+            "@id": "xsd:anyURI"
+          },
           "sh:maxCount": 1,
           "sh:order": 7,
-          "sh:group": { "@id": "bpkm:ConceptMetadataGroup" }
+          "sh:group": {
+            "@id": "bpkm:ConceptMetadataGroup"
+          },
+          "sh:description": "Link to an authoritative source for this concept.",
+          "sempkm:editHelpText": "Link to an authoritative or useful source -- a Wikipedia article, textbook chapter, or key paper. For quick reference."
         },
         {
-          "sh:path": { "@id": "bpkm:tags" },
+          "sh:path": {
+            "@id": "bpkm:tags"
+          },
           "sh:name": "Tags",
-          "sh:datatype": { "@id": "xsd:string" },
+          "sh:datatype": {
+            "@id": "xsd:string"
+          },
           "sh:order": 8,
-          "sh:group": { "@id": "bpkm:ConceptMetadataGroup" }
+          "sh:group": {
+            "@id": "bpkm:ConceptMetadataGroup"
+          },
+          "sh:description": "Free-form labels for categorization.",
+          "sempkm:editHelpText": "Free-form tags for lightweight categorization. Use alongside the concept hierarchy for cross-cutting concerns like `needs-review` or `core-concept`."
         },
         {
-          "sh:path": { "@id": "dcterms:created" },
+          "sh:path": {
+            "@id": "dcterms:created"
+          },
           "sh:name": "Created",
-          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:datatype": {
+            "@id": "xsd:dateTime"
+          },
           "sh:maxCount": 1,
           "sh:order": 9,
-          "sh:group": { "@id": "bpkm:ConceptMetadataGroup" }
+          "sh:group": {
+            "@id": "bpkm:ConceptMetadataGroup"
+          }
         },
         {
-          "sh:path": { "@id": "dcterms:modified" },
+          "sh:path": {
+            "@id": "dcterms:modified"
+          },
           "sh:name": "Modified",
-          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:datatype": {
+            "@id": "xsd:dateTime"
+          },
           "sh:maxCount": 1,
           "sh:order": 10,
-          "sh:group": { "@id": "bpkm:ConceptMetadataGroup" }
+          "sh:group": {
+            "@id": "bpkm:ConceptMetadataGroup"
+          }
         }
       ]
     }

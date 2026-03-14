@@ -267,7 +267,14 @@
     // Wire layout change: save to localStorage + re-process htmx on reparented panels
     dv.onDidLayoutChange(function () {
       try {
-        localStorage.setItem(DV_LAYOUT_KEY, JSON.stringify(dv.toJSON()));
+        // Filter out ephemeral create-form panels — they can't be restored after reload
+        var layout = dv.toJSON();
+        if (layout && layout.grid && layout.panels) {
+          layout.panels = layout.panels.filter(function (p) {
+            return !p.id || !p.id.startsWith('__new-object-');
+          });
+        }
+        localStorage.setItem(DV_LAYOUT_KEY, JSON.stringify(layout));
       } catch (e) {}
       document.querySelectorAll('.dv-content-container').forEach(function (el) {
         htmx.process(el);
@@ -283,10 +290,18 @@
       document.dispatchEvent(new CustomEvent('sempkm:tab-activated', {
         detail: { tabId: panel.id, groupId: groupId, isObjectTab: isObjectTab }
       }));
-      if (isObjectTab && typeof loadRightPaneSection === 'function') {
+      if (isObjectTab && typeof loadRightPaneSection === 'function' &&
+          !panel.id.startsWith('__new-object-')) {
         loadRightPaneSection(panel.id, 'relations');
         loadRightPaneSection(panel.id, 'lint');
         loadRightPaneSection(panel.id, 'comments');
+      } else if (panel.id.startsWith('__new-object-')) {
+        // Create tabs have no object yet — clear stale panel content
+        var emptyMsg = '<div class="right-empty">No object selected</div>';
+        ['relations-content', 'lint-content', 'comments-content'].forEach(function(id) {
+          var el = document.getElementById(id);
+          if (el) el.innerHTML = emptyMsg;
+        });
       }
       if (layout) layout.activeGroupId = groupId;
 
@@ -323,6 +338,12 @@
 
     if (saved) {
       try {
+        // Strip ephemeral create-form panels that can't be restored
+        if (saved.panels) {
+          saved.panels = saved.panels.filter(function (p) {
+            return !p.id || !p.id.startsWith('__new-object-');
+          });
+        }
         dv.fromJSON(saved);
       } catch (err) {
         console.warn('SemPKM: saved dockview layout incompatible, rebuilding.', err);
