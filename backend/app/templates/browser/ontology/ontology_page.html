@@ -42,11 +42,20 @@
     {# TBox: split into tree (left) and detail (right) #}
     <div id="ontology-tbox" class="ontology-pane ontology-pane--active" data-testid="tbox-tree">
       <div class="tbox-split">
-        <div class="tbox-tree-pane"
-             hx-get="/browser/ontology/tbox"
-             hx-trigger="load, classCreated from:body, classDeleted from:body"
-             hx-swap="innerHTML">
-          <div class="ontology-loading">Loading TBox…</div>
+        <div class="tbox-tree-pane">
+          <div class="tbox-filter-bar">
+            <label class="tbox-filter-toggle" title="Show only your mental model classes">
+              <input type="checkbox" id="tbox-hide-gist" onchange="toggleGistFilter(this.checked)">
+              <span class="tbox-filter-label">Hide gist</span>
+            </label>
+          </div>
+          <div class="tbox-tree-scroll"
+               id="tbox-tree-content"
+               hx-get="/browser/ontology/tbox"
+               hx-trigger="load, classCreated from:body, classDeleted from:body"
+               hx-swap="innerHTML">
+            <div class="ontology-loading">Loading TBox…</div>
+          </div>
         </div>
         <div class="tbox-detail-pane" id="tbox-detail">
           <div class="tbox-detail-empty">
@@ -114,6 +123,15 @@ function loadClassDetail(iri) {
   // Load detail via htmx
   detail.innerHTML = '<div class="ontology-loading">Loading…</div>';
   htmx.ajax('GET', '/browser/ontology/tbox/detail?iri=' + encodeURIComponent(iri), {target: '#tbox-detail', swap: 'innerHTML'});
+}
+
+// Toggle gist class visibility in the TBox tree.
+// Reloads the tree via htmx with a filter parameter.
+function toggleGistFilter(hideGist) {
+  var treeContent = document.getElementById('tbox-tree-content');
+  if (!treeContent) return;
+  var url = hideGist ? '/browser/ontology/tbox?hide_gist=1' : '/browser/ontology/tbox';
+  htmx.ajax('GET', url, {target: '#tbox-tree-content', swap: 'innerHTML'});
 }
 
 // Delegated click handler for TBox tree — handles both expand/collapse and detail loading

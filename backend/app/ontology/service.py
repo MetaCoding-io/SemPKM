@@ -423,6 +423,102 @@ ORDER BY ?label"""
         )
         return classes
 
+    async def get_model_classes_with_parents(self) -> list[dict]:
+        """Get non-gist classes grouped under their gist parent classes.
+
+        Returns a tree structure for the "Hide gist" filter mode:
+        - Model/user classes that have a gist parent are grouped under
+          that parent (shown as an expandable node with children pre-loaded).
+        - Model/user classes with no gist parent appear as root nodes.
+        - Pure gist classes with no model/user descendants are hidden.
+
+        Returns:
+            List of dicts with keys: iri, label, has_subclasses, source,
+            and optionally 'children' (list of child dicts).
+        """
+        graph_iris = await self.get_ontology_graph_iris()
+        from_clauses = self._build_from_clauses(graph_iris)
+
+        # Get all non-gist classes with their optional gist parent
+        sparql = f"""PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT DISTINCT ?class ?label ?parentIri ?parentLabel
+{from_clauses}
+WHERE {{
+  ?class a owl:Class .
+  FILTER(isIRI(?class))
+  FILTER(!STRSTARTS(STR(?class), "{GIST_NS}"))
+  OPTIONAL {{ ?class skos:prefLabel ?skosLabel .
+              FILTER(LANG(?skosLabel) = "" || LANG(?skosLabel) = "en") }}
+  OPTIONAL {{ ?class rdfs:label ?rdfsLabel .
+              FILTER(LANG(?rdfsLabel) = "" || LANG(?rdfsLabel) = "en") }}
+  BIND(COALESCE(?skosLabel, ?rdfsLabel,
+       REPLACE(STR(?class), "^.*/|^.*#|^.*:", "", "")) AS ?label)
+  OPTIONAL {{
+    ?class rdfs:subClassOf ?parentIri .
+    FILTER(isIRI(?parentIri) && ?parentIri != owl:Thing)
+    FILTER(STRSTARTS(STR(?parentIri), "{GIST_NS}"))
+    OPTIONAL {{ ?parentIri skos:prefLabel ?pSkos .
+                FILTER(LANG(?pSkos) = "" || LANG(?pSkos) = "en") }}
+    OPTIONAL {{ ?parentIri rdfs:label ?pRdfs .
+                FILTER(LANG(?pRdfs) = "" || LANG(?pRdfs) = "en") }}
+    BIND(COALESCE(?pSkos, ?pRdfs,
+         REPLACE(STR(?parentIri), "^.*/|^.*#|^.*:", "", "")) AS ?parentLabel)
+  }}
+}}
+ORDER BY ?label"""
+
+        result = await self._client.query(sparql)
+        bindings = result.get("results", {}).get("bindings", [])
+
+        # Group: gist parent IRI -> list of model children
+        from collections import defaultdict
+
+        gist_parents: dict[str, dict] = {}  # iri -> {label, children}
+        orphans: list[dict] = []  # model classes with no gist parent
+
+        for b in bindings:
+            cls_iri = b["class"]["value"]
+            cls_label = b.get("label", {}).get(
+                "value", cls_iri.rsplit("/", 1)[-1]
+            )
+
+            child_node = {
+                "iri": cls_iri,
+                "label": cls_label,
+                "has_subclasses": False,
+                "source": _property_source(cls_iri),
+            }
+
+            parent_iri = b.get("parentIri", {}).get("value")
+            if parent_iri:
+                if parent_iri not in gist_parents:
+                    parent_label = b.get("parentLabel", {}).get(
+                        "value",
+                        parent_iri.rsplit("/", 1)[-1],
+                    )
+                    gist_parents[parent_iri] = {
+                        "iri": parent_iri,
+                        "label": parent_label,
+                        "has_subclasses": True,
+                        "source": "gist",
+                        "children": [],
+                    }
+                gist_parents[parent_iri]["children"].append(child_node)
+            else:
+                orphans.append(child_node)
+
+        # Build result: gist parents with children + orphan model classes
+        result_classes = []
+        for p in sorted(gist_parents.values(), key=lambda x: x["label"]):
+            p["children"].sort(key=lambda x: x["label"])
+            result_classes.append(p)
+        result_classes.extend(sorted(orphans, key=lambda x: x["label"]))
+
+        return result_classes
+
     async def get_subclasses(self, parent_iri: str) -> list[dict]:
         """Query direct subclasses of a parent class across all ontology graphs.
 

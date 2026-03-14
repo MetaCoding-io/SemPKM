@@ -3,6 +3,7 @@
 
    Context:
      classes: list of dicts with 'iri', 'label', 'has_subclasses' keys
+              optionally 'children' (pre-loaded subclasses) and 'source'
      error: bool indicating whether the query failed
 #}
 {% if error and not classes %}
@@ -10,8 +11,10 @@
 {% elif classes %}
 {% for cls in classes %}
 {% set safe_id = cls.iri | replace(':', '_') | replace('/', '_') | replace('#', '_') | replace('.', '_') %}
-<div class="tbox-node{% if cls.has_subclasses %} tbox-node--parent{% endif %}" data-testid="tbox-node" data-iri="{{ cls.iri }}"
-     {% if cls.has_subclasses %}
+{% set source = cls.source if cls.source is defined else ('gist' if 'gist/' in cls.iri else ('model' if 'basic-pkm' in cls.iri or 'ppv' in cls.iri else 'user')) %}
+{% set has_preloaded_children = cls.children is defined and cls.children %}
+<div class="tbox-node{% if cls.has_subclasses %} tbox-node--parent{% endif %}{% if has_preloaded_children %} expanded{% endif %}" data-testid="tbox-node" data-iri="{{ cls.iri }}" data-source="{{ source }}"
+     {% if cls.has_subclasses and not has_preloaded_children %}
      hx-get="/browser/ontology/tbox/children?parent={{ cls.iri | urlencode }}"
      hx-trigger="click once"
      hx-target="#tbox-children-{{ safe_id }}"
@@ -24,14 +27,13 @@
     {% endif %}
     <span class="tbox-icon">◆</span>
     <span class="tree-label tbox-label" title="{{ cls.iri }}">{{ cls.label }}</span>
-    {% set ns = cls.iri %}
-    {% if 'gist/' in ns %}
+    {% if 'gist/' in cls.iri %}
     <span class="tbox-source-badge badge-gist">gist</span>
-    {% elif 'basic-pkm' in ns %}
+    {% elif 'basic-pkm' in cls.iri %}
     <span class="tbox-source-badge badge-bpkm">basic-pkm</span>
-    {% elif 'ppv' in ns %}
+    {% elif 'ppv' in cls.iri %}
     <span class="tbox-source-badge badge-ppv">ppv</span>
-    {% elif 'user-types' in ns %}
+    {% elif 'user-types' in cls.iri %}
     <span class="tbox-source-badge badge-user">user</span>
     <button type="button" class="tbox-delete-btn" data-testid="tbox-delete-btn"
             title="Delete this class"
@@ -43,7 +45,42 @@
     </button>
     {% endif %}
 </div>
-{% if cls.has_subclasses %}
+{% if has_preloaded_children %}
+{# Children are pre-loaded (e.g. "Hide gist" mode) — render inline #}
+<div id="tbox-children-{{ safe_id }}" class="tbox-children">
+  {% for child in cls.children %}
+  {% set child_safe_id = child.iri | replace(':', '_') | replace('/', '_') | replace('#', '_') | replace('.', '_') %}
+  {% set child_source = child.source if child.source is defined else ('gist' if 'gist/' in child.iri else ('model' if 'basic-pkm' in child.iri or 'ppv' in child.iri else 'user')) %}
+  <div class="tbox-node{% if child.has_subclasses %} tbox-node--parent{% endif %}" data-testid="tbox-node" data-iri="{{ child.iri }}" data-source="{{ child_source }}"
+       {% if child.has_subclasses %}
+       hx-get="/browser/ontology/tbox/children?parent={{ child.iri | urlencode }}"
+       hx-trigger="click once"
+       hx-target="#tbox-children-{{ child_safe_id }}"
+       hx-swap="innerHTML"
+       {% endif %}>
+      {% if child.has_subclasses %}
+      <span class="tbox-toggle">&#9656;</span>
+      {% else %}
+      <span class="tbox-toggle tbox-toggle--leaf">·</span>
+      {% endif %}
+      <span class="tbox-icon">◆</span>
+      <span class="tree-label tbox-label" title="{{ child.iri }}">{{ child.label }}</span>
+      {% if 'gist/' in child.iri %}
+      <span class="tbox-source-badge badge-gist">gist</span>
+      {% elif 'basic-pkm' in child.iri %}
+      <span class="tbox-source-badge badge-bpkm">basic-pkm</span>
+      {% elif 'ppv' in child.iri %}
+      <span class="tbox-source-badge badge-ppv">ppv</span>
+      {% elif 'user-types' in child.iri %}
+      <span class="tbox-source-badge badge-user">user</span>
+      {% endif %}
+  </div>
+  {% if child.has_subclasses %}
+  <div id="tbox-children-{{ child_safe_id }}" class="tbox-children"></div>
+  {% endif %}
+  {% endfor %}
+</div>
+{% elif cls.has_subclasses %}
 <div id="tbox-children-{{ safe_id }}" class="tbox-children"></div>
 {% endif %}
 {% endfor %}
