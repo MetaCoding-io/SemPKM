@@ -16,7 +16,7 @@ import time
 import uuid
 from pathlib import Path
 
-from rdflib import BNode, Graph, Literal, URIRef
+from rdflib import BNode, Graph, Literal, Namespace, URIRef
 from rdflib.namespace import OWL, RDF, RDFS, SH, XSD
 
 from app.models.registry import MODELS_GRAPH, SEMPKM_NS
@@ -1314,6 +1314,8 @@ ORDER BY ?propType ?label"""
         parent_iri: str,
         icon_name: str | None = None,
         icon_color: str | None = None,
+        description: str | None = None,
+        example: str | None = None,
     ) -> list[tuple]:
         """Generate OWL class triples for a user-defined class.
 
@@ -1321,8 +1323,11 @@ ORDER BY ?propType ?label"""
         - <classIRI> a owl:Class
         - <classIRI> rdfs:label "name"
         - <classIRI> rdfs:subClassOf <parent>
+        - Optionally: rdfs:comment, skos:example
         - Optionally: sempkm:typeIcon, sempkm:typeColor
         """
+        SKOS = Namespace("http://www.w3.org/2004/02/skos/core#")
+
         class_uri = URIRef(class_iri)
         triples: list[tuple] = [
             (class_uri, RDF.type, OWL.Class),
@@ -1330,6 +1335,10 @@ ORDER BY ?propType ?label"""
             (class_uri, RDFS.subClassOf, URIRef(parent_iri)),
         ]
 
+        if description:
+            triples.append((class_uri, RDFS.comment, Literal(description)))
+        if example:
+            triples.append((class_uri, SKOS.example, Literal(example)))
         if icon_name:
             triples.append((class_uri, SEMPKM_TYPE_ICON, Literal(icon_name)))
         if icon_color:
@@ -1422,6 +1431,8 @@ ORDER BY ?propType ?label"""
         properties: list[dict],
         icon_name: str | None = None,
         icon_color: str | None = None,
+        description: str | None = None,
+        example: str | None = None,
     ) -> dict:
         """Create a user-defined class with OWL + SHACL triples.
 
@@ -1435,6 +1446,8 @@ ORDER BY ?propType ?label"""
                         datatype_iri.
             icon_name: Optional Lucide icon name.
             icon_color: Optional hex color string.
+            description: Optional class description (rdfs:comment).
+            example: Optional usage example (skos:example).
 
         Returns:
             Dict with class_iri, shape_iri, triple_count, property_count.
@@ -1452,6 +1465,8 @@ ORDER BY ?propType ?label"""
             parent_iri=parent_iri,
             icon_name=icon_name,
             icon_color=icon_color,
+            description=description,
+            example=example,
         )
         shape_triples = self._generate_shape_triples(
             class_iri=class_iri,

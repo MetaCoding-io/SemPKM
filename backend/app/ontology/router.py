@@ -325,6 +325,8 @@ async def create_class_form(
 async def create_class(
     request: Request,
     name: str = Form(...),
+    description: str = Form(""),
+    example: str = Form(""),
     icon: str = Form(""),
     icon_color: str = Form(""),
     parent_iri: str = Form(...),
@@ -362,6 +364,8 @@ async def create_class(
             properties=props_list,
             icon_name=icon.strip() or None,
             icon_color=icon_color.strip() or None,
+            description=description.strip() or None,
+            example=example.strip() or None,
         )
     except ValueError as exc:
         logger.warning("create-class validation error: %s", exc)
