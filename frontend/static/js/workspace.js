@@ -3385,6 +3385,7 @@
 
   // --- Predicate options ---
   var PREDICATES = [
+    { iri: 'http://www.w3.org/2000/01/rdf-schema#comment', label: 'rdfs:comment (description)' },
     { iri: 'http://purl.org/dc/terms/title', label: 'dcterms:title' },
     { iri: 'http://purl.org/dc/terms/description', label: 'dcterms:description' },
     { iri: 'http://purl.org/dc/terms/date', label: 'dcterms:date' },
@@ -3511,18 +3512,18 @@
     row.setAttribute('data-testid', 'property-row');
     row.innerHTML =
       '<div class="prop-field">' +
-        '<label>Name</label>' +
-        '<input type="text" class="prop-name" placeholder="Property name" autocomplete="off">' +
+        '<label>Display Label</label>' +
+        '<input type="text" class="prop-name" placeholder="e.g. Description, Due Date" autocomplete="off">' +
       '</div>' +
       '<div class="prop-field">' +
-        '<label>Predicate</label>' +
+        '<label>RDF Property</label>' +
         '<select class="prop-predicate" onchange="handlePredicateChange(this)">' +
           buildPredicateOptions() +
         '</select>' +
         '<input type="text" class="prop-custom-iri" placeholder="Custom IRI (http://…)" style="display:none; margin-top:4px;" autocomplete="off">' +
       '</div>' +
       '<div class="prop-field">' +
-        '<label>Datatype</label>' +
+        '<label>Value Type</label>' +
         '<select class="prop-datatype">' +
           buildDatatypeOptions() +
         '</select>' +
@@ -3592,11 +3593,29 @@
     }
   });
 
-  // Listen for classCreated to close form and show success
+  // Listen for classCreated to close modal and show global toast
   document.addEventListener('htmx:afterRequest', function(e) {
     if (e.detail && e.detail.elt && e.detail.elt.id === 'create-class-form') {
-      // If the response was successful (200), form can stay to show message
-      // The HX-Trigger: classCreated will auto-refresh the TBox tree
+      if (e.detail.successful) {
+        // Extract the class name from the response for the toast message
+        var resultEl = document.getElementById('ccf-result');
+        var className = '';
+        if (resultEl) {
+          var strong = resultEl.querySelector('strong');
+          if (strong) className = strong.textContent;
+        }
+        // Close modal
+        var overlay = document.getElementById('class-creation-overlay');
+        if (overlay) overlay.style.display = 'none';
+        // Reset form for next use
+        var form = document.getElementById('create-class-form');
+        if (form) form.reset();
+        if (resultEl) resultEl.innerHTML = '';
+        // Show global toast
+        if (typeof _showGlobalToast === 'function' && className) {
+          _showGlobalToast('Created class "' + className + '"', 'info');
+        }
+      }
     }
   });
 
