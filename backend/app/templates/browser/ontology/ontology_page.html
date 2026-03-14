@@ -29,6 +29,12 @@
             title="Create a new class">
       <i data-lucide="plus"></i> Create Class
     </button>
+    {# Create Property button #}
+    <button class="btn-sm ccf-trigger-btn" data-testid="create-property-btn"
+            onclick="togglePropertyCreationForm()"
+            title="Create a new property">
+      <i data-lucide="plus"></i> Create Property
+    </button>
   </div>
 
   {# Class creation modal — loaded via htmx on demand #}
@@ -39,6 +45,24 @@
          hx-get="/browser/ontology/create-class-form"
          hx-trigger="loadForm"
          hx-swap="innerHTML">
+    </div>
+  </div>
+
+  {# Property creation modal #}
+  <div id="property-creation-overlay" class="ccf-overlay" style="display:none;"
+       onclick="if(event.target===this)closePropertyCreationForm()">
+    <div class="ccf-modal"
+         id="property-creation-container"
+         hx-get="/browser/ontology/create-property-form"
+         hx-trigger="loadPropertyForm"
+         hx-swap="innerHTML">
+    </div>
+  </div>
+
+  {# Class edit modal #}
+  <div id="class-edit-overlay" class="ccf-overlay" style="display:none;"
+       onclick="if(event.target===this)closeClassEditForm()">
+    <div class="ccf-modal" id="class-edit-container">
     </div>
   </div>
 
@@ -56,7 +80,7 @@
           <div class="tbox-tree-scroll"
                id="tbox-tree-content"
                hx-get="/browser/ontology/tbox"
-               hx-trigger="load, classCreated from:body, classDeleted from:body"
+               hx-trigger="load, classCreated from:body, classDeleted from:body, classEdited from:body"
                hx-swap="innerHTML">
             <div class="ontology-loading">Loading TBox…</div>
           </div>
@@ -69,7 +93,10 @@
         </div>
       </div>
     </div>
-    <div id="ontology-rbox" class="ontology-pane" data-testid="rbox-legend">
+    <div id="ontology-rbox" class="ontology-pane" data-testid="rbox-legend"
+         hx-get="/browser/ontology/rbox"
+         hx-trigger="propertyCreated from:body"
+         hx-swap="innerHTML">
       <div class="ontology-loading">Click the RBox tab to load property data.</div>
     </div>
   </div>
@@ -116,13 +143,68 @@ function closeClassCreationForm() {
   if (overlay) overlay.style.display = 'none';
 }
 
-// Close modal on Escape key
+// --- Property creation modal ---
+function togglePropertyCreationForm() {
+  var overlay = document.getElementById('property-creation-overlay');
+  var container = document.getElementById('property-creation-container');
+  if (!overlay || !container) return;
+
+  if (overlay.style.display === 'none') {
+    overlay.style.display = 'flex';
+    if (!container.querySelector('.property-creation-form')) {
+      htmx.trigger(container, 'loadPropertyForm');
+    }
+    setTimeout(function() {
+      var input = container.querySelector('input[type="text"]');
+      if (input) input.focus();
+    }, 150);
+  } else {
+    overlay.style.display = 'none';
+  }
+}
+
+function closePropertyCreationForm() {
+  var overlay = document.getElementById('property-creation-overlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+// --- Class edit modal ---
+function openClassEditForm(classIri) {
+  var overlay = document.getElementById('class-edit-overlay');
+  var container = document.getElementById('class-edit-container');
+  if (!overlay || !container) return;
+
+  overlay.style.display = 'flex';
+  container.innerHTML = '<div class="ontology-loading" style="padding:32px;text-align:center;">Loading…</div>';
+  htmx.ajax('GET', '/browser/ontology/edit-class-form?class_iri=' + encodeURIComponent(classIri), {
+    target: '#class-edit-container',
+    swap: 'innerHTML'
+  });
+  setTimeout(function() {
+    var input = container.querySelector('input[type="text"]');
+    if (input) input.focus();
+  }, 300);
+}
+
+function closeClassEditForm() {
+  var overlay = document.getElementById('class-edit-overlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+// Close any open modal on Escape key
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
-    var overlay = document.getElementById('class-creation-overlay');
-    if (overlay && overlay.style.display !== 'none') {
-      overlay.style.display = 'none';
-      e.stopPropagation();
+    var overlays = [
+      document.getElementById('class-creation-overlay'),
+      document.getElementById('property-creation-overlay'),
+      document.getElementById('class-edit-overlay'),
+    ];
+    for (var i = 0; i < overlays.length; i++) {
+      if (overlays[i] && overlays[i].style.display !== 'none') {
+        overlays[i].style.display = 'none';
+        e.stopPropagation();
+        return;
+      }
     }
   }
 });

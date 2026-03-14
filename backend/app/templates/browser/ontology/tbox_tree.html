@@ -35,6 +35,11 @@
     <span class="tbox-source-badge badge-ppv">ppv</span>
     {% elif 'user-types' in cls.iri %}
     <span class="tbox-source-badge badge-user">user</span>
+    <button type="button" class="tbox-edit-btn" data-testid="tbox-edit-btn"
+            title="Edit this class"
+            onclick="event.stopPropagation(); openClassEditForm('{{ cls.iri }}');">
+      <i data-lucide="pencil"></i>
+    </button>
     <button type="button" class="tbox-delete-btn" data-testid="tbox-delete-btn"
             title="Delete this class"
             hx-delete="/browser/ontology/delete-class?class_iri={{ cls.iri | urlencode }}"
@@ -73,6 +78,11 @@
       <span class="tbox-source-badge badge-ppv">ppv</span>
       {% elif 'user-types' in child.iri %}
       <span class="tbox-source-badge badge-user">user</span>
+      <button type="button" class="tbox-edit-btn" data-testid="tbox-edit-btn"
+              title="Edit this class"
+              onclick="event.stopPropagation(); openClassEditForm('{{ child.iri }}');">
+        <i data-lucide="pencil"></i>
+      </button>
       {% endif %}
   </div>
   {% if child.has_subclasses %}

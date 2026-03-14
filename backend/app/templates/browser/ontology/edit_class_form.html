@@ -1,0 +1,262 @@
+{# Class edit form: pre-populated with current class values.
+   Loaded via htmx into the edit modal.
+   Submits via htmx POST to /browser/ontology/edit-class.
+
+   Context:
+     cls: dict with iri, label, parent_iri, parent_label,
+          icon_name, icon_color, description, example, properties[]
+#}
+<div class="class-creation-form" data-testid="class-edit-form">
+  <div class="ccf-header">
+    <h4 class="ccf-title">Edit Class</h4>
+    <button type="button" class="btn-sm ccf-close" onclick="closeClassEditForm()" title="Close">
+      <i data-lucide="x"></i>
+    </button>
+  </div>
+
+  <form id="edit-class-form"
+        hx-post="/browser/ontology/edit-class"
+        hx-target="#ecf-result"
+        hx-swap="innerHTML"
+        hx-on::config-request="serializeEditProperties(); event.detail.parameters['properties'] = document.getElementById('ecf-properties').value">
+
+    <input type="hidden" name="class_iri" value="{{ cls.iri }}">
+    <input type="hidden" id="ecf-properties" name="properties" value="[]">
+
+    {# Identity Section #}
+    <div class="ccf-section">
+      <div class="ccf-section-label">Identity</div>
+
+      <div class="form-field">
+        <label for="ecf-name">Class Name <span class="ccf-required">*</span></label>
+        <input type="text" id="ecf-name" name="name" required
+               value="{{ cls.label }}" autocomplete="off">
+      </div>
+
+      <div class="form-field">
+        <label for="ecf-description">Description</label>
+        <textarea id="ecf-description" name="description" rows="2"
+                  placeholder="What this class represents…">{{ cls.description }}</textarea>
+      </div>
+
+      <div class="form-field">
+        <label for="ecf-example">Example</label>
+        <input type="text" id="ecf-example" name="example"
+               value="{{ cls.example }}" placeholder="e.g. a concrete instance…">
+      </div>
+    </div>
+
+    {# Appearance Section #}
+    <div class="ccf-section">
+      <div class="ccf-section-label">Appearance</div>
+
+      <div class="form-field">
+        <label>Icon</label>
+        <div class="ccf-icon-grid" id="ecf-icon-grid">
+          {% set icons = ['file-text','book','lightbulb','user','folder','tag','link','star',
+                          'heart','flag','bookmark','alert-circle','check-circle','clock',
+                          'calendar','map-pin','globe','zap','target','award',
+                          'briefcase','code','database','cpu','layers','layout',
+                          'message-square','music','image','video','camera','mic',
+                          'headphones','phone','mail','send','download','upload'] %}
+          {% for icon in icons %}
+          <button type="button" class="ccf-icon-btn{% if cls.icon_name == icon %} selected{% endif %}"
+                  data-icon="{{ icon }}" onclick="ecfSelectIcon(this)"
+                  title="{{ icon }}">
+            <i data-lucide="{{ icon }}"></i>
+          </button>
+          {% endfor %}
+        </div>
+        <input type="hidden" id="ecf-icon" name="icon" value="{{ cls.icon_name }}">
+      </div>
+
+      <div class="form-field">
+        <label>Icon Color</label>
+        <div class="ccf-color-grid" id="ecf-color-grid">
+          {% set colors = ['#6366f1','#8b5cf6','#ec4899','#ef4444','#f97316','#eab308','#22c55e','#06b6d4'] %}
+          {% for color in colors %}
+          <button type="button"
+                  class="ccf-color-btn{% if cls.icon_color == color %} selected{% endif %}"
+                  data-color="{{ color }}" onclick="ecfSelectColor(this)"
+                  style="background:{{ color }}"></button>
+          {% endfor %}
+        </div>
+        <input type="hidden" id="ecf-color" name="icon_color" value="{{ cls.icon_color }}">
+      </div>
+    </div>
+
+    {# Hierarchy Section #}
+    <div class="ccf-section">
+      <div class="ccf-section-label">Hierarchy</div>
+
+      <div class="form-field">
+        <label>Parent Class</label>
+        <p class="ccf-help">The class this type extends.</p>
+        <input type="text" id="ecf-parent-search" placeholder="Search classes…"
+               autocomplete="off"
+               hx-get="/browser/ontology/tbox/search"
+               hx-trigger="input changed delay:300ms"
+               hx-target="#ecf-parent-results"
+               hx-swap="innerHTML"
+               name="_parent_search"
+               {% if cls.parent_iri %}style="display:none;"{% endif %}>
+        <div id="ecf-parent-results" class="ccf-search-results"></div>
+        <input type="hidden" id="ecf-parent-iri" name="parent_iri" value="{{ cls.parent_iri or 'http://www.w3.org/2002/07/owl#Thing' }}">
+        <div id="ecf-parent-selected" class="ccf-selected-item" {% if not cls.parent_iri %}style="display:none;"{% endif %}>
+          <span class="ccf-selected-label">{{ cls.parent_label or 'owl:Thing' }}</span>
+          <button type="button" class="ccf-selected-clear" onclick="ecfClearParent()">&times;</button>
+        </div>
+      </div>
+    </div>
+
+    {# Instance Properties Section #}
+    <div class="ccf-section">
+      <div class="ccf-section-label">Instance Properties</div>
+      <p class="ccf-help">Define which fields objects of this class will have.</p>
+
+      <div id="ecf-property-list">
+        {# Pre-populated from existing properties #}
+      </div>
+      <button type="button" class="btn-sm" onclick="ecfAddProperty()">+ Add Property</button>
+    </div>
+
+    <div class="ccf-actions">
+      <div id="ecf-result"></div>
+      <button type="button" class="btn-sm" onclick="closeClassEditForm()">Cancel</button>
+      <button type="submit" class="btn-sm btn-primary">Save Changes</button>
+    </div>
+  </form>
+</div>
+
+<script>
+(function() {
+  var PREDICATES = [
+    {iri: 'http://www.w3.org/2000/01/rdf-schema#comment', label: 'rdfs:comment (description)'},
+    {iri: 'http://purl.org/dc/terms/title', label: 'dcterms:title'},
+    {iri: 'http://purl.org/dc/terms/description', label: 'dcterms:description'},
+    {iri: 'http://purl.org/dc/terms/date', label: 'dcterms:date'},
+    {iri: 'http://schema.org/name', label: 'schema:name'},
+    {iri: 'http://schema.org/url', label: 'schema:url'},
+    {iri: 'http://schema.org/startDate', label: 'schema:startDate'},
+    {iri: 'http://schema.org/endDate', label: 'schema:endDate'},
+    {iri: 'http://xmlns.com/foaf/0.1/name', label: 'foaf:name'},
+    {iri: 'http://www.w3.org/2004/02/skos/core#note', label: 'skos:note'},
+    {iri: '__custom__', label: 'Custom IRI…'},
+  ];
+
+  var DATATYPES = [
+    {iri: 'http://www.w3.org/2001/XMLSchema#string', label: 'xsd:string (text)'},
+    {iri: 'http://www.w3.org/2001/XMLSchema#integer', label: 'xsd:integer'},
+    {iri: 'http://www.w3.org/2001/XMLSchema#decimal', label: 'xsd:decimal'},
+    {iri: 'http://www.w3.org/2001/XMLSchema#boolean', label: 'xsd:boolean'},
+    {iri: 'http://www.w3.org/2001/XMLSchema#date', label: 'xsd:date'},
+    {iri: 'http://www.w3.org/2001/XMLSchema#dateTime', label: 'xsd:dateTime'},
+    {iri: 'http://www.w3.org/2001/XMLSchema#anyURI', label: 'xsd:anyURI'},
+  ];
+
+  var propIndex = 0;
+
+  function makePropertyRow(name, predicateIri, datatypeIri) {
+    var idx = propIndex++;
+    var predOptions = PREDICATES.map(function(p) {
+      var sel = (p.iri === predicateIri) ? ' selected' : '';
+      return '<option value="' + p.iri + '"' + sel + '>' + p.label + '</option>';
+    }).join('');
+    var dtOptions = DATATYPES.map(function(d) {
+      var sel = (d.iri === datatypeIri) ? ' selected' : '';
+      return '<option value="' + d.iri + '"' + sel + '>' + d.label + '</option>';
+    }).join('');
+
+    var row = document.createElement('div');
+    row.className = 'ccf-property-row';
+    row.innerHTML =
+      '<div class="ccf-prop-fields">' +
+        '<input type="text" class="ecf-prop-name" placeholder="Display Label" value="' + (name || '') + '">' +
+        '<select class="ecf-prop-pred">' + predOptions + '</select>' +
+        '<select class="ecf-prop-dt">' + dtOptions + '</select>' +
+      '</div>' +
+      '<button type="button" class="ccf-prop-remove" onclick="this.parentElement.remove()" title="Remove">&times;</button>';
+    return row;
+  }
+
+  // Pre-populate from existing properties
+  var list = document.getElementById('ecf-property-list');
+  var existing = {{ cls.properties | tojson }};
+  for (var i = 0; i < existing.length; i++) {
+    list.appendChild(makePropertyRow(
+      existing[i].name,
+      existing[i].predicate_iri,
+      existing[i].datatype_iri
+    ));
+  }
+
+  window.ecfAddProperty = function() {
+    list.appendChild(makePropertyRow('', '', 'http://www.w3.org/2001/XMLSchema#string'));
+  };
+
+  // Serialize properties to JSON before submit
+  window.serializeEditProperties = function() {
+    var rows = document.querySelectorAll('#ecf-property-list .ccf-property-row');
+    var props = [];
+    for (var i = 0; i < rows.length; i++) {
+      var name = rows[i].querySelector('.ecf-prop-name').value.trim();
+      var pred = rows[i].querySelector('.ecf-prop-pred').value;
+      var dt = rows[i].querySelector('.ecf-prop-dt').value;
+      if (name && pred && pred !== '__custom__') {
+        props.push({name: name, predicate_iri: pred, datatype_iri: dt});
+      }
+    }
+    document.getElementById('ecf-properties').value = JSON.stringify(props);
+  };
+
+  // Icon selection
+  window.ecfSelectIcon = function(btn) {
+    var grid = document.getElementById('ecf-icon-grid');
+    grid.querySelectorAll('.ccf-icon-btn').forEach(function(b) { b.classList.remove('selected'); });
+    btn.classList.add('selected');
+    document.getElementById('ecf-icon').value = btn.getAttribute('data-icon');
+  };
+
+  // Color selection
+  window.ecfSelectColor = function(btn) {
+    var grid = document.getElementById('ecf-color-grid');
+    grid.querySelectorAll('.ccf-color-btn').forEach(function(b) { b.classList.remove('selected'); });
+    btn.classList.add('selected');
+    document.getElementById('ecf-color').value = btn.getAttribute('data-color');
+  };
+
+  // Parent class search result click
+  document.getElementById('class-edit-container').addEventListener('click', function(e) {
+    var item = e.target.closest('.ccf-search-item');
+    if (!item) return;
+    var parent = item.closest('.form-field');
+    if (!parent || !parent.querySelector('#ecf-parent-search')) return;
+
+    var iri = item.getAttribute('data-iri');
+    var label = item.getAttribute('data-label') || item.textContent.trim();
+    document.getElementById('ecf-parent-iri').value = iri;
+    document.getElementById('ecf-parent-search').style.display = 'none';
+    document.getElementById('ecf-parent-results').innerHTML = '';
+    var sel = document.getElementById('ecf-parent-selected');
+    sel.querySelector('.ccf-selected-label').textContent = label;
+    sel.style.display = 'flex';
+  });
+
+  window.ecfClearParent = function() {
+    document.getElementById('ecf-parent-iri').value = 'http://www.w3.org/2002/07/owl#Thing';
+    document.getElementById('ecf-parent-search').style.display = '';
+    var sel = document.getElementById('ecf-parent-selected');
+    sel.querySelector('.ccf-selected-label').textContent = 'owl:Thing';
+  };
+
+  // Close modal on successful edit
+  document.body.addEventListener('classEdited', function() {
+    closeClassEditForm();
+    if (typeof _showGlobalToast === 'function') {
+      _showGlobalToast('Class updated successfully', 'info');
+    }
+  });
+
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+})();
+</script>
