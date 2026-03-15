@@ -26,6 +26,7 @@ from app.canvas.router import router as canvas_router
 from app.obsidian.router import router as obsidian_router
 from app.views.router import router as views_router
 from app.dashboard.router import browser_router as dashboard_browser_router, api_router as dashboard_api_router
+from app.workflow.router import browser_router as workflow_browser_router, api_router as workflow_api_router
 from app.debug.router import router as debug_router
 from app.auth.service import AuthService
 from app.auth.tokens import load_or_create_setup_token
@@ -321,6 +322,10 @@ async def lifespan(app: FastAPI):
     from app.dashboard.service import DashboardService
     app.state.dashboard_service = DashboardService(async_session_factory)
 
+    # Create WorkflowService and store on app state
+    from app.workflow.service import WorkflowService
+    app.state.workflow_service = WorkflowService(async_session_factory)
+
     # Purge expired sessions on startup
     purged = await auth_service.cleanup_expired_sessions()
     if purged:
@@ -501,6 +506,8 @@ app.include_router(admin_router)
 app.include_router(views_router)
 app.include_router(dashboard_browser_router)
 app.include_router(dashboard_api_router)
+app.include_router(workflow_browser_router)
+app.include_router(workflow_api_router)
 app.include_router(vfs_browser_router)
 app.include_router(vfs_mount_router)
 app.include_router(indieauth_router)

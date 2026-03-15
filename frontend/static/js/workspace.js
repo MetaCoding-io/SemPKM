@@ -731,6 +731,27 @@
   window.openDashboardTab = openDashboardTab;
 
 
+  function openWorkflowTab(workflowId, workflowName) {
+    var tabKey = 'workflow:' + workflowId;
+    var dv = window._dockview;
+    if (!dv) return;
+
+    var existing = dv.panels.find(function(p) { return p.id === tabKey; });
+    if (existing) { existing.api.setActive(); return; }
+
+    if (!window._tabMeta) window._tabMeta = {};
+    window._tabMeta[tabKey] = { label: workflowName || 'Workflow', dirty: false };
+
+    dv.api.addPanel({
+      id: tabKey,
+      component: 'special-panel',
+      params: { specialType: 'workflow', workflowId: workflowId, isView: false, isSpecial: true },
+      title: workflowName || 'Workflow'
+    });
+  }
+  window.openWorkflowTab = openWorkflowTab;
+
+
   function openVfsTab() {
     var tabKey = 'special:vfs';
     var dv = window._dockview;

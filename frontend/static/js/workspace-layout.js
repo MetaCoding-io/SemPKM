@@ -213,6 +213,10 @@
           if (st === 'dashboard' && params.params.dashboardId) {
             url = '/browser/dashboard/' + params.params.dashboardId;
           }
+          // Workflow panels need the ID + /run appended
+          if (st === 'workflow' && params.params.workflowId) {
+            url = '/browser/workflow/' + params.params.workflowId + '/run';
+          }
           htmx.ajax('GET', url, { target: el, swap: 'innerHTML' });
         }
       };
