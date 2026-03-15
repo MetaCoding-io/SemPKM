@@ -119,6 +119,32 @@ Creating a new object overwrites the content of the currently active dockview ta
 
 ---
 
+## Mental Model Schema Migrations
+
+**Queued:** 2026-03-14  
+**Status:** Idea  
+
+The model lifecycle is currently binary: install or full uninstall. Uninstall is blocked when user data (ABox) exists, which means once users create objects of a model's types, the model author cannot update TBox (ontology) or RBox (shapes, rules, views) without the user deleting all their data first.
+
+**The problem this causes:**
+- Adding `sh:description` or `editHelpText` to shapes requires manual SPARQL graph surgery
+- Adding a new optional property to an existing class has no safe path
+- Reordering form fields, changing groups, updating view definitions — all blocked
+- Model authors have no iteration loop once a model is in use
+
+**What's needed — Alembic-style migrations for RDF models:**
+- **Versioned migration files** per model describing forward (and ideally reverse) schema transformations
+- **Safe RBox refresh**: CLEAR + rewrite shapes/views/rules graphs without touching registry or ABox (covers ~90% of real iteration — field descriptions, form layout, validation rules)
+- **TBox additions**: New classes, new optional properties on existing classes — append-only, no ABox impact
+- **TBox modifications**: Rename property path, change datatype, deprecate field — need transformation logic to update existing triples
+- **Version tracking**: Model registry stores current schema version; migrations run forward from current to target
+
+**Minimum viable fix:** A `refresh_artifacts` endpoint that CLEARs and rewrites individual artifact graphs (shapes, views, rules) from the model's files on disk — no registry change, no ABox impact. This was done manually via SPARQL to unblock `editHelpText` deployment.
+
+**Context:** Discovered during M004 when `sh:description` and `editHelpText` additions to `basic-pkm.jsonld` couldn't reach the triplestore through normal install/uninstall.
+
+---
+
 ## Ontology Viewer & Gist Upper Ontology
 
 **Queued:** 2026-03-12  
