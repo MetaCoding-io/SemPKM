@@ -6596,3 +6596,78 @@ details.form-group[open] > .form-group-summary::before {
 .sparql-save-view-btn:hover {
     background: var(--color-surface-hover, var(--color-bg-secondary));
 }
+
+
+/* ── Dashboard layouts ────────────────────────────────────────────── */
+
+.dashboard-container {
+    min-height: 100%;
+    box-sizing: border-box;
+}
+
+.dashboard-slot {
+    min-height: 100px;
+    overflow: auto;
+    border: 1px solid var(--color-border, #333);
+    border-radius: 6px;
+    background: var(--color-bg-primary, #1e1e1e);
+}
+
+.dashboard-block-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--color-text-muted, #888);
+    font-size: 0.9em;
+}
+
+.dashboard-block-error {
+    padding: 12px;
+    color: var(--color-warning, #e5c07b);
+    font-size: 0.85em;
+}
+
+.dashboard-block-markdown {
+    padding: 16px;
+    line-height: 1.6;
+    color: var(--color-text-primary, #ccc);
+}
+
+.dashboard-block-markdown p {
+    margin: 0 0 0.8em;
+}
+
+.dashboard-block-divider {
+    border: none;
+    border-top: 1px solid var(--color-border, #333);
+    margin: 8px 0;
+}
+
+.dashboard-block-view {
+    padding: 0;
+}
+
+.dashboard-block-form {
+    padding: 12px;
+}
+
+.dashboard-block-sparql {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.dashboard-sparql-label {
+    font-size: 0.8em;
+    color: var(--color-text-muted, #888);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.dashboard-sparql-value {
+    font-size: 1.8em;
+    font-weight: 600;
+    color: var(--color-accent, #61afef);
+}
