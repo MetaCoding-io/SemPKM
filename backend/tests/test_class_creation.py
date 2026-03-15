@@ -493,10 +493,15 @@ class TestCreateClassEndpoint:
             request=request,
             name="  ",
 <<<<<<< HEAD
+<<<<<<< HEAD
             description="",
             example="",
 =======
 >>>>>>> gsd/M003/S08
+=======
+            description="",
+            example="",
+>>>>>>> gsd/M004/S05
             icon="",
             icon_color="",
             parent_iri="http://www.w3.org/2002/07/owl#Thing",
@@ -519,10 +524,15 @@ class TestCreateClassEndpoint:
             request=request,
             name="Test Class",
 <<<<<<< HEAD
+<<<<<<< HEAD
             description="",
             example="",
 =======
 >>>>>>> gsd/M003/S08
+=======
+            description="",
+            example="",
+>>>>>>> gsd/M004/S05
             icon="",
             icon_color="",
             parent_iri="http://www.w3.org/2002/07/owl#Thing",
@@ -559,10 +569,15 @@ class TestCreateClassEndpoint:
             request=request,
             name="Test Task",
 <<<<<<< HEAD
+<<<<<<< HEAD
             description="",
             example="",
 =======
 >>>>>>> gsd/M003/S08
+=======
+            description="",
+            example="",
+>>>>>>> gsd/M004/S05
             icon="check-square",
             icon_color="#4CAF50",
             parent_iri="http://www.w3.org/2002/07/owl#Thing",
@@ -587,10 +602,15 @@ class TestCreateClassEndpoint:
             icon_name="check-square",
             icon_color="#4CAF50",
 <<<<<<< HEAD
+<<<<<<< HEAD
             description=None,
             example=None,
 =======
 >>>>>>> gsd/M003/S08
+=======
+            description=None,
+            example=None,
+>>>>>>> gsd/M004/S05
         )
 
     @pytest.mark.asyncio
@@ -613,10 +633,15 @@ class TestCreateClassEndpoint:
             request=request,
             name="Note",
 <<<<<<< HEAD
+<<<<<<< HEAD
             description="",
             example="",
 =======
 >>>>>>> gsd/M003/S08
+=======
+            description="",
+            example="",
+>>>>>>> gsd/M004/S05
             icon="file-text",
             icon_color="#2196F3",
             parent_iri="http://www.w3.org/2002/07/owl#Thing",
