@@ -69,14 +69,16 @@ from app.vfs.strategies import (
 =======
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth.dependencies import get_current_user
+from app.auth.dependencies import get_current_user, require_role
 from app.auth.models import User
 from app.db.session import get_db_session
 from app.dependencies import (
     get_label_service,
     get_shapes_service,
+    get_triplestore_client,
     get_view_spec_service,
 )
+from app.triplestore.client import TriplestoreClient
 from app.services.icons import IconService
 from app.services.labels import LabelService
 from app.services.shapes import ShapesService
@@ -100,6 +102,8 @@ from app.vfs.mount_service import (
     MountDefinition,
 )
 from app.vfs.strategies import (
+    _LABEL_COALESCE,
+    _LABEL_OPTIONALS,
     build_scope_filter,
     query_date_month_folders,
     query_date_year_folders,
@@ -326,11 +330,44 @@ async def _handle_hierarchy(request: Request, **_kwargs) -> HTMLResponse:
     )
 
 
-async def _handle_by_tag(request: Request, **_kwargs) -> HTMLResponse:
-    """Placeholder for by-tag explorer mode."""
+async def _handle_by_tag(
+    request: Request,
+    label_service: LabelService,
+    icon_svc: IconService,
+    **_kwargs,
+) -> HTMLResponse:
+    """Render the explorer tree grouped by tag values across bpkm:tags and schema:keywords."""
     templates = request.app.state.templates
+    client = request.app.state.triplestore_client
+
+    sparql = """
+    SELECT ?tagValue (COUNT(DISTINCT ?iri) AS ?count)
+    FROM <urn:sempkm:current>
+    WHERE {
+      { ?iri <urn:sempkm:model:basic-pkm:tags> ?tagValue }
+      UNION
+      { ?iri <https://schema.org/keywords> ?tagValue }
+    }
+    GROUP BY ?tagValue
+    ORDER BY ?tagValue
+    """
+
+    bindings = await _execute_sparql_select(client, sparql)
+
+    folders = [
+        {
+            "value": b["tagValue"]["value"],
+            "label": b["tagValue"]["value"],
+            "count": int(b["count"]["value"]),
+        }
+        for b in bindings
+    ]
+
+    logger.debug("By-tag explorer: %d tag folders", len(folders))
+
     return templates.TemplateResponse(
         request,
+<<<<<<< HEAD
         "browser/explorer_placeholder.html",
         {
             "request": request,
@@ -338,6 +375,10 @@ async def _handle_by_tag(request: Request, **_kwargs) -> HTMLResponse:
             "icon_name": "tag",
         },
 >>>>>>> gsd/M003/S01
+=======
+        "browser/tag_tree.html",
+        {"request": request, "folders": folders},
+>>>>>>> gsd/M003/S04
     )
 
 
@@ -934,6 +975,9 @@ async def explorer_children(
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> gsd/M003/S04
 @workspace_router.get("/explorer/tag-children")
 async def tag_children(
     request: Request,
@@ -986,8 +1030,11 @@ async def tag_children(
     )
 
 
+<<<<<<< HEAD
 =======
 >>>>>>> gsd/M003/S03
+=======
+>>>>>>> gsd/M003/S04
 @workspace_router.get("/explorer/mount-children")
 async def mount_children(
     request: Request,
@@ -1203,6 +1250,9 @@ async def my_views(
         request, "browser/my_views.html", context
     )
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> gsd/M003/S04
 
 
 @workspace_router.post("/admin/migrate-tags")
@@ -1306,6 +1356,7 @@ async def migrate_tags(
 def _sparql_escape(value: str) -> str:
     """Escape special characters for SPARQL string literals."""
     return value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
+<<<<<<< HEAD
 
 
 @workspace_router.post("/admin/migrate-queries")
@@ -1333,3 +1384,5 @@ async def migrate_queries(
             raise HTTPException(status_code=500, detail="Query migration failed")
 =======
 >>>>>>> gsd/M002/S04
+=======
+>>>>>>> gsd/M003/S04
