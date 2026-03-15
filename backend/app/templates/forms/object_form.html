@@ -176,6 +176,7 @@
 
         // Reference fields have a wrapper with search + hidden + suggestions
         var referenceField = firstItem.querySelector('.reference-field');
+        var tagAutocompleteField = firstItem.querySelector('.tag-autocomplete-field');
         if (referenceField) {
             var refClone = referenceField.cloneNode(true);
             var searchInput = refClone.querySelector('input[type="text"]');
@@ -199,6 +200,28 @@
             }
 
             newItem.appendChild(refClone);
+        } else if (tagAutocompleteField) {
+            // Tag autocomplete fields: clone wrapper, update input ID, hx-target, suggestions div ID
+            var tagClone = tagAutocompleteField.cloneNode(true);
+            var tagInput = tagClone.querySelector('input[type="text"]');
+            var tagSuggestionsDiv = tagClone.querySelector('.suggestions-dropdown');
+
+            if (tagInput) {
+                tagInput.value = '';
+                tagInput.id = 'input-' + fieldId + '-' + newIndex;
+                tagInput.setAttribute('hx-target', '#tag-suggestions-' + fieldId + '-' + newIndex);
+            }
+            if (tagSuggestionsDiv) {
+                tagSuggestionsDiv.id = 'tag-suggestions-' + fieldId + '-' + newIndex;
+                tagSuggestionsDiv.innerHTML = '';
+            }
+
+            // Preserve tag-pill-item class on the multi-value-item wrapper
+            if (firstItem.classList.contains('tag-pill-item')) {
+                newItem.classList.add('tag-pill-item');
+            }
+
+            newItem.appendChild(tagClone);
         } else {
             // Clone the input from the first item, reset its value
             var firstInput = firstItem.querySelector('input, select');
@@ -273,6 +296,17 @@
             el.dataset.rendered = 'true';
         }
     };
+
+    // Tag autocomplete: inject q parameter into tag-suggestions requests
+    // The input's name is the property path (for form submission), but the
+    // endpoint expects "q". This listener rewrites the params for GET requests
+    // to tag-suggestions so the server gets "q=<typed_value>".
+    document.body.addEventListener('htmx:configRequest', function(e) {
+        if (e.detail.path.indexOf('/browser/tag-suggestions') !== -1) {
+            var triggerEl = e.detail.elt;
+            e.detail.parameters = { q: triggerEl.value || '' };
+        }
+    });
 
 })();
 </script>

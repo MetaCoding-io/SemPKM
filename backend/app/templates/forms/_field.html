@@ -176,6 +176,25 @@
            value="{{ current_value | default('', true) }}"
            {{ 'required' if is_required else '' }}>
 
+{% elif 'tags' in prop.path or 'keywords' in prop.path %}
+    {# Tag field: autocomplete with existing tags from the graph #}
+    <div class="tag-autocomplete-field">
+        <input type="text"
+               name="{{ input_name }}"
+               id="{{ input_id }}"
+               class="form-input {{ css_class }}"
+               value="{{ current_value | default('', true) }}"
+               autocomplete="off"
+               placeholder="Type to search tags..."
+               hx-get="/browser/tag-suggestions"
+               hx-trigger="input changed delay:200ms, focus"
+               hx-target="#tag-suggestions-{{ field_id }}{{ '-' ~ index if index is not none else '' }}"
+               hx-swap="innerHTML"
+               {{ 'required' if is_required else '' }}>
+        <div id="tag-suggestions-{{ field_id }}{{ '-' ~ index if index is not none else '' }}"
+             class="suggestions-dropdown"></div>
+    </div>
+
 {% else %}
     {# Default: xsd:string or no datatype #}
     <input type="text" name="{{ input_name }}" id="{{ input_id }}"

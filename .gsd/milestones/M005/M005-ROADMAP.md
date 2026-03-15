@@ -64,7 +64,7 @@ This milestone is complete only when all are true:
 - [x] **S03: Hierarchical Tag Tree** `risk:medium` `depends:[]`
   > After this: By Tag explorer nests tags at arbitrary depth using `/` as delimiter; real Ideaverse tags render as multi-level tree
 
-- [ ] **S04: Tag Autocomplete** `risk:low` `depends:[S03]`
+- [x] **S04: Tag Autocomplete** `risk:low` `depends:[S03]`
   > After this: tag fields in edit forms suggest existing tag values as user types; new tags can still be entered freely
 
 - [ ] **S05: Model Schema Refresh** `risk:medium` `depends:[]`
