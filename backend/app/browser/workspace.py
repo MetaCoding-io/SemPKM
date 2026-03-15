@@ -18,6 +18,9 @@ from urllib.parse import unquote
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> gsd/M005/S01
 
 from app.auth.dependencies import get_current_user, require_role
 from app.auth.models import User
@@ -1194,12 +1197,17 @@ async def my_views(
     request: Request,
     user: User = Depends(get_current_user),
 <<<<<<< HEAD
+<<<<<<< HEAD
     view_spec_service: ViewSpecService = Depends(get_view_spec_service),
     query_service: QueryService = Depends(get_query_service),
 =======
     db: AsyncSession = Depends(get_db_session),
     view_spec_service: ViewSpecService = Depends(get_view_spec_service),
 >>>>>>> gsd/M002/S04
+=======
+    view_spec_service: ViewSpecService = Depends(get_view_spec_service),
+    query_service: QueryService = Depends(get_query_service),
+>>>>>>> gsd/M005/S01
 ):
     """Return promoted view entries for the 'My Views' nav tree section.
 
@@ -1209,16 +1217,21 @@ async def my_views(
     templates = request.app.state.templates
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     specs = await view_spec_service.get_user_promoted_view_specs(user.id)
 =======
     specs = await view_spec_service.get_user_promoted_view_specs(user.id, db)
 >>>>>>> gsd/M002/S04
+=======
+    specs = await view_spec_service.get_user_promoted_view_specs(user.id)
+>>>>>>> gsd/M005/S01
 
     if not specs:
         return HTMLResponse(
             content='<div class="tree-empty">No promoted views yet</div>'
         )
 
+<<<<<<< HEAD
 <<<<<<< HEAD
     # Build spec_iri -> query_id map from promoted view data
     promoted = await query_service.list_promoted_views(user.id)
@@ -1239,6 +1252,12 @@ async def my_views(
     query_id_map = {
         f"urn:sempkm:user-view:{pv.id}": str(pv.query_id) for pv in pv_rows
 >>>>>>> gsd/M002/S04
+=======
+    # Build spec_iri -> query_id map from promoted view data
+    promoted = await query_service.list_promoted_views(user.id)
+    query_id_map = {
+        f"urn:sempkm:user-view:{pv.id}": pv.query_id for pv in promoted
+>>>>>>> gsd/M005/S01
     }
 
     context = {
@@ -1357,6 +1376,9 @@ def _sparql_escape(value: str) -> str:
     """Escape special characters for SPARQL string literals."""
     return value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> gsd/M005/S01
 
 
 @workspace_router.post("/admin/migrate-queries")
@@ -1382,7 +1404,10 @@ async def migrate_queries(
         except Exception:
             logger.exception("Query migration failed")
             raise HTTPException(status_code=500, detail="Query migration failed")
+<<<<<<< HEAD
 =======
 >>>>>>> gsd/M002/S04
 =======
 >>>>>>> gsd/M003/S04
+=======
+>>>>>>> gsd/M005/S01

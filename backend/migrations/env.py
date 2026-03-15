@@ -18,10 +18,14 @@ from app.db.base import Base
 from app.auth.models import ApiToken, InstanceConfig, Invitation, User, UserSession  # noqa: F401
 from app.inference.models import InferenceTripleState  # noqa: F401
 <<<<<<< HEAD
+<<<<<<< HEAD
 # sparql models removed — tables dropped in migration 010 (data moved to RDF)
 =======
 from app.sparql.models import SavedSparqlQuery, SharedQueryAccess, PromotedQueryView, SparqlQueryHistory  # noqa: F401
 >>>>>>> gsd/M003/S05
+=======
+# sparql models removed — tables dropped in migration 010 (data moved to RDF)
+>>>>>>> gsd/M005/S01
 from app.favorites.models import UserFavorite  # noqa: F401
 
 # Alembic Config object
