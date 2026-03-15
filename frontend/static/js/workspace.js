@@ -2103,6 +2103,7 @@
     } catch (e) { /* localStorage unavailable */ }
   }
 
+<<<<<<< HEAD
   /**
    * Fetch VFS mounts and inject them as <option> entries in the explorer
    * mode dropdown. Wraps mount options in an <optgroup> for visual
@@ -2167,6 +2168,8 @@
       });
   }
 
+=======
+>>>>>>> gsd/M003/S01
   // --- Initialization ---
 
   function init() {
@@ -2198,6 +2201,7 @@
     // Initialize command palette after workspace layout is ready
     initCommandPalette();
 
+<<<<<<< HEAD
     // --- Handle deep-link hash to auto-open special tabs ---
     if (window.location.hash === '#ontology-viewer' && typeof openOntologyTab === 'function') {
       // Small delay to ensure dockview is fully initialized
@@ -2212,6 +2216,11 @@
     // --- Inject VFS mount options into explorer dropdown (async, non-blocking) ---
     initExplorerMountOptions();
 
+=======
+    // --- Explorer mode: clear selection on switch, persist in localStorage ---
+    initExplorerMode();
+
+>>>>>>> gsd/M003/S01
     // Initialize lint dashboard SSE and health badge
     initLintDashboardSSE();
     fetch('/api/lint/status', { credentials: 'include' })

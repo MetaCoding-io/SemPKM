@@ -43,9 +43,12 @@ export const SEL = {
     modeSelect: '#explorer-mode-select',
     treeBody: '#explorer-tree-body',
     placeholder: '[data-testid="explorer-placeholder"]',
+<<<<<<< HEAD
     mountOption: 'option[value^="mount:"]',
     mountFolderNode: '[data-testid="mount-folder"]',
     mountObjectLeaf: '[data-testid="mount-object"]',
+=======
+>>>>>>> gsd/M003/S01
   },
 
   // Type picker
