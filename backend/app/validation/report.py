@@ -15,6 +15,7 @@ from rdflib.namespace import RDF, SH, XSD
 
 
 SEMPKM = Namespace("urn:sempkm:")
+PROV = Namespace("http://www.w3.org/ns/prov#")
 
 # SPARQL query for extracting validation results from pyshacl report graph
 REPORT_QUERY = """
@@ -223,7 +224,7 @@ class ValidationReport:
         # Run metadata triples
         triples.extend([
             (run, RDF.type, SEMPKM.LintRun),
-            (run, SEMPKM.timestamp, Literal(self.timestamp, datatype=XSD.dateTime)),
+            (run, PROV.startedAtTime, Literal(self.timestamp, datatype=XSD.dateTime)),
             (run, SEMPKM.conforms, Literal(self.conforms, datatype=XSD.boolean)),
             (run, SEMPKM.triggerSource, Literal(trigger_source)),
             (run, SEMPKM.violationCount, Literal(violation_count, datatype=XSD.integer)),
@@ -298,7 +299,7 @@ class ValidationReport:
             ),
             (
                 report,
-                SEMPKM.timestamp,
+                PROV.startedAtTime,
                 Literal(self.timestamp, datatype=XSD.dateTime),
             ),
         ]

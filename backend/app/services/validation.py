@@ -217,7 +217,7 @@ class ValidationService:
                     <urn:sempkm:violationCount> ?violations ;
                     <urn:sempkm:warningCount> ?warnings ;
                     <urn:sempkm:infoCount> ?infos ;
-                    <urn:sempkm:timestamp> ?ts .
+                    <http://www.w3.org/ns/prov#startedAtTime> ?ts .
           }
         }
         ORDER BY DESC(?ts) LIMIT 1
@@ -259,7 +259,7 @@ class ValidationService:
                     <urn:sempkm:violationCount> ?violations ;
                     <urn:sempkm:warningCount> ?warnings ;
                     <urn:sempkm:infoCount> ?infos ;
-                    <urn:sempkm:timestamp> ?ts .
+                    <http://www.w3.org/ns/prov#startedAtTime> ?ts .
           }}
         }}
         LIMIT 1

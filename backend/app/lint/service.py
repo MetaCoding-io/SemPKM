@@ -416,11 +416,12 @@ class LintService:
         """Query run metadata from its named graph."""
         query = f"""
         PREFIX sempkm: <urn:sempkm:>
+        PREFIX prov: <http://www.w3.org/ns/prov#>
         SELECT ?timestamp ?conforms ?triggerSource ?violations ?warnings ?infos
         WHERE {{
           GRAPH <{run_iri}> {{
             <{run_iri}> a sempkm:LintRun ;
-                        sempkm:timestamp ?timestamp ;
+                        prov:startedAtTime ?timestamp ;
                         sempkm:conforms ?conforms .
             OPTIONAL {{ <{run_iri}> sempkm:triggerSource ?triggerSource }}
             OPTIONAL {{ <{run_iri}> sempkm:violationCount ?violations }}

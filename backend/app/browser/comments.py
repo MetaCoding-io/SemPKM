@@ -24,7 +24,7 @@ from app.db.session import get_db_session
 from app.dependencies import get_event_store, get_triplestore_client
 from app.events.store import EventStore, Operation
 from app.rdf.iri import mint_object_iri
-from app.rdf.namespaces import SEMPKM
+from app.rdf.namespaces import PROV, SEMPKM
 from app.triplestore.client import TriplestoreClient
 
 from ._helpers import _validate_iri
@@ -109,7 +109,7 @@ def _build_comment_create_operation(
     """Build an EventStore Operation for creating a comment.
 
     Produces triples for rdf:type sempkm:Comment, sempkm:commentOn,
-    sempkm:commentBody, sempkm:commentedBy, sempkm:commentedAt,
+    sempkm:commentBody, prov:wasAttributedTo, prov:generatedAtTime,
     and optional sempkm:replyTo.
 
     Args:
@@ -129,8 +129,8 @@ def _build_comment_create_operation(
         (comment, RDF.type, SEMPKM.Comment),
         (comment, SEMPKM.commentOn, URIRef(object_iri)),
         (comment, SEMPKM.commentBody, Literal(body)),
-        (comment, SEMPKM.commentedBy, author_uri),
-        (comment, SEMPKM.commentedAt, now),
+        (comment, PROV.wasAttributedTo, author_uri),
+        (comment, PROV.generatedAtTime, now),
     ]
 
     if reply_to:
@@ -183,7 +183,7 @@ def _build_comment_delete_operation(
         ],
         materialize_deletes=[
             (comment, SEMPKM.commentBody, Literal(old_body)),
-            (comment, SEMPKM.commentedBy, URIRef(old_author)),
+            (comment, PROV.wasAttributedTo, URIRef(old_author)),
         ],
     )
 
@@ -259,6 +259,7 @@ async def get_comments(
     sparql = f"""
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
     PREFIX sempkm: <{SEMPKM}>
+    PREFIX prov: <http://www.w3.org/ns/prov#>
 
     SELECT ?comment ?body ?author ?timestamp ?replyTo
     FROM <urn:sempkm:current>
@@ -266,8 +267,8 @@ async def get_comments(
         ?comment rdf:type sempkm:Comment .
         ?comment sempkm:commentOn <{decoded_iri}> .
         ?comment sempkm:commentBody ?body .
-        ?comment sempkm:commentedAt ?timestamp .
-        OPTIONAL {{ ?comment sempkm:commentedBy ?author . }}
+        ?comment prov:generatedAtTime ?timestamp .
+        OPTIONAL {{ ?comment prov:wasAttributedTo ?author . }}
         OPTIONAL {{ ?comment sempkm:replyTo ?replyTo . }}
     }}
     ORDER BY ?timestamp
@@ -434,13 +435,14 @@ async def delete_comment(
     # Fetch current comment data to build the delete operation
     sparql = f"""
     PREFIX sempkm: <{SEMPKM}>
+    PREFIX prov: <http://www.w3.org/ns/prov#>
 
     SELECT ?body ?author
     FROM <urn:sempkm:current>
     WHERE {{
         <{decoded_iri}> a sempkm:Comment .
         <{decoded_iri}> sempkm:commentBody ?body .
-        OPTIONAL {{ <{decoded_iri}> sempkm:commentedBy ?author . }}
+        OPTIONAL {{ <{decoded_iri}> prov:wasAttributedTo ?author . }}
     }}
     """
 

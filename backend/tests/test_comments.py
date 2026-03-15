@@ -17,7 +17,7 @@ from app.browser.comments import (
     _build_comment_tree,
     _relative_time,
 )
-from app.rdf.namespaces import SEMPKM
+from app.rdf.namespaces import PROV, SEMPKM
 
 
 # ── _build_comment_tree() ───────────────────────────────────────────
@@ -307,11 +307,11 @@ class TestBuildCommentCreateOperation:
         assert (comment, RDF.type, SEMPKM.Comment) in op.data_triples
         assert (comment, SEMPKM.commentOn, object_ref) in op.data_triples
         assert (comment, SEMPKM.commentBody, Literal("Great note!")) in op.data_triples
-        assert (comment, SEMPKM.commentedBy, author_uri) in op.data_triples
+        assert (comment, PROV.wasAttributedTo, author_uri) in op.data_triples
 
         # Timestamp triple exists (can't check exact value)
         timestamp_triples = [
-            t for t in op.data_triples if t[1] == SEMPKM.commentedAt
+            t for t in op.data_triples if t[1] == PROV.generatedAtTime
         ]
         assert len(timestamp_triples) == 1
         assert timestamp_triples[0][2].datatype == XSD.dateTime
@@ -389,7 +389,7 @@ class TestBuildCommentDeleteOperation:
         # Should delete old author
         assert (
             comment,
-            SEMPKM.commentedBy,
+            PROV.wasAttributedTo,
             URIRef("urn:sempkm:user:abc-123"),
         ) in op.materialize_deletes
 
