@@ -1,6 +1,7 @@
 /**
  * Debug Pages Access Control E2E Tests
  *
+<<<<<<< HEAD
  * Tests that debug pages (/sparql, /events) are:
  * - Accessible to the owner (200)
  * - Forbidden for members (403 or redirect)
@@ -10,10 +11,16 @@
  *
  * Consolidated into 2 test() functions (1 owner, 1 member) to stay
  * within the 5/minute magic-link rate limit.
+=======
+ * Tests that debug pages (/debug/sparql, /debug/events) are:
+ * - Accessible to the owner (200)
+ * - Forbidden for members (403)
+>>>>>>> gsd/M003/S03
  */
 import { test, expect, BASE_URL } from '../../fixtures/auth';
 
 test.describe('Debug Pages Access Control', () => {
+<<<<<<< HEAD
   test('owner can access both debug pages', async ({ ownerRequest }) => {
     // 1. Owner can access /sparql — returns 200 with HTML content
     const sparqlResp = await ownerRequest.get(`${BASE_URL}/sparql`);
@@ -50,6 +57,33 @@ test.describe('Debug Pages Access Control', () => {
       expect(
         status === 403 || status === 401 || status === 302 || status === 307 || status >= 400
       ).toBeTruthy();
+=======
+  test('owner can access /debug/sparql', async ({ ownerPage }) => {
+    const resp = await ownerPage.goto(`${BASE_URL}/debug/sparql`);
+    if (resp) {
+      expect(resp.status()).toBe(200);
+    }
+  });
+
+  test('owner can access /debug/events', async ({ ownerPage }) => {
+    const resp = await ownerPage.goto(`${BASE_URL}/debug/events`);
+    if (resp) {
+      expect(resp.status()).toBe(200);
+    }
+  });
+
+  test('member cannot access /debug/sparql (403)', async ({ memberPage }) => {
+    const resp = await memberPage.goto(`${BASE_URL}/debug/sparql`);
+    if (resp) {
+      expect([403, 401, 302, 307].includes(resp.status()) || resp.status() >= 400).toBeTruthy();
+    }
+  });
+
+  test('member cannot access /debug/events (403)', async ({ memberPage }) => {
+    const resp = await memberPage.goto(`${BASE_URL}/debug/events`);
+    if (resp) {
+      expect([403, 401, 302, 307].includes(resp.status()) || resp.status() >= 400).toBeTruthy();
+>>>>>>> gsd/M003/S03
     }
   });
 });

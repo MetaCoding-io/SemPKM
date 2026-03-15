@@ -3,11 +3,14 @@
  *
  * Tests edge deletion via POST /browser/edge/delete.
  * Creates an edge between objects, deletes it, and verifies it is gone.
+<<<<<<< HEAD
  *
  * edge.create produces a first-class edge resource with its own IRI
  * (sempkm:source, sempkm:target, sempkm:predicate triples).
  * edge/delete expects { subject, predicate, target } to find and remove
  * the edge resource and any direct triples.
+=======
+>>>>>>> gsd/M003/S03
  */
 import { test, expect, BASE_URL } from '../../fixtures/auth';
 import { TYPES } from '../../fixtures/seed-data';
@@ -26,7 +29,11 @@ test.describe('Edge Deletion', () => {
     const sourceIri = results[0].iri;
     const targetIri = results[1].iri;
 
+<<<<<<< HEAD
     // Create an edge (produces a first-class edge resource)
+=======
+    // Create an edge
+>>>>>>> gsd/M003/S03
     const edgeResp = await ownerRequest.post(`${BASE_URL}/api/commands`, {
       data: {
         command: 'edge.create',
@@ -38,6 +45,7 @@ test.describe('Edge Deletion', () => {
       },
     });
     expect(edgeResp.ok()).toBeTruthy();
+<<<<<<< HEAD
     const edgeData = await edgeResp.json();
     const edgeIri = edgeData.results[0].iri;
     expect(edgeIri).toBeTruthy();
@@ -51,25 +59,46 @@ test.describe('Edge Deletion', () => {
                        <urn:sempkm:target> <${targetIri}> ;
                        <urn:sempkm:predicate> <http://purl.org/dc/terms/subject> .
         }`,
+=======
+
+    // Verify edge exists
+    const checkResp = await ownerRequest.post(`${BASE_URL}/api/sparql`, {
+      data: {
+        query: `ASK FROM <urn:sempkm:current> { <${sourceIri}> <http://purl.org/dc/terms/subject> <${targetIri}> }`,
+>>>>>>> gsd/M003/S03
       },
     });
     const checkData = await checkResp.json();
     expect(checkData.boolean).toBe(true);
 
+<<<<<<< HEAD
     // Delete the edge (endpoint expects subject/predicate/target)
     const deleteResp = await ownerRequest.post(`${BASE_URL}/browser/edge/delete`, {
       data: {
         subject: sourceIri,
+=======
+    // Delete the edge
+    const deleteResp = await ownerRequest.post(`${BASE_URL}/browser/edge/delete`, {
+      data: {
+        source: sourceIri,
+>>>>>>> gsd/M003/S03
         target: targetIri,
         predicate: 'http://purl.org/dc/terms/subject',
       },
     });
     expect(deleteResp.ok()).toBeTruthy();
 
+<<<<<<< HEAD
     // Verify edge resource is gone
     const verifyResp = await ownerRequest.post(`${BASE_URL}/api/sparql`, {
       data: {
         query: `ASK FROM <urn:sempkm:current> { <${edgeIri}> ?p ?o }`,
+=======
+    // Verify edge is gone
+    const verifyResp = await ownerRequest.post(`${BASE_URL}/api/sparql`, {
+      data: {
+        query: `ASK FROM <urn:sempkm:current> { <${sourceIri}> <http://purl.org/dc/terms/subject> <${targetIri}> }`,
+>>>>>>> gsd/M003/S03
       },
     });
     const verifyData = await verifyResp.json();

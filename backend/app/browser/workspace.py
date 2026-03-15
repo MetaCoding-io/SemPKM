@@ -3,6 +3,9 @@
 import logging
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> gsd/M003/S03
 import re
 from typing import Callable
 =======
@@ -77,18 +80,58 @@ from app.dependencies import (
 from app.services.icons import IconService
 from app.services.labels import LabelService
 from app.services.shapes import ShapesService
+<<<<<<< HEAD
 >>>>>>> gsd/M002/S04
+=======
+from app.vfs.mount_service import (
+    CREATED_AT,
+    CREATED_BY,
+    DATE_PROPERTY,
+    DIRECTORY_STRATEGY,
+    GRAPH_MOUNTS,
+    GROUP_BY_PROPERTY,
+    MOUNT_NAME,
+    MOUNT_PATH,
+    NS_MOUNT,
+    NS_SEMPKM,
+    SAVED_QUERY_ID,
+    SPARQL_SCOPE,
+    VISIBILITY,
+    MountDefinition,
+)
+from app.vfs.strategies import (
+    build_scope_filter,
+    query_date_month_folders,
+    query_date_year_folders,
+    query_flat_objects,
+    query_has_uncategorized,
+    query_objects_by_date,
+    query_objects_by_property,
+    query_objects_by_tag,
+    query_objects_by_type,
+    query_property_folders,
+    query_tag_folders,
+    query_type_folders,
+    query_uncategorized_objects,
+)
+>>>>>>> gsd/M003/S03
 from app.views.service import ViewSpecService
 
 from ._helpers import _is_htmx_request, _validate_iri, get_icon_service
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> gsd/M003/S03
 _UUID_RE = re.compile(
     r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.IGNORECASE
 )
 
+<<<<<<< HEAD
 =======
 >>>>>>> gsd/M002/S04
+=======
+>>>>>>> gsd/M003/S03
 logger = logging.getLogger(__name__)
 
 workspace_router = APIRouter(tags=["workspace"])
@@ -306,6 +349,9 @@ EXPLORER_MODES: dict[str, Callable] = {
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> gsd/M003/S03
 # ---------------------------------------------------------------------------
 # VFS mount explorer helpers
 # ---------------------------------------------------------------------------
@@ -574,10 +620,13 @@ async def _handle_mount(
     )
 
 
+<<<<<<< HEAD
 =======
 >>>>>>> gsd/M002/S04
 =======
 >>>>>>> gsd/M003/S01
+=======
+>>>>>>> gsd/M003/S03
 @workspace_router.get("/icons")
 async def icons_data(
     request: Request,
@@ -714,8 +763,24 @@ async def explorer_tree(
     """Return explorer tree content for the requested mode.
 
     Dispatches to the appropriate handler from EXPLORER_MODES.
+    Handles ``mount:<uuid>`` prefix to route to VFS mount handler.
     Returns 400 for unknown modes.
     """
+    # ── Mount prefix dispatch ──
+    if mode.startswith("mount:"):
+        mount_id = mode[6:]  # strip "mount:" prefix
+        if not _UUID_RE.match(mount_id):
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid mount_id format",
+            )
+        return await _handle_mount(
+            request=request,
+            mount_id=mount_id,
+            label_service=label_service,
+            icon_svc=icon_svc,
+        )
+
     handler = EXPLORER_MODES.get(mode)
     if handler is None:
         raise HTTPException(
@@ -868,6 +933,7 @@ async def explorer_children(
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 @workspace_router.get("/explorer/tag-children")
 async def tag_children(
     request: Request,
@@ -920,6 +986,8 @@ async def tag_children(
     )
 
 
+=======
+>>>>>>> gsd/M003/S03
 @workspace_router.get("/explorer/mount-children")
 async def mount_children(
     request: Request,
@@ -1067,10 +1135,13 @@ async def mount_children(
     return HTMLResponse("")
 
 
+<<<<<<< HEAD
 =======
 >>>>>>> gsd/M002/S04
 =======
 >>>>>>> gsd/M003/S02
+=======
+>>>>>>> gsd/M003/S03
 @workspace_router.get("/my-views")
 async def my_views(
     request: Request,

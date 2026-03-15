@@ -44,11 +44,17 @@ export const SEL = {
     treeBody: '#explorer-tree-body',
     placeholder: '[data-testid="explorer-placeholder"]',
 <<<<<<< HEAD
+<<<<<<< HEAD
     mountOption: 'option[value^="mount:"]',
     mountFolderNode: '[data-testid="mount-folder"]',
     mountObjectLeaf: '[data-testid="mount-object"]',
 =======
 >>>>>>> gsd/M003/S01
+=======
+    mountOption: 'option[value^="mount:"]',
+    mountFolderNode: '[data-testid="mount-folder"]',
+    mountObjectLeaf: '[data-testid="mount-object"]',
+>>>>>>> gsd/M003/S03
   },
 
   // Type picker

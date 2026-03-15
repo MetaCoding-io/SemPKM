@@ -2104,6 +2104,9 @@
   }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> gsd/M003/S03
   /**
    * Fetch VFS mounts and inject them as <option> entries in the explorer
    * mode dropdown. Wraps mount options in an <optgroup> for visual
@@ -2168,8 +2171,11 @@
       });
   }
 
+<<<<<<< HEAD
 =======
 >>>>>>> gsd/M003/S01
+=======
+>>>>>>> gsd/M003/S03
   // --- Initialization ---
 
   function init() {
@@ -2216,11 +2222,14 @@
     // --- Inject VFS mount options into explorer dropdown (async, non-blocking) ---
     initExplorerMountOptions();
 
+<<<<<<< HEAD
 =======
     // --- Explorer mode: clear selection on switch, persist in localStorage ---
     initExplorerMode();
 
 >>>>>>> gsd/M003/S01
+=======
+>>>>>>> gsd/M003/S03
     // Initialize lint dashboard SSE and health badge
     initLintDashboardSSE();
     fetch('/api/lint/status', { credentials: 'include' })
