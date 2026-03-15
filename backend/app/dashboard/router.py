@@ -1,6 +1,8 @@
 """Dashboard router — rendering and API endpoints for DashboardSpec.
 
 Provides:
+- GET /browser/dashboard/new — dashboard builder form (create mode)
+- GET /browser/dashboard/{id}/edit — dashboard builder form (edit mode)
 - GET /browser/dashboard/{id} — render dashboard page (htmx partial)
 - GET /browser/dashboard/{id}/block/{index} — render individual block
 - GET /api/dashboard — list user's dashboards (JSON)
@@ -73,6 +75,72 @@ def _get_dashboard_service(request: Request) -> DashboardService:
 # ---------------------------------------------------------------------------
 # Browser routes (htmx partials)
 # ---------------------------------------------------------------------------
+
+
+@browser_router.get("/explorer")
+async def dashboard_explorer(
+    request: Request,
+    user: User = Depends(get_current_user),
+):
+    """Render DASHBOARDS section content for the explorer sidebar."""
+    templates = request.app.state.templates
+    service = _get_dashboard_service(request)
+    dashboards = await service.list_for_user(user.id)
+    context = {
+        "request": request,
+        "dashboards": dashboards,
+    }
+    return templates.TemplateResponse(
+        request, "browser/dashboard_explorer.html", context
+    )
+
+
+@browser_router.get("/new")
+async def dashboard_builder_new(
+    request: Request,
+    user: User = Depends(get_current_user),
+):
+    """Render dashboard builder form in create mode (empty fields)."""
+    templates = request.app.state.templates
+    context = {
+        "request": request,
+        "dashboard": None,
+        "layout_definitions": LAYOUT_DEFINITIONS,
+        "valid_block_types": sorted(VALID_BLOCK_TYPES),
+    }
+    return templates.TemplateResponse(
+        request, "browser/dashboard_builder.html", context
+    )
+
+
+@browser_router.get("/{dashboard_id}/edit")
+async def dashboard_builder_edit(
+    request: Request,
+    dashboard_id: str,
+    user: User = Depends(get_current_user),
+):
+    """Render dashboard builder form in edit mode (pre-populated fields)."""
+    templates = request.app.state.templates
+    service = _get_dashboard_service(request)
+
+    try:
+        did = uuid.UUID(dashboard_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid dashboard ID")
+
+    dashboard = await service.get(did)
+    if not dashboard:
+        raise HTTPException(status_code=404, detail="Dashboard not found")
+
+    context = {
+        "request": request,
+        "dashboard": dashboard,
+        "layout_definitions": LAYOUT_DEFINITIONS,
+        "valid_block_types": sorted(VALID_BLOCK_TYPES),
+    }
+    return templates.TemplateResponse(
+        request, "browser/dashboard_builder.html", context
+    )
 
 
 @browser_router.get("/{dashboard_id}")

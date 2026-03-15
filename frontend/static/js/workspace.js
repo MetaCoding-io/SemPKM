@@ -731,6 +731,35 @@
   window.openDashboardTab = openDashboardTab;
 
 
+  function openDashboardBuilderTab(dashboardId) {
+    var tabKey = dashboardId
+      ? 'dashboard-builder:' + dashboardId
+      : 'dashboard-builder:new';
+    var dv = window._dockview;
+    if (!dv) return;
+
+    var existing = dv.panels.find(function(p) { return p.id === tabKey; });
+    if (existing) { existing.api.setActive(); return; }
+
+    if (!window._tabMeta) window._tabMeta = {};
+    var label = dashboardId ? 'Edit Dashboard' : 'New Dashboard';
+    window._tabMeta[tabKey] = { label: label, dirty: false };
+
+    dv.api.addPanel({
+      id: tabKey,
+      component: 'special-panel',
+      params: {
+        specialType: 'dashboard-builder',
+        dashboardId: dashboardId || null,
+        isView: false,
+        isSpecial: true
+      },
+      title: label
+    });
+  }
+  window.openDashboardBuilderTab = openDashboardBuilderTab;
+
+
   function openWorkflowTab(workflowId, workflowName) {
     var tabKey = 'workflow:' + workflowId;
     var dv = window._dockview;

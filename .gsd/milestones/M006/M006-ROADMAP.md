@@ -68,7 +68,7 @@ This milestone is complete only when all are true:
   > After this: explorer tree groups ViewSpecs by model (~15 entries instead of 31+); duplicate routes cleaned up; VFS scope dropdown shows saved/model queries in optgroups; `build_scope_filter()` resolves `saved_query_id`; Saved Views folder merges MY VIEWS into VIEWS
 - [x] **S03: DashboardSpec Model & Static Rendering** `risk:medium` `depends:[]`
   > After this: user can create a dashboard with view-embed, markdown, and create-form blocks via the API, and it renders in a workspace tab showing real data from the triplestore in a CSS Grid layout
-- [ ] **S04: Dashboard Builder UI & Explorer Integration** `risk:low` `depends:[S02, S03]`
+- [x] **S04: Dashboard Builder UI & Explorer Integration** `risk:low` `depends:[S02, S03]`
   > After this: user can create and edit dashboards through a form-based UI in the workspace — picking layouts, adding blocks, configuring each block; dashboards appear in the consolidated explorer sidebar
 - [ ] **S05: Interactive Dashboards — Cross-View Context** `risk:high` `depends:[S03]`
   > After this: selecting a row in one view-embed block filters another view-embed block in the same dashboard via parameterized SPARQL with VALUES binding; dashboard context variables flow via custom events and htmx re-fetch

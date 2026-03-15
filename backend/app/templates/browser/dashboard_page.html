@@ -7,14 +7,22 @@
      dashboard_id: string UUID
 #}
 
-<div class="dashboard-container {{ layout.css_class }}"
-     style="display:grid; grid-template-areas:{{ layout.grid_template }}; grid-template-columns:{{ layout.columns }}; gap:16px; padding:16px; height:100%; overflow:auto;">
-    {% for block in block_slots %}
-    <div class="dashboard-slot" style="grid-area:{{ block.slot }};"
-         hx-get="/browser/dashboard/{{ dashboard_id }}/block/{{ block.index }}"
-         hx-trigger="load"
-         hx-swap="innerHTML">
-        <div class="dashboard-block-loading">Loading...</div>
+<div class="dashboard-page" style="display:flex; flex-direction:column; height:100%; overflow:hidden;">
+    <div class="dashboard-header" style="display:flex; align-items:center; gap:8px; padding:8px 16px; border-bottom:1px solid var(--color-border, #333); flex-shrink:0;">
+        <span class="dashboard-title" style="font-weight:600; font-size:14px; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ dashboard.name }}</span>
+        <button class="panel-btn" onclick="openDashboardBuilderTab('{{ dashboard_id }}')" title="Edit dashboard">
+            <i data-lucide="pencil"></i>
+        </button>
     </div>
-    {% endfor %}
+    <div class="dashboard-container {{ layout.css_class }}"
+         style="display:grid; grid-template-areas:{{ layout.grid_template }}; grid-template-columns:{{ layout.columns }}; gap:16px; padding:16px; flex:1; overflow:auto;">
+        {% for block in block_slots %}
+        <div class="dashboard-slot" style="grid-area:{{ block.slot }};"
+             hx-get="/browser/dashboard/{{ dashboard_id }}/block/{{ block.index }}"
+             hx-trigger="load"
+             hx-swap="innerHTML">
+            <div class="dashboard-block-loading">Loading...</div>
+        </div>
+        {% endfor %}
+    </div>
 </div>
