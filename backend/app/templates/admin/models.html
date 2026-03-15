@@ -149,11 +149,19 @@
                 </td>
                 <td>{{ cls.parent_label or '—' }}</td>
                 <td class="custom-actions">
+<<<<<<< HEAD
                     <button class="btn btn-sm btn-warning"
                             onclick="openAdminClassEdit('{{ cls.iri | urlencode }}')"
                             title="Edit class">
                         Edit
                     </button>
+=======
+                    <a href="/browser/#ontology-viewer"
+                       class="btn btn-sm btn-warning"
+                       title="Edit in Ontology Viewer">
+                        Edit
+                    </a>
+>>>>>>> gsd/M004/S03
                     <button class="btn btn-sm btn-danger"
                             hx-delete="/browser/ontology/delete-class?class_iri={{ cls.iri | urlencode }}"
                             hx-confirm="Delete class '{{ cls.label }}'? This cannot be undone."
@@ -221,6 +229,7 @@
     {% endif %}
     </div>
 
+<<<<<<< HEAD
     {# Class-edit modal overlay for admin page #}
     <div id="admin-class-edit-overlay" class="ccf-overlay" style="display:none;"
          onclick="if(event.target===this)closeAdminClassEdit()">
@@ -228,6 +237,8 @@
         </div>
     </div>
 
+=======
+>>>>>>> gsd/M004/S03
     {# Property-edit modal overlay for admin page #}
     <div id="admin-property-edit-overlay" class="ccf-overlay" style="display:none;"
          onclick="if(event.target===this)closeAdminPropertyEdit()">
@@ -236,6 +247,7 @@
     </div>
 
     <script>
+<<<<<<< HEAD
     // Provide fallback close functions for workspace form templates loaded on admin page
     if (typeof closeClassEditForm === 'undefined') {
         window.closeClassEditForm = function() { closeAdminClassEdit(); };
@@ -274,6 +286,8 @@
         window.location.reload();
     });
 
+=======
+>>>>>>> gsd/M004/S03
     function openAdminPropertyEdit(encodedIri) {
         var overlay = document.getElementById('admin-property-edit-overlay');
         var container = document.getElementById('admin-property-edit-container');
@@ -304,6 +318,7 @@
         window.location.reload();
     });
 
+<<<<<<< HEAD
     // Close admin modals on Escape
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
@@ -313,6 +328,11 @@
                 e.stopPropagation();
                 return;
             }
+=======
+    // Close admin property edit modal on Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+>>>>>>> gsd/M004/S03
             var overlay = document.getElementById('admin-property-edit-overlay');
             if (overlay && overlay.style.display !== 'none') {
                 closeAdminPropertyEdit();
