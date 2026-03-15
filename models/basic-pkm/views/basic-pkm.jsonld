@@ -125,6 +125,31 @@
       "sempkm:targetClass": { "@id": "bpkm:Concept" },
       "sempkm:rendererType": "graph",
       "sempkm:sparqlQuery": "CONSTRUCT { ?s a <urn:sempkm:model:basic-pkm:Concept> ; <http://www.w3.org/2004/02/skos/core#prefLabel> ?label ; <http://www.w3.org/2004/02/skos/core#broader> ?broader ; <http://www.w3.org/2004/02/skos/core#narrower> ?narrower ; <http://www.w3.org/2004/02/skos/core#related> ?related . ?broader <http://www.w3.org/2004/02/skos/core#prefLabel> ?blabel . ?narrower <http://www.w3.org/2004/02/skos/core#prefLabel> ?nlabel . ?related <http://www.w3.org/2004/02/skos/core#prefLabel> ?rlabel } WHERE { ?s a <urn:sempkm:model:basic-pkm:Concept> ; <http://www.w3.org/2004/02/skos/core#prefLabel> ?label . OPTIONAL { ?s <http://www.w3.org/2004/02/skos/core#broader> ?broader . ?broader <http://www.w3.org/2004/02/skos/core#prefLabel> ?blabel } . OPTIONAL { ?s <http://www.w3.org/2004/02/skos/core#narrower> ?narrower . ?narrower <http://www.w3.org/2004/02/skos/core#prefLabel> ?nlabel } . OPTIONAL { ?s <http://www.w3.org/2004/02/skos/core#related> ?related . ?related <http://www.w3.org/2004/02/skos/core#prefLabel> ?rlabel } }"
+    },
+
+    {
+      "@id": "urn:sempkm:model:basic-pkm:query:active-projects",
+      "@type": "sempkm:SavedQuery",
+      "rdfs:label": "Active Projects",
+      "dcterms:description": "All projects with their status, priority, and participants",
+      "sempkm:queryText": "SELECT ?s ?title ?status ?priority ?participant WHERE { ?s a <urn:sempkm:model:basic-pkm:Project> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:status> ?status } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:priority> ?priority } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:hasParticipant> ?p . ?p <http://xmlns.com/foaf/0.1/name> ?participant } } ORDER BY ?title",
+      "sempkm:source": "model:basic-pkm"
+    },
+    {
+      "@id": "urn:sempkm:model:basic-pkm:query:recent-notes",
+      "@type": "sempkm:SavedQuery",
+      "rdfs:label": "Recent Notes",
+      "dcterms:description": "Notes sorted by creation date with related concepts and projects",
+      "sempkm:queryText": "SELECT ?s ?title ?created ?concept ?project WHERE { ?s a <urn:sempkm:model:basic-pkm:Note> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <http://purl.org/dc/terms/created> ?created } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:isAbout> ?c . ?c <http://www.w3.org/2004/02/skos/core#prefLabel> ?concept } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:relatedProject> ?p . ?p <http://purl.org/dc/terms/title> ?project } } ORDER BY DESC(?created)",
+      "sempkm:source": "model:basic-pkm"
+    },
+    {
+      "@id": "urn:sempkm:model:basic-pkm:query:concept-hierarchy",
+      "@type": "sempkm:SavedQuery",
+      "rdfs:label": "Concept Hierarchy",
+      "dcterms:description": "Concepts with their broader/narrower relationships for exploring the taxonomy",
+      "sempkm:queryText": "SELECT ?s ?label ?broader ?narrower WHERE { ?s a <urn:sempkm:model:basic-pkm:Concept> ; <http://www.w3.org/2004/02/skos/core#prefLabel> ?label . OPTIONAL { ?s <http://www.w3.org/2004/02/skos/core#broader> ?b . ?b <http://www.w3.org/2004/02/skos/core#prefLabel> ?broader } . OPTIONAL { ?s <http://www.w3.org/2004/02/skos/core#narrower> ?n . ?n <http://www.w3.org/2004/02/skos/core#prefLabel> ?narrower } } ORDER BY ?label",
+      "sempkm:source": "model:basic-pkm"
     }
   ]
 }

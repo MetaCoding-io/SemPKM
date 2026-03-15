@@ -14,6 +14,7 @@ from app.services.search import SearchService
 from app.services.shapes import ShapesService
 from app.services.validation import ValidationService
 from app.services.webhooks import WebhookService
+from app.sparql.query_service import QueryService
 from app.triplestore.client import TriplestoreClient
 from app.validation.queue import AsyncValidationQueue
 from app.views.service import ViewSpecService
@@ -152,3 +153,12 @@ async def get_ontology_service(request: Request) -> OntologyService:
     app.state.ontology_service.
     """
     return request.app.state.ontology_service
+
+
+async def get_query_service(request: Request) -> QueryService:
+    """Get the QueryService instance from app state.
+
+    The service is created during app lifespan startup and stored on
+    app.state.query_service.
+    """
+    return request.app.state.query_service

@@ -14,11 +14,8 @@ from urllib.parse import unquote, quote
 
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
-from app.db.session import get_db_session
 from app.dependencies import get_label_service, get_view_spec_service
 from app.services.labels import LabelService
 from app.views.service import ViewSpec, ViewSpecService
@@ -172,7 +169,6 @@ async def table_view(
     user: User = Depends(get_current_user),
     view_spec_service: ViewSpecService = Depends(get_view_spec_service),
     label_service: LabelService = Depends(get_label_service),
-    db: AsyncSession = Depends(get_db_session),
 ):
     """Render a table view for a given view spec IRI.
 
@@ -188,7 +184,7 @@ async def table_view(
     decoded_iri = unquote(spec_iri)
 
     spec = await view_spec_service.get_view_spec_by_iri(
-        decoded_iri, user_id=user.id, db=db,
+        decoded_iri, user_id=user.id,
     )
     if not spec:
         return HTMLResponse(
@@ -274,7 +270,6 @@ async def cards_view(
     user: User = Depends(get_current_user),
     view_spec_service: ViewSpecService = Depends(get_view_spec_service),
     label_service: LabelService = Depends(get_label_service),
-    db: AsyncSession = Depends(get_db_session),
 ):
     """Render a cards view for a given view spec IRI.
 
@@ -289,7 +284,7 @@ async def cards_view(
     decoded_iri = unquote(spec_iri)
 
     spec = await view_spec_service.get_view_spec_by_iri(
-        decoded_iri, user_id=user.id, db=db,
+        decoded_iri, user_id=user.id,
     )
     if not spec:
         return HTMLResponse(
@@ -356,7 +351,6 @@ async def graph_data(
     spec_iri: str,
     user: User = Depends(get_current_user),
     view_spec_service: ViewSpecService = Depends(get_view_spec_service),
-    db: AsyncSession = Depends(get_db_session),
 ):
     """Return graph data as JSON for Cytoscape.js visualization.
 
@@ -367,7 +361,7 @@ async def graph_data(
     decoded_iri = unquote(spec_iri)
 
     spec = await view_spec_service.get_view_spec_by_iri(
-        decoded_iri, user_id=user.id, db=db,
+        decoded_iri, user_id=user.id,
     )
     if not spec:
         return JSONResponse(
@@ -404,7 +398,6 @@ async def graph_view(
     user: User = Depends(get_current_user),
     view_spec_service: ViewSpecService = Depends(get_view_spec_service),
     label_service: LabelService = Depends(get_label_service),
-    db: AsyncSession = Depends(get_db_session),
 ):
     """Render the graph view container with Cytoscape.js initialization.
 
@@ -416,7 +409,7 @@ async def graph_view(
     decoded_iri = unquote(spec_iri)
 
     spec = await view_spec_service.get_view_spec_by_iri(
-        decoded_iri, user_id=user.id, db=db,
+        decoded_iri, user_id=user.id,
     )
     if not spec:
         return HTMLResponse(

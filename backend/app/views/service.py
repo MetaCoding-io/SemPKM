@@ -19,13 +19,11 @@ from dataclasses import dataclass, field
 
 import rdflib
 from rdflib import RDF, URIRef
-from sqlalchemy import select as sa_select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.registry import MODELS_GRAPH, SEMPKM_NS
 from app.services.labels import LabelService
 from app.sparql.client import scope_to_current_graph
-from app.sparql.models import PromotedQueryView, SavedSparqlQuery
+from app.sparql.query_service import QueryService
 from app.sparql.utils import escape_sparql_regex
 from app.triplestore.client import TriplestoreClient
 from cachetools import TTLCache
@@ -98,11 +96,13 @@ class ViewSpecService:
         self,
         client: TriplestoreClient,
         label_service: LabelService,
+        query_service: QueryService | None = None,
         ttl: int = 300,
         maxsize: int = 64,
     ) -> None:
         self._client = client
         self._label_service = label_service
+        self._query_service = query_service
         self._specs_cache: TTLCache[str, list[ViewSpec]] = TTLCache(
             maxsize=maxsize, ttl=ttl
         )
@@ -222,50 +222,41 @@ WHERE {{
         self,
         spec_iri: str,
         user_id: uuid.UUID | None = None,
-        db: AsyncSession | None = None,
     ) -> ViewSpec | None:
         """Find a single view spec by its IRI.
 
-        For user-promoted views (urn:sempkm:user-view:*), queries SQLite
-        directly instead of the cached model specs.
+        For user-promoted views (urn:sempkm:user-view:*), queries the
+        QueryService for promoted view data.
 
         Args:
             spec_iri: The view spec IRI to find.
             user_id: Optional user ID for user-view resolution.
-            db: Optional async DB session for user-view resolution.
 
         Returns:
             ViewSpec if found, None otherwise.
         """
         # Check for user-promoted view IRI
-        if spec_iri.startswith("urn:sempkm:user-view:") and user_id and db:
+        if spec_iri.startswith("urn:sempkm:user-view:") and user_id and self._query_service:
             view_id_str = spec_iri.split(":")[-1]
             try:
                 view_id = uuid.UUID(view_id_str)
             except ValueError:
                 return None
-            result = await db.execute(
-                sa_select(PromotedQueryView, SavedSparqlQuery)
-                .join(SavedSparqlQuery, PromotedQueryView.query_id == SavedSparqlQuery.id)
-                .where(
-                    PromotedQueryView.id == view_id,
-                    PromotedQueryView.user_id == user_id,
-                )
-            )
-            row = result.one_or_none()
-            if not row:
-                return None
-            pv, sq = row
-            columns = _extract_select_var_names(sq.query_text)
-            return ViewSpec(
-                spec_iri=f"urn:sempkm:user-view:{pv.id}",
-                label=pv.display_label,
-                target_class="",
-                renderer_type=pv.renderer_type,
-                sparql_query=sq.query_text,
-                columns=columns,
-                source_model="user",
-            )
+            # Find the promoted view that matches this view ID
+            promoted = await self._query_service.list_promoted_views(user_id)
+            for pv in promoted:
+                if pv.id == str(view_id):
+                    columns = _extract_select_var_names(pv.query_text)
+                    return ViewSpec(
+                        spec_iri=f"urn:sempkm:user-view:{pv.id}",
+                        label=pv.display_label,
+                        target_class="",
+                        renderer_type=pv.renderer_type,
+                        sparql_query=pv.query_text,
+                        columns=columns,
+                        source_model="user",
+                    )
+            return None
 
         all_specs = await self.get_all_view_specs()
         for s in all_specs:
@@ -274,33 +265,30 @@ WHERE {{
         return None
 
     async def get_user_promoted_view_specs(
-        self, user_id: uuid.UUID, db: AsyncSession
+        self, user_id: uuid.UUID,
     ) -> list[ViewSpec]:
         """Load promoted query views for a user, converting to ViewSpec dataclasses.
 
-        These are NOT cached (per Research pitfall 1) -- fetched from SQLite on each request.
+        These are NOT cached (per Research pitfall 1) -- fetched from RDF on each request.
 
         Args:
             user_id: The user whose promoted views to load.
-            db: Async database session.
 
         Returns:
             List of ViewSpec dataclasses for the user's promoted views.
         """
-        result = await db.execute(
-            sa_select(PromotedQueryView, SavedSparqlQuery)
-            .join(SavedSparqlQuery, PromotedQueryView.query_id == SavedSparqlQuery.id)
-            .where(PromotedQueryView.user_id == user_id)
-        )
+        if not self._query_service:
+            return []
+        promoted = await self._query_service.list_promoted_views(user_id)
         specs: list[ViewSpec] = []
-        for pv, sq in result.all():
-            columns = _extract_select_var_names(sq.query_text)
+        for pv in promoted:
+            columns = _extract_select_var_names(pv.query_text)
             specs.append(ViewSpec(
                 spec_iri=f"urn:sempkm:user-view:{pv.id}",
                 label=pv.display_label,
                 target_class="",
                 renderer_type=pv.renderer_type,
-                sparql_query=sq.query_text,
+                sparql_query=pv.query_text,
                 columns=columns,
                 source_model="user",
             ))
