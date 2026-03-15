@@ -744,6 +744,62 @@ OperationsLogService with log_activity(), list_activities(), get_activity(), cou
 
 `POST /admin/models/{model_id}/refresh-artifacts` endpoint updates ontology, shapes, views, and rules graphs from disk without touching seed graph or user data. Transactional CLEAR+INSERT with rollback on failure. Admin UI "Refresh" button on model list and detail pages. ViewSpec cache invalidation. Ops log integration (`model.refresh` activity type). Unit tests: test_model_refresh.py (21 tests).
 
+### PROV-01 — Event and query predicates migrated to PROV-O
+- Status: validated
+- Class: core-capability
+- Source: design (PROV-O-ALIGNMENT.md)
+- Primary Slice: M006/S01
+
+All event graphs use `prov:startedAtTime` / `prov:wasAssociatedWith` / `rdfs:label` instead of custom `sempkm:timestamp` / `sempkm:performedBy` / `sempkm:description`. Query history uses `prov:wasAssociatedWith` instead of `vocab:executedBy`. Idempotent migration script. `sempkm:Event rdfs:subClassOf prov:Activity` vocabulary declaration. Unit tests: test_provo_migration.py (13 tests).
+
+### PROV-02 — Comment predicates migrated to PROV-O
+- Status: validated
+- Class: core-capability
+- Source: design (PROV-O-ALIGNMENT.md)
+- Primary Slice: M006/S01
+
+Comments use `prov:wasAttributedTo` / `prov:generatedAtTime` instead of `sempkm:commentedBy` / `sempkm:commentedAt`. Zero old comment predicates remain in triplestore.
+
+### EXP-06 — Explorer tree groups ViewSpecs by model
+- Status: validated
+- Class: core-capability
+- Source: design (VIEWS-RETHINK.md)
+- Primary Slice: M006/S02
+
+Explorer tree shows ~5 model-grouped folders instead of 31+ flat ViewSpec entries. `views_explorer.html` rewritten for nested model → type structure. Duplicate routes removed from views/router.py.
+
+### VFS-06 — VFS scope dropdown with saved query resolution
+- Status: validated
+- Class: core-capability
+- Source: design (VFS-V2-DESIGN.md)
+- Primary Slice: M006/S02
+
+VFS scope dropdown fetches `/api/sparql/saved?include_shared=true`, renders optgroups (My Queries / Model Queries / Shared). `build_scope_filter()` resolves `saved_query_id` → query text → SPARQL filter. Unit tests: test_vfs_scope.py (10 tests).
+
+### DASH-01 — Dashboard creation, rendering, and builder UI
+- Status: validated
+- Class: core-capability
+- Source: user
+- Primary Slice: M006/S03, M006/S04
+
+DashboardSpec SQLAlchemy model with JSON blocks and CSS Grid layouts. 6 block types (view-embed, markdown, object-embed, create-form, sparql-result, divider). 5 layout templates. Form-based builder UI with layout picker and dynamic block configuration. DASHBOARDS explorer section with auto-refresh. Full CRUD via API and UI. Unit tests: test_dashboard.py (27 tests), test_dashboard_builder.py (9 tests).
+
+### DASH-02 — Cross-view context filtering via parameterized SPARQL
+- Status: validated
+- Class: core-capability
+- Source: user
+- Primary Slice: M006/S05
+
+`inject_values_binding()` safely injects VALUES clause into SPARQL queries with IRI and variable name validation. Row click in table view-embed block → `dashboardContextChanged` custom event → htmx:configRequest context injection → server-side render_block forwarding → filtered re-fetch. Unit tests: test_values_injection.py (25 tests).
+
+### WKFL-01 — Workflow creation, runner, and builder UI
+- Status: validated
+- Class: core-capability
+- Source: user
+- Primary Slice: M006/S06, M006/S07
+
+WorkflowSpec SQLAlchemy model with JSON steps. Step types: view, dashboard, form. Stepper runner UI with numbered indicators, prev/next navigation, context passing. Form-based builder UI with step type config. WORKFLOWS explorer section with auto-refresh. Full CRUD via API and UI. Unit tests: test_workflow.py (13 tests), test_workflow_builder.py (10 tests).
+
 ## Deferred
 
 ### TYPE-03 — Full SHACL shape editor with advanced constraints
@@ -883,6 +939,13 @@ OperationsLogService with log_activity(), list_activities(), get_activity(), cou
 | TAB-01 | core-capability | validated | M004/S04 | none | fresh dockview tab for new objects |
 | LOG-01 | admin/support | validated | M005/S02 | none | PROV-O ops log + admin UI + 35 tests |
 | MIG-01 | admin/support | validated | M005/S05 | none | refresh_artifacts endpoint + admin UI + 21 tests |
+| PROV-01 | core-capability | validated | M006/S01 | none | PROV-O event/query predicates + migration script + 13 tests |
+| PROV-02 | core-capability | validated | M006/S01 | none | PROV-O comment predicates + 0 old triples |
+| EXP-06 | core-capability | validated | M006/S02 | none | model-grouped explorer tree + duplicate route cleanup |
+| VFS-06 | core-capability | validated | M006/S02 | none | scope dropdown + saved query resolution + 10 tests |
+| DASH-01 | core-capability | validated | M006/S03 | M006/S04 | dashboard model + builder UI + explorer + 36 tests |
+| DASH-02 | core-capability | validated | M006/S05 | none | cross-view context + VALUES injection + 25 tests |
+| WKFL-01 | core-capability | validated | M006/S06 | M006/S07 | workflow model + runner + builder + explorer + 23 tests |
 | TYPE-03 | core-capability | deferred | none | none | unmapped |
 | TYPE-04 | core-capability | deferred | none | none | unmapped |
 | MCP-01 | core-capability | deferred | none | none | unmapped |
@@ -894,7 +957,7 @@ OperationsLogService with log_activity(), list_activities(), get_activity(), cou
 ## Coverage Summary
 
 - Active requirements: 0
-- Validated: 92 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005)
+- Validated: 99 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006)
 - Deferred: 4
 - Out of scope: 3
 - Unmapped active requirements: 0
