@@ -15,14 +15,61 @@
         </button>
     </div>
     <div class="dashboard-container {{ layout.css_class }}"
+         data-dashboard-id="{{ dashboard_id }}"
          style="display:grid; grid-template-areas:{{ layout.grid_template }}; grid-template-columns:{{ layout.columns }}; gap:16px; padding:16px; flex:1; overflow:auto;">
         {% for block in block_slots %}
+        {% set listens = block.config.get('listens_to_context', '') %}
+        {% set emits = block.config.get('emits_context', false) %}
         <div class="dashboard-slot" style="grid-area:{{ block.slot }};"
+             {% if listens %}
+             hx-get="/browser/dashboard/{{ dashboard_id }}/block/{{ block.index }}"
+             hx-trigger="load, dashboardContextChanged from:body"
+             data-listens-to-context="{{ listens }}"
+             data-dashboard-id="{{ dashboard_id }}"
+             {% else %}
              hx-get="/browser/dashboard/{{ dashboard_id }}/block/{{ block.index }}"
              hx-trigger="load"
+             {% endif %}
+             {% if emits %}
+             data-emits-context="1"
+             {% endif %}
              hx-swap="innerHTML">
             <div class="dashboard-block-loading">Loading...</div>
         </div>
         {% endfor %}
     </div>
 </div>
+
+<script>
+(function() {
+    'use strict';
+
+    var container = document.querySelector('.dashboard-container[data-dashboard-id="{{ dashboard_id }}"]');
+    if (!container) return;
+
+    // --- htmx:configRequest — inject context_iri and context_var into slot re-fetches ---
+    container.addEventListener('htmx:configRequest', function(evt) {
+        var trigEl = evt.detail.elt;
+        // Only inject for slot-level elements, not inner view divs
+        if (!trigEl.classList.contains('dashboard-slot')) return;
+        var contextVar = trigEl.getAttribute('data-listens-to-context');
+        if (!contextVar) return;
+
+        var slotDashId = trigEl.getAttribute('data-dashboard-id');
+        if (slotDashId !== '{{ dashboard_id }}') return;
+
+        var currentIri = container.dataset.currentContextIri || '';
+        if (currentIri) {
+            evt.detail.parameters['context_iri'] = currentIri;
+            evt.detail.parameters['context_var'] = contextVar;
+        }
+    });
+
+    // --- dashboardContextChanged — update stored context IRI ---
+    document.body.addEventListener('dashboardContextChanged', function(evt) {
+        var detail = evt.detail || {};
+        if (detail.dashboardId !== '{{ dashboard_id }}') return;
+        container.dataset.currentContextIri = detail.iri || '';
+    });
+})();
+</script>

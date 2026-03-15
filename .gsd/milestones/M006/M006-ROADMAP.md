@@ -70,7 +70,7 @@ This milestone is complete only when all are true:
   > After this: user can create a dashboard with view-embed, markdown, and create-form blocks via the API, and it renders in a workspace tab showing real data from the triplestore in a CSS Grid layout
 - [x] **S04: Dashboard Builder UI & Explorer Integration** `risk:low` `depends:[S02, S03]`
   > After this: user can create and edit dashboards through a form-based UI in the workspace — picking layouts, adding blocks, configuring each block; dashboards appear in the consolidated explorer sidebar
-- [ ] **S05: Interactive Dashboards — Cross-View Context** `risk:high` `depends:[S03]`
+- [x] **S05: Interactive Dashboards — Cross-View Context** `risk:high` `depends:[S03]`
   > After this: selecting a row in one view-embed block filters another view-embed block in the same dashboard via parameterized SPARQL with VALUES binding; dashboard context variables flow via custom events and htmx re-fetch
 - [x] **S06: WorkflowSpec Model & Runner** `risk:medium` `depends:[S03]`
   > After this: user can create a workflow with ordered steps (view, dashboard, or form) via the API, and run it with a step indicator bar, prev/next navigation, and context flowing between steps

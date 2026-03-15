@@ -206,3 +206,286 @@ class TestDashboardRouter:
             assert "grid_template" in defn
             assert "columns" in defn
             assert len(defn["slots"]) > 0
+
+
+class TestRenderBlockContextAttributes:
+    """Test render_block view-embed context data attributes (S05/T01)."""
+
+    async def test_view_embed_listens_to_context(self, service, user_id):
+        """view-embed with listens_to_context produces data attributes."""
+        blocks = [{
+            "type": "view-embed",
+            "config": {
+                "spec_iri": "urn:test:spec",
+                "renderer_type": "table",
+                "listens_to_context": "project",
+            },
+        }]
+        created = await service.create(
+            user_id=user_id, name="Context Dashboard", blocks=blocks,
+        )
+        # Now call render_block directly to check HTML output
+        from app.dashboard.router import render_block
+        from unittest.mock import AsyncMock, MagicMock
+
+        mock_request = MagicMock()
+        mock_request.app.state.dashboard_service = service
+        mock_request.app.state.templates = MagicMock()
+
+        # render_block returns HTMLResponse for view-embed
+        from app.auth.models import User as AuthUser
+        mock_user = AuthUser(
+            id=user_id, username="test", email="t@t.com", display_name="T",
+        )
+        response = await render_block(
+            request=mock_request,
+            dashboard_id=created.id,
+            block_index=0,
+            context_iri="",
+            context_var="",
+            user=mock_user,
+        )
+        html = response.body.decode()
+        assert 'data-listens-to-context="project"' in html
+        assert f'data-dashboard-id="{created.id}"' in html
+        assert "dashboard_mode=1" in html
+
+    async def test_view_embed_emits_context(self, service, user_id):
+        """view-embed with emits_context produces data-emits-context attribute."""
+        blocks = [{
+            "type": "view-embed",
+            "config": {
+                "spec_iri": "urn:test:spec",
+                "renderer_type": "table",
+                "emits_context": True,
+            },
+        }]
+        created = await service.create(
+            user_id=user_id, name="Emitter Dashboard", blocks=blocks,
+        )
+        from app.dashboard.router import render_block
+        from unittest.mock import MagicMock
+
+        mock_request = MagicMock()
+        mock_request.app.state.dashboard_service = service
+
+        from app.auth.models import User as AuthUser
+        mock_user = AuthUser(
+            id=user_id, username="test", email="t@t.com", display_name="T",
+        )
+        response = await render_block(
+            request=mock_request,
+            dashboard_id=created.id,
+            block_index=0,
+            context_iri="",
+            context_var="",
+            user=mock_user,
+        )
+        html = response.body.decode()
+        assert 'data-emits-context="1"' in html
+        assert "dashboard_mode=1" in html
+
+    async def test_view_embed_no_context_config(self, service, user_id):
+        """view-embed without context config has no context data attributes."""
+        blocks = [{
+            "type": "view-embed",
+            "config": {
+                "spec_iri": "urn:test:spec",
+                "renderer_type": "table",
+            },
+        }]
+        created = await service.create(
+            user_id=user_id, name="Plain Dashboard", blocks=blocks,
+        )
+        from app.dashboard.router import render_block
+        from unittest.mock import MagicMock
+
+        mock_request = MagicMock()
+        mock_request.app.state.dashboard_service = service
+
+        from app.auth.models import User as AuthUser
+        mock_user = AuthUser(
+            id=user_id, username="test", email="t@t.com", display_name="T",
+        )
+        response = await render_block(
+            request=mock_request,
+            dashboard_id=created.id,
+            block_index=0,
+            context_iri="",
+            context_var="",
+            user=mock_user,
+        )
+        html = response.body.decode()
+        assert "data-listens-to-context" not in html
+        assert "data-emits-context" not in html
+        # But dashboard_mode=1 should still be there
+        assert "dashboard_mode=1" in html
+
+    async def test_view_embed_context_iri_passthrough(self, service, user_id):
+        """view-embed with listens_to_context forwards context_iri to view URL."""
+        blocks = [{
+            "type": "view-embed",
+            "config": {
+                "spec_iri": "urn:test:spec",
+                "renderer_type": "table",
+                "listens_to_context": "project",
+            },
+        }]
+        created = await service.create(
+            user_id=user_id, name="Consumer Dashboard", blocks=blocks,
+        )
+        from app.dashboard.router import render_block
+        from unittest.mock import MagicMock
+
+        mock_request = MagicMock()
+        mock_request.app.state.dashboard_service = service
+
+        from app.auth.models import User as AuthUser
+        mock_user = AuthUser(
+            id=user_id, username="test", email="t@t.com", display_name="T",
+        )
+        # With context_iri — should appear in the view URL
+        response = await render_block(
+            request=mock_request,
+            dashboard_id=created.id,
+            block_index=0,
+            context_iri="http://example.org/proj1",
+            context_var="project",
+            user=mock_user,
+        )
+        html = response.body.decode()
+        assert "context_iri=http%3A%2F%2Fexample.org%2Fproj1" in html
+        assert "context_var=project" in html
+        assert "dashboard_mode=1" in html
+
+    async def test_view_embed_context_iri_not_forwarded_without_listens(self, service, user_id):
+        """view-embed without listens_to_context does not forward context_iri."""
+        blocks = [{
+            "type": "view-embed",
+            "config": {
+                "spec_iri": "urn:test:spec",
+                "renderer_type": "table",
+                "emits_context": True,
+            },
+        }]
+        created = await service.create(
+            user_id=user_id, name="Source Only", blocks=blocks,
+        )
+        from app.dashboard.router import render_block
+        from unittest.mock import MagicMock
+
+        mock_request = MagicMock()
+        mock_request.app.state.dashboard_service = service
+
+        from app.auth.models import User as AuthUser
+        mock_user = AuthUser(
+            id=user_id, username="test", email="t@t.com", display_name="T",
+        )
+        response = await render_block(
+            request=mock_request,
+            dashboard_id=created.id,
+            block_index=0,
+            context_iri="http://example.org/proj1",
+            context_var="project",
+            user=mock_user,
+        )
+        html = response.body.decode()
+        # emits_context blocks should not have context_iri in their view URL
+        assert "context_iri=" not in html
+
+
+class TestDashboardContextConfigRoundTrip:
+    """Test context config fields survive create/update/retrieve cycle (S05/T03)."""
+
+    async def test_roundtrip_emits_and_listens_config(self, service, user_id):
+        """Create dashboard with emits/listens context config, retrieve, verify preserved."""
+        blocks = [
+            {
+                "type": "view-embed",
+                "config": {
+                    "spec_iri": "urn:test:projects-view",
+                    "renderer_type": "table",
+                    "emits_context": True,
+                },
+            },
+            {
+                "type": "view-embed",
+                "config": {
+                    "spec_iri": "urn:test:notes-view",
+                    "renderer_type": "cards",
+                    "listens_to_context": "project",
+                },
+            },
+        ]
+        created = await service.create(
+            user_id=user_id,
+            name="Context Dashboard",
+            layout="sidebar-main",
+            blocks=blocks,
+        )
+        assert created.blocks[0]["config"]["emits_context"] is True
+        assert created.blocks[1]["config"]["listens_to_context"] == "project"
+
+        # Retrieve and verify
+        fetched = await service.get(uuid.UUID(created.id))
+        assert fetched is not None
+        assert fetched.blocks[0]["config"]["emits_context"] is True
+        assert fetched.blocks[1]["config"]["listens_to_context"] == "project"
+
+    async def test_update_preserves_context_config(self, service, user_id):
+        """Updating dashboard name doesn't clobber block context config."""
+        blocks = [{
+            "type": "view-embed",
+            "config": {
+                "spec_iri": "urn:test:spec",
+                "renderer_type": "table",
+                "emits_context": True,
+                "listens_to_context": "category",
+            },
+        }]
+        created = await service.create(
+            user_id=user_id, name="Original", blocks=blocks,
+        )
+        # Update name only
+        updated = await service.update(
+            uuid.UUID(created.id), user_id, name="Renamed",
+        )
+        assert updated is not None
+        assert updated.name == "Renamed"
+        # Block config unchanged
+        assert updated.blocks[0]["config"]["emits_context"] is True
+        assert updated.blocks[0]["config"]["listens_to_context"] == "category"
+
+    async def test_view_embed_no_context_config_no_data_attrs(self, service, user_id):
+        """view-embed without context config produces no data-listens/data-emits attrs."""
+        blocks = [{
+            "type": "view-embed",
+            "config": {
+                "spec_iri": "urn:test:plain",
+                "renderer_type": "table",
+            },
+        }]
+        created = await service.create(
+            user_id=user_id, name="No Context", blocks=blocks,
+        )
+        from app.dashboard.router import render_block
+        from unittest.mock import MagicMock
+
+        mock_request = MagicMock()
+        mock_request.app.state.dashboard_service = service
+
+        from app.auth.models import User as AuthUser
+        mock_user = AuthUser(
+            id=user_id, username="test", email="t@t.com", display_name="T",
+        )
+        response = await render_block(
+            request=mock_request,
+            dashboard_id=created.id,
+            block_index=0,
+            context_iri="",
+            context_var="",
+            user=mock_user,
+        )
+        html = response.body.decode()
+        assert "data-listens-to-context" not in html
+        assert "data-emits-context" not in html

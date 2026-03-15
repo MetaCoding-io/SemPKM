@@ -6672,6 +6672,19 @@ details.form-group[open] > .form-group-summary::before {
     color: var(--color-accent, #61afef);
 }
 
+/* Dashboard context selection — highlights the active source row */
+.context-selected {
+    background-color: var(--color-accent-bg, rgba(97, 175, 239, 0.15)) !important;
+}
+
+.context-selected td {
+    border-color: var(--color-accent, #61afef);
+}
+
+.dashboard-row {
+    cursor: pointer;
+}
+
 
 /* ── Workflow runner ──────────────────────────────────────────────── */
 

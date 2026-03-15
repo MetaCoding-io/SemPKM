@@ -127,7 +127,15 @@
           '<option value="table"' + (config.renderer_type === 'table' ? ' selected' : '') + '>Table</option>' +
           '<option value="card"' + (config.renderer_type === 'card' ? ' selected' : '') + '>Card</option>' +
           '<option value="graph"' + (config.renderer_type === 'graph' ? ' selected' : '') + '>Graph</option>' +
-          '</select></div></div>';
+          '</select></div>' +
+          '<div class="form-field"><label class="checkbox-label"><input type="checkbox" class="block-config-emits" data-key="emits_context"' +
+          (config.emits_context ? ' checked' : '') + '> Emits context</label>' +
+          '<span class="field-help">Row clicks in this block will set the dashboard context IRI</span></div>' +
+          '<div class="form-field"><label>Context variable</label>' +
+          '<input type="text" class="block-config-context-var" data-key="listens_to_context" placeholder="e.g. project" value="' +
+          escapeAttr(config.listens_to_context || '') + '">' +
+          '<span class="field-help">SPARQL variable to bind with the context IRI (leave empty if not a consumer)</span></div>' +
+          '</div>';
       case 'markdown':
         return '<div class="block-config-fields">' +
           '<div class="form-field"><label>Content</label>' +
@@ -318,8 +326,12 @@
       var configEls = row.querySelectorAll('[data-key]');
       configEls.forEach(function(el) {
         var key = el.dataset.key;
-        var val = el.value || '';
-        if (val) block.config[key] = val;
+        if (el.type === 'checkbox') {
+          if (el.checked) block.config[key] = true;
+        } else {
+          var val = el.value || '';
+          if (val) block.config[key] = val;
+        }
       });
 
       blocks.push(block);
