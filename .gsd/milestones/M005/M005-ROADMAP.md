@@ -73,7 +73,7 @@ This milestone is complete only when all are true:
 - [x] **S06: PROV-O Alignment Design** `risk:low` `depends:[S02]`
   > After this: design doc at `.gsd/design/PROV-O-ALIGNMENT.md` audits current event predicates vs PROV-O, proposes migration plan, and recommends what to expose in UI
 
-- [ ] **S07: Views Rethink Design** `risk:low` `depends:[S01]`
+- [x] **S07: Views Rethink Design** `risk:low` `depends:[S01]`
   > After this: design doc at `.gsd/design/VIEWS-RETHINK.md` proposes generic views + query binding data model, UI flow, and migration from current per-type views; assumes queries are in RDF
 
 - [ ] **S08: VFS v2 Design Refinement** `risk:low` `depends:[S01]`
