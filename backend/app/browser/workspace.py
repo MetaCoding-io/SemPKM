@@ -107,9 +107,13 @@ async def _handle_by_type(
     shapes_service: ShapesService,
     icon_svc: IconService,
 <<<<<<< HEAD
+<<<<<<< HEAD
     **_kwargs,
 =======
 >>>>>>> gsd/M003/S01
+=======
+    **_kwargs,
+>>>>>>> gsd/M003/S02
 ) -> HTMLResponse:
     """Render the nav tree grouped by RDF type (default explorer mode)."""
     templates = request.app.state.templates
@@ -124,6 +128,9 @@ async def _handle_by_type(
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> gsd/M003/S02
 async def _handle_hierarchy(
     request: Request,
     label_service: LabelService,
@@ -131,6 +138,7 @@ async def _handle_hierarchy(
     **_kwargs,
 ) -> HTMLResponse:
     """Render hierarchy tree with root objects (no dcterms:isPartOf parent)."""
+<<<<<<< HEAD
     templates = request.app.state.templates
     client = request.app.state.triplestore_client
 
@@ -223,15 +231,55 @@ async def _handle_by_tag(
 =======
 async def _handle_hierarchy(request: Request, **_kwargs) -> HTMLResponse:
     """Placeholder for hierarchy explorer mode."""
+=======
+>>>>>>> gsd/M003/S02
     templates = request.app.state.templates
+    client = request.app.state.triplestore_client
+
+    sparql = """
+    PREFIX dcterms: <http://purl.org/dc/terms/>
+    SELECT ?obj ?type WHERE {
+      GRAPH <urn:sempkm:current> {
+        ?obj a ?type .
+        FILTER NOT EXISTS { ?obj dcterms:isPartOf ?parent . }
+      }
+    }
+    """
+
+    try:
+        result = await client.query(sparql)
+        bindings = result.get("results", {}).get("bindings", [])
+    except Exception:
+        logger.warning("Failed to query hierarchy roots", exc_info=True)
+        bindings = []
+
+    # De-duplicate: pick first type per object
+    obj_types: dict[str, str] = {}
+    for b in bindings:
+        iri = b["obj"]["value"]
+        if iri not in obj_types:
+            obj_types[iri] = b["type"]["value"]
+
+    logger.debug("Hierarchy roots query returned %d objects", len(obj_types))
+
+    # Resolve labels and icons
+    obj_iris = list(obj_types.keys())
+    labels = await label_service.resolve_batch(obj_iris) if obj_iris else {}
+
+    objects = [
+        {
+            "iri": iri,
+            "label": labels.get(iri, iri),
+            "type_iri": type_iri,
+            "icon": icon_svc.get_type_icon(type_iri, context="tree"),
+        }
+        for iri, type_iri in obj_types.items()
+    ]
+
     return templates.TemplateResponse(
         request,
-        "browser/explorer_placeholder.html",
-        {
-            "request": request,
-            "mode_label": "Hierarchy",
-            "icon_name": "compass",
-        },
+        "browser/hierarchy_tree.html",
+        {"request": request, "objects": objects},
     )
 
 
@@ -602,6 +650,7 @@ async def explorer_tree(
     shapes_service: ShapesService = Depends(get_shapes_service),
     icon_svc: IconService = Depends(get_icon_service),
     label_service: LabelService = Depends(get_label_service),
+<<<<<<< HEAD
 ):
     """Return explorer tree content for the requested mode.
 
@@ -659,6 +708,8 @@ async def explorer_tree(
     user: User = Depends(get_current_user),
     shapes_service: ShapesService = Depends(get_shapes_service),
     icon_svc: IconService = Depends(get_icon_service),
+=======
+>>>>>>> gsd/M003/S02
 ):
     """Return explorer tree content for the requested mode.
 
@@ -677,7 +728,11 @@ async def explorer_tree(
         request=request,
         shapes_service=shapes_service,
         icon_svc=icon_svc,
+<<<<<<< HEAD
 >>>>>>> gsd/M003/S01
+=======
+        label_service=label_service,
+>>>>>>> gsd/M003/S02
     )
 
 
@@ -739,6 +794,9 @@ async def tree_children(
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> gsd/M003/S02
 @workspace_router.get("/explorer/children")
 async def explorer_children(
     request: Request,
@@ -809,6 +867,7 @@ async def explorer_children(
     )
 
 
+<<<<<<< HEAD
 @workspace_router.get("/explorer/tag-children")
 async def tag_children(
     request: Request,
@@ -1010,6 +1069,8 @@ async def mount_children(
 
 =======
 >>>>>>> gsd/M002/S04
+=======
+>>>>>>> gsd/M003/S02
 @workspace_router.get("/my-views")
 async def my_views(
     request: Request,
