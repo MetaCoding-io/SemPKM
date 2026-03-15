@@ -1,39 +1,29 @@
 # S06 Assessment: Roadmap Still Valid
 
-## Verdict: No changes needed
+## State Correction
 
-S06 completed cleanly — WorkflowSpec model, service, runner UI, API, and frontend integration all delivered with 13 new tests (590 total). The roadmap remains sound.
+Prior auto-mode sessions (commits 5536eeb, 22b2f49) ran S01/S02 reassessments with stale roadmap context, overwriting S03 and S06 checkboxes back to unchecked. Git history confirms both were properly merged:
+- S03: `06d3acc` (DashboardSpec model & static rendering)
+- S06: `c2b97b3` (WorkflowSpec model & runner)
 
-## Key Observations
+STATE.md was also stale (still said "executing S03"). Both files corrected in this commit.
 
-1. **S06 built before S03 (its declared dependency).** S06 lists S03 as a dependency because workflows can embed dashboards as step types. In practice, S06 worked around this: the workflow runner loads step content via htmx, so "dashboard" step types will resolve once S03's routes exist. S07 (final integration) verifies this end-to-end. No roadmap change needed.
+## Verdict: No roadmap changes needed
 
-2. **No new risks emerged.** The workflow model and runner are straightforward SQLAlchemy + htmx patterns consistent with the rest of the codebase. Ephemeral run state is acknowledged tech debt, explicitly deferred.
+4 slices complete (S01, S02, S03, S06). 3 remaining (S04, S05, S07). All success criteria have owning slices.
 
-3. **Dependency graph simplified.** With S06 done, S07 now only waits on S04 and S05. The remaining critical path is: S03 → S04 + S05 (parallel) → S07.
+## Success Criterion Coverage
 
-## Remaining Slice Validity
+- DashboardSpec via UI, grid layout, blocks to slots → S03 ✅ + S04
+- Dashboard with view-embed/markdown/create-form renders → S03 ✅
+- Cross-view filtering via parameterized SPARQL → S05
+- WorkflowSpec with 3+ steps, runner, context passing → S06 ✅
+- Dashboards and workflows in explorer with CRUD → S04, S07
+- All specs persist across refresh/restart → S07
+- Parameterized SPARQL uses safe VALUES binding → S05
 
-| Slice | Status | Still Valid? | Notes |
-|-------|--------|-------------|-------|
-| S03 | pending | ✅ Yes | Dashboard model/rendering — no deps, can start now |
-| S04 | pending | ✅ Yes | Dashboard builder UI — depends on S02 (done) + S03 |
-| S05 | pending | ✅ Yes | Cross-view context — depends on S03, still high-risk |
-| S07 | pending | ✅ Yes | Final integration — depends on S04 + S05 (S06 now done) |
+## Remaining Critical Path
 
-## Boundary Map Accuracy
+S04 and S05 are both unblocked (their dependencies S02, S03 are done). S07 waits on S04 + S05.
 
-- S03 produces: DashboardSpec model, service, routes, block rendering — unchanged
-- S04 consumes: S02 (done) + S03 — unchanged
-- S05 consumes: S03 — unchanged
-- S07 consumes: S04 + S05 + S06 (now done) — S06 dependency satisfied
-
-## Proof Strategy
-
-- PROV-O migration → retired in S01 ✅
-- Cross-view context → still to be retired in S05 (unchanged)
-- Parameterized SPARQL → still to be retired in S05 (unchanged)
-
-## Requirement Coverage
-
-No new requirements surfaced. No requirement ownership changes needed. The 4 remaining slices collectively cover all unvalidated success criteria.
+S05 is the highest-risk remaining slice — cross-view context passing is the one unretired risk from the proof strategy.
