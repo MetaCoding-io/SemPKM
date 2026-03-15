@@ -87,35 +87,21 @@ Next-generation mount capabilities: saved query scoping, composable strategy cha
 ## In-App Relationship (Property) Creation
 
 **Queued:** 2026-03-13  
-**Status:** Idea  
-
-Users can create OWL Object Properties and Datatype Properties from the RBox tab, mirroring the "+ Create Class" flow on TBox. A "+ Create Property" button on the RBox tab opens a modal with: property name, domain class (source), range class or datatype (target), description (`rdfs:comment`), and property characteristics (functional, symmetric, etc.). Stored in `urn:sempkm:user-types` graph alongside user-created classes.
-
-**Context:** Currently only classes can be created in-app. Relationships between classes must be hand-written in model ontology files. This would let users define connections like "authored by" (Person → Research Paper) directly from the Ontology Viewer.
+**Status:** ✅ Done (M004) — Full property CRUD from RBox tab and Custom section
 
 ---
 
 ## Full CRUD for Custom Types & Relationships
 
 **Queued:** 2026-03-13  
-**Status:** Idea  
-
-Complete lifecycle management for user-created classes and properties in `urn:sempkm:user-types`. Currently only Create exists (via the Ontology Viewer modal). Needs:
-
-- **Edit**: Rename class/property, change description/example, update icon/color, reparent in hierarchy, add/remove/reorder SHACL properties on a class shape.
-- **Delete**: Remove class and its SHACL shape (endpoint exists but no UI). Warn if instances exist. Cascade option for orphaned instances.
-- **View/Manage**: Dedicated "Custom" section on the Mental Models admin page showing all user-created types and relationships with edit/delete actions — parallel to the "Installed Models" table but for the `urn:sempkm:user-types` graph.
-
-The Mental Models page would gain three sections: Upper Ontology (gist, read-only), Installed Models (basic-pkm etc., install/remove), Custom (user types/properties, full CRUD).
+**Status:** ✅ Done (M004) — Edit, delete, and Custom section all shipped. Only "cascade delete orphaned instances" remains as a minor enhancement.
 
 ---
 
 ## "Create New Object" Opens in New Tab
 
 **Queued:** 2026-03-13  
-**Status:** Bug  
-
-Creating a new object overwrites the content of the currently active dockview tab instead of opening a fresh tab. Expected behavior: "Create New" should always open a new tab (like clicking an object in the explorer does), preserving whatever the user was looking at. Likely the create action targets the active panel's content area rather than calling `openTab()` to create a new panel.
+**Status:** ✅ Done (M004) — showCreateFormForType always creates fresh dockview panel
 
 ---
 
