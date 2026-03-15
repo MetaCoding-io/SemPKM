@@ -1,8 +1,8 @@
 # GSD State
 
-**Active Milestone:** M004 — Ontology & Type System Completion
+**Active Milestone:** M005 — Platform Polish & Foundation
 **Active Slice:** None
-**Phase:** complete
+**Phase:** planning
 **Requirements Status:** 0 active · 88 validated · 4 deferred · 0 out of scope
 
 ## Milestone Registry
@@ -10,6 +10,7 @@
 - ✅ **M002:** Hardening & Polish
 - ✅ **M003:** Workspace UX & Knowledge Organization
 - ✅ **M004:** Ontology & Type System Completion
+- 🔄 **M005:** Platform Polish & Foundation
 
 ## Recent Decisions
 - None recorded
@@ -18,4 +19,4 @@
 - None
 
 ## Next Action
-All milestones complete.
+Plan S01 (Operations Log & PROV-O Foundation) — highest risk slice, retires PROV-O modeling uncertainty
