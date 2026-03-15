@@ -492,8 +492,11 @@ class TestCreateClassEndpoint:
         response = await create_class(
             request=request,
             name="  ",
+<<<<<<< HEAD
             description="",
             example="",
+=======
+>>>>>>> gsd/M003/S08
             icon="",
             icon_color="",
             parent_iri="http://www.w3.org/2002/07/owl#Thing",
@@ -515,8 +518,11 @@ class TestCreateClassEndpoint:
         response = await create_class(
             request=request,
             name="Test Class",
+<<<<<<< HEAD
             description="",
             example="",
+=======
+>>>>>>> gsd/M003/S08
             icon="",
             icon_color="",
             parent_iri="http://www.w3.org/2002/07/owl#Thing",
@@ -552,8 +558,11 @@ class TestCreateClassEndpoint:
         response = await create_class(
             request=request,
             name="Test Task",
+<<<<<<< HEAD
             description="",
             example="",
+=======
+>>>>>>> gsd/M003/S08
             icon="check-square",
             icon_color="#4CAF50",
             parent_iri="http://www.w3.org/2002/07/owl#Thing",
@@ -577,8 +586,11 @@ class TestCreateClassEndpoint:
             }],
             icon_name="check-square",
             icon_color="#4CAF50",
+<<<<<<< HEAD
             description=None,
             example=None,
+=======
+>>>>>>> gsd/M003/S08
         )
 
     @pytest.mark.asyncio
@@ -600,8 +612,11 @@ class TestCreateClassEndpoint:
         response = await create_class(
             request=request,
             name="Note",
+<<<<<<< HEAD
             description="",
             example="",
+=======
+>>>>>>> gsd/M003/S08
             icon="file-text",
             icon_color="#2196F3",
             parent_iri="http://www.w3.org/2002/07/owl#Thing",
@@ -941,6 +956,7 @@ class TestTboxSearchEndpoint:
         assert response.status_code == 200
         body = response.body.decode()
         assert "No classes found" in body
+<<<<<<< HEAD
 
 
 # ---------------------------------------------------------------------------
@@ -1311,3 +1327,5 @@ class TestDeleteClassCheckEndpoint:
 
         assert response.status_code == 500
         assert b"Server error" in response.body
+=======
+>>>>>>> gsd/M003/S08

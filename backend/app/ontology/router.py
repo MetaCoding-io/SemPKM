@@ -7,6 +7,7 @@ Provides htmx endpoints for:
 - RBox Legend: property reference table with domain/range columns
 - Main ontology page: three-tab layout hosting TBox/ABox/RBox
 <<<<<<< HEAD
+<<<<<<< HEAD
 - Class creation/deletion: user-defined types in urn:sempkm:user-types
 """
 
@@ -16,21 +17,33 @@ from urllib.parse import unquote
 
 from fastapi import APIRouter, Depends, Form, Query, Request
 =======
+=======
+- Class creation/deletion: user-defined types in urn:sempkm:user-types
+>>>>>>> gsd/M003/S08
 """
 
+import json
 import logging
 from urllib.parse import unquote
 
+<<<<<<< HEAD
 from fastapi import APIRouter, Depends, Query, Request
 >>>>>>> gsd/M003/S07
+=======
+from fastapi import APIRouter, Depends, Form, Query, Request
+>>>>>>> gsd/M003/S08
 from fastapi.responses import HTMLResponse
 
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
 <<<<<<< HEAD
+<<<<<<< HEAD
 from app.ontology.service import USER_TYPES_GRAPH
 =======
 >>>>>>> gsd/M003/S07
+=======
+from app.ontology.service import USER_TYPES_GRAPH
+>>>>>>> gsd/M003/S08
 
 logger = logging.getLogger(__name__)
 
@@ -273,6 +286,9 @@ async def rbox_legend(
         },
     )
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> gsd/M003/S08
 
 
 # ------------------------------------------------------------------
@@ -351,8 +367,11 @@ async def create_class_form(
 async def create_class(
     request: Request,
     name: str = Form(...),
+<<<<<<< HEAD
     description: str = Form(""),
     example: str = Form(""),
+=======
+>>>>>>> gsd/M003/S08
     icon: str = Form(""),
     icon_color: str = Form(""),
     parent_iri: str = Form(...),
@@ -390,8 +409,11 @@ async def create_class(
             properties=props_list,
             icon_name=icon.strip() or None,
             icon_color=icon_color.strip() or None,
+<<<<<<< HEAD
             description=description.strip() or None,
             example=example.strip() or None,
+=======
+>>>>>>> gsd/M003/S08
         )
     except ValueError as exc:
         logger.warning("create-class validation error: %s", exc)
@@ -470,6 +492,7 @@ async def delete_class(
 
 
 # ------------------------------------------------------------------
+<<<<<<< HEAD
 # Delete property
 # ------------------------------------------------------------------
 
@@ -861,6 +884,8 @@ async def edit_property(
 
 
 # ------------------------------------------------------------------
+=======
+>>>>>>> gsd/M003/S08
 # Icon cache helpers
 # ------------------------------------------------------------------
 
@@ -889,5 +914,8 @@ def _remove_from_icon_cache(request: Request, class_iri: str) -> None:
     icon_cache = getattr(request.app.state, "user_type_icons", None)
     if icon_cache and class_iri in icon_cache:
         del icon_cache[class_iri]
+<<<<<<< HEAD
 =======
 >>>>>>> gsd/M003/S07
+=======
+>>>>>>> gsd/M003/S08

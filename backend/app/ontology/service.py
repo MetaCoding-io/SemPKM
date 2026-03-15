@@ -21,11 +21,17 @@ from rdflib import BNode, Graph, Literal, Namespace, URIRef
 from rdflib.namespace import OWL, RDF, RDFS, SH, XSD
 =======
 import logging
+import re
 import time
+import uuid
 from pathlib import Path
 
 from rdflib import BNode, Graph, Literal, URIRef
+<<<<<<< HEAD
 >>>>>>> gsd/M003/S07
+=======
+from rdflib.namespace import OWL, RDF, RDFS, SH, XSD
+>>>>>>> gsd/M003/S08
 
 from app.models.registry import MODELS_GRAPH, SEMPKM_NS
 from app.triplestore.client import TriplestoreClient
@@ -44,6 +50,9 @@ GIST_NS = "https://w3id.org/semanticarts/ns/ontology/gist/"
 BATCH_SIZE = 500
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> gsd/M003/S08
 # SemPKM predicates for user-type metadata
 SEMPKM_TYPE_ICON = URIRef(f"{SEMPKM_NS}typeIcon")
 SEMPKM_TYPE_COLOR = URIRef(f"{SEMPKM_NS}typeColor")
@@ -59,6 +68,7 @@ ALLOWED_DATATYPES = {
     str(XSD.anyURI),
 }
 
+<<<<<<< HEAD
 
 def _extract_implied_subclasses(gist_path: Path) -> list[tuple[str, str]]:
     """Extract implied rdfs:subClassOf from owl:equivalentClass + intersectionOf.
@@ -136,6 +146,8 @@ def _property_source(iri: str) -> str:
 
 =======
 >>>>>>> gsd/M003/S07
+=======
+>>>>>>> gsd/M003/S08
 
 def _rdf_term_to_sparql(term) -> str:
     """Serialize an rdflib term to SPARQL syntax.
@@ -763,6 +775,7 @@ ORDER BY ?label"""
         return classes
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     async def get_class_detail(self, class_iri: str) -> dict:
         """Get detailed metadata for a single class.
 
@@ -992,6 +1005,8 @@ ORDER BY ?propLabel"""
             "properties": properties,
         }
 
+=======
+>>>>>>> gsd/M003/S08
     async def search_classes(self, query: str, limit: int = 20) -> list[dict]:
         """Search classes by label across all ontology graphs.
 
@@ -1047,8 +1062,11 @@ LIMIT {limit}"""
         logger.debug("TBox search '%s': %d results", query, len(classes))
         return classes
 
+<<<<<<< HEAD
 =======
 >>>>>>> gsd/M003/S07
+=======
+>>>>>>> gsd/M003/S08
     async def _batch_has_subclasses(
         self, graph_iris: list[str], class_iris: list[str]
     ) -> dict[str, bool]:
@@ -1330,6 +1348,9 @@ ORDER BY ?propType ?label"""
             "datatype_properties": datatype_props,
         }
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> gsd/M003/S08
 
     # ------------------------------------------------------------------
     # User-defined class creation and deletion
@@ -1395,8 +1416,11 @@ ORDER BY ?propType ?label"""
         parent_iri: str,
         icon_name: str | None = None,
         icon_color: str | None = None,
+<<<<<<< HEAD
         description: str | None = None,
         example: str | None = None,
+=======
+>>>>>>> gsd/M003/S08
     ) -> list[tuple]:
         """Generate OWL class triples for a user-defined class.
 
@@ -1404,11 +1428,16 @@ ORDER BY ?propType ?label"""
         - <classIRI> a owl:Class
         - <classIRI> rdfs:label "name"
         - <classIRI> rdfs:subClassOf <parent>
+<<<<<<< HEAD
         - Optionally: rdfs:comment, skos:example
         - Optionally: sempkm:typeIcon, sempkm:typeColor
         """
         SKOS = Namespace("http://www.w3.org/2004/02/skos/core#")
 
+=======
+        - Optionally: sempkm:typeIcon, sempkm:typeColor
+        """
+>>>>>>> gsd/M003/S08
         class_uri = URIRef(class_iri)
         triples: list[tuple] = [
             (class_uri, RDF.type, OWL.Class),
@@ -1416,10 +1445,13 @@ ORDER BY ?propType ?label"""
             (class_uri, RDFS.subClassOf, URIRef(parent_iri)),
         ]
 
+<<<<<<< HEAD
         if description:
             triples.append((class_uri, RDFS.comment, Literal(description)))
         if example:
             triples.append((class_uri, SKOS.example, Literal(example)))
+=======
+>>>>>>> gsd/M003/S08
         if icon_name:
             triples.append((class_uri, SEMPKM_TYPE_ICON, Literal(icon_name)))
         if icon_color:
@@ -1512,8 +1544,11 @@ ORDER BY ?propType ?label"""
         properties: list[dict],
         icon_name: str | None = None,
         icon_color: str | None = None,
+<<<<<<< HEAD
         description: str | None = None,
         example: str | None = None,
+=======
+>>>>>>> gsd/M003/S08
     ) -> dict:
         """Create a user-defined class with OWL + SHACL triples.
 
@@ -1527,8 +1562,11 @@ ORDER BY ?propType ?label"""
                         datatype_iri.
             icon_name: Optional Lucide icon name.
             icon_color: Optional hex color string.
+<<<<<<< HEAD
             description: Optional class description (rdfs:comment).
             example: Optional usage example (skos:example).
+=======
+>>>>>>> gsd/M003/S08
 
         Returns:
             Dict with class_iri, shape_iri, triple_count, property_count.
@@ -1546,8 +1584,11 @@ ORDER BY ?propType ?label"""
             parent_iri=parent_iri,
             icon_name=icon_name,
             icon_color=icon_color,
+<<<<<<< HEAD
             description=description,
             example=example,
+=======
+>>>>>>> gsd/M003/S08
         )
         shape_triples = self._generate_shape_triples(
             class_iri=class_iri,
@@ -1610,6 +1651,7 @@ ORDER BY ?propType ?label"""
             "shape_iri": shape_iri,
             "status": "deleted",
         }
+<<<<<<< HEAD
 
     # ------------------------------------------------------------------
     # User-defined property creation
@@ -2251,3 +2293,5 @@ SELECT ?label WHERE {{
         }
 =======
 >>>>>>> gsd/M003/S07
+=======
+>>>>>>> gsd/M003/S08

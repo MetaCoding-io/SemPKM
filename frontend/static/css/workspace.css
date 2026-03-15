@@ -367,8 +367,12 @@
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 /* Delete button on user-type TBox nodes — hover-reveal */
 .tbox-edit-btn,
+=======
+/* Delete button on user-type TBox nodes — hover-reveal */
+>>>>>>> gsd/M003/S08
 .tbox-delete-btn {
     display: none;
     align-items: center;
@@ -377,11 +381,16 @@
     border: none;
     cursor: pointer;
     padding: 2px;
+<<<<<<< HEAD
+=======
+    margin-left: auto;
+>>>>>>> gsd/M003/S08
     color: var(--color-text-muted);
     border-radius: 3px;
     flex-shrink: 0;
     line-height: 1;
 }
+<<<<<<< HEAD
 .tbox-edit-btn {
     margin-left: auto;
 }
@@ -389,17 +398,23 @@
     color: var(--color-primary, #3b82f6);
     background: rgba(59, 130, 246, 0.1);
 }
+=======
+>>>>>>> gsd/M003/S08
 .tbox-delete-btn:hover {
     color: var(--color-danger, #ef4444);
     background: rgba(239, 68, 68, 0.1);
 }
+<<<<<<< HEAD
 .tbox-edit-btn svg,
+=======
+>>>>>>> gsd/M003/S08
 .tbox-delete-btn svg {
     width: 14px;
     height: 14px;
     flex-shrink: 0;
     stroke: currentColor;
 }
+<<<<<<< HEAD
 .tbox-node:hover .tbox-edit-btn,
 .tbox-node:hover .tbox-delete-btn {
     display: inline-flex;
@@ -525,6 +540,12 @@ tr:hover .rbox-edit-btn {
 
 =======
 >>>>>>> gsd/M003/S07
+=======
+.tree-node:hover .tbox-delete-btn {
+    display: inline-flex;
+}
+
+>>>>>>> gsd/M003/S08
 .tree-toggle-leaf {
     color: var(--color-text-faint, var(--color-text-muted));
     font-size: 0.5rem;
@@ -902,6 +923,9 @@ tr:hover .rbox-edit-btn {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> gsd/M003/S08
 /* "Create Class" trigger button in tab bar */
 .ccf-trigger-btn {
     margin-left: auto;
@@ -932,6 +956,7 @@ tr:hover .rbox-edit-btn {
     stroke: currentColor;
 }
 
+<<<<<<< HEAD
 /* --- Class Creation Modal --- */
 
 .ccf-overlay {
@@ -959,21 +984,43 @@ tr:hover .rbox-edit-btn {
 .class-creation-form,
 .property-creation-form {
     padding: 28px 32px 24px;
+=======
+/* --- Class Creation Form container --- */
+
+.ccf-container {
+    border-bottom: 1px solid var(--color-border);
+    max-height: 50vh;
+    overflow-y: auto;
+    flex-shrink: 0;
+}
+
+.class-creation-form {
+    padding: var(--space-md);
+    background: var(--color-surface);
+>>>>>>> gsd/M003/S08
 }
 
 .ccf-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
+<<<<<<< HEAD
     margin-bottom: 20px;
     padding-bottom: 16px;
     border-bottom: 1px solid var(--color-border);
+=======
+    margin-bottom: var(--space-md);
+>>>>>>> gsd/M003/S08
 }
 
 .ccf-title {
     margin: 0;
+<<<<<<< HEAD
     font-size: 1.1rem;
     font-weight: 600;
+=======
+    font-size: var(--font-size-lg);
+>>>>>>> gsd/M003/S08
     color: var(--color-text);
 }
 
@@ -981,30 +1028,49 @@ tr:hover .rbox-edit-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+<<<<<<< HEAD
     width: 28px;
     height: 28px;
+=======
+    width: 24px;
+    height: 24px;
+>>>>>>> gsd/M003/S08
     padding: 0;
     border: none;
     background: transparent;
     color: var(--color-text-muted);
     cursor: pointer;
+<<<<<<< HEAD
     border-radius: 6px;
     transition: background 0.15s, color 0.15s;
 }
 
 .ccf-close:hover {
     background: var(--color-surface-hover, rgba(0,0,0,0.06));
+=======
+    border-radius: 4px;
+}
+
+.ccf-close:hover {
+    background: var(--color-surface-hover);
+>>>>>>> gsd/M003/S08
     color: var(--color-text);
 }
 
 .ccf-close svg {
+<<<<<<< HEAD
     width: 16px;
     height: 16px;
+=======
+    width: 14px;
+    height: 14px;
+>>>>>>> gsd/M003/S08
     flex-shrink: 0;
     stroke: currentColor;
 }
 
 .ccf-required {
+<<<<<<< HEAD
     color: var(--color-error, #ef4444);
 }
 
@@ -1165,18 +1231,33 @@ tr:hover .rbox-edit-btn {
     margin-top: 24px;
     padding-top: 20px;
     border-top: 1px solid var(--color-border);
+=======
+    color: var(--color-error);
+}
+
+.class-creation-form .form-field {
+    margin-bottom: var(--space-md);
+>>>>>>> gsd/M003/S08
 }
 
 .class-creation-form .form-field label {
     display: block;
+<<<<<<< HEAD
     font-size: 0.82rem;
     font-weight: 600;
     color: var(--color-text);
     margin-bottom: 6px;
+=======
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: 4px;
+>>>>>>> gsd/M003/S08
 }
 
 .class-creation-form .form-field input[type="text"] {
     width: 100%;
+<<<<<<< HEAD
     padding: 8px 12px;
     border: 1px solid var(--color-border);
     border-radius: 6px;
@@ -1184,18 +1265,32 @@ tr:hover .rbox-edit-btn {
     background: var(--color-bg, #fafafa);
     color: var(--color-text);
     transition: border-color 0.15s, box-shadow 0.15s;
+=======
+    padding: 6px 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    font-size: 0.85rem;
+    background: var(--color-surface);
+    color: var(--color-text);
+    transition: border-color 0.15s;
+>>>>>>> gsd/M003/S08
 }
 
 .class-creation-form .form-field input[type="text"]:focus {
     outline: none;
     border-color: var(--color-primary);
+<<<<<<< HEAD
     box-shadow: 0 0 0 3px var(--color-focus-shadow, rgba(99, 102, 241, 0.12));
+=======
+    box-shadow: 0 0 0 2px var(--color-focus-shadow);
+>>>>>>> gsd/M003/S08
 }
 
 /* --- Icon Picker --- */
 
 .icon-picker-search {
     width: 100%;
+<<<<<<< HEAD
     padding: 8px 12px;
     border: 1px solid var(--color-border);
     border-radius: 6px;
@@ -1203,6 +1298,15 @@ tr:hover .rbox-edit-btn {
     background: var(--color-bg, #fafafa);
     color: var(--color-text);
     margin-bottom: 8px;
+=======
+    padding: 5px 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    font-size: 0.8rem;
+    background: var(--color-surface);
+    color: var(--color-text);
+    margin-bottom: 6px;
+>>>>>>> gsd/M003/S08
 }
 
 .icon-picker-search:focus {
@@ -1212,6 +1316,7 @@ tr:hover .rbox-edit-btn {
 
 .icon-picker-grid {
     display: grid;
+<<<<<<< HEAD
     grid-template-columns: repeat(auto-fill, minmax(38px, 1fr));
     gap: 4px;
     max-height: 140px;
@@ -1219,6 +1324,15 @@ tr:hover .rbox-edit-btn {
     padding: 6px;
     border: 1px solid var(--color-border);
     border-radius: 6px;
+=======
+    grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
+    gap: 3px;
+    max-height: 160px;
+    overflow-y: auto;
+    padding: 4px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+>>>>>>> gsd/M003/S08
     background: var(--color-surface-recessed, var(--color-bg));
 }
 
@@ -1301,11 +1415,19 @@ tr:hover .rbox-edit-btn {
 
 .parent-class-search {
     width: 100%;
+<<<<<<< HEAD
     padding: 8px 12px;
     border: 1px solid var(--color-border);
     border-radius: 6px;
     font-size: 0.85rem;
     background: var(--color-bg, #fafafa);
+=======
+    padding: 5px 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    font-size: 0.8rem;
+    background: var(--color-surface);
+>>>>>>> gsd/M003/S08
     color: var(--color-text);
 }
 
@@ -1413,8 +1535,13 @@ tr:hover .rbox-edit-btn {
 
 .property-editor {
     border: 1px solid var(--color-border);
+<<<<<<< HEAD
     border-radius: 6px;
     padding: 12px;
+=======
+    border-radius: 4px;
+    padding: var(--space-sm);
+>>>>>>> gsd/M003/S08
     background: var(--color-surface-recessed, var(--color-bg));
 }
 
@@ -1540,8 +1667,11 @@ tr:hover .rbox-edit-btn {
     margin-top: var(--space-sm);
 }
 
+<<<<<<< HEAD
 =======
 >>>>>>> gsd/M003/S07
+=======
+>>>>>>> gsd/M003/S08
 /* --- ABox Browser --- */
 
 .abox-summary {
