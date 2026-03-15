@@ -148,7 +148,10 @@ async def admin_model_detail(
         td["instance_count"] = a["count"]
         td["top_nodes"] = a["top_nodes"]
         td["avg_connections"] = a["avg_connections"]
+<<<<<<< HEAD
         td["total_links"] = int(round(a["avg_connections"] * a["count"]))
+=======
+>>>>>>> gsd/M003/S09
         td["last_modified"] = a["last_modified"]
         td["growth_trend"] = a["growth_trend"]
         td["link_distribution"] = a["link_distribution"]
