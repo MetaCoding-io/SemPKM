@@ -1,0 +1,65 @@
+{# Tag tree folder: recursive sub-folder and leaf rendering.
+   Rendered when expanding a folder node via prefix query.
+   Shows sub-folders first, then leaf tags, then direct objects.
+
+   Context:
+     nodes: list of dicts from build_tag_tree(prefix=...) with keys:
+       segment, prefix, direct_count, total_count, has_children
+     direct_objects: list of dicts with 'iri', 'label', 'icon' keys
+       (objects tagged exactly with the parent prefix value)
+#}
+{# Sub-folders and leaf tags #}
+{% for node in nodes %}
+{% set safe_id = node.prefix | replace(':', '_') | replace('/', '_') | replace('#', '_') | replace('.', '_') | replace(' ', '_') %}
+{% if node.has_children %}
+{# Sub-folder: expand to show deeper sub-folders #}
+<div class="tree-node" data-testid="tag-folder"
+     hx-get="/browser/explorer/tag-children?prefix={{ node.prefix | urlencode }}"
+     hx-trigger="click once"
+     hx-target="#tag-children-{{ safe_id }}"
+     hx-swap="innerHTML">
+    <span class="tree-toggle">&#9656;</span>
+    <i data-lucide="folder"
+       class="tree-node-icon"
+       style="color: var(--color-text-muted); width: 16px; height: 16px; flex-shrink: 0;"></i>
+    <span class="tree-label">{{ node.segment }}</span>
+    <span class="tree-count-badge">{{ node.total_count }}</span>
+</div>
+<div id="tag-children-{{ safe_id }}" class="tree-children"></div>
+{% else %}
+{# Leaf tag: expand to show tagged objects #}
+<div class="tree-node" data-testid="tag-folder"
+     hx-get="/browser/explorer/tag-children?tag={{ node.prefix | urlencode }}"
+     hx-trigger="click once"
+     hx-target="#tag-children-{{ safe_id }}"
+     hx-swap="innerHTML">
+    <span class="tree-toggle">&#9656;</span>
+    <i data-lucide="tag"
+       class="tree-node-icon"
+       style="color: var(--color-text-muted); width: 16px; height: 16px; flex-shrink: 0;"></i>
+    <span class="tree-label">#{{ node.segment }}</span>
+    <span class="tree-count-badge">{{ node.total_count }}</span>
+</div>
+<div id="tag-children-{{ safe_id }}" class="tree-children"></div>
+{% endif %}
+{% endfor %}
+{# Direct objects tagged exactly with the parent prefix #}
+{% if direct_objects %}
+{% for obj in direct_objects %}
+{% set obj_icon = obj.icon if obj.icon else {'icon': 'circle', 'color': 'var(--color-text-faint)', 'size': 14} %}
+<div class="tree-leaf" data-testid="tag-object"
+     data-iri="{{ obj.iri }}"
+     draggable="true"
+     ondragstart="var thisIri = '{{ obj.iri }}'; var thisLabel = '{{ obj.label }}'; event.dataTransfer.setData('text/iri', thisIri); event.dataTransfer.setData('text/label', thisLabel); event.dataTransfer.effectAllowed = 'copy'; window.__canvasDragPayload = { iri: thisIri, label: thisLabel };"
+     onclick="handleTreeLeafClick(event, '{{ obj.iri }}', '{{ obj.label }}')">
+    <i data-lucide="{{ obj_icon.icon }}"
+       class="tree-leaf-icon"
+       style="color: {{ obj_icon.color }}; width: {{ obj_icon.size or 14 }}px; height: {{ obj_icon.size or 14 }}px; flex-shrink: 0;"></i>
+    <span class="tree-leaf-label">{{ obj.label }}</span>
+</div>
+{% endfor %}
+{% endif %}
+{# Empty state: no sub-folders, no leaf tags, no direct objects #}
+{% if not nodes and not direct_objects %}
+<div class="tree-empty">No tags found</div>
+{% endif %}

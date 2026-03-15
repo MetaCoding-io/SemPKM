@@ -1,15 +1,36 @@
-{# Tag tree: root folder nodes for the by-tag explorer mode.
-   Each folder represents a distinct tag value with a count badge.
-   Folders expand via htmx to lazy-load tagged objects.
+{# Tag tree: hierarchical root nodes for the by-tag explorer mode.
+   Each node represents a root-level tag segment with aggregated counts.
+   Folder nodes (has_children) expand via htmx to lazy-load sub-folders.
+   Leaf nodes expand to show tagged objects.
+   Nodes with both has_children AND direct_count expand as folders
+   (the sub-folder response includes direct objects).
 
    Context:
-     folders: list of dicts with 'value', 'label', and 'count' keys
+     nodes: list of dicts from build_tag_tree() with keys:
+       segment, prefix, direct_count, total_count, has_children
 #}
-{% if folders %}
-{% for folder in folders %}
-{% set safe_id = folder.value | replace(':', '_') | replace('/', '_') | replace('#', '_') | replace('.', '_') | replace(' ', '_') %}
+{% if nodes %}
+{% for node in nodes %}
+{% set safe_id = node.prefix | replace(':', '_') | replace('/', '_') | replace('#', '_') | replace('.', '_') | replace(' ', '_') %}
+{% if node.has_children %}
+{# Folder node: expand to show sub-folders (and possibly direct objects) #}
 <div class="tree-node" data-testid="tag-folder"
-     hx-get="/browser/explorer/tag-children?tag={{ folder.value | urlencode }}"
+     hx-get="/browser/explorer/tag-children?prefix={{ node.prefix | urlencode }}"
+     hx-trigger="click once"
+     hx-target="#tag-children-{{ safe_id }}"
+     hx-swap="innerHTML">
+    <span class="tree-toggle">&#9656;</span>
+    <i data-lucide="folder"
+       class="tree-node-icon"
+       style="color: var(--color-text-muted); width: 16px; height: 16px; flex-shrink: 0;"></i>
+    <span class="tree-label">{{ node.segment }}</span>
+    <span class="tree-count-badge">{{ node.total_count }}</span>
+</div>
+<div id="tag-children-{{ safe_id }}" class="tree-children"></div>
+{% else %}
+{# Leaf node: expand to show tagged objects #}
+<div class="tree-node" data-testid="tag-folder"
+     hx-get="/browser/explorer/tag-children?tag={{ node.prefix | urlencode }}"
      hx-trigger="click once"
      hx-target="#tag-children-{{ safe_id }}"
      hx-swap="innerHTML">
@@ -17,10 +38,11 @@
     <i data-lucide="tag"
        class="tree-node-icon"
        style="color: var(--color-text-muted); width: 16px; height: 16px; flex-shrink: 0;"></i>
-    <span class="tree-label">#{{ folder.label }}</span>
-    <span class="tree-count-badge">{{ folder.count }}</span>
+    <span class="tree-label">#{{ node.segment }}</span>
+    <span class="tree-count-badge">{{ node.total_count }}</span>
 </div>
 <div id="tag-children-{{ safe_id }}" class="tree-children"></div>
+{% endif %}
 {% endfor %}
 {% else %}
 <div class="tree-empty">No tags found</div>
