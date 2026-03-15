@@ -7,12 +7,8 @@
 {% if classes %}
 {% for cls in classes %}
 {% set safe_id = cls.iri | replace(':', '_') | replace('/', '_') | replace('#', '_') | replace('.', '_') %}
-<<<<<<< HEAD
 {% set source = 'gist' if 'gist/' in cls.iri else ('model' if 'basic-pkm' in cls.iri or 'ppv' in cls.iri else 'user') %}
 <div class="tbox-node{% if cls.has_subclasses %} tbox-node--parent{% endif %}" data-testid="tbox-node" data-iri="{{ cls.iri }}" data-source="{{ source }}"
-=======
-<div class="tree-node{% if not cls.has_subclasses %} tree-leaf{% endif %}" data-testid="tbox-node" data-iri="{{ cls.iri }}"
->>>>>>> gsd/M003/S07
      {% if cls.has_subclasses %}
      hx-get="/browser/ontology/tbox/children?parent={{ cls.iri | urlencode }}"
      hx-trigger="click once"
@@ -20,19 +16,11 @@
      hx-swap="innerHTML"
      {% endif %}>
     {% if cls.has_subclasses %}
-<<<<<<< HEAD
     <span class="tbox-toggle">&#9656;</span>
     {% else %}
     <span class="tbox-toggle tbox-toggle--leaf">·</span>
     {% endif %}
     <span class="tbox-icon">◆</span>
-=======
-    <span class="tree-toggle">&#9656;</span>
-    {% else %}
-    <span class="tree-toggle tree-toggle-leaf">&#8226;</span>
-    {% endif %}
-    <span class="tbox-icon">&#9670;</span>
->>>>>>> gsd/M003/S07
     <span class="tree-label tbox-label" title="{{ cls.iri }}">{{ cls.label }}</span>
     {% set ns = cls.iri %}
     {% if 'gist/' in ns %}
@@ -43,8 +31,6 @@
     <span class="tbox-source-badge badge-ppv">ppv</span>
     {% elif 'user-types' in ns %}
     <span class="tbox-source-badge badge-user">user</span>
-<<<<<<< HEAD
-<<<<<<< HEAD
     <button type="button" class="tbox-edit-btn" data-testid="tbox-edit-btn"
             title="Edit this class"
             onclick="event.stopPropagation(); openClassEditForm('{{ cls.iri }}');">
@@ -60,21 +46,9 @@
 {% if cls.has_subclasses %}
 <div id="tbox-children-{{ safe_id }}" class="tbox-children"></div>
 {% endif %}
-=======
-=======
-    <button type="button" class="tbox-delete-btn" data-testid="tbox-delete-btn"
-            title="Delete this class"
-            hx-delete="/browser/ontology/delete-class?class_iri={{ cls.iri | urlencode }}"
-            hx-confirm="Delete this class? Objects of this type will lose their type."
-            hx-swap="none"
-            onclick="event.stopPropagation();">
-      <i data-lucide="trash-2"></i>
-    </button>
->>>>>>> gsd/M003/S08
     {% endif %}
 </div>
 <div id="tbox-children-{{ safe_id }}" class="tree-children"></div>
->>>>>>> gsd/M003/S07
 {% endfor %}
 {% else %}
 <div class="tree-empty tree-empty-leaf">No subclasses</div>

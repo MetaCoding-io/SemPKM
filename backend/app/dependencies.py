@@ -9,6 +9,7 @@ from app.lint.service import LintService
 from app.ontology.service import OntologyService
 from app.services.labels import LabelService
 from app.services.models import ModelService
+from app.services.ops_log import OperationsLogService
 from app.services.prefixes import PrefixRegistry
 from app.services.search import SearchService
 from app.services.shapes import ShapesService
@@ -153,10 +154,6 @@ async def get_ontology_service(request: Request) -> OntologyService:
     app.state.ontology_service.
     """
     return request.app.state.ontology_service
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M005/S01
 
 
 async def get_query_service(request: Request) -> QueryService:
@@ -166,8 +163,12 @@ async def get_query_service(request: Request) -> QueryService:
     app.state.query_service.
     """
     return request.app.state.query_service
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S07
-=======
->>>>>>> gsd/M005/S01
+
+
+async def get_ops_log_service(request: Request) -> OperationsLogService:
+    """Get the OperationsLogService instance from app state.
+
+    The service is created during app lifespan startup and stored on
+    app.state.ops_log_service.
+    """
+    return request.app.state.ops_log_service

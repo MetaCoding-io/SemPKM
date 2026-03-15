@@ -1,16 +1,11 @@
 /**
  * Graph View Interaction E2E Tests
  *
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S10
  * Tests graph view node rendering via Cytoscape.js, data endpoint,
  * and node click → open object tab interaction.
  *
  * Consolidated into 1 test() to stay within the 5/minute magic-link rate limit.
  * Uses both API-only and UI-based verification.
-<<<<<<< HEAD
  */
 import { test, expect, BASE_URL } from '../../fixtures/auth';
 import { waitForIdle } from '../../helpers/wait-for';
@@ -133,10 +128,6 @@ test.describe('Graph View Interaction', () => {
     const viewHtml = await viewResp.text();
     expect(viewHtml).toContain('cy-container');
     expect(viewHtml).toContain('graph-container');
-=======
- * Tests graph view node rendering and click-through to open object tabs.
-=======
->>>>>>> gsd/M003/S10
  */
 import { test, expect, BASE_URL } from '../../fixtures/auth';
 import { waitForIdle } from '../../helpers/wait-for';
@@ -249,19 +240,5 @@ test.describe('Graph View Interaction', () => {
       // Should have at least 2 panels: the graph view + the opened object
       expect(panelCount).toBeGreaterThanOrEqual(2);
     }
-<<<<<<< HEAD
->>>>>>> gsd/M003/S03
-=======
-
-    // 8. Verify graph view HTML endpoint also works (for htmx partial rendering)
-    const viewResp = await ownerRequest.get(
-      `${BASE_URL}/browser/views/graph/${specIri}`,
-      { headers: { Accept: 'text/html' } },
-    );
-    expect(viewResp.ok()).toBeTruthy();
-    const viewHtml = await viewResp.text();
-    expect(viewHtml).toContain('cy-container');
-    expect(viewHtml).toContain('graph-container');
->>>>>>> gsd/M003/S10
   });
 });

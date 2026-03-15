@@ -58,7 +58,7 @@ This milestone is complete only when all are true:
 - [x] **S01: Query Storage SQL→RDF Migration** `risk:high` `depends:[]`
   > After this: SavedSparqlQuery, SharedQueryAccess, PromotedQueryView, and SparqlQueryHistory all stored as RDF in the triplestore; SPARQL console UI works identically; existing saved queries migrated; SQL tables dropped
 
-- [ ] **S02: Operations Log & PROV-O Foundation** `risk:high` `depends:[]`
+- [x] **S02: Operations Log & PROV-O Foundation** `risk:high` `depends:[]`
   > After this: admin/debug UI shows timestamped operations log entries using PROV-O vocabulary; model install/inference/validation activities are logged to RDF
 
 - [ ] **S03: Hierarchical Tag Tree** `risk:medium` `depends:[]`

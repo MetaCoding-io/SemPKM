@@ -3,44 +3,22 @@
  *
  * Tests the GET /api/health endpoint returns proper JSON
  * with status, services, and version information.
-<<<<<<< HEAD
-<<<<<<< HEAD
  * Health endpoint is intentionally public (no auth required).
-=======
->>>>>>> gsd/M003/S03
-=======
- * Health endpoint is intentionally public (no auth required).
->>>>>>> gsd/M003/S10
  */
 import { test, expect, BASE_URL } from '../../fixtures/auth';
 
 test.describe('Health Check', () => {
-<<<<<<< HEAD
-<<<<<<< HEAD
   test('health endpoint returns correct JSON structure without auth', async ({ anonApi }) => {
     // Access the underlying APIRequestContext from the ApiClient
     const ctx = (anonApi as any).request;
 
     // 1. Basic response shape
-=======
-  test('health endpoint returns 200 with JSON structure', async ({ anonApi }) => {
-    const ctx = (anonApi as any).request;
->>>>>>> gsd/M003/S03
-=======
-  test('health endpoint returns correct JSON structure without auth', async ({ anonApi }) => {
-    // Access the underlying APIRequestContext from the ApiClient
-    const ctx = (anonApi as any).request;
-
-    // 1. Basic response shape
->>>>>>> gsd/M003/S10
     const resp = await ctx.get(`${BASE_URL}/api/health`);
     expect(resp.ok()).toBeTruthy();
 
     const data = await resp.json();
     expect(data).toBeDefined();
 
-<<<<<<< HEAD
-<<<<<<< HEAD
     // 2. Status field — backend returns "healthy" or "degraded"
     expect(data.status).toBeDefined();
     expect(['healthy', 'degraded']).toContain(data.status);
@@ -63,11 +41,6 @@ test.describe('Health Check', () => {
     expect(resp2.ok()).toBeTruthy();
     const data2 = await resp2.json();
     expect(data2.status).toBe(data.status);
-=======
-    // Should have a status field
-=======
-    // 2. Status field — backend returns "healthy" or "degraded"
->>>>>>> gsd/M003/S10
     expect(data.status).toBeDefined();
     expect(['healthy', 'degraded']).toContain(data.status);
 
@@ -83,7 +56,6 @@ test.describe('Health Check', () => {
     expect(typeof data.version).toBe('string');
     expect(data.version.length).toBeGreaterThan(0);
 
-<<<<<<< HEAD
   test('health endpoint includes version info', async ({ anonApi }) => {
     const ctx = (anonApi as any).request;
     const resp = await ctx.get(`${BASE_URL}/api/health`);
@@ -102,14 +74,5 @@ test.describe('Health Check', () => {
     const resp = await ctx.get(`${BASE_URL}/api/health`);
     expect(resp.ok()).toBeTruthy();
     await ctx.dispose();
->>>>>>> gsd/M003/S03
-=======
-    // 5. Verify no auth is required — make a second request
-    //    with a fresh context (no cookies, no headers)
-    const resp2 = await ctx.get(`${BASE_URL}/api/health`);
-    expect(resp2.ok()).toBeTruthy();
-    const data2 = await resp2.json();
-    expect(data2.status).toBe(data.status);
->>>>>>> gsd/M003/S10
   });
 });

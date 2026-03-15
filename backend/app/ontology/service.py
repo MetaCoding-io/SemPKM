@@ -9,7 +9,6 @@ aggregation across gist + all installed model ontology graphs + user-types
 to present a unified class hierarchy.
 """
 
-<<<<<<< HEAD
 import asyncio
 import logging
 import re
@@ -19,19 +18,6 @@ from pathlib import Path
 
 from rdflib import BNode, Graph, Literal, Namespace, URIRef
 from rdflib.namespace import OWL, RDF, RDFS, SH, XSD
-=======
-import logging
-import re
-import time
-import uuid
-from pathlib import Path
-
-from rdflib import BNode, Graph, Literal, URIRef
-<<<<<<< HEAD
->>>>>>> gsd/M003/S07
-=======
-from rdflib.namespace import OWL, RDF, RDFS, SH, XSD
->>>>>>> gsd/M003/S08
 
 from app.models.registry import MODELS_GRAPH, SEMPKM_NS
 from app.triplestore.client import TriplestoreClient
@@ -49,10 +35,6 @@ GIST_NS = "https://w3id.org/semanticarts/ns/ontology/gist/"
 # Batch size for INSERT DATA operations (triples per batch)
 BATCH_SIZE = 500
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S08
 # SemPKM predicates for user-type metadata
 SEMPKM_TYPE_ICON = URIRef(f"{SEMPKM_NS}typeIcon")
 SEMPKM_TYPE_COLOR = URIRef(f"{SEMPKM_NS}typeColor")
@@ -68,7 +50,6 @@ ALLOWED_DATATYPES = {
     str(XSD.anyURI),
 }
 
-<<<<<<< HEAD
 
 def _extract_implied_subclasses(gist_path: Path) -> list[tuple[str, str]]:
     """Extract implied rdfs:subClassOf from owl:equivalentClass + intersectionOf.
@@ -144,10 +125,6 @@ def _property_source(iri: str) -> str:
         return "sempkm"
     return "other"
 
-=======
->>>>>>> gsd/M003/S07
-=======
->>>>>>> gsd/M003/S08
 
 def _rdf_term_to_sparql(term) -> str:
     """Serialize an rdflib term to SPARQL syntax.
@@ -220,7 +197,6 @@ class OntologyService:
         result = await self._client.query(sparql)
         return result.get("boolean", False)
 
-<<<<<<< HEAD
     async def _are_gist_annotations_loaded(self) -> bool:
         """Check whether gist RDFS annotations have been loaded.
 
@@ -273,16 +249,12 @@ class OntologyService:
         *,
         annotations_path: Path | None = None,
     ) -> None:
-=======
-    async def ensure_gist_loaded(self, gist_path: Path) -> None:
->>>>>>> gsd/M003/S07
         """Load gist ontology into the triplestore if not already present.
 
         Parses the Turtle file with rdflib, splits triples into batches of
         ≤500, and executes each batch as INSERT DATA within a transaction.
         Skips loading if the version check ASK query returns true.
 
-<<<<<<< HEAD
         If *annotations_path* is provided and the annotations haven't been
         loaded yet, loads them into the same gist graph. This is idempotent
         — safe to call on every startup.
@@ -479,56 +451,6 @@ WHERE {{
             "graph_iri": GIST_GRAPH,
             "namespace": GIST_NS,
         }
-=======
-        Args:
-            gist_path: Path to the gistCore Turtle file.
-        """
-        if await self.is_gist_loaded():
-            logger.info("gist already loaded, skipping")
-            return
-
-        if not gist_path.exists():
-            logger.error("gist ontology file not found: %s", gist_path)
-            raise FileNotFoundError(f"gist ontology file not found: {gist_path}")
-
-        start = time.monotonic()
-        try:
-            # Parse gist Turtle with rdflib
-            g = Graph()
-            g.parse(gist_path, format="turtle")
-            all_triples = list(g)
-            triple_count = len(all_triples)
-
-            # Split into batches
-            batches = _split_triples_into_batches(all_triples)
-
-            # Execute batches within a transaction
-            txn_url = await self._client.begin_transaction()
-            try:
-                for i, batch in enumerate(batches):
-                    sparql = _build_insert_data_sparql(GIST_GRAPH, batch)
-                    await self._client.transaction_update(txn_url, sparql)
-                    logger.debug(
-                        "Inserted batch %d/%d (%d triples)",
-                        i + 1,
-                        len(batches),
-                        len(batch),
-                    )
-                await self._client.commit_transaction(txn_url)
-            except Exception:
-                await self._client.rollback_transaction(txn_url)
-                raise
-
-            elapsed = time.monotonic() - start
-            logger.info(
-                "Loaded gist 14.0.0: %d triples in %.1fs", triple_count, elapsed
-            )
-        except FileNotFoundError:
-            raise
-        except Exception:
-            logger.error("Failed to load gist", exc_info=True)
-            raise
->>>>>>> gsd/M003/S07
 
     # ------------------------------------------------------------------
     # TBox query methods — cross-graph class hierarchy
@@ -621,7 +543,6 @@ ORDER BY ?label"""
         )
         return classes
 
-<<<<<<< HEAD
     async def get_model_classes_with_parents(self) -> list[dict]:
         """Get non-gist classes grouped under their gist parent classes.
 
@@ -718,8 +639,6 @@ ORDER BY ?label"""
 
         return result_classes
 
-=======
->>>>>>> gsd/M003/S07
     async def get_subclasses(self, parent_iri: str) -> list[dict]:
         """Query direct subclasses of a parent class across all ontology graphs.
 
@@ -774,8 +693,6 @@ ORDER BY ?label"""
         )
         return classes
 
-<<<<<<< HEAD
-<<<<<<< HEAD
     async def get_class_detail(self, class_iri: str) -> dict:
         """Get detailed metadata for a single class.
 
@@ -1005,8 +922,6 @@ ORDER BY ?propLabel"""
             "properties": properties,
         }
 
-=======
->>>>>>> gsd/M003/S08
     async def search_classes(self, query: str, limit: int = 20) -> list[dict]:
         """Search classes by label across all ontology graphs.
 
@@ -1062,11 +977,6 @@ LIMIT {limit}"""
         logger.debug("TBox search '%s': %d results", query, len(classes))
         return classes
 
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S07
-=======
->>>>>>> gsd/M003/S08
     async def _batch_has_subclasses(
         self, graph_iris: list[str], class_iris: list[str]
     ) -> dict[str, bool]:
@@ -1326,10 +1236,7 @@ ORDER BY ?propType ?label"""
                 "domain_label": b.get("domainLabel", {}).get("value", ""),
                 "range_iri": b.get("range", {}).get("value", ""),
                 "range_label": b.get("rangeLabel", {}).get("value", ""),
-<<<<<<< HEAD
                 "source": _property_source(b["prop"]["value"]),
-=======
->>>>>>> gsd/M003/S07
             }
             if "ObjectProperty" in b["propType"]["value"]:
                 object_props.append(prop)
@@ -1347,10 +1254,6 @@ ORDER BY ?propType ?label"""
             "object_properties": object_props,
             "datatype_properties": datatype_props,
         }
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S08
 
     # ------------------------------------------------------------------
     # User-defined class creation and deletion
@@ -1416,11 +1319,8 @@ ORDER BY ?propType ?label"""
         parent_iri: str,
         icon_name: str | None = None,
         icon_color: str | None = None,
-<<<<<<< HEAD
         description: str | None = None,
         example: str | None = None,
-=======
->>>>>>> gsd/M003/S08
     ) -> list[tuple]:
         """Generate OWL class triples for a user-defined class.
 
@@ -1428,16 +1328,11 @@ ORDER BY ?propType ?label"""
         - <classIRI> a owl:Class
         - <classIRI> rdfs:label "name"
         - <classIRI> rdfs:subClassOf <parent>
-<<<<<<< HEAD
         - Optionally: rdfs:comment, skos:example
         - Optionally: sempkm:typeIcon, sempkm:typeColor
         """
         SKOS = Namespace("http://www.w3.org/2004/02/skos/core#")
 
-=======
-        - Optionally: sempkm:typeIcon, sempkm:typeColor
-        """
->>>>>>> gsd/M003/S08
         class_uri = URIRef(class_iri)
         triples: list[tuple] = [
             (class_uri, RDF.type, OWL.Class),
@@ -1445,13 +1340,10 @@ ORDER BY ?propType ?label"""
             (class_uri, RDFS.subClassOf, URIRef(parent_iri)),
         ]
 
-<<<<<<< HEAD
         if description:
             triples.append((class_uri, RDFS.comment, Literal(description)))
         if example:
             triples.append((class_uri, SKOS.example, Literal(example)))
-=======
->>>>>>> gsd/M003/S08
         if icon_name:
             triples.append((class_uri, SEMPKM_TYPE_ICON, Literal(icon_name)))
         if icon_color:
@@ -1544,11 +1436,8 @@ ORDER BY ?propType ?label"""
         properties: list[dict],
         icon_name: str | None = None,
         icon_color: str | None = None,
-<<<<<<< HEAD
         description: str | None = None,
         example: str | None = None,
-=======
->>>>>>> gsd/M003/S08
     ) -> dict:
         """Create a user-defined class with OWL + SHACL triples.
 
@@ -1562,11 +1451,8 @@ ORDER BY ?propType ?label"""
                         datatype_iri.
             icon_name: Optional Lucide icon name.
             icon_color: Optional hex color string.
-<<<<<<< HEAD
             description: Optional class description (rdfs:comment).
             example: Optional usage example (skos:example).
-=======
->>>>>>> gsd/M003/S08
 
         Returns:
             Dict with class_iri, shape_iri, triple_count, property_count.
@@ -1584,11 +1470,8 @@ ORDER BY ?propType ?label"""
             parent_iri=parent_iri,
             icon_name=icon_name,
             icon_color=icon_color,
-<<<<<<< HEAD
             description=description,
             example=example,
-=======
->>>>>>> gsd/M003/S08
         )
         shape_triples = self._generate_shape_triples(
             class_iri=class_iri,
@@ -1651,7 +1534,6 @@ ORDER BY ?propType ?label"""
             "shape_iri": shape_iri,
             "status": "deleted",
         }
-<<<<<<< HEAD
 
     # ------------------------------------------------------------------
     # User-defined property creation
@@ -2291,10 +2173,3 @@ SELECT ?label WHERE {{
             "prop_type": prop_type,
             "triple_count": len(triples),
         }
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S07
-=======
->>>>>>> gsd/M003/S08
-=======
->>>>>>> gsd/M004/S03

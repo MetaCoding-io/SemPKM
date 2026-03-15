@@ -13,10 +13,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
 from app.db.session import get_db_session
-from app.dependencies import get_event_store, get_triplestore_client, get_validation_queue
+from app.dependencies import get_event_store, get_ops_log_service, get_triplestore_client, get_validation_queue
 from app.events.store import EventStore
 from app.inference.entailments import ENTAILMENT_TYPES, MANIFEST_KEY_TO_TYPE, TYPE_TO_MANIFEST_KEY
 from app.inference.service import InferenceService
+from app.services.ops_log import OperationsLogService
 from app.triplestore.client import TriplestoreClient
 from app.validation.queue import AsyncValidationQueue
 
@@ -40,6 +41,7 @@ async def run_inference(
     client: TriplestoreClient = Depends(get_triplestore_client),
     db: AsyncSession = Depends(get_db_session),
     event_store: EventStore = Depends(get_event_store),
+    ops_log: OperationsLogService = Depends(get_ops_log_service),
     current_user: User = Depends(get_current_user),
 ):
     """Trigger a full inference run.
@@ -58,6 +60,21 @@ async def run_inference(
 
     # Run inference
     result = await service.run_inference(config)
+
+    # Log inference run to ops log (fire-and-forget)
+    try:
+        label = (
+            f"Inference run: {result.total_inferred} inferred, "
+            f"{result.new_count} new"
+        )
+        await ops_log.log_activity(
+            activity_type="inference.run",
+            label=label,
+            actor=f"urn:sempkm:user:{current_user.id}",
+            status="success",
+        )
+    except Exception:
+        logger.warning("Failed to write ops log for inference run", exc_info=True)
 
     is_htmx = request.headers.get("HX-Request") == "true"
     if is_htmx:

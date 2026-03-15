@@ -14,6 +14,10 @@ from typing import Awaitable, Callable, Optional
 from app.services.validation import ValidationService
 from app.validation.report import ValidationReportSummary
 
+# Deferred import to avoid circular dependency
+if False:  # TYPE_CHECKING
+    from app.services.ops_log import OperationsLogService
+
 logger = logging.getLogger(__name__)
 
 
@@ -43,9 +47,11 @@ class AsyncValidationQueue:
         on_complete: Optional[
             Callable[[ValidationReportSummary, str, str, str], Awaitable[None]]
         ] = None,
+        ops_log_service: Optional["OperationsLogService"] = None,
     ) -> None:
         self._validation_service = validation_service
         self._on_complete = on_complete
+        self._ops_log_service = ops_log_service
         self._queue: asyncio.Queue[ValidationJob] = asyncio.Queue()
         self._task: Optional[asyncio.Task] = None
         self._latest_report: Optional[ValidationReportSummary] = None
@@ -150,6 +156,28 @@ class AsyncValidationQueue:
                     except Exception:
                         logger.warning(
                             "Validation completion callback failed",
+                            exc_info=True,
+                        )
+
+                # Log to ops log (fire-and-forget)
+                if self._ops_log_service:
+                    try:
+                        conforms = self._latest_report.conforms
+                        v_count = self._latest_report.violation_count
+                        w_count = self._latest_report.warning_count
+                        label = (
+                            f"Validation run: conforms={conforms}, "
+                            f"{v_count} violations, {w_count} warnings"
+                        )
+                        await self._ops_log_service.log_activity(
+                            activity_type="validation.run",
+                            label=label,
+                            actor="urn:sempkm:system",
+                            status="success",
+                        )
+                    except Exception:
+                        logger.warning(
+                            "Failed to write ops log for validation run",
                             exc_info=True,
                         )
 

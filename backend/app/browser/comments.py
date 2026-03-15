@@ -303,15 +303,11 @@ async def get_comments(
     # Batch-resolve author display names from SQL users table
     if author_uris:
         # Extract UUIDs from urn:sempkm:user:{uuid} URIs
-<<<<<<< HEAD
         # DB stores UUIDs without dashes; RDF URIs may have dashes
-=======
->>>>>>> gsd/M003/S06
         uuid_to_uri: dict[str, str] = {}
         for uri in author_uris:
             prefix = "urn:sempkm:user:"
             if uri.startswith(prefix):
-<<<<<<< HEAD
                 user_uuid = uri[len(prefix):].replace("-", "")
                 uuid_to_uri[user_uuid] = uri
 
@@ -319,41 +315,22 @@ async def get_comments(
             # Single query to resolve all display names (with email fallback)
             placeholders = ", ".join(f":uid_{i}" for i in range(len(uuid_to_uri)))
             query_str = f"SELECT id, display_name, email FROM users WHERE id IN ({placeholders})"
-=======
-                user_uuid = uri[len(prefix):]
-                uuid_to_uri[user_uuid] = uri
-
-        if uuid_to_uri:
-            # Single query to resolve all display names
-            placeholders = ", ".join(f":uid_{i}" for i in range(len(uuid_to_uri)))
-            query_str = f"SELECT id, display_name FROM users WHERE id IN ({placeholders})"
->>>>>>> gsd/M003/S06
             params = {
                 f"uid_{i}": uid for i, uid in enumerate(uuid_to_uri.keys())
             }
             db_result = await db.execute(text(query_str), params)
             rows = db_result.fetchall()
 
-<<<<<<< HEAD
             # Build URI → display_name map (prefer display_name, fall back to email)
-=======
-            # Build URI → display_name map
->>>>>>> gsd/M003/S06
             uri_to_name: dict[str, str] = {}
             for row in rows:
                 user_id_str = str(row[0])
                 display_name = row[1]
-<<<<<<< HEAD
                 email = row[2]
                 name = display_name or email
                 uri = uuid_to_uri.get(user_id_str)
                 if uri and name:
                     uri_to_name[uri] = name
-=======
-                uri = uuid_to_uri.get(user_id_str)
-                if uri and display_name:
-                    uri_to_name[uri] = display_name
->>>>>>> gsd/M003/S06
 
             # Apply display names to comments
             for comment in flat_comments:

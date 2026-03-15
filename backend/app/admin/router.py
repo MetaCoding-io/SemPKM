@@ -5,6 +5,7 @@ Uses ModelService and WebhookService via FastAPI dependency injection.
 """
 
 import logging
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -20,6 +21,7 @@ from app.dependencies import (
     get_label_service,
     get_model_service,
     get_ontology_service,
+    get_ops_log_service,
     get_triplestore_client,
     get_webhook_service,
 )
@@ -27,6 +29,7 @@ from app.ontology.service import OntologyService
 from app.inference.entailments import ENTAILMENT_TYPES, MANIFEST_KEY_TO_TYPE, TYPE_TO_MANIFEST_KEY
 from app.services.labels import LabelService
 from app.services.models import ModelService
+from app.services.ops_log import OperationsLogService
 from app.services.settings import SettingsService
 from app.services.webhooks import WebhookService
 from app.triplestore.client import TriplestoreClient
@@ -54,6 +57,125 @@ async def admin_index(request: Request, user: User = Depends(require_role("owner
             request, "admin/index.html", context, block_name="content"
         )
     return templates.TemplateResponse(request, "admin/index.html", context)
+
+
+# ---- Known activity types for filter dropdown ----
+OPS_LOG_ACTIVITY_TYPES = [
+    ("model.install", "Model Install"),
+    ("model.remove", "Model Remove"),
+    ("inference.run", "Inference Run"),
+    ("validation.run", "Validation Run"),
+]
+
+
+@router.get("/ops-log")
+async def admin_ops_log(
+    request: Request,
+    user: User = Depends(require_role("owner")),
+    ops_log: OperationsLogService = Depends(get_ops_log_service),
+    activity_type: str | None = None,
+    cursor: str | None = None,
+):
+    """Render the operations log page with filterable, paginated activity table.
+
+    Supports htmx partial rendering: when HX-Request is present with a cursor,
+    returns only the table rows block for append-based "Load more" pagination.
+    When HX-Request is present without a cursor (filter change), returns the
+    full table block for replacement.
+    """
+    page_size = 50
+    activities, next_cursor = await ops_log.list_activities(
+        activity_type=activity_type or None,
+        cursor=cursor,
+        limit=page_size,
+    )
+
+    # Compute duration for each activity
+    for a in activities:
+        a["duration"] = _compute_duration(a.get("started_at"), a.get("ended_at"))
+        a["relative_time"] = _relative_time(a.get("started_at"))
+        # Extract short actor name from IRI
+        actor_iri = a.get("actor", "")
+        if actor_iri.startswith("urn:sempkm:user:"):
+            a["actor_short"] = "user:" + actor_iri.split(":")[-1]
+        elif actor_iri == "urn:sempkm:system":
+            a["actor_short"] = "system"
+        else:
+            a["actor_short"] = actor_iri.split("/")[-1] if "/" in actor_iri else actor_iri
+
+    context = {
+        "request": request,
+        "activities": activities,
+        "next_cursor": next_cursor,
+        "activity_type": activity_type or "",
+        "activity_types": OPS_LOG_ACTIVITY_TYPES,
+        "user": user,
+    }
+
+    is_htmx = _is_htmx_request(request)
+
+    if is_htmx:
+        hx_target = request.headers.get("HX-Target", "")
+        if hx_target == "app-content":
+            # Sidebar navigation — return full content block
+            return templates_response(
+                request, "admin/ops_log.html", context, block_name="content"
+            )
+        else:
+            # Filter change or pagination — return just the table block
+            return templates_response(
+                request, "admin/ops_log.html", context, block_name="table_rows"
+            )
+    return templates_response(request, "admin/ops_log.html", context)
+
+
+def _compute_duration(started_at: str | None, ended_at: str | None) -> str:
+    """Compute human-readable duration between two ISO timestamps."""
+    if not started_at or not ended_at:
+        return "—"
+    try:
+        start = datetime.fromisoformat(started_at.replace("Z", "+00:00"))
+        end = datetime.fromisoformat(ended_at.replace("Z", "+00:00"))
+        diff = (end - start).total_seconds()
+        if diff < 0:
+            return "—"
+        if diff < 1:
+            return f"{int(diff * 1000)}ms"
+        if diff < 60:
+            return f"{diff:.1f}s"
+        minutes = int(diff // 60)
+        secs = int(diff % 60)
+        return f"{minutes}m {secs}s"
+    except (ValueError, TypeError):
+        return "—"
+
+
+def _relative_time(iso_str: str | None) -> str:
+    """Convert an ISO timestamp to a relative time string like '2 minutes ago'."""
+    if not iso_str:
+        return "—"
+    try:
+        dt = datetime.fromisoformat(iso_str.replace("Z", "+00:00"))
+        now = datetime.now(timezone.utc)
+        diff = (now - dt).total_seconds()
+        if diff < 0:
+            return "just now"
+        if diff < 60:
+            return "just now"
+        if diff < 3600:
+            minutes = int(diff // 60)
+            return f"{minutes} minute{'s' if minutes != 1 else ''} ago"
+        if diff < 86400:
+            hours = int(diff // 3600)
+            return f"{hours} hour{'s' if hours != 1 else ''} ago"
+        days = int(diff // 86400)
+        if days == 1:
+            return "yesterday"
+        if days < 30:
+            return f"{days} days ago"
+        return dt.strftime("%Y-%m-%d %H:%M")
+    except (ValueError, TypeError):
+        return "—"
 
 
 @router.get("/models")
@@ -148,10 +270,7 @@ async def admin_model_detail(
         td["instance_count"] = a["count"]
         td["top_nodes"] = a["top_nodes"]
         td["avg_connections"] = a["avg_connections"]
-<<<<<<< HEAD
         td["total_links"] = int(round(a["avg_connections"] * a["count"]))
-=======
->>>>>>> gsd/M003/S09
         td["last_modified"] = a["last_modified"]
         td["growth_trend"] = a["growth_trend"]
         td["link_distribution"] = a["link_distribution"]
@@ -257,6 +376,7 @@ async def admin_models_install(
     request: Request,
     user: User = Depends(require_role("owner")),
     model_service: ModelService = Depends(get_model_service),
+    ops_log: OperationsLogService = Depends(get_ops_log_service),
     path: str = Form(...),
 ):
     """Install a Mental Model from a filesystem path.
@@ -271,12 +391,36 @@ async def admin_models_install(
         error_msg = "; ".join(result.errors)
         context["error"] = error_msg
         logger.warning("Model install failed: %s", error_msg)
+        # Log failed install to ops log (fire-and-forget)
+        try:
+            await ops_log.log_activity(
+                activity_type="model.install",
+                label=f"Install model from {path}",
+                actor=f"urn:sempkm:user:{user.id}",
+                used_iris=[path],
+                status="failed",
+                error_message=error_msg,
+            )
+        except Exception:
+            logger.warning("Failed to write ops log for model install failure", exc_info=True)
     else:
         # Invalidate ViewSpec cache after successful model install
         request.app.state.view_spec_service.invalidate_cache()
         context["success"] = f"Model '{result.model_id}' installed successfully."
         if result.warnings:
             context["success"] += " Warnings: " + "; ".join(result.warnings)
+        # Log successful install to ops log (fire-and-forget)
+        try:
+            model_iri = f"urn:sempkm:model:{result.model_id}"
+            await ops_log.log_activity(
+                activity_type="model.install",
+                label=f"Installed model '{result.model_id}'",
+                actor=f"urn:sempkm:user:{user.id}",
+                used_iris=[model_iri],
+                status="success",
+            )
+        except Exception:
+            logger.warning("Failed to write ops log for model install", exc_info=True)
 
     return templates_response(request, "admin/models.html", context, block_name="model_table")
 
@@ -288,6 +432,7 @@ async def admin_models_remove(
     user: User = Depends(require_role("owner")),
     model_service: ModelService = Depends(get_model_service),
     client: TriplestoreClient = Depends(get_triplestore_client),
+    ops_log: OperationsLogService = Depends(get_ops_log_service),
     db: AsyncSession = Depends(get_db_session),
 ):
     """Remove an installed Mental Model.
@@ -304,6 +449,19 @@ async def admin_models_remove(
         error_msg = "; ".join(result.errors)
         context["error"] = error_msg
         logger.warning("Model remove failed for '%s': %s", model_id, error_msg)
+        # Log failed removal to ops log (fire-and-forget)
+        try:
+            model_iri = f"urn:sempkm:model:{model_id}"
+            await ops_log.log_activity(
+                activity_type="model.remove",
+                label=f"Remove model '{model_id}'",
+                actor=f"urn:sempkm:user:{user.id}",
+                used_iris=[model_iri],
+                status="failed",
+                error_message=error_msg,
+            )
+        except Exception:
+            logger.warning("Failed to write ops log for model remove failure", exc_info=True)
     else:
         # Invalidate ViewSpec cache after successful model removal
         request.app.state.view_spec_service.invalidate_cache()
@@ -312,6 +470,18 @@ async def admin_models_remove(
         await _cleanup_inference_on_uninstall(client, db, user.id, model_id)
 
         context["success"] = f"Model '{model_id}' removed."
+        # Log successful removal to ops log (fire-and-forget)
+        try:
+            model_iri = f"urn:sempkm:model:{model_id}"
+            await ops_log.log_activity(
+                activity_type="model.remove",
+                label=f"Removed model '{model_id}'",
+                actor=f"urn:sempkm:user:{user.id}",
+                used_iris=[model_iri],
+                status="success",
+            )
+        except Exception:
+            logger.warning("Failed to write ops log for model remove", exc_info=True)
 
     return templates_response(request, "admin/models.html", context, block_name="model_table")
 

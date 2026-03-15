@@ -1,17 +1,12 @@
 /**
  * Sidebar Panel Drag-Drop Reorder E2E Tests
  *
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S10
  * Tests that sidebar panel positions persist via localStorage key
  * "sempkm_panel_positions". Panels use [data-panel-name] attributes
  * and are stored as {panelName: {zone: 'left'|'right', order: number}}.
  *
  * Consolidated into 1 test() function to stay within the
  * 5/minute magic-link rate limit.
-<<<<<<< HEAD
  */
 import { test, expect, BASE_URL } from '../../fixtures/auth';
 import { waitForWorkspace } from '../../helpers/wait-for';
@@ -91,12 +86,6 @@ test.describe('Sidebar Panel Reorder', () => {
     });
     expect(containers.hasRight).toBe(true);
     expect(containers.hasNavTree).toBe(true);
-=======
- * Tests that sidebar panel positions persist via localStorage
- * after drag-drop reordering. Panel positions are stored in
- * localStorage key "sempkm_panel_positions".
-=======
->>>>>>> gsd/M003/S10
  */
 import { test, expect, BASE_URL } from '../../fixtures/auth';
 import { waitForWorkspace } from '../../helpers/wait-for';
@@ -174,13 +163,7 @@ test.describe('Sidebar Panel Reorder', () => {
         hasNavTree: !!document.getElementById('nav-tree'),
       };
     });
-<<<<<<< HEAD
 
     expect(panelInfo.panelCount).toBeGreaterThan(0);
->>>>>>> gsd/M003/S03
-=======
-    expect(containers.hasRight).toBe(true);
-    expect(containers.hasNavTree).toBe(true);
->>>>>>> gsd/M003/S10
   });
 });

@@ -1648,26 +1648,18 @@ kbd {
   padding: 1rem 0;
 }
 
-<<<<<<< HEAD
 .analytics-col .chart-section {
   margin-top: auto;
-=======
-.chart-section {
-  margin-top: 1.25rem;
->>>>>>> gsd/M003/S09
   padding-top: 0.75rem;
   border-top: 1px solid var(--color-border-light, rgba(255,255,255,0.04));
 }
 
-<<<<<<< HEAD
 .chart-section {
   margin-top: 1.25rem;
   padding-top: 0.75rem;
   border-top: 1px solid var(--color-border-light, rgba(255,255,255,0.04));
 }
 
-=======
->>>>>>> gsd/M003/S09
 .chart-heading {
   font-size: 0.75rem;
   margin: 0 0 0.5rem;
@@ -1683,7 +1675,6 @@ kbd {
 }
 
 .chart-container-sparkline {
-<<<<<<< HEAD
   height: 100px;
 }
 
@@ -1692,15 +1683,6 @@ kbd {
 }
 
 .analytics-col canvas,
-=======
-  height: 48px;
-}
-
-.chart-container-bar {
-  height: 110px;
-}
-
->>>>>>> gsd/M003/S09
 .analytics-right canvas {
   max-height: 140px;
 }

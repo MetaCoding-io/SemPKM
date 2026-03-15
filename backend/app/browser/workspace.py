@@ -1,26 +1,12 @@
 """Workspace sub-router — layout, navigation tree, icons, and views."""
 
 import logging
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S03
 import re
 from typing import Callable
-=======
->>>>>>> gsd/M002/S04
-=======
-from typing import Callable
->>>>>>> gsd/M003/S01
 from urllib.parse import unquote
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M005/S01
 
 from app.auth.dependencies import get_current_user, require_role
 from app.auth.models import User
@@ -69,85 +55,19 @@ from app.vfs.strategies import (
     query_type_folders,
     query_uncategorized_objects,
 )
-=======
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.auth.dependencies import get_current_user, require_role
-from app.auth.models import User
-from app.db.session import get_db_session
-from app.dependencies import (
-    get_label_service,
-    get_shapes_service,
-    get_triplestore_client,
-    get_view_spec_service,
-)
-from app.triplestore.client import TriplestoreClient
-from app.services.icons import IconService
-from app.services.labels import LabelService
-from app.services.shapes import ShapesService
-<<<<<<< HEAD
->>>>>>> gsd/M002/S04
-=======
-from app.vfs.mount_service import (
-    CREATED_AT,
-    CREATED_BY,
-    DATE_PROPERTY,
-    DIRECTORY_STRATEGY,
-    GRAPH_MOUNTS,
-    GROUP_BY_PROPERTY,
-    MOUNT_NAME,
-    MOUNT_PATH,
-    NS_MOUNT,
-    NS_SEMPKM,
-    SAVED_QUERY_ID,
-    SPARQL_SCOPE,
-    VISIBILITY,
-    MountDefinition,
-)
-from app.vfs.strategies import (
-    _LABEL_COALESCE,
-    _LABEL_OPTIONALS,
-    build_scope_filter,
-    query_date_month_folders,
-    query_date_year_folders,
-    query_flat_objects,
-    query_has_uncategorized,
-    query_objects_by_date,
-    query_objects_by_property,
-    query_objects_by_tag,
-    query_objects_by_type,
-    query_property_folders,
-    query_tag_folders,
-    query_type_folders,
-    query_uncategorized_objects,
-)
->>>>>>> gsd/M003/S03
 from app.views.service import ViewSpecService
 
 from ._helpers import _is_htmx_request, _validate_iri, get_icon_service
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S03
 _UUID_RE = re.compile(
     r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.IGNORECASE
 )
 
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M002/S04
-=======
->>>>>>> gsd/M003/S03
 logger = logging.getLogger(__name__)
 
 workspace_router = APIRouter(tags=["workspace"])
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S01
 # ---------------------------------------------------------------------------
 # Explorer mode handlers
 # ---------------------------------------------------------------------------
@@ -156,14 +76,7 @@ async def _handle_by_type(
     request: Request,
     shapes_service: ShapesService,
     icon_svc: IconService,
-<<<<<<< HEAD
-<<<<<<< HEAD
     **_kwargs,
-=======
->>>>>>> gsd/M003/S01
-=======
-    **_kwargs,
->>>>>>> gsd/M003/S02
 ) -> HTMLResponse:
     """Render the nav tree grouped by RDF type (default explorer mode)."""
     templates = request.app.state.templates
@@ -177,10 +90,6 @@ async def _handle_by_type(
     )
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S02
 async def _handle_hierarchy(
     request: Request,
     label_service: LabelService,
@@ -188,7 +97,6 @@ async def _handle_hierarchy(
     **_kwargs,
 ) -> HTMLResponse:
     """Render hierarchy tree with root objects (no dcterms:isPartOf parent)."""
-<<<<<<< HEAD
     templates = request.app.state.templates
     client = request.app.state.triplestore_client
 
@@ -278,110 +186,6 @@ async def _handle_by_tag(
         request,
         "browser/tag_tree.html",
         {"request": request, "folders": folders},
-=======
-async def _handle_hierarchy(request: Request, **_kwargs) -> HTMLResponse:
-    """Placeholder for hierarchy explorer mode."""
-=======
->>>>>>> gsd/M003/S02
-    templates = request.app.state.templates
-    client = request.app.state.triplestore_client
-
-    sparql = """
-    PREFIX dcterms: <http://purl.org/dc/terms/>
-    SELECT ?obj ?type WHERE {
-      GRAPH <urn:sempkm:current> {
-        ?obj a ?type .
-        FILTER NOT EXISTS { ?obj dcterms:isPartOf ?parent . }
-      }
-    }
-    """
-
-    try:
-        result = await client.query(sparql)
-        bindings = result.get("results", {}).get("bindings", [])
-    except Exception:
-        logger.warning("Failed to query hierarchy roots", exc_info=True)
-        bindings = []
-
-    # De-duplicate: pick first type per object
-    obj_types: dict[str, str] = {}
-    for b in bindings:
-        iri = b["obj"]["value"]
-        if iri not in obj_types:
-            obj_types[iri] = b["type"]["value"]
-
-    logger.debug("Hierarchy roots query returned %d objects", len(obj_types))
-
-    # Resolve labels and icons
-    obj_iris = list(obj_types.keys())
-    labels = await label_service.resolve_batch(obj_iris) if obj_iris else {}
-
-    objects = [
-        {
-            "iri": iri,
-            "label": labels.get(iri, iri),
-            "type_iri": type_iri,
-            "icon": icon_svc.get_type_icon(type_iri, context="tree"),
-        }
-        for iri, type_iri in obj_types.items()
-    ]
-
-    return templates.TemplateResponse(
-        request,
-        "browser/hierarchy_tree.html",
-        {"request": request, "objects": objects},
-    )
-
-
-async def _handle_by_tag(
-    request: Request,
-    label_service: LabelService,
-    icon_svc: IconService,
-    **_kwargs,
-) -> HTMLResponse:
-    """Render the explorer tree grouped by tag values across bpkm:tags and schema:keywords."""
-    templates = request.app.state.templates
-    client = request.app.state.triplestore_client
-
-    sparql = """
-    SELECT ?tagValue (COUNT(DISTINCT ?iri) AS ?count)
-    FROM <urn:sempkm:current>
-    WHERE {
-      { ?iri <urn:sempkm:model:basic-pkm:tags> ?tagValue }
-      UNION
-      { ?iri <https://schema.org/keywords> ?tagValue }
-    }
-    GROUP BY ?tagValue
-    ORDER BY ?tagValue
-    """
-
-    bindings = await _execute_sparql_select(client, sparql)
-
-    folders = [
-        {
-            "value": b["tagValue"]["value"],
-            "label": b["tagValue"]["value"],
-            "count": int(b["count"]["value"]),
-        }
-        for b in bindings
-    ]
-
-    logger.debug("By-tag explorer: %d tag folders", len(folders))
-
-    return templates.TemplateResponse(
-        request,
-<<<<<<< HEAD
-        "browser/explorer_placeholder.html",
-        {
-            "request": request,
-            "mode_label": "Tag",
-            "icon_name": "tag",
-        },
->>>>>>> gsd/M003/S01
-=======
-        "browser/tag_tree.html",
-        {"request": request, "folders": folders},
->>>>>>> gsd/M003/S04
     )
 
 
@@ -392,10 +196,6 @@ EXPLORER_MODES: dict[str, Callable] = {
 }
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S03
 # ---------------------------------------------------------------------------
 # VFS mount explorer helpers
 # ---------------------------------------------------------------------------
@@ -664,13 +464,6 @@ async def _handle_mount(
     )
 
 
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M002/S04
-=======
->>>>>>> gsd/M003/S01
-=======
->>>>>>> gsd/M003/S03
 @workspace_router.get("/icons")
 async def icons_data(
     request: Request,
@@ -728,8 +521,6 @@ async def nav_tree(
     """Return the nav tree partial (type nodes only, collapsed).
 
     Used by refreshNavTree() in workspace.js to reload the OBJECTS section.
-<<<<<<< HEAD
-<<<<<<< HEAD
     Delegates to the by-type handler for consistency.
     """
     return await _handle_by_type(request, shapes_service, icon_svc)
@@ -743,7 +534,6 @@ async def explorer_tree(
     shapes_service: ShapesService = Depends(get_shapes_service),
     icon_svc: IconService = Depends(get_icon_service),
     label_service: LabelService = Depends(get_label_service),
-<<<<<<< HEAD
 ):
     """Return explorer tree content for the requested mode.
 
@@ -779,69 +569,6 @@ async def explorer_tree(
         shapes_service=shapes_service,
         icon_svc=icon_svc,
         label_service=label_service,
-=======
-=======
-    Delegates to the by-type handler for consistency.
->>>>>>> gsd/M003/S01
-    """
-    return await _handle_by_type(request, shapes_service, icon_svc)
-
-<<<<<<< HEAD
-    return templates.TemplateResponse(
-        request,
-        "browser/nav_tree.html",
-        {"request": request, "types": types, "type_icons": type_icons},
->>>>>>> gsd/M002/S04
-=======
-
-@workspace_router.get("/explorer/tree")
-async def explorer_tree(
-    request: Request,
-    mode: str = "by-type",
-    user: User = Depends(get_current_user),
-    shapes_service: ShapesService = Depends(get_shapes_service),
-    icon_svc: IconService = Depends(get_icon_service),
-=======
->>>>>>> gsd/M003/S02
-):
-    """Return explorer tree content for the requested mode.
-
-    Dispatches to the appropriate handler from EXPLORER_MODES.
-    Handles ``mount:<uuid>`` prefix to route to VFS mount handler.
-    Returns 400 for unknown modes.
-    """
-    # ── Mount prefix dispatch ──
-    if mode.startswith("mount:"):
-        mount_id = mode[6:]  # strip "mount:" prefix
-        if not _UUID_RE.match(mount_id):
-            raise HTTPException(
-                status_code=400,
-                detail="Invalid mount_id format",
-            )
-        return await _handle_mount(
-            request=request,
-            mount_id=mount_id,
-            label_service=label_service,
-            icon_svc=icon_svc,
-        )
-
-    handler = EXPLORER_MODES.get(mode)
-    if handler is None:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Unknown explorer mode: {mode}",
-        )
-
-    logger.debug("Explorer tree requested: mode=%s", mode)
-    return await handler(
-        request=request,
-        shapes_service=shapes_service,
-        icon_svc=icon_svc,
-<<<<<<< HEAD
->>>>>>> gsd/M003/S01
-=======
-        label_service=label_service,
->>>>>>> gsd/M003/S02
     )
 
 
@@ -902,10 +629,6 @@ async def tree_children(
     )
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S02
 @workspace_router.get("/explorer/children")
 async def explorer_children(
     request: Request,
@@ -976,11 +699,6 @@ async def explorer_children(
     )
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S04
 @workspace_router.get("/explorer/tag-children")
 async def tag_children(
     request: Request,
@@ -1033,11 +751,6 @@ async def tag_children(
     )
 
 
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S03
-=======
->>>>>>> gsd/M003/S04
 @workspace_router.get("/explorer/mount-children")
 async def mount_children(
     request: Request,
@@ -1185,29 +898,12 @@ async def mount_children(
     return HTMLResponse("")
 
 
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M002/S04
-=======
->>>>>>> gsd/M003/S02
-=======
->>>>>>> gsd/M003/S03
 @workspace_router.get("/my-views")
 async def my_views(
     request: Request,
     user: User = Depends(get_current_user),
-<<<<<<< HEAD
-<<<<<<< HEAD
     view_spec_service: ViewSpecService = Depends(get_view_spec_service),
     query_service: QueryService = Depends(get_query_service),
-=======
-    db: AsyncSession = Depends(get_db_session),
-    view_spec_service: ViewSpecService = Depends(get_view_spec_service),
->>>>>>> gsd/M002/S04
-=======
-    view_spec_service: ViewSpecService = Depends(get_view_spec_service),
-    query_service: QueryService = Depends(get_query_service),
->>>>>>> gsd/M005/S01
 ):
     """Return promoted view entries for the 'My Views' nav tree section.
 
@@ -1216,48 +912,17 @@ async def my_views(
     """
     templates = request.app.state.templates
 
-<<<<<<< HEAD
-<<<<<<< HEAD
     specs = await view_spec_service.get_user_promoted_view_specs(user.id)
-=======
-    specs = await view_spec_service.get_user_promoted_view_specs(user.id, db)
->>>>>>> gsd/M002/S04
-=======
-    specs = await view_spec_service.get_user_promoted_view_specs(user.id)
->>>>>>> gsd/M005/S01
 
     if not specs:
         return HTMLResponse(
             content='<div class="tree-empty">No promoted views yet</div>'
         )
 
-<<<<<<< HEAD
-<<<<<<< HEAD
     # Build spec_iri -> query_id map from promoted view data
     promoted = await query_service.list_promoted_views(user.id)
     query_id_map = {
         f"urn:sempkm:user-view:{pv.id}": pv.query_id for pv in promoted
-=======
-    # Also fetch query_ids for demote buttons by querying PromotedQueryView
-    from sqlalchemy import select as sa_select
-
-    from app.sparql.models import PromotedQueryView
-
-    pv_result = await db.execute(
-        sa_select(PromotedQueryView)
-        .where(PromotedQueryView.user_id == user.id)
-    )
-    pv_rows = pv_result.scalars().all()
-    # Map spec_iri -> query_id for the template
-    query_id_map = {
-        f"urn:sempkm:user-view:{pv.id}": str(pv.query_id) for pv in pv_rows
->>>>>>> gsd/M002/S04
-=======
-    # Build spec_iri -> query_id map from promoted view data
-    promoted = await query_service.list_promoted_views(user.id)
-    query_id_map = {
-        f"urn:sempkm:user-view:{pv.id}": pv.query_id for pv in promoted
->>>>>>> gsd/M005/S01
     }
 
     context = {
@@ -1268,10 +933,6 @@ async def my_views(
     return templates.TemplateResponse(
         request, "browser/my_views.html", context
     )
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S04
 
 
 @workspace_router.post("/admin/migrate-tags")
@@ -1375,10 +1036,6 @@ async def migrate_tags(
 def _sparql_escape(value: str) -> str:
     """Escape special characters for SPARQL string literals."""
     return value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M005/S01
 
 
 @workspace_router.post("/admin/migrate-queries")
@@ -1404,10 +1061,3 @@ async def migrate_queries(
         except Exception:
             logger.exception("Query migration failed")
             raise HTTPException(status_code=500, detail="Query migration failed")
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M002/S04
-=======
->>>>>>> gsd/M003/S04
-=======
->>>>>>> gsd/M005/S01

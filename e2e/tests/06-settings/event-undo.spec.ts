@@ -1,45 +1,23 @@
 /**
  * Event Undo & Event Log Detail E2E Tests
  *
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S10
  * Tests:
  * - Event undo via POST /browser/events/{event_iri}/undo (compensating events)
  * - Event detail via GET /browser/events/{event_iri}/detail (diff HTML partial)
  * - Event log UI: event row display and detail expansion via Diff button
  *
  * Requires: Docker test stack on port 3901, seed data installed.
-<<<<<<< HEAD
-=======
- * Tests event undo via POST /browser/events/{event_iri}/undo which creates
- * compensating events, and event detail expansion via GET /browser/events/{event_iri}/detail.
->>>>>>> gsd/M003/S03
-=======
->>>>>>> gsd/M003/S10
  */
 import { test, expect, BASE_URL } from '../../fixtures/auth';
 import { TYPES } from '../../fixtures/seed-data';
 import { waitForWorkspace, waitForIdle } from '../../helpers/wait-for';
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S10
 test.describe('Event Undo API', () => {
   test('undo an object.create event reverts the object and returns correct responses', async ({
     ownerRequest,
   }) => {
     // --- Round-trip: create → verify exists → undo → verify gone ---
 
-<<<<<<< HEAD
-=======
-test.describe('Event Undo', () => {
-  test('undo an object creation event reverts the object', async ({ ownerRequest }) => {
->>>>>>> gsd/M003/S03
-=======
->>>>>>> gsd/M003/S10
     // Create an object
     const createResp = await ownerRequest.post(`${BASE_URL}/api/commands`, {
       data: {
@@ -67,24 +45,14 @@ test.describe('Event Undo', () => {
       `${BASE_URL}/browser/events/${encodeURIComponent(eventIri)}/undo`,
     );
     expect(undoResp.ok()).toBeTruthy();
-<<<<<<< HEAD
-<<<<<<< HEAD
     const undoData = await undoResp.json();
     expect(undoData.status).toBe('ok');
-=======
->>>>>>> gsd/M003/S03
-=======
-    const undoData = await undoResp.json();
-    expect(undoData.status).toBe('ok');
->>>>>>> gsd/M003/S10
 
     // Verify the object is reverted/removed
     const verifyResp = await ownerRequest.post(`${BASE_URL}/api/sparql`, {
       data: { query: `ASK FROM <urn:sempkm:current> { <${objectIri}> ?p ?o }` },
     });
     expect((await verifyResp.json()).boolean).toBe(false);
-<<<<<<< HEAD
-<<<<<<< HEAD
 
     // --- Negative case: undo nonexistent event returns 404 ---
     const badUndoResp = await ownerRequest.post(
@@ -101,30 +69,6 @@ test.describe('Event Detail API', () => {
     ownerRequest,
   }) => {
     // --- Test 1: object.create event detail ---
-=======
-  });
-
-  test('event detail endpoint returns diff content', async ({ ownerRequest }) => {
-    // Create an object to get an event
->>>>>>> gsd/M003/S03
-=======
-
-    // --- Negative case: undo nonexistent event returns 404 ---
-    const badUndoResp = await ownerRequest.post(
-      `${BASE_URL}/browser/events/${encodeURIComponent('urn:sempkm:event:nonexistent-99999')}/undo`,
-    );
-    expect(badUndoResp.status()).toBe(404);
-    const badData = await badUndoResp.json();
-    expect(badData.error).toBeTruthy();
-  });
-});
-
-test.describe('Event Detail API', () => {
-  test('event detail returns diff content for create and patch events', async ({
-    ownerRequest,
-  }) => {
-    // --- Test 1: object.create event detail ---
->>>>>>> gsd/M003/S10
     const createResp = await ownerRequest.post(`${BASE_URL}/api/commands`, {
       data: {
         command: 'object.create',
@@ -135,8 +79,6 @@ test.describe('Event Detail API', () => {
       },
     });
     expect(createResp.ok()).toBeTruthy();
-<<<<<<< HEAD
-<<<<<<< HEAD
     const createData = await createResp.json();
     const createEventIri = createData.event_iri;
     const objectIri = createData.results[0].iri;
@@ -257,13 +199,6 @@ test.describe('Event Log UI', () => {
       // Verify the close button exists in the diff panel
       await expect(diffContainer.locator('.event-diff-close')).toBeVisible();
     }
-=======
-    const { event_iri } = await createResp.json();
-=======
-    const createData = await createResp.json();
-    const createEventIri = createData.event_iri;
-    const objectIri = createData.results[0].iri;
->>>>>>> gsd/M003/S10
 
     // Fetch event detail for create event
     const createDetailResp = await ownerRequest.get(
@@ -360,35 +295,10 @@ test.describe('Event Log UI', () => {
     const count = await eventRows.count();
     expect(count).toBeGreaterThan(0);
 
-<<<<<<< HEAD
     // Detail content should appear (event-detail or expanded content)
     const detailContent = ownerPage.locator('.event-detail, .event-row-detail');
     // At least one detail section should be present after click
     const detailCount = await detailContent.count();
     expect(detailCount).toBeGreaterThanOrEqual(0); // may require specific expand behavior
->>>>>>> gsd/M003/S03
-=======
-    // Each event row should have an op badge
-    const firstRow = eventRows.first();
-    await expect(firstRow.locator('.event-op-badge')).toBeVisible();
-
-    // Verify action buttons exist on the row
-    const diffBtn = firstRow.locator('.event-btn-diff');
-    await expect(diffBtn).toBeVisible();
-
-    // Click the "Diff" button to expand detail (loads via htmx)
-    const isDiffEnabled = await diffBtn.isEnabled();
-    if (isDiffEnabled) {
-      await diffBtn.click();
-      await waitForIdle(ownerPage);
-
-      // The diff content loads into the event-diff-container
-      const diffContainer = firstRow.locator('.event-diff-container');
-      await expect(diffContainer.locator('.event-diff-panel')).toBeVisible({ timeout: 10000 });
-
-      // Verify the close button exists in the diff panel
-      await expect(diffContainer.locator('.event-diff-close')).toBeVisible();
-    }
->>>>>>> gsd/M003/S10
   });
 });

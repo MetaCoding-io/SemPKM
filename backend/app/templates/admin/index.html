@@ -23,6 +23,14 @@
                 Configure Webhooks
             </a>
         </div>
+        <div class="card">
+            <h2>Operations Log</h2>
+            <p>View a chronological record of system activities — model installs, inference runs, and validations.</p>
+            <a href="/admin/ops-log" class="btn btn-primary"
+               hx-get="/admin/ops-log" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
+                View Operations Log
+            </a>
+        </div>
     </div>
 </div>
 {% endblock %}

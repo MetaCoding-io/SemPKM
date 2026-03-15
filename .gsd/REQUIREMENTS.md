@@ -712,6 +712,14 @@ OntologyService.list_user_types() queries user-types graph for classes and prope
 
 Fixed openTab() in workspace.js to always open create-new-object in a fresh dockview tab instead of overwriting the active tab. Preserves user's current view.
 
+### LOG-01 — Operations log with PROV-O vocabulary in admin UI
+- Status: validated
+- Class: admin/support
+- Source: user
+- Primary Slice: M005/S02
+
+OperationsLogService with log_activity(), list_activities(), get_activity(), count_activities(). PROV-O vocabulary (prov:Activity, prov:startedAtTime, prov:endedAtTime, prov:wasAssociatedWith, prov:used) in urn:sempkm:ops-log named graph. Admin UI at /admin/ops-log with filter and cursor-based pagination. Model install/remove, inference, and validation instrumented with fire-and-forget logging. Unit tests: test_ops_log.py (35 tests).
+
 ## Deferred
 
 ### TYPE-03 — Full SHACL shape editor with advanced constraints
@@ -847,6 +855,7 @@ Fixed openTab() in workspace.js to always open create-new-object in a fresh dock
 | TYPE-06 | core-capability | validated | M004/S02 | none | delete_class with instance warnings |
 | TYPE-07 | core-capability | validated | M004/S03 | none | Custom section on Mental Models |
 | TAB-01 | core-capability | validated | M004/S04 | none | fresh dockview tab for new objects |
+| LOG-01 | admin/support | validated | M005/S02 | none | PROV-O ops log + admin UI + 35 tests |
 | TYPE-03 | core-capability | deferred | none | none | unmapped |
 | TYPE-04 | core-capability | deferred | none | none | unmapped |
 | MCP-01 | core-capability | deferred | none | none | unmapped |
@@ -858,7 +867,7 @@ Fixed openTab() in workspace.js to always open create-new-object in a fresh dock
 ## Coverage Summary
 
 - Active requirements: 0
-- Validated: 88 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004)
+- Validated: 89 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 1 from M005)
 - Deferred: 4
 - Out of scope: 3
 - Unmapped active requirements: 0

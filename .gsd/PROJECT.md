@@ -254,7 +254,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 **Previous milestones:** M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
 
-**Current milestone:** None active — M004 complete. See `.gsd/QUEUE.md` for queued milestones.
+**Current milestone:** M005 Platform Polish & Foundation — S01 (Query SQL→RDF) ✅, S02 (Operations Log & PROV-O) ✅. See `.gsd/milestones/M005/M005-ROADMAP.md` for remaining slices.
 
 ## Context
 

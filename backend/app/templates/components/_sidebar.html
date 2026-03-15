@@ -35,6 +35,11 @@
                     <i data-lucide="webhook" class="nav-icon"></i>
                     <span class="nav-label">Webhooks</span>
                 </a>
+                <a href="/admin/ops-log" class="nav-link" data-tooltip="Operations Log"
+                   hx-get="/admin/ops-log" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
+                    <i data-lucide="activity" class="nav-icon"></i>
+                    <span class="nav-label">Operations Log</span>
+                </a>
                 {% else %}
                 <span class="nav-link disabled nav-hint" data-tooltip="Requires owner role">
                     <i data-lucide="brain" class="nav-icon"></i>

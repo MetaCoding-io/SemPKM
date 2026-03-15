@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}SemPKM - Operations Log{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+    <h1>Operations Log</h1>
+    <p class="lead">System activity log — model installs, inference runs, and validation runs recorded via PROV-O.</p>
+
+    <div class="ops-log-controls" style="display: flex; align-items: end; gap: 12px; margin-bottom: 1.5rem;">
+        <div>
+            <label for="ops-log-filter" style="display: block; margin-bottom: 4px; font-weight: 500; font-size: 0.85rem;">Filter by type</label>
+            <select id="ops-log-filter" name="activity_type" class="form-input"
+                    hx-get="/admin/ops-log"
+                    hx-target="#ops-log-table"
+                    hx-swap="outerHTML"
+                    hx-include="this"
+                    hx-push-url="true">
+                <option value="">All activities</option>
+                {% for type_val, type_label in activity_types %}
+                <option value="{{ type_val }}" {{ 'selected' if activity_type == type_val else '' }}>{{ type_label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    {% block table_rows %}
+    <div id="ops-log-table" data-testid="ops-log-table">
+        <table class="sparql-results">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Activity</th>
+                    <th>Type</th>
+                    <th>Actor</th>
+                    <th>Status</th>
+                    <th>Duration</th>
+                </tr>
+            </thead>
+            <tbody id="ops-log-body">
+                {% if activities %}
+                {% for a in activities %}
+                <tr class="ops-log-row {{ 'ops-log-row--failed' if a.status == 'failed' else '' }}">
+                    <td title="{{ a.started_at }}">{{ a.relative_time }}</td>
+                    <td>
+                        {% if a.error_message %}
+                        <details class="ops-log-detail">
+                            <summary>{{ a.label }}</summary>
+                            <div class="ops-log-error">{{ a.error_message }}</div>
+                        </details>
+                        {% else %}
+                        {{ a.label }}
+                        {% endif %}
+                    </td>
+                    <td><span class="ops-log-type-badge">{{ a.activity_type }}</span></td>
+                    <td>{{ a.actor_short }}</td>
+                    <td>
+                        {% if a.status == 'success' %}
+                        <span class="ops-log-status ops-log-status--success">✓ success</span>
+                        {% elif a.status == 'failed' %}
+                        <span class="ops-log-status ops-log-status--failed">✗ failed</span>
+                        {% else %}
+                        <span class="ops-log-status">—</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ a.duration }}</td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center; color: var(--color-text-muted); padding: 2rem;">
+                        No operations logged yet. Activities will appear here as you install models, run inference, and validate data.
+                    </td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+
+        {% if next_cursor %}
+        <div class="ops-log-load-more" style="text-align: center; margin-top: 1rem;">
+            <button class="btn btn-secondary"
+                    hx-get="/admin/ops-log?cursor={{ next_cursor }}{% if activity_type %}&activity_type={{ activity_type }}{% endif %}"
+                    hx-target="#ops-log-table"
+                    hx-swap="outerHTML"
+                    hx-indicator="#ops-log-spinner">
+                Load more
+            </button>
+            <span id="ops-log-spinner" class="htmx-indicator loading">Loading...</span>
+        </div>
+        {% endif %}
+    </div>
+    {% endblock %}
+</div>
+
+<style>
+.ops-log-type-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    font-family: var(--font-mono);
+    background: var(--color-surface-raised, #f0f0f0);
+    color: var(--color-text-muted);
+}
+
+.ops-log-status {
+    font-size: 0.85rem;
+}
+
+.ops-log-status--success {
+    color: var(--color-success, #22c55e);
+}
+
+.ops-log-status--failed {
+    color: var(--color-danger, #ef4444);
+}
+
+.ops-log-row--failed {
+    background: color-mix(in srgb, var(--color-danger, #ef4444) 5%, transparent);
+}
+
+.ops-log-detail summary {
+    cursor: pointer;
+}
+
+.ops-log-detail summary:hover {
+    text-decoration: underline;
+}
+
+.ops-log-error {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    font-size: 0.82rem;
+    font-family: var(--font-mono);
+    background: var(--color-surface-raised, #f5f5f5);
+    border-radius: 4px;
+    color: var(--color-danger, #ef4444);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+</style>
+{% endblock %}

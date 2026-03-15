@@ -137,9 +137,30 @@ setTimeout(function() {
 
 See memory/MEMORY.md for full details. Short version:
 
-- **No rebuild needed:** Python code, templates, CSS, JS — all hot-reloaded
-- **Rebuild needed:** `pyproject.toml` (deps), `migrations/`
+- **No rebuild needed:** Python code, templates, CSS, JS, migrations — all hot-reloaded via volume mounts
+- **Rebuild needed:** `pyproject.toml` (deps), `Dockerfile` changes
 - **nginx.conf changes:** `docker compose restart frontend` (no rebuild)
+
+**Volume mounts (docker-compose.yml):**
+- `./backend/app:/app/app` — Python application code
+- `./backend/migrations:/app/migrations` — Alembic migrations
+- `./models:/app/models:ro` — Mental Model archives
+- `./backend/ontologies:/app/ontologies:ro` — Bundled ontologies (gist)
+- `./frontend/static:/usr/share/nginx/html:ro` — JS, CSS, static assets
+- `./docs:/app/docs:ro` — User documentation
+
+---
+
+## Git Merge Hygiene
+
+**Problem:** From M002/S03 through M005/S01 (17 consecutive squash merges), conflict markers were committed to main without resolution — 130+ markers across 51 files. The app appeared to work because Docker volume-mounts served clean branch code, hiding the broken main.
+
+**Rule:** After every squash merge to the integration branch, verify:
+
+1. `grep -rn "^<<<<<<< " backend/ frontend/ e2e/ --include="*.py" --include="*.html" --include="*.js" --include="*.css" --include="*.ts"` — must return zero results
+2. `python3 -c "import ast; ast.parse(open(f).read())"` on every `.py` file — must not raise `SyntaxError`
+
+**Safeguard:** A pre-commit hook at `.githooks/pre-commit` rejects commits containing conflict markers. Configured via `git config core.hooksPath .githooks` (repo-local, not global).
 
 ---
 

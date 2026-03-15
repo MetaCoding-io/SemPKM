@@ -20,6 +20,7 @@ services:
       - "8001:8000"
     volumes:
       - ./backend/app:/app/app
+      - ./backend/migrations:/app/migrations
       - ./config:/app/config:ro
       - ./models:/app/models:ro
       - ./backend/ontologies:/app/ontologies:ro

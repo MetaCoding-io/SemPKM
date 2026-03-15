@@ -4,15 +4,7 @@ FROM clause assembly, and SPARQL query shape validation for TBox/ABox/RBox."""
 import pytest
 from rdflib import BNode, Graph, Literal, URIRef
 from rdflib.namespace import OWL, RDF, RDFS, XSD
-<<<<<<< HEAD
-<<<<<<< HEAD
 from unittest.mock import AsyncMock, MagicMock, patch
-=======
-from unittest.mock import AsyncMock, MagicMock
->>>>>>> gsd/M003/S07
-=======
-from unittest.mock import AsyncMock, MagicMock, patch
->>>>>>> gsd/M004/S03
 
 from app.ontology.service import (
     BATCH_SIZE,
@@ -25,11 +17,8 @@ from app.ontology.service import (
     OntologyService,
 )
 
-<<<<<<< HEAD
 SH_NS = "http://www.w3.org/ns/shacl#"
 
-=======
->>>>>>> gsd/M003/S07
 
 # --- _split_triples_into_batches ---
 
@@ -482,7 +471,6 @@ class TestBatchHasSubclasses:
 
         assert result == {"urn:test:A": True}
         assert "urn:test:B" not in result
-<<<<<<< HEAD
 
 
 # --- Property creation ---
@@ -1150,8 +1138,3 @@ class TestEditPropertyRoute:
         )
         assert resp.status_code == 500
         assert b"Server error editing property" in resp.body
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S07
-=======
->>>>>>> gsd/M004/S03

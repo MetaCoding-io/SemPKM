@@ -1,10 +1,6 @@
 /**
  * SPARQL Advanced Features E2E Tests
  *
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S10
  * Tests saved queries CRUD, server-side query history, SPARQL query types
  * (SELECT/ASK/CONSTRUCT/FILTER), vocabulary endpoint, and the admin SPARQL
  * console page redirect.
@@ -12,28 +8,16 @@
  * Consolidated into 2 test() calls to stay within the 5/minute magic-link rate limit:
  *   1. API-only test: SPARQL query types + saved queries CRUD + history + vocabulary
  *   2. UI test: admin SPARQL console page load
-<<<<<<< HEAD
-=======
- * Tests saved queries, server-side query history, and IRI pill rendering
- * in SPARQL results.
->>>>>>> gsd/M003/S03
-=======
->>>>>>> gsd/M003/S10
  */
 import { test, expect, BASE_URL } from '../../fixtures/auth';
 import { SEED } from '../../fixtures/seed-data';
 
 test.describe('SPARQL Advanced Features', () => {
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S10
   test('SPARQL query types, saved queries CRUD, history, and vocabulary via API', async ({ ownerRequest }) => {
     // ================================================================
     // Part 1: SPARQL SELECT query with IRI bindings
     // ================================================================
     const selectResp = await ownerRequest.post(`${BASE_URL}/api/sparql`, {
-<<<<<<< HEAD
       data: {
         query: `SELECT ?s ?type WHERE { ?s a ?type } LIMIT 10`,
       },
@@ -85,12 +69,6 @@ test.describe('SPARQL Advanced Features', () => {
     const filterResp = await ownerRequest.post(`${BASE_URL}/api/sparql`, {
       data: {
         query: `SELECT ?s ?title WHERE {
-=======
-  test('SPARQL query returns results with IRI bindings', async ({ ownerRequest }) => {
-    // Execute a query that returns IRIs
-    const resp = await ownerRequest.post(`${BASE_URL}/api/sparql`, {
-=======
->>>>>>> gsd/M003/S10
       data: {
         query: `SELECT ?s ?type WHERE { ?s a ?type } LIMIT 10`,
       },
@@ -141,26 +119,16 @@ test.describe('SPARQL Advanced Features', () => {
     // ================================================================
     const filterResp = await ownerRequest.post(`${BASE_URL}/api/sparql`, {
       data: {
-<<<<<<< HEAD
         query: `SELECT ?s ?title FROM <urn:sempkm:current> WHERE {
->>>>>>> gsd/M003/S03
-=======
-        query: `SELECT ?s ?title WHERE {
->>>>>>> gsd/M003/S10
           ?s <http://purl.org/dc/terms/title> ?title .
           FILTER(CONTAINS(LCASE(?title), "architecture"))
         }`,
       },
     });
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S10
     expect(filterResp.ok()).toBeTruthy();
     const filterData = await filterResp.json();
     expect(filterData.results.bindings.length).toBeGreaterThan(0);
     for (const binding of filterData.results.bindings) {
-<<<<<<< HEAD
       expect(binding.title.value.toLowerCase()).toContain('architecture');
     }
 
@@ -322,15 +290,6 @@ test.describe('SPARQL Advanced Features', () => {
     // Verify SPARQL panel pane exists in the DOM
     const sparqlPane = ownerPage.locator('#panel-sparql');
     await expect(sparqlPane).toBeAttached({ timeout: 5000 });
-=======
-    expect(resp.ok()).toBeTruthy();
-    const data = await resp.json();
-    expect(data.results.bindings.length).toBeGreaterThan(0);
-
-    // All results should contain "architecture" (case-insensitive)
-    for (const binding of data.results.bindings) {
-=======
->>>>>>> gsd/M003/S10
       expect(binding.title.value.toLowerCase()).toContain('architecture');
     }
 
@@ -468,35 +427,7 @@ test.describe('SPARQL Advanced Features', () => {
     // /admin/sparql now redirects to /browser?panel=sparql
     const resp = await ownerPage.goto(`${BASE_URL}/admin/sparql`);
 
-<<<<<<< HEAD
     // Should have a SPARQL editor / Yasgui interface
     await ownerPage.waitForSelector('.yasgui, .CodeMirror, textarea, #sparql-editor', { timeout: 15000 });
->>>>>>> gsd/M003/S03
-=======
-    // Should have redirected — final URL should be /browser with sparql panel param
-    const url = ownerPage.url();
-    expect(url).toContain('/browser');
-
-    // The SPARQL panel should be activated (either via URL param or direct)
-    // Wait for the workspace to load
-    await ownerPage.waitForSelector('.workspace-container', { state: 'attached', timeout: 15000 });
-
-    // The bottom panel should be open with SPARQL tab active
-    // (the ?panel=sparql parameter triggers auto-open)
-    const panelState = await ownerPage.evaluate(() => {
-      const saved = localStorage.getItem('sempkm_bottom_panel');
-      return saved ? JSON.parse(saved) : null;
-    });
-
-    // Panel state should show sparql as active tab if redirect worked
-    if (panelState) {
-      expect(panelState.activeTab).toBe('sparql');
-      expect(panelState.open).toBe(true);
-    }
-
-    // Verify SPARQL panel pane exists in the DOM
-    const sparqlPane = ownerPage.locator('#panel-sparql');
-    await expect(sparqlPane).toBeAttached({ timeout: 5000 });
->>>>>>> gsd/M003/S10
   });
 });

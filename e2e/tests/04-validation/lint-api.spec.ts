@@ -2,16 +2,11 @@
  * Lint API E2E Tests
  *
  * Tests the lint results, status, diff, and stream endpoints:
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S10
  * - GET /api/lint/results — paginated lint results (LintResultsResponse)
  * - GET /api/lint/status — lint engine status (LintStatusResponse)
  * - GET /api/lint/diff — lint diff between latest and previous runs (LintDiffResponse)
  *
  * Consolidated into 1 test() to stay within the 5/minute magic-link rate limit.
-<<<<<<< HEAD
  */
 import { test, expect, BASE_URL } from '../../fixtures/auth';
 
@@ -63,13 +58,6 @@ test('lint API endpoints return correct response shapes', async ({ ownerRequest 
   expect(typeof diff.latest_run_id).toBe('string');
   // previous_run_id can be string or null
   expect(diff.previous_run_id === null || typeof diff.previous_run_id === 'string').toBe(true);
-=======
- * - GET /api/lint/results — paginated lint results
- * - GET /api/lint/status — lint engine status
- * - GET /api/lint/diff — lint diff (changes since last run)
- * - GET /api/lint/stream — SSE stream (not fully tested here)
-=======
->>>>>>> gsd/M003/S10
  */
 import { test, expect, BASE_URL } from '../../fixtures/auth';
 
@@ -111,7 +99,6 @@ test('lint API endpoints return correct response shapes', async ({ ownerRequest 
   expect(status.run_id === null || typeof status.run_id === 'string').toBe(true);
   expect(status.run_timestamp === null || typeof status.run_timestamp === 'string').toBe(true);
 
-<<<<<<< HEAD
   test('lint status endpoint returns engine status', async ({ ownerRequest }) => {
     const resp = await ownerRequest.get(`${BASE_URL}/api/lint/status`);
     expect(resp.ok()).toBeTruthy();
@@ -140,17 +127,4 @@ test('lint API endpoints return correct response shapes', async ({ ownerRequest 
     const data = await resp.json();
     expect(data).toBeDefined();
   });
->>>>>>> gsd/M003/S03
-=======
-  // --- GET /api/lint/diff ---
-  const diffResp = await ownerRequest.get(`${BASE_URL}/api/lint/diff`);
-  expect(diffResp.ok()).toBeTruthy();
-  const diff = await diffResp.json();
-  // LintDiffResponse fields
-  expect(Array.isArray(diff.new_issues)).toBe(true);
-  expect(Array.isArray(diff.resolved_issues)).toBe(true);
-  expect(typeof diff.latest_run_id).toBe('string');
-  // previous_run_id can be string or null
-  expect(diff.previous_run_id === null || typeof diff.previous_run_id === 'string').toBe(true);
->>>>>>> gsd/M003/S10
 });

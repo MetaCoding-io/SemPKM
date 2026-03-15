@@ -295,7 +295,6 @@
         loadRightPaneSection(panel.id, 'relations');
         loadRightPaneSection(panel.id, 'lint');
         loadRightPaneSection(panel.id, 'comments');
-<<<<<<< HEAD
       } else if (panel.id.startsWith('__new-object-')) {
         // Create tabs have no object yet — clear stale panel content
         var emptyMsg = '<div class="right-empty">No object selected</div>';
@@ -303,8 +302,6 @@
           var el = document.getElementById(id);
           if (el) el.innerHTML = emptyMsg;
         });
-=======
->>>>>>> gsd/M003/S06
       }
       if (layout) layout.activeGroupId = groupId;
 
