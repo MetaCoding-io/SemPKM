@@ -379,4 +379,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-03-14 after M004 Ontology & Type System Completion*
+*Last updated: 2026-03-14 after M005/S08 VFS v2 Design Refinement*
