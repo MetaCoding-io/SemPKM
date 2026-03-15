@@ -48,7 +48,11 @@ async def settings_page(
     api_tokens = await auth_service.list_api_tokens(user.id)
     webdav_endpoint = str(request.base_url).rstrip("/") + "/dav/"
 
+<<<<<<< HEAD
     context = {
+=======
+    return templates.TemplateResponse(request, "browser/settings_page.html", {
+>>>>>>> gsd/M002/S04
         "request": request,
         "categories": dict(categories),
         "user_overrides": user_overrides,
@@ -58,12 +62,16 @@ async def settings_page(
         "user": user,
         "api_tokens": api_tokens,
         "webdav_endpoint": webdav_endpoint,
+<<<<<<< HEAD
     }
 
     # htmx partial (dockview tab) vs full standalone page
     if request.headers.get("HX-Request") == "true":
         return templates.TemplateResponse(request, "browser/settings_page.html", context)
     return templates.TemplateResponse(request, "browser/settings_standalone.html", context)
+=======
+    })
+>>>>>>> gsd/M002/S04
 
 
 @settings_router.get("/settings/data")

@@ -1,12 +1,16 @@
 """Workspace sub-router — layout, navigation tree, icons, and views."""
 
 import logging
+<<<<<<< HEAD
 import re
 from typing import Callable
+=======
+>>>>>>> gsd/M002/S04
 from urllib.parse import unquote
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
+<<<<<<< HEAD
 
 from app.auth.dependencies import get_current_user, require_role
 from app.auth.models import User
@@ -55,19 +59,38 @@ from app.vfs.strategies import (
     query_type_folders,
     query_uncategorized_objects,
 )
+=======
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.auth.dependencies import get_current_user
+from app.auth.models import User
+from app.db.session import get_db_session
+from app.dependencies import (
+    get_label_service,
+    get_shapes_service,
+    get_view_spec_service,
+)
+from app.services.icons import IconService
+from app.services.labels import LabelService
+from app.services.shapes import ShapesService
+>>>>>>> gsd/M002/S04
 from app.views.service import ViewSpecService
 
 from ._helpers import _is_htmx_request, _validate_iri, get_icon_service
 
+<<<<<<< HEAD
 _UUID_RE = re.compile(
     r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.IGNORECASE
 )
 
+=======
+>>>>>>> gsd/M002/S04
 logger = logging.getLogger(__name__)
 
 workspace_router = APIRouter(tags=["workspace"])
 
 
+<<<<<<< HEAD
 # ---------------------------------------------------------------------------
 # Explorer mode handlers
 # ---------------------------------------------------------------------------
@@ -464,6 +487,8 @@ async def _handle_mount(
     )
 
 
+=======
+>>>>>>> gsd/M002/S04
 @workspace_router.get("/icons")
 async def icons_data(
     request: Request,
@@ -521,6 +546,7 @@ async def nav_tree(
     """Return the nav tree partial (type nodes only, collapsed).
 
     Used by refreshNavTree() in workspace.js to reload the OBJECTS section.
+<<<<<<< HEAD
     Delegates to the by-type handler for consistency.
     """
     return await _handle_by_type(request, shapes_service, icon_svc)
@@ -569,6 +595,17 @@ async def explorer_tree(
         shapes_service=shapes_service,
         icon_svc=icon_svc,
         label_service=label_service,
+=======
+    """
+    templates = request.app.state.templates
+    types = await shapes_service.get_types()
+    type_icons = icon_svc.get_icon_map(context="tree")
+
+    return templates.TemplateResponse(
+        request,
+        "browser/nav_tree.html",
+        {"request": request, "types": types, "type_icons": type_icons},
+>>>>>>> gsd/M002/S04
     )
 
 
@@ -629,6 +666,7 @@ async def tree_children(
     )
 
 
+<<<<<<< HEAD
 @workspace_router.get("/explorer/children")
 async def explorer_children(
     request: Request,
@@ -898,12 +936,19 @@ async def mount_children(
     return HTMLResponse("")
 
 
+=======
+>>>>>>> gsd/M002/S04
 @workspace_router.get("/my-views")
 async def my_views(
     request: Request,
     user: User = Depends(get_current_user),
+<<<<<<< HEAD
     view_spec_service: ViewSpecService = Depends(get_view_spec_service),
     query_service: QueryService = Depends(get_query_service),
+=======
+    db: AsyncSession = Depends(get_db_session),
+    view_spec_service: ViewSpecService = Depends(get_view_spec_service),
+>>>>>>> gsd/M002/S04
 ):
     """Return promoted view entries for the 'My Views' nav tree section.
 
@@ -912,17 +957,37 @@ async def my_views(
     """
     templates = request.app.state.templates
 
+<<<<<<< HEAD
     specs = await view_spec_service.get_user_promoted_view_specs(user.id)
+=======
+    specs = await view_spec_service.get_user_promoted_view_specs(user.id, db)
+>>>>>>> gsd/M002/S04
 
     if not specs:
         return HTMLResponse(
             content='<div class="tree-empty">No promoted views yet</div>'
         )
 
+<<<<<<< HEAD
     # Build spec_iri -> query_id map from promoted view data
     promoted = await query_service.list_promoted_views(user.id)
     query_id_map = {
         f"urn:sempkm:user-view:{pv.id}": pv.query_id for pv in promoted
+=======
+    # Also fetch query_ids for demote buttons by querying PromotedQueryView
+    from sqlalchemy import select as sa_select
+
+    from app.sparql.models import PromotedQueryView
+
+    pv_result = await db.execute(
+        sa_select(PromotedQueryView)
+        .where(PromotedQueryView.user_id == user.id)
+    )
+    pv_rows = pv_result.scalars().all()
+    # Map spec_iri -> query_id for the template
+    query_id_map = {
+        f"urn:sempkm:user-view:{pv.id}": str(pv.query_id) for pv in pv_rows
+>>>>>>> gsd/M002/S04
     }
 
     context = {
@@ -933,6 +998,7 @@ async def my_views(
     return templates.TemplateResponse(
         request, "browser/my_views.html", context
     )
+<<<<<<< HEAD
 
 
 @workspace_router.post("/admin/migrate-tags")
@@ -1061,3 +1127,5 @@ async def migrate_queries(
         except Exception:
             logger.exception("Query migration failed")
             raise HTTPException(status_code=500, detail="Query migration failed")
+=======
+>>>>>>> gsd/M002/S04
