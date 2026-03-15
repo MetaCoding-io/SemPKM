@@ -1,96 +1,156 @@
-# M005 S06: Views Rethink — Research Notes
+# M005 Research: Views Rethink & Query Migration
 
 **Date:** 2026-03-14  
 **Status:** Discussion captured, ready for design doc authoring
 
-## Current State
+---
 
-### How Views Work Today
+## Query Storage: SQL → RDF (S01 prerequisite)
 
-Each `ViewSpec` in a model's `views.jsonld` is a complete, self-contained unit:
-- Specific SPARQL query baked to a specific type (`?s a bpkm:Project`)
-- Specific renderer type (table, card, graph)
-- Specific column/card configuration
+### Motivation
 
-The `ViewSpecService` loads all specs from installed model views graphs, caches them (TTL 300s), and executes queries with pagination, sorting, and filtering.
+Current principle: **SQL for auth, graph for everything else.** Four SQL tables violate this:
 
-### The Problem (Visible in UI)
+| SQL Table | Records | Used By |
+|-----------|---------|---------|
+| `SparqlQueryHistory` | Auto-saved executions per user | `sparql/router.py` |
+| `SavedSparqlQuery` | Named queries | `sparql/router.py`, `views/service.py`, `browser/workspace.py` |
+| `SharedQueryAccess` | Query sharing join table | `sparql/router.py` |
+| `PromotedQueryView` | Queries promoted to views | `sparql/router.py`, `views/service.py`, `browser/workspace.py` |
 
-The VIEWS explorer section shows **12 entries** for basic-pkm alone:
-- 📁 `sempkm:model:basic-pk...` (3) → Concepts Cards, Concepts Graph, Concepts Table
-- 📁 `sempkm:model:basic-pk...` (3) → Notes Cards, Notes Graph, Notes Table  
-- 📁 `sempkm:model:basic-pk...` (3) → People Cards, People Graph, People Table
-- 📁 `sempkm:model:basic-pk...` (3) → Projects Cards, Projects Graph, Projects Table
+~65 references in `sparql/router.py` alone. Also touched by `ViewSpecService` for promoted views.
 
-Grouped by truncated IRI (not even type name). Every new type × 3 renderers = 3 more entries. The folder labels are useless.
+### Why This Enables M005
 
-### Existing Infrastructure
+Once queries are RDF resources with IRIs:
+- **Model-shipped named queries** and user queries are the same shape, differing only by `sempkm:source`
+- **VFS mounts** reference queries by IRI (no SQL join needed)
+- **Views** reference queries by IRI for scoping
+- Saved queries become the **universal scope primitive** for both views and VFS
 
-- `ViewSpecService.get_view_specs_for_type(type_iri)` — already filters specs by target class
-- `ViewSpecService.get_user_promoted_view_specs()` — user-created views from promoted SPARQL queries (stored in SQL, not RDF)
-- Carousel tab bar on object pages already shows per-type view tabs
-- `_group_specs_by_type()` groups by target class for the explorer tree
+### RDF Data Model
 
-## Design Decision: Option 3 (Hybrid)
+```turtle
+# User's named query
+<urn:sempkm:query:{uuid}> a sempkm:SavedQuery ;
+    sempkm:owner <urn:sempkm:user:{uuid}> ;
+    rdfs:label "My Research Notes" ;
+    dcterms:description "All notes tagged research" ;
+    sempkm:queryText "SELECT ?s WHERE { ... }" ;
+    dcterms:created "2026-03-14T..."^^xsd:dateTime ;
+    dcterms:modified "2026-03-14T..."^^xsd:dateTime .
 
-**Agreed direction:** Keep model-declared rich views + add generic cross-type views.
+# Model-shipped named query (read-only, same shape)
+<urn:sempkm:model:basic-pkm:query:active-projects> a sempkm:SavedQuery ;
+    sempkm:source "model:basic-pkm" ;
+    rdfs:label "Active Projects" ;
+    sempkm:queryText "SELECT ?s WHERE { ... }" .
 
-### Model-Declared Views (Authored)
+# Sharing — a single triple
+<urn:sempkm:query:{uuid}> sempkm:sharedWith <urn:sempkm:user:{uuid2}> .
+
+# Promoted to view
+<urn:sempkm:query-view:{uuid}> a sempkm:PromotedView ;
+    sempkm:fromQuery <urn:sempkm:query:{uuid}> ;
+    sempkm:owner <urn:sempkm:user:{uuid}> ;
+    rdfs:label "My Research Table" ;
+    sempkm:rendererType "table" .
+
+# Query execution history
+<urn:sempkm:query-exec:{uuid}> a sempkm:QueryExecution ;
+    sempkm:executedBy <urn:sempkm:user:{uuid}> ;
+    sempkm:queryText "SELECT ..." ;
+    prov:startedAtTime "2026-03-14T..."^^xsd:dateTime .
+```
+
+### Graph Organization
+
+Option A: Single `urn:sempkm:queries` graph for all users' queries, filtered by `sempkm:owner`.  
+Option B: Per-user graphs `urn:sempkm:user:{uuid}:queries`.  
+
+Leaning A — simpler to query across users for sharing, and query volume is low.
+
+### Migration Strategy
+
+1. Build `QueryService` backed by RDF (new service, clean interface)
+2. Update `sparql/router.py` to use `QueryService` instead of SQLAlchemy
+3. Data migration script: read SQL tables → write RDF triples
+4. Alembic migration to drop SQL tables
+5. Keep SQL tables temporarily with a deprecation marker until migration runs
+
+### Performance Considerations
+
+The SPARQL console hits query list/history on every page load. If triplestore latency is noticeable:
+- TTLCache on `QueryService` (same pattern as `ViewSpecService` — 300s TTL)
+- HTTP caching headers on list endpoints
+- Query history could be capped (already has cap logic in current SQL implementation)
+
+### Other SQL Models — Gray Area
+
+| SQL Model | Decision | Rationale |
+|-----------|----------|-----------|
+| `UserFavorite` | Defer | Hot-path query (every page load); `sempkm:favorited` triple is clean but perf risk. Revisit later. |
+| `InferenceTripleState` | Defer | Per-triple UI state (dismiss/promote). High write volume during inference. Keep in SQL. |
+| `UserSetting` | Keep | Pure user preferences, key/value. Auth-adjacent. |
+
+---
+
+## Views Rethink (S07)
+
+### The Problem
+
+12 view entries in the explorer for 4 types × 3 renderers. Grouped by truncated IRI. Every new type multiplies by 3.
+
+### Design Decision: Hybrid (Option 3)
+
+**Model-declared rich views** + **generic cross-type views**.
+
+#### Model-Declared Views (Authored)
 - Models ship `ViewSpec` entries with custom SPARQL, columns, card hints, CONSTRUCT queries
-- These carry real value: a "Projects Table" knows to show `title, status, priority, startDate`
+- Carry real value: "Projects Table" knows columns `title, status, priority, startDate`
 - Presented as renderer tabs when a type is selected, not as 12 tree entries
-- Mental Models can also ship **named queries** (read-only to user, copyable for modification)
+- Models can ship **named queries** — read-only to user, copyable for modification
+- After S01, model queries are RDF resources in model views graph, same shape as user queries
 
-### Generic Views (System-Provided)
+#### Generic Views (System-Provided)
 - Three built-in views: Table, Cards, Graph
-- Work across all objects by default (no type filter)
+- Work across all objects by default
 - In-view type filtering via pills/dropdown
-- Column discovery from SHACL shapes when no model-declared view exists for a type
-- Scoped by saved queries for custom filtering
+- Column discovery from SHACL shapes when no model-declared view exists
+- Scoped by saved queries
 
-### Saved Queries as Universal Scope
-- Models ship named queries (read-only to user; user can copy to create their own)
-- Users create their own via SPARQL console (existing feature)
-- Both views and VFS mounts reference saved queries as scope
-- This is the shared primitive between views and VFS — design it once, use everywhere
-
-## UI Presentation Ideas
+#### Saved Queries as Universal Scope
+- Both views and VFS mounts reference queries by IRI
+- Model queries: read-only, copyable
+- User queries: full CRUD via SPARQL console
+- S01 (Query SQL→RDF) is prerequisite — queries must be IRI-addressable RDF resources
 
 ### Explorer Tree Redesign
-Instead of 12 per-type entries, the VIEWS section could show:
 
 ```
 VIEWS
   ◻ Spatial Canvas (Beta)
   ◆ Ontology Viewer
-  ▦ All Objects (Table)        ← generic, opens with type filter pills
+  ▦ All Objects (Table)        ← generic, type filter pills
   ▦ All Objects (Cards)
-  ◎ All Objects (Graph)        ← "knowledge graph" across everything
-  📁 Saved Views               ← user-saved view configurations
+  ◎ All Objects (Graph)        ← knowledge graph across everything
+  📁 Saved Views
     My Project Cards
     Research Notes Table
 ```
 
-When a user is on a type page (e.g. clicked "Project" in the OBJECTS tree), the carousel tab bar shows the model-declared views for that type: Table | Cards | Graph.
+Type-specific views shown as carousel tabs when a type is selected.
 
-### View Scoping Flow
-1. User opens "All Objects (Table)"
-2. Sees all objects across all types
-3. Clicks type filter pill "Note" → table now shows only Notes with Note-specific columns
-4. Clicks "Save View" → prompted for name, saved as a user view
-5. Saved view appears under MY VIEWS in explorer
+### Open Questions
 
-## Open Questions for Design Doc
+- Dynamic column discovery from SHACL shapes vs fixed column set for generic views?
+- Model-declared named queries: show under VIEWS, or a new QUERIES section?
+- Carousel tab bar: include user-created views scoped to that type?
+- Can models declare cross-type views (no `targetClass`)?
 
-- Should generic views dynamically discover columns from SHACL shapes, or use a fixed set (title, type, created, modified)?
-- How do model-declared named queries appear in the UI? Under VIEWS? Under a new QUERIES section?
-- Should the carousel tab bar on type pages also show user-created views scoped to that type?
-- Can a model declare a view without `targetClass` (cross-type view)? Currently all model views have `targetClass`.
-
-## Key Files
+### Key Files
 
 - `backend/app/views/service.py` — ViewSpecService, ViewSpec dataclass
-- `backend/app/views/router.py` — views_explorer, view rendering endpoints
+- `backend/app/views/router.py` — views_explorer, rendering endpoints
 - `backend/app/templates/browser/views_explorer.html` — current tree template
 - `models/basic-pkm/views/basic-pkm.jsonld` — 12 ViewSpec definitions
-- `backend/app/sparql/models.py` — SavedSparqlQuery, PromotedQueryView models
