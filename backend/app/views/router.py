@@ -18,7 +18,7 @@ from app.auth.dependencies import get_current_user
 from app.auth.models import User
 from app.dependencies import get_label_service, get_view_spec_service
 from app.services.labels import LabelService
-from app.views.service import ViewSpec, ViewSpecService
+from app.views.service import ViewSpec, ViewSpecService, inject_values_binding
 
 logger = logging.getLogger(__name__)
 
@@ -208,6 +208,9 @@ async def table_view(
     sort: str = Query(default=""),
     dir: str = Query(default="asc"),
     filter: str = Query(default=""),
+    context_iri: str = Query(default=""),
+    context_var: str = Query(default=""),
+    dashboard_mode: int = Query(default=0),
     user: User = Depends(get_current_user),
     view_spec_service: ViewSpecService = Depends(get_view_spec_service),
     label_service: LabelService = Depends(get_label_service),
@@ -237,8 +240,27 @@ async def table_view(
     # Use spec's sort default if no sort specified
     effective_sort = sort if sort else spec.sort_default
 
+    # Inject VALUES binding for dashboard cross-view context
+    effective_query_spec = spec
+    if context_iri and context_var:
+        modified_query = inject_values_binding(spec.sparql_query, context_var, context_iri)
+        if modified_query != spec.sparql_query:
+            # Create a copy with the modified query
+            effective_query_spec = ViewSpec(
+                spec_iri=spec.spec_iri,
+                label=spec.label,
+                target_class=spec.target_class,
+                renderer_type=spec.renderer_type,
+                sparql_query=modified_query,
+                columns=spec.columns,
+                sort_default=spec.sort_default,
+                card_title=spec.card_title,
+                card_subtitle=spec.card_subtitle,
+                source_model=spec.source_model,
+            )
+
     result = await view_spec_service.execute_table_query(
-        spec=spec,
+        spec=effective_query_spec,
         page=page,
         page_size=page_size,
         sort_col=effective_sort,
@@ -294,6 +316,7 @@ async def table_view(
         "type_iri": spec.target_class,
         "view_type": "table",
         "source_model": spec.source_model,
+        "dashboard_mode": dashboard_mode,
     }
 
     return templates.TemplateResponse(
@@ -309,6 +332,9 @@ async def cards_view(
     page_size: int = Query(default=12, ge=1, le=100),
     filter: str = Query(default=""),
     group_by: str = Query(default=""),
+    context_iri: str = Query(default=""),
+    context_var: str = Query(default=""),
+    dashboard_mode: int = Query(default=0),
     user: User = Depends(get_current_user),
     view_spec_service: ViewSpecService = Depends(get_view_spec_service),
     label_service: LabelService = Depends(get_label_service),
@@ -337,8 +363,26 @@ async def cards_view(
     # Normalize empty group_by to None
     effective_group_by = group_by if group_by else None
 
+    # Inject VALUES binding for dashboard cross-view context
+    effective_query_spec = spec
+    if context_iri and context_var:
+        modified_query = inject_values_binding(spec.sparql_query, context_var, context_iri)
+        if modified_query != spec.sparql_query:
+            effective_query_spec = ViewSpec(
+                spec_iri=spec.spec_iri,
+                label=spec.label,
+                target_class=spec.target_class,
+                renderer_type=spec.renderer_type,
+                sparql_query=modified_query,
+                columns=spec.columns,
+                sort_default=spec.sort_default,
+                card_title=spec.card_title,
+                card_subtitle=spec.card_subtitle,
+                source_model=spec.source_model,
+            )
+
     result = await view_spec_service.execute_cards_query(
-        spec=spec,
+        spec=effective_query_spec,
         page=page,
         page_size=page_size,
         filter_text=filter,
@@ -380,6 +424,7 @@ async def cards_view(
         "type_iri": spec.target_class,
         "view_type": "card",
         "source_model": spec.source_model,
+        "dashboard_mode": dashboard_mode,
     }
 
     return templates.TemplateResponse(

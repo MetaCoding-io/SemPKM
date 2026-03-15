@@ -26,10 +26,21 @@
         </thead>
         <tbody>
             {% for row in rows %}
-            <tr class="clickable" data-testid="table-row">
+            <tr class="clickable{% if dashboard_mode %} dashboard-row{% endif %}" data-testid="table-row"
+                {% if dashboard_mode %}data-iri="{{ row.s }}"{% endif %}>
                 {% for col in columns %}
                 <td data-col="{{ col }}">
-                    {% if source_model == 'user' %}
+                    {% if dashboard_mode %}
+                        {# Dashboard mode: first column emits context, no tab navigation #}
+                        {% if loop.first %}
+                    <a href="#" class="table-row-link"
+                       onclick="emitDashboardContext('{{ row.s }}', this); return false;">
+                        {{ row[col] or labels.get(row.s, row.s) }}
+                    </a>
+                        {% else %}
+                    {{ row[col] }}
+                        {% endif %}
+                    {% elif source_model == 'user' %}
                         {% if row[col] and row[col].startswith('http') %}
                     <a href="#" class="table-row-link"
                        onclick="if(window.openTab){openTab('{{ row[col] }}', '{{ row[col] | replace("'", "\\'") }}')};return false;">
@@ -69,6 +80,38 @@
     // Apply column preferences on table load
     if (typeof ColumnPrefs !== 'undefined') {
         ColumnPrefs.applyColumnPrefs('{{ type_iri }}');
+    }
+
+    // Dashboard context emission — called when a row is clicked in dashboard_mode
+    function emitDashboardContext(iri, el) {
+        // Walk up to find the dashboard container with data-dashboard-id
+        var node = el;
+        var dashboardId = null;
+        while (node && node !== document.body) {
+            if (node.dataset && node.dataset.dashboardId) {
+                dashboardId = node.dataset.dashboardId;
+                break;
+            }
+            node = node.parentElement;
+        }
+        if (!dashboardId) return;
+
+        // Dispatch custom event on body for cross-block communication
+        document.body.dispatchEvent(new CustomEvent('dashboardContextChanged', {
+            detail: { iri: iri, dashboardId: dashboardId }
+        }));
+
+        // Highlight selected row — remove previous selection in this table
+        var table = el.closest('table');
+        if (table) {
+            table.querySelectorAll('tr.context-selected').forEach(function(tr) {
+                tr.classList.remove('context-selected');
+            });
+        }
+        var row = el.closest('tr');
+        if (row) {
+            row.classList.add('context-selected');
+        }
     }
 </script>
 </div>

@@ -20,6 +20,7 @@ from dataclasses import dataclass, field
 import rdflib
 from rdflib import RDF, URIRef
 
+from app.browser._helpers import _validate_iri
 from app.models.registry import MODELS_GRAPH, SEMPKM_NS
 from app.services.labels import LabelService
 from app.sparql.client import scope_to_current_graph
@@ -1256,3 +1257,63 @@ def _local_name(iri: str) -> str:
     if ":" in iri:
         return iri.rsplit(":", 1)[-1]
     return iri
+
+
+def inject_values_binding(query: str, var_name: str, iri: str) -> str:
+    """Inject a VALUES ?var { <iri> } clause into a SPARQL query's WHERE body.
+
+    Safely prepends a VALUES binding to the WHERE clause, enabling
+    parameterized filtering (e.g. cross-view dashboard context).
+
+    Args:
+        query: The SPARQL query string.
+        var_name: Variable name (without ?) — must be alphanumeric + underscore.
+        iri: The IRI to bind — validated via _validate_iri().
+
+    Returns:
+        Modified query with VALUES clause injected, or original query unchanged
+        if iri is empty, invalid, or var_name fails sanitization.
+    """
+    if not iri:
+        return query
+
+    # Sanitize var_name: alphanumeric + underscore only
+    if not var_name or not re.match(r'^[A-Za-z_]\w*$', var_name):
+        logger.warning("inject_values_binding: rejected invalid var_name: %s", var_name)
+        return query
+
+    if not _validate_iri(iri):
+        logger.warning("inject_values_binding: rejected invalid IRI: %s", iri)
+        return query
+
+    where_body = _extract_where_body(query)
+    if not where_body:
+        logger.warning("inject_values_binding: could not extract WHERE body")
+        return query
+
+    values_clause = f"VALUES ?{var_name} {{ <{iri}> }}"
+    new_where_body = f"{values_clause}\n  {where_body}"
+
+    # Reassemble: replace old WHERE { body } with new WHERE { values_clause + body }
+    match = re.search(r'\bWHERE\s*\{', query, re.IGNORECASE)
+    if not match:
+        return query
+
+    start = match.end()
+    depth = 1
+    i = start
+    while i < len(query) and depth > 0:
+        if query[i] == '{':
+            depth += 1
+        elif query[i] == '}':
+            depth -= 1
+        i += 1
+
+    if depth != 0:
+        return query
+
+    # i-1 is the position of the closing brace
+    new_query = query[:match.end()] + "\n  " + new_where_body + "\n" + query[i - 1:]
+
+    logger.debug("inject_values_binding: var=%s iri=%s", var_name, iri)
+    return new_query

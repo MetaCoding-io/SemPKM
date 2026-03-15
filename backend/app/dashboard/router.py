@@ -14,8 +14,9 @@ Provides:
 import json
 import logging
 import uuid
+from urllib.parse import quote
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 
 from app.auth.dependencies import get_current_user
@@ -194,6 +195,8 @@ async def render_block(
     request: Request,
     dashboard_id: str,
     block_index: int,
+    context_iri: str = Query(default=""),
+    context_var: str = Query(default=""),
     user: User = Depends(get_current_user),
 ):
     """Render a single dashboard block by index.
@@ -239,12 +242,25 @@ async def render_block(
         spec_iri = config.get("spec_iri", "")
         renderer = config.get("renderer_type", "table")
         height = config.get("height", "400px")
+        emits_context = config.get("emits_context", False)
+        listens_to_context = config.get("listens_to_context", "")
         if not spec_iri:
             return HTMLResponse('<div class="dashboard-block dashboard-block-error">No view spec configured</div>')
-        # Render the view inline via htmx
-        view_url = f"/browser/views/{renderer}/{spec_iri}"
+        # Render the view inline via htmx, with dashboard_mode=1
+        view_url = f"/browser/views/{renderer}/{spec_iri}?dashboard_mode=1"
+        # Forward context params from the slot re-fetch into the view URL
+        if context_iri and listens_to_context:
+            view_url += f"&context_iri={quote(context_iri, safe='')}&context_var={quote(listens_to_context, safe='')}"
+        # Build data attributes for cross-view context
+        data_attrs = ""
+        if emits_context:
+            data_attrs += ' data-emits-context="1"'
+        if listens_to_context:
+            data_attrs += f' data-listens-to-context="{listens_to_context}"'
+            data_attrs += f' data-dashboard-id="{dashboard_id}"'
         return HTMLResponse(
             f'<div class="dashboard-block dashboard-block-view" style="height:{height};overflow:auto"'
+            f'{data_attrs}'
             f' hx-get="{view_url}" hx-trigger="load" hx-swap="innerHTML">'
             f'<div class="dashboard-block-loading">Loading view...</div></div>'
         )
