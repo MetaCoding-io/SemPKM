@@ -51,6 +51,9 @@ def get_settings_service() -> SettingsService:
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> gsd/M003/S08
 def get_icon_service(request: Request) -> IconService:
     """FastAPI dependency that returns an IconService with the models directory.
 
@@ -63,11 +66,14 @@ def get_icon_service(request: Request) -> IconService:
     if user_icons:
         svc.set_user_type_icons(user_icons)
     return svc
+<<<<<<< HEAD
 =======
 def get_icon_service() -> IconService:
     """FastAPI dependency that returns an IconService with the models directory."""
     return IconService(models_dir=_MODELS_DIR)
 >>>>>>> gsd/M002/S04
+=======
+>>>>>>> gsd/M003/S08
 
 
 def _format_date(value: str) -> str:

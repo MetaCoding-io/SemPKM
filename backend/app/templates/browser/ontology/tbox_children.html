@@ -44,6 +44,7 @@
     {% elif 'user-types' in ns %}
     <span class="tbox-source-badge badge-user">user</span>
 <<<<<<< HEAD
+<<<<<<< HEAD
     <button type="button" class="tbox-edit-btn" data-testid="tbox-edit-btn"
             title="Edit this class"
             onclick="event.stopPropagation(); openClassEditForm('{{ cls.iri }}');">
@@ -60,6 +61,16 @@
 <div id="tbox-children-{{ safe_id }}" class="tbox-children"></div>
 {% endif %}
 =======
+=======
+    <button type="button" class="tbox-delete-btn" data-testid="tbox-delete-btn"
+            title="Delete this class"
+            hx-delete="/browser/ontology/delete-class?class_iri={{ cls.iri | urlencode }}"
+            hx-confirm="Delete this class? Objects of this type will lose their type."
+            hx-swap="none"
+            onclick="event.stopPropagation();">
+      <i data-lucide="trash-2"></i>
+    </button>
+>>>>>>> gsd/M003/S08
     {% endif %}
 </div>
 <div id="tbox-children-{{ safe_id }}" class="tree-children"></div>

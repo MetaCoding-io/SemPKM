@@ -38,9 +38,13 @@ from app.health.router import router as health_router
 from app.models.router import router as models_router
 from app.ontology.service import OntologyService
 <<<<<<< HEAD
+<<<<<<< HEAD
 from app.services.icons import load_user_type_icons
 =======
 >>>>>>> gsd/M003/S07
+=======
+from app.services.icons import load_user_type_icons
+>>>>>>> gsd/M003/S08
 from app.services.labels import LabelService
 from app.services.models import ModelService, model_shapes_loader, ensure_starter_model
 from app.services.search import SearchService
@@ -204,6 +208,13 @@ async def lifespan(app: FastAPI):
     except Exception:
         logger.error("gist ontology load failed — TBox queries will be incomplete")
 >>>>>>> gsd/M003/S07
+
+    # Load user-type icons from triplestore into app.state for IconService
+    try:
+        app.state.user_type_icons = await load_user_type_icons(client)
+    except Exception:
+        logger.warning("Failed to load user-type icons at startup")
+        app.state.user_type_icons = {}
 
     # Create validation service with real shapes loader (replaces empty_shapes_loader)
     async def shapes_loader():
