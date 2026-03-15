@@ -3,17 +3,25 @@
 import logging
 import re
 <<<<<<< HEAD
+<<<<<<< HEAD
 import uuid as _uuid
 =======
 >>>>>>> gsd/M002/S04
+=======
+import uuid as _uuid
+>>>>>>> gsd/M002/S05
 
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from rdflib import URIRef
 <<<<<<< HEAD
+<<<<<<< HEAD
 from sqlalchemy import select as sa_select
 =======
 >>>>>>> gsd/M002/S04
+=======
+from sqlalchemy import select as sa_select
+>>>>>>> gsd/M002/S05
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import get_current_user, require_role
@@ -31,6 +39,9 @@ from app.triplestore.client import TriplestoreClient
 logger = logging.getLogger(__name__)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> gsd/M002/S05
 _USER_IRI_RE = re.compile(r"^urn:sempkm:user:(.+)$")
 
 
@@ -75,8 +86,11 @@ async def resolve_user_names(
             user_names[iri] = db_user.display_name or db_user.email
     return user_names
 
+<<<<<<< HEAD
 =======
 >>>>>>> gsd/M002/S04
+=======
+>>>>>>> gsd/M002/S05
 events_router = APIRouter(tags=["events"])
 
 
@@ -113,6 +127,7 @@ async def event_log(
     labels = await label_service.resolve_batch(all_iris) if all_iris else {}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     # Resolve user display names via batched SQL lookup (single WHERE IN query)
     user_iris = list({e.performed_by for e in events if e.performed_by})
     user_names = await resolve_user_names(db, user_iris)
@@ -141,6 +156,11 @@ async def event_log(
                 except Exception:
                     logger.warning("Failed to resolve user IRI %s", uiri, exc_info=True)
 >>>>>>> gsd/M002/S04
+=======
+    # Resolve user display names via batched SQL lookup (single WHERE IN query)
+    user_iris = list({e.performed_by for e in events if e.performed_by})
+    user_names = await resolve_user_names(db, user_iris)
+>>>>>>> gsd/M002/S05
 
     # Build active filters list for chip rendering
     active_filters = []
