@@ -86,7 +86,7 @@ This milestone is complete only when all are true:
 - [x] **S09: Admin Model Detail Stats & Charts** `risk:low` `depends:[]`
   > After this: Admin model detail page shows real computed stats (avg connections, last modified, growth trend) and visual charts (activity sparkline, link distribution) replacing the TODO placeholders.
 
-- [ ] **S10: E2E Test Coverage Gaps** `risk:low` `depends:[]`
+- [x] **S10: E2E Test Coverage Gaps** `risk:low` `depends:[]`
   > After this: All shipped features have Playwright e2e test coverage — object/edge deletion, edge.patch, event undo, spatial canvas, bottom-panel SPARQL, admin model install/uninstall, rate limiting, LLM config, federation UI, SPARQL advanced features, pagination, tooltips, edge provenance, markdown rendering, health check, column preferences, sidebar panel drag-drop, graph node interaction, and all 27 existing canvas stubs are implemented.
 
 ## Boundary Map
