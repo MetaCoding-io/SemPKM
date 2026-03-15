@@ -781,6 +781,35 @@
   window.openWorkflowTab = openWorkflowTab;
 
 
+  function openWorkflowBuilderTab(workflowId) {
+    var tabKey = workflowId
+      ? 'workflow-builder:' + workflowId
+      : 'workflow-builder:new';
+    var dv = window._dockview;
+    if (!dv) return;
+
+    var existing = dv.panels.find(function(p) { return p.id === tabKey; });
+    if (existing) { existing.api.setActive(); return; }
+
+    if (!window._tabMeta) window._tabMeta = {};
+    var label = workflowId ? 'Edit Workflow' : 'New Workflow';
+    window._tabMeta[tabKey] = { label: label, dirty: false };
+
+    dv.api.addPanel({
+      id: tabKey,
+      component: 'special-panel',
+      params: {
+        specialType: 'workflow-builder',
+        workflowId: workflowId || null,
+        isView: false,
+        isSpecial: true
+      },
+      title: label
+    });
+  }
+  window.openWorkflowBuilderTab = openWorkflowBuilderTab;
+
+
   function openVfsTab() {
     var tabKey = 'special:vfs';
     var dv = window._dockview;

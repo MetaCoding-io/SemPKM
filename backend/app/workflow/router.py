@@ -1,6 +1,9 @@
-"""Workflow router — runner UI and API endpoints for WorkflowSpec.
+"""Workflow router — runner UI, builder, and API endpoints for WorkflowSpec.
 
 Provides:
+- GET /browser/workflow/explorer — workflow explorer sidebar section
+- GET /browser/workflow/new — workflow builder form (create mode)
+- GET /browser/workflow/{id}/edit — workflow builder form (edit mode)
 - GET /browser/workflow/{id}/run — render workflow runner (stepper + step content)
 - GET /browser/workflow/{id}/step/{index} — render individual step content
 - GET /api/workflow — list user's workflows (JSON)
@@ -18,6 +21,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
 from app.workflow.service import WorkflowService, WorkflowData
+from app.workflow.models import VALID_STEP_TYPES
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +37,70 @@ def _get_workflow_service(request: Request) -> WorkflowService:
 # ---------------------------------------------------------------------------
 # Browser routes (htmx partials)
 # ---------------------------------------------------------------------------
+
+
+@browser_router.get("/explorer")
+async def workflow_explorer(
+    request: Request,
+    user: User = Depends(get_current_user),
+):
+    """Render WORKFLOWS section content for the explorer sidebar."""
+    templates = request.app.state.templates
+    service = _get_workflow_service(request)
+    workflows = await service.list_for_user(user.id)
+    context = {
+        "request": request,
+        "workflows": workflows,
+    }
+    return templates.TemplateResponse(
+        request, "browser/workflow_explorer.html", context
+    )
+
+
+@browser_router.get("/new")
+async def workflow_builder_new(
+    request: Request,
+    user: User = Depends(get_current_user),
+):
+    """Render workflow builder form in create mode (empty fields)."""
+    templates = request.app.state.templates
+    context = {
+        "request": request,
+        "workflow": None,
+        "valid_step_types": sorted(VALID_STEP_TYPES),
+    }
+    return templates.TemplateResponse(
+        request, "browser/workflow_builder.html", context
+    )
+
+
+@browser_router.get("/{workflow_id}/edit")
+async def workflow_builder_edit(
+    request: Request,
+    workflow_id: str,
+    user: User = Depends(get_current_user),
+):
+    """Render workflow builder form in edit mode (pre-populated fields)."""
+    templates = request.app.state.templates
+    service = _get_workflow_service(request)
+
+    try:
+        wid = uuid.UUID(workflow_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid workflow ID")
+
+    workflow = await service.get(wid)
+    if not workflow:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+
+    context = {
+        "request": request,
+        "workflow": workflow,
+        "valid_step_types": sorted(VALID_STEP_TYPES),
+    }
+    return templates.TemplateResponse(
+        request, "browser/workflow_builder.html", context
+    )
 
 
 @browser_router.get("/{workflow_id}/run")

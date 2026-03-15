@@ -1,0 +1,391 @@
+{# Workflow builder form — create or edit a WorkflowSpec.
+
+   Context:
+     workflow: WorkflowData | None (None = create mode)
+     valid_step_types: list[str] sorted step type names
+#}
+
+<div class="workflow-builder" id="workflow-builder-form">
+  <h2 class="form-title">
+    <i data-lucide="{{ 'pencil' if workflow else 'plus-circle' }}"></i>
+    {{ 'Edit Workflow' if workflow else 'New Workflow' }}
+  </h2>
+
+  {% if workflow %}
+  <input type="hidden" id="wf-builder-workflow-id" value="{{ workflow.id }}">
+  {% endif %}
+
+  <div id="builder-error" class="builder-error" style="display:none;"></div>
+
+  <!-- Name & description -->
+  <div class="form-field">
+    <label for="wf-builder-name">Name <span class="required-marker">*</span></label>
+    <input type="text" id="wf-builder-name" placeholder="My Workflow"
+           value="{{ workflow.name if workflow else '' }}" maxlength="255" required>
+  </div>
+
+  <div class="form-field">
+    <label for="wf-builder-description">Description</label>
+    <textarea id="wf-builder-description" rows="2"
+              placeholder="Optional description">{{ workflow.description if workflow else '' }}</textarea>
+  </div>
+
+  <!-- Steps section -->
+  <div class="form-field">
+    <label>Steps</label>
+    <div id="wf-builder-steps"></div>
+    <button type="button" class="btn-secondary builder-add-block-btn" onclick="window._wfBuilderAddStep()">
+      <i data-lucide="plus"></i> Add Step
+    </button>
+  </div>
+
+  <!-- Actions -->
+  <div class="form-actions">
+    <button type="button" class="btn-primary" id="wf-builder-save-btn" onclick="window._wfBuilderSave()">
+      <i data-lucide="save"></i> Save Workflow
+    </button>
+    <button type="button" class="btn-secondary" onclick="window._wfBuilderCancel()">
+      Cancel
+    </button>
+    <span class="builder-saving-indicator" id="wf-builder-saving" style="display:none;">Saving...</span>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  var validStepTypes = {{ valid_step_types | tojson }};
+  var existingSteps = {{ (workflow.steps if workflow else []) | tojson }};
+  var stepCounter = 0;
+
+  // ------ Step type config fields ------
+
+  function getTypeConfigHTML(stepType, config) {
+    config = config || {};
+    switch (stepType) {
+      case 'view':
+        return '<div class="block-config-fields">' +
+          '<div class="form-field"><label>View Spec</label>' +
+          '<select class="step-config-spec-iri" data-key="spec_iri"><option value="">Loading views...</option></select></div>' +
+          '<div class="form-field"><label>Renderer</label>' +
+          '<select class="step-config-renderer" data-key="renderer_type">' +
+          '<option value="table"' + (config.renderer_type === 'table' ? ' selected' : '') + '>Table</option>' +
+          '<option value="card"' + (config.renderer_type === 'card' ? ' selected' : '') + '>Card</option>' +
+          '<option value="graph"' + (config.renderer_type === 'graph' ? ' selected' : '') + '>Graph</option>' +
+          '</select></div>' +
+          '</div>';
+      case 'dashboard':
+        return '<div class="block-config-fields">' +
+          '<div class="form-field"><label>Dashboard</label>' +
+          '<select class="step-config-dashboard-id" data-key="dashboard_id"><option value="">Loading dashboards...</option></select></div>' +
+          '</div>';
+      case 'form':
+        return '<div class="block-config-fields">' +
+          '<div class="form-field"><label>Target Class IRI</label>' +
+          '<input type="text" class="block-config-input" data-key="target_class" placeholder="e.g. http://example.org/MyClass" value="' +
+          escapeAttr(config.target_class || '') + '"></div></div>';
+      default:
+        return '';
+    }
+  }
+
+  function escapeAttr(s) {
+    return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  // ------ Fetch available views for view step type ------
+
+  var _cachedViews = null;
+
+  function populateViewSelect(selectEl, currentValue) {
+    if (_cachedViews) {
+      renderViewOptions(selectEl, currentValue);
+      return;
+    }
+    fetch('/browser/views/available')
+      .then(function(r) { return r.json(); })
+      .then(function(views) {
+        _cachedViews = views;
+        renderViewOptions(selectEl, currentValue);
+      })
+      .catch(function() {
+        selectEl.innerHTML = '<option value="">Failed to load views</option>';
+      });
+  }
+
+  function renderViewOptions(selectEl, currentValue) {
+    selectEl.innerHTML = '<option value="">— Select a view —</option>';
+    (_cachedViews || []).forEach(function(v) {
+      var opt = document.createElement('option');
+      opt.value = v.spec_iri || v.iri || '';
+      opt.textContent = v.label || v.spec_iri || 'Unnamed';
+      if (opt.value === currentValue) opt.selected = true;
+      selectEl.appendChild(opt);
+    });
+  }
+
+  // ------ Fetch available dashboards for dashboard step type ------
+
+  var _cachedDashboards = null;
+
+  function populateDashboardSelect(selectEl, currentValue) {
+    if (_cachedDashboards) {
+      renderDashboardOptions(selectEl, currentValue);
+      return;
+    }
+    fetch('/api/dashboard')
+      .then(function(r) { return r.json(); })
+      .then(function(dashboards) {
+        _cachedDashboards = dashboards;
+        renderDashboardOptions(selectEl, currentValue);
+      })
+      .catch(function() {
+        selectEl.innerHTML = '<option value="">Failed to load dashboards</option>';
+      });
+  }
+
+  function renderDashboardOptions(selectEl, currentValue) {
+    selectEl.innerHTML = '<option value="">— Select a dashboard —</option>';
+    (_cachedDashboards || []).forEach(function(d) {
+      var opt = document.createElement('option');
+      opt.value = d.id || '';
+      opt.textContent = d.name || 'Unnamed';
+      if (opt.value === currentValue) opt.selected = true;
+      selectEl.appendChild(opt);
+    });
+  }
+
+  // ------ Step row management ------
+
+  function createStepRow(step) {
+    step = step || {};
+    var idx = stepCounter++;
+
+    var row = document.createElement('div');
+    row.className = 'block-row';
+    row.dataset.stepIndex = idx;
+
+    // Type select
+    var typeSelect = '<select class="block-type-select" onchange="window._wfBuilderTypeChanged(this)">';
+    typeSelect += '<option value="">— Select type —</option>';
+    validStepTypes.forEach(function(t) {
+      typeSelect += '<option value="' + t + '"' + (step.type === t ? ' selected' : '') + '>' + t + '</option>';
+    });
+    typeSelect += '</select>';
+
+    var configHTML = step.type ? getTypeConfigHTML(step.type, step.config || {}) : '';
+
+    row.innerHTML =
+      '<div class="block-row-header">' +
+        '<span class="block-row-label">Step ' + (idx + 1) + '</span>' +
+        '<div class="form-field step-label-field"><input type="text" class="step-label-input" placeholder="Step label (optional)" value="' +
+        escapeAttr(step.label || '') + '"></div>' +
+        '<button type="button" class="btn-icon builder-remove-block-btn" onclick="window._wfBuilderRemoveStep(this)" title="Remove step">' +
+          '<i data-lucide="trash-2"></i></button>' +
+      '</div>' +
+      '<div class="block-row-fields">' +
+        '<div class="form-field"><label>Type</label>' + typeSelect + '</div>' +
+      '</div>' +
+      '<div class="block-config-container">' + configHTML + '</div>';
+
+    return row;
+  }
+
+  window._wfBuilderAddStep = function(step) {
+    var container = document.getElementById('wf-builder-steps');
+    var row = createStepRow(step);
+    container.appendChild(row);
+
+    // Populate selects if needed
+    if (step && step.type === 'view') {
+      var specSelect = row.querySelector('.step-config-spec-iri');
+      if (specSelect) populateViewSelect(specSelect, (step.config || {}).spec_iri || '');
+    }
+    if (step && step.type === 'dashboard') {
+      var dashSelect = row.querySelector('.step-config-dashboard-id');
+      if (dashSelect) populateDashboardSelect(dashSelect, (step.config || {}).dashboard_id || '');
+    }
+
+    if (typeof lucide !== 'undefined') lucide.createIcons({ nodes: [row] });
+  };
+
+  window._wfBuilderRemoveStep = function(btn) {
+    var row = btn.closest('.block-row');
+    if (row) row.remove();
+    renumberSteps();
+  };
+
+  window._wfBuilderTypeChanged = function(select) {
+    var row = select.closest('.block-row');
+    var container = row.querySelector('.block-config-container');
+    var stepType = select.value;
+    container.innerHTML = getTypeConfigHTML(stepType, {});
+
+    // Auto-populate selects
+    if (stepType === 'view') {
+      var specSelect = container.querySelector('.step-config-spec-iri');
+      if (specSelect) populateViewSelect(specSelect, '');
+    }
+    if (stepType === 'dashboard') {
+      var dashSelect = container.querySelector('.step-config-dashboard-id');
+      if (dashSelect) populateDashboardSelect(dashSelect, '');
+    }
+
+    if (typeof lucide !== 'undefined') lucide.createIcons({ nodes: [container] });
+  };
+
+  function renumberSteps() {
+    var rows = document.querySelectorAll('#wf-builder-steps .block-row');
+    rows.forEach(function(row, i) {
+      var label = row.querySelector('.block-row-label');
+      if (label) label.textContent = 'Step ' + (i + 1);
+    });
+  }
+
+  // ------ Save ------
+
+  window._wfBuilderSave = function() {
+    var nameInput = document.getElementById('wf-builder-name');
+    var name = nameInput.value.trim();
+    if (!name) {
+      showError('Name is required.');
+      nameInput.focus();
+      return;
+    }
+
+    var descEl = document.getElementById('wf-builder-description');
+    var description = descEl ? descEl.value.trim() : '';
+
+    // Collect steps
+    var steps = [];
+    var rows = document.querySelectorAll('#wf-builder-steps .block-row');
+    rows.forEach(function(row) {
+      var typeSelect = row.querySelector('.block-type-select');
+      var labelInput = row.querySelector('.step-label-input');
+      if (!typeSelect || !typeSelect.value) return;
+
+      var step = {
+        type: typeSelect.value,
+        label: labelInput ? labelInput.value.trim() : '',
+        config: {}
+      };
+
+      // Collect config from inputs/textareas/selects with data-key
+      var configEls = row.querySelectorAll('[data-key]');
+      configEls.forEach(function(el) {
+        var key = el.dataset.key;
+        if (el.type === 'checkbox') {
+          if (el.checked) step.config[key] = true;
+        } else {
+          var val = el.value || '';
+          if (val) step.config[key] = val;
+        }
+      });
+
+      steps.push(step);
+    });
+
+    var payload = { name: name, description: description, steps: steps };
+
+    var workflowId = null;
+    var idInput = document.getElementById('wf-builder-workflow-id');
+    if (idInput) workflowId = idInput.value;
+
+    var url = workflowId ? '/api/workflow/' + workflowId : '/api/workflow';
+    var method = workflowId ? 'PATCH' : 'POST';
+
+    var saveBtn = document.getElementById('wf-builder-save-btn');
+    var savingIndicator = document.getElementById('wf-builder-saving');
+    saveBtn.disabled = true;
+    if (savingIndicator) savingIndicator.style.display = 'inline';
+    hideError();
+
+    fetch(url, {
+      method: method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .then(function(resp) {
+      if (!resp.ok) {
+        return resp.json().then(function(data) {
+          throw new Error(data.detail || 'Save failed (HTTP ' + resp.status + ')');
+        });
+      }
+      return resp.json();
+    })
+    .then(function(data) {
+      // Success: open the workflow runner tab and close the builder
+      if (window.openWorkflowTab) {
+        window.openWorkflowTab(data.id, data.name);
+      }
+      // Refresh the WORKFLOWS explorer section
+      if (typeof htmx !== 'undefined') {
+        htmx.trigger(document.body, 'workflowsRefreshed');
+      }
+      // Close builder tab
+      var builderTabKey = workflowId
+        ? 'workflow-builder:' + workflowId
+        : 'workflow-builder:new';
+      if (window._dockview) {
+        var panel = window._dockview.panels.find(function(p) { return p.id === builderTabKey; });
+        if (panel) panel.api.close();
+      }
+    })
+    .catch(function(err) {
+      console.error('Workflow save error:', err);
+      showError(err.message || 'Failed to save workflow.');
+    })
+    .finally(function() {
+      saveBtn.disabled = false;
+      if (savingIndicator) savingIndicator.style.display = 'none';
+    });
+  };
+
+  window._wfBuilderCancel = function() {
+    var workflowId = null;
+    var idInput = document.getElementById('wf-builder-workflow-id');
+    if (idInput) workflowId = idInput.value;
+    var builderTabKey = workflowId
+      ? 'workflow-builder:' + workflowId
+      : 'workflow-builder:new';
+    if (window._dockview) {
+      var panel = window._dockview.panels.find(function(p) { return p.id === builderTabKey; });
+      if (panel) panel.api.close();
+    }
+  };
+
+  // ------ Error display ------
+
+  function showError(msg) {
+    var el = document.getElementById('builder-error');
+    if (el) {
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+  }
+
+  function hideError() {
+    var el = document.getElementById('builder-error');
+    if (el) {
+      el.textContent = '';
+      el.style.display = 'none';
+    }
+  }
+
+  // ------ Init ------
+
+  // Load existing steps for edit mode
+  if (existingSteps && existingSteps.length > 0) {
+    existingSteps.forEach(function(s) {
+      window._wfBuilderAddStep(s);
+    });
+  }
+
+  // Init lucide icons in the builder
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons({ nodes: [document.getElementById('workflow-builder-form')] });
+  }
+
+})();
+</script>

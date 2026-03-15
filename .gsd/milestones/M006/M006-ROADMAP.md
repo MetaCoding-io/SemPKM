@@ -74,7 +74,7 @@ This milestone is complete only when all are true:
   > After this: selecting a row in one view-embed block filters another view-embed block in the same dashboard via parameterized SPARQL with VALUES binding; dashboard context variables flow via custom events and htmx re-fetch
 - [x] **S06: WorkflowSpec Model & Runner** `risk:medium` `depends:[S03]`
   > After this: user can create a workflow with ordered steps (view, dashboard, or form) via the API, and run it with a step indicator bar, prev/next navigation, and context flowing between steps
-- [ ] **S07: Workflow Builder UI & Final Integration** `risk:low` `depends:[S04, S05, S06]`
+- [x] **S07: Workflow Builder UI & Final Integration** `risk:low` `depends:[S04, S05, S06]`
   > After this: user can create/edit workflows through a form-based UI; workflows appear in explorer; full CRUD for both dashboards and workflows; all success criteria verified end-to-end
 
 ## Boundary Map
