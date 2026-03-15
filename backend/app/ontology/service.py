@@ -2291,7 +2291,10 @@ SELECT ?label WHERE {{
             "prop_type": prop_type,
             "triple_count": len(triples),
         }
+<<<<<<< HEAD
 =======
 >>>>>>> gsd/M003/S07
 =======
 >>>>>>> gsd/M003/S08
+=======
+>>>>>>> gsd/M004/S03
