@@ -115,6 +115,28 @@ export const SEL = {
     tabAbox: '[data-testid="ontology-tab-abox"]',
     tabRbox: '[data-testid="ontology-tab-rbox"]',
   },
+  // Tag hierarchy & autocomplete
+  tagHierarchy: {
+    folder: '[data-testid="tag-folder"]',
+    object: '[data-testid="tag-object"]',
+    treeChildren: '.tree-children',
+    countBadge: '.tree-count-badge',
+    treeLabel: '.tree-label',
+    autocompleteField: '.tag-autocomplete-field',
+    autocompleteInput: '.tag-autocomplete-field input[type="text"]',
+    suggestionsDropdown: '.suggestions-dropdown',
+    suggestionItem: '.suggestion-item',
+  },
+
+  // Operations log
+  opsLog: {
+    table: '[data-testid="ops-log-table"]',
+    row: '.ops-log-row',
+    typeBadge: '.ops-log-type-badge',
+    filter: '#ops-log-filter',
+    status: '.ops-log-status',
+  },
+
   // Class creation
   classCreation: {
     createButton: '[data-testid="create-class-btn"]',

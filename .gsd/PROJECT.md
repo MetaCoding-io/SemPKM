@@ -197,6 +197,19 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - ✓ User guide: 6 new sections in chapter 10 covering all M004 features — M004
 - ✓ Unit test coverage: 114 ontology tests, 386 total backend tests — M004
 
+### Validated (M005 — Platform Polish & Foundation)
+
+<!-- Shipped and confirmed in M005 (2026-03-14). -->
+
+- ✓ Query SQL→RDF migration: saved queries, history, sharing, promotion stored as RDF — M005
+- ✓ Operations log with PROV-O vocabulary (prov:Activity, prov:startedAtTime, prov:wasAssociatedWith) — M005
+- ✓ Hierarchical tag tree: `/`-delimited nesting at arbitrary depth in By Tag explorer — M005
+- ✓ Tag autocomplete: type-ahead suggestions in edit forms with frequency ordering — M005
+- ✓ Model schema refresh: POST endpoint updates artifact graphs without uninstall — M005
+- ✓ Design docs: PROV-O alignment, views rethink, VFS v2 design refinement — M005
+- ✓ E2E test coverage: 5 new Playwright tests for M005 features — M005
+- ✓ User guide: 4 chapters updated (workspace, objects, models, debugging) — M005
+
 ### Future Candidates
 
 <!-- Tracked for future milestones. See .gsd/QUEUE.md for full queue and .gsd/REQUIREMENTS.md for deferred requirements. -->
@@ -241,7 +254,17 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current State
 
-**Latest shipped: M004 Ontology & Type System Completion (2026-03-14)**
+**Latest shipped: M005 Platform Polish & Foundation (2026-03-14)**
+
+**What shipped in M005 (Platform Polish & Foundation):**
+- Query SQL→RDF migration: saved queries, history, sharing, promotion stored as RDF in triplestore
+- Operations log with PROV-O vocabulary: admin UI at /admin/ops-log with filter and pagination
+- Hierarchical tag tree: `/`-delimited tags nest at arbitrary depth in By Tag explorer
+- Tag autocomplete: type-ahead suggestions in edit forms with frequency ordering
+- Model schema refresh: POST endpoint updates ontology/shapes/views/rules without uninstall
+- Design docs: PROV-O alignment, views rethink, VFS v2 design refinement
+- E2E test coverage: 5 new Playwright tests across 3 spec files
+- User guide: 4 chapters updated with new feature documentation
 
 **What shipped in M004 (Ontology & Type System Completion):**
 - Property CRUD: create ObjectProperty/DatatypeProperty from RBox tab, edit (rename, change domain/range), delete with confirmation
@@ -252,9 +275,9 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - User guide: 6 new sections in chapter 10 documenting all M004 features
 - Unit tests: 114 ontology tests, 386 total backend tests passing
 
-**Previous milestones:** M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
+**Previous milestones:** M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
 
-**Current milestone:** M005 Platform Polish & Foundation — S01 (Query SQL→RDF) ✅, S02 (Operations Log & PROV-O) ✅, S03 (Hierarchical Tag Tree) ✅, S04 (Tag Autocomplete) ✅, S05 (Model Schema Refresh) ✅, S06 (PROV-O Alignment Design) ✅, S07 (Views Rethink Design) ✅. See `.gsd/milestones/M005/M005-ROADMAP.md` for remaining slices (S08-S09).
+**Current milestone:** M005 Platform Polish & Foundation — ✅ complete (all 9 slices done: S01 Query SQL→RDF, S02 Operations Log & PROV-O, S03 Hierarchical Tag Tree, S04 Tag Autocomplete, S05 Model Schema Refresh, S06 PROV-O Alignment Design, S07 Views Rethink Design, S08 VFS v2 Design, S09 E2E Tests & Docs).
 
 ## Context
 
@@ -264,7 +287,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Docker Compose deployment: 3 services (api, triplestore, frontend/nginx) + federation test compose (2 instances)
 - 58 phases, 80 plans completed across v1.0–v2.6; M002 (7 slices) + M003 (10 slices) + M004 (5 slices) milestones complete
 - Backend test suite: 386 pytest unit tests, <4s, no Docker dependency
-- E2E test suite: 83 Playwright spec files covering all shipped features
+- E2E test suite: 86 Playwright spec files covering all shipped features
 - All dependencies pinned (~= compatible release) with uv.lock committed
 - Browser router refactored into 8 domain sub-modules (was 1956-line monolith)
 
@@ -379,4 +402,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-03-14 after M005/S08 VFS v2 Design Refinement*
+*Last updated: 2026-03-14 after M005 complete (all 9 slices)*

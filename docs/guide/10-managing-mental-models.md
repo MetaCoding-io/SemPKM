@@ -176,6 +176,57 @@ If the model is not installed (HTTP 404):
 }
 ```
 
+## Refreshing Model Artifacts
+
+Over time, the files that define a Mental Model (ontology, shapes, views, rules) may be updated on disk — for example, after a model author releases a new version, or after you edit view definitions locally. The **Refresh** feature reloads these artifacts from disk without removing and reinstalling the model.
+
+### When to Use Refresh
+
+Use Refresh when:
+
+- You have updated model files on disk (ontology, shapes, views, or rules) and want the changes reflected in the running system
+- Views or shapes seem out of date or are not matching the files on disk
+- A model author has provided updated artifact files for an existing model version
+
+You do **not** need Refresh for normal day-to-day use — it is specifically for updating model definitions.
+
+### What Refresh Preserves
+
+Refresh is designed to update model *definitions* without touching your *data*:
+
+- **Preserved:** All user-created objects, edges, events, and seed data remain untouched. Your knowledge base content is safe.
+- **Replaced:** Ontology classes, SHACL shapes, view definitions, and rules are cleared from their named graphs and reloaded from the model's files on disk.
+
+### What Refresh Replaces
+
+The refresh operation clears and reloads the following named graphs:
+
+- `urn:sempkm:model:{modelId}:ontology` — OWL classes and properties
+- `urn:sempkm:model:{modelId}:shapes` — SHACL NodeShapes for form generation and validation
+- `urn:sempkm:model:{modelId}:views` — ViewSpec definitions for table, card, and graph views
+- Rules associated with the model
+
+### Transactional Safety
+
+The refresh operation is **transactional**. All graph clears and reloads happen within a single transaction. If loading any artifact fails (e.g., due to a malformed JSON-LD file), the entire operation is rolled back and the previous model state is preserved. You will see an error message describing what went wrong.
+
+### Refreshing from the Admin Portal
+
+1. Navigate to the **Models** page in the Admin Portal (`/admin/models`).
+2. Find the model you want to refresh in the installed models table.
+3. Click the **Refresh** button next to the model.
+4. A confirmation dialog appears: confirm to proceed, or cancel to abort.
+5. If successful, a success message appears. The model's ontology, shapes, views, and rules are now up to date with the files on disk.
+6. If the refresh fails, an error message explains the problem. The model's previous state is preserved.
+
+You can also refresh from the **model detail page** (`/admin/models/{model_id}`), which has its own Refresh button.
+
+### Refresh and the Operations Log
+
+Every refresh operation — whether it succeeds or fails — is recorded in the [Operations Log](#operations-log). The log entry shows the activity type ("Model Refresh"), the affected model, the duration, and the result (success or failure with error details). This provides an audit trail for model management activities.
+
+> **Tip:** If a refresh fails, check the Operations Log for the detailed error message. Common causes include malformed JSON-LD syntax or missing entrypoint files referenced in the manifest.
+
 ## Running Multiple Mental Models
 
 SemPKM is designed to support multiple Mental Models installed simultaneously. Each model operates in its own namespace, preventing type and property collisions.

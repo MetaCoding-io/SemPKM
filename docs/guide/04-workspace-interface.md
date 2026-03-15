@@ -88,6 +88,19 @@ The OBJECTS section header includes a **mode selector** dropdown that lets you s
 
 Switch modes by clicking the dropdown next to "OBJECTS" and selecting a mode. The tree reloads to show objects organized according to the selected mode. Your mode selection is remembered across page reloads.
 
+#### Hierarchical Tags
+
+When using the **By Tag** explorer mode, tags that contain a `/` delimiter are displayed as nested folder hierarchies rather than flat entries. This lets you organize objects with structured tag vocabularies like `garden/cultivate`, `architect/build`, or `research/methods/qualitative`.
+
+**How hierarchical tags work:**
+
+- **Folder structure from `/` segments** — A tag like `garden/cultivate` creates a root folder "garden" with a sub-folder "cultivate" inside it. The top-level segments appear as root folders in the tree; deeper segments appear as nested sub-folders when you expand the parent.
+- **Count badges** — Each folder shows a count badge indicating the total number of tagged objects at that level and below. A root folder's count includes objects tagged with any sub-tag beneath it.
+- **Lazy expansion** — Folders expand on click. Sub-folders and the objects within them are loaded only when you click to expand a folder node, keeping the initial tree load fast.
+- **Tags as both folders and values** — If a tag value is used directly *and* also serves as a prefix for deeper tags (e.g., objects tagged `garden` and others tagged `garden/cultivate`), the folder node shows both the directly tagged objects and the child sub-folders when expanded.
+
+> **Example:** If your objects use tags `research`, `research/methods`, and `research/methods/qualitative`, the By Tag tree shows a "research" root folder. Expanding it reveals a "methods" sub-folder and any objects tagged `research` directly. Expanding "methods" reveals "qualitative" and any objects tagged `research/methods`.
+
 #### Favorites
 
 The **FAVORITES** section appears at the top of the Explorer, above OBJECTS. To add an object to your favorites:

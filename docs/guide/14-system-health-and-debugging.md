@@ -270,6 +270,43 @@ The Event Log is a built-in panel in the workspace that shows a chronological re
 
 Access the Event Log from the workspace by opening the **Event Log** panel.
 
+### Operations Log
+
+The **Operations Log** records system-level administrative activities — model installs, model removals, model refreshes, inference runs, and validation runs. Unlike the Event Log (which tracks object-level data changes), the Operations Log tracks infrastructure operations that affect the system as a whole.
+
+#### Accessing the Operations Log
+
+Navigate to **Admin Portal > Operations Log**, or go directly to `/admin/ops-log`. The Operations Log requires the **owner** role.
+
+#### What the Operations Log Shows
+
+Each entry in the log displays:
+
+- **Timestamp** — when the operation occurred
+- **Activity description** — a human-readable summary of what happened (e.g., "Installed model 'basic-pkm'", "Refreshed artifacts for model 'basic-pkm'")
+- **Activity type badge** — a color-coded badge indicating the category: Model Install, Model Removal, Model Refresh, Inference Run, or Validation Run
+- **Actor** — the user who initiated the operation
+- **Status** — whether the operation succeeded or failed, shown as a colored badge
+- **Duration** — how long the operation took to complete
+
+#### Failed Operations
+
+When an operation fails, its status badge shows "failed" in red. Click the row to expand and reveal the **error details** — a description of what went wrong. This is especially useful for diagnosing model refresh failures or inference errors.
+
+#### Filtering by Activity Type
+
+A **filter dropdown** at the top of the log lets you narrow the view to a specific activity type. Select a type (e.g., "Model Refresh") to see only operations of that kind. Select "All" to reset the filter.
+
+#### Pagination
+
+The Operations Log uses **cursor-based pagination**. The page loads the most recent entries first. If more entries exist, a **"Load more"** button appears at the bottom. Click it to fetch the next page of older entries.
+
+#### Technical Details
+
+Internally, Operations Log entries are stored using the [PROV-O](https://www.w3.org/TR/prov-o/) (Provenance Ontology) vocabulary in the triplestore. Each entry is a `prov:Activity` with associated timestamps (`prov:startedAtTime`, `prov:endedAtTime`), agent (`prov:wasAssociatedWith`), and status metadata. This standards-based approach ensures that operational audit data is queryable via SPARQL alongside your knowledge base data.
+
+> **Tip:** The Operations Log complements the Event Log. Use the Event Log to trace *what changed* in your data, and the Operations Log to trace *what system operations* were performed and by whom.
+
 <!-- Screenshot: Event Log panel showing a timeline of events with operation badges, affected objects, users, and timestamps -->
 
 #### What the Event Log Shows
