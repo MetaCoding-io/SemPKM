@@ -3,20 +3,29 @@
 Thin assembler that mounts all browser sub-routers under the /browser
 prefix.  Individual route handlers live in their own domain modules:
 <<<<<<< HEAD
+<<<<<<< HEAD
 settings, pages, workspace, objects, events, search, ontology.
 =======
 settings, pages, workspace, objects, events, search.
 >>>>>>> gsd/M002/S04
+=======
+settings, pages, workspace, objects, events, search, ontology.
+>>>>>>> gsd/M003/S07
 """
 
 from fastapi import APIRouter
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 from app.ontology.router import ontology_router
 
 =======
 >>>>>>> gsd/M003/S06
+=======
+from app.ontology.router import ontology_router
+
+>>>>>>> gsd/M003/S07
 from .comments import comments_router
 from .events import events_router
 from .favorites import favorites_router
@@ -36,6 +45,7 @@ router = APIRouter(prefix="/browser", tags=["browser"])
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 # Include order: ontology and comments before objects because objects_router
 # has catch-all :path patterns that would consume /ontology/* and /comments/*.
 router.include_router(settings_router)
@@ -49,7 +59,12 @@ router.include_router(settings_router)
 =======
 # Include order: comments before objects because both use /object/{iri:path}
 # and objects_router's catch-all :path would consume the /comments suffix.
+=======
+# Include order: ontology and comments before objects because objects_router
+# has catch-all :path patterns that would consume /ontology/* and /comments/*.
+>>>>>>> gsd/M003/S07
 router.include_router(settings_router)
+router.include_router(ontology_router)
 router.include_router(comments_router)
 >>>>>>> gsd/M003/S06
 router.include_router(objects_router)

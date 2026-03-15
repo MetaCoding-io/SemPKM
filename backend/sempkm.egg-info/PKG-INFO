@@ -4,6 +4,9 @@ Version: 0.1.0
 Summary: SemPKM - Semantics-native Personal Knowledge Management
 Requires-Python: >=3.12
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> gsd/M003/S07
 Requires-Dist: aiosmtplib~=5.1.0
 Requires-Dist: fastapi[standard]~=0.132.0
 Requires-Dist: rdflib~=7.6.0
@@ -29,6 +32,7 @@ Requires-Dist: owlrl~=7.1.4
 Requires-Dist: mf2py~=2.0.1
 Requires-Dist: http-message-signatures~=2.0.1
 Requires-Dist: slowapi~=0.1.9
+<<<<<<< HEAD
 =======
 Requires-Dist: aiosmtplib>=3.0
 Requires-Dist: fastapi[standard]
@@ -56,6 +60,8 @@ Requires-Dist: mf2py>=2.0
 Requires-Dist: http-message-signatures>=2.0.1
 Requires-Dist: slowapi>=0.1.9
 >>>>>>> gsd/M002/S03
+=======
+>>>>>>> gsd/M003/S07
 Provides-Extra: dev
 Requires-Dist: pytest; extra == "dev"
 Requires-Dist: pytest-asyncio; extra == "dev"

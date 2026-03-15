@@ -366,6 +366,7 @@
     color: #8b5cf6;
 }
 
+<<<<<<< HEAD
 /* Delete button on user-type TBox nodes — hover-reveal */
 .tbox-edit-btn,
 .tbox-delete-btn {
@@ -522,6 +523,8 @@ tr:hover .rbox-edit-btn {
     border-color: #dc2626;
 }
 
+=======
+>>>>>>> gsd/M003/S07
 .tree-toggle-leaf {
     color: var(--color-text-faint, var(--color-text-muted));
     font-size: 0.5rem;
@@ -568,10 +571,16 @@ tr:hover .rbox-edit-btn {
 
 .ontology-tabs {
     display: flex;
+<<<<<<< HEAD
     gap: 16px;
     border-bottom: 1px solid var(--color-border);
     margin-bottom: var(--space-sm);
     padding: var(--space-xs) 0;
+=======
+    gap: 2px;
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: var(--space-sm);
+>>>>>>> gsd/M003/S07
     flex-shrink: 0;
 }
 
@@ -615,13 +624,17 @@ tr:hover .rbox-edit-btn {
     display: none;
     height: 100%;
     overflow-y: auto;
+<<<<<<< HEAD
     padding: 0 24px;
+=======
+>>>>>>> gsd/M003/S07
 }
 
 .ontology-pane--active {
     display: block;
 }
 
+<<<<<<< HEAD
 /* TBox split layout: tree left, detail right */
 .tbox-split {
     display: flex;
@@ -880,12 +893,15 @@ tr:hover .rbox-edit-btn {
     display: block;
 }
 
+=======
+>>>>>>> gsd/M003/S07
 .ontology-loading {
     padding: var(--space-md);
     color: var(--color-text-muted);
     font-size: var(--font-size-sm);
 }
 
+<<<<<<< HEAD
 /* "Create Class" trigger button in tab bar */
 .ccf-trigger-btn {
     margin-left: auto;
@@ -1524,6 +1540,8 @@ tr:hover .rbox-edit-btn {
     margin-top: var(--space-sm);
 }
 
+=======
+>>>>>>> gsd/M003/S07
 /* --- ABox Browser --- */
 
 .abox-summary {
@@ -1636,6 +1654,7 @@ tr:hover .rbox-edit-btn {
     font-weight: 600;
 }
 
+<<<<<<< HEAD
 .rbox-section-help {
     margin: 0 0 8px;
     font-size: 0.8rem;
@@ -1643,6 +1662,8 @@ tr:hover .rbox-edit-btn {
     font-style: italic;
 }
 
+=======
+>>>>>>> gsd/M003/S07
 .rbox-table {
     width: 100%;
     border-collapse: collapse;
@@ -1651,12 +1672,20 @@ tr:hover .rbox-edit-btn {
 
 .rbox-table th {
     text-align: left;
+<<<<<<< HEAD
     padding: 6px 8px;
     border-bottom: 1px solid var(--color-border);
     background: var(--color-bg-subtle, rgba(128, 128, 128, 0.08));
     color: var(--color-text);
     font-weight: 600;
     font-size: 0.75rem;
+=======
+    padding: var(--space-xs) var(--space-sm);
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+    font-weight: 500;
+    font-size: var(--font-size-xs);
+>>>>>>> gsd/M003/S07
     text-transform: uppercase;
     letter-spacing: 0.03em;
 }
@@ -1680,6 +1709,7 @@ tr:hover .rbox-edit-btn {
     color: var(--color-text-muted);
 }
 
+<<<<<<< HEAD
 .rbox-group {
     margin-bottom: var(--space-md);
 }
@@ -1753,6 +1783,8 @@ tr:hover .rbox-edit-btn {
     color: var(--color-text-muted);
 }
 
+=======
+>>>>>>> gsd/M003/S07
 /* ============================================
    Split.js Gutter
    ============================================ */

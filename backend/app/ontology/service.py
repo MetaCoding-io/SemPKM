@@ -9,6 +9,7 @@ aggregation across gist + all installed model ontology graphs + user-types
 to present a unified class hierarchy.
 """
 
+<<<<<<< HEAD
 import asyncio
 import logging
 import re
@@ -18,6 +19,13 @@ from pathlib import Path
 
 from rdflib import BNode, Graph, Literal, Namespace, URIRef
 from rdflib.namespace import OWL, RDF, RDFS, SH, XSD
+=======
+import logging
+import time
+from pathlib import Path
+
+from rdflib import BNode, Graph, Literal, URIRef
+>>>>>>> gsd/M003/S07
 
 from app.models.registry import MODELS_GRAPH, SEMPKM_NS
 from app.triplestore.client import TriplestoreClient
@@ -35,6 +43,7 @@ GIST_NS = "https://w3id.org/semanticarts/ns/ontology/gist/"
 # Batch size for INSERT DATA operations (triples per batch)
 BATCH_SIZE = 500
 
+<<<<<<< HEAD
 # SemPKM predicates for user-type metadata
 SEMPKM_TYPE_ICON = URIRef(f"{SEMPKM_NS}typeIcon")
 SEMPKM_TYPE_COLOR = URIRef(f"{SEMPKM_NS}typeColor")
@@ -125,6 +134,8 @@ def _property_source(iri: str) -> str:
         return "sempkm"
     return "other"
 
+=======
+>>>>>>> gsd/M003/S07
 
 def _rdf_term_to_sparql(term) -> str:
     """Serialize an rdflib term to SPARQL syntax.
@@ -197,6 +208,7 @@ class OntologyService:
         result = await self._client.query(sparql)
         return result.get("boolean", False)
 
+<<<<<<< HEAD
     async def _are_gist_annotations_loaded(self) -> bool:
         """Check whether gist RDFS annotations have been loaded.
 
@@ -249,12 +261,16 @@ class OntologyService:
         *,
         annotations_path: Path | None = None,
     ) -> None:
+=======
+    async def ensure_gist_loaded(self, gist_path: Path) -> None:
+>>>>>>> gsd/M003/S07
         """Load gist ontology into the triplestore if not already present.
 
         Parses the Turtle file with rdflib, splits triples into batches of
         ≤500, and executes each batch as INSERT DATA within a transaction.
         Skips loading if the version check ASK query returns true.
 
+<<<<<<< HEAD
         If *annotations_path* is provided and the annotations haven't been
         loaded yet, loads them into the same gist graph. This is idempotent
         — safe to call on every startup.
@@ -451,6 +467,56 @@ WHERE {{
             "graph_iri": GIST_GRAPH,
             "namespace": GIST_NS,
         }
+=======
+        Args:
+            gist_path: Path to the gistCore Turtle file.
+        """
+        if await self.is_gist_loaded():
+            logger.info("gist already loaded, skipping")
+            return
+
+        if not gist_path.exists():
+            logger.error("gist ontology file not found: %s", gist_path)
+            raise FileNotFoundError(f"gist ontology file not found: {gist_path}")
+
+        start = time.monotonic()
+        try:
+            # Parse gist Turtle with rdflib
+            g = Graph()
+            g.parse(gist_path, format="turtle")
+            all_triples = list(g)
+            triple_count = len(all_triples)
+
+            # Split into batches
+            batches = _split_triples_into_batches(all_triples)
+
+            # Execute batches within a transaction
+            txn_url = await self._client.begin_transaction()
+            try:
+                for i, batch in enumerate(batches):
+                    sparql = _build_insert_data_sparql(GIST_GRAPH, batch)
+                    await self._client.transaction_update(txn_url, sparql)
+                    logger.debug(
+                        "Inserted batch %d/%d (%d triples)",
+                        i + 1,
+                        len(batches),
+                        len(batch),
+                    )
+                await self._client.commit_transaction(txn_url)
+            except Exception:
+                await self._client.rollback_transaction(txn_url)
+                raise
+
+            elapsed = time.monotonic() - start
+            logger.info(
+                "Loaded gist 14.0.0: %d triples in %.1fs", triple_count, elapsed
+            )
+        except FileNotFoundError:
+            raise
+        except Exception:
+            logger.error("Failed to load gist", exc_info=True)
+            raise
+>>>>>>> gsd/M003/S07
 
     # ------------------------------------------------------------------
     # TBox query methods — cross-graph class hierarchy
@@ -543,6 +609,7 @@ ORDER BY ?label"""
         )
         return classes
 
+<<<<<<< HEAD
     async def get_model_classes_with_parents(self) -> list[dict]:
         """Get non-gist classes grouped under their gist parent classes.
 
@@ -639,6 +706,8 @@ ORDER BY ?label"""
 
         return result_classes
 
+=======
+>>>>>>> gsd/M003/S07
     async def get_subclasses(self, parent_iri: str) -> list[dict]:
         """Query direct subclasses of a parent class across all ontology graphs.
 
@@ -693,6 +762,7 @@ ORDER BY ?label"""
         )
         return classes
 
+<<<<<<< HEAD
     async def get_class_detail(self, class_iri: str) -> dict:
         """Get detailed metadata for a single class.
 
@@ -977,6 +1047,8 @@ LIMIT {limit}"""
         logger.debug("TBox search '%s': %d results", query, len(classes))
         return classes
 
+=======
+>>>>>>> gsd/M003/S07
     async def _batch_has_subclasses(
         self, graph_iris: list[str], class_iris: list[str]
     ) -> dict[str, bool]:
@@ -1236,7 +1308,10 @@ ORDER BY ?propType ?label"""
                 "domain_label": b.get("domainLabel", {}).get("value", ""),
                 "range_iri": b.get("range", {}).get("value", ""),
                 "range_label": b.get("rangeLabel", {}).get("value", ""),
+<<<<<<< HEAD
                 "source": _property_source(b["prop"]["value"]),
+=======
+>>>>>>> gsd/M003/S07
             }
             if "ObjectProperty" in b["propType"]["value"]:
                 object_props.append(prop)
@@ -1254,6 +1329,7 @@ ORDER BY ?propType ?label"""
             "object_properties": object_props,
             "datatype_properties": datatype_props,
         }
+<<<<<<< HEAD
 
     # ------------------------------------------------------------------
     # User-defined class creation and deletion
@@ -2173,3 +2249,5 @@ SELECT ?label WHERE {{
             "prop_type": prop_type,
             "triple_count": len(triples),
         }
+=======
+>>>>>>> gsd/M003/S07

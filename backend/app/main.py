@@ -37,7 +37,10 @@ from app.events.store import EventStore
 from app.health.router import router as health_router
 from app.models.router import router as models_router
 from app.ontology.service import OntologyService
+<<<<<<< HEAD
 from app.services.icons import load_user_type_icons
+=======
+>>>>>>> gsd/M003/S07
 from app.services.labels import LabelService
 from app.services.models import ModelService, model_shapes_loader, ensure_starter_model
 from app.services.search import SearchService
@@ -171,6 +174,7 @@ async def lifespan(app: FastAPI):
     # Load gist upper ontology into the triplestore (idempotent)
     ontology_service = OntologyService(client)
     app.state.ontology_service = ontology_service
+<<<<<<< HEAD
 
     # Query service (RDF-backed saved queries, history, sharing, promotion)
     from app.sparql.query_service import QueryService
@@ -193,6 +197,13 @@ async def lifespan(app: FastAPI):
     except Exception:
         logger.warning("Failed to load user-type icons at startup")
         app.state.user_type_icons = {}
+=======
+    gist_path = Path("/app/ontologies/gist/gistCore14.0.0.ttl")
+    try:
+        await ontology_service.ensure_gist_loaded(gist_path)
+    except Exception:
+        logger.error("gist ontology load failed — TBox queries will be incomplete")
+>>>>>>> gsd/M003/S07
 
     # Create validation service with real shapes loader (replaces empty_shapes_loader)
     async def shapes_loader():

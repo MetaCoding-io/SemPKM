@@ -764,13 +764,21 @@
     if (existing) { existing.api.setActive(); return; }
 
     if (!window._tabMeta) window._tabMeta = {};
+<<<<<<< HEAD
     window._tabMeta[tabKey] = { label: '◆ Ontology Viewer', dirty: false };
+=======
+    window._tabMeta[tabKey] = { label: 'Ontology Viewer', dirty: false };
+>>>>>>> gsd/M003/S07
 
     dv.api.addPanel({
       id: tabKey,
       component: 'special-panel',
       params: { specialType: 'ontology', isView: false, isSpecial: true },
+<<<<<<< HEAD
       title: '◆ Ontology Viewer'
+=======
+      title: 'Ontology Viewer'
+>>>>>>> gsd/M003/S07
     });
   }
   window.openOntologyTab = openOntologyTab;

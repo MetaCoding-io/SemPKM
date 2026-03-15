@@ -6,6 +6,7 @@ Provides htmx endpoints for:
 - ABox Browser: instance counts per type with drill-down to instance lists
 - RBox Legend: property reference table with domain/range columns
 - Main ontology page: three-tab layout hosting TBox/ABox/RBox
+<<<<<<< HEAD
 - Class creation/deletion: user-defined types in urn:sempkm:user-types
 """
 
@@ -14,11 +15,22 @@ import logging
 from urllib.parse import unquote
 
 from fastapi import APIRouter, Depends, Form, Query, Request
+=======
+"""
+
+import logging
+from urllib.parse import unquote
+
+from fastapi import APIRouter, Depends, Query, Request
+>>>>>>> gsd/M003/S07
 from fastapi.responses import HTMLResponse
 
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
+<<<<<<< HEAD
 from app.ontology.service import USER_TYPES_GRAPH
+=======
+>>>>>>> gsd/M003/S07
 
 logger = logging.getLogger(__name__)
 
@@ -57,13 +69,17 @@ async def ontology_page(
 @ontology_router.get("/ontology/tbox")
 async def tbox_tree(
     request: Request,
+<<<<<<< HEAD
     hide_gist: str | None = None,
+=======
+>>>>>>> gsd/M003/S07
     user: User = Depends(get_current_user),
 ) -> HTMLResponse:
     """Render the TBox Explorer root class hierarchy tree.
 
     Queries all ontology graphs for root classes (no rdfs:subClassOf parent
     or only owl:Thing parent) and renders them as expandable tree nodes.
+<<<<<<< HEAD
 
     When *hide_gist=1*, returns only non-gist classes plus any gist
     classes that are direct parents of model/user classes (shown as
@@ -75,6 +91,12 @@ async def tbox_tree(
             classes = await ontology_service.get_model_classes_with_parents()
         else:
             classes = await ontology_service.get_root_classes()
+=======
+    """
+    ontology_service = request.app.state.ontology_service
+    try:
+        classes = await ontology_service.get_root_classes()
+>>>>>>> gsd/M003/S07
     except Exception:
         logger.error("Failed to load TBox root classes", exc_info=True)
         classes = []
@@ -117,6 +139,7 @@ async def tbox_children(
 
 
 # ------------------------------------------------------------------
+<<<<<<< HEAD
 # TBox Class Detail
 # ------------------------------------------------------------------
 
@@ -150,6 +173,8 @@ async def tbox_detail(
 
 
 # ------------------------------------------------------------------
+=======
+>>>>>>> gsd/M003/S07
 # ABox Browser
 # ------------------------------------------------------------------
 
@@ -247,6 +272,7 @@ async def rbox_legend(
             "error": error,
         },
     )
+<<<<<<< HEAD
 
 
 # ------------------------------------------------------------------
@@ -863,3 +889,5 @@ def _remove_from_icon_cache(request: Request, class_iri: str) -> None:
     icon_cache = getattr(request.app.state, "user_type_icons", None)
     if icon_cache and class_iri in icon_cache:
         del icon_cache[class_iri]
+=======
+>>>>>>> gsd/M003/S07

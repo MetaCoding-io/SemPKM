@@ -124,6 +124,7 @@ export const SEL = {
     tabAbox: '[data-testid="ontology-tab-abox"]',
     tabRbox: '[data-testid="ontology-tab-rbox"]',
   },
+<<<<<<< HEAD
   // Class creation
   classCreation: {
     createButton: '[data-testid="create-class-btn"]',
@@ -139,4 +140,6 @@ export const SEL = {
     resultContainer: '[data-testid="ccf-result"]',
     deleteButton: '[data-testid="tbox-delete-btn"]',
   },
+=======
+>>>>>>> gsd/M003/S07
 } as const;
