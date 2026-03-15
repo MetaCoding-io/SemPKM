@@ -16,21 +16,24 @@ import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import JSONResponse, Response
-from sqlalchemy import delete, func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
 from app.config import settings
 from app.db.session import get_db_session
-from app.dependencies import get_label_service, get_prefix_registry, get_search_service, get_triplestore_client
+from app.dependencies import (
+    get_label_service, get_prefix_registry,
+    get_query_service, get_search_service, get_triplestore_client,
+)
 from app.services.icons import IconService
 from app.services.labels import LabelService
 from app.services.prefixes import PrefixRegistry
 from app.services.search import SearchService
 from app.federation.service import FederationService
 from app.sparql.client import check_member_query_safety, inject_prefixes, scope_to_current_graph
-from app.sparql.models import PromotedQueryView, SavedSparqlQuery, SharedQueryAccess, SparqlQueryHistory
+from app.sparql.query_service import QueryService
 from app.sparql.schemas import (
     QueryHistoryOut,
     SavedQueryCreate,
@@ -47,6 +50,15 @@ from app.triplestore.client import TriplestoreClient
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api")
+
+
+def _is_uuid(val: str) -> bool:
+    """Check if a string is a valid UUID."""
+    try:
+        uuid.UUID(val)
+        return True
+    except (ValueError, AttributeError):
+        return False
 
 # Models directory path -- mirrors the Docker mount used in main.py
 _MODELS_DIR = "/app/models"
@@ -160,63 +172,6 @@ async def _execute_sparql(
     logger.debug("Executing SPARQL: %s", processed[:200])
 
     return await client.query(processed)
-
-
-async def _save_history(
-    db: AsyncSession, user_id: uuid.UUID, query_text: str
-) -> None:
-    """Auto-save query to history with deduplication and pruning.
-
-    - Dedup: if the most recent entry has the same stripped query, update its timestamp
-    - Prune: keep at most 100 entries per user
-    """
-    stripped = query_text.strip()
-
-    # Check most recent entry for deduplication
-    result = await db.execute(
-        select(SparqlQueryHistory)
-        .where(SparqlQueryHistory.user_id == user_id)
-        .order_by(SparqlQueryHistory.executed_at.desc())
-        .limit(1)
-    )
-    most_recent = result.scalar_one_or_none()
-
-    if most_recent and most_recent.query_text.strip() == stripped:
-        # Update timestamp instead of inserting duplicate
-        most_recent.executed_at = func.now()
-    else:
-        # Insert new entry
-        entry = SparqlQueryHistory(
-            user_id=user_id,
-            query_text=stripped,
-        )
-        db.add(entry)
-        await db.flush()
-
-        # Prune: delete oldest entries beyond 100
-        count_result = await db.execute(
-            select(func.count())
-            .select_from(SparqlQueryHistory)
-            .where(SparqlQueryHistory.user_id == user_id)
-        )
-        total = count_result.scalar()
-        if total and total > 100:
-            # Find the 100th most recent executed_at
-            cutoff_result = await db.execute(
-                select(SparqlQueryHistory.executed_at)
-                .where(SparqlQueryHistory.user_id == user_id)
-                .order_by(SparqlQueryHistory.executed_at.desc())
-                .offset(100)
-                .limit(1)
-            )
-            cutoff_ts = cutoff_result.scalar_one_or_none()
-            if cutoff_ts is not None:
-                await db.execute(
-                    delete(SparqlQueryHistory).where(
-                        SparqlQueryHistory.user_id == user_id,
-                        SparqlQueryHistory.executed_at <= cutoff_ts,
-                    )
-                )
 
 
 def _is_object_iri(iri: str, base_namespace: str) -> bool:
@@ -364,7 +319,7 @@ async def sparql_post(
     request: Request,
     user: User = Depends(get_current_user),
     client: TriplestoreClient = Depends(get_triplestore_client),
-    db: AsyncSession = Depends(get_db_session),
+    query_service: QueryService = Depends(get_query_service),
     label_service: LabelService = Depends(get_label_service),
     prefix_registry: PrefixRegistry = Depends(get_prefix_registry),
     icon_service: IconService = Depends(_get_icon_service),
@@ -417,7 +372,7 @@ async def sparql_post(
 
         # Save to history (fire-and-forget -- errors don't affect the response)
         try:
-            await _save_history(db, user.id, query)
+            await query_service.save_history(user.id, query)
         except Exception:
             logger.warning("Failed to save SPARQL query history", exc_info=True)
 
@@ -457,33 +412,32 @@ async def sparql_post(
 @router.get("/sparql/history")
 async def sparql_history_list(
     user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db_session),
+    query_service: QueryService = Depends(get_query_service),
 ) -> list[QueryHistoryOut]:
     """List user's SPARQL query history (most recent first, limit 100).
 
     Rejects guest users via role check.
     """
     _enforce_sparql_role(user, "", False)
-    result = await db.execute(
-        select(SparqlQueryHistory)
-        .where(SparqlQueryHistory.user_id == user.id)
-        .order_by(SparqlQueryHistory.executed_at.desc())
-        .limit(100)
-    )
-    rows = result.scalars().all()
-    return [QueryHistoryOut.model_validate(r) for r in rows]
+    entries = await query_service.get_history(user.id)
+    return [
+        QueryHistoryOut(
+            id=uuid.UUID(e.id) if _is_uuid(e.id) else uuid.uuid4(),
+            query_text=e.query_text,
+            executed_at=e.executed_at,
+        )
+        for e in entries
+    ]
 
 
 @router.delete("/sparql/history")
 async def sparql_history_clear(
     user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db_session),
+    query_service: QueryService = Depends(get_query_service),
 ) -> Response:
     """Clear all SPARQL query history for the current user."""
     _enforce_sparql_role(user, "", False)
-    await db.execute(
-        delete(SparqlQueryHistory).where(SparqlQueryHistory.user_id == user.id)
-    )
+    await query_service.clear_history(user.id)
     return Response(status_code=204)
 
 
@@ -510,6 +464,7 @@ async def list_shareable_users(
 async def saved_query_list(
     include_shared: bool = Query(False, description="Include queries shared with me"),
     user: User = Depends(get_current_user),
+    query_service: QueryService = Depends(get_query_service),
     db: AsyncSession = Depends(get_db_session),
 ) -> list[SavedQueryOut] | dict:
     """List user's saved SPARQL queries (newest first).
@@ -521,46 +476,60 @@ async def saved_query_list(
     _enforce_sparql_role(user, "", False)
 
     # Own queries
-    result = await db.execute(
-        select(SavedSparqlQuery)
-        .where(SavedSparqlQuery.user_id == user.id)
-        .order_by(SavedSparqlQuery.created_at.desc())
-    )
-    my_rows = result.scalars().all()
-    my_queries = [SavedQueryOut.model_validate(r) for r in my_rows]
+    entries = await query_service.list_user_queries(user.id)
+    my_queries = [
+        SavedQueryOut(
+            id=uuid.UUID(e.id),
+            name=e.name,
+            description=e.description,
+            query_text=e.query_text,
+            created_at=e.created_at,
+            updated_at=e.updated_at,
+        )
+        for e in entries
+    ]
+
+    # Model-shipped queries (read-only)
+    model_entries = await query_service.list_model_queries()
 
     if not include_shared:
         return my_queries
 
-    # Shared with me
-    shared_result = await db.execute(
-        select(SharedQueryAccess, SavedSparqlQuery, User)
-        .join(SavedSparqlQuery, SharedQueryAccess.query_id == SavedSparqlQuery.id)
-        .join(User, SavedSparqlQuery.user_id == User.id)
-        .where(SharedQueryAccess.shared_with_user_id == user.id)
-        .order_by(SavedSparqlQuery.updated_at.desc())
+    # Shared with me — resolve owner display names from SQL User table
+    result = await db.execute(
+        select(User).where(User.role != "guest")
     )
-    shared_rows = shared_result.all()
-    shared_queries = []
-    for access, query, owner in shared_rows:
-        is_updated = (
-            access.last_viewed_at is None
-            or query.updated_at > access.last_viewed_at
+    users = {str(u.id): u.display_name or u.email for u in result.scalars().all()}
+
+    shared_entries = await query_service.list_shared_with_me(user.id, users)
+    shared_queries = [
+        SharedQueryOut(
+            id=uuid.UUID(e.id) if _is_uuid(e.id) else uuid.uuid4(),
+            name=e.name,
+            description=e.description,
+            query_text=e.query_text,
+            created_at=e.created_at,
+            updated_at=e.updated_at,
+            owner_name=e.owner_name,
+            is_updated=e.is_updated,
         )
-        shared_queries.append(SharedQueryOut(
-            id=query.id,
-            name=query.name,
-            description=query.description,
-            query_text=query.query_text,
-            created_at=query.created_at,
-            updated_at=query.updated_at,
-            owner_name=owner.display_name or owner.email,
-            is_updated=is_updated,
-        ))
+        for e in shared_entries
+    ]
 
     return {
         "my_queries": [q.model_dump(mode="json") for q in my_queries],
         "shared_with_me": [q.model_dump(mode="json") for q in shared_queries],
+        "model_queries": [
+            {
+                "id": e.id,
+                "name": e.name,
+                "description": e.description,
+                "query_text": e.query_text,
+                "source": e.source,
+                "readonly": True,
+            }
+            for e in model_entries
+        ],
     }
 
 
@@ -568,20 +537,24 @@ async def saved_query_list(
 async def saved_query_create(
     body: SavedQueryCreate,
     user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db_session),
+    query_service: QueryService = Depends(get_query_service),
 ) -> SavedQueryOut:
     """Create a new saved SPARQL query."""
     _enforce_sparql_role(user, "", False)
-    saved = SavedSparqlQuery(
+    saved = await query_service.save_query(
         user_id=user.id,
         name=body.name,
-        description=body.description,
         query_text=body.query_text,
+        description=body.description,
     )
-    db.add(saved)
-    await db.flush()
-    await db.refresh(saved)
-    return SavedQueryOut.model_validate(saved)
+    return SavedQueryOut(
+        id=uuid.UUID(saved.id),
+        name=saved.name,
+        description=saved.description,
+        query_text=saved.query_text,
+        created_at=saved.created_at,
+        updated_at=saved.updated_at,
+    )
 
 
 @router.put("/sparql/saved/{query_id}")
@@ -589,51 +562,40 @@ async def saved_query_update(
     query_id: uuid.UUID,
     body: SavedQueryUpdate,
     user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db_session),
+    query_service: QueryService = Depends(get_query_service),
 ) -> SavedQueryOut:
     """Update a saved SPARQL query. Only updates provided fields."""
     _enforce_sparql_role(user, "", False)
-    result = await db.execute(
-        select(SavedSparqlQuery).where(
-            SavedSparqlQuery.id == query_id,
-            SavedSparqlQuery.user_id == user.id,
-        )
+    updated = await query_service.update_query(
+        query_id=query_id,
+        user_id=user.id,
+        name=body.name,
+        description=body.description,
+        query_text=body.query_text,
     )
-    saved = result.scalar_one_or_none()
-    if saved is None:
+    if updated is None:
         raise HTTPException(status_code=404, detail="Saved query not found")
-
-    if body.name is not None:
-        saved.name = body.name
-    if body.description is not None:
-        saved.description = body.description
-    if body.query_text is not None:
-        saved.query_text = body.query_text
-
-    await db.flush()
-    await db.refresh(saved)
-    return SavedQueryOut.model_validate(saved)
+    return SavedQueryOut(
+        id=uuid.UUID(updated.id),
+        name=updated.name,
+        description=updated.description,
+        query_text=updated.query_text,
+        created_at=updated.created_at,
+        updated_at=updated.updated_at,
+    )
 
 
 @router.delete("/sparql/saved/{query_id}")
 async def saved_query_delete(
     query_id: uuid.UUID,
     user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db_session),
+    query_service: QueryService = Depends(get_query_service),
 ) -> Response:
     """Delete a saved SPARQL query. Returns 404 if not found or not owned."""
     _enforce_sparql_role(user, "", False)
-    result = await db.execute(
-        select(SavedSparqlQuery).where(
-            SavedSparqlQuery.id == query_id,
-            SavedSparqlQuery.user_id == user.id,
-        )
-    )
-    saved = result.scalar_one_or_none()
-    if saved is None:
+    deleted = await query_service.delete_query(query_id, user.id)
+    if not deleted:
         raise HTTPException(status_code=404, detail="Saved query not found")
-
-    await db.delete(saved)
     return Response(status_code=204)
 
 
@@ -646,26 +608,15 @@ async def saved_query_delete(
 async def get_query_shares(
     query_id: uuid.UUID,
     user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db_session),
+    query_service: QueryService = Depends(get_query_service),
 ) -> list[uuid.UUID]:
     """List user IDs this query is currently shared with. Owner-only."""
     _enforce_sparql_role(user, "", False)
-
-    # Verify ownership
-    result = await db.execute(
-        select(SavedSparqlQuery).where(
-            SavedSparqlQuery.id == query_id,
-            SavedSparqlQuery.user_id == user.id,
-        )
-    )
-    if result.scalar_one_or_none() is None:
+    try:
+        shares = await query_service.get_shares(query_id, user.id)
+    except ValueError:
         raise HTTPException(status_code=404, detail="Saved query not found")
-
-    shares_result = await db.execute(
-        select(SharedQueryAccess.shared_with_user_id)
-        .where(SharedQueryAccess.query_id == query_id)
-    )
-    return list(shares_result.scalars().all())
+    return [uuid.UUID(s) if _is_uuid(s) else uuid.uuid4() for s in shares]
 
 
 @router.put("/sparql/saved/{query_id}/shares")
@@ -673,34 +624,14 @@ async def update_query_shares(
     query_id: uuid.UUID,
     body: ShareUpdateRequest,
     user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db_session),
+    query_service: QueryService = Depends(get_query_service),
 ) -> Response:
     """Set sharing for a query. Replaces all current shares. Owner-only."""
     _enforce_sparql_role(user, "", False)
-
-    # Verify ownership
-    result = await db.execute(
-        select(SavedSparqlQuery).where(
-            SavedSparqlQuery.id == query_id,
-            SavedSparqlQuery.user_id == user.id,
-        )
-    )
-    if result.scalar_one_or_none() is None:
+    try:
+        await query_service.update_shares(query_id, user.id, body.user_ids)
+    except ValueError:
         raise HTTPException(status_code=404, detail="Saved query not found")
-
-    # Filter out self-sharing
-    target_user_ids = [uid for uid in body.user_ids if uid != user.id]
-
-    # Remove all existing shares
-    await db.execute(
-        delete(SharedQueryAccess).where(SharedQueryAccess.query_id == query_id)
-    )
-
-    # Create new shares
-    for uid in target_user_ids:
-        db.add(SharedQueryAccess(query_id=query_id, shared_with_user_id=uid))
-
-    await db.flush()
     return Response(status_code=200)
 
 
@@ -708,22 +639,11 @@ async def update_query_shares(
 async def mark_shared_query_viewed(
     query_id: uuid.UUID,
     user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db_session),
+    query_service: QueryService = Depends(get_query_service),
 ) -> Response:
     """Mark a shared query as viewed by the current user (clears Updated badge)."""
     _enforce_sparql_role(user, "", False)
-
-    result = await db.execute(
-        select(SharedQueryAccess).where(
-            SharedQueryAccess.query_id == query_id,
-            SharedQueryAccess.shared_with_user_id == user.id,
-        )
-    )
-    access = result.scalar_one_or_none()
-    if access is not None:
-        access.last_viewed_at = func.now()
-        await db.flush()
-
+    await query_service.mark_viewed(query_id, user.id)
     return Response(status_code=204)
 
 
@@ -731,47 +651,26 @@ async def mark_shared_query_viewed(
 async def fork_shared_query(
     query_id: uuid.UUID,
     user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db_session),
+    query_service: QueryService = Depends(get_query_service),
 ) -> SavedQueryOut:
     """Fork a shared query as the current user's own copy."""
     _enforce_sparql_role(user, "", False)
-
-    # Verify the query is shared with this user
-    result = await db.execute(
-        select(SharedQueryAccess).where(
-            SharedQueryAccess.query_id == query_id,
-            SharedQueryAccess.shared_with_user_id == user.id,
-        )
-    )
-    if result.scalar_one_or_none() is None:
+    forked = await query_service.fork_query(query_id, user.id)
+    if forked is None:
         raise HTTPException(status_code=404, detail="Shared query not found")
-
-    # Get the original query
-    query_result = await db.execute(
-        select(SavedSparqlQuery).where(SavedSparqlQuery.id == query_id)
+    return SavedQueryOut(
+        id=uuid.UUID(forked.id),
+        name=forked.name,
+        description=forked.description,
+        query_text=forked.query_text,
+        created_at=forked.created_at,
+        updated_at=forked.updated_at,
     )
-    original = query_result.scalar_one_or_none()
-    if original is None:
-        raise HTTPException(status_code=404, detail="Original query not found")
-
-    # Create the fork
-    forked = SavedSparqlQuery(
-        user_id=user.id,
-        name=f"Copy of {original.name}",
-        description=original.description,
-        query_text=original.query_text,
-    )
-    db.add(forked)
-    await db.flush()
-    await db.refresh(forked)
-    return SavedQueryOut.model_validate(forked)
 
 
 # ---------------------------------------------------------------------------
 # Promotion endpoints
 # ---------------------------------------------------------------------------
-
-_VALID_RENDERERS = {"table", "card", "graph"}
 
 
 @router.post("/sparql/saved/{query_id}/promote", status_code=201)
@@ -779,31 +678,14 @@ async def promote_query(
     query_id: uuid.UUID,
     request: Request,
     user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db_session),
+    query_service: QueryService = Depends(get_query_service),
 ) -> JSONResponse:
     """Promote a saved query to a named view in the nav tree.
 
-    Creates a PromotedQueryView linking the saved query to view metadata.
+    Creates a PromotedView linking the saved query to view metadata.
     Only the query owner can promote. Returns 409 if already promoted.
     """
     _enforce_sparql_role(user, "", False)
-
-    # Verify ownership
-    result = await db.execute(
-        select(SavedSparqlQuery).where(
-            SavedSparqlQuery.id == query_id,
-            SavedSparqlQuery.user_id == user.id,
-        )
-    )
-    if result.scalar_one_or_none() is None:
-        raise HTTPException(status_code=404, detail="Saved query not found")
-
-    # Check if already promoted
-    existing = await db.execute(
-        select(PromotedQueryView).where(PromotedQueryView.query_id == query_id)
-    )
-    if existing.scalar_one_or_none() is not None:
-        raise HTTPException(status_code=409, detail="Query is already promoted")
 
     # Parse body
     try:
@@ -816,27 +698,26 @@ async def promote_query(
 
     if not display_label:
         raise HTTPException(status_code=400, detail="display_label is required")
-    if renderer_type not in _VALID_RENDERERS:
-        raise HTTPException(
-            status_code=400,
-            detail=f"renderer_type must be one of: {', '.join(sorted(_VALID_RENDERERS))}",
-        )
 
-    pv = PromotedQueryView(
-        query_id=query_id,
-        user_id=user.id,
-        display_label=display_label,
-        renderer_type=renderer_type,
-    )
-    db.add(pv)
-    await db.flush()
-    await db.refresh(pv)
+    try:
+        promoted = await query_service.promote_query(
+            query_id, user.id, display_label, renderer_type
+        )
+    except ValueError as e:
+        msg = str(e)
+        if "already promoted" in msg:
+            raise HTTPException(status_code=409, detail=msg)
+        if "not found" in msg:
+            raise HTTPException(status_code=404, detail="Saved query not found")
+        if "renderer_type" in msg:
+            raise HTTPException(status_code=400, detail=msg)
+        raise HTTPException(status_code=400, detail=msg)
 
     return JSONResponse(
         status_code=201,
         content={
-            "id": str(pv.id),
-            "spec_iri": f"urn:sempkm:user-view:{pv.id}",
+            "id": promoted.id,
+            "spec_iri": f"urn:sempkm:user-view:{promoted.id}",
         },
     )
 
@@ -845,33 +726,17 @@ async def promote_query(
 async def demote_query(
     query_id: uuid.UUID,
     user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db_session),
+    query_service: QueryService = Depends(get_query_service),
 ) -> Response:
     """Demote a promoted view back to just a saved query.
 
-    Deletes the PromotedQueryView row. The underlying saved query remains intact.
+    Deletes the promotion data. The underlying saved query remains intact.
     Only the query owner can demote.
     """
     _enforce_sparql_role(user, "", False)
-
-    # Verify ownership of the saved query
-    sq_result = await db.execute(
-        select(SavedSparqlQuery).where(
-            SavedSparqlQuery.id == query_id,
-            SavedSparqlQuery.user_id == user.id,
-        )
-    )
-    if sq_result.scalar_one_or_none() is None:
+    demoted = await query_service.demote_query(query_id, user.id)
+    if not demoted:
         raise HTTPException(status_code=404, detail="Saved query not found")
-
-    result = await db.execute(
-        select(PromotedQueryView).where(PromotedQueryView.query_id == query_id)
-    )
-    pv = result.scalar_one_or_none()
-    if pv is None:
-        raise HTTPException(status_code=404, detail="Query is not promoted")
-
-    await db.delete(pv)
     return Response(status_code=204)
 
 
@@ -879,30 +744,21 @@ async def demote_query(
 async def get_promotion_status(
     query_id: uuid.UUID,
     user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db_session),
+    query_service: QueryService = Depends(get_query_service),
 ) -> JSONResponse:
     """Check if a saved query is promoted. Owner-only."""
     _enforce_sparql_role(user, "", False)
 
     # Verify ownership
-    sq_result = await db.execute(
-        select(SavedSparqlQuery).where(
-            SavedSparqlQuery.id == query_id,
-            SavedSparqlQuery.user_id == user.id,
-        )
-    )
-    if sq_result.scalar_one_or_none() is None:
+    current = await query_service.get_query(query_id, user.id)
+    if current is None:
         raise HTTPException(status_code=404, detail="Saved query not found")
 
-    result = await db.execute(
-        select(PromotedQueryView).where(PromotedQueryView.query_id == query_id)
-    )
-    pv = result.scalar_one_or_none()
-
+    pv = await query_service.get_promotion_status(query_id, user.id)
     if pv:
         return JSONResponse(content={
             "promoted": True,
-            "view_id": str(pv.id),
+            "view_id": pv.id,
             "spec_iri": f"urn:sempkm:user-view:{pv.id}",
             "display_label": pv.display_label,
             "renderer_type": pv.renderer_type,

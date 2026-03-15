@@ -7,17 +7,17 @@ from urllib.parse import unquote
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import get_current_user, require_role
 from app.auth.models import User
-from app.db.session import get_db_session
 from app.dependencies import (
     get_label_service,
+    get_query_service,
     get_shapes_service,
     get_triplestore_client,
     get_view_spec_service,
 )
+from app.sparql.query_service import QueryService
 from app.triplestore.client import TriplestoreClient
 from app.services.icons import IconService
 from app.services.labels import LabelService
@@ -902,8 +902,8 @@ async def mount_children(
 async def my_views(
     request: Request,
     user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db_session),
     view_spec_service: ViewSpecService = Depends(get_view_spec_service),
+    query_service: QueryService = Depends(get_query_service),
 ):
     """Return promoted view entries for the 'My Views' nav tree section.
 
@@ -912,26 +912,17 @@ async def my_views(
     """
     templates = request.app.state.templates
 
-    specs = await view_spec_service.get_user_promoted_view_specs(user.id, db)
+    specs = await view_spec_service.get_user_promoted_view_specs(user.id)
 
     if not specs:
         return HTMLResponse(
             content='<div class="tree-empty">No promoted views yet</div>'
         )
 
-    # Also fetch query_ids for demote buttons by querying PromotedQueryView
-    from sqlalchemy import select as sa_select
-
-    from app.sparql.models import PromotedQueryView
-
-    pv_result = await db.execute(
-        sa_select(PromotedQueryView)
-        .where(PromotedQueryView.user_id == user.id)
-    )
-    pv_rows = pv_result.scalars().all()
-    # Map spec_iri -> query_id for the template
+    # Build spec_iri -> query_id map from promoted view data
+    promoted = await query_service.list_promoted_views(user.id)
     query_id_map = {
-        f"urn:sempkm:user-view:{pv.id}": str(pv.query_id) for pv in pv_rows
+        f"urn:sempkm:user-view:{pv.id}": pv.query_id for pv in promoted
     }
 
     context = {
@@ -1045,3 +1036,28 @@ async def migrate_tags(
 def _sparql_escape(value: str) -> str:
     """Escape special characters for SPARQL string literals."""
     return value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
+
+
+@workspace_router.post("/admin/migrate-queries")
+async def migrate_queries(
+    request: Request,
+    user: User = Depends(require_role("owner")),
+    client: TriplestoreClient = Depends(get_triplestore_client),
+):
+    """One-time migration: copy saved queries, shares, promotions, and history
+    from SQL tables to the RDF triplestore.
+
+    Idempotent: skips queries whose IRI already exists. Requires owner role.
+    """
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+    from app.db.session import async_session_factory
+    from app.sparql.migrate_queries import migrate_queries_to_rdf
+
+    async with async_session_factory() as db:
+        try:
+            counts = await migrate_queries_to_rdf(db, client)
+            return JSONResponse(counts)
+        except Exception:
+            logger.exception("Query migration failed")
+            raise HTTPException(status_code=500, detail="Query migration failed")

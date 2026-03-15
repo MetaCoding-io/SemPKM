@@ -171,6 +171,11 @@ async def lifespan(app: FastAPI):
     # Load gist upper ontology into the triplestore (idempotent)
     ontology_service = OntologyService(client)
     app.state.ontology_service = ontology_service
+
+    # Query service (RDF-backed saved queries, history, sharing, promotion)
+    from app.sparql.query_service import QueryService
+    query_service = QueryService(client)
+    app.state.query_service = query_service
     gist_path = Path("/app/ontologies/gist/gistCore14.0.0.ttl")
     gist_annotations_path = Path(
         "/app/ontologies/gist/gistRdfsAnnotations14.0.0.ttl"
@@ -236,7 +241,7 @@ async def lifespan(app: FastAPI):
     app.state.shapes_service = shapes_service
 
     # Create ViewSpecService for view spec loading and execution
-    view_spec_service = ViewSpecService(client, label_service)
+    view_spec_service = ViewSpecService(client, label_service, query_service)
     app.state.view_spec_service = view_spec_service
 
     # --- SQL Database Initialization ---
