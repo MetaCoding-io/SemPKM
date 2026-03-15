@@ -2,10 +2,14 @@
 
 import logging
 <<<<<<< HEAD
+<<<<<<< HEAD
 import re
 from typing import Callable
 =======
 >>>>>>> gsd/M002/S04
+=======
+from typing import Callable
+>>>>>>> gsd/M003/S01
 from urllib.parse import unquote
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -91,6 +95,9 @@ workspace_router = APIRouter(tags=["workspace"])
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> gsd/M003/S01
 # ---------------------------------------------------------------------------
 # Explorer mode handlers
 # ---------------------------------------------------------------------------
@@ -99,7 +106,10 @@ async def _handle_by_type(
     request: Request,
     shapes_service: ShapesService,
     icon_svc: IconService,
+<<<<<<< HEAD
     **_kwargs,
+=======
+>>>>>>> gsd/M003/S01
 ) -> HTMLResponse:
     """Render the nav tree grouped by RDF type (default explorer mode)."""
     templates = request.app.state.templates
@@ -113,6 +123,7 @@ async def _handle_by_type(
     )
 
 
+<<<<<<< HEAD
 async def _handle_hierarchy(
     request: Request,
     label_service: LabelService,
@@ -209,6 +220,33 @@ async def _handle_by_tag(
         request,
         "browser/tag_tree.html",
         {"request": request, "folders": folders},
+=======
+async def _handle_hierarchy(request: Request, **_kwargs) -> HTMLResponse:
+    """Placeholder for hierarchy explorer mode."""
+    templates = request.app.state.templates
+    return templates.TemplateResponse(
+        request,
+        "browser/explorer_placeholder.html",
+        {
+            "request": request,
+            "mode_label": "Hierarchy",
+            "icon_name": "compass",
+        },
+    )
+
+
+async def _handle_by_tag(request: Request, **_kwargs) -> HTMLResponse:
+    """Placeholder for by-tag explorer mode."""
+    templates = request.app.state.templates
+    return templates.TemplateResponse(
+        request,
+        "browser/explorer_placeholder.html",
+        {
+            "request": request,
+            "mode_label": "Tag",
+            "icon_name": "tag",
+        },
+>>>>>>> gsd/M003/S01
     )
 
 
@@ -219,6 +257,7 @@ EXPLORER_MODES: dict[str, Callable] = {
 }
 
 
+<<<<<<< HEAD
 # ---------------------------------------------------------------------------
 # VFS mount explorer helpers
 # ---------------------------------------------------------------------------
@@ -489,6 +528,8 @@ async def _handle_mount(
 
 =======
 >>>>>>> gsd/M002/S04
+=======
+>>>>>>> gsd/M003/S01
 @workspace_router.get("/icons")
 async def icons_data(
     request: Request,
@@ -547,6 +588,7 @@ async def nav_tree(
 
     Used by refreshNavTree() in workspace.js to reload the OBJECTS section.
 <<<<<<< HEAD
+<<<<<<< HEAD
     Delegates to the by-type handler for consistency.
     """
     return await _handle_by_type(request, shapes_service, icon_svc)
@@ -596,16 +638,46 @@ async def explorer_tree(
         icon_svc=icon_svc,
         label_service=label_service,
 =======
+=======
+    Delegates to the by-type handler for consistency.
+>>>>>>> gsd/M003/S01
     """
-    templates = request.app.state.templates
-    types = await shapes_service.get_types()
-    type_icons = icon_svc.get_icon_map(context="tree")
+    return await _handle_by_type(request, shapes_service, icon_svc)
 
+<<<<<<< HEAD
     return templates.TemplateResponse(
         request,
         "browser/nav_tree.html",
         {"request": request, "types": types, "type_icons": type_icons},
 >>>>>>> gsd/M002/S04
+=======
+
+@workspace_router.get("/explorer/tree")
+async def explorer_tree(
+    request: Request,
+    mode: str = "by-type",
+    user: User = Depends(get_current_user),
+    shapes_service: ShapesService = Depends(get_shapes_service),
+    icon_svc: IconService = Depends(get_icon_service),
+):
+    """Return explorer tree content for the requested mode.
+
+    Dispatches to the appropriate handler from EXPLORER_MODES.
+    Returns 400 for unknown modes.
+    """
+    handler = EXPLORER_MODES.get(mode)
+    if handler is None:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unknown explorer mode: {mode}",
+        )
+
+    logger.debug("Explorer tree requested: mode=%s", mode)
+    return await handler(
+        request=request,
+        shapes_service=shapes_service,
+        icon_svc=icon_svc,
+>>>>>>> gsd/M003/S01
     )
 
 
