@@ -80,6 +80,14 @@ _handle_by_tag() handler with UNION SPARQL across bpkm:tags and schema:keywords.
 
 Tags with `/` delimiters render as nested tree nodes at arbitrary depth in By Tag explorer. `build_tag_tree()` pure function groups flat tag data into hierarchical nodes. `tag_children` endpoint extended with `prefix` parameter for lazy sub-folder loading. 61 unit tests (28 tree builder + 33 explorer).
 
+### TAG-05 — Tag autocomplete in edit forms
+- Status: validated
+- Class: core-capability
+- Source: user
+- Primary Slice: M005/S04
+
+Tag input fields in edit forms offer autocomplete with existing tag values from the graph. `GET /browser/tag-suggestions?q=<prefix>` endpoint queries both `bpkm:tags` and `schema:keywords` via SPARQL UNION, returns frequency-ordered HTML suggestions (LIMIT 30). `_field.html` macro detects tag properties and renders `.tag-autocomplete-field` wrapper with htmx-driven dropdown. `addMultiValue()` cloning supports tag autocomplete fields. 22 unit tests.
+
 ### FAV-01 — Per-user favorites: star/unstar objects
 - Status: validated
 - Class: core-capability
@@ -822,6 +830,7 @@ OperationsLogService with log_activity(), list_activities(), get_activity(), cou
 | TAG-02 | core-capability | validated | M003/S04 | none | tag pill CSS + # prefix |
 | TAG-03 | core-capability | validated | M003/S04 | none | by-tag mode + UNION SPARQL |
 | TAG-04 | core-capability | validated | M005/S03 | none | hierarchical `/` nesting + 61 tests |
+| TAG-05 | core-capability | validated | M005/S04 | none | tag autocomplete + 22 tests |
 | FAV-01 | core-capability | validated | M003/S05 | none | SQL table + toggle + E2E |
 | FAV-02 | core-capability | validated | M003/S05 | none | FAVORITES section + auto-refresh |
 | CMT-01 | core-capability | validated | M003/S06 | none | RDF comments + EventStore + E2E |
@@ -876,7 +885,7 @@ OperationsLogService with log_activity(), list_activities(), get_activity(), cou
 ## Coverage Summary
 
 - Active requirements: 0
-- Validated: 90 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 2 from M005)
+- Validated: 91 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 3 from M005)
 - Deferred: 4
 - Out of scope: 3
 - Unmapped active requirements: 0

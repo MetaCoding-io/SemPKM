@@ -1,0 +1,22 @@
+{# Tag autocomplete suggestions partial.
+   Rendered by GET /browser/tag-suggestions?q=...
+
+   Context:
+     results: list of dicts with 'value' (tag text) and 'count' (frequency)
+
+   Empty results → empty response → CSS :empty hides dropdown.
+#}
+{% for item in results %}
+<div class="suggestion-item"
+     onclick="(function(el){
+       var field = el.closest('.tag-autocomplete-field');
+       if (field) {
+         var input = field.querySelector('input[type=text]');
+         if (input) { input.value = '{{ item.value|e }}'; }
+         var dropdown = field.querySelector('.suggestions-dropdown');
+         if (dropdown) { dropdown.innerHTML = ''; }
+       }
+     })(this)">
+    {{ item.value }} <span class="tag-count">({{ item.count }})</span>
+</div>
+{% endfor %}

@@ -205,6 +205,29 @@ details[open] > .form-group-summary::before {
 }
 
 /* ============================================
+   Tag Autocomplete Field
+   Same positioning pattern as .reference-field;
+   dropdown anchors to the wrapper via position:relative.
+   ============================================ */
+
+.tag-autocomplete-field {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+}
+
+.tag-autocomplete-field .form-input {
+    width: 100%;
+}
+
+/* Tag count badge in suggestion dropdown */
+.tag-count {
+    color: var(--color-text-faint);
+    font-size: 0.78rem;
+    margin-left: 4px;
+}
+
+/* ============================================
    Multi-value Fields
    ============================================ */
 
