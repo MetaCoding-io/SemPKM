@@ -38,6 +38,7 @@ from app.vfs.mount_service import (
     VISIBILITY,
     MountDefinition,
 )
+from app.browser.tag_tree import build_tag_tree
 from app.vfs.strategies import (
     _LABEL_COALESCE,
     _LABEL_OPTIONALS,
@@ -171,21 +172,22 @@ async def _handle_by_tag(
 
     bindings = await _execute_sparql_select(client, sparql)
 
-    folders = [
+    tag_values = [
         {
             "value": b["tagValue"]["value"],
-            "label": b["tagValue"]["value"],
             "count": int(b["count"]["value"]),
         }
         for b in bindings
     ]
 
-    logger.debug("By-tag explorer: %d tag folders", len(folders))
+    nodes = build_tag_tree(tag_values)
+
+    logger.debug("By-tag explorer: %d root nodes", len(nodes))
 
     return templates.TemplateResponse(
         request,
         "browser/tag_tree.html",
-        {"request": request, "folders": folders},
+        {"request": request, "nodes": nodes},
     )
 
 
@@ -703,20 +705,118 @@ async def explorer_children(
 async def tag_children(
     request: Request,
     tag: str | None = None,
+    prefix: str | None = None,
     user: User = Depends(get_current_user),
     label_service: LabelService = Depends(get_label_service),
     icon_svc: IconService = Depends(get_icon_service),
 ):
-    """Return objects that have a specific tag value (across bpkm:tags and schema:keywords).
+    """Return sub-folders or objects for a tag tree node.
+
+    Two modes:
+    - ``prefix``: expand a folder — queries all descendant tags, builds
+      sub-tree nodes, returns a mix of sub-folders and leaf tags.
+      If the prefix itself has directly-tagged objects (direct_count > 0),
+      those objects are also fetched and included.
+    - ``tag``: expand a leaf tag — queries objects with that exact tag value.
 
     Used by htmx lazy-loading in the by-tag explorer tree.
     """
-    if not tag:
-        raise HTTPException(status_code=400, detail="Missing required parameter: tag")
+    if not tag and not prefix:
+        raise HTTPException(
+            status_code=400,
+            detail="Missing required parameter: tag or prefix",
+        )
 
     templates = request.app.state.templates
     client = request.app.state.triplestore_client
 
+    # ── Prefix mode: sub-folder expansion ──
+    if prefix is not None:
+        escaped_prefix = _sparql_escape(prefix)
+
+        # Query all tags that start with "prefix/" (descendants)
+        # PLUS the exact prefix value (for direct_count objects)
+        sparql = f"""
+        SELECT ?tagValue (COUNT(DISTINCT ?iri) AS ?count)
+        FROM <urn:sempkm:current>
+        WHERE {{
+          {{
+            ?iri <urn:sempkm:model:basic-pkm:tags> ?tagValue .
+          }}
+          UNION
+          {{
+            ?iri <https://schema.org/keywords> ?tagValue .
+          }}
+          FILTER(
+            STRSTARTS(?tagValue, "{escaped_prefix}/")
+            || ?tagValue = "{escaped_prefix}"
+          )
+        }}
+        GROUP BY ?tagValue
+        ORDER BY ?tagValue
+        """
+
+        bindings = await _execute_sparql_select(client, sparql)
+        tag_values = [
+            {
+                "value": b["tagValue"]["value"],
+                "count": int(b["count"]["value"]),
+            }
+            for b in bindings
+        ]
+
+        nodes = build_tag_tree(tag_values, prefix=prefix)
+
+        # Check if the prefix itself has directly-tagged objects
+        # (the parent node's direct_count). We need to find the direct
+        # count for the exact prefix value in the query results.
+        direct_objects: list[dict] = []
+        prefix_has_direct = any(
+            tv["value"] == prefix for tv in tag_values
+        )
+
+        if prefix_has_direct:
+            # Fetch actual objects tagged with exactly this prefix value
+            escaped_tag = _sparql_escape(prefix)
+            obj_sparql = f"""
+            SELECT ?iri ?label ?typeIri
+            FROM <urn:sempkm:current>
+            WHERE {{
+              {{
+                ?iri <urn:sempkm:model:basic-pkm:tags> "{escaped_tag}" .
+              }}
+              UNION
+              {{
+                ?iri <https://schema.org/keywords> "{escaped_tag}" .
+              }}
+              ?iri a ?typeIri .
+              {_LABEL_OPTIONALS}
+              BIND({_LABEL_COALESCE} AS ?label)
+              FILTER(?typeIri != <http://www.w3.org/2000/01/rdf-schema#Resource>)
+            }}
+            ORDER BY ?label
+            """
+            obj_bindings = await _execute_sparql_select(client, obj_sparql)
+            obj_iris = [b["iri"]["value"] for b in obj_bindings]
+            labels = await label_service.resolve_batch(obj_iris) if obj_iris else {}
+            direct_objects = _bindings_to_objects(obj_bindings, labels, icon_svc)
+
+        logger.debug(
+            "Tag children for prefix '%s': %d sub-nodes, %d direct objects",
+            prefix, len(nodes), len(direct_objects),
+        )
+
+        return templates.TemplateResponse(
+            request,
+            "browser/tag_tree_folder.html",
+            {
+                "request": request,
+                "nodes": nodes,
+                "direct_objects": direct_objects,
+            },
+        )
+
+    # ── Tag mode: exact-match object expansion (existing behavior) ──
     escaped_tag = _sparql_escape(tag)
     sparql = f"""
     SELECT ?iri ?label ?typeIri

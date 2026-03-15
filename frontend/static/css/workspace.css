@@ -320,6 +320,17 @@
     font-style: italic;
 }
 
+.tree-count-badge {
+    font-size: 0.7rem;
+    padding: 1px 6px;
+    border-radius: 8px;
+    background: var(--color-primary-subtle, rgba(99, 102, 241, 0.12));
+    color: var(--color-primary);
+    font-weight: 600;
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
 /* ============================================
    TBox Explorer — source badges & icons
    ============================================ */

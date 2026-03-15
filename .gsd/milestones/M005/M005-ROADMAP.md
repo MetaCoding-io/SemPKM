@@ -61,7 +61,7 @@ This milestone is complete only when all are true:
 - [x] **S02: Operations Log & PROV-O Foundation** `risk:high` `depends:[]`
   > After this: admin/debug UI shows timestamped operations log entries using PROV-O vocabulary; model install/inference/validation activities are logged to RDF
 
-- [ ] **S03: Hierarchical Tag Tree** `risk:medium` `depends:[]`
+- [x] **S03: Hierarchical Tag Tree** `risk:medium` `depends:[]`
   > After this: By Tag explorer nests tags at arbitrary depth using `/` as delimiter; real Ideaverse tags render as multi-level tree
 
 - [ ] **S04: Tag Autocomplete** `risk:low` `depends:[S03]`
