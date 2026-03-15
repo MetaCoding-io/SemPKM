@@ -66,7 +66,7 @@ This milestone is complete only when all are true:
   > After this: all event graphs, comments, and query history use PROV-O predicates; write-side and read-side code updated; event log and comment UIs render correctly with new predicates; zero old `sempkm:timestamp`/`sempkm:performedBy`/`sempkm:description` triples remain
 - [x] **S02: Views Rethink & VFS Scope Fixes** `risk:medium` `depends:[]`
   > After this: explorer tree groups ViewSpecs by model (~15 entries instead of 31+); duplicate routes cleaned up; VFS scope dropdown shows saved/model queries in optgroups; `build_scope_filter()` resolves `saved_query_id`; Saved Views folder merges MY VIEWS into VIEWS
-- [ ] **S03: DashboardSpec Model & Static Rendering** `risk:medium` `depends:[]`
+- [x] **S03: DashboardSpec Model & Static Rendering** `risk:medium` `depends:[]`
   > After this: user can create a dashboard with view-embed, markdown, and create-form blocks via the API, and it renders in a workspace tab showing real data from the triplestore in a CSS Grid layout
 - [ ] **S04: Dashboard Builder UI & Explorer Integration** `risk:low` `depends:[S02, S03]`
   > After this: user can create and edit dashboards through a form-based UI in the workspace — picking layouts, adding blocks, configuring each block; dashboards appear in the consolidated explorer sidebar

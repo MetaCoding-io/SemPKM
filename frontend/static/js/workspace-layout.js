@@ -208,7 +208,12 @@
         element: el,
         init: function (params) {
           var st = params.params.specialType;
-          htmx.ajax('GET', '/browser/' + st, { target: el, swap: 'innerHTML' });
+          var url = '/browser/' + st;
+          // Dashboard panels need the ID appended
+          if (st === 'dashboard' && params.params.dashboardId) {
+            url = '/browser/dashboard/' + params.params.dashboardId;
+          }
+          htmx.ajax('GET', url, { target: el, swap: 'innerHTML' });
         }
       };
     }

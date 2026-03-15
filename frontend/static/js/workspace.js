@@ -710,6 +710,27 @@
   window.openCanvasTab = openCanvasTab;
 
 
+  function openDashboardTab(dashboardId, dashboardName) {
+    var tabKey = 'dashboard:' + dashboardId;
+    var dv = window._dockview;
+    if (!dv) return;
+
+    var existing = dv.panels.find(function(p) { return p.id === tabKey; });
+    if (existing) { existing.api.setActive(); return; }
+
+    if (!window._tabMeta) window._tabMeta = {};
+    window._tabMeta[tabKey] = { label: dashboardName || 'Dashboard', dirty: false };
+
+    dv.api.addPanel({
+      id: tabKey,
+      component: 'special-panel',
+      params: { specialType: 'dashboard', dashboardId: dashboardId, isView: false, isSpecial: true },
+      title: dashboardName || 'Dashboard'
+    });
+  }
+  window.openDashboardTab = openDashboardTab;
+
+
   function openVfsTab() {
     var tabKey = 'special:vfs';
     var dv = window._dockview;
