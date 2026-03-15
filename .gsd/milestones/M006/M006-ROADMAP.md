@@ -64,15 +64,15 @@ This milestone is complete only when all are true:
 
 - [x] **S01: PROV-O Retroactive Migration** `risk:medium` `depends:[]`
   > After this: all event graphs, comments, and query history use PROV-O predicates; write-side and read-side code updated; event log and comment UIs render correctly with new predicates; zero old `sempkm:timestamp`/`sempkm:performedBy`/`sempkm:description` triples remain
-- [x] **S02: Views Rethink & VFS Scope Fixes** `risk:medium` `depends:[]`
+- [ ] **S02: Views Rethink & VFS Scope Fixes** `risk:medium` `depends:[]`
   > After this: explorer tree groups ViewSpecs by model (~15 entries instead of 31+); duplicate routes cleaned up; VFS scope dropdown shows saved/model queries in optgroups; `build_scope_filter()` resolves `saved_query_id`; Saved Views folder merges MY VIEWS into VIEWS
-- [x] **S03: DashboardSpec Model & Static Rendering** `risk:medium` `depends:[]`
+- [ ] **S03: DashboardSpec Model & Static Rendering** `risk:medium` `depends:[]`
   > After this: user can create a dashboard with view-embed, markdown, and create-form blocks via the API, and it renders in a workspace tab showing real data from the triplestore in a CSS Grid layout
 - [ ] **S04: Dashboard Builder UI & Explorer Integration** `risk:low` `depends:[S02, S03]`
   > After this: user can create and edit dashboards through a form-based UI in the workspace — picking layouts, adding blocks, configuring each block; dashboards appear in the consolidated explorer sidebar
 - [ ] **S05: Interactive Dashboards — Cross-View Context** `risk:high` `depends:[S03]`
   > After this: selecting a row in one view-embed block filters another view-embed block in the same dashboard via parameterized SPARQL with VALUES binding; dashboard context variables flow via custom events and htmx re-fetch
-- [x] **S06: WorkflowSpec Model & Runner** `risk:medium` `depends:[S03]`
+- [ ] **S06: WorkflowSpec Model & Runner** `risk:medium` `depends:[S03]`
   > After this: user can create a workflow with ordered steps (view, dashboard, or form) via the API, and run it with a step indicator bar, prev/next navigation, and context flowing between steps
 - [ ] **S07: Workflow Builder UI & Final Integration** `risk:low` `depends:[S04, S05, S06]`
   > After this: user can create/edit workflows through a form-based UI; workflows appear in explorer; full CRUD for both dashboards and workflows; all success criteria verified end-to-end
