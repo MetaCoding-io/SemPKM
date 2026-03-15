@@ -7,6 +7,11 @@
 
     <!-- Header -->
     <div class="model-detail-header">
+        {% if error is defined and error %}
+        <div class="error-box" id="admin-messages">{{ error }}</div>
+        {% elif success is defined and success %}
+        <div class="success-box" id="admin-messages">{{ success }}</div>
+        {% endif %}
         <a href="/admin/models" class="back-link"
            hx-get="/admin/models" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
             <i data-lucide="arrow-left"></i> Back to Models
@@ -14,6 +19,14 @@
         <div class="model-title-row">
             <h1>{{ detail.info.name }}</h1>
             <span class="version-pill">v{{ detail.info.version }}</span>
+            <button class="btn btn-info btn-sm"
+                    hx-post="/admin/models/{{ detail.info.model_id }}/refresh-artifacts"
+                    hx-target="#app-content"
+                    hx-swap="innerHTML"
+                    hx-confirm="Refresh artifacts for {{ detail.info.name }}? This will reload shapes, views, ontology, and rules from disk."
+                    style="margin-left: 8px;">
+                Refresh
+            </button>
         </div>
         <p class="model-description">{{ detail.info.description }}</p>
         <div class="model-meta-row">

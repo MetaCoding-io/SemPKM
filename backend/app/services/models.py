@@ -120,6 +120,16 @@ def _bucket_link_counts(link_counts: list[int]) -> list[dict[str, object]]:
 
 
 @dataclass
+class RefreshResult:
+    """Result of a model artifact refresh operation."""
+
+    success: bool
+    model_id: str
+    graphs_refreshed: list[str] = field(default_factory=list)
+    errors: list[str] = field(default_factory=list)
+
+
+@dataclass
 class InstallResult:
     """Result of a model install operation."""
 
@@ -390,6 +400,128 @@ class ModelService:
             success=True,
             model_id=model_id,
             warnings=warning_messages,
+        )
+
+    async def refresh_artifacts(self, model_id: str) -> RefreshResult:
+        """Refresh a model's artifact graphs from disk without touching seed or user data.
+
+        Clears and reloads the 4 artifact graphs (ontology, shapes, views, rules)
+        from the on-disk model archive in a single RDF4J transaction. The seed graph
+        and registry entry are explicitly excluded.
+
+        Args:
+            model_id: The model identifier to refresh.
+
+        Returns:
+            RefreshResult with success status, refreshed graph names, and any errors.
+        """
+        # 1. Verify model is installed
+        try:
+            installed = await is_model_installed(self._client, model_id)
+            if not installed:
+                return RefreshResult(
+                    success=False,
+                    model_id=model_id,
+                    errors=[f"Model '{model_id}' is not installed."],
+                )
+        except Exception as e:
+            return RefreshResult(
+                success=False,
+                model_id=model_id,
+                errors=[f"Failed to check model status: {e}"],
+            )
+
+        # 2. Locate model directory on disk
+        model_dir = Path(f"/app/models/{model_id}")
+        if not model_dir.exists():
+            return RefreshResult(
+                success=False,
+                model_id=model_id,
+                errors=[f"Model directory not found on disk: {model_dir}"],
+            )
+
+        # 3. Parse manifest and load archive
+        try:
+            manifest = parse_manifest(model_dir)
+        except (ValueError, Exception) as e:
+            return RefreshResult(
+                success=False,
+                model_id=model_id,
+                errors=[f"Manifest error: {e}"],
+            )
+
+        try:
+            archive = load_archive(model_dir, manifest)
+        except (FileNotFoundError, ValueError, Exception) as e:
+            return RefreshResult(
+                success=False,
+                model_id=model_id,
+                errors=[f"Archive loading error: {e}"],
+            )
+
+        # 4. Clear and reload artifact graphs in a transaction
+        graphs = ModelGraphs(model_id)
+        # Only the 4 artifact graphs — NOT seed, NOT registry
+        artifact_graph_iris = [graphs.ontology, graphs.shapes, graphs.views, graphs.rules]
+
+        txn_url: str | None = None
+        graphs_refreshed: list[str] = []
+        try:
+            txn_url = await self._client.begin_transaction()
+
+            # CLEAR SILENT the 4 artifact graphs
+            for graph_iri in artifact_graph_iris:
+                await self._client.transaction_update(
+                    txn_url, f"CLEAR SILENT GRAPH <{graph_iri}>"
+                )
+
+            # INSERT DATA for each non-empty artifact graph
+            if len(archive.ontology) > 0:
+                sparql = _build_insert_data_sparql(graphs.ontology, archive.ontology)
+                await self._client.transaction_update(txn_url, sparql)
+                graphs_refreshed.append("ontology")
+
+            if len(archive.shapes) > 0:
+                sparql = _build_insert_data_sparql(graphs.shapes, archive.shapes)
+                await self._client.transaction_update(txn_url, sparql)
+                graphs_refreshed.append("shapes")
+
+            if len(archive.views) > 0:
+                sparql = _build_insert_data_sparql(graphs.views, archive.views)
+                await self._client.transaction_update(txn_url, sparql)
+                graphs_refreshed.append("views")
+
+            if archive.rules is not None and len(archive.rules) > 0:
+                sparql = _build_insert_data_sparql(graphs.rules, archive.rules)
+                await self._client.transaction_update(txn_url, sparql)
+                graphs_refreshed.append("rules")
+
+            # Commit transaction
+            await self._client.commit_transaction(txn_url)
+            txn_url = None  # Prevent rollback in finally
+
+        except Exception as e:
+            if txn_url is not None:
+                try:
+                    await self._client.rollback_transaction(txn_url)
+                except Exception:
+                    pass  # Best-effort rollback
+            logger.error("Failed to refresh artifacts for model '%s': %s", model_id, e)
+            return RefreshResult(
+                success=False,
+                model_id=model_id,
+                errors=[f"Transaction error during refresh: {e}"],
+            )
+
+        logger.info(
+            "Model '%s' artifacts refreshed: %s",
+            model_id,
+            ", ".join(graphs_refreshed) if graphs_refreshed else "none (all empty)",
+        )
+        return RefreshResult(
+            success=True,
+            model_id=model_id,
+            graphs_refreshed=graphs_refreshed,
         )
 
     async def remove(self, model_id: str) -> RemoveResult:

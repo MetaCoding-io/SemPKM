@@ -63,6 +63,7 @@ async def admin_index(request: Request, user: User = Depends(require_role("owner
 OPS_LOG_ACTIVITY_TYPES = [
     ("model.install", "Model Install"),
     ("model.remove", "Model Remove"),
+    ("model.refresh", "Model Refresh"),
     ("inference.run", "Inference Run"),
     ("validation.run", "Validation Run"),
 ]
@@ -484,6 +485,165 @@ async def admin_models_remove(
             logger.warning("Failed to write ops log for model remove", exc_info=True)
 
     return templates_response(request, "admin/models.html", context, block_name="model_table")
+
+
+@router.post("/models/{model_id}/refresh-artifacts")
+async def admin_models_refresh_artifacts(
+    request: Request,
+    model_id: str,
+    user: User = Depends(require_role("owner")),
+    model_service: ModelService = Depends(get_model_service),
+    ops_log: OperationsLogService = Depends(get_ops_log_service),
+):
+    """Refresh a model's artifact graphs (ontology, shapes, views, rules) from disk.
+
+    Reloads artifact files without touching user data or requiring uninstall/reinstall.
+    Returns model table partial (list page) or model detail content (detail page)
+    depending on the htmx target.
+    """
+    result = await model_service.refresh_artifacts(model_id)
+    model_iri = f"urn:sempkm:model:{model_id}"
+
+    if not result.success:
+        error_msg = "; ".join(result.errors)
+        logger.warning("Model artifact refresh failed for '%s': %s", model_id, error_msg)
+        # Log failed refresh to ops log (fire-and-forget)
+        try:
+            await ops_log.log_activity(
+                activity_type="model.refresh",
+                label=f"Refresh artifacts for model '{model_id}'",
+                actor=f"urn:sempkm:user:{user.id}",
+                used_iris=[model_iri],
+                status="failed",
+                error_message=error_msg,
+            )
+        except Exception:
+            logger.warning("Failed to write ops log for model refresh failure", exc_info=True)
+
+        # Return appropriate partial based on htmx target
+        hx_target = request.headers.get("HX-Target", "")
+        if hx_target == "app-content":
+            # Detail page — re-render full detail view with error
+            return await _refresh_detail_response(request, model_id, model_service, user, error=error_msg)
+        else:
+            # List page — return model table partial
+            models = await model_service.list_models()
+            context = {"request": request, "models": models, "error": error_msg}
+            return templates_response(request, "admin/models.html", context, block_name="model_table")
+    else:
+        # Invalidate ViewSpec cache after successful artifact refresh
+        request.app.state.view_spec_service.invalidate_cache()
+        graphs_str = ", ".join(result.graphs_refreshed)
+        success_msg = f"Model '{model_id}' artifacts refreshed ({graphs_str})."
+        # Log successful refresh to ops log (fire-and-forget)
+        try:
+            await ops_log.log_activity(
+                activity_type="model.refresh",
+                label=f"Refreshed artifacts for model '{model_id}'",
+                actor=f"urn:sempkm:user:{user.id}",
+                used_iris=[model_iri],
+                status="success",
+            )
+        except Exception:
+            logger.warning("Failed to write ops log for model refresh", exc_info=True)
+
+        # Return appropriate partial based on htmx target
+        hx_target = request.headers.get("HX-Target", "")
+        if hx_target == "app-content":
+            # Detail page — re-render full detail view with success
+            return await _refresh_detail_response(request, model_id, model_service, user, success=success_msg)
+        else:
+            # List page — return model table partial
+            models = await model_service.list_models()
+            context = {"request": request, "models": models, "success": success_msg}
+            return templates_response(request, "admin/models.html", context, block_name="model_table")
+
+
+async def _refresh_detail_response(
+    request: Request,
+    model_id: str,
+    model_service: ModelService,
+    user: User,
+    error: str | None = None,
+    success: str | None = None,
+):
+    """Build the model detail response for a refresh triggered from the detail page.
+
+    Re-uses the same logic as admin_model_detail() but adds success/error messages.
+    """
+    detail = await model_service.get_model_detail(model_id)
+    if detail is None:
+        models = await model_service.list_models()
+        context = {"request": request, "models": models, "error": f"Model '{model_id}' not found.", "user": user}
+        return templates_response(request, "admin/models.html", context, block_name="content")
+
+    # Get icon data from IconService
+    from app.services.icons import IconService
+    icon_svc = IconService(models_dir="/app/models")
+    icon_map = icon_svc.get_icon_map("tree")
+
+    # Attach icon/color to each type
+    for t in detail["types"]:
+        icon_info = icon_map.get(t["iri"], {"icon": "circle", "color": "#999"})
+        t["icon"] = icon_info["icon"]
+        t["color"] = icon_info["color"]
+
+    # Build type-centric detail
+    type_map = {}
+    for t in detail["types"]:
+        type_map[t["local_name"]] = {
+            **t,
+            "fields": [],
+            "field_count": 0,
+            "views": [],
+            "relationships": [],
+        }
+
+    for shape in detail["shapes"]:
+        tc = shape["target_class"]
+        if tc in type_map:
+            type_map[tc]["fields"] = shape["properties"]
+            type_map[tc]["field_count"] = shape["property_count"]
+
+    for v in detail["views"]:
+        tc = v["target_class"]
+        if tc in type_map:
+            type_map[tc]["views"].append(v)
+
+    for p in detail["properties"]:
+        if p["prop_type"] == "Object":
+            domain = p["domain"]
+            if domain in type_map:
+                type_map[domain]["relationships"].append(p)
+
+    # Fetch live analytics
+    type_iris = [t["iri"] for t in detail["types"]]
+    analytics = await model_service.get_type_analytics(type_iris)
+    for td in type_map.values():
+        a = analytics.get(td["iri"], {"count": 0, "top_nodes": [], "avg_connections": 0.0, "last_modified": None, "growth_trend": [], "link_distribution": []})
+        td["instance_count"] = a["count"]
+        td["top_nodes"] = a["top_nodes"]
+        td["avg_connections"] = a["avg_connections"]
+        td["total_links"] = int(round(a["avg_connections"] * a["count"]))
+        td["last_modified"] = a["last_modified"]
+        td["growth_trend"] = a["growth_trend"]
+        td["link_distribution"] = a["link_distribution"]
+
+    detail["type_details"] = list(type_map.values())
+    detail["stats"] = {
+        "types": len(detail["types"]),
+        "properties": len(detail["properties"]),
+        "views": len(detail["views"]),
+        "shapes": len(detail["shapes"]),
+    }
+
+    context = {"request": request, "detail": detail, "user": user}
+    if error:
+        context["error"] = error
+    if success:
+        context["success"] = success
+
+    return templates_response(request, "admin/model_detail.html", context, block_name="content")
 
 
 # ---- Inference cleanup on model uninstall ----
