@@ -965,7 +965,7 @@ class ModelService:
   GRAPH ?ev {{
     ?ev <urn:sempkm:operationType> ?op ;
         <urn:sempkm:affectedIRI> ?aff ;
-        <urn:sempkm:timestamp> ?ts .
+        <http://www.w3.org/ns/prov#startedAtTime> ?ts .
     FILTER(CONTAINS(STR(?op), "object"))
   }}
   FILTER(STRSTARTS(STR(?ev), "urn:sempkm:event:"))
@@ -995,7 +995,7 @@ SELECT ?ts WHERE {{
   GRAPH ?ev {{
     ?ev <urn:sempkm:operationType> ?op ;
         <urn:sempkm:affectedIRI> ?aff ;
-        <urn:sempkm:timestamp> ?ts .
+        <http://www.w3.org/ns/prov#startedAtTime> ?ts .
     FILTER(CONTAINS(STR(?op), "object.create"))
     FILTER(?ts >= "{cutoff_iso}"^^xsd:dateTime)
   }}

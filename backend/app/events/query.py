@@ -117,17 +117,19 @@ class EventQueryService:
 
         # Primary query: GROUP_CONCAT collapses multiple affectedIRI rows
         group_concat_sparql = f"""PREFIX sempkm: <urn:sempkm:>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 SELECT ?event ?timestamp ?opType (GROUP_CONCAT(STR(?affectedIRI); separator=",") AS ?affected) ?performedBy ?description
 WHERE {{
   GRAPH ?event {{
     ?event a sempkm:Event ;
-           sempkm:timestamp ?timestamp ;
+           prov:startedAtTime ?timestamp ;
            sempkm:operationType ?opType ;
            sempkm:affectedIRI ?affectedIRI .
-    OPTIONAL {{ ?event sempkm:performedBy ?performedBy }}
-    OPTIONAL {{ ?event sempkm:description ?description }}
+    OPTIONAL {{ ?event prov:wasAssociatedWith ?performedBy }}
+    OPTIONAL {{ ?event rdfs:label ?description }}
   }}
   FILTER(STRSTARTS(STR(?event), "urn:sempkm:event:"))
   {filter_block}
@@ -164,14 +166,16 @@ LIMIT 51
         """
         # Query event metadata
         meta_sparql = f"""PREFIX sempkm: <urn:sempkm:>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT ?timestamp ?opType ?affectedIRI ?performedBy ?description
 WHERE {{
   GRAPH <{event_iri}> {{
-    <{event_iri}> sempkm:timestamp ?timestamp ;
+    <{event_iri}> prov:startedAtTime ?timestamp ;
                   sempkm:operationType ?opType .
     OPTIONAL {{ <{event_iri}> sempkm:affectedIRI ?affectedIRI }}
-    OPTIONAL {{ <{event_iri}> sempkm:performedBy ?performedBy }}
-    OPTIONAL {{ <{event_iri}> sempkm:description ?description }}
+    OPTIONAL {{ <{event_iri}> prov:wasAssociatedWith ?performedBy }}
+    OPTIONAL {{ <{event_iri}> rdfs:label ?description }}
   }}
 }}"""
 
@@ -208,6 +212,8 @@ WHERE {{
 
         # Query data triples (exclude event metadata triples)
         data_sparql = f"""PREFIX sempkm: <urn:sempkm:>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT ?s ?p ?o
 WHERE {{
   GRAPH <{event_iri}> {{
@@ -215,8 +221,8 @@ WHERE {{
     FILTER(
       ?s != <{event_iri}> ||
       ?p NOT IN (
-        sempkm:timestamp, sempkm:operationType, sempkm:affectedIRI,
-        sempkm:performedBy, sempkm:performedByRole, sempkm:description,
+        prov:startedAtTime, sempkm:operationType, sempkm:affectedIRI,
+        prov:wasAssociatedWith, sempkm:performedByRole, rdfs:label,
         <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>
       )
     )
@@ -281,11 +287,12 @@ WHERE {{
         Returns the value string, or None if not found.
         """
         sparql = f"""PREFIX sempkm: <urn:sempkm:>
+PREFIX prov: <http://www.w3.org/ns/prov#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 SELECT ?old_value
 WHERE {{
   GRAPH ?prev_event {{
-    ?prev_event sempkm:timestamp ?prev_ts .
+    ?prev_event prov:startedAtTime ?prev_ts .
     <{subject_iri}> <{predicate_iri}> ?old_value .
   }}
   FILTER(STRSTARTS(STR(?prev_event), "urn:sempkm:event:"))
@@ -506,17 +513,19 @@ LIMIT 1"""
         Groups rows by event IRI, collecting all affectedIRI values.
         """
         plain_sparql = f"""PREFIX sempkm: <urn:sempkm:>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 SELECT ?event ?timestamp ?opType ?affectedIRI ?performedBy ?description
 WHERE {{
   GRAPH ?event {{
     ?event a sempkm:Event ;
-           sempkm:timestamp ?timestamp ;
+           prov:startedAtTime ?timestamp ;
            sempkm:operationType ?opType ;
            sempkm:affectedIRI ?affectedIRI .
-    OPTIONAL {{ ?event sempkm:performedBy ?performedBy }}
-    OPTIONAL {{ ?event sempkm:description ?description }}
+    OPTIONAL {{ ?event prov:wasAssociatedWith ?performedBy }}
+    OPTIONAL {{ ?event rdfs:label ?description }}
   }}
   FILTER(STRSTARTS(STR(?event), "urn:sempkm:event:"))
   {filter_block}

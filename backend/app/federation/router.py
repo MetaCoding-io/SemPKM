@@ -32,7 +32,7 @@ from app.federation.schemas import (
     SyncResult,
 )
 from app.federation.service import FederationService
-from app.rdf.namespaces import AS, SEMPKM, XSD
+from app.rdf.namespaces import AS, PROV, SEMPKM, XSD
 from app.triplestore.client import TriplestoreClient
 
 logger = logging.getLogger(__name__)
@@ -412,7 +412,7 @@ async def export_patches(
     WHERE {{
       GRAPH ?event {{
         ?event a <{SEMPKM.Event}> ;
-               <{SEMPKM.timestamp}> ?timestamp ;
+               <{PROV.startedAtTime}> ?timestamp ;
                <{SEMPKM.graphTarget}> <{graph_iri}> .
         FILTER(?timestamp > "{since}"^^<{XSD.dateTime}>)
         {requester_filter}

@@ -42,7 +42,7 @@ PRED_QUERY_TEXT = VOCAB + "queryText"
 PRED_SHARED_WITH = VOCAB + "sharedWith"
 PRED_FROM_QUERY = VOCAB + "fromQuery"
 PRED_RENDERER_TYPE = VOCAB + "rendererType"
-PRED_EXECUTED_BY = VOCAB + "executedBy"
+PRED_EXECUTED_BY = "http://www.w3.org/ns/prov#wasAssociatedWith"  # was VOCAB + "executedBy"
 PRED_SOURCE = VOCAB + "source"
 
 MAX_HISTORY_ENTRIES = 100

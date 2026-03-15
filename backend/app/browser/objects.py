@@ -594,8 +594,8 @@ async def get_edge_provenance(
     edge_resource_sparql = f"""
     SELECT ?event ?timestamp ?performedBy WHERE {{
       GRAPH ?event {{
-        ?event <urn:sempkm:timestamp> ?timestamp .
-        OPTIONAL {{ ?event <urn:sempkm:performedBy> ?performedBy }}
+        ?event <http://www.w3.org/ns/prov#startedAtTime> ?timestamp .
+        OPTIONAL {{ ?event <http://www.w3.org/ns/prov#wasAssociatedWith> ?performedBy }}
         ?edge a <urn:sempkm:Edge> ;
               <urn:sempkm:source> <{subject}> ;
               <urn:sempkm:predicate> <{predicate}> ;
@@ -611,8 +611,8 @@ async def get_edge_provenance(
     direct_triple_sparql = f"""
     SELECT ?event ?timestamp ?performedBy WHERE {{
       GRAPH ?event {{
-        ?event <urn:sempkm:timestamp> ?timestamp .
-        OPTIONAL {{ ?event <urn:sempkm:performedBy> ?performedBy }}
+        ?event <http://www.w3.org/ns/prov#startedAtTime> ?timestamp .
+        OPTIONAL {{ ?event <http://www.w3.org/ns/prov#wasAssociatedWith> ?performedBy }}
         <{subject}> <{predicate}> <{target}> .
       }}
       FILTER(STRSTARTS(STR(?event), "urn:sempkm:event:"))
