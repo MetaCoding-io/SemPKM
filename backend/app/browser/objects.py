@@ -14,16 +14,22 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from rdflib import URIRef
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> gsd/M003/S05
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import get_current_user, require_role
 from app.auth.models import User
 from app.db.session import get_db_session
+<<<<<<< HEAD
 =======
 from app.auth.dependencies import get_current_user, require_role
 from app.auth.models import User
 >>>>>>> gsd/M002/S04
+=======
+>>>>>>> gsd/M003/S05
 from app.dependencies import (
     get_event_store,
     get_label_service,
@@ -34,9 +40,13 @@ from app.dependencies import (
     get_validation_queue,
 )
 <<<<<<< HEAD
+<<<<<<< HEAD
 from app.favorites.models import UserFavorite
 =======
 >>>>>>> gsd/M002/S04
+=======
+from app.favorites.models import UserFavorite
+>>>>>>> gsd/M003/S05
 from app.events.store import EventStore, Operation
 from app.lint.service import LintService
 from app.services.icons import IconService
@@ -68,9 +78,13 @@ async def get_object(
     client: TriplestoreClient = Depends(get_triplestore_client),
     icon_svc: IconService = Depends(get_icon_service),
 <<<<<<< HEAD
+<<<<<<< HEAD
     db: AsyncSession = Depends(get_db_session),
 =======
 >>>>>>> gsd/M002/S04
+=======
+    db: AsyncSession = Depends(get_db_session),
+>>>>>>> gsd/M003/S05
 ):
     """Render an object in the editor area with read-only view or edit form.
 
@@ -245,6 +259,9 @@ async def get_object(
     ref_labels.update(inferred_labels)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> gsd/M003/S05
     # Check if the current user has favorited this object
     fav_result = await db.execute(
         select(UserFavorite.id).where(
@@ -254,8 +271,11 @@ async def get_object(
     )
     is_favorite = fav_result.scalar_one_or_none() is not None
 
+<<<<<<< HEAD
 =======
 >>>>>>> gsd/M002/S04
+=======
+>>>>>>> gsd/M003/S05
     context = {
         "request": request,
         "form": form,
@@ -275,9 +295,13 @@ async def get_object(
         "mode": mode,
         "type_icon": type_icon,
 <<<<<<< HEAD
+<<<<<<< HEAD
         "is_favorite": is_favorite,
 =======
 >>>>>>> gsd/M002/S04
+=======
+        "is_favorite": is_favorite,
+>>>>>>> gsd/M003/S05
     }
 
     return templates.TemplateResponse(

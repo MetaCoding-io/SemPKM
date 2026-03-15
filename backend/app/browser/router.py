@@ -17,9 +17,12 @@ from app.ontology.router import ontology_router
 from .comments import comments_router
 from .events import events_router
 from .favorites import favorites_router
+<<<<<<< HEAD
 =======
 from .events import events_router
 >>>>>>> gsd/M002/S04
+=======
+>>>>>>> gsd/M003/S05
 from .objects import objects_router
 from .pages import pages_router
 from .search import search_router
@@ -36,7 +39,7 @@ router.include_router(ontology_router)
 router.include_router(comments_router)
 =======
 # Include order matches the original route registration order:
-# settings → objects → pages → workspace → events → search
+# settings → objects → pages → workspace → events → search → favorites
 router.include_router(settings_router)
 >>>>>>> gsd/M002/S04
 router.include_router(objects_router)
@@ -45,6 +48,10 @@ router.include_router(workspace_router)
 router.include_router(events_router)
 router.include_router(search_router)
 <<<<<<< HEAD
+<<<<<<< HEAD
 router.include_router(favorites_router)
 =======
 >>>>>>> gsd/M002/S04
+=======
+router.include_router(favorites_router)
+>>>>>>> gsd/M003/S05
