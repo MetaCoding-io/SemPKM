@@ -225,6 +225,14 @@
           if (st === 'workflow' && params.params.workflowId) {
             url = '/browser/workflow/' + params.params.workflowId + '/run';
           }
+          // Workflow builder panels — create or edit mode
+          if (st === 'workflow-builder') {
+            if (params.params.workflowId) {
+              url = '/browser/workflow/' + params.params.workflowId + '/edit';
+            } else {
+              url = '/browser/workflow/new';
+            }
+          }
           htmx.ajax('GET', url, { target: el, swap: 'innerHTML' });
         }
       };

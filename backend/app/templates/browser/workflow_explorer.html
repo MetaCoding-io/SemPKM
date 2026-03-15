@@ -1,0 +1,44 @@
+{# WORKFLOWS explorer section body — lists user's workflows as clickable leaf nodes.
+   Rendered by GET /browser/workflow/explorer.
+   Context: workflows — list of WorkflowData objects (id, name, description, steps) #}
+
+{% if workflows %}
+  {% for wf in workflows %}
+  <div class="tree-leaf" onclick="openWorkflowTab('{{ wf.id }}', '{{ wf.name | e }}')">
+    <i data-lucide="git-branch" class="tree-icon"></i>
+    <span class="tree-label" title="{{ wf.description | e if wf.description else wf.name | e }}">{{ wf.name }}</span>
+    <button class="tree-leaf-action btn-icon" title="Delete workflow"
+            onclick="event.stopPropagation(); window._deleteWorkflow('{{ wf.id }}', '{{ wf.name | e }}')">
+      <i data-lucide="trash-2"></i>
+    </button>
+  </div>
+  {% endfor %}
+{% else %}
+  <div class="tree-empty">No workflows yet</div>
+{% endif %}
+
+<div class="tree-leaf tree-action" onclick="openWorkflowBuilderTab()">
+  <i data-lucide="plus" class="tree-icon"></i>
+  <span class="tree-label">New Workflow</span>
+</div>
+
+<script>
+(function() {
+  'use strict';
+  window._deleteWorkflow = function(id, name) {
+    if (!window.confirm('Delete workflow "' + name + '"? This cannot be undone.')) return;
+    fetch('/api/workflow/' + id, { method: 'DELETE' })
+      .then(function(resp) {
+        if (!resp.ok) {
+          return resp.json().then(function(d) { throw new Error(d.detail || 'Delete failed'); });
+        }
+        if (typeof htmx !== 'undefined') {
+          htmx.trigger(document.body, 'workflowsRefreshed');
+        }
+      })
+      .catch(function(err) {
+        console.error('Workflow delete error:', err);
+      });
+  };
+})();
+</script>

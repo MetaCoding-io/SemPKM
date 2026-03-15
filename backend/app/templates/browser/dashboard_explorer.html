@@ -7,6 +7,10 @@
   <div class="tree-leaf" onclick="openDashboardTab('{{ dash.id }}', '{{ dash.name | e }}')">
     <i data-lucide="layout-dashboard" class="tree-icon"></i>
     <span class="tree-label" title="{{ dash.description | e if dash.description else dash.name | e }}">{{ dash.name }}</span>
+    <button class="tree-leaf-action btn-icon" title="Delete dashboard"
+            onclick="event.stopPropagation(); window._deleteDashboard('{{ dash.id }}', '{{ dash.name | e }}')">
+      <i data-lucide="trash-2"></i>
+    </button>
   </div>
   {% endfor %}
 {% else %}
@@ -17,3 +21,24 @@
   <i data-lucide="plus" class="tree-icon"></i>
   <span class="tree-label">New Dashboard</span>
 </div>
+
+<script>
+(function() {
+  'use strict';
+  window._deleteDashboard = function(id, name) {
+    if (!window.confirm('Delete dashboard "' + name + '"? This cannot be undone.')) return;
+    fetch('/api/dashboard/' + id, { method: 'DELETE' })
+      .then(function(resp) {
+        if (!resp.ok) {
+          return resp.json().then(function(d) { throw new Error(d.detail || 'Delete failed'); });
+        }
+        if (typeof htmx !== 'undefined') {
+          htmx.trigger(document.body, 'dashboardsRefreshed');
+        }
+      })
+      .catch(function(err) {
+        console.error('Dashboard delete error:', err);
+      });
+  };
+})();
+</script>

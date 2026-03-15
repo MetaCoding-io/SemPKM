@@ -7076,3 +7076,93 @@ details.form-group[open] > .form-group-summary::before {
     font-size: 0.82rem;
     color: var(--color-text-muted);
 }
+
+/* ---------------------------------------------------------------------------
+   Workflow builder — mirrors dashboard-builder
+   --------------------------------------------------------------------------- */
+
+.workflow-builder {
+    padding: 24px;
+    max-width: 720px;
+    overflow-y: auto;
+    height: 100%;
+}
+
+.workflow-builder .form-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.workflow-builder .form-title svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+.workflow-builder textarea {
+    max-width: 420px;
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    font-size: 0.88rem;
+    background: var(--color-surface);
+    color: var(--color-text);
+    resize: vertical;
+    font-family: inherit;
+}
+
+.workflow-builder textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px var(--color-focus-shadow);
+}
+
+/* Step label inline field */
+.step-label-field {
+    margin-bottom: 0 !important;
+    margin-left: auto;
+    margin-right: 8px;
+    flex: 1;
+    max-width: 200px;
+}
+
+.step-label-input {
+    padding: 4px 8px !important;
+    font-size: 0.82rem !important;
+}
+
+/* ---------------------------------------------------------------------------
+   Tree leaf delete buttons (dashboards + workflows)
+   --------------------------------------------------------------------------- */
+
+.tree-leaf .tree-leaf-action {
+    opacity: 0;
+    transition: opacity 0.15s;
+    margin-left: auto;
+    padding: 2px;
+    background: none;
+    border: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.tree-leaf:hover .tree-leaf-action {
+    opacity: 1;
+}
+
+.tree-leaf .tree-leaf-action:hover {
+    color: var(--color-error);
+    background: var(--color-surface-hover);
+}
+
+.tree-leaf .tree-leaf-action svg {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
