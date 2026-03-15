@@ -6,8 +6,6 @@ Provides htmx endpoints for:
 - ABox Browser: instance counts per type with drill-down to instance lists
 - RBox Legend: property reference table with domain/range columns
 - Main ontology page: three-tab layout hosting TBox/ABox/RBox
-<<<<<<< HEAD
-<<<<<<< HEAD
 - Class creation/deletion: user-defined types in urn:sempkm:user-types
 """
 
@@ -16,34 +14,11 @@ import logging
 from urllib.parse import unquote
 
 from fastapi import APIRouter, Depends, Form, Query, Request
-=======
-=======
-- Class creation/deletion: user-defined types in urn:sempkm:user-types
->>>>>>> gsd/M003/S08
-"""
-
-import json
-import logging
-from urllib.parse import unquote
-
-<<<<<<< HEAD
-from fastapi import APIRouter, Depends, Query, Request
->>>>>>> gsd/M003/S07
-=======
-from fastapi import APIRouter, Depends, Form, Query, Request
->>>>>>> gsd/M003/S08
 from fastapi.responses import HTMLResponse
 
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
-<<<<<<< HEAD
-<<<<<<< HEAD
 from app.ontology.service import USER_TYPES_GRAPH
-=======
->>>>>>> gsd/M003/S07
-=======
-from app.ontology.service import USER_TYPES_GRAPH
->>>>>>> gsd/M003/S08
 
 logger = logging.getLogger(__name__)
 
@@ -82,17 +57,13 @@ async def ontology_page(
 @ontology_router.get("/ontology/tbox")
 async def tbox_tree(
     request: Request,
-<<<<<<< HEAD
     hide_gist: str | None = None,
-=======
->>>>>>> gsd/M003/S07
     user: User = Depends(get_current_user),
 ) -> HTMLResponse:
     """Render the TBox Explorer root class hierarchy tree.
 
     Queries all ontology graphs for root classes (no rdfs:subClassOf parent
     or only owl:Thing parent) and renders them as expandable tree nodes.
-<<<<<<< HEAD
 
     When *hide_gist=1*, returns only non-gist classes plus any gist
     classes that are direct parents of model/user classes (shown as
@@ -104,12 +75,6 @@ async def tbox_tree(
             classes = await ontology_service.get_model_classes_with_parents()
         else:
             classes = await ontology_service.get_root_classes()
-=======
-    """
-    ontology_service = request.app.state.ontology_service
-    try:
-        classes = await ontology_service.get_root_classes()
->>>>>>> gsd/M003/S07
     except Exception:
         logger.error("Failed to load TBox root classes", exc_info=True)
         classes = []
@@ -152,7 +117,6 @@ async def tbox_children(
 
 
 # ------------------------------------------------------------------
-<<<<<<< HEAD
 # TBox Class Detail
 # ------------------------------------------------------------------
 
@@ -186,8 +150,6 @@ async def tbox_detail(
 
 
 # ------------------------------------------------------------------
-=======
->>>>>>> gsd/M003/S07
 # ABox Browser
 # ------------------------------------------------------------------
 
@@ -285,10 +247,6 @@ async def rbox_legend(
             "error": error,
         },
     )
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S08
 
 
 # ------------------------------------------------------------------
@@ -367,11 +325,8 @@ async def create_class_form(
 async def create_class(
     request: Request,
     name: str = Form(...),
-<<<<<<< HEAD
     description: str = Form(""),
     example: str = Form(""),
-=======
->>>>>>> gsd/M003/S08
     icon: str = Form(""),
     icon_color: str = Form(""),
     parent_iri: str = Form(...),
@@ -409,11 +364,8 @@ async def create_class(
             properties=props_list,
             icon_name=icon.strip() or None,
             icon_color=icon_color.strip() or None,
-<<<<<<< HEAD
             description=description.strip() or None,
             example=example.strip() or None,
-=======
->>>>>>> gsd/M003/S08
         )
     except ValueError as exc:
         logger.warning("create-class validation error: %s", exc)
@@ -492,7 +444,6 @@ async def delete_class(
 
 
 # ------------------------------------------------------------------
-<<<<<<< HEAD
 # Delete property
 # ------------------------------------------------------------------
 
@@ -884,11 +835,6 @@ async def edit_property(
 
 
 # ------------------------------------------------------------------
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S08
-=======
->>>>>>> gsd/M004/S03
 # Icon cache helpers
 # ------------------------------------------------------------------
 
@@ -917,8 +863,3 @@ def _remove_from_icon_cache(request: Request, class_iri: str) -> None:
     icon_cache = getattr(request.app.state, "user_type_icons", None)
     if icon_cache and class_iri in icon_cache:
         del icon_cache[class_iri]
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S07
-=======
->>>>>>> gsd/M003/S08

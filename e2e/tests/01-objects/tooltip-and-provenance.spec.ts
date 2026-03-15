@@ -4,8 +4,6 @@
  * Tests:
  * - GET /browser/tooltip/{iri} — returns HTML tooltip for an object
  * - GET /browser/edge-provenance — returns provenance data for an edge
-<<<<<<< HEAD
-<<<<<<< HEAD
  *
  * Consolidated into 2 test() functions to stay within the
  * 5/minute magic-link rate limit.
@@ -41,12 +39,6 @@ test.describe('Object Tooltip & Edge Provenance', () => {
 
   test('edge provenance endpoint returns data for edges and handles missing edges', async ({ ownerRequest }) => {
     // 1. Create an edge between known seed objects
-=======
-=======
- *
- * Consolidated into 2 test() functions to stay within the
- * 5/minute magic-link rate limit.
->>>>>>> gsd/M003/S10
  */
 import { test, expect, BASE_URL } from '../../fixtures/auth';
 import { SEED } from '../../fixtures/seed-data';
@@ -77,7 +69,6 @@ test.describe('Object Tooltip & Edge Provenance', () => {
     expect(fakeResp.status()).toBeLessThan(500);
   });
 
-<<<<<<< HEAD
   test('tooltip endpoint returns HTML for a person object', async ({ ownerRequest }) => {
     const encodedIri = encodeURIComponent(SEED.people.alice.iri);
     const resp = await ownerRequest.get(`${BASE_URL}/browser/tooltip/${encodedIri}`);
@@ -98,11 +89,6 @@ test.describe('Object Tooltip & Edge Provenance', () => {
 test.describe('Edge Provenance', () => {
   test('edge provenance endpoint returns data for existing edge', async ({ ownerRequest }) => {
     // First create an edge between known objects
->>>>>>> gsd/M003/S03
-=======
-  test('edge provenance endpoint returns data for edges and handles missing edges', async ({ ownerRequest }) => {
-    // 1. Create an edge between known seed objects
->>>>>>> gsd/M003/S10
     const createResp = await ownerRequest.post(`${BASE_URL}/api/commands`, {
       data: {
         command: 'edge.create',
@@ -115,8 +101,6 @@ test.describe('Edge Provenance', () => {
     });
     expect(createResp.ok()).toBeTruthy();
 
-<<<<<<< HEAD
-<<<<<<< HEAD
     // 2. Query edge provenance — uses subject/predicate/target query params
     const provenanceResp = await ownerRequest.get(`${BASE_URL}/browser/edge-provenance`, {
       params: {
@@ -153,13 +137,6 @@ test.describe('Edge Provenance', () => {
       expect(fakeData.event_iri).toBeNull();
       expect(fakeData.timestamp).toBeNull();
     }
-=======
-    // Query edge provenance
-    const resp = await ownerRequest.get(`${BASE_URL}/browser/edge-provenance`, {
-=======
-    // 2. Query edge provenance — uses subject/predicate/target query params
-    const provenanceResp = await ownerRequest.get(`${BASE_URL}/browser/edge-provenance`, {
->>>>>>> gsd/M003/S10
       params: {
         subject: SEED.projects.sempkm.iri,
         predicate: 'http://purl.org/dc/terms/creator',
@@ -187,18 +164,7 @@ test.describe('Edge Provenance', () => {
         target: 'urn:sempkm:fake:prov-test-target',
       },
     });
-<<<<<<< HEAD
     // Should handle gracefully (200 with empty or 404)
     expect([200, 404].includes(resp.status())).toBeTruthy();
->>>>>>> gsd/M003/S03
-=======
-    expect([200, 404].includes(fakeResp.status())).toBeTruthy();
-    if (fakeResp.status() === 200) {
-      const fakeData = await fakeResp.json();
-      // For non-existent edges, event_iri and timestamp should be null
-      expect(fakeData.event_iri).toBeNull();
-      expect(fakeData.timestamp).toBeNull();
-    }
->>>>>>> gsd/M003/S10
   });
 });

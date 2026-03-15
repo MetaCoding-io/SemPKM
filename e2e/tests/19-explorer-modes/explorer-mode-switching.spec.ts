@@ -3,20 +3,9 @@
  *
  * Tests the explorer mode dropdown and mode-switching behavior:
  * - Dropdown visible with three mode options, by-type default shows nav sections
-<<<<<<< HEAD
-<<<<<<< HEAD
  * - Switching to hierarchy shows empty state or hierarchy nodes
  * - Switching to by-tag shows real tag folders, switching back restores by-type tree
-<<<<<<< HEAD
-=======
- * - Switching to hierarchy shows placeholder content
-=======
- * - Switching to hierarchy shows empty state or hierarchy nodes
->>>>>>> gsd/M003/S02
  * - Switching to by-tag shows placeholder, switching back restores real tree
->>>>>>> gsd/M003/S01
-=======
->>>>>>> gsd/M003/S04
  * - Lazy expansion works after mode round-trip
  * - Multi-select state clears on mode switch
  *
@@ -64,15 +53,7 @@ test.describe('Explorer Mode Switching', () => {
     await expect(placeholder).toHaveCount(0);
   });
 
-<<<<<<< HEAD
-<<<<<<< HEAD
   test('switching to hierarchy shows empty state or hierarchy nodes', async ({ ownerPage }) => {
-=======
-  test('switching to hierarchy shows placeholder', async ({ ownerPage }) => {
->>>>>>> gsd/M003/S01
-=======
-  test('switching to hierarchy shows empty state or hierarchy nodes', async ({ ownerPage }) => {
->>>>>>> gsd/M003/S02
     await ownerPage.goto(`${BASE_URL}/browser/`);
     await waitForWorkspace(ownerPage);
 
@@ -80,8 +61,6 @@ test.describe('Explorer Mode Switching', () => {
     await ownerPage.selectOption(SEL.explorer.modeSelect, 'hierarchy');
     await waitForIdle(ownerPage);
 
-<<<<<<< HEAD
-<<<<<<< HEAD
     const treeBody = ownerPage.locator(SEL.explorer.treeBody);
 
     // Placeholder (data-testid="explorer-placeholder") should NOT be present —
@@ -105,13 +84,6 @@ test.describe('Explorer Mode Switching', () => {
     }
 
     // Nav sections from by-type should NOT be present
-=======
-    // Wait for the placeholder to appear
-    const placeholder = ownerPage.locator(SEL.explorer.placeholder);
-    await expect(placeholder).toBeVisible({ timeout: 5000 });
-=======
-    const treeBody = ownerPage.locator(SEL.explorer.treeBody);
->>>>>>> gsd/M003/S02
 
     // Placeholder (data-testid="explorer-placeholder") should NOT be present —
     // hierarchy now returns real content or a descriptive empty state
@@ -134,24 +106,12 @@ test.describe('Explorer Mode Switching', () => {
     }
 
     // Nav sections from by-type should NOT be present
-<<<<<<< HEAD
     const treeBody = ownerPage.locator(SEL.explorer.treeBody);
->>>>>>> gsd/M003/S01
-=======
->>>>>>> gsd/M003/S02
     const sections = treeBody.locator(SEL.nav.section);
     await expect(sections).toHaveCount(0);
   });
 
-<<<<<<< HEAD
-<<<<<<< HEAD
   test('switching to by-tag shows tag folders and switching back restores real tree', async ({ ownerPage }) => {
-=======
-  test('switching to by-tag shows placeholder and switching back restores real tree', async ({ ownerPage }) => {
->>>>>>> gsd/M003/S01
-=======
-  test('switching to by-tag shows tag folders and switching back restores real tree', async ({ ownerPage }) => {
->>>>>>> gsd/M003/S04
     await ownerPage.goto(`${BASE_URL}/browser/`);
     await waitForWorkspace(ownerPage);
 
@@ -159,8 +119,6 @@ test.describe('Explorer Mode Switching', () => {
     await ownerPage.selectOption(SEL.explorer.modeSelect, 'by-tag');
     await waitForIdle(ownerPage);
 
-<<<<<<< HEAD
-<<<<<<< HEAD
     const treeBody = ownerPage.locator(SEL.explorer.treeBody);
 
     // By-tag now shows real tag folders (not a placeholder)
@@ -174,28 +132,6 @@ test.describe('Explorer Mode Switching', () => {
     await expect(placeholder).toHaveCount(0);
 
     // Nav sections from by-type should NOT be present
-=======
-    const placeholder = ownerPage.locator(SEL.explorer.placeholder);
-    await expect(placeholder).toBeVisible({ timeout: 5000 });
-    await expect(placeholder).toContainText('Tag');
-
-    const treeBody = ownerPage.locator(SEL.explorer.treeBody);
->>>>>>> gsd/M003/S01
-=======
-    const treeBody = ownerPage.locator(SEL.explorer.treeBody);
-
-    // By-tag now shows real tag folders (not a placeholder)
-    const tagFolders = treeBody.locator('[data-testid="tag-folder"]');
-    await expect(tagFolders.first()).toBeVisible({ timeout: 10000 });
-    const folderCount = await tagFolders.count();
-    expect(folderCount).toBeGreaterThanOrEqual(1);
-
-    // Placeholder should NOT be present (replaced by real content)
-    const placeholder = treeBody.locator(SEL.explorer.placeholder);
-    await expect(placeholder).toHaveCount(0);
-
-    // Nav sections from by-type should NOT be present
->>>>>>> gsd/M003/S04
     const sections = treeBody.locator(SEL.nav.section);
     await expect(sections).toHaveCount(0);
 
@@ -208,18 +144,8 @@ test.describe('Explorer Mode Switching', () => {
     const count = await sections.count();
     expect(count).toBeGreaterThanOrEqual(1);
 
-<<<<<<< HEAD
-<<<<<<< HEAD
     // Tag folders should be gone
     await expect(tagFolders).toHaveCount(0);
-=======
-    // Placeholder should be gone
-    await expect(placeholder).toHaveCount(0);
->>>>>>> gsd/M003/S01
-=======
-    // Tag folders should be gone
-    await expect(tagFolders).toHaveCount(0);
->>>>>>> gsd/M003/S04
   });
 
   test('lazy expansion works after mode round-trip', async ({ ownerPage }) => {
@@ -229,20 +155,10 @@ test.describe('Explorer Mode Switching', () => {
     // Switch to hierarchy then back to by-type
     await ownerPage.selectOption(SEL.explorer.modeSelect, 'hierarchy');
     await waitForIdle(ownerPage);
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S02
     // Hierarchy now shows real content or empty state (not placeholder)
     const treeBody2 = ownerPage.locator(SEL.explorer.treeBody);
     const hierarchyContent = treeBody2.locator('[data-testid="hierarchy-node"], .tree-empty');
     await expect(hierarchyContent.first()).toBeVisible({ timeout: 5000 });
-<<<<<<< HEAD
-=======
-    await expect(ownerPage.locator(SEL.explorer.placeholder)).toBeVisible({ timeout: 5000 });
->>>>>>> gsd/M003/S01
-=======
->>>>>>> gsd/M003/S02
 
     await ownerPage.selectOption(SEL.explorer.modeSelect, 'by-type');
     await waitForIdle(ownerPage);

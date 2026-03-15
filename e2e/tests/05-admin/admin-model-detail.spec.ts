@@ -1,6 +1,4 @@
 /**
-<<<<<<< HEAD
-<<<<<<< HEAD
  * Admin Model Detail, Ontology Diagram & Webhook Deletion E2E Tests
  *
  * Tests model detail page (info, stats, types), ontology diagram rendering
@@ -8,27 +6,11 @@
  *
  * Consolidated into a single test() to stay within the 5/minute
  * magic-link rate limit when running alongside admin-model-lifecycle.spec.ts.
-=======
- * Admin Model Detail & Ontology Diagram E2E Tests
- *
- * Tests model detail page, ontology diagram rendering, and webhook deletion.
->>>>>>> gsd/M003/S03
-=======
- * Admin Model Detail, Ontology Diagram & Webhook Deletion E2E Tests
- *
- * Tests model detail page (info, stats, types), ontology diagram rendering
- * via the Relationships tab, and webhook creation + deletion.
- *
- * Consolidated into a single test() to stay within the 5/minute
- * magic-link rate limit when running alongside admin-model-lifecycle.spec.ts.
->>>>>>> gsd/M003/S10
  */
 import { test, expect, BASE_URL } from '../../fixtures/auth';
 import { SEL } from '../../helpers/selectors';
 import { waitForIdle } from '../../helpers/wait-for';
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 test.describe('Admin Model Detail & Webhook CRUD', () => {
   test('model detail page with stats, types, ontology diagram, and webhook create/delete', async ({ ownerPage }) => {
     // ---- Part A: Model Detail Page ----
@@ -154,14 +136,6 @@ test.describe('Admin Model Detail & Webhook CRUD', () => {
       hasText: 'e2e-lifecycle-test',
     }).count();
     expect(remainingRows).toBe(0);
-=======
-test.describe('Admin Model Detail Page', () => {
-  test('model detail page loads for basic-pkm', async ({ ownerPage }) => {
-=======
-test.describe('Admin Model Detail & Webhook CRUD', () => {
-  test('model detail page with stats, types, ontology diagram, and webhook create/delete', async ({ ownerPage }) => {
-    // ---- Part A: Model Detail Page ----
->>>>>>> gsd/M003/S10
     const resp = await ownerPage.goto(`${BASE_URL}/admin/models/basic-pkm`);
     expect(resp?.status()).toBe(200);
 
@@ -280,7 +254,6 @@ test.describe('Admin Model Detail & Webhook CRUD', () => {
     await ownerPage.goto(`${BASE_URL}/admin/webhooks`);
     await ownerPage.waitForSelector(SEL.admin.webhookList, { timeout: 15000 });
 
-<<<<<<< HEAD
     if (rowCount > 0) {
       // Find the row with our test URL
       const testRow = webhookRows.filter({ hasText: 'example.com' });
@@ -295,12 +268,5 @@ test.describe('Admin Model Detail & Webhook CRUD', () => {
         expect(afterCount).toBe(0);
       }
     }
->>>>>>> gsd/M003/S03
-=======
-    const remainingRows = await ownerPage.locator(`${SEL.admin.webhookList} tbody tr`).filter({
-      hasText: 'e2e-lifecycle-test',
-    }).count();
-    expect(remainingRows).toBe(0);
->>>>>>> gsd/M003/S10
   });
 });

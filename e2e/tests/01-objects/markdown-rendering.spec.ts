@@ -3,10 +3,6 @@
  *
  * Tests that markdown body content renders correctly with headers, bold,
  * links, code blocks, and that XSS is sanitized by DOMPurify.
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S10
  *
  * Consolidated into 1 test() function (API create + endpoint verify +
  * UI rendering + XSS check) to stay within the 5/minute magic-link
@@ -14,21 +10,12 @@
  *
  * The body is stored via the urn:sempkm:body predicate, which the
  * client-side renderMarkdownBody() renders using marked.js + DOMPurify.
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S03
-=======
->>>>>>> gsd/M003/S10
  */
 import { test, expect, BASE_URL } from '../../fixtures/auth';
 import { TYPES } from '../../fixtures/seed-data';
 import { waitForIdle } from '../../helpers/wait-for';
 import { openObjectTab } from '../../helpers/dockview';
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S10
 const MARKDOWN_BODY = [
   '# Heading 1',
   '## Heading 2',
@@ -47,20 +34,15 @@ const MARKDOWN_BODY = [
   '<img src=x onerror="alert(1)">',
 ].join('\n');
 
-<<<<<<< HEAD
 test.describe('Markdown Rendering', () => {
   test('markdown renders correctly, XSS is sanitized, and API returns body content', async ({ ownerRequest, ownerPage }) => {
     // --- Part 1: Create objects via API ---
 
     const createResp = await ownerRequest.post(`${BASE_URL}/api/commands`, {
-=======
-=======
->>>>>>> gsd/M003/S10
 test.describe('Markdown Rendering', () => {
   test('markdown renders correctly, XSS is sanitized, and API returns body content', async ({ ownerRequest, ownerPage }) => {
     // --- Part 1: Create objects via API ---
 
-<<<<<<< HEAD
   test('create object with markdown body', async ({ ownerRequest }) => {
     const markdownBody = [
       '# Heading 1',
@@ -81,33 +63,17 @@ test.describe('Markdown Rendering', () => {
     ].join('\n');
 
     const resp = await ownerRequest.post(`${BASE_URL}/api/commands`, {
->>>>>>> gsd/M003/S03
-=======
-    const createResp = await ownerRequest.post(`${BASE_URL}/api/commands`, {
->>>>>>> gsd/M003/S10
       data: {
         command: 'object.create',
         params: {
           type: TYPES.Note,
           properties: {
-<<<<<<< HEAD
-<<<<<<< HEAD
             'http://purl.org/dc/terms/title': 'Markdown Render Test',
             'urn:sempkm:body': MARKDOWN_BODY,
-=======
-            'http://purl.org/dc/terms/title': 'Markdown Test Note',
-            'http://purl.org/dc/terms/description': markdownBody,
->>>>>>> gsd/M003/S03
-=======
-            'http://purl.org/dc/terms/title': 'Markdown Render Test',
-            'urn:sempkm:body': MARKDOWN_BODY,
->>>>>>> gsd/M003/S10
           },
         },
       },
     });
-<<<<<<< HEAD
-<<<<<<< HEAD
     expect(createResp.ok()).toBeTruthy();
     const data = await createResp.json();
     const testObjectIri = data.results[0].iri;
@@ -175,15 +141,6 @@ test.describe('Markdown Rendering', () => {
       const body = document.querySelector('.markdown-body');
       if (!body) return 0;
       return body.querySelectorAll('[onerror], [onclick], [onload], [onmouseover]').length;
-=======
-    expect(resp.ok()).toBeTruthy();
-    const data = await resp.json();
-    testObjectIri = data.results[0].iri;
-=======
-    expect(createResp.ok()).toBeTruthy();
-    const data = await createResp.json();
-    const testObjectIri = data.results[0].iri;
->>>>>>> gsd/M003/S10
     expect(testObjectIri).toBeTruthy();
 
     // --- Part 2: Verify object read endpoint returns HTML with body ---
@@ -245,16 +202,9 @@ test.describe('Markdown Rendering', () => {
 
     // No dangerous event handler attributes in the rendered body
     const dangerousAttrs = await ownerPage.evaluate(() => {
-<<<<<<< HEAD
       const tab = document.querySelector('.object-tab');
       if (!tab) return 0;
       return tab.querySelectorAll('[onerror], [onclick], [onload]').length;
->>>>>>> gsd/M003/S03
-=======
-      const body = document.querySelector('.markdown-body');
-      if (!body) return 0;
-      return body.querySelectorAll('[onerror], [onclick], [onload], [onmouseover]').length;
->>>>>>> gsd/M003/S10
     });
     expect(dangerousAttrs).toBe(0);
   });

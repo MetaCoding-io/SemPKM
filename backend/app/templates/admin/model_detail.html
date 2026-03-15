@@ -199,10 +199,6 @@
                                 <span class="analytics-stat-name">Views</span>
                                 <span class="analytics-stat-val">{{ td.views | length }}</span>
                             </div>
-<<<<<<< HEAD
-=======
-
->>>>>>> gsd/M003/S09
                             <div class="analytics-stat-row">
                                 <span class="analytics-stat-name">Avg. connections</span>
                                 <span class="analytics-stat-val">{% if td.instance_count > 0 %}{{ "%.1f"|format(td.avg_connections) }}{% else %}&mdash;{% endif %}</span>
@@ -248,25 +244,11 @@
 
                             {% if td.instance_count > 0 %}
                             <div class="chart-section">
-<<<<<<< HEAD
                                 <h4 class="chart-heading">Link Distribution</h4>
                                 <div class="chart-container chart-container-bar">
                                     <canvas id="chart-links-{{ td.local_name }}" data-links='{{ td.link_distribution | tojson }}'></canvas>
                                 </div>
                             </div>
-=======
-                                <h4 class="chart-heading">Growth (last 8 weeks)</h4>
-                                <div class="chart-container chart-container-sparkline">
-                                    <canvas id="chart-growth-{{ td.local_name }}" data-growth='{{ td.growth_trend | tojson }}'></canvas>
-                                </div>
-                            </div>
-                            <div class="chart-section">
-                                <h4 class="chart-heading">Link Distribution</h4>
-                                <div class="chart-container chart-container-bar">
-                                    <canvas id="chart-links-{{ td.local_name }}" data-links='{{ td.link_distribution | tojson }}'></canvas>
-                                </div>
-                            </div>
->>>>>>> gsd/M003/S09
                             {% else %}
                             <p class="analytics-empty">No data yet</p>
                             {% endif %}

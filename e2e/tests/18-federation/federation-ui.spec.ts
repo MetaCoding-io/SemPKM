@@ -1,38 +1,18 @@
 /**
  * Federation UI Partials E2E Tests
  *
-<<<<<<< HEAD
-<<<<<<< HEAD
  * Tests federation UI endpoints in a single test() to stay within
  * the 5/minute magic-link rate limit:
-=======
- * Tests federation UI endpoints:
->>>>>>> gsd/M003/S03
-=======
- * Tests federation UI endpoints in a single test() to stay within
- * the 5/minute magic-link rate limit:
->>>>>>> gsd/M003/S10
  * - GET /api/federation/inbox-partial — inbox panel HTML
  * - GET /api/federation/collab-partial — collaboration panel HTML
  * - GET /api/federation/shared-graphs — shared graph list JSON
  * - GET /api/federation/contacts — contact list JSON
  * - GET /api/federation/shared-nav — shared nav tree HTML
-<<<<<<< HEAD
-<<<<<<< HEAD
  * - GET /api/inbox — inbox notifications JSON
-=======
->>>>>>> gsd/M003/S03
-=======
- * - GET /api/inbox — inbox notifications JSON
->>>>>>> gsd/M003/S10
  */
 import { test, expect, BASE_URL } from '../../fixtures/auth';
 
 test.describe('Federation UI Partials', () => {
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S10
   test('all federation partials and endpoints return valid responses', async ({ ownerRequest }) => {
     // 1. Inbox partial — returns HTML content for htmx swap
     const inboxResp = await ownerRequest.get(`${BASE_URL}/api/federation/inbox-partial`);
@@ -41,7 +21,6 @@ test.describe('Federation UI Partials', () => {
     expect(inboxHtml.length).toBeGreaterThan(0);
     // Should be HTML content (not JSON error)
     expect(inboxHtml).toMatch(/<|<!|class=|id=/i);
-<<<<<<< HEAD
 
     // 2. Collab partial — returns HTML content for collaboration panel
     const collabResp = await ownerRequest.get(`${BASE_URL}/api/federation/collab-partial`);
@@ -82,12 +61,6 @@ test.describe('Federation UI Partials', () => {
       expect(first.state).toBeDefined();
       expect(first.receivedAt).toBeDefined();
     }
-=======
-  test('inbox partial returns HTML', async ({ ownerRequest }) => {
-    const resp = await ownerRequest.get(`${BASE_URL}/api/federation/inbox-partial`);
-    expect(resp.ok()).toBeTruthy();
-=======
->>>>>>> gsd/M003/S10
 
     // 2. Collab partial — returns HTML content for collaboration panel
     const collabResp = await ownerRequest.get(`${BASE_URL}/api/federation/collab-partial`);
@@ -115,7 +88,6 @@ test.describe('Federation UI Partials', () => {
     const navHtml = await navResp.text();
     expect(typeof navHtml).toBe('string');
 
-<<<<<<< HEAD
     const data = await resp.json();
     expect(Array.isArray(data)).toBe(true);
   });
@@ -144,21 +116,5 @@ test.describe('Federation UI Partials', () => {
     const data = await resp.json();
     // Should return notifications array or object
     expect(data).toBeDefined();
->>>>>>> gsd/M003/S03
-=======
-    // 6. Inbox notifications — returns JSON array via LDN inbox endpoint
-    const notifResp = await ownerRequest.get(`${BASE_URL}/api/inbox`);
-    expect(notifResp.ok()).toBeTruthy();
-    const notifData = await notifResp.json();
-    expect(Array.isArray(notifData)).toBe(true);
-    // Each notification should have expected fields if any exist
-    if (notifData.length > 0) {
-      const first = notifData[0];
-      expect(first.id).toBeDefined();
-      expect(first.type).toBeDefined();
-      expect(first.state).toBeDefined();
-      expect(first.receivedAt).toBeDefined();
-    }
->>>>>>> gsd/M003/S10
   });
 });

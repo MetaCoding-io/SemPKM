@@ -764,21 +764,13 @@
     if (existing) { existing.api.setActive(); return; }
 
     if (!window._tabMeta) window._tabMeta = {};
-<<<<<<< HEAD
     window._tabMeta[tabKey] = { label: '◆ Ontology Viewer', dirty: false };
-=======
-    window._tabMeta[tabKey] = { label: 'Ontology Viewer', dirty: false };
->>>>>>> gsd/M003/S07
 
     dv.api.addPanel({
       id: tabKey,
       component: 'special-panel',
       params: { specialType: 'ontology', isView: false, isSpecial: true },
-<<<<<<< HEAD
       title: '◆ Ontology Viewer'
-=======
-      title: 'Ontology Viewer'
->>>>>>> gsd/M003/S07
     });
   }
   window.openOntologyTab = openOntologyTab;
@@ -1645,7 +1637,6 @@
   }
 
   function showTypePicker() {
-<<<<<<< HEAD
     showCreateFormForType(null, null);
   }
 
@@ -1657,10 +1648,6 @@
     var editorArea = null;
     var tabTitle = typeIri ? 'New ' + typeLabel : 'New Object';
 
-=======
-    var editorArea = null;
-
->>>>>>> gsd/M004/S04
     // Always create a fresh dockview panel so the type picker never
     // overwrites the content of an existing tab.
     if (window._dockview) {
@@ -1674,11 +1661,7 @@
         title: tabTitle
       });
       _newObjectPanelId = panelId;
-<<<<<<< HEAD
       console.debug('[workspace] showCreateFormForType: created temp panel', panelId);
-=======
-      console.debug('[workspace] showTypePicker: created temp panel', panelId);
->>>>>>> gsd/M004/S04
       editorArea = window.getActiveEditorArea ? window.getActiveEditorArea() : null;
     }
 
@@ -2120,10 +2103,6 @@
     } catch (e) { /* localStorage unavailable */ }
   }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S03
   /**
    * Fetch VFS mounts and inject them as <option> entries in the explorer
    * mode dropdown. Wraps mount options in an <optgroup> for visual
@@ -2188,11 +2167,6 @@
       });
   }
 
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S01
-=======
->>>>>>> gsd/M003/S03
   // --- Initialization ---
 
   function init() {
@@ -2224,7 +2198,6 @@
     // Initialize command palette after workspace layout is ready
     initCommandPalette();
 
-<<<<<<< HEAD
     // --- Handle deep-link hash to auto-open special tabs ---
     if (window.location.hash === '#ontology-viewer' && typeof openOntologyTab === 'function') {
       // Small delay to ensure dockview is fully initialized
@@ -2239,14 +2212,6 @@
     // --- Inject VFS mount options into explorer dropdown (async, non-blocking) ---
     initExplorerMountOptions();
 
-<<<<<<< HEAD
-=======
-    // --- Explorer mode: clear selection on switch, persist in localStorage ---
-    initExplorerMode();
-
->>>>>>> gsd/M003/S01
-=======
->>>>>>> gsd/M003/S03
     // Initialize lint dashboard SSE and health badge
     initLintDashboardSSE();
     fetch('/api/lint/status', { credentials: 'include' })
@@ -3448,10 +3413,7 @@
 
   // --- Predicate options ---
   var PREDICATES = [
-<<<<<<< HEAD
     { iri: 'http://www.w3.org/2000/01/rdf-schema#comment', label: 'rdfs:comment (description)' },
-=======
->>>>>>> gsd/M003/S08
     { iri: 'http://purl.org/dc/terms/title', label: 'dcterms:title' },
     { iri: 'http://purl.org/dc/terms/description', label: 'dcterms:description' },
     { iri: 'http://purl.org/dc/terms/date', label: 'dcterms:date' },
@@ -3578,30 +3540,18 @@
     row.setAttribute('data-testid', 'property-row');
     row.innerHTML =
       '<div class="prop-field">' +
-<<<<<<< HEAD
         '<label>Display Label</label>' +
         '<input type="text" class="prop-name" placeholder="e.g. Description, Due Date" autocomplete="off">' +
       '</div>' +
       '<div class="prop-field">' +
         '<label>RDF Property</label>' +
-=======
-        '<label>Name</label>' +
-        '<input type="text" class="prop-name" placeholder="Property name" autocomplete="off">' +
-      '</div>' +
-      '<div class="prop-field">' +
-        '<label>Predicate</label>' +
->>>>>>> gsd/M003/S08
         '<select class="prop-predicate" onchange="handlePredicateChange(this)">' +
           buildPredicateOptions() +
         '</select>' +
         '<input type="text" class="prop-custom-iri" placeholder="Custom IRI (http://…)" style="display:none; margin-top:4px;" autocomplete="off">' +
       '</div>' +
       '<div class="prop-field">' +
-<<<<<<< HEAD
         '<label>Value Type</label>' +
-=======
-        '<label>Datatype</label>' +
->>>>>>> gsd/M003/S08
         '<select class="prop-datatype">' +
           buildDatatypeOptions() +
         '</select>' +
@@ -3671,7 +3621,6 @@
     }
   });
 
-<<<<<<< HEAD
   // Listen for classCreated to close modal and show global toast
   document.addEventListener('htmx:afterRequest', function(e) {
     if (e.detail && e.detail.elt && e.detail.elt.id === 'create-class-form') {
@@ -3695,13 +3644,6 @@
           _showGlobalToast('Created class "' + className + '"', 'info');
         }
       }
-=======
-  // Listen for classCreated to close form and show success
-  document.addEventListener('htmx:afterRequest', function(e) {
-    if (e.detail && e.detail.elt && e.detail.elt.id === 'create-class-form') {
-      // If the response was successful (200), form can stay to show message
-      // The HX-Trigger: classCreated will auto-refresh the TBox tree
->>>>>>> gsd/M003/S08
     }
   });
 

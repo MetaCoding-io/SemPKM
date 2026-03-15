@@ -3,33 +3,19 @@
  *
  * Tests the owner invite flow: POST /api/auth/invite creates an invitation,
  * and the invited user can log in and gets the member role.
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S10
  * Also verifies that members cannot invite other users.
  *
  * Consolidated into a single test() to stay within the 5/minute magic-link
  * rate limit imposed by auth rate limiting (each test() needs its own auth token).
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S03
-=======
->>>>>>> gsd/M003/S10
  */
 import { test, expect, BASE_URL } from '../../fixtures/auth';
 import { request } from '@playwright/test';
 
 test.describe('Invite Flow', () => {
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S10
   test('owner invites user, invited user logs in as member, member cannot invite', async ({ ownerRequest }) => {
     // ---- Part 1: Owner can invite a new user via API ----
     // Use example.com (RFC 2606 reserved) — .local TLD is rejected by pydantic EmailStr
     const inviteEmail = `invited-${Date.now()}@example.com`;
-<<<<<<< HEAD
 
     const inviteResp = await ownerRequest.post(`${BASE_URL}/api/auth/invite`, {
       data: { email: inviteEmail, role: 'member' },
@@ -43,11 +29,6 @@ test.describe('Invite Flow', () => {
 
     const mlResp = await anonCtx.post(`${BASE_URL}/api/auth/magic-link`, {
       data: { email: inviteEmail },
-=======
-  test('owner can invite a new user via API', async ({ ownerRequest }) => {
-    const email = `invited-${Date.now()}@test.local`;
-=======
->>>>>>> gsd/M003/S10
 
     const inviteResp = await ownerRequest.post(`${BASE_URL}/api/auth/invite`, {
       data: { email: inviteEmail, role: 'member' },
@@ -60,12 +41,7 @@ test.describe('Invite Flow', () => {
     const anonCtx = await request.newContext({ baseURL: BASE_URL });
 
     const mlResp = await anonCtx.post(`${BASE_URL}/api/auth/magic-link`, {
-<<<<<<< HEAD
       data: { email },
->>>>>>> gsd/M003/S03
-=======
-      data: { email: inviteEmail },
->>>>>>> gsd/M003/S10
     });
     expect(mlResp.ok()).toBeTruthy();
     const mlData = await mlResp.json();
@@ -83,23 +59,13 @@ test.describe('Invite Flow', () => {
     expect(match).toBeTruthy();
 
     // Use the session to check the user's role
-<<<<<<< HEAD
-<<<<<<< HEAD
     const invitedCtx = await request.newContext({
-=======
-    const authedCtx = await request.newContext({
->>>>>>> gsd/M003/S03
-=======
-    const invitedCtx = await request.newContext({
->>>>>>> gsd/M003/S10
       baseURL: BASE_URL,
       extraHTTPHeaders: {
         Cookie: `sempkm_session=${match![1]}`,
       },
     });
 
-<<<<<<< HEAD
-<<<<<<< HEAD
     const meResp = await invitedCtx.get(`${BASE_URL}/api/auth/me`);
     expect(meResp.ok()).toBeTruthy();
     const meData = await meResp.json();
@@ -116,11 +82,6 @@ test.describe('Invite Flow', () => {
     // Cleanup contexts
     await anonCtx.dispose();
     await invitedCtx.dispose();
-=======
-    const meResp = await authedCtx.get(`${BASE_URL}/api/auth/me`);
-=======
-    const meResp = await invitedCtx.get(`${BASE_URL}/api/auth/me`);
->>>>>>> gsd/M003/S10
     expect(meResp.ok()).toBeTruthy();
     const meData = await meResp.json();
     expect(meData.email).toBe(inviteEmail);
@@ -135,7 +96,6 @@ test.describe('Invite Flow', () => {
 
     // Cleanup contexts
     await anonCtx.dispose();
-<<<<<<< HEAD
     await authedCtx.dispose();
   });
 
@@ -173,9 +133,5 @@ test.describe('Invite Flow', () => {
     expect(inviteResp.status()).toBeGreaterThanOrEqual(400);
 
     await memberCtx.dispose();
->>>>>>> gsd/M003/S03
-=======
-    await invitedCtx.dispose();
->>>>>>> gsd/M003/S10
   });
 });

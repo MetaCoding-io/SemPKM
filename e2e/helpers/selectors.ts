@@ -43,18 +43,9 @@ export const SEL = {
     modeSelect: '#explorer-mode-select',
     treeBody: '#explorer-tree-body',
     placeholder: '[data-testid="explorer-placeholder"]',
-<<<<<<< HEAD
-<<<<<<< HEAD
     mountOption: 'option[value^="mount:"]',
     mountFolderNode: '[data-testid="mount-folder"]',
     mountObjectLeaf: '[data-testid="mount-object"]',
-=======
->>>>>>> gsd/M003/S01
-=======
-    mountOption: 'option[value^="mount:"]',
-    mountFolderNode: '[data-testid="mount-folder"]',
-    mountObjectLeaf: '[data-testid="mount-object"]',
->>>>>>> gsd/M003/S03
   },
 
   // Type picker
@@ -124,10 +115,6 @@ export const SEL = {
     tabAbox: '[data-testid="ontology-tab-abox"]',
     tabRbox: '[data-testid="ontology-tab-rbox"]',
   },
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S08
   // Class creation
   classCreation: {
     createButton: '[data-testid="create-class-btn"]',
@@ -143,9 +130,4 @@ export const SEL = {
     resultContainer: '[data-testid="ccf-result"]',
     deleteButton: '[data-testid="tbox-delete-btn"]',
   },
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S07
-=======
->>>>>>> gsd/M003/S08
 } as const;

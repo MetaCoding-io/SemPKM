@@ -7,28 +7,15 @@
  * Routes:
  * - GET /browser/docs — docs index page
  * - GET /browser/docs/guide/{filename} — individual guide pages
-<<<<<<< HEAD
-<<<<<<< HEAD
  *
  * Consolidated into 1 test() function (API endpoint checks + UI
  * navigation) to stay within the 5/minute magic-link rate limit.
-=======
->>>>>>> gsd/M003/S03
-=======
- *
- * Consolidated into 1 test() function (API endpoint checks + UI
- * navigation) to stay within the 5/minute magic-link rate limit.
->>>>>>> gsd/M003/S10
  */
 import { test, expect, BASE_URL } from '../../fixtures/auth';
 import { waitForWorkspace, waitForIdle } from '../../helpers/wait-for';
 import { openDocsTab } from '../../helpers/dockview';
 
 test.describe('Docs Navigation', () => {
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S10
   test('docs endpoints return HTML and tab navigation works', async ({ ownerRequest, ownerPage }) => {
     // --- Part 1: API endpoint checks ---
 
@@ -51,31 +38,16 @@ test.describe('Docs Navigation', () => {
 
     // --- Part 2: UI tab navigation ---
 
-<<<<<<< HEAD
     await ownerPage.goto(`${BASE_URL}/browser/`);
     await waitForWorkspace(ownerPage);
 
     // Open docs tab via the application API
-=======
-  test('docs tab opens and shows guide content', async ({ ownerPage }) => {
-    await ownerPage.goto(`${BASE_URL}/browser/`);
-    await waitForWorkspace(ownerPage);
-
->>>>>>> gsd/M003/S03
-=======
-    await ownerPage.goto(`${BASE_URL}/browser/`);
-    await waitForWorkspace(ownerPage);
-
-    // Open docs tab via the application API
->>>>>>> gsd/M003/S10
     await openDocsTab(ownerPage);
     await waitForIdle(ownerPage);
 
     // Docs page should be visible
     const docsPage = ownerPage.locator('#docs-page');
     await expect(docsPage).toBeVisible({ timeout: 10000 });
-<<<<<<< HEAD
-<<<<<<< HEAD
 
     // Docs page should have navigation links
     const docLinks = ownerPage.locator('#docs-page a, #docs-page [hx-get]');
@@ -106,10 +78,6 @@ test.describe('Docs Navigation', () => {
       expect(contentAfterClick).toBe(true);
     }
   });
-=======
-  });
-=======
->>>>>>> gsd/M003/S10
 
     // Docs page should have navigation links
     const docLinks = ownerPage.locator('#docs-page a, #docs-page [hx-get]');
@@ -140,5 +108,4 @@ test.describe('Docs Navigation', () => {
       expect(contentAfterClick).toBe(true);
     }
   });
->>>>>>> gsd/M003/S03
 });

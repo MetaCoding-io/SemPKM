@@ -13,23 +13,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from rdflib import URIRef
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S05
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import get_current_user, require_role
 from app.auth.models import User
 from app.db.session import get_db_session
-<<<<<<< HEAD
-=======
-from app.auth.dependencies import get_current_user, require_role
-from app.auth.models import User
->>>>>>> gsd/M002/S04
-=======
->>>>>>> gsd/M003/S05
 from app.dependencies import (
     get_event_store,
     get_label_service,
@@ -39,14 +28,7 @@ from app.dependencies import (
     get_triplestore_client,
     get_validation_queue,
 )
-<<<<<<< HEAD
-<<<<<<< HEAD
 from app.favorites.models import UserFavorite
-=======
->>>>>>> gsd/M002/S04
-=======
-from app.favorites.models import UserFavorite
->>>>>>> gsd/M003/S05
 from app.events.store import EventStore, Operation
 from app.lint.service import LintService
 from app.services.icons import IconService
@@ -77,14 +59,7 @@ async def get_object(
     label_service: LabelService = Depends(get_label_service),
     client: TriplestoreClient = Depends(get_triplestore_client),
     icon_svc: IconService = Depends(get_icon_service),
-<<<<<<< HEAD
-<<<<<<< HEAD
     db: AsyncSession = Depends(get_db_session),
-=======
->>>>>>> gsd/M002/S04
-=======
-    db: AsyncSession = Depends(get_db_session),
->>>>>>> gsd/M003/S05
 ):
     """Render an object in the editor area with read-only view or edit form.
 
@@ -258,10 +233,6 @@ async def get_object(
     # Merge inferred labels into ref_labels so the template has a single label lookup
     ref_labels.update(inferred_labels)
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S05
     # Check if the current user has favorited this object
     fav_result = await db.execute(
         select(UserFavorite.id).where(
@@ -271,11 +242,6 @@ async def get_object(
     )
     is_favorite = fav_result.scalar_one_or_none() is not None
 
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M002/S04
-=======
->>>>>>> gsd/M003/S05
     context = {
         "request": request,
         "form": form,
@@ -294,14 +260,7 @@ async def get_object(
         "body_property_path": body_property_path,
         "mode": mode,
         "type_icon": type_icon,
-<<<<<<< HEAD
-<<<<<<< HEAD
         "is_favorite": is_favorite,
-=======
->>>>>>> gsd/M002/S04
-=======
-        "is_favorite": is_favorite,
->>>>>>> gsd/M003/S05
     }
 
     return templates.TemplateResponse(
@@ -1129,21 +1088,11 @@ async def save_object(
     object.patch commands for modifications, and re-renders the
     form with updated values and a success message.
     """
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S04
     from app.commands.handlers.object_patch import (
         handle_object_patch,
         is_tag_property,
         split_tag_values,
     )
-<<<<<<< HEAD
-=======
-    from app.commands.handlers.object_patch import handle_object_patch
->>>>>>> gsd/M002/S04
-=======
->>>>>>> gsd/M003/S04
     from app.commands.schemas import ObjectPatchParams
     from app.config import settings
 
@@ -1168,10 +1117,6 @@ async def save_object(
         clean_key = key.rstrip("[]")
         properties[clean_key] = values
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S04
     # Split comma-separated tag values into individual entries
     for prop_key in list(properties.keys()):
         if is_tag_property(prop_key):
@@ -1180,11 +1125,6 @@ async def save_object(
                 split_values.extend(split_tag_values(v))
             properties[prop_key] = split_values
 
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M002/S04
-=======
->>>>>>> gsd/M003/S04
     # Auto-set dcterms:modified to current UTC timestamp
     properties[dcterms_modified] = [datetime.now(timezone.utc).isoformat()]
 

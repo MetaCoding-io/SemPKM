@@ -1,0 +1,25 @@
+#!/bin/bash
+# Pre-commit hook: reject commits containing git conflict markers.
+#
+# Checks all staged files for unresolved <<<<<<< / ======= / >>>>>>> markers.
+# This prevents the class of bug where squash merges commit conflict markers
+# without resolving them (see: M002/S03 through M005/S01, 17 commits, 51 files).
+
+# Only check staged files (not the whole repo)
+CONFLICT_FILES=$(git diff --cached --name-only --diff-filter=ACMR | \
+  xargs grep -l '^<<<<<<< \|^=======$\|^>>>>>>> ' 2>/dev/null)
+
+if [ -n "$CONFLICT_FILES" ]; then
+  echo ""
+  echo "ERROR: Git conflict markers found in staged files:"
+  echo ""
+  for f in $CONFLICT_FILES; do
+    count=$(grep -c '^<<<<<<< ' "$f" 2>/dev/null)
+    echo "  $f ($count conflict blocks)"
+  done
+  echo ""
+  echo "Resolve all conflicts before committing."
+  echo "To bypass (emergencies only): git commit --no-verify"
+  echo ""
+  exit 1
+fi

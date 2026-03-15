@@ -1,13 +1,7 @@
 {# Class creation form: allows users to define a new RDF class with
-<<<<<<< HEAD
    name, description, example, icon, parent class, and property editor.
 
    This form is loaded via htmx into the modal when the user
-=======
-   name, Lucide icon, parent class, and dynamic property editor.
-
-   This form is loaded via htmx into the TBox pane when the user
->>>>>>> gsd/M003/S08
    clicks "Create Class". It submits via htmx POST to
    /browser/ontology/create-class.
 #}
@@ -26,7 +20,6 @@
         hx-indicator="#ccf-spinner"
         hx-on::config-request="serializeProperties(); event.detail.parameters['properties'] = document.getElementById('ccf-properties').value">
 
-<<<<<<< HEAD
     {# ═══════════════════════════════════════════════
        Section 1: Class Identity
        ═══════════════════════════════════════════════ #}
@@ -134,44 +127,10 @@
                   onclick="selectIconColor(this, '#06b6d4')" title="Cyan">
             <span style="background: #06b6d4;"></span>
           </button>
-=======
-    {# --- Name field --- #}
-    <div class="form-field">
-      <label for="ccf-name">Class Name <span class="ccf-required">*</span></label>
-      <input type="text" id="ccf-name" name="name" required
-             placeholder="e.g. Research Paper, Meeting Note…"
-             autocomplete="off">
-    </div>
-
-    {# --- Icon picker --- #}
-    <div class="form-field">
-      <label>Icon</label>
-      <input type="hidden" id="ccf-icon" name="icon" value="">
-      <div class="icon-picker" data-testid="icon-picker">
-        <input type="text" class="icon-picker-search" placeholder="Search icons…"
-               oninput="filterIconPicker(this.value)" autocomplete="off">
-        <div class="icon-picker-grid" id="icon-picker-grid">
-          {# Curated list of ~40 common Lucide icons #}
-          {% set icons = [
-            'file-text', 'book', 'lightbulb', 'user', 'calendar', 'tag', 'folder',
-            'star', 'heart', 'globe', 'code', 'database', 'layers', 'map', 'music',
-            'image', 'video', 'link', 'mail', 'phone', 'home', 'briefcase',
-            'shopping-cart', 'clock', 'bell', 'flag', 'bookmark', 'award', 'zap',
-            'compass', 'cpu', 'feather', 'gift', 'key', 'lock', 'settings',
-            'shield', 'target', 'wrench', 'truck'
-          ] %}
-          {% for icon_name in icons %}
-          <button type="button" class="icon-picker-cell" data-icon="{{ icon_name }}"
-                  onclick="selectIcon(this, '{{ icon_name }}')" title="{{ icon_name }}">
-            <i data-lucide="{{ icon_name }}"></i>
-          </button>
-          {% endfor %}
->>>>>>> gsd/M003/S08
         </div>
       </div>
     </div>
 
-<<<<<<< HEAD
     {# ═══════════════════════════════════════════════
        Section 3: Hierarchy & Properties
        ═══════════════════════════════════════════════ #}
@@ -218,86 +177,6 @@
             <i data-lucide="plus"></i> Add Property
           </button>
         </div>
-=======
-    {# --- Icon color --- #}
-    <div class="form-field">
-      <label for="ccf-icon-color">Icon Color</label>
-      <input type="hidden" id="ccf-icon-color" name="icon_color" value="">
-      <div class="color-picker-row" id="color-picker-row">
-        <button type="button" class="color-swatch color-swatch--selected" data-color=""
-                onclick="selectIconColor(this, '')" title="Default">
-          <span style="background: var(--color-text-muted);"></span>
-        </button>
-        <button type="button" class="color-swatch" data-color="#6366f1"
-                onclick="selectIconColor(this, '#6366f1')" title="Indigo">
-          <span style="background: #6366f1;"></span>
-        </button>
-        <button type="button" class="color-swatch" data-color="#8b5cf6"
-                onclick="selectIconColor(this, '#8b5cf6')" title="Purple">
-          <span style="background: #8b5cf6;"></span>
-        </button>
-        <button type="button" class="color-swatch" data-color="#ec4899"
-                onclick="selectIconColor(this, '#ec4899')" title="Pink">
-          <span style="background: #ec4899;"></span>
-        </button>
-        <button type="button" class="color-swatch" data-color="#ef4444"
-                onclick="selectIconColor(this, '#ef4444')" title="Red">
-          <span style="background: #ef4444;"></span>
-        </button>
-        <button type="button" class="color-swatch" data-color="#f59e0b"
-                onclick="selectIconColor(this, '#f59e0b')" title="Amber">
-          <span style="background: #f59e0b;"></span>
-        </button>
-        <button type="button" class="color-swatch" data-color="#10b981"
-                onclick="selectIconColor(this, '#10b981')" title="Emerald">
-          <span style="background: #10b981;"></span>
-        </button>
-        <button type="button" class="color-swatch" data-color="#3b82f6"
-                onclick="selectIconColor(this, '#3b82f6')" title="Blue">
-          <span style="background: #3b82f6;"></span>
-        </button>
-        <button type="button" class="color-swatch" data-color="#06b6d4"
-                onclick="selectIconColor(this, '#06b6d4')" title="Cyan">
-          <span style="background: #06b6d4;"></span>
-        </button>
-      </div>
-    </div>
-
-    {# --- Parent class selector --- #}
-    <div class="form-field">
-      <label for="ccf-parent-search">Parent Class</label>
-      <input type="hidden" id="ccf-parent-iri" name="parent_iri" value="http://www.w3.org/2002/07/owl#Thing">
-      <div class="parent-class-picker" data-testid="parent-class-picker">
-        <input type="text" id="ccf-parent-search" class="parent-class-search"
-               placeholder="Search classes… (default: owl:Thing)"
-               autocomplete="off"
-               hx-get="/browser/ontology/tbox/search"
-               hx-trigger="input changed delay:300ms"
-               hx-target="#ccf-parent-results"
-               hx-swap="innerHTML"
-               name="q">
-        <div class="parent-class-selected" id="ccf-parent-label">
-          <span class="parent-class-tag">owl:Thing</span>
-          <button type="button" class="parent-class-clear" onclick="clearParentClass()" title="Reset to owl:Thing">
-            <i data-lucide="x"></i>
-          </button>
-        </div>
-        <div class="parent-class-results" id="ccf-parent-results"></div>
-      </div>
-    </div>
-
-    {# --- Property editor --- #}
-    <div class="form-field">
-      <label>Properties</label>
-      <input type="hidden" id="ccf-properties" name="properties" value="[]">
-      <div class="property-editor" data-testid="property-editor">
-        <div class="property-rows" id="property-rows">
-          {# Dynamic rows added via JS #}
-        </div>
-        <button type="button" class="btn-sm btn-add-property" onclick="addPropertyRow()">
-          <i data-lucide="plus"></i> Add Property
-        </button>
->>>>>>> gsd/M003/S08
       </div>
     </div>
 
@@ -321,7 +200,6 @@
     var form = document.querySelector('.class-creation-form');
     if (form) lucide.createIcons({ nodes: [form] });
   }
-<<<<<<< HEAD
 
   // Add default "Description" property row pre-filled with rdfs:comment
   if (typeof addPropertyRow === 'function') {
@@ -334,7 +212,5 @@
       if (predSelect) predSelect.value = 'http://www.w3.org/2000/01/rdf-schema#comment';
     }
   }
-=======
->>>>>>> gsd/M003/S08
 })();
 </script>
