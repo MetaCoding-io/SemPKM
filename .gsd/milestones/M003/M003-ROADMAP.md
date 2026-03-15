@@ -74,7 +74,7 @@ This milestone is complete only when all are true:
 - [x] **S05: Favorites System** `risk:low` `depends:[S01]`
   > After this: Star button on objects toggles per-user favorites. FAVORITES collapsible section in explorer shows all starred objects with quick navigation.
 
-- [ ] **S06: Threaded Object Comments** `risk:medium` `depends:[]`
+- [x] **S06: Threaded Object Comments** `risk:medium` `depends:[]`
   > After this: Users can add comments on any object. Comments are threaded (reply-to nesting), show author and timestamp, and are visible to all users on the instance.
 
 - [ ] **S07: Ontology Viewer & Gist Foundation** `risk:high` `depends:[]`
