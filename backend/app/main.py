@@ -179,6 +179,9 @@ async def lifespan(app: FastAPI):
     ontology_service = OntologyService(client)
     app.state.ontology_service = ontology_service
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> gsd/M005/S01
 
     # Query service (RDF-backed saved queries, history, sharing, promotion)
     from app.sparql.query_service import QueryService
