@@ -8,11 +8,17 @@
  * - GET /browser/docs — docs index page
  * - GET /browser/docs/guide/{filename} — individual guide pages
 <<<<<<< HEAD
+<<<<<<< HEAD
  *
  * Consolidated into 1 test() function (API endpoint checks + UI
  * navigation) to stay within the 5/minute magic-link rate limit.
 =======
 >>>>>>> gsd/M003/S03
+=======
+ *
+ * Consolidated into 1 test() function (API endpoint checks + UI
+ * navigation) to stay within the 5/minute magic-link rate limit.
+>>>>>>> gsd/M003/S10
  */
 import { test, expect, BASE_URL } from '../../fixtures/auth';
 import { waitForWorkspace, waitForIdle } from '../../helpers/wait-for';
@@ -20,6 +26,9 @@ import { openDocsTab } from '../../helpers/dockview';
 
 test.describe('Docs Navigation', () => {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> gsd/M003/S10
   test('docs endpoints return HTML and tab navigation works', async ({ ownerRequest, ownerPage }) => {
     // --- Part 1: API endpoint checks ---
 
@@ -42,6 +51,7 @@ test.describe('Docs Navigation', () => {
 
     // --- Part 2: UI tab navigation ---
 
+<<<<<<< HEAD
     await ownerPage.goto(`${BASE_URL}/browser/`);
     await waitForWorkspace(ownerPage);
 
@@ -52,12 +62,19 @@ test.describe('Docs Navigation', () => {
     await waitForWorkspace(ownerPage);
 
 >>>>>>> gsd/M003/S03
+=======
+    await ownerPage.goto(`${BASE_URL}/browser/`);
+    await waitForWorkspace(ownerPage);
+
+    // Open docs tab via the application API
+>>>>>>> gsd/M003/S10
     await openDocsTab(ownerPage);
     await waitForIdle(ownerPage);
 
     // Docs page should be visible
     const docsPage = ownerPage.locator('#docs-page');
     await expect(docsPage).toBeVisible({ timeout: 10000 });
+<<<<<<< HEAD
 <<<<<<< HEAD
 
     // Docs page should have navigation links
@@ -91,40 +108,37 @@ test.describe('Docs Navigation', () => {
   });
 =======
   });
+=======
+>>>>>>> gsd/M003/S10
 
-  test('docs index page loads via direct URL', async ({ ownerRequest }) => {
-    const resp = await ownerRequest.get(`${BASE_URL}/browser/docs`);
-    expect(resp.ok()).toBeTruthy();
-
-    const html = await resp.text();
-    expect(html.length).toBeGreaterThan(0);
-    // Should contain guide links or navigation
-    expect(html).toMatch(/guide|docs|help|getting started/i);
-  });
-
-  test('guide pages render markdown content', async ({ ownerRequest }) => {
-    // Try to load a specific guide page
-    const resp = await ownerRequest.get(`${BASE_URL}/browser/docs/guide/index`);
-
-    if (resp.ok()) {
-      const html = await resp.text();
-      expect(html.length).toBeGreaterThan(0);
-    }
-  });
-
-  test('docs tab has navigation links between pages', async ({ ownerPage }) => {
-    await ownerPage.goto(`${BASE_URL}/browser/`);
-    await waitForWorkspace(ownerPage);
-
-    await openDocsTab(ownerPage);
-    await waitForIdle(ownerPage);
-
-    // Check for navigation links within docs
+    // Docs page should have navigation links
     const docLinks = ownerPage.locator('#docs-page a, #docs-page [hx-get]');
     const linkCount = await docLinks.count();
-
-    // Should have at least one navigation link
     expect(linkCount).toBeGreaterThan(0);
+
+    // Click the first link and verify content loads
+    if (linkCount > 0) {
+      const firstLink = docLinks.first();
+      const firstHref = await firstLink.getAttribute('href');
+      const firstHxGet = await firstLink.getAttribute('hx-get');
+      expect(firstHref || firstHxGet).toBeTruthy();
+
+      await firstLink.click();
+      await waitForIdle(ownerPage);
+
+      // After clicking a guide link, content may load via htmx swap.
+      // Verify meaningful content exists.
+      const contentAfterClick = await ownerPage.evaluate(() => {
+        const docsEl = document.getElementById('docs-page');
+        if (docsEl && (docsEl.textContent?.length || 0) > 0) return true;
+        const mdBody = document.querySelector('.markdown-body, .docs-content, .guide-content');
+        if (mdBody && (mdBody.textContent?.length || 0) > 0) return true;
+        const backLink = document.querySelector('a[href*="docs"], [hx-get*="docs"]');
+        if (backLink) return true;
+        return false;
+      });
+      expect(contentAfterClick).toBe(true);
+    }
   });
 >>>>>>> gsd/M003/S03
 });
