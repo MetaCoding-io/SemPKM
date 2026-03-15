@@ -1,8 +1,8 @@
 # GSD State
 
 **Active Milestone:** M005 — Platform Polish & Foundation
-**Active Slice:** S01 — Query Storage SQL→RDF Migration
-**Phase:** executing
+**Active Slice:** S02 — Operations Log & PROV-O Foundation
+**Phase:** planning
 **Requirements Status:** 0 active · 88 validated · 4 deferred · 0 out of scope
 
 ## Milestone Registry
@@ -19,4 +19,4 @@
 - None
 
 ## Next Action
-Complete S01: update STATE.md and roadmap, then plan S02 (Operations Log & PROV-O Foundation)
+Plan slice S02 (Operations Log & PROV-O Foundation).
