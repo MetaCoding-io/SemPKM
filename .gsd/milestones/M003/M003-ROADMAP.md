@@ -68,25 +68,25 @@ This milestone is complete only when all are true:
 - [x] **S03: VFS-Driven Explorer Modes** `risk:medium` `depends:[S01]`
   > After this: Each user-created VFS mount appears as a selectable explorer mode. Objects are organized by the mount's directory strategy (by-date, by-tag, by-property, flat) and clicking opens the full object tab — not a flat file.
 
-- [x] **S04: Tag System Fix & Tag Explorer** `risk:medium` `depends:[S01]`
+- [ ] **S04: Tag System Fix & Tag Explorer** `risk:medium` `depends:[S01]`
   > After this: Comma-separated schema:keywords values are split into individual triples. Tags render as #-prefixed pills in object views. "By Tag" mode in the explorer groups objects by tag with counts.
 
-- [x] **S05: Favorites System** `risk:low` `depends:[S01]`
+- [ ] **S05: Favorites System** `risk:low` `depends:[S01]`
   > After this: Star button on objects toggles per-user favorites. FAVORITES collapsible section in explorer shows all starred objects with quick navigation.
 
-- [x] **S06: Threaded Object Comments** `risk:medium` `depends:[]`
+- [ ] **S06: Threaded Object Comments** `risk:medium` `depends:[]`
   > After this: Users can add comments on any object. Comments are threaded (reply-to nesting), show author and timestamp, and are visible to all users on the instance.
 
-- [x] **S07: Ontology Viewer & Gist Foundation** `risk:high` `depends:[]`
+- [ ] **S07: Ontology Viewer & Gist Foundation** `risk:high` `depends:[]`
   > After this: Workspace has an ontology viewer with TBox Explorer (class hierarchy across gist + all models), ABox Browser (instances by type with counts), and RBox Legend (property domains/ranges). Gist 14.0.0 is loaded and fully visible in the hierarchy.
 
-- [x] **S08: In-App Class Creation** `risk:high` `depends:[S07]`
+- [ ] **S08: In-App Class Creation** `risk:high` `depends:[S07]`
   > After this: User creates a new class via form (name, icon, parent class, properties with datatypes). The class appears in the ontology viewer, and objects of that type can be created with auto-generated SHACL forms.
 
-- [x] **S09: Admin Model Detail Stats & Charts** `risk:low` `depends:[]`
+- [ ] **S09: Admin Model Detail Stats & Charts** `risk:low` `depends:[]`
   > After this: Admin model detail page shows real computed stats (avg connections, last modified, growth trend) and visual charts (activity sparkline, link distribution) replacing the TODO placeholders.
 
-- [x] **S10: E2E Test Coverage Gaps** `risk:low` `depends:[]`
+- [ ] **S10: E2E Test Coverage Gaps** `risk:low` `depends:[]`
   > After this: All shipped features have Playwright e2e test coverage — object/edge deletion, edge.patch, event undo, spatial canvas, bottom-panel SPARQL, admin model install/uninstall, rate limiting, LLM config, federation UI, SPARQL advanced features, pagination, tooltips, edge provenance, markdown rendering, health check, column preferences, sidebar panel drag-drop, graph node interaction, and all 27 existing canvas stubs are implemented.
 
 ## Boundary Map

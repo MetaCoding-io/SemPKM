@@ -1,6 +1,7 @@
 /**
  * SPARQL Advanced Features E2E Tests
  *
+<<<<<<< HEAD
  * Tests saved queries CRUD, server-side query history, SPARQL query types
  * (SELECT/ASK/CONSTRUCT/FILTER), vocabulary endpoint, and the admin SPARQL
  * console page redirect.
@@ -8,11 +9,16 @@
  * Consolidated into 2 test() calls to stay within the 5/minute magic-link rate limit:
  *   1. API-only test: SPARQL query types + saved queries CRUD + history + vocabulary
  *   2. UI test: admin SPARQL console page load
+=======
+ * Tests saved queries, server-side query history, and IRI pill rendering
+ * in SPARQL results.
+>>>>>>> gsd/M003/S03
  */
 import { test, expect, BASE_URL } from '../../fixtures/auth';
 import { SEED } from '../../fixtures/seed-data';
 
 test.describe('SPARQL Advanced Features', () => {
+<<<<<<< HEAD
   test('SPARQL query types, saved queries CRUD, history, and vocabulary via API', async ({ ownerRequest }) => {
     // ================================================================
     // Part 1: SPARQL SELECT query with IRI bindings
@@ -69,11 +75,63 @@ test.describe('SPARQL Advanced Features', () => {
     const filterResp = await ownerRequest.post(`${BASE_URL}/api/sparql`, {
       data: {
         query: `SELECT ?s ?title WHERE {
+=======
+  test('SPARQL query returns results with IRI bindings', async ({ ownerRequest }) => {
+    // Execute a query that returns IRIs
+    const resp = await ownerRequest.post(`${BASE_URL}/api/sparql`, {
+      data: {
+        query: `SELECT ?s ?type FROM <urn:sempkm:current> WHERE {
+          ?s a ?type .
+        } LIMIT 10`,
+      },
+    });
+    expect(resp.ok()).toBeTruthy();
+    const data = await resp.json();
+    expect(data.results.bindings.length).toBeGreaterThan(0);
+
+    // Verify bindings contain IRI types
+    const firstBinding = data.results.bindings[0];
+    expect(firstBinding.s).toBeDefined();
+    expect(firstBinding.s.type).toBe('uri');
+  });
+
+  test('SPARQL ASK query returns boolean', async ({ ownerRequest }) => {
+    const resp = await ownerRequest.post(`${BASE_URL}/api/sparql`, {
+      data: {
+        query: `ASK FROM <urn:sempkm:current> { <${SEED.notes.architecture.iri}> ?p ?o }`,
+      },
+    });
+    expect(resp.ok()).toBeTruthy();
+    const data = await resp.json();
+    expect(typeof data.boolean).toBe('boolean');
+    expect(data.boolean).toBe(true);
+  });
+
+  test('SPARQL CONSTRUCT returns triples', async ({ ownerRequest }) => {
+    const resp = await ownerRequest.post(`${BASE_URL}/api/sparql`, {
+      data: {
+        query: `CONSTRUCT { ?s ?p ?o } FROM <urn:sempkm:current> WHERE {
+          ?s ?p ?o .
+        } LIMIT 5`,
+      },
+    });
+    expect(resp.ok()).toBeTruthy();
+    // CONSTRUCT returns either JSON-LD, Turtle, or other RDF format
+    const contentType = resp.headers()['content-type'] || '';
+    expect(resp.status()).toBe(200);
+  });
+
+  test('SPARQL query with FILTER works correctly', async ({ ownerRequest }) => {
+    const resp = await ownerRequest.post(`${BASE_URL}/api/sparql`, {
+      data: {
+        query: `SELECT ?s ?title FROM <urn:sempkm:current> WHERE {
+>>>>>>> gsd/M003/S03
           ?s <http://purl.org/dc/terms/title> ?title .
           FILTER(CONTAINS(LCASE(?title), "architecture"))
         }`,
       },
     });
+<<<<<<< HEAD
     expect(filterResp.ok()).toBeTruthy();
     const filterData = await filterResp.json();
     expect(filterData.results.bindings.length).toBeGreaterThan(0);
@@ -239,5 +297,23 @@ test.describe('SPARQL Advanced Features', () => {
     // Verify SPARQL panel pane exists in the DOM
     const sparqlPane = ownerPage.locator('#panel-sparql');
     await expect(sparqlPane).toBeAttached({ timeout: 5000 });
+=======
+    expect(resp.ok()).toBeTruthy();
+    const data = await resp.json();
+    expect(data.results.bindings.length).toBeGreaterThan(0);
+
+    // All results should contain "architecture" (case-insensitive)
+    for (const binding of data.results.bindings) {
+      expect(binding.title.value.toLowerCase()).toContain('architecture');
+    }
+  });
+
+  test('admin SPARQL console page loads', async ({ ownerPage }) => {
+    const resp = await ownerPage.goto(`${BASE_URL}/admin/sparql`);
+    expect(resp?.ok()).toBeTruthy();
+
+    // Should have a SPARQL editor / Yasgui interface
+    await ownerPage.waitForSelector('.yasgui, .CodeMirror, textarea, #sparql-editor', { timeout: 15000 });
+>>>>>>> gsd/M003/S03
   });
 });
