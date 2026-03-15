@@ -8,7 +8,11 @@ structural invalidity, and injection payloads.
 
 import pytest
 
+<<<<<<< HEAD
 from app.browser._helpers import _validate_iri
+=======
+from app.browser.router import _validate_iri
+>>>>>>> gsd/M002/S03
 
 
 # ── Valid IRIs (acceptance) ──────────────────────────────────────────
