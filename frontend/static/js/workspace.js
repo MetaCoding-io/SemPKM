@@ -1645,6 +1645,7 @@
   }
 
   function showTypePicker() {
+<<<<<<< HEAD
     showCreateFormForType(null, null);
   }
 
@@ -1656,6 +1657,10 @@
     var editorArea = null;
     var tabTitle = typeIri ? 'New ' + typeLabel : 'New Object';
 
+=======
+    var editorArea = null;
+
+>>>>>>> gsd/M004/S04
     // Always create a fresh dockview panel so the type picker never
     // overwrites the content of an existing tab.
     if (window._dockview) {
@@ -1669,7 +1674,11 @@
         title: tabTitle
       });
       _newObjectPanelId = panelId;
+<<<<<<< HEAD
       console.debug('[workspace] showCreateFormForType: created temp panel', panelId);
+=======
+      console.debug('[workspace] showTypePicker: created temp panel', panelId);
+>>>>>>> gsd/M004/S04
       editorArea = window.getActiveEditorArea ? window.getActiveEditorArea() : null;
     }
 
