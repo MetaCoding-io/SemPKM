@@ -17,7 +17,11 @@ from app.db.base import Base
 # Import all models so Alembic can detect them for autogenerate
 from app.auth.models import ApiToken, InstanceConfig, Invitation, User, UserSession  # noqa: F401
 from app.inference.models import InferenceTripleState  # noqa: F401
+<<<<<<< HEAD
 # sparql models removed — tables dropped in migration 010 (data moved to RDF)
+=======
+from app.sparql.models import SavedSparqlQuery, SharedQueryAccess, PromotedQueryView, SparqlQueryHistory  # noqa: F401
+>>>>>>> gsd/M003/S05
 from app.favorites.models import UserFavorite  # noqa: F401
 
 # Alembic Config object
