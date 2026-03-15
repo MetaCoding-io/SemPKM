@@ -79,7 +79,7 @@ This milestone is complete only when all are true:
 - [x] **S08: VFS v2 Design Refinement** `risk:low` `depends:[S01]`
   > After this: `.gsd/design/VFS-V2-DESIGN.md` updated with scope/strategy/prefix model, bidirectional path contract, and implementation priorities; assumes queries are in RDF
 
-- [ ] **S09: E2E Tests & Docs** `risk:low` `depends:[S01,S02,S03,S04,S05]`
+- [x] **S09: E2E Tests & Docs** `risk:low` `depends:[S01,S02,S03,S04,S05]`
   > After this: Playwright tests cover query migration, tag tree, autocomplete, refresh endpoint, and operations log; user guide pages updated
 
 ## Boundary Map

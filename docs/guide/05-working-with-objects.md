@@ -153,6 +153,14 @@ Helptext is automatic -- it appears whenever the Mental Model's SHACL shapes inc
 
 The property form in edit mode works the same as the create form described above. Fields use the same type-aware widgets (text inputs, date pickers, dropdowns, reference search). Changes are tracked: modifying any field marks the tab as **dirty**, indicated by a colored dot on the tab.
 
+#### Tag Autocomplete
+
+When editing an object with tag properties (`schema:keywords` or model-specific tag fields), an **autocomplete dropdown** appears as you type in the tag input. Suggestions are drawn from all tags already in use across your knowledge base, ordered by frequency — the most commonly used tags appear first, with up to 30 results shown.
+
+Click a suggestion to fill the input with that tag value. If no suggestion matches what you need, simply type your new tag value freely — tags are not limited to existing values. The **"+ Add"** button below the tag inputs creates additional tag fields, each with its own autocomplete.
+
+> **Tip:** Tag autocomplete helps maintain consistent naming across your objects. Before creating a new tag, check the suggestions to see if a similar tag already exists — this avoids near-duplicates like "research" and "Research" that fragment your tag tree.
+
 Required fields validate on blur: if you leave a required field empty, a red error message appears below it immediately. This is client-side feedback; full SHACL validation runs asynchronously after saving.
 
 ### The Markdown Editor
