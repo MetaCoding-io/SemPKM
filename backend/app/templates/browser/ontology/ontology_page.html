@@ -1,10 +1,25 @@
+<<<<<<< HEAD
 {# Ontology Viewer: two-tab layout for TBox (Classes) and RBox (Properties).
    TBox loads immediately with a split tree+detail layout.
    RBox loads lazily on tab click.
+=======
+{# Ontology Viewer: three-tab layout for TBox, ABox, and RBox.
+   TBox loads immediately; ABox and RBox load lazily on tab click.
+>>>>>>> gsd/M003/S07
    This template is fetched by the special-panel component via
    GET /browser/ontology.
 #}
 <div class="ontology-viewer" data-testid="ontology-page">
+<<<<<<< HEAD
+=======
+  <div class="ontology-header">
+    <h3>
+      <span class="ontology-header-icon">&#9670;</span>
+      Ontology Viewer
+    </h3>
+  </div>
+
+>>>>>>> gsd/M003/S07
   <div class="ontology-tabs">
     <button class="ontology-tab ontology-tab--active"
             data-tab="tbox"
@@ -13,6 +28,19 @@
       TBox <span class="ontology-tab-hint">Classes</span>
     </button>
     <button class="ontology-tab"
+<<<<<<< HEAD
+=======
+            data-tab="abox"
+            data-testid="ontology-tab-abox"
+            onclick="switchOntologyTab(this, 'abox')"
+            hx-get="/browser/ontology/abox"
+            hx-target="#ontology-abox"
+            hx-swap="innerHTML"
+            hx-trigger="click once">
+      ABox <span class="ontology-tab-hint">Instances</span>
+    </button>
+    <button class="ontology-tab"
+>>>>>>> gsd/M003/S07
             data-tab="rbox"
             data-testid="ontology-tab-rbox"
             onclick="switchOntologyTab(this, 'rbox')"
@@ -22,6 +50,7 @@
             hx-trigger="click once">
       RBox <span class="ontology-tab-hint">Properties</span>
     </button>
+<<<<<<< HEAD
 
     {# Create Class button — right-aligned in tab bar #}
     <button class="btn-sm ccf-trigger-btn" data-testid="create-class-btn"
@@ -111,6 +140,21 @@
          hx-get="/browser/ontology/rbox"
          hx-trigger="propertyCreated from:body, propertyDeleted from:body, propertyEdited from:body"
          hx-swap="innerHTML">
+=======
+  </div>
+
+  <div class="ontology-tab-content">
+    <div id="ontology-tbox" class="ontology-pane ontology-pane--active" data-testid="tbox-tree"
+         hx-get="/browser/ontology/tbox"
+         hx-trigger="load"
+         hx-swap="innerHTML">
+      <div class="ontology-loading">Loading TBox…</div>
+    </div>
+    <div id="ontology-abox" class="ontology-pane" data-testid="abox-browser">
+      <div class="ontology-loading">Click the ABox tab to load instance data.</div>
+    </div>
+    <div id="ontology-rbox" class="ontology-pane" data-testid="rbox-legend">
+>>>>>>> gsd/M003/S07
       <div class="ontology-loading">Click the RBox tab to load property data.</div>
     </div>
   </div>
@@ -118,12 +162,20 @@
 
 <script>
 function switchOntologyTab(btn, tabId) {
+<<<<<<< HEAD
+=======
+  // Update tab buttons
+>>>>>>> gsd/M003/S07
   var tabs = btn.parentElement.querySelectorAll('.ontology-tab');
   for (var i = 0; i < tabs.length; i++) {
     tabs[i].classList.remove('ontology-tab--active');
   }
   btn.classList.add('ontology-tab--active');
 
+<<<<<<< HEAD
+=======
+  // Update panes
+>>>>>>> gsd/M003/S07
   var panes = btn.closest('.ontology-viewer').querySelectorAll('.ontology-pane');
   for (var j = 0; j < panes.length; j++) {
     panes[j].classList.remove('ontology-pane--active');
@@ -131,6 +183,7 @@ function switchOntologyTab(btn, tabId) {
   var target = document.getElementById('ontology-' + tabId);
   if (target) target.classList.add('ontology-pane--active');
 }
+<<<<<<< HEAD
 
 function toggleClassCreationForm() {
   var overlay = document.getElementById('class-creation-overlay');
@@ -329,4 +382,6 @@ function toggleGistFilter(hideGist) {
     }
   });
 })();
+=======
+>>>>>>> gsd/M003/S07
 </script>

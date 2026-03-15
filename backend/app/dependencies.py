@@ -153,6 +153,7 @@ async def get_ontology_service(request: Request) -> OntologyService:
     app.state.ontology_service.
     """
     return request.app.state.ontology_service
+<<<<<<< HEAD
 
 
 async def get_query_service(request: Request) -> QueryService:
@@ -162,3 +163,5 @@ async def get_query_service(request: Request) -> QueryService:
     app.state.query_service.
     """
     return request.app.state.query_service
+=======
+>>>>>>> gsd/M003/S07

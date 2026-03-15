@@ -50,10 +50,15 @@ app/events/models.py
 app/events/query.py
 app/events/store.py
 <<<<<<< HEAD
+<<<<<<< HEAD
 app/favorites/__init__.py
 app/favorites/models.py
 =======
 >>>>>>> gsd/M002/S03
+=======
+app/favorites/__init__.py
+app/favorites/models.py
+>>>>>>> gsd/M003/S07
 app/federation/__init__.py
 app/federation/inbox.py
 app/federation/patch.py

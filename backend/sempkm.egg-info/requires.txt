@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> gsd/M003/S07
 aiosmtplib~=5.1.0
 fastapi[standard]~=0.132.0
 rdflib~=7.6.0
@@ -24,6 +27,7 @@ owlrl~=7.1.4
 mf2py~=2.0.1
 http-message-signatures~=2.0.1
 slowapi~=0.1.9
+<<<<<<< HEAD
 =======
 aiosmtplib>=3.0
 fastapi[standard]
@@ -51,6 +55,8 @@ mf2py>=2.0
 http-message-signatures>=2.0.1
 slowapi>=0.1.9
 >>>>>>> gsd/M002/S03
+=======
+>>>>>>> gsd/M003/S07
 
 [dev]
 pytest
