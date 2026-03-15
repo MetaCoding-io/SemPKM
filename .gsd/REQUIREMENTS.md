@@ -736,6 +736,14 @@ Fixed openTab() in workspace.js to always open create-new-object in a fresh dock
 
 OperationsLogService with log_activity(), list_activities(), get_activity(), count_activities(). PROV-O vocabulary (prov:Activity, prov:startedAtTime, prov:endedAtTime, prov:wasAssociatedWith, prov:used) in urn:sempkm:ops-log named graph. Admin UI at /admin/ops-log with filter and cursor-based pagination. Model install/remove, inference, and validation instrumented with fire-and-forget logging. Unit tests: test_ops_log.py (35 tests).
 
+### MIG-01 — Model schema refresh without uninstall
+- Status: validated
+- Class: admin/support
+- Source: user
+- Primary Slice: M005/S05
+
+`POST /admin/models/{model_id}/refresh-artifacts` endpoint updates ontology, shapes, views, and rules graphs from disk without touching seed graph or user data. Transactional CLEAR+INSERT with rollback on failure. Admin UI "Refresh" button on model list and detail pages. ViewSpec cache invalidation. Ops log integration (`model.refresh` activity type). Unit tests: test_model_refresh.py (21 tests).
+
 ## Deferred
 
 ### TYPE-03 — Full SHACL shape editor with advanced constraints
@@ -874,6 +882,7 @@ OperationsLogService with log_activity(), list_activities(), get_activity(), cou
 | TYPE-07 | core-capability | validated | M004/S03 | none | Custom section on Mental Models |
 | TAB-01 | core-capability | validated | M004/S04 | none | fresh dockview tab for new objects |
 | LOG-01 | admin/support | validated | M005/S02 | none | PROV-O ops log + admin UI + 35 tests |
+| MIG-01 | admin/support | validated | M005/S05 | none | refresh_artifacts endpoint + admin UI + 21 tests |
 | TYPE-03 | core-capability | deferred | none | none | unmapped |
 | TYPE-04 | core-capability | deferred | none | none | unmapped |
 | MCP-01 | core-capability | deferred | none | none | unmapped |
@@ -885,7 +894,7 @@ OperationsLogService with log_activity(), list_activities(), get_activity(), cou
 ## Coverage Summary
 
 - Active requirements: 0
-- Validated: 91 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 3 from M005)
+- Validated: 92 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005)
 - Deferred: 4
 - Out of scope: 3
 - Unmapped active requirements: 0

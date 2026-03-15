@@ -392,6 +392,16 @@ pre.json-output {
   opacity: 0.85;
 }
 
+.btn.btn-info {
+  background: var(--color-accent, #3498db);
+  color: var(--color-avatar-text);
+  border-color: var(--color-accent, #3498db);
+}
+
+.btn.btn-info:hover {
+  opacity: 0.85;
+}
+
 /* htmx indicator - hidden by default, shown during request */
 .htmx-indicator {
   display: none;

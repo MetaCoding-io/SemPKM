@@ -91,6 +91,14 @@
                            hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
                             Inference
                         </a>
+                        <button class="btn btn-info btn-sm"
+                                hx-post="/admin/models/{{ model.model_id }}/refresh-artifacts"
+                                hx-target="#model-table"
+                                hx-swap="outerHTML"
+                                hx-confirm="Refresh artifacts for {{ model.name }}? This will reload shapes, views, ontology, and rules from disk."
+                                hx-indicator="#install-spinner">
+                            Refresh
+                        </button>
                         <button class="btn btn-danger btn-sm"
                                 hx-delete="/admin/models/{{ model.model_id }}"
                                 hx-target="#model-table"
