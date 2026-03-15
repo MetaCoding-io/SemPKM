@@ -210,6 +210,19 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - ✓ E2E test coverage: 5 new Playwright tests for M005 features — M005
 - ✓ User guide: 4 chapters updated (workspace, objects, models, debugging) — M005
 
+### Validated (M006 — Dashboards, Workflows & Platform Alignment)
+
+<!-- Shipped and confirmed in M006 (2026-03-15). -->
+
+- ✓ PROV-O migration: all event/comment/query predicates renamed to PROV-O equivalents (6 predicates, 13 files, idempotent migration script) — M006
+- ✓ Explorer tree consolidated: ViewSpecs grouped by model (~5 entries instead of 31+ flat), duplicate routes removed — M006
+- ✓ VFS scope dropdown fixed: correct fetch URL, optgroup rendering, saved query resolution wired — M006
+- ✓ Dashboard subsystem: DashboardSpec model, CSS Grid rendering (5 layouts, 6 block types), builder UI, explorer section — M006
+- ✓ Cross-view context filtering: parameterized SPARQL VALUES injection, dashboardContextChanged event chain, row selection → filtered re-fetch — M006
+- ✓ Workflow subsystem: WorkflowSpec model, stepper runner UI, builder UI, explorer section — M006
+- ✓ Delete UI for both dashboards and workflows with explorer integration — M006
+- ✓ 93 new unit tests across 7 test files (641 total), zero regressions — M006
+
 ### Future Candidates
 
 <!-- Tracked for future milestones. See .gsd/QUEUE.md for full queue and .gsd/REQUIREMENTS.md for deferred requirements. -->
@@ -254,7 +267,17 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current State
 
-**Latest shipped: M005 Platform Polish & Foundation (2026-03-14)**
+**Latest shipped: M006 Dashboards, Workflows & Platform Alignment (2026-03-15)**
+
+**What shipped in M006 (Dashboards, Workflows & Platform Alignment):**
+- PROV-O migration: all event/comment/query predicates renamed to PROV-O equivalents (6 predicates, 13 files, idempotent migration script)
+- Explorer tree consolidated: ViewSpecs grouped by model (~5 entries instead of 31+ flat), duplicate routes removed
+- VFS scope dropdown fixed: correct fetch URL, optgroup rendering, saved query resolution wired
+- Dashboard subsystem: DashboardSpec model, CSS Grid rendering (5 layouts, 6 block types), builder UI, explorer section
+- Cross-view context filtering: parameterized SPARQL VALUES injection, dashboardContextChanged event chain
+- Workflow subsystem: WorkflowSpec model, stepper runner UI with prev/next navigation, builder UI, explorer section
+- Delete UI for both dashboards and workflows with explorer integration
+- 93 new unit tests across 7 test files (641 total)
 
 **What shipped in M005 (Platform Polish & Foundation):**
 - Query SQL→RDF migration: saved queries, history, sharing, promotion stored as RDF in triplestore
@@ -266,32 +289,22 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - E2E test coverage: 5 new Playwright tests across 3 spec files
 - User guide: 4 chapters updated with new feature documentation
 
-**What shipped in M004 (Ontology & Type System Completion):**
-- Property CRUD: create ObjectProperty/DatatypeProperty from RBox tab, edit (rename, change domain/range), delete with confirmation
-- Class edit: rename, change icon/color, reparent, add/remove properties with full SHACL shape replacement
-- Class delete: two-step confirmation with instance-count and subclass-count warnings
-- Custom section on Mental Models page: three-tier view (Upper Ontology → Installed Models → Custom) with inline edit/delete
-- Create-new-object tab fix: always opens fresh dockview tab preserving current view
-- User guide: 6 new sections in chapter 10 documenting all M004 features
-- Unit tests: 114 ontology tests, 386 total backend tests passing
-
-**Previous milestones:** M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
-
-**Current milestone:** M006 Dashboards, Workflows & Platform Alignment — in progress (S01 ✅, S02 ✅, S03 ✅, S04 ✅, S05 ✅, S06 ✅, S07 ⬜). Next: S07 (workflow builder UI + final integration).
+**Previous milestones:** M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
 
 ## Context
 
-**Current state (M005 complete 2026-03-14):**
-- ~54k source LOC (47k Python, 7k JS) + CSS, HTML/Jinja2, JSON-LD
+**Current state (M006 complete 2026-03-15):**
+- ~56k source LOC (49k Python, 7k JS) + CSS, HTML/Jinja2, JSON-LD
 - Tech stack: FastAPI + RDF4J (LuceneSail) + htmx/vanilla-web + SQLAlchemy (SQLite/PostgreSQL) + wsgidav + a2wsgi + Driver.js + Cytoscape.js + CodeMirror + dockview-core + Alembic + Yasgui CDN + ninja-keys + owlrl + pyshacl + mf2py + http-message-signatures + slowapi
 - Docker Compose deployment: 3 services (api, triplestore, frontend/nginx) + federation test compose (2 instances)
-- 58 phases, 80 plans completed across v1.0–v2.6; M002 (7 slices) + M003 (10 slices) + M004 (5 slices) + M005 (9 slices) milestones complete
-- Backend test suite: 535 pytest unit tests, <4s, no Docker dependency
+- 58 phases, 80 plans completed across v1.0–v2.6; M002 (7 slices) + M003 (10 slices) + M004 (5 slices) + M005 (9 slices) + M006 (7 slices) milestones complete
+- Backend test suite: 641 pytest unit tests, <5s, no Docker dependency
 - E2E test suite: 89 Playwright spec files covering all shipped features
 - All dependencies pinned (~= compatible release) with uv.lock committed
 - Browser router refactored into 8 domain sub-modules (was 1956-line monolith)
 - Query storage migrated from SQL to RDF (4 SQL tables dropped)
 - 3 design docs produced: PROV-O alignment, views rethink, VFS v2
+- 2 new domain modules: dashboard/, workflow/ (SQLAlchemy + CRUD + builder UI)
 
 **Known tech debt:**
 - Cookie secure=False (local dev only — production config deferred)
@@ -307,6 +320,9 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Malformed xsd:dateTime literals from Obsidian import (non-fatal rdflib warnings) — see .gsd/design/KNOWN-BACKEND-ERRORS.md
 - Validation report store returns HTTP 415 from RDF4J (validation works, report not persisted) — see .gsd/design/KNOWN-BACKEND-ERRORS.md
 - Comment author UUID format mismatch (RDF dashed vs SQL undashed) — fixed post-M003 but pattern may recur
+- **DashboardSpec/WorkflowSpec in SQLite JSON** — model-layer concepts that should be RDF named graphs (queryable, federable). Migration planned for follow-up.
+- **Ephemeral workflow runs** — v1 progress is in-memory JS only. Run history persistence planned for follow-up.
+- **Markdown block renders raw text** — not rendered HTML in v1 dashboards
 - ViewSpecService's query_service param is optional (None default) — if not passed, user views silently return empty
 - basic-pkm archive has JSON parsing error in load_archive() — refresh_artifacts fails at runtime (pre-existing, not M005 regression)
 - htmx target-aware block rendering in ops log uses manual HX-Target dispatch — fragile if new htmx consumers added
@@ -411,4 +427,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-03-14 after M005 complete (all 9 slices)*
+*Last updated: 2026-03-15 after M006 complete (all 7 slices)*
