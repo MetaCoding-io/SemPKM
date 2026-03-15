@@ -281,15 +281,17 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Context
 
-**Current state (M004 complete 2026-03-14):**
+**Current state (M005 complete 2026-03-14):**
 - ~54k source LOC (47k Python, 7k JS) + CSS, HTML/Jinja2, JSON-LD
 - Tech stack: FastAPI + RDF4J (LuceneSail) + htmx/vanilla-web + SQLAlchemy (SQLite/PostgreSQL) + wsgidav + a2wsgi + Driver.js + Cytoscape.js + CodeMirror + dockview-core + Alembic + Yasgui CDN + ninja-keys + owlrl + pyshacl + mf2py + http-message-signatures + slowapi
 - Docker Compose deployment: 3 services (api, triplestore, frontend/nginx) + federation test compose (2 instances)
-- 58 phases, 80 plans completed across v1.0–v2.6; M002 (7 slices) + M003 (10 slices) + M004 (5 slices) milestones complete
-- Backend test suite: 386 pytest unit tests, <4s, no Docker dependency
-- E2E test suite: 86 Playwright spec files covering all shipped features
+- 58 phases, 80 plans completed across v1.0–v2.6; M002 (7 slices) + M003 (10 slices) + M004 (5 slices) + M005 (9 slices) milestones complete
+- Backend test suite: 535 pytest unit tests, <4s, no Docker dependency
+- E2E test suite: 89 Playwright spec files covering all shipped features
 - All dependencies pinned (~= compatible release) with uv.lock committed
 - Browser router refactored into 8 domain sub-modules (was 1956-line monolith)
+- Query storage migrated from SQL to RDF (4 SQL tables dropped)
+- 3 design docs produced: PROV-O alignment, views rethink, VFS v2
 
 **Known tech debt:**
 - Cookie secure=False (local dev only — production config deferred)
@@ -305,12 +307,19 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Malformed xsd:dateTime literals from Obsidian import (non-fatal rdflib warnings) — see .gsd/design/KNOWN-BACKEND-ERRORS.md
 - Validation report store returns HTTP 415 from RDF4J (validation works, report not persisted) — see .gsd/design/KNOWN-BACKEND-ERRORS.md
 - Comment author UUID format mismatch (RDF dashed vs SQL undashed) — fixed post-M003 but pattern may recur
+- ViewSpecService's query_service param is optional (None default) — if not passed, user views silently return empty
+- basic-pkm archive has JSON parsing error in load_archive() — refresh_artifacts fails at runtime (pre-existing, not M005 regression)
+- htmx target-aware block rendering in ops log uses manual HX-Target dispatch — fragile if new htmx consumers added
+- SQL→RDF query migration must be manually run (POST /admin/migrate-queries) before applying Alembic 010
 
 **Design references:**
 - v0.3 design documents in `orig_specs/` (vision, specifications, decision log, schemas)
 - `semantic-stack` reference project for triplestore Docker deployment
 - `.planning/DECISIONS.md` — canonical v2.2 architecture reference (legacy, pre-migration)
 - `.gsd/DECISIONS.md` — full decision corpus extracted during GSD-2 migration
+- `.gsd/design/PROV-O-ALIGNMENT.md` — PROV-O predicate audit and migration plan
+- `.gsd/design/VIEWS-RETHINK.md` — generic views with SHACL columns and query scope binding
+- `.gsd/design/VFS-V2-DESIGN.md` — VFS v2 implementation guide with path contract
 
 ## Standing Requirements (every phase)
 
