@@ -2871,22 +2871,38 @@
       });
 
     // Load saved queries for scope dropdown
-    fetch('/api/sparql/queries')
-      .then(function(r) { return r.ok ? r.json() : []; })
-      .then(function(queries) {
+    fetch('/api/sparql/saved?include_shared=true')
+      .then(function(r) { return r.ok ? r.json() : {}; })
+      .then(function(data) {
         var scopeSelect = document.getElementById('mount-scope');
         if (!scopeSelect) return;
         // Keep existing "All objects" option, clear dynamically added ones
         while (scopeSelect.options.length > 1) {
           scopeSelect.remove(1);
         }
-        // Add saved queries
-        (queries || []).forEach(function(q) {
-          var opt = document.createElement('option');
-          opt.value = 'query:' + q.id;
-          opt.textContent = q.name;
-          scopeSelect.appendChild(opt);
-        });
+
+        // Helper: add an optgroup with query options
+        function addOptgroup(label, queries, valuePrefix) {
+          if (!queries || queries.length === 0) return;
+          var group = document.createElement('optgroup');
+          group.label = label;
+          queries.forEach(function(q) {
+            var opt = document.createElement('option');
+            // Model queries use full IRI; user queries use query:{uuid}
+            opt.value = valuePrefix ? valuePrefix + q.id : 'query:' + q.id;
+            var text = q.name || q.query_name || q.id;
+            if (q.source) text += ' [' + q.source + ']';
+            opt.textContent = text;
+            group.appendChild(opt);
+          });
+          scopeSelect.appendChild(group);
+        }
+
+        // Add grouped queries
+        addOptgroup('My Queries', data.my_queries, 'query:');
+        addOptgroup('Model Queries', data.model_queries, 'query:');
+        addOptgroup('Shared With Me', data.shared_with_me, 'query:');
+
         // Add "Custom SPARQL..." option
         var customOpt = document.createElement('option');
         customOpt.value = 'custom';

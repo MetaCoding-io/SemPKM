@@ -42,16 +42,55 @@ _LABEL_COALESCE = 'COALESCE(?t, ?r, ?s, ?sn, ?f, REPLACE(STR(?iri), ".*[/:#]", "
 
 # ── Scope filter builder ─────────────────────────────────────────────
 
-def build_scope_filter(mount: MountDefinition) -> str:
+def build_scope_filter(mount: MountDefinition, resolved_query_text: str | None = None) -> str:
     """Build a SPARQL scope filter fragment from mount definition.
 
-    Returns an empty string for scope "all", otherwise wraps the scope
-    as a sub-select that binds ?iri.
+    If resolved_query_text is provided (pre-resolved from saved_query_id),
+    it is used as the scope filter. Otherwise falls back to sparql_scope.
+    Returns an empty string for scope "all" or when no scope is set.
+
+    Args:
+        mount: The mount definition.
+        resolved_query_text: Pre-resolved SPARQL query text from saved_query_id.
+            Caller is responsible for resolving the query ID to text before calling.
     """
+    # Prefer resolved saved query over raw sparql_scope
+    if resolved_query_text:
+        # The saved query is a full SELECT — extract its WHERE pattern
+        # and use it as a sub-select that binds ?iri
+        return f"{{ SELECT ?iri WHERE {{ {_extract_where_body(resolved_query_text)} }} }}"
+
     if not mount.sparql_scope or mount.sparql_scope == "all":
         return ""
     # Treat sparql_scope as a WHERE clause fragment binding ?iri
     return f"{{ SELECT ?iri WHERE {{ {mount.sparql_scope} }} }}"
+
+
+def _extract_where_body(query_text: str) -> str:
+    """Extract the WHERE clause body from a SPARQL SELECT query.
+
+    For simple queries like:
+      SELECT ?s WHERE { ?s a <type> }
+    Returns: ?s a <type>
+
+    For queries with ?s or ?iri binding, renames to ?iri if needed.
+    Falls back to wrapping the entire query as a sub-select if parsing fails.
+    """
+    import re
+    # Try to find WHERE { ... } block
+    match = re.search(r'WHERE\s*\{(.+)\}\s*$', query_text, re.IGNORECASE | re.DOTALL)
+    if match:
+        body = match.group(1).strip()
+        # If the query uses ?s instead of ?iri, we need to check what
+        # variable is in the SELECT clause and map it
+        select_match = re.search(r'SELECT\s+(\?\w+)', query_text, re.IGNORECASE)
+        if select_match:
+            select_var = select_match.group(1)
+            if select_var != '?iri':
+                body = body.replace(select_var, '?iri')
+        return body
+    # Fallback: use the raw query text as-is (may not work for all queries)
+    return query_text
 
 
 # ── Strategy query builders ──────────────────────────────────────────
