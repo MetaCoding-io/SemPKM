@@ -1,7 +1,15 @@
-{# Views explorer tree for the left sidebar.
+{# Views explorer tree for the left sidebar — grouped by model, then by type.
 
    Context:
-     groups: list of dicts with type_iri, type_label, specs (ViewSpec list)
+     groups: list of model groups, each with:
+       model_id: str
+       model_label: str
+       types: list of type entries, each with:
+         type_iri: str
+         type_label: str
+         default_spec: ViewSpec (preferred renderer for click)
+         renderer_types: list of available renderer type strings
+         specs: list of ViewSpec
 #}
 
 <a class="tree-leaf view-leaf" href="#"
@@ -16,21 +24,22 @@
 </a>
 
 {% if groups %}
-{% for group in groups %}
-<div class="tree-node view-group-node expanded" data-type-iri="{{ group.type_iri }}">
+{% for model in groups %}
+<div class="tree-node view-group-node expanded" data-model-id="{{ model.model_id }}">
     <span class="tree-toggle">&#9656;</span>
     <span class="tree-icon">&#128193;</span>
-    <span class="tree-label">{{ group.type_label }}</span>
-    <span class="view-group-count">{{ group.specs | length }}</span>
+    <span class="tree-label">{{ model.model_label }}</span>
+    <span class="view-group-count">{{ model.types | length }}</span>
 </div>
 <div class="view-group-children">
-    {% for spec in group.specs %}
+    {% for entry in model.types %}
     <a class="tree-leaf view-leaf" href="#"
-       onclick="openViewTab('{{ spec.spec_iri }}', '{{ spec.label }}', '{{ spec.renderer_type }}'); return false;">
+       onclick="openViewTab('{{ entry.default_spec.spec_iri }}', '{{ entry.type_label }}', '{{ entry.default_spec.renderer_type }}'); return false;"
+       title="{{ entry.type_label }} ({{ entry.renderer_types | join(', ') }})">
         <span class="tree-leaf-icon">
-            {% if spec.renderer_type == 'table' %}&#9638;{% elif spec.renderer_type == 'card' %}&#9641;{% elif spec.renderer_type == 'graph' %}&#9672;{% else %}&#9654;{% endif %}
+            {% if entry.default_spec.renderer_type == 'table' %}&#9638;{% elif entry.default_spec.renderer_type == 'card' %}&#9641;{% elif entry.default_spec.renderer_type == 'graph' %}&#9672;{% else %}&#9654;{% endif %}
         </span>
-        <span class="tree-leaf-label">{{ spec.label }}</span>
+        <span class="tree-leaf-label">{{ entry.type_label }}</span>
     </a>
     {% endfor %}
 </div>

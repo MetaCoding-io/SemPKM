@@ -114,6 +114,9 @@ class MountRootCollection(DAVCollection):
         self._event_store = event_store
         self._strategy = DirectoryStrategy(mount.strategy)
         self._scope_filter = build_scope_filter(mount)
+        # Note: saved_query_id resolution requires async and is handled in
+        # workspace.py for browser-side scope filtering. WebDAV falls back
+        # to sparql_scope only.
         # Cached file map for flat strategy
         self._flat_file_map: dict[str, dict] | None = None
 

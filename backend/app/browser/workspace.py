@@ -70,6 +70,44 @@ workspace_router = APIRouter(tags=["workspace"])
 
 
 # ---------------------------------------------------------------------------
+# Saved query resolution for VFS scope filtering
+# ---------------------------------------------------------------------------
+
+async def _resolve_saved_query_text(client, saved_query_id: str | None) -> str | None:
+    """Resolve a saved_query_id to its SPARQL query text.
+
+    Handles both user queries (UUID) and model queries (full IRI).
+    Returns None if no saved_query_id or query not found.
+    """
+    if not saved_query_id:
+        return None
+
+    # Build the query IRI
+    if saved_query_id.startswith("urn:"):
+        # Full IRI — model query
+        query_iri = saved_query_id
+    else:
+        # UUID — user query stored in urn:sempkm:queries graph
+        query_iri = f"urn:sempkm:queries:{saved_query_id}"
+
+    sparql = f"""
+    SELECT ?text WHERE {{
+      GRAPH <urn:sempkm:queries> {{
+        <{query_iri}> <urn:sempkm:vocab:queryText> ?text .
+      }}
+    }}
+    """
+    try:
+        result = await client.query(sparql)
+        bindings = result.get("results", {}).get("bindings", [])
+        if bindings:
+            return bindings[0]["text"]["value"]
+    except Exception:
+        logger.warning("Failed to resolve saved query %s", saved_query_id, exc_info=True)
+    return None
+
+
+# ---------------------------------------------------------------------------
 # Explorer mode handlers
 # ---------------------------------------------------------------------------
 
@@ -323,7 +361,7 @@ async def _handle_mount(
         mount_id, mount.strategy,
     )
 
-    scope_filter = build_scope_filter(mount)
+    scope_filter = build_scope_filter(mount, await _resolve_saved_query_text(client, mount.saved_query_id))
     strategy = mount.strategy
 
     # ── flat: render objects directly ──
@@ -882,7 +920,7 @@ async def mount_children(
         mount_id, folder, mount.strategy,
     )
 
-    scope_filter = build_scope_filter(mount)
+    scope_filter = build_scope_filter(mount, await _resolve_saved_query_text(client, mount.saved_query_id))
     strategy = mount.strategy
 
     # ── flat: no folders, should not be called ──

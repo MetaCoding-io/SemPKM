@@ -72,13 +72,55 @@ async def views_explorer(
     view_spec_service: ViewSpecService = Depends(get_view_spec_service),
     label_service: LabelService = Depends(get_label_service),
 ):
-    """Render the views explorer tree for the left sidebar."""
+    """Render the views explorer tree grouped by model, then by type.
+
+    Each model becomes a folder. Within each folder, types are listed as
+    entries (one entry per target_class, default renderer = table).
+    The carousel tab bar handles switching between table/card/graph renderers.
+    A "Saved Views" folder at the bottom contains promoted query views.
+    """
     templates = request.app.state.templates
     specs = await view_spec_service.get_all_view_specs()
 
+    # Collect all IRIs needing labels (types + models)
     type_iris = {spec.target_class for spec in specs if spec.target_class}
-    labels = await label_service.resolve_batch(list(type_iris)) if type_iris else {}
-    groups = _group_specs_by_type(specs, labels) if specs else []
+    model_ids = {spec.source_model for spec in specs if spec.source_model}
+    all_iris = list(type_iris | model_ids)
+    labels = await label_service.resolve_batch(all_iris) if all_iris else {}
+
+    # Group specs by model, then by target_class within each model
+    # Each type appears once — the carousel handles renderer switching
+    model_groups: dict[str, dict[str, list[ViewSpec]]] = {}
+    for spec in specs:
+        model_key = spec.source_model or "_other"
+        if model_key not in model_groups:
+            model_groups[model_key] = {}
+        type_key = spec.target_class or "_untyped"
+        if type_key not in model_groups[model_key]:
+            model_groups[model_key][type_key] = []
+        model_groups[model_key][type_key].append(spec)
+
+    # Build structured groups for the template
+    groups = []
+    for model_key, types in sorted(model_groups.items(), key=lambda x: labels.get(x[0], x[0])):
+        model_label = labels.get(model_key, model_key.replace("-", " ").title()) if model_key != "_other" else "Other Views"
+        type_entries = []
+        for type_key, type_specs in sorted(types.items(), key=lambda x: labels.get(x[0], x[0])):
+            type_label = labels.get(type_key, type_key) if type_key != "_untyped" else "Untyped"
+            # Find default spec (prefer table, then first available)
+            default_spec = next((s for s in type_specs if s.renderer_type == "table"), type_specs[0])
+            type_entries.append({
+                "type_iri": type_key,
+                "type_label": type_label,
+                "specs": type_specs,
+                "default_spec": default_spec,
+                "renderer_types": sorted({s.renderer_type for s in type_specs}),
+            })
+        groups.append({
+            "model_id": model_key,
+            "model_label": model_label,
+            "types": type_entries,
+        })
 
     context = {
         "request": request,
@@ -463,132 +505,3 @@ async def graph_view(
     return templates.TemplateResponse(
         request, "browser/graph_view.html", context
     )
-
-
-@router.get("/explorer")
-async def views_explorer(
-    request: Request,
-    user: User = Depends(get_current_user),
-    view_spec_service: ViewSpecService = Depends(get_view_spec_service),
-    label_service: LabelService = Depends(get_label_service),
-):
-    """Return a tree-style view list for the explorer pane sidebar."""
-    templates = request.app.state.templates
-
-    all_specs = await view_spec_service.get_all_view_specs()
-
-    # Group by renderer type (table, card, graph)
-    by_type: dict[str, list] = {}
-    for spec in all_specs:
-        rtype = spec.renderer_type or "other"
-        if rtype not in by_type:
-            by_type[rtype] = []
-        by_type[rtype].append(spec)
-
-    # Order: table, card, graph, then anything else
-    type_order = ["table", "card", "graph"]
-    ordered_groups = []
-    for t in type_order:
-        if t in by_type:
-            ordered_groups.append({"type": t, "specs": by_type.pop(t)})
-    for t, specs in by_type.items():
-        ordered_groups.append({"type": t, "specs": specs})
-
-    context = {
-        "request": request,
-        "groups": ordered_groups,
-    }
-
-    return templates.TemplateResponse(
-        request, "browser/views_explorer.html", context
-    )
-
-
-@router.get("/menu")
-async def view_menu(
-    request: Request,
-    user: User = Depends(get_current_user),
-    view_spec_service: ViewSpecService = Depends(get_view_spec_service),
-    label_service: LabelService = Depends(get_label_service),
-):
-    """Return a full view menu listing all available views grouped by source model.
-
-    Shows all view specs from all installed models, grouped by model name,
-    with each entry showing the view label, target type, and renderer type icon.
-    """
-    templates = request.app.state.templates
-
-    all_specs = await view_spec_service.get_all_view_specs()
-
-    # Group by source model
-    grouped: dict[str, list] = {}
-    model_iris = set()
-    for spec in all_specs:
-        model_key = spec.source_model or "Other"
-        if model_key not in grouped:
-            grouped[model_key] = []
-        grouped[model_key].append(spec)
-        if spec.source_model:
-            model_iris.add(spec.source_model)
-
-    # Resolve model names
-    if model_iris:
-        model_labels = await label_service.resolve_batch(list(model_iris))
-    else:
-        model_labels = {}
-
-    # Build display groups with human-readable model names
-    display_groups = []
-    for model_key, specs in grouped.items():
-        if model_key in model_labels:
-            display_name = model_labels[model_key]
-        elif model_key == "Other":
-            display_name = "Other Views"
-        else:
-            display_name = model_key.replace("-", " ").title() + " Views"
-        display_groups.append({
-            "name": display_name,
-            "specs": specs,
-        })
-
-    context = {
-        "request": request,
-        "display_groups": display_groups,
-        "total_specs": len(all_specs),
-    }
-
-    return templates.TemplateResponse(
-        request, "browser/view_menu_all.html", context
-    )
-
-
-@router.get("/available")
-async def views_available(
-    request: Request,
-    user: User = Depends(get_current_user),
-    view_spec_service: ViewSpecService = Depends(get_view_spec_service),
-    label_service: LabelService = Depends(get_label_service),
-):
-    """Return all view specs as JSON for command palette dynamic registration.
-
-    Returns [{spec_iri, label, type_label, renderer_type}].
-    """
-    all_specs = await view_spec_service.get_all_view_specs()
-
-    # Resolve type labels
-    type_iris = list({s.target_class for s in all_specs if s.target_class})
-    if type_iris:
-        type_labels = await label_service.resolve_batch(type_iris)
-    else:
-        type_labels = {}
-
-    items = []
-    for spec in all_specs:
-        items.append({
-            "spec_iri": spec.spec_iri,
-            "label": spec.label,
-            "type_label": type_labels.get(spec.target_class, spec.target_class),
-            "renderer_type": spec.renderer_type,
-        })
-
-    return JSONResponse(content=items)
