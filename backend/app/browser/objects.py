@@ -1106,14 +1106,20 @@ async def save_object(
     form with updated values and a success message.
     """
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> gsd/M003/S04
     from app.commands.handlers.object_patch import (
         handle_object_patch,
         is_tag_property,
         split_tag_values,
     )
+<<<<<<< HEAD
 =======
     from app.commands.handlers.object_patch import handle_object_patch
 >>>>>>> gsd/M002/S04
+=======
+>>>>>>> gsd/M003/S04
     from app.commands.schemas import ObjectPatchParams
     from app.config import settings
 
@@ -1139,6 +1145,9 @@ async def save_object(
         properties[clean_key] = values
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> gsd/M003/S04
     # Split comma-separated tag values into individual entries
     for prop_key in list(properties.keys()):
         if is_tag_property(prop_key):
@@ -1147,8 +1156,11 @@ async def save_object(
                 split_values.extend(split_tag_values(v))
             properties[prop_key] = split_values
 
+<<<<<<< HEAD
 =======
 >>>>>>> gsd/M002/S04
+=======
+>>>>>>> gsd/M003/S04
     # Auto-set dcterms:modified to current UTC timestamp
     properties[dcterms_modified] = [datetime.now(timezone.utc).isoformat()]
 
