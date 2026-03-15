@@ -1,0 +1,103 @@
+{# Workflow runner — stepper bar + step content area + navigation.
+
+   Context:
+     workflow: WorkflowData (id, name, description, steps)
+     steps: list of {index, label, type}
+     total_steps: int
+     workflow_id: string UUID
+
+   Client-side state:
+     Current step index is tracked in JS. Prev/Next buttons update the
+     step indicator and swap the content area via htmx.
+#}
+
+<div class="workflow-runner" id="workflow-runner-{{ workflow_id }}" data-total-steps="{{ total_steps }}">
+
+    {# ── Header ── #}
+    <div class="workflow-header">
+        <h3 class="workflow-title">{{ workflow.name }}</h3>
+        {% if workflow.description %}
+        <p class="workflow-description">{{ workflow.description }}</p>
+        {% endif %}
+    </div>
+
+    {# ── Stepper bar ── #}
+    <div class="workflow-stepper">
+        {% for step in steps %}
+        <div class="workflow-step-indicator{% if loop.first %} active{% endif %}"
+             data-step="{{ step.index }}">
+            <span class="workflow-step-number">{{ step.index + 1 }}</span>
+            <span class="workflow-step-label">{{ step.label }}</span>
+        </div>
+        {% if not loop.last %}
+        <div class="workflow-step-connector"></div>
+        {% endif %}
+        {% endfor %}
+    </div>
+
+    {# ── Step content area ── #}
+    <div class="workflow-content" id="workflow-content-{{ workflow_id }}"
+         hx-get="/browser/workflow/{{ workflow_id }}/step/0"
+         hx-trigger="load"
+         hx-swap="innerHTML">
+        <div class="workflow-step-loading">Loading step...</div>
+    </div>
+
+    {# ── Navigation buttons ── #}
+    <div class="workflow-nav">
+        <button class="workflow-nav-btn workflow-prev-btn" disabled
+                onclick="workflowNavigate('{{ workflow_id }}', -1)">
+            ← Previous
+        </button>
+        <span class="workflow-step-counter">
+            Step <span id="workflow-current-{{ workflow_id }}">1</span> of {{ total_steps }}
+        </span>
+        <button class="workflow-nav-btn workflow-next-btn"
+                onclick="workflowNavigate('{{ workflow_id }}', 1)"
+                {% if total_steps <= 1 %}disabled{% endif %}>
+            Next →
+        </button>
+    </div>
+</div>
+
+<script>
+(function() {
+    var state = { currentStep: 0, totalSteps: {{ total_steps }} };
+    var runnerId = '{{ workflow_id }}';
+
+    window.workflowNavigate = function(wfId, direction) {
+        if (wfId !== runnerId) return;
+        var newStep = state.currentStep + direction;
+        if (newStep < 0 || newStep >= state.totalSteps) return;
+
+        state.currentStep = newStep;
+
+        // Update stepper indicators
+        var indicators = document.querySelectorAll('#workflow-runner-' + runnerId + ' .workflow-step-indicator');
+        indicators.forEach(function(ind) {
+            ind.classList.remove('active', 'completed');
+            var stepIdx = parseInt(ind.dataset.step);
+            if (stepIdx === newStep) ind.classList.add('active');
+            else if (stepIdx < newStep) ind.classList.add('completed');
+        });
+
+        // Update counter
+        var counter = document.getElementById('workflow-current-' + runnerId);
+        if (counter) counter.textContent = (newStep + 1).toString();
+
+        // Update button states
+        var runner = document.getElementById('workflow-runner-' + runnerId);
+        var prevBtn = runner.querySelector('.workflow-prev-btn');
+        var nextBtn = runner.querySelector('.workflow-next-btn');
+        prevBtn.disabled = (newStep === 0);
+        nextBtn.disabled = (newStep >= state.totalSteps - 1);
+
+        // Load step content via htmx
+        var contentArea = document.getElementById('workflow-content-' + runnerId);
+        htmx.ajax('GET', '/browser/workflow/' + runnerId + '/step/' + newStep, {
+            target: contentArea,
+            swap: 'innerHTML'
+        });
+    };
+})();
+</script>
