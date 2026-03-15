@@ -70,7 +70,7 @@ This milestone is complete only when all are true:
 - [x] **S05: Model Schema Refresh** `risk:medium` `depends:[]`
   > After this: `POST /admin/models/{name}/refresh-artifacts` updates shapes/views/rules graphs from disk without uninstall; admin UI has a "Refresh" button on installed models
 
-- [ ] **S06: PROV-O Alignment Design** `risk:low` `depends:[S02]`
+- [x] **S06: PROV-O Alignment Design** `risk:low` `depends:[S02]`
   > After this: design doc at `.gsd/design/PROV-O-ALIGNMENT.md` audits current event predicates vs PROV-O, proposes migration plan, and recommends what to expose in UI
 
 - [ ] **S07: Views Rethink Design** `risk:low` `depends:[S01]`
