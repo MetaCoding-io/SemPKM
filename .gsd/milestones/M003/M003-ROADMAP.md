@@ -83,7 +83,7 @@ This milestone is complete only when all are true:
 - [x] **S08: In-App Class Creation** `risk:high` `depends:[S07]`
   > After this: User creates a new class via form (name, icon, parent class, properties with datatypes). The class appears in the ontology viewer, and objects of that type can be created with auto-generated SHACL forms.
 
-- [ ] **S09: Admin Model Detail Stats & Charts** `risk:low` `depends:[]`
+- [x] **S09: Admin Model Detail Stats & Charts** `risk:low` `depends:[]`
   > After this: Admin model detail page shows real computed stats (avg connections, last modified, growth trend) and visual charts (activity sparkline, link distribution) replacing the TODO placeholders.
 
 - [ ] **S10: E2E Test Coverage Gaps** `risk:low` `depends:[]`
