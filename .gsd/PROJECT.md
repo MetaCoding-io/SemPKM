@@ -277,7 +277,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 **Previous milestones:** M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
 
-**Current milestone:** M005 Platform Polish & Foundation — ✅ complete (all 9 slices done: S01 Query SQL→RDF, S02 Operations Log & PROV-O, S03 Hierarchical Tag Tree, S04 Tag Autocomplete, S05 Model Schema Refresh, S06 PROV-O Alignment Design, S07 Views Rethink Design, S08 VFS v2 Design, S09 E2E Tests & Docs).
+**Current milestone:** M006 Dashboards, Workflows & Platform Alignment — in progress (S01 ✅, S02 ✅, S03 ✅, S04 ✅, S05 ⬜, S06 ✅, S07 ⬜). Next: S05 (cross-view context) or S07 (workflow builder + final integration).
 
 ## Context
 

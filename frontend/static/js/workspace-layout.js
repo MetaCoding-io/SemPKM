@@ -213,6 +213,14 @@
           if (st === 'dashboard' && params.params.dashboardId) {
             url = '/browser/dashboard/' + params.params.dashboardId;
           }
+          // Dashboard builder panels — create or edit mode
+          if (st === 'dashboard-builder') {
+            if (params.params.dashboardId) {
+              url = '/browser/dashboard/' + params.params.dashboardId + '/edit';
+            } else {
+              url = '/browser/dashboard/new';
+            }
+          }
           // Workflow panels need the ID + /run appended
           if (st === 'workflow' && params.params.workflowId) {
             url = '/browser/workflow/' + params.params.workflowId + '/run';

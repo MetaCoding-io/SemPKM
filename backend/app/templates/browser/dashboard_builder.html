@@ -1,0 +1,430 @@
+{# Dashboard builder form — create or edit a DashboardSpec.
+
+   Context:
+     dashboard: DashboardData | None (None = create mode)
+     layout_definitions: dict of layout_name -> {css_class, slots, grid_template, columns}
+     valid_block_types: list[str] sorted block type names
+#}
+
+<div class="dashboard-builder" id="dashboard-builder-form">
+  <h2 class="form-title">
+    <i data-lucide="{{ 'pencil' if dashboard else 'plus-circle' }}"></i>
+    {{ 'Edit Dashboard' if dashboard else 'New Dashboard' }}
+  </h2>
+
+  {% if dashboard %}
+  <input type="hidden" id="builder-dashboard-id" value="{{ dashboard.id }}">
+  {% endif %}
+
+  <div id="builder-error" class="builder-error" style="display:none;"></div>
+
+  <!-- Name & description -->
+  <div class="form-field">
+    <label for="builder-name">Name <span class="required-marker">*</span></label>
+    <input type="text" id="builder-name" placeholder="My Dashboard"
+           value="{{ dashboard.name if dashboard else '' }}" maxlength="255" required>
+  </div>
+
+  <div class="form-field">
+    <label for="builder-description">Description</label>
+    <textarea id="builder-description" rows="2"
+              placeholder="Optional description">{{ dashboard.description if dashboard else '' }}</textarea>
+  </div>
+
+  <!-- Layout picker -->
+  <div class="form-field">
+    <label>Layout</label>
+    <div class="layout-picker" id="layout-picker">
+      {% for name, layout in layout_definitions.items() %}
+      <label class="layout-option">
+        <input type="radio" name="layout" value="{{ name }}"
+               {{ 'checked' if (dashboard and dashboard.layout == name) or (not dashboard and name == 'single') else '' }}
+               onchange="window._builderUpdateSlots()">
+        <span class="layout-preview">
+          <span class="layout-name">{{ name }}</span>
+          <span class="layout-slots">{{ layout.slots | join(', ') }}</span>
+        </span>
+      </label>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Blocks section -->
+  <div class="form-field">
+    <label>Blocks</label>
+    <div id="builder-blocks">
+      {% if dashboard and dashboard.blocks %}
+        {% for block in dashboard.blocks %}
+        <!-- Pre-populated block rows rendered by JS on load -->
+        {% endfor %}
+      {% endif %}
+    </div>
+    <button type="button" class="btn-secondary builder-add-block-btn" onclick="window._builderAddBlock()">
+      <i data-lucide="plus"></i> Add Block
+    </button>
+  </div>
+
+  <!-- Actions -->
+  <div class="form-actions">
+    <button type="button" class="btn-primary" id="builder-save-btn" onclick="window._builderSave()">
+      <i data-lucide="save"></i> Save Dashboard
+    </button>
+    <button type="button" class="btn-secondary" onclick="window._builderCancel()">
+      Cancel
+    </button>
+    <span class="builder-saving-indicator" id="builder-saving" style="display:none;">Saving...</span>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  var layoutDefs = {{ layout_definitions | tojson }};
+  var validBlockTypes = {{ valid_block_types | tojson }};
+  var existingBlocks = {{ (dashboard.blocks if dashboard else []) | tojson }};
+  var blockCounter = 0;
+
+  // ------ Slot helpers ------
+
+  function getSelectedLayout() {
+    var checked = document.querySelector('#layout-picker input[name="layout"]:checked');
+    return checked ? checked.value : 'single';
+  }
+
+  function getSlotsForLayout(layoutName) {
+    var def = layoutDefs[layoutName];
+    return def ? def.slots : ['main'];
+  }
+
+  window._builderUpdateSlots = function() {
+    var slots = getSlotsForLayout(getSelectedLayout());
+    var selects = document.querySelectorAll('.block-slot-select');
+    selects.forEach(function(sel) {
+      var currentVal = sel.value;
+      sel.innerHTML = '';
+      slots.forEach(function(s) {
+        var opt = document.createElement('option');
+        opt.value = s;
+        opt.textContent = s;
+        if (s === currentVal) opt.selected = true;
+        sel.appendChild(opt);
+      });
+    });
+  };
+
+  // ------ Block type config fields ------
+
+  function getTypeConfigHTML(blockType, config) {
+    config = config || {};
+    switch (blockType) {
+      case 'view-embed':
+        return '<div class="block-config-fields">' +
+          '<div class="form-field"><label>View Spec</label>' +
+          '<select class="block-config-spec-iri" data-key="spec_iri"><option value="">Loading views...</option></select></div>' +
+          '<div class="form-field"><label>Renderer</label>' +
+          '<select class="block-config-renderer" data-key="renderer_type">' +
+          '<option value="table"' + (config.renderer_type === 'table' ? ' selected' : '') + '>Table</option>' +
+          '<option value="card"' + (config.renderer_type === 'card' ? ' selected' : '') + '>Card</option>' +
+          '<option value="graph"' + (config.renderer_type === 'graph' ? ' selected' : '') + '>Graph</option>' +
+          '</select></div></div>';
+      case 'markdown':
+        return '<div class="block-config-fields">' +
+          '<div class="form-field"><label>Content</label>' +
+          '<textarea class="block-config-textarea" data-key="content" rows="4" placeholder="Markdown content">' +
+          escapeHtml(config.content || '') + '</textarea></div></div>';
+      case 'create-form':
+        return '<div class="block-config-fields">' +
+          '<div class="form-field"><label>Target Class IRI</label>' +
+          '<input type="text" class="block-config-input" data-key="target_class" placeholder="e.g. http://example.org/MyClass" value="' +
+          escapeAttr(config.target_class || '') + '"></div></div>';
+      case 'object-embed':
+        return '<div class="block-config-fields">' +
+          '<div class="form-field"><label>Object IRI</label>' +
+          '<input type="text" class="block-config-input" data-key="object_iri" placeholder="e.g. http://example.org/obj1" value="' +
+          escapeAttr(config.object_iri || '') + '"></div></div>';
+      case 'sparql-result':
+        return '<div class="block-config-fields">' +
+          '<div class="form-field"><label>SPARQL Query</label>' +
+          '<textarea class="block-config-textarea" data-key="query" rows="3" placeholder="SELECT ?s WHERE { ... }">' +
+          escapeHtml(config.query || '') + '</textarea></div>' +
+          '<div class="form-field"><label>Label</label>' +
+          '<input type="text" class="block-config-input" data-key="label" placeholder="Result label" value="' +
+          escapeAttr(config.label || '') + '"></div></div>';
+      case 'divider':
+        return '<div class="block-config-fields"><span class="field-help">No configuration needed.</span></div>';
+      default:
+        return '';
+    }
+  }
+
+  function escapeHtml(s) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(s));
+    return div.innerHTML;
+  }
+
+  function escapeAttr(s) {
+    return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  // ------ Fetch available views for view-embed selects ------
+
+  var _cachedViews = null;
+
+  function populateViewSelect(selectEl, currentValue) {
+    if (_cachedViews) {
+      renderViewOptions(selectEl, currentValue);
+      return;
+    }
+    fetch('/browser/views/available')
+      .then(function(r) { return r.json(); })
+      .then(function(views) {
+        _cachedViews = views;
+        renderViewOptions(selectEl, currentValue);
+      })
+      .catch(function() {
+        selectEl.innerHTML = '<option value="">Failed to load views</option>';
+      });
+  }
+
+  function renderViewOptions(selectEl, currentValue) {
+    selectEl.innerHTML = '<option value="">— Select a view —</option>';
+    (_cachedViews || []).forEach(function(v) {
+      var opt = document.createElement('option');
+      opt.value = v.spec_iri || v.iri || '';
+      opt.textContent = v.label || v.spec_iri || 'Unnamed';
+      if (opt.value === currentValue) opt.selected = true;
+      selectEl.appendChild(opt);
+    });
+  }
+
+  // ------ Block row management ------
+
+  function createBlockRow(block) {
+    block = block || {};
+    var idx = blockCounter++;
+    var slots = getSlotsForLayout(getSelectedLayout());
+
+    var row = document.createElement('div');
+    row.className = 'block-row';
+    row.dataset.blockIndex = idx;
+
+    // Type select
+    var typeSelect = '<select class="block-type-select" onchange="window._builderTypeChanged(this)">';
+    typeSelect += '<option value="">— Select type —</option>';
+    validBlockTypes.forEach(function(t) {
+      typeSelect += '<option value="' + t + '"' + (block.type === t ? ' selected' : '') + '>' + t + '</option>';
+    });
+    typeSelect += '</select>';
+
+    // Slot select
+    var slotSelect = '<select class="block-slot-select">';
+    slots.forEach(function(s) {
+      slotSelect += '<option value="' + s + '"' + (block.slot === s ? ' selected' : '') + '>' + s + '</option>';
+    });
+    slotSelect += '</select>';
+
+    var configHTML = block.type ? getTypeConfigHTML(block.type, block.config || {}) : '';
+
+    row.innerHTML =
+      '<div class="block-row-header">' +
+        '<span class="block-row-label">Block ' + (idx + 1) + '</span>' +
+        '<button type="button" class="btn-icon builder-remove-block-btn" onclick="window._builderRemoveBlock(this)" title="Remove block">' +
+          '<i data-lucide="trash-2"></i></button>' +
+      '</div>' +
+      '<div class="block-row-fields">' +
+        '<div class="form-field"><label>Type</label>' + typeSelect + '</div>' +
+        '<div class="form-field"><label>Slot</label>' + slotSelect + '</div>' +
+      '</div>' +
+      '<div class="block-config-container">' + configHTML + '</div>';
+
+    return row;
+  }
+
+  window._builderAddBlock = function(block) {
+    var container = document.getElementById('builder-blocks');
+    var row = createBlockRow(block);
+    container.appendChild(row);
+
+    // Populate view-embed select if needed
+    if (block && block.type === 'view-embed') {
+      var specSelect = row.querySelector('.block-config-spec-iri');
+      if (specSelect) populateViewSelect(specSelect, (block.config || {}).spec_iri || '');
+    }
+
+    if (typeof lucide !== 'undefined') lucide.createIcons({ nodes: [row] });
+  };
+
+  window._builderRemoveBlock = function(btn) {
+    var row = btn.closest('.block-row');
+    if (row) row.remove();
+    renumberBlocks();
+  };
+
+  window._builderTypeChanged = function(select) {
+    var row = select.closest('.block-row');
+    var container = row.querySelector('.block-config-container');
+    var blockType = select.value;
+    container.innerHTML = getTypeConfigHTML(blockType, {});
+
+    // Auto-populate view selects
+    if (blockType === 'view-embed') {
+      var specSelect = container.querySelector('.block-config-spec-iri');
+      if (specSelect) populateViewSelect(specSelect, '');
+    }
+
+    if (typeof lucide !== 'undefined') lucide.createIcons({ nodes: [container] });
+  };
+
+  function renumberBlocks() {
+    var rows = document.querySelectorAll('#builder-blocks .block-row');
+    rows.forEach(function(row, i) {
+      var label = row.querySelector('.block-row-label');
+      if (label) label.textContent = 'Block ' + (i + 1);
+    });
+  }
+
+  // ------ Save ------
+
+  window._builderSave = function() {
+    var nameInput = document.getElementById('builder-name');
+    var name = nameInput.value.trim();
+    if (!name) {
+      showError('Name is required.');
+      nameInput.focus();
+      return;
+    }
+
+    var descEl = document.getElementById('builder-description');
+    var description = descEl ? descEl.value.trim() : '';
+    var layout = getSelectedLayout();
+
+    // Collect blocks
+    var blocks = [];
+    var rows = document.querySelectorAll('#builder-blocks .block-row');
+    rows.forEach(function(row) {
+      var typeSelect = row.querySelector('.block-type-select');
+      var slotSelect = row.querySelector('.block-slot-select');
+      if (!typeSelect || !typeSelect.value) return;
+
+      var block = {
+        type: typeSelect.value,
+        slot: slotSelect ? slotSelect.value : 'main',
+        config: {}
+      };
+
+      // Collect config from inputs/textareas/selects with data-key
+      var configEls = row.querySelectorAll('[data-key]');
+      configEls.forEach(function(el) {
+        var key = el.dataset.key;
+        var val = el.value || '';
+        if (val) block.config[key] = val;
+      });
+
+      blocks.push(block);
+    });
+
+    var payload = { name: name, description: description, layout: layout, blocks: blocks };
+
+    var dashboardId = null;
+    var idInput = document.getElementById('builder-dashboard-id');
+    if (idInput) dashboardId = idInput.value;
+
+    var url = dashboardId ? '/api/dashboard/' + dashboardId : '/api/dashboard';
+    var method = dashboardId ? 'PATCH' : 'POST';
+
+    var saveBtn = document.getElementById('builder-save-btn');
+    var savingIndicator = document.getElementById('builder-saving');
+    saveBtn.disabled = true;
+    if (savingIndicator) savingIndicator.style.display = 'inline';
+    hideError();
+
+    fetch(url, {
+      method: method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .then(function(resp) {
+      if (!resp.ok) {
+        return resp.json().then(function(data) {
+          throw new Error(data.detail || 'Save failed (HTTP ' + resp.status + ')');
+        });
+      }
+      return resp.json();
+    })
+    .then(function(data) {
+      // Success: open the dashboard tab and close the builder
+      if (window.openDashboardTab) {
+        window.openDashboardTab(data.id, data.name);
+      }
+      // Refresh the DASHBOARDS explorer section
+      if (typeof htmx !== 'undefined') {
+        htmx.trigger(document.body, 'dashboardsRefreshed');
+      }
+      // Close builder tab
+      var builderTabKey = dashboardId
+        ? 'dashboard-builder:' + dashboardId
+        : 'dashboard-builder:new';
+      if (window._dockview) {
+        var panel = window._dockview.panels.find(function(p) { return p.id === builderTabKey; });
+        if (panel) panel.api.close();
+      }
+    })
+    .catch(function(err) {
+      console.error('Dashboard save error:', err);
+      showError(err.message || 'Failed to save dashboard.');
+    })
+    .finally(function() {
+      saveBtn.disabled = false;
+      if (savingIndicator) savingIndicator.style.display = 'none';
+    });
+  };
+
+  window._builderCancel = function() {
+    var dashboardId = null;
+    var idInput = document.getElementById('builder-dashboard-id');
+    if (idInput) dashboardId = idInput.value;
+    var builderTabKey = dashboardId
+      ? 'dashboard-builder:' + dashboardId
+      : 'dashboard-builder:new';
+    if (window._dockview) {
+      var panel = window._dockview.panels.find(function(p) { return p.id === builderTabKey; });
+      if (panel) panel.api.close();
+    }
+  };
+
+  // ------ Error display ------
+
+  function showError(msg) {
+    var el = document.getElementById('builder-error');
+    if (el) {
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+  }
+
+  function hideError() {
+    var el = document.getElementById('builder-error');
+    if (el) {
+      el.textContent = '';
+      el.style.display = 'none';
+    }
+  }
+
+  // ------ Init ------
+
+  // Load existing blocks for edit mode
+  if (existingBlocks && existingBlocks.length > 0) {
+    existingBlocks.forEach(function(b) {
+      window._builderAddBlock(b);
+    });
+  }
+
+  // Init lucide icons in the builder
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons({ nodes: [document.getElementById('dashboard-builder-form')] });
+  }
+
+})();
+</script>

@@ -1,0 +1,19 @@
+{# DASHBOARDS explorer section body — lists user's dashboards as clickable leaf nodes.
+   Rendered by GET /browser/dashboard/explorer.
+   Context: dashboards — list of DashboardData objects (id, name, description, layout) #}
+
+{% if dashboards %}
+  {% for dash in dashboards %}
+  <div class="tree-leaf" onclick="openDashboardTab('{{ dash.id }}', '{{ dash.name | e }}')">
+    <i data-lucide="layout-dashboard" class="tree-icon"></i>
+    <span class="tree-label" title="{{ dash.description | e if dash.description else dash.name | e }}">{{ dash.name }}</span>
+  </div>
+  {% endfor %}
+{% else %}
+  <div class="tree-empty">No dashboards yet</div>
+{% endif %}
+
+<div class="tree-leaf tree-action" onclick="openDashboardBuilderTab()">
+  <i data-lucide="plus" class="tree-icon"></i>
+  <span class="tree-label">New Dashboard</span>
+</div>
