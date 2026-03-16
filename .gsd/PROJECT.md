@@ -243,6 +243,12 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Low-code UI builder (compose basic components tied to SemPKM actions)
 - Minimal workflow orchestration (orchestrated forms/views, not n8n)
 
+**Spatial Canvas Upgrade** (CANVAS-01–05) — queued (M008)
+- Resizable nodes with free drag handles, width/height stored per-node
+- Property flip on object nodes (SHACL-derived properties table, inline)
+- Live view/dashboard/SPARQL/object embeds as resizable iframes
+- Toolbar picker + drag-from-explorer for adding embeds
+
 **Ongoing / cross-cutting**
 - Backlinks panel (incoming references for any object)
 - Edge model enhancements: edge inspector panel, inline wiki-link creation
@@ -290,6 +296,10 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - User guide: 4 chapters updated with new feature documentation
 
 **Previous milestones:** M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
+
+**Current milestone:** M007 Generic Views, VFS Completion & Polish — planned (5 slices: S01 generic views, S02 VFS quick wins, S03 composable chains + filename templates, S04 UI polish, S05 docs). Covers all 13 active requirements.
+
+**Queued:** M008 Spatial Canvas — Resizable Nodes, Property Flip & Live Embeds (pending M007 completion)
 
 ## Context
 
