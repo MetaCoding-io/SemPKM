@@ -155,6 +155,145 @@
       ],
       "bpkm:tags": ["architecture", "pattern", "persistence"],
       "dcterms:created": { "@value": "2026-01-18T14:00:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "bpkm:seed-milestone-launch",
+      "@type": "bpkm:Milestone",
+      "dcterms:title": "v1.0 Launch",
+      "dcterms:description": "First public release with core PKM features, graph visualization, and mental model system.",
+      "bpkm:milestoneStatus": "active",
+      "bpkm:targetDate": { "@value": "2026-04-15", "@type": "xsd:date" },
+      "dcterms:created": { "@value": "2026-01-20T09:00:00Z", "@type": "xsd:dateTime" },
+      "bpkm:milestoneProject": { "@id": "bpkm:seed-project-sempkm" }
+    },
+    {
+      "@id": "bpkm:seed-milestone-docs",
+      "@type": "bpkm:Milestone",
+      "dcterms:title": "Documentation Complete",
+      "dcterms:description": "All user guide chapters written, guided tours implemented, and API documentation published.",
+      "bpkm:milestoneStatus": "planned",
+      "bpkm:targetDate": { "@value": "2026-04-01", "@type": "xsd:date" },
+      "dcterms:created": { "@value": "2026-02-10T11:00:00Z", "@type": "xsd:dateTime" },
+      "bpkm:milestoneProject": { "@id": "bpkm:seed-project-sempkm" }
+    },
+
+    {
+      "@id": "bpkm:seed-task-guide",
+      "@type": "bpkm:Task",
+      "dcterms:title": "Write user guide for graph view",
+      "dcterms:description": "Document the graph visualization feature including layout options, node interaction, and SPARQL CONSTRUCT queries.",
+      "bpkm:taskStatus": "in-progress",
+      "bpkm:priority": "high",
+      "bpkm:effort": "medium",
+      "bpkm:dueDate": { "@value": "2026-03-25", "@type": "xsd:date" },
+      "bpkm:tags": ["docs", "graph"],
+      "dcterms:created": { "@value": "2026-03-01T09:00:00Z", "@type": "xsd:dateTime" },
+      "bpkm:assignedTo": [{ "@id": "bpkm:seed-person-alice" }],
+      "bpkm:taskProject": { "@id": "bpkm:seed-project-sempkm" },
+      "bpkm:milestone": { "@id": "bpkm:seed-milestone-docs" }
+    },
+    {
+      "@id": "bpkm:seed-task-validation",
+      "@type": "bpkm:Task",
+      "dcterms:title": "Fix validation edge case with empty optional fields",
+      "dcterms:description": "SHACL validation incorrectly flags optional fields as violations when the field is absent (not just empty string).",
+      "bpkm:taskStatus": "todo",
+      "bpkm:priority": "medium",
+      "bpkm:effort": "small",
+      "bpkm:tags": ["bug", "shacl", "validation"],
+      "dcterms:created": { "@value": "2026-03-05T14:00:00Z", "@type": "xsd:dateTime" },
+      "bpkm:assignedTo": [{ "@id": "bpkm:seed-person-bob" }],
+      "bpkm:taskProject": { "@id": "bpkm:seed-project-sempkm" },
+      "bpkm:milestone": { "@id": "bpkm:seed-milestone-launch" }
+    },
+    {
+      "@id": "bpkm:seed-task-review-pr",
+      "@type": "bpkm:Task",
+      "dcterms:title": "Review PR #42: Canvas resize implementation",
+      "bpkm:taskStatus": "todo",
+      "bpkm:priority": "low",
+      "bpkm:effort": "small",
+      "bpkm:tags": ["review", "canvas"],
+      "dcterms:created": { "@value": "2026-03-10T10:00:00Z", "@type": "xsd:dateTime" },
+      "bpkm:assignedTo": [{ "@id": "bpkm:seed-person-carol" }],
+      "bpkm:taskProject": { "@id": "bpkm:seed-project-sempkm" },
+      "bpkm:externalProvider": "github",
+      "bpkm:externalId": "#42",
+      "bpkm:externalUrl": { "@value": "https://github.com/SemPKM/SemPKM/pull/42", "@type": "xsd:anyURI" }
+    },
+    {
+      "@id": "bpkm:seed-task-onboarding",
+      "@type": "bpkm:Task",
+      "dcterms:title": "Design onboarding flow for new users",
+      "dcterms:description": "Create a guided tour that demonstrates creating objects, exploring the graph, and seeing validation in action.",
+      "bpkm:taskStatus": "blocked",
+      "bpkm:priority": "high",
+      "bpkm:effort": "large",
+      "bpkm:tags": ["ux", "onboarding"],
+      "dcterms:created": { "@value": "2026-03-08T11:00:00Z", "@type": "xsd:dateTime" },
+      "bpkm:assignedTo": [{ "@id": "bpkm:seed-person-alice" }],
+      "bpkm:taskProject": { "@id": "bpkm:seed-project-sempkm" },
+      "bpkm:milestone": { "@id": "bpkm:seed-milestone-launch" },
+      "bpkm:dependsOn": [{ "@id": "bpkm:seed-task-guide" }]
+    },
+
+    {
+      "@id": "bpkm:seed-event-standup",
+      "@type": "bpkm:Event",
+      "dcterms:title": "Weekly Team Standup",
+      "bpkm:eventType": "meeting",
+      "bpkm:eventStatus": "confirmed",
+      "schema:startDate": { "@value": "2026-03-17T09:00:00Z", "@type": "xsd:dateTime" },
+      "schema:endDate": { "@value": "2026-03-17T09:30:00Z", "@type": "xsd:dateTime" },
+      "bpkm:location": "https://meet.google.com/abc-defg-hij",
+      "bpkm:tags": ["recurring", "standup"],
+      "dcterms:created": { "@value": "2026-01-15T09:00:00Z", "@type": "xsd:dateTime" },
+      "bpkm:attendee": [
+        { "@id": "bpkm:seed-person-alice" },
+        { "@id": "bpkm:seed-person-bob" }
+      ],
+      "bpkm:eventProject": { "@id": "bpkm:seed-project-sempkm" },
+      "bpkm:externalProvider": "google-calendar",
+      "bpkm:calendarName": "Work"
+    },
+    {
+      "@id": "bpkm:seed-event-design-review",
+      "@type": "bpkm:Event",
+      "dcterms:title": "Design Review with Carol",
+      "dcterms:description": "Review graph layout options and canvas UX for the Knowledge Garden project.",
+      "bpkm:eventType": "meeting",
+      "bpkm:eventStatus": "confirmed",
+      "schema:startDate": { "@value": "2026-03-18T14:00:00Z", "@type": "xsd:dateTime" },
+      "schema:endDate": { "@value": "2026-03-18T15:00:00Z", "@type": "xsd:dateTime" },
+      "bpkm:location": "Conference Room B",
+      "bpkm:meetingNotes": "Discussed three layout options for the concept graph. Carol prefers hierarchical for the Knowledge Garden project. Action: Bob to prototype hierarchical layout by Friday.",
+      "bpkm:tags": ["design", "review"],
+      "dcterms:created": { "@value": "2026-03-12T10:00:00Z", "@type": "xsd:dateTime" },
+      "bpkm:attendee": [{ "@id": "bpkm:seed-person-carol" }],
+      "bpkm:eventProject": { "@id": "bpkm:seed-project-garden" },
+      "bpkm:eventNote": [{ "@id": "bpkm:seed-note-graph-viz" }]
+    },
+    {
+      "@id": "bpkm:seed-event-sprint-planning",
+      "@type": "bpkm:Event",
+      "dcterms:title": "Sprint Planning",
+      "dcterms:description": "Plan the next two-week sprint. Review backlog, assign tasks, set sprint goal.",
+      "bpkm:eventType": "meeting",
+      "bpkm:eventStatus": "confirmed",
+      "schema:startDate": { "@value": "2026-03-20T10:00:00Z", "@type": "xsd:dateTime" },
+      "schema:endDate": { "@value": "2026-03-20T11:30:00Z", "@type": "xsd:dateTime" },
+      "bpkm:location": "https://meet.google.com/xyz-uvwx-rst",
+      "bpkm:tags": ["planning", "sprint"],
+      "dcterms:created": { "@value": "2026-03-14T09:00:00Z", "@type": "xsd:dateTime" },
+      "bpkm:attendee": [
+        { "@id": "bpkm:seed-person-alice" },
+        { "@id": "bpkm:seed-person-bob" },
+        { "@id": "bpkm:seed-person-carol" }
+      ],
+      "bpkm:eventProject": { "@id": "bpkm:seed-project-sempkm" },
+      "bpkm:externalProvider": "google-calendar",
+      "bpkm:calendarName": "Work"
     }
   ]
 }

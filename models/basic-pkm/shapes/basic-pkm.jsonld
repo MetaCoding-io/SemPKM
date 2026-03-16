@@ -799,6 +799,562 @@
           }
         }
       ]
+    },
+
+    {
+      "@id": "bpkm:TaskBasicInfoGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Basic Info",
+      "sh:order": 1
+    },
+    {
+      "@id": "bpkm:TaskDatesGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Dates",
+      "sh:order": 2
+    },
+    {
+      "@id": "bpkm:TaskRelationshipsGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Relationships",
+      "sh:order": 3
+    },
+    {
+      "@id": "bpkm:TaskMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 4
+    },
+    {
+      "@id": "bpkm:TaskShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": {
+        "@id": "bpkm:Task"
+      },
+      "rdfs:label": "Task Shape",
+      "sempkm:editHelpText": "Tasks are actionable units of work. Create them manually or let integration apps sync them from external providers like Linear, Jira, GitHub Issues, Asana, or Todoist. Tasks can link to projects, milestones, notes, concepts, and people.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bpkm:TaskBasicInfoGroup" },
+          "sh:description": "What needs to be done.",
+          "sempkm:editHelpText": "A clear, actionable description of what needs to be done. Start with a verb -- e.g. \"Write user guide for graph view\" rather than just \"User guide\"."
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bpkm:TaskBasicInfoGroup" },
+          "sh:description": "Additional details, acceptance criteria, or context.",
+          "sempkm:editHelpText": "Expand on the task with details, acceptance criteria, or context. What does \"done\" look like? Markdown supported."
+        },
+        {
+          "sh:path": { "@id": "bpkm:taskStatus" },
+          "sh:name": "Status",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["todo", "in-progress", "done", "blocked", "cancelled"] },
+          "sh:defaultValue": "todo",
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bpkm:TaskBasicInfoGroup" },
+          "sh:description": "Current state of the task.",
+          "sempkm:editHelpText": "Current state. For synced tasks, this updates automatically from the external provider."
+        },
+        {
+          "sh:path": { "@id": "bpkm:priority" },
+          "sh:name": "Priority",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["low", "medium", "high", "critical"] },
+          "sh:defaultValue": "medium",
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "bpkm:TaskBasicInfoGroup" },
+          "sh:description": "How urgent or important this task is.",
+          "sempkm:editHelpText": "Relative importance. Use this to decide what to work on when time is limited."
+        },
+        {
+          "sh:path": { "@id": "bpkm:effort" },
+          "sh:name": "Effort",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["trivial", "small", "medium", "large", "epic"] },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "bpkm:TaskBasicInfoGroup" },
+          "sh:description": "Rough size estimate for planning.",
+          "sempkm:editHelpText": "T-shirt sizing for effort. Useful for planning how much you can take on in a sprint or week."
+        },
+        {
+          "sh:path": { "@id": "bpkm:dueDate" },
+          "sh:name": "Due Date",
+          "sh:datatype": { "@id": "xsd:date" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "bpkm:TaskDatesGroup" },
+          "sh:description": "When this task is due.",
+          "sempkm:editHelpText": "The deadline. Leave blank for tasks without a hard due date."
+        },
+        {
+          "sh:path": { "@id": "bpkm:completedDate" },
+          "sh:name": "Completed",
+          "sh:datatype": { "@id": "xsd:date" },
+          "sh:maxCount": 1,
+          "sh:order": 7,
+          "sh:group": { "@id": "bpkm:TaskDatesGroup" },
+          "sh:description": "When this task was completed.",
+          "sempkm:editHelpText": "Set when the task is done. For synced tasks, this is populated automatically."
+        },
+        {
+          "sh:path": { "@id": "bpkm:assignedTo" },
+          "sh:name": "Assigned To",
+          "sh:class": { "@id": "bpkm:Person" },
+          "sh:order": 8,
+          "sh:group": { "@id": "bpkm:TaskRelationshipsGroup" },
+          "sh:description": "Who is responsible for this task.",
+          "sempkm:editHelpText": "The person or people working on this. For synced tasks, mapped from the provider's assignee field."
+        },
+        {
+          "sh:path": { "@id": "bpkm:taskProject" },
+          "sh:name": "Project",
+          "sh:class": { "@id": "bpkm:Project" },
+          "sh:maxCount": 1,
+          "sh:order": 9,
+          "sh:group": { "@id": "bpkm:TaskRelationshipsGroup" },
+          "sh:description": "The project this task belongs to.",
+          "sempkm:editHelpText": "Which project this task is part of. If assigned to a milestone, the project can be inferred automatically."
+        },
+        {
+          "sh:path": { "@id": "bpkm:milestone" },
+          "sh:name": "Milestone",
+          "sh:class": { "@id": "bpkm:Milestone" },
+          "sh:maxCount": 1,
+          "sh:order": 10,
+          "sh:group": { "@id": "bpkm:TaskRelationshipsGroup" },
+          "sh:description": "The milestone this task contributes to.",
+          "sempkm:editHelpText": "Which milestone this task is part of. Milestones group tasks toward a specific deliverable or deadline."
+        },
+        {
+          "sh:path": { "@id": "bpkm:dependsOn" },
+          "sh:name": "Depends On",
+          "sh:class": { "@id": "bpkm:Task" },
+          "sh:order": 11,
+          "sh:group": { "@id": "bpkm:TaskRelationshipsGroup" },
+          "sh:description": "Tasks that must be completed before this one.",
+          "sempkm:editHelpText": "Blocking dependencies. These tasks must be done before this one can start. Shows in the task dependency graph."
+        },
+        {
+          "sh:path": { "@id": "bpkm:isAbout" },
+          "sh:name": "Related Concepts",
+          "sh:class": { "@id": "bpkm:Concept" },
+          "sh:order": 12,
+          "sh:group": { "@id": "bpkm:TaskRelationshipsGroup" },
+          "sh:description": "Concepts this task relates to.",
+          "sempkm:editHelpText": "Link to concepts this task involves. Builds connections between your work and your knowledge graph."
+        },
+        {
+          "sh:path": { "@id": "bpkm:tags" },
+          "sh:name": "Tags",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:order": 13,
+          "sh:group": { "@id": "bpkm:TaskMetadataGroup" },
+          "sh:description": "Free-form labels for filtering and organization.",
+          "sempkm:editHelpText": "Free-form tags. Use for cross-cutting concerns like `bug`, `feature`, `docs`, `urgent`."
+        },
+        {
+          "sh:path": { "@id": "bpkm:externalProvider" },
+          "sh:name": "Provider",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["manual", "asana", "linear", "jira", "github", "todoist", "trello"] },
+          "sh:maxCount": 1,
+          "sh:order": 14,
+          "sh:group": { "@id": "bpkm:TaskMetadataGroup" },
+          "sh:description": "Which service this task was imported from.",
+          "sempkm:editHelpText": "Set automatically when a task is synced from an external provider. Manual tasks default to 'manual'."
+        },
+        {
+          "sh:path": { "@id": "bpkm:externalId" },
+          "sh:name": "External ID",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 15,
+          "sh:group": { "@id": "bpkm:TaskMetadataGroup" },
+          "sh:description": "The task's identifier in the external system.",
+          "sempkm:editHelpText": "The task ID from the external provider (e.g., LIN-123, PROJ-42, #7). Set automatically during sync."
+        },
+        {
+          "sh:path": { "@id": "bpkm:externalUrl" },
+          "sh:name": "External Link",
+          "sh:datatype": { "@id": "xsd:anyURI" },
+          "sh:maxCount": 1,
+          "sh:order": 16,
+          "sh:group": { "@id": "bpkm:TaskMetadataGroup" },
+          "sh:description": "Direct link to this task in the external provider.",
+          "sempkm:editHelpText": "Click to open this task in its original provider (Linear, Jira, GitHub, etc.)."
+        },
+        {
+          "sh:path": { "@id": "bpkm:lastSyncedAt" },
+          "sh:name": "Last Synced",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 17,
+          "sh:group": { "@id": "bpkm:TaskMetadataGroup" },
+          "sh:description": "When this task was last synced with the external provider."
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 18,
+          "sh:group": { "@id": "bpkm:TaskMetadataGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:modified" },
+          "sh:name": "Modified",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 19,
+          "sh:group": { "@id": "bpkm:TaskMetadataGroup" }
+        }
+      ]
+    },
+
+    {
+      "@id": "bpkm:MilestoneBasicInfoGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Basic Info",
+      "sh:order": 1
+    },
+    {
+      "@id": "bpkm:MilestoneDatesGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Dates",
+      "sh:order": 2
+    },
+    {
+      "@id": "bpkm:MilestoneRelationshipsGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Relationships",
+      "sh:order": 3
+    },
+    {
+      "@id": "bpkm:MilestoneShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bpkm:Milestone" },
+      "rdfs:label": "Milestone Shape",
+      "sempkm:editHelpText": "Milestones group tasks toward a specific deliverable or deadline. They sit between projects and tasks -- a project can have multiple milestones, each with its own set of tasks.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bpkm:MilestoneBasicInfoGroup" },
+          "sh:description": "Name of this milestone.",
+          "sempkm:editHelpText": "A clear milestone name describing the deliverable -- e.g. \"v1.0 Launch\" or \"User Research Complete\"."
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bpkm:MilestoneBasicInfoGroup" },
+          "sh:description": "What this milestone delivers.",
+          "sempkm:editHelpText": "Describe what completing this milestone means. What's the deliverable? What does success look like?"
+        },
+        {
+          "sh:path": { "@id": "bpkm:milestoneStatus" },
+          "sh:name": "Status",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["planned", "active", "completed", "cancelled"] },
+          "sh:defaultValue": "planned",
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bpkm:MilestoneBasicInfoGroup" },
+          "sh:description": "Current state of this milestone.",
+          "sempkm:editHelpText": "Where this milestone stands. Update as work progresses."
+        },
+        {
+          "sh:path": { "@id": "bpkm:targetDate" },
+          "sh:name": "Target Date",
+          "sh:datatype": { "@id": "xsd:date" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "bpkm:MilestoneDatesGroup" },
+          "sh:description": "When this milestone should be completed.",
+          "sempkm:editHelpText": "The deadline for this milestone. Tasks within the milestone should be completed before this date."
+        },
+        {
+          "sh:path": { "@id": "bpkm:completedDate" },
+          "sh:name": "Completed",
+          "sh:datatype": { "@id": "xsd:date" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "bpkm:MilestoneDatesGroup" },
+          "sh:description": "When this milestone was actually completed."
+        },
+        {
+          "sh:path": { "@id": "bpkm:milestoneProject" },
+          "sh:name": "Project",
+          "sh:class": { "@id": "bpkm:Project" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "bpkm:MilestoneRelationshipsGroup" },
+          "sh:description": "The project this milestone belongs to.",
+          "sempkm:editHelpText": "Which project this milestone is part of. A project can have multiple milestones."
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 7,
+          "sh:group": { "@id": "bpkm:MilestoneBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:modified" },
+          "sh:name": "Modified",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 8,
+          "sh:group": { "@id": "bpkm:MilestoneBasicInfoGroup" }
+        }
+      ]
+    },
+
+    {
+      "@id": "bpkm:EventBasicInfoGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Basic Info",
+      "sh:order": 1
+    },
+    {
+      "@id": "bpkm:EventScheduleGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Schedule",
+      "sh:order": 2
+    },
+    {
+      "@id": "bpkm:EventRelationshipsGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Relationships",
+      "sh:order": 3
+    },
+    {
+      "@id": "bpkm:EventMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 4
+    },
+    {
+      "@id": "bpkm:EventShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bpkm:Event" },
+      "rdfs:label": "Event Shape",
+      "sempkm:editHelpText": "Events represent calendar entries — meetings, appointments, deadlines, or time blocks. Create them manually or let integration apps sync them from Google Calendar, Outlook, or CalDAV. Link events to projects, people, notes, and tasks.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bpkm:EventBasicInfoGroup" },
+          "sh:description": "Event title.",
+          "sempkm:editHelpText": "The event name as it appears on your calendar."
+        },
+        {
+          "sh:path": { "@id": "bpkm:eventType" },
+          "sh:name": "Type",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["meeting", "appointment", "deadline", "reminder", "focus-block", "social", "travel", "other"] },
+          "sh:defaultValue": "meeting",
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bpkm:EventBasicInfoGroup" },
+          "sh:description": "What kind of event this is.",
+          "sempkm:editHelpText": "Categorize: **meeting** for group discussions, **focus-block** for deep work time, **deadline** for due dates, etc."
+        },
+        {
+          "sh:path": { "@id": "bpkm:eventStatus" },
+          "sh:name": "Status",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["confirmed", "tentative", "cancelled"] },
+          "sh:defaultValue": "confirmed",
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bpkm:EventBasicInfoGroup" },
+          "sh:description": "Whether this event is confirmed."
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "bpkm:EventBasicInfoGroup" },
+          "sh:description": "Event description or agenda.",
+          "sempkm:editHelpText": "Agenda, talking points, or context for the event. Markdown supported."
+        },
+        {
+          "sh:path": { "@id": "schema:startDate" },
+          "sh:name": "Start",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "bpkm:EventScheduleGroup" },
+          "sh:description": "When this event starts.",
+          "sempkm:editHelpText": "Start date and time. For all-day events, just the date portion matters."
+        },
+        {
+          "sh:path": { "@id": "schema:endDate" },
+          "sh:name": "End",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "bpkm:EventScheduleGroup" },
+          "sh:description": "When this event ends.",
+          "sempkm:editHelpText": "End date and time. Leave blank for point-in-time events like deadlines or reminders."
+        },
+        {
+          "sh:path": { "@id": "bpkm:allDay" },
+          "sh:name": "All Day",
+          "sh:datatype": { "@id": "xsd:boolean" },
+          "sh:maxCount": 1,
+          "sh:order": 7,
+          "sh:group": { "@id": "bpkm:EventScheduleGroup" },
+          "sh:description": "Whether this is an all-day event."
+        },
+        {
+          "sh:path": { "@id": "bpkm:location" },
+          "sh:name": "Location",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 8,
+          "sh:group": { "@id": "bpkm:EventScheduleGroup" },
+          "sh:description": "Physical location or video meeting link.",
+          "sempkm:editHelpText": "Where this event takes place. Can be a physical address or a video meeting URL (Zoom, Meet, etc.)."
+        },
+        {
+          "sh:path": { "@id": "bpkm:attendee" },
+          "sh:name": "Attendees",
+          "sh:class": { "@id": "bpkm:Person" },
+          "sh:order": 9,
+          "sh:group": { "@id": "bpkm:EventRelationshipsGroup" },
+          "sh:description": "People attending this event.",
+          "sempkm:editHelpText": "Who's attending. For synced events, attendees are auto-matched to existing Person objects by email."
+        },
+        {
+          "sh:path": { "@id": "bpkm:eventProject" },
+          "sh:name": "Project",
+          "sh:class": { "@id": "bpkm:Project" },
+          "sh:maxCount": 1,
+          "sh:order": 10,
+          "sh:group": { "@id": "bpkm:EventRelationshipsGroup" },
+          "sh:description": "The project this event relates to.",
+          "sempkm:editHelpText": "Link to the relevant project. Helps keep project context together across meetings and work sessions."
+        },
+        {
+          "sh:path": { "@id": "bpkm:generatedTask" },
+          "sh:name": "Action Items",
+          "sh:class": { "@id": "bpkm:Task" },
+          "sh:order": 11,
+          "sh:group": { "@id": "bpkm:EventRelationshipsGroup" },
+          "sh:description": "Tasks created as a result of this event.",
+          "sempkm:editHelpText": "Action items that came out of this meeting. Link existing tasks or create new ones."
+        },
+        {
+          "sh:path": { "@id": "bpkm:eventNote" },
+          "sh:name": "Notes",
+          "sh:class": { "@id": "bpkm:Note" },
+          "sh:order": 12,
+          "sh:group": { "@id": "bpkm:EventRelationshipsGroup" },
+          "sh:description": "Notes linked to this event.",
+          "sempkm:editHelpText": "Meeting notes, discussion summaries, or reference material related to this event."
+        },
+        {
+          "sh:path": { "@id": "bpkm:meetingNotes" },
+          "sh:name": "Meeting Notes",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 13,
+          "sh:group": { "@id": "bpkm:EventMetadataGroup" },
+          "sh:description": "Quick notes captured after the meeting.",
+          "sempkm:editHelpText": "Post-meeting capture: decisions made, key takeaways, follow-ups needed. For detailed notes, create a linked Note object instead. Markdown supported."
+        },
+        {
+          "sh:path": { "@id": "bpkm:tags" },
+          "sh:name": "Tags",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:order": 14,
+          "sh:group": { "@id": "bpkm:EventMetadataGroup" },
+          "sh:description": "Free-form labels for categorization.",
+          "sempkm:editHelpText": "Tags for filtering. Use terms like `recurring`, `1-on-1`, `standup`, `external`."
+        },
+        {
+          "sh:path": { "@id": "bpkm:externalProvider" },
+          "sh:name": "Provider",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["manual", "google-calendar", "outlook", "apple-calendar", "caldav"] },
+          "sh:maxCount": 1,
+          "sh:order": 15,
+          "sh:group": { "@id": "bpkm:EventMetadataGroup" },
+          "sh:description": "Which calendar service this was synced from."
+        },
+        {
+          "sh:path": { "@id": "bpkm:calendarName" },
+          "sh:name": "Calendar",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 16,
+          "sh:group": { "@id": "bpkm:EventMetadataGroup" },
+          "sh:description": "Which calendar within the provider (e.g., Work, Personal)."
+        },
+        {
+          "sh:path": { "@id": "bpkm:externalUrl" },
+          "sh:name": "External Link",
+          "sh:datatype": { "@id": "xsd:anyURI" },
+          "sh:maxCount": 1,
+          "sh:order": 17,
+          "sh:group": { "@id": "bpkm:EventMetadataGroup" },
+          "sh:description": "Link to this event in the calendar provider."
+        },
+        {
+          "sh:path": { "@id": "bpkm:lastSyncedAt" },
+          "sh:name": "Last Synced",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 18,
+          "sh:group": { "@id": "bpkm:EventMetadataGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 19,
+          "sh:group": { "@id": "bpkm:EventMetadataGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:modified" },
+          "sh:name": "Modified",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 20,
+          "sh:group": { "@id": "bpkm:EventMetadataGroup" }
+        }
+      ]
     }
   ]
 }

@@ -16,7 +16,7 @@
       "@id": "bpkm:ontology",
       "@type": "owl:Ontology",
       "rdfs:label": "Basic PKM Ontology",
-      "dcterms:description": "Core types for personal knowledge management: Projects, People, Notes, and Concepts with rich inter-type relationships."
+      "dcterms:description": "Core types for personal knowledge management: Projects, People, Notes, Concepts, Tasks, Milestones, and Events with rich inter-type relationships. Tasks and Events serve as semantic hubs for third-party provider integrations."
     },
 
     {
@@ -134,6 +134,243 @@
       "rdfs:label": "Has Related Note",
       "rdfs:comment": "Notes related to this project (derived by SHACL-AF rule from relatedProject)",
       "rdfs:domain": { "@id": "bpkm:Project" },
+      "rdfs:range": { "@id": "bpkm:Note" }
+    },
+
+    {
+      "@id": "bpkm:Task",
+      "@type": "owl:Class",
+      "rdfs:label": "Task",
+      "rdfs:comment": "An actionable unit of work. Can be created manually or synced from external providers (Asana, Linear, Jira, GitHub Issues, Todoist, etc.).",
+      "rdfs:subClassOf": { "@id": "gist:Task" }
+    },
+    {
+      "@id": "bpkm:Milestone",
+      "@type": "owl:Class",
+      "rdfs:label": "Milestone",
+      "rdfs:comment": "A grouping of tasks toward a specific deliverable or deadline within a project",
+      "rdfs:subClassOf": { "@id": "gist:Event" }
+    },
+    {
+      "@id": "bpkm:Event",
+      "@type": "owl:Class",
+      "rdfs:label": "Event",
+      "rdfs:comment": "A calendar event — meeting, appointment, deadline, or time block. Can be synced from external calendar providers (Google Calendar, Outlook, CalDAV, etc.).",
+      "rdfs:subClassOf": { "@id": "gist:Event" }
+    },
+
+    {
+      "@id": "bpkm:taskStatus",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Task Status",
+      "rdfs:comment": "Normalized status of a task (todo, in-progress, done, blocked, cancelled)",
+      "rdfs:domain": { "@id": "bpkm:Task" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:dueDate",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Due Date",
+      "rdfs:comment": "When the task is due",
+      "rdfs:domain": { "@id": "bpkm:Task" },
+      "rdfs:range": { "@id": "xsd:date" }
+    },
+    {
+      "@id": "bpkm:completedDate",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Completed Date",
+      "rdfs:comment": "When the task or milestone was completed",
+      "rdfs:range": { "@id": "xsd:date" }
+    },
+    {
+      "@id": "bpkm:effort",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Effort",
+      "rdfs:comment": "T-shirt size estimate (trivial, small, medium, large, epic)",
+      "rdfs:domain": { "@id": "bpkm:Task" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:externalId",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "External ID",
+      "rdfs:comment": "Identifier from the external provider (e.g., PROJ-123, #42)",
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:externalUrl",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "External URL",
+      "rdfs:comment": "Direct link to the item in the external provider's UI",
+      "rdfs:range": { "@id": "xsd:anyURI" }
+    },
+    {
+      "@id": "bpkm:externalProvider",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "External Provider",
+      "rdfs:comment": "Which service this was imported from (asana, linear, jira, github, todoist, google-calendar, outlook, caldav, manual)",
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:lastSyncedAt",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Last Synced",
+      "rdfs:comment": "Timestamp of the last successful sync with the external provider",
+      "rdfs:range": { "@id": "xsd:dateTime" }
+    },
+    {
+      "@id": "bpkm:assignedTo",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Assigned To",
+      "rdfs:comment": "Person(s) responsible for this task",
+      "rdfs:domain": { "@id": "bpkm:Task" },
+      "rdfs:range": { "@id": "bpkm:Person" }
+    },
+    {
+      "@id": "bpkm:taskProject",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Project",
+      "rdfs:comment": "The project this task belongs to",
+      "rdfs:domain": { "@id": "bpkm:Task" },
+      "rdfs:range": { "@id": "bpkm:Project" }
+    },
+    {
+      "@id": "bpkm:hasTasks",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Tasks",
+      "rdfs:comment": "Tasks belonging to this project",
+      "rdfs:domain": { "@id": "bpkm:Project" },
+      "rdfs:range": { "@id": "bpkm:Task" },
+      "owl:inverseOf": { "@id": "bpkm:taskProject" }
+    },
+    {
+      "@id": "bpkm:milestone",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Milestone",
+      "rdfs:comment": "The milestone this task belongs to",
+      "rdfs:domain": { "@id": "bpkm:Task" },
+      "rdfs:range": { "@id": "bpkm:Milestone" }
+    },
+    {
+      "@id": "bpkm:hasMilestones",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Milestones",
+      "rdfs:comment": "Milestones belonging to this project",
+      "rdfs:domain": { "@id": "bpkm:Project" },
+      "rdfs:range": { "@id": "bpkm:Milestone" },
+      "owl:inverseOf": { "@id": "bpkm:milestoneProject" }
+    },
+    {
+      "@id": "bpkm:milestoneProject",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Project",
+      "rdfs:comment": "The project this milestone belongs to",
+      "rdfs:domain": { "@id": "bpkm:Milestone" },
+      "rdfs:range": { "@id": "bpkm:Project" }
+    },
+    {
+      "@id": "bpkm:dependsOn",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Depends On",
+      "rdfs:comment": "Tasks that must be completed before this one can start",
+      "rdfs:domain": { "@id": "bpkm:Task" },
+      "rdfs:range": { "@id": "bpkm:Task" }
+    },
+    {
+      "@id": "bpkm:milestoneStatus",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Milestone Status",
+      "rdfs:comment": "Status of a milestone (planned, active, completed, cancelled)",
+      "rdfs:domain": { "@id": "bpkm:Milestone" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:targetDate",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Target Date",
+      "rdfs:comment": "Target completion date for a milestone",
+      "rdfs:domain": { "@id": "bpkm:Milestone" },
+      "rdfs:range": { "@id": "xsd:date" }
+    },
+
+    {
+      "@id": "bpkm:eventType",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Event Type",
+      "rdfs:comment": "What kind of event (meeting, appointment, deadline, reminder, focus-block, social, travel, other)",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:eventStatus",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Event Status",
+      "rdfs:comment": "Status of a calendar event (confirmed, tentative, cancelled)",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:allDay",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "All Day",
+      "rdfs:comment": "Whether this is an all-day event",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "xsd:boolean" }
+    },
+    {
+      "@id": "bpkm:location",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Location",
+      "rdfs:comment": "Physical location or video meeting link",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:calendarName",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Calendar",
+      "rdfs:comment": "Name of the calendar within the provider (e.g., Work, Personal)",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:meetingNotes",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Meeting Notes",
+      "rdfs:comment": "Post-meeting notes and outcomes. Markdown supported.",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:attendee",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Attendee",
+      "rdfs:comment": "People attending this event",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "bpkm:Person" }
+    },
+    {
+      "@id": "bpkm:eventProject",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Project",
+      "rdfs:comment": "The project this event relates to",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "bpkm:Project" }
+    },
+    {
+      "@id": "bpkm:generatedTask",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Generated Task",
+      "rdfs:comment": "Action items created from this event",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "bpkm:Task" }
+    },
+    {
+      "@id": "bpkm:eventNote",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Event Note",
+      "rdfs:comment": "Notes linked to this event",
+      "rdfs:domain": { "@id": "bpkm:Event" },
       "rdfs:range": { "@id": "bpkm:Note" }
     }
   ]

@@ -150,6 +150,100 @@
       "dcterms:description": "Concepts with their broader/narrower relationships for exploring the taxonomy",
       "sempkm:queryText": "SELECT ?s ?label ?broader ?narrower WHERE { ?s a <urn:sempkm:model:basic-pkm:Concept> ; <http://www.w3.org/2004/02/skos/core#prefLabel> ?label . OPTIONAL { ?s <http://www.w3.org/2004/02/skos/core#broader> ?b . ?b <http://www.w3.org/2004/02/skos/core#prefLabel> ?broader } . OPTIONAL { ?s <http://www.w3.org/2004/02/skos/core#narrower> ?n . ?n <http://www.w3.org/2004/02/skos/core#prefLabel> ?narrower } } ORDER BY ?label",
       "sempkm:source": "model:basic-pkm"
+    },
+
+    {
+      "@id": "bpkm:view-task-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Tasks Table",
+      "sempkm:targetClass": { "@id": "bpkm:Task" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?taskStatus ?priority ?dueDate ?effort ?assignee ?project ?provider WHERE { ?s a <urn:sempkm:model:basic-pkm:Task> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:taskStatus> ?taskStatus } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:priority> ?priority } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:dueDate> ?dueDate } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:effort> ?effort } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:assignedTo> ?a . ?a <http://xmlns.com/foaf/0.1/name> ?assignee } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:taskProject> ?p . ?p <http://purl.org/dc/terms/title> ?project } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:externalProvider> ?provider } }",
+      "sempkm:columns": "title,taskStatus,priority,dueDate,assignee,project,provider",
+      "sempkm:sortDefault": "dueDate"
+    },
+    {
+      "@id": "bpkm:view-task-card",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Tasks Cards",
+      "sempkm:targetClass": { "@id": "bpkm:Task" },
+      "sempkm:rendererType": "card",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?taskStatus ?priority ?dueDate ?effort WHERE { ?s a <urn:sempkm:model:basic-pkm:Task> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:taskStatus> ?taskStatus } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:priority> ?priority } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:dueDate> ?dueDate } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:effort> ?effort } }",
+      "sempkm:cardTitle": "http://purl.org/dc/terms/title",
+      "sempkm:cardSubtitle": "urn:sempkm:model:basic-pkm:taskStatus"
+    },
+    {
+      "@id": "bpkm:view-task-graph",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Task Dependencies",
+      "sempkm:targetClass": { "@id": "bpkm:Task" },
+      "sempkm:rendererType": "graph",
+      "sempkm:sparqlQuery": "CONSTRUCT { ?s a <urn:sempkm:model:basic-pkm:Task> ; <http://purl.org/dc/terms/title> ?title ; <urn:sempkm:model:basic-pkm:dependsOn> ?dep ; <urn:sempkm:model:basic-pkm:taskProject> ?project . ?dep <http://purl.org/dc/terms/title> ?dtitle . ?project <http://purl.org/dc/terms/title> ?ptitle } WHERE { ?s a <urn:sempkm:model:basic-pkm:Task> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:dependsOn> ?dep . ?dep <http://purl.org/dc/terms/title> ?dtitle } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:taskProject> ?project . ?project <http://purl.org/dc/terms/title> ?ptitle } }"
+    },
+
+    {
+      "@id": "bpkm:view-milestone-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Milestones Table",
+      "sempkm:targetClass": { "@id": "bpkm:Milestone" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?milestoneStatus ?targetDate ?project WHERE { ?s a <urn:sempkm:model:basic-pkm:Milestone> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:milestoneStatus> ?milestoneStatus } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:targetDate> ?targetDate } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:milestoneProject> ?p . ?p <http://purl.org/dc/terms/title> ?project } }",
+      "sempkm:columns": "title,milestoneStatus,targetDate,project",
+      "sempkm:sortDefault": "targetDate"
+    },
+
+    {
+      "@id": "bpkm:view-event-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Events Table",
+      "sempkm:targetClass": { "@id": "bpkm:Event" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?eventType ?startDate ?endDate ?eventStatus ?location ?provider WHERE { ?s a <urn:sempkm:model:basic-pkm:Event> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:eventType> ?eventType } . OPTIONAL { ?s <https://schema.org/startDate> ?startDate } . OPTIONAL { ?s <https://schema.org/endDate> ?endDate } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:eventStatus> ?eventStatus } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:location> ?location } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:externalProvider> ?provider } }",
+      "sempkm:columns": "title,eventType,startDate,endDate,location,provider",
+      "sempkm:sortDefault": "startDate"
+    },
+    {
+      "@id": "bpkm:view-event-card",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Events Cards",
+      "sempkm:targetClass": { "@id": "bpkm:Event" },
+      "sempkm:rendererType": "card",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?eventType ?startDate ?eventStatus ?location WHERE { ?s a <urn:sempkm:model:basic-pkm:Event> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:eventType> ?eventType } . OPTIONAL { ?s <https://schema.org/startDate> ?startDate } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:eventStatus> ?eventStatus } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:location> ?location } }",
+      "sempkm:cardTitle": "http://purl.org/dc/terms/title",
+      "sempkm:cardSubtitle": "urn:sempkm:model:basic-pkm:eventType"
+    },
+    {
+      "@id": "bpkm:view-event-graph",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Meeting Network",
+      "sempkm:targetClass": { "@id": "bpkm:Event" },
+      "sempkm:rendererType": "graph",
+      "sempkm:sparqlQuery": "CONSTRUCT { ?s a <urn:sempkm:model:basic-pkm:Event> ; <http://purl.org/dc/terms/title> ?title ; <urn:sempkm:model:basic-pkm:attendee> ?person ; <urn:sempkm:model:basic-pkm:eventProject> ?project . ?person <http://xmlns.com/foaf/0.1/name> ?pname . ?project <http://purl.org/dc/terms/title> ?ptitle } WHERE { ?s a <urn:sempkm:model:basic-pkm:Event> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:attendee> ?person . ?person <http://xmlns.com/foaf/0.1/name> ?pname } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:eventProject> ?project . ?project <http://purl.org/dc/terms/title> ?ptitle } }"
+    },
+
+    {
+      "@id": "urn:sempkm:model:basic-pkm:query:open-tasks",
+      "@type": "sempkm:SavedQuery",
+      "rdfs:label": "Open Tasks",
+      "dcterms:description": "All tasks that are not done or cancelled, sorted by due date",
+      "sempkm:queryText": "SELECT ?s ?title ?taskStatus ?priority ?dueDate ?assignee ?project WHERE { ?s a <urn:sempkm:model:basic-pkm:Task> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:taskStatus> ?taskStatus } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:priority> ?priority } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:dueDate> ?dueDate } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:assignedTo> ?a . ?a <http://xmlns.com/foaf/0.1/name> ?assignee } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:taskProject> ?p . ?p <http://purl.org/dc/terms/title> ?project } FILTER(!BOUND(?taskStatus) || (?taskStatus != 'done' && ?taskStatus != 'cancelled')) } ORDER BY ?dueDate",
+      "sempkm:source": "model:basic-pkm"
+    },
+    {
+      "@id": "urn:sempkm:model:basic-pkm:query:tasks-by-provider",
+      "@type": "sempkm:SavedQuery",
+      "rdfs:label": "Tasks by Provider",
+      "dcterms:description": "All tasks grouped by their external provider source",
+      "sempkm:queryText": "SELECT ?s ?title ?taskStatus ?priority ?provider ?externalId WHERE { ?s a <urn:sempkm:model:basic-pkm:Task> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:taskStatus> ?taskStatus } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:priority> ?priority } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:externalProvider> ?provider } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:externalId> ?externalId } } ORDER BY ?provider ?title",
+      "sempkm:source": "model:basic-pkm"
+    },
+    {
+      "@id": "urn:sempkm:model:basic-pkm:query:upcoming-events",
+      "@type": "sempkm:SavedQuery",
+      "rdfs:label": "Upcoming Events",
+      "dcterms:description": "Events sorted by start date with attendees and projects",
+      "sempkm:queryText": "SELECT ?s ?title ?eventType ?startDate ?attendee ?project WHERE { ?s a <urn:sempkm:model:basic-pkm:Event> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:eventType> ?eventType } . OPTIONAL { ?s <https://schema.org/startDate> ?startDate } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:attendee> ?a . ?a <http://xmlns.com/foaf/0.1/name> ?attendee } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:eventProject> ?p . ?p <http://purl.org/dc/terms/title> ?project } } ORDER BY ?startDate",
+      "sempkm:source": "model:basic-pkm"
     }
   ]
 }

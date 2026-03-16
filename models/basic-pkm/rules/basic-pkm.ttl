@@ -28,6 +28,31 @@ bpkm:ProjectRelatedNoteRule
         """ ;
     ] .
 
+# Rule: Derive bpkm:taskProject on Tasks from Milestone's milestoneProject
+# If a Task has a Milestone, and that Milestone has a Project, the Task inherits the Project.
+# Only fires if the Task does not already have a taskProject set.
+
+bpkm:TaskProjectDenormRule
+    a sh:NodeShape ;
+    sh:targetClass bpkm:Task ;
+    sh:rule [
+        a sh:SPARQLRule ;
+        sh:order 1 ;
+        rdfs:label "Derive taskProject from milestone" ;
+        rdfs:comment "When a Task has a milestone with a project, the Task gains a taskProject link" ;
+        sh:prefixes bpkm:PrefixDeclarations ;
+        sh:construct """
+            CONSTRUCT {
+                $this bpkm:taskProject ?project .
+            }
+            WHERE {
+                $this bpkm:milestone ?milestone .
+                ?milestone bpkm:milestoneProject ?project .
+                FILTER NOT EXISTS { $this bpkm:taskProject ?existingProject }
+            }
+        """ ;
+    ] .
+
 # Prefix declarations for SPARQL rules
 bpkm:PrefixDeclarations
     a owl:Ontology ;
