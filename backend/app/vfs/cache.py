@@ -52,7 +52,7 @@ def clear_mount_cache() -> None:
     with _cache_lock:
         keys_to_remove = [
             k for k in listing_cache
-            if k.startswith("mount:") or k.startswith("root:")
+            if k.startswith("mount:") or k.startswith("root:") or k.startswith("query_text:")
         ]
         for k in keys_to_remove:
             del listing_cache[k]

@@ -29,7 +29,9 @@ DIRECTORY_STRATEGY = f"{NS_SEMPKM}directoryStrategy"
 GROUP_BY_PROPERTY = f"{NS_SEMPKM}groupByProperty"
 DATE_PROPERTY = f"{NS_SEMPKM}dateProperty"
 SPARQL_SCOPE = f"{NS_SEMPKM}sparqlScope"
-SAVED_QUERY_ID = f"{NS_SEMPKM}savedQueryId"
+SCOPE_QUERY = f"{NS_SEMPKM}scopeQuery"
+TYPE_FILTER = f"{NS_SEMPKM}typeFilter"
+FILENAME_TEMPLATE = f"{NS_SEMPKM}filenameTemplate"
 CREATED_BY = f"{NS_SEMPKM}createdBy"
 VISIBILITY = f"{NS_SEMPKM}visibility"
 CREATED_AT = f"{NS_SEMPKM}createdAt"
@@ -57,14 +59,26 @@ class MountDefinition:
     group_by_property: str | None = None
     date_property: str | None = None
     sparql_scope: str = "all"
-    saved_query_id: str | None = None
+    scope_query: str | None = None
+    type_filter: list[str] | None = None
+    filename_template: str | None = None
     created_by: str = ""  # user URN (urn:sempkm:user:{uuid})
     visibility: str = "personal"  # "shared" or "personal"
     created_at: str = ""  # ISO datetime string
 
+    @property
+    def strategy_chain(self) -> list[str]:
+        """Parse strategy into ordered list. Single = ['by-tag'], chain = ['by-tag', 'by-date']."""
+        return self.strategy.split("|")
+
+    @property
+    def is_chain(self) -> bool:
+        """True if strategy is a multi-level chain."""
+        return "|" in self.strategy
+
     def to_dict(self) -> dict:
         """Serialize to JSON-compatible dict."""
-        return {
+        result = {
             "id": self.id,
             "name": self.name,
             "path": self.path,
@@ -72,14 +86,51 @@ class MountDefinition:
             "group_by_property": self.group_by_property,
             "date_property": self.date_property,
             "sparql_scope": self.sparql_scope,
-            "saved_query_id": self.saved_query_id,
+            "scope_query": self.scope_query,
+            "type_filter": self.type_filter,
+            "filename_template": self.filename_template,
             "created_by": self.created_by,
             "visibility": self.visibility,
             "created_at": self.created_at,
         }
+        chain = self.strategy_chain
+        if len(chain) > 1:
+            result["strategy_chain"] = chain
+        return result
 
 
-# ── Validation Helper ───────────────────────────────────────────────
+# ── Chain Validation Helper ──────────────────────────────────────────
+
+def _validate_strategy_chain(strategy: str) -> None:
+    """Validate a strategy string, including pipe-delimited chains.
+
+    Rules:
+    - Each segment must be a valid strategy name
+    - Maximum 3 levels in a chain
+    - No empty segments
+
+    Raises ValueError with a descriptive message on failure.
+    """
+    segments = strategy.split("|")
+    if len(segments) > 3:
+        raise ValueError(
+            f"Strategy chain too long ({len(segments)} levels). "
+            f"Maximum is 3 levels. Got: '{strategy}'"
+        )
+    for i, seg in enumerate(segments):
+        seg = seg.strip()
+        if not seg:
+            raise ValueError(
+                f"Empty strategy segment at position {i + 1} in chain '{strategy}'."
+            )
+        if seg not in VALID_STRATEGIES:
+            raise ValueError(
+                f"Invalid strategy '{seg}' at position {i + 1} in chain '{strategy}'. "
+                f"Must be one of: {', '.join(sorted(VALID_STRATEGIES))}"
+            )
+
+
+# ── Path Validation Helper ───────────────────────────────────────────
 
 def _validate_mount_path(
     path: str,
@@ -164,7 +215,8 @@ class SyncMountService:
         result = self._client.query(
             f"""
             SELECT ?mount ?name ?path ?strategy ?groupByProp ?dateProp
-                   ?scope ?savedQueryId ?createdBy ?visibility ?createdAt
+                   ?scope ?scopeQuery ?createdBy ?visibility ?createdAt
+                   ?filenameTemplate
             FROM <{GRAPH_MOUNTS}>
             WHERE {{
               ?mount a <{NS_SEMPKM}MountSpec> ;
@@ -176,8 +228,9 @@ class SyncMountService:
               OPTIONAL {{ ?mount <{GROUP_BY_PROPERTY}> ?groupByProp }}
               OPTIONAL {{ ?mount <{DATE_PROPERTY}> ?dateProp }}
               OPTIONAL {{ ?mount <{SPARQL_SCOPE}> ?scope }}
-              OPTIONAL {{ ?mount <{SAVED_QUERY_ID}> ?savedQueryId }}
+              OPTIONAL {{ ?mount <{SCOPE_QUERY}> ?scopeQuery }}
               OPTIONAL {{ ?mount <{CREATED_AT}> ?createdAt }}
+              OPTIONAL {{ ?mount <{FILENAME_TEMPLATE}> ?filenameTemplate }}
               FILTER(
                 ?visibility = "shared" ||
                 ?createdBy = <{user_iri}>
@@ -186,7 +239,27 @@ class SyncMountService:
             ORDER BY ?name
             """
         )
-        return [self._binding_to_mount(b) for b in result["results"]["bindings"]]
+
+        # Fetch type_filter triples for all mounts in one query
+        tf_result = self._client.query(
+            f"""
+            SELECT ?mount ?tf
+            FROM <{GRAPH_MOUNTS}>
+            WHERE {{ ?mount <{TYPE_FILTER}> ?tf }}
+            """
+        )
+        type_filters_map: dict[str, list[str]] = {}
+        for tf_b in tf_result["results"]["bindings"]:
+            m_iri = tf_b["mount"]["value"]
+            type_filters_map.setdefault(m_iri, []).append(tf_b["tf"]["value"])
+
+        mounts = []
+        for b in result["results"]["bindings"]:
+            mount = self._binding_to_mount(b)
+            mount_iri = b["mount"]["value"]
+            mount.type_filter = type_filters_map.get(mount_iri) or None
+            mounts.append(mount)
+        return mounts
 
     def get_mount_by_id(self, mount_id: str) -> MountDefinition | None:
         """Get a single mount definition by its UUID."""
@@ -194,7 +267,9 @@ class SyncMountService:
         result = self._client.query(
             f"""
             SELECT ?name ?path ?strategy ?groupByProp ?dateProp
-                   ?scope ?savedQueryId ?createdBy ?visibility ?createdAt
+                   ?scope ?scopeQuery ?createdBy ?visibility ?createdAt
+                   ?filenameTemplate
+                   (GROUP_CONCAT(DISTINCT ?tf; separator="|") AS ?typeFilters)
             FROM <{GRAPH_MOUNTS}>
             WHERE {{
               <{mount_iri}> a <{NS_SEMPKM}MountSpec> ;
@@ -206,9 +281,14 @@ class SyncMountService:
               OPTIONAL {{ <{mount_iri}> <{GROUP_BY_PROPERTY}> ?groupByProp }}
               OPTIONAL {{ <{mount_iri}> <{DATE_PROPERTY}> ?dateProp }}
               OPTIONAL {{ <{mount_iri}> <{SPARQL_SCOPE}> ?scope }}
-              OPTIONAL {{ <{mount_iri}> <{SAVED_QUERY_ID}> ?savedQueryId }}
+              OPTIONAL {{ <{mount_iri}> <{SCOPE_QUERY}> ?scopeQuery }}
               OPTIONAL {{ <{mount_iri}> <{CREATED_AT}> ?createdAt }}
+              OPTIONAL {{ <{mount_iri}> <{TYPE_FILTER}> ?tf }}
+              OPTIONAL {{ <{mount_iri}> <{FILENAME_TEMPLATE}> ?filenameTemplate }}
             }}
+            GROUP BY ?name ?path ?strategy ?groupByProp ?dateProp
+                     ?scope ?scopeQuery ?createdBy ?visibility ?createdAt
+                     ?filenameTemplate
             LIMIT 1
             """
         )
@@ -217,6 +297,8 @@ class SyncMountService:
             return None
 
         b = bindings[0]
+        tf_raw = b.get("typeFilters", {}).get("value", "")
+        type_filter = [s for s in tf_raw.split("|") if s] or None
         return MountDefinition(
             id=mount_id,
             name=b["name"]["value"],
@@ -225,7 +307,9 @@ class SyncMountService:
             group_by_property=b.get("groupByProp", {}).get("value"),
             date_property=b.get("dateProp", {}).get("value"),
             sparql_scope=b.get("scope", {}).get("value", "all"),
-            saved_query_id=b.get("savedQueryId", {}).get("value"),
+            scope_query=b.get("scopeQuery", {}).get("value"),
+            type_filter=type_filter,
+            filename_template=b.get("filenameTemplate", {}).get("value"),
             created_by=b["createdBy"]["value"],
             visibility=b["visibility"]["value"],
             created_at=b.get("createdAt", {}).get("value", ""),
@@ -236,7 +320,9 @@ class SyncMountService:
         result = self._client.query(
             f"""
             SELECT ?mount ?name ?strategy ?groupByProp ?dateProp
-                   ?scope ?savedQueryId ?createdBy ?visibility ?createdAt
+                   ?scope ?scopeQuery ?createdBy ?visibility ?createdAt
+                   ?filenameTemplate
+                   (GROUP_CONCAT(DISTINCT ?tf; separator="|") AS ?typeFilters)
             FROM <{GRAPH_MOUNTS}>
             WHERE {{
               ?mount a <{NS_SEMPKM}MountSpec> ;
@@ -248,9 +334,14 @@ class SyncMountService:
               OPTIONAL {{ ?mount <{GROUP_BY_PROPERTY}> ?groupByProp }}
               OPTIONAL {{ ?mount <{DATE_PROPERTY}> ?dateProp }}
               OPTIONAL {{ ?mount <{SPARQL_SCOPE}> ?scope }}
-              OPTIONAL {{ ?mount <{SAVED_QUERY_ID}> ?savedQueryId }}
+              OPTIONAL {{ ?mount <{SCOPE_QUERY}> ?scopeQuery }}
               OPTIONAL {{ ?mount <{CREATED_AT}> ?createdAt }}
+              OPTIONAL {{ ?mount <{TYPE_FILTER}> ?tf }}
+              OPTIONAL {{ ?mount <{FILENAME_TEMPLATE}> ?filenameTemplate }}
             }}
+            GROUP BY ?mount ?name ?strategy ?groupByProp ?dateProp
+                     ?scope ?scopeQuery ?createdBy ?visibility ?createdAt
+                     ?filenameTemplate
             LIMIT 1
             """
         )
@@ -261,6 +352,8 @@ class SyncMountService:
         b = bindings[0]
         mount_iri = b["mount"]["value"]
         mount_id = mount_iri.replace(NS_MOUNT, "") if mount_iri.startswith(NS_MOUNT) else mount_iri
+        tf_raw = b.get("typeFilters", {}).get("value", "")
+        type_filter = [s for s in tf_raw.split("|") if s] or None
         return MountDefinition(
             id=mount_id,
             name=b["name"]["value"],
@@ -269,7 +362,9 @@ class SyncMountService:
             group_by_property=b.get("groupByProp", {}).get("value"),
             date_property=b.get("dateProp", {}).get("value"),
             sparql_scope=b.get("scope", {}).get("value", "all"),
-            saved_query_id=b.get("savedQueryId", {}).get("value"),
+            scope_query=b.get("scopeQuery", {}).get("value"),
+            type_filter=type_filter,
+            filename_template=b.get("filenameTemplate", {}).get("value"),
             created_by=b["createdBy"]["value"],
             visibility=b["visibility"]["value"],
             created_at=b.get("createdAt", {}).get("value", ""),
@@ -285,12 +380,8 @@ class SyncMountService:
         mount.id = str(uuid.uuid4())
         mount.created_at = datetime.now(UTC).isoformat()
 
-        # Validate strategy
-        if mount.strategy not in VALID_STRATEGIES:
-            raise ValueError(
-                f"Invalid strategy '{mount.strategy}'. "
-                f"Must be one of: {', '.join(sorted(VALID_STRATEGIES))}"
-            )
+        # Validate strategy (supports pipe-delimited chains)
+        _validate_strategy_chain(mount.strategy)
 
         # Validate path
         _validate_mount_path(mount.path, self._client)
@@ -318,9 +409,18 @@ class SyncMountService:
             triples.append(
                 f'<{mount_iri}> <{SPARQL_SCOPE}> "{_escape_sparql(mount.sparql_scope)}"'
             )
-        if mount.saved_query_id:
+        if mount.scope_query:
             triples.append(
-                f'<{mount_iri}> <{SAVED_QUERY_ID}> "{_escape_sparql(mount.saved_query_id)}"^^<http://www.w3.org/2001/XMLSchema#string>'
+                f'<{mount_iri}> <{SCOPE_QUERY}> <{mount.scope_query}>'
+            )
+        if mount.type_filter:
+            for tf_iri in mount.type_filter:
+                triples.append(
+                    f'<{mount_iri}> <{TYPE_FILTER}> <{tf_iri}>'
+                )
+        if mount.filename_template:
+            triples.append(
+                f'<{mount_iri}> <{FILENAME_TEMPLATE}> "{_escape_sparql(mount.filename_template)}"'
             )
 
         sparql = f"""
@@ -361,17 +461,17 @@ class SyncMountService:
             existing.date_property = updates["date_property"]
         if "sparql_scope" in updates:
             existing.sparql_scope = updates["sparql_scope"]
-        if "saved_query_id" in updates:
-            existing.saved_query_id = updates["saved_query_id"]
+        if "scope_query" in updates:
+            existing.scope_query = updates["scope_query"]
+        if "type_filter" in updates:
+            existing.type_filter = updates["type_filter"]
+        if "filename_template" in updates:
+            existing.filename_template = updates["filename_template"]
         if "visibility" in updates:
             existing.visibility = updates["visibility"]
 
-        # Validate strategy if changed
-        if existing.strategy not in VALID_STRATEGIES:
-            raise ValueError(
-                f"Invalid strategy '{existing.strategy}'. "
-                f"Must be one of: {', '.join(sorted(VALID_STRATEGIES))}"
-            )
+        # Validate strategy if changed (supports pipe-delimited chains)
+        _validate_strategy_chain(existing.strategy)
 
         # Validate path if changed
         if "path" in updates:
@@ -410,9 +510,18 @@ class SyncMountService:
             triples.append(
                 f'<{mount_iri}> <{SPARQL_SCOPE}> "{_escape_sparql(existing.sparql_scope)}"'
             )
-        if existing.saved_query_id:
+        if existing.scope_query:
             triples.append(
-                f'<{mount_iri}> <{SAVED_QUERY_ID}> "{_escape_sparql(existing.saved_query_id)}"^^<http://www.w3.org/2001/XMLSchema#string>'
+                f'<{mount_iri}> <{SCOPE_QUERY}> <{existing.scope_query}>'
+            )
+        if existing.type_filter:
+            for tf_iri in existing.type_filter:
+                triples.append(
+                    f'<{mount_iri}> <{TYPE_FILTER}> <{tf_iri}>'
+                )
+        if existing.filename_template:
+            triples.append(
+                f'<{mount_iri}> <{FILENAME_TEMPLATE}> "{_escape_sparql(existing.filename_template)}"'
             )
 
         insert_sparql = f"""
@@ -470,7 +579,8 @@ class SyncMountService:
             group_by_property=b.get("groupByProp", {}).get("value"),
             date_property=b.get("dateProp", {}).get("value"),
             sparql_scope=b.get("scope", {}).get("value", "all"),
-            saved_query_id=b.get("savedQueryId", {}).get("value"),
+            scope_query=b.get("scopeQuery", {}).get("value"),
+            filename_template=b.get("filenameTemplate", {}).get("value"),
             created_by=b["createdBy"]["value"],
             visibility=b["visibility"]["value"],
             created_at=b.get("createdAt", {}).get("value", ""),

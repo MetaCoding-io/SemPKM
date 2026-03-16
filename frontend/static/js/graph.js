@@ -171,7 +171,7 @@
 
   // --- Graph Initialization ---
 
-  function initGraph(containerId, specIri, typeColors, availableLayouts) {
+  function initGraph(containerId, specIri, typeColors, availableLayouts, customDataUrl) {
     var container = document.getElementById(containerId);
     if (!container) {
       console.error('Graph container not found:', containerId);
@@ -193,7 +193,7 @@
     container.innerHTML = '<div class="graph-loading">Loading graph data...</div>';
 
     // Fetch graph data from the JSON endpoint
-    var dataUrl = '/browser/views/graph/' + specIri + '/data';
+    var dataUrl = customDataUrl || ('/browser/views/graph/' + specIri + '/data');
     fetch(dataUrl)
       .then(function (resp) { return resp.json(); })
       .then(function (data) {

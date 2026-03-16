@@ -250,8 +250,11 @@ async def lifespan(app: FastAPI):
     app.state.shapes_service = shapes_service
 
     # Create ViewSpecService for view spec loading and execution
-    view_spec_service = ViewSpecService(client, label_service, query_service)
+    view_spec_service = ViewSpecService(client, label_service, query_service, shapes_service)
     app.state.view_spec_service = view_spec_service
+
+    # Register generic views (table, card, graph) for dynamic SHACL-driven browsing
+    view_spec_service.register_generic_views()
 
     # --- SQL Database Initialization ---
     # Run Alembic migrations BEFORE creating the app engine.

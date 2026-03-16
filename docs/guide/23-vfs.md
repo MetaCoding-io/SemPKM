@@ -183,6 +183,66 @@ The **+** button in the VFS browser header navigates to Settings → Virtual Fil
 
 Each mount tree lazy-loads: folders and files are fetched on demand as you expand them.
 
+## Path Contract
+
+The VFS translates between RDF objects (identified by IRIs with labels) and filesystem paths (directory trees of `.md` files). This mapping is bidirectional but **not stable across label changes**.
+
+### Forward Mapping (IRI → Filename)
+
+Given an object with IRI `urn:sempkm:object:abc123` and label `"My Research Note"`:
+
+1. **Slugify the label:** lowercase, replace non-alphanumeric runs with `-`, strip leading/trailing hyphens → `my-research-note`
+2. **Append extension:** → `my-research-note.md`
+3. **Dedup if collision:** if another object in the same directory produces the same slug, both filenames get a `--{hash}` suffix (see below)
+
+Examples:
+
+| Label | Filename |
+|-------|----------|
+| `My Research Note` | `my-research-note.md` |
+| `Hello/World: A <Test>` | `hello-world-a-test.md` |
+| `ALLCAPS` | `allcaps.md` |
+| `Chapter 42 Notes` | `chapter-42-notes.md` |
+| _(empty string)_ | `untitled.md` |
+
+Unicode characters outside `[a-z0-9]` are replaced by hyphens: `"Über Données"` → `ber-donn-es.md`.
+
+### Collision Dedup
+
+When two or more objects in the same directory produce the same slug, **all** colliding filenames receive a `--{hash}` suffix derived from the object's IRI:
+
+```
+# Two objects both labeled "Meeting Notes":
+meeting-notes--a1b2c3.md   (IRI hash prefix of first object)
+meeting-notes--d4e5f6.md   (IRI hash prefix of second object)
+```
+
+The suffix is the first 6 hex characters of `SHA-256(iri)`. This ensures:
+
+- Filenames are deterministic (same IRI always produces the same suffix)
+- Collisions are resolvable without sequential numbering
+- Non-colliding objects are unaffected (no suffix)
+
+### Reverse Mapping (Filename → IRI)
+
+There is **no persistent filename index**. Instead, the VFS builds a `file_map` (filename → IRI lookup table) per-request by querying the triplestore and slugifying all labels. This means:
+
+- Reverse lookup is always consistent with the current graph state
+- There is no stale index to invalidate
+- The cost is one SPARQL query per directory listing
+
+### Filename Instability
+
+**Filenames are derived from labels.** If an object's label changes, its filename changes. There is no redirect or alias from the old name.
+
+This means:
+
+- **Bookmarks break** — a saved path to `my-note.md` stops working if the label changes to `"My Updated Note"`
+- **Obsidian vault indexing** — tools that cache file paths (e.g., Obsidian's link index) may show broken references after a label edit
+- **Dedup suffixes are stable** as long as the IRI doesn't change (IRIs are immutable in practice)
+
+If filename stability is critical for your workflow, avoid renaming objects while the filesystem is mounted.
+
 ---
 
 **Previous:** [Chapter 22: Keyword Search](22-keyword-search.md) | **Next:** [Chapter 24: Obsidian Onboarding](24-obsidian-onboarding.md)

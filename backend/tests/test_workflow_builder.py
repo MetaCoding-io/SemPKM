@@ -155,12 +155,11 @@ class TestWorkflowExplorer:
     """Test GET /browser/workflow/explorer route."""
 
     async def test_returns_200_empty(self, client):
-        """Explorer renders with no workflows — shows empty message and new button."""
+        """Explorer renders with no workflows — shows empty message."""
         resp = await client.get("/browser/workflow/explorer")
         assert resp.status_code == 200
         body = resp.text
         assert "No workflows yet" in body
-        assert "New Workflow" in body
 
     async def test_lists_user_workflows(self, client, workflow_service, test_user):
         """Explorer lists workflows as clickable leaf nodes."""
@@ -181,14 +180,14 @@ class TestWorkflowExplorer:
         assert "Alpha Flow" in body
         assert "Beta Flow" in body
         assert "openWorkflowTab" in body
-        assert "New Workflow" in body
+        # New Workflow action moved to workspace header (S04)
         assert "No workflows yet" not in body
 
     async def test_new_workflow_button_calls_builder(self, client):
-        """The + New Workflow button calls openWorkflowBuilderTab()."""
+        """The + New Workflow action is now in workspace header, not explorer body.
+        Explorer still renders without errors."""
         resp = await client.get("/browser/workflow/explorer")
-        body = resp.text
-        assert "openWorkflowBuilderTab()" in body
+        assert resp.status_code == 200
 
     async def test_delete_button_present(self, client, workflow_service, test_user):
         """Explorer items have delete buttons."""

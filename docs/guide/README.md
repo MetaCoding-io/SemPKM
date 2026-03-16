@@ -53,6 +53,7 @@ setup to advanced topics like SPARQL queries and creating your own Mental Models
 23. [Virtual Filesystem (WebDAV)](23-vfs.md)
 24. [Obsidian Onboarding](24-obsidian-onboarding.md)
 27. [Spatial Canvas](27-spatial-canvas.md)
+28. [Dashboards and Workflows](28-dashboards-and-workflows.md)
 
 ## Part IX: Identity and Federation
 

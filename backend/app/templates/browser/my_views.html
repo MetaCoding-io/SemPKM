@@ -1,5 +1,7 @@
 {% for spec in specs %}
-<div class="tree-leaf view-leaf" data-spec-iri="{{ spec.spec_iri }}">
+<div class="tree-leaf view-leaf" data-spec-iri="{{ spec.spec_iri }}"
+     draggable="true"
+     ondragstart="event.dataTransfer.setData('text/plain', '{{ spec.label | replace("'", "\\'") }}'); event.dataTransfer.effectAllowed = 'copy'; window.__canvasDragPayload = {type:'view', id:'{{ spec.spec_iri }}', label:'{{ spec.label | replace("'", "\\'") }}', url:'/browser/views/{{ spec.renderer_type }}/' + encodeURIComponent('{{ spec.spec_iri }}') + '?embed=1'};">
     <span class="tree-leaf-icon"><i data-lucide="{% if spec.renderer_type == 'table' %}table{% elif spec.renderer_type == 'card' %}layout-grid{% else %}share-2{% endif %}"></i></span>
     <span class="tree-leaf-label" onclick="openViewTab('{{ spec.spec_iri }}', '{{ spec.label | replace("'", "\\'") }}', '{{ spec.renderer_type }}')">{{ spec.label }}</span>
     <button class="panel-btn tree-leaf-action sparql-demote-btn" title="Remove from views"
@@ -10,7 +12,7 @@
 {% endfor %}
 <script>
     if (typeof lucide !== 'undefined') {
-        lucide.createIcons({ root: document.getElementById('my-views-tree') });
+        lucide.createIcons({ root: document.getElementById('saved-views-tree') });
     }
     if (typeof window.demoteView === 'undefined') {
         window.demoteView = async function(queryId) {
@@ -21,7 +23,7 @@
                     credentials: 'include'
                 });
                 if (resp.ok) {
-                    htmx.ajax('GET', '/browser/my-views', '#my-views-tree');
+                    htmx.ajax('GET', '/browser/my-views', '#saved-views-tree');
                 }
             } catch (err) {
                 console.error('Demote failed:', err);

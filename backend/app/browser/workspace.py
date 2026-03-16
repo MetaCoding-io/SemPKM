@@ -33,7 +33,7 @@ from app.vfs.mount_service import (
     MOUNT_PATH,
     NS_MOUNT,
     NS_SEMPKM,
-    SAVED_QUERY_ID,
+    SCOPE_QUERY,
     SPARQL_SCOPE,
     VISIBILITY,
     MountDefinition,
@@ -42,6 +42,7 @@ from app.browser.tag_tree import build_tag_tree
 from app.vfs.strategies import (
     _LABEL_COALESCE,
     _LABEL_OPTIONALS,
+    build_chain_narrowing_filter,
     build_scope_filter,
     query_date_month_folders,
     query_date_year_folders,
@@ -73,22 +74,17 @@ workspace_router = APIRouter(tags=["workspace"])
 # Saved query resolution for VFS scope filtering
 # ---------------------------------------------------------------------------
 
-async def _resolve_saved_query_text(client, saved_query_id: str | None) -> str | None:
-    """Resolve a saved_query_id to its SPARQL query text.
+async def _resolve_scope_query_text(client, scope_query: str | None) -> str | None:
+    """Resolve a scope_query IRI to its SPARQL query text.
 
-    Handles both user queries (UUID) and model queries (full IRI).
-    Returns None if no saved_query_id or query not found.
+    scope_query is expected to be a full IRI like urn:sempkm:query:{uuid}.
+    Returns None if no scope_query or query not found.
     """
-    if not saved_query_id:
+    if not scope_query:
         return None
 
-    # Build the query IRI
-    if saved_query_id.startswith("urn:"):
-        # Full IRI — model query
-        query_iri = saved_query_id
-    else:
-        # UUID — user query stored in urn:sempkm:queries graph
-        query_iri = f"urn:sempkm:queries:{saved_query_id}"
+    # Build the query IRI — scope_query is already a full IRI
+    query_iri = scope_query
 
     sparql = f"""
     SELECT ?text WHERE {{
@@ -103,7 +99,7 @@ async def _resolve_saved_query_text(client, saved_query_id: str | None) -> str |
         if bindings:
             return bindings[0]["text"]["value"]
     except Exception:
-        logger.warning("Failed to resolve saved query %s", saved_query_id, exc_info=True)
+        logger.warning("Failed to resolve saved query %s", scope_query, exc_info=True)
     return None
 
 
@@ -258,7 +254,7 @@ async def _get_mount_definition(
     result = await client.query(
         f"""
         SELECT ?name ?path ?strategy ?groupByProp ?dateProp
-               ?scope ?savedQueryId ?createdBy ?visibility ?createdAt
+               ?scope ?scopeQuery ?createdBy ?visibility ?createdAt
         FROM <{GRAPH_MOUNTS}>
         WHERE {{
           <{mount_iri}> a <{NS_SEMPKM}MountSpec> ;
@@ -270,7 +266,7 @@ async def _get_mount_definition(
           OPTIONAL {{ <{mount_iri}> <{GROUP_BY_PROPERTY}> ?groupByProp }}
           OPTIONAL {{ <{mount_iri}> <{DATE_PROPERTY}> ?dateProp }}
           OPTIONAL {{ <{mount_iri}> <{SPARQL_SCOPE}> ?scope }}
-          OPTIONAL {{ <{mount_iri}> <{SAVED_QUERY_ID}> ?savedQueryId }}
+          OPTIONAL {{ <{mount_iri}> <{SCOPE_QUERY}> ?scopeQuery }}
           OPTIONAL {{ <{mount_iri}> <{CREATED_AT}> ?createdAt }}
         }}
         LIMIT 1
@@ -289,7 +285,7 @@ async def _get_mount_definition(
         group_by_property=b.get("groupByProp", {}).get("value"),
         date_property=b.get("dateProp", {}).get("value"),
         sparql_scope=b.get("scope", {}).get("value", "all"),
-        saved_query_id=b.get("savedQueryId", {}).get("value"),
+        scope_query=b.get("scopeQuery", {}).get("value"),
         created_by=b["createdBy"]["value"],
         visibility=b["visibility"]["value"],
         created_at=b.get("createdAt", {}).get("value", ""),
@@ -314,6 +310,68 @@ async def _execute_sparql_ask(client, sparql: str) -> bool:
     except Exception:
         logger.warning("SPARQL ASK query failed", exc_info=True)
         return False
+
+
+async def _get_strategy_folders(
+    client,
+    strategy: str,
+    mount,
+    scope_filter: str,
+) -> list[dict]:
+    """Query folder-level data for a single strategy in the explorer.
+
+    Returns list of dicts with 'value' and 'label' keys suitable for
+    mount_tree_folders.html template context.
+    """
+    from app.vfs.mount_service import MountDefinition
+
+    if strategy == "by-type":
+        sparql = query_type_folders(scope_filter)
+        bindings = await _execute_sparql_select(client, sparql)
+        return [
+            {"value": b["typeIri"]["value"], "label": b["typeLabel"]["value"]}
+            for b in bindings
+        ]
+
+    elif strategy == "by-tag":
+        if not mount.group_by_property:
+            return []
+        sparql = query_tag_folders(mount.group_by_property, scope_filter)
+        bindings = await _execute_sparql_select(client, sparql)
+        folders = [
+            {"value": b["tagValue"]["value"], "label": b["tagValue"]["value"]}
+            for b in bindings
+        ]
+        ask_sparql = query_has_uncategorized(mount.group_by_property, scope_filter)
+        if await _execute_sparql_ask(client, ask_sparql):
+            folders.append({"value": "_uncategorized", "label": "Uncategorized"})
+        return folders
+
+    elif strategy == "by-date":
+        if not mount.date_property:
+            return []
+        sparql = query_date_year_folders(mount.date_property, scope_filter)
+        bindings = await _execute_sparql_select(client, sparql)
+        return [
+            {"value": b["year"]["value"], "label": b["year"]["value"]}
+            for b in bindings
+        ]
+
+    elif strategy == "by-property":
+        if not mount.group_by_property:
+            return []
+        sparql = query_property_folders(mount.group_by_property, scope_filter)
+        bindings = await _execute_sparql_select(client, sparql)
+        folders = [
+            {"value": b["groupValue"]["value"], "label": b["groupLabel"]["value"]}
+            for b in bindings
+        ]
+        ask_sparql = query_has_uncategorized(mount.group_by_property, scope_filter)
+        if await _execute_sparql_ask(client, ask_sparql):
+            folders.append({"value": "_uncategorized", "label": "Uncategorized"})
+        return folders
+
+    return []
 
 
 def _bindings_to_objects(
@@ -361,8 +419,25 @@ async def _handle_mount(
         mount_id, mount.strategy,
     )
 
-    scope_filter = build_scope_filter(mount, await _resolve_saved_query_text(client, mount.saved_query_id))
+    scope_filter = build_scope_filter(mount, await _resolve_scope_query_text(client, mount.scope_query))
     strategy = mount.strategy
+
+    # ── Chain mount: show first strategy level folders ──
+    if mount.is_chain:
+        chain = mount.strategy_chain
+        logger.debug("Chain mount initial render: chain=%s", chain)
+        first_strategy = chain[0]
+        folders = await _get_strategy_folders(client, first_strategy, mount, scope_filter)
+        return templates.TemplateResponse(
+            request,
+            "browser/mount_tree.html",
+            {
+                "request": request,
+                "folders": folders,
+                "mount_id": mount_id,
+                "mount_name": mount.name,
+            },
+        )
 
     # ── flat: render objects directly ──
     if strategy == "flat":
@@ -895,6 +970,8 @@ async def mount_children(
     mount_id: str,
     folder: str,
     subfolder: str | None = None,
+    depth: int = 0,
+    parent_values: str | None = None,
     user: User = Depends(get_current_user),
     label_service: LabelService = Depends(get_label_service),
     icon_svc: IconService = Depends(get_icon_service),
@@ -904,6 +981,10 @@ async def mount_children(
     Dispatches to the correct strategy query builder based on the
     mount's strategy. For ``by-date``, supports two-level expansion
     (year → months, year+month → objects).
+
+    For chain strategies, uses ``depth`` and ``parent_values`` params
+    to navigate multi-level folder hierarchies. ``parent_values`` is
+    a pipe-delimited string of folder values from parent chain levels.
     """
     templates = request.app.state.templates
     client = request.app.state.triplestore_client
@@ -916,12 +997,83 @@ async def mount_children(
         raise HTTPException(status_code=400, detail=f"Unknown mount: {mount_id}")
 
     logger.debug(
-        "Mount children requested: mount_id=%s, folder=%s, strategy=%s",
-        mount_id, folder, mount.strategy,
+        "Mount children requested: mount_id=%s, folder=%s, strategy=%s, depth=%d",
+        mount_id, folder, mount.strategy, depth,
     )
 
-    scope_filter = build_scope_filter(mount, await _resolve_saved_query_text(client, mount.saved_query_id))
+    scope_filter = build_scope_filter(mount, await _resolve_scope_query_text(client, mount.scope_query))
     strategy = mount.strategy
+
+    # ── Chain dispatch ────────────────────────────────────────────────
+    if mount.is_chain:
+        chain = mount.strategy_chain
+        logger.debug(
+            "Chain dispatch in mount_children: depth=%d, parent_values=%s, chain=%s",
+            depth, parent_values, chain,
+        )
+
+        # Build cumulative narrowing from all parent chain levels
+        narrowing_parts: list[str] = []
+        if parent_values:
+            pv_list = parent_values.split("|")
+            for i, pv in enumerate(pv_list):
+                if i < len(chain):
+                    narrowing = build_chain_narrowing_filter(
+                        chain[i], pv, mount
+                    )
+                    if narrowing:
+                        narrowing_parts.append(narrowing)
+                        logger.debug("Chain narrowing at depth %d: %s", i, pv)
+
+        # Combine base scope + narrowing
+        combined_scope = scope_filter
+        for part in narrowing_parts:
+            combined_scope = f"{combined_scope}\n  {part}" if combined_scope else part
+
+        # Current chain level strategy (from the folder we're expanding)
+        # Add the current folder's narrowing
+        current_narrowing = build_chain_narrowing_filter(
+            chain[depth], folder, mount
+        )
+        if current_narrowing:
+            combined_scope = f"{combined_scope}\n  {current_narrowing}" if combined_scope else current_narrowing
+
+        next_depth = depth + 1
+
+        if next_depth >= len(chain):
+            # Terminal level → return objects
+            sparql = query_flat_objects(combined_scope)
+            bindings = await _execute_sparql_select(client, sparql)
+            obj_iris = [b["iri"]["value"] for b in bindings]
+            labels = await label_service.resolve_batch(obj_iris) if obj_iris else {}
+            objects = _bindings_to_objects(bindings, labels, icon_svc)
+            return templates.TemplateResponse(
+                request,
+                "browser/mount_tree_objects.html",
+                {"request": request, "objects": objects},
+            )
+        else:
+            # Non-terminal → return sub-folders for next chain level
+            next_strategy = chain[next_depth]
+            folders_list = await _get_strategy_folders(
+                client, next_strategy, mount, combined_scope
+            )
+            # Build parent_values for next level
+            new_parent_values = f"{parent_values}|{folder}" if parent_values else folder
+            return templates.TemplateResponse(
+                request,
+                "browser/mount_tree_folders.html",
+                {
+                    "request": request,
+                    "folders": folders_list,
+                    "mount_id": mount_id,
+                    "parent_folder": folder,
+                    "chain_depth": next_depth,
+                    "chain_parent_values": new_parent_values,
+                },
+            )
+
+    # ── Non-chain strategies (existing behavior) ──────────────────────
 
     # ── flat: no folders, should not be called ──
     if strategy == "flat":

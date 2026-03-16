@@ -1,15 +1,6 @@
-{# Views explorer tree for the left sidebar — grouped by model, then by type.
+{# Views explorer tree for the left sidebar — flat generic entries + Saved Views folder.
 
-   Context:
-     groups: list of model groups, each with:
-       model_id: str
-       model_label: str
-       types: list of type entries, each with:
-         type_iri: str
-         type_label: str
-         default_spec: ViewSpec (preferred renderer for click)
-         renderer_types: list of available renderer type strings
-         specs: list of ViewSpec
+   No context variables required — Saved Views loads lazily via htmx.
 #}
 
 <a class="tree-leaf view-leaf" href="#"
@@ -17,33 +8,41 @@
     <span class="tree-leaf-icon">&#9635;</span>
     <span class="tree-leaf-label">Spatial Canvas (Beta)</span>
 </a>
-<a class="tree-leaf view-leaf" href="#"
+<a class="tree-leaf view-leaf view-leaf--accent" href="#"
    onclick="openOntologyTab(); return false;">
     <span class="tree-leaf-icon">&#9670;</span>
     <span class="tree-leaf-label">Ontology Viewer</span>
 </a>
+<a class="tree-leaf view-leaf" href="#"
+   draggable="true"
+   ondragstart="event.dataTransfer.setData('text/plain', 'Table View'); event.dataTransfer.effectAllowed = 'copy'; window.__canvasDragPayload = {type:'view', id:'generic-table', label:'Table View', url:'/browser/views/generic/table?embed=1'};"
+   onclick="openGenericViewTab('table'); return false;">
+    <span class="tree-leaf-icon">&#9638;</span>
+    <span class="tree-leaf-label">Table View</span>
+</a>
+<a class="tree-leaf view-leaf" href="#"
+   draggable="true"
+   ondragstart="event.dataTransfer.setData('text/plain', 'Cards View'); event.dataTransfer.effectAllowed = 'copy'; window.__canvasDragPayload = {type:'view', id:'generic-card', label:'Cards View', url:'/browser/views/generic/card?embed=1'};"
+   onclick="openGenericViewTab('card'); return false;">
+    <span class="tree-leaf-icon">&#9641;</span>
+    <span class="tree-leaf-label">Cards View</span>
+</a>
+<a class="tree-leaf view-leaf" href="#"
+   draggable="true"
+   ondragstart="event.dataTransfer.setData('text/plain', 'Graph View'); event.dataTransfer.effectAllowed = 'copy'; window.__canvasDragPayload = {type:'view', id:'generic-graph', label:'Graph View', url:'/browser/views/generic/graph?embed=1'};"
+   onclick="openGenericViewTab('graph'); return false;">
+    <span class="tree-leaf-icon">&#9672;</span>
+    <span class="tree-leaf-label">Graph View</span>
+</a>
 
-{% if groups %}
-{% for model in groups %}
-<div class="tree-node view-group-node expanded" data-model-id="{{ model.model_id }}">
+<div class="tree-node view-group-node" onclick="this.classList.toggle('expanded'); var ch = this.nextElementSibling; if(ch) ch.style.display = this.classList.contains('expanded') ? '' : 'none';">
     <span class="tree-toggle">&#9656;</span>
     <span class="tree-icon">&#128193;</span>
-    <span class="tree-label">{{ model.model_label }}</span>
-    <span class="view-group-count">{{ model.types | length }}</span>
+    <span class="tree-label">Saved Views</span>
 </div>
-<div class="view-group-children">
-    {% for entry in model.types %}
-    <a class="tree-leaf view-leaf" href="#"
-       onclick="openViewTab('{{ entry.default_spec.spec_iri }}', '{{ entry.type_label }}', '{{ entry.default_spec.renderer_type }}'); return false;"
-       title="{{ entry.type_label }} ({{ entry.renderer_types | join(', ') }})">
-        <span class="tree-leaf-icon">
-            {% if entry.default_spec.renderer_type == 'table' %}&#9638;{% elif entry.default_spec.renderer_type == 'card' %}&#9641;{% elif entry.default_spec.renderer_type == 'graph' %}&#9672;{% else %}&#9654;{% endif %}
-        </span>
-        <span class="tree-leaf-label">{{ entry.type_label }}</span>
-    </a>
-    {% endfor %}
+<div class="view-group-children" id="saved-views-tree" style="display:none"
+     hx-get="/browser/my-views"
+     hx-trigger="intersect once"
+     hx-swap="innerHTML">
+    <div class="tree-empty">Loading saved views...</div>
 </div>
-{% endfor %}
-{% else %}
-<div class="tree-empty">No views available</div>
-{% endif %}

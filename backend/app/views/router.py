@@ -16,13 +16,29 @@ from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
-from app.dependencies import get_label_service, get_view_spec_service
+from app.dependencies import get_label_service, get_shapes_service, get_view_spec_service
 from app.services.labels import LabelService
+from app.services.shapes import ShapesService
 from app.views.service import ViewSpec, ViewSpecService, inject_values_binding
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/browser/views", tags=["views"])
+
+
+def _embed_response(templates, request, fragment_template: str, context: dict):
+    """Render a fragment template inside embed_wrapper.html for embed mode.
+
+    Renders the fragment to an HTML string, then wraps it in the minimal
+    base_embed.html layout via embed_wrapper.html.
+    """
+    fragment_html = templates.env.get_template(fragment_template).render(context)
+    wrapper_context = {"request": request, "content": fragment_html}
+    response = templates.TemplateResponse(
+        request, "browser/embed_wrapper.html", wrapper_context
+    )
+    response.headers["X-Embed-Mode"] = "1"
+    return response
 
 def _group_specs_by_type(specs: list[ViewSpec], labels: dict[str, str]) -> list[dict]:
     grouped: dict[str, list[ViewSpec]] = {}
@@ -69,65 +85,16 @@ async def available_views(
 async def views_explorer(
     request: Request,
     user: User = Depends(get_current_user),
-    view_spec_service: ViewSpecService = Depends(get_view_spec_service),
-    label_service: LabelService = Depends(get_label_service),
 ):
-    """Render the views explorer tree grouped by model, then by type.
+    """Render the views explorer tree with flat generic entries + Saved Views folder.
 
-    Each model becomes a folder. Within each folder, types are listed as
-    entries (one entry per target_class, default renderer = table).
-    The carousel tab bar handles switching between table/card/graph renderers.
-    A "Saved Views" folder at the bottom contains promoted query views.
+    The template is static — Spatial Canvas, Ontology Viewer, Table/Cards/Graph
+    generic views, and a Saved Views folder that lazy-loads via htmx from
+    /browser/my-views.
     """
     templates = request.app.state.templates
-    specs = await view_spec_service.get_all_view_specs()
-
-    # Collect all IRIs needing labels (types + models)
-    type_iris = {spec.target_class for spec in specs if spec.target_class}
-    model_ids = {spec.source_model for spec in specs if spec.source_model}
-    all_iris = list(type_iris | model_ids)
-    labels = await label_service.resolve_batch(all_iris) if all_iris else {}
-
-    # Group specs by model, then by target_class within each model
-    # Each type appears once — the carousel handles renderer switching
-    model_groups: dict[str, dict[str, list[ViewSpec]]] = {}
-    for spec in specs:
-        model_key = spec.source_model or "_other"
-        if model_key not in model_groups:
-            model_groups[model_key] = {}
-        type_key = spec.target_class or "_untyped"
-        if type_key not in model_groups[model_key]:
-            model_groups[model_key][type_key] = []
-        model_groups[model_key][type_key].append(spec)
-
-    # Build structured groups for the template
-    groups = []
-    for model_key, types in sorted(model_groups.items(), key=lambda x: labels.get(x[0], x[0])):
-        model_label = labels.get(model_key, model_key.replace("-", " ").title()) if model_key != "_other" else "Other Views"
-        type_entries = []
-        for type_key, type_specs in sorted(types.items(), key=lambda x: labels.get(x[0], x[0])):
-            type_label = labels.get(type_key, type_key) if type_key != "_untyped" else "Untyped"
-            # Find default spec (prefer table, then first available)
-            default_spec = next((s for s in type_specs if s.renderer_type == "table"), type_specs[0])
-            type_entries.append({
-                "type_iri": type_key,
-                "type_label": type_label,
-                "specs": type_specs,
-                "default_spec": default_spec,
-                "renderer_types": sorted({s.renderer_type for s in type_specs}),
-            })
-        groups.append({
-            "model_id": model_key,
-            "model_label": model_label,
-            "types": type_entries,
-        })
-
-    context = {
-        "request": request,
-        "groups": groups,
-    }
     return templates.TemplateResponse(
-        request, "browser/views_explorer.html", context
+        request, "browser/views_explorer.html", {"request": request}
     )
 
 
@@ -153,6 +120,285 @@ async def views_menu(
     return templates.TemplateResponse(
         request, "browser/views_menu.html", context
     )
+
+
+_VALID_RENDERERS = {"table", "card", "graph"}
+
+
+@router.get("/generic/{renderer}")
+async def generic_view(
+    request: Request,
+    renderer: str,
+    type: str = Query(default=""),
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=25, ge=1, le=100),
+    sort: str = Query(default=""),
+    dir: str = Query(default="asc"),
+    filter: str = Query(default=""),
+    group_by: str = Query(default=""),
+    embed: int = Query(default=0),
+    user: User = Depends(get_current_user),
+    view_spec_service: ViewSpecService = Depends(get_view_spec_service),
+    label_service: LabelService = Depends(get_label_service),
+    shapes_service: ShapesService = Depends(get_shapes_service),
+):
+    """Render a generic view using SHACL-driven dynamic queries.
+
+    Builds SPARQL dynamically from SHACL metadata (via build_dynamic_query),
+    creating a transient ViewSpec for execution. Supports table, card, and
+    graph renderers. When ``type`` is specified, columns are derived from
+    SHACL properties for that type.
+
+    Args:
+        renderer: One of 'table', 'card', 'graph'.
+        type: Optional RDF type IRI to filter and derive columns from.
+    """
+    if renderer not in _VALID_RENDERERS:
+        logger.info("generic_view: invalid renderer '%s'", renderer)
+        return HTMLResponse(
+            content='<div class="editor-empty"><p>Invalid renderer type. Use table, card, or graph.</p></div>',
+            status_code=404,
+        )
+
+    templates = request.app.state.templates
+    type_iri = type if type else None
+
+    # Build dynamic query from SHACL metadata
+    sparql_query, columns = await view_spec_service.build_dynamic_query(type_iri, renderer)
+
+    # Create transient ViewSpec
+    spec = ViewSpec(
+        spec_iri=f"urn:sempkm:view:generic-{renderer}",
+        label=f"All Objects" if not type_iri else f"Objects",
+        target_class=type_iri or "",
+        renderer_type=renderer,
+        sparql_query=sparql_query,
+        columns=columns if columns else view_spec_service._DEFAULT_COLUMNS.copy(),
+        source_model="system",
+    )
+
+    # Build pagination base URL for this generic view
+    pagination_base_url = f"/browser/views/generic/{renderer}"
+
+    # pag_extra carries the type param (and other non-standard params) via & separator
+    pag_extra = ""
+    if type_iri:
+        pag_extra = f"&type={quote(type_iri, safe='')}"
+
+    # Resolve type label if type is specified
+    type_label = "All Objects"
+    if type_iri:
+        type_labels = await label_service.resolve_batch([type_iri])
+        type_label = type_labels.get(type_iri, type_iri)
+
+    encoded_spec_iri = quote(spec.spec_iri, safe="")
+
+    # Fetch available types for type filter pills
+    types_list = await shapes_service.get_types()
+
+    # Build carousel specs: when a type is selected, show generic renderers + model-declared views
+    all_specs: list[ViewSpec] = []
+    if type_iri:
+        # Add the 3 generic view specs (table/card/graph)
+        for gs in view_spec_service._generic_specs:
+            all_specs.append(gs)
+        # Add model-declared view specs for this type
+        model_specs = await view_spec_service.get_view_specs_for_type(type_iri)
+        all_specs.extend(model_specs)
+
+    logger.info("generic_view: renderer=%s type=%s", renderer, type_iri or "(all)")
+
+    if renderer == "table":
+        effective_sort = sort if sort else ""
+        result = await view_spec_service.execute_table_query(
+            spec=spec,
+            page=page,
+            page_size=page_size,
+            sort_col=effective_sort,
+            sort_dir=dir,
+            filter_text=filter,
+        )
+
+        # Resolve labels for row IRIs
+        obj_iris = [row["s"] for row in result["rows"] if row.get("s")]
+        labels = await label_service.resolve_batch(obj_iris) if obj_iris else {}
+
+        # Column headers
+        column_labels: dict[str, str] = {}
+        for col in result["columns"]:
+            column_labels[col] = col.replace("_", " ").title()
+
+        context = {
+            "request": request,
+            "spec": spec,
+            "spec_iri_encoded": encoded_spec_iri,
+            "rows": result["rows"],
+            "columns": result["columns"],
+            "column_labels": column_labels,
+            "total": result["total"],
+            "page": result["page"],
+            "page_size": result["page_size"],
+            "total_pages": result["total_pages"],
+            "sort_col": effective_sort,
+            "sort_dir": dir,
+            "current_filter": filter,
+            "labels": labels,
+            "all_specs": all_specs,
+            "type_label": type_label,
+            "type_iri": spec.target_class,
+            "view_type": "table",
+            "source_model": "system",
+            "dashboard_mode": 0,
+            "is_generic": True,
+            "pagination_base_url": pagination_base_url,
+            "pag_extra": pag_extra,
+            "selected_type": type_iri or "",
+            "types": types_list,
+            "renderer": renderer,
+        }
+        if embed:
+            return _embed_response(templates, request, "browser/table_view.html", context)
+        return templates.TemplateResponse(request, "browser/table_view.html", context)
+
+    elif renderer == "card":
+        effective_group_by = group_by if group_by else None
+
+        result = await view_spec_service.execute_cards_query(
+            spec=spec,
+            page=page,
+            page_size=page_size if page_size != 25 else 12,
+            filter_text=filter,
+            group_by=effective_group_by,
+        )
+
+        context = {
+            "request": request,
+            "spec": spec,
+            "spec_iri_encoded": encoded_spec_iri,
+            "cards": result["cards"],
+            "total": result["total"],
+            "page": result["page"],
+            "page_size": result["page_size"],
+            "total_pages": result["total_pages"],
+            "groups": result["groups"],
+            "group_by": effective_group_by or "",
+            "columns": result["columns"],
+            "current_filter": filter,
+            "sort_col": "",
+            "sort_dir": "asc",
+            "all_specs": all_specs,
+            "type_label": type_label,
+            "type_iri": spec.target_class,
+            "view_type": "card",
+            "source_model": "system",
+            "dashboard_mode": 0,
+            "is_generic": True,
+            "pagination_base_url": pagination_base_url,
+            "pag_extra": pag_extra,
+            "selected_type": type_iri or "",
+            "types": types_list,
+            "renderer": renderer,
+        }
+        if embed:
+            return _embed_response(templates, request, "browser/cards_view.html", context)
+        return templates.TemplateResponse(request, "browser/cards_view.html", context)
+
+    else:  # graph
+        # For graph: execute and render graph container
+        result = await view_spec_service.execute_graph_query(spec)
+
+        # Build the data URL for the generic graph endpoint
+        graph_data_url = f"/browser/views/generic/graph/data"
+        if type_iri:
+            graph_data_url += f"?type={quote(type_iri, safe='')}"
+
+        context = {
+            "request": request,
+            "spec": spec,
+            "spec_iri": spec.spec_iri,
+            "spec_iri_encoded": encoded_spec_iri,
+            "all_specs": all_specs,
+            "type_label": type_label,
+            "type_iri": spec.target_class,
+            "available_layouts": [
+                {"name": "fcose", "label": "Force-Directed"},
+                {"name": "dagre", "label": "Hierarchical"},
+                {"name": "concentric", "label": "Radial"},
+            ],
+            "type_colors": result.get("type_colors", {}),
+            "sort_col": "",
+            "sort_dir": "asc",
+            "current_filter": filter,
+            "is_generic": True,
+            "pagination_base_url": pagination_base_url,
+            "pag_extra": pag_extra,
+            "selected_type": type_iri or "",
+            "graph_data_url": graph_data_url,
+            "types": types_list,
+            "renderer": renderer,
+        }
+        if embed:
+            return _embed_response(templates, request, "browser/graph_view.html", context)
+        return templates.TemplateResponse(request, "browser/graph_view.html", context)
+
+
+@router.get("/generic/{renderer}/data")
+async def generic_graph_data(
+    request: Request,
+    renderer: str,
+    type: str = Query(default=""),
+    user: User = Depends(get_current_user),
+    view_spec_service: ViewSpecService = Depends(get_view_spec_service),
+):
+    """Return graph data as JSON for the generic graph view.
+
+    Builds a dynamic CONSTRUCT query and executes it.
+    """
+    if renderer != "graph":
+        return JSONResponse(content={"nodes": [], "edges": [], "type_colors": {}}, status_code=404)
+
+    type_iri = type if type else None
+    sparql_query, _ = await view_spec_service.build_dynamic_query(type_iri, "graph")
+
+    spec = ViewSpec(
+        spec_iri="urn:sempkm:view:generic-graph",
+        label="Graph View",
+        target_class=type_iri or "",
+        renderer_type="graph",
+        sparql_query=sparql_query,
+        source_model="system",
+    )
+
+    result = await view_spec_service.execute_graph_query(spec)
+    return JSONResponse(content=result)
+
+
+@router.get("/type-pills")
+async def type_pills(
+    request: Request,
+    renderer: str = Query(default="table"),
+    selected_type: str = Query(default=""),
+    user: User = Depends(get_current_user),
+    shapes_service: ShapesService = Depends(get_shapes_service),
+):
+    """Return available types as a list for type filter pills.
+
+    Returns JSON list of types with their IRIs and labels, plus active
+    state and href for each pill.
+    """
+    types = await shapes_service.get_types()
+
+    pills = []
+    for t in types:
+        iri = t["iri"]
+        pills.append({
+            "iri": iri,
+            "label": t["label"],
+            "active": iri == selected_type,
+            "href": f"/browser/views/generic/{renderer}?type={quote(iri, safe='')}",
+        })
+
+    return JSONResponse(content={"types": pills, "renderer": renderer, "selected_type": selected_type})
 
 
 @router.get("/list/{type_iri:path}")
@@ -317,6 +563,7 @@ async def table_view(
         "view_type": "table",
         "source_model": spec.source_model,
         "dashboard_mode": dashboard_mode,
+        "pagination_base_url": f"/browser/views/table/{encoded_spec_iri}",
     }
 
     return templates.TemplateResponse(
@@ -425,6 +672,7 @@ async def cards_view(
         "view_type": "card",
         "source_model": spec.source_model,
         "dashboard_mode": dashboard_mode,
+        "pagination_base_url": f"/browser/views/card/{encoded_spec_iri}",
     }
 
     return templates.TemplateResponse(
@@ -545,6 +793,7 @@ async def graph_view(
         "sort_col": "",
         "sort_dir": "asc",
         "current_filter": filter,
+        "pagination_base_url": f"/browser/views/graph/{encoded_spec_iri}",
     }
 
     return templates.TemplateResponse(

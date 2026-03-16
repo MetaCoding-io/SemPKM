@@ -1,0 +1,66 @@
+{% extends "base_embed.html" %}
+
+{% block title %}{{ query_name }} — SemPKM{% endblock %}
+
+{% block content %}
+<div class="sparql-result-embed" style="max-width:100%; overflow:auto;">
+  <div style="margin-bottom:12px;">
+    <h2 style="margin:0 0 4px 0; font-size:1.1rem; font-weight:600;">{{ query_name }}</h2>
+    {% if query_description %}
+    <p style="margin:0 0 8px 0; font-size:0.82rem; color:var(--color-text-muted);">{{ query_description }}</p>
+    {% endif %}
+    <span style="font-size:0.75rem; color:var(--color-text-faint);">{{ total_rows }} result{{ 's' if total_rows != 1 else '' }}</span>
+  </div>
+
+  {% if bindings %}
+  <table class="sparql-result-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+    <thead>
+      <tr>
+        {% for var in variables %}
+        <th style="text-align:left; padding:8px 12px; border-bottom:2px solid var(--color-border); font-weight:600; color:var(--color-text-secondary); white-space:nowrap;">
+          {{ var }}
+        </th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for binding in bindings %}
+      <tr style="border-bottom:1px solid var(--color-border-subtle, var(--color-border));">
+        {% for var in variables %}
+        <td style="padding:6px 12px; vertical-align:top;">
+          {% set cell = binding.get(var, {}) %}
+          {% set cell_value = cell.get('value', '') %}
+          {% set cell_type = cell.get('type', '') %}
+          {% if cell_type == 'uri' %}
+            {% set enr = enrichment.get(cell_value, {}) %}
+            {% if enr and enr.get('label') %}
+            <span class="iri-pill" title="{{ cell_value }}" style="display:inline-block; padding:2px 8px; border-radius:4px; background:var(--color-bg-tertiary); font-size:0.82rem; cursor:default;">
+              {{ enr['label'] }}
+            </span>
+            {% else %}
+              {# Show local name for IRIs without enrichment #}
+              {% set local_name = cell_value.split('/')[-1].split('#')[-1] %}
+              <span class="iri-pill" title="{{ cell_value }}" style="display:inline-block; padding:2px 8px; border-radius:4px; background:var(--color-bg-tertiary); font-size:0.82rem; cursor:default;">
+                {{ local_name if local_name else cell_value }}
+              </span>
+            {% endif %}
+          {% elif cell_type == 'literal' %}
+            {{ cell_value }}
+          {% elif cell_type == 'bnode' %}
+            <span style="color:var(--color-text-faint);">_:{{ cell_value }}</span>
+          {% else %}
+            {{ cell_value }}
+          {% endif %}
+        </td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div style="padding:24px; text-align:center; color:var(--color-text-muted);">
+    <p>No results returned by this query.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

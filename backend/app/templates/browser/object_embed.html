@@ -1,0 +1,78 @@
+{% extends "base_embed.html" %}
+
+{% block title %}{{ object_label }} — SemPKM{% endblock %}
+
+{% block content %}
+<div class="object-embed" style="max-width:800px; margin:0 auto;">
+  <div style="margin-bottom:12px;">
+    <h2 style="margin:0 0 4px 0; font-size:1.1rem; font-weight:600;">{{ object_label }}</h2>
+    {% if object_type_label %}
+    <span style="font-size:0.8rem; color:var(--color-text-muted); background:var(--color-bg-tertiary); padding:2px 8px; border-radius:4px;">{{ object_type_label }}</span>
+    {% endif %}
+  </div>
+
+  {% if form %}
+    {# Build form_paths list for checking inferred-only properties #}
+    {% set form_paths = [] %}
+    {% for prop in form.properties %}
+      {% set _ = form_paths.append(prop.path) %}
+    {% endfor %}
+
+    {# Check if there are any property values to show #}
+    {% set ns = namespace(any_prop=false) %}
+    {% for prop in form.properties %}
+      {% set vals = read_values.get(prop.path, []) %}
+      {% if vals and prop.path != body_property_path %}{% set ns.any_prop = true %}{% endif %}
+    {% endfor %}
+
+    {% if ns.any_prop %}
+    <table class="embed-property-table" style="width:100%; border-collapse:collapse; margin-bottom:16px; font-size:0.88rem;">
+      <tbody>
+        {% for prop in form.properties %}
+          {% set vals = read_values.get(prop.path, []) %}
+          {% if vals and prop.path != body_property_path %}
+          <tr>
+            <td style="padding:6px 12px 6px 0; font-weight:500; color:var(--color-text-muted); white-space:nowrap; vertical-align:top; border-bottom:1px solid var(--color-border-subtle, var(--color-border));">{{ prop.name }}</td>
+            <td style="padding:6px 0; border-bottom:1px solid var(--color-border-subtle, var(--color-border));">
+              {% if prop.target_class %}
+                {% for item in vals %}
+                <span class="iri-pill" style="display:inline-block; padding:2px 8px; margin:1px 4px 1px 0; border-radius:4px; background:var(--color-bg-tertiary); font-size:0.82rem;">
+                  {{ ref_labels.get(item.value, item.value) }}
+                  {% if item.source == "inferred" %}<span style="font-size:0.7rem; color:var(--color-text-faint); margin-left:4px;">inferred</span>{% endif %}
+                </span>
+                {% endfor %}
+              {% elif 'tags' in prop.path or 'keywords' in prop.path %}
+                {% for item in vals %}
+                <span style="display:inline-block; padding:2px 8px; margin:1px 4px 1px 0; border-radius:4px; background:var(--color-bg-tertiary); font-size:0.82rem;">#{{ item.value }}</span>
+                {% endfor %}
+              {% else %}
+                {% for item in vals %}{{ item.value }}{% if item.source == "inferred" %} <span style="font-size:0.7rem; color:var(--color-text-faint);">inferred</span>{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}
+              {% endif %}
+            </td>
+          </tr>
+          {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+  {% endif %}
+
+  {% if body_text and body_text.strip() %}
+  <script type="text/plain" id="md-source-embed">{{ body_text }}</script>
+  <div class="markdown-body" id="md-rendered-embed" style="padding:0;">
+    <div style="color:var(--color-text-muted); font-size:0.85rem;">Rendering...</div>
+  </div>
+  <script>
+    (function() {
+      if (typeof window.renderMarkdownBody === 'function') {
+        window.renderMarkdownBody('md-source-embed', 'md-rendered-embed');
+      } else {
+        var src = document.getElementById('md-source-embed');
+        var tgt = document.getElementById('md-rendered-embed');
+        if (src && tgt) { tgt.textContent = src.textContent; }
+      }
+    })();
+  </script>
+  {% endif %}
+</div>
+{% endblock %}

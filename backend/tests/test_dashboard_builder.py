@@ -159,12 +159,11 @@ class TestDashboardExplorer:
     """Test GET /browser/dashboard/explorer route."""
 
     async def test_returns_200_empty(self, client):
-        """Explorer renders with no dashboards — shows empty message and new button."""
+        """Explorer renders with no dashboards — shows empty message."""
         resp = await client.get("/browser/dashboard/explorer")
         assert resp.status_code == 200
         body = resp.text
         assert "No dashboards yet" in body
-        assert "New Dashboard" in body
 
     async def test_lists_user_dashboards(self, client, dashboard_service, test_user):
         """Explorer lists dashboards as clickable leaf nodes."""
@@ -188,13 +187,12 @@ class TestDashboardExplorer:
         assert "Beta Board" in body
         # Should have openDashboardTab calls
         assert "openDashboardTab" in body
-        # New Dashboard action always present
-        assert "New Dashboard" in body
+        # New Dashboard action moved to workspace header (S04)
         # Empty message should NOT be present
         assert "No dashboards yet" not in body
 
     async def test_new_dashboard_button_calls_builder(self, client):
-        """The + New Dashboard button calls openDashboardBuilderTab()."""
+        """The + New Dashboard action is now in workspace header, not explorer body.
+        Explorer still renders without errors."""
         resp = await client.get("/browser/dashboard/explorer")
-        body = resp.text
-        assert "openDashboardBuilderTab()" in body
+        assert resp.status_code == 200

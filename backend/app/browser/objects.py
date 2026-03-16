@@ -54,6 +54,7 @@ async def get_object(
     request: Request,
     object_iri: str,
     mode: str = Query(default="read"),
+    embed: int = Query(default=0),
     user: User = Depends(get_current_user),
     shapes_service: ShapesService = Depends(get_shapes_service),
     label_service: LabelService = Depends(get_label_service),
@@ -262,6 +263,24 @@ async def get_object(
         "type_icon": type_icon,
         "is_favorite": is_favorite,
     }
+
+    if embed:
+        embed_context = {
+            "request": request,
+            "object_iri": decoded_iri,
+            "object_label": object_label,
+            "object_type_label": object_type_label,
+            "form": form,
+            "read_values": read_values,
+            "ref_labels": ref_labels,
+            "body_text": body_text,
+            "body_property_path": body_property_path,
+        }
+        response = templates.TemplateResponse(
+            request, "browser/object_embed.html", embed_context
+        )
+        response.headers["X-Embed-Mode"] = "1"
+        return response
 
     return templates.TemplateResponse(
         request, "browser/object_tab.html", context

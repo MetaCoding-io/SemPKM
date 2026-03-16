@@ -139,7 +139,15 @@
     if (!editorArea) return;
 
     var url;
-    if (viewType === 'table') {
+    // Handle generic view IRIs (from carousel or reopening tabs)
+    if (viewId.indexOf('urn:sempkm:view:generic-') === 0) {
+      var renderer = viewId.split('generic-')[1]; // 'table', 'card', 'graph'
+      var selectedType = localStorage.getItem('sempkm_generic_type_' + renderer) || '';
+      url = '/browser/views/generic/' + renderer;
+      if (selectedType) {
+        url += '?type=' + encodeURIComponent(selectedType);
+      }
+    } else if (viewType === 'table') {
       url = '/browser/views/table/' + encodeURIComponent(viewId);
     } else if (viewType === 'card') {
       url = '/browser/views/card/' + encodeURIComponent(viewId);
@@ -2503,30 +2511,50 @@
     var filterInput = panel ? panel.querySelector('.view-filter-input') : null;
     var filter = filterInput ? filterInput.value : '';
 
-    // Build URL
-    var url = '/browser/views/' + rendererType + '/' + encodeURIComponent(specIri);
-    if (filter) {
-      url += '?filter=' + encodeURIComponent(filter);
+    // Build URL — generic specs route to /browser/views/generic/{renderer}
+    var url;
+    if (specIri.indexOf('urn:sempkm:view:generic-') === 0) {
+      var genericRenderer = specIri.split('generic-')[1]; // 'table', 'card', 'graph'
+      url = '/browser/views/generic/' + genericRenderer;
+      // Get the selected type from the type pills in the current view
+      var selectedType = localStorage.getItem('sempkm_generic_type_' + genericRenderer) || '';
+      var params = [];
+      if (selectedType) params.push('type=' + encodeURIComponent(selectedType));
+      if (filter) params.push('filter=' + encodeURIComponent(filter));
+      if (params.length) url += '?' + params.join('&');
+    } else {
+      url = '/browser/views/' + rendererType + '/' + encodeURIComponent(specIri);
+      if (filter) {
+        url += '?filter=' + encodeURIComponent(filter);
+      }
     }
 
-    // Find the view body container (two-container pattern: bar stays, body swaps)
-    var viewBody = bar.parentElement.querySelector('.carousel-view-body');
-    if (!viewBody) {
-      // Fallback: if no .carousel-view-body found, target the panel container
-      viewBody = panel;
-    }
+    if (specIri.indexOf('urn:sempkm:view:generic-') === 0) {
+      // Generic specs: full swap including type pills and carousel bar
+      if (panel && typeof htmx !== 'undefined') {
+        htmx.ajax('GET', url, { target: panel, swap: 'innerHTML' });
+      }
+    } else {
+      // Model-declared specs: two-container pattern — swap only the view body
+      // Find the view body container (two-container pattern: bar stays, body swaps)
+      var viewBody = bar.parentElement.querySelector('.carousel-view-body');
+      if (!viewBody) {
+        // Fallback: if no .carousel-view-body found, target the panel container
+        viewBody = panel;
+      }
 
-    if (viewBody && typeof htmx !== 'undefined') {
-      // Show loading indicator
-      var indicator = document.createElement('div');
-      indicator.className = 'view-loading-indicator';
-      indicator.innerHTML = '<div class="view-loading-spinner"></div>';
-      viewBody.style.position = 'relative';
-      viewBody.appendChild(indicator);
+      if (viewBody && typeof htmx !== 'undefined') {
+        // Show loading indicator
+        var indicator = document.createElement('div');
+        indicator.className = 'view-loading-indicator';
+        indicator.innerHTML = '<div class="view-loading-spinner"></div>';
+        viewBody.style.position = 'relative';
+        viewBody.appendChild(indicator);
 
-      // Load view content -- outerHTML swap with select extracts only .carousel-view-body
-      // from the response, discarding the response's carousel bar
-      htmx.ajax('GET', url, { target: viewBody, swap: 'outerHTML', select: '.carousel-view-body' });
+        // Load view content -- outerHTML swap with select extracts only .carousel-view-body
+        // from the response, discarding the response's carousel bar
+        htmx.ajax('GET', url, { target: viewBody, swap: 'outerHTML', select: '.carousel-view-body' });
+      }
     }
   }
 
@@ -2790,6 +2818,38 @@
     }
   });
 
+  // --- Generic View Tab Support ---
+
+  function openGenericViewTab(renderer) {
+    var tabKey = 'generic-view:' + renderer;
+    var dv = window._dockview;
+    if (!dv) return;
+
+    var existing = dv.panels.find(function(p) { return p.id === tabKey; });
+    if (existing) { existing.api.setActive(); return; }
+
+    var labels = { table: 'Table View', card: 'Cards View', graph: 'Graph View' };
+    var label = labels[renderer] || 'Generic View';
+
+    if (!window._tabMeta) window._tabMeta = {};
+    window._tabMeta[tabKey] = { label: label, dirty: false };
+
+    var selectedType = localStorage.getItem('sempkm_generic_type_' + renderer) || '';
+
+    dv.api.addPanel({
+      id: tabKey,
+      component: 'special-panel',
+      params: {
+        specialType: 'generic-view',
+        renderer: renderer,
+        selectedType: selectedType,
+        isView: false,
+        isSpecial: true
+      },
+      title: label
+    });
+  }
+
   // --- Export functions globally for htmx onclick handlers ---
   window.openTab = openTab;
   window.closeTab = closeTab;
@@ -2804,6 +2864,7 @@
   window.loadRightPaneSection = loadRightPaneSection;
   window.toggleReplyForm = toggleReplyForm;
   window.openViewTab = openViewTab;
+  window.openGenericViewTab = openGenericViewTab;
   window.openViewMenu = openViewMenu;
   window.switchCarouselView = switchCarouselView;
   window.restoreCarouselView = restoreCarouselView;
@@ -2938,6 +2999,7 @@
 
   // Cache for loaded mounts (used by mountEdit to avoid refetch)
   var _mountsCache = [];
+  var _chainLevelCount = 0;  // Number of additional chain levels (beyond the first strategy select)
 
   /**
    * Initialize the mount form: populate dropdowns and load existing mounts.
@@ -3013,8 +3075,41 @@
         // Saved queries endpoint unavailable — leave "All objects" only
       });
 
+    // Load available types for type filter checkboxes
+    fetch('/browser/views/type-pills')
+      .then(function(r) { return r.ok ? r.json() : { types: [] }; })
+      .then(function(data) {
+        var container = document.getElementById('mount-type-filter');
+        if (!container) return;
+        var types = data.types || [];
+        if (types.length === 0) {
+          container.innerHTML = '<span class="mount-type-filter-loading">No types available</span>';
+          return;
+        }
+        container.innerHTML = '';
+        types.forEach(function(t) {
+          var label = document.createElement('label');
+          var cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.name = 'mount-type-filter-cb';
+          cb.value = t.iri;
+          label.appendChild(cb);
+          label.appendChild(document.createTextNode(t.label));
+          container.appendChild(label);
+        });
+      })
+      .catch(function() {
+        var container = document.getElementById('mount-type-filter');
+        if (container) {
+          container.innerHTML = '<span class="mount-type-filter-loading">Could not load types</span>';
+        }
+      });
+
     // Load existing mounts
     loadMountList();
+
+    // Initialize chain button visibility for default strategy
+    updateAddChainButton();
   }
 
   /**
@@ -3053,27 +3148,36 @@
 
   /**
    * Show/hide strategy-specific form fields based on selected strategy.
+   * Scans ALL chain levels — if ANY level needs a field, it stays visible.
    */
   function mountStrategyChanged(strategy) {
-    // Hide all strategy-specific fields
+    // Collect all active strategies (first select + chain levels)
+    var allStrategies = [strategy];
+    var chainRows = document.querySelectorAll('#strategy-chain-container .chain-level-row select');
+    chainRows.forEach(function(sel) { allStrategies.push(sel.value); });
+
+    // Hide all strategy-specific fields first
     var fields = document.querySelectorAll('#mount-strategy-fields .mount-form-row');
     fields.forEach(function(el) { el.style.display = 'none'; });
 
-    // Show relevant fields based on strategy
-    if (strategy === 'by-tag') {
-      document.querySelectorAll('.mount-field-by-tag').forEach(function(el) {
+    // Show relevant fields if ANY strategy needs them
+    var needsTag = allStrategies.some(function(s) { return s === 'by-tag'; });
+    var needsProp = allStrategies.some(function(s) { return s === 'by-property'; });
+    var needsDate = allStrategies.some(function(s) { return s === 'by-date'; });
+
+    if (needsTag || needsProp) {
+      document.querySelectorAll('.mount-field-by-tag, .mount-field-by-property').forEach(function(el) {
         el.style.display = '';
       });
-    } else if (strategy === 'by-property') {
-      document.querySelectorAll('.mount-field-by-property').forEach(function(el) {
-        el.style.display = '';
-      });
-    } else if (strategy === 'by-date') {
+    }
+    if (needsDate) {
       document.querySelectorAll('.mount-field-by-date').forEach(function(el) {
         el.style.display = '';
       });
     }
-    // flat and by-type show nothing extra
+
+    // Hide "+Add level" button when first strategy is flat
+    updateAddChainButton();
   }
 
   /**
@@ -3105,6 +3209,128 @@
   }
 
   /**
+   * Update the "+Add level" button visibility.
+   * Hidden when: first strategy is flat, or already at max 3 levels total.
+   */
+  function updateAddChainButton() {
+    var btn = document.getElementById('add-chain-level-btn');
+    if (!btn) return;
+    var firstStrategy = document.getElementById('mount-strategy').value;
+    var maxReached = (_chainLevelCount + 1) >= 3;  // +1 for the first select
+    btn.style.display = (firstStrategy === 'flat' || maxReached) ? 'none' : '';
+  }
+
+  /**
+   * Add a new chain level select to the chain container.
+   * Returns the created select element (useful for populating a value).
+   */
+  function addChainLevel(strategyValue) {
+    if ((_chainLevelCount + 1) >= 3) return null;  // Max 3 total levels
+
+    _chainLevelCount++;
+    var idx = _chainLevelCount;
+
+    var row = document.createElement('div');
+    row.className = 'chain-level-row';
+    row.setAttribute('data-chain-index', idx);
+
+    var sel = document.createElement('select');
+    sel.id = 'chain-strategy-' + idx;
+    sel.className = 'settings-select';
+    sel.innerHTML =
+      '<option value="by-type">By Type</option>' +
+      '<option value="by-date">By Date</option>' +
+      '<option value="by-tag">By Tag</option>' +
+      '<option value="by-property">By Property</option>';
+    // No "flat" option — flat can't be part of a chain
+    sel.addEventListener('change', function() {
+      // Re-evaluate strategy-specific fields when any level changes
+      mountStrategyChanged(document.getElementById('mount-strategy').value);
+    });
+
+    if (strategyValue) {
+      sel.value = strategyValue;
+    }
+
+    var removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'chain-level-remove';
+    removeBtn.title = 'Remove this level';
+    removeBtn.textContent = '×';
+    removeBtn.addEventListener('click', function() {
+      removeChainLevel(row);
+    });
+
+    row.appendChild(sel);
+    row.appendChild(removeBtn);
+
+    var container = document.getElementById('strategy-chain-container');
+    if (container) container.appendChild(row);
+
+    updateAddChainButton();
+    // Re-evaluate strategy fields for the new level
+    mountStrategyChanged(document.getElementById('mount-strategy').value);
+    return sel;
+  }
+
+  /**
+   * Remove a chain level row and reindex remaining rows.
+   */
+  function removeChainLevel(rowOrIndex) {
+    var row;
+    if (typeof rowOrIndex === 'number' || typeof rowOrIndex === 'string') {
+      row = document.querySelector('.chain-level-row[data-chain-index="' + rowOrIndex + '"]');
+    } else {
+      row = rowOrIndex;
+    }
+    if (!row) return;
+    row.remove();
+    _chainLevelCount--;
+
+    // Reindex remaining rows
+    var rows = document.querySelectorAll('#strategy-chain-container .chain-level-row');
+    rows.forEach(function(r, i) {
+      r.setAttribute('data-chain-index', i + 1);
+      var sel = r.querySelector('select');
+      if (sel) sel.id = 'chain-strategy-' + (i + 1);
+    });
+
+    updateAddChainButton();
+    // Re-evaluate strategy fields after removal
+    mountStrategyChanged(document.getElementById('mount-strategy').value);
+  }
+
+  /**
+   * Apply a chain preset by setting the first strategy and adding chain levels.
+   * @param {string[]} strategies - Array of strategy names, e.g. ["by-tag", "by-date"]
+   */
+  function applyChainPreset(strategies) {
+    if (!strategies || strategies.length < 2) return;
+
+    // Clear existing chain levels
+    clearChainLevels();
+
+    // Set first strategy
+    var firstSel = document.getElementById('mount-strategy');
+    if (firstSel) firstSel.value = strategies[0];
+
+    // Add remaining strategies as chain levels
+    for (var i = 1; i < strategies.length && i < 3; i++) {
+      addChainLevel(strategies[i]);
+    }
+  }
+
+  /**
+   * Remove all chain level rows and reset counter.
+   */
+  function clearChainLevels() {
+    var container = document.getElementById('strategy-chain-container');
+    if (container) container.innerHTML = '';
+    _chainLevelCount = 0;
+    updateAddChainButton();
+  }
+
+  /**
    * Collect form field values into an object for API calls.
    */
   function collectFormData() {
@@ -3112,21 +3338,45 @@
     var scopeSelect = document.getElementById('mount-scope');
     var scopeVal = scopeSelect ? scopeSelect.value : 'all';
 
+    // Check for chain levels
+    var chainSelects = document.querySelectorAll('#strategy-chain-container .chain-level-row select');
+    var strategyValue;
+    if (chainSelects.length > 0) {
+      // Chain: send as array
+      strategyValue = [strategy];
+      chainSelects.forEach(function(sel) {
+        strategyValue.push(sel.value);
+      });
+    } else {
+      // Single strategy: send as string (backward compat)
+      strategyValue = strategy;
+    }
+
     var data = {
       name: document.getElementById('mount-name').value.trim(),
       path: document.getElementById('mount-path').value.trim(),
-      strategy: strategy,
+      strategy: strategyValue,
       visibility: document.getElementById('mount-visibility').value
     };
 
-    // Strategy-specific fields
-    if (strategy === 'by-tag' || strategy === 'by-property') {
+    // Filename template
+    var templateInput = document.getElementById('mount-filename-template');
+    if (templateInput && templateInput.value.trim()) {
+      data.filename_template = templateInput.value.trim();
+    }
+
+    // Strategy-specific fields — check all strategies in the chain
+    var allStrategies = Array.isArray(strategyValue) ? strategyValue : [strategyValue];
+    var needsGroupProp = allStrategies.some(function(s) { return s === 'by-tag' || s === 'by-property'; });
+    var needsDateProp = allStrategies.some(function(s) { return s === 'by-date'; });
+
+    if (needsGroupProp) {
       var groupProp = document.getElementById('mount-group-property');
       if (groupProp && groupProp.value) {
         data.group_by_property = groupProp.value;
       }
     }
-    if (strategy === 'by-date') {
+    if (needsDateProp) {
       var dateProp = document.getElementById('mount-date-property');
       if (dateProp && dateProp.value) {
         data.date_property = dateProp.value;
@@ -3142,7 +3392,16 @@
         data.sparql_scope = sparqlEl.value.trim();
       }
     } else if (scopeVal.startsWith('query:')) {
-      data.saved_query_id = scopeVal.replace('query:', '');
+      data.scope_query = 'urn:sempkm:query:' + scopeVal.replace('query:', '');
+    }
+
+    // Type filter — collect checked type IRIs
+    var typeCheckboxes = document.querySelectorAll('input[name="mount-type-filter-cb"]:checked');
+    if (typeCheckboxes.length > 0) {
+      data.type_filter = [];
+      typeCheckboxes.forEach(function(cb) {
+        data.type_filter.push(cb.value);
+      });
     }
 
     return data;
@@ -3316,7 +3575,11 @@
         html += '    <span class="mount-list-item-name">' + escapeHtml(m.name) + '</span>';
         html += '    <span class="mount-list-item-meta">/dav/' + escapeHtml(m.path) +
                 '/ &middot; ' + escapeHtml(m.strategy) +
-                ' &middot; ' + escapeHtml(m.visibility) + '</span>';
+                ' &middot; ' + escapeHtml(m.visibility);
+        if (m.type_filter && m.type_filter.length > 0) {
+          html += ' &middot; ' + m.type_filter.length + ' type' + (m.type_filter.length !== 1 ? 's' : '');
+        }
+        html += '</span>';
         html += '  </div>';
         html += '  <div class="mount-list-item-actions">';
         html += '    <button class="btn-secondary-sm" onclick="mountEdit(\'' +
@@ -3364,11 +3627,26 @@
     document.getElementById('mount-edit-id').value = mount.id;
     document.getElementById('mount-name').value = mount.name || '';
     document.getElementById('mount-path').value = mount.path || '';
-    document.getElementById('mount-strategy').value = mount.strategy || 'flat';
     document.getElementById('mount-visibility').value = mount.visibility || 'personal';
 
-    // Trigger strategy field visibility
-    mountStrategyChanged(mount.strategy || 'flat');
+    // Handle chain strategy: strategy_chain is parsed array, strategy is raw string
+    var chain = mount.strategy_chain || [];
+    clearChainLevels();
+
+    if (chain.length > 1) {
+      // Multi-level chain
+      document.getElementById('mount-strategy').value = chain[0];
+      for (var i = 1; i < chain.length; i++) {
+        addChainLevel(chain[i]);
+      }
+    } else {
+      // Single strategy (may come as string or single-element array)
+      var singleStrategy = chain.length === 1 ? chain[0] : (mount.strategy || 'flat');
+      document.getElementById('mount-strategy').value = singleStrategy;
+    }
+
+    // Trigger strategy field visibility (scans all chain levels)
+    mountStrategyChanged(document.getElementById('mount-strategy').value);
 
     // Set strategy-specific fields
     if (mount.group_by_property) {
@@ -3380,11 +3658,21 @@
       if (dateProp) dateProp.value = mount.date_property;
     }
 
+    // Filename template
+    var templateInput = document.getElementById('mount-filename-template');
+    if (templateInput) {
+      templateInput.value = mount.filename_template || '';
+    }
+
     // Set scope
     var scopeSelect = document.getElementById('mount-scope');
     if (scopeSelect) {
-      if (mount.saved_query_id) {
-        scopeSelect.value = 'query:' + mount.saved_query_id;
+      if (mount.scope_query) {
+        var queryUuid = mount.scope_query;
+        if (queryUuid.indexOf('urn:sempkm:query:') === 0) {
+          queryUuid = queryUuid.replace('urn:sempkm:query:', '');
+        }
+        scopeSelect.value = 'query:' + queryUuid;
       } else if (mount.sparql_scope) {
         scopeSelect.value = 'custom';
         mountScopeChanged('custom');
@@ -3394,6 +3682,13 @@
         scopeSelect.value = 'all';
       }
     }
+
+    // Pre-check type filter checkboxes
+    var savedTypes = mount.type_filter || [];
+    var typeCheckboxes = document.querySelectorAll('input[name="mount-type-filter-cb"]');
+    typeCheckboxes.forEach(function(cb) {
+      cb.checked = savedTypes.indexOf(cb.value) !== -1;
+    });
 
     // Update UI to reflect edit mode
     var submitBtn = document.getElementById('mount-submit-btn');
@@ -3425,10 +3720,21 @@
     document.getElementById('mount-strategy').value = 'flat';
     document.getElementById('mount-visibility').value = 'personal';
 
+    // Clear chain levels
+    clearChainLevels();
+
+    // Clear filename template
+    var templateInput = document.getElementById('mount-filename-template');
+    if (templateInput) templateInput.value = '';
+
     // Reset scope
     var scopeSelect = document.getElementById('mount-scope');
     if (scopeSelect) scopeSelect.value = 'all';
     mountScopeChanged('all');
+
+    // Uncheck all type filter checkboxes
+    var typeCheckboxes = document.querySelectorAll('input[name="mount-type-filter-cb"]');
+    typeCheckboxes.forEach(function(cb) { cb.checked = false; });
 
     // Hide strategy fields
     mountStrategyChanged('flat');
@@ -3501,6 +3807,9 @@
   window.mountDelete = mountDelete;
   window.loadMountList = loadMountList;
   window.renderMountList = renderMountList;
+  window.addChainLevel = addChainLevel;
+  window.removeChainLevel = removeChainLevel;
+  window.applyChainPreset = applyChainPreset;
 
   // Auto-initialize: if VFS mount section already exists in DOM, init immediately.
   // Also listen for htmx swaps that may load the VFS settings partial.

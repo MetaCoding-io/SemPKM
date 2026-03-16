@@ -21,19 +21,27 @@
     nodeDragId: null,
     nodeDragOffsetX: 0,
     nodeDragOffsetY: 0,
+    resizingNodeId: null,
+    resizeStartX: 0,
+    resizeStartY: 0,
+    resizeStartWidth: 0,
+    resizeStartHeight: 0,
+    resizeHandleType: null, // 'corner', 'right', 'bottom'
     nodes: [],
     edges: [],
     expandProvenance: {},
     canvasId: 'default',
     isSaving: false,
     currentSessionId: null,
-    selectedNodeId: null
+    selectedNodeId: null,
+    propertyCache: {}
   };
 
   // Inline SVG icons — avoid Lucide re-scan on every renderNodes() call
   var SVG_CHEVRON = '<svg class="spatial-icon spatial-icon-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>';
   var SVG_PLUS = '<svg class="spatial-icon spatial-icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>';
   var SVG_X = '<svg class="spatial-icon spatial-icon-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+  var SVG_FLIP = '<svg class="spatial-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>';
 
   var GRID = 24;
   function snapToGrid(value) { return Math.round(value / GRID) * GRID; }
@@ -181,6 +189,7 @@
 
     state.viewport = viewport;
     state.layer = layer;
+    state.embedLayer = viewport.querySelector('.spatial-canvas-embed-layer');
     state.canvasId = root.dataset.canvasId || 'default';
 
     renderNodes();
@@ -220,6 +229,7 @@
     state.viewport.addEventListener('wheel', onWheel, { passive: false });
     state.viewport.addEventListener('pointerdown', onPointerDown);
     state.layer.addEventListener('click', onLayerClick);
+    if (state.embedLayer) state.embedLayer.addEventListener('click', onEmbedLayerClick);
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
     // Drag-drop from nav tree: use capture phase on document so we see events
@@ -267,6 +277,51 @@
     fetchNodeBody(iri);
   }
 
+  var MAX_EMBEDS = 8;
+
+  function addEmbedNode(embedConfig, clientX, clientY) {
+    if (!embedConfig || !embedConfig.url) return;
+    // Enforce embed limit
+    var embedCount = 0;
+    for (var i = 0; i < state.nodes.length; i++) {
+      if (state.nodes[i].nodeType === 'embed') embedCount++;
+    }
+    if (embedCount >= MAX_EMBEDS) {
+      if (window.showToast) window.showToast('Maximum of ' + MAX_EMBEDS + ' embeds reached');
+      return;
+    }
+    var world = screenToWorld(clientX, clientY);
+    var nodeId = 'embed-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6);
+    state.nodes.push({
+      id: nodeId,
+      title: embedConfig.label || 'Embed',
+      uri: '',
+      x: snapToGrid(world.x),
+      y: snapToGrid(world.y),
+      width: 400,
+      height: 300,
+      nodeType: 'embed',
+      embedConfig: {
+        type: embedConfig.type || 'view',
+        id: embedConfig.id || '',
+        url: embedConfig.url,
+        label: embedConfig.label || 'Embed',
+      },
+    });
+    renderNodes();
+    setStatus('Embed added: ' + (embedConfig.label || embedConfig.url));
+  }
+
+  function onEmbedLayerClick(event) {
+    var deleteBtn = event.target.closest('.spatial-node-delete');
+    if (deleteBtn) {
+      var nodeEl = deleteBtn.closest('.spatial-node');
+      if (!nodeEl) return;
+      removeNode(nodeEl.dataset.nodeId);
+      return;
+    }
+  }
+
   function fetchNodeBody(iri) {
     fetch('/api/canvas/body?iri=' + encodeURIComponent(iri))
       .then(function (r) { return r.ok ? r.json() : null; })
@@ -279,6 +334,62 @@
         }
       })
       .catch(function () { /* silent — body is optional */ });
+  }
+
+  function fetchNodeProperties(nodeId, iri) {
+    fetch('/api/canvas/properties?iri=' + encodeURIComponent(iri))
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (data) {
+          state.propertyCache[nodeId] = data;
+        }
+        renderNodes();
+      })
+      .catch(function () { renderNodes(); });
+  }
+
+  function buildPropertyTable(data) {
+    var html = ['<div class="spatial-node-properties">'];
+    if (data.type_label) {
+      html.push('<div class="prop-type-header">', escapeHtml(data.type_label), '</div>');
+    }
+    var props = data.properties || [];
+    for (var i = 0; i < props.length; i++) {
+      var prop = props[i];
+      var rowClass = prop.source === 'inferred' ? ' prop-inferred' : '';
+      html.push('<div class="prop-row', rowClass, '">');
+      html.push('<span class="prop-label">', escapeHtml(prop.name || ''), '</span>');
+      html.push('<span class="prop-value">');
+      var vals = prop.values || (prop.value != null ? [prop.value] : []);
+      for (var j = 0; j < vals.length; j++) {
+        var v = vals[j];
+        var display = '';
+        if (typeof v === 'object' && v !== null) {
+          display = v.ref_label || v.value || String(v);
+        } else if (typeof v === 'boolean') {
+          display = v ? '✓' : '✗';
+        } else {
+          display = String(v);
+        }
+        // Tag-like values get pill treatment
+        if (prop.datatype === 'tag' || (display.length > 0 && display.charAt(0) === '#')) {
+          html.push('<span class="prop-pill">', escapeHtml(display), '</span>');
+        } else if (vals.length > 1) {
+          html.push('<span class="prop-pill">', escapeHtml(display), '</span>');
+        } else {
+          html.push(escapeHtml(display));
+        }
+      }
+      if (vals.length === 0) {
+        html.push('<span class="prop-empty">—</span>');
+      }
+      html.push('</span></div>');
+    }
+    if (props.length === 0) {
+      html.push('<div class="prop-row"><span class="prop-label" style="width:auto">No properties</span></div>');
+    }
+    html.push('</div>');
+    return html.join('');
   }
 
   /**
@@ -397,6 +508,19 @@
       return;
     }
 
+    // Check for embed-type payload (dashboard, view, query, object-embed drag)
+    var embedTypes = ['dashboard', 'view', 'query', 'object-embed'];
+    if (payload && payload.type && embedTypes.indexOf(payload.type) !== -1) {
+      addEmbedNode({
+        type: payload.type,
+        id: payload.id || '',
+        url: payload.url,
+        label: payload.label || 'Embed',
+      }, event.clientX, event.clientY);
+      window.__canvasDragPayload = null;
+      return;
+    }
+
     var iri = event.dataTransfer.getData('text/iri');
     var label = event.dataTransfer.getData('text/label');
     addNodeFromDrag(iri, label, event.clientX, event.clientY);
@@ -420,6 +544,14 @@
           }
         }
         addNodesFromBulkDrop(payload.items, lastDragOverCanvas.x, lastDragOverCanvas.y);
+      // Check for embed-type payload (dashboard, view, query, object-embed drag)
+      } else if (payload.type && ['dashboard', 'view', 'query', 'object-embed'].indexOf(payload.type) !== -1) {
+        addEmbedNode({
+          type: payload.type,
+          id: payload.id || '',
+          url: payload.url,
+          label: payload.label || 'Embed',
+        }, lastDragOverCanvas.x, lastDragOverCanvas.y);
       } else {
         addNodeFromDrag(payload.iri, payload.label, lastDragOverCanvas.x, lastDragOverCanvas.y);
       }
@@ -450,7 +582,38 @@
   }
 
   function onPointerDown(event) {
-    if (event.target && event.target.closest && (event.target.closest('.spatial-node-markdown a') || event.target.closest('.spatial-node-chevron') || event.target.closest('.spatial-node-expand') || event.target.closest('.spatial-node-delete'))) {
+    if (event.target && event.target.closest && (event.target.closest('.spatial-node-markdown a') || event.target.closest('.spatial-node-chevron') || event.target.closest('.spatial-node-expand') || event.target.closest('.spatial-node-flip') || event.target.closest('.spatial-node-delete'))) {
+      return;
+    }
+
+    // Resize handle detection — must come before node drag
+    var resizeHandle = event.target.closest('.spatial-node-resize-handle, .spatial-node-resize-handle-right, .spatial-node-resize-handle-bottom');
+    if (resizeHandle) {
+      event.stopPropagation();
+      event.preventDefault();
+      var nodeEl = resizeHandle.closest('.spatial-node');
+      if (!nodeEl) return;
+      var nodeId = nodeEl.dataset.nodeId;
+      var model = findNode(nodeId);
+      if (!model) return;
+
+      // Determine handle type
+      var handleType = 'corner';
+      if (resizeHandle.classList.contains('spatial-node-resize-handle-right')) handleType = 'right';
+      else if (resizeHandle.classList.contains('spatial-node-resize-handle-bottom')) handleType = 'bottom';
+
+      state.resizingNodeId = nodeId;
+      state.resizeStartX = event.clientX;
+      state.resizeStartY = event.clientY;
+      state.resizeStartWidth = nodeEl.offsetWidth;
+      state.resizeStartHeight = nodeEl.offsetHeight;
+      state.resizeHandleType = handleType;
+
+      // Select the node being resized
+      if (state.selectedNodeId !== nodeId) {
+        state.selectedNodeId = nodeId;
+        renderNodes();
+      }
       return;
     }
 
@@ -512,6 +675,23 @@
       var expandNode = expandBtn.closest('.spatial-node');
       if (!expandNode) return;
       toggleExpand(expandNode.dataset.nodeId);
+      return;
+    }
+
+    // Flip click — toggle property table / markdown body
+    var flipBtn = event.target.closest('.spatial-node-flip');
+    if (flipBtn) {
+      var flipNode = flipBtn.closest('.spatial-node');
+      if (!flipNode) return;
+      var nodeId = flipNode.dataset.nodeId;
+      var model = findNode(nodeId);
+      if (!model) return;
+      model.showProperties = !model.showProperties;
+      if (model.showProperties && !state.propertyCache[nodeId]) {
+        fetchNodeProperties(nodeId, model.uri);
+      } else {
+        renderNodes();
+      }
       return;
     }
 
@@ -602,6 +782,11 @@
     state.nodes = state.nodes.filter(function (n) { return n.id !== nodeId; });
     // Filter out edges referencing this node
     state.edges = state.edges.filter(function (e) { return e.source !== nodeId && e.target !== nodeId; });
+    // Remove persistent embed DOM element if present
+    if (state.embedLayer) {
+      var embedEl = state.embedLayer.querySelector('[data-node-id="' + CSS.escape(nodeId) + '"]');
+      if (embedEl) embedEl.remove();
+    }
     // Clean up provenance: remove nodeId from any expand's child list
     var provenanceKeys = Object.keys(state.expandProvenance);
     for (var i = 0; i < provenanceKeys.length; i++) {
@@ -716,6 +901,30 @@
   }
 
   function onPointerMove(event) {
+    // Resize in progress — update dimensions directly on DOM for performance
+    if (state.resizingNodeId) {
+      var node = findNode(state.resizingNodeId);
+      if (!node) return;
+      var dx = (event.clientX - state.resizeStartX) / state.scale;
+      var dy = (event.clientY - state.resizeStartY) / state.scale;
+
+      if (state.resizeHandleType === 'corner' || state.resizeHandleType === 'right') {
+        node.width = snapToGrid(Math.max(160, state.resizeStartWidth + dx));
+      }
+      if (state.resizeHandleType === 'corner' || state.resizeHandleType === 'bottom') {
+        node.height = snapToGrid(Math.max(80, state.resizeStartHeight + dy));
+      }
+
+      // Apply directly to DOM to avoid full re-render per frame
+      var el = state.layer.querySelector('.spatial-node[data-node-id="' + CSS.escape(state.resizingNodeId) + '"]');
+      if (!el && state.embedLayer) el = state.embedLayer.querySelector('.spatial-node[data-node-id="' + CSS.escape(state.resizingNodeId) + '"]');
+      if (el) {
+        if (node.width !== undefined) el.style.width = node.width + 'px';
+        if (node.height !== undefined) el.style.height = node.height + 'px';
+      }
+      return;
+    }
+
     if (state.nodeDragId) {
       var node = findNode(state.nodeDragId);
       if (!node) return;
@@ -735,8 +944,16 @@
   }
 
   function onPointerUp() {
+    // Finalize resize — re-render to update edges and DOM state
+    if (state.resizingNodeId) {
+      state.resizingNodeId = null;
+      state.resizeHandleType = null;
+      renderNodes();
+      return;
+    }
+
     if (state.nodeDragId) {
-      var nodeEl = state.layer.querySelector('.spatial-node.dragging');
+      var nodeEl = state.viewport.querySelector('.spatial-node.dragging');
       if (nodeEl) nodeEl.classList.remove('dragging');
     }
 
@@ -776,19 +993,32 @@
     }).join('');
 
     var nodesHtml = state.nodes.map(function (node) {
+      // Skip embed nodes — they are rendered persistently in the embed layer
+      if (node.nodeType === 'embed') return '';
       var isExpanded = !!state.expandProvenance[node.id];
       var isOpen = !node.collapsed;
       var isSelected = state.selectedNodeId === node.id;
+      // Build inline style: always position, plus width/height if resized
+      var inlineStyle = 'left:' + node.x + 'px; top:' + node.y + 'px;';
+      if (node.width !== undefined) inlineStyle += ' width:' + node.width + 'px;';
+      if (node.height !== undefined) inlineStyle += ' height:' + node.height + 'px;';
       return [
-        '<article class="spatial-node', (node.collapsed ? ' is-collapsed' : ''), (isExpanded ? ' is-expanded' : ''), (isSelected ? ' spatial-node-selected' : ''), '" data-node-id="', escapeHtml(node.id), '" style="left:', node.x, 'px; top:', node.y, 'px;">',
+        '<article class="spatial-node', (node.collapsed ? ' is-collapsed' : ''), (isExpanded ? ' is-expanded' : ''), (isSelected ? ' spatial-node-selected' : ''), '" data-node-id="', escapeHtml(node.id), '" style="', inlineStyle, '">',
           '<header class="spatial-node-header">',
             '<button class="spatial-node-chevron', (isOpen ? ' is-open' : ''), '" type="button" title="Toggle body">', SVG_CHEVRON, '</button>',
             '<span class="spatial-node-title">', escapeHtml(node.title), '</span>',
             '<button class="spatial-node-expand" type="button" title="Expand neighbors">', SVG_PLUS, '</button>',
+            '<button class="spatial-node-flip', (node.showProperties ? ' is-flipped' : ''), '" type="button" title="Toggle properties">', SVG_FLIP, '</button>',
             '<button class="spatial-node-delete" type="button" title="Remove from canvas">', SVG_X, '</button>',
           '</header>',
           '<div class="spatial-node-uri">', escapeHtml(node.uri), '</div>',
-          (node.collapsed ? '' : '<div class="spatial-node-markdown">' + renderMarkdown(node.markdown || '') + '</div>'),
+          (node.collapsed ? '' :
+            (node.showProperties && state.propertyCache[node.id]
+              ? buildPropertyTable(state.propertyCache[node.id])
+              : '<div class="spatial-node-markdown">' + renderMarkdown(node.markdown || '') + '</div>')),
+          '<div class="spatial-node-resize-handle"></div>',
+          '<div class="spatial-node-resize-handle-right"></div>',
+          '<div class="spatial-node-resize-handle-bottom"></div>',
         '</article>'
       ].join('');
     }).join('');
@@ -797,8 +1027,70 @@
     // using edgePoint() for proper box-edge termination.
     state.layer.innerHTML = nodesHtml;
 
+    // ── Embed layer: persistent DOM — create/update/orphan-clean ──
+    if (state.embedLayer) {
+      var embedNodeIds = {};
+      for (var ei = 0; ei < state.nodes.length; ei++) {
+        var eNode = state.nodes[ei];
+        if (eNode.nodeType !== 'embed') continue;
+        if (!eNode.embedConfig || !eNode.embedConfig.url) continue; // skip malformed embed nodes
+        embedNodeIds[eNode.id] = true;
+        var existingEl = state.embedLayer.querySelector('[data-node-id="' + CSS.escape(eNode.id) + '"]');
+        if (existingEl) {
+          // Update position/size only — never rebuild innerHTML
+          existingEl.style.left = eNode.x + 'px';
+          existingEl.style.top = eNode.y + 'px';
+          if (eNode.width !== undefined) existingEl.style.width = eNode.width + 'px';
+          if (eNode.height !== undefined) existingEl.style.height = eNode.height + 'px';
+          // Update selection state
+          if (state.selectedNodeId === eNode.id) {
+            existingEl.classList.add('spatial-node-selected');
+          } else {
+            existingEl.classList.remove('spatial-node-selected');
+          }
+        } else {
+          // Create new embed node DOM element
+          var article = document.createElement('article');
+          article.className = 'spatial-node spatial-node-embed' + (state.selectedNodeId === eNode.id ? ' spatial-node-selected' : '');
+          article.dataset.nodeId = eNode.id;
+          article.dataset.embedType = eNode.embedConfig.type || '';
+          article.style.left = eNode.x + 'px';
+          article.style.top = eNode.y + 'px';
+          article.style.width = (eNode.width || 400) + 'px';
+          article.style.height = (eNode.height || 300) + 'px';
+          article.innerHTML = [
+            '<header class="spatial-node-header">',
+              '<span class="spatial-node-title">', escapeHtml(eNode.embedConfig.label || 'Embed'), '</span>',
+              '<button class="spatial-node-delete" type="button" title="Remove embed">', SVG_X, '</button>',
+            '</header>',
+            '<div class="spatial-node-embed-body">',
+              '<iframe src="', escapeHtml(eNode.embedConfig.url), '" class="spatial-embed-iframe" loading="lazy"></iframe>',
+              '<div class="spatial-embed-loading">Loading…</div>',
+            '</div>',
+            '<div class="spatial-node-resize-handle"></div>',
+            '<div class="spatial-node-resize-handle-right"></div>',
+            '<div class="spatial-node-resize-handle-bottom"></div>',
+          ].join('');
+          // Wire iframe load event to hide loading overlay
+          var iframe = article.querySelector('.spatial-embed-iframe');
+          var loadingOverlay = article.querySelector('.spatial-embed-loading');
+          if (iframe && loadingOverlay) {
+            iframe.addEventListener('load', function () {
+              this.parentNode.querySelector('.spatial-embed-loading').classList.add('loaded');
+            });
+          }
+          state.embedLayer.appendChild(article);
+        }
+      }
+      // Remove orphaned embed DOM elements
+      state.embedLayer.querySelectorAll('[data-node-id]').forEach(function (el) {
+        if (!embedNodeIds[el.dataset.nodeId]) el.remove();
+      });
+    }
+
+    // Build nodeBoxes from both layers
     var nodeBoxes = {};
-    state.layer.querySelectorAll('.spatial-node').forEach(function (el) {
+    state.viewport.querySelectorAll('.spatial-node').forEach(function (el) {
       var id = el.dataset.nodeId;
       var model = findNode(id);
       if (!id || !model) return;
@@ -936,7 +1228,9 @@
 
   function applyTransform() {
     if (!state.layer) return;
-    state.layer.style.transform = 'translate(' + state.translateX + 'px, ' + state.translateY + 'px) scale(' + state.scale + ')';
+    var t = 'translate(' + state.translateX + 'px, ' + state.translateY + 'px) scale(' + state.scale + ')';
+    state.layer.style.transform = t;
+    if (state.embedLayer) state.embedLayer.style.transform = t;
   }
 
   function findNode(id) {
@@ -1067,7 +1361,7 @@
   function getDocument() {
     return {
       nodes: state.nodes.map(function (n) {
-        return {
+        var serialized = {
           id: n.id,
           title: n.title,
           uri: n.uri,
@@ -1076,6 +1370,14 @@
           markdown: n.markdown || '',
           collapsed: !!n.collapsed,
         };
+        // Only serialize width/height when explicitly set (resized)
+        if (n.width !== undefined) serialized.width = n.width;
+        if (n.height !== undefined) serialized.height = n.height;
+        if (n.showProperties) serialized.showProperties = true;
+        // Embed node fields
+        if (n.nodeType) serialized.nodeType = n.nodeType;
+        if (n.embedConfig) serialized.embedConfig = n.embedConfig;
+        return serialized;
       }),
       edges: state.edges.map(function (e) {
         return { id: e.id, source: e.source, target: e.target, label: e.label || '' };
@@ -1089,7 +1391,7 @@
     if (!document || typeof document !== 'object') return;
     if (Array.isArray(document.nodes)) {
       state.nodes = document.nodes.map(function (n) {
-        return {
+        var node = {
           id: String(n.id || ''),
           title: String(n.title || n.id || 'Untitled'),
           uri: String(n.uri || n.id || ''),
@@ -1098,6 +1400,14 @@
           markdown: String(n.markdown || ''),
           collapsed: !!n.collapsed,
         };
+        // Restore width/height only when present — undefined means CSS default (260px)
+        if (n.width !== undefined && n.width !== null) node.width = Number(n.width);
+        if (n.height !== undefined && n.height !== null) node.height = Number(n.height);
+        if (n.showProperties) node.showProperties = true;
+        // Restore embed node fields (absent in old sessions → undefined → treated as regular)
+        if (n.nodeType) node.nodeType = n.nodeType;
+        if (n.embedConfig) node.embedConfig = n.embedConfig;
+        return node;
       });
     }
     if (Array.isArray(document.edges)) {
@@ -1119,6 +1429,12 @@
     renderNodes();
     applyTransform();
     updateZoomLabel();
+    // Re-fetch properties for any nodes that were saved with showProperties
+    state.nodes.forEach(function (n) {
+      if (n.showProperties && !state.propertyCache[n.id]) {
+        fetchNodeProperties(n.id, n.uri);
+      }
+    });
   }
 
   function setStatus(message, isError) {
@@ -1295,6 +1611,155 @@
     applyTransform();
   }
 
+  // ── Embed picker ───────────────────────────────────────────────
+  var embedPickerEl = null;
+  var embedPickerActiveTab = 'views';
+  var embedPickerOutsideHandler = null;
+
+  function openEmbedPicker(anchorEl) {
+    // Toggle: close if already open
+    if (embedPickerEl && embedPickerEl.style.display !== 'none') {
+      closeEmbedPicker();
+      return;
+    }
+    // Check embed limit before opening
+    var embedCount = 0;
+    for (var i = 0; i < state.nodes.length; i++) {
+      if (state.nodes[i].nodeType === 'embed') embedCount++;
+    }
+    if (embedCount >= MAX_EMBEDS) {
+      if (window.showToast) window.showToast('Maximum of ' + MAX_EMBEDS + ' embeds reached');
+      return;
+    }
+    // Create picker DOM if first open
+    if (!embedPickerEl) {
+      embedPickerEl = document.createElement('div');
+      embedPickerEl.className = 'canvas-embed-picker';
+      embedPickerEl.innerHTML = [
+        '<div class="canvas-embed-picker-tabs">',
+          '<button class="active" data-tab="views">Views</button>',
+          '<button data-tab="dashboards">Dashboards</button>',
+          '<button data-tab="queries">Queries</button>',
+        '</div>',
+        '<div class="canvas-embed-picker-body">',
+          '<div class="canvas-embed-picker-loading">Loading…</div>',
+        '</div>',
+      ].join('');
+      // Tab switching
+      embedPickerEl.querySelector('.canvas-embed-picker-tabs').addEventListener('click', function (e) {
+        var btn = e.target.closest('button[data-tab]');
+        if (!btn) return;
+        embedPickerActiveTab = btn.dataset.tab;
+        embedPickerEl.querySelectorAll('.canvas-embed-picker-tabs button').forEach(function (b) {
+          b.classList.toggle('active', b.dataset.tab === embedPickerActiveTab);
+        });
+        fetchEmbedPickerTab(embedPickerActiveTab);
+      });
+      // Item click
+      embedPickerEl.querySelector('.canvas-embed-picker-body').addEventListener('click', function (e) {
+        var item = e.target.closest('.canvas-embed-picker-item');
+        if (!item) return;
+        var config;
+        try { config = JSON.parse(item.dataset.config); } catch (err) { return; }
+        // Place at viewport center
+        var rect = state.viewport.getBoundingClientRect();
+        var centerX = rect.left + rect.width / 2;
+        var centerY = rect.top + rect.height / 2;
+        addEmbedNode(config, centerX, centerY);
+        closeEmbedPicker();
+      });
+      // Append to the anchor wrapper so positioning is relative
+      var anchor = anchorEl.closest('.canvas-embed-picker-anchor') || anchorEl.parentNode;
+      anchor.appendChild(embedPickerEl);
+    }
+    embedPickerEl.style.display = '';
+    embedPickerActiveTab = 'views';
+    embedPickerEl.querySelectorAll('.canvas-embed-picker-tabs button').forEach(function (b) {
+      b.classList.toggle('active', b.dataset.tab === 'views');
+    });
+    fetchEmbedPickerTab('views');
+    // Close on outside click (delay to avoid catching the opening click)
+    setTimeout(function () {
+      embedPickerOutsideHandler = function (e) {
+        if (!embedPickerEl.contains(e.target) && !e.target.closest('.canvas-embed-picker-btn')) {
+          closeEmbedPicker();
+        }
+      };
+      document.addEventListener('pointerdown', embedPickerOutsideHandler, true);
+    }, 0);
+  }
+
+  function closeEmbedPicker() {
+    if (embedPickerEl) embedPickerEl.style.display = 'none';
+    if (embedPickerOutsideHandler) {
+      document.removeEventListener('pointerdown', embedPickerOutsideHandler, true);
+      embedPickerOutsideHandler = null;
+    }
+  }
+
+  function fetchEmbedPickerTab(tab) {
+    var body = embedPickerEl.querySelector('.canvas-embed-picker-body');
+    body.innerHTML = '<div class="canvas-embed-picker-loading">Loading…</div>';
+
+    var urls = {
+      views: '/browser/views/available',
+      dashboards: '/api/dashboard',
+      queries: '/api/sparql/saved',
+    };
+    var url = urls[tab];
+    if (!url) { body.innerHTML = '<div class="canvas-embed-picker-empty">Unknown tab</div>'; return; }
+
+    fetch(url)
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+      .then(function (data) {
+        // Ensure data is an array (sparql/saved may return object when include_shared=true)
+        if (!Array.isArray(data)) data = [];
+        if (data.length === 0) {
+          body.innerHTML = '<div class="canvas-embed-picker-empty">No items found</div>';
+          return;
+        }
+        var html = data.map(function (item) {
+          var config = buildEmbedConfig(tab, item);
+          if (!config) return '';
+          return '<div class="canvas-embed-picker-item" data-config=\'' + escapeHtml(JSON.stringify(config)) + '\'>' + escapeHtml(config.label) + '</div>';
+        }).join('');
+        body.innerHTML = html || '<div class="canvas-embed-picker-empty">No items found</div>';
+      })
+      .catch(function () {
+        body.innerHTML = '<div class="canvas-embed-picker-empty">Failed to load</div>';
+      });
+  }
+
+  function buildEmbedConfig(tab, item) {
+    if (tab === 'views') {
+      var renderer = item.renderer_type || 'table';
+      var specIri = item.spec_iri || '';
+      var label = item.label || specIri;
+      // Generic views (built-in): spec_iri starts with "generic:" or has no target_class
+      // Model-declared views: have a target_class and spec_iri is a full IRI
+      var url;
+      if (!item.target_class) {
+        // Generic view — renderer is the spec itself
+        url = '/browser/views/generic/' + encodeURIComponent(renderer) + '?embed=1';
+      } else {
+        // Model-declared view — use renderer + spec_iri
+        url = '/browser/views/' + encodeURIComponent(renderer) + '/' + encodeURIComponent(specIri) + '?embed=1';
+      }
+      return { type: 'view', id: specIri, url: url, label: label };
+    }
+    if (tab === 'dashboards') {
+      var id = item.id || '';
+      var name = item.name || 'Dashboard';
+      return { type: 'dashboard', id: id, url: '/browser/dashboard/' + encodeURIComponent(id) + '?embed=1', label: name };
+    }
+    if (tab === 'queries') {
+      var id = item.id || '';
+      var name = item.name || 'Query';
+      return { type: 'query', id: id, url: '/browser/sparql-result/' + encodeURIComponent(id) + '?embed=1', label: name };
+    }
+    return null;
+  }
+
   window.SemPKMCanvas = {
     mount: mountCanvas,
     zoomIn: zoomIn,
@@ -1305,6 +1770,8 @@
     load: function () { return loadCanvas(false); },
     exportState: getDocument,
     importState: applyDocument,
+    addEmbed: addEmbedNode,
+    openEmbedPicker: openEmbedPicker,
   };
 
   document.body.addEventListener('htmx:afterSwap', function (event) {

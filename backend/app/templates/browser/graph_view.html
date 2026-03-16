@@ -1,3 +1,6 @@
+{% if is_generic | default(false) %}
+{% include "browser/type_filter_pills.html" %}
+{% endif %}
 {% include "browser/carousel_tab_bar.html" %}
 <div class="carousel-view-body">
 {% include "browser/view_toolbar.html" %}
@@ -22,13 +25,14 @@
     var specIri = '{{ spec_iri_encoded }}';
     var typeColors = {{ type_colors | tojson }};
     var availableLayouts = {{ available_layouts | tojson }};
+    var customDataUrl = {{ graph_data_url | tojson if graph_data_url is defined and graph_data_url else 'null' }};
 
     var initialFilter = '{{ current_filter | e }}';
 
     // Wait for graph.js to be loaded, then initialize
     function tryInit() {
         if (typeof window.initGraph === 'function') {
-            window.initGraph('cy-container', specIri, typeColors, availableLayouts);
+            window.initGraph('cy-container', specIri, typeColors, availableLayouts, customDataUrl);
             // Apply carried-over filter after graph data loads
             if (initialFilter && typeof window.filterGraph === 'function') {
                 setTimeout(function() { window.filterGraph(initialFilter); }, 500);

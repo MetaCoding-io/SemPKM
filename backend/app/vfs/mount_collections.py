@@ -25,6 +25,7 @@ from app.vfs.cache import cached_get_member_names
 from app.vfs.mount_service import MountDefinition
 from app.vfs.strategies import (
     DirectoryStrategy,
+    build_chain_narrowing_filter,
     build_scope_filter,
     query_date_month_folders,
     query_date_year_folders,
@@ -63,9 +64,13 @@ def _slugify(text: str) -> str:
 
 def _build_file_map_from_bindings(
     bindings: list[dict],
+    filename_template: str | None = None,
+    type_labels: dict[str, str] | None = None,
 ) -> dict[str, dict]:
     """Build filename -> {iri, label, type_iri} map from SPARQL bindings.
 
+    If filename_template is provided, template variables are expanded before
+    slugification. Supported variables: {title}, {date}, {type}, {id}.
     Handles slug deduplication by appending IRI hash suffix.
     """
     entries = []
@@ -74,7 +79,30 @@ def _build_file_map_from_bindings(
         iri = b["iri"]["value"]
         label = b["label"]["value"]
         type_iri = b.get("typeIri", {}).get("value", "")
-        slug = _slugify(label)
+
+        if filename_template:
+            expanded = filename_template
+            expanded = expanded.replace("{title}", label)
+            expanded = expanded.replace("{id}", hashlib.sha256(iri.encode()).hexdigest()[:8])
+            if "{date}" in expanded:
+                date_val = b.get("created", {}).get("value", "")
+                date_str = date_val[:10] if date_val else "undated"
+                expanded = expanded.replace("{date}", date_str)
+            if "{type}" in expanded:
+                type_label = ""
+                if type_labels and type_iri:
+                    type_label = type_labels.get(type_iri, "")
+                if not type_label and type_iri:
+                    type_label = type_iri.rsplit("/", 1)[-1].rsplit("#", 1)[-1].rsplit(":", 1)[-1]
+                expanded = expanded.replace("{type}", type_label or "unknown")
+            slug = _slugify(expanded)
+            logger.debug(
+                "filename_template expanded: template=%r iri=%s slug=%s",
+                filename_template, iri, slug,
+            )
+        else:
+            slug = _slugify(label)
+
         slug_counts[slug] = slug_counts.get(slug, 0) + 1
         entries.append({"iri": iri, "label": label, "slug": slug, "type_iri": type_iri})
 
@@ -113,10 +141,7 @@ class MountRootCollection(DAVCollection):
         self._mount = mount
         self._event_store = event_store
         self._strategy = DirectoryStrategy(mount.strategy)
-        self._scope_filter = build_scope_filter(mount)
-        # Note: saved_query_id resolution requires async and is handled in
-        # workspace.py for browser-side scope filtering. WebDAV falls back
-        # to sparql_scope only.
+        self._scope_filter = build_scope_filter(mount, sync_client=client)
         # Cached file map for flat strategy
         self._flat_file_map: dict[str, dict] | None = None
 
@@ -179,7 +204,8 @@ class MountRootCollection(DAVCollection):
             sparql = query_flat_objects(self._scope_filter)
             result = self._client.query(sparql)
             self._flat_file_map = _build_file_map_from_bindings(
-                result["results"]["bindings"]
+                result["results"]["bindings"],
+                filename_template=self._mount.filename_template,
             )
         return self._flat_file_map
 
@@ -281,6 +307,9 @@ class StrategyFolderCollection(DAVCollection):
         mount: MountDefinition,
         folder_value: str,
         parent_folder_value: str | None = None,
+        chain: list[str] | None = None,
+        chain_depth: int = 0,
+        chain_folder_values: list[str] | None = None,
         event_store=None,
     ) -> None:
         super().__init__(path, environ)
@@ -289,15 +318,85 @@ class StrategyFolderCollection(DAVCollection):
         self._folder_value = folder_value
         self._parent_folder_value = parent_folder_value
         self._event_store = event_store
-        self._strategy = DirectoryStrategy(mount.strategy)
-        self._scope_filter = build_scope_filter(mount)
+        self._chain = chain
+        self._chain_depth = chain_depth
+        self._chain_folder_values = chain_folder_values or []
+
+        # Compute effective strategy: chain-aware or single
+        if chain is not None:
+            self._strategy = DirectoryStrategy(chain[chain_depth])
+        else:
+            self._strategy = DirectoryStrategy(mount.strategy)
+
+        # Compute terminal status
+        if chain is not None:
+            self._is_terminal = chain_depth >= len(chain) - 1
+        else:
+            # Non-chain: terminal unless it's by-date at year level (existing behavior)
+            self._is_terminal = not (
+                self._strategy == DirectoryStrategy.BY_DATE
+                and self._parent_folder_value is None
+            )
+
+        # Build scope filter with cumulative chain narrowing
+        self._scope_filter = self._build_cumulative_scope_filter()
         self._file_map: dict[str, dict] | None = None
+
+    def _build_cumulative_scope_filter(self) -> str:
+        """Build scope filter combining base scope + all parent chain narrowing filters."""
+        base_filter = build_scope_filter(self._mount, sync_client=self._client)
+        if self._chain is None:
+            return base_filter
+
+        parts = [base_filter] if base_filter else []
+        # Add narrowing from each parent chain level
+        for depth, folder_val in enumerate(self._chain_folder_values):
+            strategy_at_depth = self._chain[depth]
+            # For by-date, determine if this is year or month level
+            parent_val = None
+            if strategy_at_depth == "by-date" and depth > 0:
+                # Check if previous level in chain_folder_values provides year context
+                # This is a simplification — by-date in a chain uses the folder value as year
+                pass
+            narrowing = build_chain_narrowing_filter(
+                strategy_at_depth, folder_val, self._mount,
+                parent_folder_value=parent_val,
+            )
+            if narrowing:
+                parts.append(narrowing)
+                logger.debug(
+                    "Chain narrowing at depth %d (strategy=%s, value=%s): %s",
+                    depth, strategy_at_depth, folder_val, narrowing,
+                )
+
+        return "\n  ".join(parts)
 
     def get_member_names(self) -> list[str]:
         """Return file names or sub-folder names."""
-        cache_key = f"mount:{self._mount.id}:{self._folder_value}:files"
-
         strategy = self._strategy
+
+        # ── Chain-aware dispatch ──
+        if self._chain is not None:
+            if self._is_terminal:
+                # Terminal chain depth: return files
+                cache_key = f"mount:{self._mount.id}:chain:{self._chain_depth}:{self._folder_value}:files"
+
+                def _load():
+                    return list(self._ensure_file_map().keys())
+
+                return cached_get_member_names(cache_key, _load)
+            else:
+                # Non-terminal: return sub-folder names using NEXT strategy's folder query
+                next_strategy = DirectoryStrategy(self._chain[self._chain_depth + 1])
+                cache_key = f"mount:{self._mount.id}:chain:{self._chain_depth}:{self._folder_value}:subfolders"
+
+                def _load_subfolders():
+                    return self._load_chain_subfolders(next_strategy)
+
+                return cached_get_member_names(cache_key, _load_subfolders)
+
+        # ── Non-chain: existing behavior ──
+        cache_key = f"mount:{self._mount.id}:{self._folder_value}:files"
 
         # by-date year level: return month folders, not files
         if strategy == DirectoryStrategy.BY_DATE and self._parent_folder_value is None:
@@ -318,6 +417,40 @@ class StrategyFolderCollection(DAVCollection):
         member_path = f"{self.path.rstrip('/')}/{name}"
 
         strategy = self._strategy
+
+        # ── Chain-aware dispatch ──
+        if self._chain is not None:
+            if self._is_terminal:
+                # Terminal: children are .md files
+                obj = self._ensure_file_map().get(name)
+                if obj is None:
+                    return None
+                from app.vfs.mount_resource import MountedResourceFile
+                return MountedResourceFile(
+                    member_path,
+                    self.environ,
+                    self._client,
+                    object_iri=obj["iri"],
+                    object_label=obj["label"],
+                    type_iri=obj["type_iri"],
+                    event_store=self._event_store,
+                )
+            else:
+                # Non-terminal: children are sub-folders at next chain depth
+                new_folder_values = self._chain_folder_values + [self._folder_value]
+                return StrategyFolderCollection(
+                    member_path,
+                    self.environ,
+                    self._client,
+                    self._mount,
+                    folder_value=name,
+                    chain=self._chain,
+                    chain_depth=self._chain_depth + 1,
+                    chain_folder_values=new_folder_values,
+                    event_store=self._event_store,
+                )
+
+        # ── Non-chain: existing behavior ──
 
         # by-date year level: children are month folders
         if strategy == DirectoryStrategy.BY_DATE and self._parent_folder_value is None:
@@ -359,35 +492,128 @@ class StrategyFolderCollection(DAVCollection):
         return self._file_map
 
     def _build_file_map(self) -> dict[str, dict]:
-        """Build filename -> object info map for this folder's strategy."""
+        """Build filename -> object info map for this folder's strategy.
+
+        For chain mounts, scope narrowing from parent levels is already
+        included in self._scope_filter (cumulative). Additionally, the
+        current folder's own constraint is added.
+        """
         strategy = self._strategy
         sf = self._scope_filter
 
+        # Add current folder's own narrowing to the scope filter
+        if self._chain is not None:
+            current_narrowing = build_chain_narrowing_filter(
+                self._chain[self._chain_depth],
+                self._folder_value,
+                self._mount,
+                parent_folder_value=self._parent_folder_value,
+            )
+            if current_narrowing:
+                sf = f"{sf}\n  {current_narrowing}" if sf else current_narrowing
+
         if strategy == DirectoryStrategy.BY_TYPE:
-            sparql = self._build_by_type_query()
+            sparql = self._build_by_type_query(sf)
         elif strategy == DirectoryStrategy.BY_DATE:
-            sparql = self._build_by_date_query()
+            sparql = self._build_by_date_query(sf)
         elif strategy == DirectoryStrategy.BY_TAG:
-            sparql = self._build_by_tag_query()
+            sparql = self._build_by_tag_query(sf)
         elif strategy == DirectoryStrategy.BY_PROPERTY:
-            sparql = self._build_by_property_query()
+            sparql = self._build_by_property_query(sf)
         else:
             return {}
 
         result = self._client.query(sparql)
-        return _build_file_map_from_bindings(result["results"]["bindings"])
+        return _build_file_map_from_bindings(
+            result["results"]["bindings"],
+            filename_template=self._mount.filename_template,
+        )
 
-    def _build_by_type_query(self) -> str:
+    def _load_chain_subfolders(self, next_strategy: DirectoryStrategy) -> list[str]:
+        """Load sub-folder names for a non-terminal chain level.
+
+        Uses the NEXT strategy's folder query builder with the current
+        cumulative scope filter + this folder's own narrowing.
+        """
+        sf = self._scope_filter
+
+        # Add current folder's own narrowing
+        current_narrowing = build_chain_narrowing_filter(
+            self._chain[self._chain_depth],
+            self._folder_value,
+            self._mount,
+            parent_folder_value=self._parent_folder_value,
+        )
+        if current_narrowing:
+            sf = f"{sf}\n  {current_narrowing}" if sf else current_narrowing
+
+        if next_strategy == DirectoryStrategy.BY_TYPE:
+            sparql = query_type_folders(sf)
+            result = self._client.query(sparql)
+            return [
+                b["typeLabel"]["value"]
+                for b in result["results"]["bindings"]
+                if b.get("typeLabel", {}).get("value")
+            ]
+
+        elif next_strategy == DirectoryStrategy.BY_DATE:
+            if not self._mount.date_property:
+                return []
+            sparql = query_date_year_folders(self._mount.date_property, sf)
+            result = self._client.query(sparql)
+            return [
+                b["year"]["value"]
+                for b in result["results"]["bindings"]
+                if b.get("year", {}).get("value")
+            ]
+
+        elif next_strategy == DirectoryStrategy.BY_TAG:
+            if not self._mount.group_by_property:
+                return []
+            sparql = query_tag_folders(self._mount.group_by_property, sf)
+            result = self._client.query(sparql)
+            return [
+                b["tagValue"]["value"]
+                for b in result["results"]["bindings"]
+                if b.get("tagValue", {}).get("value")
+            ]
+
+        elif next_strategy == DirectoryStrategy.BY_PROPERTY:
+            if not self._mount.group_by_property:
+                return []
+            sparql = query_property_folders(self._mount.group_by_property, sf)
+            result = self._client.query(sparql)
+            return [
+                b["groupLabel"]["value"]
+                for b in result["results"]["bindings"]
+                if b.get("groupLabel", {}).get("value")
+            ]
+
+        elif next_strategy == DirectoryStrategy.FLAT:
+            # Flat at a sub-level: return files directly
+            sparql = query_flat_objects(sf)
+            result = self._client.query(sparql)
+            fm = _build_file_map_from_bindings(
+                result["results"]["bindings"],
+                filename_template=self._mount.filename_template,
+            )
+            return list(fm.keys())
+
+        return []
+
+    def _build_by_type_query(self, scope_filter: str | None = None) -> str:
         """Query objects of the type matching this folder's label."""
+        sf = scope_filter if scope_filter is not None else self._scope_filter
         # Resolve the type IRI from the type label
         type_iri = self._resolve_type_iri_from_label(self._folder_value)
         if type_iri:
-            return query_objects_by_type(type_iri, self._scope_filter)
+            return query_objects_by_type(type_iri, sf)
         # Fallback: no objects
         return f"SELECT ?iri ?label ?typeIri FROM <urn:sempkm:current> WHERE {{ FILTER(false) }}"
 
-    def _build_by_date_query(self) -> str:
+    def _build_by_date_query(self, scope_filter: str | None = None) -> str:
         """Query objects for a specific year+month."""
+        sf = scope_filter if scope_filter is not None else self._scope_filter
         if not self._mount.date_property or not self._parent_folder_value:
             return f"SELECT ?iri ?label ?typeIri FROM <urn:sempkm:current> WHERE {{ FILTER(false) }}"
 
@@ -398,36 +624,38 @@ class StrategyFolderCollection(DAVCollection):
             return f"SELECT ?iri ?label ?typeIri FROM <urn:sempkm:current> WHERE {{ FILTER(false) }}"
 
         return query_objects_by_date(
-            self._mount.date_property, year, month, self._scope_filter
+            self._mount.date_property, year, month, sf
         )
 
-    def _build_by_tag_query(self) -> str:
+    def _build_by_tag_query(self, scope_filter: str | None = None) -> str:
         """Query objects with a specific tag value."""
+        sf = scope_filter if scope_filter is not None else self._scope_filter
         if not self._mount.group_by_property:
             return f"SELECT ?iri ?label ?typeIri FROM <urn:sempkm:current> WHERE {{ FILTER(false) }}"
 
         if self._folder_value == _UNCATEGORIZED:
             return query_uncategorized_objects(
-                self._mount.group_by_property, self._scope_filter
+                self._mount.group_by_property, sf
             )
         return query_objects_by_tag(
-            self._mount.group_by_property, self._folder_value, self._scope_filter
+            self._mount.group_by_property, self._folder_value, sf
         )
 
-    def _build_by_property_query(self) -> str:
+    def _build_by_property_query(self, scope_filter: str | None = None) -> str:
         """Query objects with a specific property value."""
+        sf = scope_filter if scope_filter is not None else self._scope_filter
         if not self._mount.group_by_property:
             return f"SELECT ?iri ?label ?typeIri FROM <urn:sempkm:current> WHERE {{ FILTER(false) }}"
 
         if self._folder_value == _UNCATEGORIZED:
             return query_uncategorized_objects(
-                self._mount.group_by_property, self._scope_filter
+                self._mount.group_by_property, sf
             )
 
         # Try to resolve folder label back to IRI or literal value
         group_value, is_iri = self._resolve_group_value(self._folder_value)
         return query_objects_by_property(
-            self._mount.group_by_property, group_value, is_iri, self._scope_filter
+            self._mount.group_by_property, group_value, is_iri, sf
         )
 
     # ── Helpers ───────────────────────────────────────────────────────

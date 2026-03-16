@@ -223,6 +223,28 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - ✓ Delete UI for both dashboards and workflows with explorer integration — M006
 - ✓ 93 new unit tests across 7 test files (641 total), zero regressions — M006
 
+### Validated (M007 — Generic Views, VFS Completion & Polish)
+
+<!-- Shipped and confirmed in M007 (2026-03-16). -->
+
+- ✓ VIEW-01–05: Generic views — 3 generic ViewSpec entries (Table/Cards/Graph) with SHACL-driven dynamic columns, type filter pills, carousel integration, explorer consolidation (flat entries + Saved Views folder) — M007
+- ✓ VFS-07–12: VFS completion — type filter with VALUES clause, scopeQuery IRI alignment with migration, preview scope resolution (async/sync), path contract docs + 26 tests, composable strategy chains (up to 3 levels), filename templates with variable expansion — M007
+- ✓ UIPOL-01: UI polish — Lucide sidebar chevrons, always-visible OBJECTS buttons, DASHBOARDS/WORKFLOWS header plus-buttons, normalized inference button, accent Ontology Viewer, horizontal relationships graph — M007
+- ✓ DOCS-04: User guide Chapter 28 covering dashboards and workflows, 6 glossary entries — M007
+- ✓ 120 new unit tests (761 total), zero regressions — M007
+
+### Validated (M008 — Spatial Canvas)
+
+<!-- Shipped and confirmed in M008 (2026-03-16). -->
+
+- ✓ CANVAS-01: Resizable canvas nodes with free drag handles, width/height stored per-node — M008
+- ✓ CANVAS-02: Property flip on canvas object nodes (SHACL-derived table, inline rendering) — M008
+- ✓ CANVAS-03: Live view and dashboard embeds on canvas (dual-layer rendering, iframe persistence) — M008
+- ✓ CANVAS-04: SPARQL query and object read embeds on canvas — M008
+- ✓ CANVAS-05: Embed add UX (toolbar picker + drag from explorer) — M008
+- ✓ E2E tests: 5 Playwright spec files covering canvas API, resize, UI, property flip, and embeds — M008
+- ✓ User guide Chapter 27 updated with resize, property flip, live embeds documentation + glossary entries — M008
+
 ### Future Candidates
 
 <!-- Tracked for future milestones. See .gsd/QUEUE.md for full queue and .gsd/REQUIREMENTS.md for deferred requirements. -->
@@ -243,11 +265,12 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Low-code UI builder (compose basic components tied to SemPKM actions)
 - Minimal workflow orchestration (orchestrated forms/views, not n8n)
 
-**Spatial Canvas Upgrade** (CANVAS-01–05) — queued (M008)
+**Spatial Canvas Upgrade** (CANVAS-01–05) — shipped (M008)
 - Resizable nodes with free drag handles, width/height stored per-node
 - Property flip on object nodes (SHACL-derived properties table, inline)
 - Live view/dashboard/SPARQL/object embeds as resizable iframes
 - Toolbar picker + drag-from-explorer for adding embeds
+- E2E Playwright tests + Chapter 27 user guide update
 
 **App Platform** (APP-01–14) — queued (M009)
 - Sandboxed app platform: manifest validation, subprocess lifecycle, App SDK, 3-level frontend integration
@@ -284,17 +307,33 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current State
 
-**Latest shipped: M006 Dashboards, Workflows & Platform Alignment (2026-03-15)**
+**Latest shipped: M008 Spatial Canvas — Resizable Nodes, Property Flip & Live Embeds (2026-03-16)**
 
-**What shipped in M006 (Dashboards, Workflows & Platform Alignment):**
-- PROV-O migration: all event/comment/query predicates renamed to PROV-O equivalents (6 predicates, 13 files, idempotent migration script)
-- Explorer tree consolidated: ViewSpecs grouped by model (~5 entries instead of 31+ flat), duplicate routes removed
-- VFS scope dropdown fixed: correct fetch URL, optgroup rendering, saved query resolution wired
-- Dashboard subsystem: DashboardSpec model, CSS Grid rendering (5 layouts, 6 block types), builder UI, explorer section
-- Cross-view context filtering: parameterized SPARQL VALUES injection, dashboardContextChanged event chain
-- Workflow subsystem: WorkflowSpec model, stepper runner UI with prev/next navigation, builder UI, explorer section
-- Delete UI for both dashboards and workflows with explorer integration
-- 93 new unit tests across 7 test files (641 total)
+**What shipped in M008 (Spatial Canvas):**
+- Resizable canvas nodes via corner/edge drag handles with grid snapping, min constraints, and width/height persistence
+- Property flip on object nodes — SHACL-derived property table via lightweight /api/canvas/properties endpoint, inline rendering
+- Live iframe embeds for views, dashboards, SPARQL results, and object read views via dual-layer rendering architecture
+- base_embed.html minimal template and ?embed=1 query param across 4 endpoint families
+- Toolbar "Embed" picker with tabbed selection (Views/Dashboards/Queries) + explorer drag-drop
+- Max 8 simultaneous iframe embeds enforced
+- Canvas document schema extended with nodeType, embedConfig, width, height, showProperties fields
+- 69 new unit tests (830+ total), 5 E2E Playwright spec files (94 total)
+- Chapter 27 updated with 3 new feature sections + 2 glossary entries
+
+**What shipped in M007 (Generic Views, VFS Completion & Polish):**
+- 3 generic views (Table/Cards/Graph) with SHACL-driven dynamic columns replacing per-type explorer tree
+- Type filter pills for cross-type filtering with localStorage persistence
+- Carousel tab bar showing model-declared view variants when type selected
+- Explorer consolidation: flat entries + Saved Views folder (no per-model/per-type folders)
+- VFS type filter with VALUES clause AND-composed with scope, multi-select UI
+- VFS scopeQuery predicate with full IRI storage and migration (from savedQueryId)
+- VFS preview endpoint resolving saved query scope, HTTP 404 on missing
+- VFS path contract documentation with 26 unit tests
+- VFS composable strategy chains (up to 3 levels, cumulative scope narrowing, chain builder UI with presets)
+- VFS filename templates with {title}/{date}/{type}/{id} variable expansion
+- UI polish: Lucide sidebar chevrons, always-visible OBJECTS buttons, DASHBOARDS/WORKFLOWS header plus-buttons, normalized inference button, accent Ontology Viewer, horizontal relationships graph
+- User guide Chapter 28 (dashboards/workflows), 6 glossary entries
+- 120 new unit tests (761 total), all 13 active requirements validated
 
 **What shipped in M005 (Platform Polish & Foundation):**
 - Query SQL→RDF migration: saved queries, history, sharing, promotion stored as RDF in triplestore
@@ -306,26 +345,27 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - E2E test coverage: 5 new Playwright tests across 3 spec files
 - User guide: 4 chapters updated with new feature documentation
 
-**Previous milestones:** M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
+**Previous milestones:** M007 Generic Views, VFS Completion & Polish (2026-03-16), M006 Dashboards, Workflows & Platform Alignment (2026-03-15), M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
 
-**Current milestone:** M007 Generic Views, VFS Completion & Polish — planned (5 slices: S01 generic views, S02 VFS quick wins, S03 composable chains + filename templates, S04 UI polish, S05 docs). Covers all 13 active requirements.
-
-**Queued:** M008 Spatial Canvas — Resizable Nodes, Property Flip & Live Embeds (pending M007 completion)
+**Current milestone:** None active — M008 complete.
 
 ## Context
 
-**Current state (M006 complete 2026-03-15):**
-- ~56k source LOC (49k Python, 7k JS) + CSS, HTML/Jinja2, JSON-LD
+**Current state (M008 complete 2026-03-16):**
+- ~59k source LOC (52k Python, 7k JS) + CSS, HTML/Jinja2, JSON-LD
 - Tech stack: FastAPI + RDF4J (LuceneSail) + htmx/vanilla-web + SQLAlchemy (SQLite/PostgreSQL) + wsgidav + a2wsgi + Driver.js + Cytoscape.js + CodeMirror + dockview-core + Alembic + Yasgui CDN + ninja-keys + owlrl + pyshacl + mf2py + http-message-signatures + slowapi
 - Docker Compose deployment: 3 services (api, triplestore, frontend/nginx) + federation test compose (2 instances)
-- 58 phases, 80 plans completed across v1.0–v2.6; M002 (7 slices) + M003 (10 slices) + M004 (5 slices) + M005 (9 slices) + M006 (7 slices) milestones complete
-- Backend test suite: 641 pytest unit tests, <5s, no Docker dependency
-- E2E test suite: 89 Playwright spec files covering all shipped features
+- 58 phases, 80 plans completed across v1.0–v2.6; M002 (7 slices) + M003 (10 slices) + M004 (5 slices) + M005 (9 slices) + M006 (7 slices) + M007 (5 slices) + M008 (4 slices) milestones complete
+- Backend test suite: 830+ pytest unit tests, <5s, no Docker dependency
+- E2E test suite: 94 Playwright spec files covering all shipped features
 - All dependencies pinned (~= compatible release) with uv.lock committed
 - Browser router refactored into 8 domain sub-modules (was 1956-line monolith)
 - Query storage migrated from SQL to RDF (4 SQL tables dropped)
 - 3 design docs produced: PROV-O alignment, views rethink, VFS v2
 - 2 new domain modules: dashboard/, workflow/ (SQLAlchemy + CRUD + builder UI)
+- Generic views infrastructure: 3 ViewSpec entries, SHACL column discovery, type filter pills
+- VFS v2 complete (except write support): type filter, scopeQuery IRI, composable chains, filename templates
+- Spatial canvas: resizable nodes, property flip, live iframe embeds with dual-layer rendering
 
 **Known tech debt:**
 - Cookie secure=False (local dev only — production config deferred)
@@ -448,4 +488,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-03-16 after M009/M010 queued*
+*Last updated: 2026-03-16 after M008 complete (all 4 slices)*

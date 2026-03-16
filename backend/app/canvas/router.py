@@ -1,5 +1,6 @@
 """Canvas API endpoints for save/load (C1)."""
 
+import logging
 from urllib.parse import urlparse
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -20,9 +21,18 @@ from app.canvas.schemas import (
 )
 from app.canvas.service import CanvasService
 from app.db.session import get_db_session
-from app.dependencies import get_triplestore_client, get_view_spec_service
+from app.dependencies import (
+    get_label_service,
+    get_shapes_service,
+    get_triplestore_client,
+    get_view_spec_service,
+)
+from app.services.labels import LabelService
+from app.services.shapes import NodeShapeForm, PropertyShape, ShapesService
 from app.triplestore.client import TriplestoreClient
 from app.views.service import ViewSpecService
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/canvas", tags=["canvas"])
 
@@ -135,6 +145,229 @@ async def get_node_body(
         body = ""
 
     return {"iri": iri, "body": body}
+
+
+# ------------------------------------------------------------------
+# Property building (pure-function helper, unit-testable)
+# ------------------------------------------------------------------
+
+RDF_TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+SEMPKM_BODY = "urn:sempkm:body"
+
+# Well-known predicates excluded from unmatched output
+_SKIP_PREDICATES = {RDF_TYPE, SEMPKM_BODY}
+
+
+def _local_name(iri: str) -> str:
+    """Extract local name from an IRI (fragment or last path segment)."""
+    if "#" in iri:
+        return iri.rsplit("#", 1)[-1]
+    if "/" in iri:
+        return iri.rsplit("/", 1)[-1]
+    return iri
+
+
+def _is_body_property(prop: PropertyShape) -> bool:
+    """Check if a SHACL property represents a body field."""
+    return bool(prop.name and prop.name.lower() == "body")
+
+
+def build_property_list(
+    bindings: list[dict],
+    inferred_bindings: list[dict],
+    form: NodeShapeForm | None,
+    labels: dict[str, str],
+) -> list[dict]:
+    """Build the property list from SPARQL bindings, SHACL form, and resolved labels.
+
+    This is a pure function — all I/O (SPARQL queries, label resolution) happens
+    in the calling endpoint. This function only transforms data.
+
+    Args:
+        bindings: SPARQL results from urn:sempkm:current graph
+        inferred_bindings: SPARQL results from urn:sempkm:inferred graph
+        form: SHACL NodeShapeForm (or None if no type matched)
+        labels: Pre-resolved IRI→label mapping for reference values
+
+    Returns:
+        List of property dicts with name, path, values, datatype, source keys.
+    """
+    # --- Parse current-graph bindings ---
+    values: dict[str, list[dict]] = {}
+    type_iris: list[str] = []
+    matched_predicates: set[str] = set()
+
+    for b in bindings:
+        pred = b["p"]["value"]
+        obj = b["o"]
+        obj_val = obj["value"]
+        obj_type = obj.get("type", "literal")
+
+        if pred == RDF_TYPE:
+            type_iris.append(obj_val)
+            continue
+        if pred == SEMPKM_BODY:
+            continue
+
+        entry = {"value": obj_val}
+        if obj_type == "uri":
+            ref_label = labels.get(obj_val)
+            if ref_label:
+                entry["ref_label"] = ref_label
+        values.setdefault(pred, []).append(entry)
+
+    # --- Parse inferred-graph bindings (deduplicate against current) ---
+    inferred_values: dict[str, list[dict]] = {}
+    current_triples = set()
+    for pred, val_list in values.items():
+        for v in val_list:
+            current_triples.add((pred, v["value"]))
+
+    for b in inferred_bindings:
+        pred = b["p"]["value"]
+        obj = b["o"]
+        obj_val = obj["value"]
+        obj_type = obj.get("type", "literal")
+
+        if pred == RDF_TYPE or pred == SEMPKM_BODY:
+            continue
+        if (pred, obj_val) in current_triples:
+            continue
+
+        entry = {"value": obj_val}
+        if obj_type == "uri":
+            ref_label = labels.get(obj_val)
+            if ref_label:
+                entry["ref_label"] = ref_label
+        inferred_values.setdefault(pred, []).append(entry)
+
+    # --- Build properties from SHACL form (ordered by sh:order) ---
+    properties: list[dict] = []
+
+    if form:
+        for prop in form.properties:
+            if _is_body_property(prop):
+                matched_predicates.add(prop.path)
+                continue
+            prop_vals = values.get(prop.path, [])
+            if not prop_vals:
+                continue
+            matched_predicates.add(prop.path)
+            properties.append({
+                "name": prop.name,
+                "path": prop.path,
+                "values": prop_vals,
+                "datatype": prop.datatype,
+                "source": "current",
+            })
+
+    # --- Unmatched current predicates (in graph but not in SHACL form) ---
+    for pred, val_list in values.items():
+        if pred in matched_predicates or pred in _SKIP_PREDICATES:
+            continue
+        properties.append({
+            "name": _local_name(pred),
+            "path": pred,
+            "values": val_list,
+            "datatype": None,
+            "source": "current",
+        })
+
+    # --- Inferred properties ---
+    for pred, val_list in inferred_values.items():
+        if pred in matched_predicates or pred in _SKIP_PREDICATES:
+            continue
+        properties.append({
+            "name": _local_name(pred),
+            "path": pred,
+            "values": val_list,
+            "datatype": None,
+            "source": "inferred",
+        })
+
+    return properties
+
+
+@router.get("/properties")
+async def get_node_properties(
+    iri: str = Query(..., description="Object IRI"),
+    user: User = Depends(get_current_user),
+    client: TriplestoreClient = Depends(get_triplestore_client),
+    shapes_service: ShapesService = Depends(get_shapes_service),
+    label_service: LabelService = Depends(get_label_service),
+):
+    """Return SHACL-derived property data for an object node."""
+    if not _is_valid_iri(iri):
+        raise HTTPException(status_code=400, detail="Invalid IRI")
+
+    # --- Query current graph ---
+    current_sparql = f"""
+    SELECT ?p ?o WHERE {{
+      GRAPH <urn:sempkm:current> {{
+        <{iri}> ?p ?o .
+      }}
+    }}
+    """
+    try:
+        result = await client.query(current_sparql)
+        bindings = result.get("results", {}).get("bindings", [])
+    except Exception:
+        logger.warning("Failed to query properties for %s", iri, exc_info=True)
+        bindings = []
+
+    # --- Query inferred graph ---
+    inferred_sparql = f"""
+    SELECT ?p ?o WHERE {{
+      GRAPH <urn:sempkm:inferred> {{
+        <{iri}> ?p ?o .
+      }}
+    }}
+    """
+    try:
+        inf_result = await client.query(inferred_sparql)
+        inferred_bindings = inf_result.get("results", {}).get("bindings", [])
+    except Exception:
+        logger.warning(
+            "Failed to query inferred properties for %s", iri, exc_info=True
+        )
+        inferred_bindings = []
+
+    # --- Extract type IRIs and resolve SHACL form ---
+    type_iris: list[str] = []
+    for b in bindings:
+        if b["p"]["value"] == RDF_TYPE:
+            type_iris.append(b["o"]["value"])
+
+    form: NodeShapeForm | None = None
+    if type_iris:
+        for type_iri in type_iris:
+            form = await shapes_service.get_form_for_type(type_iri)
+            if form:
+                break
+
+    # --- Resolve type label ---
+    type_label: str | None = None
+    if type_iris:
+        type_labels = await label_service.resolve_batch(type_iris)
+        for t_iri in type_iris:
+            if t_iri in type_labels:
+                type_label = type_labels[t_iri]
+                break
+
+    # --- Collect all IRI values for label resolution ---
+    all_iri_values: list[str] = []
+    for b in bindings + inferred_bindings:
+        if b["o"].get("type") == "uri" and b["p"]["value"] != RDF_TYPE:
+            all_iri_values.append(b["o"]["value"])
+
+    ref_labels: dict[str, str] = {}
+    if all_iri_values:
+        ref_labels = await label_service.resolve_batch(all_iri_values)
+
+    # --- Build property list ---
+    properties = build_property_list(bindings, inferred_bindings, form, ref_labels)
+
+    return {"type_label": type_label, "properties": properties}
 
 
 # ------------------------------------------------------------------

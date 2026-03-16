@@ -85,12 +85,11 @@
                     <td>{{ model.description }}</td>
                     <td>{{ model.installed_at[:10] if model.installed_at else "Unknown" }}</td>
                     <td>
-                        <a href="/admin/models/{{ model.model_id }}/entailment"
-                           class="btn btn-warning btn-sm"
-                           hx-get="/admin/models/{{ model.model_id }}/entailment"
-                           hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
+                        <button class="btn btn-warning btn-sm"
+                                hx-get="/admin/models/{{ model.model_id }}/entailment"
+                                hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
                             Inference
-                        </a>
+                        </button>
                         <button class="btn btn-info btn-sm"
                                 hx-post="/admin/models/{{ model.model_id }}/refresh-artifacts"
                                 hx-target="#model-table"

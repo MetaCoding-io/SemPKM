@@ -15,7 +15,7 @@ from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
@@ -27,18 +27,32 @@ from app.vfs.mount_service import (
     CREATED_BY,
     DATE_PROPERTY,
     DIRECTORY_STRATEGY,
+    FILENAME_TEMPLATE,
     GRAPH_MOUNTS,
     GROUP_BY_PROPERTY,
     MOUNT_NAME,
     MOUNT_PATH,
     NS_MOUNT,
     NS_SEMPKM,
-    SAVED_QUERY_ID,
+    SCOPE_QUERY,
     SPARQL_SCOPE,
+    TYPE_FILTER,
     VALID_STRATEGIES,
     VISIBILITY,
     MountDefinition,
     _escape_sparql,
+    _validate_strategy_chain,
+)
+from app.vfs.strategies import (
+    QUERIES_GRAPH,
+    PRED_QUERY_TEXT,
+    build_chain_narrowing_filter,
+    build_scope_filter,
+    query_date_month_folders,
+    query_date_year_folders,
+    query_property_folders,
+    query_tag_folders,
+    query_type_folders,
 )
 
 logger = logging.getLogger(__name__)
@@ -52,17 +66,36 @@ _RESERVED_PATHS = {"_uncategorized"}
 
 # ── Request/Response Models ─────────────────────────────────────────
 
+def _normalize_strategy(v: str | list[str]) -> str:
+    """Normalize strategy to pipe-delimited string and validate chain rules."""
+    if isinstance(v, list):
+        v = "|".join(v)
+    # Validate using T02's chain validation (max 3, each valid)
+    _validate_strategy_chain(v)
+    return v
+
+
 class MountCreateRequest(BaseModel):
     """Request body for creating a mount."""
 
     name: str = Field(..., min_length=1, max_length=255)
     path: str = Field(..., min_length=1, max_length=100)
-    strategy: str = Field(..., description="One of: flat, by-type, by-date, by-tag, by-property")
+    strategy: str | list[str] = Field(
+        ...,
+        description="Strategy or chain: e.g. 'by-tag' or ['by-tag', 'by-date']",
+    )
     group_by_property: str | None = None
     date_property: str | None = None
     sparql_scope: str | None = "all"
-    saved_query_id: str | None = None
+    scope_query: str | None = None
+    type_filter: list[str] | None = None
+    filename_template: str | None = None
     visibility: str | None = "personal"
+
+    @field_validator("strategy", mode="before")
+    @classmethod
+    def normalize_strategy(cls, v: str | list[str]) -> str:
+        return _normalize_strategy(v)
 
 
 class MountUpdateRequest(BaseModel):
@@ -70,22 +103,40 @@ class MountUpdateRequest(BaseModel):
 
     name: str | None = None
     path: str | None = None
-    strategy: str | None = None
+    strategy: str | list[str] | None = None
     group_by_property: str | None = None
     date_property: str | None = None
     sparql_scope: str | None = None
-    saved_query_id: str | None = None
+    scope_query: str | None = None
+    type_filter: list[str] | None = None
+    filename_template: str | None = None
     visibility: str | None = None
+
+    @field_validator("strategy", mode="before")
+    @classmethod
+    def normalize_strategy(cls, v: str | list[str] | None) -> str | None:
+        if v is None:
+            return v
+        return _normalize_strategy(v)
 
 
 class MountPreviewRequest(BaseModel):
     """Request body for previewing a mount's directory structure."""
 
-    strategy: str = Field(..., description="One of: flat, by-type, by-date, by-tag, by-property")
+    strategy: str | list[str] = Field(
+        ...,
+        description="Strategy or chain: e.g. 'by-tag' or ['by-tag', 'by-date']",
+    )
     group_by_property: str | None = None
     date_property: str | None = None
     sparql_scope: str | None = "all"
-    saved_query_id: str | None = None
+    scope_query: str | None = None
+    type_filter: list[str] | None = None
+
+    @field_validator("strategy", mode="before")
+    @classmethod
+    def normalize_strategy(cls, v: str | list[str]) -> str:
+        return _normalize_strategy(v)
 
 
 # ── Async Helpers ───────────────────────────────────────────────────
@@ -150,7 +201,9 @@ async def _get_mount_by_id_async(
     result = await client.query(
         f"""
         SELECT ?name ?path ?strategy ?groupByProp ?dateProp
-               ?scope ?savedQueryId ?createdBy ?visibility ?createdAt
+               ?scope ?scopeQuery ?createdBy ?visibility ?createdAt
+               ?filenameTemplate
+               (GROUP_CONCAT(DISTINCT ?tf; separator="|") AS ?typeFilters)
         FROM <{GRAPH_MOUNTS}>
         WHERE {{
           <{mount_iri}> a <{NS_SEMPKM}MountSpec> ;
@@ -162,9 +215,14 @@ async def _get_mount_by_id_async(
           OPTIONAL {{ <{mount_iri}> <{GROUP_BY_PROPERTY}> ?groupByProp }}
           OPTIONAL {{ <{mount_iri}> <{DATE_PROPERTY}> ?dateProp }}
           OPTIONAL {{ <{mount_iri}> <{SPARQL_SCOPE}> ?scope }}
-          OPTIONAL {{ <{mount_iri}> <{SAVED_QUERY_ID}> ?savedQueryId }}
+          OPTIONAL {{ <{mount_iri}> <{SCOPE_QUERY}> ?scopeQuery }}
           OPTIONAL {{ <{mount_iri}> <{CREATED_AT}> ?createdAt }}
+          OPTIONAL {{ <{mount_iri}> <{TYPE_FILTER}> ?tf }}
+          OPTIONAL {{ <{mount_iri}> <{FILENAME_TEMPLATE}> ?filenameTemplate }}
         }}
+        GROUP BY ?name ?path ?strategy ?groupByProp ?dateProp
+                 ?scope ?scopeQuery ?createdBy ?visibility ?createdAt
+                 ?filenameTemplate
         LIMIT 1
         """
     )
@@ -173,6 +231,8 @@ async def _get_mount_by_id_async(
         return None
 
     b = bindings[0]
+    tf_raw = b.get("typeFilters", {}).get("value", "")
+    type_filter = [s for s in tf_raw.split("|") if s] or None
     return MountDefinition(
         id=mount_id,
         name=b["name"]["value"],
@@ -181,7 +241,9 @@ async def _get_mount_by_id_async(
         group_by_property=b.get("groupByProp", {}).get("value"),
         date_property=b.get("dateProp", {}).get("value"),
         sparql_scope=b.get("scope", {}).get("value", "all"),
-        saved_query_id=b.get("savedQueryId", {}).get("value"),
+        scope_query=b.get("scopeQuery", {}).get("value"),
+        type_filter=type_filter,
+        filename_template=b.get("filenameTemplate", {}).get("value"),
         created_by=b["createdBy"]["value"],
         visibility=b["visibility"]["value"],
         created_at=b.get("createdAt", {}).get("value", ""),
@@ -231,7 +293,8 @@ async def list_mounts(
     result = await client.query(
         f"""
         SELECT DISTINCT ?mount ?name ?path ?strategy ?groupByProp ?dateProp
-               ?scope ?savedQueryId ?createdBy ?visibility ?createdAt
+               ?scope ?scopeQuery ?createdBy ?visibility ?createdAt
+               ?filenameTemplate
         FROM <{GRAPH_MOUNTS}>
         WHERE {{
           ?mount a <{NS_SEMPKM}MountSpec> ;
@@ -243,8 +306,9 @@ async def list_mounts(
           OPTIONAL {{ ?mount <{GROUP_BY_PROPERTY}> ?groupByProp }}
           OPTIONAL {{ ?mount <{DATE_PROPERTY}> ?dateProp }}
           OPTIONAL {{ ?mount <{SPARQL_SCOPE}> ?scope }}
-          OPTIONAL {{ ?mount <{SAVED_QUERY_ID}> ?savedQueryId }}
+          OPTIONAL {{ ?mount <{SCOPE_QUERY}> ?scopeQuery }}
           OPTIONAL {{ ?mount <{CREATED_AT}> ?createdAt }}
+          OPTIONAL {{ ?mount <{FILENAME_TEMPLATE}> ?filenameTemplate }}
           FILTER(
             ?visibility = "shared" ||
             ?createdBy = <{user_iri}>
@@ -254,6 +318,19 @@ async def list_mounts(
         """
     )
 
+    # Fetch type_filter triples for all mounts in one query
+    tf_result = await client.query(
+        f"""
+        SELECT ?mount ?tf
+        FROM <{GRAPH_MOUNTS}>
+        WHERE {{ ?mount <{TYPE_FILTER}> ?tf }}
+        """
+    )
+    type_filters_map: dict[str, list[str]] = {}
+    for tf_b in tf_result["results"]["bindings"]:
+        m_iri = tf_b["mount"]["value"]
+        type_filters_map.setdefault(m_iri, []).append(tf_b["tf"]["value"])
+
     for b in result["results"]["bindings"]:
         mount_iri = b["mount"]["value"]
         mount_id = (
@@ -261,6 +338,7 @@ async def list_mounts(
             if mount_iri.startswith(NS_MOUNT)
             else mount_iri
         )
+        type_filter = type_filters_map.get(mount_iri) or None
         d = MountDefinition(
             id=mount_id,
             name=b["name"]["value"],
@@ -269,7 +347,9 @@ async def list_mounts(
             group_by_property=b.get("groupByProp", {}).get("value"),
             date_property=b.get("dateProp", {}).get("value"),
             sparql_scope=b.get("scope", {}).get("value", "all"),
-            saved_query_id=b.get("savedQueryId", {}).get("value"),
+            scope_query=b.get("scopeQuery", {}).get("value"),
+            type_filter=type_filter,
+            filename_template=b.get("filenameTemplate", {}).get("value"),
             created_by=b["createdBy"]["value"],
             visibility=b["visibility"]["value"],
             created_at=b.get("createdAt", {}).get("value", ""),
@@ -287,13 +367,7 @@ async def create_mount(
     client: TriplestoreClient = Depends(get_triplestore_client),
 ):
     """Create a new mount definition."""
-    # Validate strategy
-    if body.strategy not in VALID_STRATEGIES:
-        raise HTTPException(
-            400,
-            f"Invalid strategy '{body.strategy}'. "
-            f"Must be one of: {', '.join(sorted(VALID_STRATEGIES))}",
-        )
+    # Strategy validation is handled by Pydantic field_validator (chain-aware)
 
     # Only owners can create shared mounts
     visibility = body.visibility or "personal"
@@ -331,9 +405,18 @@ async def create_mount(
         triples.append(
             f'<{mount_iri}> <{SPARQL_SCOPE}> "{_escape_sparql(scope)}"'
         )
-    if body.saved_query_id:
+    if body.scope_query:
         triples.append(
-            f'<{mount_iri}> <{SAVED_QUERY_ID}> "{_escape_sparql(body.saved_query_id)}"^^<http://www.w3.org/2001/XMLSchema#string>'
+            f'<{mount_iri}> <{SCOPE_QUERY}> <{body.scope_query}>'
+        )
+    if body.type_filter:
+        for type_iri in body.type_filter:
+            triples.append(
+                f'<{mount_iri}> <{TYPE_FILTER}> <{type_iri}>'
+            )
+    if body.filename_template:
+        triples.append(
+            f'<{mount_iri}> <{FILENAME_TEMPLATE}> "{_escape_sparql(body.filename_template)}"'
         )
 
     sparql = f"""
@@ -354,7 +437,9 @@ async def create_mount(
         group_by_property=body.group_by_property,
         date_property=body.date_property,
         sparql_scope=scope,
-        saved_query_id=body.saved_query_id,
+        scope_query=body.scope_query,
+        type_filter=body.type_filter if body.type_filter else None,
+        filename_template=body.filename_template,
         created_by=user_iri,
         visibility=visibility,
         created_at=created_at,
@@ -388,13 +473,11 @@ async def update_mount(
     for key, value in updates.items():
         setattr(existing, key, value)
 
-    # Validate strategy
-    if existing.strategy not in VALID_STRATEGIES:
-        raise HTTPException(
-            400,
-            f"Invalid strategy '{existing.strategy}'. "
-            f"Must be one of: {', '.join(sorted(VALID_STRATEGIES))}",
-        )
+    # Validate strategy (chain-aware)
+    try:
+        _validate_strategy_chain(existing.strategy)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
 
     # Validate path if changed
     if "path" in updates:
@@ -434,9 +517,18 @@ async def update_mount(
         triples.append(
             f'<{mount_iri}> <{SPARQL_SCOPE}> "{_escape_sparql(existing.sparql_scope)}"'
         )
-    if existing.saved_query_id:
+    if existing.scope_query:
         triples.append(
-            f'<{mount_iri}> <{SAVED_QUERY_ID}> "{_escape_sparql(existing.saved_query_id)}"^^<http://www.w3.org/2001/XMLSchema#string>'
+            f'<{mount_iri}> <{SCOPE_QUERY}> <{existing.scope_query}>'
+        )
+    if existing.type_filter:
+        for tf_iri in existing.type_filter:
+            triples.append(
+                f'<{mount_iri}> <{TYPE_FILTER}> <{tf_iri}>'
+            )
+    if existing.filename_template:
+        triples.append(
+            f'<{mount_iri}> <{FILENAME_TEMPLATE}> "{_escape_sparql(existing.filename_template)}"'
         )
 
     await client.update(
@@ -484,6 +576,91 @@ async def delete_mount(
     return JSONResponse(content=None, status_code=204)
 
 
+# ── Preview helper: strategy → folders query ─────────────────────────
+
+async def _query_strategy_folders(
+    client: TriplestoreClient,
+    strategy: str,
+    mount: MountDefinition,
+    scope_filter: str,
+) -> list[dict]:
+    """Query folder-level data for a single strategy, used by chain preview.
+
+    Returns list of dicts with 'name' and 'file_count' keys.
+    """
+    directories: list[dict] = []
+
+    if strategy == "flat":
+        result = await client.query(
+            f"""
+            SELECT (COUNT(DISTINCT ?iri) AS ?count) FROM <urn:sempkm:current>
+            WHERE {{
+              ?iri a ?type .
+              {scope_filter}
+            }}
+            """
+        )
+        count = int(result["results"]["bindings"][0]["count"]["value"]) if result["results"]["bindings"] else 0
+        directories.append({"name": "(all files)", "file_count": min(count, 100)})
+
+    elif strategy == "by-type":
+        sparql = query_type_folders(scope_filter)
+        result = await client.query(sparql)
+        for b in result["results"]["bindings"]:
+            # Count objects per type
+            type_iri = b["typeIri"]["value"]
+            type_label = b["typeLabel"]["value"]
+            count_result = await client.query(
+                f"""
+                SELECT (COUNT(DISTINCT ?iri) AS ?count) FROM <urn:sempkm:current>
+                WHERE {{
+                  ?iri a <{type_iri}> .
+                  {scope_filter}
+                }}
+                """
+            )
+            count = int(count_result["results"]["bindings"][0]["count"]["value"]) if count_result["results"]["bindings"] else 0
+            directories.append({"name": type_label, "file_count": min(count, 100)})
+
+    elif strategy == "by-tag":
+        if mount.group_by_property:
+            sparql = query_tag_folders(mount.group_by_property, scope_filter)
+            result = await client.query(sparql)
+            for b in result["results"]["bindings"]:
+                tag_value = b["tagValue"]["value"]
+                # Count objects per tag
+                count_result = await client.query(
+                    f"""
+                    SELECT (COUNT(DISTINCT ?iri) AS ?count) FROM <urn:sempkm:current>
+                    WHERE {{
+                      ?iri <{mount.group_by_property}> ?tv .
+                      FILTER(STR(?tv) = "{tag_value}")
+                      {scope_filter}
+                    }}
+                    """
+                )
+                count = int(count_result["results"]["bindings"][0]["count"]["value"]) if count_result["results"]["bindings"] else 0
+                directories.append({"name": tag_value, "file_count": min(count, 100)})
+
+    elif strategy == "by-date":
+        if mount.date_property:
+            sparql = query_date_year_folders(mount.date_property, scope_filter)
+            result = await client.query(sparql)
+            for b in result["results"]["bindings"]:
+                year = b["year"]["value"]
+                directories.append({"name": year, "file_count": 0})
+
+    elif strategy == "by-property":
+        if mount.group_by_property:
+            sparql = query_property_folders(mount.group_by_property, scope_filter)
+            result = await client.query(sparql)
+            for b in result["results"]["bindings"]:
+                label = b["groupLabel"]["value"]
+                directories.append({"name": label, "file_count": 0})
+
+    return directories
+
+
 @router.post("/mounts/preview")
 async def preview_mount(
     body: MountPreviewRequest,
@@ -493,22 +670,80 @@ async def preview_mount(
     """Preview the directory structure a mount config would produce.
 
     Returns a tree of directories with object counts, without creating
-    the mount. Caps at 100 objects per folder.
+    the mount. For chain strategies, returns nested tree (capped at 2 levels).
+    Caps at 100 objects per folder.
     """
-    if body.strategy not in VALID_STRATEGIES:
-        raise HTTPException(
-            400,
-            f"Invalid strategy '{body.strategy}'. "
-            f"Must be one of: {', '.join(sorted(VALID_STRATEGIES))}",
-        )
+    # Strategy validation is handled by Pydantic field_validator (chain-aware)
 
-    # Build scope filter (default: all objects in current graph)
-    scope_filter = ""
-    if body.sparql_scope and body.sparql_scope != "all" and body.saved_query_id:
-        # If scope references a saved query, use it as a sub-select
-        # For preview, we just use all objects (full scope query execution
-        # would require loading the saved query text from SQLite)
-        scope_filter = ""
+    # ── Build scope filter ────────────────────────────────────────────
+    resolved_query_text: str | None = None
+
+    if body.scope_query:
+        # Resolve saved query IRI to its SPARQL text via async client
+        logger.debug("Preview: resolving scope_query %s", body.scope_query)
+        q_result = await client.query(
+            f"SELECT ?text FROM <{QUERIES_GRAPH}> WHERE {{\n"
+            f"  <{body.scope_query}> <{PRED_QUERY_TEXT}> ?text\n"
+            f"}}"
+        )
+        q_bindings = q_result.get("results", {}).get("bindings", [])
+        if q_bindings:
+            resolved_query_text = str(q_bindings[0]["text"]["value"])
+            logger.debug("Preview: resolved scope_query to %d chars", len(resolved_query_text))
+        else:
+            raise HTTPException(404, "Saved query not found")
+
+    # Build a temporary MountDefinition for scope filter composition
+    temp_mount = MountDefinition(
+        id="preview",
+        name="preview",
+        path="preview",
+        strategy=body.strategy,
+        group_by_property=body.group_by_property,
+        date_property=body.date_property,
+        sparql_scope=body.sparql_scope or "all",
+        scope_query=body.scope_query,
+        type_filter=body.type_filter if body.type_filter else None,
+    )
+    scope_filter = build_scope_filter(temp_mount, resolved_query_text=resolved_query_text)
+
+    # ── Chain preview: nested tree ────────────────────────────────────
+    if temp_mount.is_chain:
+        chain = temp_mount.strategy_chain
+        logger.debug("Preview: chain strategy %s, %d levels", chain, len(chain))
+        level0_folders = await _query_strategy_folders(
+            client, chain[0], temp_mount, scope_filter
+        )
+        # Cap preview at 2 levels to avoid expensive queries
+        preview_depth = min(len(chain), 2)
+        if preview_depth < 2 or len(chain) < 2:
+            # Single-level chain or only 1 level to preview
+            return JSONResponse({
+                "directories": level0_folders,
+                "chain": chain,
+            })
+
+        # Build nested tree: level-0 folders each get level-1 children
+        nested: list[dict] = []
+        for l0_folder in level0_folders[:5]:  # cap top-level to 5
+            narrowing = build_chain_narrowing_filter(
+                chain[0], l0_folder["name"], temp_mount
+            )
+            combined_scope = scope_filter
+            if narrowing:
+                combined_scope = f"{scope_filter}\n  {narrowing}" if scope_filter else narrowing
+            l1_folders = await _query_strategy_folders(
+                client, chain[1], temp_mount, combined_scope
+            )
+            nested.append({
+                "name": l0_folder["name"],
+                "file_count": l0_folder.get("file_count", 0),
+                "children": l1_folders[:10],  # cap children to 10
+            })
+        return JSONResponse({
+            "directories": nested,
+            "chain": chain,
+        })
 
     directories: list[dict] = []
 

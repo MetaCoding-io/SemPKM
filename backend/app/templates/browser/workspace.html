@@ -29,7 +29,7 @@
                 <div class="explorer-section-header" draggable="true"
                      onclick="this.parentElement.classList.toggle('expanded')">
                     <i data-lucide="grip-vertical" class="panel-grip"></i>
-                    <span class="explorer-section-chevron">&#9656;</span>
+                    <i data-lucide="chevron-right" class="explorer-section-chevron"></i>
                     <span class="explorer-section-title">OBJECTS</span>
                     <select id="explorer-mode-select" name="mode" class="explorer-mode-select"
                             hx-get="/browser/explorer/tree"
@@ -62,25 +62,10 @@
                      hx-trigger="load"
                      hx-swap="innerHTML">
                     <i data-lucide="grip-vertical" class="panel-grip"></i>
-                    <span class="explorer-section-chevron">&#9656;</span>
+                    <i data-lucide="chevron-right" class="explorer-section-chevron"></i>
                     <span class="explorer-section-title">VIEWS</span>
                 </div>
                 <div class="explorer-section-body" id="views-tree">
-                    <div class="tree-empty">Loading views...</div>
-                </div>
-            </div>
-            <div class="explorer-section" id="section-my-views" data-panel-name="my-views">
-                <div class="explorer-section-header" draggable="true"
-                     onclick="this.parentElement.classList.toggle('expanded')"
-                     hx-get="/browser/my-views"
-                     hx-target="#my-views-tree"
-                     hx-trigger="load"
-                     hx-swap="innerHTML">
-                    <i data-lucide="grip-vertical" class="panel-grip"></i>
-                    <span class="explorer-section-chevron">&#9656;</span>
-                    <span class="explorer-section-title">MY VIEWS</span>
-                </div>
-                <div class="explorer-section-body" id="my-views-tree">
                     <div class="tree-empty">Loading views...</div>
                 </div>
             </div>
@@ -88,8 +73,11 @@
                 <div class="explorer-section-header" draggable="true"
                      onclick="this.parentElement.classList.toggle('expanded')">
                     <i data-lucide="grip-vertical" class="panel-grip"></i>
-                    <span class="explorer-section-chevron">&#9656;</span>
+                    <i data-lucide="chevron-right" class="explorer-section-chevron"></i>
                     <span class="explorer-section-title">DASHBOARDS</span>
+                    <span class="explorer-header-actions">
+                        <button class="panel-btn explorer-action-btn" onclick="event.stopPropagation(); openDashboardBuilderTab()" title="New Dashboard"><i data-lucide="plus"></i></button>
+                    </span>
                 </div>
                 <div class="explorer-section-body" id="dashboards-tree"
                      hx-get="/browser/dashboard/explorer"
@@ -102,8 +90,11 @@
                 <div class="explorer-section-header" draggable="true"
                      onclick="this.parentElement.classList.toggle('expanded')">
                     <i data-lucide="grip-vertical" class="panel-grip"></i>
-                    <span class="explorer-section-chevron">&#9656;</span>
+                    <i data-lucide="chevron-right" class="explorer-section-chevron"></i>
                     <span class="explorer-section-title">WORKFLOWS</span>
+                    <span class="explorer-header-actions">
+                        <button class="panel-btn explorer-action-btn" onclick="event.stopPropagation(); openWorkflowBuilderTab()" title="New Workflow"><i data-lucide="plus"></i></button>
+                    </span>
                 </div>
                 <div class="explorer-section-body" id="workflows-tree"
                      hx-get="/browser/workflow/explorer"
