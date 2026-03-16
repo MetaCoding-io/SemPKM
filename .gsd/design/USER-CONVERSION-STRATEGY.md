@@ -115,18 +115,20 @@ SemPKM is approaching feature parity with the core workflows of both Obsidian an
 
 **Standards support the pitch, not ARE the pitch.**
 
-### Priority 3: Additional Mental Models (2-3 more)
-**Impact:** Wider "aha moment" coverage at first touch
-**Candidates:**
-- **Personal CRM** — Contacts, companies, interactions, follow-ups. Notion users love this pattern.
-- **Project Management** — Tasks, projects, milestones, dependencies. Universal appeal.
-- **Zettelkasten+** — Atomic notes, sequence IDs, bridge notes, structure notes. Obsidian crowd's favorite methodology.
-- **Research Workflow** — Papers, claims, evidence chains, argument maps. Strongest differentiator for academics.
+### Priority 3: Mental Model Expansion
+**Impact:** Wider "aha moment" coverage + operational hub story
+**Detailed design:** `.gsd/design/MENTAL-MODELS-EXPANSION-DESIGN.md`
 
-**Minimum:** 5-6 models available at public launch (currently 3 shipped: basic-pkm, ppv, gist).
+**What ships:**
+- **basic-pkm v2.0** — Add Task, Milestone, and Event types to the core model. Tasks and Events are designed as **semantic hubs** for third-party provider integrations (Asana, Linear, Jira, GitHub Issues, Google Calendar, Outlook, CalDAV). Bidirectional sync via M009 App Platform. One unified view across all providers.
+- **Personal CRM** — Contacts, companies, interactions, deals. Notion users' #1 template search. Strongest typed-relationship demo.
+- **Zettelkasten+** — FleetingNote → Source → LiteratureNote → PermanentNote → StructureNote. Enforced Zettelkasten methodology with provenance chains and argumentation links. Obsidian crowd's favorite methodology.
+- **Research Workflow** — Papers, claims, evidence, arguments, research questions. Strongest differentiator for academics. "Unsupported claims" query is the killer demo.
 
-**Free forever:** Basic PKM, Personal CRM, Project Management
-**Premium/Marketplace:** Research Workflow, Zettelkasten+, domain-specific packs
+**Minimum:** 5 models at public launch (basic-pkm v2, ppv, CRM, Zettelkasten+, Research).
+
+**Free forever:** basic-pkm v2 (with tasks/events/calendar), Personal CRM
+**Premium/Marketplace:** Zettelkasten+, Research Workflow, domain-specific packs
 
 ### Priority 4: Browser Extension
 **Impact:** Enables the "capture while browsing" workflow that both Obsidian and Notion users expect
