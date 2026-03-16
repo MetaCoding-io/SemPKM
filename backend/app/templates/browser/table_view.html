@@ -1,3 +1,6 @@
+{% if is_generic | default(false) %}
+{% include "browser/type_filter_pills.html" %}
+{% endif %}
 {% include "browser/carousel_tab_bar.html" %}
 <div class="carousel-view-body">
 {% include "browser/view_toolbar.html" %}
@@ -10,9 +13,11 @@
                 {% for col in columns %}
                 <th data-col="{{ col }}">
                     {% set toggled_dir = 'desc' if (sort_col == col and sort_dir == 'asc') else 'asc' %}
+                    {% set sort_base = pagination_base_url | default("/browser/views/table/" ~ spec_iri_encoded) %}
+                    {% set sort_extra = pag_extra | default("") %}
                     <a href="#"
                        class="sort-header{% if sort_col == col %} sort-active{% endif %}"
-                       hx-get="/browser/views/table/{{ spec_iri_encoded }}?sort={{ col }}&dir={{ toggled_dir }}&page=1&filter={{ current_filter | urlencode }}&page_size={{ page_size }}"
+                       hx-get="{{ sort_base }}?sort={{ col }}&dir={{ toggled_dir }}&page=1&filter={{ current_filter | urlencode }}&page_size={{ page_size }}{{ sort_extra }}"
                        hx-target="closest .group-editor-area"
                        hx-swap="innerHTML">
                         {{ column_labels.get(col, col) }}

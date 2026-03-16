@@ -1,16 +1,22 @@
-{# Mount tree sub-folders: rendered for by-date month expansion.
-   Each sub-folder can be expanded to load objects via the subfolder param.
+{# Mount tree sub-folders: rendered for by-date month expansion and chain expansion.
+   Each sub-folder can be expanded to load objects via the subfolder/chain params.
 
    Context:
      folders: list of dicts with 'value' and 'label' keys
      mount_id: UUID string of the mount
      parent_folder: parent folder value (e.g. year string for by-date)
+     chain_depth: (optional) chain depth for next expansion level
+     chain_parent_values: (optional) pipe-delimited parent folder values for chain
 #}
 {% if folders %}
 {% for folder in folders %}
 {% set safe_id = (mount_id ~ '_' ~ parent_folder ~ '_' ~ folder.value) | replace(':', '_') | replace('/', '_') | replace('#', '_') | replace('.', '_') %}
 <div class="tree-node" data-testid="mount-subfolder"
+{% if chain_depth is defined and chain_depth is not none %}
+     hx-get="/browser/explorer/mount-children?mount_id={{ mount_id }}&amp;folder={{ folder.value | urlencode }}&amp;depth={{ chain_depth }}&amp;parent_values={{ chain_parent_values | urlencode }}"
+{% else %}
      hx-get="/browser/explorer/mount-children?mount_id={{ mount_id }}&amp;folder={{ parent_folder | urlencode }}&amp;subfolder={{ folder.value | urlencode }}"
+{% endif %}
      hx-trigger="click once"
      hx-target="#mount-children-{{ safe_id }}"
      hx-swap="innerHTML">

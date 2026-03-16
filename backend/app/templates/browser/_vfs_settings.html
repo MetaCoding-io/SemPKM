@@ -96,13 +96,29 @@
 
     <div class="mount-form-row">
       <label class="mount-form-label" for="mount-strategy">Strategy</label>
-      <select id="mount-strategy" class="settings-select" onchange="mountStrategyChanged(this.value)">
-        <option value="flat">Flat (all files in one folder)</option>
-        <option value="by-type">By Type (one folder per object type)</option>
-        <option value="by-date">By Date (year/month folders)</option>
-        <option value="by-tag">By Tag (one folder per tag value)</option>
-        <option value="by-property">By Property (group by any property)</option>
-      </select>
+      <div class="strategy-chain-row">
+        <select id="mount-strategy" class="settings-select" onchange="mountStrategyChanged(this.value)">
+          <option value="flat">Flat (all files in one folder)</option>
+          <option value="by-type">By Type (one folder per object type)</option>
+          <option value="by-date">By Date (year/month folders)</option>
+          <option value="by-tag">By Tag (one folder per tag value)</option>
+          <option value="by-property">By Property (group by any property)</option>
+        </select>
+        <button type="button" id="add-chain-level-btn" class="btn-sm btn-secondary" onclick="addChainLevel()" title="Add another nesting level (max 3)">+ Add level</button>
+      </div>
+    </div>
+
+    <!-- Chain level container — additional strategy selects added by JS -->
+    <div id="strategy-chain-container"></div>
+
+    <!-- Chain presets — quick combos -->
+    <div class="mount-form-row" id="chain-presets-row">
+      <label class="mount-form-label">Quick presets</label>
+      <div class="chain-presets">
+        <button type="button" class="btn-sm btn-secondary" onclick="applyChainPreset(['by-tag','by-date'])">Tag → Date</button>
+        <button type="button" class="btn-sm btn-secondary" onclick="applyChainPreset(['by-type','by-tag'])">Type → Tag</button>
+        <button type="button" class="btn-sm btn-secondary" onclick="applyChainPreset(['by-type','by-date'])">Type → Date</button>
+      </div>
     </div>
 
     <!-- Dynamic strategy-specific fields (shown/hidden by JS) -->
@@ -121,12 +137,29 @@
       </div>
     </div>
 
+    <!-- Filename template -->
+    <div class="mount-form-row">
+      <label class="mount-form-label" for="mount-filename-template">Filename template</label>
+      <input type="text" id="mount-filename-template" class="settings-text-input"
+             placeholder="{title} — or {date}-{title}, {type}/{title}, etc.">
+      <div class="mount-form-hint">Variables: <code>{title}</code>, <code>{date}</code>, <code>{type}</code>, <code>{id}</code></div>
+    </div>
+
     <div class="mount-form-row">
       <label class="mount-form-label" for="mount-scope">Scope</label>
       <select id="mount-scope" class="settings-select" onchange="mountScopeChanged(this.value)">
         <option value="all">All objects</option>
         <!-- Populated from saved queries API -->
       </select>
+    </div>
+
+    <!-- Type Filter (optional) -->
+    <div class="mount-form-row">
+      <label class="mount-form-label">Type Filter <span style="font-weight:normal;color:var(--color-text-muted)">(optional)</span></label>
+      <div id="mount-type-filter" class="mount-type-filter-container">
+        <span class="mount-type-filter-loading">Loading types...</span>
+      </div>
+      <span class="mount-path-hint">Only include objects of the selected types</span>
     </div>
 
     <!-- Custom SPARQL textarea (shown when scope is "custom") -->

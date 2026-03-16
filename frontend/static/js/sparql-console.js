@@ -989,9 +989,9 @@ function handlePromoteSubmit() {
 }
 
 function refreshMyViews() {
-  var myViewsTree = document.getElementById('my-views-tree');
-  if (myViewsTree && typeof htmx !== 'undefined') {
-    htmx.ajax('GET', '/browser/my-views', { target: '#my-views-tree', swap: 'innerHTML' });
+  var savedViewsTree = document.getElementById('saved-views-tree');
+  if (savedViewsTree && typeof htmx !== 'undefined') {
+    htmx.ajax('GET', '/browser/my-views', { target: '#saved-views-tree', swap: 'innerHTML' });
   }
 }
 

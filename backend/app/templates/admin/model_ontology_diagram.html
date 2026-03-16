@@ -116,11 +116,12 @@
           }
         ].concat(perNodeStyles),
         layout: {
-          name: 'fcose',
+          name: 'dagre',
+          rankDir: 'LR',
+          nodeSep: 50,
+          rankSep: 80,
           animate: true,
-          animationDuration: 600,
-          quality: 'default',
-          nodeSeparation: 120
+          animationDuration: 600
         },
         minZoom: 0.3,
         maxZoom: 3,

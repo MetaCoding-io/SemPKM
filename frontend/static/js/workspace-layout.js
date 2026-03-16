@@ -233,6 +233,12 @@
               url = '/browser/workflow/new';
             }
           }
+          // Generic view panels — table/card/graph with optional type filter
+          if (st === 'generic-view') {
+            var renderer = params.params.renderer || 'table';
+            var selectedType = params.params.selectedType || '';
+            url = '/browser/views/generic/' + renderer + (selectedType ? '?type=' + encodeURIComponent(selectedType) : '');
+          }
           htmx.ajax('GET', url, { target: el, swap: 'innerHTML' });
         }
       };

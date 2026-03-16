@@ -23,6 +23,7 @@ from rdflib import RDF, URIRef
 from app.browser._helpers import _validate_iri
 from app.models.registry import MODELS_GRAPH, SEMPKM_NS
 from app.services.labels import LabelService
+from app.services.shapes import NodeShapeForm, PropertyShape, ShapesService
 from app.sparql.client import scope_to_current_graph
 from app.sparql.query_service import QueryService
 from app.sparql.utils import escape_sparql_regex
@@ -98,12 +99,15 @@ class ViewSpecService:
         client: TriplestoreClient,
         label_service: LabelService,
         query_service: QueryService | None = None,
+        shapes_service: ShapesService | None = None,
         ttl: int = 300,
         maxsize: int = 64,
     ) -> None:
         self._client = client
         self._label_service = label_service
         self._query_service = query_service
+        self._shapes_service = shapes_service
+        self._generic_specs: list[ViewSpec] = []
         self._specs_cache: TTLCache[str, list[ViewSpec]] = TTLCache(
             maxsize=maxsize, ttl=ttl
         )
@@ -207,6 +211,193 @@ WHERE {{
         self._specs_cache.clear()
         logger.info("ViewSpec cache invalidated")
 
+    # ── Generic views ──────────────────────────────────────────
+
+    def register_generic_views(self) -> None:
+        """Create 3 in-memory ViewSpec objects for the generic renderers.
+
+        Called at startup. These specs have empty ``sparql_query`` because
+        the query is built dynamically per request via ``build_dynamic_query()``.
+        """
+        self._generic_specs = [
+            ViewSpec(
+                spec_iri="urn:sempkm:view:generic-table",
+                label="Table View",
+                target_class="",
+                renderer_type="table",
+                sparql_query="",
+                source_model="system",
+            ),
+            ViewSpec(
+                spec_iri="urn:sempkm:view:generic-card",
+                label="Card View",
+                target_class="",
+                renderer_type="card",
+                sparql_query="",
+                source_model="system",
+            ),
+            ViewSpec(
+                spec_iri="urn:sempkm:view:generic-graph",
+                label="Graph View",
+                target_class="",
+                renderer_type="graph",
+                sparql_query="",
+                source_model="system",
+            ),
+        ]
+        logger.info("Registered %d generic views", len(self._generic_specs))
+
+    def get_generic_spec(self, renderer: str) -> ViewSpec | None:
+        """Return the generic ViewSpec for a renderer type, or None."""
+        for spec in self._generic_specs:
+            if spec.renderer_type == renderer:
+                return spec
+        return None
+
+    # ── Dynamic query builder ──────────────────────────────────
+
+    _DEFAULT_COLUMNS = ["label", "type", "created", "modified"]
+
+    async def get_generic_columns(
+        self, type_iri: str | None,
+    ) -> tuple[list[PropertyShape], list[str]]:
+        """Derive column metadata from SHACL shapes, with a safe default fallback.
+
+        Returns ``(property_shapes, column_names)``.  The default columns
+        (label, type, created, modified) are used when:
+        - ``type_iri`` is None or empty
+        - No SHACL shape exists for the type
+        - The shape has ≤2 properties (too sparse to be useful)
+        """
+        if not type_iri or not self._shapes_service:
+            return [], list(self._DEFAULT_COLUMNS)
+
+        try:
+            form: NodeShapeForm | None = await self._shapes_service.get_form_for_type(type_iri)
+        except Exception:
+            logger.warning("get_generic_columns: shapes lookup failed for %s", type_iri, exc_info=True)
+            return [], list(self._DEFAULT_COLUMNS)
+
+        if form is None or len(form.properties) <= 2:
+            return [], list(self._DEFAULT_COLUMNS)
+
+        # Deterministic sort: (order, name)
+        sorted_props = sorted(form.properties, key=lambda p: (p.order, p.name))
+
+        columns: list[str] = []
+        seen: dict[str, int] = {}
+        for prop in sorted_props:
+            raw = _var_name_from_iri(prop.path)
+            if raw in seen:
+                seen[raw] += 1
+                raw = f"{raw}_{seen[raw]}"
+            else:
+                seen[raw] = 1
+            columns.append(raw)
+
+        return sorted_props, columns
+
+    async def build_dynamic_query(
+        self, type_iri: str | None, renderer: str = "table",
+    ) -> tuple[str, list[str]]:
+        """Build a SPARQL query dynamically from SHACL metadata.
+
+        Returns ``(sparql_query, column_names)``.  The query intentionally
+        omits ``FROM`` clauses — ``scope_to_current_graph()`` adds them at
+        execution time.
+        """
+        if renderer == "graph":
+            query = self._build_graph_query(type_iri)
+            logger.debug("build_dynamic_query: type=%s renderer=graph", type_iri)
+            return query, []
+
+        shapes, columns = await self.get_generic_columns(type_iri)
+
+        if not shapes:
+            # Default columns query
+            query = self._build_default_select(type_iri)
+        else:
+            query = self._build_shacl_select(type_iri, shapes, columns)
+
+        logger.debug(
+            "build_dynamic_query: type=%s, columns=%d", type_iri, len(columns),
+        )
+        return query, columns
+
+    @staticmethod
+    def _build_default_select(type_iri: str | None) -> str:
+        """Build a SELECT query using the 4 default columns."""
+        type_filter = ""
+        if type_iri:
+            type_filter = f"  ?s rdf:type <{type_iri}> .\n"
+
+        return (
+            "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
+            "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n"
+            "PREFIX dcterms: <http://purl.org/dc/terms/>\n"
+            "\n"
+            "SELECT ?s ?label ?type ?created ?modified\n"
+            "WHERE {\n"
+            f"{type_filter}"
+            "  ?s rdf:type ?type .\n"
+            "  OPTIONAL { ?s rdfs:label|dcterms:title ?label }\n"
+            "  OPTIONAL { ?s dcterms:created ?created }\n"
+            "  OPTIONAL { ?s dcterms:modified ?modified }\n"
+            "}"
+        )
+
+    @staticmethod
+    def _build_shacl_select(
+        type_iri: str | None,
+        shapes: list[PropertyShape],
+        columns: list[str],
+    ) -> str:
+        """Build a SELECT query from SHACL PropertyShape metadata."""
+        select_vars = "?s ?label " + " ".join(f"?{c}" for c in columns)
+
+        type_filter = ""
+        if type_iri:
+            type_filter = f"  ?s rdf:type <{type_iri}> .\n"
+
+        optionals: list[str] = []
+        for shape, col in zip(shapes, columns):
+            optionals.append(f"  OPTIONAL {{ ?s <{shape.path}> ?{col} }}")
+
+        return (
+            "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
+            "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n"
+            "PREFIX dcterms: <http://purl.org/dc/terms/>\n"
+            "\n"
+            f"SELECT {select_vars}\n"
+            "WHERE {\n"
+            f"{type_filter}"
+            "  OPTIONAL { ?s rdfs:label|dcterms:title ?label }\n"
+            + "\n".join(optionals) + "\n"
+            "}"
+        )
+
+    @staticmethod
+    def _build_graph_query(type_iri: str | None) -> str:
+        """Build a CONSTRUCT query for the graph renderer."""
+        type_filter = ""
+        if type_iri:
+            type_filter = f"  ?s rdf:type <{type_iri}> .\n"
+
+        return (
+            "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
+            "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n"
+            "PREFIX dcterms: <http://purl.org/dc/terms/>\n"
+            "\n"
+            "CONSTRUCT { ?s ?p ?o . ?s rdf:type ?type . ?s rdfs:label ?label }\n"
+            "WHERE {\n"
+            f"{type_filter}"
+            "  ?s ?p ?o .\n"
+            "  ?s rdf:type ?type .\n"
+            "  OPTIONAL { ?s rdfs:label|dcterms:title ?label }\n"
+            "}\n"
+            "LIMIT 200"
+        )
+
     async def get_view_specs_for_type(self, type_iri: str) -> list[ViewSpec]:
         """Filter view specs by target class matching type_iri.
 
@@ -257,6 +448,13 @@ WHERE {{
                         columns=columns,
                         source_model="user",
                     )
+            return None
+
+        # Check generic specs
+        if spec_iri.startswith("urn:sempkm:view:generic-"):
+            for gs in self._generic_specs:
+                if gs.spec_iri == spec_iri:
+                    return gs
             return None
 
         all_specs = await self.get_all_view_specs()
@@ -1257,6 +1455,19 @@ def _local_name(iri: str) -> str:
     if ":" in iri:
         return iri.rsplit(":", 1)[-1]
     return iri
+
+
+def _var_name_from_iri(iri: str) -> str:
+    """Derive a SPARQL-safe variable name from a property IRI's local name.
+
+    Replaces non-alphanumeric characters with ``_`` and strips leading
+    digits so the result is a valid SPARQL variable name.
+    """
+    raw = _local_name(iri)
+    sanitized = re.sub(r'[^A-Za-z0-9_]', '_', raw)
+    # Strip leading digits/underscores to make a valid SPARQL var
+    sanitized = sanitized.lstrip('0123456789_') or 'v'
+    return sanitized
 
 
 def inject_values_binding(query: str, var_name: str, iri: str) -> str:

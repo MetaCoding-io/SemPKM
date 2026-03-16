@@ -148,6 +148,7 @@ async def dashboard_builder_edit(
 async def render_dashboard(
     request: Request,
     dashboard_id: str,
+    embed: int = Query(default=0),
     user: User = Depends(get_current_user),
 ):
     """Render a dashboard page with CSS Grid layout and lazy-loaded blocks."""
@@ -184,6 +185,17 @@ async def render_dashboard(
         "block_slots": block_slots,
         "dashboard_id": dashboard_id,
     }
+
+    if embed:
+        fragment_html = templates.env.get_template(
+            "browser/dashboard_page.html"
+        ).render(context)
+        wrapper_context = {"request": request, "content": fragment_html}
+        response = templates.TemplateResponse(
+            request, "browser/embed_wrapper.html", wrapper_context
+        )
+        response.headers["X-Embed-Mode"] = "1"
+        return response
 
     return templates.TemplateResponse(
         request, "browser/dashboard_page.html", context

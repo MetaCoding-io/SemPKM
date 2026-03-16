@@ -7,14 +7,26 @@ Alphabetical definitions of key terms used throughout the SemPKM documentation a
 **ABox**
 (Assertional Box) The set of individual instances (objects) in a knowledge base, as opposed to the class definitions (TBox).
 
+**Block**
+A content unit within a dashboard. Six types: view-embed, markdown, object-embed, create-form, sparql-result, and divider. Each block occupies a named slot in the dashboard's grid layout. See [Chapter 28: Dashboards and Workflows](28-dashboards-and-workflows.md).
+
 **Carousel View**
 A tabbed browsing interface for Mental Model views that groups table, card, and graph views into a single page with a tab strip. Each tab loads a different view of the same type's data, letting you switch between display formats without navigating away. See [Chapter 7: Browsing and Visualizing Data](07-browsing-and-visualizing.md).
 
 **Content Negotiation**
 An HTTP mechanism where the server returns different representations of a resource based on the client's `Accept` header. SemPKM uses content negotiation for WebID profiles: browsers receive an HTML page while Linked Data clients receive JSON-LD or Turtle. See [Chapter 25: WebID Profiles](25-webid-profiles.md).
 
+**Cross-View Context**
+A dashboard mechanism where selecting a row in one block filters data in other blocks. The source block emits a context IRI on row click; consumer blocks bind it to a SPARQL variable and re-fetch their data. See [Chapter 28: Dashboards and Workflows](28-dashboards-and-workflows.md).
+
+**Dashboard**
+A configurable multi-block layout page that combines views, markdown, object embeds, forms, and SPARQL results into a single workspace tab. Five layout templates arrange blocks in a CSS Grid. See [Chapter 28: Dashboards and Workflows](28-dashboards-and-workflows.md).
+
 **Edge**
 A typed, directional relationship between two objects. Unlike a simple link, an edge carries a specific predicate (relationship type) such as `hasParticipant` or `isAbout`. Edges are first-class resources in SemPKM with their own IRIs, meaning they can carry annotation properties (like labels or timestamps) in addition to connecting a source and target. See also: Object, Property.
+
+**Embed Node**
+A canvas node that displays live content from another part of SemPKM (view, dashboard, SPARQL result, or object) inside an iframe. Embeds are interactive and update in real-time. Maximum 8 per canvas. See [Chapter 27: Spatial Canvas](27-spatial-canvas.md).
 
 **Entailment**
 The process of deriving new triples from existing data using ontological reasoning rules. SemPKM supports RDFS and OWL entailment (e.g., inferring that if Alice is a `Researcher` and `Researcher` is a subclass of `Person`, then Alice is also a `Person`). Configure entailment in Settings > Inference. See [Chapter 13: Settings](13-settings.md).
@@ -42,6 +54,9 @@ Internationalized Resource Identifier. The globally unique identifier for every 
 
 **JSON-LD**
 JSON for Linking Data. The serialization format used by SemPKM for Mental Model files (ontologies, shapes, views, seed data). JSON-LD is standard JSON with a `@context` block that maps short keys to full IRIs, making it both human-readable and machine-processable as RDF.
+
+**Layout** (dashboard)
+The CSS Grid template that arranges blocks on a dashboard. Five options: single, sidebar-main, grid-2x2, grid-3, and top-bottom. Each layout defines named slots where blocks are placed. See [Chapter 28: Dashboards and Workflows](28-dashboards-and-workflows.md).
 
 **Lint Dashboard**
 A global page that shows all validation results across every object in the knowledge base. Unlike the per-object Lint Panel, the dashboard provides a system-wide overview of data quality, groupable by type, severity, or violation message. Accessible from the sidebar under Tools. See [Chapter 14: System Health and Debugging](14-system-health-and-debugging.md).
@@ -73,6 +88,9 @@ Web Ontology Language.
 **PKCE**
 Proof Key for Code Exchange. A security extension to the OAuth 2.0 authorization code flow that prevents authorization code interception attacks. SemPKM's IndieAuth provider requires PKCE for all authorization requests. The client generates a random `code_verifier`, sends a hashed `code_challenge` with the authorization request, then proves possession of the original verifier when exchanging the code for a token. See [Chapter 26: IndieAuth](26-indieauth.md). A W3C standard for defining ontologies -- formal descriptions of types, properties, and their relationships. SemPKM uses OWL Class and Property declarations in Mental Model ontology files.
 
+**Property Flip**
+A toggle on spatial canvas object nodes that switches between the Markdown body and a compact property table showing SHACL-derived metadata. See [Chapter 27: Spatial Canvas](27-spatial-canvas.md).
+
 **Property**
 A named attribute of an object. Properties can hold literal values (strings, dates, numbers, URIs) or references to other objects. In RDF terms, a property is a predicate in a subject-predicate-object triple. SemPKM distinguishes between datatype properties (literal values) and object properties (references to other resources). See also: Edge, Object.
 
@@ -93,6 +111,9 @@ A SHACL node shape that describes the expected structure of a specific type. Eac
 
 **Spatial Canvas**
 An interactive freeform workspace for exploring your knowledge graph visually. Unlike auto-layout graph views, the canvas starts empty and lets you build a custom map by dragging objects from the navigation tree, expanding neighborhoods, and arranging nodes by hand. Named sessions let you save and switch between different explorations. See [Chapter 27: Spatial Canvas](27-spatial-canvas.md).
+
+**Step** (workflow)
+An individual stage in a workflow. Three types: view (opens a view), dashboard (opens a dashboard), and form (opens a create form). Each step has an optional label displayed in the stepper bar. See [Chapter 28: Dashboards and Workflows](28-dashboards-and-workflows.md).
 
 **SPARQL**
 SPARQL Protocol and RDF Query Language. The standard query language for RDF data, analogous to SQL for relational databases. SemPKM uses SPARQL internally for all data retrieval and manipulation. View specifications contain SPARQL queries that power table, card, and graph views. The bottom panel includes a SPARQL console for running ad-hoc queries.
@@ -120,6 +141,9 @@ A personal identifier that is also a web URL pointing to a machine-readable prof
 
 **View**
 A named query-and-renderer combination that displays a collection of objects. Each view targets a specific type and uses a SPARQL query to fetch data, combined with a renderer type (table, card, or graph) to determine the visual layout. Views are defined in Mental Model bundles and appear in the Views menu. See also: Mental Model, SPARQL.
+
+**Workflow**
+An ordered sequence of steps that guides users through a multi-step process, with a stepper UI for navigation. Steps can be views, dashboards, or forms. Created and launched from the Explorer sidebar. See [Chapter 28: Dashboards and Workflows](28-dashboards-and-workflows.md).
 
 ## See Also
 

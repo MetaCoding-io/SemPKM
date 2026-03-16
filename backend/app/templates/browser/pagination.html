@@ -1,7 +1,7 @@
 {% if total_pages > 0 %}
 {% set pag_view_type = view_type | default('table') %}
-{% set pag_base = "/browser/views/" ~ pag_view_type ~ "/" ~ spec_iri_encoded %}
-{% set pag_extra = "&group_by=" ~ (group_by | urlencode) if (group_by is defined and group_by) else "" %}
+{% set pag_base = pagination_base_url | default("/browser/views/" ~ pag_view_type ~ "/" ~ spec_iri_encoded) %}
+{% set pag_extra = pag_extra | default("") ~ ("&group_by=" ~ (group_by | urlencode) if (group_by is defined and group_by) else "") %}
 <div class="pagination">
     <div class="pagination-info">
         Page {{ page }} of {{ total_pages }} ({{ total }} total)

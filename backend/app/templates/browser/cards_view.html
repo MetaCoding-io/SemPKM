@@ -1,3 +1,6 @@
+{% if is_generic | default(false) %}
+{% include "browser/type_filter_pills.html" %}
+{% endif %}
 {% include "browser/carousel_tab_bar.html" %}
 <div class="carousel-view-body">
 {% include "browser/view_toolbar.html" %}
@@ -7,12 +10,12 @@
 <div class="cards-group-bar">
     <label class="cards-group-label" for="group-by-select">Group by:</label>
     <select id="group-by-select" class="cards-group-select"
-            hx-get="/browser/views/card/{{ spec_iri_encoded }}"
+            hx-get="{{ pagination_base_url | default('/browser/views/card/' ~ spec_iri_encoded) }}"
             hx-target="closest .group-editor-area"
             hx-swap="innerHTML"
             hx-include="this"
             name="group_by"
-            hx-vals='{"page": "1", "page_size": "{{ page_size }}", "filter": "{{ current_filter }}"}'>
+            hx-vals='{"page": "1", "page_size": "{{ page_size }}", "filter": "{{ current_filter }}"{% if selected_type is defined and selected_type %}, "type": "{{ selected_type }}"{% endif %}}'>
         <option value="">None</option>
         {% for col in columns %}
         <option value="{{ col.iri }}"{% if group_by == col.iri %} selected{% endif %}>{{ col.name }}</option>

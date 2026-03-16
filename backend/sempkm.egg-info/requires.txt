@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> gsd/M003/S07
 aiosmtplib~=5.1.0
 fastapi[standard]~=0.132.0
 rdflib~=7.6.0
@@ -27,36 +23,6 @@ owlrl~=7.1.4
 mf2py~=2.0.1
 http-message-signatures~=2.0.1
 slowapi~=0.1.9
-<<<<<<< HEAD
-=======
-aiosmtplib>=3.0
-fastapi[standard]
-rdflib>=7.5.0
-httpx>=0.28
-pydantic-settings
-jinja2
-jinja2-fragments
-uvicorn
-pyshacl>=0.31.0
-cachetools>=7.0
-pyyaml>=6.0
-sqlalchemy[asyncio]>=2.0.46
-alembic>=1.18
-aiosqlite>=0.22
-asyncpg>=0.31
-itsdangerous>=2.2
-cryptography>=43.0
-posthog>=3.7
-wsgidav<5.0,>=4.3.3
-a2wsgi>=1.10
-python-frontmatter>=1.1.0
-owlrl>=7.0
-mf2py>=2.0
-http-message-signatures>=2.0.1
-slowapi>=0.1.9
->>>>>>> gsd/M002/S03
-=======
->>>>>>> gsd/M003/S07
 
 [dev]
 pytest

@@ -9,6 +9,9 @@
       <span id="spatial-canvas-zoom" class="canvas-page-zoom">100%</span>
       <button class="btn-secondary" type="button" onclick="if(window.SemPKMCanvas) window.SemPKMCanvas.zoomIn()">+</button>
       <button class="btn-secondary" type="button" onclick="if(window.SemPKMCanvas) window.SemPKMCanvas.resetView()">Reset view</button>
+      <span class="canvas-embed-picker-anchor" style="position:relative;">
+        <button class="btn-secondary canvas-embed-picker-btn" type="button" onclick="if(window.SemPKMCanvas) window.SemPKMCanvas.openEmbedPicker(this)"><i data-lucide="layout-grid"></i> Embed</button>
+      </span>
       <select id="canvas-session-select" class="canvas-session-select" title="Switch canvas session">
         <option value="">-- No sessions --</option>
       </select>
@@ -20,6 +23,7 @@
   <div id="spatial-canvas-root" class="spatial-canvas-root" data-canvas-id="default">
     <div class="spatial-canvas-viewport">
       <div class="spatial-canvas-layer"></div>
+      <div class="spatial-canvas-embed-layer"></div>
       <div class="spatial-canvas-hint" id="canvas-hint">
         Drag items from the nav tree to start exploring
       </div>

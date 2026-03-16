@@ -4,7 +4,7 @@
     </div>
     <div class="view-toolbar-right">
         {% set current_view_type = view_type | default('table') %}
-        {% set filter_base_url = "/browser/views/" ~ current_view_type ~ "/" ~ spec_iri_encoded %}
+        {% set filter_base_url = pagination_base_url | default("/browser/views/" ~ current_view_type ~ "/" ~ spec_iri_encoded) %}
         {% if spec.renderer_type == 'graph' %}
         <input type="text"
                id="view-filter"
@@ -24,7 +24,7 @@
                hx-swap="innerHTML"
                hx-trigger="keyup changed delay:300ms"
                hx-include="this"
-               hx-vals='{"page": "1", "page_size": "{{ page_size }}", "sort": "{{ sort_col | default('') }}", "dir": "{{ sort_dir | default('asc') }}"{% if group_by is defined and group_by %}, "group_by": "{{ group_by }}"{% endif %}}'>
+               hx-vals='{"page": "1", "page_size": "{{ page_size }}", "sort": "{{ sort_col | default('') }}", "dir": "{{ sort_dir | default('asc') }}"{% if group_by is defined and group_by %}, "group_by": "{{ group_by }}"{% endif %}{% if selected_type is defined and selected_type %}, "type": "{{ selected_type }}"{% endif %}}'>
         {% endif %}
         {% if spec.renderer_type == 'table' %}
         <button class="view-columns-btn" onclick='ColumnPrefs.openColumnSettings("{{ type_iri }}", {{ columns | tojson }})' title="Column settings">

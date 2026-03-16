@@ -23,6 +23,7 @@ app/browser/pages.py
 app/browser/router.py
 app/browser/search.py
 app/browser/settings.py
+app/browser/tag_tree.py
 app/browser/workspace.py
 app/canvas/__init__.py
 app/canvas/router.py
@@ -39,6 +40,10 @@ app/commands/handlers/edge_create.py
 app/commands/handlers/edge_patch.py
 app/commands/handlers/object_create.py
 app/commands/handlers/object_patch.py
+app/dashboard/__init__.py
+app/dashboard/models.py
+app/dashboard/router.py
+app/dashboard/service.py
 app/db/__init__.py
 app/db/base.py
 app/db/engine.py
@@ -49,16 +54,8 @@ app/events/__init__.py
 app/events/models.py
 app/events/query.py
 app/events/store.py
-<<<<<<< HEAD
-<<<<<<< HEAD
 app/favorites/__init__.py
 app/favorites/models.py
-=======
->>>>>>> gsd/M002/S03
-=======
-app/favorites/__init__.py
-app/favorites/models.py
->>>>>>> gsd/M003/S07
 app/federation/__init__.py
 app/federation/inbox.py
 app/federation/patch.py
@@ -114,6 +111,7 @@ app/services/icons.py
 app/services/labels.py
 app/services/llm.py
 app/services/models.py
+app/services/ops_log.py
 app/services/prefixes.py
 app/services/search.py
 app/services/settings.py
@@ -124,7 +122,9 @@ app/shell/__init__.py
 app/shell/router.py
 app/sparql/__init__.py
 app/sparql/client.py
+app/sparql/migrate_queries.py
 app/sparql/models.py
+app/sparql/query_service.py
 app/sparql/router.py
 app/sparql/schemas.py
 app/sparql/utils.py
@@ -157,24 +157,43 @@ app/webid/__init__.py
 app/webid/router.py
 app/webid/schemas.py
 app/webid/service.py
+app/workflow/__init__.py
+app/workflow/models.py
+app/workflow/router.py
+app/workflow/service.py
 sempkm.egg-info/PKG-INFO
 sempkm.egg-info/SOURCES.txt
 sempkm.egg-info/dependency_links.txt
 sempkm.egg-info/requires.txt
 sempkm.egg-info/top_level.txt
 tests/test_auth_tokens.py
+tests/test_class_creation.py
 tests/test_comments.py
+tests/test_dashboard.py
+tests/test_dashboard_builder.py
+tests/test_dynamic_query_builder.py
 tests/test_event_user_lookup.py
 tests/test_explorer_modes.py
 tests/test_favorites.py
 tests/test_federation_discovery.py
 tests/test_hierarchy_explorer.py
 tests/test_iri_validation.py
+tests/test_model_analytics.py
+tests/test_model_refresh.py
 tests/test_mount_explorer.py
 tests/test_obsidian_scanner.py
 tests/test_ontology_service.py
+tests/test_ops_log.py
+tests/test_provo_migration.py
+tests/test_query_service.py
 tests/test_rdf_serialization.py
 tests/test_sparql_client.py
 tests/test_sparql_utils.py
 tests/test_tag_explorer.py
 tests/test_tag_splitting.py
+tests/test_tag_suggestions.py
+tests/test_tag_tree_builder.py
+tests/test_values_injection.py
+tests/test_vfs_scope.py
+tests/test_workflow.py
+tests/test_workflow_builder.py
