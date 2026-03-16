@@ -249,6 +249,17 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Live view/dashboard/SPARQL/object embeds as resizable iframes
 - Toolbar picker + drag-from-explorer for adding embeds
 
+**App Platform** (APP-01–14) — queued (M009)
+- Sandboxed app platform: manifest validation, subprocess lifecycle, App SDK, 3-level frontend integration
+- Platform-owned task scheduler, permission enforcement, admin monitoring portal
+- Bulk EventStore extension, browserVisible field on Mental Model types
+- Design: `.gsd/design/APP-PLATFORM-DESIGN.md`
+
+**RSS Reader & Hypothesis App** (RSS-01–08) — queued (M010, depends on M009)
+- First app on the platform: RSS/Atom feed reader with Hypothesis annotation sync
+- Two new Mental Models (rss-feeds, web-annotations), custom object renderers, background polling
+- Research: `docs/research/rss-reader-hypothesis-integration.md`
+
 **Ongoing / cross-cutting**
 - Backlinks panel (incoming references for any object)
 - Edge model enhancements: edge inspector panel, inline wiki-link creation
@@ -437,4 +448,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-03-15 after M006 complete (all 7 slices)*
+*Last updated: 2026-03-16 after M009/M010 queued*
