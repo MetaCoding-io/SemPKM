@@ -190,7 +190,7 @@
       "bpkm:tags": ["docs", "graph"],
       "dcterms:created": { "@value": "2026-03-01T09:00:00Z", "@type": "xsd:dateTime" },
       "bpkm:assignedTo": [{ "@id": "bpkm:seed-person-alice" }],
-      "bpkm:taskProject": { "@id": "bpkm:seed-project-sempkm" },
+      "bpkm:taskProject": [{ "@id": "bpkm:seed-project-sempkm" }],
       "bpkm:milestone": { "@id": "bpkm:seed-milestone-docs" }
     },
     {
@@ -204,7 +204,7 @@
       "bpkm:tags": ["bug", "shacl", "validation"],
       "dcterms:created": { "@value": "2026-03-05T14:00:00Z", "@type": "xsd:dateTime" },
       "bpkm:assignedTo": [{ "@id": "bpkm:seed-person-bob" }],
-      "bpkm:taskProject": { "@id": "bpkm:seed-project-sempkm" },
+      "bpkm:taskProject": [{ "@id": "bpkm:seed-project-sempkm" }],
       "bpkm:milestone": { "@id": "bpkm:seed-milestone-launch" }
     },
     {
@@ -217,7 +217,7 @@
       "bpkm:tags": ["review", "canvas"],
       "dcterms:created": { "@value": "2026-03-10T10:00:00Z", "@type": "xsd:dateTime" },
       "bpkm:assignedTo": [{ "@id": "bpkm:seed-person-carol" }],
-      "bpkm:taskProject": { "@id": "bpkm:seed-project-sempkm" },
+      "bpkm:taskProject": [{ "@id": "bpkm:seed-project-sempkm" }],
       "bpkm:externalProvider": "github",
       "bpkm:externalId": "#42",
       "bpkm:externalUrl": { "@value": "https://github.com/SemPKM/SemPKM/pull/42", "@type": "xsd:anyURI" }
@@ -233,9 +233,51 @@
       "bpkm:tags": ["ux", "onboarding"],
       "dcterms:created": { "@value": "2026-03-08T11:00:00Z", "@type": "xsd:dateTime" },
       "bpkm:assignedTo": [{ "@id": "bpkm:seed-person-alice" }],
-      "bpkm:taskProject": { "@id": "bpkm:seed-project-sempkm" },
+      "bpkm:taskProject": [{ "@id": "bpkm:seed-project-sempkm" }],
       "bpkm:milestone": { "@id": "bpkm:seed-milestone-launch" },
       "bpkm:dependsOn": [{ "@id": "bpkm:seed-task-guide" }]
+    },
+    {
+      "@id": "bpkm:seed-task-asana-mockups",
+      "@type": "bpkm:Task",
+      "dcterms:title": "Create wireframe mockups for settings page",
+      "dcterms:description": "Design 3 layout options for the settings page. Include dark mode toggle, notification preferences, and integration setup.",
+      "bpkm:taskStatus": "in-progress",
+      "bpkm:priority": "medium",
+      "bpkm:effort": "medium",
+      "bpkm:storyPoints": 5,
+      "bpkm:startDate": { "@value": "2026-03-14", "@type": "xsd:date" },
+      "bpkm:dueDate": { "@value": "2026-03-21", "@type": "xsd:date" },
+      "bpkm:taskGroup": "In Progress",
+      "bpkm:tags": ["design", "settings"],
+      "dcterms:created": { "@value": "2026-03-14T09:00:00Z", "@type": "xsd:dateTime" },
+      "bpkm:assignedTo": [{ "@id": "bpkm:seed-person-bob" }],
+      "bpkm:followers": [{ "@id": "bpkm:seed-person-alice" }],
+      "bpkm:taskProject": [{ "@id": "bpkm:seed-project-sempkm" }],
+      "bpkm:externalProvider": "asana",
+      "bpkm:externalId": "1234567890",
+      "bpkm:externalUrl": { "@value": "https://app.asana.com/0/project/1234567890", "@type": "xsd:anyURI" },
+      "bpkm:externalStatus": "In Progress",
+      "bpkm:syncDirection": "bidirectional",
+      "bpkm:lastSyncedAt": { "@value": "2026-03-16T08:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bpkm:seed-task-asana-mockups-dark",
+      "@type": "bpkm:Task",
+      "dcterms:title": "Dark mode toggle component",
+      "dcterms:description": "Subtask: Implement the dark mode toggle UI within the settings wireframes.",
+      "bpkm:taskStatus": "todo",
+      "bpkm:priority": "medium",
+      "bpkm:effort": "small",
+      "bpkm:storyPoints": 2,
+      "bpkm:tags": ["design", "dark-mode"],
+      "dcterms:created": { "@value": "2026-03-14T09:30:00Z", "@type": "xsd:dateTime" },
+      "bpkm:assignedTo": [{ "@id": "bpkm:seed-person-bob" }],
+      "bpkm:parentTask": { "@id": "bpkm:seed-task-asana-mockups" },
+      "bpkm:taskProject": [{ "@id": "bpkm:seed-project-sempkm" }],
+      "bpkm:externalProvider": "asana",
+      "bpkm:externalId": "1234567891",
+      "bpkm:syncDirection": "bidirectional"
     },
 
     {

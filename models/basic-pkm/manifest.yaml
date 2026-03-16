@@ -1,7 +1,7 @@
 modelId: basic-pkm
-version: "2.0.0"
+version: "2.1.0"
 name: "Basic PKM"
-description: "Personal knowledge management with Projects, People, Notes, Concepts, Tasks, Milestones, and Events. Tasks and Events serve as semantic hubs for third-party provider integrations (Asana, Linear, Jira, GitHub Issues, Google Calendar, Outlook, CalDAV). Provides rich types with standard vocabulary properties, inter-type relationships, SHACL shapes for form generation, and view specifications for table, card, and graph browsing."
+description: "Personal knowledge management with Projects, People, Notes, Concepts, Tasks, Milestones, and Events. Tasks and Events serve as semantic hubs for third-party provider integrations (Asana, Monday.com, Linear, Jira, GitHub Issues, Todoist, Trello, Google Calendar, Outlook, CalDAV). Supports subtask hierarchy, multi-project membership, start/due date ranges, story points, and bidirectional sync with external status preservation."
 namespace: "urn:sempkm:model:basic-pkm:"
 prefixes:
   bpkm: "urn:sempkm:model:basic-pkm:"

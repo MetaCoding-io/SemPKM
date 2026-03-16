@@ -158,8 +158,8 @@
       "rdfs:label": "Tasks Table",
       "sempkm:targetClass": { "@id": "bpkm:Task" },
       "sempkm:rendererType": "table",
-      "sempkm:sparqlQuery": "SELECT ?s ?title ?taskStatus ?priority ?dueDate ?effort ?assignee ?project ?provider WHERE { ?s a <urn:sempkm:model:basic-pkm:Task> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:taskStatus> ?taskStatus } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:priority> ?priority } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:dueDate> ?dueDate } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:effort> ?effort } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:assignedTo> ?a . ?a <http://xmlns.com/foaf/0.1/name> ?assignee } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:taskProject> ?p . ?p <http://purl.org/dc/terms/title> ?project } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:externalProvider> ?provider } }",
-      "sempkm:columns": "title,taskStatus,priority,dueDate,assignee,project,provider",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?taskStatus ?priority ?startDate ?dueDate ?effort ?assignee ?project ?provider ?parentTitle WHERE { ?s a <urn:sempkm:model:basic-pkm:Task> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:taskStatus> ?taskStatus } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:priority> ?priority } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:startDate> ?startDate } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:dueDate> ?dueDate } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:effort> ?effort } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:assignedTo> ?a . ?a <http://xmlns.com/foaf/0.1/name> ?assignee } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:taskProject> ?p . ?p <http://purl.org/dc/terms/title> ?project } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:externalProvider> ?provider } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:parentTask> ?parent . ?parent <http://purl.org/dc/terms/title> ?parentTitle } }",
+      "sempkm:columns": "title,taskStatus,priority,startDate,dueDate,assignee,project,provider",
       "sempkm:sortDefault": "dueDate"
     },
     {

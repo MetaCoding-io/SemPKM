@@ -891,11 +891,21 @@
           "sempkm:editHelpText": "T-shirt sizing for effort. Useful for planning how much you can take on in a sprint or week."
         },
         {
+          "sh:path": { "@id": "bpkm:startDate" },
+          "sh:name": "Start Date",
+          "sh:datatype": { "@id": "xsd:date" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "bpkm:TaskDatesGroup" },
+          "sh:description": "When work on this task begins.",
+          "sempkm:editHelpText": "The planned start date. Maps to Asana start_on, Monday timeline start, Linear cycle start."
+        },
+        {
           "sh:path": { "@id": "bpkm:dueDate" },
           "sh:name": "Due Date",
           "sh:datatype": { "@id": "xsd:date" },
           "sh:maxCount": 1,
-          "sh:order": 6,
+          "sh:order": 7,
           "sh:group": { "@id": "bpkm:TaskDatesGroup" },
           "sh:description": "When this task is due.",
           "sempkm:editHelpText": "The deadline. Leave blank for tasks without a hard due date."
@@ -905,7 +915,7 @@
           "sh:name": "Completed",
           "sh:datatype": { "@id": "xsd:date" },
           "sh:maxCount": 1,
-          "sh:order": 7,
+          "sh:order": 8,
           "sh:group": { "@id": "bpkm:TaskDatesGroup" },
           "sh:description": "When this task was completed.",
           "sempkm:editHelpText": "Set when the task is done. For synced tasks, this is populated automatically."
@@ -914,27 +924,45 @@
           "sh:path": { "@id": "bpkm:assignedTo" },
           "sh:name": "Assigned To",
           "sh:class": { "@id": "bpkm:Person" },
-          "sh:order": 8,
+          "sh:order": 9,
           "sh:group": { "@id": "bpkm:TaskRelationshipsGroup" },
           "sh:description": "Who is responsible for this task.",
           "sempkm:editHelpText": "The person or people working on this. For synced tasks, mapped from the provider's assignee field."
         },
         {
-          "sh:path": { "@id": "bpkm:taskProject" },
-          "sh:name": "Project",
-          "sh:class": { "@id": "bpkm:Project" },
-          "sh:maxCount": 1,
-          "sh:order": 9,
+          "sh:path": { "@id": "bpkm:followers" },
+          "sh:name": "Followers",
+          "sh:class": { "@id": "bpkm:Person" },
+          "sh:order": 10,
           "sh:group": { "@id": "bpkm:TaskRelationshipsGroup" },
-          "sh:description": "The project this task belongs to.",
-          "sempkm:editHelpText": "Which project this task is part of. If assigned to a milestone, the project can be inferred automatically."
+          "sh:description": "People watching this task for updates.",
+          "sempkm:editHelpText": "People following this task. Maps to Asana followers, Monday subscribers, Jira watchers."
+        },
+        {
+          "sh:path": { "@id": "bpkm:parentTask" },
+          "sh:name": "Parent Task",
+          "sh:class": { "@id": "bpkm:Task" },
+          "sh:maxCount": 1,
+          "sh:order": 11,
+          "sh:group": { "@id": "bpkm:TaskRelationshipsGroup" },
+          "sh:description": "The parent task if this is a subtask.",
+          "sempkm:editHelpText": "Set when this is a subtask. Supports deep nesting (up to 5 levels in Asana/Monday)."
+        },
+        {
+          "sh:path": { "@id": "bpkm:taskProject" },
+          "sh:name": "Projects",
+          "sh:class": { "@id": "bpkm:Project" },
+          "sh:order": 12,
+          "sh:group": { "@id": "bpkm:TaskRelationshipsGroup" },
+          "sh:description": "Projects this task belongs to.",
+          "sempkm:editHelpText": "Which project(s) this task is part of. Asana tasks can belong to multiple projects; Monday items can be linked across boards."
         },
         {
           "sh:path": { "@id": "bpkm:milestone" },
           "sh:name": "Milestone",
           "sh:class": { "@id": "bpkm:Milestone" },
           "sh:maxCount": 1,
-          "sh:order": 10,
+          "sh:order": 13,
           "sh:group": { "@id": "bpkm:TaskRelationshipsGroup" },
           "sh:description": "The milestone this task contributes to.",
           "sempkm:editHelpText": "Which milestone this task is part of. Milestones group tasks toward a specific deliverable or deadline."
@@ -943,7 +971,7 @@
           "sh:path": { "@id": "bpkm:dependsOn" },
           "sh:name": "Depends On",
           "sh:class": { "@id": "bpkm:Task" },
-          "sh:order": 11,
+          "sh:order": 14,
           "sh:group": { "@id": "bpkm:TaskRelationshipsGroup" },
           "sh:description": "Tasks that must be completed before this one.",
           "sempkm:editHelpText": "Blocking dependencies. These tasks must be done before this one can start. Shows in the task dependency graph."
@@ -952,16 +980,36 @@
           "sh:path": { "@id": "bpkm:isAbout" },
           "sh:name": "Related Concepts",
           "sh:class": { "@id": "bpkm:Concept" },
-          "sh:order": 12,
+          "sh:order": 15,
           "sh:group": { "@id": "bpkm:TaskRelationshipsGroup" },
           "sh:description": "Concepts this task relates to.",
           "sempkm:editHelpText": "Link to concepts this task involves. Builds connections between your work and your knowledge graph."
         },
         {
+          "sh:path": { "@id": "bpkm:storyPoints" },
+          "sh:name": "Story Points",
+          "sh:datatype": { "@id": "xsd:decimal" },
+          "sh:maxCount": 1,
+          "sh:order": 16,
+          "sh:group": { "@id": "bpkm:TaskBasicInfoGroup" },
+          "sh:description": "Numeric complexity/effort estimate.",
+          "sempkm:editHelpText": "Numeric estimate (e.g., fibonacci story points). Maps to Linear estimate, Jira story points, Monday numbers column. Use alongside or instead of t-shirt sizing."
+        },
+        {
+          "sh:path": { "@id": "bpkm:taskGroup" },
+          "sh:name": "Group / Section",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 17,
+          "sh:group": { "@id": "bpkm:TaskMetadataGroup" },
+          "sh:description": "Section or group name from the external provider.",
+          "sempkm:editHelpText": "Preserves the provider's grouping: Asana section, Monday group, Jira sprint name, Linear cycle. Set automatically during sync."
+        },
+        {
           "sh:path": { "@id": "bpkm:tags" },
           "sh:name": "Tags",
           "sh:datatype": { "@id": "xsd:string" },
-          "sh:order": 13,
+          "sh:order": 18,
           "sh:group": { "@id": "bpkm:TaskMetadataGroup" },
           "sh:description": "Free-form labels for filtering and organization.",
           "sempkm:editHelpText": "Free-form tags. Use for cross-cutting concerns like `bug`, `feature`, `docs`, `urgent`."
@@ -970,9 +1018,9 @@
           "sh:path": { "@id": "bpkm:externalProvider" },
           "sh:name": "Provider",
           "sh:datatype": { "@id": "xsd:string" },
-          "sh:in": { "@list": ["manual", "asana", "linear", "jira", "github", "todoist", "trello"] },
+          "sh:in": { "@list": ["manual", "asana", "linear", "jira", "github", "todoist", "trello", "monday"] },
           "sh:maxCount": 1,
-          "sh:order": 14,
+          "sh:order": 19,
           "sh:group": { "@id": "bpkm:TaskMetadataGroup" },
           "sh:description": "Which service this task was imported from.",
           "sempkm:editHelpText": "Set automatically when a task is synced from an external provider. Manual tasks default to 'manual'."
@@ -982,7 +1030,7 @@
           "sh:name": "External ID",
           "sh:datatype": { "@id": "xsd:string" },
           "sh:maxCount": 1,
-          "sh:order": 15,
+          "sh:order": 20,
           "sh:group": { "@id": "bpkm:TaskMetadataGroup" },
           "sh:description": "The task's identifier in the external system.",
           "sempkm:editHelpText": "The task ID from the external provider (e.g., LIN-123, PROJ-42, #7). Set automatically during sync."
@@ -992,17 +1040,38 @@
           "sh:name": "External Link",
           "sh:datatype": { "@id": "xsd:anyURI" },
           "sh:maxCount": 1,
-          "sh:order": 16,
+          "sh:order": 21,
           "sh:group": { "@id": "bpkm:TaskMetadataGroup" },
           "sh:description": "Direct link to this task in the external provider.",
           "sempkm:editHelpText": "Click to open this task in its original provider (Linear, Jira, GitHub, etc.)."
+        },
+        {
+          "sh:path": { "@id": "bpkm:externalStatus" },
+          "sh:name": "External Status",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 22,
+          "sh:group": { "@id": "bpkm:TaskMetadataGroup" },
+          "sh:description": "Raw status label from the provider before normalization.",
+          "sempkm:editHelpText": "The original status label (e.g., 'Working on it', 'In Review', 'Backlog'). Preserved for round-trip sync fidelity."
+        },
+        {
+          "sh:path": { "@id": "bpkm:syncDirection" },
+          "sh:name": "Sync Direction",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["pull", "push", "bidirectional"] },
+          "sh:maxCount": 1,
+          "sh:order": 23,
+          "sh:group": { "@id": "bpkm:TaskMetadataGroup" },
+          "sh:description": "How this task syncs with the external provider.",
+          "sempkm:editHelpText": "Pull: read-only from provider. Push: changes flow to provider. Bidirectional: both directions with conflict resolution."
         },
         {
           "sh:path": { "@id": "bpkm:lastSyncedAt" },
           "sh:name": "Last Synced",
           "sh:datatype": { "@id": "xsd:dateTime" },
           "sh:maxCount": 1,
-          "sh:order": 17,
+          "sh:order": 24,
           "sh:group": { "@id": "bpkm:TaskMetadataGroup" },
           "sh:description": "When this task was last synced with the external provider."
         },
@@ -1011,7 +1080,7 @@
           "sh:name": "Created",
           "sh:datatype": { "@id": "xsd:dateTime" },
           "sh:maxCount": 1,
-          "sh:order": 18,
+          "sh:order": 25,
           "sh:group": { "@id": "bpkm:TaskMetadataGroup" }
         },
         {
@@ -1019,7 +1088,7 @@
           "sh:name": "Modified",
           "sh:datatype": { "@id": "xsd:dateTime" },
           "sh:maxCount": 1,
-          "sh:order": 19,
+          "sh:order": 26,
           "sh:group": { "@id": "bpkm:TaskMetadataGroup" }
         }
       ]

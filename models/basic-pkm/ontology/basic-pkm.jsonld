@@ -168,6 +168,14 @@
       "rdfs:range": { "@id": "xsd:string" }
     },
     {
+      "@id": "bpkm:startDate",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Start Date",
+      "rdfs:comment": "When work on this task begins. Maps to Asana start_on, Monday timeline start, Linear/Jira sprint start.",
+      "rdfs:domain": { "@id": "bpkm:Task" },
+      "rdfs:range": { "@id": "xsd:date" }
+    },
+    {
       "@id": "bpkm:dueDate",
       "@type": "owl:DatatypeProperty",
       "rdfs:label": "Due Date",
@@ -219,6 +227,37 @@
       "rdfs:range": { "@id": "xsd:dateTime" }
     },
     {
+      "@id": "bpkm:storyPoints",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Story Points",
+      "rdfs:comment": "Numeric complexity/effort estimate. Maps to Linear estimate, Jira story points, Monday numbers column.",
+      "rdfs:domain": { "@id": "bpkm:Task" },
+      "rdfs:range": { "@id": "xsd:decimal" }
+    },
+    {
+      "@id": "bpkm:taskGroup",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Group",
+      "rdfs:comment": "Section or group name from the external provider (Asana section, Monday group, Jira sprint, Linear cycle). Preserves provider-side organization.",
+      "rdfs:domain": { "@id": "bpkm:Task" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:syncDirection",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Sync Direction",
+      "rdfs:comment": "How this task syncs with the external provider (pull, push, bidirectional)",
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:externalStatus",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "External Status",
+      "rdfs:comment": "The raw status label from the external provider before normalization. Preserved for round-trip fidelity (e.g., Asana section name, Monday status label, Jira workflow state).",
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+
+    {
       "@id": "bpkm:assignedTo",
       "@type": "owl:ObjectProperty",
       "rdfs:label": "Assigned To",
@@ -227,10 +266,35 @@
       "rdfs:range": { "@id": "bpkm:Person" }
     },
     {
+      "@id": "bpkm:followers",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Followers",
+      "rdfs:comment": "People following/watching this task for updates. Maps to Asana followers, Monday subscribers.",
+      "rdfs:domain": { "@id": "bpkm:Task" },
+      "rdfs:range": { "@id": "bpkm:Person" }
+    },
+    {
+      "@id": "bpkm:parentTask",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Parent Task",
+      "rdfs:comment": "The parent task if this is a subtask. Supports arbitrary depth (Asana: 5 levels, Monday: 5 levels).",
+      "rdfs:domain": { "@id": "bpkm:Task" },
+      "rdfs:range": { "@id": "bpkm:Task" }
+    },
+    {
+      "@id": "bpkm:hasSubtasks",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Subtasks",
+      "rdfs:comment": "Child tasks nested under this task",
+      "rdfs:domain": { "@id": "bpkm:Task" },
+      "rdfs:range": { "@id": "bpkm:Task" },
+      "owl:inverseOf": { "@id": "bpkm:parentTask" }
+    },
+    {
       "@id": "bpkm:taskProject",
       "@type": "owl:ObjectProperty",
       "rdfs:label": "Project",
-      "rdfs:comment": "The project this task belongs to",
+      "rdfs:comment": "Projects this task belongs to. Multi-value to match Asana (tasks can be in multiple projects) and Monday (items can be linked across boards).",
       "rdfs:domain": { "@id": "bpkm:Task" },
       "rdfs:range": { "@id": "bpkm:Project" }
     },
