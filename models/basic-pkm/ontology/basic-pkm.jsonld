@@ -436,6 +436,79 @@
       "rdfs:comment": "Notes linked to this event",
       "rdfs:domain": { "@id": "bpkm:Event" },
       "rdfs:range": { "@id": "bpkm:Note" }
+    },
+    {
+      "@id": "bpkm:organizer",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Organizer",
+      "rdfs:comment": "The person who organized/created this event. Maps to Google Calendar organizer, Outlook organizer, CalDAV ORGANIZER.",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "bpkm:Person" }
+    },
+
+    {
+      "@id": "bpkm:recurrenceRule",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Recurrence Rule",
+      "rdfs:comment": "RFC 5545 RRULE string defining recurrence pattern (e.g., FREQ=WEEKLY;BYDAY=MO,WE,FR). Google Calendar uses RRULE natively, Outlook recurrence.pattern is translated to RRULE, CalDAV uses RRULE directly.",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:recurringEventId",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Recurring Event ID",
+      "rdfs:comment": "Links a single occurrence or exception to the series master event. Maps to Google recurringEventId, Outlook seriesMasterId.",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:visibility",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Visibility",
+      "rdfs:comment": "Who can see event details (public, private, confidential). Maps to Google visibility, Outlook sensitivity, CalDAV CLASS.",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:showAs",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Show As",
+      "rdfs:comment": "How this event displays on the calendar for availability (busy, free, tentative, out-of-office, working-elsewhere). Maps to Google transparency (opaque→busy, transparent→free), Outlook showAs (5 values), CalDAV TRANSP.",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:conferenceUrl",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Conference URL",
+      "rdfs:comment": "Video meeting join link (Zoom, Google Meet, Teams, etc). Distinct from physical location. Maps to Google conferenceData.entryPoints[type=video].uri or hangoutLink, Outlook onlineMeeting.joinUrl.",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "xsd:anyURI" }
+    },
+    {
+      "@id": "bpkm:responseStatus",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Response Status",
+      "rdfs:comment": "Current user's RSVP response to this event (accepted, declined, tentative, needs-action). Maps to Google attendees[self=true].responseStatus, Outlook responseStatus.response, CalDAV PARTSTAT.",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:reminderMinutes",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Reminder",
+      "rdfs:comment": "Minutes before the event to trigger a reminder. Maps to Google reminders.overrides[0].minutes, Outlook reminderMinutesBeforeStart, CalDAV VALARM TRIGGER.",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "xsd:integer" }
+    },
+    {
+      "@id": "bpkm:timeZone",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Time Zone",
+      "rdfs:comment": "IANA time zone identifier for this event (e.g., America/New_York). Maps to Google start.timeZone, Outlook start.timeZone, CalDAV DTSTART TZID.",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "xsd:string" }
     }
   ]
 }

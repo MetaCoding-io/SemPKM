@@ -198,8 +198,8 @@
       "rdfs:label": "Events Table",
       "sempkm:targetClass": { "@id": "bpkm:Event" },
       "sempkm:rendererType": "table",
-      "sempkm:sparqlQuery": "SELECT ?s ?title ?eventType ?startDate ?endDate ?eventStatus ?location ?provider WHERE { ?s a <urn:sempkm:model:basic-pkm:Event> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:eventType> ?eventType } . OPTIONAL { ?s <https://schema.org/startDate> ?startDate } . OPTIONAL { ?s <https://schema.org/endDate> ?endDate } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:eventStatus> ?eventStatus } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:location> ?location } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:externalProvider> ?provider } }",
-      "sempkm:columns": "title,eventType,startDate,endDate,location,provider",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?eventType ?startDate ?endDate ?eventStatus ?location ?conferenceUrl ?responseStatus ?provider WHERE { ?s a <urn:sempkm:model:basic-pkm:Event> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:eventType> ?eventType } . OPTIONAL { ?s <https://schema.org/startDate> ?startDate } . OPTIONAL { ?s <https://schema.org/endDate> ?endDate } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:eventStatus> ?eventStatus } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:location> ?location } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:conferenceUrl> ?conferenceUrl } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:responseStatus> ?responseStatus } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:externalProvider> ?provider } }",
+      "sempkm:columns": "title,eventType,startDate,endDate,responseStatus,location,provider",
       "sempkm:sortDefault": "startDate"
     },
     {
