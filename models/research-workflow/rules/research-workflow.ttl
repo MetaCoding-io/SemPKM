@@ -1,0 +1,70 @@
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix res:   <urn:sempkm:model:research:> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+# Rule: Derive res:claimCount on Papers from their extracted Claims
+# Enables sorting papers by how many claims have been extracted.
+
+res:PaperClaimCountRule
+    a sh:NodeShape ;
+    sh:targetClass res:Paper ;
+    sh:rule [
+        a sh:SPARQLRule ;
+        sh:order 0 ;
+        rdfs:label "Derive claim count" ;
+        rdfs:comment "Sets claimCount to the number of Claims extracted from this paper" ;
+        sh:prefixes res:PrefixDeclarations ;
+        sh:construct """
+            CONSTRUCT {
+                $this res:claimCount ?count .
+            }
+            WHERE {
+                {
+                    SELECT (COUNT(?claim) AS ?count)
+                    WHERE {
+                        ?claim res:extractedFrom $this .
+                    }
+                }
+                FILTER(?count > 0)
+            }
+        """ ;
+    ] .
+
+# Rule: Auto-detect contested claims (have both supporting and refuting evidence)
+
+res:ContestedClaimDetectionRule
+    a sh:NodeShape ;
+    sh:targetClass res:Claim ;
+    sh:rule [
+        a sh:SPARQLRule ;
+        sh:order 1 ;
+        rdfs:label "Detect contested claims" ;
+        rdfs:comment "Sets isContested to true if a claim has both supporting and refuting evidence" ;
+        sh:prefixes res:PrefixDeclarations ;
+        sh:construct """
+            CONSTRUCT {
+                $this res:isContested true .
+            }
+            WHERE {
+                ?supEv res:supports $this .
+                ?refEv res:refutes $this .
+                FILTER(?supEv != ?refEv)
+            }
+        """ ;
+    ] .
+
+# Prefix declarations for SPARQL rules
+res:PrefixDeclarations
+    a owl:Ontology ;
+    sh:declare [
+        sh:prefix "res" ;
+        sh:namespace "urn:sempkm:model:research:"^^xsd:anyURI ;
+    ] ;
+    sh:declare [
+        sh:prefix "dcterms" ;
+        sh:namespace "http://purl.org/dc/terms/"^^xsd:anyURI ;
+    ] .

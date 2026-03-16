@@ -1,0 +1,331 @@
+{
+  "@context": {
+    "owl": "http://www.w3.org/2002/07/owl#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "res": "urn:sempkm:model:research:",
+    "gist": "https://w3id.org/semanticarts/ns/ontology/gist/"
+  },
+  "@graph": [
+    {
+      "@id": "res:ontology",
+      "@type": "owl:Ontology",
+      "rdfs:label": "Research Workflow Ontology",
+      "dcterms:description": "Claims-first academic PKM: Papers, Claims with evidence and provenance, Research Questions, and structured Arguments for literature reviews and systematic research."
+    },
+
+    {
+      "@id": "res:Paper",
+      "@type": "owl:Class",
+      "rdfs:label": "Paper",
+      "rdfs:comment": "A scholarly work: journal article, conference paper, preprint, book chapter, thesis, or report",
+      "rdfs:subClassOf": { "@id": "gist:Content" }
+    },
+    {
+      "@id": "res:Claim",
+      "@type": "owl:Class",
+      "rdfs:label": "Claim",
+      "rdfs:comment": "An atomic assertion that can be true or false, supported or refuted by evidence",
+      "rdfs:subClassOf": { "@id": "gist:FormattedContent" }
+    },
+    {
+      "@id": "res:Evidence",
+      "@type": "owl:Class",
+      "rdfs:label": "Evidence",
+      "rdfs:comment": "A specific data point, quote, finding, or observation that supports or refutes a claim",
+      "rdfs:subClassOf": { "@id": "gist:FormattedContent" }
+    },
+    {
+      "@id": "res:ResearchQuestion",
+      "@type": "owl:Class",
+      "rdfs:label": "Research Question",
+      "rdfs:comment": "A driving question that motivates an argument or literature review",
+      "rdfs:subClassOf": { "@id": "gist:Intention" }
+    },
+    {
+      "@id": "res:Argument",
+      "@type": "owl:Class",
+      "rdfs:label": "Argument",
+      "rdfs:comment": "A structured synthesis connecting claims and evidence to address a research question",
+      "rdfs:subClassOf": { "@id": "gist:FormattedContent" }
+    },
+
+    {
+      "@id": "res:venue",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Venue",
+      "rdfs:comment": "Journal, conference, or publisher",
+      "rdfs:domain": { "@id": "res:Paper" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "res:year",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Year",
+      "rdfs:comment": "Publication year",
+      "rdfs:domain": { "@id": "res:Paper" },
+      "rdfs:range": { "@id": "xsd:gYear" }
+    },
+    {
+      "@id": "res:doi",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "DOI",
+      "rdfs:comment": "Digital Object Identifier link",
+      "rdfs:domain": { "@id": "res:Paper" },
+      "rdfs:range": { "@id": "xsd:anyURI" }
+    },
+    {
+      "@id": "res:abstract",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Abstract",
+      "rdfs:comment": "Paper abstract",
+      "rdfs:domain": { "@id": "res:Paper" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "res:paperType",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Paper Type",
+      "rdfs:comment": "Type of publication (journal-article, conference-paper, preprint, book-chapter, thesis, report, other)",
+      "rdfs:domain": { "@id": "res:Paper" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "res:notes",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Notes",
+      "rdfs:comment": "Personal reading notes",
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "res:tags",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Tags",
+      "rdfs:comment": "Tags or keywords for categorization",
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "res:claimBody",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Elaboration",
+      "rdfs:comment": "Detailed elaboration of the claim",
+      "rdfs:domain": { "@id": "res:Claim" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "res:confidence",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Confidence",
+      "rdfs:comment": "Confidence level (established, supported, contested, speculative, refuted)",
+      "rdfs:domain": { "@id": "res:Claim" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "res:domain",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Domain",
+      "rdfs:comment": "Research area or field",
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "res:evidenceBody",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Evidence Detail",
+      "rdfs:comment": "The evidence detail in Markdown",
+      "rdfs:domain": { "@id": "res:Evidence" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "res:evidenceType",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Evidence Type",
+      "rdfs:comment": "Type of evidence (empirical-data, statistical-finding, case-study, expert-opinion, logical-argument, observation, quote)",
+      "rdfs:domain": { "@id": "res:Evidence" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "res:pageReference",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Page Reference",
+      "rdfs:comment": "Page or section in the source material",
+      "rdfs:domain": { "@id": "res:Evidence" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "res:methodology",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Methodology",
+      "rdfs:comment": "How the evidence was obtained",
+      "rdfs:domain": { "@id": "res:Evidence" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "res:questionBody",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Context",
+      "rdfs:comment": "Context, motivation, and scope of the research question",
+      "rdfs:domain": { "@id": "res:ResearchQuestion" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "res:status",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Status",
+      "rdfs:comment": "Status of the research question (open, partially-answered, answered, abandoned)",
+      "rdfs:domain": { "@id": "res:ResearchQuestion" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "res:argumentBody",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Argument Body",
+      "rdfs:comment": "Full argument text in Markdown",
+      "rdfs:domain": { "@id": "res:Argument" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "res:argumentType",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Argument Type",
+      "rdfs:comment": "Type of argument (literature-review, position-paper, analysis, synthesis, rebuttal)",
+      "rdfs:domain": { "@id": "res:Argument" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+
+    {
+      "@id": "res:cites",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Cites",
+      "rdfs:comment": "Papers this paper references",
+      "rdfs:domain": { "@id": "res:Paper" },
+      "rdfs:range": { "@id": "res:Paper" }
+    },
+    {
+      "@id": "res:citedBy",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Cited By",
+      "rdfs:comment": "Papers that cite this paper",
+      "rdfs:domain": { "@id": "res:Paper" },
+      "rdfs:range": { "@id": "res:Paper" },
+      "owl:inverseOf": { "@id": "res:cites" }
+    },
+    {
+      "@id": "res:extractedFrom",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Extracted From",
+      "rdfs:comment": "Paper this claim was extracted from",
+      "rdfs:domain": { "@id": "res:Claim" },
+      "rdfs:range": { "@id": "res:Paper" }
+    },
+    {
+      "@id": "res:hasClaim",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Claims",
+      "rdfs:comment": "Claims extracted from this paper",
+      "rdfs:domain": { "@id": "res:Paper" },
+      "rdfs:range": { "@id": "res:Claim" },
+      "owl:inverseOf": { "@id": "res:extractedFrom" }
+    },
+    {
+      "@id": "res:supports",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Supports",
+      "rdfs:comment": "The claim this evidence supports",
+      "rdfs:domain": { "@id": "res:Evidence" },
+      "rdfs:range": { "@id": "res:Claim" }
+    },
+    {
+      "@id": "res:refutes",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Refutes",
+      "rdfs:comment": "The claim this evidence refutes",
+      "rdfs:domain": { "@id": "res:Evidence" },
+      "rdfs:range": { "@id": "res:Claim" }
+    },
+    {
+      "@id": "res:supportedBy",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Supported By",
+      "rdfs:comment": "Evidence supporting this claim",
+      "rdfs:domain": { "@id": "res:Claim" },
+      "rdfs:range": { "@id": "res:Evidence" },
+      "owl:inverseOf": { "@id": "res:supports" }
+    },
+    {
+      "@id": "res:refutedBy",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Refuted By",
+      "rdfs:comment": "Evidence refuting this claim",
+      "rdfs:domain": { "@id": "res:Claim" },
+      "rdfs:range": { "@id": "res:Evidence" },
+      "owl:inverseOf": { "@id": "res:refutes" }
+    },
+    {
+      "@id": "res:fromPaper",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "From Paper",
+      "rdfs:comment": "Source paper this evidence comes from",
+      "rdfs:domain": { "@id": "res:Evidence" },
+      "rdfs:range": { "@id": "res:Paper" }
+    },
+    {
+      "@id": "res:corroborates",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Corroborates",
+      "rdfs:comment": "Another claim that agrees with this one",
+      "rdfs:domain": { "@id": "res:Claim" },
+      "rdfs:range": { "@id": "res:Claim" }
+    },
+    {
+      "@id": "res:contradicts",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Contradicts",
+      "rdfs:comment": "Another claim that disagrees with this one",
+      "rdfs:domain": { "@id": "res:Claim" },
+      "rdfs:range": { "@id": "res:Claim" }
+    },
+    {
+      "@id": "res:dependsOn",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Depends On",
+      "rdfs:comment": "Prerequisite claim that this claim builds upon",
+      "rdfs:domain": { "@id": "res:Claim" },
+      "rdfs:range": { "@id": "res:Claim" }
+    },
+    {
+      "@id": "res:addresses",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Addresses",
+      "rdfs:comment": "The research question this argument answers",
+      "rdfs:domain": { "@id": "res:Argument" },
+      "rdfs:range": { "@id": "res:ResearchQuestion" }
+    },
+    {
+      "@id": "res:hasArgument",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Arguments",
+      "rdfs:comment": "Arguments addressing this research question",
+      "rdfs:domain": { "@id": "res:ResearchQuestion" },
+      "rdfs:range": { "@id": "res:Argument" },
+      "owl:inverseOf": { "@id": "res:addresses" }
+    },
+    {
+      "@id": "res:usesClaim",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Uses Claim",
+      "rdfs:comment": "Claims used in this argument",
+      "rdfs:domain": { "@id": "res:Argument" },
+      "rdfs:range": { "@id": "res:Claim" }
+    },
+    {
+      "@id": "res:usesEvidence",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Uses Evidence",
+      "rdfs:comment": "Direct evidence references in this argument",
+      "rdfs:domain": { "@id": "res:Argument" },
+      "rdfs:range": { "@id": "res:Evidence" }
+    }
+  ]
+}

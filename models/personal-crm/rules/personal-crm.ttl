@@ -1,0 +1,43 @@
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix crm:   <urn:sempkm:model:personal-crm:> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+
+# Rule: Derive crm:lastContactedDate on Contacts from their most recent Interaction
+# Enables sorting contacts by recency of interaction.
+
+crm:LastContactedDateRule
+    a sh:NodeShape ;
+    sh:targetClass crm:Contact ;
+    sh:rule [
+        a sh:SPARQLRule ;
+        sh:order 0 ;
+        rdfs:label "Derive last contacted date" ;
+        rdfs:comment "Sets lastContactedDate to the most recent interactionDate from any Interaction involving this contact" ;
+        sh:prefixes crm:PrefixDeclarations ;
+        sh:construct """
+            CONSTRUCT {
+                $this crm:lastContactedDate ?maxDate .
+            }
+            WHERE {
+                {
+                    SELECT (MAX(?date) AS ?maxDate)
+                    WHERE {
+                        ?interaction crm:withContact $this ;
+                                     crm:interactionDate ?date .
+                    }
+                }
+                FILTER(BOUND(?maxDate))
+            }
+        """ ;
+    ] .
+
+# Prefix declarations for SPARQL rules
+crm:PrefixDeclarations
+    a owl:Ontology ;
+    sh:declare [
+        sh:prefix "crm" ;
+        sh:namespace "urn:sempkm:model:personal-crm:"^^xsd:anyURI ;
+    ] .

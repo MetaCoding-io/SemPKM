@@ -1,0 +1,63 @@
+{
+  "@context": {
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "crm": "urn:sempkm:model:personal-crm:",
+    "sempkm": "urn:sempkm:vocab:",
+    "dcterms": "http://purl.org/dc/terms/",
+    "foaf": "http://xmlns.com/foaf/0.1/",
+    "schema": "https://schema.org/"
+  },
+  "@graph": [
+    {
+      "@id": "crm:view-contact-table", "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Contacts Table", "sempkm:targetClass": { "@id": "crm:Contact" }, "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?name ?jobTitle ?company ?relationship ?location WHERE { ?s a <urn:sempkm:model:personal-crm:Contact> ; <http://xmlns.com/foaf/0.1/name> ?name . OPTIONAL { ?s <https://schema.org/jobTitle> ?jobTitle } . OPTIONAL { ?s <urn:sempkm:model:personal-crm:worksAt> ?c . ?c <http://purl.org/dc/terms/title> ?company } . OPTIONAL { ?s <urn:sempkm:model:personal-crm:relationship> ?relationship } . OPTIONAL { ?s <urn:sempkm:model:personal-crm:location> ?location } }",
+      "sempkm:columns": "name,jobTitle,company,relationship,location", "sempkm:sortDefault": "name"
+    },
+    {
+      "@id": "crm:view-contact-card", "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Contacts Cards", "sempkm:targetClass": { "@id": "crm:Contact" }, "sempkm:rendererType": "card",
+      "sempkm:sparqlQuery": "SELECT ?s ?name ?jobTitle ?company ?relationship WHERE { ?s a <urn:sempkm:model:personal-crm:Contact> ; <http://xmlns.com/foaf/0.1/name> ?name . OPTIONAL { ?s <https://schema.org/jobTitle> ?jobTitle } . OPTIONAL { ?s <urn:sempkm:model:personal-crm:worksAt> ?c . ?c <http://purl.org/dc/terms/title> ?company } . OPTIONAL { ?s <urn:sempkm:model:personal-crm:relationship> ?relationship } }",
+      "sempkm:cardTitle": "http://xmlns.com/foaf/0.1/name", "sempkm:cardSubtitle": "https://schema.org/jobTitle"
+    },
+    {
+      "@id": "crm:view-contact-graph", "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Network Graph", "sempkm:targetClass": { "@id": "crm:Contact" }, "sempkm:rendererType": "graph",
+      "sempkm:sparqlQuery": "CONSTRUCT { ?s a <urn:sempkm:model:personal-crm:Contact> ; <http://xmlns.com/foaf/0.1/name> ?name ; <urn:sempkm:model:personal-crm:worksAt> ?company ; <urn:sempkm:model:personal-crm:knows> ?other . ?company <http://purl.org/dc/terms/title> ?cname . ?other <http://xmlns.com/foaf/0.1/name> ?oname } WHERE { ?s a <urn:sempkm:model:personal-crm:Contact> ; <http://xmlns.com/foaf/0.1/name> ?name . OPTIONAL { ?s <urn:sempkm:model:personal-crm:worksAt> ?company . ?company <http://purl.org/dc/terms/title> ?cname } . OPTIONAL { ?s <urn:sempkm:model:personal-crm:knows> ?other . ?other <http://xmlns.com/foaf/0.1/name> ?oname } }"
+    },
+    {
+      "@id": "crm:view-company-table", "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Companies Table", "sempkm:targetClass": { "@id": "crm:Company" }, "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?industry ?companySize ?location WHERE { ?s a <urn:sempkm:model:personal-crm:Company> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:personal-crm:industry> ?industry } . OPTIONAL { ?s <urn:sempkm:model:personal-crm:companySize> ?companySize } . OPTIONAL { ?s <urn:sempkm:model:personal-crm:location> ?location } }",
+      "sempkm:columns": "title,industry,companySize,location", "sempkm:sortDefault": "title"
+    },
+    {
+      "@id": "crm:view-interaction-table", "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Interactions Timeline", "sempkm:targetClass": { "@id": "crm:Interaction" }, "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?interactionType ?interactionDate ?contact ?followUpDate ?followUpDone WHERE { ?s a <urn:sempkm:model:personal-crm:Interaction> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:personal-crm:interactionType> ?interactionType } . OPTIONAL { ?s <urn:sempkm:model:personal-crm:interactionDate> ?interactionDate } . OPTIONAL { ?s <urn:sempkm:model:personal-crm:withContact> ?c . ?c <http://xmlns.com/foaf/0.1/name> ?contact } . OPTIONAL { ?s <urn:sempkm:model:personal-crm:followUpDate> ?followUpDate } . OPTIONAL { ?s <urn:sempkm:model:personal-crm:followUpDone> ?followUpDone } }",
+      "sempkm:columns": "title,interactionType,interactionDate,contact,followUpDate", "sempkm:sortDefault": "interactionDate"
+    },
+    {
+      "@id": "crm:view-deal-card", "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Deal Pipeline", "sempkm:targetClass": { "@id": "crm:Deal" }, "sempkm:rendererType": "card",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?dealStage ?dealValue ?currency ?contact ?company WHERE { ?s a <urn:sempkm:model:personal-crm:Deal> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:personal-crm:dealStage> ?dealStage } . OPTIONAL { ?s <urn:sempkm:model:personal-crm:dealValue> ?dealValue } . OPTIONAL { ?s <urn:sempkm:model:personal-crm:currency> ?currency } . OPTIONAL { ?s <urn:sempkm:model:personal-crm:dealContact> ?dc . ?dc <http://xmlns.com/foaf/0.1/name> ?contact } . OPTIONAL { ?s <urn:sempkm:model:personal-crm:dealCompany> ?co . ?co <http://purl.org/dc/terms/title> ?company } }",
+      "sempkm:cardTitle": "http://purl.org/dc/terms/title", "sempkm:cardSubtitle": "urn:sempkm:model:personal-crm:dealStage"
+    },
+    {
+      "@id": "urn:sempkm:model:personal-crm:query:open-deals", "@type": "sempkm:SavedQuery",
+      "rdfs:label": "Open Deals",
+      "dcterms:description": "Deals not yet won or lost",
+      "sempkm:queryText": "SELECT ?s ?title ?dealStage ?dealValue ?contact ?company WHERE { ?s a <urn:sempkm:model:personal-crm:Deal> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:personal-crm:dealStage> ?dealStage } . OPTIONAL { ?s <urn:sempkm:model:personal-crm:dealValue> ?dealValue } . OPTIONAL { ?s <urn:sempkm:model:personal-crm:dealContact> ?dc . ?dc <http://xmlns.com/foaf/0.1/name> ?contact } . OPTIONAL { ?s <urn:sempkm:model:personal-crm:dealCompany> ?co . ?co <http://purl.org/dc/terms/title> ?company } FILTER(!BOUND(?dealStage) || (?dealStage != 'won' && ?dealStage != 'lost')) } ORDER BY ?dealStage",
+      "sempkm:source": "model:personal-crm"
+    },
+    {
+      "@id": "urn:sempkm:model:personal-crm:query:upcoming-followups", "@type": "sempkm:SavedQuery",
+      "rdfs:label": "Upcoming Follow-Ups",
+      "dcterms:description": "Interactions with pending follow-ups",
+      "sempkm:queryText": "SELECT ?s ?title ?interactionType ?contact ?followUpDate WHERE { ?s a <urn:sempkm:model:personal-crm:Interaction> ; <http://purl.org/dc/terms/title> ?title . ?s <urn:sempkm:model:personal-crm:followUpDate> ?followUpDate . OPTIONAL { ?s <urn:sempkm:model:personal-crm:interactionType> ?interactionType } . OPTIONAL { ?s <urn:sempkm:model:personal-crm:withContact> ?c . ?c <http://xmlns.com/foaf/0.1/name> ?contact } FILTER(!BOUND(?done) || ?done != true) } ORDER BY ?followUpDate",
+      "sempkm:source": "model:personal-crm"
+    }
+  ]
+}

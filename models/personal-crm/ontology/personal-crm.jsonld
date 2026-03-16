@@ -1,0 +1,222 @@
+{
+  "@context": {
+    "owl": "http://www.w3.org/2002/07/owl#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "schema": "https://schema.org/",
+    "dcterms": "http://purl.org/dc/terms/",
+    "foaf": "http://xmlns.com/foaf/0.1/",
+    "crm": "urn:sempkm:model:personal-crm:",
+    "gist": "https://w3id.org/semanticarts/ns/ontology/gist/"
+  },
+  "@graph": [
+    {
+      "@id": "crm:ontology",
+      "@type": "owl:Ontology",
+      "rdfs:label": "Personal CRM Ontology",
+      "dcterms:description": "Contact and relationship management: Contacts, Companies, Interactions, and Deals with typed relationships and provenance."
+    },
+
+    {
+      "@id": "crm:Contact",
+      "@type": "owl:Class",
+      "rdfs:label": "Contact",
+      "rdfs:comment": "A person in your professional or personal network",
+      "rdfs:subClassOf": { "@id": "gist:Person" }
+    },
+    {
+      "@id": "crm:Company",
+      "@type": "owl:Class",
+      "rdfs:label": "Company",
+      "rdfs:comment": "An organization or business entity",
+      "rdfs:subClassOf": { "@id": "gist:Organization" }
+    },
+    {
+      "@id": "crm:Interaction",
+      "@type": "owl:Class",
+      "rdfs:label": "Interaction",
+      "rdfs:comment": "A meeting, call, email, or other interaction with a contact",
+      "rdfs:subClassOf": { "@id": "gist:Event" }
+    },
+    {
+      "@id": "crm:Deal",
+      "@type": "owl:Class",
+      "rdfs:label": "Deal",
+      "rdfs:comment": "A business opportunity or agreement being tracked through a pipeline",
+      "rdfs:subClassOf": { "@id": "gist:Agreement" }
+    },
+
+    {
+      "@id": "crm:relationship",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Relationship",
+      "rdfs:comment": "How you know this person (friend, colleague, client, prospect, mentor, mentee, other)",
+      "rdfs:domain": { "@id": "crm:Contact" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "crm:metVia",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Met Via",
+      "rdfs:comment": "How or where you first met this person",
+      "rdfs:domain": { "@id": "crm:Contact" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "crm:location",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Location",
+      "rdfs:comment": "City, region, or general location",
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "crm:notes",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Notes",
+      "rdfs:comment": "Free-form notes about this entity",
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "crm:tags",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Tags",
+      "rdfs:comment": "Tags for categorization",
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "crm:industry",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Industry",
+      "rdfs:comment": "Industry or sector of the company",
+      "rdfs:domain": { "@id": "crm:Company" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "crm:companySize",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Size",
+      "rdfs:comment": "Company size (solo, small, medium, large, enterprise)",
+      "rdfs:domain": { "@id": "crm:Company" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "crm:interactionType",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Type",
+      "rdfs:comment": "Type of interaction (call, email, meeting, coffee, lunch, conference, message, other)",
+      "rdfs:domain": { "@id": "crm:Interaction" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "crm:interactionDate",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Date",
+      "rdfs:comment": "When the interaction occurred",
+      "rdfs:domain": { "@id": "crm:Interaction" },
+      "rdfs:range": { "@id": "xsd:date" }
+    },
+    {
+      "@id": "crm:followUpDate",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Follow-Up Date",
+      "rdfs:comment": "When to follow up after this interaction",
+      "rdfs:domain": { "@id": "crm:Interaction" },
+      "rdfs:range": { "@id": "xsd:date" }
+    },
+    {
+      "@id": "crm:followUpDone",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Follow-Up Done",
+      "rdfs:comment": "Whether the follow-up has been completed",
+      "rdfs:domain": { "@id": "crm:Interaction" },
+      "rdfs:range": { "@id": "xsd:boolean" }
+    },
+    {
+      "@id": "crm:dealStage",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Stage",
+      "rdfs:comment": "Pipeline stage (lead, qualified, proposal, negotiation, won, lost)",
+      "rdfs:domain": { "@id": "crm:Deal" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "crm:dealValue",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Value",
+      "rdfs:comment": "Monetary value of the deal",
+      "rdfs:domain": { "@id": "crm:Deal" },
+      "rdfs:range": { "@id": "xsd:decimal" }
+    },
+    {
+      "@id": "crm:currency",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Currency",
+      "rdfs:comment": "Currency code (USD, EUR, GBP)",
+      "rdfs:domain": { "@id": "crm:Deal" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "crm:closeDate",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Close Date",
+      "rdfs:comment": "Expected or actual close date",
+      "rdfs:domain": { "@id": "crm:Deal" },
+      "rdfs:range": { "@id": "xsd:date" }
+    },
+
+    {
+      "@id": "crm:worksAt",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Works At",
+      "rdfs:comment": "Company this contact works at",
+      "rdfs:domain": { "@id": "crm:Contact" },
+      "rdfs:range": { "@id": "crm:Company" }
+    },
+    {
+      "@id": "crm:hasEmployee",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Employees",
+      "rdfs:comment": "Contacts who work at this company",
+      "rdfs:domain": { "@id": "crm:Company" },
+      "rdfs:range": { "@id": "crm:Contact" },
+      "owl:inverseOf": { "@id": "crm:worksAt" }
+    },
+    {
+      "@id": "crm:knows",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Knows",
+      "rdfs:comment": "Mutual connection between contacts",
+      "rdfs:domain": { "@id": "crm:Contact" },
+      "rdfs:range": { "@id": "crm:Contact" },
+      "rdf:type": [
+        { "@id": "owl:ObjectProperty" },
+        { "@id": "owl:SymmetricProperty" }
+      ]
+    },
+    {
+      "@id": "crm:withContact",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "With",
+      "rdfs:comment": "Contacts involved in this interaction",
+      "rdfs:domain": { "@id": "crm:Interaction" },
+      "rdfs:range": { "@id": "crm:Contact" }
+    },
+    {
+      "@id": "crm:dealContact",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Primary Contact",
+      "rdfs:comment": "Primary contact for this deal",
+      "rdfs:domain": { "@id": "crm:Deal" },
+      "rdfs:range": { "@id": "crm:Contact" }
+    },
+    {
+      "@id": "crm:dealCompany",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Company",
+      "rdfs:comment": "Company associated with this deal",
+      "rdfs:domain": { "@id": "crm:Deal" },
+      "rdfs:range": { "@id": "crm:Company" }
+    }
+  ]
+}

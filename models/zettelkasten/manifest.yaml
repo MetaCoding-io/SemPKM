@@ -1,0 +1,33 @@
+id: zettelkasten
+name: "Zettelkasten+"
+version: "1.0.0"
+description: >
+  The Zettelkasten method with enforced note types, typed argumentation links,
+  and provenance chains from source material through literature notes to permanent ideas.
+  Fleeting Notes → Sources → Literature Notes → Permanent Notes → Structure Notes.
+namespace: "urn:sempkm:model:zk:"
+prefix: "zk"
+dependencies:
+  - gist
+artifacts:
+  ontology: "ontology/zettelkasten.jsonld"
+  shapes: "shapes/zettelkasten.jsonld"
+  views: "views/zettelkasten.jsonld"
+  seed: "seed/zettelkasten.jsonld"
+  rules: "rules/zettelkasten.ttl"
+icons:
+  - type: "zk:FleetingNote"
+    icon: "zap"
+    color: "#f59e0b"
+  - type: "zk:Source"
+    icon: "book-open"
+    color: "#6366f1"
+  - type: "zk:LiteratureNote"
+    icon: "quote"
+    color: "#8b5cf6"
+  - type: "zk:PermanentNote"
+    icon: "gem"
+    color: "#10b981"
+  - type: "zk:StructureNote"
+    icon: "network"
+    color: "#0ea5e9"

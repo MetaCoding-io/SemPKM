@@ -1,0 +1,164 @@
+{
+  "@context": {
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "res": "urn:sempkm:model:research:"
+  },
+  "@graph": [
+    {
+      "@id": "res:seed-paper-semantic-web", "@type": "res:Paper",
+      "dcterms:title": "The Semantic Web",
+      "dcterms:creator": ["Tim Berners-Lee", "James Hendler", "Ora Lassila"],
+      "res:venue": "Scientific American",
+      "res:year": { "@value": "2001", "@type": "xsd:gYear" },
+      "res:paperType": "journal-article",
+      "res:abstract": "A new form of Web content that is meaningful to computers will unleash a revolution of new possibilities.",
+      "res:notes": "The foundational paper that coined 'Semantic Web'. Prescient about the need for machine-readable data on the web, though the original vision has evolved significantly.",
+      "res:tags": ["semantic-web", "rdf", "foundational"],
+      "dcterms:created": { "@value": "2026-01-05T09:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "res:seed-paper-knowledge-graphs", "@type": "res:Paper",
+      "dcterms:title": "Knowledge Graphs: Methodology, Tools and Selected Use Cases",
+      "dcterms:creator": ["Dieter Fensel", "Umutcan Şimşek", "Kevin Angele"],
+      "res:venue": "Springer",
+      "res:year": { "@value": "2020", "@type": "xsd:gYear" },
+      "res:paperType": "book-chapter",
+      "res:abstract": "A comprehensive overview of knowledge graph methodology covering construction, curation, and application across domains.",
+      "res:notes": "Excellent survey of KG applications in industry. Good source for enterprise use cases and ROI arguments.",
+      "res:tags": ["knowledge-graphs", "methodology", "survey"],
+      "dcterms:created": { "@value": "2026-01-10T10:00:00Z", "@type": "xsd:dateTime" },
+      "res:cites": [{ "@id": "res:seed-paper-semantic-web" }]
+    },
+    {
+      "@id": "res:seed-paper-pkm-review", "@type": "res:Paper",
+      "dcterms:title": "Personal Knowledge Management: A Systematic Review of Tools and Practices",
+      "dcterms:creator": ["Maria Chen", "Robert Williams"],
+      "res:venue": "Journal of Information Science",
+      "res:year": { "@value": "2023", "@type": "xsd:gYear" },
+      "res:paperType": "journal-article",
+      "res:doi": { "@value": "https://doi.org/10.1177/example-pkm-review", "@type": "xsd:anyURI" },
+      "res:abstract": "A systematic review of 47 PKM tools examining knowledge retention, retrieval patterns, and long-term user engagement.",
+      "res:notes": "Key finding: most PKM tools have high initial adoption but low long-term retention. The tools that succeed long-term have structured inputs, not just freeform text.",
+      "res:tags": ["pkm", "systematic-review", "tools"],
+      "dcterms:created": { "@value": "2026-02-01T14:00:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "res:seed-claim-semantic-interop", "@type": "res:Claim",
+      "dcterms:title": "Semantic Web standards enable interoperable knowledge systems",
+      "res:claimBody": "RDF, OWL, and SPARQL provide a shared foundation for knowledge representation that allows different systems to exchange and reason over data without bespoke integrations. The standards-based approach reduces integration costs and enables emergent interoperability.",
+      "res:confidence": "established",
+      "res:domain": "Knowledge Engineering",
+      "res:tags": ["semantic-web", "interoperability"],
+      "dcterms:created": { "@value": "2026-01-06T10:00:00Z", "@type": "xsd:dateTime" },
+      "res:extractedFrom": { "@id": "res:seed-paper-semantic-web" }
+    },
+    {
+      "@id": "res:seed-claim-kg-reduce-silos", "@type": "res:Claim",
+      "dcterms:title": "Knowledge graphs reduce information silos",
+      "res:claimBody": "Organizations that adopt knowledge graphs report significant reductions in duplicate data and cross-departmental information sharing. The graph structure naturally connects related information that would otherwise be isolated in separate databases or documents.",
+      "res:confidence": "supported",
+      "res:domain": "Knowledge Management",
+      "res:tags": ["knowledge-graphs", "enterprise"],
+      "dcterms:created": { "@value": "2026-01-12T11:00:00Z", "@type": "xsd:dateTime" },
+      "res:extractedFrom": { "@id": "res:seed-paper-knowledge-graphs" },
+      "res:corroborates": [{ "@id": "res:seed-claim-semantic-interop" }]
+    },
+    {
+      "@id": "res:seed-claim-pkm-failure", "@type": "res:Claim",
+      "dcterms:title": "Most PKM tools fail at long-term knowledge retention",
+      "res:claimBody": "The systematic review found that 60% of notes in typical PKM tools are never accessed again after 6 months. Users capture extensively but rarely revisit or build on captured knowledge. The tools optimize for capture speed rather than retrieval and synthesis.",
+      "res:confidence": "contested",
+      "res:domain": "Personal Knowledge Management",
+      "res:tags": ["pkm", "retention", "tools"],
+      "dcterms:created": { "@value": "2026-02-05T09:00:00Z", "@type": "xsd:dateTime" },
+      "res:extractedFrom": { "@id": "res:seed-paper-pkm-review" }
+    },
+    {
+      "@id": "res:seed-claim-rdf-scales", "@type": "res:Claim",
+      "dcterms:title": "RDF scales better than property graphs for heterogeneous data",
+      "res:claimBody": "RDF's schema-flexible triple model handles heterogeneous data (varying types, optional properties, evolving schemas) more gracefully than property graph databases that expect consistent node/edge schemas. This advantage becomes more pronounced as data diversity increases.",
+      "res:confidence": "speculative",
+      "res:domain": "Data Engineering",
+      "res:tags": ["rdf", "property-graphs", "scalability"],
+      "dcterms:created": { "@value": "2026-02-10T15:00:00Z", "@type": "xsd:dateTime" },
+      "res:dependsOn": [{ "@id": "res:seed-claim-semantic-interop" }]
+    },
+
+    {
+      "@id": "res:seed-evidence-lod-cloud", "@type": "res:Evidence",
+      "dcterms:title": "Linked Open Data Cloud contains 1,200+ datasets using RDF",
+      "res:evidenceBody": "As of 2020, the Linked Open Data Cloud catalogs over 1,200 interlinked RDF datasets spanning government, life sciences, linguistics, geography, and social media. These datasets are queryable via SPARQL endpoints and demonstrate real-world interoperability at scale.",
+      "res:evidenceType": "empirical-data",
+      "res:pageReference": "Section 3.2",
+      "dcterms:created": { "@value": "2026-01-07T10:00:00Z", "@type": "xsd:dateTime" },
+      "res:supports": { "@id": "res:seed-claim-semantic-interop" },
+      "res:fromPaper": { "@id": "res:seed-paper-semantic-web" }
+    },
+    {
+      "@id": "res:seed-evidence-kg-survey", "@type": "res:Evidence",
+      "dcterms:title": "Survey: 73% reduction in duplicate data after KG adoption",
+      "res:evidenceBody": "A survey of 200 organizations that adopted knowledge graphs showed a 73% average reduction in duplicate data stores and a 45% improvement in cross-team information discovery. The study controlled for organization size and industry.",
+      "res:evidenceType": "statistical-finding",
+      "res:methodology": "Cross-sectional survey with matched controls",
+      "res:pageReference": "Chapter 8, Table 8.3",
+      "dcterms:created": { "@value": "2026-01-13T11:00:00Z", "@type": "xsd:dateTime" },
+      "res:supports": { "@id": "res:seed-claim-kg-reduce-silos" },
+      "res:fromPaper": { "@id": "res:seed-paper-knowledge-graphs" }
+    },
+    {
+      "@id": "res:seed-evidence-notes-abandoned", "@type": "res:Evidence",
+      "dcterms:title": "Longitudinal study: 60% of notes abandoned after 6 months",
+      "res:evidenceBody": "A longitudinal study tracking 500 users across 5 PKM tools found that 60% of captured notes were never accessed after the first 6 months. The abandonment rate was highest for freeform text notes (72%) and lowest for structured/templated notes (41%).",
+      "res:evidenceType": "empirical-data",
+      "res:methodology": "Longitudinal usage tracking (12 months, 500 users, 5 tools)",
+      "res:pageReference": "Section 4.3, Table 5",
+      "dcterms:created": { "@value": "2026-02-06T09:00:00Z", "@type": "xsd:dateTime" },
+      "res:supports": { "@id": "res:seed-claim-pkm-failure" },
+      "res:fromPaper": { "@id": "res:seed-paper-pkm-review" }
+    },
+    {
+      "@id": "res:seed-evidence-structured-retention", "@type": "res:Evidence",
+      "dcterms:title": "Counter-study: structured note-takers retained 40% more after 1 year",
+      "res:evidenceBody": "A follow-up analysis of the same dataset found that users who adopted structured note-taking practices (templates, typed links, explicit relationships) retained 40% more of their captured knowledge after 1 year compared to freeform note-takers. This suggests the failure is in tool design, not user behavior.",
+      "res:evidenceType": "empirical-data",
+      "res:methodology": "Subgroup analysis of longitudinal data",
+      "res:pageReference": "Section 5.1",
+      "dcterms:created": { "@value": "2026-02-08T14:00:00Z", "@type": "xsd:dateTime" },
+      "res:refutes": { "@id": "res:seed-claim-pkm-failure" },
+      "res:fromPaper": { "@id": "res:seed-paper-pkm-review" }
+    },
+
+    {
+      "@id": "res:seed-question-retention", "@type": "res:ResearchQuestion",
+      "dcterms:title": "How can semantic structure improve personal knowledge retention?",
+      "res:questionBody": "Given that most PKM tools fail at long-term retention, can semantic structure (typed relationships, ontological classification, SHACL constraints) measurably improve how well users retain and retrieve their captured knowledge over time? What specific structural features contribute most to retention?",
+      "res:status": "open",
+      "res:domain": "Personal Knowledge Management",
+      "dcterms:created": { "@value": "2026-02-10T10:00:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "res:seed-argument-structured-pkm", "@type": "res:Argument",
+      "dcterms:title": "Structured PKM systems prevent knowledge decay",
+      "res:argumentBody": "## Thesis\n\nPKM tools that enforce semantic structure — typed notes, explicit relationships, ontological constraints — produce significantly better long-term knowledge retention than freeform note-taking tools.\n\n## Reasoning\n\n1. **Semantic Web standards enable interoperability** (Berners-Lee et al., 2001): The foundational claim that shared semantic standards allow knowledge systems to work together is well-established, with 1,200+ LOD datasets as evidence.\n\n2. **Knowledge graphs reduce information silos** (Fensel et al., 2020): At the organizational level, graph-based knowledge structures demonstrably improve information discovery (73% reduction in duplicates).\n\n3. **Most PKM tools fail at retention** (Chen & Williams, 2023): 60% note abandonment rate — BUT the counter-evidence shows structured note-takers retain 40% more. This suggests the problem is not inherent to PKM but to *unstructured* PKM.\n\n## Conclusion\n\nThe evidence supports that semantic structure is the differentiating factor in PKM success. Tools that enforce structure at the point of capture — rather than leaving it to user discipline — should achieve significantly better long-term retention.",
+      "res:argumentType": "literature-review",
+      "dcterms:created": { "@value": "2026-02-15T11:00:00Z", "@type": "xsd:dateTime" },
+      "res:addresses": { "@id": "res:seed-question-retention" },
+      "res:usesClaim": [
+        { "@id": "res:seed-claim-semantic-interop" },
+        { "@id": "res:seed-claim-kg-reduce-silos" },
+        { "@id": "res:seed-claim-pkm-failure" }
+      ],
+      "res:usesEvidence": [
+        { "@id": "res:seed-evidence-lod-cloud" },
+        { "@id": "res:seed-evidence-kg-survey" },
+        { "@id": "res:seed-evidence-notes-abandoned" },
+        { "@id": "res:seed-evidence-structured-retention" }
+      ]
+    }
+  ]
+}

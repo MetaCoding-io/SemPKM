@@ -1,0 +1,506 @@
+{
+  "@context": {
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "sh": "http://www.w3.org/ns/shacl#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "schema": "https://schema.org/",
+    "zk": "urn:sempkm:model:zk:",
+    "sempkm": "urn:sempkm:vocab:"
+  },
+  "@graph": [
+    {
+      "@id": "zk:FleetingNoteShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "zk:FleetingNote" },
+      "rdfs:label": "Fleeting Note",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1, "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "zk:FleetingNoteBasicGroup" },
+          "sempkm:editHelpText": "Brief title or first line of the thought"
+        },
+        {
+          "sh:path": { "@id": "zk:body" },
+          "sh:name": "Body",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "zk:FleetingNoteBasicGroup" },
+          "sempkm:editWidget": "textarea",
+          "sempkm:editHelpText": "The raw thought, quote, or observation. Markdown supported."
+        },
+        {
+          "sh:path": { "@id": "zk:capturedFrom" },
+          "sh:name": "Captured From",
+          "sh:datatype": { "@id": "xsd:anyURI" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "zk:FleetingNoteBasicGroup" },
+          "sempkm:editHelpText": "URL if captured from the web"
+        },
+        {
+          "sh:path": { "@id": "zk:processedInto" },
+          "sh:name": "Processed Into",
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:order": 4,
+          "sh:group": { "@id": "zk:FleetingNoteProcessingGroup" },
+          "sempkm:editHelpText": "Link to the literature or permanent note this became"
+        },
+        {
+          "sh:path": { "@id": "zk:tags" },
+          "sh:name": "Tags",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:order": 5,
+          "sh:group": { "@id": "zk:FleetingNoteMetadataGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "zk:FleetingNoteMetadataGroup" }
+        }
+      ]
+    },
+    {
+      "@id": "zk:FleetingNoteBasicGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Capture",
+      "sh:order": 0
+    },
+    {
+      "@id": "zk:FleetingNoteProcessingGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Processing",
+      "sh:order": 1
+    },
+    {
+      "@id": "zk:FleetingNoteMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 2
+    },
+
+    {
+      "@id": "zk:SourceShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "zk:Source" },
+      "rdfs:label": "Source",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1, "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "zk:SourceBasicGroup" },
+          "sempkm:editHelpText": "Title of the book, article, paper, or other work"
+        },
+        {
+          "sh:path": { "@id": "dcterms:creator" },
+          "sh:name": "Author",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:order": 2,
+          "sh:group": { "@id": "zk:SourceBasicGroup" },
+          "sempkm:editHelpText": "Author(s) of the work"
+        },
+        {
+          "sh:path": { "@id": "zk:sourceType" },
+          "sh:name": "Type",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:in": { "@list": ["book", "article", "paper", "podcast", "video", "talk", "course", "other"] },
+          "sh:order": 3,
+          "sh:group": { "@id": "zk:SourceBasicGroup" },
+          "sempkm:editHelpText": "What kind of source material this is"
+        },
+        {
+          "sh:path": { "@id": "schema:datePublished" },
+          "sh:name": "Published",
+          "sh:datatype": { "@id": "xsd:date" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "zk:SourceBasicGroup" }
+        },
+        {
+          "sh:path": { "@id": "schema:url" },
+          "sh:name": "URL",
+          "sh:datatype": { "@id": "xsd:anyURI" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "zk:SourceBasicGroup" },
+          "sempkm:editHelpText": "URL, DOI, or ISBN link"
+        },
+        {
+          "sh:path": { "@id": "zk:notes" },
+          "sh:name": "Notes",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "zk:SourceReviewGroup" },
+          "sempkm:editWidget": "textarea",
+          "sempkm:editHelpText": "Your overall notes or review of this source"
+        },
+        {
+          "sh:path": { "@id": "zk:rating" },
+          "sh:name": "Rating",
+          "sh:datatype": { "@id": "xsd:integer" },
+          "sh:maxCount": 1,
+          "sh:minInclusive": 1, "sh:maxInclusive": 5,
+          "sh:order": 7,
+          "sh:group": { "@id": "zk:SourceReviewGroup" },
+          "sempkm:editHelpText": "Personal rating from 1 to 5"
+        },
+        {
+          "sh:path": { "@id": "zk:tags" },
+          "sh:name": "Tags",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:order": 8,
+          "sh:group": { "@id": "zk:SourceMetadataGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 9,
+          "sh:group": { "@id": "zk:SourceMetadataGroup" }
+        }
+      ]
+    },
+    {
+      "@id": "zk:SourceBasicGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Source Info",
+      "sh:order": 0
+    },
+    {
+      "@id": "zk:SourceReviewGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Review",
+      "sh:order": 1
+    },
+    {
+      "@id": "zk:SourceMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 2
+    },
+
+    {
+      "@id": "zk:LiteratureNoteShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "zk:LiteratureNote" },
+      "rdfs:label": "Literature Note",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1, "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "zk:LitNoteContentGroup" },
+          "sempkm:editHelpText": "The idea being captured — a clear descriptive title"
+        },
+        {
+          "sh:path": { "@id": "zk:body" },
+          "sh:name": "Body",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "zk:LitNoteContentGroup" },
+          "sempkm:editWidget": "textarea",
+          "sempkm:editHelpText": "Your summary of the idea in your own words. Markdown supported."
+        },
+        {
+          "sh:path": { "@id": "zk:originalQuote" },
+          "sh:name": "Original Quote",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "zk:LitNoteContentGroup" },
+          "sempkm:editWidget": "textarea",
+          "sempkm:editHelpText": "The exact quote from the source (optional)"
+        },
+        {
+          "sh:path": { "@id": "zk:pageReference" },
+          "sh:name": "Page Reference",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "zk:LitNoteContentGroup" },
+          "sempkm:editHelpText": "Page number, timestamp, or location in the source"
+        },
+        {
+          "sh:path": { "@id": "zk:derivedFrom" },
+          "sh:name": "Source",
+          "sh:class": { "@id": "zk:Source" },
+          "sh:minCount": 1, "sh:maxCount": 1,
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:order": 5,
+          "sh:group": { "@id": "zk:LitNoteProvenanceGroup" },
+          "sempkm:editHelpText": "Which source this note was extracted from (required)"
+        },
+        {
+          "sh:path": { "@id": "zk:developedInto" },
+          "sh:name": "Developed Into",
+          "sh:class": { "@id": "zk:PermanentNote" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:order": 6,
+          "sh:group": { "@id": "zk:LitNoteProvenanceGroup" },
+          "sempkm:editHelpText": "Permanent note that was developed from this literature note"
+        },
+        {
+          "sh:path": { "@id": "zk:tags" },
+          "sh:name": "Tags",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:order": 7,
+          "sh:group": { "@id": "zk:LitNoteMetadataGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 8,
+          "sh:group": { "@id": "zk:LitNoteMetadataGroup" }
+        }
+      ]
+    },
+    {
+      "@id": "zk:LitNoteContentGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Content",
+      "sh:order": 0
+    },
+    {
+      "@id": "zk:LitNoteProvenanceGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Provenance",
+      "sh:order": 1
+    },
+    {
+      "@id": "zk:LitNoteMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 2
+    },
+
+    {
+      "@id": "zk:PermanentNoteShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "zk:PermanentNote" },
+      "rdfs:label": "Permanent Note",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1, "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "zk:PermNoteContentGroup" },
+          "sempkm:editHelpText": "The idea as a clear, declarative statement"
+        },
+        {
+          "sh:path": { "@id": "zk:body" },
+          "sh:name": "Body",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1, "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "zk:PermNoteContentGroup" },
+          "sempkm:editWidget": "textarea",
+          "sempkm:editHelpText": "Full explanation of the idea. Should be self-contained. Markdown supported."
+        },
+        {
+          "sh:path": { "@id": "zk:sequenceId" },
+          "sh:name": "Sequence ID",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "zk:PermNoteContentGroup" },
+          "sempkm:editHelpText": "Optional Luhmann-style ID for manual ordering (e.g., 1a2b3)"
+        },
+        {
+          "sh:path": { "@id": "zk:developedFrom" },
+          "sh:name": "Developed From",
+          "sh:class": { "@id": "zk:LiteratureNote" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:order": 4,
+          "sh:group": { "@id": "zk:PermNoteProvenanceGroup" },
+          "sempkm:editHelpText": "Literature note that sparked this idea"
+        },
+        {
+          "sh:path": { "@id": "zk:supports" },
+          "sh:name": "Supports",
+          "sh:class": { "@id": "zk:PermanentNote" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:order": 5,
+          "sh:group": { "@id": "zk:PermNoteLinksGroup" },
+          "sempkm:editHelpText": "Other permanent notes that this idea supports"
+        },
+        {
+          "sh:path": { "@id": "zk:contradicts" },
+          "sh:name": "Contradicts",
+          "sh:class": { "@id": "zk:PermanentNote" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:order": 6,
+          "sh:group": { "@id": "zk:PermNoteLinksGroup" },
+          "sempkm:editHelpText": "Other permanent notes that this idea contradicts"
+        },
+        {
+          "sh:path": { "@id": "zk:followsFrom" },
+          "sh:name": "Follows From",
+          "sh:class": { "@id": "zk:PermanentNote" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:order": 7,
+          "sh:group": { "@id": "zk:PermNoteLinksGroup" },
+          "sempkm:editHelpText": "Permanent notes that this idea is a logical consequence of"
+        },
+        {
+          "sh:path": { "@id": "zk:relatedTo" },
+          "sh:name": "Related To",
+          "sh:class": { "@id": "zk:PermanentNote" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:order": 8,
+          "sh:group": { "@id": "zk:PermNoteLinksGroup" },
+          "sempkm:editHelpText": "Loosely related permanent notes — worth exploring the connection"
+        },
+        {
+          "sh:path": { "@id": "zk:tags" },
+          "sh:name": "Tags",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:order": 9,
+          "sh:group": { "@id": "zk:PermNoteMetadataGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 10,
+          "sh:group": { "@id": "zk:PermNoteMetadataGroup" }
+        }
+      ]
+    },
+    {
+      "@id": "zk:PermNoteContentGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Content",
+      "sh:order": 0
+    },
+    {
+      "@id": "zk:PermNoteProvenanceGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Provenance",
+      "sh:order": 1
+    },
+    {
+      "@id": "zk:PermNoteLinksGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Argumentation Links",
+      "sh:order": 2
+    },
+    {
+      "@id": "zk:PermNoteMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 3
+    },
+
+    {
+      "@id": "zk:StructureNoteShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "zk:StructureNote" },
+      "rdfs:label": "Structure Note",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1, "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "zk:StructureContentGroup" },
+          "sempkm:editHelpText": "Topic or argument name"
+        },
+        {
+          "sh:path": { "@id": "zk:body" },
+          "sh:name": "Body",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "zk:StructureContentGroup" },
+          "sempkm:editWidget": "textarea",
+          "sempkm:editHelpText": "Outline and commentary connecting the included notes. Markdown supported."
+        },
+        {
+          "sh:path": { "@id": "zk:purpose" },
+          "sh:name": "Purpose",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:in": { "@list": ["topic-overview", "argument", "sequence", "literature-review", "project-outline"] },
+          "sh:order": 3,
+          "sh:group": { "@id": "zk:StructureContentGroup" },
+          "sempkm:editHelpText": "What kind of structure this note provides"
+        },
+        {
+          "sh:path": { "@id": "zk:includes" },
+          "sh:name": "Includes",
+          "sh:class": { "@id": "zk:PermanentNote" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:order": 4,
+          "sh:group": { "@id": "zk:StructureLinksGroup" },
+          "sempkm:editHelpText": "Permanent notes organized in this structure"
+        },
+        {
+          "sh:path": { "@id": "zk:relatedStructure" },
+          "sh:name": "Related Structures",
+          "sh:class": { "@id": "zk:StructureNote" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:order": 5,
+          "sh:group": { "@id": "zk:StructureLinksGroup" },
+          "sempkm:editHelpText": "Other structure notes covering related topics"
+        },
+        {
+          "sh:path": { "@id": "zk:tags" },
+          "sh:name": "Tags",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:order": 6,
+          "sh:group": { "@id": "zk:StructureMetadataGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 7,
+          "sh:group": { "@id": "zk:StructureMetadataGroup" }
+        }
+      ]
+    },
+    {
+      "@id": "zk:StructureContentGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Content",
+      "sh:order": 0
+    },
+    {
+      "@id": "zk:StructureLinksGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Included Notes",
+      "sh:order": 1
+    },
+    {
+      "@id": "zk:StructureMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 2
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix zk:    <urn:sempkm:model:zk:> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+# Rule: Derive zk:noteCount on Sources from their Literature Notes
+# Enables sorting sources by how many notes have been extracted.
+
+zk:SourceNoteCountRule
+    a sh:NodeShape ;
+    sh:targetClass zk:Source ;
+    sh:rule [
+        a sh:SPARQLRule ;
+        sh:order 0 ;
+        rdfs:label "Derive literature note count" ;
+        rdfs:comment "Sets noteCount to the number of LiteratureNotes derived from this source" ;
+        sh:prefixes zk:PrefixDeclarations ;
+        sh:construct """
+            CONSTRUCT {
+                $this zk:noteCount ?count .
+            }
+            WHERE {
+                {
+                    SELECT (COUNT(?ln) AS ?count)
+                    WHERE {
+                        ?ln zk:derivedFrom $this .
+                    }
+                }
+                FILTER(?count > 0)
+            }
+        """ ;
+    ] .
+
+# Prefix declarations for SPARQL rules
+zk:PrefixDeclarations
+    a owl:Ontology ;
+    sh:declare [
+        sh:prefix "zk" ;
+        sh:namespace "urn:sempkm:model:zk:"^^xsd:anyURI ;
+    ] ;
+    sh:declare [
+        sh:prefix "dcterms" ;
+        sh:namespace "http://purl.org/dc/terms/"^^xsd:anyURI ;
+    ] .

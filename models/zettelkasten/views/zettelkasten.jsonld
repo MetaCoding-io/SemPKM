@@ -1,0 +1,69 @@
+{
+  "@context": {
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "zk": "urn:sempkm:model:zk:",
+    "sempkm": "urn:sempkm:vocab:",
+    "dcterms": "http://purl.org/dc/terms/",
+    "schema": "https://schema.org/"
+  },
+  "@graph": [
+    {
+      "@id": "zk:view-fleeting-table", "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Fleeting Notes Inbox", "sempkm:targetClass": { "@id": "zk:FleetingNote" }, "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?created ?capturedFrom WHERE { ?s a <urn:sempkm:model:zk:FleetingNote> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <http://purl.org/dc/terms/created> ?created } . OPTIONAL { ?s <urn:sempkm:model:zk:capturedFrom> ?capturedFrom } }",
+      "sempkm:columns": "title,created,capturedFrom", "sempkm:sortDefault": "created"
+    },
+    {
+      "@id": "zk:view-source-table", "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Sources Library", "sempkm:targetClass": { "@id": "zk:Source" }, "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?author ?sourceType ?published WHERE { ?s a <urn:sempkm:model:zk:Source> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <http://purl.org/dc/terms/creator> ?author } . OPTIONAL { ?s <urn:sempkm:model:zk:sourceType> ?sourceType } . OPTIONAL { ?s <https://schema.org/datePublished> ?published } }",
+      "sempkm:columns": "title,author,sourceType,published", "sempkm:sortDefault": "title"
+    },
+    {
+      "@id": "zk:view-litnote-card", "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Literature Notes by Source", "sempkm:targetClass": { "@id": "zk:LiteratureNote" }, "sempkm:rendererType": "card",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?source ?pageReference WHERE { ?s a <urn:sempkm:model:zk:LiteratureNote> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:zk:derivedFrom> ?src . ?src <http://purl.org/dc/terms/title> ?source } . OPTIONAL { ?s <urn:sempkm:model:zk:pageReference> ?pageReference } }",
+      "sempkm:cardTitle": "http://purl.org/dc/terms/title", "sempkm:cardSubtitle": "urn:sempkm:model:zk:pageReference"
+    },
+    {
+      "@id": "zk:view-permanent-table", "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Permanent Notes", "sempkm:targetClass": { "@id": "zk:PermanentNote" }, "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?sequenceId ?created WHERE { ?s a <urn:sempkm:model:zk:PermanentNote> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:zk:sequenceId> ?sequenceId } . OPTIONAL { ?s <http://purl.org/dc/terms/created> ?created } }",
+      "sempkm:columns": "title,sequenceId,created", "sempkm:sortDefault": "created"
+    },
+    {
+      "@id": "zk:view-zettelkasten-graph", "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Zettelkasten Graph", "sempkm:targetClass": { "@id": "zk:PermanentNote" }, "sempkm:rendererType": "graph",
+      "sempkm:sparqlQuery": "CONSTRUCT { ?s a <urn:sempkm:model:zk:PermanentNote> ; <http://purl.org/dc/terms/title> ?title ; <urn:sempkm:model:zk:supports> ?sup ; <urn:sempkm:model:zk:contradicts> ?con ; <urn:sempkm:model:zk:followsFrom> ?fol ; <urn:sempkm:model:zk:relatedTo> ?rel . ?sup <http://purl.org/dc/terms/title> ?supTitle . ?con <http://purl.org/dc/terms/title> ?conTitle . ?fol <http://purl.org/dc/terms/title> ?folTitle . ?rel <http://purl.org/dc/terms/title> ?relTitle } WHERE { ?s a <urn:sempkm:model:zk:PermanentNote> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:zk:supports> ?sup . ?sup <http://purl.org/dc/terms/title> ?supTitle } . OPTIONAL { ?s <urn:sempkm:model:zk:contradicts> ?con . ?con <http://purl.org/dc/terms/title> ?conTitle } . OPTIONAL { ?s <urn:sempkm:model:zk:followsFrom> ?fol . ?fol <http://purl.org/dc/terms/title> ?folTitle } . OPTIONAL { ?s <urn:sempkm:model:zk:relatedTo> ?rel . ?rel <http://purl.org/dc/terms/title> ?relTitle } }"
+    },
+    {
+      "@id": "zk:view-structure-table", "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Structure Outlines", "sempkm:targetClass": { "@id": "zk:StructureNote" }, "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?purpose WHERE { ?s a <urn:sempkm:model:zk:StructureNote> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:zk:purpose> ?purpose } }",
+      "sempkm:columns": "title,purpose", "sempkm:sortDefault": "title"
+    },
+    {
+      "@id": "urn:sempkm:model:zk:query:unprocessed-fleeting", "@type": "sempkm:SavedQuery",
+      "rdfs:label": "Unprocessed Fleeting Notes",
+      "dcterms:description": "Fleeting notes not yet processed into literature or permanent notes",
+      "sempkm:queryText": "SELECT ?s ?title ?created WHERE { ?s a <urn:sempkm:model:zk:FleetingNote> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <http://purl.org/dc/terms/created> ?created } FILTER NOT EXISTS { ?s <urn:sempkm:model:zk:processedInto> ?any } } ORDER BY ?created",
+      "sempkm:source": "model:zettelkasten"
+    },
+    {
+      "@id": "urn:sempkm:model:zk:query:isolated-permanent", "@type": "sempkm:SavedQuery",
+      "rdfs:label": "Isolated Permanent Notes",
+      "dcterms:description": "Permanent notes with no argumentation links",
+      "sempkm:queryText": "SELECT ?s ?title WHERE { ?s a <urn:sempkm:model:zk:PermanentNote> ; <http://purl.org/dc/terms/title> ?title . FILTER NOT EXISTS { ?s <urn:sempkm:model:zk:supports> ?a } FILTER NOT EXISTS { ?s <urn:sempkm:model:zk:contradicts> ?b } FILTER NOT EXISTS { ?s <urn:sempkm:model:zk:followsFrom> ?c } FILTER NOT EXISTS { ?s <urn:sempkm:model:zk:relatedTo> ?d } FILTER NOT EXISTS { ?other <urn:sempkm:model:zk:supports> ?s } FILTER NOT EXISTS { ?other2 <urn:sempkm:model:zk:contradicts> ?s } }",
+      "sempkm:source": "model:zettelkasten"
+    },
+    {
+      "@id": "urn:sempkm:model:zk:query:contradiction-map", "@type": "sempkm:SavedQuery",
+      "rdfs:label": "Contradiction Map",
+      "dcterms:description": "All pairs of permanent notes connected by contradicts",
+      "sempkm:queryText": "SELECT ?s ?title ?other ?otherTitle WHERE { ?s a <urn:sempkm:model:zk:PermanentNote> ; <http://purl.org/dc/terms/title> ?title ; <urn:sempkm:model:zk:contradicts> ?other . ?other <http://purl.org/dc/terms/title> ?otherTitle }",
+      "sempkm:source": "model:zettelkasten"
+    }
+  ]
+}

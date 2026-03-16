@@ -1,0 +1,33 @@
+id: research-workflow
+name: "Research Workflow"
+version: "1.0.0"
+description: >
+  Claims-first academic PKM. The atomic unit is a claim with evidence and provenance.
+  Designed for literature reviews, systematic research, and argument construction.
+  Papers → Claims → Evidence → Research Questions → Arguments.
+namespace: "urn:sempkm:model:research:"
+prefix: "res"
+dependencies:
+  - gist
+artifacts:
+  ontology: "ontology/research-workflow.jsonld"
+  shapes: "shapes/research-workflow.jsonld"
+  views: "views/research-workflow.jsonld"
+  seed: "seed/research-workflow.jsonld"
+  rules: "rules/research-workflow.ttl"
+icons:
+  - type: "res:Paper"
+    icon: "file-text"
+    color: "#6366f1"
+  - type: "res:Claim"
+    icon: "message-square-quote"
+    color: "#f59e0b"
+  - type: "res:Evidence"
+    icon: "flask-conical"
+    color: "#10b981"
+  - type: "res:ResearchQuestion"
+    icon: "help-circle"
+    color: "#ef4444"
+  - type: "res:Argument"
+    icon: "scale"
+    color: "#8b5cf6"

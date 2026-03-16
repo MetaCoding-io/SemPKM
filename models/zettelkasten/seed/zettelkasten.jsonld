@@ -1,0 +1,138 @@
+{
+  "@context": {
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "schema": "https://schema.org/",
+    "zk": "urn:sempkm:model:zk:"
+  },
+  "@graph": [
+    {
+      "@id": "zk:seed-source-smart-notes", "@type": "zk:Source",
+      "dcterms:title": "How to Take Smart Notes",
+      "dcterms:creator": "Sönke Ahrens",
+      "zk:sourceType": "book",
+      "schema:datePublished": { "@value": "2017-02-21", "@type": "xsd:date" },
+      "zk:rating": 5,
+      "zk:notes": "The definitive guide to the Zettelkasten method. Explains Luhmann's system and adapts it for modern knowledge workers.",
+      "zk:tags": ["zettelkasten", "note-taking", "methodology"],
+      "dcterms:created": { "@value": "2026-01-05T09:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "zk:seed-source-thinking-clearly", "@type": "zk:Source",
+      "dcterms:title": "The Art of Thinking Clearly",
+      "dcterms:creator": "Rolf Dobelli",
+      "zk:sourceType": "book",
+      "schema:datePublished": { "@value": "2013-05-14", "@type": "xsd:date" },
+      "zk:rating": 4,
+      "zk:notes": "Catalog of cognitive biases with practical examples. Useful for understanding how thinking goes wrong.",
+      "zk:tags": ["cognitive-bias", "thinking", "psychology"],
+      "dcterms:created": { "@value": "2026-01-10T10:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "zk:seed-source-networked-thought", "@type": "zk:Source",
+      "dcterms:title": "Networked Thought: How Modern PKM Mirrors Neuroscience",
+      "dcterms:creator": "Anne-Laure Le Cunff",
+      "zk:sourceType": "article",
+      "schema:datePublished": { "@value": "2024-09-15", "@type": "xsd:date" },
+      "schema:url": { "@value": "https://nesslabs.example.com/networked-thought", "@type": "xsd:anyURI" },
+      "zk:rating": 4,
+      "zk:notes": "Great article connecting PKM practices to how memory and recall actually work in the brain.",
+      "zk:tags": ["pkm", "neuroscience", "networked-thought"],
+      "dcterms:created": { "@value": "2026-02-01T14:00:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "zk:seed-fleeting-externalized", "@type": "zk:FleetingNote",
+      "dcterms:title": "Interesting point about externalized thinking",
+      "zk:body": "Ahrens argues that writing is not the result of thinking but the medium in which thinking takes place. The act of writing forces you to confront gaps in understanding. Need to think about how this connects to PKM tool design.",
+      "zk:tags": ["thinking", "writing"],
+      "dcterms:created": { "@value": "2026-03-13T08:30:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "zk:seed-fleeting-luhmann-pkm", "@type": "zk:FleetingNote",
+      "dcterms:title": "Connection between Luhmann's slip-box and modern PKM",
+      "zk:body": "Luhmann's slip-box was essentially a conversation partner — he would write notes to his future self. Modern PKM tools try to replicate this but most miss the key insight: it's the LINKING that matters, not the capturing.",
+      "zk:tags": ["luhmann", "pkm"],
+      "dcterms:created": { "@value": "2026-03-15T11:00:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "zk:seed-litnote-writing-thinking", "@type": "zk:LiteratureNote",
+      "dcterms:title": "Ahrens: Writing is thinking made explicit",
+      "zk:body": "Ahrens argues that writing is not merely the output of thinking — it IS thinking. The Zettelkasten works because writing a note forces you to articulate your understanding, revealing gaps you didn't know existed.",
+      "zk:originalQuote": "Writing is not what follows research, learning or studying, it is the medium of all this work.",
+      "zk:pageReference": "p. 45",
+      "zk:tags": ["writing", "thinking", "core-method"],
+      "dcterms:created": { "@value": "2026-01-08T10:00:00Z", "@type": "xsd:dateTime" },
+      "zk:derivedFrom": { "@id": "zk:seed-source-smart-notes" },
+      "zk:developedInto": { "@id": "zk:seed-perm-externalized-thinking" }
+    },
+    {
+      "@id": "zk:seed-litnote-elaboration", "@type": "zk:LiteratureNote",
+      "dcterms:title": "Ahrens: The slip-box forces elaboration",
+      "zk:body": "The requirement to write notes in your own words (not copy-paste) is what makes the Zettelkasten effective. Elaboration — restating ideas in your own terms — is one of the most effective learning strategies known.",
+      "zk:originalQuote": "The slip-box forces us to be precise and brief in our formulations.",
+      "zk:pageReference": "p. 78",
+      "zk:tags": ["elaboration", "learning"],
+      "dcterms:created": { "@value": "2026-01-09T11:00:00Z", "@type": "xsd:dateTime" },
+      "zk:derivedFrom": { "@id": "zk:seed-source-smart-notes" },
+      "zk:developedInto": { "@id": "zk:seed-perm-structure-emerges" }
+    },
+    {
+      "@id": "zk:seed-litnote-confirmation-bias", "@type": "zk:LiteratureNote",
+      "dcterms:title": "Dobelli: Confirmation bias in note-taking",
+      "zk:body": "We naturally seek information that confirms our existing beliefs and ignore contradicting evidence. This extends to note-taking — we tend to save quotes and highlights that agree with us, creating echo chambers in our own knowledge base.",
+      "zk:pageReference": "p. 12",
+      "zk:tags": ["bias", "confirmation-bias"],
+      "dcterms:created": { "@value": "2026-01-15T09:00:00Z", "@type": "xsd:dateTime" },
+      "zk:derivedFrom": { "@id": "zk:seed-source-thinking-clearly" },
+      "zk:developedInto": { "@id": "zk:seed-perm-confirmation-bias" }
+    },
+
+    {
+      "@id": "zk:seed-perm-externalized-thinking", "@type": "zk:PermanentNote",
+      "dcterms:title": "Externalized thinking reduces cognitive load",
+      "zk:body": "When thinking happens in your head, you're limited by working memory (~4 chunks). By externalizing thoughts into written notes, you offload storage to an external system and free working memory for processing. This is why the Zettelkasten works: it's not just a filing system, it's a cognitive extension. The key is that notes must be written in complete thoughts — fragments don't reduce load, they add retrieval overhead.",
+      "zk:sequenceId": "1a",
+      "zk:tags": ["cognition", "core-insight"],
+      "dcterms:created": { "@value": "2026-01-12T14:00:00Z", "@type": "xsd:dateTime" },
+      "zk:developedFrom": { "@id": "zk:seed-litnote-writing-thinking" }
+    },
+    {
+      "@id": "zk:seed-perm-structure-emerges", "@type": "zk:PermanentNote",
+      "dcterms:title": "Structure emerges from connections, not planning",
+      "zk:body": "Top-down categorization (folders, tags, hierarchies) forces you to decide where an idea 'belongs' before you understand its full significance. Bottom-up structure — letting topics emerge from the connections between notes — produces more accurate and useful organization. The Zettelkasten's power comes from this: you don't plan a structure, you discover one.",
+      "zk:sequenceId": "1a1",
+      "zk:tags": ["organization", "emergence"],
+      "dcterms:created": { "@value": "2026-01-14T10:00:00Z", "@type": "xsd:dateTime" },
+      "zk:developedFrom": { "@id": "zk:seed-litnote-elaboration" },
+      "zk:supports": [{ "@id": "zk:seed-perm-externalized-thinking" }]
+    },
+    {
+      "@id": "zk:seed-perm-confirmation-bias", "@type": "zk:PermanentNote",
+      "dcterms:title": "Confirmation bias threatens knowledge systems",
+      "zk:body": "Any note-taking system that only captures agreeable information will reinforce existing beliefs rather than expand understanding. The 'contradicts' link type in a Zettelkasten is therefore not optional — it's essential. A healthy knowledge base should contain tensions and disagreements. If all your notes agree with each other, you're not thinking — you're collecting.",
+      "zk:sequenceId": "2a",
+      "zk:tags": ["bias", "critical-thinking"],
+      "dcterms:created": { "@value": "2026-01-18T16:00:00Z", "@type": "xsd:dateTime" },
+      "zk:developedFrom": { "@id": "zk:seed-litnote-confirmation-bias" },
+      "zk:contradicts": [{ "@id": "zk:seed-perm-externalized-thinking" }]
+    },
+
+    {
+      "@id": "zk:seed-structure-case-for-structured", "@type": "zk:StructureNote",
+      "dcterms:title": "The Case for Structured Note-Taking",
+      "zk:body": "## Argument\n\n1. **Externalized thinking reduces cognitive load** — Writing in complete thoughts frees working memory for deeper processing.\n2. **Structure emerges from connections** — Bottom-up organization through linking produces better results than top-down filing.\n3. **But beware confirmation bias** — Without deliberate effort to capture contradictions, knowledge bases become echo chambers.\n\n## Synthesis\n\nThe ideal note-taking system must support three things: externalization (complete written thoughts), emergence (typed links between ideas), and tension (explicit contradiction tracking). Systems that only do the first two will produce confident but potentially wrong knowledge bases.",
+      "zk:purpose": "argument",
+      "zk:tags": ["meta", "methodology"],
+      "dcterms:created": { "@value": "2026-02-01T10:00:00Z", "@type": "xsd:dateTime" },
+      "zk:includes": [
+        { "@id": "zk:seed-perm-externalized-thinking" },
+        { "@id": "zk:seed-perm-structure-emerges" },
+        { "@id": "zk:seed-perm-confirmation-bias" }
+      ]
+    }
+  ]
+}

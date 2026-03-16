@@ -1,0 +1,132 @@
+{
+  "@context": {
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "schema": "https://schema.org/",
+    "foaf": "http://xmlns.com/foaf/0.1/",
+    "crm": "urn:sempkm:model:personal-crm:"
+  },
+  "@graph": [
+    {
+      "@id": "crm:seed-company-acme", "@type": "crm:Company",
+      "dcterms:title": "Acme Corp",
+      "schema:url": { "@value": "https://acme-corp.example.com", "@type": "xsd:anyURI" },
+      "crm:industry": "Technology", "crm:companySize": "large", "crm:location": "San Francisco, CA",
+      "crm:tags": ["tech", "enterprise", "client"],
+      "dcterms:created": { "@value": "2026-01-10T09:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "crm:seed-company-bright", "@type": "crm:Company",
+      "dcterms:title": "Bright Ideas Studio",
+      "schema:url": { "@value": "https://brightideas.example.com", "@type": "xsd:anyURI" },
+      "crm:industry": "Design", "crm:companySize": "small", "crm:location": "Austin, TX",
+      "crm:tags": ["design", "agency"],
+      "dcterms:created": { "@value": "2026-01-15T10:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "crm:seed-company-dataflow", "@type": "crm:Company",
+      "dcterms:title": "DataFlow Inc",
+      "schema:url": { "@value": "https://dataflow.example.com", "@type": "xsd:anyURI" },
+      "crm:industry": "Data Analytics", "crm:companySize": "medium", "crm:location": "New York, NY",
+      "crm:tags": ["data", "analytics", "prospect"],
+      "dcterms:created": { "@value": "2026-02-01T11:00:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "crm:seed-contact-sarah", "@type": "crm:Contact",
+      "foaf:name": "Sarah Park", "schema:jobTitle": "CTO", "schema:email": "sarah@acme-corp.example.com",
+      "crm:relationship": "client", "crm:metVia": "Web Summit 2025",
+      "crm:location": "San Francisco, CA",
+      "crm:notes": "Interested in knowledge graph solutions. Has a team of 15 engineers. Prefers morning meetings.",
+      "crm:tags": ["decision-maker", "technical"],
+      "dcterms:created": { "@value": "2026-01-10T09:00:00Z", "@type": "xsd:dateTime" },
+      "crm:worksAt": { "@id": "crm:seed-company-acme" }
+    },
+    {
+      "@id": "crm:seed-contact-james", "@type": "crm:Contact",
+      "foaf:name": "James Liu", "schema:jobTitle": "Lead Designer", "schema:email": "james@brightideas.example.com",
+      "crm:relationship": "colleague", "crm:metVia": "Mutual friend (Marcus)",
+      "crm:location": "Austin, TX",
+      "crm:notes": "Great design thinker. Collaborated on the PKM UI concepts.",
+      "crm:tags": ["designer", "collaborator"],
+      "dcterms:created": { "@value": "2026-01-15T10:00:00Z", "@type": "xsd:dateTime" },
+      "crm:worksAt": { "@id": "crm:seed-company-bright" },
+      "crm:knows": [{ "@id": "crm:seed-contact-marcus" }]
+    },
+    {
+      "@id": "crm:seed-contact-priya", "@type": "crm:Contact",
+      "foaf:name": "Priya Sharma", "schema:jobTitle": "CEO", "schema:email": "priya@dataflow.example.com",
+      "crm:relationship": "prospect", "crm:metVia": "Data Engineering Meetup",
+      "crm:location": "New York, NY",
+      "crm:notes": "Looking for better knowledge management across her analytics team. Strong interest in semantic data models.",
+      "crm:tags": ["executive", "prospect"],
+      "dcterms:created": { "@value": "2026-02-01T11:00:00Z", "@type": "xsd:dateTime" },
+      "crm:worksAt": { "@id": "crm:seed-company-dataflow" }
+    },
+    {
+      "@id": "crm:seed-contact-marcus", "@type": "crm:Contact",
+      "foaf:name": "Marcus Cole", "schema:jobTitle": "Software Engineer",
+      "crm:relationship": "friend", "crm:metVia": "College",
+      "crm:location": "Portland, OR",
+      "crm:notes": "Old college friend. Works in fintech. Great for technical brainstorming.",
+      "crm:tags": ["engineer", "friend"],
+      "dcterms:created": { "@value": "2026-01-20T12:00:00Z", "@type": "xsd:dateTime" },
+      "crm:knows": [{ "@id": "crm:seed-contact-james" }]
+    },
+
+    {
+      "@id": "crm:seed-interaction-coffee-sarah", "@type": "crm:Interaction",
+      "dcterms:title": "Coffee with Sarah — consulting scope",
+      "crm:interactionType": "coffee", "crm:interactionDate": { "@value": "2026-03-10", "@type": "xsd:date" },
+      "crm:notes": "Discussed potential consulting engagement around knowledge graph architecture. Sarah wants a pilot project with her data engineering team. Follow up with a proposal draft.",
+      "crm:followUpDate": { "@value": "2026-03-20", "@type": "xsd:date" }, "crm:followUpDone": false,
+      "crm:tags": ["sales", "consulting"],
+      "dcterms:created": { "@value": "2026-03-10T16:00:00Z", "@type": "xsd:dateTime" },
+      "crm:withContact": [{ "@id": "crm:seed-contact-sarah" }]
+    },
+    {
+      "@id": "crm:seed-interaction-call-priya", "@type": "crm:Interaction",
+      "dcterms:title": "Intro call with Priya and Sarah",
+      "crm:interactionType": "call", "crm:interactionDate": { "@value": "2026-03-05", "@type": "xsd:date" },
+      "crm:notes": "Connected Priya and Sarah since both are interested in semantic data approaches. Good synergy — they may collaborate on a joint pilot.",
+      "crm:tags": ["networking", "intro"],
+      "dcterms:created": { "@value": "2026-03-05T15:00:00Z", "@type": "xsd:dateTime" },
+      "crm:withContact": [{ "@id": "crm:seed-contact-sarah" }, { "@id": "crm:seed-contact-priya" }]
+    },
+    {
+      "@id": "crm:seed-interaction-design-james", "@type": "crm:Interaction",
+      "dcterms:title": "Design review session with James",
+      "crm:interactionType": "meeting", "crm:interactionDate": { "@value": "2026-03-12", "@type": "xsd:date" },
+      "crm:notes": "Reviewed graph visualization mockups. James suggested using radial layout for contact networks. Will prototype next week.",
+      "crm:followUpDate": { "@value": "2026-03-19", "@type": "xsd:date" }, "crm:followUpDone": false,
+      "crm:tags": ["design", "collaboration"],
+      "dcterms:created": { "@value": "2026-03-12T17:00:00Z", "@type": "xsd:dateTime" },
+      "crm:withContact": [{ "@id": "crm:seed-contact-james" }]
+    },
+
+    {
+      "@id": "crm:seed-deal-acme", "@type": "crm:Deal",
+      "dcterms:title": "Acme Corp — Knowledge Graph Consulting",
+      "crm:dealStage": "proposal", "crm:dealValue": 15000, "crm:currency": "USD",
+      "crm:closeDate": { "@value": "2026-04-15", "@type": "xsd:date" },
+      "crm:notes": "Pilot engagement: 3-month knowledge graph architecture assessment for the data engineering team.",
+      "crm:tags": ["consulting", "pilot"],
+      "dcterms:created": { "@value": "2026-03-10T16:30:00Z", "@type": "xsd:dateTime" },
+      "crm:dealContact": { "@id": "crm:seed-contact-sarah" },
+      "crm:dealCompany": { "@id": "crm:seed-company-acme" }
+    },
+    {
+      "@id": "crm:seed-deal-dataflow", "@type": "crm:Deal",
+      "dcterms:title": "DataFlow Inc — Semantic Data Integration",
+      "crm:dealStage": "lead", "crm:dealValue": 8000, "crm:currency": "USD",
+      "crm:closeDate": { "@value": "2026-05-01", "@type": "xsd:date" },
+      "crm:notes": "Early stage. Priya is interested but needs to get budget approval from her board.",
+      "crm:tags": ["integration", "prospect"],
+      "dcterms:created": { "@value": "2026-03-05T15:30:00Z", "@type": "xsd:dateTime" },
+      "crm:dealContact": { "@id": "crm:seed-contact-priya" },
+      "crm:dealCompany": { "@id": "crm:seed-company-dataflow" }
+    }
+  ]
+}

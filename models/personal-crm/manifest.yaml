@@ -1,0 +1,77 @@
+modelId: personal-crm
+version: "1.0.0"
+name: "Personal CRM"
+description: "Contact and relationship management for professionals. Track contacts, companies, interactions, and deals with typed relationships, provenance, and automatic stale-contact detection. Integrates with basic-pkm Person type via shared gist:Person superclass."
+namespace: "urn:sempkm:model:personal-crm:"
+prefixes:
+  crm: "urn:sempkm:model:personal-crm:"
+entrypoints:
+  ontology: "ontology/personal-crm.jsonld"
+  shapes: "shapes/personal-crm.jsonld"
+  views: "views/personal-crm.jsonld"
+  seed: "seed/personal-crm.jsonld"
+  rules: "rules/personal-crm.ttl"
+entailment_defaults:
+  owl_inverseOf: true
+  rdfs_subClassOf: false
+  rdfs_subPropertyOf: false
+  owl_TransitiveProperty: false
+  rdfs_domain_range: false
+  shacl_rules: true
+icons:
+  - type: "crm:Contact"
+    icon: "user"
+    color: "#6366f1"
+    tree:
+      icon: "user"
+      color: "#6366f1"
+      size: 16
+    tab:
+      icon: "user"
+      color: "#6366f1"
+      size: 14
+    graph:
+      icon: "user"
+      color: "#6366f1"
+  - type: "crm:Company"
+    icon: "building-2"
+    color: "#8b5cf6"
+    tree:
+      icon: "building-2"
+      color: "#8b5cf6"
+      size: 16
+    tab:
+      icon: "building-2"
+      color: "#8b5cf6"
+      size: 14
+    graph:
+      icon: "building-2"
+      color: "#8b5cf6"
+  - type: "crm:Interaction"
+    icon: "message-circle"
+    color: "#14b8a6"
+    tree:
+      icon: "message-circle"
+      color: "#14b8a6"
+      size: 16
+    tab:
+      icon: "message-circle"
+      color: "#14b8a6"
+      size: 14
+    graph:
+      icon: "message-circle"
+      color: "#14b8a6"
+  - type: "crm:Deal"
+    icon: "handshake"
+    color: "#f59e0b"
+    tree:
+      icon: "handshake"
+      color: "#f59e0b"
+      size: 16
+    tab:
+      icon: "handshake"
+      color: "#f59e0b"
+      size: 14
+    graph:
+      icon: "handshake"
+      color: "#f59e0b"

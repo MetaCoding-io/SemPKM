@@ -1,0 +1,253 @@
+{
+  "@context": {
+    "sh": "http://www.w3.org/ns/shacl#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "schema": "https://schema.org/",
+    "foaf": "http://xmlns.com/foaf/0.1/",
+    "crm": "urn:sempkm:model:personal-crm:",
+    "sempkm": "urn:sempkm:"
+  },
+  "@graph": [
+    { "@id": "crm:ContactBasicInfoGroup", "@type": "sh:PropertyGroup", "rdfs:label": "Basic Info", "sh:order": 1 },
+    { "@id": "crm:ContactContactGroup", "@type": "sh:PropertyGroup", "rdfs:label": "Contact Info", "sh:order": 2 },
+    { "@id": "crm:ContactRelationshipsGroup", "@type": "sh:PropertyGroup", "rdfs:label": "Relationships", "sh:order": 3 },
+    { "@id": "crm:ContactMetadataGroup", "@type": "sh:PropertyGroup", "rdfs:label": "Metadata", "sh:order": 4 },
+    {
+      "@id": "crm:ContactShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "crm:Contact" },
+      "rdfs:label": "Contact Shape",
+      "sempkm:editHelpText": "Contacts represent people in your network. Link them to companies, track interactions, and build a map of your professional and personal relationships.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "foaf:name" }, "sh:name": "Name", "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1, "sh:maxCount": 1, "sh:order": 1, "sh:group": { "@id": "crm:ContactBasicInfoGroup" },
+          "sh:description": "Full name.", "sempkm:editHelpText": "Full name as you'd recognize them."
+        },
+        {
+          "sh:path": { "@id": "schema:jobTitle" }, "sh:name": "Job Title", "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1, "sh:order": 2, "sh:group": { "@id": "crm:ContactBasicInfoGroup" },
+          "sh:description": "Current role or position.", "sempkm:editHelpText": "Their current role. Helps you remember context when revisiting this contact."
+        },
+        {
+          "sh:path": { "@id": "crm:relationship" }, "sh:name": "Relationship", "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["friend", "colleague", "client", "prospect", "mentor", "mentee", "other"] },
+          "sh:maxCount": 1, "sh:order": 3, "sh:group": { "@id": "crm:ContactBasicInfoGroup" },
+          "sh:description": "How you know this person.", "sempkm:editHelpText": "Your relationship type. Useful for filtering and understanding your network composition."
+        },
+        {
+          "sh:path": { "@id": "crm:metVia" }, "sh:name": "Met Via", "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1, "sh:order": 4, "sh:group": { "@id": "crm:ContactBasicInfoGroup" },
+          "sh:description": "How or where you met.", "sempkm:editHelpText": "How you first connected -- a conference, mutual friend, LinkedIn, etc. Great for conversation starters."
+        },
+        {
+          "sh:path": { "@id": "crm:location" }, "sh:name": "Location", "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1, "sh:order": 5, "sh:group": { "@id": "crm:ContactBasicInfoGroup" },
+          "sh:description": "City or region."
+        },
+        {
+          "sh:path": { "@id": "crm:notes" }, "sh:name": "Notes", "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1, "sh:order": 6, "sh:group": { "@id": "crm:ContactBasicInfoGroup" },
+          "sh:description": "Anything worth remembering.", "sempkm:editHelpText": "Personal notes -- shared interests, conversation topics, family details. The things that make follow-ups meaningful."
+        },
+        {
+          "sh:path": { "@id": "schema:email" }, "sh:name": "Email", "sh:datatype": { "@id": "xsd:string" },
+          "sh:order": 7, "sh:group": { "@id": "crm:ContactContactGroup" },
+          "sh:description": "Email address(es)."
+        },
+        {
+          "sh:path": { "@id": "schema:telephone" }, "sh:name": "Phone", "sh:datatype": { "@id": "xsd:string" },
+          "sh:order": 8, "sh:group": { "@id": "crm:ContactContactGroup" },
+          "sh:description": "Phone number(s)."
+        },
+        {
+          "sh:path": { "@id": "schema:url" }, "sh:name": "URL", "sh:datatype": { "@id": "xsd:anyURI" },
+          "sh:order": 9, "sh:group": { "@id": "crm:ContactContactGroup" },
+          "sh:description": "LinkedIn, Twitter, website, or other profile links."
+        },
+        {
+          "sh:path": { "@id": "crm:worksAt" }, "sh:name": "Company", "sh:class": { "@id": "crm:Company" },
+          "sh:maxCount": 1, "sh:order": 10, "sh:group": { "@id": "crm:ContactRelationshipsGroup" },
+          "sh:description": "Company they work at.", "sempkm:editHelpText": "Link to their company. Creates a two-way connection visible from both the contact and company views."
+        },
+        {
+          "sh:path": { "@id": "crm:knows" }, "sh:name": "Knows", "sh:class": { "@id": "crm:Contact" },
+          "sh:order": 11, "sh:group": { "@id": "crm:ContactRelationshipsGroup" },
+          "sh:description": "Other contacts they know.", "sempkm:editHelpText": "Mutual connections. Builds a network graph showing who knows who."
+        },
+        {
+          "sh:path": { "@id": "crm:tags" }, "sh:name": "Tags", "sh:datatype": { "@id": "xsd:string" },
+          "sh:order": 12, "sh:group": { "@id": "crm:ContactMetadataGroup" },
+          "sh:description": "Tags for categorization."
+        },
+        { "sh:path": { "@id": "dcterms:created" }, "sh:name": "Created", "sh:datatype": { "@id": "xsd:dateTime" }, "sh:maxCount": 1, "sh:order": 13, "sh:group": { "@id": "crm:ContactMetadataGroup" } },
+        { "sh:path": { "@id": "dcterms:modified" }, "sh:name": "Modified", "sh:datatype": { "@id": "xsd:dateTime" }, "sh:maxCount": 1, "sh:order": 14, "sh:group": { "@id": "crm:ContactMetadataGroup" } }
+      ]
+    },
+
+    { "@id": "crm:CompanyBasicInfoGroup", "@type": "sh:PropertyGroup", "rdfs:label": "Basic Info", "sh:order": 1 },
+    { "@id": "crm:CompanyRelationshipsGroup", "@type": "sh:PropertyGroup", "rdfs:label": "Relationships", "sh:order": 2 },
+    { "@id": "crm:CompanyMetadataGroup", "@type": "sh:PropertyGroup", "rdfs:label": "Metadata", "sh:order": 3 },
+    {
+      "@id": "crm:CompanyShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "crm:Company" },
+      "rdfs:label": "Company Shape",
+      "sempkm:editHelpText": "Companies represent organizations in your network. Link contacts as employees and track deals associated with each company.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" }, "sh:name": "Name", "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1, "sh:maxCount": 1, "sh:order": 1, "sh:group": { "@id": "crm:CompanyBasicInfoGroup" },
+          "sh:description": "Company name."
+        },
+        {
+          "sh:path": { "@id": "schema:url" }, "sh:name": "Website", "sh:datatype": { "@id": "xsd:anyURI" },
+          "sh:maxCount": 1, "sh:order": 2, "sh:group": { "@id": "crm:CompanyBasicInfoGroup" },
+          "sh:description": "Company website."
+        },
+        {
+          "sh:path": { "@id": "crm:industry" }, "sh:name": "Industry", "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1, "sh:order": 3, "sh:group": { "@id": "crm:CompanyBasicInfoGroup" },
+          "sh:description": "Industry or sector."
+        },
+        {
+          "sh:path": { "@id": "crm:companySize" }, "sh:name": "Size", "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["solo", "small", "medium", "large", "enterprise"] },
+          "sh:maxCount": 1, "sh:order": 4, "sh:group": { "@id": "crm:CompanyBasicInfoGroup" },
+          "sh:description": "Company size."
+        },
+        {
+          "sh:path": { "@id": "crm:location" }, "sh:name": "Location", "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1, "sh:order": 5, "sh:group": { "@id": "crm:CompanyBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "crm:notes" }, "sh:name": "Notes", "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1, "sh:order": 6, "sh:group": { "@id": "crm:CompanyBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "crm:tags" }, "sh:name": "Tags", "sh:datatype": { "@id": "xsd:string" },
+          "sh:order": 7, "sh:group": { "@id": "crm:CompanyMetadataGroup" }
+        },
+        { "sh:path": { "@id": "dcterms:created" }, "sh:name": "Created", "sh:datatype": { "@id": "xsd:dateTime" }, "sh:maxCount": 1, "sh:order": 8, "sh:group": { "@id": "crm:CompanyMetadataGroup" } },
+        { "sh:path": { "@id": "dcterms:modified" }, "sh:name": "Modified", "sh:datatype": { "@id": "xsd:dateTime" }, "sh:maxCount": 1, "sh:order": 9, "sh:group": { "@id": "crm:CompanyMetadataGroup" } }
+      ]
+    },
+
+    { "@id": "crm:InteractionBasicInfoGroup", "@type": "sh:PropertyGroup", "rdfs:label": "Basic Info", "sh:order": 1 },
+    { "@id": "crm:InteractionRelationshipsGroup", "@type": "sh:PropertyGroup", "rdfs:label": "Relationships", "sh:order": 2 },
+    { "@id": "crm:InteractionFollowUpGroup", "@type": "sh:PropertyGroup", "rdfs:label": "Follow-Up", "sh:order": 3 },
+    {
+      "@id": "crm:InteractionShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "crm:Interaction" },
+      "rdfs:label": "Interaction Shape",
+      "sempkm:editHelpText": "Interactions log your touchpoints with contacts -- calls, meetings, emails, coffees. Each interaction links to the people involved and can track follow-up actions.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" }, "sh:name": "Summary", "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1, "sh:maxCount": 1, "sh:order": 1, "sh:group": { "@id": "crm:InteractionBasicInfoGroup" },
+          "sh:description": "Brief summary of the interaction.", "sempkm:editHelpText": "A one-line summary -- e.g. \"Coffee with Sarah re: consulting project\"."
+        },
+        {
+          "sh:path": { "@id": "crm:interactionType" }, "sh:name": "Type", "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["call", "email", "meeting", "coffee", "lunch", "conference", "message", "other"] },
+          "sh:defaultValue": "meeting", "sh:maxCount": 1, "sh:order": 2, "sh:group": { "@id": "crm:InteractionBasicInfoGroup" },
+          "sh:description": "What kind of interaction."
+        },
+        {
+          "sh:path": { "@id": "crm:interactionDate" }, "sh:name": "Date", "sh:datatype": { "@id": "xsd:date" },
+          "sh:minCount": 1, "sh:maxCount": 1, "sh:order": 3, "sh:group": { "@id": "crm:InteractionBasicInfoGroup" },
+          "sh:description": "When it happened."
+        },
+        {
+          "sh:path": { "@id": "crm:notes" }, "sh:name": "Notes", "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1, "sh:order": 4, "sh:group": { "@id": "crm:InteractionBasicInfoGroup" },
+          "sh:description": "What was discussed, key takeaways.", "sempkm:editHelpText": "Details of the conversation -- topics discussed, decisions made, insights shared. Markdown supported."
+        },
+        {
+          "sh:path": { "@id": "crm:withContact" }, "sh:name": "With", "sh:class": { "@id": "crm:Contact" },
+          "sh:minCount": 1, "sh:order": 5, "sh:group": { "@id": "crm:InteractionRelationshipsGroup" },
+          "sh:description": "Contacts involved.", "sempkm:editHelpText": "Who you met with. Each contact's profile will show this interaction in their history."
+        },
+        {
+          "sh:path": { "@id": "crm:followUpDate" }, "sh:name": "Follow-Up Date", "sh:datatype": { "@id": "xsd:date" },
+          "sh:maxCount": 1, "sh:order": 6, "sh:group": { "@id": "crm:InteractionFollowUpGroup" },
+          "sh:description": "When to follow up.", "sempkm:editHelpText": "Set a follow-up reminder. The system will flag overdue follow-ups."
+        },
+        {
+          "sh:path": { "@id": "crm:followUpDone" }, "sh:name": "Follow-Up Done", "sh:datatype": { "@id": "xsd:boolean" },
+          "sh:maxCount": 1, "sh:order": 7, "sh:group": { "@id": "crm:InteractionFollowUpGroup" },
+          "sh:description": "Whether the follow-up has been completed."
+        },
+        {
+          "sh:path": { "@id": "crm:tags" }, "sh:name": "Tags", "sh:datatype": { "@id": "xsd:string" },
+          "sh:order": 8, "sh:group": { "@id": "crm:InteractionBasicInfoGroup" }
+        },
+        { "sh:path": { "@id": "dcterms:created" }, "sh:name": "Created", "sh:datatype": { "@id": "xsd:dateTime" }, "sh:maxCount": 1, "sh:order": 9, "sh:group": { "@id": "crm:InteractionBasicInfoGroup" } },
+        { "sh:path": { "@id": "dcterms:modified" }, "sh:name": "Modified", "sh:datatype": { "@id": "xsd:dateTime" }, "sh:maxCount": 1, "sh:order": 10, "sh:group": { "@id": "crm:InteractionBasicInfoGroup" } }
+      ]
+    },
+
+    { "@id": "crm:DealBasicInfoGroup", "@type": "sh:PropertyGroup", "rdfs:label": "Basic Info", "sh:order": 1 },
+    { "@id": "crm:DealRelationshipsGroup", "@type": "sh:PropertyGroup", "rdfs:label": "Relationships", "sh:order": 2 },
+    { "@id": "crm:DealMetadataGroup", "@type": "sh:PropertyGroup", "rdfs:label": "Metadata", "sh:order": 3 },
+    {
+      "@id": "crm:DealShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "crm:Deal" },
+      "rdfs:label": "Deal Shape",
+      "sempkm:editHelpText": "Deals track business opportunities through your pipeline. Link them to contacts and companies to see the full picture of each engagement.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" }, "sh:name": "Name", "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1, "sh:maxCount": 1, "sh:order": 1, "sh:group": { "@id": "crm:DealBasicInfoGroup" },
+          "sh:description": "Deal name.", "sempkm:editHelpText": "A descriptive name -- e.g. \"Acme Corp Q2 Consulting\" rather than just \"Acme deal\"."
+        },
+        {
+          "sh:path": { "@id": "crm:dealStage" }, "sh:name": "Stage", "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["lead", "qualified", "proposal", "negotiation", "won", "lost"] },
+          "sh:defaultValue": "lead", "sh:minCount": 1, "sh:maxCount": 1, "sh:order": 2, "sh:group": { "@id": "crm:DealBasicInfoGroup" },
+          "sh:description": "Pipeline stage."
+        },
+        {
+          "sh:path": { "@id": "crm:dealValue" }, "sh:name": "Value", "sh:datatype": { "@id": "xsd:decimal" },
+          "sh:maxCount": 1, "sh:order": 3, "sh:group": { "@id": "crm:DealBasicInfoGroup" },
+          "sh:description": "Deal value."
+        },
+        {
+          "sh:path": { "@id": "crm:currency" }, "sh:name": "Currency", "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["USD", "EUR", "GBP", "CAD", "AUD"] },
+          "sh:defaultValue": "USD", "sh:maxCount": 1, "sh:order": 4, "sh:group": { "@id": "crm:DealBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "crm:closeDate" }, "sh:name": "Close Date", "sh:datatype": { "@id": "xsd:date" },
+          "sh:maxCount": 1, "sh:order": 5, "sh:group": { "@id": "crm:DealBasicInfoGroup" },
+          "sh:description": "Expected or actual close date."
+        },
+        {
+          "sh:path": { "@id": "crm:notes" }, "sh:name": "Notes", "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1, "sh:order": 6, "sh:group": { "@id": "crm:DealBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "crm:dealContact" }, "sh:name": "Primary Contact", "sh:class": { "@id": "crm:Contact" },
+          "sh:maxCount": 1, "sh:order": 7, "sh:group": { "@id": "crm:DealRelationshipsGroup" },
+          "sh:description": "Main contact for this deal."
+        },
+        {
+          "sh:path": { "@id": "crm:dealCompany" }, "sh:name": "Company", "sh:class": { "@id": "crm:Company" },
+          "sh:maxCount": 1, "sh:order": 8, "sh:group": { "@id": "crm:DealRelationshipsGroup" },
+          "sh:description": "Company associated with this deal."
+        },
+        {
+          "sh:path": { "@id": "crm:tags" }, "sh:name": "Tags", "sh:datatype": { "@id": "xsd:string" },
+          "sh:order": 9, "sh:group": { "@id": "crm:DealMetadataGroup" }
+        },
+        { "sh:path": { "@id": "dcterms:created" }, "sh:name": "Created", "sh:datatype": { "@id": "xsd:dateTime" }, "sh:maxCount": 1, "sh:order": 10, "sh:group": { "@id": "crm:DealMetadataGroup" } },
+        { "sh:path": { "@id": "dcterms:modified" }, "sh:name": "Modified", "sh:datatype": { "@id": "xsd:dateTime" }, "sh:maxCount": 1, "sh:order": 11, "sh:group": { "@id": "crm:DealMetadataGroup" } }
+      ]
+    }
+  ]
+}

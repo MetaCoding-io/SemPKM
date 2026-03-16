@@ -1,0 +1,536 @@
+{
+  "@context": {
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "sh": "http://www.w3.org/ns/shacl#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "res": "urn:sempkm:model:research:",
+    "sempkm": "urn:sempkm:vocab:"
+  },
+  "@graph": [
+    {
+      "@id": "res:PaperShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "res:Paper" },
+      "rdfs:label": "Paper",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1, "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "res:PaperBasicGroup" },
+          "sempkm:editHelpText": "Full title of the paper or publication"
+        },
+        {
+          "sh:path": { "@id": "dcterms:creator" },
+          "sh:name": "Authors",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:order": 2,
+          "sh:group": { "@id": "res:PaperBasicGroup" },
+          "sempkm:editHelpText": "Author(s) of the paper"
+        },
+        {
+          "sh:path": { "@id": "res:venue" },
+          "sh:name": "Venue",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "res:PaperBasicGroup" },
+          "sempkm:editHelpText": "Journal, conference, or publisher"
+        },
+        {
+          "sh:path": { "@id": "res:year" },
+          "sh:name": "Year",
+          "sh:datatype": { "@id": "xsd:gYear" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "res:PaperBasicGroup" }
+        },
+        {
+          "sh:path": { "@id": "res:paperType" },
+          "sh:name": "Paper Type",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:in": { "@list": ["journal-article", "conference-paper", "preprint", "book-chapter", "thesis", "report", "other"] },
+          "sh:order": 5,
+          "sh:group": { "@id": "res:PaperBasicGroup" },
+          "sempkm:editHelpText": "Type of publication"
+        },
+        {
+          "sh:path": { "@id": "res:doi" },
+          "sh:name": "DOI",
+          "sh:datatype": { "@id": "xsd:anyURI" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "res:PaperBasicGroup" },
+          "sempkm:editHelpText": "Digital Object Identifier link"
+        },
+        {
+          "sh:path": { "@id": "res:abstract" },
+          "sh:name": "Abstract",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 7,
+          "sh:group": { "@id": "res:PaperContentGroup" },
+          "sempkm:editWidget": "textarea",
+          "sempkm:editHelpText": "Paper abstract"
+        },
+        {
+          "sh:path": { "@id": "res:notes" },
+          "sh:name": "Reading Notes",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 8,
+          "sh:group": { "@id": "res:PaperContentGroup" },
+          "sempkm:editWidget": "textarea",
+          "sempkm:editHelpText": "Your personal notes and highlights from reading this paper"
+        },
+        {
+          "sh:path": { "@id": "res:cites" },
+          "sh:name": "Cites",
+          "sh:class": { "@id": "res:Paper" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:order": 9,
+          "sh:group": { "@id": "res:PaperReferencesGroup" },
+          "sempkm:editHelpText": "Other papers referenced by this paper"
+        },
+        {
+          "sh:path": { "@id": "res:tags" },
+          "sh:name": "Tags",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:order": 10,
+          "sh:group": { "@id": "res:PaperMetadataGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 11,
+          "sh:group": { "@id": "res:PaperMetadataGroup" }
+        }
+      ]
+    },
+    {
+      "@id": "res:PaperBasicGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Publication Info",
+      "sh:order": 0
+    },
+    {
+      "@id": "res:PaperContentGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Content",
+      "sh:order": 1
+    },
+    {
+      "@id": "res:PaperReferencesGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "References",
+      "sh:order": 2
+    },
+    {
+      "@id": "res:PaperMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 3
+    },
+
+    {
+      "@id": "res:ClaimShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "res:Claim" },
+      "rdfs:label": "Claim",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Claim",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1, "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "res:ClaimContentGroup" },
+          "sempkm:editHelpText": "The claim as a clear, falsifiable statement"
+        },
+        {
+          "sh:path": { "@id": "res:claimBody" },
+          "sh:name": "Elaboration",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "res:ClaimContentGroup" },
+          "sempkm:editWidget": "textarea",
+          "sempkm:editHelpText": "Detailed elaboration of the claim. Markdown supported."
+        },
+        {
+          "sh:path": { "@id": "res:confidence" },
+          "sh:name": "Confidence",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:in": { "@list": ["established", "supported", "contested", "speculative", "refuted"] },
+          "sh:order": 3,
+          "sh:group": { "@id": "res:ClaimContentGroup" },
+          "sempkm:editHelpText": "How well-supported is this claim by current evidence?"
+        },
+        {
+          "sh:path": { "@id": "res:domain" },
+          "sh:name": "Domain",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "res:ClaimContentGroup" },
+          "sempkm:editHelpText": "Research area or field"
+        },
+        {
+          "sh:path": { "@id": "res:extractedFrom" },
+          "sh:name": "Extracted From",
+          "sh:class": { "@id": "res:Paper" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "res:ClaimProvenanceGroup" },
+          "sempkm:editHelpText": "Paper this claim was extracted from"
+        },
+        {
+          "sh:path": { "@id": "res:corroborates" },
+          "sh:name": "Corroborates",
+          "sh:class": { "@id": "res:Claim" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:order": 6,
+          "sh:group": { "@id": "res:ClaimRelationsGroup" },
+          "sempkm:editHelpText": "Other claims that agree with this one"
+        },
+        {
+          "sh:path": { "@id": "res:contradicts" },
+          "sh:name": "Contradicts",
+          "sh:class": { "@id": "res:Claim" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:order": 7,
+          "sh:group": { "@id": "res:ClaimRelationsGroup" },
+          "sempkm:editHelpText": "Other claims that disagree with this one"
+        },
+        {
+          "sh:path": { "@id": "res:dependsOn" },
+          "sh:name": "Depends On",
+          "sh:class": { "@id": "res:Claim" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:order": 8,
+          "sh:group": { "@id": "res:ClaimRelationsGroup" },
+          "sempkm:editHelpText": "Prerequisite claims this builds upon"
+        },
+        {
+          "sh:path": { "@id": "res:tags" },
+          "sh:name": "Tags",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:order": 9,
+          "sh:group": { "@id": "res:ClaimMetadataGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 10,
+          "sh:group": { "@id": "res:ClaimMetadataGroup" }
+        }
+      ]
+    },
+    {
+      "@id": "res:ClaimContentGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Claim",
+      "sh:order": 0
+    },
+    {
+      "@id": "res:ClaimProvenanceGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Provenance",
+      "sh:order": 1
+    },
+    {
+      "@id": "res:ClaimRelationsGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Relations",
+      "sh:order": 2
+    },
+    {
+      "@id": "res:ClaimMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 3
+    },
+
+    {
+      "@id": "res:EvidenceShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "res:Evidence" },
+      "rdfs:label": "Evidence",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1, "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "res:EvidenceContentGroup" },
+          "sempkm:editHelpText": "Brief description of the evidence"
+        },
+        {
+          "sh:path": { "@id": "res:evidenceBody" },
+          "sh:name": "Detail",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "res:EvidenceContentGroup" },
+          "sempkm:editWidget": "textarea",
+          "sempkm:editHelpText": "The evidence detail. Markdown supported."
+        },
+        {
+          "sh:path": { "@id": "res:evidenceType" },
+          "sh:name": "Type",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:in": { "@list": ["empirical-data", "statistical-finding", "case-study", "expert-opinion", "logical-argument", "observation", "quote"] },
+          "sh:order": 3,
+          "sh:group": { "@id": "res:EvidenceContentGroup" },
+          "sempkm:editHelpText": "What kind of evidence this is"
+        },
+        {
+          "sh:path": { "@id": "res:pageReference" },
+          "sh:name": "Page Reference",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "res:EvidenceContentGroup" },
+          "sempkm:editHelpText": "Page or section in the source"
+        },
+        {
+          "sh:path": { "@id": "res:methodology" },
+          "sh:name": "Methodology",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "res:EvidenceContentGroup" },
+          "sempkm:editHelpText": "How the evidence was obtained"
+        },
+        {
+          "sh:path": { "@id": "res:supports" },
+          "sh:name": "Supports",
+          "sh:class": { "@id": "res:Claim" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "res:EvidenceLinksGroup" },
+          "sempkm:editHelpText": "The claim this evidence supports"
+        },
+        {
+          "sh:path": { "@id": "res:refutes" },
+          "sh:name": "Refutes",
+          "sh:class": { "@id": "res:Claim" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:maxCount": 1,
+          "sh:order": 7,
+          "sh:group": { "@id": "res:EvidenceLinksGroup" },
+          "sempkm:editHelpText": "The claim this evidence refutes (alternative to supports)"
+        },
+        {
+          "sh:path": { "@id": "res:fromPaper" },
+          "sh:name": "From Paper",
+          "sh:class": { "@id": "res:Paper" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:maxCount": 1,
+          "sh:order": 8,
+          "sh:group": { "@id": "res:EvidenceLinksGroup" },
+          "sempkm:editHelpText": "Source paper this evidence comes from"
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 9,
+          "sh:group": { "@id": "res:EvidenceMetadataGroup" }
+        }
+      ]
+    },
+    {
+      "@id": "res:EvidenceContentGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Evidence",
+      "sh:order": 0
+    },
+    {
+      "@id": "res:EvidenceLinksGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Links",
+      "sh:order": 1
+    },
+    {
+      "@id": "res:EvidenceMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 2
+    },
+
+    {
+      "@id": "res:ResearchQuestionShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "res:ResearchQuestion" },
+      "rdfs:label": "Research Question",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Question",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1, "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "res:QuestionContentGroup" },
+          "sempkm:editHelpText": "The research question as a clear, answerable question"
+        },
+        {
+          "sh:path": { "@id": "res:questionBody" },
+          "sh:name": "Context",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "res:QuestionContentGroup" },
+          "sempkm:editWidget": "textarea",
+          "sempkm:editHelpText": "Context, motivation, and scope of the question"
+        },
+        {
+          "sh:path": { "@id": "res:status" },
+          "sh:name": "Status",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:in": { "@list": ["open", "partially-answered", "answered", "abandoned"] },
+          "sh:order": 3,
+          "sh:group": { "@id": "res:QuestionContentGroup" },
+          "sempkm:editHelpText": "Current status of this research question"
+        },
+        {
+          "sh:path": { "@id": "res:domain" },
+          "sh:name": "Domain",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "res:QuestionContentGroup" },
+          "sempkm:editHelpText": "Research area or field"
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "res:QuestionMetadataGroup" }
+        }
+      ]
+    },
+    {
+      "@id": "res:QuestionContentGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Question",
+      "sh:order": 0
+    },
+    {
+      "@id": "res:QuestionMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 1
+    },
+
+    {
+      "@id": "res:ArgumentShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "res:Argument" },
+      "rdfs:label": "Argument",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Thesis",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1, "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "res:ArgumentContentGroup" },
+          "sempkm:editHelpText": "The argument's thesis statement"
+        },
+        {
+          "sh:path": { "@id": "res:argumentBody" },
+          "sh:name": "Body",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "res:ArgumentContentGroup" },
+          "sempkm:editWidget": "textarea",
+          "sempkm:editHelpText": "Full argument text. Markdown supported."
+        },
+        {
+          "sh:path": { "@id": "res:argumentType" },
+          "sh:name": "Type",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:in": { "@list": ["literature-review", "position-paper", "analysis", "synthesis", "rebuttal"] },
+          "sh:order": 3,
+          "sh:group": { "@id": "res:ArgumentContentGroup" },
+          "sempkm:editHelpText": "Type of argument"
+        },
+        {
+          "sh:path": { "@id": "res:addresses" },
+          "sh:name": "Addresses",
+          "sh:class": { "@id": "res:ResearchQuestion" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "res:ArgumentLinksGroup" },
+          "sempkm:editHelpText": "The research question this argument answers"
+        },
+        {
+          "sh:path": { "@id": "res:usesClaim" },
+          "sh:name": "Uses Claims",
+          "sh:class": { "@id": "res:Claim" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:order": 5,
+          "sh:group": { "@id": "res:ArgumentLinksGroup" },
+          "sempkm:editHelpText": "Claims used in this argument"
+        },
+        {
+          "sh:path": { "@id": "res:usesEvidence" },
+          "sh:name": "Uses Evidence",
+          "sh:class": { "@id": "res:Evidence" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:order": 6,
+          "sh:group": { "@id": "res:ArgumentLinksGroup" },
+          "sempkm:editHelpText": "Direct evidence references in this argument"
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 7,
+          "sh:group": { "@id": "res:ArgumentMetadataGroup" }
+        }
+      ]
+    },
+    {
+      "@id": "res:ArgumentContentGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Argument",
+      "sh:order": 0
+    },
+    {
+      "@id": "res:ArgumentLinksGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Supporting Material",
+      "sh:order": 1
+    },
+    {
+      "@id": "res:ArgumentMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 2
+    }
+  ]
+}

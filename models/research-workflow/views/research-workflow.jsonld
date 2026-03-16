@@ -1,0 +1,73 @@
+{
+  "@context": {
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "res": "urn:sempkm:model:research:",
+    "sempkm": "urn:sempkm:vocab:",
+    "dcterms": "http://purl.org/dc/terms/"
+  },
+  "@graph": [
+    {
+      "@id": "res:view-paper-table", "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Paper Library", "sempkm:targetClass": { "@id": "res:Paper" }, "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?authors ?venue ?year ?paperType WHERE { ?s a <urn:sempkm:model:research:Paper> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <http://purl.org/dc/terms/creator> ?authors } . OPTIONAL { ?s <urn:sempkm:model:research:venue> ?venue } . OPTIONAL { ?s <urn:sempkm:model:research:year> ?year } . OPTIONAL { ?s <urn:sempkm:model:research:paperType> ?paperType } }",
+      "sempkm:columns": "title,authors,venue,year,paperType", "sempkm:sortDefault": "year"
+    },
+    {
+      "@id": "res:view-claim-card", "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Claims by Confidence", "sempkm:targetClass": { "@id": "res:Claim" }, "sempkm:rendererType": "card",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?confidence ?domain ?paper WHERE { ?s a <urn:sempkm:model:research:Claim> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:research:confidence> ?confidence } . OPTIONAL { ?s <urn:sempkm:model:research:domain> ?domain } . OPTIONAL { ?s <urn:sempkm:model:research:extractedFrom> ?p . ?p <http://purl.org/dc/terms/title> ?paper } }",
+      "sempkm:cardTitle": "http://purl.org/dc/terms/title", "sempkm:cardSubtitle": "urn:sempkm:model:research:confidence"
+    },
+    {
+      "@id": "res:view-evidence-table", "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Evidence Registry", "sempkm:targetClass": { "@id": "res:Evidence" }, "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?evidenceType ?claim ?paper WHERE { ?s a <urn:sempkm:model:research:Evidence> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:research:evidenceType> ?evidenceType } . OPTIONAL { ?s <urn:sempkm:model:research:supports> ?c . ?c <http://purl.org/dc/terms/title> ?claim } . OPTIONAL { ?s <urn:sempkm:model:research:fromPaper> ?p . ?p <http://purl.org/dc/terms/title> ?paper } }",
+      "sempkm:columns": "title,evidenceType,claim,paper", "sempkm:sortDefault": "title"
+    },
+    {
+      "@id": "res:view-evidence-graph", "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Evidence Map", "sempkm:targetClass": { "@id": "res:Claim" }, "sempkm:rendererType": "graph",
+      "sempkm:sparqlQuery": "CONSTRUCT { ?claim a <urn:sempkm:model:research:Claim> ; <http://purl.org/dc/terms/title> ?claimTitle ; <urn:sempkm:model:research:corroborates> ?corr ; <urn:sempkm:model:research:contradicts> ?cont . ?ev <urn:sempkm:model:research:supports> ?claim ; <http://purl.org/dc/terms/title> ?evTitle . ?rev <urn:sempkm:model:research:refutes> ?claim ; <http://purl.org/dc/terms/title> ?revTitle . ?corr <http://purl.org/dc/terms/title> ?corrTitle . ?cont <http://purl.org/dc/terms/title> ?contTitle } WHERE { ?claim a <urn:sempkm:model:research:Claim> ; <http://purl.org/dc/terms/title> ?claimTitle . OPTIONAL { ?ev <urn:sempkm:model:research:supports> ?claim ; <http://purl.org/dc/terms/title> ?evTitle } . OPTIONAL { ?rev <urn:sempkm:model:research:refutes> ?claim ; <http://purl.org/dc/terms/title> ?revTitle } . OPTIONAL { ?claim <urn:sempkm:model:research:corroborates> ?corr . ?corr <http://purl.org/dc/terms/title> ?corrTitle } . OPTIONAL { ?claim <urn:sempkm:model:research:contradicts> ?cont . ?cont <http://purl.org/dc/terms/title> ?contTitle } }"
+    },
+    {
+      "@id": "res:view-citation-graph", "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Citation Graph", "sempkm:targetClass": { "@id": "res:Paper" }, "sempkm:rendererType": "graph",
+      "sempkm:sparqlQuery": "CONSTRUCT { ?s a <urn:sempkm:model:research:Paper> ; <http://purl.org/dc/terms/title> ?title ; <urn:sempkm:model:research:cites> ?cited . ?cited <http://purl.org/dc/terms/title> ?citedTitle } WHERE { ?s a <urn:sempkm:model:research:Paper> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:research:cites> ?cited . ?cited <http://purl.org/dc/terms/title> ?citedTitle } }"
+    },
+    {
+      "@id": "res:view-question-table", "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Research Questions", "sempkm:targetClass": { "@id": "res:ResearchQuestion" }, "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?status ?domain WHERE { ?s a <urn:sempkm:model:research:ResearchQuestion> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:research:status> ?status } . OPTIONAL { ?s <urn:sempkm:model:research:domain> ?domain } }",
+      "sempkm:columns": "title,status,domain", "sempkm:sortDefault": "status"
+    },
+    {
+      "@id": "res:view-argument-card", "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Arguments", "sempkm:targetClass": { "@id": "res:Argument" }, "sempkm:rendererType": "card",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?argumentType ?question WHERE { ?s a <urn:sempkm:model:research:Argument> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:research:argumentType> ?argumentType } . OPTIONAL { ?s <urn:sempkm:model:research:addresses> ?q . ?q <http://purl.org/dc/terms/title> ?question } }",
+      "sempkm:cardTitle": "http://purl.org/dc/terms/title", "sempkm:cardSubtitle": "urn:sempkm:model:research:argumentType"
+    },
+    {
+      "@id": "urn:sempkm:model:research:query:unsupported-claims", "@type": "sempkm:SavedQuery",
+      "rdfs:label": "Unsupported Claims",
+      "dcterms:description": "Claims with no supporting evidence",
+      "sempkm:queryText": "SELECT ?s ?title ?confidence WHERE { ?s a <urn:sempkm:model:research:Claim> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:research:confidence> ?confidence } FILTER NOT EXISTS { ?ev <urn:sempkm:model:research:supports> ?s } } ORDER BY ?confidence",
+      "sempkm:source": "model:research-workflow"
+    },
+    {
+      "@id": "urn:sempkm:model:research:query:contested-claims", "@type": "sempkm:SavedQuery",
+      "rdfs:label": "Contested Claims",
+      "dcterms:description": "Claims with both supporting and refuting evidence",
+      "sempkm:queryText": "SELECT ?s ?title ?confidence WHERE { ?s a <urn:sempkm:model:research:Claim> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:research:confidence> ?confidence } . ?supEv <urn:sempkm:model:research:supports> ?s . ?refEv <urn:sempkm:model:research:refutes> ?s }",
+      "sempkm:source": "model:research-workflow"
+    },
+    {
+      "@id": "urn:sempkm:model:research:query:open-questions", "@type": "sempkm:SavedQuery",
+      "rdfs:label": "Open Research Questions",
+      "dcterms:description": "Research questions with status open",
+      "sempkm:queryText": "SELECT ?s ?title ?domain WHERE { ?s a <urn:sempkm:model:research:ResearchQuestion> ; <http://purl.org/dc/terms/title> ?title . ?s <urn:sempkm:model:research:status> 'open' . OPTIONAL { ?s <urn:sempkm:model:research:domain> ?domain } }",
+      "sempkm:source": "model:research-workflow"
+    }
+  ]
+}
