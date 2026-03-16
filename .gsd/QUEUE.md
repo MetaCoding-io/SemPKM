@@ -135,3 +135,76 @@ The model lifecycle is currently binary: install or full uninstall. Uninstall is
 
 **Queued:** 2026-03-12  
 **Status:** ✅ Done (M003) — TBox/RBox viewer, gist 14.0.0, class creation all shipped
+
+---
+
+## UI Polish & Consistency Fixes
+
+**Queued:** 2026-03-15  
+**Status:** Pending  
+
+Small styling and UX inconsistencies found during M006 review:
+
+1. **Inference button sizing on Mental Models page** — The "Inference" button (`btn-warning btn-sm`) on the models table is visually larger/more prominent than "Refresh" and "Remove" beside it. Normalize sizing.
+
+2. **Ontology Viewer button color** — "Open Ontology Viewer" button on Mental Models page uses default/neutral styling (`upper-ontology-btn`). Should be blue (accent/primary) to indicate primary action.
+
+3. **Relationships graph layout** — Cytoscape relationship diagram on model detail page is constrained width. Should take full width of content area. Layout should default to horizontal flow (left-to-right) rather than the default Cytoscape layout, since ontology hierarchies read better horizontally.
+
+4. **Explorer chevron inconsistency** — Left sidebar explorer sections use Unicode triangles (`&#9656;`) while right sidebar sections (Relations, Lint, Comments) use Lucide `chevron-right` icons. Update left side to match right side's Lucide chevrons.
+
+5. **OBJECTS header actions always visible** — Refresh (↻) and plus (+) buttons on the OBJECTS section header have `opacity: 0` by default, only visible on hover. These should always be visible — they're primary navigation actions, not overflow options.
+
+6. **Dashboard/Workflow explorer: plus-sign pattern instead of "New" buttons** — DASHBOARDS and WORKFLOWS explorer sections use a tree-leaf "New Dashboard" / "New Workflow" button at the bottom of the list. Should match the OBJECTS pattern: a `+` button in the section header (always visible). Remove the "New Dashboard" / "New Workflow" tree-leaf action entries.
+
+**Files involved:**
+- `backend/app/templates/admin/models.html` — buttons #1, #2
+- `frontend/static/css/style.css` — button styling #1, #2
+- `backend/app/admin/router.py` — Cytoscape layout config #3
+- `backend/app/templates/browser/workspace.html` — chevrons #4, header actions #5, dashboard/workflow headers #6
+- `frontend/static/css/workspace.css` — chevron styles #4, action visibility #5
+- `backend/app/templates/browser/dashboard_explorer.html` — remove "New Dashboard" leaf #6
+- `backend/app/templates/browser/workflow_explorer.html` — remove "New Workflow" leaf #6
+
+---
+
+## Dashboard & Workflow User Guide Documentation
+
+**Queued:** 2026-03-15  
+**Status:** Pending  
+
+M006 shipped dashboards and workflows but no user guide documentation was written. Need new guide pages covering:
+
+- **Dashboards:** What they are, creating via builder (layout picker, block types, block configuration), opening dashboards, cross-view context filtering (how row selection in one block filters another), editing and deleting dashboards
+- **Workflows:** What they are, creating via builder (step types, step configuration), running workflows (stepper UI, prev/next navigation, context passing), editing and deleting workflows
+- **Explorer sections:** DASHBOARDS and WORKFLOWS sections in the sidebar, how they auto-refresh
+
+Should be new guide page(s) — likely `docs/guide/28-dashboards-and-workflows.md` or split into two pages.
+
+**Relevant code for reference:**
+- `backend/app/templates/browser/dashboard_builder.html` — builder UI
+- `backend/app/templates/browser/dashboard_page.html` — rendering
+- `backend/app/templates/browser/workflow_builder.html` — builder UI  
+- `backend/app/templates/browser/workflow_runner.html` — runner UI
+- `.gsd/milestones/M006/slices/S03/S03-SUMMARY.md` through `S07-SUMMARY.md` — feature details
+
+---
+
+## Spatial Canvas — Resizable Nodes, Property Flip & Live Embeds
+
+**Queued:** 2026-03-15
+**Status:** Queued as M008 (depends on M007)
+
+Transform the spatial canvas from a graph exploration surface into a composable working surface:
+
+1. **Resizable nodes** — Free drag handles on corners/edges. Width and height stored per-node, persisted across sessions. Old sessions gracefully default to 260px.
+
+2. **Property flip** — Button on object node header toggles between markdown body and SHACL-derived properties table. Compact label/value table rendered inline (no iframe needed).
+
+3. **Live embeds** — Place Views, Dashboards, SPARQL query results, and object read views on the canvas as resizable iframes with full interactivity (clickable rows, context filtering). `?embed=1` mode suppresses page chrome.
+
+4. **Embed add UX** — Toolbar picker (button → dropdown → select → place) and drag-from-explorer (extending existing DnD infrastructure).
+
+**Requirements:** CANVAS-01 through CANVAS-05
+**Context:** `.gsd/milestones/M008/M008-CONTEXT.md`
+**Depends on:** M007 (generic views must exist to be embeddable)

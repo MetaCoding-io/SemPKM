@@ -4,7 +4,112 @@ This file is the explicit capability and coverage contract for the project.
 
 ## Active
 
-(No active requirements — all M003 requirements validated.)
+### VIEW-01 — Generic Table/Cards/Graph views that work across all types
+- Status: active
+- Class: core-capability
+- Source: design (VIEWS-RETHINK.md, Phase 1)
+- Design ref: `.gsd/design/VIEWS-RETHINK.md` → "Generic System-Provided Views"
+- Acceptance: 3 generic ViewSpec entries (Table View, Cards View, Graph View) appear in explorer. Opening Table View shows all objects with common columns (label, type, created, modified). No per-type ViewSpec folders in explorer tree.
+
+### VIEW-02 — SHACL-driven dynamic columns for generic views
+- Status: active
+- Class: core-capability
+- Source: design (VIEWS-RETHINK.md, Phase 1)
+- Design ref: `.gsd/design/VIEWS-RETHINK.md` → "SHACL Column Discovery"
+- Acceptance: When a type is selected in a generic view, columns are discovered from ShapesService (PropertyShape.path, name, order). Fallback to default columns for types with ≤2 properties. Dynamic SPARQL SELECT built from shape properties.
+
+### VIEW-03 — Type filter pills for generic views
+- Status: active
+- Class: core-capability
+- Source: design (VIEWS-RETHINK.md, Phase 1)
+- Design ref: `.gsd/design/VIEWS-RETHINK.md` → "Type Filter Pills"
+- Acceptance: Pills appear above generic view content, populated from ShapesService.get_types(). "All Types" default. Clicking a pill filters the view and changes columns. Selection persists in localStorage.
+
+### VIEW-04 — Explorer tree consolidation with Saved Views folder
+- Status: active
+- Class: core-capability
+- Source: design (VIEWS-RETHINK.md, Phase 1 + Phase 2)
+- Design ref: `.gsd/design/VIEWS-RETHINK.md` → "Explorer Tree Redesign"
+- Acceptance: Explorer VIEWS section shows: Spatial Canvas, Ontology Viewer, Table View, Cards View, Graph View, and a Saved Views folder (merging MY VIEWS). No per-model/per-type folder tree.
+
+### VIEW-05 — Carousel tab bar shows model-declared views when type selected
+- Status: active
+- Class: core-capability
+- Source: design (VIEWS-RETHINK.md, Phase 1)
+- Design ref: `.gsd/design/VIEWS-RETHINK.md` → "Type-Specific Views as Carousel Tabs"
+- Acceptance: When a type filter pill is active in a generic view, the carousel tab bar appears showing model-declared view variants for that type alongside the generic renderers.
+
+### VFS-07 — Type filter for VFS mounts without SPARQL
+- Status: active
+- Class: core-capability
+- Source: design (VFS-V2-DESIGN.md, item 2)
+- Design ref: `.gsd/design/VFS-V2-DESIGN.md` → "Type Filter (No SPARQL Required)"
+- Acceptance: `sempkm:typeFilter` predicate on MountSpec accepts a list of type IRIs. build_scope_filter() adds VALUES clause. Type filter and saved query scope compose via AND. Mount form UI has type multi-select.
+
+### VFS-08 — Query IRI alignment (scopeQuery predicate with full IRI)
+- Status: active
+- Class: core-capability
+- Source: design (VFS-V2-DESIGN.md, item 3 + D099)
+- Design ref: `.gsd/design/VFS-V2-DESIGN.md` → "Query IRI Alignment"
+- Acceptance: `sempkm:savedQueryId` renamed to `sempkm:scopeQuery`. Values stored as full IRIs (`<urn:sempkm:query:{uuid}>`), not bare UUIDs. Migration SPARQL UPDATE renames predicate and wraps values.
+
+### VFS-09 — Mount preview resolves saved query scope
+- Status: active
+- Class: core-capability
+- Source: design (VFS-V2-DESIGN.md, item 4)
+- Design ref: `.gsd/design/VFS-V2-DESIGN.md` → "Preview Improvements"
+- Acceptance: Preview endpoint resolves saved query text via async TriplestoreClient (not SQLite). Preview results reflect saved query scope and type_filter. Stale "would require loading from SQLite" comment removed.
+
+### VFS-10 — Bidirectional path contract documentation
+- Status: active
+- Class: quality-attribute
+- Source: design (VFS-V2-DESIGN.md, item 5)
+- Design ref: `.gsd/design/VFS-V2-DESIGN.md` → "Bidirectional Path Contract"
+- Acceptance: Forward (IRI→path) and reverse (path→IRI) mapping documented with examples. Filename instability caveat documented. Test coverage for slug generation and collision dedup.
+
+### VFS-11 — Composable strategy chains (multi-level folders)
+- Status: active
+- Class: core-capability
+- Source: design (VFS-V2-DESIGN.md, item 6 + D100)
+- Design ref: `.gsd/design/VFS-V2-DESIGN.md` → "Composable Strategy Chains"
+- Acceptance: `strategy` field accepts `str | list[str]`. Chain of up to 3 strategies produces nested folders. Provider path dispatch extended to 6 segments. UI has "+" button to add levels with predefined combos.
+
+### VFS-12 — Filename templates for VFS mounts
+- Status: active
+- Class: core-capability
+- Source: design (VFS-V2-DESIGN.md, item 7)
+- Design ref: `.gsd/design/VFS-V2-DESIGN.md` → "File Naming Control"
+- Acceptance: Optional `filename_template` field on MountSpec. Variables: `{title}`, `{date}`, `{type}`, `{id}`. Template expansion in `_build_file_map_from_bindings()`. Dedup suffix still applies.
+
+### CANVAS-01 — Resizable canvas nodes with free drag handles
+- Status: active
+- Class: core-capability
+- Source: user
+- Acceptance: User drags corner/edge of any canvas node to resize freely. Width and height stored per-node in canvas document JSON, persisted across sessions. Minimum size constraint enforced. Old sessions without width/height default to 260px.
+
+### CANVAS-02 — Property flip on canvas object nodes
+- Status: active
+- Class: core-capability
+- Source: user
+- Acceptance: Flip button on object node header toggles between markdown body and SHACL-derived properties table. Properties fetched via lightweight API endpoint. Compact label/value table rendered inline (no iframe). Flip back returns to markdown view.
+
+### CANVAS-03 — Live view and dashboard embeds on canvas
+- Status: active
+- Class: core-capability
+- Source: user
+- Acceptance: User places a ViewSpec (Table, Cards, Graph, or model-declared) or DashboardSpec on the canvas as a resizable live iframe. Iframe loads content URL with embed mode (no page chrome). Dashboard context filtering works inside the iframe. Embeds addable via toolbar picker or drag from explorer.
+
+### CANVAS-04 — SPARQL query and object read embeds on canvas
+- Status: active
+- Class: core-capability
+- Source: user
+- Acceptance: User places a saved SPARQL query result or an object read view (full properties + body) on the canvas as a resizable live iframe. Embeds addable via toolbar picker or drag from explorer.
+
+### CANVAS-05 — Embed add UX (toolbar picker + drag from explorer)
+- Status: active
+- Class: core-capability
+- Source: user
+- Acceptance: Canvas toolbar has an "Add embed" button opening a picker (select content type → choose specific item → place on canvas). Views, dashboards, and queries in explorer sidebar are draggable onto canvas. Both paths produce the same embed node type.
 
 ## Validated
 
@@ -800,6 +905,18 @@ DashboardSpec SQLAlchemy model with JSON blocks and CSS Grid layouts. 6 block ty
 
 WorkflowSpec SQLAlchemy model with JSON steps. Step types: view, dashboard, form. Stepper runner UI with numbered indicators, prev/next navigation, context passing. Form-based builder UI with step type config. WORKFLOWS explorer section with auto-refresh. Full CRUD via API and UI. Unit tests: test_workflow.py (13 tests), test_workflow_builder.py (10 tests).
 
+### DOCS-04 — User guide for dashboards and workflows
+- Status: active
+- Class: quality-attribute
+- Source: standing requirement (M006 shipped user-visible features without guide pages)
+- Acceptance: docs/guide/ has page(s) covering dashboard creation/editing/rendering/cross-view-context and workflow creation/running/editing. Glossary updated.
+
+### UIPOL-01 — Explorer sidebar consistency fixes
+- Status: active
+- Class: quality-attribute
+- Source: user (review feedback 2026-03-15)
+- Acceptance: Left sidebar chevrons use Lucide icons matching right sidebar. OBJECTS refresh/plus buttons always visible. DASHBOARDS/WORKFLOWS headers have plus-sign buttons (no "New X" tree-leaf entries). Inference button matches sibling sizing. Ontology Viewer button is blue. Relationships graph full-width with horizontal layout.
+
 ## Deferred
 
 ### TYPE-03 — Full SHACL shape editor with advanced constraints
@@ -845,6 +962,36 @@ WorkflowSpec SQLAlchemy model with JSON steps. Step types: view, dashboard, form
 - Supporting slices: none
 - Validation: unmapped
 - Notes: Full research at `.planning/notion-import-research.md`. Mirrors Obsidian wizard pattern.
+
+### VIEW-06 — Custom column selection UI
+- Class: core-capability
+- Status: deferred
+- Description: UI for users to pick which columns to show/hide in generic table views. SHACL discovery provides defaults.
+- Why it matters: Different users care about different properties — one-size-fits-all columns don't work at scale.
+- Source: design (VIEWS-RETHINK.md)
+- Primary owning slice: none
+- Validation: unmapped
+- Notes: Depends on VIEW-01/VIEW-02 (generic views + SHACL columns).
+
+### VIEW-07 — Faceted search integration in views
+- Class: core-capability
+- Status: deferred
+- Description: Combine type filter pills with property-value facets (e.g., "Notes tagged 'research' created this week").
+- Why it matters: Type filtering alone is coarse — facets enable precise filtering without SPARQL.
+- Source: design (VIEWS-RETHINK.md)
+- Primary owning slice: none
+- Validation: unmapped
+- Notes: Depends on VIEW-03 (type filter pills). Builds on SPARQL query builder infrastructure.
+
+### VFS-13 — VFS write support (bidirectional sync)
+- Class: core-capability
+- Status: deferred
+- Description: Full bidirectional VFS — new file creation, file deletion via WebDAV. Requires IRI minting policy, persistent filename→IRI index, conflict resolution, EventStore integration.
+- Why it matters: Read-only projection is useful for Obsidian/VS Code but users expect to create/edit/delete files.
+- Source: design (VFS-V2-DESIGN.md, item 8)
+- Primary owning slice: none
+- Validation: unmapped
+- Notes: Separate milestone. Complex edge cases (IRI minting, conflict resolution) deserve dedicated scope.
 
 ## Out of Scope
 
@@ -946,18 +1093,34 @@ WorkflowSpec SQLAlchemy model with JSON steps. Step types: view, dashboard, form
 | DASH-01 | core-capability | validated | M006/S03 | M006/S04 | dashboard model + builder UI + explorer + 36 tests |
 | DASH-02 | core-capability | validated | M006/S05 | none | cross-view context + VALUES injection + 25 tests |
 | WKFL-01 | core-capability | validated | M006/S06 | M006/S07 | workflow model + runner + builder + explorer + 23 tests |
+| VIEW-01 | core-capability | active | none | none | design: VIEWS-RETHINK.md Phase 1 |
+| VIEW-02 | core-capability | active | none | none | design: VIEWS-RETHINK.md Phase 1 |
+| VIEW-03 | core-capability | active | none | none | design: VIEWS-RETHINK.md Phase 1 |
+| VIEW-04 | core-capability | active | none | none | design: VIEWS-RETHINK.md Phase 1+2 |
+| VIEW-05 | core-capability | active | none | none | design: VIEWS-RETHINK.md Phase 1 |
+| VFS-07 | core-capability | active | none | none | design: VFS-V2-DESIGN.md item 2 |
+| VFS-08 | core-capability | active | none | none | design: VFS-V2-DESIGN.md item 3, D099 |
+| VFS-09 | core-capability | active | none | none | design: VFS-V2-DESIGN.md item 4 |
+| VFS-10 | quality-attribute | active | none | none | design: VFS-V2-DESIGN.md item 5 |
+| VFS-11 | core-capability | active | none | none | design: VFS-V2-DESIGN.md item 6, D100 |
+| VFS-12 | core-capability | active | none | none | design: VFS-V2-DESIGN.md item 7 |
+| DOCS-04 | quality-attribute | active | none | none | M006 docs gap |
+| UIPOL-01 | quality-attribute | active | none | none | user review feedback |
 | TYPE-03 | core-capability | deferred | none | none | unmapped |
 | TYPE-04 | core-capability | deferred | none | none | unmapped |
 | MCP-01 | core-capability | deferred | none | none | unmapped |
 | NOTION-01 | core-capability | deferred | none | none | unmapped |
+| VIEW-06 | core-capability | deferred | none | none | design: VIEWS-RETHINK.md |
+| VIEW-07 | core-capability | deferred | none | none | design: VIEWS-RETHINK.md |
+| VFS-13 | core-capability | deferred | none | none | design: VFS-V2-DESIGN.md item 8 |
 | FED-CRDT | core-capability | out-of-scope | none | none | n/a |
 | FED-AUTO | core-capability | out-of-scope | none | none | n/a |
 | FED-FEDI | integration | out-of-scope | none | none | n/a |
 
 ## Coverage Summary
 
-- Active requirements: 0
+- Active requirements: 13 (5 VIEW + 6 VFS + DOCS-04 + UIPOL-01)
 - Validated: 99 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006)
-- Deferred: 4
+- Deferred: 7 (TYPE-03, TYPE-04, MCP-01, NOTION-01, VIEW-06, VIEW-07, VFS-13)
 - Out of scope: 3
 - Unmapped active requirements: 0
