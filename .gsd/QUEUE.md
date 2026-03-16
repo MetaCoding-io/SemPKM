@@ -208,3 +208,47 @@ Transform the spatial canvas from a graph exploration surface into a composable 
 **Requirements:** CANVAS-01 through CANVAS-05
 **Context:** `.gsd/milestones/M008/M008-CONTEXT.md`
 **Depends on:** M007 (generic views must exist to be embeddable)
+
+---
+
+## App Platform
+
+**Queued:** 2026-03-16
+**Status:** Queued as M009
+
+Sandboxed app platform enabling third-party and first-party Python applications to extend SemPKM with custom UI, background tasks, external API integrations, and object renderer overrides. Apps run as isolated subprocesses communicating via HTTP-over-unix-socket IPC.
+
+Key subsystems:
+1. **AppManifest validation** — Pydantic schema for manifest.yaml (identity, dependencies, permissions, backend, tasks, frontend, UI integration, settings)
+2. **Subprocess lifecycle** — Per-app venv, process supervision, crash recovery, auto-start
+3. **App SDK** — `sempkm-app-sdk` in-repo package with CommandClient, GraphClient, StateClient, HttpClient, SettingsClient
+4. **3-level frontend integration** — Standalone pages, workspace contributions (right pane, views, command palette), object renderer overrides
+5. **Platform-owned scheduler** — Trigger app tasks on interval, concurrency guard, retry policy
+6. **Permission enforcement** — Command whitelist, IRI prefix, network domain restriction, JWT scoping
+7. **Admin monitoring** — App list/detail pages, task history, logs, renderer assignments
+8. **Bulk EventStore** — `commit_bulk()` with summary metadata for batch ingestion
+9. **browserVisible** field on Mental Model types
+
+**Design:** `.gsd/design/APP-PLATFORM-DESIGN.md`
+**Context:** `.gsd/milestones/M009/M009-CONTEXT.md`
+
+---
+
+## RSS Reader & Hypothesis App
+
+**Queued:** 2026-03-16
+**Status:** Queued as M010 (depends on M009)
+
+First app built on the app platform. RSS/Atom feed reader with Hypothesis annotation sync — subscribe to feeds, read articles in a clean reader interface, sync annotations, store everything as first-class RDF objects.
+
+Key components:
+1. **Mental Models** — `rss-feeds` (FeedSubscription, Article, ReadActivity) and `web-annotations` (Annotation, TextQuoteSelector)
+2. **Feed service** — Parsing (feedparser), content extraction (trafilatura), feed discovery (feedfinder2), OPML import
+3. **Hypothesis service** — API client, cursor-based annotation sync, W3C Web Annotation mapping
+4. **Reader UI** — Split-pane reader interface with feed sidebar, article list, reading pane
+5. **Frontend integration** — All 3 levels: standalone page, workspace contributions (3 views, right pane, 3 command palette entries), custom object renderers (Article, Annotation)
+
+**Research:** `docs/research/rss-reader-hypothesis-integration.md`
+**Design:** `.gsd/design/APP-PLATFORM-DESIGN.md` §13
+**Context:** `.gsd/milestones/M010/M010-CONTEXT.md`
+**Depends on:** M009 (app platform must exist)

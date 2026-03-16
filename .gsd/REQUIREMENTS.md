@@ -111,6 +111,154 @@ This file is the explicit capability and coverage contract for the project.
 - Source: user
 - Acceptance: Canvas toolbar has an "Add embed" button opening a picker (select content type → choose specific item → place on canvas). Views, dashboards, and queries in explorer sidebar are draggable onto canvas. Both paths produce the same embed node type.
 
+### APP-01 — App manifest validation (Pydantic schema)
+- Status: active
+- Class: core-capability
+- Source: design (APP-PLATFORM-DESIGN.md)
+- Design ref: §3 AppManifest Specification, §14 Pydantic Schema
+- Acceptance: `AppManifestSchema` validates all manifest fields (identity, dependencies, permissions, backend, tasks, frontend, UI, settings). Invalid manifests produce clear error messages. All field constraints from design doc enforced.
+
+### APP-02 — Subprocess lifecycle management
+- Status: active
+- Class: core-capability
+- Source: design (APP-PLATFORM-DESIGN.md)
+- Design ref: §5 Process Architecture & Sandboxing, §10 Lifecycle Management
+- Acceptance: Apps install (venv creation, dep install, process start), start, stop, restart cleanly. Crash recovery restarts up to 3 times with exponential backoff. Platform shutdown sends SIGTERM to all apps. Auto-start on platform boot.
+
+### APP-03 — App SDK (sempkm-app-sdk in-repo package)
+- Status: active
+- Class: core-capability
+- Source: design (APP-PLATFORM-DESIGN.md)
+- Design ref: §6 App SDK
+- Acceptance: SDK provides App class with lifecycle decorators, AppContext with scoped clients (commands, graph, state, http, settings), task handler registration, route handler registration, template rendering. SDK runner starts HTTP server on unix socket.
+
+### APP-04 — IPC via HTTP over unix domain socket
+- Status: active
+- Class: core-capability
+- Source: design (APP-PLATFORM-DESIGN.md)
+- Design ref: §5 Process Architecture & Sandboxing
+- Acceptance: Platform proxies `/app/{appId}/*` to app subprocess unix socket. App-scoped JWT tokens with hourly rotation. SDK handles token renewal transparently.
+
+### APP-05 — Permission enforcement
+- Status: active
+- Class: core-capability
+- Source: design (APP-PLATFORM-DESIGN.md)
+- Design ref: §9 Permissions & Enforcement
+- Acceptance: CommandClient rejects unpermitted command types. IRI prefix enforced on all created IRIs. HttpClient rejects requests to non-permitted domains. StateClient scoped to app's own state graph. Install-time permission approval dialog shown to user.
+
+### APP-06 — Platform-owned task scheduler
+- Status: active
+- Class: core-capability
+- Source: design (APP-PLATFORM-DESIGN.md)
+- Design ref: §8 Scheduler & Background Tasks
+- Acceptance: AppScheduler triggers tasks via HTTP at configured intervals. Concurrency guard skips if previous run active. Retry policy with exponential backoff. User-adjustable intervals in admin. Task history recorded in SQLite.
+
+### APP-07 — Frontend integration Level 1 (standalone pages)
+- Status: active
+- Class: core-capability
+- Source: design (APP-PLATFORM-DESIGN.md)
+- Design ref: §7 Frontend Integration — Level 1
+- Acceptance: App pages appear in [Apps] sidebar section. Platform renders shell (base.html); app provides content fragment via htmx. App CSS/JS loaded when app UI is active.
+
+### APP-08 — Frontend integration Level 2 (workspace contributions)
+- Status: active
+- Class: core-capability
+- Source: design (APP-PLATFORM-DESIGN.md)
+- Design ref: §7 Frontend Integration — Level 2
+- Acceptance: App right-pane sections appear alongside Relations/Lint when viewing objects. App views appear in [Views] section. App command palette entries registered with ninja-keys.
+
+### APP-09 — Frontend integration Level 3 (object renderer overrides)
+- Status: active
+- Class: core-capability
+- Source: design (APP-PLATFORM-DESIGN.md)
+- Design ref: §7 Frontend Integration — Level 3
+- Acceptance: Apps replace default SHACL form for specific types with custom read/edit renderers. Renderer conflict resolution (user preference > most recent install). Object tab loads app fragment instead of default template.
+
+### APP-10 — Admin app monitoring portal
+- Status: active
+- Class: core-capability
+- Source: design (APP-PLATFORM-DESIGN.md)
+- Design ref: §11 Admin Portal — App Monitoring
+- Acceptance: Admin > Applications shows app list (status, version, uptime, PID, memory). App detail page shows task history, permissions, data stats, logs, renderer assignments, start/stop/restart/uninstall actions.
+
+### APP-11 — Bulk EventStore extension
+- Status: active
+- Class: core-capability
+- Source: design (APP-PLATFORM-DESIGN.md)
+- Design ref: §12 Bulk EventStore Extension
+- Acceptance: `EventStore.commit_bulk()` records summary metadata (~10 triples) instead of per-operation metadata (~5N triples). SDK exposes `ctx.commands.bulk()` context manager. Batch size limit enforced (1000 ops default). All-or-nothing undo.
+
+### APP-12 — browserVisible field on Mental Model types
+- Status: active
+- Class: enhancement
+- Source: design (APP-PLATFORM-DESIGN.md)
+- Design ref: §1 Design Philosophy
+- Acceptance: ManifestSchema gains `browserVisible` field per type (default true). Object browser hides types with `browserVisible: false`. Hidden types remain queryable via SPARQL and linkable via edges.
+
+### APP-13 — App database tables and migrations
+- Status: active
+- Class: core-capability
+- Source: design (APP-PLATFORM-DESIGN.md)
+- Design ref: §11 Admin Portal — SQLite tables
+- Acceptance: Alembic migrations create app_instances, app_task_runs, app_task_config, app_renderer_prefs, app_permissions tables. All tables populated correctly during app lifecycle.
+
+### APP-14 — Docker and nginx integration for apps
+- Status: active
+- Class: core-capability
+- Source: design (APP-PLATFORM-DESIGN.md)
+- Design ref: §15 Disk Layout
+- Acceptance: docker-compose.yml mounts ./apps volume. nginx serves /app-static/{appId}/ for app assets. nginx proxies /app/{appId}/ to API. API container has pip and venv capability at runtime.
+
+### RSS-01 — RSS/Atom feed subscription and polling
+- Status: active
+- Class: core-capability
+- Source: design (APP-PLATFORM-DESIGN.md)
+- Design ref: §13, docs/research/rss-reader-hypothesis-integration.md
+- Acceptance: User subscribes to RSS/Atom/JSON feeds by URL. Feeds polled at configurable interval (default 5m). New articles ingested as rss:Article objects via bulk EventStore. Feed errors tracked per-feed with error indicator.
+
+### RSS-02 — Reader UI with split-pane layout
+- Status: active
+- Class: core-capability
+- Source: design (APP-PLATFORM-DESIGN.md)
+- Acceptance: RSS Reader standalone page shows split-pane layout: feed sidebar, article list, reading pane. Clean typography for article reading. Star toggle and mark read/unread controls.
+
+### RSS-03 — Custom object renderers for Article and Annotation
+- Status: active
+- Class: core-capability
+- Source: design (APP-PLATFORM-DESIGN.md)
+- Design ref: §7 Level 3 object renderers
+- Acceptance: Opening an rss:Article shows custom reader view (not default SHACL form). Opening an oa:Annotation shows custom annotation view.
+
+### RSS-04 — Hypothesis annotation sync
+- Status: active
+- Class: core-capability
+- Source: design (APP-PLATFORM-DESIGN.md), docs/research/rss-reader-hypothesis-integration.md §8
+- Acceptance: User configures Hypothesis API token in settings. Annotations sync automatically (15m default). Annotations stored as oa:Annotation objects following W3C Web Annotation vocabulary. Annotations linked to matching articles via edges.
+
+### RSS-05 — OPML import for feed subscriptions
+- Status: active
+- Class: enhancement
+- Source: docs/research/rss-reader-hypothesis-integration.md §7
+- Acceptance: User can import an OPML file to create multiple feed subscriptions at once. Feed categories preserved as tags/folders.
+
+### RSS-06 — Workspace contributions (views, right pane, command palette)
+- Status: active
+- Class: core-capability
+- Source: design (APP-PLATFORM-DESIGN.md) §13 manifest
+- Acceptance: "Unread Articles", "Starred Articles", "Highlights" appear in Views section. "Related Articles" appears in right pane when viewing any object. "Subscribe to Feed...", "Mark All as Read", "Open RSS Reader" in command palette.
+
+### RSS-07 — Mental Models (rss-feeds, web-annotations)
+- Status: active
+- Class: core-capability
+- Source: design (APP-PLATFORM-DESIGN.md) §2
+- Acceptance: rss-feeds model defines FeedSubscription, Article, ReadActivity with OWL, SHACL shapes, ViewSpecs. web-annotations model defines Annotation, TextQuoteSelector following W3C vocabulary. Both models installable independently of the app.
+
+### RSS-08 — Feed content extraction and discovery
+- Status: active
+- Class: enhancement
+- Source: docs/research/rss-reader-hypothesis-integration.md §4-5
+- Acceptance: Paste a website URL → discover its RSS feed automatically. When feeds provide only summaries, extract full article content via reader mode (trafilatura). Fallback to summary when extraction fails.
+
 ## Validated
 
 ### EXP-01 — Explorer mode dropdown with switchable navigation strategies
@@ -1113,13 +1261,35 @@ WorkflowSpec SQLAlchemy model with JSON steps. Step types: view, dashboard, form
 | VIEW-06 | core-capability | deferred | none | none | design: VIEWS-RETHINK.md |
 | VIEW-07 | core-capability | deferred | none | none | design: VIEWS-RETHINK.md |
 | VFS-13 | core-capability | deferred | none | none | design: VFS-V2-DESIGN.md item 8 |
+| APP-01 | core-capability | active | none | none | design: APP-PLATFORM-DESIGN.md §3, §14 |
+| APP-02 | core-capability | active | none | none | design: APP-PLATFORM-DESIGN.md §5, §10 |
+| APP-03 | core-capability | active | none | none | design: APP-PLATFORM-DESIGN.md §6 |
+| APP-04 | core-capability | active | none | none | design: APP-PLATFORM-DESIGN.md §5 |
+| APP-05 | core-capability | active | none | none | design: APP-PLATFORM-DESIGN.md §9 |
+| APP-06 | core-capability | active | none | none | design: APP-PLATFORM-DESIGN.md §8 |
+| APP-07 | core-capability | active | none | none | design: APP-PLATFORM-DESIGN.md §7 L1 |
+| APP-08 | core-capability | active | none | none | design: APP-PLATFORM-DESIGN.md §7 L2 |
+| APP-09 | core-capability | active | none | none | design: APP-PLATFORM-DESIGN.md §7 L3 |
+| APP-10 | core-capability | active | none | none | design: APP-PLATFORM-DESIGN.md §11 |
+| APP-11 | core-capability | active | none | none | design: APP-PLATFORM-DESIGN.md §12 |
+| APP-12 | enhancement | active | none | none | design: APP-PLATFORM-DESIGN.md §1 |
+| APP-13 | core-capability | active | none | none | design: APP-PLATFORM-DESIGN.md §11 |
+| APP-14 | core-capability | active | none | none | design: APP-PLATFORM-DESIGN.md §15 |
+| RSS-01 | core-capability | active | none | none | design: APP-PLATFORM-DESIGN.md §13 |
+| RSS-02 | core-capability | active | none | none | design: APP-PLATFORM-DESIGN.md |
+| RSS-03 | core-capability | active | none | none | design: APP-PLATFORM-DESIGN.md §7 L3 |
+| RSS-04 | core-capability | active | none | none | research: rss-reader-hypothesis §8 |
+| RSS-05 | enhancement | active | none | none | research: rss-reader-hypothesis §7 |
+| RSS-06 | core-capability | active | none | none | design: APP-PLATFORM-DESIGN.md §13 |
+| RSS-07 | core-capability | active | none | none | design: APP-PLATFORM-DESIGN.md §2 |
+| RSS-08 | enhancement | active | none | none | research: rss-reader-hypothesis §4-5 |
 | FED-CRDT | core-capability | out-of-scope | none | none | n/a |
 | FED-AUTO | core-capability | out-of-scope | none | none | n/a |
 | FED-FEDI | integration | out-of-scope | none | none | n/a |
 
 ## Coverage Summary
 
-- Active requirements: 13 (5 VIEW + 6 VFS + DOCS-04 + UIPOL-01)
+- Active requirements: 35 (5 VIEW + 6 VFS + DOCS-04 + UIPOL-01 + 5 CANVAS + 14 APP + 8 RSS)
 - Validated: 99 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006)
 - Deferred: 7 (TYPE-03, TYPE-04, MCP-01, NOTION-01, VIEW-06, VIEW-07, VFS-13)
 - Out of scope: 3
