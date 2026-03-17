@@ -68,7 +68,7 @@ This milestone is complete only when all are true:
 - [x] **S03: Zettelkasten+ Model** `risk:medium` `depends:[]`
   > After this: zettelkasten model archive with 5 types (FleetingNote, Source, LiteratureNote, PermanentNote, StructureNote) passes offline validation. Provenance chain query works. Argumentation links (supports/contradicts/followsFrom) modeled.
 
-- [ ] **S04: Research Workflow Model** `risk:medium` `depends:[]`
+- [x] **S04: Research Workflow Model** `risk:medium` `depends:[]`
   > After this: research model archive with 5 types (Paper, Claim, Evidence, ResearchQuestion, Argument) passes offline validation. Unsupported-claims and contested-claims SPARQLConstraints fire. Evidence map graph view defined.
 
 - [ ] **S05: Cross-Model Verification, E2E Tests & User Guide** `risk:low` `depends:[S01,S02,S03,S04]`
