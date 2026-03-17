@@ -16,10 +16,12 @@ from app.db.session import get_db_session
 from app.dependencies import (
     get_event_store,
     get_label_service,
+    get_shapes_service,
     get_triplestore_client,
 )
 from app.events.store import EventStore
 from app.services.labels import LabelService
+from app.services.shapes import ShapesService
 from app.triplestore.client import TriplestoreClient
 
 logger = logging.getLogger(__name__)
@@ -138,11 +140,17 @@ async def event_detail(
     event_iri: str,
     user: User = Depends(get_current_user),
     client: TriplestoreClient = Depends(get_triplestore_client),
+    shapes_service: ShapesService = Depends(get_shapes_service),
+    label_service: LabelService = Depends(get_label_service),
 ):
     """Render an inline diff partial for a single event.
 
     Returns an HTML fragment (no base template) suitable for insertion
     into a .event-diff-container via htmx.
+
+    Resolves human-readable predicate labels from SHACL shapes (``sh:name``)
+    and helptext tooltips (``sempkm:editHelpText`` / ``sh:description``).
+    Falls back to local-name extraction when shapes resolution fails.
     """
     from urllib.parse import unquote as _unquote
 
@@ -154,9 +162,30 @@ async def event_detail(
     detail = await query_svc.get_event_detail(decoded_iri)
     if not detail:
         return HTMLResponse("<div class='event-diff-error'>Event not found.</div>")
+
+    # Collect all predicate IRIs from both diff tables and creation triples
+    pred_iris: list[str] = list(detail.new_values.keys())
+    pred_iris.extend(
+        p for _, p, _ in detail.data_triples if p not in pred_iris
+    )
+
+    # Resolve labels and helptext from SHACL shapes
+    predicate_labels = await shapes_service.get_labels_for_predicates(pred_iris)
+    predicate_helptext = await shapes_service.get_helptext_for_predicates(pred_iris)
+
+    # For predicates not resolved via shapes, try LabelService as fallback
+    unresolved = [iri for iri in pred_iris if iri not in predicate_labels]
+    if unresolved:
+        fallback_labels = await label_service.resolve_batch(unresolved)
+        for iri, label in fallback_labels.items():
+            if label and label != iri:
+                predicate_labels[iri] = label
+
     return templates.TemplateResponse(request, "browser/event_detail.html", {
         "request": request,
         "detail": detail,
+        "predicate_labels": predicate_labels,
+        "predicate_helptext": predicate_helptext,
     })
 
 

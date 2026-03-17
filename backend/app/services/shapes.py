@@ -390,6 +390,108 @@ WHERE {{ ?s ?p ?o }}"""
             ),
         ]
 
+    async def get_labels_for_predicates(
+        self, predicate_iris: list[str]
+    ) -> dict[str, str]:
+        """Resolve human-readable labels for predicate IRIs via SHACL shapes.
+
+        Iterates all ``sh:PropertyShape`` nodes in the shapes graph. For each
+        whose ``sh:path`` matches a requested IRI, extracts ``sh:name`` first,
+        then ``rdfs:label`` on the path node, then falls back to the IRI local
+        name.
+
+        This is the correct resolution path for **vocabulary terms** like
+        ``dcterms:title`` — they live in shapes/ontology graphs, not in
+        ``urn:sempkm:current``, so ``LabelService.resolve_batch()`` will not
+        find them.
+
+        Returns:
+            ``{predicate_iri: human_label}`` for every requested IRI that
+            could be resolved to something other than the raw IRI.
+        """
+        if not predicate_iris:
+            return {}
+        try:
+            graph = await self._fetch_shapes_graph()
+            if len(graph) == 0:
+                return {}
+
+            wanted = set(predicate_iris)
+            labels: dict[str, str] = {}
+
+            for prop_node in graph.subjects(RDF.type, SH.PropertyShape):
+                paths = list(graph.objects(prop_node, SH.path))
+                if not paths:
+                    continue
+                path_iri = str(paths[0])
+                if path_iri not in wanted or path_iri in labels:
+                    continue
+
+                label = self._resolve_property_name(graph, prop_node, paths[0])
+                # Only include if we resolved something beyond the raw IRI
+                if label and label != path_iri:
+                    labels[path_iri] = label
+
+            return labels
+        except Exception:
+            logger.warning(
+                "Failed to resolve predicate labels from shapes graph",
+                exc_info=True,
+            )
+            return {}
+
+    async def get_helptext_for_predicates(
+        self, predicate_iris: list[str]
+    ) -> dict[str, str]:
+        """Extract helptext for predicate IRIs from SHACL property shapes.
+
+        For each ``sh:PropertyShape`` whose ``sh:path`` matches a requested
+        IRI, returns ``sempkm:editHelpText`` (preferred) or ``sh:description``
+        as the helptext string.
+
+        Returns:
+            ``{predicate_iri: helptext}`` — only includes predicates that
+            have helptext in the shapes graph.
+        """
+        if not predicate_iris:
+            return {}
+        try:
+            graph = await self._fetch_shapes_graph()
+            if len(graph) == 0:
+                return {}
+
+            wanted = set(predicate_iris)
+            helptext_map: dict[str, str] = {}
+
+            for prop_node in graph.subjects(RDF.type, SH.PropertyShape):
+                paths = list(graph.objects(prop_node, SH.path))
+                if not paths:
+                    continue
+                path_iri = str(paths[0])
+                if path_iri not in wanted or path_iri in helptext_map:
+                    continue
+
+                # Prefer sempkm:editHelpText, fall back to sh:description
+                helptexts = list(
+                    graph.objects(prop_node, SEMPKM_EDIT_HELPTEXT)
+                )
+                if helptexts:
+                    helptext_map[path_iri] = str(helptexts[0])
+                    continue
+                descriptions = list(
+                    graph.objects(prop_node, SH.description)
+                )
+                if descriptions:
+                    helptext_map[path_iri] = str(descriptions[0])
+
+            return helptext_map
+        except Exception:
+            logger.warning(
+                "Failed to resolve predicate helptext from shapes graph",
+                exc_info=True,
+            )
+            return {}
+
     async def get_types(self, exclude_iris: set[str] | None = None) -> list[dict]:
         """Return list of available types for the type picker.
 

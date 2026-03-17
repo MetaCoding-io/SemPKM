@@ -89,6 +89,13 @@ Three changes are needed:
 - `backend/app/templates/browser/event_detail.html` — existing template with raw IRI splitting
 - `backend/app/dependencies.py` — existing `get_shapes_service`, `get_label_service` dependency providers
 
+## Observability Impact
+
+- **New log signals:** `logger.warning` in `get_helptext_for_predicates()` and `get_labels_for_predicates()` on shapes graph query failure — enables diagnosing degraded label resolution without stack traces in production
+- **Inspection surfaces:** Every `<span class="diff-pred-label">` in event detail renders a `title` attribute containing either SHACL helptext or the full predicate IRI — hover any label to verify resolution worked
+- **Failure visibility:** If shapes service fails, predicates fall back to local name extraction (e.g., "title" from `dcterms:title`) — visually distinguishable from resolved labels ("Title" with capital T and dotted underline)
+- **Agent diagnostic:** grep for `"Failed to resolve predicate"` in backend logs to check for shapes service errors at runtime
+
 ## Expected Output
 
 - `backend/app/services/shapes.py` — two new methods: `get_helptext_for_predicates()` and `get_labels_for_predicates()`
