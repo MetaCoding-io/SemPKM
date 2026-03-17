@@ -90,6 +90,7 @@ class EventQueryService:
         object_iri: str | None = None,
         date_from: str | None = None,
         date_to: str | None = None,
+        predicate_iri: str | None = None,
     ) -> tuple[list[EventSummary], str | None]:
         """Return a cursor-paginated page of events in reverse chronological order.
 
@@ -112,6 +113,10 @@ class EventQueryService:
             filters.append(f'FILTER(?timestamp >= "{date_from}"^^xsd:dateTime)')
         if date_to:
             filters.append(f'FILTER(?timestamp <= "{date_to}"^^xsd:dateTime)')
+        if predicate_iri:
+            filters.append(
+                f'FILTER EXISTS {{ GRAPH ?event {{ ?s <{predicate_iri}> ?o . FILTER(?s != ?event) }} }}'
+            )
 
         filter_block = "\n  ".join(filters)
 

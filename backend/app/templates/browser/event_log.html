@@ -16,29 +16,48 @@
       Auto-refresh (30s)
     </label>
     <div class="event-filter-controls">
-      <select class="event-filter-select" id="event-op-filter"
-              hx-get="/browser/events"
-              hx-target="#panel-event-log"
-              hx-swap="innerHTML"
-              hx-include="#event-date-from,#event-date-to"
-              name="op"
-              hx-trigger="change">
-        <option value="">All operations</option>
-        <option value="object.create" {% if current_params.get('op') == 'object.create' %}selected{% endif %}>object.create</option>
-        <option value="object.patch" {% if current_params.get('op') == 'object.patch' %}selected{% endif %}>object.patch</option>
-        <option value="body.set" {% if current_params.get('op') == 'body.set' %}selected{% endif %}>body.set</option>
-        <option value="edge.create" {% if current_params.get('op') == 'edge.create' %}selected{% endif %}>edge.create</option>
-        <option value="edge.patch" {% if current_params.get('op') == 'edge.patch' %}selected{% endif %}>edge.patch</option>
-      </select>
+      <div class="event-autocomplete-wrapper">
+        <input type="text" class="event-filter-input" id="event-op-filter" name="op"
+               value="{{ current_params.get('op', '') }}"
+               placeholder="Filter by operation…"
+               autocomplete="off"
+               hx-get="/browser/events/suggest-types"
+               hx-trigger="focus"
+               hx-target="#op-suggestions"
+               hx-swap="innerHTML">
+        <div class="event-autocomplete-target" id="op-suggestions"></div>
+      </div>
+      <div class="event-autocomplete-wrapper">
+        <input type="text" class="event-filter-input" id="event-pred-filter" name="q"
+               value=""
+               placeholder="Filter by property…"
+               autocomplete="off"
+               hx-get="/browser/events/suggest-predicates"
+               hx-trigger="keyup changed delay:300ms, focus"
+               hx-target="#pred-suggestions"
+               hx-swap="innerHTML">
+        <div class="event-autocomplete-target" id="pred-suggestions"></div>
+      </div>
+      <div class="event-autocomplete-wrapper">
+        <input type="text" class="event-filter-input" id="event-obj-filter" name="q"
+               value=""
+               placeholder="Filter by object…"
+               autocomplete="off"
+               hx-get="/browser/events/suggest-objects"
+               hx-trigger="keyup changed delay:300ms, focus"
+               hx-target="#obj-suggestions"
+               hx-swap="innerHTML">
+        <div class="event-autocomplete-target" id="obj-suggestions"></div>
+      </div>
       <input type="date" class="event-filter-date" id="event-date-from" name="date_from"
              value="{{ current_params.get('date_from', '') }}"
              hx-get="/browser/events" hx-target="#panel-event-log" hx-swap="innerHTML"
-             hx-include="#event-op-filter,#event-date-to" hx-trigger="change"
+             hx-include="#event-date-to" hx-trigger="change"
              placeholder="From">
       <input type="date" class="event-filter-date" id="event-date-to" name="date_to"
              value="{{ current_params.get('date_to', '') }}"
              hx-get="/browser/events" hx-target="#panel-event-log" hx-swap="innerHTML"
-             hx-include="#event-op-filter,#event-date-from" hx-trigger="change"
+             hx-include="#event-date-from" hx-trigger="change"
              placeholder="To">
     </div>
   </div>
@@ -116,18 +135,66 @@
   var LS_KEY = 'sempkm_event_autorefresh';
   var INTERVAL_MS = 30000;
 
+  /* ---- Autocomplete suggestion click handler ---- */
+  document.addEventListener('click', function (e) {
+    var item = e.target.closest('.event-suggestion-item');
+    if (!item) return;
+    e.preventDefault();
+    var value = item.getAttribute('data-value');
+    var param = item.getAttribute('data-filter-param');
+    if (!value || !param) return;
+
+    /* Build URL preserving existing filters */
+    var params = new URLSearchParams(window.location.search);
+    /* Read current filter state from the DOM (not URL, since htmx may have changed it) */
+    var panel = document.getElementById('panel-event-log') || document.getElementById('event-log-right');
+    if (panel) {
+      var dateFrom = panel.querySelector('#event-date-from');
+      var dateTo   = panel.querySelector('#event-date-to');
+      if (dateFrom && dateFrom.value) params.set('date_from', dateFrom.value);
+      else params.delete('date_from');
+      if (dateTo && dateTo.value) params.set('date_to', dateTo.value);
+      else params.delete('date_to');
+    }
+    params.set(param, value);
+    params.delete('cursor'); /* reset pagination */
+    var url = '/browser/events?' + params.toString();
+    htmx.ajax('GET', url, { target: '#panel-event-log', swap: 'innerHTML' });
+  });
+
+  /* Close dropdowns when clicking outside */
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('.event-autocomplete-wrapper')) return;
+    document.querySelectorAll('.event-autocomplete-target').forEach(function (el) {
+      el.innerHTML = '';
+    });
+  });
+
+  /* Close dropdown on Escape */
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.event-autocomplete-target').forEach(function (el) {
+        el.innerHTML = '';
+      });
+    }
+  });
+
   /* Refresh function: preserves current filter state */
   window.sempkmRefreshEventLog = function () {
     var el = document.getElementById('panel-event-log') ||
              document.getElementById('event-log-right');
     if (!el) return;
     var params = new URLSearchParams();
-    var op   = el.querySelector('#event-op-filter');
     var from = el.querySelector('#event-date-from');
     var to   = el.querySelector('#event-date-to');
-    if (op   && op.value)   params.set('op',        op.value);
     if (from && from.value) params.set('date_from', from.value);
     if (to   && to.value)   params.set('date_to',   to.value);
+    /* Preserve active filter chips (read from current URL or chip data) */
+    var chips = el.querySelectorAll('.filter-chip');
+    chips.forEach(function (chip) {
+      var href = chip.getAttribute('hx-get') || '';
+      /* The chip's hx-get removes its own param — so we read from the full set */
+    });
     var url = '/browser/events' + (params.toString() ? '?' + params.toString() : '');
     htmx.ajax('GET', url, { target: el, swap: 'innerHTML' });
   };

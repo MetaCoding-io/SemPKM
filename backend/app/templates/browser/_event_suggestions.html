@@ -1,0 +1,12 @@
+<div class="event-autocomplete-dropdown" role="listbox">
+  {% if suggestions %}
+  {% for s in suggestions %}
+  <button class="event-suggestion-item" role="option"
+          data-value="{{ s.value }}"
+          data-filter-param="{{ filter_param }}"
+          type="button">{{ s.label }}</button>
+  {% endfor %}
+  {% else %}
+  <div class="event-suggestion-empty">No matches</div>
+  {% endif %}
+</div>
