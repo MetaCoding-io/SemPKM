@@ -245,6 +245,18 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - ✓ E2E tests: 5 Playwright spec files covering canvas API, resize, UI, property flip, and embeds — M008
 - ✓ User guide Chapter 27 updated with resize, property flip, live embeds documentation + glossary entries — M008
 
+### Validated (M011 — Mental Models Expansion)
+
+<!-- Shipped and confirmed in M011 (2026-03-17). -->
+
+- ✓ MODEL-01: basic-pkm v2.0 with Task and Milestone types (6 types total, overdue-task SHACL-AF warning, 18 ViewSpecs, 6 SavedQueries) — M011
+- ✓ MODEL-02: Personal CRM with Contact/Company/Interaction/Deal (SHACL-AF inference + validation, pipeline views, 12 seed objects) — M011
+- ✓ MODEL-03: Zettelkasten+ with 5 note types (provenance chain, argumentation links, 3 validation rules) — M011
+- ✓ MODEL-04: Research Workflow with 5 types (confidence levels, evidence tracking, 4 validation rules, Evidence Map graph) — M011
+- ✓ Cross-model coexistence verified (10 offline tests, 0 namespace collisions, graph merge clean) — M011
+- ✓ E2E Docker lifecycle for all 4 models (install → create → form render → inference → lint) — M011
+- ✓ User guide Chapter 29 (608 lines, 15 glossary entries) documenting all 4 models — M011
+
 ### Future Candidates
 
 <!-- Tracked for future milestones. See .gsd/QUEUE.md for full queue and .gsd/REQUIREMENTS.md for deferred requirements. -->
@@ -348,7 +360,19 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current State
 
-**Latest shipped: M008 Spatial Canvas — Resizable Nodes, Property Flip & Live Embeds (2026-03-16)**
+**Latest shipped: M011 Mental Models Expansion (2026-03-17)**
+
+**What shipped in M011 (Mental Models Expansion):**
+- 4 complete .sempkm-model archives expanding the lineup from 3 to 6+ user-facing models — zero platform code changes (D149)
+- basic-pkm v2.0: Task and Milestone types added to existing Project/Person/Note/Concept (6 types total, 197/815/144/179/35 triples)
+- Personal CRM v1.0: Contact, Company, Interaction, Deal types with pipeline views and SHACL-AF inference (170/405/81/141/31 triples)
+- Zettelkasten+ v1.0: FleetingNote, Source, LiteratureNote, PermanentNote, StructureNote with provenance chain and argumentation links (132/399/60/125/31 triples)
+- Research Workflow v1.0: Paper, Claim, Evidence, ResearchQuestion, Argument with confidence levels and evidence tracking (230/535/81/175/39 triples)
+- 11 SHACL-AF validation rules across all models (overdue tasks, stale contacts, unprocessed notes, unsupported claims, etc.)
+- 39 ViewSpecs + 21 SavedQueries + 20 Lucide icon entries + 55 seed objects
+- 20 offline pytest tests (basic-pkm v2 + cross-model validation) in <1s
+- E2E Playwright test proving Docker install → create → form render → inference → lint lifecycle
+- User guide Chapter 29 (608 lines) with field references, relationship diagrams, 15 glossary entries
 
 **What shipped in M008 (Spatial Canvas):**
 - Resizable canvas nodes via corner/edge drag handles with grid snapping, min constraints, and width/height persistence
@@ -386,19 +410,20 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - E2E test coverage: 5 new Playwright tests across 3 spec files
 - User guide: 4 chapters updated with new feature documentation
 
-**Previous milestones:** M007 Generic Views, VFS Completion & Polish (2026-03-16), M006 Dashboards, Workflows & Platform Alignment (2026-03-15), M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
+**Previous milestones:** M008 Spatial Canvas (2026-03-16), M007 Generic Views, VFS Completion & Polish (2026-03-16), M006 Dashboards, Workflows & Platform Alignment (2026-03-15), M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
 
-**Current milestone:** M011 — Mental Models Expansion (COMPLETE — all 5 slices done)
+**Current milestone:** None — M011 complete, awaiting next milestone queue
 
 ## Context
 
-**Current state (M008 complete 2026-03-16):**
+**Current state (M011 complete 2026-03-17):**
 - ~59k source LOC (52k Python, 7k JS) + CSS, HTML/Jinja2, JSON-LD
+- 6 Mental Models: basic-pkm v2.0, ppv, gist, crm v1.0, zettelkasten v1.0, research v1.0 (24 files across 4 model directories)
 - Tech stack: FastAPI + RDF4J (LuceneSail) + htmx/vanilla-web + SQLAlchemy (SQLite/PostgreSQL) + wsgidav + a2wsgi + Driver.js + Cytoscape.js + CodeMirror + dockview-core + Alembic + Yasgui CDN + ninja-keys + owlrl + pyshacl + mf2py + http-message-signatures + slowapi
 - Docker Compose deployment: 3 services (api, triplestore, frontend/nginx) + federation test compose (2 instances)
-- 58 phases, 80 plans completed across v1.0–v2.6; M002 (7 slices) + M003 (10 slices) + M004 (5 slices) + M005 (9 slices) + M006 (7 slices) + M007 (5 slices) + M008 (4 slices) milestones complete
-- Backend test suite: 830+ pytest unit tests, <5s, no Docker dependency
-- E2E test suite: 94 Playwright spec files covering all shipped features
+- 58 phases, 80 plans completed across v1.0–v2.6; M002 (7 slices) + M003 (10 slices) + M004 (5 slices) + M005 (9 slices) + M006 (7 slices) + M007 (5 slices) + M008 (4 slices) + M011 (5 slices) milestones complete
+- Backend test suite: 850+ pytest unit tests, <5s, no Docker dependency
+- E2E test suite: 95 Playwright spec files covering all shipped features
 - All dependencies pinned (~= compatible release) with uv.lock committed
 - Browser router refactored into 8 domain sub-modules (was 1956-line monolith)
 - Query storage migrated from SQL to RDF (4 SQL tables dropped)
@@ -426,7 +451,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - **Ephemeral workflow runs** — v1 progress is in-memory JS only. Run history persistence planned for follow-up.
 - **Markdown block renders raw text** — not rendered HTML in v1 dashboards
 - ViewSpecService's query_service param is optional (None default) — if not passed, user views silently return empty
-- basic-pkm archive has JSON parsing error in load_archive() — refresh_artifacts fails at runtime (pre-existing, not M005 regression)
+- basic-pkm archive JSON parsing was fixed in M011/S01 (v2.0.0 upgrade) — refresh_artifacts now works correctly
 - htmx target-aware block rendering in ops log uses manual HX-Target dispatch — fragile if new htmx consumers added
 - SQL→RDF query migration must be manually run (POST /admin/migrate-queries) before applying Alembic 010
 
@@ -529,4 +554,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-03-17 after M009/S06 complete (6 of 8 slices)*
+*Last updated: 2026-03-17 after M011 complete (Mental Models Expansion — 5 slices, 4 model archives)*
