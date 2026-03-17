@@ -1,7 +1,7 @@
 # GSD State
 
 **Active Milestone:** M011: Mental Models Expansion
-**Active Slice:** S02: Personal CRM Model
+**Active Slice:** S03: Zettelkasten+ Model
 **Phase:** executing
 **Requirements Status:** 42 active · 101 validated · 7 deferred · 0 out of scope
 
@@ -37,10 +37,10 @@
 - ⬜ **M029:** M029
 
 ## Recent Decisions
-- D156: crm:hasDeal inverse property disambiguation — use crm:hasContactDeal and crm:hasCompanyDeal
+- None recorded
 
 ## Blockers
 - None
 
 ## Next Action
-Execute S02/T01 (Author CRM manifest and ontology).
+Execute T01 of slice S03 (Author Zettelkasten manifest and ontology).
