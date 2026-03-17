@@ -71,7 +71,7 @@
   - Verify: `cd backend && python -m pytest tests/test_bulk_eventstore.py -v`
   - Done when: `commit_bulk()` creates correct summary metadata, materializes identically to `commit()`, rejects >1000 ops. SDK `bulk()` context manager collects and posts. Platform endpoint dispatches and commits.
 
-- [ ] **T03: browserVisible field and type filtering** `est:45m`
+- [x] **T03: browserVisible field and type filtering** `est:45m`
   - Why: APP-12 requires types marked `browserVisible: false` in Mental Model manifests to be hidden from the object browser while remaining queryable. Internal bookkeeping types (ReadActivity, sync cursors) clutter the browser.
   - Files: `backend/app/models/manifest.py`, `backend/app/services/shapes.py`, `backend/app/services/models.py`, `backend/tests/test_browser_visible.py`
   - Do: (1) Add `browserVisible: bool = True` to `ManifestIconDef` in `backend/app/models/manifest.py`. (2) Add `get_hidden_type_iris()` method to `ModelService` (or as a standalone function in `shapes.py`) — iterates installed model manifests, expands prefixed type names against each manifest's `prefixes` dict, returns `set[str]` of full IRIs where `browserVisible == False`. Returns empty set when no models are installed. (3) Modify `ShapesService.get_types()` to accept an optional `hidden_iris: set[str]` parameter and filter them out. The callers (`_handle_by_type()`, type filter pills, mount form) should pass the hidden set. Alternatively, wire `ModelService` into `ShapesService` as a dependency for cleaner call sites. (4) Write tests covering: field default, field parsing, filtering logic, no-models-installed edge case.

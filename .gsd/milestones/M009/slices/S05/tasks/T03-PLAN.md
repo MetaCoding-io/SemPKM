@@ -70,3 +70,10 @@ The filter applies in Python (inside `ShapesService.get_types()`) rather than as
 - `backend/app/services/models.py` — `get_hidden_type_iris()` function
 - `backend/app/services/shapes.py` — `get_types()` with `exclude_iris` filtering
 - `backend/tests/test_browser_visible.py` — ~5-8 tests covering field, resolution, and filtering
+
+## Observability Impact
+
+- **No new runtime signals.** `browserVisible` is a static manifest field — filtering happens at request time using in-memory manifest data. No logs, metrics, or persistence changes.
+- **Inspection:** A future agent can verify which types are hidden by calling `get_hidden_type_iris("/app/models")` from a Python shell, or by checking `manifest.yaml` `icons` entries for `browserVisible: false`.
+- **Failure visibility:** If a type that should be hidden still appears in the browser nav tree, the manifest either lacks `browserVisible: false` on the icon entry, or the route handler isn't passing `exclude_iris` to `get_types()`. Check the specific route's call to `shapes_service.get_types()`.
+- **Debugging:** `_expand_prefix()` logs nothing on success. `get_hidden_type_iris()` logs at DEBUG level when skipping a bad manifest. If prefix expansion fails (unknown prefix), the original prefixed name is returned — the type won't match any IRI in shapes, so it won't be filtered (safe failure mode).

@@ -59,7 +59,7 @@ from app.vfs.strategies import (
 )
 from app.views.service import ViewSpecService
 
-from ._helpers import _is_htmx_request, _validate_iri, get_icon_service
+from ._helpers import _is_htmx_request, _validate_iri, get_hidden_types, get_icon_service
 
 _UUID_RE = re.compile(
     r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.IGNORECASE
@@ -115,7 +115,7 @@ async def _handle_by_type(
 ) -> HTMLResponse:
     """Render the nav tree grouped by RDF type (default explorer mode)."""
     templates = request.app.state.templates
-    types = await shapes_service.get_types()
+    types = await shapes_service.get_types(exclude_iris=get_hidden_types())
     type_icons = icon_svc.get_icon_map(context="tree")
 
     return templates.TemplateResponse(
@@ -606,7 +606,7 @@ async def workspace(
     tree. Full page for direct navigation, content block only for htmx.
     """
     templates = request.app.state.templates
-    types = await shapes_service.get_types()
+    types = await shapes_service.get_types(exclude_iris=get_hidden_types())
     type_icons = icon_svc.get_icon_map(context="tree")
     from app.config import settings
 
