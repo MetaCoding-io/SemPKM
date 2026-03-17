@@ -57,7 +57,7 @@
 
 ## Tasks
 
-- [ ] **T01: SDK permission enforcement in CommandClient and HttpClient** `est:1h30m`
+- [x] **T01: SDK permission enforcement in CommandClient and HttpClient** `est:1h30m`
   - Why: APP-05 requires SDK clients to enforce command whitelist, IRI prefix restrictions, and network domain restrictions. The SDK client stubs were built in S02 with enforcement explicitly deferred to S05.
   - Files: `backend/sdk/sempkm_app_sdk/clients/commands.py`, `backend/sdk/sempkm_app_sdk/clients/http.py`, `backend/sdk/sempkm_app_sdk/context.py`, `backend/sdk/sempkm_app_sdk/runner.py`, `backend/tests/test_app_permissions.py`
   - Do: (1) Add `allowed_commands` and `app_id` params to `CommandClient.__init__()`, reject `command_type not in allowed_commands` with `PermissionError`, recursively scan all string values in `params` dict for IRIs and reject any not starting with `urn:sempkm:app:{app_id}:` (ignore non-IRI strings — heuristic: starts with `urn:` or `http`). (2) Add `allowed_domains` param to `HttpClient.__init__()`, parse URL hostname (strip port), match against globs via `fnmatch.fnmatch`, raise `PermissionError` on mismatch. Empty list = block all. `["*"]` = allow all. (3) Update `AppContext` to accept a `permissions` dict and pass `allowed_commands`/`app_id`/`allowed_domains` to client constructors. (4) Update SDK `runner.py` to parse `manifest.permissions` from YAML and pass to `AppContext`. (5) Write comprehensive tests.
