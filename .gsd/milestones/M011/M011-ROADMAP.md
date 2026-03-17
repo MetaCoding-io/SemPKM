@@ -62,7 +62,7 @@ This milestone is complete only when all are true:
 - [x] **S01: basic-pkm v2 — Task & Milestone Types** `risk:high` `depends:[]`
   > After this: basic-pkm v2.0 archive with 6 types (Project, Person, Note, Concept + Task, Milestone) passes offline validation. Overdue-task SPARQLConstraint fires warning against seed data. Refresh_artifacts upgrade path proven offline.
 
-- [ ] **S02: Personal CRM Model** `risk:medium` `depends:[]`
+- [x] **S02: Personal CRM Model** `risk:medium` `depends:[]`
   > After this: crm model archive with 4 types (Contact, Company, Interaction, Deal) passes offline validation. Stale-contact SPARQLConstraint fires. Pipeline views defined. Seed data creates a realistic CRM scenario.
 
 - [ ] **S03: Zettelkasten+ Model** `risk:medium` `depends:[]`
