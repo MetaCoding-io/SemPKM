@@ -172,6 +172,13 @@ Create 4 SHACL-AF SPARQLConstraint validation rules and 16 seed objects with tri
 - `models/crm/seed/crm.jsonld` — structural template for seed data patterns
 - `backend/app/models/manifest.py`, `loader.py`, `validator.py` — validation pipeline (read-only)
 
+## Observability Impact
+
+- **SHACL-AF rule firing:** `pyshacl.validate(data, shacl_graph=combined, ont_graph=ontology, advanced=True)` returns a text report listing each violation with source shape IRI, focus node, severity, and message. Exactly 4 violations expected: 2 Warning (UnsupportedClaim on `seed-claim-kg-reduce-silos`, OrphanEvidence on `seed-evidence-orphan`) + 2 Info (ContestedClaim on `seed-claim-pkm-failure`, UnansweredQuestion on `seed-rq-scaling-limits`).
+- **Pipeline validation:** `validate_archive()` returns `ValidationResult` with `.is_valid`, `.errors[]`, `.warnings[]`. Must return `is_valid=True, 0 errors` for the complete archive.
+- **Failure shapes:** Rules parse errors → Python `BadSyntax` exception with line/column. Seed JSON-LD parse errors → `json.JSONDecodeError`. Pipeline validation errors → `ValidationResult.errors` list with file path and descriptive message.
+- **No new runtime endpoints or logs.** All observability is through offline validation commands.
+
 ## Expected Output
 
 - `models/research/rules/research.ttl` — 4 SPARQLConstraint rules on separate NodeShapes, ≥30 triples
