@@ -1,0 +1,499 @@
+{
+  "@context": {
+    "sh": "http://www.w3.org/ns/shacl#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "schema": "https://schema.org/",
+    "bpkm": "urn:sempkm:model:basic-pkm:",
+    "zk": "urn:sempkm:model:zettelkasten:",
+    "sempkm": "urn:sempkm:"
+  },
+  "@graph": [
+
+    {
+      "@id": "zk:FleetingNoteCaptureGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Capture",
+      "sh:order": 1
+    },
+    {
+      "@id": "zk:FleetingNoteMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 2
+    },
+    {
+      "@id": "zk:FleetingNoteShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "zk:FleetingNote" },
+      "rdfs:label": "Fleeting Note Shape",
+      "sempkm:editHelpText": "Fleeting notes are quick, raw captures of ideas and thoughts. They're the entry point to your Zettelkasten — capture now, process later into literature or permanent notes.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "zk:FleetingNoteCaptureGroup" },
+          "sh:description": "A short title or label for this fleeting note.",
+          "sempkm:editHelpText": "A brief title to identify this thought later. Can be rough — you'll refine it when processing."
+        },
+        {
+          "sh:path": { "@id": "zk:body" },
+          "sh:name": "Body",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "zk:FleetingNoteCaptureGroup" },
+          "sh:description": "The main text content of this fleeting note.",
+          "sempkm:editHelpText": "Write in your own words. Each note should capture one atomic idea."
+        },
+        {
+          "sh:path": { "@id": "zk:capturedFrom" },
+          "sh:name": "Captured From",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "zk:FleetingNoteCaptureGroup" },
+          "sh:description": "Context or location where this thought was captured.",
+          "sempkm:editHelpText": "Where did this thought come from? App, conversation, book, etc."
+        },
+        {
+          "sh:path": { "@id": "bpkm:tags" },
+          "sh:name": "Tags",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:order": 4,
+          "sh:group": { "@id": "zk:FleetingNoteMetadataGroup" },
+          "sh:description": "Free-form labels for categorization.",
+          "sempkm:editHelpText": "Free-form tags for quick filtering. Use lowercase, hyphen-separated terms."
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:date" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "zk:FleetingNoteMetadataGroup" },
+          "sh:description": "Date this fleeting note was captured.",
+          "sempkm:editHelpText": "When this thought was captured. Used to identify notes that may need processing."
+        }
+      ]
+    },
+
+    {
+      "@id": "zk:SourceInfoGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Source Info",
+      "sh:order": 1
+    },
+    {
+      "@id": "zk:SourceDetailsGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Details",
+      "sh:order": 2
+    },
+    {
+      "@id": "zk:SourceMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 3
+    },
+    {
+      "@id": "zk:SourceShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "zk:Source" },
+      "rdfs:label": "Source Shape",
+      "sempkm:editHelpText": "Sources are the books, articles, papers, podcasts, and other materials you learn from. Track them to maintain a clear provenance chain from source through literature notes to permanent knowledge.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "zk:SourceInfoGroup" },
+          "sh:description": "Title of the source material.",
+          "sempkm:editHelpText": "The title of the book, article, paper, or other source material."
+        },
+        {
+          "sh:path": { "@id": "dcterms:creator" },
+          "sh:name": "Creator",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "zk:SourceInfoGroup" },
+          "sh:description": "Author or creator of the source.",
+          "sempkm:editHelpText": "The author or creator of this source. For multiple authors, list them separated by commas."
+        },
+        {
+          "sh:path": { "@id": "zk:sourceType" },
+          "sh:name": "Source Type",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": {
+            "@list": ["book", "article", "paper", "podcast", "video", "website", "lecture", "conversation"]
+          },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "zk:SourceInfoGroup" },
+          "sh:description": "Category of source material.",
+          "sempkm:editHelpText": "What kind of source is this? Helps filter and organize your reference library."
+        },
+        {
+          "sh:path": { "@id": "schema:datePublished" },
+          "sh:name": "Date Published",
+          "sh:datatype": { "@id": "xsd:date" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "zk:SourceDetailsGroup" },
+          "sh:description": "Publication date of the source.",
+          "sempkm:editHelpText": "When this source was published. Useful for citing and prioritizing recent material."
+        },
+        {
+          "sh:path": { "@id": "schema:url" },
+          "sh:name": "URL",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "zk:SourceDetailsGroup" },
+          "sh:description": "URL or link to the source.",
+          "sempkm:editHelpText": "A direct link to the source for quick reference."
+        },
+        {
+          "sh:path": { "@id": "zk:notes" },
+          "sh:name": "Notes",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "zk:SourceDetailsGroup" },
+          "sh:description": "Free-form notes or annotations about this source.",
+          "sempkm:editHelpText": "General impressions, reading status, or annotations about this source."
+        },
+        {
+          "sh:path": { "@id": "zk:rating" },
+          "sh:name": "Rating",
+          "sh:datatype": { "@id": "xsd:integer" },
+          "sh:minInclusive": 1,
+          "sh:maxInclusive": 5,
+          "sh:maxCount": 1,
+          "sh:order": 7,
+          "sh:group": { "@id": "zk:SourceDetailsGroup" },
+          "sh:description": "Quality or importance rating from 1 (low) to 5 (high).",
+          "sempkm:editHelpText": "Rate this source from 1 to 5. Helps you prioritize which sources to revisit."
+        },
+        {
+          "sh:path": { "@id": "bpkm:tags" },
+          "sh:name": "Tags",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:order": 8,
+          "sh:group": { "@id": "zk:SourceMetadataGroup" },
+          "sh:description": "Free-form labels for categorization.",
+          "sempkm:editHelpText": "Free-form tags for quick filtering. Use lowercase, hyphen-separated terms."
+        }
+      ]
+    },
+
+    {
+      "@id": "zk:LiteratureNoteContentGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Content",
+      "sh:order": 1
+    },
+    {
+      "@id": "zk:LiteratureNoteSourceLinkGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Source Link",
+      "sh:order": 2
+    },
+    {
+      "@id": "zk:LiteratureNoteMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 3
+    },
+    {
+      "@id": "zk:LiteratureNoteShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "zk:LiteratureNote" },
+      "rdfs:label": "Literature Note Shape",
+      "sempkm:editHelpText": "Literature notes capture key ideas from sources in your own words. Each note should reference a single source and preserve the original quote for attribution.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "zk:LiteratureNoteContentGroup" },
+          "sh:description": "A concise title summarizing the key idea from this source.",
+          "sempkm:editHelpText": "Summarize the key idea in a few words. Should be meaningful on its own."
+        },
+        {
+          "sh:path": { "@id": "zk:body" },
+          "sh:name": "Body",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "zk:LiteratureNoteContentGroup" },
+          "sh:description": "Your paraphrase or summary of the source idea.",
+          "sempkm:editHelpText": "Write in your own words. Each note should capture one atomic idea."
+        },
+        {
+          "sh:path": { "@id": "zk:originalQuote" },
+          "sh:name": "Original Quote",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "zk:LiteratureNoteContentGroup" },
+          "sh:description": "Verbatim excerpt from the source.",
+          "sempkm:editHelpText": "The exact quote from the source, for attribution."
+        },
+        {
+          "sh:path": { "@id": "zk:pageReference" },
+          "sh:name": "Page Reference",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "zk:LiteratureNoteContentGroup" },
+          "sh:description": "Page number or location in the source.",
+          "sempkm:editHelpText": "Page number or location in the source."
+        },
+        {
+          "sh:path": { "@id": "zk:derivedFrom" },
+          "sh:name": "Derived From",
+          "sh:class": { "@id": "zk:Source" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "zk:LiteratureNoteSourceLinkGroup" },
+          "sh:description": "The source this literature note was derived from.",
+          "sempkm:editHelpText": "Link to the source you're summarizing. Creates a provenance chain from source to note."
+        },
+        {
+          "sh:path": { "@id": "bpkm:tags" },
+          "sh:name": "Tags",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:order": 6,
+          "sh:group": { "@id": "zk:LiteratureNoteMetadataGroup" },
+          "sh:description": "Free-form labels for categorization.",
+          "sempkm:editHelpText": "Free-form tags for quick filtering. Use lowercase, hyphen-separated terms."
+        }
+      ]
+    },
+
+    {
+      "@id": "zk:PermanentNoteIdeaGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Idea",
+      "sh:order": 1
+    },
+    {
+      "@id": "zk:PermanentNoteConnectionsGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Connections",
+      "sh:order": 2
+    },
+    {
+      "@id": "zk:PermanentNoteMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 3
+    },
+    {
+      "@id": "zk:PermanentNoteShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "zk:PermanentNote" },
+      "rdfs:label": "Permanent Note Shape",
+      "sempkm:editHelpText": "Permanent notes are the core of your Zettelkasten — atomic, self-contained knowledge claims. Connect them to other notes using argumentation links (supports, contradicts, follows from) to build a web of ideas.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "zk:PermanentNoteIdeaGroup" },
+          "sh:description": "A clear, self-contained title for this knowledge claim.",
+          "sempkm:editHelpText": "State the idea clearly in a few words. Should be understandable without reading the body."
+        },
+        {
+          "sh:path": { "@id": "zk:body" },
+          "sh:name": "Body",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "zk:PermanentNoteIdeaGroup" },
+          "sh:description": "The full articulation of this knowledge claim.",
+          "sempkm:editHelpText": "Write in your own words. Each note should capture one atomic idea."
+        },
+        {
+          "sh:path": { "@id": "zk:sequenceId" },
+          "sh:name": "Sequence ID",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "zk:PermanentNoteIdeaGroup" },
+          "sh:description": "Luhmann-style alphanumeric identifier for ordering.",
+          "sempkm:editHelpText": "Optional Luhmann-style ID (e.g., 1a2b) for manual ordering."
+        },
+        {
+          "sh:path": { "@id": "zk:supports" },
+          "sh:name": "Supports",
+          "sh:class": { "@id": "zk:PermanentNote" },
+          "sh:order": 4,
+          "sh:group": { "@id": "zk:PermanentNoteConnectionsGroup" },
+          "sh:description": "Permanent notes this idea provides evidence for.",
+          "sempkm:editHelpText": "Link to notes that this idea supports with evidence or reasoning."
+        },
+        {
+          "sh:path": { "@id": "zk:contradicts" },
+          "sh:name": "Contradicts",
+          "sh:class": { "@id": "zk:PermanentNote" },
+          "sh:order": 5,
+          "sh:group": { "@id": "zk:PermanentNoteConnectionsGroup" },
+          "sh:description": "Permanent notes this idea contradicts.",
+          "sempkm:editHelpText": "Link to notes that this idea challenges or provides counter-evidence for."
+        },
+        {
+          "sh:path": { "@id": "zk:followsFrom" },
+          "sh:name": "Follows From",
+          "sh:class": { "@id": "zk:PermanentNote" },
+          "sh:order": 6,
+          "sh:group": { "@id": "zk:PermanentNoteConnectionsGroup" },
+          "sh:description": "Permanent notes this idea is a logical continuation of.",
+          "sempkm:editHelpText": "Link to notes that logically lead to this idea."
+        },
+        {
+          "sh:path": { "@id": "zk:relatedTo" },
+          "sh:name": "Related To",
+          "sh:class": { "@id": "zk:PermanentNote" },
+          "sh:order": 7,
+          "sh:group": { "@id": "zk:PermanentNoteConnectionsGroup" },
+          "sh:description": "Permanent notes this idea is thematically related to.",
+          "sempkm:editHelpText": "Link to notes that share a theme but don't have a specific logical relationship."
+        },
+        {
+          "sh:path": { "@id": "zk:developedFrom" },
+          "sh:name": "Developed From",
+          "sh:class": { "@id": "zk:LiteratureNote" },
+          "sh:order": 8,
+          "sh:group": { "@id": "zk:PermanentNoteConnectionsGroup" },
+          "sh:description": "The literature note this permanent note was developed from.",
+          "sempkm:editHelpText": "Link back to the literature note that inspired this permanent note. Maintains the provenance chain."
+        },
+        {
+          "sh:path": { "@id": "zk:includedInStructure" },
+          "sh:name": "Included In Structure",
+          "sh:class": { "@id": "zk:StructureNote" },
+          "sh:order": 9,
+          "sh:group": { "@id": "zk:PermanentNoteConnectionsGroup" },
+          "sh:description": "Structure notes that organize this permanent note.",
+          "sempkm:editHelpText": "Structure notes that include this idea in their topic overview."
+        },
+        {
+          "sh:path": { "@id": "bpkm:tags" },
+          "sh:name": "Tags",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:order": 10,
+          "sh:group": { "@id": "zk:PermanentNoteMetadataGroup" },
+          "sh:description": "Free-form labels for categorization.",
+          "sempkm:editHelpText": "Free-form tags for quick filtering. Use lowercase, hyphen-separated terms."
+        }
+      ]
+    },
+
+    {
+      "@id": "zk:StructureNoteOverviewGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Overview",
+      "sh:order": 1
+    },
+    {
+      "@id": "zk:StructureNoteIncludedGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Included Notes",
+      "sh:order": 2
+    },
+    {
+      "@id": "zk:StructureNoteMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 3
+    },
+    {
+      "@id": "zk:StructureNoteShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "zk:StructureNote" },
+      "rdfs:label": "Structure Note Shape",
+      "sempkm:editHelpText": "Structure notes are curated overviews that organize permanent notes into coherent topics. Use them to create argument maps, surveys of a field, or indexes for quick navigation.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "zk:StructureNoteOverviewGroup" },
+          "sh:description": "Title of this structure note.",
+          "sempkm:editHelpText": "A clear title describing what this structure note organizes — e.g. 'Arguments for distributed systems'."
+        },
+        {
+          "sh:path": { "@id": "zk:body" },
+          "sh:name": "Body",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "zk:StructureNoteOverviewGroup" },
+          "sh:description": "Overview text describing the structure and organization.",
+          "sempkm:editHelpText": "Write in your own words. Each note should capture one atomic idea."
+        },
+        {
+          "sh:path": { "@id": "zk:purpose" },
+          "sh:name": "Purpose",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": {
+            "@list": ["argument", "survey", "index", "sequence", "comparison"]
+          },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "zk:StructureNoteOverviewGroup" },
+          "sh:description": "The organizing purpose of this structure note.",
+          "sempkm:editHelpText": "What role does this structure note serve in your knowledge system?"
+        },
+        {
+          "sh:path": { "@id": "zk:includes" },
+          "sh:name": "Includes",
+          "sh:class": { "@id": "zk:PermanentNote" },
+          "sh:order": 4,
+          "sh:group": { "@id": "zk:StructureNoteIncludedGroup" },
+          "sh:description": "Permanent notes organized by this structure note.",
+          "sempkm:editHelpText": "Link to the permanent notes this structure note organizes."
+        },
+        {
+          "sh:path": { "@id": "zk:relatedStructure" },
+          "sh:name": "Related Structures",
+          "sh:class": { "@id": "zk:StructureNote" },
+          "sh:order": 5,
+          "sh:group": { "@id": "zk:StructureNoteIncludedGroup" },
+          "sh:description": "Other structure notes covering related topics.",
+          "sempkm:editHelpText": "Link to structure notes on related topics. This is a symmetric relationship."
+        },
+        {
+          "sh:path": { "@id": "bpkm:tags" },
+          "sh:name": "Tags",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:order": 6,
+          "sh:group": { "@id": "zk:StructureNoteMetadataGroup" },
+          "sh:description": "Free-form labels for categorization.",
+          "sempkm:editHelpText": "Free-form tags for quick filtering. Use lowercase, hyphen-separated terms."
+        }
+      ]
+    }
+  ]
+}

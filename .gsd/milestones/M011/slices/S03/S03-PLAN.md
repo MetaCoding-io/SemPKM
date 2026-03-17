@@ -126,7 +126,7 @@ print('All triple counts in expected range')
   - Verify: `parse_manifest()` succeeds. Ontology parses to ≥100 triples. Subject namespace check clean.
   - Done when: Both files exist, parse cleanly, and manifest validates via Pydantic schema.
 
-- [ ] **T02: Author Zettelkasten shapes and views** `est:1h`
+- [x] **T02: Author Zettelkasten shapes and views** `est:1h`
   - Why: Shapes drive SHACL form generation with property groups, enums, and helptext. Views define 5 ViewSpecs and 4 SavedQueries for browsing Zettelkasten data.
   - Files: `models/zettelkasten/shapes/zettelkasten.jsonld`, `models/zettelkasten/views/zettelkasten.jsonld`
   - Do: Create shapes with 5 NodeShapes and PropertyGroups per type. Use `"sempkm": "urn:sempkm:"` prefix. `sh:in` enums using `{"@list": [...]}` for sourceType (8 values) and purpose (5 values). `sempkm:editHelpText` on key fields. Create views with 5 ViewSpecs (fleeting-table, source-table, litnote-card, zettelkasten-graph, structure-table) + 4 SavedQueries (Unprocessed Fleeting Notes, Isolated Permanent Notes, Contradiction Map, Provenance Chain). Use `"sempkm": "urn:sempkm:vocab:"` prefix. Full IRIs in all SPARQL queries. Provenance Chain uses CONSTRUCT query for Source→LitNote→PermanentNote path.
