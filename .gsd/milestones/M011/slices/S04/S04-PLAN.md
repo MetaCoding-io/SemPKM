@@ -67,7 +67,7 @@
 
 ## Tasks
 
-- [ ] **T01: Create manifest and OWL ontology for Research model** `est:15m`
+- [x] **T01: Create manifest and OWL ontology for Research model** `est:15m`
   - Why: Establishes model identity (manifest.yaml) and the OWL class/property foundation that shapes, views, rules, and seed all reference
   - Files: `models/research/manifest.yaml`, `models/research/ontology/research.jsonld`
   - Do: Create manifest with modelId `research`, namespace `urn:sempkm:model:research:`, 5 icon entries (file-text/message-square-quote/flask-conical/help-circle/scale), entailment_defaults with owl_inverseOf and shacl_rules enabled. Create ontology with 5 OWL classes (gist-aligned), ~40 properties (20 datatype + 20 object), 6 owl:inverseOf pairs, 5 one-directional object properties. Use CRM ontology as structural template. All subject IRIs must use `urn:sempkm:model:research:` namespace.
@@ -87,6 +87,15 @@
   - Do: Create 4 SPARQLConstraint rules on separate NodeShapes per D153: (1) UnsupportedClaimValidationShape — Warning, fires when confidence is "established"/"supported" but no evidence supports the claim; (2) ContestedClaimValidationShape — Info, fires when claim has both supporting AND refuting evidence; (3) OrphanEvidenceValidationShape — Warning, fires when evidence links to no claim; (4) UnansweredQuestionValidationShape — Info, fires when status is "open" with no arguments. Create seed data with 16 objects: 3 papers, 5 claims (including 1 "supported" with no evidence for trigger), 5 evidence (including 1 orphan), 2 research questions (1 with no arguments for trigger), 1 argument. Both sides of all 6 inverseOf pairs pre-populated per D154. Run full pipeline validation and pyshacl validation.
   - Verify: `validate_archive()` → 0 errors. `pyshacl.validate()` → conforms=False with 4 violations (2 Warning + 2 Info)
   - Done when: All slice-level verification commands pass
+
+## Observability / Diagnostics
+
+- **Manifest parsing:** `cd backend && .venv/bin/python3 -c "from pathlib import Path; from app.models.manifest import parse_manifest; m = parse_manifest(Path('../models/research')); print(f'{m.model_id} v{m.version}: {len(m.icons)} icons')"` — validates model identity, icon count, namespace
+- **Ontology triple count:** `cd backend && .venv/bin/python3 -c "from rdflib import Graph; g = Graph().parse('../models/research/ontology/research.jsonld', format='json-ld'); print(f'Ontology: {len(g)} triples')"` — ≥150 triples confirms class/property/inverseOf coverage
+- **Full pipeline:** `validate_archive()` returns structured `ValidationResult` with `.is_valid`, `.errors[]`, `.warnings[]` — any failure produces actionable file+message diagnostics
+- **SHACL rule firing:** `pyshacl.validate()` text report lists each violation with source shape IRI, focus node, severity — confirms rule triggers fire correctly
+- **Failure shapes:** Parse errors surface as Python exceptions with line/column info. Validation errors include file path and descriptive message. SHACL violations include focus node IRI and constraint IRI.
+- **No secrets or PII** in any model files — all content is ontology definitions and synthetic seed data
 
 ## Files Likely Touched
 

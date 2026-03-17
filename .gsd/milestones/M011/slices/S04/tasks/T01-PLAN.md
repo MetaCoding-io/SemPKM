@@ -107,3 +107,9 @@ Create the Research model's manifest.yaml and OWL ontology. The manifest establi
 
 - `models/research/manifest.yaml` — complete manifest with 5 icon entries, entailment_defaults, all entrypoints
 - `models/research/ontology/research.jsonld` — OWL ontology with 5 classes, ~40 properties, 6 inverseOf pairs, ≥150 triples
+
+## Observability Impact
+
+- **New signals:** `parse_manifest(Path('../models/research'))` becomes a valid call — returns `ManifestModel` with `model_id="research"`, 5 icons. `rdflib.Graph().parse()` on `ontology/research.jsonld` produces ≥150 triples.
+- **Inspection surface:** Triple count is the primary health metric for the ontology. Class count (5), inverseOf pair count (6), and property count (~40) can be verified via SPARQL queries on the parsed graph.
+- **Failure visibility:** If manifest is malformed, `parse_manifest()` raises `ValidationError` with field-level detail. If ontology has invalid JSON-LD, `rdflib` raises `json.JSONDecodeError` with line info. If @context is wrong, triples parse but with unexpected IRIs — triple count drops below threshold.
