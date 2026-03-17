@@ -283,6 +283,40 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Two new Mental Models (rss-feeds, web-annotations), custom object renderers, background polling
 - Research: `docs/research/rss-reader-hypothesis-integration.md`
 
+**Mental Models Expansion** (MODEL-01–04) — queued (M011)
+- basic-pkm v2 (Task, Milestone, Event types as integration hub), Personal CRM, Zettelkasten+, Research Workflow
+- Design: `.gsd/design/MENTAL-MODELS-EXPANSION-DESIGN.md`
+
+**Workspace & Event Log Polish** — queued (M012)
+- Event log autocomplete/helptext, body.diff incremental storage, user personas (custom layouts/settings per context)
+
+**API Surface for External Clients** — queued (M013, depends on M011)
+- `/.well-known/sempkm`, `/api/types`, `/api/shapes/{type}`, `/api/context-query`
+
+**Browser Extension Phase 1** — queued (M014, depends on M013)
+- Chrome/Firefox extension: smart structured capture with SHACL forms, schema.org ingestion, relationship picker
+
+**Browser Extension Phase 2** — queued (M015, depends on M014)
+- Knowledge context overlay: sidebar showing related objects while browsing, in-context actions
+
+**Integration Sync Apps** — queued (M016–M024, depend on M009)
+- Task providers: Linear (M016), GitHub Issues (M017), Todoist (M019), Asana (M022), Jira (M023), Monday.com (M024)
+- Calendar providers: Google Calendar (M018), Outlook (M020), CalDAV (M021)
+- Design: `.gsd/design/INTEGRATION-DOMAIN-MAPPING.md`
+
+**Hosted Demo Instance** — queued (M025, depends on M011)
+- Pre-populated public instance with guided tour, sample data, read-only access
+
+**Homepage & Messaging Rewrite** — queued (M026, depends on M025)
+- Outcome-focused messaging, persona paths, competitive positioning
+
+**Notion Import** — queued (M027, depends on M011)
+- Notion workspace import wizard (ZIP first, API later), mirroring Obsidian pattern
+- Research: `.planning/notion-import-research.md`
+
+**Browser Extension Phase 3** — queued (M028, depends on M015)
+- AI-powered claim detection, contradiction surfacing, gap detection, personalized summaries
+
 **Ongoing / cross-cutting**
 - Backlinks panel (incoming references for any object)
 - Edge model enhancements: edge inspector panel, inline wiki-link creation
