@@ -79,11 +79,13 @@ async def event_log(
     user: User = Depends(get_current_user),
     client: TriplestoreClient = Depends(get_triplestore_client),
     label_service: LabelService = Depends(get_label_service),
+    shapes_service: ShapesService = Depends(get_shapes_service),
     db: AsyncSession = Depends(get_db_session),
     cursor: str | None = Query(default=None),
     op: str | None = Query(default=None),
     user_filter: str | None = Query(default=None, alias="user"),
     obj: str | None = Query(default=None),
+    pred: str | None = Query(default=None),
     date_from: str | None = Query(default=None),
     date_to: str | None = Query(default=None),
 ):
@@ -99,6 +101,7 @@ async def event_log(
         object_iri=obj,
         date_from=date_from,
         date_to=date_to,
+        predicate_iri=pred,
     )
 
     # Resolve labels for all affected IRIs
@@ -116,6 +119,11 @@ async def event_log(
     if obj:
         obj_label = labels.get(obj, obj[:30] + "..." if len(obj) > 30 else obj)
         active_filters.append({"param": "obj", "value": obj, "label": f"object: {obj_label}"})
+    if pred:
+        # Resolve predicate label from shapes service for human-readable chip
+        pred_labels = await shapes_service.get_labels_for_predicates([pred])
+        pred_label = pred_labels.get(pred) or ShapesService._local_name(pred)
+        active_filters.append({"param": "pred", "value": pred, "label": f"property: {pred_label}"})
     if user_filter:
         active_filters.append({"param": "user", "value": user_filter, "label": f"user: {user_names.get(user_filter, user_filter)}"})
     if date_from:
@@ -131,6 +139,159 @@ async def event_log(
         "next_cursor": next_cursor,
         "active_filters": active_filters,
         "current_params": dict(request.query_params),
+    })
+
+
+@events_router.get("/events/suggest-types")
+async def suggest_types(
+    request: Request,
+    user: User = Depends(get_current_user),
+    client: TriplestoreClient = Depends(get_triplestore_client),
+):
+    """Return distinct operation types from event graphs as HTML suggestions."""
+    templates = request.app.state.templates
+    sparql = """PREFIX sempkm: <urn:sempkm:>
+SELECT DISTINCT ?opType WHERE {
+  GRAPH ?event {
+    ?event sempkm:operationType ?opType .
+  }
+  FILTER(STRSTARTS(STR(?event), "urn:sempkm:event:"))
+}
+ORDER BY ?opType"""
+    suggestions: list[dict] = []
+    try:
+        result = await client.query(sparql)
+        for row in result.get("results", {}).get("bindings", []):
+            op = row["opType"]["value"]
+            suggestions.append({"value": op, "label": op})
+    except Exception:
+        logger.warning("Failed to query suggestion types from events", exc_info=True)
+
+    return templates.TemplateResponse(request, "browser/_event_suggestions.html", {
+        "suggestions": suggestions,
+        "filter_param": "op",
+    })
+
+
+@events_router.get("/events/suggest-predicates")
+async def suggest_predicates(
+    request: Request,
+    user: User = Depends(get_current_user),
+    client: TriplestoreClient = Depends(get_triplestore_client),
+    shapes_service: ShapesService = Depends(get_shapes_service),
+    q: str = Query(default=""),
+):
+    """Return distinct predicates from event data triples as HTML suggestions.
+
+    Excludes event metadata predicates. Resolves human-readable labels from
+    SHACL shapes and filters by `q` parameter against label or IRI local name.
+    """
+    templates = request.app.state.templates
+    sparql = """PREFIX sempkm: <urn:sempkm:>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT DISTINCT ?pred WHERE {
+  GRAPH ?event {
+    ?event a sempkm:Event .
+    ?s ?pred ?o .
+    FILTER(?s != ?event)
+  }
+  FILTER(STRSTARTS(STR(?event), "urn:sempkm:event:"))
+}
+LIMIT 100"""
+
+    pred_iris: list[str] = []
+    try:
+        result = await client.query(sparql)
+        for row in result.get("results", {}).get("bindings", []):
+            pred_iris.append(row["pred"]["value"])
+    except Exception:
+        logger.warning("Failed to query predicates from events", exc_info=True)
+
+    # Resolve labels from SHACL shapes
+    pred_labels = await shapes_service.get_labels_for_predicates(pred_iris) if pred_iris else {}
+
+    # Build suggestions with label + IRI local name
+    suggestions: list[dict] = []
+    q_lower = q.strip().lower()
+    for iri in pred_iris:
+        label = pred_labels.get(iri) or ShapesService._local_name(iri)
+        local_name = ShapesService._local_name(iri)
+        display = f"{label} ({local_name})" if label != local_name else label
+        # Filter by q if provided
+        if q_lower and q_lower not in label.lower() and q_lower not in local_name.lower() and q_lower not in iri.lower():
+            continue
+        suggestions.append({"value": iri, "label": display})
+
+    # Limit to 20
+    suggestions = suggestions[:20]
+
+    return templates.TemplateResponse(request, "browser/_event_suggestions.html", {
+        "suggestions": suggestions,
+        "filter_param": "pred",
+    })
+
+
+@events_router.get("/events/suggest-objects")
+async def suggest_objects(
+    request: Request,
+    user: User = Depends(get_current_user),
+    client: TriplestoreClient = Depends(get_triplestore_client),
+    label_service: LabelService = Depends(get_label_service),
+    q: str = Query(default=""),
+):
+    """Return distinct affected IRIs from events as HTML suggestions.
+
+    Resolves human-readable labels via LabelService and filters by `q`
+    parameter against label or IRI.
+    """
+    templates = request.app.state.templates
+
+    # Build SPARQL with optional text filter in IRI
+    q_escaped = q.strip().replace('"', '\\"')
+    filter_clause = ""
+    if q_escaped:
+        filter_clause = f'FILTER(CONTAINS(LCASE(STR(?iri)), LCASE("{q_escaped}")))'
+
+    sparql = f"""PREFIX sempkm: <urn:sempkm:>
+SELECT DISTINCT ?iri WHERE {{
+  GRAPH ?event {{
+    ?event sempkm:affectedIRI ?iri .
+  }}
+  FILTER(STRSTARTS(STR(?event), "urn:sempkm:event:"))
+  {filter_clause}
+}}
+LIMIT 30"""
+
+    obj_iris: list[str] = []
+    try:
+        result = await client.query(sparql)
+        for row in result.get("results", {}).get("bindings", []):
+            obj_iris.append(row["iri"]["value"])
+    except Exception:
+        logger.warning("Failed to query object IRIs from events", exc_info=True)
+
+    # Resolve labels
+    labels = await label_service.resolve_batch(obj_iris) if obj_iris else {}
+
+    # Build suggestions; also filter by label if q provided
+    suggestions: list[dict] = []
+    q_lower = q.strip().lower()
+    for iri in obj_iris:
+        label = labels.get(iri, iri)
+        # If q didn't match IRI (SPARQL filter), also match by label
+        if q_lower and q_lower not in label.lower() and q_lower not in iri.lower():
+            continue
+        # Truncate IRI for display
+        iri_short = iri if len(iri) <= 40 else "..." + iri[-37:]
+        display = f"{label} ({iri_short})" if label != iri else iri_short
+        suggestions.append({"value": iri, "label": display})
+
+    suggestions = suggestions[:20]
+
+    return templates.TemplateResponse(request, "browser/_event_suggestions.html", {
+        "suggestions": suggestions,
+        "filter_param": "obj",
     })
 
 

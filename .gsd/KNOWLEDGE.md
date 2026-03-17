@@ -44,3 +44,20 @@ The Docker test stack (docker-compose.test.yml) started from `.gsd/worktrees/M00
 If model directories only exist in the main tree (e.g., after a T01 task copies them there), they must also be copied to the worktree's `models/` directory for the Docker container to see them.
 
 **Check:** `docker inspect <container> --format '{{json .Mounts}}'` shows the resolved source paths.
+
+---
+
+### SHACL Property Shapes: Blank Nodes vs Typed Nodes
+
+**Context:** `ShapesService.get_labels_for_predicates()` and `get_helptext_for_predicates()` iterate property shape nodes to resolve predicate metadata.
+
+**Gotcha:** The installed model shapes (e.g., basic-pkm) use **inline blank nodes** attached via `sh:property` on NodeShapes. These blank nodes do NOT carry explicit `rdf:type sh:PropertyShape` triples. Only iterating `graph.subjects(RDF.type, SH.PropertyShape)` finds zero shapes on real data.
+
+**Fix:** Always iterate both sources:
+```python
+prop_nodes = set(graph.subjects(RDF.type, SH.PropertyShape))  # typed
+for obj in graph.objects(predicate=SH.property):               # inline
+    prop_nodes.add(obj)
+```
+
+**Diagnostic:** If `get_labels_for_predicates()` returns empty dict on known predicates like `dcterms:title`, check the graph for PropertyShape types vs sh:property blank node count.
