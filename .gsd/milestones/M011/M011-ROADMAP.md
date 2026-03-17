@@ -65,7 +65,7 @@ This milestone is complete only when all are true:
 - [x] **S02: Personal CRM Model** `risk:medium` `depends:[]`
   > After this: crm model archive with 4 types (Contact, Company, Interaction, Deal) passes offline validation. Stale-contact SPARQLConstraint fires. Pipeline views defined. Seed data creates a realistic CRM scenario.
 
-- [ ] **S03: Zettelkasten+ Model** `risk:medium` `depends:[]`
+- [x] **S03: Zettelkasten+ Model** `risk:medium` `depends:[]`
   > After this: zettelkasten model archive with 5 types (FleetingNote, Source, LiteratureNote, PermanentNote, StructureNote) passes offline validation. Provenance chain query works. Argumentation links (supports/contradicts/followsFrom) modeled.
 
 - [ ] **S04: Research Workflow Model** `risk:medium` `depends:[]`
