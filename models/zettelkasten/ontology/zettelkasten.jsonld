@@ -1,0 +1,238 @@
+{
+  "@context": {
+    "owl": "http://www.w3.org/2002/07/owl#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "schema": "https://schema.org/",
+    "dcterms": "http://purl.org/dc/terms/",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "gist": "https://w3id.org/semanticarts/ns/ontology/gist/",
+    "bpkm": "urn:sempkm:model:basic-pkm:",
+    "zk": "urn:sempkm:model:zettelkasten:"
+  },
+  "@graph": [
+    {
+      "@id": "zk:ontology",
+      "@type": "owl:Ontology",
+      "rdfs:label": "Zettelkasten+ Ontology",
+      "dcterms:description": "Zettelkasten-method knowledge management types: FleetingNote, Source, LiteratureNote, PermanentNote, and StructureNote with full provenance chain, argumentation links, inverse properties, and symmetric relationships."
+    },
+
+    {
+      "@id": "zk:FleetingNote",
+      "@type": "owl:Class",
+      "rdfs:label": "Fleeting Note",
+      "rdfs:comment": "A quick, unprocessed capture of an idea, thought, or observation — the raw input to the Zettelkasten workflow",
+      "rdfs:subClassOf": { "@id": "gist:FormattedContent" }
+    },
+    {
+      "@id": "zk:Source",
+      "@type": "owl:Class",
+      "rdfs:label": "Source",
+      "rdfs:comment": "A reference source such as a book, article, paper, podcast, or video from which literature notes are derived",
+      "rdfs:subClassOf": { "@id": "gist:Content" }
+    },
+    {
+      "@id": "zk:LiteratureNote",
+      "@type": "owl:Class",
+      "rdfs:label": "Literature Note",
+      "rdfs:comment": "A note summarizing or paraphrasing a key idea from a specific Source, written in the user's own words",
+      "rdfs:subClassOf": { "@id": "gist:FormattedContent" }
+    },
+    {
+      "@id": "zk:PermanentNote",
+      "@type": "owl:Class",
+      "rdfs:label": "Permanent Note",
+      "rdfs:comment": "An atomic, self-contained knowledge claim developed from literature notes or fleeting notes, forming the core of the Zettelkasten",
+      "rdfs:subClassOf": { "@id": "gist:FormattedContent" }
+    },
+    {
+      "@id": "zk:StructureNote",
+      "@type": "owl:Class",
+      "rdfs:label": "Structure Note",
+      "rdfs:comment": "A curated index or map-of-content note that organizes permanent notes into a coherent topic structure",
+      "rdfs:subClassOf": { "@id": "gist:FormattedContent" }
+    },
+
+
+    {
+      "@id": "zk:body",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Body",
+      "rdfs:comment": "Main text content of a note (shared across FleetingNote, LiteratureNote, PermanentNote, StructureNote — no rdfs:domain per D155 broadening pattern)",
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "zk:capturedFrom",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Captured From",
+      "rdfs:comment": "Context or location where a fleeting note was captured (e.g. 'morning commute', 'reading session')",
+      "rdfs:domain": { "@id": "zk:FleetingNote" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "zk:sourceType",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Source Type",
+      "rdfs:comment": "Category of source material (book, article, paper, podcast, video, website, lecture, other)",
+      "rdfs:domain": { "@id": "zk:Source" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "zk:notes",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Notes",
+      "rdfs:comment": "Free-form notes or annotations about any Zettelkasten object",
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "zk:rating",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Rating",
+      "rdfs:comment": "User-assigned quality or importance rating for a source (1-5 scale)",
+      "rdfs:domain": { "@id": "zk:Source" },
+      "rdfs:range": { "@id": "xsd:integer" }
+    },
+    {
+      "@id": "zk:originalQuote",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Original Quote",
+      "rdfs:comment": "Verbatim excerpt from the source that this literature note is based on",
+      "rdfs:domain": { "@id": "zk:LiteratureNote" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "zk:pageReference",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Page Reference",
+      "rdfs:comment": "Page number, chapter, or timestamp reference within the source",
+      "rdfs:domain": { "@id": "zk:LiteratureNote" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "zk:sequenceId",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Sequence ID",
+      "rdfs:comment": "Luhmann-style alphanumeric sequence identifier for ordering permanent notes (e.g. '1a2b3')",
+      "rdfs:domain": { "@id": "zk:PermanentNote" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "zk:purpose",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Purpose",
+      "rdfs:comment": "The organizing purpose or theme of a structure note (overview, argument, project, reference, question)",
+      "rdfs:domain": { "@id": "zk:StructureNote" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+
+
+    {
+      "@id": "zk:derivedFrom",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Derived From",
+      "rdfs:comment": "Links a literature note to the source it was derived from",
+      "rdfs:domain": { "@id": "zk:LiteratureNote" },
+      "rdfs:range": { "@id": "zk:Source" },
+      "owl:inverseOf": { "@id": "zk:hasLiteratureNote" }
+    },
+    {
+      "@id": "zk:hasLiteratureNote",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Has Literature Note",
+      "rdfs:comment": "Links a source to the literature notes derived from it",
+      "rdfs:domain": { "@id": "zk:Source" },
+      "rdfs:range": { "@id": "zk:LiteratureNote" },
+      "owl:inverseOf": { "@id": "zk:derivedFrom" }
+    },
+
+    {
+      "@id": "zk:developedInto",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Developed Into",
+      "rdfs:comment": "Links a literature note to the permanent note it was developed into",
+      "rdfs:domain": { "@id": "zk:LiteratureNote" },
+      "rdfs:range": { "@id": "zk:PermanentNote" },
+      "owl:inverseOf": { "@id": "zk:developedFrom" }
+    },
+    {
+      "@id": "zk:developedFrom",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Developed From",
+      "rdfs:comment": "Links a permanent note back to the literature note it was developed from",
+      "rdfs:domain": { "@id": "zk:PermanentNote" },
+      "rdfs:range": { "@id": "zk:LiteratureNote" },
+      "owl:inverseOf": { "@id": "zk:developedInto" }
+    },
+
+    {
+      "@id": "zk:includes",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Includes",
+      "rdfs:comment": "Links a structure note to a permanent note it organizes",
+      "rdfs:domain": { "@id": "zk:StructureNote" },
+      "rdfs:range": { "@id": "zk:PermanentNote" },
+      "owl:inverseOf": { "@id": "zk:includedInStructure" }
+    },
+    {
+      "@id": "zk:includedInStructure",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Included In Structure",
+      "rdfs:comment": "Links a permanent note to the structure note that organizes it",
+      "rdfs:domain": { "@id": "zk:PermanentNote" },
+      "rdfs:range": { "@id": "zk:StructureNote" },
+      "owl:inverseOf": { "@id": "zk:includes" }
+    },
+
+    {
+      "@id": "zk:processedInto",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Processed Into",
+      "rdfs:comment": "Links a fleeting note to the literature note or permanent note it was processed into (one-directional, no inverse)",
+      "rdfs:domain": { "@id": "zk:FleetingNote" }
+    },
+
+    {
+      "@id": "zk:supports",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Supports",
+      "rdfs:comment": "Argumentation link: this permanent note provides evidence or reasoning that supports another permanent note",
+      "rdfs:domain": { "@id": "zk:PermanentNote" },
+      "rdfs:range": { "@id": "zk:PermanentNote" }
+    },
+    {
+      "@id": "zk:contradicts",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Contradicts",
+      "rdfs:comment": "Argumentation link: this permanent note presents evidence or reasoning that contradicts another permanent note",
+      "rdfs:domain": { "@id": "zk:PermanentNote" },
+      "rdfs:range": { "@id": "zk:PermanentNote" }
+    },
+    {
+      "@id": "zk:followsFrom",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Follows From",
+      "rdfs:comment": "Argumentation link: this permanent note is a logical consequence or continuation of another permanent note",
+      "rdfs:domain": { "@id": "zk:PermanentNote" },
+      "rdfs:range": { "@id": "zk:PermanentNote" }
+    },
+    {
+      "@id": "zk:relatedTo",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Related To",
+      "rdfs:comment": "Argumentation link: this permanent note is thematically related to another permanent note without a specific logical relationship",
+      "rdfs:domain": { "@id": "zk:PermanentNote" },
+      "rdfs:range": { "@id": "zk:PermanentNote" }
+    },
+
+    {
+      "@id": "zk:relatedStructure",
+      "@type": ["owl:ObjectProperty", "owl:SymmetricProperty"],
+      "rdfs:label": "Related Structure",
+      "rdfs:comment": "Symmetric link between two structure notes that cover related topics",
+      "rdfs:domain": { "@id": "zk:StructureNote" },
+      "rdfs:range": { "@id": "zk:StructureNote" }
+    }
+  ]
+}

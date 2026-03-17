@@ -109,6 +109,7 @@ print('All triple counts in expected range')
 - **Archive validation pipeline:** `validate_archive()` returns `ValidationResult` with `.is_valid`, `.errors[]`, `.warnings[]` — the primary diagnostic surface.
 - **SHACL-AF rule firing:** `pyshacl.validate(..., advanced=True)` returns `(conforms, results_graph, text)` — text includes focus node, severity, source shape, and message per violation.
 - **Triple count signals:** Ontology ≥100, Shapes ≥300, Views ≥60, Rules ≥20, Seed ≥100 — counts below these thresholds indicate missing definitions.
+- **Diagnostic / failure-path check:** Step 4 verifies `parse_manifest()` raises structured `ValueError`/`FileNotFoundError` for invalid paths. This confirms the error surface is inspectable by agents and operators.
 
 ## Integration Closure
 
@@ -118,7 +119,7 @@ print('All triple counts in expected range')
 
 ## Tasks
 
-- [ ] **T01: Author Zettelkasten manifest and ontology** `est:45m`
+- [x] **T01: Author Zettelkasten manifest and ontology** `est:45m`
   - Why: Establishes model identity, namespace, icon manifest, and all OWL class+property definitions that shapes, views, rules, and seed depend on.
   - Files: `models/zettelkasten/manifest.yaml`, `models/zettelkasten/ontology/zettelkasten.jsonld`
   - Do: Create manifest with modelId `zettelkasten`, namespace `urn:sempkm:model:zk:`, 5 icon entries (zap/book-open/quote/gem/network) with tree/tab/graph contexts, entailment_defaults matching CRM. Create ontology with 5 OWL classes (FleetingNote→gist:FormattedContent, Source→gist:Content, LiteratureNote→gist:FormattedContent, PermanentNote→gist:FormattedContent, StructureNote→gist:FormattedContent), ~25 properties including 3 `owl:inverseOf` pairs (derivedFrom↔hasLiteratureNote, developedInto↔developedFrom, includes↔includedInStructure), 4 argumentation links (supports/contradicts/followsFrom/relatedTo), `zk:relatedStructure` as `owl:SymmetricProperty`, `zk:processedInto` (one-directional). Include `bpkm` prefix for tag reuse. Do NOT declare `rdfs:domain` on shared properties like `zk:body` (same broadening as D155).

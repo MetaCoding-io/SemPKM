@@ -112,6 +112,13 @@ Follow `models/crm/manifest.yaml` and `models/crm/ontology/crm.jsonld` (in the M
 - `.gsd/worktrees/M011/models/crm/ontology/crm.jsonld` — structural template for ontology JSON-LD (OWL class/property patterns, inverseOf, @context)
 - S03 Research doc — complete type+property inventory, gist alignment targets, icon specifications
 
+## Observability Impact
+
+- **Manifest validation:** `parse_manifest(Path('../models/zettelkasten'))` — success returns `ManifestSchema` with `.model_id`, `.icons[]`, `.namespace`; failure raises `ValueError` with structured message indicating the specific field that failed validation.
+- **Ontology triple count:** `Graph().parse(ontology_path, format='json-ld')` — `len(g)` ≥ 100 indicates complete ontology; counts below 100 suggest missing class or property definitions.
+- **Subject namespace compliance:** Checking all subjects start with `urn:sempkm:model:zk:` — violations indicate a `@context` misconfiguration or typo in the JSON-LD file.
+- **Failure artifacts:** Pydantic `ValidationError` on manifest parse, `json.JSONDecodeError` or rdflib parse errors on ontology parse — both produce structured error messages with field paths.
+
 ## Expected Output
 
 - `models/zettelkasten/manifest.yaml` — Zettelkasten model manifest with 5 icon entries and entailment_defaults
