@@ -123,6 +123,14 @@ Follow `.gsd/worktrees/M011/models/crm/shapes/crm.jsonld` and `.gsd/worktrees/M0
 - All 5 target classes present in shapes
 - Both files have correct sempkm namespace for their role
 
+## Observability Impact
+
+- **Shapes triple count signal:** `rdflib.Graph().parse(shapes_file, format='json-ld')` → `len(g)` ≥ 300 indicates all 5 NodeShapes with PropertyGroups are present. Below 300 suggests missing shapes or property definitions.
+- **Views triple count signal:** `rdflib.Graph().parse(views_file, format='json-ld')` → `len(g)` ≥ 60 indicates all 5 ViewSpecs + 4 SavedQueries are present. Below 60 suggests missing view or query definitions.
+- **Shape target class audit:** Query shapes graph for `sh:targetClass` predicate — must return exactly 5 IRIs matching the ontology classes. Missing targets mean a type won't get form generation.
+- **Namespace correctness diagnostic:** Read `@context.sempkm` from both JSON files. Shapes must be `urn:sempkm:` and views must be `urn:sempkm:vocab:`. Wrong namespace causes runtime form/view rendering failures with no explicit error — a silent data mismatch.
+- **SPARQL full-IRI check:** Regex scan SPARQL query strings for prefixed names (e.g., `zk:FleetingNote`) — any match indicates a query that will fail at runtime because the SPARQL engine doesn't know the `zk:` prefix.
+
 ## Inputs
 
 - `models/zettelkasten/manifest.yaml` — model namespace and type prefixes (from T01)

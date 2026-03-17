@@ -1,0 +1,100 @@
+{
+  "@context": {
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "zk": "urn:sempkm:model:zettelkasten:",
+    "sempkm": "urn:sempkm:vocab:"
+  },
+  "@graph": [
+    {
+      "@id": "zk:view-fleeting-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Fleeting Notes Table",
+      "dcterms:description": "Table view of all fleeting notes with capture date and processing status",
+      "sempkm:targetClass": { "@id": "zk:FleetingNote" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?created ?capturedFrom ?processed WHERE { ?s a <urn:sempkm:model:zettelkasten:FleetingNote> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <http://purl.org/dc/terms/created> ?created } . OPTIONAL { ?s <urn:sempkm:model:zettelkasten:capturedFrom> ?capturedFrom } . OPTIONAL { ?s <urn:sempkm:model:zettelkasten:processedInto> ?processed } }",
+      "sempkm:columns": "title,created,capturedFrom,processed",
+      "sempkm:sortDefault": "created"
+    },
+    {
+      "@id": "zk:view-source-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Sources Table",
+      "dcterms:description": "Table view of all sources with creator, type, and publication date",
+      "sempkm:targetClass": { "@id": "zk:Source" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?creator ?sourceType ?datePublished WHERE { ?s a <urn:sempkm:model:zettelkasten:Source> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <http://purl.org/dc/terms/creator> ?creator } . OPTIONAL { ?s <urn:sempkm:model:zettelkasten:sourceType> ?sourceType } . OPTIONAL { ?s <https://schema.org/datePublished> ?datePublished } }",
+      "sempkm:columns": "title,creator,sourceType,datePublished",
+      "sempkm:sortDefault": "title"
+    },
+    {
+      "@id": "zk:view-litnote-card",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Literature Notes Cards",
+      "dcterms:description": "Card view of literature notes with body excerpts and source attribution",
+      "sempkm:targetClass": { "@id": "zk:LiteratureNote" },
+      "sempkm:rendererType": "card",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?body ?sourceLabel WHERE { ?s a <urn:sempkm:model:zettelkasten:LiteratureNote> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:zettelkasten:body> ?body } . OPTIONAL { ?s <urn:sempkm:model:zettelkasten:derivedFrom> ?source . ?source <http://purl.org/dc/terms/title> ?sourceLabel } }",
+      "sempkm:cardTitle": "urn:sempkm:model:zettelkasten:title",
+      "sempkm:cardSubtitle": "sourceLabel",
+      "sempkm:columns": "title,body,sourceLabel",
+      "sempkm:sortDefault": "title"
+    },
+    {
+      "@id": "zk:view-zettelkasten-graph",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Zettelkasten Graph",
+      "dcterms:description": "Graph view of permanent notes with supports, contradicts, and follows-from edges",
+      "sempkm:targetClass": { "@id": "zk:PermanentNote" },
+      "sempkm:rendererType": "graph",
+      "sempkm:sparqlQuery": "CONSTRUCT { ?s a <urn:sempkm:model:zettelkasten:PermanentNote> ; <http://purl.org/dc/terms/title> ?title ; <urn:sempkm:model:zettelkasten:supports> ?supported ; <urn:sempkm:model:zettelkasten:contradicts> ?contradicted ; <urn:sempkm:model:zettelkasten:followsFrom> ?predecessor . ?supported <http://purl.org/dc/terms/title> ?sTitle . ?contradicted <http://purl.org/dc/terms/title> ?cTitle . ?predecessor <http://purl.org/dc/terms/title> ?pTitle } WHERE { ?s a <urn:sempkm:model:zettelkasten:PermanentNote> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:zettelkasten:supports> ?supported . ?supported <http://purl.org/dc/terms/title> ?sTitle } . OPTIONAL { ?s <urn:sempkm:model:zettelkasten:contradicts> ?contradicted . ?contradicted <http://purl.org/dc/terms/title> ?cTitle } . OPTIONAL { ?s <urn:sempkm:model:zettelkasten:followsFrom> ?predecessor . ?predecessor <http://purl.org/dc/terms/title> ?pTitle } }"
+    },
+    {
+      "@id": "zk:view-structure-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Structure Notes Table",
+      "dcterms:description": "Table view of structure notes with purpose and included note count",
+      "sempkm:targetClass": { "@id": "zk:StructureNote" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?purpose (COUNT(?included) AS ?noteCount) WHERE { ?s a <urn:sempkm:model:zettelkasten:StructureNote> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:zettelkasten:purpose> ?purpose } . OPTIONAL { ?s <urn:sempkm:model:zettelkasten:includes> ?included } } GROUP BY ?s ?title ?purpose",
+      "sempkm:columns": "title,purpose,noteCount",
+      "sempkm:sortDefault": "title"
+    },
+
+    {
+      "@id": "urn:sempkm:model:zettelkasten:query:unprocessed-fleeting",
+      "@type": "sempkm:SavedQuery",
+      "rdfs:label": "Unprocessed Fleeting Notes",
+      "dcterms:description": "Fleeting notes older than 3 days that have not been processed into literature or permanent notes",
+      "sempkm:queryText": "SELECT ?s ?title ?created ?capturedFrom WHERE { ?s a <urn:sempkm:model:zettelkasten:FleetingNote> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <http://purl.org/dc/terms/created> ?created } . OPTIONAL { ?s <urn:sempkm:model:zettelkasten:capturedFrom> ?capturedFrom } . FILTER NOT EXISTS { ?s <urn:sempkm:model:zettelkasten:processedInto> ?any } . FILTER(!BOUND(?created) || ?created < STRDT(SUBSTR(STR(NOW()-\"P3D\"^^<http://www.w3.org/2001/XMLSchema#dayTimeDuration>),1,10), <http://www.w3.org/2001/XMLSchema#date>)) } ORDER BY ?created",
+      "sempkm:source": "model:zettelkasten"
+    },
+    {
+      "@id": "urn:sempkm:model:zettelkasten:query:isolated-permanent",
+      "@type": "sempkm:SavedQuery",
+      "rdfs:label": "Isolated Permanent Notes",
+      "dcterms:description": "Permanent notes with no argumentation links — not supporting, contradicting, following from, or included in any structure",
+      "sempkm:queryText": "SELECT ?s ?title ?body WHERE { ?s a <urn:sempkm:model:zettelkasten:PermanentNote> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:zettelkasten:body> ?body } . FILTER NOT EXISTS { ?s <urn:sempkm:model:zettelkasten:supports> ?a } . FILTER NOT EXISTS { ?s <urn:sempkm:model:zettelkasten:contradicts> ?b } . FILTER NOT EXISTS { ?s <urn:sempkm:model:zettelkasten:followsFrom> ?c } . FILTER NOT EXISTS { ?s <urn:sempkm:model:zettelkasten:includedInStructure> ?d } } ORDER BY ?title",
+      "sempkm:source": "model:zettelkasten"
+    },
+    {
+      "@id": "urn:sempkm:model:zettelkasten:query:contradiction-map",
+      "@type": "sempkm:SavedQuery",
+      "rdfs:label": "Contradiction Map",
+      "dcterms:description": "Pairs of permanent notes connected by contradiction links — useful for identifying debates and tensions in your knowledge",
+      "sempkm:queryText": "SELECT ?s ?titleA ?o ?titleB WHERE { ?s a <urn:sempkm:model:zettelkasten:PermanentNote> ; <http://purl.org/dc/terms/title> ?titleA ; <urn:sempkm:model:zettelkasten:contradicts> ?o . ?o <http://purl.org/dc/terms/title> ?titleB } ORDER BY ?titleA",
+      "sempkm:source": "model:zettelkasten"
+    },
+    {
+      "@id": "urn:sempkm:model:zettelkasten:query:provenance-chain",
+      "@type": "sempkm:SavedQuery",
+      "rdfs:label": "Provenance Chain",
+      "dcterms:description": "Full provenance chain from Source through LiteratureNote to PermanentNote — shows how ideas flow from reading to knowledge",
+      "sempkm:queryText": "CONSTRUCT { ?source a <urn:sempkm:model:zettelkasten:Source> ; <http://purl.org/dc/terms/title> ?sourceTitle . ?litNote a <urn:sempkm:model:zettelkasten:LiteratureNote> ; <http://purl.org/dc/terms/title> ?litTitle ; <urn:sempkm:model:zettelkasten:derivedFrom> ?source . ?permNote a <urn:sempkm:model:zettelkasten:PermanentNote> ; <http://purl.org/dc/terms/title> ?permTitle ; <urn:sempkm:model:zettelkasten:developedFrom> ?litNote } WHERE { ?source a <urn:sempkm:model:zettelkasten:Source> ; <http://purl.org/dc/terms/title> ?sourceTitle . ?litNote a <urn:sempkm:model:zettelkasten:LiteratureNote> ; <http://purl.org/dc/terms/title> ?litTitle ; <urn:sempkm:model:zettelkasten:derivedFrom> ?source . OPTIONAL { ?permNote a <urn:sempkm:model:zettelkasten:PermanentNote> ; <http://purl.org/dc/terms/title> ?permTitle ; <urn:sempkm:model:zettelkasten:developedFrom> ?litNote } }",
+      "sempkm:source": "model:zettelkasten"
+    }
+  ]
+}
