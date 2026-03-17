@@ -137,3 +137,11 @@ The event log currently has a static `<select>` dropdown for operation type filt
 - `backend/app/events/query.py` — `predicate_iri` filter parameter on `list_events()`
 - `backend/app/templates/browser/event_log.html` — autocomplete inputs with htmx-driven dropdowns
 - `frontend/static/css/workspace.css` — autocomplete dropdown styling
+
+## Observability Impact
+
+- **New endpoints visible in server logs:** `GET /browser/events/suggest-types`, `suggest-predicates`, `suggest-objects` — each hit shows as a standard FastAPI access log entry. 404 or 500 responses indicate SPARQL or service failures.
+- **SPARQL query failures:** `logger.warning` in each suggestion endpoint logs the failing query context (graceful degradation to empty suggestions list).
+- **Predicate filter SPARQL:** When `pred` filter is active, `EventQueryService.list_events()` includes a `FILTER EXISTS` clause — if the filter produces no results, the event log shows "No events recorded yet." which is the expected empty-state indicator.
+- **Inspection surfaces:** Each autocomplete suggestion HTML fragment includes `data-value` attributes on suggestion items for DOM inspection. The predicate filter chip shows the resolved human-readable label (or raw IRI if resolution fails) — visual indicator of shapes service health.
+- **Failure visibility:** If shapes service is unavailable, predicate suggestions fall back to IRI local names (same graceful degradation as T01). Object suggestions fall back to truncated IRIs if LabelService fails.

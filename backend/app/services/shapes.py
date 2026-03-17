@@ -419,7 +419,13 @@ WHERE {{ ?s ?p ?o }}"""
             wanted = set(predicate_iris)
             labels: dict[str, str] = {}
 
-            for prop_node in graph.subjects(RDF.type, SH.PropertyShape):
+            # Collect all property shape nodes: explicitly typed AND inline
+            # via sh:property (blank nodes may lack rdf:type sh:PropertyShape)
+            prop_nodes: set = set(graph.subjects(RDF.type, SH.PropertyShape))
+            for obj in graph.objects(predicate=SH.property):
+                prop_nodes.add(obj)
+
+            for prop_node in prop_nodes:
                 paths = list(graph.objects(prop_node, SH.path))
                 if not paths:
                     continue
@@ -463,7 +469,13 @@ WHERE {{ ?s ?p ?o }}"""
             wanted = set(predicate_iris)
             helptext_map: dict[str, str] = {}
 
-            for prop_node in graph.subjects(RDF.type, SH.PropertyShape):
+            # Collect all property shape nodes: explicitly typed AND inline
+            # via sh:property (blank nodes may lack rdf:type sh:PropertyShape)
+            prop_nodes: set = set(graph.subjects(RDF.type, SH.PropertyShape))
+            for obj in graph.objects(predicate=SH.property):
+                prop_nodes.add(obj)
+
+            for prop_node in prop_nodes:
                 paths = list(graph.objects(prop_node, SH.path))
                 if not paths:
                     continue
