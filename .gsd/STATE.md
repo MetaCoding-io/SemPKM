@@ -1,7 +1,7 @@
 # GSD State
 
 **Active Milestone:** M011: Mental Models Expansion
-**Active Slice:** S01: basic-pkm v2 — Task & Milestone Types
+**Active Slice:** S02: Personal CRM Model
 **Phase:** executing
 **Requirements Status:** 42 active · 101 validated · 7 deferred · 0 out of scope
 
@@ -37,10 +37,10 @@
 - ⬜ **M029:** M029
 
 ## Recent Decisions
-- None recorded
+- D156: crm:hasDeal inverse property disambiguation — use crm:hasContactDeal and crm:hasCompanyDeal
 
 ## Blockers
 - None
 
 ## Next Action
-Execute T01 of slice S01 (Add Task and Milestone classes to ontology and SHACL shapes).
+Execute S02/T01 (Author CRM manifest and ontology).
