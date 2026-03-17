@@ -1,0 +1,108 @@
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix zk:    <urn:sempkm:model:zettelkasten:> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+# ============================================================
+# Zettelkasten SHACL-AF Rules
+# 3 validation rules, each on a separate NodeShape per D153.
+# No inference rules — owl:inverseOf entailment handles
+# inverse property materialization automatically.
+# ============================================================
+
+# Shared prefix declarations for SPARQL rules
+zk:PrefixDeclarations
+    a owl:Ontology ;
+    sh:declare [
+        sh:prefix "zk" ;
+        sh:namespace "urn:sempkm:model:zettelkasten:"^^xsd:anyURI ;
+    ] ;
+    sh:declare [
+        sh:prefix "xsd" ;
+        sh:namespace "http://www.w3.org/2001/XMLSchema#"^^xsd:anyURI ;
+    ] .
+
+# ============================================================
+# Rule 1 (Validation): Unprocessed Fleeting Note Warning
+# Fires sh:Warning when a FleetingNote has no processedInto
+# link. Simple NOT EXISTS — no date arithmetic per K001.
+# The SavedQuery "Unprocessed Fleeting Notes" handles
+# age-based filtering (3+ days) separately.
+# ============================================================
+
+zk:UnprocessedFleetingValidationShape
+    a sh:NodeShape ;
+    sh:targetClass zk:FleetingNote ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "This fleeting note hasn't been processed. Develop it into a literature or permanent note, or delete it." ;
+        sh:prefixes zk:PrefixDeclarations ;
+        sh:select """
+            SELECT $this
+            WHERE {
+                $this a <urn:sempkm:model:zettelkasten:FleetingNote> .
+                FILTER NOT EXISTS {
+                    $this <urn:sempkm:model:zettelkasten:processedInto> ?x
+                }
+            }
+        """ ;
+    ] .
+
+# ============================================================
+# Rule 2 (Validation): Orphan Permanent Note Warning
+# Fires sh:Warning when a PermanentNote has no argumentation
+# links (supports/contradicts/followsFrom) and is not included
+# in any StructureNote. Uses separate FILTER NOT EXISTS blocks
+# per predicate — NOT property paths, because rdflib is
+# inconsistent with | in NOT EXISTS.
+# ============================================================
+
+zk:OrphanPermanentNoteValidationShape
+    a sh:NodeShape ;
+    sh:targetClass zk:PermanentNote ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "This permanent note is isolated. Connect it to other ideas or include it in a structure note." ;
+        sh:prefixes zk:PrefixDeclarations ;
+        sh:select """
+            SELECT $this
+            WHERE {
+                $this a <urn:sempkm:model:zettelkasten:PermanentNote> .
+                FILTER NOT EXISTS { $this <urn:sempkm:model:zettelkasten:supports> ?a }
+                FILTER NOT EXISTS { $this <urn:sempkm:model:zettelkasten:contradicts> ?b }
+                FILTER NOT EXISTS { $this <urn:sempkm:model:zettelkasten:followsFrom> ?c }
+                FILTER NOT EXISTS { $this <urn:sempkm:model:zettelkasten:includedInStructure> ?d }
+            }
+        """ ;
+    ] .
+
+# ============================================================
+# Rule 3 (Validation): Unsourced Permanent Note Info
+# Fires sh:Info when a PermanentNote has no developedFrom link
+# back to a LiteratureNote. Less urgent than orphan — an idea
+# without a source is still valuable, just harder to verify.
+# ============================================================
+
+zk:UnsourcedPermanentNoteValidationShape
+    a sh:NodeShape ;
+    sh:targetClass zk:PermanentNote ;
+    sh:severity sh:Info ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "This idea has no literature source. Consider linking it to supporting evidence." ;
+        sh:prefixes zk:PrefixDeclarations ;
+        sh:select """
+            SELECT $this
+            WHERE {
+                $this a <urn:sempkm:model:zettelkasten:PermanentNote> .
+                FILTER NOT EXISTS {
+                    $this <urn:sempkm:model:zettelkasten:developedFrom> ?x
+                }
+            }
+        """ ;
+    ] .
