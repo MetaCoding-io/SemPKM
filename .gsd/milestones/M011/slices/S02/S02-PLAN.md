@@ -72,7 +72,27 @@ print(text[:2000])
 assert not conforms, 'Expected validation warnings (conforms should be False)'
 assert 'Warning' in text or 'sh:Warning' in text, 'Expected Warning-level violations'
 "
+
+# Step 4: Diagnostic — verify structured error reporting on intentionally bad input
+cd /home/james/Code/SemPKM/backend && .venv/bin/python3 -c "
+from pathlib import Path
+from app.models.manifest import parse_manifest
+try:
+    parse_manifest(Path('/tmp/nonexistent-model'))
+    print('ERROR: should have raised ValueError')
+except ValueError as e:
+    print(f'Structured error (expected): {e}')
+"
 ```
+
+## Observability / Diagnostics
+
+- **Manifest parse errors:** `parse_manifest(Path('../models/crm'))` raises `ValueError` with structured message (missing field, namespace mismatch, bad YAML) — agents can re-run to inspect.
+- **Ontology triple count:** `Graph().parse(..., format='json-ld')` returns triple count; <50 triples signals missing class/property definitions.
+- **Subject namespace violations:** The namespace compliance check (`urn:sempkm:model:crm:`) reports exact bad subject IRIs, pinpointing misconfigured `@context` or `@id` values.
+- **Archive validation pipeline:** `validate_archive()` returns a `ValidationResult` with `.is_valid`, `.errors[]` (file + message), and `.warnings[]` — the primary diagnostic surface for all 6 files.
+- **SHACL-AF rule firing:** `pyshacl.validate(..., advanced=True)` returns `(conforms, results_graph, text)` — `text` includes human-readable violation details with focus node, path, and severity. If rules don't fire, check that seed data contains trigger conditions (stale contact >90 days, overdue follow-up).
+- **Failure artifact:** No persistent failure artifacts; all diagnostics are CLI-inspectable via the verification commands. Errors surface as Python exceptions or validation result objects.
 
 ## Integration Closure
 
@@ -82,7 +102,7 @@ assert 'Warning' in text or 'sh:Warning' in text, 'Expected Warning-level violat
 
 ## Tasks
 
-- [ ] **T01: Author CRM manifest and ontology** `est:45m`
+- [x] **T01: Author CRM manifest and ontology** `est:45m`
   - Why: Establishes the model identity, namespace, icon manifest, and OWL class+property definitions that all other files depend on.
   - Files: `models/crm/manifest.yaml`, `models/crm/ontology/crm.jsonld`
   - Do: Create manifest with modelId `crm`, namespace `urn:sempkm:model:crm:`, 4 icon entries with tree/tab/graph contexts, entailment_defaults matching basic-pkm. Create ontology with 4 OWL classes (Contact→gist:Person, Company→gist:Organization, Interaction→gist:Event, Deal→gist:Agreement), ~20 datatype+object properties, 3 `owl:inverseOf` pairs (worksAt↔hasEmployee, dealContact↔hasContactDeal, dealCompany↔hasCompanyDeal), `crm:knows` as `owl:SymmetricProperty`. Include `bpkm` prefix in @context for `bpkm:tags` reuse. Declare `crm:lastContactedDate` as datatype property (inference-only, no shape).

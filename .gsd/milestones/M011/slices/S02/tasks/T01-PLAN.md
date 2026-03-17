@@ -105,6 +105,13 @@ Follow `models/basic-pkm/manifest.yaml` and `models/basic-pkm/ontology/basic-pkm
 - `models/basic-pkm/ontology/basic-pkm.jsonld` — structural template for ontology JSON-LD
 - S02 Research doc — complete property list, gist alignment targets, icon specifications
 
+## Observability Impact
+
+- **New inspection surface:** `parse_manifest(Path('../models/crm'))` — returns `ManifestSchema` on success, raises `ValueError` with structured message on failure (missing fields, namespace mismatch, invalid YAML).
+- **Triple count signal:** `Graph().parse('../models/crm/ontology/crm.jsonld', format='json-ld')` — triple count >50 confirms classes+properties are properly defined. A count <50 indicates missing definitions.
+- **Namespace compliance check:** Subject namespace audit reports exact IRIs that violate the `urn:sempkm:model:crm:` convention, allowing pinpoint debugging of `@context` or `@id` misconfigurations.
+- **Failure visibility:** All diagnostics are CLI-inspectable — no persistent log files or state. Parse errors surface as Python exceptions with actionable messages.
+
 ## Expected Output
 
 - `models/crm/manifest.yaml` — CRM model manifest with 4 icon entries and entailment_defaults
