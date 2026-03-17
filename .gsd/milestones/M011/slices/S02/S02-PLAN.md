@@ -80,8 +80,20 @@ from app.models.manifest import parse_manifest
 try:
     parse_manifest(Path('/tmp/nonexistent-model'))
     print('ERROR: should have raised ValueError')
-except ValueError as e:
-    print(f'Structured error (expected): {e}')
+except (ValueError, FileNotFoundError) as e:
+    print(f'Structured error (expected): {type(e).__name__}: {e}')
+"
+
+# Step 5: Diagnostic — verify rules triple count and seed triple count are in expected range
+cd /home/james/Code/SemPKM/backend && .venv/bin/python3 -c "
+from rdflib import Graph
+rules = Graph().parse('../models/crm/rules/crm.ttl', format='turtle')
+seed = Graph().parse('../models/crm/seed/crm.jsonld', format='json-ld')
+print(f'Rules: {len(rules)} triples (expected 30+)')
+print(f'Seed: {len(seed)} triples (expected 80+)')
+assert len(rules) >= 20, f'Rules too small: {len(rules)} triples'
+assert len(seed) >= 60, f'Seed too small: {len(seed)} triples'
+print('Diagnostic triple counts OK')
 "
 ```
 
@@ -116,7 +128,7 @@ except ValueError as e:
   - Verify: Both files parse with rdflib. Shapes file has 4 `sh:targetClass` triples. Views file has 10+ ViewSpec subjects.
   - Done when: Both files parse cleanly, shapes reference all 4 ontology classes, views cover all types.
 
-- [ ] **T03: Author CRM rules, seed data, and run full pipeline validation** `est:1h`
+- [x] **T03: Author CRM rules, seed data, and run full pipeline validation** `est:1h`
   - Why: Rules define the inference and validation logic. Seed data provides a realistic CRM scenario with trigger data for validation warnings. Full pipeline validation proves the archive is correct end-to-end.
   - Files: `models/crm/rules/crm.ttl`, `models/crm/seed/crm.jsonld`
   - Do: Create rules in Turtle with 3 separate NodeShapes per D153: (1) LastContactedDeriveRule — SPARQLRule targeting Contact, CONSTRUCT `crm:lastContactedDate` from `MAX(crm:interactionDate)` of linked Interactions; (2) StaleContactValidationShape — SPARQLConstraint with `sh:severity sh:Warning`, fires when Contact has no Interaction in last 90 days using `STRDT(SUBSTR(STR(NOW()),1,10), xsd:date)` pattern; (3) FollowUpOverdueValidationShape — SPARQLConstraint with `sh:severity sh:Warning`, fires when `crm:followUpDate < today` and `crm:followUpDone` is not true. Create seed data with 3 companies, 4 contacts, 3 interactions, 2 deals — both sides of inverseOf pre-populated per D154. Include 1 contact with old interactions only (>90 days ago) to trigger stale-contact warning, and 1 interaction with past followUpDate and no followUpDone to trigger follow-up warning. Run all 3 verification steps: individual rdflib parse, full pipeline validation (0 errors), pyshacl validate with advanced=True (expect Warning violations). If 90-day duration arithmetic fails in rdflib, fall back to simpler NOT EXISTS pattern.

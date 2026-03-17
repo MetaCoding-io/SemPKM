@@ -18,3 +18,4 @@ Agents read this before every unit. Add entries when you discover something wort
 
 | # | What Happened | Root Cause | Fix | Scope |
 |---|--------------|------------|-----|-------|
+| K001 | SHACL-AF stale-contact rule with `?today - "P90D"^^xsd:dayTimeDuration` doesn't work in rdflib's SPARQL engine | rdflib does not implement xsd:dayTimeDuration subtraction from xsd:date | Use `NOT EXISTS` for zero-interaction check in SHACL rules; use SavedQuery with direct date comparison for time-windowed checks | models/crm/rules, any SHACL-AF SPARQL using date arithmetic |
