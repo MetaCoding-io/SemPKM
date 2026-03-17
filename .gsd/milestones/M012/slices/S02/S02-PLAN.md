@@ -56,7 +56,7 @@
   - Verify: `python -c "from app.commands.handlers.body_diff import handle_body_diff; print('OK')"` and `python -c "from app.commands.schemas import BodyDiffCommand; print('OK')"`
   - Done when: `handle_body_diff` is importable, registered in `HANDLER_REGISTRY`, and `body.diff` maps to `object.changed` in `_COMMAND_EVENT_MAP`
 
-- [ ] **T02: Modify save endpoint to emit body.diff and update event detail rendering** `est:1h`
+- [x] **T02: Modify save endpoint to emit body.diff and update event detail rendering** `est:1h`
   - Why: Core behavior change — makes `save_body()` detect existing body content and emit `body.diff` when appropriate, and makes the event detail viewer render stored diffs for `body.diff` events
   - Files: `backend/app/browser/objects.py`, `backend/app/events/query.py`, `backend/app/templates/browser/event_detail.html`
   - Do: (1) In `save_body()`, before building params, query `urn:sempkm:current` for existing body via SPARQL SELECT. If body exists and content differs, compute `difflib.unified_diff`, build `BodyDiffParams`, call `handle_body_diff()`. If body exists and content is identical, return early (no-op). If no body exists, use `handle_body_set()` as before. (2) Add `"body.diff"` to `_OP_PRIORITY` after `"body.set"`. In `get_event_detail()`, add branch for `body.diff`: read diff text from `data_triples` (the triple with predicate `urn:sempkm:bodyDiff`), parse into `[{type: add|remove|context, text: str}]` format, set on `body_diff`. (3) Update template condition from `'body.set' in detail.summary.operation_type` to also match `body.diff`.
