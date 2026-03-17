@@ -381,7 +381,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 **Previous milestones:** M007 Generic Views, VFS Completion & Polish (2026-03-16), M006 Dashboards, Workflows & Platform Alignment (2026-03-15), M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
 
-**Current milestone:** None active — M008 complete.
+**Current milestone:** M009 — App Platform (S01-S06 complete, S07-S08 remaining)
 
 ## Context
 
@@ -522,4 +522,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-03-16 after M008 complete (all 4 slices)*
+*Last updated: 2026-03-17 after M009/S06 complete (6 of 8 slices)*
