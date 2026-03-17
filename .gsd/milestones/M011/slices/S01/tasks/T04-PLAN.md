@@ -108,6 +108,13 @@ def archive():
 - `backend/app/models/validator.py` — `validate_archive()` function
 - `pyshacl` package (v0.31.0, already in pyproject.toml)
 
+## Observability Impact
+
+- **New test surface:** `backend/tests/test_basic_pkm_v2.py` — 10 pytest functions covering the full basic-pkm v2.0.0 validation pipeline
+- **How to inspect:** `cd /home/james/Code/SemPKM && backend/.venv/bin/python -m pytest backend/tests/test_basic_pkm_v2.py -v` — all 10 tests should pass; pyshacl warning output visible in test_pyshacl_overdue_task_warning
+- **Failure visibility:** Test names are descriptive; failures include assertion messages showing actual vs expected counts, pyshacl results_text, and focus node URIs
+- **No runtime signals:** This task produces only test-time artifacts, no new runtime endpoints or logs
+
 ## Expected Output
 
 - `backend/tests/test_basic_pkm_v2.py` — new test file with ~10 test functions covering manifest parsing, archive loading, validation, class/shape/view counting, seed data verification, and pyshacl overdue-task warning
