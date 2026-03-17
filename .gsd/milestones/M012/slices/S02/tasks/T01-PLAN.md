@@ -91,3 +91,10 @@ The handler mirrors `handle_body_set()` but stores TWO things in `data_triples`:
 - `backend/app/commands/schemas.py` — extended with `BodyDiffParams`, `BodyDiffCommand`, updated `Command` union
 - `backend/app/commands/dispatcher.py` — `body.diff` registered in handler registry
 - `backend/app/commands/router.py` — `body.diff` mapped in webhook event map
+
+## Observability Impact
+
+- **New signal:** `body.diff` becomes a recognized `operation_type` in `HANDLER_REGISTRY` and `_COMMAND_EVENT_MAP`. Previously only `body.set` existed for body operations.
+- **Inspection:** `HANDLER_REGISTRY.keys()` now includes `"body.diff"` — agents can verify via `python -c "from app.commands.dispatcher import HANDLER_REGISTRY, _register_handlers; _register_handlers(); print(list(HANDLER_REGISTRY.keys()))"`.
+- **Webhook mapping:** `_COMMAND_EVENT_MAP["body.diff"]` returns `"object.changed"`, ensuring body diff operations trigger the same webhook events as body.set.
+- **Failure visibility:** If `body.diff` is dispatched but not registered, `InvalidCommandError("Unknown command type: body.diff")` is raised — visible as a 400 response with structured error JSON. If the Pydantic discriminator fails, a `ValidationError` surfaces with the unknown `command` value.

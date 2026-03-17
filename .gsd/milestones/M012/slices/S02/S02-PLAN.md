@@ -32,6 +32,8 @@
   - `save_body()` chooses `body.diff` when prior body exists, `body.set` when no prior body
   - `save_body()` skips event when body content is unchanged
 - `cd backend && python -m pytest tests/ -v --tb=short` — no regressions in existing tests
+- `cd backend && python -c "from app.commands.dispatcher import HANDLER_REGISTRY, _register_handlers; _register_handlers(); assert 'body.diff' in HANDLER_REGISTRY; print('body.diff handler registered')"` — dispatcher knows about body.diff (failure: KeyError or AssertionError if wiring is broken)
+- `cd backend && python -c "from app.commands.router import _COMMAND_EVENT_MAP; assert _COMMAND_EVENT_MAP.get('body.diff') == 'object.changed'; print('webhook mapping OK')"` — webhook event map is correct (failure: AssertionError if mapping missing)
 
 ## Observability / Diagnostics
 
@@ -47,7 +49,7 @@
 
 ## Tasks
 
-- [ ] **T01: Add body.diff command schema, handler, and dispatcher wiring** `est:45m`
+- [x] **T01: Add body.diff command schema, handler, and dispatcher wiring** `est:45m`
   - Why: Foundation for the body.diff feature — creates the new operation type, handler, and wires it into the command system
   - Files: `backend/app/commands/schemas.py`, `backend/app/commands/handlers/body_diff.py`, `backend/app/commands/dispatcher.py`, `backend/app/commands/router.py`
   - Do: Create `BodyDiffParams(iri, body, diff_text, predicate)` and `BodyDiffCommand` in schemas. Create `handle_body_diff()` in new `handlers/body_diff.py` that stores `(subject, SEMPKM.bodyDiff, diff_literal)` and `(subject, predicate, new_body_literal)` in data_triples, with materialization deleting old body and inserting new. Register in dispatcher and add `body.diff` to webhook event map.
