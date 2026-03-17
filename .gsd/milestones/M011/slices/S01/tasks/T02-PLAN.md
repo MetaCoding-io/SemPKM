@@ -107,6 +107,13 @@ Key decisions driving this implementation:
 - `models/basic-pkm/rules/basic-pkm.ttl` — existing v1.3 rules with ProjectRelatedNoteRule and PrefixDeclarations
 - T01 output: ontology has `bpkm:Task`, `bpkm:Milestone`, `bpkm:taskProject`, `bpkm:milestone`, `bpkm:milestoneProject`, `bpkm:taskStatus`, `bpkm:dueDate` property IRIs
 
+## Observability Impact
+
+- **Rules triple count** increases from ~14 to ~35 — verifiable via `python -c "from rdflib import Graph; g=Graph(); g.parse('models/basic-pkm/rules/basic-pkm.ttl', format='turtle'); print(len(g))"`
+- **NodeShape count in rules** goes from 1 to 3 — each inspectable by role: ProjectRelatedNoteRule (inference), TaskProjectDenormRule (inference), OverdueTaskValidationShape (validation)
+- **pyshacl validation** now produces sh:Warning for overdue tasks — detectable in validation results graph via `SH.resultSeverity == SH.Warning` and source shape `bpkm:OverdueTaskValidationShape`
+- **Failure shapes**: rdflib Turtle parse errors surface via Python tracebacks; pyshacl constraint failures show focus node, source shape, and message in results text
+
 ## Expected Output
 
 - `models/basic-pkm/rules/basic-pkm.ttl` — expanded with TaskProjectDenormRule inference shape and OverdueTaskValidationShape validation shape, extended PrefixDeclarations

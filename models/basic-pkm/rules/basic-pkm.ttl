@@ -28,10 +28,69 @@ bpkm:ProjectRelatedNoteRule
         """ ;
     ] .
 
-# Prefix declarations for SPARQL rules
+# Rule: Derive bpkm:taskProject on a Task from its Milestone's project.
+# When a Task links to a Milestone via bpkm:milestone, and that Milestone links
+# to a Project via bpkm:milestoneProject, this rule infers the transitive
+# bpkm:taskProject link — but only if the Task doesn't already have one.
+# The inverse (bpkm:hasProjectTasks) is handled by owl:inverseOf entailment.
+
+bpkm:TaskProjectDenormRule
+    a sh:NodeShape ;
+    sh:targetClass bpkm:Task ;
+    sh:rule [
+        a sh:SPARQLRule ;
+        sh:order 1 ;
+        rdfs:label "Derive task project from milestone" ;
+        sh:prefixes bpkm:PrefixDeclarations ;
+        sh:construct """
+            CONSTRUCT { $this bpkm:taskProject ?project . }
+            WHERE {
+                $this bpkm:milestone ?ms .
+                ?ms bpkm:milestoneProject ?project .
+                FILTER NOT EXISTS { $this bpkm:taskProject ?existingProject }
+            }
+        """ ;
+    ] .
+
+# Validation: Warn when a Task is overdue (due date in the past, status not done/cancelled).
+# This is a SEPARATE NodeShape from inference rules per D153 — validation shapes
+# carry sh:severity on the NodeShape, not on the SPARQLConstraint.
+# Date comparison uses STRDT(SUBSTR(STR(NOW()),1,10), xsd:date) because rdflib
+# does not support xsd:date(NOW()) cast.
+
+bpkm:OverdueTaskValidationShape
+    a sh:NodeShape ;
+    sh:targetClass bpkm:Task ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Task is overdue: due date has passed but task is not done or cancelled." ;
+        sh:prefixes bpkm:PrefixDeclarations ;
+        sh:select """
+            SELECT $this ?dueDate ?status
+            WHERE {
+                $this bpkm:dueDate ?dueDate .
+                $this bpkm:taskStatus ?status .
+                FILTER (?status IN ("todo", "in-progress", "blocked"))
+                BIND(STRDT(SUBSTR(STR(NOW()), 1, 10), xsd:date) AS ?today)
+                FILTER (?dueDate < ?today)
+            }
+        """ ;
+    ] .
+
+# Prefix declarations for SPARQL rules and constraints.
+# Shared by all sh:SPARQLRule and sh:SPARQLConstraint instances via sh:prefixes.
 bpkm:PrefixDeclarations
     a owl:Ontology ;
     sh:declare [
         sh:prefix "bpkm" ;
         sh:namespace "urn:sempkm:model:basic-pkm:"^^xsd:anyURI ;
+    ] ,
+    [
+        sh:prefix "xsd" ;
+        sh:namespace "http://www.w3.org/2001/XMLSchema#"^^xsd:anyURI ;
+    ] ,
+    [
+        sh:prefix "dcterms" ;
+        sh:namespace "http://purl.org/dc/terms/"^^xsd:anyURI ;
     ] .
