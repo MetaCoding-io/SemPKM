@@ -107,3 +107,10 @@ Replace the 3 hardcoded `<details>` blocks (relations, lint, comments) in the wo
 - `backend/app/templates/browser/workspace.html` — right pane refactored to dynamic container
 - `frontend/static/js/workspace.js` — `loadRightPane()` replaces `loadRightPaneSection()`, AbortController added
 - `backend/tests/test_right_pane_sections.py` — ≥7 tests covering all scenarios
+
+## Observability Impact
+
+- **New log signals:** Logger `app.browser.apps` emits DEBUG log with app contribution count and total section count per right-pane-sections request. WARNING when triplestore type query fails (falls back to empty type list).
+- **Inspection surface:** `GET /browser/apps/right-pane-sections?iri=<IRI>` returns inspectable HTML — can be curled directly to see which platform + app sections are rendered for any object.
+- **Failure visibility:** Triplestore errors during type lookup → caught, logged WARNING, endpoint still returns platform-only sections (graceful degradation). Registry errors → caught, logged WARNING, platform-only fallback. Both verified in tests.
+- **JS diagnostics:** `window._rightPaneAbort` exposes the current AbortController — can check `window._rightPaneAbort.signal.aborted` in devtools to verify cancellation on rapid tab switching.
