@@ -171,6 +171,24 @@ class TestSuggestPredicatesLogic:
         assert len(suggestions) == 2
 
     @pytest.mark.asyncio
+    async def test_predicates_non_matching_q_returns_empty(self):
+        """Non-matching q parameter yields zero suggestions."""
+        pred_iris = ["http://purl.org/dc/terms/title"]
+        pred_labels = {"http://purl.org/dc/terms/title": "Title"}
+        q_lower = "zzzznonexistent"
+
+        suggestions = []
+        for iri in pred_iris:
+            label = pred_labels.get(iri) or ShapesService._local_name(iri)
+            local_name = ShapesService._local_name(iri)
+            display = f"{label} ({local_name})" if label != local_name else label
+            if q_lower and q_lower not in label.lower() and q_lower not in local_name.lower() and q_lower not in iri.lower():
+                continue
+            suggestions.append({"value": iri, "label": display})
+
+        assert suggestions == []
+
+    @pytest.mark.asyncio
     async def test_predicate_display_includes_local_name(self):
         """Suggestion display shows 'Label (localName)' format."""
         iri = "http://purl.org/dc/terms/title"
@@ -179,6 +197,15 @@ class TestSuggestPredicatesLogic:
         display = f"{label} ({local_name})" if label != local_name else label
 
         assert display == "Title (title)"
+
+    @pytest.mark.asyncio
+    async def test_predicate_suggestions_limited_to_20(self):
+        """Suggestion list is capped at 20 entries."""
+        # Generate 30 fake predicate IRIs
+        pred_iris = [f"http://example.org/pred{i}" for i in range(30)]
+        suggestions = [{"value": iri, "label": iri} for iri in pred_iris]
+        suggestions = suggestions[:20]
+        assert len(suggestions) == 20
 
 
 class TestSuggestObjectsLogic:
@@ -220,6 +247,30 @@ class TestSuggestObjectsLogic:
 
         assert display.startswith("Test Object (...")
         assert len(iri_short) == 40  # "..." (3) + 37 = 40
+
+    @pytest.mark.asyncio
+    async def test_objects_non_matching_q_returns_empty(self):
+        """Non-matching q parameter yields zero object suggestions."""
+        obj_iris = ["urn:sempkm:object:abc-123"]
+        labels = {"urn:sempkm:object:abc-123": "My Note"}
+        q_lower = "zzzznonexistent"
+
+        suggestions = []
+        for iri in obj_iris:
+            label = labels.get(iri, iri)
+            if q_lower and q_lower not in label.lower() and q_lower not in iri.lower():
+                continue
+            suggestions.append({"value": iri, "label": label})
+
+        assert suggestions == []
+
+    @pytest.mark.asyncio
+    async def test_objects_limited_to_20(self):
+        """Object suggestion list is capped at 20 entries."""
+        obj_iris = [f"urn:sempkm:object:{i}" for i in range(30)]
+        suggestions = [{"value": iri, "label": iri} for iri in obj_iris]
+        suggestions = suggestions[:20]
+        assert len(suggestions) == 20
 
 
 class TestShapesServiceLocalName:

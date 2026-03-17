@@ -92,3 +92,11 @@ Follow the test patterns established in `backend/tests/test_event_user_lookup.py
 
 - `backend/tests/test_event_log_labels.py` — ~10 tests covering label + helptext extraction from ShapesService
 - `backend/tests/test_event_suggestions.py` — ~10 tests covering suggestion endpoints and predicate filter
+
+## Observability Impact
+
+This task is test-only — it does not add or modify runtime signals. The tests verify that existing observability holds under controlled conditions:
+
+- **Graceful degradation tests**: Confirm `get_labels_for_predicates()` and `get_helptext_for_predicates()` return empty dicts (not exceptions) when `_fetch_shapes_graph()` raises — ensuring the `logger.warning("Failed to resolve predicate labels/helptext from shapes graph")` paths work correctly.
+- **SPARQL filter tests**: Confirm the `FILTER EXISTS` clause for `predicate_iri` is correctly injected, which is the only runtime SPARQL modification from T02.
+- **Future agent inspection**: Run `pytest tests/test_event_log_labels.py tests/test_event_suggestions.py -v` to verify contracts hold after any change to ShapesService predicate methods or suggestion endpoints.

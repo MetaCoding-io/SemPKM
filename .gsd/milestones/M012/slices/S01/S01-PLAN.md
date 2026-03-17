@@ -54,7 +54,7 @@
   - Verify: Start Docker stack, open event log → type in operation filter → suggestions appear. Type in predicate filter → suggestions with human-readable labels appear.
   - Done when: All three filter fields show autocomplete suggestions populated from real event data
 
-- [ ] **T03: Unit tests for label resolution, helptext extraction, and suggestion endpoints** `est:1h`
+- [x] **T03: Unit tests for label resolution, helptext extraction, and suggestion endpoints** `est:1h`
   - Why: Provides contract-level verification for the new backend methods, ensuring correctness without requiring a running Docker stack
   - Files: `backend/tests/test_event_log_labels.py`, `backend/tests/test_event_suggestions.py`
   - Do: (1) Create `test_event_log_labels.py` with tests for: `ShapesService.get_helptext_for_predicates()` returning helptext from `sempkm:editHelpText`, falling back to `sh:description`, returning empty dict for unknown predicates, handling SPARQL errors gracefully. Test that `event_detail()` passes `predicate_labels` and `predicate_helptext` to template context (mock the triplestore client and verify template context). (2) Create `test_event_suggestions.py` with tests for: `suggest-types` returns distinct operation types, `suggest-predicates` returns filtered predicate labels, `suggest-objects` returns filtered object labels, all handle empty results gracefully, all respect the `q` filter parameter. Use the same mock patterns as existing tests (e.g., `test_event_user_lookup.py`).
