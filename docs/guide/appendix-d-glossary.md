@@ -7,11 +7,23 @@ Alphabetical definitions of key terms used throughout the SemPKM documentation a
 **ABox**
 (Assertional Box) The set of individual instances (objects) in a knowledge base, as opposed to the class definitions (TBox).
 
+**Argument** (Research Workflow)
+A structured reasoning unit that synthesizes claims and evidence to address a research question. Each argument presents a thesis supported by referenced claims and evidence items. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
+
 **Block**
 A content unit within a dashboard. Six types: view-embed, markdown, object-embed, create-form, sparql-result, and divider. Each block occupies a named slot in the dashboard's grid layout. See [Chapter 28: Dashboards and Workflows](28-dashboards-and-workflows.md).
 
 **Carousel View**
 A tabbed browsing interface for Mental Model views that groups table, card, and graph views into a single page with a tab strip. Each tab loads a different view of the same type's data, letting you switch between display formats without navigating away. See [Chapter 7: Browsing and Visualizing Data](07-browsing-and-visualizing.md).
+
+**Claim** (Research Workflow)
+A specific assertion or proposition extracted from a paper, with a confidence level ranging from established to refuted. Claims accumulate supporting and refuting evidence over time. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
+
+**Company** (Personal CRM)
+An organization entity representing a business your contacts work at. Tracks industry, size, and website to provide context for relationships. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
+
+**Contact** (Personal CRM)
+A person in your professional or personal network. Tracks name, email, role, company affiliation, and interaction history. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
 
 **Content Negotiation**
 An HTTP mechanism where the server returns different representations of a resource based on the client's `Accept` header. SemPKM uses content negotiation for WebID profiles: browsers receive an HTML page while Linked Data clients receive JSON-LD or Turtle. See [Chapter 25: WebID Profiles](25-webid-profiles.md).
@@ -22,6 +34,9 @@ A dashboard mechanism where selecting a row in one block filters data in other b
 **Dashboard**
 A configurable multi-block layout page that combines views, markdown, object embeds, forms, and SPARQL results into a single workspace tab. Five layout templates arrange blocks in a CSS Grid. See [Chapter 28: Dashboards and Workflows](28-dashboards-and-workflows.md).
 
+**Deal** (Personal CRM)
+A business opportunity tracked through a pipeline from lead through qualification, proposal, and negotiation to won or lost. Deals link to contacts and companies. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
+
 **Edge**
 A typed, directional relationship between two objects. Unlike a simple link, an edge carries a specific predicate (relationship type) such as `hasParticipant` or `isAbout`. Edges are first-class resources in SemPKM with their own IRIs, meaning they can carry annotation properties (like labels or timestamps) in addition to connecting a source and target. See also: Object, Property.
 
@@ -30,6 +45,9 @@ A canvas node that displays live content from another part of SemPKM (view, dash
 
 **Entailment**
 The process of deriving new triples from existing data using ontological reasoning rules. SemPKM supports RDFS and OWL entailment (e.g., inferring that if Alice is a `Researcher` and `Researcher` is a subclass of `Person`, then Alice is also a `Person`). Configure entailment in Settings > Inference. See [Chapter 13: Settings](13-settings.md).
+
+**Evidence** (Research Workflow)
+Empirical data, experimental results, or observations that support or refute research claims. Each piece of evidence has a type (e.g., empirical-data, case-study) and a strength assessment (strong through preliminary). See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
 
 **Event**
 An immutable, timestamped record of a change made to the knowledge base. Every mutation -- creating an object, editing a property, setting a body, creating an edge -- produces an event stored as a named graph in the triplestore. Events form the audit trail and enable undo. Events record who made the change, when it happened, and exactly which triples were added or removed. See also: Named Graph, Event Sourcing.
@@ -40,6 +58,9 @@ The architectural pattern used by SemPKM where every state change is stored as a
 **Favorites**
 Objects starred by the user for quick access. Shown in the FAVORITES section of the Explorer panel.
 
+**FleetingNote** (Zettelkasten+)
+A quick-capture note in the Zettelkasten workflow — the entry point for raw ideas and thoughts that will be processed later into literature or permanent notes. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
+
 **Gist**
 A minimalist upper ontology (v14.0.0) by Semantic Arts that provides foundational classes and properties. Auto-loaded in SemPKM as the semantic foundation for all Mental Models.
 
@@ -49,6 +70,9 @@ An authentication and authorization protocol built on OAuth 2.0 that uses person
 **Inference**
 The automatic derivation of implicit facts from explicit data using ontological rules. In SemPKM, inference materializes triples such as `owl:inverseOf` relationships and `rdfs:subClassOf` hierarchies. Also called entailment. See [Chapter 13: Settings](13-settings.md).
 
+**Interaction** (Personal CRM)
+A recorded touchpoint with a contact — meetings, calls, emails, coffees, or conferences. Interactions build a contact's history and trigger follow-up tracking. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
+
 **IRI**
 Internationalized Resource Identifier. The globally unique identifier for every resource in SemPKM -- every object, every property, every type, every edge. IRIs look like URLs (e.g., `https://example.org/data/Person/alice-chen`) or URNs (e.g., `urn:sempkm:model:basic-pkm:Project`). They serve the same role as primary keys in a relational database, but are globally unique by design.
 
@@ -57,6 +81,9 @@ JSON for Linking Data. The serialization format used by SemPKM for Mental Model 
 
 **Layout** (dashboard)
 The CSS Grid template that arranges blocks on a dashboard. Five options: single, sidebar-main, grid-2x2, grid-3, and top-bottom. Each layout defines named slots where blocks are placed. See [Chapter 28: Dashboards and Workflows](28-dashboards-and-workflows.md).
+
+**LiteratureNote** (Zettelkasten+)
+A note that summarizes a key idea from a source in your own words. Each literature note references a single source and preserves the original quote for attribution. Part of the Zettelkasten provenance chain. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
 
 **Lint Dashboard**
 A global page that shows all validation results across every object in the knowledge base. Unlike the per-object Lint Panel, the dashboard provides a system-wide overview of data quality, groupable by type, severity, or violation message. Accessible from the sidebar under Tools. See [Chapter 14: System Health and Debugging](14-system-health-and-debugging.md).
@@ -69,6 +96,9 @@ The process of applying event operations to the current state graph. When a comm
 
 **Mental Model**
 An installable package that defines a domain vocabulary for SemPKM. A Mental Model includes an ontology (types and properties), SHACL shapes (form structure and validation rules), view specifications (table, card, and graph queries), and optional seed data (starter objects). The built-in "Basic PKM" model provides Note, Concept, Project, and Person types. See also: Ontology, Shape, View.
+
+**Milestone** (Basic PKM v2.0)
+A project phase that groups related tasks toward a deliverable or deadline. Milestones have a target date and status (planned, active, completed, cancelled). See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
 
 **Named Graph**
 An RDF concept where a set of triples is associated with a graph IRI. SemPKM uses named graphs extensively: the current state lives in `urn:sempkm:current`, each event occupies its own named graph, and each Mental Model's ontology, shapes, and views are stored in separate named graphs. Named graphs enable SemPKM to organize, query, and manage different sets of triples independently.
@@ -85,6 +115,12 @@ The formal definition of types (classes) and properties within a Mental Model. W
 **OWL**
 Web Ontology Language.
 
+**Paper** (Research Workflow)
+An academic paper, journal article, preprint, or other publication in the Research Workflow model. Papers are the source material from which claims are extracted and citation networks are built. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
+
+**PermanentNote** (Zettelkasten+)
+An atomic, self-contained knowledge claim — the core unit of a Zettelkasten. Permanent notes express your own ideas and connect to other permanent notes via argumentation links (supports, contradicts, followsFrom, relatedTo). See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
+
 **PKCE**
 Proof Key for Code Exchange. A security extension to the OAuth 2.0 authorization code flow that prevents authorization code interception attacks. SemPKM's IndieAuth provider requires PKCE for all authorization requests. The client generates a random `code_verifier`, sends a hashed `code_challenge` with the authorization request, then proves possession of the original verifier when exchanging the code for a token. See [Chapter 26: IndieAuth](26-indieauth.md). A W3C standard for defining ontologies -- formal descriptions of types, properties, and their relationships. SemPKM uses OWL Class and Property declarations in Mental Model ontology files.
 
@@ -99,6 +135,9 @@ A named attribute of an object. Properties can hold literal values (strings, dat
 
 **RDF**
 Resource Description Framework. The W3C standard data model that underpins SemPKM. All data is stored as triples: subject-predicate-object statements. For example, "Alice Chen" (subject) "has job title" (predicate) "Lead Developer" (object). RDF enables flexible, schema-on-read data that can be queried, linked, and extended without migrations.
+
+**ResearchQuestion** (Research Workflow)
+An open question driving a research investigation. Research questions can be addressed by arguments that synthesize claims and evidence. Status tracks progress from open through partially-answered to answered. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
 
 **SHACL**
 Shapes Constraint Language.
@@ -115,11 +154,17 @@ An interactive freeform workspace for exploring your knowledge graph visually. U
 **Step** (workflow)
 An individual stage in a workflow. Three types: view (opens a view), dashboard (opens a dashboard), and form (opens a create form). Each step has an optional label displayed in the stepper bar. See [Chapter 28: Dashboards and Workflows](28-dashboards-and-workflows.md).
 
+**StructureNote** (Zettelkasten+)
+An organizing note that curates permanent notes into coherent topics — argument maps, field surveys, or indexes. Structure notes sit at the top of the Zettelkasten provenance chain. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
+
 **SPARQL**
 SPARQL Protocol and RDF Query Language. The standard query language for RDF data, analogous to SQL for relational databases. SemPKM uses SPARQL internally for all data retrieval and manipulation. View specifications contain SPARQL queries that power table, card, and graph views. The bottom panel includes a SPARQL console for running ad-hoc queries.
 
 **TBox**
 (Terminological Box) The set of class definitions and their hierarchy in an ontology. Viewable in the Ontology Viewer's TBox tab.
+
+**Task** (Basic PKM v2.0)
+A unit of work with status tracking (todo, in-progress, done, blocked, cancelled), priority, effort sizing, due dates, and person assignment. Tasks link to projects and milestones to form a work graph. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
 
 **Triple**
 The atomic unit of data in RDF: a subject-predicate-object statement. For example: `<Person/alice> <foaf:name> "Alice Chen"` is a triple stating that the resource `Person/alice` has the name "Alice Chen". All data in SemPKM -- objects, properties, edges, events -- is ultimately stored as triples.

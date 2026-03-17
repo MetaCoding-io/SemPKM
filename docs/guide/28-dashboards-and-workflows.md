@@ -167,4 +167,4 @@ Both sections support the Explorer's drag-to-reorder panel positioning and the e
 
 ---
 
-**Previous:** [Chapter 27: Spatial Canvas](27-spatial-canvas.md) | **Next:** [Appendix A: Environment Variable Reference](appendix-a-environment-variables.md)
+**Previous:** [Chapter 27: Spatial Canvas](27-spatial-canvas.md) | **Next:** [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md)

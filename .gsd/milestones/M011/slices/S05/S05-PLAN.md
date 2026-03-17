@@ -57,7 +57,7 @@
   - Verify: `cd e2e && npx playwright test tests/26-mental-models/ --project=chromium` (requires Docker test stack)
   - Done when: All E2E tests pass against running Docker test stack
 
-- [ ] **T03: Write user guide Chapter 29 (Mental Model Catalog) and update navigation** `est:45m`
+- [x] **T03: Write user guide Chapter 29 (Mental Model Catalog) and update navigation** `est:45m`
   - Why: Documents all 4 new/upgraded models for end users — type descriptions, field reference, installation, recommended dashboard configurations. Completes the milestone's documentation requirement.
   - Files: `docs/guide/29-mental-model-catalog.md`, `docs/guide/README.md`, `docs/guide/28-dashboards-and-workflows.md`, `docs/guide/appendix-d-glossary.md`
   - Do: Write Chapter 29 with 4 sections (basic-pkm v2, CRM, Zettelkasten+, Research Workflow), each covering types/fields, relationships, installation, saved queries, and recommended dashboards. Update README TOC to add Ch. 29. Update Ch. 28 nav link to point to Ch. 29. Update Appendix D with glossary entries for new types (Task, Milestone, Contact, Company, Interaction, Deal, FleetingNote, PermanentNote, StructureNote, Paper, Claim, Evidence).

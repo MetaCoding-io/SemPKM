@@ -151,3 +151,9 @@ Write the user guide chapter documenting all 4 new/upgraded M011 mental models. 
 - `docs/guide/README.md` — Updated with Ch. 29 in TOC
 - `docs/guide/28-dashboards-and-workflows.md` — Updated "Next:" navigation link
 - `docs/guide/appendix-d-glossary.md` — ~15 new glossary entries for model types
+
+## Observability Impact
+
+- **Signals changed:** No runtime signals — this task produces documentation files only.
+- **Inspection surfaces:** Navigation chain integrity can be verified via `grep` commands in the Verification section. Chapter 29 content accuracy can be cross-referenced against model manifest.yaml and shapes/*.jsonld files.
+- **Failure visibility:** Broken navigation links surface as 404s when serving docs; missing glossary entries surface as undefined terms in the guide. Verification grep commands catch both before deployment.
