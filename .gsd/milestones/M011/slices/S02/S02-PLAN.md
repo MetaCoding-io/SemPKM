@@ -109,7 +109,7 @@ except ValueError as e:
   - Verify: `parse_manifest(Path('../models/crm'))` succeeds. `Graph().parse('../models/crm/ontology/crm.jsonld', format='json-ld')` succeeds with >50 triples.
   - Done when: Both files exist, parse cleanly, and manifest validates via Pydantic schema.
 
-- [ ] **T02: Author CRM shapes and views** `est:1h`
+- [x] **T02: Author CRM shapes and views** `est:1h`
   - Why: Shapes drive SHACL form generation (property groups, enums, helptext). Views define table/card/graph ViewSpecs and SavedQueries for browsing CRM data.
   - Files: `models/crm/shapes/crm.jsonld`, `models/crm/views/crm.jsonld`
   - Do: Create shapes with 4 NodeShapes (ContactShape, CompanyShape, InteractionShape, DealShape), PropertyGroups for logical field grouping, `sh:in` enums using `{"@list": [...]}` for relationship/interactionType/dealStage/size/currency, `sempkm:editHelpText` on shapes. Use `"sempkm": "urn:sempkm:"` prefix in shapes. Create views with ~10 ViewSpecs (Contact table/card/graph, Company table/graph, Interaction table/graph, Deal table/card, CRM Network graph) + 4 SavedQueries (Stale Contacts, Upcoming Follow-ups, Open Deals, Network Map). Use `"sempkm": "urn:sempkm:vocab:"` prefix in views. Use full IRIs in SPARQL queries (e.g. `<urn:sempkm:model:crm:Contact>`).

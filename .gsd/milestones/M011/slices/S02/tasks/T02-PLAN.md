@@ -162,6 +162,14 @@ Follow `models/basic-pkm/shapes/basic-pkm.jsonld` and `models/basic-pkm/views/ba
 - `models/basic-pkm/views/basic-pkm.jsonld` — structural template for views
 - S02 Research doc — enum values, PropertyGroup layout, ViewSpec list, SavedQuery specs
 
+## Observability Impact
+
+- **Shapes triple count:** `Graph().parse('models/crm/shapes/crm.jsonld', format='json-ld')` — triple count should be >100; count <50 signals missing PropertyGroups or shapes.
+- **Shapes targetClass audit:** Query `sh:targetClass` triples — must return exactly 4 (Contact, Company, Interaction, Deal). Fewer means missing NodeShapes.
+- **Views triple count:** `Graph().parse('models/crm/views/crm.jsonld', format='json-ld')` — triple count should be >80; count <30 signals missing ViewSpecs.
+- **Namespace compliance:** Shapes file `@context.sempkm` must be `urn:sempkm:` and views file `@context.sempkm` must be `urn:sempkm:vocab:`. Mismatch causes silent form-rendering or view-loading failures at runtime.
+- **Cross-file consistency:** All `sh:targetClass` values in shapes must resolve to OWL classes in the ontology. Missing classes cause SHACL validation to silently skip the shape.
+
 ## Expected Output
 
 - `models/crm/shapes/crm.jsonld` — SHACL shapes with 4 NodeShapes, PropertyGroups, enums, helptext
