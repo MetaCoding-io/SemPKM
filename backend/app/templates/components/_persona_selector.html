@@ -1,0 +1,27 @@
+{# Persona selector partial — rendered inside user popover via hx-get #}
+<div class="persona-selector"
+     hx-on::after-settle="if (typeof lucide !== 'undefined') lucide.createIcons({attrs: {class: ['lucide']}})">
+    <div class="persona-selector-header">
+        <span class="persona-selector-title">Personas</span>
+        <button class="persona-selector-action" onclick="createNewPersona()" title="New Persona">
+            <i data-lucide="plus"></i>
+        </button>
+    </div>
+    <div class="persona-selector-list">
+        {% for persona in personas %}
+        <button class="persona-selector-item {% if persona.is_active %}active{% endif %}"
+                onclick="switchPersona('{{ persona.id }}'); var pop = document.getElementById('user-popover'); if (pop) pop.hidePopover();">
+            <i data-lucide="{% if persona.is_active %}check-circle{% else %}circle{% endif %}"
+               class="persona-item-icon"></i>
+            <span class="persona-item-name">{{ persona.name }}</span>
+        </button>
+        {% endfor %}
+        {% if not personas %}
+        <div class="persona-selector-empty">No personas yet</div>
+        {% endif %}
+    </div>
+    <button class="persona-selector-save" onclick="saveCurrentPersonaState(); var pop = document.getElementById('user-popover'); if (pop) pop.hidePopover();">
+        <i data-lucide="save" class="persona-save-icon"></i>
+        <span>Save Current</span>
+    </button>
+</div>
