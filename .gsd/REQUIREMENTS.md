@@ -151,6 +151,34 @@ This file is the explicit capability and coverage contract for the project.
 - Source: docs/research/rss-reader-hypothesis-integration.md §4-5
 - Acceptance: Paste a website URL → discover its RSS feed automatically. When feeds provide only summaries, extract full article content via reader mode (trafilatura). Fallback to summary when extraction fails.
 
+### MODEL-01 — basic-pkm v2.0 with Task and Milestone types
+- Status: active
+- Class: core-capability
+- Source: design (MENTAL-MODELS-EXPANSION-DESIGN.md)
+- Design ref: `.gsd/design/MENTAL-MODELS-EXPANSION-DESIGN.md` §1 (basic-pkm v2.0)
+- Acceptance: basic-pkm upgraded from v1.3 to v2.0 with Task and Milestone types added alongside existing Project, Person, Note, Concept. Task has status/priority/dueDate/assignedTo with SHACL enum constraints. Milestone has status/targetDate/tasks. SHACL-AF SPARQLConstraint fires warning for overdue tasks (dueDate in past + status "todo"). Table/Cards/Graph ViewSpecs include new types. Seed data provides example tasks and milestones. Lucide icons for Task (check-square) and Milestone (flag). Model passes offline validation. Upgrade via refresh_artifacts preserves existing data.
+
+### MODEL-02 — Personal CRM model
+- Status: active
+- Class: core-capability
+- Source: design (MENTAL-MODELS-EXPANSION-DESIGN.md)
+- Design ref: `.gsd/design/MENTAL-MODELS-EXPANSION-DESIGN.md` §2 (Personal CRM)
+- Acceptance: New crm model with Contact, Company, Interaction, Deal types. Contact extends gist:Person with phone/email/role/tags. Company extends gist:Organization with industry/website. Interaction extends gist:Event with type enum (meeting/call/email/note). Deal extends gist:Agreement with stage pipeline (lead/qualified/proposal/negotiation/closed-won/closed-lost) and value. SHACL-AF SPARQLConstraint fires warning for stale contacts (no interaction in 90 days). owl:inverseOf for worksAt/hasEmployee, hasContact/contactOf. Table/Cards ViewSpecs with pipeline view for Deals. Seed data creates realistic CRM scenario. Passes offline validation.
+
+### MODEL-03 — Zettelkasten+ model
+- Status: active
+- Class: core-capability
+- Source: design (MENTAL-MODELS-EXPANSION-DESIGN.md)
+- Design ref: `.gsd/design/MENTAL-MODELS-EXPANSION-DESIGN.md` §3 (Zettelkasten+)
+- Acceptance: New zettelkasten model with FleetingNote, Source, LiteratureNote, PermanentNote, StructureNote types. Enforced provenance chain: FleetingNote → Source → LiteratureNote → PermanentNote → StructureNote. Argumentation links: supports/contradicts/followsFrom between PermanentNotes. SHACL-AF SPARQLConstraint fires warning for unprocessed fleeting notes (status "unprocessed" older than 7 days). Provenance chain saved query returns Source → LiteratureNote → PermanentNote path. owl:inverseOf for all bidirectional relationships. Passes offline validation.
+
+### MODEL-04 — Research Workflow model
+- Status: active
+- Class: core-capability
+- Source: design (MENTAL-MODELS-EXPANSION-DESIGN.md)
+- Design ref: `.gsd/design/MENTAL-MODELS-EXPANSION-DESIGN.md` §4 (Research Workflow)
+- Acceptance: New research model with Paper, Claim, Evidence, ResearchQuestion, Argument types. Claim has confidence level (established/likely/possible/speculative/contested). Evidence has evidenceType (supporting/refuting/ambiguous) and strength (strong/moderate/weak). SHACL-AF SPARQLConstraints fire warnings for unsupported claims (no evidence linked) and contested claims (has both supporting and refuting evidence). Evidence map graph view defined via CONSTRUCT query. Saved queries for unsupported claims and research gaps. Passes offline validation.
+
 
 ### VIEW-01 — Generic Table/Cards/Graph views that work across all types
 - Status: validated
@@ -1345,11 +1373,15 @@ All 6 items verified: Lucide SVG chevrons on 6 sections with rotation. OBJECTS o
 | RSS-06 | core-capability | active | none | none | design: APP-PLATFORM-DESIGN.md §13 |
 | RSS-07 | core-capability | active | none | none | design: APP-PLATFORM-DESIGN.md §2 |
 | RSS-08 | enhancement | active | none | none | research: rss-reader-hypothesis §4-5 |
+| MODEL-01 | core-capability | active | M011/S01 | M011/S05 | design: MENTAL-MODELS-EXPANSION-DESIGN.md §1 |
+| MODEL-02 | core-capability | active | M011/S02 | M011/S05 | design: MENTAL-MODELS-EXPANSION-DESIGN.md §2 |
+| MODEL-03 | core-capability | active | M011/S03 | M011/S05 | design: MENTAL-MODELS-EXPANSION-DESIGN.md §3 |
+| MODEL-04 | core-capability | active | M011/S04 | M011/S05 | design: MENTAL-MODELS-EXPANSION-DESIGN.md §4 |
 
 ## Coverage Summary
 
-- Active requirements: 22 (14 APP + 8 RSS)
+- Active requirements: 26 (14 APP + 8 RSS + 4 MODEL)
 - Validated: 117 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008)
 - Deferred: 7 (TYPE-03, TYPE-04, MCP-01, NOTION-01, VIEW-06, VIEW-07, VFS-13)
 - Out of scope: 3
-- Unmapped active requirements: 22 (pending M009/M010 roadmap planning)
+- Unmapped active requirements: 22 (14 APP + 8 RSS — pending M009/M010 roadmap planning)
