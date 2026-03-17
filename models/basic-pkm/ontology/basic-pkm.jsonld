@@ -16,7 +16,7 @@
       "@id": "bpkm:ontology",
       "@type": "owl:Ontology",
       "rdfs:label": "Basic PKM Ontology",
-      "dcterms:description": "Core types for personal knowledge management: Projects, People, Notes, and Concepts with rich inter-type relationships."
+      "dcterms:description": "Core types for personal knowledge management: Projects, People, Notes, Concepts, Tasks, and Milestones with rich inter-type relationships."
     },
 
     {
@@ -47,6 +47,20 @@
       "rdfs:comment": "An abstract concept, topic, or domain area",
       "rdfs:subClassOf": { "@id": "gist:KnowledgeConcept" }
     },
+    {
+      "@id": "bpkm:Task",
+      "@type": "owl:Class",
+      "rdfs:label": "Task",
+      "rdfs:comment": "An atomic unit of work, optionally synced from an external provider",
+      "rdfs:subClassOf": { "@id": "gist:Task" }
+    },
+    {
+      "@id": "bpkm:Milestone",
+      "@type": "owl:Class",
+      "rdfs:label": "Milestone",
+      "rdfs:comment": "A grouping of tasks toward a specific deliverable or deadline within a project",
+      "rdfs:subClassOf": { "@id": "gist:Event" }
+    },
 
     {
       "@id": "bpkm:status",
@@ -61,7 +75,6 @@
       "@type": "owl:DatatypeProperty",
       "rdfs:label": "Priority",
       "rdfs:comment": "Priority level (low, medium, high, critical)",
-      "rdfs:domain": { "@id": "bpkm:Project" },
       "rdfs:range": { "@id": "xsd:string" }
     },
     {
@@ -71,6 +84,111 @@
       "rdfs:comment": "Tags for categorization (individual values)",
       "rdfs:range": { "@id": "xsd:string" }
     },
+    {
+      "@id": "bpkm:body",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Body",
+      "rdfs:comment": "Markdown body content",
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:noteType",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Note Type",
+      "rdfs:comment": "Type of note (observation, idea, reference, meeting-note, journal)",
+      "rdfs:domain": { "@id": "bpkm:Note" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+
+    {
+      "@id": "bpkm:taskStatus",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Task Status",
+      "rdfs:comment": "Current state of a task (todo, in-progress, done, blocked, cancelled)",
+      "rdfs:domain": { "@id": "bpkm:Task" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:dueDate",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Due Date",
+      "rdfs:comment": "When the task is due",
+      "rdfs:domain": { "@id": "bpkm:Task" },
+      "rdfs:range": { "@id": "xsd:date" }
+    },
+    {
+      "@id": "bpkm:completedDate",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Completed Date",
+      "rdfs:comment": "When the task or milestone was finished",
+      "rdfs:range": { "@id": "xsd:date" }
+    },
+    {
+      "@id": "bpkm:effort",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Effort",
+      "rdfs:comment": "T-shirt size estimate (trivial, small, medium, large, epic)",
+      "rdfs:domain": { "@id": "bpkm:Task" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:externalId",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "External ID",
+      "rdfs:comment": "Provider's task identifier (e.g., PROJ-123)",
+      "rdfs:domain": { "@id": "bpkm:Task" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:externalUrl",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "External URL",
+      "rdfs:comment": "Direct link to the task in the external provider",
+      "rdfs:domain": { "@id": "bpkm:Task" },
+      "rdfs:range": { "@id": "xsd:anyURI" }
+    },
+    {
+      "@id": "bpkm:externalProvider",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "External Provider",
+      "rdfs:comment": "Which service this task was imported from (asana, linear, jira, github, todoist, trello, manual)",
+      "rdfs:domain": { "@id": "bpkm:Task" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:lastSyncedAt",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Last Synced At",
+      "rdfs:comment": "Timestamp of last successful sync with external provider",
+      "rdfs:domain": { "@id": "bpkm:Task" },
+      "rdfs:range": { "@id": "xsd:dateTime" }
+    },
+    {
+      "@id": "bpkm:syncDirection",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Sync Direction",
+      "rdfs:comment": "How this task syncs with its external provider (pull, push, bidirectional)",
+      "rdfs:domain": { "@id": "bpkm:Task" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+
+    {
+      "@id": "bpkm:milestoneStatus",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Milestone Status",
+      "rdfs:comment": "Current state of a milestone (planned, active, completed, cancelled)",
+      "rdfs:domain": { "@id": "bpkm:Milestone" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:targetDate",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Target Date",
+      "rdfs:comment": "Deadline for a milestone",
+      "rdfs:domain": { "@id": "bpkm:Milestone" },
+      "rdfs:range": { "@id": "xsd:date" }
+    },
+
     {
       "@id": "bpkm:hasParticipant",
       "@type": "owl:ObjectProperty",
@@ -97,22 +215,6 @@
       "owl:inverseOf": { "@id": "bpkm:hasParticipant" }
     },
     {
-      "@id": "bpkm:body",
-      "@type": "owl:DatatypeProperty",
-      "rdfs:label": "Body",
-      "rdfs:comment": "Markdown body content of a note",
-      "rdfs:domain": { "@id": "bpkm:Note" },
-      "rdfs:range": { "@id": "xsd:string" }
-    },
-    {
-      "@id": "bpkm:noteType",
-      "@type": "owl:DatatypeProperty",
-      "rdfs:label": "Note Type",
-      "rdfs:comment": "Type of note (observation, idea, reference, meeting-note, journal)",
-      "rdfs:domain": { "@id": "bpkm:Note" },
-      "rdfs:range": { "@id": "xsd:string" }
-    },
-    {
       "@id": "bpkm:isAbout",
       "@type": "owl:ObjectProperty",
       "rdfs:label": "Is About",
@@ -135,6 +237,103 @@
       "rdfs:comment": "Notes related to this project (derived by SHACL-AF rule from relatedProject)",
       "rdfs:domain": { "@id": "bpkm:Project" },
       "rdfs:range": { "@id": "bpkm:Note" }
+    },
+
+    {
+      "@id": "bpkm:assignedTo",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Assigned To",
+      "rdfs:comment": "Person responsible for this task",
+      "rdfs:domain": { "@id": "bpkm:Task" },
+      "rdfs:range": { "@id": "bpkm:Person" },
+      "owl:inverseOf": { "@id": "bpkm:hasAssignedTask" }
+    },
+    {
+      "@id": "bpkm:hasAssignedTask",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Assigned Tasks",
+      "rdfs:comment": "Tasks assigned to this person",
+      "rdfs:domain": { "@id": "bpkm:Person" },
+      "rdfs:range": { "@id": "bpkm:Task" },
+      "owl:inverseOf": { "@id": "bpkm:assignedTo" }
+    },
+    {
+      "@id": "bpkm:taskProject",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Project",
+      "rdfs:comment": "The project this task belongs to",
+      "rdfs:domain": { "@id": "bpkm:Task" },
+      "rdfs:range": { "@id": "bpkm:Project" },
+      "owl:inverseOf": { "@id": "bpkm:hasProjectTasks" }
+    },
+    {
+      "@id": "bpkm:hasProjectTasks",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Tasks",
+      "rdfs:comment": "Tasks belonging to this project",
+      "rdfs:domain": { "@id": "bpkm:Project" },
+      "rdfs:range": { "@id": "bpkm:Task" },
+      "owl:inverseOf": { "@id": "bpkm:taskProject" }
+    },
+    {
+      "@id": "bpkm:milestone",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Milestone",
+      "rdfs:comment": "The milestone this task is part of",
+      "rdfs:domain": { "@id": "bpkm:Task" },
+      "rdfs:range": { "@id": "bpkm:Milestone" },
+      "owl:inverseOf": { "@id": "bpkm:hasTasks" }
+    },
+    {
+      "@id": "bpkm:hasTasks",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Tasks",
+      "rdfs:comment": "Tasks belonging to this milestone",
+      "rdfs:domain": { "@id": "bpkm:Milestone" },
+      "rdfs:range": { "@id": "bpkm:Task" },
+      "owl:inverseOf": { "@id": "bpkm:milestone" }
+    },
+    {
+      "@id": "bpkm:milestoneProject",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Project",
+      "rdfs:comment": "The project this milestone belongs to",
+      "rdfs:domain": { "@id": "bpkm:Milestone" },
+      "rdfs:range": { "@id": "bpkm:Project" },
+      "owl:inverseOf": { "@id": "bpkm:hasMilestones" }
+    },
+    {
+      "@id": "bpkm:hasMilestones",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Milestones",
+      "rdfs:comment": "Milestones belonging to this project",
+      "rdfs:domain": { "@id": "bpkm:Project" },
+      "rdfs:range": { "@id": "bpkm:Milestone" },
+      "owl:inverseOf": { "@id": "bpkm:milestoneProject" }
+    },
+    {
+      "@id": "bpkm:dependsOn",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Depends On",
+      "rdfs:comment": "Tasks that must be completed before this one can start",
+      "rdfs:domain": { "@id": "bpkm:Task" },
+      "rdfs:range": { "@id": "bpkm:Task" }
+    },
+    {
+      "@id": "bpkm:relatedNote",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Related Note",
+      "rdfs:comment": "Notes providing context for this task",
+      "rdfs:domain": { "@id": "bpkm:Task" },
+      "rdfs:range": { "@id": "bpkm:Note" }
+    },
+    {
+      "@id": "bpkm:relatedConcept",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Related Concept",
+      "rdfs:comment": "Concepts related to this task",
+      "rdfs:domain": { "@id": "bpkm:Task" },
+      "rdfs:range": { "@id": "bpkm:Concept" }
     }
   ]
 }

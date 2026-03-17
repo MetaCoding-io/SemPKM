@@ -69,6 +69,13 @@ Per D149: this is pure content work — no platform code changes. Per D152: only
 - `python -c "from rdflib import Graph; g=Graph(); g.parse('models/basic-pkm/shapes/basic-pkm.jsonld', format='json-ld'); print(f'{len(g)} triples')"` succeeds with >250 triples (was ~180)
 - `python -c "from rdflib import Graph, URIRef; g=Graph(); g.parse('models/basic-pkm/ontology/basic-pkm.jsonld', format='json-ld'); OWL_CLASS=URIRef('http://www.w3.org/2002/07/owl#Class'); classes=[str(s) for s in g.subjects(URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'), OWL_CLASS) if 'basic-pkm' in str(s)]; print(f'Classes: {len(classes)}'); assert len(classes)==6, classes"` — confirms 6 classes
 
+## Observability Impact
+
+- **What changes:** Ontology gains 2 new OWL classes and ~15 new properties; shapes gain 2 new NodeShapes and 8 PropertyGroups. Triple counts increase significantly.
+- **Inspection surface:** Use rdflib triple count commands (see Verification section) to confirm schema expansion. `OWL_CLASS` count should be exactly 6 after this task.
+- **Failure visibility:** JSON-LD parse errors surface as rdflib exceptions with line/character context. Missing `@id` references or malformed `@list` arrays produce specific JSON-LD expansion errors.
+- **No runtime signals:** This is pure schema content — no logs, endpoints, or processes affected.
+
 ## Inputs
 
 - `models/basic-pkm/ontology/basic-pkm.jsonld` — existing v1.3 ontology with 4 classes (Project, Person, Note, Concept)

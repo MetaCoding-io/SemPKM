@@ -48,7 +48,7 @@
 
 ## Tasks
 
-- [ ] **T01: Add Task and Milestone classes to ontology and SHACL shapes** `est:1h`
+- [x] **T01: Add Task and Milestone classes to ontology and SHACL shapes** `est:1h`
   - Why: Defines the two new types with full OWL class hierarchy, datatype/object properties, owl:inverseOf declarations, and SHACL shapes with PropertyGroups, enums, and editHelpText. This is the schema foundation everything else depends on.
   - Files: `models/basic-pkm/ontology/basic-pkm.jsonld`, `models/basic-pkm/shapes/basic-pkm.jsonld`
   - Do: Add bpkm:Task (extends gist:Task) and bpkm:Milestone (extends gist:Event) classes with all properties from design doc §1. Add owl:inverseOf pairs. Add TaskShape (4 groups: Basic Info, Dates, Relationships, Metadata) and MilestoneShape (3 groups: Basic Info, Dates, Relationships) with enums, editHelpText, and sh:order. Update ProjectShape to include hasTasks and hasMilestones properties in Relationships group.
@@ -75,6 +75,16 @@
   - Do: Write pytest test file using the existing `parse_manifest`, `load_archive`, `validate_archive` functions from `backend/app/models/`. Test manifest parsing (version 2.0.0, 6 icons). Test archive loading (all graphs non-empty). Test validation (zero errors). Count OWL classes in ontology (expect 6). Count NodeShapes in shapes (expect 6+). Count ViewSpecs in views (expect 18). Count SavedQueries (expect 6: 3 existing + 3 new). Test seed data has Task and Milestone instances. Test pyshacl validation: load data graph from seed, shapes graph from shapes + rules, run pyshacl.validate(advanced=True), assert conforms=False (because of warnings), parse results graph for sh:Warning about overdue task. Test that done tasks and future-dated tasks do NOT trigger warning.
   - Verify: `cd /home/james/Code/SemPKM && python -m pytest backend/tests/test_basic_pkm_v2.py -v`
   - Done when: All tests pass, pyshacl fires overdue warning on past-due seed task, archive has zero validation errors.
+
+## Observability / Diagnostics
+
+- **Ontology triple count:** `python -c "from rdflib import Graph; g=Graph(); g.parse('models/basic-pkm/ontology/basic-pkm.jsonld', format='json-ld'); print(len(g))"` — expect >60 triples after T01
+- **Shapes triple count:** `python -c "from rdflib import Graph; g=Graph(); g.parse('models/basic-pkm/shapes/basic-pkm.jsonld', format='json-ld'); print(len(g))"` — expect >250 triples after T01
+- **OWL class count:** `python -c "from rdflib import Graph, URIRef; g=Graph(); g.parse('models/basic-pkm/ontology/basic-pkm.jsonld', format='json-ld'); print(len([s for s in g.subjects(URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'), URIRef('http://www.w3.org/2002/07/owl#Class')) if 'basic-pkm' in str(s)]))"` — expect 6
+- **NodeShape count:** `python -c "from rdflib import Graph, URIRef; g=Graph(); g.parse('models/basic-pkm/shapes/basic-pkm.jsonld', format='json-ld'); print(len(list(g.subjects(URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'), URIRef('http://www.w3.org/ns/shacl#NodeShape')))))"` — expect 6
+- **Archive validation:** `python -m pytest backend/tests/test_basic_pkm_v2.py -v` — all tests pass (after T04)
+- **Failure visibility:** rdflib parse errors surface immediately via Python tracebacks; pyshacl validation results include full violation reports with source shapes and focus nodes
+- **No secrets/redaction needed:** all files are schema definitions (JSON-LD, Turtle), no runtime credentials
 
 ## Files Likely Touched
 
