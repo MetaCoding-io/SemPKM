@@ -9,6 +9,8 @@ from app.dependencies import get_lint_service, get_shapes_service
 from app.lint.service import LintService
 from app.services.shapes import ShapesService
 
+from ._helpers import get_hidden_types
+
 pages_router = APIRouter(tags=["pages"])
 
 
@@ -56,7 +58,7 @@ async def lint_dashboard(
         object_type=object_type, search=search, sort=sort,
     )
     status = await lint_service.get_status()
-    types = await shapes_service.get_types()
+    types = await shapes_service.get_types(exclude_iris=get_hidden_types())
 
     templates = request.app.state.templates
     return templates.TemplateResponse(request, "browser/lint_dashboard.html", {

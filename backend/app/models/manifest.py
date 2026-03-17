@@ -38,6 +38,7 @@ class ManifestIconDef(BaseModel):
     tree: ManifestIconContextDef | None = None
     graph: ManifestIconContextDef | None = None
     tab: ManifestIconContextDef | None = None
+    browserVisible: bool = True                      # False hides type from browser nav/type picker
 
 
 class ManifestEntrypoints(BaseModel):

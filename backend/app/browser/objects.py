@@ -41,6 +41,7 @@ from app.validation.queue import AsyncValidationQueue
 from ._helpers import (
     _format_date,
     _validate_iri,
+    get_hidden_types,
     get_icon_service,
 )
 
@@ -932,7 +933,7 @@ async def type_picker(
     Mental Models. Each type card links to the create form via htmx GET.
     """
     templates = request.app.state.templates
-    types = await shapes_service.get_types()
+    types = await shapes_service.get_types(exclude_iris=get_hidden_types())
     context = {"request": request, "types": types}
     return templates.TemplateResponse(
         request, "browser/type_picker.html", context

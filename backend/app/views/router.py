@@ -19,6 +19,7 @@ from app.auth.models import User
 from app.dependencies import get_label_service, get_shapes_service, get_view_spec_service
 from app.services.labels import LabelService
 from app.services.shapes import ShapesService
+from app.browser._helpers import get_hidden_types
 from app.views.service import ViewSpec, ViewSpecService, inject_values_binding
 
 logger = logging.getLogger(__name__)
@@ -194,7 +195,7 @@ async def generic_view(
     encoded_spec_iri = quote(spec.spec_iri, safe="")
 
     # Fetch available types for type filter pills
-    types_list = await shapes_service.get_types()
+    types_list = await shapes_service.get_types(exclude_iris=get_hidden_types())
 
     # Build carousel specs: when a type is selected, show generic renderers + model-declared views
     all_specs: list[ViewSpec] = []
@@ -386,7 +387,7 @@ async def type_pills(
     Returns JSON list of types with their IRIs and labels, plus active
     state and href for each pill.
     """
-    types = await shapes_service.get_types()
+    types = await shapes_service.get_types(exclude_iris=get_hidden_types())
 
     pills = []
     for t in types:

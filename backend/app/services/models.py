@@ -36,6 +36,63 @@ logger = logging.getLogger(__name__)
 # SemPKM vocabulary namespace
 SEMPKM_NS = "urn:sempkm:"
 
+
+# --- browserVisible helpers ---
+
+
+def _expand_prefix(type_ref: str, prefixes: dict[str, str]) -> str:
+    """Expand 'prefix:LocalName' to full IRI using manifest prefixes dict.
+
+    Already-expanded IRIs (http://, urn:) are returned unchanged.
+    """
+    if ":" not in type_ref or type_ref.startswith("http") or type_ref.startswith("urn"):
+        return type_ref
+    prefix, local = type_ref.split(":", 1)
+    base = prefixes.get(prefix, "")
+    return base + local if base else type_ref
+
+
+def get_hidden_type_iris(models_dir: Path | str | None = None) -> set[str]:
+    """Return the set of full type IRIs where ``browserVisible`` is ``False``.
+
+    Iterates on-disk model manifests, expands prefixed type names against
+    each manifest's ``prefixes`` dict, and collects the IRIs of all icon
+    definitions that have ``browserVisible: False``.
+
+    Returns an empty set when no models are installed or when every icon
+    entry is visible (the default).
+    """
+    if models_dir is None:
+        return set()
+
+    models_path = Path(models_dir)
+    if not models_path.is_dir():
+        return set()
+
+    hidden: set[str] = set()
+    try:
+        entries = list(models_path.iterdir())
+    except OSError:
+        return hidden
+
+    for entry in entries:
+        manifest_path = entry / "manifest.yaml"
+        if not manifest_path.exists():
+            continue
+        try:
+            manifest = parse_manifest(entry)
+            prefixes = dict(manifest.prefixes or {})
+            for icon_def in manifest.icons or []:
+                if not icon_def.browserVisible:
+                    full_iri = _expand_prefix(icon_def.type, prefixes)
+                    hidden.add(full_iri)
+        except Exception:
+            logger.debug("Skipping manifest at %s for browserVisible scan", entry, exc_info=True)
+            continue
+
+    return hidden
+
+
 # --- Analytics helper functions ---
 
 _LINK_BUCKETS = [

@@ -6,6 +6,7 @@ from urllib.parse import urlparse
 from fastapi import Request
 
 from app.services.icons import IconService
+from app.services.models import get_hidden_type_iris
 from app.services.settings import SettingsService
 
 
@@ -48,6 +49,15 @@ _MODELS_DIR = "/app/models"
 def get_settings_service() -> SettingsService:
     """FastAPI dependency that returns a SettingsService with the models directory."""
     return SettingsService(installed_models_dir=_MODELS_DIR)
+
+
+def get_hidden_types() -> set[str]:
+    """Return the set of type IRIs hidden from browser navigation.
+
+    Reads ``browserVisible: false`` entries from on-disk model manifests.
+    Cheap synchronous operation (few YAML files).
+    """
+    return get_hidden_type_iris(_MODELS_DIR)
 
 
 def get_icon_service(request: Request) -> IconService:

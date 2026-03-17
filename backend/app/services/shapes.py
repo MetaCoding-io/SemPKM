@@ -390,16 +390,23 @@ WHERE {{ ?s ?p ?o }}"""
             ),
         ]
 
-    async def get_types(self) -> list[dict]:
+    async def get_types(self, exclude_iris: set[str] | None = None) -> list[dict]:
         """Return list of available types for the type picker.
 
         Each entry contains the targetClass IRI and a human-readable label.
+
+        Args:
+            exclude_iris: Optional set of type IRIs to omit from results
+                (used to hide internal/bookkeeping types from the browser).
 
         Returns:
             List of dicts with 'iri' and 'label' keys.
         """
         forms = await self.get_node_shapes()
-        return [
+        types = [
             {"iri": form.target_class, "label": form.label}
             for form in forms
         ]
+        if exclude_iris:
+            types = [t for t in types if t["iri"] not in exclude_iris]
+        return types
