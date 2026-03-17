@@ -40,7 +40,7 @@
 
 ## Tasks
 
-- [ ] **T01: Wire predicate labels and helptext tooltips into event detail view** `est:1h30m`
+- [x] **T01: Wire predicate labels and helptext tooltips into event detail view** `est:1h30m`
   - Why: Delivers EVTLOG-01 (human-readable labels) and EVTLOG-02 (helptext tooltips) — the core readability improvement for event log detail
   - Files: `backend/app/services/shapes.py`, `backend/app/browser/events.py`, `backend/app/templates/browser/event_detail.html`, `frontend/static/css/workspace.css`
   - Do: (1) Add `get_helptext_for_predicates(iris: list[str]) -> dict[str, str]` to `ShapesService` — fetches shapes graph, iterates PropertyShapes matching the given `sh:path` IRIs, returns `{path_iri: helptext}` from `sempkm:editHelpText` falling back to `sh:description`. (2) In `event_detail()` route, inject `get_shapes_service` and `get_label_service` deps. Collect all predicate IRIs from `detail.new_values` and `detail.data_triples`, resolve labels via `LabelService.resolve_batch()`, resolve helptext via `ShapesService.get_helptext_for_predicates()`. Pass `predicate_labels` and `predicate_helptext` dicts to the template. (3) In `event_detail.html`, replace `{{ pred_iri.split('/')[-1].split('#')[-1] }}` with `{{ predicate_labels.get(pred_iri, pred_iri.split('/')[-1].split('#')[-1]) }}`. Add `title="{{ predicate_helptext.get(pred_iri, pred_iri) }}"` attribute for helptext tooltip (plain HTML title attribute, CSS-styled if desired). (4) Add CSS for `.diff-pred-label[title]` hover indicator (e.g., dotted underline, cursor help).

@@ -4179,6 +4179,12 @@ details.form-group[open] > .form-group-summary::before {
 .diff-val-new { color: var(--color-diff-add); }
 .diff-val-empty { color: var(--color-text-muted); font-style: italic; }
 .diff-pred-label { font-family: monospace; font-size: 0.75rem; }
+.diff-pred-label[title] { cursor: help; }
+.diff-pred-label.has-helptext {
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+  text-decoration-color: var(--color-text-faint);
+}
 
 /* Body diff lines */
 .diff-header {
