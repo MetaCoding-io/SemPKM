@@ -95,3 +95,10 @@ Replace the placeholder renderer assignment section in the admin app detail page
 - `backend/app/apps/admin_router.py` — enriched `app_detail()` context + 2 new endpoints (set, clear)
 - `backend/app/templates/admin/apps/detail.html` — real renderer section replacing placeholder
 - `backend/tests/test_admin_renderers.py` — ≥8 tests covering all renderer admin scenarios
+
+## Observability Impact
+
+- **New log signals:** Logger `app.apps.admin_router` at INFO logs renderer preference set/clear events with type_iri, mode, app_id, and user_id. DEBUG level logs no-op clears (when row doesn't exist).
+- **Inspection surface:** `SELECT * FROM app_renderer_prefs` shows all active renderer preferences. Admin detail page at `/admin/apps/{app_id}` shows real-time status (Active/Default/Overridden) for each declared objectRenderer.
+- **Failure visibility:** Set endpoint returns 404 if app not found. Clear endpoint is idempotent — always succeeds. Template shows "Overridden by {app_id}" when another app holds the preference.
+- **Admin audit trail:** All set/clear operations logged with user_id for accountability.
