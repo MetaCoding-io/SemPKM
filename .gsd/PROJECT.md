@@ -283,8 +283,9 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Two new Mental Models (rss-feeds, web-annotations), custom object renderers, background polling
 - Research: `docs/research/rss-reader-hypothesis-integration.md`
 
-**Mental Models Expansion** (MODEL-01–04) — queued (M011)
-- basic-pkm v2 (Task, Milestone, Event types as integration hub), Personal CRM, Zettelkasten+, Research Workflow
+**Mental Models Expansion** (MODEL-01–04) — in progress (M011)
+- S01 complete: basic-pkm v2.0 with Task + Milestone types, 10-test acceptance suite, all 3 key risks retired
+- S02-S04 ready: Personal CRM, Zettelkasten+, Research Workflow (parallelizable)
 - Design: `.gsd/design/MENTAL-MODELS-EXPANSION-DESIGN.md`
 
 **Workspace & Event Log Polish** — queued (M012)
