@@ -317,6 +317,9 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 **Browser Extension Phase 3** — queued (M028, depends on M015)
 - AI-powered claim detection, contradiction surfacing, gap detection, personalized summaries
 
+**Frontend Performance & Build Pipeline** — queued (M029)
+- Lighthouse/WebPageTest audit loop, esbuild/Vite build pipeline, local JS vendoring, gzip/brotli, HTTP caching, CSS splitting, minification, backend response profiling + cache headers, QUIC/HTTP3 research + implement if low-cost
+
 **Ongoing / cross-cutting**
 - Backlinks panel (incoming references for any object)
 - Edge model enhancements: edge inspector panel, inline wiki-link creation
