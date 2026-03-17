@@ -89,7 +89,7 @@ This milestone is complete only when all are true:
 - [x] **S04: Frontend Level 1 — Standalone Pages & Sidebar** `risk:medium` `depends:[S02,S03]`
   > After this: installed apps with page declarations appear in the workspace [Apps] sidebar section. Clicking an app page loads the app's fragment content through the platform proxy into the workspace via htmx. App CSS/JS loaded when app UI is active.
 
-- [ ] **S05: Scheduler, Permissions, Bulk EventStore & browserVisible** `risk:medium` `depends:[S02]`
+- [x] **S05: Scheduler, Permissions, Bulk EventStore & browserVisible** `risk:medium` `depends:[S02]`
   > After this: platform scheduler triggers app tasks at configured intervals with concurrency guard and retry. SDK clients enforce command whitelist, IRI prefix, and network domain restrictions. `commit_bulk()` records summary metadata. Types with `browserVisible: false` hidden from browser.
 
 - [ ] **S06: Frontend Level 2+3 — Workspace Contributions & Renderer Overrides** `risk:medium` `depends:[S04,S05]`
