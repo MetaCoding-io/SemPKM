@@ -69,7 +69,7 @@
   - Verify: `python -c "from rdflib import Graph; g=Graph(); g.parse('models/basic-pkm/views/basic-pkm.jsonld', format='json-ld'); print(f'{len(g)} triples')"` succeeds. `python -c "import yaml; m=yaml.safe_load(open('models/basic-pkm/manifest.yaml')); assert m['version']=='2.0.0'; print('OK')"`.
   - Done when: Views has 18 ViewSpecs + 3 SavedQueries, seed has Task and Milestone instances with inverse pairs, manifest is v2.0.0 with 6 icon entries.
 
-- [ ] **T04: Write offline validation test proving archive correctness and overdue-task rule** `est:45m`
+- [x] **T04: Write offline validation test proving archive correctness and overdue-task rule** `est:45m`
   - Why: This is the slice's acceptance test — proving the archive passes parse_manifest + load_archive + validate_archive with zero errors, and that the overdue-task SPARQLConstraint fires sh:Warning via pyshacl. Retires the three key risks from the roadmap.
   - Files: `backend/tests/test_basic_pkm_v2.py`
   - Do: Write pytest test file using the existing `parse_manifest`, `load_archive`, `validate_archive` functions from `backend/app/models/`. Test manifest parsing (version 2.0.0, 6 icons). Test archive loading (all graphs non-empty). Test validation (zero errors). Count OWL classes in ontology (expect 6). Count NodeShapes in shapes (expect 6+). Count ViewSpecs in views (expect 18). Count SavedQueries (expect 6: 3 existing + 3 new). Test seed data has Task and Milestone instances. Test pyshacl validation: load data graph from seed, shapes graph from shapes + rules, run pyshacl.validate(advanced=True), assert conforms=False (because of warnings), parse results graph for sh:Warning about overdue task. Test that done tasks and future-dated tasks do NOT trigger warning.
