@@ -149,6 +149,14 @@ The core behavior change of S02. Modifies `save_body()` in the browser router to
 - `cd backend && python -m pytest tests/ -v --tb=short -x -q 2>&1 | tail -5` — no regressions
 - Manual code review: the `save_body()` branching logic is correct for all three cases (new body, changed body, unchanged body)
 
+## Observability Impact
+
+- **New runtime signal:** `body.diff` events appear in the event log alongside `body.set` events. Prior body edits remain `body.set`; new edits on objects with existing bodies emit `body.diff`.
+- **Stored diff text:** Each `body.diff` event graph contains a `sempkm:bodyDiff` data triple with the unified diff string. Inspectable via SPARQL: `SELECT ?diff WHERE { GRAPH <event_iri> { ?s <urn:sempkm:bodyDiff> ?diff } }`.
+- **No-op detection:** When body content is unchanged, `save_body()` returns early with no event — the event log shows no new entry.
+- **Failure shape:** If SPARQL query for existing body fails, `save_body()` will raise an unhandled exception → 500 response (no silent fallback to `body.set`). This is intentional — we want to know if the triplestore is unreachable.
+- **Backward compat:** Old `body.set` events continue to render diffs via `_compute_body_diff()` (on-the-fly computation). New `body.diff` events use `_parse_stored_diff()` (reads stored diff text).
+
 ## Inputs
 
 - T01 output: `backend/app/commands/handlers/body_diff.py` (importable `handle_body_diff`), `backend/app/commands/schemas.py` (importable `BodyDiffParams`)

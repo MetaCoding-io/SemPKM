@@ -23,6 +23,7 @@ _OP_PRIORITY = [
     "object.create",
     "object.patch",
     "body.set",
+    "body.diff",
     "edge.create",
     "edge.patch",
     "edge.create.undo",
@@ -264,10 +265,19 @@ WHERE {{
                 if old_val is not None:
                     before_values[pred_iri] = old_val
 
-        # Compute body_diff for body.set events
+        # Compute body_diff for body.set and body.diff events
         body_diff: list[dict] | None = None
-        if "body.set" in op_type and new_values and before_values:
-            # The body predicate is the one in new_values
+        if "body.diff" in op_type:
+            # Stored diff — read directly from data_triples
+            diff_text = None
+            for s, p, o in data_triples:
+                if p == "urn:sempkm:bodyDiff":
+                    diff_text = o
+                    break
+            if diff_text:
+                body_diff = self._parse_stored_diff(diff_text)
+        elif "body.set" in op_type and new_values and before_values:
+            # Legacy computed diff — compute on the fly
             body_pred = next(iter(new_values), None)
             if body_pred:
                 old_body = before_values.get(body_pred, "")
@@ -327,6 +337,24 @@ LIMIT 1"""
         new_lines = (new_body or "").splitlines(keepends=True)
         diff_lines: list[dict] = []
         for line in difflib.unified_diff(old_lines, new_lines, lineterm=""):
+            if line.startswith("+++") or line.startswith("---") or line.startswith("@@"):
+                continue
+            elif line.startswith("+"):
+                diff_lines.append({"type": "add", "text": line[1:]})
+            elif line.startswith("-"):
+                diff_lines.append({"type": "remove", "text": line[1:]})
+            else:
+                diff_lines.append({"type": "context", "text": line[1:] if line.startswith(" ") else line})
+        return diff_lines if diff_lines else [{"type": "context", "text": "(no changes)"}]
+
+    def _parse_stored_diff(self, diff_text: str) -> list[dict]:
+        """Parse a stored unified diff string into display format.
+
+        Same output shape as _compute_body_diff() but reads from a
+        pre-computed diff string stored in the event graph.
+        """
+        diff_lines: list[dict] = []
+        for line in diff_text.splitlines():
             if line.startswith("+++") or line.startswith("---") or line.startswith("@@"):
                 continue
             elif line.startswith("+"):

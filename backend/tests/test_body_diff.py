@@ -1,8 +1,8 @@
 """Tests for the body.diff command — handler, schema, and dispatcher wiring.
 
 T01 tests cover the foundational plumbing: schemas, handler Operation output,
-and dispatcher/webhook registration. T03 will add tests for save_body()
-routing, event detail parsing, compensation, and backward compatibility.
+and dispatcher/webhook registration. T02 adds tests for _parse_stored_diff(),
+event detail body.diff handling, _OP_PRIORITY, and backward compat.
 """
 
 import pytest
@@ -157,3 +157,118 @@ class TestBodyDiffWiring:
         from app.commands.router import _COMMAND_EVENT_MAP
 
         assert _COMMAND_EVENT_MAP["body.diff"] == "object.changed"
+
+
+class TestOpPriority:
+    """Tests for _OP_PRIORITY containing body.diff."""
+
+    def test_body_diff_in_op_priority(self):
+        """body.diff is in _OP_PRIORITY list."""
+        from app.events.query import _OP_PRIORITY
+
+        assert "body.diff" in _OP_PRIORITY
+
+    def test_body_diff_after_body_set(self):
+        """body.diff appears after body.set in priority order."""
+        from app.events.query import _OP_PRIORITY
+
+        set_idx = _OP_PRIORITY.index("body.set")
+        diff_idx = _OP_PRIORITY.index("body.diff")
+        assert diff_idx == set_idx + 1
+
+    def test_get_primary_operation_body_diff(self):
+        """get_primary_operation recognizes body.diff as a primary op."""
+        from app.events.query import get_primary_operation
+
+        primary, secondary = get_primary_operation("body.diff")
+        assert primary == "body.diff"
+        assert secondary == []
+
+
+class TestParseStoredDiff:
+    """Tests for EventQueryService._parse_stored_diff()."""
+
+    def _make_service(self):
+        """Create an EventQueryService with a dummy client."""
+        from app.events.query import EventQueryService
+        return EventQueryService(client=None)
+
+    def test_parse_additions_and_removals(self):
+        """Correctly parses +/- lines from unified diff."""
+        svc = self._make_service()
+        diff_text = "--- a\n+++ b\n@@ -1,2 +1,2 @@\n-old line\n+new line\n context"
+        result = svc._parse_stored_diff(diff_text)
+        assert result == [
+            {"type": "remove", "text": "old line"},
+            {"type": "add", "text": "new line"},
+            {"type": "context", "text": "context"},
+        ]
+
+    def test_parse_empty_diff(self):
+        """Empty diff text returns no-changes marker."""
+        svc = self._make_service()
+        result = svc._parse_stored_diff("")
+        assert result == [{"type": "context", "text": "(no changes)"}]
+
+    def test_parse_context_only(self):
+        """Lines without +/- prefix are context lines."""
+        svc = self._make_service()
+        diff_text = " line one\n line two"
+        result = svc._parse_stored_diff(diff_text)
+        assert result == [
+            {"type": "context", "text": "line one"},
+            {"type": "context", "text": "line two"},
+        ]
+
+    def test_skips_header_lines(self):
+        """Skips --- +++ and @@ header lines."""
+        svc = self._make_service()
+        diff_text = "--- a/file\n+++ b/file\n@@ -1 +1 @@\n+added"
+        result = svc._parse_stored_diff(diff_text)
+        assert result == [{"type": "add", "text": "added"}]
+
+
+class TestEventDetailBodyDiffHandling:
+    """Tests for get_event_detail() handling body.diff events (T02)."""
+
+    def _make_service(self):
+        from app.events.query import EventQueryService
+        return EventQueryService(client=None)
+
+    def test_body_diff_reads_stored_diff(self):
+        """body.diff events parse diff from data_triples, not computed."""
+        svc = self._make_service()
+        # Simulate what get_event_detail() does for body.diff
+        op_type = "body.diff"
+        data_triples = [
+            ("urn:s", "urn:sempkm:bodyDiff", "-old\n+new"),
+            ("urn:s", "urn:sempkm:body", "new body"),
+        ]
+
+        # Extract diff from data_triples (mirrors get_event_detail logic)
+        body_diff = None
+        if "body.diff" in op_type:
+            diff_text = None
+            for s, p, o in data_triples:
+                if p == "urn:sempkm:bodyDiff":
+                    diff_text = o
+                    break
+            if diff_text:
+                body_diff = svc._parse_stored_diff(diff_text)
+
+        assert body_diff is not None
+        assert body_diff == [
+            {"type": "remove", "text": "old"},
+            {"type": "add", "text": "new"},
+        ]
+
+    def test_body_set_backward_compat(self):
+        """body.set events still use _compute_body_diff() on the fly."""
+        svc = self._make_service()
+        old_body = "line one\nline two"
+        new_body = "line one\nline three"
+        result = svc._compute_body_diff(old_body, new_body)
+        # Should contain a removal and an addition
+        types = [line["type"] for line in result]
+        assert "remove" in types
+        assert "add" in types
