@@ -479,3 +479,22 @@ AI-powered extension features: claim detection on web pages, contradiction surfa
 **Design:** `.gsd/design/BROWSER-EXTENSION-DESIGN.md`
 **Context:** `.gsd/milestones/M028/M028-CONTEXT.md`
 **Depends on:** M015
+
+---
+
+## Frontend Performance & Build Pipeline
+
+**Queued:** 2026-03-17
+**Status:** Queued as M029
+
+Measurable frontend performance improvement cycle: Lighthouse/WebPageTest audit baseline, full build pipeline (esbuild or Vite) for bundling/minification/content-hashing, local vendoring of all 18 CDN JS/CSS dependencies, gzip/brotli compression in nginx, proper HTTP caching with immutable hashed assets, CSS code-splitting by route, backend response profiling with ETag/conditional GET support, and QUIC/HTTP/3 research with implementation if low-cost.
+
+Key problems addressed:
+1. **18 CDN dependencies** on every page load (htmx, Cytoscape×5, marked, highlight.js, DOMPurify, Lucide, Split.js, Driver.js, dockview-core)
+2. **Zero compression** — nginx serves uncompressed 160KB CSS and 12K-line JS
+3. **No caching** — `no-store, no-cache` on all static assets
+4. **No minification** — raw source files served directly
+5. **No build pipeline** — no bundler, no tree-shaking, no content-hashed filenames
+6. **All CSS loaded everywhere** — workspace CSS loaded on admin pages
+
+**Context:** `.gsd/milestones/M029/M029-CONTEXT.md`
