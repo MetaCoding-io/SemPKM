@@ -74,7 +74,7 @@
   - Verify: `rdflib.Graph().parse()` succeeds on ontology with ≥150 triples. `parse_manifest()` succeeds without error.
   - Done when: Both files parse cleanly and manifest validates via Pydantic schema
 
-- [ ] **T02: Create SHACL shapes and ViewSpec/SavedQuery definitions** `est:20m`
+- [x] **T02: Create SHACL shapes and ViewSpec/SavedQuery definitions** `est:20m`
   - Why: Shapes drive form rendering (property groups, enums, helptext) and views provide table/card/graph display — required for both offline validation and Docker integration in S05
   - Files: `models/research/shapes/research.jsonld`, `models/research/views/research.jsonld`
   - Do: Create shapes with 5 NodeShapes, ~20 PropertyGroups, 5 sh:in enums (paperType 7 values, confidence 5 values, evidenceType 7 values, status 4 values, argumentType 5 values), sempkm:editHelpText on key fields. Create views with 5 ViewSpecs (Paper table, Claim table, Evidence table, ResearchQuestion table, Evidence Map graph with CONSTRUCT query) and 5 SavedQueries (Unsupported Claims, Contested Claims, Research Gaps, Orphan Evidence, All Papers). Shapes @context uses `"sempkm": "urn:sempkm:"`, views @context uses `"sempkm": "urn:sempkm:vocab:"` (critical namespace split). All SPARQL queries use full IRIs.
