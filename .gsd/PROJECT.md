@@ -285,7 +285,8 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 **Mental Models Expansion** (MODEL-01–04) — in progress (M011)
 - S01 complete: basic-pkm v2.0 with Task + Milestone types, 10-test acceptance suite, all 3 key risks retired
-- S02-S04 ready: Personal CRM, Zettelkasten+, Research Workflow (parallelizable)
+- S02 complete: Personal CRM with Contact/Company/Interaction/Deal, SHACL-AF inference+validation, 12 seed objects
+- S03-S04 ready: Zettelkasten+, Research Workflow (parallelizable)
 - Design: `.gsd/design/MENTAL-MODELS-EXPANSION-DESIGN.md`
 
 **Workspace & Event Log Polish** — queued (M012)
