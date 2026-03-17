@@ -81,7 +81,7 @@
   - Verify: Shapes parse with ≥350 triples, views parse with ≥80 triples via rdflib
   - Done when: Both files parse cleanly with triple counts in expected ranges
 
-- [ ] **T03: Create validation rules, seed data, and run full pipeline validation** `est:25m`
+- [x] **T03: Create validation rules, seed data, and run full pipeline validation** `est:25m`
   - Why: Validation rules are the core differentiator of this model (unsupported claims, contested claims detection). Seed data must trigger all 4 rules. Full pipeline validation proves the archive is correct end-to-end.
   - Files: `models/research/rules/research.ttl`, `models/research/seed/research.jsonld`
   - Do: Create 4 SPARQLConstraint rules on separate NodeShapes per D153: (1) UnsupportedClaimValidationShape — Warning, fires when confidence is "established"/"supported" but no evidence supports the claim; (2) ContestedClaimValidationShape — Info, fires when claim has both supporting AND refuting evidence; (3) OrphanEvidenceValidationShape — Warning, fires when evidence links to no claim; (4) UnansweredQuestionValidationShape — Info, fires when status is "open" with no arguments. Create seed data with 16 objects: 3 papers, 5 claims (including 1 "supported" with no evidence for trigger), 5 evidence (including 1 orphan), 2 research questions (1 with no arguments for trigger), 1 argument. Both sides of all 6 inverseOf pairs pre-populated per D154. Run full pipeline validation and pyshacl validation.

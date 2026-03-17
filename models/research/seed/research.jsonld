@@ -1,0 +1,239 @@
+{
+  "@context": {
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "owl": "http://www.w3.org/2002/07/owl#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "bpkm": "urn:sempkm:model:basic-pkm:",
+    "res": "urn:sempkm:model:research:"
+  },
+  "@graph": [
+
+    {
+      "@id": "res:seed-paper-kg-survey",
+      "@type": "res:Paper",
+      "res:title": "Knowledge Graphs: A Survey",
+      "res:abstract": "Comprehensive survey of knowledge graph construction techniques, representation formalisms, and applications across enterprise and academic domains.",
+      "res:authors": "Hogan, A.; Blomqvist, E.; Cochez, M.",
+      "res:year": { "@value": "2021", "@type": "xsd:gYear" },
+      "res:venue": "ACM Computing Surveys",
+      "res:paperType": "journal-article",
+      "res:doi": { "@value": "https://doi.org/10.1234/kg-survey-2021", "@type": "xsd:anyURI" },
+      "dcterms:created": { "@value": "2026-03-17", "@type": "xsd:date" },
+      "bpkm:tags": ["knowledge-graphs", "survey", "semantic-web"],
+      "res:hasClaim": [
+        { "@id": "res:seed-claim-kg-reduce-silos" },
+        { "@id": "res:seed-claim-sem-interop" }
+      ],
+      "res:citedBy": [
+        { "@id": "res:seed-paper-pkm-tools" }
+      ]
+    },
+    {
+      "@id": "res:seed-paper-pkm-tools",
+      "@type": "res:Paper",
+      "res:title": "Personal Knowledge Management Tools",
+      "res:abstract": "Empirical study of PKM tool adoption patterns, usage behaviors, and long-term retention rates among knowledge workers.",
+      "res:authors": "Chen, L.; Wang, R.",
+      "res:year": { "@value": "2023", "@type": "xsd:gYear" },
+      "res:venue": "CHI Conference on Human Factors in Computing Systems",
+      "res:paperType": "conference-paper",
+      "dcterms:created": { "@value": "2026-03-17", "@type": "xsd:date" },
+      "bpkm:tags": ["pkm", "tools", "adoption"],
+      "res:hasClaim": [
+        { "@id": "res:seed-claim-pkm-adoption" },
+        { "@id": "res:seed-claim-pkm-failure" }
+      ],
+      "res:cites": [
+        { "@id": "res:seed-paper-kg-survey" }
+      ]
+    },
+    {
+      "@id": "res:seed-paper-rdf-scaling",
+      "@type": "res:Paper",
+      "res:title": "RDF at Scale: Challenges and Solutions",
+      "res:abstract": "Analysis of RDF triple store performance characteristics at scale, comparing approaches for handling billions of triples.",
+      "res:authors": "Schmidt, M.; Meier, T.; Lausen, G.",
+      "res:year": { "@value": "2022", "@type": "xsd:gYear" },
+      "res:venue": "arXiv preprint",
+      "res:paperType": "preprint",
+      "dcterms:created": { "@value": "2026-03-17", "@type": "xsd:date" },
+      "bpkm:tags": ["rdf", "scaling", "performance"],
+      "res:hasClaim": [
+        { "@id": "res:seed-claim-rdf-scales" }
+      ]
+    },
+
+
+    {
+      "@id": "res:seed-claim-kg-reduce-silos",
+      "@type": "res:Claim",
+      "res:statement": "Knowledge graphs reduce information silos by providing a unified semantic layer across heterogeneous data sources.",
+      "res:confidence": "supported",
+      "res:rationale": "Multiple enterprise case studies demonstrate silo reduction, though sample sizes are small.",
+      "dcterms:created": { "@value": "2026-03-17", "@type": "xsd:date" },
+      "bpkm:tags": ["knowledge-graphs", "data-integration"],
+      "res:extractedFrom": { "@id": "res:seed-paper-kg-survey" }
+    },
+    {
+      "@id": "res:seed-claim-pkm-adoption",
+      "@type": "res:Claim",
+      "res:statement": "PKM tool adoption follows a power-law distribution, with a small number of tools capturing the majority of active users.",
+      "res:confidence": "established",
+      "res:rationale": "Large-scale survey data from 10,000+ knowledge workers confirms the distribution pattern.",
+      "dcterms:created": { "@value": "2026-03-17", "@type": "xsd:date" },
+      "bpkm:tags": ["pkm", "adoption", "power-law"],
+      "res:extractedFrom": { "@id": "res:seed-paper-pkm-tools" },
+      "res:supportedBy": [
+        { "@id": "res:seed-evidence-enterprise" }
+      ],
+      "res:addressedBy": [
+        { "@id": "res:seed-argument-1" }
+      ]
+    },
+    {
+      "@id": "res:seed-claim-pkm-failure",
+      "@type": "res:Claim",
+      "res:statement": "Most PKM systems are abandoned within 6 months of initial setup.",
+      "res:confidence": "contested",
+      "res:rationale": "Survey data supports the claim, but a longitudinal study with different methodology refutes it.",
+      "dcterms:created": { "@value": "2026-03-17", "@type": "xsd:date" },
+      "bpkm:tags": ["pkm", "abandonment", "retention"],
+      "res:extractedFrom": { "@id": "res:seed-paper-pkm-tools" },
+      "res:supportedBy": [
+        { "@id": "res:seed-evidence-survey" }
+      ],
+      "res:refutedBy": [
+        { "@id": "res:seed-evidence-longitudinal" }
+      ]
+    },
+    {
+      "@id": "res:seed-claim-rdf-scales",
+      "@type": "res:Claim",
+      "res:statement": "RDF scales better than property graphs for enterprise use cases requiring rich ontological reasoning.",
+      "res:confidence": "speculative",
+      "res:rationale": "Based on theoretical analysis of query complexity, not empirical benchmarks.",
+      "dcterms:created": { "@value": "2026-03-17", "@type": "xsd:date" },
+      "bpkm:tags": ["rdf", "property-graphs", "scaling"],
+      "res:extractedFrom": { "@id": "res:seed-paper-rdf-scaling" }
+    },
+    {
+      "@id": "res:seed-claim-sem-interop",
+      "@type": "res:Claim",
+      "res:statement": "Semantic standards improve data interoperability across organizational boundaries.",
+      "res:confidence": "established",
+      "res:rationale": "Well-documented through W3C standards adoption and EU open data initiatives.",
+      "dcterms:created": { "@value": "2026-03-17", "@type": "xsd:date" },
+      "bpkm:tags": ["semantic-web", "interoperability", "standards"],
+      "res:extractedFrom": { "@id": "res:seed-paper-kg-survey" },
+      "res:supportedBy": [
+        { "@id": "res:seed-evidence-interop-study" }
+      ]
+    },
+
+
+    {
+      "@id": "res:seed-evidence-enterprise",
+      "@type": "res:Evidence",
+      "res:description": "Survey of 10,000 knowledge workers across 50 organizations showing power-law distribution in PKM tool usage.",
+      "res:evidenceType": "empirical-data",
+      "res:source": "Chen & Wang 2023, Table 3",
+      "res:methodology": "Cross-sectional survey with stratified sampling",
+      "res:strength": "strong",
+      "dcterms:created": { "@value": "2026-03-17", "@type": "xsd:date" },
+      "bpkm:tags": ["survey", "pkm", "quantitative"],
+      "res:supports": { "@id": "res:seed-claim-pkm-adoption" },
+      "res:fromPaper": { "@id": "res:seed-paper-pkm-tools" }
+    },
+    {
+      "@id": "res:seed-evidence-interop-study",
+      "@type": "res:Evidence",
+      "res:description": "EU-funded study comparing data exchange success rates before and after semantic standards adoption across 20 agencies.",
+      "res:evidenceType": "statistical-finding",
+      "res:source": "Hogan et al. 2021, Section 5.2",
+      "res:methodology": "Pre/post comparison with matched controls",
+      "res:strength": "strong",
+      "dcterms:created": { "@value": "2026-03-17", "@type": "xsd:date" },
+      "bpkm:tags": ["interoperability", "eu", "statistical"],
+      "res:supports": { "@id": "res:seed-claim-sem-interop" },
+      "res:fromPaper": { "@id": "res:seed-paper-kg-survey" }
+    },
+    {
+      "@id": "res:seed-evidence-survey",
+      "@type": "res:Evidence",
+      "res:description": "Retrospective survey of 2,000 PKM tool users showing 68% abandoned their system within 6 months.",
+      "res:evidenceType": "case-study",
+      "res:source": "Chen & Wang 2023, Section 4.1",
+      "res:methodology": "Retrospective self-report survey",
+      "res:strength": "moderate",
+      "dcterms:created": { "@value": "2026-03-17", "@type": "xsd:date" },
+      "bpkm:tags": ["survey", "abandonment"],
+      "res:supports": { "@id": "res:seed-claim-pkm-failure" },
+      "res:fromPaper": { "@id": "res:seed-paper-pkm-tools" }
+    },
+    {
+      "@id": "res:seed-evidence-longitudinal",
+      "@type": "res:Evidence",
+      "res:description": "18-month longitudinal tracking study of 500 PKM users showing only 35% abandonment when onboarding support was provided.",
+      "res:evidenceType": "empirical-data",
+      "res:source": "Chen & Wang 2023, Section 4.3",
+      "res:methodology": "Prospective cohort study with active monitoring",
+      "res:strength": "strong",
+      "dcterms:created": { "@value": "2026-03-17", "@type": "xsd:date" },
+      "bpkm:tags": ["longitudinal", "retention"],
+      "res:refutes": { "@id": "res:seed-claim-pkm-failure" },
+      "res:fromPaper": { "@id": "res:seed-paper-pkm-tools" }
+    },
+    {
+      "@id": "res:seed-evidence-orphan",
+      "@type": "res:Evidence",
+      "res:description": "Anecdotal observation that graph-based note-taking tools show higher engagement metrics than hierarchical ones.",
+      "res:evidenceType": "observation",
+      "res:source": "Industry blog post, unverified",
+      "res:strength": "anecdotal",
+      "dcterms:created": { "@value": "2026-03-17", "@type": "xsd:date" },
+      "bpkm:tags": ["observation", "engagement"],
+      "res:fromPaper": { "@id": "res:seed-paper-pkm-tools" }
+    },
+
+
+    {
+      "@id": "res:seed-rq-pkm-effectiveness",
+      "@type": "res:ResearchQuestion",
+      "res:question": "How effective are PKM tools for long-term knowledge retention?",
+      "res:status": "open",
+      "res:context": "Growing adoption of PKM tools raises questions about whether they actually improve knowledge retention or just create an illusion of organized knowledge.",
+      "res:significance": "Determines whether investment in PKM tooling is justified for knowledge-intensive organizations.",
+      "dcterms:created": { "@value": "2026-03-17", "@type": "xsd:date" },
+      "bpkm:tags": ["pkm", "effectiveness", "retention"],
+      "res:hasArgument": [
+        { "@id": "res:seed-argument-1" }
+      ]
+    },
+    {
+      "@id": "res:seed-rq-scaling-limits",
+      "@type": "res:ResearchQuestion",
+      "res:question": "What are the practical scaling limits of RDF stores?",
+      "res:status": "open",
+      "res:context": "As knowledge graphs grow beyond millions of triples, performance characteristics of different storage backends become critical for system architecture decisions.",
+      "res:significance": "Informs technical architecture choices for large-scale semantic PKM systems.",
+      "dcterms:created": { "@value": "2026-03-17", "@type": "xsd:date" },
+      "bpkm:tags": ["rdf", "scaling", "architecture"]
+    },
+
+
+    {
+      "@id": "res:seed-argument-1",
+      "@type": "res:Argument",
+      "res:thesis": "PKM tools are effective for long-term retention when users maintain active engagement with their knowledge base.",
+      "res:argumentType": "literature-review",
+      "res:summary": "Synthesis of survey data and longitudinal evidence suggesting that PKM effectiveness depends on sustained active use rather than passive collection.",
+      "dcterms:created": { "@value": "2026-03-17", "@type": "xsd:date" },
+      "bpkm:tags": ["pkm", "effectiveness", "argument"],
+      "res:addresses": { "@id": "res:seed-rq-pkm-effectiveness" },
+      "res:usesClaim": { "@id": "res:seed-claim-pkm-adoption" },
+      "res:usesEvidence": { "@id": "res:seed-evidence-enterprise" }
+    }
+  ]
+}

@@ -1,0 +1,134 @@
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix res:   <urn:sempkm:model:research:> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+
+# ============================================================
+# Research Workflow SHACL-AF Rules
+# 4 validation rules, each on a separate NodeShape per D153.
+# No inference rules — owl:inverseOf entailment handles
+# inverse property materialization automatically.
+# ============================================================
+
+# Shared prefix declarations for SPARQL rules
+res:PrefixDeclarations
+    a owl:Ontology ;
+    sh:declare [
+        sh:prefix "res" ;
+        sh:namespace "urn:sempkm:model:research:"^^xsd:anyURI ;
+    ] ;
+    sh:declare [
+        sh:prefix "xsd" ;
+        sh:namespace "http://www.w3.org/2001/XMLSchema#"^^xsd:anyURI ;
+    ] .
+
+# ============================================================
+# Rule 1 (Validation): Unsupported Claim Warning
+# Fires sh:Warning when a Claim has confidence "established"
+# or "supported" but no evidence supports it. High-confidence
+# claims should have backing evidence.
+# ============================================================
+
+res:UnsupportedClaimValidationShape
+    a sh:NodeShape ;
+    sh:targetClass res:Claim ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Claim marked as {?confidence} but has no supporting evidence." ;
+        sh:prefixes res:PrefixDeclarations ;
+        sh:select """
+            SELECT $this ?confidence
+            WHERE {
+                $this <urn:sempkm:model:research:confidence> ?confidence .
+                FILTER(?confidence IN ("established", "supported"))
+                FILTER NOT EXISTS {
+                    ?e <urn:sempkm:model:research:supports> $this
+                }
+            }
+        """ ;
+    ] .
+
+# ============================================================
+# Rule 2 (Validation): Contested Claim Info
+# Fires sh:Info when a Claim has BOTH supporting AND refuting
+# evidence. Not an error — just a signal that the claim needs
+# careful review of the argument landscape.
+# ============================================================
+
+res:ContestedClaimValidationShape
+    a sh:NodeShape ;
+    sh:targetClass res:Claim ;
+    sh:severity sh:Info ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "This claim has conflicting evidence — review the argument." ;
+        sh:prefixes res:PrefixDeclarations ;
+        sh:select """
+            SELECT $this
+            WHERE {
+                FILTER EXISTS {
+                    ?e1 <urn:sempkm:model:research:supports> $this
+                }
+                FILTER EXISTS {
+                    ?e2 <urn:sempkm:model:research:refutes> $this
+                }
+            }
+        """ ;
+    ] .
+
+# ============================================================
+# Rule 3 (Validation): Orphan Evidence Warning
+# Fires sh:Warning when evidence is not linked to any claim
+# (neither supports nor refutes). Evidence should contribute
+# to the argumentation graph.
+# ============================================================
+
+res:OrphanEvidenceValidationShape
+    a sh:NodeShape ;
+    sh:targetClass res:Evidence ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "This evidence isn't linked to any claim." ;
+        sh:prefixes res:PrefixDeclarations ;
+        sh:select """
+            SELECT $this
+            WHERE {
+                FILTER NOT EXISTS {
+                    $this <urn:sempkm:model:research:supports> ?x
+                }
+                FILTER NOT EXISTS {
+                    $this <urn:sempkm:model:research:refutes> ?y
+                }
+            }
+        """ ;
+    ] .
+
+# ============================================================
+# Rule 4 (Validation): Unanswered Question Info
+# Fires sh:Info when a ResearchQuestion has status "open" and
+# no argument addresses it. Gentle nudge to start building
+# arguments around open questions.
+# ============================================================
+
+res:UnansweredQuestionValidationShape
+    a sh:NodeShape ;
+    sh:targetClass res:ResearchQuestion ;
+    sh:severity sh:Info ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "This research question has no arguments yet." ;
+        sh:prefixes res:PrefixDeclarations ;
+        sh:select """
+            SELECT $this
+            WHERE {
+                $this <urn:sempkm:model:research:status> "open" .
+                FILTER NOT EXISTS {
+                    ?arg <urn:sempkm:model:research:addresses> $this
+                }
+            }
+        """ ;
+    ] .
