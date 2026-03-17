@@ -7626,3 +7626,130 @@ details.form-group[open] > .form-group-summary::before {
     flex-shrink: 0;
     stroke: currentColor;
 }
+
+/* ----------------------------------------------------------------
+   Persona selector — popover section for workspace personas
+   ---------------------------------------------------------------- */
+
+.persona-selector {
+    padding: 4px 0;
+}
+
+.persona-selector-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2px 12px 4px;
+}
+
+.persona-selector-title {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+}
+
+.persona-selector-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+}
+
+.persona-selector-action:hover {
+    background: var(--color-bg);
+    color: var(--color-text);
+}
+
+.persona-selector-action svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+.persona-selector-list {
+    max-height: 160px;
+    overflow-y: auto;
+}
+
+.persona-selector-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 5px 12px;
+    border: none;
+    background: none;
+    color: var(--color-text);
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.persona-selector-item:hover {
+    background: var(--color-bg);
+}
+
+.persona-selector-item.active {
+    color: var(--color-accent, #4f8ff7);
+}
+
+.persona-selector-item.active .persona-item-icon {
+    color: var(--color-accent, #4f8ff7);
+}
+
+.persona-item-icon {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+.persona-item-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.persona-selector-save {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 5px 12px;
+    margin-top: 2px;
+    border: none;
+    background: none;
+    color: var(--color-text-muted);
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.persona-selector-save:hover {
+    background: var(--color-bg);
+    color: var(--color-text);
+}
+
+.persona-save-icon {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+.persona-selector-empty {
+    padding: 8px 12px;
+    font-size: 12px;
+    color: var(--color-text-muted);
+    font-style: italic;
+}

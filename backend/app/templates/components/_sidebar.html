@@ -171,6 +171,13 @@
         <i data-lucide="layout-dashboard" class="popover-icon"></i>
         <span>Layouts</span>
     </a>
+    <div class="popover-divider"></div>
+    <div id="persona-selector-container"
+         hx-get="/browser/personas/selector"
+         hx-trigger="load"
+         hx-swap="innerHTML">
+    </div>
+    <div class="popover-divider"></div>
     <div class="popover-theme-row">
         <button class="theme-btn" data-theme-value="light" onclick="setTheme('light')" title="Light">
             <i data-lucide="sun" class="popover-icon"></i>
