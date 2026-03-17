@@ -218,6 +218,13 @@ Follow `models/basic-pkm/rules/basic-pkm.ttl` for rules structure and `models/ba
 - `models/basic-pkm/rules/basic-pkm.ttl` — structural template for rules (especially OverdueTaskValidationShape and PrefixDeclarations)
 - `models/basic-pkm/seed/basic-pkm.jsonld` — structural template for seed data (typed dates, cross-refs, both-side inverse)
 
+## Observability Impact
+
+- **SHACL-AF rule firing:** `pyshacl.validate(data, shacl_graph=combined_shacl, ont_graph=ontology, advanced=True)` returns `(conforms, results_graph, text)`. The `text` output contains human-readable violation details including focus node IRI, path, severity, and message. When rules fire correctly, expect `conforms=False` with `sh:Warning` severity for stale-contact and overdue-follow-up. If `conforms=True`, the seed data does not contain trigger conditions or the SPARQL rule has a syntax issue.
+- **Inference visibility:** After `advanced=True` validation, the inferred `crm:lastContactedDate` triples are added to the data graph. Query `data.triples((None, crm.lastContactedDate, None))` to verify inference materialization.
+- **Seed data diagnostic:** `Graph().parse('models/crm/seed/crm.jsonld', format='json-ld')` triple count should be 80+. Count <40 signals missing objects or broken @context expansion.
+- **Failure inspection:** If `validate_archive()` returns errors, each `ValidationIssue` has `.file` and `.message` fields. Rules parse errors surface as rdflib exceptions with line numbers.
+
 ## Expected Output
 
 - `models/crm/rules/crm.ttl` — SHACL-AF rules with 1 inference rule + 2 validation rules
