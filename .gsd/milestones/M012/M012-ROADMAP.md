@@ -79,7 +79,7 @@ This milestone is complete only when all are true:
 
 ## Slices
 
-- [ ] **S01: Event Log Polish — Labels, Helptext & Autocomplete** `risk:low` `depends:[]`
+- [x] **S01: Event Log Polish — Labels, Helptext & Autocomplete** `risk:low` `depends:[]`
   > After this: User opens event log and sees human-readable predicate labels, helptext tooltips on hover, and autocomplete suggestions when filtering by type/predicate/object
 
 - [ ] **S02: Body.Diff — Incremental Storage & Rendering** `risk:medium` `depends:[]`
