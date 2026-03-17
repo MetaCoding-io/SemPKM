@@ -1,0 +1,133 @@
+{
+  "@context": {
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "res": "urn:sempkm:model:research:",
+    "sempkm": "urn:sempkm:vocab:"
+  },
+  "@graph": [
+    {
+      "@id": "res:PaperTableView",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Papers Table",
+      "dcterms:description": "Table view of all papers with key metadata",
+      "sempkm:targetClass": { "@id": "res:Paper" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?authors ?year ?venue ?paperType WHERE { ?s a <urn:sempkm:model:research:Paper> ; <urn:sempkm:model:research:title> ?title . OPTIONAL { ?s <urn:sempkm:model:research:authors> ?authors } . OPTIONAL { ?s <urn:sempkm:model:research:year> ?year } . OPTIONAL { ?s <urn:sempkm:model:research:venue> ?venue } . OPTIONAL { ?s <urn:sempkm:model:research:paperType> ?paperType } }",
+      "sempkm:columns": "title,authors,year,venue,paperType",
+      "sempkm:sortDefault": "year"
+    },
+    {
+      "@id": "res:ClaimTableView",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Claims Table",
+      "dcterms:description": "Table view of all claims with confidence levels",
+      "sempkm:targetClass": { "@id": "res:Claim" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?statement ?confidence ?rationale WHERE { ?s a <urn:sempkm:model:research:Claim> ; <urn:sempkm:model:research:statement> ?statement . OPTIONAL { ?s <urn:sempkm:model:research:confidence> ?confidence } . OPTIONAL { ?s <urn:sempkm:model:research:rationale> ?rationale } }",
+      "sempkm:columns": "statement,confidence,rationale",
+      "sempkm:sortDefault": "statement"
+    },
+    {
+      "@id": "res:EvidenceTableView",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Evidence Table",
+      "dcterms:description": "Table view of all evidence items with type and strength",
+      "sempkm:targetClass": { "@id": "res:Evidence" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?description ?evidenceType ?strength ?methodology WHERE { ?s a <urn:sempkm:model:research:Evidence> ; <urn:sempkm:model:research:description> ?description . OPTIONAL { ?s <urn:sempkm:model:research:evidenceType> ?evidenceType } . OPTIONAL { ?s <urn:sempkm:model:research:strength> ?strength } . OPTIONAL { ?s <urn:sempkm:model:research:methodology> ?methodology } }",
+      "sempkm:columns": "description,evidenceType,strength,methodology",
+      "sempkm:sortDefault": "description"
+    },
+    {
+      "@id": "res:ResearchQuestionTableView",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Research Questions Table",
+      "dcterms:description": "Table view of all research questions with status",
+      "sempkm:targetClass": { "@id": "res:ResearchQuestion" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?question ?status ?significance WHERE { ?s a <urn:sempkm:model:research:ResearchQuestion> ; <urn:sempkm:model:research:question> ?question . OPTIONAL { ?s <urn:sempkm:model:research:status> ?status } . OPTIONAL { ?s <urn:sempkm:model:research:significance> ?significance } }",
+      "sempkm:columns": "question,status,significance",
+      "sempkm:sortDefault": "question"
+    },
+    {
+      "@id": "res:ArgumentTableView",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Arguments Table",
+      "dcterms:description": "Table view of all arguments with type, thesis, and the research question they address",
+      "sempkm:targetClass": { "@id": "res:Argument" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?thesis ?argumentType ?summary ?questionLabel WHERE { ?s a <urn:sempkm:model:research:Argument> ; <urn:sempkm:model:research:thesis> ?thesis . OPTIONAL { ?s <urn:sempkm:model:research:argumentType> ?argumentType } . OPTIONAL { ?s <urn:sempkm:model:research:summary> ?summary } . OPTIONAL { ?s <urn:sempkm:model:research:addresses> ?rq . ?rq <urn:sempkm:model:research:question> ?questionLabel } }",
+      "sempkm:columns": "thesis,argumentType,summary,questionLabel",
+      "sempkm:sortDefault": "thesis"
+    },
+    {
+      "@id": "res:EvidenceMapGraphView",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Evidence Map",
+      "dcterms:description": "Graph view mapping claims to supporting and refuting evidence, with links to source papers",
+      "sempkm:targetClass": { "@id": "res:Claim" },
+      "sempkm:rendererType": "graph",
+      "sempkm:sparqlQuery": "CONSTRUCT { ?claim a <urn:sempkm:model:research:Claim> ; <urn:sempkm:model:research:statement> ?statement ; <urn:sempkm:model:research:confidence> ?confidence ; <urn:sempkm:model:research:supportedBy> ?supportEvidence ; <urn:sempkm:model:research:refutedBy> ?refuteEvidence ; <urn:sempkm:model:research:extractedFrom> ?paper . ?supportEvidence a <urn:sempkm:model:research:Evidence> ; <urn:sempkm:model:research:description> ?suppDesc . ?refuteEvidence a <urn:sempkm:model:research:Evidence> ; <urn:sempkm:model:research:description> ?refDesc . ?paper a <urn:sempkm:model:research:Paper> ; <urn:sempkm:model:research:title> ?paperTitle } WHERE { ?claim a <urn:sempkm:model:research:Claim> ; <urn:sempkm:model:research:statement> ?statement . OPTIONAL { ?claim <urn:sempkm:model:research:confidence> ?confidence } . OPTIONAL { ?claim <urn:sempkm:model:research:supportedBy> ?supportEvidence . ?supportEvidence <urn:sempkm:model:research:description> ?suppDesc } . OPTIONAL { ?claim <urn:sempkm:model:research:refutedBy> ?refuteEvidence . ?refuteEvidence <urn:sempkm:model:research:description> ?refDesc } . OPTIONAL { ?claim <urn:sempkm:model:research:extractedFrom> ?paper . ?paper <urn:sempkm:model:research:title> ?paperTitle } }"
+    },
+
+    {
+      "@id": "urn:sempkm:model:research:query:unsupported-claims",
+      "@type": "sempkm:SavedQuery",
+      "rdfs:label": "Unsupported Claims",
+      "dcterms:description": "Claims with confidence 'established' or 'supported' but no supporting evidence — potential gaps in your evidence base",
+      "sempkm:queryText": "SELECT ?s ?statement ?confidence WHERE { ?s a <urn:sempkm:model:research:Claim> ; <urn:sempkm:model:research:statement> ?statement ; <urn:sempkm:model:research:confidence> ?confidence . FILTER(?confidence IN ('established', 'supported')) . FILTER NOT EXISTS { ?s <urn:sempkm:model:research:supportedBy> ?evidence } } ORDER BY ?statement",
+      "sempkm:source": "model:research"
+    },
+    {
+      "@id": "urn:sempkm:model:research:query:contested-claims",
+      "@type": "sempkm:SavedQuery",
+      "rdfs:label": "Contested Claims",
+      "dcterms:description": "Claims that have both supporting and refuting evidence — active debates in your research",
+      "sempkm:queryText": "SELECT ?s ?statement ?confidence (COUNT(DISTINCT ?support) AS ?supportCount) (COUNT(DISTINCT ?refute) AS ?refuteCount) WHERE { ?s a <urn:sempkm:model:research:Claim> ; <urn:sempkm:model:research:statement> ?statement . OPTIONAL { ?s <urn:sempkm:model:research:confidence> ?confidence } . ?s <urn:sempkm:model:research:supportedBy> ?support . ?s <urn:sempkm:model:research:refutedBy> ?refute } GROUP BY ?s ?statement ?confidence ORDER BY ?statement",
+      "sempkm:source": "model:research"
+    },
+    {
+      "@id": "urn:sempkm:model:research:query:research-gaps",
+      "@type": "sempkm:SavedQuery",
+      "rdfs:label": "Research Gaps",
+      "dcterms:description": "Open research questions with no arguments — areas needing investigation",
+      "sempkm:queryText": "SELECT ?s ?question ?context ?significance WHERE { ?s a <urn:sempkm:model:research:ResearchQuestion> ; <urn:sempkm:model:research:question> ?question ; <urn:sempkm:model:research:status> 'open' . OPTIONAL { ?s <urn:sempkm:model:research:context> ?context } . OPTIONAL { ?s <urn:sempkm:model:research:significance> ?significance } . FILTER NOT EXISTS { ?s <urn:sempkm:model:research:hasArgument> ?arg } } ORDER BY ?question",
+      "sempkm:source": "model:research"
+    },
+    {
+      "@id": "urn:sempkm:model:research:query:orphan-evidence",
+      "@type": "sempkm:SavedQuery",
+      "rdfs:label": "Orphan Evidence",
+      "dcterms:description": "Evidence items not linked to any claim — may need to be connected to relevant claims",
+      "sempkm:queryText": "SELECT ?s ?description ?evidenceType ?strength WHERE { ?s a <urn:sempkm:model:research:Evidence> ; <urn:sempkm:model:research:description> ?description . OPTIONAL { ?s <urn:sempkm:model:research:evidenceType> ?evidenceType } . OPTIONAL { ?s <urn:sempkm:model:research:strength> ?strength } . FILTER NOT EXISTS { ?s <urn:sempkm:model:research:supports> ?claim1 } . FILTER NOT EXISTS { ?s <urn:sempkm:model:research:refutes> ?claim2 } } ORDER BY ?description",
+      "sempkm:source": "model:research"
+    },
+    {
+      "@id": "urn:sempkm:model:research:query:all-papers",
+      "@type": "sempkm:SavedQuery",
+      "rdfs:label": "All Papers with Claim Counts",
+      "dcterms:description": "All papers with the number of claims extracted from each — shows extraction coverage",
+      "sempkm:queryText": "SELECT ?s ?title ?authors ?year ?venue (COUNT(DISTINCT ?claim) AS ?claimCount) WHERE { ?s a <urn:sempkm:model:research:Paper> ; <urn:sempkm:model:research:title> ?title . OPTIONAL { ?s <urn:sempkm:model:research:authors> ?authors } . OPTIONAL { ?s <urn:sempkm:model:research:year> ?year } . OPTIONAL { ?s <urn:sempkm:model:research:venue> ?venue } . OPTIONAL { ?s <urn:sempkm:model:research:hasClaim> ?claim } } GROUP BY ?s ?title ?authors ?year ?venue ORDER BY ?title",
+      "sempkm:source": "model:research"
+    },
+    {
+      "@id": "urn:sempkm:model:research:query:high-confidence-claims",
+      "@type": "sempkm:SavedQuery",
+      "rdfs:label": "High Confidence Claims",
+      "dcterms:description": "Claims marked as established or supported — your strongest knowledge base",
+      "sempkm:queryText": "SELECT ?s ?statement ?confidence ?rationale WHERE { ?s a <urn:sempkm:model:research:Claim> ; <urn:sempkm:model:research:statement> ?statement ; <urn:sempkm:model:research:confidence> ?confidence . FILTER(?confidence IN ('established', 'supported')) . OPTIONAL { ?s <urn:sempkm:model:research:rationale> ?rationale } } ORDER BY ?confidence ?statement",
+      "sempkm:source": "model:research"
+    },
+    {
+      "@id": "urn:sempkm:model:research:query:citation-network",
+      "@type": "sempkm:SavedQuery",
+      "rdfs:label": "Citation Network",
+      "dcterms:description": "Papers and their citation relationships — shows how publications reference each other",
+      "sempkm:queryText": "CONSTRUCT { ?paper a <urn:sempkm:model:research:Paper> ; <urn:sempkm:model:research:title> ?title ; <urn:sempkm:model:research:cites> ?cited . ?cited a <urn:sempkm:model:research:Paper> ; <urn:sempkm:model:research:title> ?citedTitle } WHERE { ?paper a <urn:sempkm:model:research:Paper> ; <urn:sempkm:model:research:title> ?title ; <urn:sempkm:model:research:cites> ?cited . ?cited <urn:sempkm:model:research:title> ?citedTitle }",
+      "sempkm:source": "model:research"
+    }
+  ]
+}

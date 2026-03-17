@@ -1,0 +1,617 @@
+{
+  "@context": {
+    "sh": "http://www.w3.org/ns/shacl#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "owl": "http://www.w3.org/2002/07/owl#",
+    "res": "urn:sempkm:model:research:",
+    "sempkm": "urn:sempkm:"
+  },
+  "@graph": [
+
+    {
+      "@id": "res:PaperMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 1
+    },
+    {
+      "@id": "res:PaperContentGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Content",
+      "sh:order": 2
+    },
+    {
+      "@id": "res:PaperReferencesGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "References",
+      "sh:order": 3
+    },
+
+    {
+      "@id": "res:PaperShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "res:Paper" },
+      "rdfs:label": "Paper Shape",
+      "sempkm:editHelpText": "Papers are the primary units of scholarly communication — journal articles, conference papers, preprints, and other publications. Track metadata, extract claims, and build citation networks.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "res:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "res:PaperMetadataGroup" },
+          "sh:description": "The full title of the paper.",
+          "sempkm:editHelpText": "The complete title of the paper as it appears in the publication."
+        },
+        {
+          "sh:path": { "@id": "res:authors" },
+          "sh:name": "Authors",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "res:PaperMetadataGroup" },
+          "sh:description": "Author names for the paper.",
+          "sempkm:editHelpText": "List all authors separated by commas. Use 'Last, First' format for consistency."
+        },
+        {
+          "sh:path": { "@id": "res:year" },
+          "sh:name": "Year",
+          "sh:datatype": { "@id": "xsd:gYear" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "res:PaperMetadataGroup" },
+          "sh:description": "Publication year of the paper.",
+          "sempkm:editHelpText": "The year this paper was published (e.g., 2024)."
+        },
+        {
+          "sh:path": { "@id": "res:venue" },
+          "sh:name": "Venue",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "res:PaperMetadataGroup" },
+          "sh:description": "Journal, conference, or publication venue.",
+          "sempkm:editHelpText": "Where this paper was published — journal name, conference proceedings, or platform."
+        },
+        {
+          "sh:path": { "@id": "res:doi" },
+          "sh:name": "DOI",
+          "sh:datatype": { "@id": "xsd:anyURI" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "res:PaperMetadataGroup" },
+          "sh:description": "Digital Object Identifier for the paper.",
+          "sempkm:editHelpText": "DOI or permanent URL for this paper. Use the full URL form (e.g., https://doi.org/10.1234/...)."
+        },
+        {
+          "sh:path": { "@id": "res:paperType" },
+          "sh:name": "Paper Type",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": {
+            "@list": ["journal-article", "conference-paper", "preprint", "book-chapter", "thesis", "report", "other"]
+          },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "res:PaperMetadataGroup" },
+          "sh:description": "Category of paper.",
+          "sempkm:editHelpText": "What kind of publication is this? Helps filter your research library."
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Date Added",
+          "sh:datatype": { "@id": "xsd:date" },
+          "sh:maxCount": 1,
+          "sh:order": 7,
+          "sh:group": { "@id": "res:PaperMetadataGroup" },
+          "sh:description": "Date this paper was added to the library.",
+          "sempkm:editHelpText": "When you added this paper to your collection."
+        },
+        {
+          "sh:path": { "@id": "res:abstract" },
+          "sh:name": "Abstract",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "res:PaperContentGroup" },
+          "sh:description": "Abstract or summary of the paper.",
+          "sempkm:editHelpText": "The paper's abstract or your brief summary of its content."
+        },
+        {
+          "sh:path": { "@id": "res:cites" },
+          "sh:name": "Cites",
+          "sh:class": { "@id": "res:Paper" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:order": 1,
+          "sh:group": { "@id": "res:PaperReferencesGroup" },
+          "sh:description": "Papers this paper cites.",
+          "sempkm:editHelpText": "Link to other papers in your library that this paper references."
+        },
+        {
+          "sh:path": { "@id": "res:citedBy" },
+          "sh:name": "Cited By",
+          "sh:class": { "@id": "res:Paper" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:order": 2,
+          "sh:group": { "@id": "res:PaperReferencesGroup" },
+          "sh:description": "Papers that cite this paper.",
+          "sempkm:editHelpText": "Link to other papers in your library that cite this paper."
+        },
+        {
+          "sh:path": { "@id": "res:hasClaim" },
+          "sh:name": "Has Claims",
+          "sh:class": { "@id": "res:Claim" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:order": 3,
+          "sh:group": { "@id": "res:PaperReferencesGroup" },
+          "sh:description": "Claims extracted from this paper.",
+          "sempkm:editHelpText": "Link to claims you've extracted from this paper."
+        }
+      ]
+    },
+
+
+    {
+      "@id": "res:ClaimStatementGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Statement",
+      "sh:order": 1
+    },
+    {
+      "@id": "res:ClaimRelationsGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Relations",
+      "sh:order": 2
+    },
+    {
+      "@id": "res:ClaimEvidenceGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Evidence",
+      "sh:order": 3
+    },
+    {
+      "@id": "res:ClaimArgumentsGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Arguments",
+      "sh:order": 4
+    },
+
+    {
+      "@id": "res:ClaimShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "res:Claim" },
+      "rdfs:label": "Claim Shape",
+      "sempkm:editHelpText": "Claims are specific assertions extracted from papers. Each claim captures a discrete knowledge proposition that can be supported or refuted by evidence and corroborated or contradicted by other claims.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "res:statement" },
+          "sh:name": "Statement",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "res:ClaimStatementGroup" },
+          "sh:description": "The assertion text of this claim.",
+          "sempkm:editHelpText": "The central assertion this claim makes. State it clearly and precisely — one idea per claim."
+        },
+        {
+          "sh:path": { "@id": "res:confidence" },
+          "sh:name": "Confidence",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": {
+            "@list": ["established", "supported", "contested", "speculative", "refuted"]
+          },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "res:ClaimStatementGroup" },
+          "sh:description": "Confidence level of this claim.",
+          "sempkm:editHelpText": "How well-supported is this claim? Update as you gather more evidence."
+        },
+        {
+          "sh:path": { "@id": "res:rationale" },
+          "sh:name": "Rationale",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "res:ClaimStatementGroup" },
+          "sh:description": "Justification for the confidence assessment.",
+          "sempkm:editHelpText": "Why did you assign this confidence level? Summarize the reasoning."
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Date Added",
+          "sh:datatype": { "@id": "xsd:date" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "res:ClaimStatementGroup" },
+          "sh:description": "Date this claim was recorded.",
+          "sempkm:editHelpText": "When this claim was added to your research."
+        },
+        {
+          "sh:path": { "@id": "res:extractedFrom" },
+          "sh:name": "Extracted From",
+          "sh:class": { "@id": "res:Paper" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "res:ClaimRelationsGroup" },
+          "sh:description": "The paper this claim was extracted from.",
+          "sempkm:editHelpText": "Link to the paper where you found this claim. Maintains provenance."
+        },
+        {
+          "sh:path": { "@id": "res:corroborates" },
+          "sh:name": "Corroborates",
+          "sh:class": { "@id": "res:Claim" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:order": 2,
+          "sh:group": { "@id": "res:ClaimRelationsGroup" },
+          "sh:description": "Other claims this claim corroborates.",
+          "sempkm:editHelpText": "Link to claims that say the same thing from different sources — convergent evidence."
+        },
+        {
+          "sh:path": { "@id": "res:contradicts" },
+          "sh:name": "Contradicts",
+          "sh:class": { "@id": "res:Claim" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:order": 3,
+          "sh:group": { "@id": "res:ClaimRelationsGroup" },
+          "sh:description": "Other claims this claim contradicts.",
+          "sempkm:editHelpText": "Link to claims that oppose this one — helps map debates and tensions."
+        },
+        {
+          "sh:path": { "@id": "res:dependsOn" },
+          "sh:name": "Depends On",
+          "sh:class": { "@id": "res:Claim" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:order": 4,
+          "sh:group": { "@id": "res:ClaimRelationsGroup" },
+          "sh:description": "Claims this claim logically depends on.",
+          "sempkm:editHelpText": "Link to claims that must be true for this claim to hold."
+        },
+        {
+          "sh:path": { "@id": "res:supportedBy" },
+          "sh:name": "Supported By",
+          "sh:class": { "@id": "res:Evidence" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:order": 1,
+          "sh:group": { "@id": "res:ClaimEvidenceGroup" },
+          "sh:description": "Evidence that supports this claim.",
+          "sempkm:editHelpText": "Link to evidence items that provide support for this claim."
+        },
+        {
+          "sh:path": { "@id": "res:refutedBy" },
+          "sh:name": "Refuted By",
+          "sh:class": { "@id": "res:Evidence" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:order": 2,
+          "sh:group": { "@id": "res:ClaimEvidenceGroup" },
+          "sh:description": "Evidence that refutes this claim.",
+          "sempkm:editHelpText": "Link to evidence items that provide counter-evidence for this claim."
+        },
+        {
+          "sh:path": { "@id": "res:addressedBy" },
+          "sh:name": "Addressed By",
+          "sh:class": { "@id": "res:Argument" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:order": 1,
+          "sh:group": { "@id": "res:ClaimArgumentsGroup" },
+          "sh:description": "Arguments that use this claim.",
+          "sempkm:editHelpText": "Link to arguments that incorporate this claim as a premise."
+        }
+      ]
+    },
+
+
+    {
+      "@id": "res:EvidenceDetailsGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Details",
+      "sh:order": 1
+    },
+    {
+      "@id": "res:EvidenceLinksGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Links",
+      "sh:order": 2
+    },
+
+    {
+      "@id": "res:EvidenceShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "res:Evidence" },
+      "rdfs:label": "Evidence Shape",
+      "sempkm:editHelpText": "Evidence items are empirical data, experimental results, or observations that support or refute claims. Each piece of evidence should be linked to its source paper and the claims it affects.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "res:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "res:EvidenceDetailsGroup" },
+          "sh:description": "Description of the evidence.",
+          "sempkm:editHelpText": "Describe what this evidence shows. Be specific about the finding or observation."
+        },
+        {
+          "sh:path": { "@id": "res:evidenceType" },
+          "sh:name": "Evidence Type",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": {
+            "@list": ["empirical-data", "statistical-finding", "case-study", "expert-opinion", "logical-argument", "observation", "quote"]
+          },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "res:EvidenceDetailsGroup" },
+          "sh:description": "Category of evidence.",
+          "sempkm:editHelpText": "What kind of evidence is this? Helps assess its weight and relevance."
+        },
+        {
+          "sh:path": { "@id": "res:source" },
+          "sh:name": "Source",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "res:EvidenceDetailsGroup" },
+          "sh:description": "Source reference or citation for the evidence.",
+          "sempkm:editHelpText": "Citation or reference where this evidence can be found (e.g., Table 3, p. 42)."
+        },
+        {
+          "sh:path": { "@id": "res:methodology" },
+          "sh:name": "Methodology",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "res:EvidenceDetailsGroup" },
+          "sh:description": "Research methodology used to produce this evidence.",
+          "sempkm:editHelpText": "How was this evidence produced? The method affects how much weight it carries."
+        },
+        {
+          "sh:path": { "@id": "res:strength" },
+          "sh:name": "Strength",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": {
+            "@list": ["strong", "moderate", "weak", "anecdotal", "preliminary"]
+          },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "res:EvidenceDetailsGroup" },
+          "sh:description": "Strength assessment of the evidence.",
+          "sempkm:editHelpText": "How strong is this evidence? Consider sample size, methodology rigor, and replicability."
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Date Added",
+          "sh:datatype": { "@id": "xsd:date" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "res:EvidenceDetailsGroup" },
+          "sh:description": "Date this evidence was recorded.",
+          "sempkm:editHelpText": "When this evidence was added to your research."
+        },
+        {
+          "sh:path": { "@id": "res:supports" },
+          "sh:name": "Supports",
+          "sh:class": { "@id": "res:Claim" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:order": 1,
+          "sh:group": { "@id": "res:EvidenceLinksGroup" },
+          "sh:description": "Claims this evidence supports.",
+          "sempkm:editHelpText": "Link to claims that this evidence provides support for."
+        },
+        {
+          "sh:path": { "@id": "res:refutes" },
+          "sh:name": "Refutes",
+          "sh:class": { "@id": "res:Claim" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:order": 2,
+          "sh:group": { "@id": "res:EvidenceLinksGroup" },
+          "sh:description": "Claims this evidence refutes.",
+          "sempkm:editHelpText": "Link to claims that this evidence provides counter-evidence for."
+        },
+        {
+          "sh:path": { "@id": "res:fromPaper" },
+          "sh:name": "From Paper",
+          "sh:class": { "@id": "res:Paper" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "res:EvidenceLinksGroup" },
+          "sh:description": "The paper this evidence originates from.",
+          "sempkm:editHelpText": "Link to the paper where this evidence was found."
+        }
+      ]
+    },
+
+
+    {
+      "@id": "res:ResearchQuestionQuestionGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Question",
+      "sh:order": 1
+    },
+    {
+      "@id": "res:ResearchQuestionArgumentsGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Arguments",
+      "sh:order": 2
+    },
+
+    {
+      "@id": "res:ResearchQuestionShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "res:ResearchQuestion" },
+      "rdfs:label": "Research Question Shape",
+      "sempkm:editHelpText": "Research questions drive your investigation. Each question can be addressed by arguments that synthesize claims and evidence. Track their status as your research progresses.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "res:question" },
+          "sh:name": "Question",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "res:ResearchQuestionQuestionGroup" },
+          "sh:description": "The research question text.",
+          "sempkm:editHelpText": "State the question clearly. Good research questions are specific and falsifiable."
+        },
+        {
+          "sh:path": { "@id": "res:status" },
+          "sh:name": "Status",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": {
+            "@list": ["open", "partially-answered", "answered", "abandoned"]
+          },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "res:ResearchQuestionQuestionGroup" },
+          "sh:description": "Current status of the research question.",
+          "sempkm:editHelpText": "Track where this question stands. Update as you build arguments."
+        },
+        {
+          "sh:path": { "@id": "res:context" },
+          "sh:name": "Context",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "res:ResearchQuestionQuestionGroup" },
+          "sh:description": "Background context or motivation for the question.",
+          "sempkm:editHelpText": "Why is this question important? What gap in knowledge does it address?"
+        },
+        {
+          "sh:path": { "@id": "res:significance" },
+          "sh:name": "Significance",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "res:ResearchQuestionQuestionGroup" },
+          "sh:description": "Why this research question matters.",
+          "sempkm:editHelpText": "What's the potential impact of answering this question?"
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Date Added",
+          "sh:datatype": { "@id": "xsd:date" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "res:ResearchQuestionQuestionGroup" },
+          "sh:description": "Date this question was posed.",
+          "sempkm:editHelpText": "When this question was added to your research."
+        },
+        {
+          "sh:path": { "@id": "res:hasArgument" },
+          "sh:name": "Has Arguments",
+          "sh:class": { "@id": "res:Argument" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:order": 1,
+          "sh:group": { "@id": "res:ResearchQuestionArgumentsGroup" },
+          "sh:description": "Arguments that address this research question.",
+          "sempkm:editHelpText": "Link to arguments that attempt to answer this question."
+        }
+      ]
+    },
+
+
+    {
+      "@id": "res:ArgumentContentGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Content",
+      "sh:order": 1
+    },
+    {
+      "@id": "res:ArgumentReferencesGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "References",
+      "sh:order": 2
+    },
+
+    {
+      "@id": "res:ArgumentShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "res:Argument" },
+      "rdfs:label": "Argument Shape",
+      "sempkm:editHelpText": "Arguments synthesize claims and evidence to address a research question. Each argument presents a thesis supported by referenced claims and evidence items.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "res:thesis" },
+          "sh:name": "Thesis",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "res:ArgumentContentGroup" },
+          "sh:description": "The central thesis of this argument.",
+          "sempkm:editHelpText": "State the main point of your argument. What conclusion are you drawing?"
+        },
+        {
+          "sh:path": { "@id": "res:argumentType" },
+          "sh:name": "Argument Type",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": {
+            "@list": ["literature-review", "position-paper", "analysis", "synthesis", "rebuttal"]
+          },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "res:ArgumentContentGroup" },
+          "sh:description": "Category of argument.",
+          "sempkm:editHelpText": "What kind of argument is this? Helps classify your reasoning approach."
+        },
+        {
+          "sh:path": { "@id": "res:summary" },
+          "sh:name": "Summary",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "res:ArgumentContentGroup" },
+          "sh:description": "Brief summary of the argument's reasoning.",
+          "sempkm:editHelpText": "Summarize how you get from the evidence and claims to your conclusion."
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Date Added",
+          "sh:datatype": { "@id": "xsd:date" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "res:ArgumentContentGroup" },
+          "sh:description": "Date this argument was written.",
+          "sempkm:editHelpText": "When this argument was added to your research."
+        },
+        {
+          "sh:path": { "@id": "res:addresses" },
+          "sh:name": "Addresses",
+          "sh:class": { "@id": "res:ResearchQuestion" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "res:ArgumentReferencesGroup" },
+          "sh:description": "The research question this argument addresses.",
+          "sempkm:editHelpText": "Link to the research question this argument attempts to answer."
+        },
+        {
+          "sh:path": { "@id": "res:usesClaim" },
+          "sh:name": "Uses Claims",
+          "sh:class": { "@id": "res:Claim" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:order": 2,
+          "sh:group": { "@id": "res:ArgumentReferencesGroup" },
+          "sh:description": "Claims used as premises in this argument.",
+          "sempkm:editHelpText": "Link to claims that serve as premises or evidence for this argument."
+        },
+        {
+          "sh:path": { "@id": "res:usesEvidence" },
+          "sh:name": "Uses Evidence",
+          "sh:class": { "@id": "res:Evidence" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:order": 3,
+          "sh:group": { "@id": "res:ArgumentReferencesGroup" },
+          "sh:description": "Evidence items incorporated in this argument.",
+          "sempkm:editHelpText": "Link to evidence items that support this argument's reasoning."
+        }
+      ]
+    }
+  ]
+}

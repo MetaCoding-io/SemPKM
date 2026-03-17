@@ -111,6 +111,16 @@ Create SHACL shapes with 5 NodeShapes, ~20 PropertyGroups, 5 enums, and editHelp
 - `models/crm/shapes/crm.jsonld` — structural template for NodeShape/PropertyGroup/enum patterns
 - `models/crm/views/crm.jsonld` — structural template for ViewSpec/SavedQuery patterns
 
+## Observability Impact
+
+- **Shapes triple count** — `rdflib.Graph().parse()` on `models/research/shapes/research.jsonld` reports triple count. ≥350 confirms adequate PropertyShape/PropertyGroup/enum coverage.
+- **Views triple count** — `rdflib.Graph().parse()` on `models/research/views/research.jsonld` reports triple count. ≥80 confirms ViewSpec and SavedQuery coverage.
+- **Pipeline validation** — `validate_archive()` on the research model returns `is_valid=True, errors=0` when shapes and views are structurally sound.
+- **Failure shapes:** JSON-LD parse errors surface as Python exceptions with descriptive messages. Missing `sh:targetClass` or wrong namespace causes downstream form/view rendering failures (empty forms, missing columns).
+- **Diagnostic commands:**
+  - Shapes: `cd backend && .venv/bin/python3 -c "from rdflib import Graph; g=Graph().parse('../models/research/shapes/research.jsonld', format='json-ld'); print(f'Shapes: {len(g)}')"` — reports triple count
+  - Views: `cd backend && .venv/bin/python3 -c "from rdflib import Graph; g=Graph().parse('../models/research/views/research.jsonld', format='json-ld'); print(f'Views: {len(g)}')"` — reports triple count
+
 ## Expected Output
 
 - `models/research/shapes/research.jsonld` — 5 NodeShapes, ~20 PropertyGroups, 5 enums, editHelpText, ≥350 triples
