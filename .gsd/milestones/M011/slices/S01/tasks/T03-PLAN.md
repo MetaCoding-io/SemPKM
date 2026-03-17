@@ -115,6 +115,14 @@ Per D152: no Event type in v2.0 — only Task and Milestone.
 - `python -c "import yaml; m=yaml.safe_load(open('models/basic-pkm/manifest.yaml')); assert m['version']=='2.0.0'; print(len(m['icons']), 'icons')"` prints "6 icons"
 - Seed data contains a task with past dueDate: `python -c "from rdflib import Graph, URIRef; g=Graph(); g.parse('models/basic-pkm/seed/basic-pkm.jsonld', format='json-ld'); overdue=list(g.objects(URIRef('urn:sempkm:model:basic-pkm:seed-task-fix-validation'), URIRef('urn:sempkm:model:basic-pkm:dueDate'))); print(f'dueDate: {overdue}'); assert len(overdue)==1"`
 
+## Observability Impact
+
+- **Views triple count** increases from ~91 to ~200+ (6 new ViewSpecs + 3 new SavedQueries add ~100+ triples). Diagnostic: `python -c "from rdflib import Graph; g=Graph(); g.parse('models/basic-pkm/views/basic-pkm.jsonld', format='json-ld'); print(len(g))"`
+- **Seed triple count** increases from ~111 to ~170+ (4 tasks, 2 milestones, inverse properties on existing objects). Diagnostic: `python -c "from rdflib import Graph; g=Graph(); g.parse('models/basic-pkm/seed/basic-pkm.jsonld', format='json-ld'); print(len(g))"`
+- **Manifest version** bumps from 1.3.0 → 2.0.0. Diagnostic: `python -c "import yaml; m=yaml.safe_load(open('models/basic-pkm/manifest.yaml')); print(m['version'], len(m['icons']), 'icons')"`
+- **Overdue seed task** visible via: `python -c "from rdflib import Graph, URIRef; g=Graph(); g.parse('models/basic-pkm/seed/basic-pkm.jsonld', format='json-ld'); print(list(g.objects(URIRef('urn:sempkm:model:basic-pkm:seed-task-fix-validation'), URIRef('urn:sempkm:model:basic-pkm:dueDate'))))"`
+- **Failure visibility:** rdflib parse errors surface immediately as Python tracebacks. YAML syntax errors caught by yaml.safe_load(). Invalid JSON-LD context references produce rdflib warnings.
+
 ## Inputs
 
 - `models/basic-pkm/views/basic-pkm.jsonld` — existing v1.3 views with 12 ViewSpecs + 3 SavedQueries

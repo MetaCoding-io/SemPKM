@@ -62,7 +62,7 @@
   - Verify: `python -c "from rdflib import Graph; g=Graph(); g.parse('models/basic-pkm/rules/basic-pkm.ttl', format='turtle'); print(f'{len(g)} triples')"` succeeds.
   - Done when: rules file parses as valid Turtle, contains inference rule for task project denorm, contains validation shape with sh:sparql + sh:severity sh:Warning for overdue tasks, separate from inference shapes.
 
-- [ ] **T03: Add views, seed data, and update manifest to v2.0.0** `est:1h`
+- [x] **T03: Add views, seed data, and update manifest to v2.0.0** `est:1h`
   - Why: Completes the archive with ViewSpecs for browsing Tasks/Milestones, seed data demonstrating the types (including an overdue task for validation testing), and manifest version bump with icon entries.
   - Files: `models/basic-pkm/views/basic-pkm.jsonld`, `models/basic-pkm/seed/basic-pkm.jsonld`, `models/basic-pkm/manifest.yaml`
   - Do: Add 6 ViewSpecs (Task table/card/graph, Milestone table/card/graph) following existing pattern. Add 3 SavedQueries ("My Open Tasks", "Overdue Tasks", "Blocked Tasks"). Add seed tasks and milestones per design doc §1 with both sides of inverseOf pre-populated (D154). Include one task with dueDate in the past and status "todo" (triggers overdue validation). Bump manifest version to "2.0.0", add Task and Milestone icon entries with tree/tab/graph contexts, add entailment_defaults.

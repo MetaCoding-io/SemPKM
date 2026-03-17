@@ -128,6 +128,64 @@
     },
 
     {
+      "@id": "bpkm:view-task-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Tasks Table",
+      "sempkm:targetClass": { "@id": "bpkm:Task" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?taskStatus ?priority ?dueDate ?assignedTo ?taskProject ?milestone WHERE { ?s a <urn:sempkm:model:basic-pkm:Task> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:taskStatus> ?taskStatus } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:priority> ?priority } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:dueDate> ?dueDate } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:assignedTo> ?p . ?p <http://xmlns.com/foaf/0.1/name> ?assignedTo } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:taskProject> ?proj . ?proj <http://purl.org/dc/terms/title> ?taskProject } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:milestone> ?ms . ?ms <http://purl.org/dc/terms/title> ?milestone } } ORDER BY ?dueDate",
+      "sempkm:columns": "title,taskStatus,priority,dueDate,assignedTo,taskProject",
+      "sempkm:sortDefault": "dueDate"
+    },
+    {
+      "@id": "bpkm:view-task-card",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Tasks Cards",
+      "sempkm:targetClass": { "@id": "bpkm:Task" },
+      "sempkm:rendererType": "card",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?taskStatus ?priority ?dueDate ?description WHERE { ?s a <urn:sempkm:model:basic-pkm:Task> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:taskStatus> ?taskStatus } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:priority> ?priority } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:dueDate> ?dueDate } . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } }",
+      "sempkm:cardTitle": "http://purl.org/dc/terms/title",
+      "sempkm:cardSubtitle": "urn:sempkm:model:basic-pkm:taskStatus"
+    },
+    {
+      "@id": "bpkm:view-task-graph",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Tasks Graph",
+      "sempkm:targetClass": { "@id": "bpkm:Task" },
+      "sempkm:rendererType": "graph",
+      "sempkm:sparqlQuery": "CONSTRUCT { ?s a <urn:sempkm:model:basic-pkm:Task> ; <http://purl.org/dc/terms/title> ?title ; <urn:sempkm:model:basic-pkm:dependsOn> ?dep ; <urn:sempkm:model:basic-pkm:assignedTo> ?person ; <urn:sempkm:model:basic-pkm:taskProject> ?project . ?dep <http://purl.org/dc/terms/title> ?dtitle . ?person <http://xmlns.com/foaf/0.1/name> ?pname . ?project <http://purl.org/dc/terms/title> ?ptitle } WHERE { ?s a <urn:sempkm:model:basic-pkm:Task> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:dependsOn> ?dep . ?dep <http://purl.org/dc/terms/title> ?dtitle } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:assignedTo> ?person . ?person <http://xmlns.com/foaf/0.1/name> ?pname } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:taskProject> ?project . ?project <http://purl.org/dc/terms/title> ?ptitle } }"
+    },
+
+    {
+      "@id": "bpkm:view-milestone-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Milestones Table",
+      "sempkm:targetClass": { "@id": "bpkm:Milestone" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?milestoneStatus ?targetDate ?milestoneProject WHERE { ?s a <urn:sempkm:model:basic-pkm:Milestone> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:milestoneStatus> ?milestoneStatus } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:targetDate> ?targetDate } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:milestoneProject> ?proj . ?proj <http://purl.org/dc/terms/title> ?milestoneProject } } ORDER BY ?targetDate",
+      "sempkm:columns": "title,milestoneStatus,targetDate,milestoneProject",
+      "sempkm:sortDefault": "targetDate"
+    },
+    {
+      "@id": "bpkm:view-milestone-card",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Milestones Cards",
+      "sempkm:targetClass": { "@id": "bpkm:Milestone" },
+      "sempkm:rendererType": "card",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?milestoneStatus ?targetDate ?description WHERE { ?s a <urn:sempkm:model:basic-pkm:Milestone> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:milestoneStatus> ?milestoneStatus } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:targetDate> ?targetDate } . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } }",
+      "sempkm:cardTitle": "http://purl.org/dc/terms/title",
+      "sempkm:cardSubtitle": "urn:sempkm:model:basic-pkm:milestoneStatus"
+    },
+    {
+      "@id": "bpkm:view-milestone-graph",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Milestones Graph",
+      "sempkm:targetClass": { "@id": "bpkm:Milestone" },
+      "sempkm:rendererType": "graph",
+      "sempkm:sparqlQuery": "CONSTRUCT { ?s a <urn:sempkm:model:basic-pkm:Milestone> ; <http://purl.org/dc/terms/title> ?title ; <urn:sempkm:model:basic-pkm:hasTasks> ?task ; <urn:sempkm:model:basic-pkm:milestoneProject> ?project . ?task <http://purl.org/dc/terms/title> ?ttitle . ?project <http://purl.org/dc/terms/title> ?ptitle } WHERE { ?s a <urn:sempkm:model:basic-pkm:Milestone> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:hasTasks> ?task . ?task <http://purl.org/dc/terms/title> ?ttitle } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:milestoneProject> ?project . ?project <http://purl.org/dc/terms/title> ?ptitle } }"
+    },
+
+    {
       "@id": "urn:sempkm:model:basic-pkm:query:active-projects",
       "@type": "sempkm:SavedQuery",
       "rdfs:label": "Active Projects",
@@ -149,6 +207,31 @@
       "rdfs:label": "Concept Hierarchy",
       "dcterms:description": "Concepts with their broader/narrower relationships for exploring the taxonomy",
       "sempkm:queryText": "SELECT ?s ?label ?broader ?narrower WHERE { ?s a <urn:sempkm:model:basic-pkm:Concept> ; <http://www.w3.org/2004/02/skos/core#prefLabel> ?label . OPTIONAL { ?s <http://www.w3.org/2004/02/skos/core#broader> ?b . ?b <http://www.w3.org/2004/02/skos/core#prefLabel> ?broader } . OPTIONAL { ?s <http://www.w3.org/2004/02/skos/core#narrower> ?n . ?n <http://www.w3.org/2004/02/skos/core#prefLabel> ?narrower } } ORDER BY ?label",
+      "sempkm:source": "model:basic-pkm"
+    },
+
+    {
+      "@id": "urn:sempkm:model:basic-pkm:query:open-tasks",
+      "@type": "sempkm:SavedQuery",
+      "rdfs:label": "My Open Tasks",
+      "dcterms:description": "Tasks that are not done or cancelled, sorted by due date",
+      "sempkm:queryText": "SELECT ?s ?title ?taskStatus ?priority ?dueDate ?assignedTo WHERE { ?s a <urn:sempkm:model:basic-pkm:Task> ; <http://purl.org/dc/terms/title> ?title ; <urn:sempkm:model:basic-pkm:taskStatus> ?taskStatus . FILTER(?taskStatus NOT IN (\"done\", \"cancelled\")) . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:priority> ?priority } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:dueDate> ?dueDate } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:assignedTo> ?p . ?p <http://xmlns.com/foaf/0.1/name> ?assignedTo } } ORDER BY ?dueDate",
+      "sempkm:source": "model:basic-pkm"
+    },
+    {
+      "@id": "urn:sempkm:model:basic-pkm:query:overdue-tasks",
+      "@type": "sempkm:SavedQuery",
+      "rdfs:label": "Overdue Tasks",
+      "dcterms:description": "Tasks past their due date that are still open",
+      "sempkm:queryText": "SELECT ?s ?title ?taskStatus ?dueDate ?assignedTo WHERE { ?s a <urn:sempkm:model:basic-pkm:Task> ; <http://purl.org/dc/terms/title> ?title ; <urn:sempkm:model:basic-pkm:taskStatus> ?taskStatus ; <urn:sempkm:model:basic-pkm:dueDate> ?dueDate . FILTER(?taskStatus NOT IN (\"done\", \"cancelled\")) . FILTER(?dueDate < STRDT(SUBSTR(STR(NOW()), 1, 10), <http://www.w3.org/2001/XMLSchema#date>)) . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:assignedTo> ?p . ?p <http://xmlns.com/foaf/0.1/name> ?assignedTo } } ORDER BY ?dueDate",
+      "sempkm:source": "model:basic-pkm"
+    },
+    {
+      "@id": "urn:sempkm:model:basic-pkm:query:blocked-tasks",
+      "@type": "sempkm:SavedQuery",
+      "rdfs:label": "Blocked Tasks",
+      "dcterms:description": "Tasks that are blocked or depend on an incomplete task",
+      "sempkm:queryText": "SELECT ?s ?title ?taskStatus ?blocker WHERE { { ?s a <urn:sempkm:model:basic-pkm:Task> ; <http://purl.org/dc/terms/title> ?title ; <urn:sempkm:model:basic-pkm:taskStatus> ?taskStatus . FILTER(?taskStatus = \"blocked\") } UNION { ?s a <urn:sempkm:model:basic-pkm:Task> ; <http://purl.org/dc/terms/title> ?title ; <urn:sempkm:model:basic-pkm:taskStatus> ?taskStatus ; <urn:sempkm:model:basic-pkm:dependsOn> ?dep . ?dep <urn:sempkm:model:basic-pkm:taskStatus> ?depStatus . FILTER(?depStatus NOT IN (\"done\", \"cancelled\")) . ?dep <http://purl.org/dc/terms/title> ?blocker } } ORDER BY ?title",
       "sempkm:source": "model:basic-pkm"
     }
   ]
