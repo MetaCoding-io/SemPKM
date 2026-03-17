@@ -92,7 +92,7 @@ This milestone is complete only when all are true:
 - [x] **S05: Scheduler, Permissions, Bulk EventStore & browserVisible** `risk:medium` `depends:[S02]`
   > After this: platform scheduler triggers app tasks at configured intervals with concurrency guard and retry. SDK clients enforce command whitelist, IRI prefix, and network domain restrictions. `commit_bulk()` records summary metadata. Types with `browserVisible: false` hidden from browser.
 
-- [ ] **S06: Frontend Level 2+3 — Workspace Contributions & Renderer Overrides** `risk:medium` `depends:[S04,S05]`
+- [x] **S06: Frontend Level 2+3 — Workspace Contributions & Renderer Overrides** `risk:medium` `depends:[S04,S05]`
   > After this: app right-pane sections appear alongside Relations/Lint when viewing objects. App views appear in Views section. App command palette entries registered with ninja-keys. Apps can override default SHACL form with custom read/edit renderers for specific types.
 
 - [ ] **S07: Test App, E2E Tests & Integration Proof** `risk:low` `depends:[S01,S02,S03,S04,S05,S06]`
