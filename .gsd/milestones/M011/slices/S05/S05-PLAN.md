@@ -43,7 +43,7 @@
 
 ## Tasks
 
-- [ ] **T01: Commit CRM model files and write cross-model offline validation test** `est:45m`
+- [x] **T01: Commit CRM model files and write cross-model offline validation test** `est:45m`
   - Why: CRM model files exist only in the worktree — they must be committed to the main tree for Docker and offline tests to reference them. The cross-model test proves all 4 models coexist without namespace conflicts and validates each model's SHACL-AF rules fire correctly.
   - Files: `models/crm/manifest.yaml`, `models/crm/ontology/crm.jsonld`, `models/crm/shapes/crm.jsonld`, `models/crm/views/crm.jsonld`, `models/crm/rules/crm.ttl`, `models/crm/seed/crm.jsonld`, `backend/tests/test_cross_model_validation.py`
   - Do: Copy 6 CRM files from `.gsd/worktrees/M011/models/crm/` to `models/crm/`. Write pytest module with module-scoped fixtures for all 4 models. Test cases: each model parses/loads/validates independently; no namespace prefix collisions; combined graph merge doesn't error; pyshacl fires correct warnings per model (basic-pkm: 1 Warning, CRM: 2 Warnings, zettelkasten: 2 Warning + 1 Info, research: 2 Warning + 2 Info).
