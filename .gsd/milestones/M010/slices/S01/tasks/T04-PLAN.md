@@ -104,3 +104,10 @@ Writes unit tests proving the feed entry → article data pipeline works correct
 ## Expected Output
 
 - `backend/tests/test_rss_feed_parser.py` — new test file with ≥10 passing tests covering the feed parsing pipeline
+
+## Observability Impact
+
+- **Test signals:** `pytest tests/test_rss_feed_parser.py -v` prints per-test PASS/FAIL — 23 tests covering entry mapping, IRI hashing, dedup, bulk assembly, error handling, and date parsing.
+- **Failure visibility:** Any regression in `entry_to_article()`, `_mint_article_iri()`, `_time_struct_to_iso()`, or `get_existing_article_iris()` surfaces immediately via test failure with assertion message showing expected vs actual.
+- **Future agent inspection:** Run `cd backend && .venv/bin/python -m pytest tests/test_rss_feed_parser.py -v --tb=short` to see all test outcomes. Grep for `FAILED` in output to find regressions.
+- **No runtime signals** — this task adds only offline tests, not runtime behavior.

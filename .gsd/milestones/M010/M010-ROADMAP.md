@@ -60,22 +60,22 @@ This milestone is complete only when all are true:
 
 ## Slices
 
-- [ ] **S01: Platform fix + Mental Model + App data pipeline** `risk:high` `depends:[]`
+- [x] **S01: Platform fix + Mental Model + App data pipeline** `risk:high` `depends:[]`
   > After this: SDK IRI prefix bug fixed with tests. `rss-feeds` model installed in triplestore (Article, FeedSubscription types visible). `rss-reader` app skeleton installs, starts, and the `poll-feeds` task creates real articles from a test feed via bulk EventStore. Articles visible in object browser.
 
-- [ ] **S02: Feed service + content extraction + feed management** `risk:medium` `depends:[S01]`
+- [x] **S02: Feed service + content extraction + feed management** `risk:medium` `depends:[S01]`
   > After this: User subscribes to feeds by URL, feed discovery finds feeds from website URLs, trafilatura extracts full article content, conditional GET (ETag/Last-Modified) avoids redundant downloads, per-feed error tracking reports failures. Unit tests cover RSS 2.0, Atom 1.0, and JSON Feed formats.
 
-- [ ] **S03: Reader UI (split-pane layout)** `risk:low` `depends:[S01]`
+- [x] **S03: Reader UI (split-pane layout)** `risk:low` `depends:[S01]`
   > After this: RSS Reader standalone page shows split-pane layout — feed sidebar with unread counts, article list with title/date/source, and reading pane with clean markdown-rendered article body. Star toggle and mark read/unread controls work. All via htmx fragments.
 
-- [ ] **S04: Workspace contributions + custom renderer** `risk:low` `depends:[S02,S03]`
+- [x] **S04: Workspace contributions + custom renderer** `risk:low` `depends:[S02,S03]`
   > After this: "Unread Articles" and "Starred Articles" views in workspace Views section. "Related Articles" in right pane. "Subscribe to Feed...", "Mark All as Read", "Open RSS Reader" in command palette. Custom `rss:Article` read renderer replaces default SHACL form when opening an article from the object browser.
 
-- [ ] **S05: OPML import + app settings** `risk:low` `depends:[S02]`
+- [x] **S05: OPML import + app settings** `risk:low` `depends:[S02]`
   > After this: User uploads an OPML file and subscriptions are created for all feeds in it. App settings page configures poll interval and reader preferences. Feed categories from OPML preserved as tags.
 
-- [ ] **S06: E2E tests + user guide** `risk:low` `depends:[S03,S04,S05]`
+- [x] **S06: E2E tests + user guide** `risk:low` `depends:[S03,S04,S05]`
   > After this: Playwright E2E spec covers full lifecycle (install model → install app → subscribe → poll → read article → star → workspace views → admin task history → uninstall). User guide Chapter 30 documents RSS Reader setup and usage.
 
 ## Boundary Map
