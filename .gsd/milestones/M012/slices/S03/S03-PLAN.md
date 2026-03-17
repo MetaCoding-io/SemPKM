@@ -27,6 +27,7 @@
 
 - `cd backend && python -m pytest tests/test_persona_service.py -v` — unit tests for PersonaService CRUD, activation, save_state, only-one-active constraint
 - Browser verification: open workspace → user popover shows persona selector with "Default" → rearrange layout → save → create second persona → switch → verify layout changes → Ctrl+K "Persona" → see commands → reload → active persona layout restored
+- Failure-path diagnostic: `curl -s http://localhost:8001/api/personas/00000000-0000-0000-0000-000000000000 | python3 -m json.tool` returns 404 JSON error body with `"detail"` field; `GET /api/personas` returns empty `[]` for user with no personas (not 500)
 
 ## Observability / Diagnostics
 
@@ -43,7 +44,7 @@
 
 ## Tasks
 
-- [ ] **T01: Backend model, migration, service, and unit tests** `est:1h`
+- [x] **T01: Backend model, migration, service, and unit tests** `est:1h`
   - Why: Foundation for all persona functionality — the data model, persistence, and business logic must exist before routes or frontend can be built
   - Files: `backend/app/persona/__init__.py`, `backend/app/persona/models.py`, `backend/app/persona/service.py`, `backend/migrations/versions/013_personas.py`, `backend/tests/test_persona_service.py`
   - Do: (1) Create `persona/` module with `Persona` SQLAlchemy model — columns: id (UUID PK), user_id (FK users), name (String 255), layout_json (Text), sidebar_positions_json (Text), explorer_mode (String 50), is_active (Boolean default false), created_at, updated_at. (2) Create Alembic migration `013_personas.py` following `012_workflow_specs.py` pattern. (3) Create `PersonaService` with async CRUD methods following `DashboardService` pattern: `create()`, `list_for_user()`, `get()`, `update()`, `delete()`, `activate()` (deactivate-all-then-activate-one), `get_active()`, `save_state()` (updates layout_json, sidebar_positions_json, explorer_mode on a persona). (4) Write comprehensive unit tests using in-memory SQLite async session factory (same fixture pattern as `test_dashboard.py`): test create, list, get, update, delete, activate (only-one-active constraint), save_state, delete-active-persona-activates-another, get_active returns None when no personas exist, authorization (user_id check on update/delete).

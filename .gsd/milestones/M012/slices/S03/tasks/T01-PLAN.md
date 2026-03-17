@@ -84,6 +84,13 @@ Follow the `DashboardSpec` / `DashboardService` pattern closely — same model s
 - `cd backend && python -m pytest tests/test_persona_service.py -v` — all tests pass
 - `grep -c "async def test_" backend/tests/test_persona_service.py` returns 12 or more
 
+## Observability Impact
+
+- **New signals:** `PersonaService` methods log via `logging.getLogger(__name__)` — `INFO` on create/activate/delete, `WARNING` on not-found or wrong-user access attempts.
+- **Inspection surface:** `personas` SQLite table queryable via `sqlite3 backend/sempkm.db "SELECT id, name, is_active FROM personas"`. Service methods return `PersonaData` dataclasses with all fields for programmatic inspection.
+- **Failure visibility:** All service methods return `None` or `False` for not-found/wrong-user instead of raising exceptions — callers (T02 router) translate these to 404/403 HTTP responses. Unit tests verify these failure paths explicitly.
+- **Test verification:** `pytest tests/test_persona_service.py -v` output shows per-test pass/fail with descriptive names covering all business rules.
+
 ## Inputs
 
 - `backend/app/dashboard/models.py` — reference model pattern (SQLAlchemy model with UUID PK, user FK, JSON text columns, timestamps)
