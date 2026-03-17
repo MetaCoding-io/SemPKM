@@ -3989,10 +3989,12 @@ details.form-group[open] > .form-group-summary::before {
 }
 .event-filter-controls {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
   margin-left: auto;
 }
+.event-filter-input,
 .event-filter-select,
 .event-filter-date {
   font-size: 0.8125rem;
@@ -4002,8 +4004,63 @@ details.form-group[open] > .form-group-summary::before {
   background: var(--color-surface);
   color: var(--color-text);
 }
+.event-filter-input {
+  width: 140px;
+}
+.event-filter-input::placeholder {
+  color: var(--color-text-faint);
+  font-size: 0.75rem;
+}
 .event-filter-date {
   max-width: 130px;
+}
+
+/* Autocomplete dropdown wrappers */
+.event-autocomplete-wrapper {
+  position: relative;
+}
+.event-autocomplete-target {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 100;
+  min-width: 100%;
+  width: max-content;
+  max-width: 320px;
+}
+.event-autocomplete-dropdown {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  max-height: 220px;
+  overflow-y: auto;
+}
+.event-suggestion-item {
+  display: block;
+  width: 100%;
+  padding: 5px 10px;
+  font-size: 0.8rem;
+  text-align: left;
+  border: none;
+  background: none;
+  color: var(--color-text);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.event-suggestion-item:hover,
+.event-suggestion-item:focus {
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  color: var(--color-accent);
+  outline: none;
+}
+.event-suggestion-empty {
+  padding: 8px 10px;
+  font-size: 0.78rem;
+  color: var(--color-text-faint);
+  text-align: center;
 }
 
 .event-load-more {
@@ -4179,6 +4236,12 @@ details.form-group[open] > .form-group-summary::before {
 .diff-val-new { color: var(--color-diff-add); }
 .diff-val-empty { color: var(--color-text-muted); font-style: italic; }
 .diff-pred-label { font-family: monospace; font-size: 0.75rem; }
+.diff-pred-label[title] { cursor: help; }
+.diff-pred-label.has-helptext {
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+  text-decoration-color: var(--color-text-faint);
+}
 
 /* Body diff lines */
 .diff-header {
