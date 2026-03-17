@@ -1,0 +1,107 @@
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix crm:   <urn:sempkm:model:crm:> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+
+# ============================================================
+# CRM SHACL-AF Rules
+# 1 inference rule + 2 validation rules, each on a separate
+# NodeShape per D153.
+# ============================================================
+
+# Shared prefix declarations for SPARQL rules
+crm:PrefixDeclarations
+    a owl:Ontology ;
+    sh:declare [
+        sh:prefix "crm" ;
+        sh:namespace "urn:sempkm:model:crm:"^^xsd:anyURI ;
+    ] ;
+    sh:declare [
+        sh:prefix "xsd" ;
+        sh:namespace "http://www.w3.org/2001/XMLSchema#"^^xsd:anyURI ;
+    ] .
+
+# ============================================================
+# Rule 1 (Inference): Derive lastContactedDate
+# Computes crm:lastContactedDate from the MAX(crm:interactionDate)
+# of all Interactions linked via crm:withContact.
+# ============================================================
+
+crm:LastContactedDeriveShape
+    a sh:NodeShape ;
+    sh:targetClass crm:Contact ;
+    sh:rule [
+        a sh:SPARQLRule ;
+        sh:order 0 ;
+        rdfs:label "Derive lastContactedDate from most recent interaction" ;
+        sh:prefixes crm:PrefixDeclarations ;
+        sh:construct """
+            CONSTRUCT { $this crm:lastContactedDate ?maxDate . }
+            WHERE {
+                SELECT $this (MAX(?iDate) AS ?maxDate)
+                WHERE {
+                    ?interaction crm:withContact $this .
+                    ?interaction crm:interactionDate ?iDate .
+                }
+                GROUP BY $this
+            }
+        """ ;
+    ] .
+
+# ============================================================
+# Rule 2 (Validation): Stale Contact Warning
+# Fires sh:Warning when a Contact has no linked Interaction at all.
+# Note: rdflib's SPARQL engine does not support xsd:dayTimeDuration
+# subtraction from xsd:date. The simpler "no interactions" check
+# is used instead; contacts with ONLY old interactions will be
+# caught in a future refinement (S05) or via the SavedQuery
+# "Stale Contacts" which uses lastContactedDate.
+# ============================================================
+
+crm:StaleContactValidationShape
+    a sh:NodeShape ;
+    sh:targetClass crm:Contact ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Contact has had no interactions recorded. Consider reaching out." ;
+        sh:prefixes crm:PrefixDeclarations ;
+        sh:select """
+            SELECT $this
+            WHERE {
+                FILTER NOT EXISTS {
+                    ?interaction crm:withContact $this .
+                    ?interaction crm:interactionDate ?iDate .
+                }
+            }
+        """ ;
+    ] .
+
+# ============================================================
+# Rule 3 (Validation): Follow-up Overdue Warning
+# Fires sh:Warning when an Interaction has a followUpDate in the
+# past and followUpDone is not true.
+# Uses STRDT(SUBSTR(STR(NOW()),1,10), xsd:date) for today's date
+# — same pattern proven in basic-pkm OverdueTaskValidationShape.
+# ============================================================
+
+crm:FollowUpOverdueValidationShape
+    a sh:NodeShape ;
+    sh:targetClass crm:Interaction ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Follow-up is overdue and not marked done." ;
+        sh:prefixes crm:PrefixDeclarations ;
+        sh:select """
+            SELECT $this
+            WHERE {
+                $this crm:followUpDate ?fDate .
+                BIND(STRDT(SUBSTR(STR(NOW()), 1, 10), xsd:date) AS ?today)
+                FILTER(?fDate < ?today)
+                FILTER NOT EXISTS { $this crm:followUpDone true }
+            }
+        """ ;
+    ] .

@@ -129,6 +129,13 @@ The test follows the established pattern in `backend/tests/test_basic_pkm_v2.py`
 - `backend/app/models/loader.py` — `load_archive()` function
 - `backend/app/models/validator.py` — `validate_archive()` function
 
+## Observability Impact
+
+- **New test file:** `backend/tests/test_cross_model_validation.py` — 10 tests covering all 4 models. `pytest -v` output shows per-model validation, namespace checks, graph merge, and pyshacl warning/info counts.
+- **Inspection surface:** Run `cd backend && .venv/bin/python -m pytest tests/test_cross_model_validation.py -v` to verify all models coexist. Each test prints specific counts on failure.
+- **Failure visibility:** Parametrized test names include the model name (e.g. `test_model_parses_and_validates[crm]`). pyshacl tests print full `results_text` on assertion failure for root-cause diagnosis.
+- **No runtime signals changed:** This is offline-only validation; no Docker or API impact.
+
 ## Expected Output
 
 - `models/crm/manifest.yaml` — CRM manifest (copied from worktree)

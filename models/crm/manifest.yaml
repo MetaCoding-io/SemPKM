@@ -1,0 +1,77 @@
+modelId: crm
+version: "1.0.0"
+name: "Personal CRM"
+description: "Personal relationship management with Contacts, Companies, Interactions, and Deals. Tracks professional relationships, meeting history, follow-ups, and deal pipelines with SHACL-AF rules for stale contact and overdue follow-up warnings."
+namespace: "urn:sempkm:model:crm:"
+prefixes:
+  crm: "urn:sempkm:model:crm:"
+entrypoints:
+  ontology: "ontology/crm.jsonld"
+  shapes: "shapes/crm.jsonld"
+  views: "views/crm.jsonld"
+  seed: "seed/crm.jsonld"
+  rules: "rules/crm.ttl"
+entailment_defaults:
+  owl_inverseOf: true
+  rdfs_subClassOf: false
+  rdfs_subPropertyOf: false
+  owl_TransitiveProperty: false
+  rdfs_domain_range: false
+  shacl_rules: true
+icons:
+  - type: "crm:Contact"
+    icon: "user"
+    color: "#6366f1"
+    tree:
+      icon: "user"
+      color: "#6366f1"
+      size: 16
+    tab:
+      icon: "user"
+      color: "#6366f1"
+      size: 14
+    graph:
+      icon: "user"
+      color: "#6366f1"
+  - type: "crm:Company"
+    icon: "building-2"
+    color: "#8b5cf6"
+    tree:
+      icon: "building-2"
+      color: "#8b5cf6"
+      size: 16
+    tab:
+      icon: "building-2"
+      color: "#8b5cf6"
+      size: 14
+    graph:
+      icon: "building-2"
+      color: "#8b5cf6"
+  - type: "crm:Interaction"
+    icon: "message-circle"
+    color: "#14b8a6"
+    tree:
+      icon: "message-circle"
+      color: "#14b8a6"
+      size: 16
+    tab:
+      icon: "message-circle"
+      color: "#14b8a6"
+      size: 14
+    graph:
+      icon: "message-circle"
+      color: "#14b8a6"
+  - type: "crm:Deal"
+    icon: "handshake"
+    color: "#f59e0b"
+    tree:
+      icon: "handshake"
+      color: "#f59e0b"
+      size: 16
+    tab:
+      icon: "handshake"
+      color: "#f59e0b"
+      size: 14
+    graph:
+      icon: "handshake"
+      color: "#f59e0b"

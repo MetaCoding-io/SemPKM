@@ -1,0 +1,199 @@
+{
+  "@context": {
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "schema": "https://schema.org/",
+    "bpkm": "urn:sempkm:model:basic-pkm:",
+    "crm": "urn:sempkm:model:crm:"
+  },
+  "@graph": [
+    {
+      "@id": "crm:seed-company-acme",
+      "@type": "crm:Company",
+      "dcterms:title": "Acme Corp",
+      "crm:industry": "Technology",
+      "crm:size": "large",
+      "crm:website": "https://acme.example.com",
+      "crm:notes": "Key technology partner. Strong engineering culture with rapid growth.",
+      "bpkm:tags": ["technology", "enterprise", "partner"],
+      "dcterms:created": { "@value": "2026-01-10T09:00:00Z", "@type": "xsd:dateTime" },
+      "crm:hasEmployee": [
+        { "@id": "crm:seed-contact-sarah" },
+        { "@id": "crm:seed-contact-james" }
+      ],
+      "crm:hasCompanyDeal": [
+        { "@id": "crm:seed-deal-platform" }
+      ]
+    },
+    {
+      "@id": "crm:seed-company-bright",
+      "@type": "crm:Company",
+      "dcterms:title": "Bright Ideas Studio",
+      "crm:industry": "Design",
+      "crm:size": "small",
+      "crm:website": "https://brightideas.example.com",
+      "crm:notes": "Boutique design agency. Potential collaboration on UX work.",
+      "bpkm:tags": ["design", "agency", "creative"],
+      "dcterms:created": { "@value": "2026-01-20T10:00:00Z", "@type": "xsd:dateTime" },
+      "crm:hasEmployee": [
+        { "@id": "crm:seed-contact-priya" }
+      ],
+      "crm:hasCompanyDeal": [
+        { "@id": "crm:seed-deal-audit" }
+      ]
+    },
+    {
+      "@id": "crm:seed-company-dataflow",
+      "@type": "crm:Company",
+      "dcterms:title": "DataFlow Inc",
+      "crm:industry": "Data Analytics",
+      "crm:size": "medium",
+      "crm:website": "https://dataflow.example.com",
+      "crm:notes": "Strong data infrastructure team. Marcus is a great technical mentor.",
+      "bpkm:tags": ["analytics", "data", "mentorship"],
+      "dcterms:created": { "@value": "2026-02-01T11:00:00Z", "@type": "xsd:dateTime" },
+      "crm:hasEmployee": [
+        { "@id": "crm:seed-contact-marcus" }
+      ]
+    },
+
+    {
+      "@id": "crm:seed-contact-sarah",
+      "@type": "crm:Contact",
+      "crm:firstName": "Sarah",
+      "crm:lastName": "Park",
+      "crm:email": "sarah.park@acme.example.com",
+      "crm:phone": "+1-555-0101",
+      "crm:role": "VP of Engineering",
+      "crm:relationship": "client",
+      "crm:notes": "Met at DevCon 2025. Very interested in our platform approach.",
+      "bpkm:tags": ["vip", "engineering", "decision-maker"],
+      "dcterms:created": { "@value": "2026-01-10T09:00:00Z", "@type": "xsd:dateTime" },
+      "crm:worksAt": { "@id": "crm:seed-company-acme" },
+      "crm:knows": [
+        { "@id": "crm:seed-contact-james" }
+      ],
+      "crm:hasInteraction": [
+        { "@id": "crm:seed-interaction-coffee-sarah" }
+      ],
+      "crm:hasContactDeal": [
+        { "@id": "crm:seed-deal-platform" }
+      ]
+    },
+    {
+      "@id": "crm:seed-contact-james",
+      "@type": "crm:Contact",
+      "crm:firstName": "James",
+      "crm:lastName": "Liu",
+      "crm:email": "james.liu@acme.example.com",
+      "crm:phone": "+1-555-0102",
+      "crm:role": "CTO",
+      "crm:relationship": "colleague",
+      "crm:notes": "Technical visionary. Championing our platform internally at Acme.",
+      "bpkm:tags": ["executive", "technical", "champion"],
+      "dcterms:created": { "@value": "2026-01-15T10:00:00Z", "@type": "xsd:dateTime" },
+      "crm:worksAt": { "@id": "crm:seed-company-acme" },
+      "crm:knows": [
+        { "@id": "crm:seed-contact-sarah" }
+      ],
+      "crm:hasInteraction": [
+        { "@id": "crm:seed-interaction-meeting-james" }
+      ]
+    },
+    {
+      "@id": "crm:seed-contact-priya",
+      "@type": "crm:Contact",
+      "crm:firstName": "Priya",
+      "crm:lastName": "Sharma",
+      "crm:email": "priya@brightideas.example.com",
+      "crm:role": "Creative Director",
+      "crm:relationship": "vendor",
+      "crm:notes": "Excellent designer. Haven't been in touch recently — should reconnect.",
+      "bpkm:tags": ["design", "creative", "prospect"],
+      "dcterms:created": { "@value": "2025-08-15T14:00:00Z", "@type": "xsd:dateTime" },
+      "crm:worksAt": { "@id": "crm:seed-company-bright" },
+      "crm:hasInteraction": [
+        { "@id": "crm:seed-interaction-email-priya" }
+      ],
+      "crm:hasContactDeal": [
+        { "@id": "crm:seed-deal-audit" }
+      ]
+    },
+    {
+      "@id": "crm:seed-contact-marcus",
+      "@type": "crm:Contact",
+      "crm:firstName": "Marcus",
+      "crm:lastName": "Cole",
+      "crm:email": "marcus.cole@dataflow.example.com",
+      "crm:phone": "+1-555-0201",
+      "crm:role": "Chief Data Officer",
+      "crm:relationship": "mentor",
+      "crm:notes": "Invaluable mentor on data architecture decisions. Monthly check-ins.",
+      "bpkm:tags": ["mentor", "data", "leadership"],
+      "dcterms:created": { "@value": "2026-01-05T08:00:00Z", "@type": "xsd:dateTime" },
+      "crm:worksAt": { "@id": "crm:seed-company-dataflow" }
+    },
+
+    {
+      "@id": "crm:seed-interaction-coffee-sarah",
+      "@type": "crm:Interaction",
+      "crm:interactionType": "coffee",
+      "crm:interactionDate": { "@value": "2026-03-10", "@type": "xsd:date" },
+      "crm:summary": "Discussed Acme's platform needs over coffee. Sarah is enthusiastic about the proposal timeline.",
+      "crm:notes": "She mentioned budget approval expected by end of March.",
+      "dcterms:created": { "@value": "2026-03-10T15:00:00Z", "@type": "xsd:dateTime" },
+      "crm:withContact": { "@id": "crm:seed-contact-sarah" }
+    },
+    {
+      "@id": "crm:seed-interaction-meeting-james",
+      "@type": "crm:Interaction",
+      "crm:interactionType": "meeting",
+      "crm:interactionDate": { "@value": "2026-03-15", "@type": "xsd:date" },
+      "crm:summary": "Technical deep-dive with James on integration architecture. Action items identified.",
+      "crm:followUpDate": { "@value": "2026-03-16", "@type": "xsd:date" },
+      "crm:followUpDone": false,
+      "crm:notes": "Need to send integration spec document. James will review with his team.",
+      "dcterms:created": { "@value": "2026-03-15T11:00:00Z", "@type": "xsd:dateTime" },
+      "crm:withContact": { "@id": "crm:seed-contact-james" }
+    },
+    {
+      "@id": "crm:seed-interaction-email-priya",
+      "@type": "crm:Interaction",
+      "crm:interactionType": "email",
+      "crm:interactionDate": { "@value": "2025-11-01", "@type": "xsd:date" },
+      "crm:summary": "Exchanged portfolio samples for potential design audit collaboration.",
+      "crm:notes": "Priya sent impressive case studies. Should follow up on the audit proposal.",
+      "dcterms:created": { "@value": "2025-11-01T09:00:00Z", "@type": "xsd:dateTime" },
+      "crm:withContact": { "@id": "crm:seed-contact-priya" }
+    },
+
+    {
+      "@id": "crm:seed-deal-platform",
+      "@type": "crm:Deal",
+      "crm:dealName": "Enterprise Platform License",
+      "crm:dealStage": "proposal",
+      "crm:dealValue": { "@value": "150000", "@type": "xsd:decimal" },
+      "crm:currency": "USD",
+      "crm:notes": "Multi-year license deal with Acme. Sarah is the champion, James is the technical evaluator.",
+      "bpkm:tags": ["enterprise", "high-value", "q2-target"],
+      "dcterms:created": { "@value": "2026-02-20T10:00:00Z", "@type": "xsd:dateTime" },
+      "crm:dealContact": { "@id": "crm:seed-contact-sarah" },
+      "crm:dealCompany": { "@id": "crm:seed-company-acme" }
+    },
+    {
+      "@id": "crm:seed-deal-audit",
+      "@type": "crm:Deal",
+      "crm:dealName": "Design System Audit",
+      "crm:dealStage": "lead",
+      "crm:dealValue": { "@value": "25000", "@type": "xsd:decimal" },
+      "crm:currency": "USD",
+      "crm:notes": "Potential design audit engagement. Need to reconnect with Priya to revive this.",
+      "bpkm:tags": ["design", "audit", "small-deal"],
+      "dcterms:created": { "@value": "2025-10-15T14:00:00Z", "@type": "xsd:dateTime" },
+      "crm:dealContact": { "@id": "crm:seed-contact-priya" },
+      "crm:dealCompany": { "@id": "crm:seed-company-bright" }
+    }
+  ]
+}

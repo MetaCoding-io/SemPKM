@@ -1,0 +1,140 @@
+{
+  "@context": {
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "crm": "urn:sempkm:model:crm:",
+    "sempkm": "urn:sempkm:vocab:",
+    "dcterms": "http://purl.org/dc/terms/"
+  },
+  "@graph": [
+    {
+      "@id": "crm:view-contact-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Contacts Table",
+      "sempkm:targetClass": { "@id": "crm:Contact" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?firstName ?lastName ?email ?role ?companyName WHERE { ?s a <urn:sempkm:model:crm:Contact> ; <urn:sempkm:model:crm:firstName> ?firstName ; <urn:sempkm:model:crm:lastName> ?lastName . OPTIONAL { ?s <urn:sempkm:model:crm:email> ?email } . OPTIONAL { ?s <urn:sempkm:model:crm:role> ?role } . OPTIONAL { ?s <urn:sempkm:model:crm:worksAt> ?company . ?company <http://purl.org/dc/terms/title> ?companyName } }",
+      "sempkm:columns": "firstName,lastName,email,role,companyName",
+      "sempkm:sortDefault": "lastName"
+    },
+    {
+      "@id": "crm:view-contact-card",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Contacts Cards",
+      "sempkm:targetClass": { "@id": "crm:Contact" },
+      "sempkm:rendererType": "card",
+      "sempkm:sparqlQuery": "SELECT ?s ?firstName ?lastName ?email ?role ?relationship WHERE { ?s a <urn:sempkm:model:crm:Contact> ; <urn:sempkm:model:crm:firstName> ?firstName ; <urn:sempkm:model:crm:lastName> ?lastName . OPTIONAL { ?s <urn:sempkm:model:crm:email> ?email } . OPTIONAL { ?s <urn:sempkm:model:crm:role> ?role } . OPTIONAL { ?s <urn:sempkm:model:crm:relationship> ?relationship } }",
+      "sempkm:cardTitle": "urn:sempkm:model:crm:firstName",
+      "sempkm:cardSubtitle": "urn:sempkm:model:crm:role"
+    },
+    {
+      "@id": "crm:view-contact-graph",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Contacts Graph",
+      "sempkm:targetClass": { "@id": "crm:Contact" },
+      "sempkm:rendererType": "graph",
+      "sempkm:sparqlQuery": "CONSTRUCT { ?s a <urn:sempkm:model:crm:Contact> ; <urn:sempkm:model:crm:firstName> ?firstName ; <urn:sempkm:model:crm:lastName> ?lastName ; <urn:sempkm:model:crm:worksAt> ?company ; <urn:sempkm:model:crm:knows> ?other . ?company <http://purl.org/dc/terms/title> ?companyName . ?other <urn:sempkm:model:crm:firstName> ?otherFirst } WHERE { ?s a <urn:sempkm:model:crm:Contact> ; <urn:sempkm:model:crm:firstName> ?firstName ; <urn:sempkm:model:crm:lastName> ?lastName . OPTIONAL { ?s <urn:sempkm:model:crm:worksAt> ?company . ?company <http://purl.org/dc/terms/title> ?companyName } . OPTIONAL { ?s <urn:sempkm:model:crm:knows> ?other . ?other <urn:sempkm:model:crm:firstName> ?otherFirst } }"
+    },
+
+    {
+      "@id": "crm:view-company-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Companies Table",
+      "sempkm:targetClass": { "@id": "crm:Company" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?name ?industry ?size ?website WHERE { ?s a <urn:sempkm:model:crm:Company> ; <http://purl.org/dc/terms/title> ?name . OPTIONAL { ?s <urn:sempkm:model:crm:industry> ?industry } . OPTIONAL { ?s <urn:sempkm:model:crm:size> ?size } . OPTIONAL { ?s <urn:sempkm:model:crm:website> ?website } }",
+      "sempkm:columns": "name,industry,size,website",
+      "sempkm:sortDefault": "name"
+    },
+    {
+      "@id": "crm:view-company-graph",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Companies Graph",
+      "sempkm:targetClass": { "@id": "crm:Company" },
+      "sempkm:rendererType": "graph",
+      "sempkm:sparqlQuery": "CONSTRUCT { ?s a <urn:sempkm:model:crm:Company> ; <http://purl.org/dc/terms/title> ?name ; <urn:sempkm:model:crm:hasEmployee> ?contact . ?contact <urn:sempkm:model:crm:firstName> ?firstName ; <urn:sempkm:model:crm:lastName> ?lastName } WHERE { ?s a <urn:sempkm:model:crm:Company> ; <http://purl.org/dc/terms/title> ?name . OPTIONAL { ?s <urn:sempkm:model:crm:hasEmployee> ?contact . ?contact <urn:sempkm:model:crm:firstName> ?firstName ; <urn:sempkm:model:crm:lastName> ?lastName } }"
+    },
+
+    {
+      "@id": "crm:view-interaction-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Interactions Table",
+      "sempkm:targetClass": { "@id": "crm:Interaction" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?interactionType ?interactionDate ?contactFirst ?contactLast ?summary WHERE { ?s a <urn:sempkm:model:crm:Interaction> ; <urn:sempkm:model:crm:interactionType> ?interactionType ; <urn:sempkm:model:crm:interactionDate> ?interactionDate . OPTIONAL { ?s <urn:sempkm:model:crm:summary> ?summary } . OPTIONAL { ?s <urn:sempkm:model:crm:withContact> ?contact . ?contact <urn:sempkm:model:crm:firstName> ?contactFirst ; <urn:sempkm:model:crm:lastName> ?contactLast } }",
+      "sempkm:columns": "interactionType,interactionDate,contactFirst,contactLast,summary",
+      "sempkm:sortDefault": "interactionDate"
+    },
+    {
+      "@id": "crm:view-interaction-graph",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Interactions Graph",
+      "sempkm:targetClass": { "@id": "crm:Interaction" },
+      "sempkm:rendererType": "graph",
+      "sempkm:sparqlQuery": "CONSTRUCT { ?s a <urn:sempkm:model:crm:Interaction> ; <urn:sempkm:model:crm:interactionType> ?type ; <urn:sempkm:model:crm:interactionDate> ?date ; <urn:sempkm:model:crm:withContact> ?contact . ?contact <urn:sempkm:model:crm:firstName> ?firstName } WHERE { ?s a <urn:sempkm:model:crm:Interaction> ; <urn:sempkm:model:crm:interactionType> ?type ; <urn:sempkm:model:crm:interactionDate> ?date . OPTIONAL { ?s <urn:sempkm:model:crm:withContact> ?contact . ?contact <urn:sempkm:model:crm:firstName> ?firstName } }"
+    },
+
+    {
+      "@id": "crm:view-deal-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Deals Table",
+      "sempkm:targetClass": { "@id": "crm:Deal" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?dealName ?dealStage ?dealValue ?currency ?contactFirst ?contactLast ?companyName WHERE { ?s a <urn:sempkm:model:crm:Deal> ; <urn:sempkm:model:crm:dealName> ?dealName ; <urn:sempkm:model:crm:dealStage> ?dealStage . OPTIONAL { ?s <urn:sempkm:model:crm:dealValue> ?dealValue } . OPTIONAL { ?s <urn:sempkm:model:crm:currency> ?currency } . OPTIONAL { ?s <urn:sempkm:model:crm:dealContact> ?contact . ?contact <urn:sempkm:model:crm:firstName> ?contactFirst ; <urn:sempkm:model:crm:lastName> ?contactLast } . OPTIONAL { ?s <urn:sempkm:model:crm:dealCompany> ?company . ?company <http://purl.org/dc/terms/title> ?companyName } }",
+      "sempkm:columns": "dealName,dealStage,dealValue,currency,contactFirst,companyName",
+      "sempkm:sortDefault": "dealStage"
+    },
+    {
+      "@id": "crm:view-deal-card",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Deals Cards",
+      "sempkm:targetClass": { "@id": "crm:Deal" },
+      "sempkm:rendererType": "card",
+      "sempkm:sparqlQuery": "SELECT ?s ?dealName ?dealStage ?dealValue ?currency ?companyName WHERE { ?s a <urn:sempkm:model:crm:Deal> ; <urn:sempkm:model:crm:dealName> ?dealName ; <urn:sempkm:model:crm:dealStage> ?dealStage . OPTIONAL { ?s <urn:sempkm:model:crm:dealValue> ?dealValue } . OPTIONAL { ?s <urn:sempkm:model:crm:currency> ?currency } . OPTIONAL { ?s <urn:sempkm:model:crm:dealCompany> ?company . ?company <http://purl.org/dc/terms/title> ?companyName } }",
+      "sempkm:cardTitle": "urn:sempkm:model:crm:dealName",
+      "sempkm:cardSubtitle": "urn:sempkm:model:crm:dealStage"
+    },
+
+    {
+      "@id": "crm:view-crm-network",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "CRM Network",
+      "sempkm:rendererType": "graph",
+      "sempkm:sparqlQuery": "CONSTRUCT { ?contact a <urn:sempkm:model:crm:Contact> ; <urn:sempkm:model:crm:firstName> ?firstName ; <urn:sempkm:model:crm:lastName> ?lastName ; <urn:sempkm:model:crm:worksAt> ?company ; <urn:sempkm:model:crm:knows> ?other . ?company a <urn:sempkm:model:crm:Company> ; <http://purl.org/dc/terms/title> ?companyName . ?interaction a <urn:sempkm:model:crm:Interaction> ; <urn:sempkm:model:crm:withContact> ?contact ; <urn:sempkm:model:crm:interactionType> ?itype . ?deal a <urn:sempkm:model:crm:Deal> ; <urn:sempkm:model:crm:dealName> ?dealName ; <urn:sempkm:model:crm:dealContact> ?contact ; <urn:sempkm:model:crm:dealCompany> ?company } WHERE { { ?contact a <urn:sempkm:model:crm:Contact> ; <urn:sempkm:model:crm:firstName> ?firstName ; <urn:sempkm:model:crm:lastName> ?lastName . OPTIONAL { ?contact <urn:sempkm:model:crm:worksAt> ?company . ?company <http://purl.org/dc/terms/title> ?companyName } . OPTIONAL { ?contact <urn:sempkm:model:crm:knows> ?other } } UNION { ?interaction a <urn:sempkm:model:crm:Interaction> ; <urn:sempkm:model:crm:withContact> ?contact ; <urn:sempkm:model:crm:interactionType> ?itype } UNION { ?deal a <urn:sempkm:model:crm:Deal> ; <urn:sempkm:model:crm:dealName> ?dealName . OPTIONAL { ?deal <urn:sempkm:model:crm:dealContact> ?contact } . OPTIONAL { ?deal <urn:sempkm:model:crm:dealCompany> ?company } } }"
+    },
+
+    {
+      "@id": "urn:sempkm:model:crm:query:stale-contacts",
+      "@type": "sempkm:SavedQuery",
+      "rdfs:label": "Stale Contacts",
+      "dcterms:description": "Contacts with no recent interaction — may need follow-up",
+      "sempkm:queryText": "SELECT ?s ?firstName ?lastName ?email ?lastDate WHERE { ?s a <urn:sempkm:model:crm:Contact> ; <urn:sempkm:model:crm:firstName> ?firstName ; <urn:sempkm:model:crm:lastName> ?lastName . OPTIONAL { ?s <urn:sempkm:model:crm:email> ?email } . OPTIONAL { ?s <urn:sempkm:model:crm:lastContactedDate> ?lastDate } . FILTER(!BOUND(?lastDate) || ?lastDate < xsd:date(SUBSTR(STR(NOW()), 1, 10))) } ORDER BY ?lastDate",
+      "sempkm:source": "model:crm"
+    },
+    {
+      "@id": "urn:sempkm:model:crm:query:upcoming-followups",
+      "@type": "sempkm:SavedQuery",
+      "rdfs:label": "Upcoming Follow-ups",
+      "dcterms:description": "Items with upcoming or overdue follow-up dates that are not yet done",
+      "sempkm:queryText": "SELECT ?s ?type ?followUpDate ?contactFirst ?contactLast ?summary WHERE { { ?s a <urn:sempkm:model:crm:Contact> ; <urn:sempkm:model:crm:followUpDate> ?followUpDate ; <urn:sempkm:model:crm:firstName> ?contactFirst ; <urn:sempkm:model:crm:lastName> ?contactLast . BIND('Contact' AS ?type) . FILTER(!EXISTS { ?s <urn:sempkm:model:crm:followUpDone> true }) } UNION { ?s a <urn:sempkm:model:crm:Interaction> ; <urn:sempkm:model:crm:followUpDate> ?followUpDate . OPTIONAL { ?s <urn:sempkm:model:crm:summary> ?summary } . OPTIONAL { ?s <urn:sempkm:model:crm:withContact> ?contact . ?contact <urn:sempkm:model:crm:firstName> ?contactFirst ; <urn:sempkm:model:crm:lastName> ?contactLast } . BIND('Interaction' AS ?type) . FILTER(!EXISTS { ?s <urn:sempkm:model:crm:followUpDone> true }) } } ORDER BY ?followUpDate",
+      "sempkm:source": "model:crm"
+    },
+    {
+      "@id": "urn:sempkm:model:crm:query:open-deals",
+      "@type": "sempkm:SavedQuery",
+      "rdfs:label": "Open Deals",
+      "dcterms:description": "Active deals not yet won or lost",
+      "sempkm:queryText": "SELECT ?s ?dealName ?dealStage ?dealValue ?currency ?contactFirst ?companyName WHERE { ?s a <urn:sempkm:model:crm:Deal> ; <urn:sempkm:model:crm:dealName> ?dealName ; <urn:sempkm:model:crm:dealStage> ?dealStage . FILTER(?dealStage NOT IN ('won', 'lost')) . OPTIONAL { ?s <urn:sempkm:model:crm:dealValue> ?dealValue } . OPTIONAL { ?s <urn:sempkm:model:crm:currency> ?currency } . OPTIONAL { ?s <urn:sempkm:model:crm:dealContact> ?contact . ?contact <urn:sempkm:model:crm:firstName> ?contactFirst } . OPTIONAL { ?s <urn:sempkm:model:crm:dealCompany> ?company . ?company <http://purl.org/dc/terms/title> ?companyName } } ORDER BY ?dealStage ?dealName",
+      "sempkm:source": "model:crm"
+    },
+    {
+      "@id": "urn:sempkm:model:crm:query:network-map",
+      "@type": "sempkm:SavedQuery",
+      "rdfs:label": "Network Map",
+      "dcterms:description": "Full CRM relationship graph across all types",
+      "sempkm:queryText": "CONSTRUCT { ?contact a <urn:sempkm:model:crm:Contact> ; <urn:sempkm:model:crm:firstName> ?firstName ; <urn:sempkm:model:crm:worksAt> ?company ; <urn:sempkm:model:crm:knows> ?other . ?company a <urn:sempkm:model:crm:Company> ; <http://purl.org/dc/terms/title> ?companyName . ?deal a <urn:sempkm:model:crm:Deal> ; <urn:sempkm:model:crm:dealName> ?dealName ; <urn:sempkm:model:crm:dealContact> ?contact ; <urn:sempkm:model:crm:dealCompany> ?company } WHERE { ?contact a <urn:sempkm:model:crm:Contact> ; <urn:sempkm:model:crm:firstName> ?firstName . OPTIONAL { ?contact <urn:sempkm:model:crm:worksAt> ?company . ?company <http://purl.org/dc/terms/title> ?companyName } . OPTIONAL { ?contact <urn:sempkm:model:crm:knows> ?other } . OPTIONAL { ?deal a <urn:sempkm:model:crm:Deal> ; <urn:sempkm:model:crm:dealName> ?dealName ; <urn:sempkm:model:crm:dealContact> ?contact . OPTIONAL { ?deal <urn:sempkm:model:crm:dealCompany> ?company } } }",
+      "sempkm:source": "model:crm"
+    }
+  ]
+}

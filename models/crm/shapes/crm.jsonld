@@ -1,0 +1,482 @@
+{
+  "@context": {
+    "sh": "http://www.w3.org/ns/shacl#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "schema": "https://schema.org/",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "gist": "https://w3id.org/semanticarts/ns/ontology/gist/",
+    "bpkm": "urn:sempkm:model:basic-pkm:",
+    "crm": "urn:sempkm:model:crm:",
+    "sempkm": "urn:sempkm:"
+  },
+  "@graph": [
+    {
+      "@id": "crm:ContactBasicInfoGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Basic Info",
+      "sh:order": 1
+    },
+    {
+      "@id": "crm:ContactProfessionalGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Professional",
+      "sh:order": 2
+    },
+    {
+      "@id": "crm:ContactSocialGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Social",
+      "sh:order": 3
+    },
+    {
+      "@id": "crm:ContactFollowUpGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Follow-up",
+      "sh:order": 4
+    },
+    {
+      "@id": "crm:ContactTagsGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Tags",
+      "sh:order": 5
+    },
+    {
+      "@id": "crm:ContactNotesGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Notes",
+      "sh:order": 6
+    },
+    {
+      "@id": "crm:ContactShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "crm:Contact" },
+      "rdfs:label": "Contact Shape",
+      "sempkm:editHelpText": "Contacts are people in your professional or personal network. Track their details, company, and relationship type to build a complete picture of your connections.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "crm:firstName" },
+          "sh:name": "First Name",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "crm:ContactBasicInfoGroup" },
+          "sh:description": "Contact's first or given name.",
+          "sempkm:editHelpText": "The contact's first name. Required — this is how you'll recognize them at a glance."
+        },
+        {
+          "sh:path": { "@id": "crm:lastName" },
+          "sh:name": "Last Name",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "crm:ContactBasicInfoGroup" },
+          "sh:description": "Contact's last or family name.",
+          "sempkm:editHelpText": "The contact's last name. Together with first name, forms the full display name."
+        },
+        {
+          "sh:path": { "@id": "crm:email" },
+          "sh:name": "Email",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "crm:ContactBasicInfoGroup" },
+          "sh:description": "Primary email address.",
+          "sempkm:editHelpText": "Primary email for this contact. Helpful for quick reference without digging through other apps."
+        },
+        {
+          "sh:path": { "@id": "crm:phone" },
+          "sh:name": "Phone",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "crm:ContactBasicInfoGroup" },
+          "sh:description": "Phone number.",
+          "sempkm:editHelpText": "Phone number in any format. Include country code for international contacts."
+        },
+        {
+          "sh:path": { "@id": "crm:role" },
+          "sh:name": "Role",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "crm:ContactProfessionalGroup" },
+          "sh:description": "Job title or role at their company.",
+          "sempkm:editHelpText": "Their current job title or role. Helps you remember context when revisiting this contact."
+        },
+        {
+          "sh:path": { "@id": "crm:worksAt" },
+          "sh:name": "Works At",
+          "sh:class": { "@id": "crm:Company" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "crm:ContactProfessionalGroup" },
+          "sh:description": "Company where this contact works.",
+          "sempkm:editHelpText": "Link to the company where this person works. Creates a two-way relationship visible from the company too."
+        },
+        {
+          "sh:path": { "@id": "crm:relationship" },
+          "sh:name": "Relationship",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": {
+            "@list": ["colleague", "client", "friend", "mentor", "vendor", "other"]
+          },
+          "sh:maxCount": 1,
+          "sh:order": 7,
+          "sh:group": { "@id": "crm:ContactProfessionalGroup" },
+          "sh:description": "Nature of your relationship with this contact.",
+          "sempkm:editHelpText": "How you relate to this person. Helps filter contacts by context — e.g. show all clients, or all mentors."
+        },
+        {
+          "sh:path": { "@id": "crm:knows" },
+          "sh:name": "Knows",
+          "sh:class": { "@id": "crm:Contact" },
+          "sh:order": 8,
+          "sh:group": { "@id": "crm:ContactSocialGroup" },
+          "sh:description": "Other contacts this person knows.",
+          "sempkm:editHelpText": "People this contact knows. This is a mutual relationship — if Alice knows Bob, Bob also knows Alice."
+        },
+        {
+          "sh:path": { "@id": "crm:followUpDate" },
+          "sh:name": "Follow-up Date",
+          "sh:datatype": { "@id": "xsd:date" },
+          "sh:maxCount": 1,
+          "sh:order": 9,
+          "sh:group": { "@id": "crm:ContactFollowUpGroup" },
+          "sh:description": "Date by which you should follow up with this contact.",
+          "sempkm:editHelpText": "Set a follow-up date to remind yourself to reach out. The system will warn you about overdue follow-ups."
+        },
+        {
+          "sh:path": { "@id": "crm:followUpDone" },
+          "sh:name": "Follow-up Done",
+          "sh:datatype": { "@id": "xsd:boolean" },
+          "sh:maxCount": 1,
+          "sh:order": 10,
+          "sh:group": { "@id": "crm:ContactFollowUpGroup" },
+          "sh:description": "Whether the follow-up has been completed.",
+          "sempkm:editHelpText": "Check this off when you've completed the follow-up. Clears the overdue warning."
+        },
+        {
+          "sh:path": { "@id": "bpkm:tags" },
+          "sh:name": "Tags",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:order": 11,
+          "sh:group": { "@id": "crm:ContactTagsGroup" },
+          "sh:description": "Free-form labels for categorization.",
+          "sempkm:editHelpText": "Free-form tags for quick filtering. Use lowercase, hyphen-separated terms (e.g. `vip`, `tech-lead`, `nyc`)."
+        },
+        {
+          "sh:path": { "@id": "crm:notes" },
+          "sh:name": "Notes",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 12,
+          "sh:group": { "@id": "crm:ContactNotesGroup" },
+          "sh:description": "Free-form notes about this contact.",
+          "sempkm:editHelpText": "Anything worth remembering — how you met, shared interests, conversation notes. Free-form text."
+        }
+      ]
+    },
+
+    {
+      "@id": "crm:CompanyBasicInfoGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Basic Info",
+      "sh:order": 1
+    },
+    {
+      "@id": "crm:CompanyDetailsGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Details",
+      "sh:order": 2
+    },
+    {
+      "@id": "crm:CompanyPeopleGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "People",
+      "sh:order": 3
+    },
+    {
+      "@id": "crm:CompanyNotesGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Notes",
+      "sh:order": 4
+    },
+    {
+      "@id": "crm:CompanyShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "crm:Company" },
+      "rdfs:label": "Company Shape",
+      "sempkm:editHelpText": "Companies represent organizations your contacts work at. Track industry, size, and website to understand the business context around your relationships.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Company Name",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "crm:CompanyBasicInfoGroup" },
+          "sh:description": "The display name for this company.",
+          "sempkm:editHelpText": "The company's official name. This is how it will appear in tables and cards."
+        },
+        {
+          "sh:path": { "@id": "crm:industry" },
+          "sh:name": "Industry",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "crm:CompanyBasicInfoGroup" },
+          "sh:description": "Industry sector the company operates in.",
+          "sempkm:editHelpText": "Industry sector (e.g. Technology, Healthcare, Finance). Helps filter and group companies."
+        },
+        {
+          "sh:path": { "@id": "crm:website" },
+          "sh:name": "Website",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "crm:CompanyBasicInfoGroup" },
+          "sh:description": "Company website URL.",
+          "sempkm:editHelpText": "The company's main website for quick reference."
+        },
+        {
+          "sh:path": { "@id": "crm:size" },
+          "sh:name": "Company Size",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": {
+            "@list": ["solo", "small", "medium", "large", "enterprise"]
+          },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "crm:CompanyDetailsGroup" },
+          "sh:description": "Approximate company size category.",
+          "sempkm:editHelpText": "Rough size category. Solo = 1 person, Small = 2-50, Medium = 51-500, Large = 501-5000, Enterprise = 5000+."
+        },
+        {
+          "sh:path": { "@id": "crm:hasEmployee" },
+          "sh:name": "Employees",
+          "sh:class": { "@id": "crm:Contact" },
+          "sh:order": 5,
+          "sh:group": { "@id": "crm:CompanyPeopleGroup" },
+          "sh:description": "Contacts who work at this company.",
+          "sempkm:editHelpText": "People linked to this company. Automatically populated when contacts set their 'Works At' field."
+        },
+        {
+          "sh:path": { "@id": "crm:notes" },
+          "sh:name": "Notes",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "crm:CompanyNotesGroup" },
+          "sh:description": "Free-form notes about this company.",
+          "sempkm:editHelpText": "Anything worth remembering about this company — business context, key products, meeting impressions."
+        }
+      ]
+    },
+
+    {
+      "@id": "crm:InteractionDetailsGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Details",
+      "sh:order": 1
+    },
+    {
+      "@id": "crm:InteractionPeopleGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "People",
+      "sh:order": 2
+    },
+    {
+      "@id": "crm:InteractionFollowUpGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Follow-up",
+      "sh:order": 3
+    },
+    {
+      "@id": "crm:InteractionShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "crm:Interaction" },
+      "rdfs:label": "Interaction Shape",
+      "sempkm:editHelpText": "Interactions record meetings, calls, emails, and other touchpoints with contacts. Log interactions to build a history and track follow-up actions.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "crm:interactionType" },
+          "sh:name": "Type",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": {
+            "@list": ["meeting", "call", "email", "coffee", "conference", "other"]
+          },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "crm:InteractionDetailsGroup" },
+          "sh:description": "What kind of interaction this was.",
+          "sempkm:editHelpText": "The type of interaction — meeting, call, email, coffee chat, conference encounter, or other."
+        },
+        {
+          "sh:path": { "@id": "crm:interactionDate" },
+          "sh:name": "Date",
+          "sh:datatype": { "@id": "xsd:date" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "crm:InteractionDetailsGroup" },
+          "sh:description": "When the interaction took place.",
+          "sempkm:editHelpText": "The date this interaction happened. Used to determine last-contacted dates and stale contact warnings."
+        },
+        {
+          "sh:path": { "@id": "crm:summary" },
+          "sh:name": "Summary",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "crm:InteractionDetailsGroup" },
+          "sh:description": "Brief summary of what was discussed or happened.",
+          "sempkm:editHelpText": "A brief summary of the interaction. Capture key points, action items, and impressions while they're fresh."
+        },
+        {
+          "sh:path": { "@id": "crm:withContact" },
+          "sh:name": "With Contact",
+          "sh:class": { "@id": "crm:Contact" },
+          "sh:minCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "crm:InteractionPeopleGroup" },
+          "sh:description": "Contact(s) involved in this interaction.",
+          "sempkm:editHelpText": "Link to the contact(s) you interacted with. At least one is required. This builds the interaction history on their profile."
+        },
+        {
+          "sh:path": { "@id": "crm:followUpDate" },
+          "sh:name": "Follow-up Date",
+          "sh:datatype": { "@id": "xsd:date" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "crm:InteractionFollowUpGroup" },
+          "sh:description": "Date by which a follow-up action should be completed.",
+          "sempkm:editHelpText": "If this interaction requires a follow-up, set the date here. You'll get a warning if it becomes overdue."
+        },
+        {
+          "sh:path": { "@id": "crm:followUpDone" },
+          "sh:name": "Follow-up Done",
+          "sh:datatype": { "@id": "xsd:boolean" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "crm:InteractionFollowUpGroup" },
+          "sh:description": "Whether the follow-up has been completed.",
+          "sempkm:editHelpText": "Check this off when you've completed the follow-up action from this interaction."
+        }
+      ]
+    },
+
+    {
+      "@id": "crm:DealBasicInfoGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Basic Info",
+      "sh:order": 1
+    },
+    {
+      "@id": "crm:DealPartiesGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Parties",
+      "sh:order": 2
+    },
+    {
+      "@id": "crm:DealNotesGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Notes",
+      "sh:order": 3
+    },
+    {
+      "@id": "crm:DealShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "crm:Deal" },
+      "rdfs:label": "Deal Shape",
+      "sempkm:editHelpText": "Deals track business opportunities through a pipeline from lead to close. Link deals to contacts and companies to see your full sales picture.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "crm:dealName" },
+          "sh:name": "Deal Name",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "crm:DealBasicInfoGroup" },
+          "sh:description": "Name or title of the deal.",
+          "sempkm:editHelpText": "A descriptive name for this deal — e.g. 'Acme Q2 Contract Renewal'. Helps identify it in tables and pipeline views."
+        },
+        {
+          "sh:path": { "@id": "crm:dealStage" },
+          "sh:name": "Stage",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": {
+            "@list": ["lead", "qualified", "proposal", "negotiation", "won", "lost"]
+          },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "crm:DealBasicInfoGroup" },
+          "sh:description": "Current pipeline stage.",
+          "sempkm:editHelpText": "Where this deal is in the pipeline. Update as it progresses from lead through qualification, proposal, negotiation, to won or lost."
+        },
+        {
+          "sh:path": { "@id": "crm:dealValue" },
+          "sh:name": "Value",
+          "sh:datatype": { "@id": "xsd:decimal" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "crm:DealBasicInfoGroup" },
+          "sh:description": "Monetary value of the deal.",
+          "sempkm:editHelpText": "The monetary value of this deal. Used for pipeline value calculations and reporting."
+        },
+        {
+          "sh:path": { "@id": "crm:currency" },
+          "sh:name": "Currency",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": {
+            "@list": ["USD", "EUR", "GBP"]
+          },
+          "sh:defaultValue": "USD",
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "crm:DealBasicInfoGroup" },
+          "sh:description": "Currency code for the deal value.",
+          "sempkm:editHelpText": "Currency for the deal value. Defaults to USD."
+        },
+        {
+          "sh:path": { "@id": "crm:dealContact" },
+          "sh:name": "Contact",
+          "sh:class": { "@id": "crm:Contact" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "crm:DealPartiesGroup" },
+          "sh:description": "Primary contact associated with this deal.",
+          "sempkm:editHelpText": "The main person you're dealing with on this opportunity. Link to their contact record."
+        },
+        {
+          "sh:path": { "@id": "crm:dealCompany" },
+          "sh:name": "Company",
+          "sh:class": { "@id": "crm:Company" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "crm:DealPartiesGroup" },
+          "sh:description": "Company associated with this deal.",
+          "sempkm:editHelpText": "The company this deal is with. Useful for seeing all deals with a particular organization."
+        },
+        {
+          "sh:path": { "@id": "crm:notes" },
+          "sh:name": "Notes",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 7,
+          "sh:group": { "@id": "crm:DealNotesGroup" },
+          "sh:description": "Free-form notes about this deal.",
+          "sempkm:editHelpText": "Track deal-specific context — negotiation details, competitor info, decision criteria, timeline notes."
+        }
+      ]
+    }
+  ]
+}
