@@ -252,3 +252,230 @@ Key components:
 **Design:** `.gsd/design/APP-PLATFORM-DESIGN.md` §13
 **Context:** `.gsd/milestones/M010/M010-CONTEXT.md`
 **Depends on:** M009 (app platform must exist)
+
+---
+
+## Mental Models Expansion
+
+**Queued:** 2026-03-16
+**Status:** Queued as M011
+
+Expand Mental Model lineup to 6 user-facing models: basic-pkm v2 (Task + Milestone + Event integration hub), Personal CRM (Contact, Company, Interaction, Deal), Zettelkasten+ (5-type provenance chain), Research Workflow (claims-first academic PKM). Each with full OWL ontology, SHACL shapes, ViewSpecs, SHACL-AF rules, seed data, pre-built dashboards, and icon manifests.
+
+**Design:** `.gsd/design/MENTAL-MODELS-EXPANSION-DESIGN.md`
+**Context:** `.gsd/milestones/M011/M011-CONTEXT.md`
+
+---
+
+## Workspace & Event Log Polish
+
+**Queued:** 2026-03-16
+**Status:** Queued as M012
+
+Event log autocomplete and helptext (matching SHACL form quality), body.diff incremental storage for readable change history, and user personas (named workspace layouts + settings per context).
+
+**Context:** `.gsd/milestones/M012/M012-CONTEXT.md`
+
+---
+
+## API Surface for External Clients
+
+**Queued:** 2026-03-16
+**Status:** Queued as M013 (depends on M011)
+
+Four new JSON API endpoints for external clients: `/.well-known/sempkm` (discovery), `/api/types` (available types), `/api/shapes/{type}` (SHACL shapes as JSON), `/api/context-query` (related objects by page metadata). Needed by browser extension and useful standalone.
+
+**Context:** `.gsd/milestones/M013/M013-CONTEXT.md`
+**Depends on:** M011
+
+---
+
+## Browser Extension Phase 1 — Smart Structured Capture
+
+**Queued:** 2026-03-16
+**Status:** Queued as M014 (depends on M013)
+
+Chrome/Firefox extension with popup capture UI, dynamic SHACL-driven forms, type selector, auto-population from page metadata and schema.org, relationship picker, context menu integration.
+
+**Design:** `.gsd/design/BROWSER-EXTENSION-DESIGN.md`
+**Context:** `.gsd/milestones/M014/M014-CONTEXT.md`
+**Depends on:** M013
+
+---
+
+## Browser Extension Phase 2 — Knowledge Context Overlay
+
+**Queued:** 2026-03-16
+**Status:** Queued as M015 (depends on M014)
+
+Sidebar showing related objects from your graph while browsing. Badge count, context matching (URL + title keywords), in-context actions (link, add evidence). First tool to make browsing a bidirectional conversation with your knowledge.
+
+**Design:** `.gsd/design/BROWSER-EXTENSION-DESIGN.md`
+**Context:** `.gsd/milestones/M015/M015-CONTEXT.md`
+**Depends on:** M014
+
+---
+
+## Linear Sync App
+
+**Queued:** 2026-03-16
+**Status:** Queued as M016 (depends on M009)
+
+First task provider integration. Bidirectional Linear ↔ bpkm:Task sync. Establishes the sync pattern for all subsequent provider apps. Best API quality (rich webhooks, state.type enum, GraphQL, delta sync).
+
+**Design:** `.gsd/design/INTEGRATION-DOMAIN-MAPPING.md`
+**Context:** `.gsd/milestones/M016/M016-CONTEXT.md`
+**Depends on:** M009
+
+---
+
+## GitHub Issues Sync App
+
+**Queued:** 2026-03-16
+**Status:** Queued as M017 (depends on M009)
+
+GitHub Issues + PRs bidirectional sync. Developer audience. Maps issues to bpkm:Task, PRs linked via edges, cross-repo dependency visualization.
+
+**Context:** `.gsd/milestones/M017/M017-CONTEXT.md`
+**Depends on:** M009
+
+---
+
+## Google Calendar Sync App
+
+**Queued:** 2026-03-16
+**Status:** Queued as M018 (depends on M009, M011)
+
+First calendar provider. Google Calendar ↔ bpkm:Event sync with syncToken incremental sync, push notifications, attendee→Person matching, RRULE recurrence handling.
+
+**Design:** `.gsd/design/INTEGRATION-DOMAIN-MAPPING.md`
+**Context:** `.gsd/milestones/M018/M018-CONTEXT.md`
+**Depends on:** M009, M011
+
+---
+
+## Todoist Sync App
+
+**Queued:** 2026-03-16
+**Status:** Queued as M019 (depends on M009)
+
+Todoist bidirectional sync. Simple REST API, individual user focus. Quick build leveraging M016 patterns.
+
+**Context:** `.gsd/milestones/M019/M019-CONTEXT.md`
+**Depends on:** M009
+
+---
+
+## Outlook Calendar Sync App
+
+**Queued:** 2026-03-16
+**Status:** Queued as M020 (depends on M009, M011)
+
+Microsoft Graph API calendar sync. Delta queries, webhook subscriptions, recurrence pattern→RRULE conversion. Enterprise/Microsoft 365 users.
+
+**Design:** `.gsd/design/INTEGRATION-DOMAIN-MAPPING.md`
+**Context:** `.gsd/milestones/M020/M020-CONTEXT.md`
+**Depends on:** M009, M011
+
+---
+
+## CalDAV Calendar Sync App
+
+**Queued:** 2026-03-16
+**Status:** Queued as M021 (depends on M009, M011)
+
+Standards-compliant CalDAV sync covering Fastmail, Nextcloud, Synology, and any CalDAV server. Native iCalendar format — cleanest field mapping.
+
+**Context:** `.gsd/milestones/M021/M021-CONTEXT.md`
+**Depends on:** M009, M011
+
+---
+
+## Asana Sync App
+
+**Queued:** 2026-03-16
+**Status:** Queued as M022 (depends on M009)
+
+Asana bidirectional sync with configurable field mapping for custom-field-based status/priority. Section-based Kanban mapping. Establishes "configurable mapping" pattern.
+
+**Design:** `.gsd/design/INTEGRATION-DOMAIN-MAPPING.md`
+**Context:** `.gsd/milestones/M022/M022-CONTEXT.md`
+**Depends on:** M009
+
+---
+
+## Jira Sync App
+
+**Queued:** 2026-03-16
+**Status:** Queued as M023 (depends on M009)
+
+Jira Cloud sync with ADF↔Markdown conversion, statusCategory normalization, JQL filtering, Epic→Milestone mapping. Most complex task provider.
+
+**Design:** `.gsd/design/INTEGRATION-DOMAIN-MAPPING.md`
+**Context:** `.gsd/milestones/M023/M023-CONTEXT.md`
+**Depends on:** M009
+
+---
+
+## Monday.com Sync App
+
+**Queued:** 2026-03-16
+**Status:** Queued as M024 (depends on M009)
+
+Monday.com sync with LoopGuard for webhook echo prevention. Column-centric model requires user-configurable mapping. Lowest priority task provider.
+
+**Design:** `.gsd/design/INTEGRATION-DOMAIN-MAPPING.md`
+**Context:** `.gsd/milestones/M024/M024-CONTEXT.md`
+**Depends on:** M009
+
+---
+
+## Hosted Demo Instance
+
+**Queued:** 2026-03-16
+**Status:** Queued as M025 (depends on M011)
+
+Pre-populated public SemPKM instance with all Mental Models, 30-50 interconnected sample objects, optimized guided tour, and pre-built demo dashboard. Removes the Docker barrier for first-time visitors.
+
+**Context:** `.gsd/milestones/M025/M025-CONTEXT.md`
+**Depends on:** M011
+
+---
+
+## Homepage & Messaging Rewrite
+
+**Queued:** 2026-03-16
+**Status:** Queued as M026 (depends on M025)
+
+Outcome-focused homepage rewrite. Lead with "Structure that enforces itself" not "RDF/SHACL/SPARQL." Persona paths (Obsidian, Notion, Fresh Start), competitive positioning, demo CTA.
+
+**Design:** `.gsd/design/USER-CONVERSION-STRATEGY.md`
+**Context:** `.gsd/milestones/M026/M026-CONTEXT.md`
+**Depends on:** M025
+
+---
+
+## Notion Import Wizard
+
+**Queued:** 2026-03-16
+**Status:** Queued as M027 (depends on M011)
+**Supersedes:** Previous "Notion Import Wizard" queue entry (status: Researched)
+
+Interactive import for Notion workspace exports. ZIP first, API later. Databases→types, rows→objects, relations→edges. Mirrors Obsidian import pattern.
+
+**Research:** `.planning/notion-import-research.md`
+**Context:** `.gsd/milestones/M027/M027-CONTEXT.md`
+**Depends on:** M011
+
+---
+
+## Browser Extension Phase 3 — Active Intelligence
+
+**Queued:** 2026-03-16
+**Status:** Queued as M028 (depends on M015)
+
+AI-powered extension features: claim detection on web pages, contradiction surfacing against existing knowledge, knowledge gap alerts, relationship suggestions, personalized summaries using graph context. Uses SemPKM's LLM proxy.
+
+**Design:** `.gsd/design/BROWSER-EXTENSION-DESIGN.md`
+**Context:** `.gsd/milestones/M028/M028-CONTEXT.md`
+**Depends on:** M015
