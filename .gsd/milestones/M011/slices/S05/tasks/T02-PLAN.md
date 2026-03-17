@@ -180,3 +180,12 @@ All tests share a single `ownerPage`/`ownerRequest` fixture to stay within the 5
 ## Expected Output
 
 - `e2e/tests/26-mental-models/mental-model-expansion.spec.ts` — E2E test spec covering full model lifecycle for all 4 M011 models (~200-300 lines)
+
+## Observability Impact
+
+- **Playwright test reporter**: `npx playwright test tests/26-mental-models/ --project=chromium` reports pass/fail per step with screenshots on failure
+- **Failure screenshots**: Saved to `e2e/test-results/26-mental-models-*/*.png` on test failure
+- **Trace files**: Playwright trace zips in `e2e/test-results/*/trace.zip` — view with `npx playwright show-trace`
+- **Console logs**: Test logs cleanup status to console (`Cleanup: Could not remove <model> (seed data exists)`)
+- **Docker stack dependency**: Test requires models volume-mounted in the test container; if model dirs are missing, install step fails with "manifest.yaml not found"
+- **Inspection**: Run `npx playwright test tests/26-mental-models/ --project=chromium --reporter=list` for step-by-step output

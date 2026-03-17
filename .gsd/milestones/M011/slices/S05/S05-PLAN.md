@@ -50,7 +50,7 @@
   - Verify: `cd backend && .venv/bin/python -m pytest tests/test_cross_model_validation.py -v`
   - Done when: All cross-model validation tests pass with 0 errors
 
-- [ ] **T02: Write E2E Playwright test for mental model expansion** `est:1h`
+- [x] **T02: Write E2E Playwright test for mental model expansion** `est:1h`
   - Why: Proves the full Docker lifecycle — model install, object creation via API, SHACL form rendering in UI, inference, and validation — for all 4 M011 models. This is the integration verification that retires MODEL-01 through MODEL-04.
   - Files: `e2e/tests/26-mental-models/mental-model-expansion.spec.ts`
   - Do: Create single `test.describe` with sequential ordered tests sharing Docker state. Steps: (1) install CRM, zettelkasten, research models via UI form, (2) refresh basic-pkm via API, (3) create one object per new type via Command API, (4) open objects in edit mode and verify form labels render, (5) run inference via API and verify completion, (6) check lint API returns results for objects with trigger data, (7) cleanup — delete created objects and uninstall CRM/zettelkasten/research. Follow patterns from `admin-model-lifecycle.spec.ts` (install), `inference.spec.ts` (API run), `lint-panel.spec.ts` (lint API).
