@@ -1,9 +1,8 @@
 # GSD State
 
 **Active Milestone:** M012: Workspace & Event Log Polish
-**Active Slice:** S01: Event Log Polish — Labels, Helptext & Autocomplete
+**Active Slice:** S02: Body.Diff — Incremental Storage & Rendering
 **Phase:** executing
-**Tasks:** T01 (pending) → T02 (pending) → T03 (pending)
 **Requirements Status:** 42 active · 101 validated · 7 deferred · 0 out of scope
 
 ## Milestone Registry
@@ -44,4 +43,4 @@
 - None
 
 ## Next Action
-Execute T01: Wire predicate labels and helptext tooltips into event detail view.
+Execute T01 of slice S02 (Add body.diff command schema, handler, and dispatcher wiring).
