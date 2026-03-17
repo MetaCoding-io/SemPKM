@@ -26,6 +26,14 @@
       ],
       "bpkm:hasNote": [
         { "@id": "bpkm:seed-note-architecture" }
+      ],
+      "bpkm:hasProjectTasks": [
+        { "@id": "bpkm:seed-task-fix-validation" },
+        { "@id": "bpkm:seed-task-review-pr" }
+      ],
+      "bpkm:hasMilestones": [
+        { "@id": "bpkm:seed-milestone-launch" },
+        { "@id": "bpkm:seed-milestone-docs" }
       ]
     },
     {
@@ -55,6 +63,10 @@
       "dcterms:created": { "@value": "2026-01-15T09:00:00Z", "@type": "xsd:dateTime" },
       "bpkm:participatesIn": [
         { "@id": "bpkm:seed-project-sempkm" }
+      ],
+      "bpkm:hasAssignedTask": [
+        { "@id": "bpkm:seed-task-write-guide" },
+        { "@id": "bpkm:seed-task-design-onboarding" }
       ]
     },
     {
@@ -69,6 +81,9 @@
       "dcterms:created": { "@value": "2026-01-20T11:00:00Z", "@type": "xsd:dateTime" },
       "bpkm:participatesIn": [
         { "@id": "bpkm:seed-project-sempkm" }
+      ],
+      "bpkm:hasAssignedTask": [
+        { "@id": "bpkm:seed-task-fix-validation" }
       ]
     },
     {
@@ -83,6 +98,9 @@
       "dcterms:created": { "@value": "2026-02-01T10:00:00Z", "@type": "xsd:dateTime" },
       "bpkm:participatesIn": [
         { "@id": "bpkm:seed-project-garden" }
+      ],
+      "bpkm:hasAssignedTask": [
+        { "@id": "bpkm:seed-task-review-pr" }
       ]
     },
 
@@ -155,6 +173,89 @@
       ],
       "bpkm:tags": ["architecture", "pattern", "persistence"],
       "dcterms:created": { "@value": "2026-01-18T14:00:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "bpkm:seed-milestone-launch",
+      "@type": "bpkm:Milestone",
+      "dcterms:title": "v1.0 Launch",
+      "dcterms:description": "First production release of SemPKM with core PKM features.",
+      "bpkm:milestoneStatus": "active",
+      "bpkm:targetDate": { "@value": "2026-04-15", "@type": "xsd:date" },
+      "dcterms:created": { "@value": "2026-02-01T09:00:00Z", "@type": "xsd:dateTime" },
+      "bpkm:milestoneProject": { "@id": "bpkm:seed-project-sempkm" },
+      "bpkm:hasTasks": [
+        { "@id": "bpkm:seed-task-fix-validation" },
+        { "@id": "bpkm:seed-task-review-pr" }
+      ]
+    },
+    {
+      "@id": "bpkm:seed-milestone-docs",
+      "@type": "bpkm:Milestone",
+      "dcterms:title": "Documentation Complete",
+      "dcterms:description": "All user-facing documentation written, reviewed, and published.",
+      "bpkm:milestoneStatus": "planned",
+      "bpkm:targetDate": { "@value": "2026-04-01", "@type": "xsd:date" },
+      "dcterms:created": { "@value": "2026-02-01T09:30:00Z", "@type": "xsd:dateTime" },
+      "bpkm:milestoneProject": { "@id": "bpkm:seed-project-sempkm" },
+      "bpkm:hasTasks": [
+        { "@id": "bpkm:seed-task-write-guide" },
+        { "@id": "bpkm:seed-task-design-onboarding" }
+      ]
+    },
+
+    {
+      "@id": "bpkm:seed-task-write-guide",
+      "@type": "bpkm:Task",
+      "dcterms:title": "Write user guide for graph view",
+      "bpkm:body": "## Graph View User Guide\n\nDocument the interactive graph visualization feature:\n- Node types and color coding\n- Navigation and zoom controls\n- Filtering by relationship type\n- Export options",
+      "bpkm:taskStatus": "in-progress",
+      "bpkm:priority": "high",
+      "bpkm:dueDate": { "@value": "2026-03-25", "@type": "xsd:date" },
+      "bpkm:tags": ["documentation", "guide"],
+      "dcterms:created": { "@value": "2026-02-10T10:00:00Z", "@type": "xsd:dateTime" },
+      "bpkm:assignedTo": { "@id": "bpkm:seed-person-alice" },
+      "bpkm:milestone": { "@id": "bpkm:seed-milestone-docs" },
+      "bpkm:relatedNote": { "@id": "bpkm:seed-note-architecture" }
+    },
+    {
+      "@id": "bpkm:seed-task-fix-validation",
+      "@type": "bpkm:Task",
+      "dcterms:title": "Fix validation edge case",
+      "dcterms:description": "Handle edge case where SHACL validation fails silently on empty named graphs.",
+      "bpkm:taskStatus": "todo",
+      "bpkm:priority": "medium",
+      "bpkm:dueDate": { "@value": "2026-03-10", "@type": "xsd:date" },
+      "dcterms:created": { "@value": "2026-02-15T11:00:00Z", "@type": "xsd:dateTime" },
+      "bpkm:assignedTo": { "@id": "bpkm:seed-person-bob" },
+      "bpkm:milestone": { "@id": "bpkm:seed-milestone-launch" },
+      "bpkm:taskProject": { "@id": "bpkm:seed-project-sempkm" }
+    },
+    {
+      "@id": "bpkm:seed-task-review-pr",
+      "@type": "bpkm:Task",
+      "dcterms:title": "Review PR #42",
+      "dcterms:description": "Code review for the graph visualization pull request.",
+      "bpkm:taskStatus": "todo",
+      "bpkm:priority": "low",
+      "bpkm:externalProvider": "github",
+      "bpkm:externalId": "#42",
+      "bpkm:externalUrl": { "@value": "https://github.com/example/sempkm/pull/42", "@type": "xsd:anyURI" },
+      "dcterms:created": { "@value": "2026-02-20T14:00:00Z", "@type": "xsd:dateTime" },
+      "bpkm:assignedTo": { "@id": "bpkm:seed-person-carol" },
+      "bpkm:taskProject": { "@id": "bpkm:seed-project-sempkm" }
+    },
+    {
+      "@id": "bpkm:seed-task-design-onboarding",
+      "@type": "bpkm:Task",
+      "dcterms:title": "Design onboarding flow",
+      "dcterms:description": "Create wireframes and interaction design for the new user onboarding experience.",
+      "bpkm:taskStatus": "blocked",
+      "bpkm:priority": "high",
+      "dcterms:created": { "@value": "2026-02-18T09:00:00Z", "@type": "xsd:dateTime" },
+      "bpkm:assignedTo": { "@id": "bpkm:seed-person-alice" },
+      "bpkm:milestone": { "@id": "bpkm:seed-milestone-docs" },
+      "bpkm:dependsOn": { "@id": "bpkm:seed-task-write-guide" }
     }
   ]
 }

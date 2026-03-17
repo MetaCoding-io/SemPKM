@@ -1,5 +1,5 @@
 modelId: basic-pkm
-version: "1.3.0"
+version: "2.0.0"
 name: "Basic PKM"
 description: "Personal knowledge management with Projects, People, Notes, and Concepts. Provides rich types with standard vocabulary properties, inter-type relationships, SHACL shapes for form generation, and view specifications for table, card, and graph browsing."
 namespace: "urn:sempkm:model:basic-pkm:"
@@ -75,3 +75,31 @@ icons:
     graph:
       icon: "user"
       color: "#e11d48"
+  - type: "bpkm:Task"
+    icon: "check-square"
+    color: "#10b981"
+    tree:
+      icon: "check-square"
+      color: "#10b981"
+      size: 16
+    tab:
+      icon: "check-square"
+      color: "#10b981"
+      size: 14
+    graph:
+      icon: "check-square"
+      color: "#10b981"
+  - type: "bpkm:Milestone"
+    icon: "flag"
+    color: "#f59e0b"
+    tree:
+      icon: "flag"
+      color: "#f59e0b"
+      size: 16
+    tab:
+      icon: "flag"
+      color: "#f59e0b"
+      size: 14
+    graph:
+      icon: "flag"
+      color: "#f59e0b"
