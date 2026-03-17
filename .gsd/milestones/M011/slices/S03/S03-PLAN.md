@@ -133,7 +133,7 @@ print('All triple counts in expected range')
   - Verify: Both files parse with rdflib. Shapes has 5 `sh:targetClass` triples. Views has 5+ ViewSpec subjects plus 4 SavedQuery subjects.
   - Done when: Both files parse cleanly, shapes reference all 5 ontology classes, views cover all types.
 
-- [ ] **T03: Author Zettelkasten rules, seed data, and run full pipeline validation** `est:1h`
+- [x] **T03: Author Zettelkasten rules, seed data, and run full pipeline validation** `est:1h`
   - Why: Rules define the 3 validation constraints. Seed data provides the provenance chain scenario with trigger data. Full pipeline proves the archive is correct end-to-end.
   - Files: `models/zettelkasten/rules/zettelkasten.ttl`, `models/zettelkasten/seed/zettelkasten.jsonld`
   - Do: Create rules in Turtle with 3 separate NodeShapes per D153: (1) UnprocessedFleetingValidation — `sh:severity sh:Warning`, fires when FleetingNote has no `processedInto` (NOT EXISTS, no date arithmetic per K001); (2) OrphanPermanentNoteValidation — `sh:severity sh:Warning`, fires when PermanentNote has no supports/contradicts/followsFrom/includedInStructure (use separate FILTER NOT EXISTS blocks, NOT property paths per research pitfall); (3) UnsourcedPermanentNoteValidation — `sh:severity sh:Info`, fires when PermanentNote has no `developedFrom`. Create seed data with ~12 objects: 3 Sources, 2 FleetingNotes (1 unprocessed with old dcterms:created), 3 LiteratureNotes, 3 PermanentNotes (1 orphaned, 1 unsourced), 1 StructureNote. Both sides of inverseOf pre-populated per D154. Run all 5 verification steps from the Verification section.

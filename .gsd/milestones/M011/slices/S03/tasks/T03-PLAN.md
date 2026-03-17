@@ -186,6 +186,13 @@ No inference rules are needed — all relationships are user-created. The `owl:i
 - `.gsd/worktrees/M011/models/crm/rules/crm.ttl` — structural template for rules Turtle
 - `.gsd/worktrees/M011/models/crm/seed/crm.jsonld` — structural template for seed JSON-LD
 
+## Observability Impact
+
+- **SHACL-AF rule firing:** `pyshacl.validate(data, shacl_graph=combined_shacl, ont_graph=ontology, advanced=True)` returns `(conforms, results_graph, text)` — text includes focus node, severity, source shape, and message per violation. The 3 rules produce: 2 Warning (unprocessed fleeting, orphan permanent) + 1 Info (unsourced permanent).
+- **Seed data diagnostic surface:** Seed objects are designed to trigger known violations — agents can verify rule correctness by checking that `conforms=False` and the violation text matches expected messages.
+- **Triple count signals:** Rules ≥20, Seed ≥100. Counts below these thresholds after edits indicate missing definitions or parse failures.
+- **Pipeline error surface:** `validate_archive()` returns `ValidationResult` with `.is_valid`, `.errors[]`, `.warnings[]` — inspectable by agents. Zero errors expected for a valid archive.
+
 ## Expected Output
 
 - `models/zettelkasten/rules/zettelkasten.ttl` — 3 validation rules in Turtle (≥20 triples)

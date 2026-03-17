@@ -1,0 +1,162 @@
+{
+  "@context": {
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "schema": "https://schema.org/",
+    "bpkm": "urn:sempkm:model:basic-pkm:",
+    "zk": "urn:sempkm:model:zettelkasten:",
+    "gist": "https://w3id.org/semanticarts/ns/ontology/gist/"
+  },
+  "@graph": [
+
+    {
+      "@id": "zk:seed-source-ahrens",
+      "@type": "zk:Source",
+      "dcterms:title": "How to Take Smart Notes",
+      "dcterms:creator": "Sönke Ahrens",
+      "zk:sourceType": "book",
+      "schema:datePublished": { "@value": "2017-02-21", "@type": "xsd:date" },
+      "zk:notes": "Foundational text on the Zettelkasten method. Explains Luhmann's slip-box system and how writing is thinking.",
+      "zk:rating": { "@value": "5", "@type": "xsd:integer" },
+      "bpkm:tags": ["zettelkasten", "note-taking", "productivity", "writing"],
+      "dcterms:created": { "@value": "2026-01-15T10:00:00Z", "@type": "xsd:dateTime" },
+      "zk:hasLiteratureNote": [
+        { "@id": "zk:seed-litnote-ahrens-slip" },
+        { "@id": "zk:seed-litnote-ahrens-writing" }
+      ]
+    },
+    {
+      "@id": "zk:seed-source-dobelli",
+      "@type": "zk:Source",
+      "dcterms:title": "The Art of Thinking Clearly",
+      "dcterms:creator": "Rolf Dobelli",
+      "zk:sourceType": "book",
+      "schema:datePublished": { "@value": "2013-05-14", "@type": "xsd:date" },
+      "zk:notes": "Catalog of cognitive biases and logical fallacies. Useful for understanding reasoning pitfalls.",
+      "zk:rating": { "@value": "4", "@type": "xsd:integer" },
+      "bpkm:tags": ["cognitive-bias", "reasoning", "psychology"],
+      "dcterms:created": { "@value": "2026-02-01T14:00:00Z", "@type": "xsd:dateTime" },
+      "zk:hasLiteratureNote": [
+        { "@id": "zk:seed-litnote-dobelli-bias" }
+      ]
+    },
+    {
+      "@id": "zk:seed-source-networked",
+      "@type": "zk:Source",
+      "dcterms:title": "Networked Thought: How Modern Tools Change Note-Taking",
+      "dcterms:creator": "Anne-Laure Le Cunff",
+      "zk:sourceType": "article",
+      "schema:datePublished": { "@value": "2024-09-10", "@type": "xsd:date" },
+      "schema:url": "https://example.com/networked-thought",
+      "zk:notes": "Explores how digital tools enhance the Zettelkasten method with bidirectional linking and graph visualization.",
+      "zk:rating": { "@value": "3", "@type": "xsd:integer" },
+      "bpkm:tags": ["digital-tools", "note-taking", "graph-thinking"],
+      "dcterms:created": { "@value": "2026-02-10T09:00:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "zk:seed-fleeting-unprocessed",
+      "@type": "zk:FleetingNote",
+      "dcterms:title": "Ideas about spaced repetition and note review",
+      "zk:body": "What if we combined spaced repetition scheduling with Zettelkasten review cycles? Notes that haven't been connected could surface more often. Need to think about this more.",
+      "zk:capturedFrom": "morning commute",
+      "bpkm:tags": ["spaced-repetition", "idea", "review"],
+      "dcterms:created": { "@value": "2026-03-12", "@type": "xsd:date" }
+    },
+    {
+      "@id": "zk:seed-fleeting-recent",
+      "@type": "zk:FleetingNote",
+      "dcterms:title": "Ahrens on the collector's fallacy",
+      "zk:body": "Ahrens warns against collecting without processing — the 'collector's fallacy'. Saving highlights isn't learning. Must process into own words.",
+      "zk:capturedFrom": "reading session",
+      "bpkm:tags": ["ahrens", "collector-fallacy"],
+      "dcterms:created": { "@value": "2026-03-16", "@type": "xsd:date" },
+      "zk:processedInto": { "@id": "zk:seed-litnote-ahrens-slip" }
+    },
+
+    {
+      "@id": "zk:seed-litnote-ahrens-slip",
+      "@type": "zk:LiteratureNote",
+      "dcterms:title": "The slip-box as external scaffold for thinking",
+      "zk:body": "Ahrens argues that the slip-box is not merely a storage system but an external scaffold for thinking. By forcing ideas into atomic, interconnected notes, the system creates a dialogue partner that surfaces unexpected connections.",
+      "zk:originalQuote": "The slip-box is designed to present you with ideas you have already forgotten, allowing your brain to focus on thinking instead of remembering.",
+      "zk:pageReference": "Chapter 3, pp. 42-48",
+      "bpkm:tags": ["slip-box", "external-thinking", "cognition"],
+      "dcterms:created": { "@value": "2026-02-15T11:00:00Z", "@type": "xsd:dateTime" },
+      "zk:derivedFrom": { "@id": "zk:seed-source-ahrens" },
+      "zk:developedInto": { "@id": "zk:seed-perm-cognitive-load" }
+    },
+    {
+      "@id": "zk:seed-litnote-ahrens-writing",
+      "@type": "zk:LiteratureNote",
+      "dcterms:title": "Writing as the medium of thinking, not its output",
+      "zk:body": "Ahrens reframes writing from an output activity to the primary medium of thought. In the Zettelkasten workflow, you don't think first and write later — writing IS the thinking process. Structure emerges from the notes themselves.",
+      "zk:originalQuote": "Writing is not what follows research, learning, or studying, it is the medium of all this work.",
+      "zk:pageReference": "Chapter 1, pp. 15-20",
+      "bpkm:tags": ["writing", "thinking", "process"],
+      "dcterms:created": { "@value": "2026-02-18T16:00:00Z", "@type": "xsd:dateTime" },
+      "zk:derivedFrom": { "@id": "zk:seed-source-ahrens" },
+      "zk:developedInto": { "@id": "zk:seed-perm-emergent-structure" }
+    },
+    {
+      "@id": "zk:seed-litnote-dobelli-bias",
+      "@type": "zk:LiteratureNote",
+      "dcterms:title": "Confirmation bias as a threat to objective analysis",
+      "zk:body": "Dobelli describes confirmation bias as the tendency to seek and interpret information that confirms pre-existing beliefs while ignoring contradictory evidence. This is especially dangerous in knowledge work where we curate our own information sources.",
+      "zk:originalQuote": "We filter out any new information that contradicts our existing views.",
+      "zk:pageReference": "Chapter 5, pp. 31-34",
+      "bpkm:tags": ["confirmation-bias", "cognitive-bias", "reasoning"],
+      "dcterms:created": { "@value": "2026-02-20T10:00:00Z", "@type": "xsd:dateTime" },
+      "zk:derivedFrom": { "@id": "zk:seed-source-dobelli" }
+    },
+
+    {
+      "@id": "zk:seed-perm-cognitive-load",
+      "@type": "zk:PermanentNote",
+      "dcterms:title": "Externalized thinking reduces cognitive load",
+      "zk:body": "When knowledge is externalized into an interconnected note system, the brain is freed from the dual burden of remembering AND processing. The external system handles storage and association, allowing working memory to focus entirely on analysis and synthesis. This explains why Zettelkasten users report being able to think about more complex problems than they could with mental models alone.",
+      "zk:sequenceId": "1a",
+      "bpkm:tags": ["cognitive-load", "externalization", "thinking"],
+      "dcterms:created": { "@value": "2026-03-01T09:00:00Z", "@type": "xsd:dateTime" },
+      "zk:developedFrom": { "@id": "zk:seed-litnote-ahrens-slip" },
+      "zk:supports": { "@id": "zk:seed-perm-emergent-structure" },
+      "zk:includedInStructure": { "@id": "zk:seed-structure-case" }
+    },
+    {
+      "@id": "zk:seed-perm-emergent-structure",
+      "@type": "zk:PermanentNote",
+      "dcterms:title": "Structure emerges from connections, not planning",
+      "zk:body": "Top-down categorization forces ideas into predetermined boxes. Bottom-up structure — where connections between atomic notes gradually reveal topics and arguments — produces more organic and surprising knowledge structures. The Zettelkasten method demonstrates that useful structure is an emergent property of dense interconnection, not a prerequisite for it.",
+      "zk:sequenceId": "1b",
+      "bpkm:tags": ["emergence", "structure", "bottom-up"],
+      "dcterms:created": { "@value": "2026-03-05T14:00:00Z", "@type": "xsd:dateTime" },
+      "zk:developedFrom": { "@id": "zk:seed-litnote-ahrens-writing" },
+      "zk:includedInStructure": { "@id": "zk:seed-structure-case" }
+    },
+    {
+      "@id": "zk:seed-perm-confirmation-bias",
+      "@type": "zk:PermanentNote",
+      "dcterms:title": "Confirmation bias threatens knowledge systems",
+      "zk:body": "Any personal knowledge management system is vulnerable to confirmation bias. We naturally curate sources and notes that reinforce existing beliefs. The Zettelkasten's contradiction links are a structural countermeasure — by explicitly linking opposing ideas, we force engagement with counter-evidence rather than filtering it out.",
+      "zk:sequenceId": "2a",
+      "bpkm:tags": ["confirmation-bias", "knowledge-management", "countermeasure"],
+      "dcterms:created": { "@value": "2026-03-08T11:00:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "zk:seed-structure-case",
+      "@type": "zk:StructureNote",
+      "dcterms:title": "The Case for Structured Note-Taking",
+      "zk:body": "This structure note collects arguments for why structured, interconnected note-taking systems (particularly Zettelkasten) outperform unstructured approaches. Key claims: (1) externalization reduces cognitive load, enabling more complex thinking; (2) structure emerges naturally from connections rather than requiring top-down planning.",
+      "zk:purpose": "argument",
+      "bpkm:tags": ["note-taking", "argument", "zettelkasten-case"],
+      "dcterms:created": { "@value": "2026-03-10T10:00:00Z", "@type": "xsd:dateTime" },
+      "zk:includes": [
+        { "@id": "zk:seed-perm-cognitive-load" },
+        { "@id": "zk:seed-perm-emergent-structure" }
+      ]
+    }
+  ]
+}
