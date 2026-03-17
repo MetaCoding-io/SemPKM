@@ -102,3 +102,10 @@ Implement Level 3 frontend integration (APP-09): apps can replace the default SH
 - `backend/app/templates/browser/object_tab_app.html` — new template with app fragment loading + toolbar + flip card
 - `frontend/static/css/workspace.css` — `.app-renderer-content` styles (if needed)
 - `backend/tests/test_renderer_overrides.py` — ≥8 tests covering dispatch, preference, fallback
+
+## Observability Impact
+
+- **New runtime signal:** Logger `app.browser.objects` at DEBUG level logs when renderer override dispatches to `object_tab_app.html` (app_id, type_iri, fragment URLs). At WARNING level logs failures during renderer lookup (with graceful fallback to default SHACL form).
+- **Inspection surface:** `GET /object/<iri>` response — inspect response HTML for `app-renderer-content` class presence to confirm renderer override is active. `SELECT * FROM app_renderer_prefs` shows active renderer preference overrides.
+- **Failure visibility:** If `AppRegistry.get_renderer()` raises or returns invalid data, `get_object()` falls back silently to the default `object_tab.html` — logged at WARNING. If the app fragment URL returns 404/500, the htmx div shows an error state in the browser (visible in devtools Network tab).
+- **Redaction constraints:** None.
