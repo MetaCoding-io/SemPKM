@@ -90,15 +90,15 @@ Replace the placeholder renderer assignment section in the admin app detail page
 - `backend/tests/test_app_admin.py` — reference test pattern for admin endpoints (mock user override, app.state mocks).
 - T03's `AppRegistry.get_renderer()` and `_get_renderer_override()` — these use `AppRendererPref` for dispatch. The admin endpoints here manage the same table.
 
+## Observability Impact
+
+- **Logger `app.apps.admin_router`**: INFO on renderer pref set/clear with type, mode, app_id, and acting user. DEBUG on idempotent clear (no row to delete).
+- **Admin detail page**: Renderer Overrides section shows real-time status (Active/Default/Overridden) for each declared renderer mode. Status badges are color-coded (green/yellow/red).
+- **Database inspection**: `SELECT * FROM app_renderer_prefs` shows all active renderer preferences; rows managed by set/clear endpoints.
+- **Failure visibility**: 404 returned if app_id not found on set endpoint. Clear is idempotent — no error on missing row.
+
 ## Expected Output
 
 - `backend/app/apps/admin_router.py` — enriched `app_detail()` context + 2 new endpoints (set, clear)
 - `backend/app/templates/admin/apps/detail.html` — real renderer section replacing placeholder
 - `backend/tests/test_admin_renderers.py` — ≥8 tests covering all renderer admin scenarios
-
-## Observability Impact
-
-- **New log signals:** Logger `app.apps.admin_router` at INFO logs renderer preference set/clear events with type_iri, mode, app_id, and user_id. DEBUG level logs no-op clears (when row doesn't exist).
-- **Inspection surface:** `SELECT * FROM app_renderer_prefs` shows all active renderer preferences. Admin detail page at `/admin/apps/{app_id}` shows real-time status (Active/Default/Overridden) for each declared objectRenderer.
-- **Failure visibility:** Set endpoint returns 404 if app not found. Clear endpoint is idempotent — always succeeds. Template shows "Overridden by {app_id}" when another app holds the preference.
-- **Admin audit trail:** All set/clear operations logged with user_id for accountability.

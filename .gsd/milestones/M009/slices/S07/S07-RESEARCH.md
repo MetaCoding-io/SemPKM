@@ -1,193 +1,218 @@
 # S07: Test App, E2E Tests & Integration Proof — Research
 
 **Date:** 2026-03-17
-**Milestone:** M009 — App Platform
+**Researcher:** GSD auto-mode
 
 ## Summary
 
-S07 is a **low-risk integration proof slice** — all platform code (S01–S06) is already built and contract-tested with ~7300 lines of unit tests across 17 test files. The work is: (1) create `apps/test-app/` exercising all SDK features, (2) write Playwright E2E specs proving the full install → use → admin → uninstall vertical, and (3) update `docker-compose.test.yml` so the E2E environment supports apps.
+S07 is the integration proof slice — it builds a comprehensive test app at `apps/test-app/` that exercises all SDK features (page, command, task, right pane, command palette, renderer override), writes Playwright E2E tests proving the full install → page → command → task → admin → uninstall flow, and verifies all milestone success criteria against the live Docker stack.
 
-The biggest practical concern is the **working tree split**: S01–S04 code lives on the `milestone/M009` branch (worktree at `.gsd/worktrees/M009`), and S05–S06 code was committed there too. The `main` branch has `.gsd/` summaries but only partial S05 code (T03 browserVisible). All S07 work must target the `milestone/M009` worktree at `.gsd/worktrees/M009/`.
+This is straightforward application work. All infrastructure exists: 372 unit tests across S01–S06 prove the individual subsystems. The E2E test framework is mature (Playwright, auth fixtures, helpers, 50+ existing spec files). The test app is a small Python module + manifest.yaml + templates. The Docker test stack needs minor updates (add `apps` and `sdk` volume mounts to `docker-compose.test.yml`).
 
-The test app is straightforward — it's a small Python module using the SDK's decorator-based API (`@app.route`, `@app.task`, lifecycle hooks) plus a manifest.yaml declaring all contribution types. The E2E tests follow established patterns from 30+ existing spec files (auth fixtures, API client, dockview helpers, htmx wait utilities).
+The main gap discovered during research: **the uninstall "app + data" flow doesn't yet clean up app-prefixed IRIs from the triplestore** — `AppManager.uninstall()` has a `_triplestore_client` reference but never uses it. The design doc specifies SPARQL DELETE WHERE + CLEAR GRAPH queries (§4 "Cleanup on uninstall"). This needs implementation before the E2E test can verify the success criterion "Uninstall 'app + data' removes all app-prefixed IRIs from `urn:sempkm:current`."
 
 ## Recommendation
 
-**Three tasks, ordered by dependency:**
+**4 tasks: (1) test app, (2) docker-compose.test.yml updates, (3) uninstall data cleanup implementation, (4) Playwright E2E specs.**
 
-1. **Test app (`apps/test-app/`)** — manifest + backend + templates. Must exist before E2E tests can run.
-2. **Docker test infrastructure** — `docker-compose.test.yml` needs `./apps` and `./backend/sdk` volume mounts. Without this, the test stack can't run apps.
-3. **E2E Playwright specs** — a single consolidated spec file covering the full vertical flow.
-
-Build the test app first since it's self-contained and verifiable via unit tests. Then update Docker config. Then write E2E tests.
+Build order:
+1. **Test app** first — it's the fixture everything depends on. Must have manifest.yaml with all UI contribution types, app.py with SDK handlers, and frontend templates/static assets.
+2. **docker-compose.test.yml** — add `./apps` and `./backend/sdk` volume mounts to the test stack's api service, add `sempkm_test_data` read-only mount to frontend service for app-static serving.
+3. **Uninstall data cleanup** — implement triplestore cleanup in `AppManager.uninstall()` with an optional `clean_data=True` parameter. Add admin endpoint parameter.
+4. **E2E specs** — Playwright test file covering: install test app via admin → verify status → open app page in workspace → verify app sidebar entry → verify right pane section → verify command palette entry → check admin task history → uninstall → verify cleanup.
 
 ## Implementation Landscape
 
-### Key Files
+### Key Files — To Create
 
-**Working directory: `.gsd/worktrees/M009/` (the milestone worktree — NOT the main checkout)**
+| File | Purpose |
+|------|---------|
+| `apps/test-app/manifest.yaml` | Full manifest exercising all SDK features (pages, tasks, rightPane, views, commands, objectRenderers) |
+| `apps/test-app/app.py` | SDK app with route handlers for fragments, task handler, lifecycle hooks |
+| `apps/test-app/requirements.txt` | Empty or minimal — SDK injected by platform |
+| `apps/test-app/frontend/templates/main.html` | Main page fragment template |
+| `apps/test-app/frontend/templates/right-pane.html` | Right pane section fragment |
+| `apps/test-app/frontend/templates/command-dialog.html` | Command palette dialog fragment |
+| `apps/test-app/frontend/templates/read-renderer.html` | Object renderer read view fragment |
+| `apps/test-app/frontend/static/styles.css` | Minimal CSS for test app |
+| `apps/test-app/frontend/static/app.js` | Minimal JS for test app |
+| `e2e/tests/30-app-platform/app-platform.spec.ts` | E2E spec proving full install→use→uninstall flow |
 
-Existing platform code (read-only references for S07):
-- `.gsd/worktrees/M009/backend/app/apps/manager.py` (614 lines) — `AppManager.install()` takes a `Path` to app dir, validates manifest, creates venv, installs deps + SDK, starts subprocess
-- `.gsd/worktrees/M009/backend/app/apps/manifest.py` (294 lines) — `AppManifestSchema` with all nested models (pages, tasks, contributions, renderers, settings)
-- `.gsd/worktrees/M009/backend/app/apps/admin_router.py` (480 lines) — admin CRUD: install, start, stop, restart, uninstall, task interval, task pause, renderer set/clear
-- `.gsd/worktrees/M009/backend/app/browser/apps.py` (290 lines) — workspace integration: explorer, page, right-pane-sections, views/explorer, view tab, commands JSON
-- `.gsd/worktrees/M009/backend/app/apps/registry.py` (137 lines) — `get_right_pane_contributions()`, `get_renderer()`, `get_renderer_for_app()`
-- `.gsd/worktrees/M009/backend/sdk/sempkm_app_sdk/app.py` — `App` class with `@app.route()`, `@app.task()`, lifecycle decorators
-- `.gsd/worktrees/M009/backend/sdk/sempkm_app_sdk/context.py` — `AppContext` with `.commands`, `.graph`, `.state`, `.http`, `.settings` clients
-- `.gsd/worktrees/M009/backend/sdk/sempkm_app_sdk/runner.py` — CLI runner: reads manifest, imports entrypoint, builds ASGI app, starts uvicorn on UDS
+### Key Files — To Modify
 
-Existing test infrastructure (patterns to follow):
-- `e2e/fixtures/auth.ts` — `ownerPage`, `ownerRequest`, `memberPage` fixtures with magic-link auth
-- `e2e/helpers/api-client.ts` — `ApiClient` class with `createObject()`, `sparql()`, `executeCommand()`
-- `e2e/helpers/wait-for.ts` — `waitForIdle()`, `waitForWorkspace()`, `waitForHtmxSettle()`
-- `e2e/helpers/dockview.ts` — `openObjectTab()`, `openViewTab()`, `getTabCount()`
-- `e2e/helpers/selectors.ts` — `SEL` object with CSS selectors for all UI components
-- `e2e/playwright.config.ts` — runs against port 3901, `docker-compose.test.yml` stack
+| File | What Changes |
+|------|-------------|
+| `docker-compose.test.yml` | Add `./apps:/app/apps:ro`, `./backend/sdk:/app/backend/sdk:ro`, `sempkm_test_data:/app/data:ro` on frontend |
+| `backend/app/apps/manager.py` | Add `clean_data` param to `uninstall()` with triplestore SPARQL cleanup |
+| `backend/app/apps/admin_router.py` | Add `clean_data` form param to uninstall endpoint |
+| `e2e/helpers/selectors.ts` | Add `admin.appList`, `admin.appDetail`, `admin.appInstallForm` selectors |
 
-Reference test: `e2e/tests/05-admin/admin-model-lifecycle.spec.ts` — install → verify → uninstall pattern for mental models. Closest existing analog to app lifecycle E2E.
+### Test App Manifest Structure
 
-Existing test fixture: `backend/tests/fixtures/test_sdk_app/` — minimal SDK app used in unit tests (1 route, 1 task, 1 lifecycle handler). S07 test app is the full-featured version.
+The test app manifest needs to exercise every UI contribution point built across S01-S06:
 
-**Files to create:**
+```yaml
+appId: "test-app"
+name: "Test Application"
+version: "1.0.0"
+description: "Exercises all SDK features for E2E validation"
+author:
+  name: "SemPKM"
+dependencies:
+  platform: ">=0.1.0"
+permissions:
+  commands: ["object.create"]
+  network: []
+  sparql:
+    read: true
+  backgroundTasks: true
+backend:
+  entrypoint: "app:test_app"
+tasks:
+  - id: "heartbeat"
+    description: "Periodic heartbeat for testing"
+    interval: "5m"
+frontend:
+  staticDir: "frontend/static"
+  css: ["styles.css"]
+  js: ["app.js"]
+ui:
+  pages:
+    - id: "main"
+      path: "/main"
+      label: "Test App"
+      icon: "flask-conical"
+      nav: "apps"
+      fragment: "main"
+  contributions:
+    rightPane:
+      - id: "test-info"
+        label: "Test Info"
+        icon: "info"
+        fragment: "right-pane"
+        targetTypes: ["*"]
+        priority: 50
+    views:
+      - id: "test-view"
+        label: "Test View"
+        icon: "test-tubes"
+        fragment: "test-view"
+    commandPalette:
+      - id: "test-command"
+        label: "Test App Command"
+        keywords: ["test", "demo"]
+        actionType: "dialog"
+        fragment: "command-dialog"
+  objectRenderers:
+    - type: "urn:sempkm:test:TestRenderedType"
+      modes:
+        read: "read-renderer"
 ```
-apps/test-app/
-  manifest.yaml                    # Full manifest exercising all features
-  requirements.txt                 # Empty or minimal (SDK installed by platform)
-  backend/
-    app.py                         # SDK app with all handler types
-  frontend/
-    templates/
-      main.html                    # Standalone page fragment
-      info.html                    # Right pane section fragment
-      command_dialog.html          # Command palette dialog fragment
-      article_read.html            # Renderer override read fragment
-    static/
-      test-app.css                 # Minimal CSS (proves static serving)
 
-docker-compose.test.yml            # Updated: add ./apps and ./backend/sdk mounts
+### Test App SDK Code
 
-e2e/tests/30-app-platform/
-  app-lifecycle.spec.ts            # E2E: install → page → command → task → admin → uninstall
+The `app.py` needs handlers for:
+- `@app.route("/_fragments/main")` — standalone page content
+- `@app.route("/_fragments/right-pane")` — right pane section content (receives `?iri=` param)
+- `@app.route("/_fragments/test-view")` — view tab content
+- `@app.route("/_fragments/command-dialog")` — command palette dialog content
+- `@app.route("/_fragments/read-renderer")` — object renderer read view (receives `?iri=` param)
+- `@app.task("heartbeat")` — task handler returning success
+- `@app.on_startup` — log startup
+- `@app.on_shutdown` — log shutdown
+
+### Docker Test Stack Updates
+
+`docker-compose.test.yml` api service needs:
+```yaml
+volumes:
+  - ./apps:/app/apps:ro         # App source directories
+  - ./backend/sdk:/app/backend/sdk:ro  # SDK package
 ```
+
+Frontend service needs `sempkm_test_data` read-only mount for app-static serving (matching main docker-compose):
+```yaml
+volumes:
+  - sempkm_test_data:/app/data:ro
+```
+
+### Uninstall Data Cleanup
+
+`AppManager.uninstall()` currently does: stop → delete socket → remove data dir → delete DB row → unregister. It stores a `_triplestore_client` but never uses it.
+
+The design doc (§4) specifies:
+```sparql
+DELETE WHERE {
+  GRAPH <urn:sempkm:current> {
+    ?s ?p ?o FILTER(STRSTARTS(STR(?s), "urn:sempkm:app:{appId}:"))
+  }
+};
+DELETE WHERE {
+  GRAPH <urn:sempkm:current> {
+    ?s ?p ?o FILTER(STRSTARTS(STR(?o), "urn:sempkm:app:{appId}:"))
+  }
+};
+CLEAR GRAPH <urn:sempkm:app:{appId}:state>
+```
+
+Add `clean_data: bool = False` parameter to `uninstall()`. When True, execute the three SPARQL queries before deleting the DB row. Admin endpoint passes form param through.
+
+### E2E Test Structure
+
+Single spec file following the admin-model-lifecycle pattern (one long `test()` to avoid rate limits). Steps:
+
+1. Navigate to `/admin/apps`, verify empty state or clean up prior test app
+2. Install test app via form POST (path: `/app/apps/test-app`)
+3. Wait for status badge to show "running"
+4. Verify admin detail page shows PID, version, permissions
+5. Navigate to workspace, verify APPS sidebar section contains "Test App"
+6. Click app page, verify fragment content loads
+7. Open an object, verify "Test Info" right pane section appears
+8. Check command palette API returns test-command entry
+9. Check admin task history after waiting for scheduler tick (may need to invoke manually)
+10. Stop app via admin, verify status changes to "stopped"
+11. Restart app, verify status returns to "running"
+12. Uninstall with clean_data, verify app removed from list
+13. Verify workspace APPS sidebar is empty
 
 ### Build Order
 
-**T01 — Test app (`apps/test-app/`)**
-
-Create the test app exercising all SDK features declared in the manifest schema:
-
-1. `manifest.yaml` with:
-   - `appId: "test-app"`, `version: "1.0.0"`, `name: "Test App"`
-   - `permissions.commands: ["object.create"]` (for creating objects)
-   - `permissions.backgroundTasks: true` (for scheduled task)
-   - `permissions.sparql.read: true` (for graph queries)
-   - `tasks:` — one task `"test-task"` with `interval: "5m"`, `configurable: true`
-   - `ui.pages:` — one page `"main"` with `fragment: "main"`, `icon: "layout-dashboard"`, `nav: "apps"`
-   - `ui.contributions.rightPane:` — one entry `"test-info"` with `fragment: "_fragments/info"`, `targetTypes: ["*"]`
-   - `ui.contributions.commandPalette:` — one entry `"test-command"` with `actionType: "dialog"`, `fragment: "_fragments/command-dialog"`
-   - `ui.objectRenderers:` — one renderer for a test type with `modes.read: "_fragments/article-read"`
-   - `backend.entrypoint: "backend.app:test_app"`
-   - `dependencies.platform: ">=0.1.0"`
-
-2. `backend/app.py` with:
-   - `test_app = App("test-app")`
-   - `@test_app.route("/_fragments/main")` returning standalone page HTML
-   - `@test_app.route("/_fragments/info")` returning right pane section HTML
-   - `@test_app.route("/_fragments/command-dialog")` returning dialog HTML
-   - `@test_app.route("/_fragments/article-read")` returning renderer HTML
-   - `@test_app.task("test-task")` handler returning `{"result": "ok"}`
-   - `@test_app.on_startup` handler logging startup
-   - `@test_app.on_shutdown` handler logging shutdown
-
-3. `frontend/templates/` with minimal Jinja2 templates for each fragment
-4. `frontend/static/test-app.css` with minimal CSS
-5. `requirements.txt` — empty (SDK installed by platform, no extra deps)
-
-Verify: `python -c "from apps.test_app_manifest_check import check; check()"` — parse manifest with `AppManifestSchema`, confirm all fields valid. Or simpler: a unit test that calls `parse_app_manifest("apps/test-app/manifest.yaml")`.
-
-**T02 — Docker test infrastructure**
-
-Update `docker-compose.test.yml`:
-- Add `./apps:/app/apps:ro` volume to `api` service (matches dev docker-compose.yml)
-- Add `./backend/sdk:/app/backend/sdk:ro` volume to `api` service (SDK source for venv install)
-- Add `sempkm_test_apps_data:/app/data/apps` volume for app venvs/data (writable)
-- Ensure nginx `frontend` service gets the same nginx.conf (already has `/app-static/` and `/app/` blocks from S03)
-
-The dev nginx.conf already has:
-```
-location /app-static/ { alias /app/data/apps-static/; ... }
-location /app/ { proxy_pass http://api:8000/app/; ... }
-```
-
-But the test frontend container doesn't mount the data volume. The `app-static` location uses `alias /app/data/apps-static/` which requires the frontend container to access the API data volume. Two options:
-- Share the data volume between api and frontend containers (cleanest — matches dev setup)
-- Skip static asset verification in E2E (acceptable — static serving is an nginx config concern, not app logic)
-
-Recommend: add a shared volume or skip static assertion. The E2E tests focus on fragment rendering (proxied through api), not static file serving.
-
-Also add `selectors.ts` entries for app platform elements if needed.
-
-**T03 — E2E Playwright specs**
-
-Single spec file `e2e/tests/30-app-platform/app-lifecycle.spec.ts` covering:
-
-1. **Navigate to admin apps page** — `GET /admin/apps` shows empty or existing list
-2. **Install test app** — POST form with `app_path=/app/apps/test-app` → app appears in list with "running" status
-3. **Verify admin detail** — click app → detail page shows version, status, PID, permissions, task list
-4. **Navigate to workspace** — `GET /workspace` → [Apps] sidebar section shows "Main Page" entry
-5. **Load app page** — click app page link → dockview tab opens with fragment content ("Hello from test-app" or similar)
-6. **Check right pane** — open any object → right pane shows test-app section
-7. **Check command palette** — open Ctrl+K → test command entry visible
-8. **Verify task in admin** — navigate to admin detail → task history section shows runs (may need to wait or trigger manually)
-9. **Stop app** — click Stop → status changes to "stopped"
-10. **Restart app** — click Start → status changes to "running"
-11. **Uninstall app** — click Uninstall → app removed from list
-
-Pattern: use `ownerPage` fixture for admin actions, consolidated into 1-2 `test()` blocks to stay within magic-link rate limit (same pattern as `admin-model-lifecycle.spec.ts`).
-
-Key considerations:
-- App install takes time (venv creation, dep install) — use generous timeout (30-60s)
-- Task scheduler checks every 60s — may not fire during test window. Verify task config exists rather than waiting for a run, OR trigger task manually via API
-- Fragment content assertions should check for specific text rendered by the test app
+1. **Test app first** — blocks everything. Simple code, no risk.
+2. **docker-compose.test.yml** — trivial edits, required for Docker stack to see the test app.
+3. **Uninstall cleanup** — small backend change, needed for E2E cleanup verification.
+4. **E2E specs** — depends on all above. Most time-consuming (Playwright interaction patterns).
 
 ### Verification Approach
 
-**Unit verification (no Docker):**
-- `parse_app_manifest("apps/test-app/manifest.yaml")` succeeds — confirms manifest valid
-- Test app Python module imports without error: `python -c "from backend.app import test_app"`
+**Test app works in unit tests:**
+- `parse_app_manifest("apps/test-app/manifest.yaml")` succeeds
+- Test app fixture `app.py` imports and has expected handlers
 
-**Integration verification (Docker stack):**
-- `docker compose -f docker-compose.test.yml up -d --build` starts cleanly
-- `curl http://localhost:3901/admin/apps` returns 200 (admin page)
-- Install test app via API → app status becomes "running"
-- `curl http://localhost:3901/app/test-app/_health` returns `{"status": "ok"}`
-- `curl http://localhost:3901/app/test-app/_fragments/main` returns fragment HTML
+**Docker stack proof:**
+- `npm run env:start` in `e2e/` starts the test stack with apps mounted
+- `curl http://localhost:3901/admin/apps` (after auth) shows empty page
+- Install test app via admin form, verify JSON status response
 
-**E2E verification (Playwright):**
-- `cd e2e && npx playwright test tests/30-app-platform/ --project=chromium`
-- All assertions pass for install → page → command → admin → uninstall flow
+**E2E Playwright:**
+- `npx playwright test --project=chromium e2e/tests/30-app-platform/` — full flow passes
+- All success criteria verified against live behavior
 
 ## Constraints
 
-- **Worktree location**: All code changes MUST be made in `.gsd/worktrees/M009/`, not the main checkout. The milestone branch has the complete S01–S06 code.
-- **App install path**: Inside Docker, the app directory is at `/app/apps/test-app` (due to `./apps:/app/apps:ro` mount). The admin install form takes this container path, not a host path.
-- **SDK installed at install time**: `AppManager.install()` runs `uv pip install /app/backend/sdk` into the app's venv. The SDK source must be mounted at `/app/backend/sdk` in the container.
-- **Test app requirements.txt**: Must exist (even if empty) since `AppManager.install()` checks for it via `manifest.backend.requirements`.
-- **App subprocess needs writable `/tmp/`**: Socket files created at `/tmp/sempkm-app-{appId}.sock`. Docker containers have writable `/tmp/` by default.
-- **App data directory**: `AppManager` creates `/app/data/apps/{appId}/venv/` — the data volume must be writable.
-- **Rate limiting**: E2E tests share magic-link rate limit (5/min). Consolidate into minimal `test()` blocks.
+- **E2E tests run against port 3901** (docker-compose.test.yml), not the dev stack. Auth uses `readSetupToken()` from Docker container.
+- **Tests must be sequential** — app install/uninstall is stateful. Single `test()` function avoids parallel execution issues and rate limit problems.
+- **Scheduler tick interval is 60s** — E2E can't wait that long. Either invoke the task directly via API (`POST /app/test-app/_tasks/heartbeat`) with appropriate auth, or check that the scheduler recorded a task config row rather than waiting for execution. Alternatively, reduce CHECK_INTERVAL for tests or directly call the admin task history endpoint.
+- **Test app needs network access during install** for `uv pip install` of SDK deps. Docker test stack has outbound network by default.
+- **The existing test fixture at `backend/tests/fixtures/test_sdk_app/`** is for unit/integration tests only. The E2E test app at `apps/test-app/` is a separate, more comprehensive app.
 
 ## Common Pitfalls
 
-- **Install timeout in E2E**: `AppManager.install()` creates venv + installs SDK. First run in a fresh container downloads packages. The E2E test must use a generous timeout (30–60s) for the install POST and subsequent status check. Use `page.waitForResponse` or poll status.
-- **Task scheduler timing**: Scheduler checks every 60s. A test-task with `interval: "5m"` won't fire during a typical E2E run. Either: (a) set interval to `"30s"` (minimum allowed) and wait, (b) trigger task manually via `POST /app/test-app/_tasks/test-task` with app token, or (c) just verify task config exists in admin detail without waiting for execution. Recommend (c) — task execution is already proven by 31 scheduler unit tests.
-- **Fragment content depends on running app**: Right pane sections, views explorer, and command palette all filter by `status == "running"`. If the app crashes during E2E, all workspace integrations silently disappear. Check app status before workspace assertions.
-- **Admin install form uses hx-post**: The install form submits via htmx and redirects. Use `page.waitForURL` or `waitForIdle()` after submission.
-- **Test app entrypoint format**: Manifest `backend.entrypoint` must be `"module:attribute"` format (e.g., `"backend.app:test_app"`). The runner imports `backend.app` module and reads `test_app` attribute. The app dir is added to `sys.path[0]`, so `backend.app` resolves to `{app_dir}/backend/app.py`.
-- **docker-compose.test.yml volume for app data**: The `apps` mount is `:ro` but the app data dir (`/app/data/apps/`) needs to be writable for venv creation. Data goes in the existing `sempkm_test_data` volume which is already writable.
+- **App install takes 10-30s** — E2E test must use generous timeouts when waiting for "running" badge after install. `page.waitForSelector('.badge-success', { timeout: 60000 })` or polling.
+- **htmx partial rendering in admin** — Admin pages use `HX-Request` to decide whether to return full page or content block only. E2E tests use full page navigation (`page.goto()`), which returns the full page. If testing htmx interactions (sidebar clicks), need to wait for `htmx-settling` to complete.
+- **Workspace fragment loading** — App page content loads via htmx `hx-get` from `/app/test-app/_fragments/main`. This goes through nginx → API → AppProxy → UDS → SDK app. If the app isn't running when the fragment loads, the proxy returns 503 and the content area shows an error. Wait for app status="running" before navigating to workspace.
+- **Right pane loads dynamically** — The right pane uses `loadRightPane(objectIri)` which fetches `/browser/apps/right-pane-sections?iri=...`. Must open an object first and wait for the right pane content to load before asserting app section presence.
 
 ## Open Risks
 
-- **First-run SDK install latency in CI**: `uv pip install /app/backend/sdk` into a fresh venv may take 10-20s depending on SDK dependencies (httpx, jinja2, uvicorn are transitive). If the E2E timeout is too tight, the install step will fail.
-- **nginx app-static alias**: The test nginx container may not have access to `/app/data/apps-static/` since it only mounts `./frontend/static`. Static asset serving may 404 in the test environment. This is acceptable — fragment rendering (the critical path) goes through the API proxy, not nginx static.
+- **Scheduler task verification in E2E** — The scheduler ticks every 60s. The test app task interval is "5m". Within the E2E test's ~60s window, the scheduler may not fire the task. Options: (a) verify task config exists in admin detail rather than actual execution, (b) reduce test app interval to "1m" and wait, (c) call the task endpoint directly via API to prove it works. Option (c) is most reliable.
+- **uv pip install network dependency** — If the test Docker stack can't reach PyPI during app install, the install will fail on SDK dependency installation. The SDK's deps (fastapi, httpx, uvicorn, pyyaml) should already be available in the container's pip cache, but not guaranteed in the test container's app venv.

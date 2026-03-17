@@ -99,6 +99,13 @@ Replace the 3 hardcoded `<details>` blocks (relations, lint, comments) in the wo
 - `backend/tests/test_app_browser.py` — reference test pattern for app browser endpoints.
 - S04 summary: endpoints use `request.app.state.templates` (shared Jinja2Blocks instance), `request.app.state.app_registry`, and `request.app.state.app_manager`.
 
+## Observability Impact
+
+- **New endpoint inspectable**: `GET /browser/apps/right-pane-sections?iri=<IRI>` returns HTML of merged platform + app sections — call directly to inspect what the right pane renders for any object.
+- **Logging**: `app.browser.apps` logger emits DEBUG `Right pane for <iri>: N type(s), M app section(s)` on every request; WARNING on triplestore query failure or app contribution collection failure.
+- **Graceful degradation**: If triplestore or app registry errors occur, platform sections (relations, lint, comments) still render — the endpoint never returns 500.
+- **Request cancellation**: `window._rightPaneAbort` AbortController visible in browser devtools; stale requests are cancelled on rapid tab switching.
+
 ## Expected Output
 
 - `backend/app/apps/registry.py` — new `get_right_pane_contributions()` method
@@ -107,10 +114,3 @@ Replace the 3 hardcoded `<details>` blocks (relations, lint, comments) in the wo
 - `backend/app/templates/browser/workspace.html` — right pane refactored to dynamic container
 - `frontend/static/js/workspace.js` — `loadRightPane()` replaces `loadRightPaneSection()`, AbortController added
 - `backend/tests/test_right_pane_sections.py` — ≥7 tests covering all scenarios
-
-## Observability Impact
-
-- **New log signals:** Logger `app.browser.apps` emits DEBUG log with app contribution count and total section count per right-pane-sections request. WARNING when triplestore type query fails (falls back to empty type list).
-- **Inspection surface:** `GET /browser/apps/right-pane-sections?iri=<IRI>` returns inspectable HTML — can be curled directly to see which platform + app sections are rendered for any object.
-- **Failure visibility:** Triplestore errors during type lookup → caught, logged WARNING, endpoint still returns platform-only sections (graceful degradation). Registry errors → caught, logged WARNING, platform-only fallback. Both verified in tests.
-- **JS diagnostics:** `window._rightPaneAbort` exposes the current AbortController — can check `window._rightPaneAbort.signal.aborted` in devtools to verify cancellation on rapid tab switching.

@@ -6,176 +6,169 @@
 ## UAT Type
 
 - UAT mode: artifact-driven
-- Why this mode is sufficient: S06 is a contract-level slice — all integration points tested via 61 pytest contract tests with mocked registry/triplestore. Live runtime proof deferred to S07 which exercises everything through the Docker stack with a real test app.
+- Why this mode is sufficient: All 4 tasks deliver backend endpoints + templates + JS wiring tested by 61 unit/integration tests with mocked registry. Live Docker verification deferred to S07 (test app exercising all features). Contract-level correctness is proven by tests; visual/interactive verification needs the test app.
 
 ## Preconditions
 
-- Worktree at `.gsd/worktrees/M009` has the S06 changes applied
-- `.venv` in the worktree has all dependencies installed
-- No Docker stack required (all tests use mocked services)
+- Docker stack running (`docker compose up -d`)
+- At least one app installed and running (or test app from S07)
+- App manifest declares `ui.rightPane`, `ui.views`, `ui.commands`, and `ui.objectRenderers` sections
 
 ## Smoke Test
 
-```bash
-cd /home/james/Code/SemPKM/.gsd/worktrees/M009
-.venv/bin/python -m pytest backend/tests/test_right_pane_sections.py backend/tests/test_app_views_commands.py backend/tests/test_renderer_overrides.py backend/tests/test_admin_renderers.py -v
-```
-**Expected:** 61 tests pass, zero failures.
+Navigate to the workspace, open any object tab, and verify the right pane loads via the dynamic endpoint (Network tab shows `GET /browser/apps/right-pane-sections?iri=...` instead of 3 separate section requests).
 
 ## Test Cases
 
-### 1. Dynamic right pane — platform sections always present
+### 1. Dynamic right pane loads platform sections for any object
 
-1. Run `test_right_pane_sections.py::TestRightPaneSectionsEndpoint::test_no_apps_returns_platform_sections`
-2. **Expected:** Response HTML contains Relations, Lint, and Comments `<details>` blocks with correct hx-get URLs, even with no apps registered.
+1. Open an object tab in the workspace
+2. Observe the right pane area
+3. Open browser Network tab and check requests
+4. **Expected:** Single request to `/browser/apps/right-pane-sections?iri=<object-iri>` returns HTML with Relations, Lint, and Comments `<details>` sections. Each section has `hx-get` for lazy content loading.
 
-### 2. Dynamic right pane — app contributions merged by type
+### 2. Right pane includes app contributions when app matches object type
 
-1. Run `test_right_pane_sections.py::TestRightPaneSectionsEndpoint::test_matching_app_included`
-2. **Expected:** When an app declares rightPane contributions targeting a type, and the object has that type, the app section appears after platform sections.
+1. Install an app that declares a `rightPane` contribution with `targetTypes` matching an existing object's type
+2. Open an object of that type
+3. **Expected:** Right pane shows the 3 platform sections (Relations, Lint, Comments) followed by the app's `<details>` section with an app badge. The app section has `hx-get="/app/{appId}/_fragments/{fragment}?iri=<object-iri>"`.
 
-### 3. Dynamic right pane — type filtering excludes non-matching apps
+### 3. Right pane excludes app contributions for non-matching types
 
-1. Run `test_right_pane_sections.py::TestRightPaneSectionsEndpoint::test_non_matching_type_excluded`
-2. **Expected:** App contributions targeting type A are excluded when viewing an object of type B.
+1. With the same app installed (targeting specific types), open an object of a different type
+2. **Expected:** Right pane shows only the 3 platform sections. No app contribution sections appear.
 
-### 4. Dynamic right pane — stopped apps excluded
+### 4. Right pane wildcard contributions appear for all objects
 
-1. Run `test_right_pane_sections.py::TestRightPaneSectionsEndpoint::test_stopped_app_excluded`
-2. **Expected:** Even if a stopped app's manifest declares rightPane contributions, they don't appear.
+1. Install an app with `targetTypes: ["*"]` in its rightPane contribution
+2. Open any object
+3. **Expected:** The app's right pane section appears regardless of the object's type.
 
-### 5. Dynamic right pane — graceful degradation on triplestore error
+### 5. Rapid tab switching cancels stale right pane requests
 
-1. Run `test_right_pane_sections.py::TestRightPaneSectionsEndpoint::test_triplestore_error_graceful_degradation`
-2. **Expected:** When triplestore query fails, endpoint returns 200 with platform-only sections (no crash, no 500).
+1. Click rapidly between 3-4 different object tabs
+2. Open Network tab
+3. **Expected:** Only the last request completes successfully; earlier requests are cancelled (status shows "cancelled" in DevTools). No stale section content from previous objects appears.
 
 ### 6. Views explorer shows app view entries
 
-1. Run `test_app_views_commands.py::TestViewsExplorerApps::test_running_app_with_views`
-2. **Expected:** HTML response contains tree-leaf entries for the app's declared views with correct onclick handlers.
+1. Install an app that declares `ui.views` with at least one view
+2. Open the Views section in the explorer sidebar
+3. **Expected:** App views appear as clickable entries. Entries show the app view label.
 
-### 7. Views explorer excludes stopped apps
+### 7. Clicking an app view opens a workspace tab
 
-1. Run `test_app_views_commands.py::TestViewsExplorerApps::test_stopped_app_excluded`
-2. **Expected:** Stopped app's views do not appear in the views explorer response.
+1. Click an app view entry in the Views explorer
+2. **Expected:** A new workspace tab opens with the app view content loaded via htmx from `/app/{appId}/_fragments/{fragment}`. Tab title matches the view label. Tab key follows `app-view:{appId}:{viewId}` pattern.
 
-### 8. App view tab renders with fragment URL
+### 8. Command palette includes app commands
 
-1. Run `test_app_views_commands.py::TestAppViewTab::test_returns_template_with_fragment`
-2. **Expected:** Response contains hx-get URL pointing to `/app/{appId}/_fragments/{fragment}`.
+1. Install an app that declares `ui.commands` with at least one command
+2. Open the command palette (Ctrl+K or Cmd+K)
+3. Type part of the app command's title
+4. **Expected:** App command appears in search results with the app name as section header and correct icon.
 
-### 9. App view tab 404 for unknown app
+### 9. Command palette dialog command opens modal
 
-1. Run `test_app_views_commands.py::TestAppViewTab::test_404_unknown_app`
-2. **Expected:** Returns 404 with descriptive detail for unknown app_id.
+1. Select an app command with `actionType: "dialog"` from the command palette
+2. **Expected:** An htmx GET request fetches the command's fragment URL and displays the result in a modal dialog.
 
-### 10. Command palette JSON with all action types
+### 10. Object renderer override replaces default SHACL form
 
-1. Run `test_app_views_commands.py::TestCommandsAPI::test_running_app_with_dialog_command`
-2. Run `test_app_views_commands.py::TestCommandsAPI::test_post_command_format`
-3. Run `test_app_views_commands.py::TestCommandsAPI::test_navigate_command_format`
-4. **Expected:** Each returns JSON with correct id (appcmd: prefix), title, section (app name), actionType, and actionUrl.
+1. Install an app that declares `ui.objectRenderers` for a specific type with a read fragment
+2. Open an object of that type
+3. **Expected:** The object tab renders `object_tab_app.html` instead of `object_tab.html`. The read face shows content loaded via htmx from `/app/{appId}/_fragments/{readFragment}?iri=<object-iri>`. Toolbar (label, type badge, favorite star, mode toggle) is preserved.
 
-### 11. Renderer override dispatches to app template
+### 11. Renderer override edit face falls back to SHACL form
 
-1. Run `test_renderer_overrides.py::TestGetObjectRendererDispatch::test_override_dispatches_to_app_template`
-2. **Expected:** When object's type matches an app's objectRenderers declaration, get_object() renders `object_tab_app.html` instead of `object_tab.html`.
+1. With the same app (declares read renderer only, no edit renderer), click the mode toggle to switch to edit mode
+2. **Expected:** The edit face shows the standard SHACL form + body editor, not an app fragment. The flip animation works correctly.
 
-### 12. Renderer override — no match falls back to default
+### 12. Renderer override with custom edit renderer
 
-1. Run `test_renderer_overrides.py::TestGetObjectRendererDispatch::test_no_override_uses_default_template`
-2. **Expected:** When no app declares a renderer for the object's type, standard `object_tab.html` is rendered.
+1. Install an app that declares both read and edit fragments in `objectRenderers`
+2. Open an object of the matching type and toggle to edit mode
+3. **Expected:** Edit face loads the app's edit fragment via htmx, not the SHACL form.
 
-### 13. Renderer override — AppRendererPref wins over registry
+### 13. Admin detail page shows renderer assignments
 
-1. Run `test_renderer_overrides.py::TestGetRendererOverride::test_pref_overrides_registry_default`
-2. **Expected:** When AppRendererPref table has a row for a type, that app's renderer is used regardless of which app the registry would return by default.
+1. Navigate to `/admin/apps/{app_id}` for an app with declared renderers
+2. Scroll to the Renderer Overrides section
+3. **Expected:** Table shows Type IRI, Mode, Status (Active/Default), and Action buttons. Status uses color-coded badges.
 
-### 14. Renderer override — edit fallback to SHACL form
+### 14. Admin set/clear renderer preference
 
-1. Run `test_renderer_overrides.py::TestGetObjectRendererDispatch::test_edit_fallback_when_no_custom_edit`
-2. **Expected:** When app declares only a read renderer (no edit), the edit face renders the standard SHACL form.
+1. On the admin detail page, click "Set as preferred" for a renderer type
+2. **Expected:** Status badge changes to "Active" (green). `app_renderer_prefs` table has a new row.
+3. Click "Clear preference"
+4. **Expected:** Status badge changes to "Default" (yellow). Row removed from `app_renderer_prefs`.
 
-### 15. Renderer override — embed mode unaffected
+### 15. Renderer conflict resolution via AppRendererPref
 
-1. Run `test_renderer_overrides.py::TestGetObjectRendererDispatch::test_embed_mode_not_affected`
-2. **Expected:** With `embed=1`, object always renders `object_embed.html` regardless of renderer overrides.
-
-### 16. Renderer override — error falls back to default
-
-1. Run `test_renderer_overrides.py::TestGetObjectRendererDispatch::test_registry_error_falls_back_to_default`
-2. **Expected:** When `_get_renderer_override()` raises an exception, get_object() renders default template (no crash).
-
-### 17. Admin renderer display — shows declared renderers
-
-1. Run `test_admin_renderers.py::TestDetailRendererDisplay::test_detail_shows_renderer_info`
-2. **Expected:** Admin detail page shows Renderer Overrides section with type IRI, mode, and status for each declared renderer.
-
-### 18. Admin renderer set — creates preference
-
-1. Run `test_admin_renderers.py::TestRendererSet::test_set_creates_pref_row`
-2. **Expected:** POST to set endpoint creates AppRendererPref row in database.
-
-### 19. Admin renderer clear — removes preference
-
-1. Run `test_admin_renderers.py::TestRendererClear::test_clear_removes_pref_row`
-2. **Expected:** POST to clear endpoint deletes AppRendererPref row.
-
-### 20. Admin renderer — role enforcement
-
-1. Run `test_admin_renderers.py::TestRendererRoleEnforcement::test_non_owner_gets_403_on_set`
-2. **Expected:** Non-owner role gets 403 on renderer set endpoint.
+1. Install two apps that both declare renderers for the same type
+2. Open an object of that type
+3. **Expected:** First-match-wins (registry iteration order). 
+4. In admin, set App B as preferred for that type
+5. Reopen the object
+6. **Expected:** App B's renderer is used instead of App A's.
 
 ## Edge Cases
 
-### Priority ordering in right pane
+### Right pane with no apps installed
 
-1. Run `test_right_pane_sections.py::TestRightPaneSectionsEndpoint::test_multiple_apps_sorted_by_priority`
-2. **Expected:** When multiple apps contribute sections, they appear sorted by priority (lower number = higher position).
+1. Ensure no apps are installed/running
+2. Open any object tab
+3. **Expected:** Right pane shows exactly the 3 platform sections (Relations, Lint, Comments). No errors. Behavior identical to pre-S06 workspace.
 
-### Wildcard targetTypes
+### Right pane with unknown/deleted IRI
 
-1. Run `test_right_pane_sections.py::TestRegistryGetRightPaneContributions::test_wildcard_matches_any_type`
-2. **Expected:** App contributions with `targetTypes: ["*"]` match any object type.
+1. Navigate to `GET /browser/apps/right-pane-sections?iri=http://nonexistent/iri` directly
+2. **Expected:** Returns 200 with platform sections only (graceful degradation). No 404 or 500.
 
-### Multiple apps with renderers for same type
+### Command palette with no apps running
 
-1. Run `test_renderer_overrides.py::TestRegistryGetRenderer::test_returns_first_match_across_apps`
-2. **Expected:** Without a preference, the first registered app's renderer is used.
+1. Ensure no apps are running
+2. Open command palette
+3. **Expected:** Only platform commands appear. No errors in console. Fetch to `/api/apps/commands` returns `[]`.
 
-### Stale preference (pref points to app without that renderer)
+### Stopped app excluded from all integration points
 
-1. Run `test_renderer_overrides.py::TestGetRendererOverride::test_stale_pref_falls_back_to_registry`
-2. **Expected:** If AppRendererPref points to an app that doesn't actually have a renderer for that type, system falls back to registry default.
+1. Stop an app that has views, commands, and right pane contributions
+2. Verify: Views explorer no longer shows its entries, command palette no longer shows its commands, right pane no longer shows its sections
+3. **Expected:** All contribution points respect app running status.
 
-### Idempotent clear
+### Renderer override graceful degradation
 
-1. Run `test_admin_renderers.py::TestRendererClear::test_clear_idempotent`
-2. **Expected:** Clearing a preference that doesn't exist doesn't raise an error.
+1. Simulate a registry error (e.g., corrupt manifest in registry)
+2. Open an object whose type would match the broken renderer
+3. **Expected:** Standard SHACL form renders (object_tab.html). WARNING logged in `app.browser.objects`. No user-visible error.
 
 ## Failure Signals
 
-- Any of the 61 S06 tests failing indicates a regression
-- `loadRightPaneSection` appearing in workspace.js means the old hardcoded pattern leaked back
-- `right-pane-dynamic` missing from workspace.html means the dynamic container was reverted
-- Missing `apps_api_router` import in main.py would break the `/api/apps/commands` endpoint
-- `app-view` case missing from workspace-layout.js would break app view tab rendering
+- Right pane shows 3 separate requests to `/browser/relations/`, `/browser/lint/`, `/browser/comments/` instead of single `/browser/apps/right-pane-sections` → dynamic endpoint not wired
+- Network tab shows stale right pane requests completing after tab switch → AbortController not working
+- Command palette missing app entries after palette opened → fetch to `/api/apps/commands` failing (check console)
+- Object with renderer override shows SHACL form instead of app fragment → check `app.browser.objects` logger for override lookup details
+- Admin renderer section still shows "coming soon" placeholder → template not updated
+- `focus` jumps to `select#explorer-mode-select` after clicking app view → selector miss (see CLAUDE.md browser click targeting rules)
 
 ## Requirements Proved By This UAT
 
-- **APP-08** — Contract tests prove right pane sections merge correctly, views explorer includes app entries, command palette returns correct JSON. Runtime proof in S07.
-- **APP-09** — Contract tests prove get_object() dispatches to app renderer when type matches, falls back when not, respects preferences. Runtime proof in S07.
-- **APP-10** (partial) — Contract tests prove admin detail page shows renderer assignments with working set/clear controls.
+- **APP-08** — Right pane sections, views explorer, and command palette all include app contributions when apps are running and exclude them when stopped
+- **APP-09** — Object renderer override dispatch, template loading, conflict resolution, and SHACL fallback all verified
+- **APP-10** (partial) — Admin renderer assignment section with set/clear controls and status display
 
 ## Not Proven By This UAT
 
-- **Live runtime behavior** — All tests use mocked registry, triplestore, and app manager. Real app subprocess serving fragments through the proxy chain is S07's job.
-- **Visual rendering** — CSS styles for `.app-renderer-content`, `.app-renderer-loading`, `.object-toolbar-app-badge` not visually verified.
-- **ninja-keys integration** — JS `_loadAppCommandEntries()` tested only at contract level (endpoint returns correct JSON). Actual injection into ninja-keys component requires browser runtime.
-- **AbortController cancellation** — Tested structurally (old function removed, new function present), but rapid-tab-switching behavior requires live browser testing.
+- Live app fragment content rendering (requires a real app serving fragments — deferred to S07 test app)
+- Visual correctness of app content within platform chrome (requires browser verification with real app)
+- Command palette action dispatch (dialog/post/navigate) with real app endpoints
+- Cross-browser CSS 3D flip card animation with app renderer content
+- App CSS/JS isolation when multiple apps contribute to the same page
 
 ## Notes for Tester
 
-- `test_sdk_integration.py` is excluded from full regression runs due to a pre-existing `sempkm_app_sdk` module import issue — this is not an S06 problem.
-- The DeprecationWarning about `TemplateResponse` on S04 endpoints is cosmetic, not a functional issue.
-- Command palette app entries only load at workspace init — after installing an app via admin, the page must be reloaded for commands to appear.
+- Test cases 2-15 require an installed app with appropriate manifest sections. S07's test app will provide this — until then, mock data in tests proves the contract.
+- The `test_sdk_integration.py` failure is pre-existing (missing `sempkm_app_sdk` module) and unrelated to S06.
+- The deprecated `TemplateResponse` ordering warning on `apps_explorer` is pre-existing cosmetic debt.
+- Right pane content relies on `htmx.process()` being called after innerHTML swap — if htmx is not loaded (broken CDN), sections will render but lazy-load triggers won't fire.

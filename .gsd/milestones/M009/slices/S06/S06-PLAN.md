@@ -29,8 +29,8 @@
 - `cd /home/james/Code/SemPKM/.gsd/worktrees/M009 && python -m pytest backend/tests/test_admin_renderers.py -v` — admin set/clear endpoints modify AppRendererPref correctly, detail page shows renderer info
 - `cd /home/james/Code/SemPKM/.gsd/worktrees/M009 && python -m pytest backend/tests/ -x --timeout=30` — zero regressions across full test suite
 - All modified `.py` files pass `python3 -c "import ast; ast.parse(open(f).read())"`
-- `cd /home/james/Code/SemPKM/.gsd/worktrees/M009 && python -c "from app.browser.apps import apps_router; print('apps_router importable')"` in `backend/` — endpoint module loads without import errors
-- Right pane endpoint returns 200 with platform sections for a valid IRI, and returns 200 with platform-only sections when registry raises an exception (graceful degradation verified in test_right_pane_sections.py)
+- `cd /home/james/Code/SemPKM/.gsd/worktrees/M009 && .venv/bin/python -c "from fastapi.testclient import TestClient; from app.browser.apps import apps_router; print('endpoint importable')"` — endpoint module loads without import errors
+- Diagnostic: `GET /browser/apps/right-pane-sections?iri=http://nonexistent/iri` returns 200 with platform sections only (graceful degradation for unknown IRI)
 
 ## Observability / Diagnostics
 
