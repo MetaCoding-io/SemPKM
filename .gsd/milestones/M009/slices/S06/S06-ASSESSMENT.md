@@ -1,27 +1,27 @@
-# S06 Assessment — Roadmap Confirmed
+# S06 Assessment — Roadmap Reassessment
 
-**Verdict: Roadmap is fine. No changes needed.**
+**Verdict: Roadmap confirmed — no changes needed.**
 
-## Risk Retirement
+## What S06 Delivered
 
-S06 retired its "medium" risk (3 levels of htmx fragment integration sharing the platform CSS namespace). All 4 frontend integration points — right pane sections, views explorer entries, command palette injection, and renderer override dispatch — are implemented with 61 contract tests passing and zero regressions on the full 1194-test suite.
+S06 completed all planned deliverables: dynamic right pane sections with app contributions, views explorer app entries, command palette injection via ninja-keys, and object renderer override dispatch with AppRendererPref conflict resolution. 61 new tests (1201 total), zero regressions.
+
+## Requirements
+
+- **APP-08 validated** — 29 tests prove right pane merge, views explorer, command palette
+- **APP-09 validated** — 19 tests prove registry lookup, pref override, dispatch + fallback
+- **APP-10 supporting contribution complete** — admin renderer assignment section with set/clear controls
+
+Remaining active APP requirements (APP-01–04, APP-07, APP-10, APP-13, APP-14) will be exercised through S07's integration testing against the live Docker stack. RSS requirements remain correctly deferred to M010.
 
 ## Success Criteria Coverage
 
-All 12 milestone success criteria map to S07 (test app + E2E). S08 covers documentation. No criterion is unowned.
+All 12 success criteria map to S07. S08 covers documentation. No criterion is orphaned.
 
-## Boundary Contract Check
+## Boundary Map
 
-The S06→S07 boundary is clean. S06's "Forward Intelligence" section explicitly documents what the test app manifest must declare (`ui.contributions.rightPane`, `ui.contributions.views`, `ui.contributions.commandPalette`, `ui.objectRenderers`) and the runtime constraints (app must be running for contributions to appear, page reload needed for command palette after install).
+S06→S07 boundary is accurate. S07 consumes all prior slice outputs. S06's forward intelligence correctly identifies what the test app manifest needs (`ui.rightPane`, `ui.views`, `ui.commands`, `ui.objectRenderers`) and the fragment URL pattern for SDK routes.
 
-## Minor Notes for S07
+## Risks
 
-- `AppObjectRenderer` has no `label` field — test app should use `manifest.name` for renderer labeling (documented in S06 summary).
-- Pre-existing `test_sdk_integration.py` module import failure will need resolution when building the test app.
-- Right pane contributions depend on triplestore type query — test app objects should have explicit `rdf:type` assertions.
-
-## Requirement Coverage
-
-- APP-08, APP-09: Advanced (contract tests passing), validation deferred to S07 runtime proof — on track.
-- APP-10: S06 supporting contribution complete (renderer assignments in admin detail page).
-- All 14 APP requirements remain covered by S07/S08 with no gaps.
+No new risks emerged. The known `test_sdk_integration.py` failure (pre-existing from S02) does not affect S07 — the test app will exercise the SDK through the real subprocess lifecycle, not unit test imports.

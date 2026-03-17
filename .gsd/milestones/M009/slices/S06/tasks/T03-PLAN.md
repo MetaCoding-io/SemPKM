@@ -95,6 +95,13 @@ Implement Level 3 frontend integration (APP-09): apps can replace the default SH
 - `backend/app/apps/manifest.py` or `backend/app/models/manifest.py` — `AppObjectRenderer` model with `type`, `label`, `modes` (containing `read` and optional `edit` fragment paths).
 - S05 forward intelligence: `AppRegistry` renderer/contribution metadata is available via manifests.
 
+## Observability Impact
+
+- **Logger `app.browser.objects`** at DEBUG: logs renderer override dispatch (`app_id`, matched type, read/edit fragment URLs) when an override is applied to `get_object()`
+- **Logger `app.browser.objects`** at WARNING: logs when `AppRendererPref` points to an app that no longer has a renderer (stale pref) or when the entire override lookup fails
+- **Inspection surface**: In browser dev-tools, check `GET /browser/object/<iri>` response HTML — if `app-renderer-content` class is present with `hx-get` pointing to `/app/<app_id>/_fragments/<fragment>`, the override is active; if absent, default SHACL form is in use
+- **Failure visibility**: Any exception in renderer override lookup (DB query failure, registry error) is caught and logged WARNING; the object falls back to `object_tab.html` — the user sees the default SHACL form, never an error page
+
 ## Expected Output
 
 - `backend/app/apps/registry.py` — new `get_renderer()` method
@@ -102,10 +109,3 @@ Implement Level 3 frontend integration (APP-09): apps can replace the default SH
 - `backend/app/templates/browser/object_tab_app.html` — new template with app fragment loading + toolbar + flip card
 - `frontend/static/css/workspace.css` — `.app-renderer-content` styles (if needed)
 - `backend/tests/test_renderer_overrides.py` — ≥8 tests covering dispatch, preference, fallback
-
-## Observability Impact
-
-- **New runtime signal:** Logger `app.browser.objects` at DEBUG level logs when renderer override dispatches to `object_tab_app.html` (app_id, type_iri, fragment URLs). At WARNING level logs failures during renderer lookup (with graceful fallback to default SHACL form).
-- **Inspection surface:** `GET /object/<iri>` response — inspect response HTML for `app-renderer-content` class presence to confirm renderer override is active. `SELECT * FROM app_renderer_prefs` shows active renderer preference overrides.
-- **Failure visibility:** If `AppRegistry.get_renderer()` raises or returns invalid data, `get_object()` falls back silently to the default `object_tab.html` — logged at WARNING. If the app fragment URL returns 404/500, the htmx div shows an error state in the browser (visible in devtools Network tab).
-- **Redaction constraints:** None.

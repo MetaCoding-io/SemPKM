@@ -95,10 +95,10 @@ This milestone is complete only when all are true:
 - [x] **S06: Frontend Level 2+3 — Workspace Contributions & Renderer Overrides** `risk:medium` `depends:[S04,S05]`
   > After this: app right-pane sections appear alongside Relations/Lint when viewing objects. App views appear in Views section. App command palette entries registered with ninja-keys. Apps can override default SHACL form with custom read/edit renderers for specific types.
 
-- [ ] **S07: Test App, E2E Tests & Integration Proof** `risk:low` `depends:[S01,S02,S03,S04,S05,S06]`
+- [x] **S07: Test App, E2E Tests & Integration Proof** `risk:low` `depends:[S01,S02,S03,S04,S05,S06]`
   > After this: `apps/test-app/` exercises all SDK features (page, command, task, right pane, command palette, renderer override). Playwright E2E tests prove the full vertical: install → page → command → task → admin → uninstall. All success criteria verified against the live Docker stack.
 
-- [ ] **S08: User Guide Documentation** `risk:low` `depends:[S07]`
+- [x] **S08: User Guide Documentation** `risk:low` `depends:[S07]`
   > After this: `docs/guide/` has pages covering app management (installing, monitoring, uninstalling from admin) and app development (SDK reference, manifest format, frontend integration levels). Glossary updated.
 
 ## Boundary Map

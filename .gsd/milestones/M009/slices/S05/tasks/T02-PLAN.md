@@ -1,109 +1,59 @@
 ---
 estimated_steps: 6
-estimated_files: 5
+estimated_files: 7
 ---
 
-# T02: Bulk EventStore commit and SDK bulk context manager
+# T02: SDK permission enforcement on CommandClient, GraphClient, HttpClient
 
 **Slice:** S05 — Scheduler, Permissions, Bulk EventStore & browserVisible
 **Milestone:** M009
 
 ## Description
 
-The RSS app (M010) will create 50-150 objects per feed poll. Per-operation metadata in EventStore creates ~5N triples — unacceptable overhead for batch ingestion. This task adds `EventStore.commit_bulk()` which records ~10 summary triples per batch instead, plus a platform endpoint and SDK context manager.
-
-The bulk approach: data triples and materialization (INSERT/DELETE into `urn:sempkm:current`) are identical to `commit()`. Only the event metadata differs — one summary event graph instead of per-operation metadata. Undo granularity is all-or-nothing.
+Add real permission enforcement to SDK clients. `CommandClient` enforces command type whitelist and IRI prefix on all created IRIs. `GraphClient` gates on `sparql_read` permission. `HttpClient` enforces network domain restriction via `fnmatch` glob matching. `AppContext` threads manifest permissions through to all client constructors. Runner reads permissions from manifest at startup.
 
 ## Steps
 
-1. **Add bulk event constants** to `backend/app/events/models.py`:
-   - `BULK_EVENT_TYPE = SEMPKM.BulkEvent`
-   - `BULK_SUMMARY = SEMPKM.summary`
-   - `BULK_SOURCE = SEMPKM.source`
-   - `BULK_OP_COUNT = SEMPKM.operationCount`
-   - `BULK_AFFECTED_COUNT = SEMPKM.affectedCount`
-
-2. **Add `commit_bulk()` to `EventStore`** (`backend/app/events/store.py`):
-   - Same core pattern as `commit()` — accepts `operations: list[Operation]`, `user_iri: str`, `user_role: str`
-   - Additional params: `summary: str`, `source: str`
-   - Enforce max batch size: `if len(operations) > 1000: raise ValueError("Bulk commit limited to 1000 operations")`
-   - Create event IRI via `mint_event_iri()`
-   - Build event graph with summary metadata only:
-     - `event_iri rdf:type sempkm:BulkEvent`
-     - `event_iri prov:startedAtTime timestamp`
-     - `event_iri prov:wasAssociatedWith user_iri`
-     - `event_iri sempkm:performedByRole user_role`
-     - `event_iri rdfs:label summary`
-     - `event_iri sempkm:summary summary`
-     - `event_iri sempkm:source source`
-     - `event_iri sempkm:operationCount len(operations)`
-     - `event_iri sempkm:affectedCount len(all_affected_iris)`
-   - Add data triples from all operations (same as `commit()`)
-   - Build materialization SPARQL (same INSERT/DELETE logic as `commit()`)
-   - Execute in single transaction (same as `commit()`)
-   - Return `EventResult`
-
-3. **Add `POST /api/commands/bulk` endpoint** to `backend/app/commands/router.py`:
-   - Accept body: `{"commands": [...], "summary": "...", "source": "..."}`
-   - Dispatch each command through existing handler pipeline (same as single `/api/commands`)
-   - Collect all resulting `Operation` objects
-   - Call `EventStore.commit_bulk()` with the collected operations, summary, and source
-   - Return `{"event_iri": "...", "operation_count": N}`
-   - Require authentication (same as existing `/api/commands`)
-
-4. **Add `bulk()` async context manager** to SDK `CommandClient` (`backend/sdk/sempkm_app_sdk/clients/commands.py`):
-   - `bulk(summary: str, source: str)` returns an async context manager
-   - The context manager object has an `add(command_type, params)` method
-   - `add()` enforces permissions immediately (command whitelist + IRI prefix) — fail fast, don't wait until commit
-   - On `__aexit__`, POST all collected commands to `/api/commands/bulk` with summary and source
-   - If the collection is empty on exit, skip the HTTP call
-
-5. **Write tests** (`backend/tests/test_bulk_eventstore.py`):
-   - Test `commit_bulk()` creates event graph with `sempkm:BulkEvent` type (mock triplestore)
-   - Test summary metadata triples present (summary, source, operationCount, affectedCount)
-   - Test materialization identical to `commit()` (same INSERT/DELETE SPARQL patterns)
-   - Test batch over 1000 raises `ValueError`
-   - Test empty operations list is handled gracefully
-   - Test SDK `bulk()` context manager: collects commands, posts to bulk endpoint
-   - Test SDK `bulk()` enforces permissions per-add (raises PermissionError immediately)
-   - Test SDK `bulk()` with empty batch skips HTTP call
-   - Note: The SDK bulk tests will need T01's permission enforcement. If running T02 before T01, mock the permission checks or use `allowed_commands=["*"]` equivalent.
-
-6. **Verify**: `cd backend && python -m pytest tests/test_bulk_eventstore.py -v`
+1. Modify `CommandClient.__init__` to accept `allowed_commands: set[str]` and `iri_prefix: str`. In `execute()`, raise `PermissionError` if command type not in whitelist. Validate all IRI params (check `iri` for object.create/object.patch/body.set, `subject` and `object` for edge.create/edge.patch) — reject if not matching `urn:sempkm:app:{appId}:`.
+2. Modify `GraphClient.__init__` to accept `sparql_read: bool`. In `query()`, raise `PermissionError` if False.
+3. Modify `HttpClient.__init__` to accept `allowed_domains: list[str]`. In `request()` / `get()` / `post()`, extract hostname from URL via `urllib.parse.urlparse`, validate against domain list using `fnmatch.fnmatch`. Empty list = all blocked. `["*"]` = unrestricted. Raise `PermissionError` on rejection.
+4. Modify `AppContext.__init__` to accept `permissions: dict` extracted from manifest. Thread `commands` list → CommandClient.allowed_commands, `iri_prefix` computed from app_id → CommandClient.iri_prefix, `sparql_read` bool → GraphClient, `network.domains` → HttpClient.
+5. Modify `runner.py` to read manifest YAML, extract permissions section, compute iri_prefix as `urn:sempkm:app:{app_id}:`, pass to AppContext constructor.
+6. Write `test_sdk_permissions.py` — test each enforcement layer: command whitelist allow/reject, IRI prefix allow/reject (all command types), sparql_read gate, domain glob allow/reject, wildcard domain, empty domain list, StateClient graph scoping verification.
 
 ## Must-Haves
 
-- [ ] `commit_bulk()` creates summary-only event metadata (~10 triples, not ~5N)
-- [ ] Data triples and materialization identical to `commit()`
-- [ ] Batch size limit enforced (1000 max) with clear error
-- [ ] Platform `/api/commands/bulk` endpoint dispatches and commits
-- [ ] SDK `ctx.commands.bulk()` context manager collects and posts
-- [ ] SDK bulk `add()` enforces permissions per-add (fail fast)
+- [ ] CommandClient rejects unpermitted command types with PermissionError
+- [ ] CommandClient rejects IRIs outside app prefix for all command param types
+- [ ] GraphClient rejects queries when sparql_read=False
+- [ ] HttpClient rejects requests to non-permitted domains
+- [ ] HttpClient allows wildcard pattern `["*"]`
+- [ ] StateClient verified scoped to app state graph
 
 ## Verification
 
-- `cd backend && python -m pytest tests/test_bulk_eventstore.py -v` — all pass
-- Bulk event graph has `rdf:type sempkm:BulkEvent` and summary predicates
-- Materialization SPARQL matches `commit()` pattern
-
-## Observability Impact
-
-- Signals added: `sempkm:BulkEvent` type distinguishes bulk from standard events in event log
-- How a future agent inspects this: SPARQL query for `?e a sempkm:BulkEvent` returns bulk events with summary, source, operation count
-- Failure state exposed: `ValueError` on oversized batch with clear message and count
+- `cd backend && .venv/bin/pytest tests/test_sdk_permissions.py -v` — all pass
+- `cd backend && .venv/bin/pytest tests/ -v` — full suite, zero regressions
 
 ## Inputs
 
-- `backend/app/events/store.py` — existing `EventStore.commit()` method (365 lines total) — the bulk variant mirrors its structure
-- `backend/app/events/models.py` — existing event vocabulary constants
-- `backend/app/commands/router.py` — existing `POST /api/commands` endpoint pattern to mirror for bulk
-- `backend/sdk/sempkm_app_sdk/clients/commands.py` — CommandClient (T01 adds permission enforcement; bulk builds on top)
-- `backend/app/rdf/namespaces.py` — `SEMPKM` namespace for new predicates
+- `backend/sdk/sempkm_app_sdk/clients/commands.py` — existing stub from S02
+- `backend/sdk/sempkm_app_sdk/clients/graph.py` — existing stub from S02
+- `backend/sdk/sempkm_app_sdk/clients/http.py` — existing stub from S02
+- `backend/sdk/sempkm_app_sdk/context.py` — existing AppContext from S02
+- `backend/sdk/sempkm_app_sdk/runner.py` — existing runner from S02
+
+## Observability Impact
+
+- **Failure signals:** `PermissionError` exceptions raised by SDK clients include the offending value and the full allowed list/prefix in the error message. No runtime logs — these are client-side guards that fail fast with diagnosable messages.
+- **Inspection:** Future agents can verify enforcement by instantiating clients with test permissions and calling methods with invalid inputs — PermissionError messages are self-documenting.
+- **No new runtime state:** Permission enforcement is stateless and synchronous. No DB writes, no background processes, no log streams.
 
 ## Expected Output
 
-- `backend/app/events/models.py` — 5 new constants for bulk event vocabulary
-- `backend/app/events/store.py` — new `commit_bulk()` method alongside existing `commit()`
-- `backend/app/commands/router.py` — new `POST /api/commands/bulk` endpoint
-- `backend/sdk/sempkm_app_sdk/clients/commands.py` — `bulk()` async context manager added
-- `backend/tests/test_bulk_eventstore.py` — ~10-15 tests covering commit, endpoint, and SDK
+- `backend/sdk/sempkm_app_sdk/clients/commands.py` — modified, permission enforcement
+- `backend/sdk/sempkm_app_sdk/clients/graph.py` — modified, sparql gate
+- `backend/sdk/sempkm_app_sdk/clients/http.py` — modified, domain enforcement
+- `backend/sdk/sempkm_app_sdk/context.py` — modified, permissions threading
+- `backend/sdk/sempkm_app_sdk/runner.py` — modified, manifest permissions reading
+- `backend/tests/test_sdk_permissions.py` — new, ~12-15 tests

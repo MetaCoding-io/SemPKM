@@ -128,3 +128,12 @@ Extend the Views explorer to show app view contributions and create a command pa
 - `frontend/static/js/workspace.js` — `openAppViewTab()` function + command palette injection in `initCommandPalette()`
 - `frontend/static/js/workspace-layout.js` — `app-view` case in special-panel factory
 - `backend/tests/test_app_views_commands.py` — ≥8 tests covering views and commands
+
+## Observability Impact
+
+- **Logger `app.browser.apps` at DEBUG level** logs app view count from `views_explorer_apps()` and command count from `commands_list()` on each request.
+- **Logger `app.browser.apps` at WARNING level** logs 404s for unknown app/view in `app_view_tab()`.
+- **`GET /browser/apps/views/explorer`** — curl directly to inspect rendered HTML for app view entries.
+- **`GET /api/apps/commands`** — returns JSON array of registered commands from running apps; empty array `[]` when no apps have commands. Inspectable via curl or browser devtools Network tab.
+- **Browser console** — `console.warn('Failed to load app commands:', err)` on fetch failure from `_loadAppCommandEntries()`.
+- **ninja-keys data** — In browser devtools: `document.querySelector('ninja-keys').data.filter(d => d.id.startsWith('appcmd:'))` shows injected app commands.

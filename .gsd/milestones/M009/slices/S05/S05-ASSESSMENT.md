@@ -1,26 +1,34 @@
-# S05 Roadmap Assessment
+# S05 Assessment — Roadmap Reassessment
 
-**Verdict: Roadmap confirmed — no changes needed.**
-
-S05 retired its planned risk (scheduler + permissions). All 121 tests pass. The S05→S06 boundary contract is intact: AppRegistry renderer/contribution metadata, running scheduler, and enforced permissions are all available for S06 to consume.
+**Verdict: Roadmap confirmed. No changes needed.**
 
 ## Success Criteria Coverage
 
-All 12 success criteria have at least one remaining owning slice:
+All 12 success criteria have at least one remaining owning slice (S06, S07, or S08). The `browserVisible` criterion is already validated by S05's 22 tests. No criterion is orphaned.
 
-- Right pane sections + command palette entries → **S06**
-- Renderer assignments in admin → **S06**
-- Test app exercising full vertical (install → page → command → task → admin → uninstall) → **S07**
-- E2E Playwright proof → **S07**
-- User guide documentation → **S08**
+## Boundary Contracts
 
-Previously completed criteria (S01–S05): install lifecycle, standalone pages, scheduler firing, crash recovery, auto-start, nginx static assets, browserVisible filtering.
+S05 → S06 boundary is accurate. S05 delivered:
+- `AppScheduler` with tick loop, concurrency guard, retry, DB recording
+- SDK permission enforcement on all 5 client types (CommandClient, GraphClient, HttpClient, StateClient via scoping, SettingsClient)
+- `EventStore.commit_bulk()` with summary metadata + SDK `bulk()` context manager
+- `browserVisible` field + `get_hidden_types()` filtering
+- Admin task history section with interval/pause controls
+
+S06 consumes these correctly per the boundary map.
+
+## Deviations Impact
+
+- **Scheduler uses direct httpx-over-UDS (D167)** instead of planned `AppProxy.invoke_task()` — cleaner, no downstream impact
+- **GraphClient sparql_read added during closure** — completed APP-05 fully, no gap carried forward
+- **5 pre-existing test failures in test_renderer_overrides.py** — Python 3.14 asyncio deprecation. S06 (renderer overrides slice) is the natural place to fix these.
 
 ## Requirement Coverage
 
-No changes. APP-08, APP-09 remain mapped to S06. APP requirements covered by S01–S05 are advanced/validated per S05 summary. RSS-01–08 remain deferred to M010.
+- APP-05, APP-06, APP-11, APP-12: validated by S05 (102 tests)
+- APP-08, APP-09: active → S06
+- APP-10: partially complete → S06 adds renderer assignments
+- APP-01–04, APP-07, APP-13–14: shipped in S01–S04
+- No new requirements surfaced. No requirements invalidated.
 
-## Notes
-
-- T03 code-missing deviation was a process issue (task summary claimed completion without code in worktree), not a roadmap issue. Addressed during slice completion.
-- S06 dependency chain is clean: both S04 and S05 are complete.
+Remaining roadmap (S06 → S07 → S08) provides credible coverage for all active APP requirements.
