@@ -71,7 +71,7 @@ This milestone is complete only when all are true:
 - [x] **S04: Research Workflow Model** `risk:medium` `depends:[]`
   > After this: research model archive with 5 types (Paper, Claim, Evidence, ResearchQuestion, Argument) passes offline validation. Unsupported-claims and contested-claims SPARQLConstraints fire. Evidence map graph view defined.
 
-- [ ] **S05: Cross-Model Verification, E2E Tests & User Guide** `risk:low` `depends:[S01,S02,S03,S04]`
+- [x] **S05: Cross-Model Verification, E2E Tests & User Guide** `risk:low` `depends:[S01,S02,S03,S04]`
   > After this: All 4 models install in Docker, forms render, views work, inference fires, validation warnings appear. E2E Playwright tests prove the install + create + view cycle. User guide Chapter 31 documents all 4 models.
 
 ## Boundary Map

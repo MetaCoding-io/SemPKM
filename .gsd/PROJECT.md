@@ -283,12 +283,12 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Two new Mental Models (rss-feeds, web-annotations), custom object renderers, background polling
 - Research: `docs/research/rss-reader-hypothesis-integration.md`
 
-**Mental Models Expansion** (MODEL-01–04) — in progress (M011)
+**Mental Models Expansion** (MODEL-01–04) — complete (M011)
 - S01 complete: basic-pkm v2.0 with Task + Milestone types, 10-test acceptance suite, all 3 key risks retired
 - S02 complete: Personal CRM with Contact/Company/Interaction/Deal, SHACL-AF inference+validation, 12 seed objects
 - S03 complete: Zettelkasten+ with 5 note types, provenance chain, argumentation links
 - S04 complete: Research Workflow with 5 types, 4 SHACL-AF validation rules, Evidence Map graph view
-- S05 remaining: Cross-model Docker integration, E2E tests, user guide
+- S05 complete: Cross-model verification (10 pytest tests), E2E Playwright test (Docker lifecycle), Chapter 29 user guide (608 lines, 15 glossary entries)
 - Design: `.gsd/design/MENTAL-MODELS-EXPANSION-DESIGN.md`
 
 **Workspace & Event Log Polish** — queued (M012)
@@ -388,7 +388,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 **Previous milestones:** M007 Generic Views, VFS Completion & Polish (2026-03-16), M006 Dashboards, Workflows & Platform Alignment (2026-03-15), M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
 
-**Current milestone:** M009 — App Platform (S01-S06 complete, S07-S08 remaining)
+**Current milestone:** M011 — Mental Models Expansion (COMPLETE — all 5 slices done)
 
 ## Context
 
