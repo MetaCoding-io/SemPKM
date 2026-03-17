@@ -55,7 +55,7 @@
   - Verify: `python -c "from rdflib import Graph; g=Graph(); g.parse('models/basic-pkm/ontology/basic-pkm.jsonld', format='json-ld'); print(f'{len(g)} triples')"` succeeds. Same for shapes.
   - Done when: ontology has 6 OWL classes, shapes has 6 NodeShapes, all owl:inverseOf pairs declared, rdflib parses both files without error.
 
-- [ ] **T02: Add inference and validation rules for Tasks** `est:45m`
+- [x] **T02: Add inference and validation rules for Tasks** `est:45m`
   - Why: Implements TaskProjectDenormRule (SPARQL inference) and OverdueTaskValidation (SPARQL constraint). The overdue-task rule is the highest-risk item in this slice — it requires sh:sparql SPARQLConstraint with date arithmetic and correct sh:severity placement (D153).
   - Files: `models/basic-pkm/rules/basic-pkm.ttl`
   - Do: Add TaskProjectDenormRule (derive bpkm:taskProject from milestone's project chain, same pattern as PPV's ProjectPillarDenormRule). Add OverdueTaskValidation as a SEPARATE NodeShape (D153) with sh:targetClass bpkm:Task, sh:severity sh:Warning, and sh:sparql constraint using `xsd:date` comparison with `BIND(NOW() AS ?now)` and `FILTER(?dueDate < ?now)` for tasks where status is "todo" or "in-progress". Add owl:inverseOf inference rules for taskProject↔hasTasks and milestoneProject↔hasMilestones.
