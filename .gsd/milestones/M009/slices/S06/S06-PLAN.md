@@ -29,6 +29,8 @@
 - `cd /home/james/Code/SemPKM/.gsd/worktrees/M009 && python -m pytest backend/tests/test_admin_renderers.py -v` — admin set/clear endpoints modify AppRendererPref correctly, detail page shows renderer info
 - `cd /home/james/Code/SemPKM/.gsd/worktrees/M009 && python -m pytest backend/tests/ -x --timeout=30` — zero regressions across full test suite
 - All modified `.py` files pass `python3 -c "import ast; ast.parse(open(f).read())"`
+- `cd /home/james/Code/SemPKM/.gsd/worktrees/M009 && python -c "from app.browser.apps import apps_router; print('apps_router importable')"` in `backend/` — endpoint module loads without import errors
+- Right pane endpoint returns 200 with platform sections for a valid IRI, and returns 200 with platform-only sections when registry raises an exception (graceful degradation verified in test_right_pane_sections.py)
 
 ## Observability / Diagnostics
 
@@ -45,7 +47,7 @@
 
 ## Tasks
 
-- [ ] **T01: Dynamic right pane sections endpoint and JS refactor** `est:1h30m`
+- [x] **T01: Dynamic right pane sections endpoint and JS refactor** `est:1h30m`
   - Why: The right pane currently has 3 hardcoded `<details>` blocks and 3 hardcoded JS calls. D153 directs making this dynamic via an htmx endpoint that merges platform sections + app contributions. This is the biggest structural change in the slice and establishes the dynamic pattern for app section injection.
   - Files: `backend/app/browser/apps.py`, `backend/app/templates/browser/right_pane_sections.html`, `backend/app/templates/browser/workspace.html`, `frontend/static/js/workspace.js`, `backend/app/apps/registry.py`, `backend/tests/test_right_pane_sections.py`
   - Do: (1) Add `get_right_pane_contributions(type_iris)` helper to `AppRegistry` — iterates running apps' manifests, collects rightPane contributions matching any of the given type IRIs (empty targetTypes = all objects), returns sorted by priority. (2) Create `GET /browser/apps/right-pane-sections?iri={iri}` endpoint in `apps.py` — queries object's rdf:type via SPARQL, calls registry helper, merges with platform sections (relations, lint, comments) into ordered list, renders `right_pane_sections.html`. (3) Create template with platform `<details>` blocks first (each with `hx-get` for lazy content load like current pattern), then app contribution `<details>` blocks (each with `hx-get` to `/app/{appId}/_fragments/{fragment}?iri={iri}`). (4) Replace the 3 hardcoded `<details>` blocks in `workspace.html` right pane with a single `<div id="right-pane-dynamic">` that loads via htmx. Keep inbox_panel and collaboration_panel as static `{% include %}` directives below the dynamic container. (5) Replace `loadRightPaneSection()` calls in `workspace.js` with a single `loadRightPane(objectIri)` that fetches the dynamic endpoint via htmx swap. Add AbortController to cancel superseded requests on rapid tab switching. (6) Write tests covering: platform-only sections (no apps), platform + app sections merged, targetTypes filtering, priority ordering, unknown object IRI returns platform sections only.
