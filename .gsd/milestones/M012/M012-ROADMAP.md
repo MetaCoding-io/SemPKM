@@ -82,7 +82,7 @@ This milestone is complete only when all are true:
 - [x] **S01: Event Log Polish — Labels, Helptext & Autocomplete** `risk:low` `depends:[]`
   > After this: User opens event log and sees human-readable predicate labels, helptext tooltips on hover, and autocomplete suggestions when filtering by type/predicate/object
 
-- [ ] **S02: Body.Diff — Incremental Storage & Rendering** `risk:medium` `depends:[]`
+- [x] **S02: Body.Diff — Incremental Storage & Rendering** `risk:medium` `depends:[]`
   > After this: User edits an existing note body and the event log shows only the changed lines highlighted in green/red, not the full body text replacement
 
 - [ ] **S03: Workspace Personas** `risk:high` `depends:[]`
