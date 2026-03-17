@@ -1,7 +1,7 @@
 # GSD State
 
 **Active Milestone:** M011: Mental Models Expansion
-**Active Slice:** S03: Zettelkasten+ Model
+**Active Slice:** S04: Research Workflow Model
 **Phase:** executing
 **Requirements Status:** 42 active · 101 validated · 7 deferred · 0 out of scope
 
@@ -43,4 +43,4 @@
 - None
 
 ## Next Action
-Execute T01 of slice S03 (Author Zettelkasten manifest and ontology).
+Execute S04/T01 (manifest + ontology for Research model).
