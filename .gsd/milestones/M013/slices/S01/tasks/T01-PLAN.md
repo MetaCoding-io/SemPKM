@@ -40,6 +40,12 @@ Create a `get_current_user_or_api` FastAPI dependency in `auth/dependencies.py` 
 - `backend/app/auth/dependencies.py` — existing session-only auth dependencies
 - `backend/app/auth/service.py` — `AuthService.verify_api_token()` method
 
+## Observability Impact
+
+- **New signal:** `get_current_user_or_api` uses structured `logging.debug()` to record which auth path resolved (cookie vs bearer), visible in FastAPI debug logs
+- **Failure state:** HTTP 401 with `detail` field distinguishing "Not authenticated" (no credentials) vs "Invalid or expired API token" (bad bearer) vs "Invalid or expired session" (bad cookie) — inspectable via `curl -v` or test assertions
+- **Inspection:** `AuthService.verify_api_token` updates `ApiToken.last_used_at` on success — queryable in DB to confirm bearer auth is being exercised
+
 ## Expected Output
 
 - `backend/app/auth/dependencies.py` — with new `get_current_user_or_api` dependency added

@@ -25,6 +25,7 @@
 - `curl -v -H "Authorization: Bearer <token>" http://localhost:3000/.well-known/sempkm` — returns 200 with same JSON
 - `curl -v -H "Authorization: Bearer invalid" http://localhost:3000/.well-known/sempkm` — returns 401
 - `curl -v -X OPTIONS http://localhost:3000/api/types -H "Origin: chrome-extension://abc" -H "Access-Control-Request-Method: GET"` — returns CORS headers
+- `curl -v -H "Authorization: Bearer invalid" http://localhost:3000/.well-known/sempkm` — returns 401 with JSON `{"detail": "Invalid or expired API token"}` (failure-path diagnostic)
 
 ## Observability / Diagnostics
 
@@ -35,7 +36,7 @@
 
 ## Tasks
 
-- [ ] **T01: Build dual-auth FastAPI dependency** `est:45m`
+- [x] **T01: Build dual-auth FastAPI dependency** `est:45m`
   - Why: All four M013 endpoints need to accept either session cookie or Bearer API token. Current `get_current_user` only checks cookies. `AuthService.verify_api_token()` exists and is tested but isn't wired as a FastAPI dependency.
   - Files: `backend/app/auth/dependencies.py`
   - Do:
