@@ -39,6 +39,14 @@ Create Playwright E2E tests that exercise all four M013 API endpoints through th
 - Running Docker Compose stack with at least one Mental Model installed
 - `e2e/` directory structure and auth fixture patterns from existing E2E tests
 
+## Observability Impact
+
+- **Test output**: `npx playwright test tests/30-api-surface/ --project=chromium` — 7 named tests, each verifying a specific endpoint behavior through the full Docker stack
+- **Failure signals**: Test names include the endpoint and expected behavior, so failures immediately identify which API surface contract is broken
+- **Auth verification**: The "requires authentication" test proves the auth middleware is wired correctly at the nginx/FastAPI boundary
+- **Inspection**: On failure, Playwright captures traces (`.zip`) for replay — `npx playwright show-trace <path>` to inspect request/response details
+- **No new runtime observability**: These are pure E2E tests — they exercise existing endpoints without adding runtime logging or metrics
+
 ## Expected Output
 
 - `e2e/tests/30-api-surface/api-surface.spec.ts` — ≥5 E2E tests
