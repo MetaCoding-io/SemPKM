@@ -45,7 +45,7 @@
 
 ## Tasks
 
-- [ ] **T01: Create test app and update Docker test infrastructure** `est:45m`
+- [x] **T01: Create test app and update Docker test infrastructure** `est:45m`
   - Why: The test app is the fixture that all E2E tests exercise. Docker test stack needs volume mounts to see the app and SDK.
   - Files: `apps/test-app/manifest.yaml`, `apps/test-app/app.py`, `apps/test-app/requirements.txt`, `apps/test-app/frontend/templates/*.html` (5 templates), `apps/test-app/frontend/static/styles.css`, `apps/test-app/frontend/static/app.js`, `docker-compose.test.yml`
   - Do: Create `apps/test-app/` with a comprehensive manifest exercising all SDK UI contribution types (pages, rightPane, views, commands, objectRenderers, tasks). Write `app.py` with SDK route handlers for each fragment endpoint, a task handler, and lifecycle hooks. Create minimal but functional HTML templates for each fragment. Add `./apps:/app/apps:ro` and `./backend/sdk:/app/backend/sdk:ro` volume mounts to docker-compose.test.yml api service. Add `sempkm_test_data:/app/data:ro` to frontend service for app-static serving.

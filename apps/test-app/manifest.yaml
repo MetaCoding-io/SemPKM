@@ -1,0 +1,75 @@
+appId: "test-app"
+name: "Test Application"
+version: "1.0.0"
+description: "Comprehensive test app exercising all SDK features for E2E testing"
+author:
+  name: "SemPKM Tests"
+license: "MIT"
+
+dependencies:
+  platform: ">=0.1.0"
+
+permissions:
+  commands:
+    - "object.create"
+  sparql:
+    read: true
+  backgroundTasks: true
+  network: []
+
+backend:
+  entrypoint: "app:test_app"
+
+tasks:
+  - id: "heartbeat"
+    description: "Periodic heartbeat check for test app"
+    interval: "5m"
+    retryPolicy:
+      maxRetries: 1
+      maxBackoff: "10s"
+
+frontend:
+  staticDir: "frontend/static"
+  css:
+    - "styles.css"
+  js:
+    - "app.js"
+
+ui:
+  pages:
+    - id: "main"
+      path: "/main"
+      label: "Test App"
+      icon: "flask-conical"
+      nav: "apps"
+      fragment: "main"
+
+  contributions:
+    rightPane:
+      - id: "test-info"
+        label: "Test Info"
+        icon: "info"
+        fragment: "right-pane"
+        targetTypes:
+          - "*"
+        priority: 50
+
+    views:
+      - id: "test-view"
+        label: "Test View"
+        icon: "test-tubes"
+        fragment: "test-view"
+
+    commandPalette:
+      - id: "test-command"
+        label: "Test App Command"
+        keywords:
+          - "test"
+          - "demo"
+        actionType: "dialog"
+        fragment: "command-dialog"
+
+  objectRenderers:
+    - type: "urn:sempkm:test:TestRenderedType"
+      modes:
+        read: "read-renderer"

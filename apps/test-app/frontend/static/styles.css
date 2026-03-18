@@ -1,0 +1,21 @@
+/* Test app styles — minimal CSS for E2E assertion targeting */
+
+#test-app-main {
+    padding: 1rem;
+}
+
+#test-app-right-pane {
+    padding: 0.75rem;
+}
+
+#test-app-view {
+    padding: 1rem;
+}
+
+#test-app-command-dialog {
+    padding: 1rem;
+}
+
+#test-app-renderer {
+    padding: 1rem;
+}
