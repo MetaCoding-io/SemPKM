@@ -49,6 +49,13 @@ Build the context-query endpoint that accepts page metadata (URL, title, keyword
 - `backend/app/services/search.py` — SearchService for FTS
 - `backend/app/browser/search.py` — reference implementation for FTS usage
 
+## Observability Impact
+
+- **New signal:** `POST /api/context-query` response includes `match_type` per result (`url`, `keyword`, or `title`) and `total` count — agents can verify matching behavior from response payload alone.
+- **Inspection surface:** Response shape `{results: [...], total: N}` is self-describing; empty results return `{results: [], total: 0}` (not an error).
+- **Failure visibility:** SPARQL errors during URL or keyword matching logged at WARNING level with `exc_info=True`; the endpoint degrades gracefully (skips that result set) rather than returning 500.
+- **Diagnostic path:** `POST /api/context-query` with empty body → 400 with `"At least one of url, title, or keywords is required"` confirms validation is active.
+
 ## Expected Output
 
 - `backend/app/api/router.py` — with `/api/context-query` endpoint and Pydantic models
