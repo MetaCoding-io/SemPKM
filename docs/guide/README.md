@@ -55,6 +55,7 @@ setup to advanced topics like SPARQL queries and creating your own Mental Models
 27. [Spatial Canvas](27-spatial-canvas.md)
 28. [Dashboards and Workflows](28-dashboards-and-workflows.md)
 29. [Mental Model Catalog](29-mental-model-catalog.md)
+30. [Workspace Personas](30-personas.md)
 
 ## Part IX: Identity and Federation
 
