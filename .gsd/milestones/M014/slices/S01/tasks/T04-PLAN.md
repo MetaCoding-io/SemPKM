@@ -125,6 +125,15 @@ This delivers EXT-01 (popup capture) and EXT-09 (success/error feedback) for thi
 - `backend/app/commands/router.py` — Commands endpoint now accepts Bearer auth (from T01)
 - `backend/app/commands/schemas.py` — `ObjectCreateParams`: `{type, slug?, properties}`. The `type` field accepts full IRI (e.g., `urn:sempkm:model:basic-pkm:Note`). The `properties` dict maps predicate IRIs or compact forms (e.g., `dcterms:title`) to values.
 
+## Observability Impact
+
+- **Popup DevTools console:** `[SemPKM] Popup loaded`, `[SemPKM] Loaded N types`, `[SemPKM] Object created: {iri}`, `[SemPKM] Save failed: {message}` — all popup-lifecycle events logged with `[SemPKM]` prefix for easy filtering
+- **Toast notifications:** Green success toast ("✓ Object created!") and red error toast (with error detail) provide immediate visual feedback — primary user-facing diagnostic signal
+- **Connection status dot:** Green (8px circle) in the popup header when types loaded successfully; red when API unreachable or auth failed — gives at-a-glance health
+- **Unconfigured state:** If no instanceUrl/apiKey in storage, popup shows configuration prompt instead of the form — makes it obvious when settings are missing
+- **Save button states:** Button shows spinner during API call, disables to prevent double-submit, re-enables on completion — loading/disabled state is the primary async-in-progress indicator
+- **Title validation:** Inline "Title is required" error message appears below the input when saving without a title — prevents silent validation failures
+
 ## Expected Output
 
 - `extension/popup/popup.html` — Complete popup UI with type selector, title, body, URL, save button, toast area
