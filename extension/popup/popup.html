@@ -34,28 +34,42 @@
 
     <!-- Main capture form -->
     <form id="capture-form" class="capture-form hidden" autocomplete="off">
-      <!-- Type selector -->
-      <div class="form-group">
+      <!-- Type selector row -->
+      <div class="form-group type-selector-row">
         <label for="type-select">Type</label>
-        <select id="type-select" required>
-          <option value="">Loading types…</option>
-        </select>
+        <div class="type-select-wrapper">
+          <select id="type-select" required>
+            <option value="">Loading types…</option>
+          </select>
+          <div id="selected-type-icon" class="selected-type-icon hidden" aria-hidden="true"></div>
+        </div>
       </div>
 
-      <!-- Title -->
-      <div class="form-group">
-        <label for="title-input">Title <span class="required-mark" aria-label="required">*</span></label>
-        <input type="text" id="title-input" placeholder="Object title" required>
-        <p id="title-error" class="field-error hidden" role="alert">Title is required</p>
+      <!-- Dynamic SHACL form container -->
+      <div id="dynamic-form" class="dynamic-form"></div>
+
+      <!-- Loading spinner for shape fetch -->
+      <div id="form-loading" class="form-loading hidden">
+        <span class="form-loading-spinner" aria-hidden="true"></span>
+        <span class="form-loading-text">Loading fields…</span>
       </div>
 
-      <!-- Body / Notes -->
+      <!-- Fallback: simple title input when no shape is loaded -->
+      <div id="form-fallback" class="form-fallback hidden">
+        <div class="form-group">
+          <label for="fallback-title-input">Title <span class="required-mark" aria-label="required">*</span></label>
+          <input type="text" id="fallback-title-input" placeholder="Object title" required>
+          <p id="title-error" class="field-error hidden" role="alert">Title is required</p>
+        </div>
+      </div>
+
+      <!-- Notes (always visible — free-text capture) -->
       <div class="form-group">
         <label for="body-input">Notes</label>
         <textarea id="body-input" placeholder="Optional notes…" rows="3"></textarea>
       </div>
 
-      <!-- Source URL -->
+      <!-- Source URL (always visible, read-only) -->
       <div class="form-group">
         <label for="url-input">Source URL</label>
         <input type="url" id="url-input" readonly tabindex="-1">

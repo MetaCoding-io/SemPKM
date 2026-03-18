@@ -116,6 +116,13 @@ Connect `shacl-renderer.js` to the popup lifecycle. Restructure `popup.html` to 
 - `extension/shared/api-client.js` — `SemPKMClient.getShape(typeIri)` returns `ShapeResponse` JSON
 - S01 Summary: popup uses ES modules, `showToast(msg, type)` for feedback, `setConnectionDot()` for health, `setSaving()` for button state. `getSettings()` returns `{instanceUrl, apiKey, defaultType, autoFillTitle, ...}`.
 
+## Observability Impact
+
+- **New console signals:** `[SemPKM] Shape loaded for {typeIri}: {N} properties, {M} groups` on successful type change; `console.warn` with full error on shape fetch failure.
+- **DOM inspection:** `#dynamic-form` container is the single root for all rendered shape fields — inspect in DevTools Elements panel. `#form-loading` and `#form-fallback` divs toggle visibility for state transitions.
+- **Failure visibility:** Shape fetch errors surface as red toast + console.warn. If `renderForm()` returns empty fragment, `#dynamic-form` will be empty — visible in Elements panel.
+- **Save flow tracing:** `handleSave()` logs the properties object structure before API call. Error responses surface as toast + console.warn with status and detail.
+
 ## Expected Output
 
 - `extension/popup/popup.html` — restructured with `#dynamic-form` container, notes textarea, URL field, type icon display

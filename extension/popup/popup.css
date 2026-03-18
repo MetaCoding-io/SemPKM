@@ -33,6 +33,8 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 200px;
+  max-height: 600px;
+  overflow-y: auto;
   position: relative;
 }
 
@@ -363,6 +365,314 @@ select {
     opacity: 0;
     transform: translateY(8px);
   }
+}
+
+/* ── Type selector row ─────────────────────────────────────────── */
+.type-selector-row .type-select-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.type-selector-row .type-select-wrapper select {
+  flex: 1;
+  min-width: 0;
+}
+
+.selected-type-icon {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* ── Dynamic form container ────────────────────────────────────── */
+.dynamic-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ── Form loading spinner ──────────────────────────────────────── */
+.form-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 20px 14px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.form-loading-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e2e8f0;
+  border-top-color: #4f46e5;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+.form-loading-text {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* ── Form fallback ─────────────────────────────────────────────── */
+.form-fallback .form-group > label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+}
+
+#fallback-title-input {
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 10px;
+}
+
+#fallback-title-input.input-error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1);
+}
+
+/* ── Group sections (collapsible <details>) ────────────────────── */
+.form-group-section {
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.form-group-section > summary {
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+  cursor: pointer;
+  padding: 7px 10px;
+  background: #f8fafc;
+  border-bottom: 1px solid transparent;
+  user-select: none;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.form-group-section > summary::-webkit-details-marker {
+  display: none;
+}
+
+.form-group-section > summary::before {
+  content: '▸';
+  font-size: 10px;
+  color: #94a3b8;
+  transition: transform 0.15s;
+}
+
+.form-group-section[open] > summary {
+  border-bottom-color: #e2e8f0;
+}
+
+.form-group-section[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.form-group-content {
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ── Form field ────────────────────────────────────────────────── */
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.form-label-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.form-label-row label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+}
+
+.required-marker {
+  color: #ef4444;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+/* ── Field help (description) ──────────────────────────────────── */
+.field-help {
+  font-size: 11px;
+  color: #94a3b8;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* ── Helptext toggle & expandable ──────────────────────────────── */
+.btn-helptext-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  font-size: 10px;
+  font-weight: 700;
+  color: #94a3b8;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 50%;
+  cursor: pointer;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.btn-helptext-toggle:hover {
+  color: #4f46e5;
+  border-color: #c7d2fe;
+  background: #eef2ff;
+}
+
+.field-helptext {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  padding: 6px 8px;
+  margin-top: 2px;
+}
+
+.field-helptext-content {
+  font-size: 11px;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+/* ── Dynamic form inputs (inside rendered form) ────────────────── */
+.form-input,
+.form-select {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #1e293b;
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  border-radius: 5px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.form-input:focus,
+.form-select:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+}
+
+.form-input::placeholder {
+  color: #94a3b8;
+}
+
+.form-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M2.5 4.5L6 8l3.5-3.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 24px;
+}
+
+/* Default value indicator — subtle border */
+.form-input.default-value,
+.form-select.default-value {
+  border-color: #a5b4fc;
+}
+
+/* ── Multi-value ───────────────────────────────────────────────── */
+.multi-value-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.multi-value-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.multi-value-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.multi-value-item .form-input,
+.multi-value-item .form-select,
+.multi-value-item .reference-field {
+  flex: 1;
+  min-width: 0;
+}
+
+.btn-remove-value {
+  flex-shrink: 0;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-family: inherit;
+  color: #dc2626;
+  background: transparent;
+  border: 1px solid #fecaca;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-remove-value:hover {
+  background: #fef2f2;
+  border-color: #dc2626;
+}
+
+.btn-add-value {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 0;
+  font-size: 11px;
+  font-family: inherit;
+  font-weight: 500;
+  color: #94a3b8;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-add-value:hover {
+  color: #4f46e5;
+}
+
+/* ── Reference field ───────────────────────────────────────────── */
+.reference-field {
+  position: relative;
+}
+
+.reference-field .reference-search {
+  width: 100%;
 }
 
 /* ── Utility ───────────────────────────────────────────────────── */

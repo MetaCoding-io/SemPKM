@@ -98,8 +98,14 @@ async def handle_object_create(
     # Property triples
     for predicate_str, value in params.properties.items():
         predicate = _resolve_predicate(predicate_str)
-        rdf_value = _to_rdf_value(value)
-        triples.append((subject, predicate, rdf_value))
+        # Support multi-value: if value is a list, create one triple per element
+        if isinstance(value, list):
+            for item in value:
+                rdf_value = _to_rdf_value(item)
+                triples.append((subject, predicate, rdf_value))
+        else:
+            rdf_value = _to_rdf_value(value)
+            triples.append((subject, predicate, rdf_value))
 
     return Operation(
         operation_type="object.create",
