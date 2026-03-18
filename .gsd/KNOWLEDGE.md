@@ -60,3 +60,13 @@ In ninja-keys, a parent command with `children: []` (empty array) does NOT auto-
 **Context:** M012/S03/T03 — workspace.js ↔ workspace-layout.js guard flag
 
 `workspace.js` and `workspace-layout.js` are separate IIFEs. Variables declared inside one are not accessible from the other. To share a guard flag (like `_switchingPersona`), set it on `window` (e.g., `window._switchingPersona = true`) and check via `window._switchingPersona` in the other file.
+
+## SPARQL API scopes to current state graph only
+
+The `/api/sparql` endpoint (`backend/app/sparql/router.py`) calls `scope_to_current_graph()` which rewrites queries to only access `GRAPH <urn:sempkm:current>`. Event data lives in per-event named graphs (e.g. `urn:sempkm:event:abc123`) and is intentionally excluded to prevent data leakage.
+
+**Consequence:** E2E tests cannot use the SPARQL API to query event metadata (operation types, affected IRIs). Use the event log UI or the event detail API endpoint (`/browser/events/{iri}/detail`) instead.
+
+## Body save endpoint is POST not PUT
+
+The save body endpoint is `POST /browser/objects/{encoded_iri}/body` with `Content-Type: text/plain` body. The task plan incorrectly specified PUT. The actual route is defined in `backend/app/browser/objects.py` as `@objects_router.post("/objects/{object_iri:path}/body")`.
