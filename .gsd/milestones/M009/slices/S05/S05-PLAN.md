@@ -58,7 +58,7 @@
   - Verify: `pytest tests/test_app_scheduler.py -v` — all pass. Full suite no regressions.
   - Done when: interval parsing handles all formats, concurrency guard prevents double-fire, retry backoff computes correctly, task runs recorded in DB, admin shows history.
 
-- [ ] **T02: SDK permission enforcement on CommandClient, GraphClient, HttpClient** `est:45m`
+- [x] **T02: SDK permission enforcement on CommandClient, GraphClient, HttpClient** `est:45m`
   - Why: Permission enforcement (APP-05) is the "sandboxed" claim. Without it, apps can execute any command type, create IRIs outside their prefix, query any graph, and call any external URL.
   - Files: `backend/sdk/sempkm_app_sdk/clients/commands.py`, `backend/sdk/sempkm_app_sdk/clients/graph.py`, `backend/sdk/sempkm_app_sdk/clients/http.py`, `backend/sdk/sempkm_app_sdk/context.py`, `backend/sdk/sempkm_app_sdk/runner.py`, `backend/tests/test_sdk_permissions.py` (new)
   - Do:
