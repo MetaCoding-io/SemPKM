@@ -7,6 +7,9 @@ Alphabetical definitions of key terms used throughout the SemPKM documentation a
 **ABox**
 (Assertional Box) The set of individual instances (objects) in a knowledge base, as opposed to the class definitions (TBox).
 
+**API Surface**
+The set of structured JSON endpoints that external clients — browser extensions, mobile apps, CLI tools, and integrations — use to interact with a SemPKM instance. Includes instance discovery, type listing, SHACL shapes, and context query. See [Chapter 31: API Surface](31-api-surface.md).
+
 **Argument** (Research Workflow)
 A structured reasoning unit that synthesizes claims and evidence to address a research question. Each argument presents a thesis supported by referenced claims and evidence items. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
 
@@ -30,6 +33,9 @@ A person in your professional or personal network. Tracks name, email, role, com
 
 **Content Negotiation**
 An HTTP mechanism where the server returns different representations of a resource based on the client's `Accept` header. SemPKM uses content negotiation for WebID profiles: browsers receive an HTML page while Linked Data clients receive JSON-LD or Turtle. See [Chapter 25: WebID Profiles](25-webid-profiles.md).
+
+**Context Query**
+An API endpoint (`POST /api/context-query`) that finds objects in the knowledge graph related to a given page context. Accepts a URL, title, and/or keywords; returns matching objects via exact URL matching (SPARQL) and full-text keyword search (LuceneSail FTS). Used primarily by browser extensions to surface related knowledge while browsing. See [Chapter 31: API Surface](31-api-surface.md).
 
 **Cross-View Context**
 A dashboard mechanism where selecting a row in one block filters data in other blocks. The source block emits a context IRI on row click; consumer blocks bind it to a SPARQL variable and re-fetch their data. See [Chapter 28: Dashboards and Workflows](28-dashboards-and-workflows.md).
@@ -75,6 +81,9 @@ The automatic derivation of implicit facts from explicit data using ontological 
 
 **Interaction** (Personal CRM)
 A recorded touchpoint with a contact — meetings, calls, emails, coffees, or conferences. Interactions build a contact's history and trigger follow-up tracking. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
+
+**Instance Discovery**
+The `GET /.well-known/sempkm` endpoint that returns a JSON document describing a SemPKM instance — its version, available API endpoints, supported authentication methods, and enabled capabilities. External clients should call this endpoint first to learn how to interact with the instance. See [Chapter 31: API Surface](31-api-surface.md).
 
 **IRI**
 Internationalized Resource Identifier. The globally unique identifier for every resource in SemPKM -- every object, every property, every type, every edge. IRIs look like URLs (e.g., `https://example.org/data/Person/alice-chen`) or URNs (e.g., `urn:sempkm:model:basic-pkm:Project`). They serve the same role as primary keys in a relational database, but are globally unique by design.

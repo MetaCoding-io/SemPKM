@@ -52,3 +52,11 @@ Write user guide Chapter 31 documenting the API surface for extension and integr
 - `docs/guide/README.md` — updated TOC
 - `docs/guide/30-personas.md` — updated navigation footer
 - `docs/guide/appendix-d-glossary.md` — 3 new entries
+
+## Observability Impact
+
+This task is documentation-only and does not change runtime behavior.
+
+- **No new runtime signals**: No endpoints, logs, or metrics are added or modified.
+- **Inspection**: Verify documentation accuracy by comparing endpoint examples against `backend/app/api/router.py` response models.
+- **Failure visibility**: Broken internal links in the guide can be detected by checking that all `](*.md)` references resolve to existing files in `docs/guide/`.
