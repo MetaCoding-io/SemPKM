@@ -59,7 +59,7 @@
   - Verify: `chrome://extensions` → Load unpacked → extension loads without errors; service worker active in extension details; context menu item appears on right-click
   - Done when: Extension loads in Chrome without manifest errors, service worker is registered, right-click shows "Save to SemPKM" menu item (clicking it does nothing yet — handler wired in S03)
 
-- [ ] **T03: Options page with connection test and settings persistence** `est:45m`
+- [x] **T03: Options page with connection test and settings persistence** `est:45m`
   - Why: The user needs to configure the SemPKM instance URL and API key before the popup can make authenticated API calls. The connection test (green/red indicator) is the first visible proof the extension talks to the backend. This task delivers EXT-07 (settings) for this slice.
   - Files: `extension/options/options.html`, `extension/options/options.js`, `extension/options/options.css`
   - Do: Build options page with form fields: Instance URL (text input, default "http://localhost:3000"), API Key (password input), Default Type (select, populated after successful connection test). "Test Connection" button calls `SemPKMClient.connect()` — success shows green checkmark + version string, failure shows red X + error message. Save button persists settings via storage.js. Auto-load saved settings on page open. Style with clean, simple CSS matching SemPKM's design language.
