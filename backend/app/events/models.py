@@ -38,3 +38,10 @@ SYSTEM_ACTOR_IRI = URIRef("urn:sempkm:system")
 
 # State graph type marker (for sentinel triple)
 STATE_GRAPH_TYPE = SEMPKM.StateGraph
+
+# Bulk event metadata (M009/S05/T03)
+BULK_EVENT_TYPE = SEMPKM.BulkEvent
+EVENT_SUMMARY = SEMPKM.summary
+EVENT_SOURCE = SEMPKM.source
+EVENT_OPERATION_COUNT = SEMPKM.operationCount
+EVENT_AFFECTED_COUNT = SEMPKM.affectedCount

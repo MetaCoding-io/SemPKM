@@ -11,6 +11,7 @@ All materialization SPARQL uses GRAPH <urn:sempkm:current> clauses to
 scope changes to the current state graph (per research Pitfall 3).
 """
 
+import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
@@ -25,6 +26,11 @@ from app.events.models import (
     EVENT_DESCRIPTION,
     EVENT_PERFORMED_BY,
     EVENT_PERFORMED_BY_ROLE,
+    BULK_EVENT_TYPE,
+    EVENT_SUMMARY,
+    EVENT_SOURCE,
+    EVENT_OPERATION_COUNT,
+    EVENT_AFFECTED_COUNT,
 )
 from app.rdf.iri import mint_event_iri
 from app.rdf.namespaces import CURRENT_GRAPH_IRI, SEMPKM
@@ -218,6 +224,108 @@ class EventStore:
                 await self._client.rollback_transaction(txn_url)
             except Exception:
                 pass  # Best-effort rollback; original error propagates
+            raise
+
+        return EventResult(
+            event_iri=event_iri,
+            timestamp=timestamp,
+            affected_iris=all_affected_iris,
+        )
+
+    async def commit_bulk(
+        self,
+        operations: list[Operation],
+        performed_by: URIRef | None = None,
+        summary: str = "",
+        source: str = "",
+    ) -> EventResult:
+        """Commit a batch of operations with compact summary metadata.
+
+        Unlike commit(), which records per-operation metadata (N*5 triples),
+        commit_bulk() records ~10 summary-level triples: event type, timestamp,
+        actor, summary text, source identifier, operation count, and affected
+        count. Data triples still materialize identically to single commit.
+
+        Args:
+            operations: List of Operation dataclasses to commit atomically.
+            performed_by: Optional user/app IRI for provenance.
+            summary: Human-readable summary of the batch.
+            source: Identifier of the source (e.g. app ID).
+
+        Returns:
+            EventResult with the event IRI, timestamp, and all affected IRIs.
+
+        Raises:
+            ValueError: If len(operations) > 1000.
+            Exception: On any failure, the transaction is rolled back.
+        """
+        if len(operations) > 1000:
+            raise ValueError(
+                f"Bulk batch size {len(operations)} exceeds limit of 1000"
+            )
+
+        logger = logging.getLogger("app.events.store")
+
+        event_iri = mint_event_iri()
+        timestamp = datetime.now(timezone.utc).isoformat()
+
+        # Collect affected IRIs (deduplicated for count, full list for result)
+        all_affected_iris: list[str] = []
+        unique_affected: set[str] = set()
+        for op in operations:
+            all_affected_iris.extend(op.affected_iris)
+            unique_affected.update(op.affected_iris)
+
+        txn_url = await self._client.begin_transaction()
+        try:
+            # -- Build summary-only event metadata --
+            event_triples: list[tuple] = [
+                (event_iri, RDF.type, BULK_EVENT_TYPE),
+                (event_iri, EVENT_TIMESTAMP, Literal(timestamp, datatype=XSD.dateTime)),
+                (event_iri, EVENT_SUMMARY, Literal(summary)),
+                (event_iri, EVENT_SOURCE, Literal(source)),
+                (event_iri, EVENT_OPERATION_COUNT, Literal(len(operations), datatype=XSD.integer)),
+                (event_iri, EVENT_AFFECTED_COUNT, Literal(len(unique_affected), datatype=XSD.integer)),
+            ]
+            if performed_by is not None:
+                event_triples.append((event_iri, EVENT_PERFORMED_BY, performed_by))
+
+            # Write event metadata graph (no per-operation data triples in metadata)
+            event_sparql = _build_insert_data_sparql(event_iri, event_triples)
+            await self._client.transaction_update(txn_url, event_sparql)
+
+            # -- Materialize data identically to single commit --
+            # Deletes first (same ordering rationale as commit())
+            for op in operations:
+                for triple_pattern in op.materialize_deletes:
+                    delete_sparql = _build_delete_where_sparql(
+                        CURRENT_GRAPH_IRI, [triple_pattern]
+                    )
+                    await self._client.transaction_update(txn_url, delete_sparql)
+
+            # Then inserts
+            all_inserts: list[tuple] = []
+            for op in operations:
+                all_inserts.extend(op.materialize_inserts)
+
+            if all_inserts:
+                insert_sparql = _build_insert_data_sparql(
+                    CURRENT_GRAPH_IRI, all_inserts
+                )
+                await self._client.transaction_update(txn_url, insert_sparql)
+
+            await self._client.commit_transaction(txn_url)
+
+            logger.info(
+                "Bulk commit %s: %d operations, %d affected IRIs, source=%s",
+                event_iri, len(operations), len(unique_affected), source,
+            )
+
+        except Exception:
+            try:
+                await self._client.rollback_transaction(txn_url)
+            except Exception:
+                pass
             raise
 
         return EventResult(
