@@ -433,7 +433,15 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 **Previous milestones:** M011 Mental Models Expansion (2026-03-17), M008 Spatial Canvas (2026-03-16), M007 Generic Views, VFS Completion & Polish (2026-03-16), M006 Dashboards, Workflows & Platform Alignment (2026-03-15), M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
 
-**Current milestone:** M013 API Surface for External Clients — S01 complete, S02 next
+**Current milestone:** M013 API Surface for External Clients — S01 complete, S02 complete, S03 next
+
+**What shipped in M013/S02 (Types and Shapes JSON Endpoints):**
+- `GET /api/types` endpoint returning all installed model types with labels, Lucide icons, icon colors, and model attribution
+- `GET /api/shapes/{type_iri}` endpoint returning SHACL property shapes as structured JSON (properties, groups, constraints, helptext)
+- TypeInfo, TypesResponse, PropertyShapeInfo, PropertyGroupInfo, ShapeResponse Pydantic response models for OpenAPI docs
+- IconService runtime wiring fix — ad-hoc instantiation matching codebase pattern (D164)
+- 19 new unit tests (8 types + 11 shapes), 990 total backend tests passing
+- 2 requirements validated (API-02, API-03), shape serialization risk retired
 
 **What shipped in M013/S01 (Dual-Auth, CORS, nginx fix, Well-Known Endpoint):**
 - `get_current_user_or_api` dual-auth FastAPI dependency accepting session cookie or Bearer API token

@@ -161,18 +161,22 @@ This file is the explicit capability and coverage contract for the project.
 GET /.well-known/sempkm returns JSON with version, endpoints, auth, capabilities. 10 unit tests verify schema, content-type, auth enforcement, and field types. Docker curl confirms 401 JSON for unauthenticated and invalid-bearer requests.
 
 ### API-02 — Types endpoint with labels, icons, and model attribution
-- Status: active
+- Status: validated
 - Class: core-capability
 - Source: design (BROWSER-EXTENSION-DESIGN.md)
 - Primary Slice: M013/S02
 - Acceptance: `GET /api/types` returns JSON array of all types from installed Mental Models. Each entry has IRI, label, icon name (Lucide), icon color, model ID, and model name. Empty when no models installed.
 
+GET /api/types returns JSON array with TypeInfo entries (iri, label, icon, icon_color, model_id, model_name). 8 unit tests verify schema, field completeness, icon presence/absence, model attribution, auth enforcement (cookie + bearer + unauthenticated), and empty state. IconService created ad-hoc matching codebase pattern (D164).
+
 ### API-03 — SHACL shapes endpoint as structured JSON
-- Status: active
+- Status: validated
 - Class: core-capability
 - Source: design (BROWSER-EXTENSION-DESIGN.md)
 - Primary Slice: M013/S02
 - Acceptance: `GET /api/shapes/{type_iri}` returns SHACL property shapes as JSON with shape IRI, target class, label, groups (IRI, label, order), and properties (path, name, datatype, constraints, in_values, helptext, order, group). Returns 404 for unknown type IRIs.
+
+GET /api/shapes/{type_iri} returns ShapeResponse with properties and groups matching SHACL dataclasses. 11 unit tests verify schema, field completeness, constraint round-trip (in_values, min/max_count), target_class on object references, group ordering, helptext, 404, and auth enforcement. Shape serialization via dataclasses.asdict() to Pydantic models (D160).
 
 ### API-04 — Context-query endpoint for related objects
 - Status: active
@@ -1564,8 +1568,8 @@ All 6 items verified: Lucide SVG chevrons on 6 sections with rotation. OBJECTS o
 | MODEL-03 | core-capability | validated | M011/S03 | M011/S05 | offline validation + cross-model test + E2E Docker lifecycle + Ch. 29 guide |
 | MODEL-04 | core-capability | validated | M011/S04 | M011/S05 | offline validation + cross-model test + E2E Docker lifecycle + Ch. 29 guide |
 | API-01 | core-capability | validated | M013/S01 | none | 10 unit tests + Docker curl — well-known JSON schema verified |
-| API-02 | core-capability | active | M013/S02 | none | design: BROWSER-EXTENSION-DESIGN.md |
-| API-03 | core-capability | active | M013/S02 | none | design: BROWSER-EXTENSION-DESIGN.md |
+| API-02 | core-capability | validated | M013/S02 | none | 8 unit tests — types JSON array with icons/model attribution |
+| API-03 | core-capability | validated | M013/S02 | none | 11 unit tests — shapes JSON with constraints/groups/helptext |
 | API-04 | core-capability | active | M013/S03 | none | design: BROWSER-EXTENSION-DESIGN.md |
 | API-05 | core-capability | validated | M013/S01 | none | 15 unit tests — dual-auth cookie + bearer paths |
 | API-06 | core-capability | validated | M013/S01 | none | Docker curl — CORS headers + OPTIONS 204 |
@@ -1574,8 +1578,8 @@ All 6 items verified: Lucide SVG chevrons on 6 sections with rotation. OBJECTS o
 
 ## Coverage Summary
 
-- Active requirements: 26 (14 APP + 8 RSS + 4 API)
-- Validated: 136 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 4 from M013)
+- Active requirements: 24 (14 APP + 8 RSS + 2 API)
+- Validated: 138 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 6 from M013)
 - Deferred: 7 (TYPE-03, TYPE-04, MCP-01, NOTION-01, VIEW-06, VIEW-07, VFS-13)
 - Out of scope: 3
 - Unmapped active requirements: 22 (14 APP + 8 RSS — pending M009/M010 roadmap planning)
