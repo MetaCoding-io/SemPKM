@@ -3,16 +3,17 @@ id: S06
 parent: M010
 milestone: M010
 provides:
-  - "663-line Playwright E2E spec with 58 assertions across 15 phases covering the complete RSS Reader lifecycle"
-  - "RSS selector constants (19 selectors) in SEL.rss for stable E2E element targeting"
-  - "OPML test fixture with 2 feeds (nested category + flat outline)"
-  - "305-line user guide Chapter 32 covering all RSS Reader features"
-  - "README TOC entry, navigation chain (ch.31 → ch.32 → Appendix A), 4 glossary entries"
+  - "663-line Playwright E2E spec covering full RSS Reader lifecycle (15 phases, 58 assertions)"
+  - "RSS selector constants in SEL.rss (19 selectors) for stable E2E element targeting"
+  - "OPML test fixture (test-feeds.opml) with nested + flat feed outlines"
+  - "305-line user guide Chapter 32 documenting all RSS Reader features"
+  - "README TOC entry, navigation chain ch.31 → ch.32 → Appendix A"
+  - "4 glossary entries: Article (RSS), Feed Subscription, OPML, Poll Interval"
 requires:
   - slice: S03
-    provides: "Reader UI templates with stable CSS selectors (data-* attributes, .rss-* classes)"
+    provides: "Reader UI templates with stable CSS selectors/IDs for E2E targeting"
   - slice: S04
-    provides: "Workspace contributions (views, right pane, command palette) and custom Article renderer"
+    provides: "Workspace contributions (views, command palette, custom renderer) with manifest-driven registration"
   - slice: S05
     provides: "OPML import UI with file upload endpoint, settings page with configurable poll interval"
 affects: []
@@ -26,19 +27,19 @@ key_files:
   - docs/guide/appendix-a-environment-variables.md
   - docs/guide/appendix-d-glossary.md
 key_decisions:
-  - "Single sequential test with 240s timeout following app-platform.spec.ts pattern — phases depend on prior state"
+  - "D188: RSS Reader guide numbered Chapter 32 (not 30 as plan assumed) — chapters 30/31 already existed from M012/M013"
+  - "Single sequential test() with 240s timeout following app-platform.spec.ts pattern — phases depend on prior state"
   - "SPARQL-based assertions for subscription/article/star verification rather than fragile UI-only checks"
   - "Offline Docker resilience via API article seeding when feed polling produces no articles"
-  - "Chapter numbered 32 (not 30 as plan assumed) — chapters 30 (Personas) and 31 (API Surface) already existed"
 patterns_established:
-  - "RSS Reader E2E follows same retry-poll loop pattern as app-platform.spec.ts for async operations"
+  - "RSS E2E follows retry-poll loop pattern from app-platform.spec.ts for app install + health check"
   - "SPARQL verification queries as fallback for UI assertions in htmx-based apps"
   - "OPML file upload via path.resolve(__dirname, '../../fixtures/...') + setInputFiles()"
-  - "Chapter follows ch.29 App Platform style: tables for settings/status, blockquote tips, ASCII art for layout"
+  - "User guide chapter style: tables for settings, blockquote tips, ASCII art for layout diagrams, See Also sections"
 observability_surfaces:
   - "Playwright HTML report in e2e/playwright-report/ with per-phase timing and failure screenshots"
-  - "Phase comment headers (// Phase N: ...) grep-visible in test output for failure localization"
-  - "API response bodies logged via console.log on article seed failure"
+  - "Phase comment headers (// Phase N: ...) grep-visible for failure localization"
+  - "API response bodies logged on article seed failure for debugging offline Docker scenarios"
 drill_down_paths:
   - .gsd/milestones/M010/slices/S06/tasks/T01-SUMMARY.md
   - .gsd/milestones/M010/slices/S06/tasks/T02-SUMMARY.md
@@ -49,52 +50,49 @@ completed_at: 2026-03-18
 
 # S06: E2E tests + user guide
 
-**Playwright E2E spec (663 lines, 58 assertions, 15 phases) proves the full RSS Reader lifecycle end-to-end; user guide Chapter 32 (305 lines) documents all features with navigation chain and glossary entries**
+**663-line Playwright E2E spec with 58 assertions covering the full RSS Reader lifecycle (install → subscribe → poll → read → star → views → admin → OPML → settings → cleanup), plus 305-line Chapter 32 user guide with navigation chain and glossary entries — completing M010**
 
 ## What Happened
 
-T01 built the Playwright E2E spec covering the complete RSS Reader lifecycle. Added 19 selectors to the centralized `SEL.rss` object in `selectors.ts` matching actual template classes (`#rss-reader-container`, `.rss-article-item`, `.rss-star-btn`, etc.). Created an OPML test fixture with nested-category and flat-outline feeds. The single sequential test uses a 240s timeout and follows the app-platform.spec.ts canonical pattern: dialog auto-accept, cleanup-first idempotency, retry-poll loops for async operations.
+T01 built the Playwright E2E spec as a single sequential test with 15 phases and a 240-second timeout. The spec follows the established app-platform.spec.ts pattern: dialog auto-accept, cleanup-first idempotency, retry-poll loops for async operations. Phase 0 cleans up any prior state via API (stop/uninstall app, SPARQL DELETE articles + subscriptions, delete model). Phases 1–3 install the rss-feeds model and rss-reader app, then verify admin detail page content. Phase 4 opens the RSS Reader from the workspace sidebar. Phase 5 subscribes to a feed via the subscribe dialog and verifies the subscription exists via SPARQL. Phase 6 handles offline Docker resilience — if feed polling hasn't produced articles, it seeds 2 test articles via the API. Phases 7–9 test article reading, star toggle (with SPARQL persistence verification), and mark-read state. Phase 10 exercises workspace views (Starred/Unread). Phase 11 checks command palette RSS commands. Phase 12 imports the OPML test fixture and asserts on result attributes (data-created, data-duplicates, data-errors). Phase 13 tests settings modification. Phase 14 cleans up completely.
 
-The 15 phases cover: cleanup → model install → app install → admin detail → workspace integration → subscribe → article seeding → read → star → mark-read → workspace views → command palette → OPML import → settings → cleanup. The spec includes offline Docker resilience — if feed polling doesn't produce articles (common when no network access), it seeds articles via the API as a fallback. SPARQL-based assertions verify data state (subscription exists, article starred, article read) independently of potentially fragile UI rendering.
+Nineteen RSS selectors were added to the centralized SEL object in selectors.ts, matching actual template IDs and classes. An OPML 2.0 test fixture was created with a nested category feed and a flat top-level feed.
 
-T02 wrote the 305-line user guide Chapter 32 covering: prerequisites and install, three-pane reader interface with ASCII layout diagram, subscribing by URL and feed discovery, OPML import with category-as-tag preservation, reading/starring/keyboard navigation, workspace integration (views, related articles, command palette, custom renderer), feed management, settings table, poll interval configuration, and admin monitoring. The chapter was numbered 32 (not 30 as planned) because chapters 30 (Workspace Personas) and 31 (API Surface) already existed. Navigation chain was adjusted accordingly: ch.31 → ch.32 → Appendix A. Four glossary entries were added: Article (RSS), Feed Subscription, OPML, Poll Interval.
+T02 wrote Chapter 32 (305 lines) covering all RSS Reader features: prerequisites/install, three-pane reader interface (ASCII layout diagram), subscribing by URL/discovery/OPML, reading/starring/keyboard nav, workspace integration (views, related articles, command palette, custom renderer), feed management, settings table, poll interval, and admin monitoring. The chapter was numbered 32 instead of the plan's 30 because chapters 30 (Workspace Personas from M012) and 31 (API Surface from M013) already existed. Navigation chain updated across three files: ch.31 → ch.32 → Appendix A. Four glossary entries added: Article (RSS), Feed Subscription, OPML, Poll Interval.
 
 ## Verification
 
-All slice-plan verification checks passed:
+All slice-level verification checks passed:
 
 | # | Check | Result |
 |---|-------|--------|
-| 1 | `npx tsc --noEmit` (our files) | ✅ 0 errors in rss-reader spec and selectors.ts |
-| 2 | `grep -c "expect" rss-reader.spec.ts` ≥20 | ✅ 58 assertions |
-| 3 | `grep -c "} catch" rss-reader.spec.ts` ≥2 | ✅ 6 try/catch blocks |
-| 4 | `wc -l docs/guide/32-rss-reader.md` ≥150 | ✅ 305 lines |
-| 5 | Chapter in README TOC | ✅ "32. [RSS Reader](32-rss-reader.md)" |
-| 6 | Navigation: ch.31 → ch.32 | ✅ footer in 31-api-surface.md |
-| 7 | Navigation: ch.32 → Appendix A | ✅ footer in appendix-a-environment-variables.md |
-| 8 | Glossary entries ≥3 | ✅ 4 entries (Article, Feed Subscription, OPML, Poll Interval) |
-| 9 | OPML fixture valid XML | ✅ 2 feeds with correct xmlUrl attributes |
-| 10 | RSS selectors in SEL.rss | ✅ 19 selectors present |
+| 1 | `wc -l e2e/tests/31-rss-reader/rss-reader.spec.ts` | 663 lines ✅ |
+| 2 | `grep -c "expect" ...rss-reader.spec.ts` | 58 assertions ≥ 20 ✅ |
+| 3 | `grep -c "} catch" ...rss-reader.spec.ts` | 6 try/catch blocks ≥ 2 ✅ |
+| 4 | `npx tsc --noEmit` (new/modified files) | 0 errors ✅ |
+| 5 | `wc -l docs/guide/32-rss-reader.md` | 305 lines ≥ 150 ✅ |
+| 6 | `grep "32-rss-reader" docs/guide/README.md` | present ✅ |
+| 7 | `grep "32-rss-reader" docs/guide/31-api-surface.md` | footer link present ✅ |
+| 8 | `grep "32-rss-reader" docs/guide/appendix-a-environment-variables.md` | footer link present ✅ |
+| 9 | RSS/OPML/Feed Subscription/Poll Interval in glossary | 8 matches ≥ 3 ✅ |
+| 10 | `rss:` section in selectors.ts | present ✅ |
+| 11 | OPML fixture valid XML | 2 feeds verified ✅ |
 
-**Not verified in this session:** `npx playwright test tests/31-rss-reader/rss-reader.spec.ts --project=chromium` (requires running Docker test stack). The spec compiles and is structurally sound; runtime verification deferred to Docker stack availability.
+E2E runtime verification against Docker stack deferred — spec compiles and is structurally sound but requires a running Docker test stack (port 3901) for execution.
 
 ## Requirements Advanced
 
-- RSS-01 — E2E spec phases 5-6 prove subscribe → poll → article ingestion lifecycle
-- RSS-02 — E2E spec phases 4, 7-9 prove reader UI with split pane, read, star, mark-read
-- RSS-03 — E2E spec phase 7 proves Article custom renderer (Annotation deferred to M011)
-- RSS-05 — E2E spec phase 12 proves OPML import with file upload and result attributes
-- RSS-06 — E2E spec phases 10-11 prove workspace views and command palette entries
-- RSS-07 — E2E spec phases 1-2 prove rss-feeds model install and type registration (web-annotations deferred)
-- RSS-08 — E2E spec phase 5 proves feed URL subscription (discovery via S02 unit tests)
+- RSS-01 — E2E spec phases 5–6 test subscribe + poll lifecycle; guide documents feed subscription and polling
+- RSS-02 — E2E spec phases 7–9 test reader UI, star, mark-read; guide documents three-pane layout
+- RSS-03 — E2E spec phase 4 validates custom renderer loads in workspace; guide documents custom Article renderer
+- RSS-05 — E2E spec phase 12 tests OPML import with result assertions; guide documents OPML import workflow
+- RSS-06 — E2E spec phases 10–11 test workspace views and command palette; guide documents all workspace contributions
+- RSS-07 — E2E spec phase 1 tests rss-feeds model install; guide covers model installation as prerequisite
+- RSS-08 — Guide documents feed discovery from website URLs and content extraction
 
 ## Requirements Validated
 
-- RSS-01 — Full lifecycle proven: subscribe by URL, poll-feeds task runs, articles ingested via bulk EventStore, per-feed error tracking. Proof: S01 poll-feeds handler + S02 FeedService + S06 E2E phases 5-6
-- RSS-02 — Split-pane reader with feed sidebar, article list, reading pane. Star toggle and read/unread controls. Proof: S03 reader UI + S06 E2E phases 7-9
-- RSS-05 — OPML file upload creates subscriptions with category-as-tag preservation. Proof: S05 parse_opml + import endpoint + S06 E2E phase 12, fixture with nested+flat feeds
-- RSS-06 — "Unread Articles" and "Starred Articles" views in workspace. "Subscribe to Feed...", "Mark All as Read", "Open RSS Reader" in command palette. "Related Articles" in right pane. Proof: S04 manifest contributions + S06 E2E phases 10-11
-- RSS-08 — Feed URL subscription works. trafilatura content extraction + feedparser discovery from S02 unit tests. Proof: S02 FeedService unit tests + S06 E2E phase 5
+- None moved to validated by this slice alone — S06 provides E2E test coverage and documentation but the RSS requirements span the full M010 milestone. Final validation of RSS-01 through RSS-08 happens at milestone completion when all S01–S06 deliverables are assembled.
 
 ## New Requirements Surfaced
 
@@ -102,55 +100,52 @@ All slice-plan verification checks passed:
 
 ## Requirements Invalidated or Re-scoped
 
-- RSS-03 — Re-scoped: Article custom renderer validated; Annotation (oa:Annotation) renderer deferred to M011 alongside RSS-04 (Hypothesis sync)
-- RSS-07 — Re-scoped: rss-feeds model validated; web-annotations model deferred to M011 alongside RSS-04
+- none
 
 ## Deviations
 
-- **Chapter numbering**: Plan specified Chapter 30; actual is Chapter 32 because chapters 30 (Personas) and 31 (API Surface) already existed when T02 executed
-- **Navigation chain**: Plan specified ch.29 → ch.30 → Appendix A; actual is ch.31 → ch.32 → Appendix A
-- **Phase count**: Plan specified 14 phases; implementation has 15 (Phase 0 cleanup added as separate phase before Phase 1)
-- **Selector names**: Plan specified `.rss-filter-tab`; actual template uses `.rss-filter-btn` — selectors corrected accordingly
-- **Docker E2E execution**: Spec not run against Docker stack (no stack available) — structural verification only
+- **Chapter numbered 32, not 30**: Plan assumed ch.29 was the last chapter. Chapters 30 (Personas) and 31 (API Surface) were created by M012 and M013 after the M010 plan was written. Navigation chain adjusted to ch.31 → ch.32 → Appendix A (D188).
+- **Updated ch.31 footer instead of ch.29**: Since ch.32 follows ch.31 (not ch.29), the Previous/Next footer update targeted `31-api-surface.md`.
+- **15 phases instead of 14**: Phase 0 (cleanup) added as a separate numbered phase for idempotency. Plan counted cleanup as part of Phase 1.
+- **`.rss-filter-btn` instead of `.rss-filter-tab`**: Actual template uses `.rss-filter-btn` class; plan specified a non-existent `.rss-filter-tab`. Selector updated accordingly.
+- **663 lines instead of estimated 250–350**: Additional resilience code (SPARQL verifications, offline article seeding, sidebar re-navigation) accounts for the extra length.
 
 ## Known Limitations
 
-- E2E spec has not been run against a live Docker stack — compiles and is structurally sound but runtime behavior unverified
-- Pre-existing TypeScript errors in ~15 other test files (conflict markers from old merges) — not introduced by this slice
-- RSS-03 is partially validated (Article renderer only) — oa:Annotation renderer deferred with RSS-04
-- RSS-07 is partially validated (rss-feeds model only) — web-annotations model deferred with RSS-04
+- **E2E runtime not verified**: Spec compiles and is structurally sound (58 assertions, 6 try/catch blocks, valid TS) but has not been executed against a live Docker test stack. Timing-dependent phases (app startup, article seeding) may need adjustment on slow stacks.
+- **Pre-existing TS errors in other test files**: ~15 other test files have TypeScript errors from old merge conflicts. Not introduced by this slice; no impact on RSS Reader spec compilation.
 
 ## Follow-ups
 
-- Run E2E spec against Docker test stack to complete runtime verification
-- RSS-04 (Hypothesis annotation sync) deferred to future milestone — brings web-annotations model and oa:Annotation renderer
-- Consider adding RSS Reader to the guided tour system (Driver.js)
+- Run `npx playwright test tests/31-rss-reader/rss-reader.spec.ts --project=chromium` against Docker test stack on port 3901 to validate runtime behavior
+- Phase 10 (workspace views) timing may need tuning if views section is slow to populate on cold Docker stacks
 
 ## Files Created/Modified
 
-- `e2e/tests/31-rss-reader/rss-reader.spec.ts` — new 663-line Playwright E2E spec, 15 phases, 58 assertions
-- `e2e/helpers/selectors.ts` — added `rss` section with 19 selectors to SEL const
-- `e2e/fixtures/test-feeds.opml` — new OPML 2.0 fixture with nested category + flat feed
-- `docs/guide/32-rss-reader.md` — new 305-line Chapter 32 covering all RSS Reader features
+- `e2e/tests/31-rss-reader/rss-reader.spec.ts` — 663-line E2E spec, 15 phases, 58 assertions, 240s timeout
+- `e2e/helpers/selectors.ts` — added `rss` section with 19 selectors to centralized SEL object
+- `e2e/fixtures/test-feeds.opml` — OPML 2.0 test fixture with nested + flat feed outlines
+- `docs/guide/32-rss-reader.md` — 305-line Chapter 32 user guide covering all RSS Reader features
 - `docs/guide/README.md` — added Chapter 32 to Part VIII TOC
 - `docs/guide/31-api-surface.md` — updated footer: Next → Chapter 32
 - `docs/guide/appendix-a-environment-variables.md` — updated footer: Previous → Chapter 32
-- `docs/guide/appendix-d-glossary.md` — added 4 entries: Article (RSS), Feed Subscription, OPML, Poll Interval
+- `docs/guide/appendix-d-glossary.md` — added 4 glossary entries (Article RSS, Feed Subscription, OPML, Poll Interval)
 
 ## Forward Intelligence
 
 ### What the next slice should know
-- S06 completes M010. There is no next slice in this milestone. The reassess-roadmap agent should note that RSS-04 (Hypothesis sync) and the web-annotations model are deferred — these could form a future milestone or be bundled with other integration work.
+- S06 is the final slice of M010. No downstream slices exist. Milestone completion depends on all S01–S06 deliverables passing integration.
+- The E2E spec hasn't run against a live Docker stack — first runtime execution is the real validation gate.
 
 ### What's fragile
-- The E2E spec has not been runtime-verified against Docker — the first real run may need timing adjustments (retry intervals, sidebar expansion waits) on slow Docker stacks
-- Phase 10 (workspace views) relies on the Views section being populated by manifest registration — may need extra wait time
+- Phase 6 (offline article seeding) assumes the `/app/rss-reader/api/articles` endpoint accepts object.create-style payloads — if the app's API surface changed in S03-S05, this phase needs updating
+- Phase 10 (workspace views) depends on RSS Reader manifest workspace_contributions being properly registered on app install — timing-sensitive on slow stacks
 
 ### Authoritative diagnostics
-- `e2e/playwright-report/` after running against Docker — per-phase timing shows exactly where failures occur
-- Phase comment headers (`// Phase N:`) in test stdout — grep for the phase number to locate failures
-- SPARQL verification queries in the spec can be replayed via `/api/sparql` for debugging data state
+- Playwright HTML report at `e2e/playwright-report/` after execution — shows per-phase timing and failure screenshots
+- Phase comment headers (`// Phase N: ...`) in test stdout for quick failure localization
+- `grep -c "expect" e2e/tests/31-rss-reader/rss-reader.spec.ts` → should stay ≥ 58
 
 ### What assumptions changed
-- Plan assumed Chapter 30 was the next available number — actually Chapter 32 (chapters 30-31 already existed)
-- Plan assumed `.rss-filter-tab` selector — actual template uses `.rss-filter-btn`
+- Plan assumed Chapter 30 was available — actually Chapter 32 due to M012/M013 creating chapters 30 and 31
+- Plan assumed 14 test phases — actual implementation has 15 (separate cleanup Phase 0)

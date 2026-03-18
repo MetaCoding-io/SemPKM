@@ -75,8 +75,8 @@ This milestone is complete only when all are true:
 - [x] **S05: OPML import + app settings** `risk:low` `depends:[S02]`
   > After this: User uploads an OPML file and subscriptions are created for all feeds in it. App settings page configures poll interval and reader preferences. Feed categories from OPML preserved as tags.
 
-- [ ] **S06: E2E tests + user guide** `risk:low` `depends:[S03,S04,S05]`
-  > After this: Playwright E2E spec covers full lifecycle (install model → install app → subscribe → poll → read article → star → workspace views → admin task history → uninstall). User guide Chapter 30 documents RSS Reader setup and usage.
+- [x] **S06: E2E tests + user guide** `risk:low` `depends:[S03,S04,S05]`
+  > After this: Playwright E2E spec covers full lifecycle (install model → install app → subscribe → poll → read article → star → workspace views → admin task history → uninstall). User guide Chapter 32 documents RSS Reader setup and usage.
 
 ## Boundary Map
 
