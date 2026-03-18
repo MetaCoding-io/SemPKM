@@ -150,3 +150,21 @@ The key timing challenge: the content script extraction returns page data before
 - `extension/manifest.json` — `"scripting"` added to permissions array
 - `extension/popup/popup.js` — rewritten `init()` with content script injection, schema.org type suggestion, `applySchemaOrgToForm()` function called from `handleTypeChange()`, context menu pre-fill check
 - `extension/background/service-worker.js` — context menu handler stores data in `chrome.storage.session` and opens popup via `chrome.action.openPopup()` with fallback
+
+## Observability Impact
+
+**New console signals (all prefixed `[SemPKM]`):**
+- `Extracted page data: {title, url, selectedText:len, schemaOrg:count}` — popup, on content script injection result
+- `Content script injection failed: {error} — falling back to tab data` — popup, when injection is blocked (restricted pages)
+- `Schema.org type suggestion: {schemaType} → {sempkmType}` — popup, when auto-selecting a type from JSON-LD
+- `Applied N schema.org values to form` — popup, after filling data-path inputs from mapped entity
+- `Context menu: stored selection data` — service worker, on context menu click before opening popup
+
+**Inspectable state:**
+- `chrome.storage.session.get('contextMenuData')` in service worker DevTools — shows pending pre-fill data (or absent if popup consumed it)
+- `pendingPageData` module variable in popup scope — holds raw extraction result for the session
+
+**Failure visibility:**
+- Injection failure degrades to tab title/URL only — logged but not surfaced to user
+- Schema.org suggestion miss (no matching type) produces no log — silent, form stays on default/blank
+- `chrome.action.openPopup()` failure in service worker falls back to `chrome.windows.create()` — logged as warning

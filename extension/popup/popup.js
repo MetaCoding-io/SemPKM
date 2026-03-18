@@ -11,6 +11,8 @@
 import { SemPKMClient, SemPKMError } from '../shared/api-client.js';
 import { getSettings } from '../shared/storage.js';
 import { renderForm, getFormValues } from '../shared/shacl-renderer.js';
+import { suggestType, mapSchemaOrgToFormValues } from '../shared/schema-mapper.js';
+import { extractPageData } from '../content/extractor.js';
 
 /* ── DOM references ────────────────────────────────────────────── */
 const $connectionDot   = document.getElementById('connection-dot');
@@ -39,6 +41,9 @@ let loadedTypes = [];
 
 /** Currently loaded shape response (null when in fallback mode). */
 let currentShape = null;
+
+/** Pending page data from content script extraction or context menu. */
+let pendingPageData = null;
 
 /* ── Helpers ───────────────────────────────────────────────────── */
 
@@ -260,6 +265,58 @@ async function handleTypeChange() {
   }
 
   setVisible($formLoading, false);
+
+  // Apply schema.org data to the newly rendered form
+  applySchemaOrgToForm();
+}
+
+/* ── Schema.org form filling ───────────────────────────────────── */
+
+/**
+ * Apply schema.org data from pendingPageData to the current dynamic form.
+ * Called at the end of handleTypeChange() so it re-applies when the user
+ * switches types.
+ */
+function applySchemaOrgToForm() {
+  if (!pendingPageData || !currentShape) return;
+
+  const schemaEntities = pendingPageData.schemaOrg;
+  if (!Array.isArray(schemaEntities) || schemaEntities.length === 0) return;
+
+  // Find the best matching entity for the current type
+  const suggestion = suggestType(schemaEntities, loadedTypes);
+  const entity = suggestion ? suggestion.schemaEntity : schemaEntities[0];
+
+  const mapped = mapSchemaOrgToFormValues(entity, currentShape.properties);
+
+  // Also map basic page data to common form paths
+  if (pendingPageData.title) {
+    const titlePath = 'http://purl.org/dc/terms/title';
+    if (!(titlePath in mapped)) {
+      const hasPath = currentShape.properties.some((p) => p.path === titlePath);
+      if (hasPath) mapped[titlePath] = pendingPageData.title;
+    }
+  }
+  if (pendingPageData.url) {
+    const urlPath = 'https://schema.org/url';
+    if (!(urlPath in mapped)) {
+      const hasPath = currentShape.properties.some((p) => p.path === urlPath);
+      if (hasPath) mapped[urlPath] = pendingPageData.url;
+    }
+  }
+
+  let applied = 0;
+  for (const [path, value] of Object.entries(mapped)) {
+    const input = $dynamicForm.querySelector(`[data-path="${path}"]`);
+    if (input && !input.value) {
+      input.value = value;
+      applied++;
+    }
+  }
+
+  if (applied > 0) {
+    console.log(`[SemPKM] Applied ${applied} schema.org values to form`);
+  }
 }
 
 /* ── Title extraction ──────────────────────────────────────────── */
@@ -315,7 +372,8 @@ function extractTitle(properties) {
 /* ── Core flows ────────────────────────────────────────────────── */
 
 /**
- * Initialize the popup: load settings, check connection, populate form.
+ * Initialize the popup: load settings, check connection, populate form,
+ * extract page data via content script, and apply schema.org suggestions.
  */
 async function init() {
   const settings = await getSettings();
@@ -336,15 +394,105 @@ async function init() {
 
   client = new SemPKMClient(settings.instanceUrl, settings.apiKey);
 
-  // Populate types
+  // ── Extract page data (context menu or content script) ────────
+
+  try {
+    // Check for context menu pre-fill data first
+    const stored = await chrome.storage.session.get('contextMenuData');
+    if (stored && stored.contextMenuData) {
+      const cm = stored.contextMenuData;
+      await chrome.storage.session.remove('contextMenuData');
+
+      pendingPageData = {
+        title: cm.pageTitle || null,
+        url: cm.pageUrl || '',
+        selectedText: cm.selectionText || '',
+        author: null,
+        description: null,
+        schemaOrg: [],
+      };
+      console.log('[SemPKM] Extracted page data (context menu):', {
+        title: pendingPageData.title,
+        url: pendingPageData.url,
+        selectedText: pendingPageData.selectedText.length,
+        schemaOrg: 0,
+      });
+    } else {
+      // Inject content script to extract rich page data
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tab && tab.id) {
+        try {
+          const results = await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            func: extractPageData,
+          });
+          if (results && results[0] && results[0].result) {
+            pendingPageData = results[0].result;
+            console.log('[SemPKM] Extracted page data:', {
+              title: pendingPageData.title,
+              url: pendingPageData.url,
+              selectedText: (pendingPageData.selectedText || '').length,
+              schemaOrg: (pendingPageData.schemaOrg || []).length,
+            });
+          }
+        } catch (injectionErr) {
+          console.warn('[SemPKM] Content script injection failed:', injectionErr.message, '— falling back to tab data');
+          // Graceful fallback to tab-level data
+          pendingPageData = {
+            title: tab.title || null,
+            url: tab.url || '',
+            selectedText: '',
+            author: null,
+            description: null,
+            schemaOrg: [],
+          };
+        }
+      }
+    }
+  } catch (extractErr) {
+    console.warn('[SemPKM] Page data extraction failed:', extractErr);
+  }
+
+  // ── Apply basic fields from extracted data ────────────────────
+
+  if (pendingPageData) {
+    if (settings.autoFillTitle && pendingPageData.title && $fallbackTitle) {
+      $fallbackTitle.value = pendingPageData.title;
+    }
+    if (settings.autoFillUrl && pendingPageData.url && $urlInput) {
+      $urlInput.value = pendingPageData.url;
+    }
+    if (settings.includeSelection && pendingPageData.selectedText && $notesInput) {
+      $notesInput.value = pendingPageData.selectedText;
+    }
+  }
+
+  // ── Populate types and apply schema.org suggestion ────────────
+
   try {
     const types = await client.getTypes();
     populateTypeSelector(types, settings.defaultType);
     setConnectionDot('connected', `Connected — ${types.length} types available`);
     console.log(`[SemPKM] Loaded ${types.length} types`);
 
-    // If a default type is selected, auto-render its shape
-    if (settings.defaultType && $typeSelect.value === settings.defaultType) {
+    // Schema.org type suggestion — auto-select if a match exists
+    let typeAutoSelected = false;
+    if (pendingPageData && pendingPageData.schemaOrg && pendingPageData.schemaOrg.length > 0) {
+      const suggestion = suggestType(pendingPageData.schemaOrg, loadedTypes);
+      if (suggestion) {
+        // Check that the suggested type exists as an option in the selector
+        const optionExists = Array.from($typeSelect.options).some((o) => o.value === suggestion.typeIri);
+        if (optionExists) {
+          $typeSelect.value = suggestion.typeIri;
+          const schemaType = suggestion.schemaEntity['@type'] || 'unknown';
+          console.log(`[SemPKM] Schema.org type suggestion: ${schemaType} → ${suggestion.typeIri}`);
+          typeAutoSelected = true;
+        }
+      }
+    }
+
+    // Render the form for the selected type (auto-suggested or default)
+    if (typeAutoSelected || (settings.defaultType && $typeSelect.value === settings.defaultType)) {
       await handleTypeChange();
     } else {
       // No default — show fallback title input
@@ -357,20 +505,6 @@ async function init() {
     console.warn('[SemPKM] Failed to load types:', msg, err);
     // Show fallback so user can still attempt a save after reconnecting
     setVisible($formFallback, true);
-  }
-
-  // Auto-fill URL from active tab
-  try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (tab && tab.url) {
-      $urlInput.value = tab.url;
-    }
-    // Auto-fill title from page title if setting enabled and in fallback mode
-    if (settings.autoFillTitle && tab && tab.title && !currentShape) {
-      $fallbackTitle.value = tab.title;
-    }
-  } catch (tabErr) {
-    console.warn('[SemPKM] Could not get active tab:', tabErr);
   }
 }
 

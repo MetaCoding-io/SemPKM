@@ -127,3 +127,5 @@ function extractPageData() {
     schemaOrg: schemaOrg,
   };
 }
+
+export { extractPageData };

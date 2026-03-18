@@ -2,8 +2,8 @@
  * SemPKM Capture — background service worker.
  *
  * Registers the "Save to SemPKM" context menu item on extension install
- * and handles context menu clicks. The click handler is a shell that
- * will be implemented in S03 (content scripts integration).
+ * and handles context menu clicks. Stores selection data in session storage
+ * and opens the popup for capture.
  *
  * @module background/service-worker
  */
@@ -24,16 +24,31 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 // ---------------------------------------------------------------------------
-// Context menu click handler (shell — S03 will implement full behavior)
+// Context menu click handler
 // ---------------------------------------------------------------------------
 
-chrome.contextMenus.onClicked.addListener((info, tab) => {
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === 'save-to-sempkm') {
-    // S03 will implement: open popup with selected text pre-filled
-    console.log('[SemPKM] Save to SemPKM clicked:', {
-      selectionText: info.selectionText,
-      pageUrl: info.pageUrl,
-      tabId: tab?.id,
+    await chrome.storage.session.set({
+      contextMenuData: {
+        selectionText: info.selectionText || '',
+        pageUrl: info.pageUrl || '',
+        pageTitle: tab?.title || '',
+      },
     });
+    console.log('[SemPKM] Context menu: stored selection data');
+
+    try {
+      await chrome.action.openPopup();
+    } catch (err) {
+      console.warn('[SemPKM] Could not open popup:', err.message);
+      // Fallback: open popup.html as a new window
+      chrome.windows.create({
+        url: chrome.runtime.getURL('popup/popup.html'),
+        type: 'popup',
+        width: 420,
+        height: 520,
+      });
+    }
   }
 });

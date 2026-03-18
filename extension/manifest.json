@@ -3,7 +3,7 @@
   "name": "SemPKM Capture",
   "version": "0.1.0",
   "description": "Capture typed, schema-validated objects from any web page to your SemPKM knowledge graph.",
-  "permissions": ["storage", "activeTab", "contextMenus"],
+  "permissions": ["storage", "activeTab", "contextMenus", "scripting"],
   "host_permissions": ["http://localhost:*/*", "https://*/*"],
   "action": {
     "default_popup": "popup/popup.html",
