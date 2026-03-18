@@ -46,7 +46,7 @@
 
 ## Tasks
 
-- [ ] **T01: Build reference-picker module with search-as-you-type and suggestion dropdown** `est:45m`
+- [x] **T01: Build reference-picker module with search-as-you-type and suggestion dropdown** `est:45m`
   - Why: Core new module — the search-as-you-type UI for object reference fields. Must be standalone, CSP-compliant, and handle debounce, dropdown rendering, selection, clear, type filtering, and race conditions. Also needs CSS for dropdown positioning in the 380px popup.
   - Files: `extension/shared/reference-picker.js`, `extension/popup/popup.css`
   - Do: Create `reference-picker.js` exporting `initReferencePickers(container, client)` and `getSelectedReferences(container)`. Debounced input handler (300ms) calls `client.searchObjects(query)`, filters by `data-target-class`, renders `.suggestions-dropdown` with `.suggestion-item` elements (label + type badge). Selection sets hidden input value to IRI, search input to label, adds `.has-selection` class, shows × clear button. Track latest query to discard stale responses. Empty/loading/no-match states. Also add `initSinglePicker(element, client)` export for multi-value re-init. Add CSS to `popup.css` for dropdown (absolute positioned, max-height 150px, scroll, shadow).
