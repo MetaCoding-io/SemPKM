@@ -179,11 +179,13 @@ GET /api/types returns JSON array with TypeInfo entries (iri, label, icon, icon_
 GET /api/shapes/{type_iri} returns ShapeResponse with properties and groups matching SHACL dataclasses. 11 unit tests verify schema, field completeness, constraint round-trip (in_values, min/max_count), target_class on object references, group ordering, helptext, 404, and auth enforcement. Shape serialization via dataclasses.asdict() to Pydantic models (D160).
 
 ### API-04 — Context-query endpoint for related objects
-- Status: active
+- Status: validated
 - Class: core-capability
 - Source: design (BROWSER-EXTENSION-DESIGN.md)
 - Primary Slice: M013/S03
 - Acceptance: `POST /api/context-query` accepts JSON with url/title/keywords (at least one required), returns related objects with IRI, label, type, match_type, and snippet. URL matching via exact SPARQL FILTER, keyword matching via FTS/LuceneSail. Results deduplicated.
+
+POST /api/context-query accepts JSON with url/title/keywords, returns deduplicated results with IRI, label, type, match_type, snippet. 13 context-query unit tests + 5 SPARQL escape tests + 2 E2E tests prove success paths, error cases, graceful degradation, and auth enforcement.
 
 ### API-05 — Dual-auth dependency (session cookie + Bearer API token)
 - Status: validated
@@ -1572,11 +1574,11 @@ All 6 items verified: Lucide SVG chevrons on 6 sections with rotation. OBJECTS o
 | API-01 | core-capability | validated | M013/S01 | none | 10 unit tests + Docker curl — well-known JSON schema verified |
 | API-02 | core-capability | validated | M013/S02 | none | 8 unit tests — types JSON array with icons/model attribution |
 | API-03 | core-capability | validated | M013/S02 | none | 11 unit tests — shapes JSON with constraints/groups/helptext |
-| API-04 | core-capability | validated | M013/S03 | none | 13 context-query unit tests + 5 SPARQL escape tests + 2 E2E tests |
+| API-04 | core-capability | validated | M013/S03 | none | 13 context-query unit tests + 5 SPARQL escape tests + 2 E2E tests — URL + keyword match, dedup, graceful degradation |
 | API-05 | core-capability | validated | M013/S01 | none | 15 unit tests — dual-auth cookie + bearer paths |
 | API-06 | core-capability | validated | M013/S01 | none | Docker curl — CORS headers + OPTIONS 204 |
 | API-07 | core-capability | validated | M013/S01 | none | Docker curl — Authorization forwarded + nginx -t |
-| API-08 | quality-attribute | active | M013/S03 | none | standing requirement |
+| API-08 | quality-attribute | validated | M013/S03 | none | Ch. 31 guide + 3 glossary entries |
 
 ## Coverage Summary
 
