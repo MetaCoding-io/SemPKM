@@ -40,6 +40,13 @@ Write unit tests verifying the dual-auth dependency logic and the well-known end
 - `cd backend && python -m pytest tests/test_api_surface.py -v` — all tests green
 - `cd backend && python -m pytest tests/ --tb=short -q` — no regressions in existing suite
 
+## Observability Impact
+
+- **Signals changed:** None — this task adds tests only, no runtime behavior changes.
+- **Inspection surface:** `cd backend && python -m pytest tests/test_api_surface.py -v` — shows individual test pass/fail with names that describe the auth contract (e.g. `test_dual_auth_valid_bearer_returns_user`, `test_well_known_rejects_unauthenticated`).
+- **Failure state:** A failing test in this file means the dual-auth contract or well-known response schema has regressed — downstream M013 endpoints relying on `get_current_user_or_api` may be broken.
+- **Coverage indicator:** Test count should be ≥15 (8 bearer-extraction + 7 dual-auth + 8 well-known = 23 total). If count drops below the must-have thresholds (≥6 dual-auth, ≥4 well-known), the auth contract is under-tested.
+
 ## Inputs
 
 - `backend/app/auth/dependencies.py` — `get_current_user_or_api` from T01

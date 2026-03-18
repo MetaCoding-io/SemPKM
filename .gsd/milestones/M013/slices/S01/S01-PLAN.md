@@ -71,7 +71,7 @@
   - Verify: `python -m pytest tests/test_api_surface.py -v -k "well_known"` passes; `curl http://localhost:3000/.well-known/sempkm` returns valid JSON after Docker rebuild
   - Done when: Discovery endpoint returns well-structured JSON with correct endpoint URLs and capabilities
 
-- [ ] **T04: Unit tests for dual-auth and well-known** `est:30m`
+- [x] **T04: Unit tests for dual-auth and well-known** `est:30m`
   - Why: Verify auth dependency logic and response schemas without Docker. Tests also serve as documentation of the auth contract for downstream slice developers.
   - Files: `backend/tests/test_api_surface.py`
   - Do:
