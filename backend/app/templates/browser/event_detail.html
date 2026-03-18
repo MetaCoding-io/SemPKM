@@ -1,6 +1,6 @@
 <div class="event-diff-panel">
   <button class="event-diff-close" onclick="this.closest('.event-diff-container').innerHTML=''" title="Close">&times;</button>
-  {% if 'body.set' in detail.summary.operation_type and detail.body_diff %}
+  {% if ('body.set' in detail.summary.operation_type or 'body.diff' in detail.summary.operation_type) and detail.body_diff %}
     {# Line-by-line body diff #}
     <div class="diff-body">
       <div class="diff-header">Body changes</div>
@@ -36,7 +36,11 @@
         {% if old_val != new_val %}
         <tr class="diff-row-changed">
           <td class="diff-col-pred">
-            <span class="diff-pred-label" title="{{ pred_iri }}">{{ pred_iri.split('/')[-1].split('#')[-1] }}</span>
+            {% set has_ht = predicate_helptext.get(pred_iri) %}
+            <span class="diff-pred-label{% if has_ht %} has-helptext{% endif %}"
+                  title="{{ has_ht if has_ht else pred_iri }}">
+              {{- predicate_labels.get(pred_iri, pred_iri.split('/')[-1].split('#')[-1]) -}}
+            </span>
           </td>
           <td class="diff-col-before">
             {% if old_val %}
@@ -61,7 +65,11 @@
       <span class="diff-create-label">Created:</span>
       {% for s, p, o in detail.data_triples[:10] %}
       <div class="diff-create-triple">
-        <span class="diff-pred-label">{{ p.split('/')[-1].split('#')[-1] }}</span>
+        {% set has_ht = predicate_helptext.get(p) %}
+        <span class="diff-pred-label{% if has_ht %} has-helptext{% endif %}"
+              title="{{ has_ht if has_ht else p }}">
+          {{- predicate_labels.get(p, p.split('/')[-1].split('#')[-1]) -}}
+        </span>
         <span class="diff-val diff-val-new">{{ o[:100] }}{% if o | length > 100 %}&hellip;{% endif %}</span>
       </div>
       {% endfor %}

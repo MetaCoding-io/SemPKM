@@ -372,12 +372,13 @@ async def save_body(
 ):
     """Save the Markdown body of an object.
 
-    Accepts body content as text/plain. Dispatches a body.set operation
-    through the EventStore to atomically update the body in the current
-    state graph and create an immutable event record.
+    Accepts body content as text/plain. Queries for an existing body first:
+    - If body exists and content is unchanged → returns early (no-op)
+    - If body exists and content differs → computes unified diff, emits body.diff
+    - If no prior body → emits body.set (first body creation, per D157)
     """
-    from app.commands.handlers.body_set import handle_body_set
-    from app.commands.schemas import BodySetParams
+    import difflib
+
     from app.config import settings
 
     decoded_iri = unquote(object_iri)
@@ -385,12 +386,46 @@ async def save_body(
         raise HTTPException(status_code=400, detail="Invalid IRI")
     body_content = (await request.body()).decode("utf-8")
 
-    params = BodySetParams(
-        iri=decoded_iri,
-        body=body_content,
-        predicate=predicate if predicate else None,
-    )
-    operation = await handle_body_set(params, settings.base_namespace)
+    # Query existing body from current state graph
+    predicate_iri = predicate if predicate else "urn:sempkm:body"
+    body_sparql = f"""SELECT ?body WHERE {{
+      GRAPH <urn:sempkm:current> {{ <{decoded_iri}> <{predicate_iri}> ?body }}
+    }}"""
+    result = await client.query(body_sparql)
+    rows = result.get("results", {}).get("bindings", [])
+    existing_body = rows[0]["body"]["value"] if rows else None
+
+    # No-op: body content unchanged
+    if existing_body is not None and existing_body == body_content:
+        return HTMLResponse(content='<span class="save-ok">Saved</span>', status_code=200)
+
+    if existing_body is not None:
+        # Existing body differs — compute diff and emit body.diff
+        from app.commands.handlers.body_diff import handle_body_diff
+        from app.commands.schemas import BodyDiffParams
+
+        old_lines = existing_body.splitlines(keepends=True)
+        new_lines = body_content.splitlines(keepends=True)
+        diff_text = "".join(difflib.unified_diff(old_lines, new_lines, lineterm=""))
+
+        params = BodyDiffParams(
+            iri=decoded_iri,
+            body=body_content,
+            diff_text=diff_text,
+            predicate=predicate if predicate else None,
+        )
+        operation = await handle_body_diff(params, settings.base_namespace)
+    else:
+        # No existing body — first body set
+        from app.commands.handlers.body_set import handle_body_set
+        from app.commands.schemas import BodySetParams
+
+        params = BodySetParams(
+            iri=decoded_iri,
+            body=body_content,
+            predicate=predicate if predicate else None,
+        )
+        operation = await handle_body_set(params, settings.base_namespace)
 
     # Also update dcterms:modified timestamp
     from rdflib import Literal, Variable
