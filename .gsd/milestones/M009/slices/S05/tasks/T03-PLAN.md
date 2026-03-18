@@ -48,3 +48,10 @@ Extend `EventStore` with `commit_bulk()` that records summary metadata (~10 trip
 - `backend/app/commands/router.py` — modified, bulk endpoint
 - `backend/sdk/sempkm_app_sdk/clients/commands.py` — modified, `bulk()` context manager
 - `backend/tests/test_bulk_eventstore.py` — new, ~10-12 tests
+
+## Observability Impact
+
+- **Logger:** `app.events.store` — INFO on bulk commit completion with operation count, affected count, and source identifier.
+- **API response:** `POST /api/commands/bulk` returns `operation_count` and `affected_count` in the JSON response for client-side observability.
+- **Event metadata:** Bulk events are typed `sempkm:BulkEvent` (distinguishable from regular `sempkm:Event`) with `sempkm:operationCount`, `sempkm:affectedCount`, `sempkm:summary`, and `sempkm:source` predicates — queryable via SPARQL for audit/debug.
+- **Failure visibility:** Batch size >1000 returns HTTP 400 with descriptive error. Transaction failures trigger rollback (same pattern as single commit). Invalid commands in bulk batch return HTTP 400 identifying the offending command.

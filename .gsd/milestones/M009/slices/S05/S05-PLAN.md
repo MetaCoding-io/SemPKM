@@ -71,7 +71,7 @@
   - Verify: `pytest tests/test_sdk_permissions.py -v` — all pass. Full suite no regressions.
   - Done when: CommandClient rejects unpermitted types and IRI violations, GraphClient gates on sparql_read, HttpClient enforces domain globs, StateClient graph is scoped. All 5 clients covered.
 
-- [ ] **T03: Bulk EventStore extension and SDK bulk context manager** `est:45m`
+- [x] **T03: Bulk EventStore extension and SDK bulk context manager** `est:45m`
   - Why: Feed polling creates 50-150 operations per update — per-operation metadata overhead is unacceptable (APP-11, D145). `commit_bulk()` records ~10 triples per batch instead of ~5N.
   - Files: `backend/app/events/store.py`, `backend/app/events/models.py`, `backend/app/commands/router.py` (or new bulk endpoint), `backend/sdk/sempkm_app_sdk/clients/commands.py`, `backend/tests/test_bulk_eventstore.py` (new)
   - Do:

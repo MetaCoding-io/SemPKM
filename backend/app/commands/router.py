@@ -10,7 +10,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
-from pydantic import TypeAdapter
+from pydantic import BaseModel, TypeAdapter, field_validator
 from rdflib import URIRef
 
 from app.auth.dependencies import require_role_or_api
@@ -32,6 +32,21 @@ from app.validation.queue import AsyncValidationQueue
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api")
+
+
+class BulkCommandRequest(BaseModel):
+    """Request body for POST /api/commands/bulk."""
+
+    commands: list[dict[str, Any]]
+    summary: str = ""
+    source: str = ""
+
+    @field_validator("commands")
+    @classmethod
+    def validate_commands_not_empty(cls, v: list) -> list:
+        if not v:
+            raise ValueError("commands list must not be empty")
+        return v
 
 # Command type to webhook event type mapping
 _COMMAND_EVENT_MAP: dict[str, str] = {
@@ -198,6 +213,101 @@ async def execute_commands(
         )
     except Exception as e:
         logger.exception("Command execution failed")
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"Internal error: {str(e)}"},
+        )
+
+
+@router.post("/commands/bulk")
+async def execute_bulk_commands(
+    request_body: BulkCommandRequest,
+    user: User = Depends(require_role_or_api("owner", "member")),
+    client: TriplestoreClient = Depends(get_triplestore_client),
+    validation_queue: AsyncValidationQueue = Depends(get_validation_queue),
+    webhook_service: WebhookService = Depends(get_webhook_service),
+) -> JSONResponse:
+    """Execute a batch of commands with compact bulk event metadata.
+
+    Unlike the standard /api/commands endpoint which records per-operation
+    metadata, this endpoint uses EventStore.commit_bulk() to record only
+    summary-level metadata (~10 triples per batch regardless of batch size).
+
+    Returns:
+        JSON with event_iri and timestamp on success.
+    """
+    try:
+        # Parse each command dict through the existing Command schema
+        commands: list[Command] = []
+        for cmd_dict in request_body.commands:
+            try:
+                commands.append(_command_adapter.validate_python(cmd_dict))
+            except Exception as e:
+                return JSONResponse(
+                    status_code=400,
+                    content={"error": f"Invalid command in batch: {e}"},
+                )
+
+        # Dispatch all commands to get Operations
+        operations: list[Operation] = []
+        for cmd in commands:
+            operation = await dispatch(cmd, settings.base_namespace)
+            operations.append(operation)
+
+        # Commit with bulk metadata
+        event_store = EventStore(client)
+        user_iri = URIRef(f"urn:sempkm:user:{user.id}")
+        event_result = await event_store.commit_bulk(
+            operations,
+            performed_by=user_iri,
+            summary=request_body.summary,
+            source=request_body.source,
+        )
+
+        # Trigger async validation (non-blocking)
+        await validation_queue.enqueue(
+            event_iri=str(event_result.event_iri),
+            timestamp=event_result.timestamp,
+        )
+
+        # Dispatch webhooks (fire-and-forget)
+        try:
+            for cmd in commands:
+                event_type = _command_to_event_type(cmd.command)
+                if event_type:
+                    await webhook_service.dispatch(event_type, {
+                        "event_iri": str(event_result.event_iri),
+                        "command": cmd.command,
+                        "timestamp": event_result.timestamp,
+                    })
+        except Exception:
+            logger.warning("Webhook dispatch failed for bulk command", exc_info=True)
+
+        return JSONResponse(
+            status_code=200,
+            content={
+                "event_iri": str(event_result.event_iri),
+                "timestamp": event_result.timestamp,
+                "operation_count": len(operations),
+                "affected_count": len(set(
+                    iri for op in operations for iri in op.affected_iris
+                )),
+            },
+        )
+
+    except ValueError as e:
+        # Batch size exceeded
+        return JSONResponse(
+            status_code=400,
+            content={"error": str(e)},
+        )
+    except CommandError as e:
+        return JSONResponse(
+            status_code=e.status_code,
+            content={"error": e.message},
+        )
+    except Exception as e:
+        logger.exception("Bulk command execution failed")
         return JSONResponse(
             status_code=500,
             content={"error": f"Internal error: {str(e)}"},
