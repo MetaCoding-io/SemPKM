@@ -355,8 +355,9 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - S01 complete: Backend auth fix (require_role_or_api on POST /api/commands), Chrome MV3 extension scaffold (manifest, api-client, storage, service worker, popup, options), admin API key management page
 - S02 complete: SHACL form renderer (shacl-renderer.js — 10 property types, groups, multi-value, skip paths, helptext), dynamic type selector → shape fetch → form render pipeline, backend multi-value property support, 380px popup CSS
 - S03 complete: Content script extractor (og:title/URL/selection/schema.org JSON-LD), schema-mapper (Person→Contact, Article→Note, cross-namespace property mapping), context menu "Save to SemPKM" with session storage bridge, popup auto-fill on open and type change
+- S04 complete: Reference picker with search-as-you-type, type-filtered suggestions from context-query API, two-step save (object.create → edge.create), multi-value re-init via custom event bridge
 - Chrome/Firefox extension: smart structured capture with SHACL forms, schema.org ingestion, relationship picker
-- Remaining: S04 (relationship picker), S05 (cross-browser + E2E + docs)
+- Remaining: S05 (cross-browser + E2E + docs)
 
 **Browser Extension Phase 2** — queued (M015, depends on M014)
 - Knowledge context overlay: sidebar showing related objects while browsing, in-context actions

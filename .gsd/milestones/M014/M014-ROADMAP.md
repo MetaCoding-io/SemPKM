@@ -84,7 +84,7 @@ This milestone is complete only when all are true:
 - [x] **S03: Content scripts + context menu + schema.org** `risk:medium` `depends:[S01]`
   > After this: Opening the popup on any page auto-fills title and URL from page metadata. Selecting text before opening the popup pre-fills the body field. Right-click selected text → "Save to SemPKM" opens the popup with the text pre-filled. Visiting a page with schema.org JSON-LD (e.g., Person, Article) auto-fills matching fields when the corresponding type is selected.
 
-- [ ] **S04: Relationship picker + edge creation** `risk:medium` `depends:[S01,S02]`
+- [x] **S04: Relationship picker + edge creation** `risk:medium` `depends:[S01,S02]`
   > After this: Object reference fields in the SHACL form show a search-as-you-type input. Typing queries the context-query API and shows matching objects with labels and types. Selecting a result populates the hidden IRI input. After saving, the object is created with edges linking to the selected related objects. Two-step creation: object.create first, then edge.create with the returned IRI.
 
 - [ ] **S05: Cross-browser, keyboard shortcut, E2E tests + user guide** `risk:low` `depends:[S01,S02,S03,S04]`
