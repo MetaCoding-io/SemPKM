@@ -82,6 +82,23 @@ The closest existing pattern is `e2e/tests/03-navigation/named-layouts.spec.ts` 
 - `e2e/tests/03-navigation/named-layouts.spec.ts` — reference pattern for workspace state save/restore tests
 - S03 summary — persona API surface documentation
 
+## Observability Impact
+
+**Runtime signals added:**
+- Playwright test results for `tests/29-personas/personas.spec.ts` — 5 tests covering persona CRUD, auto-creation, UI selector, command palette, and activation switching
+- Test failures produce Playwright HTML reports in `e2e/playwright-report/` with screenshots and traces
+
+**Inspection commands:**
+- `cd e2e && npx playwright test tests/29-personas --project=chromium` — run persona tests in isolation
+- `cd e2e && npx playwright show-report` — view HTML test report with failure details
+- `curl -s http://localhost:3901/api/personas` — verify persona API availability on test stack
+
+**Failure visibility:**
+- Persona CRUD test failures indicate API regression in `backend/app/persona/router.py`
+- Default persona auto-creation failure indicates `initPersonas()` in `workspace.js` is broken
+- Selector UI test failure indicates htmx partial at `/browser/personas/selector` is not loading
+- Command palette test failure indicates ninja-keys data in `workspace.js` is missing persona entries
+
 ## Expected Output
 
 - `e2e/tests/29-personas/personas.spec.ts` — 4-5 tests covering PERSONA-01 through PERSONA-05
