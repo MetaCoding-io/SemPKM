@@ -28,6 +28,7 @@
 - `cd backend && python -m pytest tests/test_commands_bearer_auth.py -v` — Backend unit tests for `require_role_or_api` factory and commands endpoint Bearer auth acceptance
 - Manual: load `extension/` as unpacked extension in Chrome → options page → configure `http://localhost:3000` + API key → green checkmark → popup → select Note → enter title → Save → success toast → verify object in SemPKM workspace
 - `cd backend && python -m pytest tests/test_api_surface.py -v` — Existing dual-auth tests still pass (no regression)
+- Diagnostic: `POST /api/commands` with invalid/missing Bearer token returns structured JSON error `{"detail": "Invalid or expired API token"}` (401) or `{"detail": "Not authenticated"}` (401) — verify distinct error messages for each failure path in test output
 
 ## Observability / Diagnostics
 
@@ -44,7 +45,7 @@
 
 ## Tasks
 
-- [ ] **T01: Create `require_role_or_api` factory and wire commands endpoint to dual-auth** `est:30m`
+- [x] **T01: Create `require_role_or_api` factory and wire commands endpoint to dual-auth** `est:30m`
   - Why: The commands endpoint (`POST /api/commands`) uses `require_role("owner", "member")` which chains to cookie-only `get_current_user`. Bearer tokens are silently rejected with 401. This is the single blocking dependency for the extension — without it, no object creation is possible from the extension.
   - Files: `backend/app/auth/dependencies.py`, `backend/app/commands/router.py`, `backend/tests/test_commands_bearer_auth.py`
   - Do: Create `require_role_or_api(*roles)` factory that mirrors `require_role` but chains to `get_current_user_or_api` instead of `get_current_user`. Update `commands/router.py` to import and use `require_role_or_api("owner", "member")` instead of `require_role("owner", "member")`. Write unit tests proving Bearer token creates objects and cookie auth still works. Leave all other `require_role` usages unchanged.
