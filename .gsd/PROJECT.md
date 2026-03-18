@@ -433,7 +433,16 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 **Previous milestones:** M011 Mental Models Expansion (2026-03-17), M008 Spatial Canvas (2026-03-16), M007 Generic Views, VFS Completion & Polish (2026-03-16), M006 Dashboards, Workflows & Platform Alignment (2026-03-15), M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
 
-**Current milestone:** None — M012 complete, awaiting next milestone queue
+**Current milestone:** M013 API Surface for External Clients — S01 complete, S02 next
+
+**What shipped in M013/S01 (Dual-Auth, CORS, nginx fix, Well-Known Endpoint):**
+- `get_current_user_or_api` dual-auth FastAPI dependency accepting session cookie or Bearer API token
+- nginx Authorization header forwarding on `/api/` and `/.well-known/` proxy blocks
+- CORS headers (wildcard origin, Authorization/Content-Type/Accept, OPTIONS preflight → 204)
+- `GET /.well-known/sempkm` discovery endpoint with version, endpoints, auth methods, capabilities
+- `_is_html_route()` fix for JSON error responses on `/.well-known/` paths
+- 25 unit tests in test_api_surface.py, 971 total backend tests passing
+- 4 requirements validated (API-01, API-05, API-06, API-07)
 
 ## Context
 

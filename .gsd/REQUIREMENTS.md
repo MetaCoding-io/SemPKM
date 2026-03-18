@@ -152,11 +152,13 @@ This file is the explicit capability and coverage contract for the project.
 - Acceptance: Paste a website URL → discover its RSS feed automatically. When feeds provide only summaries, extract full article content via reader mode (trafilatura). Fallback to summary when extraction fails.
 
 ### API-01 — Well-known instance discovery endpoint
-- Status: active
+- Status: validated
 - Class: core-capability
 - Source: design (BROWSER-EXTENSION-DESIGN.md)
 - Primary Slice: M013/S01
 - Acceptance: `GET /.well-known/sempkm` returns JSON with version string, endpoint URLs, auth methods, and capabilities list. Requires authentication (session cookie or Bearer API token). Response matches documented schema.
+
+GET /.well-known/sempkm returns JSON with version, endpoints, auth, capabilities. 10 unit tests verify schema, content-type, auth enforcement, and field types. Docker curl confirms 401 JSON for unauthenticated and invalid-bearer requests.
 
 ### API-02 — Types endpoint with labels, icons, and model attribution
 - Status: active
@@ -180,25 +182,31 @@ This file is the explicit capability and coverage contract for the project.
 - Acceptance: `POST /api/context-query` accepts JSON with url/title/keywords (at least one required), returns related objects with IRI, label, type, match_type, and snippet. URL matching via exact SPARQL FILTER, keyword matching via FTS/LuceneSail. Results deduplicated.
 
 ### API-05 — Dual-auth dependency (session cookie + Bearer API token)
-- Status: active
+- Status: validated
 - Class: core-capability
 - Source: design (BROWSER-EXTENSION-DESIGN.md)
 - Primary Slice: M013/S01
 - Acceptance: All M013 API endpoints accept either session cookie or `Authorization: Bearer <token>` header. Invalid tokens return 401. Existing session-only auth for htmx routes is unchanged.
 
+get_current_user_or_api dependency fully tested: 8 bearer extraction tests + 7 dual-auth integration tests. Both cookie and bearer paths work. Invalid credentials produce appropriate 401 responses with distinct detail messages.
+
 ### API-06 — CORS headers for browser extension access
-- Status: active
+- Status: validated
 - Class: core-capability
 - Source: design (BROWSER-EXTENSION-DESIGN.md)
 - Primary Slice: M013/S01
 - Acceptance: All `/api/` and `/.well-known/sempkm` responses include `Access-Control-Allow-Origin: *`, `Access-Control-Allow-Headers: Authorization, Content-Type, Accept`, `Access-Control-Allow-Methods: GET, POST, OPTIONS`. OPTIONS preflight returns 204.
 
+CORS headers verified on /api/ and /.well-known/ via Docker curl. OPTIONS → 204 with correct headers. `always` flag ensures headers on error responses.
+
 ### API-07 — nginx Authorization header forwarding on /api/
-- Status: active
+- Status: validated
 - Class: core-capability
 - Source: research (M013-RESEARCH.md)
 - Primary Slice: M013/S01
 - Acceptance: nginx `/api/` proxy block forwards the `Authorization` header to FastAPI (matching the existing `/dav/` block pattern). Bearer tokens from external clients reach the backend.
+
+nginx /api/ block has proxy_set_header Authorization $http_authorization matching /dav/ pattern. Docker curl confirms Authorization header forwarded. nginx -t validates config syntax.
 
 ### API-08 — API surface user guide documentation
 - Status: active
@@ -1555,19 +1563,19 @@ All 6 items verified: Lucide SVG chevrons on 6 sections with rotation. OBJECTS o
 | MODEL-02 | core-capability | validated | M011/S02 | M011/S05 | offline validation + cross-model test + E2E Docker lifecycle + Ch. 29 guide |
 | MODEL-03 | core-capability | validated | M011/S03 | M011/S05 | offline validation + cross-model test + E2E Docker lifecycle + Ch. 29 guide |
 | MODEL-04 | core-capability | validated | M011/S04 | M011/S05 | offline validation + cross-model test + E2E Docker lifecycle + Ch. 29 guide |
-| API-01 | core-capability | active | M013/S01 | none | design: BROWSER-EXTENSION-DESIGN.md |
+| API-01 | core-capability | validated | M013/S01 | none | 10 unit tests + Docker curl — well-known JSON schema verified |
 | API-02 | core-capability | active | M013/S02 | none | design: BROWSER-EXTENSION-DESIGN.md |
 | API-03 | core-capability | active | M013/S02 | none | design: BROWSER-EXTENSION-DESIGN.md |
 | API-04 | core-capability | active | M013/S03 | none | design: BROWSER-EXTENSION-DESIGN.md |
-| API-05 | core-capability | active | M013/S01 | none | design: BROWSER-EXTENSION-DESIGN.md |
-| API-06 | core-capability | active | M013/S01 | none | design: BROWSER-EXTENSION-DESIGN.md |
-| API-07 | core-capability | active | M013/S01 | none | research: M013-RESEARCH.md |
+| API-05 | core-capability | validated | M013/S01 | none | 15 unit tests — dual-auth cookie + bearer paths |
+| API-06 | core-capability | validated | M013/S01 | none | Docker curl — CORS headers + OPTIONS 204 |
+| API-07 | core-capability | validated | M013/S01 | none | Docker curl — Authorization forwarded + nginx -t |
 | API-08 | quality-attribute | active | M013/S03 | none | standing requirement |
 
 ## Coverage Summary
 
-- Active requirements: 30 (14 APP + 8 RSS + 8 API)
-- Validated: 132 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012)
+- Active requirements: 26 (14 APP + 8 RSS + 4 API)
+- Validated: 136 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 4 from M013)
 - Deferred: 7 (TYPE-03, TYPE-04, MCP-01, NOTION-01, VIEW-06, VIEW-07, VFS-13)
 - Out of scope: 3
 - Unmapped active requirements: 22 (14 APP + 8 RSS — pending M009/M010 roadmap planning)
