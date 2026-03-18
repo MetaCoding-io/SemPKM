@@ -81,7 +81,7 @@ This milestone is complete only when all are true:
 - [x] **S02: SHACL form renderer + type selector** `risk:high` `depends:[S01]`
   > After this: Popup type selector shows all types from all installed Mental Models with icons. Selecting a type renders a dynamic SHACL-driven form with grouped fields, helptext, validation indicators, and all standard property types (string, date, boolean, enum, object reference placeholder, multi-value). Selecting "Contact" (CRM) renders CRM-specific fields. Forms are compact and usable in the ~400px popup viewport.
 
-- [ ] **S03: Content scripts + context menu + schema.org** `risk:medium` `depends:[S01]`
+- [x] **S03: Content scripts + context menu + schema.org** `risk:medium` `depends:[S01]`
   > After this: Opening the popup on any page auto-fills title and URL from page metadata. Selecting text before opening the popup pre-fills the body field. Right-click selected text → "Save to SemPKM" opens the popup with the text pre-filled. Visiting a page with schema.org JSON-LD (e.g., Person, Article) auto-fills matching fields when the corresponding type is selected.
 
 - [ ] **S04: Relationship picker + edge creation** `risk:medium` `depends:[S01,S02]`
