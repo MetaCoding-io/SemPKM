@@ -1,0 +1,1 @@
+# SDK is injected by the platform — no app-specific dependencies needed.
