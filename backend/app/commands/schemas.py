@@ -36,6 +36,15 @@ class BodySetParams(BaseModel):
     predicate: str | None = None  # Optional override; defaults to sempkm:body
 
 
+class BodyDiffParams(BaseModel):
+    """Parameters for storing an incremental body diff."""
+
+    iri: str  # The object IRI
+    body: str  # Full new body content (for materialization)
+    diff_text: str  # Unified diff string (for event storage)
+    predicate: str | None = None  # Optional override; defaults to sempkm:body
+
+
 class EdgeCreateParams(BaseModel):
     """Parameters for creating a typed edge between objects."""
 
@@ -76,6 +85,13 @@ class BodySetCommand(BaseModel):
     params: BodySetParams
 
 
+class BodyDiffCommand(BaseModel):
+    """Store an incremental body diff."""
+
+    command: Literal["body.diff"]
+    params: BodyDiffParams
+
+
 class EdgeCreateCommand(BaseModel):
     """Create a typed edge between objects."""
 
@@ -96,6 +112,7 @@ Command = Annotated[
         ObjectCreateCommand,
         ObjectPatchCommand,
         BodySetCommand,
+        BodyDiffCommand,
         EdgeCreateCommand,
         EdgePatchCommand,
     ],

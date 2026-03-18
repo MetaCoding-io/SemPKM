@@ -38,6 +38,7 @@ _COMMAND_EVENT_MAP: dict[str, str] = {
     "object.create": "object.changed",
     "object.patch": "object.changed",
     "body.set": "object.changed",
+    "body.diff": "object.changed",
     "edge.create": "edge.changed",
     "edge.patch": "edge.changed",
 }

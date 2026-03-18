@@ -28,12 +28,14 @@ def _register_handlers() -> None:
     from app.commands.handlers.object_create import handle_object_create
     from app.commands.handlers.object_patch import handle_object_patch
     from app.commands.handlers.body_set import handle_body_set
+    from app.commands.handlers.body_diff import handle_body_diff
     from app.commands.handlers.edge_create import handle_edge_create
     from app.commands.handlers.edge_patch import handle_edge_patch
 
     HANDLER_REGISTRY["object.create"] = handle_object_create
     HANDLER_REGISTRY["object.patch"] = handle_object_patch
     HANDLER_REGISTRY["body.set"] = handle_body_set
+    HANDLER_REGISTRY["body.diff"] = handle_body_diff
     HANDLER_REGISTRY["edge.create"] = handle_edge_create
     HANDLER_REGISTRY["edge.patch"] = handle_edge_patch
 
