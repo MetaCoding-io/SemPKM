@@ -13,7 +13,7 @@ from fastapi.responses import JSONResponse
 from pydantic import TypeAdapter
 from rdflib import URIRef
 
-from app.auth.dependencies import require_role
+from app.auth.dependencies import require_role_or_api
 from app.auth.models import User
 from app.commands.dispatcher import dispatch
 from app.commands.exceptions import CommandError
@@ -83,7 +83,7 @@ def _parse_commands(body: Any) -> list[Command]:
 @router.post("/commands")
 async def execute_commands(
     request: Request,
-    user: User = Depends(require_role("owner", "member")),
+    user: User = Depends(require_role_or_api("owner", "member")),
     client: TriplestoreClient = Depends(get_triplestore_client),
     validation_queue: AsyncValidationQueue = Depends(get_validation_queue),
     webhook_service: WebhookService = Depends(get_webhook_service),

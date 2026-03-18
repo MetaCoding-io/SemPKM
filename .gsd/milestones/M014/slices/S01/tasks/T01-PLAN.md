@@ -93,6 +93,13 @@ This is a ~20-line backend change (D165) plus comprehensive unit tests.
 - `cd backend && python -m pytest tests/test_api_surface.py -v` — no regression in existing dual-auth tests
 - `cd backend && python -m pytest tests/ -v --tb=short` — full test suite passes
 
+## Observability Impact
+
+- **New signal:** `require_role_or_api` factory logs at debug level via `get_current_user_or_api`, which already emits `"dual-auth resolved via Bearer token"` or `"dual-auth resolved via session cookie"` — no new log lines needed.
+- **Failure visibility:** 401 responses from the commands endpoint now carry distinct `detail` messages: `"Not authenticated"` (no credentials), `"Invalid or expired API token"` (bad Bearer), `"Invalid or expired session"` (bad cookie). These are inspectable via API response JSON.
+- **Inspection:** `cd backend && python -m pytest tests/test_commands_bearer_auth.py -v` exercises all auth paths; test names map 1:1 to auth scenarios.
+- **No new runtime surfaces:** This change re-uses existing dual-auth plumbing; no new health checks, metrics, or status endpoints added.
+
 ## Inputs
 
 - `backend/app/auth/dependencies.py` — Contains `require_role` (cookie-only factory) and `get_current_user_or_api` (dual-auth dependency). The new factory mirrors `require_role` but uses `get_current_user_or_api`.

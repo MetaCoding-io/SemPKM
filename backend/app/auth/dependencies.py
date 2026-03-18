@@ -111,6 +111,29 @@ def require_role(*roles: str):
     return _check_role
 
 
+def require_role_or_api(*roles: str):
+    """Factory returning a dependency that checks the user's role.
+
+    Like require_role, but accepts both session cookie and Bearer API
+    token authentication via get_current_user_or_api.
+
+    Usage for API endpoints that need Bearer token support:
+        @router.post("/commands", dependencies=[Depends(require_role_or_api("owner", "member"))])
+    """
+
+    async def _check_role(
+        current_user: User = Depends(get_current_user_or_api),
+    ) -> User:
+        if current_user.role not in roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Requires role: {', '.join(roles)}",
+            )
+        return current_user
+
+    return _check_role
+
+
 async def optional_current_user(
     sempkm_session: str | None = Cookie(None),
     db: AsyncSession = Depends(get_db_session),
