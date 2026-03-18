@@ -2,17 +2,17 @@
   "schemaVersion": 1,
   "taskId": "T05",
   "unitId": "M014/S01/T05",
-  "timestamp": 1773869913834,
+  "timestamp": 1773872330253,
   "passed": false,
   "discoverySource": "task-plan",
   "checks": [
     {
       "command": "Navigate to admin → API Keys → create token → plaintext shown once → copy it → use in extension options page → green checkmark → delete token → extension returns 401",
       "exitCode": 127,
-      "durationMs": 6,
+      "durationMs": 5,
       "verdict": "fail"
     }
   ],
-  "retryAttempt": 1,
+  "retryAttempt": 2,
   "maxRetries": 2
 }
