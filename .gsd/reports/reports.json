@@ -67,6 +67,22 @@
       "doneMilestones": 12,
       "totalMilestones": 30,
       "phase": "summarizing"
+    },
+    {
+      "filename": "M010-2026-03-18T21-24-10.html",
+      "generatedAt": "2026-03-18T21:24:10.431Z",
+      "milestoneId": "M010",
+      "milestoneTitle": "RSS Reader App",
+      "label": "M010: RSS Reader App",
+      "kind": "milestone",
+      "totalCost": 161.65587349999996,
+      "totalTokens": 210433681,
+      "totalDuration": 50214388,
+      "doneSlices": 131,
+      "totalSlices": 136,
+      "doneMilestones": 13,
+      "totalMilestones": 30,
+      "phase": "executing"
     }
   ]
 }
