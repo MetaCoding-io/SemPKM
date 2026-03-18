@@ -1,8 +1,9 @@
 # GSD State
 
 **Active Milestone:** M014: Browser Extension Phase 1 — Smart Structured Capture
-**Active Slice:** S02: SHACL form renderer + type selector
+**Active Slice:** S03: Content scripts + context menu + schema.org
 **Phase:** executing
+**Task:** T01 — Content script extractor and schema.org mapper modules
 **Requirements Status:** 61 active · 101 validated · 7 deferred · 0 out of scope
 
 ## Milestone Registry
@@ -44,4 +45,4 @@
 - None
 
 ## Next Action
-Execute T01 of S02 (build SHACL form renderer module).
+Execute T01: Content script extractor and schema.org mapper modules.
