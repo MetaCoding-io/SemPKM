@@ -112,6 +112,14 @@ test.describe('App Platform', () => {
     await ownerPage.waitForTimeout(2000);
     await waitForIdle(ownerPage);
 
+    // Explorer sections start collapsed — expand the APPS section if needed
+    const isExpanded = await appsSidebar.evaluate(el => el.classList.contains('expanded'));
+    if (!isExpanded) {
+      await appsSidebar.locator('.explorer-section-header').click();
+      await ownerPage.waitForTimeout(1000);
+      await waitForIdle(ownerPage);
+    }
+
     // The tree-leaf for "Test App" should appear inside the APPS section
     const testAppLeaf = appsSidebar.locator('.tree-leaf', { hasText: 'Test App' });
     await expect(testAppLeaf).toBeVisible({ timeout: 15000 });
@@ -216,6 +224,13 @@ test.describe('App Platform', () => {
 
     const appsSection = ownerPage.locator('#section-apps');
     if (await appsSection.count() > 0) {
+      // Expand if collapsed
+      const appsExpanded = await appsSection.evaluate(el => el.classList.contains('expanded'));
+      if (!appsExpanded) {
+        await appsSection.locator('.explorer-section-header').click();
+        await ownerPage.waitForTimeout(1000);
+        await waitForIdle(ownerPage);
+      }
       const testLeaf = appsSection.locator('.tree-leaf', { hasText: 'Test App' });
       await expect(testLeaf).toHaveCount(0, { timeout: 10000 });
     }
