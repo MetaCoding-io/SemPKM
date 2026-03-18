@@ -56,7 +56,7 @@
   - Verify: `node --check` on both files; `node -e` test scripts exercising extractor return shape and mapper with sample JSON-LD
   - Done when: Both modules export well-documented functions, handle edge cases defensively, and pass syntax + functional tests
 
-- [ ] **T02: Popup integration, manifest update, and context menu wiring** `est:45m`
+- [x] **T02: Popup integration, manifest update, and context menu wiring** `est:45m`
   - Why: Wires extractor and mapper into the popup lifecycle, fills in the service worker context menu handler, and updates the manifest — completing all three requirements (EXT-03, EXT-05, EXT-06).
   - Files: `extension/manifest.json`, `extension/popup/popup.js`, `extension/background/service-worker.js`
   - Do: Add `"scripting"` to manifest permissions. In popup.js: replace bare `chrome.tabs.query` with `chrome.scripting.executeScript` injecting the extractor function, store extracted data in module-level `pendingPageData`, use mapper for type suggestion (auto-select in dropdown), enhance `handleTypeChange()` to call `applySchemaOrgToForm()` after rendering, fill both fallback fields and `[data-path]` dynamic form inputs, check `chrome.storage.session` on init for context menu pre-fill. In service-worker.js: store `{selectionText, pageUrl, pageTitle}` in `chrome.storage.session`, call `chrome.action.openPopup()`. Handle restricted-page fallback gracefully.
