@@ -71,6 +71,13 @@ Client stubs make HTTP calls to the platform API but have no permission enforcem
    - Use `fastapi.testclient.TestClient` for synchronous ASGI testing (no real server needed).
    - For client HTTP call shaping: mock httpx client, verify CommandClient sends correct URL/body/headers, GraphClient sends correct form data.
 
+## Observability Impact
+
+- **Signals changed:** SDK system endpoints (`/_lifecycle/{hook}`, `/_tasks/{task_id}`) log dispatch at DEBUG level with hook/task_id. Token validation failures logged at WARNING with reason (missing header, invalid token).
+- **Inspection surfaces:** `App._lifecycle_handlers`, `App._task_handlers`, `App._routes` expose registered handlers. `AppContext` lazy-init properties reveal client wiring state.
+- **Failure visibility:** Health endpoint (`/_health`) always returns `{"status": "ok"}` — platform uses this for liveness. System endpoints return 403 JSON `{"detail": "Invalid or missing app token"}` on auth failure. Unregistered hooks/tasks return 404 JSON `{"detail": "No handler for ..."}`. Runner exits with code 1 and logs clear error on import failure.
+- **Redaction:** App tokens appear only in DEBUG-level logs during validation. Never included in error response bodies.
+
 ## Must-Haves
 
 - [ ] SDK package installable via `uv pip install backend/sdk/`

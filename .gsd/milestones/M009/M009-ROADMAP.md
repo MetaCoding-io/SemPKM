@@ -77,13 +77,13 @@ This milestone is complete only when all are true:
 
 ## Slices
 
-- [ ] **S01: Manifest, DB Schema & Subprocess Lifecycle** `risk:high` `depends:[]`
+- [x] **S01: Manifest, DB Schema & Subprocess Lifecycle** `risk:high` `depends:[]`
   > After this: admin can install an app from disk (manifest validated, venv created, deps installed, process started), see its status (running/stopped/error with PID), stop/restart it, and watch it auto-restart after crash — all in the Docker stack.
 
-- [ ] **S02: App SDK & IPC Proxy** `risk:high` `depends:[S01]`
+- [x] **S02: App SDK & IPC Proxy** `risk:high` `depends:[S01]`
   > After this: a test app built with the SDK starts on a unix socket, the platform proxies HTTP requests to it via httpx UDS transport with JWT auth, and the app can call back to the platform API (commands, graph queries) through scoped SDK clients.
 
-- [ ] **S03: Admin Portal & Docker/nginx Integration** `risk:medium` `depends:[S01,S02]`
+- [x] **S03: Admin Portal & Docker/nginx Integration** `risk:medium` `depends:[S01,S02]`
   > After this: admin portal at `/admin/apps` shows app list with status/version/uptime, detail page with permissions and data stats, start/stop/restart/uninstall actions. nginx proxies `/app/{appId}/` and serves `/app-static/{appId}/`. docker-compose.yml mounts `./apps`.
 
 - [ ] **S04: Frontend Level 1 — Standalone Pages & Sidebar** `risk:medium` `depends:[S02,S03]`
