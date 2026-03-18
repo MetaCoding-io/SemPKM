@@ -1,9 +1,10 @@
 # GSD State
 
-**Active Milestone:** M012: Workspace & Event Log Polish
-**Active Slice:** S04: E2E Tests & User Guide
+**Active Milestone:** M014: Browser Extension Phase 1 — Smart Structured Capture
+**Active Slice:** S01: Backend auth fix + extension scaffold with working capture
 **Phase:** executing
-**Requirements Status:** 47 active · 101 validated · 7 deferred · 0 out of scope
+**Current Task:** T01
+**Requirements Status:** 61 active · 101 validated · 7 deferred · 0 out of scope
 
 ## Milestone Registry
 - ✅ **M001:** Migration
@@ -17,9 +18,9 @@
 - ✅ **M009:** App Platform
 - ✅ **M010:** RSS Reader App
 - ✅ **M011:** Mental Models Expansion
-- 🔄 **M012:** Workspace & Event Log Polish
-- ⬜ **M013:** M013
-- ⬜ **M014:** M014
+- ✅ **M012:** Workspace & Event Log Polish
+- ✅ **M013:** API Surface for External Clients
+- 🔄 **M014:** Browser Extension Phase 1 — Smart Structured Capture
 - ⬜ **M015:** M015
 - ⬜ **M016:** M016
 - ⬜ **M017:** M017
@@ -35,6 +36,7 @@
 - ⬜ **M027:** M027
 - ⬜ **M028:** M028
 - ⬜ **M029:** M029
+- ⬜ **M030:** M030
 
 ## Recent Decisions
 - None recorded
@@ -43,4 +45,4 @@
 - None
 
 ## Next Action
-Execute T01: Merge S01/S02 branch code into main.
+Execute task T01 (Create require_role_or_api factory and wire commands endpoint to dual-auth).
