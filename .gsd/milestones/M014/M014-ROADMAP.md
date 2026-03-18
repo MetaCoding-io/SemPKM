@@ -75,7 +75,7 @@ This milestone is complete only when all are true:
 
 ## Slices
 
-- [ ] **S01: Backend auth fix + extension scaffold with working capture** `risk:high` `depends:[]`
+- [x] **S01: Backend auth fix + extension scaffold with working capture** `risk:high` `depends:[]`
   > After this: User installs the extension in Chrome, configures localhost + API key in the options page, sees a green connection indicator, opens the popup, selects "Note" from a type dropdown, fills in a title, clicks Save, and the object is created in SemPKM (verified by checking the workspace). Service worker registers context menu shell. This proves the full round-trip: extension → Bearer auth → API → triplestore.
 
 - [ ] **S02: SHACL form renderer + type selector** `risk:high` `depends:[S01]`
