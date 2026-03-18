@@ -339,6 +339,11 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 **Frontend Performance & Build Pipeline** — queued (M029)
 - Lighthouse/WebPageTest audit loop, esbuild/Vite build pipeline, local JS vendoring, gzip/brotli, HTTP caching, CSS splitting, minification, backend response profiling + cache headers, QUIC/HTTP3 research + implement if low-cost
 
+**Data Quality Linting & Lint UX** — queued (M030)
+- Fix validation pipeline (load rules graphs, pass advanced=True) so existing M011 rules fire in production
+- 9 new data quality rules across all 5 models: comma-in-tags, empty body, duplicate URLs, titleless objects, orphan objects, stale projects/goals, PPV broken chain, undefined concepts, unrationed claims
+- Lint filter system with rule-type suppression, per-object dismissal, named presets, and settings UI
+
 **Ongoing / cross-cutting**
 - Backlinks panel (incoming references for any object)
 - Edge model enhancements: edge inspector panel, inline wiki-link creation

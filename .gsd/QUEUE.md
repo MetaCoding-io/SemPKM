@@ -498,3 +498,15 @@ Key problems addressed:
 6. **All CSS loaded everywhere** — workspace CSS loaded on admin pages
 
 **Context:** `.gsd/milestones/M029/M029-CONTEXT.md`
+
+---
+
+## Data Quality Linting & Lint UX
+
+**Queued:** 2026-03-17
+**Status:** Queued as M030
+
+Three-part milestone: (1) Fix the production validation pipeline — `model_shapes_loader` currently loads only shapes graphs, not rules graphs, and `ValidationService` doesn't pass `advanced=True` to pyshacl, so all 11 existing SHACL-AF validation rules from M011 are inert in the live app. (2) Add 9 data quality rules across all 5 Mental Models targeting real-world data problems: comma-in-tags (Warning), empty body (Info), duplicate URLs on same type (Info), titleless objects (Warning), orphan objects (Info), stale projects/goals (Info), PPV broken chain (Warning), concept with no definition (Info), research claim with no rationale (Info). (3) Build a lint filter/dismiss system with rule-type suppression, per-object dismissal, named filter presets, and a settings UI for managing suppressions.
+
+**Context:** `.gsd/milestones/M030/M030-CONTEXT.md`
+**Key discovery:** Production `ValidationService` only loads `:shapes` graphs and omits `advanced=True` — all M011 SPARQLConstraint rules (overdue tasks, stale contacts, etc.) are silently broken in the live app.
