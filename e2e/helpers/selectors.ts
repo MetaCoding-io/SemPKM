@@ -152,4 +152,19 @@ export const SEL = {
     resultContainer: '[data-testid="ccf-result"]',
     deleteButton: '[data-testid="tbox-delete-btn"]',
   },
+
+  // App platform (admin + workspace)
+  apps: {
+    // Admin pages
+    adminList: '/admin/apps',
+    adminDetail: '/admin/apps/test-app',
+    installForm: 'form.install-form',
+    installInput: '#app_path',
+    statusBadge: '.status-badge',
+    appCard: '.dashboard-cards .card',
+    // Workspace
+    workspaceAppMain: '#test-app-main',
+    rightPaneSection: '#test-app-right-pane',
+    commandDialog: '#test-app-command-dialog',
+  },
 } as const;

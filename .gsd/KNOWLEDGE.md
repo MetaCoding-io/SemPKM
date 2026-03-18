@@ -78,3 +78,30 @@ The save body endpoint is `POST /browser/objects/{encoded_iri}/body` with `Conte
 **Problem:** The `/.well-known/sempkm` discovery endpoint lives outside `/api/` but returns JSON. Without adding it to the exclusion list, unauthenticated requests got 302 redirects to `/login.html` instead of JSON `{"detail": "Not authenticated"}`.
 
 **Rule:** Any new JSON API endpoint mounted outside the `/api/` prefix must also be excluded in `_is_html_route()`. Current exclusions: `/api/`, `/.well-known/`.
+
+## SQLite naive datetimes vs timezone-aware Python datetimes
+
+**Discovery date:** 2026-03-18
+**Context:** M009/S07/T03 — App platform E2E test
+
+SQLite stores datetimes without timezone info (naive). When Python code uses `datetime.now(timezone.utc)` to compute a timedelta against a SQLite-sourced value, it crashes with `TypeError: can't subtract offset-naive and offset-aware datetimes`.
+
+**Fix:** Before subtracting, check `if dt.tzinfo is None: dt = dt.replace(tzinfo=timezone.utc)`. Applied in `AppManager.get_status()` for `instance.started_at`.
+
+## Workspace explorer sections start collapsed
+
+**Discovery date:** 2026-03-18
+**Context:** M009/S07/T03 — App platform E2E test
+
+The workspace sidebar explorer sections (FAVORITES, OBJECTS, VIEWS, DASHBOARDS, APPS, etc.) use a custom CSS toggle — the section needs `.expanded` class to show its body. They are NOT `<details>` elements. The section header has `onclick="this.parentElement.classList.toggle('expanded')"`.
+
+**Impact on E2E tests:** After navigating to `/browser/`, the APPS section body content loads via htmx `hx-trigger="load"` but is hidden because the section is collapsed. Tests must click the section header to expand it before asserting on child content.
+
+## E2E tests: Docker stack must run from main tree for auth fixture
+
+**Discovery date:** 2026-03-18
+**Context:** M009/S07/T03 — App platform E2E test
+
+The Playwright auth fixture (`e2e/fixtures/auth.ts`) reads the setup token via `docker compose -f docker-compose.test.yml exec -T api cat ...` with `cwd` set to `git rev-parse --show-toplevel` (the main tree). If the Docker stack is started from a worktree, the auth fixture can't find the container because Docker Compose uses project-name scoping based on the directory.
+
+**Workaround:** Either (a) sync worktree code to main tree and run Docker from main tree, or (b) start Docker from worktree AND update the auth fixture to use the worktree's compose file path.

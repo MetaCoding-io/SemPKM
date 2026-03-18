@@ -3358,6 +3358,38 @@ details.form-group[open] > .form-group-summary::before {
 
 /* --- Read-Only View Container --- */
 
+/* --- App Renderer Content --- */
+.app-renderer-content {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.app-renderer-loading {
+    padding: 2rem;
+    color: var(--color-text-muted, #888);
+    font-style: italic;
+}
+
+.object-toolbar-renderer-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--color-info-subtle, #e8f4fd);
+    color: var(--color-info, #0969da);
+    white-space: nowrap;
+}
+
+.object-toolbar-renderer-badge svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
 .object-read-view {
     height: 100%;
 }

@@ -103,6 +103,20 @@
                     <div class="tree-empty">Loading workflows...</div>
                 </div>
             </div>
+            <div class="explorer-section" id="section-apps" data-panel-name="apps">
+                <div class="explorer-section-header" draggable="true"
+                     onclick="this.parentElement.classList.toggle('expanded')">
+                    <i data-lucide="grip-vertical" class="panel-grip"></i>
+                    <i data-lucide="chevron-right" class="explorer-section-chevron"></i>
+                    <span class="explorer-section-title">APPS</span>
+                </div>
+                <div class="explorer-section-body" id="apps-tree"
+                     hx-get="/browser/apps/explorer"
+                     hx-trigger="load, appsRefreshed from:body"
+                     hx-swap="innerHTML">
+                    <div class="tree-empty">Loading apps...</div>
+                </div>
+            </div>
             {% include "browser/partials/shared_nav_section.html" %}
         </div>
     </div>
@@ -174,39 +188,39 @@
             </button>
         </div>
         <div class="pane-content" id="right-content">
-            <details class="right-section" data-panel-name="relations" open>
-                <summary class="right-section-header" draggable="true">
-                    <i data-lucide="grip-vertical" class="panel-grip"></i>
-                    <i data-lucide="chevron-right" class="right-section-chevron"></i>
-                    RELATIONS
-                </summary>
-                <div class="right-section-body" id="relations-content">
-                    <div class="right-empty">No object selected</div>
-                </div>
-            </details>
-            <details class="right-section" data-panel-name="lint" open>
-                <summary class="right-section-header" draggable="true">
-                    <i data-lucide="grip-vertical" class="panel-grip"></i>
-                    <i data-lucide="chevron-right" class="right-section-chevron"></i>
-                    LINT
-                </summary>
-                <div class="right-section-body" id="lint-content">
-                    <div class="right-empty">No object selected</div>
-                </div>
-            </details>
-            <details class="right-section" data-panel-name="comments" open>
-                <summary class="right-section-header" draggable="true">
-                    <i data-lucide="grip-vertical" class="panel-grip"></i>
-                    <i data-lucide="chevron-right" class="right-section-chevron"></i>
-                    COMMENTS
-                </summary>
-                <div class="right-section-body" id="comments-content"
-                     hx-trigger="commentsRefreshed from:body"
-                     hx-get=""
-                     hx-swap="innerHTML">
-                    <div class="right-empty">No object selected</div>
-                </div>
-            </details>
+            <div id="right-pane-dynamic">
+                {# Platform sections rendered statically as default (before JS loads dynamic content) #}
+                <details class="right-section" data-panel-name="relations" open>
+                    <summary class="right-section-header" draggable="true">
+                        <i data-lucide="grip-vertical" class="panel-grip"></i>
+                        <i data-lucide="chevron-right" class="right-section-chevron"></i>
+                        RELATIONS
+                    </summary>
+                    <div class="right-section-body" id="relations-content">
+                        <div class="right-empty">No object selected</div>
+                    </div>
+                </details>
+                <details class="right-section" data-panel-name="lint" open>
+                    <summary class="right-section-header" draggable="true">
+                        <i data-lucide="grip-vertical" class="panel-grip"></i>
+                        <i data-lucide="chevron-right" class="right-section-chevron"></i>
+                        LINT
+                    </summary>
+                    <div class="right-section-body" id="lint-content">
+                        <div class="right-empty">No object selected</div>
+                    </div>
+                </details>
+                <details class="right-section" data-panel-name="comments" open>
+                    <summary class="right-section-header" draggable="true">
+                        <i data-lucide="grip-vertical" class="panel-grip"></i>
+                        <i data-lucide="chevron-right" class="right-section-chevron"></i>
+                        COMMENTS
+                    </summary>
+                    <div class="right-section-body" id="comments-content">
+                        <div class="right-empty">No object selected</div>
+                    </div>
+                </details>
+            </div>
             {% include "browser/partials/inbox_panel.html" %}
             {% include "browser/partials/collaboration_panel.html" %}
         </div>

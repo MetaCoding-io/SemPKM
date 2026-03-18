@@ -1,0 +1,20 @@
+{# App view entries for the Views explorer sidebar.
+   Rendered by GET /browser/apps/views/explorer.
+   Context: app_views — list of {app_id, app_name, view} dicts #}
+
+{% if app_views %}
+<div class="tree-node view-group-node" onclick="this.classList.toggle('expanded'); var ch = this.nextElementSibling; if(ch) ch.style.display = this.classList.contains('expanded') ? '' : 'none';">
+    <span class="tree-toggle">&#9656;</span>
+    <span class="tree-icon">&#128268;</span>
+    <span class="tree-label">App Views</span>
+</div>
+<div class="view-group-children" style="display:none">
+  {% for entry in app_views %}
+  <div class="tree-leaf"
+       onclick="openAppViewTab('{{ entry.app_id }}', '{{ entry.view.id }}', '{{ entry.view.label | e }}')">
+    <i data-lucide="{{ entry.view.icon }}" class="tree-icon"></i>
+    <span class="tree-label" title="{{ entry.app_name | e }} — {{ entry.view.label | e }}">{{ entry.view.label }}</span>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
