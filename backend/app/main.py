@@ -17,7 +17,11 @@ from jinja2_fragments.fastapi import Jinja2Blocks
 
 from app.api.router import well_known_router, api_surface_router
 from app.admin.router import router as admin_router
+from app.apps.admin_router import app_admin_router
+from app.apps.proxy import AppProxy
+from app.apps.router import app_proxy_router
 from app.auth.router import router as auth_router
+from app.browser.apps import app_commands_router
 from app.browser.router import router as browser_router
 from app.inference.router import router as inference_router
 from app.lint.broadcast import LintBroadcast, SSEEvent
@@ -335,6 +339,38 @@ async def lifespan(app: FastAPI):
     from app.persona.service import PersonaService
     app.state.persona_service = PersonaService(async_session_factory)
 
+    # Initialize App Platform manager
+    from app.apps.manager import AppManager
+    app_manager = AppManager(
+        session_factory=async_session_factory,
+        triplestore_client=client,
+        apps_dir=Path("/app/apps"),
+        data_dir=Path("/app/data/apps"),
+        platform_url=settings.app_base_url or "http://localhost:8000",
+    )
+    app.state.app_manager = app_manager
+
+    # Create AppProxy for forwarding HTTP to app subprocesses via UDS
+    app_proxy = AppProxy(app_manager)
+    app.state.app_proxy = app_proxy
+
+    # Auto-start apps that were running before platform shutdown
+    try:
+        await app_manager.auto_start()
+    except Exception:
+        logger.error("Failed to auto-start apps", exc_info=True)
+
+    # Create and start AppScheduler for periodic task execution
+    from app.apps.scheduler import AppScheduler
+    app_scheduler = AppScheduler(
+        registry=app_manager.registry,
+        app_manager=app_manager,
+        app_proxy=app_proxy,
+        async_sessionmaker=async_session_factory,
+    )
+    app.state.app_scheduler = app_scheduler
+    await app_scheduler.start()
+
     # Purge expired sessions on startup
     purged = await auth_service.cleanup_expired_sessions()
     if purged:
@@ -368,6 +404,25 @@ async def lifespan(app: FastAPI):
     # engine, close triplestore client, flush PostHog events.
     shutdown_event.set()
     await validation_queue.stop()
+
+    # Stop AppScheduler before tearing down proxy and manager
+    try:
+        await app_scheduler.stop()
+    except Exception:
+        logger.error("Error stopping app scheduler", exc_info=True)
+
+    # Close proxy connections before stopping app subprocesses
+    try:
+        await app_proxy.close_all()
+    except Exception:
+        logger.error("Error closing app proxy connections", exc_info=True)
+
+    # Gracefully shut down all running app subprocesses
+    try:
+        await app_manager.shutdown_all()
+    except Exception:
+        logger.error("Error shutting down app processes", exc_info=True)
+
     await sql_engine.dispose()
     await client.close()
     shutdown_posthog()
@@ -523,6 +578,7 @@ app.include_router(persona_browser_router)
 app.include_router(persona_api_router)
 app.include_router(vfs_browser_router)
 app.include_router(vfs_mount_router)
+app.include_router(app_commands_router)
 app.include_router(indieauth_router)
 app.include_router(indieauth_public_router)
 app.include_router(federation_router)
@@ -530,6 +586,8 @@ app.include_router(webfinger_router)
 app.include_router(inbox_router)
 app.include_router(webid_router)
 app.include_router(webid_public_router)
+app.include_router(app_admin_router)
+app.include_router(app_proxy_router)
 app.include_router(browser_router)
 app.include_router(obsidian_router)
 app.include_router(canvas_router)

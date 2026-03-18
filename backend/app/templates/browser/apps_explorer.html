@@ -1,0 +1,15 @@
+{# APPS explorer section body — lists pages from running apps.
+   Rendered by GET /browser/apps/explorer.
+   Context: app_pages — list of {app_id, app_name, page} dicts #}
+
+{% if app_pages %}
+  {% for entry in app_pages %}
+  <div class="tree-leaf"
+       onclick="openAppPageTab('{{ entry.app_id }}', '{{ entry.page.id }}', '{{ entry.page.label | e }}')">
+    <i data-lucide="{{ entry.page.icon }}" class="tree-icon"></i>
+    <span class="tree-label" title="{{ entry.app_name | e }} — {{ entry.page.label | e }}">{{ entry.page.label }}</span>
+  </div>
+  {% endfor %}
+{% else %}
+  <div class="tree-empty">No apps installed</div>
+{% endif %}

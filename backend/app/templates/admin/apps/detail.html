@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+
+{% block title %}SemPKM - {{ manifest.name if manifest else app_id }}{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+
+    <!-- Header -->
+    <a href="/admin/apps" class="back-link"
+       hx-get="/admin/apps" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
+        <i data-lucide="arrow-left"></i> Back to Applications
+    </a>
+
+    <div class="model-title-row">
+        <h1>{{ manifest.name if manifest else app_id }}</h1>
+        {% if manifest %}
+        <span class="version-pill">v{{ manifest.version }}</span>
+        {% endif %}
+        {% if status.status == "running" %}
+        <span class="status-badge status-running">Running</span>
+        {% elif status.status == "stopped" %}
+        <span class="status-badge status-stopped">Stopped</span>
+        {% elif status.status == "error" %}
+        <span class="status-badge status-error">Error</span>
+        {% elif status.status == "installing" %}
+        <span class="status-badge status-installing">Installing</span>
+        {% else %}
+        <span class="status-badge">{{ status.status }}</span>
+        {% endif %}
+    </div>
+
+    {% if manifest and manifest.description %}
+    <p class="model-description">{{ manifest.description }}</p>
+    {% endif %}
+
+    <!-- Status section -->
+    <div class="detail-section">
+        <h2>Status</h2>
+        <div class="stats-bar">
+            <div class="stat-box">
+                <span class="stat-value">{{ status.pid or "—" }}</span>
+                <span class="stat-label">PID</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-value">{{ uptime }}</span>
+                <span class="stat-label">Uptime</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-value">{{ status.restart_count or 0 }}</span>
+                <span class="stat-label">Restarts</span>
+            </div>
+        </div>
+        {% if status.error_message %}
+        <div class="error-box" style="margin-top: 12px;">
+            <strong>Error:</strong> {{ status.error_message }}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Permissions section -->
+    {% if manifest and manifest.permissions %}
+    <div class="detail-section">
+        <h2>Permissions</h2>
+        <table class="config-table">
+            {% if manifest.permissions.commands %}
+            <tr>
+                <td class="config-label">Commands</td>
+                <td>
+                    {% for cmd in manifest.permissions.commands %}
+                    <code>{{ cmd }}</code>{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                </td>
+            </tr>
+            {% endif %}
+            {% if manifest.permissions.network %}
+            <tr>
+                <td class="config-label">Network</td>
+                <td>
+                    {% for domain in manifest.permissions.network %}
+                    <code>{{ domain }}</code>{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                </td>
+            </tr>
+            {% endif %}
+            {% if manifest.permissions.sparql and manifest.permissions.sparql.read %}
+            <tr>
+                <td class="config-label">SPARQL</td>
+                <td>Read access</td>
+            </tr>
+            {% endif %}
+            {% if manifest.permissions.backgroundTasks %}
+            <tr>
+                <td class="config-label">Background Tasks</td>
+                <td>Enabled</td>
+            </tr>
+            {% endif %}
+            {% if manifest.permissions.settings %}
+            <tr>
+                <td class="config-label">Settings</td>
+                <td>Enabled</td>
+            </tr>
+            {% endif %}
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- Data stats placeholder -->
+    <div class="detail-section">
+        <h2>Data Statistics</h2>
+        <p style="color: var(--color-text-muted);">Data statistics will be available in a future update.</p>
+    </div>
+
+    <!-- Logs section -->
+    <div class="detail-section">
+        <h2>Logs</h2>
+        {% if logs %}
+        <pre class="log-output" style="max-height: 400px; overflow-y: auto; background: var(--color-surface); padding: 12px; border-radius: 6px; font-size: 0.85em; border: 1px solid var(--color-border);">{% for line in logs %}{{ line }}
+{% endfor %}</pre>
+        {% else %}
+        <p style="color: var(--color-text-muted);">No log output.</p>
+        {% endif %}
+    </div>
+
+    <!-- Actions section -->
+    <div class="detail-section">
+        <h2>Actions</h2>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            {% if status.status == "stopped" or status.status == "error" %}
+            <form method="post" action="/admin/apps/{{ app_id }}/start" style="margin: 0;">
+                <button type="submit" class="btn btn-primary">Start</button>
+            </form>
+            {% endif %}
+            {% if status.status == "running" %}
+            <form method="post" action="/admin/apps/{{ app_id }}/stop" style="margin: 0;">
+                <button type="submit" class="btn" style="background: var(--color-surface-elevated); border: 1px solid var(--color-border);">Stop</button>
+            </form>
+            <form method="post" action="/admin/apps/{{ app_id }}/restart" style="margin: 0;">
+                <button type="submit" class="btn" style="background: var(--color-surface-elevated); border: 1px solid var(--color-border);">Restart</button>
+            </form>
+            {% endif %}
+            <form method="post" action="/admin/apps/{{ app_id }}/uninstall" style="margin: 0;"
+                  hx-post="/admin/apps/{{ app_id }}/uninstall"
+                  hx-confirm="Are you sure you want to uninstall {{ manifest.name if manifest else app_id }}? This will stop the app and remove all its data.">
+                <button type="submit" class="btn" style="background: var(--color-error, #dc3545); color: white; border: none;">Uninstall</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Task history section -->
+    {% if manifest and manifest.tasks %}
+    <div class="detail-section">
+        <details open>
+            <summary><h2 style="display: inline;">Task History</h2></summary>
+
+            <!-- Task config forms -->
+            {% for task in manifest.tasks %}
+            <div style="margin: 12px 0; padding: 12px; background: var(--color-surface); border-radius: 6px; border: 1px solid var(--color-border);">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                    <div>
+                        <strong>{{ task.id }}</strong>
+                        <span style="color: var(--color-text-muted); margin-left: 8px;">{{ task.description }}</span>
+                        <br>
+                        <small style="color: var(--color-text-muted);">
+                            Default interval: {{ task.interval }}
+                            · Retries: {{ task.retryPolicy.maxRetries }}
+                            {% if task_configs.get(task.id) and task_configs[task.id].paused %}
+                            · <span style="color: var(--color-warning, #f0ad4e);">Paused</span>
+                            {% endif %}
+                            {% if task_configs.get(task.id) and task_configs[task.id].interval_override %}
+                            · Override: {{ task_configs[task.id].interval_override }}
+                            {% endif %}
+                        </small>
+                    </div>
+                    <form method="post" action="/admin/apps/{{ app_id }}/tasks/{{ task.id }}/config"
+                          style="display: flex; gap: 6px; align-items: center; margin: 0;">
+                        <input type="text" name="interval" placeholder="e.g. 5m, PT1H"
+                               value="{{ task_configs[task.id].interval_override or '' if task_configs.get(task.id) else '' }}"
+                               style="width: 80px; padding: 4px 8px; border: 1px solid var(--color-border); border-radius: 4px; background: var(--color-background); color: var(--color-text); font-size: 0.85em;">
+                        <label style="font-size: 0.85em; display: flex; align-items: center; gap: 4px;">
+                            <input type="checkbox" name="paused" value="true"
+                                   {{ 'checked' if task_configs.get(task.id) and task_configs[task.id].paused else '' }}>
+                            Pause
+                        </label>
+                        <button type="submit" class="btn" style="padding: 4px 10px; font-size: 0.85em; background: var(--color-surface-elevated); border: 1px solid var(--color-border);">
+                            Save
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Recent runs table -->
+            {% if task_runs %}
+            <table class="config-table" style="margin-top: 12px; width: 100%;">
+                <thead>
+                    <tr>
+                        <th style="text-align: left;">Task</th>
+                        <th style="text-align: left;">Started</th>
+                        <th style="text-align: left;">Status</th>
+                        <th style="text-align: right;">Duration</th>
+                        <th style="text-align: left;">Error</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for run in task_runs %}
+                    <tr>
+                        <td><code>{{ run.task_id }}</code></td>
+                        <td style="font-size: 0.85em;">{{ run.started_at.strftime('%Y-%m-%d %H:%M:%S') if run.started_at else '—' }}</td>
+                        <td>
+                            {% if run.status == 'success' %}
+                            <span style="color: var(--color-success, #28a745);">✓ success</span>
+                            {% elif run.status == 'error' %}
+                            <span style="color: var(--color-error, #dc3545);">✗ error</span>
+                            {% elif run.status == 'running' %}
+                            <span style="color: var(--color-primary);">⟳ running</span>
+                            {% else %}
+                            <span>{{ run.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td style="text-align: right; font-size: 0.85em;">{{ run.duration_ms or '—' }}ms</td>
+                        <td style="font-size: 0.85em; color: var(--color-text-muted); max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            {{ run.error_message or '—' }}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p style="color: var(--color-text-muted); margin-top: 12px;">No task runs recorded yet.</p>
+            {% endif %}
+        </details>
+    </div>
+    {% else %}
+    <div class="detail-section">
+        <h2>Task History</h2>
+        <p style="color: var(--color-text-muted);">This app has no scheduled tasks.</p>
+    </div>
+    {% endif %}
+
+    <!-- Renderer assignments section -->
+    <div class="detail-section">
+        <h2>Renderer Overrides</h2>
+        {% if not has_renderers %}
+        <p style="color: var(--color-text-muted);">This app does not declare any object renderers.</p>
+        {% else %}
+        <table class="config-table" style="width: 100%;">
+            <thead>
+                <tr>
+                    <th style="text-align: left;">Type</th>
+                    <th style="text-align: left;">Mode</th>
+                    <th style="text-align: left;">Status</th>
+                    <th style="text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for ra in renderer_assignments %}
+                <tr>
+                    <td title="{{ ra.type_iri }}"><code>{{ ra.type_label }}</code></td>
+                    <td>{{ ra.mode }}</td>
+                    <td>
+                        {% if ra.status == "active" %}
+                        <span style="color: var(--color-success, #28a745);">● Active</span>
+                        {% elif ra.status == "overridden" %}
+                        <span style="color: var(--color-error, #dc3545);">● Overridden by <code>{{ ra.active_app_id }}</code></span>
+                        {% else %}
+                        <span style="color: var(--color-warning, #f0ad4e);">● Default</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align: right;">
+                        {% if ra.status == "active" %}
+                        <form method="post" action="/admin/apps/{{ app_id }}/renderers/clear" style="margin: 0; display: inline;">
+                            <input type="hidden" name="type_iri" value="{{ ra.type_iri }}">
+                            <input type="hidden" name="mode" value="{{ ra.mode }}">
+                            <button type="submit" class="btn"
+                                    style="padding: 4px 10px; font-size: 0.85em; background: var(--color-surface-elevated); border: 1px solid var(--color-border);"
+                                    hx-post="/admin/apps/{{ app_id }}/renderers/clear"
+                                    hx-include="closest form"
+                                    hx-target="body">
+                                Clear preference
+                            </button>
+                        </form>
+                        {% else %}
+                        <form method="post" action="/admin/apps/{{ app_id }}/renderers/set" style="margin: 0; display: inline;">
+                            <input type="hidden" name="type_iri" value="{{ ra.type_iri }}">
+                            <input type="hidden" name="mode" value="{{ ra.mode }}">
+                            <button type="submit" class="btn"
+                                    style="padding: 4px 10px; font-size: 0.85em; background: var(--color-surface-elevated); border: 1px solid var(--color-border);"
+                                    hx-post="/admin/apps/{{ app_id }}/renderers/set"
+                                    hx-include="closest form"
+                                    hx-target="body">
+                                Set as preferred
+                            </button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+</script>
+{% endblock %}

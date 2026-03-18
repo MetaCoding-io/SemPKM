@@ -1,0 +1,18 @@
+{# App page dockview tab content.
+   Loads app fragment via htmx from the proxy chain.
+   Context: app_id, page, fragment_url, css_urls, js_urls #}
+
+{% for css in css_urls %}
+<link rel="stylesheet" href="{{ css }}">
+{% endfor %}
+
+<div class="app-page-content"
+     hx-get="{{ fragment_url }}"
+     hx-trigger="load"
+     hx-swap="innerHTML">
+  <div class="tree-empty">Loading {{ page.label | e }}...</div>
+</div>
+
+{% for js in js_urls %}
+<script src="{{ js }}"></script>
+{% endfor %}

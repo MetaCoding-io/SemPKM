@@ -9,6 +9,7 @@ from fastapi import APIRouter
 
 from app.ontology.router import ontology_router
 
+from .apps import apps_router
 from .comments import comments_router
 from .events import events_router
 from .favorites import favorites_router
@@ -21,12 +22,14 @@ from .workspace import workspace_router
 
 router = APIRouter(prefix="/browser", tags=["browser"])
 
-# Include order: ontology, comments, and sparql-result before objects because
-# objects_router has catch-all :path patterns that would consume their URLs.
+# Include order: ontology, comments, sparql-result, and apps before objects
+# because objects_router has catch-all :path patterns that would consume
+# their URLs.
 router.include_router(settings_router)
 router.include_router(ontology_router)
 router.include_router(comments_router)
 router.include_router(sparql_result_router)
+router.include_router(apps_router)
 router.include_router(objects_router)
 router.include_router(pages_router)
 router.include_router(workspace_router)

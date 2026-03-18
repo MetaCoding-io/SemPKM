@@ -254,16 +254,49 @@
         editorArea.innerHTML = '<div class="editor-empty"><p>Failed to load object.</p></div>';
       });
 
-      // Load right pane sections
-      loadRightPaneSection(objectIri, 'relations');
-      loadRightPaneSection(objectIri, 'lint');
-      loadRightPaneSection(objectIri, 'comments');
+      // Load right pane sections (dynamic: platform + app contributions)
+      loadRightPane(objectIri);
     } else {
       editorArea.innerHTML = '<div class="editor-empty"><p>Loading ' + escapeHtml(objectIri) + '...</p></div>';
     }
   }
 
-  function loadRightPaneSection(objectIri, section) {
+  function loadRightPane(objectIri) {
+    // Cancel any in-flight right-pane request
+    if (window._rightPaneAbort) {
+      window._rightPaneAbort.abort();
+    }
+    var controller = new AbortController();
+    window._rightPaneAbort = controller;
+
+    var container = document.getElementById('right-pane-dynamic');
+    if (!container) return;
+
+    var url = '/browser/apps/right-pane-sections?iri=' + encodeURIComponent(objectIri);
+
+    fetch(url, {
+      signal: controller.signal,
+      headers: { 'HX-Request': 'true' }
+    })
+      .then(function (resp) { return resp.text(); })
+      .then(function (html) {
+        container.innerHTML = html;
+        // Process htmx attributes on new content (hx-get, hx-trigger)
+        if (window.htmx) htmx.process(container);
+        // Re-init Lucide icons for app sections
+        if (typeof lucide !== 'undefined') lucide.createIcons({ root: container });
+      })
+      .catch(function (err) {
+        if (err.name === 'AbortError') return; // Request cancelled — expected
+        console.error('Failed to load right pane sections:', err);
+      });
+  }
+
+  /**
+   * Refresh a single right-pane section by fetching its content URL.
+   * Used for targeted reloads (e.g., lint after validation, relations after delete).
+   */
+  function refreshRightPaneSection(objectIri, section) {
     var targetId = section + '-content';
     var url;
 
@@ -281,14 +314,10 @@
         var el = document.getElementById(targetId);
         if (el) {
           el.innerHTML = html;
-          // For comments section: set hx-get URL so the commentsRefreshed
-          // htmx trigger can auto-refresh the content
           if (section === 'comments') {
             el.setAttribute('hx-get', url);
-            // Re-process htmx attributes on the new content
             if (window.htmx) htmx.process(el);
           }
-          // Re-init Lucide icons for any new content
           if (typeof lucide !== 'undefined') lucide.createIcons({ root: el });
         }
       })
@@ -743,6 +772,48 @@
   window.openDashboardTab = openDashboardTab;
 
 
+  function openAppPageTab(appId, pageId, label) {
+    var tabKey = 'app-page:' + appId + ':' + pageId;
+    var dv = window._dockview;
+    if (!dv) return;
+
+    var existing = dv.panels.find(function(p) { return p.id === tabKey; });
+    if (existing) { existing.api.setActive(); return; }
+
+    if (!window._tabMeta) window._tabMeta = {};
+    window._tabMeta[tabKey] = { label: label || 'App Page', dirty: false };
+
+    dv.api.addPanel({
+      id: tabKey,
+      component: 'special-panel',
+      params: { specialType: 'app-page', appId: appId, pageId: pageId, isView: false, isSpecial: true },
+      title: label || 'App Page'
+    });
+  }
+  window.openAppPageTab = openAppPageTab;
+
+
+  function openAppViewTab(appId, viewId, label) {
+    var tabKey = 'app-view:' + appId + ':' + viewId;
+    var dv = window._dockview;
+    if (!dv) return;
+
+    var existing = dv.panels.find(function(p) { return p.id === tabKey; });
+    if (existing) { existing.api.setActive(); return; }
+
+    if (!window._tabMeta) window._tabMeta = {};
+    window._tabMeta[tabKey] = { label: label || 'App View', dirty: false };
+
+    dv.api.addPanel({
+      id: tabKey,
+      component: 'special-panel',
+      params: { specialType: 'app-view', appId: appId, viewId: viewId, isView: false, isSpecial: true },
+      title: label || 'App View'
+    });
+  }
+  window.openAppViewTab = openAppViewTab;
+
+
   function openDashboardBuilderTab(dashboardId) {
     var tabKey = dashboardId
       ? 'dashboard-builder:' + dashboardId
@@ -1063,7 +1134,7 @@
   function refreshLintAfterSave(objectIri) {
     // Refresh the lint panel after a short delay (validation queue processes async)
     setTimeout(function () {
-      loadRightPaneSection(objectIri, 'lint');
+      refreshRightPaneSection(objectIri, 'lint');
     }, 2000);
   }
 
@@ -1528,6 +1599,9 @@
 
       // Add per-type Create entries from nav tree DOM
       _addTypeCreateEntries(ninja);
+
+      // Load app command palette entries from running apps
+      _loadAppCommandEntries(ninja);
     }).catch(function () {
       console.warn('ninja-keys custom element not available');
     });
@@ -1572,6 +1646,38 @@
       section: 'Views',
       handler: function () { openOntologyTab(); }
     }]);
+  }
+
+  function _loadAppCommandEntries(ninja) {
+    if (!ninja) return;
+    fetch('/api/apps/commands')
+      .then(function (resp) { return resp.json(); })
+      .then(function (commands) {
+        if (!commands || commands.length === 0) return;
+        var newData = ninja.data.slice();
+        commands.forEach(function (cmd) {
+          var exists = newData.find(function (d) { return d.id === cmd.id; });
+          if (exists) return;
+          newData.push({
+            id: cmd.id,
+            title: cmd.title,
+            section: cmd.section,
+            handler: function () {
+              if (cmd.actionType === 'dialog') {
+                htmx.ajax('GET', cmd.actionUrl, {target: '#modal-container', swap: 'innerHTML'});
+              } else if (cmd.actionType === 'post') {
+                htmx.ajax('POST', cmd.actionUrl, {target: '#modal-container', swap: 'innerHTML'});
+              } else if (cmd.actionType === 'navigate') {
+                window.location.href = cmd.actionUrl;
+              }
+            }
+          });
+        });
+        ninja.data = newData;
+      })
+      .catch(function (err) {
+        console.warn('Failed to load app commands:', err);
+      });
   }
 
   function _loadViewCommandPaletteEntries(ninja) {
@@ -1851,7 +1957,7 @@
     if (lintDetails) lintDetails.open = true;
 
     setTimeout(function () {
-      loadRightPaneSection(activeIri, 'lint');
+      refreshRightPaneSection(activeIri, 'lint');
     }, 1500);
   }
 
@@ -2780,10 +2886,8 @@
     markClean(detail.iri);
 
     // Reload right pane sections with fresh data after save
-    if (typeof loadRightPaneSection === 'function') {
-      loadRightPaneSection(detail.iri, 'relations');
-      loadRightPaneSection(detail.iri, 'lint');
-      loadRightPaneSection(detail.iri, 'comments');
+    if (typeof loadRightPane === 'function') {
+      loadRightPane(detail.iri);
     }
 
     if (!detail.label) return;
@@ -3145,7 +3249,7 @@
           if (panel) {
             var objectIri = panel.getAttribute('data-object-iri');
             if (objectIri) {
-              loadRightPaneSection(objectIri, 'relations');
+              refreshRightPaneSection(objectIri, 'relations');
             }
           }
         })
@@ -3220,7 +3324,8 @@
   window.refreshNavTree = refreshNavTree;
   window.jumpToField = jumpToField;
   window.triggerValidation = triggerValidation;
-  window.loadRightPaneSection = loadRightPaneSection;
+  window.loadRightPane = loadRightPane;
+  window.refreshRightPaneSection = refreshRightPaneSection;
   window.toggleReplyForm = toggleReplyForm;
   window.openViewTab = openViewTab;
   window.openGenericViewTab = openGenericViewTab;

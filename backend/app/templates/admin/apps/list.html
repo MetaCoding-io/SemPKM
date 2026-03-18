@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}SemPKM - Applications{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+
+    <!-- Header -->
+    <a href="/admin" class="back-link"
+       hx-get="/admin" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
+        <i data-lucide="arrow-left"></i> Back to Admin
+    </a>
+    <h1>Applications</h1>
+    <p class="lead">Install, manage, and monitor SemPKM applications.</p>
+
+    {% if success is defined and success %}
+    <div class="success-box" id="admin-messages">{{ success }}</div>
+    {% endif %}
+    {% if error is defined and error %}
+    <div class="error-box" id="admin-messages">{{ error }}</div>
+    {% endif %}
+
+    <!-- Install form -->
+    <div class="detail-section">
+        <h2>Install App</h2>
+        <form method="post" action="/admin/apps/install" class="install-form" style="display: flex; gap: 8px; align-items: flex-end;">
+            <div style="flex: 1;">
+                <label for="app_path">App directory path</label>
+                <input type="text" id="app_path" name="app_path" placeholder="/app/apps/my-app" required
+                       class="form-control" style="width: 100%;">
+            </div>
+            <button type="submit" class="btn btn-primary">Install</button>
+        </form>
+    </div>
+
+    <!-- App cards -->
+    {% if apps %}
+    <div class="dashboard-cards">
+        {% for app in apps %}
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <h2 style="margin: 0;">
+                    <a href="/admin/apps/{{ app.app_id }}"
+                       hx-get="/admin/apps/{{ app.app_id }}" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true"
+                       style="text-decoration: none; color: inherit;">
+                        {{ app.name }}
+                    </a>
+                </h2>
+                <div style="display: flex; gap: 6px; align-items: center;">
+                    <span class="version-pill">v{{ app.version }}</span>
+                    {% if app.status == "running" %}
+                    <span class="status-badge status-running">Running</span>
+                    {% elif app.status == "stopped" %}
+                    <span class="status-badge status-stopped">Stopped</span>
+                    {% elif app.status == "error" %}
+                    <span class="status-badge status-error">Error</span>
+                    {% elif app.status == "installing" %}
+                    <span class="status-badge status-installing">Installing</span>
+                    {% else %}
+                    <span class="status-badge">{{ app.status }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if app.description %}
+            <p>{{ app.description }}</p>
+            {% endif %}
+
+            <div style="display: flex; gap: 16px; font-size: 0.85em; color: var(--color-text-muted); margin-bottom: 8px;">
+                {% if app.status == "running" %}
+                <span>Uptime: {{ app.uptime }}</span>
+                {% endif %}
+                {% if app.pid %}
+                <span>PID: {{ app.pid }}</span>
+                {% endif %}
+                {% if app.restart_count and app.restart_count > 0 %}
+                <span>Restarts: {{ app.restart_count }}</span>
+                {% endif %}
+            </div>
+
+            {% if app.error_message %}
+            <div class="error-box" style="font-size: 0.85em; margin-bottom: 8px;">{{ app.error_message }}</div>
+            {% endif %}
+
+            <div style="display: flex; gap: 6px;">
+                {% if app.status == "stopped" or app.status == "error" %}
+                <form method="post" action="/admin/apps/{{ app.app_id }}/start" style="margin: 0;">
+                    <button type="submit" class="btn btn-primary btn-sm">Start</button>
+                </form>
+                {% endif %}
+                {% if app.status == "running" %}
+                <form method="post" action="/admin/apps/{{ app.app_id }}/stop" style="margin: 0;">
+                    <button type="submit" class="btn btn-sm" style="background: var(--color-surface-elevated); border: 1px solid var(--color-border);">Stop</button>
+                </form>
+                <form method="post" action="/admin/apps/{{ app.app_id }}/restart" style="margin: 0;">
+                    <button type="submit" class="btn btn-sm" style="background: var(--color-surface-elevated); border: 1px solid var(--color-border);">Restart</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="detail-section" style="text-align: center; padding: 40px;">
+        <p style="color: var(--color-text-muted); font-size: 1.1em;">No apps installed.</p>
+        <p style="color: var(--color-text-muted); font-size: 0.9em;">Use the install form above to add an app from a directory path.</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+</script>
+{% endblock %}

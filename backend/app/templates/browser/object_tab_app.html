@@ -1,0 +1,232 @@
+{# Object tab with app renderer override: loads app fragments for read (and optionally edit) face.
+   Preserves platform toolbar chrome (label, type badge, favorite, mode toggle).
+   Accepts all context from get_object() plus: renderer_app_id, read_fragment, edit_fragment,
+   has_custom_edit, renderer_label.
+#}
+
+{% set safe_id = object_iri | urlencode | replace('%', '_') %}
+<div class="object-tab" data-object-iri="{{ object_iri }}" data-renderer-app="{{ renderer_app_id }}">
+  {# Toolbar: identical to object_tab.html #}
+  <div class="object-toolbar">
+    <span class="object-toolbar-title">{{ object_label }}</span>
+    {% if object_type_label %}
+    <span class="object-toolbar-type" title="{{ object_iri }}" data-iri="{{ object_iri }}">{{ object_type_label }}</span>
+    {% endif %}
+    <span class="object-toolbar-renderer-badge" title="Rendered by {{ renderer_label }}">
+      <i data-lucide="blocks"></i> {{ renderer_label }}
+    </span>
+    <div class="object-toolbar-actions">
+      {# Star / favorite button #}
+      <button class="star-btn{% if is_favorite %} is-favorited{% endif %}"
+              id="star-btn-{{ safe_id }}"
+              data-iri="{{ object_iri }}"
+              onclick="toggleFavorite('{{ object_iri }}')"
+              title="{{ 'Remove from favorites' if is_favorite else 'Add to favorites' }}">
+        <i data-lucide="star"></i>
+      </button>
+
+      <button class="btn btn-sm mode-toggle" id="mode-toggle-{{ safe_id }}"
+              onclick="toggleObjectMode('{{ safe_id }}', '{{ object_iri }}')"
+              title="Toggle Edit (Alt+E)">
+        Edit
+      </button>
+      <button class="btn btn-sm btn-save" id="save-btn-{{ safe_id }}"
+              onclick="saveCurrentObject()" title="Save (Alt+S)" style="display: none;">
+        Save
+      </button>
+    </div>
+  </div>
+
+  {# Flip container: read face (front) and edit face (back) #}
+  <div class="object-flip-container" id="flip-{{ safe_id }}" data-mode="{{ mode }}" data-edit-initialized="false">
+    <div class="object-flip-inner" id="flip-inner-{{ safe_id }}">
+      <!-- Read face: app-rendered fragment -->
+      <div class="object-face object-face-read">
+        <div class="app-renderer-content"
+             hx-get="{{ read_fragment }}"
+             hx-trigger="load"
+             hx-swap="innerHTML">
+          <div class="app-renderer-loading">Loading…</div>
+        </div>
+      </div>
+      <!-- Edit face: custom app edit or SHACL fallback -->
+      <div class="object-face object-face-edit">
+        {% if has_custom_edit %}
+        <div class="app-renderer-content"
+             hx-get="{{ edit_fragment }}"
+             hx-trigger="load"
+             hx-swap="innerHTML">
+          <div class="app-renderer-loading">Loading editor…</div>
+        </div>
+        {% else %}
+        {# Fallback to platform SHACL edit form + body editor #}
+        <div class="properties-collapsible" id="edit-props-{{ safe_id }}">
+          <div class="properties-inner">
+            <div class="object-form-section" id="form-section-{{ safe_id }}">
+              {% if form %}
+              {% include "forms/object_form.html" %}
+              {% else %}
+              <div class="form-empty">
+                <p>No form schema available for this object type.</p>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        <div class="object-editor-section" id="editor-section-{{ safe_id }}">
+          <div class="editor-toolbar">
+            <button type="button" class="editor-btn" onclick="editorAction('bold')" title="Bold (Ctrl+B)"><b>B</b></button>
+            <button type="button" class="editor-btn" onclick="editorAction('italic')" title="Italic (Ctrl+I)"><i>I</i></button>
+            <button type="button" class="editor-btn" onclick="editorAction('heading')" title="Heading">H</button>
+            <button type="button" class="editor-btn" onclick="editorAction('link')" title="Link">&#128279;</button>
+            <span class="editor-toolbar-separator"></span>
+            <span class="editor-status" id="editor-status"></span>
+          </div>
+          <div class="editor-skeleton" id="skeleton-{{ safe_id }}">
+            <div class="skeleton-line" style="width: 80%"></div>
+            <div class="skeleton-line" style="width: 60%"></div>
+            <div class="skeleton-line" style="width: 90%"></div>
+            <div class="skeleton-line" style="width: 45%"></div>
+            <div class="skeleton-line" style="width: 70%"></div>
+          </div>
+          <div class="codemirror-container" id="body-editor-{{ safe_id }}"
+               data-object-iri="{{ object_iri }}"
+               data-body-predicate="{{ body_predicate | default('urn:sempkm:body') }}"
+               data-initial-content="{{ body_text | e }}"></div>
+          <textarea class="body-fallback" id="body-fallback-{{ safe_id }}"
+                    data-object-iri="{{ object_iri }}"
+                    data-body-predicate="{{ body_predicate | default('urn:sempkm:body') }}">{{ body_text | e }}</textarea>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .body-fallback {
+    display: none;
+    width: 100%;
+    height: 100%;
+    min-height: 160px;
+    border: 1px solid var(--color-border, #e0e0e0);
+    border-top: none;
+    padding: 10px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: 0.85rem;
+    resize: vertical;
+  }
+</style>
+
+<script>
+  (function() {
+    // Push type icon data into the tab model after htmx loads the content
+    var tabKey = '{{ object_iri }}';
+    var typeIcon = '{{ type_icon.icon if type_icon else "" }}';
+    var typeColor = '{{ type_icon.color if type_icon else "" }}';
+    if (typeIcon) {
+      if (!window._tabMeta) window._tabMeta = {};
+      if (!window._tabMeta[tabKey]) window._tabMeta[tabKey] = {};
+      window._tabMeta[tabKey].typeIcon = typeIcon;
+      window._tabMeta[tabKey].typeColor = typeColor;
+    }
+    if (typeColor && window._dockview) {
+      var dv = window._dockview;
+      var panel = dv.activePanel;
+      if (panel && panel.id === tabKey && panel.group) {
+        panel.group.element.style.setProperty('--tab-accent-color', typeColor);
+      }
+      var rightPane = document.getElementById('right-pane');
+      if (rightPane) {
+        rightPane.style.setProperty('--tab-accent-color', typeColor);
+      }
+    }
+  })();
+</script>
+
+{% if not has_custom_edit %}
+<script>
+  (function() {
+    var safeId = '{{ safe_id }}';
+    var containerId = 'body-editor-' + safeId;
+    var skeletonId = 'skeleton-' + safeId;
+    var fallbackId = 'body-fallback-' + safeId;
+
+    // Store deferred initialization function for edit mode
+    window['_initEditMode_' + safeId] = function() {
+      var flipContainer = document.getElementById('flip-' + safeId);
+      if (!flipContainer || flipContainer.dataset.editInitialized === 'true') return;
+      flipContainer.dataset.editInitialized = 'true';
+
+      function initBodyEditor() {
+        var container = document.getElementById(containerId);
+        if (!container) return false;
+        var initialContent = container.dataset.initialContent || '';
+        var objectIri = container.dataset.objectIri || '';
+        if (typeof window.initEditor === 'function') {
+          window.initEditor(containerId, initialContent, objectIri);
+          return true;
+        }
+        return false;
+      }
+
+      function enableFallback() {
+        var skeleton = document.getElementById(skeletonId);
+        if (skeleton) skeleton.style.display = 'none';
+        var fallback = document.getElementById(fallbackId);
+        if (!fallback) return;
+        var msg = document.createElement('div');
+        msg.className = 'editor-fallback-message';
+        msg.textContent = 'Editor failed to load. Using plain text editor.';
+        fallback.parentNode.insertBefore(msg, fallback);
+        fallback.style.display = 'block';
+        fallback.addEventListener('input', function () {
+          if (typeof window.markDirty === 'function') {
+            window.markDirty(fallback.dataset.objectIri || '');
+          }
+        });
+      }
+
+      function hideSkeleton() {
+        var skeleton = document.getElementById(skeletonId);
+        if (skeleton) skeleton.style.display = 'none';
+      }
+
+      if (initBodyEditor()) {
+        hideSkeleton();
+      } else {
+        var timeout = new Promise(function(_, reject) {
+          setTimeout(function() { reject(new Error('Editor load timeout')); }, 3000);
+        });
+        var load = import('/js/editor.js').then(function(mod) {
+          if (mod && typeof mod.initEditor === 'function') {
+            window.initEditor = mod.initEditor;
+            window.editorAction = mod.editorAction;
+            window.getEditor = mod.getEditor;
+            window.destroyEditor = mod.destroyEditor;
+          }
+          return initBodyEditor();
+        });
+        Promise.race([load, timeout])
+          .then(function(result) {
+            hideSkeleton();
+            if (!result) enableFallback();
+          })
+          .catch(function() {
+            enableFallback();
+          });
+      }
+    };
+
+    {% if mode == 'edit' %}
+    var flipInner = document.getElementById('flip-inner-' + safeId);
+    if (flipInner) flipInner.classList.add('flipped');
+    var toggleBtn = document.getElementById('mode-toggle-' + safeId);
+    if (toggleBtn) { toggleBtn.textContent = 'Cancel'; }
+    var saveBtn = document.getElementById('save-btn-' + safeId);
+    if (saveBtn) saveBtn.style.display = '';
+    window['_initEditMode_' + safeId]();
+    {% endif %}
+  })();
+</script>
+{% endif %}
