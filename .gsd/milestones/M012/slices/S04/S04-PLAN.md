@@ -46,7 +46,7 @@
   - Verify: `python -m pytest backend/tests/ --tb=short` passes with 940+ tests
   - Done when: main branch contains all S01/S02/S03 code, backend test suite passes
 
-- [ ] **T02: E2E Playwright tests for event log polish and body.diff** `est:1h`
+- [x] **T02: E2E Playwright tests for event log polish and body.diff** `est:1h`
   - Why: Validates EVTLOG-01/02/03 and BDIFF-01/02/03 requirements with browser-level tests. Event log predicate labels, helptext tooltips, autocomplete filters, and body.diff rendering must work in the real Docker stack.
   - Files: `e2e/tests/27-event-log-polish/event-log-polish.spec.ts`, `e2e/tests/28-body-diff/body-diff.spec.ts`
   - Do: Write two spec files following established patterns from `event-log.spec.ts` and `event-undo.spec.ts`. Event log polish spec tests: (1) expand event detail → verify predicate labels show human-readable text (e.g. "Title" not raw IRI), (2) verify helptext title attributes exist on predicate labels, (3) focus operation type filter → verify autocomplete dropdown appears, (4) type in predicate filter → verify filtered suggestions appear. Body diff spec tests: (1) create object with body via API, (2) edit body to different content via API, (3) open event log → expand latest event → verify body.diff renders with green/red highlighting. Use `ownerPage`, `ownerRequest`, `waitForWorkspace`, `waitForIdle` from fixtures/helpers.

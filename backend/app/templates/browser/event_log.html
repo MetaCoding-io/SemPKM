@@ -94,7 +94,7 @@
               title="Filter by this user">{{ user_names.get(event.performed_by, '') if event.performed_by else 'system' }}</span>
         <span class="event-timestamp" title="{{ event.timestamp }}">{{ event.timestamp[:19] | replace('T', ' ') }}</span>
         <div class="event-row-actions">
-          {% if event.operation_type in ['object.patch', 'body.set', 'object.create', 'edge.create', 'edge.patch'] or ',' in event.operation_type %}
+          {% if event.operation_type in ['object.patch', 'body.set', 'body.diff', 'object.create', 'edge.create', 'edge.patch'] or ',' in event.operation_type %}
           <button class="event-btn-diff"
                   hx-get="/browser/events/{{ event.event_iri | urlencode }}/detail"
                   hx-target="#diff-{{ loop.index }}"
@@ -102,7 +102,7 @@
           {% else %}
           <button class="event-btn-diff" disabled>Diff</button>
           {% endif %}
-          {% if event.operation_type in ['object.patch', 'body.set', 'edge.create', 'edge.patch', 'object.create'] or ',' in event.operation_type %}
+          {% if event.operation_type in ['object.patch', 'body.set', 'body.diff', 'edge.create', 'edge.patch', 'object.create'] or ',' in event.operation_type %}
           <button class="event-btn-undo" onclick="sempkmUndoEvent('{{ event.event_iri }}', this)">Undo</button>
           {% else %}
           <button class="event-btn-undo" disabled>Undo</button>

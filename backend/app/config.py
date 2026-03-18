@@ -47,6 +47,9 @@ class Settings(BaseSettings):
     # Debug mode
     debug: bool = False
 
+    # Rate limiting — disable for E2E test environments
+    rate_limit_enabled: bool = True
+
     # PostHog analytics and error monitoring
     # Set posthog_enabled=True for cloud deployments; leave False for self-hosted
     posthog_enabled: bool = False

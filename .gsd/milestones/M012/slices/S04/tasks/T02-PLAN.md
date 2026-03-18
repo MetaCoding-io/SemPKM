@@ -74,3 +74,12 @@ Tests run against a Docker test stack on port 3901. Tests are sequential (single
 
 - `e2e/tests/27-event-log-polish/event-log-polish.spec.ts` — 3-4 tests for S01 features
 - `e2e/tests/28-body-diff/body-diff.spec.ts` — 3 tests for S02 features
+
+## Observability Impact
+
+**New signals:**
+- E2E test results for event log polish (4 tests) and body.diff (3 tests) via Playwright HTML report
+- Rate limiting toggleable via `RATE_LIMIT_ENABLED` env var — disabled in test stack, enabled in production
+
+**Failure visibility:**
+- Test failures produce Playwright traces for step-by-step replay in `e2e/test-results/`

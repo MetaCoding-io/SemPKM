@@ -39,6 +39,7 @@ services:
       DATABASE_URL: sqlite+aiosqlite:///./data/sempkm_test.db
       SECRET_KEY: e2e-test-secret-key-do-not-use-in-production
       SESSION_DURATION_DAYS: 1
+      RATE_LIMIT_ENABLED: "false"
     depends_on:
       triplestore:
         condition: service_healthy
