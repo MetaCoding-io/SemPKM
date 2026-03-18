@@ -297,6 +297,8 @@
 
     // Wire layout change: save to localStorage + re-process htmx on reparented panels
     dv.onDidLayoutChange(function () {
+      // Guard: skip localStorage save during persona switch to prevent overwrite
+      if (window._switchingPersona) return;
       try {
         // Filter out ephemeral create-form panels — they can't be restored after reload
         var layout = dv.toJSON();

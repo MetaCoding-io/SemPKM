@@ -161,6 +161,14 @@ Key risks this task must handle:
 - `frontend/static/js/workspace.js` — existing patterns: `PANEL_POSITIONS_KEY` (line 17), `EXPLORER_MODE_KEY` (line 2183), `savePanelPositions()` (line 2099), `restorePanelPositions()` (line 2117), `initExplorerMode()` (line 2184), `window._dockview` (global), `_refreshLayoutPaletteItems()` (line 1674), `initCommandPalette()` (line 1285), `showToast()` utility
 - `frontend/static/js/workspace-layout.js` — `dv.fromJSON()` and `dv.toJSON()` via `window._dockview` (lines 289-316)
 
+## Observability Impact
+
+- **Browser console logs:** `console.log('SemPKM: persona init — created Default')` on first load, `console.log('SemPKM: switched to persona: <name>')` on switch, `console.warn('SemPKM: persona layout restore failed: ...')` on fromJSON failure
+- **Inspection:** `_activePersonaId` accessible via browser console (closure-scoped but observable through API calls); `GET /api/personas` shows active persona with `is_active: true`
+- **Failure visibility:** `dv.fromJSON()` failure shows toast "Layout couldn't be fully restored" + console warning; `saveCurrentPersonaState()` failure shows warning toast; `initPersonas()` failure logged to console but doesn't block workspace startup
+- **beforeunload:** `navigator.sendBeacon` fires on tab close — verify via server logs showing save-state POST for active persona
+- **Guard flag:** `_switchingPersona` prevents localStorage layout overwrite during persona switch; observable if you add a breakpoint in the `onDidLayoutChange` handler
+
 ## Expected Output
 
 - `frontend/static/js/workspace.js` — modified with: `initPersonas()`, `saveCurrentPersonaState()`, `switchPersona(id)`, `createNewPersona()`, `_refreshPersonaPaletteItems()`, beforeunload handler, command palette entries, `_switchingPersona` guard flag
