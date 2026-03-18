@@ -77,28 +77,28 @@ This milestone is complete only when all are true:
 
 ## Slices
 
-- [x] **S01: Manifest, DB Schema & Subprocess Lifecycle** `risk:high` `depends:[]`
+- [ ] **S01: Manifest, DB Schema & Subprocess Lifecycle** `risk:high` `depends:[]`
   > After this: admin can install an app from disk (manifest validated, venv created, deps installed, process started), see its status (running/stopped/error with PID), stop/restart it, and watch it auto-restart after crash — all in the Docker stack.
 
-- [x] **S02: App SDK & IPC Proxy** `risk:high` `depends:[S01]`
+- [ ] **S02: App SDK & IPC Proxy** `risk:high` `depends:[S01]`
   > After this: a test app built with the SDK starts on a unix socket, the platform proxies HTTP requests to it via httpx UDS transport with JWT auth, and the app can call back to the platform API (commands, graph queries) through scoped SDK clients.
 
-- [x] **S03: Admin Portal & Docker/nginx Integration** `risk:medium` `depends:[S01,S02]`
+- [ ] **S03: Admin Portal & Docker/nginx Integration** `risk:medium` `depends:[S01,S02]`
   > After this: admin portal at `/admin/apps` shows app list with status/version/uptime, detail page with permissions and data stats, start/stop/restart/uninstall actions. nginx proxies `/app/{appId}/` and serves `/app-static/{appId}/`. docker-compose.yml mounts `./apps`.
 
-- [x] **S04: Frontend Level 1 — Standalone Pages & Sidebar** `risk:medium` `depends:[S02,S03]`
+- [ ] **S04: Frontend Level 1 — Standalone Pages & Sidebar** `risk:medium` `depends:[S02,S03]`
   > After this: installed apps with page declarations appear in the workspace [Apps] sidebar section. Clicking an app page loads the app's fragment content through the platform proxy into the workspace via htmx. App CSS/JS loaded when app UI is active.
 
-- [x] **S05: Scheduler, Permissions, Bulk EventStore & browserVisible** `risk:medium` `depends:[S02]`
+- [ ] **S05: Scheduler, Permissions, Bulk EventStore & browserVisible** `risk:medium` `depends:[S02]`
   > After this: platform scheduler triggers app tasks at configured intervals with concurrency guard and retry. SDK clients enforce command whitelist, IRI prefix, and network domain restrictions. `commit_bulk()` records summary metadata. Types with `browserVisible: false` hidden from browser.
 
-- [x] **S06: Frontend Level 2+3 — Workspace Contributions & Renderer Overrides** `risk:medium` `depends:[S04,S05]`
+- [ ] **S06: Frontend Level 2+3 — Workspace Contributions & Renderer Overrides** `risk:medium` `depends:[S04,S05]`
   > After this: app right-pane sections appear alongside Relations/Lint when viewing objects. App views appear in Views section. App command palette entries registered with ninja-keys. Apps can override default SHACL form with custom read/edit renderers for specific types.
 
-- [x] **S07: Test App, E2E Tests & Integration Proof** `risk:low` `depends:[S01,S02,S03,S04,S05,S06]`
+- [ ] **S07: Test App, E2E Tests & Integration Proof** `risk:low` `depends:[S01,S02,S03,S04,S05,S06]`
   > After this: `apps/test-app/` exercises all SDK features (page, command, task, right pane, command palette, renderer override). Playwright E2E tests prove the full vertical: install → page → command → task → admin → uninstall. All success criteria verified against the live Docker stack.
 
-- [x] **S08: User Guide Documentation** `risk:low` `depends:[S07]`
+- [ ] **S08: User Guide Documentation** `risk:low` `depends:[S07]`
   > After this: `docs/guide/` has pages covering app management (installing, monitoring, uninstalling from admin) and app development (SDK reference, manifest format, frontend integration levels). Glossary updated.
 
 ## Boundary Map

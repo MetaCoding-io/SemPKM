@@ -73,6 +73,13 @@
   - Verify: Open popup → type selector shows Note, Concept, etc. → enter title "Test from extension" → click Save → success toast → open SemPKM workspace → object "Test from extension" visible in nav tree
   - Done when: Full round-trip works: popup → type select → title → Save → object created in SemPKM and visible in workspace; error cases show appropriate toast messages
 
+- [ ] **T05: Admin API key management page** `est:1h`
+  - Why: Users have no way to generate API keys through the UI — the auth router has `POST /auth/tokens` and `GET /auth/tokens` and `DELETE /auth/tokens/{id}` endpoints but no admin page exposes them. Without this, users can't configure the extension without shell access to the database.
+  - Files: `backend/app/templates/admin/api_tokens.html`, `backend/app/admin/router.py`, `frontend/static/css/style.css` (minor)
+  - Do: Add an "API Keys" page to the admin section. List existing tokens (name, created date — no plaintext shown). "Create Token" form (name input + create button) that calls `POST /auth/tokens` and displays the plaintext token exactly once with a copy button and warning that it won't be shown again. Delete button per token. Link from admin nav. Use the existing admin template patterns (card layout, table).
+  - Verify: Navigate to admin → API Keys → create token → plaintext shown once → copy it → use in extension options page → green checkmark → delete token → extension returns 401
+  - Done when: Users can create, list, and delete API keys entirely through the admin UI without shell access
+
 ## Files Likely Touched
 
 - `backend/app/auth/dependencies.py`

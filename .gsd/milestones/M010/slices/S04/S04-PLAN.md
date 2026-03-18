@@ -46,21 +46,21 @@
 
 ## Tasks
 
-- [x] **T01: Add right pane, custom renderer, and mark-all-read command to manifest + app** `est:45m`
+- [ ] **T01: Add right pane, custom renderer, and mark-all-read command to manifest + app** `est:45m`
   - Why: Core slice deliverables — these are the workspace contributions that wire the RSS Reader into the platform's right pane, object browser, and command palette
   - Files: `apps/rss-reader/manifest.yaml`, `apps/rss-reader/app.py`, `apps/rss-reader/frontend/templates/related-articles.html`, `apps/rss-reader/frontend/templates/article-read-renderer.html`
   - Do: (1) Add `rightPane`, `objectRenderers`, and `mark-all-read` command palette entry to manifest. (2) Add `/_fragments/related-articles` route that queries articles sharing tags or same feed source as focused object, renders template. (3) Add `/_fragments/article-read-renderer` route that reuses reading pane SPARQL pattern but without fire-and-forget mark-read. (4) Update `mark_all_read_route()` to detect command palette context via HX-Target header and return confirmation message.
   - Verify: `python3 -c "import ast; ast.parse(open('apps/rss-reader/app.py').read())"` and `python3 -c "import yaml; yaml.safe_load(open('apps/rss-reader/manifest.yaml'))"`
   - Done when: Both new route handlers exist, manifest has all 3 new contributions, mark-all-read returns confirmation when HX-Target is `#modal-container`
 
-- [x] **T02: Fix navigate action to open app pages as dockview tabs** `est:20m`
+- [ ] **T02: Fix navigate action to open app pages as dockview tabs** `est:20m`
   - Why: "Open RSS Reader" command palette entry currently does `window.location.href = path` which navigates away from the workspace SPA. All apps with navigate commands need this fix.
   - Files: `backend/app/browser/apps.py`, `frontend/static/js/workspace.js`
   - Do: (1) In `commands_list()`, for navigate commands whose path matches an app page, add `appId` and `pageId` to the JSON. (2) In `_loadAppCommandEntries()`, when `cmd.appId` exists on a navigate command, call `openAppPageTab(cmd.appId, cmd.pageId, cmd.title)` instead of `window.location.href`.
   - Verify: Existing `test_app_views_commands.py` tests still pass; navigate command JSON structure correct
   - Done when: Navigate entries for app pages include `appId`/`pageId` in API response; JS handler dispatches to `openAppPageTab` when those fields are present
 
-- [x] **T03: Unit tests for S04 fragments and navigate fix** `est:30m`
+- [ ] **T03: Unit tests for S04 fragments and navigate fix** `est:30m`
   - Why: Contract verification for all new code — two new app fragment handlers, mark-all-read context detection, and navigate command enrichment
   - Files: `backend/tests/test_rss_reader_ui.py`, `backend/tests/test_app_views_commands.py`
   - Do: Add tests for related-articles handler (SPARQL structure, template args, empty state, SPARQL error), article-read-renderer handler (SPARQL query, template args, missing IRI, article not found, star button inclusion), mark-all-read command palette context detection, and navigate command with appId/pageId enrichment. Follow S03's `_make_mock_request()` pattern.

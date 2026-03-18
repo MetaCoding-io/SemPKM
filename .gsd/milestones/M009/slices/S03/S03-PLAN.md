@@ -53,21 +53,21 @@
 
 ## Tasks
 
-- [x] **T01: Admin router, templates, and unit tests** `est:1h30m`
+- [ ] **T01: Admin router, templates, and unit tests** `est:1h30m`
   - Why: Core deliverable — all admin HTML routes, two Jinja2 templates, and contract tests proving endpoint behavior
   - Files: `backend/app/apps/admin_router.py`, `backend/app/templates/admin/apps/list.html`, `backend/app/templates/admin/apps/detail.html`, `backend/tests/test_app_admin.py`
   - Do: Create admin router with list/detail/install/start/stop/restart/uninstall endpoints. All use `require_role("owner")`. htmx partial rendering (check `HX-Request` header, return `block_name="content"` for sidebar nav). Create list template extending `base.html` with app cards showing status badge, version, uptime, PID, action buttons. Create detail template with back-link, status section, permissions table (from manifest), log viewer (from ring buffer), action buttons, placeholder sections for task history (S05) and renderer assignments (S06). Write unit tests mocking `AppManager` and `AppRegistry` on `request.app.state`.
   - Verify: `cd backend && python -m pytest tests/test_app_admin.py -v` passes
   - Done when: All admin endpoints return correct template contexts, all action endpoints call correct manager methods, role enforcement tested
 
-- [x] **T02: nginx config, docker-compose, and static asset copying** `est:30m`
+- [ ] **T02: nginx config, docker-compose, and static asset copying** `est:30m`
   - Why: Infrastructure config for serving app static assets via nginx and making `./apps` directory available in containers
   - Files: `frontend/nginx.conf`, `docker-compose.yml`, `backend/app/apps/manager.py`, `apps/.gitkeep`
   - Do: Add nginx `location /app-static/` with `alias /app/data/apps-static/;` (trailing slash critical) and cache headers. Add nginx `location /app/` proxying to `http://api:8000/app/` with standard headers (before the catch-all `location /`). Add `./apps:/app/apps:ro` volume mount to `api` service in docker-compose.yml. Add `sempkm_data:/app/data:ro` volume mount to `frontend` service so nginx can read app-static files. Add `_copy_static_assets()` method to `AppManager.install()` that copies `{app_dir}/frontend/static/` to `/app/data/apps-static/{app_id}/` if it exists. Create `apps/.gitkeep` so the volume mount works.
   - Verify: `grep -c "location /app-static/" frontend/nginx.conf` returns 1; `grep "apps:/app/apps" docker-compose.yml` matches; `grep "sempkm_data" docker-compose.yml` shows frontend service mounts it
   - Done when: nginx config has both new locations, docker-compose mounts apps dir and shares data volume, manager copies static assets on install
 
-- [x] **T03: main.py wiring, sidebar nav, and admin index card** `est:15m`
+- [ ] **T03: main.py wiring, sidebar nav, and admin index card** `est:15m`
   - Why: Connects the admin router to the app, adds navigation entry points in the admin UI
   - Files: `backend/app/main.py`, `backend/app/templates/components/_sidebar.html`, `backend/app/templates/admin/index.html`
   - Do: Import and include `app_admin_router` in `main.py` — place it after `admin_router` (line 543) and before `app_proxy_router` (line 558). Add "Applications" nav-link in sidebar Admin group (after "Operations Log", before the `{% else %}` block) with `lucide:puzzle` icon, `hx-get="/admin/apps"`, owner-only visibility. Add "Applications" card to admin index page (after Operations Log card) with description and link.

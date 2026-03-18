@@ -43,7 +43,7 @@
 
 ## Tasks
 
-- [x] **T01: AppScheduler with interval parsing, concurrency guard, retry, and admin task history** `est:1h30m`
+- [ ] **T01: AppScheduler with interval parsing, concurrency guard, retry, and admin task history** `est:1h30m`
   - Why: Platform-owned scheduler is the backbone of app background tasks (APP-06). Tasks must fire on interval, not re-fire while running, retry with backoff, and record history. Admin needs visibility into task execution.
   - Files: `backend/app/apps/scheduler.py` (new), `backend/app/main.py`, `backend/app/apps/admin_router.py`, `backend/app/templates/admin/apps/detail.html`, `backend/tests/test_app_scheduler.py` (new)
   - Do:
@@ -58,7 +58,7 @@
   - Verify: `pytest tests/test_app_scheduler.py -v` — all pass. Full suite no regressions.
   - Done when: interval parsing handles all formats, concurrency guard prevents double-fire, retry backoff computes correctly, task runs recorded in DB, admin shows history.
 
-- [x] **T02: SDK permission enforcement on CommandClient, GraphClient, HttpClient** `est:45m`
+- [ ] **T02: SDK permission enforcement on CommandClient, GraphClient, HttpClient** `est:45m`
   - Why: Permission enforcement (APP-05) is the "sandboxed" claim. Without it, apps can execute any command type, create IRIs outside their prefix, query any graph, and call any external URL.
   - Files: `backend/sdk/sempkm_app_sdk/clients/commands.py`, `backend/sdk/sempkm_app_sdk/clients/graph.py`, `backend/sdk/sempkm_app_sdk/clients/http.py`, `backend/sdk/sempkm_app_sdk/context.py`, `backend/sdk/sempkm_app_sdk/runner.py`, `backend/tests/test_sdk_permissions.py` (new)
   - Do:
@@ -71,7 +71,7 @@
   - Verify: `pytest tests/test_sdk_permissions.py -v` — all pass. Full suite no regressions.
   - Done when: CommandClient rejects unpermitted types and IRI violations, GraphClient gates on sparql_read, HttpClient enforces domain globs, StateClient graph is scoped. All 5 clients covered.
 
-- [x] **T03: Bulk EventStore extension and SDK bulk context manager** `est:45m`
+- [ ] **T03: Bulk EventStore extension and SDK bulk context manager** `est:45m`
   - Why: Feed polling creates 50-150 operations per update — per-operation metadata overhead is unacceptable (APP-11, D145). `commit_bulk()` records ~10 triples per batch instead of ~5N.
   - Files: `backend/app/events/store.py`, `backend/app/events/models.py`, `backend/app/commands/router.py` (or new bulk endpoint), `backend/sdk/sempkm_app_sdk/clients/commands.py`, `backend/tests/test_bulk_eventstore.py` (new)
   - Do:
@@ -83,7 +83,7 @@
   - Verify: `pytest tests/test_bulk_eventstore.py -v` — all pass. Full suite no regressions.
   - Done when: `commit_bulk()` produces BulkEvent with summary metadata, batch size enforced, bulk API endpoint works, SDK context manager accumulates and sends.
 
-- [x] **T04: browserVisible field on Mental Model ManifestSchema** `est:30m`
+- [ ] **T04: browserVisible field on Mental Model ManifestSchema** `est:30m`
   - Why: Apps create internal bookkeeping types (ReadActivity, sync cursors) that clutter the object browser (APP-12, D144). Hiding them improves UX without losing data access.
   - Files: `backend/app/models/manifest.py`, `backend/app/services/icons.py`, `backend/app/browser/workspace.py`, `backend/tests/test_browser_visible.py` (new)
   - Do:
