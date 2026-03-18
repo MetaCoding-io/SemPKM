@@ -72,7 +72,7 @@ This milestone is complete only when all are true:
 - [x] **S04: Workspace contributions + custom renderer** `risk:low` `depends:[S02,S03]`
   > After this: "Unread Articles" and "Starred Articles" views in workspace Views section. "Related Articles" in right pane. "Subscribe to Feed...", "Mark All as Read", "Open RSS Reader" in command palette. Custom `rss:Article` read renderer replaces default SHACL form when opening an article from the object browser.
 
-- [ ] **S05: OPML import + app settings** `risk:low` `depends:[S02]`
+- [x] **S05: OPML import + app settings** `risk:low` `depends:[S02]`
   > After this: User uploads an OPML file and subscriptions are created for all feeds in it. App settings page configures poll interval and reader preferences. Feed categories from OPML preserved as tags.
 
 - [ ] **S06: E2E tests + user guide** `risk:low` `depends:[S03,S04,S05]`
