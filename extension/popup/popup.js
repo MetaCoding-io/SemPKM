@@ -2,13 +2,15 @@
  * SemPKM Capture — popup logic.
  *
  * Handles the complete capture flow: load settings → check connection →
- * populate type selector → gather form data → create object → show feedback.
+ * populate type selector → fetch SHACL shape → render dynamic form →
+ * gather form data → create object → show feedback.
  *
  * @module popup/popup
  */
 
 import { SemPKMClient, SemPKMError } from '../shared/api-client.js';
 import { getSettings } from '../shared/storage.js';
+import { renderForm, getFormValues } from '../shared/shacl-renderer.js';
 
 /* ── DOM references ────────────────────────────────────────────── */
 const $connectionDot   = document.getElementById('connection-dot');
@@ -16,9 +18,13 @@ const $unconfigured    = document.getElementById('unconfigured-state');
 const $openSettings    = document.getElementById('open-settings');
 const $captureForm     = document.getElementById('capture-form');
 const $typeSelect      = document.getElementById('type-select');
-const $titleInput      = document.getElementById('title-input');
+const $typeIcon        = document.getElementById('selected-type-icon');
+const $dynamicForm     = document.getElementById('dynamic-form');
+const $formLoading     = document.getElementById('form-loading');
+const $formFallback    = document.getElementById('form-fallback');
+const $fallbackTitle   = document.getElementById('fallback-title-input');
 const $titleError      = document.getElementById('title-error');
-const $bodyInput       = document.getElementById('body-input');
+const $notesInput      = document.getElementById('body-input');
 const $urlInput        = document.getElementById('url-input');
 const $saveBtn         = document.getElementById('save-btn');
 const $saveBtnLabel    = document.querySelector('#save-btn .btn-label');
@@ -27,6 +33,12 @@ const $toastContainer  = document.getElementById('toast-container');
 
 /** Active SemPKMClient instance (null until configured). */
 let client = null;
+
+/** Full type objects from getTypes(), including icon and icon_color. */
+let loadedTypes = [];
+
+/** Currently loaded shape response (null when in fallback mode). */
+let currentShape = null;
 
 /* ── Helpers ───────────────────────────────────────────────────── */
 
@@ -62,7 +74,6 @@ function setConnectionDot(state, tooltip) {
  * @param {'success'|'error'} type - Toast style
  */
 function showToast(message, type) {
-  // Remove any existing toast
   const existing = $toastContainer.querySelector('.toast');
   if (existing) existing.remove();
 
@@ -71,9 +82,7 @@ function showToast(message, type) {
   toast.textContent = message;
   $toastContainer.appendChild(toast);
 
-  // Trigger reflow for CSS animation
   toast.offsetHeight; // eslint-disable-line no-unused-expressions
-
   toast.classList.add('toast-visible');
 
   setTimeout(() => {
@@ -98,11 +107,13 @@ function setSaving(loading) {
  */
 function showTitleError(show) {
   setVisible($titleError, show);
-  $titleInput.classList.toggle('input-error', show);
-  if (show) {
-    $titleInput.setAttribute('aria-invalid', 'true');
-  } else {
-    $titleInput.removeAttribute('aria-invalid');
+  if ($fallbackTitle) {
+    $fallbackTitle.classList.toggle('input-error', show);
+    if (show) {
+      $fallbackTitle.setAttribute('aria-invalid', 'true');
+    } else {
+      $fallbackTitle.removeAttribute('aria-invalid');
+    }
   }
 }
 
@@ -121,14 +132,17 @@ function errorMessage(err) {
   return err.message || 'Unknown error';
 }
 
+/* ── Type selector & icon ──────────────────────────────────────── */
+
 /**
  * Populate the type <select> from an array of type objects.
- * Groups by model_name when available.
+ * Groups by model_name when available. Stores full type data in loadedTypes.
  *
- * @param {Array<{iri: string, label: string, model_name?: string}>} types
+ * @param {Array<{iri: string, label: string, icon?: string, icon_color?: string, model_name?: string}>} types
  * @param {string} [defaultIri] - IRI to pre-select
  */
 function populateTypeSelector(types, defaultIri = '') {
+  loadedTypes = types;
   $typeSelect.innerHTML = '';
 
   // Group types by model_name
@@ -177,6 +191,127 @@ function populateTypeSelector(types, defaultIri = '') {
   }
 }
 
+/**
+ * Update the type icon indicator next to the select.
+ * Shows a colored dot using the type's icon_color, or hides if no type selected.
+ * @param {string} typeIri
+ */
+function updateTypeIcon(typeIri) {
+  if (!typeIri) {
+    setVisible($typeIcon, false);
+    return;
+  }
+  const typeInfo = loadedTypes.find((t) => t.iri === typeIri);
+  if (typeInfo && typeInfo.icon_color) {
+    $typeIcon.style.background = typeInfo.icon_color;
+    $typeIcon.title = typeInfo.icon || typeInfo.label || '';
+    setVisible($typeIcon, true);
+  } else if (typeInfo && typeInfo.icon) {
+    $typeIcon.style.background = '#4f46e5';
+    $typeIcon.title = typeInfo.icon;
+    setVisible($typeIcon, true);
+  } else {
+    setVisible($typeIcon, false);
+  }
+}
+
+/* ── Shape loading & form rendering ────────────────────────────── */
+
+/**
+ * Handle type selector change: fetch shape and render dynamic form.
+ */
+async function handleTypeChange() {
+  const typeIri = $typeSelect.value;
+
+  updateTypeIcon(typeIri);
+
+  // No type selected — show fallback
+  if (!typeIri) {
+    $dynamicForm.innerHTML = '';
+    currentShape = null;
+    setVisible($formLoading, false);
+    setVisible($formFallback, true);
+    return;
+  }
+
+  // Show loading, hide fallback
+  setVisible($formLoading, true);
+  setVisible($formFallback, false);
+  $dynamicForm.innerHTML = '';
+
+  try {
+    const shape = await client.getShape(typeIri);
+    currentShape = shape;
+
+    const fragment = renderForm(shape);
+    $dynamicForm.appendChild(fragment);
+
+    const propCount = (shape.properties || []).length;
+    const groupCount = (shape.groups || []).length;
+    console.log(`[SemPKM] Shape loaded for ${typeIri}: ${propCount} properties, ${groupCount} groups`);
+  } catch (err) {
+    const msg = errorMessage(err);
+    showToast(`Failed to load form: ${msg}`, 'error');
+    console.warn('[SemPKM] Shape fetch failed:', msg, err);
+
+    // Fall back to simple title input
+    currentShape = null;
+    setVisible($formFallback, true);
+  }
+
+  setVisible($formLoading, false);
+}
+
+/* ── Title extraction ──────────────────────────────────────────── */
+
+/**
+ * Find the title value from dynamic form properties.
+ * Checks property paths in priority order:
+ *   1. Path containing "title" (e.g. dcterms:title)
+ *   2. Path ending with "Name" or "name" (e.g. dealName, firstName)
+ *   3. First required (min_count > 0) string property from the shape
+ *
+ * @param {Object} properties - {path: value} from getFormValues()
+ * @returns {string|null}
+ */
+function extractTitle(properties) {
+  // Priority 1: explicit "title" in path
+  for (const [path, value] of Object.entries(properties)) {
+    if (path.toLowerCase().includes('title')) {
+      const str = Array.isArray(value) ? value.find((v) => v && v.trim()) : value;
+      if (str && str.trim()) return str.trim();
+    }
+  }
+
+  // Priority 2: path ending in "name" or "Name" (dealName, firstName, etc.)
+  for (const [path, value] of Object.entries(properties)) {
+    const segment = path.split('/').pop().split(':').pop();
+    if (segment && segment.toLowerCase().includes('name')) {
+      const str = Array.isArray(value) ? value.find((v) => v && v.trim()) : value;
+      if (str && str.trim()) return str.trim();
+    }
+  }
+
+  // Priority 3: any non-empty required field from the shape
+  if (currentShape) {
+    for (const prop of currentShape.properties) {
+      if (prop.min_count > 0 && properties[prop.path]) {
+        const val = properties[prop.path];
+        const str = Array.isArray(val) ? val.find((v) => v && v.trim()) : val;
+        if (str && str.trim()) return str.trim();
+      }
+    }
+  }
+
+  // Priority 4: any non-empty value at all
+  for (const value of Object.values(properties)) {
+    const str = Array.isArray(value) ? value.find((v) => v && v.trim()) : value;
+    if (str && str.trim()) return str.trim();
+  }
+
+  return null;
+}
+
 /* ── Core flows ────────────────────────────────────────────────── */
 
 /**
@@ -207,11 +342,21 @@ async function init() {
     populateTypeSelector(types, settings.defaultType);
     setConnectionDot('connected', `Connected — ${types.length} types available`);
     console.log(`[SemPKM] Loaded ${types.length} types`);
+
+    // If a default type is selected, auto-render its shape
+    if (settings.defaultType && $typeSelect.value === settings.defaultType) {
+      await handleTypeChange();
+    } else {
+      // No default — show fallback title input
+      setVisible($formFallback, true);
+    }
   } catch (err) {
     const msg = errorMessage(err);
     setConnectionDot('error', msg);
     $typeSelect.innerHTML = '<option value="">— Connection failed —</option>';
     console.warn('[SemPKM] Failed to load types:', msg, err);
+    // Show fallback so user can still attempt a save after reconnecting
+    setVisible($formFallback, true);
   }
 
   // Auto-fill URL from active tab
@@ -220,9 +365,9 @@ async function init() {
     if (tab && tab.url) {
       $urlInput.value = tab.url;
     }
-    // Auto-fill title from page title if setting enabled
-    if (settings.autoFillTitle && tab && tab.title) {
-      $titleInput.value = tab.title;
+    // Auto-fill title from page title if setting enabled and in fallback mode
+    if (settings.autoFillTitle && tab && tab.title && !currentShape) {
+      $fallbackTitle.value = tab.title;
     }
   } catch (tabErr) {
     console.warn('[SemPKM] Could not get active tab:', tabErr);
@@ -236,16 +381,7 @@ async function init() {
 async function handleSave(e) {
   e.preventDefault();
 
-  // Validate title
-  const title = $titleInput.value.trim();
-  if (!title) {
-    showTitleError(true);
-    $titleInput.focus();
-    return;
-  }
-  showTitleError(false);
-
-  // Gather form data
+  // Validate type selection
   const typeIri = $typeSelect.value;
   if (!typeIri) {
     showToast('Please select a type', 'error');
@@ -253,19 +389,49 @@ async function handleSave(e) {
     return;
   }
 
-  const body = $bodyInput.value.trim();
-  const url = $urlInput.value.trim();
+  let properties;
+  let title;
 
-  // Build properties
-  const properties = {
-    'dcterms:title': title,
-  };
+  if (currentShape) {
+    // ── Dynamic form mode ──
+    properties = getFormValues($dynamicForm);
+
+    // Find title from shape properties
+    title = extractTitle(properties);
+    if (!title) {
+      showToast('At least one identifying field is required', 'error');
+      // Try to focus the first required input in the dynamic form
+      const firstRequired = $dynamicForm.querySelector('.form-field.required input, .form-field.required select');
+      if (firstRequired) firstRequired.focus();
+      return;
+    }
+  } else {
+    // ── Fallback mode ──
+    title = $fallbackTitle.value.trim();
+    if (!title) {
+      showTitleError(true);
+      $fallbackTitle.focus();
+      return;
+    }
+    showTitleError(false);
+    properties = {
+      'dcterms:title': title,
+    };
+  }
+
+  // Append body (notes) if present
+  const body = $notesInput.value.trim();
   if (body) {
     properties['sempkm:body'] = body;
   }
+
+  // Append URL if present
+  const url = $urlInput.value.trim();
   if (url) {
     properties['schema:url'] = url;
   }
+
+  console.log(`[SemPKM] Saving object — type: ${typeIri}, properties:`, Object.keys(properties));
 
   // Call API
   setSaving(true);
@@ -280,12 +446,18 @@ async function handleSave(e) {
     showToast('✓ Object created!', 'success');
     console.log(`[SemPKM] Object created: ${createdIri}`);
 
-    // Briefly disable to prevent double-submit, then close or reset
+    // Reset form after brief delay
     setTimeout(() => {
       setSaving(false);
-      // Clear form for next capture
-      $titleInput.value = '';
-      $bodyInput.value = '';
+      // Clear dynamic form inputs (re-render to reset defaults)
+      if (currentShape) {
+        $dynamicForm.innerHTML = '';
+        const fragment = renderForm(currentShape);
+        $dynamicForm.appendChild(fragment);
+      } else {
+        $fallbackTitle.value = '';
+      }
+      $notesInput.value = '';
     }, 1500);
   } catch (err) {
     const msg = errorMessage(err);
@@ -306,16 +478,15 @@ async function handleSave(e) {
  * @param {string} [data.author] - Page author if available
  */
 export function populateFromPageData(data) {
-  if (data.title && $titleInput) {
-    $titleInput.value = data.title;
+  if (data.title && $fallbackTitle) {
+    $fallbackTitle.value = data.title;
   }
   if (data.url && $urlInput) {
     $urlInput.value = data.url;
   }
-  if (data.selectedText && $bodyInput) {
-    $bodyInput.value = data.selectedText;
+  if (data.selectedText && $notesInput) {
+    $notesInput.value = data.selectedText;
   }
-  // author could populate a future field; for now, log it
   if (data.author) {
     console.log(`[SemPKM] Page author: ${data.author}`);
   }
@@ -328,12 +499,15 @@ $openSettings.addEventListener('click', () => {
   chrome.runtime.openOptionsPage();
 });
 
+// Type selector change → fetch shape → render form
+$typeSelect.addEventListener('change', handleTypeChange);
+
 // Form submission
 $captureForm.addEventListener('submit', handleSave);
 
-// Clear title error on input
-$titleInput.addEventListener('input', () => {
-  if ($titleInput.value.trim()) {
+// Clear title error on fallback title input
+$fallbackTitle.addEventListener('input', () => {
+  if ($fallbackTitle.value.trim()) {
     showTitleError(false);
   }
 });
