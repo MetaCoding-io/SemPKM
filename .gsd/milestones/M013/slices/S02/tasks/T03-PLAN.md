@@ -50,3 +50,10 @@ Add unit tests for the types and shapes endpoints to verify response schemas, ed
 ## Expected Output
 
 - `backend/tests/test_api_surface.py` — expanded with ≥10 new tests for types and shapes
+
+## Observability Impact
+
+- **Test count signals:** 8 types endpoint tests + 11 shapes endpoint tests = 19 total tests. A future agent can verify coverage by running `pytest tests/test_api_surface.py -v -k "types or shapes" | grep PASSED | wc -l` and expecting ≥19.
+- **Schema validation:** Tests verify that all PropertyShape fields (path, name, datatype, order, min_count, max_count, in_values, default_value, description, helptext, target_class, group) round-trip from Python dataclass through Pydantic to JSON. If a field is added to `PropertyShape` or `PropertyGroupInfo` without updating the Pydantic model, the `asdict()` → `**kwargs` unpacking will raise `TypeError` — caught by existing tests.
+- **Failure visibility:** Test names follow the pattern `test_{endpoint}_{aspect}` — failures clearly indicate which endpoint and which aspect broke (auth, field completeness, constraints, groups, 404 handling).
+- **Regression surface:** Full suite (`pytest tests/ -q`) must stay at 990+ tests passing with zero failures.
