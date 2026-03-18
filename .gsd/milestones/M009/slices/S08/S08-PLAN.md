@@ -34,7 +34,7 @@
   - Verify: `test -f docs/guide/29-app-platform.md && grep -c "## Managing Apps" docs/guide/29-app-platform.md && grep -c "## Building Apps" docs/guide/29-app-platform.md`
   - Done when: Chapter 29 exists with both sections, practical examples from test-app, and correct structure matching existing chapter conventions (h1 title, h2 sections, h3 subsections, code blocks, tips).
 
-- [ ] **T02: Add glossary entries, update README TOC, and wire navigation chain** `est:15m`
+- [x] **T02: Add glossary entries, update README TOC, and wire navigation chain** `est:15m`
   - Why: Integrates ch. 29 into the existing guide structure — readers can discover it from the TOC and navigate to/from adjacent pages.
   - Files: `docs/guide/appendix-d-glossary.md`, `docs/guide/README.md`, `docs/guide/28-dashboards-and-workflows.md`, `docs/guide/29-app-platform.md`
   - Do: (1) Insert 5 glossary entries alphabetically between "ABox" and "Block": App Contribution, App Manifest, App Platform, App Sandbox, App SDK — each with a one-sentence definition and a "See Chapter 29" link. (2) Add `29. [App Platform](29-app-platform.md)` to README.md Part VIII after ch. 28. (3) Update ch. 28 footer: change `Next: Appendix A` to `Next: Chapter 29: App Platform`. (4) Update ch. 29 footer: `Previous: Chapter 28 | Next: Appendix A`.

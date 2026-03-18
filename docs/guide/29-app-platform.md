@@ -290,4 +290,4 @@ The app sandbox enforces permissions declared in the manifest. An app cannot exc
 
 ---
 
-**Previous:** [Chapter 28: Dashboards and Workflows](28-dashboards-and-workflows.md) | **Next:** [Appendix A: Environment Variables](appendix-a-environment-variables.md)
+**Previous:** [Chapter 28: Dashboards and Workflows](28-dashboards-and-workflows.md) | **Next:** [Appendix A: Environment Variable Reference](appendix-a-environment-variables.md)

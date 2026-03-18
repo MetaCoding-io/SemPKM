@@ -10,6 +10,21 @@ Alphabetical definitions of key terms used throughout the SemPKM documentation a
 **API Surface**
 The set of structured JSON endpoints that external clients — browser extensions, mobile apps, CLI tools, and integrations — use to interact with a SemPKM instance. Includes instance discovery, type listing, SHACL shapes, and context query. See [Chapter 31: API Surface](31-api-surface.md).
 
+**App Contribution**
+A UI element an app contributes to the workspace: right-pane sections, views, command palette entries, or object renderer overrides. Declared in the manifest's `ui.contributions` section. See [Chapter 29: App Platform](29-app-platform.md).
+
+**App Manifest**
+The `manifest.yaml` file in an app's root directory that declares its identity, dependencies, permissions, tasks, frontend assets, and UI contributions. The platform validates the manifest at install time using a Pydantic schema. See [Chapter 29: App Platform](29-app-platform.md).
+
+**App Platform**
+The subsystem that manages third-party and first-party Python applications. Apps run as sandboxed subprocesses communicating with the platform via HTTP over unix domain sockets. See [Chapter 29: App Platform](29-app-platform.md).
+
+**App Sandbox**
+The isolation boundary for each app: a separate Python subprocess with its own virtual environment, communicating with the platform only through a scoped HTTP API. Apps cannot access platform internals directly. See [Chapter 29: App Platform](29-app-platform.md).
+
+**App SDK**
+The `sempkm-app-sdk` Python package that provides the `App` class, `AppContext`, and scoped clients for building SemPKM applications. Installed automatically into each app's virtual environment. See [Chapter 29: App Platform](29-app-platform.md).
+
 **Argument** (Research Workflow)
 A structured reasoning unit that synthesizes claims and evidence to address a research question. Each argument presents a thesis supported by referenced claims and evidence items. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
 
