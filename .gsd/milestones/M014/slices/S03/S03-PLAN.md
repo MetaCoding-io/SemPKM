@@ -31,6 +31,8 @@
 - `node --check extension/popup/popup.js extension/background/service-worker.js` — syntax valid after modifications
 - Grep checks: `"scripting"` in manifest permissions, `chrome.scripting.executeScript` in popup.js, `chrome.storage.session` in service-worker.js and popup.js, `chrome.action.openPopup` in service-worker.js
 - No inline event handlers in any modified file (grep for `onclick=` / `onchange=` returns empty)
+- Diagnostic: extractor returns structured error data (empty `schemaOrg: []`, null fields) for missing/malformed page metadata — verify via `node -e` test with empty inputs
+- Diagnostic: mapper returns `null` for unrecognized schema.org types — verify via `node -e` test with unknown type entity
 
 ## Observability / Diagnostics
 
@@ -47,7 +49,7 @@
 
 ## Tasks
 
-- [ ] **T01: Content script extractor and schema.org mapper modules** `est:45m`
+- [x] **T01: Content script extractor and schema.org mapper modules** `est:45m`
   - Why: Creates the two pure-function modules that all popup integration depends on — the content script that runs in the page DOM context and the schema.org-to-SHACL mapping logic. Both are testable without Chrome APIs.
   - Files: `extension/content/extractor.js`, `extension/shared/schema-mapper.js`
   - Do: Build extractor as a self-contained function (no imports/closures — `chrome.scripting.executeScript` serializes it). Parse `<script type="application/ld+json">`, meta tags, `og:title`, `window.getSelection()`. Build mapper with type suggestion table (Person→Contact, Organization→Company, Article→Note, ScholarlyArticle→Paper) and property mapping table (direct namespace matches + cross-namespace like `schema:givenName→crm:firstName`). Normalize `@type` variants. Handle `@graph` arrays, nested objects, missing `@context`, invalid JSON.

@@ -97,6 +97,13 @@ Both modules are testable with Node.js — no Chrome APIs needed.
 - `node -e` test: verify `normalizeSchemaType` handles `"Person"`, `"schema:Person"`, `"https://schema.org/Person"`, `["Person", "Thing"]`
 - Grep extractor.js for `import` / `require` — must return empty (self-contained constraint)
 
+## Observability Impact
+
+- **Extractor logging**: The extractor itself has no console.log (it runs in the page context — the caller logs). But invalid JSON-LD parsing logs a warning per invalid `<script>` tag: `[SemPKM] Skipping invalid JSON-LD: {error}` — this is emitted by the caller in T02, but the try/catch structure in the extractor enables it.
+- **Mapper diagnostic signals**: `suggestType()` returns `null` (not throws) for unmapped types — callers inspect this to decide whether to log `[SemPKM] Schema.org type suggestion: none`. `mapSchemaOrgToFormValues()` silently skips non-scalar values and missing paths — the caller logs the count of applied values.
+- **Inspection**: Both modules are pure functions — test with `node -e` at any time by importing and calling with sample data. No runtime state to inspect.
+- **Failure shapes**: Extractor returns `{ title: null, url: '', selectedText: '', author: null, description: null, schemaOrg: [] }` when page has no metadata. Mapper returns `null` from `suggestType` when no types match. `mapSchemaOrgToFormValues` returns `{}` when no properties map.
+
 ## Inputs
 
 - S03-RESEARCH.md content script and schema.org mapping sections — defines the extraction logic, mapping tables, and edge cases
