@@ -303,8 +303,11 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - S05 complete: Cross-model verification (10 pytest tests), E2E Playwright test (Docker lifecycle), Chapter 29 user guide (608 lines, 15 glossary entries)
 - Design: `.gsd/design/MENTAL-MODELS-EXPANSION-DESIGN.md`
 
-**Workspace & Event Log Polish** — queued (M012)
-- Event log autocomplete/helptext, body.diff incremental storage, user personas (custom layouts/settings per context)
+**Workspace & Event Log Polish** — in progress (M012)
+- S01 complete: Event log labels, helptext tooltips, autocomplete for filter fields
+- S02 complete: Body.diff incremental storage and rendering
+- S03 complete: Workspace personas — CRUD, sidebar selector, command palette, layout/positions/mode save and restore
+- S04 remaining: E2E Playwright tests + user guide documentation
 
 **API Surface for External Clients** — queued (M013, depends on M011)
 - `/.well-known/sempkm`, `/api/types`, `/api/shapes/{type}`, `/api/context-query`
