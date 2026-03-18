@@ -132,6 +132,14 @@ No UI in this task — that comes in T03 (options) and T04 (popup). This task is
 - Right-click selected text on any page → "Save to SemPKM" context menu item visible
 - Open browser DevTools console in popup/options → modules load without import errors
 
+## Observability Impact
+
+- **Service worker console:** `chrome://extensions` → extension card → "Inspect views: service worker" — shows context menu registration logs and click handler output (`Save to SemPKM clicked: <selectedText>`)
+- **API client errors:** `SemPKMClient` methods throw descriptive `Error` objects with HTTP status and parsed error detail from the backend — these surface in calling code's catch handlers and in DevTools console
+- **Storage inspection:** `chrome.storage.sync.get(null, console.log)` in extension DevTools shows all persisted settings
+- **Manifest validation:** Chrome's `chrome://extensions` page shows red error badges if manifest is invalid, icon files are missing, or service worker fails to register
+- **Failure states visible:** Unconfigured extension (no instanceUrl/apiKey) → `getClient()` returns `null` rather than constructing a broken client
+
 ## Inputs
 
 - M014 research doc — Manifest structure, cross-browser notes, API client requirements
