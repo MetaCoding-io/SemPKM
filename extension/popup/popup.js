@@ -13,6 +13,7 @@ import { getSettings } from '../shared/storage.js';
 import { renderForm, getFormValues } from '../shared/shacl-renderer.js';
 import { suggestType, mapSchemaOrgToFormValues } from '../shared/schema-mapper.js';
 import { extractPageData } from '../content/extractor.js';
+import { initReferencePickers, initSinglePicker, getSelectedReferences } from '../shared/reference-picker.js';
 
 /* ── DOM references ────────────────────────────────────────────── */
 const $connectionDot   = document.getElementById('connection-dot');
@@ -250,6 +251,7 @@ async function handleTypeChange() {
 
     const fragment = renderForm(shape);
     $dynamicForm.appendChild(fragment);
+    initReferencePickers($dynamicForm, client);
 
     const propCount = (shape.properties || []).length;
     const groupCount = (shape.groups || []).length;
@@ -576,9 +578,34 @@ async function handleSave(e) {
       properties,
     });
 
-    const createdIri = result.results?.[0]?.iri || 'unknown';
-    showToast('✓ Object created!', 'success');
-    console.log(`[SemPKM] Object created: ${createdIri}`);
+    const createdIri = result.results?.[0]?.iri || null;
+    console.log(`[SemPKM] Object created: ${createdIri || 'unknown'}`);
+
+    // ── Two-step save: create edges for selected references ────
+    const refs = getSelectedReferences($dynamicForm);
+    let edgeFails = 0;
+
+    if (refs.length > 0 && createdIri) {
+      for (const ref of refs) {
+        try {
+          await client.createEdge({
+            source: createdIri,
+            target: ref.targetIri,
+            predicate: ref.path,
+          });
+          console.log(`[SemPKM] Edge created: ${createdIri} → ${ref.path} → ${ref.targetIri}`);
+        } catch (edgeErr) {
+          edgeFails++;
+          console.warn(`[SemPKM] Edge creation failed: ${ref.path} → ${ref.targetIri}`, edgeErr);
+        }
+      }
+    }
+
+    if (edgeFails > 0) {
+      showToast(`✓ Object created, but ${edgeFails} relationship(s) failed to save`, 'error');
+    } else {
+      showToast('✓ Object created!', 'success');
+    }
 
     // Reset form after brief delay
     setTimeout(() => {
@@ -588,6 +615,7 @@ async function handleSave(e) {
         $dynamicForm.innerHTML = '';
         const fragment = renderForm(currentShape);
         $dynamicForm.appendChild(fragment);
+        initReferencePickers($dynamicForm, client);
       } else {
         $fallbackTitle.value = '';
       }
@@ -643,6 +671,13 @@ $captureForm.addEventListener('submit', handleSave);
 $fallbackTitle.addEventListener('input', () => {
   if ($fallbackTitle.value.trim()) {
     showTitleError(false);
+  }
+});
+
+// Initialize reference pickers on dynamically added multi-value reference fields
+$dynamicForm.addEventListener('sempkm:reference-field-added', (e) => {
+  if (e.detail?.element && client) {
+    initSinglePicker(e.detail.element, client);
   }
 });
 

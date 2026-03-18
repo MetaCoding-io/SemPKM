@@ -53,7 +53,7 @@
   - Verify: `node --check extension/shared/reference-picker.js` passes; `grep -rn "onclick\|onchange\|oninput" extension/shared/reference-picker.js` returns empty; Node.js `import()` confirms 3 named exports
   - Done when: Module exports 3 functions, has zero inline handlers, dropdown CSS exists
 
-- [ ] **T02: Wire picker into popup lifecycle and implement two-step save with edge creation** `est:45m`
+- [x] **T02: Wire picker into popup lifecycle and implement two-step save with edge creation** `est:45m`
   - Why: Integration task — connects the picker module to the popup's type-change and save flows, handles multi-value re-init, and implements the object.create → edge.create two-step pattern. This is where the full round-trip gets proven.
   - Files: `extension/popup/popup.js`, `extension/shared/shacl-renderer.js`
   - Do: Import `initReferencePickers`, `initSinglePicker`, `getSelectedReferences` in popup.js. Call `initReferencePickers($dynamicForm, client)` after `$dynamicForm.appendChild(fragment)` in `handleTypeChange()`. In `handleSave()`, after successful `createObject()`, call `getSelectedReferences($dynamicForm)` and loop with `client.createEdge({source: createdIri, target: ref.targetIri, predicate: ref.path})` for each. Show partial success toast if edges fail. In `shacl-renderer.js`, dispatch `sempkm:reference-field-added` custom event (with the new element in `detail`) from the multi-value add button handler. In `reference-picker.js` (or popup.js), listen for this event and call `initSinglePicker()` on the new element. Verify against running Docker stack.

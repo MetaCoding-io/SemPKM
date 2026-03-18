@@ -345,6 +345,15 @@ function wrapMultiValue(input, prop) {
     });
     newItem.appendChild(newRemoveBtn);
     list.appendChild(newItem);
+
+    // Notify parent container so reference pickers can be initialized
+    const refField = newItem.querySelector('.reference-field');
+    if (refField) {
+      newItem.dispatchEvent(new CustomEvent('sempkm:reference-field-added', {
+        bubbles: true,
+        detail: { element: refField },
+      }));
+    }
   });
   container.appendChild(addBtn);
 
