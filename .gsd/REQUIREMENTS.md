@@ -347,6 +347,51 @@ Corner/edge/bottom resize handles on `.spatial-node` with `stopPropagation()` is
 
 Toolbar "Embed" button opens tabbed picker (Views/Dashboards/Queries) fetching from existing list APIs. Explorer entries in views_explorer.html, dashboard_explorer.html, and my_views.html have `draggable="true"` with `ondragstart` setting embed-type payload. Both paths call `addEmbedNode()` producing identical node types. Max 8 enforced on both paths.
 
+### PERSONA-01 — Named personas with CRUD (create, rename, delete)
+- Status: validated
+- Class: core-capability
+- Source: design (M012 roadmap)
+- Primary Slice: M012/S03
+- Acceptance: User can create named personas, rename them, and delete them. Single-active-per-user constraint enforced. Delete of active persona auto-activates another.
+
+PersonaService with 8 async methods + 20 unit tests. 7 REST API endpoints verified via curl. Sidebar selector UI with create/save/switch actions. Browser-verified.
+
+### PERSONA-02 — Persona switching restores dockview layout, sidebar positions, explorer mode
+- Status: validated
+- Class: core-capability
+- Source: design (M012 roadmap)
+- Primary Slice: M012/S03
+- Acceptance: Switching personas restores dockview layout via fromJSON(), sidebar panel positions, and explorer mode. Guard flag prevents localStorage corruption during layout restore.
+
+switchPersona() saves current → fetches target → activates → applies layout/positions/mode. dv.fromJSON() wrapped in try/catch with toast fallback. _switchingPersona guard flag bridges IIFEs via window.*. Browser-verified.
+
+### PERSONA-03 — Persona selector in user popover menu
+- Status: validated
+- Class: core-capability
+- Source: design (M012 roadmap)
+- Primary Slice: M012/S03
+- Acceptance: Persona selector appears in sidebar user popover between Layouts and theme row with active indicator, save button, and create button.
+
+_persona_selector.html partial loaded via hx-trigger="load". Active persona shown with check-circle icon and accent color. Browser screenshot verified.
+
+### PERSONA-04 — Persona switching via Ctrl+K command palette
+- Status: validated
+- Class: core-capability
+- Source: design (M012 roadmap)
+- Primary Slice: M012/S03
+- Acceptance: Command palette has "Persona: Switch To..." (with dynamic submenu), "Persona: Save Current", and "Persona: Create New..." entries.
+
+Three command palette entries with _refreshPersonaPaletteItems() for dynamic submenu population. Browser screenshot verified showing all three commands.
+
+### PERSONA-05 — Default persona created on first use
+- Status: validated
+- Class: core-capability
+- Source: design (M012 roadmap)
+- Primary Slice: M012/S03
+- Acceptance: When user has no personas, initPersonas() auto-creates "Default" persona with current workspace state and activates it.
+
+initPersonas() checks GET /api/personas; if empty, POSTs new "Default" with current dockview layout, sidebar positions, and explorer mode. Console log confirms. Browser-verified.
+
 ## Validated
 
 ### EXP-01 — Explorer mode dropdown with switchable navigation strategies
@@ -1353,6 +1398,11 @@ All 6 items verified: Lucide SVG chevrons on 6 sections with rotation. OBJECTS o
 | CANVAS-03 | core-capability | validated | M008/S03 | none | dual-layer rendering + embed endpoints + 32 tests |
 | CANVAS-04 | core-capability | validated | M008/S03 | none | sparql-result endpoint + object embed + 32 tests |
 | CANVAS-05 | core-capability | validated | M008/S03 | none | toolbar picker + explorer drag-drop + 32 tests |
+| PERSONA-01 | core-capability | validated | M012/S03 | none | PersonaService + 20 unit tests + 7 API endpoints |
+| PERSONA-02 | core-capability | validated | M012/S03 | none | switchPersona() + fromJSON try/catch + guard flag |
+| PERSONA-03 | core-capability | validated | M012/S03 | none | sidebar selector UI + browser screenshot |
+| PERSONA-04 | core-capability | validated | M012/S03 | none | 3 command palette entries + dynamic submenu |
+| PERSONA-05 | core-capability | validated | M012/S03 | none | initPersonas() auto-create + browser verified |
 | TYPE-03 | core-capability | deferred | none | none | unmapped |
 | TYPE-04 | core-capability | deferred | none | none | unmapped |
 | MCP-01 | core-capability | deferred | none | none | unmapped |
@@ -1393,7 +1443,7 @@ All 6 items verified: Lucide SVG chevrons on 6 sections with rotation. OBJECTS o
 ## Coverage Summary
 
 - Active requirements: 22 (14 APP + 8 RSS)
-- Validated: 121 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011)
+- Validated: 126 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 5 from M012)
 - Deferred: 7 (TYPE-03, TYPE-04, MCP-01, NOTION-01, VIEW-06, VIEW-07, VFS-13)
 - Out of scope: 3
 - Unmapped active requirements: 22 (14 APP + 8 RSS — pending M009/M010 roadmap planning)

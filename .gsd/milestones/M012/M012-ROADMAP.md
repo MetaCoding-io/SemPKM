@@ -85,7 +85,7 @@ This milestone is complete only when all are true:
 - [x] **S02: Body.Diff — Incremental Storage & Rendering** `risk:medium` `depends:[]`
   > After this: User edits an existing note body and the event log shows only the changed lines highlighted in green/red, not the full body text replacement
 
-- [ ] **S03: Workspace Personas** `risk:high` `depends:[]`
+- [x] **S03: Workspace Personas** `risk:high` `depends:[]`
   > After this: User creates named personas with different workspace layouts, switches between them via sidebar menu or Ctrl+K, and layouts restore correctly including dockview panels, sidebar positions, and explorer mode
 
 - [ ] **S04: E2E Tests & User Guide** `risk:low` `depends:[S01,S02,S03]`

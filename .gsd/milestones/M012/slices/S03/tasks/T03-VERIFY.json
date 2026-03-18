@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T03",
+  "unitId": "M012/S03/T03",
+  "timestamp": 1773792806833,
+  "passed": false,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "Browser verification — create two personas with different layouts, switch between them, verify layout/positions/mode all change. Ctrl+K → \"Persona\" → see switch/save/create commands. Reload page → active persona layout persisted.",
+      "exitCode": 127,
+      "durationMs": 6,
+      "verdict": "fail"
+    }
+  ],
+  "retryAttempt": 1,
+  "maxRetries": 2
+}
