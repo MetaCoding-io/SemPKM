@@ -60,7 +60,7 @@
   - Verify: `grep -c "openAppPageTab" frontend/static/js/workspace.js` → at least 2; `grep -c "app-page" frontend/static/js/workspace-layout.js` → at least 1
   - Done when: `openAppPageTab()` is defined and exported, special-panel factory routes `app-page` type to the correct browser endpoint URL
 
-- [ ] **T03: Unit tests and fixture fix** `est:30m`
+- [x] **T03: Unit tests and fixture fix** `est:30m`
   - Why: Proves the browser endpoints work correctly and fixes the test fixture manifest so page data tests are valid.
   - Files: `backend/tests/test_app_browser.py`, `backend/tests/fixtures/test_sdk_app/manifest.yaml`
   - Do: (1) Fix `manifest.yaml` — replace `frontend.pages` block with `ui.pages` using correct AppPage fields (`id`, `path`, `label`, `icon`, `nav`, `fragment`). Keep existing `frontend` section for `staticDir`/`css`/`js`. (2) Create `test_app_browser.py` following `test_app_admin.py` pattern — mock AppRegistry and AppManager on `app.state`, use `Jinja2Blocks` with real template directory. Tests: explorer returns empty when no apps; explorer shows pages from running app with `nav: "apps"`; explorer excludes stopped apps; explorer excludes pages with `nav: null`; page endpoint returns 404 for unknown app; page endpoint returns 404 for unknown page; page endpoint renders template with correct proxy URL and CSS/JS includes; explorer returns pages from multiple running apps.
