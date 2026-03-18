@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}SemPKM - API Keys{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+    <h1>API Keys</h1>
+    <p class="lead">Create and manage API keys for the browser extension and external API clients.</p>
+
+    <div class="card">
+        <h2>Create API Key</h2>
+        <form hx-post="/admin/api-keys" hx-target="#token-list" hx-swap="outerHTML"
+              hx-indicator="#apikey-spinner">
+            <div class="form-group">
+                <label for="token-name">Key Name</label>
+                <input type="text" id="token-name" name="name"
+                       placeholder="e.g. Browser Extension, CI Pipeline" required>
+            </div>
+            <div>
+                <button type="submit" class="btn btn-primary">Create Key</button>
+                <span id="apikey-spinner" class="htmx-indicator loading">Creating...</span>
+            </div>
+        </form>
+    </div>
+
+    {% block token_list %}
+    <div id="token-list" data-testid="token-list">
+        {% if error is defined and error %}
+        <div class="error-box">{{ error }}</div>
+        {% elif success is defined and success %}
+        <div class="success-box">{{ success }}</div>
+        {% endif %}
+
+        {% if new_token is defined and new_token %}
+        <div class="success-box" style="margin-bottom: 1rem;">
+            <p style="margin: 0 0 0.5rem 0;"><strong>✅ API key "{{ new_token_name }}" created.</strong></p>
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                <code id="new-token-value" style="background: var(--color-bg-elevated, #1a1a2e); padding: 0.4rem 0.75rem; border-radius: 4px; font-size: 0.85rem; word-break: break-all; flex: 1;">{{ new_token }}</code>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="copyToken()" id="copy-token-btn">Copy</button>
+            </div>
+            <p style="margin: 0; color: var(--color-warning, #e6a817); font-size: 0.85rem;">
+                ⚠️ This key will only be shown once. Copy it now.
+            </p>
+        </div>
+        <script>
+            function copyToken() {
+                var tokenEl = document.getElementById('new-token-value');
+                var btn = document.getElementById('copy-token-btn');
+                navigator.clipboard.writeText(tokenEl.textContent.trim()).then(function() {
+                    btn.textContent = 'Copied!';
+                    setTimeout(function() { btn.textContent = 'Copy'; }, 2000);
+                });
+            }
+        </script>
+        {% endif %}
+
+        {% if tokens %}
+        <table class="sparql-results">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for token in tokens %}
+                <tr>
+                    <td>{{ token.name }}</td>
+                    <td>{{ token.created_at.strftime('%Y-%m-%d %H:%M') if token.created_at else '—' }}</td>
+                    <td>
+                        <button class="btn btn-secondary btn-sm"
+                                hx-delete="/admin/api-keys/{{ token.id }}"
+                                hx-target="#token-list"
+                                hx-swap="outerHTML"
+                                hx-confirm="Delete this API key? Any extension or client using it will stop working.">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="card" style="text-align: center; color: var(--color-text-muted); padding: 2rem;">
+            <p>No API keys yet.</p>
+            <p style="font-size: 0.85rem;">Create one to authenticate the browser extension or external API clients.</p>
+        </div>
+        {% endif %}
+    </div>
+    {% endblock %}
+</div>
+{% endblock %}
