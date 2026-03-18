@@ -213,11 +213,13 @@ CORS headers verified on /api/ and /.well-known/ via Docker curl. OPTIONS → 20
 nginx /api/ block has proxy_set_header Authorization $http_authorization matching /dav/ pattern. Docker curl confirms Authorization header forwarded. nginx -t validates config syntax.
 
 ### API-08 — API surface user guide documentation
-- Status: active
+- Status: validated
 - Class: quality-attribute
 - Source: standing requirement
 - Primary Slice: M013/S03
 - Acceptance: `docs/guide/31-api-surface.md` documents all four endpoints with request/response examples, authentication methods, CORS behavior, and error responses. Linked in README TOC and glossary.
+
+docs/guide/31-api-surface.md documents all four endpoints with curl examples, JSON responses, field descriptions, auth methods (session + Bearer), CORS reverse-proxy config, and error responses. README TOC updated. Three glossary entries (API Surface, Context Query, Instance Discovery) cross-reference Chapter 31. Navigation chain Ch30 → Ch31 → Appendix A.
 
 ### MODEL-01 — basic-pkm v2.0 with Task and Milestone types
 - Status: validated
@@ -1570,7 +1572,7 @@ All 6 items verified: Lucide SVG chevrons on 6 sections with rotation. OBJECTS o
 | API-01 | core-capability | validated | M013/S01 | none | 10 unit tests + Docker curl — well-known JSON schema verified |
 | API-02 | core-capability | validated | M013/S02 | none | 8 unit tests — types JSON array with icons/model attribution |
 | API-03 | core-capability | validated | M013/S02 | none | 11 unit tests — shapes JSON with constraints/groups/helptext |
-| API-04 | core-capability | active | M013/S03 | none | design: BROWSER-EXTENSION-DESIGN.md |
+| API-04 | core-capability | validated | M013/S03 | none | 13 context-query unit tests + 5 SPARQL escape tests + 2 E2E tests |
 | API-05 | core-capability | validated | M013/S01 | none | 15 unit tests — dual-auth cookie + bearer paths |
 | API-06 | core-capability | validated | M013/S01 | none | Docker curl — CORS headers + OPTIONS 204 |
 | API-07 | core-capability | validated | M013/S01 | none | Docker curl — Authorization forwarded + nginx -t |
@@ -1578,8 +1580,8 @@ All 6 items verified: Lucide SVG chevrons on 6 sections with rotation. OBJECTS o
 
 ## Coverage Summary
 
-- Active requirements: 24 (14 APP + 8 RSS + 2 API)
-- Validated: 138 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 6 from M013)
+- Active requirements: 22 (14 APP + 8 RSS)
+- Validated: 140 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 8 from M013)
 - Deferred: 7 (TYPE-03, TYPE-04, MCP-01, NOTION-01, VIEW-06, VIEW-07, VFS-13)
 - Out of scope: 3
 - Unmapped active requirements: 22 (14 APP + 8 RSS — pending M009/M010 roadmap planning)
