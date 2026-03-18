@@ -1329,3 +1329,175 @@ class TestContextQueryEndpoint:
             )
         assert resp.status_code == 200
         assert resp.json()["total"] >= 1
+
+    async def test_context_query_url_sparql_failure_degrades(
+        self, db_session_factory, db_session, valid_session
+    ):
+        """SPARQL URL matching failure doesn't block keyword results (graceful degradation)."""
+        from app.db.session import get_db_session
+
+        test_app = _build_context_query_app(
+            db_session_factory,
+            search_results=_KEYWORD_SEARCH_RESULTS,
+            label_results=_LABEL_MAP,
+        )
+        # Override triplestore to raise on URL match query
+        async def _failing_query(sparql: str) -> dict:
+            if "FILTER(STR(?val)" in sparql:
+                raise ConnectionError("Triplestore unavailable")
+            return {"results": {"bindings": []}}
+
+        test_app.state.triplestore_client.query = AsyncMock(side_effect=_failing_query)
+
+        async def override_db():
+            yield db_session
+        test_app.dependency_overrides[get_db_session] = override_db
+
+        transport = ASGITransport(app=test_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.post(
+                "/api/context-query",
+                json={"url": "https://example.com", "keywords": "knowledge"},
+                cookies={"sempkm_session": valid_session.token},
+            )
+        assert resp.status_code == 200
+        data = resp.json()
+        # Keyword results still returned despite SPARQL failure
+        assert data["total"] >= 1
+        assert data["results"][0]["match_type"] == "keyword"
+
+    async def test_context_query_fts_failure_degrades(
+        self, db_session_factory, db_session, valid_session
+    ):
+        """FTS search failure doesn't block URL match results (graceful degradation)."""
+        from app.db.session import get_db_session
+
+        test_app = _build_context_query_app(
+            db_session_factory,
+            triplestore_query_results=_URL_MATCH_BINDINGS,
+            label_results=_LABEL_MAP,
+        )
+        # Override search to raise
+        test_app.state.search_service.search = AsyncMock(
+            side_effect=RuntimeError("FTS index corrupted")
+        )
+
+        async def override_db():
+            yield db_session
+        test_app.dependency_overrides[get_db_session] = override_db
+
+        transport = ASGITransport(app=test_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.post(
+                "/api/context-query",
+                json={"url": "https://example.com", "keywords": "knowledge"},
+                cookies={"sempkm_session": valid_session.token},
+            )
+        assert resp.status_code == 200
+        data = resp.json()
+        # URL results still returned despite FTS failure
+        assert data["total"] == 2
+        for r in data["results"]:
+            assert r["match_type"] == "url"
+
+    async def test_context_query_label_resolution_failure_degrades(
+        self, db_session_factory, db_session, valid_session
+    ):
+        """Label resolution failure falls back to IRI as label."""
+        from app.db.session import get_db_session
+
+        test_app = _build_context_query_app(
+            db_session_factory,
+            triplestore_query_results=_URL_MATCH_BINDINGS,
+        )
+        # Override label service to raise
+        test_app.state.label_service.resolve_batch = AsyncMock(
+            side_effect=RuntimeError("Label service down")
+        )
+
+        async def override_db():
+            yield db_session
+        test_app.dependency_overrides[get_db_session] = override_db
+
+        transport = ASGITransport(app=test_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.post(
+                "/api/context-query",
+                json={"url": "https://example.com/page"},
+                cookies={"sempkm_session": valid_session.token},
+            )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["total"] == 2
+        # Labels fall back to IRI when label service fails
+        for r in data["results"]:
+            assert r["label"] == r["iri"]
+
+    async def test_context_query_type_resolution_failure_degrades(
+        self, db_session_factory, db_session, valid_session
+    ):
+        """Type resolution failure returns results with type_iri=None."""
+        from app.db.session import get_db_session
+
+        # Only URL match returns data; type query raises
+        url_only_bindings = {
+            "url_match": _URL_MATCH_BINDINGS["url_match"],
+        }
+        test_app = _build_context_query_app(
+            db_session_factory,
+            triplestore_query_results=url_only_bindings,
+            label_results=_LABEL_MAP,
+        )
+        # Override triplestore to fail on type resolution but succeed on URL match
+        original_query = test_app.state.triplestore_client.query.side_effect
+
+        async def _type_failing_query(sparql: str) -> dict:
+            if "?s a ?type" in sparql:
+                raise ConnectionError("Type resolution failed")
+            return await original_query(sparql)
+
+        test_app.state.triplestore_client.query = AsyncMock(side_effect=_type_failing_query)
+
+        async def override_db():
+            yield db_session
+        test_app.dependency_overrides[get_db_session] = override_db
+
+        transport = ASGITransport(app=test_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.post(
+                "/api/context-query",
+                json={"url": "https://example.com/page"},
+                cookies={"sempkm_session": valid_session.token},
+            )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["total"] == 2
+        # Type info missing due to failure — both should be None
+        for r in data["results"]:
+            assert r["type_iri"] is None
+            assert r["type_label"] is None
+
+
+class TestSparqlEscapeStr:
+    """Test the _sparql_escape_str helper used in context-query SPARQL building."""
+
+    def test_plain_string(self):
+        from app.api.router import _sparql_escape_str
+        assert _sparql_escape_str("hello") == "hello"
+
+    def test_escapes_double_quotes(self):
+        from app.api.router import _sparql_escape_str
+        assert _sparql_escape_str('say "hi"') == 'say \\"hi\\"'
+
+    def test_escapes_backslash(self):
+        from app.api.router import _sparql_escape_str
+        assert _sparql_escape_str("path\\to") == "path\\\\to"
+
+    def test_escapes_newline(self):
+        from app.api.router import _sparql_escape_str
+        assert _sparql_escape_str("line\nbreak") == "line\\nbreak"
+
+    def test_combined_special_chars(self):
+        from app.api.router import _sparql_escape_str
+        result = _sparql_escape_str('a\\b"c\nd')
+        assert result == 'a\\\\b\\"c\\nd'

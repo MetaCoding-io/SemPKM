@@ -39,6 +39,12 @@ Add unit tests for the context-query endpoint covering URL matching, keyword mat
 - `backend/app/api/router.py` — context-query endpoint from T01
 - `backend/tests/test_api_surface.py` — existing test file from S01/S02
 
+## Observability Impact
+
+- **Signals changed**: None — tests don't alter runtime behavior
+- **Inspection**: Test names in `pytest -v -k context_query` output confirm each code path is exercised (URL match, keyword match, dedup, validation, auth, type enrichment, graceful degradation)
+- **Failure visibility**: `pytest` exit code and per-test PASS/FAIL status; CI regression detection via test count assertion
+
 ## Expected Output
 
 - `backend/tests/test_api_surface.py` — expanded with ≥6 context-query tests

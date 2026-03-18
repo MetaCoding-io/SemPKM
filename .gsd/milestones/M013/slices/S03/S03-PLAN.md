@@ -55,7 +55,7 @@
   - Verify: `python -m pytest tests/test_api_surface.py -v -k "context_query"`
   - Done when: Endpoint returns merged, deduplicated results from URL + keyword matching
 
-- [ ] **T02: Unit tests for context-query endpoint** `est:30m`
+- [x] **T02: Unit tests for context-query endpoint** `est:30m`
   - Why: Verify query building, result merging, and edge cases (no matches, URL-only, keywords-only, both, empty request body).
   - Files: `backend/tests/test_api_surface.py`
   - Do:
