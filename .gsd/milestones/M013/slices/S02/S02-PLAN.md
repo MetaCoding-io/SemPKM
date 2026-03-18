@@ -19,6 +19,7 @@
 - `curl http://localhost:3000/api/shapes/urn:sempkm:model:basic-pkm:Note` — returns JSON with property shapes matching the form editor
 - `curl http://localhost:3000/api/shapes/urn:nonexistent:Type` — returns 404 with `{"detail": "No shape found for type: urn:nonexistent:Type"}`
 - `curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/api/types` without credentials — returns 401 (auth enforcement)
+- `curl -s http://localhost:3000/api/shapes/urn:nonexistent:Type | jq '.detail'` — returns structured error `"No shape found for type: urn:nonexistent:Type"` (failure-path diagnostic)
 
 ## Observability / Diagnostics
 
@@ -45,7 +46,7 @@
   - Verify: `python -m pytest tests/test_api_surface.py -v -k "test_types"`
   - Done when: Endpoint returns JSON array with at least Note, Project, Person, Concept types (from basic-pkm) with labels and icons
 
-- [ ] **T02: Implement GET /api/shapes/{type_iri} endpoint** `est:45m`
+- [x] **T02: Implement GET /api/shapes/{type_iri} endpoint** `est:45m`
   - Why: External clients (browser extension) need SHACL property shapes as structured JSON to dynamically render capture forms. ShapesService already extracts this data as Python dataclasses — this endpoint serializes them to JSON.
   - Files: `backend/app/api/router.py`
   - Do:

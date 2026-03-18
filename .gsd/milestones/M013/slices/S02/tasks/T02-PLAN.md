@@ -37,6 +37,14 @@ Build the `/api/shapes/{type_iri}` endpoint that returns SHACL property shapes a
 - `cd backend && python -m pytest tests/test_api_surface.py -v -k "test_shapes"`
 - After Docker: `curl -s http://localhost:3000/api/shapes/urn:sempkm:model:basic-pkm:Note | jq '.properties | length'` returns > 0
 
+## Observability Impact
+
+- **New endpoint:** `GET /api/shapes/{type_iri}` returns structured SHACL property shapes as JSON
+- **404 on unknown type:** Returns `{"detail": "No shape found for type: <iri>"}` — structured, grep-able error
+- **Inspect at runtime:** `curl -H "Authorization: Bearer <token>" http://localhost:3000/api/shapes/urn:sempkm:model:basic-pkm:Note | jq '.properties | length'`
+- **Service errors:** ShapesService exceptions propagate as 500 with stack trace in dev mode
+- **Field fidelity:** All PropertyShape fields (constraints, helptext, groups) round-trip through Pydantic serialization — verifiable via response JSON
+
 ## Inputs
 
 - `backend/app/api/router.py` — router from S01/T03 with types endpoint from T01
