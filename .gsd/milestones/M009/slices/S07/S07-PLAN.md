@@ -59,7 +59,7 @@
   - Verify: `python -c "import ast; ast.parse(open('backend/app/apps/manager.py').read())"` succeeds; `grep -c "clean_data" backend/app/apps/manager.py` returns ≥2; `grep -c "clean_data" backend/app/apps/admin_router.py` returns ≥2
   - Done when: `uninstall(app_id, clean_data=True)` executes SPARQL cleanup before DB deletion; admin endpoint accepts and passes through the `clean_data` form parameter
 
-- [ ] **T03: Write Playwright E2E specs for app platform** `est:1h`
+- [x] **T03: Write Playwright E2E specs for app platform** `est:1h`
   - Why: E2E tests are the milestone's proof that the full vertical works — install through admin, use in workspace, monitor in admin, uninstall with cleanup. Without this, all prior slice verification is contract-level only.
   - Files: `e2e/tests/30-app-platform/app-platform.spec.ts`, `e2e/helpers/selectors.ts`
   - Do: Create a single Playwright spec file with one long `test()` function (sequential, avoids rate limits). Steps: navigate to `/admin/apps` → install test app → wait for "running" status → check admin detail page → navigate to workspace → verify APPS sidebar → click app page → verify fragment content → open an object → verify right pane section → check command palette API endpoint → verify admin task config section → stop app → verify status → restart → verify recovery → uninstall with clean_data → verify removed from list → verify APPS sidebar empty. Add app-related selectors to `e2e/helpers/selectors.ts`.
