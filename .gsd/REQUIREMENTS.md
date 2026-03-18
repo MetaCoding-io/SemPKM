@@ -151,6 +151,62 @@ This file is the explicit capability and coverage contract for the project.
 - Source: docs/research/rss-reader-hypothesis-integration.md §4-5
 - Acceptance: Paste a website URL → discover its RSS feed automatically. When feeds provide only summaries, extract full article content via reader mode (trafilatura). Fallback to summary when extraction fails.
 
+### API-01 — Well-known instance discovery endpoint
+- Status: active
+- Class: core-capability
+- Source: design (BROWSER-EXTENSION-DESIGN.md)
+- Primary Slice: M013/S01
+- Acceptance: `GET /.well-known/sempkm` returns JSON with version string, endpoint URLs, auth methods, and capabilities list. Requires authentication (session cookie or Bearer API token). Response matches documented schema.
+
+### API-02 — Types endpoint with labels, icons, and model attribution
+- Status: active
+- Class: core-capability
+- Source: design (BROWSER-EXTENSION-DESIGN.md)
+- Primary Slice: M013/S02
+- Acceptance: `GET /api/types` returns JSON array of all types from installed Mental Models. Each entry has IRI, label, icon name (Lucide), icon color, model ID, and model name. Empty when no models installed.
+
+### API-03 — SHACL shapes endpoint as structured JSON
+- Status: active
+- Class: core-capability
+- Source: design (BROWSER-EXTENSION-DESIGN.md)
+- Primary Slice: M013/S02
+- Acceptance: `GET /api/shapes/{type_iri}` returns SHACL property shapes as JSON with shape IRI, target class, label, groups (IRI, label, order), and properties (path, name, datatype, constraints, in_values, helptext, order, group). Returns 404 for unknown type IRIs.
+
+### API-04 — Context-query endpoint for related objects
+- Status: active
+- Class: core-capability
+- Source: design (BROWSER-EXTENSION-DESIGN.md)
+- Primary Slice: M013/S03
+- Acceptance: `POST /api/context-query` accepts JSON with url/title/keywords (at least one required), returns related objects with IRI, label, type, match_type, and snippet. URL matching via exact SPARQL FILTER, keyword matching via FTS/LuceneSail. Results deduplicated.
+
+### API-05 — Dual-auth dependency (session cookie + Bearer API token)
+- Status: active
+- Class: core-capability
+- Source: design (BROWSER-EXTENSION-DESIGN.md)
+- Primary Slice: M013/S01
+- Acceptance: All M013 API endpoints accept either session cookie or `Authorization: Bearer <token>` header. Invalid tokens return 401. Existing session-only auth for htmx routes is unchanged.
+
+### API-06 — CORS headers for browser extension access
+- Status: active
+- Class: core-capability
+- Source: design (BROWSER-EXTENSION-DESIGN.md)
+- Primary Slice: M013/S01
+- Acceptance: All `/api/` and `/.well-known/sempkm` responses include `Access-Control-Allow-Origin: *`, `Access-Control-Allow-Headers: Authorization, Content-Type, Accept`, `Access-Control-Allow-Methods: GET, POST, OPTIONS`. OPTIONS preflight returns 204.
+
+### API-07 — nginx Authorization header forwarding on /api/
+- Status: active
+- Class: core-capability
+- Source: research (M013-RESEARCH.md)
+- Primary Slice: M013/S01
+- Acceptance: nginx `/api/` proxy block forwards the `Authorization` header to FastAPI (matching the existing `/dav/` block pattern). Bearer tokens from external clients reach the backend.
+
+### API-08 — API surface user guide documentation
+- Status: active
+- Class: quality-attribute
+- Source: standing requirement
+- Primary Slice: M013/S03
+- Acceptance: `docs/guide/31-api-surface.md` documents all four endpoints with request/response examples, authentication methods, CORS behavior, and error responses. Linked in README TOC and glossary.
+
 ### MODEL-01 — basic-pkm v2.0 with Task and Milestone types
 - Status: validated
 - Class: core-capability
@@ -1499,10 +1555,18 @@ All 6 items verified: Lucide SVG chevrons on 6 sections with rotation. OBJECTS o
 | MODEL-02 | core-capability | validated | M011/S02 | M011/S05 | offline validation + cross-model test + E2E Docker lifecycle + Ch. 29 guide |
 | MODEL-03 | core-capability | validated | M011/S03 | M011/S05 | offline validation + cross-model test + E2E Docker lifecycle + Ch. 29 guide |
 | MODEL-04 | core-capability | validated | M011/S04 | M011/S05 | offline validation + cross-model test + E2E Docker lifecycle + Ch. 29 guide |
+| API-01 | core-capability | active | M013/S01 | none | design: BROWSER-EXTENSION-DESIGN.md |
+| API-02 | core-capability | active | M013/S02 | none | design: BROWSER-EXTENSION-DESIGN.md |
+| API-03 | core-capability | active | M013/S02 | none | design: BROWSER-EXTENSION-DESIGN.md |
+| API-04 | core-capability | active | M013/S03 | none | design: BROWSER-EXTENSION-DESIGN.md |
+| API-05 | core-capability | active | M013/S01 | none | design: BROWSER-EXTENSION-DESIGN.md |
+| API-06 | core-capability | active | M013/S01 | none | design: BROWSER-EXTENSION-DESIGN.md |
+| API-07 | core-capability | active | M013/S01 | none | research: M013-RESEARCH.md |
+| API-08 | quality-attribute | active | M013/S03 | none | standing requirement |
 
 ## Coverage Summary
 
-- Active requirements: 22 (14 APP + 8 RSS)
+- Active requirements: 30 (14 APP + 8 RSS + 8 API)
 - Validated: 132 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012)
 - Deferred: 7 (TYPE-03, TYPE-04, MCP-01, NOTION-01, VIEW-06, VIEW-07, VFS-13)
 - Out of scope: 3
