@@ -63,7 +63,7 @@ This milestone is complete only when all are true:
 - [x] **S01: Platform fix + Mental Model + App data pipeline** `risk:high` `depends:[]`
   > After this: SDK IRI prefix bug fixed with tests. `rss-feeds` model installed in triplestore (Article, FeedSubscription types visible). `rss-reader` app skeleton installs, starts, and the `poll-feeds` task creates real articles from a test feed via bulk EventStore. Articles visible in object browser.
 
-- [ ] **S02: Feed service + content extraction + feed management** `risk:medium` `depends:[S01]`
+- [x] **S02: Feed service + content extraction + feed management** `risk:medium` `depends:[S01]`
   > After this: User subscribes to feeds by URL, feed discovery finds feeds from website URLs, trafilatura extracts full article content, conditional GET (ETag/Last-Modified) avoids redundant downloads, per-feed error tracking reports failures. Unit tests cover RSS 2.0, Atom 1.0, and JSON Feed formats.
 
 - [ ] **S03: Reader UI (split-pane layout)** `risk:low` `depends:[S01]`
