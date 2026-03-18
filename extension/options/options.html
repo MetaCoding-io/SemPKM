@@ -3,14 +3,114 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SemPKM Capture — Options</title>
+  <title>SemPKM Capture — Settings</title>
   <link rel="stylesheet" href="options.css">
 </head>
 <body>
-  <div id="options-root">
-    <h1>SemPKM Capture Settings</h1>
-    <p>Options page — placeholder. Full implementation in T03.</p>
+  <div class="options-container">
+    <!-- Header -->
+    <header class="options-header">
+      <div class="brand">
+        <svg class="brand-icon" width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <rect width="28" height="28" rx="6" fill="#4f46e5"/>
+          <path d="M8 10.5C8 9.12 9.12 8 10.5 8h7C18.88 8 20 9.12 20 10.5v7c0 1.38-1.12 2.5-2.5 2.5h-7A2.5 2.5 0 0 1 8 17.5v-7Z" stroke="#fff" stroke-width="1.5"/>
+          <circle cx="14" cy="14" r="2.5" fill="#fff"/>
+          <line x1="14" y1="8" x2="14" y2="11" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="14" y1="17" x2="14" y2="20" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="8" y1="14" x2="11" y2="14" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="17" y1="14" x2="20" y2="14" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+        <div>
+          <h1>SemPKM Capture</h1>
+          <p class="subtitle">Extension Settings</p>
+        </div>
+      </div>
+    </header>
+
+    <!-- Connection Section -->
+    <section class="settings-section">
+      <h2 class="section-title">Connection</h2>
+
+      <div class="form-group">
+        <label for="instance-url">Instance URL</label>
+        <input type="url" id="instance-url" placeholder="http://localhost:3000" autocomplete="url" spellcheck="false">
+        <p class="field-hint">The address of your SemPKM server</p>
+      </div>
+
+      <div class="form-group">
+        <label for="api-key">API Key</label>
+        <div class="input-with-action">
+          <input type="password" id="api-key" placeholder="Your API key" autocomplete="off" spellcheck="false">
+          <button type="button" id="toggle-key-visibility" class="btn-icon" title="Show/hide API key" aria-label="Toggle API key visibility">
+            <svg class="icon-eye" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+            <svg class="icon-eye-off hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+              <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+              <line x1="1" y1="1" x2="23" y2="23"/>
+            </svg>
+          </button>
+        </div>
+        <p class="field-hint">Generate an API key in SemPKM → Admin → API Keys</p>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" id="test-connection" class="btn btn-secondary">
+          <span class="btn-label">Test Connection</span>
+          <span class="btn-spinner hidden" aria-hidden="true"></span>
+        </button>
+      </div>
+
+      <!-- Connection Status -->
+      <div id="connection-status" class="connection-status hidden" role="status" aria-live="polite">
+        <span class="status-icon" aria-hidden="true"></span>
+        <span class="status-message"></span>
+      </div>
+    </section>
+
+    <!-- Capture Defaults Section -->
+    <section class="settings-section">
+      <h2 class="section-title">Capture Defaults</h2>
+
+      <div class="form-group">
+        <label for="default-type">Default Type</label>
+        <select id="default-type" disabled>
+          <option value="">— Connect to load types —</option>
+        </select>
+        <p class="field-hint">The default object type for new captures</p>
+      </div>
+
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input type="checkbox" id="auto-fill-title" checked>
+          <span>Auto-fill title from page title</span>
+        </label>
+      </div>
+
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input type="checkbox" id="auto-fill-url" checked>
+          <span>Auto-fill URL from current page</span>
+        </label>
+      </div>
+
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input type="checkbox" id="include-selection" checked>
+          <span>Include selected text in capture</span>
+        </label>
+      </div>
+    </section>
+
+    <!-- Save Actions -->
+    <section class="settings-footer">
+      <button type="button" id="save-settings" class="btn btn-primary">Save Settings</button>
+      <span id="save-confirmation" class="save-confirmation hidden" role="status" aria-live="polite">Settings saved ✓</span>
+    </section>
   </div>
+
   <script type="module" src="options.js"></script>
 </body>
 </html>

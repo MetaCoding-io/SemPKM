@@ -92,6 +92,14 @@ This delivers EXT-07 (settings) for this slice.
 - `extension/options/options.js` — Minimal stub from T02 (will be replaced)
 - `extension/options/options.css` — Empty from T02 (will be replaced)
 
+## Observability Impact
+
+- **Console logging:** `options.js` emits `[SemPKM] Options page loaded` on init, `[SemPKM] Connection test passed: {version, endpoints}` on success, `[SemPKM] Loaded N types` after type fetch, `[SemPKM] Settings saved` on save, and `[SemPKM] Connection test failed: <msg>` on error — all visible in the options page DevTools console.
+- **Visual status:** Connection test result is rendered as a green ✅ or red ❌ status banner with descriptive message (version string or error cause). This is the primary user-facing diagnostic.
+- **Error differentiation:** `connectionErrorMessage()` maps HTTP status codes to specific user messages: 401 → "Invalid API key", 403 → "API key lacks required permissions", TypeError → "Cannot reach instance", other → server detail string.
+- **Inspection:** `chrome.storage.sync.get(null, console.log)` in extension DevTools reveals all persisted settings (instanceUrl, apiKey, defaultType, autoFillTitle, autoFillUrl, includeSelection).
+- **Failure state:** If settings are blank or invalid, the type selector stays disabled with "— Connect to load types —" placeholder. The options page never shows a false-positive green status.
+
 ## Expected Output
 
 - `extension/options/options.html` — Complete options page with form, connection test area, and type selector
