@@ -305,10 +305,23 @@ def well_known_app(db_session_factory, db_session):
 class TestWellKnownEndpoint:
     """Test the /.well-known/sempkm discovery endpoint."""
 
-    async def test_well_known_returns_200_with_valid_cookie(
+    async def test_well_known_returns_json_with_correct_content_type(
         self, well_known_app, valid_session
     ):
-        """Authenticated request via session cookie returns the discovery document."""
+        """Authenticated request returns application/json content-type."""
+        transport = ASGITransport(app=well_known_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/.well-known/sempkm",
+                cookies={"sempkm_session": valid_session.token},
+            )
+        assert resp.status_code == 200
+        assert "application/json" in resp.headers["content-type"]
+
+    async def test_well_known_has_required_keys(
+        self, well_known_app, valid_session
+    ):
+        """Response contains version, endpoints, auth, and capabilities keys."""
         transport = ASGITransport(app=well_known_app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             resp = await client.get(
@@ -368,6 +381,21 @@ class TestWellKnownEndpoint:
             )
         assert resp.status_code == 200
         assert resp.json()["version"] == APP_VERSION
+
+    async def test_well_known_endpoints_are_strings(
+        self, well_known_app, valid_session
+    ):
+        """Each endpoint value should be a string URL path."""
+        transport = ASGITransport(app=well_known_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/.well-known/sempkm",
+                cookies={"sempkm_session": valid_session.token},
+            )
+        endpoints = resp.json()["endpoints"]
+        for key, value in endpoints.items():
+            assert isinstance(value, str), f"endpoints[{key!r}] is not a string"
+            assert value.startswith("/"), f"endpoints[{key!r}] does not start with /"
 
     async def test_well_known_endpoints_structure(
         self, well_known_app, valid_session
