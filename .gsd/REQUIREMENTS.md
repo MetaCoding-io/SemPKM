@@ -347,6 +347,60 @@ Corner/edge/bottom resize handles on `.spatial-node` with `stopPropagation()` is
 
 Toolbar "Embed" button opens tabbed picker (Views/Dashboards/Queries) fetching from existing list APIs. Explorer entries in views_explorer.html, dashboard_explorer.html, and my_views.html have `draggable="true"` with `ondragstart` setting embed-type payload. Both paths call `addEmbedNode()` producing identical node types. Max 8 enforced on both paths.
 
+### EVTLOG-01 — Predicate/type/object labels resolve to human-readable text in event log
+- Status: validated
+- Class: core-capability
+- Source: design (M012 roadmap)
+- Primary Slice: M012/S01
+- Acceptance: Event log detail shows human-readable predicate labels (e.g. "Title" not "dcterms:title") via ShapesService and LabelService batch resolution.
+
+Unit tests (test_event_log_labels.py) + E2E (event-log-polish.spec.ts) + user guide (Ch 15 §Predicate Labels).
+
+### EVTLOG-02 — Helptext tooltips on event log predicates from SHACL annotations
+- Status: validated
+- Class: core-capability
+- Source: design (M012 roadmap)
+- Primary Slice: M012/S01
+- Acceptance: Predicate labels in event log detail have helptext tooltips from SHACL sh:description / sempkm:editHelpText annotations, indicated by dotted underlines.
+
+Unit tests (test_event_log_labels.py) + E2E (event-log-polish.spec.ts) + user guide (Ch 15 §Helptext Tooltips).
+
+### EVTLOG-03 — Autocomplete for event log filter fields
+- Status: validated
+- Class: core-capability
+- Source: design (M012 roadmap)
+- Primary Slice: M012/S01
+- Acceptance: Event log filter fields provide autocomplete suggestions for operation types, predicates, and objects via three suggestion endpoints.
+
+Unit tests (test_event_suggestions.py) + E2E (event-log-polish.spec.ts) + user guide (Ch 15 §Autocomplete Filters).
+
+### BDIFF-01 — Body changes store incremental diffs instead of full replacements
+- Status: validated
+- Class: core-capability
+- Source: design (M012 roadmap)
+- Primary Slice: M012/S02
+- Acceptance: When editing an existing note body, the system computes and stores a unified diff (body.diff) instead of full replacement (body.set).
+
+Unit tests (test_body_diff.py) + E2E (body-diff.spec.ts) + user guide (Ch 15 §Body Diff Events).
+
+### BDIFF-02 — Event log renders body.diff events with addition/deletion highlighting
+- Status: validated
+- Class: core-capability
+- Source: design (M012 roadmap)
+- Primary Slice: M012/S02
+- Acceptance: Event log detail view renders body.diff events with green (added) and red (removed) line highlighting using unified diff format.
+
+Unit tests (test_body_diff.py) + E2E (body-diff.spec.ts) + user guide (Ch 15 §Body Diff Events).
+
+### BDIFF-03 — Existing body.set events continue to display correctly
+- Status: validated
+- Class: core-capability
+- Source: design (M012 roadmap)
+- Primary Slice: M012/S02
+- Acceptance: First-time body sets still create body.set events with full text display. Both body.set and body.diff events render correctly side-by-side in the event log.
+
+E2E (body-diff.spec.ts test 3) + user guide (Ch 15 §Body Diff Events).
+
 ### PERSONA-01 — Named personas with CRUD (create, rename, delete)
 - Status: validated
 - Class: core-capability
@@ -1398,11 +1452,17 @@ All 6 items verified: Lucide SVG chevrons on 6 sections with rotation. OBJECTS o
 | CANVAS-03 | core-capability | validated | M008/S03 | none | dual-layer rendering + embed endpoints + 32 tests |
 | CANVAS-04 | core-capability | validated | M008/S03 | none | sparql-result endpoint + object embed + 32 tests |
 | CANVAS-05 | core-capability | validated | M008/S03 | none | toolbar picker + explorer drag-drop + 32 tests |
-| PERSONA-01 | core-capability | validated | M012/S03 | none | PersonaService + 20 unit tests + 7 API endpoints |
-| PERSONA-02 | core-capability | validated | M012/S03 | none | switchPersona() + fromJSON try/catch + guard flag |
-| PERSONA-03 | core-capability | validated | M012/S03 | none | sidebar selector UI + browser screenshot |
-| PERSONA-04 | core-capability | validated | M012/S03 | none | 3 command palette entries + dynamic submenu |
-| PERSONA-05 | core-capability | validated | M012/S03 | none | initPersonas() auto-create + browser verified |
+| PERSONA-01 | core-capability | validated | M012/S03 | M012/S04 | PersonaService + 20 unit tests + 7 API endpoints + E2E |
+| PERSONA-02 | core-capability | validated | M012/S03 | M012/S04 | switchPersona() + fromJSON try/catch + guard flag + E2E |
+| PERSONA-03 | core-capability | validated | M012/S03 | M012/S04 | sidebar selector UI + browser screenshot + E2E |
+| PERSONA-04 | core-capability | validated | M012/S03 | M012/S04 | 3 command palette entries + dynamic submenu + E2E |
+| PERSONA-05 | core-capability | validated | M012/S03 | M012/S04 | initPersonas() auto-create + browser verified + E2E |
+| EVTLOG-01 | core-capability | validated | M012/S01 | M012/S04 | label resolution + unit tests + E2E + docs |
+| EVTLOG-02 | core-capability | validated | M012/S01 | M012/S04 | helptext extraction + unit tests + E2E + docs |
+| EVTLOG-03 | core-capability | validated | M012/S01 | M012/S04 | autocomplete endpoints + unit tests + E2E + docs |
+| BDIFF-01 | core-capability | validated | M012/S02 | M012/S04 | body.diff handler + unit tests + E2E + docs |
+| BDIFF-02 | core-capability | validated | M012/S02 | M012/S04 | diff rendering + unit tests + E2E + docs |
+| BDIFF-03 | core-capability | validated | M012/S02 | M012/S04 | backward compat + E2E + docs |
 | TYPE-03 | core-capability | deferred | none | none | unmapped |
 | TYPE-04 | core-capability | deferred | none | none | unmapped |
 | MCP-01 | core-capability | deferred | none | none | unmapped |
@@ -1443,7 +1503,7 @@ All 6 items verified: Lucide SVG chevrons on 6 sections with rotation. OBJECTS o
 ## Coverage Summary
 
 - Active requirements: 22 (14 APP + 8 RSS)
-- Validated: 126 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 5 from M012)
+- Validated: 132 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012)
 - Deferred: 7 (TYPE-03, TYPE-04, MCP-01, NOTION-01, VIEW-06, VIEW-07, VFS-13)
 - Out of scope: 3
 - Unmapped active requirements: 22 (14 APP + 8 RSS — pending M009/M010 roadmap planning)

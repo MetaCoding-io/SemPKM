@@ -88,7 +88,7 @@ This milestone is complete only when all are true:
 - [x] **S03: Workspace Personas** `risk:high` `depends:[]`
   > After this: User creates named personas with different workspace layouts, switches between them via sidebar menu or Ctrl+K, and layouts restore correctly including dockview panels, sidebar positions, and explorer mode
 
-- [ ] **S04: E2E Tests & User Guide** `risk:low` `depends:[S01,S02,S03]`
+- [x] **S04: E2E Tests & User Guide** `risk:low` `depends:[S01,S02,S03]`
   > After this: All new features have Playwright E2E test coverage and user guide documentation; event log improvements documented in existing event log guide page, personas documented in new guide page
 
 ## Boundary Map
