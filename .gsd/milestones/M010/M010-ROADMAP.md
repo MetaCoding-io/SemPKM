@@ -69,7 +69,7 @@ This milestone is complete only when all are true:
 - [x] **S03: Reader UI (split-pane layout)** `risk:low` `depends:[S01]`
   > After this: RSS Reader standalone page shows split-pane layout — feed sidebar with unread counts, article list with title/date/source, and reading pane with clean markdown-rendered article body. Star toggle and mark read/unread controls work. All via htmx fragments.
 
-- [ ] **S04: Workspace contributions + custom renderer** `risk:low` `depends:[S02,S03]`
+- [x] **S04: Workspace contributions + custom renderer** `risk:low` `depends:[S02,S03]`
   > After this: "Unread Articles" and "Starred Articles" views in workspace Views section. "Related Articles" in right pane. "Subscribe to Feed...", "Mark All as Read", "Open RSS Reader" in command palette. Custom `rss:Article` read renderer replaces default SHACL form when opening an article from the object browser.
 
 - [ ] **S05: OPML import + app settings** `risk:low` `depends:[S02]`
