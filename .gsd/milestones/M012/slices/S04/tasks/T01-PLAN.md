@@ -40,6 +40,14 @@ The merge should be clean: S01/S02 touch event log and shapes files, S03 touches
 - `test -f backend/app/persona/service.py && echo OK` — OK
 - `python -m pytest backend/tests/ --tb=short` — passes
 
+## Observability Impact
+
+**Signals changed:** After this merge, the working directory contains all M012 feature code (S01 event log polish, S02 body.diff, S03 personas). The Docker test stack (which volume-mounts from the working directory) will serve all three feature sets.
+
+**Inspection:** `git log --oneline -1` shows the merge commit. `git diff --stat HEAD~1` shows all files brought in from the branch. Key files can be verified with existence checks listed in the Verification section.
+
+**Failure state:** If the merge introduced conflicts, `grep -rn "^<<<<<<< " backend/ frontend/` will find conflict markers. If the merge broke code, `python -m pytest backend/tests/ --tb=short` will show test failures with tracebacks identifying the broken module.
+
 ## Inputs
 
 - `milestone/M012` branch containing S01/S02 code (event log labels, helptext, autocomplete, body.diff)
