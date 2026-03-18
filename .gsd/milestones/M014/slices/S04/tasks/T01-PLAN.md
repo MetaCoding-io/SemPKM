@@ -104,6 +104,13 @@ The module uses `SemPKMClient.searchObjects(query)` which calls `POST /api/conte
 - `extension/shared/api-client.js` — `SemPKMClient.searchObjects(query)` returns `[{iri, label, type_iri, type_label, match_type, snippet}]` (read-only reference, do not modify)
 - `extension/popup/popup.css` — existing styles include `.reference-field { position: relative; }` already set
 
+## Observability Impact
+
+- **New console logs:** `[SemPKM] Reference picker initialized: N fields` on form render, `[SemPKM] Search: "query" → M results (K after type filter)` on each search cycle, `[SemPKM] Reference selected: {label} ({iri})` on selection
+- **Inspection surface:** In popup DevTools console, filter for `[SemPKM]` to trace the full search → filter → select lifecycle. In Elements panel, inspect `.suggestions-dropdown` visibility and `.has-selection` state on `.reference-field`.
+- **Failure visibility:** Network errors from `client.searchObjects()` surface as "Search failed" message in the dropdown. Stale query rejections are silent (by design — no user-visible artifact). If no results match the type filter, the dropdown shows "No matching {typeName} found".
+- **Diagnostic command:** In DevTools console: `document.querySelectorAll('.reference-field.has-selection')` shows which fields have selections; `document.querySelectorAll('.suggestions-dropdown')` shows initialized dropdowns.
+
 ## Expected Output
 
 - `extension/shared/reference-picker.js` — New ~150-200 line ES module with 3 exported functions, zero inline handlers, full debounce/filter/select/clear lifecycle
