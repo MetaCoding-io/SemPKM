@@ -53,7 +53,7 @@
   - Verify: `cd e2e && npx playwright test tests/27-event-log-polish tests/28-body-diff --project=chromium` (requires Docker test stack)
   - Done when: Both spec files exist with ≥3 tests each covering the documented feature surfaces
 
-- [ ] **T03: E2E Playwright tests for personas** `est:45m`
+- [x] **T03: E2E Playwright tests for personas** `est:45m`
   - Why: Provides E2E browser coverage for persona CRUD, auto-creation, and switching (PERSONA-01 through PERSONA-05). While already validated via unit tests and curl, E2E tests exercise the full browser flow.
   - Files: `e2e/tests/29-personas/personas.spec.ts`
   - Do: Write spec file following patterns from `named-layouts.spec.ts` (similar concept — save/restore workspace state). Tests: (1) API-level CRUD — create persona, list, rename, delete via ownerRequest, (2) default persona auto-creation — navigate to workspace, verify GET /api/personas returns at least one persona, (3) persona selector visible in sidebar — open user popover, verify persona selector UI appears, (4) command palette entries — open palette with Alt+K, verify persona commands exist, (5) persona switch — create second persona via API, call switchPersona() in browser, verify active persona changes.
