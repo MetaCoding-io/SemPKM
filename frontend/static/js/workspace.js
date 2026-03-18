@@ -17,6 +17,10 @@
   var PANEL_POSITIONS_KEY = 'sempkm_panel_positions';
   var FUZZY_KEY = 'sempkm_fts_fuzzy';
 
+  // --- Persona State ---
+  var _activePersonaId = null;
+  var _switchingPersona = false;
+
   // --- Toast Notifications ---
 
   function showToast(message, duration) {
@@ -1464,6 +1468,47 @@
           title: 'Layout: Delete...',
           section: 'Layout',
           children: []   // populated by _refreshLayoutPaletteItems
+        },
+        // --- Persona commands ---
+        {
+          id: 'persona-switch',
+          title: 'Persona: Switch To...',
+          section: 'Persona',
+          children: []  // populated by _refreshPersonaPaletteItems
+        },
+        {
+          id: 'persona-save',
+          title: 'Persona: Save Current',
+          section: 'Persona',
+          handler: function () { saveCurrentPersonaState(); }
+        },
+        {
+          id: 'persona-create',
+          title: 'Persona: Create New...',
+          section: 'Persona',
+          children: ['persona-create-confirm']
+        },
+        {
+          id: 'persona-create-confirm',
+          title: 'Type a persona name above, then select this item to save',
+          parent: 'persona-create',
+          handler: function () {
+            var ninjaEl = document.querySelector('ninja-keys');
+            var pname = '';
+            if (ninjaEl) {
+              try {
+                var input = ninjaEl.shadowRoot.querySelector('input[type="text"]');
+                if (input) pname = input.value;
+              } catch (e) {}
+              if (!pname && ninjaEl._search) pname = ninjaEl._search;
+            }
+            pname = pname ? pname.trim() : '';
+            if (!pname) {
+              showToast('Please type a persona name in the search field first', 3000);
+              return;
+            }
+            createNewPersona(pname);
+          }
         }
       ];
 
@@ -1477,6 +1522,9 @@
 
       // Populate layout restore/delete children from saved layouts
       _refreshLayoutPaletteItems(ninja);
+
+      // Populate persona switch children from API
+      _refreshPersonaPaletteItems(ninja);
 
       // Add per-type Create entries from nav tree DOM
       _addTypeCreateEntries(ninja);
@@ -2179,6 +2227,314 @@
 
   // --- Explorer Mode State ---
 
+  // --- Persona Management ---
+
+  /**
+   * Initialize the persona system: load personas from the server, and auto-create
+   * a "Default" persona on first load if none exist.
+   * Must be called after dockview is initialized (window._dockview must exist).
+   */
+  function initPersonas() {
+    fetch('/api/personas', { credentials: 'same-origin' })
+      .then(function (resp) {
+        if (!resp.ok) throw new Error('Persona list failed: ' + resp.status);
+        return resp.json();
+      })
+      .then(function (personas) {
+        if (personas.length === 0) {
+          // Auto-create "Default" persona with current workspace state
+          var layoutJson = window._dockview ? JSON.stringify(window._dockview.toJSON()) : '{}';
+          var sidebarJson = localStorage.getItem(PANEL_POSITIONS_KEY) || '{}';
+          var explorerMode = localStorage.getItem(EXPLORER_MODE_KEY) || 'by-type';
+
+          return fetch('/api/personas', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: 'Default',
+              layout_json: layoutJson,
+              sidebar_positions_json: sidebarJson,
+              explorer_mode: explorerMode
+            })
+          })
+          .then(function (resp) {
+            if (!resp.ok) throw new Error('Default persona creation failed: ' + resp.status);
+            return resp.json();
+          })
+          .then(function (created) {
+            _activePersonaId = created.id;
+            console.log('SemPKM: persona init — created Default (' + created.id + ')');
+          });
+        } else {
+          // Find active persona
+          var active = personas.find(function (p) { return p.is_active; });
+          if (active) {
+            _activePersonaId = active.id;
+          }
+          console.log('SemPKM: persona init — active: ' + (_activePersonaId || 'none'));
+        }
+      })
+      .catch(function (err) {
+        // Persona init failure must not block workspace startup
+        console.warn('SemPKM: persona init failed:', err.message || err);
+      });
+  }
+
+  /**
+   * Save the current workspace state (dockview layout, sidebar positions, explorer mode)
+   * to the active persona on the server.
+   * Returns a Promise so callers can await it.
+   */
+  function saveCurrentPersonaState() {
+    if (!_activePersonaId) {
+      return Promise.resolve();
+    }
+
+    var layoutJson = window._dockview ? JSON.stringify(window._dockview.toJSON()) : null;
+    var sidebarJson = localStorage.getItem(PANEL_POSITIONS_KEY);
+    var explorerMode = localStorage.getItem(EXPLORER_MODE_KEY);
+
+    return fetch('/api/personas/' + _activePersonaId + '/save-state', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        layout_json: layoutJson,
+        sidebar_positions_json: sidebarJson,
+        explorer_mode: explorerMode
+      })
+    })
+    .then(function (resp) {
+      if (!resp.ok) throw new Error('Save state failed: ' + resp.status);
+      showToast('Persona saved');
+    })
+    .catch(function (err) {
+      console.warn('SemPKM: persona save failed:', err.message || err);
+      showToast('Failed to save persona state', 3000);
+    });
+  }
+
+  /**
+   * Switch to a different persona: save current state, fetch new persona data,
+   * activate it, and apply its layout/positions/mode.
+   */
+  function switchPersona(id) {
+    if (id === _activePersonaId) return;
+
+    _switchingPersona = true;
+    window._switchingPersona = true; // expose for workspace-layout.js guard
+
+    saveCurrentPersonaState()
+      .then(function () {
+        // Fetch full persona payload
+        return fetch('/api/personas/' + id, { credentials: 'same-origin' });
+      })
+      .then(function (resp) {
+        if (!resp.ok) throw new Error('Fetch persona failed: ' + resp.status);
+        return resp.json();
+      })
+      .then(function (persona) {
+        // Activate on server
+        return fetch('/api/personas/' + id + '/activate', {
+          method: 'POST',
+          credentials: 'same-origin'
+        }).then(function (resp) {
+          if (!resp.ok) throw new Error('Activate failed: ' + resp.status);
+          return persona;
+        });
+      })
+      .then(function (persona) {
+        // Apply dockview layout
+        if (window._dockview && persona.layout_json) {
+          try {
+            var layoutData = JSON.parse(persona.layout_json);
+            window._dockview.fromJSON(layoutData);
+          } catch (e) {
+            console.warn('SemPKM: persona layout restore failed:', e.message || e);
+            showToast("Layout couldn't be fully restored", 3000);
+          }
+        }
+
+        // Apply sidebar panel positions
+        if (persona.sidebar_positions_json) {
+          localStorage.setItem(PANEL_POSITIONS_KEY, persona.sidebar_positions_json);
+          restorePanelPositions();
+        }
+
+        // Apply explorer mode
+        if (persona.explorer_mode) {
+          localStorage.setItem(EXPLORER_MODE_KEY, persona.explorer_mode);
+          var modeSelect = document.getElementById('explorer-mode-select');
+          if (modeSelect) {
+            modeSelect.value = persona.explorer_mode;
+            if (typeof htmx !== 'undefined') {
+              htmx.trigger(modeSelect, 'change');
+            }
+          }
+        }
+
+        // Update active persona tracking
+        _activePersonaId = id;
+
+        // Clear guard flag
+        _switchingPersona = false;
+        window._switchingPersona = false;
+
+        showToast('Switched to persona: ' + persona.name);
+        console.log('SemPKM: switched to persona: ' + persona.name + ' (' + id + ')');
+
+        // Refresh persona selector in sidebar if visible
+        var selectorContainer = document.getElementById('persona-selector-container');
+        if (selectorContainer && typeof htmx !== 'undefined') {
+          htmx.ajax('GET', '/browser/personas/selector', {
+            target: '#persona-selector-container',
+            swap: 'innerHTML'
+          });
+        }
+
+        // Refresh command palette persona items
+        var ninja = document.querySelector('ninja-keys');
+        if (ninja) _refreshPersonaPaletteItems(ninja);
+      })
+      .catch(function (err) {
+        console.warn('SemPKM: persona switch failed:', err.message || err);
+        showToast('Failed to switch persona', 3000);
+      })
+      .finally(function () {
+        _switchingPersona = false;
+        window._switchingPersona = false;
+      });
+  }
+
+  /**
+   * Create a new persona with the current workspace state.
+   * If name is provided (from command palette), use it directly.
+   * If no name, prompt the user.
+   */
+  function createNewPersona(name) {
+    if (!name) {
+      name = window.prompt('New persona name:');
+    }
+    if (!name || !name.trim()) return;
+    name = name.trim();
+
+    // Save current persona state first so it doesn't lose unsaved changes
+    saveCurrentPersonaState()
+      .then(function () {
+        var layoutJson = window._dockview ? JSON.stringify(window._dockview.toJSON()) : '{}';
+        var sidebarJson = localStorage.getItem(PANEL_POSITIONS_KEY) || '{}';
+        var explorerMode = localStorage.getItem(EXPLORER_MODE_KEY) || 'by-type';
+
+        return fetch('/api/personas', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: name,
+            layout_json: layoutJson,
+            sidebar_positions_json: sidebarJson,
+            explorer_mode: explorerMode
+          })
+        });
+      })
+      .then(function (resp) {
+        if (!resp.ok) throw new Error('Create persona failed: ' + resp.status);
+        return resp.json();
+      })
+      .then(function (created) {
+        // API auto-activates new persona, update tracking
+        _activePersonaId = created.id;
+        showToast("Persona '" + created.name + "' created");
+        console.log('SemPKM: persona created: ' + created.name + ' (' + created.id + ')');
+
+        // Refresh persona selector in sidebar if visible
+        var selectorContainer = document.getElementById('persona-selector-container');
+        if (selectorContainer && typeof htmx !== 'undefined') {
+          htmx.ajax('GET', '/browser/personas/selector', {
+            target: '#persona-selector-container',
+            swap: 'innerHTML'
+          });
+        }
+
+        // Refresh command palette persona items
+        var ninja = document.querySelector('ninja-keys');
+        if (ninja) _refreshPersonaPaletteItems(ninja);
+      })
+      .catch(function (err) {
+        console.warn('SemPKM: persona creation failed:', err.message || err);
+        showToast('Failed to create persona', 3000);
+      });
+  }
+
+  /**
+   * Refresh the command palette persona switch/list items from the API.
+   * Follows the same pattern as _refreshLayoutPaletteItems.
+   */
+  function _refreshPersonaPaletteItems(ninja) {
+    if (!ninja) return;
+
+    fetch('/api/personas', { credentials: 'same-origin' })
+      .then(function (resp) {
+        if (!resp.ok) throw new Error('Fetch personas for palette failed');
+        return resp.json();
+      })
+      .then(function (personas) {
+        // Filter out existing persona-switch- prefixed items
+        var baseData = ninja.data.filter(function (d) {
+          return !d.id.startsWith('persona-switch-');
+        });
+
+        // Collect child IDs for the parent's children array
+        var childIds = [];
+
+        // Add persona switch children
+        personas.forEach(function (persona) {
+          var childId = 'persona-switch-' + persona.id;
+          childIds.push(childId);
+          baseData.push({
+            id: childId,
+            title: persona.name + (persona.is_active ? ' ✓' : ''),
+            parent: 'persona-switch',
+            handler: (function (pid) {
+              return function () { switchPersona(pid); };
+            })(persona.id)
+          });
+        });
+
+        // Update the parent's children array so ninja-keys enables drill-down
+        var parentItem = baseData.find(function (d) { return d.id === 'persona-switch'; });
+        if (parentItem) {
+          parentItem.children = childIds;
+        }
+
+        ninja.data = baseData;
+      })
+      .catch(function (err) {
+        console.warn('SemPKM: persona palette refresh failed:', err.message || err);
+      });
+  }
+
+  // --- beforeunload: save persona state via sendBeacon ---
+  window.addEventListener('beforeunload', function () {
+    if (_activePersonaId && !_switchingPersona) {
+      var layoutJson = window._dockview ? JSON.stringify(window._dockview.toJSON()) : null;
+      var sidebarJson = localStorage.getItem(PANEL_POSITIONS_KEY);
+      var explorerMode = localStorage.getItem(EXPLORER_MODE_KEY);
+      var payload = JSON.stringify({
+        layout_json: layoutJson,
+        sidebar_positions_json: sidebarJson,
+        explorer_mode: explorerMode
+      });
+      navigator.sendBeacon(
+        '/api/personas/' + _activePersonaId + '/save-state',
+        new Blob([payload], { type: 'application/json' })
+      );
+    }
+  });
+
+  // --- Explorer Mode State (continued) ---
+
   var EXPLORER_MODE_KEY = 'sempkm_explorer_mode';
 
   function initExplorerMode() {
@@ -2319,6 +2675,9 @@
 
     // --- Inject VFS mount options into explorer dropdown (async, non-blocking) ---
     initExplorerMountOptions();
+
+    // --- Initialize persona system (auto-creates Default persona if none exist) ---
+    initPersonas();
 
     // Initialize lint dashboard SSE and health badge
     initLintDashboardSSE();
@@ -2888,6 +3247,11 @@
   window.showEventInLog = showEventInLog;
   window.showConfirmDialog = showConfirmDialog;
   window.deleteEdge = deleteEdge;
+
+  // --- Persona functions (exposed for sidebar template onclick handlers) ---
+  window.switchPersona = switchPersona;
+  window.saveCurrentPersonaState = saveCurrentPersonaState;
+  window.createNewPersona = createNewPersona;
 
   // -----------------------------------------------------------------------
   // Favorites: star toggle

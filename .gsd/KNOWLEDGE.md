@@ -44,3 +44,19 @@ The Docker test stack (docker-compose.test.yml) started from `.gsd/worktrees/M00
 If model directories only exist in the main tree (e.g., after a T01 task copies them there), they must also be copied to the worktree's `models/` directory for the Docker container to see them.
 
 **Check:** `docker inspect <container> --format '{{json .Mounts}}'` shows the resolved source paths.
+
+## ninja-keys: Parent `children` Array Must List Child IDs
+
+**Discovery date:** 2026-03-17  
+**Context:** M012/S03/T03 — Command palette persona submenu
+
+In ninja-keys, a parent command with `children: []` (empty array) does NOT auto-discover children by their `parent` property. The `children` array on the parent must contain the actual child IDs (e.g., `['persona-switch-abc123']`) for drill-down navigation to work. The `parent` property on children is only for breadcrumb display.
+
+**Pattern:** When using `_refreshPersonaPaletteItems` or similar async population functions, always update both the child items' `parent` property AND the parent's `children` array with the child IDs.
+
+## Cross-IIFE Guard Flags via window
+
+**Discovery date:** 2026-03-17  
+**Context:** M012/S03/T03 — workspace.js ↔ workspace-layout.js guard flag
+
+`workspace.js` and `workspace-layout.js` are separate IIFEs. Variables declared inside one are not accessible from the other. To share a guard flag (like `_switchingPersona`), set it on `window` (e.g., `window._switchingPersona = true`) and check via `window._switchingPersona` in the other file.
