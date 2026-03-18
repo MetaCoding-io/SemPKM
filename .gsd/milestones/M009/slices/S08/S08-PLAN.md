@@ -27,14 +27,14 @@
 
 ## Tasks
 
-- [x] **T01: Write Chapter 29 — App Platform guide page** `est:45m`
+- [ ] **T01: Write Chapter 29 — App Platform guide page** `est:45m`
   - Why: The main deliverable of S08. Covers both user-facing app management and developer-facing SDK reference. All source material exists in-repo (design doc, test app, SDK source, admin templates).
   - Files: `docs/guide/29-app-platform.md`
   - Do: Write ~200-250 line markdown chapter with two main H2 sections. "Managing Apps" covers: the Applications admin page, installing from disk, status indicators, start/stop/restart, task monitoring, uninstalling with/without data. "Building Apps with the SDK" covers: directory structure, manifest.yaml reference (use test-app manifest as example), App class decorators, AppContext and 5 clients, fragment routes and templates, task handlers, frontend integration levels (L1/L2/L3), permissions. Reference `apps/test-app/` as the canonical example throughout. Include header navigation and footer navigation placeholders.
   - Verify: `test -f docs/guide/29-app-platform.md && grep -c "## Managing Apps" docs/guide/29-app-platform.md && grep -c "## Building Apps" docs/guide/29-app-platform.md`
   - Done when: Chapter 29 exists with both sections, practical examples from test-app, and correct structure matching existing chapter conventions (h1 title, h2 sections, h3 subsections, code blocks, tips).
 
-- [x] **T02: Add glossary entries, update README TOC, and wire navigation chain** `est:15m`
+- [ ] **T02: Add glossary entries, update README TOC, and wire navigation chain** `est:15m`
   - Why: Integrates ch. 29 into the existing guide structure — readers can discover it from the TOC and navigate to/from adjacent pages.
   - Files: `docs/guide/appendix-d-glossary.md`, `docs/guide/README.md`, `docs/guide/28-dashboards-and-workflows.md`, `docs/guide/29-app-platform.md`
   - Do: (1) Insert 5 glossary entries alphabetically between "ABox" and "Block": App Contribution, App Manifest, App Platform, App Sandbox, App SDK — each with a one-sentence definition and a "See Chapter 29" link. (2) Add `29. [App Platform](29-app-platform.md)` to README.md Part VIII after ch. 28. (3) Update ch. 28 footer: change `Next: Appendix A` to `Next: Chapter 29: App Platform`. (4) Update ch. 29 footer: `Previous: Chapter 28 | Next: Appendix A`.

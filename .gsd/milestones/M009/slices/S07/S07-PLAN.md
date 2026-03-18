@@ -45,21 +45,21 @@
 
 ## Tasks
 
-- [x] **T01: Create test app and update Docker test infrastructure** `est:45m`
+- [ ] **T01: Create test app and update Docker test infrastructure** `est:45m`
   - Why: The test app is the fixture that all E2E tests exercise. Docker test stack needs volume mounts to see the app and SDK.
   - Files: `apps/test-app/manifest.yaml`, `apps/test-app/app.py`, `apps/test-app/requirements.txt`, `apps/test-app/frontend/templates/*.html` (5 templates), `apps/test-app/frontend/static/styles.css`, `apps/test-app/frontend/static/app.js`, `docker-compose.test.yml`
   - Do: Create `apps/test-app/` with a comprehensive manifest exercising all SDK UI contribution types (pages, rightPane, views, commands, objectRenderers, tasks). Write `app.py` with SDK route handlers for each fragment endpoint, a task handler, and lifecycle hooks. Create minimal but functional HTML templates for each fragment. Add `./apps:/app/apps:ro` and `./backend/sdk:/app/backend/sdk:ro` volume mounts to docker-compose.test.yml api service. Add `sempkm_test_data:/app/data:ro` to frontend service for app-static serving.
   - Verify: `cd backend && python -c "from app.apps.manifest import parse_app_manifest; parse_app_manifest('$(pwd)/../apps/test-app')"` succeeds; `docker compose -f docker-compose.test.yml config --quiet` exits 0
   - Done when: Test app manifest validates, all 6 fragment templates exist, docker-compose.test.yml has required volume mounts
 
-- [x] **T02: Implement uninstall data cleanup in AppManager** `est:20m`
+- [ ] **T02: Implement uninstall data cleanup in AppManager** `est:20m`
   - Why: The success criterion "Uninstall app + data removes all app-prefixed IRIs from urn:sempkm:current" requires triplestore cleanup that `AppManager.uninstall()` doesn't yet perform. E2E tests need this to verify clean uninstall.
   - Files: `backend/app/apps/manager.py`, `backend/app/apps/admin_router.py`
   - Do: Add `clean_data: bool = False` parameter to `AppManager.uninstall()`. When True, execute three SPARQL queries via `self._triplestore_client` before deleting the DB row: (1) DELETE WHERE subjects with app IRI prefix, (2) DELETE WHERE objects with app IRI prefix, (3) CLEAR GRAPH for app state graph. Add `clean_data: bool = Form(False)` to the admin uninstall endpoint and pass it through to `manager.uninstall()`.
   - Verify: `python -c "import ast; ast.parse(open('backend/app/apps/manager.py').read())"` succeeds; `grep -c "clean_data" backend/app/apps/manager.py` returns ≥2; `grep -c "clean_data" backend/app/apps/admin_router.py` returns ≥2
   - Done when: `uninstall(app_id, clean_data=True)` executes SPARQL cleanup before DB deletion; admin endpoint accepts and passes through the `clean_data` form parameter
 
-- [x] **T03: Write Playwright E2E specs for app platform** `est:1h`
+- [ ] **T03: Write Playwright E2E specs for app platform** `est:1h`
   - Why: E2E tests are the milestone's proof that the full vertical works — install through admin, use in workspace, monitor in admin, uninstall with cleanup. Without this, all prior slice verification is contract-level only.
   - Files: `e2e/tests/30-app-platform/app-platform.spec.ts`, `e2e/helpers/selectors.ts`
   - Do: Create a single Playwright spec file with one long `test()` function (sequential, avoids rate limits). Steps: navigate to `/admin/apps` → install test app → wait for "running" status → check admin detail page → navigate to workspace → verify APPS sidebar → click app page → verify fragment content → open an object → verify right pane section → check command palette API endpoint → verify admin task config section → stop app → verify status → restart → verify recovery → uninstall with clean_data → verify removed from list → verify APPS sidebar empty. Add app-related selectors to `e2e/helpers/selectors.ts`.
