@@ -64,7 +64,7 @@
   - Verify: `python -m pytest tests/test_api_surface.py -v -k "test_shapes"`
   - Done when: Endpoint returns property shapes for basic-pkm Note type matching the fields in the SHACL form editor (title, body, tags, etc.)
 
-- [ ] **T03: Unit tests for types and shapes endpoints** `est:30m`
+- [x] **T03: Unit tests for types and shapes endpoints** `est:30m`
   - Why: Verify response schemas and edge cases without Docker. Shape serialization fidelity is a key risk — tests confirm all PropertyShape fields round-trip correctly.
   - Files: `backend/tests/test_api_surface.py`
   - Do:

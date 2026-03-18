@@ -542,7 +542,7 @@ class TestTypesEndpoint:
         assert len(data["types"]) == 3
 
     async def test_types_entries_have_required_fields(self, types_app, valid_session):
-        """Each type entry has iri and label fields."""
+        """Each type entry has iri, label, icon, and model_id fields."""
         transport = ASGITransport(app=types_app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             resp = await client.get(
@@ -550,9 +550,10 @@ class TestTypesEndpoint:
                 cookies={"sempkm_session": valid_session.token},
             )
         data = resp.json()
+        required_keys = {"iri", "label", "icon", "icon_color", "model_id", "model_name"}
         for t in data["types"]:
-            assert "iri" in t
-            assert "label" in t
+            missing = required_keys - set(t.keys())
+            assert not missing, f"Type {t.get('iri', '?')} missing keys: {missing}"
             assert isinstance(t["iri"], str)
             assert isinstance(t["label"], str)
 
@@ -832,7 +833,7 @@ class TestShapesEndpoint:
         assert len(data["properties"]) == 4
 
     async def test_shapes_property_fields(self, shapes_app, valid_session):
-        """Each property has path, name, and order at minimum."""
+        """Each property has path, name, order, datatype, min_count, max_count."""
         transport = ASGITransport(app=shapes_app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             resp = await client.get(
@@ -840,13 +841,15 @@ class TestShapesEndpoint:
                 cookies={"sempkm_session": valid_session.token},
             )
         data = resp.json()
+        required_keys = {"path", "name", "order", "datatype", "min_count", "max_count"}
         for prop in data["properties"]:
-            assert "path" in prop
-            assert "name" in prop
-            assert "order" in prop
+            missing = required_keys - set(prop.keys())
+            assert not missing, f"Property {prop.get('name', '?')} missing keys: {missing}"
             assert isinstance(prop["path"], str)
             assert isinstance(prop["name"], str)
             assert isinstance(prop["order"], (int, float))
+            assert isinstance(prop["min_count"], int)
+            assert prop["max_count"] is None or isinstance(prop["max_count"], int)
 
     async def test_shapes_preserves_constraints(self, shapes_app, valid_session):
         """in_values, min_count, max_count round-trip correctly."""
