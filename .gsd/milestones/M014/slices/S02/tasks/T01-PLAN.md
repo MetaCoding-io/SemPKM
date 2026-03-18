@@ -92,3 +92,10 @@ The module produces a `DocumentFragment` that the popup inserts into a container
 ## Expected Output
 
 - `extension/shared/shacl-renderer.js` — New file exporting `renderForm(shapeResponse)`, `getFormValues(container)`, and `renderField(prop)`. ~200-350 lines of vanilla JS.
+
+## Observability Impact
+
+- **Runtime signals:** The module is a pure DOM producer — no console logging or network calls. Observability comes from the caller (popup.js) which logs shape load results per the slice observability spec.
+- **Inspection surfaces:** Chrome DevTools → Elements panel on popup → inspect the `#dynamic-form` container to see the rendered DOM tree. Each field has `data-path` attributes matching the SHACL property IRIs, making it easy to trace field→property mapping.
+- **Failure visibility:** If `renderForm()` receives malformed shape data, it will produce an empty or partial fragment — the caller should catch and display errors. Invalid property types fall through to the default text input, making them visible but functional.
+- **Redaction constraints:** None — no secrets or credentials flow through this module.
