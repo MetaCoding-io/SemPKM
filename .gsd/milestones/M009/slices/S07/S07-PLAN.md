@@ -52,7 +52,7 @@
   - Verify: `cd backend && python -c "from app.apps.manifest import parse_app_manifest; parse_app_manifest('$(pwd)/../apps/test-app')"` succeeds; `docker compose -f docker-compose.test.yml config --quiet` exits 0
   - Done when: Test app manifest validates, all 6 fragment templates exist, docker-compose.test.yml has required volume mounts
 
-- [ ] **T02: Implement uninstall data cleanup in AppManager** `est:20m`
+- [x] **T02: Implement uninstall data cleanup in AppManager** `est:20m`
   - Why: The success criterion "Uninstall app + data removes all app-prefixed IRIs from urn:sempkm:current" requires triplestore cleanup that `AppManager.uninstall()` doesn't yet perform. E2E tests need this to verify clean uninstall.
   - Files: `backend/app/apps/manager.py`, `backend/app/apps/admin_router.py`
   - Do: Add `clean_data: bool = False` parameter to `AppManager.uninstall()`. When True, execute three SPARQL queries via `self._triplestore_client` before deleting the DB row: (1) DELETE WHERE subjects with app IRI prefix, (2) DELETE WHERE objects with app IRI prefix, (3) CLEAR GRAPH for app state graph. Add `clean_data: bool = Form(False)` to the admin uninstall endpoint and pass it through to `manager.uninstall()`.
