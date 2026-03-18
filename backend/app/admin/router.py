@@ -1,10 +1,11 @@
-"""Admin portal routes for model management and webhook configuration.
+"""Admin portal routes for model management, webhook configuration, and API key management.
 
 Serves Jinja2 templates with htmx partial rendering for in-place updates.
-Uses ModelService and WebhookService via FastAPI dependency injection.
+Uses ModelService, WebhookService, and AuthService via FastAPI dependency injection.
 """
 
 import logging
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
@@ -16,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import get_current_user, require_role
 from app.auth.models import User
+from app.auth.service import AuthService
 from app.db.session import get_db_session
 from app.dependencies import (
     get_label_service,
@@ -1063,6 +1065,88 @@ async def admin_model_entailment_save(
             request, "admin/model_entailment_config.html", context, block_name="content"
         )
     return templates_response(request, "admin/model_entailment_config.html", context)
+
+
+def _get_auth_service(request: Request) -> AuthService:
+    """Get AuthService from app state (same session factory as auth router)."""
+    return request.app.state.auth_service
+
+
+# ---- API Key management endpoints ----
+
+
+@router.get("/api-keys")
+async def admin_api_keys(
+    request: Request,
+    user: User = Depends(require_role("owner")),
+):
+    """Render API key management page with token list and create form."""
+    auth_service = _get_auth_service(request)
+    tokens = await auth_service.list_api_tokens(user.id)
+    context = {
+        "request": request,
+        "tokens": tokens,
+        "user": user,
+    }
+    if _is_htmx_request(request):
+        return templates_response(request, "admin/api_tokens.html", context, block_name="content")
+    return templates_response(request, "admin/api_tokens.html", context)
+
+
+@router.post("/api-keys")
+async def admin_api_keys_create(
+    request: Request,
+    user: User = Depends(require_role("owner")),
+    name: str = Form(...),
+):
+    """Create a new API token.
+
+    Returns the updated token list partial with the plaintext token displayed
+    once in a success banner. The plaintext is never stored — this is the only
+    time it's visible.
+    """
+    auth_service = _get_auth_service(request)
+    context: dict = {"request": request, "user": user}
+
+    try:
+        plaintext, token_obj = await auth_service.create_api_token(
+            user_id=user.id, name=name
+        )
+        context["new_token"] = plaintext
+        context["new_token_name"] = token_obj.name
+        logger.info("API token '%s' created via admin UI for user %s", name, user.id)
+    except Exception as e:
+        context["error"] = f"Failed to create API key: {e}"
+        logger.warning("API token creation failed: %s", e)
+
+    tokens = await auth_service.list_api_tokens(user.id)
+    context["tokens"] = tokens
+    return templates_response(request, "admin/api_tokens.html", context, block_name="token_list")
+
+
+@router.delete("/api-keys/{token_id}")
+async def admin_api_keys_delete(
+    request: Request,
+    token_id: uuid.UUID,
+    user: User = Depends(require_role("owner")),
+):
+    """Revoke (delete) an API token.
+
+    Returns the updated token list partial for htmx swap.
+    """
+    auth_service = _get_auth_service(request)
+    context: dict = {"request": request, "user": user}
+
+    deleted = await auth_service.revoke_api_token(user.id, token_id)
+    if not deleted:
+        context["error"] = "API key not found."
+    else:
+        context["success"] = "API key deleted."
+        logger.info("API token %s revoked via admin UI for user %s", token_id, user.id)
+
+    tokens = await auth_service.list_api_tokens(user.id)
+    context["tokens"] = tokens
+    return templates_response(request, "admin/api_tokens.html", context, block_name="token_list")
 
 
 # ---- Webhook endpoints ----

@@ -94,3 +94,10 @@ The page needs: a create form (name input), a list table showing existing tokens
 - `backend/app/admin/router.py` — Three new routes: `GET /admin/api-keys`, `POST /admin/api-keys`, `DELETE /admin/api-keys/{token_id}`
 - `backend/app/templates/admin/index.html` — API Keys card added to admin dashboard
 - `backend/app/templates/components/_sidebar.html` — "API Keys" nav link added to Admin section
+
+## Observability Impact
+
+- **New log messages:** `logger.info("API token '%s' created via admin UI for user %s", name, user.id)` on create; `logger.info("API token %s revoked via admin UI for user %s", token_id, user.id)` on delete — these fire in the API container logs alongside the existing auth-layer debug logs.
+- **Inspection surface:** Navigate to `/admin/api-keys` as an owner to see all active API keys (name + created date). The one-time plaintext token display is visible only immediately after creation.
+- **Failure visibility:** Token creation errors render as `.error-box` in the htmx response. Delete of non-existent tokens shows "API key not found." in an error box. Non-owner users get 403 from `require_role("owner")`.
+- **Downstream signal:** Tokens created through this page are immediately usable in extension options "Test Connection" flow. Deleted tokens cause 401 `"Invalid or expired API token"` on subsequent Bearer auth attempts.
