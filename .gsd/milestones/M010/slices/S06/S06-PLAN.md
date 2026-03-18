@@ -55,14 +55,14 @@
 
 ## Tasks
 
-- [ ] **T01: Playwright E2E spec for RSS Reader full lifecycle** `est:1h`
+- [x] **T01: Playwright E2E spec for RSS Reader full lifecycle** `est:1h`
   - Why: Authoritative proof that the RSS Reader works end-to-end against a live Docker stack — validates all S01-S05 deliverables and covers RSS-01 through RSS-08 (active) requirements
   - Files: `e2e/tests/31-rss-reader/rss-reader.spec.ts`, `e2e/helpers/selectors.ts`, `e2e/fixtures/test-feeds.opml`
   - Do: Add `rss` section to SEL in selectors.ts with RSS Reader UI selectors. Create OPML test fixture with 2-3 feeds. Write single sequential `test()` with 14 phases: cleanup → install model → install app → admin detail → workspace integration → subscribe → article display → star → read/unread → workspace views → command palette → OPML import → settings → cleanup. Use 240s timeout. Resilient to offline Docker (seed articles via API if polling doesn't produce them). Copy retry patterns from `app-platform.spec.ts`.
   - Verify: `cd e2e && npx playwright test tests/31-rss-reader/rss-reader.spec.ts --project=chromium` passes
   - Done when: E2E spec passes with ≥20 assertions covering all phases, test is idempotent (cleanup handles prior state)
 
-- [ ] **T02: User guide Chapter 30 and navigation chain updates** `est:40m`
+- [x] **T02: User guide Chapter 30 and navigation chain updates** `est:40m`
   - Why: Documents the RSS Reader for users — the standing requirement for M010 milestone completion
   - Files: `docs/guide/30-rss-reader.md`, `docs/guide/README.md`, `docs/guide/29-app-platform.md`, `docs/guide/appendix-a-environment-variables.md`, `docs/guide/appendix-d-glossary.md`
   - Do: Write Chapter 30 covering: Getting Started (install model + app), Subscribing to Feeds (URL, discovery, OPML import), Reader Interface (3 panes), Reading Articles (open, star, read/unread, keyboard nav), Workspace Integration (views, right pane, command palette, custom renderer), Managing Feeds (unsubscribe, error indicators), Settings (articlesPerPage, markReadOnOpen, poll interval), Admin Monitoring (status, task history). Update README.md TOC. Fix navigation chain (ch.29 → ch.30 → Appendix A). Add ≥3 glossary entries (Article, Feed Subscription, OPML, Poll Interval).

@@ -60,7 +60,7 @@ This milestone is complete only when all are true:
 
 ## Slices
 
-- [ ] **S01: Platform fix + Mental Model + App data pipeline** `risk:high` `depends:[]`
+- [x] **S01: Platform fix + Mental Model + App data pipeline** `risk:high` `depends:[]`
   > After this: SDK IRI prefix bug fixed with tests. `rss-feeds` model installed in triplestore (Article, FeedSubscription types visible). `rss-reader` app skeleton installs, starts, and the `poll-feeds` task creates real articles from a test feed via bulk EventStore. Articles visible in object browser.
 
 - [ ] **S02: Feed service + content extraction + feed management** `risk:medium` `depends:[S01]`

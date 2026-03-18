@@ -51,6 +51,22 @@
       "doneMilestones": 11,
       "totalMilestones": 30,
       "phase": "executing"
+    },
+    {
+      "filename": "M014-2026-03-18T20-49-52.html",
+      "generatedAt": "2026-03-18T20:49:52.868Z",
+      "milestoneId": "M014",
+      "milestoneTitle": "Browser Extension Phase 1 — Smart Structured Capture",
+      "label": "M014: Browser Extension Phase 1 — Smart Structured Capture",
+      "kind": "milestone",
+      "totalCost": 146.00013324999995,
+      "totalTokens": 190055421,
+      "totalDuration": 47292202,
+      "doneSlices": 125,
+      "totalSlices": 136,
+      "doneMilestones": 12,
+      "totalMilestones": 30,
+      "phase": "summarizing"
     }
   ]
 }
