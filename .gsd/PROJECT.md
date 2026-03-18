@@ -257,6 +257,29 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - ✓ E2E Docker lifecycle for all 4 models (install → create → form render → inference → lint) — M011
 - ✓ User guide Chapter 29 (608 lines, 15 glossary entries) documenting all 4 models — M011
 
+### Validated (M012 — Workspace & Event Log Polish)
+
+<!-- Shipped and confirmed in M012 (2026-03-17). -->
+
+- ✓ EVTLOG-01–03: Event log labels, helptext tooltips, autocomplete for filter fields — M012
+- ✓ BDIFF-01–03: Body.diff incremental storage and rendering with backward compat — M012
+- ✓ PERSONA-01–05: Workspace personas — CRUD, sidebar selector, command palette, layout/positions/mode save and restore — M012
+- ✓ 12 E2E Playwright tests + user guide Chapter 15 updated + Chapter 30 (personas) + glossary — M012
+
+### Validated (M013 — API Surface for External Clients)
+
+<!-- Shipped and confirmed in M013 (2026-03-17). -->
+
+- ✓ API-01: Well-known instance discovery endpoint (`GET /.well-known/sempkm`) — M013
+- ✓ API-02: Types endpoint with labels, icons, and model attribution (`GET /api/types`) — M013
+- ✓ API-03: SHACL shapes endpoint as structured JSON (`GET /api/shapes/{type_iri}`) — M013
+- ✓ API-04: Context-query endpoint for related objects (`POST /api/context-query`) — M013
+- ✓ API-05: Dual-auth dependency (session cookie + Bearer API token) — M013
+- ✓ API-06: CORS headers for browser extension access (nginx) — M013
+- ✓ API-07: nginx Authorization header forwarding on `/api/` — M013
+- ✓ API-08: API surface user guide Chapter 31 with 3 glossary entries — M013
+- ✓ 62 unit tests + 7 E2E Playwright tests across all endpoints — M013
+
 ### Future Candidates
 
 <!-- Tracked for future milestones. See .gsd/QUEUE.md for full queue and .gsd/REQUIREMENTS.md for deferred requirements. -->
@@ -309,8 +332,10 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - S03 complete: Workspace personas — CRUD, sidebar selector, command palette, layout/positions/mode save and restore
 - S04 complete: 12 E2E Playwright tests + user guide Chapter 15 updated (4 sections) + Chapter 30 (personas) + glossary
 
-**API Surface for External Clients** — queued (M013, depends on M011)
-- `/.well-known/sempkm`, `/api/types`, `/api/shapes/{type}`, `/api/context-query`
+**API Surface for External Clients** — complete (M013)
+- S01 complete: Dual-auth dependency (session cookie + Bearer token), CORS headers, nginx Authorization forwarding, `/.well-known/sempkm` discovery endpoint
+- S02 complete: `GET /api/types` (all installed model types with labels/icons/model attribution), `GET /api/shapes/{type_iri}` (SHACL property shapes as JSON)
+- S03 complete: `POST /api/context-query` (URL + keyword matching with deduplication), 7 E2E Playwright tests, Chapter 31 user guide, 62 unit tests total
 
 **Browser Extension Phase 1** — queued (M014, depends on M013)
 - Chrome/Firefox extension: smart structured capture with SHACL forms, schema.org ingestion, relationship picker
@@ -431,26 +456,22 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - E2E test coverage: 5 new Playwright tests across 3 spec files
 - User guide: 4 chapters updated with new feature documentation
 
-**Previous milestones:** M011 Mental Models Expansion (2026-03-17), M008 Spatial Canvas (2026-03-16), M007 Generic Views, VFS Completion & Polish (2026-03-16), M006 Dashboards, Workflows & Platform Alignment (2026-03-15), M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
+**Previous milestones:** M012 Workspace & Event Log Polish (2026-03-17), M011 Mental Models Expansion (2026-03-17), M008 Spatial Canvas (2026-03-16), M007 Generic Views, VFS Completion & Polish (2026-03-16), M006 Dashboards, Workflows & Platform Alignment (2026-03-15), M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
 
-**Current milestone:** M013 API Surface for External Clients — S01 complete, S02 complete, S03 next
+**Latest shipped: M013 API Surface for External Clients (2026-03-17)**
 
-**What shipped in M013/S02 (Types and Shapes JSON Endpoints):**
-- `GET /api/types` endpoint returning all installed model types with labels, Lucide icons, icon colors, and model attribution
-- `GET /api/shapes/{type_iri}` endpoint returning SHACL property shapes as structured JSON (properties, groups, constraints, helptext)
-- TypeInfo, TypesResponse, PropertyShapeInfo, PropertyGroupInfo, ShapeResponse Pydantic response models for OpenAPI docs
-- IconService runtime wiring fix — ad-hoc instantiation matching codebase pattern (D164)
-- 19 new unit tests (8 types + 11 shapes), 990 total backend tests passing
-- 2 requirements validated (API-02, API-03), shape serialization risk retired
-
-**What shipped in M013/S01 (Dual-Auth, CORS, nginx fix, Well-Known Endpoint):**
-- `get_current_user_or_api` dual-auth FastAPI dependency accepting session cookie or Bearer API token
-- nginx Authorization header forwarding on `/api/` and `/.well-known/` proxy blocks
-- CORS headers (wildcard origin, Authorization/Content-Type/Accept, OPTIONS preflight → 204)
+**What shipped in M013 (API Surface for External Clients):**
 - `GET /.well-known/sempkm` discovery endpoint with version, endpoints, auth methods, capabilities
-- `_is_html_route()` fix for JSON error responses on `/.well-known/` paths
-- 25 unit tests in test_api_surface.py, 971 total backend tests passing
-- 4 requirements validated (API-01, API-05, API-06, API-07)
+- `GET /api/types` returning all installed model types with labels, Lucide icons, icon colors, and model attribution
+- `GET /api/shapes/{type_iri}` returning SHACL property shapes as structured JSON (properties, groups, constraints, helptext)
+- `POST /api/context-query` with URL matching (SPARQL FILTER) + keyword/title matching (FTS/LuceneSail), deduplication, and type/label enrichment
+- `get_current_user_or_api` dual-auth FastAPI dependency (session cookie + Bearer API token)
+- nginx Authorization header forwarding and CORS headers on `/api/` and `/.well-known/` routes
+- 62 unit tests in test_api_surface.py covering all endpoints, auth, edge cases, and graceful degradation
+- 7 E2E Playwright tests exercising all four endpoints through Docker Compose
+- User guide Chapter 31 documenting the full API surface with request/response examples, auth, CORS, error handling
+- 3 glossary entries (API Surface, Context Query, Instance Discovery)
+- 8 requirements validated (API-01 through API-08)
 
 ## Context
 

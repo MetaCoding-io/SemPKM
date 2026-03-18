@@ -57,7 +57,7 @@ This milestone is complete only when all are true:
   > After this: `curl -H "Authorization: Bearer <token>" localhost:3000/.well-known/sempkm` returns JSON discovery document through Docker Compose, proving Bearer auth works end-to-end through nginx → FastAPI. Session cookie auth works on the same endpoint.
 - [x] **S02: Types and Shapes JSON Endpoints** `risk:medium` `depends:[S01]`
   > After this: `curl localhost:3000/api/types` returns all installed model types with labels/icons/models, and `curl localhost:3000/api/shapes/<type_iri>` returns SHACL property shapes as structured JSON matching the form editor's fields.
-- [ ] **S03: Context-Query, E2E Tests, and User Guide** `risk:low` `depends:[S01,S02]`
+- [x] **S03: Context-Query, E2E Tests, and User Guide** `risk:low` `depends:[S01,S02]`
   > After this: `POST /api/context-query` finds related objects by URL and keywords. Playwright E2E tests exercise all four endpoints. User guide documents the full API surface.
 
 ## Boundary Map
