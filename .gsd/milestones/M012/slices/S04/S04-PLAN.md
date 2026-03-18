@@ -39,7 +39,7 @@
 
 ## Tasks
 
-- [ ] **T01: Merge S01/S02 branch code into main** `est:15m`
+- [x] **T01: Merge S01/S02 branch code into main** `est:15m`
   - Why: S01 (event log labels/helptext/autocomplete) and S02 (body.diff) code lives only on the `milestone/M012` branch. S03 (personas) is already on `main`. All three feature sets must be in the same codebase for E2E tests to work and for the Docker test stack (which mounts from the working directory) to serve all features.
   - Files: all S01/S02 files from the branch merge
   - Do: `git merge milestone/M012` on main. Resolve any conflicts (expected: clean merge since S01/S02 and S03 touch disjoint files). Verify key files exist: `backend/app/commands/handlers/body_diff.py`, `backend/tests/test_event_log_labels.py`, `backend/tests/test_event_suggestions.py`, `backend/tests/test_body_diff.py`. Verify persona code still intact: `backend/app/persona/service.py`. Run `python -m pytest backend/tests/ --tb=short` to confirm no regressions.
@@ -66,6 +66,26 @@
   - Do: (1) Update Chapter 15 — add sections for predicate labels, helptext tooltips, autocomplete filters, body.diff operation type (add to operation types table), and diff rendering. (2) Create Chapter 30 — cover persona concepts, creating a persona, saving persona state, switching personas (sidebar + command palette), renaming and deleting personas, default persona behavior. (3) Update README.md TOC — add Chapter 30 under Part VIII. (4) Update navigation chain — Chapter 29 Next → Chapter 30, Chapter 30 Previous → Chapter 29 / Next → Appendix A. (5) Add glossary entries for "Persona" (named workspace configuration) and "Body Diff" (incremental body change).
   - Verify: `grep "30-personas" docs/guide/README.md`, `tail -3 docs/guide/29-mental-model-catalog.md` shows Next → Chapter 30, `grep -c "Persona\|Body Diff" docs/guide/appendix-d-glossary.md` ≥ 2
   - Done when: All docs files pass verification checks, Chapter 30 exists with full content, Chapter 15 has 4 new sections
+
+## Observability / Diagnostics
+
+**Runtime signals:**
+- Backend test suite count and pass/fail (`python -m pytest backend/tests/ --tb=short` — expect 940+ tests, 0 failures)
+- E2E test suite results (`cd e2e && npx playwright test --project=chromium` — full suite pass/fail)
+- Docker test stack health: `curl -s http://localhost:3901/api/health` returns 200
+
+**Inspection surfaces:**
+- Conflict marker scan: `grep -rn "^<<<<<<< " backend/ frontend/ --include="*.py" --include="*.html" --include="*.js" --include="*.css"` — must return empty
+- Feature file presence: `test -f backend/app/commands/handlers/body_diff.py`, `test -f backend/app/persona/service.py`, `grep -c "suggest-types" backend/app/browser/events.py`
+- Documentation completeness: `grep "30-personas" docs/guide/README.md`, `grep -c "Persona\|Body Diff" docs/guide/appendix-d-glossary.md`
+
+**Failure visibility:**
+- Merge conflicts surface as non-zero exit from `git merge` and are visible via `git diff --check`
+- Test regressions surface as pytest failures with `--tb=short` tracebacks
+- E2E failures produce Playwright HTML reports in `e2e/playwright-report/`
+- Missing navigation chain links detected by `tail -3` checks on chapter files
+
+**Redaction constraints:** None — this slice has no secrets or PII.
 
 ## Files Likely Touched
 
