@@ -1,0 +1,1 @@
+Production-quality FeedService replacing S01's proof-of-concept: JSON Feed 1.1 support, feed discovery from website URLs, conditional GET with ETag/Last-Modified, trafilatura content extraction with graceful fallback, subscription CRUD with dedup, per-feed error tracking, and working htmx subscribe dialog — 50 unit tests, zero S01 regressions.

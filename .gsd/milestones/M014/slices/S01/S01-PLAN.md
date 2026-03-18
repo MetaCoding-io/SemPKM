@@ -66,7 +66,7 @@
   - Verify: Open options page → enter localhost:3000 + valid API key → click Test Connection → green indicator with version → Save → reload page → settings persisted
   - Done when: Options page saves/loads settings, connection test shows green for valid instance + API key and red for invalid
 
-- [ ] **T04: Popup capture flow with type selector, save, and success/error feedback** `est:1h`
+- [x] **T04: Popup capture flow with type selector, save, and success/error feedback** `est:1h`
   - Why: This is the core capture UI — the popup where users select a type, fill in a title, and save an object. Combined with T01 (auth fix) and T02/T03 (extension infrastructure), this completes the full round-trip demo proving extension → Bearer auth → API → triplestore. Delivers EXT-01 (popup capture) and EXT-09 (success/error feedback) for this slice.
   - Files: `extension/popup/popup.html`, `extension/popup/popup.js`, `extension/popup/popup.css`
   - Do: Build popup (400px wide) with: connection status indicator (green/red dot in header), type selector `<select>` populated from `SemPKMClient.getTypes()`, title `<input>` field, body `<textarea>` (for selected text — pre-fill wired in S03), Save button. On Save: construct `object.create` command with type IRI + properties (dcterms:title, sempkm:body if provided), call `createObject()`, show success toast (green, "Object created!" with link text) or error toast (red, error message). Handle loading states (spinner on save button). Handle unconfigured state (show "Configure in Settings" message if no instanceUrl/apiKey). Export `populateFromPageData(data)` function for S03 content script integration.
