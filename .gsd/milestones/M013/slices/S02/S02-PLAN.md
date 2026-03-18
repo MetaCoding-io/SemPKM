@@ -17,7 +17,8 @@
 - `cd backend && python -m pytest tests/test_api_surface.py -v -k "types or shapes"` — unit tests pass
 - `curl http://localhost:3000/api/types` — returns JSON array with types from installed models
 - `curl http://localhost:3000/api/shapes/urn:sempkm:model:basic-pkm:Note` — returns JSON with property shapes matching the form editor
-- `curl http://localhost:3000/api/shapes/urn:nonexistent:Type` — returns 404
+- `curl http://localhost:3000/api/shapes/urn:nonexistent:Type` — returns 404 with `{"detail": "No shape found for type: urn:nonexistent:Type"}`
+- `curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/api/types` without credentials — returns 401 (auth enforcement)
 
 ## Observability / Diagnostics
 
@@ -28,7 +29,7 @@
 
 ## Tasks
 
-- [ ] **T01: Implement GET /api/types endpoint** `est:40m`
+- [x] **T01: Implement GET /api/types endpoint** `est:40m`
   - Why: External clients need to know what types are available before they can create objects or request shapes. This endpoint combines ShapesService (type IRIs + labels), IconService (icon names), and model registry (model attribution) into a single JSON response.
   - Files: `backend/app/api/router.py`
   - Do:

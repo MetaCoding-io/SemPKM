@@ -7,6 +7,7 @@ and the /.well-known/sempkm discovery endpoint response.
 import hashlib
 import secrets
 import uuid
+from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock
 
@@ -442,3 +443,211 @@ class TestWellKnownEndpoint:
         capabilities = resp.json()["capabilities"]
         expected = ["types", "shapes", "context-query", "sparql", "commands"]
         assert capabilities == expected
+
+
+# ---------------------------------------------------------------------------
+# /api/types endpoint tests
+# ---------------------------------------------------------------------------
+
+# Sample data for types endpoint tests
+_SAMPLE_TYPES = [
+    {"iri": "urn:sempkm:model:basic-pkm:Note", "label": "Note"},
+    {"iri": "urn:sempkm:model:basic-pkm:Project", "label": "Project"},
+    {"iri": "urn:sempkm:model:basic-pkm:Person", "label": "Person"},
+]
+
+_SAMPLE_ICON_MAP = {
+    "urn:sempkm:model:basic-pkm:Note": {
+        "icon": "file-text",
+        "color": "#4a9eff",
+        "size": 16,
+    },
+    "urn:sempkm:model:basic-pkm:Project": {
+        "icon": "folder-kanban",
+        "color": "#22c55e",
+        "size": 16,
+    },
+}
+
+
+@dataclass
+class _FakeInstalledModel:
+    model_id: str
+    name: str
+
+
+def _build_types_app(db_session_factory) -> FastAPI:
+    """Build a minimal FastAPI app with the api_surface_router for testing.
+
+    Mocks ShapesService, IconService, and ModelService on app.state.
+    """
+    from app.api.router import api_surface_router
+    from app.auth.service import AuthService
+
+    test_app = FastAPI()
+    auth_service = AuthService(db_session_factory)
+    test_app.state.auth_service = auth_service
+
+    # Mock ShapesService
+    mock_shapes = AsyncMock()
+    mock_shapes.get_types = AsyncMock(return_value=list(_SAMPLE_TYPES))
+    test_app.state.shapes_service = mock_shapes
+
+    # Mock IconService
+    mock_icons = MagicMock()
+    mock_icons.get_icon_map = MagicMock(return_value=dict(_SAMPLE_ICON_MAP))
+    test_app.state.icon_service = mock_icons
+
+    # Mock ModelService
+    mock_models = AsyncMock()
+    mock_models.list_models = AsyncMock(
+        return_value=[_FakeInstalledModel(model_id="basic-pkm", name="Basic PKM")]
+    )
+    test_app.state.model_service = mock_models
+
+    test_app.include_router(api_surface_router)
+
+    return test_app
+
+
+@pytest.fixture
+def types_app(db_session_factory, db_session):
+    """Provide a FastAPI test app with the api_surface_router and mock services."""
+    from app.db.session import get_db_session
+
+    test_app = _build_types_app(db_session_factory)
+
+    async def override_db():
+        yield db_session
+
+    test_app.dependency_overrides[get_db_session] = override_db
+    return test_app
+
+
+class TestTypesEndpoint:
+    """Test the GET /api/types endpoint."""
+
+    async def test_types_returns_list(self, types_app, valid_session):
+        """Authenticated request returns a JSON object with a 'types' list."""
+        transport = ASGITransport(app=types_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/api/types",
+                cookies={"sempkm_session": valid_session.token},
+            )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "types" in data
+        assert isinstance(data["types"], list)
+        assert len(data["types"]) == 3
+
+    async def test_types_entries_have_required_fields(self, types_app, valid_session):
+        """Each type entry has iri and label fields."""
+        transport = ASGITransport(app=types_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/api/types",
+                cookies={"sempkm_session": valid_session.token},
+            )
+        data = resp.json()
+        for t in data["types"]:
+            assert "iri" in t
+            assert "label" in t
+            assert isinstance(t["iri"], str)
+            assert isinstance(t["label"], str)
+
+    async def test_types_includes_icon_data(self, types_app, valid_session):
+        """Types with icons in the icon map have icon and icon_color populated."""
+        transport = ASGITransport(app=types_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/api/types",
+                cookies={"sempkm_session": valid_session.token},
+            )
+        data = resp.json()
+        note = next(t for t in data["types"] if t["iri"].endswith(":Note"))
+        assert note["icon"] == "file-text"
+        assert note["icon_color"] == "#4a9eff"
+
+    async def test_types_missing_icon_returns_none(self, types_app, valid_session):
+        """Types without icons in the icon map have icon=None."""
+        transport = ASGITransport(app=types_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/api/types",
+                cookies={"sempkm_session": valid_session.token},
+            )
+        data = resp.json()
+        person = next(t for t in data["types"] if t["iri"].endswith(":Person"))
+        assert person["icon"] is None
+        assert person["icon_color"] is None
+
+    async def test_types_includes_model_attribution(self, types_app, valid_session):
+        """Types include model_id and model_name from IRI convention."""
+        transport = ASGITransport(app=types_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/api/types",
+                cookies={"sempkm_session": valid_session.token},
+            )
+        data = resp.json()
+        note = next(t for t in data["types"] if t["iri"].endswith(":Note"))
+        assert note["model_id"] == "basic-pkm"
+        assert note["model_name"] == "Basic PKM"
+
+    async def test_types_requires_auth(self, types_app):
+        """Request without credentials returns 401."""
+        transport = ASGITransport(app=types_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get("/api/types")
+        assert resp.status_code == 401
+
+    async def test_types_works_with_bearer_token(
+        self, types_app, valid_api_token
+    ):
+        """Authenticated request via Bearer token returns types."""
+        transport = ASGITransport(app=types_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/api/types",
+                headers={"Authorization": f"Bearer {valid_api_token}"},
+            )
+        assert resp.status_code == 200
+        assert len(resp.json()["types"]) == 3
+
+    async def test_types_empty_when_no_models(self, db_session_factory, db_session, valid_session):
+        """Returns empty types list (not error) when no models installed."""
+        from app.api.router import api_surface_router
+        from app.auth.service import AuthService
+        from app.db.session import get_db_session
+
+        test_app = FastAPI()
+        test_app.state.auth_service = AuthService(db_session_factory)
+
+        mock_shapes = AsyncMock()
+        mock_shapes.get_types = AsyncMock(return_value=[])
+        test_app.state.shapes_service = mock_shapes
+
+        mock_icons = MagicMock()
+        mock_icons.get_icon_map = MagicMock(return_value={})
+        test_app.state.icon_service = mock_icons
+
+        mock_models = AsyncMock()
+        mock_models.list_models = AsyncMock(return_value=[])
+        test_app.state.model_service = mock_models
+
+        test_app.include_router(api_surface_router)
+
+        async def override_db():
+            yield db_session
+
+        test_app.dependency_overrides[get_db_session] = override_db
+
+        transport = ASGITransport(app=test_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/api/types",
+                cookies={"sempkm_session": valid_session.token},
+            )
+        assert resp.status_code == 200
+        assert resp.json()["types"] == []

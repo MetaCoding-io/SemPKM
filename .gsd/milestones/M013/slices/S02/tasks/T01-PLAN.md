@@ -46,3 +46,10 @@ Build the `/api/types` endpoint that returns all available types from installed 
 ## Expected Output
 
 - `backend/app/api/router.py` — with `/api/types` endpoint and Pydantic models
+
+## Observability Impact
+
+- **New signal:** `GET /api/types` returns the complete set of loaded types, serving as a runtime inventory of installed models and their type registrations.
+- **Inspection:** `curl /api/types | jq '.types | length'` shows how many types are loaded; empty list (`{"types": []}`) indicates no models installed rather than an error.
+- **Failure shape:** Service exceptions from ShapesService or IconService propagate as HTTP 500 with stack trace in dev mode. Auth failures return 401 with `{"detail": "Not authenticated"}`.
+- **Logging:** Existing `ShapesService` INFO-level logs report shapes graph fetch and extraction counts; no new log lines needed.
