@@ -493,11 +493,6 @@ def _build_types_app(db_session_factory) -> FastAPI:
     mock_shapes.get_types = AsyncMock(return_value=list(_SAMPLE_TYPES))
     test_app.state.shapes_service = mock_shapes
 
-    # Mock IconService
-    mock_icons = MagicMock()
-    mock_icons.get_icon_map = MagicMock(return_value=dict(_SAMPLE_ICON_MAP))
-    test_app.state.icon_service = mock_icons
-
     # Mock ModelService
     mock_models = AsyncMock()
     mock_models.list_models = AsyncMock(
@@ -513,6 +508,7 @@ def _build_types_app(db_session_factory) -> FastAPI:
 @pytest.fixture
 def types_app(db_session_factory, db_session):
     """Provide a FastAPI test app with the api_surface_router and mock services."""
+    from unittest.mock import patch
     from app.db.session import get_db_session
 
     test_app = _build_types_app(db_session_factory)
@@ -521,7 +517,18 @@ def types_app(db_session_factory, db_session):
         yield db_session
 
     test_app.dependency_overrides[get_db_session] = override_db
-    return test_app
+
+    # Patch IconService so it returns the test icon map without needing /app/models
+    mock_icon_svc = MagicMock()
+    mock_icon_svc.get_icon_map = MagicMock(return_value=dict(_SAMPLE_ICON_MAP))
+    mock_icon_svc.set_user_type_icons = MagicMock()
+
+    patcher = patch("app.api.router.IconService", return_value=mock_icon_svc)
+    patcher.start()
+
+    yield test_app
+
+    patcher.stop()
 
 
 class TestTypesEndpoint:
@@ -618,6 +625,7 @@ class TestTypesEndpoint:
 
     async def test_types_empty_when_no_models(self, db_session_factory, db_session, valid_session):
         """Returns empty types list (not error) when no models installed."""
+        from unittest.mock import patch
         from app.api.router import api_surface_router
         from app.auth.service import AuthService
         from app.db.session import get_db_session
@@ -629,10 +637,6 @@ class TestTypesEndpoint:
         mock_shapes.get_types = AsyncMock(return_value=[])
         test_app.state.shapes_service = mock_shapes
 
-        mock_icons = MagicMock()
-        mock_icons.get_icon_map = MagicMock(return_value={})
-        test_app.state.icon_service = mock_icons
-
         mock_models = AsyncMock()
         mock_models.list_models = AsyncMock(return_value=[])
         test_app.state.model_service = mock_models
@@ -642,16 +646,22 @@ class TestTypesEndpoint:
         async def override_db():
             yield db_session
 
-        test_app.dependency_overrides[get_db_session] = override_db
+        # Patch IconService to return empty icon map
+        mock_icon_svc = MagicMock()
+        mock_icon_svc.get_icon_map = MagicMock(return_value={})
+        mock_icon_svc.set_user_type_icons = MagicMock()
 
-        transport = ASGITransport(app=test_app)
-        async with AsyncClient(transport=transport, base_url="http://test") as client:
-            resp = await client.get(
-                "/api/types",
-                cookies={"sempkm_session": valid_session.token},
-            )
-        assert resp.status_code == 200
-        assert resp.json()["types"] == []
+        with patch("app.api.router.IconService", return_value=mock_icon_svc):
+            test_app.dependency_overrides[get_db_session] = override_db
+
+            transport = ASGITransport(app=test_app)
+            async with AsyncClient(transport=transport, base_url="http://test") as client:
+                resp = await client.get(
+                    "/api/types",
+                    cookies={"sempkm_session": valid_session.token},
+                )
+            assert resp.status_code == 200
+            assert resp.json()["types"] == []
 
 
 # ---------------------------------------------------------------------------
@@ -746,11 +756,7 @@ def _build_shapes_app(db_session_factory, mock_form_return=None) -> FastAPI:
     mock_shapes.get_types = AsyncMock(return_value=[])
     test_app.state.shapes_service = mock_shapes
 
-    # Mock IconService + ModelService (required by types endpoint on same router)
-    mock_icons = MagicMock()
-    mock_icons.get_icon_map = MagicMock(return_value={})
-    test_app.state.icon_service = mock_icons
-
+    # Mock ModelService (required by types endpoint on same router)
     mock_models = AsyncMock()
     mock_models.list_models = AsyncMock(return_value=[])
     test_app.state.model_service = mock_models

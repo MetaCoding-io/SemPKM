@@ -11,6 +11,7 @@ import logging
 import re
 
 from dataclasses import asdict
+from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
@@ -18,6 +19,7 @@ from pydantic import BaseModel
 from app.auth.dependencies import get_current_user_or_api
 from app.auth.models import User
 from app.config import settings
+from app.services.icons import IconService
 
 logger = logging.getLogger(__name__)
 
@@ -200,8 +202,14 @@ async def get_types(
     (model name lookup by model_id extracted from type IRI).
     """
     shapes_service = request.app.state.shapes_service
-    icon_service = request.app.state.icon_service
     model_service = request.app.state.model_service
+
+    # Create IconService ad-hoc (matches codebase pattern — not on app.state)
+    _models_dir = str(Path("/app/models"))
+    icon_service = IconService(models_dir=_models_dir)
+    user_icons = getattr(request.app.state, "user_type_icons", None)
+    if user_icons:
+        icon_service.set_user_type_icons(user_icons)
 
     # Get type list from SHACL shapes
     raw_types = await shapes_service.get_types()
