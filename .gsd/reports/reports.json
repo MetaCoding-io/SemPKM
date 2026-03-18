@@ -19,6 +19,22 @@
       "doneMilestones": 12,
       "totalMilestones": 30,
       "phase": "pre-planning"
+    },
+    {
+      "filename": "M013-2026-03-18T05-08-03.html",
+      "generatedAt": "2026-03-18T05:08:03.365Z",
+      "milestoneId": "M013",
+      "milestoneTitle": "API Surface for External Clients",
+      "label": "M013: API Surface for External Clients",
+      "kind": "milestone",
+      "totalCost": 440.33221675,
+      "totalTokens": 633261819,
+      "totalDuration": 68935215,
+      "doneSlices": 131,
+      "totalSlices": 131,
+      "doneMilestones": 13,
+      "totalMilestones": 30,
+      "phase": "pre-planning"
     }
   ]
 }
