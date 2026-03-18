@@ -82,6 +82,14 @@ Write and update user guide documentation covering all M012 features. This is th
 - S02 summary — body.diff feature details (incremental storage, unified diff rendering)
 - S03 summary — persona feature details (CRUD, switching, command palette, auto-creation)
 
+## Observability Impact
+
+This task produces only static documentation files (Markdown). No runtime signals, logs, or endpoints change.
+
+- **Inspection:** Verify documentation completeness with `grep` commands in the Verification section.
+- **Failure visibility:** Missing sections or broken navigation chains surface as empty grep output or incorrect `tail` results.
+- **No runtime impact:** No backend, frontend, or test code is modified.
+
 ## Expected Output
 
 - `docs/guide/15-event-log.md` — updated with 4 new sections (~80 lines added)

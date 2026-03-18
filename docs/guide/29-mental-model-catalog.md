@@ -605,4 +605,4 @@ All models can coexist in the same SemPKM instance without conflicts — their n
 
 ---
 
-**Previous:** [Chapter 28: Dashboards and Workflows](28-dashboards-and-workflows.md) | **Next:** [Appendix A: Environment Variable Reference](appendix-a-environment-variables.md)
+**Previous:** [Chapter 28: Dashboards and Workflows](28-dashboards-and-workflows.md) | **Next:** [Chapter 30: Workspace Personas](30-personas.md)

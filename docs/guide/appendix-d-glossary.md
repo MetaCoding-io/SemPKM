@@ -13,6 +13,9 @@ A structured reasoning unit that synthesizes claims and evidence to address a re
 **Block**
 A content unit within a dashboard. Six types: view-embed, markdown, object-embed, create-form, sparql-result, and divider. Each block occupies a named slot in the dashboard's grid layout. See [Chapter 28: Dashboards and Workflows](28-dashboards-and-workflows.md).
 
+**Body Diff**
+An incremental change record for object body content. When editing an existing body, SemPKM stores only the unified diff (additions and deletions) rather than the full replacement text. The event log renders body diffs with green (additions) and red (deletions) highlighting. See [Chapter 15: Understanding the Event Log](15-event-log.md).
+
 **Carousel View**
 A tabbed browsing interface for Mental Model views that groups table, card, and graph views into a single page with a tab strip. Each tab loads a different view of the same type's data, letting you switch between display formats without navigating away. See [Chapter 7: Browsing and Visualizing Data](07-browsing-and-visualizing.md).
 
@@ -120,6 +123,9 @@ An academic paper, journal article, preprint, or other publication in the Resear
 
 **PermanentNote** (Zettelkasten+)
 An atomic, self-contained knowledge claim — the core unit of a Zettelkasten. Permanent notes express your own ideas and connect to other permanent notes via argumentation links (supports, contradicts, followsFrom, relatedTo). See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
+
+**Persona**
+A named workspace configuration that stores panel layout, sidebar arrangement, and explorer mode. Switching personas instantly reconfigures the workspace without affecting user settings like theme or font size. See [Chapter 30: Workspace Personas](30-personas.md).
 
 **PKCE**
 Proof Key for Code Exchange. A security extension to the OAuth 2.0 authorization code flow that prevents authorization code interception attacks. SemPKM's IndieAuth provider requires PKCE for all authorization requests. The client generates a random `code_verifier`, sends a hashed `code_challenge` with the authorization request, then proves possession of the original verifier when exchanging the code for a token. See [Chapter 26: IndieAuth](26-indieauth.md). A W3C standard for defining ontologies -- formal descriptions of types, properties, and their relationships. SemPKM uses OWL Class and Property declarations in Mental Model ontology files.

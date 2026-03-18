@@ -60,7 +60,7 @@
   - Verify: `cd e2e && npx playwright test tests/29-personas --project=chromium` (requires Docker test stack)
   - Done when: Spec file exists with ≥4 tests covering persona CRUD, auto-creation, UI presence, and switching
 
-- [ ] **T04: User guide documentation for event log improvements and personas** `est:1h`
+- [x] **T04: User guide documentation for event log improvements and personas** `est:1h`
   - Why: Closes the documentation gap for all M012 features. Users need guidance on the new event log capabilities and the persona system.
   - Files: `docs/guide/15-event-log.md`, `docs/guide/30-personas.md`, `docs/guide/README.md`, `docs/guide/29-mental-model-catalog.md`, `docs/guide/appendix-d-glossary.md`
   - Do: (1) Update Chapter 15 — add sections for predicate labels, helptext tooltips, autocomplete filters, body.diff operation type (add to operation types table), and diff rendering. (2) Create Chapter 30 — cover persona concepts, creating a persona, saving persona state, switching personas (sidebar + command palette), renaming and deleting personas, default persona behavior. (3) Update README.md TOC — add Chapter 30 under Part VIII. (4) Update navigation chain — Chapter 29 Next → Chapter 30, Chapter 30 Previous → Chapter 29 / Next → Appendix A. (5) Add glossary entries for "Persona" (named workspace configuration) and "Body Diff" (incremental body change).

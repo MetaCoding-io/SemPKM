@@ -32,6 +32,7 @@ The five operation types that appear in the log are:
 - **`object.create`** -- A new object was created (e.g., a new Note or Person).
 - **`object.patch`** -- One or more properties on an existing object were updated.
 - **`body.set`** -- An object's Markdown body content was created or replaced.
+- **`body.diff`** -- An existing body was edited and the changes were stored as a unified diff (see [Body Diff Events](#body-diff-events) below).
 - **`edge.create`** -- A new relationship was created between two objects.
 - **`edge.patch`** -- Annotation properties on an existing edge were updated.
 
@@ -67,6 +68,114 @@ The Event Log loads 50 events at a time. When more events are available, a
 appends the next page of events below the current list. Pagination uses cursor-based
 navigation (keyed on timestamps) rather than page numbers, so the list remains
 consistent even as new events arrive.
+
+---
+
+## Predicate Labels
+
+When you expand an event's detail view (by clicking the **Diff** button), the
+properties listed in the diff are shown with **human-readable labels** rather than
+raw IRI predicates.
+
+For example, instead of seeing `dcterms:title`, you see **Title**. Instead of
+`schema:email`, you see **Email**. This makes it much easier to understand what
+changed without needing to know the underlying RDF vocabulary.
+
+Labels are resolved from SHACL shape annotations in the following order:
+
+1. If the object's shape defines `sh:name` for that property, the shape name is
+   used (e.g., "Job Title" for `schema:jobTitle`).
+2. Otherwise, the **local name** of the IRI is extracted (the part after the last
+   `#` or `/`), giving you a reasonable fallback like `jobTitle`.
+
+This label resolution happens automatically — you do not need to configure anything.
+Labels update immediately when you install or update a Mental Model that provides
+`sh:name` annotations for its properties.
+
+---
+
+## Helptext Tooltips
+
+Some predicate labels in the event detail view show a **dotted underline**. This
+indicates that additional context is available. Hover over the label to see a
+**tooltip** with a description of what the property means.
+
+Tooltip text is drawn from SHACL shape annotations:
+
+- `sh:description` — the standard SHACL description for the property constraint.
+- `sempkm:editHelpText` — a SemPKM-specific annotation that provides editing
+  guidance (the same text shown in form field help icons).
+
+If both are present, `sh:description` is preferred. Properties without any
+annotation simply display the label without a dotted underline or tooltip.
+
+This is especially helpful when reviewing changes to objects from Mental Models you
+are less familiar with — the tooltip explains what each property represents without
+leaving the Event Log.
+
+---
+
+## Autocomplete Filters
+
+The Event Log filter area provides three **autocomplete inputs** that make it easy
+to find specific events:
+
+| Filter input    | What it searches                                | Example values                        |
+|-----------------|-------------------------------------------------|---------------------------------------|
+| Operation Type  | The type of operation that produced the event   | `object.create`, `body.diff`          |
+| Predicate       | The property that was changed                   | `dcterms:title`, `schema:email`       |
+| Object          | The object that was affected                    | `Meeting Notes`, `Alice Chen`         |
+
+### How autocomplete works
+
+1. **Click or type** in any filter input to open a dropdown of suggestions.
+2. Suggestions are drawn from **actual event data** in your workspace — you only
+   see operation types, predicates, and objects that exist in your event history.
+3. As you type, the dropdown narrows to matching suggestions.
+4. **Select a suggestion** to apply it as a filter. The timeline immediately
+   updates to show only matching events.
+5. Active filters appear as **removable chips** above the timeline (same as other
+   filter types). Click the **×** on any chip to remove that filter.
+
+You can combine autocomplete filters with date range filters and user filters for
+precise queries like "show all `object.patch` events that changed `dcterms:title`
+in the last week."
+
+---
+
+## Body Diff Events
+
+When you edit an existing object's Markdown body, SemPKM does not store the entire
+new body as a replacement. Instead, it computes a **unified diff** — a compact
+representation of only the lines that were added, removed, or changed — and stores
+that as a `body.diff` event.
+
+### How body.diff differs from body.set
+
+| Scenario                                  | Operation type | What is stored                     |
+|-------------------------------------------|----------------|------------------------------------|
+| Setting a body for the first time         | `body.set`     | The complete body text             |
+| Editing an existing body                  | `body.diff`    | Only the unified diff (changes)    |
+
+This distinction keeps event storage efficient. A small edit to a long document
+produces a small `body.diff` event rather than a full copy of the entire body.
+
+### Viewing body.diff in the Event Log
+
+Click the **Diff** button on a `body.diff` event to see the changes rendered with
+color-coded highlighting:
+
+- **Green lines** — text that was added.
+- **Red lines** — text that was removed.
+- **Context lines** — unchanged lines surrounding the changes (for orientation).
+
+This is the same unified diff format used by tools like `git diff`. It shows you
+exactly what was changed in the body without needing to compare two full copies
+side by side.
+
+> **Tip:** The `body.set` event type still shows a full-body diff as before (all
+> lines appear as additions if it was the first body, or a before/after diff if
+> the body was replaced entirely via the API).
 
 ---
 
@@ -129,6 +238,7 @@ The Diff button is available for all five operation types:
 - `object.create` and `edge.create` -- shows the triples that were added.
 - `object.patch` and `edge.patch` -- shows property-level before/after values.
 - `body.set` -- shows a line-by-line diff of the Markdown body.
+- `body.diff` -- shows a color-coded unified diff of the body changes (additions in green, deletions in red).
 
 ### Property Diffs
 
