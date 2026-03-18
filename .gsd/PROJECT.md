@@ -393,7 +393,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current State
 
-**Latest shipped: M012 Workspace & Event Log Polish (2026-03-17)**
+**Latest shipped: M013 API Surface for External Clients (2026-03-17)**
 
 **What shipped in M012 (Workspace & Event Log Polish):**
 - Event log predicate labels resolved to human-readable text via ShapesService + LabelService batch resolution
@@ -456,7 +456,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - E2E test coverage: 5 new Playwright tests across 3 spec files
 - User guide: 4 chapters updated with new feature documentation
 
-**Previous milestones:** M012 Workspace & Event Log Polish (2026-03-17), M011 Mental Models Expansion (2026-03-17), M008 Spatial Canvas (2026-03-16), M007 Generic Views, VFS Completion & Polish (2026-03-16), M006 Dashboards, Workflows & Platform Alignment (2026-03-15), M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
+**Previous milestones:** M013 API Surface for External Clients (2026-03-17), M012 Workspace & Event Log Polish (2026-03-17), M011 Mental Models Expansion (2026-03-17), M008 Spatial Canvas (2026-03-16), M007 Generic Views, VFS Completion & Polish (2026-03-16), M006 Dashboards, Workflows & Platform Alignment (2026-03-15), M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
 
 **Latest shipped: M013 API Surface for External Clients (2026-03-17)**
 
@@ -475,14 +475,14 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Context
 
-**Current state (M011 complete 2026-03-17):**
+**Current state (M013 complete 2026-03-17):**
 - ~59k source LOC (52k Python, 7k JS) + CSS, HTML/Jinja2, JSON-LD
 - 6 Mental Models: basic-pkm v2.0, ppv, gist, crm v1.0, zettelkasten v1.0, research v1.0 (24 files across 4 model directories)
 - Tech stack: FastAPI + RDF4J (LuceneSail) + htmx/vanilla-web + SQLAlchemy (SQLite/PostgreSQL) + wsgidav + a2wsgi + Driver.js + Cytoscape.js + CodeMirror + dockview-core + Alembic + Yasgui CDN + ninja-keys + owlrl + pyshacl + mf2py + http-message-signatures + slowapi
 - Docker Compose deployment: 3 services (api, triplestore, frontend/nginx) + federation test compose (2 instances)
-- 58 phases, 80 plans completed across v1.0–v2.6; M002 (7 slices) + M003 (10 slices) + M004 (5 slices) + M005 (9 slices) + M006 (7 slices) + M007 (5 slices) + M008 (4 slices) + M011 (5 slices) + M012 (4 slices) milestones complete
-- Backend test suite: 850+ pytest unit tests, <5s, no Docker dependency
-- E2E test suite: 98 Playwright spec files covering all shipped features
+- 58 phases, 80 plans completed across v1.0–v2.6; M002 (7 slices) + M003 (10 slices) + M004 (5 slices) + M005 (9 slices) + M006 (7 slices) + M007 (5 slices) + M008 (4 slices) + M011 (5 slices) + M012 (4 slices) + M013 (3 slices) milestones complete
+- Backend test suite: 990+ pytest unit tests, <5s, no Docker dependency
+- E2E test suite: 99 Playwright spec files covering all shipped features
 - All dependencies pinned (~= compatible release) with uv.lock committed
 - Browser router refactored into 8 domain sub-modules (was 1956-line monolith)
 - Query storage migrated from SQL to RDF (4 SQL tables dropped)
@@ -491,6 +491,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Generic views infrastructure: 3 ViewSpec entries, SHACL column discovery, type filter pills
 - VFS v2 complete (except write support): type filter, scopeQuery IRI, composable chains, filename templates
 - Spatial canvas: resizable nodes, property flip, live iframe embeds with dual-layer rendering
+- API surface: 4 JSON endpoints for external clients with dual-auth, CORS, and 62 unit tests
 
 **Known tech debt:**
 - Cookie secure=False (local dev only — production config deferred)
@@ -613,4 +614,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-03-17 after M012 complete (Workspace & Event Log Polish — 4 slices, event log labels/helptext/autocomplete, body.diff, personas, E2E tests + user guide)*
+*Last updated: 2026-03-17 after M013 complete (API Surface for External Clients — 3 slices, dual-auth + CORS + nginx, types + shapes endpoints, context-query + E2E + user guide)*
