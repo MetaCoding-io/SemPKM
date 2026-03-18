@@ -1,7 +1,7 @@
 # GSD State
 
 **Active Milestone:** M014: Browser Extension Phase 1 — Smart Structured Capture
-**Active Slice:** S01: Backend auth fix + extension scaffold with working capture
+**Active Slice:** S02: SHACL form renderer + type selector
 **Phase:** executing
 **Requirements Status:** 61 active · 101 validated · 7 deferred · 0 out of scope
 
@@ -44,4 +44,4 @@
 - None
 
 ## Next Action
-Execute T05: Admin API key management page in slice S01. T05-PLAN.md is written and ready for execution.
+Execute T01 of S02 (build SHACL form renderer module).
