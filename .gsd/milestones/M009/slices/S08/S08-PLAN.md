@@ -27,7 +27,7 @@
 
 ## Tasks
 
-- [ ] **T01: Write Chapter 29 — App Platform guide page** `est:45m`
+- [x] **T01: Write Chapter 29 — App Platform guide page** `est:45m`
   - Why: The main deliverable of S08. Covers both user-facing app management and developer-facing SDK reference. All source material exists in-repo (design doc, test app, SDK source, admin templates).
   - Files: `docs/guide/29-app-platform.md`
   - Do: Write ~200-250 line markdown chapter with two main H2 sections. "Managing Apps" covers: the Applications admin page, installing from disk, status indicators, start/stop/restart, task monitoring, uninstalling with/without data. "Building Apps with the SDK" covers: directory structure, manifest.yaml reference (use test-app manifest as example), App class decorators, AppContext and 5 clients, fragment routes and templates, task handlers, frontend integration levels (L1/L2/L3), permissions. Reference `apps/test-app/` as the canonical example throughout. Include header navigation and footer navigation placeholders.
