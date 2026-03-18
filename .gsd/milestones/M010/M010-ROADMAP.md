@@ -66,7 +66,7 @@ This milestone is complete only when all are true:
 - [x] **S02: Feed service + content extraction + feed management** `risk:medium` `depends:[S01]`
   > After this: User subscribes to feeds by URL, feed discovery finds feeds from website URLs, trafilatura extracts full article content, conditional GET (ETag/Last-Modified) avoids redundant downloads, per-feed error tracking reports failures. Unit tests cover RSS 2.0, Atom 1.0, and JSON Feed formats.
 
-- [ ] **S03: Reader UI (split-pane layout)** `risk:low` `depends:[S01]`
+- [x] **S03: Reader UI (split-pane layout)** `risk:low` `depends:[S01]`
   > After this: RSS Reader standalone page shows split-pane layout — feed sidebar with unread counts, article list with title/date/source, and reading pane with clean markdown-rendered article body. Star toggle and mark read/unread controls work. All via htmx fragments.
 
 - [ ] **S04: Workspace contributions + custom renderer** `risk:low` `depends:[S02,S03]`
