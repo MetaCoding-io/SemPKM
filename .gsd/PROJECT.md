@@ -303,11 +303,11 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - S05 complete: Cross-model verification (10 pytest tests), E2E Playwright test (Docker lifecycle), Chapter 29 user guide (608 lines, 15 glossary entries)
 - Design: `.gsd/design/MENTAL-MODELS-EXPANSION-DESIGN.md`
 
-**Workspace & Event Log Polish** — in progress (M012)
+**Workspace & Event Log Polish** — complete (M012)
 - S01 complete: Event log labels, helptext tooltips, autocomplete for filter fields
 - S02 complete: Body.diff incremental storage and rendering
 - S03 complete: Workspace personas — CRUD, sidebar selector, command palette, layout/positions/mode save and restore
-- S04 remaining: E2E Playwright tests + user guide documentation
+- S04 complete: 12 E2E Playwright tests + user guide Chapter 15 updated (4 sections) + Chapter 30 (personas) + glossary
 
 **API Surface for External Clients** — queued (M013, depends on M011)
 - `/.well-known/sempkm`, `/api/types`, `/api/shapes/{type}`, `/api/context-query`
@@ -368,7 +368,20 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current State
 
-**Latest shipped: M011 Mental Models Expansion (2026-03-17)**
+**Latest shipped: M012 Workspace & Event Log Polish (2026-03-17)**
+
+**What shipped in M012 (Workspace & Event Log Polish):**
+- Event log predicate labels resolved to human-readable text via ShapesService + LabelService batch resolution
+- Helptext tooltips on event log predicates from SHACL sh:description / sempkm:editHelpText annotations
+- Autocomplete for event log filter fields (operation type, predicate, object) via 3 suggestion endpoints
+- Body.diff incremental storage — edits to existing bodies compute and store unified diffs instead of full replacements
+- Event log renders both body.set (full text) and body.diff (green/red diff highlighting) events correctly
+- Workspace personas — named workspace configurations with CRUD, sidebar selector, command palette, dockview layout/sidebar positions/explorer mode save and restore
+- Default persona auto-created on first use, explicit save model (not auto-save on every layout change)
+- 12 Playwright E2E tests across 3 spec files (event-log-polish, body-diff, personas)
+- RATE_LIMIT_ENABLED config toggle for disabling slowapi in E2E test environments
+- User guide: Chapter 15 updated (4 new sections), Chapter 30 created (personas, 7 sections), glossary entries
+- 946 backend unit tests, 11 M012 requirements validated
 
 **What shipped in M011 (Mental Models Expansion):**
 - 4 complete .sempkm-model archives expanding the lineup from 3 to 6+ user-facing models — zero platform code changes (D149)
@@ -418,9 +431,9 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - E2E test coverage: 5 new Playwright tests across 3 spec files
 - User guide: 4 chapters updated with new feature documentation
 
-**Previous milestones:** M008 Spatial Canvas (2026-03-16), M007 Generic Views, VFS Completion & Polish (2026-03-16), M006 Dashboards, Workflows & Platform Alignment (2026-03-15), M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
+**Previous milestones:** M011 Mental Models Expansion (2026-03-17), M008 Spatial Canvas (2026-03-16), M007 Generic Views, VFS Completion & Polish (2026-03-16), M006 Dashboards, Workflows & Platform Alignment (2026-03-15), M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
 
-**Current milestone:** None — M011 complete, awaiting next milestone queue
+**Current milestone:** None — M012 complete, awaiting next milestone queue
 
 ## Context
 
@@ -429,9 +442,9 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - 6 Mental Models: basic-pkm v2.0, ppv, gist, crm v1.0, zettelkasten v1.0, research v1.0 (24 files across 4 model directories)
 - Tech stack: FastAPI + RDF4J (LuceneSail) + htmx/vanilla-web + SQLAlchemy (SQLite/PostgreSQL) + wsgidav + a2wsgi + Driver.js + Cytoscape.js + CodeMirror + dockview-core + Alembic + Yasgui CDN + ninja-keys + owlrl + pyshacl + mf2py + http-message-signatures + slowapi
 - Docker Compose deployment: 3 services (api, triplestore, frontend/nginx) + federation test compose (2 instances)
-- 58 phases, 80 plans completed across v1.0–v2.6; M002 (7 slices) + M003 (10 slices) + M004 (5 slices) + M005 (9 slices) + M006 (7 slices) + M007 (5 slices) + M008 (4 slices) + M011 (5 slices) milestones complete
+- 58 phases, 80 plans completed across v1.0–v2.6; M002 (7 slices) + M003 (10 slices) + M004 (5 slices) + M005 (9 slices) + M006 (7 slices) + M007 (5 slices) + M008 (4 slices) + M011 (5 slices) + M012 (4 slices) milestones complete
 - Backend test suite: 850+ pytest unit tests, <5s, no Docker dependency
-- E2E test suite: 95 Playwright spec files covering all shipped features
+- E2E test suite: 98 Playwright spec files covering all shipped features
 - All dependencies pinned (~= compatible release) with uv.lock committed
 - Browser router refactored into 8 domain sub-modules (was 1956-line monolith)
 - Query storage migrated from SQL to RDF (4 SQL tables dropped)
@@ -562,4 +575,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-03-17 after M011 complete (Mental Models Expansion — 5 slices, 4 model archives)*
+*Last updated: 2026-03-17 after M012 complete (Workspace & Event Log Polish — 4 slices, event log labels/helptext/autocomplete, body.diff, personas, E2E tests + user guide)*
