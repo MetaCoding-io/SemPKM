@@ -43,7 +43,7 @@
 
 ## Tasks
 
-- [ ] **T01: AppScheduler with interval parsing, concurrency guard, retry, and admin task history** `est:1h30m`
+- [x] **T01: AppScheduler with interval parsing, concurrency guard, retry, and admin task history** `est:1h30m`
   - Why: Platform-owned scheduler is the backbone of app background tasks (APP-06). Tasks must fire on interval, not re-fire while running, retry with backoff, and record history. Admin needs visibility into task execution.
   - Files: `backend/app/apps/scheduler.py` (new), `backend/app/main.py`, `backend/app/apps/admin_router.py`, `backend/app/templates/admin/apps/detail.html`, `backend/tests/test_app_scheduler.py` (new)
   - Do:
