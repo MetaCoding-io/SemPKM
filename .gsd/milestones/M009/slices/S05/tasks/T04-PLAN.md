@@ -34,6 +34,13 @@ Add `browserVisible` field (default true) to `ManifestIconDef` so Mental Model t
 - `grep "browser_visible" backend/app/models/manifest.py` — field present
 - `grep "get_hidden_types" backend/app/services/icons.py` — method present
 
+## Observability Impact
+
+- **Logger:** `app.services.models` at DEBUG level logs skipped manifests during `browserVisible` scan.
+- **Inspection:** `get_hidden_type_iris(models_dir)` can be called standalone to inspect which types are hidden — returns a plain `set[str]`.
+- **Failure shape:** Invalid manifests are silently skipped (logged at DEBUG) — no user-facing error. If a type unexpectedly appears/disappears from the browser, inspect the model's `manifest.yaml` `icons` section for `browserVisible` values.
+- **No SPARQL changes:** Hidden types remain fully queryable; only browser nav/type pills are filtered.
+
 ## Inputs
 
 - `backend/app/models/manifest.py` — existing `ManifestIconDef` model

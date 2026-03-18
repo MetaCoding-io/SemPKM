@@ -83,7 +83,7 @@
   - Verify: `pytest tests/test_bulk_eventstore.py -v` — all pass. Full suite no regressions.
   - Done when: `commit_bulk()` produces BulkEvent with summary metadata, batch size enforced, bulk API endpoint works, SDK context manager accumulates and sends.
 
-- [ ] **T04: browserVisible field on Mental Model ManifestSchema** `est:30m`
+- [x] **T04: browserVisible field on Mental Model ManifestSchema** `est:30m`
   - Why: Apps create internal bookkeeping types (ReadActivity, sync cursors) that clutter the object browser (APP-12, D144). Hiding them improves UX without losing data access.
   - Files: `backend/app/models/manifest.py`, `backend/app/services/icons.py`, `backend/app/browser/workspace.py`, `backend/tests/test_browser_visible.py` (new)
   - Do:
