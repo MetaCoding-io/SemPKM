@@ -40,6 +40,14 @@ The `/api/` proxy block in nginx.conf doesn't forward the `Authorization` header
 
 - `frontend/nginx.conf` — current proxy configuration with `/dav/` as reference for Authorization forwarding
 
+## Observability Impact
+
+- **New signal — CORS headers on `/api/` responses:** `curl -v` against any `/api/` endpoint will now show `Access-Control-Allow-Origin`, `Access-Control-Allow-Headers`, and `Access-Control-Allow-Methods` response headers. Their absence indicates nginx didn't reload or the config has a syntax error.
+- **New signal — OPTIONS preflight 204:** `curl -X OPTIONS` to any `/api/` path returns HTTP 204 with CORS headers. A 405 or proxy error means the `if ($request_method = OPTIONS)` block is missing or misconfigured.
+- **Changed signal — Authorization header forwarding:** `/api/` requests now pass `Authorization` through to FastAPI. Visible in FastAPI debug logs (`app.auth.dependencies` logger shows "via Bearer token" when Bearer auth resolves). If the header is still stripped, the backend will never log the Bearer path — always the "Not authenticated" fallback.
+- **New proxy block — `/.well-known/sempkm`:** nginx access log will show requests to this path proxied to `api:8000`. A 502 means the backend endpoint doesn't exist yet (expected until T03). A 404 means the nginx block is missing.
+- **Failure visibility:** nginx config syntax errors surface via `docker compose restart frontend` failing with non-zero exit and `nginx -t` output in container logs.
+
 ## Expected Output
 
 - `frontend/nginx.conf` — updated with Authorization forwarding on `/api/`, new `/.well-known/sempkm` block, and CORS headers

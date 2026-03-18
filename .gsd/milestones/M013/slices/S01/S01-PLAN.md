@@ -47,7 +47,7 @@
   - Verify: `python -m pytest tests/test_api_surface.py -v -k "test_dual_auth"` — tests for cookie-only, bearer-only, both missing, invalid bearer
   - Done when: `get_current_user_or_api` resolves a User from either auth method and raises 401 cleanly when neither is present
 
-- [ ] **T02: Fix nginx Authorization forwarding and add CORS** `est:30m`
+- [x] **T02: Fix nginx Authorization forwarding and add CORS** `est:30m`
   - Why: The `/api/` proxy block doesn't forward the `Authorization` header — only `/dav/` does. Without this, Bearer tokens from browser extensions are stripped by nginx. CORS headers are needed for cross-origin requests from browser extensions.
   - Files: `frontend/nginx.conf`
   - Do:
