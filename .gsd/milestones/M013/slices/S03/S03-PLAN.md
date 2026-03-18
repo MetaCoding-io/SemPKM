@@ -70,7 +70,7 @@
   - Verify: `cd backend && python -m pytest tests/test_api_surface.py -v -k "context_query"` — all green
   - Done when: ≥6 tests covering all context-query paths
 
-- [ ] **T03: E2E Playwright test for API surface** `est:45m`
+- [x] **T03: E2E Playwright test for API surface** `est:45m`
   - Why: Standing requirement — all user-visible behavior needs Playwright tests. The API endpoints are the user-visible surface for external clients. Tests prove the full pipeline (nginx → FastAPI → triplestore) works with real data.
   - Files: `e2e/tests/30-api-surface/api-surface.spec.ts`
   - Do:
