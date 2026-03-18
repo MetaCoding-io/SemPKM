@@ -280,6 +280,20 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - ✓ API-08: API surface user guide Chapter 31 with 3 glossary entries — M013
 - ✓ 62 unit tests + 7 E2E Playwright tests across all endpoints — M013
 
+### Validated (M009 — App Platform + M010 — RSS Reader App)
+
+<!-- Shipped and confirmed in M009 (2026-03-18) and M010 (2026-03-18). -->
+
+- ✓ APP-01–14: App platform — manifest validation, subprocess lifecycle (crash recovery, auto-start), App SDK with scoped clients, IPC over unix domain socket, permission enforcement, task scheduler, 3-level frontend integration (standalone pages, workspace contributions, object renderers), admin monitoring portal, bulk EventStore, browserVisible field, database migrations, Docker/nginx integration — M009
+- ✓ RSS-01: Feed subscription + polling — RSS/Atom/JSON Feed by URL, configurable poll interval, bulk EventStore article ingestion, per-feed error tracking — M010
+- ✓ RSS-02: Reader UI — split-pane layout (feed sidebar, article list, reading pane), clean typography, star toggle, mark read/unread — M010
+- ✓ RSS-03: Custom Article renderer — replaces default SHACL form when opening article from object browser — M010
+- ✓ RSS-05: OPML import — upload file to create multiple subscriptions, categories preserved as tags — M010
+- ✓ RSS-06: Workspace contributions — Unread/Starred views, Related Articles right pane, command palette entries — M010
+- ✓ RSS-07: rss-feeds Mental Model — Article, FeedSubscription types with OWL/SHACL/ViewSpecs — M010
+- ✓ RSS-08: Feed content extraction — feed discovery from website URLs, trafilatura full content extraction, fallback to summaries — M010
+- ✓ 663-line Playwright E2E spec (58 assertions, 15 phases), Chapter 32 user guide (305 lines), 4 glossary entries — M010
+
 ### Future Candidates
 
 <!-- Tracked for future milestones. See .gsd/QUEUE.md for full queue and .gsd/REQUIREMENTS.md for deferred requirements. -->
@@ -307,16 +321,16 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Toolbar picker + drag-from-explorer for adding embeds
 - E2E Playwright tests + Chapter 27 user guide update
 
-**App Platform** (APP-01–14) — queued (M009)
+**App Platform** (APP-01–14) — complete (M009)
 - Sandboxed app platform: manifest validation, subprocess lifecycle, App SDK, 3-level frontend integration
 - Platform-owned task scheduler, permission enforcement, admin monitoring portal
 - Bulk EventStore extension, browserVisible field on Mental Model types
 - Design: `.gsd/design/APP-PLATFORM-DESIGN.md`
 
-**RSS Reader & Hypothesis App** (RSS-01–08) — queued (M010, depends on M009)
-- First app on the platform: RSS/Atom feed reader with Hypothesis annotation sync
-- Two new Mental Models (rss-feeds, web-annotations), custom object renderers, background polling
-- Research: `docs/research/rss-reader-hypothesis-integration.md`
+**RSS Reader App** (RSS-01–08) — complete (M010, depends on M009)
+- First app on the platform: RSS/Atom feed reader with feed subscription, polling, reader UI, OPML import
+- rss-feeds Mental Model, custom object renderer, workspace contributions, command palette actions
+- Playwright E2E spec (663 lines, 58 assertions) + Chapter 32 user guide (305 lines)
 
 **Mental Models Expansion** (MODEL-01–04) — complete (M011)
 - S01 complete: basic-pkm v2.0 with Task + Milestone types, 10-test acceptance suite, all 3 key risks retired
