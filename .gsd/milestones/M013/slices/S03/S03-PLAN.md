@@ -85,7 +85,7 @@
   - Verify: `cd e2e && npx playwright test tests/30-api-surface/ --project=chromium`
   - Done when: ≥5 E2E tests pass against running Docker stack
 
-- [ ] **T04: User guide documentation** `est:30m`
+- [x] **T04: User guide documentation** `est:30m`
   - Why: Standing requirement — user-visible features need guide documentation. The API surface is the integration point for extension developers and third-party clients.
   - Files: `docs/guide/31-api-surface.md`, `docs/guide/README.md`, `docs/guide/appendix-d-glossary.md`
   - Do:
