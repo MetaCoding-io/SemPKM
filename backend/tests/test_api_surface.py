@@ -958,3 +958,374 @@ class TestShapesEndpoint:
         # Properties without helptext return None
         body = next(p for p in data["properties"] if p["name"] == "Body")
         assert body["helptext"] is None
+
+
+# ---------------------------------------------------------------------------
+# POST /api/context-query endpoint tests
+# ---------------------------------------------------------------------------
+
+from app.services.search import SearchResult
+
+
+def _build_context_query_app(
+    db_session_factory,
+    triplestore_query_results: dict | None = None,
+    search_results: list | None = None,
+    label_results: dict | None = None,
+) -> FastAPI:
+    """Build a minimal FastAPI app with the context-query endpoint for testing.
+
+    Mocks TriplestoreClient, SearchService, and LabelService on app.state.
+    Also includes types endpoint mocks so the router doesn't fail on
+    missing app.state attributes.
+    """
+    from app.api.router import api_surface_router
+    from app.auth.service import AuthService
+
+    test_app = FastAPI()
+    auth_service = AuthService(db_session_factory)
+    test_app.state.auth_service = auth_service
+
+    # Mock TriplestoreClient — returns configurable SPARQL results
+    mock_triplestore = AsyncMock()
+
+    # Build side_effect that returns different results based on query content
+    _triplestore_results = triplestore_query_results or {}
+
+    async def _mock_query(sparql: str) -> dict:
+        """Route SPARQL queries to their mock results."""
+        # URL matching query contains FILTER(STR(?val)
+        if "FILTER(STR(?val)" in sparql:
+            return _triplestore_results.get(
+                "url_match",
+                {"results": {"bindings": []}},
+            )
+        # Type resolution query contains "?s a ?type"
+        if "?s a ?type" in sparql:
+            return _triplestore_results.get(
+                "type_resolve",
+                {"results": {"bindings": []}},
+            )
+        return {"results": {"bindings": []}}
+
+    mock_triplestore.query = AsyncMock(side_effect=_mock_query)
+    test_app.state.triplestore_client = mock_triplestore
+
+    # Mock SearchService
+    mock_search = AsyncMock()
+    mock_search.search = AsyncMock(return_value=search_results or [])
+    test_app.state.search_service = mock_search
+
+    # Mock LabelService
+    mock_labels = AsyncMock()
+    _label_map = label_results or {}
+
+    async def _mock_resolve_batch(iris: list[str]) -> dict[str, str]:
+        return {iri: _label_map.get(iri, iri) for iri in iris}
+
+    mock_labels.resolve_batch = AsyncMock(side_effect=_mock_resolve_batch)
+    test_app.state.label_service = mock_labels
+
+    # Mock ShapesService + ModelService (required by types endpoint on same router)
+    mock_shapes = AsyncMock()
+    mock_shapes.get_types = AsyncMock(return_value=[])
+    mock_shapes.get_form_for_type = AsyncMock(return_value=None)
+    test_app.state.shapes_service = mock_shapes
+
+    mock_models = AsyncMock()
+    mock_models.list_models = AsyncMock(return_value=[])
+    test_app.state.model_service = mock_models
+
+    test_app.include_router(api_surface_router)
+
+    return test_app
+
+
+# --- Sample data for context-query tests ---
+
+_URL_MATCH_BINDINGS = {
+    "url_match": {
+        "results": {
+            "bindings": [
+                {"s": {"value": "urn:sempkm:obj:note-1"}},
+                {"s": {"value": "urn:sempkm:obj:note-2"}},
+            ]
+        }
+    },
+    "type_resolve": {
+        "results": {
+            "bindings": [
+                {
+                    "s": {"value": "urn:sempkm:obj:note-1"},
+                    "type": {"value": "urn:sempkm:model:basic-pkm:Note"},
+                },
+                {
+                    "s": {"value": "urn:sempkm:obj:note-2"},
+                    "type": {"value": "urn:sempkm:model:basic-pkm:Note"},
+                },
+            ]
+        }
+    },
+}
+
+_KEYWORD_SEARCH_RESULTS = [
+    SearchResult(
+        iri="urn:sempkm:obj:project-1",
+        type="urn:sempkm:model:basic-pkm:Project",
+        label="My Project",
+        snippet="A project about <b>knowledge</b> management",
+        score=0.95,
+    ),
+]
+
+_DEDUP_SEARCH_RESULTS = [
+    SearchResult(
+        iri="urn:sempkm:obj:note-1",  # Same as URL match
+        type="urn:sempkm:model:basic-pkm:Note",
+        label="Note One",
+        snippet="Overlapping result from FTS",
+        score=0.8,
+    ),
+    SearchResult(
+        iri="urn:sempkm:obj:project-1",
+        type="urn:sempkm:model:basic-pkm:Project",
+        label="My Project",
+        snippet="A unique FTS result",
+        score=0.7,
+    ),
+]
+
+_LABEL_MAP = {
+    "urn:sempkm:obj:note-1": "Note One",
+    "urn:sempkm:obj:note-2": "Note Two",
+    "urn:sempkm:obj:project-1": "My Project",
+    "urn:sempkm:model:basic-pkm:Note": "Note",
+    "urn:sempkm:model:basic-pkm:Project": "Project",
+}
+
+
+@pytest.fixture
+def context_query_url_app(db_session_factory, db_session):
+    """App that returns URL match results."""
+    from app.db.session import get_db_session
+
+    test_app = _build_context_query_app(
+        db_session_factory,
+        triplestore_query_results=_URL_MATCH_BINDINGS,
+        label_results=_LABEL_MAP,
+    )
+
+    async def override_db():
+        yield db_session
+
+    test_app.dependency_overrides[get_db_session] = override_db
+    return test_app
+
+
+@pytest.fixture
+def context_query_keyword_app(db_session_factory, db_session):
+    """App that returns keyword search results."""
+    from app.db.session import get_db_session
+
+    type_bindings = {
+        "type_resolve": {
+            "results": {
+                "bindings": [
+                    {
+                        "s": {"value": "urn:sempkm:obj:project-1"},
+                        "type": {"value": "urn:sempkm:model:basic-pkm:Project"},
+                    },
+                ]
+            }
+        },
+    }
+
+    test_app = _build_context_query_app(
+        db_session_factory,
+        triplestore_query_results=type_bindings,
+        search_results=_KEYWORD_SEARCH_RESULTS,
+        label_results=_LABEL_MAP,
+    )
+
+    async def override_db():
+        yield db_session
+
+    test_app.dependency_overrides[get_db_session] = override_db
+    return test_app
+
+
+@pytest.fixture
+def context_query_empty_app(db_session_factory, db_session):
+    """App that returns no results for any query."""
+    from app.db.session import get_db_session
+
+    test_app = _build_context_query_app(db_session_factory)
+
+    async def override_db():
+        yield db_session
+
+    test_app.dependency_overrides[get_db_session] = override_db
+    return test_app
+
+
+@pytest.fixture
+def context_query_dedup_app(db_session_factory, db_session):
+    """App with overlapping URL + keyword results (tests deduplication)."""
+    from app.db.session import get_db_session
+
+    test_app = _build_context_query_app(
+        db_session_factory,
+        triplestore_query_results=_URL_MATCH_BINDINGS,
+        search_results=_DEDUP_SEARCH_RESULTS,
+        label_results=_LABEL_MAP,
+    )
+
+    async def override_db():
+        yield db_session
+
+    test_app.dependency_overrides[get_db_session] = override_db
+    return test_app
+
+
+class TestContextQueryEndpoint:
+    """Test the POST /api/context-query endpoint."""
+
+    async def test_context_query_url_match(self, context_query_url_app, valid_session):
+        """URL matching returns results with match_type 'url'."""
+        transport = ASGITransport(app=context_query_url_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.post(
+                "/api/context-query",
+                json={"url": "https://example.com/page"},
+                cookies={"sempkm_session": valid_session.token},
+            )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "results" in data
+        assert "total" in data
+        assert data["total"] == 2
+        assert len(data["results"]) == 2
+        # All results should have match_type 'url'
+        for r in data["results"]:
+            assert r["match_type"] == "url"
+            assert r["iri"].startswith("urn:sempkm:obj:")
+            assert r["label"]  # non-empty label
+
+    async def test_context_query_keyword_match(self, context_query_keyword_app, valid_session):
+        """Keyword matching returns results with match_type 'keyword'."""
+        transport = ASGITransport(app=context_query_keyword_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.post(
+                "/api/context-query",
+                json={"keywords": "knowledge management"},
+                cookies={"sempkm_session": valid_session.token},
+            )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["total"] == 1
+        result = data["results"][0]
+        assert result["match_type"] == "keyword"
+        assert result["iri"] == "urn:sempkm:obj:project-1"
+        assert result["snippet"] is not None
+
+    async def test_context_query_title_match(self, context_query_keyword_app, valid_session):
+        """Title-only matching returns results with match_type 'title'."""
+        transport = ASGITransport(app=context_query_keyword_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.post(
+                "/api/context-query",
+                json={"title": "Knowledge Management Overview"},
+                cookies={"sempkm_session": valid_session.token},
+            )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["total"] >= 1
+        for r in data["results"]:
+            assert r["match_type"] == "title"
+
+    async def test_context_query_empty_results(self, context_query_empty_app, valid_session):
+        """No matches returns 200 with empty array (not 404 or error)."""
+        transport = ASGITransport(app=context_query_empty_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.post(
+                "/api/context-query",
+                json={"url": "https://nonexistent.example.com"},
+                cookies={"sempkm_session": valid_session.token},
+            )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["results"] == []
+        assert data["total"] == 0
+
+    async def test_context_query_requires_field(self, context_query_empty_app, valid_session):
+        """Empty request body returns 400 with validation message."""
+        transport = ASGITransport(app=context_query_empty_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.post(
+                "/api/context-query",
+                json={},
+                cookies={"sempkm_session": valid_session.token},
+            )
+        assert resp.status_code == 400
+        assert "at least one" in resp.json()["detail"].lower()
+
+    async def test_context_query_requires_auth(self, context_query_empty_app):
+        """Request without credentials returns 401."""
+        transport = ASGITransport(app=context_query_empty_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.post(
+                "/api/context-query",
+                json={"keywords": "test"},
+            )
+        assert resp.status_code == 401
+
+    async def test_context_query_deduplicates(self, context_query_dedup_app, valid_session):
+        """Same IRI from URL + keyword match appears only once (URL wins)."""
+        transport = ASGITransport(app=context_query_dedup_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.post(
+                "/api/context-query",
+                json={"url": "https://example.com/page", "keywords": "notes"},
+                cookies={"sempkm_session": valid_session.token},
+            )
+        assert resp.status_code == 200
+        data = resp.json()
+        iris = [r["iri"] for r in data["results"]]
+        # Should be deduplicated — no duplicate IRIs
+        assert len(iris) == len(set(iris))
+        # note-1 appears in both URL and keyword results but should be 'url' (first match wins)
+        note1 = next(r for r in data["results"] if r["iri"] == "urn:sempkm:obj:note-1")
+        assert note1["match_type"] == "url"
+        # project-1 is keyword-only
+        proj = next(r for r in data["results"] if r["iri"] == "urn:sempkm:obj:project-1")
+        assert proj["match_type"] == "keyword"
+        # Total should be 3: note-1, note-2 (from URL), project-1 (from keyword)
+        assert data["total"] == 3
+
+    async def test_context_query_includes_type_info(self, context_query_url_app, valid_session):
+        """Results include type_iri and type_label from SPARQL type resolution."""
+        transport = ASGITransport(app=context_query_url_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.post(
+                "/api/context-query",
+                json={"url": "https://example.com/page"},
+                cookies={"sempkm_session": valid_session.token},
+            )
+        data = resp.json()
+        for r in data["results"]:
+            assert r["type_iri"] == "urn:sempkm:model:basic-pkm:Note"
+            assert r["type_label"] == "Note"
+
+    async def test_context_query_works_with_bearer_token(
+        self, context_query_keyword_app, valid_api_token
+    ):
+        """Authenticated request via Bearer token works."""
+        transport = ASGITransport(app=context_query_keyword_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.post(
+                "/api/context-query",
+                json={"keywords": "knowledge"},
+                headers={"Authorization": f"Bearer {valid_api_token}"},
+            )
+        assert resp.status_code == 200
+        assert resp.json()["total"] >= 1

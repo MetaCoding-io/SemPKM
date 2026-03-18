@@ -21,6 +21,7 @@
 - `curl -X POST http://localhost:3000/api/context-query -H "Content-Type: application/json" -d '{"keywords":"project"}'` — returns objects with "project" in text
 - E2E tests: `cd e2e && npx playwright test tests/30-api-surface/ --project=chromium` — passes
 - `docs/guide/31-api-surface.md` exists with endpoint documentation
+- `curl -X POST http://localhost:3000/api/context-query -H "Content-Type: application/json" -d '{}'` — returns 400 with detail explaining at least one field is required (failure-path diagnostic)
 
 ## Observability / Diagnostics
 
@@ -37,7 +38,7 @@
 
 ## Tasks
 
-- [ ] **T01: Implement POST /api/context-query endpoint** `est:1h`
+- [x] **T01: Implement POST /api/context-query endpoint** `est:1h`
   - Why: The context-query endpoint is the only genuinely new logic in M013 — it combines URL matching via SPARQL with keyword matching via SearchService (FTS/LuceneSail) and aggregates results. Everything else was serialization of existing service output.
   - Files: `backend/app/api/router.py`
   - Do:
