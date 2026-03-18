@@ -58,7 +58,7 @@
   - Verify: `docker compose restart frontend` then `curl -v -X OPTIONS http://localhost:3000/api/types -H "Origin: chrome-extension://abc" -H "Access-Control-Request-Method: GET"` returns CORS headers with 204
   - Done when: `Authorization` header reaches FastAPI through nginx, and CORS preflight returns proper headers
 
-- [ ] **T03: Implement /.well-known/sempkm endpoint** `est:30m`
+- [x] **T03: Implement /.well-known/sempkm endpoint** `est:30m`
   - Why: Instance discovery endpoint that external clients hit first to learn what the SemPKM instance supports. This is the first endpoint using dual-auth, proving the full pipeline.
   - Files: `backend/app/api/__init__.py`, `backend/app/api/router.py`, `backend/app/main.py`
   - Do:

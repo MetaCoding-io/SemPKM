@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     triplestore_url: str = "http://triplestore:8080/rdf4j-server"
     repository_id: str = "sempkm"
     base_namespace: str = "https://example.org/data/"
-    app_version: str = "0.1.0"
+    app_version: str = "2.6.0"
 
     # SQL database (SQLite for local, PostgreSQL for cloud)
     database_url: str = "sqlite+aiosqlite:///./data/sempkm.db"

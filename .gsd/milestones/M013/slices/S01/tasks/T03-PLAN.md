@@ -41,6 +41,13 @@ Create the `/.well-known/sempkm` discovery endpoint that external clients hit fi
 - `cd backend && python -m pytest tests/test_api_surface.py -v -k "well_known"`
 - After Docker restart: `curl http://localhost:3000/.well-known/sempkm` returns JSON (with session cookie)
 
+## Observability Impact
+
+- **New signal:** `GET /.well-known/sempkm` returns a JSON discovery document — external clients use this to bootstrap API interaction. HTTP 200 with valid JSON = healthy; HTTP 401 = auth pipeline working (rejects unauthenticated); HTTP 404 or 502 = routing broken (nginx or FastAPI misconfigured).
+- **Inspection:** `curl -v http://localhost:3000/.well-known/sempkm` with a valid session cookie or Bearer token — response body contains `version`, `endpoints`, `auth`, `capabilities` keys.
+- **Failure visibility:** Missing `/.well-known/sempkm` route causes nginx 404 (if proxy block missing) or FastAPI 404 (if router not wired). Auth failures surface as 401 with specific `detail` messages from the dual-auth dependency.
+- **Startup log:** `main.py` lifespan logs `"Starting SemPKM API v{version}"` — verify version matches the constant set in this task.
+
 ## Inputs
 
 - `backend/app/auth/dependencies.py` — `get_current_user_or_api` from T01
