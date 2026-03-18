@@ -651,3 +651,301 @@ class TestTypesEndpoint:
             )
         assert resp.status_code == 200
         assert resp.json()["types"] == []
+
+
+# ---------------------------------------------------------------------------
+# /api/shapes/{type_iri} endpoint tests
+# ---------------------------------------------------------------------------
+
+# Sample data for shapes endpoint tests — mirrors real SHACL shapes structure.
+# Uses the actual dataclasses from shapes.py so conversions are tested end-to-end.
+
+from app.services.shapes import NodeShapeForm, PropertyGroup, PropertyShape
+
+_SAMPLE_NOTE_SHAPE = NodeShapeForm(
+    shape_iri="urn:sempkm:model:basic-pkm:shapes:NoteShape",
+    target_class="urn:sempkm:model:basic-pkm:Note",
+    label="Note",
+    groups=[
+        PropertyGroup(
+            iri="urn:sempkm:model:basic-pkm:shapes:CoreGroup",
+            label="Core",
+            order=1.0,
+        ),
+        PropertyGroup(
+            iri="urn:sempkm:model:basic-pkm:shapes:MetadataGroup",
+            label="Metadata",
+            order=2.0,
+        ),
+    ],
+    properties=[
+        PropertyShape(
+            path="http://purl.org/dc/terms/title",
+            name="Title",
+            datatype="http://www.w3.org/2001/XMLSchema#string",
+            order=1.0,
+            group="urn:sempkm:model:basic-pkm:shapes:CoreGroup",
+            min_count=1,
+            max_count=1,
+            description="The display name for this note.",
+        ),
+        PropertyShape(
+            path="http://www.w3.org/2000/01/rdf-schema#comment",
+            name="Body",
+            datatype="http://www.w3.org/2001/XMLSchema#string",
+            order=2.0,
+            group="urn:sempkm:model:basic-pkm:shapes:CoreGroup",
+            min_count=0,
+            max_count=1,
+        ),
+        PropertyShape(
+            path="urn:sempkm:model:basic-pkm:noteStatus",
+            name="Status",
+            datatype="http://www.w3.org/2001/XMLSchema#string",
+            order=3.0,
+            group="urn:sempkm:model:basic-pkm:shapes:MetadataGroup",
+            min_count=0,
+            max_count=1,
+            in_values=["draft", "active", "archived"],
+            default_value="draft",
+            helptext="Current lifecycle status of the note.",
+        ),
+        PropertyShape(
+            path="urn:sempkm:model:basic-pkm:relatedTo",
+            name="Related To",
+            target_class="urn:sempkm:model:basic-pkm:Note",
+            order=4.0,
+            min_count=0,
+            max_count=None,
+            description="Other notes related to this one.",
+        ),
+    ],
+    helptext="A free-form note for capturing ideas and information.",
+)
+
+
+def _build_shapes_app(db_session_factory, mock_form_return=None) -> FastAPI:
+    """Build a minimal FastAPI app with the shapes endpoint for testing.
+
+    Mocks ShapesService.get_form_for_type() to return the provided form
+    (or None if not specified). Also includes types endpoint mocks so
+    the router doesn't fail on missing app.state attributes.
+    """
+    from app.api.router import api_surface_router
+    from app.auth.service import AuthService
+
+    test_app = FastAPI()
+    auth_service = AuthService(db_session_factory)
+    test_app.state.auth_service = auth_service
+
+    # Mock ShapesService with get_form_for_type
+    mock_shapes = AsyncMock()
+    mock_shapes.get_form_for_type = AsyncMock(return_value=mock_form_return)
+    # Also need get_types for the types endpoint (router includes both)
+    mock_shapes.get_types = AsyncMock(return_value=[])
+    test_app.state.shapes_service = mock_shapes
+
+    # Mock IconService + ModelService (required by types endpoint on same router)
+    mock_icons = MagicMock()
+    mock_icons.get_icon_map = MagicMock(return_value={})
+    test_app.state.icon_service = mock_icons
+
+    mock_models = AsyncMock()
+    mock_models.list_models = AsyncMock(return_value=[])
+    test_app.state.model_service = mock_models
+
+    test_app.include_router(api_surface_router)
+
+    return test_app
+
+
+@pytest.fixture
+def shapes_app(db_session_factory, db_session):
+    """Provide a FastAPI test app with a mock shape for the Note type."""
+    from app.db.session import get_db_session
+
+    test_app = _build_shapes_app(db_session_factory, mock_form_return=_SAMPLE_NOTE_SHAPE)
+
+    async def override_db():
+        yield db_session
+
+    test_app.dependency_overrides[get_db_session] = override_db
+    return test_app
+
+
+@pytest.fixture
+def shapes_app_404(db_session_factory, db_session):
+    """Provide a FastAPI test app where get_form_for_type returns None (404)."""
+    from app.db.session import get_db_session
+
+    test_app = _build_shapes_app(db_session_factory, mock_form_return=None)
+
+    async def override_db():
+        yield db_session
+
+    test_app.dependency_overrides[get_db_session] = override_db
+    return test_app
+
+
+class TestShapesEndpoint:
+    """Test the GET /api/shapes/{type_iri} endpoint."""
+
+    async def test_shapes_returns_valid_json(self, shapes_app, valid_session):
+        """Known type returns 200 with JSON containing shape fields."""
+        transport = ASGITransport(app=shapes_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/api/shapes/urn:sempkm:model:basic-pkm:Note",
+                cookies={"sempkm_session": valid_session.token},
+            )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "shape_iri" in data
+        assert "target_class" in data
+        assert "label" in data
+        assert "groups" in data
+        assert "properties" in data
+
+    async def test_shapes_has_correct_top_level_fields(self, shapes_app, valid_session):
+        """Response top-level fields match the source NodeShapeForm."""
+        transport = ASGITransport(app=shapes_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/api/shapes/urn:sempkm:model:basic-pkm:Note",
+                cookies={"sempkm_session": valid_session.token},
+            )
+        data = resp.json()
+        assert data["shape_iri"] == "urn:sempkm:model:basic-pkm:shapes:NoteShape"
+        assert data["target_class"] == "urn:sempkm:model:basic-pkm:Note"
+        assert data["label"] == "Note"
+        assert data["helptext"] == "A free-form note for capturing ideas and information."
+
+    async def test_shapes_has_properties(self, shapes_app, valid_session):
+        """Response has non-empty properties list."""
+        transport = ASGITransport(app=shapes_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/api/shapes/urn:sempkm:model:basic-pkm:Note",
+                cookies={"sempkm_session": valid_session.token},
+            )
+        data = resp.json()
+        assert len(data["properties"]) == 4
+
+    async def test_shapes_property_fields(self, shapes_app, valid_session):
+        """Each property has path, name, and order at minimum."""
+        transport = ASGITransport(app=shapes_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/api/shapes/urn:sempkm:model:basic-pkm:Note",
+                cookies={"sempkm_session": valid_session.token},
+            )
+        data = resp.json()
+        for prop in data["properties"]:
+            assert "path" in prop
+            assert "name" in prop
+            assert "order" in prop
+            assert isinstance(prop["path"], str)
+            assert isinstance(prop["name"], str)
+            assert isinstance(prop["order"], (int, float))
+
+    async def test_shapes_preserves_constraints(self, shapes_app, valid_session):
+        """in_values, min_count, max_count round-trip correctly."""
+        transport = ASGITransport(app=shapes_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/api/shapes/urn:sempkm:model:basic-pkm:Note",
+                cookies={"sempkm_session": valid_session.token},
+            )
+        data = resp.json()
+        # Title: min_count=1, max_count=1
+        title = next(p for p in data["properties"] if p["name"] == "Title")
+        assert title["min_count"] == 1
+        assert title["max_count"] == 1
+
+        # Status: in_values=["draft", "active", "archived"], default_value="draft"
+        status = next(p for p in data["properties"] if p["name"] == "Status")
+        assert status["in_values"] == ["draft", "active", "archived"]
+        assert status["default_value"] == "draft"
+
+        # Related To: max_count=None (unbounded)
+        related = next(p for p in data["properties"] if p["name"] == "Related To")
+        assert related["max_count"] is None
+        assert related["min_count"] == 0
+
+    async def test_shapes_preserves_target_class_on_property(self, shapes_app, valid_session):
+        """Object reference properties have target_class set."""
+        transport = ASGITransport(app=shapes_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/api/shapes/urn:sempkm:model:basic-pkm:Note",
+                cookies={"sempkm_session": valid_session.token},
+            )
+        data = resp.json()
+        related = next(p for p in data["properties"] if p["name"] == "Related To")
+        assert related["target_class"] == "urn:sempkm:model:basic-pkm:Note"
+        # Literal properties should have target_class=None
+        title = next(p for p in data["properties"] if p["name"] == "Title")
+        assert title["target_class"] is None
+
+    async def test_shapes_groups_with_correct_ordering(self, shapes_app, valid_session):
+        """Groups are returned with correct iri, label, and order."""
+        transport = ASGITransport(app=shapes_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/api/shapes/urn:sempkm:model:basic-pkm:Note",
+                cookies={"sempkm_session": valid_session.token},
+            )
+        data = resp.json()
+        groups = data["groups"]
+        assert len(groups) == 2
+        assert groups[0]["label"] == "Core"
+        assert groups[0]["order"] == 1.0
+        assert groups[1]["label"] == "Metadata"
+        assert groups[1]["order"] == 2.0
+        # Each group has iri
+        assert groups[0]["iri"].endswith(":CoreGroup")
+        assert groups[1]["iri"].endswith(":MetadataGroup")
+
+    async def test_shapes_unknown_type_returns_404(self, shapes_app_404, valid_session):
+        """Unknown type IRI returns 404 with structured error detail."""
+        transport = ASGITransport(app=shapes_app_404)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/api/shapes/urn:nonexistent:Type",
+                cookies={"sempkm_session": valid_session.token},
+            )
+        assert resp.status_code == 404
+        assert resp.json()["detail"] == "No shape found for type: urn:nonexistent:Type"
+
+    async def test_shapes_requires_auth(self, shapes_app):
+        """Request without credentials returns 401."""
+        transport = ASGITransport(app=shapes_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get("/api/shapes/urn:sempkm:model:basic-pkm:Note")
+        assert resp.status_code == 401
+
+    async def test_shapes_works_with_bearer_token(self, shapes_app, valid_api_token):
+        """Authenticated request via Bearer token returns shape."""
+        transport = ASGITransport(app=shapes_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/api/shapes/urn:sempkm:model:basic-pkm:Note",
+                headers={"Authorization": f"Bearer {valid_api_token}"},
+            )
+        assert resp.status_code == 200
+        assert len(resp.json()["properties"]) == 4
+
+    async def test_shapes_helptext_on_properties(self, shapes_app, valid_session):
+        """Property-level helptext is serialized correctly."""
+        transport = ASGITransport(app=shapes_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/api/shapes/urn:sempkm:model:basic-pkm:Note",
+                cookies={"sempkm_session": valid_session.token},
+            )
+        data = resp.json()
+        status = next(p for p in data["properties"] if p["name"] == "Status")
+        assert status["helptext"] == "Current lifecycle status of the note."
+        # Properties without helptext return None
+        body = next(p for p in data["properties"] if p["name"] == "Body")
+        assert body["helptext"] is None
