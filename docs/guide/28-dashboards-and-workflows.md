@@ -167,4 +167,4 @@ Both sections support the Explorer's drag-to-reorder panel positioning and the e
 
 ---
 
-**Previous:** [Chapter 27: Spatial Canvas](27-spatial-canvas.md) | **Next:** [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md)
+**Previous:** [Chapter 27: Spatial Canvas](27-spatial-canvas.md) | **Next:** [Chapter 29: App Platform](29-app-platform.md)

@@ -54,6 +54,7 @@ setup to advanced topics like SPARQL queries and creating your own Mental Models
 24. [Obsidian Onboarding](24-obsidian-onboarding.md)
 27. [Spatial Canvas](27-spatial-canvas.md)
 28. [Dashboards and Workflows](28-dashboards-and-workflows.md)
+29. [App Platform](29-app-platform.md)
 29. [Mental Model Catalog](29-mental-model-catalog.md)
 30. [Workspace Personas](30-personas.md)
 31. [API Surface](31-api-surface.md)
