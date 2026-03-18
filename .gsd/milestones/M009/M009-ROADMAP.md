@@ -86,7 +86,7 @@ This milestone is complete only when all are true:
 - [x] **S03: Admin Portal & Docker/nginx Integration** `risk:medium` `depends:[S01,S02]`
   > After this: admin portal at `/admin/apps` shows app list with status/version/uptime, detail page with permissions and data stats, start/stop/restart/uninstall actions. nginx proxies `/app/{appId}/` and serves `/app-static/{appId}/`. docker-compose.yml mounts `./apps`.
 
-- [ ] **S04: Frontend Level 1 — Standalone Pages & Sidebar** `risk:medium` `depends:[S02,S03]`
+- [x] **S04: Frontend Level 1 — Standalone Pages & Sidebar** `risk:medium` `depends:[S02,S03]`
   > After this: installed apps with page declarations appear in the workspace [Apps] sidebar section. Clicking an app page loads the app's fragment content through the platform proxy into the workspace via htmx. App CSS/JS loaded when app UI is active.
 
 - [ ] **S05: Scheduler, Permissions, Bulk EventStore & browserVisible** `risk:medium` `depends:[S02]`
