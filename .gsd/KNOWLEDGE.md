@@ -70,3 +70,11 @@ The `/api/sparql` endpoint (`backend/app/sparql/router.py`) calls `scope_to_curr
 ## Body save endpoint is POST not PUT
 
 The save body endpoint is `POST /browser/objects/{encoded_iri}/body` with `Content-Type: text/plain` body. The task plan incorrectly specified PUT. The actual route is defined in `backend/app/browser/objects.py` as `@objects_router.post("/objects/{object_iri:path}/body")`.
+
+## JSON API paths outside /api/ need _is_html_route exclusion
+
+**Context:** `backend/app/main.py` has a `_is_html_route()` function that determines whether 401 errors should be returned as JSON or converted to 302 login redirects. It originally only excluded paths starting with `/api/`.
+
+**Problem:** The `/.well-known/sempkm` discovery endpoint lives outside `/api/` but returns JSON. Without adding it to the exclusion list, unauthenticated requests got 302 redirects to `/login.html` instead of JSON `{"detail": "Not authenticated"}`.
+
+**Rule:** Any new JSON API endpoint mounted outside the `/api/` prefix must also be excluded in `_is_html_route()`. Current exclusions: `/api/`, `/.well-known/`.

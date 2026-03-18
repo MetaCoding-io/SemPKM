@@ -15,6 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from jinja2_fragments.fastapi import Jinja2Blocks
 
+from app.api.router import well_known_router, api_surface_router
 from app.admin.router import router as admin_router
 from app.auth.router import router as auth_router
 from app.browser.router import router as browser_router
@@ -419,7 +420,7 @@ templates.env.filters["compact_iri"] = _compact_iri
 
 def _is_html_route(path: str) -> bool:
     """Return True for HTML routes, False for API routes."""
-    return not path.startswith("/api/")
+    return not (path.startswith("/api/") or path.startswith("/.well-known/"))
 
 
 @app.exception_handler(HTTPException)
@@ -503,6 +504,8 @@ else:
 
 # Include routers (API routers first, then UI routers, shell router last)
 app.include_router(monitoring_router)
+app.include_router(well_known_router)
+app.include_router(api_surface_router)
 app.include_router(auth_router)
 app.include_router(commands_router)
 app.include_router(health_router)

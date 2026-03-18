@@ -1,7 +1,7 @@
 """Tests for the API surface: dual-auth dependency and well-known endpoint.
 
 Tests dual-auth resolution (session cookie, Bearer token, failure paths)
-and will be extended in T04 with well-known endpoint response tests.
+and the /.well-known/sempkm discovery endpoint response.
 """
 
 import hashlib
@@ -12,6 +12,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from fastapi import FastAPI, HTTPException
+from httpx import ASGITransport, AsyncClient
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
@@ -261,3 +262,155 @@ class TestDualAuthPrecedence:
             db=db_session,
         )
         assert user.id == test_user.id
+
+
+# ---------------------------------------------------------------------------
+# Well-known endpoint tests (/.well-known/sempkm)
+# ---------------------------------------------------------------------------
+
+
+def _build_well_known_app(db_session_factory) -> FastAPI:
+    """Build a minimal FastAPI app with the well-known router for testing.
+
+    Uses the real well_known_router but overrides the DB session and
+    auth service dependencies to use in-memory test fixtures.
+    """
+    from app.api.router import well_known_router
+    from app.auth.service import AuthService
+    from app.db.session import get_db_session
+
+    test_app = FastAPI()
+    auth_service = AuthService(db_session_factory)
+    test_app.state.auth_service = auth_service
+
+    test_app.include_router(well_known_router)
+
+    return test_app
+
+
+@pytest.fixture
+def well_known_app(db_session_factory, db_session):
+    """Provide a FastAPI test app with the well-known router and DB override."""
+    from app.db.session import get_db_session
+
+    test_app = _build_well_known_app(db_session_factory)
+
+    async def override_db():
+        yield db_session
+
+    test_app.dependency_overrides[get_db_session] = override_db
+    return test_app
+
+
+class TestWellKnownEndpoint:
+    """Test the /.well-known/sempkm discovery endpoint."""
+
+    async def test_well_known_returns_200_with_valid_cookie(
+        self, well_known_app, valid_session
+    ):
+        """Authenticated request via session cookie returns the discovery document."""
+        transport = ASGITransport(app=well_known_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/.well-known/sempkm",
+                cookies={"sempkm_session": valid_session.token},
+            )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "version" in data
+        assert "endpoints" in data
+        assert "auth" in data
+        assert "capabilities" in data
+
+    async def test_well_known_returns_200_with_bearer_token(
+        self, well_known_app, valid_api_token
+    ):
+        """Authenticated request via Bearer token returns the discovery document."""
+        transport = ASGITransport(app=well_known_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/.well-known/sempkm",
+                headers={"Authorization": f"Bearer {valid_api_token}"},
+            )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["version"] == settings.app_version
+
+    async def test_well_known_rejects_unauthenticated(self, well_known_app):
+        """Request without credentials returns 401."""
+        transport = ASGITransport(app=well_known_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get("/.well-known/sempkm")
+        assert resp.status_code == 401
+
+    async def test_well_known_rejects_invalid_bearer(self, well_known_app):
+        """Request with invalid Bearer token returns 401 with specific message."""
+        transport = ASGITransport(app=well_known_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/.well-known/sempkm",
+                headers={"Authorization": "Bearer invalid-token"},
+            )
+        assert resp.status_code == 401
+        assert "Invalid or expired API token" in resp.json()["detail"]
+
+    async def test_well_known_version_matches_config(
+        self, well_known_app, valid_session
+    ):
+        """The returned version matches APP_VERSION from config."""
+        from app.api.router import APP_VERSION
+
+        transport = ASGITransport(app=well_known_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/.well-known/sempkm",
+                cookies={"sempkm_session": valid_session.token},
+            )
+        assert resp.status_code == 200
+        assert resp.json()["version"] == APP_VERSION
+
+    async def test_well_known_endpoints_structure(
+        self, well_known_app, valid_session
+    ):
+        """The endpoints dict contains all required API paths."""
+        transport = ASGITransport(app=well_known_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/.well-known/sempkm",
+                cookies={"sempkm_session": valid_session.token},
+            )
+        endpoints = resp.json()["endpoints"]
+        assert endpoints["types"] == "/api/types"
+        assert endpoints["shapes"] == "/api/shapes/{type_iri}"
+        assert endpoints["context_query"] == "/api/context-query"
+        assert endpoints["sparql"] == "/api/sparql"
+        assert endpoints["commands"] == "/api/commands"
+
+    async def test_well_known_auth_methods(
+        self, well_known_app, valid_session
+    ):
+        """The auth dict lists all supported authentication methods."""
+        transport = ASGITransport(app=well_known_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/.well-known/sempkm",
+                cookies={"sempkm_session": valid_session.token},
+            )
+        auth = resp.json()["auth"]
+        assert auth["session"] is True
+        assert auth["api_key"] is True
+        assert auth["indieauth"] == "/auth/authorize"
+
+    async def test_well_known_capabilities_list(
+        self, well_known_app, valid_session
+    ):
+        """The capabilities list includes all expected capability names."""
+        transport = ASGITransport(app=well_known_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/.well-known/sempkm",
+                cookies={"sempkm_session": valid_session.token},
+            )
+        capabilities = resp.json()["capabilities"]
+        expected = ["types", "shapes", "context-query", "sparql", "commands"]
+        assert capabilities == expected
