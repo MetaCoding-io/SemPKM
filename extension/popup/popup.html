@@ -7,9 +7,71 @@
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-  <div id="popup-root">
-    <p>SemPKM Capture — popup placeholder</p>
+  <div class="popup-container">
+    <!-- Header -->
+    <header class="popup-header">
+      <div class="header-brand">
+        <svg class="brand-icon" width="22" height="22" viewBox="0 0 28 28" fill="none">
+          <rect width="28" height="28" rx="6" fill="#4f46e5"/>
+          <path d="M8 10.5C8 9.12 9.12 8 10.5 8h7C18.88 8 20 9.12 20 10.5v7c0 1.38-1.12 2.5-2.5 2.5h-7A2.5 2.5 0 0 1 8 17.5v-7Z" stroke="#fff" stroke-width="1.5"/>
+          <circle cx="14" cy="14" r="2.5" fill="#fff"/>
+          <line x1="14" y1="8" x2="14" y2="11" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="14" y1="17" x2="14" y2="20" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="8" y1="14" x2="11" y2="14" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="17" y1="14" x2="20" y2="14" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+        <span class="header-title">SemPKM</span>
+      </div>
+      <div id="connection-dot" class="connection-dot" title="Checking connection…" aria-label="Connection status"></div>
+    </header>
+
+    <!-- Unconfigured state -->
+    <div id="unconfigured-state" class="unconfigured-state hidden">
+      <div class="unconfigured-icon" aria-hidden="true">⚙️</div>
+      <p class="unconfigured-message">Configure SemPKM in extension settings to start capturing.</p>
+      <button type="button" id="open-settings" class="btn btn-secondary">Open Settings</button>
+    </div>
+
+    <!-- Main capture form -->
+    <form id="capture-form" class="capture-form hidden" autocomplete="off">
+      <!-- Type selector -->
+      <div class="form-group">
+        <label for="type-select">Type</label>
+        <select id="type-select" required>
+          <option value="">Loading types…</option>
+        </select>
+      </div>
+
+      <!-- Title -->
+      <div class="form-group">
+        <label for="title-input">Title <span class="required-mark" aria-label="required">*</span></label>
+        <input type="text" id="title-input" placeholder="Object title" required>
+        <p id="title-error" class="field-error hidden" role="alert">Title is required</p>
+      </div>
+
+      <!-- Body / Notes -->
+      <div class="form-group">
+        <label for="body-input">Notes</label>
+        <textarea id="body-input" placeholder="Optional notes…" rows="3"></textarea>
+      </div>
+
+      <!-- Source URL -->
+      <div class="form-group">
+        <label for="url-input">Source URL</label>
+        <input type="url" id="url-input" readonly tabindex="-1">
+      </div>
+
+      <!-- Save -->
+      <button type="submit" id="save-btn" class="btn btn-primary btn-save">
+        <span class="btn-label">Save</span>
+        <span class="btn-spinner hidden" aria-hidden="true"></span>
+      </button>
+    </form>
+
+    <!-- Toast container -->
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
   </div>
+
   <script type="module" src="popup.js"></script>
 </body>
 </html>
