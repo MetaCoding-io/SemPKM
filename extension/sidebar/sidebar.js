@@ -37,11 +37,14 @@
   const $refreshBtn = document.getElementById('refresh-btn');
   const $footerLink = document.getElementById('footer-link');
   const $toastContainer = document.getElementById('toast-container');
+  const $evidencePrompt = document.getElementById('evidence-prompt');
 
   // ── State ──────────────────────────────────────────────────────
   let _instanceUrl = '';
   let _currentTabUrl = '';
   let _currentTabTitle = '';
+  let _pendingEvidenceClaim = null;
+  let _pendingEvidenceLabel = '';
 
   // ── State switching ────────────────────────────────────────────
 
@@ -147,13 +150,18 @@
       _linkToPage(item.iri, linkBtn);
     });
 
-    const evidenceBtn = _actionButton('Add Evidence', 'action-stub', function () {
-      showToast('Add Evidence — coming in next update');
-    });
-
     actions.appendChild(openBtn);
     actions.appendChild(linkBtn);
-    actions.appendChild(evidenceBtn);
+
+    // Only show "Add Evidence" for Claim-type results
+    var isClaim = item.type_iri && item.type_iri.indexOf(':Claim') !== -1 && item.type_iri.indexOf('research:Claim') !== -1;
+    if (isClaim) {
+      var evidenceBtn = _actionButton('Add Evidence', 'action-evidence', function () {
+        _showEvidencePrompt(item.iri, item.label || item.iri);
+      });
+      actions.appendChild(evidenceBtn);
+    }
+
     card.appendChild(actions);
 
     return card;
@@ -299,6 +307,134 @@
     );
   }
 
+  // ── Evidence capture flow ──────────────────────────────────────
+
+  /**
+   * Show the evidence capture prompt panel.
+   *
+   * @param {string} claimIri - IRI of the Claim to link evidence to
+   * @param {string} claimLabel - Display label for the Claim
+   */
+  function _showEvidencePrompt(claimIri, claimLabel) {
+    _pendingEvidenceClaim = claimIri;
+    _pendingEvidenceLabel = claimLabel;
+
+    var titleEl = $evidencePrompt.querySelector('.evidence-prompt-title');
+    var instructionsEl = $evidencePrompt.querySelector('.evidence-prompt-instructions');
+    var previewEl = $evidencePrompt.querySelector('.evidence-prompt-preview');
+    var captureBtn = $evidencePrompt.querySelector('.btn-capture');
+
+    titleEl.textContent = 'Claim: ' + claimLabel;
+    instructionsEl.textContent = 'Select text on the page, then click Capture.';
+    previewEl.textContent = '';
+    previewEl.hidden = true;
+    captureBtn.disabled = false;
+    captureBtn.textContent = 'Capture';
+
+    $evidencePrompt.hidden = false;
+    $results.hidden = true;
+
+    console.log(LOG_PREFIX, 'Evidence prompt shown for claim:', claimIri);
+  }
+
+  /**
+   * Hide the evidence capture prompt and restore results.
+   */
+  function _hideEvidencePrompt() {
+    _pendingEvidenceClaim = null;
+    _pendingEvidenceLabel = '';
+    $evidencePrompt.hidden = true;
+    $results.hidden = false;
+
+    console.log(LOG_PREFIX, 'Evidence prompt hidden');
+  }
+
+  /**
+   * Capture selected text from the active tab and send addEvidence message.
+   * Called by the Capture button in the evidence prompt.
+   */
+  function _captureEvidence() {
+    var captureBtn = $evidencePrompt.querySelector('.btn-capture');
+    var previewEl = $evidencePrompt.querySelector('.evidence-prompt-preview');
+
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      var tab = tabs && tabs[0];
+      if (!tab || !tab.id) {
+        showToast('No active tab found', 'error');
+        return;
+      }
+
+      chrome.scripting.executeScript(
+        {
+          target: { tabId: tab.id },
+          func: function () {
+            return window.getSelection().toString().trim();
+          },
+        },
+        function (results) {
+          if (chrome.runtime.lastError) {
+            console.error(LOG_PREFIX, 'executeScript error:', chrome.runtime.lastError.message);
+            showToast('Cannot access page content', 'error');
+            return;
+          }
+
+          var selectedText = results && results[0] && results[0].result;
+          if (!selectedText) {
+            showToast('Select text on the page first', 'error');
+            return;
+          }
+
+          // Show preview of selected text
+          previewEl.textContent = selectedText;
+          previewEl.hidden = false;
+
+          // Disable capture button and send message
+          captureBtn.disabled = true;
+          captureBtn.textContent = 'Capturing…';
+
+          _addEvidence(selectedText, captureBtn);
+        }
+      );
+    });
+  }
+
+  /**
+   * Send addEvidence message to service worker.
+   *
+   * @param {string} selectedText - The captured text
+   * @param {HTMLButtonElement} captureBtn - For re-enabling on completion
+   */
+  function _addEvidence(selectedText, captureBtn) {
+    chrome.runtime.sendMessage(
+      {
+        type: 'addEvidence',
+        claimIri: _pendingEvidenceClaim,
+        selectedText: selectedText,
+        pageUrl: _currentTabUrl,
+        pageTitle: _currentTabTitle,
+      },
+      function (response) {
+        if (chrome.runtime.lastError) {
+          console.error(LOG_PREFIX, 'addEvidence error:', chrome.runtime.lastError.message);
+          showToast(chrome.runtime.lastError.message || 'Failed to capture evidence', 'error');
+          captureBtn.disabled = false;
+          captureBtn.textContent = 'Capture';
+          return;
+        }
+
+        if (response && response.success) {
+          showToast('✓ Evidence captured and linked');
+          _hideEvidencePrompt();
+        } else {
+          // response.partial means object was created but edge failed — IRI is in the error message
+          showToast((response && response.error) || 'Failed to capture evidence', 'error');
+          captureBtn.disabled = false;
+          captureBtn.textContent = 'Capture';
+        }
+      }
+    );
+  }
+
   // ── Data fetching ──────────────────────────────────────────────
 
   /**
@@ -383,6 +519,16 @@
     $refreshBtn.addEventListener('click', function () {
       fetchResults(true);
     });
+
+    // Bind evidence prompt buttons
+    var captureBtn = $evidencePrompt.querySelector('.btn-capture');
+    var cancelBtn = $evidencePrompt.querySelector('.btn-cancel');
+    if (captureBtn) {
+      captureBtn.addEventListener('click', _captureEvidence);
+    }
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', _hideEvidencePrompt);
+    }
 
     // Fetch initial results
     fetchResults(false);

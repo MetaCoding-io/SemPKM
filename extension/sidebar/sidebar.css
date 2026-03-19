@@ -387,6 +387,118 @@ body {
   cursor: not-allowed;
 }
 
+/* Evidence action — amber tint */
+.action-evidence {
+  color: #d97706;
+  background: rgba(217, 119, 6, 0.1);
+  border: 1px solid rgba(217, 119, 6, 0.25);
+}
+
+.action-evidence:hover {
+  background: rgba(217, 119, 6, 0.2);
+  border-color: #d97706;
+}
+
+.action-evidence:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Evidence prompt panel ─────────────────────────────────────── */
+.evidence-prompt {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  margin: 8px 0;
+}
+
+.evidence-prompt[hidden] {
+  display: none;
+}
+
+.evidence-prompt-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 6px;
+}
+
+.evidence-prompt-instructions {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.evidence-prompt-preview {
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px;
+  margin-bottom: 10px;
+  max-height: 100px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.evidence-prompt-preview[hidden] {
+  display: none;
+}
+
+.evidence-prompt-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-capture {
+  flex: 1;
+  padding: 6px 12px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  background: #d97706;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-capture:hover {
+  background: #b45309;
+}
+
+.btn-capture:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-cancel {
+  padding: 6px 12px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.btn-cancel:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+
 /* ── Footer ────────────────────────────────────────────────────── */
 .sidebar-footer {
   flex-shrink: 0;

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T01",
+  "unitId": "M015/S02/T01",
+  "timestamp": 1773884810411,
+  "passed": true,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "node --check extension/sidebar/sidebar.js",
+      "exitCode": 0,
+      "durationMs": 27,
+      "verdict": "pass"
+    }
+  ]
+}

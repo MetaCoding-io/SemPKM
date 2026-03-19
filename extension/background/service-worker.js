@@ -291,6 +291,102 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return true; // Async sendResponse
   }
 
+  if (message.type === 'addEvidence') {
+    (async () => {
+      try {
+        const config = await _getApiConfig();
+        if (!config) {
+          sendResponse({ error: 'SemPKM not configured' });
+          return;
+        }
+
+        // Step 1: Create Evidence object
+        console.log('[SemPKM] addEvidence: creating evidence object');
+        const createResp = await fetch(`${config.instanceUrl}/api/commands`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${config.apiKey}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({
+            command: 'object.create',
+            params: {
+              type: 'urn:sempkm:model:research:Evidence',
+              properties: {
+                'urn:sempkm:model:research:description': message.selectedText,
+                'urn:sempkm:model:research:source': message.pageUrl,
+                'urn:sempkm:model:research:evidenceType': 'quote',
+                'http://purl.org/dc/terms/created': new Date().toISOString().slice(0, 10),
+              },
+            },
+          }),
+        });
+
+        if (!createResp.ok) {
+          let detail = createResp.statusText;
+          try {
+            const errBody = await createResp.json();
+            detail = errBody.detail || errBody.error || detail;
+          } catch { /* noop */ }
+          console.error(`[SemPKM] addEvidence: error: Failed to create evidence: ${detail}`);
+          sendResponse({ error: 'Failed to create evidence: ' + detail });
+          return;
+        }
+
+        const createData = await createResp.json();
+        const evidenceIri = createData.results && createData.results[0] && createData.results[0].iri;
+        if (!evidenceIri) {
+          console.error('[SemPKM] addEvidence: error: No IRI in create response');
+          sendResponse({ error: 'Failed to create evidence: no IRI returned' });
+          return;
+        }
+        console.log(`[SemPKM] addEvidence: evidence created ${evidenceIri}`);
+
+        // Step 2: Link Evidence → Claim
+        console.log('[SemPKM] addEvidence: linking evidence to claim');
+        const linkResp = await fetch(`${config.instanceUrl}/api/commands`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${config.apiKey}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({
+            command: 'edge.create',
+            params: {
+              source: evidenceIri,
+              target: message.claimIri,
+              predicate: 'urn:sempkm:model:research:supports',
+            },
+          }),
+        });
+
+        if (!linkResp.ok) {
+          let detail = linkResp.statusText;
+          try {
+            const errBody = await linkResp.json();
+            detail = errBody.detail || errBody.error || detail;
+          } catch { /* noop */ }
+          console.error(`[SemPKM] addEvidence: error: Evidence created but linking failed: ${detail}`);
+          sendResponse({
+            error: 'Evidence created but linking failed. Evidence IRI: ' + evidenceIri,
+            evidenceIri: evidenceIri,
+            partial: true,
+          });
+          return;
+        }
+
+        console.log('[SemPKM] addEvidence: success');
+        sendResponse({ success: true, evidenceIri: evidenceIri });
+      } catch (err) {
+        console.error(`[SemPKM] addEvidence: error: ${err.message}`);
+        sendResponse({ error: err.message });
+      }
+    })();
+    return true; // Async sendResponse
+  }
+
   if (message.type === 'linkToPage') {
     (async () => {
       try {

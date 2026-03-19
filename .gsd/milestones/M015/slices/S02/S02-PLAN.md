@@ -50,7 +50,7 @@
   - Verify: `node --check extension/background/service-worker.js && node --check extension/sidebar/sidebar.js && node --test extension/tests/test-context-utils.js`
   - Done when: Link button has `.action-link` class, service worker handles `linkToPage` message, button disables during call and re-enables on response, toast shows result
 
-- [ ] **T02: Wire "Add Evidence" action with text selection capture** `est:1h`
+- [x] **T02: Wire "Add Evidence" action with text selection capture** `est:1h`
   - Why: Replaces the stub "Add Evidence" button with the full capture flow: prompt → text selection → create Evidence + link to Claim, covering EXT-18
   - Files: `extension/background/service-worker.js`, `extension/sidebar/sidebar.js`, `extension/sidebar/sidebar.css`, `extension/sidebar/sidebar.html`
   - Do: Add `addEvidence` message handler to service worker (two sequential API calls: `object.create` Evidence then `edge.create` linking Evidence→Claim via `res:supports`). In sidebar.js, replace stub click handler with `_addEvidence(claimIri, claimLabel)` that shows evidence capture prompt panel, waits for Capture click, executes `chrome.scripting.executeScript` to get `window.getSelection().toString().trim()`, validates non-empty, sends message to service worker, shows success/error toast. Only render "Add Evidence" button when `item.type_iri` matches Claim type. Add evidence prompt panel to sidebar.html (instruction text, selected-text preview area, Capture/Cancel buttons). Style `.evidence-prompt`, `.action-evidence` in CSS.

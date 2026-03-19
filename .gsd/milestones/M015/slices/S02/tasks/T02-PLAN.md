@@ -160,3 +160,16 @@ The "Add Evidence" button should only appear on Claim-type results. The context 
 - `extension/sidebar/sidebar.js` — evidence button conditional on Claim type, `_addEvidence()` with prompt flow and text capture
 - `extension/sidebar/sidebar.css` — `.evidence-prompt` panel styles, `.action-evidence` button styles
 - `extension/sidebar/sidebar.html` — evidence prompt container div added
+
+## Observability Impact
+
+- **Service worker console** (`chrome://extensions` → service worker "Inspect"):
+  - `[SemPKM] addEvidence: creating evidence object` — step 1 start
+  - `[SemPKM] addEvidence: evidence created <IRI>` — step 1 success
+  - `[SemPKM] addEvidence: linking evidence to claim` — step 2 start
+  - `[SemPKM] addEvidence: success` — full success
+  - `[SemPKM] addEvidence: error: <detail>` — any failure
+- **Sidebar toast messages**: "✓ Evidence captured and linked" on success; error detail on failure (includes Evidence IRI on partial failure)
+- **Button state**: "Capture" button disables during API calls, re-enables on completion
+- **Evidence prompt panel**: visible when capture flow is active, hidden on success/cancel — inspect `#evidence-prompt[hidden]` attribute
+- **Failure artifacts**: on partial failure (object created, edge failed), Evidence IRI is surfaced in both the error toast and the service worker console log
