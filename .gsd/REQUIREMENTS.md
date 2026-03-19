@@ -1448,60 +1448,68 @@ Chapter 32 (32-browser-extension.md) with 12 sections, 25 headings. README TOC u
 e2e/tests/25-extension/extension-capture.spec.ts with 3 serial tests. Custom persistent context fixture in e2e/fixtures/extension.ts. Chromium-only (Firefox lacks --load-extension support in Playwright).
 
 ### EXT-14 — Badge shows context count after page load, cached per URL
-- Status: active
+- Status: partial
 - Class: core-capability
 - Source: design (BROWSER-EXTENSION-DESIGN.md)
 - Primary Slice: M015/S01
 - Acceptance: Extension badge displays the count of related SemPKM objects after page load. Results cached per URL to avoid redundant queries.
+- Validation: Partially validated — badge text not accessible via Playwright (chrome.action.getBadgeText unavailable from test context). Badge set from same pipeline as sidebar results (proven by E2E test 2). Badge-setting code verified by review of service-worker.js _setBadge().
 
 ### EXT-15 — Sidebar opens via Alt+K showing grouped results from context query
-- Status: active
+- Status: validated
 - Class: core-capability
 - Source: design (BROWSER-EXTENSION-DESIGN.md)
 - Primary Slice: M015/S01
 - Acceptance: Alt+K opens the knowledge sidebar showing results from the context query, grouped by match type (URL match, keyword match).
+- Validation: E2E test "sidebar shows context results for matching URL" — sidebar renders grouped .type-group sections with .result-card elements containing seed Note title.
 
 ### EXT-16 — Open action navigates to SemPKM object in new tab
-- Status: active
+- Status: validated
 - Class: core-capability
 - Source: design (BROWSER-EXTENSION-DESIGN.md)
 - Primary Slice: M015/S01
 - Acceptance: Clicking "Open" on a sidebar result opens the SemPKM object in a new browser tab.
+- Validation: E2E test "Open action creates new tab pointing to SemPKM object" — clicking .action-open creates new context page with URL containing /browser/objects/ and seed Note IRI.
 
 ### EXT-17 — Link to this page action creates schema:url edge
-- Status: active
+- Status: validated
 - Class: core-capability
 - Source: design (BROWSER-EXTENSION-DESIGN.md)
 - Primary Slice: M015/S01
 - Acceptance: Clicking "Link to this page" on a sidebar result creates a schema:url edge between the object and the current page URL.
+- Validation: E2E test "Link to this page creates schema:url edge" — linkToPage message via service worker, toast confirms success, SPARQL verifies sempkm:Edge with schema:url predicate.
 
 ### EXT-18 — Add Evidence action captures highlighted text and creates linked Evidence object
-- Status: active
+- Status: partial
 - Class: core-capability
 - Source: design (BROWSER-EXTENSION-DESIGN.md)
 - Primary Slice: M015/S01
 - Acceptance: Clicking "Add Evidence" captures highlighted text from the page and creates a linked Evidence object in SemPKM.
+- Validation: Partially validated — evidence capture requires content script text selection, hard to automate in persistent context. Code review confirms implementation in sidebar.js and service-worker.js addEvidence handler.
 
 ### EXT-19 — Auto-context toggle in settings controls badge/check behavior
-- Status: active
+- Status: validated
 - Class: core-capability
 - Source: design (BROWSER-EXTENSION-DESIGN.md)
 - Primary Slice: M015/S03
 - Acceptance: Options page has autoCheckContext toggle that enables/disables automatic context checking and badge display on page load.
+- Validation: E2E test "settings round-trip for context overlay options" — #auto-check-context, #context-check-delay, #context-timeout exist, accept values, persist through save+reload.
 
 ### EXT-20 — URL→results cache (LRU, max 100) in service worker memory
-- Status: active
+- Status: partial
 - Class: core-capability
 - Source: design (BROWSER-EXTENSION-DESIGN.md)
 - Primary Slice: M015/S01
 - Acceptance: Service worker maintains an LRU cache (max 100 entries) mapping URLs to context query results to avoid redundant API calls.
+- Validation: Partially validated — cache exercised implicitly by E2E tests. 23 unit tests in extension/tests/ prove LRU eviction, max entries, and timestamp ordering.
 
 ### EXT-21 — Cross-browser support (Chrome Side Panel + Firefox sidebar_action)
-- Status: active
+- Status: partial
 - Class: core-capability
 - Source: design (BROWSER-EXTENSION-DESIGN.md)
 - Primary Slice: M015/S01
 - Acceptance: Knowledge sidebar uses Chrome Side Panel API on Chrome and sidebar_action on Firefox, with feature detection for cross-browser compatibility.
+- Validation: Partially validated — Chromium E2E tests pass with persistent context. Firefox manifest.json verified by syntax check in S01. Firefox sidebar_action not E2E tested (Playwright lacks Firefox extension loading).
 
 ## Deferred
 
@@ -1765,19 +1773,20 @@ e2e/tests/25-extension/extension-capture.spec.ts with 3 serial tests. Custom per
 | EXT-11 | core-capability | validated | M014/S01 | none | require_role_or_api + 10 unit tests |
 | EXT-12 | quality-attribute | validated | M014/S05 | none | Ch. 32 guide + 2 glossary entries |
 | EXT-13 | quality-attribute | validated | M014/S05 | none | 3 Playwright E2E tests + persistent context fixture |
-| EXT-14 | core-capability | active | M015/S01 | none | design: BROWSER-EXTENSION-DESIGN.md |
-| EXT-15 | core-capability | active | M015/S01 | none | design: BROWSER-EXTENSION-DESIGN.md |
-| EXT-16 | core-capability | active | M015/S01 | none | design: BROWSER-EXTENSION-DESIGN.md |
-| EXT-17 | core-capability | active | M015/S01 | none | design: BROWSER-EXTENSION-DESIGN.md |
-| EXT-18 | core-capability | active | M015/S01 | none | design: BROWSER-EXTENSION-DESIGN.md |
-| EXT-19 | core-capability | active | M015/S03 | none | design: BROWSER-EXTENSION-DESIGN.md |
-| EXT-20 | core-capability | active | M015/S01 | none | design: BROWSER-EXTENSION-DESIGN.md |
-| EXT-21 | core-capability | active | M015/S01 | none | design: BROWSER-EXTENSION-DESIGN.md |
+| EXT-14 | core-capability | partial | M015/S01 | M015/S03 | badge from same pipeline as sidebar (E2E test 2); badge API not testable from Playwright |
+| EXT-15 | core-capability | validated | M015/S01 | M015/S03 | E2E test "sidebar shows context results for matching URL" |
+| EXT-16 | core-capability | validated | M015/S01 | M015/S03 | E2E test "Open action creates new tab pointing to SemPKM object" |
+| EXT-17 | core-capability | validated | M015/S01 | M015/S03 | E2E test "Link to this page creates schema:url edge" + SPARQL verification |
+| EXT-18 | core-capability | partial | M015/S01 | none | code review confirms implementation; content script selection not E2E testable |
+| EXT-19 | core-capability | validated | M015/S03 | none | E2E test "settings round-trip for context overlay options" |
+| EXT-20 | core-capability | partial | M015/S01 | none | cache implicitly exercised by E2E; 23 unit tests prove LRU logic |
+| EXT-21 | core-capability | partial | M015/S01 | none | Chromium E2E passes; Firefox manifest syntax-checked; no Firefox E2E |
 
 ## Coverage Summary
 
-- Active requirements: 30 (14 APP + 8 RSS + 8 EXT context overlay)
-- Validated: 153 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 8 from M013 + 13 from M014)
+- Active requirements: 22 (14 APP + 8 RSS)
+- Validated: 157 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 8 from M013 + 13 from M014 + 4 from M015)
+- Partial: 4 (EXT-14, EXT-18, EXT-20, EXT-21)
 - Deferred: 7 (TYPE-03, TYPE-04, MCP-01, NOTION-01, VIEW-06, VIEW-07, VFS-13)
 - Out of scope: 3
 - Unmapped active requirements: 22 (14 APP + 8 RSS — pending M009/M010 roadmap planning)

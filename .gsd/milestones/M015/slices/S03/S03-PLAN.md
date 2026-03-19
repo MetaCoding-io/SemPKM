@@ -41,7 +41,7 @@
   - Verify: `node --check extension/options/options.js` passes; storage round-trip confirmed by reading options.js code
   - Done when: Options page has the Context Overlay section with three controls, all three settings save/load correctly, EXT-14–EXT-21 registered in REQUIREMENTS.md
 
-- [ ] **T02: Write E2E Playwright tests for context overlay against Docker stack** `est:1h30m`
+- [x] **T02: Write E2E Playwright tests for context overlay against Docker stack** `est:1h30m`
   - Why: Proves the full context pipeline works end-to-end: create seed data → navigate → wait for debounce → sidebar shows results → Open action works → Link action creates edge. Validates EXT-14 through EXT-19.
   - Files: `e2e/tests/25-extension/extension-context-overlay.spec.ts`
   - Do: New test file reusing setupAndCreateApiKey/injectExtensionSettings pattern from extension-capture.spec.ts. Create a Note with schema:url via POST /api/commands, inject extension settings including autoCheckContext:true, open sidebar page directly, send refreshContextResults message, verify grouped results render, test Open action, test Link to this page action with SPARQL verification.
