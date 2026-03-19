@@ -98,3 +98,11 @@ Wire the push sync engine (from T01) into app routes and build the settings UI. 
 - `apps/github-sync/app.py` — sync-config route added, sync_now updated with push, push_changes wired, _render_connect_status extended
 - `apps/github-sync/frontend/templates/connect_status.html` — real sync direction radios, poll interval dropdown, push stats section
 - `backend/tests/test_github_sync_engine.py` — ≥15 new tests for route/handler behavior
+
+## Observability Impact
+
+- **sync_direction** and **poll_interval** now stored in `ctx.settings` (SettingsClient). Future agents can read via `ctx.settings.get("sync_direction")` (default "pull-only") and `ctx.settings.get("poll_interval")` (default "15m").
+- **last_push_result** in `ctx.state` (StateClient): JSON with `{status, pushed, skipped, errors, timestamp}`. Displayed in connect_status.html push stats section when truthy.
+- **sync_now** route now logs push sync start/completion at INFO and errors at ERROR via `github_sync` logger.
+- **push-changes** task handler: logs push start/completion at INFO, failures at ERROR with exc_info. Returns result dict with status/pushed/errors.
+- **Failure visibility**: Push errors are isolated from pull — push failure in sync_now stores error result in `last_push_result` but doesn't prevent `last_sync_at` from being updated. The template shows error count when `last_push_result.errors` is non-empty.

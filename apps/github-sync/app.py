@@ -1,11 +1,12 @@
-"""GitHub Sync app — pull sync between SemPKM objects and GitHub issues.
+"""GitHub Sync app — two-way sync between SemPKM objects and GitHub issues.
 
 Routes:
-- /_fragments/connect          GET   — settings page connect form or status
-- /_fragments/connect/api-key  POST  — authenticate via PAT
-- /_fragments/connect/disconnect POST — disconnect and clear credentials
-- /_fragments/settings/repos   POST  — save selected repositories
-- /_fragments/settings/sync-now POST — trigger immediate pull sync
+- /_fragments/connect              GET   — settings page connect form or status
+- /_fragments/connect/api-key      POST  — authenticate via PAT
+- /_fragments/connect/disconnect   POST  — disconnect and clear credentials
+- /_fragments/settings/repos       POST  — save selected repositories
+- /_fragments/settings/sync-config POST  — save sync direction and poll interval
+- /_fragments/settings/sync-now    POST  — trigger immediate pull+push sync
 """
 
 from __future__ import annotations
@@ -58,11 +59,17 @@ async def _render_connect_status(ctx: AppContext) -> HTMLResponse:
     # Read sync state
     selected_repos_json = await ctx.settings.get("selected_repos")
     selected_repos = json.loads(selected_repos_json) if selected_repos_json else []
+    sync_direction = await ctx.settings.get("sync_direction") or "pull-only"
+    poll_interval = await ctx.settings.get("poll_interval") or "15m"
     last_sync_at = await ctx.state.get("last_sync_at") or ""
 
     # Parse last pull result
     last_pull_json = await ctx.state.get("last_pull_result")
     last_pull_result = json.loads(last_pull_json) if last_pull_json else None
+
+    # Parse last push result
+    last_push_json = await ctx.state.get("last_push_result")
+    last_push_result = json.loads(last_push_json) if last_push_json else None
 
     return HTMLResponse(ctx.render_template(
         "connect_status.html",
@@ -70,8 +77,11 @@ async def _render_connect_status(ctx: AppContext) -> HTMLResponse:
         pat_preview=status.get("pat_preview", ""),
         repos=repos,
         selected_repos=selected_repos,
+        sync_direction=sync_direction,
+        poll_interval=poll_interval,
         last_sync_at=last_sync_at,
         last_pull_result=last_pull_result,
+        last_push_result=last_push_result,
     ))
 
 
@@ -149,16 +159,30 @@ async def save_repos(request: Request):
     return await _render_connect_status(ctx)
 
 
+@github_sync_app.route("/_fragments/settings/sync-config", methods=["POST"])
+async def save_sync_config(request: Request):
+    """Save sync direction and poll interval settings."""
+    ctx: AppContext = request.app.state.ctx
+    form = await request.form()
+    sync_direction = form.get("sync_direction", "pull-only")
+    poll_interval = form.get("poll_interval", "15m")
+    await ctx.settings.set("sync_direction", sync_direction)
+    await ctx.settings.set("poll_interval", poll_interval)
+    logger.info("Saved sync config: direction=%s interval=%s", sync_direction, poll_interval)
+    return await _render_connect_status(ctx)
+
+
 @github_sync_app.route("/_fragments/settings/sync-now", methods=["POST"])
 async def sync_now(request: Request):
-    """Trigger an immediate pull sync."""
-    from services.sync_engine import pull_sync
+    """Trigger an immediate pull + push sync."""
+    from services.sync_engine import pull_sync, push_sync
 
     ctx: AppContext = request.app.state.ctx
     logger.info("Manual sync triggered")
 
     try:
         result = await pull_sync(ctx)
+        await ctx.state.set("last_pull_result", json.dumps(result))
     except Exception as exc:
         logger.error("Manual pull sync failed: %s", exc, exc_info=True)
         result = {
@@ -174,6 +198,17 @@ async def sync_now(request: Request):
         }
         await ctx.state.set("last_pull_result", json.dumps(result))
 
+    sync_direction = await ctx.settings.get("sync_direction")
+    if sync_direction == "bidirectional":
+        try:
+            push_result = await push_sync(ctx)
+            await ctx.state.set("last_push_result", json.dumps(push_result))
+        except Exception as exc:
+            logger.error("Manual push sync failed: %s", exc, exc_info=True)
+            push_result = {"status": "error", "message": str(exc)}
+            await ctx.state.set("last_push_result", json.dumps(push_result))
+
+    await ctx.state.set("last_sync_at", datetime.now(timezone.utc).isoformat())
     return await _render_connect_status(ctx)
 
 
@@ -203,9 +238,17 @@ async def poll_tasks(ctx: AppContext):
 
 @github_sync_app.task("push-changes")
 async def push_changes(ctx: AppContext):
-    """Push local task changes back to GitHub (not yet implemented)."""
-    logger.info("push-changes: push sync not implemented yet")
-    return {"status": "skipped", "reason": "push sync not implemented yet"}
+    """Push local task changes back to GitHub."""
+    from services.sync_engine import push_sync
+
+    logger.info("push-changes: starting push sync")
+    try:
+        result = await push_sync(ctx)
+        logger.info("push-changes: completed — %s", result)
+        return result
+    except Exception as exc:
+        logger.error("push-changes: push failed — %s", exc, exc_info=True)
+        return {"status": "error", "message": str(exc)}
 
 
 @github_sync_app.on_startup

@@ -1845,3 +1845,409 @@ class TestPushSyncDiagnostics:
         assert "iri" in result["errors"][0]
         assert "error" in result["errors"][0]
         assert "gh-err" in result["errors"][0]["iri"]
+
+
+# ===================================================================
+# Tests — sync_now bidirectional behavior (T02)
+# ===================================================================
+
+
+class _MockRequest:
+    """Minimal Starlette Request mock for route handler tests."""
+
+    class _App:
+        class _State:
+            ctx = None
+        state = _State()
+
+    def __init__(self, ctx, form_data: dict | None = None):
+        self.app = self._App()
+        self.app.state.ctx = ctx
+        self._form_data = form_data or {}
+
+    async def form(self):
+        return _MockFormData(self._form_data)
+
+
+class _MockFormData(dict):
+    """dict subclass with .get() and .getlist() matching Starlette's FormData."""
+    def getlist(self, key):
+        val = super().get(key)
+        if val is None:
+            return []
+        if isinstance(val, list):
+            return val
+        return [val]
+
+
+def _load_app_module():
+    """Load github-sync app module via importlib (same pattern as sync_engine).
+
+    The app.py imports ``sempkm_app_sdk`` and ``starlette`` — we need to
+    stub these so the module loads without the full SDK installed.
+    """
+    from types import ModuleType
+
+    # Build a passthrough App class whose decorators preserve the original function
+    class _StubApp:
+        def __init__(self, name):
+            self.name = name
+
+        def route(self, path, methods=None):
+            """Decorator that returns the function unchanged."""
+            def decorator(fn):
+                return fn
+            return decorator
+
+        def task(self, name):
+            """Decorator that returns the function unchanged."""
+            def decorator(fn):
+                return fn
+            return decorator
+
+        def on_startup(self, fn):
+            return fn
+
+        def on_shutdown(self, fn):
+            return fn
+
+    # Stub sempkm_app_sdk if not already available
+    if "sempkm_app_sdk" not in sys.modules:
+        sdk_mock = ModuleType("sempkm_app_sdk")
+        sdk_mock.App = _StubApp
+        sdk_mock.AppContext = type("AppContext", (), {})
+        sys.modules["sempkm_app_sdk"] = sdk_mock
+
+    # Stub starlette modules if not available
+    for mod_name in ["starlette", "starlette.requests", "starlette.responses"]:
+        if mod_name not in sys.modules:
+            sm = ModuleType(mod_name)
+            if mod_name == "starlette.requests":
+                sm.Request = type("Request", (), {})
+            elif mod_name == "starlette.responses":
+                class _HTMLResponse:
+                    def __init__(self, body, **kw):
+                        self.body = body
+                        self.headers = {}
+                sm.HTMLResponse = _HTMLResponse
+            sys.modules[mod_name] = sm
+
+    app_path = (
+        Path(__file__).resolve().parent.parent.parent
+        / "apps"
+        / "github-sync"
+        / "app.py"
+    )
+    spec = importlib.util.spec_from_file_location("github_sync_app_module", app_path)
+    assert spec and spec.loader
+    mod = importlib.util.module_from_spec(spec)
+    # Ensure service imports resolve
+    sys.modules["services.sync_engine"] = _sync_engine
+    sys.modules["services.github_client"] = _github_client
+    sys.modules["services.auth"] = _auth
+    spec.loader.exec_module(mod)
+    return mod
+
+
+# Load once at module level
+_app_module = _load_app_module()
+_render_connect_status = _app_module._render_connect_status
+
+
+class _RenderableAppContext(MockAppContext):
+    """MockAppContext extended with render_template support."""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._rendered: list[tuple[str, dict]] = []
+
+    def render_template(self, template_name: str, **kwargs) -> str:
+        self._rendered.append((template_name, kwargs))
+        return f"<rendered:{template_name}>"
+
+
+class TestRenderConnectStatus:
+    """Verify _render_connect_status reads sync_direction, poll_interval, last_push_result."""
+
+    @pytest.mark.asyncio
+    async def test_passes_sync_direction_to_template(self):
+        """sync_direction from settings is passed to template."""
+        ctx = _RenderableAppContext(
+            state_data={**_make_connected_state()},
+            settings_data={
+                **_make_settings_with_repos(),
+                "sync_direction": "bidirectional",
+            },
+        )
+        await _render_connect_status(ctx)
+        _, kwargs = ctx._rendered[-1]
+        assert kwargs["sync_direction"] == "bidirectional"
+
+    @pytest.mark.asyncio
+    async def test_passes_poll_interval_to_template(self):
+        """poll_interval from settings is passed to template."""
+        ctx = _RenderableAppContext(
+            state_data={**_make_connected_state()},
+            settings_data={
+                **_make_settings_with_repos(),
+                "poll_interval": "30m",
+            },
+        )
+        await _render_connect_status(ctx)
+        _, kwargs = ctx._rendered[-1]
+        assert kwargs["poll_interval"] == "30m"
+
+    @pytest.mark.asyncio
+    async def test_passes_last_push_result_to_template(self):
+        """last_push_result parsed from state is passed to template."""
+        push_result = {"status": "ok", "pushed": 3, "skipped": 1, "errors": [], "timestamp": "2026-03-18T12:00:00Z"}
+        ctx = _RenderableAppContext(
+            state_data={
+                **_make_connected_state(),
+                "last_push_result": json.dumps(push_result),
+            },
+            settings_data=_make_settings_with_repos(),
+        )
+        await _render_connect_status(ctx)
+        _, kwargs = ctx._rendered[-1]
+        assert kwargs["last_push_result"]["status"] == "ok"
+        assert kwargs["last_push_result"]["pushed"] == 3
+
+    @pytest.mark.asyncio
+    async def test_defaults_when_no_settings(self):
+        """sync_direction defaults to pull-only, poll_interval to 15m, last_push_result to None."""
+        ctx = _RenderableAppContext(
+            state_data={**_make_connected_state()},
+            settings_data=_make_settings_with_repos(),
+        )
+        await _render_connect_status(ctx)
+        _, kwargs = ctx._rendered[-1]
+        assert kwargs["sync_direction"] == "pull-only"
+        assert kwargs["poll_interval"] == "15m"
+        assert kwargs["last_push_result"] is None
+
+    @pytest.mark.asyncio
+    async def test_passes_existing_pull_result(self):
+        """last_pull_result is still passed alongside new push fields."""
+        pull_result = {"status": "success", "created": 5, "updated": 2, "skipped": 0, "errors": 0, "failed_issues": [], "duration_ms": 100, "timestamp": "2026-03-18T10:00:00Z"}
+        ctx = _RenderableAppContext(
+            state_data={
+                **_make_connected_state(),
+                "last_pull_result": json.dumps(pull_result),
+            },
+            settings_data=_make_settings_with_repos(),
+        )
+        await _render_connect_status(ctx)
+        _, kwargs = ctx._rendered[-1]
+        assert kwargs["last_pull_result"]["status"] == "success"
+        assert kwargs["last_pull_result"]["created"] == 5
+
+
+class TestSyncNowBidirectional:
+    """Verify sync_now calls push_sync when direction is bidirectional."""
+
+    @pytest.mark.asyncio
+    async def test_push_called_when_bidirectional(self):
+        """push_sync is invoked after pull_sync when sync_direction=bidirectional."""
+        from unittest.mock import patch, AsyncMock as AM
+
+        ctx = _RenderableAppContext(
+            state_data={**_make_connected_state()},
+            settings_data={
+                **_make_settings_with_repos(),
+                "sync_direction": "bidirectional",
+            },
+        )
+        req = _MockRequest(ctx)
+
+        pull_result = {"status": "success", "created": 1, "updated": 0, "skipped": 0, "errors": 0, "failed_issues": [], "duration_ms": 50, "timestamp": "now"}
+        push_result = {"status": "ok", "pushed": 2, "skipped": 0, "errors": [], "timestamp": "now"}
+
+        with patch.object(_sync_engine, "pull_sync", new=AM(return_value=pull_result)) as mock_pull, \
+             patch.object(_sync_engine, "push_sync", new=AM(return_value=push_result)) as mock_push:
+            await _app_module.sync_now(req)
+            mock_pull.assert_called_once()
+            mock_push.assert_called_once()
+
+        # Verify push result stored in state
+        raw = await ctx.state.get("last_push_result")
+        assert raw is not None
+        stored = json.loads(raw)
+        assert stored["status"] == "ok"
+
+    @pytest.mark.asyncio
+    async def test_last_sync_at_updated_after_both(self):
+        """last_sync_at is set after both pull and push complete."""
+        from unittest.mock import patch, AsyncMock as AM
+
+        ctx = _RenderableAppContext(
+            state_data={**_make_connected_state()},
+            settings_data={
+                **_make_settings_with_repos(),
+                "sync_direction": "bidirectional",
+            },
+        )
+        req = _MockRequest(ctx)
+
+        with patch.object(_sync_engine, "pull_sync", new=AM(return_value={"status": "success"})), \
+             patch.object(_sync_engine, "push_sync", new=AM(return_value={"status": "ok"})):
+            await _app_module.sync_now(req)
+
+        last_sync = await ctx.state.get("last_sync_at")
+        assert last_sync is not None
+        assert "T" in last_sync
+
+    @pytest.mark.asyncio
+    async def test_push_error_isolated(self):
+        """Push failure doesn't prevent last_sync_at from being set."""
+        from unittest.mock import patch, AsyncMock as AM
+
+        ctx = _RenderableAppContext(
+            state_data={**_make_connected_state()},
+            settings_data={
+                **_make_settings_with_repos(),
+                "sync_direction": "bidirectional",
+            },
+        )
+        req = _MockRequest(ctx)
+
+        with patch.object(_sync_engine, "pull_sync", new=AM(return_value={"status": "success"})), \
+             patch.object(_sync_engine, "push_sync", new=AM(side_effect=Exception("push boom"))):
+            await _app_module.sync_now(req)
+
+        # last_sync_at should still be set
+        last_sync = await ctx.state.get("last_sync_at")
+        assert last_sync is not None
+        # Error result should be stored
+        raw = await ctx.state.get("last_push_result")
+        stored = json.loads(raw)
+        assert stored["status"] == "error"
+
+
+class TestSyncNowPullOnly:
+    """Verify sync_now does NOT call push_sync when direction is pull-only."""
+
+    @pytest.mark.asyncio
+    async def test_push_not_called_when_pull_only(self):
+        """push_sync is not invoked when sync_direction=pull-only."""
+        from unittest.mock import patch, AsyncMock as AM
+
+        ctx = _RenderableAppContext(
+            state_data={**_make_connected_state()},
+            settings_data={
+                **_make_settings_with_repos(),
+                "sync_direction": "pull-only",
+            },
+        )
+        req = _MockRequest(ctx)
+
+        with patch.object(_sync_engine, "pull_sync", new=AM(return_value={"status": "success"})) as mock_pull, \
+             patch.object(_sync_engine, "push_sync", new=AM()) as mock_push:
+            await _app_module.sync_now(req)
+            mock_pull.assert_called_once()
+            mock_push.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_push_not_called_when_no_direction_set(self):
+        """push_sync is not invoked when sync_direction is not set (defaults to pull-only)."""
+        from unittest.mock import patch, AsyncMock as AM
+
+        ctx = _RenderableAppContext(
+            state_data={**_make_connected_state()},
+            settings_data=_make_settings_with_repos(),
+            # No sync_direction in settings
+        )
+        req = _MockRequest(ctx)
+
+        with patch.object(_sync_engine, "pull_sync", new=AM(return_value={"status": "success"})) as mock_pull, \
+             patch.object(_sync_engine, "push_sync", new=AM()) as mock_push:
+            await _app_module.sync_now(req)
+            mock_pull.assert_called_once()
+            mock_push.assert_not_called()
+
+
+class TestPushChangesHandler:
+    """Verify the push-changes task handler calls push_sync."""
+
+    @pytest.mark.asyncio
+    async def test_calls_push_sync(self):
+        """push_changes task handler invokes push_sync and returns result."""
+        from unittest.mock import patch, AsyncMock as AM
+
+        ctx = _RenderableAppContext(
+            state_data={**_make_connected_state()},
+            settings_data={**_make_settings_with_repos(), "sync_direction": "bidirectional"},
+        )
+
+        push_result = {"status": "ok", "pushed": 1, "skipped": 0, "errors": [], "timestamp": "now"}
+        with patch.object(_sync_engine, "push_sync", new=AM(return_value=push_result)):
+            result = await _app_module.push_changes(ctx)
+        assert result["status"] == "ok"
+        assert result["pushed"] == 1
+
+    @pytest.mark.asyncio
+    async def test_error_returns_error_dict(self):
+        """push_changes returns error dict when push_sync raises."""
+        from unittest.mock import patch, AsyncMock as AM
+
+        ctx = _RenderableAppContext(
+            state_data={**_make_connected_state()},
+            settings_data=_make_settings_with_repos(),
+        )
+
+        with patch.object(_sync_engine, "push_sync", new=AM(side_effect=Exception("kaboom"))):
+            result = await _app_module.push_changes(ctx)
+        assert result["status"] == "error"
+        assert "kaboom" in result["message"]
+
+
+class TestSyncConfigRoute:
+    """Verify sync-config route saves settings."""
+
+    @pytest.mark.asyncio
+    async def test_saves_sync_direction(self):
+        """sync-config saves sync_direction to settings."""
+        ctx = _RenderableAppContext(
+            state_data={**_make_connected_state()},
+            settings_data=_make_settings_with_repos(),
+        )
+        req = _MockRequest(ctx, form_data={
+            "sync_direction": "bidirectional",
+            "poll_interval": "30m",
+        })
+
+        await _app_module.save_sync_config(req)
+
+        assert await ctx.settings.get("sync_direction") == "bidirectional"
+        assert await ctx.settings.get("poll_interval") == "30m"
+
+    @pytest.mark.asyncio
+    async def test_defaults_on_missing_form_data(self):
+        """sync-config defaults sync_direction to pull-only and poll_interval to 15m."""
+        ctx = _RenderableAppContext(
+            state_data={**_make_connected_state()},
+            settings_data=_make_settings_with_repos(),
+        )
+        req = _MockRequest(ctx, form_data={})
+
+        await _app_module.save_sync_config(req)
+
+        assert await ctx.settings.get("sync_direction") == "pull-only"
+        assert await ctx.settings.get("poll_interval") == "15m"
+
+    @pytest.mark.asyncio
+    async def test_returns_html_response(self):
+        """sync-config returns an HTMLResponse (re-renders connect_status)."""
+        ctx = _RenderableAppContext(
+            state_data={**_make_connected_state()},
+            settings_data=_make_settings_with_repos(),
+        )
+        req = _MockRequest(ctx, form_data={
+            "sync_direction": "pull-only",
+            "poll_interval": "5m",
+        })
+
+        response = await _app_module.save_sync_config(req)
+        # Should have rendered connect_status.html
+        assert len(ctx._rendered) >= 1
+        assert ctx._rendered[-1][0] == "connect_status.html"

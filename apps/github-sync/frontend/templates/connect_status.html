@@ -40,10 +40,44 @@
   <p class="no-repos">No repositories found. Check your token permissions.</p>
   {% endif %}
 
-  {# ── Sync Direction ── #}
-  <section class="sync-direction-section">
-    <h4>Sync Direction</h4>
-    <p class="section-hint">Pull only — push sync coming in a future update.</p>
+  {# ── Sync Direction & Configuration ── #}
+  <section class="sync-config-section">
+    <h4>Sync Configuration</h4>
+    <form class="sync-config-form"
+          hx-post="/app/github-sync/_fragments/settings/sync-config"
+          hx-target="#connect-content"
+          hx-swap="innerHTML">
+      <fieldset class="config-fieldset">
+        <legend>Direction</legend>
+        <label class="radio-item">
+          <input type="radio" name="sync_direction" value="pull-only"
+                 {% if sync_direction != 'bidirectional' %}checked{% endif %}>
+          <span>Pull only</span>
+          <span class="option-hint">GitHub → SemPKM</span>
+        </label>
+        <label class="radio-item">
+          <input type="radio" name="sync_direction" value="bidirectional"
+                 {% if sync_direction == 'bidirectional' %}checked{% endif %}>
+          <span>Bidirectional</span>
+          <span class="option-hint">GitHub ↔ SemPKM</span>
+        </label>
+      </fieldset>
+
+      <fieldset class="config-fieldset">
+        <legend>Poll Interval</legend>
+        <select name="poll_interval" class="config-select">
+          <option value="5m" {% if poll_interval == '5m' %}selected{% endif %}>Every 5 minutes</option>
+          <option value="15m" {% if poll_interval == '15m' %}selected{% endif %}>Every 15 minutes</option>
+          <option value="30m" {% if poll_interval == '30m' %}selected{% endif %}>Every 30 minutes</option>
+          <option value="1h" {% if poll_interval == '1h' %}selected{% endif %}>Every hour</option>
+        </select>
+      </fieldset>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save Config</button>
+        <span class="htmx-indicator">Saving…</span>
+      </div>
+    </form>
   </section>
 
   {# ── Sync Now ── #}
@@ -115,7 +149,33 @@
     </div>
     {% endif %}
 
-    {% if not last_sync_at and not last_pull_result %}
+    {% if last_push_result %}
+    <div class="stat-group">
+      <h5>Last Push</h5>
+      <div class="stat-row">
+        <span class="stat-label">Status</span>
+        <span class="stat-value stat-status-{{ last_push_result.status }}">{{ last_push_result.status }}</span>
+      </div>
+      {% if last_push_result.status in ['ok', 'success'] %}
+      <div class="stat-row">
+        <span class="stat-label">Pushed</span>
+        <span class="stat-value">{{ last_push_result.pushed | default(0) }}</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Skipped</span>
+        <span class="stat-value">{{ last_push_result.skipped | default(0) }}</span>
+      </div>
+      {% endif %}
+      {% if last_push_result.errors %}
+      <div class="stat-row stat-errors">
+        <span class="stat-label">Errors</span>
+        <span class="stat-value">{{ last_push_result.errors | length }}</span>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if not last_sync_at and not last_pull_result and not last_push_result %}
     <p class="no-sync-data">No sync data yet. Select repos and run a sync to get started.</p>
     {% endif %}
   </section>
