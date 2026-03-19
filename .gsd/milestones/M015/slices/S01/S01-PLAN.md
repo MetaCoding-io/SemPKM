@@ -66,7 +66,7 @@
   - Verify: `node --check extension/sidebar/sidebar.js` passes. Sideload extension → Alt+K opens sidebar → results render grouped by type → "Open" navigates to SemPKM.
   - Done when: Sidebar opens via Alt+K, shows grouped results from real context-query data, "Open" works, stub actions show toast.
 
-- [ ] **T04: Add Node.js unit tests for ranking, grouping, and LRU cache** `est:45m`
+- [x] **T04: Add Node.js unit tests for ranking, grouping, and LRU cache** `est:45m`
   - Why: The slice's contract verification — proves the pure logic works correctly independent of browser APIs.
   - Files: `extension/tests/test-context-utils.js` (new)
   - Do: Write Node.js tests using `node:test` + `node:assert` (no external deps). Test `rankResults()`: URL matches sort first, then title, then keyword; truncates to 10; handles empty array; handles ties within same match_type. Test `groupByType()`: groups by type_label, preserves order within groups, handles null type_label (groups as "Other"), handles empty array. Test `LRUCache`: set/get round-trip, max size eviction (101st entry evicts oldest), get promotes to most recent, has() works, clear() works, entries with same key update in place.

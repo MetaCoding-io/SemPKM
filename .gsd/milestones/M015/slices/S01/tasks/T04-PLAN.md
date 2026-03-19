@@ -64,6 +64,13 @@ This is the slice's primary automated verification — the sideload testing is m
 - `node --test extension/tests/test-context-utils.js` — all tests pass, 0 failures
 - Test count ≥ 17
 
+## Observability Impact
+
+- **New signal:** `node --test extension/tests/test-context-utils.js` — CI-runnable test suite reporting pass/fail counts for all three context-utils exports
+- **Inspection:** Test output uses Node.js TAP-like reporter showing individual test names and durations; `--test-reporter spec` for verbose output
+- **Failure visibility:** Any regression in `rankResults`, `groupByType`, or `LRUCache` surfaces as a named test failure with assertion details (expected vs actual)
+- **No runtime signals changed** — this task adds offline verification only, no changes to service worker or sidebar logging
+
 ## Inputs
 
 - `extension/shared/context-utils.js` — T02's pure functions module exporting `rankResults`, `groupByType`, `LRUCache` via `globalThis.SemPKMContextUtils` and `module.exports`
