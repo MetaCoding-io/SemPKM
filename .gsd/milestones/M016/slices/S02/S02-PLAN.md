@@ -54,7 +54,7 @@
   - Verify: `cd backend && python -m pytest tests/test_field_mapper.py -v` — ~30 tests pass
   - Done when: All 6 functions implemented, all normalization paths covered by tests, property dict uses full IRIs, dates truncated correctly
 
-- [ ] **T02: Build person matcher with unit tests** `est:30m`
+- [x] **T02: Build person matcher with unit tests** `est:30m`
   - Why: Sync engine needs to resolve Linear assignees (email + display name) to Person IRIs. Person matcher encapsulates SPARQL lookup + command API creation + in-memory caching, keeping the sync engine focused on orchestration.
   - Files: `apps/linear-sync/services/person_matcher.py`, `backend/tests/test_person_matcher.py`
   - Do: Implement `PersonMatcher` class with `match_or_create(email, display_name) -> str | None` method. SPARQL query checks both `foaf:mbox` and `urn:sempkm:model:crm:email`. On miss: create `bpkm:Person` via command API with `dcterms:title` (display name) and `foaf:mbox` (email). Cache results in `_cache: dict[str, str]` (email → IRI) to avoid repeated queries in a single sync run. Return None if email is None/empty. The `object.create` command for Person goes through the SDK's `CommandClient` normally (no IRI prefix issue since `object.create` has no IRI field to check). Constructor takes `graph_client` and `command_client`.

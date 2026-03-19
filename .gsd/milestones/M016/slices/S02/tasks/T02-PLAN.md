@@ -111,6 +111,13 @@ Create the person matching module that resolves Linear assignees to SemPKM Perso
 - `cd backend && python -m pytest tests/test_person_matcher.py -v` — all tests pass
 - `python3 -c "import ast; ast.parse(open('apps/linear-sync/services/person_matcher.py').read())"` — syntax valid
 
+## Observability Impact
+
+- **Logging:** `PersonMatcher` logs at DEBUG level when creating a new person (email, slug), and at DEBUG when a cache hit occurs. No PII in INFO or above.
+- **Inspection:** The `_cache` dict is inspectable during a sync run — keys are lowercased emails, values are Person IRIs. Cache size indicates how many distinct assignees were resolved.
+- **Failure visibility:** SPARQL query failures propagate as exceptions from `GraphClient.query()`. Person creation failures propagate from `CommandClient.execute()`. Both surface in the sync engine's per-issue error accumulation. No silent swallowing.
+- **Future agent:** To verify person matching, check that `PersonMatcher._cache` contains expected email→IRI mappings after a sync run, or inspect SPARQL queries captured by the mock in tests.
+
 ## Inputs
 
 - `backend/sdk/sempkm_app_sdk/clients/graph.py` — `GraphClient.query()` returns SPARQL JSON results format: `{"results": {"bindings": [{"person": {"type": "uri", "value": "..."}}]}}`
