@@ -1,0 +1,49 @@
+appId: "linear-sync"
+name: "Linear Sync"
+version: "0.1.0"
+description: "Two-way sync between SemPKM objects and Linear issues"
+author:
+  name: "SemPKM"
+license: "MIT"
+
+dependencies:
+  platform: ">=0.1.0"
+
+permissions:
+  commands:
+    - "object.create"
+    - "object.patch"
+    - "body.set"
+    - "body.diff"
+    - "edge.create"
+  sparql:
+    read: true
+  backgroundTasks: true
+  network:
+    - "api.linear.app"
+    - "linear.app"
+
+backend:
+  entrypoint: "app:linear_sync_app"
+
+tasks:
+  - id: "poll-tasks"
+    description: "Poll Linear for updated issues and sync to SemPKM"
+    interval: "15m"
+    retryPolicy:
+      maxRetries: 3
+      maxBackoff: "60s"
+
+frontend:
+  staticDir: "frontend/static"
+  css:
+    - "styles.css"
+
+ui:
+  pages:
+    - id: "settings"
+      path: "/settings"
+      label: "Linear Sync"
+      icon: "git-pull-request"
+      nav: "apps"
+      fragment: "connect"

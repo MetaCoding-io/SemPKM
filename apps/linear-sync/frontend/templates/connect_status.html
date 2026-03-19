@@ -1,0 +1,50 @@
+<div id="connect-content" class="linear-sync-settings">
+  <div class="connection-status">
+    <span class="status-badge status-connected">Connected</span>
+    <span class="status-detail">
+      via <strong>{{ auth_method }}</strong>
+      {% if workspace_name %} — {{ workspace_name }}{% endif %}
+    </span>
+  </div>
+
+  {% if teams %}
+  <section class="teams-section">
+    <h3>Teams</h3>
+    <table class="teams-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Key</th>
+          <th>Sync</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for team in teams %}
+        <tr>
+          <td>{{ team.name }}</td>
+          <td><code>{{ team.key }}</code></td>
+          <td>
+            <input type="checkbox"
+                   name="sync_teams"
+                   value="{{ team.id }}"
+                   {% if team.synced %}checked{% endif %} />
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+  {% else %}
+  <p class="no-teams">No teams found in this workspace.</p>
+  {% endif %}
+
+  <section class="disconnect-section">
+    <button class="btn btn-danger"
+            hx-post="/_fragments/connect/disconnect"
+            hx-target="#connect-content"
+            hx-swap="innerHTML"
+            hx-confirm="Disconnect from Linear? Sync will stop.">
+      Disconnect
+    </button>
+  </section>
+</div>

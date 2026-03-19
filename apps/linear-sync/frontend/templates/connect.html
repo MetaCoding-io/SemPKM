@@ -1,0 +1,45 @@
+<div id="connect-content" class="linear-sync-settings">
+  <h2>Connect to Linear</h2>
+  <p class="connect-description">
+    Link your Linear workspace to sync issues with SemPKM objects.
+    Choose one authentication method below.
+  </p>
+
+  <section class="connect-section">
+    <h3>API Key</h3>
+    <p class="section-hint">
+      Create a personal API key at
+      <a href="https://linear.app/settings/api" target="_blank" rel="noopener">
+        linear.app/settings/api</a>.
+    </p>
+    <form class="api-key-form"
+          hx-post="/_fragments/connect/api-key"
+          hx-target="#connect-content"
+          hx-swap="innerHTML">
+      <div class="form-row">
+        <label for="linear-api-key">API Key</label>
+        <input type="password"
+               id="linear-api-key"
+               name="api_key"
+               placeholder="lin_api_..."
+               required
+               autocomplete="off" />
+      </div>
+      <button type="submit" class="btn btn-primary">Connect</button>
+    </form>
+  </section>
+
+  <div class="connect-divider">
+    <span>or</span>
+  </div>
+
+  <section class="connect-section">
+    <h3>OAuth</h3>
+    <p class="section-hint">
+      Sign in with your Linear account for automatic token refresh.
+    </p>
+    <a href="/_fragments/oauth-callback" class="btn btn-secondary">
+      Connect with Linear
+    </a>
+  </section>
+</div>
