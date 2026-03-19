@@ -339,6 +339,19 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - ✓ SYNC-07: Provider icon and external link on synced tasks — M016
 - ✓ 189 unit tests across 6 test files, mock Linear API server, Playwright E2E test (11 phases), Chapter 34 user guide — M016
 
+### Validated (M017 — GitHub Issues Sync App)
+
+<!-- Shipped and confirmed in M017 (2026-03-18). -->
+
+- ✓ GH-01: GitHub PAT authentication — store/verify/disconnect/masked preview, 15 unit tests — M017
+- ✓ GH-02: Pull sync — GitHub issues to bpkm:Task with status/labels/assignee/body/URL field mapping, 68 unit tests — M017
+- ✓ GH-03: PR sync + issue linking — PRs as bpkm:Task with "github-pr" provider, timeline API edge creation, 32 unit tests — M017
+- ✓ GH-04: Push sync — SPARQL change detection, reverse field mapping, PATCH API, loop prevention, 33 unit tests — M017
+- ✓ GH-05: Settings UI — repo selection, sync direction, poll interval, sync stats, 15 unit tests — M017
+- ✓ GH-06: Person matching — email/login SPARQL lookup with LRU cache, 10 unit tests — M017
+- ✓ GH-07: E2E + docs — mock GitHub REST API (9 selftest), 12-phase Playwright E2E (partial), Chapter 35 user guide — M017
+- ✓ 204 unit tests across 5 test files, mock REST API server, Playwright E2E test (12 phases), Chapter 35 user guide — M017
+
 ### Future Candidates
 
 <!-- Tracked for future milestones. See .gsd/QUEUE.md for full queue and .gsd/REQUIREMENTS.md for deferred requirements. -->
@@ -410,7 +423,8 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 **Integration Sync Apps** — in progress (M016–M024, depend on M009)
 - Linear Sync (M016) — complete (2026-03-18): first bidirectional sync app, OAuth/API key auth, pull sync (Linear→bpkm:Task), push sync, settings UI, admin sync history, 150 unit tests, E2E Playwright test, Chapter 34 user guide
-- Task providers: GitHub Issues (M017), Todoist (M019), Asana (M022), Jira (M023), Monday.com (M024)
+- GitHub Issues Sync (M017) — complete (2026-03-18): second sync app, PAT auth, issue+PR pull sync with timeline-based edge linking, push sync with loop prevention, 204 unit tests, mock REST API server, E2E test (partial — platform issue), Chapter 35 user guide
+- Task providers: Todoist (M019), Asana (M022), Jira (M023), Monday.com (M024)
 - Calendar providers: Google Calendar (M018), Outlook (M020), CalDAV (M021)
 - Design: `.gsd/design/INTEGRATION-DOMAIN-MAPPING.md`
 
@@ -459,7 +473,24 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current State
 
-**Latest shipped: M016 Linear Sync App (2026-03-18)**
+**Latest shipped: M017 GitHub Issues Sync App (2026-03-18)**
+
+**What shipped in M017 (GitHub Issues Sync App):**
+- Second bidirectional sync app on the App Platform — GitHub Issues + PRs to bpkm:Task objects
+- PAT authentication (D206: no OAuth App for v1, matching M016's API key approach)
+- GitHubClient REST client with Link-header pagination, rate-limit checking, typed exception hierarchy
+- Pull sync: GitHub issues → bpkm:Task with status (open→todo, closed→done, not_planned→cancelled), labels→tags, assignee mapped to Person, milestone→project, body as markdown, external URL/ID
+- PR sync: PRs appear as bpkm:Task with `externalProvider: "github-pr"` distinction
+- PR-to-issue edge linking via GitHub Timeline API cross-referenced events (D208), creating bpkm:dependsOn edges
+- Push sync: SPARQL change detection, reverse field mapping, GitHub PATCH API, lastSyncedAt loop prevention
+- Settings UI with repo selection, sync direction (pull-only/bidirectional), poll interval dropdown
+- PersonMatcher with email-first + login-fallback SPARQL resolution (adapted from M016)
+- 204 unit tests across 5 test files (client 41, field mapper 55, auth 20, person matcher 10, sync engine 78)
+- Mock GitHub REST API server (6 endpoints, 9-point selftest, Docker healthcheck)
+- 12-phase Playwright E2E test (phases 0-2 pass, 3+ blocked by pre-existing app subprocess startup issue)
+- Chapter 35 user guide (34 headings, field mapping tables, PR-to-issue linking, troubleshooting)
+- Two pre-existing platform bugs fixed: browser/apps.py registry attribute access, workspace-layout.js app-page routing
+- 7 GH requirements validated (GH-01 through GH-07)
 
 **What shipped in M016 (Linear Sync App):**
 - First bidirectional task provider sync app on the App Platform — connecting Linear issues to bpkm:Task objects
@@ -550,9 +581,9 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - E2E test coverage: 5 new Playwright tests across 3 spec files
 - User guide: 4 chapters updated with new feature documentation
 
-**Previous milestones:** M016 Linear Sync App (2026-03-18), M015 Browser Extension Phase 2 (2026-03-18), M014 Browser Extension Phase 1 (2026-03-18), M013 API Surface for External Clients (2026-03-17), M012 Workspace & Event Log Polish (2026-03-17), M011 Mental Models Expansion (2026-03-17), M008 Spatial Canvas (2026-03-16), M007 Generic Views, VFS Completion & Polish (2026-03-16), M006 Dashboards, Workflows & Platform Alignment (2026-03-15), M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
+**Previous milestones:** M017 GitHub Issues Sync App (2026-03-18), M016 Linear Sync App (2026-03-18), M015 Browser Extension Phase 2 (2026-03-18), M014 Browser Extension Phase 1 (2026-03-18), M013 API Surface for External Clients (2026-03-17), M012 Workspace & Event Log Polish (2026-03-17), M011 Mental Models Expansion (2026-03-17), M008 Spatial Canvas (2026-03-16), M007 Generic Views, VFS Completion & Polish (2026-03-16), M006 Dashboards, Workflows & Platform Alignment (2026-03-15), M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
 
-**Latest shipped: M016 Linear Sync App (2026-03-18)**
+**Latest shipped: M017 GitHub Issues Sync App (2026-03-18)**
 
 **What shipped in M013 (API Surface for External Clients):**
 - `GET /.well-known/sempkm` discovery endpoint with version, endpoints, auth methods, capabilities
@@ -574,7 +605,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - 6 Mental Models: basic-pkm v2.0, ppv, gist, crm v1.0, zettelkasten v1.0, research v1.0 (24 files across 4 model directories)
 - Tech stack: FastAPI + RDF4J (LuceneSail) + htmx/vanilla-web + SQLAlchemy (SQLite/PostgreSQL) + wsgidav + a2wsgi + Driver.js + Cytoscape.js + CodeMirror + dockview-core + Alembic + Yasgui CDN + ninja-keys + owlrl + pyshacl + mf2py + http-message-signatures + slowapi
 - Docker Compose deployment: 3 services (api, triplestore, frontend/nginx) + federation test compose (2 instances)
-- 58 phases, 80 plans completed across v1.0–v2.6; M002 (7 slices) + M003 (10 slices) + M004 (5 slices) + M005 (9 slices) + M006 (7 slices) + M007 (5 slices) + M008 (4 slices) + M011 (5 slices) + M012 (4 slices) + M013 (3 slices) + M014 (5 slices) + M015 (3 slices) + M016 (4 slices) milestones complete
+- 58 phases, 80 plans completed across v1.0–v2.6; M002 (7 slices) + M003 (10 slices) + M004 (5 slices) + M005 (9 slices) + M006 (7 slices) + M007 (5 slices) + M008 (4 slices) + M011 (5 slices) + M012 (4 slices) + M013 (3 slices) + M014 (5 slices) + M015 (3 slices) + M016 (4 slices) + M017 (4 slices) milestones complete
 - Backend test suite: 1225+ pytest unit tests, <5s, no Docker dependency
 - E2E test suite: 98 Playwright spec files covering all shipped features
 - Browser extension: `extension/` directory with Chrome MV3 + Firefox manifests, 11 JS modules (~2.5k LOC), 7 E2E tests (3 capture + 4 context overlay), 23 unit tests
@@ -589,6 +620,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - API surface: 4 JSON endpoints for external clients with dual-auth, CORS, and 62 unit tests
 - Browser extension Phase 1+2: Chrome MV3 + Firefox, 11 JS modules (~2.5k LOC), SHACL form renderer, schema.org mapper, reference picker, context sidebar with badge + grouped results + actions, 7 E2E tests, 23 unit tests
 - Linear Sync app: first bidirectional sync app on App Platform — OAuth/API key auth, pull/push sync, field mapping, admin history, 150 unit tests, E2E test with mock API, Chapter 34 user guide
+- GitHub Issues Sync app: second sync app — PAT auth, issue+PR pull sync with timeline-based edge linking, push sync with loop prevention, 204 unit tests, mock REST API server, E2E test (partial), Chapter 35 user guide
 
 **Known tech debt:**
 - Cookie secure=False (local dev only — production config deferred)
@@ -712,4 +744,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-03-18 after M016 complete (Linear Sync App — 4 slices, first bidirectional sync app on App Platform, OAuth/API key auth, pull/push sync with loop prevention, 189 unit tests, E2E test with mock API, 7 SYNC requirements validated, Chapter 34 user guide)*
+*Last updated: 2026-03-18 after M017 complete (GitHub Issues Sync App — 4 slices, second sync app on App Platform, PAT auth, issue+PR pull sync with timeline edge linking, push sync with loop prevention, 204 unit tests, mock REST API server, 7 GH requirements validated, Chapter 35 user guide)*
