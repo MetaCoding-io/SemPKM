@@ -73,5 +73,19 @@ export default defineConfig({
       fullyParallel: false,
       retries: 0,
     },
+    {
+      name: 'extension',
+      testMatch: /25-extension\/.*\.spec\.ts/,
+      use: {
+        /* Extension tests use custom persistent context — no default browser.
+           The fixture in extension.ts launches chromium.launchPersistentContext
+           with --load-extension args. */
+        trace: 'on-first-retry',
+        screenshot: 'only-on-failure',
+        video: 'off',
+      },
+      fullyParallel: false,
+      retries: 0,
+    },
   ],
 });

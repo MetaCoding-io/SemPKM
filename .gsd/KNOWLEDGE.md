@@ -105,3 +105,28 @@ The workspace sidebar explorer sections (FAVORITES, OBJECTS, VIEWS, DASHBOARDS, 
 The Playwright auth fixture (`e2e/fixtures/auth.ts`) reads the setup token via `docker compose -f docker-compose.test.yml exec -T api cat ...` with `cwd` set to `git rev-parse --show-toplevel` (the main tree). If the Docker stack is started from a worktree, the auth fixture can't find the container because Docker Compose uses project-name scoping based on the directory.
 
 **Workaround:** Either (a) sync worktree code to main tree and run Docker from main tree, or (b) start Docker from worktree AND update the auth fixture to use the worktree's compose file path.
+
+## Playwright extension tests: chrome.storage.sync unreliable in persistent context
+
+**Discovery date:** 2026-03-18
+**Context:** M014/S05/T02 — E2E extension tests
+
+When using `chromium.launchPersistentContext()` with `--load-extension`, settings saved via `chrome.storage.sync` on the options page may not be visible when the popup page loads in a new tab. The popup sees the "unconfigured" state even though the options page saved successfully.
+
+**Fix:** Inject settings directly into `chrome.storage.local` via `page.evaluate()` on an extension page before navigating to the popup. The extension's `storage.js` has fallback from sync to local, so this works reliably.
+
+## Playwright extension tests: SHACL form required fields block native form validation
+
+**Discovery date:** 2026-03-18
+**Context:** M014/S05/T02 — E2E extension tests
+
+The SHACL renderer sets `required` on input elements, including those inside collapsed sections (RELATIONSHIPS, METADATA). When the form is submitted via button click, native browser validation fires before the JS `handleSave()` runs, and fails with "An invalid form control with name='' is not focusable" because the required fields are hidden.
+
+**Fix:** Set `form.noValidate = true` via `page.evaluate()` before clicking the Save button. The extension's `handleSave()` does its own validation.
+
+## Playwright extension tests: persistent context hangs navigating non-extension pages
+
+**Discovery date:** 2026-03-18
+**Context:** M014/S05/T02 — E2E extension tests
+
+Navigating to `http://localhost:3901/browser/` in a page opened within the extension's persistent context can hang indefinitely (even with `waitUntil: 'domcontentloaded'`). The workspace page has SSE/long-polling connections that may interact poorly with the persistent context. Use API-only verification (SPARQL query) instead of UI verification for objects created via the extension.

@@ -127,3 +127,10 @@ The test flow: create an API key via admin login → configure the extension opt
 - `e2e/fixtures/extension.ts` — Custom Playwright test fixture with persistent context + extension loading
 - `e2e/tests/25-extension/extension-capture.spec.ts` — 3 E2E tests exercising extension capture flow
 - `e2e/playwright.config.ts` — Updated with `extension` project entry
+
+## Observability Impact
+
+- **New signal:** Playwright HTML report + trace files for extension tests (on failure) in `e2e/test-results/`
+- **Inspection surface:** `cd e2e && npx playwright show-report` to see extension test results alongside other tests
+- **Failure visibility:** Service worker registration failures surface via Playwright trace; `chrome.storage` fallback behavior visible in console logs; extension popup DOM state captured in screenshots on failure
+- **How a future agent inspects:** Run `cd e2e && npx playwright test --project=extension` to re-verify extension capture flow; check `e2e/test-results/` for artifacts from last run

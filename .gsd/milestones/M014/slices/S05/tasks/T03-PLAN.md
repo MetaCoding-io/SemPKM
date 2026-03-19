@@ -126,6 +126,15 @@ This is documentation-only work. No code changes. The chapter should be useful t
 - `grep "31-api-surface" docs/guide/32-browser-extension.md` matches (previous link)
 - `grep "appendix-a" docs/guide/32-browser-extension.md` matches (next link)
 
+## Observability Impact
+
+Documentation-only task — no runtime signals change. A future agent can verify this task by checking file existence and content:
+- `test -f docs/guide/32-browser-extension.md` confirms the chapter was created
+- `grep -c "^##" docs/guide/32-browser-extension.md` confirms section count
+- Navigation chain integrity is verifiable by grepping prev/next links across the three connected files (Ch 31, Ch 32, Appendix A)
+
+No failure state to persist — documentation is a static artifact.
+
 ## Inputs
 
 - `docs/guide/31-api-surface.md` — Current last chapter before appendices, needs next link updated

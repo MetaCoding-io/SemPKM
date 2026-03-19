@@ -58,14 +58,14 @@
   - Verify: Both manifests parse as valid JSON. `node --check` passes on service-worker.js. `rg "^import " extension/background/service-worker.js` returns empty. Both manifests have `commands._execute_action` with Alt+S. Chrome manifest background has no `type` key. Firefox manifest has `browser_specific_settings.gecko.id`.
   - Done when: Both manifests are valid, service worker has no imports, keyboard shortcut declared in both
 
-- [ ] **T02: E2E Playwright tests for extension capture flow** `est:1h30m`
+- [x] **T02: E2E Playwright tests for extension capture flow** `est:1h30m`
   - Why: EXT-13 requires automated E2E tests proving the full capture round-trip. Extension tests need `launchPersistentContext` which is incompatible with normal Playwright projects. This is the heaviest task in the slice.
   - Files: `e2e/fixtures/extension.ts`, `e2e/tests/25-extension/extension-capture.spec.ts`, `e2e/playwright.config.ts`
   - Do: Create extension fixture with persistent Chromium context loading extension via `--load-extension`. Extract extension ID from service worker URL. Write tests: (1) create API key via admin login, (2) configure options page with instance URL + API key + verify connection, (3) open popup → verify types loaded, (4) select type → verify SHACL form renders, (5) fill title → save → verify success toast, (6) navigate to workspace → verify object exists. Add `extension` project to playwright config (Chromium-only, no retries, custom testMatch).
   - Verify: `cd e2e && npx playwright test --project=extension` passes against Docker stack
   - Done when: Extension E2E tests pass proving options config → popup capture → workspace verification round-trip
 
-- [ ] **T03: User guide chapter + glossary + README TOC** `est:45m`
+- [x] **T03: User guide chapter + glossary + README TOC** `est:45m`
   - Why: EXT-12 requires documentation covering installation, configuration, and usage for both browsers. This is the final deliverable closing out M014.
   - Files: `docs/guide/32-browser-extension.md`, `docs/guide/README.md`, `docs/guide/appendix-d-glossary.md`, `docs/guide/31-api-surface.md`
   - Do: Write Chapter 32 with 11 sections (Overview, Chrome install, Firefox install, API key generation, Settings config, Capturing objects, Auto-population, Context menu, Relationship picker, Keyboard shortcut, Troubleshooting). Add to README TOC after Ch 31. Add Browser Extension and API Token glossary entries. Update navigation chain: Ch 31 next → Ch 32, Ch 32 prev/next → Ch 31/Appendix A.

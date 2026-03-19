@@ -58,6 +58,7 @@ setup to advanced topics like SPARQL queries and creating your own Mental Models
 29. [Mental Model Catalog](29-mental-model-catalog.md)
 30. [Workspace Personas](30-personas.md)
 31. [API Surface](31-api-surface.md)
+32. [Browser Extension](32-browser-extension.md)
 
 ## Part IX: Identity and Federation
 
