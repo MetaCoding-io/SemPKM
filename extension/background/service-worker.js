@@ -8,8 +8,6 @@
  * @module background/service-worker
  */
 
-import { getClient, getSettings } from '../shared/storage.js';
-
 // ---------------------------------------------------------------------------
 // Context menu registration
 // ---------------------------------------------------------------------------

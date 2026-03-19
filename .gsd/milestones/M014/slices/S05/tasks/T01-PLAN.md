@@ -61,6 +61,13 @@ The `_execute_action` command is a special Chrome/Firefox command that automatic
 - `node -e "const m=JSON.parse(require('fs').readFileSync('extension/manifest.json','utf8')); console.assert(m.commands._execute_action.suggested_key.default==='Alt+S'); console.assert(!m.background.type); console.log('Chrome OK')"` prints "Chrome OK"
 - `node -e "const m=JSON.parse(require('fs').readFileSync('extension/manifest.firefox.json','utf8')); console.assert(Array.isArray(m.background.scripts)); console.assert(m.browser_specific_settings.gecko.id==='sempkm@sempkm.org'); console.assert(m.commands._execute_action.suggested_key.default==='Alt+S'); console.log('Firefox OK')"` prints "Firefox OK"
 
+## Observability Impact
+
+This task is manifest-level and file-cleanup only — no runtime behavior changes. The observable signals are:
+- **Structural validation:** Both manifests parse as valid JSON and pass structural assertions (background format, commands, gecko settings). A future agent can re-run the verification commands to confirm correctness.
+- **Syntax check:** `node --check` on service-worker.js confirms the file is valid JavaScript after import removal.
+- **Failure visibility:** If the import removal breaks the service worker, `node --check` will report a parse error with line number. If a manifest is malformed, `JSON.parse` will throw with the character offset.
+
 ## Inputs
 
 - `extension/manifest.json` — Current Chrome MV3 manifest with `background.service_worker` and `"type": "module"`
