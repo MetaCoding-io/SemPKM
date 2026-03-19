@@ -30,9 +30,18 @@
 - New wiring introduced: bpkm:Event class + properties in ontology; EventShape in shapes; Event ViewSpecs/queries in views; Event seed instances in seed; Event icon in manifest
 - What remains before the milestone is truly usable end-to-end: S02 (OAuth), S03 (sync engine maps to these properties), S04 (RSVP push + recurrence), S05 (E2E + docs)
 
+## Observability / Diagnostics
+
+- **Model validation:** `cd backend && .venv/bin/python -m pytest tests/test_basic_pkm_event.py -v` — 19 tests covering manifest, ontology, shapes, views, seed, and pyshacl validation.
+- **Quick structure check:** `python3 -c "import json; d=json.load(open('models/basic-pkm/ontology/basic-pkm.jsonld')); print(len([x for x in d['@graph'] if x.get('@type')=='owl:Class' and 'bpkm:' in x.get('@id','')]))"` should print `7`.
+- **SHACL validation:** pyshacl validates seed+ontology against shapes+rules with `allow_warnings=True`. Zero violations expected; overdue-task warnings are expected from existing seed data.
+- **Manifest version:** `python3 -c "import yaml; print(yaml.safe_load(open('models/basic-pkm/manifest.yaml'))['version'])"` should print `2.1.0`.
+- **Failure visibility:** If Event seed data violates shape constraints, pyshacl produces `sh:Violation` results with focus node, path, and message. Test `test_pyshacl_zero_errors_on_events` catches this.
+- **No runtime signals:** This slice is offline-only (no Docker, no API). Model files are validated statically.
+
 ## Tasks
 
-- [ ] **T01: Build complete bpkm:Event type in basic-pkm model files** `est:2h`
+- [x] **T01: Build complete bpkm:Event type in basic-pkm model files** `est:2h`
   - Why: The Event type is the foundation for all calendar sync — S03 maps Google Calendar fields to these properties. The property set must be the cross-provider superset (D212) covering Google, Outlook, and CalDAV.
   - Files: `models/basic-pkm/ontology/basic-pkm.jsonld`, `models/basic-pkm/shapes/basic-pkm.jsonld`, `models/basic-pkm/views/basic-pkm.jsonld`, `models/basic-pkm/seed/basic-pkm.jsonld`, `models/basic-pkm/rules/basic-pkm.ttl`, `models/basic-pkm/manifest.yaml`
   - Do: Add Event class + ~22 properties to ontology, EventShape with 5 groups to shapes, 3 ViewSpecs + 2 SavedQueries to views, 4 seed events to seed, update manifest to v2.1.0 with calendar icon. Follow exact patterns from existing Task/Milestone types.

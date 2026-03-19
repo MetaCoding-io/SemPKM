@@ -928,6 +928,351 @@
           "sh:group": { "@id": "bpkm:MilestoneMetadataGroup" }
         }
       ]
+    },
+
+    {
+      "@id": "bpkm:EventInfoGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Event Info",
+      "sh:order": 1
+    },
+    {
+      "@id": "bpkm:EventScheduleGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Schedule",
+      "sh:order": 2
+    },
+    {
+      "@id": "bpkm:EventAttendeesGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Attendees",
+      "sh:order": 3
+    },
+    {
+      "@id": "bpkm:EventSyncGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Sync",
+      "sh:order": 4
+    },
+    {
+      "@id": "bpkm:EventMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 5
+    },
+    {
+      "@id": "bpkm:EventShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bpkm:Event" },
+      "rdfs:label": "Event Shape",
+      "sempkm:editHelpText": "Events represent calendar entries — meetings, appointments, all-day events, and recurring series. They can be native SemPKM events or synced from Google Calendar, Outlook, or CalDAV. Link events to people, projects, and notes to keep your schedule connected to your knowledge base.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bpkm:EventInfoGroup" },
+          "sh:description": "The event title.",
+          "sempkm:editHelpText": "A clear event title that makes sense at a glance on a calendar. Include enough context — e.g. \"Sprint Planning — Project X\" rather than just \"Planning\"."
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bpkm:EventInfoGroup" },
+          "sh:description": "Longer description, agenda, or notes for the event.",
+          "sempkm:editHelpText": "Event description or agenda. Include context so attendees know what to prepare. Synced events pull the description from the calendar provider."
+        },
+        {
+          "sh:path": { "@id": "bpkm:eventStatus" },
+          "sh:name": "Status",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["confirmed", "tentative", "cancelled"] },
+          "sh:defaultValue": "confirmed",
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bpkm:EventInfoGroup" },
+          "sh:description": "Confirmation status of the event.",
+          "sempkm:editHelpText": "Whether the event is confirmed, tentative, or cancelled. Synced events update this automatically from the calendar provider."
+        },
+        {
+          "sh:path": { "@id": "bpkm:location" },
+          "sh:name": "Location",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "bpkm:EventInfoGroup" },
+          "sh:description": "Physical or virtual location of the event.",
+          "sempkm:editHelpText": "Where the event takes place — a room name, address, or virtual meeting description. For video calls, use the Conference URL field instead."
+        },
+        {
+          "sh:path": { "@id": "bpkm:visibility" },
+          "sh:name": "Visibility",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["public", "private", "confidential"] },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "bpkm:EventInfoGroup" },
+          "sh:description": "Who can see event details on the calendar.",
+          "sempkm:editHelpText": "Controls who can see event details. Public events are visible to anyone with calendar access. Private events show only free/busy. Confidential hides all details."
+        },
+        {
+          "sh:path": { "@id": "bpkm:showAs" },
+          "sh:name": "Show As",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["free", "tentative", "busy", "out-of-office", "working-elsewhere"] },
+          "sh:defaultValue": "busy",
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "bpkm:EventInfoGroup" },
+          "sh:description": "How this event appears on free/busy lookups.",
+          "sempkm:editHelpText": "How your availability appears to others during this event. Outlook/CalDAV support out-of-office and working-elsewhere in addition to the standard free/tentative/busy."
+        },
+        {
+          "sh:path": { "@id": "bpkm:conferenceUrl" },
+          "sh:name": "Conference URL",
+          "sh:datatype": { "@id": "xsd:anyURI" },
+          "sh:maxCount": 1,
+          "sh:order": 7,
+          "sh:group": { "@id": "bpkm:EventInfoGroup" },
+          "sh:description": "Video conference or meeting link.",
+          "sempkm:editHelpText": "Link to the video call — Zoom, Google Meet, Teams, etc. Synced events pull this from the calendar provider's conference data."
+        },
+        {
+          "sh:path": { "@id": "bpkm:meetingNotes" },
+          "sh:name": "Meeting Notes",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 8,
+          "sh:group": { "@id": "bpkm:EventInfoGroup" },
+          "sh:description": "Notes captured during or after the event.",
+          "sempkm:editHelpText": "Your own notes from the event — action items, decisions, key takeaways. This field is SemPKM-only and never synced back to the calendar provider."
+        },
+
+        {
+          "sh:path": { "@id": "schema:startDate" },
+          "sh:name": "Start Date",
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 9,
+          "sh:group": { "@id": "bpkm:EventScheduleGroup" },
+          "sh:description": "When the event starts.",
+          "sempkm:editHelpText": "When the event starts. Use a date for all-day events or a datetime for timed events. Required for all events."
+        },
+        {
+          "sh:path": { "@id": "schema:endDate" },
+          "sh:name": "End Date",
+          "sh:maxCount": 1,
+          "sh:order": 10,
+          "sh:group": { "@id": "bpkm:EventScheduleGroup" },
+          "sh:description": "When the event ends.",
+          "sempkm:editHelpText": "When the event ends. For all-day events spanning multiple days, set this to the day after the last day (exclusive end). Omit for instantaneous events."
+        },
+        {
+          "sh:path": { "@id": "bpkm:allDay" },
+          "sh:name": "All Day",
+          "sh:datatype": { "@id": "xsd:boolean" },
+          "sh:defaultValue": false,
+          "sh:maxCount": 1,
+          "sh:order": 11,
+          "sh:group": { "@id": "bpkm:EventScheduleGroup" },
+          "sh:description": "Whether this is an all-day event.",
+          "sempkm:editHelpText": "Mark as true for events that span full days (holidays, conferences, deadlines). All-day events use date-only values for start and end."
+        },
+        {
+          "sh:path": { "@id": "bpkm:timeZone" },
+          "sh:name": "Time Zone",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 12,
+          "sh:group": { "@id": "bpkm:EventScheduleGroup" },
+          "sh:description": "IANA time zone identifier for the event.",
+          "sempkm:editHelpText": "IANA time zone identifier (e.g. America/New_York, Europe/London). Used to display the event in the correct local time. Omit for all-day events or UTC times."
+        },
+        {
+          "sh:path": { "@id": "bpkm:recurrenceRule" },
+          "sh:name": "Recurrence Rule",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 13,
+          "sh:group": { "@id": "bpkm:EventScheduleGroup" },
+          "sh:description": "RFC 5545 RRULE defining the recurrence pattern.",
+          "sempkm:editHelpText": "RFC 5545 recurrence rule string (e.g. RRULE:FREQ=WEEKLY;BYDAY=MO,WE,FR). Only set on the master recurring event — individual instances don't need this."
+        },
+        {
+          "sh:path": { "@id": "bpkm:recurringEventId" },
+          "sh:name": "Recurring Event ID",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 14,
+          "sh:group": { "@id": "bpkm:EventScheduleGroup" },
+          "sh:description": "Identifier of the master recurring event.",
+          "sempkm:editHelpText": "Links a recurring exception instance back to its master event. Set automatically during sync. Leave blank for standalone events and master events."
+        },
+        {
+          "sh:path": { "@id": "bpkm:reminderMinutes" },
+          "sh:name": "Reminder",
+          "sh:datatype": { "@id": "xsd:integer" },
+          "sh:maxCount": 1,
+          "sh:order": 15,
+          "sh:group": { "@id": "bpkm:EventScheduleGroup" },
+          "sh:description": "Minutes before the event to trigger a reminder.",
+          "sempkm:editHelpText": "How many minutes before the event to show a reminder. Common values: 10 (default), 30, 60, 1440 (one day). Set to 0 for no reminder."
+        },
+
+        {
+          "sh:path": { "@id": "bpkm:attendee" },
+          "sh:name": "Attendees",
+          "sh:class": { "@id": "bpkm:Person" },
+          "sh:order": 16,
+          "sh:group": { "@id": "bpkm:EventAttendeesGroup" },
+          "sh:description": "People attending this event.",
+          "sempkm:editHelpText": "People invited to or attending this event. Links to Person entries in your knowledge base. Synced events match attendees by email address."
+        },
+        {
+          "sh:path": { "@id": "bpkm:organizer" },
+          "sh:name": "Organizer",
+          "sh:class": { "@id": "bpkm:Person" },
+          "sh:maxCount": 1,
+          "sh:order": 17,
+          "sh:group": { "@id": "bpkm:EventAttendeesGroup" },
+          "sh:description": "Person who organized this event.",
+          "sempkm:editHelpText": "The person who created or organized this event. For synced events, matched from the calendar provider's organizer field."
+        },
+        {
+          "sh:path": { "@id": "bpkm:responseStatus" },
+          "sh:name": "Response Status",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["needs-action", "accepted", "declined", "tentative"] },
+          "sh:defaultValue": "needs-action",
+          "sh:maxCount": 1,
+          "sh:order": 18,
+          "sh:group": { "@id": "bpkm:EventAttendeesGroup" },
+          "sh:description": "Your RSVP response to this event.",
+          "sempkm:editHelpText": "Your response to the event invitation. Synced from the calendar provider. Change here to update your RSVP on the next sync cycle."
+        },
+
+        {
+          "sh:path": { "@id": "bpkm:externalProvider" },
+          "sh:name": "External Provider",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["google-calendar", "outlook", "caldav", "manual"] },
+          "sh:maxCount": 1,
+          "sh:order": 19,
+          "sh:group": { "@id": "bpkm:EventSyncGroup" },
+          "sh:description": "Which calendar service this event was imported from.",
+          "sempkm:editHelpText": "Which calendar provider this event was synced from. Set automatically during sync. Manual events don't need this field."
+        },
+        {
+          "sh:path": { "@id": "bpkm:externalId" },
+          "sh:name": "External ID",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 20,
+          "sh:group": { "@id": "bpkm:EventSyncGroup" },
+          "sh:description": "Provider's event identifier.",
+          "sempkm:editHelpText": "The event's identifier in the external calendar system. Set automatically during sync."
+        },
+        {
+          "sh:path": { "@id": "bpkm:externalUrl" },
+          "sh:name": "External URL",
+          "sh:datatype": { "@id": "xsd:anyURI" },
+          "sh:maxCount": 1,
+          "sh:order": 21,
+          "sh:group": { "@id": "bpkm:EventSyncGroup" },
+          "sh:description": "Direct link to the event in the external calendar.",
+          "sempkm:editHelpText": "Direct link to this event in the calendar provider's web interface. Click to open the event in its original context."
+        },
+        {
+          "sh:path": { "@id": "bpkm:lastSyncedAt" },
+          "sh:name": "Last Synced",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 22,
+          "sh:group": { "@id": "bpkm:EventSyncGroup" },
+          "sh:description": "Timestamp of last successful sync.",
+          "sempkm:editHelpText": "When this event was last synchronized with its calendar provider. Updated automatically during sync cycles."
+        },
+        {
+          "sh:path": { "@id": "bpkm:calendarName" },
+          "sh:name": "Calendar",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 23,
+          "sh:group": { "@id": "bpkm:EventSyncGroup" },
+          "sh:description": "Name of the source calendar.",
+          "sempkm:editHelpText": "Name of the calendar this event belongs to (e.g. Work, Personal, Team Events). Helps distinguish events when syncing multiple calendars."
+        },
+
+        {
+          "sh:path": { "@id": "bpkm:tags" },
+          "sh:name": "Tags",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:order": 24,
+          "sh:group": { "@id": "bpkm:EventMetadataGroup" },
+          "sh:description": "Free-form labels for categorization.",
+          "sempkm:editHelpText": "Free-form tags for quick filtering. Use terms like `meeting`, `social`, `deadline`, `travel` to categorize events."
+        },
+        {
+          "sh:path": { "@id": "bpkm:body" },
+          "sh:name": "Body",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 25,
+          "sh:group": { "@id": "bpkm:EventMetadataGroup" },
+          "sh:description": "Markdown body content for the event.",
+          "sempkm:editHelpText": "Extended content for this event — detailed agenda, preparation notes, or follow-up items. Markdown formatting is supported."
+        },
+        {
+          "sh:path": { "@id": "bpkm:eventProject" },
+          "sh:name": "Project",
+          "sh:class": { "@id": "bpkm:Project" },
+          "sh:maxCount": 1,
+          "sh:order": 26,
+          "sh:group": { "@id": "bpkm:EventMetadataGroup" },
+          "sh:description": "The project this event relates to.",
+          "sempkm:editHelpText": "Associate this event with a project. Useful for linking sprint ceremonies, reviews, or planning sessions to their project context."
+        },
+        {
+          "sh:path": { "@id": "bpkm:generatedTask" },
+          "sh:name": "Generated Task",
+          "sh:class": { "@id": "bpkm:Task" },
+          "sh:order": 27,
+          "sh:group": { "@id": "bpkm:EventMetadataGroup" },
+          "sh:description": "Task created from or linked to this event.",
+          "sempkm:editHelpText": "Tasks that were created from this event — e.g. action items from a meeting. Links the event to its follow-up work."
+        },
+        {
+          "sh:path": { "@id": "bpkm:eventNote" },
+          "sh:name": "Event Note",
+          "sh:class": { "@id": "bpkm:Note" },
+          "sh:order": 28,
+          "sh:group": { "@id": "bpkm:EventMetadataGroup" },
+          "sh:description": "Note associated with this event.",
+          "sempkm:editHelpText": "Notes linked to this event — meeting notes, preparation materials, or follow-up summaries."
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 29,
+          "sh:group": { "@id": "bpkm:EventMetadataGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:modified" },
+          "sh:name": "Modified",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 30,
+          "sh:group": { "@id": "bpkm:EventMetadataGroup" }
+        }
+      ]
     }
   ]
 }
