@@ -32,7 +32,7 @@
 
 ## Observability / Diagnostics
 
-- **Model validation:** `cd backend && .venv/bin/python -m pytest tests/test_basic_pkm_event.py -v` — 19 tests covering manifest, ontology, shapes, views, seed, and pyshacl validation.
+- **Model validation:** `cd backend && .venv/bin/python -m pytest tests/test_basic_pkm_event.py -v` — 22 tests covering manifest, ontology, shapes, views, seed, pyshacl validation, and enum constraints.
 - **Quick structure check:** `python3 -c "import json; d=json.load(open('models/basic-pkm/ontology/basic-pkm.jsonld')); print(len([x for x in d['@graph'] if x.get('@type')=='owl:Class' and 'bpkm:' in x.get('@id','')]))"` should print `7`.
 - **SHACL validation:** pyshacl validates seed+ontology against shapes+rules with `allow_warnings=True`. Zero violations expected; overdue-task warnings are expected from existing seed data.
 - **Manifest version:** `python3 -c "import yaml; print(yaml.safe_load(open('models/basic-pkm/manifest.yaml'))['version'])"` should print `2.1.0`.
@@ -48,7 +48,7 @@
   - Verify: `python -c "import json; d=json.load(open('models/basic-pkm/ontology/basic-pkm.jsonld')); print(len([x for x in d['@graph'] if x.get('@type')=='owl:Class' and 'bpkm:' in x.get('@id','')]))"` prints 7
   - Done when: All 6 model files updated, Event type fully defined with cross-provider superset properties
 
-- [ ] **T02: Write offline validation tests for bpkm:Event type** `est:45m`
+- [x] **T02: Write offline validation tests for bpkm:Event type** `est:45m`
   - Why: Proves the model is structurally correct — shapes match ontology, seed data conforms, pyshacl finds no errors. This is the slice's verification gate and EVENT-01 evidence.
   - Files: `backend/tests/test_basic_pkm_event.py`
   - Do: Write pytest test file following `test_basic_pkm_v2.py` pattern. Test manifest version, class count (7), NodeShape count (7), ViewSpec count (21), SavedQuery count (8), seed Event instances, pyshacl validation (zero errors), enum constraints present.

@@ -60,6 +60,13 @@ This test file is the primary evidence for requirement EVENT-01.
 - `models/basic-pkm/` — model files modified by T01 (ontology, shapes, views, seed, rules, manifest)
 - The T01 task plan specifies exactly what should be in each file (class count, shape count, ViewSpec count, seed instances)
 
+## Observability Impact
+
+- **Test suite:** `cd backend && .venv/bin/python -m pytest tests/test_basic_pkm_event.py -v` — runs the full offline validation suite. All tests should pass (19 tests).
+- **Failure signals:** Test names are descriptive (`test_event_shape_has_status_enum`, `test_pyshacl_zero_errors_on_events`, etc.) — a failing test name directly identifies which model invariant is broken.
+- **pyshacl diagnostics:** `test_pyshacl_zero_errors_on_events` prints full pyshacl results text on failure, showing focus node, constraint path, and violation message.
+- **Enum drift detection:** Three dedicated enum constraint tests (`test_event_shape_has_status_enum`, `test_show_as_includes_outlook_values`, `test_event_shape_enum_constraints`) catch any changes to the cross-provider enum value sets.
+
 ## Expected Output
 
 - `backend/tests/test_basic_pkm_event.py` — ≥ 8 passing tests proving Event type correctness, pyshacl validation, and enum constraints

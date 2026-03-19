@@ -225,6 +225,43 @@ def test_show_as_includes_outlook_values(archive):
     pytest.fail("showAs property shape not found in EventShape")
 
 
+def _get_enum_values(archive, property_uri):
+    """Helper: extract sh:in values for a property shape on EventShape."""
+    from rdflib.collection import Collection
+
+    for prop_shape in archive.shapes.objects(BPKM.EventShape, SH.property):
+        paths = list(archive.shapes.objects(prop_shape, SH.path))
+        if paths and paths[0] == property_uri:
+            in_lists = list(archive.shapes.objects(prop_shape, SH["in"]))
+            values = set()
+            for in_list in in_lists:
+                coll = Collection(archive.shapes, in_list)
+                values.update(str(v) for v in coll)
+            return values
+    return None
+
+
+def test_event_shape_has_status_enum(archive):
+    """EventShape constrains bpkm:eventStatus to confirmed/tentative/cancelled."""
+    values = _get_enum_values(archive, BPKM.eventStatus)
+    assert values is not None, "eventStatus property shape not found"
+    assert {"confirmed", "tentative", "cancelled"} == values
+
+
+def test_event_shape_has_show_as_enum(archive):
+    """EventShape constrains bpkm:showAs to the D212 cross-provider superset."""
+    values = _get_enum_values(archive, BPKM.showAs)
+    assert values is not None, "showAs property shape not found"
+    assert {"free", "tentative", "busy", "out-of-office", "working-elsewhere"} == values
+
+
+def test_event_shape_has_response_status_enum(archive):
+    """EventShape constrains bpkm:responseStatus to needs-action/accepted/declined/tentative."""
+    values = _get_enum_values(archive, BPKM.responseStatus)
+    assert values is not None, "responseStatus property shape not found"
+    assert {"needs-action", "accepted", "declined", "tentative"} == values
+
+
 # ── Views Structure ────────────────────────────────────────────────
 
 
