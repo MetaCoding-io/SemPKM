@@ -369,6 +369,24 @@ body {
   background: var(--surface);
 }
 
+/* Link action — solid border */
+.action-link {
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--border-light);
+}
+
+.action-link:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+.action-link:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* ── Footer ────────────────────────────────────────────────────── */
 .sidebar-footer {
   flex-shrink: 0;

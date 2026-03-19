@@ -40,6 +40,8 @@
 
   // ── State ──────────────────────────────────────────────────────
   let _instanceUrl = '';
+  let _currentTabUrl = '';
+  let _currentTabTitle = '';
 
   // ── State switching ────────────────────────────────────────────
 
@@ -141,8 +143,8 @@
       _openObject(item.iri);
     });
 
-    const linkBtn = _actionButton('Link to page', 'action-stub', function () {
-      showToast('Link to page — coming in next update');
+    const linkBtn = _actionButton('Link to page', 'action-link', function () {
+      _linkToPage(item.iri, linkBtn);
     });
 
     const evidenceBtn = _actionButton('Add Evidence', 'action-stub', function () {
@@ -258,6 +260,45 @@
     chrome.tabs.create({ url: url });
   }
 
+  // ── Link-to-page action ────────────────────────────────────────
+
+  /**
+   * Create a schema:url edge from the given object to the current tab URL.
+   *
+   * @param {string} objectIri - The source object IRI
+   * @param {HTMLButtonElement} btn - The button element (for loading state)
+   */
+  function _linkToPage(objectIri, btn) {
+    if (!_currentTabUrl) {
+      showToast('Navigate to a page first', 'error');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Linking…';
+
+    chrome.runtime.sendMessage(
+      { type: 'linkToPage', objectIri: objectIri, pageUrl: _currentTabUrl },
+      function (response) {
+        if (chrome.runtime.lastError) {
+          console.error(LOG_PREFIX, 'linkToPage error:', chrome.runtime.lastError.message);
+          showToast(chrome.runtime.lastError.message || 'Failed to link', 'error');
+          btn.disabled = false;
+          btn.textContent = 'Link to page';
+          return;
+        }
+
+        if (response && response.success) {
+          showToast('✓ Linked to this page');
+        } else {
+          showToast((response && response.error) || 'Failed to link', 'error');
+        }
+        btn.disabled = false;
+        btn.textContent = 'Link to page';
+      }
+    );
+  }
+
   // ── Data fetching ──────────────────────────────────────────────
 
   /**
@@ -325,6 +366,14 @@
       }
     });
 
+    // Track the current tab URL
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      if (tabs[0]) {
+        _currentTabUrl = tabs[0].url || '';
+        _currentTabTitle = tabs[0].title || '';
+      }
+    });
+
     // Bind retry button
     $retryBtn.addEventListener('click', function () {
       fetchResults(true);
@@ -344,6 +393,13 @@
   chrome.runtime.onMessage.addListener(function (message) {
     if (message.type === 'contextResultsUpdated') {
       console.log(LOG_PREFIX, 'Received contextResultsUpdated — re-fetching');
+      // Refresh current tab URL in case of navigation
+      chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+        if (tabs[0]) {
+          _currentTabUrl = tabs[0].url || '';
+          _currentTabTitle = tabs[0].title || '';
+        }
+      });
       fetchResults(false);
     }
   });

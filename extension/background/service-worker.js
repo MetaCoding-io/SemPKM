@@ -290,6 +290,53 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     });
     return true; // Async sendResponse
   }
+
+  if (message.type === 'linkToPage') {
+    (async () => {
+      try {
+        const config = await _getApiConfig();
+        if (!config) {
+          sendResponse({ error: 'SemPKM not configured' });
+          return;
+        }
+
+        const response = await fetch(`${config.instanceUrl}/api/commands`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${config.apiKey}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({
+            command: 'edge.create',
+            params: {
+              source: message.objectIri,
+              target: message.pageUrl,
+              predicate: 'schema:url',
+            },
+          }),
+        });
+
+        if (!response.ok) {
+          let detail = response.statusText;
+          try {
+            const errBody = await response.json();
+            detail = errBody.detail || errBody.error || detail;
+          } catch { /* noop */ }
+          console.error(`[SemPKM] linkToPage: error: ${detail}`);
+          sendResponse({ error: detail });
+          return;
+        }
+
+        console.log('[SemPKM] linkToPage: success');
+        sendResponse({ success: true });
+      } catch (err) {
+        console.error(`[SemPKM] linkToPage: error: ${err.message}`);
+        sendResponse({ error: err.message });
+      }
+    })();
+    return true; // Async sendResponse
+  }
 });
 
 // ---------------------------------------------------------------------------

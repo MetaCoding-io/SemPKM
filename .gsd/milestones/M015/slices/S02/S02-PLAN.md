@@ -43,7 +43,7 @@
 
 ## Tasks
 
-- [ ] **T01: Wire "Link to this page" action through service worker** `est:45m`
+- [x] **T01: Wire "Link to this page" action through service worker** `est:45m`
   - Why: Replaces the stub "Link to this page" button with a real `edge.create` API call relayed through the service worker, covering EXT-17
   - Files: `extension/background/service-worker.js`, `extension/sidebar/sidebar.js`, `extension/sidebar/sidebar.css`
   - Do: Add `linkToPage` message handler to service worker (reads `_getApiConfig()`, POSTs `edge.create` with source=objectIri, target=pageUrl, predicate=`schema:url`). In sidebar.js, replace stub click handler with `_linkToPage(objectIri)` that gets page URL via `chrome.tabs.query`, sends message, shows loading state, shows success/error toast. Track `_currentTabUrl` by querying active tab on init and on `contextResultsUpdated`. Update CSS: replace `.action-stub` for link button with `.action-link` solid style.
