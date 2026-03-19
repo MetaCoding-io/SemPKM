@@ -89,3 +89,10 @@ Creates the installable Linear Sync app foundation: manifest, Python entrypoint,
 - `apps/linear-sync/frontend/templates/connect.html` — disconnected state UI
 - `apps/linear-sync/frontend/templates/connect_status.html` — connected state UI
 - `apps/linear-sync/frontend/static/styles.css` — scoped CSS
+
+## Observability Impact
+
+- **App install signal:** After install, the admin app list should include `linear-sync` with status `stopped` or `running`. The `/admin/apps/` page and `docker compose exec api python -c "from app.apps.manager import AppManager; ..."` both surface this.
+- **Settings page fragment:** `GET /app/linear-sync/_fragments/connect` should return 200 with the connect form HTML. A non-200 or missing route means the app skeleton failed to register.
+- **Lifecycle logging:** `linear_sync_app` startup/shutdown hooks log via `logging.getLogger("linear_sync")` at INFO level — visible in `docker compose logs api` filtered by `linear_sync`.
+- **Failure visibility:** If the manifest is malformed or `app.py` has import errors, the app manager logs the failure at ERROR level during install. The admin UI shows the app in `error` state.

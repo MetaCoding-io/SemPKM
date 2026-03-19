@@ -41,7 +41,7 @@
 
 ## Tasks
 
-- [ ] **T01: App manifest, skeleton, and settings page shell** `est:1h`
+- [x] **T01: App manifest, skeleton, and settings page shell** `est:1h`
   - Why: Creates the installable app foundation — manifest, entrypoint, templates, requirements. Nothing else can run without this.
   - Files: `apps/linear-sync/manifest.yaml`, `apps/linear-sync/app.py`, `apps/linear-sync/requirements.txt`, `apps/linear-sync/frontend/templates/connect.html`, `apps/linear-sync/frontend/templates/connect_status.html`, `apps/linear-sync/frontend/static/styles.css`
   - Do: Create manifest with appId `linear-sync`, permissions for all command types needed by S02/S03 (object.create, object.patch, body.set, body.diff, edge.create), network domain `api.linear.app`, `linear.app` (for OAuth), sparql read, background tasks for `poll-tasks`. Create app.py with `App("linear-sync")` instance, settings page fragment route (`/_fragments/connect`), placeholder OAuth callback route (`/_fragments/oauth-callback`), startup/shutdown lifecycle hooks. Create connect.html template with two auth modes: API key input form + OAuth connect button. Create minimal CSS. Follow test-app manifest and app.py patterns exactly.

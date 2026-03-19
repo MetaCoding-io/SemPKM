@@ -1,0 +1,211 @@
+/* Linear Sync app — scoped styles
+   All rules under .linear-sync-settings to avoid conflicts. */
+
+.linear-sync-settings {
+    padding: 1.5rem;
+    max-width: 600px;
+}
+
+.linear-sync-settings h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.25rem;
+}
+
+.linear-sync-settings h3 {
+    margin: 0 0 0.25rem;
+    font-size: 1rem;
+}
+
+.linear-sync-settings .connect-description {
+    color: var(--color-text-muted, #888);
+    margin-bottom: 1.5rem;
+}
+
+/* ── Sections ── */
+
+.linear-sync-settings .connect-section {
+    margin-bottom: 1.25rem;
+}
+
+.linear-sync-settings .section-hint {
+    font-size: 0.85rem;
+    color: var(--color-text-muted, #888);
+    margin-bottom: 0.75rem;
+}
+
+.linear-sync-settings .section-hint a {
+    color: var(--color-link, #5e9ed6);
+}
+
+/* ── Divider ── */
+
+.linear-sync-settings .connect-divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1.5rem 0;
+    color: var(--color-text-muted, #888);
+    font-size: 0.85rem;
+}
+
+.linear-sync-settings .connect-divider::before,
+.linear-sync-settings .connect-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--color-border, #333);
+}
+
+/* ── API Key Form ── */
+
+.linear-sync-settings .api-key-form .form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.linear-sync-settings .api-key-form label {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.linear-sync-settings .api-key-form input[type="password"] {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-border, #333);
+    border-radius: 4px;
+    background: var(--color-bg-input, #1a1a1a);
+    color: var(--color-text, #eee);
+    font-family: monospace;
+    font-size: 0.9rem;
+}
+
+.linear-sync-settings .api-key-form input[type="password"]:focus {
+    outline: none;
+    border-color: var(--color-accent, #5e9ed6);
+    box-shadow: 0 0 0 2px rgba(94, 158, 214, 0.2);
+}
+
+/* ── Buttons ── */
+
+.linear-sync-settings .btn {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+    transition: background-color 0.15s ease;
+}
+
+.linear-sync-settings .btn-primary {
+    background: var(--color-accent, #5e9ed6);
+    color: #fff;
+}
+
+.linear-sync-settings .btn-primary:hover {
+    background: var(--color-accent-hover, #4a8bc2);
+}
+
+.linear-sync-settings .btn-secondary {
+    background: var(--color-bg-elevated, #2a2a2a);
+    color: var(--color-text, #eee);
+    border: 1px solid var(--color-border, #333);
+}
+
+.linear-sync-settings .btn-secondary:hover {
+    background: var(--color-bg-hover, #333);
+}
+
+.linear-sync-settings .btn-danger {
+    background: var(--color-danger, #d9534f);
+    color: #fff;
+}
+
+.linear-sync-settings .btn-danger:hover {
+    background: var(--color-danger-hover, #c9302c);
+}
+
+/* ── Connection Status ── */
+
+.linear-sync-settings .connection-status {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.linear-sync-settings .status-badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.linear-sync-settings .status-connected {
+    background: rgba(46, 160, 67, 0.15);
+    color: #3fb950;
+    border: 1px solid rgba(46, 160, 67, 0.3);
+}
+
+.linear-sync-settings .status-disconnected {
+    background: rgba(217, 83, 79, 0.15);
+    color: #d9534f;
+    border: 1px solid rgba(217, 83, 79, 0.3);
+}
+
+.linear-sync-settings .status-detail {
+    font-size: 0.9rem;
+    color: var(--color-text-muted, #888);
+}
+
+/* ── Teams Table ── */
+
+.linear-sync-settings .teams-section {
+    margin-bottom: 1.5rem;
+}
+
+.linear-sync-settings .teams-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.linear-sync-settings .teams-table th {
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 2px solid var(--color-border, #333);
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--color-text-muted, #888);
+}
+
+.linear-sync-settings .teams-table td {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--color-border-subtle, #222);
+}
+
+.linear-sync-settings .teams-table code {
+    font-size: 0.85rem;
+    color: var(--color-text-muted, #888);
+}
+
+.linear-sync-settings .no-teams {
+    color: var(--color-text-muted, #888);
+    font-style: italic;
+}
+
+/* ── Disconnect ── */
+
+.linear-sync-settings .disconnect-section {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border, #333);
+}
