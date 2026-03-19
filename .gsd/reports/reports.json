@@ -99,6 +99,22 @@
       "doneMilestones": 14,
       "totalMilestones": 30,
       "phase": "pre-planning"
+    },
+    {
+      "filename": "M015-2026-03-19T02-24-25.html",
+      "generatedAt": "2026-03-19T02:24:25.073Z",
+      "milestoneId": "M015",
+      "milestoneTitle": "Browser Extension Phase 2 — Knowledge Context Overlay",
+      "label": "M015: Browser Extension Phase 2 — Knowledge Context Overlay",
+      "kind": "milestone",
+      "totalCost": 547.4345067499999,
+      "totalTokens": 771907480,
+      "totalDuration": 88656773,
+      "doneSlices": 139,
+      "totalSlices": 139,
+      "doneMilestones": 15,
+      "totalMilestones": 30,
+      "phase": "pre-planning"
     }
   ]
 }
