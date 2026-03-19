@@ -131,6 +131,22 @@
       "doneMilestones": 16,
       "totalMilestones": 30,
       "phase": "pre-planning"
+    },
+    {
+      "filename": "M017-2026-03-19T07-18-05.html",
+      "generatedAt": "2026-03-19T07:18:05.296Z",
+      "milestoneId": "M017",
+      "milestoneTitle": "GitHub Issues Sync App",
+      "label": "M017: GitHub Issues Sync App",
+      "kind": "milestone",
+      "totalCost": 674.8690332499997,
+      "totalTokens": 943000967,
+      "totalDuration": 107970161,
+      "doneSlices": 147,
+      "totalSlices": 147,
+      "doneMilestones": 17,
+      "totalMilestones": 30,
+      "phase": "pre-planning"
     }
   ]
 }
