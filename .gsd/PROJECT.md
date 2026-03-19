@@ -294,6 +294,24 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - ✓ RSS-08: Feed content extraction — feed discovery from website URLs, trafilatura full content extraction, fallback to summaries — M010
 - ✓ 663-line Playwright E2E spec (58 assertions, 15 phases), Chapter 32 user guide (305 lines), 4 glossary entries — M010
 
+### Validated (M014 — Browser Extension Phase 1)
+
+<!-- Shipped and confirmed in M014 (2026-03-18). -->
+
+- ✓ EXT-01: Extension popup capture with type selector grouped by model, save flow via SemPKMClient — M014
+- ✓ EXT-02: SHACL-driven dynamic forms (10 property types, groups, multi-value, skip paths, helptext) — M014
+- ✓ EXT-03: Auto-population from page metadata (title, URL, selected text) via chrome.scripting.executeScript — M014
+- ✓ EXT-04: Relationship picker with search-as-you-type, type filtering, two-step save (object.create → edge.create) — M014
+- ✓ EXT-05: Context menu "Save to SemPKM" with session storage bridge to popup — M014
+- ✓ EXT-06: Schema.org JSON-LD auto-fill (Person→Contact, Article→Note, cross-namespace property mapping) — M014
+- ✓ EXT-07: Extension settings page with connection test, type selector, capture behavior toggles — M014
+- ✓ EXT-08: Alt+S keyboard shortcut in both Chrome and Firefox manifests — M014
+- ✓ EXT-09: Success/error toast feedback, connection status indicator, loading states — M014
+- ✓ EXT-10: Cross-browser compatibility (Chrome MV3 + Firefox WebExtension via dual manifests) — M014
+- ✓ EXT-11: Backend Bearer token auth via require_role_or_api on POST /api/commands (10 unit tests) — M014
+- ✓ EXT-12: User guide Chapter 32 (12 sections), 2 glossary entries, README TOC — M014
+- ✓ EXT-13: 3 Playwright E2E tests for extension capture flow with persistent context fixture — M014
+
 ### Future Candidates
 
 <!-- Tracked for future milestones. See .gsd/QUEUE.md for full queue and .gsd/REQUIREMENTS.md for deferred requirements. -->
@@ -351,13 +369,13 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - S02 complete: `GET /api/types` (all installed model types with labels/icons/model attribution), `GET /api/shapes/{type_iri}` (SHACL property shapes as JSON)
 - S03 complete: `POST /api/context-query` (URL + keyword matching with deduplication), 7 E2E Playwright tests, Chapter 31 user guide, 62 unit tests total
 
-**Browser Extension Phase 1** — in progress (M014, S01-S02 complete)
-- S01 complete: Backend auth fix (require_role_or_api on POST /api/commands), Chrome MV3 extension scaffold (manifest, api-client, storage, service worker, popup, options), admin API key management page
-- S02 complete: SHACL form renderer (shacl-renderer.js — 10 property types, groups, multi-value, skip paths, helptext), dynamic type selector → shape fetch → form render pipeline, backend multi-value property support, 380px popup CSS
-- S03 complete: Content script extractor (og:title/URL/selection/schema.org JSON-LD), schema-mapper (Person→Contact, Article→Note, cross-namespace property mapping), context menu "Save to SemPKM" with session storage bridge, popup auto-fill on open and type change
-- S04 complete: Reference picker with search-as-you-type, type-filtered suggestions from context-query API, two-step save (object.create → edge.create), multi-value re-init via custom event bridge
+**Browser Extension Phase 1** — complete (M014)
 - Chrome/Firefox extension: smart structured capture with SHACL forms, schema.org ingestion, relationship picker
-- Remaining: S05 (cross-browser + E2E + docs)
+- Backend auth fix (require_role_or_api), extension scaffold, SHACL form renderer (10 property types)
+- Content script extraction, schema.org auto-fill, context menu "Save to SemPKM", Alt+S keyboard shortcut
+- Reference picker with search-as-you-type, two-step save (object.create → edge.create)
+- 3 Playwright E2E tests, Chapter 32 user guide, Firefox manifest, admin API key management
+- 13 EXT requirements validated
 
 **Browser Extension Phase 2** — queued (M015, depends on M014)
 - Knowledge context overlay: sidebar showing related objects while browsing, in-context actions
@@ -412,20 +430,22 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current State
 
-**Latest shipped: M013 API Surface for External Clients (2026-03-17)**
+**Latest shipped: M014 Browser Extension Phase 1 (2026-03-18)**
 
-**What shipped in M012 (Workspace & Event Log Polish):**
-- Event log predicate labels resolved to human-readable text via ShapesService + LabelService batch resolution
-- Helptext tooltips on event log predicates from SHACL sh:description / sempkm:editHelpText annotations
-- Autocomplete for event log filter fields (operation type, predicate, object) via 3 suggestion endpoints
-- Body.diff incremental storage — edits to existing bodies compute and store unified diffs instead of full replacements
-- Event log renders both body.set (full text) and body.diff (green/red diff highlighting) events correctly
-- Workspace personas — named workspace configurations with CRUD, sidebar selector, command palette, dockview layout/sidebar positions/explorer mode save and restore
-- Default persona auto-created on first use, explicit save model (not auto-save on every layout change)
-- 12 Playwright E2E tests across 3 spec files (event-log-polish, body-diff, personas)
-- RATE_LIMIT_ENABLED config toggle for disabling slowapi in E2E test environments
-- User guide: Chapter 15 updated (4 new sections), Chapter 30 created (personas, 7 sections), glossary entries
-- 946 backend unit tests, 11 M012 requirements validated
+**What shipped in M014 (Browser Extension Phase 1):**
+- Chrome MV3 browser extension (`extension/` directory) with popup capture UI, options page, service worker
+- Firefox WebExtension compatibility via `manifest.firefox.json` (95% shared codebase)
+- `require_role_or_api(*roles)` factory enabling Bearer token auth on `POST /api/commands` (10 unit tests)
+- Admin API key management page at `/admin/api-keys` (create, list, delete with one-time plaintext display)
+- SHACL form renderer (`shacl-renderer.js`, 588 lines) handling 10 standard property types with groups, multi-value, validation
+- Content script page data extractor (title, URL, selection, schema.org JSON-LD) via `chrome.scripting.executeScript`
+- Schema.org → SemPKM type suggestion and property mapping (Person→Contact, Article→Note, Organization→Company)
+- Reference picker with search-as-you-type, type filtering, two-step save (object.create → edge.create)
+- Context menu "Save to SemPKM" with session storage bridge to popup
+- Alt+S keyboard shortcut in both Chrome and Firefox manifests
+- 3 Playwright E2E tests with custom persistent context fixture (Chromium-only)
+- User guide Chapter 32 (12 sections, 25 headings), 2 glossary entries (API Token, Browser Extension)
+- 13 EXT requirements validated, all extension JS files CSP-compliant (zero inline handlers)
 
 **What shipped in M011 (Mental Models Expansion):**
 - 4 complete .sempkm-model archives expanding the lineup from 3 to 6+ user-facing models — zero platform code changes (D149)
@@ -475,9 +495,9 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - E2E test coverage: 5 new Playwright tests across 3 spec files
 - User guide: 4 chapters updated with new feature documentation
 
-**Previous milestones:** M013 API Surface for External Clients (2026-03-17), M012 Workspace & Event Log Polish (2026-03-17), M011 Mental Models Expansion (2026-03-17), M008 Spatial Canvas (2026-03-16), M007 Generic Views, VFS Completion & Polish (2026-03-16), M006 Dashboards, Workflows & Platform Alignment (2026-03-15), M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
+**Previous milestones:** M014 Browser Extension Phase 1 (2026-03-18), M013 API Surface for External Clients (2026-03-17), M012 Workspace & Event Log Polish (2026-03-17), M011 Mental Models Expansion (2026-03-17), M008 Spatial Canvas (2026-03-16), M007 Generic Views, VFS Completion & Polish (2026-03-16), M006 Dashboards, Workflows & Platform Alignment (2026-03-15), M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
 
-**Latest shipped: M013 API Surface for External Clients (2026-03-17)**
+**Latest shipped: M014 Browser Extension Phase 1 (2026-03-18)**
 
 **What shipped in M013 (API Surface for External Clients):**
 - `GET /.well-known/sempkm` discovery endpoint with version, endpoints, auth methods, capabilities
@@ -494,14 +514,15 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Context
 
-**Current state (M013 complete 2026-03-17):**
-- ~59k source LOC (52k Python, 7k JS) + CSS, HTML/Jinja2, JSON-LD
+**Current state (M014 complete 2026-03-18):**
+- ~60k source LOC (52k Python, 8k JS) + CSS, HTML/Jinja2, JSON-LD
 - 6 Mental Models: basic-pkm v2.0, ppv, gist, crm v1.0, zettelkasten v1.0, research v1.0 (24 files across 4 model directories)
 - Tech stack: FastAPI + RDF4J (LuceneSail) + htmx/vanilla-web + SQLAlchemy (SQLite/PostgreSQL) + wsgidav + a2wsgi + Driver.js + Cytoscape.js + CodeMirror + dockview-core + Alembic + Yasgui CDN + ninja-keys + owlrl + pyshacl + mf2py + http-message-signatures + slowapi
 - Docker Compose deployment: 3 services (api, triplestore, frontend/nginx) + federation test compose (2 instances)
-- 58 phases, 80 plans completed across v1.0–v2.6; M002 (7 slices) + M003 (10 slices) + M004 (5 slices) + M005 (9 slices) + M006 (7 slices) + M007 (5 slices) + M008 (4 slices) + M011 (5 slices) + M012 (4 slices) + M013 (3 slices) milestones complete
-- Backend test suite: 990+ pytest unit tests, <5s, no Docker dependency
-- E2E test suite: 99 Playwright spec files covering all shipped features
+- 58 phases, 80 plans completed across v1.0–v2.6; M002 (7 slices) + M003 (10 slices) + M004 (5 slices) + M005 (9 slices) + M006 (7 slices) + M007 (5 slices) + M008 (4 slices) + M011 (5 slices) + M012 (4 slices) + M013 (3 slices) + M014 (5 slices) milestones complete
+- Backend test suite: 1000+ pytest unit tests, <5s, no Docker dependency
+- E2E test suite: 100 Playwright spec files covering all shipped features
+- Browser extension: `extension/` directory with Chrome MV3 + Firefox manifests, 9 JS modules, 3 E2E tests
 - All dependencies pinned (~= compatible release) with uv.lock committed
 - Browser router refactored into 8 domain sub-modules (was 1956-line monolith)
 - Query storage migrated from SQL to RDF (4 SQL tables dropped)
@@ -511,6 +532,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - VFS v2 complete (except write support): type filter, scopeQuery IRI, composable chains, filename templates
 - Spatial canvas: resizable nodes, property flip, live iframe embeds with dual-layer rendering
 - API surface: 4 JSON endpoints for external clients with dual-auth, CORS, and 62 unit tests
+- Browser extension: Chrome MV3 + Firefox, 9 JS modules (~2k LOC), SHACL form renderer, schema.org mapper, reference picker, 3 E2E tests
 
 **Known tech debt:**
 - Cookie secure=False (local dev only — production config deferred)
@@ -633,4 +655,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-03-17 after M013 complete (API Surface for External Clients — 3 slices, dual-auth + CORS + nginx, types + shapes endpoints, context-query + E2E + user guide)*
+*Last updated: 2026-03-18 after M014 complete (Browser Extension Phase 1 — 5 slices, Chrome MV3 + Firefox extension with SHACL forms, schema.org auto-fill, relationship picker, context menu, Alt+S shortcut, 13 EXT requirements validated)*
