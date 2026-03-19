@@ -44,7 +44,7 @@
 
 ## Tasks
 
-- [ ] **T01: Mock GitHub REST API server + docker-compose integration** `est:45m`
+- [x] **T01: Mock GitHub REST API server + docker-compose integration** `est:45m`
   - Why: Unblocks the E2E test. The mock server provides canned responses for all 6 GitHub API endpoints the client calls, so the E2E test can run without a real GitHub account.
   - Files: `e2e/mock-github-api/server.py`, `docker-compose.test.yml`
   - Do: Clone `e2e/mock-linear-api/server.py` structure, replace GraphQL substring matching with REST path-based routing (do_GET + do_PATCH). Include rate-limit headers on every response. Canned data: 2 repos, 2 issues + 1 PR, 1 timeline cross-reference event, PATCH echo-back. Add `--selftest` mode. Wire into docker-compose.test.yml as `mock-github` service on port 8080. Add `GITHUB_API_URL: http://mock-github:8080` to api environment.
