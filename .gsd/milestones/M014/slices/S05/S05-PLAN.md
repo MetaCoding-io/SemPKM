@@ -35,6 +35,7 @@
 - `docs/guide/32-browser-extension.md` exists with all 11 sections
 - `grep "32.*Browser Extension" docs/guide/README.md` matches
 - `grep "Browser Extension\|API Token" docs/guide/appendix-d-glossary.md` returns 2+ matches
+- Diagnostic: `node --check extension/background/service-worker.js` catches any JS parse errors from the import removal — exit code 1 with line number if broken
 
 ## Observability / Diagnostics
 
@@ -50,7 +51,7 @@
 
 ## Tasks
 
-- [ ] **T01: Firefox manifest + keyboard shortcut + service-worker cleanup** `est:30m`
+- [x] **T01: Firefox manifest + keyboard shortcut + service-worker cleanup** `est:30m`
   - Why: Firefox compatibility requires a separate manifest (different background format, gecko settings). Keyboard shortcut (Alt+S) needs `commands._execute_action` in both manifests. Dead imports in service-worker.js block Firefox which doesn't support ES module background scripts.
   - Files: `extension/manifest.json`, `extension/manifest.firefox.json`, `extension/background/service-worker.js`
   - Do: Create Firefox manifest mirroring Chrome but with `background.scripts` array, `browser_specific_settings.gecko`, and `commands`. Add `commands._execute_action` to Chrome manifest. Remove dead `import` line from service-worker.js. Remove `"type": "module"` from Chrome manifest background.

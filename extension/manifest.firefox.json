@@ -21,7 +21,13 @@
     "128": "assets/icon-128.png"
   },
   "background": {
-    "service_worker": "background/service-worker.js"
+    "scripts": ["background/service-worker.js"]
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "sempkm@sempkm.org",
+      "strict_min_version": "109.0"
+    }
   },
   "commands": {
     "_execute_action": {
