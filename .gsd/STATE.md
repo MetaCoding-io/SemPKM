@@ -1,9 +1,9 @@
 # GSD State
 
-**Active Milestone:** M014: Browser Extension Phase 1 — Smart Structured Capture
-**Active Slice:** S04: Relationship picker + edge creation
+**Active Milestone:** M015: Browser Extension Phase 2 — Knowledge Context Overlay
+**Active Slice:** S02: In-context actions — Link to page and Add Evidence
 **Phase:** executing
-**Requirements Status:** 61 active · 101 validated · 7 deferred · 0 out of scope
+**Requirements Status:** 61 active · 114 validated · 7 deferred · 0 out of scope
 
 ## Milestone Registry
 - ✅ **M001:** Migration
@@ -19,8 +19,8 @@
 - ✅ **M011:** Mental Models Expansion
 - ✅ **M012:** Workspace & Event Log Polish
 - ✅ **M013:** API Surface for External Clients
-- 🔄 **M014:** Browser Extension Phase 1 — Smart Structured Capture
-- ⬜ **M015:** M015
+- ✅ **M014:** Browser Extension Phase 1 — Smart Structured Capture
+- 🔄 **M015:** Browser Extension Phase 2 — Knowledge Context Overlay
 - ⬜ **M016:** M016
 - ⬜ **M017:** M017
 - ⬜ **M018:** M018
@@ -44,4 +44,4 @@
 - None
 
 ## Next Action
-Execute T01: Build reference-picker module with search-as-you-type and suggestion dropdown.
+Execute T01: Wire "Link to this page" action through service worker.
