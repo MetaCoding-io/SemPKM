@@ -100,6 +100,14 @@ The client reads auth tokens from `StateClient` (set by T03's auth flow) and han
 - Linear GraphQL API: single endpoint `https://api.linear.app/graphql`, auth via `Authorization: Bearer <token>`, cursor pagination via `after` variable and `pageInfo { hasNextPage endCursor }`
 - Linear OAuth token endpoint: `https://api.linear.app/oauth/token` with `grant_type=refresh_token`
 
+## Observability Impact
+
+- **Logger:** `logging.getLogger("linear_sync.client")` — DEBUG for every GraphQL request (query name, variables keys), INFO for token refresh events, WARNING for rate limits and retries.
+- **Typed exceptions carry context:** `LinearAPIError.status_code`, `.message`, `.response_body`; `LinearRateLimitError.retry_after` seconds; `LinearQueryError.message` from GraphQL errors array.
+- **Token refresh is observable:** INFO log on successful refresh (no token values logged), exception propagation on failure. Concurrent refresh attempts are serialized via asyncio.Lock — no duplicate refresh races.
+- **Inspection:** A future agent can verify client behavior by running `cd backend && python -m pytest tests/test_linear_client.py -v` — tests cover all error paths, auth fallback, pagination, and refresh logic without any network calls.
+- **Failure visibility:** Auth failures surface as `LinearAuthError` (not generic 401). Rate limits surface as `LinearRateLimitError` with `retry_after` value. GraphQL-level errors (200 status but `errors` array) surface as `LinearQueryError` with the server's error message.
+
 ## Expected Output
 
 - `apps/linear-sync/services/linear_client.py` — complete LinearClient class (~200-250 lines)
