@@ -61,7 +61,7 @@ This milestone is complete only when all are true:
 - [x] **S02: In-context actions — Link to page and Add Evidence** `risk:medium` `depends:[S01]`
   > After this: user can click "Link to this page" to create an edge (visible in SemPKM relations panel), and click "Add Evidence" on a Claim to highlight text and create a linked Evidence object
 
-- [ ] **S03: Settings, E2E tests, and user guide** `risk:low` `depends:[S01,S02]`
+- [x] **S03: Settings, E2E tests, and user guide** `risk:low` `depends:[S01,S02]`
   > After this: auto-context configurable in options page, Playwright E2E tests prove badge + sidebar + link action against Docker stack, user guide Chapter 33 documents the full feature
 
 ## Boundary Map
