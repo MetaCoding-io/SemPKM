@@ -260,6 +260,74 @@ class GCalClient:
 
         return resp.json()
 
+    # ---- events methods --------------------------------------------------
+
+    async def get_events(
+        self,
+        calendar_id: str,
+        sync_token: str | None = None,
+        max_results: int = 250,
+    ) -> tuple[list[dict], str | None]:
+        """Fetch events from a calendar, with optional incremental sync.
+
+        When *sync_token* is provided, performs an incremental sync
+        (only changes since the token was issued).  Without a sync token,
+        fetches events from the last 90 days.
+
+        Paginates via ``nextPageToken`` and returns the final
+        ``nextSyncToken`` for the next incremental call.
+
+        A **410 Gone** response from the API means the sync token has
+        expired — the caller should clear the token and retry as a full
+        sync.  This method lets the ``GCalAPIError`` propagate.
+
+        Args:
+            calendar_id: Calendar ID (email-style or ``"primary"``).
+            sync_token: Incremental sync token from a previous call.
+            max_results: Max events per page (default 250).
+
+        Returns:
+            ``(events, next_sync_token)`` tuple.
+
+        Raises:
+            GCalAPIError: On API errors, including 410 Gone.
+        """
+        from datetime import datetime, timezone, timedelta
+
+        base_url = f"{GCAL_BASE_URL}/calendars/{calendar_id}/events"
+        all_events: list[dict] = []
+        page_token: str | None = None
+        next_sync_token: str | None = None
+
+        for _ in range(MAX_PAGINATION_PAGES):
+            params: list[str] = [
+                f"maxResults={max_results}",
+                "singleEvents=false",
+            ]
+            if sync_token and page_token is None:
+                # syncToken only on the first page — subsequent use pageToken
+                params.append(f"syncToken={sync_token}")
+            elif not sync_token and page_token is None:
+                # Full sync: limit to last 90 days
+                time_min = (
+                    datetime.now(timezone.utc) - timedelta(days=90)
+                ).strftime("%Y-%m-%dT%H:%M:%SZ")
+                params.append(f"timeMin={time_min}")
+
+            if page_token:
+                params.append(f"pageToken={page_token}")
+
+            url = f"{base_url}?{'&'.join(params)}"
+            data = await self._request("GET", url)
+
+            all_events.extend(data.get("items", []))
+            next_sync_token = data.get("nextSyncToken")
+            page_token = data.get("nextPageToken")
+            if not page_token:
+                break
+
+        return (all_events, next_sync_token)
+
     # ---- calendar methods -------------------------------------------------
 
     async def get_calendar_list(self) -> list[dict[str, Any]]:

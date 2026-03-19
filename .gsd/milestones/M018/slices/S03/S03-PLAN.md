@@ -59,7 +59,7 @@
   - Verify: `cd backend && .venv/bin/python -m pytest tests/test_gcal_field_mapper.py -v` — ≥40 tests pass
   - Done when: All field transforms from INTEGRATION-DOMAIN-MAPPING.md §5 are implemented and tested
 
-- [ ] **T02: Build person matcher, extend GCalClient with get_events, and build sync engine with tests** `est:1h`
+- [x] **T02: Build person matcher, extend GCalClient with get_events, and build sync engine with tests** `est:1h`
   - Why: The sync engine orchestrates field mapper + person matcher + GCalClient into a complete pull pipeline. GCalClient needs `get_events()` with syncToken support. Person matcher is a copy+adapt from linear-sync. All three are testable together with mocked async clients.
   - Files: `apps/google-calendar/services/person_matcher.py`, `apps/google-calendar/services/gcal_client.py`, `apps/google-calendar/services/sync_engine.py`, `backend/tests/test_gcal_person_matcher.py`, `backend/tests/test_gcal_sync_engine.py`
   - Do: (1) Copy `apps/linear-sync/services/person_matcher.py` → adapt logger to `google_calendar.person_matcher`. (2) Add `get_events(calendar_id, sync_token=None)` to GCalClient with `singleEvents=false`, syncToken pagination, 410 Gone handling (clear token + retry as full sync). (3) Build `sync_engine.py` with `pull_sync(ctx)` — iterate selected_calendars, fetch events per calendar, map via field_mapper, match attendees/organizer via person_matcher, two-phase bulk create (object.create → SPARQL discover IRI → body.set + edge.create), update existing events, persist syncToken per calendar. (4) Write ≥8 person matcher tests, ≥30 sync engine tests.
