@@ -41,7 +41,7 @@
 
 ## Tasks
 
-- [ ] **T01: App scaffold + manifest + GitHub REST client** `est:45m`
+- [x] **T01: App scaffold + manifest + GitHub REST client** `est:45m`
   - Why: Foundation — proves GitHub API access with pagination and rate limiting. Establishes the project structure that all subsequent tasks build on.
   - Files: `apps/github-sync/manifest.yaml`, `apps/github-sync/app.py` (stub), `apps/github-sync/services/__init__.py`, `apps/github-sync/services/github_client.py`, `apps/github-sync/requirements.txt`, `backend/tests/test_github_client.py`
   - Do: Clone linear-sync directory structure. Implement `GitHubClient` using SDK `HttpClient` for REST calls. `_paginate()` parses Link headers for `rel="next"` using simple split (D207). `fetch_repos()` for `/user/repos?type=all&sort=updated&per_page=100`. `fetch_issues()` for `/repos/{owner}/{repo}/issues?state=all&since={iso}&per_page=100`. Rate-limit checking via `X-RateLimit-Remaining` header with async sleep when <100 remaining. Exception hierarchy: `GitHubAPIError`, `GitHubAuthError`, `GitHubRateLimitError`. Manifest with permissions for `api.github.com` + `github.com` network access, commands, sparql read, backgroundTasks. Stub `app.py` (just enough for import). Empty `requirements.txt`.

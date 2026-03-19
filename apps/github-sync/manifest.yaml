@@ -1,0 +1,55 @@
+appId: "github-sync"
+name: "GitHub Sync"
+version: "0.1.0"
+description: "Two-way sync between SemPKM objects and GitHub issues"
+author:
+  name: "SemPKM"
+license: "MIT"
+
+dependencies:
+  platform: ">=0.1.0"
+
+permissions:
+  commands:
+    - "object.create"
+    - "object.patch"
+    - "body.set"
+    - "body.diff"
+    - "edge.create"
+  sparql:
+    read: true
+  backgroundTasks: true
+  network:
+    - "api.github.com"
+    - "github.com"
+
+backend:
+  entrypoint: "app:github_sync_app"
+
+tasks:
+  - id: "poll-tasks"
+    description: "Poll GitHub for updated issues and sync to SemPKM"
+    interval: "15m"
+    retryPolicy:
+      maxRetries: 3
+      maxBackoff: "60s"
+  - id: "push-changes"
+    description: "Push local task changes back to GitHub"
+    interval: "15m"
+    retryPolicy:
+      maxRetries: 3
+      maxBackoff: "60s"
+
+frontend:
+  staticDir: "frontend/static"
+  css:
+    - "styles.css"
+
+ui:
+  pages:
+    - id: "settings"
+      path: "/settings"
+      label: "GitHub Sync"
+      icon: "github"
+      nav: "apps"
+      fragment: "connect"

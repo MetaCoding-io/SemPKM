@@ -76,6 +76,12 @@ The reference implementation is `apps/linear-sync/services/linear_client.py` (39
 - `cd backend && .venv/bin/python -m pytest tests/test_github_client.py -v` — all tests pass
 - `python3 -c "import yaml; yaml.safe_load(open('apps/github-sync/manifest.yaml'))"` — manifest parses
 
+## Observability Impact
+
+- **Logger `github_sync.client`**: DEBUG-level log for each REST request (method + URL), WARNING for rate-limit threshold. Future agents can inspect client behavior via structured log filtering.
+- **Exception hierarchy**: `GitHubAPIError`, `GitHubAuthError`, `GitHubRateLimitError` — each carries `status_code`, `response_body`, and (for rate-limit) `retry_after` seconds. Callers can inspect failure state without parsing logs.
+- **Rate-limit sleep**: When `X-RateLimit-Remaining < 100`, the client logs a warning with remaining count and sleep duration before sleeping. Visible in container logs as `github_sync.client WARNING`.
+
 ## Inputs
 
 - `apps/linear-sync/manifest.yaml` — reference manifest structure (adapt for github)
