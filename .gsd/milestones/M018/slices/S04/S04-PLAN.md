@@ -50,7 +50,7 @@
   - Verify: `pytest backend/tests/test_gcal_field_mapper.py backend/tests/test_gcal_sync_engine.py -v` — all pass; `pytest -x` — full suite green
   - Done when: push_sync detects changed events, reverse-maps responseStatus, PATCHes Google API, updates lastSyncedAt, prevents push→pull loops; ≥22 new tests pass
 
-- [ ] **T02: Recurrence exception linking in pull_sync** `est:25m`
+- [x] **T02: Recurrence exception linking in pull_sync** `est:25m`
   - Why: Implements GCAL-06 — recurring event exception instances need edges linking them to the master event via recurringEventId → externalId SPARQL resolution. This completes the recurrence story beyond just storing the property.
   - Files: `apps/google-calendar/services/sync_engine.py`, `backend/tests/test_gcal_sync_engine.py`
   - Do: (1) After pull_sync phase 1+2, collect all newly created/updated events that have `bpkm:recurringEventId` set (from the events already processed in the loop — track slugs with recurringEventId). (2) For each, SPARQL-lookup the master event by matching `bpkm:externalId` against the `recurringEventId` value. (3) Create `edge.create` commands linking exception → master via `bpkm:recurringEventId` predicate. (4) Handle gracefully: master not found (log warning, skip), master is self (skip). (5) Tests for recurrence linking (≥10 new tests covering master+exception, orphan exception, self-link skip, multiple exceptions to same master, batch submission).
