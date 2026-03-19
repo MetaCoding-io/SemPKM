@@ -99,6 +99,14 @@ Follow the exact pattern established by `apps/linear-sync/services/field_mapper.
 - `.gsd/design/INTEGRATION-DOMAIN-MAPPING.md` §5 — authoritative field mapping spec (Google Calendar Field → bpkm Property → Transform → Direction)
 - S01 forward intelligence: Event property list (20 properties), externalProvider = "google-calendar", startDate/endDate lack sh:datatype (must write xsd:dateTime for timed, xsd:date for all-day)
 
+## Observability Impact
+
+This task produces pure functions with no runtime side effects — no logging, no state, no network calls. Observability is through tests only:
+
+- **Inspection:** Import `field_mapper` and call any function with a sample event dict to verify transform behavior.
+- **Failure visibility:** Test failures in `test_gcal_field_mapper.py` pinpoint which transform or normalization is broken.
+- **No runtime signals:** The field mapper has no logging or metrics. Runtime observability comes from the sync engine (T02) which calls these functions.
+
 ## Expected Output
 
 - `apps/google-calendar/services/field_mapper.py` — ~300 lines, all pure functions, zero side effects
