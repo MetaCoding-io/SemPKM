@@ -56,7 +56,7 @@
   - Verify: `cd backend && .venv/bin/python -m pytest tests/test_push_sync.py -v` — all tests pass; existing tests still pass
   - Done when: Reverse mapping functions tested for all status/priority values + unknown inputs; `build_issue_update_input()` correctly resolves stateId from workflow states; LinearClient mutation methods tested; pull sync stores externalUuid
 
-- [ ] **T02: Push sync engine with loop prevention and unit tests** `est:50m`
+- [x] **T02: Push sync engine with loop prevention and unit tests** `est:50m`
   - Why: The core push-back logic — detecting changed tasks, building mutations, executing them, preventing re-import loops. This is the main deliverable of the slice.
   - Files: `apps/linear-sync/services/sync_engine.py`, `backend/tests/test_push_sync.py`
   - Do: Add `push_sync(ctx)` to sync_engine.py with changed-task SPARQL detection, reverse field mapping, per-task `issueUpdate` mutation, lastSyncedAt update, and error isolation. Add loop prevention to `pull_sync()` — compare issue `updatedAt` with task's `lastSyncedAt` to skip provider-originated changes. Write ~25 unit tests for push_sync orchestration, change detection, loop prevention, error paths.
