@@ -176,6 +176,8 @@ S01 contract: 42 field mapper tests + 26 sync engine tests verify all field mapp
 - Primary Slice: M017/S02
 - Acceptance: GitHub PRs appear as bpkm:Task objects with `externalProvider: "github-pr"`. PRs that reference issues (via timeline API cross-referenced events) have edges linking PR task → issue task.
 
+S02 contract: 32 new unit tests verify PR task creation with github-pr provider, timeline parsing (cross-referenced events, same-repo filtering, dedup, malformed event skip), edge creation (bpkm:dependsOn from PR task to issue task), error isolation (per-issue timeline failures with (timeline) suffix), diagnostic surface (edges_created in last_pull_result). Runtime validation deferred to S04 E2E.
+
 ### GH-04 — Push sync: SemPKM → GitHub
 - Status: active
 - Class: core-capability
@@ -1908,7 +1910,7 @@ build_task_properties() stores both external URL and UUID during pull sync. 49 f
 | SYNC-07 | core-capability | validated | M016/S02 | none | bpkm:externalUrl + bpkm:externalUuid in pull sync |
 | GH-01 | core-capability | active | M017/S01 | none | 15 unit tests — PAT storage, verification, masking, disconnect |
 | GH-02 | core-capability | active | M017/S01 | none | 42 field mapper + 26 sync engine tests — full issue→Task mapping + pull sync |
-| GH-03 | core-capability | active | M017/S02 | none | pending S02 |
+| GH-03 | core-capability | active | M017/S02 | none | 32 unit tests — PR sync, timeline parsing, edge creation, error isolation |
 | GH-04 | core-capability | active | M017/S03 | none | pending S03 |
 | GH-05 | core-capability | active | M017/S03 | none | pending S03 |
 | GH-06 | core-capability | active | M017/S01 | none | 10 unit tests — email/login SPARQL lookup + creation + cache |
