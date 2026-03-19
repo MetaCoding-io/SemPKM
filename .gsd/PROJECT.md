@@ -474,6 +474,15 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 ## Current State
 
 **Latest shipped: M017 GitHub Issues Sync App (2026-03-18)**
+**In progress: M018 Google Calendar Sync App — S01 complete (bpkm:Event type in basic-pkm v2.1.0)**
+
+**What shipped in M018/S01 (bpkm:Event type):**
+- basic-pkm upgraded from v2.0.0 to v2.1.0 with bpkm:Event OWL class (subClassOf gist:Event, 20 properties)
+- SHACL EventShape: 5 property groups, 30 property shapes, 4 enum constraints (D212 cross-provider superset)
+- 3 ViewSpecs (table/cards/graph) + 2 SavedQueries (upcoming/past events)
+- 4 seed instances: timed event, all-day event, recurring master, recurring exception
+- Lucide calendar icon in purple (#8b5cf6)
+- 22 offline validation tests, EVENT-01 requirement validated
 
 **What shipped in M017 (GitHub Issues Sync App):**
 - Second bidirectional sync app on the App Platform — GitHub Issues + PRs to bpkm:Task objects

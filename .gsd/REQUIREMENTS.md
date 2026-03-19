@@ -151,6 +151,69 @@ This file is the explicit capability and coverage contract for the project.
 - Source: docs/research/rss-reader-hypothesis-integration.md §4-5
 - Acceptance: Paste a website URL → discover its RSS feed automatically. When feeds provide only summaries, extract full article content via reader mode (trafilatura). Fallback to summary when extraction fails.
 
+### EVENT-01 — bpkm:Event type in basic-pkm Mental Model
+- Status: validated
+- Class: core-capability
+- Source: design (M018-ROADMAP.md)
+- Primary Slice: M018/S01
+- Acceptance: basic-pkm v2.1.0 has bpkm:Event OWL class (subClassOf gist:Event) with 20 properties covering the cross-provider superset (Google/Outlook/CalDAV per D212). SHACL EventShape with 5 property groups, 30 property shapes, 4 enum constraints (eventStatus, visibility, showAs, responseStatus). ViewSpecs (table/cards/graph), SavedQueries (upcoming/past), 4 seed instances (timed, all-day, recurring master, recurring exception). Lucide calendar icon. Passes offline pyshacl validation with zero errors.
+
+22 offline validation tests prove: manifest v2.1.0, 7 OWL classes, 7 NodeShapes, 21 ViewSpecs, 8 SavedQueries, 4 seed Events, pyshacl zero violations, enum constraints match D212 cross-provider superset.
+
+### GCAL-01 — Google OAuth 2.0 authentication
+- Status: active
+- Class: core-capability
+- Source: design (M018-ROADMAP.md)
+- Acceptance: User completes OAuth consent flow through app proxy callback. Tokens stored via StateClient. Refresh works on 401.
+
+### GCAL-02 — Calendar list and selection
+- Status: active
+- Class: core-capability
+- Source: design (M018-ROADMAP.md)
+- Acceptance: After OAuth, user sees their calendar list with selection checkboxes. Selected calendars persisted.
+
+### GCAL-03 — Pull sync (Google Calendar → bpkm:Event)
+- Status: active
+- Class: core-capability
+- Source: design (M018-ROADMAP.md)
+- Acceptance: User triggers sync and events from selected calendars appear as bpkm:Event objects with correct field mapping for all ~22 properties (times, timezone, attendees, conference URLs, location, all-day, status).
+
+### GCAL-04 — Attendee resolution to Person objects
+- Status: active
+- Class: core-capability
+- Source: design (M018-ROADMAP.md)
+- Acceptance: Event attendees resolved to existing Person/Contact objects by email via SPARQL lookup.
+
+### GCAL-05 — RSVP push-back to Google Calendar
+- Status: active
+- Class: core-capability
+- Source: design (M018-ROADMAP.md)
+- Acceptance: User changes RSVP status in SemPKM, Google Calendar reflects the change via API PATCH.
+
+### GCAL-06 — Recurrence handling (master + exceptions)
+- Status: active
+- Class: core-capability
+- Source: design (M018-ROADMAP.md)
+- Acceptance: Recurring events stored as master with RRULE; individually modified instances stored as separate Events linked to master via recurringEventId.
+
+### GCAL-07 — All-day event detection
+- Status: active
+- Class: core-capability
+- Source: design (M018-ROADMAP.md)
+- Acceptance: All-day events distinguished from timed events. Correct xsd:date vs xsd:dateTime usage.
+
+### GCAL-08 — Conference URL extraction
+- Status: active
+- Class: core-capability
+- Source: design (M018-ROADMAP.md)
+- Acceptance: Conference URLs (Meet, Zoom) extracted from Google Calendar events and preserved as bpkm:conferenceUrl.
+
+### GCAL-09 — E2E tests and user guide
+- Status: active
+- Class: quality-attribute
+- Source: design (M018-ROADMAP.md)
+- Acceptance: Mock Google Calendar API server passes selftest. Playwright E2E test proves install → OAuth → sync → verify → RSVP push lifecycle. User guide chapter documents workflow.
+
 ### GH-01 — GitHub PAT authentication
 - Status: validated
 - Class: core-capability
@@ -1921,12 +1984,22 @@ build_task_properties() stores both external URL and UUID during pull sync. 49 f
 | GH-05 | core-capability | validated | M017/S03 | none | 15 unit tests — settings routes + template context |
 | GH-06 | core-capability | validated | M017/S01 | none | 10 unit tests — email/login SPARQL lookup + creation + cache |
 | GH-07 | quality-attribute | validated | M017/S04 | none | mock server (9 selftest) + E2E test (partial) + Ch 35 guide + glossary |
+| EVENT-01 | core-capability | validated | M018/S01 | none | 22 offline tests — manifest, ontology, shapes, views, seed, pyshacl, enum constraints |
+| GCAL-01 | core-capability | active | none | none | design: M018-ROADMAP.md |
+| GCAL-02 | core-capability | active | none | none | design: M018-ROADMAP.md |
+| GCAL-03 | core-capability | active | none | none | design: M018-ROADMAP.md |
+| GCAL-04 | core-capability | active | none | none | design: M018-ROADMAP.md |
+| GCAL-05 | core-capability | active | none | none | design: M018-ROADMAP.md |
+| GCAL-06 | core-capability | active | none | none | design: M018-ROADMAP.md |
+| GCAL-07 | core-capability | active | none | none | design: M018-ROADMAP.md |
+| GCAL-08 | core-capability | active | none | none | design: M018-ROADMAP.md |
+| GCAL-09 | quality-attribute | active | none | none | design: M018-ROADMAP.md |
 
 ## Coverage Summary
 
-- Active requirements: 22 (14 APP + 8 RSS)
-- Validated: 171 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 8 from M013 + 13 from M014 + 4 from M015 + 7 from M016 + 7 from M017)
+- Active requirements: 31 (14 APP + 8 RSS + 9 GCAL)
+- Validated: 172 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 8 from M013 + 13 from M014 + 4 from M015 + 7 from M016 + 7 from M017 + 1 from M018)
 - Partial: 4 (EXT-14, EXT-18, EXT-20, EXT-21)
 - Deferred: 7 (TYPE-03, TYPE-04, MCP-01, NOTION-01, VIEW-06, VIEW-07, VFS-13)
 - Out of scope: 3
-- Unmapped active requirements: 22 (14 APP + 8 RSS — pending M009/M010 roadmap planning)
+- Unmapped active requirements: 31 (14 APP + 8 RSS + 9 GCAL — pending remaining M018 slices)

@@ -72,7 +72,7 @@ This milestone is complete only when all are true:
 
 ## Slices
 
-- [ ] **S01: bpkm:Event type in basic-pkm** `risk:high` `depends:[]`
+- [x] **S01: bpkm:Event type in basic-pkm** `risk:high` `depends:[]`
   > After this: basic-pkm v2.1 has Event type with OWL ontology, SHACL shapes (22+ properties), ViewSpecs (table/cards/graph), seed data, and Lucide icon. Offline pyshacl validation passes. Model installs cleanly in Docker.
 
 - [ ] **S02: Google OAuth 2.0 + calendar list** `risk:high` `depends:[]`
