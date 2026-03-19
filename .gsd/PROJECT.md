@@ -474,7 +474,17 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 ## Current State
 
 **Latest shipped: M017 GitHub Issues Sync App (2026-03-18)**
-**In progress: M018 Google Calendar Sync App — S01 complete (bpkm:Event type), S02 complete (OAuth + calendar list)**
+**In progress: M018 Google Calendar Sync App — S01 complete (bpkm:Event type), S02 complete (OAuth + calendar list), S03 complete (pull sync + field mapping + settings)**
+
+**What shipped in M018/S03 (Pull sync + field mapping + settings):**
+- Field mapper with 8 pure functions and 4 normalization maps covering all ~22 Google Calendar → bpkm:Event property transforms
+- Person matcher with SPARQL email lookup (foaf:mbox + crm:email), creation on miss, in-memory LRU cache
+- Sync engine with pull_sync() orchestrating two-phase bulk create, per-calendar syncToken incremental sync, 410 Gone recovery, per-event error isolation
+- GCalClient.get_events() with syncToken pagination, singleEvents=false, 90-day timeMin for full syncs
+- Settings UI with sync direction (pull-only/bidirectional), poll interval (5m/15m/30m/1h), Sync Now button, sync stats display
+- poll-events task handler wired to real pull_sync() with state persistence and structured logging
+- 111 new unit tests (64 field mapper + 36 sync engine + 11 person matcher), 1609 total backend tests pass
+- GCAL-03, GCAL-04, GCAL-07, GCAL-08 requirements validated
 
 **What shipped in M018/S02 (Google OAuth 2.0 + calendar list):**
 - Two platform bug fixes: proxy query-param forwarding (unblocks all OAuth callbacks), SDK network permission parsing (unblocks all external HTTP from sync apps with list-type manifests)

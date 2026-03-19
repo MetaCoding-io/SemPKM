@@ -179,16 +179,22 @@ OAuth auth module with 7 helpers (authorize URL, code exchange, refresh, refresh
 GCalClient.get_calendar_list() with pagination via nextPageToken, normalized calendar dicts (id, summary, primary flag). Calendar list UI with checkboxes in connect_status.html template, selection persisted as JSON via StateClient. 12 client unit tests cover single-page, paginated, empty, auth header, 401→retry, error handling.
 
 ### GCAL-03 — Pull sync (Google Calendar → bpkm:Event)
-- Status: active
+- Status: validated
 - Class: core-capability
 - Source: design (M018-ROADMAP.md)
+- Primary Slice: M018/S03
 - Acceptance: User triggers sync and events from selected calendars appear as bpkm:Event objects with correct field mapping for all ~22 properties (times, timezone, attendees, conference URLs, location, all-day, status).
 
+pull_sync() creates bpkm:Event objects with correct field mapping for all ~22 properties. 64 field mapper tests + 36 sync engine tests prove all transform paths. syncToken incremental sync with 410 Gone recovery. Per-event error isolation. Settings UI with Sync Now trigger, direction/interval controls, sync stats display.
+
 ### GCAL-04 — Attendee resolution to Person objects
-- Status: active
+- Status: validated
 - Class: core-capability
 - Source: design (M018-ROADMAP.md)
+- Primary Slice: M018/S03
 - Acceptance: Event attendees resolved to existing Person/Contact objects by email via SPARQL lookup.
+
+PersonMatcher resolves attendee/organizer emails to existing Person/Contact objects via SPARQL lookup (foaf:mbox + crm:email). Creates Person on miss with email-derived slug. In-memory LRU cache per sync run. 11 person matcher tests.
 
 ### GCAL-05 — RSVP push-back to Google Calendar
 - Status: active
@@ -203,16 +209,22 @@ GCalClient.get_calendar_list() with pagination via nextPageToken, normalized cal
 - Acceptance: Recurring events stored as master with RRULE; individually modified instances stored as separate Events linked to master via recurringEventId.
 
 ### GCAL-07 — All-day event detection
-- Status: active
+- Status: validated
 - Class: core-capability
 - Source: design (M018-ROADMAP.md)
+- Primary Slice: M018/S03
 - Acceptance: All-day events distinguished from timed events. Correct xsd:date vs xsd:dateTime usage.
 
+detect_all_day() distinguishes all-day (start.date → xsd:date, allDay="true") from timed (start.dateTime → xsd:dateTime, allDay="false"). 4 dedicated tests + full-event integration tests.
+
 ### GCAL-08 — Conference URL extraction
-- Status: active
+- Status: validated
 - Class: core-capability
 - Source: design (M018-ROADMAP.md)
+- Primary Slice: M018/S03
 - Acceptance: Conference URLs (Meet, Zoom) extracted from Google Calendar events and preserved as bpkm:conferenceUrl.
+
+extract_conference_url() extracts from conferenceData.entryPoints[type=video].uri with hangoutLink fallback. 6 dedicated tests cover all extraction paths.
 
 ### GCAL-09 — E2E tests and user guide
 - Status: active
@@ -1993,19 +2005,19 @@ build_task_properties() stores both external URL and UUID during pull sync. 49 f
 | EVENT-01 | core-capability | validated | M018/S01 | none | 22 offline tests — manifest, ontology, shapes, views, seed, pyshacl, enum constraints |
 | GCAL-01 | core-capability | validated | M018/S02 | none | 23 auth unit tests + 5 proxy regression tests + full OAuth route handlers |
 | GCAL-02 | core-capability | validated | M018/S02 | none | 12 client unit tests + calendar list UI with checkboxes + state persistence |
-| GCAL-03 | core-capability | active | none | none | design: M018-ROADMAP.md |
-| GCAL-04 | core-capability | active | none | none | design: M018-ROADMAP.md |
+| GCAL-03 | core-capability | validated | M018/S03 | none | 64 field mapper tests + 36 sync engine tests — all property transforms + sync orchestration |
+| GCAL-04 | core-capability | validated | M018/S03 | none | 11 person matcher tests — email SPARQL lookup + creation + cache |
 | GCAL-05 | core-capability | active | none | none | design: M018-ROADMAP.md |
 | GCAL-06 | core-capability | active | none | none | design: M018-ROADMAP.md |
-| GCAL-07 | core-capability | active | none | none | design: M018-ROADMAP.md |
-| GCAL-08 | core-capability | active | none | none | design: M018-ROADMAP.md |
+| GCAL-07 | core-capability | validated | M018/S03 | none | 4 all-day detection tests + full-event integration tests |
+| GCAL-08 | core-capability | validated | M018/S03 | S04 | 6 conference URL extraction tests — conferenceData + hangoutLink fallback |
 | GCAL-09 | quality-attribute | active | none | none | design: M018-ROADMAP.md |
 
 ## Coverage Summary
 
-- Active requirements: 31 (14 APP + 8 RSS + 9 GCAL)
-- Validated: 172 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 8 from M013 + 13 from M014 + 4 from M015 + 7 from M016 + 7 from M017 + 1 from M018)
+- Active requirements: 27 (14 APP + 8 RSS + 5 GCAL)
+- Validated: 176 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 8 from M013 + 13 from M014 + 4 from M015 + 7 from M016 + 7 from M017 + 5 from M018)
 - Partial: 4 (EXT-14, EXT-18, EXT-20, EXT-21)
 - Deferred: 7 (TYPE-03, TYPE-04, MCP-01, NOTION-01, VIEW-06, VIEW-07, VFS-13)
 - Out of scope: 3
-- Unmapped active requirements: 31 (14 APP + 8 RSS + 9 GCAL — pending remaining M018 slices)
+- Unmapped active requirements: 27 (14 APP + 8 RSS + 5 GCAL — pending remaining M018 slices)
