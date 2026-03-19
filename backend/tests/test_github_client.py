@@ -490,6 +490,79 @@ class TestPatchIssue:
 
 
 # ===========================================================================
+# Tests: fetch_timeline
+# ===========================================================================
+
+class TestFetchTimeline:
+
+    @pytest.mark.asyncio
+    async def test_fetch_timeline_basic(self):
+        """Returns timeline events list for an issue."""
+        events = [
+            {"event": "labeled", "label": {"name": "bug"}},
+            {"event": "cross-referenced", "source": {"issue": {"number": 10}}},
+        ]
+        client, http, _ = _make_client([_ok(events)])
+
+        result = await client.fetch_timeline("owner", "repo", 42)
+
+        assert result == events
+        assert len(http.calls) == 1
+        assert "/repos/owner/repo/issues/42/timeline" in http.calls[0]["url"]
+
+    @pytest.mark.asyncio
+    async def test_fetch_timeline_pagination(self):
+        """Follows Link header for multi-page timelines."""
+        page1_url = "https://api.github.com/repos/owner/repo/issues/42/timeline?page=2"
+        client, http, _ = _make_client([
+            _ok([{"event": "labeled"}], _link_header(page1_url)),
+            _ok([{"event": "cross-referenced"}]),
+        ])
+
+        result = await client.fetch_timeline("owner", "repo", 42)
+
+        assert len(result) == 2
+        assert len(http.calls) == 2
+        assert http.calls[1]["url"] == page1_url
+
+    @pytest.mark.asyncio
+    async def test_fetch_timeline_empty(self):
+        """Returns empty list for issue with no timeline events."""
+        client, _, _ = _make_client([_ok([])])
+
+        result = await client.fetch_timeline("owner", "repo", 1)
+
+        assert result == []
+
+    @pytest.mark.asyncio
+    async def test_fetch_timeline_auth_error(self):
+        """Raises GitHubAuthError on 401."""
+        client, _, _ = _make_client([MockResponse(401, "Bad credentials")])
+
+        with pytest.raises(GitHubAuthError) as exc_info:
+            await client.fetch_timeline("owner", "repo", 42)
+        assert exc_info.value.status_code == 401
+
+    @pytest.mark.asyncio
+    async def test_fetch_timeline_api_error(self):
+        """Raises GitHubAPIError on 404."""
+        client, _, _ = _make_client([MockResponse(404, "Not Found")])
+
+        with pytest.raises(GitHubAPIError) as exc_info:
+            await client.fetch_timeline("owner", "repo", 999)
+        assert exc_info.value.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_fetch_timeline_server_error(self):
+        """Raises GitHubAPIError on 500."""
+        client, _, _ = _make_client([MockResponse(500, "Internal Server Error")])
+
+        with pytest.raises(GitHubAPIError) as exc_info:
+            await client.fetch_timeline("owner", "repo", 42)
+        assert exc_info.value.status_code == 500
+
+
+# ===========================================================================
 # Tests: Request construction
 # ===========================================================================
 

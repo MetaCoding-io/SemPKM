@@ -338,6 +338,30 @@ class GitHubClient:
             params=params,
         )
 
+    async def fetch_timeline(
+        self,
+        owner: str,
+        repo: str,
+        issue_number: int,
+    ) -> list[dict[str, Any]]:
+        """Fetch all timeline events for an issue.
+
+        Uses the timeline events API to retrieve cross-reference events,
+        label changes, commits, etc. The timeline API graduated from
+        preview — the standard ``application/vnd.github+json`` header works.
+
+        Args:
+            owner: Repository owner (user or org).
+            repo: Repository name.
+            issue_number: Issue number.
+
+        Returns:
+            Flat list of timeline event dicts across all pages.
+        """
+        return await self._paginate(
+            f"/repos/{owner}/{repo}/issues/{issue_number}/timeline",
+        )
+
     async def patch_issue(
         self,
         owner: str,

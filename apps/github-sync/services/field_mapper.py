@@ -188,6 +188,64 @@ def build_task_properties(
 
 
 # ---------------------------------------------------------------------------
+# Timeline → linked issue extraction
+# ---------------------------------------------------------------------------
+
+
+def extract_linked_issue_numbers(
+    timeline_events: list[dict],
+    repo_full_name: str,
+) -> list[tuple[str, int]]:
+    """Extract deduplicated PR cross-references from timeline events.
+
+    Filters timeline events for ``cross-referenced`` events whose source
+    is a pull request in the same repository. Returns a sorted,
+    deduplicated list of ``(repo_full_name, pr_number)`` tuples.
+
+    Malformed events (missing keys, unexpected structure) are silently
+    skipped — this is intentional since timeline data can be inconsistent.
+
+    Args:
+        timeline_events: List of event dicts from the timeline API.
+        repo_full_name: Full repository name (e.g. ``"owner/repo"``)
+            used to filter out cross-repo references.
+
+    Returns:
+        Sorted list of ``(repo_full_name, pr_number)`` tuples for
+        same-repo PRs that reference the issue.
+    """
+    seen: set[tuple[str, int]] = set()
+
+    for event in timeline_events:
+        try:
+            if event.get("event") != "cross-referenced":
+                continue
+
+            source_issue = event.get("source", {}).get("issue", {})
+
+            # Must be a PR (has pull_request key), not an issue cross-ref
+            if not source_issue.get("pull_request"):
+                continue
+
+            source_repo = source_issue.get("repository", {}).get("full_name")
+            pr_number = source_issue.get("number")
+
+            if not source_repo or pr_number is None:
+                continue
+
+            # Same-repo only
+            if source_repo != repo_full_name:
+                continue
+
+            seen.add((source_repo, pr_number))
+        except (TypeError, AttributeError, KeyError):
+            # Malformed event — skip gracefully
+            continue
+
+    return sorted(seen, key=lambda t: t[1])
+
+
+# ---------------------------------------------------------------------------
 # Reverse mapping (bpkm → GitHub PATCH body)
 # ---------------------------------------------------------------------------
 

@@ -72,6 +72,12 @@ Add the two pure building blocks that T02's sync engine changes consume. `fetch_
 - `backend/tests/test_github_client.py` — existing test structure with `MockExternalHttpClient` and async test fixtures
 - `backend/tests/test_github_field_mapper.py` — existing 42 tests, module loading pattern via importlib
 
+## Observability Impact
+
+- **No runtime signals added.** Both functions are pure building blocks — `fetch_timeline()` delegates to `_paginate()` which already logs via `logger.debug()` in `_request()`, and `extract_linked_issue_numbers()` is a pure function with no side effects.
+- **Inspection:** A future agent can verify these exist by running the test suites. The functions appear in `field_mapper.py` exports and `GitHubClient` method list.
+- **Failure visibility:** `fetch_timeline()` inherits the existing error hierarchy (`GitHubAuthError`, `GitHubRateLimitError`, `GitHubAPIError`). `extract_linked_issue_numbers()` silently skips malformed events — no exceptions surface from bad input, which is intentional.
+
 ## Expected Output
 
 - `apps/github-sync/services/github_client.py` — `fetch_timeline()` method added (~10 lines)

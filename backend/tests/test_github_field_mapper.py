@@ -327,3 +327,98 @@ class TestStatusMaps:
         bpkm = fm.STATUS_MAP["closed"]
         gh = fm.REVERSE_STATUS_MAP[bpkm]
         assert gh == "closed"
+
+
+# ===================================================================
+# extract_linked_issue_numbers tests
+# ===================================================================
+
+def _make_cross_ref_event(
+    pr_number: int,
+    repo_full_name: str = "owner/repo",
+    has_pull_request: bool = True,
+) -> dict:
+    """Build a cross-referenced timeline event."""
+    issue_data: dict = {
+        "number": pr_number,
+        "repository": {"full_name": repo_full_name},
+    }
+    if has_pull_request:
+        issue_data["pull_request"] = {"url": "..."}
+    return {
+        "event": "cross-referenced",
+        "source": {"issue": issue_data},
+    }
+
+
+class TestExtractLinkedIssueNumbers:
+
+    def test_cross_referenced_with_pr(self):
+        """Returns (repo, number) for a cross-referenced PR event."""
+        events = [_make_cross_ref_event(10, "owner/repo")]
+        result = fm.extract_linked_issue_numbers(events, "owner/repo")
+        assert result == [("owner/repo", 10)]
+
+    def test_cross_referenced_without_pr(self):
+        """Skips event where source.issue has no pull_request key (issue cross-ref)."""
+        events = [_make_cross_ref_event(10, "owner/repo", has_pull_request=False)]
+        result = fm.extract_linked_issue_numbers(events, "owner/repo")
+        assert result == []
+
+    def test_cross_repo_filtered_out(self):
+        """Skips event from a different repository."""
+        events = [_make_cross_ref_event(10, "other-owner/other-repo")]
+        result = fm.extract_linked_issue_numbers(events, "owner/repo")
+        assert result == []
+
+    def test_same_repo_included(self):
+        """Includes event from the same repository."""
+        events = [_make_cross_ref_event(5, "owner/repo")]
+        result = fm.extract_linked_issue_numbers(events, "owner/repo")
+        assert result == [("owner/repo", 5)]
+
+    def test_empty_timeline(self):
+        """Returns empty list for empty timeline."""
+        result = fm.extract_linked_issue_numbers([], "owner/repo")
+        assert result == []
+
+    def test_duplicate_dedup(self):
+        """Two events with same PR number deduplicated to one."""
+        events = [
+            _make_cross_ref_event(10, "owner/repo"),
+            _make_cross_ref_event(10, "owner/repo"),
+        ]
+        result = fm.extract_linked_issue_numbers(events, "owner/repo")
+        assert result == [("owner/repo", 10)]
+
+    def test_malformed_event_skipped(self):
+        """Events missing source or source.issue are skipped without error."""
+        events = [
+            {"event": "cross-referenced"},  # no source
+            {"event": "cross-referenced", "source": {}},  # no issue
+            {"event": "cross-referenced", "source": {"issue": {}}},  # no repo/number
+            {"event": "labeled", "label": {"name": "bug"}},  # not cross-referenced
+            None,  # completely wrong type
+        ]
+        result = fm.extract_linked_issue_numbers(events, "owner/repo")
+        assert result == []
+
+    def test_multiple_prs_referencing_issue(self):
+        """Returns all unique PR numbers, sorted."""
+        events = [
+            _make_cross_ref_event(20, "owner/repo"),
+            _make_cross_ref_event(5, "owner/repo"),
+            _make_cross_ref_event(15, "owner/repo"),
+        ]
+        result = fm.extract_linked_issue_numbers(events, "owner/repo")
+        assert result == [("owner/repo", 5), ("owner/repo", 15), ("owner/repo", 20)]
+
+    def test_mixed_same_and_cross_repo(self):
+        """Only same-repo PRs are returned when mixed with cross-repo."""
+        events = [
+            _make_cross_ref_event(10, "owner/repo"),
+            _make_cross_ref_event(20, "other/repo"),
+            _make_cross_ref_event(30, "owner/repo"),
+        ]
+        result = fm.extract_linked_issue_numbers(events, "owner/repo")
+        assert result == [("owner/repo", 10), ("owner/repo", 30)]
