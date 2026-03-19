@@ -31,6 +31,9 @@ The `sempkm-app-sdk` Python package that provides the `App` class, `AppContext`,
 **Argument** (Research Workflow)
 A structured reasoning unit that synthesizes claims and evidence to address a research question. Each argument presents a thesis supported by referenced claims and evidence items. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
 
+**Bidirectional Sync**
+A sync mode where changes flow in both directions between two systems. In Linear Sync, bidirectional mode pushes SemPKM task changes back to Linear in addition to pulling Linear issues. See [Chapter 34: Linear Sync](34-linear-sync.md).
+
 **Block**
 A content unit within a dashboard. Six types: view-embed, markdown, object-embed, create-form, sparql-result, and divider. Each block occupies a named slot in the dashboard's grid layout. See [Chapter 28: Dashboards and Workflows](28-dashboards-and-workflows.md).
 
@@ -127,6 +130,9 @@ The CSS Grid template that arranges blocks on a dashboard. Five options: single,
 **LiteratureNote** (Zettelkasten+)
 A note that summarizes a key idea from a source in your own words. Each literature note references a single source and preserves the original quote for attribution. Part of the Zettelkasten provenance chain. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
 
+**Linear Sync**
+A SemPKM app that synchronizes Linear project management issues with `bpkm:Task` objects. Supports pull sync (Linear → SemPKM), push sync (SemPKM → Linear), and bidirectional mode. See [Chapter 34: Linear Sync](34-linear-sync.md).
+
 **Lint Dashboard**
 A global page that shows all validation results across every object in the knowledge base. Unlike the per-object Lint Panel, the dashboard provides a system-wide overview of data quality, groupable by type, severity, or violation message. Accessible from the sidebar under Tools. See [Chapter 14: System Health and Debugging](14-system-health-and-debugging.md).
 
@@ -174,6 +180,12 @@ A toggle on spatial canvas object nodes that switches between the Markdown body 
 
 **Property**
 A named attribute of an object. Properties can hold literal values (strings, dates, numbers, URIs) or references to other objects. In RDF terms, a property is a predicate in a subject-predicate-object triple. SemPKM distinguishes between datatype properties (literal values) and object properties (references to other resources). See also: Edge, Object.
+
+**Pull Sync**
+The process of fetching data from an external system into SemPKM. In Linear Sync, pull sync imports Linear issues as `bpkm:Task` objects with field mapping. See [Chapter 34: Linear Sync](34-linear-sync.md).
+
+**Push Sync**
+The process of sending local changes from SemPKM back to an external system. In Linear Sync, push sync detects modified tasks and updates the corresponding Linear issues. See [Chapter 34: Linear Sync](34-linear-sync.md).
 
 **RBox**
 (Relational Box) The set of properties (object properties and datatype properties) defined in an ontology. Viewable in the Ontology Viewer's RBox tab.

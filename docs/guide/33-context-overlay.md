@@ -254,4 +254,4 @@ return to the sidebar and click Capture.
 
 ---
 
-**Previous:** [Chapter 32: Browser Extension](32-browser-extension.md) | **Next:** [Appendix A: Environment Variable Reference](appendix-a-environment-variables.md)
+**Previous:** [Chapter 32: Browser Extension](32-browser-extension.md) | **Next:** [Chapter 34: Linear Sync](34-linear-sync.md)

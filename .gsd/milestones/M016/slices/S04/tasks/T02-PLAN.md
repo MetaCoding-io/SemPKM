@@ -115,6 +115,15 @@ The chapter covers: what the app does, prerequisites, installation, connecting v
 - `apps/linear-sync/frontend/templates/connect_status.html` — settings page UX for documentation
 - S03 summary — sync state keys, routes, template structure
 
+## Observability Impact
+
+This task produces documentation only — no runtime behavior changes.
+
+- **Inspection surface:** `test -f docs/guide/34-linear-sync.md && echo "exists"` confirms chapter presence.
+- **Link integrity:** `grep -c "34-linear-sync" docs/guide/README.md` verifies TOC entry. `grep "Chapter 34" docs/guide/33-context-overlay.md` verifies nav chain.
+- **Glossary coverage:** `grep -c "Linear Sync\|Pull Sync\|Push Sync\|Bidirectional Sync" docs/guide/appendix-d-glossary.md` should return ≥ 4.
+- **Failure visibility:** Missing chapter, broken nav chain, or missing glossary entries are caught by the verification grep commands above.
+
 ## Expected Output
 
 - `docs/guide/34-linear-sync.md` — complete Chapter 34 with ~300-500 lines of content

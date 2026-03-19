@@ -51,7 +51,7 @@
   - Verify: `npx playwright test e2e/tests/31-linear-sync/linear-sync.spec.ts` passes
   - Done when: All E2E test phases pass against Docker test stack with mock Linear API
 
-- [ ] **T02: User guide Chapter 34 — Linear Sync** `est:1h`
+- [x] **T02: User guide Chapter 34 — Linear Sync** `est:1h`
   - Why: Documents the full Linear sync workflow for end users. Terminal documentation artifact for the milestone.
   - Files: `docs/guide/34-linear-sync.md`, `docs/guide/README.md`, `docs/guide/33-context-overlay.md`, `docs/guide/appendix-d-glossary.md`
   - Do: (1) Write Chapter 34 covering: what Linear Sync does, prerequisites (basic-pkm model), installation, API key configuration, team selection, sync direction and interval, manual sync, understanding sync stats, field mapping table, push sync and bidirectional mode, admin monitoring, troubleshooting. (2) Add Ch 34 to README TOC. (3) Update Ch 33 nav footer to point to Ch 34. (4) Add Ch 34 nav footer pointing to Appendix A. (5) Add glossary entries for Linear Sync, Pull Sync, Push Sync, Bidirectional Sync.
