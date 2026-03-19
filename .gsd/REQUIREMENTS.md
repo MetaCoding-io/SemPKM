@@ -1330,6 +1330,123 @@ Chapter 28 (28-dashboards-and-workflows.md) covers all 5 layout templates, 6 blo
 
 All 6 items verified: Lucide SVG chevrons on 6 sections with rotation. OBJECTS opacity: 1. DASHBOARDS/WORKFLOWS + buttons open builders, tree-leaf entries removed. Inference `<button>` at 32px matching siblings. Ontology Viewer accent color. Dagre LR layout at 600px min-height.
 
+### EXT-01 — Extension popup capture with type selector and save flow
+- Status: validated
+- Class: core-capability
+- Source: design (BROWSER-EXTENSION-DESIGN.md)
+- Primary Slice: M014/S01
+- Acceptance: Clicking the extension icon opens a popup with a type selector populated from all installed Mental Models. User selects a type, fills in title, clicks Save, and the object is created in SemPKM via POST /api/commands with Bearer auth.
+
+Popup type selector grouped by model via optgroup. Save flow calls SemPKMClient.createObject(). E2E test 3 proves full round-trip (popup save → SPARQL-verified persistence).
+
+### EXT-02 — SHACL-driven dynamic forms in extension popup
+- Status: validated
+- Class: core-capability
+- Source: design (BROWSER-EXTENSION-DESIGN.md)
+- Primary Slice: M014/S02
+- Acceptance: Selecting a type renders a dynamic SHACL-driven form with grouped fields, helptext, validation indicators, and all standard property types (string, date, boolean, enum, object reference, multi-value, tags, integer, decimal, anyURI).
+
+shacl-renderer.js (588 lines) handles 10 property types with groups, multi-value, skip paths. Node.js rendering tests verified 4 types (Contact 12 fields/6 groups, Deal, Note, Task). E2E test 2 verifies [data-path] inputs render.
+
+### EXT-03 — Auto-population from page metadata
+- Status: validated
+- Class: core-capability
+- Source: design (BROWSER-EXTENSION-DESIGN.md)
+- Primary Slice: M014/S03
+- Acceptance: Opening the popup on any page auto-fills title and URL from page metadata. Selecting text before opening pre-fills the body field. Settings toggles control behavior.
+
+extractor.js extracts title (og:title > twitter:title > document.title), URL, selected text via chrome.scripting.executeScript. S03 unit tests (19/19) and integration checks (14/14) pass.
+
+### EXT-04 — Relationship picker with object search
+- Status: validated
+- Class: core-capability
+- Source: design (BROWSER-EXTENSION-DESIGN.md)
+- Primary Slice: M014/S04
+- Acceptance: Object reference fields show search-as-you-type input. Typing queries context-query API. Selecting a result populates the hidden IRI input. After saving, edges link to selected objects.
+
+reference-picker.js provides debounced search (300ms), type filtering via data-target-class, dropdown with label + type badge. Two-step save: object.create → edge.create with per-edge error isolation.
+
+### EXT-05 — Context menu "Save to SemPKM"
+- Status: validated
+- Class: core-capability
+- Source: design (BROWSER-EXTENSION-DESIGN.md)
+- Primary Slice: M014/S03
+- Acceptance: Right-click selected text → "Save to SemPKM" opens the popup with the text pre-filled.
+
+service-worker.js registers context menu item on install, stores selection in chrome.storage.session, opens popup. Popup checks session storage on init and pre-fills fields.
+
+### EXT-06 — Schema.org JSON-LD auto-fill
+- Status: validated
+- Class: core-capability
+- Source: design (BROWSER-EXTENSION-DESIGN.md)
+- Primary Slice: M014/S03
+- Acceptance: Pages with schema.org JSON-LD (Person, Article, Organization) auto-fill matching fields when the corresponding type is selected.
+
+schema-mapper.js maps Person→Contact, Organization→Company, Article→Note, ScholarlyArticle→Paper. Cross-namespace property mapping with first-write-wins priority. 19/19 unit tests pass.
+
+### EXT-07 — Extension settings page
+- Status: validated
+- Class: core-capability
+- Source: design (BROWSER-EXTENSION-DESIGN.md)
+- Primary Slice: M014/S01
+- Acceptance: Settings page configures instance URL, API key, and default type with connection test (green/red indicator). Settings persist via chrome.storage.sync.
+
+Options page with Instance URL, API key (visibility toggle), Test Connection button, Default Type selector from /api/types, capture behavior checkboxes, and Save persistence. E2E test 1 proves round-trip.
+
+### EXT-08 — Keyboard shortcut (Alt+S)
+- Status: validated
+- Class: core-capability
+- Source: design (BROWSER-EXTENSION-DESIGN.md)
+- Primary Slice: M014/S05
+- Acceptance: Alt+S keyboard shortcut opens the extension popup in both Chrome and Firefox.
+
+Both manifest.json and manifest.firefox.json have commands._execute_action with suggested_key.default "Alt+S". Uses browser-native _execute_action which opens popup without JS handler.
+
+### EXT-09 — Success/error feedback
+- Status: validated
+- Class: core-capability
+- Source: design (BROWSER-EXTENSION-DESIGN.md)
+- Primary Slice: M014/S01
+- Acceptance: After saving, user sees green success toast or red error toast with detail. Connection status indicator shows green/red/amber state.
+
+showToast(message, type) with green success and red error, auto-dismiss. setConnectionDot(state, tooltip) for connection health. Loading spinners during save. E2E test 3 waits for success toast.
+
+### EXT-10 — Cross-browser compatibility (Chrome + Firefox)
+- Status: validated
+- Class: core-capability
+- Source: design (BROWSER-EXTENSION-DESIGN.md)
+- Primary Slice: M014/S05
+- Acceptance: Extension works in both Chrome (MV3) and Firefox (WebExtension) from unpacked/sideloaded directory.
+
+manifest.firefox.json with background.scripts array, browser_specific_settings.gecko (sempkm@sempkm.org, strict_min_version 109.0). Service worker uses classic script (no ES module imports) for Firefox compat. All JS files pass node --check.
+
+### EXT-11 — Backend Bearer token auth on POST /api/commands
+- Status: validated
+- Class: core-capability
+- Source: design (BROWSER-EXTENSION-DESIGN.md)
+- Primary Slice: M014/S01
+- Acceptance: POST /api/commands accepts Authorization: Bearer <token> header. Existing session cookie auth unchanged for htmx routes.
+
+require_role_or_api(*roles) factory in dependencies.py chains to get_current_user_or_api. 10 unit tests in test_commands_bearer_auth.py proving Bearer acceptance, cookie acceptance, role rejection, no-auth rejection, invalid-Bearer rejection.
+
+### EXT-12 — User guide for browser extension
+- Status: validated
+- Class: quality-attribute
+- Source: standing requirement
+- Primary Slice: M014/S05
+- Acceptance: docs/guide/ has a chapter covering extension installation (Chrome + Firefox), configuration, capture workflow, auto-population, schema.org, context menu, relationship picker, keyboard shortcut, and troubleshooting.
+
+Chapter 32 (32-browser-extension.md) with 12 sections, 25 headings. README TOC updated. 2 glossary entries (API Token, Browser Extension). Navigation chain Ch 31 → Ch 32 → Appendix A.
+
+### EXT-13 — E2E tests for extension capture flow
+- Status: validated
+- Class: quality-attribute
+- Source: standing requirement
+- Primary Slice: M014/S05
+- Acceptance: Playwright E2E tests exercise the capture flow against Docker stack: options configuration, type loading, SHACL form rendering, object save, persistence verification.
+
+e2e/tests/25-extension/extension-capture.spec.ts with 3 serial tests. Custom persistent context fixture in e2e/fixtures/extension.ts. Chromium-only (Firefox lacks --load-extension support in Playwright).
+
 ## Deferred
 
 ### TYPE-03 — Full SHACL shape editor with advanced constraints
@@ -1579,11 +1696,24 @@ All 6 items verified: Lucide SVG chevrons on 6 sections with rotation. OBJECTS o
 | API-06 | core-capability | validated | M013/S01 | none | Docker curl — CORS headers + OPTIONS 204 |
 | API-07 | core-capability | validated | M013/S01 | none | Docker curl — Authorization forwarded + nginx -t |
 | API-08 | quality-attribute | validated | M013/S03 | none | Ch. 31 guide + 3 glossary entries |
+| EXT-01 | core-capability | validated | M014/S01 | M014/S02 | popup type selector + save flow + E2E test 3 |
+| EXT-02 | core-capability | validated | M014/S02 | none | shacl-renderer.js 10 property types + Node.js rendering tests + E2E test 2 |
+| EXT-03 | core-capability | validated | M014/S03 | none | extractor.js + popup auto-fill + S03 unit tests 19/19 |
+| EXT-04 | core-capability | validated | M014/S04 | none | reference-picker.js + two-step save + S04 verification |
+| EXT-05 | core-capability | validated | M014/S03 | none | service-worker.js context menu handler + session storage bridge |
+| EXT-06 | core-capability | validated | M014/S03 | none | schema-mapper.js type suggestion + property mapping + 19/19 unit tests |
+| EXT-07 | core-capability | validated | M014/S01 | M014/S05 | options page + connection test + E2E test 1 |
+| EXT-08 | core-capability | validated | M014/S05 | none | Alt+S in both Chrome + Firefox manifests |
+| EXT-09 | core-capability | validated | M014/S01 | M014/S05 | toast notifications + connection dot + E2E test 3 |
+| EXT-10 | core-capability | validated | M014/S05 | none | manifest.firefox.json + classic service worker |
+| EXT-11 | core-capability | validated | M014/S01 | none | require_role_or_api + 10 unit tests |
+| EXT-12 | quality-attribute | validated | M014/S05 | none | Ch. 32 guide + 2 glossary entries |
+| EXT-13 | quality-attribute | validated | M014/S05 | none | 3 Playwright E2E tests + persistent context fixture |
 
 ## Coverage Summary
 
 - Active requirements: 22 (14 APP + 8 RSS)
-- Validated: 140 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 8 from M013)
+- Validated: 153 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 8 from M013 + 13 from M014)
 - Deferred: 7 (TYPE-03, TYPE-04, MCP-01, NOTION-01, VIEW-06, VIEW-07, VFS-13)
 - Out of scope: 3
 - Unmapped active requirements: 22 (14 APP + 8 RSS — pending M009/M010 roadmap planning)
