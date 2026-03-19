@@ -83,6 +83,13 @@ Follows the `apps/linear-sync/app.py` pattern closely. All htmx URLs must use th
 - KNOWLEDGE.md "App template htmx URLs must use proxy prefix" — all htmx URLs must be prefixed with `/app/google-calendar/`
 - S02-RESEARCH.md: callback URL `http://localhost:3000/app/google-calendar/_fragments/oauth-callback`, Google authorize params, CSRF state pattern
 
+## Observability Impact
+
+- **Logging**: `google_calendar.app` logger emits INFO on credential save, OAuth redirect, callback success, calendar selection save, disconnect. WARNING on OAuth state mismatch, callback errors, API failures during connect_status render.
+- **State inspection**: `get_connection_status(state_client)` returns `{connected, auth_method, google_email, token_expiry}` — same as T02 but now called from route handlers.
+- **Template errors**: Jinja2 render errors surface as 500 responses with tracebacks in app process stderr.
+- **OAuth CSRF**: `oauth_state` key in StateClient holds the expected state param — mismatch produces a WARNING log and error template render.
+
 ## Expected Output
 
 - `apps/google-calendar/app.py` — route handlers (~300 lines)

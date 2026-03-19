@@ -1,0 +1,56 @@
+<div id="connect-content" class="gcal-sync-settings">
+  <div class="connection-status">
+    <span class="status-badge status-connected">● Connected</span>
+    <span class="auth-method-badge">{{ auth_method | replace("_", " ") | title }}</span>
+  </div>
+
+  <h3 class="account-email">{{ google_email }}</h3>
+
+  {% if token_expiry %}
+  <p class="token-expiry-hint">Token expires: {{ token_expiry[:19] | replace("T", " ") }} UTC</p>
+  {% endif %}
+
+  {# ── Calendar Selection ── #}
+  {% if calendars %}
+  <section class="calendars-section">
+    <h4>Calendars</h4>
+    <p class="section-hint">Select which calendars to sync events from.</p>
+    <form hx-post="/app/google-calendar/_fragments/settings/calendars"
+          hx-target="#connect-content"
+          hx-swap="innerHTML">
+      <div class="calendar-checkbox-list">
+        {% for cal in calendars %}
+        <label class="calendar-checkbox-item">
+          <input type="checkbox"
+                 name="calendar_ids"
+                 value="{{ cal.id }}"
+                 {% if cal.id in selected_calendars %}checked{% endif %}>
+          <span class="calendar-name">{{ cal.summary }}</span>
+          {% if cal.primary %}
+          <span class="primary-badge">Primary</span>
+          {% endif %}
+          <span class="access-role">{{ cal.accessRole }}</span>
+        </label>
+        {% endfor %}
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save Calendars</button>
+        <span class="htmx-indicator">Saving…</span>
+      </div>
+    </form>
+  </section>
+  {% else %}
+  <p class="no-calendars">No calendars found in this account.</p>
+  {% endif %}
+
+  {# ── Disconnect ── #}
+  <section class="disconnect-section">
+    <button class="btn btn-danger"
+            hx-post="/app/google-calendar/_fragments/connect/disconnect"
+            hx-target="#connect-content"
+            hx-swap="innerHTML"
+            hx-confirm="Disconnect from Google Calendar? Sync will stop and saved calendars will be cleared.">
+      Disconnect
+    </button>
+  </section>
+</div>

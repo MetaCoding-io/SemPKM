@@ -1,0 +1,83 @@
+<div id="connect-content" class="gcal-sync-settings">
+  <h2>Connect to Google Calendar</h2>
+  <p class="connect-description">
+    Link your Google Calendar to sync events with SemPKM objects.
+  </p>
+
+  {% if error %}
+  <div class="alert alert-error">{{ error }}</div>
+  {% endif %}
+
+  {% if success %}
+  <div class="alert alert-success">{{ success }}</div>
+  {% endif %}
+
+  <section class="connect-section">
+    <h3>Google Cloud Credentials</h3>
+    <p class="section-hint">
+      Create an OAuth 2.0 Client ID in
+      <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">Google Cloud Console</a>
+      → APIs &amp; Services → Credentials.<br>
+      Set the authorized redirect URI to:<br>
+      <code class="redirect-uri">http://localhost:3000/app/google-calendar/_fragments/oauth-callback</code>
+    </p>
+    <form class="credentials-form"
+          hx-post="/app/google-calendar/_fragments/connect/credentials"
+          hx-target="#connect-content"
+          hx-swap="innerHTML"
+          hx-indicator="#credentials-spinner">
+      <div class="form-row">
+        <label for="gcal-client-id">Client ID</label>
+        <input type="text"
+               id="gcal-client-id"
+               name="client_id"
+               placeholder="123456789.apps.googleusercontent.com"
+               required
+               autocomplete="off" />
+      </div>
+      <div class="form-row">
+        <label for="gcal-client-secret">Client Secret</label>
+        <input type="password"
+               id="gcal-client-secret"
+               name="client_secret"
+               placeholder="GOCSPX-..."
+               required
+               autocomplete="off" />
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          Save Credentials
+        </button>
+        <span id="credentials-spinner" class="htmx-indicator spinner">Saving…</span>
+      </div>
+    </form>
+  </section>
+
+  <div class="connect-divider">
+    <span>then</span>
+  </div>
+
+  <section class="connect-section">
+    <h3>Connect</h3>
+    <p class="section-hint">
+      After saving your credentials, click below to authorize SemPKM
+      to access your Google Calendar.
+    </p>
+    <form hx-post="/app/google-calendar/_fragments/connect/google"
+          hx-target="#connect-content"
+          hx-swap="innerHTML"
+          hx-indicator="#oauth-spinner">
+      <div class="form-actions">
+        <button type="submit"
+                class="btn btn-primary btn-google"
+                {% if not has_credentials %}disabled{% endif %}>
+          Connect with Google
+        </button>
+        <span id="oauth-spinner" class="htmx-indicator spinner">Redirecting…</span>
+      </div>
+    </form>
+    {% if not has_credentials %}
+    <p class="oauth-note">Save your credentials above first.</p>
+    {% endif %}
+  </section>
+</div>
