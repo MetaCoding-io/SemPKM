@@ -474,7 +474,16 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 ## Current State
 
 **Latest shipped: M017 GitHub Issues Sync App (2026-03-18)**
-**In progress: M018 Google Calendar Sync App — S01 complete (bpkm:Event type in basic-pkm v2.1.0)**
+**In progress: M018 Google Calendar Sync App — S01 complete (bpkm:Event type), S02 complete (OAuth + calendar list)**
+
+**What shipped in M018/S02 (Google OAuth 2.0 + calendar list):**
+- Two platform bug fixes: proxy query-param forwarding (unblocks all OAuth callbacks), SDK network permission parsing (unblocks all external HTTP from sync apps with list-type manifests)
+- google-calendar app scaffold: manifest, OAuth auth module (7 helpers), GCal REST client with paginated calendar list and 401→refresh→retry
+- Full OAuth connect/disconnect flow with CSRF-safe state verification
+- Calendar list UI with checkboxes and state persistence via StateClient
+- Token storage as ISO 8601 with automatic refresh via 5-minute expiry buffer
+- 47 unit tests (23 auth + 12 client + 5 proxy + 7 SDK), 1498 total backend tests pass
+- GCAL-01 and GCAL-02 requirements validated
 
 **What shipped in M018/S01 (bpkm:Event type):**
 - basic-pkm upgraded from v2.0.0 to v2.1.0 with bpkm:Event OWL class (subClassOf gist:Event, 20 properties)
