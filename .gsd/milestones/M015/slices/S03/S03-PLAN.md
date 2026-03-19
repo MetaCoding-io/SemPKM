@@ -34,7 +34,7 @@
 
 ## Tasks
 
-- [ ] **T01: Add Context Overlay settings section to options page and register requirements** `est:30m`
+- [x] **T01: Add Context Overlay settings section to options page and register requirements** `est:30m`
   - Why: Options page needs UI controls for autoCheckContext (toggle), contextCheckDelay (ms), and contextTimeout (ms) — these keys already exist in storage.js DEFAULTS from S01 but have no UI. Also registers EXT-14 through EXT-21 requirements.
   - Files: `extension/options/options.html`, `extension/options/options.js`, `.gsd/REQUIREMENTS.md`
   - Do: Add a "Context Overlay" `<section>` between "Capture Defaults" and the save footer in options.html with three form controls. Wire DOM refs, loadSettings(), and saveCurrentSettings() in options.js following the existing pattern. Register EXT-14 through EXT-21 as active requirements.
@@ -54,6 +54,13 @@
   - Do: Write Chapter 33 following Chapter 32's structure and voice. Cover sidebar (Alt+K), badge count, grouped results, all three actions (Open, Link, Add Evidence), auto-context settings, cross-browser notes, troubleshooting. Update ch32 footer to link to ch33. Update README TOC. Add glossary entries.
   - Verify: Chapter 33 exists with correct navigation; README TOC includes it; glossary has 3+ new entries
   - Done when: All docs files updated, navigation chain ch32 → ch33 → appendix-a is intact
+
+## Observability / Diagnostics
+
+- **Settings round-trip:** `chrome.storage.sync.get()` in devtools Application > Storage confirms autoCheckContext, contextCheckDelay, contextTimeout keys are persisted after save
+- **Console logging:** options.js logs `[SemPKM] Settings saved` on successful persist and `[SemPKM] Options page loaded` on init — visible in extension devtools console
+- **E2E test diagnostics:** Playwright test logs include test name, assertion failures with element snapshots, and Docker compose logs on failure
+- **No secrets involved:** No API keys or tokens are processed in this slice's settings controls (they live in the existing Connection section)
 
 ## Files Likely Touched
 
