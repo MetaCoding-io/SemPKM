@@ -134,7 +134,7 @@ class AppContext:
             from sempkm_app_sdk.clients.http import HttpClient
 
             network = self.permissions.get("network", {})
-            domains = network.get("domains", []) if isinstance(network, dict) else []
+            domains = network.get("domains", []) if isinstance(network, dict) else network
             self._http_client = HttpClient(allowed_domains=domains)
         return self._http_client
 

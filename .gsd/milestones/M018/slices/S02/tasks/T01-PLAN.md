@@ -49,3 +49,9 @@ Both are one-line fixes with regression tests. These must land first because eve
 - `backend/sdk/sempkm_app_sdk/context.py` — one-line fix for network permission parsing
 - `backend/tests/test_app_proxy_query_params.py` — new regression test file (~3-5 tests)
 - `backend/tests/test_sdk_network_permissions.py` — new regression test file (~3-4 tests)
+
+## Observability Impact
+
+- **Proxy query forwarding:** No new logging — the existing `logger.warning` on connection failures covers the error path. The fix is transparent: query params now arrive at the app subprocess, observable via the app's own request logging.
+- **SDK network permissions:** No new logging — the existing `PermissionError` raised by `HttpClient._check_domain()` provides domain enforcement visibility. A future agent can verify correct domain enforcement by inspecting `ctx.http._allowed_domains` in tests or via the `PermissionError` message which lists allowed domains.
+- **Failure state:** Misconfigured network permissions surface as `PermissionError: HTTP request to domain 'X' is not permitted. Allowed domains: [...]` — the domains list in the error message confirms whether list-type parsing worked.

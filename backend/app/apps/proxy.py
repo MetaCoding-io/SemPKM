@@ -61,6 +61,8 @@ class AppProxy:
 
         # Build target URL (host is ignored for UDS but required by httpx)
         target_url = f"http://localhost/{path}"
+        if request.url.query:
+            target_url = f"{target_url}?{request.url.query}"
 
         # Copy incoming headers, inject app token
         headers = dict(request.headers)

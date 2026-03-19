@@ -44,7 +44,7 @@
 
 ## Tasks
 
-- [ ] **T01: Fix app proxy query-param forwarding and HttpClient domain enforcement** `est:45m`
+- [x] **T01: Fix app proxy query-param forwarding and HttpClient domain enforcement** `est:45m`
   - Why: Two platform bugs block all OAuth callback flows and external HTTP from sync apps. The proxy drops query parameters (authorization code lost on callback), and the HttpClient domain parser discards list-type network permissions (blocks all external API calls). Both are one-line fixes but need regression tests.
   - Files: `backend/app/apps/proxy.py`, `backend/sdk/sempkm_app_sdk/context.py`, `backend/tests/test_app_proxy_query_params.py`, `backend/tests/test_sdk_network_permissions.py`
   - Do: (1) Fix proxy.py line ~63 to append `request.url.query` to target_url when present. (2) Fix context.py line ~136 to use `else network` instead of `else []` for list-type network permissions. (3) Write regression tests for both fixes. (4) Run all existing tests to confirm no regressions.

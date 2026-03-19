@@ -1911,12 +1911,15 @@ def _load_app_module():
         def on_shutdown(self, fn):
             return fn
 
-    # Stub sempkm_app_sdk if not already available
+    # Stub sempkm_app_sdk if not already available — try real import first
     if "sempkm_app_sdk" not in sys.modules:
-        sdk_mock = ModuleType("sempkm_app_sdk")
-        sdk_mock.App = _StubApp
-        sdk_mock.AppContext = type("AppContext", (), {})
-        sys.modules["sempkm_app_sdk"] = sdk_mock
+        try:
+            import sempkm_app_sdk  # noqa: F401 — real SDK available via pythonpath
+        except ImportError:
+            sdk_mock = ModuleType("sempkm_app_sdk")
+            sdk_mock.App = _StubApp
+            sdk_mock.AppContext = type("AppContext", (), {})
+            sys.modules["sempkm_app_sdk"] = sdk_mock
 
     # Stub starlette modules if not available
     for mod_name in ["starlette", "starlette.requests", "starlette.responses"]:
