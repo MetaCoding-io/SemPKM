@@ -42,7 +42,7 @@
 
 ## Tasks
 
-- [ ] **T01: Add fetch_timeline() and extract_linked_issue_numbers() with tests** `est:30m`
+- [x] **T01: Add fetch_timeline() and extract_linked_issue_numbers() with tests** `est:30m`
   - Why: Pure functions that the sync engine consumes — testable in isolation, zero coupling to sync pipeline
   - Files: `apps/github-sync/services/github_client.py`, `apps/github-sync/services/field_mapper.py`, `backend/tests/test_github_client.py`, `backend/tests/test_github_field_mapper.py`
   - Do: Add `fetch_timeline(owner, repo, issue_number)` convenience method to GitHubClient (delegates to `_paginate()`). Add `extract_linked_issue_numbers(timeline_events, repo_full_name)` to field_mapper that filters for `event == "cross-referenced"` where `source.issue.pull_request` exists, extracts `(repo_full_name, issue_number)` tuples, deduplicates, and returns only same-repo matches. Add ~13 unit tests.
