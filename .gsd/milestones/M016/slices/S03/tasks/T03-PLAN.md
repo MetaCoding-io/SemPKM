@@ -112,3 +112,11 @@ The admin detail page already shows task run history with status/duration/error 
 - `apps/linear-sync/app.py` — extended with push_changes handler, 3 settings routes, updated connect_fragment
 - `apps/linear-sync/frontend/templates/connect_status.html` — full sync control panel
 - `apps/linear-sync/frontend/static/styles.css` — extended with sync control styles
+
+## Observability Impact
+
+- **State keys surfaced:** `sync_teams`, `sync_direction`, `poll_interval`, `last_sync_at`, `last_pull_result`, `last_push_result` — all read and displayed on the settings page's sync stats section.
+- **Manual sync logging:** `POST /_fragments/sync-now` logs at INFO before/after pull and push, and at ERROR on failure with exc_info.
+- **Settings change logging:** Team save and config save routes log at INFO with the saved values.
+- **Inspection:** A future agent can check sync state by reading the connect_status.html output (contains last sync time, pull/push result counts, error counts). Or read state keys directly via StateClient.
+- **Failure visibility:** Sync errors from manual trigger are caught, stored in `last_pull_result`/`last_push_result` state keys with `status: "error"`, and displayed in the stats section. The `push-changes` task handler logs at ERROR with exc_info on failure.
