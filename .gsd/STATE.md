@@ -1,9 +1,10 @@
 # GSD State
 
 **Active Milestone:** M017: GitHub Issues Sync App
-**Active Slice:** S01: GitHub Client + PAT Auth + Issue Pull Sync
+**Active Slice:** S03: Push Sync + Settings Polish
 **Phase:** executing
-**Requirements Status:** 61 active · 129 validated · 7 deferred · 0 out of scope
+**Active Task:** T01
+**Requirements Status:** 68 active · 129 validated · 7 deferred · 0 out of scope
 
 ## Milestone Registry
 - ✅ **M001:** Migration
@@ -44,4 +45,4 @@
 - None
 
 ## Next Action
-Execute S01/T01: App scaffold + manifest + GitHub REST client
+Execute T01: Push sync engine with loop prevention and field mapper extensions.
