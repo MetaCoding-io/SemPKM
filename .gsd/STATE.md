@@ -1,7 +1,7 @@
 # GSD State
 
 **Active Milestone:** M018: Google Calendar Sync App
-**Active Slice:** S03: Pull sync + field mapping + settings
+**Active Slice:** S04: RSVP push-back + recurrence handling
 **Phase:** executing
 **Requirements Status:** 78 active · 129 validated · 7 deferred · 0 out of scope
 
@@ -44,4 +44,4 @@
 - None
 
 ## Next Action
-Execute T01: Build field mapper with all property transforms and exhaustive tests.
+Execute T01: RSVP push-back pipeline (reverse mapping, PATCH, push_sync, loop prevention, wiring).
