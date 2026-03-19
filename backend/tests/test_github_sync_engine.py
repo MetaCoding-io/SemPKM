@@ -43,13 +43,17 @@ _auth = _load_module("auth", _SERVICES_DIR / "auth.py")
 _sync_engine = _load_module("sync_engine", _SERVICES_DIR / "sync_engine.py")
 
 pull_sync = _sync_engine.pull_sync
+push_sync = _sync_engine.push_sync
 _find_existing_task = _sync_engine._find_existing_task
+_find_changed_tasks = _sync_engine._find_changed_tasks
 _submit_commands_batched = _sync_engine._submit_commands_batched
 BATCH_SIZE = _sync_engine.BATCH_SIZE
 BPKM = _field_mapper.BPKM
 compute_issue_slug = _field_mapper.compute_issue_slug
 is_pull_request = _field_mapper.is_pull_request
 extract_linked_issue_numbers = _field_mapper.extract_linked_issue_numbers
+parse_external_url = _field_mapper.parse_external_url
+build_issue_patch = _field_mapper.build_issue_patch
 
 
 # ===================================================================
@@ -90,40 +94,46 @@ class MockGraphClient:
     - Static: always returns ``self.default_results``
     - Dynamic: if a STRENDS slug matches an entry in ``self.slug_map``,
       returns a binding for that slug.
+
+    ``slug_map`` values can be:
+    - A plain string (task IRI) — returns default title/status
+    - A dict with ``iri`` and optional ``title``, ``status``, ``lastSyncedAt``
     """
 
     def __init__(
         self,
         default_results: dict | None = None,
-        slug_map: dict[str, str] | None = None,
+        slug_map: dict[str, str | dict] | None = None,
     ):
         self.default_results = default_results or {"results": {"bindings": []}}
-        self.slug_map = slug_map or {}  # slug → task IRI
+        self.slug_map = slug_map or {}  # slug → task IRI or dict
         self.queries: list[str] = []
 
     async def query(self, sparql: str) -> dict:
         self.queries.append(sparql)
         # Check if this is a _find_existing_task query with STRENDS
         if "STRENDS" in sparql:
-            for slug, iri in self.slug_map.items():
+            for slug, info in self.slug_map.items():
                 if slug in sparql:
-                    return {
-                        "results": {
-                            "bindings": [
-                                {
-                                    "task": {"type": "uri", "value": iri},
-                                    "title": {
-                                        "type": "literal",
-                                        "value": "Existing task",
-                                    },
-                                    "status": {
-                                        "type": "literal",
-                                        "value": "todo",
-                                    },
-                                }
-                            ]
-                        }
+                    if isinstance(info, str):
+                        info = {"iri": info}
+                    binding: dict = {
+                        "task": {"type": "uri", "value": info["iri"]},
+                        "title": {
+                            "type": "literal",
+                            "value": info.get("title", "Existing task"),
+                        },
+                        "status": {
+                            "type": "literal",
+                            "value": info.get("status", "todo"),
+                        },
                     }
+                    if info.get("lastSyncedAt"):
+                        binding["lastSynced"] = {
+                            "type": "literal",
+                            "value": info["lastSyncedAt"],
+                        }
+                    return {"results": {"bindings": [binding]}}
         # Check if it looks like a person matcher query
         if "foaf" in sparql or "crm:email" in sparql or "externalId" in sparql:
             return self.default_results
@@ -1357,3 +1367,481 @@ class TestFindExistingTaskProvider:
         assert result is not None
         assert result["iri"] == f"https://example.org/data/Task/{pr_slug}"
         assert "externalProvider" not in graph.queries[-1]
+
+
+# ===================================================================
+# Tests — _find_existing_task returns lastSyncedAt
+# ===================================================================
+
+
+class TestFindExistingTaskLastSyncedAt:
+    @pytest.mark.asyncio
+    async def test_returns_last_synced_at(self):
+        """_find_existing_task returns lastSyncedAt when present in graph."""
+        graph = MockGraphClient(slug_map={
+            "gh-abc": {
+                "iri": "https://example.org/data/Task/gh-abc",
+                "lastSyncedAt": "2026-03-18T10:00:00+00:00",
+            },
+        })
+        result = await _find_existing_task(graph, "gh-abc")
+        assert result is not None
+        assert result["lastSyncedAt"] == "2026-03-18T10:00:00+00:00"
+
+    @pytest.mark.asyncio
+    async def test_returns_none_last_synced_at_when_absent(self):
+        """_find_existing_task returns None lastSyncedAt when not in graph."""
+        graph = MockGraphClient(slug_map={
+            "gh-def": "https://example.org/data/Task/gh-def",
+        })
+        result = await _find_existing_task(graph, "gh-def")
+        assert result is not None
+        assert result["lastSyncedAt"] is None
+
+
+# ===================================================================
+# Tests — _find_changed_tasks
+# ===================================================================
+
+
+def _make_changed_tasks_graph(tasks: list[dict]) -> MockGraphClient:
+    """Build a MockGraphClient that returns changed tasks for SPARQL queries.
+
+    Each task dict should have: iri, uuid, and optionally url, extId,
+    status, title, tags, lastSyncedAt.
+    """
+    bindings = []
+    for t in tasks:
+        binding: dict = {
+            "task": {"type": "uri", "value": t["iri"]},
+            "uuid": {"type": "literal", "value": t["uuid"]},
+        }
+        for key, sparql_var in [
+            ("url", "url"), ("extId", "extId"), ("status", "status"),
+            ("title", "title"), ("tags", "tags"), ("lastSyncedAt", "lastSynced"),
+        ]:
+            if t.get(key):
+                binding[sparql_var] = {"type": "literal", "value": t[key]}
+        bindings.append(binding)
+
+    return MockGraphClient(
+        default_results={"results": {"bindings": bindings}},
+    )
+
+
+class TestFindChangedTasks:
+    @pytest.mark.asyncio
+    async def test_happy_path_returns_tasks(self):
+        """Returns list of changed task dicts from SPARQL results."""
+        graph = _make_changed_tasks_graph([{
+            "iri": "https://example.org/data/Task/gh-001",
+            "uuid": "I_kwDO_test1",
+            "url": "https://github.com/owner/repo/issues/1",
+            "extId": "#1",
+            "status": "in-progress",
+            "title": "Updated task",
+        }])
+        result = await _find_changed_tasks(graph)
+        assert len(result) == 1
+        assert result[0]["iri"] == "https://example.org/data/Task/gh-001"
+        assert result[0]["externalUuid"] == "I_kwDO_test1"
+        assert result[0]["externalUrl"] == "https://github.com/owner/repo/issues/1"
+        assert result[0]["status"] == "in-progress"
+        assert result[0]["title"] == "Updated task"
+
+    @pytest.mark.asyncio
+    async def test_empty_result(self):
+        """Returns empty list when no changed tasks found."""
+        graph = MockGraphClient()  # default empty results
+        result = await _find_changed_tasks(graph)
+        assert result == []
+
+    @pytest.mark.asyncio
+    async def test_query_structure(self):
+        """SPARQL query filters by github provider, modified > lastSyncedAt."""
+        graph = MockGraphClient()
+        await _find_changed_tasks(graph)
+        assert len(graph.queries) == 1
+        q = graph.queries[0]
+        assert '"github"' in q
+        assert "externalUuid" in q
+        assert "lastSynced" in q
+        assert "modified" in q
+        assert 'pull-only' in q
+
+
+# ===================================================================
+# Helpers — push sync context builders
+# ===================================================================
+
+
+def _make_push_github_responses(
+    *,
+    patch_responses: list[MockResponse] | None = None,
+) -> list[MockResponse]:
+    """Build responses for push_sync: verify_token + optional PATCH responses."""
+    responses = [
+        # verify_token: GET /user
+        MockResponse(200, {"login": "testuser", "email": "test@example.com"},
+                     headers={}),
+    ]
+    if patch_responses:
+        responses.extend(patch_responses)
+    return responses
+
+
+def _make_push_context(
+    *,
+    connected: bool = True,
+    sync_direction: str | None = "bidirectional",
+    changed_tasks: list[dict] | None = None,
+    ext_responses: list[MockResponse] | None = None,
+) -> MockAppContext:
+    """Build a MockAppContext configured for push_sync tests."""
+    state_data = _make_connected_state() if connected else {}
+    settings_data: dict[str, str] = {}
+    if sync_direction:
+        settings_data["sync_direction"] = sync_direction
+    settings_data["selected_repos"] = json.dumps(["owner/repo"])
+
+    # Build graph with changed tasks
+    if changed_tasks:
+        graph = _make_changed_tasks_graph(changed_tasks)
+    else:
+        graph = MockGraphClient()
+
+    ext_http = MockExternalHttpClient(
+        ext_responses or _make_push_github_responses()
+    )
+    bulk_http = MockHttpClient()
+
+    return MockAppContext(
+        state_data=state_data,
+        settings_data=settings_data,
+        graph_client=graph,
+        http_client=bulk_http,
+        ext_http_client=ext_http,
+    )
+
+
+# ===================================================================
+# Tests — push_sync
+# ===================================================================
+
+
+class TestPushSync:
+    @pytest.mark.asyncio
+    async def test_happy_path(self):
+        """Push sync patches an issue and updates lastSyncedAt."""
+        tasks = [{
+            "iri": "https://example.org/data/Task/gh-001",
+            "uuid": "I_kwDO_test1",
+            "url": "https://github.com/owner/repo/issues/1",
+            "extId": "#1",
+            "status": "done",
+            "title": "Completed task",
+        }]
+        patch_resp = MockResponse(200, {"number": 1, "state": "closed"})
+        ctx = _make_push_context(
+            changed_tasks=tasks,
+            ext_responses=_make_push_github_responses(
+                patch_responses=[patch_resp],
+            ),
+        )
+        result = await push_sync(ctx)
+        assert result["status"] == "ok"
+        assert result["pushed"] == 1
+        assert result["errors"] == [] or len(result["errors"]) == 0
+
+    @pytest.mark.asyncio
+    async def test_not_connected_skip(self):
+        """Push sync skips when not connected."""
+        ctx = _make_push_context(connected=False)
+        result = await push_sync(ctx)
+        assert result["status"] == "skipped"
+        assert "not connected" in result.get("reason", "")
+
+    @pytest.mark.asyncio
+    async def test_pull_only_skip(self):
+        """Push sync skips when direction is pull-only."""
+        ctx = _make_push_context(sync_direction="pull-only")
+        result = await push_sync(ctx)
+        assert result["status"] == "skipped"
+        assert "pull-only" in result.get("reason", "")
+
+    @pytest.mark.asyncio
+    async def test_no_changed_tasks(self):
+        """Push sync returns ok with 0 pushed when no tasks changed."""
+        ctx = _make_push_context(changed_tasks=None)
+        result = await push_sync(ctx)
+        assert result["status"] == "ok"
+        assert result["pushed"] == 0
+
+    @pytest.mark.asyncio
+    async def test_partial_failure_with_errors(self):
+        """When one task fails to push, it's recorded in errors list."""
+        tasks = [
+            {
+                "iri": "https://example.org/data/Task/gh-001",
+                "uuid": "I_kwDO_test1",
+                "url": "https://github.com/owner/repo/issues/1",
+                "status": "done",
+                "title": "Good task",
+            },
+            {
+                "iri": "https://example.org/data/Task/gh-002",
+                "uuid": "I_kwDO_test2",
+                "url": "https://github.com/owner/repo/issues/2",
+                "status": "todo",
+                "title": "Bad task",
+            },
+        ]
+        # First PATCH succeeds, second fails
+        ctx = _make_push_context(
+            changed_tasks=tasks,
+            ext_responses=[
+                MockResponse(200, {"login": "testuser"}, headers={}),
+                MockResponse(200, {"number": 1, "state": "closed"}),
+                MockResponse(422, {"message": "Validation Failed"}),
+            ],
+        )
+        result = await push_sync(ctx)
+        assert result["pushed"] == 1
+        assert len(result["errors"]) == 1
+        assert "gh-002" in result["errors"][0]["iri"]
+
+    @pytest.mark.asyncio
+    async def test_last_synced_at_updated(self):
+        """Push sync updates lastSyncedAt via object.patch command."""
+        tasks = [{
+            "iri": "https://example.org/data/Task/gh-001",
+            "uuid": "I_kwDO_test1",
+            "url": "https://github.com/owner/repo/issues/1",
+            "status": "done",
+            "title": "Task",
+        }]
+        patch_resp = MockResponse(200, {"number": 1})
+        ctx = _make_push_context(
+            changed_tasks=tasks,
+            ext_responses=_make_push_github_responses(
+                patch_responses=[patch_resp],
+            ),
+        )
+        await push_sync(ctx)
+
+        # Check that bulk POST includes lastSyncedAt update
+        bulk_http = ctx.commands._client
+        bulk_posts = [p for p in bulk_http.posts if p["url"] == "/api/commands/bulk"]
+        assert len(bulk_posts) >= 1
+        patch_cmds = [
+            c for p in bulk_posts
+            for c in p["json"]["commands"]
+            if c["command"] == "object.patch"
+        ]
+        assert any(
+            f"{BPKM}lastSyncedAt" in c["params"].get("properties", {})
+            for c in patch_cmds
+        )
+
+    @pytest.mark.asyncio
+    async def test_parse_external_url_failure(self):
+        """Tasks with unparseable URLs are recorded as errors, not exceptions."""
+        tasks = [{
+            "iri": "https://example.org/data/Task/gh-bad",
+            "uuid": "I_kwDO_bad",
+            "url": "not-a-valid-url",
+            "status": "todo",
+            "title": "Bad URL task",
+        }]
+        ctx = _make_push_context(changed_tasks=tasks)
+        result = await push_sync(ctx)
+        assert result["pushed"] == 0
+        assert len(result["errors"]) == 1
+        assert "Could not parse" in result["errors"][0]["error"]
+
+    @pytest.mark.asyncio
+    async def test_empty_patch_data_skipped(self):
+        """Task with no pushable fields is skipped, not errored."""
+        tasks = [{
+            "iri": "https://example.org/data/Task/gh-skip",
+            "uuid": "I_kwDO_skip",
+            "url": "https://github.com/owner/repo/issues/99",
+            # No title, no status, no tags — build_issue_patch returns {}
+        }]
+        ctx = _make_push_context(changed_tasks=tasks)
+        result = await push_sync(ctx)
+        assert result["pushed"] == 0
+        assert result["skipped"] == 1
+        assert len(result["errors"]) == 0
+
+
+# ===================================================================
+# Tests — Loop prevention in pull_sync
+# ===================================================================
+
+
+class TestLoopPrevention:
+    @pytest.mark.asyncio
+    async def test_skip_when_updated_at_lte_last_synced(self):
+        """Issue skipped when updated_at <= existing task's lastSyncedAt."""
+        issue = make_issue(
+            number=42,
+            updated_at="2026-03-18T10:00:00Z",
+        )
+        slug = compute_issue_slug("owner/repo", 42)
+        graph = MockGraphClient(slug_map={
+            slug: {
+                "iri": f"https://example.org/data/Task/{slug}",
+                "lastSyncedAt": "2026-03-18T12:00:00Z",  # after updated_at
+            },
+        })
+        ext_http = MockExternalHttpClient(_make_github_responses([issue]))
+        bulk_http = MockHttpClient()
+        ctx = MockAppContext(
+            state_data=_make_connected_state(),
+            settings_data=_make_settings_with_repos(),
+            graph_client=graph,
+            http_client=bulk_http,
+            ext_http_client=ext_http,
+        )
+        result = await pull_sync(ctx)
+        assert result["skipped"] >= 1
+        assert result["updated"] == 0
+
+    @pytest.mark.asyncio
+    async def test_process_when_updated_at_gt_last_synced(self):
+        """Issue processed when updated_at > existing task's lastSyncedAt."""
+        issue = make_issue(
+            number=43,
+            updated_at="2026-03-19T10:00:00Z",
+        )
+        slug = compute_issue_slug("owner/repo", 43)
+        graph = MockGraphClient(slug_map={
+            slug: {
+                "iri": f"https://example.org/data/Task/{slug}",
+                "lastSyncedAt": "2026-03-18T08:00:00Z",  # before updated_at
+            },
+        })
+        ext_http = MockExternalHttpClient(_make_github_responses([issue]))
+        bulk_http = MockHttpClient()
+        ctx = MockAppContext(
+            state_data=_make_connected_state(),
+            settings_data=_make_settings_with_repos(),
+            graph_client=graph,
+            http_client=bulk_http,
+            ext_http_client=ext_http,
+        )
+        result = await pull_sync(ctx)
+        assert result["updated"] == 1
+        assert result["skipped"] == 0
+
+    @pytest.mark.asyncio
+    async def test_process_when_no_last_synced_at(self):
+        """Issue processed when existing task has no lastSyncedAt."""
+        issue = make_issue(number=44, updated_at="2026-03-18T10:00:00Z")
+        slug = compute_issue_slug("owner/repo", 44)
+        graph = MockGraphClient(slug_map={
+            slug: f"https://example.org/data/Task/{slug}",
+            # No lastSyncedAt — plain IRI string, not dict
+        })
+        ext_http = MockExternalHttpClient(_make_github_responses([issue]))
+        bulk_http = MockHttpClient()
+        ctx = MockAppContext(
+            state_data=_make_connected_state(),
+            settings_data=_make_settings_with_repos(),
+            graph_client=graph,
+            http_client=bulk_http,
+            ext_http_client=ext_http,
+        )
+        result = await pull_sync(ctx)
+        assert result["updated"] == 1
+
+    @pytest.mark.asyncio
+    async def test_new_issue_not_affected_by_loop_prevention(self):
+        """New issues (no existing task) are not affected by loop prevention."""
+        issue = make_issue(number=45)
+        ext_http = MockExternalHttpClient(_make_github_responses([issue]))
+        bulk_http = MockHttpClient()
+        ctx = MockAppContext(
+            state_data=_make_connected_state(),
+            settings_data=_make_settings_with_repos(),
+            http_client=bulk_http,
+            ext_http_client=ext_http,
+        )
+        result = await pull_sync(ctx)
+        assert result["created"] == 1
+
+
+# ===================================================================
+# Tests — Push sync diagnostics
+# ===================================================================
+
+
+class TestPushSyncDiagnostics:
+    @pytest.mark.asyncio
+    async def test_last_push_result_structure(self):
+        """last_push_result has status, pushed, errors, and timestamp."""
+        tasks = [{
+            "iri": "https://example.org/data/Task/gh-diag",
+            "uuid": "I_kwDO_diag",
+            "url": "https://github.com/owner/repo/issues/99",
+            "status": "done",
+            "title": "Diag task",
+        }]
+        patch_resp = MockResponse(200, {"number": 99})
+        ctx = _make_push_context(
+            changed_tasks=tasks,
+            ext_responses=_make_push_github_responses(
+                patch_responses=[patch_resp],
+            ),
+        )
+        await push_sync(ctx)
+
+        raw = await ctx.state.get("last_push_result")
+        assert raw is not None
+        result = json.loads(raw)
+        assert "status" in result
+        assert "pushed" in result
+        assert "errors" in result
+        assert "timestamp" in result
+        assert isinstance(result["pushed"], int)
+        assert isinstance(result["errors"], list)
+        assert isinstance(result["timestamp"], str)
+
+    @pytest.mark.asyncio
+    async def test_last_push_result_on_skip(self):
+        """last_push_result is stored even when sync is skipped."""
+        ctx = _make_push_context(connected=False)
+        await push_sync(ctx)
+
+        raw = await ctx.state.get("last_push_result")
+        assert raw is not None
+        result = json.loads(raw)
+        assert result["status"] == "skipped"
+        assert "timestamp" in result
+
+    @pytest.mark.asyncio
+    async def test_error_entries_have_iri_and_message(self):
+        """Error entries in last_push_result contain task IRI and error message."""
+        tasks = [{
+            "iri": "https://example.org/data/Task/gh-err",
+            "uuid": "I_kwDO_err",
+            "url": "https://github.com/owner/repo/issues/500",
+            "status": "done",
+            "title": "Error task",
+        }]
+        ctx = _make_push_context(
+            changed_tasks=tasks,
+            ext_responses=[
+                MockResponse(200, {"login": "testuser"}, headers={}),
+                MockResponse(500, {"message": "Server Error"}),
+            ],
+        )
+        await push_sync(ctx)
+
+        raw = await ctx.state.get("last_push_result")
+        result = json.loads(raw)
+        assert len(result["errors"]) == 1
+        assert "iri" in result["errors"][0]
+        assert "error" in result["errors"][0]
+        assert "gh-err" in result["errors"][0]["iri"]

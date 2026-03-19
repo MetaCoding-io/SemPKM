@@ -23,11 +23,13 @@ from datetime import datetime, timezone
 try:
     from services.field_mapper import (
         BPKM,
+        build_issue_patch,
         build_task_properties,
         compute_issue_slug,
         extract_linked_issue_numbers,
         get_assignee_info,
         is_pull_request,
+        parse_external_url,
     )
     from services.person_matcher import PersonMatcher
     from services.auth import get_connection_status
@@ -35,11 +37,13 @@ try:
 except ImportError:
     from field_mapper import (
         BPKM,
+        build_issue_patch,
         build_task_properties,
         compute_issue_slug,
         extract_linked_issue_numbers,
         get_assignee_info,
         is_pull_request,
+        parse_external_url,
     )
     from person_matcher import PersonMatcher
     from auth import get_connection_status
@@ -76,12 +80,13 @@ async def _find_existing_task(
             f'  ?task <{BPKM}externalProvider> "{provider}" .\n'
         )
     sparql = (
-        "SELECT ?task ?title ?status WHERE {\n"
+        "SELECT ?task ?title ?status ?lastSynced WHERE {\n"
         f"  ?task a <{BPKM}Task> .\n"
         f"{provider_clause}"
         f'  FILTER(STRENDS(STR(?task), "/Task/{slug}"))\n'
         f"  OPTIONAL {{ ?task <dcterms:title> ?title }}\n"
         f"  OPTIONAL {{ ?task <{BPKM}taskStatus> ?status }}\n"
+        f"  OPTIONAL {{ ?task <{BPKM}lastSyncedAt> ?lastSynced }}\n"
         "} LIMIT 1"
     )
     result = await graph_client.query(sparql)
@@ -93,6 +98,7 @@ async def _find_existing_task(
         "iri": row["task"]["value"],
         "title": row.get("title", {}).get("value"),
         "status": row.get("status", {}).get("value"),
+        "lastSyncedAt": row.get("lastSynced", {}).get("value"),
     }
 
 
@@ -165,6 +171,214 @@ async def _submit_commands_batched(
         resp.raise_for_status()
         results.append(resp.json())
     return results
+
+
+# ---------------------------------------------------------------------------
+# Push sync — find locally modified tasks
+# ---------------------------------------------------------------------------
+
+
+async def _find_changed_tasks(graph_client) -> list[dict]:
+    """Find tasks synced from GitHub that have local modifications.
+
+    A task is considered changed when:
+    - It has ``externalProvider = "github"`` and ``externalUuid`` (was pulled)
+    - Its ``dcterms:modified`` > ``bpkm:lastSyncedAt``, or it has no
+      ``lastSyncedAt`` (treat as changed)
+    - Its ``syncDirection`` is not ``"pull-only"``
+
+    Returns a list of dicts with keys:
+    ``iri``, ``externalUuid``, ``externalUrl``, ``externalId``,
+    ``status``, ``title``, ``tags``, ``lastSyncedAt``.
+    """
+    sparql = (
+        "SELECT ?task ?uuid ?url ?extId ?status ?title ?tags ?lastSynced ?syncDir ?modified WHERE {\n"
+        f'  ?task a <{BPKM}Task> .\n'
+        f'  ?task <{BPKM}externalProvider> "github" .\n'
+        f'  ?task <{BPKM}externalUuid> ?uuid .\n'
+        f'  OPTIONAL {{ ?task <{BPKM}externalUrl> ?url }}\n'
+        f'  OPTIONAL {{ ?task <{BPKM}externalId> ?extId }}\n'
+        f'  OPTIONAL {{ ?task <{BPKM}taskStatus> ?status }}\n'
+        f'  OPTIONAL {{ ?task <dcterms:title> ?title }}\n'
+        f'  OPTIONAL {{ ?task <{BPKM}tags> ?tags }}\n'
+        f'  OPTIONAL {{ ?task <{BPKM}lastSyncedAt> ?lastSynced }}\n'
+        f'  OPTIONAL {{ ?task <{BPKM}syncDirection> ?syncDir }}\n'
+        f'  OPTIONAL {{ ?task <dcterms:modified> ?modified }}\n'
+        f'  FILTER(!BOUND(?syncDir) || ?syncDir != "pull-only")\n'
+        f'  FILTER(!BOUND(?lastSynced) || !BOUND(?modified) || STR(?modified) > STR(?lastSynced))\n'
+        "}"
+    )
+    result = await graph_client.query(sparql)
+    bindings = result.get("results", {}).get("bindings", [])
+
+    tasks = []
+    for row in bindings:
+        tasks.append({
+            "iri": row["task"]["value"],
+            "externalUuid": row["uuid"]["value"],
+            "externalUrl": row.get("url", {}).get("value"),
+            "externalId": row.get("extId", {}).get("value"),
+            "status": row.get("status", {}).get("value"),
+            "title": row.get("title", {}).get("value"),
+            "tags": row.get("tags", {}).get("value"),
+            "lastSyncedAt": row.get("lastSynced", {}).get("value"),
+        })
+    return tasks
+
+
+# ---------------------------------------------------------------------------
+# Main push sync
+# ---------------------------------------------------------------------------
+
+
+async def push_sync(ctx) -> dict:
+    """Run the full bpkm:Task → GitHub push sync pipeline.
+
+    Steps:
+      1. Check auth status
+      2. Read sync_direction from settings — skip if "pull-only"
+      3. Find locally changed tasks via SPARQL
+      4. For each changed task: reverse map → PATCH issue
+      5. Update lastSyncedAt on each pushed task
+      6. Store last_push_result in state
+
+    Returns a result dict with ``status``, ``pushed``, ``skipped``,
+    ``errors``, and ``timestamp`` fields.
+    """
+    push_timestamp = datetime.now(timezone.utc).isoformat()
+
+    # 1. Auth check
+    github_client = GitHubClient(
+        http_client=ctx.http, state_client=ctx.state
+    )
+    status = await get_connection_status(ctx.state, github_client)
+    if not status["connected"]:
+        result = {
+            "status": "skipped",
+            "pushed": 0,
+            "skipped": 0,
+            "errors": [],
+            "timestamp": push_timestamp,
+            "reason": "not connected",
+        }
+        await ctx.state.set("last_push_result", json.dumps(result))
+        return result
+
+    # 2. Read sync direction from settings
+    sync_direction = await ctx.settings.get("sync_direction")
+    if sync_direction == "pull-only":
+        result = {
+            "status": "skipped",
+            "pushed": 0,
+            "skipped": 0,
+            "errors": [],
+            "timestamp": push_timestamp,
+            "reason": "sync direction is pull-only",
+        }
+        await ctx.state.set("last_push_result", json.dumps(result))
+        return result
+
+    # 3. Find changed tasks
+    changed_tasks = await _find_changed_tasks(ctx.graph)
+    if not changed_tasks:
+        logger.info("push_sync: no changed tasks found")
+        result = {
+            "status": "ok",
+            "pushed": 0,
+            "skipped": 0,
+            "errors": [],
+            "timestamp": push_timestamp,
+        }
+        await ctx.state.set("last_push_result", json.dumps(result))
+        return result
+
+    logger.info("push_sync: found %d changed tasks", len(changed_tasks))
+
+    # 4. Push each changed task
+    http_client = ctx.commands._client  # bypass SDK for bulk commands
+    pushed_count = 0
+    skipped_count = 0
+    errors: list[dict] = []
+
+    for task in changed_tasks:
+        try:
+            # Build task_props from SPARQL result fields
+            task_props: dict = {}
+            if task.get("title"):
+                task_props["dcterms:title"] = task["title"]
+            if task.get("status"):
+                task_props[f"{BPKM}taskStatus"] = task["status"]
+            if task.get("tags"):
+                # tags come as a single string from SPARQL; wrap in list
+                task_props[f"{BPKM}tags"] = (
+                    task["tags"] if isinstance(task["tags"], list)
+                    else [task["tags"]]
+                )
+
+            # Reverse map to GitHub PATCH body
+            patch_data = build_issue_patch(task_props)
+            if not patch_data:
+                skipped_count += 1
+                continue
+
+            # Parse external URL to get owner/repo/number
+            parsed = parse_external_url(task.get("externalUrl"))
+            if not parsed:
+                errors.append({
+                    "iri": task["iri"],
+                    "error": f"Could not parse external URL: {task.get('externalUrl')}",
+                })
+                logger.warning(
+                    "push_sync: could not parse URL for task %s: %s",
+                    task["iri"], task.get("externalUrl"),
+                )
+                continue
+
+            owner, repo, number = parsed
+
+            # PATCH the issue on GitHub
+            await github_client.patch_issue(owner, repo, number, patch_data)
+
+            # Update lastSyncedAt on the pushed task
+            update_cmds = [{
+                "command": "object.patch",
+                "params": {
+                    "iri": task["iri"],
+                    "properties": {f"{BPKM}lastSyncedAt": push_timestamp},
+                },
+            }]
+            await _submit_commands_batched(http_client, update_cmds)
+
+            pushed_count += 1
+
+        except Exception as e:
+            errors.append({"iri": task["iri"], "error": str(e)})
+            logger.warning(
+                "push_sync: error pushing task %s: %s", task["iri"], e,
+            )
+
+    # Determine overall status
+    if not errors:
+        overall_status = "ok"
+    elif pushed_count > 0:
+        overall_status = "partial"
+    else:
+        overall_status = "error"
+
+    result = {
+        "status": overall_status,
+        "pushed": pushed_count,
+        "skipped": skipped_count,
+        "errors": errors,
+        "timestamp": push_timestamp,
+    }
+
+    await ctx.state.set("last_push_result", json.dumps(result))
+    logger.info(
+        "Push sync complete: status=%s pushed=%d skipped=%d errors=%d",
+        overall_status, pushed_count, skipped_count, len(errors),
+    )
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -259,6 +473,14 @@ async def pull_sync(ctx) -> dict:
             try:
                 slug = compute_issue_slug(repo_full_name, issue["number"])
                 existing = await _find_existing_task(ctx.graph, slug)
+
+                # Loop prevention: skip if we just pushed this task
+                # and the remote hasn't been updated since
+                if existing and existing.get("lastSyncedAt"):
+                    issue_updated = issue.get("updated_at", "")
+                    if issue_updated and issue_updated <= existing["lastSyncedAt"]:
+                        skipped_count += 1
+                        continue
 
                 # Resolve assignee
                 assignee_info = get_assignee_info(issue)

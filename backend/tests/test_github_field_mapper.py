@@ -422,3 +422,81 @@ class TestExtractLinkedIssueNumbers:
         ]
         result = fm.extract_linked_issue_numbers(events, "owner/repo")
         assert result == [("owner/repo", 10), ("owner/repo", 30)]
+
+
+# ===================================================================
+# parse_external_url tests
+# ===================================================================
+
+class TestParseExternalUrl:
+    def test_issue_url(self):
+        result = fm.parse_external_url("https://github.com/owner/repo/issues/42")
+        assert result == ("owner", "repo", 42)
+
+    def test_pr_url(self):
+        result = fm.parse_external_url("https://github.com/owner/repo/pull/7")
+        assert result == ("owner", "repo", 7)
+
+    def test_invalid_url(self):
+        result = fm.parse_external_url("not a url at all")
+        assert result is None
+
+    def test_non_github_url(self):
+        result = fm.parse_external_url("https://gitlab.com/owner/repo/issues/1")
+        assert result is None
+
+    def test_missing_segments(self):
+        result = fm.parse_external_url("https://github.com/owner/repo")
+        assert result is None
+
+    def test_no_path(self):
+        result = fm.parse_external_url("https://github.com/")
+        assert result is None
+
+    def test_none_input(self):
+        result = fm.parse_external_url(None)
+        assert result is None
+
+    def test_empty_string(self):
+        result = fm.parse_external_url("")
+        assert result is None
+
+    def test_wrong_path_type(self):
+        """URL with /tree/ or /blob/ instead of /issues/ or /pull/."""
+        result = fm.parse_external_url("https://github.com/owner/repo/tree/main")
+        assert result is None
+
+    def test_www_github(self):
+        """www.github.com should also be accepted."""
+        result = fm.parse_external_url("https://www.github.com/owner/repo/issues/10")
+        assert result == ("owner", "repo", 10)
+
+
+# ===================================================================
+# build_task_properties lastSyncedAt tests
+# ===================================================================
+
+class TestBuildTaskPropertiesLastSyncedAt:
+    def test_last_synced_at_present_in_output(self):
+        issue = _make_issue()
+        props = fm.build_task_properties(issue, "owner/repo")
+        assert f"{BPKM}lastSyncedAt" in props
+        # Should be an ISO timestamp string
+        assert "T" in props[f"{BPKM}lastSyncedAt"]
+
+    def test_custom_sync_time_used(self):
+        issue = _make_issue()
+        props = fm.build_task_properties(
+            issue, "owner/repo", sync_time="2026-03-18T10:00:00+00:00"
+        )
+        assert props[f"{BPKM}lastSyncedAt"] == "2026-03-18T10:00:00+00:00"
+
+    def test_last_synced_at_not_stripped(self):
+        """lastSyncedAt is present even when other optional fields are stripped."""
+        issue = _make_issue(labels=[], assignees=[], milestone=None)
+        props = fm.build_task_properties(issue, "owner/repo")
+        # Stripped fields should be absent
+        assert f"{BPKM}tags" not in props
+        assert f"{BPKM}assignedTo" not in props
+        # But lastSyncedAt is always there
+        assert f"{BPKM}lastSyncedAt" in props

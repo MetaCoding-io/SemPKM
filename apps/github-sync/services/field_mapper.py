@@ -8,6 +8,7 @@ prefix is not in the platform's COMMON_PREFIXES.
 from __future__ import annotations
 
 import hashlib
+from urllib.parse import urlparse
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -62,6 +63,36 @@ def compute_issue_slug(repo_full_name: str, issue_number: int) -> str:
     composite = f"{repo_full_name}#{issue_number}"
     digest = hashlib.sha256(composite.encode()).hexdigest()[:16]
     return f"gh-{digest}"
+
+
+# ---------------------------------------------------------------------------
+# URL parsing (for push sync)
+# ---------------------------------------------------------------------------
+
+
+def parse_external_url(url: str | None) -> tuple[str, str, int] | None:
+    """Parse a GitHub issue/PR URL into ``(owner, repo, number)``.
+
+    Handles both ``/issues/{N}`` and ``/pull/{N}`` path formats.
+    Returns ``None`` for invalid, unparseable, or non-GitHub URLs.
+    """
+    if not url:
+        return None
+    try:
+        parsed = urlparse(url)
+        if parsed.hostname not in ("github.com", "www.github.com"):
+            return None
+        # Path like /owner/repo/issues/42 or /owner/repo/pull/7
+        parts = [p for p in parsed.path.split("/") if p]
+        if len(parts) < 4:
+            return None
+        owner, repo, kind, number_str = parts[0], parts[1], parts[2], parts[3]
+        if kind not in ("issues", "pull"):
+            return None
+        number = int(number_str)
+        return (owner, repo, number)
+    except (ValueError, AttributeError):
+        return None
 
 
 # ---------------------------------------------------------------------------
@@ -132,6 +163,7 @@ def build_task_properties(
     issue: dict,
     repo_full_name: str,
     person_iri: str | None = None,
+    sync_time: str | None = None,
 ) -> dict:
     """Build a properties dict for ``object.create`` / ``object.patch``.
 
@@ -144,14 +176,22 @@ def build_task_properties(
         and project reference.
     person_iri:
         Optional SemPKM Person IRI for the first assignee.
+    sync_time:
+        ISO-8601 timestamp for ``bpkm:lastSyncedAt``.  When ``None``,
+        the current UTC time is used.
 
     Returns
     -------
     dict
         Property mapping where keys are full IRIs (except ``dcterms:title``
         which uses the compact form recognised by the platform). Keys with
-        ``None``, empty-string, or empty-list values are omitted.
+        ``None``, empty-string, or empty-list values are omitted — except
+        ``lastSyncedAt`` which is always present.
     """
+    from datetime import datetime, timezone as tz
+
+    if sync_time is None:
+        sync_time = datetime.now(tz.utc).isoformat()
     # Tags from labels
     labels = issue.get("labels", [])
     tags = [lbl["name"] for lbl in labels if isinstance(lbl, dict) and "name" in lbl]
@@ -180,11 +220,16 @@ def build_task_properties(
     }
 
     # Strip None, empty string, and empty list values
-    return {
+    cleaned = {
         k: v
         for k, v in props.items()
         if v is not None and v != "" and v != []
     }
+
+    # lastSyncedAt is always present (not stripped)
+    cleaned[f"{BPKM}lastSyncedAt"] = sync_time
+
+    return cleaned
 
 
 # ---------------------------------------------------------------------------
