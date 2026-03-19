@@ -1,7 +1,7 @@
 # GSD State
 
 **Active Milestone:** M015: Browser Extension Phase 2 — Knowledge Context Overlay
-**Active Slice:** S02: In-context actions — Link to page and Add Evidence
+**Active Slice:** S03: Settings, E2E tests, and user guide
 **Phase:** executing
 **Requirements Status:** 61 active · 114 validated · 7 deferred · 0 out of scope
 
@@ -44,4 +44,4 @@
 - None
 
 ## Next Action
-Execute T01: Wire "Link to this page" action through service worker.
+Execute T01: Add Context Overlay settings section to options page and register requirements.
