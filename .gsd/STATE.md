@@ -1,8 +1,8 @@
 # GSD State
 
 **Active Milestone:** M016: Linear Sync App
-**Active Slice:** S01: OAuth + App Skeleton + Linear Client
-**Phase:** planned
+**Active Slice:** S02: Pull Sync — Linear Issues to bpkm:Task
+**Phase:** execution
 **Requirements Status:** 61 active · 122 validated · 7 deferred · 0 out of scope
 
 ## Milestone Registry
@@ -38,10 +38,10 @@
 - ⬜ **M030:** M030
 
 ## Recent Decisions
-- D203: Linear app unit tests use importlib loading from apps/ directory with mocked SDK clients
+- None recorded
 
 ## Blockers
 - None
 
 ## Next Action
-Execute T01 of S01 (app manifest, skeleton, and settings page shell).
+Execute T01: Build field mapper with full unit tests.
