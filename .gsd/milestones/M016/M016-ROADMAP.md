@@ -62,7 +62,7 @@ This milestone is complete only when all are true:
   > After this: user installs Linear Sync app, authenticates via OAuth or API key, sees their Linear workspace name and team list on the settings page — proving the full auth flow and API connection through the App Platform
 - [x] **S02: Pull Sync — Linear Issues to bpkm:Task** `risk:high` `depends:[S01]`
   > After this: user selects a Linear team/project, triggers poll, and sees issues appear as correctly-mapped bpkm:Task objects in the workspace object browser with status, priority, assignee, labels, due date, and external link
-- [ ] **S03: Push Sync + Settings Polish + Admin Detail** `risk:medium` `depends:[S02]`
+- [x] **S03: Push Sync + Settings Polish + Admin Detail** `risk:medium` `depends:[S02]`
   > After this: user edits a synced task's status in SemPKM and sees the change reflected in Linear; settings page has full sync controls; admin detail shows sync run history
 - [ ] **S04: E2E Tests + User Guide** `risk:low` `depends:[S03]`
   > After this: Playwright E2E test proves the install → configure → poll → verify flow against mocked Linear API; Chapter 34 documents the full Linear sync workflow with setup instructions
