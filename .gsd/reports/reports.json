@@ -115,6 +115,22 @@
       "doneMilestones": 15,
       "totalMilestones": 30,
       "phase": "pre-planning"
+    },
+    {
+      "filename": "M016-2026-03-19T04-54-40.html",
+      "generatedAt": "2026-03-19T04:54:40.633Z",
+      "milestoneId": "M016",
+      "milestoneTitle": "Linear Sync App",
+      "label": "M016: Linear Sync App",
+      "kind": "milestone",
+      "totalCost": 604.8629004999996,
+      "totalTokens": 846092268,
+      "totalDuration": 97568600,
+      "doneSlices": 143,
+      "totalSlices": 143,
+      "doneMilestones": 16,
+      "totalMilestones": 30,
+      "phase": "pre-planning"
     }
   ]
 }
