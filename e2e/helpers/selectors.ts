@@ -168,6 +168,21 @@ export const SEL = {
     commandDialog: '#test-app-command-dialog',
   },
 
+  // GitHub Sync E2E
+  githubSync: {
+    patInput: '#github-pat',
+    connectBtn: '.api-key-form button[type="submit"]',
+    connectStatus: '.connection-status',
+    username: '.username',
+    repoCheckbox: '.repo-checkbox-item input[type="checkbox"]',
+    saveReposBtn: '.repos-section button[type="submit"]',
+    syncDirectionBidirectional: 'input[name="sync_direction"][value="bidirectional"]',
+    saveConfigBtn: '.sync-config-form button[type="submit"]',
+    syncNowBtn: '#sync-now-btn',
+    syncStats: '.sync-stats',
+    statValue: '.stat-value',
+  },
+
   // Linear Sync E2E
   linearSync: {
     apiKeyInput: '#linear-api-key',

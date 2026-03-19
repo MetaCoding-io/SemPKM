@@ -30,7 +30,7 @@ async def apps_explorer(request: Request):
     manifest ``ui.pages`` entries.  Consumed by the APPS explorer section
     in workspace.html via htmx lazy-load.
     """
-    app_registry = request.app.state.app_registry
+    app_registry = request.app.state.app_manager.registry
     app_manager = request.app.state.app_manager
     templates = request.app.state.templates
 
@@ -74,7 +74,7 @@ async def app_page(request: Request, app_id: str, page_id: str):
     (``/app/{app_id}/_fragments/{fragment}``), and includes the app's
     CSS and JS assets from the static asset path.
     """
-    app_registry = request.app.state.app_registry
+    app_registry = request.app.state.app_manager.registry
     templates = request.app.state.templates
 
     manifest = app_registry.get_manifest(app_id)
@@ -126,7 +126,7 @@ async def right_pane_sections(
     collects app contributions matching those types.  Platform sections
     (relations, lint, comments) are always included.
     """
-    app_registry = request.app.state.app_registry
+    app_registry = request.app.state.app_manager.registry
     templates = request.app.state.templates
 
     encoded_iri = quote(iri, safe="")
@@ -187,7 +187,7 @@ async def views_explorer_apps(request: Request):
     Queries the registry for running apps that declare ``ui.contributions.views``
     entries. Each view becomes a clickable tree-leaf that opens an app view tab.
     """
-    app_registry = request.app.state.app_registry
+    app_registry = request.app.state.app_manager.registry
     app_manager = request.app.state.app_manager
     templates = request.app.state.templates
 
@@ -234,7 +234,7 @@ async def app_view_tab(request: Request, app_id: str, view_id: str):
     Loads the app's view fragment via htmx through the proxy chain,
     and includes the app's CSS and JS assets.
     """
-    app_registry = request.app.state.app_registry
+    app_registry = request.app.state.app_manager.registry
     templates = request.app.state.templates
 
     manifest = app_registry.get_manifest(app_id)
@@ -287,7 +287,7 @@ async def commands_list(request: Request):
     Each entry provides ``id``, ``title``, ``section``, ``actionType``, and
     ``actionUrl`` for the frontend to inject into ninja-keys.
     """
-    app_registry = request.app.state.app_registry
+    app_registry = request.app.state.app_manager.registry
     app_manager = request.app.state.app_manager
 
     commands: list[dict] = []
