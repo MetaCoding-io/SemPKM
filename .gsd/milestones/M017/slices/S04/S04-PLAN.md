@@ -58,7 +58,7 @@
   - Verify: `npx playwright test e2e/tests/32-github-sync/github-sync.spec.ts` passes. All 12 phases complete successfully.
   - Done when: E2E test passes against Docker test stack on port 3901 with mock-github providing canned responses.
 
-- [ ] **T03: Chapter 35 user guide + glossary and navigation updates** `est:30m`
+- [x] **T03: Chapter 35 user guide + glossary and navigation updates** `est:30m`
   - Why: Documents the GitHub sync workflow for end users. Completes GH-07 requirement coverage alongside T01+T02.
   - Files: `docs/guide/35-github-sync.md`, `docs/guide/README.md`, `docs/guide/appendix-d-glossary.md`, `docs/guide/34-linear-sync.md`
   - Do: Clone Ch 34 structure, adapt for GitHub: Prerequisites, Installing the App, Connecting to GitHub (PAT only), Selecting Repositories, Sync Configuration, Manual Sync, Understanding Sync Stats, Field Mapping tables (GitHub→bpkm:Task from M017-RESEARCH), Push Sync, PR-to-Issue Linking (unique to GitHub), Admin Monitoring, Troubleshooting, See Also. Add Ch 35 entry to README TOC. Add "GitHub Sync" glossary entry. Update Ch 34 "Next" nav link to point to Ch 35. Set Ch 35 nav links: Previous=Ch 34, Next=Appendix A.

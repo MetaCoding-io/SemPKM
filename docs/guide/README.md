@@ -61,6 +61,7 @@ setup to advanced topics like SPARQL queries and creating your own Mental Models
 32. [Browser Extension](32-browser-extension.md)
 33. [Context Overlay](33-context-overlay.md)
 34. [Linear Sync](34-linear-sync.md)
+35. [GitHub Sync](35-github-sync.md)
 
 ## Part IX: Identity and Federation
 
