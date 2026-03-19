@@ -9,12 +9,13 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 from typing import Any
 
 logger = logging.getLogger("linear_sync.client")
 
-LINEAR_GRAPHQL_URL = "https://api.linear.app/graphql"
-LINEAR_TOKEN_URL = "https://api.linear.app/oauth/token"
+LINEAR_GRAPHQL_URL = os.environ.get("LINEAR_API_URL", "https://api.linear.app/graphql")
+LINEAR_TOKEN_URL = os.environ.get("LINEAR_TOKEN_URL", "https://api.linear.app/oauth/token")
 
 MAX_PAGINATION_PAGES = 50
 

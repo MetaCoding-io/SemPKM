@@ -11,7 +11,7 @@
   <section class="teams-section">
     <h4>Synced Teams</h4>
     <p class="section-hint">Select which teams to sync issues from.</p>
-    <form hx-post="/_fragments/settings/teams"
+    <form hx-post="/app/linear-sync/_fragments/settings/teams"
           hx-target="#connect-content"
           hx-swap="innerHTML">
       <div class="team-checkbox-list">
@@ -40,7 +40,7 @@
   <section class="sync-config-section">
     <h4>Sync Configuration</h4>
     <form class="sync-config-form"
-          hx-post="/_fragments/settings/sync-config"
+          hx-post="/app/linear-sync/_fragments/settings/sync-config"
           hx-target="#connect-content"
           hx-swap="innerHTML">
       <fieldset class="config-fieldset">
@@ -80,7 +80,7 @@
   <section class="sync-now-section">
     <h4>Manual Sync</h4>
     <p class="section-hint">Run a sync immediately instead of waiting for the next scheduled poll.</p>
-    <form hx-post="/_fragments/sync-now"
+    <form hx-post="/app/linear-sync/_fragments/sync-now"
           hx-target="#connect-content"
           hx-swap="innerHTML"
           hx-indicator=".sync-now-indicator">
@@ -167,7 +167,7 @@
   {# ── Disconnect ── #}
   <section class="disconnect-section">
     <button class="btn btn-danger"
-            hx-post="/_fragments/connect/disconnect"
+            hx-post="/app/linear-sync/_fragments/connect/disconnect"
             hx-target="#connect-content"
             hx-swap="innerHTML"
             hx-confirm="Disconnect from Linear? Sync will stop.">

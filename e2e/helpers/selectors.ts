@@ -167,4 +167,19 @@ export const SEL = {
     rightPaneSection: '#test-app-right-pane',
     commandDialog: '#test-app-command-dialog',
   },
+
+  // Linear Sync E2E
+  linearSync: {
+    apiKeyInput: '#linear-api-key',
+    connectBtn: '.api-key-form button[type="submit"]',
+    connectStatus: '.connection-status',
+    workspaceName: '.workspace-name',
+    teamCheckbox: '.team-checkbox-item input[type="checkbox"]',
+    saveTeamsBtn: '.teams-section button[type="submit"]',
+    syncDirectionBidirectional: 'input[name="sync_direction"][value="bidirectional"]',
+    saveConfigBtn: '.sync-config-form button[type="submit"]',
+    syncNowBtn: '#sync-now-btn',
+    syncStats: '.sync-stats',
+    statValue: '.stat-value',
+  },
 } as const;

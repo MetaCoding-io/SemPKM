@@ -22,6 +22,7 @@ permissions:
   network:
     - "api.linear.app"
     - "linear.app"
+    - "mock-linear"
 
 backend:
   entrypoint: "app:linear_sync_app"
