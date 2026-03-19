@@ -1,8 +1,9 @@
 # GSD State
 
-**Active Milestone:** M017: GitHub Issues Sync App
-**Active Slice:** S04: E2E Tests + User Guide
+**Active Milestone:** M018: Google Calendar Sync App
+**Active Slice:** S01: bpkm:Event type in basic-pkm
 **Phase:** executing
+**Current Task:** T01
 **Requirements Status:** 68 active · 129 validated · 7 deferred · 0 out of scope
 
 ## Milestone Registry
@@ -22,8 +23,8 @@
 - ✅ **M014:** Browser Extension Phase 1 — Smart Structured Capture
 - ✅ **M015:** Browser Extension Phase 2 — Knowledge Context Overlay
 - ✅ **M016:** Linear Sync App
-- 🔄 **M017:** GitHub Issues Sync App
-- ⬜ **M018:** M018
+- ✅ **M017:** GitHub Issues Sync App
+- 🔄 **M018:** Google Calendar Sync App
 - ⬜ **M019:** M019
 - ⬜ **M020:** M020
 - ⬜ **M021:** M021
@@ -44,4 +45,4 @@
 - None
 
 ## Next Action
-Execute T01: Mock GitHub REST API server + docker-compose integration
+Execute T01: Build complete bpkm:Event type in basic-pkm model files.
