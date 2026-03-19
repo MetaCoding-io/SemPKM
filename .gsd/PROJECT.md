@@ -541,7 +541,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Context
 
-**Current state (M014 complete 2026-03-18):**
+**Current state (M015 complete 2026-03-18):**
 - ~60k source LOC (52k Python, 8k JS) + CSS, HTML/Jinja2, JSON-LD
 - 6 Mental Models: basic-pkm v2.0, ppv, gist, crm v1.0, zettelkasten v1.0, research v1.0 (24 files across 4 model directories)
 - Tech stack: FastAPI + RDF4J (LuceneSail) + htmx/vanilla-web + SQLAlchemy (SQLite/PostgreSQL) + wsgidav + a2wsgi + Driver.js + Cytoscape.js + CodeMirror + dockview-core + Alembic + Yasgui CDN + ninja-keys + owlrl + pyshacl + mf2py + http-message-signatures + slowapi
@@ -549,7 +549,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - 58 phases, 80 plans completed across v1.0–v2.6; M002 (7 slices) + M003 (10 slices) + M004 (5 slices) + M005 (9 slices) + M006 (7 slices) + M007 (5 slices) + M008 (4 slices) + M011 (5 slices) + M012 (4 slices) + M013 (3 slices) + M014 (5 slices) milestones complete
 - Backend test suite: 1000+ pytest unit tests, <5s, no Docker dependency
 - E2E test suite: 100 Playwright spec files covering all shipped features
-- Browser extension: `extension/` directory with Chrome MV3 + Firefox manifests, 9+ JS modules, 7 E2E tests (3 capture + 4 context overlay)
+- Browser extension: `extension/` directory with Chrome MV3 + Firefox manifests, 11 JS modules (~2.5k LOC), 7 E2E tests (3 capture + 4 context overlay), 23 unit tests
 - All dependencies pinned (~= compatible release) with uv.lock committed
 - Browser router refactored into 8 domain sub-modules (was 1956-line monolith)
 - Query storage migrated from SQL to RDF (4 SQL tables dropped)
@@ -559,7 +559,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - VFS v2 complete (except write support): type filter, scopeQuery IRI, composable chains, filename templates
 - Spatial canvas: resizable nodes, property flip, live iframe embeds with dual-layer rendering
 - API surface: 4 JSON endpoints for external clients with dual-auth, CORS, and 62 unit tests
-- Browser extension: Chrome MV3 + Firefox, 9 JS modules (~2k LOC), SHACL form renderer, schema.org mapper, reference picker, 3 E2E tests
+- Browser extension Phase 1+2: Chrome MV3 + Firefox, 11 JS modules (~2.5k LOC), SHACL form renderer, schema.org mapper, reference picker, context sidebar with badge + grouped results + actions, 7 E2E tests, 23 unit tests
 
 **Known tech debt:**
 - Cookie secure=False (local dev only — production config deferred)
@@ -682,4 +682,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-03-18 after M014 complete (Browser Extension Phase 1 — 5 slices, Chrome MV3 + Firefox extension with SHACL forms, schema.org auto-fill, relationship picker, context menu, Alt+S shortcut, 13 EXT requirements validated)*
+*Last updated: 2026-03-18 after M015 complete (Browser Extension Phase 2 — Knowledge Context Overlay — 3 slices, sidebar with grouped results, badge count, Open/Link/Evidence actions, 4 validated + 4 partial EXT requirements, 4 E2E tests, Chapter 33 user guide)*
