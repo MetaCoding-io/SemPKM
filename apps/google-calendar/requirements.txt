@@ -1,0 +1,2 @@
+# Google Calendar app dependencies
+# SDK provides httpx, yaml — no additional dependencies needed
