@@ -335,7 +335,7 @@ async def save_sync_config(request: Request):
 @google_calendar_app.route("/_fragments/sync-now", methods=["POST"])
 async def sync_now(request: Request):
     """Trigger an immediate pull sync (and push if bidirectional)."""
-    from services.sync_engine import pull_sync
+    from services.sync_engine import pull_sync, push_sync
 
     ctx: AppContext = request.app.state.ctx
     logger.info("Manual sync triggered")
@@ -350,9 +350,13 @@ async def sync_now(request: Request):
 
     sync_direction = await ctx.state.get("sync_direction")
     if sync_direction == "bidirectional":
-        # Push sync — placeholder for S04
-        push_result = {"status": "skipped", "message": "Push sync not yet implemented"}
-        await ctx.state.set("last_push_result", json.dumps(push_result))
+        try:
+            push_result = await push_sync(ctx)
+            await ctx.state.set("last_push_result", json.dumps(push_result))
+        except Exception as exc:
+            logger.error("Manual push sync failed: %s", exc, exc_info=True)
+            push_result = {"status": "error", "message": str(exc)}
+            await ctx.state.set("last_push_result", json.dumps(push_result))
 
     await ctx.state.set("last_sync_at", datetime.now(timezone.utc).isoformat())
     return await _render_connect_status(ctx)
@@ -389,7 +393,7 @@ def _oauth_result_page(success: bool, message: str) -> str:
 @google_calendar_app.task("poll-events")
 async def poll_events(ctx: AppContext):
     """Poll Google Calendar for updated events and sync to SemPKM."""
-    from services.sync_engine import pull_sync
+    from services.sync_engine import pull_sync, push_sync
 
     logger.info("poll-events: starting pull sync")
     try:
@@ -399,8 +403,9 @@ async def poll_events(ctx: AppContext):
 
         sync_direction = await ctx.state.get("sync_direction")
         if sync_direction == "bidirectional":
-            # Push sync — placeholder for S04
-            logger.info("poll-events: bidirectional push not yet implemented")
+            logger.info("poll-events: starting push sync")
+            push_result = await push_sync(ctx)
+            await ctx.state.set("last_push_result", json.dumps(push_result))
 
         logger.info("poll-events: completed — %s", pull_result)
         return pull_result
@@ -415,8 +420,19 @@ async def poll_events(ctx: AppContext):
 @google_calendar_app.task("push-changes")
 async def push_changes(ctx: AppContext):
     """Push local changes back to Google Calendar."""
-    logger.info("push-changes: not yet implemented")
-    return {"status": "ok", "message": "Not yet implemented"}
+    from services.sync_engine import push_sync
+
+    logger.info("push-changes: starting push sync")
+    try:
+        result = await push_sync(ctx)
+        await ctx.state.set("last_push_result", json.dumps(result))
+        logger.info("push-changes: completed — %s", result)
+        return result
+    except Exception as exc:
+        logger.error("push-changes: push sync failed — %s", exc, exc_info=True)
+        error_result = {"status": "error", "message": str(exc)}
+        await ctx.state.set("last_push_result", json.dumps(error_result))
+        return error_result
 
 
 @google_calendar_app.on_startup

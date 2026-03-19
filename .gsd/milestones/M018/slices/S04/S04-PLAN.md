@@ -26,6 +26,7 @@
 - `pytest backend/tests/test_gcal_sync_engine.py -v` — push_sync + recurrence tests pass (≥25 new)
 - `pytest -x` — full suite stays green (currently 1609)
 - Total new tests ≥ 30
+- Diagnostic check: `push_sync()` returns structured `{status, pushed, skipped, errors, timestamp}` with `status` reflecting `ok|partial|error` and per-event errors in `errors` array — verified via unit test assertions on error isolation and partial status
 
 ## Observability / Diagnostics
 
@@ -42,7 +43,7 @@
 
 ## Tasks
 
-- [ ] **T01: RSVP push-back pipeline (reverse mapping, PATCH, push_sync, loop prevention, wiring)** `est:45m`
+- [x] **T01: RSVP push-back pipeline (reverse mapping, PATCH, push_sync, loop prevention, wiring)** `est:45m`
   - Why: Implements GCAL-05 — the full push pipeline from change detection through Google API PATCH to loop prevention. This is the highest-value feature in the slice and unblocks S05 E2E testing.
   - Files: `apps/google-calendar/services/field_mapper.py`, `apps/google-calendar/services/gcal_client.py`, `apps/google-calendar/services/sync_engine.py`, `apps/google-calendar/app.py`, `backend/tests/test_gcal_field_mapper.py`, `backend/tests/test_gcal_sync_engine.py`
   - Do: (1) Add `REVERSE_RESPONSE_STATUS_MAP` and `build_event_patch()` to field_mapper.py. (2) Add `patch_event(calendar_id, event_id, data)` to GCalClient. (3) Add `_find_changed_events()` SPARQL and `push_sync(ctx)` to sync_engine.py following GitHub push_sync pattern. (4) Add loop prevention filter to `pull_sync()` — skip events where Google `updated` <= existing `lastSyncedAt`. (5) Wire push_sync into app.py: replace push_changes placeholder, add push to sync_now and poll_events when bidirectional. (6) Tests for all of the above (≥22 new tests).

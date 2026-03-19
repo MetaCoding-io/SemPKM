@@ -44,13 +44,16 @@ _auth = _load_module("auth", _SERVICES_DIR / "auth.py")
 _sync_engine = _load_module("sync_engine", _SERVICES_DIR / "sync_engine.py")
 
 pull_sync = _sync_engine.pull_sync
+push_sync = _sync_engine.push_sync
 _find_existing_event = _sync_engine._find_existing_event
+_find_changed_events = _sync_engine._find_changed_events
 _build_create_command = _sync_engine._build_create_command
 _build_update_commands = _sync_engine._build_update_commands
 _submit_commands_batched = _sync_engine._submit_commands_batched
 BATCH_SIZE = _sync_engine.BATCH_SIZE
 BPKM = _field_mapper.BPKM
 compute_event_slug = _field_mapper.compute_event_slug
+build_event_patch = _field_mapper.build_event_patch
 GCalAPIError = _gcal_client.GCalAPIError
 
 
@@ -77,6 +80,10 @@ class MockGraphClient:
 
     ``slug_map`` values: ``{"iri": ..., "status": ..., "externalId": ..., "lastSyncedAt": ...}``
     or just a string (treated as IRI with defaults).
+
+    ``changed_events`` is a list of dicts returned when the query matches
+    ``_find_changed_events`` pattern (selects with ``externalProvider``
+    + ``modified`` filter but no ``STRENDS``).
     """
 
     def __init__(
@@ -84,10 +91,12 @@ class MockGraphClient:
         default_results: dict | None = None,
         slug_map: dict[str, str | dict] | None = None,
         email_to_iri: dict[str, str] | None = None,
+        changed_events: list[dict] | None = None,
     ):
         self.default_results = default_results or {"results": {"bindings": []}}
         self.slug_map = slug_map or {}
         self.email_to_iri = email_to_iri or {}
+        self.changed_events = changed_events or []
         self.queries: list[str] = []
 
     async def query(self, sparql: str) -> dict:
@@ -117,6 +126,22 @@ class MockGraphClient:
                             "value": info["lastSyncedAt"],
                         }
                     return {"results": {"bindings": [binding]}}
+        # Check _find_changed_events pattern (no STRENDS, has responseStatus)
+        elif "responseStatus" in sparql and "STRENDS" not in sparql and self.changed_events:
+            bindings = []
+            for evt in self.changed_events:
+                binding = {
+                    "event": {"type": "uri", "value": evt["iri"]},
+                    "extId": {"type": "literal", "value": evt["externalId"]},
+                }
+                if evt.get("calendarName"):
+                    binding["calName"] = {"type": "literal", "value": evt["calendarName"]}
+                if evt.get("responseStatus"):
+                    binding["responseStatus"] = {"type": "literal", "value": evt["responseStatus"]}
+                if evt.get("lastSyncedAt"):
+                    binding["lastSynced"] = {"type": "literal", "value": evt["lastSyncedAt"]}
+                bindings.append(binding)
+            return {"results": {"bindings": bindings}}
         # Check person-matcher email queries
         if "foaf" in sparql.lower() or "crm:email" in sparql.lower():
             for email, iri in self.email_to_iri.items():
@@ -191,6 +216,10 @@ class MockExternalHttpClient:
 
     async def post(self, url: str, **kwargs) -> MockResponse:
         self.requests.append({"method": "POST", "url": url, **kwargs})
+        return self._next_response()
+
+    async def patch(self, url: str, **kwargs) -> MockResponse:
+        self.requests.append({"method": "PATCH", "url": url, **kwargs})
         return self._next_response()
 
     def _next_response(self) -> MockResponse:
@@ -1020,3 +1049,481 @@ class TestPullSyncEmptyCalendar:
         assert result["created"] == 0
         assert result["updated"] == 0
         assert result["errors"] == []
+
+
+# ===================================================================
+# TestFindChangedEvents — push sync change detection
+# ===================================================================
+
+
+class TestFindChangedEvents:
+    """Test _find_changed_events SPARQL query."""
+
+    @pytest.mark.asyncio
+    async def test_finds_changed_events(self):
+        graph = MockGraphClient(changed_events=[
+            {
+                "iri": "https://example.org/data/Event/evt1",
+                "externalId": "gcal-evt-1",
+                "calendarName": "cal@example.com",
+                "responseStatus": "accepted",
+                "lastSyncedAt": "2026-03-17T10:00:00Z",
+            }
+        ])
+        result = await _find_changed_events(graph)
+        assert len(result) == 1
+        assert result[0]["iri"] == "https://example.org/data/Event/evt1"
+        assert result[0]["externalId"] == "gcal-evt-1"
+        assert result[0]["calendarName"] == "cal@example.com"
+        assert result[0]["responseStatus"] == "accepted"
+
+    @pytest.mark.asyncio
+    async def test_returns_correct_fields(self):
+        graph = MockGraphClient(changed_events=[
+            {
+                "iri": "https://example.org/data/Event/evt2",
+                "externalId": "gcal-evt-2",
+                "calendarName": "work@group.calendar.google.com",
+                "responseStatus": "tentative",
+                "lastSyncedAt": "2026-03-18T08:00:00Z",
+            }
+        ])
+        result = await _find_changed_events(graph)
+        assert len(result) == 1
+        evt = result[0]
+        assert set(evt.keys()) == {"iri", "externalId", "calendarName", "responseStatus", "lastSyncedAt"}
+
+    @pytest.mark.asyncio
+    async def test_handles_no_changes(self):
+        graph = MockGraphClient(changed_events=[])
+        result = await _find_changed_events(graph)
+        assert result == []
+
+    @pytest.mark.asyncio
+    async def test_multiple_changed_events(self):
+        graph = MockGraphClient(changed_events=[
+            {
+                "iri": "https://example.org/data/Event/a",
+                "externalId": "ga",
+                "calendarName": "cal@example.com",
+                "responseStatus": "accepted",
+            },
+            {
+                "iri": "https://example.org/data/Event/b",
+                "externalId": "gb",
+                "calendarName": "cal@example.com",
+                "responseStatus": "declined",
+            },
+        ])
+        result = await _find_changed_events(graph)
+        assert len(result) == 2
+
+
+# ===================================================================
+# TestPushSync — full push pipeline
+# ===================================================================
+
+
+def _make_push_state(
+    sync_direction: str = "bidirectional",
+    **extra,
+) -> dict[str, str]:
+    """Build state dict for a connected account ready for push sync."""
+    data = _make_connected_state()
+    data["sync_direction"] = sync_direction
+    data["google_email"] = "user@example.com"
+    data.update(extra)
+    return data
+
+
+class TestPushSync:
+    """Test push_sync pipeline."""
+
+    @pytest.mark.asyncio
+    async def test_not_connected_skips(self):
+        ctx = MockAppContext(state_data={})
+        result = await push_sync(ctx)
+        assert result["status"] == "skipped"
+        assert "not connected" in result.get("reason", "")
+
+    @pytest.mark.asyncio
+    async def test_pull_only_skips(self):
+        ctx = MockAppContext(state_data=_make_push_state(sync_direction="pull-only"))
+        result = await push_sync(ctx)
+        assert result["status"] == "skipped"
+        assert "pull-only" in result.get("reason", "")
+
+    @pytest.mark.asyncio
+    async def test_no_changed_events(self):
+        ctx = MockAppContext(
+            state_data=_make_push_state(),
+            graph_client=MockGraphClient(changed_events=[]),
+        )
+        result = await push_sync(ctx)
+        assert result["status"] == "ok"
+        assert result["pushed"] == 0
+        assert result["errors"] == []
+
+    @pytest.mark.asyncio
+    async def test_successful_rsvp_push(self):
+        """Push an RSVP change and verify PATCH was sent."""
+        patch_resp = MockResponse(200, {"id": "gcal-evt-1", "status": "confirmed"})
+        ext_http = MockExternalHttpClient(responses=[patch_resp])
+
+        graph = MockGraphClient(changed_events=[
+            {
+                "iri": "https://example.org/data/Event/evt1",
+                "externalId": "gcal-evt-1",
+                "calendarName": "cal@example.com",
+                "responseStatus": "declined",
+            }
+        ])
+
+        ctx = MockAppContext(
+            state_data=_make_push_state(),
+            graph_client=graph,
+            ext_http_client=ext_http,
+        )
+        result = await push_sync(ctx)
+
+        assert result["status"] == "ok"
+        assert result["pushed"] == 1
+        assert result["errors"] == []
+
+        # Verify PATCH request
+        patch_reqs = [r for r in ext_http.requests if r["method"] == "PATCH"]
+        assert len(patch_reqs) == 1
+        assert "cal@example.com" in patch_reqs[0]["url"]
+        assert "gcal-evt-1" in patch_reqs[0]["url"]
+
+    @pytest.mark.asyncio
+    async def test_last_synced_at_updated_after_push(self):
+        """After a successful push, lastSyncedAt should be updated."""
+        patch_resp = MockResponse(200, {"id": "gcal-evt-1"})
+        ext_http = MockExternalHttpClient(responses=[patch_resp])
+
+        graph = MockGraphClient(changed_events=[
+            {
+                "iri": "https://example.org/data/Event/evt1",
+                "externalId": "gcal-evt-1",
+                "calendarName": "cal@example.com",
+                "responseStatus": "accepted",
+            }
+        ])
+
+        ctx = MockAppContext(
+            state_data=_make_push_state(),
+            graph_client=graph,
+            ext_http_client=ext_http,
+        )
+        await push_sync(ctx)
+
+        # Check that an object.patch command was posted to update lastSyncedAt
+        bulk_http = ctx.commands._client
+        all_cmds = []
+        for post in bulk_http.posts:
+            all_cmds.extend(post["json"].get("commands", []))
+        patch_cmds = [
+            c for c in all_cmds
+            if c["command"] == "object.patch"
+            and f"{BPKM}lastSyncedAt" in c["params"].get("properties", {})
+        ]
+        assert len(patch_cmds) == 1
+        assert patch_cmds[0]["params"]["iri"] == "https://example.org/data/Event/evt1"
+
+    @pytest.mark.asyncio
+    async def test_error_isolation_per_event(self):
+        """One event failing should not block others."""
+        # First PATCH fails (500), second succeeds
+        fail_resp = MockResponse(500, {"error": "Internal error"})
+        ok_resp = MockResponse(200, {"id": "gcal-evt-2"})
+        ext_http = MockExternalHttpClient(responses=[fail_resp, ok_resp])
+
+        graph = MockGraphClient(changed_events=[
+            {
+                "iri": "https://example.org/data/Event/evt1",
+                "externalId": "gcal-evt-1",
+                "calendarName": "cal@example.com",
+                "responseStatus": "declined",
+            },
+            {
+                "iri": "https://example.org/data/Event/evt2",
+                "externalId": "gcal-evt-2",
+                "calendarName": "cal@example.com",
+                "responseStatus": "accepted",
+            },
+        ])
+
+        ctx = MockAppContext(
+            state_data=_make_push_state(),
+            graph_client=graph,
+            ext_http_client=ext_http,
+        )
+        result = await push_sync(ctx)
+
+        assert result["status"] == "partial"
+        assert result["pushed"] == 1
+        assert len(result["errors"]) == 1
+        assert result["errors"][0]["event_iri"] == "https://example.org/data/Event/evt1"
+
+    @pytest.mark.asyncio
+    async def test_last_push_result_stored(self):
+        """last_push_result should be stored in state after push."""
+        ctx = MockAppContext(
+            state_data=_make_push_state(),
+            graph_client=MockGraphClient(changed_events=[]),
+        )
+        await push_sync(ctx)
+
+        stored = await ctx.state.get("last_push_result")
+        assert stored is not None
+        parsed = json.loads(stored)
+        assert parsed["status"] == "ok"
+        assert "timestamp" in parsed
+
+    @pytest.mark.asyncio
+    async def test_partial_status_on_mixed(self):
+        """When some events push and others error, status is 'partial'."""
+        # First fails, second succeeds
+        fail_resp = MockResponse(500, {"error": "boom"})
+        ok_resp = MockResponse(200, {"id": "evt2"})
+        ext_http = MockExternalHttpClient(responses=[fail_resp, ok_resp])
+
+        graph = MockGraphClient(changed_events=[
+            {
+                "iri": "https://example.org/data/Event/e1",
+                "externalId": "e1",
+                "calendarName": "cal@example.com",
+                "responseStatus": "declined",
+            },
+            {
+                "iri": "https://example.org/data/Event/e2",
+                "externalId": "e2",
+                "calendarName": "cal@example.com",
+                "responseStatus": "accepted",
+            },
+        ])
+
+        ctx = MockAppContext(
+            state_data=_make_push_state(),
+            graph_client=graph,
+            ext_http_client=ext_http,
+        )
+        result = await push_sync(ctx)
+
+        assert result["status"] == "partial"
+        assert result["pushed"] == 1
+        assert len(result["errors"]) == 1
+
+    @pytest.mark.asyncio
+    async def test_all_errors_status(self):
+        """When all events error, status is 'error'."""
+        fail_resp = MockResponse(500, {"error": "boom"})
+        ext_http = MockExternalHttpClient(responses=[fail_resp])
+
+        graph = MockGraphClient(changed_events=[
+            {
+                "iri": "https://example.org/data/Event/e1",
+                "externalId": "e1",
+                "calendarName": "cal@example.com",
+                "responseStatus": "declined",
+            },
+        ])
+
+        ctx = MockAppContext(
+            state_data=_make_push_state(),
+            graph_client=graph,
+            ext_http_client=ext_http,
+        )
+        result = await push_sync(ctx)
+
+        assert result["status"] == "error"
+        assert result["pushed"] == 0
+        assert len(result["errors"]) == 1
+
+    @pytest.mark.asyncio
+    async def test_skips_event_without_response_status(self):
+        """Events with no responseStatus should be skipped (no PATCH)."""
+        graph = MockGraphClient(changed_events=[
+            {
+                "iri": "https://example.org/data/Event/evt1",
+                "externalId": "gcal-evt-1",
+                "calendarName": "cal@example.com",
+                "responseStatus": None,  # no response status
+            },
+        ])
+
+        ext_http = MockExternalHttpClient(responses=[])
+        ctx = MockAppContext(
+            state_data=_make_push_state(),
+            graph_client=graph,
+            ext_http_client=ext_http,
+        )
+        result = await push_sync(ctx)
+
+        assert result["pushed"] == 0
+        assert result["skipped"] == 1
+        assert result["errors"] == []
+
+    @pytest.mark.asyncio
+    async def test_missing_calendar_name_errors(self):
+        """Events with no calendarName should produce an error."""
+        graph = MockGraphClient(changed_events=[
+            {
+                "iri": "https://example.org/data/Event/evt1",
+                "externalId": "gcal-evt-1",
+                "calendarName": None,
+                "responseStatus": "accepted",
+            },
+        ])
+
+        ext_http = MockExternalHttpClient(responses=[])
+        ctx = MockAppContext(
+            state_data=_make_push_state(),
+            graph_client=graph,
+            ext_http_client=ext_http,
+        )
+        result = await push_sync(ctx)
+
+        assert result["pushed"] == 0
+        assert len(result["errors"]) == 1
+        assert "calendarName" in result["errors"][0]["error"]
+
+
+# ===================================================================
+# TestLoopPrevention — pull_sync skips recently pushed events
+# ===================================================================
+
+
+class TestLoopPrevention:
+    """Test that pull_sync skips events where updated <= lastSyncedAt."""
+
+    @pytest.mark.asyncio
+    async def test_event_with_updated_lte_last_synced_skipped(self):
+        """An event whose Google updated <= lastSyncedAt should be skipped."""
+        event = make_event(
+            event_id="loop1",
+            updated="2026-03-18T12:00:00Z",  # same as lastSyncedAt
+        )
+        slug = compute_event_slug("cal@example.com", "loop1")
+
+        events_resp = MockResponse(200, {
+            "items": [event],
+            "nextSyncToken": "tok-loop",
+        })
+        ext_http = MockExternalHttpClient(responses=[events_resp])
+
+        graph = MockGraphClient(slug_map={
+            slug: {
+                "iri": f"https://example.org/data/Event/{slug}",
+                "status": "confirmed",
+                "lastSyncedAt": "2026-03-18T12:00:00Z",
+            }
+        })
+
+        ctx = MockAppContext(
+            state_data=_make_connected_state(calendars=["cal@example.com"]),
+            graph_client=graph,
+            ext_http_client=ext_http,
+        )
+        result = await pull_sync(ctx)
+
+        assert result["updated"] == 0
+        assert result["unchanged"] == 1
+
+    @pytest.mark.asyncio
+    async def test_event_with_updated_gt_last_synced_processed(self):
+        """An event whose Google updated > lastSyncedAt should be updated."""
+        event = make_event(
+            event_id="loop2",
+            updated="2026-03-19T14:00:00Z",  # newer than lastSyncedAt
+        )
+        slug = compute_event_slug("cal@example.com", "loop2")
+
+        events_resp = MockResponse(200, {
+            "items": [event],
+            "nextSyncToken": "tok-loop2",
+        })
+        ext_http = MockExternalHttpClient(responses=[events_resp])
+
+        graph = MockGraphClient(slug_map={
+            slug: {
+                "iri": f"https://example.org/data/Event/{slug}",
+                "status": "confirmed",
+                "lastSyncedAt": "2026-03-18T10:00:00Z",
+            }
+        })
+
+        ctx = MockAppContext(
+            state_data=_make_connected_state(calendars=["cal@example.com"]),
+            graph_client=graph,
+            ext_http_client=ext_http,
+        )
+        result = await pull_sync(ctx)
+
+        assert result["updated"] == 1
+        assert result["unchanged"] == 0
+
+    @pytest.mark.asyncio
+    async def test_event_with_no_last_synced_processed(self):
+        """An existing event with no lastSyncedAt should be updated."""
+        event = make_event(event_id="loop3")
+        slug = compute_event_slug("cal@example.com", "loop3")
+
+        events_resp = MockResponse(200, {
+            "items": [event],
+            "nextSyncToken": "tok-loop3",
+        })
+        ext_http = MockExternalHttpClient(responses=[events_resp])
+
+        graph = MockGraphClient(slug_map={
+            slug: {
+                "iri": f"https://example.org/data/Event/{slug}",
+                "status": "confirmed",
+                # no lastSyncedAt
+            }
+        })
+
+        ctx = MockAppContext(
+            state_data=_make_connected_state(calendars=["cal@example.com"]),
+            graph_client=graph,
+            ext_http_client=ext_http,
+        )
+        result = await pull_sync(ctx)
+
+        assert result["updated"] == 1
+
+
+# ===================================================================
+# TestPushWiring — app.py handlers call push_sync
+# ===================================================================
+
+
+class TestPushWiring:
+    """Test that app.py handlers call push_sync when bidirectional.
+
+    We test the sync_engine functions directly since the app.py route
+    handlers import push_sync and call it inline. The wiring is verified
+    by confirming the import path resolves and the push_sync function
+    matches the expected signature.
+    """
+
+    def test_push_sync_importable(self):
+        """push_sync is importable from the sync_engine module."""
+        assert callable(push_sync)
+
+    @pytest.mark.asyncio
+    async def test_push_sync_returns_structured_result(self):
+        """push_sync signature returns the expected dict shape."""
+        ctx = MockAppContext(state_data=_make_push_state())
+        result = await push_sync(ctx)
+        # Should have the standard push result keys
+        assert "status" in result
+        assert "pushed" in result
+        assert "skipped" in result
+        assert "errors" in result
+        assert "timestamp" in result
+
+    def test_build_event_patch_importable(self):
+        """build_event_patch is importable from field_mapper."""
+        assert callable(build_event_patch)

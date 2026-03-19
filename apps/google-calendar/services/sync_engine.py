@@ -22,6 +22,7 @@ from datetime import datetime, timezone
 try:
     from services.field_mapper import (
         build_event_properties,
+        build_event_patch,
         compute_event_slug,
         extract_body,
         BPKM,
@@ -32,6 +33,7 @@ try:
 except ImportError:
     from field_mapper import (
         build_event_properties,
+        build_event_patch,
         compute_event_slug,
         extract_body,
         BPKM,
@@ -172,6 +174,208 @@ async def _submit_commands_batched(
         resp.raise_for_status()
         results.append(resp.json())
     return results
+
+
+# ---------------------------------------------------------------------------
+# Push sync — change detection + RSVP push-back
+# ---------------------------------------------------------------------------
+
+
+async def _find_changed_events(graph_client) -> list[dict]:
+    """Find google-calendar events that have local modifications.
+
+    An event is considered changed when:
+    - It has ``externalProvider = "google-calendar"`` and ``externalId``
+    - Its ``dcterms:modified`` > ``bpkm:lastSyncedAt``, or it has no
+      ``lastSyncedAt`` (treat as changed)
+
+    Returns a list of dicts with keys:
+    ``iri``, ``externalId``, ``calendarName``, ``responseStatus``,
+    ``lastSyncedAt``.
+    """
+    sparql = (
+        "SELECT ?event ?extId ?calName ?responseStatus ?lastSynced ?modified WHERE {\n"
+        f"  ?event a <{BPKM}Event> .\n"
+        f'  ?event <{BPKM}externalProvider> "google-calendar" .\n'
+        f"  ?event <{BPKM}externalId> ?extId .\n"
+        f"  OPTIONAL {{ ?event <{BPKM}calendarName> ?calName }}\n"
+        f"  OPTIONAL {{ ?event <{BPKM}responseStatus> ?responseStatus }}\n"
+        f"  OPTIONAL {{ ?event <{BPKM}lastSyncedAt> ?lastSynced }}\n"
+        f"  OPTIONAL {{ ?event <dcterms:modified> ?modified }}\n"
+        f"  FILTER(!BOUND(?lastSynced) || !BOUND(?modified) || STR(?modified) > STR(?lastSynced))\n"
+        "}"
+    )
+    result = await graph_client.query(sparql)
+    bindings = result.get("results", {}).get("bindings", [])
+
+    events = []
+    for row in bindings:
+        events.append({
+            "iri": row["event"]["value"],
+            "externalId": row["extId"]["value"],
+            "calendarName": row.get("calName", {}).get("value"),
+            "responseStatus": row.get("responseStatus", {}).get("value"),
+            "lastSyncedAt": row.get("lastSynced", {}).get("value"),
+        })
+    return events
+
+
+async def push_sync(ctx) -> dict:
+    """Run the full bpkm:Event → Google Calendar RSVP push pipeline.
+
+    Steps:
+      1. Check auth status
+      2. Read sync_direction from state — skip if "pull-only"
+      3. Read google_email from state (needed for PATCH body)
+      4. Refresh access token if needed
+      5. Find locally changed events via SPARQL
+      6. For each changed event: reverse map → PATCH event → update lastSyncedAt
+      7. Store last_push_result in state
+
+    Returns a result dict with ``status``, ``pushed``, ``skipped``,
+    ``errors``, and ``timestamp`` fields.
+    """
+    push_timestamp = datetime.now(timezone.utc).isoformat()
+
+    # 1. Auth check
+    status = await get_connection_status(ctx.state)
+    if not status["connected"]:
+        result = {
+            "status": "skipped",
+            "pushed": 0,
+            "skipped": 0,
+            "errors": [],
+            "timestamp": push_timestamp,
+            "reason": "not connected",
+        }
+        await ctx.state.set("last_push_result", json.dumps(result))
+        return result
+
+    # 2. Read sync direction
+    sync_direction = await ctx.state.get("sync_direction")
+    if sync_direction == "pull-only":
+        result = {
+            "status": "skipped",
+            "pushed": 0,
+            "skipped": 0,
+            "errors": [],
+            "timestamp": push_timestamp,
+            "reason": "sync direction is pull-only",
+        }
+        await ctx.state.set("last_push_result", json.dumps(result))
+        return result
+
+    # 3. Read google_email from state
+    google_email = await ctx.state.get("google_email") or ""
+
+    # 4. Refresh access token
+    client_id = await ctx.state.get("client_id") or ""
+    client_secret = await ctx.state.get("client_secret") or ""
+    await refresh_if_expired(ctx.http, ctx.state, client_id, client_secret)
+
+    # Build GCal client
+    gcal_client = GCalClient(
+        http_client=ctx.http,
+        state_client=ctx.state,
+        client_id=client_id,
+        client_secret=client_secret,
+    )
+
+    # 5. Find changed events
+    changed_events = await _find_changed_events(ctx.graph)
+    if not changed_events:
+        logger.info("push_sync: no changed events found")
+        result = {
+            "status": "ok",
+            "pushed": 0,
+            "skipped": 0,
+            "errors": [],
+            "timestamp": push_timestamp,
+        }
+        await ctx.state.set("last_push_result", json.dumps(result))
+        return result
+
+    logger.info("push_sync: found %d changed events", len(changed_events))
+
+    # 6. Push each changed event
+    http_client = ctx.commands._client  # bypass SDK for bulk commands
+    pushed_count = 0
+    skipped_count = 0
+    errors: list[dict] = []
+
+    for event in changed_events:
+        try:
+            # Build event_props from SPARQL result
+            event_props: dict = {}
+            if event.get("responseStatus"):
+                event_props[f"{BPKM}responseStatus"] = event["responseStatus"]
+
+            # Reverse map to Google PATCH body
+            patch_data = build_event_patch(event_props, google_email)
+            if not patch_data:
+                skipped_count += 1
+                continue
+
+            calendar_id = event.get("calendarName")
+            event_id = event.get("externalId")
+            if not calendar_id or not event_id:
+                errors.append({
+                    "event_iri": event["iri"],
+                    "error": "Missing calendarName or externalId",
+                })
+                logger.warning(
+                    "push_sync: missing calendarName/externalId for %s",
+                    event["iri"],
+                )
+                continue
+
+            # PATCH the event on Google Calendar
+            await gcal_client.patch_event(calendar_id, event_id, patch_data)
+
+            # Update lastSyncedAt on the pushed event
+            update_cmds = [{
+                "command": "object.patch",
+                "params": {
+                    "iri": event["iri"],
+                    "properties": {f"{BPKM}lastSyncedAt": push_timestamp},
+                },
+            }]
+            await _submit_commands_batched(
+                http_client, update_cmds,
+                "Google Calendar push: update lastSyncedAt",
+                "google-calendar",
+            )
+
+            pushed_count += 1
+
+        except Exception as e:
+            errors.append({"event_iri": event["iri"], "error": str(e)})
+            logger.warning(
+                "push_sync: error pushing event %s: %s", event["iri"], e,
+            )
+
+    # Determine overall status
+    if not errors:
+        overall_status = "ok"
+    elif pushed_count > 0:
+        overall_status = "partial"
+    else:
+        overall_status = "error"
+
+    result = {
+        "status": overall_status,
+        "pushed": pushed_count,
+        "skipped": skipped_count,
+        "errors": errors,
+        "timestamp": push_timestamp,
+    }
+
+    await ctx.state.set("last_push_result", json.dumps(result))
+    logger.info(
+        "Push sync complete: status=%s pushed=%d skipped=%d errors=%d",
+        overall_status, pushed_count, skipped_count, len(errors),
+    )
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -316,6 +520,15 @@ async def pull_sync(ctx) -> dict:
                     )
 
                 if existing:
+                    # Loop prevention: skip events where Google's updated
+                    # timestamp is not newer than our lastSyncedAt. This
+                    # prevents re-importing events we just pushed.
+                    last_synced = existing.get("lastSyncedAt")
+                    google_updated = event.get("updated")
+                    if last_synced and google_updated and google_updated <= last_synced:
+                        unchanged_count += 1
+                        continue
+
                     # Update existing event
                     update_commands.extend(
                         _build_update_commands(

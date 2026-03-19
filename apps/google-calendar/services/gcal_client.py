@@ -328,6 +328,31 @@ class GCalClient:
 
         return (all_events, next_sync_token)
 
+    async def patch_event(
+        self,
+        calendar_id: str,
+        event_id: str,
+        data: dict,
+    ) -> dict:
+        """Update an event via PATCH (partial update).
+
+        Used for RSVP push-back: sends a partial attendees array with
+        only the self-attendee entry and ``attendeesOmitted: true``.
+
+        Args:
+            calendar_id: Calendar ID (email-style or ``"primary"``).
+            event_id: Google Calendar event ID.
+            data: Partial event body (e.g. attendees with responseStatus).
+
+        Returns:
+            Updated event dict from the API.
+
+        Raises:
+            GCalAPIError: On API errors.
+        """
+        url = f"{GCAL_BASE_URL}/calendars/{calendar_id}/events/{event_id}"
+        return await self._request("PATCH", url, json=data)
+
     # ---- calendar methods -------------------------------------------------
 
     async def get_calendar_list(self) -> list[dict[str, Any]]:
