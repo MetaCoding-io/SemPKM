@@ -3,7 +3,7 @@
   "name": "SemPKM Capture",
   "version": "0.1.0",
   "description": "Capture typed, schema-validated objects from any web page to your SemPKM knowledge graph.",
-  "permissions": ["storage", "activeTab", "contextMenus", "scripting"],
+  "permissions": ["storage", "activeTab", "contextMenus", "scripting", "sidePanel", "tabs"],
   "host_permissions": ["http://localhost:*/*", "https://*/*"],
   "action": {
     "default_popup": "popup/popup.html",
@@ -23,6 +23,9 @@
   "background": {
     "service_worker": "background/service-worker.js"
   },
+  "side_panel": {
+    "default_path": "sidebar/sidebar.html"
+  },
   "commands": {
     "_execute_action": {
       "suggested_key": {
@@ -30,6 +33,13 @@
         "mac": "Alt+S"
       },
       "description": "Open SemPKM Capture"
+    },
+    "open-context-sidebar": {
+      "suggested_key": {
+        "default": "Alt+K",
+        "mac": "Alt+K"
+      },
+      "description": "Open SemPKM Context Sidebar"
     }
   },
   "options_page": "options/options.html"
