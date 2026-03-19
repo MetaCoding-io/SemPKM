@@ -27,6 +27,7 @@
 - `grep "Chapter 34" docs/guide/33-context-overlay.md` returns a hit in the navigation footer
 - `grep "Linear Sync" docs/guide/appendix-d-glossary.md` returns glossary entries
 - All 4 modified Python files pass `python3 -c "import ast; ast.parse(open(f).read())"` syntax check
+- `docker compose -f docker-compose.test.yml logs mock-linear 2>&1 | grep -E "Matched query type"` — mock server logs show query type matches (diagnostic surface for test failures)
 
 ## Observability / Diagnostics
 
@@ -43,7 +44,7 @@
 
 ## Tasks
 
-- [ ] **T01: E2E test with mock Linear API server** `est:2h`
+- [x] **T01: E2E test with mock Linear API server** `est:2h`
   - Why: Proves the full install → configure → poll → verify flow works at integration level against the Docker test stack. This is the primary proof artifact for the milestone.
   - Files: `e2e/mock-linear-api/server.py`, `e2e/tests/31-linear-sync/linear-sync.spec.ts`, `docker-compose.test.yml`, `apps/linear-sync/services/linear_client.py`, `apps/linear-sync/services/auth.py`, `apps/linear-sync/manifest.yaml`, `e2e/helpers/selectors.ts`
   - Do: (1) Make `LINEAR_GRAPHQL_URL` and `LINEAR_TOKEN_URL` configurable via env vars with existing values as defaults. (2) Add `mock-linear` to manifest network domains. (3) Create mock server returning canned GraphQL responses for viewer, organization, teams, issues, workflow states, and issueUpdate mutation — use substring matching on query body. (4) Add `mock-linear` service to docker-compose.test.yml with `LINEAR_API_URL` env var on api container. (5) Write Playwright spec following the app-platform test pattern with serial phases: cleanup, install basic-pkm, install linear-sync, connect API key, select team, configure sync, Sync Now, verify tasks via SPARQL, check admin detail, cleanup.

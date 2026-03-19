@@ -130,3 +130,14 @@ The SHACL renderer sets `required` on input elements, including those inside col
 **Context:** M014/S05/T02 — E2E extension tests
 
 Navigating to `http://localhost:3901/browser/` in a page opened within the extension's persistent context can hang indefinitely (even with `waitUntil: 'domcontentloaded'`). The workspace page has SSE/long-polling connections that may interact poorly with the persistent context. Use API-only verification (SPARQL query) instead of UI verification for objects created via the extension.
+
+## App template htmx URLs must use proxy prefix
+
+**Discovery date:** 2026-03-18
+**Context:** M016/S04/T01 — Linear Sync E2E test
+
+App templates rendered by the SDK's `render_template()` are loaded into the workspace page via the proxy chain at `/app/{app_id}/_fragments/{fragment}`. However, htmx attributes inside those templates (e.g. `hx-post="/_fragments/connect/api-key"`) use absolute paths that bypass the proxy — the browser sends them directly to the origin, where no platform route matches `/_fragments/*`.
+
+**Fix:** All htmx URLs in app templates must be prefixed with `/app/{app_id}/` so requests route through the `app_proxy_router` catch-all at `/app/{app_id}/{path:path}`. Example: `hx-post="/app/linear-sync/_fragments/connect/api-key"`.
+
+**Impact:** Any future app that uses htmx forms in its templates must follow this pattern. A better long-term fix would be to inject the prefix via a Jinja2 global or context variable from the SDK.

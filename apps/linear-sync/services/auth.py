@@ -8,12 +8,13 @@ All state persistence goes through the SDK StateClient.
 from __future__ import annotations
 
 import logging
+import os
 from urllib.parse import urlencode
 
 logger = logging.getLogger("linear_sync.auth")
 
 LINEAR_AUTHORIZE_URL = "https://linear.app/oauth/authorize"
-LINEAR_TOKEN_URL = "https://api.linear.app/oauth/token"
+LINEAR_TOKEN_URL = os.environ.get("LINEAR_TOKEN_URL", "https://api.linear.app/oauth/token")
 
 # State keys managed by this module
 AUTH_STATE_KEYS = (
