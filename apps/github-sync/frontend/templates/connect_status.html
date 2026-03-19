@@ -1,0 +1,133 @@
+<div id="connect-content" class="github-sync-settings">
+  <div class="connection-status">
+    <span class="status-badge status-connected">● Connected</span>
+  </div>
+
+  <div class="connection-detail">
+    <span class="username">{{ username }}</span>
+    <code class="pat-preview">{{ pat_preview }}</code>
+  </div>
+
+  {# ── Repository Selection ── #}
+  {% if repos %}
+  <section class="repos-section">
+    <h4>Synced Repositories</h4>
+    <p class="section-hint">Select which repositories to sync issues from.</p>
+    <form hx-post="/app/github-sync/_fragments/settings/repos"
+          hx-target="#connect-content"
+          hx-swap="innerHTML">
+      <div class="repo-checkbox-list">
+        {% for repo in repos %}
+        <label class="repo-checkbox-item">
+          <input type="checkbox"
+                 name="repo_names"
+                 value="{{ repo.full_name }}"
+                 {% if repo.full_name in selected_repos %}checked{% endif %}>
+          <span class="repo-name">{{ repo.full_name }}</span>
+          {% if repo.private %}
+          <span class="repo-visibility repo-private">private</span>
+          {% endif %}
+        </label>
+        {% endfor %}
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save Repos</button>
+        <span class="htmx-indicator">Saving…</span>
+      </div>
+    </form>
+  </section>
+  {% else %}
+  <p class="no-repos">No repositories found. Check your token permissions.</p>
+  {% endif %}
+
+  {# ── Sync Direction ── #}
+  <section class="sync-direction-section">
+    <h4>Sync Direction</h4>
+    <p class="section-hint">Pull only — push sync coming in a future update.</p>
+  </section>
+
+  {# ── Sync Now ── #}
+  <section class="sync-now-section">
+    <h4>Manual Sync</h4>
+    <p class="section-hint">Run a sync immediately instead of waiting for the next scheduled poll.</p>
+    <form hx-post="/app/github-sync/_fragments/settings/sync-now"
+          hx-target="#connect-content"
+          hx-swap="innerHTML"
+          hx-indicator=".sync-now-indicator">
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" id="sync-now-btn">
+          Sync Now
+        </button>
+        <span class="htmx-indicator sync-now-indicator">Syncing…</span>
+      </div>
+    </form>
+  </section>
+
+  {# ── Sync Stats ── #}
+  <section class="sync-stats">
+    <h4>Sync Status</h4>
+    {% if last_sync_at %}
+    <div class="stat-row">
+      <span class="stat-label">Last sync</span>
+      <span class="stat-value">{{ last_sync_at[:19] | replace("T", " ") }} UTC</span>
+    </div>
+    {% endif %}
+
+    {% if last_pull_result %}
+    <div class="stat-group">
+      <h5>Last Pull</h5>
+      <div class="stat-row">
+        <span class="stat-label">Status</span>
+        <span class="stat-value stat-status-{{ last_pull_result.status }}">{{ last_pull_result.status }}</span>
+      </div>
+      {% if last_pull_result.status in ['success', 'partial'] %}
+      <div class="stat-row">
+        <span class="stat-label">Created</span>
+        <span class="stat-value">{{ last_pull_result.created | default(0) }}</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Updated</span>
+        <span class="stat-value">{{ last_pull_result.updated | default(0) }}</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Skipped (PRs)</span>
+        <span class="stat-value">{{ last_pull_result.skipped | default(0) }}</span>
+      </div>
+      {% endif %}
+      {% if last_pull_result.errors %}
+      <div class="stat-row stat-errors">
+        <span class="stat-label">Errors</span>
+        <span class="stat-value">{{ last_pull_result.errors }}</span>
+      </div>
+      {% endif %}
+      {% if last_pull_result.failed_issues %}
+      <div class="stat-row stat-errors">
+        <span class="stat-label">Failed</span>
+        <span class="stat-value">{{ last_pull_result.failed_issues | join(', ') }}</span>
+      </div>
+      {% endif %}
+      {% if last_pull_result.duration_ms is defined %}
+      <div class="stat-row">
+        <span class="stat-label">Duration</span>
+        <span class="stat-value">{{ last_pull_result.duration_ms }}ms</span>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if not last_sync_at and not last_pull_result %}
+    <p class="no-sync-data">No sync data yet. Select repos and run a sync to get started.</p>
+    {% endif %}
+  </section>
+
+  {# ── Disconnect ── #}
+  <section class="disconnect-section">
+    <button class="btn btn-danger"
+            hx-post="/app/github-sync/_fragments/connect/disconnect"
+            hx-target="#connect-content"
+            hx-swap="innerHTML"
+            hx-confirm="Disconnect from GitHub? Sync will stop.">
+      Disconnect
+    </button>
+  </section>
+</div>
