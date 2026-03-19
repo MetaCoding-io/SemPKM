@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T03",
+  "unitId": "M018/S05/T03",
+  "timestamp": 1773939066222,
+  "passed": false,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "File exists at correct path with ≥200 lines. README TOC, glossary, appendix-a, navigation chain all updated. Requirements moved to validated.",
+      "exitCode": 127,
+      "durationMs": 7,
+      "verdict": "fail"
+    }
+  ],
+  "retryAttempt": 2,
+  "maxRetries": 2
+}

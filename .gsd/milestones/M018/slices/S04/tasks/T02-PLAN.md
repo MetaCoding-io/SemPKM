@@ -72,9 +72,3 @@ Key constraints from research:
 
 - `apps/google-calendar/services/sync_engine.py` — gains `_find_event_by_external_id()` (~25 lines), recurrence linking phase in pull_sync (~30 lines), `recurrence_links` tracking in processing loop (~5 lines)
 - `backend/tests/test_gcal_sync_engine.py` — gains TestRecurrenceLinking class + TestFindEventByExternalId class (~180 lines)
-
-## Observability Impact
-
-- **Logs:** `google_calendar.sync` logger at INFO for recurrence linking phase (count of links resolved, edges created). WARNING when a master event is not found for a `recurringEventId` (orphan exception).
-- **Pull result:** `last_pull_result` state key gains a `recurrence_edges` count field in the returned dict, allowing inspection of how many exception→master edges were created.
-- **Failure visibility:** Errors during the recurrence linking phase are captured per-event and do not block the overall sync. Orphan exceptions (master not yet synced) produce a warning log with the orphan slug and the unresolved `recurringEventId`.

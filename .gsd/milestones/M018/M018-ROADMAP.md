@@ -84,7 +84,7 @@ This milestone is complete only when all are true:
 - [x] **S04: RSVP push-back + recurrence handling** `risk:medium` `depends:[S03]`
   > After this: User changes RSVP status in SemPKM and it reflects in Google Calendar. Recurring events stored as master (RRULE) + exceptions (linked via recurringEventId). Proven by unit tests for push pipeline and recurrence storage.
 
-- [ ] **S05: E2E tests + user guide** `risk:low` `depends:[S03,S04]`
+- [x] **S05: E2E tests + user guide** `risk:low` `depends:[S03,S04]`
   > After this: Mock Google Calendar API server passes selftest. Playwright E2E test proves install → OAuth → sync → verify → RSVP push lifecycle. Chapter 36 user guide documents full workflow. All GCAL/EVENT requirements validated.
 
 ## Boundary Map
