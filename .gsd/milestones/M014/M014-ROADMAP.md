@@ -87,7 +87,7 @@ This milestone is complete only when all are true:
 - [x] **S04: Relationship picker + edge creation** `risk:medium` `depends:[S01,S02]`
   > After this: Object reference fields in the SHACL form show a search-as-you-type input. Typing queries the context-query API and shows matching objects with labels and types. Selecting a result populates the hidden IRI input. After saving, the object is created with edges linking to the selected related objects. Two-step creation: object.create first, then edge.create with the returned IRI.
 
-- [ ] **S05: Cross-browser, keyboard shortcut, E2E tests + user guide** `risk:low` `depends:[S01,S02,S03,S04]`
+- [x] **S05: Cross-browser, keyboard shortcut, E2E tests + user guide** `risk:low` `depends:[S01,S02,S03,S04]`
   > After this: Extension works in Firefox via separate manifest. Alt+S keyboard shortcut opens the popup. Success/error toast notifications are polished. E2E tests verify the capture flow against Docker stack. User guide chapter documents installation (sideload), configuration, and usage for both browsers. All 13 EXT requirements validated.
 
 ## Boundary Map

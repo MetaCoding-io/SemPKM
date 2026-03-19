@@ -69,7 +69,7 @@
   - Why: EXT-12 requires documentation covering installation, configuration, and usage for both browsers. This is the final deliverable closing out M014.
   - Files: `docs/guide/32-browser-extension.md`, `docs/guide/README.md`, `docs/guide/appendix-d-glossary.md`, `docs/guide/31-api-surface.md`
   - Do: Write Chapter 32 with 11 sections (Overview, Chrome install, Firefox install, API key generation, Settings config, Capturing objects, Auto-population, Context menu, Relationship picker, Keyboard shortcut, Troubleshooting). Add to README TOC after Ch 31. Add Browser Extension and API Token glossary entries. Update navigation chain: Ch 31 next → Ch 32, Ch 32 prev/next → Ch 31/Appendix A.
-  - Verify: File exists with all 11 section headings. README has Ch 32 link. Glossary has both entries. Navigation chain links correct.
+  - Verify: test -f docs/guide/32-browser-extension.md && grep -c "^##" docs/guide/32-browser-extension.md && grep -q "32.*Browser Extension" docs/guide/README.md && grep -q "API Token" docs/guide/appendix-d-glossary.md && grep -q "32-browser-extension" docs/guide/31-api-surface.md
   - Done when: User guide chapter covers all extension features, README TOC updated, glossary complete, navigation chain wired
 
 ## Files Likely Touched
