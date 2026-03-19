@@ -395,8 +395,9 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Knowledge context overlay: sidebar showing related objects while browsing, badge count, in-context actions (Open, Link, Add Evidence)
 - Context Overlay settings in options page, 4 E2E tests, Chapter 33 user guide
 
-**Integration Sync Apps** — queued (M016–M024, depend on M009)
-- Task providers: Linear (M016), GitHub Issues (M017), Todoist (M019), Asana (M022), Jira (M023), Monday.com (M024)
+**Integration Sync Apps** — in progress (M016–M024, depend on M009)
+- Linear Sync (M016) — complete (2026-03-18): first bidirectional sync app, OAuth/API key auth, pull sync (Linear→bpkm:Task), push sync, settings UI, admin sync history, 150 unit tests, E2E Playwright test, Chapter 34 user guide
+- Task providers: GitHub Issues (M017), Todoist (M019), Asana (M022), Jira (M023), Monday.com (M024)
 - Calendar providers: Google Calendar (M018), Outlook (M020), CalDAV (M021)
 - Design: `.gsd/design/INTEGRATION-DOMAIN-MAPPING.md`
 
@@ -445,7 +446,21 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current State
 
-**Latest shipped: M015 Browser Extension Phase 2 (2026-03-18)**
+**Latest shipped: M016 Linear Sync App (2026-03-18)**
+
+**What shipped in M016 (Linear Sync App):**
+- First bidirectional task provider sync app on the App Platform — connecting Linear issues to bpkm:Task objects
+- OAuth and API key authentication with workspace discovery and team selection
+- Pull sync: Linear issues → bpkm:Task objects with full field mapping (status, priority, assignee, labels, due date, effort, estimate, URL)
+- Push sync: detect local task changes and write back to Linear, with loop prevention via lastSyncedAt comparison
+- Settings page with team/project selection, sync direction toggle, poll interval configuration
+- Admin detail page showing sync run history with timestamps, direction, counts, and status
+- 150 unit tests covering field mapping, IRI minting, status/priority normalization, change detection, push sync, person matching
+- Mock Linear GraphQL API server for E2E testing (canned responses for 6 query types)
+- Playwright E2E test covering full install → configure → poll → verify → cleanup lifecycle (11 phases)
+- User guide Chapter 34 (12 sections, ~250 lines) with field mapping tables, troubleshooting
+- 4 glossary entries (Bidirectional Sync, Linear Sync, Pull Sync, Push Sync)
+- Fixed htmx template routing through app proxy (pre-existing S02 bug caught by E2E testing)
 
 **What shipped in M015 (Browser Extension Phase 2 — Knowledge Context Overlay):**
 - Knowledge sidebar (Alt+K) showing related SemPKM objects while browsing any page, grouped by match type (URL > title > keyword)
@@ -522,9 +537,9 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - E2E test coverage: 5 new Playwright tests across 3 spec files
 - User guide: 4 chapters updated with new feature documentation
 
-**Previous milestones:** M015 Browser Extension Phase 2 (2026-03-18), M014 Browser Extension Phase 1 (2026-03-18), M013 API Surface for External Clients (2026-03-17), M012 Workspace & Event Log Polish (2026-03-17), M011 Mental Models Expansion (2026-03-17), M008 Spatial Canvas (2026-03-16), M007 Generic Views, VFS Completion & Polish (2026-03-16), M006 Dashboards, Workflows & Platform Alignment (2026-03-15), M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
+**Previous milestones:** M016 Linear Sync App (2026-03-18), M015 Browser Extension Phase 2 (2026-03-18), M014 Browser Extension Phase 1 (2026-03-18), M013 API Surface for External Clients (2026-03-17), M012 Workspace & Event Log Polish (2026-03-17), M011 Mental Models Expansion (2026-03-17), M008 Spatial Canvas (2026-03-16), M007 Generic Views, VFS Completion & Polish (2026-03-16), M006 Dashboards, Workflows & Platform Alignment (2026-03-15), M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
 
-**Latest shipped: M015 Browser Extension Phase 2 (2026-03-18)**
+**Latest shipped: M016 Linear Sync App (2026-03-18)**
 
 **What shipped in M013 (API Surface for External Clients):**
 - `GET /.well-known/sempkm` discovery endpoint with version, endpoints, auth methods, capabilities
@@ -546,9 +561,9 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - 6 Mental Models: basic-pkm v2.0, ppv, gist, crm v1.0, zettelkasten v1.0, research v1.0 (24 files across 4 model directories)
 - Tech stack: FastAPI + RDF4J (LuceneSail) + htmx/vanilla-web + SQLAlchemy (SQLite/PostgreSQL) + wsgidav + a2wsgi + Driver.js + Cytoscape.js + CodeMirror + dockview-core + Alembic + Yasgui CDN + ninja-keys + owlrl + pyshacl + mf2py + http-message-signatures + slowapi
 - Docker Compose deployment: 3 services (api, triplestore, frontend/nginx) + federation test compose (2 instances)
-- 58 phases, 80 plans completed across v1.0–v2.6; M002 (7 slices) + M003 (10 slices) + M004 (5 slices) + M005 (9 slices) + M006 (7 slices) + M007 (5 slices) + M008 (4 slices) + M011 (5 slices) + M012 (4 slices) + M013 (3 slices) + M014 (5 slices) milestones complete
-- Backend test suite: 1000+ pytest unit tests, <5s, no Docker dependency
-- E2E test suite: 100 Playwright spec files covering all shipped features
+- 58 phases, 80 plans completed across v1.0–v2.6; M002 (7 slices) + M003 (10 slices) + M004 (5 slices) + M005 (9 slices) + M006 (7 slices) + M007 (5 slices) + M008 (4 slices) + M011 (5 slices) + M012 (4 slices) + M013 (3 slices) + M014 (5 slices) + M015 (3 slices) + M016 (4 slices) milestones complete
+- Backend test suite: 1150+ pytest unit tests, <5s, no Docker dependency
+- E2E test suite: 101 Playwright spec files covering all shipped features
 - Browser extension: `extension/` directory with Chrome MV3 + Firefox manifests, 11 JS modules (~2.5k LOC), 7 E2E tests (3 capture + 4 context overlay), 23 unit tests
 - All dependencies pinned (~= compatible release) with uv.lock committed
 - Browser router refactored into 8 domain sub-modules (was 1956-line monolith)
@@ -560,6 +575,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Spatial canvas: resizable nodes, property flip, live iframe embeds with dual-layer rendering
 - API surface: 4 JSON endpoints for external clients with dual-auth, CORS, and 62 unit tests
 - Browser extension Phase 1+2: Chrome MV3 + Firefox, 11 JS modules (~2.5k LOC), SHACL form renderer, schema.org mapper, reference picker, context sidebar with badge + grouped results + actions, 7 E2E tests, 23 unit tests
+- Linear Sync app: first bidirectional sync app on App Platform — OAuth/API key auth, pull/push sync, field mapping, admin history, 150 unit tests, E2E test with mock API, Chapter 34 user guide
 
 **Known tech debt:**
 - Cookie secure=False (local dev only — production config deferred)
@@ -577,6 +593,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Comment author UUID format mismatch (RDF dashed vs SQL undashed) — fixed post-M003 but pattern may recur
 - **DashboardSpec/WorkflowSpec in SQLite JSON** — model-layer concepts that should be RDF named graphs (queryable, federable). Migration planned for follow-up.
 - **Ephemeral workflow runs** — v1 progress is in-memory JS only. Run history persistence planned for follow-up.
+- **App template htmx URLs hardcode app_id** — connect.html/connect_status.html use `/app/linear-sync/` prefix. SDK should inject this via Jinja2 global. Future apps with htmx forms will need the same fix.
 - **Markdown block renders raw text** — not rendered HTML in v1 dashboards
 - ViewSpecService's query_service param is optional (None default) — if not passed, user views silently return empty
 - basic-pkm archive JSON parsing was fixed in M011/S01 (v2.0.0 upgrade) — refresh_artifacts now works correctly
