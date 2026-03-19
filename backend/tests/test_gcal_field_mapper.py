@@ -536,3 +536,74 @@ class TestNormalizationMaps:
             "opaque": "busy",
             "transparent": "free",
         }
+
+    def test_reverse_response_status_map_entries(self):
+        assert fm.REVERSE_RESPONSE_STATUS_MAP == {
+            "needs-action": "needsAction",
+            "accepted": "accepted",
+            "declined": "declined",
+            "tentative": "tentative",
+        }
+
+    def test_reverse_response_status_is_true_inverse(self):
+        """Every entry in RESPONSE_STATUS_MAP should have a matching reverse."""
+        for gcal_val, bpkm_val in fm.RESPONSE_STATUS_MAP.items():
+            assert fm.REVERSE_RESPONSE_STATUS_MAP[bpkm_val] == gcal_val
+
+
+# ===================================================================
+# build_event_patch tests
+# ===================================================================
+
+class TestBuildEventPatch:
+    """Test reverse mapping for RSVP push-back."""
+
+    def test_accepted_mapping(self):
+        props = {f"{fm.BPKM}responseStatus": "accepted"}
+        result = fm.build_event_patch(props, "user@example.com")
+        assert result == {
+            "attendees": [
+                {"email": "user@example.com", "self": True, "responseStatus": "accepted"}
+            ],
+            "attendeesOmitted": True,
+        }
+
+    def test_declined_mapping(self):
+        props = {f"{fm.BPKM}responseStatus": "declined"}
+        result = fm.build_event_patch(props, "user@example.com")
+        assert result["attendees"][0]["responseStatus"] == "declined"
+
+    def test_tentative_mapping(self):
+        props = {f"{fm.BPKM}responseStatus": "tentative"}
+        result = fm.build_event_patch(props, "user@example.com")
+        assert result["attendees"][0]["responseStatus"] == "tentative"
+
+    def test_needs_action_mapping(self):
+        props = {f"{fm.BPKM}responseStatus": "needs-action"}
+        result = fm.build_event_patch(props, "user@example.com")
+        assert result["attendees"][0]["responseStatus"] == "needsAction"
+
+    def test_no_response_status_returns_empty(self):
+        props = {f"{fm.BPKM}eventStatus": "confirmed"}
+        result = fm.build_event_patch(props, "user@example.com")
+        assert result == {}
+
+    def test_unknown_status_returns_empty(self):
+        props = {f"{fm.BPKM}responseStatus": "maybe-later"}
+        result = fm.build_event_patch(props, "user@example.com")
+        assert result == {}
+
+    def test_self_flag_set(self):
+        props = {f"{fm.BPKM}responseStatus": "accepted"}
+        result = fm.build_event_patch(props, "test@gmail.com")
+        assert result["attendees"][0]["self"] is True
+
+    def test_email_matches_input(self):
+        props = {f"{fm.BPKM}responseStatus": "accepted"}
+        result = fm.build_event_patch(props, "specific@company.com")
+        assert result["attendees"][0]["email"] == "specific@company.com"
+
+    def test_attendees_omitted_flag(self):
+        props = {f"{fm.BPKM}responseStatus": "declined"}
+        result = fm.build_event_patch(props, "user@example.com")
+        assert result["attendeesOmitted"] is True

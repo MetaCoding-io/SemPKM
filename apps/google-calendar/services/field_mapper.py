@@ -32,6 +32,14 @@ RESPONSE_STATUS_MAP: dict[str, str] = {
     "tentative": "tentative",
 }
 
+# Reverse: bpkm:responseStatus → Google responseStatus (for push-back)
+REVERSE_RESPONSE_STATUS_MAP: dict[str, str] = {
+    "needs-action": "needsAction",
+    "accepted": "accepted",
+    "declined": "declined",
+    "tentative": "tentative",
+}
+
 # Google visibility → bpkm:visibility
 # "default" is explicitly excluded — omit the property entirely.
 VISIBILITY_MAP: dict[str, str] = {
@@ -202,3 +210,49 @@ def build_event_properties(
 
     # Strip None values
     return {k: v for k, v in props.items() if v is not None}
+
+
+# ---------------------------------------------------------------------------
+# Reverse mapping (push-back)
+# ---------------------------------------------------------------------------
+
+
+def build_event_patch(event_props: dict, google_email: str) -> dict:
+    """Build a Google Calendar Events.patch body from bpkm event properties.
+
+    Currently supports RSVP push-back only (per D213).  Constructs a
+    partial attendees array with the self-attendee entry so that PATCH
+    updates only the user's response status.
+
+    Parameters
+    ----------
+    event_props:
+        Property dict with full IRI keys (e.g.
+        ``urn:sempkm:model:basic-pkm:responseStatus``).
+    google_email:
+        The authenticated user's Google email (from state).
+
+    Returns
+    -------
+    dict
+        Google Events.patch body with ``attendees`` and
+        ``attendeesOmitted``, or empty dict if no pushable changes.
+    """
+    bpkm_status = event_props.get(f"{BPKM}responseStatus")
+    if not bpkm_status:
+        return {}
+
+    gcal_status = REVERSE_RESPONSE_STATUS_MAP.get(bpkm_status)
+    if not gcal_status:
+        return {}
+
+    return {
+        "attendees": [
+            {
+                "email": google_email,
+                "self": True,
+                "responseStatus": gcal_status,
+            }
+        ],
+        "attendeesOmitted": True,
+    }
