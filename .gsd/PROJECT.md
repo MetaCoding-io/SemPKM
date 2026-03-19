@@ -312,6 +312,20 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - ✓ EXT-12: User guide Chapter 32 (12 sections), 2 glossary entries, README TOC — M014
 - ✓ EXT-13: 3 Playwright E2E tests for extension capture flow with persistent context fixture — M014
 
+### Validated (M015 — Browser Extension Phase 2)
+
+<!-- Shipped and confirmed in M015 (2026-03-18). -->
+
+- ✓ EXT-15: Knowledge sidebar opens via Alt+K showing grouped results from context query — M015
+- ✓ EXT-16: Open action navigates to SemPKM object in new tab — M015
+- ✓ EXT-17: Link to this page action creates schema:url edge — M015
+- ✓ EXT-19: Auto-context toggle in settings controls badge/check behavior — M015
+- ⊘ EXT-14: Badge count (partial — same pipeline as sidebar, badge API inaccessible from tests) — M015
+- ⊘ EXT-18: Add Evidence (partial — code review confirmed, content script selection not E2E testable) — M015
+- ⊘ EXT-20: URL→results cache (partial — 23 unit tests prove LRU logic, not E2E exercised) — M015
+- ⊘ EXT-21: Cross-browser (partial — Chromium E2E passes, Firefox manifest syntax-checked only) — M015
+- ✓ 4 Playwright E2E tests, Chapter 33 user guide (257 lines), 3 glossary entries — M015
+
 ### Future Candidates
 
 <!-- Tracked for future milestones. See .gsd/QUEUE.md for full queue and .gsd/REQUIREMENTS.md for deferred requirements. -->
@@ -377,8 +391,9 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - 3 Playwright E2E tests, Chapter 32 user guide, Firefox manifest, admin API key management
 - 13 EXT requirements validated
 
-**Browser Extension Phase 2** — queued (M015, depends on M014)
-- Knowledge context overlay: sidebar showing related objects while browsing, in-context actions
+**Browser Extension Phase 2** — complete (M015, depends on M014)
+- Knowledge context overlay: sidebar showing related objects while browsing, badge count, in-context actions (Open, Link, Add Evidence)
+- Context Overlay settings in options page, 4 E2E tests, Chapter 33 user guide
 
 **Integration Sync Apps** — queued (M016–M024, depend on M009)
 - Task providers: Linear (M016), GitHub Issues (M017), Todoist (M019), Asana (M022), Jira (M023), Monday.com (M024)
@@ -430,7 +445,19 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current State
 
-**Latest shipped: M014 Browser Extension Phase 1 (2026-03-18)**
+**Latest shipped: M015 Browser Extension Phase 2 (2026-03-18)**
+
+**What shipped in M015 (Browser Extension Phase 2 — Knowledge Context Overlay):**
+- Knowledge sidebar (Alt+K) showing related SemPKM objects while browsing any page, grouped by match type (URL > title > keyword)
+- Badge count on extension icon showing number of related objects, cached per URL via in-memory LRU (max 100)
+- Three in-context actions: Open (new tab to SemPKM object), Link to this page (creates schema:url edge), Add Evidence (captures highlighted text, creates linked Evidence object)
+- Context Overlay settings in options page: autoCheckContext toggle, contextCheckDelay (ms), contextTimeout (ms)
+- Chrome Side Panel API integration with Firefox sidebar_action compatibility via dual manifests
+- Client-side result ranking (URL match > title match > keyword match, top 10)
+- Service worker context pipeline with debounce, timeout, and cache management
+- 4 Playwright E2E tests proving sidebar results, Open action, Link action with SPARQL edge verification
+- User guide Chapter 33 (257 lines), 3 glossary entries (Context Badge, Context Overlay, Knowledge Sidebar)
+- 8 requirements registered (EXT-14–EXT-21): 4 validated, 4 partial (badge API inaccessible, evidence capture manual-only, cache unit-tested, Firefox manifest-only)
 
 **What shipped in M014 (Browser Extension Phase 1):**
 - Chrome MV3 browser extension (`extension/` directory) with popup capture UI, options page, service worker
@@ -495,9 +522,9 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - E2E test coverage: 5 new Playwright tests across 3 spec files
 - User guide: 4 chapters updated with new feature documentation
 
-**Previous milestones:** M014 Browser Extension Phase 1 (2026-03-18), M013 API Surface for External Clients (2026-03-17), M012 Workspace & Event Log Polish (2026-03-17), M011 Mental Models Expansion (2026-03-17), M008 Spatial Canvas (2026-03-16), M007 Generic Views, VFS Completion & Polish (2026-03-16), M006 Dashboards, Workflows & Platform Alignment (2026-03-15), M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
+**Previous milestones:** M015 Browser Extension Phase 2 (2026-03-18), M014 Browser Extension Phase 1 (2026-03-18), M013 API Surface for External Clients (2026-03-17), M012 Workspace & Event Log Polish (2026-03-17), M011 Mental Models Expansion (2026-03-17), M008 Spatial Canvas (2026-03-16), M007 Generic Views, VFS Completion & Polish (2026-03-16), M006 Dashboards, Workflows & Platform Alignment (2026-03-15), M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
 
-**Latest shipped: M014 Browser Extension Phase 1 (2026-03-18)**
+**Latest shipped: M015 Browser Extension Phase 2 (2026-03-18)**
 
 **What shipped in M013 (API Surface for External Clients):**
 - `GET /.well-known/sempkm` discovery endpoint with version, endpoints, auth methods, capabilities
@@ -522,7 +549,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - 58 phases, 80 plans completed across v1.0–v2.6; M002 (7 slices) + M003 (10 slices) + M004 (5 slices) + M005 (9 slices) + M006 (7 slices) + M007 (5 slices) + M008 (4 slices) + M011 (5 slices) + M012 (4 slices) + M013 (3 slices) + M014 (5 slices) milestones complete
 - Backend test suite: 1000+ pytest unit tests, <5s, no Docker dependency
 - E2E test suite: 100 Playwright spec files covering all shipped features
-- Browser extension: `extension/` directory with Chrome MV3 + Firefox manifests, 9 JS modules, 3 E2E tests
+- Browser extension: `extension/` directory with Chrome MV3 + Firefox manifests, 9+ JS modules, 7 E2E tests (3 capture + 4 context overlay)
 - All dependencies pinned (~= compatible release) with uv.lock committed
 - Browser router refactored into 8 domain sub-modules (was 1956-line monolith)
 - Query storage migrated from SQL to RDF (4 SQL tables dropped)
