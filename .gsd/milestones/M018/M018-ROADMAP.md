@@ -75,7 +75,7 @@ This milestone is complete only when all are true:
 - [x] **S01: bpkm:Event type in basic-pkm** `risk:high` `depends:[]`
   > After this: basic-pkm v2.1 has Event type with OWL ontology, SHACL shapes (22+ properties), ViewSpecs (table/cards/graph), seed data, and Lucide icon. Offline pyshacl validation passes. Model installs cleanly in Docker.
 
-- [ ] **S02: Google OAuth 2.0 + calendar list** `risk:high` `depends:[]`
+- [x] **S02: Google OAuth 2.0 + calendar list** `risk:high` `depends:[]`
   > After this: User installs google-calendar app, completes OAuth consent flow, sees their calendar list with selection checkboxes. Auth tokens stored and refresh works. Proven by unit tests against mocked token exchange.
 
 - [ ] **S03: Pull sync + field mapping + settings** `risk:medium` `depends:[S01,S02]`

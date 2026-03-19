@@ -161,16 +161,22 @@ This file is the explicit capability and coverage contract for the project.
 22 offline validation tests prove: manifest v2.1.0, 7 OWL classes, 7 NodeShapes, 21 ViewSpecs, 8 SavedQueries, 4 seed Events, pyshacl zero violations, enum constraints match D212 cross-provider superset.
 
 ### GCAL-01 — Google OAuth 2.0 authentication
-- Status: active
+- Status: validated
 - Class: core-capability
 - Source: design (M018-ROADMAP.md)
+- Primary Slice: M018/S02
 - Acceptance: User completes OAuth consent flow through app proxy callback. Tokens stored via StateClient. Refresh works on 401.
 
+OAuth auth module with 7 helpers (authorize URL, code exchange, refresh, refresh_if_expired with 5-min buffer, store tokens as ISO 8601, connection status, clear). 23 unit tests cover all auth paths. App proxy query-param forwarding fixed (5 regression tests). Route handlers implement full OAuth redirect/callback with CSRF state verification. GCal REST client with 401→refresh→retry (12 tests). 1498 total tests pass.
+
 ### GCAL-02 — Calendar list and selection
-- Status: active
+- Status: validated
 - Class: core-capability
 - Source: design (M018-ROADMAP.md)
+- Primary Slice: M018/S02
 - Acceptance: After OAuth, user sees their calendar list with selection checkboxes. Selected calendars persisted.
+
+GCalClient.get_calendar_list() with pagination via nextPageToken, normalized calendar dicts (id, summary, primary flag). Calendar list UI with checkboxes in connect_status.html template, selection persisted as JSON via StateClient. 12 client unit tests cover single-page, paginated, empty, auth header, 401→retry, error handling.
 
 ### GCAL-03 — Pull sync (Google Calendar → bpkm:Event)
 - Status: active
@@ -1985,8 +1991,8 @@ build_task_properties() stores both external URL and UUID during pull sync. 49 f
 | GH-06 | core-capability | validated | M017/S01 | none | 10 unit tests — email/login SPARQL lookup + creation + cache |
 | GH-07 | quality-attribute | validated | M017/S04 | none | mock server (9 selftest) + E2E test (partial) + Ch 35 guide + glossary |
 | EVENT-01 | core-capability | validated | M018/S01 | none | 22 offline tests — manifest, ontology, shapes, views, seed, pyshacl, enum constraints |
-| GCAL-01 | core-capability | active | none | none | design: M018-ROADMAP.md |
-| GCAL-02 | core-capability | active | none | none | design: M018-ROADMAP.md |
+| GCAL-01 | core-capability | validated | M018/S02 | none | 23 auth unit tests + 5 proxy regression tests + full OAuth route handlers |
+| GCAL-02 | core-capability | validated | M018/S02 | none | 12 client unit tests + calendar list UI with checkboxes + state persistence |
 | GCAL-03 | core-capability | active | none | none | design: M018-ROADMAP.md |
 | GCAL-04 | core-capability | active | none | none | design: M018-ROADMAP.md |
 | GCAL-05 | core-capability | active | none | none | design: M018-ROADMAP.md |
