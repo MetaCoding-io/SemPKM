@@ -69,7 +69,7 @@ Leaves for later: GitHub OAuth App flow (PAT-only for v1, same as M016's API key
 - [x] **S01: GitHub Client + PAT Auth + Issue Pull Sync** `risk:high` `depends:[]`
   > After this: User installs the GitHub sync app, enters a PAT, selects repos, clicks Sync Now, and GitHub issues appear as bpkm:Task objects with correct status, labels, assignee, and external link. Verified by unit tests (~80+) covering client, field mapping, auth, person matching, and sync engine.
 
-- [ ] **S02: PR Pull Sync + PR-to-Issue Edge Linking** `risk:medium` `depends:[S01]`
+- [x] **S02: PR Pull Sync + PR-to-Issue Edge Linking** `risk:medium` `depends:[S01]`
   > After this: GitHub PRs appear as bpkm:Task objects with `externalProvider: "github-pr"`. PRs that reference issues have edges linking them. Timeline API cross-referenced events are parsed and edge-created. Verified by unit tests (~30+) covering PR detection, timeline parsing, and edge creation.
 
 - [ ] **S03: Push Sync + Settings Polish** `risk:low` `depends:[S01]`
