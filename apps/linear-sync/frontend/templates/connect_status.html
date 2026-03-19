@@ -1,21 +1,19 @@
 <div id="connect-content" class="linear-sync-settings">
   <div class="connection-status">
-    <span class="status-badge status-connected">Connected</span>
-    <span class="status-detail">
-      via <strong>{{ auth_method }}</strong>
-      {% if workspace_name %} — {{ workspace_name }}{% endif %}
-    </span>
+    <span class="status-badge status-connected">● Connected</span>
+    <span class="auth-method-badge">{{ auth_method | replace("_", " ") | title }}</span>
   </div>
+
+  <h3 class="workspace-name">{{ workspace_name }}</h3>
 
   {% if teams %}
   <section class="teams-section">
-    <h3>Teams</h3>
+    <h4>Teams</h4>
     <table class="teams-table">
       <thead>
         <tr>
-          <th>Name</th>
+          <th>Team</th>
           <th>Key</th>
-          <th>Sync</th>
         </tr>
       </thead>
       <tbody>
@@ -23,12 +21,6 @@
         <tr>
           <td>{{ team.name }}</td>
           <td><code>{{ team.key }}</code></td>
-          <td>
-            <input type="checkbox"
-                   name="sync_teams"
-                   value="{{ team.id }}"
-                   {% if team.synced %}checked{% endif %} />
-          </td>
         </tr>
         {% endfor %}
       </tbody>

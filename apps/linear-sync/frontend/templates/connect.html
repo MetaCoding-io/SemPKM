@@ -5,17 +5,22 @@
     Choose one authentication method below.
   </p>
 
+  {% if error %}
+  <div class="alert alert-error">{{ error }}</div>
+  {% endif %}
+
   <section class="connect-section">
     <h3>API Key</h3>
     <p class="section-hint">
       Create a personal API key at
-      <a href="https://linear.app/settings/api" target="_blank" rel="noopener">
-        linear.app/settings/api</a>.
+      <strong>Settings → API → Personal API keys</strong> in
+      <a href="https://linear.app/settings/api" target="_blank" rel="noopener">Linear</a>.
     </p>
     <form class="api-key-form"
           hx-post="/_fragments/connect/api-key"
           hx-target="#connect-content"
-          hx-swap="innerHTML">
+          hx-swap="innerHTML"
+          hx-indicator="#api-key-spinner">
       <div class="form-row">
         <label for="linear-api-key">API Key</label>
         <input type="password"
@@ -25,7 +30,12 @@
                required
                autocomplete="off" />
       </div>
-      <button type="submit" class="btn btn-primary">Connect</button>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          Connect
+        </button>
+        <span id="api-key-spinner" class="htmx-indicator spinner">Verifying…</span>
+      </div>
     </form>
   </section>
 
@@ -37,9 +47,10 @@
     <h3>OAuth</h3>
     <p class="section-hint">
       Sign in with your Linear account for automatic token refresh.
+      Requires OAuth client configuration.
     </p>
-    <a href="/_fragments/oauth-callback" class="btn btn-secondary">
-      Connect with Linear
-    </a>
+    <p class="oauth-note">
+      OAuth is not yet configured. Use an API key to connect.
+    </p>
   </section>
 </div>

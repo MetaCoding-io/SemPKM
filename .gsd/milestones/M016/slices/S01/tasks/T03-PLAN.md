@@ -119,3 +119,11 @@ The auth flow helpers live in a separate `auth.py` module for testability. The a
 - `apps/linear-sync/frontend/templates/connect_status.html` — enhanced with workspace info and team table
 - `apps/linear-sync/frontend/static/styles.css` — polished scoped styles
 - `backend/tests/test_linear_auth.py` — ≥12 unit tests for auth helpers and connection flow
+
+## Observability Impact
+
+- **Auth state keys:** `access_token`, `refresh_token`, `api_key`, `auth_method`, `workspace_name`, `workspace_id` stored in `urn:sempkm:app:linear-sync:state` graph via StateClient. Inspect with: `await ctx.state.get("auth_method")`.
+- **Logger:** `logging.getLogger("linear_sync")` — INFO for auth state changes (connect/disconnect), DEBUG for route entry. Token values are never logged — only key names and auth_method.
+- **Error visibility:** Failed API key verification and OAuth exchange return rendered HTML with error messages (`.alert-error` div). No silent failures — all auth errors surface to the user.
+- **Route diagnostics:** `GET /_fragments/connect` — returns connect form or status page depending on state. If LinearClient throws during team fetch, falls back to connect form with error message.
+- **Inspection:** Future agent can verify auth state by checking StateClient keys or by hitting `/_fragments/connect` to see whether the connected or disconnected template renders.
