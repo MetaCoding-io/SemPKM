@@ -101,3 +101,10 @@ The service worker already has `_getApiConfig()` for reading API credentials and
 - `extension/background/service-worker.js` — extended with `linkToPage` message handler that calls `edge.create` API
 - `extension/sidebar/sidebar.js` — stub link handler replaced with `_linkToPage()`, `_currentTabUrl`/`_currentTabTitle` tracked
 - `extension/sidebar/sidebar.css` — `.action-link` styles added (solid border replacing dashed stub)
+
+## Observability Impact
+
+- **New console log:** `[SemPKM] linkToPage: success` / `[SemPKM] linkToPage: error: <detail>` in the service worker console (`chrome://extensions` → service worker inspector)
+- **Toast notifications:** Sidebar shows "✓ Linked to this page" on success, or the API error message on failure — visible in the side panel UI
+- **Button state:** Link button text changes to "Linking…" and disables during the API call — visual feedback for in-progress state
+- **Failure inspection:** If `_getApiConfig()` returns null, the service worker logs nothing (responds with error), and the sidebar shows "SemPKM not configured" toast. If the API call fails, the HTTP status and error detail are logged to the service worker console and surfaced in the sidebar toast.
