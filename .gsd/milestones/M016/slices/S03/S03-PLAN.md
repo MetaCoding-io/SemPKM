@@ -63,7 +63,7 @@
   - Verify: `cd backend && .venv/bin/python -m pytest tests/test_push_sync.py -v` — all tests pass; `cd backend && .venv/bin/python -m pytest tests/test_field_mapper.py tests/test_person_matcher.py tests/test_sync_engine.py tests/test_push_sync.py -v` — full suite passes
   - Done when: push_sync() detects changed tasks, reverse-maps properties, executes mutations, updates lastSyncedAt; pull_sync() skips re-importing pushed changes; error isolation verified
 
-- [ ] **T03: Settings page polish + push-changes wiring + sync stats** `est:40m`
+- [x] **T03: Settings page polish + push-changes wiring + sync stats** `est:40m`
   - Why: The user-facing settings controls and the runtime wiring that makes push sync actually run. Without this, push sync is dead code.
   - Files: `apps/linear-sync/app.py`, `apps/linear-sync/manifest.yaml`, `apps/linear-sync/frontend/templates/connect_status.html`, `apps/linear-sync/frontend/static/styles.css`
   - Do: Replace read-only team table with checkbox form POSTing to `/_fragments/settings/teams`. Add sync direction radios and poll interval select POSTing to `/_fragments/settings/sync-config`. Add "Sync Now" button triggering `/_fragments/sync-now`. Add sync stats section showing last sync time/results/total synced count. Add `push-changes` task to manifest.yaml. Wire `push_changes` task handler in app.py calling `push_sync(ctx)`. Add all new routes to app.py.

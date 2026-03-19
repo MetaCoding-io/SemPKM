@@ -33,6 +33,12 @@ tasks:
     retryPolicy:
       maxRetries: 3
       maxBackoff: "60s"
+  - id: "push-changes"
+    description: "Push local task changes back to Linear"
+    interval: "15m"
+    retryPolicy:
+      maxRetries: 3
+      maxBackoff: "60s"
 
 frontend:
   staticDir: "frontend/static"
