@@ -78,7 +78,7 @@ This milestone is complete only when all are true:
 - [x] **S02: Google OAuth 2.0 + calendar list** `risk:high` `depends:[]`
   > After this: User installs google-calendar app, completes OAuth consent flow, sees their calendar list with selection checkboxes. Auth tokens stored and refresh works. Proven by unit tests against mocked token exchange.
 
-- [ ] **S03: Pull sync + field mapping + settings** `risk:medium` `depends:[S01,S02]`
+- [x] **S03: Pull sync + field mapping + settings** `risk:medium` `depends:[S01,S02]`
   > After this: User triggers sync and events from selected calendars appear as bpkm:Event objects with correct fields — times, timezone, attendees linked to Person objects, conference URLs, location, all-day detection. Settings UI controls calendar selection, sync direction, poll interval. Proven by 100+ unit tests.
 
 - [ ] **S04: RSVP push-back + recurrence handling** `risk:medium` `depends:[S03]`
