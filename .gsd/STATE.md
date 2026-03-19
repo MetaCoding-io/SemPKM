@@ -1,10 +1,9 @@
 # GSD State
 
 **Active Milestone:** M018: Google Calendar Sync App
-**Active Slice:** S01: bpkm:Event type in basic-pkm
+**Active Slice:** S02: Google OAuth 2.0 + calendar list
 **Phase:** executing
-**Current Task:** T01
-**Requirements Status:** 68 active · 129 validated · 7 deferred · 0 out of scope
+**Requirements Status:** 78 active · 129 validated · 7 deferred · 0 out of scope
 
 ## Milestone Registry
 - ✅ **M001:** Migration
@@ -45,4 +44,4 @@
 - None
 
 ## Next Action
-Execute T01: Build complete bpkm:Event type in basic-pkm model files.
+Execute T01 of S02 (fix proxy query-param forwarding and HttpClient domain enforcement).
