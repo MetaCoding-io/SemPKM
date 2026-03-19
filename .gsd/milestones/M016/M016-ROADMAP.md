@@ -58,7 +58,7 @@ This milestone is complete only when all are true:
 
 ## Slices
 
-- [ ] **S01: OAuth + App Skeleton + Linear Client** `risk:high` `depends:[]`
+- [x] **S01: OAuth + App Skeleton + Linear Client** `risk:high` `depends:[]`
   > After this: user installs Linear Sync app, authenticates via OAuth or API key, sees their Linear workspace name and team list on the settings page — proving the full auth flow and API connection through the App Platform
 - [ ] **S02: Pull Sync — Linear Issues to bpkm:Task** `risk:high` `depends:[S01]`
   > After this: user selects a Linear team/project, triggers poll, and sees issues appear as correctly-mapped bpkm:Task objects in the workspace object browser with status, priority, assignee, labels, due date, and external link
