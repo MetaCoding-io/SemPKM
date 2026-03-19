@@ -58,7 +58,7 @@ This milestone is complete only when all are true:
 - [x] **S01: Context queries, badge count, and sidebar with grouped results** `risk:high` `depends:[]`
   > After this: user navigates to a page, sees badge count after 2s, opens sidebar via Alt+K showing related objects grouped by type, can click "Open" to view any object in SemPKM
 
-- [ ] **S02: In-context actions — Link to page and Add Evidence** `risk:medium` `depends:[S01]`
+- [x] **S02: In-context actions — Link to page and Add Evidence** `risk:medium` `depends:[S01]`
   > After this: user can click "Link to this page" to create an edge (visible in SemPKM relations panel), and click "Add Evidence" on a Claim to highlight text and create a linked Evidence object
 
 - [ ] **S03: Settings, E2E tests, and user guide** `risk:low` `depends:[S01,S02]`
