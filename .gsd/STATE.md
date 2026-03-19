@@ -1,9 +1,9 @@
 # GSD State
 
-**Active Milestone:** M016: Linear Sync App
-**Active Slice:** S04: E2E Tests + User Guide
-**Phase:** planned → ready for execution
-**Requirements Status:** 61 active · 122 validated · 7 deferred · 0 out of scope
+**Active Milestone:** M017: GitHub Issues Sync App
+**Active Slice:** S01: GitHub Client + PAT Auth + Issue Pull Sync
+**Phase:** executing
+**Requirements Status:** 61 active · 129 validated · 7 deferred · 0 out of scope
 
 ## Milestone Registry
 - ✅ **M001:** Migration
@@ -21,8 +21,8 @@
 - ✅ **M013:** API Surface for External Clients
 - ✅ **M014:** Browser Extension Phase 1 — Smart Structured Capture
 - ✅ **M015:** Browser Extension Phase 2 — Knowledge Context Overlay
-- 🔄 **M016:** Linear Sync App
-- ⬜ **M017:** M017
+- ✅ **M016:** Linear Sync App
+- 🔄 **M017:** GitHub Issues Sync App
 - ⬜ **M018:** M018
 - ⬜ **M019:** M019
 - ⬜ **M020:** M020
@@ -44,4 +44,4 @@
 - None
 
 ## Next Action
-Execute T01 (E2E test with mock Linear API server).
+Execute S01/T01: App scaffold + manifest + GitHub REST client
