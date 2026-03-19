@@ -151,6 +151,61 @@ This file is the explicit capability and coverage contract for the project.
 - Source: docs/research/rss-reader-hypothesis-integration.md §4-5
 - Acceptance: Paste a website URL → discover its RSS feed automatically. When feeds provide only summaries, extract full article content via reader mode (trafilatura). Fallback to summary when extraction fails.
 
+### GH-01 — GitHub PAT authentication
+- Status: active
+- Class: core-capability
+- Source: design (M017-ROADMAP.md)
+- Primary Slice: M017/S01
+- Acceptance: User enters a GitHub Personal Access Token. PAT stored via StateClient, verified via `GET /user` endpoint. Connection status shows username and masked PAT preview. Disconnect clears credentials.
+
+S01 contract: 15 unit tests verify PAT storage, verification, connection status, masking, and disconnect. Runtime validation deferred to S04 E2E.
+
+### GH-02 — Pull sync: GitHub issues to bpkm:Task
+- Status: active
+- Class: core-capability
+- Source: design (M017-ROADMAP.md)
+- Primary Slice: M017/S01
+- Acceptance: User selects repos and triggers sync. GitHub issues appear as bpkm:Task objects with correct status (open→todo, closed→done, not_planned→cancelled), labels as tags, first assignee mapped to Person, milestone as project, body as markdown, external URL/ID/UUID preserved. Delta sync via `since` parameter. Per-issue error isolation.
+
+S01 contract: 42 field mapper tests + 26 sync engine tests verify all field mappings, two-phase bulk create, delta sync, PR filtering, and error isolation. Runtime validation deferred to S04 E2E.
+
+### GH-03 — Pull sync: PRs + issue linking
+- Status: active
+- Class: core-capability
+- Source: design (M017-ROADMAP.md)
+- Primary Slice: M017/S02
+- Acceptance: GitHub PRs appear as bpkm:Task objects with `externalProvider: "github-pr"`. PRs that reference issues (via timeline API cross-referenced events) have edges linking PR task → issue task.
+
+### GH-04 — Push sync: SemPKM → GitHub
+- Status: active
+- Class: core-capability
+- Source: design (M017-ROADMAP.md)
+- Primary Slice: M017/S03
+- Acceptance: User edits task title/status in SemPKM, triggers push, and changes appear in GitHub via PATCH API. Loop prevention via `lastSyncedAt` comparison prevents re-import of pushed changes.
+
+### GH-05 — Settings UI: repo selection, sync direction, poll interval
+- Status: active
+- Class: core-capability
+- Source: design (M017-ROADMAP.md)
+- Primary Slice: M017/S03
+- Acceptance: Settings page has repo multi-select, sync direction toggle, poll interval configuration, Sync Now button, and sync stats panel.
+
+### GH-06 — Person matching: assignee resolution
+- Status: active
+- Class: core-capability
+- Source: design (M017-ROADMAP.md)
+- Primary Slice: M017/S01
+- Acceptance: GitHub assignee email resolved via SPARQL lookup (foaf:mbox, crm:email). Login-based fallback via bpkm:externalId. Person created on miss. In-memory LRU cache per sync run.
+
+S01 contract: 10 person matcher unit tests verify email match, login fallback, cache hit, person creation. Runtime validation deferred to S04 E2E.
+
+### GH-07 — E2E tests + user guide
+- Status: active
+- Class: quality-attribute
+- Source: design (M017-ROADMAP.md)
+- Primary Slice: M017/S04
+- Acceptance: Mock GitHub REST API server in Docker. Playwright E2E test covers install → configure → sync → verify → push → cleanup. Chapter 35 user guide documents GitHub sync with field mapping tables.
+
 ### API-01 — Well-known instance discovery endpoint
 - Status: validated
 - Class: core-capability
@@ -1851,10 +1906,17 @@ build_task_properties() stores both external URL and UUID during pull sync. 49 f
 | SYNC-05 | core-capability | validated | M016/S03 | none | platform Task History + settings sync stats |
 | SYNC-06 | core-capability | validated | M016/S02 | none | PersonMatcher SPARQL lookup + creation + 12 unit tests |
 | SYNC-07 | core-capability | validated | M016/S02 | none | bpkm:externalUrl + bpkm:externalUuid in pull sync |
+| GH-01 | core-capability | active | M017/S01 | none | 15 unit tests — PAT storage, verification, masking, disconnect |
+| GH-02 | core-capability | active | M017/S01 | none | 42 field mapper + 26 sync engine tests — full issue→Task mapping + pull sync |
+| GH-03 | core-capability | active | M017/S02 | none | pending S02 |
+| GH-04 | core-capability | active | M017/S03 | none | pending S03 |
+| GH-05 | core-capability | active | M017/S03 | none | pending S03 |
+| GH-06 | core-capability | active | M017/S01 | none | 10 unit tests — email/login SPARQL lookup + creation + cache |
+| GH-07 | quality-attribute | active | M017/S04 | none | pending S04 |
 
 ## Coverage Summary
 
-- Active requirements: 22 (14 APP + 8 RSS)
+- Active requirements: 29 (14 APP + 8 RSS + 7 GH)
 - Validated: 164 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 8 from M013 + 13 from M014 + 4 from M015 + 7 from M016)
 - Partial: 4 (EXT-14, EXT-18, EXT-20, EXT-21)
 - Deferred: 7 (TYPE-03, TYPE-04, MCP-01, NOTION-01, VIEW-06, VIEW-07, VFS-13)

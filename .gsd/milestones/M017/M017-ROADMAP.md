@@ -66,7 +66,7 @@ Leaves for later: GitHub OAuth App flow (PAT-only for v1, same as M016's API key
 
 ## Slices
 
-- [ ] **S01: GitHub Client + PAT Auth + Issue Pull Sync** `risk:high` `depends:[]`
+- [x] **S01: GitHub Client + PAT Auth + Issue Pull Sync** `risk:high` `depends:[]`
   > After this: User installs the GitHub sync app, enters a PAT, selects repos, clicks Sync Now, and GitHub issues appear as bpkm:Task objects with correct status, labels, assignee, and external link. Verified by unit tests (~80+) covering client, field mapping, auth, person matching, and sync engine.
 
 - [ ] **S02: PR Pull Sync + PR-to-Issue Edge Linking** `risk:medium` `depends:[S01]`
