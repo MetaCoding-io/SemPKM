@@ -326,6 +326,19 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - ⊘ EXT-21: Cross-browser (partial — Chromium E2E passes, Firefox manifest syntax-checked only) — M015
 - ✓ 4 Playwright E2E tests, Chapter 33 user guide (257 lines), 3 glossary entries — M015
 
+### Validated (M016 — Linear Sync App)
+
+<!-- Shipped and confirmed in M016 (2026-03-18). -->
+
+- ✓ SYNC-01: Linear OAuth and API key authentication — both methods implemented and unit-tested — M016
+- ✓ SYNC-02: Pull sync — Linear issues to bpkm:Task with full field mapping (status, priority, assignee, labels, due date, effort, URL) — M016
+- ✓ SYNC-03: Push sync — change detection, reverse field mapping, issueUpdate mutations, loop prevention — M016
+- ✓ SYNC-04: Settings UI — team selection, sync direction toggle, poll interval, Sync Now button — M016
+- ✓ SYNC-05: Admin sync history — platform Task History + settings page sync stats — M016
+- ✓ SYNC-06: Person matching — email-based SPARQL lookup with creation on miss — M016
+- ✓ SYNC-07: Provider icon and external link on synced tasks — M016
+- ✓ 189 unit tests across 6 test files, mock Linear API server, Playwright E2E test (11 phases), Chapter 34 user guide — M016
+
 ### Future Candidates
 
 <!-- Tracked for future milestones. See .gsd/QUEUE.md for full queue and .gsd/REQUIREMENTS.md for deferred requirements. -->
@@ -562,8 +575,8 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Tech stack: FastAPI + RDF4J (LuceneSail) + htmx/vanilla-web + SQLAlchemy (SQLite/PostgreSQL) + wsgidav + a2wsgi + Driver.js + Cytoscape.js + CodeMirror + dockview-core + Alembic + Yasgui CDN + ninja-keys + owlrl + pyshacl + mf2py + http-message-signatures + slowapi
 - Docker Compose deployment: 3 services (api, triplestore, frontend/nginx) + federation test compose (2 instances)
 - 58 phases, 80 plans completed across v1.0–v2.6; M002 (7 slices) + M003 (10 slices) + M004 (5 slices) + M005 (9 slices) + M006 (7 slices) + M007 (5 slices) + M008 (4 slices) + M011 (5 slices) + M012 (4 slices) + M013 (3 slices) + M014 (5 slices) + M015 (3 slices) + M016 (4 slices) milestones complete
-- Backend test suite: 1150+ pytest unit tests, <5s, no Docker dependency
-- E2E test suite: 101 Playwright spec files covering all shipped features
+- Backend test suite: 1225+ pytest unit tests, <5s, no Docker dependency
+- E2E test suite: 98 Playwright spec files covering all shipped features
 - Browser extension: `extension/` directory with Chrome MV3 + Firefox manifests, 11 JS modules (~2.5k LOC), 7 E2E tests (3 capture + 4 context overlay), 23 unit tests
 - All dependencies pinned (~= compatible release) with uv.lock committed
 - Browser router refactored into 8 domain sub-modules (was 1956-line monolith)
@@ -699,4 +712,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-03-18 after M015 complete (Browser Extension Phase 2 — Knowledge Context Overlay — 3 slices, sidebar with grouped results, badge count, Open/Link/Evidence actions, 4 validated + 4 partial EXT requirements, 4 E2E tests, Chapter 33 user guide)*
+*Last updated: 2026-03-18 after M016 complete (Linear Sync App — 4 slices, first bidirectional sync app on App Platform, OAuth/API key auth, pull/push sync with loop prevention, 189 unit tests, E2E test with mock API, 7 SYNC requirements validated, Chapter 34 user guide)*

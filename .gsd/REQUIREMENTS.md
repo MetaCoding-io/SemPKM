@@ -1511,6 +1511,69 @@ e2e/tests/25-extension/extension-capture.spec.ts with 3 serial tests. Custom per
 - Acceptance: Knowledge sidebar uses Chrome Side Panel API on Chrome and sidebar_action on Firefox, with feature detection for cross-browser compatibility.
 - Validation: Partially validated — Chromium E2E tests pass with persistent context. Firefox manifest.json verified by syntax check in S01. Firefox sidebar_action not E2E tested (Playwright lacks Firefox extension loading).
 
+### SYNC-01 — Linear OAuth and API key authentication
+- Status: validated
+- Class: core-capability
+- Source: design (M016-ROADMAP.md)
+- Primary Slice: M016/S01
+- Acceptance: User authenticates with Linear via OAuth or API key. Connection verified by querying Linear viewer endpoint. Both auth methods store credentials via StateClient.
+
+OAuth helpers and API key auth implemented with 39 unit tests. E2E test connects via API key through app proxy. OAuth code exchange and callback route implemented and tested.
+
+### SYNC-02 — Pull sync (Linear issues to bpkm:Task)
+- Status: validated
+- Class: core-capability
+- Source: design (M016-ROADMAP.md)
+- Primary Slice: M016/S02
+- Acceptance: User selects a Linear team/project, triggers poll, and issues appear as correctly-mapped bpkm:Task objects with status, priority, assignee, labels, due date, effort, and external link.
+
+pull_sync() creates/updates bpkm:Task objects with correct field mapping for all mappable fields. 81 unit tests cover mapping, matching, sync logic. E2E test verifies tasks appear via SPARQL after sync.
+
+### SYNC-03 — Push sync (SemPKM changes to Linear)
+- Status: validated
+- Class: core-capability
+- Source: design (M016-ROADMAP.md)
+- Primary Slice: M016/S03
+- Acceptance: User changes a task's status in SemPKM, triggers push, and the change appears in Linear. Loop prevention ensures pushed changes are not re-imported.
+
+push_sync() detects changed tasks via SPARQL, reverse-maps properties, executes issueUpdate mutations. Loop prevention via lastSyncedAt comparison. 69 unit tests.
+
+### SYNC-04 — Settings UI (team selection, sync direction, poll interval)
+- Status: validated
+- Class: core-capability
+- Source: design (M016-ROADMAP.md)
+- Primary Slice: M016/S03
+- Acceptance: Settings page allows team/project selection, sync direction toggle (pull-only/bidirectional), poll interval configuration, and manual Sync Now button.
+
+Full settings control panel with team checkboxes, direction radios, interval dropdown, Sync Now button. All controls persist via StateClient and POST routes. E2E test configures settings through UI.
+
+### SYNC-05 — Admin sync history
+- Status: validated
+- Class: core-capability
+- Source: design (M016-ROADMAP.md)
+- Primary Slice: M016/S03
+- Acceptance: Admin detail page shows sync run history with success/failure, object counts, and last sync time.
+
+Platform scheduler Task History shows push-changes and poll-tasks run history. Settings page sync stats section shows last sync time, result counts, errors.
+
+### SYNC-06 — Person matching (assignee email lookup)
+- Status: validated
+- Class: core-capability
+- Source: design (M016-ROADMAP.md)
+- Primary Slice: M016/S02
+- Acceptance: Assignee emails resolved via SPARQL lookup (foaf:mbox, crm:email). Person created on miss with email-derived slug and title.
+
+PersonMatcher with SPARQL lookup, command creation, in-memory LRU cache. 12 unit tests.
+
+### SYNC-07 — Provider icon and external link on synced tasks
+- Status: validated
+- Class: core-capability
+- Source: design (M016-ROADMAP.md)
+- Primary Slice: M016/S02
+- Acceptance: Synced tasks have bpkm:externalUrl (Linear issue URL) and bpkm:externalUuid (Linear issue UUID) for provider attribution.
+
+build_task_properties() stores both external URL and UUID during pull sync. 49 field mapper unit tests.
+
 ## Deferred
 
 ### TYPE-03 — Full SHACL shape editor with advanced constraints
@@ -1781,11 +1844,18 @@ e2e/tests/25-extension/extension-capture.spec.ts with 3 serial tests. Custom per
 | EXT-19 | core-capability | validated | M015/S03 | none | E2E test "settings round-trip for context overlay options" |
 | EXT-20 | core-capability | partial | M015/S01 | none | cache implicitly exercised by E2E; 23 unit tests prove LRU logic |
 | EXT-21 | core-capability | partial | M015/S01 | none | Chromium E2E passes; Firefox manifest syntax-checked; no Firefox E2E |
+| SYNC-01 | core-capability | validated | M016/S01 | none | OAuth helpers + API key auth + 39 unit tests + E2E API key connect |
+| SYNC-02 | core-capability | validated | M016/S02 | none | pull_sync() + 81 unit tests + E2E SPARQL verification |
+| SYNC-03 | core-capability | validated | M016/S03 | none | push_sync() + reverse mapping + loop prevention + 69 unit tests |
+| SYNC-04 | core-capability | validated | M016/S03 | none | settings page team/direction/interval/sync-now + E2E |
+| SYNC-05 | core-capability | validated | M016/S03 | none | platform Task History + settings sync stats |
+| SYNC-06 | core-capability | validated | M016/S02 | none | PersonMatcher SPARQL lookup + creation + 12 unit tests |
+| SYNC-07 | core-capability | validated | M016/S02 | none | bpkm:externalUrl + bpkm:externalUuid in pull sync |
 
 ## Coverage Summary
 
 - Active requirements: 22 (14 APP + 8 RSS)
-- Validated: 157 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 8 from M013 + 13 from M014 + 4 from M015)
+- Validated: 164 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 8 from M013 + 13 from M014 + 4 from M015 + 7 from M016)
 - Partial: 4 (EXT-14, EXT-18, EXT-20, EXT-21)
 - Deferred: 7 (TYPE-03, TYPE-04, MCP-01, NOTION-01, VIEW-06, VIEW-07, VFS-13)
 - Out of scope: 3
