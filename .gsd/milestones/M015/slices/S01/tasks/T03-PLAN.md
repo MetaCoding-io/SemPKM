@@ -108,6 +108,13 @@ The sidebar must work without ES module imports in the service worker context. `
 - `extension/shared/storage.js` — `getSettings()` for reading `instanceUrl`
 - SemPKM teal accent color: `#0d9488`. Dark theme colors from existing popup.css for reference.
 
+## Observability Impact
+
+- **Console signals:** `sidebar.js` logs `[SemPKM Sidebar]` prefixed messages for init, result rendering, message receipt, and errors
+- **State inspection:** Each sidebar state (loading/empty/error/results) toggles `hidden` attributes on named DOM elements — inspectable via DevTools Elements panel
+- **Failure visibility:** Error state shows error message text and a Retry button; toast notifications surface action failures (e.g. unconfigured instance URL)
+- **Diagnostic entry points:** Open sidebar in Chrome DevTools via right-click → Inspect; check console for `[SemPKM Sidebar]` messages; inspect `#results`, `#loading`, `#empty`, `#error` element visibility
+
 ## Expected Output
 
 - `extension/sidebar/sidebar.html` — self-contained sidebar shell
