@@ -46,6 +46,7 @@ _sync_engine = _load_module("sync_engine", _SERVICES_DIR / "sync_engine.py")
 pull_sync = _sync_engine.pull_sync
 push_sync = _sync_engine.push_sync
 _find_existing_event = _sync_engine._find_existing_event
+_find_event_by_external_id = _sync_engine._find_event_by_external_id
 _find_changed_events = _sync_engine._find_changed_events
 _build_create_command = _sync_engine._build_create_command
 _build_update_commands = _sync_engine._build_update_commands
@@ -84,6 +85,10 @@ class MockGraphClient:
     ``changed_events`` is a list of dicts returned when the query matches
     ``_find_changed_events`` pattern (selects with ``externalProvider``
     + ``modified`` filter but no ``STRENDS``).
+
+    ``external_id_map`` maps externalId string → {"iri": ...} for
+    ``_find_event_by_external_id`` lookups (matches on quoted externalId
+    value without STRENDS).
     """
 
     def __init__(
@@ -92,11 +97,13 @@ class MockGraphClient:
         slug_map: dict[str, str | dict] | None = None,
         email_to_iri: dict[str, str] | None = None,
         changed_events: list[dict] | None = None,
+        external_id_map: dict[str, dict] | None = None,
     ):
         self.default_results = default_results or {"results": {"bindings": []}}
         self.slug_map = slug_map or {}
         self.email_to_iri = email_to_iri or {}
         self.changed_events = changed_events or []
+        self.external_id_map = external_id_map or {}
         self.queries: list[str] = []
 
     async def query(self, sparql: str) -> dict:
@@ -126,6 +133,13 @@ class MockGraphClient:
                             "value": info["lastSyncedAt"],
                         }
                     return {"results": {"bindings": [binding]}}
+        # Check _find_event_by_external_id pattern (externalId literal match, no STRENDS)
+        elif "externalId" in sparql and "STRENDS" not in sparql and "responseStatus" not in sparql:
+            for ext_id, info in self.external_id_map.items():
+                if f'"{ext_id}"' in sparql:
+                    return {"results": {"bindings": [
+                        {"event": {"type": "uri", "value": info["iri"]}}
+                    ]}}
         # Check _find_changed_events pattern (no STRENDS, has responseStatus)
         elif "responseStatus" in sparql and "STRENDS" not in sparql and self.changed_events:
             bindings = []
@@ -1527,3 +1541,495 @@ class TestPushWiring:
     def test_build_event_patch_importable(self):
         """build_event_patch is importable from field_mapper."""
         assert callable(build_event_patch)
+
+
+# ===================================================================
+# TestFindEventByExternalId — SPARQL lookup by Google event ID
+# ===================================================================
+
+
+class TestFindEventByExternalId:
+    """Test _find_event_by_external_id SPARQL lookup."""
+
+    @pytest.mark.asyncio
+    async def test_found(self):
+        """When an event with the externalId exists, return its IRI."""
+        graph = MockGraphClient(external_id_map={
+            "gcal-master-1": {"iri": "https://example.org/data/Event/master1"},
+        })
+        result = await _find_event_by_external_id(graph, "gcal-master-1")
+        assert result is not None
+        assert result["iri"] == "https://example.org/data/Event/master1"
+
+    @pytest.mark.asyncio
+    async def test_not_found(self):
+        """When no event matches the externalId, return None."""
+        graph = MockGraphClient(external_id_map={})
+        result = await _find_event_by_external_id(graph, "nonexistent-id")
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_query_contains_external_id(self):
+        """The SPARQL query should contain the external ID value."""
+        graph = MockGraphClient()
+        await _find_event_by_external_id(graph, "my-google-id-123")
+        assert len(graph.queries) == 1
+        assert "my-google-id-123" in graph.queries[0]
+        assert "externalProvider" in graph.queries[0]
+
+
+# ===================================================================
+# TestRecurrenceLinking — exception→master edge creation in pull_sync
+# ===================================================================
+
+
+class TestRecurrenceLinking:
+    """Test recurrence exception→master linking in pull_sync."""
+
+    @pytest.mark.asyncio
+    async def test_exception_linked_to_master(self):
+        """Exception with recurringEventId creates edge to master event."""
+        master_event = make_event(event_id="master1", recurrence=["RRULE:FREQ=WEEKLY"])
+        exception_event = make_event(
+            event_id="master1_20260320T090000Z",
+            recurringEventId="master1",
+        )
+        master_slug = compute_event_slug("cal@example.com", "master1")
+        exc_slug = compute_event_slug("cal@example.com", "master1_20260320T090000Z")
+
+        events_resp = MockResponse(200, {
+            "items": [master_event, exception_event],
+            "nextSyncToken": "tok-rec",
+        })
+        ext_http = MockExternalHttpClient(responses=[events_resp])
+
+        # After phase 1 create, both slugs resolve to IRIs.
+        # Also set up external_id_map so the master can be found by externalId.
+        graph = MockGraphClient(
+            slug_map={
+                master_slug: {"iri": f"https://example.org/data/Event/{master_slug}"},
+                exc_slug: {"iri": f"https://example.org/data/Event/{exc_slug}"},
+            },
+            external_id_map={
+                "master1": {"iri": f"https://example.org/data/Event/{master_slug}"},
+            },
+        )
+
+        ctx = MockAppContext(
+            state_data=_make_connected_state(calendars=["cal@example.com"]),
+            graph_client=graph,
+            ext_http_client=ext_http,
+        )
+        result = await pull_sync(ctx)
+
+        assert result["errors"] == []
+        assert result["recurrence_edges"] == 1
+
+        # Verify edge.create command was submitted with correct predicate
+        bulk_http = ctx.commands._client
+        all_cmds = []
+        for post in bulk_http.posts:
+            all_cmds.extend(post["json"].get("commands", []))
+        rec_edges = [
+            c for c in all_cmds
+            if c["command"] == "edge.create"
+            and c["params"]["predicate"] == f"{BPKM}recurringEventId"
+        ]
+        assert len(rec_edges) == 1
+        assert rec_edges[0]["params"]["source"] == f"https://example.org/data/Event/{exc_slug}"
+        assert rec_edges[0]["params"]["target"] == f"https://example.org/data/Event/{master_slug}"
+
+    @pytest.mark.asyncio
+    async def test_orphan_exception_no_edge(self):
+        """Exception whose master is not synced → no edge, no error."""
+        exception_event = make_event(
+            event_id="orphan_exc_20260320",
+            recurringEventId="not-synced-master",
+        )
+        exc_slug = compute_event_slug("cal@example.com", "orphan_exc_20260320")
+
+        events_resp = MockResponse(200, {
+            "items": [exception_event],
+            "nextSyncToken": "tok-orphan",
+        })
+        ext_http = MockExternalHttpClient(responses=[events_resp])
+
+        # Exception slug resolves, but master externalId does not
+        graph = MockGraphClient(
+            slug_map={
+                exc_slug: {"iri": f"https://example.org/data/Event/{exc_slug}"},
+            },
+            external_id_map={},  # master not synced
+        )
+
+        ctx = MockAppContext(
+            state_data=_make_connected_state(calendars=["cal@example.com"]),
+            graph_client=graph,
+            ext_http_client=ext_http,
+        )
+        result = await pull_sync(ctx)
+
+        assert result["errors"] == []
+        assert result["recurrence_edges"] == 0
+
+    @pytest.mark.asyncio
+    async def test_self_link_skipped(self):
+        """Event where recurringEventId matches own externalId → skip."""
+        # Edge case: event references itself
+        self_ref_event = make_event(
+            event_id="selfref1",
+            recurringEventId="selfref1",
+        )
+        slug = compute_event_slug("cal@example.com", "selfref1")
+        iri = f"https://example.org/data/Event/{slug}"
+
+        events_resp = MockResponse(200, {
+            "items": [self_ref_event],
+            "nextSyncToken": "tok-self",
+        })
+        ext_http = MockExternalHttpClient(responses=[events_resp])
+
+        graph = MockGraphClient(
+            slug_map={slug: {"iri": iri}},
+            external_id_map={"selfref1": {"iri": iri}},  # same IRI
+        )
+
+        ctx = MockAppContext(
+            state_data=_make_connected_state(calendars=["cal@example.com"]),
+            graph_client=graph,
+            ext_http_client=ext_http,
+        )
+        result = await pull_sync(ctx)
+
+        assert result["recurrence_edges"] == 0
+
+    @pytest.mark.asyncio
+    async def test_multiple_exceptions_same_master(self):
+        """Multiple exceptions linking to the same master → multiple edges."""
+        master = make_event(event_id="weekly1", recurrence=["RRULE:FREQ=WEEKLY"])
+        exc1 = make_event(event_id="weekly1_20260320", recurringEventId="weekly1")
+        exc2 = make_event(event_id="weekly1_20260327", recurringEventId="weekly1")
+        master_slug = compute_event_slug("cal@example.com", "weekly1")
+        exc1_slug = compute_event_slug("cal@example.com", "weekly1_20260320")
+        exc2_slug = compute_event_slug("cal@example.com", "weekly1_20260327")
+
+        events_resp = MockResponse(200, {
+            "items": [master, exc1, exc2],
+            "nextSyncToken": "tok-multi-exc",
+        })
+        ext_http = MockExternalHttpClient(responses=[events_resp])
+
+        graph = MockGraphClient(
+            slug_map={
+                master_slug: {"iri": f"https://example.org/data/Event/{master_slug}"},
+                exc1_slug: {"iri": f"https://example.org/data/Event/{exc1_slug}"},
+                exc2_slug: {"iri": f"https://example.org/data/Event/{exc2_slug}"},
+            },
+            external_id_map={
+                "weekly1": {"iri": f"https://example.org/data/Event/{master_slug}"},
+            },
+        )
+
+        ctx = MockAppContext(
+            state_data=_make_connected_state(calendars=["cal@example.com"]),
+            graph_client=graph,
+            ext_http_client=ext_http,
+        )
+        result = await pull_sync(ctx)
+
+        assert result["recurrence_edges"] == 2
+
+    @pytest.mark.asyncio
+    async def test_event_without_recurring_id_no_linking(self):
+        """Regular event without recurringEventId → no linking attempted."""
+        event = make_event(event_id="regular1")  # no recurringEventId
+
+        events_resp = MockResponse(200, {
+            "items": [event],
+            "nextSyncToken": "tok-norec",
+        })
+        ext_http = MockExternalHttpClient(responses=[events_resp])
+
+        graph = MockGraphClient()
+
+        ctx = MockAppContext(
+            state_data=_make_connected_state(calendars=["cal@example.com"]),
+            graph_client=graph,
+            ext_http_client=ext_http,
+        )
+        result = await pull_sync(ctx)
+
+        assert result["recurrence_edges"] == 0
+
+    @pytest.mark.asyncio
+    async def test_edge_uses_correct_predicate(self):
+        """Edge command predicate must be bpkm:recurringEventId."""
+        master = make_event(event_id="m1", recurrence=["RRULE:FREQ=DAILY"])
+        exc = make_event(event_id="m1_20260320", recurringEventId="m1")
+        master_slug = compute_event_slug("cal@example.com", "m1")
+        exc_slug = compute_event_slug("cal@example.com", "m1_20260320")
+
+        events_resp = MockResponse(200, {
+            "items": [master, exc],
+            "nextSyncToken": "tok-pred",
+        })
+        ext_http = MockExternalHttpClient(responses=[events_resp])
+
+        graph = MockGraphClient(
+            slug_map={
+                master_slug: {"iri": f"https://example.org/data/Event/{master_slug}"},
+                exc_slug: {"iri": f"https://example.org/data/Event/{exc_slug}"},
+            },
+            external_id_map={
+                "m1": {"iri": f"https://example.org/data/Event/{master_slug}"},
+            },
+        )
+
+        ctx = MockAppContext(
+            state_data=_make_connected_state(calendars=["cal@example.com"]),
+            graph_client=graph,
+            ext_http_client=ext_http,
+        )
+        await pull_sync(ctx)
+
+        bulk_http = ctx.commands._client
+        all_cmds = []
+        for post in bulk_http.posts:
+            all_cmds.extend(post["json"].get("commands", []))
+        rec_edges = [
+            c for c in all_cmds
+            if c["command"] == "edge.create"
+            and "recurringEventId" in c["params"].get("predicate", "")
+        ]
+        assert len(rec_edges) == 1
+        assert rec_edges[0]["params"]["predicate"] == f"{BPKM}recurringEventId"
+
+    @pytest.mark.asyncio
+    async def test_edge_source_is_exception_target_is_master(self):
+        """Edge source must be the exception, target must be the master."""
+        master = make_event(event_id="src_tgt_master", recurrence=["RRULE:FREQ=WEEKLY"])
+        exc = make_event(event_id="src_tgt_exc_20260320", recurringEventId="src_tgt_master")
+        master_slug = compute_event_slug("cal@example.com", "src_tgt_master")
+        exc_slug = compute_event_slug("cal@example.com", "src_tgt_exc_20260320")
+        master_iri = f"https://example.org/data/Event/{master_slug}"
+        exc_iri = f"https://example.org/data/Event/{exc_slug}"
+
+        events_resp = MockResponse(200, {
+            "items": [master, exc],
+            "nextSyncToken": "tok-st",
+        })
+        ext_http = MockExternalHttpClient(responses=[events_resp])
+
+        graph = MockGraphClient(
+            slug_map={
+                master_slug: {"iri": master_iri},
+                exc_slug: {"iri": exc_iri},
+            },
+            external_id_map={
+                "src_tgt_master": {"iri": master_iri},
+            },
+        )
+
+        ctx = MockAppContext(
+            state_data=_make_connected_state(calendars=["cal@example.com"]),
+            graph_client=graph,
+            ext_http_client=ext_http,
+        )
+        await pull_sync(ctx)
+
+        bulk_http = ctx.commands._client
+        all_cmds = []
+        for post in bulk_http.posts:
+            all_cmds.extend(post["json"].get("commands", []))
+        rec_edges = [
+            c for c in all_cmds
+            if c["command"] == "edge.create"
+            and "recurringEventId" in c["params"].get("predicate", "")
+        ]
+        assert len(rec_edges) == 1
+        assert rec_edges[0]["params"]["source"] == exc_iri
+        assert rec_edges[0]["params"]["target"] == master_iri
+
+    @pytest.mark.asyncio
+    async def test_recurrence_linking_error_isolated(self):
+        """An error during recurrence linking should not block the sync."""
+        exc = make_event(event_id="err_exc_20260320", recurringEventId="err_master")
+        exc_slug = compute_event_slug("cal@example.com", "err_exc_20260320")
+
+        events_resp = MockResponse(200, {
+            "items": [exc],
+            "nextSyncToken": "tok-rerr",
+        })
+        ext_http = MockExternalHttpClient(responses=[events_resp])
+
+        # Graph client that raises during externalId lookup
+        class FailingExternalIdGraph(MockGraphClient):
+            async def query(self, sparql: str) -> dict:
+                self.queries.append(sparql)
+                if "STRENDS" in sparql:
+                    # Return the exception event for slug lookup
+                    for slug, info in self.slug_map.items():
+                        if slug in sparql:
+                            if isinstance(info, str):
+                                info = {"iri": info}
+                            return {"results": {"bindings": [
+                                {"event": {"type": "uri", "value": info["iri"]}}
+                            ]}}
+                    return self.default_results
+                if "externalId" in sparql and "responseStatus" not in sparql:
+                    raise RuntimeError("SPARQL engine crashed")
+                return self.default_results
+
+        graph = FailingExternalIdGraph(
+            slug_map={exc_slug: {"iri": f"https://example.org/data/Event/{exc_slug}"}},
+        )
+
+        ctx = MockAppContext(
+            state_data=_make_connected_state(calendars=["cal@example.com"]),
+            graph_client=graph,
+            ext_http_client=ext_http,
+        )
+        result = await pull_sync(ctx)
+
+        # Sync should complete successfully despite linking error.
+        # The event was found in slug_map so it counts as updated, not created.
+        assert result["status"] == "ok"
+        assert result["recurrence_edges"] == 0
+
+    @pytest.mark.asyncio
+    async def test_full_sync_mixed_master_and_exceptions(self):
+        """Full pull_sync with masters and exceptions produces correct state."""
+        master1 = make_event(event_id="weekly", recurrence=["RRULE:FREQ=WEEKLY"])
+        master2 = make_event(event_id="daily", recurrence=["RRULE:FREQ=DAILY"])
+        exc1 = make_event(event_id="weekly_20260320", recurringEventId="weekly")
+        exc2 = make_event(event_id="daily_20260320", recurringEventId="daily")
+        regular = make_event(event_id="standalone")
+
+        master1_slug = compute_event_slug("cal@example.com", "weekly")
+        master2_slug = compute_event_slug("cal@example.com", "daily")
+        exc1_slug = compute_event_slug("cal@example.com", "weekly_20260320")
+        exc2_slug = compute_event_slug("cal@example.com", "daily_20260320")
+
+        events_resp = MockResponse(200, {
+            "items": [master1, master2, exc1, exc2, regular],
+            "nextSyncToken": "tok-full-mix",
+        })
+        ext_http = MockExternalHttpClient(responses=[events_resp])
+
+        # Phase-aware graph: returns None for first slug lookup (processing
+        # loop → new event), then returns IRI for subsequent lookups (phase 2
+        # and recurrence linking). Tracks which slugs have been "created".
+        class PhaseAwareGraph(MockGraphClient):
+            def __init__(self, **kwargs):
+                super().__init__(**kwargs)
+                self._created_slugs: set[str] = set()
+
+            async def query(self, sparql: str) -> dict:
+                self.queries.append(sparql)
+                if "STRENDS" in sparql:
+                    for slug, info in self.slug_map.items():
+                        if slug in sparql:
+                            if slug not in self._created_slugs:
+                                # First lookup: not found (new event)
+                                self._created_slugs.add(slug)
+                                return {"results": {"bindings": []}}
+                            # Subsequent lookup: found (after phase 1 create)
+                            if isinstance(info, str):
+                                info = {"iri": info}
+                            return {"results": {"bindings": [
+                                {"event": {"type": "uri", "value": info["iri"]}}
+                            ]}}
+                    return self.default_results
+                # externalId lookup for recurrence linking
+                if "externalId" in sparql and "responseStatus" not in sparql:
+                    for ext_id, info in self.external_id_map.items():
+                        if f'"{ext_id}"' in sparql:
+                            return {"results": {"bindings": [
+                                {"event": {"type": "uri", "value": info["iri"]}}
+                            ]}}
+                return self.default_results
+
+        graph = PhaseAwareGraph(
+            slug_map={
+                master1_slug: {"iri": f"https://example.org/data/Event/{master1_slug}"},
+                master2_slug: {"iri": f"https://example.org/data/Event/{master2_slug}"},
+                exc1_slug: {"iri": f"https://example.org/data/Event/{exc1_slug}"},
+                exc2_slug: {"iri": f"https://example.org/data/Event/{exc2_slug}"},
+            },
+            external_id_map={
+                "weekly": {"iri": f"https://example.org/data/Event/{master1_slug}"},
+                "daily": {"iri": f"https://example.org/data/Event/{master2_slug}"},
+            },
+        )
+
+        ctx = MockAppContext(
+            state_data=_make_connected_state(calendars=["cal@example.com"]),
+            graph_client=graph,
+            ext_http_client=ext_http,
+        )
+        result = await pull_sync(ctx)
+
+        assert result["status"] == "ok"
+        assert result["created"] == 5  # 2 masters + 2 exceptions + 1 regular
+        assert result["recurrence_edges"] == 2  # 2 exceptions linked
+
+    @pytest.mark.asyncio
+    async def test_recurrence_edges_in_pull_result(self):
+        """Pull result includes recurrence_edges count."""
+        event = make_event(event_id="norec")
+        events_resp = MockResponse(200, {
+            "items": [event],
+            "nextSyncToken": "tok-count",
+        })
+        ext_http = MockExternalHttpClient(responses=[events_resp])
+
+        ctx = MockAppContext(
+            state_data=_make_connected_state(calendars=["cal@example.com"]),
+            ext_http_client=ext_http,
+        )
+        result = await pull_sync(ctx)
+
+        assert "recurrence_edges" in result
+        assert result["recurrence_edges"] == 0
+
+    @pytest.mark.asyncio
+    async def test_updated_exception_also_linked(self):
+        """An existing exception event that gets updated should also be linked."""
+        # Exception event already exists, but gets updated with a new time
+        exc = make_event(
+            event_id="upd_exc_20260320",
+            recurringEventId="upd_master",
+            updated="2026-03-19T14:00:00Z",
+        )
+        exc_slug = compute_event_slug("cal@example.com", "upd_exc_20260320")
+        master_slug = compute_event_slug("cal@example.com", "upd_master")
+        exc_iri = f"https://example.org/data/Event/{exc_slug}"
+        master_iri = f"https://example.org/data/Event/{master_slug}"
+
+        events_resp = MockResponse(200, {
+            "items": [exc],
+            "nextSyncToken": "tok-upd-exc",
+        })
+        ext_http = MockExternalHttpClient(responses=[events_resp])
+
+        graph = MockGraphClient(
+            slug_map={
+                exc_slug: {
+                    "iri": exc_iri,
+                    "lastSyncedAt": "2026-03-18T10:00:00Z",  # older → will update
+                },
+            },
+            external_id_map={
+                "upd_master": {"iri": master_iri},
+            },
+        )
+
+        ctx = MockAppContext(
+            state_data=_make_connected_state(calendars=["cal@example.com"]),
+            graph_client=graph,
+            ext_http_client=ext_http,
+        )
+        result = await pull_sync(ctx)
+
+        assert result["updated"] == 1
+        assert result["recurrence_edges"] == 1

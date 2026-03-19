@@ -81,7 +81,7 @@ This milestone is complete only when all are true:
 - [x] **S03: Pull sync + field mapping + settings** `risk:medium` `depends:[S01,S02]`
   > After this: User triggers sync and events from selected calendars appear as bpkm:Event objects with correct fields — times, timezone, attendees linked to Person objects, conference URLs, location, all-day detection. Settings UI controls calendar selection, sync direction, poll interval. Proven by 100+ unit tests.
 
-- [ ] **S04: RSVP push-back + recurrence handling** `risk:medium` `depends:[S03]`
+- [x] **S04: RSVP push-back + recurrence handling** `risk:medium` `depends:[S03]`
   > After this: User changes RSVP status in SemPKM and it reflects in Google Calendar. Recurring events stored as master (RRULE) + exceptions (linked via recurringEventId). Proven by unit tests for push pipeline and recurrence storage.
 
 - [ ] **S05: E2E tests + user guide** `risk:low` `depends:[S03,S04]`

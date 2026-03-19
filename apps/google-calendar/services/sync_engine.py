@@ -52,6 +52,28 @@ BATCH_SIZE = 1000  # Max commands per bulk POST
 # ---------------------------------------------------------------------------
 
 
+async def _find_event_by_external_id(graph_client, external_id: str) -> dict | None:
+    """Find a bpkm:Event by its Google Calendar external ID.
+
+    Looks up events where ``bpkm:externalId`` matches the given value
+    and ``bpkm:externalProvider`` is ``"google-calendar"``.
+
+    Returns ``{"iri": ...}`` or None if no match found.
+    """
+    sparql = (
+        "SELECT ?event WHERE {\n"
+        f"  ?event a <{BPKM}Event> .\n"
+        f'  ?event <{BPKM}externalProvider> "google-calendar" .\n'
+        f'  ?event <{BPKM}externalId> "{external_id}" .\n'
+        "} LIMIT 1"
+    )
+    result = await graph_client.query(sparql)
+    bindings = result.get("results", {}).get("bindings", [])
+    if not bindings:
+        return None
+    return {"iri": bindings[0]["event"]["value"]}
+
+
 async def _find_existing_event(graph_client, slug: str) -> dict | None:
     """Check whether an Event with the given slug already exists.
 
@@ -448,6 +470,7 @@ async def pull_sync(ctx) -> dict:
     new_event_descriptions: dict[str, str] = {}  # slug → description
     new_event_attendee_iris: dict[str, list[str]] = {}  # slug → [Person IRI]
     new_event_organizer_iris: dict[str, str] = {}  # slug → Person IRI
+    recurrence_links: dict[str, str] = {}  # slug → recurringEventId value
 
     sync_timestamp = datetime.now(timezone.utc).isoformat()
 
@@ -495,6 +518,11 @@ async def pull_sync(ctx) -> dict:
                     event, calendar_name, sync_time=sync_timestamp
                 )
                 description = extract_body(event)
+
+                # Track recurrence exceptions for linking phase
+                recurring_event_id = event.get("recurringEventId")
+                if recurring_event_id:
+                    recurrence_links[slug] = recurring_event_id
 
                 # Process attendees (non-self)
                 attendee_iris: list[str] = []
@@ -608,8 +636,60 @@ async def pull_sync(ctx) -> dict:
                 },
             })
 
-    # 7. Submit update + phase 2 commands
-    all_follow_up = update_commands + phase2_commands
+    # Phase 3: Recurrence exception → master linking
+    recurrence_edge_commands: list[dict] = []
+    recurrence_edges_created = 0
+    for exc_slug, recurring_event_id in recurrence_links.items():
+        try:
+            # Resolve exception event IRI
+            exc_info = await _find_existing_event(ctx.graph, exc_slug)
+            if not exc_info:
+                logger.warning(
+                    "Recurrence linking: exception slug %s not found — skipping",
+                    exc_slug,
+                )
+                continue
+
+            # Resolve master event IRI via externalId lookup
+            master_info = await _find_event_by_external_id(
+                ctx.graph, recurring_event_id
+            )
+            if not master_info:
+                logger.warning(
+                    "Recurrence linking: master event with externalId=%s "
+                    "not found for exception %s — orphan exception",
+                    recurring_event_id,
+                    exc_slug,
+                )
+                continue
+
+            # Skip self-links
+            if exc_info["iri"] == master_info["iri"]:
+                continue
+
+            recurrence_edge_commands.append({
+                "command": "edge.create",
+                "params": {
+                    "source": exc_info["iri"],
+                    "predicate": f"{BPKM}recurringEventId",
+                    "target": master_info["iri"],
+                },
+            })
+            recurrence_edges_created += 1
+
+        except Exception as e:
+            logger.warning(
+                "Recurrence linking error for %s: %s", exc_slug, e
+            )
+
+    if recurrence_edges_created:
+        logger.info(
+            "Recurrence linking: created %d exception→master edges",
+            recurrence_edges_created,
+        )
+
+    # 7. Submit update + phase 2 + recurrence edge commands
+    all_follow_up = update_commands + phase2_commands + recurrence_edge_commands
     if all_follow_up:
         await _submit_commands_batched(
             http_client,
@@ -627,6 +707,7 @@ async def pull_sync(ctx) -> dict:
         "created": created_count,
         "updated": updated_count,
         "unchanged": unchanged_count,
+        "recurrence_edges": recurrence_edges_created,
         "errors": errors,
     }
     logger.info("Pull sync complete: %s", result)
