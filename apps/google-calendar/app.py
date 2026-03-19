@@ -15,6 +15,7 @@ from starlette.responses import HTMLResponse, RedirectResponse, JSONResponse
 import json
 import logging
 import uuid
+from datetime import datetime, timezone
 
 from services.auth import (
     build_google_authorize_url,
@@ -55,7 +56,7 @@ async def _make_client_with_creds(ctx: AppContext) -> GCalClient:
 
 
 async def _render_connect_status(ctx: AppContext) -> HTMLResponse:
-    """Render connect_status.html with calendar list and connection state."""
+    """Render connect_status.html with calendar list, sync config, and sync stats."""
     status = await get_connection_status(ctx.state)
     client = await _make_client_with_creds(ctx)
     calendars = await client.get_calendar_list()
@@ -64,6 +65,17 @@ async def _render_connect_status(ctx: AppContext) -> HTMLResponse:
     selected_json = await ctx.state.get("selected_calendars")
     selected_calendars = json.loads(selected_json) if selected_json else []
 
+    # Read sync config
+    sync_direction = await ctx.state.get("sync_direction") or "pull-only"
+    poll_interval = await ctx.state.get("poll_interval") or "15m"
+    last_sync_at = await ctx.state.get("last_sync_at") or ""
+
+    # Parse result JSONs
+    last_pull_json = await ctx.state.get("last_pull_result")
+    last_pull_result = json.loads(last_pull_json) if last_pull_json else None
+    last_push_json = await ctx.state.get("last_push_result")
+    last_push_result = json.loads(last_push_json) if last_push_json else None
+
     return HTMLResponse(ctx.render_template(
         "connect_status.html",
         google_email=status["google_email"] or "Unknown",
@@ -71,6 +83,11 @@ async def _render_connect_status(ctx: AppContext) -> HTMLResponse:
         token_expiry=status["token_expiry"],
         calendars=calendars,
         selected_calendars=selected_calendars,
+        sync_direction=sync_direction,
+        poll_interval=poll_interval,
+        last_sync_at=last_sync_at,
+        last_pull_result=last_pull_result,
+        last_push_result=last_push_result,
     ))
 
 
@@ -302,6 +319,45 @@ async def save_calendars(request: Request):
     return await _render_connect_status(ctx)
 
 
+@google_calendar_app.route("/_fragments/settings/sync-config", methods=["POST"])
+async def save_sync_config(request: Request):
+    """Save sync direction and poll interval settings."""
+    ctx: AppContext = request.app.state.ctx
+    form = await request.form()
+    sync_direction = form.get("sync_direction", "pull-only")
+    poll_interval = form.get("poll_interval", "15m")
+    await ctx.state.set("sync_direction", sync_direction)
+    await ctx.state.set("poll_interval", poll_interval)
+    logger.info("Saved sync config: direction=%s interval=%s", sync_direction, poll_interval)
+    return await _render_connect_status(ctx)
+
+
+@google_calendar_app.route("/_fragments/sync-now", methods=["POST"])
+async def sync_now(request: Request):
+    """Trigger an immediate pull sync (and push if bidirectional)."""
+    from services.sync_engine import pull_sync
+
+    ctx: AppContext = request.app.state.ctx
+    logger.info("Manual sync triggered")
+
+    try:
+        pull_result = await pull_sync(ctx)
+        await ctx.state.set("last_pull_result", json.dumps(pull_result))
+    except Exception as exc:
+        logger.error("Manual pull sync failed: %s", exc, exc_info=True)
+        pull_result = {"status": "error", "message": str(exc)}
+        await ctx.state.set("last_pull_result", json.dumps(pull_result))
+
+    sync_direction = await ctx.state.get("sync_direction")
+    if sync_direction == "bidirectional":
+        # Push sync — placeholder for S04
+        push_result = {"status": "skipped", "message": "Push sync not yet implemented"}
+        await ctx.state.set("last_push_result", json.dumps(push_result))
+
+    await ctx.state.set("last_sync_at", datetime.now(timezone.utc).isoformat())
+    return await _render_connect_status(ctx)
+
+
 def _oauth_result_page(success: bool, message: str) -> str:
     """Generate a minimal HTML page for the OAuth callback result.
 
@@ -333,8 +389,27 @@ def _oauth_result_page(success: bool, message: str) -> str:
 @google_calendar_app.task("poll-events")
 async def poll_events(ctx: AppContext):
     """Poll Google Calendar for updated events and sync to SemPKM."""
-    logger.info("poll-events: not yet implemented")
-    return {"status": "ok", "message": "Not yet implemented"}
+    from services.sync_engine import pull_sync
+
+    logger.info("poll-events: starting pull sync")
+    try:
+        pull_result = await pull_sync(ctx)
+        await ctx.state.set("last_pull_result", json.dumps(pull_result))
+        await ctx.state.set("last_sync_at", datetime.now(timezone.utc).isoformat())
+
+        sync_direction = await ctx.state.get("sync_direction")
+        if sync_direction == "bidirectional":
+            # Push sync — placeholder for S04
+            logger.info("poll-events: bidirectional push not yet implemented")
+
+        logger.info("poll-events: completed — %s", pull_result)
+        return pull_result
+    except Exception as exc:
+        logger.error("poll-events: sync failed — %s", exc, exc_info=True)
+        error_result = {"status": "error", "message": str(exc)}
+        await ctx.state.set("last_pull_result", json.dumps(error_result))
+        await ctx.state.set("last_sync_at", datetime.now(timezone.utc).isoformat())
+        return error_result
 
 
 @google_calendar_app.task("push-changes")

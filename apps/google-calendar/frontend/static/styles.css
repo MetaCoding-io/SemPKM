@@ -265,14 +265,6 @@
     font-style: italic;
 }
 
-/* ── Disconnect ── */
-
-.gcal-sync-settings .disconnect-section {
-    margin-top: 2rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--color-border, #333);
-}
-
 /* ── Alerts ── */
 
 .gcal-sync-settings .alert {
@@ -323,4 +315,171 @@
     color: var(--color-text-muted, #888);
     font-style: italic;
     margin-top: 0.5rem;
+}
+
+/* ── Sync Config Section ── */
+
+.gcal-sync-settings .sync-config-section {
+    margin-bottom: 1.5rem;
+}
+
+.gcal-sync-settings .sync-config-section h4 {
+    margin: 0 0 0.5rem;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted, #888);
+}
+
+.gcal-sync-settings .sync-config-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.gcal-sync-settings .config-fieldset {
+    border: 1px solid var(--color-border, #333);
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    margin: 0;
+}
+
+.gcal-sync-settings .config-fieldset legend {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted, #888);
+    padding: 0 0.25rem;
+}
+
+.gcal-sync-settings .radio-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.3rem 0;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.gcal-sync-settings .radio-item input[type="radio"] {
+    accent-color: var(--color-accent, #5e9ed6);
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.gcal-sync-settings .option-hint {
+    font-size: 0.8rem;
+    color: var(--color-text-muted, #888);
+    margin-left: auto;
+}
+
+.gcal-sync-settings .config-select {
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--color-border, #333);
+    border-radius: 4px;
+    background: var(--color-bg-input, #1a1a1a);
+    color: var(--color-text, #eee);
+    font-size: 0.9rem;
+    width: 100%;
+    max-width: 250px;
+}
+
+.gcal-sync-settings .config-select:focus {
+    outline: none;
+    border-color: var(--color-accent, #5e9ed6);
+    box-shadow: 0 0 0 2px rgba(94, 158, 214, 0.2);
+}
+
+/* ── Sync Now Section ── */
+
+.gcal-sync-settings .sync-now-section {
+    margin-bottom: 1.5rem;
+}
+
+.gcal-sync-settings .sync-now-section h4 {
+    margin: 0 0 0.25rem;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted, #888);
+}
+
+/* ── Sync Stats ── */
+
+.gcal-sync-settings .sync-stats {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border: 1px solid var(--color-border, #333);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.gcal-sync-settings .sync-stats h4 {
+    margin: 0 0 0.75rem;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted, #888);
+}
+
+.gcal-sync-settings .sync-stats h5 {
+    margin: 0.75rem 0 0.25rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text, #eee);
+}
+
+.gcal-sync-settings .stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.2rem 0;
+    font-size: 0.85rem;
+}
+
+.gcal-sync-settings .stat-label {
+    color: var(--color-text-muted, #888);
+}
+
+.gcal-sync-settings .stat-value {
+    font-weight: 500;
+    color: var(--color-text, #eee);
+}
+
+.gcal-sync-settings .stat-status-ok {
+    color: #3fb950;
+}
+
+.gcal-sync-settings .stat-status-error {
+    color: #f87171;
+}
+
+.gcal-sync-settings .stat-status-skipped {
+    color: var(--color-text-muted, #888);
+}
+
+.gcal-sync-settings .stat-errors {
+    color: #f87171;
+}
+
+.gcal-sync-settings .stat-group {
+    padding-left: 0.5rem;
+    border-left: 2px solid var(--color-border, #333);
+    margin-bottom: 0.5rem;
+}
+
+.gcal-sync-settings .no-sync-data {
+    color: var(--color-text-muted, #888);
+    font-style: italic;
+    font-size: 0.85rem;
+}
+
+/* ── Disconnect ── */
+
+.gcal-sync-settings .disconnect-section {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border, #333);
 }

@@ -81,6 +81,13 @@ Follow the linear-sync connect_status.html and app.py patterns exactly — the t
 - `apps/linear-sync/app.py` — reference for sync-config, sync-now route handlers
 - `apps/linear-sync/frontend/static/styles.css` — reference for sync section CSS
 
+## Observability Impact
+
+- **Sync stats UI:** The Sync Stats section surfaces `last_sync_at`, `last_pull_result` (status/created/updated/unchanged/errors), and `last_push_result` directly in the settings page — a future agent or user can inspect sync health visually without touching logs.
+- **State keys:** `sync_direction`, `poll_interval`, `last_sync_at`, `last_pull_result`, `last_push_result` are all persisted in app state and can be queried via `ctx.state.get()` for debugging.
+- **poll-events handler:** Now calls real `pull_sync(ctx)` — the `google_calendar.sync` logger emits INFO for per-calendar stats and WARNING for per-event failures. The task handler returns the full sync result dict, which the scheduler can log.
+- **Failure visibility:** Manual Sync catches and persists error results; the UI shows error status and count. The poll-events handler logs and returns errors without crashing.
+
 ## Expected Output
 
 - `apps/google-calendar/frontend/templates/connect_status.html` — extended with sync config, sync now, sync stats sections

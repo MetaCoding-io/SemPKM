@@ -66,7 +66,7 @@
   - Verify: `cd backend && .venv/bin/python -m pytest tests/test_gcal_person_matcher.py tests/test_gcal_sync_engine.py -v` — all pass; `cd backend && .venv/bin/python -m pytest -x` — full suite passes
   - Done when: `pull_sync()` creates/updates bpkm:Event objects with correct properties, attendee/organizer edges, body content, per-calendar syncToken state, and per-event error isolation — all proven by mocked tests
 
-- [ ] **T03: Wire settings UI, sync routes, and poll-events task handler** `est:30m`
+- [x] **T03: Wire settings UI, sync routes, and poll-events task handler** `est:30m`
   - Why: Connects the sync engine to the user-facing UI. Settings let users control sync behavior. The task handler enables scheduled sync. Without this, the sync engine exists but can't be triggered.
   - Files: `apps/google-calendar/app.py`, `apps/google-calendar/frontend/templates/connect_status.html`, `apps/google-calendar/frontend/static/styles.css`
   - Do: (1) Extend `connect_status.html` with Sync Configuration section (direction radios: pull-only/bidirectional, poll interval dropdown: 5m/15m/30m/1h), Manual Sync section (Sync Now button), and Sync Stats section (last sync time, pull result counts, errors). Copy structure from linear-sync's connect_status.html. (2) Add routes in app.py: `POST /_fragments/settings/sync-config` (save direction + interval), `POST /_fragments/sync-now` (run pull_sync and re-render). (3) Wire `poll-events` task handler to call real `pull_sync()`. (4) Extend `_render_connect_status()` with sync config and stats context variables. (5) Verify all htmx URLs use `/app/google-calendar/` prefix.
