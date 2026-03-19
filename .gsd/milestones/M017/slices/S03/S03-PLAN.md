@@ -48,7 +48,7 @@
 
 ## Tasks
 
-- [ ] **T01: Push sync engine with loop prevention and field mapper extensions** `est:45m`
+- [x] **T01: Push sync engine with loop prevention and field mapper extensions** `est:45m`
   - Why: Core push sync logic — detects locally changed tasks, reverse-maps properties, pushes via PATCH API, updates lastSyncedAt, and adds loop prevention to pull_sync. This is the engine that GH-04 depends on.
   - Files: `apps/github-sync/services/sync_engine.py`, `apps/github-sync/services/field_mapper.py`, `backend/tests/test_github_sync_engine.py`, `backend/tests/test_github_field_mapper.py`
   - Do: (1) Add `parse_external_url()` to field_mapper.py — parse `https://github.com/owner/repo/issues/42` and `/pull/42` into `(owner, repo, 42)`. (2) Add `sync_time` param to `build_task_properties()`, include `bpkm:lastSyncedAt` in output. (3) Extend `_find_existing_task()` to also return `lastSyncedAt` via OPTIONAL clause. (4) Add `_find_changed_tasks(graph_client)` SPARQL query matching `externalProvider "github"`, `externalUuid` present, `dcterms:modified > bpkm:lastSyncedAt` (or no lastSyncedAt). (5) Add `push_sync(ctx)` — auth check → direction check → find changed → for each: build_issue_patch → parse_external_url → github_client.patch_issue → update lastSyncedAt → store last_push_result. (6) Add loop prevention to `pull_sync()`: after finding existing task, compare `issue["updated_at"] <= existing["lastSyncedAt"]` and skip if true. (7) Write ≥25 new tests. Follow the linear-sync sync_engine.py push_sync pattern closely.
