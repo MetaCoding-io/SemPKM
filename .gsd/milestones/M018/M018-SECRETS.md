@@ -1,14 +1,13 @@
-# M018: Google Calendar Sync — Secrets Manifest
+# Secrets Manifest
 
-## Predicted Secrets
+**Milestone:** 
+**Generated:** 
 
 ### GOOGLE_CLIENT_ID
 
-- **Service:** Google Cloud Console (OAuth 2.0)
-- **Dashboard:** https://console.cloud.google.com/apis/credentials
-- **Format hint:** Numeric string ending in `.apps.googleusercontent.com`
-- **Status:** pending
-- **Destination:** dotenv
+**Service:** 
+**Status:** skipped
+**Destination:** dotenv
 
 1. Go to https://console.cloud.google.com/
 2. Select or create a project
@@ -20,11 +19,9 @@
 
 ### GOOGLE_CLIENT_SECRET
 
-- **Service:** Google Cloud Console (OAuth 2.0)
-- **Dashboard:** https://console.cloud.google.com/apis/credentials
-- **Format hint:** `GOCSPX-...` (35+ characters)
-- **Status:** pending
-- **Destination:** dotenv
+**Service:** 
+**Status:** skipped
+**Destination:** dotenv
 
 1. Same credentials page as GOOGLE_CLIENT_ID
 2. Copy the Client secret from the OAuth client details
