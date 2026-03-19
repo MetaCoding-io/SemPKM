@@ -48,7 +48,7 @@
   - Verify: `npx playwright test --project=extension extension-context-overlay` passes against running Docker test stack
   - Done when: All E2E tests pass, EXT-14 through EXT-19 validated in REQUIREMENTS.md
 
-- [ ] **T03: Write user guide Chapter 33 and update navigation chain** `est:45m`
+- [x] **T03: Write user guide Chapter 33 and update navigation chain** `est:45m`
   - Why: Milestone definition of done requires user guide documentation. Chapter 33 covers the entire context overlay feature for end users.
   - Files: `docs/guide/33-context-overlay.md`, `docs/guide/32-browser-extension.md`, `docs/guide/README.md`, `docs/guide/appendix-d-glossary.md`
   - Do: Write Chapter 33 following Chapter 32's structure and voice. Cover sidebar (Alt+K), badge count, grouped results, all three actions (Open, Link, Add Evidence), auto-context settings, cross-browser notes, troubleshooting. Update ch32 footer to link to ch33. Update README TOC. Add glossary entries.
