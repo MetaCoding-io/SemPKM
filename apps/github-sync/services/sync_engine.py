@@ -25,6 +25,7 @@ try:
         BPKM,
         build_task_properties,
         compute_issue_slug,
+        extract_linked_issue_numbers,
         get_assignee_info,
         is_pull_request,
     )
@@ -36,6 +37,7 @@ except ImportError:
         BPKM,
         build_task_properties,
         compute_issue_slug,
+        extract_linked_issue_numbers,
         get_assignee_info,
         is_pull_request,
     )
@@ -53,18 +55,30 @@ BATCH_SIZE = 1000  # Max commands per bulk POST
 # ---------------------------------------------------------------------------
 
 
-async def _find_existing_task(graph_client, slug: str) -> dict | None:
+async def _find_existing_task(
+    graph_client, slug: str, *, provider: str | None = "github"
+) -> dict | None:
     """Check whether a Task with the given slug already exists.
 
     Uses ``STRENDS`` to match the slug suffix of the IRI without
     needing to know the platform's base namespace.
 
+    When *provider* is a string, the SPARQL filters by that
+    ``bpkm:externalProvider`` value.  When *provider* is ``None``,
+    the lookup matches by slug only — useful for finding tasks
+    regardless of whether they originated as issues or PRs.
+
     Returns ``{"iri": ..., "title": ..., "status": ...}`` or None.
     """
+    provider_clause = ""
+    if provider is not None:
+        provider_clause = (
+            f'  ?task <{BPKM}externalProvider> "{provider}" .\n'
+        )
     sparql = (
         "SELECT ?task ?title ?status WHERE {\n"
         f"  ?task a <{BPKM}Task> .\n"
-        f"  ?task <{BPKM}externalProvider> \"github\" .\n"
+        f"{provider_clause}"
         f'  FILTER(STRENDS(STR(?task), "/Task/{slug}"))\n'
         f"  OPTIONAL {{ ?task <dcterms:title> ?title }}\n"
         f"  OPTIONAL {{ ?task <{BPKM}taskStatus> ?status }}\n"
@@ -165,16 +179,16 @@ async def pull_sync(ctx) -> dict:
       1. Check auth status
       2. Read selected repos and sync cursor from state/settings
       3. Fetch issues from GitHub via paginated REST API
-      4. Filter out pull requests
-      5. For each issue: classify as create / update
-      6. Phase 1: submit object.create commands
-      7. Phase 2: discover IRIs of new tasks, submit body.set
-      8. Submit update commands
+      4. For each issue/PR: classify as create / update
+      5. Phase 1: submit object.create commands
+      6. Phase 2: discover IRIs of new tasks, submit body.set
+      7. Submit update commands
+      8. Phase 3: fetch timelines for issues, create bpkm:dependsOn edges
       9. Store sync cursor and result in state
 
     Returns a result dict with ``status``, ``created``, ``updated``,
-    ``skipped``, ``errors``, ``failed_issues``, ``duration_ms``,
-    and ``timestamp`` fields.
+    ``skipped``, ``errors``, ``edges_created``, ``failed_issues``,
+    ``duration_ms``, and ``timestamp`` fields.
     """
     start_time = time.monotonic()
     sync_timestamp = datetime.now(timezone.utc).isoformat()
@@ -217,6 +231,7 @@ async def pull_sync(ctx) -> dict:
     error_count = 0
     failed_issues: list[str] = []
     new_issue_bodies: dict[str, str] = {}  # slug → body markdown
+    synced_issues: list[tuple[str, int]] = []  # (repo_full_name, issue_number)
 
     for repo_full_name in selected_repos:
         parts = repo_full_name.split("/", 1)
@@ -238,12 +253,8 @@ async def pull_sync(ctx) -> dict:
             failed_issues.append(f"{repo_full_name}(fetch)")
             continue
 
-        # 4. Filter out pull requests
-        real_issues = [i for i in issues if not is_pull_request(i)]
-        skipped_count += len(issues) - len(real_issues)
-
-        # 5. Process each issue
-        for issue in real_issues:
+        # 5. Process each issue (issues and PRs alike)
+        for issue in issues:
             issue_ref = f"{repo_full_name}#{issue.get('number', '?')}"
             try:
                 slug = compute_issue_slug(repo_full_name, issue["number"])
@@ -276,6 +287,10 @@ async def pull_sync(ctx) -> dict:
                         new_issue_bodies[slug] = body_text
                     created_count += 1
 
+                # Track non-PR items for timeline queries in phase 3
+                if not is_pull_request(issue):
+                    synced_issues.append((repo_full_name, issue["number"]))
+
             except Exception as exc:
                 error_count += 1
                 failed_issues.append(issue_ref)
@@ -302,7 +317,64 @@ async def pull_sync(ctx) -> dict:
     if all_follow_up:
         await _submit_commands_batched(http_client, all_follow_up)
 
-    # 9. Update sync cursor
+    # 9. Phase 3: link-discovery — fetch timelines for issues, create edges
+    edge_commands: list[dict] = []
+    edges_created = 0
+    for repo_full_name, issue_number in synced_issues:
+        r_owner, r_repo = repo_full_name.split("/", 1)
+        try:
+            timeline = await github_client.fetch_timeline(
+                r_owner, r_repo, issue_number
+            )
+            linked_prs = extract_linked_issue_numbers(
+                timeline, repo_full_name
+            )
+            for pr_repo, pr_number in linked_prs:
+                pr_slug = compute_issue_slug(pr_repo, pr_number)
+                pr_task = await _find_existing_task(
+                    ctx.graph, pr_slug, provider=None
+                )
+                if not pr_task:
+                    logger.debug(
+                        "PR task not found for %s#%d, skipping edge",
+                        pr_repo, pr_number,
+                    )
+                    continue
+                issue_slug = compute_issue_slug(
+                    repo_full_name, issue_number
+                )
+                issue_task = await _find_existing_task(
+                    ctx.graph, issue_slug, provider=None
+                )
+                if not issue_task:
+                    logger.debug(
+                        "Issue task not found for %s#%d, skipping edge",
+                        repo_full_name, issue_number,
+                    )
+                    continue
+                edge_commands.append({
+                    "command": "edge.create",
+                    "params": {
+                        "source": pr_task["iri"],
+                        "target": issue_task["iri"],
+                        "predicate": f"{BPKM}dependsOn",
+                    },
+                })
+                edges_created += 1
+        except Exception as exc:
+            logger.warning(
+                "Error fetching timeline for %s#%d: %s",
+                repo_full_name, issue_number, exc,
+            )
+            error_count += 1
+            failed_issues.append(
+                f"{repo_full_name}#{issue_number}(timeline)"
+            )
+
+    if edge_commands:
+        await _submit_commands_batched(http_client, edge_commands)
+
+    # 10. Update sync cursor
     await ctx.state.set("last_sync_at", sync_timestamp)
 
     # Determine overall status
@@ -322,12 +394,13 @@ async def pull_sync(ctx) -> dict:
         skipped=skipped_count,
         errors=error_count,
         failed_issues=failed_issues,
+        edges_created=edges_created,
     )
 
     await ctx.state.set("last_pull_result", json.dumps(result))
     logger.info(
-        "Pull sync complete: status=%s created=%d updated=%d skipped=%d errors=%d",
-        overall_status, created_count, updated_count, skipped_count, error_count,
+        "Pull sync complete: status=%s created=%d updated=%d skipped=%d errors=%d edges=%d",
+        overall_status, created_count, updated_count, skipped_count, error_count, edges_created,
     )
     return result
 
@@ -341,6 +414,7 @@ def _make_result(
     updated: int = 0,
     skipped: int = 0,
     errors: int = 0,
+    edges_created: int = 0,
     failed_issues: list[str] | None = None,
     reason: str | None = None,
 ) -> dict:
@@ -352,6 +426,7 @@ def _make_result(
         "updated": updated,
         "skipped": skipped,
         "errors": errors,
+        "edges_created": edges_created,
         "failed_issues": failed_issues or [],
         "duration_ms": duration_ms,
         "timestamp": timestamp,
