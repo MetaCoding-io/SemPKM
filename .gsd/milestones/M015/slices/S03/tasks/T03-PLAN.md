@@ -81,6 +81,14 @@ Write user guide Chapter 33 documenting the context overlay feature. Follow the 
 - S02 summary — Link to page action (schema:url edge), Add Evidence action (content script capture)
 - Roadmap success criteria — specific user-facing behaviors to document
 
+## Observability Impact
+
+This task is documentation-only — no runtime behavior changes.
+
+- **Future agent inspection:** `grep -c '##' docs/guide/33-context-overlay.md` shows section count. `grep 'Previous\|Next' docs/guide/33-context-overlay.md` verifies navigation chain integrity. `grep '33-context-overlay' docs/guide/README.md docs/guide/32-browser-extension.md` confirms cross-references.
+- **Failure visibility:** Broken navigation links surface as 404s when the docs site is served. Missing glossary entries are visible by searching the glossary page for the term.
+- **No runtime signals:** No logs, endpoints, or status surfaces are affected.
+
 ## Expected Output
 
 - `docs/guide/33-context-overlay.md` — complete chapter (~150-250 lines)

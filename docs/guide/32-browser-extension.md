@@ -300,4 +300,4 @@ installed from addons.mozilla.org. For development use, re-load from
 
 ---
 
-**Previous:** [Chapter 31: API Surface](31-api-surface.md) | **Next:** [Appendix A: Environment Variable Reference](appendix-a-environment-variables.md)
+**Previous:** [Chapter 31: API Surface](31-api-surface.md) | **Next:** [Chapter 33: Context Overlay](33-context-overlay.md)

@@ -55,6 +55,12 @@ A person in your professional or personal network. Tracks name, email, role, com
 **Content Negotiation**
 An HTTP mechanism where the server returns different representations of a resource based on the client's `Accept` header. SemPKM uses content negotiation for WebID profiles: browsers receive an HTML page while Linked Data clients receive JSON-LD or Turtle. See [Chapter 25: WebID Profiles](25-webid-profiles.md).
 
+**Context Badge**
+The extension icon badge showing the count of related objects found for the current page. Appears ~2 seconds after page load when auto-context is enabled. A number (teal) indicates matches found; "!" (red) indicates a query error. See [Chapter 33: Context Overlay](33-context-overlay.md).
+
+**Context Overlay**
+The browser extension feature that shows related objects from your SemPKM knowledge graph when browsing any web page. Includes the context badge and knowledge sidebar. See [Chapter 33: Context Overlay](33-context-overlay.md).
+
 **Context Query**
 An API endpoint (`POST /api/context-query`) that finds objects in the knowledge graph related to a given page context. Accepts a URL, title, and/or keywords; returns matching objects via exact URL matching (SPARQL) and full-text keyword search (LuceneSail FTS). Used primarily by browser extensions to surface related knowledge while browsing. See [Chapter 31: API Surface](31-api-surface.md).
 
@@ -111,6 +117,9 @@ Internationalized Resource Identifier. The globally unique identifier for every 
 
 **JSON-LD**
 JSON for Linking Data. The serialization format used by SemPKM for Mental Model files (ontologies, shapes, views, seed data). JSON-LD is standard JSON with a `@context` block that maps short keys to full IRIs, making it both human-readable and machine-processable as RDF.
+
+**Knowledge Sidebar**
+The side panel (Chrome) or sidebar (Firefox) showing related objects from SemPKM grouped by type, with actions to open, link, or add evidence. Opened via Alt+K or from the extension popup. See [Chapter 33: Context Overlay](33-context-overlay.md).
 
 **Layout** (dashboard)
 The CSS Grid template that arranges blocks on a dashboard. Five options: single, sidebar-main, grid-2x2, grid-3, and top-bottom. Each layout defines named slots where blocks are placed. See [Chapter 28: Dashboards and Workflows](28-dashboards-and-workflows.md).
