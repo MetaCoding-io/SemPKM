@@ -102,3 +102,11 @@ Reference implementations: `apps/linear-sync/services/auth.py` (200 lines), `app
 - `backend/tests/test_github_field_mapper.py` — ~35 tests
 - `backend/tests/test_github_auth.py` — ~12 tests
 - `backend/tests/test_github_person_matcher.py` — ~10 tests
+
+## Observability Impact
+
+- **Logger `github_sync.auth`**: INFO on PAT store/clear/verify success, WARNING on PAT verification failure during connection status check.
+- **Logger `github_sync.person`**: DEBUG on cache hits and person creation (slug + login + email).
+- **PAT masking**: `_mask_pat()` ensures raw tokens never appear in logs, API responses, or connection status dicts. Only `ghp_****ab12` format is exposed.
+- **Inspection**: `get_connection_status()` returns structured dict with `connected`, `username`, `pat_preview`, and `error` — inspectable without reading logs.
+- **Person creation audit trail**: `PersonMatcher._create_person()` logs slug and login at DEBUG; the command client's `object.create` call produces platform-level event log entries for each created Person.

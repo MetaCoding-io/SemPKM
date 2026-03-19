@@ -48,7 +48,7 @@
   - Verify: `cd backend && .venv/bin/python -m pytest tests/test_github_client.py -v`
   - Done when: GitHubClient pagination, rate-limit checking, fetch_repos, fetch_issues, error hierarchy all unit-tested (~20+ tests)
 
-- [ ] **T02: PAT auth + field mapper + person matcher** `est:45m`
+- [x] **T02: PAT auth + field mapper + person matcher** `est:45m`
   - Why: Pure-function layer — maps GitHub JSON to bpkm:Task properties and handles auth storage/verification. No orchestration, all side-effect-free (except auth StateClient interaction).
   - Files: `apps/github-sync/services/auth.py`, `apps/github-sync/services/field_mapper.py`, `apps/github-sync/services/person_matcher.py`, `backend/tests/test_github_auth.py`, `backend/tests/test_github_field_mapper.py`, `backend/tests/test_github_person_matcher.py`
   - Do: **Auth:** store PAT via StateClient `github_pat` key, verify via GET `/user`, `get_connection_status()` returns dict with connected/username/pat_preview (masked `ghp_****`). **Field mapper:** `build_task_properties()` — title→dcterms:title, state open→todo/closed→done, state_reason not_planned→cancelled, labels[]→bpkm:tags, first assignee login→bpkm:assignedTo (via PersonMatcher), milestone.title→bpkm:taskProject, number→bpkm:externalId as "#N", html_url→bpkm:externalUrl, node_id→bpkm:externalUuid, externalProvider "github". `compute_issue_slug()` via SHA-256 of `{repo_full_name}#{number}`, first 16 hex chars. **Person matcher:** near-verbatim copy from linear-sync adapted for GitHub `login` + `email` fields.
