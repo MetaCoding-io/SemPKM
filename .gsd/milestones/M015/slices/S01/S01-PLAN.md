@@ -52,7 +52,7 @@
   - Verify: `node --check extension/shared/api-client.js && node --check extension/shared/storage.js` passes. Both manifest files are valid JSON.
   - Done when: `contextQuery()` exists on SemPKMClient, storage.js has the 3 new keys, both manifests declare sidebar + Alt+K + tabs permission.
 
-- [ ] **T02: Build service worker context pipeline with debounce, cache, and badge** `est:1h30m`
+- [x] **T02: Build service worker context pipeline with debounce, cache, and badge** `est:1h30m`
   - Why: This is the core intelligence — listens for tab navigation, debounces, queries the API, caches results, and sets the badge. All downstream UI depends on this data pipeline.
   - Files: `extension/background/service-worker.js`, `extension/shared/context-utils.js` (new)
   - Do: Create `context-utils.js` with pure functions: `rankResults(results)` (URL > title > keyword, top 10), `groupByType(results)` (returns Map of typeLabel → results[]), and `LRUCache` class (max 100, get/set/has). In service worker: add `chrome.tabs.onUpdated` listener filtering `status === 'complete'`, debounce via `setTimeout` (clear on re-trigger), extract page URL + title from tab, call `contextQuery()` via api-client, rank results, cache, call `chrome.action.setBadgeText({text, tabId})`. Add `chrome.runtime.onMessage` handler for `{type: 'getContextResults'}` returning cached results for sender tab. Handle Alt+K command via `chrome.commands.onCommand` to open side panel. Log lifecycle events with `[SemPKM]` prefix.
