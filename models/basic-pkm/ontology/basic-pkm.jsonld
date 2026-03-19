@@ -334,6 +334,169 @@
       "rdfs:comment": "Concepts related to this task",
       "rdfs:domain": { "@id": "bpkm:Task" },
       "rdfs:range": { "@id": "bpkm:Concept" }
+    },
+
+    {
+      "@id": "bpkm:Event",
+      "@type": "owl:Class",
+      "rdfs:label": "Event",
+      "rdfs:comment": "A calendar event, optionally synced from an external calendar provider",
+      "rdfs:subClassOf": { "@id": "gist:Event" }
+    },
+
+    {
+      "@id": "bpkm:eventStatus",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Event Status",
+      "rdfs:comment": "Confirmation status of the event (confirmed, tentative, cancelled)",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:location",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Location",
+      "rdfs:comment": "Physical or virtual location of the event",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:timeZone",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Time Zone",
+      "rdfs:comment": "IANA time zone identifier (e.g. America/New_York)",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:allDay",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "All Day",
+      "rdfs:comment": "Whether this is an all-day event",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "xsd:boolean" }
+    },
+    {
+      "@id": "bpkm:visibility",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Visibility",
+      "rdfs:comment": "Calendar visibility (public, private, confidential)",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:showAs",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Show As",
+      "rdfs:comment": "Free/busy status shown on calendar (free, tentative, busy, out-of-office, working-elsewhere)",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:conferenceUrl",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Conference URL",
+      "rdfs:comment": "Video conference or meeting link",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "xsd:anyURI" }
+    },
+    {
+      "@id": "bpkm:recurrenceRule",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Recurrence Rule",
+      "rdfs:comment": "RFC 5545 RRULE string defining the recurrence pattern",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:recurringEventId",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Recurring Event ID",
+      "rdfs:comment": "Identifier of the master recurring event this instance belongs to",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:responseStatus",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Response Status",
+      "rdfs:comment": "The user's RSVP response (needs-action, accepted, declined, tentative)",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:reminderMinutes",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Reminder Minutes",
+      "rdfs:comment": "Minutes before the event to trigger a reminder",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "xsd:integer" }
+    },
+    {
+      "@id": "bpkm:calendarName",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Calendar Name",
+      "rdfs:comment": "Name of the source calendar (e.g. Work, Personal)",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:meetingNotes",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Meeting Notes",
+      "rdfs:comment": "SemPKM-only field for capturing notes during or after the event",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:attendee",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Attendee",
+      "rdfs:comment": "People attending this event",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "bpkm:Person" }
+    },
+    {
+      "@id": "bpkm:organizer",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Organizer",
+      "rdfs:comment": "Person who organized this event",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "bpkm:Person" }
+    },
+    {
+      "@id": "bpkm:eventProject",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Project",
+      "rdfs:comment": "The project this event relates to",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "bpkm:Project" },
+      "owl:inverseOf": { "@id": "bpkm:hasEvents" }
+    },
+    {
+      "@id": "bpkm:hasEvents",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Events",
+      "rdfs:comment": "Events related to this project",
+      "rdfs:domain": { "@id": "bpkm:Project" },
+      "rdfs:range": { "@id": "bpkm:Event" },
+      "owl:inverseOf": { "@id": "bpkm:eventProject" }
+    },
+    {
+      "@id": "bpkm:generatedTask",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Generated Task",
+      "rdfs:comment": "Task created from or linked to this event",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "bpkm:Task" }
+    },
+    {
+      "@id": "bpkm:eventNote",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Event Note",
+      "rdfs:comment": "Note associated with this event",
+      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:range": { "@id": "bpkm:Note" }
     }
   ]
 }

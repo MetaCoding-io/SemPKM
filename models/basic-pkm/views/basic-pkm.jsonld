@@ -186,6 +186,35 @@
     },
 
     {
+      "@id": "bpkm:view-event-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Events Table",
+      "sempkm:targetClass": { "@id": "bpkm:Event" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?eventStatus ?startDate ?endDate ?location ?calendarName WHERE { ?s a <urn:sempkm:model:basic-pkm:Event> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:eventStatus> ?eventStatus } . OPTIONAL { ?s <https://schema.org/startDate> ?startDate } . OPTIONAL { ?s <https://schema.org/endDate> ?endDate } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:location> ?location } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:calendarName> ?calendarName } } ORDER BY ?startDate",
+      "sempkm:columns": "title,eventStatus,startDate,endDate,location,calendarName",
+      "sempkm:sortDefault": "startDate"
+    },
+    {
+      "@id": "bpkm:view-event-card",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Events Cards",
+      "sempkm:targetClass": { "@id": "bpkm:Event" },
+      "sempkm:rendererType": "card",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?eventStatus ?startDate ?location ?description WHERE { ?s a <urn:sempkm:model:basic-pkm:Event> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:eventStatus> ?eventStatus } . OPTIONAL { ?s <https://schema.org/startDate> ?startDate } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:location> ?location } . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } }",
+      "sempkm:cardTitle": "http://purl.org/dc/terms/title",
+      "sempkm:cardSubtitle": "urn:sempkm:model:basic-pkm:eventStatus"
+    },
+    {
+      "@id": "bpkm:view-event-graph",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Events Graph",
+      "sempkm:targetClass": { "@id": "bpkm:Event" },
+      "sempkm:rendererType": "graph",
+      "sempkm:sparqlQuery": "CONSTRUCT { ?s a <urn:sempkm:model:basic-pkm:Event> ; <http://purl.org/dc/terms/title> ?title ; <urn:sempkm:model:basic-pkm:attendee> ?person ; <urn:sempkm:model:basic-pkm:organizer> ?org ; <urn:sempkm:model:basic-pkm:eventProject> ?project . ?person <http://xmlns.com/foaf/0.1/name> ?pname . ?org <http://xmlns.com/foaf/0.1/name> ?oname . ?project <http://purl.org/dc/terms/title> ?ptitle } WHERE { ?s a <urn:sempkm:model:basic-pkm:Event> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:attendee> ?person . ?person <http://xmlns.com/foaf/0.1/name> ?pname } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:organizer> ?org . ?org <http://xmlns.com/foaf/0.1/name> ?oname } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:eventProject> ?project . ?project <http://purl.org/dc/terms/title> ?ptitle } }"
+    },
+
+    {
       "@id": "urn:sempkm:model:basic-pkm:query:active-projects",
       "@type": "sempkm:SavedQuery",
       "rdfs:label": "Active Projects",
@@ -232,6 +261,23 @@
       "rdfs:label": "Blocked Tasks",
       "dcterms:description": "Tasks that are blocked or depend on an incomplete task",
       "sempkm:queryText": "SELECT ?s ?title ?taskStatus ?blocker WHERE { { ?s a <urn:sempkm:model:basic-pkm:Task> ; <http://purl.org/dc/terms/title> ?title ; <urn:sempkm:model:basic-pkm:taskStatus> ?taskStatus . FILTER(?taskStatus = \"blocked\") } UNION { ?s a <urn:sempkm:model:basic-pkm:Task> ; <http://purl.org/dc/terms/title> ?title ; <urn:sempkm:model:basic-pkm:taskStatus> ?taskStatus ; <urn:sempkm:model:basic-pkm:dependsOn> ?dep . ?dep <urn:sempkm:model:basic-pkm:taskStatus> ?depStatus . FILTER(?depStatus NOT IN (\"done\", \"cancelled\")) . ?dep <http://purl.org/dc/terms/title> ?blocker } } ORDER BY ?title",
+      "sempkm:source": "model:basic-pkm"
+    },
+
+    {
+      "@id": "urn:sempkm:model:basic-pkm:query:upcoming-events",
+      "@type": "sempkm:SavedQuery",
+      "rdfs:label": "Upcoming Events",
+      "dcterms:description": "Events with a start date today or in the future, sorted chronologically",
+      "sempkm:queryText": "SELECT ?s ?title ?eventStatus ?startDate ?endDate ?location ?calendarName WHERE { ?s a <urn:sempkm:model:basic-pkm:Event> ; <http://purl.org/dc/terms/title> ?title ; <https://schema.org/startDate> ?startDate . FILTER(?startDate >= STRDT(SUBSTR(STR(NOW()), 1, 10), <http://www.w3.org/2001/XMLSchema#date>)) . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:eventStatus> ?eventStatus } . OPTIONAL { ?s <https://schema.org/endDate> ?endDate } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:location> ?location } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:calendarName> ?calendarName } } ORDER BY ?startDate",
+      "sempkm:source": "model:basic-pkm"
+    },
+    {
+      "@id": "urn:sempkm:model:basic-pkm:query:past-events",
+      "@type": "sempkm:SavedQuery",
+      "rdfs:label": "Past Events",
+      "dcterms:description": "Events that have already ended, sorted most recent first",
+      "sempkm:queryText": "SELECT ?s ?title ?eventStatus ?startDate ?endDate ?location WHERE { ?s a <urn:sempkm:model:basic-pkm:Event> ; <http://purl.org/dc/terms/title> ?title ; <https://schema.org/endDate> ?endDate . FILTER(?endDate < STRDT(SUBSTR(STR(NOW()), 1, 10), <http://www.w3.org/2001/XMLSchema#date>)) . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:eventStatus> ?eventStatus } . OPTIONAL { ?s <https://schema.org/startDate> ?startDate } . OPTIONAL { ?s <urn:sempkm:model:basic-pkm:location> ?location } } ORDER BY DESC(?endDate)",
       "sempkm:source": "model:basic-pkm"
     }
   ]

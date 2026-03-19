@@ -1,5 +1,5 @@
 modelId: basic-pkm
-version: "2.0.0"
+version: "2.1.0"
 name: "Basic PKM"
 description: "Personal knowledge management with Projects, People, Notes, and Concepts. Provides rich types with standard vocabulary properties, inter-type relationships, SHACL shapes for form generation, and view specifications for table, card, and graph browsing."
 namespace: "urn:sempkm:model:basic-pkm:"
@@ -103,3 +103,17 @@ icons:
     graph:
       icon: "flag"
       color: "#f59e0b"
+  - type: "bpkm:Event"
+    icon: "calendar"
+    color: "#8b5cf6"
+    tree:
+      icon: "calendar"
+      color: "#8b5cf6"
+      size: 16
+    tab:
+      icon: "calendar"
+      color: "#8b5cf6"
+      size: 14
+    graph:
+      icon: "calendar"
+      color: "#8b5cf6"

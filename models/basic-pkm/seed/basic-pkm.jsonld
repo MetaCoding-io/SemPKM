@@ -256,6 +256,104 @@
       "bpkm:assignedTo": { "@id": "bpkm:seed-person-alice" },
       "bpkm:milestone": { "@id": "bpkm:seed-milestone-docs" },
       "bpkm:dependsOn": { "@id": "bpkm:seed-task-write-guide" }
+    },
+
+    {
+      "@id": "bpkm:seed-event-standup",
+      "@type": "bpkm:Event",
+      "dcterms:title": "Daily Standup — SemPKM",
+      "dcterms:description": "15-minute daily sync for the SemPKM team. Share progress, blockers, and plans for the day.",
+      "bpkm:eventStatus": "confirmed",
+      "bpkm:showAs": "busy",
+      "bpkm:visibility": "public",
+      "bpkm:location": "Virtual — Google Meet",
+      "bpkm:conferenceUrl": { "@value": "https://meet.google.com/abc-defg-hij", "@type": "xsd:anyURI" },
+      "bpkm:timeZone": "America/New_York",
+      "bpkm:reminderMinutes": 5,
+      "bpkm:responseStatus": "accepted",
+      "bpkm:calendarName": "Work",
+      "schema:startDate": { "@value": "2026-04-01T09:00:00Z", "@type": "xsd:dateTime" },
+      "schema:endDate": { "@value": "2026-04-01T09:15:00Z", "@type": "xsd:dateTime" },
+      "bpkm:allDay": false,
+      "bpkm:tags": ["meeting", "standup", "daily"],
+      "dcterms:created": { "@value": "2026-03-15T10:00:00Z", "@type": "xsd:dateTime" },
+      "bpkm:attendee": [
+        { "@id": "bpkm:seed-person-alice" },
+        { "@id": "bpkm:seed-person-bob" }
+      ],
+      "bpkm:eventProject": { "@id": "bpkm:seed-project-sempkm" }
+    },
+    {
+      "@id": "bpkm:seed-event-offsite",
+      "@type": "bpkm:Event",
+      "dcterms:title": "Team Offsite — Q2 Planning",
+      "dcterms:description": "Two-day offsite to plan Q2 roadmap, team building, and strategic alignment.",
+      "bpkm:eventStatus": "confirmed",
+      "bpkm:showAs": "out-of-office",
+      "bpkm:visibility": "public",
+      "bpkm:location": "Mountain View Conference Center, 123 Innovation Dr",
+      "bpkm:allDay": true,
+      "bpkm:responseStatus": "accepted",
+      "bpkm:calendarName": "Work",
+      "schema:startDate": { "@value": "2026-04-10", "@type": "xsd:date" },
+      "schema:endDate": { "@value": "2026-04-12", "@type": "xsd:date" },
+      "bpkm:tags": ["offsite", "planning", "team"],
+      "dcterms:created": { "@value": "2026-03-10T14:00:00Z", "@type": "xsd:dateTime" },
+      "bpkm:attendee": [
+        { "@id": "bpkm:seed-person-alice" },
+        { "@id": "bpkm:seed-person-bob" },
+        { "@id": "bpkm:seed-person-carol" }
+      ],
+      "bpkm:eventProject": { "@id": "bpkm:seed-project-sempkm" }
+    },
+    {
+      "@id": "bpkm:seed-event-review",
+      "@type": "bpkm:Event",
+      "dcterms:title": "Weekly Design Review",
+      "dcterms:description": "Recurring weekly review of design work, prototypes, and user feedback.",
+      "bpkm:eventStatus": "confirmed",
+      "bpkm:showAs": "busy",
+      "bpkm:visibility": "public",
+      "bpkm:recurrenceRule": "RRULE:FREQ=WEEKLY;BYDAY=FR",
+      "bpkm:timeZone": "America/New_York",
+      "bpkm:reminderMinutes": 10,
+      "bpkm:responseStatus": "accepted",
+      "bpkm:calendarName": "Work",
+      "schema:startDate": { "@value": "2026-04-03T14:00:00Z", "@type": "xsd:dateTime" },
+      "schema:endDate": { "@value": "2026-04-03T15:00:00Z", "@type": "xsd:dateTime" },
+      "bpkm:allDay": false,
+      "bpkm:tags": ["meeting", "design", "recurring"],
+      "dcterms:created": { "@value": "2026-03-12T09:00:00Z", "@type": "xsd:dateTime" },
+      "bpkm:organizer": { "@id": "bpkm:seed-person-carol" },
+      "bpkm:attendee": [
+        { "@id": "bpkm:seed-person-alice" },
+        { "@id": "bpkm:seed-person-bob" }
+      ],
+      "bpkm:eventProject": { "@id": "bpkm:seed-project-sempkm" }
+    },
+    {
+      "@id": "bpkm:seed-event-review-exception",
+      "@type": "bpkm:Event",
+      "dcterms:title": "Weekly Design Review (Offsite Edition)",
+      "dcterms:description": "Special edition of the weekly design review held at the offsite venue instead of the usual virtual meeting.",
+      "bpkm:eventStatus": "confirmed",
+      "bpkm:showAs": "busy",
+      "bpkm:visibility": "public",
+      "bpkm:recurringEventId": "bpkm:seed-event-review",
+      "bpkm:location": "Mountain View Conference Center, Room B",
+      "bpkm:timeZone": "America/New_York",
+      "bpkm:responseStatus": "accepted",
+      "bpkm:calendarName": "Work",
+      "schema:startDate": { "@value": "2026-04-10T14:00:00Z", "@type": "xsd:dateTime" },
+      "schema:endDate": { "@value": "2026-04-10T15:00:00Z", "@type": "xsd:dateTime" },
+      "bpkm:allDay": false,
+      "bpkm:tags": ["meeting", "design", "exception"],
+      "dcterms:created": { "@value": "2026-03-15T11:00:00Z", "@type": "xsd:dateTime" },
+      "bpkm:organizer": { "@id": "bpkm:seed-person-carol" },
+      "bpkm:attendee": [
+        { "@id": "bpkm:seed-person-alice" },
+        { "@id": "bpkm:seed-person-bob" }
+      ]
     }
   ]
 }

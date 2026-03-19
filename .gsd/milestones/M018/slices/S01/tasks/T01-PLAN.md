@@ -122,3 +122,10 @@ The complete Event type specification comes from `.gsd/design/INTEGRATION-DOMAIN
 - `models/basic-pkm/views/basic-pkm.jsonld` — 21 ViewSpecs (7 × 3) + 8 SavedQueries
 - `models/basic-pkm/seed/basic-pkm.jsonld` — 4 new Event instances
 - `models/basic-pkm/rules/basic-pkm.ttl` — unchanged
+
+## Observability Impact
+
+- **New signals:** 19 pytest assertions in `test_basic_pkm_event.py` covering manifest version, class/shape/view counts, enum constraints, seed data types, and pyshacl validation.
+- **Inspection:** `python3 -c "import json; ..."` one-liners verify each JSON-LD file parses. `rdflib` verifies the TTL rules file.
+- **Failure visibility:** pyshacl violations surface as structured `sh:Violation` results with focus node, constraint path, and human-readable message. Test failures include the full pyshacl results text.
+- **No runtime signals:** This task is model-file-only. No API endpoints, logs, or runtime metrics change.
