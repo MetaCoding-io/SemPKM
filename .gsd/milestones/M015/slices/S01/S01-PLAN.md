@@ -59,7 +59,7 @@
   - Verify: `node --check extension/background/service-worker.js && node --check extension/shared/context-utils.js` passes. Console logs confirm query flow when sideloaded.
   - Done when: Service worker queries on tab navigation, sets badge count per tab, caches results, responds to `getContextResults` message, and opens sidebar via Alt+K.
 
-- [ ] **T03: Build sidebar UI with grouped results and Open action** `est:1h`
+- [x] **T03: Build sidebar UI with grouped results and Open action** `est:1h`
   - Why: The user-facing sidebar that renders context results grouped by type. This is what makes the feature visible and useful.
   - Files: `extension/sidebar/sidebar.html` (new), `extension/sidebar/sidebar.js` (new), `extension/sidebar/sidebar.css` (new)
   - Do: Create sidebar.html with SemPKM-branded header, loading state, empty state ("No related objects found"), error state with retry, and results container. sidebar.js: on load, send `{type: 'getContextResults'}` to service worker, receive results, call `groupByType()` from context-utils.js, render each group as a collapsible section with type label + count + icon. Each result item shows label, snippet (if present), match type badge, and action buttons (Open, Link to this page, Add Evidence). "Open" button calls `window.open(instanceUrl + '/browser/objects/' + encodeURIComponent(iri))`. "Link to this page" and "Add Evidence" buttons present but show "Coming soon" toast on click. Listen for `chrome.runtime.onMessage` with `{type: 'contextResultsUpdated'}` to auto-refresh when user navigates. sidebar.css: clean styling matching SemPKM teal accent, compact result cards, type group headers with icons.
