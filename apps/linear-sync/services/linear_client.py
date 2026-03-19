@@ -331,6 +331,49 @@ class LinearClient:
         )
         return data.get("organization", {})
 
+    async def get_workflow_states(self, team_id: str) -> list[dict[str, Any]]:
+        """Get workflow states for a team.
+
+        Returns a list of ``{id, name, type}`` dicts representing
+        the team's workflow state definitions.
+        """
+        data = await self.query(
+            'query($teamId: String!) { team(id: $teamId) { states { nodes { id name type } } } }',
+            {"teamId": team_id},
+        )
+        return data.get("team", {}).get("states", {}).get("nodes", [])
+
+    async def update_issue(
+        self,
+        issue_id: str,
+        input_dict: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Update a Linear issue via the ``issueUpdate`` mutation.
+
+        Parameters
+        ----------
+        issue_id:
+            The Linear issue UUID (not the human-readable identifier).
+        input_dict:
+            Fields to update, matching ``IssueUpdateInput`` schema.
+
+        Returns
+        -------
+        dict
+            The ``issueUpdate`` response data including ``success``
+            and ``issue { id updatedAt }``.
+        """
+        mutation = (
+            "mutation($id: String!, $input: IssueUpdateInput!) {"
+            "  issueUpdate(id: $id, input: $input) {"
+            "    success"
+            "    issue { id updatedAt }"
+            "  }"
+            "}"
+        )
+        data = await self.query(mutation, {"id": issue_id, "input": input_dict})
+        return data.get("issueUpdate", {})
+
 
 # ---------------------------------------------------------------------------
 # Helpers

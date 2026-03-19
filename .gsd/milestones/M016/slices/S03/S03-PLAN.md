@@ -32,6 +32,7 @@
 - `python3 -c "import ast; ast.parse(open('apps/linear-sync/app.py').read())"` — syntax valid
 - Verify `push-changes` task appears in `manifest.yaml`
 - Verify settings template has team checkboxes, sync direction radios, poll interval select, Sync Now button, and sync stats section
+- `cd backend && .venv/bin/python -m pytest tests/test_push_sync.py -v -k "error or unknown or missing"` — failure-path tests pass (unknown status defaults, missing workflow states, unknown priority returns None)
 
 ## Observability / Diagnostics
 
@@ -48,7 +49,7 @@
 
 ## Tasks
 
-- [ ] **T01: Reverse field mapper + LinearClient mutations + store issue UUID** `est:45m`
+- [x] **T01: Reverse field mapper + LinearClient mutations + store issue UUID** `est:45m`
   - Why: Push sync needs reverse mapping functions (bpkm→Linear), LinearClient mutation methods, and the Linear issue UUID stored during pull sync. These are the foundational pieces everything else builds on.
   - Files: `apps/linear-sync/services/field_mapper.py`, `apps/linear-sync/services/linear_client.py`, `apps/linear-sync/services/sync_engine.py`, `backend/tests/test_push_sync.py`
   - Do: Add reverse mapping constants and functions to field_mapper.py. Add `get_workflow_states()` and `update_issue()` to LinearClient. Modify pull sync's `build_task_properties()` to store `bpkm:externalUuid` from `issue["id"]`. Write ~25 unit tests for all reverse mapping functions and LinearClient additions.

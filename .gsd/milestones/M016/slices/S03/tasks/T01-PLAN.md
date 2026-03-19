@@ -72,6 +72,13 @@ The Linear issue UUID (`issue["id"]`) is available in the GraphQL response but n
 - `python3 -c "import ast; ast.parse(open('apps/linear-sync/services/field_mapper.py').read())"` — syntax valid
 - `python3 -c "import ast; ast.parse(open('apps/linear-sync/services/linear_client.py').read())"` — syntax valid
 
+## Observability Impact
+
+- **New inspection surface:** `build_issue_update_input()` returns only non-None fields — callers can inspect the dict to see exactly what will be sent to Linear's `issueUpdate` mutation. Empty dict means "no pushable changes."
+- **Pull sync change:** `bpkm:externalUuid` now stored during pull sync. A future agent can verify by querying SPARQL for `?task bpkm:externalUuid ?uuid` — if present, push sync can target that task.
+- **LinearClient additions:** `get_workflow_states()` and `update_issue()` return raw GraphQL response dicts. Errors surface via existing `LinearAPIError` / `LinearQueryError` exceptions with `status_code` and `response_body` for debugging.
+- **Failure state:** `reverse_status()` defaults unknown to `"backlog"` (logged at caller), `reverse_priority()` returns `None` for unknown (caller decides to skip). `build_issue_update_input()` silently skips fields with missing workflow states — no crash, partial update dict returned.
+
 ## Inputs
 
 - `apps/linear-sync/services/field_mapper.py` — existing forward mapping constants (STATUS_MAP, PRIORITY_MAP, BPKM prefix, build_task_properties, _ISSUE_FIELDS)
