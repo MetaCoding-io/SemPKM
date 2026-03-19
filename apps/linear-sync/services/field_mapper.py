@@ -35,6 +35,26 @@ PRIORITY_MAP: dict[int, str] = {
     4: "low",
 }
 
+# bpkm taskStatus → Linear state.type (reverse of STATUS_MAP)
+# Multiple Linear state.types map to "todo" — we pick "backlog" as the default
+# reverse for "todo" since it's the most common unstarted state.
+REVERSE_STATUS_MAP: dict[str, str] = {
+    "todo": "backlog",
+    "in-progress": "started",
+    "done": "completed",
+    "blocked": "unstarted",
+    "cancelled": "cancelled",
+}
+
+# bpkm priority string → Linear priority int (reverse of PRIORITY_MAP)
+REVERSE_PRIORITY_MAP: dict[str, int] = {
+    "critical": 1,
+    "high": 2,
+    "medium": 3,
+    "low": 4,
+}
+
+
 # Linear estimate int → bpkm:effort string (lossy)
 EFFORT_MAP: dict[int, str | None] = {
     0: None,
@@ -77,6 +97,82 @@ def map_labels_to_tags(labels: list[dict] | None) -> list[str]:
     if not labels:
         return []
     return [lbl["name"] for lbl in labels if "name" in lbl]
+
+
+# ---------------------------------------------------------------------------
+# Reverse mapping (bpkm → Linear)
+# ---------------------------------------------------------------------------
+
+
+def reverse_status(bpkm_status: str) -> str:
+    """Map a bpkm taskStatus to a Linear ``state.type`` string.
+
+    Unknown statuses default to ``"backlog"``.
+    """
+    return REVERSE_STATUS_MAP.get(bpkm_status, "backlog")
+
+
+def reverse_priority(bpkm_priority: str) -> int | None:
+    """Map a bpkm priority string to a Linear priority integer (1-4).
+
+    Returns ``None`` for unknown priority values.  Callers should omit
+    the priority field from the mutation input when the return is None.
+    """
+    return REVERSE_PRIORITY_MAP.get(bpkm_priority)
+
+
+def build_issue_update_input(
+    task_properties: dict,
+    workflow_states: dict[tuple[str, str], str],
+    team_id: str | None = None,
+) -> dict:
+    """Build a dict of ``IssueUpdateInput`` fields from bpkm task properties.
+
+    Parameters
+    ----------
+    task_properties:
+        Property dict with full IRI keys (e.g. ``urn:sempkm:model:basic-pkm:taskStatus``).
+    workflow_states:
+        Lookup dict mapping ``(team_id, state_type)`` → ``state_id`` UUID.
+        Built from ``LinearClient.get_workflow_states()`` output.
+    team_id:
+        The Linear team ID — needed to look up the state UUID in
+        ``workflow_states``.  If ``None``, stateId is skipped.
+
+    Returns
+    -------
+    dict
+        Only fields with non-None values are included.  Empty dict means
+        no pushable changes detected.
+    """
+    result: dict = {}
+
+    # Title
+    title = task_properties.get("dcterms:title")
+    if title:
+        result["title"] = title
+
+    # Status → stateId (requires workflow_states lookup)
+    bpkm_status = task_properties.get(f"{BPKM}taskStatus")
+    if bpkm_status and team_id:
+        linear_state_type = reverse_status(bpkm_status)
+        state_id = workflow_states.get((team_id, linear_state_type))
+        if state_id:
+            result["stateId"] = state_id
+
+    # Priority
+    bpkm_prio = task_properties.get(f"{BPKM}priority")
+    if bpkm_prio:
+        linear_prio = reverse_priority(bpkm_prio)
+        if linear_prio is not None:
+            result["priority"] = linear_prio
+
+    # Due date — pass through as-is
+    due_date = task_properties.get(f"{BPKM}dueDate")
+    if due_date:
+        result["dueDate"] = due_date
+
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -167,6 +263,7 @@ def build_task_properties(
         f"{BPKM}tags": tags,  # type: ignore[dict-item]
         f"{BPKM}effort": effort,  # type: ignore[dict-item]
         f"{BPKM}externalId": issue.get("identifier", ""),
+        f"{BPKM}externalUuid": issue.get("id", ""),
         f"{BPKM}externalUrl": issue.get("url", ""),
         f"{BPKM}externalProvider": "linear",
         f"{BPKM}lastSyncedAt": sync_time,
