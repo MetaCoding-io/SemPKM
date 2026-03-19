@@ -239,6 +239,14 @@
             var selectedType = params.params.selectedType || '';
             url = '/browser/views/generic/' + renderer + (selectedType ? '?type=' + encodeURIComponent(selectedType) : '');
           }
+          // App page panels — route to /browser/apps/{appId}/page/{pageId}
+          if (st === 'app-page' && params.params.appId && params.params.pageId) {
+            url = '/browser/apps/' + params.params.appId + '/page/' + params.params.pageId;
+          }
+          // App view panels — route to /browser/apps/{appId}/view/{viewId}
+          if (st === 'app-view' && params.params.appId && params.params.viewId) {
+            url = '/browser/apps/' + params.params.appId + '/view/' + params.params.viewId;
+          }
           htmx.ajax('GET', url, { target: el, swap: 'innerHTML' });
         }
       };
