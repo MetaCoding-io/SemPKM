@@ -55,7 +55,7 @@ This milestone is complete only when all are true:
 
 ## Slices
 
-- [ ] **S01: Context queries, badge count, and sidebar with grouped results** `risk:high` `depends:[]`
+- [x] **S01: Context queries, badge count, and sidebar with grouped results** `risk:high` `depends:[]`
   > After this: user navigates to a page, sees badge count after 2s, opens sidebar via Alt+K showing related objects grouped by type, can click "Open" to view any object in SemPKM
 
 - [ ] **S02: In-context actions — Link to page and Add Evidence** `risk:medium` `depends:[S01]`
