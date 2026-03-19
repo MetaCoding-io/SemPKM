@@ -30,6 +30,7 @@
 - `cd backend && python -m pytest tests/test_field_mapper.py tests/test_person_matcher.py tests/test_sync_engine.py -v` — full suite passes
 - All three new source files pass `python3 -c "import ast; ast.parse(open(f).read())"`
 - `apps/linear-sync/app.py` poll-tasks handler calls `pull_sync(ctx)` instead of noop
+- `cd backend && python -m pytest tests/test_sync_engine.py -v -k "error"` — at least one test covers sync error path (auth failure or per-issue error accumulation), confirming structured error output is correct
 
 ## Observability / Diagnostics
 
@@ -46,7 +47,7 @@
 
 ## Tasks
 
-- [ ] **T01: Build field mapper with full unit tests** `est:1h`
+- [x] **T01: Build field mapper with full unit tests** `est:1h`
   - Why: Pure mapping functions are the foundation — everything else depends on correct status/priority normalization, property building, slug computation, and GraphQL query construction. Zero external dependencies, fully testable in isolation.
   - Files: `apps/linear-sync/services/field_mapper.py`, `backend/tests/test_field_mapper.py`
   - Do: Implement all six pure functions: `normalize_status()` (5 Linear state types → bpkm statuses), `normalize_priority()` (Linear 0-4 → bpkm enum or None), `map_labels_to_tags()` (extract label names), `build_task_properties()` (full properties dict with full IRIs as keys), `build_issue_query()` (GraphQL query + variables for paginated issue fetch with team/date filter), `compute_issue_slug()` (deterministic SHA-256 based slug). All property keys must use full IRIs (e.g. `urn:sempkm:model:basic-pkm:taskStatus`) not compact form. Date fields must truncate datetime to date-only. Empty/null values must be omitted from properties dict. Linear `estimate` maps to `effort` string.

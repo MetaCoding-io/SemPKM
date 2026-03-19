@@ -150,6 +150,13 @@ All property keys must use full IRIs (e.g. `urn:sempkm:model:basic-pkm:taskStatu
 - `cd backend && python -m pytest tests/test_field_mapper.py -v` — all tests pass
 - `python3 -c "import ast; ast.parse(open('apps/linear-sync/services/field_mapper.py').read())"` — syntax valid
 
+## Observability Impact
+
+- **Signals changed:** None runtime (all functions are pure — no logging, no network, no state). Observability is deferred to T03 where the sync engine logs via `linear_sync.sync`.
+- **Inspection surface:** `build_task_properties()` returns a dict that downstream code logs at DEBUG level — all keys use full IRIs, making grep/search straightforward.
+- **Failure visibility:** Functions raise no exceptions; invalid/missing data produces omitted keys or safe defaults. Test suite exercises all edge cases (None, empty, unknown enum values) to prove the safe-default behavior.
+- **How to inspect later:** Run `python -m pytest tests/test_field_mapper.py -v` to verify all mapping paths still hold after ontology or Linear API changes.
+
 ## Inputs
 
 - S01's importlib test pattern from `backend/tests/test_linear_client.py` — reuse for loading app modules
