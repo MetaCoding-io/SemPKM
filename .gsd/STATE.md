@@ -1,8 +1,8 @@
 # GSD State
 
 **Active Milestone:** M016: Linear Sync App
-**Active Slice:** S02: Pull Sync — Linear Issues to bpkm:Task
-**Phase:** execution
+**Active Slice:** S03: Push Sync + Settings Polish + Admin Detail
+**Phase:** planned
 **Requirements Status:** 61 active · 122 validated · 7 deferred · 0 out of scope
 
 ## Milestone Registry
@@ -44,4 +44,4 @@
 - None
 
 ## Next Action
-Execute T01: Build field mapper with full unit tests.
+Execute T01 of S03 (Reverse field mapper + LinearClient mutations + store issue UUID).
