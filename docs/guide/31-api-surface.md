@@ -529,4 +529,4 @@ Content-Type: application/json
 
 ---
 
-**Previous:** [Chapter 30: Workspace Personas](30-personas.md) | **Next:** [Appendix A: Environment Variable Reference](appendix-a-environment-variables.md)
+**Previous:** [Chapter 30: Workspace Personas](30-personas.md) | **Next:** [Chapter 32: Browser Extension](32-browser-extension.md)

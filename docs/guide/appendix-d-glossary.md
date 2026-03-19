@@ -10,6 +10,9 @@ Alphabetical definitions of key terms used throughout the SemPKM documentation a
 **API Surface**
 The set of structured JSON endpoints that external clients — browser extensions, mobile apps, CLI tools, and integrations — use to interact with a SemPKM instance. Includes instance discovery, type listing, SHACL shapes, and context query. See [Chapter 31: API Surface](31-api-surface.md).
 
+**API Token**
+A secret key generated in the Admin panel that allows external clients (like the browser extension) to authenticate with your SemPKM instance without a session cookie. Tokens are created at Settings > API Keys and shown only once. See [Chapter 31: API Surface](31-api-surface.md) and [Chapter 32: Browser Extension](32-browser-extension.md).
+
 **App Contribution**
 A UI element an app contributes to the workspace: right-pane sections, views, command palette entries, or object renderer overrides. Declared in the manifest's `ui.contributions` section. See [Chapter 29: App Platform](29-app-platform.md).
 
@@ -33,6 +36,9 @@ A content unit within a dashboard. Six types: view-embed, markdown, object-embed
 
 **Body Diff**
 An incremental change record for object body content. When editing an existing body, SemPKM stores only the unified diff (additions and deletions) rather than the full replacement text. The event log renders body diffs with green (additions) and red (deletions) highlighting. See [Chapter 15: Understanding the Event Log](15-event-log.md).
+
+**Browser Extension**
+A Chrome/Firefox extension that captures typed, schema-validated objects from any web page directly into your SemPKM knowledge graph. Supports SHACL-driven forms, auto-population from page metadata and schema.org JSON-LD, relationship creation, and keyboard shortcuts. See [Chapter 32: Browser Extension](32-browser-extension.md).
 
 **Carousel View**
 A tabbed browsing interface for Mental Model views that groups table, card, and graph views into a single page with a tab strip. Each tab loads a different view of the same type's data, letting you switch between display formats without navigating away. See [Chapter 7: Browsing and Visualizing Data](07-browsing-and-visualizing.md).
