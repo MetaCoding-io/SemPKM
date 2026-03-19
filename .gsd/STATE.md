@@ -1,9 +1,8 @@
 # GSD State
 
 **Active Milestone:** M017: GitHub Issues Sync App
-**Active Slice:** S03: Push Sync + Settings Polish
+**Active Slice:** S04: E2E Tests + User Guide
 **Phase:** executing
-**Active Task:** T01
 **Requirements Status:** 68 active · 129 validated · 7 deferred · 0 out of scope
 
 ## Milestone Registry
@@ -45,4 +44,4 @@
 - None
 
 ## Next Action
-Execute T01: Push sync engine with loop prevention and field mapper extensions.
+Execute T01: Mock GitHub REST API server + docker-compose integration
