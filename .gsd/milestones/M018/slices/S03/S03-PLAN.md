@@ -52,7 +52,7 @@
 
 ## Tasks
 
-- [ ] **T01: Build field mapper with all property transforms and exhaustive tests** `est:45m`
+- [x] **T01: Build field mapper with all property transforms and exhaustive tests** `est:45m`
   - Why: Pure domain logic with zero dependencies — the largest body of complexity in S03. Every Google Calendar API field transform lives here. Tests validate every mapping path independently before the sync engine integrates them.
   - Files: `apps/google-calendar/services/field_mapper.py`, `backend/tests/test_gcal_field_mapper.py`
   - Do: Create `field_mapper.py` with constants (BPKM prefix, STATUS_MAP, RESPONSE_STATUS_MAP, VISIBILITY_MAP, TRANSPARENCY_MAP), `build_event_properties()`, `compute_event_slug()`, `extract_conference_url()`, `extract_response_status()`, `detect_all_day()`, `strip_html_tags()`, `extract_rrule()`. Write ≥40 tests covering: slug determinism, all-day vs timed detection, timezone extraction, status/visibility/transparency/responseStatus normalization, conference URL extraction (conferenceData + hangoutLink fallback), RRULE extraction, HTML stripping, reminder extraction, missing/null field handling, externalProvider = "google-calendar".
