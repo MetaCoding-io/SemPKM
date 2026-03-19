@@ -1,0 +1,44 @@
+<div id="connect-content" class="github-sync-settings">
+  <h2>Connect to GitHub</h2>
+  <p class="connect-description">
+    Link your GitHub account to sync issues with SemPKM task objects.
+  </p>
+
+  {% if error %}
+  <div class="alert alert-error">{{ error }}</div>
+  {% endif %}
+
+  <section class="connect-section">
+    <h3>Personal Access Token</h3>
+    <p class="section-hint">
+      Create a token at
+      <a href="https://github.com/settings/tokens" target="_blank" rel="noopener">github.com/settings/tokens</a>
+      with the <code>repo</code> scope.
+    </p>
+    <p class="section-hint">
+      For fine-grained tokens, grant <strong>Issues</strong> read &amp; write permission
+      on the repositories you want to sync.
+    </p>
+    <form class="api-key-form"
+          hx-post="/app/github-sync/_fragments/connect/api-key"
+          hx-target="#connect-content"
+          hx-swap="innerHTML"
+          hx-indicator="#pat-spinner">
+      <div class="form-row">
+        <label for="github-pat">Personal Access Token</label>
+        <input type="password"
+               id="github-pat"
+               name="pat"
+               placeholder="ghp_..."
+               required
+               autocomplete="off" />
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          Connect
+        </button>
+        <span id="pat-spinner" class="htmx-indicator spinner">Verifying…</span>
+      </div>
+    </form>
+  </section>
+</div>
