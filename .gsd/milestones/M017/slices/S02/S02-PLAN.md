@@ -49,7 +49,7 @@
   - Verify: `cd backend && .venv/bin/python -m pytest tests/test_github_client.py tests/test_github_field_mapper.py -v` — all existing + new tests pass
   - Done when: `fetch_timeline()` and `extract_linked_issue_numbers()` exist with ≥13 new tests passing
 
-- [ ] **T02: Wire PR sync and edge creation into pull_sync() with tests** `est:40m`
+- [x] **T02: Wire PR sync and edge creation into pull_sync() with tests** `est:40m`
   - Why: Integrates the pure functions into the sync pipeline — removes PR skip filter, adds phase 3 link-discovery, creates `edge.create` commands
   - Files: `apps/github-sync/services/sync_engine.py`, `backend/tests/test_github_sync_engine.py`
   - Do: (1) Remove the PR skip filter from `pull_sync()`. (2) Track synced issues separately from PRs during the loop (need issue list for timeline queries). (3) After phases 1+2, add phase 3: iterate synced issues, call `fetch_timeline()` per issue, call `extract_linked_issue_numbers()`, resolve PR task IRIs via `_find_existing_task()`, build `edge.create` commands with predicate `bpkm:dependsOn`. (4) Modify `_find_existing_task()` to accept optional `provider` param (default `"github"`) so it can find both issue and PR tasks by slug. (5) Extend `_make_result()` with `edges_created` field. (6) Wrap timeline errors in per-issue isolation. (7) Update PR-filtering tests to verify PRs are now created. (8) Add ~17 new sync engine tests.

@@ -48,6 +48,8 @@ _submit_commands_batched = _sync_engine._submit_commands_batched
 BATCH_SIZE = _sync_engine.BATCH_SIZE
 BPKM = _field_mapper.BPKM
 compute_issue_slug = _field_mapper.compute_issue_slug
+is_pull_request = _field_mapper.is_pull_request
+extract_linked_issue_numbers = _field_mapper.extract_linked_issue_numbers
 
 
 # ===================================================================
@@ -271,15 +273,33 @@ def _make_settings_with_repos(repos: list[str] | None = None) -> dict[str, str]:
     }
 
 
-def _make_github_responses(issues: list[dict]) -> list[MockResponse]:
-    """Build MockExternalHttpClient responses for verify_token + fetch_issues."""
-    return [
+def _make_github_responses(
+    issues: list[dict],
+    *,
+    timeline_responses: list[MockResponse] | None = None,
+) -> list[MockResponse]:
+    """Build MockExternalHttpClient responses for verify_token + fetch_issues.
+
+    When *timeline_responses* is given, they are appended after
+    the fetch_issues response (one per non-PR issue that triggers
+    a ``fetch_timeline`` call).  When omitted, a default empty-timeline
+    ``[]`` response is appended for each non-PR issue.
+    """
+    responses = [
         # verify_token: GET /user
         MockResponse(200, {"login": "testuser", "email": "test@example.com"},
                      headers={}),
         # fetch_issues: GET /repos/owner/repo/issues (single page, no Link header)
         MockResponse(200, issues, headers={}),
     ]
+    if timeline_responses is not None:
+        responses.extend(timeline_responses)
+    else:
+        # Auto-generate empty timelines for every non-PR issue
+        for issue in issues:
+            if not is_pull_request(issue):
+                responses.append(MockResponse(200, [], headers={}))
+    return responses
 
 
 # ===================================================================
@@ -455,11 +475,14 @@ class TestPullSyncBasic:
         """Issues from multiple repos are all processed."""
         issue1 = make_issue(number=1, title="Issue from repo1")
         issue2 = make_issue(number=2, title="Issue from repo2")
-        # External HTTP: verify_token, then two fetch_issues calls
+        # External HTTP: verify_token, then two fetch_issues calls,
+        # then two timeline calls (one per non-PR issue)
         ext_http = MockExternalHttpClient([
             MockResponse(200, {"login": "testuser"}, headers={}),
             MockResponse(200, [issue1], headers={}),
             MockResponse(200, [issue2], headers={}),
+            MockResponse(200, [], headers={}),  # timeline for issue1
+            MockResponse(200, [], headers={}),  # timeline for issue2
         ])
         bulk_http = MockHttpClient()
         ctx = MockAppContext(
@@ -508,8 +531,8 @@ class TestPullSyncBasic:
 
 class TestPRFiltering:
     @pytest.mark.asyncio
-    async def test_prs_are_skipped(self):
-        """Issues with pull_request key are filtered out."""
+    async def test_prs_are_created_as_tasks(self):
+        """PRs are now synced as tasks alongside regular issues."""
         regular_issue = make_issue(number=1, title="Real issue")
         pr_issue = make_pr_issue(number=100)
         ext_http = MockExternalHttpClient(
@@ -525,12 +548,12 @@ class TestPRFiltering:
 
         result = await pull_sync(ctx)
 
-        assert result["created"] == 1
-        assert result["skipped"] == 1
+        assert result["created"] == 2
+        assert result["skipped"] == 0
 
     @pytest.mark.asyncio
-    async def test_all_prs_yields_zero_created(self):
-        """When all items are PRs, nothing is created."""
+    async def test_all_prs_creates_pr_tasks(self):
+        """When all items are PRs, they are all created as tasks."""
         pr1 = make_pr_issue(number=10)
         pr2 = make_pr_issue(number=11)
         ext_http = MockExternalHttpClient(_make_github_responses([pr1, pr2]))
@@ -544,8 +567,8 @@ class TestPRFiltering:
 
         result = await pull_sync(ctx)
 
-        assert result["created"] == 0
-        assert result["skipped"] == 2
+        assert result["created"] == 2
+        assert result["skipped"] == 0
 
 
 # ===================================================================
@@ -840,3 +863,497 @@ class TestSyncTimestamp:
         last_sync = await ctx.state.get("last_sync_at")
         assert last_sync is not None
         assert "T" in last_sync  # ISO-8601 format
+
+
+# ===================================================================
+# Helpers — timeline event fixtures
+# ===================================================================
+
+
+def _make_cross_ref_event(
+    pr_number: int,
+    repo_full_name: str = "owner/repo",
+) -> dict:
+    """Build a cross-referenced timeline event for a PR."""
+    return {
+        "event": "cross-referenced",
+        "source": {
+            "issue": {
+                "number": pr_number,
+                "pull_request": {
+                    "url": f"https://api.github.com/repos/{repo_full_name}/pulls/{pr_number}",
+                },
+                "repository": {"full_name": repo_full_name},
+            },
+        },
+    }
+
+
+# ===================================================================
+# Tests — PR sync (PRs now create tasks)
+# ===================================================================
+
+
+class TestPRSync:
+    @pytest.mark.asyncio
+    async def test_pr_creates_task_with_github_pr_provider(self):
+        """PR in fetch_issues produces object.create with externalProvider: github-pr."""
+        pr = make_pr_issue(number=50, title="Add widget")
+        ext_http = MockExternalHttpClient(_make_github_responses([pr]))
+        bulk_http = MockHttpClient()
+        ctx = MockAppContext(
+            state_data=_make_connected_state(),
+            settings_data=_make_settings_with_repos(),
+            http_client=bulk_http,
+            ext_http_client=ext_http,
+        )
+
+        result = await pull_sync(ctx)
+
+        assert result["created"] == 1
+        # Inspect the create command's properties
+        bulk_posts = [p for p in bulk_http.posts if p["url"] == "/api/commands/bulk"]
+        create_cmds = [
+            c for p in bulk_posts
+            for c in p["json"]["commands"]
+            if c["command"] == "object.create"
+        ]
+        assert len(create_cmds) == 1
+        props = create_cmds[0]["params"]["properties"]
+        assert props[f"{BPKM}externalProvider"] == "github-pr"
+
+    @pytest.mark.asyncio
+    async def test_mixed_issues_and_prs_all_created(self):
+        """Batch of 2 issues + 1 PR produces 3 created tasks."""
+        issue1 = make_issue(number=1, title="Bug A")
+        issue2 = make_issue(number=2, title="Bug B")
+        pr = make_pr_issue(number=10, title="Fix A")
+        ext_http = MockExternalHttpClient(
+            _make_github_responses([issue1, issue2, pr])
+        )
+        bulk_http = MockHttpClient()
+        ctx = MockAppContext(
+            state_data=_make_connected_state(),
+            settings_data=_make_settings_with_repos(),
+            http_client=bulk_http,
+            ext_http_client=ext_http,
+        )
+
+        result = await pull_sync(ctx)
+
+        assert result["created"] == 3
+        assert result["skipped"] == 0
+
+    @pytest.mark.asyncio
+    async def test_pr_body_set(self):
+        """PR with body text gets body.set in phase 2."""
+        pr = make_pr_issue(number=60)
+        pr["body"] = "## PR Description\n\nFixes things"
+        slug = compute_issue_slug("owner/repo", 60)
+        # Slug in graph so phase 2 can discover the IRI
+        graph = MockGraphClient(
+            slug_map={slug: f"https://example.org/data/Task/{slug}"},
+        )
+        ext_http = MockExternalHttpClient(_make_github_responses([pr]))
+        bulk_http = MockHttpClient()
+        ctx = MockAppContext(
+            state_data=_make_connected_state(),
+            settings_data=_make_settings_with_repos(),
+            graph_client=graph,
+            http_client=bulk_http,
+            ext_http_client=ext_http,
+        )
+
+        result = await pull_sync(ctx)
+
+        # Slug is in graph → treated as update, not create
+        bulk_posts = [p for p in bulk_http.posts if p["url"] == "/api/commands/bulk"]
+        body_cmds = [
+            c for p in bulk_posts
+            for c in p["json"]["commands"]
+            if c["command"] == "body.set"
+        ]
+        assert len(body_cmds) >= 1
+
+    @pytest.mark.asyncio
+    async def test_pr_update_existing(self):
+        """Existing PR task gets object.patch on re-sync."""
+        pr = make_pr_issue(number=70, title="Updated PR")
+        slug = compute_issue_slug("owner/repo", 70)
+        graph = MockGraphClient(
+            slug_map={slug: f"https://example.org/data/Task/{slug}"},
+        )
+        ext_http = MockExternalHttpClient(_make_github_responses([pr]))
+        bulk_http = MockHttpClient()
+        ctx = MockAppContext(
+            state_data=_make_connected_state(),
+            settings_data=_make_settings_with_repos(),
+            graph_client=graph,
+            http_client=bulk_http,
+            ext_http_client=ext_http,
+        )
+
+        result = await pull_sync(ctx)
+
+        assert result["updated"] == 1
+        bulk_posts = [p for p in bulk_http.posts if p["url"] == "/api/commands/bulk"]
+        patch_cmds = [
+            c for p in bulk_posts
+            for c in p["json"]["commands"]
+            if c["command"] == "object.patch"
+        ]
+        assert len(patch_cmds) >= 1
+
+    @pytest.mark.asyncio
+    async def test_pr_properties_include_correct_provider(self):
+        """Verify the properties dict has externalProvider: github-pr."""
+        pr = make_pr_issue(number=80, title="New PR")
+        ext_http = MockExternalHttpClient(_make_github_responses([pr]))
+        bulk_http = MockHttpClient()
+        ctx = MockAppContext(
+            state_data=_make_connected_state(),
+            settings_data=_make_settings_with_repos(),
+            http_client=bulk_http,
+            ext_http_client=ext_http,
+        )
+
+        result = await pull_sync(ctx)
+
+        bulk_posts = [p for p in bulk_http.posts if p["url"] == "/api/commands/bulk"]
+        create_cmds = [
+            c for p in bulk_posts
+            for c in p["json"]["commands"]
+            if c["command"] == "object.create"
+        ]
+        assert len(create_cmds) == 1
+        props = create_cmds[0]["params"]["properties"]
+        # github-pr vs github for regular issues
+        assert props[f"{BPKM}externalProvider"] == "github-pr"
+        assert f"{BPKM}externalUrl" in props
+
+
+# ===================================================================
+# Tests — Timeline edge creation (Phase 3)
+# ===================================================================
+
+
+class TestTimelineEdgeCreation:
+    @pytest.mark.asyncio
+    async def test_edge_created_for_cross_referenced_pr(self):
+        """Issue with timeline cross-ref to PR produces edge.create command."""
+        issue = make_issue(number=5, title="Fix bug")
+        pr = make_pr_issue(number=20, title="PR that fixes #5")
+
+        issue_slug = compute_issue_slug("owner/repo", 5)
+        pr_slug = compute_issue_slug("owner/repo", 20)
+
+        # Both slugs must be in the graph for edge resolution
+        graph = MockGraphClient(slug_map={
+            issue_slug: f"https://example.org/data/Task/{issue_slug}",
+            pr_slug: f"https://example.org/data/Task/{pr_slug}",
+        })
+
+        timeline_events = [_make_cross_ref_event(20, "owner/repo")]
+        ext_http = MockExternalHttpClient([
+            MockResponse(200, {"login": "testuser"}, headers={}),
+            MockResponse(200, [issue, pr], headers={}),
+            # Timeline for the issue (PR doesn't trigger timeline)
+            MockResponse(200, timeline_events, headers={}),
+        ])
+        bulk_http = MockHttpClient()
+        ctx = MockAppContext(
+            state_data=_make_connected_state(),
+            settings_data=_make_settings_with_repos(),
+            graph_client=graph,
+            http_client=bulk_http,
+            ext_http_client=ext_http,
+        )
+
+        result = await pull_sync(ctx)
+
+        assert result["edges_created"] == 1
+        # Find edge.create in bulk commands
+        bulk_posts = [p for p in bulk_http.posts if p["url"] == "/api/commands/bulk"]
+        edge_cmds = [
+            c for p in bulk_posts
+            for c in p["json"]["commands"]
+            if c["command"] == "edge.create"
+        ]
+        assert len(edge_cmds) == 1
+        assert edge_cmds[0]["params"]["source"] == f"https://example.org/data/Task/{pr_slug}"
+        assert edge_cmds[0]["params"]["target"] == f"https://example.org/data/Task/{issue_slug}"
+        assert edge_cmds[0]["params"]["predicate"] == f"{BPKM}dependsOn"
+
+    @pytest.mark.asyncio
+    async def test_no_edges_when_no_cross_references(self):
+        """Issue with empty timeline produces no edge commands."""
+        issue = make_issue(number=3, title="Standalone issue")
+        ext_http = MockExternalHttpClient(
+            _make_github_responses([issue], timeline_responses=[
+                MockResponse(200, [], headers={}),
+            ])
+        )
+        bulk_http = MockHttpClient()
+        ctx = MockAppContext(
+            state_data=_make_connected_state(),
+            settings_data=_make_settings_with_repos(),
+            http_client=bulk_http,
+            ext_http_client=ext_http,
+        )
+
+        result = await pull_sync(ctx)
+
+        assert result["edges_created"] == 0
+
+    @pytest.mark.asyncio
+    async def test_edge_skipped_when_pr_task_not_found(self):
+        """Timeline references PR not in synced repos — no edge, no error."""
+        issue = make_issue(number=4, title="Issue with external PR ref")
+        issue_slug = compute_issue_slug("owner/repo", 4)
+        # Only the issue slug is in the graph; PR slug is absent
+        graph = MockGraphClient(slug_map={
+            issue_slug: f"https://example.org/data/Task/{issue_slug}",
+        })
+
+        timeline_events = [_make_cross_ref_event(99, "owner/repo")]
+        ext_http = MockExternalHttpClient(
+            _make_github_responses([issue], timeline_responses=[
+                MockResponse(200, timeline_events, headers={}),
+            ])
+        )
+        bulk_http = MockHttpClient()
+        ctx = MockAppContext(
+            state_data=_make_connected_state(),
+            settings_data=_make_settings_with_repos(),
+            graph_client=graph,
+            http_client=bulk_http,
+            ext_http_client=ext_http,
+        )
+
+        result = await pull_sync(ctx)
+
+        assert result["edges_created"] == 0
+        # No error — just a debug log skip
+        assert result["errors"] == 0
+
+    @pytest.mark.asyncio
+    async def test_edge_skipped_when_issue_task_not_found(self):
+        """Graceful skip when issue IRI lookup fails in edge resolution."""
+        issue = make_issue(number=6, title="Issue not in graph")
+        # PR slug is in graph, but issue slug is NOT
+        pr_slug = compute_issue_slug("owner/repo", 30)
+        graph = MockGraphClient(slug_map={
+            pr_slug: f"https://example.org/data/Task/{pr_slug}",
+        })
+
+        timeline_events = [_make_cross_ref_event(30, "owner/repo")]
+        ext_http = MockExternalHttpClient(
+            _make_github_responses([issue], timeline_responses=[
+                MockResponse(200, timeline_events, headers={}),
+            ])
+        )
+        bulk_http = MockHttpClient()
+        ctx = MockAppContext(
+            state_data=_make_connected_state(),
+            settings_data=_make_settings_with_repos(),
+            graph_client=graph,
+            http_client=bulk_http,
+            ext_http_client=ext_http,
+        )
+
+        result = await pull_sync(ctx)
+
+        assert result["edges_created"] == 0
+        assert result["errors"] == 0
+
+    @pytest.mark.asyncio
+    async def test_multiple_prs_referencing_same_issue(self):
+        """Issue timeline with 2 PR cross-refs produces 2 edge.create commands."""
+        issue = make_issue(number=7, title="Issue with two PR refs")
+        pr1 = make_pr_issue(number=40, title="PR 1")
+        pr2 = make_pr_issue(number=41, title="PR 2")
+
+        issue_slug = compute_issue_slug("owner/repo", 7)
+        pr1_slug = compute_issue_slug("owner/repo", 40)
+        pr2_slug = compute_issue_slug("owner/repo", 41)
+
+        graph = MockGraphClient(slug_map={
+            issue_slug: f"https://example.org/data/Task/{issue_slug}",
+            pr1_slug: f"https://example.org/data/Task/{pr1_slug}",
+            pr2_slug: f"https://example.org/data/Task/{pr2_slug}",
+        })
+
+        timeline_events = [
+            _make_cross_ref_event(40, "owner/repo"),
+            _make_cross_ref_event(41, "owner/repo"),
+        ]
+        ext_http = MockExternalHttpClient([
+            MockResponse(200, {"login": "testuser"}, headers={}),
+            MockResponse(200, [issue, pr1, pr2], headers={}),
+            # Only the issue triggers a timeline call (PRs don't)
+            MockResponse(200, timeline_events, headers={}),
+        ])
+        bulk_http = MockHttpClient()
+        ctx = MockAppContext(
+            state_data=_make_connected_state(),
+            settings_data=_make_settings_with_repos(),
+            graph_client=graph,
+            http_client=bulk_http,
+            ext_http_client=ext_http,
+        )
+
+        result = await pull_sync(ctx)
+
+        assert result["edges_created"] == 2
+        bulk_posts = [p for p in bulk_http.posts if p["url"] == "/api/commands/bulk"]
+        edge_cmds = [
+            c for p in bulk_posts
+            for c in p["json"]["commands"]
+            if c["command"] == "edge.create"
+        ]
+        assert len(edge_cmds) == 2
+
+    @pytest.mark.asyncio
+    async def test_timeline_api_error_isolated(self):
+        """Timeline fetch error for one issue doesn't abort other issues."""
+        issue1 = make_issue(number=8, title="Issue with timeline error")
+        issue2 = make_issue(number=9, title="Issue that succeeds")
+
+        ext_http = MockExternalHttpClient([
+            MockResponse(200, {"login": "testuser"}, headers={}),
+            MockResponse(200, [issue1, issue2], headers={}),
+            # Timeline for issue 8 — 500 error
+            MockResponse(500, {"message": "Internal Server Error"}, headers={}),
+            # Timeline for issue 9 — success, empty
+            MockResponse(200, [], headers={}),
+        ])
+        bulk_http = MockHttpClient()
+        ctx = MockAppContext(
+            state_data=_make_connected_state(),
+            settings_data=_make_settings_with_repos(),
+            http_client=bulk_http,
+            ext_http_client=ext_http,
+        )
+
+        result = await pull_sync(ctx)
+
+        # issue1's timeline error is isolated — issue2 still processed
+        assert result["created"] == 2  # Both issues created
+        assert result["errors"] >= 1
+        # The failed_issues should contain the timeline suffix
+        timeline_failures = [
+            f for f in result["failed_issues"] if "(timeline)" in f
+        ]
+        assert len(timeline_failures) == 1
+        assert "owner/repo#8(timeline)" in result["failed_issues"]
+
+    @pytest.mark.asyncio
+    async def test_edges_created_in_result(self):
+        """last_pull_result includes edges_created count for diagnostics."""
+        issue = make_issue(number=11, title="Issue for edge test")
+        pr = make_pr_issue(number=25, title="PR for edge test")
+
+        issue_slug = compute_issue_slug("owner/repo", 11)
+        pr_slug = compute_issue_slug("owner/repo", 25)
+
+        graph = MockGraphClient(slug_map={
+            issue_slug: f"https://example.org/data/Task/{issue_slug}",
+            pr_slug: f"https://example.org/data/Task/{pr_slug}",
+        })
+
+        timeline_events = [_make_cross_ref_event(25, "owner/repo")]
+        ext_http = MockExternalHttpClient([
+            MockResponse(200, {"login": "testuser"}, headers={}),
+            MockResponse(200, [issue, pr], headers={}),
+            MockResponse(200, timeline_events, headers={}),
+        ])
+        bulk_http = MockHttpClient()
+        ctx = MockAppContext(
+            state_data=_make_connected_state(),
+            settings_data=_make_settings_with_repos(),
+            graph_client=graph,
+            http_client=bulk_http,
+            ext_http_client=ext_http,
+        )
+
+        await pull_sync(ctx)
+
+        raw = await ctx.state.get("last_pull_result")
+        result = json.loads(raw)
+        assert result["edges_created"] == 1
+        assert isinstance(result["edges_created"], int)
+
+    @pytest.mark.asyncio
+    async def test_timeline_not_called_for_prs(self):
+        """PRs don't trigger timeline queries — only issues do."""
+        pr1 = make_pr_issue(number=50)
+        pr2 = make_pr_issue(number=51)
+        ext_http = MockExternalHttpClient(_make_github_responses([pr1, pr2]))
+        bulk_http = MockHttpClient()
+        ctx = MockAppContext(
+            state_data=_make_connected_state(),
+            settings_data=_make_settings_with_repos(),
+            http_client=bulk_http,
+            ext_http_client=ext_http,
+        )
+
+        result = await pull_sync(ctx)
+
+        assert result["created"] == 2
+        # No timeline requests should have been made (only verify_token + fetch_issues)
+        timeline_requests = [
+            r for r in ext_http.requests if "timeline" in r["url"]
+        ]
+        assert len(timeline_requests) == 0
+
+
+# ===================================================================
+# Tests — _find_existing_task provider parameter
+# ===================================================================
+
+
+class TestFindExistingTaskProvider:
+    @pytest.mark.asyncio
+    async def test_find_with_default_provider(self):
+        """Default provider='github' includes provider filter in SPARQL."""
+        graph = MockGraphClient(
+            slug_map={"gh-abc": "https://example.org/data/Task/gh-abc"},
+        )
+        result = await _find_existing_task(graph, "gh-abc")
+        assert result is not None
+        # SPARQL should contain the github provider filter
+        assert 'externalProvider' in graph.queries[-1]
+        assert '"github"' in graph.queries[-1]
+
+    @pytest.mark.asyncio
+    async def test_find_with_pr_provider(self):
+        """provider='github-pr' includes that string in SPARQL."""
+        graph = MockGraphClient(
+            slug_map={"gh-pr-123": "https://example.org/data/Task/gh-pr-123"},
+        )
+        result = await _find_existing_task(graph, "gh-pr-123", provider="github-pr")
+        assert result is not None
+        assert '"github-pr"' in graph.queries[-1]
+
+    @pytest.mark.asyncio
+    async def test_find_with_no_provider(self):
+        """provider=None omits the provider filter — slug-only lookup."""
+        graph = MockGraphClient(
+            slug_map={"gh-xyz": "https://example.org/data/Task/gh-xyz"},
+        )
+        result = await _find_existing_task(graph, "gh-xyz", provider=None)
+        assert result is not None
+        # SPARQL should NOT contain an externalProvider filter
+        assert "externalProvider" not in graph.queries[-1]
+
+    @pytest.mark.asyncio
+    async def test_find_with_no_provider_returns_pr_task(self):
+        """provider=None can find a task regardless of its provider value."""
+        pr_slug = "gh-pr-456"
+        graph = MockGraphClient(
+            slug_map={pr_slug: f"https://example.org/data/Task/{pr_slug}"},
+        )
+        result = await _find_existing_task(graph, pr_slug, provider=None)
+        assert result is not None
+        assert result["iri"] == f"https://example.org/data/Task/{pr_slug}"
+        assert "externalProvider" not in graph.queries[-1]
