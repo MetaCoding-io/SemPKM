@@ -93,6 +93,13 @@ The key API change is adding `contextQuery({url, title, keywords})` to `SemPKMCl
 - `extension/manifest.firefox.json` — Firefox manifest with same permissions, `background.scripts` array, `browser_specific_settings.gecko`
 - D194 (Side Panel API), D195 (popup/sidebar coexistence), D196 (separate query fields)
 
+## Observability Impact
+
+- **`contextQuery()` method:** Callers can catch `SemPKMError` with `status` and `detail` for diagnosable failures. No console logging in the client itself — logging responsibility is on the service worker (T02).
+- **Settings keys:** `getSettings()` returns the new keys with defaults — future agents can verify via `chrome.storage.sync.get(['autoCheckContext', 'contextCheckDelay', 'contextTimeout'])` in devtools.
+- **Manifest permissions:** Chrome `chrome://extensions` detail page lists granted permissions including `sidePanel` and `tabs`. Firefox `about:debugging` shows `sidebar_action` registration.
+- **Failure visibility:** Missing permission → Chrome logs a clear error in the service worker console. Invalid JSON manifest → extension fails to load with parse error in the extensions page.
+
 ## Expected Output
 
 - `extension/shared/api-client.js` — gains `contextQuery({url, title, keywords})` method

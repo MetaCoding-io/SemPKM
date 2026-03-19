@@ -183,4 +183,27 @@ export class SemPKMClient {
     });
     return data.results;
   }
+
+  /**
+   * Query for objects related to the current page context.
+   * Sends each field separately so the backend can weight them independently.
+   * POST /api/context-query
+   *
+   * @param {Object} params - Context fields (at least one required by backend)
+   * @param {string} [params.url] - Page URL to match against schema:url properties
+   * @param {string} [params.title] - Page title for label/title matching
+   * @param {string} [params.keywords] - Extracted keywords for broader matching
+   * @returns {Promise<{results: Array<{iri: string, label: string, type_iri: string|null, type_label: string|null, match_type: string, snippet: string|null}>, total: number}>}
+   */
+  async contextQuery({ url, title, keywords } = {}) {
+    const body = {};
+    if (url) body.url = url;
+    if (title) body.title = title;
+    if (keywords) body.keywords = keywords;
+
+    return this._request('/api/context-query', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
 }

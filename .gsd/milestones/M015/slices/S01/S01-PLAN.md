@@ -45,7 +45,7 @@
 
 ## Tasks
 
-- [ ] **T01: Extend API client, storage keys, and manifests for context overlay** `est:45m`
+- [x] **T01: Extend API client, storage keys, and manifests for context overlay** `est:45m`
   - Why: All other tasks depend on the `contextQuery()` method, the new storage keys, and the manifest entries for sidePanel/sidebar_action/commands.
   - Files: `extension/shared/api-client.js`, `extension/shared/storage.js`, `extension/manifest.json`, `extension/manifest.firefox.json`
   - Do: Add `contextQuery({url, title, keywords})` to SemPKMClient (separate from the existing `searchObjects()`). Add settings keys `autoCheckContext` (bool, default true), `contextCheckDelay` (number, default 2000), `contextTimeout` (number, default 5000) to storage.js DEFAULTS. Add `sidePanel` permission and `side_panel.default_path` to Chrome manifest. Add `sidebar_action` to Firefox manifest. Add Alt+K command entry (`_execute_sidebar_action` or named command) to both manifests. Add `tabs` permission to both manifests.

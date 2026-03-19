@@ -17,6 +17,9 @@ const DEFAULTS = {
   autoFillTitle: true,
   autoFillUrl: true,
   includeSelection: true,
+  autoCheckContext: true,
+  contextCheckDelay: 2000,
+  contextTimeout: 5000,
 };
 
 /** All settings keys — used for chrome.storage.sync.get(). */
