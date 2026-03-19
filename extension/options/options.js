@@ -24,6 +24,9 @@ const $defaultType    = document.getElementById('default-type');
 const $autoFillTitle  = document.getElementById('auto-fill-title');
 const $autoFillUrl    = document.getElementById('auto-fill-url');
 const $includeSelect  = document.getElementById('include-selection');
+const $autoCheckCtx   = document.getElementById('auto-check-context');
+const $ctxCheckDelay  = document.getElementById('context-check-delay');
+const $ctxTimeout     = document.getElementById('context-timeout');
 const $saveBtn        = document.getElementById('save-settings');
 const $saveConfirm    = document.getElementById('save-confirmation');
 const $toggleKeyBtn   = document.getElementById('toggle-key-visibility');
@@ -183,6 +186,9 @@ async function saveCurrentSettings() {
     autoFillTitle: $autoFillTitle.checked,
     autoFillUrl: $autoFillUrl.checked,
     includeSelection: $includeSelect.checked,
+    autoCheckContext: $autoCheckCtx.checked,
+    contextCheckDelay: parseInt($ctxCheckDelay.value, 10) || 2000,
+    contextTimeout: parseInt($ctxTimeout.value, 10) || 5000,
   };
 
   await saveSettings(settings);
@@ -199,6 +205,11 @@ async function loadSettings() {
   $autoFillTitle.checked = settings.autoFillTitle !== false;
   $autoFillUrl.checked = settings.autoFillUrl !== false;
   $includeSelect.checked = settings.includeSelection !== false;
+
+  // Context overlay settings
+  $autoCheckCtx.checked = settings.autoCheckContext !== false;
+  $ctxCheckDelay.value = settings.contextCheckDelay || 2000;
+  $ctxTimeout.value = settings.contextTimeout || 5000;
 
   // Stash the saved default type so populateTypeSelector can restore it
   $defaultType.dataset.savedValue = settings.defaultType || '';

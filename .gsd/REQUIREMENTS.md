@@ -1447,6 +1447,62 @@ Chapter 32 (32-browser-extension.md) with 12 sections, 25 headings. README TOC u
 
 e2e/tests/25-extension/extension-capture.spec.ts with 3 serial tests. Custom persistent context fixture in e2e/fixtures/extension.ts. Chromium-only (Firefox lacks --load-extension support in Playwright).
 
+### EXT-14 — Badge shows context count after page load, cached per URL
+- Status: active
+- Class: core-capability
+- Source: design (BROWSER-EXTENSION-DESIGN.md)
+- Primary Slice: M015/S01
+- Acceptance: Extension badge displays the count of related SemPKM objects after page load. Results cached per URL to avoid redundant queries.
+
+### EXT-15 — Sidebar opens via Alt+K showing grouped results from context query
+- Status: active
+- Class: core-capability
+- Source: design (BROWSER-EXTENSION-DESIGN.md)
+- Primary Slice: M015/S01
+- Acceptance: Alt+K opens the knowledge sidebar showing results from the context query, grouped by match type (URL match, keyword match).
+
+### EXT-16 — Open action navigates to SemPKM object in new tab
+- Status: active
+- Class: core-capability
+- Source: design (BROWSER-EXTENSION-DESIGN.md)
+- Primary Slice: M015/S01
+- Acceptance: Clicking "Open" on a sidebar result opens the SemPKM object in a new browser tab.
+
+### EXT-17 — Link to this page action creates schema:url edge
+- Status: active
+- Class: core-capability
+- Source: design (BROWSER-EXTENSION-DESIGN.md)
+- Primary Slice: M015/S01
+- Acceptance: Clicking "Link to this page" on a sidebar result creates a schema:url edge between the object and the current page URL.
+
+### EXT-18 — Add Evidence action captures highlighted text and creates linked Evidence object
+- Status: active
+- Class: core-capability
+- Source: design (BROWSER-EXTENSION-DESIGN.md)
+- Primary Slice: M015/S01
+- Acceptance: Clicking "Add Evidence" captures highlighted text from the page and creates a linked Evidence object in SemPKM.
+
+### EXT-19 — Auto-context toggle in settings controls badge/check behavior
+- Status: active
+- Class: core-capability
+- Source: design (BROWSER-EXTENSION-DESIGN.md)
+- Primary Slice: M015/S03
+- Acceptance: Options page has autoCheckContext toggle that enables/disables automatic context checking and badge display on page load.
+
+### EXT-20 — URL→results cache (LRU, max 100) in service worker memory
+- Status: active
+- Class: core-capability
+- Source: design (BROWSER-EXTENSION-DESIGN.md)
+- Primary Slice: M015/S01
+- Acceptance: Service worker maintains an LRU cache (max 100 entries) mapping URLs to context query results to avoid redundant API calls.
+
+### EXT-21 — Cross-browser support (Chrome Side Panel + Firefox sidebar_action)
+- Status: active
+- Class: core-capability
+- Source: design (BROWSER-EXTENSION-DESIGN.md)
+- Primary Slice: M015/S01
+- Acceptance: Knowledge sidebar uses Chrome Side Panel API on Chrome and sidebar_action on Firefox, with feature detection for cross-browser compatibility.
+
 ## Deferred
 
 ### TYPE-03 — Full SHACL shape editor with advanced constraints
@@ -1709,10 +1765,18 @@ e2e/tests/25-extension/extension-capture.spec.ts with 3 serial tests. Custom per
 | EXT-11 | core-capability | validated | M014/S01 | none | require_role_or_api + 10 unit tests |
 | EXT-12 | quality-attribute | validated | M014/S05 | none | Ch. 32 guide + 2 glossary entries |
 | EXT-13 | quality-attribute | validated | M014/S05 | none | 3 Playwright E2E tests + persistent context fixture |
+| EXT-14 | core-capability | active | M015/S01 | none | design: BROWSER-EXTENSION-DESIGN.md |
+| EXT-15 | core-capability | active | M015/S01 | none | design: BROWSER-EXTENSION-DESIGN.md |
+| EXT-16 | core-capability | active | M015/S01 | none | design: BROWSER-EXTENSION-DESIGN.md |
+| EXT-17 | core-capability | active | M015/S01 | none | design: BROWSER-EXTENSION-DESIGN.md |
+| EXT-18 | core-capability | active | M015/S01 | none | design: BROWSER-EXTENSION-DESIGN.md |
+| EXT-19 | core-capability | active | M015/S03 | none | design: BROWSER-EXTENSION-DESIGN.md |
+| EXT-20 | core-capability | active | M015/S01 | none | design: BROWSER-EXTENSION-DESIGN.md |
+| EXT-21 | core-capability | active | M015/S01 | none | design: BROWSER-EXTENSION-DESIGN.md |
 
 ## Coverage Summary
 
-- Active requirements: 22 (14 APP + 8 RSS)
+- Active requirements: 30 (14 APP + 8 RSS + 8 EXT context overlay)
 - Validated: 153 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 8 from M013 + 13 from M014)
 - Deferred: 7 (TYPE-03, TYPE-04, MCP-01, NOTION-01, VIEW-06, VIEW-07, VFS-13)
 - Out of scope: 3

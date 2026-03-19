@@ -75,6 +75,12 @@ Also register EXT-14 through EXT-21 as active requirements in `.gsd/REQUIREMENTS
 - `grep "EXT-14" .gsd/REQUIREMENTS.md` confirms requirement registration
 - `grep -c "EXT-1[4-9]\|EXT-2[0-1]" .gsd/REQUIREMENTS.md` returns ≥ 16 (8 requirements × 2 sections each)
 
+## Observability Impact
+
+- **Settings persistence:** After saving, `chrome.storage.sync` will contain `autoCheckContext` (boolean), `contextCheckDelay` (number), `contextTimeout` (number). Inspectable in devtools Application > Storage > chrome.storage.sync.
+- **Console signals:** `[SemPKM] Settings saved` logged on save; `[SemPKM] Options page loaded` logged on init. Both already exist — no new logging added.
+- **Failure visibility:** If DOM IDs are missing or mistyped, `loadSettings()` will throw a `TypeError` on `null.checked` / `null.value` access — visible in extension devtools console immediately on page load.
+
 ## Inputs
 
 - `extension/options/options.html` — current options page HTML structure (inlined in slice context)
