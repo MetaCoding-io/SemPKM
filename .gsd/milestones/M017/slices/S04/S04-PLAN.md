@@ -51,7 +51,7 @@
   - Verify: `python e2e/mock-github-api/server.py --selftest` exits 0. `docker compose -f docker-compose.test.yml config` shows mock-github service correctly wired.
   - Done when: Selftest passes and docker-compose config validates with mock-github service and GITHUB_API_URL env var.
 
-- [ ] **T02: Playwright E2E test for GitHub sync lifecycle** `est:1h`
+- [x] **T02: Playwright E2E test for GitHub sync lifecycle** `est:1h`
   - Why: Primary runtime validation for GH-01 through GH-07. Proves the full vertical works against Docker test stack with the mock server from T01.
   - Files: `e2e/tests/32-github-sync/github-sync.spec.ts`, `e2e/helpers/selectors.ts`
   - Do: Add `githubSync` selector block to selectors.ts. Write ~12-phase test following linear-sync.spec.ts pattern: cleanup → install basic-pkm → install github-sync → open settings → connect PAT → select repos → configure bidirectional → sync now → verify tasks via SPARQL (≥3 including PR) → verify PR-to-issue edge → verify sync stats diagnostic surface shows status and counts → admin detail → cleanup. Use generous timeouts (240s total, 30s per phase). APPS section starts collapsed — click header to expand. Use `ownerRequest` for SPARQL queries.
