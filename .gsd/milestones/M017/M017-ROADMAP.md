@@ -72,7 +72,7 @@ Leaves for later: GitHub OAuth App flow (PAT-only for v1, same as M016's API key
 - [x] **S02: PR Pull Sync + PR-to-Issue Edge Linking** `risk:medium` `depends:[S01]`
   > After this: GitHub PRs appear as bpkm:Task objects with `externalProvider: "github-pr"`. PRs that reference issues have edges linking them. Timeline API cross-referenced events are parsed and edge-created. Verified by unit tests (~30+) covering PR detection, timeline parsing, and edge creation.
 
-- [ ] **S03: Push Sync + Settings Polish** `risk:low` `depends:[S01]`
+- [x] **S03: Push Sync + Settings Polish** `risk:low` `depends:[S01]`
   > After this: User edits task status/title in SemPKM, triggers push, and changes appear in GitHub via PATCH API. Loop prevention via `lastSyncedAt` comparison. Settings page has repo selection, sync direction, poll interval, Sync Now, and sync stats. Verified by unit tests (~40+) covering reverse mapping, push logic, and loop prevention.
 
 - [ ] **S04: E2E Tests + User Guide** `risk:low` `depends:[S01,S02,S03]`

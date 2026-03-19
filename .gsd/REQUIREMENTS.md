@@ -185,12 +185,16 @@ S02 contract: 32 new unit tests verify PR task creation with github-pr provider,
 - Primary Slice: M017/S03
 - Acceptance: User edits task title/status in SemPKM, triggers push, and changes appear in GitHub via PATCH API. Loop prevention via `lastSyncedAt` comparison prevents re-import of pushed changes.
 
+S03 contract: 33 unit tests verify push_sync pipeline (SPARQL change detection, reverse field mapping, PATCH mutation, lastSyncedAt update), loop prevention in pull_sync (skip when updated_at ≤ lastSyncedAt), parse_external_url for issue/PR URLs, and diagnostic surface (last_push_result with status/pushed/errors/timestamp). Runtime validation deferred to S04 E2E.
+
 ### GH-05 — Settings UI: repo selection, sync direction, poll interval
 - Status: active
 - Class: core-capability
 - Source: design (M017-ROADMAP.md)
 - Primary Slice: M017/S03
 - Acceptance: Settings page has repo multi-select, sync direction toggle, poll interval configuration, Sync Now button, and sync stats panel.
+
+S03 contract: 15 unit tests verify sync-config route saves direction/interval to settings, bidirectional sync_now runs push after pull, push_changes handler calls real push_sync, and _render_connect_status passes new fields to template. Template has direction radios, poll interval dropdown, and push result stats section. Runtime validation deferred to S04 E2E.
 
 ### GH-06 — Person matching: assignee resolution
 - Status: active
