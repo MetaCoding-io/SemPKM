@@ -255,10 +255,18 @@ def _oauth_result_page(success: bool, message: str) -> str:
 
 
 @linear_sync_app.task("poll-tasks")
-def poll_tasks(ctx: AppContext):
+async def poll_tasks(ctx: AppContext):
     """Poll Linear for updated issues and sync changes to SemPKM."""
-    logger.info("poll-tasks executed for %s (not yet implemented)", ctx.app_id)
-    return {"status": "noop", "reason": "sync not yet implemented"}
+    from services.sync_engine import pull_sync
+
+    logger.info("poll-tasks: starting pull sync")
+    try:
+        result = await pull_sync(ctx)
+        logger.info("poll-tasks: completed — %s", result)
+        return result
+    except Exception as exc:
+        logger.error("poll-tasks: sync failed — %s", exc, exc_info=True)
+        return {"status": "error", "message": str(exc)}
 
 
 @linear_sync_app.on_startup
