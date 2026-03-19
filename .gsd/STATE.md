@@ -1,9 +1,9 @@
 # GSD State
 
-**Active Milestone:** M015: Browser Extension Phase 2 — Knowledge Context Overlay
-**Active Slice:** S03: Settings, E2E tests, and user guide
-**Phase:** executing
-**Requirements Status:** 61 active · 114 validated · 7 deferred · 0 out of scope
+**Active Milestone:** M016: Linear Sync App
+**Active Slice:** S01: OAuth + App Skeleton + Linear Client
+**Phase:** planned
+**Requirements Status:** 61 active · 122 validated · 7 deferred · 0 out of scope
 
 ## Milestone Registry
 - ✅ **M001:** Migration
@@ -20,8 +20,8 @@
 - ✅ **M012:** Workspace & Event Log Polish
 - ✅ **M013:** API Surface for External Clients
 - ✅ **M014:** Browser Extension Phase 1 — Smart Structured Capture
-- 🔄 **M015:** Browser Extension Phase 2 — Knowledge Context Overlay
-- ⬜ **M016:** M016
+- ✅ **M015:** Browser Extension Phase 2 — Knowledge Context Overlay
+- 🔄 **M016:** Linear Sync App
 - ⬜ **M017:** M017
 - ⬜ **M018:** M018
 - ⬜ **M019:** M019
@@ -38,10 +38,10 @@
 - ⬜ **M030:** M030
 
 ## Recent Decisions
-- None recorded
+- D203: Linear app unit tests use importlib loading from apps/ directory with mocked SDK clients
 
 ## Blockers
 - None
 
 ## Next Action
-Execute T01: Add Context Overlay settings section to options page and register requirements.
+Execute T01 of S01 (app manifest, skeleton, and settings page shell).
