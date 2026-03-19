@@ -71,6 +71,15 @@ Also update the README TOC, glossary, and navigation links to chain correctly: C
 - S02 summary: PRs sync with externalProvider "github-pr", edges use bpkm:dependsOn, same-repo only
 - S03 summary: push sync supports title + status only, loop prevention via lastSyncedAt comparison
 
+## Observability Impact
+
+Documentation-only task — no runtime signals change. The observability surface is the file system:
+- `docs/guide/35-github-sync.md` exists and has ≥10 headings (verifiable via `grep -c "^##"`)
+- Navigation chain integrity verifiable via `grep` for link targets across Ch 34, Ch 35, and Appendix A
+- README TOC and glossary entries verifiable via `grep`
+
+A future agent inspects this task's outcome by checking that the navigation chain is unbroken and the field mapping tables match M017-RESEARCH.md.
+
 ## Expected Output
 
 - `docs/guide/35-github-sync.md` — Complete user guide chapter (~250-300 lines) with field mapping tables

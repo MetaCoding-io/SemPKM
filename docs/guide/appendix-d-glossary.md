@@ -103,6 +103,9 @@ A quick-capture note in the Zettelkasten workflow — the entry point for raw id
 **Gist**
 A minimalist upper ontology (v14.0.0) by Semantic Arts that provides foundational classes and properties. Auto-loaded in SemPKM as the semantic foundation for all Mental Models.
 
+**GitHub Sync**
+A SemPKM app that synchronizes GitHub Issues and Pull Requests with `bpkm:Task` objects. Supports pull sync (GitHub → SemPKM), push sync (SemPKM → GitHub), and bidirectional mode. PRs that reference issues are linked via `bpkm:dependsOn` edges. See [Chapter 35: GitHub Sync](35-github-sync.md).
+
 **IndieAuth**
 An authentication and authorization protocol built on OAuth 2.0 that uses personal URLs (like WebID profiles) as identities. SemPKM acts as an IndieAuth provider, allowing you to sign into other IndieAuth-compatible services using your SemPKM identity. See [Chapter 26: IndieAuth](26-indieauth.md).
 

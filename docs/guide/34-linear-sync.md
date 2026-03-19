@@ -285,4 +285,4 @@ Each task run shows its timestamp, duration, and success/failure status. Failed 
 
 ---
 
-**Previous:** [Chapter 33: Context Overlay](33-context-overlay.md) | **Next:** [Appendix A: Environment Variable Reference](appendix-a-environment-variables.md)
+**Previous:** [Chapter 33: Context Overlay](33-context-overlay.md) | **Next:** [Chapter 35: GitHub Sync](35-github-sync.md)
