@@ -45,6 +45,11 @@
                     <i data-lucide="key-round" class="nav-icon"></i>
                     <span class="nav-label">API Keys</span>
                 </a>
+                <a href="/admin/apps" class="nav-link" data-tooltip="Applications"
+                   hx-get="/admin/apps" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
+                    <i data-lucide="blocks" class="nav-icon"></i>
+                    <span class="nav-label">Applications</span>
+                </a>
                 {% else %}
                 <span class="nav-link disabled nav-hint" data-tooltip="Requires owner role">
                     <i data-lucide="brain" class="nav-icon"></i>
