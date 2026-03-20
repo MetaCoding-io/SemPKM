@@ -61,7 +61,7 @@ This milestone is complete only when all are true:
 
 ## Slices
 
-- [ ] **S01: Build Pipeline & Local Vendoring** `risk:high` `depends:[]`
+- [x] **S01: Build Pipeline & Local Vendoring** `risk:high` `depends:[]`
   > After this: Workspace loads with all JS/CSS served from locally-bundled, minified, content-hashed files. htmx CRUD, Cytoscape graph, and dockview panels all work. Dev mode still uses raw files via volume mounts. Multi-stage Dockerfile builds optimized assets.
 
 - [ ] **S02: Compression & HTTP Caching** `risk:medium` `depends:[S01]`
