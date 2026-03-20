@@ -159,7 +159,7 @@ The SPARQL Console gives you direct read access to the RDF triplestore, letting 
 
 Access it by navigating to `/sparql`.
 
-<!-- Screenshot: SPARQL Console showing the query text area with a sample SELECT query, the Run Query and Add Prefixes buttons, and a results table below -->
+![SPARQL Console in the bottom panel with query editor and results area](images/21-sparql-console.png)
 
 #### Running a Query
 

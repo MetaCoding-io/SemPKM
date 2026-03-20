@@ -2,6 +2,8 @@
 
 SemPKM includes a built-in import wizard that converts an Obsidian vault into typed knowledge objects. The wizard handles scanning, type mapping, property mapping, preview, and import -- all from within the browser, with no external scripts or command-line tools required.
 
+![Obsidian Import wizard showing the 6-step progress bar and upload screen](images/24-obsidian-import.png)
+
 By the end of this chapter you will know how to upload a vault, review its structure, map detected note categories to Mental Model types, map frontmatter keys to RDF properties, preview the result, and execute the import.
 
 ---

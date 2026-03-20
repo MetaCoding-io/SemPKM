@@ -2,6 +2,8 @@
 
 The SPARQL Console lets you query your entire knowledge base using SPARQL 1.1 -- the standard query language for RDF data. Whether you want to explore how your data is structured, find objects matching specific criteria, or investigate relationships between items, the console gives you direct read access to the triplestore.
 
+![SPARQL Console in the bottom panel with editor and toolbar](images/21-sparql-console.png)
+
 ## Getting Started
 
 ### Opening the Console

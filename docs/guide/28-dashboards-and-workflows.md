@@ -38,6 +38,9 @@ Each slot in a layout holds one block. Six block types are available:
 1. In the Explorer sidebar, find the **DASHBOARDS** section.
 2. Click the **+** button in the section header.
 3. The dashboard builder form opens in a new tab.
+
+![Dashboard builder showing layout templates and block configuration](images/28-dashboard-builder.png)
+
 4. Enter a **Name** (required) and optional **Description**.
 5. Select a **Layout** template from the radio button picker. The available slot names update to match your selection.
 6. Click **Add Block** for each block you want. For each block:
@@ -102,6 +105,9 @@ Each step in a workflow has a type that determines what it displays:
 1. In the Explorer sidebar, find the **WORKFLOWS** section.
 2. Click the **+** button in the section header.
 3. The workflow builder form opens in a new tab.
+
+![Workflow builder with name, description, and step configuration](images/28-workflow-builder.png)
+
 4. Enter a **Name** (required) and optional **Description**.
 5. Click **Add Step** for each step in the workflow. For each step:
    - Enter an optional **Step label** (displayed in the stepper bar, e.g., "Review Projects", "Create Note").

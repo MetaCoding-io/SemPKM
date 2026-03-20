@@ -16,7 +16,7 @@ The quickest way to run SPARQL queries is the built-in **SPARQL console** availa
 in the Debug panel of the workspace. Type your query, press Execute, and see the
 results rendered as a table.
 
-<!-- Screenshot: SPARQL console in the Debug panel with a sample query and results -->
+![SPARQL Console with editor and results panel](images/21-sparql-console.png)
 
 ### The HTTP API
 

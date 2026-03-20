@@ -25,3 +25,11 @@ Dark-mode variants are in `docs/screenshots/`.
 | 18 | `18-object-read-concept.png` | Ch 9 | Concept object showing SKOS-based properties |
 | 19 | `19-login-page.png` | Ch 3, Ch 11 | Passwordless login page |
 | 20 | `20-bottom-panel.png` | Ch 4, Ch 14, Ch 15 | Bottom panel showing Event Log tab |
+| 21 | `21-sparql-console.png` | Ch 14, Ch 18, Ch 21 | SPARQL Console with editor and results |
+| 23 | `23-vfs-browser.png` | Ch 23 | File Browser showing VFS tree with type folders |
+| 24 | `24-obsidian-import.png` | Ch 24 | Obsidian Import wizard with 6-step progress bar |
+| 25 | `25-settings-identity.png` | — | Settings identity section (available for future use) |
+| 27 | `27-spatial-canvas.png` | Ch 27 | Spatial Canvas with toolbar and empty canvas |
+| 28a | `28-dashboard-builder.png` | Ch 28 | Dashboard builder with layout templates |
+| 28b | `28-workflow-builder.png` | Ch 28 | Workflow builder with step configuration |
+| 30 | `30-personas-palette.png` | Ch 30 | Command palette showing available commands |

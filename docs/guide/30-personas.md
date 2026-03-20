@@ -46,6 +46,8 @@ There are two ways to create a new persona:
 
 ### Via the Command Palette
 
+![Command palette showing available commands including persona actions](images/30-personas-palette.png)
+
 1. Press **Ctrl+K** (or **Cmd+K** on macOS) to open the command palette.
 2. Type **"Persona: Create New..."** and select it.
 3. Enter a name for the persona.

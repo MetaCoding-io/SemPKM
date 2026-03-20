@@ -2,6 +2,8 @@
 
 The **Spatial Canvas** is an interactive, freeform workspace for exploring your knowledge graph visually. Unlike the graph view (which auto-layouts all objects of a type), the canvas starts empty and lets you build a custom map by dragging objects from the navigation tree, expanding their neighborhoods, and arranging everything by hand. Named sessions let you save and switch between different explorations.
 
+![Spatial Canvas with toolbar showing zoom controls, session management, and embed button](images/27-spatial-canvas.png)
+
 ## Opening the Canvas
 
 Open the command palette (`Alt+K`) and type **Spatial Canvas**, then press Enter. The canvas opens as a tab in the editor area, alongside your object and view tabs.

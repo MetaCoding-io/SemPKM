@@ -2,6 +2,8 @@
 
 SemPKM exposes your knowledge base as a read-only virtual filesystem over WebDAV. You can mount it in your operating system's file manager and browse your objects as Markdown files -- no API calls or browser required.
 
+![File Browser showing the VFS tree with type folders and object counts](images/23-vfs-browser.png)
+
 ## How It Works
 
 The WebDAV endpoint at `/dav/` presents your knowledge base as a directory tree:
