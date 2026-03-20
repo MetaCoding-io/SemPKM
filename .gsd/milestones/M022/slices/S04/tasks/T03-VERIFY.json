@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T03",
+  "unitId": "M022/S04/T03",
+  "timestamp": 1773976869233,
+  "passed": false,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "All 5 files modified, Ch 40 has 3 status modes, nav chain Ch 39 → Ch 40 → Appendix A",
+      "exitCode": 127,
+      "durationMs": 9,
+      "verdict": "fail"
+    }
+  ],
+  "retryAttempt": 2,
+  "maxRetries": 2
+}

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T03",
+  "unitId": "M020/S04/T03",
+  "timestamp": 1773955528682,
+  "passed": true,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "grep \"38.*Outlook\" docs/guide/README.md",
+      "exitCode": 0,
+      "durationMs": 10,
+      "verdict": "pass"
+    },
+    {
+      "command": "grep \"Outlook Calendar Sync\" docs/guide/appendix-d-glossary.md",
+      "exitCode": 0,
+      "durationMs": 7,
+      "verdict": "pass"
+    }
+  ]
+}
