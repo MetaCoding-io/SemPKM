@@ -94,6 +94,24 @@ Important: `nginx.demo.conf` is missing the `/assets/` location block entirely �
 - Conditional GET: extract ETag value, send `curl -sI -H "If-None-Match: <etag>" http://localhost:3000/login.html`, confirm `304 Not Modified`
 - `curl -sI http://localhost:3000/js/workspace.js | grep Cache-Control` shows `no-store, no-cache, must-revalidate` (unchanged)
 
+## Observability Impact
+
+**What changes:**
+- `/assets/` responses gain `Content-Encoding: gzip` (from `gzip_static on` serving `.gz` siblings) and `Cache-Control: public, max-age=31536000, immutable`
+- Auth pages (`/login.html`, `/setup.html`, `/invite.html`) gain `Cache-Control: no-cache` header; ETag was already present (nginx default for static files)
+- Proxied HTML responses (e.g. `/browser/`) gain `Content-Encoding: gzip` and `Vary: Accept-Encoding`
+- Dev-mode `/css/` and `/js/` responses remain unchanged (`no-store, no-cache, must-revalidate`)
+
+**How to inspect:**
+- `curl -sI -H "Accept-Encoding: gzip" http://localhost:3000/<path>` — check `Content-Encoding` and `Cache-Control` headers
+- `docker compose exec frontend nginx -T` — dump full resolved config
+- Browser DevTools → Network tab → select request → Headers tab
+
+**Failure signals:**
+- Missing `Content-Encoding: gzip` on `/assets/` → `.gz` files not present in `/srv/built-assets/` (S01 build issue)
+- Missing `Cache-Control` header → `add_header` directive missing or overridden by parent block
+- `nginx -t` failure → config syntax error (line number in stderr)
+
 ## Inputs
 
 - `frontend/nginx.conf` — current config with `/assets/` block (from S01), no gzip directives, no cache headers
