@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T01",
+  "unitId": "M029/S02/T01",
+  "timestamp": 1774038425961,
+  "passed": false,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "All 8 curl checks from the Verification section above pass against running Docker stack.",
+      "exitCode": 127,
+      "durationMs": 9,
+      "verdict": "fail"
+    }
+  ],
+  "retryAttempt": 1,
+  "maxRetries": 2
+}

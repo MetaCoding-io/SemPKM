@@ -17,12 +17,12 @@
 
 All verification via curl against running Docker stack:
 
-- `curl -H "Accept-Encoding: gzip" -sI http://localhost:3000/assets/vendor-*.min.js | grep -q 'Content-Encoding: gzip'` — gzip_static serves pre-compressed assets
-- `curl -H "Accept-Encoding: gzip" -sI http://localhost:3000/assets/vendor-*.min.js | grep -q 'immutable'` — immutable cache header on hashed assets
-- `curl -H "Accept-Encoding: gzip" -sI http://localhost:3000/browser/ | grep -q 'Content-Encoding: gzip'` — gzip compresses proxied HTML
+- `ASSET=$(docker compose exec frontend cat /srv/built-assets/manifest.json | python3 -c "import sys,json; print(json.load(sys.stdin).get('vendor.js',''))") && curl -H "Accept-Encoding: gzip" -sI "http://localhost:3000/assets/${ASSET}" | grep -q 'Content-Encoding: gzip'` — gzip_static serves pre-compressed assets
+- `ASSET=$(docker compose exec frontend cat /srv/built-assets/manifest.json | python3 -c "import sys,json; print(json.load(sys.stdin).get('vendor.js',''))") && curl -H "Accept-Encoding: gzip" -sI "http://localhost:3000/assets/${ASSET}" | grep -q 'immutable'` — immutable cache header on hashed assets
+- `curl -s -H "Accept-Encoding: gzip" -o /dev/null -D - -L http://localhost:3000/browser/ | grep -q 'Content-Encoding: gzip'` — gzip compresses proxied/static HTML
 - `curl -sI http://localhost:3000/login.html | grep -q 'ETag'` — ETag present on auth pages
 - `curl -sI http://localhost:3000/login.html | grep -q 'Cache-Control: no-cache'` — no-cache on auth pages
-- Auth page conditional GET returns 304 Not Modified
+- `ETAG=$(curl -sI http://localhost:3000/login.html | grep -i ETag | awk '{print $2}' | tr -d '\r') && curl -sI -H "If-None-Match: ${ETAG}" http://localhost:3000/login.html | grep -q '304'` — conditional GET returns 304 Not Modified
 - `curl -sI http://localhost:3000/js/workspace.js | grep -q 'no-store'` — dev files still no-cache
 - `docker compose exec frontend nginx -t` — config syntax valid
 
