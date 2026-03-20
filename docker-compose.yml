@@ -26,6 +26,7 @@ services:
       - ./backend/ontologies:/app/ontologies:ro
       - sempkm_data:/app/data
       - ./docs:/app/docs:ro
+      - ./apps:/app/apps:ro
     env_file: .env
     environment:
       TRIPLESTORE_URL: ${TRIPLESTORE_URL:-http://triplestore:8080/rdf4j-server}
