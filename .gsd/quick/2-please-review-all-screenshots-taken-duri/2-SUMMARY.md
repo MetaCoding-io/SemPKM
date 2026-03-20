@@ -1,11 +1,12 @@
-# Quick Task: Place E2E screenshots into user guide
+# Quick Task: Place e2e screenshots into user guide
 
 **Date:** 2026-03-20
 **Branch:** gsd/quick/2-please-review-all-screenshots-taken-duri
 
 ## What Changed
 
-- Replaced 11 HTML placeholder comments (`<!-- Screenshot: ... -->`) with actual image references across 7 guide chapters
+### Pass 1: Place existing e2e screenshots (commit 3f09d883)
+- Replaced 11 HTML placeholder comments with actual image references across 7 guide chapters
 - Added workspace overview hero image to Ch 1 (What is SemPKM)
 - Added table/cards/graph view screenshots to Ch 2 (Core Concepts)
 - Added login page and workspace screenshots to Ch 3 (Installation)
@@ -14,37 +15,60 @@
 - Added event timeline screenshot to Ch 15 (Event Log)
 - Added edit form and table view screenshots to Ch 19 (Creating Mental Models)
 - Copied 3 missing dark-mode screenshots from `e2e/screenshots/` to `docs/screenshots/`
-- Added README indexes for both `docs/guide/images/` and `docs/screenshots/` with descriptions and chapter cross-references
+- Added README indexes for both `docs/guide/images/` and `docs/screenshots/`
 
-## Inventory
+### Pass 2: Audit docs for missing screenshots, capture new ones (commit b4ee2ba7)
+- Audited all 36 guide chapters for screenshot needs
+- Captured 7 new screenshots from running dev stack via headless Playwright:
+  - SPARQL Console (Ch 21)
+  - VFS File Browser (Ch 23)
+  - Obsidian Import wizard (Ch 24)
+  - Spatial Canvas (Ch 27)
+  - Dashboard builder (Ch 28)
+  - Workflow builder (Ch 28)
+  - Command palette / Personas (Ch 30)
+- Ran e2e guide-capture test suite, capturing 5 additional reference screenshots
+- Replaced 2 more placeholder comments (Ch 14 SPARQL console, Ch 18)
 
-The e2e test suite produces 20 light-mode + 20 dark-mode screenshots. Before this task:
-- All 20 light-mode images were in `docs/guide/images/` but only 21 references existed in guide markdown
-- 17 of 20 dark-mode images were in `docs/screenshots/`, 3 were missing
-- 18 placeholder comments existed in guide pages waiting for screenshots
+### Final state
+- **44 image references** across **23 chapters** (was 21 across 10)
+- **28 unique images** in `docs/guide/images/`
+- **25 dark-mode images** in `docs/screenshots/`
+- **5 remaining placeholder comments** in Ch 14-15 (admin-only pages: health check, commands form, Swagger UI, filter dropdown, filter chips)
 
-After this task:
-- 32 image references across 15 guide chapters (was 21 across 10)
-- All 20 dark-mode images in `docs/screenshots/`
-- 7 remaining placeholder comments are for screenshots not captured by the e2e suite (health page, commands page, SPARQL console, Swagger UI, filter dropdowns)
+### Chapters that don't need screenshots (by design)
+- Ch 16 (Data Model) — conceptual RDF explanation
+- Ch 17 (Command API) — JSON API reference
+- Ch 20 (Production Deployment) — server config docs
+- Ch 22 (Keyword Search) — needs screenshot but search page 404'd on dev stack
+- Ch 25 (WebID Profiles) — protocol documentation
+- Ch 26 (IndieAuth) — auth protocol
+- Ch 29 (App Platform, Mental Model Catalog) — SDK/developer docs
+- Ch 31 (API Surface) — JSON endpoint reference
+- Ch 32-36 (Browser Extension, Sync Apps) — need their respective apps running
 
 ## Files Modified
-
-- `docs/guide/01-what-is-sempkm.md` — added workspace overview image
-- `docs/guide/02-core-concepts.md` — replaced 3 placeholders with view screenshots
-- `docs/guide/03-installation-and-setup.md` — replaced 2 placeholders
-- `docs/guide/06-edges-and-relationships.md` — replaced 3 placeholders
-- `docs/guide/14-system-health-and-debugging.md` — replaced 2 placeholders
-- `docs/guide/15-event-log.md` — replaced 1 placeholder
-- `docs/guide/19-creating-mental-models.md` — replaced 2 placeholders
-- `docs/guide/images/README.md` — new, light-mode screenshot index
-- `docs/screenshots/README.md` — new, dark-mode screenshot index
-- `docs/screenshots/05-create-note-form-dark.png` — copied from e2e
-- `docs/screenshots/11-dark-mode.png` — copied from e2e
-- `docs/screenshots/18-object-read-concept-dark.png` — copied from e2e
+- `docs/guide/01-what-is-sempkm.md`
+- `docs/guide/02-core-concepts.md`
+- `docs/guide/03-installation-and-setup.md`
+- `docs/guide/06-edges-and-relationships.md`
+- `docs/guide/14-system-health-and-debugging.md`
+- `docs/guide/15-event-log.md`
+- `docs/guide/18-sparql-endpoint.md`
+- `docs/guide/19-creating-mental-models.md`
+- `docs/guide/21-sparql-console.md`
+- `docs/guide/23-vfs.md`
+- `docs/guide/24-obsidian-onboarding.md`
+- `docs/guide/27-spatial-canvas.md`
+- `docs/guide/28-dashboards-and-workflows.md`
+- `docs/guide/30-personas.md`
+- `docs/guide/images/README.md`
+- `docs/screenshots/README.md`
+- 7 new screenshots in `docs/guide/images/`
+- 8 new screenshots in `docs/screenshots/`
 
 ## Verification
-
-- All 32 image references resolve to existing files (verified via rg + file existence check)
+- All 44 image references resolve to existing files (verified via rg + file existence check)
 - No broken image paths
-- Remaining 7 placeholder comments are for screenshots that don't exist in the e2e set
+- New screenshots visually verified via `Read` tool
+- 5 remaining placeholder comments are for admin-only pages not accessible from dev stack member session
