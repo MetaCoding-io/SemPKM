@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "projectName": "M024",
-  "projectPath": "/home/james/Code/SemPKM/.gsd/worktrees/M024",
+  "projectName": "SemPKM",
+  "projectPath": "/home/james/Code/SemPKM",
   "gsdVersion": "2.28.0",
   "entries": [
     {
@@ -193,6 +193,22 @@
       "doneSlices": 179,
       "totalSlices": 179,
       "doneMilestones": 25,
+      "totalMilestones": 32,
+      "phase": "pre-planning"
+    },
+    {
+      "filename": "M026-2026-03-20T14-52-49.html",
+      "generatedAt": "2026-03-20T14:52:49.286Z",
+      "milestoneId": "M026",
+      "milestoneTitle": "Homepage & Messaging Rewrite",
+      "label": "M026: Homepage & Messaging Rewrite",
+      "kind": "milestone",
+      "totalCost": 432.6692965,
+      "totalTokens": 535554773,
+      "totalDuration": 74142405,
+      "doneSlices": 182,
+      "totalSlices": 182,
+      "doneMilestones": 26,
       "totalMilestones": 32,
       "phase": "pre-planning"
     }
