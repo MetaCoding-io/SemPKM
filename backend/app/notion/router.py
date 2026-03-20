@@ -1,7 +1,8 @@
 """Notion workspace import router.
 
 Provides endpoints for uploading, scanning, streaming progress,
-viewing results, and discarding Notion workspace ZIP imports.
+viewing results, mapping wizard steps, auto-save, and discarding
+Notion workspace ZIP imports.
 Follows the same htmx-driven wizard pattern as the Obsidian importer.
 """
 
@@ -13,14 +14,16 @@ import zipfile
 from pathlib import Path
 from time import time
 
-from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile
+from fastapi import APIRouter, Depends, Form, HTTPException, Request, UploadFile
 from fastapi.responses import HTMLResponse, StreamingResponse
 
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
+from app.dependencies import get_shapes_service
+from app.services.shapes import ShapesService
 
 from .broadcast import ScanBroadcast, stream_sse
-from .models import NotionScanResult
+from .models import MappingConfig, NotionScanResult, PropertyMapping, RelationMapping, TypeMapping
 from .scanner import NotionScanner
 
 logger = logging.getLogger(__name__)
@@ -68,6 +71,20 @@ def _load_scan_result(import_dir: Path) -> NotionScanResult:
     if not result_path.exists():
         raise HTTPException(404, "Scan results not found")
     return NotionScanResult.from_dict(json.loads(result_path.read_text()))
+
+
+def _load_mapping(import_dir: Path) -> MappingConfig:
+    """Load mapping_config.json, returning empty MappingConfig if missing."""
+    mapping_path = import_dir / "mapping_config.json"
+    if mapping_path.exists():
+        return MappingConfig.from_dict(json.loads(mapping_path.read_text()))
+    return MappingConfig()
+
+
+def _save_mapping(import_dir: Path, config: MappingConfig) -> None:
+    """Write mapping_config.json to import directory."""
+    mapping_path = import_dir / "mapping_config.json"
+    mapping_path.write_text(json.dumps(config.to_dict(), indent=2))
 
 
 @router.get("/import")
@@ -300,3 +317,448 @@ async def get_results(
         "notion/partials/scan_results.html",
         {"request": request, "scan_result": result, "import_id": import_id},
     )
+
+
+# ---------------------------------------------------------------------------
+# Wizard step endpoints (GET, return HTML partials)
+# ---------------------------------------------------------------------------
+
+
+@router.get("/{import_id}/step/type-mapping")
+async def type_mapping_step(
+    request: Request,
+    import_id: str,
+    user: User = Depends(get_current_user),
+    shapes_service: ShapesService = Depends(get_shapes_service),
+):
+    """Serve the type-mapping wizard step (step 3)."""
+    import_dir = _get_import_dir(user, import_id)
+    scan_result = _load_scan_result(import_dir)
+    mapping_config = _load_mapping(import_dir)
+    available_types = await shapes_service.get_types()
+
+    templates = request.app.state.templates
+    return templates.TemplateResponse(
+        request,
+        "notion/partials/type_mapping.html",
+        {
+            "request": request,
+            "scan_result": scan_result,
+            "mapping_config": mapping_config,
+            "available_types": available_types,
+            "import_id": import_id,
+            "current_step": 3,
+        },
+    )
+
+
+@router.get("/{import_id}/step/property-mapping")
+async def property_mapping_step(
+    request: Request,
+    import_id: str,
+    user: User = Depends(get_current_user),
+    shapes_service: ShapesService = Depends(get_shapes_service),
+):
+    """Serve the property-mapping wizard step (step 4).
+
+    Merges columns from all databases mapped to the same type and
+    excludes columns with inferred_type == 'relation' (those go to
+    the relation mapping step instead).
+    """
+    import_dir = _get_import_dir(user, import_id)
+    scan_result = _load_scan_result(import_dir)
+    mapping_config = _load_mapping(import_dir)
+
+    # Build per-type column data: merge databases mapped to the same type.
+    # type_sections[type_iri] = {label, properties (from SHACL), columns (merged)}
+    type_sections: dict[str, dict] = {}
+
+    for db_name, tm in mapping_config.type_mappings.items():
+        if tm is None:
+            continue
+        type_iri = tm.target_type_iri
+
+        if type_iri not in type_sections:
+            form = await shapes_service.get_form_for_type(type_iri)
+            type_sections[type_iri] = {
+                "label": tm.target_type_label,
+                "properties": form.properties if form else [],
+                "columns": {},  # col_name -> {non_empty_count, sample_values}
+            }
+
+        # Find the database in scan_result
+        for db in scan_result.databases:
+            if db.name == db_name:
+                for col in db.columns:
+                    # Exclude relation columns — they go to relation mapping
+                    if col.inferred_type == "relation":
+                        continue
+                    existing = type_sections[type_iri]["columns"]
+                    if col.name in existing:
+                        # Keep the higher non_empty_count
+                        if col.non_empty_count > existing[col.name]["non_empty_count"]:
+                            existing[col.name]["non_empty_count"] = col.non_empty_count
+                        # Merge sample values
+                        combined = existing[col.name]["sample_values"]
+                        for sv in col.sample_values:
+                            if sv not in combined and len(combined) < 5:
+                                combined.append(sv)
+                    else:
+                        existing[col.name] = {
+                            "non_empty_count": col.non_empty_count,
+                            "sample_values": list(col.sample_values),
+                        }
+                break
+
+    # Convert columns dict to list for template iteration
+    for type_iri, section in type_sections.items():
+        col_dict = section["columns"]
+        section["columns"] = [
+            {
+                "name": name,
+                "non_empty_count": info["non_empty_count"],
+                "sample_values": info["sample_values"],
+            }
+            for name, info in col_dict.items()
+        ]
+
+    templates = request.app.state.templates
+    return templates.TemplateResponse(
+        request,
+        "notion/partials/property_mapping.html",
+        {
+            "request": request,
+            "type_sections": type_sections,
+            "mapping_config": mapping_config,
+            "import_id": import_id,
+            "current_step": 4,
+        },
+    )
+
+
+@router.get("/{import_id}/step/relation-mapping")
+async def relation_mapping_step(
+    request: Request,
+    import_id: str,
+    user: User = Depends(get_current_user),
+    shapes_service: ShapesService = Depends(get_shapes_service),
+):
+    """Serve the relation-mapping wizard step (step 5).
+
+    For each detected relation, looks up the target database's mapped
+    type to find available edge predicates from its SHACL shape.
+    """
+    import_dir = _get_import_dir(user, import_id)
+    scan_result = _load_scan_result(import_dir)
+    mapping_config = _load_mapping(import_dir)
+
+    relation_entries = []
+    for rel in scan_result.detected_relations:
+        relation_key = f"{rel.source_db_name}|{rel.source_column}"
+
+        # Check if target DB is mapped to a type
+        target_tm = mapping_config.type_mappings.get(rel.target_db_name)
+        available_predicates = []
+        warning = False
+
+        if target_tm is not None:
+            form = await shapes_service.get_form_for_type(target_tm.target_type_iri)
+            if form:
+                # Object properties (those with target_class) are edge predicates
+                available_predicates = [
+                    {
+                        "iri": prop.path,
+                        "label": prop.name,
+                        "target_class": prop.target_class,
+                    }
+                    for prop in form.properties
+                    if prop.target_class is not None
+                ]
+        else:
+            warning = True
+
+        # Also check the source DB's mapped type for outgoing predicates
+        source_tm = mapping_config.type_mappings.get(rel.source_db_name)
+        if source_tm is not None:
+            source_form = await shapes_service.get_form_for_type(
+                source_tm.target_type_iri
+            )
+            if source_form:
+                for prop in source_form.properties:
+                    if prop.target_class is not None:
+                        # Avoid duplicates
+                        existing_iris = {p["iri"] for p in available_predicates}
+                        if prop.path not in existing_iris:
+                            available_predicates.append(
+                                {
+                                    "iri": prop.path,
+                                    "label": prop.name,
+                                    "target_class": prop.target_class,
+                                }
+                            )
+
+        current_mapping = mapping_config.relation_mappings.get(relation_key)
+
+        relation_entries.append(
+            {
+                "key": relation_key,
+                "source_db_name": rel.source_db_name,
+                "source_column": rel.source_column,
+                "target_db_name": rel.target_db_name,
+                "match_ratio": rel.match_ratio,
+                "available_predicates": available_predicates,
+                "warning": warning,
+                "current_mapping": current_mapping,
+            }
+        )
+
+    templates = request.app.state.templates
+    return templates.TemplateResponse(
+        request,
+        "notion/partials/relation_mapping.html",
+        {
+            "request": request,
+            "relation_entries": relation_entries,
+            "mapping_config": mapping_config,
+            "import_id": import_id,
+            "current_step": 5,
+        },
+    )
+
+
+@router.get("/{import_id}/step/preview")
+async def preview_step(
+    request: Request,
+    import_id: str,
+    user: User = Depends(get_current_user),
+):
+    """Serve the preview wizard step (step 6).
+
+    Builds sample preview cards showing how scan data will map to
+    RDF objects with properties and edges applied.
+    """
+    import_dir = _get_import_dir(user, import_id)
+    scan_result = _load_scan_result(import_dir)
+    mapping_config = _load_mapping(import_dir)
+
+    previews = []
+
+    for db in scan_result.databases:
+        tm = mapping_config.type_mappings.get(db.name)
+        if tm is None:
+            continue
+
+        type_iri = tm.target_type_iri
+        prop_map = mapping_config.property_mappings.get(type_iri, {})
+
+        sample_objects = []
+        for row in db.sample_rows[:3]:
+            mapped_properties = []
+            mapped_relations = []
+
+            for col_name, value in row.items():
+                if not value:
+                    continue
+
+                # Check property mapping
+                pm = prop_map.get(col_name)
+                if pm is not None:
+                    mapped_properties.append(
+                        {
+                            "label": pm.target_property_label,
+                            "value": value,
+                            "source": pm.source,
+                        }
+                    )
+                    continue
+
+                # Check relation mapping
+                rel_key = f"{db.name}|{col_name}"
+                rm = mapping_config.relation_mappings.get(rel_key)
+                if rm is not None:
+                    mapped_relations.append(
+                        {
+                            "predicate_label": rm.target_predicate_label,
+                            "target_type_label": rm.target_type_label,
+                            "value": value,
+                        }
+                    )
+
+            # Use first column value as title if available
+            title = list(row.values())[0] if row else "(untitled)"
+            sample_objects.append(
+                {
+                    "title": title,
+                    "properties": mapped_properties,
+                    "relations": mapped_relations,
+                }
+            )
+
+        previews.append(
+            {
+                "db_name": db.name,
+                "type_label": tm.target_type_label,
+                "type_iri": type_iri,
+                "sample_objects": sample_objects,
+                "total_rows": db.row_count,
+            }
+        )
+
+    # Standalone pages preview
+    standalone_preview = None
+    if (
+        mapping_config.standalone_page_type_iri
+        and scan_result.standalone_pages
+    ):
+        standalone_preview = {
+            "type_label": mapping_config.standalone_page_type_label
+            or "Standalone Page",
+            "type_iri": mapping_config.standalone_page_type_iri,
+            "pages": [
+                {"title": p.title, "has_body": p.has_body}
+                for p in scan_result.standalone_pages[:5]
+            ],
+            "total_count": len(scan_result.standalone_pages),
+        }
+
+    templates = request.app.state.templates
+    return templates.TemplateResponse(
+        request,
+        "notion/partials/preview.html",
+        {
+            "request": request,
+            "previews": previews,
+            "standalone_preview": standalone_preview,
+            "import_id": import_id,
+            "current_step": 6,
+        },
+    )
+
+
+# ---------------------------------------------------------------------------
+# Auto-save endpoints (POST, persist individual mapping entries)
+# ---------------------------------------------------------------------------
+
+
+@router.post("/{import_id}/mapping/type")
+async def save_type_mapping(
+    request: Request,
+    import_id: str,
+    db_name: str = Form(...),
+    target_type: str = Form(""),
+    target_label: str = Form(""),
+    user: User = Depends(get_current_user),
+):
+    """Auto-save a single database → type mapping."""
+    import_dir = _get_import_dir(user, import_id)
+    config = _load_mapping(import_dir)
+
+    if target_type:
+        config.type_mappings[db_name] = TypeMapping(
+            target_type_iri=target_type,
+            target_type_label=target_label,
+        )
+    else:
+        config.type_mappings[db_name] = None
+
+    _save_mapping(import_dir, config)
+    logger.debug("Saved type mapping: %s → %s", db_name, target_type or "(skip)")
+    return HTMLResponse("")
+
+
+@router.post("/{import_id}/mapping/property")
+async def save_property_mapping(
+    request: Request,
+    import_id: str,
+    type_iri: str = Form(...),
+    column_name: str = Form(...),
+    target_property: str = Form(""),
+    property_label: str = Form(""),
+    source: str = Form("shacl"),
+    custom_iri: str = Form(""),
+    user: User = Depends(get_current_user),
+):
+    """Auto-save a single column → property mapping."""
+    import_dir = _get_import_dir(user, import_id)
+    config = _load_mapping(import_dir)
+
+    if type_iri not in config.property_mappings:
+        config.property_mappings[type_iri] = {}
+
+    if target_property == "__custom__" and custom_iri:
+        config.property_mappings[type_iri][column_name] = PropertyMapping(
+            target_property_iri=custom_iri,
+            target_property_label=property_label,
+            source="custom",
+        )
+    elif target_property and target_property != "__custom__":
+        config.property_mappings[type_iri][column_name] = PropertyMapping(
+            target_property_iri=target_property,
+            target_property_label=property_label,
+            source=source,
+        )
+    else:
+        config.property_mappings[type_iri][column_name] = None
+
+    _save_mapping(import_dir, config)
+    logger.debug(
+        "Saved property mapping: %s.%s → %s",
+        type_iri,
+        column_name,
+        target_property or "(skip)",
+    )
+    return HTMLResponse("")
+
+
+@router.post("/{import_id}/mapping/relation")
+async def save_relation_mapping(
+    request: Request,
+    import_id: str,
+    relation_key: str = Form(...),
+    target_predicate: str = Form(""),
+    predicate_label: str = Form(""),
+    target_type_iri: str = Form(""),
+    target_type_label: str = Form(""),
+    user: User = Depends(get_current_user),
+):
+    """Auto-save a single relation → edge predicate mapping."""
+    import_dir = _get_import_dir(user, import_id)
+    config = _load_mapping(import_dir)
+
+    if target_predicate:
+        config.relation_mappings[relation_key] = RelationMapping(
+            target_predicate_iri=target_predicate,
+            target_predicate_label=predicate_label,
+            target_type_iri=target_type_iri,
+            target_type_label=target_type_label,
+        )
+    else:
+        config.relation_mappings[relation_key] = None
+
+    _save_mapping(import_dir, config)
+    logger.debug(
+        "Saved relation mapping: %s → %s",
+        relation_key,
+        target_predicate or "(skip)",
+    )
+    return HTMLResponse("")
+
+
+@router.post("/{import_id}/mapping/standalone-type")
+async def save_standalone_type_mapping(
+    request: Request,
+    import_id: str,
+    target_type: str = Form(""),
+    target_label: str = Form(""),
+    user: User = Depends(get_current_user),
+):
+    """Auto-save the standalone pages type mapping."""
+    import_dir = _get_import_dir(user, import_id)
+    config = _load_mapping(import_dir)
+
+    config.standalone_page_type_iri = target_type or None
+    config.standalone_page_type_label = target_label or None
+
+    _save_mapping(import_dir, config)
+    logger.debug("Saved standalone type mapping: %s", target_type or "(cleared)")
+    return HTMLResponse("")

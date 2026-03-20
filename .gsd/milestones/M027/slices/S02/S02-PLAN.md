@@ -30,6 +30,7 @@
 - `cd backend && uv run python -m pytest tests/test_notion_scanner.py -v` — existing 31 scanner tests still pass
 - All new Python files pass `python3 -c "import ast; ast.parse(open(f).read())"`
 - Browser flow: upload ZIP → scan → click "Continue to Type Mapping" → type mapping renders with database rows and type dropdowns → save a mapping → proceed to property mapping → columns shown per type → proceed to relation mapping → relation rows shown → proceed to preview → sample objects displayed → back navigation returns to previous steps
+- Failure-path: POST to `/browser/notion/{import_id}/mapping/type` with invalid `import_id` returns HTTP 403; GET step endpoint with missing `scan_result.json` returns HTTP 404
 
 ## Observability / Diagnostics
 
@@ -45,7 +46,7 @@
 
 ## Tasks
 
-- [ ] **T01: MappingConfig models, router endpoints, and unit tests** `est:45m`
+- [x] **T01: MappingConfig models, router endpoints, and unit tests** `est:45m`
   - Why: All backend logic for the mapping wizard — dataclasses, endpoint handlers, persistence helpers, auto-save endpoints, and serialization tests. Templates can't work without these.
   - Files: `backend/app/notion/models.py`, `backend/app/notion/router.py`, `backend/tests/test_notion_mapping.py`, `backend/app/templates/notion/partials/scan_results.html`
   - Do: (1) Add `TypeMapping`, `PropertyMapping`, `RelationMapping`, `MappingConfig` dataclasses to `models.py` with `to_dict()`/`from_dict()` following the Obsidian pattern but adding `relation_mappings` and `standalone_page_type_*` fields. (2) Add `_load_mapping()` and `_save_mapping()` helpers to `router.py`. (3) Add 4 GET step endpoints and 3 POST auto-save endpoints. Type mapping merges databases mapped to same type in property mapping step. Property mapping excludes `inferred_type == 'relation'` columns. Relation mapping reads `scan_result.detected_relations`. Preview reads `sample_rows` from scan result. (4) Enable the "Continue to Type Mapping" button in `scan_results.html`. (5) Write unit tests for MappingConfig round-trip serialization.

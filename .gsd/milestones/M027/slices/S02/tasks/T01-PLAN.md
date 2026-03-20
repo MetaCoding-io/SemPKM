@@ -101,3 +101,9 @@ Add the complete backend layer for the Notion mapping wizard: 4 new dataclasses 
 - `backend/app/notion/router.py` — extended with `_load_mapping`, `_save_mapping`, 4 GET step endpoints, 4 POST auto-save endpoints (3 mapping + 1 standalone type)
 - `backend/tests/test_notion_mapping.py` — ~8-12 unit tests for MappingConfig serialization round-trip
 - `backend/app/templates/notion/partials/scan_results.html` — "Continue to Type Mapping" button enabled with `hx-get`
+
+## Observability Impact
+
+- **New persisted state:** `mapping_config.json` written to import directory on each auto-save POST. Inspect via `cat /app/data/imports/notion/{user_id}/{timestamp}/mapping_config.json`.
+- **Failure signals:** HTTP 404 from GET step endpoints when `scan_result.json` missing; HTTP 403 when `import_id` ownership check fails. Both are logged via `logger.warning()` in the standard FastAPI exception handler.
+- **Inspection:** A future agent can verify mapping state by reading `mapping_config.json` — the `version` field and presence/absence of keys under `type_mappings`, `property_mappings`, and `relation_mappings` show wizard progress.
