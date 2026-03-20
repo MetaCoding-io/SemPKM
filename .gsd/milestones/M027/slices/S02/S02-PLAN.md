@@ -53,7 +53,7 @@
   - Verify: `cd backend && uv run python -m pytest tests/test_notion_mapping.py tests/test_notion_scanner.py -v` — all pass
   - Done when: 7 new endpoints exist, MappingConfig serializes/deserializes correctly (including edge cases: empty, partial, null entries, relation mappings), scan_results button is enabled
 
-- [ ] **T02: Mapping and preview template partials** `est:45m`
+- [x] **T02: Mapping and preview template partials** `est:45m`
   - Why: The 4 Jinja2 templates that render the mapping wizard steps. Without these, the GET endpoints return template-not-found errors. This is the user-facing piece.
   - Files: `backend/app/templates/notion/partials/type_mapping.html`, `backend/app/templates/notion/partials/property_mapping.html`, `backend/app/templates/notion/partials/relation_mapping.html`, `backend/app/templates/notion/partials/preview.html`
   - Do: (1) Create `type_mapping.html` — table with databases as rows, type dropdown from `available_types`, standalone pages row, auto-save via `hx-post`, step bar OOB swap. (2) Create `property_mapping.html` — per-mapped-type sections with column rows (relation columns excluded), SHACL property dropdown with auto-suggest (case-insensitive name match), Custom IRI option. (3) Create `relation_mapping.html` — detected relations table with source/target DB, edge predicate dropdown from target type shape properties, skip option, match ratio display. (4) Create `preview.html` — per-type sample cards with mapped property k/v pairs and detected edge indicators, standalone pages section. All partials must include step bar OOB swap script and Lucide re-init. Back/Next navigation buttons on every partial.

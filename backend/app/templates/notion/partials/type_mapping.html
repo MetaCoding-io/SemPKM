@@ -1,0 +1,125 @@
+{% set current_step = 3 %}
+{% include "notion/partials/step_bar.html" with context %}
+<script>
+(function() {
+    var oob = document.querySelector('#import-content > #import-step-bar');
+    if (oob) {
+        var target = document.querySelector('#import-container > #import-step-bar');
+        if (target) target.replaceWith(oob);
+    }
+})();
+</script>
+
+<div class="import-section">
+    <h2 class="import-section-title">
+        <i data-lucide="layers"></i>
+        Map Database Types
+    </h2>
+    <p style="font-size: 0.9rem; color: var(--color-text-muted, #888); margin-bottom: 1rem;">
+        Choose which Mental Model type each Notion database should become. Select "Skip" to exclude a database from import.
+    </p>
+
+    <table class="import-detail-table type-mapping-table">
+        <thead>
+            <tr>
+                <th>Database</th>
+                <th>Rows</th>
+                <th>Columns</th>
+                <th>Map To</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for db in scan_result.databases %}
+            {% set current_mapping = mapping_config.type_mappings.get(db.name) %}
+            <tr class="type-mapping-row">
+                <td>
+                    <details>
+                        <summary class="type-group-name">{{ db.name }}</summary>
+                        <ul class="type-group-notes">
+                            {% for col in db.columns %}
+                            <li>
+                                <code>{{ col.name }}</code>
+                                <span class="import-signal-badge {% if col.inferred_type == 'relation' %}badge-relation{% endif %}">{{ col.inferred_type }}</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </details>
+                </td>
+                <td>{{ db.row_count }}</td>
+                <td><span class="import-signal-badge">{{ db.columns|length }}</span></td>
+                <td>
+                    <select name="target_type"
+                            class="mapping-select"
+                            hx-post="/browser/notion/{{ import_id }}/mapping/type"
+                            hx-include="this, next input"
+                            hx-vals='{"db_name": "{{ db.name }}"}'
+                            hx-swap="none"
+                            hx-trigger="change"
+                            onchange="this.nextElementSibling.value = this.options[this.selectedIndex].text">
+                        <option value="">-- Skip --</option>
+                        {% for t in available_types %}
+                        <option value="{{ t.iri }}"
+                                {% if current_mapping and current_mapping.target_type_iri == t.iri %}selected{% endif %}>
+                            {{ t.label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <input type="hidden" name="target_label"
+                           value="{% if current_mapping %}{{ current_mapping.target_type_label }}{% endif %}">
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if scan_result.standalone_pages %}
+    <div class="standalone-pages-mapping" style="margin-top: 1.5rem; padding: 1rem; border: 1px solid var(--color-border, #333); border-radius: 8px;">
+        <h3 class="import-section-title" style="margin-top: 0;">
+            <i data-lucide="file-text"></i>
+            Standalone Pages ({{ scan_result.standalone_pages|length }})
+        </h3>
+        <p style="font-size: 0.85rem; color: var(--color-text-muted, #888); margin-bottom: 0.75rem;">
+            Pages not associated with any database. Map them to a single type or skip.
+        </p>
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-weight: 500;">Map To:</span>
+            <select name="target_type"
+                    class="mapping-select"
+                    hx-post="/browser/notion/{{ import_id }}/mapping/standalone-type"
+                    hx-include="this, next input"
+                    hx-swap="none"
+                    hx-trigger="change"
+                    onchange="this.nextElementSibling.value = this.options[this.selectedIndex].text">
+                <option value="">-- Skip --</option>
+                {% for t in available_types %}
+                <option value="{{ t.iri }}"
+                        {% if mapping_config.standalone_page_type_iri == t.iri %}selected{% endif %}>
+                    {{ t.label }}
+                </option>
+                {% endfor %}
+            </select>
+            <input type="hidden" name="target_label"
+                   value="{% if mapping_config.standalone_page_type_label %}{{ mapping_config.standalone_page_type_label }}{% endif %}">
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<div class="mapping-nav">
+    <button class="btn btn-outline"
+            hx-get="/browser/notion/{{ import_id }}/results"
+            hx-target="#import-content"
+            hx-swap="innerHTML">
+        <i data-lucide="arrow-left"></i>
+        Back: Scan Results
+    </button>
+    <button class="btn btn-primary"
+            hx-get="/browser/notion/{{ import_id }}/step/property-mapping"
+            hx-target="#import-content"
+            hx-swap="innerHTML">
+        Next: Property Mapping
+        <i data-lucide="arrow-right"></i>
+    </button>
+</div>
+
+<script>if (typeof lucide !== 'undefined') { lucide.createIcons(); }</script>

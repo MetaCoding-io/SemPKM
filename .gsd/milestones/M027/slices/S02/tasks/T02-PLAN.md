@@ -114,6 +114,13 @@ The Obsidian templates at `backend/app/templates/obsidian/partials/` are the dir
 - `backend/app/templates/obsidian/partials/property_mapping.html` — reference pattern for property mapping UI (adapt for columns instead of frontmatter keys, add relation column exclusion)
 - `backend/app/templates/obsidian/partials/preview.html` — reference pattern for preview UI (adapt for CSV sample rows instead of frontmatter-parsed notes)
 
+## Observability Impact
+
+- **Template render errors:** Jinja2 `TemplateError` surfaces as HTTP 500 with full traceback in server logs — visible via `docker compose logs api | grep TemplateError`.
+- **Step navigation:** Each GET step endpoint logs at DEBUG level via existing router logging; template rendering failures are immediately visible as 500 responses in browser network tab.
+- **Auto-save feedback:** POST auto-save endpoints return empty 200 on success; non-200 responses signal mapping persistence failure. Saved state inspectable at `/app/data/imports/notion/{user_id}/{timestamp}/mapping_config.json`.
+- **Client-side diagnostics:** Lucide icon re-init script at end of every partial; failed icon init visible as unparsed `<i data-lucide="...">` elements in DOM.
+
 ## Expected Output
 
 - `backend/app/templates/notion/partials/type_mapping.html` — type mapping wizard step (step 3)
