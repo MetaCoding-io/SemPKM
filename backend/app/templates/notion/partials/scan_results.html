@@ -172,8 +172,10 @@
 
     <!-- Actions -->
     <div class="import-actions">
-        <button class="btn btn-primary" disabled
-                title="Available in the next step">
+        <button class="btn btn-primary"
+                hx-get="/browser/notion/{{ import_id }}/step/type-mapping"
+                hx-target="#import-content"
+                hx-swap="innerHTML">
             <i data-lucide="arrow-right"></i>
             Continue to Type Mapping
         </button>

@@ -1,9 +1,13 @@
-"""Data models for Notion workspace scan results.
+"""Data models for Notion workspace scan results and mapping configuration.
 
 Dataclasses representing the structured output of scanning a Notion
 workspace ZIP export: detected databases with CSV column schemas,
 standalone markdown pages, cross-database relation candidates,
 scan warnings, and aggregate statistics.
+
+Also provides mapping configuration dataclasses for the import wizard:
+TypeMapping, PropertyMapping, RelationMapping, and MappingConfig with
+JSON serialization for persistence as mapping_config.json.
 """
 
 from __future__ import annotations
@@ -195,4 +199,151 @@ class NotionScanResult:
             csv_files=data.get("csv_files", 0),
             markdown_files=data.get("markdown_files", 0),
             scan_duration_seconds=data.get("scan_duration_seconds", 0.0),
+        )
+
+
+# ---------------------------------------------------------------------------
+# Mapping configuration dataclasses (import wizard steps 3–6)
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class TypeMapping:
+    """Maps a Notion database to an RDF type."""
+
+    target_type_iri: str
+    target_type_label: str
+
+
+@dataclass
+class PropertyMapping:
+    """Maps a Notion CSV column to an RDF property."""
+
+    target_property_iri: str
+    target_property_label: str
+    source: str  # "shacl" or "custom"
+
+
+@dataclass
+class RelationMapping:
+    """Maps a detected cross-database relation to an RDF edge predicate."""
+
+    target_predicate_iri: str
+    target_predicate_label: str
+    target_type_iri: str
+    target_type_label: str
+
+
+@dataclass
+class MappingConfig:
+    """Complete mapping configuration for a Notion import.
+
+    Persisted as ``mapping_config.json`` in the import directory and
+    updated incrementally by the auto-save POST endpoints during each
+    wizard step.
+    """
+
+    version: int = 1
+    # key: database name → TypeMapping or None (skip)
+    type_mappings: dict[str, TypeMapping | None] = field(default_factory=dict)
+    # outer key: target_type_iri, inner key: column_name → PropertyMapping or None
+    property_mappings: dict[str, dict[str, PropertyMapping | None]] = field(
+        default_factory=dict
+    )
+    # key: "source_db|source_column" → RelationMapping or None (skip)
+    relation_mappings: dict[str, RelationMapping | None] = field(default_factory=dict)
+    standalone_page_type_iri: str | None = None
+    standalone_page_type_label: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize to a JSON-compatible dictionary."""
+        type_map: dict[str, Any] = {}
+        for k, v in self.type_mappings.items():
+            if v is None:
+                type_map[k] = None
+            else:
+                type_map[k] = {
+                    "target_type_iri": v.target_type_iri,
+                    "target_type_label": v.target_type_label,
+                }
+
+        prop_map: dict[str, dict[str, Any]] = {}
+        for type_iri, col_dict in self.property_mappings.items():
+            prop_map[type_iri] = {}
+            for col_name, pm in col_dict.items():
+                if pm is None:
+                    prop_map[type_iri][col_name] = None
+                else:
+                    prop_map[type_iri][col_name] = {
+                        "target_property_iri": pm.target_property_iri,
+                        "target_property_label": pm.target_property_label,
+                        "source": pm.source,
+                    }
+
+        rel_map: dict[str, Any] = {}
+        for k, v in self.relation_mappings.items():
+            if v is None:
+                rel_map[k] = None
+            else:
+                rel_map[k] = {
+                    "target_predicate_iri": v.target_predicate_iri,
+                    "target_predicate_label": v.target_predicate_label,
+                    "target_type_iri": v.target_type_iri,
+                    "target_type_label": v.target_type_label,
+                }
+
+        return {
+            "version": self.version,
+            "type_mappings": type_map,
+            "property_mappings": prop_map,
+            "relation_mappings": rel_map,
+            "standalone_page_type_iri": self.standalone_page_type_iri,
+            "standalone_page_type_label": self.standalone_page_type_label,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> MappingConfig:
+        """Deserialize from a dictionary (e.g. loaded from JSON)."""
+        type_mappings: dict[str, TypeMapping | None] = {}
+        for k, v in data.get("type_mappings", {}).items():
+            if v is None:
+                type_mappings[k] = None
+            else:
+                type_mappings[k] = TypeMapping(
+                    target_type_iri=v["target_type_iri"],
+                    target_type_label=v["target_type_label"],
+                )
+
+        property_mappings: dict[str, dict[str, PropertyMapping | None]] = {}
+        for type_iri, col_dict in data.get("property_mappings", {}).items():
+            property_mappings[type_iri] = {}
+            for col_name, pm in col_dict.items():
+                if pm is None:
+                    property_mappings[type_iri][col_name] = None
+                else:
+                    property_mappings[type_iri][col_name] = PropertyMapping(
+                        target_property_iri=pm["target_property_iri"],
+                        target_property_label=pm["target_property_label"],
+                        source=pm["source"],
+                    )
+
+        relation_mappings: dict[str, RelationMapping | None] = {}
+        for k, v in data.get("relation_mappings", {}).items():
+            if v is None:
+                relation_mappings[k] = None
+            else:
+                relation_mappings[k] = RelationMapping(
+                    target_predicate_iri=v["target_predicate_iri"],
+                    target_predicate_label=v["target_predicate_label"],
+                    target_type_iri=v["target_type_iri"],
+                    target_type_label=v["target_type_label"],
+                )
+
+        return cls(
+            version=data.get("version", 1),
+            type_mappings=type_mappings,
+            property_mappings=property_mappings,
+            relation_mappings=relation_mappings,
+            standalone_page_type_iri=data.get("standalone_page_type_iri"),
+            standalone_page_type_label=data.get("standalone_page_type_label"),
         )
