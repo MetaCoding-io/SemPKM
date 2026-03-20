@@ -142,3 +142,18 @@ App templates rendered by the SDK's `render_template()` are loaded into the work
 **Fix:** All htmx URLs in app templates must be prefixed with `/app/{app_id}/` so requests route through the `app_proxy_router` catch-all at `/app/{app_id}/{path:path}`. Example: `hx-post="/app/linear-sync/_fragments/connect/api-key"`.
 
 **Impact:** Any future app that uses htmx forms in its templates must follow this pattern. A better long-term fix would be to inject the prefix via a Jinja2 global or context variable from the SDK.
+
+## User guide has THREE files that must stay in sync
+
+**Discovery date:** 2026-03-19
+**Context:** M024 — Monday.com Sync App
+
+There are **three** places that list user guide chapters:
+
+1. `docs/guide/README.md` — markdown table of contents (source of truth)
+2. `docs/guide/index.html` — static HTML sidebar for the standalone docs site
+3. `backend/app/templates/guide.html` — in-app Docs & Tutorials page served at `/guide`
+
+When adding a new chapter (e.g., a sync app guide), all three files must be updated together. The in-app `guide.html` was missed for chapters 25–36 because it's a Jinja2 template with hardcoded `<button>` elements — not auto-generated from README.md.
+
+**Rule:** Any milestone that adds a user-guide chapter must update all three files. The docs update task should be part of the final slice or a dedicated docs slice.
