@@ -1,0 +1,128 @@
+{% set current_step = 5 %}
+{% include "notion/partials/step_bar.html" with context %}
+<script>
+(function() {
+    var oob = document.querySelector('#import-content > #import-step-bar');
+    if (oob) {
+        var target = document.querySelector('#import-container > #import-step-bar');
+        if (target) target.replaceWith(oob);
+    }
+})();
+</script>
+
+<div class="import-section">
+    <h2 class="import-section-title">
+        <i data-lucide="git-branch"></i>
+        Map Relations
+    </h2>
+    <p style="font-size: 0.9rem; color: var(--color-text-muted, #888); margin-bottom: 1rem;">
+        Configure how detected cross-database relations should become typed edges. Each relation column links rows in one database to rows in another.
+    </p>
+
+    {% if relation_entries %}
+    <table class="import-detail-table relation-mapping-table">
+        <thead>
+            <tr>
+                <th>Source Database</th>
+                <th>Column</th>
+                <th>Target Database</th>
+                <th>Match %</th>
+                <th>Edge Predicate</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in relation_entries %}
+            <tr class="relation-mapping-row">
+                <td>{{ entry.source_db_name }}</td>
+                <td><code>{{ entry.source_column }}</code></td>
+                <td>
+                    {{ entry.target_db_name }}
+                    {% if entry.warning %}
+                    <span class="import-signal-badge" style="background: var(--color-warning, #f59e0b); color: #000; margin-left: 0.5rem;">
+                        Target not mapped
+                    </span>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="import-signal-badge">{{ "%.0f"|format(entry.match_ratio * 100) }}%</span>
+                </td>
+                <td>
+                    <select name="target_predicate"
+                            class="mapping-select"
+                            hx-post="/browser/notion/{{ import_id }}/mapping/relation"
+                            hx-include="this, next input"
+                            hx-vals='{"relation_key": "{{ entry.key }}"}'
+                            hx-swap="none"
+                            hx-trigger="change"
+                            onchange="toggleCustomIri(this); this.parentElement.querySelector('input[name=predicate_label]').value = this.options[this.selectedIndex].text">
+                        <option value="">-- Skip --</option>
+                        {% for pred in entry.available_predicates %}
+                        <option value="{{ pred.iri }}"
+                                {% if entry.current_mapping and entry.current_mapping.target_predicate_iri == pred.iri %}selected{% endif %}>
+                            {{ pred.label }}
+                        </option>
+                        {% endfor %}
+                        <option value="__custom__"
+                                {% if entry.current_mapping and entry.current_mapping.target_predicate_iri and entry.current_mapping.target_predicate_iri not in entry.available_predicates|map(attribute='iri')|list %}selected{% endif %}>
+                            Custom IRI...
+                        </option>
+                    </select>
+                    <input type="hidden" name="predicate_label"
+                           value="{% if entry.current_mapping %}{{ entry.current_mapping.target_predicate_label }}{% endif %}">
+                    <input type="text"
+                           class="custom-iri-input"
+                           name="custom_iri"
+                           placeholder="https://example.org/predicate"
+                           {% if entry.current_mapping and entry.current_mapping.target_predicate_iri and entry.current_mapping.target_predicate_iri not in entry.available_predicates|map(attribute='iri')|list %}
+                           value="{{ entry.current_mapping.target_predicate_iri }}"
+                           style="display: block;"
+                           {% else %}
+                           style="display: none;"
+                           {% endif %}
+                           hx-post="/browser/notion/{{ import_id }}/mapping/relation"
+                           hx-include="this"
+                           hx-vals='{"relation_key": "{{ entry.key }}", "target_predicate": "__custom__"}'
+                           hx-swap="none"
+                           hx-trigger="change">
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="preview-empty">
+        <i data-lucide="info"></i>
+        <p>No relations detected between mapped databases. You can proceed to the preview step.</p>
+    </div>
+    {% endif %}
+</div>
+
+<div class="mapping-nav">
+    <button class="btn btn-outline"
+            hx-get="/browser/notion/{{ import_id }}/step/property-mapping"
+            hx-target="#import-content"
+            hx-swap="innerHTML">
+        <i data-lucide="arrow-left"></i>
+        Back: Property Mapping
+    </button>
+    <button class="btn btn-primary"
+            hx-get="/browser/notion/{{ import_id }}/step/preview"
+            hx-target="#import-content"
+            hx-swap="innerHTML">
+        Next: Preview
+        <i data-lucide="arrow-right"></i>
+    </button>
+</div>
+
+<script>
+function toggleCustomIri(selectEl) {
+    var customInput = selectEl.parentElement.querySelector('.custom-iri-input');
+    if (selectEl.value === '__custom__') {
+        customInput.style.display = 'block';
+        customInput.focus();
+    } else {
+        customInput.style.display = 'none';
+    }
+}
+if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+</script>

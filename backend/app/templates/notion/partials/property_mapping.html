@@ -1,0 +1,145 @@
+{% set current_step = 4 %}
+{% include "notion/partials/step_bar.html" with context %}
+<script>
+(function() {
+    var oob = document.querySelector('#import-content > #import-step-bar');
+    if (oob) {
+        var target = document.querySelector('#import-container > #import-step-bar');
+        if (target) target.replaceWith(oob);
+    }
+})();
+</script>
+
+<div class="import-section">
+    <h2 class="import-section-title">
+        <i data-lucide="settings-2"></i>
+        Map Properties
+    </h2>
+    <p style="font-size: 0.9rem; color: var(--color-text-muted, #888); margin-bottom: 1rem;">
+        For each mapped type, choose which RDF property each CSV column should become. Select "Skip" to exclude a column.
+    </p>
+
+    {% for type_iri, type_info in type_sections.items() %}
+    <div class="property-mapping-section">
+        <h3 class="property-section-heading">{{ type_info.label }}</h3>
+
+        <div class="body-mapping-note">
+            <i data-lucide="file-text"></i>
+            CSV row data will be imported as properties. Matching .md files will provide the object body.
+        </div>
+
+        <table class="import-detail-table property-mapping-table">
+            <thead>
+                <tr>
+                    <th>Column Name</th>
+                    <th>Non-Empty</th>
+                    <th>Sample Values</th>
+                    <th>Map To</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for col in type_info.columns %}
+                {% set prop_mappings = mapping_config.property_mappings.get(type_iri, {}) %}
+                {% set current_prop = prop_mappings.get(col.name) %}
+                {# Auto-suggest: match column name to property label (case-insensitive) #}
+                {% set auto_match = namespace(iri=None) %}
+                {% if not current_prop %}
+                    {% for prop in type_info.properties %}
+                        {% if prop.name|lower == col.name|lower %}
+                            {% set auto_match.iri = prop.path %}
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+                <tr class="property-mapping-row">
+                    <td><code>{{ col.name }}</code></td>
+                    <td>{{ col.non_empty_count }}</td>
+                    <td class="sample-values">
+                        {% for sv in col.sample_values[:3] %}
+                        <span class="sample-value">{{ sv }}</span>{% if not loop.last %}, {% endif %}
+                        {% endfor %}
+                    </td>
+                    <td>
+                        <select name="target_property"
+                                class="mapping-select"
+                                hx-post="/browser/notion/{{ import_id }}/mapping/property"
+                                hx-include="this, next input"
+                                hx-vals='{"type_iri": "{{ type_iri }}", "column_name": "{{ col.name }}"}'
+                                hx-swap="none"
+                                hx-trigger="change"
+                                onchange="toggleCustomIri(this); this.parentElement.querySelector('input[name=property_label]').value = this.options[this.selectedIndex].text">
+                            <option value="">-- Skip --</option>
+                            {% for prop in type_info.properties %}
+                            <option value="{{ prop.path }}"
+                                    {% if current_prop and current_prop.source == 'shacl' and current_prop.target_property_iri == prop.path %}selected
+                                    {% elif auto_match.iri == prop.path %}selected
+                                    {% endif %}>
+                                {{ prop.name }}
+                            </option>
+                            {% endfor %}
+                            <option value="__custom__"
+                                    {% if current_prop and current_prop.source == 'custom' %}selected{% endif %}>
+                                Custom IRI...
+                            </option>
+                        </select>
+                        <input type="hidden" name="property_label"
+                               value="{% if current_prop %}{{ current_prop.target_property_label }}{% endif %}">
+                        <input type="text"
+                               class="custom-iri-input"
+                               name="custom_iri"
+                               placeholder="https://example.org/property"
+                               {% if current_prop and current_prop.source == 'custom' %}
+                               value="{{ current_prop.target_property_iri }}"
+                               style="display: block;"
+                               {% else %}
+                               style="display: none;"
+                               {% endif %}
+                               hx-post="/browser/notion/{{ import_id }}/mapping/property"
+                               hx-include="this"
+                               hx-vals='{"type_iri": "{{ type_iri }}", "column_name": "{{ col.name }}", "target_property": "__custom__"}'
+                               hx-swap="none"
+                               hx-trigger="change">
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endfor %}
+
+    {% if not type_sections %}
+    <div class="preview-empty">
+        <i data-lucide="info"></i>
+        <p>No databases are mapped to types yet. Go back to type mapping to map at least one database.</p>
+    </div>
+    {% endif %}
+</div>
+
+<div class="mapping-nav">
+    <button class="btn btn-outline"
+            hx-get="/browser/notion/{{ import_id }}/step/type-mapping"
+            hx-target="#import-content"
+            hx-swap="innerHTML">
+        <i data-lucide="arrow-left"></i>
+        Back: Type Mapping
+    </button>
+    <button class="btn btn-primary"
+            hx-get="/browser/notion/{{ import_id }}/step/relation-mapping"
+            hx-target="#import-content"
+            hx-swap="innerHTML">
+        Next: Relation Mapping
+        <i data-lucide="arrow-right"></i>
+    </button>
+</div>
+
+<script>
+function toggleCustomIri(selectEl) {
+    var customInput = selectEl.parentElement.querySelector('.custom-iri-input');
+    if (selectEl.value === '__custom__') {
+        customInput.style.display = 'block';
+        customInput.focus();
+    } else {
+        customInput.style.display = 'none';
+    }
+}
+if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+</script>
