@@ -197,4 +197,21 @@ export const SEL = {
     syncStats: '.sync-stats',
     statValue: '.stat-value',
   },
+
+  // Jira Sync E2E
+  jiraSync: {
+    emailInput: '#jira-email',
+    tokenInput: '#jira-token',
+    siteUrlInput: '#jira-site-url',
+    connectBtn: '.credentials-form button[type="submit"]',
+    connectStatus: '.connection-status',
+    siteUrl: '.site-url',
+    projectCheckbox: '.project-checkbox-item input[type="checkbox"]',
+    saveProjectsBtn: '.projects-section button[type="submit"]',
+    syncDirectionBidirectional: 'input[name="sync_direction"][value="bidirectional"]',
+    saveConfigBtn: '.sync-config-form button[type="submit"]',
+    syncNowBtn: '#sync-now-btn',
+    syncStats: '.sync-stats',
+    statValue: '.stat-value',
+  },
 } as const;

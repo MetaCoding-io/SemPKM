@@ -62,6 +62,7 @@ setup to advanced topics like SPARQL queries and creating your own Mental Models
 33. [Context Overlay](33-context-overlay.md)
 34. [Linear Sync](34-linear-sync.md)
 35. [GitHub Sync](35-github-sync.md)
+36. [Jira Sync](36-jira-sync.md)
 
 ## Part IX: Identity and Federation
 

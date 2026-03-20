@@ -31,6 +31,9 @@ The `sempkm-app-sdk` Python package that provides the `App` class, `AppContext`,
 **Argument** (Research Workflow)
 A structured reasoning unit that synthesizes claims and evidence to address a research question. Each argument presents a thesis supported by referenced claims and evidence items. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
 
+**Atlassian Document Format (ADF)**
+JSON-based rich text format used by Jira Cloud for issue descriptions and comments. SemPKM's Jira Sync automatically converts ADF to Markdown on import and Markdown back to ADF on push. See [Chapter 36: Jira Sync](36-jira-sync.md).
+
 **Bidirectional Sync**
 A sync mode where changes flow in both directions between two systems. In Linear Sync, bidirectional mode pushes SemPKM task changes back to Linear in addition to pulling Linear issues. See [Chapter 34: Linear Sync](34-linear-sync.md).
 
@@ -124,6 +127,9 @@ Internationalized Resource Identifier. The globally unique identifier for every 
 **JSON-LD**
 JSON for Linking Data. The serialization format used by SemPKM for Mental Model files (ontologies, shapes, views, seed data). JSON-LD is standard JSON with a `@context` block that maps short keys to full IRIs, making it both human-readable and machine-processable as RDF.
 
+**Jira Sync**
+App that synchronizes Jira Cloud issues with SemPKM `bpkm:Task` objects. Supports bidirectional sync with statusCategory-based status normalization and ADF→Markdown conversion. Jira Epics are mapped to `bpkm:Milestone` objects. See [Chapter 36: Jira Sync](36-jira-sync.md).
+
 **Knowledge Sidebar**
 The side panel (Chrome) or sidebar (Firefox) showing related objects from SemPKM grouped by type, with actions to open, link, or add evidence. Opened via Alt+K or from the extension popup. See [Chapter 33: Context Overlay](33-context-overlay.md).
 
@@ -213,6 +219,9 @@ An interactive freeform workspace for exploring your knowledge graph visually. U
 
 **Step** (workflow)
 An individual stage in a workflow. Three types: view (opens a view), dashboard (opens a dashboard), and form (opens a create form). Each step has an optional label displayed in the stepper bar. See [Chapter 28: Dashboards and Workflows](28-dashboards-and-workflows.md).
+
+**statusCategory**
+Jira's three-way classification of all issue statuses: `new` (not started), `indeterminate` (in progress), and `done` (completed). Every Jira status — regardless of its custom name — belongs to exactly one category. Used by SemPKM's Jira Sync for reliable cross-project status normalization. See [Chapter 36: Jira Sync](36-jira-sync.md).
 
 **StructureNote** (Zettelkasten+)
 An organizing note that curates permanent notes into coherent topics — argument maps, field surveys, or indexes. Structure notes sit at the top of the Zettelkasten provenance chain. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).

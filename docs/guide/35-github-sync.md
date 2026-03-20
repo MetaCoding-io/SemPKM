@@ -306,4 +306,4 @@ GitHub allows 5,000 API requests per hour with token authentication. If you sync
 
 ---
 
-**Previous:** [Chapter 34: Linear Sync](34-linear-sync.md) | **Next:** [Appendix A: Environment Variable Reference](appendix-a-environment-variables.md)
+**Previous:** [Chapter 34: Linear Sync](34-linear-sync.md) | **Next:** [Chapter 36: Jira Sync](36-jira-sync.md)

@@ -1,0 +1,46 @@
+<div id="connect-content" class="monday-sync-settings">
+  <h2>Connect to Monday.com</h2>
+  <p class="connect-description">
+    Link your Monday.com account to sync board items with SemPKM task objects.
+  </p>
+
+  {% if error %}
+  <div class="alert alert-error">{{ error }}</div>
+  {% endif %}
+
+  <section class="connect-section">
+    <h3>API Token</h3>
+    <p class="section-hint">
+      Get your API token from
+      <a href="https://monday.com/apps/manage"
+         target="_blank" rel="noopener">monday.com Developer Center</a>
+      → Administration → API.
+    </p>
+    <form class="credentials-form"
+          hx-post="/app/monday-sync/_fragments/connect/credentials"
+          hx-target="#connect-content"
+          hx-swap="innerHTML"
+          hx-indicator="#connect-spinner">
+      <div class="form-row">
+        <label for="monday-token">API Token</label>
+        <input type="password"
+               id="monday-token"
+               name="api_token"
+               placeholder="Your Monday.com API token"
+               required
+               autocomplete="off" />
+        <span class="field-hint">
+          Found in your Monday.com profile under
+          <a href="https://monday.com/apps/manage"
+             target="_blank" rel="noopener">Administration → API</a>
+        </span>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          Connect
+        </button>
+        <span id="connect-spinner" class="htmx-indicator spinner">Verifying…</span>
+      </div>
+    </form>
+  </section>
+</div>

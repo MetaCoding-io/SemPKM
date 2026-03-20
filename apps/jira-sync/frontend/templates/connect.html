@@ -1,0 +1,67 @@
+<div id="connect-content" class="jira-sync-settings">
+  <h2>Connect to Jira Cloud</h2>
+  <p class="connect-description">
+    Link your Jira Cloud account to sync issues with SemPKM task objects.
+  </p>
+
+  {% if error %}
+  <div class="alert alert-error">{{ error }}</div>
+  {% endif %}
+
+  <section class="connect-section">
+    <h3>Jira Cloud Credentials</h3>
+    <p class="section-hint">
+      Create an API token at
+      <a href="https://id.atlassian.com/manage-profile/security/api-tokens"
+         target="_blank" rel="noopener">id.atlassian.com</a>.
+      Jira Cloud only — Server/Data Center is not supported.
+    </p>
+    <form class="credentials-form"
+          hx-post="/app/jira-sync/_fragments/connect/credentials"
+          hx-target="#connect-content"
+          hx-swap="innerHTML"
+          hx-indicator="#connect-spinner">
+      <div class="form-row">
+        <label for="jira-email">Email Address</label>
+        <input type="text"
+               id="jira-email"
+               name="email"
+               placeholder="you@company.com"
+               required
+               autocomplete="email" />
+      </div>
+      <div class="form-row">
+        <label for="jira-token">API Token</label>
+        <input type="password"
+               id="jira-token"
+               name="token"
+               placeholder="Your Jira API token"
+               required
+               autocomplete="off" />
+        <span class="field-hint">
+          Generate at
+          <a href="https://id.atlassian.com/manage-profile/security/api-tokens"
+             target="_blank" rel="noopener">Atlassian Account Settings</a>
+        </span>
+      </div>
+      <div class="form-row">
+        <label for="jira-site-url">Site URL</label>
+        <input type="text"
+               id="jira-site-url"
+               name="site_url"
+               placeholder="mycompany.atlassian.net"
+               required
+               autocomplete="url" />
+        <span class="field-hint">
+          Your Jira Cloud site domain (e.g. <code>mycompany.atlassian.net</code>)
+        </span>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          Connect
+        </button>
+        <span id="connect-spinner" class="htmx-indicator spinner">Verifying…</span>
+      </div>
+    </form>
+  </section>
+</div>

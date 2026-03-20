@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "projectName": "SemPKM",
-  "projectPath": "/home/james/Code/SemPKM",
+  "projectName": "M023",
+  "projectPath": "/home/james/Code/SemPKM/.gsd/worktrees/M023",
   "gsdVersion": "2.28.0",
   "entries": [
     {
@@ -149,18 +149,18 @@
       "phase": "pre-planning"
     },
     {
-      "filename": "M022-2026-03-20T03-33-06.html",
-      "generatedAt": "2026-03-20T03:33:06.291Z",
-      "milestoneId": "M022",
-      "milestoneTitle": "Asana Sync App",
-      "label": "M022: Asana Sync App",
+      "filename": "M023-2026-03-20T06-05-36.html",
+      "generatedAt": "2026-03-20T06:05:36.051Z",
+      "milestoneId": "M023",
+      "milestoneTitle": "Jira Sync App",
+      "label": "M023: Jira Sync App",
       "kind": "milestone",
-      "totalCost": 197.80428149999992,
-      "totalTokens": 245514807,
-      "totalDuration": 33351676,
-      "doneSlices": 167,
-      "totalSlices": 167,
-      "doneMilestones": 22,
+      "totalCost": 258.04719199999994,
+      "totalTokens": 317223643,
+      "totalDuration": 42394838,
+      "doneSlices": 171,
+      "totalSlices": 171,
+      "doneMilestones": 23,
       "totalMilestones": 30,
       "phase": "pre-planning"
     }

@@ -1,0 +1,480 @@
+/* Monday.com Sync app — scoped styles
+   All rules under .monday-sync-settings to avoid conflicts. */
+
+.monday-sync-settings {
+    padding: 1.5rem;
+    max-width: 600px;
+}
+
+.monday-sync-settings h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.25rem;
+}
+
+.monday-sync-settings h3 {
+    margin: 0 0 0.25rem;
+    font-size: 1rem;
+}
+
+.monday-sync-settings .connect-description {
+    color: var(--color-text-muted, #888);
+    margin-bottom: 1.5rem;
+}
+
+/* ── Sections ── */
+
+.monday-sync-settings .connect-section {
+    margin-bottom: 1.25rem;
+}
+
+.monday-sync-settings .section-hint {
+    font-size: 0.85rem;
+    color: var(--color-text-muted, #888);
+    margin-bottom: 0.75rem;
+}
+
+.monday-sync-settings .section-hint a {
+    color: var(--color-link, #5e9ed6);
+}
+
+.monday-sync-settings .section-hint code {
+    font-size: 0.85rem;
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+    background: var(--color-bg-elevated, #2a2a2a);
+    border: 1px solid var(--color-border, #333);
+}
+
+/* ── Credentials Form ── */
+
+.monday-sync-settings .credentials-form .form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.monday-sync-settings .credentials-form label {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.monday-sync-settings .credentials-form input[type="text"],
+.monday-sync-settings .credentials-form input[type="password"] {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-border, #333);
+    border-radius: 4px;
+    background: var(--color-bg-input, #1a1a1a);
+    color: var(--color-text, #eee);
+    font-size: 0.9rem;
+}
+
+.monday-sync-settings .credentials-form input[type="password"] {
+    font-family: monospace;
+}
+
+.monday-sync-settings .credentials-form input:focus {
+    outline: none;
+    border-color: var(--color-accent, #5e9ed6);
+    box-shadow: 0 0 0 2px rgba(94, 158, 214, 0.2);
+}
+
+.monday-sync-settings .field-hint {
+    font-size: 0.8rem;
+    color: var(--color-text-muted, #888);
+    margin-top: 0.15rem;
+}
+
+.monday-sync-settings .field-hint a {
+    color: var(--color-link, #5e9ed6);
+}
+
+/* ── Buttons ── */
+
+.monday-sync-settings .btn {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+    transition: background-color 0.15s ease;
+}
+
+.monday-sync-settings .btn-primary {
+    background: var(--color-accent, #5e9ed6);
+    color: #fff;
+}
+
+.monday-sync-settings .btn-primary:hover {
+    background: var(--color-accent-hover, #4a8bc2);
+}
+
+.monday-sync-settings .btn-danger {
+    background: var(--color-danger, #d9534f);
+    color: #fff;
+}
+
+.monday-sync-settings .btn-danger:hover {
+    background: var(--color-danger-hover, #c9302c);
+}
+
+/* ── Connection Status ── */
+
+.monday-sync-settings .connection-status {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.monday-sync-settings .connection-detail {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.monday-sync-settings .display-name {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.monday-sync-settings .email {
+    font-size: 0.85rem;
+    color: var(--color-text-muted, #888);
+}
+
+.monday-sync-settings .token-preview {
+    font-size: 0.8rem;
+    color: var(--color-text-muted, #888);
+}
+
+.monday-sync-settings .status-badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.monday-sync-settings .status-connected {
+    background: rgba(46, 160, 67, 0.15);
+    color: #3fb950;
+    border: 1px solid rgba(46, 160, 67, 0.3);
+}
+
+/* ── Boards Section ── */
+
+.monday-sync-settings .boards-section {
+    margin-bottom: 1.5rem;
+}
+
+.monday-sync-settings .boards-section h4,
+.monday-sync-settings .sync-config-section h4,
+.monday-sync-settings .sync-now-section h4 {
+    margin: 0 0 0.5rem;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted, #888);
+}
+
+.monday-sync-settings .board-checkbox-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-bottom: 0.75rem;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.monday-sync-settings .board-checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.1s ease;
+}
+
+.monday-sync-settings .board-checkbox-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.monday-sync-settings .board-checkbox-item input[type="checkbox"] {
+    accent-color: var(--color-accent, #5e9ed6);
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.monday-sync-settings .board-name {
+    flex: 1;
+    font-size: 0.85rem;
+}
+
+.monday-sync-settings .no-boards {
+    color: var(--color-text-muted, #888);
+    font-style: italic;
+}
+
+/* ── Sync Configuration ── */
+
+.monday-sync-settings .sync-config-section {
+    margin-bottom: 1.5rem;
+}
+
+.monday-sync-settings .config-fieldset {
+    border: none;
+    padding: 0;
+    margin: 0 0 1rem;
+}
+
+.monday-sync-settings .config-fieldset legend {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+    color: var(--color-text, #eee);
+}
+
+.monday-sync-settings .radio-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.3rem 0;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.monday-sync-settings .radio-item input[type="radio"] {
+    accent-color: var(--color-accent, #5e9ed6);
+    flex-shrink: 0;
+}
+
+.monday-sync-settings .option-hint {
+    font-size: 0.8rem;
+    color: var(--color-text-muted, #888);
+    margin-left: 0.25rem;
+}
+
+.monday-sync-settings .config-select {
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--color-border, #333);
+    border-radius: 4px;
+    background: var(--color-bg-input, #1a1a1a);
+    color: var(--color-text, #eee);
+    font-size: 0.85rem;
+}
+
+/* ── Sync Now Section ── */
+
+.monday-sync-settings .sync-now-section {
+    margin-bottom: 1.5rem;
+}
+
+/* ── Form Actions ── */
+
+.monday-sync-settings .form-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+/* ── htmx loading indicator ── */
+
+.monday-sync-settings .htmx-indicator {
+    display: none;
+    font-size: 0.85rem;
+    color: var(--color-text-muted, #888);
+}
+
+.monday-sync-settings .htmx-request .htmx-indicator,
+.htmx-request .monday-sync-settings .htmx-indicator {
+    display: inline;
+}
+
+/* ── Sync Stats ── */
+
+.monday-sync-settings .sync-stats {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border: 1px solid var(--color-border, #333);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.monday-sync-settings .sync-stats h4 {
+    margin: 0 0 0.75rem;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted, #888);
+}
+
+.monday-sync-settings .sync-stats h5 {
+    margin: 0.75rem 0 0.25rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text, #eee);
+}
+
+.monday-sync-settings .stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.2rem 0;
+    font-size: 0.85rem;
+}
+
+.monday-sync-settings .stat-label {
+    color: var(--color-text-muted, #888);
+}
+
+.monday-sync-settings .stat-value {
+    font-weight: 500;
+    color: var(--color-text, #eee);
+}
+
+.monday-sync-settings .stat-status-success {
+    color: #3fb950;
+}
+
+.monday-sync-settings .stat-status-partial {
+    color: #d29922;
+}
+
+.monday-sync-settings .stat-status-error {
+    color: #f87171;
+}
+
+.monday-sync-settings .stat-status-skipped {
+    color: var(--color-text-muted, #888);
+}
+
+.monday-sync-settings .stat-errors {
+    color: #f87171;
+}
+
+.monday-sync-settings .stat-group {
+    padding-left: 0.5rem;
+    border-left: 2px solid var(--color-border, #333);
+    margin-bottom: 0.5rem;
+}
+
+.monday-sync-settings .no-sync-data {
+    color: var(--color-text-muted, #888);
+    font-style: italic;
+    font-size: 0.85rem;
+}
+
+/* ── Alert / Error ── */
+
+.monday-sync-settings .alert {
+    padding: 0.75rem 1rem;
+    border-radius: 4px;
+    margin-bottom: 1.25rem;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.monday-sync-settings .alert-error {
+    background: rgba(217, 83, 79, 0.12);
+    color: #f87171;
+    border: 1px solid rgba(217, 83, 79, 0.25);
+}
+
+/* ── Disconnect ── */
+
+.monday-sync-settings .disconnect-section {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border, #333);
+}
+
+/* ── Column Mapping ── */
+
+.monday-sync-settings .column-mapping-section {
+    margin-bottom: 1.5rem;
+}
+
+.monday-sync-settings .column-mapping-section h4 {
+    margin: 0 0 0.5rem;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted, #888);
+}
+
+.monday-sync-settings .mapping-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid var(--color-border, #333);
+}
+
+.monday-sync-settings .mapping-row label {
+    min-width: 140px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.monday-sync-settings .mapping-row select {
+    flex: 1;
+}
+
+.monday-sync-settings .mapping-fieldset {
+    border: 1px solid var(--color-border, #333);
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.monday-sync-settings .mapping-fieldset legend {
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0 0.5rem;
+}
+
+.monday-sync-settings .source-label {
+    min-width: 160px;
+    font-size: 0.85rem;
+}
+
+.monday-sync-settings .board-mapping-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.4rem 0;
+}
+
+.monday-sync-settings .mapping-status {
+    font-size: 0.8rem;
+}
+
+.monday-sync-settings .mapping-configured {
+    color: #3fb950;
+}
+
+.monday-sync-settings .mapping-pending {
+    color: var(--color-text-muted, #888);
+}
+
+.monday-sync-settings .btn-sm {
+    padding: 0.25rem 0.6rem;
+    font-size: 0.8rem;
+}
+
+.monday-sync-settings .btn-link {
+    color: var(--color-link, #5e9ed6);
+    font-size: 0.85rem;
+    text-decoration: none;
+}

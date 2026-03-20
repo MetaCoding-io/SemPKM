@@ -352,6 +352,24 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - ✓ GH-07: E2E + docs — mock GitHub REST API (9 selftest), 12-phase Playwright E2E (partial), Chapter 35 user guide — M017
 - ✓ 204 unit tests across 5 test files, mock REST API server, Playwright E2E test (12 phases), Chapter 35 user guide — M017
 
+### Validated (M023 — Jira Sync App)
+
+<!-- Shipped and confirmed in M023 (2026-03-19). -->
+
+- ✓ JIRA-01: ADF→Markdown conversion — 95 unit tests proving all 12+ ADF node types — M023
+- ✓ JIRA-02: Markdown→ADF reverse conversion — line-by-line state machine for push sync — M023
+- ✓ JIRA-03: statusCategory-based status normalization — new→todo, indeterminate→in-progress, done→done — M023
+- ✓ JIRA-04: Priority mapping — 8 Jira names → 4 bpkm values with reverse maps — M023
+- ✓ JIRA-05: Jira REST API client — JQL search, pagination, error hierarchy — M023
+- ✓ JIRA-06: API token authentication — email + token + site URL, Basic auth header — M023
+- ✓ JIRA-07: Person matching — accountId→email API call + SPARQL lookup + LRU cache — M023
+- ✓ JIRA-08: Pull sync — Jira issues → bpkm:Task with full field mapping — M023
+- ✓ JIRA-09: Epic→Milestone mapping — with child task linking via parent.key/customfield_10014 — M023
+- ✓ JIRA-10: Push sync — title/description/priority changes push to Jira — M023
+- ✓ JIRA-11: Issue links — Blocks→bpkm:dependsOn edges with inward-only dedup — M023
+- ✓ JIRA-12: E2E tests + user guide — mock server (12 selftest), 12-phase E2E, Chapter 36 — M023
+- ✓ 385 unit tests across 6 test files, mock Jira REST API server, Playwright E2E test, Chapter 36 user guide — M023
+
 ### Future Candidates
 
 <!-- Tracked for future milestones. See .gsd/QUEUE.md for full queue and .gsd/REQUIREMENTS.md for deferred requirements. -->
@@ -473,34 +491,25 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current State
 
-**Latest shipped: M017 GitHub Issues Sync App (2026-03-18)**
-**In progress: M018 Google Calendar Sync App — S01 complete (bpkm:Event type), S02 complete (OAuth + calendar list), S03 complete (pull sync + field mapping + settings)**
+**Latest shipped: M023 Jira Sync App (2026-03-19)**
+**Status: M023 complete — all 4 slices delivered**
 
-**What shipped in M018/S03 (Pull sync + field mapping + settings):**
-- Field mapper with 8 pure functions and 4 normalization maps covering all ~22 Google Calendar → bpkm:Event property transforms
-- Person matcher with SPARQL email lookup (foaf:mbox + crm:email), creation on miss, in-memory LRU cache
-- Sync engine with pull_sync() orchestrating two-phase bulk create, per-calendar syncToken incremental sync, 410 Gone recovery, per-event error isolation
-- GCalClient.get_events() with syncToken pagination, singleEvents=false, 90-day timeMin for full syncs
-- Settings UI with sync direction (pull-only/bidirectional), poll interval (5m/15m/30m/1h), Sync Now button, sync stats display
-- poll-events task handler wired to real pull_sync() with state persistence and structured logging
-- 111 new unit tests (64 field mapper + 36 sync engine + 11 person matcher), 1609 total backend tests pass
-- GCAL-03, GCAL-04, GCAL-07, GCAL-08 requirements validated
-
-**What shipped in M018/S02 (Google OAuth 2.0 + calendar list):**
-- Two platform bug fixes: proxy query-param forwarding (unblocks all OAuth callbacks), SDK network permission parsing (unblocks all external HTTP from sync apps with list-type manifests)
-- google-calendar app scaffold: manifest, OAuth auth module (7 helpers), GCal REST client with paginated calendar list and 401→refresh→retry
-- Full OAuth connect/disconnect flow with CSRF-safe state verification
-- Calendar list UI with checkboxes and state persistence via StateClient
-- Token storage as ISO 8601 with automatic refresh via 5-minute expiry buffer
-- 47 unit tests (23 auth + 12 client + 5 proxy + 7 SDK), 1498 total backend tests pass
-- GCAL-01 and GCAL-02 requirements validated
-
-**What shipped in M018/S01 (bpkm:Event type):**
-- basic-pkm upgraded from v2.0.0 to v2.1.0 with bpkm:Event OWL class (subClassOf gist:Event, 20 properties)
-- SHACL EventShape: 5 property groups, 30 property shapes, 4 enum constraints (D212 cross-provider superset)
-- 3 ViewSpecs (table/cards/graph) + 2 SavedQueries (upcoming/past events)
-- 4 seed instances: timed event, all-day event, recurring master, recurring exception
-- Lucide calendar icon in purple (#8b5cf6)
+**What shipped in M023 (Jira Sync App):**
+- Jira Cloud bidirectional sync app with API token authentication (email + token + site URL)
+- ADF↔Markdown converter handling 12 common Atlassian Document Format node types with reverse direction for push
+- statusCategory-based status normalization (new→todo, indeterminate→in-progress, done→done)
+- Priority mapping (8 Jira priority names → 4 bpkm values with reverse maps)
+- Pull sync: Jira issues → bpkm:Task with full field mapping (sprint→taskGroup, components/labels→tags, assignee via accountId resolution)
+- Epic→Milestone mapping with child task linking
+- Issue links: Blocks→bpkm:dependsOn edges with inward-only dedup
+- Push sync: title/description/priority changes push to Jira (no status transitions per D237)
+- JQL-based filtered sync with user-provided JQL queries
+- Settings UI: project selection, JQL filter, sync direction, poll interval, Sync Now
+- Mock Jira REST API server with 12-check selftest
+- Playwright E2E test (12 phases covering full lifecycle)
+- User guide Chapter 36 with field mapping tables, statusCategory explanation, ADF conversion notes
+- 385+ combined unit tests across all Jira sync services
+- 12 JIRA requirements validated (JIRA-01 through JIRA-12)
 - 22 offline validation tests, EVENT-01 requirement validated
 
 **What shipped in M017 (GitHub Issues Sync App):**
@@ -609,9 +618,9 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - E2E test coverage: 5 new Playwright tests across 3 spec files
 - User guide: 4 chapters updated with new feature documentation
 
-**Previous milestones:** M017 GitHub Issues Sync App (2026-03-18), M016 Linear Sync App (2026-03-18), M015 Browser Extension Phase 2 (2026-03-18), M014 Browser Extension Phase 1 (2026-03-18), M013 API Surface for External Clients (2026-03-17), M012 Workspace & Event Log Polish (2026-03-17), M011 Mental Models Expansion (2026-03-17), M008 Spatial Canvas (2026-03-16), M007 Generic Views, VFS Completion & Polish (2026-03-16), M006 Dashboards, Workflows & Platform Alignment (2026-03-15), M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
+**Previous milestones:** M023 Jira Sync App (2026-03-19), M017 GitHub Issues Sync App (2026-03-18), M016 Linear Sync App (2026-03-18), M015 Browser Extension Phase 2 (2026-03-18), M014 Browser Extension Phase 1 (2026-03-18), M013 API Surface for External Clients (2026-03-17), M012 Workspace & Event Log Polish (2026-03-17), M011 Mental Models Expansion (2026-03-17), M008 Spatial Canvas (2026-03-16), M007 Generic Views, VFS Completion & Polish (2026-03-16), M006 Dashboards, Workflows & Platform Alignment (2026-03-15), M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
 
-**Latest shipped: M017 GitHub Issues Sync App (2026-03-18)**
+**Latest shipped: M023 Jira Sync App (2026-03-19)**
 
 **What shipped in M013 (API Surface for External Clients):**
 - `GET /.well-known/sempkm` discovery endpoint with version, endpoints, auth methods, capabilities
@@ -633,7 +642,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - 6 Mental Models: basic-pkm v2.0, ppv, gist, crm v1.0, zettelkasten v1.0, research v1.0 (24 files across 4 model directories)
 - Tech stack: FastAPI + RDF4J (LuceneSail) + htmx/vanilla-web + SQLAlchemy (SQLite/PostgreSQL) + wsgidav + a2wsgi + Driver.js + Cytoscape.js + CodeMirror + dockview-core + Alembic + Yasgui CDN + ninja-keys + owlrl + pyshacl + mf2py + http-message-signatures + slowapi
 - Docker Compose deployment: 3 services (api, triplestore, frontend/nginx) + federation test compose (2 instances)
-- 58 phases, 80 plans completed across v1.0–v2.6; M002 (7 slices) + M003 (10 slices) + M004 (5 slices) + M005 (9 slices) + M006 (7 slices) + M007 (5 slices) + M008 (4 slices) + M011 (5 slices) + M012 (4 slices) + M013 (3 slices) + M014 (5 slices) + M015 (3 slices) + M016 (4 slices) + M017 (4 slices) milestones complete
+- 58 phases, 80 plans completed across v1.0–v2.6; M002 (7 slices) + M003 (10 slices) + M004 (5 slices) + M005 (9 slices) + M006 (7 slices) + M007 (5 slices) + M008 (4 slices) + M011 (5 slices) + M012 (4 slices) + M013 (3 slices) + M014 (5 slices) + M015 (3 slices) + M016 (4 slices) + M017 (4 slices) + M023 (4 slices) milestones complete
 - Backend test suite: 1225+ pytest unit tests, <5s, no Docker dependency
 - E2E test suite: 98 Playwright spec files covering all shipped features
 - Browser extension: `extension/` directory with Chrome MV3 + Firefox manifests, 11 JS modules (~2.5k LOC), 7 E2E tests (3 capture + 4 context overlay), 23 unit tests
@@ -649,6 +658,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Browser extension Phase 1+2: Chrome MV3 + Firefox, 11 JS modules (~2.5k LOC), SHACL form renderer, schema.org mapper, reference picker, context sidebar with badge + grouped results + actions, 7 E2E tests, 23 unit tests
 - Linear Sync app: first bidirectional sync app on App Platform — OAuth/API key auth, pull/push sync, field mapping, admin history, 150 unit tests, E2E test with mock API, Chapter 34 user guide
 - GitHub Issues Sync app: second sync app — PAT auth, issue+PR pull sync with timeline-based edge linking, push sync with loop prevention, 204 unit tests, mock REST API server, E2E test (partial), Chapter 35 user guide
+- Jira Sync app: bidirectional sync with ADF↔Markdown conversion, statusCategory normalization, Epic→Milestone mapping, issue link edges, push sync, 385 unit tests, mock REST API server, E2E test, Chapter 36 user guide
 
 **Known tech debt:**
 - Cookie secure=False (local dev only — production config deferred)
@@ -772,4 +782,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-03-18 after M017 complete (GitHub Issues Sync App — 4 slices, second sync app on App Platform, PAT auth, issue+PR pull sync with timeline edge linking, push sync with loop prevention, 204 unit tests, mock REST API server, 7 GH requirements validated, Chapter 35 user guide)*
+*Last updated: 2026-03-19 after M023 complete (Jira Sync App — 4 slices, ADF↔Markdown conversion, statusCategory normalization, Epic→Milestone mapping, issue link edges, push sync, 385 unit tests, mock REST API server, 12 JIRA requirements validated, Chapter 36 user guide)*
