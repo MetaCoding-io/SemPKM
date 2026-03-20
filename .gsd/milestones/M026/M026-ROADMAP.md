@@ -66,7 +66,7 @@ This milestone is complete only when all are true:
 - [x] **S01: Homepage rewrite with outcome-focused messaging** `risk:medium` `depends:[]`
   > After this: Visitor opens docs/index.html and sees outcome-focused hero, persona selector cards, competitive comparison table, condensed feature overview, "Try the Demo" and "Self-host" CTAs — all with shared CSS extracted to docs/styles.css
 
-- [ ] **S02: Persona landing path pages** `risk:low` `depends:[S01]`
+- [x] **S02: Persona landing path pages** `risk:low` `depends:[S01]`
   > After this: Visitor clicks "Coming from Obsidian" / "Coming from Notion" / "Starting Fresh" on homepage and lands on dedicated pages with tailored messaging, feature comparisons, and CTAs specific to their background
 
 - [ ] **S03: Screenshots, mobile polish, and SEO verification** `risk:low` `depends:[S01,S02]`
