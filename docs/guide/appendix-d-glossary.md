@@ -52,6 +52,9 @@ A tabbed browsing interface for Mental Model views that groups table, card, and 
 **Claim** (Research Workflow)
 A specific assertion or proposition extracted from a paper, with a confidence level ranging from established to refuted. Claims accumulate supporting and refuting evidence over time. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
 
+**Column Mapping**
+The user-configurable mapping between Monday.com board columns and SemPKM properties. Because Monday.com boards have fully customizable columns, the mapping cannot be hardcoded — users configure which columns correspond to status, priority, due date, etc. via type-filtered dropdowns. See [Chapter 37: Monday.com Sync](37-monday-sync.md).
+
 **Company** (Personal CRM)
 An organization entity representing a business your contacts work at. Tracks industry, size, and website to provide context for relationships. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
 
@@ -78,6 +81,9 @@ A configurable multi-block layout page that combines views, markdown, object emb
 
 **Deal** (Personal CRM)
 A business opportunity tracked through a pipeline from lead through qualification, proposal, and negotiation to won or lost. Deals link to contacts and companies. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
+
+**Demo Mode**
+A configuration flag (`DEMO_MODE=true`) that makes SemPKM accessible without login for prospective users. Enables anonymous access via a synthetic guest user, bypasses the setup wizard, auto-starts the demo tour on first visit, and shows a CTA banner after tour completion. Combine with read-only nginx config to prevent data modification. See [Chapter 38: Hosted Demo](38-hosted-demo.md).
 
 **Edge**
 A typed, directional relationship between two objects. Unlike a simple link, an edge carries a specific predicate (relationship type) such as `hasParticipant` or `isAbout`. Edges are first-class resources in SemPKM with their own IRIs, meaning they can carry annotation properties (like labels or timestamps) in addition to connecting a source and target. See also: Object, Property.
@@ -108,6 +114,9 @@ A minimalist upper ontology (v14.0.0) by Semantic Arts that provides foundationa
 
 **GitHub Sync**
 A SemPKM app that synchronizes GitHub Issues and Pull Requests with `bpkm:Task` objects. Supports pull sync (GitHub → SemPKM), push sync (SemPKM → GitHub), and bidirectional mode. PRs that reference issues are linked via `bpkm:dependsOn` edges. See [Chapter 35: GitHub Sync](35-github-sync.md).
+
+**Hosted Demo**
+A pre-populated, read-only SemPKM instance deployed for prospective users to explore. Includes 4 Mental Models with 74 sample objects, a guided Driver.js tour, and a pre-built dashboard demonstrating cross-view context filtering. See [Chapter 38: Hosted Demo](38-hosted-demo.md).
 
 **IndieAuth**
 An authentication and authorization protocol built on OAuth 2.0 that uses personal URLs (like WebID profiles) as identities. SemPKM acts as an IndieAuth provider, allowing you to sign into other IndieAuth-compatible services using your SemPKM identity. See [Chapter 26: IndieAuth](26-indieauth.md).
@@ -148,6 +157,9 @@ A global page that shows all validation results across every object in the knowl
 **Lint**
 The validation report for an object, displayed in the **Lint Panel** on the right side of the workspace. Linting checks the object's data against its SHACL shape and reports violations (missing required fields, invalid values, etc.). Lint is assistive -- it warns but does not block saving.
 
+**LoopGuard**
+An in-memory TTL cache that prevents echo loops in bidirectional sync. When a change is pushed to Monday.com, LoopGuard marks the affected item/column pair for 30 seconds. If the next pull sees the same change within that window, it recognizes it as an echo of the push and skips it. See [Chapter 37: Monday.com Sync](37-monday-sync.md).
+
 **Materialization**
 The process of applying event operations to the current state graph. When a command is executed, the event store records the event and then materializes it by running SPARQL INSERT and DELETE operations against the `urn:sempkm:current` graph. The result is an up-to-date view of all objects and their current property values.
 
@@ -156,6 +168,9 @@ An installable package that defines a domain vocabulary for SemPKM. A Mental Mod
 
 **Milestone** (Basic PKM v2.0)
 A project phase that groups related tasks toward a deliverable or deadline. Milestones have a target date and status (planned, active, completed, cancelled). See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
+
+**Monday.com Sync**
+An app that synchronizes Monday.com board items with SemPKM `bpkm:Task` objects. Supports user-configurable column mapping, custom status/priority label mapping, bidirectional sync with LoopGuard echo prevention, groups as taskGroup, subitems as parentTask, and dependency edges. See [Chapter 37: Monday.com Sync](37-monday-sync.md).
 
 **Named Graph**
 An RDF concept where a set of triples is associated with a graph IRI. SemPKM uses named graphs extensively: the current state lives in `urn:sempkm:current`, each event occupies its own named graph, and each Mental Model's ontology, shapes, and views are stored in separate named graphs. Named graphs enable SemPKM to organize, query, and manage different sets of triples independently.
@@ -267,3 +282,4 @@ An ordered sequence of steps that guides users through a multi-step process, wit
 ---
 
 **Previous:** [Appendix C: Command API Reference](appendix-c-command-api-reference.md) | **Next:** [Appendix E: Troubleshooting](appendix-e-troubleshooting.md)
+g.md)

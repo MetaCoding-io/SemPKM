@@ -214,4 +214,22 @@ export const SEL = {
     syncStats: '.sync-stats',
     statValue: '.stat-value',
   },
+
+  // Monday.com Sync E2E
+  mondaySync: {
+    tokenInput: '#monday-token',
+    connectBtn: '.credentials-form button[type="submit"]',
+    connectStatus: '.connection-status',
+    displayName: '.display-name',
+    boardCheckbox: '.board-checkbox-item input[type="checkbox"]',
+    saveBoardsBtn: '.boards-section button[type="submit"]',
+    configureColumnsBtn: '.board-mapping-row a.btn',
+    saveColumnMappingBtn: 'form[hx-post*="save-column-mapping"] button[type="submit"]',
+    configureLabelsBtn: '.board-mapping-row a.btn:last-of-type',
+    saveLabelMappingBtn: 'form[hx-post*="save-label-mapping"] button[type="submit"]',
+    syncDirectionBidirectional: 'input[name="sync_direction"][value="bidirectional"]',
+    saveConfigBtn: '.sync-config-form button[type="submit"]',
+    syncNowBtn: '#sync-now-btn',
+    syncStats: '.sync-stats',
+  },
 } as const;

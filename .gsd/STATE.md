@@ -1,9 +1,9 @@
 # GSD State
 
-**Active Milestone:** M024: Monday.com Sync App
-**Active Slice:** S02: Column mapping configuration UI + pull sync
+**Active Milestone:** M026: Homepage & Messaging Rewrite
+**Active Slice:** S02: Persona landing path pages
 **Phase:** executing
-**Requirements Status:** 78 active · 141 validated · 7 deferred · 0 out of scope
+**Requirements Status:** 78 active · 166 validated · 7 deferred · 0 out of scope
 
 ## Milestone Registry
 - ✅ **M001:** Migration
@@ -29,13 +29,15 @@
 - ✅ **M021:** CalDAV Calendar Sync App
 - ✅ **M022:** Asana Sync App
 - ✅ **M023:** Jira Sync App
-- 🔄 **M024:** Monday.com Sync App
-- ⬜ **M025:** M025
-- ⬜ **M026:** M026
+- ✅ **M024:** Monday.com Sync App
+- ✅ **M025:** Hosted Demo Instance
+- 🔄 **M026:** Homepage & Messaging Rewrite
 - ⬜ **M027:** M027
 - ⬜ **M028:** M028
 - ⬜ **M029:** M029
 - ⬜ **M030:** M030
+- ⬜ **M031:** M031
+- ⬜ **M032:** M032
 
 ## Recent Decisions
 - None recorded
@@ -44,4 +46,4 @@
 - None
 
 ## Next Action
-Execute T01 of S02 (Column mapping configuration routes, templates, and client extension).
+Execute T01 of S02 (Add persona CSS components and build from-obsidian.html).

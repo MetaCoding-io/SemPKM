@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SemPKM — Start Fresh</title>
+<meta name="description" content="No existing notes? Perfect. Pick a domain kit and start building structured knowledge in under 3 minutes. Self-hosted, open source.">
+<meta property="og:title" content="SemPKM — Start Fresh">
+<meta property="og:description" content="No existing notes? Perfect. Pick a domain kit and start building structured knowledge in under 3 minutes. Self-hosted, open source.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://sempkm.metacoding.io/fresh-start.html">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://sempkm.metacoding.io/fresh-start.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  /* Critical: prevent FOUC on hero while font loads */
+  .hero-title { opacity: 0; animation: fadeUp 0.7s 0.1s forwards; }
+  .hero-subtitle { opacity: 0; animation: fadeUp 0.7s 0.25s forwards; }
+  .hero-actions { opacity: 0; animation: fadeUp 0.7s 0.4s forwards; }
+  .hero-note { opacity: 0; animation: fadeUp 0.7s 0.55s forwards; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Nav ── -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">Sem<span>PKM</span></a>
+    <button class="nav-toggle" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links">
+      <li><a href="index.html#why">Why SemPKM</a></li>
+      <li><a href="index.html#features">Features</a></li>
+      <li class="nav-dropdown">
+        <a href="index.html#personas">Coming From</a>
+        <ul class="nav-dropdown-menu">
+          <li><a href="from-obsidian.html">Coming from Obsidian</a></li>
+          <li><a href="from-notion.html">Coming from Notion</a></li>
+          <li><a href="fresh-start.html">Starting Fresh</a></li>
+        </ul>
+      </li>
+      <li><a href="guide/index.html">User Guide</a></li>
+      <li><a href="https://github.com/metacoding-io/sempkm" class="nav-github" aria-label="GitHub" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      </a></li>
+      <li><a href="https://demo.sempkm.app" class="nav-cta">Try Demo</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- Persistent canvas background -->
+<canvas class="hero-graph" id="heroGraph"></canvas>
+
+<!-- ── Hero ── -->
+<section class="hero">
+  <div class="container">
+    <h1 class="hero-title">
+      Pick a workflow,<br><span class="gradient">start building</span>
+    </h1>
+    <p class="hero-subtitle">
+      No baggage, no migration. Choose a domain kit and get types, forms, views, and validation instantly. Structured knowledge in under 3 minutes.
+    </p>
+    <div class="hero-actions">
+      <a href="https://demo.sempkm.app" class="btn btn-primary">Try the Demo</a>
+      <a href="guide/20-production-deployment.html" class="btn btn-secondary">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+        Self-Host with Docker
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ── No-Baggage Intro ── -->
+<section class="section-alt">
+  <div class="container">
+    <span class="section-label fade-in">No Migration Needed</span>
+    <h2 class="section-title fade-in">No migration needed &mdash; just start</h2>
+    <p class="section-subtitle fade-in" style="max-width: 720px;">
+      SemPKM ships with domain kits &mdash; pre-built bundles that give you types, forms, views, and validation from the first minute. No blank-page syndrome, no spending hours setting up your system before you can use it. Pick a kit, and you're ready.
+    </p>
+  </div>
+</section>
+
+<!-- ── Domain Kit Showcase ── -->
+<section>
+  <div class="container">
+    <span class="section-label fade-in">Domain Kits</span>
+    <h2 class="section-title fade-in">Pick the kit that fits how you think</h2>
+    <p class="section-subtitle fade-in">
+      Each kit installs a complete system &mdash; types, properties, forms, views, and validation rules. Combine kits or customize later.
+    </p>
+
+    <div class="kits-grid">
+      <div class="kit-card fade-in">
+        <div class="kit-icon">📋</div>
+        <h3>Basic PKM</h3>
+        <p class="kit-types">5 types &mdash; Notes, Projects, Tasks, Events, Concepts</p>
+        <p>A general-purpose starter kit for personal knowledge management. Capture notes, plan projects, track tasks, and link everything together with typed relationships. Best for: anyone who wants structure without overcommitting to a methodology.</p>
+      </div>
+
+      <div class="kit-card fade-in">
+        <div class="kit-icon">🤝</div>
+        <h3>Personal CRM</h3>
+        <p class="kit-types">4 types &mdash; Contacts, Companies, Interactions, Deals</p>
+        <p>Track relationships and opportunities in a private, self-hosted CRM. Every meeting, email, and deal is linked to the people and companies involved &mdash; with full history and timeline views. Best for: freelancers, networkers, and anyone managing professional relationships.</p>
+      </div>
+
+      <div class="kit-card fade-in">
+        <div class="kit-icon">🧠</div>
+        <h3>Zettelkasten+</h3>
+        <p class="kit-types">5 types &mdash; Fleeting &rarr; Literature &rarr; Permanent &rarr; Structure notes</p>
+        <p>The Zettelkasten method, enforced by schema. Notes progress through stages &mdash; from quick captures to permanent, interconnected knowledge atoms. Provenance chains track where each idea came from. Best for: writers, thinkers, and anyone building long-term knowledge.</p>
+      </div>
+
+      <div class="kit-card fade-in">
+        <div class="kit-icon">🔬</div>
+        <h3>Research Workflow</h3>
+        <p class="kit-types">4 types &mdash; Papers, Claims, Evidence, Arguments</p>
+        <p>For academics and researchers who need to track claims, supporting evidence, and argumentation chains. Spot unsupported claims, trace evidence back to sources, and build reproducible knowledge structures. Best for: researchers, analysts, and anyone working with evidence-based reasoning.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Onboarding Path ── -->
+<section class="section-alt">
+  <div class="container">
+    <span class="section-label fade-in">Your First 3 Minutes</span>
+    <h2 class="section-title fade-in">From install to structured knowledge in 4 steps</h2>
+
+    <div class="steps-grid">
+      <div class="step-card fade-in">
+        <span class="step-number">1</span>
+        <h3>Pick a domain kit</h3>
+        <p>Browse the kit library and install one that matches your workflow. Types, forms, views, and validation appear instantly &mdash; no setup required.</p>
+      </div>
+      <div class="step-card fade-in">
+        <span class="step-number">2</span>
+        <h3>Take the guided tour</h3>
+        <p>A 3-minute interactive walkthrough shows you how to create objects, fill forms, navigate views, and explore the graph. Hands-on, not just reading.</p>
+      </div>
+      <div class="step-card fade-in">
+        <span class="step-number">3</span>
+        <h3>Create your first object</h3>
+        <p>Pick a type from your kit and fill in the form. SemPKM validates every field, suggests relationships, and puts your object on the graph immediately.</p>
+      </div>
+      <div class="step-card fade-in">
+        <span class="step-number">4</span>
+        <h3>Explore views and graph</h3>
+        <p>Switch between table view, card view, and graph view to see your knowledge from different angles. Filter, sort, and group &mdash; your data is already queryable.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── What You Get ── -->
+<section>
+  <div class="container">
+    <span class="section-label fade-in">What You Get</span>
+    <h2 class="section-title fade-in">Everything you need from day one</h2>
+    <p class="section-subtitle fade-in">
+      No plugins to install, no configuration to tweak. These ship with every SemPKM instance.
+    </p>
+
+    <div class="features-grid">
+      <div class="feature-card fade-in">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        </div>
+        <h3>Auto-Generated Forms</h3>
+        <p>Define your types and SemPKM generates forms with validation, hints, and constraints automatically. No manual form building.</p>
+      </div>
+
+      <div class="feature-card fade-in">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 3v18"/></svg>
+        </div>
+        <h3>Table, Card &amp; Graph Views</h3>
+        <p>See your knowledge as a sortable table, visual card grid, or navigable graph. Switch views with a click &mdash; same data, different perspectives.</p>
+      </div>
+
+      <div class="feature-card fade-in">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        </div>
+        <h3>Full History &amp; Undo</h3>
+        <p>Every change is an immutable event. See who changed what, when, and why. Undo anything, any time &mdash; your knowledge is never lost.</p>
+      </div>
+
+      <div class="feature-card fade-in">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
+        </div>
+        <h3>Spatial Canvas</h3>
+        <p>Drag objects onto an infinite surface. Arrange ideas visually, flip between detail and layout, think in two dimensions alongside your structured data.</p>
+      </div>
+
+      <div class="feature-card fade-in">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+        </div>
+        <h3>WebDAV Access</h3>
+        <p>Mount your knowledge base as a folder. Browse and edit Markdown files with typed frontmatter in your favorite text editor &mdash; changes sync automatically.</p>
+      </div>
+
+      <div class="feature-card fade-in">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+        </div>
+        <h3>Self-Hosted &amp; Open Source</h3>
+        <p>Your data never leaves your machine. Install with a single Docker command, export anytime, and inspect every line of source code.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Bottom CTA ── -->
+<section class="cta-section">
+  <div class="container">
+    <span class="section-label fade-in">Ready to start building?</span>
+    <h2 class="section-title fade-in">No migration. No setup marathon. Just structured knowledge.</h2>
+    <p class="section-subtitle fade-in" style="margin:0 auto;">
+      Explore the live demo, self-host with a single Docker command, or read the user guide.
+    </p>
+    <div class="cta-buttons fade-in">
+      <a href="https://demo.sempkm.app" class="btn btn-primary">Try the Demo</a>
+      <a href="guide/20-production-deployment.html" class="btn btn-secondary">Self-Host with Docker</a>
+      <a href="guide/index.html" class="btn btn-outline">Read the User Guide</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-left">&copy; MetaCoding Solutions, LLC 2025. All rights reserved.</div>
+    <ul class="footer-links">
+      <li><a href="guide/index.html">User Guide</a></li>
+      <li><a href="https://github.com/metacoding-io/sempkm" target="_blank" rel="noopener">GitHub</a></li>
+      <li><a href="index.html#features">Features</a></li>
+      <li><a href="index.html#kits">Domain Kits</a></li>
+    </ul>
+    <ul class="footer-social">
+      <li><a href="https://github.com/metacoding-io/sempkm" aria-label="GitHub" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      </a></li>
+    </ul>
+  </div>
+</footer>
+
+<script>
+// ── Fade-in on scroll via IntersectionObserver ──
+(function() {
+  var targets = document.querySelectorAll('.fade-in');
+  if (!('IntersectionObserver' in window)) {
+    targets.forEach(function(el) { el.classList.add('visible'); });
+    return;
+  }
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  targets.forEach(function(el) { observer.observe(el); });
+})();
+
+// ── Mobile nav toggle ──
+(function() {
+  var toggle = document.querySelector('.nav-toggle');
+  var links = document.querySelector('.nav-links');
+  toggle.addEventListener('click', function() {
+    links.classList.toggle('open');
+  });
+  links.querySelectorAll('a').forEach(function(a) {
+    a.addEventListener('click', function() {
+      links.classList.remove('open');
+    });
+  });
+})();
+
+// ── Network graph background animation ──
+(function() {
+  var canvas = document.getElementById('heroGraph');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var nodes = [];
+  var clusters = [
+    { xFrac: 0.14, yFrac: 0.30 },
+    { xFrac: 0.14, yFrac: 0.70 },
+    { xFrac: 0.86, yFrac: 0.30 },
+    { xFrac: 0.86, yFrac: 0.70 }
+  ];
+  var treeSlotsA = [
+    { type: 'project', dxFrac: 0,     dyFrac: -0.09 },
+    { type: 'task',    dxFrac: -0.06, dyFrac: 0 },
+    { type: 'task',    dxFrac: 0.06,  dyFrac: 0 },
+    { type: 'person',  dxFrac: -0.08, dyFrac: 0.12 },
+    { type: 'person',  dxFrac: 0.08,  dyFrac: 0.12 }
+  ];
+  var treeSlotsB = [
+    { type: 'value',   dxFrac: 0,     dyFrac: -0.09 },
+    { type: 'goal',    dxFrac: -0.06, dyFrac: 0 },
+    { type: 'goal',    dxFrac: 0.06,  dyFrac: 0 },
+    { type: 'project', dxFrac: -0.08, dyFrac: 0.12 },
+    { type: 'project', dxFrac: 0.08,  dyFrac: 0.12 }
+  ];
+  var treeTemplates = [treeSlotsA, treeSlotsB];
+  var slotsPerCluster = 5;
+
+  var types = [
+    { name: 'project',  color: [232, 119, 46],  minR: 13, maxR: 19, icon: drawProjectIcon },
+    { name: 'task',     color: [34, 197, 94],    minR: 9,  maxR: 15, icon: drawTaskIcon },
+    { name: 'person',   color: [139, 92, 246],   minR: 9,  maxR: 15, icon: drawPersonIcon },
+    { name: 'value',    color: [234, 179, 8],    minR: 13, maxR: 19, icon: drawValueIcon },
+    { name: 'goal',     color: [59, 130, 246],   minR: 10, maxR: 16, icon: drawGoalIcon }
+  ];
+  var typeMap = {};
+  for (var ti = 0; ti < types.length; ti++) typeMap[types[ti].name] = types[ti];
+
+  var namesByType = {
+    project: ['SemPKM', 'Research', 'Sprint 3', 'v1 Release', 'Onboarding', 'Migration'],
+    task:    ['Build Frontend', 'Design Mockups', 'Write Tests', 'Deploy', 'QA Testing', 'Review PR'],
+    person:  ['Alice', 'Bob', 'Carol', 'Dave', 'Eve', 'Frank'],
+    value:   ['Autonomy', 'Craftsmanship', 'Openness', 'Learning', 'Impact', 'Simplicity'],
+    goal:    ['Ship v1', 'Grow Community', 'Write Docs', 'Get Feedback', 'Open Source', 'Scale Infra']
+  };
+
+  var edgeLabels = {
+    'project-task': 'hasTask', 'task-project': 'hasTask',
+    'task-person': 'assignedTo', 'person-task': 'assignedTo',
+    'project-person': 'hasMember', 'person-project': 'hasMember',
+    'task-task': 'dependsOn', 'project-project': 'relatedTo',
+    'person-person': 'collaborates',
+    'value-goal': 'motivates', 'goal-value': 'motivates',
+    'goal-project': 'drives', 'project-goal': 'drives',
+    'value-value': 'alignsWith', 'goal-goal': 'supports'
+  };
+
+  function drawProjectIcon(ctx, r) {
+    var s = r * 0.4;
+    ctx.beginPath(); ctx.rect(-s * 0.7, -s * 0.6, s * 1.4, s * 1.8); ctx.lineWidth = 1.2; ctx.stroke();
+    ctx.beginPath(); ctx.rect(-s * 0.3, -s * 0.9, s * 0.6, s * 0.4); ctx.lineWidth = 1; ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(-s * 0.35, -s * 0.1); ctx.lineTo(s * 0.4, -s * 0.1);
+    ctx.moveTo(-s * 0.35, s * 0.35); ctx.lineTo(s * 0.4, s * 0.35);
+    ctx.moveTo(-s * 0.35, s * 0.8); ctx.lineTo(s * 0.4, s * 0.8);
+    ctx.lineWidth = 0.8; ctx.stroke();
+  }
+  function drawTaskIcon(ctx, r) {
+    var s = r * 0.4;
+    ctx.beginPath(); ctx.rect(-s * 0.7, -s * 0.7, s * 1.4, s * 1.4); ctx.lineWidth = 1.2; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-s * 0.35, s * 0.05); ctx.lineTo(-s * 0.05, s * 0.4); ctx.lineTo(s * 0.45, -s * 0.35);
+    ctx.lineWidth = 1.5; ctx.stroke();
+  }
+  function drawPersonIcon(ctx, r) {
+    var s = r * 0.4;
+    ctx.beginPath(); ctx.arc(0, -s * 0.5, s * 0.5, 0, Math.PI * 2); ctx.lineWidth = 1.2; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-s * 0.8, s * 0.9);
+    ctx.quadraticCurveTo(-s * 0.8, s * 0.2, 0, s * 0.2);
+    ctx.quadraticCurveTo(s * 0.8, s * 0.2, s * 0.8, s * 0.9);
+    ctx.lineWidth = 1.2; ctx.stroke();
+  }
+  function drawValueIcon(ctx, r) {
+    var s = r * 0.45;
+    ctx.beginPath();
+    ctx.moveTo(0, -s); ctx.lineTo(s * 0.8, -s * 0.2); ctx.lineTo(s * 0.5, s);
+    ctx.lineTo(-s * 0.5, s); ctx.lineTo(-s * 0.8, -s * 0.2); ctx.closePath();
+    ctx.lineWidth = 1.2; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-s * 0.8, -s * 0.2); ctx.lineTo(0, s * 0.3); ctx.lineTo(s * 0.8, -s * 0.2);
+    ctx.lineWidth = 0.8; ctx.stroke();
+  }
+  function drawGoalIcon(ctx, r) {
+    var s = r * 0.4;
+    ctx.beginPath(); ctx.arc(0, 0, s, 0, Math.PI * 2); ctx.lineWidth = 1.2; ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, s * 0.5, 0, Math.PI * 2); ctx.lineWidth = 0.8; ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, s * 0.15, 0, Math.PI * 2); ctx.fill();
+  }
+
+  function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+
+  var structEdges = [];
+
+  function initNodes() {
+    nodes = [];
+    structEdges = [];
+    var nameIndex = {};
+    for (var ni = 0; ni < types.length; ni++) nameIndex[types[ni].name] = 0;
+
+    for (var ci = 0; ci < clusters.length; ci++) {
+      var cl = clusters[ci];
+      var template = treeTemplates[ci % treeTemplates.length];
+      var baseIdx = ci * slotsPerCluster;
+
+      for (var si = 0; si < template.length; si++) {
+        var slot = template[si];
+        var type = typeMap[slot.type];
+        var r = type.minR + Math.random() * (type.maxR - type.minR);
+        var pool = namesByType[type.name];
+        var name = pool[nameIndex[type.name] % pool.length];
+        nameIndex[type.name]++;
+        var jitter = 0.015;
+        nodes.push({
+          x: (cl.xFrac + slot.dxFrac + (Math.random() - 0.5) * jitter) * canvas.width,
+          y: (cl.yFrac + slot.dyFrac + (Math.random() - 0.5) * jitter) * canvas.height,
+          targetDx: slot.dxFrac, targetDy: slot.dyFrac,
+          vx: (Math.random() - 0.5) * 0.4, vy: (Math.random() - 0.5) * 0.4,
+          r: r, type: type, name: name, cluster: ci
+        });
+      }
+      structEdges.push({ a: baseIdx, b: baseIdx + 1 });
+      structEdges.push({ a: baseIdx, b: baseIdx + 2 });
+      structEdges.push({ a: baseIdx + 1, b: baseIdx + 3 });
+      structEdges.push({ a: baseIdx + 2, b: baseIdx + 4 });
+    }
+  }
+
+  var monoFont = '';
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (!monoFont) {
+      monoFont = getComputedStyle(document.documentElement).getPropertyValue('--font-mono').trim();
+    }
+
+    for (var sei = 0; sei < structEdges.length; sei++) {
+      var se = structEdges[sei];
+      var nA = nodes[se.a], nB = nodes[se.b];
+      var cA2 = nA.type.color, cB2 = nB.type.color;
+      var sr = (cA2[0] + cB2[0]) >> 1, sg = (cA2[1] + cB2[1]) >> 1, sb = (cA2[2] + cB2[2]) >> 1;
+      ctx.beginPath(); ctx.moveTo(nA.x, nA.y); ctx.lineTo(nB.x, nB.y);
+      ctx.strokeStyle = 'rgba(' + sr + ',' + sg + ',' + sb + ', 0.3)';
+      ctx.lineWidth = 0.8; ctx.stroke();
+      var smx = (nA.x + nB.x) / 2, smy = (nA.y + nB.y) / 2;
+      var pairKey = nA.type.name + '-' + nB.type.name;
+      var label = edgeLabels[pairKey] || 'relatedTo';
+      var sAngle = Math.atan2(nB.y - nA.y, nB.x - nA.x);
+      if (sAngle > Math.PI / 2) sAngle -= Math.PI;
+      if (sAngle < -Math.PI / 2) sAngle += Math.PI;
+      ctx.save(); ctx.translate(smx, smy); ctx.rotate(sAngle);
+      ctx.font = '9px ' + monoFont; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = 'rgba(' + sr + ',' + sg + ',' + sb + ', 0.35)';
+      ctx.fillText(label, 0, -7); ctx.restore();
+    }
+
+    var pad = 30;
+    for (var k = 0; k < nodes.length; k++) {
+      var n = nodes[k], c = n.type.color;
+      ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ', 0.15)'; ctx.fill();
+      ctx.strokeStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ', 0.35)';
+      ctx.lineWidth = 1; ctx.stroke();
+      ctx.save(); ctx.translate(n.x, n.y);
+      ctx.fillStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ', 0.5)';
+      ctx.strokeStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ', 0.5)';
+      n.type.icon(ctx, n.r); ctx.restore();
+      ctx.font = '11px ' + monoFont; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      ctx.fillStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ', 0.5)';
+      ctx.fillText(n.name, n.x, n.y + n.r + 5);
+    }
+
+    var gravity = 0.00006, repulse = 0.3, minSep = 50;
+    for (var pi = 0; pi < nodes.length; pi++) {
+      var pn = nodes[pi];
+      var cl = clusters[pn.cluster];
+      var targetX = (cl.xFrac + pn.targetDx) * canvas.width;
+      var targetY = (cl.yFrac + pn.targetDy) * canvas.height;
+      pn.vx += (targetX - pn.x) * gravity;
+      pn.vy += (targetY - pn.y) * gravity;
+      for (var pj = pi + 1; pj < nodes.length; pj++) {
+        var on = nodes[pj];
+        var rdx = pn.x - on.x, rdy = pn.y - on.y;
+        var rDist = Math.sqrt(rdx * rdx + rdy * rdy);
+        if (rDist < minSep && rDist > 0) {
+          var push = (minSep - rDist) / minSep * repulse;
+          var rnx = rdx / rDist, rny = rdy / rDist;
+          pn.vx += rnx * push * 0.01; pn.vy += rny * push * 0.01;
+          on.vx -= rnx * push * 0.01; on.vy -= rny * push * 0.01;
+        }
+      }
+    }
+
+    for (var mi = 0; mi < nodes.length; mi++) {
+      var mn = nodes[mi];
+      mn.vx *= 0.99; mn.vy *= 0.99; mn.x += mn.vx; mn.y += mn.vy;
+      if (mn.x < pad) { mn.x = pad; mn.vx *= -0.5; }
+      if (mn.x > canvas.width - pad) { mn.x = canvas.width - pad; mn.vx *= -0.5; }
+      if (mn.y < pad) { mn.y = pad; mn.vy *= -0.5; }
+      if (mn.y > canvas.height - pad) { mn.y = canvas.height - pad; mn.vy *= -0.5; }
+    }
+    requestAnimationFrame(draw);
+  }
+
+  resize(); initNodes(); draw();
+  window.addEventListener('resize', function() { resize(); initNodes(); });
+})();
+</script>
+
+</body>
+</html>

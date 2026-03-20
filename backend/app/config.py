@@ -47,6 +47,11 @@ class Settings(BaseSettings):
     # Debug mode
     debug: bool = False
 
+    # Demo mode — when True, all auth dependencies return a synthetic
+    # read-only guest user without checking session/cookie/DB.
+    # Set DEMO_MODE=true in env for the hosted demo instance.
+    demo_mode: bool = False
+
     # Rate limiting — disable for E2E test environments
     rate_limit_enabled: bool = True
 

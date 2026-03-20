@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T01",
+  "unitId": "M026/S02/T01",
+  "timestamp": 1774010965837,
+  "passed": true,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "grep -q 'styles.css' docs/from-obsidian.html",
+      "exitCode": 0,
+      "durationMs": 10,
+      "verdict": "pass"
+    }
+  ]
+}

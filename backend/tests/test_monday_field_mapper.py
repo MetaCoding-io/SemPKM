@@ -1064,3 +1064,146 @@ class TestEdgeCases:
         assert f"{BPKM}taskStatus" in props
         assert f"{BPKM}dueDate" in props
         assert f"{BPKM}tags" in props
+
+
+# ===================================================================
+# _extract_dependency tests
+# ===================================================================
+
+class TestExtractDependency:
+    def test_extract_dependency_normal(self):
+        val = json.dumps({"linkedPulseIds": [{"linkedPulseId": 123}]})
+        assert fm._extract_dependency(val) == [123]
+
+    def test_extract_dependency_multiple(self):
+        val = json.dumps({"linkedPulseIds": [
+            {"linkedPulseId": 100},
+            {"linkedPulseId": 200},
+            {"linkedPulseId": 300},
+        ]})
+        assert fm._extract_dependency(val) == [100, 200, 300]
+
+    def test_extract_dependency_empty_list(self):
+        val = json.dumps({"linkedPulseIds": []})
+        assert fm._extract_dependency(val) == []
+
+    def test_extract_dependency_none(self):
+        assert fm._extract_dependency(None) == []
+
+    def test_extract_dependency_missing_key(self):
+        val = json.dumps({})
+        assert fm._extract_dependency(val) == []
+
+    def test_extract_dependency_malformed_entry(self):
+        val = json.dumps({"linkedPulseIds": [{"foo": 1}]})
+        assert fm._extract_dependency(val) == []
+
+    def test_extract_dependency_mixed_valid_invalid(self):
+        val = json.dumps({"linkedPulseIds": [
+            {"linkedPulseId": 111},
+            {"badKey": 999},
+            {"linkedPulseId": 222},
+        ]})
+        assert fm._extract_dependency(val) == [111, 222]
+
+    def test_extract_dependency_string_value(self):
+        """JSON string wrapping — common for Monday.com column values."""
+        val = '{"linkedPulseIds": [{"linkedPulseId": 456}]}'
+        assert fm._extract_dependency(val) == [456]
+
+    def test_extract_dependency_already_parsed_dict(self):
+        val = {"linkedPulseIds": [{"linkedPulseId": 789}]}
+        assert fm._extract_dependency(val) == [789]
+
+    def test_extract_dependency_null_string(self):
+        assert fm._extract_dependency("null") == []
+
+    def test_extract_dependency_empty_string(self):
+        assert fm._extract_dependency("") == []
+
+    def test_extract_dependency_non_dict_linked_pulse_ids(self):
+        """linkedPulseIds is not a list — should return empty."""
+        val = json.dumps({"linkedPulseIds": "not a list"})
+        assert fm._extract_dependency(val) == []
+
+    def test_extract_dependency_registered_in_extractors(self):
+        """dependency type is registered in _EXTRACTORS."""
+        assert "dependency" in fm._EXTRACTORS
+        assert fm._EXTRACTORS["dependency"] is fm._extract_dependency
+
+
+# ===================================================================
+# build_task_properties — dependency column tests
+# ===================================================================
+
+class TestBuildTaskPropertiesWithDependency:
+    def test_dependency_column_stores_item_ids(self):
+        """Dependency column mapped → _dependency_item_ids in output."""
+        item = _make_item(column_values=[{
+            "id": "dep_col",
+            "type": "dependency",
+            "text": "",
+            "value": json.dumps({"linkedPulseIds": [{"linkedPulseId": 42}]}),
+        }])
+        mapping = {"dependency": "dep_col"}
+        props, _ = fm.build_task_properties(item, mapping)
+        assert props["_dependency_item_ids"] == [42]
+
+    def test_dependency_item_ids_not_in_bpkm_namespace(self):
+        """_dependency_item_ids is a temp key, not under BPKM namespace."""
+        item = _make_item(column_values=[{
+            "id": "dep_col",
+            "type": "dependency",
+            "text": "",
+            "value": json.dumps({"linkedPulseIds": [{"linkedPulseId": 99}]}),
+        }])
+        mapping = {"dependency": "dep_col"}
+        props, _ = fm.build_task_properties(item, mapping)
+        # No BPKM key should contain "dependency"
+        bpkm_dep_keys = [k for k in props if BPKM in k and "depend" in k.lower()]
+        assert bpkm_dep_keys == []
+        assert "_dependency_item_ids" in props
+
+    def test_dependency_empty_not_stored(self):
+        """Empty dependency list → no _dependency_item_ids key."""
+        item = _make_item(column_values=[{
+            "id": "dep_col",
+            "type": "dependency",
+            "text": "",
+            "value": json.dumps({"linkedPulseIds": []}),
+        }])
+        mapping = {"dependency": "dep_col"}
+        props, _ = fm.build_task_properties(item, mapping)
+        assert "_dependency_item_ids" not in props
+
+    def test_dependency_multiple_ids(self):
+        """Multiple dependency IDs are stored."""
+        item = _make_item(column_values=[{
+            "id": "dep_col",
+            "type": "dependency",
+            "text": "",
+            "value": json.dumps({"linkedPulseIds": [
+                {"linkedPulseId": 10},
+                {"linkedPulseId": 20},
+            ]}),
+        }])
+        mapping = {"dependency": "dep_col"}
+        props, _ = fm.build_task_properties(item, mapping)
+        assert props["_dependency_item_ids"] == [10, 20]
+
+    def test_dependency_coexists_with_other_properties(self):
+        """Dependency column works alongside other mapped columns."""
+        item = _make_item(column_values=[
+            {
+                "id": "status_col", "type": "status", "text": "Done",
+                "value": json.dumps({"label": "Done", "index": 5}),
+            },
+            {
+                "id": "dep_col", "type": "dependency", "text": "",
+                "value": json.dumps({"linkedPulseIds": [{"linkedPulseId": 55}]}),
+            },
+        ])
+        mapping = {"taskStatus": "status_col", "dependency": "dep_col"}
+        props, _ = fm.build_task_properties(item, mapping)
+        assert props[f"{BPKM}taskStatus"] == "done"
+        assert props["_dependency_item_ids"] == [55]

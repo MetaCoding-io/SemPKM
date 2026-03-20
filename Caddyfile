@@ -1,0 +1,15 @@
+# SemPKM Demo — Caddy Reverse Proxy Configuration
+#
+# Change "demo.sempkm.app" to your actual domain before deploying.
+# Caddy automatically obtains and renews TLS certificates from Let's Encrypt
+# when a valid domain is configured — no explicit tls block is needed.
+#
+# This runs on the host machine (not in Docker) and proxies to the
+# Docker nginx container on port 3902. See D246.
+
+demo.sempkm.app {
+	reverse_proxy localhost:3902
+
+	# Prevent search engines from indexing the demo instance
+	header X-Robots-Tag "noindex, nofollow"
+}

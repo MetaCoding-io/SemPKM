@@ -75,7 +75,7 @@
   - Verify: `cd backend && .venv/bin/python3 -m pytest tests/test_monday_column_mapping.py -v` — 50+ tests pass.
   - Done when: 50+ tests covering all column mapping routes, type compatibility filtering, label discovery from settings_str, client extension for groups and subitems, and error paths.
 
-- [ ] **T04: Sync engine unit tests** `est:1h`
+- [x] **T04: Sync engine unit tests** `est:1h`
   - Why: Proves the sync engine handles all cases — create/update classification, two-phase bulk, group→taskGroup, subitem→parentTask, per-item error isolation, content comparison, and edge cases.
   - Files: `backend/tests/test_monday_sync_engine.py`
   - Do: Create test file using the importlib loading pattern. Build MockStateClient, MockSettingsClient, MockGraphClient, MockHttpClient following the Jira sync test pattern (MockGraphClient dispatches on SPARQL content to return slug lookups, email lookups, body text). Test `_find_existing_task()` SPARQL lookup (found/not-found). Test `pull_sync()` full pipeline: auth check, skip when not connected, skip when no boards selected, single board create, single board update, multiple boards, group→taskGroup from item.group, subitem→parentTask edge creation, per-item error isolation, empty results. Test Phase 1/Phase 2 command structure. Test content comparison for change detection. Test `push_sync()` returns skipped stub. Test `_make_result()` and `_compute_status()` helpers.

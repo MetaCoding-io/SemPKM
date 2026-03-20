@@ -63,6 +63,8 @@ setup to advanced topics like SPARQL queries and creating your own Mental Models
 34. [Linear Sync](34-linear-sync.md)
 35. [GitHub Sync](35-github-sync.md)
 36. [Jira Sync](36-jira-sync.md)
+37. [Monday.com Sync](37-monday-sync.md)
+38. [Hosted Demo](38-hosted-demo.md)
 
 ## Part IX: Identity and Federation
 

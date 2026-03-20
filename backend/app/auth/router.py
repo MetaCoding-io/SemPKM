@@ -62,6 +62,10 @@ def _get_auth_service(request: Request) -> AuthService:
 @router.get("/status", response_model=StatusResponse)
 async def auth_status(request: Request):
     """Public endpoint: whether setup is complete and setup_mode is active."""
+    # In demo mode, always report setup as complete so the client JS
+    # skips the setup wizard redirect and lets anonymous users through.
+    if settings.demo_mode:
+        return StatusResponse(setup_complete=True, setup_mode=False)
     auth_service = _get_auth_service(request)
     setup_complete = await auth_service.is_setup_complete()
     setup_mode = getattr(request.app.state, "setup_mode", False)
