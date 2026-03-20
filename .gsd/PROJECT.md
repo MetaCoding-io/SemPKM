@@ -484,8 +484,8 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - 7-step Driver.js tour, demo dashboard, CTA banner, Caddy SSL, periodic reset cron
 - E2E Playwright test, Chapter 38 user guide, 3 DEMO requirements validated
 
-**Homepage & Messaging Rewrite** — queued (M026, depends on M025)
-- Outcome-focused messaging, persona paths, competitive positioning
+**Homepage & Messaging Rewrite** — complete (M026, 2026-03-20)
+- Outcome-focused homepage, 3 persona landing pages, competitive positioning, fresh screenshots, Lighthouse 0.99
 
 **Notion Import** — queued (M027, depends on M011)
 - Notion workspace import wizard (ZIP first, API later), mirroring Obsidian pattern
@@ -526,7 +526,20 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current State
 
-**Latest shipped: M025 Hosted Demo Instance (2026-03-20)**
+**Latest shipped: M026 Homepage & Messaging Rewrite (2026-03-20)**
+
+**What shipped in M026 (Homepage & Messaging Rewrite):**
+- Outcome-focused homepage rewrite replacing technology-first messaging ("Semantics-Native PKM built on RDF/SHACL/SPARQL") with user-value-first copy
+- 3 persona landing pages: "Coming from Obsidian", "Coming from Notion", "Starting Fresh" — each with tailored messaging, feature comparisons, and migration-specific CTAs
+- Competitive comparison table positioning SemPKM vs Obsidian/Notion/Tana/Capacities
+- "Domain Kits" framing for Mental Models (no ontology jargon above the fold)
+- Shared CSS design system (docs/styles.css) with responsive breakpoints, dark theme, animated hero graph
+- "Try the Demo" CTA linking to M025 hosted demo instance, "Self-host" CTA linking to Docker quickstart docs
+- 5 fresh screenshots from demo stack (workspace overview, explorer types, command palette, spatial canvas, object read)
+- Deferred Google Fonts loading (media="print" onload pattern) — Lighthouse mobile performance 0.99
+- Complete SEO tags: meta descriptions, OG tags with absolute og:image URLs, JSON-LD structured data (Organization + WebSite) on all 4 pages
+- Responsive layout verified at 375px, 768px, 1200px+ — no horizontal overflow, hamburger menu at mobile, full nav at desktop
+- All internal links verified working, HTML well-formed, CNAME preserved for GitHub Pages
 
 **What shipped in M025 (Hosted Demo Instance):**
 - Pre-populated, publicly accessible SemPKM demo instance removing Docker as the #1 conversion barrier

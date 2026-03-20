@@ -69,7 +69,7 @@ This milestone is complete only when all are true:
 - [x] **S02: Persona landing path pages** `risk:low` `depends:[S01]`
   > After this: Visitor clicks "Coming from Obsidian" / "Coming from Notion" / "Starting Fresh" on homepage and lands on dedicated pages with tailored messaging, feature comparisons, and CTAs specific to their background
 
-- [ ] **S03: Screenshots, mobile polish, and SEO verification** `risk:low` `depends:[S01,S02]`
+- [x] **S03: Screenshots, mobile polish, and SEO verification** `risk:low` `depends:[S01,S02]`
   > After this: All pages have fresh screenshots from current UI, pass Lighthouse mobile audit (≥90 performance), have complete SEO meta tags and OG images, all links verified working, responsive layout confirmed at 3 breakpoints
 
 ## Boundary Map
