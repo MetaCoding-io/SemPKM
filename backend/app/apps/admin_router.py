@@ -89,9 +89,46 @@ async def admin_apps_list(
             "description": manifest.description if manifest else "",
         })
 
+    # Discover available (not yet installed) apps on disk
+    available_apps = []
+    installed_ids = set(app_ids)
+    apps_dir = app_manager._apps_dir
+    if apps_dir.is_dir():
+        for child in sorted(apps_dir.iterdir()):
+            if not child.is_dir():
+                continue
+            manifest_path = child / "manifest.yaml"
+            if not manifest_path.exists():
+                continue
+            candidate_id = child.name
+            if candidate_id in installed_ids:
+                continue
+            # Parse minimal manifest info for display
+            try:
+                import yaml
+                with open(manifest_path) as f:
+                    raw = yaml.safe_load(f)
+                available_apps.append({
+                    "app_id": candidate_id,
+                    "name": raw.get("name", candidate_id),
+                    "description": raw.get("description", ""),
+                    "version": raw.get("version", "0.0.0"),
+                    "path": str(child),
+                })
+            except Exception as exc:
+                logger.warning("Failed to parse manifest for %s: %s", candidate_id, exc)
+                available_apps.append({
+                    "app_id": candidate_id,
+                    "name": candidate_id,
+                    "description": f"(manifest parse error: {exc})",
+                    "version": "?",
+                    "path": str(child),
+                })
+
     context = {
         "request": request,
         "apps": apps,
+        "available_apps": available_apps,
         "user": user,
         "active_page": "admin",
     }
