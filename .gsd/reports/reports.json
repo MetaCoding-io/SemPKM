@@ -147,6 +147,22 @@
       "doneMilestones": 17,
       "totalMilestones": 30,
       "phase": "pre-planning"
+    },
+    {
+      "filename": "M022-2026-03-20T03-33-06.html",
+      "generatedAt": "2026-03-20T03:33:06.291Z",
+      "milestoneId": "M022",
+      "milestoneTitle": "Asana Sync App",
+      "label": "M022: Asana Sync App",
+      "kind": "milestone",
+      "totalCost": 197.80428149999992,
+      "totalTokens": 245514807,
+      "totalDuration": 33351676,
+      "doneSlices": 167,
+      "totalSlices": 167,
+      "doneMilestones": 22,
+      "totalMilestones": 30,
+      "phase": "pre-planning"
     }
   ]
 }
