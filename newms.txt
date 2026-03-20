@@ -1,1 +1,16 @@
-views redo + more consistent use of saved queries; workflow + dashboard need some helptext like our object shacl forms; any form here that refers to an object or type should have approrpiate autocomplete; user can create custom forms like custom views that will allow users to create multiple objects at once on a custom form. this still uses shacl. this is where we consider for dahsboards, views and now forms a way to building them via blocks like notion; our test data should have some sample dashboards and workflows;
+We need another views redo: in a previous milestone, we re-did our views by not having a Table view per Type but just having a table View. And while we sorta have that, we still have a 'view picker' in the view. why should we have a view pickker when the menu entries say 'Graph View' or 'Card View'. The user already chose which view by clicking on it. the top toolbar is nice in that it allows a quick subfilter by type. we should also have the ability to pull from a saved named query while addditionally filtering by type. we should also have the user create mutiple views in the browser. i may want mutiple graph views of different named queries. or a card view next to a graph view. Also there is a 'saved views' which does not work in the ui. this might mean we have backend functionality for saving views the user can open again. also in the graph view, the tooltip we have for nodes is hidden underneath the top toolbar. all views should use 100% height. we should also have a new kanban view
+
+more consistent use of saved queries; initially we agreed that saved queries would be very prominent in the ui. we need to do that and have saved queries in vfs, spatial canvas, views (see above), the object browser's dropdown, 
+ 
+workflow + dashboard need some helptext like our object shacl forms; any form in the workflow and dashboard ui here it refers to an object or type should have approrpiate autocomplete; also in workflow, choosing a view is odd as I do not udnertand why we need to select Renderer. The user should be able to choose from provided  views and saved views. each view would know how to render itself. provided views uses all objects; saved views use whatever is configured in the saved view;
+
+The user can create custom forms like custom views that will allow users to create multiple objects at once on a custom screen. this still uses shacl. this is where we consider that for hsboards, views and now forms a way of building them via blocks like notion. this feature, using blocks as a way of organizing custom uis (dashboards, forms, views), will require some research, especially on the data model for how we store this in rdf. forms will require a 'widget' library. notion is our biggest inspiration as well as building zabbix dashboards.
+
+our test data should have some sample dashboards and workflows;
+
+in the mental models screen, the graph that we show for 'relationships' is nice but the grapp should be full width and full height, giving ample room in the ui for the nodes. edges should also have a tooltip hover that shows domain range and rdfs description or whatever metadata we have on it
+
+
+In the ontology viewer, th right hand panel that shows the selected type's summary informaiton, i would like the property name to have a hover tooltip that shows the description of that property to hel pthe user know what the property is for.
+
+

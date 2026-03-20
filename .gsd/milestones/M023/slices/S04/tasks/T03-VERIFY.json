@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T03",
+  "unitId": "M023/S04/T03",
+  "timestamp": 1773985778950,
+  "passed": true,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "grep \"36.*Jira\" docs/guide/README.md",
+      "exitCode": 0,
+      "durationMs": 11,
+      "verdict": "pass"
+    },
+    {
+      "command": "grep -i \"jira sync\" docs/guide/appendix-d-glossary.md",
+      "exitCode": 0,
+      "durationMs": 10,
+      "verdict": "pass"
+    }
+  ]
+}

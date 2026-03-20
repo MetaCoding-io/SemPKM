@@ -510,3 +510,36 @@ Three-part milestone: (1) Fix the production validation pipeline — `model_shap
 
 **Context:** `.gsd/milestones/M030/M030-CONTEXT.md`
 **Key discovery:** Production `ValidationService` only loads `:shapes` graphs and omits `advanced=True` — all M011 SPARQLConstraint rules (overdue tasks, stale contacts, etc.) are silently broken in the live app.
+
+---
+
+## Views Overhaul, Saved Queries as First-Class, & UI Polish
+
+**Queued:** 2026-03-20
+**Status:** Queued as M031
+
+Overhaul the views system: remove the redundant carousel view picker (user already chose via sidebar), add saved query scoping to all views, support multiple ephemeral view instances that can be saved as named views, add a new kanban renderer (status-based with drag-drop), and fix full-height layout + graph tooltip z-index.
+
+Make saved queries prominent throughout: explorer sidebar, VFS browser, spatial canvas, view toolbar scope dropdown, and object browser dropdown.
+
+SPARQL console polish: graph visualization of results, clickable object links in table, `urn:sempkm:model:*` prefix shortening.
+
+Ontology viewer: property description tooltips in TBox detail, full-size model relationship graph with edge tooltips (domain, range, description).
+
+Dashboard/workflow UX: contextual help text, autocomplete for type/object fields, simplified workflow view step (remove Renderer dropdown — views know their own renderer), sample dashboards and workflows in seed data.
+
+**Context:** `.gsd/milestones/M031/M031-CONTEXT.md`
+
+---
+
+## Block-Based Custom UI Builder (Research & Design)
+
+**Queued:** 2026-03-20
+**Status:** Queued as M032 (depends on M031)
+
+Research and design for a Notion/Zabbix-inspired block composition system. Users build custom dashboards, views, and multi-object creation forms by arranging reusable widget blocks. Research covers: RDF data model for block layouts, widget type registry and config schemas, layout engine approach (linear blocks vs. 2D grid), and custom SHACL-form blocks for multi-object creation workflows.
+
+Deliverables: research document (Notion/Zabbix survey), design document (RDF data model, widget registry, form semantics), proof-of-concept (minimal block editor with 2-3 widget types), and widget inventory with config schemas.
+
+**Context:** `.gsd/milestones/M032/M032-CONTEXT.md`
+**Depends on:** M031
