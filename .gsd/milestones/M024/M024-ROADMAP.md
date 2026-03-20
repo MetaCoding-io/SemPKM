@@ -67,13 +67,13 @@ This milestone is complete only when all are true:
 - [x] **S01: Auth + GraphQL client + field mapper + person matcher** `risk:medium` `depends:[]`
   > After this: User can install Monday.com Sync, enter an API token, verify connection, and select boards to sync. Board columns are discovered and displayed. App scaffold with all 6 service modules, manifest, templates, and CSS exists. 150+ unit tests prove auth, client pagination/complexity, field mapper configurable transforms, and person matcher email resolution.
 
-- [ ] **S02: Column mapping configuration UI + pull sync** `risk:high` `depends:[S01]`
+- [x] **S02: Column mapping configuration UI + pull sync** `risk:high` `depends:[S01]`
   > After this: User configures which Monday.com columns map to which properties via type-filtered dropdowns, maps custom status/priority labels to bpkm enum values, and triggers sync. Monday.com items appear as correctly-mapped bpkm:Task objects with groups as taskGroup and subitems linked via parentTask. 150+ unit tests prove configurable transforms and sync orchestration.
 
-- [ ] **S03: Push sync + LoopGuard + dependency edges** `risk:medium` `depends:[S02]`
+- [x] **S03: Push sync + LoopGuard + dependency edges** `risk:medium` `depends:[S02]`
   > After this: User edits a task in SemPKM and changes push to Monday.com via column value mutations. Dependency columns create bpkm:dependsOn edges. LoopGuard prevents push→poll echo loops. Tag columns map to bpkm:tags. 100+ unit tests prove push pipeline, reverse column format, LoopGuard TTL, and dependency edge creation.
 
-- [ ] **S04: E2E tests + user guide** `risk:low` `depends:[S01,S02,S03]`
+- [x] **S04: E2E tests + user guide** `risk:low` `depends:[S01,S02,S03]`
   > After this: Mock Monday.com GraphQL server passes Docker selftest. Playwright E2E test exercises full install → auth → column mapping → sync → verify → push lifecycle. Chapter 37 user guide documents Monday.com setup with column mapping walkthrough.
 
 ## Boundary Map

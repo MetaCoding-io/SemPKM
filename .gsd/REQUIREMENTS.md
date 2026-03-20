@@ -1826,6 +1826,231 @@ _process_issue_links Phase 4 creates bpkm:dependsOn edges from "Blocks" links. I
 
 Mock Jira REST API server (12-check selftest). Playwright E2E test (12 phases). Chapter 36 user guide (383 lines, field mapping tables, statusCategory explanation, ADF conversion notes). README TOC, 3 glossary entries, appendix-a JIRA_API_URL, navigation chain Ch 35 → Ch 36 → Appendix A.
 
+### MON-01 — Monday.com API token authentication
+- Status: validated
+- Class: core-capability
+- Source: design (M024-ROADMAP.md)
+- Primary Slice: M024/S01
+- Acceptance: User enters API token, stored via StateClient, verified via `{ me { id name email } }` GraphQL query. Connection status shows username and masked token preview.
+
+31 auth unit tests prove API token storage, verification via me query, masked display, connection status dict. Auth header is bare `Authorization: <api_key>` (no Basic/Bearer prefix).
+
+### MON-02 — Board discovery and selection
+- Status: validated
+- Class: core-capability
+- Source: design (M024-ROADMAP.md)
+- Primary Slice: M024/S01
+- Acceptance: After authentication, user sees their boards with selection checkboxes. Board columns discovered with type metadata via `get_board_columns()`.
+
+64 client unit tests prove get_boards(), get_board_columns() with column type metadata. Board selection UI in connect_status.html with checkboxes and column discovery.
+
+### MON-03 — Column mapping configuration
+- Status: validated
+- Class: core-capability
+- Source: design (M024-ROADMAP.md)
+- Primary Slice: M024/S02
+- Acceptance: User configures which Monday.com columns map to which bpkm properties via type-filtered dropdowns. Per-board mapping stored as JSON in settings.
+
+107 column mapping unit tests prove COLUMN_TYPE_COMPATIBILITY filtering, per-board mapping save/load, route handler logic, error paths.
+
+### MON-04 — Status label mapping
+- Status: validated
+- Class: core-capability
+- Source: design (M024-ROADMAP.md)
+- Primary Slice: M024/S02
+- Acceptance: User maps Monday.com custom status labels (e.g., "Working on it") to bpkm:taskStatus enum values (e.g., "in-progress").
+
+Column mapping tests prove settings_str JSON parsing discovers Monday.com labels, save-label-mapping stores status_label_mapping dict per board.
+
+### MON-05 — Priority label mapping
+- Status: validated
+- Class: core-capability
+- Source: design (M024-ROADMAP.md)
+- Primary Slice: M024/S02
+- Acceptance: User maps Monday.com custom priority labels to bpkm:taskPriority enum values.
+
+Column mapping tests prove priority label discovery and mapping to bpkm:taskPriority enum values, stored in label_mapping_{board_id}.
+
+### MON-06 — Pull sync (Monday.com items → bpkm:Task)
+- Status: validated
+- Class: core-capability
+- Source: design (M024-ROADMAP.md)
+- Primary Slice: M024/S02
+- Acceptance: User triggers sync and Monday.com items appear as bpkm:Task objects with correct field values derived from the user-configured column mapping.
+
+106 sync engine unit tests prove pull_sync creates/updates bpkm:Task objects with correct field values from stored column mapping, two-phase bulk create, per-item error isolation.
+
+### MON-07 — Groups as taskGroup
+- Status: validated
+- Class: core-capability
+- Source: design (M024-ROADMAP.md)
+- Primary Slice: M024/S02
+- Acceptance: Monday.com groups appear as taskGroup values on synced tasks. Group title sourced from item.group structural metadata, not column_values.
+
+Sync engine tests prove group title from item["group"]["title"] mapped to bpkm:taskGroup property per D243.
+
+### MON-08 — Subitems as parentTask
+- Status: validated
+- Class: core-capability
+- Source: design (M024-ROADMAP.md)
+- Primary Slice: M024/S02
+- Acceptance: Monday.com subitems appear as separate bpkm:Task objects with bpkm:parentTask edge linking to parent task.
+
+Sync engine tests prove get_subitems() fetches subitems with parent_item_id augmentation, Phase 3 creates bpkm:parentTask edges.
+
+### MON-09 — Push sync (SemPKM → Monday.com)
+- Status: validated
+- Class: core-capability
+- Source: design (M024-ROADMAP.md)
+- Primary Slice: M024/S03
+- Acceptance: User edits a task in SemPKM and changes push back to Monday.com via change_multiple_column_values mutations with correct per-column-type JSON format.
+
+53 push sync unit tests prove SPARQL change detection, reverse column mapping via build_reverse_column_values(), change_multiple_column_values mutation, lastSyncedAt update, per-task error isolation.
+
+### MON-10 — LoopGuard echo prevention
+- Status: validated
+- Class: core-capability
+- Source: design (M024-ROADMAP.md)
+- Primary Slice: M024/S03
+- Acceptance: LoopGuard prevents push→poll echo loops via in-memory TTL cache. Push marks item/column pairs; pull checks and skips echoed items within TTL window.
+
+25 LoopGuard unit tests + 8 pull integration tests + 3 push-pull round-trip tests prove TTL cache prevents re-import of pushed changes. Module-level singleton shared between push and pull sync.
+
+### MON-11 — Dependency edges
+- Status: validated
+- Class: core-capability
+- Source: design (M024-ROADMAP.md)
+- Primary Slice: M024/S03
+- Acceptance: Monday.com dependency column values create bpkm:dependsOn edges between tasks via linkedPulseIds JSON parsing.
+
+19 dependency tests prove _extract_dependency() parses dependency column values, _process_dependencies() creates bpkm:dependsOn edge.create commands with per-dependency error isolation.
+
+### MON-12 — Tags mapping
+- Status: validated
+- Class: core-capability
+- Source: design (M024-ROADMAP.md)
+- Primary Slice: M024/S03
+- Acceptance: Monday.com tag columns map to bpkm:tags. Tag IDs batch-resolved to names via get_tags() API per board.
+
+Tag resolution tests prove tag IDs collected during per-item processing, batch-resolved via MondayClient.get_tags() per board, names substituted into task properties. API failure falls back to string IDs.
+
+### MON-13 — Person matching
+- Status: validated
+- Class: core-capability
+- Source: design (M024-ROADMAP.md)
+- Primary Slice: M024/S01
+- Acceptance: Monday.com user IDs resolved to existing Person/Contact objects via SPARQL email lookup. Person created on miss with email-derived slug. LRU cache per sync run.
+
+27 person matcher unit tests prove 5-step cascade: cache → email SPARQL → API fetch → externalId fallback → create person. Numeric user_id stored as string for SPARQL compatibility.
+
+### MON-14 — E2E tests and mock server
+- Status: validated
+- Class: quality-attribute
+- Source: design (M024-ROADMAP.md)
+- Primary Slice: M024/S04
+- Acceptance: Mock Monday.com GraphQL server in Docker with selftest. Playwright E2E test covers install → auth → column mapping → sync → verify → push lifecycle.
+
+Mock Monday.com GraphQL server (697 lines, 12-check selftest, 10 query shapes). Playwright E2E test (13 phases, 372 lines). Docker compose mock-monday service with MONDAY_API_URL env var. mondaySync selector block (14 selectors).
+
+### MON-15 — User guide
+- Status: validated
+- Class: quality-attribute
+- Source: design (M024-ROADMAP.md)
+- Primary Slice: M024/S04
+- Acceptance: Chapter 37 user guide documents Monday.com setup, column mapping walkthrough, label mapping, LoopGuard, and troubleshooting.
+
+Chapter 37 (393 lines) with column mapping type compatibility table, status/priority label mapping, LoopGuard echo prevention, groups/subitems/dependencies, troubleshooting. README TOC, index.html sidebar, guide.html in-app page all updated. Appendix A MONDAY_API_URL entry. 3 glossary entries (Column Mapping, LoopGuard, Monday.com Sync).
+
+### DEMO-01 — Anonymous workspace access without login
+- Status: validated
+- Class: core-capability
+- Source: design (M025-ROADMAP.md)
+- Primary Slice: M025/S01
+- Acceptance: Anonymous visitor navigates to demo instance URL and sees the workspace immediately — no login page, no setup wizard, no redirect.
+
+DEMO_MODE=true env var makes get_current_user return synthetic guest user (id=00000000-..., email=demo@sempkm.app, role=guest). /api/auth/status returns setup_complete=true in demo mode. E2E Playwright test proves fresh browser hits /browser/ and sees workspace.
+
+### DEMO-02 — Read-only enforcement via nginx
+- Status: validated
+- Class: core-capability
+- Source: design (M025-ROADMAP.md)
+- Primary Slice: M025/S01
+- Acceptance: All write HTTP methods (POST/PUT/DELETE/PATCH) return 403 JSON error at the nginx layer for all routes except health check and auth status.
+
+nginx.demo.conf uses error_page 495 + @read_only named location to return 403 {"error": "Demo instance is read-only"} with application/json Content-Type. E2E Playwright test proves POST/PUT/DELETE/PATCH on multiple endpoints return 403.
+
+### DEMO-03 — Sample data with cross-model edges and validation triggers
+- Status: validated
+- Class: core-capability
+- Source: design (M025-ROADMAP.md)
+- Primary Slice: M025/S02
+- Acceptance: 30-50 interconnected sample objects across 4 Mental Models (basic-pkm, CRM, zettelkasten, research) are visible in the explorer, graph, and table views. Cross-model edges connect objects across model boundaries. Validation warnings appear on seed data (overdue task, stale contact, unprocessed fleeting note).
+
+scripts/seed-demo-data.py installs 3 additional models and creates 12 cross-model edges across all 5 model pairs + 10 rich markdown bodies. SPARQL verification confirms 74 objects, 4 models, 12 edges, 10 bodies. Idempotent re-runs confirmed. Browser-level visibility verified by E2E Playwright test (demo-full-flow.spec.ts test 1 confirms explorer sidebar has items, test 4 confirms dashboard renders with data).
+
+### DEMO-04 — Demo tour completes 7 steps without errors
+- Status: validated
+- Class: core-capability
+- Source: design (M025-ROADMAP.md)
+- Primary Slice: M025/S03
+- Acceptance: 7-step Driver.js tour starts on fresh anonymous session, auto-navigates between views (explorer, graph, object, lint, canvas, dashboard, CTA), and completes with localStorage flag set. Tour handles htmx timing with 500ms navigation delays.
+
+window.startDemoTour() in tutorials.js with 7 auto-navigating steps. Auto-start on first visit via workspace.html script block. localStorage sempkm_demo_tour_done flag set on completion. Custom event sempkm:demo-tour-done dispatched. E2E test demo-full-flow.spec.ts test 2 clicks through all tour steps and verifies localStorage flag.
+
+### DEMO-05 — Pre-built demo dashboard renders with cross-view context filtering
+- Status: validated
+- Class: core-capability
+- Source: design (M025-ROADMAP.md)
+- Primary Slice: M025/S03
+- Acceptance: Demo dashboard with deterministic UUID (aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee) renders with sidebar-main layout and two view-embed blocks demonstrating cross-view context filtering.
+
+Seed script Phase 4 creates DashboardSpec with deterministic UUID, sidebar-main layout, table+graph blocks. Tour step 6 opens dashboard via openDashboardTab(). E2E test demo-full-flow.spec.ts test 4 verifies dashboard tab opens and renders content.
+
+### DEMO-06 — CTA banner visible after tour completion with install link
+- Status: validated
+- Class: core-capability
+- Source: design (M025-ROADMAP.md)
+- Primary Slice: M025/S03
+- Acceptance: Dismissible "Try SemPKM" CTA banner appears after tour completion with GitHub install link, rocket icon, and dismiss button. localStorage persistence prevents re-showing after dismissal.
+
+Fixed-bottom .demo-cta-banner in workspace.html with slide-up animation. Shown on sempkm:demo-tour-done event (first visit) or on load when sempkm_demo_tour_done localStorage set (return visit). Dismiss sets sempkm_demo_cta_dismissed. E2E test demo-full-flow.spec.ts test 3 verifies CTA banner visibility and GitHub link presence.
+
+### DEMO-07 — Docker Compose with SSL termination
+- Status: validated
+- Class: core-capability
+- Source: design (M025-ROADMAP.md)
+- Primary Slice: M025/S04
+- Acceptance: docker-compose.demo.yml deploys full demo stack with Caddy reverse proxy providing automatic HTTPS via Let's Encrypt. X-Robots-Tag: noindex prevents search engine indexing.
+
+Caddyfile configures Caddy as host-level reverse proxy to Docker nginx on port 3902 with automatic Let's Encrypt HTTPS and X-Robots-Tag header. deploy-demo.sh includes DNS/SSL setup instructions.
+
+### DEMO-08 — Periodic reset mechanism
+- Status: validated
+- Class: core-capability
+- Source: design (M025-ROADMAP.md)
+- Primary Slice: M025/S04
+- Acceptance: Automated reset script restores clean demo state via 5-phase cycle (down → build → health wait → seed → verify) designed for 6-hourly cron execution.
+
+scripts/reset-demo.sh with set -euo pipefail, 120s health wait timeout, 5-phase progress output. Cron configuration documented in deploy-demo.sh. Log output to /var/log/sempkm-demo-reset.log.
+
+### DEMO-09 — Health monitoring
+- Status: validated
+- Class: core-capability
+- Source: design (M025-ROADMAP.md)
+- Primary Slice: M025/S04
+- Acceptance: Health check endpoint (/api/health) documented for external uptime monitoring services. Used by both reset and deploy scripts for readiness probing.
+
+Health endpoint documented in deploy-demo.sh for external monitoring (UptimeRobot, Healthchecks.io). Used by reset script for readiness detection with 120s timeout.
+
+### DEMO-10 — User guide documentation
+- Status: validated
+- Class: quality-attribute
+- Source: design (M025-ROADMAP.md)
+- Primary Slice: M025/S04
+- Acceptance: Chapter 38 documents complete demo deployment including DEMO_MODE configuration, docker-compose.demo.yml, seed script, Caddy SSL, periodic reset, CTA customization, health monitoring, and troubleshooting.
+
+docs/guide/38-hosted-demo.md (~329 lines). README.md TOC entry, index.html sidebar entry, guide.html in-app button all updated. DEMO_MODE row in Appendix A. "Demo Mode" and "Hosted Demo" glossary entries in Appendix D. Navigation chain Ch 37 → Ch 38 → Appendix A.
+
 ## Deferred
 
 ### TYPE-03 — Full SHACL shape editor with advanced constraints
@@ -2132,11 +2357,36 @@ Mock Jira REST API server (12-check selftest). Playwright E2E test (12 phases). 
 | GCAL-07 | core-capability | validated | M018/S03 | none | 4 all-day detection tests + full-event integration tests |
 | GCAL-08 | core-capability | validated | M018/S03 | S04 | 6 conference URL extraction tests — conferenceData + hangoutLink fallback |
 | GCAL-09 | quality-attribute | active | none | none | design: M018-ROADMAP.md |
+| MON-01 | core-capability | validated | M024/S01 | none | 31 auth unit tests — API token storage, verification, masked display |
+| MON-02 | core-capability | validated | M024/S01 | none | 64 client tests — get_boards/get_board_columns with board selection UI |
+| MON-03 | core-capability | validated | M024/S02 | none | 107 column mapping tests — type-filtered dropdowns, per-board mapping |
+| MON-04 | core-capability | validated | M024/S02 | none | column mapping tests — status label discovery + bpkm:taskStatus mapping |
+| MON-05 | core-capability | validated | M024/S02 | none | column mapping tests — priority label discovery + bpkm:taskPriority mapping |
+| MON-06 | core-capability | validated | M024/S02 | none | 106 sync engine tests — pull_sync creates Task objects from stored mapping |
+| MON-07 | core-capability | validated | M024/S02 | none | sync engine tests — group title from item.group → bpkm:taskGroup (D243) |
+| MON-08 | core-capability | validated | M024/S02 | none | sync engine tests — subitems as separate Tasks with parentTask edges |
+| MON-09 | core-capability | validated | M024/S03 | none | 53 push sync tests — change_multiple_column_values + reverse mapping |
+| MON-10 | core-capability | validated | M024/S03 | none | 25 LoopGuard + 8 integration + 3 round-trip tests — echo prevention |
+| MON-11 | core-capability | validated | M024/S03 | none | 19 dependency tests — bpkm:dependsOn edges from dependency columns |
+| MON-12 | core-capability | validated | M024/S03 | none | tag resolution tests — batch ID→name via get_tags(), fallback to string IDs |
+| MON-13 | core-capability | validated | M024/S01 | none | 27 person matcher tests — 5-step cascade with LRU cache |
+| MON-14 | quality-attribute | validated | M024/S04 | none | mock server (12 selftest) + 13-phase E2E spec + Docker compose |
+| MON-15 | quality-attribute | validated | M024/S04 | none | Ch 37 guide (393 lines) + 3 nav files + appendix + 3 glossary entries |
+| DEMO-01 | core-capability | validated | M025/S01 | none | DEMO_MODE auth bypass + /api/auth/status guard + E2E Playwright test |
+| DEMO-02 | core-capability | validated | M025/S01 | none | nginx.demo.conf error_page 495 + E2E Playwright test (POST/PUT/DELETE/PATCH → 403) |
+| DEMO-03 | core-capability | validated | M025/S02 | M025/S03, M025/S04 | 74 objects, 4 models, 12 cross-model edges, 10 bodies — SPARQL verified + E2E Playwright test confirms browser visibility |
+| DEMO-04 | core-capability | validated | M025/S03 | M025/S04 | 7-step Driver.js tour with auto-navigation + E2E click-through + localStorage flag verification |
+| DEMO-05 | core-capability | validated | M025/S03 | M025/S04 | deterministic UUID dashboard with sidebar-main layout + E2E dashboard render verification |
+| DEMO-06 | core-capability | validated | M025/S03 | M025/S04 | CTA banner with GitHub link + E2E visibility check |
+| DEMO-07 | core-capability | validated | M025/S04 | none | Caddyfile with automatic HTTPS + deploy script DNS/SSL instructions |
+| DEMO-08 | core-capability | validated | M025/S04 | none | reset-demo.sh 5-phase script with 120s health timeout + cron documentation |
+| DEMO-09 | core-capability | validated | M025/S04 | none | /api/health endpoint documented for external monitoring |
+| DEMO-10 | quality-attribute | validated | M025/S04 | none | Chapter 38 (~329 lines) + 3 nav files + appendix + 2 glossary entries |
 
 ## Coverage Summary
 
 - Active requirements: 25 (14 APP + 8 RSS + 3 GCAL)
-- Validated: 190 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 8 from M013 + 13 from M014 + 4 from M015 + 7 from M016 + 7 from M017 + 5 from M018 + 12 from M023 + 2 from other)
+- Validated: 215 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 8 from M013 + 13 from M014 + 4 from M015 + 7 from M016 + 7 from M017 + 5 from M018 + 12 from M023 + 15 from M024 + 10 from M025 + 2 from other)
 - Partial: 4 (EXT-14, EXT-18, EXT-20, EXT-21)
 - Deferred: 7 (TYPE-03, TYPE-04, MCP-01, NOTION-01, VIEW-06, VIEW-07, VFS-13)
 - Out of scope: 3

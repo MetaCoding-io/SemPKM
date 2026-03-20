@@ -142,3 +142,41 @@ App templates rendered by the SDK's `render_template()` are loaded into the work
 **Fix:** All htmx URLs in app templates must be prefixed with `/app/{app_id}/` so requests route through the `app_proxy_router` catch-all at `/app/{app_id}/{path:path}`. Example: `hx-post="/app/linear-sync/_fragments/connect/api-key"`.
 
 **Impact:** Any future app that uses htmx forms in its templates must follow this pattern. A better long-term fix would be to inject the prefix via a Jinja2 global or context variable from the SDK.
+
+## User guide has THREE files that must stay in sync
+
+**Discovery date:** 2026-03-19
+**Context:** M024 — Monday.com Sync App
+
+There are **three** places that list user guide chapters:
+
+1. `docs/guide/README.md` — markdown table of contents (source of truth)
+2. `docs/guide/index.html` — static HTML sidebar for the standalone docs site
+3. `backend/app/templates/guide.html` — in-app Docs & Tutorials page served at `/guide`
+
+When adding a new chapter (e.g., a sync app guide), all three files must be updated together. The in-app `guide.html` was missed for chapters 25–36 because it's a Jinja2 template with hardcoded `<button>` elements — not auto-generated from README.md.
+
+**Rule:** Any milestone that adds a user-guide chapter must update all three files. The docs update task should be part of the final slice or a dedicated docs slice.
+
+---
+
+### FastAPI Depends() Executes Before Function Body (D249, M025/S01/T01)
+
+**Problem:** If a dependency function uses `token: str = Depends(get_session_token)` and `get_session_token` raises 401 when no cookie is present, a `settings.demo_mode` check in the function body never runs — FastAPI resolves all `Depends()` arguments *before* entering the function.
+
+**Solution:** Replace the dependency chain with an optional parameter: `sempkm_session: str | None = Cookie(None)`. Then check `settings.demo_mode` as the first line. If not in demo mode, manually check for None and raise 401.
+
+**Rule:** When adding a bypass/override at the top of a dependency function, verify that no `Depends()` parameter can raise before the function body runs. If it can, inline the parameter extraction.
+
+### Container-side scripts need sys.path fix for app imports (M025/S02/T02)
+
+**Problem:** Python scripts mounted at `/app/scripts/` via Docker volume cannot import the `app` package because `/app` is not on `sys.path`. The default path only includes `/app/.venv/lib/...` and the script's own directory. Running `python /app/scripts/seed-demo-data.py` fails with `ModuleNotFoundError: No module named 'app'`.
+
+**Fix:** Add this block before any `from app.* import ...` statements:
+```python
+_app_root = str(Path(__file__).resolve().parent.parent)
+if _app_root not in sys.path:
+    sys.path.insert(0, _app_root)
+```
+
+**Rule:** Any new script under `scripts/` that imports from the `app` package must include this sys.path manipulation. FastAPI's uvicorn process doesn't need it because its working directory is `/app/`.

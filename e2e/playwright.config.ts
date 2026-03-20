@@ -87,5 +87,19 @@ export default defineConfig({
       fullyParallel: false,
       retries: 0,
     },
+    {
+      name: 'demo',
+      testMatch: /50-demo\/.*\.spec\.ts/,
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: 'http://localhost:3902',
+        /* Demo tests use fresh anonymous contexts — no auth needed */
+        trace: 'on-first-retry',
+        screenshot: 'only-on-failure',
+        video: 'off',
+      },
+      fullyParallel: false,
+      retries: 0,
+    },
   ],
 });

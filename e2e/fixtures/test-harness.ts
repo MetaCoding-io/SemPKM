@@ -46,11 +46,19 @@ async function globalSetup(config: FullConfig) {
   const isFederation = process.env.TEST_FEDERATION === '1' ||
     process.argv.some(arg => arg === 'federation' || arg === '--project=federation');
 
+  // Demo project runs against the demo compose stack on port 3902.
+  const isDemo = process.env.TEST_DEMO === '1' ||
+    process.argv.some(arg => arg === 'demo' || arg === '--project=demo');
+
   if (isFederation) {
     console.log('\nVerifying federation test environment...');
     await checkHealth('http://localhost:3911/api/health', 'Federation Instance A');
     await checkHealth('http://localhost:3912/api/health', 'Federation Instance B');
     console.log('Federation environment ready.\n');
+  } else if (isDemo) {
+    console.log('\nVerifying demo test environment at http://localhost:3902...');
+    await checkHealth('http://localhost:3902/api/health', 'Demo environment');
+    console.log('Demo environment ready.\n');
   } else {
     const baseURL = process.env.TEST_BASE_URL || 'http://localhost:3901';
     console.log(`\nVerifying test environment at ${baseURL}...`);

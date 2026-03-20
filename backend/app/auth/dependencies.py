@@ -6,6 +6,7 @@ Bearer API token and verify against the database.
 """
 
 import logging
+import uuid as _uuid
 from datetime import UTC, datetime, timedelta
 
 from fastapi import Cookie, Depends, Header, HTTPException, Request, status
@@ -17,6 +18,31 @@ from app.config import settings
 from app.db.session import get_db_session
 
 logger = logging.getLogger(__name__)
+
+# Deterministic UUID for the synthetic demo user — never persisted to DB.
+_DEMO_USER_UUID = _uuid.UUID("00000000-0000-0000-0000-000000000000")
+
+# Track whether we've logged the demo-mode activation message.
+_demo_mode_logged = False
+
+
+def _demo_user() -> User:
+    """Return a transient synthetic User for DEMO_MODE.
+
+    The object is NOT added to any session — it exists only in memory.
+    Role is "guest" so that downstream role checks restrict write access.
+    """
+    global _demo_mode_logged
+    if not _demo_mode_logged:
+        logger.info("DEMO_MODE active — returning synthetic guest user")
+        _demo_mode_logged = True
+
+    return User(
+        id=_DEMO_USER_UUID,
+        email="demo@sempkm.app",
+        display_name="Demo Visitor",
+        role="guest",
+    )
 
 
 def _utcnow() -> datetime:
@@ -44,16 +70,30 @@ async def get_session_token(
 
 
 async def get_current_user(
-    token: str = Depends(get_session_token),
+    sempkm_session: str | None = Cookie(None),
     db: AsyncSession = Depends(get_db_session),
 ) -> User:
     """Look up session in DB and return the authenticated user.
 
+    In DEMO_MODE, returns a synthetic guest user immediately without
+    any cookie or DB check.
+
     Implements sliding window: if session is past 50% of its lifetime,
     extend it by the full configured duration.
 
-    Raises 401 if session is missing or expired.
+    Raises 401 if session is missing or expired (non-demo mode).
     """
+    if settings.demo_mode:
+        return _demo_user()
+
+    # Require cookie (replaces the old get_session_token dependency)
+    if sempkm_session is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+        )
+    token = sempkm_session
+
     now = _utcnow()
     result = await db.execute(
         select(UserSession).where(
@@ -140,9 +180,13 @@ async def optional_current_user(
 ) -> User | None:
     """Same as get_current_user but returns None instead of 401.
 
+    In DEMO_MODE, returns a synthetic guest user (never None).
+
     For endpoints that behave differently for authenticated vs unauthenticated
     users (e.g., the setup status page).
     """
+    if settings.demo_mode:
+        return _demo_user()
     if sempkm_session is None:
         return None
 
@@ -190,9 +234,13 @@ async def get_current_user_or_api(
     2. Bearer token from ``Authorization`` header — verified via ``AuthService``
     3. If neither succeeds, raises HTTP 401.
 
+    In DEMO_MODE, returns a synthetic guest user immediately.
+
     This is the standard dependency for M013 API-surface endpoints that
     must accept both htmx (cookie) and external (Bearer) clients.
     """
+    if settings.demo_mode:
+        return _demo_user()
     # --- Path 1: session cookie ---
     if sempkm_session is not None:
         now = _utcnow()

@@ -370,6 +370,38 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - ✓ JIRA-12: E2E tests + user guide — mock server (12 selftest), 12-phase E2E, Chapter 36 — M023
 - ✓ 385 unit tests across 6 test files, mock Jira REST API server, Playwright E2E test, Chapter 36 user guide — M023
 
+### Validated (M024 — Monday.com Sync App)
+
+<!-- Shipped and confirmed in M024 (2026-03-20). -->
+
+- ✓ Monday.com Sync app: configurable column mapping UI, bidirectional sync with LoopGuard echo prevention — M024
+- ✓ API token authentication, board discovery, column schema discovery with settings_str parsing — M024
+- ✓ Pull sync: items → bpkm:Task with groups as taskGroup, subitems as parentTask, dependencies as dependsOn — M024
+- ✓ Push sync: reverse column mapping with per-column-type JSON format, change_multiple_column_values mutations — M024
+- ✓ Status/priority label mapping from Monday.com custom labels to bpkm enum values — M024
+- ✓ LoopGuard TTL cache module preventing push→poll echo loops in bidirectional mode — M024
+- ✓ Mock Monday.com GraphQL server (12-check selftest), 13-phase Playwright E2E test — M024
+- ✓ User guide Chapter 37 (393 lines), 3 glossary entries, appendix MONDAY_API_URL — M024
+- ✓ 607 unit tests across 7 test files, all passing in <1s — M024
+
+### Validated (M025 — Hosted Demo Instance)
+
+<!-- Shipped and confirmed in M025 (2026-03-20). -->
+
+- ✓ DEMO_MODE anonymous access: synthetic guest user bypass in all three auth dependencies, no DB access — M025
+- ✓ Setup wizard bypass: /api/auth/status returns setup_complete=true in demo mode — M025
+- ✓ Read-only enforcement: nginx default-deny POST/PUT/DELETE/PATCH → 403 JSON via error_page 495 pattern — M025
+- ✓ docker-compose.demo.yml: 3-service demo stack on ports 3902/8902 with DEMO_MODE=true — M025
+- ✓ 74 sample objects across 4 Mental Models with 12 cross-model edges and 10 rich markdown bodies — M025
+- ✓ 7-step Driver.js demo tour with auto-navigation, restart button, localStorage completion tracking — M025
+- ✓ Pre-built demo dashboard with sidebar-main layout and cross-view context filtering — M025
+- ✓ Dismissible CTA banner with slide-up animation, GitHub install link, localStorage persistence — M025
+- ✓ Caddy reverse proxy for automatic HTTPS via Let's Encrypt — M025
+- ✓ Periodic reset script (5-phase) with cron configuration documentation — M025
+- ✓ 14 backend unit tests + 9 E2E Playwright tests (4 read-only + 5 full-flow) — M025
+- ✓ User guide Chapter 38, DEMO_MODE in Appendix A, 2 glossary entries — M025
+- ✓ 10 DEMO requirements validated (DEMO-01 through DEMO-10) — M025
+
 ### Future Candidates
 
 <!-- Tracked for future milestones. See .gsd/QUEUE.md for full queue and .gsd/REQUIREMENTS.md for deferred requirements. -->
@@ -446,8 +478,11 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Calendar providers: Google Calendar (M018), Outlook (M020), CalDAV (M021)
 - Design: `.gsd/design/INTEGRATION-DOMAIN-MAPPING.md`
 
-**Hosted Demo Instance** — queued (M025, depends on M011)
+**Hosted Demo Instance** — complete (M025, 2026-03-20)
 - Pre-populated public instance with guided tour, sample data, read-only access
+- DEMO_MODE anonymous access, nginx write-blocking, 74 sample objects across 4 Mental Models
+- 7-step Driver.js tour, demo dashboard, CTA banner, Caddy SSL, periodic reset cron
+- E2E Playwright test, Chapter 38 user guide, 3 DEMO requirements validated
 
 **Homepage & Messaging Rewrite** — queued (M026, depends on M025)
 - Outcome-focused messaging, persona paths, competitive positioning
@@ -491,8 +526,42 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current State
 
-**Latest shipped: M023 Jira Sync App (2026-03-19)**
-**Status: M023 complete — all 4 slices delivered**
+**Latest shipped: M025 Hosted Demo Instance (2026-03-20)**
+
+**What shipped in M025 (Hosted Demo Instance):**
+- Pre-populated, publicly accessible SemPKM demo instance removing Docker as the #1 conversion barrier
+- DEMO_MODE anonymous access: synthetic guest user bypass in auth dependencies, no DB access, no login page
+- Read-only enforcement via nginx default-deny: POST/PUT/DELETE/PATCH → 403 JSON at nginx layer
+- docker-compose.demo.yml: 3-service demo stack on ports 3902/8902 with DEMO_MODE=true
+- 74 interconnected sample objects across 4 Mental Models (basic-pkm, CRM, zettelkasten, research) with 12 cross-model edges and 10 rich markdown bodies
+- 7-step Driver.js demo tour auto-starting on first visit, covering explorer, graph, object view, validation, canvas, dashboard, and CTA
+- Pre-built demo dashboard with sidebar-main layout and cross-view context filtering (deterministic UUID shared between JS and Python)
+- Dismissible "Try SemPKM" CTA banner with GitHub install link, slide-up animation, localStorage persistence
+- Caddy reverse proxy for automatic HTTPS via Let's Encrypt (Caddyfile)
+- Periodic reset cron via reset-demo.sh (5-phase: down → build → health → seed → verify, 120s timeout)
+- 14 backend unit tests for demo mode auth bypass
+- 9 E2E Playwright tests across 2 spec files (4 read-only + 5 full-flow) in demo project
+- User guide Chapter 38 (~329 lines) with deployment instructions, DEMO_MODE in Appendix A, 2 glossary entries
+- 10 DEMO requirements validated (DEMO-01 through DEMO-10), 8 key decisions (D244–D253)
+
+**What shipped in M024 (Monday.com Sync App):**
+- Monday.com Sync bidirectional sync app — 9th task provider integration on the App Platform
+- Single API token authentication with StateClient storage and connection verification
+- MondayClient GraphQL client with cursor pagination, complexity tracking, and 4-level error hierarchy (MondayApiError, MondayAuthError, MondayRateLimitError, MondayComplexityError)
+- User-configurable column mapping: type-filtered dropdowns mapping board columns to bpkm properties (D228 pattern from Asana, refined here)
+- Status/priority label mapping: custom Monday.com labels (e.g., "Working on it") → bpkm enum values via settings_str JSON parsing
+- Per-board mapping storage (D242): independent column and label configs for multi-board sync
+- Pull sync: Monday.com items → bpkm:Task with groups as taskGroup (D243: from item.group, not column_values), subitems linked via parentTask, dependencies as dependsOn edges
+- Push sync: SPARQL change detection → reverse column mapping → change_multiple_column_values mutations with per-column-type JSON format
+- LoopGuard echo prevention (D241): in-memory TTL cache (30s default) preventing push→poll infinite loops
+- Tag column → bpkm:tags mapping with batch tag ID resolution via get_tags() API
+- Person matcher: Monday.com user_id → SPARQL email lookup → Person creation on miss with LRU cache
+- Mock Monday.com GraphQL server (697 lines, 12-check selftest, 10 query shapes) wired as Docker test stack service
+- Playwright E2E test (13 phases) covering full install → auth → column mapping → label mapping → sync → verify → push lifecycle
+- User guide Chapter 37 (393 lines) with column mapping walkthrough, label mapping, LoopGuard docs, troubleshooting
+- 607 unit tests across 7 test files (auth, client, field_mapper, person_matcher, sync_engine, loop_guard, app_routes)
+- 3 glossary entries (Column Mapping, LoopGuard, Monday.com Sync), appendix MONDAY_API_URL
+- 15 MON requirements covered (MON-01 through MON-15), 3 key decisions (D241, D242, D243)
 
 **What shipped in M023 (Jira Sync App):**
 - Jira Cloud bidirectional sync app with API token authentication (email + token + site URL)
@@ -618,9 +687,9 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - E2E test coverage: 5 new Playwright tests across 3 spec files
 - User guide: 4 chapters updated with new feature documentation
 
-**Previous milestones:** M023 Jira Sync App (2026-03-19), M017 GitHub Issues Sync App (2026-03-18), M016 Linear Sync App (2026-03-18), M015 Browser Extension Phase 2 (2026-03-18), M014 Browser Extension Phase 1 (2026-03-18), M013 API Surface for External Clients (2026-03-17), M012 Workspace & Event Log Polish (2026-03-17), M011 Mental Models Expansion (2026-03-17), M008 Spatial Canvas (2026-03-16), M007 Generic Views, VFS Completion & Polish (2026-03-16), M006 Dashboards, Workflows & Platform Alignment (2026-03-15), M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
+**Previous milestones:** M025 Hosted Demo Instance (2026-03-20), M024 Monday.com Sync App (2026-03-20), M023 Jira Sync App (2026-03-19), M017 GitHub Issues Sync App (2026-03-18), M016 Linear Sync App (2026-03-18), M015 Browser Extension Phase 2 (2026-03-18), M014 Browser Extension Phase 1 (2026-03-18), M013 API Surface for External Clients (2026-03-17), M012 Workspace & Event Log Polish (2026-03-17), M011 Mental Models Expansion (2026-03-17), M008 Spatial Canvas (2026-03-16), M007 Generic Views, VFS Completion & Polish (2026-03-16), M006 Dashboards, Workflows & Platform Alignment (2026-03-15), M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
 
-**Latest shipped: M023 Jira Sync App (2026-03-19)**
+**Latest shipped: M025 Hosted Demo Instance (2026-03-20)**
 
 **What shipped in M013 (API Surface for External Clients):**
 - `GET /.well-known/sempkm` discovery endpoint with version, endpoints, auth methods, capabilities
@@ -637,12 +706,12 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Context
 
-**Current state (M015 complete 2026-03-18):**
+**Current state (M024 complete 2026-03-20):**
 - ~60k source LOC (52k Python, 8k JS) + CSS, HTML/Jinja2, JSON-LD
 - 6 Mental Models: basic-pkm v2.0, ppv, gist, crm v1.0, zettelkasten v1.0, research v1.0 (24 files across 4 model directories)
 - Tech stack: FastAPI + RDF4J (LuceneSail) + htmx/vanilla-web + SQLAlchemy (SQLite/PostgreSQL) + wsgidav + a2wsgi + Driver.js + Cytoscape.js + CodeMirror + dockview-core + Alembic + Yasgui CDN + ninja-keys + owlrl + pyshacl + mf2py + http-message-signatures + slowapi
 - Docker Compose deployment: 3 services (api, triplestore, frontend/nginx) + federation test compose (2 instances)
-- 58 phases, 80 plans completed across v1.0–v2.6; M002 (7 slices) + M003 (10 slices) + M004 (5 slices) + M005 (9 slices) + M006 (7 slices) + M007 (5 slices) + M008 (4 slices) + M011 (5 slices) + M012 (4 slices) + M013 (3 slices) + M014 (5 slices) + M015 (3 slices) + M016 (4 slices) + M017 (4 slices) + M023 (4 slices) milestones complete
+- 58 phases, 80 plans completed across v1.0–v2.6; M002 (7 slices) + M003 (10 slices) + M004 (5 slices) + M005 (9 slices) + M006 (7 slices) + M007 (5 slices) + M008 (4 slices) + M011 (5 slices) + M012 (4 slices) + M013 (3 slices) + M014 (5 slices) + M015 (3 slices) + M016 (4 slices) + M017 (4 slices) + M023 (4 slices) + M024 (4 slices) milestones complete
 - Backend test suite: 1225+ pytest unit tests, <5s, no Docker dependency
 - E2E test suite: 98 Playwright spec files covering all shipped features
 - Browser extension: `extension/` directory with Chrome MV3 + Firefox manifests, 11 JS modules (~2.5k LOC), 7 E2E tests (3 capture + 4 context overlay), 23 unit tests
@@ -659,6 +728,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Linear Sync app: first bidirectional sync app on App Platform — OAuth/API key auth, pull/push sync, field mapping, admin history, 150 unit tests, E2E test with mock API, Chapter 34 user guide
 - GitHub Issues Sync app: second sync app — PAT auth, issue+PR pull sync with timeline-based edge linking, push sync with loop prevention, 204 unit tests, mock REST API server, E2E test (partial), Chapter 35 user guide
 - Jira Sync app: bidirectional sync with ADF↔Markdown conversion, statusCategory normalization, Epic→Milestone mapping, issue link edges, push sync, 385 unit tests, mock REST API server, E2E test, Chapter 36 user guide
+- Monday.com Sync app: bidirectional sync with configurable column mapping, label mapping, LoopGuard echo prevention, GraphQL complexity tracking, 607 unit tests, mock GraphQL server, 13-phase E2E test, Chapter 37 user guide
 
 **Known tech debt:**
 - Cookie secure=False (local dev only — production config deferred)
@@ -782,4 +852,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-03-19 after M023 complete (Jira Sync App — 4 slices, ADF↔Markdown conversion, statusCategory normalization, Epic→Milestone mapping, issue link edges, push sync, 385 unit tests, mock REST API server, 12 JIRA requirements validated, Chapter 36 user guide)*
+*Last updated: 2026-03-20 after M025 complete (Hosted Demo Instance — 4 slices, DEMO_MODE anonymous access, nginx read-only enforcement, 74 sample objects across 4 models, 7-step Driver.js tour, demo dashboard, CTA banner, Caddy SSL, periodic reset, 14 unit tests + 9 E2E tests, 10 DEMO requirements validated, Chapter 38 user guide)*

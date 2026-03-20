@@ -4,6 +4,7 @@
  * Exposes:
  *   window.startWelcomeTour()       — "Welcome to SemPKM" workspace orientation
  *   window.startCreateObjectTour()  — "Creating Your First Object" htmx-gated tour
+ *   window.startDemoTour()          — "Demo Tour" 7-step auto-navigating tour for demo mode
  *
  * Driver.js IIFE namespace: window['driver.js'].driver (not window.driver.driver)
  * Loaded after driver.js.iife.js in base.html.
@@ -261,6 +262,195 @@
             side: 'top',
             align: 'center',
             showButtons: ['prev', 'done']
+          }
+        }
+      ]
+    });
+
+    driverObj.drive();
+  };
+
+  // ---------------------------------------------------------------------------
+  // Tour 3: Demo Tour (auto-navigation across workspace views)
+  // ---------------------------------------------------------------------------
+  //
+  // 7-step guided demo for anonymous visitors on the public demo instance.
+  // Auto-navigates between workspace views using existing globals:
+  //   openGenericViewTab, openTab, toggleBottomPanel, openCanvasTab, openDashboardTab
+  //
+  // Each navigation step uses onNextClick + lazy element + setTimeout to handle
+  // asynchronous DOM loading after view switches.
+  //
+  // Completion sets localStorage flag and dispatches custom event so the CTA
+  // banner (rendered in workspace.html) can react.
+  //
+  // Steps:
+  //   1. Explorer — browse objects by type
+  //   2. Graph View — visualise knowledge graph
+  //   3. Open an Object — typed properties and body
+  //   4. Validation/Lint — SHACL data quality
+  //   5. Spatial Canvas — infinite canvas
+  //   6. Dashboard — cross-filtering views
+  //   7. CTA — install prompt (centered, no element)
+
+  // Well-known demo dashboard (must match seed script Phase 5)
+  var DEMO_DASHBOARD_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+  var DEMO_DASHBOARD_NAME = 'Demo Dashboard';
+
+  window.startDemoTour = function () {
+    var driver = getDriver();
+    if (!driver) {
+      console.warn('[SemPKM] Driver.js not loaded — cannot start Demo tour');
+      return;
+    }
+
+    console.log('[SemPKM] Demo tour started');
+
+    var driverObj;
+
+    driverObj = driver({
+      showProgress: true,
+      onDestroyStarted: function () {
+        // Mark tour as completed and notify CTA banner
+        localStorage.setItem('sempkm_demo_tour_done', '1');
+        document.dispatchEvent(new CustomEvent('sempkm:demo-tour-done'));
+        console.log('[SemPKM] Demo tour completed');
+        driverObj.destroy();
+      },
+      steps: [
+        // Step 1 — Explorer (always-present DOM element)
+        // onNextClick navigates to graph view before advancing to step 2
+        {
+          element: '#section-objects',
+          popover: {
+            title: 'Your Knowledge Base',
+            description: 'Your knowledge base has objects across 4 Mental Models — browse them by type, hierarchy, or tags.',
+            side: 'right',
+            align: 'start',
+            onNextClick: function () {
+              if (typeof window.openGenericViewTab === 'function') {
+                window.openGenericViewTab('graph');
+              }
+              setTimeout(function () {
+                driverObj.moveNext();
+              }, 500);
+            }
+          }
+        },
+        // Step 2 — Graph View (navigated to by step 1's onNextClick)
+        // onNextClick opens a seed object before advancing to step 3
+        {
+          element: function () {
+            return document.querySelector('.group-editor-area');
+          },
+          popover: {
+            title: 'Graph View',
+            description: 'See your knowledge as an interconnected graph. Nodes represent objects and edges show relationships.',
+            side: 'left',
+            align: 'start',
+            onPrevClick: function () {
+              driverObj.movePrevious();
+            },
+            onNextClick: function () {
+              if (typeof window.openTab === 'function') {
+                window.openTab('urn:sempkm:model:basic-pkm:seed-note-architecture', 'Architecture Decision Records');
+              }
+              setTimeout(function () {
+                driverObj.moveNext();
+              }, 500);
+            }
+          }
+        },
+        // Step 3 — Object View (navigated to by step 2's onNextClick)
+        // onNextClick opens the bottom panel before advancing to step 4
+        {
+          element: function () {
+            return document.querySelector('.group-editor-area');
+          },
+          popover: {
+            title: 'Object View',
+            description: 'Every object has typed properties and a rich markdown body. Click the Edit button to modify.',
+            side: 'left',
+            align: 'start',
+            onPrevClick: function () {
+              driverObj.movePrevious();
+            },
+            onNextClick: function () {
+              if (typeof window.toggleBottomPanel === 'function') {
+                window.toggleBottomPanel();
+              }
+              setTimeout(function () {
+                driverObj.moveNext();
+              }, 500);
+            }
+          }
+        },
+        // Step 4 — Validation / Lint (opened by step 3's onNextClick)
+        // onNextClick opens canvas before advancing to step 5
+        {
+          element: function () {
+            return document.querySelector('#bottom-panel');
+          },
+          popover: {
+            title: 'Validation & Lint',
+            description: 'SHACL validation catches data quality issues automatically — overdue tasks, stale contacts, and more.',
+            side: 'top',
+            align: 'center',
+            onPrevClick: function () {
+              driverObj.movePrevious();
+            },
+            onNextClick: function () {
+              if (typeof window.openCanvasTab === 'function') {
+                window.openCanvasTab();
+              }
+              setTimeout(function () {
+                driverObj.moveNext();
+              }, 500);
+            }
+          }
+        },
+        // Step 5 — Spatial Canvas (navigated to by step 4's onNextClick)
+        // onNextClick opens demo dashboard before advancing to step 6
+        {
+          element: function () {
+            return document.querySelector('.group-editor-area');
+          },
+          popover: {
+            title: 'Spatial Canvas',
+            description: 'Arrange knowledge spatially on an infinite canvas. Add embeds, draw connections, resize freely.',
+            side: 'left',
+            align: 'start',
+            onPrevClick: function () {
+              driverObj.movePrevious();
+            },
+            onNextClick: function () {
+              if (typeof window.openDashboardTab === 'function') {
+                window.openDashboardTab(DEMO_DASHBOARD_ID, DEMO_DASHBOARD_NAME);
+              }
+              setTimeout(function () {
+                driverObj.moveNext();
+              }, 500);
+            }
+          }
+        },
+        // Step 6 — Dashboard (navigated to by step 5's onNextClick)
+        {
+          element: function () {
+            return document.querySelector('.group-editor-area');
+          },
+          popover: {
+            title: 'Dashboards',
+            description: 'Build dashboards that combine views with cross-filtering. Click a table row to filter the connected graph.',
+            side: 'left',
+            align: 'start'
+          }
+        },
+        // Step 7 — CTA (centered, no element)
+        {
+          popover: {
+            title: 'Ready to Try SemPKM?',
+            description: 'Install with Docker in 2 minutes. Visit <a href="https://github.com/SemPKM/sempkm" target="_blank" style="color:#60a5fa;text-decoration:underline;">github.com/SemPKM</a> to get started.',
+            showButtons: ['done']
           }
         }
       ]

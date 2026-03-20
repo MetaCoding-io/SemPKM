@@ -3,915 +3,34 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SemPKM — Semantics-Native Personal Knowledge Management</title>
-<meta name="description" content="SemPKM is a semantics-native PKM platform built on RDF, SHACL, and SPARQL. Install Mental Models, get instant structured workflows, and own your data.">
+<title>SemPKM — Build knowledge that doesn't decay</title>
+<meta name="description" content="Structure your notes into typed, queryable, future-proof knowledge. Import from Obsidian, own every byte, self-host with Docker. Open source.">
+<meta property="og:title" content="SemPKM — Build knowledge that doesn't decay">
+<meta property="og:description" content="Structure your notes into typed, queryable, future-proof knowledge. Import from Obsidian, own every byte, self-host with Docker. Open source.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://sempkm.metacoding.io">
+<meta property="og:image" content="screenshots/01-workspace-overview-dark.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://sempkm.metacoding.io">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
 <style>
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-:root {
-  --bg-primary: #0a0a0f;
-  --bg-secondary: #12121a;
-  --bg-card: #16161f;
-  --bg-card-hover: #1c1c28;
-  --border-subtle: #1e1e2e;
-  --text-primary: #e8e8f0;
-  --text-secondary: #9898b0;
-  --text-muted: #6868808a;
-  --accent-blue: #e8772e;
-  --accent-purple: #f59e0b;
-  --accent-gradient: linear-gradient(135deg, #e8772e, #f59e0b);
-  --accent-glow: rgba(232, 119, 46, 0.15);
-  --font-stack: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  --font-mono: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace;
-  --max-width: 1120px;
-  --radius: 12px;
-  --radius-sm: 8px;
-}
-
-html {
-  scroll-behavior: smooth;
-  -webkit-text-size-adjust: 100%;
-}
-
-body {
-  font-family: var(--font-stack);
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
-}
-
-a {
-  color: var(--accent-blue);
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-a:hover {
-  color: var(--accent-purple);
-}
-
-/* ── Nav ── */
-
-.nav {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  background: rgba(10, 10, 15, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.nav-inner {
-  max-width: var(--max-width);
-  margin: 0 auto;
-  padding: 0 1.5rem;
-  height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.nav-logo {
-  font-size: 1.25rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--text-primary);
-}
-
-.nav-logo span {
-  background: var(--accent-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.nav-links {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-  list-style: none;
-}
-
-.nav-links a {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: color 0.2s;
-}
-
-.nav-links a:hover {
-  color: var(--text-primary);
-}
-
-.nav-cta {
-  background: var(--accent-gradient);
-  color: #fff !important;
-  padding: 0.5rem 1.25rem;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 0.85rem;
-}
-
-.nav-cta:hover {
-  opacity: 0.9;
-}
-
-/* Mobile nav toggle */
-.nav-toggle {
-  display: none;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.5rem;
-}
-
-.nav-toggle span {
-  display: block;
-  width: 22px;
-  height: 2px;
-  background: var(--text-secondary);
-  margin: 5px 0;
-  transition: transform 0.3s, opacity 0.3s;
-}
-
-/* ── Sections ── */
-
-section {
-  padding: 6rem 1.5rem;
-}
-
-.container {
-  max-width: var(--max-width);
-  margin: 0 auto;
-}
-
-.section-label {
-  display: inline-block;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--accent-blue);
-  margin-bottom: 1rem;
-}
-
-.section-title {
-  font-size: 2.25rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
-  margin-bottom: 1rem;
-}
-
-.section-subtitle {
-  font-size: 1.1rem;
-  color: var(--text-secondary);
-  max-width: 640px;
-  line-height: 1.7;
-}
-
-/* ── Hero ── */
-
-.hero {
-  padding: 10rem 1.5rem 6rem;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.hero::before {
-  content: '';
-  position: absolute;
-  top: -40%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 800px;
-  height: 800px;
-  background: radial-gradient(circle, rgba(232, 119, 46, 0.08) 0%, transparent 70%);
-  pointer-events: none;
-}
-
-/* Network graph canvas */
-.hero-graph {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Ensure all page content sits above fixed background */
-.nav, section, footer {
-  position: relative;
-  z-index: 1;
-}
-
-.hero-title {
-  font-size: clamp(2.5rem, 6vw, 4rem);
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 1.1;
-  margin-bottom: 1.5rem;
-  position: relative;
-}
-
-.hero-title .gradient {
-  background: var(--accent-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.hero-subtitle {
-  font-size: clamp(1.1rem, 2.5vw, 1.35rem);
-  color: var(--text-secondary);
-  max-width: 640px;
-  margin: 0 auto 2.5rem;
-  line-height: 1.7;
-}
-
-.hero-actions {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.85rem 1.75rem;
-  border-radius: var(--radius-sm);
-  font-size: 1rem;
-  font-weight: 600;
-  font-family: var(--font-stack);
-  cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.2s, opacity 0.2s;
-  border: none;
-}
-
-.btn:hover {
-  transform: translateY(-1px);
-}
-
-.btn:active {
-  transform: translateY(0);
-}
-
-.btn-primary {
-  background: var(--accent-gradient);
-  color: #fff;
-  box-shadow: 0 4px 20px rgba(232, 119, 46, 0.3);
-}
-
-.btn-primary:hover {
-  box-shadow: 0 6px 28px rgba(232, 119, 46, 0.4);
-  color: #fff;
-}
-
-.btn-secondary {
-  background: var(--bg-card);
-  color: var(--text-primary);
-  border: 1px solid var(--border-subtle);
-}
-
-.btn-secondary:hover {
-  background: var(--bg-card-hover);
-  color: var(--text-primary);
-}
-
-.hero-note {
-  margin-top: 2.5rem;
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-}
-
-/* ── Problem / Solution ── */
-
-.problem-solution {
-  background: var(--bg-secondary);
-  border-top: 1px solid var(--border-subtle);
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.ps-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3rem;
-  margin-top: 3rem;
-}
-
-.ps-card {
-  padding: 2rem;
-  border-radius: var(--radius);
-  border: 1px solid var(--border-subtle);
-  background: var(--bg-primary);
-}
-
-.ps-card h3 {
-  font-size: 1.25rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-}
-
-.ps-card p {
-  color: var(--text-secondary);
-  line-height: 1.7;
-}
-
-.ps-card ul {
-  list-style: none;
-  margin-top: 1rem;
-}
-
-.ps-card ul li {
-  color: var(--text-secondary);
-  line-height: 1.7;
-  padding-left: 1.5rem;
-  position: relative;
-  margin-bottom: 0.5rem;
-}
-
-.ps-card ul li::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0.65em;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--accent-blue);
-}
-
-.ps-highlight {
-  border-color: rgba(232, 119, 46, 0.3);
-  background: linear-gradient(135deg, rgba(232, 119, 46, 0.05), rgba(245, 158, 11, 0.03));
-}
-
-.ps-highlight h3 {
-  background: var(--accent-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* ── Features ── */
-
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.25rem;
-  margin-top: 3rem;
-}
-
-.feature-card {
-  padding: 1.75rem;
-  border-radius: var(--radius);
-  border: 1px solid var(--border-subtle);
-  background: var(--bg-card);
-  transition: background 0.2s, border-color 0.2s, transform 0.2s;
-}
-
-.feature-card:hover {
-  background: var(--bg-card-hover);
-  border-color: rgba(232, 119, 46, 0.2);
-  transform: translateY(-2px);
-}
-
-.feature-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-sm);
-  background: var(--accent-glow);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 1rem;
-  font-size: 1.1rem;
-}
-
-.feature-card h3 {
-  font-size: 1.1rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-}
-
-.feature-card p {
-  font-size: 0.95rem;
-  color: var(--text-secondary);
-  line-height: 1.6;
-}
-
-/* ── Screenshots Carousel ── */
-
-.screenshots {
-  background: var(--bg-secondary);
-  border-top: 1px solid var(--border-subtle);
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.carousel {
-  position: relative;
-  margin-top: 3rem;
-  overflow: hidden;
-  border-radius: var(--radius);
-  border: 1px solid var(--border-subtle);
-  background: var(--bg-primary);
-}
-
-.carousel-track {
-  display: flex;
-  transition: transform 0.5s ease;
-}
-
-.carousel-slide {
-  min-width: 100%;
-  position: relative;
-}
-
-.carousel-slide img {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-/* SVG placeholder screenshots */
-.carousel-slide svg {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-.carousel-caption {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 1.5rem 2rem;
-  background: linear-gradient(transparent, rgba(10, 10, 15, 0.9));
-}
-
-.carousel-caption h3 {
-  font-size: 1.1rem;
-  font-weight: 700;
-  margin-bottom: 0.25rem;
-}
-
-.carousel-caption p {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-}
-
-.carousel-btn {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: 1px solid var(--border-subtle);
-  background: rgba(10, 10, 15, 0.7);
-  backdrop-filter: blur(8px);
-  color: var(--text-primary);
-  font-size: 1.25rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s, border-color 0.2s;
-  z-index: 2;
-}
-
-.carousel-btn:hover {
-  background: rgba(232, 119, 46, 0.15);
-  border-color: rgba(232, 119, 46, 0.3);
-}
-
-.carousel-prev { left: 1rem; }
-.carousel-next { right: 1rem; }
-
-.carousel-dots {
-  display: flex;
-  justify-content: center;
-  gap: 0.5rem;
-  margin-top: 1.25rem;
-}
-
-.carousel-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  border: none;
-  background: var(--border-subtle);
-  cursor: pointer;
-  padding: 0;
-  transition: background 0.2s, transform 0.2s;
-}
-
-.carousel-dot.active {
-  background: var(--accent-blue);
-  transform: scale(1.3);
-}
-
-/* ── Deployment ── */
-
-.deploy-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  margin-top: 3rem;
-}
-
-.deploy-card {
-  padding: 2rem;
-  border-radius: var(--radius);
-  border: 1px solid var(--border-subtle);
-  background: var(--bg-card);
-  position: relative;
-}
-
-.deploy-card .badge {
-  display: inline-block;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  padding: 0.3rem 0.7rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-}
-
-.badge-available {
-  background: rgba(34, 197, 94, 0.15);
-  color: #22c55e;
-}
-
-.badge-soon {
-  background: rgba(245, 158, 11, 0.15);
-  color: #f59e0b;
-}
-
-.deploy-card h3 {
-  font-size: 1.25rem;
-  font-weight: 700;
-  margin-bottom: 0.75rem;
-}
-
-.deploy-card p {
-  color: var(--text-secondary);
-  line-height: 1.6;
-  margin-bottom: 1rem;
-}
-
-.deploy-code {
-  background: var(--bg-primary);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  padding: 1rem 1.25rem;
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  overflow-x: auto;
-}
-
-.deploy-code .comment {
-  color: var(--text-muted);
-}
-
-.deploy-code .cmd {
-  color: var(--accent-blue);
-}
-
-/* ── Signup ── */
-
-.signup {
-  text-align: center;
-  background: var(--bg-secondary);
-  border-top: 1px solid var(--border-subtle);
-  border-bottom: 1px solid var(--border-subtle);
-  position: relative;
-  overflow: hidden;
-}
-
-.signup::before {
-  content: '';
-  position: absolute;
-  bottom: -30%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, rgba(245, 158, 11, 0.06) 0%, transparent 70%);
-  pointer-events: none;
-}
-
-.signup .section-subtitle {
-  margin: 0 auto 2rem;
-}
-
-.signup-form {
-  display: flex;
-  justify-content: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  max-width: 480px;
-  margin: 0 auto;
-}
-
-.signup-form input[type="email"] {
-  flex: 1;
-  min-width: 240px;
-  padding: 0.85rem 1.25rem;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-subtle);
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  font-size: 1rem;
-  font-family: var(--font-stack);
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-.signup-form input[type="email"]::placeholder {
-  color: var(--text-muted);
-}
-
-.signup-form input[type="email"]:focus {
-  border-color: var(--accent-blue);
-}
-
-.signup-note {
-  margin-top: 1rem;
-  font-size: 0.8rem;
-  color: var(--text-muted);
-}
-
-/* ── Footer ── */
-
-.footer {
-  padding: 3rem 1.5rem;
-  border-top: 1px solid var(--border-subtle);
-  background: var(--bg-primary);
-}
-
-.footer-inner {
-  max-width: var(--max-width);
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.footer-left {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-}
-
-.footer-links {
-  display: flex;
-  gap: 1.5rem;
-  list-style: none;
-}
-
-.footer-links a {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-}
-
-.footer-links a:hover {
-  color: var(--text-primary);
-}
-
-.footer-social {
-  display: flex;
-  gap: 1rem;
-  list-style: none;
-}
-
-.footer-social a {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
-  transition: color 0.2s, border-color 0.2s;
-}
-
-.footer-social a:hover {
-  color: var(--text-primary);
-  border-color: var(--accent-blue);
-}
-
-.footer-social svg {
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
-  fill: currentColor;
-}
-
-/* ── Obsidian Import ── */
-
-.import-steps {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.25rem;
-  margin-top: 3rem;
-}
-
-.import-step {
-  padding: 1.5rem;
-  border-radius: var(--radius);
-  border: 1px solid var(--border-subtle);
-  background: var(--bg-card);
-  display: flex;
-  gap: 1rem;
-  align-items: flex-start;
-  transition: background 0.2s, border-color 0.2s, transform 0.2s;
-}
-
-.import-step:hover {
-  background: var(--bg-card-hover);
-  border-color: rgba(232, 119, 46, 0.2);
-  transform: translateY(-2px);
-}
-
-.import-step-number {
-  width: 36px;
-  height: 36px;
-  min-width: 36px;
-  border-radius: 50%;
-  background: var(--accent-gradient);
-  color: #fff;
-  font-weight: 700;
-  font-size: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.import-step-content h3 {
-  font-size: 1rem;
-  font-weight: 700;
-  margin-bottom: 0.35rem;
-}
-
-.import-step-content p {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  line-height: 1.6;
-}
-
-.import-step-content code {
-  font-family: var(--font-mono);
-  font-size: 0.82rem;
-  background: rgba(232, 119, 46, 0.1);
-  color: var(--accent-blue);
-  padding: 0.1rem 0.35rem;
-  border-radius: 3px;
-}
-
-.import-highlights {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.25rem;
-  margin-top: 2rem;
-}
-
-.import-highlight-card {
-  padding: 1.5rem;
-  border-radius: var(--radius);
-  border: 1px solid rgba(232, 119, 46, 0.2);
-  background: linear-gradient(135deg, rgba(232, 119, 46, 0.04), rgba(245, 158, 11, 0.02));
-}
-
-.import-highlight-card h4 {
-  font-size: 0.95rem;
-  font-weight: 700;
-  margin-bottom: 0.35rem;
-  background: var(--accent-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.import-highlight-card p {
-  font-size: 0.88rem;
-  color: var(--text-secondary);
-  line-height: 1.6;
-}
-
-.import-highlight-card code {
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  background: rgba(232, 119, 46, 0.1);
-  color: var(--accent-blue);
-  padding: 0.1rem 0.35rem;
-  border-radius: 3px;
-}
-
-/* ── Animations ── */
-
-.fade-in {
-  opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
-}
-
-.fade-in.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* ── Responsive ── */
-
-@media (max-width: 768px) {
-  section {
-    padding: 4rem 1.25rem;
+  /* Critical: prevent FOUC on hero while font loads */
+  .hero-title { opacity: 0; animation: fadeUp 0.7s 0.1s forwards; }
+  .hero-subtitle { opacity: 0; animation: fadeUp 0.7s 0.25s forwards; }
+  .hero-actions { opacity: 0; animation: fadeUp 0.7s 0.4s forwards; }
+  .hero-note { opacity: 0; animation: fadeUp 0.7s 0.55s forwards; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
   }
-
-  .hero {
-    padding: 8rem 1.25rem 4rem;
-  }
-
-  .section-title {
-    font-size: 1.75rem;
-  }
-
-  .ps-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-
-  .features-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .import-steps {
-    grid-template-columns: 1fr;
-  }
-
-  .import-highlights {
-    grid-template-columns: 1fr;
-  }
-
-  .deploy-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .nav-links {
-    display: none;
-    position: absolute;
-    top: 64px;
-    left: 0;
-    right: 0;
-    background: rgba(10, 10, 15, 0.95);
-    backdrop-filter: blur(12px);
-    flex-direction: column;
-    padding: 1.5rem;
-    gap: 1.25rem;
-    border-bottom: 1px solid var(--border-subtle);
-  }
-
-  .nav-links.open {
-    display: flex;
-  }
-
-  .nav-toggle {
-    display: block;
-  }
-
-  .footer-inner {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .footer-social {
-    justify-content: center;
-  }
-}
 </style>
 </head>
 <body>
 
-<!-- Nav -->
+<!-- ── Nav ── -->
 <nav class="nav">
   <div class="nav-inner">
     <a href="#" class="nav-logo">Sem<span>PKM</span></a>
@@ -919,542 +38,335 @@ section {
       <span></span><span></span><span></span>
     </button>
     <ul class="nav-links">
+      <li><a href="#why">Why SemPKM</a></li>
       <li><a href="#features">Features</a></li>
-      <li><a href="#screenshots">Screenshots</a></li>
-      <li><a href="#obsidian-import">Import</a></li>
-      <li><a href="#deploy">Deploy</a></li>
+      <li class="nav-dropdown">
+        <a href="#personas">Coming From</a>
+        <ul class="nav-dropdown-menu">
+          <li><a href="from-obsidian.html">Coming from Obsidian</a></li>
+          <li><a href="from-notion.html">Coming from Notion</a></li>
+          <li><a href="fresh-start.html">Starting Fresh</a></li>
+        </ul>
+      </li>
       <li><a href="guide/index.html">User Guide</a></li>
-      <li><a href="#signup" class="nav-cta">Get Started</a></li>
+      <li><a href="https://github.com/metacoding-io/sempkm" class="nav-github" aria-label="GitHub" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      </a></li>
+      <li><a href="https://demo.sempkm.app" class="nav-cta">Try Demo</a></li>
     </ul>
   </div>
 </nav>
 
-<!-- Persistent background layers -->
+<!-- Persistent canvas background -->
 <canvas class="hero-graph" id="heroGraph"></canvas>
-<!-- Hero -->
+
+<!-- ── Hero ── -->
 <section class="hero">
   <div class="container">
-    <h1 class="hero-title fade-in">
-      Your knowledge,<br><span class="gradient">semantically structured</span>
+    <h1 class="hero-title">
+      Build knowledge that<br><span class="gradient">doesn't decay</span>
     </h1>
-    <p class="hero-subtitle fade-in">
-      SemPKM is a semantics-native personal knowledge management platform. Built on RDF, SHACL, and SPARQL &mdash; install a Mental Model, get instant structured workflows, and own every byte.
+    <p class="hero-subtitle">
+      Your notes become structured, queryable, and future-proof &mdash; and you own every byte.
+      Import your Obsidian vault or start fresh with a domain kit.
     </p>
-    <div class="hero-actions fade-in">
-      <a href="#signup" class="btn btn-primary">Sign up for updates</a>
-      <a href="https://github.com/metacoding-io/sempkm" class="btn btn-secondary">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-        GitHub
+    <div class="hero-actions">
+      <a href="https://demo.sempkm.app" class="btn btn-primary">Try the Demo</a>
+      <a href="guide/20-production-deployment.html" class="btn btn-secondary">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+        Self-Host with Docker
       </a>
     </div>
-    <p class="hero-note fade-in">Self-hosted &middot; Open source &middot; Standards-based</p>
+    <p class="hero-note">Self-hosted &middot; Open source &middot; Powered by open standards</p>
   </div>
 </section>
 
-<!-- Problem / Solution -->
-<section class="problem-solution">
+<!-- ── Persona Selector ── -->
+<section id="personas" class="section-alt">
   <div class="container">
-    <span class="section-label fade-in">Why SemPKM</span>
-    <h2 class="section-title fade-in">PKM tools force a tradeoff. We don't.</h2>
+    <span class="section-label fade-in">Find Your Path</span>
+    <h2 class="section-title fade-in">Where are you coming from?</h2>
     <p class="section-subtitle fade-in">
-      Existing tools make you choose between flexibility and structure.
-      SemPKM gives you both.
+      SemPKM meets you where you are. Pick the path that matches your experience.
     </p>
-    <div class="ps-grid">
-      <div class="ps-card fade-in">
-        <h3>The problem</h3>
-        <p>
-          Markdown-first tools are flexible and portable, but structure is implicit and semantics are informal.
-          Object-first tools offer structure and views, but lock you into a platform with no interoperability.
-        </p>
+
+    <div class="persona-grid">
+      <a href="from-obsidian.html" class="persona-card fade-in">
+        <div class="persona-icon">⚡</div>
+        <h3>Coming from Obsidian</h3>
+        <p class="persona-sub">You love your vault but your Dataview queries keep breaking.</p>
         <ul>
-          <li>Informal structure means no reliable queries or views</li>
-          <li>Platform lock-in means your data isn't truly yours</li>
-          <li>No standard format means fragile integrations</li>
+          <li>Import your vault as-is</li>
+          <li>YAML frontmatter → typed properties</li>
+          <li>Graph view with real typed edges</li>
+          <li>WebDAV mount for Obsidian side-by-side</li>
         </ul>
+        <span class="persona-cta">See how it works →</span>
+      </a>
+
+      <a href="from-notion.html" class="persona-card fade-in">
+        <div class="persona-icon">🗂️</div>
+        <h3>Coming from Notion</h3>
+        <p class="persona-sub">You love databases and views but hate the lock-in and performance cliffs.</p>
+        <ul>
+          <li>Tables, cards, and dashboards</li>
+          <li>Create types like Notion databases</li>
+          <li>Forms with real validation</li>
+          <li>Your data stays on your machine</li>
+        </ul>
+        <span class="persona-cta">See how it works →</span>
+      </a>
+
+      <a href="fresh-start.html" class="persona-card fade-in">
+        <div class="persona-icon">🚀</div>
+        <h3>Starting Fresh</h3>
+        <p class="persona-sub">No baggage. Pick a domain kit and start building structured knowledge now.</p>
+        <ul>
+          <li>Pick a domain kit, get instant types</li>
+          <li>Guided tour in under 3 minutes</li>
+          <li>Forms, views, and validation from day one</li>
+          <li>Grow your system as your needs evolve</li>
+        </ul>
+        <span class="persona-cta">Get started →</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ── Competitive Comparison ── -->
+<section id="why">
+  <div class="container">
+    <span class="section-label fade-in">What Makes SemPKM Different</span>
+    <h2 class="section-title fade-in">High structure meets full ownership</h2>
+    <p class="section-subtitle fade-in">
+      Most tools force you to choose between flexibility and structure. SemPKM gives you both &mdash; plus things no other tool offers.
+    </p>
+
+    <div class="comparison-wrapper fade-in">
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Capability</th>
+            <th>Obsidian</th>
+            <th>Notion</th>
+            <th>Tana</th>
+            <th>Capacities</th>
+            <th class="col-highlight">SemPKM</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Structure enforcement</td>
+            <td class="str-weak">Weak — informal YAML</td>
+            <td class="str-medium">Soft — optional properties</td>
+            <td class="str-medium">Medium — supertags</td>
+            <td class="str-medium">Medium — object types</td>
+            <td class="col-highlight str-strong">Strong — schema-enforced</td>
+          </tr>
+          <tr>
+            <td>Data ownership</td>
+            <td class="str-strong">Strong — local files</td>
+            <td class="str-weak">Weak — cloud-only</td>
+            <td class="str-weak">Weak — cloud-only</td>
+            <td class="str-weak">Weak — cloud-only</td>
+            <td class="col-highlight str-strong">Strong — self-hosted</td>
+          </tr>
+          <tr>
+            <td>Typed relationships</td>
+            <td class="str-weak">Weak — untyped links</td>
+            <td class="str-weak">Weak — flat relations</td>
+            <td class="str-medium">Medium — tag-based</td>
+            <td class="str-medium">Medium — object links</td>
+            <td class="col-highlight str-strong">Strong — typed, annotatable edges</td>
+          </tr>
+          <tr>
+            <td>Queryable views</td>
+            <td class="str-medium">Fragile — Dataview plugin</td>
+            <td class="str-medium">Medium — database views</td>
+            <td class="str-medium">Medium — search nodes</td>
+            <td class="str-weak">Weak — basic filters</td>
+            <td class="col-highlight str-strong">Strong — reliable structured queries</td>
+          </tr>
+          <tr>
+            <td>Full history &amp; undo</td>
+            <td class="str-none">None</td>
+            <td class="str-none">None</td>
+            <td class="str-none">None</td>
+            <td class="str-none">None</td>
+            <td class="col-highlight str-strong">Full — every change tracked</td>
+          </tr>
+          <tr>
+            <td>Plugin ecosystem</td>
+            <td class="str-strong">Strong — 1000+ plugins</td>
+            <td class="str-medium">Medium — integrations</td>
+            <td class="str-weak">Weak — limited</td>
+            <td class="str-weak">Weak — limited</td>
+            <td class="col-highlight str-medium">Coming — app platform</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ── Domain Kits (Mental Models) ── -->
+<section class="section-alt" id="kits">
+  <div class="container">
+    <span class="section-label fade-in">Domain Kits</span>
+    <h2 class="section-title fade-in">Install a domain kit &mdash; get types, forms, views, and validation instantly</h2>
+    <p class="section-subtitle fade-in">
+      Mental Models are pre-built domain kits. Pick one that fits your workflow &mdash; or combine several. No blank-page syndrome, no manual setup.
+    </p>
+
+    <div class="kits-grid">
+      <div class="kit-card fade-in">
+        <div class="kit-icon">📋</div>
+        <h3>Basic PKM</h3>
+        <p class="kit-types">5 types — Notes, Projects, Tasks, Events, Concepts</p>
+        <p>A general-purpose starter kit for personal knowledge management. Organize your notes, track projects, and link everything together.</p>
       </div>
-      <div class="ps-card ps-highlight fade-in">
-        <h3>The SemPKM answer</h3>
-        <p>
-          A standards-native semantic datastore with an IDE-grade UX.
-          Your knowledge lives as typed, queryable, interoperable data &mdash; and you own all of it.
-        </p>
-        <ul>
-          <li>RDF + SPARQL for powerful, reliable queries</li>
-          <li>SHACL shapes drive forms, validation, and linting</li>
-          <li>Export as JSON-LD, project to Obsidian, publish via SOLID</li>
-          <li>Mental Models: install a bundle, get an instant workflow</li>
-        </ul>
+
+      <div class="kit-card fade-in">
+        <div class="kit-icon">🤝</div>
+        <h3>Personal CRM</h3>
+        <p class="kit-types">4 types — Contacts, Companies, Interactions, Deals</p>
+        <p>Track relationships, log meetings, and manage opportunities. Every interaction is linked to the people and companies involved.</p>
+      </div>
+
+      <div class="kit-card fade-in">
+        <div class="kit-icon">🧠</div>
+        <h3>Zettelkasten+</h3>
+        <p class="kit-types">5 types — Fleeting → Literature → Permanent → Structure notes</p>
+        <p>The Zettelkasten method, enforced. Notes progress through stages with provenance chains and automatic relationship discovery.</p>
+      </div>
+
+      <div class="kit-card fade-in">
+        <div class="kit-icon">🔬</div>
+        <h3>Research Workflow</h3>
+        <p class="kit-types">4 types — Papers, Claims, Evidence, Arguments</p>
+        <p>For academics and researchers. Track claims with supporting evidence, spot unsupported arguments, and build reproducible knowledge.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Features -->
+<!-- ── Feature Overview ── -->
 <section id="features">
   <div class="container">
     <span class="section-label fade-in">Features</span>
-    <h2 class="section-title fade-in">Everything you need to think in structure</h2>
+    <h2 class="section-title fade-in">Everything you need, nothing you don't</h2>
     <p class="section-subtitle fade-in">
-      SemPKM combines the power of semantic web standards with an interface designed for humans.
+      A focused feature set designed for people who take their knowledge seriously.
     </p>
+
     <div class="features-grid">
-
       <div class="feature-card fade-in">
         <div class="feature-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
-        </div>
-        <h3>Mental Models</h3>
-        <p>Installable domain bundles &mdash; ontology, shapes, views, and projections &mdash; that give you an instant, structured PKM experience. No blank-page syndrome.</p>
-      </div>
-
-      <div class="feature-card fade-in">
-        <div class="feature-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-        </div>
-        <h3>SHACL-Driven Forms</h3>
-        <p>Forms are auto-generated from SHACL shapes. Constraints drive validation, linting, and layout hints &mdash; no custom UI code needed.</p>
-      </div>
-
-      <div class="feature-card fade-in">
-        <div class="feature-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
         </div>
         <h3>Typed Relationships</h3>
-        <p>Edges are first-class: clickable, annotatable, and versionable. Explore your knowledge as a web of typed, meaningful connections.</p>
+        <p>Every link has a type, direction, and provenance. Not just "linked from" &mdash; but <em>how</em> and <em>why</em> things connect.</p>
       </div>
 
       <div class="feature-card fade-in">
         <div class="feature-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
         </div>
         <h3>Graph Visualization</h3>
-        <p>Semantic-aware graph views with type-based styling, predicate-driven edges, and multiple layouts &mdash; force-directed, tree, and radial.</p>
+        <p>See your knowledge as a navigable graph. Multiple layouts, type-based styling, and labeled edges.</p>
       </div>
 
       <div class="feature-card fade-in">
         <div class="feature-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-        </div>
-        <h3>SPARQL Console &amp; Views</h3>
-        <p>Tables, cards, and graph views backed by SPARQL queries. Plus a built-in interactive SPARQL console for ad-hoc exploration of your data.</p>
-      </div>
-
-      <div class="feature-card fade-in">
-        <div class="feature-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
         </div>
         <h3>Spatial Canvas</h3>
-        <p>Drag and drop objects onto an infinite spatial canvas. Arrange your knowledge visually, connect ideas freely, and think in two dimensions.</p>
+        <p>Drag objects onto an infinite surface. Arrange ideas visually, flip between detail and layout, think in two dimensions.</p>
       </div>
 
       <div class="feature-card fade-in">
         <div class="feature-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>
         </div>
         <h3>Command Palette</h3>
-        <p>Press Ctrl+K to launch the command palette. Quickly navigate objects, switch views, and trigger actions &mdash; all from the keyboard.</p>
+        <p>Press Ctrl+K to navigate, search, and trigger actions. Keyboard-driven workflow for power users.</p>
       </div>
 
       <div class="feature-card fade-in">
         <div class="feature-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
         </div>
-        <h3>SHACL Lint &amp; Validation</h3>
-        <p>Live SHACL validation on every object. A dedicated lint dashboard shows conformance status at a glance &mdash; catch constraint violations instantly.</p>
+        <h3>Full History &amp; Undo</h3>
+        <p>Every change is an immutable event. See who changed what, when, and why. Undo anything, any time.</p>
       </div>
 
       <div class="feature-card fade-in">
         <div class="feature-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
         </div>
-        <h3>Inference Engine</h3>
-        <p>Define rules in your Mental Models and let SemPKM infer new relationships automatically. Derived edges are tagged as inferred for full transparency.</p>
+        <h3>Forms That Build Themselves</h3>
+        <p>Define your types &mdash; SemPKM generates forms with validation, hints, and constraints automatically.</p>
       </div>
 
       <div class="feature-card fade-in">
         <div class="feature-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
         </div>
-        <h3>Standards-Based, No Lock-In</h3>
-        <p>Built on RDF, JSON-LD, SPARQL, and SHACL. Export anything. Project your graph as files for Obsidian. Publish via SOLID and ActivityPub.</p>
+        <h3>Obsidian Compatible</h3>
+        <p>Mount your knowledge graph via WebDAV. Browse and edit alongside your vault &mdash; Markdown files, typed frontmatter, all synced.</p>
       </div>
 
       <div class="feature-card fade-in">
         <div class="feature-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 009 5.197V21H3V8.197A6 6 0 0012 3z"/><circle cx="12" cy="10" r="3"/></svg>
         </div>
-        <h3>Webhook Automations</h3>
-        <p>Configure outbound webhooks that fire on object changes, edge updates, or validation events. Filter by type and integrate with any external service.</p>
+        <h3>Dashboards &amp; Workflows</h3>
+        <p>Build custom dashboards with tables, charts, and cards. Create multi-step workflows with guided progress tracking.</p>
       </div>
-
-      <div class="feature-card fade-in">
-        <div class="feature-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-        </div>
-        <h3>WebID &amp; IndieAuth</h3>
-        <p>Decentralized identity built in. Create a WebID profile, authenticate with IndieAuth, and manage authorized apps &mdash; no centralized auth provider needed.</p>
-      </div>
-
-      <div class="feature-card fade-in">
-        <div class="feature-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-        </div>
-        <h3>LLM Integration</h3>
-        <p>Connect your own LLM for AI-powered features. Configure the connection in settings and get intelligent assistance across your knowledge graph.</p>
-      </div>
-
-      <div class="feature-card fade-in">
-        <div class="feature-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-        </div>
-        <h3>Event Sourcing &amp; Audit Trail</h3>
-        <p>Every change is an immutable event. The current state is a derived projection. Full history, complete auditability, automation-ready.</p>
-      </div>
-
-      <div class="feature-card fade-in">
-        <div class="feature-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
-        </div>
-        <h3>Self-Hosted, Own Your Data</h3>
-        <p>Run SemPKM on your own hardware. Single Docker command. Your knowledge graph stays on your machine &mdash; no cloud required.</p>
-      </div>
-
-      <div class="feature-card fade-in">
-        <div class="feature-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-        </div>
-        <h3>And More Coming Soon</h3>
-        <p>ActivityPub publishing, Mental Model marketplace, collaborative editing, and much more on the roadmap.</p>
-      </div>
-
     </div>
-  </div>
-</section>
 
-<!-- Screenshots -->
-<section id="screenshots" class="screenshots">
-  <div class="container">
-    <span class="section-label fade-in">Screenshots</span>
-    <h2 class="section-title fade-in">See it in action</h2>
-    <p class="section-subtitle fade-in">
-      An IDE-grade interface for your knowledge graph. Explore objects, relationships, and views in one workspace.
+    <p class="fade-in" style="text-align:center; margin-top:2.5rem; color:var(--text-secondary); font-size:0.9rem;">
+      Powered by open standards (RDF, SHACL, SPARQL) &mdash; your data is never locked in.
     </p>
-    <div class="carousel fade-in" id="carousel">
-      <div class="carousel-track" id="carouselTrack">
-
-        <!-- Slide 1: Object Browser -->
-        <div class="carousel-slide">
-          <img src="screenshots/01-workspace-overview-dark.png" alt="SemPKM workspace overview showing object browser with sidebar navigation, tabbed editor pane, and property inspector">
-          <div class="carousel-caption">
-            <h3>Object Browser</h3>
-            <p>Inspect any object with its properties, relationships, and live SHACL validation status.</p>
-          </div>
-        </div>
-
-        <!-- Slide 2: Object Detail — Project -->
-        <div class="carousel-slide">
-          <img src="screenshots/02-object-read-project-dark.png" alt="SemPKM object detail view showing project properties, participants, and inferred relationships">
-          <div class="carousel-caption">
-            <h3>Project Detail View</h3>
-            <p>Rich object pages show properties, typed relationships (inbound and outbound), and inferred edges — all in one place.</p>
-          </div>
-        </div>
-
-        <!-- Slide 3: Object Detail — Person -->
-        <div class="carousel-slide">
-          <img src="screenshots/17-object-read-person-dark.png" alt="SemPKM person detail view showing name, job title, organization, tags, and relationship panel">
-          <div class="carousel-caption">
-            <h3>Person Detail View</h3>
-            <p>Every type gets a structured detail page. Person objects show name, job title, organization, tags, and project memberships.</p>
-          </div>
-        </div>
-
-        <!-- Slide 4: Graph View -->
-        <div class="carousel-slide">
-          <img src="screenshots/08-graph-view-dark.png" alt="SemPKM graph view showing knowledge graph with force-directed layout and labeled edges">
-          <div class="carousel-caption">
-            <h3>Graph Visualization</h3>
-            <p>Multiple graph layouts — tree, force-directed, and radial — with labeled edges and type-based node styling.</p>
-          </div>
-        </div>
-
-        <!-- Slide 5: Cards View -->
-        <div class="carousel-slide">
-          <img src="screenshots/07-cards-view-dark.png" alt="SemPKM cards view showing concepts displayed as card grid with grouping options">
-          <div class="carousel-caption">
-            <h3>Cards View</h3>
-            <p>Browse objects as visual cards with grouping and filtering. Great for concepts, notes, and visual overviews.</p>
-          </div>
-        </div>
-
-        <!-- Slide 6: SPARQL-Powered Tables -->
-        <div class="carousel-slide">
-          <img src="screenshots/06-table-view-dark.png" alt="SemPKM table view showing SPARQL query results as a sortable filterable table">
-          <div class="carousel-caption">
-            <h3>SPARQL-Powered Tables</h3>
-            <p>View your data as sortable, filterable tables with pagination and live data from your knowledge graph.</p>
-          </div>
-        </div>
-
-        <!-- Slide 7: SHACL-Driven Forms -->
-        <div class="carousel-slide">
-          <img src="screenshots/03-object-edit-form-dark.png" alt="SemPKM SHACL-driven edit form with auto-generated fields and real-time validation">
-          <div class="carousel-caption">
-            <h3>SHACL-Driven Forms</h3>
-            <p>Forms auto-generated from SHACL shapes with real-time validation, type pickers, and constraint hints.</p>
-          </div>
-        </div>
-
-        <!-- Slide 8: Create New Object -->
-        <div class="carousel-slide">
-          <img src="screenshots/04-type-picker-dark.png" alt="SemPKM type picker showing available shapes — Person, Concept, Note, Project — for creating new objects">
-          <div class="carousel-caption">
-            <h3>Create New Object</h3>
-            <p>Pick a type from your installed Mental Models and create a new object. Types are defined by SHACL shapes.</p>
-          </div>
-        </div>
-
-        <!-- Slide 9: Command Palette -->
-        <div class="carousel-slide">
-          <img src="screenshots/09-command-palette-dark.png" alt="SemPKM command palette overlay for quick keyboard-driven navigation and actions">
-          <div class="carousel-caption">
-            <h3>Command Palette</h3>
-            <p>Press Alt+K to launch the command palette. Navigate objects, switch views, and trigger actions from the keyboard.</p>
-          </div>
-        </div>
-
-        <!-- Slide 10: Multiple Tabs -->
-        <div class="carousel-slide">
-          <img src="screenshots/15-multiple-tabs-dark.png" alt="SemPKM workspace with multiple tabs open showing dockview layout">
-          <div class="carousel-caption">
-            <h3>Multi-Tab Workspace</h3>
-            <p>Open multiple objects and views side-by-side in a dockable tab layout. Type icons on each tab for quick identification.</p>
-          </div>
-        </div>
-
-        <!-- Slide 11: Mental Model Detail -->
-        <div class="carousel-slide">
-          <img src="screenshots/13b-admin-model-detail-dark.png" alt="SemPKM admin page showing Basic PKM Mental Model detail with types, shapes, and analytics">
-          <div class="carousel-caption">
-            <h3>Mental Model Detail</h3>
-            <p>The Basic PKM model ships with Person, Project, Note, and Concept types — each with SHACL shapes, views, and relationships.</p>
-          </div>
-        </div>
-
-        <!-- Slide 11b: Ontology Diagram -->
-        <div class="carousel-slide">
-          <img src="screenshots/13c-ontology-diagram-dark.png" alt="SemPKM ontology diagram showing type relationships in the Basic PKM Mental Model">
-          <div class="carousel-caption">
-            <h3>Ontology Diagram</h3>
-            <p>Visual diagram of type relationships within a Mental Model. See how Person, Project, Note, and Concept types connect.</p>
-          </div>
-        </div>
-
-        <!-- Slide 12: Webhooks -->
-        <div class="carousel-slide">
-          <img src="screenshots/14-admin-webhooks-dark.png" alt="SemPKM webhook configuration page with event types and type filters">
-          <div class="carousel-caption">
-            <h3>Webhook Automations</h3>
-            <p>Configure outbound webhooks that fire on object changes, edge updates, or validation events with type-based filters.</p>
-          </div>
-        </div>
-
-        <!-- Slide 13: VFS File Browser -->
-        <div class="carousel-slide">
-          <img src="screenshots/21-vfs-browser-dark.png" alt="SemPKM virtual filesystem showing knowledge graph projected as a markdown file tree">
-          <div class="carousel-caption">
-            <h3>Virtual Filesystem</h3>
-            <p>Your knowledge graph projected as a markdown file tree. Browse, edit, and sync with Obsidian or any file-based tool.</p>
-          </div>
-        </div>
-
-        <!-- Slide 14: Spatial Canvas -->
-        <div class="carousel-slide">
-          <img src="screenshots/22-spatial-canvas-dark.png" alt="SemPKM spatial canvas with draggable objects arranged on an infinite 2D surface">
-          <div class="carousel-caption">
-            <h3>Spatial Canvas</h3>
-            <p>Drag objects onto an infinite canvas. Arrange, connect, and think visually — every placement is saved automatically.</p>
-          </div>
-        </div>
-
-        <!-- Slide 15: SPARQL Console -->
-        <div class="carousel-slide">
-          <img src="screenshots/23-sparql-console-dark.png" alt="SemPKM interactive SPARQL console with syntax highlighting and results table">
-          <div class="carousel-caption">
-            <h3>SPARQL Console</h3>
-            <p>An interactive SPARQL console with syntax highlighting, auto-complete, and tabular results for ad-hoc graph queries.</p>
-          </div>
-        </div>
-
-        <!-- Slide 16: Settings -->
-        <div class="carousel-slide">
-          <img src="screenshots/10-settings-page-dark.png" alt="SemPKM settings page with sections for General, LLM Connection, Virtual Filesystem, WebID Profile, and Authorized Apps">
-          <div class="carousel-caption">
-            <h3>Settings &amp; Configuration</h3>
-            <p>Configure themes, LLM connections, WebID profiles, virtual filesystem, and authorized apps &mdash; all from one panel.</p>
-          </div>
-        </div>
-
-        <!-- Slide 17: Event Log -->
-        <div class="carousel-slide">
-          <img src="screenshots/20-bottom-panel-dark.png" alt="SemPKM workspace showing the bottom panel with a live event log of object and edge changes">
-          <div class="carousel-caption">
-            <h3>Event Log</h3>
-            <p>A live event log in the bottom panel shows every object and edge change as it happens — full auditability built in.</p>
-          </div>
-        </div>
-
-      </div>
-      <button class="carousel-btn carousel-prev" aria-label="Previous slide">&#8249;</button>
-      <button class="carousel-btn carousel-next" aria-label="Next slide">&#8250;</button>
-    </div>
-    <div class="carousel-dots" id="carouselDots"></div>
   </div>
 </section>
 
-<!-- Obsidian Import -->
-<section id="obsidian-import">
+<!-- ── Bottom CTA ── -->
+<section class="section-alt cta-section">
   <div class="container">
-    <span class="section-label fade-in">Obsidian Import</span>
-    <h2 class="section-title fade-in">Bring your Obsidian vault with you</h2>
-    <p class="section-subtitle fade-in">
-      Already have an Obsidian vault? SemPKM's built-in import wizard converts your markdown notes into typed, queryable knowledge objects in six guided steps.
+    <span class="section-label fade-in">Ready to try it?</span>
+    <h2 class="section-title fade-in">Stop collecting notes. Start building knowledge.</h2>
+    <p class="section-subtitle fade-in" style="margin:0 auto;">
+      Explore the live demo, self-host with a single Docker command, or read the guide.
     </p>
-
-    <div class="import-steps fade-in">
-      <div class="import-step">
-        <div class="import-step-number">1</div>
-        <div class="import-step-content">
-          <h3>Upload Your Vault</h3>
-          <p>Drag and drop your vault as a ZIP file. SemPKM detects and resumes previous in-progress imports automatically.</p>
-        </div>
-      </div>
-      <div class="import-step">
-        <div class="import-step-number">2</div>
-        <div class="import-step-content">
-          <h3>Scan &amp; Analyze</h3>
-          <p>Live scanning with real-time progress. Detects note types from frontmatter, folder names, and tags. Shows stats, warnings, and detected groups.</p>
-        </div>
-      </div>
-      <div class="import-step">
-        <div class="import-step-number">3</div>
-        <div class="import-step-content">
-          <h3>Map Types</h3>
-          <p>Map each detected group to a Mental Model type &mdash; Person, Project, Note, Concept &mdash; or skip groups you don't need.</p>
-        </div>
-      </div>
-      <div class="import-step">
-        <div class="import-step-number">4</div>
-        <div class="import-step-content">
-          <h3>Map Properties</h3>
-          <p>Frontmatter keys are matched to RDF properties from your SHACL shapes. Custom IRI support for anything that doesn't map cleanly.</p>
-        </div>
-      </div>
-      <div class="import-step">
-        <div class="import-step-number">5</div>
-        <div class="import-step-content">
-          <h3>Preview</h3>
-          <p>See sample objects with their mapped properties before committing. Verify everything looks right before the import runs.</p>
-        </div>
-      </div>
-      <div class="import-step">
-        <div class="import-step-number">6</div>
-        <div class="import-step-content">
-          <h3>Import &amp; Resolve</h3>
-          <p>Two-pass import: first creates typed objects, then resolves <code>[[wiki-links]]</code> into RDF edges. Full progress log and error reporting.</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="import-highlights fade-in">
-      <div class="import-highlight-card">
-        <h4>Smart Type Detection</h4>
-        <p>Frontmatter fields, folder structure, and tags are analyzed in priority order to automatically categorize your notes.</p>
-      </div>
-      <div class="import-highlight-card">
-        <h4>Wiki-Link Resolution</h4>
-        <p><code>[[links]]</code> become typed <code>dcterms:references</code> edges. Aliases are preserved. Unresolved targets are reported.</p>
-      </div>
-      <div class="import-highlight-card">
-        <h4>Safe Re-Import</h4>
-        <p>Each imported note is tracked via <code>sempkm:importSource</code>. Re-importing a vault skips duplicates automatically.</p>
-      </div>
+    <div class="cta-buttons fade-in">
+      <a href="https://demo.sempkm.app" class="btn btn-primary">Try the Demo</a>
+      <a href="guide/20-production-deployment.html" class="btn btn-secondary">Self-Host with Docker</a>
+      <a href="guide/index.html" class="btn btn-outline">Read the User Guide</a>
     </div>
   </div>
 </section>
 
-<!-- Deployment -->
-<section id="deploy" class="problem-solution">
-  <div class="container">
-    <span class="section-label fade-in">Deployment</span>
-    <h2 class="section-title fade-in">Run it your way</h2>
-    <p class="section-subtitle fade-in">
-      Start self-hosted today. Cloud hosting is on the roadmap for teams who want a managed experience.
-    </p>
-    <div class="deploy-grid">
-      <div class="deploy-card fade-in">
-        <span class="badge badge-available">Available</span>
-        <h3>Self-Hosted</h3>
-        <p>Run SemPKM on your own infrastructure with Docker. Full control, full privacy, zero dependencies on external services.</p>
-        <div class="deploy-code">
-          <span class="comment"># Pull and run</span><br>
-          <span class="cmd">docker run</span> -p 3000:3000 sempkm/sempkm
-        </div>
-      </div>
-      <div class="deploy-card fade-in">
-        <span class="badge badge-soon">Coming Soon</span>
-        <h3>Cloud Hosting</h3>
-        <p>Managed SemPKM for teams. Automatic updates, backups, and collaboration features &mdash; without the ops overhead.</p>
-        <p style="color: var(--text-muted); font-size: 0.9rem;">Sign up below to get notified when cloud hosting launches.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Email Signup -->
-<section id="signup" class="signup">
-  <div class="container">
-    <span class="section-label fade-in">Stay in the Loop</span>
-    <h2 class="section-title fade-in">Get notified when SemPKM launches</h2>
-    <p class="section-subtitle fade-in">
-      We're building in the open. Sign up for occasional updates on releases, Mental Models, and the roadmap.
-    </p>
-    <form class="signup-form fade-in" onsubmit="handleSignup(event)">
-      <input type="email" placeholder="you@example.com" required aria-label="Email address">
-      <button type="submit" class="btn btn-primary">Notify me</button>
-    </form>
-    <p class="signup-note fade-in">No spam. Unsubscribe anytime.</p>
-  </div>
-</section>
-
-<!-- Footer -->
+<!-- ── Footer ── -->
 <footer class="footer">
   <div class="footer-inner">
-    <div class="footer-left">&copy; Copyright MetaCoding Solutions, LLC 2025. All rights reserved.</div>
+    <div class="footer-left">&copy; MetaCoding Solutions, LLC 2025. All rights reserved.</div>
     <ul class="footer-links">
       <li><a href="guide/index.html">User Guide</a></li>
-      <li><a href="https://github.com/metacoding-io/sempkm">GitHub</a></li>
+      <li><a href="https://github.com/metacoding-io/sempkm" target="_blank" rel="noopener">GitHub</a></li>
       <li><a href="#features">Features</a></li>
-      <li><a href="#screenshots">Screenshots</a></li>
-      <li><a href="#signup">Get Started</a></li>
+      <li><a href="#kits">Domain Kits</a></li>
     </ul>
     <ul class="footer-social">
-      <li><a href="https://twitter.com/sempkm" aria-label="Twitter / X" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-      </a></li>
-      <li><a href="https://instagram.com/sempkm" aria-label="Instagram" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
-      </a></li>
-      <li><a href="https://tiktok.com/@sempkm" aria-label="TikTok" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 00-.79-.05A6.34 6.34 0 003.15 15.2a6.34 6.34 0 0010.86 4.48V13.2a8.16 8.16 0 005.58 2.17V12a4.85 4.85 0 01-2.4-.63 4.85 4.85 0 01-2.4-4.19V6.69h4.8z"/></svg>
+      <li><a href="https://github.com/metacoding-io/sempkm" aria-label="GitHub" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
       </a></li>
     </ul>
   </div>
 </footer>
 
 <script>
-// Fade-in on scroll via IntersectionObserver
+// ── Fade-in on scroll via IntersectionObserver ──
 (function() {
   var targets = document.querySelectorAll('.fade-in');
   if (!('IntersectionObserver' in window)) {
@@ -1472,14 +384,13 @@ section {
   targets.forEach(function(el) { observer.observe(el); });
 })();
 
-// Mobile nav toggle
+// ── Mobile nav toggle ──
 (function() {
   var toggle = document.querySelector('.nav-toggle');
   var links = document.querySelector('.nav-links');
   toggle.addEventListener('click', function() {
     links.classList.toggle('open');
   });
-  // Close menu on link click
   links.querySelectorAll('a').forEach(function(a) {
     a.addEventListener('click', function() {
       links.classList.remove('open');
@@ -1487,24 +398,18 @@ section {
   });
 })();
 
-// Network graph background animation
+// ── Network graph background animation ──
 (function() {
   var canvas = document.getElementById('heroGraph');
   if (!canvas) return;
   var ctx = canvas.getContext('2d');
   var nodes = [];
-  // Each cluster is a mini-tree: 1 project (top), 2 tasks (mid), 2 people (bottom)
-  // xFrac/yFrac = center of the cluster
   var clusters = [
-    { xFrac: 0.14, yFrac: 0.30 },  // upper-left
-    { xFrac: 0.14, yFrac: 0.70 },  // lower-left
-    { xFrac: 0.86, yFrac: 0.30 },  // upper-right
-    { xFrac: 0.86, yFrac: 0.70 }   // lower-right
+    { xFrac: 0.14, yFrac: 0.30 },
+    { xFrac: 0.14, yFrac: 0.70 },
+    { xFrac: 0.86, yFrac: 0.30 },
+    { xFrac: 0.86, yFrac: 0.70 }
   ];
-  // Tree layout offsets within a cluster (fraction of canvas)
-  // Row 0: project (1 node, centered)
-  // Row 1: tasks (2 nodes, spread horizontally)
-  // Tree template A: Project → Tasks → People
   var treeSlotsA = [
     { type: 'project', dxFrac: 0,     dyFrac: -0.09 },
     { type: 'task',    dxFrac: -0.06, dyFrac: 0 },
@@ -1512,7 +417,6 @@ section {
     { type: 'person',  dxFrac: -0.08, dyFrac: 0.12 },
     { type: 'person',  dxFrac: 0.08,  dyFrac: 0.12 }
   ];
-  // Tree template B: Value → Goals → Projects
   var treeSlotsB = [
     { type: 'value',   dxFrac: 0,     dyFrac: -0.09 },
     { type: 'goal',    dxFrac: -0.06, dyFrac: 0 },
@@ -1522,9 +426,7 @@ section {
   ];
   var treeTemplates = [treeSlotsA, treeSlotsB];
   var slotsPerCluster = 5;
-  var nodeCount = slotsPerCluster * clusters.length;
 
-  // Node types
   var types = [
     { name: 'project',  color: [232, 119, 46],  minR: 13, maxR: 19, icon: drawProjectIcon },
     { name: 'task',     color: [34, 197, 94],    minR: 9,  maxR: 15, icon: drawTaskIcon },
@@ -1535,7 +437,6 @@ section {
   var typeMap = {};
   for (var ti = 0; ti < types.length; ti++) typeMap[types[ti].name] = types[ti];
 
-  // Names per type
   var namesByType = {
     project: ['SemPKM', 'Research', 'Sprint 3', 'v1 Release', 'Onboarding', 'Migration'],
     task:    ['Build Frontend', 'Design Mockups', 'Write Tests', 'Deploy', 'QA Testing', 'Review PR'],
@@ -1544,128 +445,59 @@ section {
     goal:    ['Ship v1', 'Grow Community', 'Write Docs', 'Get Feedback', 'Open Source', 'Scale Infra']
   };
 
-  // Edge labels by type pair
   var edgeLabels = {
-    'project-task': 'hasTask',
-    'task-project': 'hasTask',
-    'task-person': 'assignedTo',
-    'person-task': 'assignedTo',
-    'project-person': 'hasMember',
-    'person-project': 'hasMember',
-    'task-task': 'dependsOn',
-    'project-project': 'relatedTo',
+    'project-task': 'hasTask', 'task-project': 'hasTask',
+    'task-person': 'assignedTo', 'person-task': 'assignedTo',
+    'project-person': 'hasMember', 'person-project': 'hasMember',
+    'task-task': 'dependsOn', 'project-project': 'relatedTo',
     'person-person': 'collaborates',
-    'value-goal': 'motivates',
-    'goal-value': 'motivates',
-    'goal-project': 'drives',
-    'project-goal': 'drives',
-    'value-value': 'alignsWith',
-    'goal-goal': 'supports'
+    'value-goal': 'motivates', 'goal-value': 'motivates',
+    'goal-project': 'drives', 'project-goal': 'drives',
+    'value-value': 'alignsWith', 'goal-goal': 'supports'
   };
 
-  // Icon drawing functions (drawn at origin, scaled to node radius)
   function drawProjectIcon(ctx, r) {
-    // Clipboard with checkboxes (matches screenshot)
     var s = r * 0.4;
-    // Clipboard body
+    ctx.beginPath(); ctx.rect(-s * 0.7, -s * 0.6, s * 1.4, s * 1.8); ctx.lineWidth = 1.2; ctx.stroke();
+    ctx.beginPath(); ctx.rect(-s * 0.3, -s * 0.9, s * 0.6, s * 0.4); ctx.lineWidth = 1; ctx.stroke();
     ctx.beginPath();
-    ctx.rect(-s * 0.7, -s * 0.6, s * 1.4, s * 1.8);
-    ctx.lineWidth = 1.2;
-    ctx.stroke();
-    // Clip tab
-    ctx.beginPath();
-    ctx.rect(-s * 0.3, -s * 0.9, s * 0.6, s * 0.4);
-    ctx.lineWidth = 1;
-    ctx.stroke();
-    // Checkbox lines
-    ctx.beginPath();
-    ctx.moveTo(-s * 0.35, -s * 0.1);
-    ctx.lineTo(s * 0.4, -s * 0.1);
-    ctx.moveTo(-s * 0.35, s * 0.35);
-    ctx.lineTo(s * 0.4, s * 0.35);
-    ctx.moveTo(-s * 0.35, s * 0.8);
-    ctx.lineTo(s * 0.4, s * 0.8);
-    ctx.lineWidth = 0.8;
-    ctx.stroke();
+    ctx.moveTo(-s * 0.35, -s * 0.1); ctx.lineTo(s * 0.4, -s * 0.1);
+    ctx.moveTo(-s * 0.35, s * 0.35); ctx.lineTo(s * 0.4, s * 0.35);
+    ctx.moveTo(-s * 0.35, s * 0.8); ctx.lineTo(s * 0.4, s * 0.8);
+    ctx.lineWidth = 0.8; ctx.stroke();
   }
-
   function drawTaskIcon(ctx, r) {
-    // Checkbox with checkmark (matches screenshot task nodes)
     var s = r * 0.4;
-    ctx.beginPath();
-    ctx.rect(-s * 0.7, -s * 0.7, s * 1.4, s * 1.4);
-    ctx.lineWidth = 1.2;
-    ctx.stroke();
-    // Checkmark
-    ctx.beginPath();
-    ctx.moveTo(-s * 0.35, s * 0.05);
-    ctx.lineTo(-s * 0.05, s * 0.4);
-    ctx.lineTo(s * 0.45, -s * 0.35);
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
+    ctx.beginPath(); ctx.rect(-s * 0.7, -s * 0.7, s * 1.4, s * 1.4); ctx.lineWidth = 1.2; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-s * 0.35, s * 0.05); ctx.lineTo(-s * 0.05, s * 0.4); ctx.lineTo(s * 0.45, -s * 0.35);
+    ctx.lineWidth = 1.5; ctx.stroke();
   }
-
   function drawPersonIcon(ctx, r) {
-    // Person head + shoulders (matches screenshot person nodes)
     var s = r * 0.4;
-    // Head
-    ctx.beginPath();
-    ctx.arc(0, -s * 0.5, s * 0.5, 0, Math.PI * 2);
-    ctx.lineWidth = 1.2;
-    ctx.stroke();
-    // Shoulders
-    ctx.beginPath();
-    ctx.moveTo(-s * 0.8, s * 0.9);
+    ctx.beginPath(); ctx.arc(0, -s * 0.5, s * 0.5, 0, Math.PI * 2); ctx.lineWidth = 1.2; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-s * 0.8, s * 0.9);
     ctx.quadraticCurveTo(-s * 0.8, s * 0.2, 0, s * 0.2);
     ctx.quadraticCurveTo(s * 0.8, s * 0.2, s * 0.8, s * 0.9);
-    ctx.lineWidth = 1.2;
-    ctx.stroke();
+    ctx.lineWidth = 1.2; ctx.stroke();
   }
-
   function drawValueIcon(ctx, r) {
-    // Diamond / gem shape (represents a core value)
     var s = r * 0.45;
     ctx.beginPath();
-    ctx.moveTo(0, -s);
-    ctx.lineTo(s * 0.8, -s * 0.2);
-    ctx.lineTo(s * 0.5, s);
-    ctx.lineTo(-s * 0.5, s);
-    ctx.lineTo(-s * 0.8, -s * 0.2);
-    ctx.closePath();
-    ctx.lineWidth = 1.2;
-    ctx.stroke();
-    // Inner facet line
-    ctx.beginPath();
-    ctx.moveTo(-s * 0.8, -s * 0.2);
-    ctx.lineTo(0, s * 0.3);
-    ctx.lineTo(s * 0.8, -s * 0.2);
-    ctx.lineWidth = 0.8;
-    ctx.stroke();
+    ctx.moveTo(0, -s); ctx.lineTo(s * 0.8, -s * 0.2); ctx.lineTo(s * 0.5, s);
+    ctx.lineTo(-s * 0.5, s); ctx.lineTo(-s * 0.8, -s * 0.2); ctx.closePath();
+    ctx.lineWidth = 1.2; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-s * 0.8, -s * 0.2); ctx.lineTo(0, s * 0.3); ctx.lineTo(s * 0.8, -s * 0.2);
+    ctx.lineWidth = 0.8; ctx.stroke();
   }
-
   function drawGoalIcon(ctx, r) {
-    // Target / bullseye (represents a goal)
     var s = r * 0.4;
-    ctx.beginPath();
-    ctx.arc(0, 0, s, 0, Math.PI * 2);
-    ctx.lineWidth = 1.2;
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(0, 0, s * 0.5, 0, Math.PI * 2);
-    ctx.lineWidth = 0.8;
-    ctx.stroke();
-    // Center dot
-    ctx.beginPath();
-    ctx.arc(0, 0, s * 0.15, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.beginPath(); ctx.arc(0, 0, s, 0, Math.PI * 2); ctx.lineWidth = 1.2; ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, s * 0.5, 0, Math.PI * 2); ctx.lineWidth = 0.8; ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, s * 0.15, 0, Math.PI * 2); ctx.fill();
   }
 
-  function resize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-  }
+  function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 
-  // Persistent structural edges (node index pairs) — built after initNodes
   var structEdges = [];
 
   function initNodes() {
@@ -1690,18 +522,11 @@ section {
         nodes.push({
           x: (cl.xFrac + slot.dxFrac + (Math.random() - 0.5) * jitter) * canvas.width,
           y: (cl.yFrac + slot.dyFrac + (Math.random() - 0.5) * jitter) * canvas.height,
-          targetDx: slot.dxFrac,
-          targetDy: slot.dyFrac,
-          vx: (Math.random() - 0.5) * 0.4,
-          vy: (Math.random() - 0.5) * 0.4,
-          r: r,
-          type: type,
-          name: name,
-          cluster: ci
+          targetDx: slot.dxFrac, targetDy: slot.dyFrac,
+          vx: (Math.random() - 0.5) * 0.4, vy: (Math.random() - 0.5) * 0.4,
+          r: r, type: type, name: name, cluster: ci
         });
       }
-
-      // Tree edges: root(0) → mid(1,2), mid(1) → leaf(3), mid(2) → leaf(4)
       structEdges.push({ a: baseIdx, b: baseIdx + 1 });
       structEdges.push({ a: baseIdx, b: baseIdx + 2 });
       structEdges.push({ a: baseIdx + 1, b: baseIdx + 3 });
@@ -1709,7 +534,6 @@ section {
     }
   }
 
-  // Cache the mono font string
   var monoFont = '';
 
   function draw() {
@@ -1718,209 +542,77 @@ section {
       monoFont = getComputedStyle(document.documentElement).getPropertyValue('--font-mono').trim();
     }
 
-    // Draw structural edges with labels
     for (var sei = 0; sei < structEdges.length; sei++) {
       var se = structEdges[sei];
-      var nA = nodes[se.a];
-      var nB = nodes[se.b];
-      var cA2 = nA.type.color;
-      var cB2 = nB.type.color;
-      var sr = (cA2[0] + cB2[0]) >> 1;
-      var sg = (cA2[1] + cB2[1]) >> 1;
-      var sb = (cA2[2] + cB2[2]) >> 1;
-      // Edge line
-      ctx.beginPath();
-      ctx.moveTo(nA.x, nA.y);
-      ctx.lineTo(nB.x, nB.y);
+      var nA = nodes[se.a], nB = nodes[se.b];
+      var cA2 = nA.type.color, cB2 = nB.type.color;
+      var sr = (cA2[0] + cB2[0]) >> 1, sg = (cA2[1] + cB2[1]) >> 1, sb = (cA2[2] + cB2[2]) >> 1;
+      ctx.beginPath(); ctx.moveTo(nA.x, nA.y); ctx.lineTo(nB.x, nB.y);
       ctx.strokeStyle = 'rgba(' + sr + ',' + sg + ',' + sb + ', 0.3)';
-      ctx.lineWidth = 0.8;
-      ctx.stroke();
-      // Label at midpoint
-      var smx = (nA.x + nB.x) / 2;
-      var smy = (nA.y + nB.y) / 2;
+      ctx.lineWidth = 0.8; ctx.stroke();
+      var smx = (nA.x + nB.x) / 2, smy = (nA.y + nB.y) / 2;
       var pairKey = nA.type.name + '-' + nB.type.name;
       var label = edgeLabels[pairKey] || 'relatedTo';
       var sAngle = Math.atan2(nB.y - nA.y, nB.x - nA.x);
       if (sAngle > Math.PI / 2) sAngle -= Math.PI;
       if (sAngle < -Math.PI / 2) sAngle += Math.PI;
-      ctx.save();
-      ctx.translate(smx, smy);
-      ctx.rotate(sAngle);
-      ctx.font = '9px ' + monoFont;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
+      ctx.save(); ctx.translate(smx, smy); ctx.rotate(sAngle);
+      ctx.font = '9px ' + monoFont; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillStyle = 'rgba(' + sr + ',' + sg + ',' + sb + ', 0.35)';
-      ctx.fillText(label, 0, -7);
-      ctx.restore();
+      ctx.fillText(label, 0, -7); ctx.restore();
     }
 
-    // Draw nodes with name labels
-    var pad = 30; // keep nodes (and labels) on screen
+    var pad = 30;
     for (var k = 0; k < nodes.length; k++) {
-      var n = nodes[k];
-      var c = n.type.color;
-
-      // Node circle
-      ctx.beginPath();
-      ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ', 0.15)';
-      ctx.fill();
+      var n = nodes[k], c = n.type.color;
+      ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ', 0.15)'; ctx.fill();
       ctx.strokeStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ', 0.35)';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-
-      // Icon inside node
-      ctx.save();
-      ctx.translate(n.x, n.y);
+      ctx.lineWidth = 1; ctx.stroke();
+      ctx.save(); ctx.translate(n.x, n.y);
       ctx.fillStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ', 0.5)';
       ctx.strokeStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ', 0.5)';
-      n.type.icon(ctx, n.r);
-      ctx.restore();
-
-      // Node name label below
-      ctx.font = '11px ' + monoFont;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'top';
+      n.type.icon(ctx, n.r); ctx.restore();
+      ctx.font = '11px ' + monoFont; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
       ctx.fillStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ', 0.5)';
       ctx.fillText(n.name, n.x, n.y + n.r + 5);
-
     }
 
-    // Physics: tree-slot gravity + soft repulsion
-    var gravity = 0.00006;
-    var repulse = 0.3;
-    var minSep = 50;
-
+    var gravity = 0.00006, repulse = 0.3, minSep = 50;
     for (var pi = 0; pi < nodes.length; pi++) {
       var pn = nodes[pi];
-      // Pull toward own tree-slot position
       var cl = clusters[pn.cluster];
       var targetX = (cl.xFrac + pn.targetDx) * canvas.width;
       var targetY = (cl.yFrac + pn.targetDy) * canvas.height;
       pn.vx += (targetX - pn.x) * gravity;
       pn.vy += (targetY - pn.y) * gravity;
-
-      // Soft repulsion from nearby nodes (avoid overlap)
       for (var pj = pi + 1; pj < nodes.length; pj++) {
         var on = nodes[pj];
-        var rdx = pn.x - on.x;
-        var rdy = pn.y - on.y;
+        var rdx = pn.x - on.x, rdy = pn.y - on.y;
         var rDist = Math.sqrt(rdx * rdx + rdy * rdy);
         if (rDist < minSep && rDist > 0) {
           var push = (minSep - rDist) / minSep * repulse;
-          var rnx = rdx / rDist;
-          var rny = rdy / rDist;
-          pn.vx += rnx * push * 0.01;
-          pn.vy += rny * push * 0.01;
-          on.vx -= rnx * push * 0.01;
-          on.vy -= rny * push * 0.01;
+          var rnx = rdx / rDist, rny = rdy / rDist;
+          pn.vx += rnx * push * 0.01; pn.vy += rny * push * 0.01;
+          on.vx -= rnx * push * 0.01; on.vy -= rny * push * 0.01;
         }
       }
     }
 
-    // Apply velocity + clamp to screen
     for (var mi = 0; mi < nodes.length; mi++) {
       var mn = nodes[mi];
-      // Damping
-      mn.vx *= 0.99;
-      mn.vy *= 0.99;
-      mn.x += mn.vx;
-      mn.y += mn.vy;
-      // Keep on screen
+      mn.vx *= 0.99; mn.vy *= 0.99; mn.x += mn.vx; mn.y += mn.vy;
       if (mn.x < pad) { mn.x = pad; mn.vx *= -0.5; }
       if (mn.x > canvas.width - pad) { mn.x = canvas.width - pad; mn.vx *= -0.5; }
       if (mn.y < pad) { mn.y = pad; mn.vy *= -0.5; }
       if (mn.y > canvas.height - pad) { mn.y = canvas.height - pad; mn.vy *= -0.5; }
     }
-
     requestAnimationFrame(draw);
   }
 
-  resize();
-  initNodes();
-  draw();
-
-  window.addEventListener('resize', function() {
-    resize();
-    initNodes();
-  });
+  resize(); initNodes(); draw();
+  window.addEventListener('resize', function() { resize(); initNodes(); });
 })();
-
-// Screenshot carousel
-(function() {
-  var track = document.getElementById('carouselTrack');
-  var dotsContainer = document.getElementById('carouselDots');
-  if (!track || !dotsContainer) return;
-  var slides = track.querySelectorAll('.carousel-slide');
-  var current = 0;
-  var total = slides.length;
-
-  // Build dots
-  for (var i = 0; i < total; i++) {
-    var dot = document.createElement('button');
-    dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
-    dot.setAttribute('aria-label', 'Go to slide ' + (i + 1));
-    dot.dataset.index = i;
-    dotsContainer.appendChild(dot);
-  }
-  var dots = dotsContainer.querySelectorAll('.carousel-dot');
-
-  function goTo(index) {
-    current = ((index % total) + total) % total;
-    track.style.transform = 'translateX(-' + (current * 100) + '%)';
-    dots.forEach(function(d, di) {
-      d.classList.toggle('active', di === current);
-    });
-  }
-
-  document.querySelector('.carousel-prev').addEventListener('click', function() { goTo(current - 1); });
-  document.querySelector('.carousel-next').addEventListener('click', function() { goTo(current + 1); });
-  dotsContainer.addEventListener('click', function(e) {
-    if (e.target.classList.contains('carousel-dot')) {
-      goTo(parseInt(e.target.dataset.index, 10));
-    }
-  });
-
-  // Auto-advance every 6s
-  var autoPlay = setInterval(function() { goTo(current + 1); }, 6000);
-  document.getElementById('carousel').addEventListener('mouseenter', function() { clearInterval(autoPlay); });
-  document.getElementById('carousel').addEventListener('mouseleave', function() {
-    autoPlay = setInterval(function() { goTo(current + 1); }, 6000);
-  });
-})();
-
-// Signup form — Kit (ConvertKit) integration
-function handleSignup(e) {
-  e.preventDefault();
-  var input = e.target.querySelector('input[type="email"]');
-  var btn = e.target.querySelector('button');
-  var email = input.value;
-
-  btn.textContent = 'Sending...';
-  btn.disabled = true;
-  input.disabled = true;
-
-  var formData = new FormData();
-  formData.append('email_address', email);
-
-  fetch('https://app.kit.com/forms/9157746/subscriptions', {
-    method: 'POST',
-    body: formData
-  }).then(function(res) {
-    if (res.ok || res.status === 200 || res.status === 302) {
-      btn.textContent = 'You\'re in!';
-      input.value = '';
-      input.placeholder = 'Check your inbox to confirm.';
-    } else {
-      throw new Error('status ' + res.status);
-    }
-  }).catch(function() {
-    btn.textContent = 'Retry';
-    btn.disabled = false;
-    input.disabled = false;
-    input.placeholder = 'Something went wrong — try again.';
-  });
-}
 </script>
 
 </body>

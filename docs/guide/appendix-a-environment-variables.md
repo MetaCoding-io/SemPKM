@@ -26,6 +26,7 @@ This appendix lists every environment variable recognized by SemPKM, drawn direc
 | `POSTHOG_ENABLED` | Enable PostHog analytics and error monitoring. Set to `true` for cloud deployments; leave `false` for self-hosted. | `false` | No |
 | `POSTHOG_API_KEY` | PostHog project API key. Required when `POSTHOG_ENABLED` is `true`. | (empty) | When PostHog is enabled |
 | `POSTHOG_HOST` | PostHog ingestion endpoint URL. | `https://us.i.posthog.com` | No |
+| `DEMO_MODE` | Enable demo mode for the hosted demo instance. Makes all auth dependencies return a synthetic read-only guest user, bypasses the setup wizard, and exposes demo-specific UI (tour auto-start, CTA banner). Combine with `nginx.demo.conf` for write-blocking. | `false` | No |
 | `DEBUG` | Enable debug mode. When `true`, produces verbose logging and enables development-only features. Do not enable in production. | `false` | No |
 
 ## Docker Compose Variables
@@ -44,6 +45,7 @@ The following variables configure individual sync apps. They are set in the `env
 |----------|-------------|---------|-----|
 | `GITHUB_API_URL` | Override the GitHub REST API base URL. Used for GitHub Enterprise or testing with a mock server. | `https://api.github.com` | GitHub Sync |
 | `JIRA_API_URL` | Override the Jira REST API base URL. Used for testing with a mock server. | Uses the site URL from the app's stored credentials | Jira Sync |
+| `MONDAY_API_URL` | Override the Monday.com GraphQL API URL. Used for testing with a mock server. | `https://api.monday.com/v2` | Monday.com Sync |
 
 ## Configuration Precedence
 

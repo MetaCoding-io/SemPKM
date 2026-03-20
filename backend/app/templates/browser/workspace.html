@@ -229,4 +229,75 @@
 
 {% include "browser/promote_dialog.html" %}
 <ninja-keys></ninja-keys>
+{% if demo_mode %}
+{# Demo tour auto-start and manual restart button #}
+<button id="demo-tour-restart-btn"
+        onclick="if(typeof window.startDemoTour==='function'){window.startDemoTour();}"
+        title="Restart Demo Tour"
+        style="position:fixed;bottom:80px;right:20px;z-index:50;width:44px;height:44px;border-radius:50%;border:1px solid var(--color-border,#444);background:var(--color-surface-elevated,#1e1e2e);color:var(--color-text-muted,#aaa);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);transition:background .15s,color .15s;"
+        onmouseenter="this.style.background='var(--color-primary,#60a5fa)';this.style.color='#fff';"
+        onmouseleave="this.style.background='var(--color-surface-elevated,#1e1e2e)';this.style.color='var(--color-text-muted,#aaa)';">
+  <i data-lucide="play-circle"></i>
+</button>
+{# CTA banner — shown after demo tour completes or on returning visits #}
+<div class="demo-cta-banner" id="demo-cta-banner" style="display: none;">
+  <div class="demo-cta-content">
+    <i data-lucide="rocket"></i>
+    <div class="demo-cta-text">
+      <strong>Ready to try SemPKM?</strong>
+      <span>Install with Docker in 2 minutes. Self-hosted, privacy-first personal knowledge management.</span>
+    </div>
+    <a href="https://github.com/SemPKM/SemPKM" target="_blank" rel="noopener" class="demo-cta-button">
+      <i data-lucide="github"></i>
+      Get Started
+    </a>
+    <button class="demo-cta-dismiss" onclick="dismissDemoCta()" title="Dismiss">
+      <i data-lucide="x"></i>
+    </button>
+  </div>
+</div>
+<script>
+(function() {
+  // Auto-start demo tour on first visit
+  if (!localStorage.getItem('sempkm_demo_tour_done')) {
+    // Wait for dockview and workspace to initialize
+    setTimeout(function() {
+      if (typeof window.startDemoTour === 'function') {
+        window.startDemoTour();
+      }
+    }, 1500);
+  }
+})();
+
+function dismissDemoCta() {
+  var banner = document.getElementById('demo-cta-banner');
+  if (banner) {
+    banner.classList.add('demo-cta-hiding');
+    setTimeout(function() { banner.style.display = 'none'; }, 300);
+  }
+  localStorage.setItem('sempkm_demo_cta_dismissed', '1');
+}
+
+function showDemoCta() {
+  if (localStorage.getItem('sempkm_demo_cta_dismissed') === '1') return;
+  var banner = document.getElementById('demo-cta-banner');
+  if (banner) {
+    banner.style.display = '';
+    // Re-initialize Lucide icons inside the banner
+    if (window.lucide) lucide.createIcons({ nodes: [banner] });
+    console.log('[SemPKM] CTA banner shown');
+  }
+}
+
+// Show CTA if tour is already done (returning visitor)
+if (localStorage.getItem('sempkm_demo_tour_done') === '1') {
+  setTimeout(showDemoCta, 500);
+}
+
+// Listen for tour completion event (first-time visitor)
+document.addEventListener('sempkm:demo-tour-done', function() {
+  setTimeout(showDemoCta, 500);
+});
+</script>
+{% endif %}
 {% endblock %}

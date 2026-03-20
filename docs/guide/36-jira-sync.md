@@ -380,4 +380,4 @@ Jira Cloud applies rate limiting to API requests. If you sync many projects with
 
 ---
 
-**Previous:** [Chapter 35: GitHub Sync](35-github-sync.md) | **Next:** [Appendix A: Environment Variable Reference](appendix-a-environment-variables.md)
+**Previous:** [Chapter 35: GitHub Sync](35-github-sync.md) | **Next:** [Chapter 37: Monday.com Sync](37-monday-sync.md)

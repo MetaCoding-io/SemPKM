@@ -348,6 +348,29 @@ def _extract_dropdown(col_value: str | dict | None) -> list[str]:
     return []
 
 
+def _extract_dependency(col_value: str | dict | None) -> list[int]:
+    """Extract linked item IDs from a Monday.com dependency column.
+
+    Dependency column value shape (read):
+    ``{"linkedPulseIds": [{"linkedPulseId": 12345}]}``
+
+    Returns:
+        List of integer item IDs (empty list if no dependencies).
+    """
+    parsed = _parse_col_value(col_value)
+    if parsed is None:
+        return []
+    if isinstance(parsed, dict):
+        linked = parsed.get("linkedPulseIds", [])
+        if isinstance(linked, list):
+            return [
+                int(lp["linkedPulseId"])
+                for lp in linked
+                if isinstance(lp, dict) and "linkedPulseId" in lp
+            ]
+    return []
+
+
 # Dispatcher mapping column type strings to extractor functions.
 # status and priority are handled specially (they need label mappings).
 _EXTRACTORS: dict[str, callable] = {
@@ -358,6 +381,7 @@ _EXTRACTORS: dict[str, callable] = {
     "numbers": _extract_numbers,
     "tags": _extract_tags,
     "dropdown": _extract_dropdown,
+    "dependency": _extract_dependency,
 }
 
 
@@ -532,6 +556,11 @@ def build_task_properties(
             value = _extract_numbers(raw_value)
             if value:
                 props[f"{BPKM}estimatedEffort"] = value
+
+        elif bpkm_prop == "dependency":
+            dep_ids = _extract_dependency(raw_value)
+            if dep_ids:
+                props["_dependency_item_ids"] = dep_ids
 
         else:
             # Generic extraction for unmapped property types

@@ -1,0 +1,85 @@
+# Demo Docker Compose stack for read-only public demo instance.
+# Runs alongside the dev stack with separate ports, volumes, and network.
+#
+# Usage:
+#   docker compose -f docker-compose.demo.yml up -d --build
+#   docker compose -f docker-compose.demo.yml down -v
+#
+# Ports:
+#   - Frontend: http://localhost:3902  (dev=3000, test=3901)
+#   - API:      http://localhost:8902  (dev=8001, test=8901)
+#
+# DEMO_MODE=true causes the API to bypass authentication and return a
+# synthetic guest user for all requests. The demo nginx config blocks
+# all write methods (POST/PUT/DELETE/PATCH) with 403 JSON at the
+# reverse-proxy layer as defense-in-depth.
+
+services:
+  triplestore:
+    image: eclipse/rdf4j-workbench:5.0.1
+    volumes:
+      - rdf4j_demo_data:/var/rdf4j
+    environment:
+      JAVA_OPTS: "-Xmx512m"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/rdf4j-server/protocol"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - sempkm-demo
+
+  api:
+    build: ./backend
+    ports:
+      - "8902:8000"
+    volumes:
+      - ./backend/app:/app/app
+      - ./backend/migrations:/app/migrations
+      - ./config:/app/config:ro
+      - ./models:/app/models:ro
+      - ./backend/ontologies:/app/ontologies:ro
+      - sempkm_demo_data:/app/data
+      - ./docs:/app/docs:ro
+      - ./apps:/app/apps:ro
+      - ./scripts:/app/scripts:ro
+    environment:
+      TRIPLESTORE_URL: http://triplestore:8080/rdf4j-server
+      REPOSITORY_ID: sempkm_demo
+      BASE_NAMESPACE: https://demo.example.org/data/
+      DATABASE_URL: sqlite+aiosqlite:///./data/sempkm_demo.db
+      SECRET_KEY: demo-secret-key-not-for-production
+      SESSION_DURATION_DAYS: 1
+      COOKIE_SECURE: "false"
+      RATE_LIMIT_ENABLED: "false"
+      DEMO_MODE: "true"
+    depends_on:
+      triplestore:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - sempkm-demo
+
+  frontend:
+    image: nginx:stable-alpine
+    ports:
+      - "3902:80"
+    volumes:
+      - ./frontend/static:/usr/share/nginx/html:ro
+      - ./frontend/nginx.demo.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - sempkm-demo
+
+networks:
+  sempkm-demo:
+
+volumes:
+  rdf4j_demo_data:
+  sempkm_demo_data:

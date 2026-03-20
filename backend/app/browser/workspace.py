@@ -617,6 +617,7 @@ async def workspace(
         "active_page": "browser",
         "user": user,
         "base_namespace": settings.base_namespace,
+        "demo_mode": settings.demo_mode,
     }
 
     if _is_htmx_request(request):

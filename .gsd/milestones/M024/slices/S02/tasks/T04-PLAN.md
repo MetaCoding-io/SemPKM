@@ -202,6 +202,13 @@ Create `test_monday_sync_engine.py` with 100+ unit tests proving the sync engine
 - `backend/tests/test_monday_field_mapper.py` — reference for importlib loading pattern
 - KNOWLEDGE.md Pattern #2: MockResponse `data if data is not None else {}` (not `data or {}`)
 
+## Observability Impact
+
+- **Test run command:** `cd backend && .venv/bin/python3 -m pytest tests/test_monday_sync_engine.py -v` — displays per-test pass/fail status. A future agent inspects sync engine correctness by running this.
+- **Failure visibility:** Pytest verbose output names the exact test class and method that failed, with short traceback. Error-path tests (`TestPullSyncAllItemsFail`, `TestPullSyncAssigneeResolution`) validate that runtime failures are surfaced correctly in `failed_items` and `error_count`.
+- **MockResponse correctness signal:** `TestMockResponseFalsyData` catches regressions in KNOWLEDGE.md Pattern #2 — if someone changes `data if data is not None else {}` to `data or {}`, these tests fail immediately.
+- **No runtime signals changed** — this task only adds tests, no production code modified.
+
 ## Expected Output
 
 - `backend/tests/test_monday_sync_engine.py` — NEW: 100+ tests, 1000+ lines
