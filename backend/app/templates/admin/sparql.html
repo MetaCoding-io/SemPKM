@@ -3,8 +3,13 @@
 {% block title %}SPARQL Console - SemPKM{% endblock %}
 
 {% block content %}
+{% if asset_manifest_available %}
+<link rel="stylesheet" href="{{ 'yasgui.css' | asset_url }}">
+<script src="{{ 'yasgui.js' | asset_url }}"></script>
+{% else %}
 <link rel="stylesheet" href="https://unpkg.com/@zazuko/yasgui@4.5.0/build/yasgui.min.css">
 <script src="https://unpkg.com/@zazuko/yasgui@4.5.0/build/yasgui.min.js"></script>
+{% endif %}
 <style>
   /* Full-height Yasgui — strip padding from the dashboard content-area */
   .content-area { padding: 0 !important; }

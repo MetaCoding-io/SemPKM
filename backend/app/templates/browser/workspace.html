@@ -6,11 +6,18 @@
 
 {% block head %}
 {{ super() }}
+{% if asset_manifest_available %}
+{# Production: dockview + bridge CSS merged into workspace-vendor bundle #}
+<link rel="stylesheet" href="{{ 'workspace-vendor.css' | asset_url }}">
+<script src="{{ 'workspace-vendor.js' | asset_url }}"></script>
+{% else %}
+{# Dev mode: CDN dockview + separate bridge CSS #}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dockview-core@4.11.0/dist/styles/dockview.css">
 <link rel="stylesheet" href="/css/dockview-sempkm-bridge.css">
-<link rel="stylesheet" href="/css/federation.css">
 <script src="https://cdn.jsdelivr.net/npm/dockview-core@4.11.0/dist/dockview-core.min.js"></script>
-<script src="/js/federation.js" defer></script>
+{% endif %}
+<link rel="stylesheet" href="{{ 'federation.css' | asset_url }}">
+<script src="{{ 'federation.js' | asset_url }}" defer></script>
 {% endblock %}
 
 {% block content %}
