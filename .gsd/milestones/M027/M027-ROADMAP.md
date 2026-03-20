@@ -55,11 +55,11 @@ This milestone is complete only when all are true:
 
 - [x] **S01: Notion ZIP Scanner + Upload UI** `risk:high` `depends:[]`
   > After this: user uploads a Notion workspace ZIP via Admin > Import > Notion, sees scan results showing detected databases with column summaries, standalone pages, and cross-database relation candidates
-- [ ] **S02: Type, Property & Relation Mapping + Preview** `risk:medium` `depends:[S01]`
+- [x] **S02: Type, Property & Relation Mapping + Preview** `risk:medium` `depends:[S01]`
   > After this: user maps databases to Mental Model types, maps CSV columns to RDF predicates, configures relation columns as typed edges, and sees a preview of sample mapped objects with properties and edges before committing
-- [ ] **S03: Two-Pass Import Executor + Full Flow** `risk:medium` `depends:[S01,S02]`
+- [x] **S03: Two-Pass Import Executor + Full Flow** `risk:medium` `depends:[S01,S02]`
   > After this: user clicks Import and objects are created from CSV rows + standalone pages (Pass 1), relations resolved as edges by title matching (Pass 2), with SSE progress throughout and an import summary showing stats and any unresolvable relations
-- [ ] **S04: E2E Tests + User Guide** `risk:low` `depends:[S01,S02,S03]`
+- [x] **S04: E2E Tests + User Guide** `risk:low` `depends:[S01,S02,S03]`
   > After this: Playwright E2E test exercises the full wizard flow against Docker test stack with a fixture Notion export, and user guide chapter documents the complete Notion import workflow
 
 ## Boundary Map

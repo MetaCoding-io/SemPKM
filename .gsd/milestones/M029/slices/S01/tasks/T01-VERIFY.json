@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T01",
+  "unitId": "M029/S01/T01",
+  "timestamp": 1774034941021,
+  "passed": false,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "npm ci",
+      "exitCode": 1,
+      "durationMs": 237,
+      "verdict": "fail"
+    }
+  ],
+  "retryAttempt": 2,
+  "maxRetries": 2
+}
