@@ -37,8 +37,16 @@
     // Switch highlight.js theme
     var hljsLink = document.getElementById('hljs-theme');
     if (hljsLink) {
-      var base = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/';
-      hljsLink.href = base + (resolved === 'dark' ? 'github-dark.min.css' : 'github.min.css');
+      // Use data attributes if set (production mode with local vendored assets)
+      var lightHref = hljsLink.getAttribute('data-light-href');
+      var darkHref = hljsLink.getAttribute('data-dark-href');
+      if (lightHref && darkHref) {
+        hljsLink.href = (resolved === 'dark') ? darkHref : lightHref;
+      } else {
+        // Fallback to CDN (dev mode)
+        var base = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/';
+        hljsLink.href = base + (resolved === 'dark' ? 'github-dark.min.css' : 'github.min.css');
+      }
     }
 
     // Update toggle UI active state

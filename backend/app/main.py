@@ -473,6 +473,10 @@ templates.env.filters["dict_without"] = _dict_without
 templates.env.filters["urlencode"] = _urlencode_filter
 templates.env.filters["compact_iri"] = _compact_iri
 
+from app.template_helpers import init_template_helpers  # noqa: E402
+
+init_template_helpers(app)
+
 
 def _is_html_route(path: str) -> bool:
     """Return True for HTML routes, False for API routes."""

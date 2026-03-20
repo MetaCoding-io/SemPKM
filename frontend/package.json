@@ -1,0 +1,32 @@
+{
+  "name": "sempkm-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SemPKM frontend build pipeline — vendors CDN deps, bundles, minifies, content-hashes",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "dependencies": {
+    "htmx.org": "2.0.4",
+    "split.js": "1.6.5",
+    "ninja-keys": "1.2.2",
+    "cytoscape": "3.33.1",
+    "layout-base": "2.0.1",
+    "cose-base": "2.2.0",
+    "cytoscape-fcose": "2.2.0",
+    "dagre": "0.8.5",
+    "cytoscape-dagre": "2.5.0",
+    "marked": "17.0.5",
+    "marked-highlight": "2.2.3",
+    "highlight.js": "11.11.1",
+    "dompurify": "3.3.3",
+    "lucide": "0.575.0",
+    "driver.js": "1.4.0",
+    "dockview-core": "4.11.0",
+    "@zazuko/yasgui": "4.5.0",
+    "chart.js": "4.4.9"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}
