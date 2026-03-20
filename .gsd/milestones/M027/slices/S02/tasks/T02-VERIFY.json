@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T02",
+  "unitId": "M027/S02/T02",
+  "timestamp": 1774022232312,
+  "passed": false,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "Browser flow against running Docker stack — full wizard navigation from scan results through all 4 mapping steps and back",
+      "exitCode": 127,
+      "durationMs": 8,
+      "verdict": "fail"
+    }
+  ],
+  "retryAttempt": 1,
+  "maxRetries": 2
+}
