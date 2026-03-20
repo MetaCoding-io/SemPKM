@@ -18,7 +18,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-from ..obsidian.broadcast import ScanBroadcast, SSEEvent
+from .broadcast import ScanBroadcast, SSEEvent
 from .models import (
     DetectedRelation,
     NotionColumn,
