@@ -29,6 +29,7 @@ from app.lint.router import router as lint_router
 from app.lint.service import LintService
 from app.canvas.router import router as canvas_router
 from app.obsidian.router import router as obsidian_router
+from app.notion.router import router as notion_router
 from app.views.router import router as views_router
 from app.dashboard.router import browser_router as dashboard_browser_router, api_router as dashboard_api_router
 from app.workflow.router import browser_router as workflow_browser_router, api_router as workflow_api_router
@@ -590,6 +591,7 @@ app.include_router(app_admin_router)
 app.include_router(app_proxy_router)
 app.include_router(browser_router)
 app.include_router(obsidian_router)
+app.include_router(notion_router)
 app.include_router(canvas_router)
 app.include_router(debug_router)
 app.include_router(shell_router)

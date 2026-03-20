@@ -49,7 +49,7 @@
   - Verify: `cd backend && python -m pytest tests/test_notion_scanner.py -v` — all tests pass
   - Done when: ≥20 unit tests covering all scanner behaviors pass. NotionScanResult.to_dict()/from_dict() round-trips correctly.
 
-- [ ] **T02: Router, templates, broadcast, and wiring** `est:2h`
+- [x] **T02: Router, templates, broadcast, and wiring** `est:2h`
   - Why: Connects the scanner to the web UI — upload page, scan trigger, scan results display, SSE progress, sidebar nav entry, and command palette entry. Without this, the scanner is a library with no user-facing surface.
   - Files: `backend/app/notion/router.py`, `backend/app/notion/broadcast.py`, `backend/app/main.py`, `backend/app/templates/notion/import.html`, `backend/app/templates/notion/partials/upload_form.html`, `backend/app/templates/notion/partials/scan_trigger.html`, `backend/app/templates/notion/partials/scan_results.html`, `backend/app/templates/notion/partials/step_bar.html`, `backend/app/templates/components/_sidebar.html`, `frontend/static/js/workspace.js`
   - Do: Copy and adapt broadcast.py from Obsidian. Build router with upload, scan, scan-stream, discard, and results endpoints mirroring Obsidian pattern but at `/browser/notion/` prefix. Create import.html page and partials (upload form, scan trigger, scan results showing database tables with column summaries, standalone pages list, detected relations section). Adapt step bar for Notion wizard steps (Upload → Scan → Types → Properties → Relations → Preview → Import). Wire router into main.py. Add "Import Notion" sidebar link. Add "Import > Notion" command palette entry. Reuse existing `import.css` for shared styling.

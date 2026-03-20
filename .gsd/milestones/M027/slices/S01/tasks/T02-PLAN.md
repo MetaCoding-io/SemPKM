@@ -99,6 +99,14 @@ This task only builds the S01 endpoints (upload, scan, results, discard). The ma
 - `backend/app/templates/obsidian/` — reference templates for wizard UI structure
 - `frontend/static/css/import.css` — shared import wizard CSS (already exists)
 
+## Observability Impact
+
+- **SSE events:** `scan_progress` (scanned/total counts, current_file), `scan_complete` (import_id), `scan_error` (message) — delivered via `/browser/notion/scan/{import_id}/stream`
+- **Persisted state:** `scan_result.json` written to `/app/data/imports/notion/{user_id}/{timestamp}/` after scan completes — inspect with `cat` or load via `/browser/notion/{import_id}/results`
+- **Logging:** `logger.info` on upload, scan complete (with DB/page counts), and discard events — grep for `notion` in container logs
+- **Failure visibility:** `ScanWarning` objects rendered in the scan results UI; bad ZIP uploads return inline HTML error; missing/discarded imports return 404
+- **Agent inspection:** Hit `GET /browser/notion/import` to check current import state; check `_broadcasts` dict keys for active scan streams; `scan_result.json` is the ground truth after scan
+
 ## Expected Output
 
 - `backend/app/notion/broadcast.py` — SSE broadcast helper (adapted copy)

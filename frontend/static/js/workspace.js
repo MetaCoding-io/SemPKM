@@ -1458,6 +1458,14 @@
           }
         },
         {
+          id: 'import-notion',
+          title: 'Import > Notion',
+          section: 'Navigation',
+          handler: function () {
+            window.location.href = '/browser/notion/import';
+          }
+        },
+        {
           id: 'theme-light',
           title: 'Theme: Light',
           section: 'Appearance',

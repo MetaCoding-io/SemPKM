@@ -1,0 +1,211 @@
+{% set current_step = 2 %}
+{% include "notion/partials/step_bar.html" with context %}
+<script>
+(function() {
+    var oob = document.querySelector('#import-content > #import-step-bar');
+    if (oob) {
+        var target = document.querySelector('#import-container > #import-step-bar');
+        if (target) target.replaceWith(oob);
+    }
+})();
+</script>
+<div id="import-area" class="import-results-wrapper">
+    <!-- Stat Cards -->
+    <div class="import-stat-cards">
+        <div class="import-stat-card">
+            <span class="stat-number">{{ scan_result.databases|length }}</span>
+            <span class="stat-label">Databases</span>
+        </div>
+        <div class="import-stat-card">
+            <span class="stat-number">{{ scan_result.standalone_pages|length }}</span>
+            <span class="stat-label">Pages</span>
+        </div>
+        <div class="import-stat-card">
+            <span class="stat-number">{{ scan_result.detected_relations|length }}</span>
+            <span class="stat-label">Relations</span>
+        </div>
+        <div class="import-stat-card">
+            <span class="stat-number">{{ scan_result.csv_files }}</span>
+            <span class="stat-label">CSV Files</span>
+        </div>
+    </div>
+
+    <!-- Databases Section -->
+    {% if scan_result.databases %}
+    <div class="import-section">
+        <h3 class="import-section-title">
+            <i data-lucide="table-2"></i>
+            Databases ({{ scan_result.databases|length }})
+        </h3>
+        {% for db in scan_result.databases %}
+        <div class="import-type-group">
+            <details>
+                <summary class="type-group-header">
+                    <span class="type-group-name">{{ db.name }}</span>
+                    <span class="type-group-count">{{ db.row_count }} row{{ 's' if db.row_count != 1 else '' }}</span>
+                    <span class="import-signal-badge">{{ db.columns|length }} columns</span>
+                </summary>
+                <div style="padding: 0.5rem 1rem;">
+                    <table class="import-detail-table">
+                        <thead>
+                            <tr>
+                                <th>Column</th>
+                                <th>Type</th>
+                                <th>Non-Empty</th>
+                                <th>Sample Values</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for col in db.columns %}
+                            <tr>
+                                <td><code>{{ col.name }}</code></td>
+                                <td>
+                                    <span class="import-signal-badge {% if col.inferred_type == 'relation' %}badge-relation{% endif %}">
+                                        {{ col.inferred_type }}
+                                    </span>
+                                </td>
+                                <td>{{ col.non_empty_count }}</td>
+                                <td class="sample-values-cell">{{ col.sample_values[:3]|join(', ') }}{% if col.sample_values|length > 3 %}, …{% endif %}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Standalone Pages Section -->
+    {% if scan_result.standalone_pages %}
+    <details class="import-collapsible">
+        <summary>
+            <i data-lucide="file-text"></i>
+            Standalone Pages ({{ scan_result.standalone_pages|length }})
+        </summary>
+        <table class="import-detail-table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Path</th>
+                    <th>Has Content</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for page in scan_result.standalone_pages %}
+                <tr>
+                    <td>{{ page.title }}</td>
+                    <td><code>{{ page.file_path }}</code></td>
+                    <td>{{ '✓' if page.has_body else '—' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </details>
+    {% endif %}
+
+    <!-- Detected Relations Section -->
+    {% if scan_result.detected_relations %}
+    <details class="import-collapsible" open>
+        <summary>
+            <i data-lucide="git-branch"></i>
+            Detected Relations ({{ scan_result.detected_relations|length }})
+        </summary>
+        <table class="import-detail-table">
+            <thead>
+                <tr>
+                    <th>Source Database</th>
+                    <th>Column</th>
+                    <th>Target Database</th>
+                    <th>Match Ratio</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rel in scan_result.detected_relations %}
+                <tr>
+                    <td>{{ rel.source_db_name }}</td>
+                    <td><code>{{ rel.source_column }}</code></td>
+                    <td>{{ rel.target_db_name }}</td>
+                    <td>{{ "%.0f"|format(rel.match_ratio * 100) }}%</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </details>
+    {% endif %}
+
+    <!-- Warnings Section -->
+    {% if scan_result.warnings %}
+    <div class="import-section import-warnings-section">
+        <h3 class="import-section-title">
+            <i data-lucide="alert-triangle"></i>
+            Warnings ({{ scan_result.warnings|length }})
+        </h3>
+        {% set warning_categories = {} %}
+        {% for w in scan_result.warnings %}
+            {% if w.category not in warning_categories %}
+                {% set _ = warning_categories.update({w.category: []}) %}
+            {% endif %}
+            {% set _ = warning_categories[w.category].append(w) %}
+        {% endfor %}
+        {% for cat, warnings in warning_categories.items() %}
+        <details class="import-collapsible">
+            <summary>
+                {{ cat|replace('_', ' ')|title }} ({{ warnings|length }})
+            </summary>
+            <ul class="import-warning-list">
+                {% for w in warnings %}
+                <li class="import-warning severity-{{ w.severity }}">
+                    <span class="warning-badge {{ w.severity }}">{{ w.severity }}</span>
+                    <div class="warning-content">
+                        <span class="warning-file">{{ w.file_path }}</span>
+                        <span class="warning-message">{{ w.message }}</span>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </details>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Actions -->
+    <div class="import-actions">
+        <button class="btn btn-primary" disabled
+                title="Available in the next step">
+            <i data-lucide="arrow-right"></i>
+            Continue to Type Mapping
+        </button>
+        <button hx-post="/browser/notion/{{ import_id }}/discard"
+                hx-target="#import-content"
+                hx-swap="innerHTML"
+                class="btn btn-outline btn-danger">
+            <i data-lucide="trash-2"></i>
+            Discard Import
+        </button>
+    </div>
+
+    <!-- Scan Duration -->
+    <p class="import-scan-duration">Scanned in {{ "%.1f"|format(scan_result.scan_duration_seconds) }}s</p>
+</div>
+
+<style>
+/* Additional styles for Notion-specific elements */
+.badge-relation {
+    background: var(--color-accent, #3b82f6) !important;
+    color: white !important;
+}
+.sample-values-cell {
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.85em;
+    color: var(--color-text-muted, #888);
+}
+</style>
+
+<script>
+if (typeof lucide !== 'undefined') lucide.createIcons();
+</script>
