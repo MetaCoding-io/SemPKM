@@ -1,7 +1,7 @@
 # GSD State
 
 **Active Milestone:** M027: Notion Import Wizard
-**Active Slice:** S01: Notion ZIP Scanner + Upload UI
+**Active Slice:** S02: Type, Property & Relation Mapping + Preview
 **Phase:** executing
 **Requirements Status:** 78 active · 173 validated · 7 deferred · 0 out of scope
 
@@ -46,4 +46,4 @@
 - None
 
 ## Next Action
-Execute T01 (Notion data models, scanner, and unit tests).
+Execute slice S02 — T01 (models + endpoints + tests), then T02 (templates).
