@@ -98,6 +98,12 @@ The domain for all absolute URLs is `https://sempkm.metacoding.io` (from `docs/C
 - Python link checker reports zero broken links
 - HTML parser confirms all 4 files are well-formed
 
+## Observability Impact
+
+- **What changes:** Static HTML files gain og:image, JSON-LD, and corrected internal links. No runtime behavior, no server-side code.
+- **How to inspect:** `grep -c 'og:image.*https://sempkm.metacoding.io' docs/*.html` (expect 4); `grep -c 'application/ld+json' docs/*.html` (expect 4); `grep -rn 'guide/20-production-deployment' docs/*.html` (expect 0 results).
+- **Failure visibility:** A future broken link or missing tag surfaces immediately via the Python link checker or grep counts returning unexpected numbers.
+
 ## Inputs
 
 - `docs/index.html` — homepage from S01 with partial SEO tags (relative og:image, no JSON-LD)
