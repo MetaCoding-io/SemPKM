@@ -357,6 +357,65 @@ calendar visualization.
 
 ---
 
+## Key Strategic Insights (from deep-dive research)
+
+### The Obsidian Dataview Problem — SemPKM's Biggest Opportunity
+
+Obsidian's Dataview plugin is one of the most-used and most-hated plugins in the
+ecosystem. Its pain points are *exactly* what SemPKM solves:
+
+- DQL syntax has a steep learning curve (looks like SQL but isn't)
+- Cannot query note *contents*, only indexed YAML frontmatter metadata
+- Not interactive — view-only, cannot edit data inline from query results
+- Performance degrades with large vaults
+- No hierarchical/nested data support — flat metadata only
+- Main developer is inactive; Obsidian's new Bases feature is still immature
+
+**SemPKM's SPARQL over RDF triples is infinitely more powerful than DQL over
+frontmatter.** This should be a key marketing message: "You wanted structured
+data in your PKM? Here's what a real type system looks like."
+
+### Mental Models as Software — A Blue Ocean
+
+No existing tool treats mental models as structured, interconnected, *applicable*
+knowledge objects. The landscape:
+
+- **ModelThinkers** — searchable library + "playbooks" combining models, but
+  content-only, not connected to your notes/decisions
+- **M-Tool** — academic causal diagram mapping, not PKM-integrated
+- **Mental Modeler** — fuzzy-logic cognitive mapping for group decision-making
+- **Farnam Street** — ~100 models explained, pure content
+
+What's missing (and what SemPKM could uniquely provide):
+- Apply mental models to your own knowledge/decisions and track results
+- Connect models to actual notes, projects, and decisions
+- AI suggests relevant models based on the problem you're working on
+- Capture model relationships (X is a special case of Y, A contradicts B in context C)
+- Build a personal "latticework" (Munger's concept) that grows with you
+
+### Ontology-Aware Spaced Repetition — Nobody Has This
+
+Current SRS tools schedule individual cards independently. An ontology-aware SRS
+could schedule reviews based on concept *relationships*:
+- Reviewing a parent concept reinforces child concepts
+- A weakly-recalled concept triggers review of related concepts
+- Edge types inform scheduling (contradicting claims need more review than supporting ones)
+- SHACL shapes could define "what constitutes mastery" per type
+
+### The Academic Semantic PKM Legacy
+
+Academic prototypes (SemperWiki, PlatypusWiki, WANT) validated the RDF+wiki
+approach 15+ years ago but never delivered consumer-grade UX. SemPKM is the first
+tool to bridge this gap — delivering semantic web power with modern UX.
+
+### Markdown-LD — A Bridge Format
+
+**Markdown-LD** and **MD-LD** are emerging tools that embed RDF triples in Markdown
+files. This could bridge SemPKM's RDF world with the Markdown-loving PKM community,
+enabling round-trip sync with Obsidian vaults while preserving semantic structure.
+
+---
+
 ## Mental Model Specific Gaps
 
 ### Current Models vs. Community Demand
@@ -428,6 +487,33 @@ calendar visualization.
 
 ---
 
+## Cross-Cutting Strategic Themes
+
+1. **Structure is the moat** — Every trend (agentic AI, GraphRAG, spaced repetition,
+   collaboration) points toward more structure. SemPKM's ontology-first approach is
+   perfectly positioned for all of them.
+
+2. **The UX gap is the real barrier** — Semantic web tech has been academically
+   validated for 20+ years. What's missing is consumer-grade UX. The tools that win
+   (Obsidian, Notion) win on UX, not data model sophistication.
+
+3. **GraphRAG is the bridge to AI** — Combining knowledge graphs with RAG is the
+   hottest area in AI+knowledge. SemPKM's RDF graph is directly usable for GraphRAG
+   without transformation.
+
+4. **Interoperability via RDF is a real differentiator** — While others fight over
+   Markdown vs proprietary formats, RDF/JSON-LD/Turtle provides true semantic
+   interoperability. Markdown-LD could bridge the communities.
+
+5. **Mental models as ontology objects is a blue ocean** — No existing tool treats
+   mental models as structured, interconnected, applicable knowledge objects.
+
+6. **Enterprise KM is converging with personal KM** — The same semantic layer
+   infrastructure enterprises are building (RDF, knowledge graphs, SPARQL) is what
+   SemPKM already uses for personal knowledge. This bridge is unoccupied.
+
+---
+
 ## Sources
 
 - [PKM Weekly Newsletter](https://www.pkmweekly.com)
@@ -447,3 +533,17 @@ calendar visualization.
 - [Audionotes — Voice-First PKM](https://www.audionotes.app/blog/best-personal-knowledge-management-tools)
 - [PKM for Researchers 2026 — Atlas](https://www.atlasworkspace.ai/blog/pkm-apps-for-researchers)
 - [Best Spaced Repetition Apps 2025 — PDF Flashcards](https://www.pdfflashcards.com/blog/spaced-repetition-apps)
+- [Dataview vs Datacore vs Obsidian Bases — Obsidian Rocks](https://obsidian.rocks/dataview-vs-datacore-vs-obsidian-bases/)
+- [A Case Against Dataview — Obsidian Forum](https://forum.obsidian.md/t/a-case-against-dataview-a-story/82210)
+- [Enhance Obsidian with a Type System — Obsidian Forum FR](https://forum.obsidian.md/t/super-fr-enhance-obsidian-with-a-type-system-for-notes-and-database-like-views-metadata-object-oriented-model/46444)
+- [ModelThinkers — Munger's Latticework](https://modelthinkers.com/mental-model/mungers-latticework)
+- [M-Tool: Mental Model Mapping Tool](https://m-tool.org/)
+- [Markdown-LD — GitHub](https://github.com/ozekik/markdown-ld)
+- [Semantic Wikis for PKM — Springer](https://link.springer.com/chapter/10.1007/11827405_50)
+- [FSRS Has Made SRS Way Better — Domenic Denicola](https://domenic.me/fsrs/)
+- [Effective Spaced Repetition — Borretti](https://borretti.me/article/effective-spaced-repetition)
+- [Enterprise KM Trends 2025 — Enterprise Knowledge](https://enterprise-knowledge.com/top-knowledge-management-trends-2025/)
+- [AgenticAKM — arXiv](https://arxiv.org/html/2602.04445v1)
+- [Logseq Project Status Discussion](https://discuss.logseq.com/t/logseq-project-status/28849/20)
+- [Building the Fastest Capture — Memotron](https://docs.memotron.app/blog/fastest-pkm-capture)
+- [Knowledge Graph Tools 2026 — Atlas Blog](https://www.atlasworkspace.ai/blog/knowledge-graph-tools)
