@@ -117,3 +117,10 @@ Key differences from Obsidian scanner:
 - `backend/app/notion/models.py` — 6 dataclasses with serialization
 - `backend/app/notion/scanner.py` — NotionScanner class + helper functions
 - `backend/tests/test_notion_scanner.py` — ≥20 unit tests all passing
+
+## Observability Impact
+
+- **ScanWarning accumulation:** The scanner collects warnings for malformed CSV files, empty databases, and parse errors instead of crashing. After scan completion, `NotionScanResult.warnings` contains structured diagnostics (severity, category, message, file_path) that downstream code (router, scan_result.json persistence) surfaces to users and agents.
+- **SSE progress events:** During scan, `scan_progress` events are broadcast via `ScanBroadcast` with `{scanned, total, current_file}` for real-time UI progress. `scan_complete` event signals termination.
+- **Inspectable scan result:** `NotionScanResult.to_dict()` serializes the full scan output (databases, columns, types, relations, warnings) to a JSON-compatible dict. Downstream code persists this to `scan_result.json` for post-hoc inspection.
+- **Future agent inspection:** Run `python -c "from app.notion.scanner import _infer_column_type, _strip_notion_id; ..."` to test helpers in isolation. All type inference and ID stripping are pure functions with no side effects.

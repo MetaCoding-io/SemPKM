@@ -25,6 +25,7 @@
 
 - `cd backend && python -m pytest tests/test_notion_scanner.py -v` — all scanner unit tests pass (CSV parsing, ID stripping, column type inference, relation detection, standalone page detection, empty cells, BOM handling)
 - Docker stack: upload a synthetic Notion ZIP at `/browser/notion/import`, see scan results with database summaries, standalone pages, and detected relations
+- Diagnostic: malformed CSV, empty database, and parse errors produce `ScanWarning` objects in the scan result (not crashes) — verified by `test_scan_warning_malformed_csv` unit test and by inspecting `scan_result.json` warnings array after a real scan
 
 ## Observability / Diagnostics
 
@@ -41,7 +42,7 @@
 
 ## Tasks
 
-- [ ] **T01: Notion data models, scanner, and unit tests** `est:2h`
+- [x] **T01: Notion data models, scanner, and unit tests** `est:2h`
   - Why: The scanner is the novel, riskiest code in this slice — CSV parsing, Notion ID stripping, column type inference, and cross-database relation detection must be proven correct before building any UI on top
   - Files: `backend/app/notion/__init__.py`, `backend/app/notion/models.py`, `backend/app/notion/scanner.py`, `backend/tests/test_notion_scanner.py`
   - Do: Create the `notion` package. Define dataclasses in models.py (NotionScanResult, NotionDatabase, NotionColumn, NotionPage, DetectedRelation, ScanWarning). Implement NotionScanner with `scan(zip_path)` using asyncio.to_thread wrapping sync logic. Build comprehensive unit tests with synthetic fixture data covering: BOM-encoded CSV, column type inference for all 8 types, Notion ID stripping (32 hex chars only), cross-DB relation detection (>80% title overlap), standalone page detection, empty cells, nested folders, warnings for malformed CSVs.
