@@ -2051,6 +2051,69 @@ Health endpoint documented in deploy-demo.sh for external monitoring (UptimeRobo
 
 docs/guide/38-hosted-demo.md (~329 lines). README.md TOC entry, index.html sidebar entry, guide.html in-app button all updated. DEMO_MODE row in Appendix A. "Demo Mode" and "Hosted Demo" glossary entries in Appendix D. Navigation chain Ch 37 → Ch 38 → Appendix A.
 
+### SITE-01 — Homepage rewrite with outcome-focused messaging
+- Status: validated
+- Class: core-capability
+- Source: design (USER-CONVERSION-STRATEGY.md)
+- Primary Slice: M026/S01
+- Acceptance: Homepage leads with outcome-focused hero ("Build knowledge that doesn't decay"), not technology-first messaging. Shared CSS extracted. All content sections present.
+
+docs/index.html fully rewritten (619 lines) with outcome-focused hero, persona selector, competitive comparison, domain kits, condensed features, dual CTAs. docs/styles.css shared design system (1109 lines). Browser-verified at 3 breakpoints.
+
+### SITE-02 — Persona landing path pages
+- Status: validated
+- Class: core-capability
+- Source: design (USER-CONVERSION-STRATEGY.md)
+- Primary Slice: M026/S02
+- Acceptance: 3 persona pages (from-obsidian, from-notion, fresh-start) with tailored messaging, feature comparisons, and CTAs specific to each audience.
+
+docs/from-obsidian.html (536 lines), docs/from-notion.html (536 lines), docs/fresh-start.html (510 lines). All link to shared styles.css, have persona-specific SEO tags, replicate nav pattern.
+
+### SITE-03 — Competitive positioning
+- Status: validated
+- Class: core-capability
+- Source: design (USER-CONVERSION-STRATEGY.md)
+- Primary Slice: M026/S01
+- Acceptance: Comparison table shows SemPKM vs Obsidian/Notion/Tana/Capacities across 6+ capabilities.
+
+6-capability × 5-tool comparison table on homepage. Persona-specific mini-comparisons on each landing page.
+
+### SITE-04 — Mental Models explained as domain kits
+- Status: validated
+- Class: core-capability
+- Source: design (USER-CONVERSION-STRATEGY.md)
+- Primary Slice: M026/S01
+- Acceptance: Mental Models framed as "domain kits" without requiring ontology knowledge. No ontology jargon above the fold.
+
+8 "domain kit" mentions on homepage. 4 domain kit cards (Basic PKM, Personal CRM, Zettelkasten+, Research Workflow). No ontology jargon above the fold on any page.
+
+### SITE-05 — Updated screenshots from current UI
+- Status: validated
+- Class: quality-attribute
+- Source: design (M026-ROADMAP.md)
+- Primary Slice: M026/S03
+- Acceptance: Screenshots reflect current UI state, captured from running demo stack.
+
+5 fresh screenshots from M025 demo stack dated 2026-03-20: workspace overview, explorer types, command palette, canvas, object read.
+
+### SITE-06 — Mobile responsive and performance
+- Status: validated
+- Class: quality-attribute
+- Source: design (M026-ROADMAP.md)
+- Primary Slice: M026/S03
+- Acceptance: All pages mobile-responsive at 375px, 768px, 1200px+. Lighthouse mobile ≥ 90.
+
+Lighthouse default mobile audit 0.99 (FCP 1.6s, LCP 1.6s, TBT 0ms). Responsive verified at all 3 breakpoints with browser assertions.
+
+### SITE-07 — SEO basics
+- Status: validated
+- Class: quality-attribute
+- Source: design (M026-ROADMAP.md)
+- Primary Slice: M026/S03
+- Acceptance: Meta description, OG tags, structured data present on all pages.
+
+Meta descriptions × 4, og:image with absolute URLs × 4, JSON-LD (Organization + WebSite @graph) × 4. All internal links verified working.
+
 ## Deferred
 
 ### TYPE-03 — Full SHACL shape editor with advanced constraints
@@ -2382,11 +2445,18 @@ docs/guide/38-hosted-demo.md (~329 lines). README.md TOC entry, index.html sideb
 | DEMO-08 | core-capability | validated | M025/S04 | none | reset-demo.sh 5-phase script with 120s health timeout + cron documentation |
 | DEMO-09 | core-capability | validated | M025/S04 | none | /api/health endpoint documented for external monitoring |
 | DEMO-10 | quality-attribute | validated | M025/S04 | none | Chapter 38 (~329 lines) + 3 nav files + appendix + 2 glossary entries |
+| SITE-01 | core-capability | validated | M026/S01 | M026/S03 | docs/index.html rewritten with outcome-focused messaging + shared CSS |
+| SITE-02 | core-capability | validated | M026/S02 | M026/S03 | 3 persona pages with tailored messaging + feature comparisons |
+| SITE-03 | core-capability | validated | M026/S01 | none | 6×5 comparison table on homepage + persona mini-comparisons |
+| SITE-04 | core-capability | validated | M026/S01 | none | "domain kits" framing, 8 mentions, no ontology jargon above fold |
+| SITE-05 | quality-attribute | validated | M026/S03 | none | 5 fresh screenshots from demo stack dated 2026-03-20 |
+| SITE-06 | quality-attribute | validated | M026/S03 | M026/S01 | Lighthouse 0.99 + responsive at 3 breakpoints |
+| SITE-07 | quality-attribute | validated | M026/S03 | M026/S01 | meta descriptions + og:image (absolute) + JSON-LD on all 4 pages |
 
 ## Coverage Summary
 
 - Active requirements: 25 (14 APP + 8 RSS + 3 GCAL)
-- Validated: 215 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 8 from M013 + 13 from M014 + 4 from M015 + 7 from M016 + 7 from M017 + 5 from M018 + 12 from M023 + 15 from M024 + 10 from M025 + 2 from other)
+- Validated: 222 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 8 from M013 + 13 from M014 + 4 from M015 + 7 from M016 + 7 from M017 + 5 from M018 + 12 from M023 + 15 from M024 + 10 from M025 + 7 from M026 + 2 from other)
 - Partial: 4 (EXT-14, EXT-18, EXT-20, EXT-21)
 - Deferred: 7 (TYPE-03, TYPE-04, MCP-01, NOTION-01, VIEW-06, VIEW-07, VFS-13)
 - Out of scope: 3
