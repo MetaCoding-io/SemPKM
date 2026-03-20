@@ -624,7 +624,7 @@ After installation, create a new object of each type your model defines. Verify 
 - Reference fields (`sh:class`) filter to the correct target type.
 - Default values (`sh:defaultValue`) are pre-filled on new objects.
 
-<!-- Screenshot: form fields generated from SHACL shapes -->
+![Object edit form with SHACL-driven properties and markdown editor](images/03-object-edit-form.png)
 
 ### Check Views
 
@@ -634,7 +634,7 @@ Open each view from the **Views** menu and verify:
 - Card views display the correct title and subtitle.
 - Graph views render nodes and edges with correct labels and icons.
 
-<!-- Screenshot: table, card, and graph views side by side -->
+![Table view with sortable columns](images/06-table-view.png)
 
 ### Check Validation
 

@@ -2,6 +2,8 @@
 
 SemPKM is a **semantics-native Personal Knowledge Management** platform. It stores your knowledge -- notes, concepts, projects, people, and the relationships between them -- as structured, interconnected data using open Semantic Web standards (RDF, SHACL, SPARQL). But unlike academic tools that expose this complexity directly, SemPKM wraps it in a consumer-grade interface: forms, tables, cards, and interactive graphs that feel familiar to anyone who has used Notion, Obsidian, or a modern project tracker.
 
+![The SemPKM workspace showing the sidebar, explorer tree, editor area, and details panel](images/01-workspace-overview.png)
+
 The result is a knowledge base that is both human-friendly and machine-readable from day one, without requiring you to learn a single line of SPARQL or understand what a triple is.
 
 ## The Problem

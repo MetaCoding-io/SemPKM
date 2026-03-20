@@ -307,7 +307,7 @@ Internally, Operations Log entries are stored using the [PROV-O](https://www.w3.
 
 > **Tip:** The Operations Log complements the Event Log. Use the Event Log to trace *what changed* in your data, and the Operations Log to trace *what system operations* were performed and by whom.
 
-<!-- Screenshot: Event Log panel showing a timeline of events with operation badges, affected objects, users, and timestamps -->
+![Event Log panel showing a timeline of events with operation badges and affected objects](images/20-bottom-panel.png)
 
 #### What the Event Log Shows
 
@@ -346,7 +346,7 @@ The Lint Dashboard gives you a bird's-eye view of every SHACL validation issue a
 
 Open the bottom panel with **Alt+J**, then click the **Lint** tab. The dashboard loads the latest validation report automatically.
 
-<!-- Screenshot: Lint Dashboard showing the filter toolbar, summary counts, and a table of violations -->
+![Lint panel showing SHACL validation results](images/16-lint-panel.png)
 
 #### What the Dashboard Shows
 

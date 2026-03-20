@@ -55,7 +55,7 @@ Suppose you are editing a Note and the form has an "Author" field that reference
 3. SemPKM queries the triplestore for all Person instances matching your text
 4. A **suggestions dropdown** appears below the field, showing matching results
 
-<!-- Screenshot: reference search field with dropdown suggestions showing Person names -->
+![Object edit form with SHACL-driven properties](images/03-object-edit-form.png)
 
 4. Click a suggestion to select it. The field displays the person's label, and the underlying IRI is stored in a hidden form field.
 5. Save the object (`Alt+S`)
@@ -115,7 +115,7 @@ See [The Command API](17-command-api.md) for full details.
 
 The primary way to browse an object's relationships is through the **Relations** section in the Details panel (right column of the workspace). When you select an object, SemPKM automatically queries the triplestore for all edges connected to it and displays them in two subsections.
 
-<!-- Screenshot: relations panel showing outbound and inbound edges for a Note object -->
+![Relations panel showing outbound and inbound edges for an object](images/02-object-read-project.png)
 
 #### Outbound Edges
 
@@ -172,7 +172,7 @@ To open a graph view:
 
 Alternatively, use the command palette (`Alt+K`) and search for "Browse: Graph:" followed by the view name.
 
-<!-- Screenshot: graph view showing interconnected Notes, Concepts, People, and Projects -->
+![Interactive graph visualization showing interconnected objects](images/08-graph-view.png)
 
 **Graph view features:**
 

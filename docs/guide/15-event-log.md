@@ -46,7 +46,7 @@ appear with "system" as the performer instead of a user name.
 To open the Event Log, click the **Event Log** tab in the bottom panel of the
 workspace.
 
-<!-- Screenshot: Event Log tab in the bottom panel showing the timeline -->
+![Event Log tab in the bottom panel showing the timeline](images/20-bottom-panel.png)
 
 The timeline displays events in **reverse chronological order** (newest first).
 Each row in the timeline shows:

@@ -103,19 +103,19 @@ SemPKM supports three renderer types:
 
 Displays objects as sortable, filterable rows. The Basic PKM model ships with table views for all four types. For example, the "Projects Table" view shows columns for Title, Status, Priority, and Start Date, sorted by title by default. The "People Table" view shows Name, Job Title, Organization, and Email.
 
-<!-- Screenshot: Projects Table view showing several projects with status and priority columns -->
+![Table view with sortable columns showing object data](images/06-table-view.png)
 
 ### Card View
 
 Displays objects as visual cards with a title, subtitle, and summary content. The "Projects Cards" view shows the project title as the card heading and the status as the subtitle. The "People Cards" view shows the person's name and job title.
 
-<!-- Screenshot: People Cards view showing contact cards for Alice, Bob, and Carol -->
+![Card view rendering objects as visual cards in a grid](images/07-cards-view.png)
 
 ### Graph View
 
 Displays objects and their relationships as an interactive node-and-edge diagram. The "Projects Graph" view renders projects as nodes with edges to their participants (Person nodes) and notes (Note nodes). The "Concepts Graph" view shows the broader/narrower/related hierarchy between concepts.
 
-<!-- Screenshot: Concepts Graph view showing Knowledge Management, Semantic Web, and Event Sourcing connected by broader/related edges -->
+![Interactive graph visualization with typed and colored nodes](images/08-graph-view.png)
 
 Views are bundled with Mental Models so that each model provides sensible defaults for browsing its types. You can switch between views using the view selector in the workspace toolbar.
 
