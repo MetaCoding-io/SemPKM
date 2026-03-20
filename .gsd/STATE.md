@@ -3,6 +3,7 @@
 **Active Milestone:** M024: Monday.com Sync App
 **Active Slice:** S02: Column mapping configuration UI + pull sync
 **Phase:** executing
+**Last activity:** 2026-03-20 — Quick task 2: place e2e screenshots into user guide
 **Requirements Status:** 78 active · 141 validated · 7 deferred · 0 out of scope
 
 ## Milestone Registry
@@ -42,6 +43,12 @@
 
 ## Blockers
 - None
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 2 | Place e2e screenshots into user guide chapters | 2026-03-20 | 3f09d883 | [2-please-review-all-screenshots-taken-duri](./quick/2-please-review-all-screenshots-taken-duri/) |
 
 ## Next Action
 Execute T01 of S02 (Column mapping configuration routes, templates, and client extension).
