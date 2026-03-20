@@ -2151,14 +2151,14 @@ Meta descriptions × 4, og:image with absolute URLs × 4, JSON-LD (Organization 
 
 ### NOTION-01 — Notion workspace import wizard
 - Class: core-capability
-- Status: deferred
+- Status: active
 - Description: Interactive import flow for Notion workspace exports (ZIP first, API later). Databases → types, rows → objects, relations → edges, with dashboard/rollup/formula metadata preservation.
 - Why it matters: Notion is the most common PKM tool users migrate from. Structured import preserves their knowledge graph.
 - Source: user
-- Primary owning slice: none
-- Supporting slices: none
-- Validation: unmapped
-- Notes: Full research at `.planning/notion-import-research.md`. Mirrors Obsidian wizard pattern.
+- Primary owning slice: M027/S03
+- Supporting slices: M027/S01, M027/S02
+- Validation: S01 proves scanner (CSV parsing, ID stripping, type inference, relation detection — 31 unit tests) + upload/scan/results UI. S02+S03 will validate mapping and import execution.
+- Notes: Full research at `.planning/notion-import-research.md`. Mirrors Obsidian wizard pattern. Activated from deferred by M027.
 
 ### VIEW-06 — Custom column selection UI
 - Class: core-capability
@@ -2322,7 +2322,7 @@ Meta descriptions × 4, og:image with absolute URLs × 4, JSON-LD (Organization 
 | TYPE-03 | core-capability | deferred | none | none | unmapped |
 | TYPE-04 | core-capability | deferred | none | none | unmapped |
 | MCP-01 | core-capability | deferred | none | none | unmapped |
-| NOTION-01 | core-capability | deferred | none | none | unmapped |
+| NOTION-01 | core-capability | active | M027/S03 | M027/S01, M027/S02 | S01: 31 scanner tests + upload/scan/results UI |
 | VIEW-06 | core-capability | deferred | none | none | design: VIEWS-RETHINK.md |
 | VIEW-07 | core-capability | deferred | none | none | design: VIEWS-RETHINK.md |
 | VFS-13 | core-capability | deferred | none | none | design: VFS-V2-DESIGN.md item 8 |
@@ -2458,6 +2458,6 @@ Meta descriptions × 4, og:image with absolute URLs × 4, JSON-LD (Organization 
 - Active requirements: 25 (14 APP + 8 RSS + 3 GCAL)
 - Validated: 222 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 8 from M013 + 13 from M014 + 4 from M015 + 7 from M016 + 7 from M017 + 5 from M018 + 12 from M023 + 15 from M024 + 10 from M025 + 7 from M026 + 2 from other)
 - Partial: 4 (EXT-14, EXT-18, EXT-20, EXT-21)
-- Deferred: 7 (TYPE-03, TYPE-04, MCP-01, NOTION-01, VIEW-06, VIEW-07, VFS-13)
+- Deferred: 6 (TYPE-03, TYPE-04, MCP-01, VIEW-06, VIEW-07, VFS-13)
 - Out of scope: 3
 - Unmapped active requirements: 25 (14 APP + 8 RSS + 3 GCAL — pending remaining milestones)

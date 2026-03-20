@@ -53,7 +53,7 @@ This milestone is complete only when all are true:
 
 ## Slices
 
-- [ ] **S01: Notion ZIP Scanner + Upload UI** `risk:high` `depends:[]`
+- [x] **S01: Notion ZIP Scanner + Upload UI** `risk:high` `depends:[]`
   > After this: user uploads a Notion workspace ZIP via Admin > Import > Notion, sees scan results showing detected databases with column summaries, standalone pages, and cross-database relation candidates
 - [ ] **S02: Type, Property & Relation Mapping + Preview** `risk:medium` `depends:[S01]`
   > After this: user maps databases to Mental Model types, maps CSV columns to RDF predicates, configures relation columns as typed edges, and sees a preview of sample mapped objects with properties and edges before committing
