@@ -85,6 +85,14 @@ The 17 screenshots in `docs/screenshots/` are from the v2.0 era and don't reflec
 - Lighthouse JSON output `.categories.performance.score` ≥ 0.9
 - Browser assertions at 375px, 768px, 1200px: no horizontal scrollbar, CTAs visible, nav functional
 
+## Observability Impact
+
+- **Screenshot freshness:** `find docs/screenshots/ -name '*.png' -newer .gsd/milestones/M026/slices/S03/S03-PLAN.md -printf '%f %TY-%Tm-%Td\n'` shows which screenshots were captured this session. If the count is < 5, the capture step failed or was incomplete.
+- **Lighthouse audit:** The JSON output at `.categories.performance.score` is the authoritative signal. A future agent can re-run `npx lighthouse http://localhost:8080/index.html --preset=perf --output=json` against any local HTTP server serving `docs/`.
+- **Responsive verification:** No persistent artifact — browser assertions at 375px/768px/1200px are point-in-time checks. If CSS changes later, re-run the 3-viewport sweep.
+- **Demo stack health:** `curl -s http://localhost:8902/api/health | jq .status` confirms the stack is live. If screenshots look empty or show login screens, the seed script didn't run or demo mode isn't enabled.
+- **Failure state:** Stale screenshots (pre-today timestamps) in `docs/screenshots/` indicate this task didn't complete. A Lighthouse score < 0.9 in the task summary indicates a performance regression worth investigating.
+
 ## Inputs
 
 - `docs/index.html` — homepage with SEO fixes from T01
