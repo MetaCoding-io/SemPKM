@@ -1,0 +1,54 @@
+appId: "jira-sync"
+name: "Jira Sync"
+version: "0.1.0"
+description: "Two-way sync between SemPKM objects and Jira issues"
+author:
+  name: "SemPKM"
+license: "MIT"
+
+dependencies:
+  platform: ">=0.1.0"
+
+permissions:
+  commands:
+    - "object.create"
+    - "object.patch"
+    - "body.set"
+    - "body.diff"
+    - "edge.create"
+  sparql:
+    read: true
+  backgroundTasks: true
+  network:
+    - "*.atlassian.net"
+
+backend:
+  entrypoint: "app:jira_sync_app"
+
+tasks:
+  - id: "poll-tasks"
+    description: "Poll Jira for updated issues and sync to SemPKM"
+    interval: "15m"
+    retryPolicy:
+      maxRetries: 3
+      maxBackoff: "60s"
+  - id: "push-changes"
+    description: "Push local task changes back to Jira"
+    interval: "15m"
+    retryPolicy:
+      maxRetries: 3
+      maxBackoff: "60s"
+
+frontend:
+  staticDir: "frontend/static"
+  css:
+    - "styles.css"
+
+ui:
+  pages:
+    - id: "settings"
+      path: "/settings"
+      label: "Jira Sync"
+      icon: "ticket"
+      nav: "apps"
+      fragment: "connect"

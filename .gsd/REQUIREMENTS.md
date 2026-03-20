@@ -1718,6 +1718,114 @@ PersonMatcher with SPARQL lookup, command creation, in-memory LRU cache. 12 unit
 
 build_task_properties() stores both external URL and UUID during pull sync. 49 field mapper unit tests.
 
+### JIRA-01 — ADF→Markdown conversion
+- Status: validated
+- Class: core-capability
+- Source: design (M023-ROADMAP.md)
+- Primary Slice: M023/S01
+- Acceptance: Jira ADF documents convert to Markdown covering ~12 common node types (paragraph, heading, bulletList, orderedList, codeBlock, blockquote, table, text with marks, mention, inlineCard, mediaGroup, rule).
+
+95 ADF converter unit tests prove all 12 node types convert correctly with nested structures and inline formatting marks.
+
+### JIRA-02 — Markdown→ADF reverse conversion
+- Status: validated
+- Class: core-capability
+- Source: design (M023-ROADMAP.md)
+- Primary Slice: M023/S01
+- Acceptance: SemPKM Markdown converts back to Jira ADF JSON for push sync (paragraphs, headings, lists, code blocks, links, blockquotes, rules with inline formatting).
+
+markdown_to_adf() handles the Markdown subset SemPKM produces. Proven by unit tests in S01.
+
+### JIRA-03 — statusCategory-based status normalization
+- Status: validated
+- Class: core-capability
+- Source: design (M023-ROADMAP.md)
+- Primary Slice: M023/S01
+- Acceptance: Status mapping uses statusCategory.key (new→todo, indeterminate→in-progress, done→done), not custom status names. Original status.name stored in bpkm:externalStatus.
+
+STATUS_MAP proven by 5 direct tests + 9 round-trip tests. Pull sync uses statusCategory.key for all status mapping.
+
+### JIRA-04 — Priority mapping
+- Status: validated
+- Class: core-capability
+- Source: design (M023-ROADMAP.md)
+- Primary Slice: M023/S01
+- Acceptance: Jira priority names (Highest/Critical/Blocker→critical, High→high, Medium→medium, Low/Lowest/Trivial→low) map correctly with reverse maps for push.
+
+PRIORITY_MAP covers 8 Jira names → 4 bpkm values with REVERSE_PRIORITY_MAP. Proven by unit tests.
+
+### JIRA-05 — Jira REST API client
+- Status: validated
+- Class: core-capability
+- Source: design (M023-ROADMAP.md)
+- Primary Slice: M023/S01
+- Acceptance: JiraClient with search_issues (JQL, pagination), get_issue, update_issue, get_projects, get_user with error hierarchy and auth header construction.
+
+Full client with pagination, error hierarchy (JiraApiError, JiraAuthError, JiraNotFoundError, JiraRateLimitError). Unit tested in S01.
+
+### JIRA-06 — API token authentication
+- Status: validated
+- Class: core-capability
+- Source: design (M023-ROADMAP.md)
+- Primary Slice: M023/S01
+- Acceptance: User enters email + API token + site URL. Credentials stored via StateClient. Basic auth header constructed as base64(email:token). Connection verified via GET /myself.
+
+Email+token credential management with masking and connection verification. 3-field form in connect.html.
+
+### JIRA-07 — Person matching (assignee resolution)
+- Status: validated
+- Class: core-capability
+- Source: design (M023-ROADMAP.md)
+- Primary Slice: M023/S01
+- Acceptance: Jira accountId resolved via extra API call to GET /user, then SPARQL lookup for existing Person/Contact. Person created on miss. LRU cache per sync run.
+
+5-step resolution cascade with cache and graceful API failure handling. Unit tested in S01.
+
+### JIRA-08 — Pull sync (Jira issues → bpkm:Task)
+- Status: validated
+- Class: core-capability
+- Source: design (M023-ROADMAP.md)
+- Primary Slice: M023/S02
+- Acceptance: User triggers sync and Jira issues appear as bpkm:Task objects with Markdown descriptions, correct status/priority/assignee, sprint as taskGroup, components and labels as tags.
+
+pull_sync() creates Task objects with correct field mapping, ADF→Markdown body conversion, assignee resolution via PersonMatcher. 95 unit tests with mocked clients.
+
+### JIRA-09 — Epic→Milestone mapping
+- Status: validated
+- Class: core-capability
+- Source: design (M023-ROADMAP.md)
+- Primary Slice: M023/S02
+- Acceptance: Jira Epics (issuetype.name="Epic") create bpkm:Milestone objects. Child issues linked to parent milestone via edges.
+
+Epics detected via issuetype.name, converted to Milestone objects via build_milestone_properties, child tasks linked via edge creation. 8 dedicated unit tests.
+
+### JIRA-10 — Push sync (SemPKM → Jira)
+- Status: validated
+- Class: core-capability
+- Source: design (M023-ROADMAP.md)
+- Primary Slice: M023/S03
+- Acceptance: User edits task title/description/priority in SemPKM, changes push back to Jira via REST API PUT. Loop prevention via lastSyncedAt. No status transitions (D237).
+
+push_sync with SPARQL change detection, reverse field mapping, Markdown→ADF description conversion, Jira API update. 53 new unit tests. Loop prevention via lastSyncedAt.
+
+### JIRA-11 — Issue links (Blocks→dependsOn)
+- Status: validated
+- Class: core-capability
+- Source: design (M023-ROADMAP.md)
+- Primary Slice: M023/S03
+- Acceptance: Jira issue links of type "Blocks" create bpkm:dependsOn edges between tasks. Inward-only dedup prevents duplicate edges.
+
+_process_issue_links Phase 4 creates bpkm:dependsOn edges from "Blocks" links. Inward-only dedup per D240. Per-link error isolation.
+
+### JIRA-12 — E2E tests and user guide
+- Status: validated
+- Class: quality-attribute
+- Source: design (M023-ROADMAP.md)
+- Primary Slice: M023/S04
+- Acceptance: Mock Jira REST API server in Docker with selftest. Playwright E2E test covers install → configure → sync → verify lifecycle. Chapter 36 user guide documents Jira sync with field mapping tables.
+
+Mock Jira REST API server (12-check selftest). Playwright E2E test (12 phases). Chapter 36 user guide (383 lines, field mapping tables, statusCategory explanation, ADF conversion notes). README TOC, 3 glossary entries, appendix-a JIRA_API_URL, navigation chain Ch 35 → Ch 36 → Appendix A.
+
 ## Deferred
 
 ### TYPE-03 — Full SHACL shape editor with advanced constraints
@@ -1995,6 +2103,18 @@ build_task_properties() stores both external URL and UUID during pull sync. 49 f
 | SYNC-05 | core-capability | validated | M016/S03 | none | platform Task History + settings sync stats |
 | SYNC-06 | core-capability | validated | M016/S02 | none | PersonMatcher SPARQL lookup + creation + 12 unit tests |
 | SYNC-07 | core-capability | validated | M016/S02 | none | bpkm:externalUrl + bpkm:externalUuid in pull sync |
+| JIRA-01 | core-capability | validated | M023/S01 | none | 95 ADF converter unit tests — all 12 node types |
+| JIRA-02 | core-capability | validated | M023/S01 | none | markdown_to_adf() — paragraphs, headings, lists, code, links |
+| JIRA-03 | core-capability | validated | M023/S01 | none | STATUS_MAP — 5 direct + 9 round-trip tests |
+| JIRA-04 | core-capability | validated | M023/S01 | none | PRIORITY_MAP — 8 Jira names → 4 bpkm values |
+| JIRA-05 | core-capability | validated | M023/S01 | none | JiraClient — JQL search, pagination, error hierarchy |
+| JIRA-06 | core-capability | validated | M023/S01 | none | email+token auth — credential management + connection verify |
+| JIRA-07 | core-capability | validated | M023/S01 | none | PersonMatcher — accountId resolution + LRU cache |
+| JIRA-08 | core-capability | validated | M023/S02 | none | pull_sync — 95 unit tests with mocked clients |
+| JIRA-09 | core-capability | validated | M023/S02 | none | Epic→Milestone — 8 dedicated unit tests |
+| JIRA-10 | core-capability | validated | M023/S03 | none | push_sync — SPARQL change detection + reverse mapping + 53 tests |
+| JIRA-11 | core-capability | validated | M023/S03 | none | Blocks→dependsOn — inward-only dedup + per-link isolation |
+| JIRA-12 | quality-attribute | validated | M023/S04 | none | mock server (12 selftest) + E2E test (12 phases) + Ch 36 guide |
 | GH-01 | core-capability | validated | M017/S01 | none | 15 unit tests + mock GitHub API + E2E app install |
 | GH-02 | core-capability | validated | M017/S01 | none | 42 field mapper + 26 sync engine tests + mock GitHub API |
 | GH-03 | core-capability | validated | M017/S02 | none | 32 unit tests + mock timeline API + edge creation |
@@ -2015,9 +2135,9 @@ build_task_properties() stores both external URL and UUID during pull sync. 49 f
 
 ## Coverage Summary
 
-- Active requirements: 27 (14 APP + 8 RSS + 5 GCAL)
-- Validated: 176 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 8 from M013 + 13 from M014 + 4 from M015 + 7 from M016 + 7 from M017 + 5 from M018)
+- Active requirements: 25 (14 APP + 8 RSS + 3 GCAL)
+- Validated: 190 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 8 from M013 + 13 from M014 + 4 from M015 + 7 from M016 + 7 from M017 + 5 from M018 + 12 from M023 + 2 from other)
 - Partial: 4 (EXT-14, EXT-18, EXT-20, EXT-21)
 - Deferred: 7 (TYPE-03, TYPE-04, MCP-01, NOTION-01, VIEW-06, VIEW-07, VFS-13)
 - Out of scope: 3
-- Unmapped active requirements: 27 (14 APP + 8 RSS + 5 GCAL — pending remaining M018 slices)
+- Unmapped active requirements: 25 (14 APP + 8 RSS + 3 GCAL — pending remaining milestones)

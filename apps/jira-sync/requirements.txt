@@ -1,0 +1,2 @@
+# SDK is injected by the platform — httpx available via SDK.
+# No additional dependencies.

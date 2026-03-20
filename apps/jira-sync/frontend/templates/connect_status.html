@@ -1,0 +1,214 @@
+<div id="connect-content" class="jira-sync-settings">
+  <div class="connection-status">
+    <span class="status-badge status-connected">● Connected</span>
+  </div>
+
+  <div class="connection-detail">
+    <span class="display-name">{{ display_name }}</span>
+    <span class="email">{{ email }}</span>
+    <code class="token-preview">{{ token_preview }}</code>
+    <span class="site-url">{{ site_url }}</span>
+  </div>
+
+  {# ── Project Selection ── #}
+  {% if projects %}
+  <section class="projects-section">
+    <h4>Synced Projects</h4>
+    <p class="section-hint">Select which Jira projects to sync issues from.</p>
+    <form hx-post="/app/jira-sync/_fragments/settings/projects"
+          hx-target="#connect-content"
+          hx-swap="innerHTML">
+      <div class="project-checkbox-list">
+        {% for project in projects %}
+        <label class="project-checkbox-item">
+          <input type="checkbox"
+                 name="project_keys"
+                 value="{{ project.key }}"
+                 {% if project.key in selected_projects %}checked{% endif %}>
+          <span class="project-key">{{ project.key }}</span>
+          <span class="project-name">{{ project.name }}</span>
+        </label>
+        {% endfor %}
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save Projects</button>
+        <span class="htmx-indicator">Saving…</span>
+      </div>
+    </form>
+  </section>
+  {% else %}
+  <p class="no-projects">No projects found. Check your token permissions.</p>
+  {% endif %}
+
+  {# ── JQL Filter ── #}
+  <section class="jql-filter-section">
+    <h4>JQL Filter</h4>
+    <p class="section-hint">
+      Optionally restrict which issues are synced with a JQL clause.
+      Leave empty to sync all issues from selected projects.
+    </p>
+    <div class="jql-filter-display">
+      <input type="text"
+             class="jql-filter-input"
+             name="jql_filter"
+             form="sync-config-form"
+             value="{{ jql_filter }}"
+             placeholder="e.g., project = PROJ AND issuetype != Epic" />
+    </div>
+  </section>
+
+  {# ── Sync Direction & Configuration ── #}
+  <section class="sync-config-section">
+    <h4>Sync Configuration</h4>
+    <form id="sync-config-form"
+          class="sync-config-form"
+          hx-post="/app/jira-sync/_fragments/settings/sync-config"
+          hx-target="#connect-content"
+          hx-swap="innerHTML">
+      <fieldset class="config-fieldset">
+        <legend>Direction</legend>
+        <label class="radio-item">
+          <input type="radio" name="sync_direction" value="pull-only"
+                 {% if sync_direction != 'bidirectional' %}checked{% endif %}>
+          <span>Pull only</span>
+          <span class="option-hint">Jira → SemPKM</span>
+        </label>
+        <label class="radio-item">
+          <input type="radio" name="sync_direction" value="bidirectional"
+                 {% if sync_direction == 'bidirectional' %}checked{% endif %}>
+          <span>Bidirectional</span>
+          <span class="option-hint">Jira ↔ SemPKM</span>
+        </label>
+      </fieldset>
+
+      <fieldset class="config-fieldset">
+        <legend>Poll Interval</legend>
+        <select name="poll_interval" class="config-select">
+          <option value="5m" {% if poll_interval == '5m' %}selected{% endif %}>Every 5 minutes</option>
+          <option value="15m" {% if poll_interval == '15m' %}selected{% endif %}>Every 15 minutes</option>
+          <option value="30m" {% if poll_interval == '30m' %}selected{% endif %}>Every 30 minutes</option>
+          <option value="1h" {% if poll_interval == '1h' %}selected{% endif %}>Every hour</option>
+        </select>
+      </fieldset>
+
+      {# Hidden field to carry the JQL filter from the input above #}
+      <input type="hidden" name="jql_filter" id="jql-filter-hidden" />
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save Config</button>
+        <span class="htmx-indicator">Saving…</span>
+      </div>
+    </form>
+  </section>
+
+  {# ── Sync Now ── #}
+  <section class="sync-now-section">
+    <h4>Manual Sync</h4>
+    <p class="section-hint">Run a sync immediately instead of waiting for the next scheduled poll.</p>
+    <form hx-post="/app/jira-sync/_fragments/settings/sync-now"
+          hx-target="#connect-content"
+          hx-swap="innerHTML"
+          hx-indicator=".sync-now-indicator">
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" id="sync-now-btn">
+          Sync Now
+        </button>
+        <span class="htmx-indicator sync-now-indicator">Syncing…</span>
+      </div>
+    </form>
+  </section>
+
+  {# ── Sync Stats ── #}
+  <section class="sync-stats">
+    <h4>Sync Status</h4>
+    {% if last_sync_at %}
+    <div class="stat-row">
+      <span class="stat-label">Last sync</span>
+      <span class="stat-value">{{ last_sync_at[:19] | replace("T", " ") }} UTC</span>
+    </div>
+    {% endif %}
+
+    {% if last_pull_result %}
+    <div class="stat-group">
+      <h5>Last Pull</h5>
+      <div class="stat-row">
+        <span class="stat-label">Status</span>
+        <span class="stat-value stat-status-{{ last_pull_result.status }}">{{ last_pull_result.status }}</span>
+      </div>
+      {% if last_pull_result.status in ['success', 'partial'] %}
+      <div class="stat-row">
+        <span class="stat-label">Created</span>
+        <span class="stat-value">{{ last_pull_result.created | default(0) }}</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Updated</span>
+        <span class="stat-value">{{ last_pull_result.updated | default(0) }}</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Skipped</span>
+        <span class="stat-value">{{ last_pull_result.skipped | default(0) }}</span>
+      </div>
+      {% endif %}
+      {% if last_pull_result.errors %}
+      <div class="stat-row stat-errors">
+        <span class="stat-label">Errors</span>
+        <span class="stat-value">{{ last_pull_result.errors }}</span>
+      </div>
+      {% endif %}
+      {% if last_pull_result.failed_issues %}
+      <div class="stat-row stat-errors">
+        <span class="stat-label">Failed</span>
+        <span class="stat-value">{{ last_pull_result.failed_issues | join(', ') }}</span>
+      </div>
+      {% endif %}
+      {% if last_pull_result.duration_ms is defined %}
+      <div class="stat-row">
+        <span class="stat-label">Duration</span>
+        <span class="stat-value">{{ last_pull_result.duration_ms }}ms</span>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if last_push_result %}
+    <div class="stat-group">
+      <h5>Last Push</h5>
+      <div class="stat-row">
+        <span class="stat-label">Status</span>
+        <span class="stat-value stat-status-{{ last_push_result.status }}">{{ last_push_result.status }}</span>
+      </div>
+      {% if last_push_result.status in ['ok', 'success'] %}
+      <div class="stat-row">
+        <span class="stat-label">Pushed</span>
+        <span class="stat-value">{{ last_push_result.pushed | default(0) }}</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Skipped</span>
+        <span class="stat-value">{{ last_push_result.skipped | default(0) }}</span>
+      </div>
+      {% endif %}
+      {% if last_push_result.errors %}
+      <div class="stat-row stat-errors">
+        <span class="stat-label">Errors</span>
+        <span class="stat-value">{{ last_push_result.errors | length }}</span>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if not last_sync_at and not last_pull_result and not last_push_result %}
+    <p class="no-sync-data">No sync data yet. Select projects and run a sync to get started.</p>
+    {% endif %}
+  </section>
+
+  {# ── Disconnect ── #}
+  <section class="disconnect-section">
+    <button class="btn btn-danger"
+            hx-post="/app/jira-sync/_fragments/connect/disconnect"
+            hx-target="#connect-content"
+            hx-swap="innerHTML"
+            hx-confirm="Disconnect from Jira? Sync will stop.">
+      Disconnect
+    </button>
+  </section>
+</div>

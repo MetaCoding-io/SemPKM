@@ -36,6 +36,15 @@ The following variables are used by `docker-compose.yml` to configure the triple
 |----------|-------------|---------|---------|
 | `JAVA_OPTS` | JVM options for the RDF4J triplestore. Controls heap memory allocation. | `-Xmx1g` | `triplestore` |
 
+## App-Specific Variables
+
+The following variables configure individual sync apps. They are set in the `environment` section of `docker-compose.yml` on the `api` service.
+
+| Variable | Description | Default | App |
+|----------|-------------|---------|-----|
+| `GITHUB_API_URL` | Override the GitHub REST API base URL. Used for GitHub Enterprise or testing with a mock server. | `https://api.github.com` | GitHub Sync |
+| `JIRA_API_URL` | Override the Jira REST API base URL. Used for testing with a mock server. | Uses the site URL from the app's stored credentials | Jira Sync |
+
 ## Configuration Precedence
 
 SemPKM uses Pydantic Settings for configuration loading. Values are resolved in this order (highest priority first):

@@ -1,0 +1,28 @@
+<div id="connect-content" class="monday-sync-settings">
+  <h3>Column Mapping — {{ board_name }}</h3>
+  <p class="section-hint">Map Monday.com columns to SemPKM task properties. Only compatible column types are shown.</p>
+  <form hx-post="/app/monday-sync/_fragments/settings/save-column-mapping"
+        hx-target="#connect-content" hx-swap="innerHTML">
+    <input type="hidden" name="board_id" value="{{ board_id }}">
+    {% for bpkm_prop, label in property_labels.items() %}
+    <div class="mapping-row">
+      <label>{{ label }}</label>
+      <select name="mapping_{{ bpkm_prop }}" class="config-select">
+        <option value="">— None —</option>
+        {% for col in compatible_columns[bpkm_prop] %}
+        <option value="{{ col.id }}"
+                {% if current_mapping.get(bpkm_prop) == col.id %}selected{% endif %}>
+          {{ col.title }} ({{ col.type }})
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endfor %}
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Save Column Mapping</button>
+      <a href="#" class="btn-link"
+         hx-get="/app/monday-sync/_fragments/connect"
+         hx-target="#connect-content" hx-swap="innerHTML">Cancel</a>
+    </div>
+  </form>
+</div>
