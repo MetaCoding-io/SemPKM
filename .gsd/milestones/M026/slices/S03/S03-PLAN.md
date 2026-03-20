@@ -37,7 +37,7 @@
 
 ## Tasks
 
-- [ ] **T01: Fix broken links and add missing SEO tags** `est:30m`
+- [x] **T01: Fix broken links and add missing SEO tags** `est:30m`
   - Why: 8 broken guide links, missing og:image on persona pages, homepage og:image is relative not absolute, and no JSON-LD structured data on any page — all required by milestone success criteria
   - Files: `docs/index.html`, `docs/from-obsidian.html`, `docs/from-notion.html`, `docs/fresh-start.html`
   - Do: (1) Replace `guide/20-production-deployment.html` with `guide/index.html` in all 4 files. (2) Change homepage og:image from relative to absolute URL. (3) Add og:image meta tag with absolute URL to 3 persona pages. (4) Add JSON-LD script block (Organization + WebSite schema) to all 4 pages. (5) Run link checker and HTML parser to verify.
@@ -49,6 +49,15 @@
   - Do: (1) Start demo Docker stack (`docker-compose.demo.yml`), seed data, wait for healthy. (2) Open demo instance (localhost:3902) in browser, capture 5-8 fresh screenshots at 1440×900 showing workspace overview, dashboard, graph view, table view, object read view, canvas, lint panel. (3) Save screenshots to `docs/screenshots/`, ensuring `01-workspace-overview-dark.png` is replaced (referenced by og:image). (4) Serve docs/ via `python3 -m http.server` on port 8080. (5) Run Lighthouse mobile audit on index.html, verify ≥90 performance. (6) Open each of the 4 pages in browser at 375px, 768px, 1200px — verify no horizontal overflow, all CTAs visible, comparison tables scrollable on mobile, nav functional. (7) Stop demo stack.
   - Verify: Fresh screenshots in `docs/screenshots/` with today's date; Lighthouse mobile performance ≥ 0.9; browser assertions pass at all 3 breakpoints for all 4 pages
   - Done when: Screenshots reflect current UI, Lighthouse ≥90, all pages render correctly at 3 breakpoints
+
+## Observability / Diagnostics
+
+- **SEO tag presence:** `grep -c 'og:image.*https://sempkm.metacoding.io' docs/*.html` and `grep -c 'application/ld+json' docs/*.html` — both should return 4 matches.
+- **Broken internal links:** Python link checker (see T01 plan step 5) reports zero broken links. If a new page is added without updating cross-references, the checker will surface the broken path.
+- **HTML well-formedness:** `python3 -c "from html.parser import HTMLParser; HTMLParser().feed(open('docs/FILE.html').read())"` — raises on malformed HTML.
+- **Lighthouse score:** `npx lighthouse --output=json --output-path=... --chrome-flags='--headless'` — machine-readable performance score at `categories.performance.score`.
+- **Failure visibility:** All checks are grep/Python one-liners that can be run from any CI or agent without Docker.
+- **No secrets or credentials in these files.**
 
 ## Files Likely Touched
 
