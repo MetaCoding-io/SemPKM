@@ -103,7 +103,34 @@
     {% else %}
     <div class="detail-section" style="text-align: center; padding: 40px;">
         <p style="color: var(--color-text-muted); font-size: 1.1em;">No apps installed.</p>
-        <p style="color: var(--color-text-muted); font-size: 0.9em;">Use the install form above to add an app from a directory path.</p>
+    </div>
+    {% endif %}
+
+    <!-- Available apps (not yet installed) -->
+    {% if available_apps %}
+    <div class="detail-section">
+        <h2>Available Apps</h2>
+        <p class="lead" style="margin-bottom: 16px;">These apps were found on disk but are not yet installed.</p>
+        <div class="dashboard-cards">
+            {% for app in available_apps %}
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <h2 style="margin: 0;">{{ app.name }}</h2>
+                    <span class="version-pill">v{{ app.version }}</span>
+                </div>
+                {% if app.description %}
+                <p>{{ app.description }}</p>
+                {% endif %}
+                <div style="font-size: 0.85em; color: var(--color-text-muted); margin-bottom: 8px;">
+                    <code>{{ app.path }}</code>
+                </div>
+                <form method="post" action="/admin/apps/install" style="margin: 0;">
+                    <input type="hidden" name="app_path" value="{{ app.path }}">
+                    <button type="submit" class="btn btn-primary btn-sm">Install</button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
     </div>
     {% endif %}
 </div>
