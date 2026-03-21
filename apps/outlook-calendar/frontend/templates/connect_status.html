@@ -1,0 +1,188 @@
+<div id="connect-content" class="outlook-sync-settings">
+  <div class="connection-status">
+    <span class="status-badge status-connected">● Connected</span>
+    <span class="auth-method-badge">{{ auth_method | replace("_", " ") | title }}</span>
+  </div>
+
+  <h3 class="account-email">{{ microsoft_email }}</h3>
+
+  {% if token_expiry %}
+  <p class="token-expiry-hint">Token expires: {{ token_expiry[:19] | replace("T", " ") }} UTC</p>
+  {% endif %}
+
+  {# ── Calendar Selection ── #}
+  {% if calendars %}
+  <section class="calendars-section">
+    <h4>Calendars</h4>
+    <p class="section-hint">Select which calendars to sync events from.</p>
+    <form hx-post="/app/outlook-calendar/_fragments/settings/calendars"
+          hx-target="#connect-content"
+          hx-swap="innerHTML">
+      <div class="calendar-checkbox-list">
+        {% for cal in calendars %}
+        <label class="calendar-checkbox-item">
+          <input type="checkbox"
+                 name="calendar_ids"
+                 value="{{ cal.id }}"
+                 {% if cal.id in selected_calendars %}checked{% endif %}>
+          <span class="calendar-name">{{ cal.name }}</span>
+          {% if cal.isDefaultCalendar %}
+          <span class="primary-badge">Default</span>
+          {% endif %}
+          {% if cal.canEdit %}
+          <span class="access-role">Read/Write</span>
+          {% else %}
+          <span class="access-role">Read-only</span>
+          {% endif %}
+        </label>
+        {% endfor %}
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save Calendars</button>
+        <span class="htmx-indicator">Saving…</span>
+      </div>
+    </form>
+  </section>
+  {% else %}
+  <p class="no-calendars">No calendars found in this account.</p>
+  {% endif %}
+
+  {# ── Sync Configuration ── #}
+  <section class="sync-config-section">
+    <h4>Sync Configuration</h4>
+    <form class="sync-config-form"
+          hx-post="/app/outlook-calendar/_fragments/settings/sync-config"
+          hx-target="#connect-content"
+          hx-swap="innerHTML">
+      <fieldset class="config-fieldset">
+        <legend>Direction</legend>
+        <label class="radio-item">
+          <input type="radio" name="sync_direction" value="pull-only"
+                 {% if sync_direction != 'bidirectional' %}checked{% endif %}>
+          <span>Pull only</span>
+          <span class="option-hint">Outlook → SemPKM</span>
+        </label>
+        <label class="radio-item">
+          <input type="radio" name="sync_direction" value="bidirectional"
+                 {% if sync_direction == 'bidirectional' %}checked{% endif %}>
+          <span>Bidirectional</span>
+          <span class="option-hint">Outlook ↔ SemPKM</span>
+        </label>
+      </fieldset>
+
+      <fieldset class="config-fieldset">
+        <legend>Poll Interval</legend>
+        <select name="poll_interval" class="config-select">
+          <option value="5m" {% if poll_interval == '5m' %}selected{% endif %}>Every 5 minutes</option>
+          <option value="15m" {% if poll_interval == '15m' %}selected{% endif %}>Every 15 minutes</option>
+          <option value="30m" {% if poll_interval == '30m' %}selected{% endif %}>Every 30 minutes</option>
+          <option value="1h" {% if poll_interval == '1h' %}selected{% endif %}>Every hour</option>
+        </select>
+      </fieldset>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save Config</button>
+        <span class="htmx-indicator">Saving…</span>
+      </div>
+    </form>
+  </section>
+
+  {# ── Sync Now ── #}
+  <section class="sync-now-section">
+    <h4>Manual Sync</h4>
+    <p class="section-hint">Run a sync immediately instead of waiting for the next scheduled poll.</p>
+    <form hx-post="/app/outlook-calendar/_fragments/sync-now"
+          hx-target="#connect-content"
+          hx-swap="innerHTML"
+          hx-indicator=".sync-now-indicator">
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" id="sync-now-btn">
+          Sync Now
+        </button>
+        <span class="htmx-indicator sync-now-indicator">Syncing…</span>
+      </div>
+    </form>
+  </section>
+
+  {# ── Sync Stats ── #}
+  <section class="sync-stats">
+    <h4>Sync Status</h4>
+    {% if last_sync_at %}
+    <div class="stat-row">
+      <span class="stat-label">Last sync</span>
+      <span class="stat-value">{{ last_sync_at[:19] | replace("T", " ") }} UTC</span>
+    </div>
+    {% endif %}
+
+    {% if last_pull_result %}
+    <div class="stat-group">
+      <h5>Last Pull</h5>
+      <div class="stat-row">
+        <span class="stat-label">Status</span>
+        <span class="stat-value stat-status-{{ last_pull_result.status }}">{{ last_pull_result.status }}</span>
+      </div>
+      {% if last_pull_result.status == 'ok' %}
+      <div class="stat-row">
+        <span class="stat-label">Created</span>
+        <span class="stat-value">{{ last_pull_result.created | default(0) }}</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Updated</span>
+        <span class="stat-value">{{ last_pull_result.updated | default(0) }}</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Unchanged</span>
+        <span class="stat-value">{{ last_pull_result.unchanged | default(0) }}</span>
+      </div>
+      {% endif %}
+      {% if last_pull_result.errors %}
+      <div class="stat-row stat-errors">
+        <span class="stat-label">Errors</span>
+        <span class="stat-value">{{ last_pull_result.errors | length }}</span>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if last_push_result %}
+    <div class="stat-group">
+      <h5>Last Push</h5>
+      <div class="stat-row">
+        <span class="stat-label">Status</span>
+        <span class="stat-value stat-status-{{ last_push_result.status }}">{{ last_push_result.status }}</span>
+      </div>
+      {% if last_push_result.status == 'ok' %}
+      <div class="stat-row">
+        <span class="stat-label">Pushed</span>
+        <span class="stat-value">{{ last_push_result.pushed | default(0) }}</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Skipped</span>
+        <span class="stat-value">{{ last_push_result.skipped | default(0) }}</span>
+      </div>
+      {% endif %}
+      {% if last_push_result.errors %}
+      <div class="stat-row stat-errors">
+        <span class="stat-label">Errors</span>
+        <span class="stat-value">{{ last_push_result.errors | length }}</span>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if not last_sync_at and not last_pull_result and not last_push_result %}
+    <p class="no-sync-data">No sync data yet. Select calendars and run a sync to get started.</p>
+    {% endif %}
+  </section>
+
+  {# ── Disconnect ── #}
+  <section class="disconnect-section">
+    <button class="btn btn-danger"
+            hx-post="/app/outlook-calendar/_fragments/connect/disconnect"
+            hx-target="#connect-content"
+            hx-swap="innerHTML"
+            hx-confirm="Disconnect from Outlook Calendar? Sync will stop and saved calendars will be cleared.">
+      Disconnect
+    </button>
+  </section>
+</div>

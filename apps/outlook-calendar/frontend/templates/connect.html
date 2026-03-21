@@ -1,0 +1,84 @@
+<div id="connect-content" class="outlook-sync-settings">
+  <h2>Connect to Outlook Calendar</h2>
+  <p class="connect-description">
+    Link your Microsoft Outlook Calendar to sync events with SemPKM objects.
+  </p>
+
+  {% if error %}
+  <div class="alert alert-error">{{ error }}</div>
+  {% endif %}
+
+  {% if success %}
+  <div class="alert alert-success">{{ success }}</div>
+  {% endif %}
+
+  <section class="connect-section">
+    <h3>Azure AD Credentials</h3>
+    <p class="section-hint">
+      Register an application in
+      <a href="https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade" target="_blank" rel="noopener">Azure Portal</a>
+      → App registrations → New registration.<br>
+      Under <strong>Certificates &amp; secrets</strong>, create a new client secret.<br>
+      Set the redirect URI (Web) to:<br>
+      <code class="redirect-uri">http://localhost:3000/app/outlook-calendar/_fragments/oauth-callback</code>
+    </p>
+    <form class="credentials-form"
+          hx-post="/app/outlook-calendar/_fragments/connect/credentials"
+          hx-target="#connect-content"
+          hx-swap="innerHTML"
+          hx-indicator="#credentials-spinner">
+      <div class="form-row">
+        <label for="outlook-client-id">Application (Client) ID</label>
+        <input type="text"
+               id="outlook-client-id"
+               name="client_id"
+               placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+               required
+               autocomplete="off" />
+      </div>
+      <div class="form-row">
+        <label for="outlook-client-secret">Client Secret</label>
+        <input type="password"
+               id="outlook-client-secret"
+               name="client_secret"
+               placeholder="Client secret value"
+               required
+               autocomplete="off" />
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          Save Credentials
+        </button>
+        <span id="credentials-spinner" class="htmx-indicator spinner">Saving…</span>
+      </div>
+    </form>
+  </section>
+
+  <div class="connect-divider">
+    <span>then</span>
+  </div>
+
+  <section class="connect-section">
+    <h3>Connect</h3>
+    <p class="section-hint">
+      After saving your credentials, click below to authorize SemPKM
+      to access your Outlook Calendar.
+    </p>
+    <form hx-post="/app/outlook-calendar/_fragments/connect/microsoft"
+          hx-target="#connect-content"
+          hx-swap="innerHTML"
+          hx-indicator="#oauth-spinner">
+      <div class="form-actions">
+        <button type="submit"
+                class="btn btn-primary btn-microsoft"
+                {% if not has_credentials %}disabled{% endif %}>
+          Connect with Microsoft
+        </button>
+        <span id="oauth-spinner" class="htmx-indicator spinner">Redirecting…</span>
+      </div>
+    </form>
+    {% if not has_credentials %}
+    <p class="oauth-note">Save your credentials above first.</p>
+    {% endif %}
+  </section>
+</div>

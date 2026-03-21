@@ -1,0 +1,61 @@
+<div id="connect-content" class="caldav-sync-settings">
+  <h2>Connect to CalDAV Calendar</h2>
+  <p class="connect-description">
+    Link your CalDAV server to sync calendar events with SemPKM objects.
+  </p>
+
+  {% if error %}
+  <div class="alert alert-error">{{ error }}</div>
+  {% endif %}
+
+  {% if success %}
+  <div class="alert alert-success">{{ success }}</div>
+  {% endif %}
+
+  <section class="connect-section">
+    <h3>Server Credentials</h3>
+    <p class="section-hint">
+      Enter your CalDAV server URL, username, and password.
+      SemPKM uses HTTP Basic authentication.
+    </p>
+    <form class="credentials-form"
+          hx-post="/app/caldav-calendar/_fragments/connect/credentials"
+          hx-target="#connect-content"
+          hx-swap="innerHTML"
+          hx-indicator="#credentials-spinner">
+      <div class="form-row">
+        <label for="caldav-server-url">Server URL</label>
+        <input type="text"
+               id="caldav-server-url"
+               name="server_url"
+               placeholder="https://caldav.fastmail.com/dav/calendars/user/you@fastmail.com/"
+               required
+               autocomplete="url" />
+      </div>
+      <div class="form-row">
+        <label for="caldav-username">Username</label>
+        <input type="text"
+               id="caldav-username"
+               name="username"
+               placeholder="you@example.com"
+               required
+               autocomplete="username" />
+      </div>
+      <div class="form-row">
+        <label for="caldav-password">Password</label>
+        <input type="password"
+               id="caldav-password"
+               name="password"
+               placeholder="App-specific password or account password"
+               required
+               autocomplete="current-password" />
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          Connect
+        </button>
+        <span id="credentials-spinner" class="htmx-indicator spinner">Connecting…</span>
+      </div>
+    </form>
+  </section>
+</div>

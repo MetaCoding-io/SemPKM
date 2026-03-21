@@ -1,0 +1,23 @@
+<form class="projects-form"
+      hx-post="/app/todoist-sync/_fragments/projects"
+      hx-target="#connect-content"
+      hx-swap="innerHTML">
+  {% if projects %}
+  <div class="projects-checklist">
+    {% for project in projects %}
+    <label class="project-checkbox">
+      <input type="checkbox"
+             name="project_ids"
+             value="{{ project.id }}"
+             {% if project.id in selected_ids %}checked{% endif %} />
+      <span class="project-name">{{ project.name }}</span>
+    </label>
+    {% endfor %}
+  </div>
+  <div class="form-actions">
+    <button type="submit" class="btn btn-secondary">Save Selection</button>
+  </div>
+  {% else %}
+  <p class="section-hint">No projects found in your Todoist account.</p>
+  {% endif %}
+</form>

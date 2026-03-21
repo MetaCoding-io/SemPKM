@@ -1,0 +1,53 @@
+appId: "caldav-calendar"
+name: "CalDAV Calendar Sync"
+version: "0.1.0"
+description: "Sync CalDAV calendar events with SemPKM objects"
+author:
+  name: "SemPKM"
+license: "MIT"
+
+dependencies:
+  platform: ">=0.1.0"
+
+permissions:
+  commands:
+    - "object.create"
+    - "object.patch"
+    - "body.set"
+    - "edge.create"
+  sparql:
+    read: true
+  backgroundTasks: true
+  network:
+    - "*"
+
+backend:
+  entrypoint: "app:caldav_calendar_app"
+
+tasks:
+  - id: "poll-events"
+    description: "Poll CalDAV server for updated events and sync to SemPKM"
+    interval: "15m"
+    retryPolicy:
+      maxRetries: 3
+      maxBackoff: "60s"
+  - id: "push-changes"
+    description: "Push local changes back to CalDAV server"
+    interval: "15m"
+    retryPolicy:
+      maxRetries: 3
+      maxBackoff: "60s"
+
+frontend:
+  staticDir: "frontend/static"
+  css:
+    - "styles.css"
+
+ui:
+  pages:
+    - id: "settings"
+      path: "/settings"
+      label: "CalDAV Calendar"
+      icon: "calendar"
+      nav: "apps"
+      fragment: "connect"
