@@ -102,6 +102,7 @@ class ValidationService:
             shacl_graph=shapes_graph,
             allow_infos=True,
             allow_warnings=True,
+            advanced=True,
         )
 
         # 4. Parse results
