@@ -110,6 +110,13 @@ The replacement is a `<select>` dropdown in `view_toolbar.html` that appears whe
 - `ls backend/app/templates/browser/carousel_tab_bar.html` returns "No such file"
 - The three view templates (table, cards, graph) render without errors when loaded via htmx
 
+## Observability Impact
+
+- **Removed signals:** `localStorage.getItem('sempkm_carousel_view')` persistence is deleted; `switchCarouselView()` and `restoreCarouselView()` JS functions are gone — any code or tests referencing them will break.
+- **New signals:** The `.view-variant-select` dropdown in the view toolbar. When present, it indicates model-declared ViewSpecs exist for the active type. Inspectable via `document.querySelector('.view-variant-select')` in browser DevTools.
+- **Failure visibility:** If `model_view_specs` is unexpectedly empty for a type that should have specs, the dropdown simply won't render — no error, just missing UI. Diagnose by checking the `model_view_specs` variable in the Jinja template context or the router's `get_view_specs_for_type()` call.
+- **How to inspect:** `grep -rn "carousel" backend/ frontend/` should return zero results after this task. The variant dropdown renders only when `model_view_specs | length > 0` in the template.
+
 ## Inputs
 
 - `backend/app/templates/browser/carousel_tab_bar.html` — the carousel partial to delete
