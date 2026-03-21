@@ -3197,9 +3197,24 @@
     }
   });
 
+  // --- Scope Query Support ---
+
+  function applyScopeQuery(queryId, renderer, selectedType) {
+    var url = '/browser/views/generic/' + encodeURIComponent(renderer);
+    var params = [];
+    if (selectedType) params.push('type=' + encodeURIComponent(selectedType));
+    if (queryId) params.push('scope_query=' + encodeURIComponent(queryId));
+    if (params.length) url += '?' + params.join('&');
+
+    var target = document.querySelector('.group-editor-area');
+    if (target && typeof htmx !== 'undefined') {
+      htmx.ajax('GET', url, { target: target, swap: 'innerHTML' });
+    }
+  }
+
   // --- Generic View Tab Support ---
 
-  function openGenericViewTab(renderer) {
+  function openGenericViewTab(renderer, scopeQuery) {
     var tabKey = 'generic-view:' + renderer;
     var dv = window._dockview;
     if (!dv) return;
@@ -3222,6 +3237,7 @@
         specialType: 'generic-view',
         renderer: renderer,
         selectedType: selectedType,
+        scopeQuery: scopeQuery || '',
         isView: false,
         isSpecial: true
       },
@@ -3245,6 +3261,7 @@
   window.toggleReplyForm = toggleReplyForm;
   window.openViewTab = openViewTab;
   window.openGenericViewTab = openGenericViewTab;
+  window.applyScopeQuery = applyScopeQuery;
   window.openViewMenu = openViewMenu;
   window.toggleObjectMode = toggleObjectMode;
   window.saveCurrentObject = saveCurrentObject;

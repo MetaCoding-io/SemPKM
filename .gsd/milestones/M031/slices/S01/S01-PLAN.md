@@ -63,7 +63,7 @@
   - Verify: `grep -rn "carousel" backend/app/templates/ frontend/static/js/ frontend/static/css/views.css` returns zero results. `grep -rn "switchCarouselView\|restoreCarouselView" frontend/static/js/` returns zero results.
   - Done when: No carousel UI anywhere. Model-declared variant dropdown appears in toolbar when a type with model-declared views is selected. Selecting a variant navigates correctly.
 
-- [ ] **T02: Add saved query scope dropdown and wire scope_query parameter** `est:2h`
+- [x] **T02: Add saved query scope dropdown and wire scope_query parameter** `est:2h`
   - Why: VIEW-09 requires saved query scope binding on all view types. This adds the scope dropdown to the toolbar and wires the `scope_query` URL parameter through all three generic view renderers (table, card, graph).
   - Files: `backend/app/views/router.py`, `backend/app/views/service.py`, `backend/app/templates/browser/view_toolbar.html`, `frontend/static/js/workspace.js`, `frontend/static/js/workspace-layout.js`
   - Do:

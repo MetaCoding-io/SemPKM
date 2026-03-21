@@ -10,17 +10,19 @@ and LabelService for resolving column header and row labels.
 """
 
 import logging
+import uuid
 from urllib.parse import unquote, quote
 
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
-from app.dependencies import get_label_service, get_shapes_service, get_view_spec_service
+from app.dependencies import get_label_service, get_query_service, get_shapes_service, get_view_spec_service
 from app.services.labels import LabelService
 from app.services.shapes import ShapesService
+from app.sparql.query_service import QueryService
 from app.browser._helpers import get_hidden_types
-from app.views.service import ViewSpec, ViewSpecService, inject_values_binding
+from app.views.service import ViewSpec, ViewSpecService, extract_scope_where_body, inject_values_binding
 
 logger = logging.getLogger(__name__)
 
@@ -131,6 +133,7 @@ async def generic_view(
     request: Request,
     renderer: str,
     type: str = Query(default=""),
+    scope_query: str = Query(default=""),
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=25, ge=1, le=100),
     sort: str = Query(default=""),
@@ -142,6 +145,7 @@ async def generic_view(
     view_spec_service: ViewSpecService = Depends(get_view_spec_service),
     label_service: LabelService = Depends(get_label_service),
     shapes_service: ShapesService = Depends(get_shapes_service),
+    query_service: QueryService = Depends(get_query_service),
 ):
     """Render a generic view using SHACL-driven dynamic queries.
 
@@ -164,8 +168,29 @@ async def generic_view(
     templates = request.app.state.templates
     type_iri = type if type else None
 
+    # Resolve scope_query to a WHERE body filter if set
+    scope_filter_text: str | None = None
+    if scope_query:
+        try:
+            query_uuid = uuid.UUID(scope_query)
+            saved = await query_service.get_query(query_uuid, user.id)
+            if saved:
+                scope_filter_text = extract_scope_where_body(saved.query_text)
+                if not scope_filter_text:
+                    logger.warning("generic_view: scope_query=%s WHERE body extraction failed", scope_query)
+            else:
+                logger.warning("generic_view: scope_query=%s not found — rendering unfiltered", scope_query)
+        except (ValueError, Exception):
+            logger.warning("generic_view: invalid scope_query=%s — rendering unfiltered", scope_query, exc_info=True)
+
+    # Fetch saved queries for the scope dropdown
+    user_saved_queries = await query_service.list_user_queries(user.id)
+    model_saved_queries = await query_service.list_model_queries()
+
     # Build dynamic query from SHACL metadata
-    sparql_query, columns = await view_spec_service.build_dynamic_query(type_iri, renderer)
+    sparql_query, columns = await view_spec_service.build_dynamic_query(
+        type_iri, renderer, scope_filter=scope_filter_text,
+    )
 
     # Create transient ViewSpec
     spec = ViewSpec(
@@ -185,6 +210,8 @@ async def generic_view(
     pag_extra = ""
     if type_iri:
         pag_extra = f"&type={quote(type_iri, safe='')}"
+    if scope_query:
+        pag_extra += f"&scope_query={quote(scope_query, safe='')}"
 
     # Resolve type label if type is specified
     type_label = "All Objects"
@@ -200,7 +227,7 @@ async def generic_view(
     # Get model-declared view specs for the active type (for variant dropdown)
     model_view_specs = await view_spec_service.get_view_specs_for_type(type_iri) if type_iri else []
 
-    logger.info("generic_view: renderer=%s type=%s", renderer, type_iri or "(all)")
+    logger.info("generic_view: renderer=%s type=%s scope_query=%s", renderer, type_iri or "(all)", scope_query or "(none)")
 
     if renderer == "table":
         effective_sort = sort if sort else ""
@@ -249,6 +276,9 @@ async def generic_view(
             "selected_type": type_iri or "",
             "types": types_list,
             "renderer": renderer,
+            "scope_query": scope_query,
+            "user_saved_queries": user_saved_queries,
+            "model_saved_queries": model_saved_queries,
         }
         if embed:
             return _embed_response(templates, request, "browser/table_view.html", context)
@@ -292,6 +322,9 @@ async def generic_view(
             "selected_type": type_iri or "",
             "types": types_list,
             "renderer": renderer,
+            "scope_query": scope_query,
+            "user_saved_queries": user_saved_queries,
+            "model_saved_queries": model_saved_queries,
         }
         if embed:
             return _embed_response(templates, request, "browser/cards_view.html", context)
@@ -303,8 +336,13 @@ async def generic_view(
 
         # Build the data URL for the generic graph endpoint
         graph_data_url = f"/browser/views/generic/graph/data"
+        graph_data_params = []
         if type_iri:
-            graph_data_url += f"?type={quote(type_iri, safe='')}"
+            graph_data_params.append(f"type={quote(type_iri, safe='')}")
+        if scope_query:
+            graph_data_params.append(f"scope_query={quote(scope_query, safe='')}")
+        if graph_data_params:
+            graph_data_url += "?" + "&".join(graph_data_params)
 
         context = {
             "request": request,
@@ -330,6 +368,9 @@ async def generic_view(
             "graph_data_url": graph_data_url,
             "types": types_list,
             "renderer": renderer,
+            "scope_query": scope_query,
+            "user_saved_queries": user_saved_queries,
+            "model_saved_queries": model_saved_queries,
         }
         if embed:
             return _embed_response(templates, request, "browser/graph_view.html", context)
@@ -341,18 +382,35 @@ async def generic_graph_data(
     request: Request,
     renderer: str,
     type: str = Query(default=""),
+    scope_query: str = Query(default=""),
     user: User = Depends(get_current_user),
     view_spec_service: ViewSpecService = Depends(get_view_spec_service),
+    query_service: QueryService = Depends(get_query_service),
 ):
     """Return graph data as JSON for the generic graph view.
 
     Builds a dynamic CONSTRUCT query and executes it.
+    Accepts optional scope_query to filter results by saved query.
     """
     if renderer != "graph":
         return JSONResponse(content={"nodes": [], "edges": [], "type_colors": {}}, status_code=404)
 
     type_iri = type if type else None
-    sparql_query, _ = await view_spec_service.build_dynamic_query(type_iri, "graph")
+
+    # Resolve scope filter if scope_query is set
+    scope_filter_text: str | None = None
+    if scope_query:
+        try:
+            query_uuid = uuid.UUID(scope_query)
+            saved = await query_service.get_query(query_uuid, user.id)
+            if saved:
+                scope_filter_text = extract_scope_where_body(saved.query_text)
+        except (ValueError, Exception):
+            logger.warning("generic_graph_data: invalid scope_query=%s", scope_query, exc_info=True)
+
+    sparql_query, _ = await view_spec_service.build_dynamic_query(
+        type_iri, "graph", scope_filter=scope_filter_text,
+    )
 
     spec = ViewSpec(
         spec_iri="urn:sempkm:view:generic-graph",
