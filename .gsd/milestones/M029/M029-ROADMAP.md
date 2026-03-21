@@ -64,16 +64,16 @@ This milestone is complete only when all are true:
 - [x] **S01: Build Pipeline & Local Vendoring** `risk:high` `depends:[]`
   > After this: Workspace loads with all JS/CSS served from locally-bundled, minified, content-hashed files. htmx CRUD, Cytoscape graph, and dockview panels all work. Dev mode still uses raw files via volume mounts. Multi-stage Dockerfile builds optimized assets.
 
-- [ ] **S02: Compression & HTTP Caching** `risk:medium` `depends:[S01]`
+- [x] **S02: Compression & HTTP Caching** `risk:medium` `depends:[S01]`
   > After this: nginx serves gzip-compressed responses with correct cache headers — immutable for hashed assets, no-cache with ETag for HTML. `curl` header checks confirm compression and caching. Repeat page loads are instant from browser cache.
 
-- [ ] **S03: CSS Code-Splitting & Route Optimization** `risk:low` `depends:[S01]`
+- [x] **S03: CSS Code-Splitting & Route Optimization** `risk:low` `depends:[S01]`
   > After this: Admin pages load only admin-relevant CSS (~30KB) instead of the full workspace stack (~320KB). Auth pages load minimal CSS. Network waterfall on admin pages shows no workspace.css request.
 
-- [ ] **S04: Backend Performance & HTTP Cache Headers** `risk:low` `depends:[]`
+- [x] **S04: Backend Performance & HTTP Cache Headers** `risk:low` `depends:[]`
   > After this: Timing middleware logs request durations, top-5 slowest endpoint report produced. API responses include ETag headers, conditional GET returns 304 Not Modified for unchanged resources.
 
-- [ ] **S05: Lighthouse Verification & QUIC/HTTP/3 Decision** `risk:low` `depends:[S01,S02,S03,S04]`
+- [x] **S05: Lighthouse Verification & QUIC/HTTP/3 Decision** `risk:low` `depends:[S01,S02,S03,S04]`
   > After this: Lighthouse before/after measurements documented with FCP, LCP, TTI, TBT, CLS deltas. QUIC/HTTP/3 decision documented in DECISIONS.md. All E2E tests pass against the optimized build. User guide updated if applicable.
 
 ## Boundary Map
