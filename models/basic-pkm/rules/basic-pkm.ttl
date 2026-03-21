@@ -4,6 +4,9 @@
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix foaf:  <http://xmlns.com/foaf/0.1/> .
 
 # Rule: Derive bpkm:hasRelatedNote on Projects from Notes' bpkm:relatedProject
 # This is NOT handled by OWL inverseOf -- no inverse declaration exists for relatedProject.
@@ -78,6 +81,163 @@ bpkm:OverdueTaskValidationShape
         """ ;
     ] .
 
+# ============================================================
+# Validation: Warn when a tag value contains a comma.
+# Users sometimes enter "tag1, tag2" as a single tag value
+# instead of creating separate tag triples.
+# ============================================================
+
+bpkm:CommaInTagsValidationShape
+    a sh:NodeShape ;
+    sh:targetSubjectsOf bpkm:tags ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Tag value contains a comma — split into individual tags." ;
+        sh:prefixes bpkm:PrefixDeclarations ;
+        sh:select """
+            SELECT $this ?tagVal
+            WHERE {
+                $this bpkm:tags ?tagVal .
+                FILTER(CONTAINS(STR(?tagVal), ","))
+            }
+        """ ;
+    ] .
+
+# ============================================================
+# Validation: Info when a Note or Concept has no body content.
+# Uses sh:targetSubjectsOf rdf:type with SPARQL filter since
+# sh:targetClass cannot target two classes on one shape.
+# Body predicate uses full IRI — sempkm vocab not in prefixes.
+# ============================================================
+
+bpkm:EmptyBodyValidationShape
+    a sh:NodeShape ;
+    sh:targetSubjectsOf rdf:type ;
+    sh:severity sh:Info ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Object has no body content. Consider adding a description or notes." ;
+        sh:prefixes bpkm:PrefixDeclarations ;
+        sh:select """
+            SELECT $this
+            WHERE {
+                { $this a bpkm:Note }
+                UNION
+                { $this a bpkm:Concept }
+                FILTER NOT EXISTS { $this <urn:sempkm:vocab:body> ?body }
+            }
+        """ ;
+    ] .
+
+# ============================================================
+# Validation: Info when a Concept has no skos:definition.
+# Concepts benefit from formal definitions to distinguish
+# them from vague tags.
+# ============================================================
+
+bpkm:ConceptNoDefinitionValidationShape
+    a sh:NodeShape ;
+    sh:targetClass bpkm:Concept ;
+    sh:severity sh:Info ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Concept has no definition. Consider adding a skos:definition." ;
+        sh:prefixes bpkm:PrefixDeclarations ;
+        sh:select """
+            SELECT $this
+            WHERE {
+                FILTER NOT EXISTS { $this skos:definition ?def }
+            }
+        """ ;
+    ] .
+
+# ============================================================
+# Validation: Warn when a basic-pkm typed object has no title.
+# Checks dcterms:title, rdfs:label, skos:prefLabel, foaf:name.
+# Scoped to basic-pkm types only to avoid false positives on
+# objects with model-specific name properties (e.g. CRM).
+# ============================================================
+
+bpkm:TitlelessObjectValidationShape
+    a sh:NodeShape ;
+    sh:targetSubjectsOf rdf:type ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Object has no title (dcterms:title, rdfs:label, skos:prefLabel, or foaf:name)." ;
+        sh:prefixes bpkm:PrefixDeclarations ;
+        sh:select """
+            SELECT $this
+            WHERE {
+                $this a ?type .
+                FILTER(STRSTARTS(STR(?type), "urn:sempkm:model:basic-pkm:"))
+                FILTER NOT EXISTS { $this dcterms:title ?t1 }
+                FILTER NOT EXISTS { $this rdfs:label ?t2 }
+                FILTER NOT EXISTS { $this skos:prefLabel ?t3 }
+                FILTER NOT EXISTS { $this foaf:name ?t4 }
+            }
+        """ ;
+    ] .
+
+# ============================================================
+# Validation: Info when a basic-pkm typed object is orphaned.
+# An orphan has no edges to/from other typed resources
+# (excluding rdf:type itself). Scoped to basic-pkm types
+# to avoid firing on every typed resource in the graph (D282).
+# ============================================================
+
+bpkm:OrphanObjectValidationShape
+    a sh:NodeShape ;
+    sh:targetSubjectsOf rdf:type ;
+    sh:severity sh:Info ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Object has no connections to other objects. Consider linking it." ;
+        sh:prefixes bpkm:PrefixDeclarations ;
+        sh:select """
+            SELECT $this
+            WHERE {
+                $this a ?type .
+                FILTER(STRSTARTS(STR(?type), "urn:sempkm:model:basic-pkm:"))
+                FILTER NOT EXISTS {
+                    $this ?p ?other .
+                    ?other a ?anyType .
+                    FILTER(?p != rdf:type)
+                }
+                FILTER NOT EXISTS {
+                    ?other2 ?p2 $this .
+                    ?other2 a ?anyType2 .
+                }
+            }
+        """ ;
+    ] .
+
+# ============================================================
+# Validation: Info when two objects of the same type share a URL.
+# Detects potential duplicates based on schema:url.
+# ============================================================
+
+bpkm:DuplicateUrlValidationShape
+    a sh:NodeShape ;
+    sh:targetSubjectsOf <http://schema.org/url> ;
+    sh:severity sh:Info ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Another object of the same type shares this URL: {?url}." ;
+        sh:prefixes bpkm:PrefixDeclarations ;
+        sh:select """
+            SELECT $this ?url
+            WHERE {
+                $this <http://schema.org/url> ?url .
+                $this a ?type .
+                ?other a ?type .
+                ?other <http://schema.org/url> ?url .
+                FILTER(?other != $this)
+            }
+        """ ;
+    ] .
+
 # Prefix declarations for SPARQL rules and constraints.
 # Shared by all sh:SPARQLRule and sh:SPARQLConstraint instances via sh:prefixes.
 bpkm:PrefixDeclarations
@@ -93,4 +253,24 @@ bpkm:PrefixDeclarations
     [
         sh:prefix "dcterms" ;
         sh:namespace "http://purl.org/dc/terms/"^^xsd:anyURI ;
+    ] ,
+    [
+        sh:prefix "rdf" ;
+        sh:namespace "http://www.w3.org/1999/02/22-rdf-syntax-ns#"^^xsd:anyURI ;
+    ] ,
+    [
+        sh:prefix "rdfs" ;
+        sh:namespace "http://www.w3.org/2000/01/rdf-schema#"^^xsd:anyURI ;
+    ] ,
+    [
+        sh:prefix "skos" ;
+        sh:namespace "http://www.w3.org/2004/02/skos/core#"^^xsd:anyURI ;
+    ] ,
+    [
+        sh:prefix "foaf" ;
+        sh:namespace "http://xmlns.com/foaf/0.1/"^^xsd:anyURI ;
+    ] ,
+    [
+        sh:prefix "schema" ;
+        sh:namespace "http://schema.org/"^^xsd:anyURI ;
     ] .

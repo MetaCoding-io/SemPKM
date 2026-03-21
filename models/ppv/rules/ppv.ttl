@@ -4,6 +4,7 @@
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 
 # Rule: Derive ppv:pillar on Projects from the GoalOutcome -> ValueGoal -> Pillar chain
 # This populates the denormalized shortcut so dashboard queries can filter by pillar directly.
@@ -59,4 +60,78 @@ ppv:PrefixDeclarations
     sh:declare [
         sh:prefix "ppv" ;
         sh:namespace "urn:sempkm:model:ppv:"^^xsd:anyURI ;
+    ] ;
+    sh:declare [
+        sh:prefix "dcterms" ;
+        sh:namespace "http://purl.org/dc/terms/"^^xsd:anyURI ;
+    ] ;
+    sh:declare [
+        sh:prefix "xsd" ;
+        sh:namespace "http://www.w3.org/2001/XMLSchema#"^^xsd:anyURI ;
+    ] .
+
+# ============================================================
+# Validation: Info when a Project has no modification date.
+# Uses simple NOT EXISTS check to avoid K001 date arithmetic
+# limitation. Projects without dcterms:modified may be stale.
+# ============================================================
+
+ppv:StaleProjectValidationShape
+    a sh:NodeShape ;
+    sh:targetClass ppv:Project ;
+    sh:severity sh:Info ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Project has no modification date recorded. Consider reviewing its status." ;
+        sh:prefixes ppv:PrefixDeclarations ;
+        sh:select """
+            SELECT $this
+            WHERE {
+                FILTER NOT EXISTS { $this dcterms:modified ?mod }
+            }
+        """ ;
+    ] .
+
+# ============================================================
+# Validation: Warn when an ActionItem is not linked to a Project.
+# Part of the PPV broken-chain checks — every action should
+# trace up to a project in the pillar hierarchy.
+# ============================================================
+
+ppv:ActionItemNoProjectValidationShape
+    a sh:NodeShape ;
+    sh:targetClass ppv:ActionItem ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Action item is not linked to any project." ;
+        sh:prefixes ppv:PrefixDeclarations ;
+        sh:select """
+            SELECT $this
+            WHERE {
+                FILTER NOT EXISTS { $this ppv:project ?proj }
+            }
+        """ ;
+    ] .
+
+# ============================================================
+# Validation: Warn when a Project is not linked to a GoalOutcome.
+# Part of the PPV broken-chain checks — every project should
+# trace up to a goal outcome in the pillar hierarchy.
+# ============================================================
+
+ppv:ProjectNoGoalValidationShape
+    a sh:NodeShape ;
+    sh:targetClass ppv:Project ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Project is not linked to any goal outcome." ;
+        sh:prefixes ppv:PrefixDeclarations ;
+        sh:select """
+            SELECT $this
+            WHERE {
+                FILTER NOT EXISTS { $this ppv:goalOutcome ?go }
+            }
+        """ ;
     ] .

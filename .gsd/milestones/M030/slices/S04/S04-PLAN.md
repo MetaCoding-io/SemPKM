@@ -29,7 +29,7 @@
 
 ## Tasks
 
-- [ ] **T01: Write E2E Playwright test for lint filter system** `est:1h30m`
+- [x] **T01: Write E2E Playwright test for lint filter system** `est:1h30m`
   - Why: Primary verification deliverable proving M030 acceptance criteria end-to-end against the running Docker stack. Covers pipeline fix (rules fire), data quality rules (warnings appear), and full filter CRUD (suppress, dismiss, presets, settings management).
   - Files: `e2e/tests/10-lint-dashboard/lint-filters.spec.ts`
   - Do: Write a serial test suite exercising the full acceptance flow: (1) create objects triggering data quality warnings via API, (2) verify lint results contain expected warnings/infos via GET /api/lint/results, (3) suppress a rule type via POST /api/lint/suppress and verify results excluded, (4) dismiss a specific result via POST /api/lint/dismiss and verify exclusion, (5) save a preset via POST /api/lint/presets, clear all suppressions, apply preset to restore, (6) open lint settings in browser and verify management UI shows suppressions/dismissals/presets, (7) clear suppressions and verify results reappear, (8) cleanup. Use API-driven arrangement with selective browser verification for UI-visible outcomes. Follow the patterns from lint-dashboard.spec.ts (openBottomPanelTab helper, waitForWorkspace/waitForIdle, ownerSessionToken cookies).

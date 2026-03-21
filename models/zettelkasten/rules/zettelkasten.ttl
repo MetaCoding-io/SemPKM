@@ -106,3 +106,32 @@ zk:UnsourcedPermanentNoteValidationShape
             }
         """ ;
     ] .
+
+# ============================================================
+# Rule 4 (Validation): Empty Body for Zettelkasten Note Types
+# Fires sh:Info when any of the 4 zk note types has no body.
+# Body predicate uses full IRI — sempkm vocab not in prefixes.
+# ============================================================
+
+zk:EmptyBodyValidationShape
+    a sh:NodeShape ;
+    sh:targetSubjectsOf rdf:type ;
+    sh:severity sh:Info ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Note has no body content. Consider adding your thoughts." ;
+        sh:prefixes zk:PrefixDeclarations ;
+        sh:select """
+            SELECT $this
+            WHERE {
+                { $this a zk:FleetingNote }
+                UNION
+                { $this a zk:LiteratureNote }
+                UNION
+                { $this a zk:PermanentNote }
+                UNION
+                { $this a zk:StructureNote }
+                FILTER NOT EXISTS { $this <urn:sempkm:vocab:body> ?body }
+            }
+        """ ;
+    ] .

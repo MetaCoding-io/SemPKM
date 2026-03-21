@@ -314,25 +314,14 @@ async def commands_list(request: Request):
             elif cmd.actionType == "navigate" and cmd.path:
                 action_url = cmd.path
 
-            entry = {
+            commands.append({
                 "id": f"appcmd:{app_id}:{cmd.id}",
                 "title": cmd.label,
                 "keywords": cmd.keywords,
                 "section": manifest.name,
                 "actionType": cmd.actionType,
                 "actionUrl": action_url,
-            }
-
-            # Navigate commands whose path matches an app page open as
-            # dockview tabs instead of full-page navigations.
-            if cmd.actionType == "navigate" and cmd.path:
-                for page in manifest.ui.pages:
-                    if page.path == cmd.path:
-                        entry["appId"] = app_id
-                        entry["pageId"] = page.id
-                        break
-
-            commands.append(entry)
+            })
 
     logger.debug(
         "Command palette: %d app command(s) from running apps", len(commands)
