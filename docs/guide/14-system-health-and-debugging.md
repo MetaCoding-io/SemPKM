@@ -393,6 +393,145 @@ The Lint Dashboard is most useful as a data cleanup tool. A typical workflow:
 
 > **For Advanced Users:** The SHACL shapes that drive lint validation are defined in your Mental Model's shapes file. You can add custom SHACL constraints to produce custom lint rules. For example, adding a `sh:pattern` constraint to a property shape will flag objects whose property values do not match the regex pattern. Custom shapes are installed alongside the model -- see [Chapter 16: The Data Model](16-data-model.md) for details on how shapes work.
 
+### Data Quality Rules
+
+In addition to structural SHACL shapes (which validate object structure -- required fields, data types, cardinality), SemPKM ships **data quality rules** with its Mental Models. These rules detect common data hygiene issues and report them at **Warning** or **Info** severity.
+
+#### Severity Levels
+
+The Lint Dashboard uses three severity levels:
+
+- **Violation** (red) -- Structural constraint violations from SHACL shapes. These indicate that an object's data doesn't match the model's required structure (e.g., a missing required field, a value of the wrong type). Violations always need attention.
+- **Warning** (amber) -- Data quality issues that likely indicate a problem. For example, a tag that contains commas (suggesting it should have been entered as separate tags) or a task not linked to any project.
+- **Info** (blue) -- Advisory findings that highlight potential improvements. For example, a note with no body content, or an object with zero connections to other objects. These may be intentional and can safely be ignored.
+
+Data quality rules produce only Warning and Info results -- never Violations. Violations come exclusively from structural SHACL shapes.
+
+#### Built-in Data Quality Rules
+
+The following rules are included with SemPKM's Mental Models. They run automatically during validation (triggered after every save operation) alongside the structural shapes.
+
+| Rule | Severity | Model | What It Detects | How to Fix |
+|------|----------|-------|-----------------|------------|
+| CommaInTagsValidation | Warning | Basic PKM | Tags containing commas (likely intended as separate tags) | Remove the commas and enter each tag as a separate value |
+| TitlelessObjectValidation | Warning | Basic PKM | Objects with no title set | Add a `dcterms:title` value |
+| EmptyBodyValidation | Info | Basic PKM | Notes or Concepts with no body content | Add body content via the editor |
+| ConceptNoDefinitionValidation | Info | Basic PKM | Concepts missing a `skos:definition` | Add a definition to the Concept |
+| OrphanObjectValidation | Info | Basic PKM | Objects with zero connections to other objects | Add relationships (edges) to connect the object to related items |
+| DuplicateUrlValidation | Info | Basic PKM | Multiple objects of the same type sharing a URL | Merge the duplicates or differentiate their URLs |
+| EmptyBodyValidation | Info | Zettelkasten+ | Fleeting, Literature, Permanent, or Structure Notes with no body | Add note content |
+| StaleProjectValidation | Info | PPV | Projects that have never been modified since creation | Edit or archive stale projects |
+| ActionItemNoProjectValidation | Warning | PPV | Action items not linked to any project | Link the action item to a project |
+| ProjectNoGoalValidation | Warning | PPV | Projects not linked to any goal outcome | Link the project to a goal |
+| ClaimNoRationaleValidation | Info | Research | Claims with no rationale provided | Add a rationale explaining the basis for the claim |
+
+> **Note:** Not all rules appear for every user -- you only see results for rules belonging to Mental Models you have installed. If you only use Basic PKM, you will not see results from the Zettelkasten+, PPV, or Research rules.
+
+### Suppressing Rule Types
+
+If a data quality rule is noisy or irrelevant to your workflow, you can **suppress** the entire rule type. Suppressing hides all results for that rule across every object.
+
+**To suppress a rule:**
+
+1. Open the Lint Dashboard (**Alt+J**, then the **Lint** tab)
+2. Find any row for the rule you want to suppress
+3. Click the **eye-off** (👁‍🗨) button on the rule's row
+4. All results for that rule immediately disappear from the dashboard
+
+**What happens after suppressing:**
+
+- The rule's results are hidden from the Lint Dashboard and per-object Lint panels
+- A **"N rules suppressed"** badge appears in the dashboard sidebar, showing how many rule types are currently hidden
+- Validation still runs the suppressed rule internally -- suppression only hides the results, it doesn't disable the rule
+- Suppression is per-user and does not affect other users
+
+**To un-suppress a rule:**
+
+Go to **Lint Settings** (see below) to view and remove individual suppressions.
+
+> **When to use suppression:** Suppress a rule when it's consistently not useful for your workflow. For example, if you intentionally keep notes without body content (using them as link hubs), suppress the EmptyBodyValidation rule to declutter your dashboard.
+
+### Dismissing Individual Results
+
+Sometimes a specific lint finding is intentionally not applicable to a single object, even though the rule is useful overall. In that case, you can **dismiss** the individual result rather than suppressing the whole rule.
+
+**To dismiss a result:**
+
+1. Open the per-object **Lint Panel** in the workspace (right side panel) or view results in the Lint Dashboard
+2. Find the specific warning or info result you want to dismiss
+3. Click the **×** button on that result
+4. The result disappears for that object only
+
+**Key behaviors:**
+
+- Only **Warning** and **Info** results can be dismissed. **Violations** cannot be dismissed -- they represent structural issues that must be resolved by fixing the data.
+- Dismissing a result for one object does not affect other objects with the same issue. If three Notes trigger EmptyBodyValidation, dismissing it on one Note leaves the other two visible.
+- A **"N dismissed"** indicator shows the count of dismissed results
+- Dismissed results persist across validation runs -- if a dismissed result would reappear after re-validation, it stays hidden
+
+**To un-dismiss a result:**
+
+Go to **Lint Settings** (see below) to view and remove individual dismissals, or clear all dismissals at once.
+
+> **When to use dismissal:** Dismiss a result when you've reviewed the finding and determined it's intentionally not applicable to that specific object. For example, a Project with no goal might be a sandbox project that deliberately has no goal -- dismiss the ProjectNoGoalValidation for that object while keeping the rule active for others.
+
+### Filter Presets
+
+If you switch between different review contexts (e.g., "data cleanup mode" where you see everything vs. "daily review" where you suppress noisy rules), you can save your current filter configuration as a **preset** and switch between presets instantly.
+
+**To save a preset:**
+
+1. Configure your suppressions the way you want them (suppress the rules you want hidden)
+2. In the Lint Dashboard sidebar, click the **"Save Current"** button
+3. Enter a name for the preset (e.g., "Daily Review" or "Full Audit")
+4. The preset saves all currently suppressed rules
+
+**To apply a preset:**
+
+1. In the Lint Dashboard sidebar, use the **preset dropdown** to select a saved preset
+2. The preset's suppressions replace your current ones immediately
+3. Select **"No preset"** to clear all suppressions and start fresh
+
+**Managing presets:**
+
+Presets can be renamed, deleted, and applied from the **Lint Settings** page (see below). Applying a preset replaces all current suppressions with the preset's saved configuration.
+
+> **Workflow example:** Save a "Full Audit" preset with no suppressions for monthly data reviews, and a "Daily Focus" preset that suppresses OrphanObjectValidation and EmptyBodyValidation for everyday use. Switch between them as needed.
+
+### Lint Settings
+
+The **Lint Settings** page is the management hub for all lint filter state -- suppressions, dismissals, and presets.
+
+**Accessing Lint Settings:**
+
+Click the **"Manage Filters"** link in the Lint Dashboard sidebar, or navigate directly to the settings page from the lint area.
+
+**The page has three sections:**
+
+#### Suppressions
+
+Lists all currently suppressed rule types. From here you can:
+
+- **Remove** an individual suppression to make that rule's results visible again
+- **Clear all** suppressions to reset to a fully unfiltered view
+
+#### Dismissals
+
+Lists all dismissed results, grouped by object. Each dismissal shows the rule name and the affected object. From here you can:
+
+- **Remove** an individual dismissal to make that specific result visible again
+- **Clear all** dismissals to un-dismiss everything at once
+
+#### Presets
+
+Lists all saved filter presets. From here you can:
+
+- **Apply** a preset to replace your current suppressions with the preset's saved configuration
+- **Rename** a preset to change its display name
+- **Delete** a preset to remove it permanently
+
+> **Tip:** If your Lint Dashboard feels cluttered after installing a new Mental Model (with its own data quality rules), visit Lint Settings to see which rules are active, suppress any that aren't relevant, and save the configuration as a preset for easy restoration.
+
 ## Troubleshooting Common Issues
 
 ### Triplestore Shows "Down"
