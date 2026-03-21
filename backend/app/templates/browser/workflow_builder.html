@@ -22,12 +22,14 @@
     <label for="wf-builder-name">Name <span class="required-marker">*</span></label>
     <input type="text" id="wf-builder-name" placeholder="My Workflow"
            value="{{ workflow.name if workflow else '' }}" maxlength="255" required>
+    <small class="field-help">A short, descriptive name for this workflow.</small>
   </div>
 
   <div class="form-field">
     <label for="wf-builder-description">Description</label>
     <textarea id="wf-builder-description" rows="2"
               placeholder="Optional description">{{ workflow.description if workflow else '' }}</textarea>
+    <small class="field-help">Optional summary of what this workflow does or when to use it.</small>
   </div>
 
   <!-- Steps section -->
@@ -66,25 +68,24 @@
     switch (stepType) {
       case 'view':
         return '<div class="block-config-fields">' +
-          '<div class="form-field"><label>View Spec</label>' +
-          '<select class="step-config-spec-iri" data-key="spec_iri"><option value="">Loading views...</option></select></div>' +
-          '<div class="form-field"><label>Renderer</label>' +
-          '<select class="step-config-renderer" data-key="renderer_type">' +
-          '<option value="table"' + (config.renderer_type === 'table' ? ' selected' : '') + '>Table</option>' +
-          '<option value="card"' + (config.renderer_type === 'card' ? ' selected' : '') + '>Card</option>' +
-          '<option value="graph"' + (config.renderer_type === 'graph' ? ' selected' : '') + '>Graph</option>' +
-          '</select></div>' +
+          '<div class="form-field"><label>View</label>' +
+          '<select class="step-config-spec-iri" data-key="spec_iri" onchange="window._wfUpdateRendererFromView(this)"><option value="">Loading views...</option></select>' +
+          ' <span class="renderer-badge">' + (config.renderer_type ? '(' + config.renderer_type + ')' : '') + '</span>' +
+          '<input type="hidden" class="wf-auto-renderer" data-key="renderer_type" value="' + escapeAttr(config.renderer_type || 'table') + '">' +
+          '<small class="field-help">Choose a view to display. The view\'s own renderer (table/cards/graph) will be used.</small></div>' +
           '</div>';
       case 'dashboard':
         return '<div class="block-config-fields">' +
           '<div class="form-field"><label>Dashboard</label>' +
-          '<select class="step-config-dashboard-id" data-key="dashboard_id"><option value="">Loading dashboards...</option></select></div>' +
+          '<select class="step-config-dashboard-id" data-key="dashboard_id"><option value="">Loading dashboards...</option></select>' +
+          '<small class="field-help">Choose an existing dashboard to embed as this step.</small></div>' +
           '</div>';
       case 'form':
         return '<div class="block-config-fields">' +
           '<div class="form-field"><label>Target Class IRI</label>' +
           '<input type="text" class="block-config-input" data-key="target_class" placeholder="e.g. http://example.org/MyClass" value="' +
-          escapeAttr(config.target_class || '') + '"></div></div>';
+          escapeAttr(config.target_class || '') + '">' +
+          '<small class="field-help">The RDF type IRI for the create form.</small></div></div>';
       default:
         return '';
     }
@@ -123,6 +124,10 @@
       if (opt.value === currentValue) opt.selected = true;
       selectEl.appendChild(opt);
     });
+    // Auto-update the renderer badge if a value is already selected
+    if (currentValue && window._wfUpdateRendererFromView) {
+      window._wfUpdateRendererFromView(selectEl);
+    }
   }
 
   // ------ Fetch available dashboards for dashboard step type ------
@@ -156,6 +161,22 @@
     });
   }
 
+  // ------ Auto-set renderer from selected view ------
+
+  window._wfUpdateRendererFromView = function(selectEl) {
+    var row = selectEl.closest('.block-row');
+    var hiddenRenderer = row.querySelector('[data-key="renderer_type"]');
+    var badge = row.querySelector('.renderer-badge');
+    var selectedIri = selectEl.value;
+    var rendererType = 'table'; // default
+    if (_cachedViews && selectedIri) {
+      var match = _cachedViews.find(function(v) { return (v.spec_iri || v.iri) === selectedIri; });
+      if (match && match.renderer_type) rendererType = match.renderer_type;
+    }
+    if (hiddenRenderer) hiddenRenderer.value = rendererType;
+    if (badge) badge.textContent = '(' + rendererType + ')';
+  };
+
   // ------ Step row management ------
 
   function createStepRow(step) {
@@ -180,7 +201,8 @@
       '<div class="block-row-header">' +
         '<span class="block-row-label">Step ' + (idx + 1) + '</span>' +
         '<div class="form-field step-label-field"><input type="text" class="step-label-input" placeholder="Step label (optional)" value="' +
-        escapeAttr(step.label || '') + '"></div>' +
+        escapeAttr(step.label || '') + '">' +
+        '<small class="field-help">A label shown on the step tab (e.g. "Review", "Create").</small></div>' +
         '<button type="button" class="btn-icon builder-remove-block-btn" onclick="window._wfBuilderRemoveStep(this)" title="Remove step">' +
           '<i data-lucide="trash-2"></i></button>' +
       '</div>' +
@@ -225,7 +247,12 @@
     // Auto-populate selects
     if (stepType === 'view') {
       var specSelect = container.querySelector('.step-config-spec-iri');
-      if (specSelect) populateViewSelect(specSelect, '');
+      if (specSelect) {
+        populateViewSelect(specSelect, '');
+        // Initialize badge to empty since no view is selected yet
+        var badge = row.querySelector('.renderer-badge');
+        if (badge) badge.textContent = '';
+      }
     }
     if (stepType === 'dashboard') {
       var dashSelect = container.querySelector('.step-config-dashboard-id');

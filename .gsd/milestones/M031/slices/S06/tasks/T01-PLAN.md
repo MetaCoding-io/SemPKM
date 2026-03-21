@@ -77,3 +77,10 @@ Two related template-only changes to improve builder usability. First, add `<sma
 
 - `backend/app/templates/browser/dashboard_builder.html` — updated with help text on all fields
 - `backend/app/templates/browser/workflow_builder.html` — updated with help text on all fields; view step renderer dropdown replaced with auto-set hidden input + badge
+
+## Observability Impact
+
+- **New DOM signal:** Every builder field now has a `<small class="field-help">` child. Agents can verify coverage via `grep -c 'field-help'`.
+- **Renderer auto-set:** The hidden input `[data-key="renderer_type"]` updates automatically on view selection. Inspect DOM to verify: `row.querySelector('[data-key="renderer_type"]').value`.
+- **Renderer badge:** The `.renderer-badge` span shows the current renderer type as read-only text — visual confirmation that auto-set is working.
+- **Save still works:** The `data-key` attribute on the hidden input ensures the existing save collector picks it up. No save-path changes needed.

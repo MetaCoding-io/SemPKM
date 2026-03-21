@@ -23,12 +23,14 @@
     <label for="builder-name">Name <span class="required-marker">*</span></label>
     <input type="text" id="builder-name" placeholder="My Dashboard"
            value="{{ dashboard.name if dashboard else '' }}" maxlength="255" required>
+    <small class="field-help">A short, descriptive name for this dashboard.</small>
   </div>
 
   <div class="form-field">
     <label for="builder-description">Description</label>
     <textarea id="builder-description" rows="2"
               placeholder="Optional description">{{ dashboard.description if dashboard else '' }}</textarea>
+    <small class="field-help">Optional summary of what this dashboard shows or is used for.</small>
   </div>
 
   <!-- Layout picker -->
@@ -47,6 +49,7 @@
       </label>
       {% endfor %}
     </div>
+    <small class="field-help">Choose how blocks are arranged. Each layout has named slots where blocks are placed.</small>
   </div>
 
   <!-- Blocks section -->
@@ -121,13 +124,15 @@
       case 'view-embed':
         return '<div class="block-config-fields">' +
           '<div class="form-field"><label>View Spec</label>' +
-          '<select class="block-config-spec-iri" data-key="spec_iri"><option value="">Loading views...</option></select></div>' +
+          '<select class="block-config-spec-iri" data-key="spec_iri"><option value="">Loading views...</option></select>' +
+          '<small class="field-help">The view definition to embed. It determines what data and columns appear.</small></div>' +
           '<div class="form-field"><label>Renderer</label>' +
           '<select class="block-config-renderer" data-key="renderer_type">' +
           '<option value="table"' + (config.renderer_type === 'table' ? ' selected' : '') + '>Table</option>' +
           '<option value="card"' + (config.renderer_type === 'card' ? ' selected' : '') + '>Card</option>' +
           '<option value="graph"' + (config.renderer_type === 'graph' ? ' selected' : '') + '>Graph</option>' +
-          '</select></div>' +
+          '</select>' +
+          '<small class="field-help">How the view is rendered: as a table, cards, or graph.</small></div>' +
           '<div class="form-field"><label class="checkbox-label"><input type="checkbox" class="block-config-emits" data-key="emits_context"' +
           (config.emits_context ? ' checked' : '') + '> Emits context</label>' +
           '<span class="field-help">Row clicks in this block will set the dashboard context IRI</span></div>' +
@@ -140,25 +145,30 @@
         return '<div class="block-config-fields">' +
           '<div class="form-field"><label>Content</label>' +
           '<textarea class="block-config-textarea" data-key="content" rows="4" placeholder="Markdown content">' +
-          escapeHtml(config.content || '') + '</textarea></div></div>';
+          escapeHtml(config.content || '') + '</textarea>' +
+          '<small class="field-help">Text content in Markdown format. Supports paragraphs and basic formatting.</small></div></div>';
       case 'create-form':
         return '<div class="block-config-fields">' +
           '<div class="form-field"><label>Target Class IRI</label>' +
           '<input type="text" class="block-config-input" data-key="target_class" placeholder="e.g. http://example.org/MyClass" value="' +
-          escapeAttr(config.target_class || '') + '"></div></div>';
+          escapeAttr(config.target_class || '') + '">' +
+          '<small class="field-help">The RDF type IRI for the object creation form (e.g. a class from your model).</small></div></div>';
       case 'object-embed':
         return '<div class="block-config-fields">' +
           '<div class="form-field"><label>Object IRI</label>' +
           '<input type="text" class="block-config-input" data-key="object_iri" placeholder="e.g. http://example.org/obj1" value="' +
-          escapeAttr(config.object_iri || '') + '"></div></div>';
+          escapeAttr(config.object_iri || '') + '">' +
+          '<small class="field-help">The IRI of a specific object to display in this block.</small></div></div>';
       case 'sparql-result':
         return '<div class="block-config-fields">' +
           '<div class="form-field"><label>SPARQL Query</label>' +
           '<textarea class="block-config-textarea" data-key="query" rows="3" placeholder="SELECT ?s WHERE { ... }">' +
-          escapeHtml(config.query || '') + '</textarea></div>' +
+          escapeHtml(config.query || '') + '</textarea>' +
+          '<small class="field-help">A SELECT query whose first result value is displayed as a metric.</small></div>' +
           '<div class="form-field"><label>Label</label>' +
           '<input type="text" class="block-config-input" data-key="label" placeholder="Result label" value="' +
-          escapeAttr(config.label || '') + '"></div></div>';
+          escapeAttr(config.label || '') + '">' +
+          '<small class="field-help">A short label shown above the query result value.</small></div></div>';
       case 'divider':
         return '<div class="block-config-fields"><span class="field-help">No configuration needed.</span></div>';
       default:
