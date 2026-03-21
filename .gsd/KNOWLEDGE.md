@@ -221,3 +221,35 @@ combined = Graph()
 combined.parse("models/basic-pkm/shapes/basic-pkm.jsonld", format="json-ld")
 combined.parse("models/basic-pkm/rules/basic-pkm.ttl", format="turtle")
 ```
+
+---
+
+### extract_scope_where_body() LIMIT clause edge case
+
+**Discovered:** M031/S01/T03
+
+`extract_scope_where_body()` uses an end-of-string regex (`\}\s*$`) to find the WHERE block's closing brace. Saved queries with `LIMIT`, `ORDER BY`, or other clauses after the closing brace return empty string — the regex doesn't match.
+
+**Implication:** Callers should strip LIMIT/ORDER BY from the saved query text before passing to `extract_scope_where_body()`. The router's `_extract_where_body()` (brace-depth-counting version) handles these clauses correctly for query execution, but the scope injection utility does not.
+
+```python
+# Works: SELECT ?s WHERE { ?s a ex:Project }
+extract_scope_where_body("SELECT ?s WHERE { ?s a ex:Project }")  # → "?s a ex:Project"
+
+# Returns empty: SELECT ?s WHERE { ?s a ex:Project } LIMIT 10
+extract_scope_where_body("SELECT ?s WHERE { ?s a ex:Project } LIMIT 10")  # → ""
+```
+
+---
+
+### model_view_specs replaces all_specs in view templates
+
+**Discovered:** M031/S01/T01
+
+After carousel removal, view templates receive `model_view_specs` (only model-declared ViewSpecs for the active type) instead of the old `all_specs` (which merged generic + model-declared specs). The template guard is:
+
+```jinja2
+{% if model_view_specs is defined and model_view_specs | length > 0 %}
+```
+
+Dedicated view endpoints (`table_view()`, `cards_view()`, `graph_view()`) pass `model_view_specs: []` since they already serve a specific model-declared view. Only `generic_view()` populates this from `get_view_specs_for_type()`.

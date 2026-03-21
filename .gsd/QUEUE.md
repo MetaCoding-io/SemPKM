@@ -543,3 +543,30 @@ Deliverables: research document (Notion/Zabbix survey), design document (RDF dat
 
 **Context:** `.gsd/milestones/M032/M032-CONTEXT.md`
 **Depends on:** M031
+
+---
+
+## Federated SPARQL, New View Renderers, App Catalog & Deployment Overhaul
+
+**Queued:** 2026-03-21
+**Status:** Queued as M033
+
+Seven feature areas in one mega-milestone:
+
+1. **Federated SPARQL with mirrored triples** — SERVICE clause pass-through to RDF4J, cache-and-mirror layer storing federated results in `urn:sempkm:mirrored` named graph (pattern from inferred triples), configurable endpoint allowlist (Wikidata, MusicBrainz, DBpedia), provenance tracking, SPARQL console SERVICE assistance. Backend federation proxy service mediates between SemPKM's scoping layer and RDF4J's native federation.
+
+2. **Isometric 2.5D graph view** — New "Isometric" layout in Cytoscape.js layout registry using CSS 3D transforms (perspective, rotateX, translateZ). Configurable z-layer dimension: provenance source, rdf:type, dcterms:created, source model. Translucent layer planes, cross-layer edges, billboard labels.
+
+3. **Calendar view** — FullCalendar 6.x vendored and lazy-loaded. New generic view alongside Table/Cards/Graph. SPARQL query builder for temporal data. Month/week/day views. Type filter pills. Dark mode via CSS variables. Date property auto-detection from SHACL shapes.
+
+4. **Map view** — Leaflet.js 1.9.x + OpenStreetMap tiles vendored and lazy-loaded. New generic view. SPARQL query for schema:latitude/longitude. Marker clustering via Leaflet.markercluster. Popup with object info and click-through. Graceful tile degradation.
+
+5. **Rich app catalog pages** — New "App Catalog" workspace section with detail pages per app (description, screenshots carousel, feature list, permissions, model dependencies, tutorial links, install/uninstall). E2E screenshot capture extended for per-app captures. Works for installed and available-but-not-installed apps.
+
+6. **Graph view icon toggle** — Toolbar button switching between shape-only and Lucide SVG icon-on-node display. Reads from existing `window._sempkmIcons`. localStorage persistence per view.
+
+7. **Deployment & onboarding implementation** — All 3 proposals from DEPLOYMENT-AND-ONBOARDING-DESIGN.md: setup wizard deployment mode step (local/domain/later), `docker-compose.cloud.yml` with Caddy for automatic HTTPS, mkcert for local TLS. BASE_NAMESPACE auto-configuration, instance config persistence, guard rails against namespace changes after data creation.
+
+**Context:** `.gsd/milestones/M033/M033-CONTEXT.md`
+**Design ref:** `.gsd/design/DEPLOYMENT-AND-ONBOARDING-DESIGN.md`
+**Key decisions (pending):** Lib choices (FullCalendar, Leaflet+OSM), 2.5D CSS approach (not WebGL), cache-and-mirror (not pass-through federation)
