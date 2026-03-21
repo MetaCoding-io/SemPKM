@@ -1,0 +1,109 @@
+appId: "rss-reader"
+name: "RSS Reader"
+version: "1.0.0"
+description: "RSS/Atom feed reader that subscribes to feeds, polls for new articles, and presents them in a clean reader UI."
+author:
+  name: "SemPKM"
+license: "MIT"
+
+dependencies:
+  platform: ">=0.1.0"
+  models:
+    - id: "rss-feeds"
+      version: ">=1.0.0"
+
+permissions:
+  commands:
+    - "object.create"
+    - "object.patch"
+    - "edge.create"
+    - "body.set"
+  sparql:
+    read: true
+  backgroundTasks: true
+  network:
+    - "*"
+  settings: true
+
+settings:
+  - key: "articlesPerPage"
+    label: "Articles per page"
+    description: "Number of articles shown per feed page"
+    inputType: "number"
+    default: "50"
+  - key: "markReadOnOpen"
+    label: "Mark read on open"
+    description: "Automatically mark articles as read when opened"
+    inputType: "toggle"
+    default: "true"
+
+backend:
+  entrypoint: "app:rss_reader_app"
+  requirements: "requirements.txt"
+
+tasks:
+  - id: "poll-feeds"
+    description: "Poll subscribed RSS/Atom feeds for new articles"
+    interval: "5m"
+    configurable: true
+    retryPolicy:
+      maxRetries: 2
+      backoffMultiplier: 2
+      maxBackoff: "5m"
+
+frontend:
+  staticDir: "frontend/static"
+  css:
+    - "styles.css"
+  js:
+    - "reader.js"
+
+ui:
+  pages:
+    - id: "reader"
+      path: "/reader"
+      label: "RSS Reader"
+      icon: "rss"
+      nav: "apps"
+      fragment: "reader"
+  contributions:
+    rightPane:
+      - id: "related-articles"
+        label: "Related Articles"
+        icon: "newspaper"
+        fragment: "related-articles"
+        targetTypes:
+          - "*"
+        priority: 60
+
+    views:
+      - id: "unread-articles"
+        label: "Unread Articles"
+        icon: "mail"
+        fragment: "unread-view"
+      - id: "starred-articles"
+        label: "Starred Articles"
+        icon: "star"
+        fragment: "starred-view"
+
+    commandPalette:
+      - id: "subscribe-feed"
+        label: "Subscribe to Feed..."
+        keywords: ["rss", "feed", "subscribe", "atom"]
+        actionType: "dialog"
+        fragment: "subscribe-dialog"
+      - id: "open-reader"
+        label: "Open RSS Reader"
+        keywords: ["rss", "reader", "feeds", "articles"]
+        actionType: "navigate"
+        path: "/reader"
+      - id: "mark-all-read"
+        label: "Mark All as Read"
+        keywords: ["rss", "mark", "read", "unread"]
+        actionType: "post"
+        endpoint: "/_fragments/mark-all-read"
+
+  objectRenderers:
+    - type: "urn:sempkm:model:rss-feeds:Article"
+      modes:
+        read: "article-read-renderer"

@@ -1,0 +1,56 @@
+<div class="rss-article-list-filters">
+  <button class="rss-filter-btn{% if active_filter == 'all' %} active{% endif %}"
+          hx-get="/_fragments/article-list?filter=all{% if active_feed %}&amp;feed_iri={{ active_feed | urlencode }}{% endif %}"
+          hx-target="#rss-article-list-content"
+          hx-swap="innerHTML">
+    All
+  </button>
+  <button class="rss-filter-btn{% if active_filter == 'unread' %} active{% endif %}"
+          hx-get="/_fragments/article-list?filter=unread{% if active_feed %}&amp;feed_iri={{ active_feed | urlencode }}{% endif %}"
+          hx-target="#rss-article-list-content"
+          hx-swap="innerHTML">
+    Unread
+  </button>
+  <button class="rss-filter-btn{% if active_filter == 'starred' %} active{% endif %}"
+          hx-get="/_fragments/article-list?filter=starred{% if active_feed %}&amp;feed_iri={{ active_feed | urlencode }}{% endif %}"
+          hx-target="#rss-article-list-content"
+          hx-swap="innerHTML">
+    Starred
+  </button>
+</div>
+
+{% if articles %}
+<div class="rss-article-count">Showing {{ articles | length }} article{{ 's' if articles | length != 1 else '' }}</div>
+{% for article in articles %}
+<div class="rss-article-item{% if not article.is_read %} unread{% else %} read{% endif %}"
+     hx-get="/_fragments/article-reading-pane?article_iri={{ article.iri | urlencode }}"
+     hx-target="#rss-reading-pane"
+     hx-swap="innerHTML"
+     data-article-iri="{{ article.iri }}"
+     data-read="{{ article.is_read | lower }}"
+     data-starred="{{ article.is_starred | lower }}">
+  <div class="rss-article-item-title">{{ article.title }}</div>
+  <div class="rss-article-item-meta">
+    {% if article.feed_title %}
+    <span class="rss-article-item-source">{{ article.feed_title }}</span>
+    {% endif %}
+    {% if article.author %}
+    <span class="rss-article-item-author">{{ article.author }}</span>
+    {% endif %}
+    {% if article.date %}
+    <span class="rss-article-item-date">{{ article.date }}</span>
+    {% endif %}
+  </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="rss-empty-state">
+  {% if active_filter == 'unread' %}
+  <p>No unread articles.</p>
+  {% elif active_filter == 'starred' %}
+  <p>No starred articles.</p>
+  {% else %}
+  <p>No articles found.</p>
+  {% endif %}
+</div>
+{% endif %}

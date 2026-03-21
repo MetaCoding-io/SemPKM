@@ -1,0 +1,48 @@
+{
+  "@context": {
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "rss": "urn:sempkm:model:rss-feeds:",
+    "sempkm": "urn:sempkm:vocab:",
+    "dcterms": "http://purl.org/dc/terms/"
+  },
+  "@graph": [
+    {
+      "@id": "rss:view-article-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Articles Table",
+      "sempkm:targetClass": { "@id": "rss:Article" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?author ?published ?feedSource ?isRead ?isStarred WHERE { ?s a <urn:sempkm:model:rss-feeds:Article> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:rss-feeds:author> ?author } . OPTIONAL { ?s <http://purl.org/dc/terms/created> ?published } . OPTIONAL { ?s <urn:sempkm:model:rss-feeds:feedSource> ?feed . ?feed <http://purl.org/dc/terms/title> ?feedSource } . OPTIONAL { ?s <urn:sempkm:model:rss-feeds:isRead> ?isRead } . OPTIONAL { ?s <urn:sempkm:model:rss-feeds:isStarred> ?isStarred } } ORDER BY DESC(?published)",
+      "sempkm:columns": "title,author,published,feedSource,isRead,isStarred",
+      "sempkm:sortDefault": "published"
+    },
+    {
+      "@id": "rss:view-article-card",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Articles Cards",
+      "sempkm:targetClass": { "@id": "rss:Article" },
+      "sempkm:rendererType": "card",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?description ?author ?published WHERE { ?s a <urn:sempkm:model:rss-feeds:Article> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } . OPTIONAL { ?s <urn:sempkm:model:rss-feeds:author> ?author } . OPTIONAL { ?s <http://purl.org/dc/terms/created> ?published } } ORDER BY DESC(?published)",
+      "sempkm:cardTitle": "http://purl.org/dc/terms/title",
+      "sempkm:cardSubtitle": "urn:sempkm:model:rss-feeds:author"
+    },
+    {
+      "@id": "urn:sempkm:model:rss-feeds:query:unread-articles",
+      "@type": "sempkm:SavedQuery",
+      "rdfs:label": "Unread Articles",
+      "dcterms:description": "All unread articles sorted by publication date",
+      "sempkm:queryText": "SELECT ?s ?title ?author ?published ?feedSource WHERE { ?s a <urn:sempkm:model:rss-feeds:Article> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:rss-feeds:isRead> ?isRead } . FILTER(!BOUND(?isRead) || ?isRead = false) . OPTIONAL { ?s <urn:sempkm:model:rss-feeds:author> ?author } . OPTIONAL { ?s <http://purl.org/dc/terms/created> ?published } . OPTIONAL { ?s <urn:sempkm:model:rss-feeds:feedSource> ?feed . ?feed <http://purl.org/dc/terms/title> ?feedSource } } ORDER BY DESC(?published)",
+      "sempkm:source": "model:rss-feeds"
+    },
+    {
+      "@id": "urn:sempkm:model:rss-feeds:query:starred-articles",
+      "@type": "sempkm:SavedQuery",
+      "rdfs:label": "Starred Articles",
+      "dcterms:description": "All starred/favorited articles",
+      "sempkm:queryText": "SELECT ?s ?title ?author ?published ?feedSource WHERE { ?s a <urn:sempkm:model:rss-feeds:Article> ; <http://purl.org/dc/terms/title> ?title ; <urn:sempkm:model:rss-feeds:isStarred> true . OPTIONAL { ?s <urn:sempkm:model:rss-feeds:author> ?author } . OPTIONAL { ?s <http://purl.org/dc/terms/created> ?published } . OPTIONAL { ?s <urn:sempkm:model:rss-feeds:feedSource> ?feed . ?feed <http://purl.org/dc/terms/title> ?feedSource } } ORDER BY DESC(?published)",
+      "sempkm:source": "model:rss-feeds"
+    }
+  ]
+}

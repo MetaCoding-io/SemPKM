@@ -1,0 +1,8 @@
+<div class="rss-workspace-view" id="rss-unread-view">
+  <h3>Unread Articles</h3>
+  <div hx-get="/_fragments/article-list?filter=unread"
+       hx-trigger="load"
+       hx-swap="innerHTML">
+    <div class="tree-empty">Loading unread articles...</div>
+  </div>
+</div>
