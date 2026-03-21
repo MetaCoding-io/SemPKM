@@ -632,6 +632,17 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 **Latest shipped: M030 Data Quality Linting & Lint UX (2026-03-21)**
 
+**In progress: M031 Views Overhaul, Saved Queries as First-Class, & UI Polish (S01-S04 of 7 done)**
+
+**What shipped in M031 so far:**
+- Carousel tab bar fully removed — explorer sidebar is sole view selector (VIEW-08)
+- View toolbar with saved query scope dropdown and model-declared variant dropdown (VIEW-09)
+- Multiple view instances as separate tabs with independent scopes (VIEW-10)
+- Saved Views folder with CRUD operations (VIEW-11)
+- Saved queries in explorer sidebar, canvas embed, and VFS browser (SQ-01, SQ-02, SQ-03)
+- Kanban renderer with SHACL-driven status columns and HTML5 drag-drop (VIEW-12)
+- Remaining: full-height CSS (S05), SPARQL/ontology/graph polish (S05), dashboard/workflow UX (S06), E2E tests + docs (S07)
+
 **What shipped in M030 (Data Quality Linting & Lint UX):**
 - Validation pipeline fix: `model_shapes_loader()` loads rules graphs alongside shapes, `ValidationService.validate()` passes `advanced=True` — all 11 existing M011 SHACL-AF rules now fire in production for the first time
 - 10 new SHACL-AF SPARQLConstraint data quality rules across 4 models: comma-in-tags, empty body (basic-pkm + zettelkasten), concept no definition, titleless objects, orphan objects, duplicate URL, stale project, PPV broken chain (2 shapes), claim no rationale

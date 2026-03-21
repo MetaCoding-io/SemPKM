@@ -102,7 +102,7 @@ This milestone is complete only when all are true:
 - [x] **S03: Saved Queries Everywhere** `risk:low` `depends:[S01]`
   > After this: Saved queries appear as a dedicated section in the explorer sidebar. Users can drag a saved query onto the spatial canvas to create a scoped view widget. Object browser dropdown has a "scope by query" option. VFS browser scope works correctly with saved queries.
 
-- [ ] **S04: Kanban Renderer** `risk:medium` `depends:[S01]`
+- [x] **S04: Kanban Renderer** `risk:medium` `depends:[S01]`
   > After this: User opens "Kanban View" from explorer, sees status-based columns (todo, in-progress, done, etc.), and can drag tasks between columns to change their status. Type filter pills filter which objects appear in the kanban.
 
 - [ ] **S05: SPARQL + Ontology + Graph + Full-Height Polish** `risk:low` `depends:[S01]`
