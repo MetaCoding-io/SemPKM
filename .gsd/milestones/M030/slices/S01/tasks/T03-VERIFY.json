@@ -2,17 +2,17 @@
   "schemaVersion": 1,
   "taskId": "T03",
   "unitId": "M030/S01/T03",
-  "timestamp": 1774063648192,
+  "timestamp": 1774064009287,
   "passed": false,
   "discoverySource": "task-plan",
   "checks": [
     {
       "command": "Lint panel shows overdue-task warning on the created task. Docker logs show rules triples loaded.",
       "exitCode": 127,
-      "durationMs": 10,
+      "durationMs": 9,
       "verdict": "fail"
     }
   ],
-  "retryAttempt": 2,
+  "retryAttempt": 3,
   "maxRetries": 2
 }

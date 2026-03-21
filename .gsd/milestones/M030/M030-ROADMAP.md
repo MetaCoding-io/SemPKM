@@ -51,10 +51,10 @@ This milestone is complete only when all are true:
 
 ## Slices
 
-- [ ] **S01: Validation Pipeline Fix & Performance Measurement** `risk:high` `depends:[]`
+- [x] **S01: Validation Pipeline Fix & Performance Measurement** `risk:high` `depends:[]`
   > After this: User creates a task with a past due date — the overdue-task warning from M011 appears in the lint panel for the first time in production. Performance measured and documented.
 
-- [ ] **S02: Data Quality Rules (9 new SHACL-AF rules)** `risk:medium` `depends:[S01]`
+- [x] **S02: Data Quality Rules (9 new SHACL-AF rules)** `risk:medium` `depends:[S01]`
   > After this: User creates objects with data quality issues (comma-in-tags, empty body, titleless objects, etc.) and sees appropriate warnings/info in the lint panel. All 9 rules proven by offline pytest tests.
 
 - [ ] **S03: Lint Filter System (Suppress, Dismiss, Presets)** `risk:medium` `depends:[S01]`
