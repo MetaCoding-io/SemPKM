@@ -99,7 +99,7 @@ This milestone is complete only when all are true:
 - [x] **S02: Multiple View Instances + Saved Views Fix** `risk:medium` `depends:[S01]`
   > After this: User can open two graph views as separate tabs with different saved query scopes. The Saved Views folder in the explorer loads entries correctly. User can save the current view configuration as a named saved view and reopen it later.
 
-- [ ] **S03: Saved Queries Everywhere** `risk:low` `depends:[S01]`
+- [x] **S03: Saved Queries Everywhere** `risk:low` `depends:[S01]`
   > After this: Saved queries appear as a dedicated section in the explorer sidebar. Users can drag a saved query onto the spatial canvas to create a scoped view widget. Object browser dropdown has a "scope by query" option. VFS browser scope works correctly with saved queries.
 
 - [ ] **S04: Kanban Renderer** `risk:medium` `depends:[S01]`
