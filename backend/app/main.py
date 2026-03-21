@@ -403,6 +403,27 @@ async def lifespan(app: FastAPI):
         app.state.setup_mode = False
         app.state.setup_token = None
 
+    # --- Seed sample data for first-time users ---
+    if setup_complete:
+        try:
+            from app.dashboard.seed import seed_sample_data
+            from sqlalchemy import select as sa_select
+            from app.auth.models import User as UserModel
+
+            async with async_session_factory() as session:
+                result = await session.execute(sa_select(UserModel).limit(1))
+                first_user = result.scalar_one_or_none()
+            if first_user:
+                seed_outcome = await seed_sample_data(
+                    app.state.dashboard_service,
+                    app.state.workflow_service,
+                    first_user.id,
+                )
+                if seed_outcome.get("dashboard_created") or seed_outcome.get("workflow_created"):
+                    logger.info("Seeded sample data: %s", seed_outcome)
+        except Exception:
+            logger.warning("Seed sample data failed (non-fatal)", exc_info=True)
+
     logger.info("SemPKM API started successfully")
     yield
 

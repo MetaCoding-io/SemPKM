@@ -40,7 +40,7 @@
   - Verify: `grep -q 'class-search' backend/app/templates/browser/dashboard_builder.html && grep -q 'class-search' backend/app/templates/browser/workflow_builder.html && echo OK`
   - Done when: Typing in Target Class IRI or Object IRI fields shows autocomplete suggestions from the backend
 
-- [ ] **T03: Create seed data module for sample dashboards and workflows** `est:45m`
+- [x] **T03: Create seed data module for sample dashboards and workflows** `est:45m`
   - Why: DBUIX-04 — first-time users see empty builders with no examples. Seed data provides a "Getting Started" dashboard and a "Create & Review" workflow as learning aids.
   - Files: `backend/app/dashboard/seed.py`, `backend/app/main.py`, `backend/tests/test_seed_data.py`
   - Do: (1) Create `backend/app/dashboard/seed.py` with a `seed_sample_data(dashboard_service, workflow_service, user_id)` async function. The function checks `list_for_user()` — if the user has 0 dashboards, it creates a "Getting Started" dashboard (sidebar-main layout, markdown welcome block + view-embed block). If 0 workflows, it creates a "Create & Review" two-step workflow. (2) Wire into app startup in `main.py` — after services are initialized, call seed on a `@app.on_event("startup")` or existing startup hook, using the first user from the DB (or skip if no users). (3) Write a unit test in `backend/tests/test_seed_data.py` that mocks the services and verifies seed creates data when empty and skips when data already exists.

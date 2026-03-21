@@ -81,6 +81,13 @@ Create a seed data module that inserts a sample "Getting Started" dashboard and 
 - `rg 'seed_sample' backend/app/main.py` returns a match
 - `cd backend && python -m pytest tests/test_seed_data.py -x -q` passes
 
+## Observability Impact
+
+- **Startup log line:** When seed creates data, `logger.info("Seeded sample data: %s", outcome)` fires in `main.py`. Inspect via `docker compose logs backend | grep -i seed`.
+- **Per-entity log lines:** `seed.py` logs `logger.info("Seeded 'Getting Started' dashboard ...")` and `logger.info("Seeded 'Create & Review' workflow ...")` individually.
+- **Failure visibility:** Seed errors are caught in `main.py` and logged at `logger.warning()` with `exc_info=True`. Seed failure does NOT crash the app — startup continues normally.
+- **Idempotency check:** On subsequent startups with existing data, no seed log lines appear (silent skip).
+
 ## Inputs
 
 - `backend/app/dashboard/service.py` — `DashboardService` with `create()` and `list_for_user()` methods
