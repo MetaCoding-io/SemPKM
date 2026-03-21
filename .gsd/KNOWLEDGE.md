@@ -14,6 +14,8 @@ Agents read this before every unit. Add entries when you discover something wort
 |---|---------|-------|-------|
 | 1 | SPARQL date comparison in rdflib: use `STRDT(SUBSTR(STR(NOW()), 1, 10), xsd:date)` instead of `xsd:date(NOW())` | `models/basic-pkm/rules/basic-pkm.ttl` | rdflib does not support `xsd:date()` cast — produces empty results. The STRDT+SUBSTR approach constructs a proper typed xsd:date literal that compares correctly with xsd:date values in FILTER. |
 | 2 | MockResponse default data: use `data if data is not None else {}` not `data or {}` | `backend/tests/test_github_sync_engine.py` | Python `[] or {}` evaluates to `{}` because empty list is falsy. A mock returning `MockResponse(200, [])` silently becomes `{}` which gets iterated as a dict, producing cryptic KeyError failures. |
+| 3 | Never embed N-Triples in SPARQL INSERT DATA for RDF4J — use `insert_graph()` with Graph Store protocol instead | `backend/app/services/validation.py`, `backend/app/triplestore/client.py` | rdflib N-Triples blank node IDs (e.g. `_:n333f21aad...`) cause RDF4J SPARQL parser to error with "Not a valid (absolute) IRI". The Graph Store protocol (POST with `Content-Type: text/turtle` to `/statements?context=<graph>`) bypasses SPARQL parsing entirely. |
+| 4 | `_rdf_term_to_sparql` must handle `BNode` explicitly — rdflib `str(BNode())` returns the raw ID without `_:` prefix | `backend/app/services/validation.py` | BNode identifiers like `nf943a8d5...` look like relative IRIs when wrapped in `<...>`. Always check `isinstance(term, BNode)` and format as `_:{id}`. |
 
 ## Lessons Learned
 

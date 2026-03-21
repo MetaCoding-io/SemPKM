@@ -11,7 +11,7 @@ import uuid
 from typing import Awaitable, Callable, Optional
 
 import pyshacl
-from rdflib import Graph, URIRef, Literal
+from rdflib import BNode, Graph, URIRef, Literal
 from rdflib.namespace import XSD
 
 from app.triplestore.client import TriplestoreClient
@@ -140,12 +140,10 @@ class ValidationService:
 
         # Store full report graph if available
         if results_graph and len(results_graph) > 0:
+            # Use Graph Store protocol (Turtle POST) to avoid SPARQL INSERT DATA
+            # issues with blank node identifiers in N-Triples format
             report_turtle = results_graph.serialize(format="turtle")
-            # Insert the full report into its own named graph
-            # Escape the turtle for SPARQL INSERT DATA
-            await self._client.update(
-                f"INSERT DATA {{ GRAPH <{report_iri}> {{ {_turtle_to_ntriples(results_graph)} }} }}"
-            )
+            await self._client.insert_graph(report_turtle, report_iri)
 
         # Store summary triples in the shared validations graph
         summary_triples = report.to_summary_triples()
@@ -286,6 +284,8 @@ def _rdf_term_to_sparql(term) -> str:
     """Serialize an rdflib term to SPARQL syntax."""
     if isinstance(term, URIRef):
         return f"<{term}>"
+    elif isinstance(term, BNode):
+        return f"_:{term}"
     elif isinstance(term, Literal):
         escaped = (
             str(term)
@@ -305,10 +305,3 @@ def _rdf_term_to_sparql(term) -> str:
         return f"<{term}>"
 
 
-def _turtle_to_ntriples(graph: Graph) -> str:
-    """Serialize a graph to N-Triples format for SPARQL INSERT DATA.
-
-    N-Triples format works directly in SPARQL INSERT DATA blocks
-    since each line is a complete triple statement.
-    """
-    return graph.serialize(format="nt")

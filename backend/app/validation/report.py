@@ -246,7 +246,10 @@ class ValidationReport:
             if result.path:
                 triples.append((result_iri, SH.resultPath, URIRef(result.path)))
             if result.source_shape:
-                triples.append((result_iri, SH.sourceShape, URIRef(result.source_shape)))
+                # Skip blank-node-like source shapes (anonymous property shapes)
+                # that can't be stored as valid IRIs in SPARQL INSERT DATA
+                if result.source_shape.startswith("http") or result.source_shape.startswith("urn:"):
+                    triples.append((result_iri, SH.sourceShape, URIRef(result.source_shape)))
             if result.constraint_component:
                 triples.append((result_iri, SH.sourceConstraintComponent, URIRef(result.constraint_component)))
             # Source model lookup
