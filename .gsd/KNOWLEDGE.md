@@ -180,3 +180,38 @@ if _app_root not in sys.path:
 ```
 
 **Rule:** Any new script under `scripts/` that imports from the `app` package must include this sys.path manipulation. FastAPI's uvicorn process doesn't need it because its working directory is `/app/`.
+
+---
+
+### pyshacl: `allow_warnings=True` means warnings don't affect `conforms`
+
+**Discovered:** M030/S01/T02
+
+When calling `pyshacl.validate(..., allow_warnings=True)`, the `conforms` return value stays `True` even when sh:Warning validation results are present. Warnings are captured in the results graph but don't cause non-conformance.
+
+**Implication:** To detect if any warnings fired, you must inspect the results graph for `sh:ValidationResult` triples with `sh:resultSeverity sh:Warning`. Do NOT rely on `conforms is False`.
+
+```python
+# Correct: check results graph
+for node in results_graph.subjects(RDF.type, SH.ValidationResult):
+    severity = list(results_graph.objects(node, SH.resultSeverity))
+    if any(str(s) == str(SH.Warning) for s in severity):
+        # Warning found
+
+# Wrong: conforms is True even with warnings
+assert conforms is False  # FAILS when allow_warnings=True
+```
+
+---
+
+### basic-pkm shapes are JSON-LD, not Turtle
+
+**Discovered:** M030/S01/T02
+
+The shapes file for basic-pkm is at `models/basic-pkm/shapes/basic-pkm.jsonld` (JSON-LD), not `.ttl`. The rules file IS Turtle at `models/basic-pkm/rules/basic-pkm.ttl`. When loading both into a combined graph:
+
+```python
+combined = Graph()
+combined.parse("models/basic-pkm/shapes/basic-pkm.jsonld", format="json-ld")
+combined.parse("models/basic-pkm/rules/basic-pkm.ttl", format="turtle")
+```
