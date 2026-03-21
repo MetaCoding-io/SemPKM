@@ -145,6 +145,43 @@ The SPARQL Console is available to all authenticated users (owner, member, and g
 
 > **For Advanced Users:** The console supports SELECT queries only. CONSTRUCT and DESCRIBE queries can be run via the SPARQL API endpoint (`/api/sparql`) directly -- see [Chapter 18: The SPARQL Endpoint](18-sparql-endpoint.md). UPDATE and DELETE operations are not supported through the console or API; all data modifications must go through the command API to ensure proper event logging, validation, and webhook dispatch. If you need to query the Lucene full-text index from SPARQL, see the `luc:matches` predicate described in [Chapter 22: Keyword Search](22-keyword-search.md).
 
+## Graph Visualization
+
+When a SPARQL query returns results that follow the **triple pattern** — variables named `?s`, `?p`, and `?o` (or similar subject/predicate/object columns) — the console automatically detects this and offers an interactive graph visualization alongside the standard results table.
+
+### Table/Graph Tab Switcher
+
+A **Table/Graph** tab switcher appears above the results area when triple-pattern results are detected. A hint reading "Triple pattern detected" confirms that the graph tab is available. Click the **Graph** tab to switch from the tabular view to the graph visualization.
+
+### How the Graph Works
+
+The graph visualization is powered by **Cytoscape.js** and renders query results as a node-link diagram:
+
+- **Subject** and **object** values from each result row become **nodes** in the graph.
+- **Predicate** values become **directed edges** connecting the subject node to the object node.
+- Edges display the predicate label and point from subject to object.
+
+### Layout
+
+The graph automatically selects an appropriate layout algorithm based on the result size:
+
+- **Small graphs** (fewer than 30 nodes): Uses the **dagre** layout, which arranges nodes in a directed tree structure. This produces clean, readable layouts for hierarchical or sparse data.
+- **Larger graphs** (30 or more nodes): Uses the **fcose** (force-directed) layout, which positions nodes by simulating physical forces. Connected nodes attract each other while unconnected nodes repel, producing organic layouts that reveal clusters and communities.
+
+### Using Graph Visualization Effectively
+
+The graph tab is most useful for exploring relationship patterns in your knowledge base. To get triple-pattern results, structure your queries with three columns representing subject, predicate, and object:
+
+```sparql
+SELECT ?s ?p ?o WHERE {
+  ?s ?p ?o .
+  FILTER(isIRI(?o))
+}
+LIMIT 50
+```
+
+> **Tip:** Use `SELECT ?s ?p ?o WHERE { ... }` queries to visually explore how objects relate to each other. Start with a small `LIMIT` to keep the graph readable, then increase it as needed.
+
 ---
 
 **Previous:** [Chapter 20: Production Deployment](20-production-deployment.md) | **Next:** [Chapter 22: Keyword Search](22-keyword-search.md)

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T01",
+  "unitId": "M031/S07/T01",
+  "timestamp": 1774114644354,
+  "passed": true,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "! test -f e2e/tests/02-views/carousel-views.spec.ts",
+      "exitCode": 0,
+      "durationMs": 11,
+      "verdict": "pass"
+    }
+  ]
+}

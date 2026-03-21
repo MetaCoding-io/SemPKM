@@ -1,8 +1,8 @@
 # Chapter 7: Browsing and Visualizing Data
 
-SemPKM provides three distinct ways to browse your knowledge base: **Table View** for structured scanning and sorting, **Card View** for visual overviews, and **Graph View** for exploring how objects connect. Each view is defined by a view specification shipped with a Mental Model, so the views you see depend on which models you have installed. The Basic PKM model includes table, card, and graph views for all four types -- Notes, Concepts, Projects, and People.
+SemPKM provides several ways to browse your knowledge base: **Table View** for structured scanning and sorting, **Card View** for visual overviews, **Graph View** for exploring how objects connect, and **Kanban View** for status-based workflows. Each view is defined by a view specification shipped with a Mental Model, so the views you see depend on which models you have installed. The Basic PKM model includes table, card, and graph views for all four types -- Notes, Concepts, Projects, and People.
 
-This chapter covers how to open views, what each renderer offers, and how to switch between views using the carousel navigation bar.
+This chapter covers how to open views, what each renderer offers, the view toolbar with scope binding and variant selection, and how to manage saved views and multiple view instances.
 
 ## Opening Views
 
@@ -30,19 +30,92 @@ Press `Alt+K` to open the command palette. All available views are registered as
 
 Each view opens as a tab in the editor area, just like object tabs. You can have multiple views open simultaneously, switch between them by clicking their tabs, and close them with the tab close button or `Alt+W`. View tabs persist across sessions alongside your object tabs.
 
-## Carousel View Navigation
+## View Toolbar
 
-When you open a view for a particular type, the view page displays a **carousel tab bar** at the top. This bar shows all available views for that type as clickable tabs -- for example, when viewing Notes, the carousel might show tabs for "Notes Table", "Notes Cards", and "Notes Graph".
+Every generic view tab displays a **view toolbar** at the top of the content area. The toolbar provides filtering, scope binding, variant selection, and a save button.
 
-### Switching Views with the Carousel
+### Model-Declared View Variants
 
-Click any tab in the carousel bar to switch to that view. The view content area below the bar updates to show the selected view while the carousel bar itself remains fixed at the top. The active tab is highlighted with an underline accent.
+When a type filter pill is active (e.g., you have selected "Project" in the type pills), a **View Variants** dropdown appears in the left side of the toolbar. This dropdown lists type-specific views declared by the Mental Model — for example, "Projects Table" or "Projects Graph". Selecting a variant switches the current tab to that view without opening a new tab.
 
-The carousel remembers your last-selected view per type in local storage. When you return to a type's view page later, it automatically loads the view you were last using for that type.
+### Saved Query Scope
 
-### How the Carousel Differs from Opening New Tabs
+The right side of the toolbar includes a **Scope** dropdown that lets you filter the current view by a saved SPARQL query. The dropdown groups queries into two sections:
 
-The carousel switches views **in place** within the same editor tab -- it does not open a new tab for each view. This keeps your tab bar clean when you are exploring different renderings of the same data set. If you want separate tabs for different views, open them individually from the command palette or the Views Explorer sidebar.
+- **My Queries** — SPARQL queries you have saved from the SPARQL Console.
+- **Model Queries** — Queries bundled with the installed Mental Model.
+
+Select a query to scope the view to only objects matching that query's results. Select "All Objects" to remove the scope and show everything.
+
+### Save View Button
+
+The **Save View** button (bookmark-plus icon) in the toolbar saves the current view configuration — including the renderer type, type filter, and scope query — as a named saved view. Clicking the button prompts for a name, then stores the configuration. Saved views appear in the Explorer sidebar's VIEWS section for quick re-access.
+
+## Kanban View
+
+Kanban View renders objects as draggable cards organized into status-based columns. It is designed for types that have a status property with discrete values — for example, a Task type with statuses like "todo", "in-progress", and "done".
+
+### Opening the Kanban View
+
+Open Kanban View from the **Views Explorer** sidebar by clicking the "Kanban View" entry. You can also open it via the command palette (`Alt+K`) by searching for "Kanban".
+
+### Selecting a Type
+
+The kanban board requires a type with status properties. Select a type using the **type filter pills** at the top of the view. SemPKM detects status fields automatically using SHACL shape definitions — any property that has `sh:in` (a list of allowed values) is treated as a potential status field.
+
+For example, if your Mental Model defines a Task type with a `status` property constrained to `sh:in ("todo" "in-progress" "done")`, the kanban board creates three columns: **todo**, **in-progress**, and **done**.
+
+### Working with Kanban Cards
+
+- Each card displays the object's label. Click a card title to open that object in an editor tab.
+- **Drag and drop** cards between columns to change their status value. The status property is updated automatically when a card is dropped into a new column.
+- Each column header shows the column title and a count of items in that column.
+
+> **Tip:** Kanban View works best with types that have a clearly defined status lifecycle. If you select a type with no status properties, the view displays a message: "Select a type with status values to use Kanban View."
+
+## Saved Views
+
+Saved Views let you bookmark a particular view configuration for quick access later.
+
+### Saving a View
+
+From any generic view tab, click the **Save View** button (bookmark-plus icon) in the view toolbar. Enter a name for the saved view in the prompt. The saved view captures the current renderer type, type filter, and scope query.
+
+### Accessing Saved Views
+
+Saved views appear in the Explorer sidebar under the **VIEWS** section. Click a saved view name to reopen it with the exact configuration you saved — the same renderer, type filter, and scope query are restored.
+
+### Managing Saved Views
+
+To remove a saved view, right-click it in the Explorer sidebar or use the remove button. Deleted saved views are removed from the sidebar immediately.
+
+## Multiple View Instances
+
+You can open multiple tabs of the same view type simultaneously — for example, two Table Views with different scopes, or a Table View and a Kanban View of the same type side by side.
+
+### How Tab Deduplication Works
+
+- **Scoped tabs** (views with a saved query scope applied) deduplicate: if you open the same view with the same scope query, SemPKM activates the existing tab instead of creating a new one.
+- **Unscoped tabs** always create a fresh instance, even if an identical unscoped tab already exists.
+
+### Tab Labels
+
+Tab labels differentiate between multiple instances of the same view:
+
+- **Scoped tabs** display the query name alongside the view name, so you can tell them apart at a glance.
+- **Unscoped duplicate tabs** receive numeric suffixes (e.g., "Table View (2)", "Table View (3)") to distinguish them.
+
+## Saved Queries in Explorer
+
+The **QUERIES** section in the Explorer sidebar lists all saved SPARQL queries — both your personal queries and queries bundled with the Mental Model.
+
+### Opening a Scoped View from a Query
+
+Click any query in the QUERIES section to open a **scoped Table View** filtered by that query's results. This is a quick way to jump from a saved query directly into a browsable view of its matching objects.
+
+### Drag to Spatial Canvas
+
+Drag a query from the Explorer sidebar onto the **Spatial Canvas** to create an embedded view widget. The widget displays the query's results inline on the canvas, where you can position and resize it alongside other canvas elements. See [Chapter 27: Spatial Canvas](27-spatial-canvas.md) for more on canvas interactions.
 
 ## Table View
 

@@ -58,6 +58,13 @@ Three user guide chapters reference removed features or lack documentation for n
 - `grep -q "## IRI Autocomplete\|## Autocomplete" docs/guide/28-dashboards-and-workflows.md` — autocomplete section
 - `grep -q "Sample" docs/guide/28-dashboards-and-workflows.md` — sample data section
 
+## Observability Impact
+
+- **Documentation grep checks**: `grep -q` and `grep -c` commands in the verification section provide binary pass/fail signals for content presence. A failing check pinpoints exactly which section header or keyword is missing from which file.
+- **Carousel removal audit**: `grep -qi "carousel"` scans the entire chapter 7 file — any residual carousel reference is immediately flagged, preventing stale documentation from shipping.
+- **Section count metric**: `grep -c "^## "` returns the integer count of H2 sections in chapter 7. A value below 8 indicates missing sections, making the coverage gap quantifiable.
+- **No runtime signals**: This task modifies only static markdown documentation files. There are no runtime logs, metrics, or API changes to observe.
+
 ## Inputs
 
 - `docs/guide/07-browsing-and-visualizing.md` — current chapter with carousel content to replace (222 lines)

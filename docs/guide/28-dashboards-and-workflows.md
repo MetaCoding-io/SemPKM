@@ -132,6 +132,46 @@ Open the workflow builder by clicking the edit action on a workflow. The builder
 
 In the Explorer sidebar under **WORKFLOWS**, hover over the workflow and click the **trash icon**. Confirm the deletion in the dialog that appears.
 
+## Builder Help Text
+
+Every field in the dashboard and workflow builders now includes **contextual help text** — a short description that appears directly below the field, explaining what to enter and how it is used. This follows the same pattern as SHACL-generated help text used elsewhere in SemPKM (e.g., object edit forms).
+
+Help text is displayed automatically as small, muted text beneath each input field. No user action is required — the guidance is always visible while you are building or editing a dashboard or workflow. Examples include:
+
+- **Name field:** "A short, descriptive name for this dashboard."
+- **Layout picker:** "Choose how blocks are arranged. Each layout has named slots where blocks are placed."
+- **View spec field:** "The view definition to embed. It determines what data and columns appear."
+- **Target Class field:** "The RDF type IRI for the object creation form (e.g. a class from your model)."
+
+## IRI Autocomplete
+
+When a builder field requires a **class IRI** or **object IRI**, an autocomplete dropdown appears as you type, suggesting matching items from your knowledge base.
+
+### Class IRI Autocomplete
+
+Fields that expect a class IRI — such as the **Target Class** field in create-form blocks or workflow form steps — search across all classes loaded from your installed ontologies. Start typing a class name (e.g., "Project" or "Note") and a dropdown lists matching classes with their full IRIs. Click a suggestion to populate the field.
+
+### Object IRI Autocomplete
+
+Fields that expect a specific object IRI — such as the **Object IRI** field in object-embed blocks — search across all objects in your knowledge base by their labels. Start typing an object's name and the dropdown shows matching objects. Click a suggestion to fill the field with the object's IRI.
+
+> **Tip:** Autocomplete searches are case-insensitive and match against object labels, so you do not need to know the full IRI. Just type part of the name.
+
+## Simplified Workflow View Step
+
+The **view** step type in the workflow builder has been simplified. Previously, selecting a view and a renderer type were separate choices, which could lead to mismatched combinations (e.g., picking a table view with a graph renderer).
+
+Now, selecting a view from the view picker **automatically sets the renderer type**, which is displayed as a read-only badge next to the view name (e.g., "(table)" or "(graph)"). You no longer need to manually choose a renderer — the correct one is determined by the view specification itself. This reduces configuration errors and makes the workflow builder easier to use.
+
+## Sample Dashboards and Workflows
+
+On first launch (after initial setup), SemPKM automatically creates two sample items to help new users get started:
+
+- **"Getting Started" dashboard** — A sidebar-main layout with a welcome message in the sidebar (Markdown block) and an embedded table view in the main area. This demonstrates how dashboards combine different block types into a single workspace view.
+- **"Create & Review" workflow** — A two-step workflow: the first step opens a creation form, and the second step opens a table view for reviewing items. This demonstrates how workflows guide users through multi-step processes.
+
+Both samples appear automatically in the Explorer sidebar under the DASHBOARDS and WORKFLOWS sections. They can be edited or deleted just like any user-created dashboard or workflow. If you delete them, they will not be recreated.
+
 ## Explorer Sidebar Sections
 
 The Explorer sidebar includes dedicated sections for dashboards and workflows:
