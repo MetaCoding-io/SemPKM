@@ -176,3 +176,14 @@ All 12 success criteria met. All 4 slices complete with summaries.
 - `docs/guide/README.md` — Added Ch 39 TOC entry
 - `docs/guide/appendix-d-glossary.md` — Added CalDAV Calendar Sync glossary entry
 - `docs/guide/38-outlook-calendar-sync.md` — Updated nav footer Next link to Chapter 39
+
+## Worktree Recovery (2026-03-21)
+
+M021 was built entirely in a GSD worktree. All source code — the complete CalDAV Calendar app, 5 test files, E2E mock server, E2E spec, and user guide chapter — existed only on the milestone branch within the worktree.
+
+**Recovered files (2026-03-21) from dangling commit `3623430f`:**
+- `apps/caldav-calendar/` — Complete app (app.py, manifest.yaml, 5 service modules, 3 templates, CSS)
+- `backend/tests/test_caldav_*.py` — 5 test files (auth, client, field_mapper, person_matcher, sync_engine)
+- `e2e/mock-caldav-api/server.py` — Mock CalDAV server
+- `e2e/tests/39-caldav-calendar/caldav-calendar-sync.spec.ts` — Playwright E2E spec
+- `docs/guide/39-caldav-calendar-sync.md` — Chapter 39 user guide

@@ -180,3 +180,14 @@ Four slices delivered the complete Outlook Calendar Sync app, adapting the Googl
 - `docs/guide/appendix-d-glossary.md` — Glossary entry for "Outlook Calendar Sync"
 - `docs/guide/appendix-a-environment-variables.md` — 3 OUTLOOK_* env var rows
 - `docs/guide/37-todoist-sync.md` — Navigation footer points to Chapter 38
+
+## Worktree Recovery (2026-03-21)
+
+M020 was built entirely in a GSD worktree. All source code — the complete Outlook Calendar app, 5 test files, E2E mock server, E2E spec, and user guide chapter — existed only on the milestone branch within the worktree.
+
+**Recovered files (2026-03-21) from dangling commit `3623430f`:**
+- `apps/outlook-calendar/` — Complete app (app.py, manifest.yaml, 5 service modules, 3 templates, CSS)
+- `backend/tests/test_outlook_*.py` — 5 test files (auth, client, field_mapper, person_matcher, sync_engine)
+- `e2e/mock-outlook-api/server.py` — Mock Microsoft Graph API
+- `e2e/tests/38-outlook-sync/outlook-calendar-sync.spec.ts` — Playwright E2E spec
+- `docs/guide/38-outlook-calendar-sync.md` — Chapter 38 user guide

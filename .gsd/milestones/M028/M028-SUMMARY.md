@@ -206,3 +206,18 @@ This milestone delivered the "active intelligence" layer for the browser extensi
 - `backend/app/templates/guide.html` — Modified: Chapter 40 htmx button
 - `docs/guide/39-notion-import.md` — Modified: Navigation footer Next → Chapter 40
 - `docs/guide/appendix-d-glossary.md` — Modified: 3 entries (AI Insights, Claim Detection, Graph Matching)
+
+## Worktree Recovery (2026-03-21)
+
+M028 was built in a GSD worktree. The LLM proxy and streaming endpoints survived on main, but the AI feature endpoints, all test files, E2E mock server, E2E spec, and docs were left in the worktree and never merged.
+
+**Recovered files (2026-03-21) from dangling commit `233006839`:**
+- `backend/app/api/ai.py` — AI feature endpoints (claim detection, matching, relationship suggestion, summarization)
+- `backend/tests/test_ai_endpoints.py` — AI endpoint unit tests
+- `backend/tests/test_claim_detection.py` — Claim detection unit tests
+- `backend/tests/test_claim_matching.py` — Claim matching unit tests
+- `backend/tests/test_llm_proxy.py` — LLM proxy unit tests
+- `extension/tests/test-ai-client.js` — Extension AI client tests
+- `e2e/mock-llm-api/server.py` — Mock LLM API server for E2E testing
+- `e2e/tests/25-extension/extension-ai-insights.spec.ts` — Playwright E2E spec
+- `docs/guide/40-ai-features.md` — Chapter 40 user guide

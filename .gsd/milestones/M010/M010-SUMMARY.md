@@ -242,3 +242,20 @@ All 229 M010-specific tests pass (0.71s):
 - `docs/guide/31-api-surface.md` — Navigation footer updated
 - `docs/guide/appendix-a-environment-variables.md` — Navigation footer updated
 - `docs/guide/appendix-d-glossary.md` — 4 glossary entries added
+
+## Worktree Recovery (2026-03-21)
+
+M010 was built entirely in a GSD worktree (`.gsd/worktrees/M010/`). Only `.gsd/` planning artifacts were committed to main — all source code (21 app files, 4 model files, 7 test files, E2E spec, docs) existed only on the `milestone/M010` branch within the worktree. When the worktree was cleaned up and the branch deleted, the entire RSS Reader app and rss-feeds model became unreachable.
+
+**Source commits found:** Dangling commit `89b71093` (S05/T02 tip — OPML import) and stash `c724c90c` (S05/T03 settings WIP). S06 E2E and docs were in a separate dangling commit (`735febba` for tests/E2E, `73d8cb65` for user guide).
+
+**Recovered files (2026-03-21):**
+- `apps/rss-reader/` — 22 files (app.py, feed_service.py, opml_parser.py, manifest.yaml, 16 templates, CSS, JS, settings.html reconstructed)
+- `models/rss-feeds/` — 4 files (manifest.yaml, ontology, shapes, views as JSON-LD)
+- `backend/sdk/sempkm_app_sdk/clients/commands.py` — IRI prefix enforcement fix (D179)
+- `backend/tests/` — 8 test files (feed parser, feed service, OPML, IRI prefix, settings)
+- `e2e/tests/31-rss-reader/rss-reader.spec.ts` — 663-line E2E spec
+- `e2e/fixtures/test-feeds.opml` — OPML test fixture
+- `docs/guide/32-rss-reader.md` — Chapter 32 user guide
+
+**Still lost:** `settings.html` was reconstructed from the app.py route contract (original never committed). The E2E spec and docs chapter were in separate dangling commits from later slices.

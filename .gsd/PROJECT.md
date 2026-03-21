@@ -419,6 +419,62 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - ✓ QUIC/HTTP/3 decision documented (D277 — deferred) — M029
 - ✓ 9 PERF requirements (PERF-02 through PERF-10) registered and validated — M029
 
+### Validated (M018 — Google Calendar Sync)
+
+<!-- Shipped in M018 (2026-03-18). Code recovered from worktree 2026-03-21. -->
+
+- ✓ bpkm:Event type in basic-pkm v2.1.0 (OWL class, 20 properties, SHACL EventShape, 3 ViewSpecs, 2 SavedQueries, 4 seed instances) — M018
+- ✓ Google Calendar sync app with OAuth 2.0, calendar list selection, pull sync, push sync (RSVP), recurrence handling, settings UI — M018
+- ✓ E2E mock Google Calendar API server, Playwright E2E spec, Chapter 36 user guide — M018 ⚠️ recovered from worktree
+
+### Validated (M019 — Todoist Sync)
+
+<!-- Shipped in M019 (2026-03-19). Full app recovered from worktree 2026-03-21. -->
+
+- ✓ Todoist Sync app — PAT auth, pull/push sync, project selection, 6 services, 3 templates — M019 ⚠️ recovered from worktree
+- ✓ 6 test files (auth, client, field_mapper, person_matcher, sync_engine, push_sync) — M019 ⚠️ recovered from worktree
+- ✓ E2E mock Todoist API, Playwright E2E spec, Chapter 37 user guide — M019 ⚠️ recovered from worktree
+
+### Validated (M020 — Outlook Calendar Sync)
+
+<!-- Shipped in M020 (2026-03-19). Full app recovered from worktree 2026-03-21. -->
+
+- ✓ Outlook Calendar sync app — Microsoft OAuth 2.0, multi-tenant, pull/push sync, calendar selection — M020 ⚠️ recovered from worktree
+- ✓ 5 test files (auth, client, field_mapper, person_matcher, sync_engine) — M020 ⚠️ recovered from worktree
+- ✓ E2E mock Outlook API, Playwright E2E spec, Chapter 38 user guide — M020 ⚠️ recovered from worktree
+
+### Validated (M021 — CalDAV Calendar Sync)
+
+<!-- Shipped in M021 (2026-03-19). Full app recovered from worktree 2026-03-21. -->
+
+- ✓ CalDAV Calendar sync app — HTTP Basic auth, PROPFIND discovery chain, pull/push sync — M021 ⚠️ recovered from worktree
+- ✓ 5 test files (auth, client, field_mapper, person_matcher, sync_engine) — M021 ⚠️ recovered from worktree
+- ✓ E2E mock CalDAV server, Playwright E2E spec, Chapter 39 user guide — M021 ⚠️ recovered from worktree
+
+### Validated (M022 — Asana Sync)
+
+<!-- Shipped in M022 (2026-03-19). Full app recovered from worktree 2026-03-21. -->
+
+- ✓ Asana Sync app — dual OAuth/PAT auth, configurable field mapping, "configure before sync" UX — M022 ⚠️ recovered from worktree
+- ✓ 5 test files (auth, client, field_mapper, person_matcher, sync_engine) — M022 ⚠️ recovered from worktree
+- ✓ E2E mock Asana API, Playwright E2E spec, Chapter 40 user guide — M022 ⚠️ recovered from worktree
+
+### Validated (M027 — Notion Import)
+
+<!-- Shipped in M027 (2026-03-19). Executor/tests/docs recovered from worktree 2026-03-21. -->
+
+- ✓ Notion workspace ZIP import wizard — 7-step flow with SSE progress — M027
+- ✓ NotionScanner, NotionImportExecutor, 2 template partials — M027 ⚠️ executor recovered from worktree
+- ✓ Playwright E2E spec, recreated notion-export.zip fixture, Chapter 39 user guide — M027 ⚠️ recovered from worktree
+
+### Validated (M028 — Browser Extension AI Features)
+
+<!-- Shipped in M028 (2026-03-19). AI endpoints/tests/docs recovered from worktree 2026-03-21. -->
+
+- ✓ 6 AI backend endpoints (claim detection, matching, suggestions, summarization, LLM stream, status) — M028 ⚠️ recovered from worktree
+- ✓ Extension AI Insights sidebar section with progressive rendering — M028
+- ✓ 4 test files, mock LLM API server, Playwright E2E spec, Chapter 40 user guide — M028 ⚠️ recovered from worktree
+
 ### Future Candidates
 
 <!-- Tracked for future milestones. See .gsd/QUEUE.md for full queue and .gsd/REQUIREMENTS.md for deferred requirements. -->
@@ -488,11 +544,16 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Knowledge context overlay: sidebar showing related objects while browsing, badge count, in-context actions (Open, Link, Add Evidence)
 - Context Overlay settings in options page, 4 E2E tests, Chapter 33 user guide
 
-**Integration Sync Apps** — in progress (M016–M024, depend on M009)
+**Integration Sync Apps** — complete (M016–M024, depend on M009)
 - Linear Sync (M016) — complete (2026-03-18): first bidirectional sync app, OAuth/API key auth, pull sync (Linear→bpkm:Task), push sync, settings UI, admin sync history, 150 unit tests, E2E Playwright test, Chapter 34 user guide
 - GitHub Issues Sync (M017) — complete (2026-03-18): second sync app, PAT auth, issue+PR pull sync with timeline-based edge linking, push sync with loop prevention, 204 unit tests, mock REST API server, E2E test (partial — platform issue), Chapter 35 user guide
-- Task providers: Todoist (M019), Asana (M022), Jira (M023), Monday.com (M024)
-- Calendar providers: Google Calendar (M018), Outlook (M020), CalDAV (M021)
+- Google Calendar Sync (M018) — complete (2026-03-18): OAuth 2.0, calendar selection, pull/push sync, recurrence handling. ⚠️ E2E/docs recovered from worktree 2026-03-21.
+- Todoist Sync (M019) — complete (2026-03-19): PAT auth, pull/push sync, project selection, 6 test files. ⚠️ Full app recovered from worktree 2026-03-21.
+- Outlook Calendar (M020) — complete (2026-03-19): Microsoft OAuth 2.0, multi-tenant support, 5 test files. ⚠️ Full app recovered from worktree 2026-03-21.
+- CalDAV Calendar (M021) — complete (2026-03-19): HTTP Basic auth, PROPFIND discovery, 5 test files. ⚠️ Full app recovered from worktree 2026-03-21.
+- Asana Sync (M022) — complete (2026-03-19): dual OAuth/PAT auth, configurable field mapping, 5 test files. ⚠️ Full app recovered from worktree 2026-03-21.
+- Jira Sync (M023) — complete (2026-03-19): ADF↔Markdown, statusCategory normalization, Epic→Milestone, 385 unit tests, Chapter 36 user guide
+- Monday.com Sync (M024) — complete (2026-03-20): configurable column mapping, LoopGuard echo prevention, 607 unit tests, Chapter 37 user guide
 - Design: `.gsd/design/INTEGRATION-DOMAIN-MAPPING.md`
 
 **Hosted Demo Instance** — complete (M025, 2026-03-20)
@@ -504,12 +565,18 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 **Homepage & Messaging Rewrite** — complete (M026, 2026-03-20)
 - Outcome-focused homepage, 3 persona landing pages, competitive positioning, fresh screenshots, Lighthouse 0.99
 
-**Notion Import** — queued (M027, depends on M011)
-- Notion workspace import wizard (ZIP first, API later), mirroring Obsidian pattern
-- Research: `.planning/notion-import-research.md`
+**Notion Import** — complete (M027, 2026-03-19)
+- Notion workspace ZIP import wizard — 7-step flow (upload → scan → type mapping → property mapping → relation mapping → preview → execute)
+- NotionScanner with CSV parsing, Notion ID stripping, 8-type column inference, cross-DB relation detection
+- Two-pass import executor: CSV→RDF objects, then cross-database relation resolution via title matching
+- SSE progress broadcasting during execution
+- ⚠️ Executor, templates, test, E2E spec, and docs recovered from worktree 2026-03-21. E2E fixture recreated.
 
-**Browser Extension Phase 3** — queued (M028, depends on M015)
-- AI-powered claim detection, contradiction surfacing, gap detection, personalized summaries
+**Browser Extension Phase 3 — AI Features** — complete (M028, 2026-03-19)
+- 6 AI backend endpoints (claim detection, matching, relationship suggestion, summarization, LLM streaming, status)
+- Extension sidebar AI Insights section with progressive rendering
+- Mock LLM API server for E2E testing
+- ⚠️ AI endpoint, 4 test files, E2E mock server, E2E spec, and docs recovered from worktree 2026-03-21.
 
 **Frontend Performance & Build Pipeline** — complete (M029, 2026-03-20)
 - esbuild build pipeline, all 18 CDN deps vendored locally, gzip compression, immutable HTTP caching, CSS code-splitting, backend timing/ETag middleware, Lighthouse desktop 80, QUIC/HTTP/3 deferred
@@ -774,6 +841,8 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - GitHub Issues Sync app: second sync app — PAT auth, issue+PR pull sync with timeline-based edge linking, push sync with loop prevention, 204 unit tests, mock REST API server, E2E test (partial), Chapter 35 user guide
 - Jira Sync app: bidirectional sync with ADF↔Markdown conversion, statusCategory normalization, Epic→Milestone mapping, issue link edges, push sync, 385 unit tests, mock REST API server, E2E test, Chapter 36 user guide
 - Monday.com Sync app: bidirectional sync with configurable column mapping, label mapping, LoopGuard echo prevention, GraphQL complexity tracking, 607 unit tests, mock GraphQL server, 13-phase E2E test, Chapter 37 user guide
+
+**Worktree data loss incident (2026-03-21):** GSD worktree isolation mode (`taskIsolation.mode: worktree`) caused source code loss across 8 milestones (M009, M010, M018–M022, M027, M028). Code was built in `.gsd/worktrees/<MID>/` but only `.gsd/` artifacts were committed to main. When worktrees were cleaned up, ~115 source files became dangling git objects. All files were recovered from dangling commits on 2026-03-21 and committed to main. Worktree mode is now permanently disabled (`taskIsolation.mode: none`). See KNOWLEDGE.md Rules R01–R03 and Lesson K003. Each affected milestone summary has a "Worktree Recovery" section documenting what was lost and recovered.
 
 **Known tech debt:**
 - Cookie secure=False (local dev only — production config deferred)
