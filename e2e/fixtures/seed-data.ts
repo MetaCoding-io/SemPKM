@@ -86,4 +86,5 @@ export const TYPES = {
   Concept: 'urn:sempkm:model:basic-pkm:Concept',
   Project: 'urn:sempkm:model:basic-pkm:Project',
   Person: 'urn:sempkm:model:basic-pkm:Person',
+  Task: 'urn:sempkm:model:basic-pkm:Task',
 } as const;
