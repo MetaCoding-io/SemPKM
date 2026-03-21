@@ -197,15 +197,8 @@ async def generic_view(
     # Fetch available types for type filter pills
     types_list = await shapes_service.get_types(exclude_iris=get_hidden_types())
 
-    # Build carousel specs: when a type is selected, show generic renderers + model-declared views
-    all_specs: list[ViewSpec] = []
-    if type_iri:
-        # Add the 3 generic view specs (table/card/graph)
-        for gs in view_spec_service._generic_specs:
-            all_specs.append(gs)
-        # Add model-declared view specs for this type
-        model_specs = await view_spec_service.get_view_specs_for_type(type_iri)
-        all_specs.extend(model_specs)
+    # Get model-declared view specs for the active type (for variant dropdown)
+    model_view_specs = await view_spec_service.get_view_specs_for_type(type_iri) if type_iri else []
 
     logger.info("generic_view: renderer=%s type=%s", renderer, type_iri or "(all)")
 
@@ -244,7 +237,7 @@ async def generic_view(
             "sort_dir": dir,
             "current_filter": filter,
             "labels": labels,
-            "all_specs": all_specs,
+            "model_view_specs": model_view_specs,
             "type_label": type_label,
             "type_iri": spec.target_class,
             "view_type": "table",
@@ -287,7 +280,7 @@ async def generic_view(
             "current_filter": filter,
             "sort_col": "",
             "sort_dir": "asc",
-            "all_specs": all_specs,
+            "model_view_specs": model_view_specs,
             "type_label": type_label,
             "type_iri": spec.target_class,
             "view_type": "card",
@@ -318,7 +311,7 @@ async def generic_view(
             "spec": spec,
             "spec_iri": spec.spec_iri,
             "spec_iri_encoded": encoded_spec_iri,
-            "all_specs": all_specs,
+            "model_view_specs": model_view_specs,
             "type_label": type_label,
             "type_iri": spec.target_class,
             "available_layouts": [
@@ -525,16 +518,12 @@ async def table_view(
 
     # For user views: skip type switcher and use "Custom View" label
     if spec.source_model == "user":
-        all_specs: list[ViewSpec] = []
         type_label = "Custom View"
         labels: dict[str, str] = {}
     else:
         # Resolve labels for all object IRIs in rows (for clickable first column)
         obj_iris = [row["s"] for row in result["rows"] if row.get("s")]
         labels = await label_service.resolve_batch(obj_iris) if obj_iris else {}
-
-        # Get all view specs for this type (for view type switcher)
-        all_specs = await view_spec_service.get_view_specs_for_type(spec.target_class)
 
         # Resolve type label
         type_labels = await label_service.resolve_batch([spec.target_class])
@@ -558,7 +547,7 @@ async def table_view(
         "sort_dir": dir,
         "current_filter": filter,
         "labels": labels,
-        "all_specs": all_specs,
+        "model_view_specs": [],
         "type_label": type_label,
         "type_iri": spec.target_class,
         "view_type": "table",
@@ -639,12 +628,8 @@ async def cards_view(
 
     # For user views: skip type switcher and use "Custom View" label
     if spec.source_model == "user":
-        all_specs: list[ViewSpec] = []
         type_label = "Custom View"
     else:
-        # Get all view specs for this type (for view type switcher)
-        all_specs = await view_spec_service.get_view_specs_for_type(spec.target_class)
-
         # Resolve type label
         type_labels = await label_service.resolve_batch([spec.target_class])
         type_label = type_labels.get(spec.target_class, spec.target_class)
@@ -667,7 +652,7 @@ async def cards_view(
         "current_filter": filter,
         "sort_col": "",
         "sort_dir": "asc",
-        "all_specs": all_specs,
+        "model_view_specs": [],
         "type_label": type_label,
         "type_iri": spec.target_class,
         "view_type": "card",
@@ -755,12 +740,8 @@ async def graph_view(
 
     # For user views: skip type switcher and use "Custom View" label
     if spec.source_model == "user":
-        all_specs: list[ViewSpec] = []
         type_label = "Custom View"
     else:
-        # Get all view specs for this type (for view type switcher)
-        all_specs = await view_spec_service.get_view_specs_for_type(spec.target_class)
-
         # Resolve type label
         type_labels = await label_service.resolve_batch([spec.target_class])
         type_label = type_labels.get(spec.target_class, spec.target_class)
@@ -786,7 +767,7 @@ async def graph_view(
         "spec": spec,
         "spec_iri": decoded_iri,
         "spec_iri_encoded": encoded_spec_iri,
-        "all_specs": all_specs,
+        "model_view_specs": [],
         "type_label": type_label,
         "type_iri": spec.target_class,
         "available_layouts": available_layouts,

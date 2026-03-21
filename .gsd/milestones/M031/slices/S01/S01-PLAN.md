@@ -30,6 +30,7 @@
 - `grep -rn "carousel" backend/app/templates/ frontend/static/js/ frontend/static/css/` — must return zero results (except possibly in unrelated contexts)
 - `grep -rn "switchCarouselView\|restoreCarouselView\|sempkm_carousel_view" frontend/static/js/` — must return zero results
 - Docker stack manual check: open Table View from explorer → no carousel visible → click a type pill → variant dropdown appears in toolbar → select a variant → correct view renders → select a scope query → view re-fetches with filtered data
+- Diagnostic check: open a generic view with a type pill active that has NO model-declared ViewSpecs → verify the variant dropdown does NOT render (no empty/broken dropdown). Check browser console for JS errors — must be zero carousel-related errors.
 
 ## Observability / Diagnostics
 
@@ -46,7 +47,7 @@
 
 ## Tasks
 
-- [ ] **T01: Remove carousel tab bar and add model-declared variant dropdown** `est:2h`
+- [x] **T01: Remove carousel tab bar and add model-declared variant dropdown** `est:2h`
   - Why: The carousel is the core removal target (VIEW-08). Model-declared view variants must remain accessible via the toolbar dropdown (D284). This is the highest-risk change.
   - Files: `backend/app/templates/browser/carousel_tab_bar.html`, `backend/app/templates/browser/table_view.html`, `backend/app/templates/browser/cards_view.html`, `backend/app/templates/browser/graph_view.html`, `backend/app/templates/browser/view_toolbar.html`, `backend/app/views/router.py`, `frontend/static/js/workspace.js`, `frontend/static/css/views.css`
   - Do:
