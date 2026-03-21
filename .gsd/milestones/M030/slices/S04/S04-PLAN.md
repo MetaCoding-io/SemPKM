@@ -36,12 +36,19 @@
   - Verify: `cd e2e && npx playwright test tests/10-lint-dashboard/lint-filters.spec.ts --reporter=list` — all tests pass
   - Done when: All E2E test phases pass against Docker test stack, proving pipeline fix + data quality rules + filter CRUD work end-to-end
 
-- [ ] **T02: Extend user guide with data quality rules and lint filter documentation** `est:45m`
+- [x] **T02: Extend user guide with data quality rules and lint filter documentation** `est:45m`
   - Why: Documents the verified, working system for end users. Covers the 10 new data quality rules, suppress/dismiss workflows, preset management, and lint settings.
   - Files: `docs/guide/14-system-health-and-debugging.md`, `docs/guide/appendix-d-glossary.md`
   - Do: (1) Add new sections to Chapter 14 after the existing "Global Lint Dashboard" section: "Data Quality Rules" (table of 10 rules with severity, trigger, model, how to fix), "Suppressing Rule Types" (eye-off button, what happens, how to un-suppress), "Dismissing Individual Results" (× button on warnings/infos, not violations, when to use), "Filter Presets" (save current suppressions, apply/switch, manage), "Lint Settings" (manage suppressions/dismissals/presets, clear all, remove individual). (2) Add 4 glossary entries to appendix-d: Lint Suppression, Lint Dismissal, Lint Preset, Data Quality Rules. (3) Update the existing "Lint Dashboard" glossary entry to mention filtering. No new chapter needed — extending Chapter 14 means the three navigation files (README.md, index.html, guide.html) don't need chapter-level updates.
   - Verify: `wc -l docs/guide/14-system-health-and-debugging.md` shows >550 lines; `grep -c "Lint Suppression\|Lint Dismissal\|Lint Preset\|Data Quality" docs/guide/appendix-d-glossary.md` returns ≥4
   - Done when: Chapter 14 has all 5 new sections with accurate content matching the S03 implementation, glossary has 4 new entries
+
+## Observability / Diagnostics
+
+- **Runtime signals:** No new runtime signals — this slice adds E2E tests and documentation only.
+- **Inspection surfaces:** `wc -l docs/guide/14-system-health-and-debugging.md` to verify Chapter 14 was extended. `grep "Lint Suppression\|Lint Dismissal\|Lint Preset\|Data Quality" docs/guide/appendix-d-glossary.md` to verify glossary entries exist. E2E test run output (`npx playwright test`) shows pass/fail for each lint filter scenario.
+- **Failure visibility:** E2E test failures produce Playwright trace files in `e2e/test-results/`. Test reporter output shows which specific assertion failed and at which step.
+- **Redaction:** No secrets involved — tests use session cookies obtained from the auth fixture which reads a setup token from the Docker container.
 
 ## Files Likely Touched
 

@@ -77,6 +77,12 @@ Since we're extending Chapter 14 (not adding a new chapter), the three navigatio
 - S02 summary — 10 data quality rules with names, severities, models, and trigger conditions
 - S03 summary — filter CRUD: suppress/dismiss/preset API and UI, lint settings management, D283 (violations not dismissable)
 
+## Observability Impact
+
+- **No runtime signals:** This task adds documentation only — no code changes, no new logs or endpoints.
+- **Inspection surface:** `wc -l docs/guide/14-system-health-and-debugging.md` to confirm line count increased. `grep` on appendix-d for new glossary terms.
+- **Future agent verification:** Read the Chapter 14 file and search for section headings: "Data Quality Rules", "Suppressing Rule Types", "Dismissing Individual Results", "Filter Presets", "Lint Settings".
+
 ## Expected Output
 
 - `docs/guide/14-system-health-and-debugging.md` — extended with 5 new sections (~150+ lines of new content) between the lint dashboard section and troubleshooting

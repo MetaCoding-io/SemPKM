@@ -79,6 +79,9 @@ A dashboard mechanism where selecting a row in one block filters data in other b
 **Dashboard**
 A configurable multi-block layout page that combines views, markdown, object embeds, forms, and SPARQL results into a single workspace tab. Five layout templates arrange blocks in a CSS Grid. See [Chapter 28: Dashboards and Workflows](28-dashboards-and-workflows.md).
 
+**Data Quality Rules**
+SHACL-AF validation rules that detect data hygiene issues (empty bodies, orphan objects, comma-in-tags, duplicate URLs, etc.) at Warning or Info severity. Unlike structural SHACL constraints that enforce object schema (required fields, data types), data quality rules are advisory — they highlight potential issues but don't indicate broken data. Each Mental Model can ship its own rules. See [Chapter 14: System Health and Debugging](14-system-health-and-debugging.md).
+
 **Deal** (Personal CRM)
 A business opportunity tracked through a pipeline from lead through qualification, proposal, and negotiation to won or lost. Deals link to contacts and companies. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
 
@@ -152,10 +155,19 @@ A note that summarizes a key idea from a source in your own words. Each literatu
 A SemPKM app that synchronizes Linear project management issues with `bpkm:Task` objects. Supports pull sync (Linear → SemPKM), push sync (SemPKM → Linear), and bidirectional mode. See [Chapter 34: Linear Sync](34-linear-sync.md).
 
 **Lint Dashboard**
-A global page that shows all validation results across every object in the knowledge base. Unlike the per-object Lint Panel, the dashboard provides a system-wide overview of data quality, groupable by type, severity, or violation message. Accessible from the sidebar under Tools. See [Chapter 14: System Health and Debugging](14-system-health-and-debugging.md).
+A global page that shows all validation results across every object in the knowledge base. Unlike the per-object Lint Panel, the dashboard provides a system-wide overview of data quality, groupable by type, severity, or violation message. Supports filtering via rule suppression, individual result dismissal, and named filter presets. Accessible from the sidebar under Tools. See [Chapter 14: System Health and Debugging](14-system-health-and-debugging.md).
+
+**Lint Dismissal**
+Hiding a specific lint finding for one object. The finding remains visible for other objects with the same issue. Only Warning and Info results can be dismissed — Violations cannot. Managed via the × button on individual results in the lint panel, or from Lint Settings. See [Chapter 14: System Health and Debugging](14-system-health-and-debugging.md).
+
+**Lint Preset**
+A named set of suppressed rules that can be saved, switched between, and applied to quickly configure lint filtering for different review contexts. Presets replace current suppressions when applied. Managed from the Lint Dashboard sidebar or Lint Settings. See [Chapter 14: System Health and Debugging](14-system-health-and-debugging.md).
 
 **Lint**
 The validation report for an object, displayed in the **Lint Panel** on the right side of the workspace. Linting checks the object's data against its SHACL shape and reports violations (missing required fields, invalid values, etc.). Lint is assistive -- it warns but does not block saving.
+
+**Lint Suppression**
+Hiding all lint results from a specific rule type across the entire knowledge base. When a rule is suppressed, its results are hidden from the Lint Dashboard and per-object panels, but validation still runs internally. Suppressions are per-user and don't affect other users. Managed from the lint dashboard or Lint Settings. See [Chapter 14: System Health and Debugging](14-system-health-and-debugging.md).
 
 **LoopGuard**
 An in-memory TTL cache that prevents echo loops in bidirectional sync. When a change is pushed to Monday.com, LoopGuard marks the affected item/column pair for 30 seconds. If the next pull sees the same change within that window, it recognizes it as an echo of the push and skips it. See [Chapter 37: Monday.com Sync](37-monday-sync.md).
