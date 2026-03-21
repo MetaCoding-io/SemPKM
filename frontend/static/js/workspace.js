@@ -143,7 +143,7 @@
     if (!editorArea) return;
 
     var url;
-    // Handle generic view IRIs (from carousel or reopening tabs)
+    // Handle generic view IRIs
     if (viewId.indexOf('urn:sempkm:view:generic-') === 0) {
       var renderer = viewId.split('generic-')[1]; // 'table', 'card', 'graph'
       var selectedType = localStorage.getItem('sempkm_generic_type_' + renderer) || '';
@@ -2960,98 +2960,6 @@
     });
   };
 
-  // --- Carousel View Switching ---
-
-  function switchCarouselView(tabEl, specIri, rendererType, typeIri) {
-    // Update active tab styling
-    var bar = tabEl.closest('.carousel-tab-bar');
-    bar.querySelectorAll('.carousel-tab').forEach(function(t) {
-      t.classList.remove('active');
-    });
-    tabEl.classList.add('active');
-
-    // Persist selection per type IRI
-    try {
-      var data = JSON.parse(localStorage.getItem('sempkm_carousel_view') || '{}');
-      data[typeIri] = specIri;
-      localStorage.setItem('sempkm_carousel_view', JSON.stringify(data));
-    } catch (e) { /* localStorage unavailable */ }
-
-    // Preserve current filter if present (use class selector, not ID, to avoid duplicate ID issues)
-    var panel = bar.closest('.group-editor-area');
-    var filterInput = panel ? panel.querySelector('.view-filter-input') : null;
-    var filter = filterInput ? filterInput.value : '';
-
-    // Build URL — generic specs route to /browser/views/generic/{renderer}
-    var url;
-    if (specIri.indexOf('urn:sempkm:view:generic-') === 0) {
-      var genericRenderer = specIri.split('generic-')[1]; // 'table', 'card', 'graph'
-      url = '/browser/views/generic/' + genericRenderer;
-      // Get the selected type from the type pills in the current view
-      var selectedType = localStorage.getItem('sempkm_generic_type_' + genericRenderer) || '';
-      var params = [];
-      if (selectedType) params.push('type=' + encodeURIComponent(selectedType));
-      if (filter) params.push('filter=' + encodeURIComponent(filter));
-      if (params.length) url += '?' + params.join('&');
-    } else {
-      url = '/browser/views/' + rendererType + '/' + encodeURIComponent(specIri);
-      if (filter) {
-        url += '?filter=' + encodeURIComponent(filter);
-      }
-    }
-
-    if (specIri.indexOf('urn:sempkm:view:generic-') === 0) {
-      // Generic specs: full swap including type pills and carousel bar
-      if (panel && typeof htmx !== 'undefined') {
-        htmx.ajax('GET', url, { target: panel, swap: 'innerHTML' });
-      }
-    } else {
-      // Model-declared specs: two-container pattern — swap only the view body
-      // Find the view body container (two-container pattern: bar stays, body swaps)
-      var viewBody = bar.parentElement.querySelector('.carousel-view-body');
-      if (!viewBody) {
-        // Fallback: if no .carousel-view-body found, target the panel container
-        viewBody = panel;
-      }
-
-      if (viewBody && typeof htmx !== 'undefined') {
-        // Show loading indicator
-        var indicator = document.createElement('div');
-        indicator.className = 'view-loading-indicator';
-        indicator.innerHTML = '<div class="view-loading-spinner"></div>';
-        viewBody.style.position = 'relative';
-        viewBody.appendChild(indicator);
-
-        // Load view content -- outerHTML swap with select extracts only .carousel-view-body
-        // from the response, discarding the response's carousel bar
-        htmx.ajax('GET', url, { target: viewBody, swap: 'outerHTML', select: '.carousel-view-body' });
-      }
-    }
-  }
-
-  function restoreCarouselView(currentSpecIri, typeIri) {
-    try {
-      var data = JSON.parse(localStorage.getItem('sempkm_carousel_view') || '{}');
-      var savedSpecIri = data[typeIri];
-      if (!savedSpecIri || savedSpecIri === currentSpecIri) return;
-
-      // Check if the saved spec exists in the current carousel bar
-      var bar = document.querySelector('.carousel-tab-bar[data-type-iri="' + typeIri + '"]');
-      if (!bar) return;
-      var savedTab = bar.querySelector('[data-spec-iri="' + savedSpecIri + '"]');
-      if (!savedTab) {
-        // Saved view no longer exists in manifest -- clear and use current (first) silently
-        delete data[typeIri];
-        localStorage.setItem('sempkm_carousel_view', JSON.stringify(data));
-        return;
-      }
-
-      // Switch to the saved view
-      var rendererType = savedTab.getAttribute('data-renderer-type');
-      switchCarouselView(savedTab, savedSpecIri, rendererType, typeIri);
-    } catch (e) { /* localStorage unavailable */ }
-  }
-
   // -----------------------------------------------------------------------
   // Phase 55-03: Edge inspector, confirm dialog, edge delete
   // -----------------------------------------------------------------------
@@ -3338,8 +3246,6 @@
   window.openViewTab = openViewTab;
   window.openGenericViewTab = openGenericViewTab;
   window.openViewMenu = openViewMenu;
-  window.switchCarouselView = switchCarouselView;
-  window.restoreCarouselView = restoreCarouselView;
   window.toggleObjectMode = toggleObjectMode;
   window.saveCurrentObject = saveCurrentObject;
   window.toggleBottomPanel = toggleBottomPanel;
