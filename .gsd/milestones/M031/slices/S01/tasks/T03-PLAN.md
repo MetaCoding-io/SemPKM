@@ -61,6 +61,12 @@ Uses the existing pytest infrastructure in `backend/tests/` with conftest fixtur
 - `backend/tests/conftest.py` — existing test fixtures and patterns
 - `backend/app/views/service.py` — `ViewSpec` dataclass, `ViewSpecService` class
 
+## Observability Impact
+
+- **New test coverage signals:** `test_view_scope.py` provides 25 tests that serve as regression guards for scope filtering and variant dropdown data. Failure in these tests directly indicates a broken S01 contract.
+- **Inspection:** `cd backend && .venv/bin/python -m pytest tests/test_view_scope.py -v` — any red test names a specific broken behavior (scope sub-select injection, WHERE body extraction, or type-filtered spec lookup).
+- **Failure visibility:** CI/pytest output clearly identifies which specific contract (scope_filter, extract_scope_where_body, or get_view_specs_for_type) is broken.
+
 ## Expected Output
 
 - `backend/tests/test_view_scope.py` — test file with 8-12 test functions covering all scope filtering scenarios
