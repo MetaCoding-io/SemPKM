@@ -45,7 +45,7 @@ All tasks in this slice are CSS/JS/template polish. Verification is a combinatio
   - Verify: `grep -q "sparql-graph-tab\|sparql-result-tabs" frontend/static/js/sparql-console.js`
   - Done when: Running a triple-pattern query shows a Table/Graph tab switcher; Graph tab renders a Cytoscape visualization
 
-- [ ] **T03: Add ontology property tooltips + admin graph sizing and edge tooltips** `est:45m`
+- [x] **T03: Add ontology property tooltips + admin graph sizing and edge tooltips** `est:45m`
   - Why: ONTO-04, ONTO-05, ONTO-06 — ontology property names lack description tooltips; admin model graph is fixed-height (min-height:600px) instead of viewport-filling; admin graph edges have no hover tooltips.
   - Files: `backend/app/ontology/service.py`, `backend/app/templates/browser/ontology/tbox_detail.html`, `frontend/static/css/style.css`, `backend/app/templates/admin/model_ontology_diagram.html`, `backend/app/admin/router.py`
   - Do: (1) In `get_class_detail()` prop_sparql, add OPTIONAL for `rdfs:comment`/`skos:definition` on properties, BIND as `?propDescription`. Include `description` in property dict. (2) In `tbox_detail.html`, add `title="{{ p.description }}"` on property labels. (3) In `style.css`, change `.ontology-cy-container` from `min-height:600px` to `height:calc(100vh - 250px)`. Make `.ontology-diagram-panel` a flex column. (4) In `admin/router.py`, include property description in edge data. (5) In `model_ontology_diagram.html`, add edge hover handler following the existing node hover pattern.

@@ -2046,11 +2046,15 @@ kbd {
 .ontology-diagram-panel {
   padding: 0.5rem 0;
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .ontology-cy-container {
   width: 100%;
-  min-height: 600px;
+  flex: 1;
+  min-height: 400px;
+  height: calc(100vh - 250px);
   border: 1px solid var(--color-border-subtle);
   border-radius: 6px;
   background:

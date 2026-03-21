@@ -872,7 +872,7 @@ ORDER BY ?sibLabel"""
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
-SELECT DISTINCT ?prop ?propLabel ?range ?rangeLabel
+SELECT DISTINCT ?prop ?propLabel ?range ?rangeLabel ?propDescription
 {from_clauses}
 WHERE {{
   ?prop rdfs:domain <{class_iri}> .
@@ -883,6 +883,11 @@ WHERE {{
               FILTER(LANG(?pRdfs) = "" || LANG(?pRdfs) = "en") }}
   BIND(COALESCE(?pSkos, ?pRdfs,
        REPLACE(STR(?prop), "^.*/|^.*#|^.*:", "", "")) AS ?propLabel)
+  OPTIONAL {{ ?prop rdfs:comment ?propComment .
+              FILTER(LANG(?propComment) = "" || LANG(?propComment) = "en") }}
+  OPTIONAL {{ ?prop skos:definition ?propDef .
+              FILTER(LANG(?propDef) = "" || LANG(?propDef) = "en") }}
+  BIND(COALESCE(?propComment, ?propDef) AS ?propDescription)
   OPTIONAL {{
     ?prop rdfs:range ?range .
     OPTIONAL {{ ?range skos:prefLabel ?rSkos .
@@ -903,6 +908,7 @@ ORDER BY ?propLabel"""
                 "label": pb.get("propLabel", {}).get("value", ""),
                 "range_iri": pb.get("range", {}).get("value", ""),
                 "range_label": pb.get("rangeLabel", {}).get("value", ""),
+                "description": pb.get("propDescription", {}).get("value", ""),
             })
 
         source = _property_source(class_iri)
