@@ -360,3 +360,17 @@ All view-related E2E selectors (kanbanBoard, kanbanColumn, kanbanCard, scopeSele
 **Discovered:** M031/S07/T01
 
 Opening view tabs in E2E tests should use the `openGenericViewTab(page, renderer, waitSelector, ...)` helper in `e2e/helpers/dockview.ts`, which calls `window.openGenericViewTab()` via `page.evaluate()` then waits for a DOM selector. This is more reliable than clicking through the explorer sidebar (which involves loading htmx partials, waiting for dockview panel creation, etc.). Timeout failures from this helper directly indicate whether the JS API or DOM rendering is broken.
+
+---
+
+### Planning estimates can be safely exceeded when the cost is marginal
+
+**Discovered:** M031/S04
+
+D286 (planning) called for hardcoding `bpkm:taskStatus` as the kanban status field. D291 (implementation) upgraded to general SHACL `sh:in` scan for ~20 extra lines. The SHACL approach is strictly better — supports any model type automatically — for negligible extra cost. When the implementation reveals a low-cost generalization that the plan didn't envision, prefer the better approach. Document the divergence in the decision log (D291 references D286).
+
+### Dockview stacking context escape: always append to document.body
+
+**Discovered:** M031/S05/T04
+
+Any popover, tooltip, or overlay rendered inside a dockview panel is trapped in that panel's stacking context. Elevating `z-index` within the panel cannot escape the panel boundary. The only reliable approach is appending the element to `document.body` with `position:fixed` and computing coordinates via `getBoundingClientRect()`. Always register cleanup (e.g., `registerCleanup` callback) to remove body-appended elements when the panel is destroyed. This applies to graph popovers (D293), and will apply to any future hover card, context menu, or overlay inside dockview.
