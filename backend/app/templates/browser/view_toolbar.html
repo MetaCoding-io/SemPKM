@@ -11,6 +11,28 @@
         {% endif %}
     </div>
     <div class="view-toolbar-right">
+        {% if is_generic is defined and is_generic %}
+        {% if (user_saved_queries is defined and user_saved_queries) or (model_saved_queries is defined and model_saved_queries) %}
+        <select class="view-scope-select"
+                onchange="applyScopeQuery(this.value, '{{ renderer | default('table') }}', '{{ selected_type | default('') }}')">
+            <option value="">All Objects</option>
+            {% if user_saved_queries is defined and user_saved_queries %}
+            <optgroup label="My Queries">
+                {% for q in user_saved_queries %}
+                <option value="{{ q.id }}"{% if scope_query is defined and scope_query == q.id|string %} selected{% endif %}>{{ q.name }}</option>
+                {% endfor %}
+            </optgroup>
+            {% endif %}
+            {% if model_saved_queries is defined and model_saved_queries %}
+            <optgroup label="Model Queries">
+                {% for q in model_saved_queries %}
+                <option value="{{ q.id }}"{% if scope_query is defined and scope_query == q.id|string %} selected{% endif %}>{{ q.name }}</option>
+                {% endfor %}
+            </optgroup>
+            {% endif %}
+        </select>
+        {% endif %}
+        {% endif %}
         {% set current_view_type = view_type | default('table') %}
         {% set filter_base_url = pagination_base_url | default("/browser/views/" ~ current_view_type ~ "/" ~ spec_iri_encoded) %}
         {% if spec.renderer_type == 'graph' %}
@@ -32,7 +54,7 @@
                hx-swap="innerHTML"
                hx-trigger="keyup changed delay:300ms"
                hx-include="this"
-               hx-vals='{"page": "1", "page_size": "{{ page_size }}", "sort": "{{ sort_col | default('') }}", "dir": "{{ sort_dir | default('asc') }}"{% if group_by is defined and group_by %}, "group_by": "{{ group_by }}"{% endif %}{% if selected_type is defined and selected_type %}, "type": "{{ selected_type }}"{% endif %}}'>
+               hx-vals='{"page": "1", "page_size": "{{ page_size }}", "sort": "{{ sort_col | default('') }}", "dir": "{{ sort_dir | default('asc') }}"{% if group_by is defined and group_by %}, "group_by": "{{ group_by }}"{% endif %}{% if selected_type is defined and selected_type %}, "type": "{{ selected_type }}"{% endif %}{% if scope_query is defined and scope_query %}, "scope_query": "{{ scope_query }}"{% endif %}}'>
         {% endif %}
         {% if spec.renderer_type == 'table' %}
         <button class="view-columns-btn" onclick='ColumnPrefs.openColumnSettings("{{ type_iri }}", {{ columns | tojson }})' title="Column settings">

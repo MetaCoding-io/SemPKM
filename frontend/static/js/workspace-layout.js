@@ -237,7 +237,11 @@
           if (st === 'generic-view') {
             var renderer = params.params.renderer || 'table';
             var selectedType = params.params.selectedType || '';
-            url = '/browser/views/generic/' + renderer + (selectedType ? '?type=' + encodeURIComponent(selectedType) : '');
+            var scopeQuery = params.params.scopeQuery || '';
+            var queryParts = [];
+            if (selectedType) queryParts.push('type=' + encodeURIComponent(selectedType));
+            if (scopeQuery) queryParts.push('scope_query=' + encodeURIComponent(scopeQuery));
+            url = '/browser/views/generic/' + renderer + (queryParts.length ? '?' + queryParts.join('&') : '');
           }
           // App page panels — route to /browser/apps/{appId}/page/{pageId}
           if (st === 'app-page' && params.params.appId && params.params.pageId) {

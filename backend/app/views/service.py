@@ -299,37 +299,49 @@ WHERE {{
 
     async def build_dynamic_query(
         self, type_iri: str | None, renderer: str = "table",
+        scope_filter: str | None = None,
     ) -> tuple[str, list[str]]:
         """Build a SPARQL query dynamically from SHACL metadata.
 
         Returns ``(sparql_query, column_names)``.  The query intentionally
         omits ``FROM`` clauses — ``scope_to_current_graph()`` adds them at
         execution time.
+
+        Args:
+            type_iri: Optional RDF type IRI to filter by.
+            renderer: One of 'table', 'card', 'graph'.
+            scope_filter: Optional SPARQL WHERE body from a saved query.
+                When provided, a sub-select constraining ?s is injected
+                into the generated query.
         """
         if renderer == "graph":
-            query = self._build_graph_query(type_iri)
-            logger.debug("build_dynamic_query: type=%s renderer=graph", type_iri)
+            query = self._build_graph_query(type_iri, scope_filter=scope_filter)
+            logger.debug("build_dynamic_query: type=%s renderer=graph scope=%s", type_iri, bool(scope_filter))
             return query, []
 
         shapes, columns = await self.get_generic_columns(type_iri)
 
         if not shapes:
             # Default columns query
-            query = self._build_default_select(type_iri)
+            query = self._build_default_select(type_iri, scope_filter=scope_filter)
         else:
-            query = self._build_shacl_select(type_iri, shapes, columns)
+            query = self._build_shacl_select(type_iri, shapes, columns, scope_filter=scope_filter)
 
         logger.debug(
-            "build_dynamic_query: type=%s, columns=%d", type_iri, len(columns),
+            "build_dynamic_query: type=%s, columns=%d scope=%s", type_iri, len(columns), bool(scope_filter),
         )
         return query, columns
 
     @staticmethod
-    def _build_default_select(type_iri: str | None) -> str:
+    def _build_default_select(type_iri: str | None, scope_filter: str | None = None) -> str:
         """Build a SELECT query using the 4 default columns."""
         type_filter = ""
         if type_iri:
             type_filter = f"  ?s rdf:type <{type_iri}> .\n"
+
+        scope_clause = ""
+        if scope_filter:
+            scope_clause = f"  {{ SELECT ?s WHERE {{ {scope_filter} }} }}\n"
 
         return (
             "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
@@ -339,6 +351,7 @@ WHERE {{
             "SELECT ?s ?label ?type ?created ?modified\n"
             "WHERE {\n"
             f"{type_filter}"
+            f"{scope_clause}"
             "  ?s rdf:type ?type .\n"
             "  OPTIONAL { ?s rdfs:label|dcterms:title ?label }\n"
             "  OPTIONAL { ?s dcterms:created ?created }\n"
@@ -351,6 +364,7 @@ WHERE {{
         type_iri: str | None,
         shapes: list[PropertyShape],
         columns: list[str],
+        scope_filter: str | None = None,
     ) -> str:
         """Build a SELECT query from SHACL PropertyShape metadata."""
         select_vars = "?s ?label " + " ".join(f"?{c}" for c in columns)
@@ -358,6 +372,10 @@ WHERE {{
         type_filter = ""
         if type_iri:
             type_filter = f"  ?s rdf:type <{type_iri}> .\n"
+
+        scope_clause = ""
+        if scope_filter:
+            scope_clause = f"  {{ SELECT ?s WHERE {{ {scope_filter} }} }}\n"
 
         optionals: list[str] = []
         for shape, col in zip(shapes, columns):
@@ -371,17 +389,22 @@ WHERE {{
             f"SELECT {select_vars}\n"
             "WHERE {\n"
             f"{type_filter}"
+            f"{scope_clause}"
             "  OPTIONAL { ?s rdfs:label|dcterms:title ?label }\n"
             + "\n".join(optionals) + "\n"
             "}"
         )
 
     @staticmethod
-    def _build_graph_query(type_iri: str | None) -> str:
+    def _build_graph_query(type_iri: str | None, scope_filter: str | None = None) -> str:
         """Build a CONSTRUCT query for the graph renderer."""
         type_filter = ""
         if type_iri:
             type_filter = f"  ?s rdf:type <{type_iri}> .\n"
+
+        scope_clause = ""
+        if scope_filter:
+            scope_clause = f"  {{ SELECT ?s WHERE {{ {scope_filter} }} }}\n"
 
         return (
             "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
@@ -391,6 +414,7 @@ WHERE {{
             "CONSTRUCT { ?s ?p ?o . ?s rdf:type ?type . ?s rdfs:label ?label }\n"
             "WHERE {\n"
             f"{type_filter}"
+            f"{scope_clause}"
             "  ?s ?p ?o .\n"
             "  ?s rdf:type ?type .\n"
             "  OPTIONAL { ?s rdfs:label|dcterms:title ?label }\n"
@@ -1389,6 +1413,28 @@ TABLEAU_10 = [
     '#4e79a7', '#f28e2c', '#e15759', '#76b7b2', '#59a14f',
     '#edc949', '#af7aa1', '#ff9da7', '#9c755f', '#bab0ab',
 ]
+
+
+def extract_scope_where_body(query_text: str) -> str:
+    """Extract WHERE clause body from a saved query, normalizing to ?s.
+
+    For views, the scope sub-select must output ``?s`` (the subject variable
+    used in generic view queries).  This function extracts the WHERE body
+    and renames the primary SELECT variable to ``?s`` if it differs.
+
+    Returns empty string on parse failure.
+    """
+    match = re.search(r'WHERE\s*\{(.+)\}\s*$', query_text, re.IGNORECASE | re.DOTALL)
+    if not match:
+        return ""
+    body = match.group(1).strip()
+    # Find the first SELECT variable to know what to rename
+    select_match = re.search(r'SELECT\s+(?:DISTINCT\s+)?(\?\w+)', query_text, re.IGNORECASE)
+    if select_match:
+        select_var = select_match.group(1)
+        if select_var != '?s':
+            body = body.replace(select_var, '?s')
+    return body
 
 # Label property IRIs for display label extraction from CONSTRUCT results
 LABEL_PROPERTIES = {
