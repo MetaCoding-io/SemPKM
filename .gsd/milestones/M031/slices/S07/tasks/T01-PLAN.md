@@ -94,3 +94,10 @@ M031 added 6 major features across S01–S06: carousel removal, generic view tab
 - `e2e/fixtures/seed-data.ts` — updated with Task type in TYPES
 - `e2e/helpers/selectors.ts` — updated with M031 view selectors
 - `e2e/helpers/dockview.ts` — updated with openGenericViewTab helper
+
+## Observability Impact
+
+- **New diagnostic surface**: `m031-views.spec.ts` provides 6 E2E test cases that exercise the full M031 feature surface. Each test independently opens a generic view tab and asserts specific DOM selectors, making regressions in carousel removal, kanban rendering, toolbar controls, or multi-instance logic immediately visible via Playwright test output.
+- **Helper inspectability**: The `openGenericViewTab()` helper wraps `window.openGenericViewTab()` with a timeout-guarded `waitForSelector`. Timeout failures in test output directly indicate whether the JS function exists, the panel was created, or the expected DOM selector was rendered.
+- **Selector registry**: Adding `kanbanBoard`, `kanbanColumn`, `kanbanCard`, `scopeSelect`, `variantSelect`, and `saveViewBtn` to `SEL.views` creates a single source of truth for M031 view selectors across all E2E tests. Any future selector change only needs updating in `selectors.ts`.
+- **Failure visibility**: A failing kanban test surfaces whether the issue is type selection (localStorage pre-set), panel creation (dockview API), or template rendering (`.kanban-board` / `.kanban-column` / `.kanban-card` selectors).

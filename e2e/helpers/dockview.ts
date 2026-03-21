@@ -167,3 +167,33 @@ export async function isPanelActive(page: Page, panelId: string): Promise<boolea
     panelId,
   );
 }
+
+/**
+ * Open a generic view tab via the application's openGenericViewTab() API.
+ *
+ * This wraps `window.openGenericViewTab(renderer, scopeQuery, scopeLabel)`,
+ * the M031 entry point that opens table/card/graph/kanban tabs from the
+ * explorer sidebar or programmatically.
+ *
+ * @param page        Playwright page
+ * @param renderer    One of 'table', 'card', 'graph', 'kanban'
+ * @param waitSelector CSS selector to wait for after the panel opens
+ * @param scopeQuery  Optional SPARQL query to scope the view
+ * @param scopeLabel  Optional label for scoped tab title
+ * @param timeoutMs   Max wait time for the panel to appear (default 15s)
+ */
+export async function openGenericViewTab(
+  page: Page,
+  renderer: 'table' | 'card' | 'graph' | 'kanban',
+  waitSelector: string,
+  scopeQuery?: string,
+  scopeLabel?: string,
+  timeoutMs = 15000,
+) {
+  await page.evaluate(({ renderer, scopeQuery, scopeLabel }) => {
+    if (typeof (window as any).openGenericViewTab === 'function') {
+      (window as any).openGenericViewTab(renderer, scopeQuery || '', scopeLabel || '');
+    }
+  }, { renderer, scopeQuery, scopeLabel });
+  await page.waitForSelector(waitSelector, { timeout: timeoutMs });
+}

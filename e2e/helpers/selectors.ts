@@ -68,6 +68,12 @@ export const SEL = {
     cards: '.card-grid',  // No data-testid on card grid container; use CSS class
     card: '[data-testid="card-item"]',
     graph: '[data-testid="graph-view"]',
+    kanbanBoard: '.kanban-board',
+    kanbanColumn: '.kanban-column',
+    kanbanCard: '.kanban-card',
+    scopeSelect: '.view-scope-select',
+    variantSelect: '.view-variant-select',
+    saveViewBtn: '.save-view-btn',
   },
 
   // Admin
