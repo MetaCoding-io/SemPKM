@@ -7,6 +7,9 @@ Agents read this before every unit. Add entries when you discover something wort
 
 | # | Scope | Rule | Why | Added |
 |---|-------|------|-----|-------|
+| R01 | git / GSD | **Never use worktree isolation mode.** Use `taskIsolation.mode: branch` or `none` in `.gsd/preferences.md`. | Worktree mode caused catastrophic data loss 3+ times: code was built in `.gsd/worktrees/<MID>/`, only `.gsd/` artifacts were committed to main, the worktree was cleaned up, and source code was permanently lost. M009-M010 lost the entire App Platform + RSS Reader. M019-M022 lost 4 sync apps. M027-M028 lost Notion Import + AI Features. ~115 files across 8 milestones were only recoverable from dangling git objects. | 2026-03-21 |
+| R02 | git / GSD | **After every milestone or slice completion, verify source files exist on the integration branch.** Run: `git diff --stat HEAD~1` and confirm non-`.gsd/` files are present. If a commit only touches `.gsd/` files, the code was not merged. | The auto-commit mechanism commits `.gsd/` planning artifacts but does NOT commit source code from worktrees. This silent failure looks like a successful completion. | 2026-03-21 |
+| R03 | git | **Never run `git gc` or `git prune` without first auditing dangling commits.** Run `git fsck --lost-found` and check for source files before allowing garbage collection. | Dangling commits are the last line of defense for unmerged worktree code. Once garbage-collected, the code is permanently gone. | 2026-03-21 |
 
 ## Patterns
 
@@ -23,6 +26,7 @@ Agents read this before every unit. Add entries when you discover something wort
 |---|--------------|------------|-----|-------|
 | K001 | SHACL-AF stale-contact rule with `?today - "P90D"^^xsd:dayTimeDuration` doesn't work in rdflib's SPARQL engine | rdflib does not implement xsd:dayTimeDuration subtraction from xsd:date | Use `NOT EXISTS` for zero-interaction check in SHACL rules; use SavedQuery with direct date comparison for time-windowed checks | models/crm/rules, any SHACL-AF SPARQL using date arithmetic |
 | K002 | Seed data `dcterms:created` with `xsd:dateTime` caused spurious `sh:Violation` when SHACL shape constrains that property to `xsd:date` | SHACL `sh:datatype xsd:date` is strict — `xsd:dateTime` values fail the check even though both represent temporal data | Match the seed data's `@type` to whatever the SHACL shape's `sh:datatype` declares for that property. Check shapes before authoring seed data. | Any model's seed data where shapes constrain date fields |
+| K003 | Worktree isolation mode lost source code for 8 milestones (~115 files). Code was built in worktrees, only `.gsd/` artifacts committed to main, worktrees cleaned up. Files survived only as dangling git objects. | GSD auto-mode commits `.gsd/` state files to main but source code lives in the worktree on a `milestone/<MID>` branch. When the worktree is removed and the branch deleted, source code becomes unreachable (dangling). | (1) Set `taskIsolation.mode: none` in preferences. (2) Recovered all files from dangling commits via `git fsck --lost-found` + `git checkout <hash> -- <path>`. (3) Added Rules R01-R03 to prevent recurrence. | All milestones using worktree mode |
 
 ## E2E Test: SPARQL API Does Not Support UPDATE/DELETE
 
