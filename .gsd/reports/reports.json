@@ -211,6 +211,22 @@
       "doneMilestones": 26,
       "totalMilestones": 32,
       "phase": "pre-planning"
+    },
+    {
+      "filename": "M029-2026-03-21T02-27-12.html",
+      "generatedAt": "2026-03-21T02:27:12.215Z",
+      "milestoneId": "M029",
+      "milestoneTitle": "Frontend Performance & Build Pipeline",
+      "label": "M029: Frontend Performance & Build Pipeline",
+      "kind": "milestone",
+      "totalCost": 737.0938534999998,
+      "totalTokens": 1023475742,
+      "totalDuration": 140382103,
+      "doneSlices": 194,
+      "totalSlices": 194,
+      "doneMilestones": 29,
+      "totalMilestones": 32,
+      "phase": "pre-planning"
     }
   ]
 }
