@@ -71,6 +71,15 @@
         <div class="lint-result-path">{{ w.path }}</div>
         {% endif %}
       </div>
+      {% if w.source_shape %}
+      <button class="lint-dismiss-btn" type="button"
+              data-object-iri="{{ object_iri }}"
+              data-source-shape="{{ w.source_shape }}"
+              onclick="event.stopPropagation(); dismissLintResult('{{ object_iri | e }}', '{{ w.source_shape | e }}', this)"
+              title="Dismiss this warning">
+        <i data-lucide="x"></i>
+      </button>
+      {% endif %}
     </li>
     {% endfor %}
   </ul>
@@ -91,9 +100,23 @@
         <div class="lint-result-path">{{ i.path }}</div>
         {% endif %}
       </div>
+      {% if i.source_shape %}
+      <button class="lint-dismiss-btn" type="button"
+              data-object-iri="{{ object_iri }}"
+              data-source-shape="{{ i.source_shape }}"
+              onclick="event.stopPropagation(); dismissLintResult('{{ object_iri | e }}', '{{ i.source_shape | e }}', this)"
+              title="Dismiss this info">
+        <i data-lucide="x"></i>
+      </button>
+      {% endif %}
     </li>
     {% endfor %}
   </ul>
+  {% endif %}
+
+  {# Dismissed count indicator #}
+  {% if dismissed_count > 0 %}
+  <div class="lint-dismissed-indicator">{{ dismissed_count }} dismissed</div>
   {% endif %}
 
   {# Empty state when no results at all #}

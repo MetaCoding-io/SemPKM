@@ -70,3 +70,62 @@ class LintDiffResponse(BaseModel):
     resolved_issues: list[LintResultItem]
     latest_run_id: str
     previous_run_id: str | None
+
+
+# ---------------------------------------------------------------------------
+# Lint filter request / response models (M030/S03)
+# ---------------------------------------------------------------------------
+
+
+class SuppressRequest(BaseModel):
+    """Request body for creating a rule suppression."""
+
+    rule_source_iri: str
+
+
+class DismissRequest(BaseModel):
+    """Request body for creating a result dismissal."""
+
+    object_iri: str
+    rule_source_iri: str
+
+
+class PresetCreateRequest(BaseModel):
+    """Request body for creating a filter preset."""
+
+    name: str
+    suppressed_rules: list[str]
+
+
+class PresetUpdateRequest(BaseModel):
+    """Request body for updating a filter preset."""
+
+    name: str | None = None
+    suppressed_rules: list[str] | None = None
+
+
+class SuppressionResponse(BaseModel):
+    """Response body for a single suppression."""
+
+    id: str
+    rule_source_iri: str
+    created_at: str
+
+
+class DismissalResponse(BaseModel):
+    """Response body for a single dismissal."""
+
+    id: str
+    object_iri: str
+    rule_source_iri: str
+    created_at: str
+
+
+class PresetResponse(BaseModel):
+    """Response body for a single filter preset."""
+
+    id: str
+    name: str
+    suppressed_rules: list[str]
+    created_at: str
+    updated_at: str

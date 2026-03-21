@@ -342,6 +342,10 @@ async def lifespan(app: FastAPI):
     from app.persona.service import PersonaService
     app.state.persona_service = PersonaService(async_session_factory)
 
+    # Create LintFilterService and store on app state
+    from app.lint.filter_service import LintFilterService
+    app.state.lint_filter_service = LintFilterService(async_session_factory)
+
     # Initialize App Platform manager
     from app.apps.manager import AppManager
     app_manager = AppManager(

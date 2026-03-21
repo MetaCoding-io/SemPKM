@@ -70,6 +70,24 @@
         </select>
       </div>
 
+      <div class="lint-dashboard-sidebar-group">
+        <label>Preset</label>
+        <div class="lint-preset-actions">
+          <select class="lint-dashboard-filter-preset" id="lint-preset-select"
+                  onchange="applyLintPreset(this.value)">
+            <option value="">No preset</option>
+            {% for p in active_presets %}
+            <option value="{{ p.id }}">{{ p.name }}</option>
+            {% endfor %}
+          </select>
+          <button class="lint-preset-save-btn" type="button"
+                  onclick="saveLintPreset()"
+                  title="Save current suppressions as preset">
+            <i data-lucide="save"></i>
+          </button>
+        </div>
+      </div>
+
       <div class="lint-dashboard-sidebar-summary">
         {% if status.conforms %}
           <span class="lint-conforms">&#10003; All clear</span>
@@ -87,6 +105,18 @@
         {% if status.run_timestamp %}
         <span class="lint-dashboard-timestamp">Last run: {{ status.run_timestamp }}</span>
         {% endif %}
+        {% if suppressed_count > 0 %}
+        <span class="lint-suppressed-badge">{{ suppressed_count }} rule{{ 's' if suppressed_count != 1 else '' }} suppressed</span>
+        {% endif %}
+      </div>
+
+      <div class="lint-dashboard-sidebar-group">
+        <a href="#" class="lint-manage-filters-link"
+           hx-get="/browser/lint-settings"
+           hx-target="#lint-dashboard-container"
+           hx-swap="innerHTML">
+          <i data-lucide="settings"></i> Manage Filters
+        </a>
       </div>
     </div>
 
@@ -113,6 +143,7 @@
                 <th>Object</th>
                 <th>Property</th>
                 <th>Message</th>
+                <th style="width:36px;"></th>
               </tr>
             </thead>
             <tbody>
@@ -137,6 +168,16 @@
                 </td>
                 <td>{{ item.path_label or '' }}</td>
                 <td>{{ item.message }}</td>
+                <td class="lint-suppress-cell">
+                  {% if item.source_shape %}
+                  <button class="lint-suppress-btn" type="button"
+                          data-source-shape="{{ item.source_shape }}"
+                          onclick="event.stopPropagation(); suppressLintRule('{{ item.source_shape | e }}')"
+                          title="Suppress this rule">
+                    <i data-lucide="eye-off"></i>
+                  </button>
+                  {% endif %}
+                </td>
               </tr>
               {% endfor %}
             </tbody>

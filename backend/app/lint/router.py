@@ -2,19 +2,33 @@
 
 Provides paginated, filterable access to validation results via REST.
 Endpoints: GET /api/lint/results, GET /api/lint/status, GET /api/lint/diff,
-GET /api/lint/stream (SSE).
+GET /api/lint/stream (SSE), plus lint filter CRUD endpoints for
+suppressions, dismissals, and presets.
 """
 
 import asyncio
+import uuid as _uuid
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
-from app.dependencies import get_lint_broadcast, get_lint_service
+from app.dependencies import get_lint_broadcast, get_lint_filter_service, get_lint_service
 from app.lint.broadcast import LintBroadcast
-from app.lint.models import LintDiffResponse, LintResultsResponse, LintStatusResponse
+from app.lint.filter_service import LintFilterService
+from app.lint.models import (
+    DismissalResponse,
+    DismissRequest,
+    LintDiffResponse,
+    LintResultsResponse,
+    LintStatusResponse,
+    PresetCreateRequest,
+    PresetResponse,
+    PresetUpdateRequest,
+    SuppressionResponse,
+    SuppressRequest,
+)
 from app.lint.service import LintService
 
 router = APIRouter(prefix="/api/lint")
@@ -32,6 +46,7 @@ async def get_lint_results(
     sort: str = "severity",
     user: User = Depends(get_current_user),
     lint_service: LintService = Depends(get_lint_service),
+    filter_service: LintFilterService = Depends(get_lint_filter_service),
 ) -> LintResultsResponse:
     """Return paginated lint results with optional filtering.
 
@@ -44,7 +59,10 @@ async def get_lint_results(
         detail: Set to "full" to include source_shape, constraint_component, source_model.
         search: Keyword search across message, object IRI, and property path.
         sort: Sort order (severity, object, path). Default: severity.
+
+    User's active suppressions and dismissals are automatically applied.
     """
+    suppressed_rules, dismissed_pairs = await filter_service.get_user_filters(user.id)
     return await lint_service.get_results(
         page=page,
         per_page=per_page,
@@ -54,6 +72,8 @@ async def get_lint_results(
         detail=(detail == "full"),
         search=search,
         sort=sort,
+        suppressed_rules=suppressed_rules or None,
+        dismissed_pairs=dismissed_pairs or None,
     )
 
 
@@ -132,3 +152,227 @@ async def lint_stream(
             "X-Accel-Buffering": "no",
         },
     )
+
+
+# ---------------------------------------------------------------------------
+# Suppression endpoints
+# ---------------------------------------------------------------------------
+
+
+@router.post("/suppress", response_model=SuppressionResponse, status_code=201)
+async def create_suppression(
+    body: SuppressRequest,
+    user: User = Depends(get_current_user),
+    filter_service: LintFilterService = Depends(get_lint_filter_service),
+) -> SuppressionResponse:
+    """Suppress all lint results for a given rule source IRI."""
+    try:
+        data = await filter_service.add_suppression(user.id, body.rule_source_iri)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+    return SuppressionResponse(
+        id=data.id,
+        rule_source_iri=data.rule_source_iri,
+        created_at=data.created_at,
+    )
+
+
+@router.delete("/suppress/{suppression_id}", status_code=200)
+async def delete_suppression(
+    suppression_id: _uuid.UUID,
+    user: User = Depends(get_current_user),
+    filter_service: LintFilterService = Depends(get_lint_filter_service),
+):
+    """Remove a single suppression by ID."""
+    deleted = await filter_service.delete_suppression(suppression_id, user.id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Suppression not found")
+    return {"ok": True}
+
+
+@router.get("/suppressions", response_model=list[SuppressionResponse])
+async def list_suppressions(
+    user: User = Depends(get_current_user),
+    filter_service: LintFilterService = Depends(get_lint_filter_service),
+) -> list[SuppressionResponse]:
+    """List all active suppressions for the authenticated user."""
+    items = await filter_service.list_suppressions(user.id)
+    return [
+        SuppressionResponse(
+            id=s.id,
+            rule_source_iri=s.rule_source_iri,
+            created_at=s.created_at,
+        )
+        for s in items
+    ]
+
+
+@router.delete("/suppressions", status_code=200)
+async def clear_suppressions(
+    user: User = Depends(get_current_user),
+    filter_service: LintFilterService = Depends(get_lint_filter_service),
+):
+    """Clear all suppressions for the authenticated user."""
+    count = await filter_service.clear_suppressions(user.id)
+    return {"deleted": count}
+
+
+# ---------------------------------------------------------------------------
+# Dismissal endpoints
+# ---------------------------------------------------------------------------
+
+
+@router.post("/dismiss", response_model=DismissalResponse, status_code=201)
+async def create_dismissal(
+    body: DismissRequest,
+    user: User = Depends(get_current_user),
+    filter_service: LintFilterService = Depends(get_lint_filter_service),
+) -> DismissalResponse:
+    """Dismiss a specific lint result (object + rule pair)."""
+    try:
+        data = await filter_service.add_dismissal(
+            user.id, body.object_iri, body.rule_source_iri
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+    return DismissalResponse(
+        id=data.id,
+        object_iri=data.object_iri,
+        rule_source_iri=data.rule_source_iri,
+        created_at=data.created_at,
+    )
+
+
+@router.delete("/dismiss/{dismissal_id}", status_code=200)
+async def delete_dismissal(
+    dismissal_id: _uuid.UUID,
+    user: User = Depends(get_current_user),
+    filter_service: LintFilterService = Depends(get_lint_filter_service),
+):
+    """Remove a single dismissal by ID."""
+    deleted = await filter_service.delete_dismissal(dismissal_id, user.id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Dismissal not found")
+    return {"ok": True}
+
+
+@router.get("/dismissals", response_model=list[DismissalResponse])
+async def list_dismissals(
+    user: User = Depends(get_current_user),
+    filter_service: LintFilterService = Depends(get_lint_filter_service),
+) -> list[DismissalResponse]:
+    """List all active dismissals for the authenticated user."""
+    items = await filter_service.list_dismissals(user.id)
+    return [
+        DismissalResponse(
+            id=d.id,
+            object_iri=d.object_iri,
+            rule_source_iri=d.rule_source_iri,
+            created_at=d.created_at,
+        )
+        for d in items
+    ]
+
+
+@router.delete("/dismissals", status_code=200)
+async def clear_dismissals(
+    user: User = Depends(get_current_user),
+    filter_service: LintFilterService = Depends(get_lint_filter_service),
+):
+    """Clear all dismissals for the authenticated user."""
+    count = await filter_service.clear_dismissals(user.id)
+    return {"deleted": count}
+
+
+# ---------------------------------------------------------------------------
+# Preset endpoints
+# ---------------------------------------------------------------------------
+
+
+@router.post("/presets", response_model=PresetResponse, status_code=201)
+async def create_preset(
+    body: PresetCreateRequest,
+    user: User = Depends(get_current_user),
+    filter_service: LintFilterService = Depends(get_lint_filter_service),
+) -> PresetResponse:
+    """Create a named filter preset."""
+    try:
+        data = await filter_service.create_preset(
+            user.id, body.name, body.suppressed_rules
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+    return PresetResponse(
+        id=data.id,
+        name=data.name,
+        suppressed_rules=data.suppressed_rules,
+        created_at=data.created_at,
+        updated_at=data.updated_at,
+    )
+
+
+@router.get("/presets", response_model=list[PresetResponse])
+async def list_presets(
+    user: User = Depends(get_current_user),
+    filter_service: LintFilterService = Depends(get_lint_filter_service),
+) -> list[PresetResponse]:
+    """List all filter presets for the authenticated user."""
+    items = await filter_service.list_presets(user.id)
+    return [
+        PresetResponse(
+            id=p.id,
+            name=p.name,
+            suppressed_rules=p.suppressed_rules,
+            created_at=p.created_at,
+            updated_at=p.updated_at,
+        )
+        for p in items
+    ]
+
+
+@router.put("/presets/{preset_id}", response_model=PresetResponse)
+async def update_preset(
+    preset_id: _uuid.UUID,
+    body: PresetUpdateRequest,
+    user: User = Depends(get_current_user),
+    filter_service: LintFilterService = Depends(get_lint_filter_service),
+) -> PresetResponse:
+    """Update a preset's name and/or rules."""
+    data = await filter_service.update_preset(
+        preset_id, user.id, name=body.name, suppressed_rules=body.suppressed_rules
+    )
+    if data is None:
+        raise HTTPException(status_code=404, detail="Preset not found")
+    return PresetResponse(
+        id=data.id,
+        name=data.name,
+        suppressed_rules=data.suppressed_rules,
+        created_at=data.created_at,
+        updated_at=data.updated_at,
+    )
+
+
+@router.delete("/presets/{preset_id}", status_code=200)
+async def delete_preset(
+    preset_id: _uuid.UUID,
+    user: User = Depends(get_current_user),
+    filter_service: LintFilterService = Depends(get_lint_filter_service),
+):
+    """Delete a preset by ID."""
+    deleted = await filter_service.delete_preset(preset_id, user.id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Preset not found")
+    return {"ok": True}
+
+
+@router.post("/presets/{preset_id}/apply", status_code=200)
+async def apply_preset(
+    preset_id: _uuid.UUID,
+    user: User = Depends(get_current_user),
+    filter_service: LintFilterService = Depends(get_lint_filter_service),
+):
+    """Apply a preset: replace all suppressions with the preset's rule list."""
+    applied = await filter_service.apply_preset(preset_id, user.id)
+    if not applied:
+        raise HTTPException(status_code=404, detail="Preset not found")
+    return {"ok": True}

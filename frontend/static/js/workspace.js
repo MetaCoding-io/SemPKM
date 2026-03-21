@@ -1676,11 +1676,7 @@
               } else if (cmd.actionType === 'post') {
                 htmx.ajax('POST', cmd.actionUrl, {target: '#modal-container', swap: 'innerHTML'});
               } else if (cmd.actionType === 'navigate') {
-                if (cmd.appId) {
-                  openAppPageTab(cmd.appId, cmd.pageId, cmd.title);
-                } else {
-                  window.location.href = cmd.actionUrl;
-                }
+                window.location.href = cmd.actionUrl;
               }
             }
           });
@@ -4552,6 +4548,254 @@
       }
     }
   });
+
+})();
+
+// =========================================================================
+// Lint Filter Controls (Dismiss, Suppress, Presets) — M030/S03
+// =========================================================================
+(function() {
+  'use strict';
+
+  /**
+   * Dismiss a specific lint result (object + rule pair).
+   * Calls POST /api/lint/dismiss, then refreshes the lint panel via htmx.
+   */
+  function dismissLintResult(objectIri, sourceShape, btn) {
+    fetch('/api/lint/dismiss', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ object_iri: objectIri, rule_source_iri: sourceShape })
+    })
+    .then(function(resp) {
+      if (!resp.ok) throw new Error('Dismiss failed: ' + resp.status);
+      return resp.json();
+    })
+    .then(function() {
+      // Re-fetch lint panel to reflect the dismissal
+      var panel = btn.closest('.lint-panel');
+      if (panel && typeof htmx !== 'undefined') {
+        htmx.ajax('GET', '/browser/lint/' + encodeURIComponent(objectIri), {
+          target: panel,
+          swap: 'outerHTML'
+        });
+      }
+    })
+    .catch(function(err) {
+      console.error('dismissLintResult error:', err);
+    });
+  }
+
+  /**
+   * Suppress all lint results for a given rule source IRI.
+   * Calls POST /api/lint/suppress, then refreshes the dashboard.
+   */
+  function suppressLintRule(sourceShape) {
+    fetch('/api/lint/suppress', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rule_source_iri: sourceShape })
+    })
+    .then(function(resp) {
+      if (!resp.ok) throw new Error('Suppress failed: ' + resp.status);
+      return resp.json();
+    })
+    .then(function() {
+      refreshLintDashboard();
+    })
+    .catch(function(err) {
+      console.error('suppressLintRule error:', err);
+    });
+  }
+
+  /**
+   * Apply a saved preset: replaces all active suppressions with the preset's rules.
+   * Calls POST /api/lint/presets/{id}/apply, then refreshes the dashboard.
+   */
+  function applyLintPreset(presetId) {
+    if (!presetId) {
+      // "No preset" selected — clear all suppressions
+      fetch('/api/lint/suppressions', { method: 'DELETE' })
+        .then(function() { refreshLintDashboard(); })
+        .catch(function(err) { console.error('clearSuppressions error:', err); });
+      return;
+    }
+    fetch('/api/lint/presets/' + presetId + '/apply', { method: 'POST' })
+      .then(function(resp) {
+        if (!resp.ok) throw new Error('Apply preset failed: ' + resp.status);
+        return resp.json();
+      })
+      .then(function() {
+        refreshLintDashboard();
+      })
+      .catch(function(err) {
+        console.error('applyLintPreset error:', err);
+      });
+  }
+
+  /**
+   * Save current active suppressions as a named preset.
+   * Prompts for a name, fetches current suppressions, and creates the preset.
+   */
+  function saveLintPreset() {
+    var name = prompt('Preset name:');
+    if (!name || !name.trim()) return;
+    name = name.trim();
+
+    // Fetch current suppressions to capture their rule IRIs
+    fetch('/api/lint/suppressions')
+      .then(function(resp) { return resp.json(); })
+      .then(function(suppressions) {
+        var rules = suppressions.map(function(s) { return s.rule_source_iri; });
+        if (rules.length === 0) {
+          alert('No active suppressions to save.');
+          return;
+        }
+        return fetch('/api/lint/presets', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: name, suppressed_rules: rules })
+        });
+      })
+      .then(function(resp) {
+        if (resp && !resp.ok) throw new Error('Save preset failed: ' + resp.status);
+        refreshLintDashboard();
+      })
+      .catch(function(err) {
+        console.error('saveLintPreset error:', err);
+      });
+  }
+
+  /**
+   * Refresh the lint dashboard by re-fetching the full container via htmx.
+   */
+  function refreshLintDashboard() {
+    var container = document.getElementById('lint-dashboard-container');
+    if (container && typeof htmx !== 'undefined') {
+      htmx.ajax('GET', '/browser/lint-dashboard', {
+        target: '#lint-dashboard-container',
+        swap: 'outerHTML'
+      });
+    }
+  }
+
+  /**
+   * Refresh the lint settings section by re-fetching via htmx.
+   */
+  function refreshLintSettings() {
+    var container = document.getElementById('lint-dashboard-container') || document.getElementById('lint-settings-container');
+    if (container && typeof htmx !== 'undefined') {
+      htmx.ajax('GET', '/browser/lint-settings', {
+        target: container,
+        swap: 'innerHTML'
+      });
+    }
+  }
+
+  /**
+   * Remove a single suppression from lint settings.
+   */
+  function removeSuppression(id) {
+    fetch('/api/lint/suppress/' + id, { method: 'DELETE' })
+      .then(function(res) {
+        if (!res.ok) throw new Error('Failed to remove suppression: ' + res.status);
+        refreshLintSettings();
+      })
+      .catch(function(err) {
+        console.error('removeSuppression error:', err);
+      });
+  }
+
+  /**
+   * Clear all suppressions from lint settings.
+   */
+  function clearAllSuppressions() {
+    if (!confirm('Remove all suppressions? Suppressed rules will appear in lint results again.')) return;
+    fetch('/api/lint/suppressions', { method: 'DELETE' })
+      .then(function(res) {
+        if (!res.ok) throw new Error('Failed to clear suppressions: ' + res.status);
+        refreshLintSettings();
+      })
+      .catch(function(err) {
+        console.error('clearAllSuppressions error:', err);
+      });
+  }
+
+  /**
+   * Remove a single dismissal from lint settings.
+   */
+  function removeDismissal(id) {
+    fetch('/api/lint/dismiss/' + id, { method: 'DELETE' })
+      .then(function(res) {
+        if (!res.ok) throw new Error('Failed to remove dismissal: ' + res.status);
+        refreshLintSettings();
+      })
+      .catch(function(err) {
+        console.error('removeDismissal error:', err);
+      });
+  }
+
+  /**
+   * Clear all dismissals from lint settings.
+   */
+  function clearAllDismissals() {
+    if (!confirm('Remove all dismissals? Dismissed results will appear again.')) return;
+    fetch('/api/lint/dismissals', { method: 'DELETE' })
+      .then(function(res) {
+        if (!res.ok) throw new Error('Failed to clear dismissals: ' + res.status);
+        refreshLintSettings();
+      })
+      .catch(function(err) {
+        console.error('clearAllDismissals error:', err);
+      });
+  }
+
+  /**
+   * Delete a preset from lint settings.
+   */
+  function deleteLintPreset(id) {
+    if (!confirm('Delete this preset?')) return;
+    fetch('/api/lint/presets/' + id, { method: 'DELETE' })
+      .then(function(res) {
+        if (!res.ok) throw new Error('Failed to delete preset: ' + res.status);
+        refreshLintSettings();
+      })
+      .catch(function(err) {
+        console.error('deleteLintPreset error:', err);
+      });
+  }
+
+  /**
+   * Rename a preset from lint settings.
+   */
+  function renameLintPreset(id, currentName) {
+    var newName = prompt('Rename preset:', currentName);
+    if (!newName || newName === currentName) return;
+    fetch('/api/lint/presets/' + id, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: newName })
+    })
+      .then(function(res) {
+        if (!res.ok) throw new Error('Failed to rename preset: ' + res.status);
+        refreshLintSettings();
+      })
+      .catch(function(err) {
+        console.error('renameLintPreset error:', err);
+      });
+  }
+
+  // Expose to global scope for onclick handlers in templates
+  window.dismissLintResult = dismissLintResult;
+  window.suppressLintRule = suppressLintRule;
+  window.applyLintPreset = applyLintPreset;
+  window.saveLintPreset = saveLintPreset;
+  window.removeSuppression = removeSuppression;
+  window.clearAllSuppressions = clearAllSuppressions;
+  window.removeDismissal = removeDismissal;
+  window.clearAllDismissals = clearAllDismissals;
+  window.deleteLintPreset = deleteLintPreset;
+  window.renameLintPreset = renameLintPreset;
 
 })();
 

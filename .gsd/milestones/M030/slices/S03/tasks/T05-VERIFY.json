@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T05",
+  "unitId": "M030/S03/T05",
+  "timestamp": 1774070179383,
+  "passed": false,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "Docker stack: navigate to lint settings → see active suppressions → remove one → see it reappear in dashboard → clear all dismissals → previously dismissed results reappear in lint panel",
+      "exitCode": 127,
+      "durationMs": 12,
+      "verdict": "fail"
+    }
+  ],
+  "retryAttempt": 1,
+  "maxRetries": 2
+}

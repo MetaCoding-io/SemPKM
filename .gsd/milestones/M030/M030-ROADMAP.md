@@ -57,7 +57,7 @@ This milestone is complete only when all are true:
 - [x] **S02: Data Quality Rules (9 new SHACL-AF rules)** `risk:medium` `depends:[S01]`
   > After this: User creates objects with data quality issues (comma-in-tags, empty body, titleless objects, etc.) and sees appropriate warnings/info in the lint panel. All 9 rules proven by offline pytest tests.
 
-- [ ] **S03: Lint Filter System (Suppress, Dismiss, Presets)** `risk:medium` `depends:[S01]`
+- [x] **S03: Lint Filter System (Suppress, Dismiss, Presets)** `risk:medium` `depends:[S01]`
   > After this: User can suppress rule types, dismiss individual results, save/restore named presets, and manage all filter state from a lint settings UI. Full CRUD with SQLite persistence.
 
 - [ ] **S04: E2E Tests & User Guide** `risk:low` `depends:[S01,S02,S03]`

@@ -1,0 +1,129 @@
+{# Lint settings management section: manage suppressions, dismissals, and presets.
+
+   Rendered as htmx partial to replace the lint dashboard container.
+   Accepts:
+     suppressions: list of SuppressionData with .id, .rule_source_iri, .rule_label, .created_at
+     dismissals: list of DismissalData with .id, .object_iri, .object_label, .rule_source_iri, .rule_label, .created_at
+     presets: list of PresetData with .id, .name, .suppressed_rules, .created_at
+#}
+
+<div class="lint-settings" id="lint-settings-container">
+  <div class="lint-settings-header">
+    <a href="#" class="lint-settings-back"
+       hx-get="/browser/lint-dashboard"
+       hx-target="#lint-dashboard-container"
+       hx-swap="innerHTML">
+      <i data-lucide="arrow-left"></i> Back to Dashboard
+    </a>
+    <h3>Manage Lint Filters</h3>
+  </div>
+
+  {# ── Suppressions ── #}
+  <details class="lint-settings-section" open>
+    <summary>
+      <i data-lucide="eye-off"></i>
+      Suppressions ({{ suppressions | length }})
+    </summary>
+    <div class="lint-settings-section-body">
+      {% if suppressions %}
+        <div class="lint-settings-list">
+          {% for s in suppressions %}
+          <div class="lint-settings-item" data-id="{{ s.id }}">
+            <div class="lint-settings-item-info">
+              <span class="lint-settings-item-label" title="{{ s.rule_source_iri }}">{{ s.rule_label }}</span>
+              <span class="lint-settings-item-date">{{ s.created_at[:10] if s.created_at else '' }}</span>
+            </div>
+            <button class="lint-settings-remove-btn" type="button"
+                    onclick="removeSuppression('{{ s.id }}')"
+                    title="Remove suppression">
+              <i data-lucide="x"></i>
+            </button>
+          </div>
+          {% endfor %}
+        </div>
+        <button class="lint-settings-clear-btn" type="button"
+                onclick="clearAllSuppressions()">
+          Clear All Suppressions
+        </button>
+      {% else %}
+        <p class="lint-settings-empty">No rules suppressed.</p>
+      {% endif %}
+    </div>
+  </details>
+
+  {# ── Dismissals ── #}
+  <details class="lint-settings-section" open>
+    <summary>
+      <i data-lucide="x-circle"></i>
+      Dismissals ({{ dismissals | length }})
+    </summary>
+    <div class="lint-settings-section-body">
+      {% if dismissals %}
+        <div class="lint-settings-list">
+          {% for d in dismissals %}
+          <div class="lint-settings-item" data-id="{{ d.id }}">
+            <div class="lint-settings-item-info">
+              <span class="lint-settings-item-label" title="{{ d.rule_source_iri }}">{{ d.rule_label }}</span>
+              <span class="lint-settings-item-object" title="{{ d.object_iri }}">on {{ d.object_label }}</span>
+              <span class="lint-settings-item-date">{{ d.created_at[:10] if d.created_at else '' }}</span>
+            </div>
+            <button class="lint-settings-remove-btn" type="button"
+                    onclick="removeDismissal('{{ d.id }}')"
+                    title="Remove dismissal">
+              <i data-lucide="x"></i>
+            </button>
+          </div>
+          {% endfor %}
+        </div>
+        <button class="lint-settings-clear-btn" type="button"
+                onclick="clearAllDismissals()">
+          Clear All Dismissals
+        </button>
+      {% else %}
+        <p class="lint-settings-empty">No results dismissed.</p>
+      {% endif %}
+    </div>
+  </details>
+
+  {# ── Presets ── #}
+  <details class="lint-settings-section" open>
+    <summary>
+      <i data-lucide="bookmark"></i>
+      Presets ({{ presets | length }})
+    </summary>
+    <div class="lint-settings-section-body">
+      {% if presets %}
+        <div class="lint-settings-list">
+          {% for p in presets %}
+          <div class="lint-settings-item lint-settings-preset-item" data-id="{{ p.id }}">
+            <div class="lint-settings-item-info">
+              <span class="lint-settings-item-label">{{ p.name }}</span>
+              <span class="lint-settings-item-meta">{{ p.suppressed_rules | length }} rule{{ 's' if p.suppressed_rules | length != 1 else '' }}</span>
+              <span class="lint-settings-item-date">{{ p.created_at[:10] if p.created_at else '' }}</span>
+            </div>
+            <div class="lint-settings-preset-actions">
+              <button class="lint-settings-action-btn" type="button"
+                      onclick="applyLintPreset('{{ p.id }}')"
+                      title="Apply this preset">
+                <i data-lucide="play"></i>
+              </button>
+              <button class="lint-settings-action-btn" type="button"
+                      onclick="renameLintPreset('{{ p.id }}', '{{ p.name | e }}')"
+                      title="Rename preset">
+                <i data-lucide="pencil"></i>
+              </button>
+              <button class="lint-settings-remove-btn" type="button"
+                      onclick="deleteLintPreset('{{ p.id }}')"
+                      title="Delete preset">
+                <i data-lucide="trash-2"></i>
+              </button>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="lint-settings-empty">No presets saved. Save current suppressions as a preset from the dashboard.</p>
+      {% endif %}
+    </div>
+  </details>
+</div>
