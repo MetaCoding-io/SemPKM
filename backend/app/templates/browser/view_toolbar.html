@@ -1,6 +1,14 @@
 <div class="view-toolbar" data-current-filter="{{ current_filter }}" data-current-sort="{{ sort_col }}" data-current-dir="{{ sort_dir }}">
     <div class="view-toolbar-left">
         <span class="view-label">{{ spec.label }}</span>
+        {% if model_view_specs is defined and model_view_specs | length > 0 %}
+        <select class="view-variant-select" onchange="if(this.value) openViewTab(this.value, this.options[this.selectedIndex].dataset.renderer)">
+            <option value="" selected>— View Variants —</option>
+            {% for vs in model_view_specs %}
+            <option value="{{ vs.spec_iri }}" data-renderer="{{ vs.renderer_type }}">{{ vs.label }}</option>
+            {% endfor %}
+        </select>
+        {% endif %}
     </div>
     <div class="view-toolbar-right">
         {% set current_view_type = view_type | default('table') %}
