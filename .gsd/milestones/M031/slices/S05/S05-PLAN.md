@@ -52,7 +52,7 @@ All tasks in this slice are CSS/JS/template polish. Verification is a combinatio
   - Verify: `python3 -c "import ast; ast.parse(open('backend/app/ontology/service.py').read())"` passes; `grep -q "propDescription\|title=.*description" backend/app/templates/browser/ontology/tbox_detail.html`; `grep -q "calc(100vh" frontend/static/css/style.css` in ontology section
   - Done when: TBox property names show description tooltips on hover; admin model graph fills viewport height; edge hover shows tooltip with label and description
 
-- [ ] **T04: Full-height views and graph popover z-index fix** `est:45m`
+- [x] **T04: Full-height views and graph popover z-index fix** `est:45m`
   - Why: VIEW-13 (must-have) and VIEW-14 (must-have) — graph and kanban views don't fill available height because their templates lack flex layout; graph node popover is clipped under toolbars because the stacking context is constrained to `.graph-container`.
   - Files: `frontend/static/css/views.css`, `frontend/static/js/graph.js`, `backend/app/templates/browser/graph_view.html`, `backend/app/templates/browser/kanban_view.html`
   - Do: (1) For graph view: wrap template content in a flex column container that fills height (toolbar gets natural size, `#cy-container` gets `flex:1; min-height:0`). Remove fragile `height: calc(100% - 90px)` from `.graph-container`. (2) For kanban view: make `.kanban-board` use `flex:1; min-height:0; overflow-x:auto` inside a flex column wrapper. (3) For table/cards views: these already scroll naturally — verify no regression. (4) Fix graph popover z-index: either elevate popover z-index above dockview chrome, or append popover to `document.body` with viewport-relative positioning.

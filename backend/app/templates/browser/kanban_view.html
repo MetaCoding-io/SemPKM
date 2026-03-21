@@ -1,3 +1,4 @@
+<div class="view-flex-column">
 {% if is_generic | default(false) %}
 {% include "browser/type_filter_pills.html" %}
 {% endif %}
@@ -32,5 +33,6 @@
     <p>Select a type with status values to use Kanban View.</p>
 </div>
 {% endif %}
+</div>
 
 <script>if (typeof initKanban === 'function') { initKanban(document.querySelector('.kanban-board')); }</script>

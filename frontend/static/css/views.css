@@ -476,13 +476,22 @@
     padding: 12px 0;
 }
 
+/* --- Flex Column Wrapper (graph, kanban) --- */
+
+.view-flex-column {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+}
+
 /* --- Graph View --- */
 
 .graph-container {
     position: relative;
     width: 100%;
-    height: calc(100% - 90px);
-    min-height: 400px;
+    flex: 1;
+    min-height: 0;
     background:
         linear-gradient(var(--color-border-subtle) 1px, transparent 1px),
         linear-gradient(90deg, var(--color-border-subtle) 1px, transparent 1px),
@@ -565,17 +574,17 @@
     box-shadow: var(--shadow-elevated);
 }
 
-/* Rich node popover bubble */
+/* Rich node popover bubble (appended to document.body, viewport-relative) */
 .graph-popover {
     display: none;
-    position: absolute;
+    position: fixed;
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: 8px;
     box-shadow: var(--shadow-elevated);
     min-width: 200px;
     max-width: 320px;
-    z-index: 200;
+    z-index: 9999;
     pointer-events: auto;
     overflow: hidden;
 }
@@ -1070,7 +1079,8 @@ select.cards-group-select {
     gap: 12px;
     padding: 12px;
     overflow-x: auto;
-    height: 100%;
+    flex: 1;
+    min-height: 0;
     align-items: flex-start;
 }
 
