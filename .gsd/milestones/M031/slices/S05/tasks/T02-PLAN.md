@@ -65,3 +65,10 @@ Users running triple-pattern SPARQL queries (e.g., `SELECT ?s ?p ?o WHERE { ?s ?
 
 - `frontend/static/js/sparql-console.js` — new `isTriplePattern()`, `buildGraphElements()`, tab switcher logic, Cytoscape init
 - `frontend/static/css/views.css` — new `.sparql-result-tabs`, `.sparql-graph-container` styles
+
+## Observability Impact
+
+- **Graph tab detection:** `isTriplePattern()` logs nothing — it's a pure heuristic. To debug, call `isTriplePattern(vars, bindings)` directly in the browser console with sample data.
+- **Graph rendering:** The Cytoscape instance is stored in a module-level variable `sparqlCyInstance`. Inspect it in the browser console to check node/edge counts, layout state, or call `sparqlCyInstance.fit()` to refit.
+- **Tab switcher DOM:** The `.sparql-result-tabs` element is injected only when `isTriplePattern()` returns true. Absence in the DOM means the detection heuristic didn't trigger — check that the query has exactly 3 vars and URI-heavy bindings.
+- **Failure state:** If Cytoscape fails to initialize (e.g., CDN not loaded), a `console.error('Failed to initialize SPARQL graph:', err)` is logged and the graph container shows an error message.

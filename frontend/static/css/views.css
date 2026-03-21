@@ -1149,3 +1149,113 @@ select.cards-group-select {
     background: var(--color-surface-hover, var(--color-surface-raised));
     border: 2px dashed var(--color-primary);
 }
+
+/* ============================================
+   SPARQL Result Tabs (Table / Graph)
+   ============================================ */
+
+.sparql-result-tabs {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 8px;
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-surface);
+}
+
+.sparql-result-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 14px;
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+    background: transparent;
+    color: var(--color-text-muted);
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.sparql-result-tab svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+.sparql-result-tab:hover {
+    background: var(--color-surface-hover);
+    color: var(--color-text);
+}
+
+.sparql-result-tab.active {
+    background: var(--color-surface);
+    color: var(--color-primary);
+    border-color: var(--color-border);
+    border-bottom: 1px solid var(--color-surface);
+    margin-bottom: -1px;
+    font-weight: 600;
+}
+
+.sparql-graph-tab-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+    font-size: 0.72rem;
+    color: var(--color-text-faint);
+}
+
+.sparql-graph-tab-hint svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+/* --- SPARQL Graph Container --- */
+
+.sparql-graph-container {
+    position: relative;
+    width: 100%;
+    min-height: 400px;
+    height: 500px;
+    background:
+        linear-gradient(var(--color-border-subtle) 1px, transparent 1px),
+        linear-gradient(90deg, var(--color-border-subtle) 1px, transparent 1px),
+        var(--color-bg);
+    background-size: 40px 40px;
+    border-radius: 0 0 4px 4px;
+}
+
+.sparql-graph-tooltip {
+    display: none;
+    position: absolute;
+    background: var(--color-surface-recessed);
+    color: var(--color-text);
+    font-size: 0.78rem;
+    font-family: monospace;
+    padding: 4px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    max-width: 500px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    pointer-events: none;
+    z-index: 100;
+    box-shadow: var(--shadow-elevated);
+}
+
+.sparql-graph-error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 200px;
+    color: var(--color-error, #dc3545);
+    font-size: 0.9rem;
+    padding: 16px;
+}

@@ -56,6 +56,7 @@ var cachedModelVersion = null;
 var DISPLAY_LIMIT = 200;
 var currentSavedQueryId = null;
 var currentSavedQueryName = '';
+var sparqlCyInstance = null;  // Current Cytoscape instance for SPARQL graph tab
 
 // Known vocabulary prefixes (object IRIs are those NOT matching these).
 // NOTE: urn:sempkm:model:* is intentionally EXCLUDED so that model ontology
@@ -311,6 +312,9 @@ async function executeQuery() {
 
     renderResultTable(tableWrap, vars, bindings, enrichment, 0);
 
+    // Inject Table/Graph tab switcher for triple-pattern results
+    injectGraphTab(tableWrap, vars, bindings);
+
     // Push to session cell history
     addCellHistoryEntry(queryText, totalRows, elapsed, vars, bindings, enrichment);
 
@@ -319,6 +323,381 @@ async function executeQuery() {
     if (tableWrap) {
       tableWrap.innerHTML = '<div class="sparql-error">Network error: ' + escapeHtml(err.message) + '</div>';
     }
+  }
+}
+
+// --- Triple-Pattern Detection & Graph Building ---
+
+/**
+ * Detect whether a SPARQL result set looks like a triple pattern (s/p/o).
+ * Returns true when vars has exactly 3 items AND either:
+ *  - var names match common subject/predicate/object naming patterns, OR
+ *  - a sample of bindings shows mostly URI values across all 3 vars.
+ */
+function isTriplePattern(vars, bindings) {
+  if (!vars || vars.length !== 3) return false;
+  if (!bindings || bindings.length === 0) return false;
+
+  // Check naming patterns
+  var names = vars.map(function(v) { return v.toLowerCase(); });
+  var spoSets = [
+    ['s', 'p', 'o'],
+    ['subject', 'predicate', 'object'],
+    ['sub', 'pred', 'obj'],
+    ['subj', 'pred', 'obj'],
+    ['source', 'predicate', 'target'],
+    ['src', 'pred', 'tgt']
+  ];
+  for (var i = 0; i < spoSets.length; i++) {
+    var set = spoSets[i];
+    if (names[0] === set[0] && names[1] === set[1] && names[2] === set[2]) {
+      return true;
+    }
+  }
+
+  // Heuristic: sample first ~10 bindings and check if most values are URIs
+  var sampleSize = Math.min(bindings.length, 10);
+  var uriCounts = [0, 0, 0];
+  for (var j = 0; j < sampleSize; j++) {
+    for (var k = 0; k < 3; k++) {
+      var cell = bindings[j][vars[k]];
+      if (cell && cell.type === 'uri') {
+        uriCounts[k]++;
+      }
+    }
+  }
+  // All 3 vars should have >60% URIs in the sample
+  var threshold = sampleSize * 0.6;
+  return uriCounts[0] >= threshold && uriCounts[1] >= threshold && uriCounts[2] >= threshold;
+}
+
+/**
+ * Build Cytoscape elements from SPARQL bindings.
+ * Maps vars[0] → subject, vars[1] → predicate, vars[2] → object.
+ * Returns { nodes: [...], edges: [...] } in Cytoscape element format.
+ */
+function buildGraphElements(vars, bindings) {
+  var subjectVar = vars[0];
+  var predicateVar = vars[1];
+  var objectVar = vars[2];
+
+  var nodeMap = {};  // id → { id, label, fullIri }
+  var edges = [];
+
+  function addNode(cell) {
+    if (!cell) return null;
+    var id = cell.value;
+    if (!nodeMap[id]) {
+      var label = cell.type === 'uri' ? shortenUri(cell.value) : cell.value;
+      // Truncate long literal labels
+      if (label.length > 40) label = label.substring(0, 37) + '...';
+      nodeMap[id] = {
+        id: id,
+        label: label,
+        fullIri: cell.type === 'uri' ? cell.value : null,
+        isLiteral: cell.type !== 'uri'
+      };
+    }
+    return id;
+  }
+
+  for (var i = 0; i < bindings.length; i++) {
+    var b = bindings[i];
+    var sCell = b[subjectVar];
+    var pCell = b[predicateVar];
+    var oCell = b[objectVar];
+
+    var sourceId = addNode(sCell);
+    var targetId = addNode(oCell);
+    var predLabel = pCell ? (pCell.type === 'uri' ? shortenUri(pCell.value) : pCell.value) : '?';
+
+    if (sourceId && targetId) {
+      edges.push({
+        group: 'edges',
+        data: {
+          id: 'e' + i,
+          source: sourceId,
+          target: targetId,
+          label: predLabel,
+          fullPredicate: pCell ? pCell.value : ''
+        }
+      });
+    }
+  }
+
+  var nodes = [];
+  var ids = Object.keys(nodeMap);
+  for (var j = 0; j < ids.length; j++) {
+    var n = nodeMap[ids[j]];
+    nodes.push({
+      group: 'nodes',
+      data: {
+        id: n.id,
+        label: n.label,
+        fullIri: n.fullIri || n.id,
+        isLiteral: n.isLiteral
+      }
+    });
+  }
+
+  return { nodes: nodes, edges: edges };
+}
+
+/**
+ * Initialize (or re-initialize) the Cytoscape graph for SPARQL triple results.
+ */
+function initSparqlGraph(container, vars, bindings) {
+  // Destroy previous instance
+  if (sparqlCyInstance) {
+    sparqlCyInstance.destroy();
+    sparqlCyInstance = null;
+  }
+
+  if (!container) return;
+
+  try {
+    if (typeof cytoscape === 'undefined') {
+      container.innerHTML = '<div class="sparql-graph-error">Cytoscape.js not loaded</div>';
+      console.error('Failed to initialize SPARQL graph: cytoscape is undefined');
+      return;
+    }
+
+    var elements = buildGraphElements(vars, bindings);
+
+    // Determine best layout based on graph size
+    var nodeCount = elements.nodes.length;
+    var layoutName = 'fcose';
+    var layoutOpts = {
+      name: 'fcose',
+      animate: true,
+      animationDuration: 500,
+      fit: true,
+      padding: 30,
+      nodeSeparation: 120,
+      idealEdgeLength: 100
+    };
+
+    // For small graphs, dagre works better for directed trees
+    if (nodeCount < 30 && typeof dagre !== 'undefined') {
+      layoutOpts = {
+        name: 'dagre',
+        rankDir: 'LR',
+        nodeSep: 50,
+        rankSep: 80,
+        animate: true,
+        animationDuration: 500,
+        fit: true,
+        padding: 30
+      };
+    }
+
+    var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    var textColor = isDark ? '#ccc' : '#333';
+    var edgeColor = isDark ? '#666' : '#ccc';
+    var arrowColor = isDark ? '#888' : '#bbb';
+    var bgOpacity = isDark ? 0.8 : 0.85;
+    var bgColor = isDark ? '#282c34' : '#fff';
+    var litBg = isDark ? '#3e4452' : '#f0f0f0';
+    var uriBg = isDark ? '#2c5282' : '#dbeafe';
+
+    sparqlCyInstance = cytoscape({
+      container: container,
+      elements: elements.nodes.concat(elements.edges),
+      style: [
+        {
+          selector: 'node',
+          style: {
+            'background-color': uriBg,
+            'label': 'data(label)',
+            'text-valign': 'bottom',
+            'text-halign': 'center',
+            'font-size': '10px',
+            'width': 32,
+            'height': 32,
+            'border-width': 2,
+            'border-color': isDark ? '#4a90d9' : '#3b82f6',
+            'text-margin-y': 4,
+            'color': textColor,
+            'text-wrap': 'ellipsis',
+            'text-max-width': '100px'
+          }
+        },
+        {
+          selector: 'node[?isLiteral]',
+          style: {
+            'background-color': litBg,
+            'shape': 'round-rectangle',
+            'border-color': isDark ? '#666' : '#999',
+            'width': 80,
+            'height': 24,
+            'padding': '6px',
+            'text-valign': 'center',
+            'text-margin-y': 0
+          }
+        },
+        {
+          selector: 'edge',
+          style: {
+            'curve-style': 'bezier',
+            'target-arrow-shape': 'triangle',
+            'target-arrow-color': arrowColor,
+            'line-color': edgeColor,
+            'width': 1.5,
+            'label': 'data(label)',
+            'font-size': '9px',
+            'text-rotation': 'autorotate',
+            'color': isDark ? '#aaa' : '#888',
+            'text-background-color': bgColor,
+            'text-background-opacity': bgOpacity,
+            'text-background-padding': '2px'
+          }
+        },
+        {
+          selector: 'node.hovered',
+          style: {
+            'border-width': 3,
+            'width': 38,
+            'height': 38
+          }
+        },
+        {
+          selector: 'node.hovered[?isLiteral]',
+          style: {
+            'border-width': 3,
+            'height': 28
+          }
+        }
+      ],
+      layout: layoutOpts,
+      minZoom: 0.2,
+      maxZoom: 4,
+      wheelSensitivity: 0.3
+    });
+
+    // Tooltip for node hover
+    var tooltip = container.querySelector('.sparql-graph-tooltip');
+    if (!tooltip) {
+      tooltip = document.createElement('div');
+      tooltip.className = 'sparql-graph-tooltip';
+      container.appendChild(tooltip);
+    }
+
+    sparqlCyInstance.on('mouseover', 'node', function(evt) {
+      evt.target.addClass('hovered');
+      var data = evt.target.data();
+      tooltip.textContent = data.fullIri || data.id;
+      tooltip.style.display = 'block';
+      var pos = evt.renderedPosition;
+      tooltip.style.left = (pos.x + 16) + 'px';
+      tooltip.style.top = (pos.y - 12) + 'px';
+    });
+
+    sparqlCyInstance.on('mouseout', 'node', function(evt) {
+      evt.target.removeClass('hovered');
+      tooltip.style.display = 'none';
+    });
+
+    sparqlCyInstance.on('mouseover', 'edge', function(evt) {
+      var data = evt.target.data();
+      tooltip.textContent = data.fullPredicate || data.label;
+      tooltip.style.display = 'block';
+      var pos = evt.renderedPosition;
+      tooltip.style.left = (pos.x + 16) + 'px';
+      tooltip.style.top = (pos.y - 12) + 'px';
+    });
+
+    sparqlCyInstance.on('mouseout', 'edge', function() {
+      tooltip.style.display = 'none';
+    });
+
+  } catch (err) {
+    console.error('Failed to initialize SPARQL graph:', err);
+    container.innerHTML = '<div class="sparql-graph-error">Failed to render graph: ' + escapeHtml(err.message) + '</div>';
+  }
+}
+
+/**
+ * Inject a Table/Graph tab switcher above results when results are triple-pattern.
+ * Both views share the same bindings data — no re-fetching needed.
+ */
+function injectGraphTab(tableWrap, vars, bindings) {
+  if (!tableWrap) return;
+
+  // Destroy any previous Cytoscape instance
+  if (sparqlCyInstance) {
+    sparqlCyInstance.destroy();
+    sparqlCyInstance = null;
+  }
+
+  // Remove any previous tab bar and graph container
+  var resultsWrap = tableWrap.parentElement;
+  if (!resultsWrap) return;
+
+  var oldTabBar = resultsWrap.querySelector('.sparql-result-tabs');
+  if (oldTabBar) oldTabBar.remove();
+  var oldGraph = resultsWrap.querySelector('.sparql-graph-container');
+  if (oldGraph) oldGraph.remove();
+
+  if (!isTriplePattern(vars, bindings)) return;
+
+  // Create tab bar
+  var tabBar = document.createElement('div');
+  tabBar.className = 'sparql-result-tabs';
+  tabBar.innerHTML =
+    '<button class="sparql-result-tab active" data-tab="table">' +
+      '<i data-lucide="table-2"></i> Table' +
+    '</button>' +
+    '<button class="sparql-result-tab" data-tab="graph">' +
+      '<i data-lucide="git-fork"></i> Graph' +
+    '</button>' +
+    '<span class="sparql-graph-tab-hint">' +
+      '<i data-lucide="info"></i> Triple pattern detected' +
+    '</span>';
+
+  // Create graph container (hidden initially)
+  var graphContainer = document.createElement('div');
+  graphContainer.className = 'sparql-graph-container';
+  graphContainer.style.display = 'none';
+
+  // Insert tab bar before the table wrap, graph container after
+  resultsWrap.insertBefore(tabBar, tableWrap);
+  resultsWrap.insertBefore(graphContainer, tableWrap.nextSibling);
+
+  // Track whether graph has been initialized (lazy init on first click)
+  var graphInitialized = false;
+
+  // Bind tab click handlers
+  var tabs = tabBar.querySelectorAll('.sparql-result-tab');
+  tabs.forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      // Update active tab
+      tabs.forEach(function(t) { t.classList.remove('active'); });
+      tab.classList.add('active');
+
+      var which = tab.getAttribute('data-tab');
+      if (which === 'table') {
+        tableWrap.style.display = '';
+        graphContainer.style.display = 'none';
+      } else {
+        tableWrap.style.display = 'none';
+        graphContainer.style.display = '';
+
+        // Lazy-initialize graph on first click
+        if (!graphInitialized) {
+          graphInitialized = true;
+          initSparqlGraph(graphContainer, vars, bindings);
+        } else if (sparqlCyInstance) {
+          // Re-fit on tab switch in case container was resized
+          sparqlCyInstance.resize();
+          sparqlCyInstance.fit(undefined, 30);
+        }
+      }
+    });
+  });
+
+  // Initialize Lucide icons in tab bar
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons({ root: tabBar });
   }
 }
 

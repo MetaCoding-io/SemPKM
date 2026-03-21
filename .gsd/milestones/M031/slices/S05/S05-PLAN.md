@@ -38,7 +38,7 @@ All tasks in this slice are CSS/JS/template polish. Verification is a combinatio
   - Verify: `python3 -c "import ast; ast.parse(open('backend/app/sparql/router.py').read())"` passes; `grep -c "urn:sempkm:" backend/app/sparql/router.py` shows no broad `urn:sempkm:` in vocab prefixes; `grep -q "prefixCache" frontend/static/js/sparql-console.js` in `shortenUri`
   - Done when: Model ontology IRIs in SPARQL results render as vocab pills or shortened QNames, not raw `urn:sempkm:model:*` strings
 
-- [ ] **T02: Add SPARQL graph visualization tab for triple-pattern results** `est:1h`
+- [x] **T02: Add SPARQL graph visualization tab for triple-pattern results** `est:1h`
   - Why: SPARQL-09 (should-have) — users querying triple patterns (s/p/o) have no way to see results as a graph, despite Cytoscape.js being globally available.
   - Files: `frontend/static/js/sparql-console.js`, `frontend/static/css/views.css`
   - Do: (1) Add triple-pattern detection heuristic (3 URI-heavy vars or s/p/o naming). (2) Add Table/Graph tab switcher UI above results. (3) On Graph tab click, parse bindings into Cytoscape.js elements (nodes = unique subjects + objects, edges = predicates) and render inline in a new container. Follow the `model_ontology_diagram.html` Cytoscape init pattern.
