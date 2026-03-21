@@ -3,6 +3,7 @@ app/__init__.py
 app/config.py
 app/dependencies.py
 app/main.py
+app/template_helpers.py
 app/admin/__init__.py
 app/admin/router.py
 app/api/__init__.py
@@ -97,6 +98,9 @@ app/lint/broadcast.py
 app/lint/models.py
 app/lint/router.py
 app/lint/service.py
+app/middleware/__init__.py
+app/middleware/etag.py
+app/middleware/timing.py
 app/models/__init__.py
 app/models/loader.py
 app/models/manifest.py
@@ -210,6 +214,7 @@ tests/test_dashboard.py
 tests/test_dashboard_builder.py
 tests/test_demo_mode.py
 tests/test_dynamic_query_builder.py
+tests/test_etag_middleware.py
 tests/test_event_log_labels.py
 tests/test_event_suggestions.py
 tests/test_event_user_lookup.py
@@ -247,6 +252,7 @@ tests/test_monday_loop_guard.py
 tests/test_monday_person_matcher.py
 tests/test_monday_sync_engine.py
 tests/test_mount_explorer.py
+tests/test_notion_mapping.py
 tests/test_notion_scanner.py
 tests/test_obsidian_scanner.py
 tests/test_ontology_service.py
@@ -265,6 +271,8 @@ tests/test_tag_explorer.py
 tests/test_tag_splitting.py
 tests/test_tag_suggestions.py
 tests/test_tag_tree_builder.py
+tests/test_template_helpers.py
+tests/test_timing_middleware.py
 tests/test_values_injection.py
 tests/test_vfs_path_contract.py
 tests/test_vfs_scope.py

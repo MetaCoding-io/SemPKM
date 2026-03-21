@@ -1,9 +1,8 @@
 # GSD State
 
 **Active Milestone:** M029: Frontend Performance & Build Pipeline
-**Active Slice:** S02: Compression & HTTP Caching
-**Phase:** executing
-**Progress:** T01 pending (1 task)
+**Active Slice:** None
+**Phase:** completing-milestone
 **Requirements Status:** 78 active · 173 validated · 7 deferred · 0 out of scope
 
 ## Milestone Registry
@@ -47,4 +46,4 @@
 - None
 
 ## Next Action
-Execute T01: Add gzip compression and cache headers to nginx configs.
+All slices complete in M029. Write milestone summary.
