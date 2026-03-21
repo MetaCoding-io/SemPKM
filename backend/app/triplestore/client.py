@@ -131,6 +131,21 @@ class TriplestoreClient:
         resp.raise_for_status()
         return resp.content
 
+    async def insert_graph(self, turtle_data: str, graph_iri: str) -> None:
+        """Insert Turtle data into a named graph via RDF4J Graph Store protocol.
+
+        POST to {repo_url}/statements?context=<graph_iri> with Turtle body.
+        This avoids SPARQL INSERT DATA parsing issues with blank nodes
+        by sending the data directly as Turtle content.
+        """
+        resp = await self._client.post(
+            f"{self._repo_url}/statements",
+            content=turtle_data.encode("utf-8"),
+            params={"context": f"<{graph_iri}>"},
+            headers={"Content-Type": "text/turtle"},
+        )
+        resp.raise_for_status()
+
     async def close(self) -> None:
         """Close the underlying httpx client."""
         await self._client.aclose()

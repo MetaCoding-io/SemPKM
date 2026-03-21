@@ -54,7 +54,7 @@
   - Verify: `cd backend && .venv/bin/pytest tests/test_validation_pipeline.py -v` — all tests pass, performance test logs timing
   - Done when: All tests pass. Performance measurement logged showing pyshacl execution time with advanced=True. At least one test proves SPARQLConstraint rules actually fire (overdue task warning detected in results).
 
-- [ ] **T03: Docker integration verification and performance documentation** `est:45m`
+- [x] **T03: Docker integration verification and performance documentation** `est:45m`
   - Why: Unit tests with mocks prove the code changes are correct, but the pipeline fix must be verified against the real Docker stack to confirm rules fire in production. Performance must be documented to retire the roadmap risk.
   - Files: `backend/app/services/models.py` (no changes, just verify), `backend/app/services/validation.py` (no changes, just verify)
   - Do: (1) Start the Docker test stack (`docker compose -f docker-compose.test.yml up -d`). (2) Create a Task with a past due date via the API or UI. (3) Trigger validation (via the lint dashboard or object edit). (4) Check the lint panel — the overdue-task warning should appear. (5) Check Docker API logs for the `model_shapes_loader` log line showing both shapes AND rules triple counts. (6) Document performance findings: record the pyshacl execution time from T02's performance test and from Docker logs. Write a brief performance baseline note in the slice summary. (7) If performance is acceptable (<5s for ~100 objects with all rules), note this retires the roadmap risk. If >5s, flag for S02 planning.
