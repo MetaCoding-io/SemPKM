@@ -96,7 +96,7 @@ This milestone is complete only when all are true:
 - [x] **S01: Carousel Removal + View Scope Binding** `risk:high` `depends:[]`
   > After this: User clicks "Table View" in explorer and gets a table view with no carousel. Type filter pills still work. A view toolbar dropdown shows model-declared view variants when a type is selected, and a separate scope dropdown lets users filter by saved query. Opening a model-declared view (e.g., "Projects Table") from the toolbar dropdown renders correctly.
 
-- [ ] **S02: Multiple View Instances + Saved Views Fix** `risk:medium` `depends:[S01]`
+- [x] **S02: Multiple View Instances + Saved Views Fix** `risk:medium` `depends:[S01]`
   > After this: User can open two graph views as separate tabs with different saved query scopes. The Saved Views folder in the explorer loads entries correctly. User can save the current view configuration as a named saved view and reopen it later.
 
 - [ ] **S03: Saved Queries Everywhere** `risk:low` `depends:[S01]`
