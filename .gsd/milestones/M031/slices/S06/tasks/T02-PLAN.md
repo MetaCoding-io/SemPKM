@@ -125,3 +125,10 @@ Replace the raw text inputs for Target Class IRI (in dashboard create-form block
 - `backend/app/templates/browser/dashboard_builder.html` — target_class and object_iri fields now use autocomplete widgets
 - `backend/app/templates/browser/workflow_builder.html` — target_class field now uses autocomplete widget
 - `frontend/static/css/forms.css` — minor additions for `.selected-reference-label` and builder-context dropdown if needed
+
+## Observability Impact
+
+- **New endpoints:** `/browser/class-search` and `/browser/object-search` are JSON endpoints. On error, they log warnings via `logger.warning()` and return empty arrays (graceful degradation). Verify via `curl '/browser/class-search?q=test'` — should return `[]` or `[{iri, label}]`.
+- **Autocomplete diagnostics:** If the class-search or object-search endpoint returns an error or empty results, the suggestions dropdown shows "No results" rather than silently failing.
+- **Hidden input preservation:** The `data-key` attribute on hidden inputs is preserved, so the existing save collector (`querySelectorAll('[data-key]')`) picks up the selected IRI without changes. Verify by inspecting `document.querySelector('[data-key="target_class"]').value` after selecting a suggestion.
+- **Click-outside dismiss:** Clicking outside the autocomplete dropdown closes it. A global `click` handler on `document` clears `.builder-suggestions` when the click target is not inside `.reference-field`.

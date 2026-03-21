@@ -7971,6 +7971,20 @@ details.form-group[open] > .form-group-summary::before {
     color: var(--color-text-muted);
 }
 
+/* Builder autocomplete */
+.block-config-fields .reference-field {
+    position: relative;
+    max-width: 420px;
+}
+
+.block-config-fields .suggestions-dropdown {
+    max-width: 420px;
+}
+
+.block-config-fields .reference-search {
+    width: 100%;
+}
+
 /* ---------------------------------------------------------------------------
    Workflow builder — mirrors dashboard-builder
    --------------------------------------------------------------------------- */

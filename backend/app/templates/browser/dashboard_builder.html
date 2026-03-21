@@ -150,15 +150,25 @@
       case 'create-form':
         return '<div class="block-config-fields">' +
           '<div class="form-field"><label>Target Class IRI</label>' +
-          '<input type="text" class="block-config-input" data-key="target_class" placeholder="e.g. http://example.org/MyClass" value="' +
-          escapeAttr(config.target_class || '') + '">' +
-          '<small class="field-help">The RDF type IRI for the object creation form (e.g. a class from your model).</small></div></div>';
+          '<small class="field-help">The RDF type IRI for the object creation form (e.g. a class from your model).</small>' +
+          '<div class="reference-field">' +
+          '<input type="text" class="reference-search builder-class-search" placeholder="Search classes..." autocomplete="off" oninput="window._builderClassSearch(this)"' +
+          (config.target_class ? ' value="' + escapeAttr(config.target_class) + '"' : '') + '>' +
+          '<input type="hidden" class="block-config-input" data-key="target_class" value="' + escapeAttr(config.target_class || '') + '">' +
+          '<div class="suggestions-dropdown builder-suggestions"></div>' +
+          '</div>' +
+          '</div></div>';
       case 'object-embed':
         return '<div class="block-config-fields">' +
           '<div class="form-field"><label>Object IRI</label>' +
-          '<input type="text" class="block-config-input" data-key="object_iri" placeholder="e.g. http://example.org/obj1" value="' +
-          escapeAttr(config.object_iri || '') + '">' +
-          '<small class="field-help">The IRI of a specific object to display in this block.</small></div></div>';
+          '<small class="field-help">The IRI of a specific object to display in this block.</small>' +
+          '<div class="reference-field">' +
+          '<input type="text" class="reference-search builder-object-search" placeholder="Search objects..." autocomplete="off" oninput="window._builderObjectSearch(this)"' +
+          (config.object_iri ? ' value="' + escapeAttr(config.object_iri) + '"' : '') + '>' +
+          '<input type="hidden" class="block-config-input" data-key="object_iri" value="' + escapeAttr(config.object_iri || '') + '">' +
+          '<div class="suggestions-dropdown builder-suggestions"></div>' +
+          '</div>' +
+          '</div></div>';
       case 'sparql-result':
         return '<div class="block-config-fields">' +
           '<div class="form-field"><label>SPARQL Query</label>' +
@@ -185,6 +195,64 @@
   function escapeAttr(s) {
     return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
+
+  // ------ Builder autocomplete helpers ------
+
+  function _builderAutocomplete(inputEl, endpoint) {
+    var q = inputEl.value.trim();
+    var wrapper = inputEl.closest('.reference-field');
+    var dropdown = wrapper.querySelector('.suggestions-dropdown');
+    var hiddenInput = wrapper.querySelector('input[type="hidden"]');
+
+    if (!q) {
+      dropdown.innerHTML = '';
+      return;
+    }
+
+    clearTimeout(inputEl._debounceTimer);
+    inputEl._debounceTimer = setTimeout(function() {
+      fetch(endpoint + '?q=' + encodeURIComponent(q))
+        .then(function(r) { return r.json(); })
+        .then(function(items) {
+          if (!items.length) {
+            dropdown.innerHTML = '<div class="suggestion-item" style="color:var(--color-text-muted);cursor:default;">No results</div>';
+            return;
+          }
+          dropdown.innerHTML = items.map(function(item) {
+            return '<div class="suggestion-item" data-iri="' + escapeAttr(item.iri) + '">' +
+              escapeAttr(item.label) +
+              '<small style="display:block;color:var(--color-text-muted);font-size:0.75rem;overflow:hidden;text-overflow:ellipsis;">' +
+              escapeAttr(item.iri) + '</small></div>';
+          }).join('');
+          dropdown.querySelectorAll('.suggestion-item').forEach(function(el) {
+            el.addEventListener('click', function() {
+              var iri = el.getAttribute('data-iri');
+              hiddenInput.value = iri;
+              inputEl.value = iri;
+              dropdown.innerHTML = '';
+            });
+          });
+        })
+        .catch(function() {
+          dropdown.innerHTML = '<div class="suggestion-item" style="color:var(--color-text-muted);cursor:default;">No results</div>';
+        });
+    }, 300);
+  }
+
+  // Close autocomplete dropdowns when clicking outside
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.reference-field')) {
+      document.querySelectorAll('.builder-suggestions').forEach(function(d) { d.innerHTML = ''; });
+    }
+  });
+
+  window._builderClassSearch = function(inputEl) {
+    _builderAutocomplete(inputEl, '/browser/class-search');
+  };
+
+  window._builderObjectSearch = function(inputEl) {
+    _builderAutocomplete(inputEl, '/browser/object-search');
+  };
 
   // ------ Fetch available views for view-embed selects ------
 

@@ -33,7 +33,7 @@
   - Verify: `grep -c 'field-help' backend/app/templates/browser/dashboard_builder.html` ≥ 10; `grep -c 'step-config-renderer' backend/app/templates/browser/workflow_builder.html` returns 0
   - Done when: Every builder field has contextual help text and the workflow view step has one dropdown (not two)
 
-- [ ] **T02: Add autocomplete for Target Class IRI and Object IRI fields** `est:1h`
+- [x] **T02: Add autocomplete for Target Class IRI and Object IRI fields** `est:1h`
   - Why: DBUIX-02 — users currently must type exact IRIs from memory. Autocomplete makes these fields usable.
   - Files: `backend/app/browser/search.py`, `backend/app/templates/browser/dashboard_builder.html`, `backend/app/templates/browser/workflow_builder.html`, `frontend/static/css/forms.css`
   - Do: (1) Add a `/browser/class-search` JSON endpoint in `search.py` that wraps `OntologyService.search_classes()` and returns `[{iri, label}]`. (2) In both builders, replace the plain text `<input>` for `target_class` with a `.reference-field` wrapper containing a visible search input, a hidden input with `data-key="target_class"`, and a `.suggestions-dropdown` div. Wire the search input to fetch from `/browser/class-search?q=...` on input with 300ms debounce (vanilla JS, matching the builder's existing fetch pattern). Render suggestion items and on click set the hidden input value + show selected label. (3) Same pattern for `object_iri` field using the existing `/browser/search` endpoint (search all types). (4) Add `htmx.process()` calls after dynamic DOM insertion in both builders. (5) Verify `.reference-field` and `.suggestions-dropdown` CSS works inside `.dashboard-builder` / `.workflow-builder` context — adjust if needed.
