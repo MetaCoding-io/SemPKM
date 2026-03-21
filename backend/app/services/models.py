@@ -1155,8 +1155,30 @@ WHERE {{ ?s ?p ?o }}"""
     shapes_graph = Graph()
     if turtle_bytes.strip():
         shapes_graph.parse(data=turtle_bytes, format="turtle")
+    shapes_count = len(shapes_graph)
 
-    logger.info("Loaded %d shapes triples from %d model(s)", len(shapes_graph), len(bindings))
+    # 3. Build CONSTRUCT with FROM clauses for each model's rules graph
+    rules_from_clauses = []
+    for b in bindings:
+        model_id = b["modelId"]["value"]
+        rules_iri = f"urn:sempkm:model:{model_id}:rules"
+        rules_from_clauses.append(f"FROM <{rules_iri}>")
+
+    rules_from_str = "\n".join(rules_from_clauses)
+    rules_construct_sparql = f"""CONSTRUCT {{ ?s ?p ?o }}
+{rules_from_str}
+WHERE {{ ?s ?p ?o }}"""
+
+    rules_turtle_bytes = await client.construct(rules_construct_sparql)
+    rules_graph = Graph()
+    if rules_turtle_bytes.strip():
+        rules_graph.parse(data=rules_turtle_bytes, format="turtle")
+    rules_count = len(rules_graph)
+
+    # 4. Merge rules into shapes graph
+    shapes_graph += rules_graph
+
+    logger.info("Loaded %d shapes + %d rules triples from %d model(s)", shapes_count, rules_count, len(bindings))
     return shapes_graph
 
 

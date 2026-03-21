@@ -82,3 +82,10 @@ Both fixes must be applied together. Fixing only the loader still produces zero 
 
 - `backend/app/services/models.py` — `model_shapes_loader()` updated to fetch and merge rules graphs
 - `backend/app/services/validation.py` — `validate()` updated with `advanced=True`
+
+## Observability Impact
+
+- **Changed signal:** `model_shapes_loader` log line changes from `"Loaded %d shapes triples from %d model(s)"` to `"Loaded %d shapes + %d rules triples from %d model(s)"`. Agents and operators can inspect Docker API logs for this line to confirm rules triples are being loaded (non-zero rules count = rules are feeding into validation).
+- **How to inspect:** `docker compose logs api 2>&1 | grep "shapes.*rules triples"` — shows shapes and rules triple counts per startup/reload.
+- **Failure state:** If rules count is 0 but shapes count is >0, rules graphs are missing from the triplestore (model install issue). If both are 0, no models are installed. If the lint panel shows 0 warnings on objects that should violate rules, check this log line first.
+- **`advanced=True` flag:** No runtime log for this — verify via code grep: `grep -n "advanced=True" backend/app/services/validation.py`.

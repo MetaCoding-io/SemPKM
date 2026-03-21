@@ -22,6 +22,8 @@
 
 - `cd backend && .venv/bin/pytest tests/test_validation_pipeline.py -v` — unit tests for loader merge + advanced flag + performance timing
 - Docker stack integration: create overdue task → trigger validation → lint panel shows warning
+- Diagnostic check: `grep -rn "advanced=True" backend/app/services/validation.py` confirms the flag is present; `grep -n "rules" backend/app/services/models.py | grep -i "from\|construct\|merge"` confirms rules graph loading code exists
+- Failure-path check: when no models are installed, `model_shapes_loader` returns an empty Graph and `validate()` returns synthetic conforms=True (no crash). Verified by unit test with empty registry mock.
 
 ## Observability / Diagnostics
 
@@ -38,7 +40,7 @@
 
 ## Tasks
 
-- [ ] **T01: Fix model_shapes_loader to include rules graphs and pass advanced=True in ValidationService** `est:1h`
+- [x] **T01: Fix model_shapes_loader to include rules graphs and pass advanced=True in ValidationService** `est:1h`
   - Why: These are the two broken links preventing all SHACL-AF SPARQLConstraint rules from firing. The loader only fetches shapes graphs but not rules graphs. The validation service doesn't enable SHACL-AF processing. Both must be fixed together since fixing only one still produces zero results.
   - Files: `backend/app/services/models.py`, `backend/app/services/validation.py`
   - Do: (1) In `model_shapes_loader()`, add a second set of FROM clauses for rules graphs (`urn:sempkm:model:{model_id}:rules`) and merge them into the returned Graph alongside shapes. Use a second CONSTRUCT query for rules, then merge via `shapes_graph += rules_graph`. Log both shapes and rules triple counts. (2) In `ValidationService.validate()`, add `advanced=True` to the `pyshacl.validate()` call at line ~100. This enables SHACL-AF processing (SPARQLRule + SPARQLConstraint). The inference service already does this correctly at lines 144 and 157 of `backend/app/inference/service.py` — match that pattern.
