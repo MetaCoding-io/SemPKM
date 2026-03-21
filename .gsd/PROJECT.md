@@ -1010,4 +1010,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-03-21 after M031/S03 complete (Saved Queries Everywhere — QUERIES explorer section with htmx lazy-load, click-to-open Table View tabs, drag-to-canvas embed, 28 unit tests, SQ-01 + SQ-02 + SQ-03 validated)*
+*Last updated: 2026-03-21 after M031/S05 complete (SPARQL + Ontology + Graph + Full-Height Polish — IRI pill fix with 28 specific sub-namespaces, dynamic prefix shortening, SPARQL graph tab, TBox property tooltips, admin graph full-viewport with edge tooltips, full-height views via .view-flex-column, graph popover z-index fix. 8 requirements validated: SPARQL-09/10/11, ONTO-04/05/06, VIEW-13/14)*

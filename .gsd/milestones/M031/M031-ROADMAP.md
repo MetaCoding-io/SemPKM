@@ -105,7 +105,7 @@ This milestone is complete only when all are true:
 - [x] **S04: Kanban Renderer** `risk:medium` `depends:[S01]`
   > After this: User opens "Kanban View" from explorer, sees status-based columns (todo, in-progress, done, etc.), and can drag tasks between columns to change their status. Type filter pills filter which objects appear in the kanban.
 
-- [ ] **S05: SPARQL + Ontology + Graph + Full-Height Polish** `risk:low` `depends:[S01]`
+- [x] **S05: SPARQL + Ontology + Graph + Full-Height Polish** `risk:low` `depends:[S01]`
   > After this: SPARQL console correctly shortens all `urn:sempkm:model:*` IRIs, no pills fall through to plain spans, and triple-pattern results have a graph visualization tab. TBox property names show description tooltips. Admin model graph is full-viewport with edge hover tooltips. All views use 100% available height. Graph node popover renders above the toolbar.
 
 - [ ] **S06: Dashboard & Workflow Builder UX** `risk:low` `depends:[]`
