@@ -2,7 +2,7 @@
   "version": 1,
   "projectName": "SemPKM",
   "projectPath": "/home/james/Code/SemPKM",
-  "gsdVersion": "2.28.0",
+  "gsdVersion": "2.40.0",
   "entries": [
     {
       "filename": "M012-2026-03-18T03-26-53.html",
@@ -242,6 +242,22 @@
       "totalSlices": 198,
       "doneMilestones": 30,
       "totalMilestones": 32,
+      "phase": "pre-planning"
+    },
+    {
+      "filename": "M031-2026-03-21T17-53-43.html",
+      "generatedAt": "2026-03-21T17:53:43.958Z",
+      "milestoneId": "M031",
+      "milestoneTitle": "Views Overhaul, Saved Queries as First-Class, & UI Polish",
+      "label": "M031: Views Overhaul, Saved Queries as First-Class, & UI Polish",
+      "kind": "milestone",
+      "totalCost": 864.7530745,
+      "totalTokens": 1197467336,
+      "totalDuration": 159426254,
+      "doneSlices": 205,
+      "totalSlices": 205,
+      "doneMilestones": 31,
+      "totalMilestones": 33,
       "phase": "pre-planning"
     }
   ]
