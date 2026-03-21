@@ -50,12 +50,17 @@ var editorView = null;
 var cellHistory = [];
 var vocabCache = [];
 var prefixCache = {};
+var reversePrefixMap = {};   // namespace → prefix, rebuilt when prefixCache changes
+var vocabIriIndex = {};      // full_iri → vocabCache item, rebuilt when vocabCache changes
 var cachedModelVersion = null;
 var DISPLAY_LIMIT = 200;
 var currentSavedQueryId = null;
 var currentSavedQueryName = '';
 
-// Known vocabulary prefixes (object IRIs are those NOT matching these)
+// Known vocabulary prefixes (object IRIs are those NOT matching these).
+// NOTE: urn:sempkm:model:* is intentionally EXCLUDED so that model ontology
+// class/property IRIs get enriched with pills.  Only internal machinery
+// namespaces are listed here.
 var KNOWN_VOCAB_PREFIXES = [
   'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
   'http://www.w3.org/2000/01/rdf-schema#',
@@ -68,7 +73,38 @@ var KNOWN_VOCAB_PREFIXES = [
   'http://www.w3.org/2001/XMLSchema#',
   'http://www.w3.org/ns/shacl#',
   'http://www.w3.org/ns/prov#',
-  'urn:sempkm:'
+  // Specific urn:sempkm: internal namespaces (NOT the broad "urn:sempkm:")
+  'urn:sempkm:app:',
+  'urn:sempkm:canvas:',
+  'urn:sempkm:dashboard:',
+  'urn:sempkm:data:',
+  'urn:sempkm:event:',
+  'urn:sempkm:inbox:',
+  'urn:sempkm:inference:',
+  'urn:sempkm:instance:',
+  'urn:sempkm:lint-result:',
+  'urn:sempkm:lint-run:',
+  'urn:sempkm:mount:',
+  'urn:sempkm:obj:',
+  'urn:sempkm:object:',
+  'urn:sempkm:ontology:',
+  'urn:sempkm:ops-log:',
+  'urn:sempkm:person:',
+  'urn:sempkm:query:',
+  'urn:sempkm:query-exec:',
+  'urn:sempkm:query-view:',
+  'urn:sempkm:shared:',
+  'urn:sempkm:state:',
+  'urn:sempkm:task:',
+  'urn:sempkm:user:',
+  'urn:sempkm:user-types:',
+  'urn:sempkm:user-view:',
+  'urn:sempkm:validation:',
+  'urn:sempkm:vfs:',
+  'urn:sempkm:view:',
+  'urn:sempkm:vocab:',
+  'urn:sempkm:webhook:',
+  'urn:sempkm:workflow:'
 ];
 
 // SPARQL keywords for autocomplete
@@ -348,7 +384,19 @@ function renderCell(cell, enrichment) {
     if (enr) {
       return renderIriPill(uri, enr);
     }
-    // Vocabulary IRI: show as compact QName
+
+    // Vocab pill fallback: if the IRI is in vocabCache, render a styled pill
+    var vocabItem = vocabIriIndex[uri];
+    if (vocabItem) {
+      var vocabLabel = vocabItem.qname || shortenUri(uri);
+      var vocabBadge = vocabItem.badge || 'C';
+      var vocabIcon = vocabBadge === 'C' ? 'box' : (vocabBadge === 'D' ? 'type' : 'arrow-right');
+      return '<span class="sparql-iri-pill sparql-vocab-pill" title="' + escapeAttr(uri) + '">' +
+        '<span class="sparql-pill-icon"><i data-lucide="' + escapeAttr(vocabIcon) + '"></i></span>' +
+        '<span class="sparql-pill-label">' + escapeHtml(vocabLabel) + '</span></span>';
+    }
+
+    // Plain vocabulary IRI: show as compact QName
     return '<span class="sparql-uri" title="' + escapeAttr(uri) + '">' + escapeHtml(shortenUri(uri)) + '</span>';
   }
 
@@ -378,7 +426,7 @@ function renderIriPill(uri, enr) {
 }
 
 function shortenUri(uri) {
-  // Standard prefix shortenings
+  // Standard prefix shortenings (hardcoded well-known namespaces)
   var prefixes = {
     'http://www.w3.org/1999/02/22-rdf-syntax-ns#': 'rdf:',
     'http://www.w3.org/2000/01/rdf-schema#': 'rdfs:',
@@ -396,6 +444,14 @@ function shortenUri(uri) {
       return prefixes[ns] + uri.substring(ns.length);
     }
   }
+
+  // Dynamic prefixes from prefixCache (model ontology namespaces, etc.)
+  for (var namespace in reversePrefixMap) {
+    if (uri.indexOf(namespace) === 0) {
+      return reversePrefixMap[namespace] + ':' + uri.substring(namespace.length);
+    }
+  }
+
   // Try extracting local name from # or last /
   var hashIdx = uri.lastIndexOf('#');
   if (hashIdx !== -1) return uri.substring(hashIdx + 1);
@@ -833,6 +889,20 @@ async function fetchVocabulary() {
     vocabCache = data.items || [];
     prefixCache = data.prefixes || {};
     cachedModelVersion = data.model_version;
+
+    // Rebuild reverse prefix map (namespace → prefix) for shortenUri()
+    var rmap = {};
+    Object.keys(prefixCache).forEach(function(prefix) {
+      rmap[prefixCache[prefix]] = prefix;
+    });
+    reversePrefixMap = rmap;
+
+    // Rebuild IRI index for vocab pill lookup in renderCell()
+    var idx = {};
+    vocabCache.forEach(function(item) {
+      if (item.full_iri) idx[item.full_iri] = item;
+    });
+    vocabIriIndex = idx;
   } catch (err) {
     console.warn('Failed to fetch SPARQL vocabulary:', err);
   }
