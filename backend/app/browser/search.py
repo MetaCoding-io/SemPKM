@@ -1,9 +1,10 @@
-"""Search sub-router — reference search and tag suggestions."""
+"""Search sub-router — reference search, tag suggestions, and builder autocomplete."""
 
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse
+from starlette.responses import JSONResponse
 
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
@@ -183,3 +184,79 @@ async def tag_suggestions(
         "browser/tag_suggestions.html",
         {"request": request, "results": results},
     )
+
+
+# ---------------------------------------------------------------------------
+# Builder autocomplete endpoints (JSON)
+# ---------------------------------------------------------------------------
+
+
+@search_router.get("/class-search")
+async def class_search(
+    request: Request,
+    q: str = "",
+    user: User = Depends(get_current_user),
+):
+    """JSON search for RDF classes by label. Used by builder autocomplete.
+
+    Wraps ``OntologyService.search_classes()`` and returns
+    ``[{"iri": str, "label": str}]``.
+    """
+    if not q.strip():
+        return JSONResponse(content=[], status_code=200)
+
+    ontology_service = request.app.state.ontology_service
+    try:
+        classes = await ontology_service.search_classes(q.strip())
+    except Exception:
+        logger.warning("class-search failed for q='%s'", q, exc_info=True)
+        return JSONResponse(content=[], status_code=200)
+
+    return JSONResponse(
+        content=[{"iri": c["iri"], "label": c["label"]} for c in classes],
+        status_code=200,
+    )
+
+
+@search_router.get("/object-search")
+async def object_search(
+    request: Request,
+    q: str = "",
+    user: User = Depends(get_current_user),
+    client: TriplestoreClient = Depends(get_triplestore_client),
+):
+    """JSON search for objects by label. Used by builder autocomplete.
+
+    Queries the current state graph for instances matching a
+    case-insensitive label filter across standard label predicates.
+    Returns ``[{"iri": str, "label": str}]``.
+    """
+    if not q.strip():
+        return JSONResponse(content=[], status_code=200)
+
+    escaped = _sparql_escape(q.strip())
+    sparql = f"""PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX schema: <https://schema.org/>
+
+SELECT DISTINCT ?s ?label WHERE {{
+  GRAPH <urn:sempkm:current> {{
+    ?s a ?type .
+    ?s rdfs:label|dcterms:title|skos:prefLabel|schema:name ?label .
+  }}
+  FILTER(REGEX(STR(?label), "{escaped}", "i"))
+}} LIMIT 15"""
+
+    try:
+        result = await client.query(sparql)
+        bindings = result.get("results", {}).get("bindings", [])
+        items = [
+            {"iri": b["s"]["value"], "label": b["label"]["value"]}
+            for b in bindings
+        ]
+    except Exception:
+        logger.warning("object-search failed for q='%s'", q, exc_info=True)
+        items = []
+
+    return JSONResponse(content=items, status_code=200)
