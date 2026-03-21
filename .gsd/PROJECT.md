@@ -630,8 +630,6 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current State
 
-**Latest shipped: M030 Data Quality Linting & Lint UX (2026-03-21)**
-
 **Latest shipped: M031 Views Overhaul, Saved Queries as First-Class, & UI Polish (2026-03-21) — all 7 slices, 20 requirements validated**
 
 **What shipped in M031:**
@@ -647,7 +645,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Dashboard/workflow builder help text on all fields (DBUIX-01), IRI autocomplete via class-search/object-search endpoints (DBUIX-02), workflow view step simplification (DBUIX-03), idempotent seed data (DBUIX-04)
 - E2E Playwright tests covering all 6 major features (S07/T01), stale carousel tests retired
 - User guide chapters 7, 21, and 28 updated for all new features (S07/T02)
-- Remaining: E2E tests + user guide docs (S07)
+- 88 unit tests, 11 decisions (D284–D294)
 
 **What shipped in M030 (Data Quality Linting & Lint UX):**
 - Validation pipeline fix: `model_shapes_loader()` loads rules graphs alongside shapes, `ValidationService.validate()` passes `advanced=True` — all 11 existing M011 SHACL-AF rules now fire in production for the first time
@@ -849,9 +847,9 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - E2E test coverage: 5 new Playwright tests across 3 spec files
 - User guide: 4 chapters updated with new feature documentation
 
-**Previous milestones:** M030 Data Quality Linting & Lint UX (2026-03-21), M029 Frontend Performance & Build Pipeline (2026-03-20), M026 Homepage & Messaging Rewrite (2026-03-20), M025 Hosted Demo Instance (2026-03-20), M024 Monday.com Sync App (2026-03-20), M023 Jira Sync App (2026-03-19), M017 GitHub Issues Sync App (2026-03-18), M016 Linear Sync App (2026-03-18), M015 Browser Extension Phase 2 (2026-03-18), M014 Browser Extension Phase 1 (2026-03-18), M013 API Surface for External Clients (2026-03-17), M012 Workspace & Event Log Polish (2026-03-17), M011 Mental Models Expansion (2026-03-17), M008 Spatial Canvas (2026-03-16), M007 Generic Views, VFS Completion & Polish (2026-03-16), M006 Dashboards, Workflows & Platform Alignment (2026-03-15), M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
+**Previous milestones:** M031 Views Overhaul (2026-03-21), M030 Data Quality Linting & Lint UX (2026-03-21), M029 Frontend Performance & Build Pipeline (2026-03-20), M026 Homepage & Messaging Rewrite (2026-03-20), M025 Hosted Demo Instance (2026-03-20), M024 Monday.com Sync App (2026-03-20), M023 Jira Sync App (2026-03-19), M017 GitHub Issues Sync App (2026-03-18), M016 Linear Sync App (2026-03-18), M015 Browser Extension Phase 2 (2026-03-18), M014 Browser Extension Phase 1 (2026-03-18), M013 API Surface for External Clients (2026-03-17), M012 Workspace & Event Log Polish (2026-03-17), M011 Mental Models Expansion (2026-03-17), M008 Spatial Canvas (2026-03-16), M007 Generic Views, VFS Completion & Polish (2026-03-16), M006 Dashboards, Workflows & Platform Alignment (2026-03-15), M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
 
-**Latest shipped: M030 Data Quality Linting & Lint UX (2026-03-21)**
+**Latest shipped: M031 Views Overhaul, Saved Queries as First-Class, & UI Polish (2026-03-21)**
 
 **What shipped in M013 (API Surface for External Clients):**
 - `GET /.well-known/sempkm` discovery endpoint with version, endpoints, auth methods, capabilities
