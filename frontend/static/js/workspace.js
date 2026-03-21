@@ -3229,7 +3229,7 @@
       tabKey = 'generic-view:' + renderer + ':' + Date.now();
     }
 
-    var labels = { table: 'Table View', card: 'Cards View', graph: 'Graph View' };
+    var labels = { table: 'Table View', card: 'Cards View', graph: 'Graph View', kanban: 'Kanban View' };
     var baseLabel = labels[renderer] || 'Generic View';
     var label = baseLabel;
 

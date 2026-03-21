@@ -52,7 +52,7 @@
   - Verify: `python -m pytest backend/tests/test_kanban.py -v` — all tests pass; `python3 -c "import ast; ast.parse(open('backend/app/views/router.py').read())"` — no syntax errors
   - Done when: kanban endpoint exists, status detection works on types with `sh:in` properties, query groups objects by status, tests pass
 
-- [ ] **T02: Kanban template, CSS, drag-drop JS, and view wiring** `est:45m`
+- [x] **T02: Kanban template, CSS, drag-drop JS, and view wiring** `est:45m`
   - Why: The backend endpoint from T01 needs a template to render, CSS for the kanban board layout, JS for drag-drop with dockview isolation, and wiring so users can access the view from the explorer sidebar.
   - Files: `backend/app/templates/browser/kanban_view.html`, `frontend/static/css/views.css`, `frontend/static/js/kanban.js`, `backend/app/templates/base.html`, `backend/app/templates/browser/views_explorer.html`, `frontend/static/js/workspace.js`
   - Do: Create `kanban_view.html` (type pills + toolbar + kanban board). Add kanban CSS (flex columns, overflow-x, drag states). Create `kanban.js` (initKanban, HTML5 drag handlers with stopPropagation, patchStatus via /api/commands, optimistic DOM move, sempkm:command-executed dispatch). Add script tag in base.html. Add "Kanban View" explorer leaf. Add `kanban` label in openGenericViewTab().

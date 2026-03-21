@@ -155,6 +155,13 @@ Create the frontend for the kanban view: a Jinja2 template rendering status colu
 - `grep -q 'initKanban' frontend/static/js/kanban.js` — init function defined
 - `grep -q 'stopPropagation' frontend/static/js/kanban.js` — dockview isolation present
 
+## Observability Impact
+
+- **Client-side drag-drop errors:** `console.error('kanban: failed to patch status for', iri, err)` logged on failed PATCH requests — visible in browser DevTools console.
+- **Network inspection:** Drag-drop triggers `POST /api/commands` with `object.patch` payload — visible in DevTools Network tab. Failed requests surface via console.error and user-facing toast.
+- **Custom event:** `sempkm:command-executed` dispatched after successful status patch — listeners (e.g. explorer refresh) react automatically.
+- **Template empty states:** When no type is selected or type has no status property, the kanban template renders a user-facing message instead of a blank board.
+
 ## Inputs
 
 - `backend/app/views/router.py` — T01 added kanban branch that renders `kanban_view.html` with context variables
