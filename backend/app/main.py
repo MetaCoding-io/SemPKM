@@ -35,6 +35,8 @@ from app.dashboard.router import browser_router as dashboard_browser_router, api
 from app.workflow.router import browser_router as workflow_browser_router, api_router as workflow_api_router
 from app.persona.router import browser_router as persona_browser_router, api_router as persona_api_router
 from app.debug.router import router as debug_router
+from app.middleware.etag import ConditionalGetMiddleware
+from app.middleware.timing import TimingMiddleware, timing_router
 from app.auth.service import AuthService
 from app.auth.tokens import load_or_create_setup_token
 from app.config import settings
@@ -562,6 +564,14 @@ else:
         allow_headers=["*"],
     )
 
+# ETag conditional GET middleware — added before TimingMiddleware so timing
+# wraps ETag processing and captures total time including 304 responses.
+app.add_middleware(ConditionalGetMiddleware)
+
+# Timing middleware — added last so it wraps all other middleware and
+# captures the total request processing time (outermost layer).
+app.add_middleware(TimingMiddleware)
+
 # Include routers (API routers first, then UI routers, shell router last)
 app.include_router(monitoring_router)
 app.include_router(well_known_router)
@@ -574,6 +584,7 @@ app.include_router(sparql_router)
 app.include_router(lint_router)
 app.include_router(inference_router)
 app.include_router(admin_router)
+app.include_router(timing_router)
 app.include_router(views_router)
 app.include_router(dashboard_browser_router)
 app.include_router(dashboard_api_router)

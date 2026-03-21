@@ -2114,6 +2114,78 @@ Lighthouse default mobile audit 0.99 (FCP 1.6s, LCP 1.6s, TBT 0ms). Responsive v
 
 Meta descriptions × 4, og:image with absolute URLs × 4, JSON-LD (Organization + WebSite @graph) × 4. All internal links verified working.
 
+### PERF-02 — All 18 CDN dependencies replaced with locally served files
+- Status: validated
+- Class: quality-attribute
+- Source: design (M029-ROADMAP.md)
+- Primary Slice: M029/S01
+
+S01: 18 deps in package.json, vendor bundle produced, 37 manifest entries, all templates use conditional local/CDN blocks.
+
+### PERF-03 — Build pipeline produces minified, content-hashed assets automatically via docker compose build
+- Status: validated
+- Class: quality-attribute
+- Source: design (M029-ROADMAP.md)
+- Primary Slice: M029/S01
+
+S01: esbuild build.js, manifest.json with 37 entries, multi-stage Dockerfile, 0.8s build time.
+
+### PERF-04 — nginx serves gzip-compressed responses for CSS/JS/HTML/JSON/SVG
+- Status: validated
+- Class: quality-attribute
+- Source: design (M029-ROADMAP.md)
+- Primary Slice: M029/S02
+
+S02: gzip_static on for pre-compressed .gz siblings, gzip_proxied any for dynamic HTML, curl confirms Content-Encoding: gzip.
+
+### PERF-05 — HTTP caching with immutable headers on hashed assets, no-cache with ETag on auth pages
+- Status: validated
+- Class: quality-attribute
+- Source: design (M029-ROADMAP.md)
+- Primary Slice: M029/S02
+
+S02: Cache-Control: public, max-age=31536000, immutable on /assets/; no-cache + ETag + 304 on auth pages; curl verified all 8 checks.
+
+### PERF-06 — CSS code-splitting by route — admin pages load only shared CSS
+- Status: validated
+- Class: quality-attribute
+- Source: design (M029-ROADMAP.md)
+- Primary Slice: M029/S03
+
+S03: 19 templates override page_css block, curl confirms 0 workspace CSS links on admin pages, 5 on workspace pages.
+
+### PERF-07 — Lighthouse Performance score on workspace page (desktop preset)
+- Status: validated
+- Class: quality-attribute
+- Source: design (M029-ROADMAP.md)
+- Primary Slice: M029/S05
+
+S05/T01: Median score 80 (range 74-81) desktop preset, up from estimated ~40-60 pre-M029. FCP 984ms, LCP 2585ms, TBT 15ms, CLS 0.094.
+
+### PERF-08 — Backend response timing middleware with top-5 slowest endpoint report
+- Status: validated
+- Class: quality-attribute
+- Source: design (M029-ROADMAP.md)
+- Primary Slice: M029/S04
+
+S04: TimingMiddleware + /api/admin/timing-report endpoint, Server-Timing header, 20 unit tests pass.
+
+### PERF-09 — Backend HTTP cache headers — ETag, conditional GET returning 304
+- Status: validated
+- Class: quality-attribute
+- Source: design (M029-ROADMAP.md)
+- Primary Slice: M029/S04
+
+S04: ConditionalGetMiddleware, weak ETags on JSON API GET responses, 304 Not Modified, 16 unit tests pass.
+
+### PERF-10 — QUIC/HTTP/3 decision documented with rationale
+- Status: validated
+- Class: quality-attribute
+- Source: design (M029-ROADMAP.md)
+- Primary Slice: M029/S05
+
+S05/T02: Decision D277 recorded — defer, nginx:stable-alpine lacks HTTP/3, minimal benefit for self-hosted single-user.
+
 ## Deferred
 
 ### TYPE-03 — Full SHACL shape editor with advanced constraints
@@ -2452,11 +2524,20 @@ Meta descriptions × 4, og:image with absolute URLs × 4, JSON-LD (Organization 
 | SITE-05 | quality-attribute | validated | M026/S03 | none | 5 fresh screenshots from demo stack dated 2026-03-20 |
 | SITE-06 | quality-attribute | validated | M026/S03 | M026/S01 | Lighthouse 0.99 + responsive at 3 breakpoints |
 | SITE-07 | quality-attribute | validated | M026/S03 | M026/S01 | meta descriptions + og:image (absolute) + JSON-LD on all 4 pages |
+| PERF-02 | quality-attribute | validated | M029/S01 | none | 18 CDN deps replaced, vendor bundle, 37 manifest entries |
+| PERF-03 | quality-attribute | validated | M029/S01 | none | esbuild build.js, manifest.json, multi-stage Dockerfile, 0.8s |
+| PERF-04 | quality-attribute | validated | M029/S02 | none | gzip_static + gzip_proxied, curl confirms Content-Encoding: gzip |
+| PERF-05 | quality-attribute | validated | M029/S02 | none | immutable 1yr on /assets/, no-cache + ETag on auth, 8 curl checks |
+| PERF-06 | quality-attribute | validated | M029/S03 | none | 19 templates override page_css, 0 workspace CSS on admin pages |
+| PERF-07 | quality-attribute | validated | M029/S05 | none | Lighthouse desktop 80 (range 74-81), FCP 984ms, LCP 2585ms, TBT 15ms |
+| PERF-08 | quality-attribute | validated | M029/S04 | none | TimingMiddleware + timing-report endpoint + 20 unit tests |
+| PERF-09 | quality-attribute | validated | M029/S04 | none | ConditionalGetMiddleware + weak ETags + 304 + 16 unit tests |
+| PERF-10 | quality-attribute | validated | M029/S05 | none | D277 QUIC/HTTP/3 defer — nginx lacks HTTP/3, minimal benefit |
 
 ## Coverage Summary
 
 - Active requirements: 25 (14 APP + 8 RSS + 3 GCAL)
-- Validated: 222 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 8 from M013 + 13 from M014 + 4 from M015 + 7 from M016 + 7 from M017 + 5 from M018 + 12 from M023 + 15 from M024 + 10 from M025 + 7 from M026 + 2 from other)
+- Validated: 231 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 8 from M013 + 13 from M014 + 4 from M015 + 7 from M016 + 7 from M017 + 5 from M018 + 12 from M023 + 15 from M024 + 10 from M025 + 7 from M026 + 9 from M029 + 2 from other)
 - Partial: 4 (EXT-14, EXT-18, EXT-20, EXT-21)
 - Deferred: 6 (TYPE-03, TYPE-04, MCP-01, VIEW-06, VIEW-07, VFS-13)
 - Out of scope: 3

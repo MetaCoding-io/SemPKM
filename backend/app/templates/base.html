@@ -47,11 +47,13 @@
     {% endif %}
     <script src="{{ 'posthog.js' | asset_url }}"></script>
     <script src="{{ 'auth.js' | asset_url }}"></script>
+    {% block page_css %}
     <link rel="stylesheet" href="{{ 'workspace.css' | asset_url }}">
     <link rel="stylesheet" href="{{ 'forms.css' | asset_url }}">
     <link rel="stylesheet" href="{{ 'views.css' | asset_url }}">
     <link rel="stylesheet" href="{{ 'settings.css' | asset_url }}">
     <link rel="stylesheet" href="{{ 'vfs-browser.css' | asset_url }}">
+    {% endblock page_css %}
     <script src="{{ 'tutorials.js' | asset_url }}"></script>
     {% block head %}{% endblock %}
 </head>

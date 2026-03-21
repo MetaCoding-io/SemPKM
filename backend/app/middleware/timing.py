@@ -1,0 +1,146 @@
+"""Request timing middleware and admin report endpoint.
+
+Measures request durations, logs slow requests, adds Server-Timing
+headers, accumulates per-path timing statistics in memory, and exposes
+a top-5 slowest endpoint report via an admin API.
+
+Delivers requirement PERF-08 (backend profiling).
+"""
+
+import logging
+import time
+from typing import Any
+
+from fastapi import APIRouter, Depends, Request
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
+from starlette.responses import Response
+
+from app.auth.dependencies import require_role
+
+logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# In-memory timing stats
+# ---------------------------------------------------------------------------
+
+_timing_stats: dict[str, list[float]] = {}
+_MAX_SAMPLES_PER_PATH = 1000
+_collection_start: float = time.monotonic()
+
+
+def _record_timing(path: str, duration_ms: float) -> None:
+    """Append a duration sample for *path*, trimming if over cap."""
+    samples = _timing_stats.setdefault(path, [])
+    samples.append(duration_ms)
+    if len(samples) > _MAX_SAMPLES_PER_PATH:
+        # Keep the most recent samples
+        _timing_stats[path] = samples[-_MAX_SAMPLES_PER_PATH:]
+
+
+def get_timing_report(top_n: int = 5) -> list[dict[str, Any]]:
+    """Compute per-path timing stats sorted by avg_ms descending.
+
+    Returns at most *top_n* entries, each containing:
+      path, count, avg_ms, max_ms, min_ms, p95_ms, total_ms
+    """
+    report: list[dict[str, Any]] = []
+    for path, durations in _timing_stats.items():
+        if not durations:
+            continue
+        sorted_d = sorted(durations)
+        count = len(sorted_d)
+        total = sum(sorted_d)
+        p95_idx = int(count * 0.95)
+        # Clamp index to valid range (at least 0, at most last element)
+        p95_idx = min(p95_idx, count - 1)
+        report.append(
+            {
+                "path": path,
+                "count": count,
+                "avg_ms": round(total / count, 2),
+                "max_ms": round(sorted_d[-1], 2),
+                "min_ms": round(sorted_d[0], 2),
+                "p95_ms": round(sorted_d[p95_idx], 2),
+                "total_ms": round(total, 2),
+            }
+        )
+    report.sort(key=lambda r: r["avg_ms"], reverse=True)
+    return report[:top_n]
+
+
+def reset_timing_stats() -> None:
+    """Clear all accumulated timing stats. Useful for test isolation."""
+    global _collection_start
+    _timing_stats.clear()
+    _collection_start = time.monotonic()
+
+
+# ---------------------------------------------------------------------------
+# Middleware
+# ---------------------------------------------------------------------------
+
+_SLOW_REQUEST_THRESHOLD_MS = 100.0
+
+
+class TimingMiddleware(BaseHTTPMiddleware):
+    """Middleware that times every request and adds Server-Timing header."""
+
+    async def dispatch(
+        self, request: Request, call_next: RequestResponseEndpoint
+    ) -> Response:
+        start = time.monotonic()
+        response = await call_next(request)
+        duration_ms = (time.monotonic() - start) * 1000.0
+
+        # Add Server-Timing header
+        response.headers["Server-Timing"] = f"total;dur={duration_ms:.2f}"
+
+        path = request.url.path
+        method = request.method
+        status_code = response.status_code
+
+        # Log request timing
+        logger.debug(
+            "%s %s %s %.1fms", method, path, status_code, duration_ms
+        )
+        if duration_ms > _SLOW_REQUEST_THRESHOLD_MS:
+            logger.info(
+                "Slow request: %s %s %s %.1fms",
+                method,
+                path,
+                status_code,
+                duration_ms,
+            )
+
+        # Accumulate stats
+        _record_timing(path, duration_ms)
+
+        return response
+
+
+# ---------------------------------------------------------------------------
+# Admin API router
+# ---------------------------------------------------------------------------
+
+timing_router = APIRouter(prefix="/api/admin", tags=["admin"])
+
+
+@timing_router.get(
+    "/timing-report",
+    dependencies=[Depends(require_role("owner"))],
+)
+async def timing_report() -> dict[str, Any]:
+    """Return top-N slowest endpoint timing statistics.
+
+    Requires owner role. Returns JSON with top_endpoints list,
+    total_requests count, and approximate collection_period_seconds.
+    """
+    report = get_timing_report()
+    total_requests = sum(len(v) for v in _timing_stats.values())
+    collection_seconds = time.monotonic() - _collection_start
+
+    return {
+        "top_endpoints": report,
+        "total_requests": total_requests,
+        "collection_period_seconds": round(collection_seconds, 2),
+    }
