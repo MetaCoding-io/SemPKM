@@ -56,6 +56,12 @@ Tab labels must differentiate instances: when a scope query is set, append the q
 - `frontend/static/js/workspace-layout.js` — contains special-panel init at ~line 237 that reads `params.params.renderer`, `params.params.selectedType`, `params.params.scopeQuery`
 - `backend/app/templates/browser/views_explorer.html` — sidebar links calling `openGenericViewTab('table')` etc.
 
+## Observability Impact
+
+- **Tab panel IDs in DevTools:** Panel IDs in dockview now show `generic-view:{renderer}:{timestamp}` for unscoped or `generic-view:{renderer}:scope:{queryId}` for scoped tabs. Inspectable via browser DevTools → Elements → dockview panel containers.
+- **Tab labels in UI:** Duplicate unscoped tabs display a numeric suffix ("Table View (2)"); scoped tabs display the query name ("Table View — My Projects"). Visible directly in the dockview tab bar.
+- **Failure visibility:** If a duplicate scoped tab ID were somehow generated, dockview itself would log a console error — this is the existing dockview behavior and no additional instrumentation is needed. Unscoped tabs use `Date.now()` which is monotonically unique under normal usage (same-millisecond calls are astronomically unlikely from user clicks).
+
 ## Expected Output
 
 - `frontend/static/js/workspace.js` — `openGenericViewTab()` updated with unique tab ID scheme and optional `scopeLabel` parameter
