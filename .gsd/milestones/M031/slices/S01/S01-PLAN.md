@@ -80,7 +80,7 @@
   - Verify: Start Docker stack, open Table View, select a scope query from dropdown → view re-renders showing only objects matching the query. Pagination preserves the scope. Switching type pills preserves the scope.
   - Done when: All three renderers (table, card, graph) accept and apply `scope_query`. The scope dropdown appears in the toolbar. Scope selection persists across pagination and type switching.
 
-- [ ] **T03: Unit tests for scope query filtering and variant dropdown data** `est:1h`
+- [x] **T03: Unit tests for scope query filtering and variant dropdown data** `est:1h`
   - Why: Proves the scope_query filtering logic works correctly and the variant dropdown data is populated. This is the contract verification for S01's boundary outputs (consumed by S02, S03, S04).
   - Files: `backend/tests/test_view_scope.py`
   - Do:
