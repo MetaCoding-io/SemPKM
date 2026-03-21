@@ -314,3 +314,21 @@ function onDragLeave(e) {
 **Discovered:** M031/S04/T01
 
 `pytest tests/test_kanban.py` must be run from the `backend/` directory (`cd backend && .venv/bin/python -m pytest tests/test_kanban.py -v`), not from the project root. The root `.env` file contains `LINEAR_API_KEY` which is rejected as an extra field by the Pydantic Settings model, causing import failures.
+
+### Views needing full-height must use .view-flex-column wrapper — not calc()
+
+**Discovered:** M031/S05/T04
+
+Graph and kanban views used fragile `height: calc(100% - 90px)` which breaks when toolbar height changes. The fix is a shared `.view-flex-column` class (flex column, height:100%) with `flex:1; min-height:0` on the expandable child. Table/cards views don't need this — they use natural scrolling. Any new view type that must fill its panel should use this wrapper.
+
+### Popovers inside dockview panels must escape stacking context via document.body
+
+**Discovered:** M031/S05/T04
+
+Any popover rendered inside a dockview panel is trapped in the panel's stacking context (position:relative). Elevating z-index won't help because dockview chrome has its own stacking context. The only reliable fix is `document.body.appendChild(popover)` with `position:fixed` and `getBoundingClientRect()` for positioning. Always add cleanup to remove the popover from body when the parent view/graph is destroyed.
+
+### SPARQL vocab prefix exclusion: use specific sub-namespace allow-list, not broad prefix
+
+**Discovered:** M031/S05/T01
+
+The `_VOCAB_PREFIXES` tuple in `sparql/router.py` and the matching `KNOWN_VOCAB_PREFIXES` in `sparql-console.js` must list specific internal namespaces (urn:sempkm:query:, urn:sempkm:user:, etc.), NOT the broad `urn:sempkm:`. The broad entry caused all model ontology IRIs to be treated as vocabulary, preventing pill rendering. When adding a new internal namespace, add it to both backend and frontend lists.

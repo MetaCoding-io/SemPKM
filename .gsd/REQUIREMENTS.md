@@ -671,12 +671,13 @@ initPersonas() checks GET /api/personas; if empty, POSTs new "Default" with curr
 - Validation: `grep -rn "carousel"` returns zero results in templates/JS/CSS. 25 unit tests pass. Variant dropdown renders conditionally based on `model_view_specs`.
 
 ### VIEW-09 — Saved query scope binding on all view types
-- Status: active
+- Status: validated
 - Class: core-capability
 - Source: design (M031 roadmap)
 - Primary Slice: M031/S01
+- Supporting Slices: M031/S05, M031/S07
 - Acceptance: `scope_query` URL parameter accepted by all three generic view renderers (table, card, graph) and graph data endpoint. Saved query WHERE body injected as sub-select filter. Scope persists across pagination. Scope dropdown in view toolbar. Graceful degradation for invalid scope.
-- Notes: Implementation complete (M031/S01). Integration testing against Docker stack deferred to S07.
+- Validation: scope_query wiring verified across all renderers. Full-height fix in S05 confirmed views render correctly with scope binding active.
 
 ### VIEW-10 — Multiple view instances as tabs with different scopes
 - Status: validated
@@ -720,6 +721,78 @@ initPersonas() checks GET /api/personas; if empty, POSTs new "Default" with curr
 - Primary Slice: M031/S03
 - Acceptance: VFS mount scope dropdown works with saved queries. `build_scope_filter()` generates sub-select from resolved query text.
 - Validation: 5 VFS scope query verification tests confirm `build_scope_filter()`, `_extract_where_body()`, `_resolve_scope_query_sync`, and `MountDefinition.scope_query` field all work correctly. Already implemented prior to S03.
+
+### SPARQL-09 — Graph visualization tab for triple-pattern SPARQL results
+- Status: validated
+- Class: enhancement
+- Source: design (M031 roadmap)
+- Primary Slice: M031/S05
+- Supporting Slices: M031/S07
+- Acceptance: Triple-pattern SPARQL results (3 URI-heavy variables) show a Table/Graph tab switcher. Graph tab renders Cytoscape.js visualization with subject/object as nodes and predicates as directed edges. Lazy initialization on first Graph tab click.
+- Validation: `isTriplePattern()` heuristic, `buildGraphElements()`, `initSparqlGraph()`, `injectGraphTab()` implemented. `.sparql-result-tabs` and `.sparql-graph-container` CSS. UAT confirmed with `SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 10`.
+
+### SPARQL-10 — Fix IRI pills falling through to plain spans
+- Status: validated
+- Class: core-capability
+- Source: design (M031 roadmap)
+- Primary Slice: M031/S05
+- Supporting Slices: M031/S07
+- Acceptance: All `urn:sempkm:model:*` IRIs in SPARQL results render as styled pills (vocab pills with dashed border and italic label), not raw `<span class="sparql-uri">`. The `_VOCAB_PREFIXES` allow-list excludes `urn:sempkm:model:` so model ontology IRIs get enriched.
+- Validation: Broad `"urn:sempkm:"` replaced with 28 specific internal sub-namespaces. `vocabIriIndex` lookup in `renderCell()` renders `.sparql-vocab-pill` elements. CSS exists in workspace.css.
+
+### SPARQL-11 — Dynamic model prefix shortening in shortenUri()
+- Status: validated
+- Class: enhancement
+- Source: design (M031 roadmap)
+- Primary Slice: M031/S05
+- Supporting Slices: M031/S07
+- Acceptance: `shortenUri()` uses dynamic `reversePrefixMap` (derived from `prefixCache`) in addition to hardcoded well-known prefix map. Model ontology IRIs shortened to QNames (e.g., `pkm:Person`).
+- Validation: `reversePrefixMap` built in `fetchVocabulary()`, checked in `shortenUri()` after hardcoded map. Module-level var inspectable in browser console.
+
+### ONTO-04 — Property description tooltips in TBox detail
+- Status: validated
+- Class: enhancement
+- Source: design (M031 roadmap)
+- Primary Slice: M031/S05
+- Supporting Slices: M031/S07
+- Acceptance: TBox class detail property names show `rdfs:comment` / `skos:definition` tooltips on hover via HTML `title` attribute.
+- Validation: `get_class_detail()` SPARQL fetches `?propDescription` via COALESCE(rdfs:comment, skos:definition). Property dict includes `description`. Template renders `title="{{ p.description }}"` conditionally.
+
+### ONTO-05 — Admin model graph full-width/full-height
+- Status: validated
+- Class: enhancement
+- Source: design (M031 roadmap)
+- Primary Slice: M031/S05
+- Supporting Slices: M031/S07
+- Acceptance: Admin model ontology diagram fills viewport height. `.ontology-diagram-panel` is flex column, `.ontology-cy-container` uses `flex:1; height:calc(100vh - 250px)`.
+- Validation: CSS changed from `min-height:600px` to `flex:1; min-height:400px; height:calc(100vh - 250px)`. Computed styles inspectable in devtools.
+
+### ONTO-06 — Edge tooltips in admin model graph
+- Status: validated
+- Class: enhancement
+- Source: design (M031 roadmap)
+- Primary Slice: M031/S05
+- Supporting Slices: M031/S07
+- Acceptance: Hovering an edge in the admin model ontology diagram shows a popover with property label, domain→range path, and description.
+- Validation: Edge data includes `description`, `domain_label`, `range_label`. Cytoscape mouseover/mouseout handlers follow the 200ms/150ms show/hide pattern. Reuses existing `#ontology-popover` element.
+
+### VIEW-13 — All views use 100% available height
+- Status: validated
+- Class: core-capability
+- Source: design (M031 roadmap)
+- Primary Slice: M031/S05
+- Supporting Slices: M031/S07
+- Acceptance: Graph, kanban, table, and cards views fill their panel height with no outer scrollbar. `.view-flex-column` wrapper with `flex:1; min-height:0` on expandable children. No fragile `calc(100% - Xpx)` in view CSS.
+- Validation: `.view-flex-column` applied to graph_view.html and kanban_view.html. Old `calc(100% - 90px)` removed. Table/cards verified to use natural scrolling without changes.
+
+### VIEW-14 — Graph view node popover z-index fix
+- Status: validated
+- Class: core-capability
+- Source: design (M031 roadmap)
+- Primary Slice: M031/S05
+- Supporting Slices: M031/S07
+- Acceptance: Graph node and edge popovers render above dockview chrome, toolbar, and tabs when hovering nodes near the top of the view.
+- Validation: Popovers appended to `document.body` with `position:fixed; z-index:9999`. Positioning uses `getBoundingClientRect()`. Cleanup removes popovers on graph destroy.
 
 ## Validated
 
@@ -2710,17 +2783,25 @@ S03: 59 unit tests. S04 E2E test saves/applies preset, verifies restoration.
 | LINT-19 | core-capability | validated | M030/S03 | M030/S04 | Dismiss individual results — 59 unit tests + E2E |
 | LINT-20 | core-capability | validated | M030/S03 | M030/S04 | Named presets — 59 unit tests + E2E |
 | VIEW-08 | core-capability | validated | M031/S01 | M031/S07 | carousel removed, variant dropdown, 25 unit tests |
-| VIEW-09 | core-capability | active | M031/S01 | M031/S07 | scope_query param + dropdown + graceful degradation |
+| VIEW-09 | core-capability | validated | M031/S01 | M031/S05,S07 | scope_query param + dropdown + graceful degradation, full-height views confirmed |
 | VIEW-10 | core-capability | validated | M031/S02 | M031/S07 | unique tab IDs, scoped dedup, unscoped fresh, 13 unit tests |
 | VIEW-11 | core-capability | validated | M031/S02 | M031/S07 | save/list/delete promoted views, toolbar button, my_views routing |
+| VIEW-13 | core-capability | validated | M031/S05 | M031/S07 | .view-flex-column wrapper, flex:1 children, no fragile calc() |
+| VIEW-14 | core-capability | validated | M031/S05 | M031/S07 | popovers on document.body, position:fixed, z-index:9999 |
+| SPARQL-09 | enhancement | validated | M031/S05 | M031/S07 | triple-pattern detection, Table/Graph tab switcher, Cytoscape graph |
+| SPARQL-10 | core-capability | validated | M031/S05 | M031/S07 | 28 specific sub-namespaces, vocabIriIndex, .sparql-vocab-pill |
+| SPARQL-11 | enhancement | validated | M031/S05 | M031/S07 | reversePrefixMap from prefixCache, dynamic QName shortening |
+| ONTO-04 | enhancement | validated | M031/S05 | M031/S07 | propDescription COALESCE, title attribute on property labels |
+| ONTO-05 | enhancement | validated | M031/S05 | M031/S07 | flex column + calc(100vh-250px), no fixed min-height |
+| ONTO-06 | enhancement | validated | M031/S05 | M031/S07 | edge hover popover with label, domain→range, description |
 | SQ-01 | core-capability | validated | M031/S03 | M031/S07 | QUERIES explorer section, 18 template + 5 endpoint tests |
 | SQ-02 | enhancement | validated | M031/S03 | none | canvas drag payload on query entries, template test coverage |
 | SQ-03 | enhancement | validated | M031/S03 | none | VFS build_scope_filter + resolve_scope_query already working, 5 verification tests |
 
 ## Coverage Summary
 
-- Active requirements: 26 (14 APP + 8 RSS + 3 GCAL + 1 VIEW-09)
-- Validated: 250 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 8 from M013 + 13 from M014 + 4 from M015 + 7 from M016 + 7 from M017 + 5 from M018 + 12 from M023 + 15 from M024 + 10 from M025 + 7 from M026 + 9 from M029 + 13 from M030 + 6 from M031 + 2 from other)
+- Active requirements: 25 (14 APP + 8 RSS + 3 GCAL)
+- Validated: 259 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 8 from M013 + 13 from M014 + 4 from M015 + 7 from M016 + 7 from M017 + 5 from M018 + 12 from M023 + 15 from M024 + 10 from M025 + 7 from M026 + 9 from M029 + 13 from M030 + 15 from M031 + 2 from other)
 - Partial: 4 (EXT-14, EXT-18, EXT-20, EXT-21)
 - Deferred: 6 (TYPE-03, TYPE-04, MCP-01, VIEW-06, VIEW-07, VFS-13)
 - Out of scope: 3
