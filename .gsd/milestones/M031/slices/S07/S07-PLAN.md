@@ -31,7 +31,7 @@
   - Verify: `test -f e2e/tests/02-views/m031-views.spec.ts && ! test -f e2e/tests/02-views/carousel-views.spec.ts && grep -q "Task:" e2e/fixtures/seed-data.ts`
   - Done when: New spec file exists with ≥6 test cases, old carousel spec deleted, seed-data and helpers updated.
 
-- [ ] **T02: Update user guide chapters 7, 21, and 28 for M031 features** `est:30m`
+- [x] **T02: Update user guide chapters 7, 21, and 28 for M031 features** `est:30m`
   - Why: Three chapters reference removed features (carousel) or lack documentation for new features (kanban, scope binding, saved views, multi-instance tabs, SPARQL graph tab, builder UX improvements). Users need accurate documentation.
   - Files: `docs/guide/07-browsing-and-visualizing.md`, `docs/guide/21-sparql-console.md`, `docs/guide/28-dashboards-and-workflows.md`
   - Do: (1) Ch7: Replace "Carousel View Navigation" section (lines 33–45) with sections on View Toolbar (variant dropdown, scope binding), Kanban View, Saved Views, and Multiple View Instances. Update intro paragraph to remove carousel mention. (2) Ch21: Add "Graph Visualization" section after the results section documenting the triple-pattern graph tab. (3) Ch28: Add sections on contextual help text, IRI autocomplete, and simplified workflow view step.
