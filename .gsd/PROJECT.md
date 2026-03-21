@@ -632,7 +632,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 **Latest shipped: M030 Data Quality Linting & Lint UX (2026-03-21)**
 
-**In progress: M031 Views Overhaul, Saved Queries as First-Class, & UI Polish (S01-S04 of 7 done)**
+**In progress: M031 Views Overhaul, Saved Queries as First-Class, & UI Polish (S01-S06 of 7 done)**
 
 **What shipped in M031 so far:**
 - Carousel tab bar fully removed — explorer sidebar is sole view selector (VIEW-08)
@@ -641,7 +641,11 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Saved Views folder with CRUD operations (VIEW-11)
 - Saved queries in explorer sidebar, canvas embed, and VFS browser (SQ-01, SQ-02, SQ-03)
 - Kanban renderer with SHACL-driven status columns and HTML5 drag-drop (VIEW-12)
-- Remaining: full-height CSS (S05), SPARQL/ontology/graph polish (S05), dashboard/workflow UX (S06), E2E tests + docs (S07)
+- SPARQL IRI pill fix (28 specific sub-namespaces), dynamic prefix shortening, graph visualization tab (SPARQL-09/10/11)
+- TBox property tooltips, admin model graph full-viewport with edge tooltips (ONTO-04/05/06)
+- Full-height views via .view-flex-column, graph popover z-index fix (VIEW-13/14)
+- Dashboard/workflow builder help text on all fields (DBUIX-01), IRI autocomplete via class-search/object-search endpoints (DBUIX-02), workflow view step simplification (DBUIX-03), idempotent seed data (DBUIX-04)
+- Remaining: E2E tests + user guide docs (S07)
 
 **What shipped in M030 (Data Quality Linting & Lint UX):**
 - Validation pipeline fix: `model_shapes_loader()` loads rules graphs alongside shapes, `ValidationService.validate()` passes `advanced=True` — all 11 existing M011 SHACL-AF rules now fire in production for the first time
@@ -1010,4 +1014,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-03-21 after M031/S05 complete (SPARQL + Ontology + Graph + Full-Height Polish — IRI pill fix with 28 specific sub-namespaces, dynamic prefix shortening, SPARQL graph tab, TBox property tooltips, admin graph full-viewport with edge tooltips, full-height views via .view-flex-column, graph popover z-index fix. 8 requirements validated: SPARQL-09/10/11, ONTO-04/05/06, VIEW-13/14)*
+*Last updated: 2026-03-21 after M031/S06 complete (Dashboard & Workflow Builder UX — help text on all fields, class-search/object-search autocomplete endpoints, workflow view step simplification, idempotent seed data. 5 requirements validated: VIEW-12, DBUIX-01/02/03/04)*

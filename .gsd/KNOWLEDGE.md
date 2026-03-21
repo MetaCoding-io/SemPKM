@@ -332,3 +332,17 @@ Any popover rendered inside a dockview panel is trapped in the panel's stacking 
 **Discovered:** M031/S05/T01
 
 The `_VOCAB_PREFIXES` tuple in `sparql/router.py` and the matching `KNOWN_VOCAB_PREFIXES` in `sparql-console.js` must list specific internal namespaces (urn:sempkm:query:, urn:sempkm:user:, etc.), NOT the broad `urn:sempkm:`. The broad entry caused all model ontology IRIs to be treated as vocabulary, preventing pill rendering. When adding a new internal namespace, add it to both backend and frontend lists.
+
+---
+
+### Builder autocomplete pattern: reference-field with hidden data-key input
+
+**Discovered:** M031/S06/T02
+
+IRI fields in dashboard/workflow builders use a `.reference-field` wrapper containing three elements: (1) a visible search `<input>` for user typing, (2) a hidden `<input data-key="field_name">` that stores the actual IRI value, and (3) a `.suggestions-dropdown` div. A shared helper function (`_builderAutocomplete(inputEl, endpoint)`) handles 300ms debounce, fetch, rendering, click-to-select, and click-outside dismiss. The save collector (`querySelectorAll('[data-key]')`) picks up the hidden input automatically. When adding new IRI fields to builders, follow this pattern rather than using plain text inputs.
+
+### Verification grep checks: beware CSS class substring matches
+
+**Discovered:** M031/S06/T01
+
+When slice verification uses `grep -c 'some-class'` to verify a class is absent, any new class containing that string as a substring will create a false positive. T01 hit this with `step-config-renderer-auto` matching the `step-config-renderer` absence check. Solution: name replacement classes to avoid the substring (e.g., `wf-auto-renderer` instead of `step-config-renderer-auto`).
