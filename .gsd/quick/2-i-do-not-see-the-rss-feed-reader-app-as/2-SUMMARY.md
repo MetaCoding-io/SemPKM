@@ -1,33 +1,67 @@
-# Quick Task: Recover RSS Reader app missing from installable apps
+# Quick Task: Recover RSS Reader app and all missing worktree code
 
 **Date:** 2026-03-21
 **Branch:** gsd/quick/2-i-do-not-see-the-rss-feed-reader-app-as
 
 ## What Changed
 
-The RSS Reader app (`apps/rss-reader/`) and `rss-feeds` Mental Model (`models/rss-feeds/`) were not visible as installable because they were never committed to main. M010 built them across 6 slices in a worktree, but only `.gsd/` planning artifacts were committed — the actual source code lived in dangling git objects after the worktree was cleaned up.
+The RSS Reader app wasn't installable because its source code was never committed to main. Investigation revealed this was a systemic problem: **8 milestones had source code trapped in dangling git objects** from cleaned-up worktrees.
 
-**Recovery method:** Found dangling commit `89b71093` (S05/T02 — last committed code) and stash `c724c90c` (WIP with S05/T03 settings additions) via `git fsck --lost-found`. Extracted all files from those commits and applied platform fixes that were part of M010.
+### Root Cause
 
-- Recovered `apps/rss-reader/` — complete RSS reader app (1418-line app.py, 16 templates, CSS, JS, feed service, OPML parser, manifest)
-- Recovered `models/rss-feeds/` — Mental Model with Article and FeedSubscription types
-- Recovered SDK IRI prefix enforcement fix (D179) — apps can now reference model types and standard vocabularies
-- Recovered navigate command enrichment — app commands open dockview tabs instead of full-page navigation
-- Recovered 7 test files (229 tests)
-- Created `settings.html` template (was in uncommitted T03 work, reconstructed from app.py route contract)
+GSD worktree isolation mode (`taskIsolation.mode: worktree`) creates a separate git worktree per milestone. Auto-mode commits `.gsd/` planning artifacts to main, but source code stays in the worktree on a `milestone/<MID>` branch. When worktrees are cleaned up and branches deleted, source code becomes unreachable — surviving only as dangling objects that `git gc` would permanently delete.
+
+### Recovery
+
+All files recovered via `git fsck --lost-found` to find dangling commits, then `git checkout <hash> -- <path>` to extract files.
+
+**Commit 1 — M010 RSS Reader (from 89b71093 + c724c90c stash):**
+- `apps/rss-reader/` — 21 files (app, templates, CSS, JS, services)
+- `models/rss-feeds/` — Mental Model (ontology, shapes, views)
+- SDK IRI prefix fix, navigate command enrichment
+- 7 test files, settings.html recreated
+
+**Commit 2 — M019-M022 sync apps (from 3623430f):**
+- `apps/todoist-sync/` — complete app + 6 test files
+- `apps/outlook-calendar/` — complete app + 5 test files
+- `apps/caldav-calendar/` — complete app + 5 test files
+- `apps/asana-sync/` — complete app + 5 test files
+- M018 Google Calendar E2E + docs
+- 5 E2E mock servers, 5 E2E specs, 5 user guide chapters
+
+**Commit 3 — M027 Notion + M028 AI (from 233006839):**
+- `backend/app/notion/executor.py` + templates + test
+- `backend/app/api/ai.py` + 4 test files
+- E2E mock LLM server, 2 E2E specs, 2 user guide chapters
+
+**Commit 4 — M010 remaining (from 735febba + 73d8cb65):**
+- `test_rss_settings.py`, E2E spec, OPML fixture, Chapter 32
+
+### Prevention
+
+- Added Rules R01-R03 and Lesson K003 to KNOWLEDGE.md
+- `taskIsolation.mode` already set to `none` in preferences
 
 ## Files Modified
-- `apps/rss-reader/` — 21 files (app.py, manifest.yaml, requirements.txt, services/, frontend/)
-- `models/rss-feeds/` — 4 files (manifest.yaml, ontology, shapes, views JSON-LD)
+- `apps/rss-reader/` — 22 files recovered
+- `apps/todoist-sync/` — 12 files recovered
+- `apps/outlook-calendar/` — 12 files recovered
+- `apps/caldav-calendar/` — 12 files recovered
+- `apps/asana-sync/` — 12 files recovered
+- `models/rss-feeds/` — 4 files recovered
 - `backend/sdk/sempkm_app_sdk/clients/commands.py` — IRI prefix fix
-- `backend/app/browser/apps.py` — Navigate command enrichment
-- `frontend/static/js/workspace.js` — Navigate handler uses openAppPageTab()
-- `backend/tests/test_*.py` — 7 test files
+- `backend/app/browser/apps.py` — navigate enrichment
+- `backend/app/notion/executor.py` — Notion import executor
+- `backend/app/api/ai.py` — AI features endpoint
+- `frontend/static/js/workspace.js` — navigate handler
+- `backend/tests/` — 40+ test files recovered
+- `e2e/` — 7 E2E specs, 5 mock servers, 1 fixture
+- `docs/guide/` — 7 user guide chapters
+- `.gsd/KNOWLEDGE.md` — Rules R01-R03, Lesson K003
 
 ## Verification
 - All Python files pass `ast.parse()` syntax check
-- App manifest validates against `AppManifestSchema` (rss-reader v1.0.0)
-- Model manifest validates against `ManifestSchema` (rss-feeds v1.0.0)
-- All JSON-LD files parse as valid JSON
+- All app manifests validate against `AppManifestSchema`
+- Model manifest validates against `ManifestSchema`
 - No conflict markers in any recovered files
-- `apps/rss-reader/` now visible to admin page's "Available Apps" discovery
+- Post-recovery audit confirms all milestone-claimed files now exist on disk
