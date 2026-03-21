@@ -1,9 +1,9 @@
 # GSD State
 
-**Active Milestone:** M030: Data Quality Linting & Lint UX
-**Active Slice:** S04: E2E Tests & User Guide
-**Phase:** ready (S03 complete, S04 planned but not started)
-**Requirements Status:** 78 active · 182 validated · 7 deferred · 0 out of scope
+**Active Milestone:** M031: Views Overhaul, Saved Queries as First-Class, & UI Polish
+**Active Slice:** S01: Carousel Removal + View Scope Binding
+**Phase:** executing
+**Requirements Status:** 78 active · 195 validated · 7 deferred · 0 out of scope
 
 ## Milestone Registry
 - ✅ **M001:** Migration
@@ -35,8 +35,8 @@
 - ✅ **M027:** Notion Import Wizard
 - ✅ **M028:** Browser Extension Phase 3 — Active Intelligence
 - ✅ **M029:** Frontend Performance & Build Pipeline
-- 🔄 **M030:** Data Quality Linting & Lint UX
-- ⬜ **M031:** M031
+- ✅ **M030:** Data Quality Linting & Lint UX
+- 🔄 **M031:** Views Overhaul, Saved Queries as First-Class, & UI Polish
 - ⬜ **M032:** M032
 
 ## Recent Decisions
@@ -46,4 +46,4 @@
 - None
 
 ## Next Action
-Resume M030 auto-mode. S03 (Lint Filter System) is complete and committed. S04 (E2E Tests & User Guide) is planned with 2 tasks ready to execute.
+Execute T01: Remove carousel tab bar and add model-declared variant dropdown in slice S01.

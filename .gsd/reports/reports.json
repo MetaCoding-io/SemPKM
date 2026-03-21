@@ -227,6 +227,22 @@
       "doneMilestones": 29,
       "totalMilestones": 32,
       "phase": "pre-planning"
+    },
+    {
+      "filename": "M030-2026-03-21T06-18-41.html",
+      "generatedAt": "2026-03-21T06:18:41.215Z",
+      "milestoneId": "M030",
+      "milestoneTitle": "Data Quality Linting & Lint UX",
+      "label": "M030: Data Quality Linting & Lint UX",
+      "kind": "milestone",
+      "totalCost": 21.261882,
+      "totalTokens": 29441341,
+      "totalDuration": 3145767,
+      "doneSlices": 198,
+      "totalSlices": 198,
+      "doneMilestones": 30,
+      "totalMilestones": 32,
+      "phase": "pre-planning"
     }
   ]
 }
