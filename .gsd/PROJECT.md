@@ -402,6 +402,24 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - ✓ User guide Chapter 38, DEMO_MODE in Appendix A, 2 glossary entries — M025
 - ✓ 10 DEMO requirements validated (DEMO-01 through DEMO-10) — M025
 
+### Validated (M030 — Data Quality Linting & Lint UX)
+
+<!-- Shipped and confirmed in M030 (2026-03-21). -->
+
+- ✓ LINT-08: Validation pipeline fix — model_shapes_loader loads rules graphs, ValidationService passes advanced=True, M011 rules fire in production — M030
+- ✓ LINT-09: Comma-in-tags data quality rule (sh:Warning) — 2 pytest + E2E — M030
+- ✓ LINT-10: Empty body data quality rule (sh:Info) for basic-pkm + zettelkasten — 3 pytest + E2E — M030
+- ✓ LINT-11: Concept no definition rule (sh:Info) — 2 pytest — M030
+- ✓ LINT-12: Titleless objects rule (sh:Warning) with type-namespace scoping — 3 pytest — M030
+- ✓ LINT-13: Orphan objects rule (sh:Info) — 2 pytest — M030
+- ✓ LINT-14: Duplicate URL rule (sh:Info) — 2 pytest — M030
+- ✓ LINT-15: Stale project rule (sh:Info) — 2 pytest — M030
+- ✓ LINT-16: PPV ActionItem no project rule (sh:Warning) — 2 pytest — M030
+- ✓ LINT-17: PPV Project no goal rule (sh:Warning) — 2 pytest — M030
+- ✓ LINT-18: Suppress lint results by rule type — 59 unit tests + E2E — M030
+- ✓ LINT-19: Dismiss individual lint results — 59 unit tests + E2E — M030
+- ✓ LINT-20: Named lint filter presets — 59 unit tests + E2E — M030
+
 ### Validated (M029 — Frontend Performance & Build Pipeline)
 
 <!-- Shipped and confirmed in M029 (2026-03-20). -->
@@ -581,10 +599,12 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 **Frontend Performance & Build Pipeline** — complete (M029, 2026-03-20)
 - esbuild build pipeline, all 18 CDN deps vendored locally, gzip compression, immutable HTTP caching, CSS code-splitting, backend timing/ETag middleware, Lighthouse desktop 80, QUIC/HTTP/3 deferred
 
-**Data Quality Linting & Lint UX** — queued (M030)
-- Fix validation pipeline (load rules graphs, pass advanced=True) so existing M011 rules fire in production
-- 9 new data quality rules across all 5 models: comma-in-tags, empty body, duplicate URLs, titleless objects, orphan objects, stale projects/goals, PPV broken chain, undefined concepts, unrationed claims
-- Lint filter system with rule-type suppression, per-object dismissal, named presets, and settings UI
+**Data Quality Linting & Lint UX** — complete (M030, 2026-03-21)
+- Fixed broken SHACL-AF validation pipeline (model_shapes_loader loads rules, advanced=True)
+- 10 new data quality rules across 4 models (comma-in-tags, empty body, titleless, orphan, duplicate URL, stale project, PPV broken chain, concept no definition, claim no rationale)
+- Lint filter system: suppress rule types, dismiss individual results, named presets with SQLite persistence
+- 13 REST API endpoints, lint panel dismiss/suppress UI, preset selector, settings management
+- 24 per-rule pytest + 59 filter unit tests + 7 E2E Playwright tests, Chapter 14 user guide updated
 
 **Ongoing / cross-cutting**
 - Backlinks panel (incoming references for any object)
@@ -610,7 +630,20 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current State
 
-**Latest shipped: M029 Frontend Performance & Build Pipeline (2026-03-20)**
+**Latest shipped: M030 Data Quality Linting & Lint UX (2026-03-21)**
+
+**What shipped in M030 (Data Quality Linting & Lint UX):**
+- Validation pipeline fix: `model_shapes_loader()` loads rules graphs alongside shapes, `ValidationService.validate()` passes `advanced=True` — all 11 existing M011 SHACL-AF rules now fire in production for the first time
+- 10 new SHACL-AF SPARQLConstraint data quality rules across 4 models: comma-in-tags, empty body (basic-pkm + zettelkasten), concept no definition, titleless objects, orphan objects, duplicate URL, stale project, PPV broken chain (2 shapes), claim no rationale
+- Cross-model rules scoped via `FILTER(STRSTARTS(STR(?type), "urn:sempkm:model:basic-pkm:"))` — fires only for basic-pkm types
+- Lint filter system with SQLite persistence: 3 tables (lint_suppressions, lint_dismissals, lint_presets) via Alembic migration 015
+- 13 REST API endpoints for lint filter CRUD (suppress/dismiss/preset operations)
+- Server-side Python post-filtering with over-fetch re-pagination when filters active
+- Lint panel dismiss buttons (×) on warnings/infos, dashboard suppress buttons (eye-off), preset selector dropdown
+- Lint settings management UI with collapsible sections for suppressions/dismissals/presets CRUD
+- 24 per-rule pytest tests + 59 lint filter unit tests + 7 E2E Playwright tests
+- User guide Chapter 14 updated with 5 new sections (139 lines) + 4 glossary entries
+- 13 LINT requirements validated (LINT-08 through LINT-20), 6 key decisions (D278–D283)
 
 **What shipped in M029 (Frontend Performance & Build Pipeline):**
 - esbuild build pipeline: `frontend/build.js` producing vendor bundle, page-specific bundles, minified app JS/CSS, content-hashed filenames, manifest.json, and .gz pre-compressed siblings (0.8s full build)
@@ -799,9 +832,9 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - E2E test coverage: 5 new Playwright tests across 3 spec files
 - User guide: 4 chapters updated with new feature documentation
 
-**Previous milestones:** M029 Frontend Performance & Build Pipeline (2026-03-20), M026 Homepage & Messaging Rewrite (2026-03-20), M025 Hosted Demo Instance (2026-03-20), M024 Monday.com Sync App (2026-03-20), M023 Jira Sync App (2026-03-19), M017 GitHub Issues Sync App (2026-03-18), M016 Linear Sync App (2026-03-18), M015 Browser Extension Phase 2 (2026-03-18), M014 Browser Extension Phase 1 (2026-03-18), M013 API Surface for External Clients (2026-03-17), M012 Workspace & Event Log Polish (2026-03-17), M011 Mental Models Expansion (2026-03-17), M008 Spatial Canvas (2026-03-16), M007 Generic Views, VFS Completion & Polish (2026-03-16), M006 Dashboards, Workflows & Platform Alignment (2026-03-15), M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
+**Previous milestones:** M030 Data Quality Linting & Lint UX (2026-03-21), M029 Frontend Performance & Build Pipeline (2026-03-20), M026 Homepage & Messaging Rewrite (2026-03-20), M025 Hosted Demo Instance (2026-03-20), M024 Monday.com Sync App (2026-03-20), M023 Jira Sync App (2026-03-19), M017 GitHub Issues Sync App (2026-03-18), M016 Linear Sync App (2026-03-18), M015 Browser Extension Phase 2 (2026-03-18), M014 Browser Extension Phase 1 (2026-03-18), M013 API Surface for External Clients (2026-03-17), M012 Workspace & Event Log Polish (2026-03-17), M011 Mental Models Expansion (2026-03-17), M008 Spatial Canvas (2026-03-16), M007 Generic Views, VFS Completion & Polish (2026-03-16), M006 Dashboards, Workflows & Platform Alignment (2026-03-15), M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
 
-**Latest shipped: M029 Frontend Performance & Build Pipeline (2026-03-20)**
+**Latest shipped: M030 Data Quality Linting & Lint UX (2026-03-21)**
 
 **What shipped in M013 (API Surface for External Clients):**
 - `GET /.well-known/sempkm` discovery endpoint with version, endpoints, auth methods, capabilities
@@ -966,4 +999,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-03-20 after M029 complete (Frontend Performance & Build Pipeline — 5 slices, esbuild build pipeline with vendor bundling + content-hashed filenames, all 18 CDN deps vendored locally, gzip compression + immutable HTTP caching, CSS code-splitting via Jinja2 blocks, TimingMiddleware + ConditionalGetMiddleware (36 unit tests), Lighthouse desktop 80 (FCP 984ms, LCP 2585ms, TBT 15ms), QUIC/HTTP/3 deferred (D277), 9 PERF requirements validated)*
+*Last updated: 2026-03-21 after M030 complete (Data Quality Linting & Lint UX — 4 slices, validation pipeline fix enabling 11 existing M011 rules in production, 10 new SHACL-AF data quality rules across 4 models, lint filter system with suppress/dismiss/presets and SQLite persistence, 7 E2E tests, 13 LINT requirements validated)*

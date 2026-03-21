@@ -2186,6 +2186,110 @@ S04: ConditionalGetMiddleware, weak ETags on JSON API GET responses, 304 Not Mod
 
 S05/T02: Decision D277 recorded — defer, nginx:stable-alpine lacks HTTP/3, minimal benefit for self-hosted single-user.
 
+### LINT-08 — Validation pipeline fix (rules load, advanced=True)
+- Status: validated
+- Class: core-capability
+- Source: design (M030-ROADMAP.md)
+- Primary Slice: M030/S01
+
+S01: model_shapes_loader includes rules graphs, ValidationService passes advanced=True, Docker logs confirm rules loading, lint panel shows M011 warnings.
+
+### LINT-09 — Comma-in-tags data quality rule
+- Status: validated
+- Class: core-capability
+- Source: design (M030-ROADMAP.md)
+- Primary Slice: M030/S02
+
+S02: 2 pytest tests. S04 E2E test verifies result appears after creating Note with comma-in-tags.
+
+### LINT-10 — Empty body data quality rule
+- Status: validated
+- Class: core-capability
+- Source: design (M030-ROADMAP.md)
+- Primary Slice: M030/S02
+
+S02: 3 pytest tests (basic-pkm + zettelkasten). S04 E2E test verifies result appears.
+
+### LINT-11 — Concept no definition data quality rule
+- Status: validated
+- Class: core-capability
+- Source: design (M030-ROADMAP.md)
+- Primary Slice: M030/S02
+
+S02: 2 pytest tests (positive + negative).
+
+### LINT-12 — Titleless objects data quality rule
+- Status: validated
+- Class: core-capability
+- Source: design (M030-ROADMAP.md)
+- Primary Slice: M030/S02
+
+S02: 3 pytest tests with type-namespace scoping.
+
+### LINT-13 — Orphan objects data quality rule
+- Status: validated
+- Class: core-capability
+- Source: design (M030-ROADMAP.md)
+- Primary Slice: M030/S02
+
+S02: 2 pytest tests (positive + negative).
+
+### LINT-14 — Duplicate URL data quality rule
+- Status: validated
+- Class: core-capability
+- Source: design (M030-ROADMAP.md)
+- Primary Slice: M030/S02
+
+S02: 2 pytest tests (positive + negative).
+
+### LINT-15 — Stale project data quality rule
+- Status: validated
+- Class: core-capability
+- Source: design (M030-ROADMAP.md)
+- Primary Slice: M030/S02
+
+S02: 2 pytest tests (positive + negative).
+
+### LINT-16 — PPV broken chain: ActionItem no project
+- Status: validated
+- Class: core-capability
+- Source: design (M030-ROADMAP.md)
+- Primary Slice: M030/S02
+
+S02: 2 pytest tests (positive + negative).
+
+### LINT-17 — PPV broken chain: Project no goal
+- Status: validated
+- Class: core-capability
+- Source: design (M030-ROADMAP.md)
+- Primary Slice: M030/S02
+
+S02: 2 pytest tests. ClaimNoRationaleValidationShape also added as bonus rule in research model.
+
+### LINT-18 — Suppress lint results by rule type
+- Status: validated
+- Class: core-capability
+- Source: design (M030-ROADMAP.md)
+- Primary Slice: M030/S03
+
+S03: 59 unit tests. S04 E2E test suppresses CommaInTags and verifies results excluded.
+
+### LINT-19 — Dismiss individual lint results
+- Status: validated
+- Class: core-capability
+- Source: design (M030-ROADMAP.md)
+- Primary Slice: M030/S03
+
+S03: 59 unit tests. S04 E2E test dismisses EmptyBody for specific object and verifies exclusion.
+
+### LINT-20 — Named lint filter presets
+- Status: validated
+- Class: core-capability
+- Source: design (M030-ROADMAP.md)
+- Primary Slice: M030/S03
+
+S03: 59 unit tests. S04 E2E test saves/applies preset, verifies restoration.
+
 ## Deferred
 
 ### TYPE-03 — Full SHACL shape editor with advanced constraints
@@ -2533,11 +2637,24 @@ S05/T02: Decision D277 recorded — defer, nginx:stable-alpine lacks HTTP/3, min
 | PERF-08 | quality-attribute | validated | M029/S04 | none | TimingMiddleware + timing-report endpoint + 20 unit tests |
 | PERF-09 | quality-attribute | validated | M029/S04 | none | ConditionalGetMiddleware + weak ETags + 304 + 16 unit tests |
 | PERF-10 | quality-attribute | validated | M029/S05 | none | D277 QUIC/HTTP/3 defer — nginx lacks HTTP/3, minimal benefit |
+| LINT-08 | core-capability | validated | M030/S01 | none | Pipeline fix — rules load, advanced=True, Docker lint panel shows M011 warnings |
+| LINT-09 | core-capability | validated | M030/S02 | M030/S04 | CommaInTagsValidationShape — 2 pytest + E2E test |
+| LINT-10 | core-capability | validated | M030/S02 | M030/S04 | EmptyBodyValidationShape — 3 pytest + E2E test |
+| LINT-11 | core-capability | validated | M030/S02 | none | ConceptNoDefinitionValidationShape — 2 pytest |
+| LINT-12 | core-capability | validated | M030/S02 | none | TitlelessObjectValidationShape — 3 pytest |
+| LINT-13 | core-capability | validated | M030/S02 | none | OrphanObjectValidationShape — 2 pytest |
+| LINT-14 | core-capability | validated | M030/S02 | none | DuplicateUrlValidationShape — 2 pytest |
+| LINT-15 | core-capability | validated | M030/S02 | none | StaleProjectValidationShape — 2 pytest |
+| LINT-16 | core-capability | validated | M030/S02 | none | ActionItemNoProjectValidationShape — 2 pytest |
+| LINT-17 | core-capability | validated | M030/S02 | none | ProjectNoGoalValidationShape — 2 pytest |
+| LINT-18 | core-capability | validated | M030/S03 | M030/S04 | Suppress rule type — 59 unit tests + E2E |
+| LINT-19 | core-capability | validated | M030/S03 | M030/S04 | Dismiss individual results — 59 unit tests + E2E |
+| LINT-20 | core-capability | validated | M030/S03 | M030/S04 | Named presets — 59 unit tests + E2E |
 
 ## Coverage Summary
 
 - Active requirements: 25 (14 APP + 8 RSS + 3 GCAL)
-- Validated: 231 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 8 from M013 + 13 from M014 + 4 from M015 + 7 from M016 + 7 from M017 + 5 from M018 + 12 from M023 + 15 from M024 + 10 from M025 + 7 from M026 + 9 from M029 + 2 from other)
+- Validated: 244 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 8 from M013 + 13 from M014 + 4 from M015 + 7 from M016 + 7 from M017 + 5 from M018 + 12 from M023 + 15 from M024 + 10 from M025 + 7 from M026 + 9 from M029 + 13 from M030 + 2 from other)
 - Partial: 4 (EXT-14, EXT-18, EXT-20, EXT-21)
 - Deferred: 6 (TYPE-03, TYPE-04, MCP-01, VIEW-06, VIEW-07, VFS-13)
 - Out of scope: 3
