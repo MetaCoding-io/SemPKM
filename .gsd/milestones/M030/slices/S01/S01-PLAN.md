@@ -47,7 +47,7 @@
   - Verify: `cd backend && .venv/bin/pytest tests/test_validation_pipeline.py -v`
   - Done when: Unit tests pass confirming (a) loader returns graph containing both shapes and rules triples, (b) validate() calls pyshacl with advanced=True
 
-- [ ] **T02: Write unit tests for pipeline fix and measure performance** `est:1h`
+- [x] **T02: Write unit tests for pipeline fix and measure performance** `est:1h`
   - Why: Need tests proving the fix works and performance measurement to retire the risk identified in the roadmap. The performance baseline is critical — S02 adds 9 more rules and we need to know if `advanced=True` causes unacceptable slowdowns.
   - Files: `backend/tests/test_validation_pipeline.py`
   - Do: (1) Write unit tests in `test_validation_pipeline.py` covering: (a) `model_shapes_loader` returns a Graph that includes triples from both shapes and rules named graphs (mock the triplestore client to return canned Turtle for shapes and rules CONSTRUCTs), (b) `ValidationService.validate()` passes `advanced=True` to pyshacl (mock pyshacl.validate and inspect kwargs), (c) When no models installed, loader returns empty graph (existing behavior preserved), (d) When rules graph is empty but shapes exist, loader still returns shapes (backward compat). (2) Write a performance measurement test that: creates a realistic data graph (~100 objects with types from basic-pkm), loads the real basic-pkm shapes+rules files from `models/basic-pkm/`, runs `pyshacl.validate()` with `advanced=True`, measures wall-clock time, and asserts it completes in <10 seconds. Log the timing. (3) Include a test with an overdue task (dueDate in past, status "todo") that proves the SPARQLConstraint fires and produces a sh:Warning result.

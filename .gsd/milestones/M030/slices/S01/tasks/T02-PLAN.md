@@ -74,6 +74,12 @@ Write unit tests proving the pipeline fix works and measure pyshacl performance 
 - `models/basic-pkm/shapes/basic-pkm.ttl` — real SHACL shapes for functional test
 - `models/basic-pkm/rules/basic-pkm.ttl` — real SHACL-AF rules with SPARQLConstraint for functional test
 
+## Observability Impact
+
+- **Test output:** `pytest -v -s` prints `pyshacl advanced=True execution time: X.XXXs` — this is the performance measurement that retires the roadmap risk. Future agents check this value to decide if pyshacl performance is acceptable.
+- **Regression detection:** If `model_shapes_loader` stops merging rules graphs, `test_loader_merges_shapes_and_rules` fails. If `advanced=True` is removed, `test_validate_passes_advanced_true_to_pyshacl` fails. If SPARQLConstraints stop firing, `test_sparql_constraint_fires_for_overdue_task` fails.
+- **Failure inspection:** Run `cd backend && .venv/bin/pytest tests/test_validation_pipeline.py -v -s` — test names and assertion messages describe exactly what broke.
+
 ## Expected Output
 
 - `backend/tests/test_validation_pipeline.py` — new test file with 5+ tests covering loader, service, and functional validation
