@@ -15,6 +15,7 @@ from urllib.parse import unquote, quote
 
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse
+from pydantic import BaseModel
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
 from app.dependencies import get_label_service, get_query_service, get_shapes_service, get_view_spec_service
@@ -84,7 +85,55 @@ async def available_views(
     return JSONResponse(content=payload)
 
 
-@router.get("/explorer")
+class SaveViewRequest(BaseModel):
+    name: str
+    renderer_type: str
+    type_filter: str = ""
+    scope_query_id: str = ""
+
+
+@router.post("/save")
+async def save_view(
+    body: SaveViewRequest,
+    user: User = Depends(get_current_user),
+    query_service: QueryService = Depends(get_query_service),
+):
+    """Save the current generic view configuration as a promoted view.
+
+    Creates a PromotedView without requiring an existing saved query.
+    """
+    try:
+        result = await query_service.save_promoted_view(
+            user_id=user.id,
+            display_label=body.name,
+            renderer_type=body.renderer_type,
+            type_filter=body.type_filter,
+            scope_query_id=body.scope_query_id,
+        )
+    except ValueError as exc:
+        return JSONResponse(content={"error": str(exc)}, status_code=400)
+
+    return JSONResponse(content={
+        "id": result.id,
+        "label": result.display_label,
+        "renderer": result.renderer_type,
+    })
+
+
+@router.delete("/saved/{view_id}")
+async def delete_saved_view(
+    view_id: str,
+    user: User = Depends(get_current_user),
+    query_service: QueryService = Depends(get_query_service),
+):
+    """Delete a saved promoted view by its view ID."""
+    try:
+        view_uuid = uuid.UUID(view_id)
+    except ValueError:
+        return JSONResponse(content={"error": "Invalid view ID"}, status_code=400)
+
+    await query_service.delete_promoted_view(view_uuid, user.id)
+    return JSONResponse(content={"ok": True})@router.get("/explorer")
 async def views_explorer(
     request: Request,
     user: User = Depends(get_current_user),

@@ -29,6 +29,13 @@
     position: relative;
 }
 
+.save-view-btn svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
 .view-label {
     font-size: 0.88rem;
     font-weight: 600;

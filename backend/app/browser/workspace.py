@@ -15,7 +15,6 @@ from app.dependencies import (
     get_query_service,
     get_shapes_service,
     get_triplestore_client,
-    get_view_spec_service,
 )
 from app.sparql.query_service import QueryService
 from app.triplestore.client import TriplestoreClient
@@ -57,7 +56,6 @@ from app.vfs.strategies import (
     query_type_folders,
     query_uncategorized_objects,
 )
-from app.views.service import ViewSpecService
 
 from ._helpers import _is_htmx_request, _validate_iri, get_hidden_types, get_icon_service
 
@@ -1193,33 +1191,25 @@ async def mount_children(
 async def my_views(
     request: Request,
     user: User = Depends(get_current_user),
-    view_spec_service: ViewSpecService = Depends(get_view_spec_service),
     query_service: QueryService = Depends(get_query_service),
 ):
     """Return promoted view entries for the 'My Views' nav tree section.
 
-    Renders browser/my_views.html with the user's promoted ViewSpecs
-    including query_id for the demote action.
+    Renders browser/my_views.html with the user's promoted views including
+    type_filter, scope_query_id, and query_id for display and actions.
     """
     templates = request.app.state.templates
 
-    specs = await view_spec_service.get_user_promoted_view_specs(user.id)
+    promoted = await query_service.list_promoted_views(user.id)
 
-    if not specs:
+    if not promoted:
         return HTMLResponse(
             content='<div class="tree-empty">No promoted views yet</div>'
         )
 
-    # Build spec_iri -> query_id map from promoted view data
-    promoted = await query_service.list_promoted_views(user.id)
-    query_id_map = {
-        f"urn:sempkm:user-view:{pv.id}": pv.query_id for pv in promoted
-    }
-
     context = {
         "request": request,
-        "specs": specs,
-        "query_id_map": query_id_map,
+        "promoted_views": promoted,
     }
     return templates.TemplateResponse(
         request, "browser/my_views.html", context

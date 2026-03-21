@@ -1,13 +1,26 @@
-{% for spec in specs %}
-<div class="tree-leaf view-leaf" data-spec-iri="{{ spec.spec_iri }}"
+{% for pv in promoted_views %}
+<div class="tree-leaf view-leaf" data-view-id="{{ pv.id }}"
+     data-type-filter="{{ pv.type_filter | default('') }}"
+     data-scope-query="{{ pv.scope_query_id | default('') }}"
      draggable="true"
-     ondragstart="event.dataTransfer.setData('text/plain', '{{ spec.label | replace("'", "\\'") }}'); event.dataTransfer.effectAllowed = 'copy'; window.__canvasDragPayload = {type:'view', id:'{{ spec.spec_iri }}', label:'{{ spec.label | replace("'", "\\'") }}', url:'/browser/views/{{ spec.renderer_type }}/' + encodeURIComponent('{{ spec.spec_iri }}') + '?embed=1'};">
-    <span class="tree-leaf-icon"><i data-lucide="{% if spec.renderer_type == 'table' %}table{% elif spec.renderer_type == 'card' %}layout-grid{% else %}share-2{% endif %}"></i></span>
-    <span class="tree-leaf-label" onclick="openViewTab('{{ spec.spec_iri }}', '{{ spec.label | replace("'", "\\'") }}', '{{ spec.renderer_type }}')">{{ spec.label }}</span>
+     ondragstart="event.dataTransfer.setData('text/plain', '{{ pv.display_label | replace("'", "\\'") }}'); event.dataTransfer.effectAllowed = 'copy';">
+    <span class="tree-leaf-icon"><i data-lucide="{% if pv.renderer_type == 'table' %}table{% elif pv.renderer_type == 'card' %}layout-grid{% else %}share-2{% endif %}"></i></span>
+    {% if pv.query_id and pv.query_text %}
+    <span class="tree-leaf-label" onclick="openViewTab('urn:sempkm:user-view:{{ pv.id }}', '{{ pv.display_label | replace("'", "\\'") }}', '{{ pv.renderer_type }}')">{{ pv.display_label }}</span>
+    {% else %}
+    <span class="tree-leaf-label" onclick="openGenericViewTab('{{ pv.renderer_type }}', '{{ pv.scope_query_id | default('') }}', '{{ pv.display_label | replace("'", "\\'") }}')">{{ pv.display_label }}</span>
+    {% endif %}
+    {% if pv.query_id %}
     <button class="panel-btn tree-leaf-action sparql-demote-btn" title="Remove from views"
-            onclick="event.stopPropagation(); demoteView('{{ query_id_map.get(spec.spec_iri, '') }}')">
+            onclick="event.stopPropagation(); demoteView('{{ pv.query_id }}')">
         <i data-lucide="pin-off"></i>
     </button>
+    {% else %}
+    <button class="panel-btn tree-leaf-action sparql-demote-btn" title="Remove saved view"
+            onclick="event.stopPropagation(); deleteSavedView('{{ pv.id }}')">
+        <i data-lucide="pin-off"></i>
+    </button>
+    {% endif %}
 </div>
 {% endfor %}
 <script>
@@ -27,6 +40,22 @@
                 }
             } catch (err) {
                 console.error('Demote failed:', err);
+            }
+        };
+    }
+    if (typeof window.deleteSavedView === 'undefined') {
+        window.deleteSavedView = async function(viewId) {
+            if (!confirm('Remove this saved view?')) return;
+            try {
+                var resp = await fetch('/browser/views/saved/' + viewId, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+                if (resp.ok) {
+                    htmx.ajax('GET', '/browser/my-views', '#saved-views-tree');
+                }
+            } catch (err) {
+                console.error('Delete saved view failed:', err);
             }
         };
     }
