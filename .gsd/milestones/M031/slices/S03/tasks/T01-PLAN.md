@@ -70,3 +70,9 @@ The implementation touches three files: workspace.html (new section), a new part
 - `backend/app/templates/browser/workspace.html` — modified with new `section-queries` block
 - `backend/app/templates/browser/saved_queries_explorer.html` — new partial template
 - `backend/app/views/router.py` — modified with new `/saved-queries/explorer` endpoint
+
+## Observability Impact
+
+- **New signal:** `saved_queries_explorer` endpoint logs exception traces on `list_all_queries()` failure, then degrades gracefully to empty list.
+- **Inspection surface:** `window.__canvasDragPayload` global is set during drag, inspectable in browser console. htmx `queriesRefreshed` event on `document.body` triggers re-fetch.
+- **Failure visibility:** Error path renders "No saved queries" empty state instead of crashing — broken backend surfaces in server logs, not broken UI.
