@@ -253,3 +253,25 @@ After carousel removal, view templates receive `model_view_specs` (only model-de
 ```
 
 Dedicated view endpoints (`table_view()`, `cards_view()`, `graph_view()`) pass `model_view_specs: []` since they already serve a specific model-declared view. Only `generic_view()` populates this from `get_view_specs_for_type()`.
+
+---
+
+### PromotedViewData fields must use OPTIONAL SPARQL when listing
+
+**Discovered:** M031/S02/T02
+
+When extending `PromotedViewData` with new fields (`type_filter`, `scope_query_id`), the `list_promoted_views()` SPARQL must wrap all new predicates in OPTIONAL clauses. Without OPTIONAL, views saved without those fields (e.g., older query-based promoted views) are excluded from results entirely — the SPARQL pattern match fails if the triple doesn't exist.
+
+This also applies to the original `fromQuery` predicate — making it OPTIONAL was necessary so generic saved views (which have no associated query) appear in the listing.
+
+---
+
+### Two-path pattern for saved views: generic vs. query-based
+
+**Discovered:** M031/S02/T02
+
+The Saved Views folder (`my_views.html`) needs two distinct code paths:
+1. **Query-based promoted views** (created via "Pin as Saved View" on a saved query): use `openViewTab()` and `demoteView()` for unpin
+2. **Generic saved views** (created via "Save View" toolbar button): use `openGenericViewTab(renderer, scopeQuery)` and `deleteSavedView()` for unpin
+
+The distinguishing signal is whether the PromotedViewData has a `renderer_type` field — generic saves always have one; query-based promotions derive renderer from the ViewSpec.

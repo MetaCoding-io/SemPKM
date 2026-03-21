@@ -678,6 +678,24 @@ initPersonas() checks GET /api/personas; if empty, POSTs new "Default" with curr
 - Acceptance: `scope_query` URL parameter accepted by all three generic view renderers (table, card, graph) and graph data endpoint. Saved query WHERE body injected as sub-select filter. Scope persists across pagination. Scope dropdown in view toolbar. Graceful degradation for invalid scope.
 - Notes: Implementation complete (M031/S01). Integration testing against Docker stack deferred to S07.
 
+### VIEW-10 — Multiple view instances as tabs with different scopes
+- Status: validated
+- Class: core-capability
+- Source: design (M031 roadmap)
+- Primary Slice: M031/S02
+- Supporting Slices: M031/S07
+- Acceptance: `openGenericViewTab()` creates unique tab IDs per invocation. Scoped tabs deduplicate by `renderer:scope:queryId`. Unscoped tabs use `renderer:timestamp`. Tab labels differentiate instances with scope name or numeric suffix. Multiple tabs of the same renderer coexist as independent dockview panels.
+- Validation: Old fixed tab ID pattern `var tabKey = 'generic-view:' + renderer;` removed. New dynamic scheme confirmed in workspace.js. Function signature accepts scopeLabel for caller-controlled differentiation.
+
+### VIEW-11 — Saved views load/display/create/unpin correctly
+- Status: validated
+- Class: core-capability
+- Source: design (M031 roadmap)
+- Primary Slice: M031/S02
+- Supporting Slices: M031/S07
+- Acceptance: "Save View" button in view toolbar persists current configuration (renderer, type_filter, scope_query_id) as a PromotedView via `POST /browser/views/save`. Saved Views folder shows entries with renderer-type icons, labels, and unpin actions. Generic saved views open via `openGenericViewTab()`. Unpin calls `DELETE /browser/views/saved/{view_id}`.
+- Validation: 13 unit tests pass covering save_promoted_view, list_promoted_views (with OPTIONAL fields), delete_promoted_view. `save_promoted_view` and POST endpoint exist. my_views.html routes through openGenericViewTab.
+
 ## Validated
 
 ### EXP-01 — Explorer mode dropdown with switchable navigation strategies
@@ -2668,11 +2686,13 @@ S03: 59 unit tests. S04 E2E test saves/applies preset, verifies restoration.
 | LINT-20 | core-capability | validated | M030/S03 | M030/S04 | Named presets — 59 unit tests + E2E |
 | VIEW-08 | core-capability | validated | M031/S01 | M031/S07 | carousel removed, variant dropdown, 25 unit tests |
 | VIEW-09 | core-capability | active | M031/S01 | M031/S07 | scope_query param + dropdown + graceful degradation |
+| VIEW-10 | core-capability | validated | M031/S02 | M031/S07 | unique tab IDs, scoped dedup, unscoped fresh, 13 unit tests |
+| VIEW-11 | core-capability | validated | M031/S02 | M031/S07 | save/list/delete promoted views, toolbar button, my_views routing |
 
 ## Coverage Summary
 
 - Active requirements: 26 (14 APP + 8 RSS + 3 GCAL + 1 VIEW-09)
-- Validated: 245 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 8 from M013 + 13 from M014 + 4 from M015 + 7 from M016 + 7 from M017 + 5 from M018 + 12 from M023 + 15 from M024 + 10 from M025 + 7 from M026 + 9 from M029 + 13 from M030 + 1 from M031 + 2 from other)
+- Validated: 247 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 8 from M013 + 13 from M014 + 4 from M015 + 7 from M016 + 7 from M017 + 5 from M018 + 12 from M023 + 15 from M024 + 10 from M025 + 7 from M026 + 9 from M029 + 13 from M030 + 3 from M031 + 2 from other)
 - Partial: 4 (EXT-14, EXT-18, EXT-20, EXT-21)
 - Deferred: 6 (TYPE-03, TYPE-04, MCP-01, VIEW-06, VIEW-07, VFS-13)
 - Out of scope: 3
