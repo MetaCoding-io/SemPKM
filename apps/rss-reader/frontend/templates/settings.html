@@ -1,0 +1,26 @@
+<div class="rss-settings">
+    <h3>RSS Reader Settings</h3>
+    <form hx-post="/app/rss-reader/_fragments/settings"
+          hx-target="#rss-settings-result"
+          hx-swap="innerHTML">
+        <div class="rss-settings-field">
+            <label for="articlesPerPage">Articles per page</label>
+            <input type="number" id="articlesPerPage" name="articlesPerPage"
+                   value="{{ articles_per_page }}" min="10" max="200" step="1">
+            <span class="rss-settings-hint">Number of articles shown per feed page (10–200)</span>
+        </div>
+
+        <div class="rss-settings-field">
+            <label for="markReadOnOpen">
+                <input type="checkbox" id="markReadOnOpen" name="markReadOnOpen"
+                       {% if mark_read_on_open == "true" %}checked{% endif %}>
+                Mark articles as read when opened
+            </label>
+        </div>
+
+        <div class="rss-settings-actions">
+            <button type="submit" class="btn btn-primary btn-sm">Save Settings</button>
+        </div>
+    </form>
+    <div id="rss-settings-result" style="margin-top: 8px;"></div>
+</div>

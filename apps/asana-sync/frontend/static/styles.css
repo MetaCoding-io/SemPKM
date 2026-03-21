@@ -1,0 +1,501 @@
+/* Asana Sync app — scoped styles
+   All rules under .asana-sync-settings to avoid conflicts. */
+
+.asana-sync-settings {
+    padding: 1.5rem;
+    max-width: 600px;
+}
+
+.asana-sync-settings h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.25rem;
+}
+
+.asana-sync-settings h3 {
+    margin: 0 0 0.25rem;
+    font-size: 1rem;
+}
+
+.asana-sync-settings .connect-description {
+    color: var(--color-text-muted, #888);
+    margin-bottom: 1.5rem;
+}
+
+/* ── Sections ── */
+
+.asana-sync-settings .connect-section {
+    margin-bottom: 1.25rem;
+}
+
+.asana-sync-settings .section-hint {
+    font-size: 0.85rem;
+    color: var(--color-text-muted, #888);
+    margin-bottom: 0.75rem;
+}
+
+.asana-sync-settings .section-hint a {
+    color: var(--color-link, #5e9ed6);
+}
+
+/* ── Divider ── */
+
+.asana-sync-settings .connect-divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1.5rem 0;
+    color: var(--color-text-muted, #888);
+    font-size: 0.85rem;
+}
+
+.asana-sync-settings .connect-divider::before,
+.asana-sync-settings .connect-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--color-border, #333);
+}
+
+/* ── Credential & API Key Forms ── */
+
+.asana-sync-settings .credentials-form .form-row,
+.asana-sync-settings .api-key-form .form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.asana-sync-settings .credentials-form label,
+.asana-sync-settings .api-key-form label {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.asana-sync-settings .credentials-form input[type="text"],
+.asana-sync-settings .credentials-form input[type="password"],
+.asana-sync-settings .api-key-form input[type="password"] {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-border, #333);
+    border-radius: 4px;
+    background: var(--color-bg-input, #1a1a1a);
+    color: var(--color-text, #eee);
+    font-family: monospace;
+    font-size: 0.9rem;
+}
+
+.asana-sync-settings .credentials-form input:focus,
+.asana-sync-settings .api-key-form input:focus {
+    outline: none;
+    border-color: var(--color-accent, #5e9ed6);
+    box-shadow: 0 0 0 2px rgba(94, 158, 214, 0.2);
+}
+
+/* ── Redirect URI ── */
+
+.asana-sync-settings .redirect-uri {
+    display: inline-block;
+    font-size: 0.8rem;
+    padding: 0.2rem 0.4rem;
+    background: var(--color-bg-elevated, #2a2a2a);
+    border: 1px solid var(--color-border, #333);
+    border-radius: 3px;
+    word-break: break-all;
+}
+
+/* ── Buttons ── */
+
+.asana-sync-settings .btn {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+    transition: background-color 0.15s ease;
+}
+
+.asana-sync-settings .btn-primary {
+    background: var(--color-accent, #5e9ed6);
+    color: #fff;
+}
+
+.asana-sync-settings .btn-primary:hover {
+    background: var(--color-accent-hover, #4a8bc2);
+}
+
+.asana-sync-settings .btn-danger {
+    background: var(--color-danger, #d9534f);
+    color: #fff;
+}
+
+.asana-sync-settings .btn-danger:hover {
+    background: var(--color-danger-hover, #c9302c);
+}
+
+/* ── Connection Status ── */
+
+.asana-sync-settings .connection-status {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.asana-sync-settings .status-badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.asana-sync-settings .status-connected {
+    background: rgba(46, 160, 67, 0.15);
+    color: #3fb950;
+    border: 1px solid rgba(46, 160, 67, 0.3);
+}
+
+.asana-sync-settings .status-detail {
+    font-size: 0.9rem;
+    color: var(--color-text-muted, #888);
+    margin-bottom: 1.5rem;
+}
+
+/* ── Auth Method Badge ── */
+
+.asana-sync-settings .auth-method-badge {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    background: var(--color-bg-elevated, #2a2a2a);
+    color: var(--color-text-muted, #888);
+    border: 1px solid var(--color-border, #333);
+}
+
+/* ── Projects Section ── */
+
+.asana-sync-settings .projects-section {
+    margin-bottom: 1.5rem;
+}
+
+.asana-sync-settings .projects-section h4 {
+    margin: 0 0 0.5rem;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted, #888);
+}
+
+/* ── Workspace Grouping ── */
+
+.asana-sync-settings .workspace-group {
+    margin-bottom: 1rem;
+}
+
+.asana-sync-settings .workspace-heading {
+    margin: 0 0 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-text, #eee);
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid var(--color-border-subtle, #222);
+}
+
+.asana-sync-settings .project-checkbox-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding-left: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.asana-sync-settings .project-checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.1s ease;
+}
+
+.asana-sync-settings .project-checkbox-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.asana-sync-settings .project-checkbox-item input[type="checkbox"] {
+    accent-color: var(--color-accent, #5e9ed6);
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.asana-sync-settings .project-name {
+    flex: 1;
+}
+
+.asana-sync-settings .no-projects {
+    color: var(--color-text-muted, #888);
+    font-style: italic;
+    font-size: 0.85rem;
+}
+
+/* ── Field Mapping Section (active) ── */
+
+.asana-sync-settings .field-mapping-section {
+    margin-bottom: 1.5rem;
+}
+
+.asana-sync-settings .field-mapping-section h4 {
+    margin: 0 0 0.5rem;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted, #888);
+}
+
+/* ── Form Actions ── */
+
+.asana-sync-settings .form-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+/* ── htmx loading indicator ── */
+
+.asana-sync-settings .htmx-indicator {
+    display: none;
+    font-size: 0.85rem;
+    color: var(--color-text-muted, #888);
+}
+
+.asana-sync-settings .htmx-request .htmx-indicator,
+.htmx-request .asana-sync-settings .htmx-indicator {
+    display: inline;
+}
+
+/* ── OAuth Note ── */
+
+.asana-sync-settings .oauth-note {
+    font-size: 0.85rem;
+    color: var(--color-text-muted, #888);
+    font-style: italic;
+}
+
+/* ── Disconnect ── */
+
+.asana-sync-settings .disconnect-section {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border, #333);
+}
+
+/* ── Field Discovery ── */
+
+.asana-sync-settings .discover-section {
+    margin-bottom: 1.5rem;
+}
+
+.asana-sync-settings .discover-section h4,
+.asana-sync-settings .mapping-section h4,
+.asana-sync-settings .config-summary-section h4 {
+    margin: 0 0 0.5rem;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted, #888);
+}
+
+/* ── Field Mapping Form ── */
+
+.asana-sync-settings .field-mapping-form {
+    margin-bottom: 1.5rem;
+}
+
+.asana-sync-settings .mapping-section {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border: 1px solid var(--color-border, #333);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+/* ── Status Source Radios ── */
+
+.asana-sync-settings .status-source-radios {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.asana-sync-settings .radio-item {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    padding: 0.4rem 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    flex-wrap: wrap;
+}
+
+.asana-sync-settings .radio-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.asana-sync-settings .radio-item input[type="radio"] {
+    accent-color: var(--color-accent, #5e9ed6);
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.asana-sync-settings .radio-hint {
+    display: block;
+    width: 100%;
+    padding-left: calc(16px + 0.5rem);
+    font-size: 0.8rem;
+    color: var(--color-text-muted, #888);
+}
+
+/* ── Field Selector ── */
+
+.asana-sync-settings .field-selector-label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.asana-sync-settings .field-selector {
+    width: 100%;
+    padding: 0.45rem 0.75rem;
+    border: 1px solid var(--color-border, #333);
+    border-radius: 4px;
+    background: var(--color-bg-input, #1a1a1a);
+    color: var(--color-text, #eee);
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+}
+
+.asana-sync-settings .field-selector:focus {
+    outline: none;
+    border-color: var(--color-accent, #5e9ed6);
+    box-shadow: 0 0 0 2px rgba(94, 158, 214, 0.2);
+}
+
+/* ── Mapping Table ── */
+
+.asana-sync-settings .mapping-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0.5rem;
+}
+
+.asana-sync-settings .mapping-table th {
+    text-align: left;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted, #888);
+    padding: 0.4rem 0.5rem;
+    border-bottom: 1px solid var(--color-border, #333);
+}
+
+.asana-sync-settings .mapping-table td {
+    padding: 0.4rem 0.5rem;
+    border-bottom: 1px solid var(--color-border-subtle, #222);
+    font-size: 0.9rem;
+}
+
+.asana-sync-settings .mapping-label {
+    font-weight: 500;
+    color: var(--color-text, #eee);
+}
+
+.asana-sync-settings .mapping-select {
+    width: 100%;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid var(--color-border, #333);
+    border-radius: 4px;
+    background: var(--color-bg-input, #1a1a1a);
+    color: var(--color-text, #eee);
+    font-size: 0.85rem;
+}
+
+.asana-sync-settings .mapping-select:focus {
+    outline: none;
+    border-color: var(--color-accent, #5e9ed6);
+    box-shadow: 0 0 0 2px rgba(94, 158, 214, 0.2);
+}
+
+.asana-sync-settings .no-fields-note {
+    color: var(--color-text-muted, #888);
+    font-style: italic;
+    font-size: 0.85rem;
+    margin: 0.5rem 0;
+}
+
+/* ── Config Summary ── */
+
+.asana-sync-settings .config-summary-section {
+    margin-bottom: 1.5rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid rgba(46, 160, 67, 0.2);
+    border-radius: 6px;
+    background: rgba(46, 160, 67, 0.04);
+}
+
+.asana-sync-settings .config-summary {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.25rem 1rem;
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+.asana-sync-settings .config-summary dt {
+    color: var(--color-text-muted, #888);
+    font-weight: 600;
+}
+
+.asana-sync-settings .config-summary dd {
+    color: var(--color-text, #eee);
+    margin: 0;
+}
+
+/* ── Alert / Error / Success ── */
+
+.asana-sync-settings .alert {
+    padding: 0.75rem 1rem;
+    border-radius: 4px;
+    margin-bottom: 1.25rem;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.asana-sync-settings .alert-error {
+    background: rgba(217, 83, 79, 0.12);
+    color: #f87171;
+    border: 1px solid rgba(217, 83, 79, 0.25);
+}
+
+.asana-sync-settings .alert-success {
+    background: rgba(46, 160, 67, 0.12);
+    color: #3fb950;
+    border: 1px solid rgba(46, 160, 67, 0.25);
+}

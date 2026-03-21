@@ -1,0 +1,499 @@
+<div id="connect-content" class="asana-sync-settings">
+  <div class="connection-status">
+    <span class="status-badge status-connected">● Connected</span>
+    <span class="auth-method-badge">{{ auth_method | replace("_", " ") | title }}</span>
+  </div>
+
+  <p class="status-detail">Signed in as <strong>{{ asana_email }}</strong></p>
+
+  {# ── Workspace / Project Selection ── #}
+  {% if workspaces %}
+  <section class="projects-section">
+    <h4>Projects to Sync</h4>
+    <p class="section-hint">Select which Asana projects to sync tasks from.</p>
+    <form hx-post="/app/asana-sync/_fragments/settings/projects"
+          hx-target="#connect-content"
+          hx-swap="innerHTML"
+          hx-indicator="#projects-spinner">
+      {% for workspace in workspaces %}
+      <div class="workspace-group">
+        <h5 class="workspace-heading">{{ workspace.name }}</h5>
+        <div class="project-checkbox-list">
+          {% for project in workspace.projects %}
+          <label class="project-checkbox-item">
+            <input type="checkbox"
+                   name="project_gids"
+                   value="{{ project.gid }}"
+                   {% if project.gid in selected_projects %}checked{% endif %}>
+            <span class="project-name">{{ project.name }}</span>
+          </label>
+          {% endfor %}
+          {% if not workspace.projects %}
+          <p class="no-projects">No projects in this workspace.</p>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save Projects</button>
+        <span id="projects-spinner" class="htmx-indicator spinner">Saving…</span>
+      </div>
+    </form>
+  </section>
+  {% else %}
+  <p class="no-projects">No workspaces found. Check your Asana connection.</p>
+  {% endif %}
+
+  {# ── Field Discovery ── #}
+  {% if selected_projects %}
+  <section class="discover-section">
+    <h4>Field Configuration</h4>
+    <p class="section-hint">Discover custom fields from your selected projects to configure status and priority mapping.</p>
+    <form hx-post="/app/asana-sync/_fragments/settings/discover-fields"
+          hx-target="#connect-content"
+          hx-swap="innerHTML"
+          hx-indicator="#discover-spinner">
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          {% if fields_discovered %}Re-discover Fields{% else %}Discover Fields{% endif %}
+        </button>
+        <span id="discover-spinner" class="htmx-indicator spinner">Discovering…</span>
+      </div>
+    </form>
+  </section>
+  {% endif %}
+
+  {# ── Field Mapping Form ── #}
+  {% if fields_discovered %}
+  <form class="field-mapping-form"
+        hx-post="/app/asana-sync/_fragments/settings/field-mapping"
+        hx-target="#connect-content"
+        hx-swap="innerHTML"
+        hx-indicator="#mapping-spinner">
+
+    {# ── Status Mapping ── #}
+    <section class="mapping-section">
+      <h4>Status Mapping</h4>
+      <p class="section-hint">Choose how Asana task status maps to your knowledge base.</p>
+
+      <div class="status-source-radios">
+        <label class="radio-item">
+          <input type="radio" name="status_source" value="completed_only"
+                 {% if status_source == 'completed_only' or not status_source %}checked{% endif %}
+                 onchange="window._asanaFieldMapping.onStatusSourceChange(this.value)">
+          <span>Completed only</span>
+          <span class="radio-hint">completed → done, everything else → todo</span>
+        </label>
+        <label class="radio-item">
+          <input type="radio" name="status_source" value="custom_field"
+                 {% if status_source == 'custom_field' %}checked{% endif %}
+                 onchange="window._asanaFieldMapping.onStatusSourceChange(this.value)">
+          <span>Custom field</span>
+          <span class="radio-hint">Map an enum custom field's values to statuses</span>
+        </label>
+        <label class="radio-item">
+          <input type="radio" name="status_source" value="section"
+                 {% if status_source == 'section' %}checked{% endif %}
+                 onchange="window._asanaFieldMapping.onStatusSourceChange(this.value)">
+          <span>Section-based</span>
+          <span class="radio-hint">Map project sections (columns) to statuses</span>
+        </label>
+      </div>
+
+      {# ── Custom Field Status Mapping ── #}
+      <div id="status-custom-field-ui"
+           style="{% if status_source != 'custom_field' %}display:none{% endif %}">
+        {% if discovered_enum_fields %}
+        <label class="field-selector-label">Status Field</label>
+        <select name="status_field_gid" class="field-selector"
+                id="status-field-select"
+                onchange="window._asanaFieldMapping.onStatusFieldChange(this)">
+          <option value="">— Select a field —</option>
+          {% for field in discovered_enum_fields %}
+          <option value="{{ field.gid }}"
+                  data-options='{{ field.enum_options | tojson }}'
+                  {% if field.gid == status_field_gid %}selected{% endif %}>
+            {{ field.name }}
+          </option>
+          {% endfor %}
+        </select>
+        <div id="status-mapping-table-container">
+          {# Populated by JS when a field is selected, or pre-populated from saved config #}
+        </div>
+        {% else %}
+        <p class="no-fields-note">No enum fields found in your selected projects.</p>
+        {% endif %}
+      </div>
+
+      {# ── Section-Based Status Mapping ── #}
+      <div id="status-section-ui"
+           style="{% if status_source != 'section' %}display:none{% endif %}">
+        {% if discovered_sections %}
+        <table class="mapping-table">
+          <thead>
+            <tr><th>Section Name</th><th>Maps to Status</th></tr>
+          </thead>
+          <tbody>
+            {% for section in discovered_sections %}
+            <tr>
+              <td class="mapping-label">{{ section.name }}</td>
+              <td>
+                <select name="status_map_{{ section.name }}" class="mapping-select">
+                  {% for val, label in [('todo', 'To Do'), ('in-progress', 'In Progress'), ('done', 'Done'), ('blocked', 'Blocked'), ('cancelled', 'Cancelled')] %}
+                  <option value="{{ val }}"
+                          {% if status_mapping.get(section.name) == val %}selected{% endif %}>
+                    {{ label }}
+                  </option>
+                  {% endfor %}
+                </select>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p class="no-fields-note">No sections found in your selected projects.</p>
+        {% endif %}
+      </div>
+    </section>
+
+    {# ── Priority Mapping ── #}
+    <section class="mapping-section">
+      <h4>Priority Mapping</h4>
+      <p class="section-hint">Select an enum custom field to use as task priority.</p>
+
+      <label class="field-selector-label">Priority Field</label>
+      <select name="priority_field_gid" class="field-selector"
+              id="priority-field-select"
+              onchange="window._asanaFieldMapping.onPriorityFieldChange(this)">
+        <option value="">— None (no priority mapping) —</option>
+        {% for field in discovered_enum_fields %}
+        <option value="{{ field.gid }}"
+                data-options='{{ field.enum_options | tojson }}'
+                {% if field.gid == priority_field_gid %}selected{% endif %}>
+          {{ field.name }}
+        </option>
+        {% endfor %}
+      </select>
+      <div id="priority-mapping-table-container">
+        {# Populated by JS when a field is selected #}
+      </div>
+    </section>
+
+    {# ── Story Points ── #}
+    <section class="mapping-section">
+      <h4>Story Points</h4>
+      <p class="section-hint">Optionally select a number field to use as story points / effort estimate.</p>
+
+      <label class="field-selector-label">Story Points Field</label>
+      <select name="story_points_field_gid" class="field-selector">
+        <option value="">— None —</option>
+        {% for field in discovered_number_fields %}
+        <option value="{{ field.gid }}"
+                {% if field.gid == story_points_field_gid %}selected{% endif %}>
+          {{ field.name }}
+        </option>
+        {% endfor %}
+      </select>
+    </section>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Save Configuration</button>
+      <span id="mapping-spinner" class="htmx-indicator spinner">Saving…</span>
+    </div>
+  </form>
+
+  {% elif selected_projects and not fields_discovered %}
+  {# Projects selected but fields not yet discovered — show hint #}
+  <section class="field-mapping-section">
+    <h4>Field Mapping</h4>
+    <p class="section-hint">Click "Discover Fields" above to find custom fields in your selected projects.</p>
+  </section>
+  {% endif %}
+
+  {# ── Saved Configuration Summary ── #}
+  {% if status_source %}
+  <section class="config-summary-section">
+    <h4>Current Configuration</h4>
+    <dl class="config-summary">
+      <dt>Status Source</dt>
+      <dd>{{ status_source | replace("_", " ") | title }}</dd>
+      {% if status_mapping %}
+      <dt>Status Mappings</dt>
+      <dd>{{ status_mapping | length }} value{{ 's' if status_mapping | length != 1 else '' }} mapped</dd>
+      {% endif %}
+      {% if priority_field_gid %}
+      <dt>Priority Field</dt>
+      <dd>{{ priority_field_gid }}{% if priority_mapping %} ({{ priority_mapping | length }} mapped){% endif %}</dd>
+      {% endif %}
+      {% if story_points_field_gid %}
+      <dt>Story Points Field</dt>
+      <dd>{{ story_points_field_gid }}</dd>
+      {% endif %}
+    </dl>
+  </section>
+  {% endif %}
+
+  {# ── Sync Configuration ── #}
+  <section class="sync-config-section">
+    <h4>Sync Configuration</h4>
+    <form class="sync-config-form"
+          hx-post="/app/asana-sync/_fragments/settings/sync-config"
+          hx-target="#connect-content"
+          hx-swap="innerHTML">
+      <fieldset class="config-fieldset">
+        <legend>Direction</legend>
+        <label class="radio-item">
+          <input type="radio" name="sync_direction" value="pull-only"
+                 {% if sync_direction != 'bidirectional' %}checked{% endif %}>
+          <span>Pull only</span>
+          <span class="option-hint">Asana → SemPKM</span>
+        </label>
+        <label class="radio-item">
+          <input type="radio" name="sync_direction" value="bidirectional"
+                 {% if sync_direction == 'bidirectional' %}checked{% endif %}>
+          <span>Bidirectional</span>
+          <span class="option-hint">Asana ↔ SemPKM</span>
+        </label>
+      </fieldset>
+
+      <fieldset class="config-fieldset">
+        <legend>Poll Interval</legend>
+        <select name="poll_interval" class="config-select">
+          <option value="5m" {% if poll_interval == '5m' %}selected{% endif %}>Every 5 minutes</option>
+          <option value="15m" {% if poll_interval == '15m' %}selected{% endif %}>Every 15 minutes</option>
+          <option value="30m" {% if poll_interval == '30m' %}selected{% endif %}>Every 30 minutes</option>
+          <option value="1h" {% if poll_interval == '1h' %}selected{% endif %}>Every hour</option>
+        </select>
+      </fieldset>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save Config</button>
+        <span class="htmx-indicator">Saving…</span>
+      </div>
+    </form>
+  </section>
+
+  {# ── Sync Now ── #}
+  <section class="sync-now-section">
+    <h4>Manual Sync</h4>
+    <p class="section-hint">Run a sync immediately instead of waiting for the next scheduled poll.</p>
+    <form hx-post="/app/asana-sync/_fragments/sync-now"
+          hx-target="#connect-content"
+          hx-swap="innerHTML"
+          hx-indicator=".sync-now-indicator">
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" id="sync-now-btn">
+          Sync Now
+        </button>
+        <span class="htmx-indicator sync-now-indicator">Syncing…</span>
+      </div>
+    </form>
+  </section>
+
+  {# ── Sync Stats ── #}
+  <section class="sync-stats">
+    <h4>Sync Status</h4>
+    {% if last_sync_at %}
+    <div class="stat-row">
+      <span class="stat-label">Last sync</span>
+      <span class="stat-value">{{ last_sync_at[:19] | replace("T", " ") }} UTC</span>
+    </div>
+    {% endif %}
+
+    {% if last_pull_result %}
+    <div class="stat-group">
+      <h5>Last Pull</h5>
+      <div class="stat-row">
+        <span class="stat-label">Status</span>
+        <span class="stat-value stat-status-{{ last_pull_result.status }}">{{ last_pull_result.status }}</span>
+      </div>
+      {% if last_pull_result.status == 'ok' %}
+      <div class="stat-row">
+        <span class="stat-label">Created</span>
+        <span class="stat-value">{{ last_pull_result.created | default(0) }}</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Updated</span>
+        <span class="stat-value">{{ last_pull_result.updated | default(0) }}</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Unchanged</span>
+        <span class="stat-value">{{ last_pull_result.unchanged | default(0) }}</span>
+      </div>
+      {% endif %}
+      {% if last_pull_result.errors %}
+      <div class="stat-row stat-errors">
+        <span class="stat-label">Errors</span>
+        <span class="stat-value">{{ last_pull_result.errors }}</span>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if last_push_result %}
+    <div class="stat-group">
+      <h5>Last Push</h5>
+      <div class="stat-row">
+        <span class="stat-label">Status</span>
+        <span class="stat-value stat-status-{{ last_push_result.status }}">{{ last_push_result.status }}</span>
+      </div>
+      {% if last_push_result.status == 'ok' %}
+      <div class="stat-row">
+        <span class="stat-label">Pushed</span>
+        <span class="stat-value">{{ last_push_result.pushed | default(0) }}</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Skipped</span>
+        <span class="stat-value">{{ last_push_result.skipped | default(0) }}</span>
+      </div>
+      {% endif %}
+      {% if last_push_result.errors %}
+      <div class="stat-row stat-errors">
+        <span class="stat-label">Errors</span>
+        <span class="stat-value">{{ last_push_result.errors }}</span>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if not last_sync_at and not last_pull_result and not last_push_result %}
+    <p class="no-sync-data">No sync data yet. Configure sync and run a sync to get started.</p>
+    {% endif %}
+  </section>
+
+  {# ── Disconnect ── #}
+  <section class="disconnect-section">
+    <button class="btn btn-danger"
+            hx-post="/app/asana-sync/_fragments/connect/disconnect"
+            hx-target="#connect-content"
+            hx-swap="innerHTML"
+            hx-confirm="Disconnect from Asana? Sync will stop.">
+      Disconnect
+    </button>
+  </section>
+</div>
+
+{# ── Inline JS for conditional field mapping display ── #}
+{% if fields_discovered %}
+<script>
+(function() {
+  "use strict";
+
+  var STATUS_OPTIONS = [
+    {value: "todo", label: "To Do"},
+    {value: "in-progress", label: "In Progress"},
+    {value: "done", label: "Done"},
+    {value: "blocked", label: "Blocked"},
+    {value: "cancelled", label: "Cancelled"}
+  ];
+
+  var PRIORITY_OPTIONS = [
+    {value: "low", label: "Low"},
+    {value: "medium", label: "Medium"},
+    {value: "high", label: "High"},
+    {value: "critical", label: "Critical"}
+  ];
+
+  // Pre-loaded saved mappings from server
+  var savedStatusMapping = {{ status_mapping | tojson }};
+  var savedPriorityMapping = {{ priority_mapping | tojson }};
+
+  function buildMappingTable(enumOptions, mapPrefix, bpkmOptions, savedMapping) {
+    if (!enumOptions || enumOptions.length === 0) return "";
+    var html = '<table class="mapping-table"><thead><tr><th>Field Value</th><th>Maps to</th></tr></thead><tbody>';
+    for (var i = 0; i < enumOptions.length; i++) {
+      var opt = enumOptions[i];
+      var optName = opt.name || opt;
+      html += '<tr><td class="mapping-label">' + escapeHtml(optName) + '</td><td><select name="' + mapPrefix + escapeAttr(optName) + '" class="mapping-select">';
+      for (var j = 0; j < bpkmOptions.length; j++) {
+        var bv = bpkmOptions[j];
+        var selected = (savedMapping && savedMapping[optName] === bv.value) ? ' selected' : '';
+        html += '<option value="' + bv.value + '"' + selected + '>' + escapeHtml(bv.label) + '</option>';
+      }
+      html += '</select></td></tr>';
+    }
+    html += '</tbody></table>';
+    return html;
+  }
+
+  function escapeHtml(str) {
+    var div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function escapeAttr(str) {
+    return str.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/'/g, "&#39;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function onStatusSourceChange(value) {
+    var cfUI = document.getElementById("status-custom-field-ui");
+    var secUI = document.getElementById("status-section-ui");
+    if (cfUI) cfUI.style.display = (value === "custom_field") ? "" : "none";
+    if (secUI) secUI.style.display = (value === "section") ? "" : "none";
+  }
+
+  function onStatusFieldChange(select) {
+    var container = document.getElementById("status-mapping-table-container");
+    if (!container) return;
+    var option = select.options[select.selectedIndex];
+    if (!option || !option.value) {
+      container.innerHTML = "";
+      return;
+    }
+    try {
+      var enumOptions = JSON.parse(option.getAttribute("data-options") || "[]");
+      container.innerHTML = buildMappingTable(enumOptions, "status_map_", STATUS_OPTIONS, savedStatusMapping);
+    } catch (e) {
+      container.innerHTML = '<p class="no-fields-note">Error reading field options.</p>';
+    }
+  }
+
+  function onPriorityFieldChange(select) {
+    var container = document.getElementById("priority-mapping-table-container");
+    if (!container) return;
+    var option = select.options[select.selectedIndex];
+    if (!option || !option.value) {
+      container.innerHTML = "";
+      return;
+    }
+    try {
+      var enumOptions = JSON.parse(option.getAttribute("data-options") || "[]");
+      container.innerHTML = buildMappingTable(enumOptions, "priority_map_", PRIORITY_OPTIONS, savedPriorityMapping);
+    } catch (e) {
+      container.innerHTML = '<p class="no-fields-note">Error reading field options.</p>';
+    }
+  }
+
+  // Expose for inline event handlers
+  window._asanaFieldMapping = {
+    onStatusSourceChange: onStatusSourceChange,
+    onStatusFieldChange: onStatusFieldChange,
+    onPriorityFieldChange: onPriorityFieldChange
+  };
+
+  // Initialize mapping tables on load if fields are already selected
+  document.addEventListener("DOMContentLoaded", function() {
+    var statusSelect = document.getElementById("status-field-select");
+    if (statusSelect && statusSelect.value) {
+      onStatusFieldChange(statusSelect);
+    }
+    var prioritySelect = document.getElementById("priority-field-select");
+    if (prioritySelect && prioritySelect.value) {
+      onPriorityFieldChange(prioritySelect);
+    }
+  });
+
+  // Also run init immediately in case DOMContentLoaded already fired (htmx swap)
+  var statusSelect = document.getElementById("status-field-select");
+  if (statusSelect && statusSelect.value) {
+    onStatusFieldChange(statusSelect);
+  }
+  var prioritySelect = document.getElementById("priority-field-select");
+  if (prioritySelect && prioritySelect.value) {
+    onPriorityFieldChange(prioritySelect);
+  }
+})();
+</script>
+{% endif %}

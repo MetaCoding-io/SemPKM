@@ -1,0 +1,22 @@
+<div class="calendar-checkbox-list">
+  {% for cal in calendars %}
+  <label class="calendar-checkbox-item">
+    <input type="checkbox"
+           name="calendar_ids"
+           value="{{ cal.id }}"
+           {% if cal.id in selected_calendars %}checked{% endif %}>
+    <span class="calendar-name">{{ cal.name }}</span>
+    {% if cal.isDefaultCalendar %}
+    <span class="primary-badge">Default</span>
+    {% endif %}
+    {% if cal.canEdit %}
+    <span class="access-role">Read/Write</span>
+    {% else %}
+    <span class="access-role">Read-only</span>
+    {% endif %}
+  </label>
+  {% endfor %}
+  {% if not calendars %}
+  <p class="no-calendars">No calendars found in this account.</p>
+  {% endif %}
+</div>

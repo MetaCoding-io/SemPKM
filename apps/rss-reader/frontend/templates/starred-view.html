@@ -1,0 +1,8 @@
+<div class="rss-workspace-view" id="rss-starred-view">
+  <h3>Starred Articles</h3>
+  <div hx-get="/_fragments/article-list?filter=starred"
+       hx-trigger="load"
+       hx-swap="innerHTML">
+    <div class="tree-empty">Loading starred articles...</div>
+  </div>
+</div>

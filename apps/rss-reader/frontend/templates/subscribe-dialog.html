@@ -1,0 +1,28 @@
+<div id="rss-subscribe-dialog" class="rss-subscribe-form">
+  <h3>Subscribe to Feed</h3>
+  <form hx-post="/_fragments/subscribe" hx-target="#subscribe-result" hx-swap="innerHTML">
+    <div class="form-group">
+      <label for="feed-url-input">Feed URL</label>
+      <input type="url" id="feed-url-input" name="feed_url"
+             placeholder="https://example.com/feed.xml" required
+             class="form-input">
+    </div>
+    <div class="form-group">
+      <label for="feed-title-input">Title (optional)</label>
+      <input type="text" id="feed-title-input" name="title"
+             placeholder="My Favorite Blog"
+             class="form-input">
+    </div>
+    <div class="form-actions">
+      <button type="button"
+              hx-get="/_fragments/discover-feeds"
+              hx-include="#feed-url-input"
+              hx-target="#discover-result"
+              hx-swap="innerHTML"
+              class="btn btn-secondary">Discover Feeds</button>
+      <button type="submit" class="btn btn-primary">Subscribe</button>
+    </div>
+  </form>
+  <div id="discover-result"></div>
+  <div id="subscribe-result"></div>
+</div>

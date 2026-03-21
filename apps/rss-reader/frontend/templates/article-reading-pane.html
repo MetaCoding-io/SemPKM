@@ -1,0 +1,46 @@
+<div class="rss-article-reading-pane"
+     data-article-iri="{{ article.iri }}"
+     data-starred="{{ article.is_starred | lower }}"
+     data-read="{{ article.is_read | lower }}">
+  <div class="rss-article-header">
+    <h1>{{ article.title or 'Untitled' }}</h1>
+    <div class="rss-article-header-meta">
+      {% if article.author %}
+      <span class="rss-article-author">{{ article.author }}</span>
+      {% endif %}
+      {% if article.date %}
+      <span class="rss-article-date">{{ article.date }}</span>
+      {% endif %}
+      {% if article.feed_title %}
+      <span class="rss-article-source">{{ article.feed_title }}</span>
+      {% endif %}
+      {% if article.link %}
+      <a href="{{ article.link }}" target="_blank" rel="noopener">View Original</a>
+      {% endif %}
+    </div>
+    <div class="rss-article-actions">
+      {% include "star-button.html" %}
+    </div>
+  </div>
+
+  {% if body %}
+  <script type="text/plain" id="md-source-{{ md_id }}">{{ body | safe }}</script>
+  <div id="md-target-{{ md_id }}" class="rss-article-body"></div>
+  {% else %}
+  <div class="rss-article-body">
+    <p class="rss-no-content">No full content available.
+      {% if article.link %}
+      <a href="{{ article.link }}" target="_blank" rel="noopener">Visit the original article</a>.
+      {% endif %}
+    </p>
+  </div>
+  {% endif %}
+
+  {% if not article.is_read %}
+  <div hx-post="/_fragments/toggle-read"
+       hx-vals='{"article_iri": "{{ article.iri }}"}'
+       hx-trigger="load"
+       hx-swap="none"
+       style="display:none"></div>
+  {% endif %}
+</div>

@@ -1,0 +1,23 @@
+/* Todoist Sync app styles — extends workspace base */
+
+.todoist-sync-settings {
+    max-width: 600px;
+    padding: 1rem;
+}
+
+.todoist-sync-settings .connection-detail {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.todoist-sync-settings .token-preview {
+    font-size: 0.85rem;
+    opacity: 0.7;
+}
+
+.todoist-sync-settings .projects-count {
+    font-size: 0.85rem;
+    color: var(--color-text-muted, #888);
+}

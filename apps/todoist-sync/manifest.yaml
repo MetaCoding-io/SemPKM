@@ -1,0 +1,54 @@
+appId: "todoist-sync"
+name: "Todoist Sync"
+version: "0.1.0"
+description: "One-way sync from Todoist tasks into SemPKM bpkm:Task objects"
+author:
+  name: "SemPKM"
+license: "MIT"
+
+dependencies:
+  platform: ">=0.1.0"
+
+permissions:
+  commands:
+    - "object.create"
+    - "object.patch"
+    - "body.set"
+    - "body.diff"
+    - "edge.create"
+  sparql:
+    read: true
+  backgroundTasks: true
+  network:
+    - "api.todoist.com"
+
+backend:
+  entrypoint: "app:todoist_sync_app"
+
+tasks:
+  - id: "poll-tasks"
+    description: "Poll Todoist for updated tasks and sync to SemPKM"
+    interval: "5m"
+    retryPolicy:
+      maxRetries: 3
+      maxBackoff: "60s"
+  - id: "push-changes"
+    description: "Push local task changes back to Todoist"
+    interval: "5m"
+    retryPolicy:
+      maxRetries: 3
+      maxBackoff: "60s"
+
+frontend:
+  staticDir: "frontend/static"
+  css:
+    - "styles.css"
+
+ui:
+  pages:
+    - id: "settings"
+      path: "/settings"
+      label: "Todoist Sync"
+      icon: "check-square"
+      nav: "apps"
+      fragment: "connect"

@@ -1,0 +1,24 @@
+<div class="rss-reader" id="rss-reader-container">
+  <div class="rss-feed-sidebar" id="rss-feed-sidebar"
+       hx-get="/_fragments/feed-sidebar"
+       hx-trigger="load, feedsChanged from:body"
+       hx-swap="innerHTML">
+    <div class="tree-empty">Loading feeds...</div>
+  </div>
+  <div class="rss-article-list" id="rss-article-list">
+    <div class="rss-article-list-header">
+      <h3>All Articles</h3>
+    </div>
+    <div id="rss-article-list-content"
+         hx-get="/_fragments/article-list"
+         hx-trigger="load"
+         hx-swap="innerHTML">
+      <div class="tree-empty">Loading articles...</div>
+    </div>
+  </div>
+  <div class="rss-reading-pane" id="rss-reading-pane">
+    <div class="rss-reading-pane-empty">
+      <p>Select an article to read</p>
+    </div>
+  </div>
+</div>
