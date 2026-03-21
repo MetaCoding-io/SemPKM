@@ -29,6 +29,10 @@ RENDERER_REGISTRY: dict[str, dict] = {
         "type": "graph",
         "template": "browser/graph_view.html",
     },
+    "kanban": {
+        "type": "kanban",
+        "template": "browser/kanban_view.html",
+    },
 }
 
 

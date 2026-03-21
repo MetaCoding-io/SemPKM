@@ -1109,6 +1109,175 @@ WHERE {{
 
         return await self._parse_graph_results(turtle_bytes, inferred_edge_set)
 
+    # ── Kanban renderer ────────────────────────────────────────
+
+    async def _detect_status_field(
+        self, type_iri: str,
+    ) -> tuple[PropertyShape | None, list[str]]:
+        """Find the first SHACL property with ``sh:in`` values for kanban columns.
+
+        Prefers a property whose ``path`` contains "status" (case-insensitive).
+        Falls back to the first property with non-empty ``in_values``.
+
+        Returns:
+            ``(property_shape, in_values)`` or ``(None, [])`` when no suitable
+            property exists.
+        """
+        if not self._shapes_service:
+            return None, []
+
+        try:
+            form: NodeShapeForm | None = (
+                await self._shapes_service.get_form_for_type(type_iri)
+            )
+        except Exception:
+            logger.warning(
+                "_detect_status_field: shapes lookup failed for %s",
+                type_iri,
+                exc_info=True,
+            )
+            return None, []
+
+        if form is None:
+            return None, []
+
+        first_with_in: PropertyShape | None = None
+        first_in_values: list[str] = []
+
+        for prop in form.properties:
+            if not prop.in_values:
+                continue
+            # Prefer property with "status" in path
+            if "status" in prop.path.lower():
+                return prop, list(prop.in_values)
+            if first_with_in is None:
+                first_with_in = prop
+                first_in_values = list(prop.in_values)
+
+        if first_with_in is not None:
+            return first_with_in, first_in_values
+
+        return None, []
+
+    @staticmethod
+    def _build_kanban_select(
+        type_iri: str,
+        status_path: str,
+        scope_filter: str | None = None,
+    ) -> str:
+        """Build a SELECT query that fetches subjects with their status value.
+
+        Args:
+            type_iri: The RDF type IRI to filter by.
+            status_path: The property IRI for the status field.
+            scope_filter: Optional SPARQL WHERE body injected as sub-select.
+
+        Returns:
+            SPARQL SELECT query string.
+        """
+        scope_clause = ""
+        if scope_filter:
+            scope_clause = f"  {{ SELECT ?s WHERE {{ {scope_filter} }} }}\n"
+
+        return (
+            "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
+            "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n"
+            "PREFIX dcterms: <http://purl.org/dc/terms/>\n"
+            "\n"
+            "SELECT ?s ?label ?statusValue\n"
+            "WHERE {\n"
+            f"  ?s rdf:type <{type_iri}> .\n"
+            f"  ?s <{status_path}> ?statusValue .\n"
+            f"{scope_clause}"
+            "  OPTIONAL { ?s rdfs:label|dcterms:title ?label }\n"
+            "}"
+        )
+
+    async def execute_kanban_query(
+        self,
+        type_iri: str,
+        status_field: PropertyShape,
+        status_values: list[str],
+        scope_filter: str | None = None,
+    ) -> dict:
+        """Execute a kanban grouping query and return column data.
+
+        Groups results into columns matching the ``status_values`` order
+        from ``sh:in``.  Objects whose status value does not appear in the
+        list are placed in an "Unset" column appended at the end.
+
+        Returns:
+            ``{"columns": [...], "status_field": {...}, "total": N}``
+        """
+        query = self._build_kanban_select(
+            type_iri, status_field.path, scope_filter=scope_filter,
+        )
+        scoped = scope_to_current_graph(query)
+
+        try:
+            result = await self._client.query(scoped)
+        except Exception:
+            logger.warning(
+                "execute_kanban_query: query failed for type=%s status=%s",
+                type_iri,
+                status_field.path,
+                exc_info=True,
+            )
+            return {
+                "columns": [
+                    {"value": v, "label": v.replace("-", " ").replace("_", " ").title(), "items": []}
+                    for v in status_values
+                ],
+                "status_field": {"path": status_field.path, "name": status_field.name},
+                "total": 0,
+            }
+
+        bindings = result.get("results", {}).get("bindings", [])
+
+        # Build column buckets keyed by status value
+        buckets: dict[str, list[dict]] = {v: [] for v in status_values}
+        unset_items: list[dict] = []
+        seen: set[str] = set()
+
+        for b in bindings:
+            iri = b.get("s", {}).get("value", "")
+            if not iri or iri in seen:
+                continue
+            seen.add(iri)
+
+            label = b.get("label", {}).get("value", "") or _local_name(iri)
+            status_val = b.get("statusValue", {}).get("value", "")
+
+            item = {"iri": iri, "label": label}
+
+            if status_val in buckets:
+                buckets[status_val].append(item)
+            else:
+                unset_items.append(item)
+
+        columns = []
+        for v in status_values:
+            columns.append({
+                "value": v,
+                "label": v.replace("-", " ").replace("_", " ").title(),
+                "items": buckets[v],
+            })
+
+        if unset_items:
+            columns.append({
+                "value": "__unset__",
+                "label": "Unset",
+                "items": unset_items,
+            })
+
+        total = len(seen)
+
+        return {
+            "columns": columns,
+            "status_field": {"path": status_field.path, "name": status_field.name},
+            "total": total,
+        }
+
     async def get_model_layouts(self) -> list[dict]:
         """Query installed model view specs for custom layout definitions.
 

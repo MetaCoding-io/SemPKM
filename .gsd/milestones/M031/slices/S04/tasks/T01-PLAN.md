@@ -98,3 +98,10 @@ Add the kanban renderer backend: status field auto-detection from SHACL shapes, 
 - `backend/app/views/router.py` — modified with kanban in `_VALID_RENDERERS` and kanban branch in `generic_view()`
 - `backend/app/views/registry.py` — modified with kanban entry in `RENDERER_REGISTRY`
 - `backend/tests/test_kanban.py` — new test file with 8+ unit tests
+
+## Observability Impact
+
+- **New log signal:** `logger.info("generic_view: renderer=kanban type=%s scope_query=%s", ...)` emitted on every kanban request — enables grep-based request monitoring.
+- **New warning signal:** `logger.warning(...)` in `_detect_status_field()` when SHACL shapes lookup fails for a type — surfaces broken shapes data.
+- **Inspection surface:** `GET /browser/views/generic/kanban?type=<iri>` renders kanban HTML or a user-facing error message when the type has no status property.
+- **Failure visibility:** Kanban endpoint returns a graceful error template (not a 500) when no type is selected or the type lacks `sh:in` properties. SPARQL query failures in `execute_kanban_query()` are logged and return empty columns.

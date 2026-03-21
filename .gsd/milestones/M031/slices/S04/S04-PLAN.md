@@ -45,7 +45,7 @@
 
 ## Tasks
 
-- [ ] **T01: Backend kanban endpoint, status detection, and unit tests** `est:40m`
+- [x] **T01: Backend kanban endpoint, status detection, and unit tests** `est:40m`
   - Why: The kanban view needs a backend endpoint that detects the status field for a type via SHACL `sh:in`, executes a grouping query, and returns structured column data. Unit tests verify the logic in isolation.
   - Files: `backend/app/views/router.py`, `backend/app/views/service.py`, `backend/app/views/registry.py`, `backend/tests/test_kanban.py`
   - Do: Add `_detect_status_field()` to ViewSpecService (finds first PropertyShape with non-empty `in_values`, preferring "status" in the path). Add `_build_kanban_select()` and `execute_kanban_query()` for SPARQL query + server-side grouping. Add `"kanban"` to `_VALID_RENDERERS` and kanban branch in `generic_view()`. Register in `RENDERER_REGISTRY`. Write pytest unit tests.
