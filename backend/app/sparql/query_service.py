@@ -42,6 +42,8 @@ PRED_QUERY_TEXT = VOCAB + "queryText"
 PRED_SHARED_WITH = VOCAB + "sharedWith"
 PRED_FROM_QUERY = VOCAB + "fromQuery"
 PRED_RENDERER_TYPE = VOCAB + "rendererType"
+PRED_TYPE_FILTER = VOCAB + "typeFilter"
+PRED_SCOPE_QUERY = VOCAB + "scopeQueryId"
 PRED_EXECUTED_BY = "http://www.w3.org/ns/prov#wasAssociatedWith"  # was VOCAB + "executedBy"
 PRED_SOURCE = VOCAB + "source"
 
@@ -135,6 +137,8 @@ class PromotedViewData:
     display_label: str
     renderer_type: str
     query_text: str = ""
+    type_filter: str = ""
+    scope_query_id: str = ""
 
 
 class QueryService:
@@ -623,6 +627,80 @@ class QueryService:
             query_text=current.query_text,
         )
 
+    async def save_promoted_view(
+        self,
+        user_id: uuid.UUID,
+        display_label: str,
+        renderer_type: str,
+        type_filter: str = "",
+        scope_query_id: str = "",
+    ) -> PromotedViewData:
+        """Create a PromotedView directly, without requiring an existing saved query.
+
+        This path is used by the "Save View" toolbar button to persist a generic
+        view configuration (renderer + type filter + scope query).
+        """
+        if renderer_type not in VALID_RENDERERS:
+            raise ValueError(
+                f"renderer_type must be one of: {', '.join(sorted(VALID_RENDERERS))}"
+            )
+
+        view_id = uuid.uuid4()
+        view = _view_iri(view_id)
+        user = _user_iri(user_id)
+        now = _now_iso()
+
+        triples = [
+            f"<{view}> a <{TYPE_PROMOTED_VIEW}> .",
+            f"<{view}> <{PRED_OWNER}> <{user}> .",
+            f"<{view}> <{RDFS_LABEL}> {_lit(display_label)} .",
+            f"<{view}> <{PRED_RENDERER_TYPE}> '{_esc(renderer_type)}' .",
+            f"<{view}> <{DCTERMS_CREATED}> {_dt(now)} .",
+        ]
+        if type_filter:
+            triples.append(f"<{view}> <{PRED_TYPE_FILTER}> {_lit(type_filter)} .")
+        if scope_query_id:
+            triples.append(f"<{view}> <{PRED_SCOPE_QUERY}> '{_esc(scope_query_id)}' .")
+            # Link to the saved query if the scope query is a valid UUID
+            query_iri = _query_iri(scope_query_id)
+            triples.append(f"<{view}> <{PRED_FROM_QUERY}> <{query_iri}> .")
+
+        triples_str = "\n    ".join(triples)
+        sparql = f"INSERT DATA {{\n  GRAPH <{QUERIES_GRAPH}> {{\n    {triples_str}\n  }}\n}}"
+        await self._client.update(sparql)
+        logger.info("save_promoted_view: user=%s label=%s renderer=%s", user_id, display_label, renderer_type)
+
+        return PromotedViewData(
+            id=str(view_id),
+            query_id=scope_query_id or "",
+            display_label=display_label,
+            renderer_type=renderer_type,
+            type_filter=type_filter,
+            scope_query_id=scope_query_id,
+        )
+
+    async def delete_promoted_view(self, view_id: uuid.UUID, user_id: uuid.UUID) -> bool:
+        """Delete a promoted view by its view ID (not query ID).
+
+        Used for unpinning generic saved views that have no associated query.
+        """
+        view = _view_iri(view_id)
+        user = _user_iri(user_id)
+        sparql = (
+            "DELETE {\n"
+            f"  GRAPH <{QUERIES_GRAPH}> {{ <{view}> ?p ?o . }}\n"
+            "} WHERE {\n"
+            f"  GRAPH <{QUERIES_GRAPH}> {{\n"
+            f"    <{view}> a <{TYPE_PROMOTED_VIEW}> .\n"
+            f"    <{view}> <{PRED_OWNER}> <{user}> .\n"
+            f"    <{view}> ?p ?o .\n"
+            "  }\n"
+            "}"
+        )
+        await self._client.update(sparql)
+        logger.info("Deleted promoted view %s for user %s", view_id, user_id)
+        return True
+
     async def demote_query(self, query_id: uuid.UUID, user_id: uuid.UUID) -> bool:
         current = await self.get_query(query_id, user_id)
         if current is None:
@@ -672,14 +750,15 @@ class QueryService:
     async def list_promoted_views(self, user_id: uuid.UUID) -> list[PromotedViewData]:
         user = _user_iri(user_id)
         sparql = (
-            "SELECT ?view ?query ?label ?renderer ?text WHERE {\n"
+            "SELECT ?view ?query ?label ?renderer ?text ?typeFilter ?scopeQuery WHERE {\n"
             f"  GRAPH <{QUERIES_GRAPH}> {{\n"
             f"    ?view a <{TYPE_PROMOTED_VIEW}> .\n"
             f"    ?view <{PRED_OWNER}> <{user}> .\n"
-            f"    ?view <{PRED_FROM_QUERY}> ?query .\n"
             f"    ?view <{RDFS_LABEL}> ?label .\n"
             f"    ?view <{PRED_RENDERER_TYPE}> ?renderer .\n"
-            f"    ?query <{PRED_QUERY_TEXT}> ?text .\n"
+            f"    OPTIONAL {{ ?view <{PRED_FROM_QUERY}> ?query . ?query <{PRED_QUERY_TEXT}> ?text . }}\n"
+            f"    OPTIONAL {{ ?view <{PRED_TYPE_FILTER}> ?typeFilter . }}\n"
+            f"    OPTIONAL {{ ?view <{PRED_SCOPE_QUERY}> ?scopeQuery . }}\n"
             "  }\n"
             "}"
         )
@@ -688,10 +767,12 @@ class QueryService:
         return [
             PromotedViewData(
                 id=_extract_view_uuid(b["view"]["value"]),
-                query_id=_extract_query_uuid(b["query"]["value"]),
+                query_id=_extract_query_uuid(b["query"]["value"]) if "query" in b else "",
                 display_label=b["label"]["value"],
                 renderer_type=b["renderer"]["value"],
-                query_text=b["text"]["value"],
+                query_text=b.get("text", {}).get("value", ""),
+                type_filter=b.get("typeFilter", {}).get("value", ""),
+                scope_query_id=b.get("scopeQuery", {}).get("value", ""),
             )
             for b in bindings
         ]
