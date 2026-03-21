@@ -187,3 +187,12 @@ Five slices built the complete Google Calendar sync pipeline from ontology throu
 - `backend/tests/test_gcal_field_mapper.py` — 75 field mapper + push tests
 - `backend/tests/test_gcal_person_matcher.py` — 11 person matcher tests
 - `backend/tests/test_gcal_sync_engine.py` — 71 sync engine tests
+
+## Worktree Recovery (2026-03-21)
+
+M018's Google Calendar app source was committed to main, but the E2E test infrastructure and documentation were left in the worktree and never merged.
+
+**Recovered files (2026-03-21) from dangling commit `3623430f`:**
+- `e2e/mock-google-calendar-api/server.py` — Mock Google Calendar REST API for E2E testing
+- `e2e/tests/36-google-calendar-sync/google-calendar-sync.spec.ts` — Playwright E2E spec
+- `docs/guide/36-google-calendar-sync.md` — Chapter 36 user guide

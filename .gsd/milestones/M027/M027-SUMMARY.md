@@ -138,3 +138,16 @@ M027 delivered the Notion import wizard in 4 slices following the proven Obsidia
 - `backend/app/main.py` — Added notion router inclusion
 - `backend/app/templates/components/_sidebar.html` — Added "Import Notion" link
 - `frontend/static/js/workspace.js` — Added "Import > Notion" command palette entry
+
+## Worktree Recovery (2026-03-21)
+
+M027 was built in a GSD worktree. The Notion import infrastructure (router, scanner, models, broadcast) survived on main, but the import executor, templates, test, E2E spec, and docs were left in the worktree and never merged.
+
+**Recovered files (2026-03-21) from dangling commit `233006839`:**
+- `backend/app/notion/executor.py` — Two-pass import executor (CSV→RDF objects, cross-DB relation resolution)
+- `backend/app/templates/notion/partials/import_progress.html` — SSE progress partial
+- `backend/app/templates/notion/partials/import_summary.html` — Import summary partial
+- `backend/tests/test_notion_executor.py` — Executor unit tests
+- `e2e/tests/60-notion-import/notion-import.spec.ts` — Playwright E2E spec (3 tests)
+- `e2e/fixtures/notion-export.zip` — Recreated synthetic fixture (2 databases, 1 standalone page)
+- `docs/guide/39-notion-import.md` — Chapter 39 user guide
