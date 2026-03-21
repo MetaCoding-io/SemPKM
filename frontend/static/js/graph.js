@@ -288,6 +288,9 @@
         if (window._sempkmGraph === cy) {
           window._sempkmGraph = null;
         }
+        // Remove body-appended popovers
+        if (popover.parentNode) popover.parentNode.removeChild(popover);
+        if (edgePopover.parentNode) edgePopover.parentNode.removeChild(edgePopover);
         cy.destroy();
       });
     }
@@ -310,13 +313,14 @@
     });
 
     // --- Popover (rich node bubble + simple edge tooltip) ---
+    // Appended to document.body so they render above all chrome (dockview tabs, toolbars)
     var popover = document.createElement('div');
     popover.className = 'graph-popover';
-    container.appendChild(popover);
+    document.body.appendChild(popover);
 
     var edgePopover = document.createElement('div');
     edgePopover.className = 'graph-popover';
-    container.appendChild(edgePopover);
+    document.body.appendChild(edgePopover);
 
     var _hoverTimer = null;
     var _edgeHoverTimer = null;
@@ -385,23 +389,22 @@
       popover.style.display = 'block';
       _popoverHovered = false;
 
-      // Position near the node
+      // Position near the node using viewport-relative (fixed) coordinates
       var pos = evt.renderedPosition || nodeEl.renderedPosition();
       var cRect = container.getBoundingClientRect();
-      var left = pos.x + 16;
-      var top = pos.y - 12;
+      var left = cRect.left + pos.x + 16;
+      var top = cRect.top + pos.y - 12;
 
-      // Keep within container bounds
       popover.style.left = left + 'px';
       popover.style.top = top + 'px';
 
-      // Adjust if overflowing right edge
+      // Adjust if overflowing viewport edges
       var pRect = popover.getBoundingClientRect();
-      if (pRect.right > cRect.right - 8) {
-        popover.style.left = (pos.x - pRect.width - 12) + 'px';
+      if (pRect.right > window.innerWidth - 8) {
+        popover.style.left = (cRect.left + pos.x - pRect.width - 12) + 'px';
       }
-      if (pRect.bottom > cRect.bottom - 8) {
-        popover.style.top = (pos.y - pRect.height + 12) + 'px';
+      if (pRect.bottom > window.innerHeight - 8) {
+        popover.style.top = (cRect.top + pos.y - pRect.height + 12) + 'px';
       }
     }
 
@@ -445,20 +448,21 @@
       edgePopover.innerHTML = html;
       edgePopover.style.display = 'block';
 
+      // Position near the edge midpoint using viewport-relative (fixed) coordinates
       var pos = evt.renderedPosition || edgeEl.renderedMidpoint();
       var cRect = container.getBoundingClientRect();
-      var left = pos.x + 16;
-      var top = pos.y - 12;
+      var left = cRect.left + pos.x + 16;
+      var top = cRect.top + pos.y - 12;
 
       edgePopover.style.left = left + 'px';
       edgePopover.style.top = top + 'px';
 
       var pRect = edgePopover.getBoundingClientRect();
-      if (pRect.right > cRect.right - 8) {
-        edgePopover.style.left = (pos.x - pRect.width - 12) + 'px';
+      if (pRect.right > window.innerWidth - 8) {
+        edgePopover.style.left = (cRect.left + pos.x - pRect.width - 12) + 'px';
       }
-      if (pRect.bottom > cRect.bottom - 8) {
-        edgePopover.style.top = (pos.y - pRect.height + 12) + 'px';
+      if (pRect.bottom > window.innerHeight - 8) {
+        edgePopover.style.top = (cRect.top + pos.y - pRect.height + 12) + 'px';
       }
     }
 

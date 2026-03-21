@@ -1,3 +1,4 @@
+<div class="view-flex-column">
 {% if is_generic | default(false) %}
 {% include "browser/type_filter_pills.html" %}
 {% endif %}
@@ -17,6 +18,7 @@
 </div>
 
 <div id="cy-container" class="graph-container" data-testid="graph-view"></div>
+</div>
 
 <script>
 (function() {
