@@ -346,3 +346,17 @@ IRI fields in dashboard/workflow builders use a `.reference-field` wrapper conta
 **Discovered:** M031/S06/T01
 
 When slice verification uses `grep -c 'some-class'` to verify a class is absent, any new class containing that string as a substring will create a false positive. T01 hit this with `step-config-renderer-auto` matching the `step-config-renderer` absence check. Solution: name replacement classes to avoid the substring (e.g., `wf-auto-renderer` instead of `step-config-renderer-auto`).
+
+---
+
+### E2E view selectors belong in SEL.views, not inline
+
+**Discovered:** M031/S07/T01
+
+All view-related E2E selectors (kanbanBoard, kanbanColumn, kanbanCard, scopeSelect, variantSelect, saveViewBtn) are centralised in `SEL.views` in `e2e/helpers/selectors.ts`. Future view tests should add selectors here rather than inlining CSS class strings in test files. This avoids selector drift when CSS classes change — update one place instead of hunting through specs.
+
+### E2E: use openGenericViewTab helper, not UI clicks, to open view tabs
+
+**Discovered:** M031/S07/T01
+
+Opening view tabs in E2E tests should use the `openGenericViewTab(page, renderer, waitSelector, ...)` helper in `e2e/helpers/dockview.ts`, which calls `window.openGenericViewTab()` via `page.evaluate()` then waits for a DOM selector. This is more reliable than clicking through the explorer sidebar (which involves loading htmx partials, waiting for dockview panel creation, etc.). Timeout failures from this helper directly indicate whether the JS API or DOM rendering is broken.

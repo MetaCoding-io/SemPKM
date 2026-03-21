@@ -111,7 +111,7 @@ This milestone is complete only when all are true:
 - [x] **S06: Dashboard & Workflow Builder UX** `risk:low` `depends:[]`
   > After this: Dashboard and workflow builder forms have contextual help text following the SHACL helptext pattern. Object/type reference fields have autocomplete. Workflow "view" step uses a view/saved-view picker instead of a raw renderer dropdown. Sample dashboards and workflows appear as seed data fixtures.
 
-- [ ] **S07: E2E Tests + User Guide Docs** `risk:low` `depends:[S01,S02,S03,S04,S05,S06]`
+- [x] **S07: E2E Tests + User Guide Docs** `risk:low` `depends:[S01,S02,S03,S04,S05,S06]`
   > After this: Playwright E2E tests cover carousel removal, scope binding, saved views, kanban, SPARQL fixes, ontology tooltips, builder UX. User guide pages document all new features. Standing requirements fully satisfied.
 
 ## Boundary Map
