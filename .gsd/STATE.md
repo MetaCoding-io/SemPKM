@@ -1,9 +1,9 @@
 # GSD State
 
-**Active Milestone:** M029: Frontend Performance & Build Pipeline
-**Active Slice:** None
-**Phase:** completing-milestone
-**Requirements Status:** 78 active · 173 validated · 7 deferred · 0 out of scope
+**Active Milestone:** M030: Data Quality Linting & Lint UX
+**Active Slice:** S01: Validation Pipeline Fix & Performance Measurement
+**Phase:** execution
+**Requirements Status:** 78 active · 182 validated · 7 deferred · 0 out of scope
 
 ## Milestone Registry
 - ✅ **M001:** Migration
@@ -34,8 +34,8 @@
 - ✅ **M026:** Homepage & Messaging Rewrite
 - ✅ **M027:** Notion Import Wizard
 - ✅ **M028:** Browser Extension Phase 3 — Active Intelligence
-- 🔄 **M029:** Frontend Performance & Build Pipeline
-- ⬜ **M030:** M030
+- ✅ **M029:** Frontend Performance & Build Pipeline
+- 🔄 **M030:** Data Quality Linting & Lint UX
 - ⬜ **M031:** M031
 - ⬜ **M032:** M032
 
@@ -46,4 +46,4 @@
 - None
 
 ## Next Action
-All slices complete in M029. Write milestone summary.
+Execute T01 of S01 (fix model_shapes_loader + advanced=True).
