@@ -60,7 +60,7 @@ This milestone is complete only when all are true:
 - [x] **S03: Lint Filter System (Suppress, Dismiss, Presets)** `risk:medium` `depends:[S01]`
   > After this: User can suppress rule types, dismiss individual results, save/restore named presets, and manage all filter state from a lint settings UI. Full CRUD with SQLite persistence.
 
-- [ ] **S04: E2E Tests & User Guide** `risk:low` `depends:[S01,S02,S03]`
+- [x] **S04: E2E Tests & User Guide** `risk:low` `depends:[S01,S02,S03]`
   > After this: Playwright tests prove the full acceptance criteria end-to-end against Docker stack. User guide chapter documents lint filtering workflow.
 
 ## Boundary Map
