@@ -41,7 +41,7 @@
         var e = edges[j];
         elements.push({
           group: 'edges',
-          data: { id: e.id, source: e.source, target: e.target, label: e.label }
+          data: { id: e.id, source: e.source, target: e.target, label: e.label, description: e.description || '', domain_label: e.domain_label || '', range_label: e.range_label || '' }
         });
       }
 
@@ -210,6 +210,52 @@
 
       cy.on('mouseout', 'node', function(evt) {
         evt.target.removeClass('hovered');
+        if (showTimer) { clearTimeout(showTimer); showTimer = null; }
+        hideTimer = setTimeout(function() {
+          if (popover) popover.style.display = 'none';
+        }, 150);
+      });
+
+      // Edge hover events
+      cy.on('mouseover', 'edge', function(evt) {
+        if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+        var edgeData = evt.target.data();
+        var pos = evt.renderedPosition;
+        if (showTimer) clearTimeout(showTimer);
+        showTimer = setTimeout(function() {
+          if (!popover || !panel) return;
+          var html = '<div class="graph-popover-header">' +
+            '<span class="graph-popover-label">' + escHtml(edgeData.label) + '</span>' +
+            '<span class="graph-popover-type" style="background:#999">' +
+              escHtml(edgeData.domain_label) + ' → ' + escHtml(edgeData.range_label) +
+            '</span></div>';
+          if (edgeData.description) {
+            html += '<div class="graph-popover-props">' +
+              '<div class="graph-popover-prop"><span class="graph-popover-prop-name">' +
+              escHtml(edgeData.description) + '</span></div></div>';
+          }
+          popover.innerHTML = html;
+          popover.style.display = 'block';
+
+          var containerRect = container.getBoundingClientRect();
+          var panelRect = panel.getBoundingClientRect();
+          var left = (containerRect.left - panelRect.left) + pos.x + 16;
+          var top = (containerRect.top - panelRect.top) + pos.y - 12;
+          popover.style.left = left + 'px';
+          popover.style.top = top + 'px';
+
+          var pRect = popover.getBoundingClientRect();
+          if (pRect.right > panelRect.right - 8) {
+            popover.style.left = ((containerRect.left - panelRect.left) + pos.x - pRect.width - 12) + 'px';
+          }
+          pRect = popover.getBoundingClientRect();
+          if (pRect.bottom > panelRect.bottom - 8) {
+            popover.style.top = ((containerRect.top - panelRect.top) + pos.y - pRect.height + 12) + 'px';
+          }
+        }, 200);
+      });
+
+      cy.on('mouseout', 'edge', function(evt) {
         if (showTimer) { clearTimeout(showTimer); showTimer = null; }
         hideTimer = setTimeout(function() {
           if (popover) popover.style.display = 'none';

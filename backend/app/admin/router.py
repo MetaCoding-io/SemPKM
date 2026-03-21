@@ -337,6 +337,9 @@ async def admin_model_ontology_diagram(
                 "source": p["domain"],
                 "target": p["range"],
                 "label": p["label"],
+                "description": p.get("comment", ""),
+                "domain_label": p.get("domain", ""),
+                "range_label": p.get("range", ""),
             })
 
     # Build SHACL property lookup from shapes
