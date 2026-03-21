@@ -1,0 +1,36 @@
+{% if is_generic | default(false) %}
+{% include "browser/type_filter_pills.html" %}
+{% endif %}
+{% include "browser/view_toolbar.html" %}
+
+{% if error_message is defined and error_message %}
+<div class="view-empty-state">
+    <p>{{ error_message }}</p>
+</div>
+
+{% elif columns %}
+<div class="kanban-board" data-status-predicate="{{ status_field.path }}">
+    {% for col in columns %}
+    <div class="kanban-column" data-status="{{ col.value }}">
+        <div class="kanban-column-header">
+            <span class="kanban-column-title">{{ col.label }}</span>
+            <span class="kanban-column-count">{{ col.items | length }}</span>
+        </div>
+        <div class="kanban-column-body">
+            {% for item in col.items %}
+            <div class="kanban-card" draggable="true" data-iri="{{ item.iri }}">
+                <span class="kanban-card-title" onclick="openTab('{{ item.iri }}', '{{ item.label | replace("'", "\\'") }}'); return false;">{{ item.label }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% else %}
+<div class="view-empty-state">
+    <p>Select a type with status values to use Kanban View.</p>
+</div>
+{% endif %}
+
+<script>if (typeof initKanban === 'function') { initKanban(document.querySelector('.kanban-board')); }</script>
