@@ -3214,16 +3214,37 @@
 
   // --- Generic View Tab Support ---
 
-  function openGenericViewTab(renderer, scopeQuery) {
-    var tabKey = 'generic-view:' + renderer;
+  function openGenericViewTab(renderer, scopeQuery, scopeLabel) {
     var dv = window._dockview;
     if (!dv) return;
 
-    var existing = dv.panels.find(function(p) { return p.id === tabKey; });
-    if (existing) { existing.api.setActive(); return; }
+    var tabKey;
+    if (scopeQuery) {
+      // Scoped tabs deduplicate by renderer+scope combination
+      tabKey = 'generic-view:' + renderer + ':scope:' + scopeQuery;
+      var existing = dv.panels.find(function(p) { return p.id === tabKey; });
+      if (existing) { existing.api.setActive(); return; }
+    } else {
+      // Unscoped tabs always open a fresh instance with a unique timestamp ID
+      tabKey = 'generic-view:' + renderer + ':' + Date.now();
+    }
 
     var labels = { table: 'Table View', card: 'Cards View', graph: 'Graph View' };
-    var label = labels[renderer] || 'Generic View';
+    var baseLabel = labels[renderer] || 'Generic View';
+    var label = baseLabel;
+
+    if (scopeLabel) {
+      // Scoped tabs show the query name in the tab title
+      label = baseLabel + ' — ' + scopeLabel;
+    } else if (!scopeQuery) {
+      // For unscoped duplicates, count existing tabs of the same renderer to differentiate
+      var sameRendererCount = dv.panels.filter(function(p) {
+        return p.id.indexOf('generic-view:' + renderer + ':') === 0;
+      }).length;
+      if (sameRendererCount > 0) {
+        label = baseLabel + ' (' + (sameRendererCount + 1) + ')';
+      }
+    }
 
     if (!window._tabMeta) window._tabMeta = {};
     window._tabMeta[tabKey] = { label: label, dirty: false };

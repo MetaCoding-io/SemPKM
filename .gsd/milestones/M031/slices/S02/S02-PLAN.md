@@ -45,7 +45,7 @@
 
 ## Tasks
 
-- [ ] **T01: Enable multiple generic view instances as separate dockview tabs** `est:45m`
+- [x] **T01: Enable multiple generic view instances as separate dockview tabs** `est:45m`
   - Why: Currently `openGenericViewTab()` uses a fixed tab ID `generic-view:{renderer}`, so clicking "Table View" twice just activates the existing tab. Multiple instances need unique IDs.
   - Files: `frontend/static/js/workspace.js`, `frontend/static/js/workspace-layout.js`
   - Do: Change `openGenericViewTab()` to generate unique tab IDs incorporating scope query and a counter for unscoped instances. Differentiate tab labels by appending scope query name when available. On second click from explorer with no scope, generate a fresh instance instead of deduplicating. Ensure `workspace-layout.js` special-panel init continues to extract renderer/selectedType/scopeQuery from params correctly.
