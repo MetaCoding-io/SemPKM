@@ -6821,6 +6821,23 @@ details.form-group[open] > .form-group-summary::before {
     text-decoration: none;
 }
 
+/* --- Vocab Pill (ontology class/property without full enrichment) --- */
+.sparql-vocab-pill {
+    border-style: dashed;
+    background: var(--color-surface, #fafafa);
+    cursor: default;
+}
+.sparql-vocab-pill .sparql-pill-icon {
+    color: var(--color-text-muted, #888);
+}
+.sparql-vocab-pill .sparql-pill-label {
+    color: var(--color-text-secondary, var(--color-text));
+    font-style: italic;
+}
+.sparql-vocab-pill:hover {
+    border-color: var(--color-text-muted, #888);
+}
+
 /* --- Load More --- */
 .sparql-load-more {
     padding: 8px;

@@ -63,7 +63,10 @@ def _is_uuid(val: str) -> bool:
 # Models directory path -- mirrors the Docker mount used in main.py
 _MODELS_DIR = "/app/models"
 
-# Known vocabulary namespace prefixes that should NOT be treated as object IRIs
+# Known vocabulary namespace prefixes that should NOT be treated as object IRIs.
+# NOTE: urn:sempkm:model:* is intentionally EXCLUDED from this list so that
+# model ontology class/property IRIs get enriched with pills.  Only internal
+# machinery namespaces are listed here.
 _VOCAB_PREFIXES = (
     "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
     "http://www.w3.org/2000/01/rdf-schema#",
@@ -75,7 +78,38 @@ _VOCAB_PREFIXES = (
     "https://schema.org/",
     "http://xmlns.com/foaf/0.1/",
     "http://www.w3.org/ns/prov#",
-    "urn:sempkm:",
+    # Specific urn:sempkm: internal namespaces (NOT the broad "urn:sempkm:")
+    "urn:sempkm:app:",
+    "urn:sempkm:canvas:",
+    "urn:sempkm:dashboard:",
+    "urn:sempkm:data:",
+    "urn:sempkm:event:",
+    "urn:sempkm:inbox:",
+    "urn:sempkm:inference:",
+    "urn:sempkm:instance:",
+    "urn:sempkm:lint-result:",
+    "urn:sempkm:lint-run:",
+    "urn:sempkm:mount:",
+    "urn:sempkm:obj:",
+    "urn:sempkm:object:",
+    "urn:sempkm:ontology:",
+    "urn:sempkm:ops-log:",
+    "urn:sempkm:person:",
+    "urn:sempkm:query:",
+    "urn:sempkm:query-exec:",
+    "urn:sempkm:query-view:",
+    "urn:sempkm:shared:",
+    "urn:sempkm:state:",
+    "urn:sempkm:task:",
+    "urn:sempkm:user:",
+    "urn:sempkm:user-types:",
+    "urn:sempkm:user-view:",
+    "urn:sempkm:validation:",
+    "urn:sempkm:vfs:",
+    "urn:sempkm:view:",
+    "urn:sempkm:vocab:",
+    "urn:sempkm:webhook:",
+    "urn:sempkm:workflow:",
 )
 
 

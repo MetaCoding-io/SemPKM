@@ -31,7 +31,7 @@ All tasks in this slice are CSS/JS/template polish. Verification is a combinatio
 
 ## Tasks
 
-- [ ] **T01: Fix SPARQL prefix shortening and IRI pill fallthrough** `est:45m`
+- [x] **T01: Fix SPARQL prefix shortening and IRI pill fallthrough** `est:45m`
   - Why: SPARQL-10 (must-have) and SPARQL-11 (should-have) — model ontology IRIs fall through to plain spans because `urn:sempkm:` is in `_VOCAB_PREFIXES` and `shortenUri()` uses a hardcoded prefix map that doesn't include model-specific prefixes.
   - Files: `frontend/static/js/sparql-console.js`, `backend/app/sparql/router.py`
   - Do: (1) Replace the single broad `urn:sempkm:` in `_VOCAB_PREFIXES` with more specific entries that exclude model class/property IRIs. (2) In `shortenUri()`, build a reverse map from `prefixCache` (namespace→prefix) and check it after the hardcoded map. (3) In `renderCell()`, after the enrichment check, add a second path that checks `vocabCache` for matching vocabulary items and renders them as styled vocab pills.
@@ -72,3 +72,10 @@ All tasks in this slice are CSS/JS/template polish. Verification is a combinatio
 - `backend/app/admin/router.py`
 - `backend/app/templates/browser/graph_view.html`
 - `backend/app/templates/browser/kanban_view.html`
+
+## Observability / Diagnostics
+
+- **SPARQL prefix shortening:** `console.warn('Failed to fetch SPARQL vocabulary:', err)` in `fetchVocabulary()` logs vocabulary cache failures. The `vocabIriIndex` and `reversePrefixMap` objects are module-level — inspect via browser console with `vocabIriIndex` / `reversePrefixMap` for debugging.
+- **Vocab pill rendering:** Vocab pills use `.sparql-vocab-pill` class — inspect DOM for this class to verify IRI pill fallthrough is working. Missing pills mean `vocabCache` doesn't include the IRI (check `/api/sparql/vocabulary` response).
+- **Backend `_VOCAB_PREFIXES`:** If model IRIs aren't enriched, check whether new internal namespaces were added without updating this tuple. The pattern is explicit inclusion of internal prefixes — any new `urn:sempkm:X:` namespace used for internal machinery must be added here.
+- **Graph tab / Full-height / Popover:** Visual-only; inspect DOM structure and computed CSS in devtools. No runtime logs for these pure-CSS/template changes.
