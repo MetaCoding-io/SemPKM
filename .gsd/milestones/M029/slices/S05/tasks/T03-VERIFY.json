@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "taskId": "T01",
-  "unitId": "M029/S02/T01",
-  "timestamp": 1774040542152,
+  "taskId": "T03",
+  "unitId": "M029/S05/T03",
+  "timestamp": 1774053243653,
   "passed": false,
   "discoverySource": "task-plan",
   "checks": [
     {
-      "command": "All 8 curl checks from the Verification section above pass against running Docker stack.",
+      "command": "E2E test results documented. S05-SUMMARY.md exists with complete verification table.",
       "exitCode": 127,
       "durationMs": 9,
       "verdict": "fail"
