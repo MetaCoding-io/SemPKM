@@ -794,6 +794,47 @@ initPersonas() checks GET /api/personas; if empty, POSTs new "Default" with curr
 - Acceptance: Graph node and edge popovers render above dockview chrome, toolbar, and tabs when hovering nodes near the top of the view.
 - Validation: Popovers appended to `document.body` with `position:fixed; z-index:9999`. Positioning uses `getBoundingClientRect()`. Cleanup removes popovers on graph destroy.
 
+### VIEW-12 — Kanban renderer with status-based columns and drag-drop
+- Status: validated
+- Class: core-capability
+- Source: design (M031 roadmap)
+- Primary Slice: M031/S04
+- Supporting Slices: M031/S07
+- Acceptance: Kanban view renders status-based columns detected from SHACL sh:in constraints. Drag-drop between columns changes object status via PATCH. Type filter pills filter which objects appear.
+- Validation: SHACL sh:in scan in _detect_status_field(), kanban_view.html with drag-drop JS, /browser/kanban/{iri}/move endpoint, 15 unit tests.
+
+### DBUIX-01 — Dashboard/workflow builder help text
+- Status: validated
+- Class: enhancement
+- Source: design (M031 roadmap)
+- Primary Slice: M031/S06
+- Acceptance: Every field in both dashboard and workflow builders has a `<small class="field-help">` element with a descriptive hint following the SHACL helptext pattern.
+- Validation: Dashboard builder has 13 field-help instances, workflow builder has 6. All block type configs include contextual help.
+
+### DBUIX-02 — Autocomplete for object/type references in builders
+- Status: validated
+- Class: enhancement
+- Source: design (M031 roadmap)
+- Primary Slice: M031/S06
+- Acceptance: Target Class IRI and Object IRI fields in builders offer search-as-you-type autocomplete from `/browser/class-search` and `/browser/object-search` endpoints.
+- Validation: class-search and object-search endpoints in search.py, reference-field autocomplete widgets in both builder templates, 300ms debounce, click-to-select.
+
+### DBUIX-03 — Workflow view step simplification
+- Status: validated
+- Class: enhancement
+- Source: design (M031 roadmap)
+- Primary Slice: M031/S06
+- Acceptance: Workflow "view" step uses a single view picker; renderer_type is auto-set from the selected view spec via hidden input. No redundant renderer dropdown.
+- Validation: step-config-renderer class absent from workflow builder (grep returns 0). _wfUpdateRendererFromView() sets hidden input + renderer badge from _cachedViews.
+
+### DBUIX-04 — Sample dashboard and workflow seed data
+- Status: validated
+- Class: enhancement
+- Source: design (M031 roadmap)
+- Primary Slice: M031/S06
+- Acceptance: Idempotent seed_sample_data() creates "Getting Started" dashboard and "Create & Review" workflow for users with none. Runs at startup, never crashes app.
+- Validation: seed.py valid Python, startup hook in main.py, 4 unit tests (empty, existing, mixed states), error isolation via try/except.
+
 ## Validated
 
 ### EXP-01 — Explorer mode dropdown with switchable navigation strategies
@@ -2797,11 +2838,16 @@ S03: 59 unit tests. S04 E2E test saves/applies preset, verifies restoration.
 | SQ-01 | core-capability | validated | M031/S03 | M031/S07 | QUERIES explorer section, 18 template + 5 endpoint tests |
 | SQ-02 | enhancement | validated | M031/S03 | none | canvas drag payload on query entries, template test coverage |
 | SQ-03 | enhancement | validated | M031/S03 | none | VFS build_scope_filter + resolve_scope_query already working, 5 verification tests |
+| VIEW-12 | core-capability | validated | M031/S04 | M031/S07 | SHACL sh:in scan, kanban_view.html, drag-drop status change, 15 unit tests |
+| DBUIX-01 | enhancement | validated | M031/S06 | none | 13 field-help in dashboard builder, 6 in workflow builder |
+| DBUIX-02 | enhancement | validated | M031/S06 | none | class-search + object-search endpoints, autocomplete widgets in both builders |
+| DBUIX-03 | enhancement | validated | M031/S06 | none | renderer dropdown removed, auto-set via _wfUpdateRendererFromView + hidden input |
+| DBUIX-04 | enhancement | validated | M031/S06 | none | seed.py idempotent, startup hook, 4 unit tests |
 
 ## Coverage Summary
 
 - Active requirements: 25 (14 APP + 8 RSS + 3 GCAL)
-- Validated: 259 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 8 from M013 + 13 from M014 + 4 from M015 + 7 from M016 + 7 from M017 + 5 from M018 + 12 from M023 + 15 from M024 + 10 from M025 + 7 from M026 + 9 from M029 + 13 from M030 + 15 from M031 + 2 from other)
+- Validated: 265 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 8 from M013 + 13 from M014 + 4 from M015 + 7 from M016 + 7 from M017 + 5 from M018 + 12 from M023 + 15 from M024 + 10 from M025 + 7 from M026 + 9 from M029 + 13 from M030 + 21 from M031 + 2 from other)
 - Partial: 4 (EXT-14, EXT-18, EXT-20, EXT-21)
 - Deferred: 6 (TYPE-03, TYPE-04, MCP-01, VIEW-06, VIEW-07, VFS-13)
 - Out of scope: 3

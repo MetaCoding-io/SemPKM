@@ -108,7 +108,7 @@ This milestone is complete only when all are true:
 - [x] **S05: SPARQL + Ontology + Graph + Full-Height Polish** `risk:low` `depends:[S01]`
   > After this: SPARQL console correctly shortens all `urn:sempkm:model:*` IRIs, no pills fall through to plain spans, and triple-pattern results have a graph visualization tab. TBox property names show description tooltips. Admin model graph is full-viewport with edge hover tooltips. All views use 100% available height. Graph node popover renders above the toolbar.
 
-- [ ] **S06: Dashboard & Workflow Builder UX** `risk:low` `depends:[]`
+- [x] **S06: Dashboard & Workflow Builder UX** `risk:low` `depends:[]`
   > After this: Dashboard and workflow builder forms have contextual help text following the SHACL helptext pattern. Object/type reference fields have autocomplete. Workflow "view" step uses a view/saved-view picker instead of a raw renderer dropdown. Sample dashboards and workflows appear as seed data fixtures.
 
 - [ ] **S07: E2E Tests + User Guide Docs** `risk:low` `depends:[S01,S02,S03,S04,S05,S06]`
