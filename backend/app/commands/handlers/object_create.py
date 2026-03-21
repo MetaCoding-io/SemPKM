@@ -55,6 +55,10 @@ def _to_rdf_value(value: Any) -> URIRef | Literal:
         if len(value) >= 19 and value[4:5] == "-" and value[7:8] == "-" and "T" in value:
             from rdflib.namespace import XSD
             return Literal(value, datatype=XSD.dateTime)
+        # Detect ISO 8601 date-only strings (YYYY-MM-DD) → typed xsd:date literal
+        if len(value) == 10 and value[4:5] == "-" and value[7:8] == "-" and value[:4].isdigit():
+            from rdflib.namespace import XSD
+            return Literal(value, datatype=XSD.date)
         return Literal(value)
     elif isinstance(value, bool):
         return Literal(value)

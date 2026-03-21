@@ -1179,6 +1179,9 @@ WHERE {{ ?s ?p ?o }}"""
     shapes_graph += rules_graph
 
     logger.info("Loaded %d shapes + %d rules triples from %d model(s)", shapes_count, rules_count, len(bindings))
+    # Also print to stdout for Docker log visibility (logger may buffer in async workers)
+    import sys
+    print(f"model_shapes_loader: Loaded {shapes_count} shapes + {rules_count} rules triples from {len(bindings)} model(s)", flush=True, file=sys.stderr)
     return shapes_graph
 
 
