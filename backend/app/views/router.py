@@ -201,7 +201,7 @@ async def views_menu(
     )
 
 
-_VALID_RENDERERS = {"table", "card", "graph"}
+_VALID_RENDERERS = {"table", "card", "graph", "kanban"}
 
 
 @router.get("/generic/{renderer}")
@@ -406,7 +406,7 @@ async def generic_view(
             return _embed_response(templates, request, "browser/cards_view.html", context)
         return templates.TemplateResponse(request, "browser/cards_view.html", context)
 
-    else:  # graph
+    elif renderer == "graph":
         # For graph: execute and render graph container
         result = await view_spec_service.execute_graph_query(spec)
 
@@ -451,6 +451,92 @@ async def generic_view(
         if embed:
             return _embed_response(templates, request, "browser/graph_view.html", context)
         return templates.TemplateResponse(request, "browser/graph_view.html", context)
+
+    else:  # kanban
+        if not type_iri:
+            logger.info("generic_view: renderer=kanban but no type selected")
+            return templates.TemplateResponse(
+                request,
+                "browser/kanban_view.html",
+                {
+                    "request": request,
+                    "error_message": "Select a type to use Kanban View",
+                    "columns": [],
+                    "status_field": None,
+                    "type_label": type_label,
+                    "type_iri": "",
+                    "selected_type": "",
+                    "types": types_list,
+                    "model_view_specs": model_view_specs,
+                    "scope_query": scope_query,
+                    "user_saved_queries": user_saved_queries,
+                    "model_saved_queries": model_saved_queries,
+                    "is_generic": True,
+                    "renderer": "kanban",
+                    "pagination_base_url": pagination_base_url,
+                    "pag_extra": pag_extra,
+                    "spec": spec,
+                },
+            )
+
+        status_field, status_values = await view_spec_service._detect_status_field(type_iri)
+
+        if status_field is None:
+            logger.warning("generic_view: renderer=kanban type=%s has no status-like property", type_iri)
+            return templates.TemplateResponse(
+                request,
+                "browser/kanban_view.html",
+                {
+                    "request": request,
+                    "error_message": "This type has no status-like properties for Kanban grouping",
+                    "columns": [],
+                    "status_field": None,
+                    "type_label": type_label,
+                    "type_iri": spec.target_class,
+                    "selected_type": type_iri or "",
+                    "types": types_list,
+                    "model_view_specs": model_view_specs,
+                    "scope_query": scope_query,
+                    "user_saved_queries": user_saved_queries,
+                    "model_saved_queries": model_saved_queries,
+                    "is_generic": True,
+                    "renderer": "kanban",
+                    "pagination_base_url": pagination_base_url,
+                    "pag_extra": pag_extra,
+                    "spec": spec,
+                },
+            )
+
+        logger.info(
+            "generic_view: renderer=kanban type=%s scope_query=%s",
+            type_iri, scope_query or "(none)",
+        )
+
+        kanban_result = await view_spec_service.execute_kanban_query(
+            type_iri, status_field, status_values, scope_filter=scope_filter_text,
+        )
+
+        context = {
+            "request": request,
+            "columns": kanban_result["columns"],
+            "status_field": kanban_result["status_field"],
+            "type_label": type_label,
+            "type_iri": spec.target_class,
+            "selected_type": type_iri or "",
+            "types": types_list,
+            "model_view_specs": model_view_specs,
+            "scope_query": scope_query,
+            "user_saved_queries": user_saved_queries,
+            "model_saved_queries": model_saved_queries,
+            "is_generic": True,
+            "renderer": "kanban",
+            "pagination_base_url": pagination_base_url,
+            "pag_extra": pag_extra,
+            "spec": spec,
+        }
+        if embed:
+            return _embed_response(templates, request, "browser/kanban_view.html", context)
+        return templates.TemplateResponse(request, "browser/kanban_view.html", context)
 
 
 @router.get("/generic/{renderer}/data")
