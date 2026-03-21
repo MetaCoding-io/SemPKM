@@ -696,6 +696,31 @@ initPersonas() checks GET /api/personas; if empty, POSTs new "Default" with curr
 - Acceptance: "Save View" button in view toolbar persists current configuration (renderer, type_filter, scope_query_id) as a PromotedView via `POST /browser/views/save`. Saved Views folder shows entries with renderer-type icons, labels, and unpin actions. Generic saved views open via `openGenericViewTab()`. Unpin calls `DELETE /browser/views/saved/{view_id}`.
 - Validation: 13 unit tests pass covering save_promoted_view, list_promoted_views (with OPTIONAL fields), delete_promoted_view. `save_promoted_view` and POST endpoint exist. my_views.html routes through openGenericViewTab.
 
+### SQ-01 — Saved queries accessible in explorer sidebar
+- Status: validated
+- Class: core-capability
+- Source: design (M031 roadmap)
+- Primary Slice: M031/S03
+- Supporting Slices: M031/S07
+- Acceptance: QUERIES section in explorer sidebar between VIEWS and DASHBOARDS, lazy-loaded via htmx. Lists saved queries grouped by source (user vs. model). Click opens scoped Table View tab.
+- Validation: 18 template rendering tests + 5 endpoint behavior tests. `section-queries` in workspace.html, `saved_queries_explorer.html` partial, `GET /browser/views/saved-queries/explorer` endpoint with graceful error degradation.
+
+### SQ-02 — Saved queries as canvas embed source
+- Status: validated
+- Class: enhancement
+- Source: design (M031 roadmap)
+- Primary Slice: M031/S03
+- Acceptance: Drag a saved query from the explorer sidebar onto the spatial canvas to create an embedded view widget.
+- Validation: `ondragstart` sets `window.__canvasDragPayload = {type:'query', id, url:'/browser/sparql-result/{id}?embed=1', label}` matching existing canvas embed format. Drag attributes confirmed in 18 template tests.
+
+### SQ-03 — Saved queries as VFS mount scope
+- Status: validated
+- Class: enhancement
+- Source: design (M031 roadmap)
+- Primary Slice: M031/S03
+- Acceptance: VFS mount scope dropdown works with saved queries. `build_scope_filter()` generates sub-select from resolved query text.
+- Validation: 5 VFS scope query verification tests confirm `build_scope_filter()`, `_extract_where_body()`, `_resolve_scope_query_sync`, and `MountDefinition.scope_query` field all work correctly. Already implemented prior to S03.
+
 ## Validated
 
 ### EXP-01 — Explorer mode dropdown with switchable navigation strategies
@@ -2688,11 +2713,14 @@ S03: 59 unit tests. S04 E2E test saves/applies preset, verifies restoration.
 | VIEW-09 | core-capability | active | M031/S01 | M031/S07 | scope_query param + dropdown + graceful degradation |
 | VIEW-10 | core-capability | validated | M031/S02 | M031/S07 | unique tab IDs, scoped dedup, unscoped fresh, 13 unit tests |
 | VIEW-11 | core-capability | validated | M031/S02 | M031/S07 | save/list/delete promoted views, toolbar button, my_views routing |
+| SQ-01 | core-capability | validated | M031/S03 | M031/S07 | QUERIES explorer section, 18 template + 5 endpoint tests |
+| SQ-02 | enhancement | validated | M031/S03 | none | canvas drag payload on query entries, template test coverage |
+| SQ-03 | enhancement | validated | M031/S03 | none | VFS build_scope_filter + resolve_scope_query already working, 5 verification tests |
 
 ## Coverage Summary
 
 - Active requirements: 26 (14 APP + 8 RSS + 3 GCAL + 1 VIEW-09)
-- Validated: 247 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 8 from M013 + 13 from M014 + 4 from M015 + 7 from M016 + 7 from M017 + 5 from M018 + 12 from M023 + 15 from M024 + 10 from M025 + 7 from M026 + 9 from M029 + 13 from M030 + 3 from M031 + 2 from other)
+- Validated: 250 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 8 from M013 + 13 from M014 + 4 from M015 + 7 from M016 + 7 from M017 + 5 from M018 + 12 from M023 + 15 from M024 + 10 from M025 + 7 from M026 + 9 from M029 + 13 from M030 + 6 from M031 + 2 from other)
 - Partial: 4 (EXT-14, EXT-18, EXT-20, EXT-21)
 - Deferred: 6 (TYPE-03, TYPE-04, MCP-01, VIEW-06, VIEW-07, VFS-13)
 - Out of scope: 3

@@ -999,4 +999,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-03-21 after M031/S02 complete (Multiple View Instances + Saved Views Fix — openGenericViewTab() creates unique tab IDs, "Save View" toolbar button + POST endpoint, Saved Views folder routes generic views through openGenericViewTab(), 13 unit tests, VIEW-10 + VIEW-11 validated)*
+*Last updated: 2026-03-21 after M031/S03 complete (Saved Queries Everywhere — QUERIES explorer section with htmx lazy-load, click-to-open Table View tabs, drag-to-canvas embed, 28 unit tests, SQ-01 + SQ-02 + SQ-03 validated)*
