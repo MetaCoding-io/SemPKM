@@ -7,7 +7,7 @@
 
 - Explorer sidebar has a "QUERIES" section between VIEWS and DASHBOARDS, lazy-loaded via htmx
 - Each query entry is clickable (opens scoped Table View tab) and draggable (canvas embed)
-- New endpoint `GET /browser/saved-queries/explorer` returns the partial HTML listing
+- New endpoint `GET /browser/views/saved-queries/explorer` returns the partial HTML listing
 - Canvas drag payload matches existing `buildEmbedConfig('queries', item)` format: `{type:'query', id, url, label}`
 - VFS mount scope dropdown confirmed working with saved queries (SQ-03 verification)
 
@@ -20,10 +20,11 @@
 - `test -f backend/app/templates/browser/saved_queries_explorer.html` — template exists
 - `grep -q '__canvasDragPayload' backend/app/templates/browser/saved_queries_explorer.html` — drag support
 - `grep -q 'openGenericViewTab' backend/app/templates/browser/saved_queries_explorer.html` — click opens view tab
+- `grep -q 'logger.exception' backend/app/views/router.py` — error logging present in explorer endpoint
 
 ## Tasks
 
-- [ ] **T01: Add Saved Queries explorer section, endpoint, and template** `est:30m`
+- [x] **T01: Add Saved Queries explorer section, endpoint, and template** `est:30m`
   - Why: SQ-01 requires saved queries in the explorer sidebar; SQ-02 (canvas embed) is free once entries have `ondragstart` drag attributes matching the existing canvas payload format.
   - Files: `backend/app/templates/browser/workspace.html`, `backend/app/templates/browser/saved_queries_explorer.html`, `backend/app/views/router.py`
   - Do: (1) Add `section-queries` explorer section to `workspace.html` between VIEWS and DASHBOARDS, following the dashboards section pattern with htmx lazy-load from `/browser/saved-queries/explorer`. (2) Create `saved_queries_explorer.html` partial template listing queries as `.tree-leaf` entries with click (`openGenericViewTab('table', queryId, queryName)`) and drag (`__canvasDragPayload = {type:'query', id, url:'/browser/sparql-result/{id}?embed=1', label}`) handlers. Group into "My Queries" and "Model Queries" using optgroup-style headers. (3) Add `GET /browser/saved-queries/explorer` endpoint to `views/router.py` using `QueryService.list_all_queries()`.
@@ -43,3 +44,10 @@
 - `backend/app/templates/browser/saved_queries_explorer.html`
 - `backend/app/views/router.py`
 - `backend/tests/test_saved_queries_explorer.py`
+
+## Observability / Diagnostics
+
+- **Endpoint logging:** `saved_queries_explorer` endpoint logs an exception with full traceback if `list_all_queries()` fails, then returns an empty list (graceful degradation — the section renders "No saved queries" instead of crashing).
+- **htmx trigger observability:** The `queriesRefreshed` custom event on `document.body` triggers a re-fetch of the queries tree, making post-save/delete refresh inspectable via browser dev-tools event listener panel.
+- **Failure visibility:** If the endpoint errors, the htmx swap replaces the loading placeholder with the empty-state message — no broken UI state. Backend logs surface the root cause.
+- **Drag payload inspection:** `window.__canvasDragPayload` is set as a global on dragstart, inspectable via browser console during drag operations.

@@ -133,7 +133,34 @@ async def delete_saved_view(
         return JSONResponse(content={"error": "Invalid view ID"}, status_code=400)
 
     await query_service.delete_promoted_view(view_uuid, user.id)
-    return JSONResponse(content={"ok": True})@router.get("/explorer")
+    return JSONResponse(content={"ok": True})
+
+
+@router.get("/saved-queries/explorer")
+async def saved_queries_explorer(
+    request: Request,
+    user: User = Depends(get_current_user),
+    query_service: QueryService = Depends(get_query_service),
+):
+    """Render saved queries list for the explorer sidebar.
+
+    Returns an HTML partial with all user and model queries as clickable,
+    draggable tree-leaf entries for the QUERIES explorer section.
+    """
+    templates = request.app.state.templates
+    try:
+        queries = await query_service.list_all_queries(user.id)
+    except Exception:
+        logger.exception("saved_queries_explorer: failed to load queries")
+        queries = []
+    return templates.TemplateResponse(
+        request,
+        "browser/saved_queries_explorer.html",
+        {"request": request, "queries": queries},
+    )
+
+
+@router.get("/explorer")
 async def views_explorer(
     request: Request,
     user: User = Depends(get_current_user),
