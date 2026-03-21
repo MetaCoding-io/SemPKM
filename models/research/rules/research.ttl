@@ -132,3 +132,27 @@ res:UnansweredQuestionValidationShape
             }
         """ ;
     ] .
+
+# ============================================================
+# Rule 5 (Validation): Claim Without Rationale Info
+# Fires sh:Info when a Claim has no rationale property.
+# Claims benefit from explaining the reasoning behind them.
+# ============================================================
+
+res:ClaimNoRationaleValidationShape
+    a sh:NodeShape ;
+    sh:targetClass res:Claim ;
+    sh:severity sh:Info ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Claim has no rationale. Consider explaining why you believe this." ;
+        sh:prefixes res:PrefixDeclarations ;
+        sh:select """
+            SELECT $this
+            WHERE {
+                FILTER NOT EXISTS {
+                    $this <urn:sempkm:model:research:rationale> ?rat
+                }
+            }
+        """ ;
+    ] .
