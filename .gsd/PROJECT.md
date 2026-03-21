@@ -402,6 +402,23 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - ✓ User guide Chapter 38, DEMO_MODE in Appendix A, 2 glossary entries — M025
 - ✓ 10 DEMO requirements validated (DEMO-01 through DEMO-10) — M025
 
+### Validated (M029 — Frontend Performance & Build Pipeline)
+
+<!-- Shipped and confirmed in M029 (2026-03-20). -->
+
+- ✓ esbuild build pipeline: vendor bundle + page-specific bundles + minified app JS/CSS + content-hashed filenames + manifest.json + .gz pre-compressed siblings — M029
+- ✓ All 18 CDN dependencies vendored locally — app works fully offline after initial page load — M029
+- ✓ Jinja2 asset_url filter with conditional CDN/local loading, multi-path manifest search — M029
+- ✓ Multi-stage Docker build (Node.js → nginx) with shared volume for cross-container manifest access — M029
+- ✓ nginx gzip compression (gzip_static for pre-compressed, gzip_proxied any for dynamic) — M029
+- ✓ Three-tier HTTP cache strategy (immutable for hashed, no-cache+ETag for auth, no-store for dev) — M029
+- ✓ CSS code-splitting via Jinja2 block inheritance — 19 non-workspace templates exclude ~227KB workspace CSS — M029
+- ✓ TimingMiddleware with Server-Timing header, slow request logging, timing-report admin endpoint — M029
+- ✓ ConditionalGetMiddleware with ETag-based 304 Not Modified on JSON API responses — M029
+- ✓ Lighthouse desktop performance median 80 (FCP 984ms, LCP 2585ms, TBT 15ms) — M029
+- ✓ QUIC/HTTP/3 decision documented (D277 — deferred) — M029
+- ✓ 9 PERF requirements (PERF-02 through PERF-10) registered and validated — M029
+
 ### Future Candidates
 
 <!-- Tracked for future milestones. See .gsd/QUEUE.md for full queue and .gsd/REQUIREMENTS.md for deferred requirements. -->
@@ -494,8 +511,8 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 **Browser Extension Phase 3** — queued (M028, depends on M015)
 - AI-powered claim detection, contradiction surfacing, gap detection, personalized summaries
 
-**Frontend Performance & Build Pipeline** — queued (M029)
-- Lighthouse/WebPageTest audit loop, esbuild/Vite build pipeline, local JS vendoring, gzip/brotli, HTTP caching, CSS splitting, minification, backend response profiling + cache headers, QUIC/HTTP3 research + implement if low-cost
+**Frontend Performance & Build Pipeline** — complete (M029, 2026-03-20)
+- esbuild build pipeline, all 18 CDN deps vendored locally, gzip compression, immutable HTTP caching, CSS code-splitting, backend timing/ETag middleware, Lighthouse desktop 80, QUIC/HTTP/3 deferred
 
 **Data Quality Linting & Lint UX** — queued (M030)
 - Fix validation pipeline (load rules graphs, pass advanced=True) so existing M011 rules fire in production
@@ -526,7 +543,22 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current State
 
-**Latest shipped: M026 Homepage & Messaging Rewrite (2026-03-20)**
+**Latest shipped: M029 Frontend Performance & Build Pipeline (2026-03-20)**
+
+**What shipped in M029 (Frontend Performance & Build Pipeline):**
+- esbuild build pipeline: `frontend/build.js` producing vendor bundle, page-specific bundles, minified app JS/CSS, content-hashed filenames, manifest.json, and .gz pre-compressed siblings (0.8s full build)
+- All 18 CDN dependencies vendored locally via `frontend/package.json` — app works fully offline after initial page load
+- Jinja2 `asset_url` filter with conditional CDN/local loading (manifest presence = production mode)
+- Multi-stage `frontend/Dockerfile` (Node.js build → nginx serve) with Docker shared volume for cross-container manifest access
+- nginx gzip compression: `gzip_static on` for pre-compressed assets, `gzip_proxied any` for dynamic responses
+- Three-tier HTTP cache strategy: immutable for hashed assets, no-cache + ETag for auth HTML, no-store for dev files
+- CSS code-splitting via Jinja2 `{% block page_css %}` — 19 non-workspace templates exclude ~227KB workspace CSS
+- TimingMiddleware with Server-Timing header, slow request logging, per-path stats, `/api/admin/timing-report` endpoint (20 unit tests)
+- ConditionalGetMiddleware with ETag-based 304 Not Modified on JSON API responses (16 unit tests)
+- Lighthouse desktop performance: median 80 (range 74-81), up from estimated ~40-60; FCP 984ms, LCP 2585ms, TBT 15ms, CLS 0.094
+- QUIC/HTTP/3 deferred (D277) — nginx:stable-alpine lacks HTTP/3 module, minimal benefit for self-hosted
+- 9 PERF requirements (PERF-02 through PERF-10) registered and validated
+- 9 key decisions (D267-D277) documented
 
 **What shipped in M026 (Homepage & Messaging Rewrite):**
 - Outcome-focused homepage rewrite replacing technology-first messaging ("Semantics-Native PKM built on RDF/SHACL/SPARQL") with user-value-first copy
@@ -700,9 +732,9 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - E2E test coverage: 5 new Playwright tests across 3 spec files
 - User guide: 4 chapters updated with new feature documentation
 
-**Previous milestones:** M026 Homepage & Messaging Rewrite (2026-03-20), M025 Hosted Demo Instance (2026-03-20), M024 Monday.com Sync App (2026-03-20), M023 Jira Sync App (2026-03-19), M017 GitHub Issues Sync App (2026-03-18), M016 Linear Sync App (2026-03-18), M015 Browser Extension Phase 2 (2026-03-18), M014 Browser Extension Phase 1 (2026-03-18), M013 API Surface for External Clients (2026-03-17), M012 Workspace & Event Log Polish (2026-03-17), M011 Mental Models Expansion (2026-03-17), M008 Spatial Canvas (2026-03-16), M007 Generic Views, VFS Completion & Polish (2026-03-16), M006 Dashboards, Workflows & Platform Alignment (2026-03-15), M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
+**Previous milestones:** M029 Frontend Performance & Build Pipeline (2026-03-20), M026 Homepage & Messaging Rewrite (2026-03-20), M025 Hosted Demo Instance (2026-03-20), M024 Monday.com Sync App (2026-03-20), M023 Jira Sync App (2026-03-19), M017 GitHub Issues Sync App (2026-03-18), M016 Linear Sync App (2026-03-18), M015 Browser Extension Phase 2 (2026-03-18), M014 Browser Extension Phase 1 (2026-03-18), M013 API Surface for External Clients (2026-03-17), M012 Workspace & Event Log Polish (2026-03-17), M011 Mental Models Expansion (2026-03-17), M008 Spatial Canvas (2026-03-16), M007 Generic Views, VFS Completion & Polish (2026-03-16), M006 Dashboards, Workflows & Platform Alignment (2026-03-15), M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
 
-**Latest shipped: M026 Homepage & Messaging Rewrite (2026-03-20)**
+**Latest shipped: M029 Frontend Performance & Build Pipeline (2026-03-20)**
 
 **What shipped in M013 (API Surface for External Clients):**
 - `GET /.well-known/sempkm` discovery endpoint with version, endpoints, auth methods, capabilities
@@ -865,4 +897,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-03-20 after M026 complete (Homepage & Messaging Rewrite — 3 slices, outcome-focused homepage replacing technology-first messaging, 3 persona landing pages (Obsidian/Notion/Fresh Start), shared CSS design system (1109 lines), competitive comparison table, "domain kits" framing, 5 fresh screenshots, Lighthouse 0.99, complete SEO tags, 7 SITE requirements validated)*
+*Last updated: 2026-03-20 after M029 complete (Frontend Performance & Build Pipeline — 5 slices, esbuild build pipeline with vendor bundling + content-hashed filenames, all 18 CDN deps vendored locally, gzip compression + immutable HTTP caching, CSS code-splitting via Jinja2 blocks, TimingMiddleware + ConditionalGetMiddleware (36 unit tests), Lighthouse desktop 80 (FCP 984ms, LCP 2585ms, TBT 15ms), QUIC/HTTP/3 deferred (D277), 9 PERF requirements validated)*
