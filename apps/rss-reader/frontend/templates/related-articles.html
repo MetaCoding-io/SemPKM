@@ -1,0 +1,21 @@
+{% if not articles %}
+<div class="rss-empty-state">No related articles found</div>
+{% else %}
+<div class="rss-related-articles">
+  {% for article in articles %}
+  <div class="rss-related-article-item"
+       data-article-iri="{{ article.iri }}"
+       onclick="window.dispatchEvent(new CustomEvent('sempkm:open-object', {detail: {iri: '{{ article.iri }}'}}))">
+    <div class="rss-related-article-title">{{ article.title }}</div>
+    <div class="rss-related-article-meta">
+      {% if article.date %}
+      <span class="rss-article-date">{{ article.date }}</span>
+      {% endif %}
+      {% if article.feed_title %}
+      <span class="rss-article-source">{{ article.feed_title }}</span>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}

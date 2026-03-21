@@ -1676,7 +1676,11 @@
               } else if (cmd.actionType === 'post') {
                 htmx.ajax('POST', cmd.actionUrl, {target: '#modal-container', swap: 'innerHTML'});
               } else if (cmd.actionType === 'navigate') {
-                window.location.href = cmd.actionUrl;
+                if (cmd.appId) {
+                  openAppPageTab(cmd.appId, cmd.pageId, cmd.title);
+                } else {
+                  window.location.href = cmd.actionUrl;
+                }
               }
             }
           });

@@ -1,0 +1,16 @@
+<div id="rss-opml-import" class="rss-subscribe-form">
+  <h3>Import OPML</h3>
+  <p>Upload an OPML file to import feed subscriptions.</p>
+  <form hx-post="/_fragments/import-opml"
+        hx-target="#opml-import-result"
+        hx-swap="innerHTML"
+        hx-encoding="multipart/form-data">
+    <div class="form-group">
+      <input type="file" name="opml_file" accept=".opml,.xml" required class="form-input">
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Import</button>
+    </div>
+  </form>
+  <div id="opml-import-result"></div>
+</div>
