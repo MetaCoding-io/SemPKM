@@ -1,0 +1,39 @@
+<div id="connect-content" class="todoist-sync-settings">
+  <h2>Connect to Todoist</h2>
+  <p class="connect-description">
+    Link your Todoist account to sync tasks with SemPKM task objects.
+  </p>
+
+  {% if error %}
+  <div class="alert alert-error">{{ error }}</div>
+  {% endif %}
+
+  <section class="connect-section">
+    <h3>API Token</h3>
+    <p class="section-hint">
+      Find your API token in
+      <a href="https://app.todoist.com/app/settings/integrations/developer" target="_blank" rel="noopener">Todoist Settings → Integrations → Developer</a>.
+    </p>
+    <form class="api-key-form"
+          hx-post="/app/todoist-sync/_fragments/connect/api-token"
+          hx-target="#connect-content"
+          hx-swap="innerHTML"
+          hx-indicator="#token-spinner">
+      <div class="form-row">
+        <label for="todoist-token">API Token</label>
+        <input type="password"
+               id="todoist-token"
+               name="token"
+               placeholder="Your Todoist API token"
+               required
+               autocomplete="off" />
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          Connect
+        </button>
+        <span id="token-spinner" class="htmx-indicator spinner">Verifying…</span>
+      </div>
+    </form>
+  </section>
+</div>

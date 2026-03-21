@@ -1,0 +1,54 @@
+appId: "outlook-calendar"
+name: "Outlook Calendar Sync"
+version: "0.1.0"
+description: "Sync Microsoft Outlook Calendar events with SemPKM objects"
+author:
+  name: "SemPKM"
+license: "MIT"
+
+dependencies:
+  platform: ">=0.1.0"
+
+permissions:
+  commands:
+    - "object.create"
+    - "object.patch"
+    - "body.set"
+    - "edge.create"
+  sparql:
+    read: true
+  backgroundTasks: true
+  network:
+    - "graph.microsoft.com"
+    - "login.microsoftonline.com"
+
+backend:
+  entrypoint: "app:outlook_calendar_app"
+
+tasks:
+  - id: "poll-events"
+    description: "Poll Outlook Calendar for updated events and sync to SemPKM"
+    interval: "15m"
+    retryPolicy:
+      maxRetries: 3
+      maxBackoff: "60s"
+  - id: "push-changes"
+    description: "Push local changes back to Outlook Calendar"
+    interval: "15m"
+    retryPolicy:
+      maxRetries: 3
+      maxBackoff: "60s"
+
+frontend:
+  staticDir: "frontend/static"
+  css:
+    - "styles.css"
+
+ui:
+  pages:
+    - id: "settings"
+      path: "/settings"
+      label: "Outlook Calendar"
+      icon: "calendar-clock"
+      nav: "apps"
+      fragment: "connect"
