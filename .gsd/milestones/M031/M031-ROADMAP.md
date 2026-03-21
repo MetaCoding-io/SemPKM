@@ -93,7 +93,7 @@ This milestone is complete only when all are true:
 
 ## Slices
 
-- [ ] **S01: Carousel Removal + View Scope Binding** `risk:high` `depends:[]`
+- [x] **S01: Carousel Removal + View Scope Binding** `risk:high` `depends:[]`
   > After this: User clicks "Table View" in explorer and gets a table view with no carousel. Type filter pills still work. A view toolbar dropdown shows model-declared view variants when a type is selected, and a separate scope dropdown lets users filter by saved query. Opening a model-declared view (e.g., "Projects Table") from the toolbar dropdown renders correctly.
 
 - [ ] **S02: Multiple View Instances + Saved Views Fix** `risk:medium` `depends:[S01]`

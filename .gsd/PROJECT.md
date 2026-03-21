@@ -999,4 +999,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-03-21 after M030 complete (Data Quality Linting & Lint UX — 4 slices, validation pipeline fix enabling 11 existing M011 rules in production, 10 new SHACL-AF data quality rules across 4 models, lint filter system with suppress/dismiss/presets and SQLite persistence, 7 E2E tests, 13 LINT requirements validated)*
+*Last updated: 2026-03-21 after M031/S01 complete (Carousel Removal + View Scope Binding — carousel tab bar fully removed, model-declared variant dropdown added to view toolbar, saved query scope dropdown wired through all generic views, 25 unit tests, VIEW-08 validated)*
