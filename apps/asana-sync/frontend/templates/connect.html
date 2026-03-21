@@ -1,0 +1,118 @@
+<div id="connect-content" class="asana-sync-settings">
+  <h2>Connect to Asana</h2>
+  <p class="connect-description">
+    Link your Asana workspace to sync tasks with SemPKM objects.
+    Set up OAuth credentials, or use a Personal Access Token.
+  </p>
+
+  {% if error %}
+  <div class="alert alert-error">{{ error }}</div>
+  {% endif %}
+
+  {% if success %}
+  <div class="alert alert-success">{{ success }}</div>
+  {% endif %}
+
+  <section class="connect-section">
+    <h3>Asana OAuth Credentials</h3>
+    <p class="section-hint">
+      Create an OAuth app at
+      <a href="https://app.asana.com/0/my-apps" target="_blank" rel="noopener">Asana Developer Console</a>
+      → My Apps → Create New App.<br>
+      Set the redirect URL to:<br>
+      <code class="redirect-uri">http://localhost:3000/app/asana-sync/_fragments/oauth-callback</code>
+    </p>
+    <form class="credentials-form"
+          hx-post="/app/asana-sync/_fragments/connect/credentials"
+          hx-target="#connect-content"
+          hx-swap="innerHTML"
+          hx-indicator="#credentials-spinner">
+      <div class="form-row">
+        <label for="asana-client-id">Client ID</label>
+        <input type="text"
+               id="asana-client-id"
+               name="client_id"
+               placeholder="1234567890123456"
+               required
+               autocomplete="off" />
+      </div>
+      <div class="form-row">
+        <label for="asana-client-secret">Client Secret</label>
+        <input type="password"
+               id="asana-client-secret"
+               name="client_secret"
+               placeholder="abc123..."
+               required
+               autocomplete="off" />
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          Save Credentials
+        </button>
+        <span id="credentials-spinner" class="htmx-indicator spinner">Saving…</span>
+      </div>
+    </form>
+  </section>
+
+  <div class="connect-divider">
+    <span>then</span>
+  </div>
+
+  <section class="connect-section">
+    <h3>Connect with Asana</h3>
+    <p class="section-hint">
+      After saving your credentials, click below to authorize SemPKM
+      to access your Asana workspace.
+    </p>
+    <form hx-post="/app/asana-sync/_fragments/connect/asana"
+          hx-target="#connect-content"
+          hx-swap="innerHTML"
+          hx-indicator="#oauth-spinner">
+      <div class="form-actions">
+        <button type="submit"
+                class="btn btn-primary btn-asana"
+                {% if not has_credentials %}disabled{% endif %}>
+          Connect with Asana
+        </button>
+        <span id="oauth-spinner" class="htmx-indicator spinner">Redirecting…</span>
+      </div>
+    </form>
+    {% if not has_credentials %}
+    <p class="oauth-note">Save your credentials above first.</p>
+    {% endif %}
+  </section>
+
+  <div class="connect-divider">
+    <span>or</span>
+  </div>
+
+  <section class="connect-section">
+    <h3>Personal Access Token</h3>
+    <p class="section-hint">
+      Create a PAT at
+      <a href="https://app.asana.com/0/my-apps" target="_blank" rel="noopener">Asana Developer Console</a>
+      → My Apps → Personal Access Tokens.
+    </p>
+    <form class="api-key-form"
+          hx-post="/app/asana-sync/_fragments/connect/pat"
+          hx-target="#connect-content"
+          hx-swap="innerHTML"
+          hx-indicator="#pat-spinner">
+      <div class="form-row">
+        <label for="asana-pat">Access Token</label>
+        <input type="password"
+               id="asana-pat"
+               name="api_key"
+               placeholder="0/..."
+               required
+               autocomplete="off" />
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          Connect
+        </button>
+        <span id="pat-spinner" class="htmx-indicator spinner">Verifying…</span>
+      </div>
+    </form>
+  </section>
+</div>

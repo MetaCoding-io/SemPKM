@@ -149,3 +149,14 @@ Coverage evidence for the informal TD requirements:
 - `docs/guide/appendix-d-glossary.md` — Added Todoist Sync glossary entry
 - `docs/guide/appendix-a-environment-variables.md` — Added TODOIST_API_URL row
 - `docs/guide/36-google-calendar-sync.md` — Updated navigation footer (Next → Ch 37)
+
+## Worktree Recovery (2026-03-21)
+
+M019 was built entirely in a GSD worktree. All source code — the complete Todoist Sync app, 6 test files, E2E mock server, E2E spec, and user guide chapter — existed only on the milestone branch within the worktree. When the worktree was cleaned up, everything became a dangling commit.
+
+**Recovered files (2026-03-21) from dangling commit `3623430f`:**
+- `apps/todoist-sync/` — Complete app (app.py, manifest.yaml, 5 service modules, 3 templates, CSS)
+- `backend/tests/test_todoist_*.py` — 6 test files (auth, client, field_mapper, person_matcher, sync_engine, push_sync)
+- `e2e/mock-todoist-api/server.py` — Mock Todoist REST API
+- `e2e/tests/37-todoist-sync/todoist-sync.spec.ts` — Playwright E2E spec
+- `docs/guide/37-todoist-sync.md` — Chapter 37 user guide

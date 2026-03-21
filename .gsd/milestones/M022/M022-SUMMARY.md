@@ -175,3 +175,14 @@ S04 tied everything together with integration testing and documentation. Mock As
 - `docs/guide/appendix-d-glossary.md` — added Asana Sync glossary entry
 - `docs/guide/appendix-a-environment-variables.md` — added ASANA_API_URL and ASANA_TOKEN_URL rows
 - `docs/guide/39-caldav-calendar-sync.md` — updated nav footer Next → Chapter 40
+
+## Worktree Recovery (2026-03-21)
+
+M022 was built entirely in a GSD worktree. All source code — the complete Asana Sync app, 5 test files, E2E mock server, E2E spec, and user guide chapter — existed only on the milestone branch within the worktree.
+
+**Recovered files (2026-03-21) from dangling commit `3623430f`:**
+- `apps/asana-sync/` — Complete app (app.py, manifest.yaml, 5 service modules, 2 templates, CSS)
+- `backend/tests/test_asana_*.py` — 5 test files (auth, client, field_mapper, person_matcher, sync_engine)
+- `e2e/mock-asana-api/server.py` — Mock Asana REST API
+- `e2e/tests/40-asana-sync/asana-sync.spec.ts` — Playwright E2E spec
+- `docs/guide/40-asana-sync.md` — Chapter 40 user guide

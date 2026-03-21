@@ -94,6 +94,46 @@ class CommandClient:
         self._allowed_commands = allowed_commands if allowed_commands is not None else set()
         self._iri_prefix = iri_prefix or ""
 
+    def _check_iri_prefix(self, value: str) -> bool:
+        """Check whether an IRI value is allowed under the namespace policy.
+
+        Enforcement scope (D171): only ``urn:sempkm:app:*`` and
+        ``urn:sempkm:data:*`` namespaces are restricted to the app's own
+        prefix.  All other namespaces pass through unchecked so that apps
+        can freely reference model-defined types, standard vocabularies,
+        and user-created types.
+
+        Decision table:
+
+        - ``urn:sempkm:model:*``       → **allowed** (model namespace)
+        - ``urn:sempkm:user-types:*``   → **allowed** (user-created types)
+        - ``http://`` or ``https://``   → **allowed** (standard vocabularies)
+        - ``urn:sempkm:app:{own}:*``    → **allowed** (own app namespace)
+        - ``urn:sempkm:app:*`` (other)  → **blocked** (foreign app namespace)
+        - ``urn:sempkm:data:*``         → **blocked** (data namespace)
+        - other ``urn:*``               → **allowed** (e.g. ``urn:uuid:*``)
+        - non-IRI strings               → **allowed** (not subject to checks)
+
+        Returns:
+            ``True`` if the value is allowed, ``False`` if it violates the
+            namespace policy.
+        """
+        # Whitelisted namespaces — always allowed
+        if value.startswith("urn:sempkm:model:"):
+            return True
+        if value.startswith("urn:sempkm:user-types:"):
+            return True
+        if value.startswith(("http://", "https://")):
+            return True
+        # Own app namespace — allowed
+        if self._iri_prefix and value.startswith(self._iri_prefix):
+            return True
+        # Foreign app or data namespace — blocked
+        if value.startswith("urn:sempkm:app:") or value.startswith("urn:sempkm:data:"):
+            return False
+        # All other URNs and non-IRI strings — allowed
+        return True
+
     def _check_permissions(self, command_type: str, params: dict | None = None) -> None:
         """Validate command type whitelist and IRI prefix constraints.
 
@@ -110,7 +150,7 @@ class CommandClient:
             iri_fields = _IRI_PARAMS.get(command_type, [])
             for field_name in iri_fields:
                 value = params.get(field_name)
-                if value and not value.startswith(self._iri_prefix):
+                if value and not self._check_iri_prefix(value):
                     raise PermissionError(
                         f"IRI param {field_name!r}={value!r} does not start "
                         f"with required prefix {self._iri_prefix!r}"

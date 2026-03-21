@@ -286,3 +286,9 @@ Criteria 3 (object creation via SDK) and 4 (scheduled task firing at interval) a
 - `backend/app/templates/browser/workspace.html` — APPS sidebar section, dynamic right pane
 - `backend/app/templates/components/_sidebar.html` — Applications nav-link
 - `backend/app/templates/admin/index.html` — Applications card
+
+## Worktree Recovery (2026-03-21)
+
+M009 was built in a GSD worktree (`.gsd/worktrees/M009/`). The App Platform source code was committed to a `milestone/M009` branch within the worktree but never merged to main. When the worktree was cleaned up and the branch deleted, **the navigate command enrichment in `backend/app/browser/apps.py`** (adding `appId`/`pageId` to navigate commands for dockview tab routing) became a dangling commit. The bulk of M009 platform code survived because it was committed via a separate merge, but this specific fix was lost.
+
+**Recovered:** 2026-03-21 from dangling commit `89b71093` via `git checkout <hash> -- <path>`. Applied to the `browser/apps.py` navigate handler alongside M010 recovery.

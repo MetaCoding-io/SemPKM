@@ -1,0 +1,70 @@
+<div class="rss-feed-sidebar-header">
+  <h3>Feeds</h3>
+  <div class="rss-sidebar-actions">
+    <button class="rss-subscribe-btn"
+            hx-get="/_fragments/subscribe-dialog"
+            hx-target="#rss-reading-pane"
+            hx-swap="innerHTML"
+            title="Subscribe to feed">
+      <i data-lucide="plus"></i>
+    </button>
+    <button class="rss-subscribe-btn"
+            hx-get="/_fragments/opml-import-dialog"
+            hx-target="#rss-reading-pane"
+            hx-swap="innerHTML"
+            title="Import OPML">
+      <i data-lucide="upload"></i>
+    </button>
+    <button class="rss-subscribe-btn"
+            hx-get="/_fragments/settings"
+            hx-target="#rss-reading-pane"
+            hx-swap="innerHTML"
+            title="Reader Settings">
+      <i data-lucide="settings"></i>
+    </button>
+  </div>
+</div>
+
+{% if feeds %}
+<ul class="rss-feed-list">
+  <li class="rss-feed-item{% if not active_feed %} active{% endif %}"
+      hx-get="/_fragments/article-list"
+      hx-target="#rss-article-list-content"
+      hx-swap="innerHTML"
+      data-feed-iri="all">
+    <span class="rss-feed-item-label">All Feeds</span>
+  </li>
+  {% for feed in feeds %}
+  <li class="rss-feed-item"
+      hx-get="/_fragments/article-list?feed_iri={{ feed.iri | urlencode }}"
+      hx-target="#rss-article-list-content"
+      hx-swap="innerHTML"
+      data-feed-iri="{{ feed.iri }}">
+    {% if feed.error_count > 0 %}
+    <span class="rss-error-indicator rss-feed-error-indicator"
+          title="{{ feed.last_error or 'Feed has errors' }}"></span>
+    {% endif %}
+    <span class="rss-feed-item-label">{{ feed.title }}</span>
+    {% if feed.unread_count > 0 %}
+    <span class="rss-unread-badge">{{ feed.unread_count }}</span>
+    {% endif %}
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<div class="rss-empty-state">
+  <p>No feeds yet. Subscribe to get started.</p>
+  <button class="btn btn-primary btn-sm"
+          hx-get="/_fragments/subscribe-dialog"
+          hx-target="#rss-reading-pane"
+          hx-swap="innerHTML">
+    Subscribe
+  </button>
+  <button class="btn btn-secondary btn-sm"
+          hx-get="/_fragments/opml-import-dialog"
+          hx-target="#rss-reading-pane"
+          hx-swap="innerHTML">
+    <i data-lucide="upload"></i> Import OPML
+  </button>
+</div>
+{% endif %}

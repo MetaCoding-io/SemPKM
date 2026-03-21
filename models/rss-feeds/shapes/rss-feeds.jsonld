@@ -1,0 +1,232 @@
+{
+  "@context": {
+    "sh": "http://www.w3.org/ns/shacl#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "schema": "https://schema.org/",
+    "rss": "urn:sempkm:model:rss-feeds:",
+    "sempkm": "urn:sempkm:"
+  },
+  "@graph": [
+    {
+      "@id": "rss:ArticleBasicInfoGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Basic Info",
+      "sh:order": 1
+    },
+    {
+      "@id": "rss:ArticleFeedGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Feed",
+      "sh:order": 2
+    },
+    {
+      "@id": "rss:ArticleStatusGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Status",
+      "sh:order": 3
+    },
+    {
+      "@id": "rss:ArticleMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 4
+    },
+
+    {
+      "@id": "rss:ArticleShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "rss:Article" },
+      "rdfs:label": "Article Shape",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "rss:ArticleBasicInfoGroup" },
+          "sh:description": "The article title."
+        },
+        {
+          "sh:path": { "@id": "rss:link" },
+          "sh:name": "Link",
+          "sh:datatype": { "@id": "xsd:anyURI" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "rss:ArticleBasicInfoGroup" },
+          "sh:description": "Original URL of the article."
+        },
+        {
+          "sh:path": { "@id": "rss:author" },
+          "sh:name": "Author",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "rss:ArticleBasicInfoGroup" },
+          "sh:description": "Author of the article."
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Published",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "rss:ArticleBasicInfoGroup" },
+          "sh:description": "Publication date of the article."
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Summary",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "rss:ArticleBasicInfoGroup" },
+          "sh:description": "Article summary or excerpt."
+        },
+        {
+          "sh:path": { "@id": "rss:feedSource" },
+          "sh:name": "Feed Source",
+          "sh:class": { "@id": "rss:FeedSubscription" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "rss:ArticleFeedGroup" },
+          "sh:description": "The feed subscription this article came from."
+        },
+        {
+          "sh:path": { "@id": "rss:isRead" },
+          "sh:name": "Read",
+          "sh:datatype": { "@id": "xsd:boolean" },
+          "sh:maxCount": 1,
+          "sh:defaultValue": false,
+          "sh:order": 7,
+          "sh:group": { "@id": "rss:ArticleStatusGroup" },
+          "sh:description": "Whether this article has been read."
+        },
+        {
+          "sh:path": { "@id": "rss:isStarred" },
+          "sh:name": "Starred",
+          "sh:datatype": { "@id": "xsd:boolean" },
+          "sh:maxCount": 1,
+          "sh:defaultValue": false,
+          "sh:order": 8,
+          "sh:group": { "@id": "rss:ArticleStatusGroup" },
+          "sh:description": "Whether this article has been starred."
+        },
+        {
+          "sh:path": { "@id": "rss:articleId" },
+          "sh:name": "Article ID",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 9,
+          "sh:group": { "@id": "rss:ArticleMetadataGroup" },
+          "sh:description": "Unique identifier from the feed (entry ID or GUID)."
+        }
+      ]
+    },
+
+    {
+      "@id": "rss:FeedSubscriptionFeedInfoGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Feed Info",
+      "sh:order": 1
+    },
+    {
+      "@id": "rss:FeedSubscriptionPollingGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Polling",
+      "sh:order": 2
+    },
+    {
+      "@id": "rss:FeedSubscriptionMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 3
+    },
+
+    {
+      "@id": "rss:FeedSubscriptionShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "rss:FeedSubscription" },
+      "rdfs:label": "Feed Subscription Shape",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "rss:FeedSubscriptionFeedInfoGroup" },
+          "sh:description": "Display name of the feed."
+        },
+        {
+          "sh:path": { "@id": "rss:feedUrl" },
+          "sh:name": "Feed URL",
+          "sh:datatype": { "@id": "xsd:anyURI" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "rss:FeedSubscriptionFeedInfoGroup" },
+          "sh:description": "URL of the RSS or Atom feed."
+        },
+        {
+          "sh:path": { "@id": "rss:siteUrl" },
+          "sh:name": "Site URL",
+          "sh:datatype": { "@id": "xsd:anyURI" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "rss:FeedSubscriptionFeedInfoGroup" },
+          "sh:description": "URL of the feed's website."
+        },
+        {
+          "sh:path": { "@id": "rss:lastPolled" },
+          "sh:name": "Last Polled",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "rss:FeedSubscriptionPollingGroup" },
+          "sh:description": "When this feed was last polled."
+        },
+        {
+          "sh:path": { "@id": "rss:errorCount" },
+          "sh:name": "Error Count",
+          "sh:datatype": { "@id": "xsd:integer" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "rss:FeedSubscriptionPollingGroup" },
+          "sh:description": "Number of consecutive polling errors."
+        },
+        {
+          "sh:path": { "@id": "rss:lastError" },
+          "sh:name": "Last Error",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "rss:FeedSubscriptionPollingGroup" },
+          "sh:description": "Description of the most recent polling error."
+        },
+        {
+          "sh:path": { "@id": "rss:etag" },
+          "sh:name": "ETag",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 7,
+          "sh:group": { "@id": "rss:FeedSubscriptionMetadataGroup" },
+          "sh:description": "HTTP ETag for conditional GET requests."
+        },
+        {
+          "sh:path": { "@id": "rss:lastModifiedHeader" },
+          "sh:name": "Last-Modified Header",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 8,
+          "sh:group": { "@id": "rss:FeedSubscriptionMetadataGroup" },
+          "sh:description": "HTTP Last-Modified header for conditional GET requests."
+        }
+      ]
+    }
+  ]
+}
