@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T02",
+  "unitId": "M031/S07/T02",
+  "timestamp": 1774114873366,
+  "passed": true,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "grep -q \"Kanban\" docs/guide/07-browsing-and-visualizing.md",
+      "exitCode": 0,
+      "durationMs": 13,
+      "verdict": "pass"
+    },
+    {
+      "command": "grep -q \"Graph Visualization\" docs/guide/21-sparql-console.md",
+      "exitCode": 0,
+      "durationMs": 13,
+      "verdict": "pass"
+    }
+  ]
+}

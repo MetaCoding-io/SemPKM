@@ -632,9 +632,9 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 **Latest shipped: M030 Data Quality Linting & Lint UX (2026-03-21)**
 
-**In progress: M031 Views Overhaul, Saved Queries as First-Class, & UI Polish (S01-S06 of 7 done)**
+**Latest shipped: M031 Views Overhaul, Saved Queries as First-Class, & UI Polish (2026-03-21) — all 7 slices, 20 requirements validated**
 
-**What shipped in M031 so far:**
+**What shipped in M031:**
 - Carousel tab bar fully removed — explorer sidebar is sole view selector (VIEW-08)
 - View toolbar with saved query scope dropdown and model-declared variant dropdown (VIEW-09)
 - Multiple view instances as separate tabs with independent scopes (VIEW-10)
@@ -645,6 +645,8 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - TBox property tooltips, admin model graph full-viewport with edge tooltips (ONTO-04/05/06)
 - Full-height views via .view-flex-column, graph popover z-index fix (VIEW-13/14)
 - Dashboard/workflow builder help text on all fields (DBUIX-01), IRI autocomplete via class-search/object-search endpoints (DBUIX-02), workflow view step simplification (DBUIX-03), idempotent seed data (DBUIX-04)
+- E2E Playwright tests covering all 6 major features (S07/T01), stale carousel tests retired
+- User guide chapters 7, 21, and 28 updated for all new features (S07/T02)
 - Remaining: E2E tests + user guide docs (S07)
 
 **What shipped in M030 (Data Quality Linting & Lint UX):**
@@ -1014,4 +1016,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-03-21 after M031/S06 complete (Dashboard & Workflow Builder UX — help text on all fields, class-search/object-search autocomplete endpoints, workflow view step simplification, idempotent seed data. 5 requirements validated: VIEW-12, DBUIX-01/02/03/04)*
+*Last updated: 2026-03-21 after M031/S07 complete (E2E Tests + User Guide Docs — 6-case Playwright spec, carousel tests retired, chapters 7/21/28 updated. M031 milestone fully complete: all 7 slices done, all 20 requirements validated)*
