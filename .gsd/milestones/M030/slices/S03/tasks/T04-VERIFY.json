@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T04",
+  "unitId": "M030/S03/T04",
+  "timestamp": 1774068890757,
+  "passed": false,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "Docker stack: create object with lint warnings → dismiss one → warning disappears → suppress a rule type from dashboard → all results for that rule disappear → select/create preset → preset restores",
+      "exitCode": 127,
+      "durationMs": 13,
+      "verdict": "fail"
+    }
+  ],
+  "retryAttempt": 2,
+  "maxRetries": 2
+}

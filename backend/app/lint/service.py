@@ -73,11 +73,21 @@ class LintService:
             return None
         return bindings[0]["run"]["value"]
 
-    async def get_results_for_object(self, object_iri: str) -> list[dict]:
+    async def get_results_for_object(
+        self,
+        object_iri: str,
+        suppressed_rules: set[str] | None = None,
+        dismissed_pairs: set[tuple[str, str]] | None = None,
+    ) -> list[dict]:
         """Query structured lint results filtered by focus_node for one object.
 
         Returns results from the latest run matching the given object IRI.
         Used by the per-object lint panel in the browser.
+
+        Args:
+            object_iri: The focus node IRI to filter results by.
+            suppressed_rules: Set of rule source IRIs to exclude entirely.
+            dismissed_pairs: Set of (object_iri, rule_source_iri) pairs to exclude.
 
         Returns:
             List of dicts with keys: severity, message, path, source_shape.
@@ -126,6 +136,18 @@ class LintService:
                 "source_shape": row.get("sourceShape", {}).get("value", ""),
             })
 
+        # Apply post-SPARQL filters (empty source_shape results always shown)
+        if suppressed_rules:
+            items = [
+                i for i in items
+                if not i["source_shape"] or i["source_shape"] not in suppressed_rules
+            ]
+        if dismissed_pairs:
+            items = [
+                i for i in items
+                if not i["source_shape"] or (object_iri, i["source_shape"]) not in dismissed_pairs
+            ]
+
         return items
 
     async def get_results(
@@ -138,6 +160,8 @@ class LintService:
         detail: bool = False,
         search: Optional[str] = None,
         sort: str = "severity",
+        suppressed_rules: set[str] | None = None,
+        dismissed_pairs: set[tuple[str, str]] | None = None,
     ) -> LintResultsResponse:
         """Query paginated lint results from a run's named graph.
 
@@ -207,35 +231,49 @@ class LintService:
         }
         order_clause = sort_allowlist.get(sort, sort_allowlist["severity"])
 
-        # Count query
-        count_query = f"""
-        PREFIX sh: <http://www.w3.org/ns/shacl#>
-        PREFIX sempkm: <urn:sempkm:>
-        SELECT (COUNT(?result) AS ?total) WHERE {{
-          GRAPH <{target_run}> {{
-            ?result a sempkm:LintResult ;
-                    sh:focusNode ?focusNode ;
-                    sh:resultSeverity ?severity ;
-                    sh:resultMessage ?message .
-            OPTIONAL {{ ?result sh:resultPath ?path }}
-            {severity_filter}
-            {search_filter}
-          }}
-          {object_type_filter}
-        }}
-        """
-        count_result = await self._client.query(count_query)
-        count_bindings = count_result.get("results", {}).get("bindings", [])
-        total = int(count_bindings[0]["total"]["value"]) if count_bindings else 0
-        total_pages = math.ceil(total / per_page) if total > 0 else 0
-        offset = (page - 1) * per_page
+        # Determine whether Python-side filtering is active
+        _has_filters = bool(suppressed_rules or dismissed_pairs)
+
+        # When filters are active, skip SPARQL count query and pagination —
+        # we over-fetch all results, filter in Python, then re-paginate.
+        if not _has_filters:
+            # ── Standard SPARQL-paginated path (no performance regression) ──
+            count_query = f"""
+            PREFIX sh: <http://www.w3.org/ns/shacl#>
+            PREFIX sempkm: <urn:sempkm:>
+            SELECT (COUNT(?result) AS ?total) WHERE {{
+              GRAPH <{target_run}> {{
+                ?result a sempkm:LintResult ;
+                        sh:focusNode ?focusNode ;
+                        sh:resultSeverity ?severity ;
+                        sh:resultMessage ?message .
+                OPTIONAL {{ ?result sh:resultPath ?path }}
+                {severity_filter}
+                {search_filter}
+              }}
+              {object_type_filter}
+            }}
+            """
+            count_result = await self._client.query(count_query)
+            count_bindings = count_result.get("results", {}).get("bindings", [])
+            total = int(count_bindings[0]["total"]["value"]) if count_bindings else 0
+            total_pages = math.ceil(total / per_page) if total > 0 else 0
+            offset = (page - 1) * per_page
+
+            pagination_clause = f"OFFSET {offset} LIMIT {per_page}"
+        else:
+            # Over-fetch: no OFFSET/LIMIT, no separate count query
+            total = 0  # will be set from filtered list length
+            total_pages = 0
+            offset = (page - 1) * per_page
+            pagination_clause = ""
 
         # Get run metadata
         run_meta = await self._get_run_metadata(target_run)
         run_timestamp = run_meta.get("timestamp", "")
         conforms = run_meta.get("conforms", True)
 
-        if total == 0:
+        if not _has_filters and total == 0:
             return LintResultsResponse(
                 results=[], page=page, per_page=per_page,
                 total=0, total_pages=0, run_id=target_run,
@@ -264,7 +302,7 @@ class LintService:
           {object_type_filter}
         }}
         {order_clause}
-        OFFSET {offset} LIMIT {per_page}
+        {pagination_clause}
         """
         result = await self._client.query(results_query)
         bindings = result.get("results", {}).get("bindings", [])
@@ -301,16 +339,34 @@ class LintService:
                 severity=severity_label,
                 message=row["message"]["value"],
                 path_label=labels.get(path_iri, _local_name(path_iri)) if path_iri else None,
+                source_shape=row.get("sourceShape", {}).get("value"),
             )
 
             if detail:
-                item.source_shape = row.get("sourceShape", {}).get("value")
                 item.constraint_component = row.get("component", {}).get("value")
                 item.source_model = row.get("sourceModel", {}).get("value")
                 orphaned_val = row.get("orphaned", {}).get("value", "false")
                 item.orphaned = orphaned_val.lower() == "true"
 
             items.append(item)
+
+        # Apply Python-side filtering when filters are active
+        if _has_filters:
+            if suppressed_rules:
+                items = [
+                    i for i in items
+                    if not i.source_shape or i.source_shape not in suppressed_rules
+                ]
+            if dismissed_pairs:
+                items = [
+                    i for i in items
+                    if not i.source_shape or (i.focus_node, i.source_shape) not in dismissed_pairs
+                ]
+
+            # Recalculate pagination from filtered list
+            total = len(items)
+            total_pages = math.ceil(total / per_page) if total > 0 else 0
+            items = items[offset:offset + per_page]
 
         return LintResultsResponse(
             results=items,

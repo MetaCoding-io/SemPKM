@@ -87,3 +87,11 @@ Key design per D279: filter in Python after SPARQL returns results. For `get_res
 - `backend/app/browser/objects.py` — user filters wired into lint panel
 - `backend/app/browser/pages.py` — user filters + preset list wired into dashboard
 - `backend/tests/test_lint_filtering.py` — 8+ passing tests
+
+## Observability Impact
+
+- **Changed signals:** `GET /api/lint/results` now returns fewer results when the user has active suppressions/dismissals. The `total` and `total_pages` fields in `LintResultsResponse` reflect post-filter counts, not raw SPARQL counts.
+- **New template context:** `dismissed_count` in `lint_panel.html`, `suppressed_count` and `active_presets` in `lint_dashboard.html` — these are available for UI rendering but don't create new API endpoints.
+- **Inspection:** To verify filtering is active, compare `GET /api/lint/results` response totals with and without suppressions. Check `GET /api/lint/suppressions` and `GET /api/lint/dismissals` to see what's being filtered.
+- **Performance:** When filters are active, `get_results()` makes 1 SPARQL query (no count query) but fetches ALL results. Without filters, original 2-query SPARQL pagination is preserved (no regression).
+- **Failure modes:** If `LintFilterService` is unavailable, the dependency injection will fail with a 500 — the filter service is required, not optional.

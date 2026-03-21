@@ -172,3 +172,14 @@ async def get_ops_log_service(request: Request) -> OperationsLogService:
     app.state.ops_log_service.
     """
     return request.app.state.ops_log_service
+
+
+async def get_lint_filter_service(request: Request):
+    """Get the LintFilterService instance from app state.
+
+    The service is created during app lifespan startup and stored on
+    app.state.lint_filter_service.
+    """
+    from app.lint.filter_service import LintFilterService
+
+    return request.app.state.lint_filter_service

@@ -22,6 +22,7 @@ from app.db.session import get_db_session
 from app.dependencies import (
     get_event_store,
     get_label_service,
+    get_lint_filter_service,
     get_lint_service,
     get_prefix_registry,
     get_shapes_service,
@@ -30,6 +31,7 @@ from app.dependencies import (
 )
 from app.favorites.models import UserFavorite
 from app.events.store import EventStore, Operation
+from app.lint.filter_service import LintFilterService
 from app.lint.service import LintService
 from app.services.icons import IconService
 from app.services.labels import LabelService
@@ -907,18 +909,30 @@ async def get_lint(
     object_iri: str,
     user: User = Depends(get_current_user),
     lint_service: LintService = Depends(get_lint_service),
+    filter_service: LintFilterService = Depends(get_lint_filter_service),
 ):
     """Get SHACL validation results for a specific object.
 
     Queries structured lint result triples from the latest run filtered
     to this object's focus node. Renders the lint_panel.html partial.
+    User's active suppressions and dismissals are automatically applied.
     """
     templates = request.app.state.templates
     decoded_iri = unquote(object_iri)
     if not _validate_iri(decoded_iri):
         raise HTTPException(status_code=400, detail="Invalid IRI")
 
-    results = await lint_service.get_results_for_object(decoded_iri)
+    suppressed_rules, dismissed_pairs = await filter_service.get_user_filters(user.id)
+    results = await lint_service.get_results_for_object(
+        decoded_iri,
+        suppressed_rules=suppressed_rules or None,
+        dismissed_pairs=dismissed_pairs or None,
+    )
+
+    # Count dismissals specific to this object for UI display
+    dismissed_count = sum(
+        1 for obj_iri, _ in dismissed_pairs if obj_iri == decoded_iri
+    )
 
     violations: list[dict] = []
     warnings: list[dict] = []
@@ -949,6 +963,7 @@ async def get_lint(
         "conforms": conforms,
         "violation_count": len(violations),
         "warning_count": len(warnings),
+        "dismissed_count": dismissed_count,
     }
 
     return templates.TemplateResponse(

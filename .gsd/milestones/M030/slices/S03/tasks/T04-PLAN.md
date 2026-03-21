@@ -91,3 +91,10 @@ Add the user-facing UI for the filter system: dismiss buttons on the per-object 
 - `frontend/static/js/workspace.js` — dismissLintResult, suppressLintRule, applyLintPreset, saveLintPreset functions
 - `frontend/static/css/workspace.css` — filter UI styling
 - `backend/app/browser/pages.py` — detail=True for dashboard results
+
+## Observability Impact
+
+- **Browser console**: JS errors from `dismissLintResult`, `suppressLintRule`, `applyLintPreset`, `saveLintPreset` are logged to `console.error` with descriptive prefixes (e.g., `dismissLintResult error:`)
+- **Network tab**: dismiss/suppress/preset actions produce observable `fetch()` calls to `/api/lint/dismiss`, `/api/lint/suppress`, `/api/lint/presets`, `/api/lint/suppressions` — inspect status codes for success/failure
+- **Template context**: `dismissed_count` in lint panel template, `suppressed_count` and `active_presets` in dashboard template — visible in rendered HTML
+- **Existing API surfaces unchanged**: All T02 REST endpoints continue to work; this task only adds frontend consumers

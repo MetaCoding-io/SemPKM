@@ -74,6 +74,13 @@ This follows the htmx partial pattern used throughout the browser — the settin
 - `grep "lint-settings" backend/app/browser/pages.py` — route exists
 - `ls backend/app/templates/browser/lint_settings.html` — template exists
 
+## Observability Impact
+
+- **New route:** `GET /browser/lint-settings` — renders lint filter management UI. Served as htmx partial for dashboard container swap.
+- **Inspection:** Active suppressions/dismissals/presets listed with IDs and timestamps. All management actions (remove, clear, rename, delete) call existing T02 API endpoints — no new API routes.
+- **Failure visibility:** JS console errors prefixed with function names (`removeSuppression error:`, `clearAllSuppressions error:`). Network errors visible in DevTools.
+- **Diagnostics:** Count badges in section headers (`Suppressions (N)`, `Dismissals (N)`, `Presets (N)`) provide at-a-glance filter state.
+
 ## Inputs
 
 - `backend/app/lint/filter_service.py` — T01's LintFilterService for list/delete/clear operations

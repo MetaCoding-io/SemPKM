@@ -5974,6 +5974,135 @@ details.form-group[open] > .form-group-summary::before {
     font-size: 0.85rem;
 }
 
+/* --- Lint Filter Controls (Dismiss, Suppress, Presets) --- */
+
+.lint-dismiss-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    margin-left: auto;
+    flex-shrink: 0;
+    border: none;
+    border-radius: 3px;
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s, background 0.15s;
+}
+
+.lint-result:hover .lint-dismiss-btn {
+    opacity: 1;
+}
+
+.lint-dismiss-btn:hover {
+    background: var(--color-bg-secondary, var(--color-surface-recessed));
+    color: var(--color-text);
+}
+
+.lint-dismiss-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+.lint-dismissed-indicator {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    font-style: italic;
+}
+
+.lint-suppress-cell {
+    text-align: center;
+    padding: 0 4px !important;
+}
+
+.lint-suppress-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    border-radius: 3px;
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s, background 0.15s;
+}
+
+.lint-dashboard-row:hover .lint-suppress-btn {
+    opacity: 1;
+}
+
+.lint-suppress-btn:hover {
+    background: var(--color-bg-secondary, var(--color-surface-recessed));
+    color: var(--color-text);
+}
+
+.lint-suppress-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+.lint-suppressed-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    margin-top: 4px;
+    font-size: 0.7rem;
+    border-radius: 3px;
+    background: var(--color-bg-secondary, var(--color-surface-recessed));
+    color: var(--color-text-muted);
+}
+
+.lint-preset-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.lint-preset-actions select {
+    flex: 1;
+    min-width: 0;
+}
+
+.lint-preset-save-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    flex-shrink: 0;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: var(--color-bg);
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.lint-preset-save-btn:hover {
+    background: var(--color-bg-secondary, var(--color-surface-recessed));
+    color: var(--color-text);
+}
+
+.lint-preset-save-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
 /* Responsive fallback: stack vertically at narrow widths */
 @media (max-width: 600px) {
     .lint-dashboard-body,
@@ -5987,6 +6116,262 @@ details.form-group[open] > .form-group-summary::before {
         border-right: none;
         border-bottom: 1px solid var(--color-border);
     }
+}
+
+/* --- Lint Settings Management --- */
+.lint-settings {
+    padding: var(--space-lg, 16px);
+    max-width: 800px;
+    overflow-y: auto;
+    height: 100%;
+}
+
+.lint-settings-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md, 12px);
+    margin-bottom: var(--space-lg, 16px);
+    padding-bottom: var(--space-sm, 8px);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.lint-settings-header h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.lint-settings-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background 0.15s, color 0.15s;
+}
+
+.lint-settings-back:hover {
+    background: var(--color-bg-secondary, var(--color-surface-recessed));
+    color: var(--color-text);
+}
+
+.lint-settings-back svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+.lint-settings-section {
+    margin-bottom: var(--space-md, 12px);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: var(--color-bg);
+}
+
+.lint-settings-section > summary {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text);
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+    border-bottom: 1px solid transparent;
+}
+
+.lint-settings-section[open] > summary {
+    border-bottom-color: var(--color-border);
+}
+
+.lint-settings-section > summary::-webkit-details-marker {
+    display: none;
+}
+
+.lint-settings-section > summary svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+    color: var(--color-text-muted);
+}
+
+.lint-settings-section-body {
+    padding: 8px 12px;
+}
+
+.lint-settings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.lint-settings-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 8px;
+    border-radius: 4px;
+    transition: background 0.15s;
+}
+
+.lint-settings-item:hover {
+    background: var(--color-bg-secondary, var(--color-surface-recessed));
+}
+
+.lint-settings-item-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.lint-settings-item-label {
+    font-size: 13px;
+    color: var(--color-text);
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.lint-settings-item-object {
+    font-size: 12px;
+    color: var(--color-text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.lint-settings-item-meta {
+    font-size: 12px;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+}
+
+.lint-settings-item-date {
+    font-size: 11px;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+}
+
+.lint-settings-remove-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    flex-shrink: 0;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.lint-settings-remove-btn:hover {
+    background: var(--color-danger-bg, #fef2f2);
+    color: var(--color-danger, #dc2626);
+}
+
+.lint-settings-remove-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+.lint-settings-preset-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.lint-settings-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    flex-shrink: 0;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.lint-settings-action-btn:hover {
+    background: var(--color-bg-secondary, var(--color-surface-recessed));
+    color: var(--color-text);
+}
+
+.lint-settings-action-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+.lint-settings-empty {
+    font-size: 13px;
+    color: var(--color-text-muted);
+    padding: 8px 0;
+    margin: 0;
+}
+
+.lint-settings-clear-btn {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: var(--color-danger, #dc2626);
+    background: transparent;
+    border: 1px solid var(--color-danger, #dc2626);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.lint-settings-clear-btn:hover {
+    background: var(--color-danger, #dc2626);
+    color: #fff;
+}
+
+.lint-manage-filters-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    padding: 4px 0;
+    transition: color 0.15s;
+}
+
+.lint-manage-filters-link:hover {
+    color: var(--color-text);
+}
+
+.lint-manage-filters-link svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
 }
 
 /* --- VFS Browser --- */

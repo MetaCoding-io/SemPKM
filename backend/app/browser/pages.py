@@ -5,8 +5,10 @@ from fastapi.responses import HTMLResponse
 
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
-from app.dependencies import get_lint_service, get_shapes_service
-from app.lint.service import LintService
+from app.dependencies import get_label_service, get_lint_filter_service, get_lint_service, get_shapes_service
+from app.lint.filter_service import LintFilterService
+from app.lint.service import LintService, _local_name
+from app.services.labels import LabelService
 from app.services.shapes import ShapesService
 
 from ._helpers import get_hidden_types
@@ -51,14 +53,20 @@ async def lint_dashboard(
     user: User = Depends(get_current_user),
     lint_service: LintService = Depends(get_lint_service),
     shapes_service: ShapesService = Depends(get_shapes_service),
+    filter_service: LintFilterService = Depends(get_lint_filter_service),
 ):
     """Render the global lint dashboard as an htmx partial for the bottom panel."""
+    suppressed_rules, dismissed_pairs = await filter_service.get_user_filters(user.id)
     results = await lint_service.get_results(
         page=page, per_page=50, severity=severity,
         object_type=object_type, search=search, sort=sort,
+        detail=True,
+        suppressed_rules=suppressed_rules or None,
+        dismissed_pairs=dismissed_pairs or None,
     )
     status = await lint_service.get_status()
     types = await shapes_service.get_types(exclude_iris=get_hidden_types())
+    active_presets = await filter_service.list_presets(user.id)
 
     templates = request.app.state.templates
     return templates.TemplateResponse(request, "browser/lint_dashboard.html", {
@@ -70,6 +78,62 @@ async def lint_dashboard(
         "current_search": search or "",
         "current_sort": sort,
         "current_page": page,
+        "suppressed_count": len(suppressed_rules),
+        "active_presets": active_presets,
+    })
+
+
+@pages_router.get("/lint-settings")
+async def lint_settings(
+    request: Request,
+    user: User = Depends(get_current_user),
+    filter_service: LintFilterService = Depends(get_lint_filter_service),
+    label_service: LabelService = Depends(get_label_service),
+):
+    """Render the lint filter management section as an htmx partial."""
+    suppressions = await filter_service.list_suppressions(user.id)
+    dismissals = await filter_service.list_dismissals(user.id)
+    presets = await filter_service.list_presets(user.id)
+
+    # Collect all IRIs that need labels
+    iris_to_resolve: list[str] = []
+    for s in suppressions:
+        iris_to_resolve.append(s.rule_source_iri)
+    for d in dismissals:
+        iris_to_resolve.append(d.rule_source_iri)
+        iris_to_resolve.append(d.object_iri)
+
+    # Batch-resolve labels
+    labels: dict[str, str] = {}
+    if iris_to_resolve:
+        labels = await label_service.resolve_batch(iris_to_resolve)
+
+    # Attach resolved labels to data objects for template use
+    enriched_suppressions = []
+    for s in suppressions:
+        enriched_suppressions.append({
+            "id": s.id,
+            "rule_source_iri": s.rule_source_iri,
+            "rule_label": _local_name(s.rule_source_iri),
+            "created_at": s.created_at,
+        })
+
+    enriched_dismissals = []
+    for d in dismissals:
+        enriched_dismissals.append({
+            "id": d.id,
+            "object_iri": d.object_iri,
+            "object_label": labels.get(d.object_iri, _local_name(d.object_iri)),
+            "rule_source_iri": d.rule_source_iri,
+            "rule_label": _local_name(d.rule_source_iri),
+            "created_at": d.created_at,
+        })
+
+    templates = request.app.state.templates
+    return templates.TemplateResponse(request, "browser/lint_settings.html", {
+        "suppressions": enriched_suppressions,
+        "dismissals": enriched_dismissals,
+        "presets": presets,
     })
 
 

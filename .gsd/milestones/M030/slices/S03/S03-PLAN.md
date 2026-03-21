@@ -56,21 +56,21 @@
   - Verify: `cd backend && python -m pytest tests/test_lint_filter_api.py -v` — all tests pass
   - Done when: All 13 endpoints return correct status codes and bodies, service wired into app startup
 
-- [ ] **T03: Extend LintService with server-side filtering and wire user's filters into router** `est:1h`
+- [x] **T03: Extend LintService with server-side filtering and wire user's filters into router** `est:1h`
   - Why: Core filtering logic — LintService must exclude suppressed rules and dismissed pairs from results. The router must fetch user's active filters and pass them through.
   - Files: `backend/app/lint/service.py`, `backend/app/lint/router.py`, `backend/app/browser/objects.py`, `backend/app/browser/pages.py`, `backend/tests/test_lint_filtering.py`
   - Do: Add `suppressed_rules: set[str] | None` and `dismissed_pairs: set[tuple[str,str]] | None` params to `get_results()` and `get_results_for_object()`. Apply Python post-filtering after SPARQL returns. For `get_results()`, use over-fetch approach (fetch all, filter, re-paginate). Update router and browser endpoints to fetch user's filters via LintFilterService and pass them through.
   - Verify: `cd backend && python -m pytest tests/test_lint_filtering.py -v` — all tests pass
   - Done when: Suppressed rules excluded from both dashboard and per-object results, dismissed pairs excluded, pagination counts reflect filtered totals
 
-- [ ] **T04: Lint panel dismiss buttons and lint dashboard suppress/preset controls** `est:1h30m`
+- [x] **T04: Lint panel dismiss buttons and lint dashboard suppress/preset controls** `est:1h30m`
   - Why: User-facing UI for the filter system — dismiss buttons on the per-object lint panel, suppress controls and preset selector on the dashboard sidebar.
   - Files: `backend/app/templates/browser/lint_panel.html`, `backend/app/templates/browser/lint_dashboard.html`, `frontend/static/css/workspace.css`, `frontend/static/js/workspace.js`
   - Do: Add dismiss button (×) next to each warning/info result in lint_panel.html with fetch() call to POST /api/lint/dismiss, then htmx re-fetch. Add "N dismissed" indicator. On lint_dashboard.html sidebar: add suppress button per result row, preset selector dropdown, "N rules suppressed" badge. Use existing htmx patterns for refresh after actions.
   - Verify: Docker stack: create object with lint warnings → dismiss one → warning disappears → suppress a rule type from dashboard → all results for that rule disappear → select/create preset → preset restores
   - Done when: Dismiss buttons work on lint panel, suppress controls work on dashboard, preset selector loads/saves/applies presets
 
-- [ ] **T05: Lint settings management section** `est:1h`
+- [x] **T05: Lint settings management section** `est:1h`
   - Why: Users need to manage their filter state — see all active suppressions/dismissals, remove individual items, bulk clear, manage presets.
   - Files: `backend/app/templates/browser/lint_settings.html` (new), `backend/app/browser/pages.py`, `backend/app/lint/router.py`, `frontend/static/css/workspace.css`
   - Do: Create lint settings section accessible from lint dashboard sidebar ("Manage Filters" link). List active suppressions with rule labels and remove buttons. List active dismissals grouped by object with remove buttons. Preset list with rename/delete. "Clear all suppressions" and "Clear all dismissals" bulk actions. All interactions via htmx or fetch() → refresh.
