@@ -275,3 +275,42 @@ The Saved Views folder (`my_views.html`) needs two distinct code paths:
 2. **Generic saved views** (created via "Save View" toolbar button): use `openGenericViewTab(renderer, scopeQuery)` and `deleteSavedView()` for unpin
 
 The distinguishing signal is whether the PromotedViewData has a `renderer_type` field — generic saves always have one; query-based promotions derive renderer from the ViewSpec.
+
+---
+
+### HTML5 drag-drop inside dockview panels needs stopPropagation()
+
+**Discovered:** M031/S04/T02
+
+dockview's panel drag system intercepts HTML5 drag events that bubble up from child elements. Any custom drag-drop UI within a dockview panel (kanban columns, sortable lists, etc.) must call `e.stopPropagation()` on `dragstart`, `dragover`, and `drop` handlers to prevent dockview from treating the drag as a panel detach/reorder operation. This is the same pattern as canvas resize handles (D127/CANVAS-01).
+
+---
+
+### dragLeave flicker prevention with contains(relatedTarget)
+
+**Discovered:** M031/S04/T02
+
+When implementing drag-over highlighting on a container element, the `dragleave` event fires when the cursor moves between child elements *within* the container — not just when it actually leaves. This causes the drag-over CSS class to flicker. Fix: check `e.currentTarget.contains(e.relatedTarget)` in the `dragleave` handler and only remove the highlight class when the cursor truly leaves the container.
+
+```javascript
+function onDragLeave(e) {
+    if (e.currentTarget.contains(e.relatedTarget)) return; // still inside
+    e.currentTarget.classList.remove('kanban-col-drag-over');
+}
+```
+
+---
+
+### Kanban status field detection uses SHACL sh:in, not hardcoded field names
+
+**Discovered:** M031/S04/T01
+
+`_detect_status_field()` scans all SHACL PropertyShapes for the type and finds the first with non-empty `sh:in` values, preferring properties with "status" in the path (case-insensitive). This is more general than the D286 planning decision which suggested hardcoding to `bpkm:taskStatus`. Any Mental Model type that adds `sh:in` enum constraints on a property will automatically work with the kanban view.
+
+---
+
+### Kanban test_kanban.py must run from backend/ directory
+
+**Discovered:** M031/S04/T01
+
+`pytest tests/test_kanban.py` must be run from the `backend/` directory (`cd backend && .venv/bin/python -m pytest tests/test_kanban.py -v`), not from the project root. The root `.env` file contains `LINEAR_API_KEY` which is rejected as an extra field by the Pydantic Settings model, causing import failures.
