@@ -31,7 +31,7 @@
   - Verify: `python3 -c "import ast; ast.parse(open('backend/app/views/router.py').read())"` succeeds; `grep -q 'section-queries' backend/app/templates/browser/workspace.html`; `grep -q '__canvasDragPayload' backend/app/templates/browser/saved_queries_explorer.html`
   - Done when: Explorer sidebar has a QUERIES section that lazy-loads query entries with click-to-view and drag-to-canvas support
 
-- [ ] **T02: Unit test for explorer endpoint + SQ-03 VFS verification** `est:20m`
+- [x] **T02: Unit test for explorer endpoint + SQ-03 VFS verification** `est:20m`
   - Why: Slice verification requires a test for the new endpoint (contract) and confirmation that SQ-03 (VFS mount scope) already works end-to-end.
   - Files: `backend/tests/test_saved_queries_explorer.py`, `backend/app/vfs/strategies.py`
   - Do: (1) Write `test_saved_queries_explorer.py` with tests for the new endpoint: returns HTML with `.tree-leaf` entries, includes drag attributes, handles empty query list, includes both user and model queries. Mock `QueryService.list_all_queries()`. (2) Verify SQ-03 by reading VFS `build_scope_filter()` and `_resolve_scope_query_sync()` — confirm saved query scope resolution already works. Add a brief comment in the test file documenting SQ-03 verification.

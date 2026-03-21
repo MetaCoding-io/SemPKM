@@ -51,6 +51,12 @@ Write unit tests for the new `GET /browser/saved-queries/explorer` endpoint to v
 - `backend/app/vfs/strategies.py` — `build_scope_filter()` to verify for SQ-03
 - `backend/tests/test_view_scope.py` — reference for testing patterns
 
+## Observability Impact
+
+- **Test failure signals:** Pytest output surfaces which template rendering assertions fail (tree-leaf count, drag attributes, click handlers, empty state) — enabling fast regression detection when the template or endpoint changes.
+- **Endpoint error handling coverage:** Tests verify that `logger.exception()` is called on `list_all_queries()` failure, confirming the error logging path works. A future agent can check server logs for `saved_queries_explorer: failed to load queries` when debugging.
+- **SQ-03 scope resolution tests:** `test_build_scope_filter_accepts_scope_query` verifies the VFS scope filter sub-select is generated — if this test breaks, scope_query resolution in mounts is broken.
+
 ## Expected Output
 
 - `backend/tests/test_saved_queries_explorer.py` — new test file with endpoint tests and SQ-03 documentation
