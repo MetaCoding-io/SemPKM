@@ -662,7 +662,19 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current State
 
-**Latest shipped: M032 Block-Based Custom UI Builder (2026-03-22) — all 3 slices, 10 block types, 125 test assertions**
+**Latest shipped: M033 Federated SPARQL, New View Renderers, App Catalog & Deployment Overhaul (2026-03-22) — 6 slices, 136 unit tests + 10 E2E tests**
+
+**What shipped in M033:**
+- Instance config system: `InstanceConfig` Pydantic model with atomic file persistence (`data/.instance-config.json`), config priority chain (env var > instance config > default), startup namespace warning
+- Two-step setup wizard (deployment mode selection → account creation) eliminating dangerous `example.org` default
+- Cloud deployment via `docker-compose.cloud.yml` + Caddy auto-TLS (`Caddyfile.cloud`)
+- Isometric 2.5D graph layout: CSS 3D perspective transform with monkey-patched Cytoscape coordinate correction and DOMMatrix-based popover positioning
+- Lucide SVG icon toggle on graph nodes with memoized data URI pipeline and localStorage persistence
+- Calendar view: FullCalendar 6.x with SHACL-based `_detect_date_fields()` dual heuristic, month/week/day switching, event click → open object tab
+- Map view: Leaflet + MarkerCluster with SHACL-based `_detect_geo_fields()`, three instructive empty states, ResizeObserver for dockview panel resize
+- Federated SPARQL console: SERVICE clause detection, endpoint URL autocomplete, mirror button, debounced info banner, admin allowlist management with file-based persistence
+- App catalog: `AppManifestSchema` extended with category/features/readme, workspace catalog routes with searchable card grid, admin detail redesigned catalog-first, "Browse Catalog" sidebar entry
+- 6 key decisions (D297–D302), 136 unit tests, 10 E2E tests
 
 **What shipped in M032:**
 - Dashboard widget palette expanded from 6 to 10 block types: form-group, stat-card, chart, heading added
