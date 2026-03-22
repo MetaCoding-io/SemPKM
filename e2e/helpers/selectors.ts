@@ -81,6 +81,7 @@ export const SEL = {
     scopeSelect: '.view-scope-select',
     variantSelect: '.view-variant-select',
     saveViewBtn: '.save-view-btn',
+    calendarEvent: '.fc-event',
   },
 
   // Admin
