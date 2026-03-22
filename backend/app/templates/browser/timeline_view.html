@@ -1,0 +1,160 @@
+<div class="view-flex-column">
+{% if is_generic | default(false) %}
+{% include "browser/type_filter_pills.html" %}
+{% endif %}
+{% include "browser/view_toolbar.html" %}
+
+{% if error_message is defined and error_message %}
+<div class="view-empty-state">
+    <p>{{ error_message }}</p>
+</div>
+
+{% elif date_fields %}
+<div id="timeline-container" class="timeline-container" data-testid="timeline-view"></div>
+
+<script>
+(function () {
+    var dataUrl = {{ timeline_data_url | tojson }};
+    var CDN_JS = 'https://cdn.jsdelivr.net/npm/frappe-gantt@1.2.2/dist/frappe-gantt.umd.js';
+    var CDN_CSS = 'https://cdn.jsdelivr.net/npm/frappe-gantt@1.2.2/dist/frappe-gantt.css';
+
+    /**
+     * Format a Date object or date string to YYYY-MM-DD for the PATCH endpoint.
+     */
+    function formatDate(d) {
+        if (!d) return '';
+        if (d instanceof Date) {
+            var yyyy = d.getFullYear();
+            var mm = String(d.getMonth() + 1).padStart(2, '0');
+            var dd = String(d.getDate()).padStart(2, '0');
+            return yyyy + '-' + mm + '-' + dd;
+        }
+        // Already a string — pass through (may be YYYY-MM-DD already)
+        return String(d).slice(0, 10);
+    }
+
+    /**
+     * Persist a timeline drag-to-reschedule via the calendar PATCH endpoint.
+     */
+    function patchTimelineTask(task, start, end) {
+        var payload = { iri: task.id, start: formatDate(start) };
+        if (end) payload.end = formatDate(end);
+
+        console.log('[timeline] reschedule:', task.id,
+            'start=' + payload.start,
+            end ? 'end=' + payload.end : '(no end)');
+
+        fetch('/browser/views/calendar/patch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(payload)
+        }).then(function (r) {
+            if (!r.ok) return r.json().then(function (d) { throw new Error(d.error || 'HTTP ' + r.status); });
+            return r.json();
+        }).then(function (result) {
+            console.log('[timeline] reschedule persisted, event_iri:', result.event_iri);
+            if (typeof showToast === 'function') showToast('Task rescheduled');
+            document.dispatchEvent(new CustomEvent('sempkm:command-executed'));
+        }).catch(function (err) {
+            console.error('[timeline] reschedule patch failed:', err);
+            if (typeof showToast === 'function') showToast('Failed to save dates');
+        });
+    }
+
+    function initTimeline() {
+        fetch(dataUrl, { credentials: 'include' })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                var el = document.getElementById('timeline-container');
+                if (!el) return;
+
+                var tasks = data.tasks || [];
+                if (tasks.length === 0) {
+                    el.innerHTML = '<div class="view-empty-state"><p>No tasks with dates found</p></div>';
+                    console.log('[timeline] no tasks to render');
+                    return;
+                }
+
+                // Transform: join dependency arrays into comma-separated strings
+                // and ensure all required fields are present
+                var ganttTasks = tasks.map(function (t) {
+                    return {
+                        id: t.id,
+                        name: t.name || '(untitled)',
+                        start: t.start,
+                        end: t.end,
+                        progress: t.progress || 0,
+                        dependencies: Array.isArray(t.dependencies) ? t.dependencies.join(', ') : (t.dependencies || ''),
+                        custom_class: t.custom_class || ''
+                    };
+                });
+
+                var gantt = new Gantt('#timeline-container', ganttTasks, {
+                    view_mode: 'Week',
+                    view_mode_select: true,
+                    bar_height: 30,
+                    readonly_progress: true,
+                    scroll_to: 'today',
+                    today_button: true,
+                    container_height: 'auto',
+                    on_date_change: function (task, start, end) {
+                        patchTimelineTask(task, start, end);
+                    },
+                    on_click: function (task) {
+                        if (task && task.id && typeof openTab === 'function') {
+                            openTab(task.id, task.name || '');
+                        }
+                    }
+                });
+
+                console.log('[timeline] rendered with', ganttTasks.length,
+                    'tasks,', (data.dependency_count || 0), 'dependencies');
+            })
+            .catch(function (err) {
+                console.error('[timeline] data fetch failed:', err);
+                var el = document.getElementById('timeline-container');
+                if (el) {
+                    el.innerHTML = '<div class="view-empty-state"><p>Failed to load timeline data.</p></div>';
+                }
+            });
+    }
+
+    /* Inject Frappe Gantt CSS if not already present */
+    if (!document.querySelector('link[href*="frappe-gantt"]')) {
+        var link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = CDN_CSS;
+        document.head.appendChild(link);
+    }
+
+    /* Lazy-load Frappe Gantt JS from CDN if not already present */
+    if (typeof Gantt !== 'undefined') {
+        initTimeline();
+    } else {
+        var script = document.createElement('script');
+        script.src = CDN_JS;
+        script.onload = initTimeline;
+        script.onerror = function () {
+            console.error('[timeline] failed to load Frappe Gantt CDN');
+            var el = document.getElementById('timeline-container');
+            if (el) {
+                el.innerHTML = '<div class="view-empty-state"><p>Failed to load timeline library.</p></div>';
+            }
+        };
+        document.head.appendChild(script);
+    }
+
+    /* Refresh lucide icons for toolbar */
+    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+        lucide.createIcons();
+    }
+})();
+</script>
+
+{% else %}
+<div class="view-empty-state">
+    <p>Select a type with date properties to use Timeline View.</p>
+</div>
+{% endif %}
+</div>

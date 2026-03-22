@@ -95,3 +95,10 @@ Create the Jinja2 template that loads Frappe Gantt from CDN, fetches timeline JS
 - `frontend/static/css/views.css` — dark mode overrides + timeline container styles appended
 - `backend/app/templates/browser/views_explorer.html` — Timeline View entry added
 - `frontend/static/js/workspace.js` — `timeline: 'Timeline View'` added to labels map
+
+## Observability Impact
+
+- **Console logging:** IIFE logs `[timeline] rendered with N tasks, M dependencies` on successful init, `[timeline] no tasks to render` for empty state, `[timeline] data fetch failed: <error>` on network failure, and `[timeline] reschedule: <iri>` on drag-to-reschedule attempts
+- **Custom events:** Fires `sempkm:command-executed` after successful PATCH (same as calendar view) — downstream event log refreshes pick this up
+- **Failure visibility:** CDN load failure renders in-container error state (`Failed to load timeline library.`); fetch failure renders `Failed to load timeline data.`; empty results render `No tasks with dates found`
+- **Inspection:** Browser DevTools console filter `[timeline]` shows all lifecycle events
