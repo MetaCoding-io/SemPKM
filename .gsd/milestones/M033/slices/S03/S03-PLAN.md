@@ -32,7 +32,7 @@
   - Verify: `cd backend && .venv/bin/python -m pytest tests/test_calendar.py -v` passes
   - Done when: All unit tests pass; the data endpoint returns FullCalendar-compatible JSON for a type with date fields and returns an error_message context for types without.
 
-- [ ] **T02: Frontend — template, CSS, explorer entry, and workspace.js integration** `est:45m`
+- [x] **T02: Frontend — template, CSS, explorer entry, and workspace.js integration** `est:45m`
   - Why: The frontend needs the calendar_view.html template (lazy-loading FullCalendar 6 CDN), dark mode CSS overrides, the explorer sidebar entry, and the workspace.js label for `openGenericViewTab()`. This wires up everything the user interacts with.
   - Files: `backend/app/templates/browser/calendar_view.html`, `frontend/static/css/views.css`, `backend/app/templates/browser/views_explorer.html`, `frontend/static/js/workspace.js`
   - Do: Create `calendar_view.html` following kanban_view.html pattern (view-flex-column wrapper, type_filter_pills include, view_toolbar include, empty states, calendar container with data-testid, lazy-load FullCalendar script, eventClick handler calling openTab). Add `.calendar-container` CSS with `flex:1; min-height:0` and dark mode FullCalendar variable overrides. Add Calendar View entry in views_explorer.html. Add `calendar: 'Calendar View'` to workspace.js labels dict.

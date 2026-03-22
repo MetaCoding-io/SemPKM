@@ -41,6 +41,13 @@
     <span class="tree-leaf-icon">&#9707;</span>
     <span class="tree-leaf-label">Kanban View</span>
 </a>
+<a class="tree-leaf view-leaf" href="#"
+   draggable="true"
+   ondragstart="event.dataTransfer.setData('text/plain', 'Calendar View'); event.dataTransfer.effectAllowed = 'copy'; window.__canvasDragPayload = {type:'view', id:'generic-calendar', label:'Calendar View', url:'/browser/views/generic/calendar?embed=1'};"
+   onclick="openGenericViewTab('calendar'); return false;">
+    <span class="tree-leaf-icon">&#128197;</span>
+    <span class="tree-leaf-label">Calendar View</span>
+</a>
 
 <div class="tree-node view-group-node" onclick="this.classList.toggle('expanded'); var ch = this.nextElementSibling; if(ch) ch.style.display = this.classList.contains('expanded') ? '' : 'none';">
     <span class="tree-toggle">&#9656;</span>

@@ -1326,3 +1326,59 @@ select.cards-group-select {
     font-size: 0.9rem;
     padding: 16px;
 }
+
+/* ── Calendar View ── */
+
+.calendar-container {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding: 12px;
+}
+
+/* Light mode accent overrides */
+.fc {
+    --fc-event-bg-color: var(--color-accent);
+    --fc-event-border-color: var(--color-accent);
+    --fc-event-text-color: #fff;
+}
+
+/* Dark mode FullCalendar overrides */
+[data-theme="dark"] .fc {
+    --fc-border-color: var(--color-border);
+    --fc-page-bg-color: var(--color-bg);
+    --fc-neutral-bg-color: var(--color-bg-secondary);
+    --fc-list-event-hover-bg-color: var(--color-bg-hover);
+    --fc-today-bg-color: var(--color-accent-subtle);
+    --fc-event-bg-color: var(--color-accent);
+    --fc-event-border-color: var(--color-accent);
+    --fc-event-text-color: #fff;
+    color: var(--color-text);
+}
+
+[data-theme="dark"] .fc .fc-button {
+    background: var(--color-bg-secondary);
+    border-color: var(--color-border);
+    color: var(--color-text);
+}
+
+[data-theme="dark"] .fc .fc-button:hover {
+    background: var(--color-bg-hover);
+}
+
+[data-theme="dark"] .fc .fc-button-active {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: #fff;
+}
+
+[data-theme="dark"] .fc .fc-col-header-cell,
+[data-theme="dark"] .fc .fc-daygrid-day-number,
+[data-theme="dark"] .fc .fc-list-day-text,
+[data-theme="dark"] .fc .fc-list-day-side-text {
+    color: var(--color-text);
+}
+
+[data-theme="dark"] .fc .fc-day-today {
+    background: var(--color-accent-subtle);
+}

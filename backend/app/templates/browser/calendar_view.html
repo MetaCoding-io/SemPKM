@@ -10,10 +10,66 @@
 </div>
 
 {% elif date_fields %}
-<div class="calendar-container" data-testid="calendar-container"
-     data-calendar-url="{{ calendar_data_url }}">
-    <div id="fc-calendar"></div>
-</div>
+<div id="calendar-container" class="calendar-container" data-testid="calendar-view"></div>
+
+<script>
+(function () {
+    var dataUrl = {{ calendar_data_url | tojson }};
+    var CDN = 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.17/index.global.min.js';
+
+    function initCalendar() {
+        fetch(dataUrl, { credentials: 'include' })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                var el = document.getElementById('calendar-container');
+                if (!el) return;
+
+                var cal = new FullCalendar.Calendar(el, {
+                    initialView: 'dayGridMonth',
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                    },
+                    events: data.events || [],
+                    height: '100%',
+                    eventClick: function (info) {
+                        var iri = info.event.extendedProps && info.event.extendedProps.iri;
+                        var title = info.event.title || '';
+                        if (iri && typeof openTab === 'function') {
+                            openTab(iri, title);
+                        }
+                    }
+                });
+                cal.render();
+            })
+            .catch(function (err) {
+                console.error('[calendar] data fetch failed:', err);
+                var el = document.getElementById('calendar-container');
+                if (el) {
+                    el.innerHTML = '<div class="view-empty-state"><p>Failed to load calendar data.</p></div>';
+                }
+            });
+    }
+
+    /* Lazy-load FullCalendar from CDN if not already present */
+    if (typeof FullCalendar !== 'undefined') {
+        initCalendar();
+    } else {
+        var script = document.createElement('script');
+        script.src = CDN;
+        script.onload = initCalendar;
+        script.onerror = function () {
+            console.error('[calendar] failed to load FullCalendar CDN');
+            var el = document.getElementById('calendar-container');
+            if (el) {
+                el.innerHTML = '<div class="view-empty-state"><p>Failed to load calendar library.</p></div>';
+            }
+        };
+        document.head.appendChild(script);
+    }
+})();
+</script>
 
 {% else %}
 <div class="view-empty-state">

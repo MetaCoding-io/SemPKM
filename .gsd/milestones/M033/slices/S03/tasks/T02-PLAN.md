@@ -88,3 +88,11 @@ Create the calendar view frontend: the Jinja2 template that lazy-loads FullCalen
 - `frontend/static/css/views.css` — modified with calendar container + dark mode overrides
 - `backend/app/templates/browser/views_explorer.html` — modified with Calendar View entry
 - `frontend/static/js/workspace.js` — modified with `calendar` label
+
+## Observability Impact
+
+- **CDN load failures:** Console error `[calendar] failed to load FullCalendar CDN` with visible "Failed to load calendar library" empty state in the UI.
+- **Data fetch failures:** Console error `[calendar] data fetch failed: <err>` with visible "Failed to load calendar data" empty state.
+- **Empty states:** Three distinct states visible in HTML: (1) "Select a type to use Calendar View" (no type selected), (2) "Select a type with date properties to use Calendar View" (type has no dates), (3) "Failed to load calendar data" (fetch error). Each identifiable via `view-empty-state` class.
+- **Calendar rendering:** FullCalendar's `.fc` container is inspectable in DOM; the `data-testid="calendar-view"` attribute on `#calendar-container` enables test automation discovery.
+- **Event click tracing:** `eventClick` handler logs nothing on success (standard `openTab` call), but `openTab` not being defined would silently no-op rather than crash.
