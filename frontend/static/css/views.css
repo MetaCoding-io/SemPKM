@@ -1382,3 +1382,49 @@ select.cards-group-select {
 [data-theme="dark"] .fc .fc-day-today {
     background: var(--color-accent-subtle);
 }
+
+/* ── Map View ── */
+
+.map-container {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* Dark mode: invert light OSM tiles for a dark appearance */
+[data-theme="dark"] .leaflet-tile-pane {
+    filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
+}
+
+[data-theme="dark"] .leaflet-container {
+    background: var(--color-bg);
+}
+
+[data-theme="dark"] .leaflet-control-zoom a {
+    background: var(--color-bg-secondary);
+    color: var(--color-text);
+    border-color: var(--color-border);
+}
+
+[data-theme="dark"] .leaflet-control-zoom a:hover {
+    background: var(--color-bg-hover);
+}
+
+[data-theme="dark"] .leaflet-control-attribution {
+    background: var(--color-bg-secondary);
+    color: var(--color-text-muted);
+}
+
+[data-theme="dark"] .leaflet-control-attribution a {
+    color: var(--color-accent);
+}
+
+[data-theme="dark"] .leaflet-popup-content-wrapper,
+[data-theme="dark"] .leaflet-popup-tip {
+    background: var(--color-bg-secondary);
+    color: var(--color-text);
+}
+
+[data-theme="dark"] .leaflet-popup-content-wrapper a {
+    color: var(--color-accent);
+}

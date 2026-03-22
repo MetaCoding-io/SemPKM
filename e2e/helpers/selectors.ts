@@ -74,6 +74,7 @@ export const SEL = {
     kanbanColumn: '.kanban-column',
     kanbanCard: '.kanban-card',
     calendar: '[data-testid="calendar-view"]',
+    map: '[data-testid="map-view"]',
     scopeSelect: '.view-scope-select',
     variantSelect: '.view-variant-select',
     saveViewBtn: '.save-view-btn',

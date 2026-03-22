@@ -3471,7 +3471,7 @@
       tabKey = 'generic-view:' + renderer + ':' + Date.now();
     }
 
-    var labels = { table: 'Table View', card: 'Cards View', graph: 'Graph View', kanban: 'Kanban View', calendar: 'Calendar View' };
+    var labels = { table: 'Table View', card: 'Cards View', graph: 'Graph View', kanban: 'Kanban View', calendar: 'Calendar View', map: 'Map View' };
     var baseLabel = labels[renderer] || 'Generic View';
     var label = baseLabel;
 
