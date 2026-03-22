@@ -158,12 +158,128 @@
           '<div class="form-field"><label>Label</label>' +
           '<input type="text" class="block-config-input" data-key="label" placeholder="Result label" value="' +
           escapeAttr(config.label || '') + '"></div></div>';
+      case 'form-group':
+        return _getFormGroupConfigHTML(config);
       case 'divider':
         return '<div class="block-config-fields"><span class="field-help">No configuration needed.</span></div>';
       default:
         return '';
     }
   }
+
+  // ------ form-group config builder ------
+
+  function _fgSlotRowHTML(slot) {
+    slot = slot || {};
+    return '<div class="fg-slot-row">' +
+      '<input type="text" class="fg-slot-name" data-fg-slot-name placeholder="Slot name (e.g. note)" value="' + escapeAttr(slot.name || '') + '">' +
+      '<div class="reference-field fg-slot-class-field">' +
+        '<input type="text" class="reference-search builder-class-search fg-slot-class-search" placeholder="Search classes..." autocomplete="off" oninput="window._builderClassSearch(this)"' +
+        (slot.target_class ? ' value="' + escapeAttr(slot.target_class) + '"' : '') + '>' +
+        '<input type="hidden" data-fg-slot-class value="' + escapeAttr(slot.target_class || '') + '">' +
+        '<div class="suggestions-dropdown builder-suggestions"></div>' +
+      '</div>' +
+      '<button type="button" class="btn-icon fg-remove-btn" title="Remove slot" onclick="this.closest(\'.fg-slot-row\').remove(); window._fgSyncEdgeDropdowns();">' +
+        '<i data-lucide="x"></i></button>' +
+    '</div>';
+  }
+
+  function _fgEdgeRowHTML(edge, slotNames) {
+    edge = edge || {};
+    slotNames = slotNames || [];
+    var srcOpts = '<option value="">— source —</option>';
+    var tgtOpts = '<option value="">— target —</option>';
+    slotNames.forEach(function(n) {
+      srcOpts += '<option value="' + escapeAttr(n) + '"' + (edge.source_slot === n ? ' selected' : '') + '>' + escapeHtml(n) + '</option>';
+      tgtOpts += '<option value="' + escapeAttr(n) + '"' + (edge.target_slot === n ? ' selected' : '') + '>' + escapeHtml(n) + '</option>';
+    });
+    return '<div class="fg-edge-row">' +
+      '<select class="fg-edge-source" data-fg-edge-source>' + srcOpts + '</select>' +
+      '<select class="fg-edge-target" data-fg-edge-target>' + tgtOpts + '</select>' +
+      '<input type="text" class="fg-edge-pred" data-fg-edge-pred placeholder="Predicate IRI" value="' + escapeAttr(edge.predicate || '') + '">' +
+      '<button type="button" class="btn-icon fg-remove-btn" title="Remove edge" onclick="this.closest(\'.fg-edge-row\').remove();">' +
+        '<i data-lucide="x"></i></button>' +
+    '</div>';
+  }
+
+  function _getFormGroupConfigHTML(config) {
+    config = config || {};
+    var slots = config.slots || [];
+    var edges = config.edges || [];
+
+    var slotsHTML = '';
+    slots.forEach(function(s) { slotsHTML += _fgSlotRowHTML(s); });
+
+    var slotNames = slots.map(function(s) { return s.name || ''; });
+    var edgesHTML = '';
+    edges.forEach(function(e) { edgesHTML += _fgEdgeRowHTML(e, slotNames); });
+
+    return '<div class="block-config-fields fg-config">' +
+      '<div class="form-field">' +
+        '<label>Slots</label>' +
+        '<div id="fg-slots-list">' + slotsHTML + '</div>' +
+        '<button type="button" class="fg-add-btn" onclick="window._fgAddSlot()"><i data-lucide="plus"></i> Add Slot</button>' +
+      '</div>' +
+      '<div class="form-field">' +
+        '<label>Edges</label>' +
+        '<div id="fg-edges-list">' + edgesHTML + '</div>' +
+        '<button type="button" class="fg-add-btn" onclick="window._fgAddEdge()"><i data-lucide="plus"></i> Add Edge</button>' +
+      '</div>' +
+    '</div>';
+  }
+
+  window._fgAddSlot = function() {
+    var list = document.getElementById('fg-slots-list');
+    if (!list) return;
+    var tmp = document.createElement('div');
+    tmp.innerHTML = _fgSlotRowHTML({});
+    var row = tmp.firstChild;
+    list.appendChild(row);
+    if (typeof lucide !== 'undefined') lucide.createIcons({ nodes: [row] });
+    // Bind name change → sync edge dropdowns
+    var nameInput = row.querySelector('.fg-slot-name');
+    if (nameInput) nameInput.addEventListener('input', window._fgSyncEdgeDropdowns);
+  };
+
+  window._fgAddEdge = function() {
+    var list = document.getElementById('fg-edges-list');
+    if (!list) return;
+    var slotNames = _fgCurrentSlotNames();
+    var tmp = document.createElement('div');
+    tmp.innerHTML = _fgEdgeRowHTML({}, slotNames);
+    var row = tmp.firstChild;
+    list.appendChild(row);
+    if (typeof lucide !== 'undefined') lucide.createIcons({ nodes: [row] });
+  };
+
+  function _fgCurrentSlotNames() {
+    var names = [];
+    document.querySelectorAll('#fg-slots-list .fg-slot-name').forEach(function(el) {
+      var n = el.value.trim();
+      if (n) names.push(n);
+    });
+    return names;
+  }
+
+  window._fgSyncEdgeDropdowns = function() {
+    var slotNames = _fgCurrentSlotNames();
+    document.querySelectorAll('#fg-edges-list .fg-edge-row').forEach(function(row) {
+      ['fg-edge-source', 'fg-edge-target'].forEach(function(cls) {
+        var sel = row.querySelector('.' + cls);
+        if (!sel) return;
+        var cur = sel.value;
+        var placeholder = cls === 'fg-edge-source' ? '— source —' : '— target —';
+        sel.innerHTML = '<option value="">' + placeholder + '</option>';
+        slotNames.forEach(function(n) {
+          var opt = document.createElement('option');
+          opt.value = n;
+          opt.textContent = n;
+          if (n === cur) opt.selected = true;
+          sel.appendChild(opt);
+        });
+      });
+    });
+  };
 
   // ------ Builder autocomplete helpers (preserved) ------
 
@@ -389,6 +505,13 @@
     if (typeof lucide !== 'undefined') {
       lucide.createIcons({ nodes: [widgetEl] });
     }
+
+    // Form-group: bind slot name inputs to sync edge dropdowns
+    if (blockType === 'form-group') {
+      widgetEl.querySelectorAll('.fg-slot-name').forEach(function(inp) {
+        inp.addEventListener('input', window._fgSyncEdgeDropdowns);
+      });
+    }
   }
 
   // ------ Save ------
@@ -434,6 +557,24 @@
           if (val) block.config[key] = val;
         }
       });
+
+      // Special collection for form-group: slots + edges arrays
+      if (typeName === 'form-group') {
+        var fgSlots = [];
+        el.querySelectorAll('#fg-slots-list .fg-slot-row').forEach(function(row) {
+          var name = (row.querySelector('[data-fg-slot-name]') || {}).value || '';
+          var targetClass = (row.querySelector('[data-fg-slot-class]') || {}).value || '';
+          if (name) fgSlots.push({ name: name, target_class: targetClass });
+        });
+        var fgEdges = [];
+        el.querySelectorAll('#fg-edges-list .fg-edge-row').forEach(function(row) {
+          var src = (row.querySelector('[data-fg-edge-source]') || {}).value || '';
+          var tgt = (row.querySelector('[data-fg-edge-target]') || {}).value || '';
+          var pred = (row.querySelector('[data-fg-edge-pred]') || {}).value || '';
+          if (src && tgt && pred) fgEdges.push({ source_slot: src, target_slot: tgt, predicate: pred });
+        });
+        block.config = { slots: fgSlots, edges: fgEdges };
+      }
 
       blocks.push(block);
     });

@@ -64,3 +64,10 @@ The builder template (`dashboard_builder.html`) uses a `getTypeConfigHTML()` swi
 - `backend/app/templates/browser/dashboard_builder.html` — form-group case in getTypeConfigHTML + save collection
 - `frontend/static/css/workspace.css` — form-group builder config CSS
 - `backend/tests/test_form_group.py` — integration tests for form-group dashboard round-trip
+
+## Observability Impact
+
+- **Builder console signals:** `[dashboard-builder] Saved dashboard <id> with N blocks at gridstack positions` log line includes form-group blocks in the count — no new prefix needed
+- **DOM inspection:** Form-group builder config is discoverable via `document.querySelectorAll('.fg-slot-row')` (slots) and `document.querySelectorAll('.fg-edge-row')` (edges) within the GridStack widget
+- **Save payload inspection:** Network tab shows the POST/PATCH to `/api/dashboard` with `blocks[].config.slots` and `blocks[].config.edges` arrays — verifiable that the builder correctly collected the dynamic form-group config
+- **Failure visibility:** If form-group config collection fails during save, the slots/edges arrays will be empty in the payload, and the saved dashboard will render a form-group block with "No slots configured" error message (from T02's render handler)

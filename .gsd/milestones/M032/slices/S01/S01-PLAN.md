@@ -53,7 +53,7 @@
   - Verify: `cd backend && .venv/bin/python -m pytest tests/test_form_group.py -v -k render` — render tests confirm HTML output contains sub-form containers per slot with correct data attributes.
   - Done when: A form-group block in a dashboard renders SHACL forms for each configured slot, and the submit button fires a batch command that creates objects and edges.
 
-- [ ] **T03: Builder config form for form-group and integration verification** `est:1.5h`
+- [x] **T03: Builder config form for form-group and integration verification** `est:1.5h`
   - Why: Users need to configure form-group blocks in the dashboard builder — defining slots (type per slot) and edges (which slots to connect and with what predicate). This completes the end-to-end flow.
   - Files: `backend/app/templates/browser/dashboard_builder.html`, `frontend/static/css/workspace.css`, `backend/tests/test_form_group.py`
   - Do: Add `case 'form-group':` to `getTypeConfigHTML()` in the builder template. Render a dynamic slot list with "Add Slot" button (each slot has name input + class search). Render an edge list with "Add Edge" button (each edge has source slot dropdown, target slot dropdown, predicate input). Collect config into `{slots: [{name, target_class}], edges: [{source_slot, target_slot, predicate}]}`. Add integration test that creates a dashboard with form-group block via API and verifies it renders.
