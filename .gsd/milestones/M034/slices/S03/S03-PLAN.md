@@ -41,7 +41,7 @@
 
 ## Tasks
 
-- [ ] **T01: Extract calendar.js, add external drop handler, enrich kanban drag data** `est:45m`
+- [x] **T01: Extract calendar.js, add external drop handler, enrich kanban drag data** `est:45m`
   - Why: The calendar is currently an inline IIFE with no external reference — can't call `refetchEvents()` from outside, can't add droppable support cleanly. Kanban cards lack title/label data in drag payloads. This task makes calendar externally controllable and wires up the full drop→patch→display pipeline.
   - Files: `frontend/static/js/calendar.js`, `frontend/static/js/kanban.js`, `backend/app/templates/browser/calendar_view.html`, `backend/app/templates/browser/kanban_view.html`, `frontend/static/css/views.css`
   - Do: (1) Extract calendar inline script to `calendar.js` as an IIFE exporting `window.initCalendar(el, dataUrl)` and storing the FullCalendar instance as `window._sempkmCalendar`. (2) Add `droppable: true` and `drop(info)` callback that reads IRI/title from `window.__calendarDragPayload` side-channel (same pattern as canvas.js), computes scheduledStart from `info.date`, defaults 1hr duration for scheduledEnd, calls existing `patchCalendarEvent` logic. (3) Add `sempkm:command-executed` listener that calls `calendar.refetchEvents()`. (4) In kanban.js `dragstart`: set `text/iri` + `text/label` MIME types, set `window.__calendarDragPayload = { iri, title }`. (5) In kanban_view.html: add `data-title="{{ item.label }}"` to `.kanban-card`. (6) In calendar_view.html: replace inline script with `<script src="/static/js/calendar.js">` + `initCalendar(...)` call. (7) CSS: external drop visual feedback (`.calendar-external-drop-active` class or FullCalendar's built-in `.fc-highlight`).
