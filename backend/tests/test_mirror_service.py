@@ -75,39 +75,43 @@ class TestGetAllowedEndpoints:
 
 
 class TestValidateEndpoint:
-    """Test MirrorService.validate_endpoint()."""
+    """Test MirrorService.validate_endpoint().
+
+    validate_endpoint() now delegates to get_merged_endpoints() which
+    returns dicts with ``{url, source, removable}`` shape.
+    """
 
     def _make_service(self):
         client = AsyncMock()
         return MirrorService(client)
 
-    @patch("app.sparql.mirror.settings")
-    def test_allowed_endpoint(self, mock_settings):
-        mock_settings.get_allowed_endpoints.return_value = [
-            "https://query.wikidata.org/sparql",
-            "https://dbpedia.org/sparql",
+    @patch("app.sparql.mirror.get_merged_endpoints")
+    def test_allowed_endpoint(self, mock_merged):
+        mock_merged.return_value = [
+            {"url": "https://query.wikidata.org/sparql", "source": "env", "removable": False},
+            {"url": "https://dbpedia.org/sparql", "source": "env", "removable": False},
         ]
         service = self._make_service()
         assert service.validate_endpoint("https://query.wikidata.org/sparql") is True
 
-    @patch("app.sparql.mirror.settings")
-    def test_blocked_endpoint(self, mock_settings):
-        mock_settings.get_allowed_endpoints.return_value = [
-            "https://query.wikidata.org/sparql",
+    @patch("app.sparql.mirror.get_merged_endpoints")
+    def test_blocked_endpoint(self, mock_merged):
+        mock_merged.return_value = [
+            {"url": "https://query.wikidata.org/sparql", "source": "env", "removable": False},
         ]
         service = self._make_service()
         assert service.validate_endpoint("https://evil.com/sparql") is False
 
-    @patch("app.sparql.mirror.settings")
-    def test_empty_allowlist_blocks_all(self, mock_settings):
-        mock_settings.get_allowed_endpoints.return_value = []
+    @patch("app.sparql.mirror.get_merged_endpoints")
+    def test_empty_allowlist_blocks_all(self, mock_merged):
+        mock_merged.return_value = []
         service = self._make_service()
         assert service.validate_endpoint("https://query.wikidata.org/sparql") is False
 
-    @patch("app.sparql.mirror.settings")
-    def test_whitespace_trimmed(self, mock_settings):
-        mock_settings.get_allowed_endpoints.return_value = [
-            "https://query.wikidata.org/sparql",
+    @patch("app.sparql.mirror.get_merged_endpoints")
+    def test_whitespace_trimmed(self, mock_merged):
+        mock_merged.return_value = [
+            {"url": "https://query.wikidata.org/sparql", "source": "env", "removable": False},
         ]
         service = self._make_service()
         assert service.validate_endpoint("  https://query.wikidata.org/sparql  ") is True
@@ -409,13 +413,11 @@ class TestMirrorRouter:
     """Test mirror_router endpoints via direct function calls."""
 
     @pytest.mark.asyncio
-    @patch("app.sparql.mirror.settings")
-    async def test_post_mirror_blocked_endpoint(self, mock_settings):
-        """Blocked endpoint returns 403."""
-        from app.sparql.mirror_router import MirrorRequest
-
-        mock_settings.get_allowed_endpoints.return_value = [
-            "https://query.wikidata.org/sparql"
+    @patch("app.sparql.mirror.get_merged_endpoints")
+    async def test_post_mirror_blocked_endpoint(self, mock_merged):
+        """Blocked endpoint returns False from validate_endpoint."""
+        mock_merged.return_value = [
+            {"url": "https://query.wikidata.org/sparql", "source": "env", "removable": False},
         ]
 
         client = AsyncMock()
@@ -432,14 +434,15 @@ class TestMirrorRouter:
         user = MagicMock()
         user.email = "test@example.com"
 
-        with patch("app.sparql.mirror_router.settings") as mock_settings:
-            mock_settings.get_allowed_endpoints.return_value = [
-                "https://query.wikidata.org/sparql"
+        with patch("app.sparql.mirror_router.get_merged_endpoints") as mock_merged:
+            mock_merged.return_value = [
+                {"url": "https://query.wikidata.org/sparql", "source": "env", "removable": False},
             ]
             result = await list_endpoints(user=user)
 
         assert result["allowlist_configured"] is True
-        assert "https://query.wikidata.org/sparql" in result["endpoints"]
+        assert len(result["endpoints"]) == 1
+        assert result["endpoints"][0]["url"] == "https://query.wikidata.org/sparql"
 
     @pytest.mark.asyncio
     async def test_list_endpoints_empty(self):
@@ -449,8 +452,8 @@ class TestMirrorRouter:
         user = MagicMock()
         user.email = "test@example.com"
 
-        with patch("app.sparql.mirror_router.settings") as mock_settings:
-            mock_settings.get_allowed_endpoints.return_value = []
+        with patch("app.sparql.mirror_router.get_merged_endpoints") as mock_merged:
+            mock_merged.return_value = []
             result = await list_endpoints(user=user)
 
         assert result["allowlist_configured"] is False

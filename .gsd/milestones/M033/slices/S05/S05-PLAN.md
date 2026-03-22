@@ -36,7 +36,7 @@
   - Verify: Manual browser — type `SERVICE <` in console, see autocomplete; type a full SERVICE query, see info banner appear below editor
   - Done when: Autocomplete suggests allowlisted endpoints when typing inside SERVICE URIs; info banner shows per-endpoint status within ~500ms of typing
 
-- [ ] **T03: Unit and API tests for federation features** `est:30m`
+- [x] **T03: Unit and API tests for federation features** `est:30m`
   - Why: Verify the persistence layer and API contract with automated tests that run in CI.
   - Files: `backend/tests/test_federation_config.py`, `backend/tests/test_federation_endpoints_api.py`
   - Do: Write unit tests for `federation_config.py` — load/save round-trip, merge with env var, duplicate handling, empty file, malformed file. Write API tests for POST/DELETE/GET endpoints — add endpoint, verify it appears in GET, delete it, verify it's gone; test owner-only access control; test env var entries are non-removable.
