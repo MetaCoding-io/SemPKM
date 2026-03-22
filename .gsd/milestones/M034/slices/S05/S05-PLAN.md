@@ -53,7 +53,7 @@
   - Verify: `python3 -c "import ast; ast.parse(open('backend/app/task_templates/service.py').read()); ast.parse(open('backend/app/task_templates/router.py').read()); print('OK')"` and `rg "template_service" backend/app/main.py`
   - Done when: TaskTemplateService has full CRUD + instantiation, routers mounted, template_picker.html renders template list
 
-- [ ] **T02: Seed PPV review workflows and fix idempotency** `est:1h`
+- [x] **T02: Seed PPV review workflows and fix idempotency** `est:1h`
   - Why: Pre-built review workflows so users don't have to create them from scratch. Current seed checks `if not existing_workflows` which blocks seeding review workflows once user has any workflow. Fix to per-name idempotency.
   - Files: `backend/app/dashboard/seed.py`, `backend/tests/test_seed_data.py`
   - Do: Add 4 review workflow definitions (weekly: 4 steps, monthly: 4 steps, quarterly: 3 steps, yearly: 3 steps) using existing PPV view spec IRIs and type IRIs. Change workflow seed from "skip if any exist" to "skip if this name already exists" — iterate over a list of seed workflows, check by name before creating. Update existing seed test to reflect the per-name logic. Add new tests: seed twice → 4 review workflows (not 8), seed with user workflow → user's preserved + reviews added.
