@@ -2,7 +2,7 @@
   "version": 1,
   "projectName": "SemPKM",
   "projectPath": "/home/james/Code/SemPKM",
-  "gsdVersion": "2.40.0",
+  "gsdVersion": "2.41.0",
   "entries": [
     {
       "filename": "M012-2026-03-18T03-26-53.html",
@@ -291,6 +291,22 @@
       "doneMilestones": 32,
       "totalMilestones": 38,
       "phase": "completing-milestone"
+    },
+    {
+      "filename": "M032-2026-03-22T08-08-36.html",
+      "generatedAt": "2026-03-22T08:08:36.813Z",
+      "milestoneId": "M032",
+      "milestoneTitle": "Block-Based Custom UI Builder",
+      "label": "M032: Block-Based Custom UI Builder",
+      "kind": "milestone",
+      "totalCost": 962.3139917500001,
+      "totalTokens": 1333818751,
+      "totalDuration": 174510980,
+      "doneSlices": 208,
+      "totalSlices": 208,
+      "doneMilestones": 32,
+      "totalMilestones": 38,
+      "phase": "pre-planning"
     }
   ]
 }
