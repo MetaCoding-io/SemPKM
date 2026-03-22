@@ -184,7 +184,7 @@ export async function isPanelActive(page: Page, panelId: string): Promise<boolea
  */
 export async function openGenericViewTab(
   page: Page,
-  renderer: 'table' | 'card' | 'graph' | 'kanban' | 'calendar' | 'map',
+  renderer: 'table' | 'card' | 'graph' | 'kanban' | 'calendar' | 'map' | 'timeline',
   waitSelector: string,
   scopeQuery?: string,
   scopeLabel?: string,

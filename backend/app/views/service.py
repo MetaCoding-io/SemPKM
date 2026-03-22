@@ -1917,6 +1917,11 @@ WHERE {{
         )
         scoped = scope_to_current_graph(query)
 
+        logger.info(
+            "execute_timeline_query: scoped_query=%s",
+            scoped[:500],
+        )
+
         try:
             result = await self._client.query(scoped)
         except Exception:
