@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T02",
+  "unitId": "M032/S03/T02",
+  "timestamp": 1774165916177,
+  "passed": true,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "grep -q 'stat-card' docs/guide/28-dashboards-and-workflows.md",
+      "exitCode": 0,
+      "durationMs": 5,
+      "verdict": "pass"
+    },
+    {
+      "command": "grep -q 'form-group' docs/guide/28-dashboards-and-workflows.md",
+      "exitCode": 0,
+      "durationMs": 5,
+      "verdict": "pass"
+    }
+  ]
+}
