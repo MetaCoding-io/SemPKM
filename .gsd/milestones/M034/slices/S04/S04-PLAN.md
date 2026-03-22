@@ -58,7 +58,7 @@
   - Verify: `cd backend && .venv/bin/python -m pytest tests/test_rrule_expansion.py -v` — all pass
   - Done when: `_expand_rrule()` correctly handles FREQ=WEEKLY, EXDATE, COUNT, UNTIL, malformed input; `execute_calendar_query()` returns virtual events for recurring items; all tests green
 
-- [ ] **T03: Build recurrence editor UI with presets and EXDATE picker** `est:1.5h`
+- [x] **T03: Build recurrence editor UI with presets and EXDATE picker** `est:1.5h`
   - Why: Users need a friendly way to create RRULE strings instead of typing raw RFC 5545. The editor hooks into the SHACL form's text input for recurrenceRule.
   - Files: `frontend/static/js/recurrence-editor.js`, `backend/app/templates/browser/recurrence_editor.html`, `frontend/static/css/views.css`, `backend/app/templates/forms/_field.html`
   - Do: Create `recurrence-editor.js` with `window.initRecurrenceEditor(inputEl)` — adds a button next to the input that opens a popover. Popover has preset radio buttons (Daily, Weekdays, Weekly, Biweekly, Monthly, Custom). Custom mode: frequency selector, interval, day-of-week checkboxes, end condition (never/after N/until date). Display human-readable summary on the input. Add EXDATE section with date inputs and add/remove. Create Jinja2 partial `recurrence_editor.html` included from `_field.html` when property path contains `recurrenceRule`. Add CSS for popover, presets, day checkboxes, EXDATE list.

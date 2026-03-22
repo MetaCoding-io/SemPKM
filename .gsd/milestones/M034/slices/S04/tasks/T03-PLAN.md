@@ -103,3 +103,10 @@ The SHACL form renderer (`_field.html`) currently renders xsd:string properties 
 - `backend/app/templates/forms/_field.html` — conditional wiring for recurrenceRule/exceptionDates fields
 - `frontend/static/css/views.css` — recurrence editor popover and control styles
 - `backend/app/templates/browser/recurrence_editor.html` — Jinja2 partial (optional, may be JS-only)
+
+## Observability Impact
+
+- **Console signal:** `[recurrence-editor] loaded` logged when the JS module initializes — confirms the script loaded successfully in the browser.
+- **Inspection:** Open any Task in edit mode → the recurrenceRule field should show the ↻ button. If the button is missing, the script either failed to load (check network tab for 404 on `recurrence-editor.js`) or the Jinja2 `prop.path` conditional didn't match (inspect the `<input>` element's surrounding HTML for the `<script>` tag).
+- **RRULE validation:** Click the editor button → select a preset or build custom → the hidden input's `.value` should contain a valid RFC 5545 RRULE string. Check via browser devtools: `document.querySelector('[name*="recurrenceRule"]').value`.
+- **Failure visibility:** If `initRecurrenceEditor` or `initExdateEditor` is called on an element that's already initialized (e.g., htmx re-swap), the `data-rrule-init`/`data-exdate-init` guard prevents double-initialization.
