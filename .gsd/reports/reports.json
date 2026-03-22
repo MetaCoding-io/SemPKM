@@ -275,6 +275,22 @@
       "doneMilestones": 32,
       "totalMilestones": 38,
       "phase": "planning"
+    },
+    {
+      "filename": "M032-2026-03-22T05-12-02.html",
+      "generatedAt": "2026-03-22T05:12:02.238Z",
+      "milestoneId": "M032",
+      "milestoneTitle": "Block-Based Custom UI Builder",
+      "label": "M032: Block-Based Custom UI Builder",
+      "kind": "milestone",
+      "totalCost": 929.28661175,
+      "totalTokens": 1286279849,
+      "totalDuration": 169146803,
+      "doneSlices": 213,
+      "totalSlices": 215,
+      "doneMilestones": 32,
+      "totalMilestones": 38,
+      "phase": "completing-milestone"
     }
   ]
 }

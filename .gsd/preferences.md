@@ -1,6 +1,6 @@
 ---
 parallel:
-  enabled: true            # Master toggle (default: false)
+  enabled: false           # Disabled — caused cross-milestone artifact pollution (M032/M033 incident)
   max_workers: 2            # Concurrent workers (1-4, default: 2)
   budget_ceiling: 50.00     # Aggregate cost limit in dollars (optional)
   merge_strategy: "per-milestone"  # When to merge: "per-slice" or "per-milestone"
