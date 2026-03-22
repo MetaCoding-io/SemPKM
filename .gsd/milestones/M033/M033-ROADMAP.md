@@ -48,30 +48,30 @@ This milestone spans 7 independent feature areas. The decomposition follows the 
 
 ## Slices
 
-- [x] **S01: Federated SPARQL & Mirrored Triples** `risk:high` `depends:[]`
+- [ ] **S01: Federated SPARQL & Mirrored Triples** `risk:high` `depends:[]`
   - Demo: User writes SERVICE query in SPARQL console, sees federated results, clicks Mirror, triples persist in urn:sempkm:mirrored with provenance badges.
   - Result: 95 unit tests pass. 5 tasks delivered (T01-T05, consolidating original 7 roadmap tasks).
 
-- [x] **S02: Calendar View Renderer** `risk:medium` `depends:[]`
+- [ ] **S02: Calendar View Renderer** `risk:medium` `depends:[]`
   - Demo: User opens "Calendar" from VIEWS explorer, sees bpkm:Event objects on a FullCalendar month grid. Clicking an event opens the object tab. Type filter pills narrow displayed events. Switching to week/day view works.
 
-- [x] **S03: Map View Renderer** `risk:medium` `depends:[]`
+- [ ] **S03: Map View Renderer** `risk:medium` `depends:[]`
   - Demo: User opens "Map" from VIEWS explorer, sees objects with geographic coordinates as markers on an OpenStreetMap. Clicking a marker shows a popup with object info. Marker clustering handles dense data.
   - Result: 25 unit tests pass. 3 tasks delivered (T01-T03). Leaflet 1.9.4 + MarkerCluster vendored. Geo detection from SHACL shapes. 4 seed events with global coordinates.
 
-- [x] **S04: Isometric 2.5D Graph View** `risk:medium-high` `depends:[]`
+- [ ] **S04: Isometric 2.5D Graph View** `risk:medium-high` `depends:[]`
   - Demo: User selects "Isometric" from the graph view layout picker. Nodes arrange on horizontal z-layers stratified by RDF type. Translucent layer planes visible behind nodes. Edges connect across layers.
   - Result: 2 tasks delivered (T01-T02). ~270-line Cytoscape layout extension with compound parent layer planes, full graph.js integration (styles, cleanup, event guards, filter propagation, expansion).
 
-- [x] **S05: App Catalog Pages** `risk:low` `depends:[]`
+- [ ] **S05: App Catalog Pages** `risk:low` `depends:[]`
   - Demo: User clicks "App Catalog" in workspace explorer, sees a browsable grid of all 11 apps. Detail page shows description, permissions, screenshots, install/uninstall button.
   - Result: 14 unit tests pass. 2 tasks delivered (T01-T02). Catalog router with list/detail/install/uninstall endpoints, card grid + detail templates, workspace JS/CSS integration, explorer sidebar entry.
 
-- [x] **S06: Graph View Icon Toggle** `risk:low` `depends:[]`
+- [ ] **S06: Graph View Icon Toggle** `risk:low` `depends:[]`
   - Demo: User clicks a toolbar button on any graph view. Nodes switch between abstract shapes and Lucide SVG icons. Toggle state persists across page loads.
   - Result: 1 task delivered (T01). ~120 lines added across 3 files. SVG data URI construction via Lucide + module cache. Isometric layer planes excluded. localStorage persistence.
 
-- [x] **S07: Deployment & Onboarding Overhaul** `risk:medium` `depends:[]`
+- [ ] **S07: Deployment & Onboarding Overhaul** `risk:medium` `depends:[]`
   - Demo: Fresh Docker instance shows setup wizard with deployment mode step. docker-compose.cloud.yml starts Caddy + nginx + API + triplestore with automatic HTTPS.
   - Result: 26 unit tests pass. 4 tasks delivered (T01-T04). Instance config model, configure-instance endpoint with namespace guard, two-step setup wizard UI, Caddy cloud + local TLS profiles, comprehensive documentation.
 
