@@ -547,6 +547,39 @@
     color: var(--color-text);
 }
 
+/* Icon toggle button — matches .graph-fit-btn sizing */
+.graph-icon-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.graph-icon-toggle-btn:hover {
+    background: var(--color-surface-hover);
+    color: var(--color-text);
+}
+
+.graph-icon-toggle-btn.active {
+    background: var(--color-primary-subtle, rgba(45, 90, 158, 0.12));
+    border-color: var(--color-primary, #2d5a9e);
+    color: var(--color-primary, #2d5a9e);
+}
+
+.graph-icon-toggle-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
 .graph-loading {
     display: flex;
     align-items: center;
