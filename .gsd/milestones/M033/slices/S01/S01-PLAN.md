@@ -44,7 +44,7 @@
 
 ## Tasks
 
-- [ ] **T01: Instance config module, setup endpoint, and config priority chain** `est:2h`
+- [x] **T01: Instance config module, setup endpoint, and config priority chain** `est:2h`
   - Why: The foundational backend work — creates the instance config model, persistence, the configure-instance API endpoint, config priority chain integration in Settings, startup validation, and comprehensive unit tests. Everything else depends on this.
   - Files: `backend/app/instance_config.py`, `backend/app/api/setup_routes.py`, `backend/app/config.py`, `backend/app/auth/router.py`, `backend/app/auth/schemas.py`, `backend/app/main.py`, `backend/tests/test_instance_config.py`
   - Do: (1) Create `instance_config.py` with InstanceConfig Pydantic model, load/save with atomic write, generate_instance_id(). (2) Create `setup_routes.py` with `POST /api/setup/configure-instance` that validates mode/domain, checks for existing user data, writes config. (3) Modify `config.py` to load instance config and apply priority chain. (4) Add `instance_configured` to StatusResponse and auth/status endpoint. (5) Add startup namespace validation warning in main.py. (6) Wire setup router into main.py. (7) Write comprehensive pytest tests.

@@ -65,11 +65,20 @@ async def auth_status(request: Request):
     # In demo mode, always report setup as complete so the client JS
     # skips the setup wizard redirect and lets anonymous users through.
     if settings.demo_mode:
-        return StatusResponse(setup_complete=True, setup_mode=False)
+        return StatusResponse(setup_complete=True, setup_mode=False, instance_configured=True)
     auth_service = _get_auth_service(request)
     setup_complete = await auth_service.is_setup_complete()
     setup_mode = getattr(request.app.state, "setup_mode", False)
-    return StatusResponse(setup_complete=setup_complete, setup_mode=setup_mode)
+
+    # Check if instance deployment config exists
+    from app.instance_config import DEFAULT_CONFIG_PATH
+    instance_configured = DEFAULT_CONFIG_PATH.is_file()
+
+    return StatusResponse(
+        setup_complete=setup_complete,
+        setup_mode=setup_mode,
+        instance_configured=instance_configured,
+    )
 
 
 @router.post("/setup", response_model=SetupResponse)
