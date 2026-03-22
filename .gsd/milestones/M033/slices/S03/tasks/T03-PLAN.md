@@ -62,3 +62,7 @@ Write a Playwright E2E test that verifies the full calendar view pipeline: openi
 - `e2e/helpers/dockview.ts` — modified with `'calendar'` in renderer type
 - `e2e/helpers/selectors.ts` — modified with `calendar` selector
 - `e2e/tests/02-views/calendar-view.spec.ts` — new E2E test file
+
+## Observability Impact
+
+This task adds E2E test infrastructure, not runtime behavior. No new logs, metrics, or status endpoints. The tests themselves serve as an observability surface: if the calendar view breaks (CDN failure, data endpoint regression, view-switching breakage), the Playwright test suite catches it with clear failure output and screenshots on failure. The `data-testid="calendar-view"` selector in `SEL.views` enables future diagnostic scripts or manual browser_assert checks.
