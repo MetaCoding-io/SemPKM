@@ -84,7 +84,7 @@ Orphan risks: None — all prior Active requirements (APP-01..14, RSS-01..08, GC
   - **Proof:** E2E test: timeline renders with correct task bars and dependency arrows. Unit test: timeline data endpoint returns bars with dependency edges.
   - **Verification:** `contract` `integration`
 
-- [ ] **S03: Cross-View Drag & Composable Planning** `risk:medium` `depends:[S01]`
+- [x] **S03: Cross-View Drag & Composable Planning** `risk:medium` `depends:[S01]`
   > After this: User opens calendar and kanban side by side in dockview. Drags a task from the kanban "todo" column onto the calendar at Wednesday 2pm. Task gets scheduledStart, appears on calendar, and status updates in kanban if configured. Scope context shared between views — selecting a project filter in one updates the other.
   - **Demo:** Open kanban + calendar side by side. Drag task card from kanban to calendar 2pm slot — card gets scheduled, calendar shows it as a block. Change scope in calendar — kanban filters to same query.
   - **Proof:** E2E test: drag from kanban panel to calendar panel → verify scheduledStart persisted and task visible on calendar. Verify scope change propagation.
