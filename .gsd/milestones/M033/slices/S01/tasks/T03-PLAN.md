@@ -66,6 +66,13 @@ This follows the exact pattern already established for inferred triples (purple 
 - `backend/app/sparql/router.py` — `_VOCAB_PREFIXES` tuple to extend
 - `frontend/static/js/sparql-console.js` — `KNOWN_VOCAB_PREFIXES` array to extend
 
+## Observability Impact
+
+- **Mirrored property queries:** Logged at `logger.warning` level on failure (same pattern as inferred property queries). Success produces no additional logs — visible only through the template rendering mirrored badges.
+- **Mirrored edge queries:** Logged at `logger.warning` level on failure in `views/service.py`. Mirrored edge sets are identified by separate SELECT queries against `GRAPH <urn:sempkm:mirrored>`.
+- **Edge provenance:** The `get_edge_provenance` endpoint returns `"source": "mirrored"` with description "Mirrored from external SPARQL endpoint" for mirrored edges — inspectable via browser devtools or curl.
+- **Visual signals:** Teal `.mirrored-badge` pills and dotted teal `.mirrored-edge` lines in the graph provide immediate visual identification of federated data.
+
 ## Expected Output
 
 - `backend/app/browser/objects.py` — with mirrored property queries and edge UNION blocks

@@ -111,6 +111,7 @@ _VOCAB_PREFIXES = (
     "urn:sempkm:webhook:",
     "urn:sempkm:workflow:",
     "urn:sempkm:mirrored:",
+    "urn:sempkm:mirror-prov:",
 )
 
 

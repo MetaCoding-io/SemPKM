@@ -105,7 +105,9 @@ var KNOWN_VOCAB_PREFIXES = [
   'urn:sempkm:view:',
   'urn:sempkm:vocab:',
   'urn:sempkm:webhook:',
-  'urn:sempkm:workflow:'
+  'urn:sempkm:workflow:',
+  'urn:sempkm:mirrored:',
+  'urn:sempkm:mirror-prov:'
 ];
 
 // SPARQL keywords for autocomplete

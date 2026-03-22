@@ -61,7 +61,7 @@
   - Verify: `cd backend && .venv/bin/python -m pytest tests/test_mirror_service.py -v` — all pass
   - Done when: mirror API accepts federated results and stores them with provenance; disallowed endpoints are rejected with 403; allowlist is configurable via env var
 
-- [ ] **T03: Mirrored triples in object views and graph edges** `est:1.5h`
+- [x] **T03: Mirrored triples in object views and graph edges** `est:1.5h`
   - Why: Users need to see mirrored triples alongside local and inferred data, with visual distinction showing their external provenance.
   - Files: `backend/app/browser/objects.py`, `backend/app/templates/browser/object_read.html`, `frontend/static/css/workspace.css`, `frontend/static/js/graph.js`, `backend/app/sparql/router.py`, `frontend/static/js/sparql-console.js`
   - Do: (1) In `objects.py`, add a mirrored-properties query block (same pattern as lines 119-145 for inferred) querying `GRAPH <urn:sempkm:mirrored>`, tag values with `source: "mirrored"`. (2) In `objects.py` edge query (lines 479-519), add a UNION for mirrored graph with `BIND("mirrored" AS ?source)`. (3) In `object_read.html`, add mirrored badge template (similar to `.inferred-badge` but with different text/color). (4) In `workspace.css`, add `.mirrored-badge` styling (teal/cyan color to distinguish from inferred purple) and `.prop-mirrored` row styling. (5) In `graph.js`, add `.mirrored-edge` style (dotted line, teal color) alongside existing `.inferred-edge` (dashed line, purple). (6) Add `urn:sempkm:mirror-prov:` to `_VOCAB_PREFIXES` in `sparql/router.py` and `KNOWN_VOCAB_PREFIXES` in `sparql-console.js`.

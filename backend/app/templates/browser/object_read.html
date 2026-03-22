@@ -71,11 +71,12 @@
     {% set vals = read_values.get(prop.path, []) %}
     {% if vals %}{% set ns.any_prop = true %}{% endif %}
   {% endfor %}
-  {# Check inferred-only properties too #}
+  {# Check inferred-only and mirrored-only properties too #}
   {% for pred, items in read_values.items() %}
     {% if pred not in form_paths %}
       {% set inferred_items = items | selectattr("source", "equalto", "inferred") | list %}
-      {% if inferred_items %}{% set ns.any_prop = true %}{% endif %}
+      {% set mirrored_items = items | selectattr("source", "equalto", "mirrored") | list %}
+      {% if inferred_items or mirrored_items %}{% set ns.any_prop = true %}{% endif %}
     {% endif %}
   {% endfor %}
 
@@ -99,6 +100,8 @@
                   {{ ref_labels.get(item.value, item.value) }}
                   {% if item.source == "inferred" %}
                   <span class="inferred-badge" title="Inferred by OWL 2 RL reasoning">inferred</span>
+                  {% elif item.source == "mirrored" %}
+                  <span class="mirrored-badge" title="Mirrored from external SPARQL endpoint">mirrored</span>
                   {% endif %}
                 </span>
                 {% endfor %}
@@ -117,31 +120,41 @@
                   <span class="tag-pill">#{{ item.value }}</span>
                 {% endfor %}
               {% else %}
-                {% for item in vals %}{{ item.value }}{% if item.source == "inferred" %} <span class="inferred-badge" title="Inferred by OWL 2 RL reasoning">inferred</span>{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}
+                {% for item in vals %}{{ item.value }}{% if item.source == "inferred" %} <span class="inferred-badge" title="Inferred by OWL 2 RL reasoning">inferred</span>{% elif item.source == "mirrored" %} <span class="mirrored-badge" title="Mirrored from external SPARQL endpoint">mirrored</span>{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}
               {% endif %}
             </div>
           </div>
           {% endif %}
         {% endfor %}
 
-        {# Inferred-only properties (predicates not in SHACL form) #}
+        {# Inferred-only and mirrored-only properties (predicates not in SHACL form) #}
         {% for pred, items in read_values.items() %}
           {% if pred not in form_paths %}
-            {% set inferred_items = items | selectattr("source", "equalto", "inferred") | list %}
-            {% if inferred_items %}
+            {% set extra_items = items | rejectattr("source", "equalto", "user") | list %}
+            {% if extra_items %}
             <div class="property-row">
               <div class="property-label">{{ ref_labels.get(pred, pred) }}</div>
               <div class="property-value">
-                {% for item in inferred_items %}
+                {% for item in extra_items %}
                   {% if item.value.startswith('http') or item.value.startswith('urn:') %}
                   <span class="ref-pill" data-ref-iri="{{ item.value }}"
                         onclick="openTab('{{ item.value }}', '{{ ref_labels.get(item.value, item.value) }}')">
                     <span class="ref-pill-dot"></span>
                     {{ ref_labels.get(item.value, item.value) }}
+                    {% if item.source == "inferred" %}
                     <span class="inferred-badge" title="Inferred by OWL 2 RL reasoning">inferred</span>
+                    {% elif item.source == "mirrored" %}
+                    <span class="mirrored-badge" title="Mirrored from external SPARQL endpoint">mirrored</span>
+                    {% endif %}
                   </span>
                   {% else %}
-                  <span>{{ item.value }} <span class="inferred-badge" title="Inferred by OWL 2 RL reasoning">inferred</span></span>
+                  <span>{{ item.value }}
+                    {% if item.source == "inferred" %}
+                    <span class="inferred-badge" title="Inferred by OWL 2 RL reasoning">inferred</span>
+                    {% elif item.source == "mirrored" %}
+                    <span class="mirrored-badge" title="Mirrored from external SPARQL endpoint">mirrored</span>
+                    {% endif %}
+                  </span>
                   {% endif %}
                 {% endfor %}
               </div>

@@ -146,6 +146,38 @@ async def get_object(
             decoded_iri, exc_info=True,
         )
 
+    # Query mirrored properties from the mirrored graph
+    mirrored_props_sparql = f"""
+    SELECT ?p ?o WHERE {{
+      GRAPH <urn:sempkm:mirrored> {{
+        <{decoded_iri}> ?p ?o .
+      }}
+    }}
+    """
+
+    mirrored_values: dict[str, list[str]] = {}
+    try:
+        mir_result = await client.query(mirrored_props_sparql)
+        mir_bindings = mir_result.get("results", {}).get("bindings", [])
+        for b in mir_bindings:
+            pred = b["p"]["value"]
+            obj_val = b["o"]["value"]
+            if pred == rdf_type or pred == sempkm_body:
+                continue
+            # Deduplicate: skip if same triple exists in user-created or inferred data
+            if pred in values and obj_val in values[pred]:
+                continue
+            if pred in inferred_values and obj_val in inferred_values[pred]:
+                continue
+            if pred not in mirrored_values:
+                mirrored_values[pred] = []
+            mirrored_values[pred].append(obj_val)
+    except Exception:
+        logger.warning(
+            "Failed to query mirrored properties for %s",
+            decoded_iri, exc_info=True,
+        )
+
     form = None
     if type_iris:
         for type_iri in type_iris:
@@ -223,7 +255,20 @@ async def get_object(
         else {}
     )
 
-    # Build read_values: user values + inferred values merged, each tagged with source.
+    # Resolve labels for mirrored property IRIs (predicates and IRI objects)
+    mirrored_iris_to_resolve: set[str] = set()
+    for pred, vals in mirrored_values.items():
+        mirrored_iris_to_resolve.add(pred)
+        for v in vals:
+            if v.startswith("http") or v.startswith("urn:"):
+                mirrored_iris_to_resolve.add(v)
+    mirrored_labels = (
+        await label_service.resolve_batch(list(mirrored_iris_to_resolve))
+        if mirrored_iris_to_resolve
+        else {}
+    )
+
+    # Build read_values: user values + inferred values + mirrored values merged, each tagged with source.
     # Keeps original `values` dict untouched for the edit form.
     read_values: dict[str, list[dict]] = {}
     for pred, vals in values.items():
@@ -233,9 +278,15 @@ async def get_object(
             read_values[pred] = []
         for v in vals:
             read_values[pred].append({"value": v, "source": "inferred"})
+    for pred, vals in mirrored_values.items():
+        if pred not in read_values:
+            read_values[pred] = []
+        for v in vals:
+            read_values[pred].append({"value": v, "source": "mirrored"})
 
-    # Merge inferred labels into ref_labels so the template has a single label lookup
+    # Merge inferred and mirrored labels into ref_labels so the template has a single label lookup
     ref_labels.update(inferred_labels)
+    ref_labels.update(mirrored_labels)
 
     # Check if the current user has favorited this object
     fav_result = await db.execute(
@@ -496,6 +547,13 @@ async def get_relations(
           FILTER(?predicate != rdf:type)
         }}
         BIND("inferred" AS ?source)
+      }} UNION {{
+        GRAPH <urn:sempkm:mirrored> {{
+          <{decoded_iri}> ?predicate ?object .
+          FILTER(isIRI(?object))
+          FILTER(?predicate != rdf:type)
+        }}
+        BIND("mirrored" AS ?source)
       }}
     }}
     """
@@ -517,6 +575,13 @@ async def get_relations(
           FILTER(?predicate != rdf:type)
         }}
         BIND("inferred" AS ?source)
+      }} UNION {{
+        GRAPH <urn:sempkm:mirrored> {{
+          ?subject ?predicate <{decoded_iri}> .
+          FILTER(isIRI(?subject))
+          FILTER(?predicate != rdf:type)
+        }}
+        BIND("mirrored" AS ?source)
       }}
     }}
     """
@@ -642,6 +707,16 @@ async def get_edge_provenance(
             "predicate_qname": predicate_qname,
             "source": "inferred",
             "description": "Inferred by OWL 2 RL reasoning",
+            "event_iri": None,
+            "timestamp": None,
+            "performed_by": None,
+        })
+
+    if source == "mirrored":
+        return JSONResponse({
+            "predicate_qname": predicate_qname,
+            "source": "mirrored",
+            "description": "Mirrored from external SPARQL endpoint",
             "event_iri": None,
             "timestamp": None,
             "performed_by": None,
