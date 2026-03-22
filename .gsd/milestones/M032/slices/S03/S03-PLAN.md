@@ -28,7 +28,7 @@
   - Verify: `cd e2e && npx playwright test tests/45-dashboard-blocks/dashboard-blocks.spec.ts --project=chromium` passes
   - Done when: All E2E test cases pass against Docker test stack with stat-card showing a numeric value, chart canvas rendered, heading text visible
 
-- [ ] **T02: Update user guide chapter 28 with new block types and GridStack builder** `est:45m`
+- [x] **T02: Update user guide chapter 28 with new block types and GridStack builder** `est:45m`
   - Why: Milestone requires user-facing documentation of all new block types and the modernized dashboard builder.
   - Files: `docs/guide/28-dashboards-and-workflows.md`
   - Do: Rewrite the Block Types table to cover all 10 types (add stat-card, chart, heading, form-group; update markdown and sparql-result descriptions). Replace the Layout Templates section with GridStack drag-drop description. Update "Creating a Dashboard" section for the GridStack palette workflow. Add a "Data Widgets" subsection covering stat-card and chart SPARQL configuration. Add a "Form Groups" subsection explaining multi-object creation with slots and edges. Update the Dashboard vs. Workflow comparison table to reflect 10 block types.
