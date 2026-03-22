@@ -68,6 +68,8 @@ export const SEL = {
     cards: '.card-grid',  // No data-testid on card grid container; use CSS class
     card: '[data-testid="card-item"]',
     graph: '[data-testid="graph-view"]',
+    iconToggle: '#graph-icon-toggle',
+    isometricWrapper: '.graph-isometric-wrapper',
     kanbanBoard: '.kanban-board',
     kanbanColumn: '.kanban-column',
     kanbanCard: '.kanban-card',
