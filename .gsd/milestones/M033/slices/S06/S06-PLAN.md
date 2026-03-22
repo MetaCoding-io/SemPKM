@@ -24,9 +24,16 @@
 - `grep -q 'Operations' backend/app/templates/admin/apps/detail.html` — admin detail has collapsed ops section
 - `grep -q 'Browse Catalog' backend/app/templates/browser/apps_explorer.html` — sidebar entry exists
 
+## Observability / Diagnostics
+
+- **Schema validation**: Invalid `category`/`features`/`readme` values produce `pydantic.ValidationError` at manifest parse time — visible in install logs and admin list error messages.
+- **Admin detail page**: Features/permissions render at top; ops sections inside `<details>`. Collapse state is browser-local. Inspect via `grep '<details>' backend/app/templates/admin/apps/detail.html`.
+- **Catalog routes (T02)**: HTTP 404 for unknown app_id, logged at WARNING level. Install/uninstall actions produce structured log entries with user email and app_id.
+- **Redaction**: No secrets in manifest fields. Category/features/readme are user-facing metadata only.
+
 ## Tasks
 
-- [ ] **T01: Extend schema and redesign admin catalog pages** `est:1h`
+- [x] **T01: Extend schema and redesign admin catalog pages** `est:1h`
   - Why: Add optional catalog metadata to the manifest schema and transform the admin app detail page from ops-monitoring-focused to catalog-showcase-first, keeping operational sections accessible but collapsed.
   - Files: `backend/app/apps/manifest.py`, `backend/app/templates/admin/apps/detail.html`, `backend/app/templates/admin/apps/list.html`
   - Do: Add `category: str = ""`, `features: list[str] = []`, `readme: str = ""` to `AppManifestSchema`. Redesign admin detail.html: prominent description, features list with checkmark bullets, permissions summary table at top. Push PID/uptime/logs/task-history into a collapsible `<details>` "Operations" section. Add category badge display to list.html cards. All changes must be backward-compatible — existing 11 app manifests with no new fields must render correctly.

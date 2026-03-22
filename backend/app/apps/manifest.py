@@ -224,6 +224,9 @@ class AppManifestSchema(BaseModel):
     description: str = Field(default="", max_length=2000)
     author: AppAuthor | None = None
     license: str = Field(default="", max_length=64)
+    category: str = Field(default="", max_length=64)
+    features: list[str] = Field(default_factory=list)
+    readme: str = Field(default="", max_length=10000)
 
     # Dependencies
     dependencies: AppDependencies = AppDependencies()
