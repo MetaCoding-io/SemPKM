@@ -78,7 +78,7 @@ Orphan risks: None — all prior Active requirements (APP-01..14, RSS-01..08, GC
   - **Proof:** E2E test: schedule task via drag → verify SPARQL shows scheduledStart/scheduledEnd. Unit test: calendar query returns both Events and Tasks.
   - **Verification:** `contract` `integration`
 
-- [ ] **S02: Timeline / Gantt View** `risk:high` `depends:[]`
+- [x] **S02: Timeline / Gantt View** `risk:high` `depends:[]`
   > After this: User opens a Timeline view from the views menu. Frappe Gantt renders tasks as horizontal bars with dependency arrows. Drag-to-reschedule and resize work. Zoom levels (day/week/month/quarter) available. Project-scoped filtering via saved queries.
   - **Demo:** Open Timeline view filtered to a project. See task bars with arrows showing bpkm:dependsOn. Drag a bar to reschedule. Switch zoom from week to month.
   - **Proof:** E2E test: timeline renders with correct task bars and dependency arrows. Unit test: timeline data endpoint returns bars with dependency edges.
