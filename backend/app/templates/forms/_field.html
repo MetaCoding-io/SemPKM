@@ -201,5 +201,38 @@
            class="form-input {{ css_class }}"
            value="{{ current_value | default('', true) }}"
            {{ 'required' if is_required else '' }}>
+    {% if 'recurrenceRule' in prop.path %}
+    <script>
+    (function() {
+      function _initRR() {
+        var el = document.getElementById('{{ input_id }}');
+        if (el && typeof window.initRecurrenceEditor === 'function') window.initRecurrenceEditor(el);
+      }
+      if (typeof window.initRecurrenceEditor === 'function') { _initRR(); }
+      else {
+        var s = document.createElement('script');
+        s.src = '/static/js/recurrence-editor.js';
+        s.onload = _initRR;
+        document.head.appendChild(s);
+      }
+    })();
+    </script>
+    {% elif 'exceptionDates' in prop.path %}
+    <script>
+    (function() {
+      function _initEX() {
+        var el = document.getElementById('{{ input_id }}');
+        if (el && typeof window.initExdateEditor === 'function') window.initExdateEditor(el);
+      }
+      if (typeof window.initExdateEditor === 'function') { _initEX(); }
+      else {
+        var s = document.createElement('script');
+        s.src = '/static/js/recurrence-editor.js';
+        s.onload = _initEX;
+        document.head.appendChild(s);
+      }
+    })();
+    </script>
+    {% endif %}
 {% endif %}
 {% endmacro %}
