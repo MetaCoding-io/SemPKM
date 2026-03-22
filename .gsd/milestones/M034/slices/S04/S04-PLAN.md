@@ -27,6 +27,7 @@
 - `npx playwright test e2e/tests/02-views/recurring-tasks.spec.ts` — all pass
 - Virtual events rendered on calendar with recurring indicator CSS class
 - Recurrence editor popover builds valid RRULE strings from UI selections
+- Malformed RRULE in test returns empty expansion with logged warning (graceful degradation check)
 
 ## Observability / Diagnostics
 
@@ -43,7 +44,7 @@
 
 ## Tasks
 
-- [ ] **T01: Add recurrence schema properties and python-dateutil dependency** `est:30m`
+- [x] **T01: Add recurrence schema properties and python-dateutil dependency** `est:30m`
   - Why: All other tasks need the schema properties and the dateutil library. Docker rebuild required for the new dependency.
   - Files: `models/basic-pkm/shapes/basic-pkm.jsonld`, `models/basic-pkm/ontology/basic-pkm.jsonld`, `backend/pyproject.toml`
   - Do: Add `bpkm:recurrenceRule` (xsd:string, sh:order 6.4, TaskDatesGroup) and `bpkm:exceptionDates` (xsd:string, sh:order 6.5, TaskDatesGroup) to TaskShape. Add `bpkm:exceptionDates` owl:DatatypeProperty to ontology. Update `bpkm:recurrenceRule` domain to cover both Event and Task. Add `python-dateutil~=2.9.0` to pyproject.toml dependencies.

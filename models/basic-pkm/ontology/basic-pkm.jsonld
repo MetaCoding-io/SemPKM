@@ -429,7 +429,15 @@
       "@type": "owl:DatatypeProperty",
       "rdfs:label": "Recurrence Rule",
       "rdfs:comment": "RFC 5545 RRULE string defining the recurrence pattern",
-      "rdfs:domain": { "@id": "bpkm:Event" },
+      "rdfs:domain": { "owl:unionOf": { "@list": [{ "@id": "bpkm:Event" }, { "@id": "bpkm:Task" }] } },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bpkm:exceptionDates",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Exception Dates",
+      "rdfs:comment": "Comma-separated ISO date strings for excluded recurrence instances",
+      "rdfs:domain": { "@id": "bpkm:Task" },
       "rdfs:range": { "@id": "xsd:string" }
     },
     {
