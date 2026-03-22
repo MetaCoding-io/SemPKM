@@ -602,3 +602,39 @@ M028 AI endpoints (ai.py, 6 endpoints) recovered and on disk but not wired into 
 
 **Context:** `.gsd/milestones/M035/M035-CONTEXT.md`
 **Depends on:** M033 (M028 AI endpoints need to be operational first)
+
+---
+
+## Business Planning Mental Models & Custom Renderers
+
+**Queued:** 2026-03-22
+**Status:** Queued as M036 (depends on M033)
+
+Comprehensive library of business planning and strategic decision-making frameworks as Mental Models with custom visual renderers. Core frameworks with dedicated renderers: Eisenhower Matrix (2×2 quadrant with drag-to-reclassify), Business Model Canvas (9-box poster layout), SWOT Analysis (2×2 quadrant), OKR Framework (progress bars), Decision Matrix (weighted-score table). Extended library using existing table/kanban/graph views: Porter's Five Forces, Value Chain, Lean Canvas, BCG Matrix, Ansoff Matrix, PESTLE, Balanced Scorecard, RACI Matrix, Stakeholder Map, Risk Matrix, and more. All stored as typed RDF for AI copilot queryability. Custom renderers registered via existing register_renderer() pattern from M033.
+
+**Context:** `.gsd/milestones/M036/M036-CONTEXT.md`
+**Depends on:** M033
+
+---
+
+## User Context & Mobile App
+
+**Queued:** 2026-03-22
+**Status:** Queued as M037 (depends on M033)
+
+Native mobile app (React Native, iOS + Android) acting as a real-time context provider for SemPKM. Background GPS geofencing for location zones (home/work/custom), activity detection (stationary/walking/driving), time-of-day classification, device calendar integration for current event context. Backend Context API (POST/GET/SSE stream) with SQLite ephemeral storage. Automatic persona switching via rules engine (if location=office AND time=workHours then persona=ProjectManager). Context-filtered push notifications via FCM/APNs. Workspace context indicator showing real-time detected state.
+
+**Context:** `.gsd/milestones/M037/M037-CONTEXT.md`
+**Depends on:** M033
+
+---
+
+## Personal Media Scheduler App
+
+**Queued:** 2026-03-22
+**Status:** Queued as M038 (depends on M037)
+
+SemPKM platform app managing a personalized daily media queue. Integrates podcast RSS feeds (reuses M010 feedparser), YouTube Data API v3, and Spotify Web API. Context-driven schedule rules: "when commuting play podcasts", "at noon play YouTube news", "when focus-mode play lo-fi music", "at 4:30pm play wind-down playlist". Daily plan auto-generated and adapts in real-time to context changes from M037. Mobile app (M037) displays current suggestion with playback controls/deep links. Mental Model with MediaSource, MediaItem, MediaScheduleRule, DailyMediaPlan, MediaCategory types.
+
+**Context:** `.gsd/milestones/M038/M038-CONTEXT.md`
+**Depends on:** M037 (User Context)

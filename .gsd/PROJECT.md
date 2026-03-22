@@ -624,6 +624,22 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - 3-tier LLM test harness (mock for CI, Ollama for dev, cloud with budget caps)
 - M028 AI endpoints wired and extended
 
+**Business Planning Mental Models & Custom Renderers** — queued as M036 (depends on M033)
+- Comprehensive library of business frameworks (Eisenhower, BMC, SWOT, OKR, Decision Matrix, Porter's, Lean Canvas, BCG, PESTLE, Balanced Scorecard, RACI, etc.)
+- Custom visual renderers: 2×2 quadrant, 9-box canvas, progress bars, weighted tables
+- All frameworks stored as typed RDF for AI copilot queryability
+
+**User Context & Mobile App** — queued as M037 (depends on M033)
+- React Native mobile app (iOS + Android) as real-time context provider
+- Background GPS geofencing, activity detection, calendar integration
+- Backend Context API with auto-persona switching rules engine
+- Push notifications with context-aware filtering
+
+**Personal Media Scheduler App** — queued as M038 (depends on M037)
+- Daily media queue: podcasts, YouTube, Spotify scheduled by context and rules
+- Integrates with podcast RSS, YouTube Data API, Spotify Web API
+- Real-time adaptation when user context changes
+
 ### Out of Scope
 
 - Read/write filesystem projections full sync — v2.3+ (VFS write MVP is v2.2)
