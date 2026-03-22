@@ -59,6 +59,13 @@ Extend `seed_sample_data()` to create 4 PPV review workflows (weekly, monthly, q
 - `models/ppv/views/ppv.jsonld` — PPV view spec IRIs: ppv:view-weekly-table, ppv:view-monthly-table, ppv:view-quarterly-table, ppv:view-yearly-table, ppv:view-review-graph, ppv:view-hierarchy-graph, ppv:view-action-table, ppv:view-goaloutcome-table, ppv:view-valuegoal-table
 - `models/ppv/ontology/ppv.jsonld` — PPV type IRIs: ppv:WeeklyReview, ppv:MonthlyReview, ppv:QuarterlyReview, ppv:YearlyReview
 
+## Observability Impact
+
+- **New signals:** `seed_sample_data()` now logs per-workflow creation at INFO level with workflow name and user ID, plus DEBUG-level skip messages for already-existing seed workflows
+- **Inspection:** `GET /api/workflow` lists all workflows for the user including seeded review workflows — verify "Weekly Review", "Monthly Review", "Quarterly Review", "Yearly Review" appear
+- **Result dict:** Returns `workflows_created: int` count alongside the boolean `workflow_created` for callers that need granularity
+- **Failure visibility:** If `workflow_service.create()` raises for a seed workflow, the exception propagates — seed_sample_data is called at app startup so failures appear in startup logs
+
 ## Expected Output
 
 - `backend/app/dashboard/seed.py` — updated with 4 review workflow definitions and per-name idempotency
