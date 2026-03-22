@@ -3190,10 +3190,252 @@
     }
   }
 
-  // --- htmx afterSettle: re-init Lucide icons after htmx content swaps ---
+  // --- Dashboard widget activation functions ---
+  // Chart.js lazy-loader state (module-level)
+  var _chartJsLoaded = false;
+  var _chartJsLoading = false;
+  var _chartJsCallbacks = [];
+
+  /**
+   * Ensures Chart.js is loaded from CDN, then calls the callback.
+   * Queues callbacks if a load is already in progress.
+   */
+  function _ensureChartJs(callback) {
+    if (_chartJsLoaded) { callback(); return; }
+    _chartJsCallbacks.push(callback);
+    if (_chartJsLoading) return;
+    _chartJsLoading = true;
+    var script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4/dist/chart.umd.min.js';
+    script.onload = function() {
+      _chartJsLoaded = true;
+      _chartJsLoading = false;
+      var cbs = _chartJsCallbacks.splice(0);
+      for (var i = 0; i < cbs.length; i++) { cbs[i](); }
+    };
+    script.onerror = function() {
+      _chartJsLoading = false;
+      console.warn('[SemPKM] Chart.js failed to load from CDN:', script.src);
+      // Show error in all pending chart blocks
+      var pending = document.querySelectorAll('[data-chart-query]:not([data-chart-loaded])');
+      for (var i = 0; i < pending.length; i++) {
+        pending[i].innerHTML = '<div class="dashboard-block-error-inline">Chart library unavailable</div>';
+        pending[i].setAttribute('data-chart-loaded', '1');
+      }
+      _chartJsCallbacks = [];
+    };
+    document.head.appendChild(script);
+  }
+
+  /**
+   * Finds [data-sparql-query] elements within root, executes each query via /api/sparql,
+   * and populates stat-card values or sparql-result tables.
+   */
+  function _executeSparqlWidgets(root) {
+    if (!root) return;
+    var widgets = root.querySelectorAll
+      ? root.querySelectorAll('[data-sparql-query]:not([data-sparql-loaded])')
+      : [];
+    // Also check if root itself matches
+    if (root.matches && root.matches('[data-sparql-query]:not([data-sparql-loaded])')) {
+      widgets = Array.prototype.slice.call(widgets);
+      widgets.unshift(root);
+    }
+    for (var i = 0; i < widgets.length; i++) {
+      (function(el) {
+        el.setAttribute('data-sparql-loaded', '1');
+        var query = el.dataset.sparqlQuery;
+        if (!query) return;
+
+        fetch('/api/sparql', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: query })
+        })
+        .then(function(resp) {
+          if (!resp.ok) {
+            throw new Error('Query error: ' + resp.status + ' ' + resp.statusText);
+          }
+          return resp.json();
+        })
+        .then(function(data) {
+          var vars = data.head && data.head.vars ? data.head.vars : [];
+          var bindings = data.results && data.results.bindings ? data.results.bindings : [];
+
+          // Stat-card scalar mode: populate [data-stat-target] with first result
+          var statTarget = el.querySelector('[data-stat-target]');
+          if (statTarget) {
+            if (bindings.length > 0 && vars.length > 0) {
+              statTarget.textContent = bindings[0][vars[0]].value;
+            } else {
+              statTarget.textContent = '0';
+            }
+          }
+
+          // SPARQL table mode: build <table> in .sparql-table-container
+          if (el.hasAttribute('data-sparql-table')) {
+            var container = el.querySelector('.sparql-table-container');
+            if (container) {
+              if (bindings.length === 0) {
+                container.innerHTML = '<em class="dashboard-block-error-inline">No results</em>';
+              } else {
+                var html = '<table class="sparql-result-table"><thead><tr>';
+                for (var v = 0; v < vars.length; v++) {
+                  html += '<th>' + vars[v] + '</th>';
+                }
+                html += '</tr></thead><tbody>';
+                for (var r = 0; r < bindings.length; r++) {
+                  html += '<tr>';
+                  for (var c = 0; c < vars.length; c++) {
+                    var cell = bindings[r][vars[c]];
+                    html += '<td>' + (cell ? cell.value : '') + '</td>';
+                  }
+                  html += '</tr>';
+                }
+                html += '</tbody></table>';
+                container.innerHTML = html;
+              }
+            }
+          }
+        })
+        .catch(function(err) {
+          console.warn('[SemPKM] SPARQL widget error:', err.message, '| query:', query.substring(0, 120));
+          // Show error in the block
+          var statTarget = el.querySelector('[data-stat-target]');
+          if (statTarget) {
+            statTarget.textContent = 'Error';
+            statTarget.style.color = 'var(--color-warning, #e5c07b)';
+          }
+          var container = el.querySelector('.sparql-table-container');
+          if (container) {
+            container.innerHTML = '<div class="dashboard-block-error-inline">' + err.message + '</div>';
+          }
+        });
+      })(widgets[i]);
+    }
+  }
+
+  /**
+   * Finds [data-chart-query] elements within root, lazy-loads Chart.js,
+   * executes SPARQL query, and renders a Chart.js visualization.
+   */
+  function _initChartBlocks(root) {
+    if (!root) return;
+    var charts = root.querySelectorAll
+      ? root.querySelectorAll('[data-chart-query]:not([data-chart-loaded])')
+      : [];
+    if (root.matches && root.matches('[data-chart-query]:not([data-chart-loaded])')) {
+      charts = Array.prototype.slice.call(charts);
+      charts.unshift(root);
+    }
+    for (var i = 0; i < charts.length; i++) {
+      (function(el) {
+        el.setAttribute('data-chart-loaded', '1');
+        var query = el.dataset.chartQuery;
+        var chartType = el.dataset.chartType || 'bar';
+        if (!query) return;
+
+        _ensureChartJs(function() {
+          fetch('/api/sparql', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: query })
+          })
+          .then(function(resp) {
+            if (!resp.ok) throw new Error('Chart query error: ' + resp.status);
+            return resp.json();
+          })
+          .then(function(data) {
+            var bindings = data.results && data.results.bindings ? data.results.bindings : [];
+            var labels = [];
+            var values = [];
+            for (var r = 0; r < bindings.length; r++) {
+              labels.push(bindings[r].label ? bindings[r].label.value : '');
+              values.push(bindings[r].value ? Number(bindings[r].value.value) : 0);
+            }
+            var canvas = el.querySelector('.chart-canvas');
+            if (!canvas) return;
+            var labelEl = el.querySelector('.chart-label');
+            var chartLabel = labelEl ? labelEl.textContent : 'Data';
+            new Chart(canvas, {
+              type: chartType,
+              data: {
+                labels: labels,
+                datasets: [{
+                  data: values,
+                  label: chartLabel,
+                  backgroundColor: chartType === 'pie'
+                    ? ['#61afef', '#c678dd', '#98c379', '#e5c07b', '#e06c75', '#56b6c2', '#d19a66']
+                    : 'rgba(97, 175, 239, 0.6)',
+                  borderColor: chartType === 'pie' ? '#1e1e1e' : '#61afef',
+                  borderWidth: 1
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: { display: chartType === 'pie' }
+                }
+              }
+            });
+          })
+          .catch(function(err) {
+            console.warn('[SemPKM] Chart block error:', err.message, '| query:', query.substring(0, 120));
+            el.innerHTML = '<div class="dashboard-block-error-inline">' + err.message + '</div>';
+          });
+        });
+      })(charts[i]);
+    }
+  }
+
+  /**
+   * Finds [data-md-block] elements within root, reads raw markdown from
+   * <script type="text/plain" class="md-source">, renders via marked.js + DOMPurify.
+   */
+  function _renderMarkdownBlocks(root) {
+    if (!root) return;
+    var blocks = root.querySelectorAll
+      ? root.querySelectorAll('[data-md-block]:not([data-md-rendered])')
+      : [];
+    if (root.matches && root.matches('[data-md-block]:not([data-md-rendered])')) {
+      blocks = Array.prototype.slice.call(blocks);
+      blocks.unshift(root);
+    }
+    for (var i = 0; i < blocks.length; i++) {
+      var el = blocks[i];
+      el.setAttribute('data-md-rendered', '1');
+      var source = el.querySelector('script.md-source');
+      var target = el.querySelector('.md-rendered');
+      if (!source || !target) continue;
+      var raw = source.textContent || '';
+      if (typeof globalThis.marked !== 'undefined') {
+        try {
+          var html = globalThis.marked.parse(raw);
+          if (typeof globalThis.DOMPurify !== 'undefined') {
+            html = globalThis.DOMPurify.sanitize(html);
+          }
+          target.innerHTML = html;
+        } catch (e) {
+          console.warn('[SemPKM] Markdown render error:', e.message);
+          target.textContent = raw; // graceful degradation — show raw content
+        }
+      } else {
+        // No marked.js available — show raw content
+        target.textContent = raw;
+      }
+    }
+  }
+
+  // --- htmx afterSettle: re-init Lucide icons + dashboard widgets after htmx content swaps ---
   document.body.addEventListener('htmx:afterSettle', function(e) {
     if (typeof lucide !== 'undefined' && e.detail && e.detail.elt) {
       lucide.createIcons({ root: e.detail.elt });
+    }
+    if (e.detail && e.detail.elt) {
+      _executeSparqlWidgets(e.detail.elt);
+      _initChartBlocks(e.detail.elt);
+      _renderMarkdownBlocks(e.detail.elt);
     }
   });
 

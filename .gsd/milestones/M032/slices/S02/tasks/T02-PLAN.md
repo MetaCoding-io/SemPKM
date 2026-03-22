@@ -92,3 +92,23 @@ Three new JS functions hook into the existing `htmx:afterSettle` event handler a
 - `frontend/static/js/workspace.js` — 3 new functions + Chart.js lazy loader + htmx:afterSettle hooks
 - `frontend/static/css/workspace.css` — styles for stat-card, chart, heading + dashboard-page scoped overrides
 - `backend/app/templates/browser/dashboard_builder.html` — 3 new getTypeConfigHTML cases
+
+## Observability Impact
+
+**Runtime signals added:**
+- `[SemPKM] SPARQL widget error:` console.warn with error message + query excerpt (first 120 chars) on fetch failure
+- `[SemPKM] Chart block error:` console.warn with error message + query excerpt on chart SPARQL failure
+- `[SemPKM] Chart.js failed to load from CDN:` console.warn with CDN URL on script load failure
+- `[SemPKM] Markdown render error:` console.warn with parse exception message
+
+**Inspection surfaces:**
+- `data-sparql-loaded="1"` attribute on processed SPARQL widgets — indicates the fetch cycle completed
+- `data-chart-loaded="1"` attribute on processed chart blocks — indicates Chart.js init completed
+- `data-md-rendered="1"` attribute on processed markdown blocks — indicates parse cycle completed
+- `_chartJsLoaded` / `_chartJsLoading` globals track CDN load state
+
+**Failure visibility:**
+- `.dashboard-block-error-inline` divs appear inside blocks when SPARQL fetch returns non-200 or network fails
+- Stat-card shows "Error" in orange when query fails, table shows error message in container
+- Chart blocks show "Chart library unavailable" when CDN load fails
+- Markdown blocks degrade to raw text display when marked.js is not available
