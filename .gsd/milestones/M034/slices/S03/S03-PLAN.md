@@ -55,7 +55,7 @@
   - Verify: `grep -q "sempkm:scope-changed" frontend/static/js/workspace.js && grep -q "sempkm:scope-changed" frontend/static/js/calendar.js && grep -q "sempkm:scope-changed" frontend/static/js/kanban.js`
   - Done when: Changing scope select in calendar view triggers kanban re-fetch with same scope, and vice versa. Self-triggered scope changes are skipped via panel ID comparison.
 
-- [ ] **T03: E2E test for cross-view drag and scope propagation** `est:35m`
+- [x] **T03: E2E test for cross-view drag and scope propagation** `est:35m`
   - Why: Verifies the integration contract — external drag scheduling persists correctly and scope sync works across panels. HTML5 DnD is hard to simulate in Playwright so the test exercises the drop handler directly via `page.evaluate()`.
   - Files: `e2e/tests/02-views/cross-view-drag.spec.ts`, `e2e/helpers/selectors.ts`, `backend/tests/test_cross_view_drag.py`
   - Do: (1) Add selectors to `SEL.views` if needed (e.g. `calendarDropZone`). (2) Write Playwright spec: seed a Task via API, open kanban + calendar side by side using `openGenericViewTab()`, verify kanban card visible, simulate drop by calling `window.__calendarDragPayload = { iri, title }` + invoke calendar drop handler via `page.evaluate()` with synthetic date, verify `scheduledStart` persisted via SPARQL API or the calendar PATCH response. (3) Test scope propagation: change scope select in one view, verify sibling view receives the event and updates (check that htmx request was made or DOM updated). (4) Write `backend/tests/test_cross_view_drag.py` with unit tests: scope event detail structure, calendar drop data computation (date + 1hr default), side-channel payload format.

@@ -454,3 +454,13 @@ The `_START_DATE_PRIORITY` list in `_detect_date_fields()` is `["scheduledstart"
 Frappe Gantt renders dependency arrows as `<g class="arrow">` SVG group elements. Playwright's visibility check reports these as "hidden" (`locator resolved to hidden <g class="arrow"></g>`) even when the arrows render visually in the browser. SVG group elements don't have intrinsic dimensions that Playwright can measure.
 
 **Fix:** Use `page.waitForSelector('.arrow', { state: 'attached' })` instead of the default `{ state: 'visible' }`. Then assert count > 0 via `.count()`. This applies to any SVG sub-element (groups, paths, etc.) inside third-party charting libraries.
+
+### Jinja2 dict key access: use col['items'] not col.items
+
+**Discovered:** M034/S03/T03
+
+In Jinja2, `col.items` on a Python dict resolves to the dict's `.items()` method (attribute lookup), not the `items` key. This caused `kanban_view.html` to crash with `TypeError: object of type 'builtin_function_or_method' has no len()` when the template used `{{ col.items | length }}` and `{% for item in col.items %}`.
+
+**Fix:** Use bracket notation `col['items']` for dict key access when the key name collides with a dict method (`items`, `keys`, `values`, `get`, `update`, etc.). This is a Jinja2-specific gotcha — Python code `col["items"]` and `col.items` (via __getattr__) behave differently in Jinja2's attribute resolution order.
+
+**Affected file:** `backend/app/templates/browser/kanban_view.html`

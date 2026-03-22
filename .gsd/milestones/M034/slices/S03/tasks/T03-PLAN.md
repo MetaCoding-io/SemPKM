@@ -97,3 +97,11 @@ Also adds a backend unit test file for the drop data computation logic (date + 1
 - `e2e/tests/02-views/cross-view-drag.spec.ts` — new E2E test file
 - `e2e/helpers/selectors.ts` — modified with new selectors
 - `backend/tests/test_cross_view_drag.py` — new backend unit test file
+
+## Observability Impact
+
+- **New test coverage:** 6 backend unit tests (3 PATCH endpoint variants, 3 scope event contract tests) + 3 E2E tests (kanban drag data, calendar drop scheduling, scope propagation)
+- **Failure visibility:** E2E test failures include screenshot + error context artifacts in `e2e/test-results/` for post-mortem debugging
+- **CDN dependency surfaced:** Test 2 gracefully degrades when FullCalendar CDN is unreachable, falling back to direct API verification — the console log `FullCalendar CDN not loaded — testing PATCH endpoint directly` signals this path
+- **Inspection:** Run `npx playwright test tests/02-views/cross-view-drag.spec.ts --headed` from `e2e/` to observe the visual flow; use `--debug` flag for step-through
+
