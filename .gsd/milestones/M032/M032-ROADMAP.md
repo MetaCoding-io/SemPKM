@@ -100,8 +100,8 @@ Templates (Jinja2, server-rendered)
 - [x] **S01: GridStack Layout Engine + Block Registry** `risk:high` `depends:[]`
   > After this: a user creates a dashboard in the builder by dragging blocks from a categorized palette onto a 12-column GridStack canvas, repositions and resizes them freely, saves the layout, and sees it render correctly on the dashboard page. Existing dashboards auto-migrate from fixed CSS Grid layouts to GridStack positions. The BlockRegistry declares all block types with config schemas, icons, and categories. All 6 existing block types work in the new GridStack layout.
 
-- [x] **S02: Data-Driven Widget Types (stat-card, chart, heading)** `risk:medium` `depends:[S01]`
+- [ ] **S02: Data-Driven Widget Types (stat-card, chart, heading)** `risk:medium` `depends:[S01]`
   > After this: the block palette includes stat-card, chart, and heading widgets. A stat-card shows a live SPARQL-derived number (e.g., "42 Projects"). A chart block renders a Chart.js bar/line/pie chart from SPARQL query results. A heading block adds section labels to the dashboard. Each widget has a config panel in the builder. The design document (`M032-DESIGN.md`) is written.
 
-- [x] **S03: Multi-Object Form Groups** `risk:medium` `depends:[S01]`
+- [ ] **S03: Multi-Object Form Groups** `risk:medium` `depends:[S01]`
   > After this: a form-group block in the dashboard builder lets users compose multiple SHACL forms (e.g., "Project + 2 Tasks"). Submitting creates all objects atomically via a slot-based transaction where later objects can reference earlier objects' IRIs for edge creation. SHACL validation runs per-sub-form. The form renders as collapsible sections using existing `_field.html` macros.

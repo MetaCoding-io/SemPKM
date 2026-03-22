@@ -1,10 +1,10 @@
 # M032 Summary: Block-Based Custom UI Builder
 
-**Status:** Complete
+**Status:** In Progress
 **Started:** 2026-03-21
-**Completed:** 2026-03-21
-**Slices:** 3/3 complete (S01–S03)
-**Tests:** 87 unit tests (50 block registry + 14 layout migration + 23 slot resolver)
+**Completed:** —
+**Slices:** 1/3 complete (S01 done, S02–S03 code never committed — reopened)
+**Tests:** 64 unit tests on main (50 block registry + 14 layout migration). S02/S03 tests (23 slot resolver + 11 widget) were never committed.
 **Verification:** passed-with-gaps (E2E tests and user guide docs not updated)
 
 ## What This Milestone Delivered
