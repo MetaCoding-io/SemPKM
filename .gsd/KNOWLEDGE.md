@@ -381,3 +381,11 @@ D286 (planning) called for hardcoding `bpkm:taskStatus` as the kanban status fie
 **Discovered:** M031/S05/T04
 
 Any popover, tooltip, or overlay rendered inside a dockview panel is trapped in that panel's stacking context. Elevating `z-index` within the panel cannot escape the panel boundary. The only reliable approach is appending the element to `document.body` with `position:fixed` and computing coordinates via `getBoundingClientRect()`. Always register cleanup (e.g., `registerCleanup` callback) to remove body-appended elements when the panel is destroyed. This applies to graph popovers (D293), and will apply to any future hover card, context menu, or overlay inside dockview.
+
+### data-sparql-loaded / data-chart-loaded are dedup guards, not readiness signals
+
+**Discovered:** M032/S03/T01
+
+`_executeSparqlWidgets()` sets `data-sparql-loaded="1"` on the element *before* calling `fetch('/api/sparql', ...)`. Similarly, `_initChartBlocks()` sets `data-chart-loaded="1"` before the Chart.js CDN load and SPARQL fetch. These attributes prevent re-execution on htmx re-swaps, but they do NOT indicate the async work has completed.
+
+**Impact on E2E tests:** Waiting for `[data-sparql-loaded]` or `[data-chart-loaded]` to appear does not guarantee the content is ready. For stat-cards, wait until `[data-stat-target]` text is no longer "…" (the loading placeholder). For charts, wait until `Chart.getChart(canvas)` returns truthy or the canvas `toDataURL()` exceeds ~500 chars (non-blank).

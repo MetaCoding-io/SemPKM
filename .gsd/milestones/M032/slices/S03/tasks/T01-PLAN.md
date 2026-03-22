@@ -146,3 +146,9 @@ The dashboard backend and frontend widget activation code are fully implemented 
 - `e2e/tests/45-dashboard-blocks/dashboard-blocks.spec.ts` — E2E test spec with 4 test cases
 - `e2e/helpers/selectors.ts` — extended with `dashboard` selector group
 - `e2e/helpers/dockview.ts` — extended with `openDashboardTab` helper
+
+## Observability Impact
+
+- **New diagnostic signals in tests:** Each test waits for `data-sparql-loaded` / `data-chart-loaded` data attributes, which directly surface whether the async rendering pipeline completed. Timeout on these attributes pinpoints which rendering stage failed.
+- **Console warnings captured:** Playwright traces capture `[SemPKM] SPARQL widget error:` and `[SemPKM] Chart block error:` console warnings, making fetch failures visible in test reports.
+- **Future agent inspection:** To debug a failing dashboard block test, check Playwright trace for: (1) network tab — did `/api/sparql` POST return 200? (2) console tab — any `[SemPKM]` warnings? (3) DOM snapshot — is the `data-sparql-loaded` or `data-chart-loaded` attribute present?

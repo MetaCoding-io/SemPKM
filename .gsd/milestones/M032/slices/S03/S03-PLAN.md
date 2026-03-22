@@ -17,10 +17,11 @@
 - `cd e2e && npx playwright test tests/45-dashboard-blocks/dashboard-blocks.spec.ts --project=chromium` — all test cases pass
 - `test -f docs/guide/28-dashboards-and-workflows.md` and guide contains all 10 block types
 - `grep -c 'stat-card\|chart\|heading\|form-group' docs/guide/28-dashboards-and-workflows.md` returns ≥ 4
+- E2E spec includes a test that verifies error-state rendering (e.g. SPARQL widget error path) or that data-loaded attributes are set as diagnostic signals
 
 ## Tasks
 
-- [ ] **T01: E2E Playwright test for dashboard block rendering** `est:1h30m`
+- [x] **T01: E2E Playwright test for dashboard block rendering** `est:1h30m`
   - Why: Milestone requires E2E verification of stat-card and chart blocks rendering with live SPARQL data. Backend unit tests exist (1,547 lines across 3 files) but no browser-level test exercises the full rendering pipeline including htmx lazy-load → SPARQL fetch → DOM update → Chart.js initialization.
   - Files: `e2e/tests/45-dashboard-blocks/dashboard-blocks.spec.ts`, `e2e/helpers/selectors.ts`, `e2e/helpers/dockview.ts`
   - Do: Add dashboard selectors to selectors.ts. Add `openDashboardTab` helper to dockview.ts. Write spec that: (1) creates a dashboard via POST /api/dashboard with stat-card, chart, and heading blocks, (2) opens it via `window.openDashboardTab()`, (3) waits for htmx block loading + SPARQL widget execution, (4) asserts stat-card shows a numeric count, chart has a canvas element with Chart.js instance, heading renders correct text/level. Use `ownerPage` + `ownerSessionToken` fixtures. SPARQL queries target seed data (11 objects). Chart.js loads from CDN — test needs network access.
@@ -33,6 +34,13 @@
   - Do: Rewrite the Block Types table to cover all 10 types (add stat-card, chart, heading, form-group; update markdown and sparql-result descriptions). Replace the Layout Templates section with GridStack drag-drop description. Update "Creating a Dashboard" section for the GridStack palette workflow. Add a "Data Widgets" subsection covering stat-card and chart SPARQL configuration. Add a "Form Groups" subsection explaining multi-object creation with slots and edges. Update the Dashboard vs. Workflow comparison table to reflect 10 block types.
   - Verify: `test -f docs/guide/28-dashboards-and-workflows.md && grep -q 'stat-card' docs/guide/28-dashboards-and-workflows.md && grep -q 'form-group' docs/guide/28-dashboards-and-workflows.md && grep -q 'chart' docs/guide/28-dashboards-and-workflows.md`
   - Done when: Chapter 28 documents all 10 block types with configuration instructions, GridStack builder workflow, form-group slot/edge concepts, and data widget SPARQL patterns
+
+## Observability / Diagnostics
+
+- **E2E test failure visibility:** Playwright HTML report (`e2e/playwright-report/`) and trace artifacts show per-test screenshots, DOM snapshots, and network logs on failure. Console warnings from `_executeSparqlWidgets` and `_initChartBlocks` are captured in the trace.
+- **Dashboard block rendering signals:** Each block type sets a data attribute when its async work completes: `data-sparql-loaded` (stat-card, sparql-result), `data-chart-loaded` (chart), `data-md-rendered` (markdown). Absence of these attributes after timeout indicates a fetch or initialization failure.
+- **SPARQL widget errors:** `[SemPKM] SPARQL widget error:` and `[SemPKM] Chart block error:` console warnings with query substring are emitted on fetch failures — visible in Playwright trace console logs.
+- **Failure-path verification:** The E2E spec verifies that blocks reach their loaded state (data attributes present) before asserting content, so a timeout failure directly indicates which rendering stage stalled.
 
 ## Files Likely Touched
 
