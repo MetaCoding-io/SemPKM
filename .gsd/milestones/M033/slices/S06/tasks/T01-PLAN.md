@@ -55,7 +55,13 @@ Add optional catalog metadata fields (`category`, `features`, `readme`) to `AppM
 - `grep -q 'Operations' backend/app/templates/admin/apps/detail.html` — ops summary label exists
 - `grep -q 'category' backend/app/apps/admin_router.py` — category passed to list template
 
-## Inputs
+## Observability Impact
+
+- **Schema validation errors**: If an app manifest includes an invalid `category` (>64 chars) or `readme` (>10000 chars), Pydantic raises a `ValidationError` during `parse_app_manifest()` — visible in the app install log and admin list page as a manifest parse error.
+- **Admin detail page**: The `<details>` collapse state is browser-local (no server-side tracking). The features section renders only when `manifest.features` is non-empty — inspect the template context's `manifest` object to verify.
+- **Category on list page**: Visible as a pill in the admin app cards. If `manifest.category` is empty string, the pill is not rendered (Jinja2 truthiness check).
+- **Future agent inspection**: Run `from app.apps.manifest import parse_app_manifest; m = parse_app_manifest('<path>'); print(m.category, m.features, m.readme)` to check any manifest's extended fields.
+
 
 - `backend/app/apps/manifest.py` — existing `AppManifestSchema` to extend
 - `backend/app/templates/admin/apps/detail.html` — existing admin detail template to redesign

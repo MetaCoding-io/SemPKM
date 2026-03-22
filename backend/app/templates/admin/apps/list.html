@@ -63,6 +63,12 @@
                 </div>
             </div>
 
+            {% if app.category %}
+            <div style="margin-bottom: 8px;">
+                <span class="version-pill" style="background: color-mix(in srgb, var(--color-primary) 15%, transparent); color: var(--color-primary);">{{ app.category }}</span>
+            </div>
+            {% endif %}
+
             {% if app.description %}
             <p>{{ app.description }}</p>
             {% endif %}

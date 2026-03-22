@@ -87,6 +87,7 @@ async def admin_apps_list(
             "version": status.get("version", manifest.version if manifest else "?"),
             "name": manifest.name if manifest else app_id,
             "description": manifest.description if manifest else "",
+            "category": manifest.category if manifest else "",
         })
 
     # Discover available (not yet installed) apps on disk
