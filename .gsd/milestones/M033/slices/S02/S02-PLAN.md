@@ -50,7 +50,7 @@
   - Verify: `rg -c '_applyIsometricTransform\|_removeIsometricTransform\|graph-isometric-wrapper' frontend/static/js/graph.js frontend/static/css/views.css` returns matches in both files; `rg -c 'isometric' backend/app/views/router.py` returns ≥ 2
   - Done when: Selecting "Isometric 2.5D" in layout picker tilts the graph into 3D perspective; clicking a node fires the correct tap event; popovers appear near the clicked node; switching to another layout removes the tilt cleanly
 
-- [ ] **T03: E2E tests for isometric layout and icon toggle** `est:1h`
+- [x] **T03: E2E tests for isometric layout and icon toggle** `est:1h`
   - Why: Automated verification that both features are wired up and functional — covers layout picker option presence, icon toggle button presence, and basic interaction
   - Files: `e2e/tests/02-views/graph-isometric.spec.ts`, `e2e/helpers/selectors.ts`
   - Do: Add `iconToggle` and `isometricLayout` selectors to `SEL.views`. Write E2E spec: (1) graph view has "Isometric 2.5D" in layout picker options, (2) selecting isometric applies the CSS transform class, (3) icon toggle button is present, (4) clicking icon toggle applies background-image to nodes, (5) isometric + icon toggle combined. Follow existing graph-view.spec.ts patterns for opening a graph panel.
