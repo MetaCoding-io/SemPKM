@@ -29,7 +29,7 @@
   - Verify: `cd backend && .venv/bin/python -m pytest tests/test_federation_config.py tests/test_federation_endpoints_api.py -v`
   - Done when: Admin can add/remove endpoints via the API; GET returns merged env+file list; admin page renders with add form and remove buttons
 
-- [ ] **T02: SERVICE endpoint autocomplete and info banner** `est:30m`
+- [x] **T02: SERVICE endpoint autocomplete and info banner** `est:30m`
   - Why: The console has SERVICE detection and mirror button post-execution, but no pre-execution feedback or typing assistance. Need autocomplete for endpoint URLs and a live info banner.
   - Files: `frontend/static/js/sparql-console.js`, `frontend/static/css/workspace.css`
   - Do: Add `fetchMirrorAllowlist()` call in `initSparqlConsole()`. Extend `sparqlCompletions()` with SERVICE URI detection branch — when cursor is after `SERVICE <` or `SERVICE SILENT <`, filter allowlist cache entries matching the partial URL and return completions with type `'url'` and detail `'⛓'`. Add debounced `EditorView.updateListener` that runs `detectServiceEndpoints()` on content changes and renders an info bar below the editor showing endpoint URLs with allowlist status indicators. Add CSS for `.sparql-service-info` banner.
