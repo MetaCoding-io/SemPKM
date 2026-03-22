@@ -15,6 +15,7 @@
         {% endfor %}
     </select>
     <button class="graph-fit-btn" onclick="if(window._sempkmGraph) window._sempkmGraph.fit()" title="Fit graph to view">Fit</button>
+    <button class="graph-icon-toggle-btn" id="graph-icon-toggle" onclick="window._toggleGraphIcons()" title="Toggle node icons"><i data-lucide="shapes"></i> <span>Icons</span></button>
 </div>
 
 <div id="cy-container" class="graph-container" data-testid="graph-view"></div>

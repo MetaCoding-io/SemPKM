@@ -35,7 +35,7 @@
 
 ## Tasks
 
-- [ ] **T01: Add Lucide SVG icon toggle to graph nodes** `est:1.5h`
+- [x] **T01: Add Lucide SVG icon toggle to graph nodes** `est:1.5h`
   - Why: Delivers ICON-01 — a toolbar button that switches graph nodes between shape-only and Lucide SVG icon display, with localStorage persistence
   - Files: `frontend/static/js/graph.js`, `frontend/static/css/views.css`, `backend/app/templates/browser/graph_view.html`
   - Do: Add memoized `_lucideSvgDataUri(iconName)` helper using `lucide.createElement()`. Add `iconMode` parameter to `buildSemanticStyle()` — when true, push `background-image` styles per type. Add icon toggle button to `.graph-toolbar` in template. Add `_setIconMode(cy, mode)` that writes to localStorage and rebuilds stylesheet. Wire theme changes to preserve icon mode. CSS: style the toggle button with flex-shrink:0 for the SVG icon per CLAUDE.md rules.
@@ -55,6 +55,13 @@
   - Do: Add `iconToggle` and `isometricLayout` selectors to `SEL.views`. Write E2E spec: (1) graph view has "Isometric 2.5D" in layout picker options, (2) selecting isometric applies the CSS transform class, (3) icon toggle button is present, (4) clicking icon toggle applies background-image to nodes, (5) isometric + icon toggle combined. Follow existing graph-view.spec.ts patterns for opening a graph panel.
   - Verify: `cd e2e && npx playwright test tests/02-views/graph-isometric.spec.ts --reporter=list` — all tests pass or skip gracefully when no graph spec exists
   - Done when: E2E spec file exists with 4+ test cases; tests pass against running test stack
+
+## Observability / Diagnostics
+
+- **Console warnings:** `_lucideSvgDataUri()` logs `[graph] Lucide icon not found: <name>` when the lucide UMD doesn't have a matching PascalCase export, and `[graph] lucide UMD not loaded` if the CDN script failed. Both are console.warn — visible in browser DevTools.
+- **Icon mode state inspection:** `localStorage.getItem('sempkm_graph_icon_mode')` returns `'icon'` or `'shape'` (or null for default). The toggle button has `.active` class when icon mode is on.
+- **Isometric transform inspection (T02):** The wrapper div `.graph-isometric-wrapper` presence in DOM indicates isometric is active. CSS `transform` property is inspectable via DevTools.
+- **Failure-path verification:** Open graph view with lucide CDN blocked → console shows `[graph] lucide UMD not loaded` warning → graph renders with shapes only (graceful degradation, no crash).
 
 ## Files Likely Touched
 

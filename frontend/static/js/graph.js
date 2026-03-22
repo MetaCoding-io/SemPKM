@@ -17,14 +17,73 @@
 
   var currentLayoutName = 'fcose';
 
+  // --- Icon Mode State ---
+  var _currentIconMode = false;  // true when icon mode is active
+
   function registerLayout(name, configObj) {
     LAYOUT_REGISTRY[name] = configObj;
   }
 
+  // --- Lucide SVG Data URI Helper (memoized) ---
+
+  var _svgUriCache = {};
+
+  /**
+   * Convert a kebab-case Lucide icon name to an SVG data URI string.
+   * Uses the global lucide UMD bundle. Returns null if icon not found.
+   * Results are cached per (iconName, strokeColor) pair.
+   *
+   * @param {string} iconName - kebab-case icon name, e.g. 'file-text'
+   * @param {string} [strokeColor='#333'] - stroke color for the SVG
+   * @returns {string|null} data URI or null
+   */
+  function _lucideSvgDataUri(iconName, strokeColor) {
+    if (!iconName) return null;
+    strokeColor = strokeColor || '#333';
+    var cacheKey = iconName + ':' + strokeColor;
+    if (_svgUriCache[cacheKey] !== undefined) return _svgUriCache[cacheKey];
+
+    if (typeof lucide === 'undefined' || !lucide.icons) {
+      console.warn('[graph] lucide UMD not loaded, cannot create icon SVG for:', iconName);
+      _svgUriCache[cacheKey] = null;
+      return null;
+    }
+
+    // Convert kebab-case to PascalCase: 'file-text' -> 'FileText'
+    var pascalName = iconName.replace(/(^|-)([a-z])/g, function (_m, _sep, ch) {
+      return ch.toUpperCase();
+    });
+
+    var iconDef = lucide.icons[pascalName];
+    if (!iconDef) {
+      console.warn('[graph] Lucide icon not found:', iconName, '(tried:', pascalName, ')');
+      _svgUriCache[cacheKey] = null;
+      return null;
+    }
+
+    try {
+      var el = lucide.createElement(iconDef, {
+        width: 20,
+        height: 20,
+        stroke: strokeColor,
+        'stroke-width': 1.5
+      });
+      var svgHtml = el.outerHTML;
+      var dataUri = 'data:image/svg+xml;utf8,' + encodeURIComponent(svgHtml);
+      _svgUriCache[cacheKey] = dataUri;
+      return dataUri;
+    } catch (e) {
+      console.error('[graph] Failed to create Lucide SVG for:', iconName, e);
+      _svgUriCache[cacheKey] = null;
+      return null;
+    }
+  }
+
   // --- Semantic Style Builder ---
 
-  function buildSemanticStyle(typeColors, isDark) {
+  function buildSemanticStyle(typeColors, isDark, iconMode) {
     isDark = isDark || false;
+    iconMode = iconMode || false;
 
     var nodeColor = isDark ? '#abb2bf' : '#333';
     var nodeBg = isDark ? '#5c6370' : '#bab0ab';
@@ -154,13 +213,46 @@
         var iri = typeIris[k];
         var iconInfo = graphIcons[iri];
         if (iconInfo && iconInfo.icon) {
-          var shape = iconToShape[iconInfo.icon] || 'ellipse';
-          styles.push({
-            selector: 'node[type = "' + iri + '"]',
-            style: { 'shape': shape }
-          });
+          if (iconMode) {
+            // Icon mode: render Lucide SVG as background-image, uniform ellipse shape
+            var svgUri = _lucideSvgDataUri(iconInfo.icon, nodeColor);
+            if (svgUri) {
+              styles.push({
+                selector: 'node[type = "' + iri + '"]',
+                style: {
+                  'shape': 'ellipse',
+                  'background-image': svgUri,
+                  'background-fit': 'contain',
+                  'background-clip': 'none',
+                  'background-width': '60%',
+                  'background-height': '60%'
+                }
+              });
+            } else {
+              // Fallback: still override shape to ellipse for uniformity
+              styles.push({
+                selector: 'node[type = "' + iri + '"]',
+                style: { 'shape': 'ellipse' }
+              });
+            }
+          } else {
+            // Shape-only mode: map icon names to distinct Cytoscape shapes
+            var shape = iconToShape[iconInfo.icon] || 'ellipse';
+            styles.push({
+              selector: 'node[type = "' + iri + '"]',
+              style: { 'shape': shape }
+            });
+          }
         }
       }
+    }
+
+    // In icon mode, set uniform ellipse shape on all nodes (catch types without icon mapping)
+    if (iconMode) {
+      styles.push({
+        selector: 'node',
+        style: { 'shape': 'ellipse' }
+      });
     }
 
     return styles;
@@ -282,10 +374,14 @@
       }
     }
 
+    // Read icon mode from localStorage
+    var savedIconMode = localStorage.getItem('sempkm_graph_icon_mode');
+    _currentIconMode = (savedIconMode === 'icon');
+
     var cy = cytoscape({
       container: container,
       elements: elements,
-      style: buildSemanticStyle(typeColors, document.documentElement.getAttribute('data-theme') === 'dark'),
+      style: buildSemanticStyle(typeColors, document.documentElement.getAttribute('data-theme') === 'dark', _currentIconMode),
       layout: layoutConfig,
       minZoom: 0.1,
       maxZoom: 5,
@@ -295,6 +391,9 @@
     // Store the cy instance globally
     window._sempkmGraph = cy;
     window._sempkmTypeColors = typeColors;
+
+    // Update icon toggle button to reflect loaded preference
+    _updateIconToggleButton();
 
     // Register cleanup for htmx:beforeCleanupElement
     if (typeof window.registerCleanup === 'function' && container.id) {
@@ -590,8 +689,8 @@
         // Add new elements
         var added = cy.add(newElements);
 
-        // Update styles with new type colors
-        cy.style(buildSemanticStyle(currentColors, document.documentElement.getAttribute('data-theme') === 'dark'));
+        // Update styles with new type colors (preserve icon mode)
+        cy.style(buildSemanticStyle(currentColors, document.documentElement.getAttribute('data-theme') === 'dark', _currentIconMode));
 
         // Run layout on ONLY the new elements (per Research Pitfall 6)
         var newNodes = added.filter('node');
@@ -690,7 +789,10 @@
     var cy = window._sempkmGraph;
     if (!cy) return;
 
-    var styles = buildSemanticStyle(window._sempkmTypeColors || {}, isDark);
+    // Clear SVG URI cache since stroke color changes with theme
+    _svgUriCache = {};
+
+    var styles = buildSemanticStyle(window._sempkmTypeColors || {}, isDark, _currentIconMode);
     cy.style().fromJson(styles).update();
   }
 
@@ -699,11 +801,67 @@
     switchGraphTheme(e.detail.theme === 'dark');
   });
 
+  // --- Icon Mode Toggle ---
+
+  /**
+   * Set icon mode and rebuild the graph stylesheet.
+   * @param {string} mode - 'icon' or 'shape'
+   */
+  function _setIconMode(mode) {
+    var cy = window._sempkmGraph;
+    if (!cy) return;
+
+    _currentIconMode = (mode === 'icon');
+    localStorage.setItem('sempkm_graph_icon_mode', mode);
+
+    // Clear SVG URI cache when switching modes (stroke color may differ)
+    _svgUriCache = {};
+
+    var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    cy.style().fromJson(buildSemanticStyle(window._sempkmTypeColors || {}, isDark, _currentIconMode)).update();
+
+    _updateIconToggleButton();
+  }
+
+  /**
+   * Toggle between icon mode and shape mode.
+   */
+  function _toggleGraphIcons() {
+    var newMode = _currentIconMode ? 'shape' : 'icon';
+    _setIconMode(newMode);
+  }
+
+  /**
+   * Update the icon toggle button's active state and label.
+   */
+  function _updateIconToggleButton() {
+    var btn = document.getElementById('graph-icon-toggle');
+    if (!btn) return;
+
+    if (_currentIconMode) {
+      btn.classList.add('active');
+      var span = btn.querySelector('span');
+      if (span) span.textContent = 'Icons On';
+    } else {
+      btn.classList.remove('active');
+      var span = btn.querySelector('span');
+      if (span) span.textContent = 'Icons';
+    }
+  }
+
+  // Update button state when graph initializes (deferred to allow DOM render)
+  document.addEventListener('DOMContentLoaded', function () {
+    // Small delay to ensure graph template has rendered
+    setTimeout(_updateIconToggleButton, 100);
+  });
+
   // --- Export Globally ---
   window.initGraph = initGraph;
   window.changeLayout = changeLayout;
   window.registerLayout = registerLayout;
   window.filterGraph = filterGraph;
   window.switchGraphTheme = switchGraphTheme;
+  window._toggleGraphIcons = _toggleGraphIcons;
+  window._setIconMode = _setIconMode;
 
 })();
