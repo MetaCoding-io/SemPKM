@@ -79,3 +79,10 @@ Key namespace references:
 
 - `backend/app/views/service.py` — new `execute_merged_calendar_query()` method
 - `backend/app/views/router.py` — extended `generic_view_data()` + new `calendar_patch()` endpoint
+
+## Observability Impact
+
+- **New log lines:** `execute_merged_calendar_query` logs per-type event count at INFO level; `calendar_patch` logs IRI, start/end values, and event IRI on success
+- **Failure surfaces:** PATCH endpoint returns structured JSON errors (`{"error": "..."}`) with appropriate HTTP status codes (400 for invalid IRI/missing params/unsupported type, 500 for triplestore/dispatch failures); backend logs warning with exc_info on type query failure and exception on dispatch failure
+- **Inspection:** `GET /browser/views/generic/calendar/data?merged=true` returns `{"events": [...], "types_found": [...]}` — types_found indicates which types had date fields and produced events
+- **How to verify:** Check `types_found` array in merged response; POST to `/browser/views/calendar/patch` with `{"iri": "...", "start": "...", "end": "..."}` and verify `{"ok": true}` response

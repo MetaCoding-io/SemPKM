@@ -19,11 +19,15 @@ from pydantic import BaseModel
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
 from app.dependencies import get_label_service, get_query_service, get_shapes_service, get_view_spec_service
+from app.dependencies import get_triplestore_client, get_validation_queue, get_webhook_service
 from app.services.labels import LabelService
 from app.services.shapes import ShapesService
 from app.sparql.query_service import QueryService
-from app.browser._helpers import get_hidden_types
+from app.browser._helpers import get_hidden_types, _validate_iri
 from app.views.service import ViewSpec, ViewSpecService, extract_scope_where_body, inject_values_binding
+from app.triplestore.client import TriplestoreClient
+from app.validation.queue import AsyncValidationQueue
+from app.services.webhooks import WebhookService
 
 logger = logging.getLogger(__name__)
 
@@ -455,30 +459,34 @@ async def generic_view(
 
     elif renderer == "calendar":
         if not type_iri:
-            logger.info("generic_view: renderer=calendar but no type selected")
-            return templates.TemplateResponse(
-                request,
-                "browser/calendar_view.html",
-                {
-                    "request": request,
-                    "error_message": "Select a type to use Calendar View",
-                    "events": [],
-                    "date_fields": None,
-                    "type_label": type_label,
-                    "type_iri": "",
-                    "selected_type": "",
-                    "types": types_list,
-                    "model_view_specs": model_view_specs,
-                    "scope_query": scope_query,
-                    "user_saved_queries": user_saved_queries,
-                    "model_saved_queries": model_saved_queries,
-                    "is_generic": True,
-                    "renderer": "calendar",
-                    "pagination_base_url": pagination_base_url,
-                    "pag_extra": pag_extra,
-                    "spec": spec,
-                },
-            )
+            # No type selected → use merged mode (Events + Tasks combined)
+            logger.info("generic_view: renderer=calendar no type → merged mode")
+
+            calendar_data_url = "/browser/views/generic/calendar/data?merged=true"
+            if scope_query:
+                calendar_data_url += f"&scope_query={quote(scope_query, safe='')}"
+
+            context = {
+                "request": request,
+                "date_fields": {"merged": True},  # truthy so template renders calendar
+                "calendar_data_url": calendar_data_url,
+                "type_label": type_label,
+                "type_iri": "",
+                "selected_type": "",
+                "types": types_list,
+                "model_view_specs": model_view_specs,
+                "scope_query": scope_query,
+                "user_saved_queries": user_saved_queries,
+                "model_saved_queries": model_saved_queries,
+                "is_generic": True,
+                "renderer": "calendar",
+                "pagination_base_url": pagination_base_url,
+                "pag_extra": pag_extra,
+                "spec": spec,
+            }
+            if embed:
+                return _embed_response(templates, request, "browser/calendar_view.html", context)
+            return templates.TemplateResponse(request, "browser/calendar_view.html", context)
 
         start_field, end_field = await view_spec_service._detect_date_fields(type_iri)
 
@@ -737,6 +745,7 @@ async def generic_view_data(
     renderer: str,
     type: str = Query(default=""),
     scope_query: str = Query(default=""),
+    merged: str = Query(default=""),
     user: User = Depends(get_current_user),
     view_spec_service: ViewSpecService = Depends(get_view_spec_service),
     query_service: QueryService = Depends(get_query_service),
@@ -745,6 +754,7 @@ async def generic_view_data(
 
     For graph: builds a dynamic CONSTRUCT query and executes it.
     For calendar: detects date fields and returns FullCalendar events.
+      When ``merged=true``, queries both Event and Task types and merges.
     For map: detects geo fields and returns marker data with coordinates.
     Accepts optional scope_query to filter results by saved query.
     """
@@ -765,6 +775,14 @@ async def generic_view_data(
             logger.warning("generic_view_data: invalid scope_query=%s", scope_query, exc_info=True)
 
     if renderer == "calendar":
+        # Merged mode: combine events from all known calendar types
+        if merged == "true":
+            result = await view_spec_service.execute_merged_calendar_query(
+                scope_filter=scope_filter_text,
+            )
+            return JSONResponse(content=result)
+
+        # Single-type mode
         if not type_iri:
             return JSONResponse(content={"events": [], "date_fields": None})
         start_field, end_field = await view_spec_service._detect_date_fields(type_iri)
@@ -802,6 +820,146 @@ async def generic_view_data(
 
     result = await view_spec_service.execute_graph_query(spec)
     return JSONResponse(content=result)
+
+
+# ── Calendar PATCH endpoint ────────────────────────────────────
+
+# Predicate mapping by type: which predicates hold start/end dates
+_CALENDAR_DATE_PREDICATES: dict[str, dict[str, str]] = {
+    "urn:sempkm:model:basic-pkm:Event": {
+        "start": "https://schema.org/startDate",
+        "end": "https://schema.org/endDate",
+    },
+    "urn:sempkm:model:basic-pkm:Task": {
+        "start": "urn:sempkm:model:basic-pkm:scheduledStart",
+        "end": "urn:sempkm:model:basic-pkm:scheduledEnd",
+    },
+}
+
+
+class CalendarPatchRequest(BaseModel):
+    """Request body for calendar drag/resize persistence."""
+    iri: str
+    start: str | None = None
+    end: str | None = None
+
+
+@router.post("/calendar/patch")
+async def calendar_patch(
+    body: CalendarPatchRequest,
+    request: Request,
+    user: User = Depends(get_current_user),
+    client: TriplestoreClient = Depends(get_triplestore_client),
+    view_spec_service: ViewSpecService = Depends(get_view_spec_service),
+    validation_queue: AsyncValidationQueue = Depends(get_validation_queue),
+    webhook_service: WebhookService = Depends(get_webhook_service),
+):
+    """Persist calendar drag/resize results via object.patch command.
+
+    Accepts ``{iri, start?, end?}`` and determines the correct predicates
+    based on the object's RDF type (Event → schema:startDate/endDate,
+    Task → bpkm:scheduledStart/scheduledEnd).
+    """
+    if not _validate_iri(body.iri):
+        return JSONResponse(
+            content={"error": "Invalid IRI"},
+            status_code=400,
+        )
+
+    if body.start is None and body.end is None:
+        return JSONResponse(
+            content={"error": "At least one of start or end must be provided"},
+            status_code=400,
+        )
+
+    # Detect the object's type to determine the right predicates
+    type_query = f"""SELECT ?type WHERE {{
+  GRAPH <urn:sempkm:current> {{
+    <{body.iri}> a ?type .
+  }}
+}}"""
+    try:
+        type_result = await client.query(type_query)
+        type_bindings = type_result.get("results", {}).get("bindings", [])
+    except Exception:
+        logger.warning("calendar_patch: type query failed for %s", body.iri, exc_info=True)
+        return JSONResponse(
+            content={"error": "Failed to determine object type"},
+            status_code=500,
+        )
+
+    # Find the first matching type in our predicate map
+    predicates: dict[str, str] | None = None
+    for tb in type_bindings:
+        t = tb.get("type", {}).get("value", "")
+        if t in _CALENDAR_DATE_PREDICATES:
+            predicates = _CALENDAR_DATE_PREDICATES[t]
+            break
+
+    if predicates is None:
+        return JSONResponse(
+            content={"error": "Object type not supported for calendar updates"},
+            status_code=400,
+        )
+
+    # Build properties dict for object.patch
+    properties: dict[str, str] = {}
+    if body.start is not None:
+        properties[predicates["start"]] = body.start
+    if body.end is not None:
+        properties[predicates["end"]] = body.end
+
+    # Dispatch object.patch via the command system
+    from app.commands.dispatcher import dispatch
+    from app.commands.schemas import ObjectPatchCommand, ObjectPatchParams
+    from app.config import settings
+    from app.events.store import EventStore
+    from rdflib import URIRef
+
+    cmd = ObjectPatchCommand(
+        command="object.patch",
+        params=ObjectPatchParams(iri=body.iri, properties=properties),
+    )
+
+    try:
+        operation = await dispatch(cmd, settings.base_namespace)
+        event_store = EventStore(client)
+        user_iri = URIRef(f"urn:sempkm:user:{user.id}")
+        event_result = await event_store.commit(
+            [operation],
+            performed_by=user_iri,
+            performed_by_role=user.role,
+        )
+
+        # Trigger async validation
+        await validation_queue.enqueue(
+            event_iri=str(event_result.event_iri),
+            timestamp=event_result.timestamp,
+        )
+
+        # Dispatch webhooks
+        try:
+            await webhook_service.dispatch("object.changed", {
+                "event_iri": str(event_result.event_iri),
+                "command": "object.patch",
+                "timestamp": event_result.timestamp,
+            })
+        except Exception:
+            logger.warning("calendar_patch: webhook dispatch failed", exc_info=True)
+
+        logger.info(
+            "calendar_patch: patched %s start=%s end=%s event=%s",
+            body.iri, body.start, body.end, event_result.event_iri,
+        )
+
+        return JSONResponse(content={"ok": True, "event_iri": str(event_result.event_iri)})
+
+    except Exception as e:
+        logger.exception("calendar_patch: command dispatch failed for %s", body.iri)
+        return JSONResponse(
+            content={"error": f"Patch failed: {str(e)}"},
+            status_code=500,
+        )
 
 
 @router.get("/type-pills")

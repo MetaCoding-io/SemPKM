@@ -1157,10 +1157,13 @@ WHERE {{
         "duedate",
         "completeddate",
         "targetdate",
+        "scheduledstart",
+        "scheduledend",
     }
 
     # Priority order for selecting the *start* date field.
-    _START_DATE_PRIORITY = ["startdate", "duedate", "targetdate", "created"]
+    # "scheduledstart" is highest priority for Task time-blocking.
+    _START_DATE_PRIORITY = ["scheduledstart", "startdate", "duedate", "targetdate", "created"]
 
     _XSD_DATE_TYPES: set[str] = {
         "http://www.w3.org/2001/XMLSchema#date",
@@ -1224,11 +1227,16 @@ WHERE {{
         if start_field is None:
             start_field = date_props[0]
 
-        # Pick end field: prefer path containing "enddate"
+        # Pick end field: prefer path containing "enddate" or "scheduledend"
         end_field: PropertyShape | None = None
-        for prop in date_props:
-            if "enddate" in _local_name(prop.path).lower() and prop is not start_field:
-                end_field = prop
+        _END_KEYWORDS = ("scheduledend", "enddate")
+        for kw in _END_KEYWORDS:
+            for prop in date_props:
+                local = _local_name(prop.path).lower()
+                if kw in local and prop is not start_field:
+                    end_field = prop
+                    break
+            if end_field:
                 break
 
         logger.debug(
@@ -1370,6 +1378,66 @@ WHERE {{
                 "end": {"path": end_field.path, "name": end_field.name} if end_field else None,
             },
         }
+
+    # Color assignments for merged calendar view (type IRI → hex color)
+    _CALENDAR_TYPE_COLORS: dict[str, str] = {
+        "urn:sempkm:model:basic-pkm:Event": "#8b5cf6",   # purple
+        "urn:sempkm:model:basic-pkm:Task": "#10b981",    # green
+    }
+
+    async def execute_merged_calendar_query(
+        self,
+        scope_filter: str | None = None,
+    ) -> dict:
+        """Query both Event and Task types and merge into one event list.
+
+        For each type in ``_CALENDAR_TYPE_COLORS``, detects date fields,
+        runs ``execute_calendar_query()``, and annotates each result with
+        ``sourceType`` and ``backgroundColor`` for FullCalendar styling.
+
+        Args:
+            scope_filter: Optional SPARQL WHERE body from a saved query.
+
+        Returns:
+            ``{"events": [...], "types_found": [...]}``
+        """
+        all_events: list[dict] = []
+        types_found: list[str] = []
+
+        for type_iri, color in self._CALENDAR_TYPE_COLORS.items():
+            start_field, end_field = await self._detect_date_fields(type_iri)
+            if start_field is None:
+                logger.debug(
+                    "execute_merged_calendar_query: skipping %s (no date fields)",
+                    type_iri,
+                )
+                continue
+
+            result = await self.execute_calendar_query(
+                type_iri, start_field, end_field, scope_filter=scope_filter,
+            )
+
+            events = result.get("events", [])
+            # Derive a short sourceType label from the type IRI local name
+            local = type_iri.rsplit(":", 1)[-1] if ":" in type_iri else type_iri
+            source_type = local.lower()  # "event" or "task"
+
+            for ev in events:
+                ev["backgroundColor"] = color
+                ev["borderColor"] = color
+                ep = ev.setdefault("extendedProps", {})
+                ep["sourceType"] = source_type
+                ep["typeIri"] = type_iri
+
+            all_events.extend(events)
+            types_found.append(type_iri)
+
+            logger.info(
+                "execute_merged_calendar_query: type=%s events=%d color=%s",
+                type_iri, len(events), color,
+            )
+
+        return {"events": all_events, "types_found": types_found}
 
     # ── Map renderer ───────────────────────────────────────────
 

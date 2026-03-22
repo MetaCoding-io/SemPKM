@@ -24,6 +24,7 @@
 
 - `cd backend && .venv/bin/python -m pytest tests/test_calendar.py tests/test_calendar_editable.py -v` — all pass
 - `python3 -c "import json; d=json.load(open('models/basic-pkm/shapes/basic-pkm.jsonld')); props=[p for ps in d['@graph'] if ps.get('rdfs:label')=='Task Shape' for p in ps.get('sh:property',[]) if 'scheduled' in str(p.get('sh:path',{}).get('@id','')) or 'estimated' in str(p.get('sh:path',{}).get('@id',''))]; assert len(props)==3"` — exits 0 (shapes integrity check)
+- `cd backend && .venv/bin/python -m pytest tests/test_calendar_editable.py -v -k "invalid_iri or unsupported_type or no_dates"` — failure-path tests pass (400 status for invalid IRI, unsupported type, missing dates)
 - Manual: open calendar in Docker stack, confirm drag/resize/select work and persist
 
 ## Observability / Diagnostics
@@ -48,7 +49,7 @@
   - Verify: `python3 -c "import json; d=json.load(open('models/basic-pkm/shapes/basic-pkm.jsonld')); props=[p for ps in d['@graph'] if ps.get('rdfs:label')=='Task Shape' for p in ps.get('sh:property',[]) if 'scheduled' in str(p.get('sh:path',{}).get('@id','')) or 'estimated' in str(p.get('sh:path',{}).get('@id',''))]; assert len(props)==3, f'Expected 3, got {len(props)}'"` passes
   - Done when: shapes file has 3 new properties on TaskShape, ontology has 3 new DatatypeProperty entries, manifest says 2.2.0
 
-- [ ] **T02: Extend backend calendar data endpoint with merged Task+Event query and PATCH handler** `est:1h30m`
+- [x] **T02: Extend backend calendar data endpoint with merged Task+Event query and PATCH handler** `est:1h30m`
   - Why: The calendar currently queries one type at a time. To show Tasks and Events together, the backend needs a merged query mode. Drag/resize interactions need a server endpoint to persist the new dates.
   - Files: `backend/app/views/service.py`, `backend/app/views/router.py`
   - Do: (1) Add `execute_merged_calendar_query()` to ViewSpecService that queries both Event and Task types, merges results, and annotates each event with `sourceType: "task"|"event"`. Use `_detect_date_fields()` for each type. (2) Extend `generic_view_data()` to accept `merged=true` query param — when set, runs the merged query regardless of single type filter. (3) Add a POST endpoint `/browser/views/calendar/patch` that accepts `{iri, scheduledStart?, scheduledEnd?, estimatedDuration?}` and issues an `object.patch` command via the existing command dispatch. (4) Update `calendar_view.html` context to pass the merged data URL when type filter is blank or "all".
