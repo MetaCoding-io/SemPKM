@@ -72,7 +72,7 @@ Orphan risks: None — all prior Active requirements (APP-01..14, RSS-01..08, GC
 
 ## Slices
 
-- [ ] **S01: Editable Calendar & Task Time-Blocking** `risk:high` `depends:[]`
+- [x] **S01: Editable Calendar & Task Time-Blocking** `risk:high` `depends:[]`
   > After this: User opens Calendar view, sees Tasks (with scheduledStart) as colored blocks alongside Events. Dragging a task reschedules it. Resizing changes duration. Clicking an empty time slot creates a new task at that time. Tasks have scheduledStart/scheduledEnd/estimatedDuration in the schema. Calendar data endpoint returns both Events and scheduled Tasks.
   - **Demo:** Open calendar, drag a task from 2pm to 4pm — task block moves, reload confirms persistence. Click empty 10am slot — new task form opens with pre-filled start time. Resize a task block to 2 hours — duration updates.
   - **Proof:** E2E test: schedule task via drag → verify SPARQL shows scheduledStart/scheduledEnd. Unit test: calendar query returns both Events and Tasks.
