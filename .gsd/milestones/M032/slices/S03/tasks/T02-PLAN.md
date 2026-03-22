@@ -78,6 +78,12 @@ Since chapter 28 already exists in all three guide index files (`docs/guide/READ
 - `docs/guide/28-dashboards-and-workflows.md` — existing chapter to update (210 lines)
 - `backend/app/dashboard/registry.py` — all 10 block types and their config schemas (reference)
 
+## Observability Impact
+
+- **No runtime signals changed.** This task updates documentation only.
+- **Verification signals:** `grep -c` checks confirm all 10 block types, GridStack, and form-group are documented. The slice-level E2E test validates the runtime rendering — this task only documents what exists.
+- **Future agent inspection:** If a block type is added to `BLOCK_REGISTRY` in the future, a mismatch between the registry and the guide's block table is the diagnostic signal that docs are stale.
+
 ## Expected Output
 
 - `docs/guide/28-dashboards-and-workflows.md` — updated chapter with all 10 block types, GridStack builder, data widgets, and form groups
