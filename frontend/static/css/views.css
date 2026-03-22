@@ -1347,6 +1347,17 @@ select.cards-group-select {
     background: var(--color-primary-subtle, rgba(0, 120, 212, 0.04));
 }
 
+/* ── Scope sync visual feedback ── */
+@keyframes scope-sync-flash {
+    0%   { outline-color: var(--color-accent, #0078d4); outline-offset: 0; }
+    100% { outline-color: transparent; outline-offset: 2px; }
+}
+.scope-syncing {
+    outline: 2px solid var(--color-accent, #0078d4);
+    outline-offset: 0;
+    animation: scope-sync-flash 300ms ease-out forwards;
+}
+
 /* Calendar event type color coding */
 .fc-event-task {
     background-color: #10b981 !important;

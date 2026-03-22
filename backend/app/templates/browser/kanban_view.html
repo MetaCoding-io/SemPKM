@@ -10,7 +10,7 @@
 </div>
 
 {% elif columns %}
-<div class="kanban-board" data-status-predicate="{{ status_field.path }}">
+<div class="kanban-board" data-status-predicate="{{ status_field.path }}" data-type-iri="{{ type_iri | default('') }}">
     {% for col in columns %}
     <div class="kanban-column" data-status="{{ col.value }}">
         <div class="kanban-column-header">

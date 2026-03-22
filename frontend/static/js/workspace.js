@@ -3484,7 +3484,27 @@
 
   // --- Scope Query Support ---
 
-  function applyScopeQuery(queryId, renderer, selectedType) {
+  function applyScopeQuery(queryId, renderer, selectedType, sourceEl) {
+    // Derive source panel ID for cross-view scope propagation
+    var sourcePanel = '';
+    if (sourceEl) {
+      var dvPanel = sourceEl.closest('.dv-panel');
+      if (dvPanel) sourcePanel = dvPanel.id || '';
+    }
+
+    // Dispatch scope-changed event BEFORE the htmx re-swap so sibling views
+    // can react in parallel with the triggering view's own update.
+    document.dispatchEvent(new CustomEvent('sempkm:scope-changed', {
+      detail: {
+        scopeQuery: queryId || '',
+        renderer: renderer || '',
+        selectedType: selectedType || '',
+        sourcePanel: sourcePanel
+      }
+    }));
+    console.log('[scope] propagated: scopeQuery=' + (queryId || '(none)') +
+      ' renderer=' + renderer + ' sourcePanel=' + (sourcePanel || '(none)'));
+
     var url = '/browser/views/generic/' + encodeURIComponent(renderer);
     var params = [];
     if (selectedType) params.push('type=' + encodeURIComponent(selectedType));

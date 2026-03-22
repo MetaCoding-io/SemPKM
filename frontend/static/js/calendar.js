@@ -204,6 +204,42 @@
             window._sempkmCalendar.refetchEvents();
           }
         });
+
+        /* ── Scope sync: re-fetch when a sibling view changes scope ── */
+        document.addEventListener('sempkm:scope-changed', function (e) {
+          var detail = e.detail || {};
+          // Compute own panel ID to avoid self-triggered re-fetch
+          var ownPanel = el.closest('.dv-panel');
+          var ownPanelId = ownPanel ? (ownPanel.id || '') : '';
+          if (detail.sourcePanel && detail.sourcePanel === ownPanelId) return;
+
+          console.log('[calendar] scope sync: scopeQuery=' + (detail.scopeQuery || '(none)') +
+            ' from panel=' + (detail.sourcePanel || '(unknown)'));
+
+          // Build the new data URL with the updated scope_query
+          var baseUrl = dataUrl.replace(/[&?]scope_query=[^&]*/g, '');
+          var sep = baseUrl.indexOf('?') === -1 ? '?' : '&';
+          var newUrl = detail.scopeQuery
+            ? baseUrl + sep + 'scope_query=' + encodeURIComponent(detail.scopeQuery)
+            : baseUrl;
+
+          // Visual feedback
+          el.classList.add('scope-syncing');
+          setTimeout(function () { el.classList.remove('scope-syncing'); }, 300);
+
+          fetch(newUrl, { credentials: 'include' })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              cal.removeAllEvents();
+              (data.events || []).forEach(function (evt) {
+                cal.addEvent(evt);
+              });
+              console.log('[calendar] scope sync complete:', (data.events || []).length, 'events');
+            })
+            .catch(function (err) {
+              console.error('[calendar] scope sync failed:', err);
+            });
+        });
       })
       .catch(function (err) {
         console.error('[calendar] data fetch failed:', err);
