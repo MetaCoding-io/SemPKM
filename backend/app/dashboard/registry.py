@@ -174,7 +174,7 @@ class BlockRegistry:
 
 
 def _build_default_registry() -> BlockRegistry:
-    """Construct the default registry with all 6 built-in block types."""
+    """Construct the default registry with all 7 built-in block types."""
     registry = BlockRegistry()
 
     registry.register(BlockTypeSpec(
@@ -241,6 +241,16 @@ def _build_default_registry() -> BlockRegistry:
         config_schema={},
         default_w=12,
         default_h=1,
+    ))
+
+    registry.register(BlockTypeSpec(
+        type_name="form-group",
+        label="Form Group",
+        icon="layers",
+        category="data",
+        config_schema={"slots": list, "edges": list},
+        default_w=12,
+        default_h=8,
     ))
 
     return registry

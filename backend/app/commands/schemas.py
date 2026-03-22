@@ -69,6 +69,7 @@ class ObjectCreateCommand(BaseModel):
 
     command: Literal["object.create"]
     params: ObjectCreateParams
+    slot: str | None = None  # Optional slot name for batch IRI resolution
 
 
 class ObjectPatchCommand(BaseModel):
