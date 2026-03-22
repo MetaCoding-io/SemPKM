@@ -92,3 +92,10 @@ Design reference: `.gsd/design/DEPLOYMENT-AND-ONBOARDING-DESIGN.md` section 4 (C
 - `Caddyfile.demo` — renamed from Caddyfile
 - `docker-compose.demo.yml` — possibly updated if it referenced Caddyfile
 - `.gitignore` — updated with certs/ entry
+
+## Observability Impact
+
+- **Deployment validation:** `docker compose -f docker-compose.yml -f docker-compose.cloud.yml config --quiet` validates the merged compose without starting containers.
+- **Caddy logs:** Caddy logs certificate acquisition, renewal, and TLS handshake errors to stdout (visible via `docker compose logs frontend`). Failed ACME challenges indicate DNS misconfiguration or port 80/443 blocked.
+- **Static file 404s:** Caddy returns 404 for missing static files — check container logs if CSS/JS fails to load.
+- **Domain configuration:** `SEMPKM_DOMAIN` defaults to `localhost` (self-signed cert) — a warning-free startup with a real domain confirms DNS + ACME are working.

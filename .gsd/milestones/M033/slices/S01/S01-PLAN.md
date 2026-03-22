@@ -58,7 +58,7 @@
   - Verify: Manual browser verification — setup.html shows Step 1 with radio cards, selecting "Local only" and clicking Next calls configure-instance API, then shows Step 2
   - Done when: Two-step wizard flow works end-to-end — deployment mode → account creation with proper API calls at each step
 
-- [ ] **T03: Cloud deployment infrastructure (Caddy compose + Caddyfile)** `est:1h`
+- [x] **T03: Cloud deployment infrastructure (Caddy compose + Caddyfile)** `est:1h`
   - Why: Provides the one-command cloud deployment path. Independent of T01/T02 — these are infrastructure files that consume the same backend.
   - Files: `docker-compose.cloud.yml`, `Caddyfile.cloud`, `.env.cloud.example`, `Caddyfile`, `docker-compose.demo.yml`, `.gitignore`
   - Do: (1) Create docker-compose.cloud.yml as a compose override that replaces nginx frontend with Caddy, adds caddy_data/caddy_config volumes. (2) Create Caddyfile.cloud using {$SEMPKM_DOMAIN} with static file serving, auth page routing, SSE proxy config, and API reverse proxy. (3) Create .env.cloud.example with all required cloud vars. (4) Rename Caddyfile → Caddyfile.demo and update docker-compose.demo.yml reference. (5) Add certs/ to .gitignore for future mkcert support.

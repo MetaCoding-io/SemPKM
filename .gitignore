@@ -22,6 +22,9 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+!.env.cloud.example
+certs/
+data/.instance-config.json
 node_modules/
 .next/
 dist/

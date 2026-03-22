@@ -1,0 +1,36 @@
+# Cloud deployment override — replaces nginx with Caddy for auto-TLS.
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.cloud.yml up -d
+#
+# Requires:
+#   - .env with SEMPKM_DOMAIN set to your domain (e.g. sempkm.example.com)
+#   - DNS A record pointing your domain to this server's IP
+#   - Ports 80 and 443 open (Caddy needs both for ACME + auto HTTP→HTTPS redirect)
+#
+# Caddy automatically obtains and renews Let's Encrypt TLS certificates.
+# See Caddyfile.cloud for the reverse proxy configuration.
+# See .env.cloud.example for required environment variables.
+
+services:
+  # Override the nginx frontend service with Caddy
+  frontend:
+    image: caddy:2-alpine
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - ./Caddyfile.cloud:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+      - ./frontend/static:/srv/static:ro
+      - frontend_assets:/srv/built-assets:ro
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - sempkm
+
+volumes:
+  caddy_data:
+  caddy_config:
