@@ -58,7 +58,7 @@ Existing Active requirements not addressed by M033: APP-01 through APP-14 (App P
 
 ## Slices
 
-- [ ] **S01: Deployment & Onboarding Overhaul** `risk:medium` `depends:[]`
+- [x] **S01: Deployment & Onboarding Overhaul** `risk:medium` `depends:[]`
   > After this: New instances show a two-step setup wizard (deployment mode → account creation). Instance config persists in `data/.instance-config.json`. Cloud deployment works via `docker-compose.cloud.yml` with Caddy auto-TLS.
 - [ ] **S02: Isometric 2.5D Graph Layout & Icon Toggle** `risk:high` `depends:[]`
   > After this: Graph view toolbar has an "Isometric" layout option that applies CSS 3D perspective with correct click interaction, and a toggle button that switches nodes between shape-only and Lucide SVG icon display.
