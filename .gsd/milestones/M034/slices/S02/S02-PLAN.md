@@ -25,6 +25,7 @@
 
 - `cd backend && .venv/bin/python -m pytest tests/test_timeline.py -v` — unit tests for SPARQL construction, dependency grouping, date fallback, empty results
 - `cd e2e && npx playwright test specs/timeline.spec.ts` — E2E test: open timeline, verify task bars rendered, verify dependency arrows, zoom change
+- `curl -s http://localhost:3901/browser/views/generic/timeline/data | python3 -c "import sys,json; d=json.load(sys.stdin); assert 'tasks' in d; print('timeline data endpoint OK')"` — verifies JSON error shape when no type provided (empty tasks array)
 
 ## Observability / Diagnostics
 
@@ -41,7 +42,7 @@
 
 ## Tasks
 
-- [ ] **T01: Backend timeline data layer — service methods, router endpoints, unit tests** `est:2h`
+- [x] **T01: Backend timeline data layer — service methods, router endpoints, unit tests** `est:2h`
   - Why: The SPARQL query and JSON data contract are the foundation. Frontend can't render without correct data. The dependency-edge grouping logic is the riskiest piece — unit tests prove it before any frontend work.
   - Files: `backend/app/views/service.py`, `backend/app/views/router.py`, `backend/tests/test_timeline.py`
   - Do: Add `_build_timeline_select()` that fetches task IRI, label, start/end dates (reuse `_detect_date_fields()` for start/end paths), and `bpkm:dependsOn` edges. Add `execute_timeline_query()` that groups multi-row SPARQL results by task IRI, collecting dependency arrays. Add `"timeline"` to `_VALID_RENDERERS`. Add `elif renderer == "timeline":` in both `generic_view()` (renders template with context) and `generic_view_data()` (returns JSON). Reuse the calendar PATCH endpoint for drag-to-reschedule — no new PATCH route needed. Write comprehensive unit tests covering: SPARQL construction with/without scope filter, multi-row dependency grouping, dueDate fallback when no scheduledStart, tasks without dates excluded, empty results.

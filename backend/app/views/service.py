@@ -1830,6 +1830,168 @@ WHERE {{
             "total": total,
         }
 
+    # ── Timeline renderer ──────────────────────────────────────
+
+    # Status value → Frappe Gantt CSS class mapping
+    _TIMELINE_STATUS_CLASSES: dict[str, str] = {
+        "done": "bar-done",
+        "completed": "bar-done",
+        "in-progress": "bar-active",
+        "in progress": "bar-active",
+        "blocked": "bar-blocked",
+        "cancelled": "bar-cancelled",
+    }
+
+    @staticmethod
+    def _build_timeline_select(
+        type_iri: str,
+        start_path: str,
+        end_path: str | None = None,
+        scope_filter: str | None = None,
+    ) -> str:
+        """Build a SELECT query for timeline data including dependencies.
+
+        Fetches task IRI, label, start/end dates, dependency IRIs via
+        bpkm:dependsOn, priority, and status. Dependencies, end date,
+        priority, and status are OPTIONAL since not all tasks have them.
+
+        Args:
+            type_iri: The RDF type IRI to filter by.
+            start_path: The property IRI for the start date field.
+            end_path: Optional property IRI for the end date field.
+            scope_filter: Optional SPARQL WHERE body injected as sub-select.
+
+        Returns:
+            SPARQL SELECT query string.
+        """
+        scope_clause = ""
+        if scope_filter:
+            scope_clause = f"  {{ SELECT ?s WHERE {{ {scope_filter} }} }}\n"
+
+        end_clause = ""
+        if end_path:
+            end_clause = f"  OPTIONAL {{ ?s <{end_path}> ?endDate }}\n"
+
+        return (
+            "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
+            "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n"
+            "PREFIX dcterms: <http://purl.org/dc/terms/>\n"
+            "\n"
+            "SELECT ?s ?label ?startDate ?endDate ?dep ?priority ?status\n"
+            "WHERE {\n"
+            f"  ?s rdf:type <{type_iri}> .\n"
+            f"  ?s <{start_path}> ?startDate .\n"
+            f"{end_clause}"
+            f"{scope_clause}"
+            "  OPTIONAL { ?s rdfs:label|dcterms:title ?label }\n"
+            "  OPTIONAL { ?s <urn:sempkm:model:basic-pkm:dependsOn> ?dep }\n"
+            "  OPTIONAL { ?s <urn:sempkm:model:basic-pkm:priority> ?priority }\n"
+            "  OPTIONAL { ?s <urn:sempkm:model:basic-pkm:taskStatus> ?status }\n"
+            "}"
+        )
+
+    async def execute_timeline_query(
+        self,
+        type_iri: str,
+        start_field: PropertyShape,
+        end_field: PropertyShape | None = None,
+        scope_filter: str | None = None,
+    ) -> dict:
+        """Execute timeline query and return Frappe Gantt-compatible task data.
+
+        Groups SPARQL results by task IRI (since tasks with N dependencies
+        produce N rows). For each unique task, collects: IRI, label, start
+        date (stripped to YYYY-MM-DD), end date (fallback: start + 1 day),
+        dependency IRIs, progress (default 0), and custom_class from status.
+
+        Tasks without a valid startDate are excluded from results.
+
+        Returns:
+            ``{"tasks": [...], "dependency_count": N}``
+        """
+        query = self._build_timeline_select(
+            type_iri,
+            start_field.path,
+            end_path=end_field.path if end_field else None,
+            scope_filter=scope_filter,
+        )
+        scoped = scope_to_current_graph(query)
+
+        try:
+            result = await self._client.query(scoped)
+        except Exception:
+            logger.warning(
+                "execute_timeline_query: query failed for type=%s start=%s",
+                type_iri,
+                start_field.path,
+                exc_info=True,
+            )
+            return {"tasks": [], "dependency_count": 0}
+
+        bindings = result.get("results", {}).get("bindings", [])
+
+        # Group results by task IRI — a task with N deps produces N rows
+        tasks_map: dict[str, dict] = {}
+        for b in bindings:
+            iri = b.get("s", {}).get("value", "")
+            if not iri:
+                continue
+
+            start_val = b.get("startDate", {}).get("value", "")
+            if not start_val:
+                continue
+
+            if iri not in tasks_map:
+                label = b.get("label", {}).get("value", "") or _local_name(iri)
+                end_val = b.get("endDate", {}).get("value", "")
+                priority_val = b.get("priority", {}).get("value", "")
+                status_val = b.get("status", {}).get("value", "")
+
+                # Strip datetime to YYYY-MM-DD for Frappe Gantt
+                start_date = start_val[:10] if len(start_val) >= 10 else start_val
+                if end_val:
+                    end_date = end_val[:10] if len(end_val) >= 10 else end_val
+                else:
+                    # Fallback: start + 1 day
+                    try:
+                        from datetime import datetime, timedelta
+                        dt = datetime.strptime(start_date, "%Y-%m-%d")
+                        end_date = (dt + timedelta(days=1)).strftime("%Y-%m-%d")
+                    except (ValueError, TypeError):
+                        end_date = start_date
+
+                # Map status to Frappe Gantt CSS class
+                custom_class = ""
+                if status_val:
+                    custom_class = self._TIMELINE_STATUS_CLASSES.get(
+                        status_val.lower(), ""
+                    )
+
+                tasks_map[iri] = {
+                    "id": iri,
+                    "name": label,
+                    "start": start_date,
+                    "end": end_date,
+                    "progress": 0,
+                    "dependencies": [],
+                    "custom_class": custom_class,
+                }
+
+            # Collect dependency IRI if present
+            dep_val = b.get("dep", {}).get("value", "")
+            if dep_val and dep_val not in tasks_map[iri]["dependencies"]:
+                tasks_map[iri]["dependencies"].append(dep_val)
+
+        tasks = list(tasks_map.values())
+        dep_count = sum(len(t["dependencies"]) for t in tasks)
+
+        logger.info(
+            "execute_timeline_query: type=%s tasks=%d deps=%d",
+            type_iri, len(tasks), dep_count,
+        )
+
+        return {"tasks": tasks, "dependency_count": dep_count}
+
     async def get_model_layouts(self) -> list[dict]:
         """Query installed model view specs for custom layout definitions.
 
