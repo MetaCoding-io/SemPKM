@@ -201,7 +201,7 @@ async def views_menu(
     )
 
 
-_VALID_RENDERERS = {"table", "card", "graph", "kanban"}
+_VALID_RENDERERS = {"table", "card", "graph", "kanban", "calendar"}
 
 
 @router.get("/generic/{renderer}")
@@ -453,6 +453,102 @@ async def generic_view(
             return _embed_response(templates, request, "browser/graph_view.html", context)
         return templates.TemplateResponse(request, "browser/graph_view.html", context)
 
+    elif renderer == "calendar":
+        if not type_iri:
+            logger.info("generic_view: renderer=calendar but no type selected")
+            return templates.TemplateResponse(
+                request,
+                "browser/calendar_view.html",
+                {
+                    "request": request,
+                    "error_message": "Select a type to use Calendar View",
+                    "events": [],
+                    "date_fields": None,
+                    "type_label": type_label,
+                    "type_iri": "",
+                    "selected_type": "",
+                    "types": types_list,
+                    "model_view_specs": model_view_specs,
+                    "scope_query": scope_query,
+                    "user_saved_queries": user_saved_queries,
+                    "model_saved_queries": model_saved_queries,
+                    "is_generic": True,
+                    "renderer": "calendar",
+                    "pagination_base_url": pagination_base_url,
+                    "pag_extra": pag_extra,
+                    "spec": spec,
+                },
+            )
+
+        start_field, end_field = await view_spec_service._detect_date_fields(type_iri)
+
+        if start_field is None:
+            logger.warning("generic_view: renderer=calendar type=%s has no date properties", type_iri)
+            return templates.TemplateResponse(
+                request,
+                "browser/calendar_view.html",
+                {
+                    "request": request,
+                    "error_message": "This type has no date properties for Calendar display",
+                    "events": [],
+                    "date_fields": None,
+                    "type_label": type_label,
+                    "type_iri": spec.target_class,
+                    "selected_type": type_iri or "",
+                    "types": types_list,
+                    "model_view_specs": model_view_specs,
+                    "scope_query": scope_query,
+                    "user_saved_queries": user_saved_queries,
+                    "model_saved_queries": model_saved_queries,
+                    "is_generic": True,
+                    "renderer": "calendar",
+                    "pagination_base_url": pagination_base_url,
+                    "pag_extra": pag_extra,
+                    "spec": spec,
+                },
+            )
+
+        logger.info(
+            "generic_view: renderer=calendar type=%s scope_query=%s start=%s end=%s",
+            type_iri, scope_query or "(none)", start_field.path,
+            end_field.path if end_field else "(none)",
+        )
+
+        # Build the data URL for the calendar JSON endpoint
+        calendar_data_url = f"/browser/views/generic/calendar/data"
+        calendar_data_params = []
+        if type_iri:
+            calendar_data_params.append(f"type={quote(type_iri, safe='')}")
+        if scope_query:
+            calendar_data_params.append(f"scope_query={quote(scope_query, safe='')}")
+        if calendar_data_params:
+            calendar_data_url += "?" + "&".join(calendar_data_params)
+
+        context = {
+            "request": request,
+            "date_fields": {
+                "start": {"path": start_field.path, "name": start_field.name},
+                "end": {"path": end_field.path, "name": end_field.name} if end_field else None,
+            },
+            "calendar_data_url": calendar_data_url,
+            "type_label": type_label,
+            "type_iri": spec.target_class,
+            "selected_type": type_iri or "",
+            "types": types_list,
+            "model_view_specs": model_view_specs,
+            "scope_query": scope_query,
+            "user_saved_queries": user_saved_queries,
+            "model_saved_queries": model_saved_queries,
+            "is_generic": True,
+            "renderer": "calendar",
+            "pagination_base_url": pagination_base_url,
+            "pag_extra": pag_extra,
+            "spec": spec,
+        }
+        if embed:
+            return _embed_response(templates, request, "browser/calendar_view.html", context)
+        return templates.TemplateResponse(request, "browser/calendar_view.html", context)
+
     else:  # kanban
         if not type_iri:
             logger.info("generic_view: renderer=kanban but no type selected")
@@ -541,7 +637,7 @@ async def generic_view(
 
 
 @router.get("/generic/{renderer}/data")
-async def generic_graph_data(
+async def generic_view_data(
     request: Request,
     renderer: str,
     type: str = Query(default=""),
@@ -550,13 +646,14 @@ async def generic_graph_data(
     view_spec_service: ViewSpecService = Depends(get_view_spec_service),
     query_service: QueryService = Depends(get_query_service),
 ):
-    """Return graph data as JSON for the generic graph view.
+    """Return data as JSON for the generic graph or calendar view.
 
-    Builds a dynamic CONSTRUCT query and executes it.
+    For graph: builds a dynamic CONSTRUCT query and executes it.
+    For calendar: detects date fields and returns FullCalendar events.
     Accepts optional scope_query to filter results by saved query.
     """
-    if renderer != "graph":
-        return JSONResponse(content={"nodes": [], "edges": [], "type_colors": {}}, status_code=404)
+    if renderer not in ("graph", "calendar"):
+        return JSONResponse(content={"error": "Invalid renderer for data endpoint"}, status_code=404)
 
     type_iri = type if type else None
 
@@ -569,8 +666,20 @@ async def generic_graph_data(
             if saved:
                 scope_filter_text = extract_scope_where_body(saved.query_text)
         except (ValueError, Exception):
-            logger.warning("generic_graph_data: invalid scope_query=%s", scope_query, exc_info=True)
+            logger.warning("generic_view_data: invalid scope_query=%s", scope_query, exc_info=True)
 
+    if renderer == "calendar":
+        if not type_iri:
+            return JSONResponse(content={"events": [], "date_fields": None})
+        start_field, end_field = await view_spec_service._detect_date_fields(type_iri)
+        if start_field is None:
+            return JSONResponse(content={"events": [], "date_fields": None})
+        result = await view_spec_service.execute_calendar_query(
+            type_iri, start_field, end_field, scope_filter=scope_filter_text,
+        )
+        return JSONResponse(content=result)
+
+    # graph renderer
     sparql_query, _ = await view_spec_service.build_dynamic_query(
         type_iri, "graph", scope_filter=scope_filter_text,
     )

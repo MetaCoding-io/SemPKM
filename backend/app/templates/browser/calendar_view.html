@@ -1,0 +1,23 @@
+<div class="view-flex-column">
+{% if is_generic | default(false) %}
+{% include "browser/type_filter_pills.html" %}
+{% endif %}
+{% include "browser/view_toolbar.html" %}
+
+{% if error_message is defined and error_message %}
+<div class="view-empty-state">
+    <p>{{ error_message }}</p>
+</div>
+
+{% elif date_fields %}
+<div class="calendar-container" data-testid="calendar-container"
+     data-calendar-url="{{ calendar_data_url }}">
+    <div id="fc-calendar"></div>
+</div>
+
+{% else %}
+<div class="view-empty-state">
+    <p>Select a type with date properties to use Calendar View.</p>
+</div>
+{% endif %}
+</div>

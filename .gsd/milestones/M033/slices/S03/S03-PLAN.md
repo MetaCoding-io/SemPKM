@@ -21,10 +21,11 @@
 - `cd backend && .venv/bin/python -m pytest tests/test_calendar.py -v` — all unit tests pass
 - `npx playwright test e2e/tests/02-views/calendar-view.spec.ts` — E2E test passes
 - Manual: open Calendar View → select Event type → month/week/day switching works → event click opens object tab
+- `cd backend && .venv/bin/python -m pytest tests/test_calendar.py::TestExecuteCalendarQuery::test_query_failure_returns_empty -v` — failure-path test passes (SPARQL error returns empty events, not crash)
 
 ## Tasks
 
-- [ ] **T01: Backend — date field detection, calendar query, router, and unit tests** `est:1h`
+- [x] **T01: Backend — date field detection, calendar query, router, and unit tests** `est:1h`
   - Why: The calendar view needs backend date-property detection from SHACL shapes, a SPARQL query builder for calendar events, the router branch in `generic_view()`, and a JSON data endpoint. Unit tests verify the date detection heuristic handles Event (no sh:datatype on dates), Project (with sh:datatype), and types with no date fields.
   - Files: `backend/app/views/service.py`, `backend/app/views/router.py`, `backend/tests/test_calendar.py`
   - Do: Add `_detect_date_fields()` to ViewSpecService using both `prop.datatype` checks and well-known path IRI matching. Add `_build_calendar_select()` and `execute_calendar_query()`. Add `"calendar"` to `_VALID_RENDERERS`. Add the `elif renderer == "calendar":` branch in `generic_view()`. Add `/generic/calendar/data` JSON endpoint. Write unit tests following `test_kanban.py` pattern.
@@ -57,3 +58,10 @@
 - `e2e/tests/02-views/calendar-view.spec.ts`
 - `e2e/helpers/selectors.ts`
 - `e2e/helpers/dockview.ts`
+
+## Observability / Diagnostics
+
+- **Structured logs:** `_detect_date_fields` logs detected start/end field paths at DEBUG level. `execute_calendar_query` logs event count at INFO. `generic_view` logs renderer/type/scope at INFO. All failures logged at WARNING with `exc_info=True`.
+- **Calendar data endpoint:** `/browser/views/generic/calendar/data` returns JSON — inspectable via `curl` or browser DevTools. Returns `{"events": [], "date_fields": null}` on missing type or no date fields (not an HTTP error).
+- **Failure visibility:** No-type-selected and no-date-fields states render distinct `error_message` strings in the template, visible in the HTML response. SPARQL failures return empty events list rather than 500.
+- **Verification:** `cd backend && .venv/bin/python -m pytest tests/test_calendar.py -v` validates query failure path returns empty events (test_query_failure_returns_empty). Slice verification includes this test.
