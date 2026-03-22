@@ -50,6 +50,13 @@
 </a>
 <a class="tree-leaf view-leaf" href="#"
    draggable="true"
+   ondragstart="event.dataTransfer.setData('text/plain', 'Timeline View'); event.dataTransfer.effectAllowed = 'copy'; window.__canvasDragPayload = {type:'view', id:'generic-timeline', label:'Timeline View', url:'/browser/views/generic/timeline?embed=1'};"
+   onclick="openGenericViewTab('timeline'); return false;">
+    <span class="tree-leaf-icon">&#128202;</span>
+    <span class="tree-leaf-label">Timeline View</span>
+</a>
+<a class="tree-leaf view-leaf" href="#"
+   draggable="true"
    ondragstart="event.dataTransfer.setData('text/plain', 'Map View'); event.dataTransfer.effectAllowed = 'copy'; window.__canvasDragPayload = {type:'view', id:'generic-map', label:'Map View', url:'/browser/views/generic/map?embed=1'};"
    onclick="openGenericViewTab('map'); return false;">
     <span class="tree-leaf-icon">&#127758;</span>

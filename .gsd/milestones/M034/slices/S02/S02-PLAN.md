@@ -49,7 +49,7 @@
   - Verify: `cd backend && .venv/bin/python -m pytest tests/test_timeline.py -v` passes all tests
   - Done when: Unit tests pass for SPARQL build, dependency grouping, date fallback, and empty results; router accepts `renderer=timeline` in both `generic_view` and `generic_view_data`
 
-- [ ] **T02: Frontend timeline template, CSS, explorer wiring** `est:1.5h`
+- [x] **T02: Frontend timeline template, CSS, explorer wiring** `est:1.5h`
   - Why: The template renders Frappe Gantt in the dockview panel. The explorer entry and workspace.js label make it discoverable. CSS ensures dark mode compatibility.
   - Files: `backend/app/templates/browser/timeline_view.html`, `frontend/static/css/views.css`, `backend/app/templates/browser/views_explorer.html`, `frontend/static/js/workspace.js`
   - Do: Create `timeline_view.html` following the calendar_view.html IIFE+CDN pattern — lazy-load Frappe Gantt from `cdn.jsdelivr.net/npm/frappe-gantt@1.2.2/dist/frappe-gantt.umd.js` + CSS. Fetch JSON from the `timeline_data_url` context var. Transform JSON tasks into Frappe Gantt format (slice datetime to YYYY-MM-DD). Init with `view_mode_select: true`, `on_date_change` calling calendar PATCH, `on_click` calling `openTab()`. Handle empty state. Add `.view-flex-column` wrapper. Add dark mode CSS overrides in `views.css`. Add Timeline entry in `views_explorer.html` (same pattern as Calendar/Map entries). Add `timeline: 'Timeline View'` to the labels map in `openGenericViewTab()` in workspace.js.

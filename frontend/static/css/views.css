@@ -1467,3 +1467,72 @@ select.cards-group-select {
 [data-theme="dark"] .leaflet-popup-content-wrapper a {
     color: var(--color-accent);
 }
+
+/* ── Timeline / Gantt View ── */
+
+.timeline-container {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+}
+
+/* Status-based bar coloring */
+.bar-done .bar-progress {
+    fill: var(--color-success, #10b981);
+}
+
+.bar-active .bar-progress {
+    fill: var(--color-accent, #0078d4);
+}
+
+.bar-blocked .bar-progress {
+    fill: var(--color-danger, #dc3545);
+}
+
+/* Ensure Frappe Gantt popup escapes dockview stacking context */
+.gantt .popup-wrapper {
+    z-index: 10000;
+}
+
+/* Dark mode Frappe Gantt overrides */
+[data-theme="dark"] .gantt-container {
+    background: var(--color-surface);
+}
+
+[data-theme="dark"] .gantt .grid-background {
+    fill: var(--color-surface);
+}
+
+[data-theme="dark"] .gantt .grid-header {
+    fill: var(--color-surface-raised);
+}
+
+[data-theme="dark"] .gantt .bar-label {
+    fill: var(--color-text);
+}
+
+[data-theme="dark"] .gantt .lower-text,
+[data-theme="dark"] .gantt .upper-text {
+    fill: var(--color-text-muted);
+}
+
+[data-theme="dark"] .gantt .arrow {
+    stroke: var(--color-text-muted);
+}
+
+[data-theme="dark"] .gantt .tick {
+    stroke: var(--color-border);
+}
+
+[data-theme="dark"] .gantt .today-highlight {
+    fill: var(--color-accent-subtle);
+}
+
+[data-theme="dark"] .gantt .bar-progress {
+    fill: var(--color-accent);
+}
+
+[data-theme="dark"] .gantt .bar-wrapper:hover .bar-progress {
+    fill: var(--color-accent);
+    filter: brightness(1.2);
+}
