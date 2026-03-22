@@ -15,13 +15,14 @@ from sqlalchemy import DateTime, ForeignKey, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
+from app.dashboard.registry import BLOCK_REGISTRY
 
 
-# Valid layout template names
-VALID_LAYOUTS = {"single", "sidebar-main", "grid-2x2", "grid-3", "top-bottom"}
+# Valid layout template names — includes legacy CSS Grid layouts + new GridStack
+VALID_LAYOUTS = {"single", "sidebar-main", "grid-2x2", "grid-3", "top-bottom", "gridstack"}
 
-# Valid block types
-VALID_BLOCK_TYPES = {"view-embed", "markdown", "object-embed", "create-form", "sparql-result", "divider"}
+# Valid block types — derived from the BlockRegistry singleton
+VALID_BLOCK_TYPES = set(BLOCK_REGISTRY.all_types())
 
 
 class DashboardSpec(Base):
@@ -34,7 +35,11 @@ class DashboardSpec(Base):
         description: Optional description.
         layout: CSS Grid template name (e.g. 'grid-2x2', 'sidebar-main').
         blocks_json: JSON string containing block configurations.
-            Each block: {"type": str, "slot": str, "config": dict}
+            Each block: {"type": str, "config": dict, "slot"?: str,
+                         "x"?: int, "y"?: int, "w"?: int, "h"?: int}
+            Legacy blocks use ``slot`` for CSS Grid placement.
+            GridStack blocks use ``x, y, w, h`` position fields.
+            Block types:
             - view-embed: {"spec_iri": str, "height": str?}
             - markdown: {"content": str}
             - object-embed: {"object_iri": str, "mode": "read"|"edit"}

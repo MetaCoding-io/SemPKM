@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T03",
+  "unitId": "M033/S07/T03",
+  "timestamp": 1774145347837,
+  "passed": true,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "test -f Caddyfile.cloud",
+      "exitCode": 0,
+      "durationMs": 13,
+      "verdict": "pass"
+    },
+    {
+      "command": "test -f .env.cloud.example",
+      "exitCode": 0,
+      "durationMs": 14,
+      "verdict": "pass"
+    },
+    {
+      "command": "test -f Caddyfile.local-tls",
+      "exitCode": 0,
+      "durationMs": 13,
+      "verdict": "pass"
+    },
+    {
+      "command": "test -f docker-compose.local-tls.yml",
+      "exitCode": 0,
+      "durationMs": 14,
+      "verdict": "pass"
+    }
+  ]
+}

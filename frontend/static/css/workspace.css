@@ -7727,7 +7727,380 @@ details.form-group[open] > .form-group-summary::before {
 }
 
 /* ---------------------------------------------------------------------------
- * Dashboard Builder
+ * Dashboard Page (read-only GridStack rendering)
+ * --------------------------------------------------------------------------- */
+
+.dashboard-page .dashboard-grid-wrap {
+    padding: 12px;
+    overflow: auto;
+}
+
+.dashboard-page .grid-stack {
+    min-height: 100%;
+}
+
+.dashboard-page .grid-stack-item-content.dashboard-widget-content {
+    background: var(--color-bg-primary, #1e1e1e);
+    border: 1px solid var(--color-border, #333);
+    border-radius: 6px;
+    overflow: auto;
+}
+
+.dashboard-page .dashboard-block-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--color-text-muted, #888);
+    font-size: 0.9em;
+}
+
+/* Ensure view-embed blocks fill the GridStack widget height */
+.dashboard-page .dashboard-block-view {
+    height: 100%;
+    overflow: auto;
+}
+
+/* Markdown content inside GridStack widgets */
+.dashboard-page .dashboard-block-markdown {
+    overflow: auto;
+    max-height: 100%;
+}
+
+/* Create-form inside GridStack widgets */
+.dashboard-page .dashboard-block-form {
+    overflow: auto;
+    max-height: 100%;
+}
+
+/* Object-embed inside GridStack widgets */
+.dashboard-page .dashboard-block-object {
+    overflow: auto;
+    max-height: 100%;
+}
+
+/* SPARQL result inside GridStack widgets */
+.dashboard-page .dashboard-block-sparql {
+    overflow: auto;
+    max-height: 100%;
+}
+
+/* Divider inside GridStack widgets — centered horizontal rule */
+.dashboard-page .dashboard-block-divider {
+    margin: 0;
+    border: none;
+    border-top: 1px solid var(--color-border, #333);
+    position: relative;
+    top: 50%;
+}
+
+/* GridStack dark theme overrides for read-only dashboard */
+.dashboard-page .gs-item-content {
+    inset: 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * Dashboard Builder (GridStack version)
+ * --------------------------------------------------------------------------- */
+
+.dashboard-builder-gridstack {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.dashboard-builder-gridstack .builder-header {
+    flex-shrink: 0;
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.dashboard-builder-gridstack .form-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.dashboard-builder-gridstack .form-title svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+.dashboard-builder-gridstack .builder-header .form-field {
+    max-width: 420px;
+}
+
+.dashboard-builder-gridstack .builder-header textarea {
+    max-width: 420px;
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    font-size: 0.88rem;
+    background: var(--color-surface);
+    color: var(--color-text);
+    resize: vertical;
+    font-family: inherit;
+}
+
+.dashboard-builder-gridstack .builder-header textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px var(--color-focus-shadow);
+}
+
+.builder-body {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* Block palette sidebar */
+.block-palette {
+    width: 220px;
+    flex-shrink: 0;
+    overflow-y: auto;
+    padding: 12px;
+    border-right: 1px solid var(--color-border);
+    background: var(--color-bg-primary, #1e1e1e);
+}
+
+.block-palette-title {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 10px;
+}
+
+.block-palette-category {
+    margin-bottom: 14px;
+}
+
+.block-palette-category-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 0 0 6px;
+    padding: 0 4px;
+}
+
+.block-palette-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    margin-bottom: 4px;
+    cursor: grab;
+    font-size: 0.85rem;
+    color: var(--color-text);
+    background: var(--color-surface);
+    transition: background 0.15s, border-color 0.15s;
+    user-select: none;
+}
+
+.block-palette-item:hover {
+    background: var(--color-surface-hover);
+    border-color: var(--color-primary);
+}
+
+.block-palette-item:active {
+    cursor: grabbing;
+}
+
+.block-palette-item svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+/* GridStack canvas area */
+.builder-canvas-wrap {
+    flex: 1;
+    min-width: 0;
+    overflow: auto;
+    padding: 12px;
+    background: var(--color-bg-secondary, #252525);
+}
+
+/* GridStack overrides for dark theme */
+.builder-canvas-wrap .grid-stack {
+    min-height: 300px;
+}
+
+.builder-canvas-wrap .grid-stack-item-content {
+    background: var(--color-surface, #2a2a2a);
+    border: 1px solid var(--color-border, #333);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.builder-canvas-wrap .grid-stack-placeholder > .placeholder-content {
+    border: 2px dashed var(--color-primary, #61afef) !important;
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--color-primary) 10%, transparent) !important;
+}
+
+/* Widget inner structure */
+.gs-widget-inner {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.widget-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--color-border, #333);
+    background: var(--color-bg-primary, #1e1e1e);
+    flex-shrink: 0;
+    cursor: move;
+}
+
+.widget-type-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+}
+
+.widget-type-label svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+.widget-remove-btn {
+    background: none;
+    border: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+}
+
+.widget-remove-btn:hover {
+    color: var(--color-error);
+    background: var(--color-surface-hover);
+}
+
+.widget-remove-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+/* Config forms inside GridStack widgets */
+.gs-widget-inner .block-config-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 10px;
+}
+
+.gs-widget-inner .block-config-fields .form-field {
+    margin-bottom: 8px;
+}
+
+.gs-widget-inner .block-config-fields textarea {
+    max-width: 100%;
+    width: 100%;
+    min-height: 40px;
+    padding: 6px 8px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    font-size: 0.82rem;
+    background: var(--color-surface);
+    color: var(--color-text);
+    resize: vertical;
+    font-family: inherit;
+}
+
+.gs-widget-inner .block-config-fields textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px var(--color-focus-shadow);
+}
+
+.gs-widget-inner .block-config-fields input[type="text"] {
+    max-width: 100%;
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    font-size: 0.82rem;
+    background: var(--color-surface);
+    color: var(--color-text);
+}
+
+.gs-widget-inner .block-config-fields input[type="text"]:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px var(--color-focus-shadow);
+}
+
+.gs-widget-inner .block-config-fields select {
+    max-width: 100%;
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    font-size: 0.82rem;
+    background: var(--color-surface);
+    color: var(--color-text);
+}
+
+.gs-widget-inner .block-config-fields select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px var(--color-focus-shadow);
+}
+
+.gs-widget-inner .block-config-fields label {
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+}
+
+.gs-widget-inner .block-config-fields .reference-field {
+    position: relative;
+}
+
+.gs-widget-inner .block-config-fields .suggestions-dropdown {
+    max-width: 100%;
+}
+
+/* GridStack drag helper (floating during drag) */
+.gs-drag-helper {
+    z-index: 10000;
+}
+
+.gs-drag-helper .grid-stack-item-content {
+    background: var(--color-surface, #2a2a2a);
+    border: 2px dashed var(--color-primary, #61afef);
+    border-radius: 6px;
+    opacity: 0.85;
+}
+
+/* ---------------------------------------------------------------------------
+ * Dashboard Builder (legacy — kept for backward compat with non-gridstack)
  * --------------------------------------------------------------------------- */
 
 .dashboard-builder {
