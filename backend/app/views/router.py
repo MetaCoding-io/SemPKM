@@ -432,6 +432,7 @@ async def generic_view(
                 {"name": "fcose", "label": "Force-Directed"},
                 {"name": "dagre", "label": "Hierarchical"},
                 {"name": "concentric", "label": "Radial"},
+                {"name": "isometric", "label": "Isometric 2.5D"},
             ],
             "type_colors": result.get("type_colors", {}),
             "sort_col": "",
@@ -971,6 +972,7 @@ async def graph_view(
         {"name": "fcose", "label": "Force-Directed"},
         {"name": "dagre", "label": "Hierarchical"},
         {"name": "concentric", "label": "Radial"},
+        {"name": "isometric", "label": "Isometric 2.5D"},
     ]
     model_layouts = await view_spec_service.get_model_layouts()
 
