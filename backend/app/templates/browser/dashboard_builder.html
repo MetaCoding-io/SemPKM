@@ -162,6 +162,60 @@
         return _getFormGroupConfigHTML(config);
       case 'divider':
         return '<div class="block-config-fields"><span class="field-help">No configuration needed.</span></div>';
+      case 'stat-card':
+        return '<div class="block-config-fields">' +
+          '<div class="form-field"><label>SPARQL Query</label>' +
+          '<textarea class="block-config-textarea" data-key="query" rows="3" placeholder="SELECT (COUNT(*) AS ?count) WHERE { ?s a ?type }">' +
+          escapeHtml(config.query || '') + '</textarea>' +
+          '<small class="field-help">Query should return a single numeric value.</small></div>' +
+          '<div class="form-field"><label>Label</label>' +
+          '<input type="text" class="block-config-input" data-key="label" placeholder="e.g. Total Objects" value="' +
+          escapeAttr(config.label || '') + '"></div>' +
+          '<div class="form-field"><label>Icon</label>' +
+          '<input type="text" class="block-config-input" data-key="icon" placeholder="e.g. hash, users, folder" value="' +
+          escapeAttr(config.icon || '') + '"></div>' +
+          '<div class="form-field"><label>Accent Color</label>' +
+          '<input type="text" class="block-config-input" data-key="color" placeholder="e.g. #61afef" value="' +
+          escapeAttr(config.color || '') + '"></div>' +
+          '</div>';
+      case 'chart':
+        return '<div class="block-config-fields">' +
+          '<div class="form-field"><label>SPARQL Query</label>' +
+          '<textarea class="block-config-textarea" data-key="query" rows="3" placeholder="SELECT ?label ?value WHERE { ... }">' +
+          escapeHtml(config.query || '') + '</textarea>' +
+          '<small class="field-help">Query must return ?label and ?value columns.</small></div>' +
+          '<div class="form-field"><label>Chart Type</label>' +
+          '<select class="block-config-select" data-key="chart_type">' +
+          '<option value="bar"' + (config.chart_type === 'bar' || !config.chart_type ? ' selected' : '') + '>Bar</option>' +
+          '<option value="line"' + (config.chart_type === 'line' ? ' selected' : '') + '>Line</option>' +
+          '<option value="pie"' + (config.chart_type === 'pie' ? ' selected' : '') + '>Pie</option>' +
+          '</select></div>' +
+          '<div class="form-field"><label>Chart Title</label>' +
+          '<input type="text" class="block-config-input" data-key="label" placeholder="e.g. Objects by Type" value="' +
+          escapeAttr(config.label || '') + '"></div>' +
+          '</div>';
+      case 'heading':
+        return '<div class="block-config-fields">' +
+          '<div class="form-field"><label>Heading Text</label>' +
+          '<input type="text" class="block-config-input" data-key="text" placeholder="Section title" value="' +
+          escapeAttr(config.text || '') + '"></div>' +
+          '<div class="form-field"><label>Level</label>' +
+          '<select class="block-config-select" data-key="level">' +
+          '<option value="1"' + (config.level === '1' ? ' selected' : '') + '>H1 — Large</option>' +
+          '<option value="2"' + (config.level === '2' || !config.level ? ' selected' : '') + '>H2 — Default</option>' +
+          '<option value="3"' + (config.level === '3' ? ' selected' : '') + '>H3 — Medium</option>' +
+          '<option value="4"' + (config.level === '4' ? ' selected' : '') + '>H4 — Small</option>' +
+          '</select></div>' +
+          '<div class="form-field"><label>Subtitle</label>' +
+          '<input type="text" class="block-config-input" data-key="subtitle" placeholder="Optional subtitle text" value="' +
+          escapeAttr(config.subtitle || '') + '"></div>' +
+          '<div class="form-field"><label>Alignment</label>' +
+          '<select class="block-config-select" data-key="align">' +
+          '<option value="left"' + (config.align === 'left' || !config.align ? ' selected' : '') + '>Left</option>' +
+          '<option value="center"' + (config.align === 'center' ? ' selected' : '') + '>Center</option>' +
+          '<option value="right"' + (config.align === 'right' ? ' selected' : '') + '>Right</option>' +
+          '</select></div>' +
+          '</div>';
       default:
         return '';
     }

@@ -7693,6 +7693,123 @@ details.form-group[open] > .form-group-summary::before {
     color: var(--color-accent, #61afef);
 }
 
+/* ── Stat-card block ────────────────────────────────────────────── */
+
+.dashboard-block-stat-card {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.stat-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.stat-card-label {
+    font-size: 0.8em;
+    color: var(--color-text-muted, #888);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.stat-card-value {
+    font-size: 1.8em;
+    font-weight: 600;
+    color: var(--color-accent, #61afef);
+}
+
+.stat-card-icon svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+/* ── Chart block ───────────────────────────────────────────────── */
+
+.dashboard-block-chart {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.chart-canvas {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+}
+
+.chart-label {
+    font-size: 0.85em;
+    color: var(--color-text-muted, #888);
+    margin-bottom: 8px;
+}
+
+/* ── Heading block ─────────────────────────────────────────────── */
+
+.dashboard-block-heading {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.dashboard-block-heading h1,
+.dashboard-block-heading h2,
+.dashboard-block-heading h3,
+.dashboard-block-heading h4 {
+    margin: 0;
+    color: var(--color-text-primary, #ccc);
+}
+
+.heading-subtitle {
+    margin: 4px 0 0;
+    font-size: 0.85em;
+    color: var(--color-text-muted, #888);
+}
+
+/* ── SPARQL result table ───────────────────────────────────────── */
+
+.sparql-table-container table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85em;
+}
+
+.sparql-table-container th {
+    text-align: left;
+    padding: 6px 8px;
+    border-bottom: 2px solid var(--color-border, #333);
+    color: var(--color-text-muted, #888);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8em;
+    letter-spacing: 0.03em;
+}
+
+.sparql-table-container td {
+    padding: 5px 8px;
+    border-bottom: 1px solid var(--color-border-subtle, #2a2a2a);
+    color: var(--color-text-primary, #ccc);
+}
+
+.sparql-table-container tr:hover td {
+    background: var(--color-bg-hover, rgba(255, 255, 255, 0.03));
+}
+
+/* ── Inline error for failed widgets ───────────────────────────── */
+
+.dashboard-block-error-inline {
+    padding: 8px 12px;
+    color: var(--color-warning, #e5c07b);
+    font-size: 0.85em;
+    font-style: italic;
+}
+
 /* Dashboard context selection — highlights the active source row */
 .context-selected {
     background-color: var(--color-accent-bg, rgba(97, 175, 239, 0.15)) !important;
@@ -7919,6 +8036,24 @@ details.form-group[open] > .form-group-summary::before {
     border-top: 1px solid var(--color-border, #333);
     position: relative;
     top: 50%;
+}
+
+/* Stat-card inside GridStack widgets */
+.dashboard-page .dashboard-block-stat-card {
+    overflow: auto;
+    max-height: 100%;
+}
+
+/* Chart inside GridStack widgets */
+.dashboard-page .dashboard-block-chart {
+    overflow: hidden;
+    height: 100%;
+}
+
+/* Heading inside GridStack widgets */
+.dashboard-page .dashboard-block-heading {
+    overflow: auto;
+    max-height: 100%;
 }
 
 /* ---------------------------------------------------------------------------
