@@ -68,7 +68,7 @@
   - Verify: `rg "urn:sempkm:mirrored" backend/app/browser/objects.py` shows mirrored graph queries; `rg "mirrored-badge" frontend/static/css/workspace.css` shows styling
   - Done when: Object detail page shows mirrored properties with teal provenance badge; graph edges from mirrored triples render with dotted teal lines; mirrored namespace excluded from IRI enrichment
 
-- [ ] **T04: SPARQL console Mirror button and endpoint picker** `est:1.5h`
+- [x] **T04: SPARQL console Mirror button and endpoint picker** `est:1.5h`
   - Why: Users need a way to trigger mirroring from the SPARQL console after running a federated query, and see which endpoints are available.
   - Files: `frontend/static/js/sparql-console.js`, `frontend/static/css/workspace.css`
   - Do: (1) Add SERVICE clause detection in the query text (scan for `SERVICE <url>` pattern). (2) When query results render successfully and query contains SERVICE, show a "Mirror Results" button next to the existing result info bar. (3) Mirror button calls `POST /api/sparql/mirror` with the query text and detected endpoint URL. (4) Show success/error toast after mirror operation. (5) Add endpoint allowlist indicator — if the detected endpoint is not in the allowlist, show a warning icon on the Mirror button. (6) Add `.sparql-mirror-btn` styling in workspace.css. (7) After successful mirror, show a count of mirrored triples.

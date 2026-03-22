@@ -70,3 +70,10 @@ The SPARQL console is a 1500-line ES module at `frontend/static/js/sparql-consol
 
 - `frontend/static/js/sparql-console.js` — with detectServiceEndpoints(), mirror button rendering, click handler, allowlist check
 - `frontend/static/css/workspace.css` — with `.sparql-mirror-btn` and related styling
+
+## Observability Impact
+
+- **Console warning** on fetch failure for mirror allowlist (`Failed to fetch mirror allowlist:` + error)
+- **Button state machine** visible in DOM: `sparql-mirror-btn` → `mirror-warning` (unallowed) / `mirror-success` (done) / `mirror-error` (failed) — inspect `classList` and `title` attribute for error detail
+- **Network request** `POST /api/sparql/mirror` visible in browser DevTools Network tab with full request/response JSON
+- **Allowlist cache** stored in module-level `mirrorAllowlistCache` — inspectable via browser console if the module is in scope

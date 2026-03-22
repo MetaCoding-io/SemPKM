@@ -57,6 +57,7 @@ var DISPLAY_LIMIT = 200;
 var currentSavedQueryId = null;
 var currentSavedQueryName = '';
 var sparqlCyInstance = null;  // Current Cytoscape instance for SPARQL graph tab
+var mirrorAllowlistCache = null;  // Cached mirror endpoint allowlist (fetched lazily)
 
 // Known vocabulary prefixes (object IRIs are those NOT matching these).
 // NOTE: urn:sempkm:model:* is intentionally EXCLUDED so that model ontology
@@ -243,6 +244,62 @@ function createEditor(container) {
   });
 }
 
+// --- SERVICE Clause Detection & Mirror Support ---
+
+/**
+ * Detect SERVICE clause endpoint URLs in a SPARQL query.
+ * Handles both SERVICE <url> and SERVICE SILENT <url> patterns.
+ * Strips string literals first to avoid false matches inside quoted strings.
+ * Returns an array of unique endpoint URL strings.
+ */
+function detectServiceEndpoints(queryText) {
+  if (!queryText) return [];
+  // Strip string literals to avoid matching SERVICE inside strings
+  var stripped = queryText.replace(/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/g, '""');
+  var regex = /\bSERVICE\s+(?:SILENT\s+)?<([^>]+)>/gi;
+  var endpoints = [];
+  var seen = {};
+  var match;
+  while ((match = regex.exec(stripped)) !== null) {
+    var url = match[1];
+    if (!seen[url]) {
+      seen[url] = true;
+      endpoints.push(url);
+    }
+  }
+  return endpoints;
+}
+
+/**
+ * Fetch and cache the mirror endpoint allowlist.
+ * Resolves to an array of allowed endpoint URL strings.
+ * Returns cached value on subsequent calls.
+ */
+async function fetchMirrorAllowlist() {
+  if (mirrorAllowlistCache !== null) return mirrorAllowlistCache;
+  try {
+    var resp = await fetch('/api/sparql/mirror/endpoints', { credentials: 'include' });
+    if (resp.ok) {
+      var data = await resp.json();
+      mirrorAllowlistCache = (data.endpoints || []);
+    } else {
+      mirrorAllowlistCache = [];
+    }
+  } catch (e) {
+    console.warn('Failed to fetch mirror allowlist:', e);
+    mirrorAllowlistCache = [];
+  }
+  return mirrorAllowlistCache;
+}
+
+/**
+ * Check if an endpoint URL is in the cached allowlist.
+ */
+function isEndpointAllowed(endpointUrl) {
+  if (!mirrorAllowlistCache || mirrorAllowlistCache.length === 0) return false;
+  return mirrorAllowlistCache.indexOf(endpointUrl) !== -1;
+}
+
 // --- Query Execution ---
 
 async function executeQuery() {
@@ -310,6 +367,35 @@ async function executeQuery() {
         });
         infoEl.appendChild(viewBtn);
       }
+
+      // Mirror Results button — appears when query contains SERVICE clauses
+      var serviceEndpoints = detectServiceEndpoints(queryText);
+      if (serviceEndpoints.length > 0) {
+        var endpointUrl = serviceEndpoints[0];
+        var mirrorBtn = document.createElement('button');
+        mirrorBtn.className = 'sparql-mirror-btn';
+        mirrorBtn.dataset.endpoint = endpointUrl;
+        mirrorBtn.innerHTML = '<i data-lucide="database"></i> Mirror Results';
+        mirrorBtn.title = 'Mirror federated results into local triplestore';
+
+        // Check allowlist and add warning if endpoint not allowed
+        fetchMirrorAllowlist().then(function(allowlist) {
+          if (!isEndpointAllowed(endpointUrl)) {
+            mirrorBtn.classList.add('mirror-warning');
+            mirrorBtn.title = 'This endpoint is not in the allowlist \u2014 mirroring may be blocked';
+          }
+          // Re-render Lucide icons for the button
+          if (window.lucide) window.lucide.createIcons();
+        });
+
+        mirrorBtn.addEventListener('click', function() {
+          handleMirrorClick(mirrorBtn, queryText, endpointUrl);
+        });
+        infoEl.appendChild(mirrorBtn);
+
+        // Render Lucide icon immediately (allowlist check may update later)
+        if (window.lucide) window.lucide.createIcons();
+      }
     }
 
     renderResultTable(tableWrap, vars, bindings, enrichment, 0);
@@ -325,6 +411,67 @@ async function executeQuery() {
     if (tableWrap) {
       tableWrap.innerHTML = '<div class="sparql-error">Network error: ' + escapeHtml(err.message) + '</div>';
     }
+  }
+}
+
+// --- Mirror Click Handler ---
+
+/**
+ * Handle Mirror Results button click — POST to /api/sparql/mirror,
+ * show progress feedback, handle success/error states.
+ */
+async function handleMirrorClick(btn, queryText, endpointUrl) {
+  // Disable button and show progress
+  btn.disabled = true;
+  var originalHtml = btn.innerHTML;
+  btn.innerHTML = '<i data-lucide="loader-2"></i> Mirroring\u2026';
+  if (window.lucide) window.lucide.createIcons();
+
+  try {
+    var resp = await fetch('/api/sparql/mirror', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ query: queryText, endpoint_url: endpointUrl })
+    });
+
+    if (resp.ok) {
+      var data = await resp.json();
+      var count = data.mirrored_count || 0;
+      btn.innerHTML = '<i data-lucide="check"></i> <span class="sparql-mirror-success">Mirrored ' + count + ' triple' + (count !== 1 ? 's' : '') + '</span>';
+      btn.classList.add('mirror-success');
+      if (window.lucide) window.lucide.createIcons();
+      // Keep disabled — mirroring is done
+    } else if (resp.status === 403) {
+      var errData = {};
+      try { errData = await resp.json(); } catch (e) {}
+      btn.innerHTML = '<i data-lucide="shield-alert"></i> Not allowed';
+      btn.title = (errData.detail || 'Endpoint not allowed') + '. Ask an admin to add it to the federation allowlist.';
+      btn.classList.add('mirror-error');
+      if (window.lucide) window.lucide.createIcons();
+      // Re-enable so user can retry after allowlist change
+      btn.disabled = false;
+    } else {
+      var errBody = '';
+      try {
+        var errJson = await resp.json();
+        errBody = errJson.detail || 'Mirror failed (HTTP ' + resp.status + ')';
+      } catch (e) {
+        errBody = 'Mirror failed (HTTP ' + resp.status + ')';
+      }
+      btn.innerHTML = '<i data-lucide="alert-triangle"></i> Error';
+      btn.title = errBody;
+      btn.classList.add('mirror-error');
+      if (window.lucide) window.lucide.createIcons();
+      // Re-enable for retry
+      btn.disabled = false;
+    }
+  } catch (err) {
+    btn.innerHTML = '<i data-lucide="alert-triangle"></i> Network error';
+    btn.title = err.message;
+    btn.classList.add('mirror-error');
+    if (window.lucide) window.lucide.createIcons();
+    btn.disabled = false;
   }
 }
 
