@@ -1,0 +1,62 @@
+{# Workspace catalog grid — all apps (installed + available on disk).
+   Rendered by GET /browser/apps/catalog.
+   Context: apps — list of app dicts, user — current User #}
+
+<div class="catalog-container">
+  <div class="catalog-header">
+    <h2 style="margin: 0; font-size: 1.15rem; font-weight: 600; color: var(--color-text);">App Catalog</h2>
+    <input type="text"
+           class="catalog-search"
+           placeholder="Search apps…"
+           oninput="(function(v){
+             document.querySelectorAll('.catalog-card').forEach(function(c){
+               var text = (c.dataset.name + ' ' + c.dataset.desc).toLowerCase();
+               c.style.display = text.includes(v.toLowerCase()) ? '' : 'none';
+             });
+           })(this.value)">
+  </div>
+
+  {% if apps %}
+  <div class="catalog-grid">
+    {% for app in apps %}
+    <div class="catalog-card"
+         data-name="{{ app.name | lower }}"
+         data-desc="{{ app.description | lower }}"
+         onclick="openCatalogDetailTab('{{ app.app_id }}', '{{ app.name | e }}')">
+      <div class="catalog-card-header">
+        <span class="catalog-card-name">{{ app.name }}</span>
+        <div class="catalog-card-badges">
+          <span class="version-pill">v{{ app.version }}</span>
+          {% if app.status == 'running' %}
+          <span class="status-dot status-dot-running" title="Running"></span>
+          {% elif app.status == 'stopped' %}
+          <span class="status-dot status-dot-stopped" title="Stopped"></span>
+          {% elif app.status == 'not_installed' %}
+          <span class="status-dot status-dot-available" title="Available"></span>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if app.category %}
+      <span class="category-pill">{{ app.category }}</span>
+      {% endif %}
+
+      <p class="catalog-card-desc">{{ app.description or 'No description available.' }}</p>
+
+      {% if app.author %}
+      <span class="catalog-card-author">by {{ app.author.name if app.author is mapping else app.author }}</span>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="tree-empty" style="padding: 2rem; text-align: center; color: var(--color-text-muted);">
+    No apps available. Place app directories in the apps folder to see them here.
+  </div>
+  {% endif %}
+</div>
+
+<script>
+  // Initialize Lucide icons for this fragment
+  if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+</script>

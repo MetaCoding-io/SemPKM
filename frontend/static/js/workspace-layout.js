@@ -251,6 +251,14 @@
           if (st === 'app-view' && params.params.appId && params.params.viewId) {
             url = '/browser/apps/' + params.params.appId + '/view/' + params.params.viewId;
           }
+          // Catalog list panel
+          if (st === 'catalog') {
+            url = '/browser/apps/catalog';
+          }
+          // Catalog detail panel
+          if (st === 'catalog-detail' && params.params.appId) {
+            url = '/browser/apps/catalog/' + params.params.appId;
+          }
           htmx.ajax('GET', url, { target: el, swap: 'innerHTML' });
         }
       };

@@ -814,6 +814,49 @@
   window.openAppViewTab = openAppViewTab;
 
 
+  function openCatalogTab() {
+    var tabKey = 'catalog:list';
+    var dv = window._dockview;
+    if (!dv) return;
+
+    var existing = dv.panels.find(function(p) { return p.id === tabKey; });
+    if (existing) { existing.api.setActive(); return; }
+
+    if (!window._tabMeta) window._tabMeta = {};
+    window._tabMeta[tabKey] = { label: 'App Catalog', dirty: false };
+
+    dv.api.addPanel({
+      id: tabKey,
+      component: 'special-panel',
+      params: { specialType: 'catalog', isView: false, isSpecial: true },
+      title: 'App Catalog'
+    });
+  }
+  window.openCatalogTab = openCatalogTab;
+
+
+  function openCatalogDetailTab(appId, appName) {
+    var tabKey = 'catalog:' + appId;
+    var dv = window._dockview;
+    if (!dv) return;
+
+    var existing = dv.panels.find(function(p) { return p.id === tabKey; });
+    if (existing) { existing.api.setActive(); return; }
+
+    if (!window._tabMeta) window._tabMeta = {};
+    var label = appName || appId;
+    window._tabMeta[tabKey] = { label: label, dirty: false };
+
+    dv.api.addPanel({
+      id: tabKey,
+      component: 'special-panel',
+      params: { specialType: 'catalog-detail', appId: appId, isView: false, isSpecial: true },
+      title: label
+    });
+  }
+  window.openCatalogDetailTab = openCatalogDetailTab;
+
+
   function openDashboardBuilderTab(dashboardId) {
     var tabKey = dashboardId
       ? 'dashboard-builder:' + dashboardId

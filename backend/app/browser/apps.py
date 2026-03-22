@@ -1,5 +1,6 @@
 """Apps browser sub-router — explorer sidebar, dockview page wrapper,
-dynamic right-pane sections, app view tabs, and command palette API.
+dynamic right-pane sections, app view tabs, catalog browsing, and command
+palette API.
 
 Provides:
 - ``GET /apps/explorer`` — HTML list of navigable pages from running apps
@@ -8,14 +9,21 @@ Provides:
 - ``GET /apps/right-pane-sections`` — merged platform + app right-pane HTML
 - ``GET /apps/views/explorer`` — HTML fragment of app view entries for Views sidebar
 - ``GET /apps/{app_id}/view/{view_id}`` — dockview tab content for app views
+- ``GET /apps/catalog`` — workspace catalog grid (all apps, installed + available)
+- ``GET /apps/catalog/{app_id}`` — workspace catalog detail page
 - ``GET /api/apps/commands`` — JSON array of command palette entries from running apps
 """
 
 import logging
 from urllib.parse import quote
 
-from fastapi import APIRouter, HTTPException, Query, Request
+import yaml
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse
+
+from app.apps.manifest import AppManifestSchema, parse_app_manifest
+from app.auth.dependencies import get_current_user
+from app.auth.models import User
 
 logger = logging.getLogger(__name__)
 
@@ -270,6 +278,165 @@ async def app_view_tab(request: Request, app_id: str, view_id: str):
             "fragment_url": fragment_url,
             "css_urls": css_urls,
             "js_urls": js_urls,
+        },
+    )
+
+
+# ── Workspace catalog ─────────────────────────────────────────────────────
+
+
+def _format_uptime(seconds: float | None) -> str:
+    """Format uptime_seconds into a human-readable string."""
+    if seconds is None:
+        return "—"
+    seconds = int(seconds)
+    if seconds < 60:
+        return f"{seconds}s"
+    if seconds < 3600:
+        return f"{seconds // 60}m {seconds % 60}s"
+    hours = seconds // 3600
+    minutes = (seconds % 3600) // 60
+    return f"{hours}h {minutes}m"
+
+
+@apps_router.get("/apps/catalog", response_class=HTMLResponse)
+async def catalog_list(
+    request: Request,
+    user: User = Depends(get_current_user),
+):
+    """Render workspace catalog grid of all apps — installed + available on disk.
+
+    Open to all authenticated users (no role restriction).
+    """
+    app_manager = request.app.state.app_manager
+    templates = request.app.state.templates
+    installed_ids = set(app_manager.registry.list_apps())
+
+    apps: list[dict] = []
+
+    # Installed apps
+    for app_id in sorted(installed_ids):
+        manifest = app_manager.registry.get_manifest(app_id)
+        if manifest is None:
+            continue
+        try:
+            status = await app_manager.get_status(app_id)
+            app_status = status.get("status", "unknown")
+            uptime = _format_uptime(status.get("uptime_seconds"))
+        except (ValueError, Exception):
+            app_status = "unknown"
+            uptime = "—"
+
+        apps.append({
+            "app_id": app_id,
+            "name": manifest.name,
+            "description": manifest.description,
+            "version": manifest.version,
+            "category": manifest.category,
+            "features": manifest.features,
+            "status": app_status,
+            "uptime": uptime,
+            "author": manifest.author,
+            "installed": True,
+        })
+
+    # Available (not-installed) apps on disk
+    apps_dir = app_manager._apps_dir
+    if apps_dir.is_dir():
+        for child in sorted(apps_dir.iterdir()):
+            if not child.is_dir():
+                continue
+            manifest_path = child / "manifest.yaml"
+            if not manifest_path.exists():
+                continue
+            candidate_id = child.name
+            if candidate_id in installed_ids:
+                continue
+            try:
+                with open(manifest_path) as f:
+                    raw = yaml.safe_load(f)
+                apps.append({
+                    "app_id": candidate_id,
+                    "name": raw.get("name", candidate_id),
+                    "description": raw.get("description", ""),
+                    "version": raw.get("version", "0.0.0"),
+                    "category": raw.get("category", ""),
+                    "features": raw.get("features", []),
+                    "status": "not_installed",
+                    "uptime": "—",
+                    "author": raw.get("author"),
+                    "installed": False,
+                    "path": str(child),
+                })
+            except Exception as exc:
+                logger.warning(
+                    "Failed to parse manifest for %s: %s", candidate_id, exc
+                )
+
+    return templates.TemplateResponse(
+        request,
+        "browser/catalog_list.html",
+        {"request": request, "apps": apps, "user": user},
+    )
+
+
+@apps_router.get("/apps/catalog/{app_id}", response_class=HTMLResponse)
+async def catalog_detail(
+    request: Request,
+    app_id: str,
+    user: User = Depends(get_current_user),
+):
+    """Render workspace catalog detail page for a single app.
+
+    Open to all authenticated users. Install/uninstall actions are
+    conditionally rendered for owner role only in the template.
+    """
+    app_manager = request.app.state.app_manager
+    templates = request.app.state.templates
+    installed_ids = set(app_manager.registry.list_apps())
+
+    manifest = None
+    app_status = "not_installed"
+    uptime = "—"
+    app_path = ""
+
+    if app_id in installed_ids:
+        manifest = app_manager.registry.get_manifest(app_id)
+        if manifest is None:
+            logger.warning("Catalog detail: manifest missing for installed app %s", app_id)
+            raise HTTPException(404, detail=f"App '{app_id}' not found")
+        try:
+            status = await app_manager.get_status(app_id)
+            app_status = status.get("status", "unknown")
+            uptime = _format_uptime(status.get("uptime_seconds"))
+        except (ValueError, Exception):
+            app_status = "unknown"
+    else:
+        # Try loading from disk
+        apps_dir = app_manager._apps_dir
+        manifest_path = apps_dir / app_id / "manifest.yaml"
+        if not manifest_path.exists():
+            logger.warning("Catalog detail: unknown app_id %s", app_id)
+            raise HTTPException(404, detail=f"App '{app_id}' not found")
+        try:
+            manifest = parse_app_manifest(str(manifest_path))
+        except Exception as exc:
+            logger.warning("Catalog detail: manifest parse error for %s: %s", app_id, exc)
+            raise HTTPException(404, detail=f"Failed to load manifest for '{app_id}'")
+        app_path = str(apps_dir / app_id)
+
+    return templates.TemplateResponse(
+        request,
+        "browser/catalog_detail.html",
+        {
+            "request": request,
+            "app_id": app_id,
+            "manifest": manifest,
+            "status": app_status,
+            "uptime": uptime,
+            "user": user,
+            "installed": app_id in installed_ids,
+            "app_path": app_path,
         },
     )
 
