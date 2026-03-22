@@ -28,8 +28,18 @@
 
   function onDragStart(e) {
     var card = e.currentTarget;
-    e.dataTransfer.setData('text/plain', card.dataset.iri);
+    var iri = card.dataset.iri;
+    var title = card.dataset.title || (card.querySelector('.kanban-card-title') ? card.querySelector('.kanban-card-title').textContent.trim() : iri);
+
+    e.dataTransfer.setData('text/plain', iri);
+    e.dataTransfer.setData('text/iri', iri);
+    e.dataTransfer.setData('text/label', title);
     e.dataTransfer.effectAllowed = 'move';
+
+    // Side-channel for calendar / canvas external drop handlers
+    window.__calendarDragPayload = { iri: iri, title: title };
+    window.__canvasDragPayload = { iri: iri, label: title };
+
     card.classList.add('dragging');
     // Prevent dockview from intercepting the drag
     e.stopPropagation();

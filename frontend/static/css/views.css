@@ -1334,6 +1334,17 @@ select.cards-group-select {
     min-height: 0;
     overflow: auto;
     padding: 12px;
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+    border: 2px solid transparent;
+    border-radius: 6px;
+}
+
+/* Visual feedback when an external item is dragged over the calendar */
+.calendar-container.calendar-drop-active {
+    border-color: var(--color-accent, #0078d4);
+    box-shadow: inset 0 0 0 1px var(--color-accent, #0078d4),
+                0 0 12px rgba(0, 120, 212, 0.15);
+    background: var(--color-primary-subtle, rgba(0, 120, 212, 0.04));
 }
 
 /* Calendar event type color coding */
