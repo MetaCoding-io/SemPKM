@@ -86,3 +86,10 @@ Add the backend data layer for the map view renderer. This mirrors the calendar 
 - `backend/app/views/service.py` — modified with `_detect_geo_fields()`, `_build_map_select()`, `execute_map_query()`, geo constants
 - `backend/app/views/router.py` — modified with map renderer branches and `"map"` in `_VALID_RENDERERS`
 - `backend/tests/test_map.py` — new file with comprehensive geo detection and query tests
+
+## Observability Impact
+
+- `_detect_geo_fields` emits DEBUG logs with type IRI + resolved lat/lng paths (or explanation of no-match)
+- `execute_map_query` emits WARNING on SPARQL failure (with stack trace via `exc_info=True`), INFO on success (type + marker count)
+- `generic_view()` map branch: INFO on no-type, WARNING on no-geo-fields, INFO with lat/lng/scope details on success
+- **Future agent inspection:** grep for `_detect_geo_fields:`, `execute_map_query:`, or `renderer=map` in logs to trace map view data flow

@@ -1371,6 +1371,228 @@ WHERE {{
             },
         }
 
+    # ── Map renderer ───────────────────────────────────────────
+
+    _WELL_KNOWN_GEO_PATHS: set[str] = {
+        "lat", "latitude", "long", "longitude", "lng",
+    }
+
+    _XSD_DECIMAL_TYPES: set[str] = {
+        "http://www.w3.org/2001/XMLSchema#decimal",
+        "http://www.w3.org/2001/XMLSchema#float",
+        "http://www.w3.org/2001/XMLSchema#double",
+    }
+
+    _WELL_KNOWN_GEO_IRIS: dict[str, str] = {
+        "http://www.w3.org/2003/01/geo/wgs84_pos#lat": "lat",
+        "http://www.w3.org/2003/01/geo/wgs84_pos#long": "lng",
+        "http://schema.org/latitude": "lat",
+        "http://schema.org/longitude": "lng",
+    }
+
+    async def _detect_geo_fields(
+        self, type_iri: str,
+    ) -> tuple[PropertyShape | None, PropertyShape | None]:
+        """Find lat/lng property pairs suitable for map rendering.
+
+        Uses two heuristics in priority order:
+        1. Well-known full IRI match (wgs84:lat/long, schema:latitude/longitude)
+        2. Local-name heuristic against ``_WELL_KNOWN_GEO_PATHS``
+
+        Returns ``(lat_field, lng_field)`` or ``(None, None)``.
+        Both must be found — if only one is detected, returns ``(None, None)``.
+        """
+        if not self._shapes_service:
+            return None, None
+
+        try:
+            form: NodeShapeForm | None = (
+                await self._shapes_service.get_form_for_type(type_iri)
+            )
+        except Exception:
+            logger.warning(
+                "_detect_geo_fields: shapes lookup failed for %s",
+                type_iri,
+                exc_info=True,
+            )
+            return None, None
+
+        if form is None:
+            return None, None
+
+        lat_field: PropertyShape | None = None
+        lng_field: PropertyShape | None = None
+
+        # Pass 1: well-known full IRI match (highest priority)
+        for prop in form.properties:
+            role = self._WELL_KNOWN_GEO_IRIS.get(prop.path)
+            if role == "lat" and lat_field is None:
+                lat_field = prop
+            elif role == "lng" and lng_field is None:
+                lng_field = prop
+
+        if lat_field and lng_field:
+            logger.debug(
+                "_detect_geo_fields: IRI match type=%s lat=%s lng=%s",
+                type_iri, lat_field.path, lng_field.path,
+            )
+            return lat_field, lng_field
+
+        # Pass 2: local-name heuristic
+        lat_field = None
+        lng_field = None
+        for prop in form.properties:
+            local = _local_name(prop.path).lower()
+            if local not in self._WELL_KNOWN_GEO_PATHS:
+                continue
+            if local in ("lat", "latitude") and lat_field is None:
+                lat_field = prop
+            elif local in ("long", "longitude", "lng") and lng_field is None:
+                lng_field = prop
+
+        if lat_field and lng_field:
+            logger.debug(
+                "_detect_geo_fields: heuristic match type=%s lat=%s lng=%s",
+                type_iri, lat_field.path, lng_field.path,
+            )
+            return lat_field, lng_field
+
+        logger.debug(
+            "_detect_geo_fields: no geo pair found for type=%s (lat=%s lng=%s)",
+            type_iri,
+            lat_field.path if lat_field else None,
+            lng_field.path if lng_field else None,
+        )
+        return None, None
+
+    @staticmethod
+    def _build_map_select(
+        type_iri: str,
+        lat_path: str,
+        lng_path: str,
+        scope_filter: str | None = None,
+    ) -> str:
+        """Build a SELECT query that fetches subjects with lat/lng values.
+
+        Both lat and lng are required (non-OPTIONAL) — objects without
+        both coordinates are excluded from results.
+
+        Args:
+            type_iri: The RDF type IRI to filter by.
+            lat_path: The property IRI for the latitude field.
+            lng_path: The property IRI for the longitude field.
+            scope_filter: Optional SPARQL WHERE body injected as sub-select.
+
+        Returns:
+            SPARQL SELECT query string.
+        """
+        scope_clause = ""
+        if scope_filter:
+            scope_clause = f"  {{ SELECT ?s WHERE {{ {scope_filter} }} }}\n"
+
+        return (
+            "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
+            "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n"
+            "PREFIX dcterms: <http://purl.org/dc/terms/>\n"
+            "\n"
+            "SELECT ?s ?label ?lat ?lng\n"
+            "WHERE {\n"
+            f"  ?s rdf:type <{type_iri}> .\n"
+            f"  ?s <{lat_path}> ?lat .\n"
+            f"  ?s <{lng_path}> ?lng .\n"
+            f"{scope_clause}"
+            "  OPTIONAL { ?s rdfs:label|dcterms:title ?label }\n"
+            "}"
+        )
+
+    async def execute_map_query(
+        self,
+        type_iri: str,
+        lat_field: PropertyShape,
+        lng_field: PropertyShape,
+        scope_filter: str | None = None,
+    ) -> dict:
+        """Execute a map query and return marker data.
+
+        Maps SPARQL results to marker objects with ``iri``, ``title``,
+        ``lat``, and ``lng``. Deduplicates by IRI and parses coordinates
+        as floats.
+
+        Returns:
+            ``{"markers": [...], "geo_fields": {"lat": {...}, "lng": {...}}}``
+        """
+        query = self._build_map_select(
+            type_iri,
+            lat_field.path,
+            lng_field.path,
+            scope_filter=scope_filter,
+        )
+        scoped = scope_to_current_graph(query)
+
+        try:
+            result = await self._client.query(scoped)
+        except Exception:
+            logger.warning(
+                "execute_map_query: query failed for type=%s lat=%s lng=%s",
+                type_iri, lat_field.path, lng_field.path,
+                exc_info=True,
+            )
+            return {
+                "markers": [],
+                "geo_fields": {
+                    "lat": {"path": lat_field.path, "name": lat_field.name},
+                    "lng": {"path": lng_field.path, "name": lng_field.name},
+                },
+            }
+
+        bindings = result.get("results", {}).get("bindings", [])
+
+        markers: list[dict] = []
+        seen: set[str] = set()
+
+        for b in bindings:
+            iri = b.get("s", {}).get("value", "")
+            if not iri or iri in seen:
+                continue
+            seen.add(iri)
+
+            label = b.get("label", {}).get("value", "") or _local_name(iri)
+            lat_val = b.get("lat", {}).get("value", "")
+            lng_val = b.get("lng", {}).get("value", "")
+
+            if not lat_val or not lng_val:
+                continue
+
+            try:
+                lat_float = float(lat_val)
+                lng_float = float(lng_val)
+            except (ValueError, TypeError):
+                logger.debug(
+                    "execute_map_query: skipping %s — bad coords lat=%r lng=%r",
+                    iri, lat_val, lng_val,
+                )
+                continue
+
+            markers.append({
+                "iri": iri,
+                "title": label,
+                "lat": lat_float,
+                "lng": lng_float,
+            })
+
+        logger.info(
+            "execute_map_query: type=%s markers=%d",
+            type_iri, len(markers),
+        )
+
+        return {
+            "markers": markers,
+            "geo_fields": {
+                "lat": {"path": lat_field.path, "name": lat_field.name},
+                "lng": {"path": lng_field.path, "name": lng_field.name},
+            },
+        }
+
     # ── Kanban renderer ────────────────────────────────────────
 
     async def _detect_status_field(
