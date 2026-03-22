@@ -23,6 +23,8 @@ from app.auth.dependencies import get_current_user
 from app.auth.models import User
 from app.dashboard.service import DashboardService, DashboardData
 from app.dashboard.models import VALID_LAYOUTS, VALID_BLOCK_TYPES
+from app.dashboard.registry import BLOCK_REGISTRY
+from app.dashboard.migration import migrate_layout_to_gridstack
 
 logger = logging.getLogger(__name__)
 
@@ -65,12 +67,34 @@ LAYOUT_DEFINITIONS = {
         "grid_template": '"top" "bottom"',
         "columns": "1fr",
     },
+    "gridstack": {
+        "css_class": "dashboard-layout-gridstack",
+        "slots": ["canvas"],
+        "grid_template": '"canvas"',
+        "columns": "1fr",
+    },
 }
 
 
 def _get_dashboard_service(request: Request) -> DashboardService:
     """Get dashboard service from app state."""
     return request.app.state.dashboard_service
+
+
+def _block_types_for_template() -> list[dict]:
+    """Serialize BlockRegistry specs into dicts for the builder template."""
+    result = []
+    for spec in BLOCK_REGISTRY.all_specs():
+        result.append({
+            "type_name": spec.type_name,
+            "label": spec.label,
+            "icon": spec.icon,
+            "category": spec.category,
+            "default_w": spec.default_w,
+            "default_h": spec.default_h,
+            "config_schema": {k: v.__name__ for k, v in spec.config_schema.items()},
+        })
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -108,6 +132,7 @@ async def dashboard_builder_new(
         "dashboard": None,
         "layout_definitions": LAYOUT_DEFINITIONS,
         "valid_block_types": sorted(VALID_BLOCK_TYPES),
+        "block_types": _block_types_for_template(),
     }
     return templates.TemplateResponse(
         request, "browser/dashboard_builder.html", context
@@ -138,6 +163,7 @@ async def dashboard_builder_edit(
         "dashboard": dashboard,
         "layout_definitions": LAYOUT_DEFINITIONS,
         "valid_block_types": sorted(VALID_BLOCK_TYPES),
+        "block_types": _block_types_for_template(),
     }
     return templates.TemplateResponse(
         request, "browser/dashboard_builder.html", context
@@ -151,7 +177,11 @@ async def render_dashboard(
     embed: int = Query(default=0),
     user: User = Depends(get_current_user),
 ):
-    """Render a dashboard page with CSS Grid layout and lazy-loaded blocks."""
+    """Render a dashboard page with GridStack layout and lazy-loaded blocks.
+
+    If the dashboard uses a legacy CSS Grid layout, it is auto-migrated to
+    GridStack positions on first access and the result is persisted.
+    """
     templates = request.app.state.templates
     service = _get_dashboard_service(request)
 
@@ -164,25 +194,39 @@ async def render_dashboard(
     if not dashboard:
         raise HTTPException(status_code=404, detail="Dashboard not found")
 
-    layout_def = LAYOUT_DEFINITIONS.get(dashboard.layout, LAYOUT_DEFINITIONS["single"])
+    # --- Auto-migrate legacy layouts to GridStack on first access ----------
+    blocks = dashboard.blocks
+    if dashboard.layout != "gridstack":
+        old_layout = dashboard.layout
+        blocks = migrate_layout_to_gridstack(old_layout, blocks)
+        logger.info(
+            "Auto-migrated dashboard %s from layout '%s' to gridstack",
+            dashboard.id, old_layout,
+        )
+        # Persist the migrated layout so future loads skip migration
+        await service.update(
+            did, user.id,
+            layout="gridstack",
+            blocks=blocks,
+        )
 
-    # Assign blocks to slots (sequential assignment)
-    slots = layout_def["slots"]
-    block_slots = []
-    for i, block in enumerate(dashboard.blocks):
-        slot = block.get("slot") or (slots[i % len(slots)] if slots else "main")
-        block_slots.append({
+    # Build flat block list with index + position for the template
+    template_blocks = []
+    for i, block in enumerate(blocks):
+        template_blocks.append({
             "index": i,
-            "slot": slot,
             "type": block.get("type", "divider"),
             "config": block.get("config", {}),
+            "x": block.get("x", 0),
+            "y": block.get("y", 0),
+            "w": block.get("w", 6),
+            "h": block.get("h", 4),
         })
 
     context = {
         "request": request,
         "dashboard": dashboard,
-        "layout": layout_def,
-        "block_slots": block_slots,
+        "blocks": template_blocks,
         "dashboard_id": dashboard_id,
     }
 

@@ -25,6 +25,9 @@
           href="{{ 'hljs-github.css' | asset_url }}"
           data-light-href="{{ 'hljs-github.css' | asset_url }}"
           data-dark-href="{{ 'hljs-github-dark.css' | asset_url }}">
+    {# GridStack — not yet in vendor bundle, loaded from CDN #}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridstack@10/dist/gridstack.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/gridstack@10/dist/gridstack-all.js"></script>
     {% else %}
     {# Dev mode: CDN-loaded libraries (volume-mounted raw files) #}
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
@@ -44,6 +47,8 @@
     <script src="https://unpkg.com/lucide@0.575.0/dist/umd/lucide.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
     <script src="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.js.iife.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridstack@10/dist/gridstack.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/gridstack@10/dist/gridstack-all.js"></script>
     {% endif %}
     <script src="{{ 'posthog.js' | asset_url }}"></script>
     <script src="{{ 'auth.js' | asset_url }}"></script>

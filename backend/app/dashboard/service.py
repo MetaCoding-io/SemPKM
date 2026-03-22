@@ -13,6 +13,7 @@ from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dashboard.models import DashboardSpec, VALID_LAYOUTS, VALID_BLOCK_TYPES
+from app.dashboard.registry import BLOCK_REGISTRY
 
 logger = logging.getLogger(__name__)
 
@@ -65,8 +66,9 @@ class DashboardService:
 
         blocks = blocks or []
         for block in blocks:
-            if block.get("type") not in VALID_BLOCK_TYPES:
-                raise ValueError(f"Invalid block type: {block.get('type')}. Must be one of {VALID_BLOCK_TYPES}")
+            BLOCK_REGISTRY.validate_block(block)
+            if layout == "gridstack" and "x" in block:
+                BLOCK_REGISTRY.validate_position(block)
 
         dashboard_id = uuid.uuid4()
         spec = DashboardSpec(
@@ -142,8 +144,9 @@ class DashboardService:
             if "blocks" in updates:
                 blocks = updates["blocks"]
                 for block in blocks:
-                    if block.get("type") not in VALID_BLOCK_TYPES:
-                        raise ValueError(f"Invalid block type: {block.get('type')}")
+                    BLOCK_REGISTRY.validate_block(block)
+                    if spec.layout == "gridstack" and "x" in block:
+                        BLOCK_REGISTRY.validate_position(block)
                 spec.blocks_json = json.dumps(blocks)
 
             await session.commit()

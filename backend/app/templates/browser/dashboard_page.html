@@ -1,9 +1,8 @@
-{# Dashboard page — CSS Grid container with htmx-loaded blocks.
+{# Dashboard page — static GridStack grid with htmx-loaded blocks.
 
    Context:
      dashboard: DashboardData (id, name, description, layout, blocks)
-     layout: dict with css_class, slots, grid_template, columns
-     block_slots: list of {index, slot, type, config}
+     blocks: list of {index, type, config, x, y, w, h}
      dashboard_id: string UUID
 #}
 
@@ -14,29 +13,35 @@
             <i data-lucide="pencil"></i>
         </button>
     </div>
-    <div class="dashboard-container {{ layout.css_class }}"
-         data-dashboard-id="{{ dashboard_id }}"
-         style="display:grid; grid-template-areas:{{ layout.grid_template }}; grid-template-columns:{{ layout.columns }}; gap:16px; padding:16px; flex:1; overflow:auto;">
-        {% for block in block_slots %}
-        {% set listens = block.config.get('listens_to_context', '') %}
-        {% set emits = block.config.get('emits_context', false) %}
-        <div class="dashboard-slot" style="grid-area:{{ block.slot }};"
-             {% if listens %}
-             hx-get="/browser/dashboard/{{ dashboard_id }}/block/{{ block.index }}"
-             hx-trigger="load, dashboardContextChanged from:body"
-             data-listens-to-context="{{ listens }}"
-             data-dashboard-id="{{ dashboard_id }}"
-             {% else %}
-             hx-get="/browser/dashboard/{{ dashboard_id }}/block/{{ block.index }}"
-             hx-trigger="load"
-             {% endif %}
-             {% if emits %}
-             data-emits-context="1"
-             {% endif %}
-             hx-swap="innerHTML">
-            <div class="dashboard-block-loading">Loading...</div>
+
+    <div class="dashboard-grid-wrap" data-dashboard-id="{{ dashboard_id }}" style="flex:1; overflow:auto; padding:12px;">
+        <div class="grid-stack" id="dashboard-grid-{{ dashboard_id }}">
+            {% for block in blocks %}
+            {% set listens = block.config.get('listens_to_context', '') %}
+            {% set emits = block.config.get('emits_context', false) %}
+            <div class="grid-stack-item"
+                 gs-x="{{ block.x }}" gs-y="{{ block.y }}"
+                 gs-w="{{ block.w }}" gs-h="{{ block.h }}"
+                 gs-no-resize="true" gs-no-move="true">
+                <div class="grid-stack-item-content dashboard-widget-content"
+                     {% if listens %}
+                     hx-get="/browser/dashboard/{{ dashboard_id }}/block/{{ block.index }}"
+                     hx-trigger="load, dashboardContextChanged from:body"
+                     data-listens-to-context="{{ listens }}"
+                     data-dashboard-id="{{ dashboard_id }}"
+                     {% else %}
+                     hx-get="/browser/dashboard/{{ dashboard_id }}/block/{{ block.index }}"
+                     hx-trigger="load"
+                     {% endif %}
+                     {% if emits %}
+                     data-emits-context="1"
+                     {% endif %}
+                     hx-swap="innerHTML">
+                    <div class="dashboard-block-loading">Loading...</div>
+                </div>
+            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
     </div>
 </div>
 
@@ -44,32 +49,57 @@
 (function() {
     'use strict';
 
-    var container = document.querySelector('.dashboard-container[data-dashboard-id="{{ dashboard_id }}"]');
-    if (!container) return;
+    // --- Initialize static GridStack grid ---
+    var gridEl = document.getElementById('dashboard-grid-{{ dashboard_id }}');
+    if (!gridEl) return;
 
-    // --- htmx:configRequest — inject context_iri and context_var into slot re-fetches ---
-    container.addEventListener('htmx:configRequest', function(evt) {
+    var grid = GridStack.init({
+        column: 12,
+        cellHeight: 80,
+        staticGrid: true,
+        animate: true,
+        disableOneColumnMode: true,
+        float: true,
+        margin: 8,
+    }, gridEl);
+
+    // Process htmx on the grid content so hx-get/hx-trigger attributes work
+    if (typeof htmx !== 'undefined') {
+        htmx.process(gridEl);
+    }
+
+    // Initialize Lucide icons in the header
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+
+    // --- Cross-block context passing ---
+    var wrap = document.querySelector('.dashboard-grid-wrap[data-dashboard-id="{{ dashboard_id }}"]');
+    if (!wrap) return;
+
+    // htmx:configRequest — inject context_iri and context_var into block re-fetches
+    wrap.addEventListener('htmx:configRequest', function(evt) {
         var trigEl = evt.detail.elt;
-        // Only inject for slot-level elements, not inner view divs
-        if (!trigEl.classList.contains('dashboard-slot')) return;
+        // Only inject for widget-content elements with context listening
+        if (!trigEl.classList.contains('dashboard-widget-content')) return;
         var contextVar = trigEl.getAttribute('data-listens-to-context');
         if (!contextVar) return;
 
         var slotDashId = trigEl.getAttribute('data-dashboard-id');
         if (slotDashId !== '{{ dashboard_id }}') return;
 
-        var currentIri = container.dataset.currentContextIri || '';
+        var currentIri = wrap.dataset.currentContextIri || '';
         if (currentIri) {
             evt.detail.parameters['context_iri'] = currentIri;
             evt.detail.parameters['context_var'] = contextVar;
         }
     });
 
-    // --- dashboardContextChanged — update stored context IRI ---
+    // dashboardContextChanged — update stored context IRI
     document.body.addEventListener('dashboardContextChanged', function(evt) {
         var detail = evt.detail || {};
         if (detail.dashboardId !== '{{ dashboard_id }}') return;
-        container.dataset.currentContextIri = detail.iri || '';
+        wrap.dataset.currentContextIri = detail.iri || '';
     });
 })();
 </script>
