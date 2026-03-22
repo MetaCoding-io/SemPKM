@@ -87,3 +87,12 @@ onchange="applyScopeQuery(this.value, '{{ renderer | default('table') }}', '{{ s
 - `frontend/static/js/calendar.js` — modified: scope-changed listener added
 - `frontend/static/js/kanban.js` — modified: scope-changed listener added
 - `backend/app/templates/browser/view_toolbar.html` — modified: passes `this` to `applyScopeQuery`
+
+## Observability Impact
+
+- **New console signal:** `[scope] propagated: scopeQuery=<id> renderer=<r> sourcePanel=<panelId>` — logged on every scope change dispatch in workspace.js. Confirms the event fired and which panel originated it.
+- **Calendar sync signal:** `[calendar] scope sync: scopeQuery=<id> from panel=<panelId>` — logged when calendar processes a scope-changed event. `[calendar] scope sync complete: N events` on success, `[calendar] scope sync failed:` on fetch error.
+- **Kanban sync signal:** `[kanban] scope sync: scopeQuery=<id> from panel=<panelId>` — logged when kanban processes a scope-changed event.
+- **Inspection surface:** `document.addEventListener('sempkm:scope-changed', e => console.log(e.detail))` — attaching this in dev console shows every scope propagation event with full detail payload.
+- **Visual indicator:** `.scope-syncing` CSS class briefly flashes an accent outline on the synced view container (300ms animation), providing visual confirmation the sync was received.
+- **Failure visibility:** Calendar scope sync errors appear as `[calendar] scope sync failed:` in console. Kanban scope sync failures surface through htmx error handling.

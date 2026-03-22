@@ -17,7 +17,7 @@
         </button>
         {% if (user_saved_queries is defined and user_saved_queries) or (model_saved_queries is defined and model_saved_queries) %}
         <select class="view-scope-select"
-                onchange="applyScopeQuery(this.value, '{{ renderer | default('table') }}', '{{ selected_type | default('') }}')">
+                onchange="applyScopeQuery(this.value, '{{ renderer | default('table') }}', '{{ selected_type | default('') }}', this)">
             <option value="">All Objects</option>
             {% if user_saved_queries is defined and user_saved_queries %}
             <optgroup label="My Queries">

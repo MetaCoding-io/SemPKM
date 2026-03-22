@@ -151,4 +151,38 @@
 
   /* ── Export ── */
   window.initKanban = initKanban;
+
+  /* ── Scope sync: re-fetch when a sibling view changes scope ── */
+  document.addEventListener('sempkm:scope-changed', function (e) {
+    var detail = e.detail || {};
+    var boardEl = document.querySelector('.kanban-board');
+    if (!boardEl) return;
+
+    // Compute own panel ID to avoid self-triggered re-fetch
+    var ownPanel = boardEl.closest('.dv-panel');
+    var ownPanelId = ownPanel ? (ownPanel.id || '') : '';
+    if (detail.sourcePanel && detail.sourcePanel === ownPanelId) return;
+
+    console.log('[kanban] scope sync: scopeQuery=' + (detail.scopeQuery || '(none)') +
+      ' from panel=' + (detail.sourcePanel || '(unknown)'));
+
+    // Determine the type IRI from the board's context or the event detail
+    var typeIri = boardEl.dataset.typeIri || detail.selectedType || '';
+
+    // Build the kanban URL with the updated scope_query
+    var url = '/browser/views/generic/kanban';
+    var params = [];
+    if (detail.scopeQuery) params.push('scope_query=' + encodeURIComponent(detail.scopeQuery));
+    if (typeIri) params.push('type=' + encodeURIComponent(typeIri));
+    if (params.length) url += '?' + params.join('&');
+
+    // Visual feedback
+    boardEl.classList.add('scope-syncing');
+    setTimeout(function () { boardEl.classList.remove('scope-syncing'); }, 300);
+
+    var target = boardEl.closest('.group-editor-area') || boardEl.parentElement;
+    if (target && typeof htmx !== 'undefined') {
+      htmx.ajax('GET', url, { target: target, swap: 'innerHTML' });
+    }
+  });
 })();
