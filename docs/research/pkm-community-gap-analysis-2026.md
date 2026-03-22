@@ -547,3 +547,369 @@ enabling round-trip sync with Obsidian vaults while preserving semantic structur
 - [Logseq Project Status Discussion](https://discuss.logseq.com/t/logseq-project-status/28849/20)
 - [Building the Fastest Capture — Memotron](https://docs.memotron.app/blog/fastest-pkm-capture)
 - [Knowledge Graph Tools 2026 — Atlas Blog](https://www.atlasworkspace.ai/blog/knowledge-graph-tools)
+
+---
+---
+
+# Deep Dive: Agentic AI & Semantic Search for SemPKM
+
+Detailed technical research into the two highest-priority opportunities:
+proactive AI agents and "ask your knowledge base" semantic search.
+
+---
+
+## Part A: Agentic AI — Making SemPKM Proactive
+
+### What "Agentic AI" Means in PKM Context
+
+The shift is from **reactive** (user asks → AI answers) to **proactive** (AI monitors,
+surfaces, suggests, acts). Concrete behaviors users want:
+
+1. **Auto-surfacing**: "You wrote about this 3 months ago and never followed up"
+2. **Auto-linking**: AI detects implicit connections between objects you haven't linked
+3. **Knowledge curation**: "5 notes overlap on React state management — consolidate?"
+4. **Contextual suggestions**: Writing a decision doc → AI suggests relevant mental models
+5. **Contradiction detection**: "You said X here but Y there — which is current?"
+6. **Gap identification**: "You're learning systems thinking but haven't connected it to any project"
+
+### What Competitors Are Doing
+
+| Tool | Capability | Limitation |
+|------|-----------|------------|
+| **Mem.ai** | Auto-organizes notes, temporal awareness, proactive surfacing | Closed-source, no structured data, no user ontology |
+| **Notion AI** | Q&A over workspace, auto-fill DB properties, Slack/Drive connectors | Reactive only, treats everything as text |
+| **Khoj** | Self-hosted RAG over notes, multi-modal search | No graph structure, no proactive behavior |
+| **Obsidian Copilot** | Chat over vault, vector search | Plugin, not integrated; no graph awareness |
+| **Fabric** (Daniel Miessler) | AI "patterns" as prompt templates for processing any content | Framework, not a PKM tool; no persistence |
+
+**Key insight**: Nobody combines structured knowledge graph + proactive AI. All are
+either text-only (Mem, Notion) or graph-only without AI (existing SemPKM).
+
+### MCP (Model Context Protocol) and PKM
+
+Anthropic's MCP creates a standard protocol for AI ↔ tool communication. Relevant MCP
+servers already exist: obsidian-mcp, filesystem-mcp, sqlite-mcp, knowledge-graph-mcp.
+
+**For SemPKM**: An MCP server exposing the SPARQL endpoint + command API would let any
+MCP-compatible AI client (Claude, etc.) directly read from and write to SemPKM. This
+is a leverage point — instead of building all AI features internally, expose SemPKM as
+an MCP resource that external agents can use.
+
+### Why SemPKM Has a Structural Advantage
+
+**The GraphRAG shortcut**: Microsoft's GraphRAG (2024) and LightRAG (2024) both start
+by using LLMs to *extract* a knowledge graph from unstructured text. This is:
+- Expensive (many LLM calls per document)
+- Lossy (extraction misses nuance)
+- Error-prone (hallucinated entities/relations)
+- Requires re-indexing when content changes
+
+**SemPKM already has the graph.** User-validated, schema-aware, with OWL inference.
+The entire expensive extraction step is skipped. SemPKM goes straight to graph-based
+retrieval with clean structure.
+
+### Architecture: SemPKM Agentic AI
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    SemPKM Agent Loop                     │
+│                                                         │
+│  Triggers:                                              │
+│  ├─ Event (object.create, edge.create, body.set)       │
+│  ├─ Schedule (daily digest, weekly review)              │
+│  └─ User request (chat, slash command)                  │
+│                                                         │
+│  Agent Tools:                                           │
+│  ├─ sparql_query(q)    — read from knowledge graph     │
+│  ├─ text_search(q)     — full-text search over bodies  │
+│  ├─ vector_search(q)   — semantic similarity search    │
+│  ├─ browse_ontology()  — read class/property defs      │
+│  ├─ commands(batch)    — create/patch objects & edges   │
+│  ├─ validate_shacl(o)  — check shape constraints       │
+│  └─ suggest_model(ctx) — recommend mental models       │
+│                                                         │
+│  Output:                                                │
+│  ├─ Suggestions (user approves before execution)       │
+│  ├─ Notifications (surfaced knowledge, reminders)      │
+│  └─ Direct answers (Q&A, summaries)                    │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Event-driven flow** (leveraging existing WebhookService):
+1. User creates/edits an object → EventStore commits event
+2. WebhookService dispatches to AI agent endpoint
+3. Agent runs: SPARQL to find related objects, vector search for semantic neighbors
+4. Agent proposes: "Link this to Project X? Apply SWOT Analysis model?"
+5. Proposals appear in a notification/suggestion panel — user accepts or dismisses
+
+### Concrete Agent Behaviors for SemPKM
+
+**Tier 1 — Low-hanging fruit (existing infrastructure):**
+- **Auto-classify captures**: Browser extension sends raw text → agent suggests type + properties
+- **Link suggestions**: On object create, SPARQL + embeddings find related objects → suggest edges
+- **SHACL gap detection**: "This Decision has no rationale property filled in"
+- **Stale knowledge alerts**: Objects not updated in N days with open status
+
+**Tier 2 — Medium complexity:**
+- **Mental model suggestions**: Given a Decision object's context, suggest applicable models
+- **Knowledge consolidation**: Detect near-duplicate objects via embeddings, propose merge
+- **Weekly digest**: "This week you created 12 objects. 3 are unlinked. 2 decisions lack rationale."
+- **Contradiction detection**: OWL consistency checking + LLM analysis of conflicting body text
+
+**Tier 3 — Advanced:**
+- **Research assistant**: "I'm exploring topic X" → agent finds gaps in your graph, suggests readings
+- **Pattern recognition**: "Your last 5 architecture decisions all used the same 2 mental models"
+- **Predictive linking**: Graph embedding models predict missing edges before the user thinks of them
+- **Multi-user knowledge fusion**: In federated setup, surface relevant knowledge from other graphs
+
+---
+
+## Part B: Semantic Search — "Ask Your Knowledge Base"
+
+### Current State of PKM Search
+
+Every tool does text-based RAG: chunk notes → embed → vector search → LLM answer.
+This works for "What did I write about X?" but fails for:
+
+- **Structural queries**: "List all projects and their status" (needs SPARQL, not vector search)
+- **Multi-hop reasoning**: "What mental models apply to my active projects?" (needs graph traversal)
+- **Aggregation**: "How many decisions did I make this quarter?" (LLM counting is unreliable)
+- **Temporal queries**: "What changed since my last review?" (timestamps in triples, not text)
+- **Completeness**: Vector top-k may miss relevant items; SPARQL returns ALL matches
+
+### SemPKM's Dual-Channel Architecture
+
+```
+User query: "What mental models have I used for architecture decisions?"
+
+┌──────────────────┐
+│  Query Router     │  LLM classifies query type
+└────┬────────┬────┘
+     │        │
+     ▼        ▼
+┌─────────┐ ┌──────────────┐
+│ SPARQL  │ │ Vector Search │
+│ Channel │ │ Channel       │
+└────┬────┘ └──────┬───────┘
+     │              │
+     ▼              ▼
+Structured      Semantic
+results:        results:
+exact matches   fuzzy matches
+from triples    from body text
+     │              │
+     └──────┬───────┘
+            ▼
+    ┌──────────────┐
+    │ Fusion &     │  Merge, deduplicate, rerank
+    │ Reranking    │
+    └──────┬───────┘
+            ▼
+    ┌──────────────┐
+    │ LLM Answer   │  Synthesize with citations
+    │ Generation   │  (clickable object links)
+    └──────────────┘
+```
+
+### Text-to-SPARQL: Natural Language → Graph Queries
+
+Research shows GPT-4/Claude achieve ~80% accuracy on SPARQL generation when given
+the ontology schema. The approach:
+
+1. **System prompt includes**: All classes, properties, ranges from installed mental models
+2. **Few-shot examples**: 5-10 common query patterns for SemPKM's ontology
+3. **Validation step**: Parse generated SPARQL before execution; retry on syntax error
+4. **Fallback**: If SPARQL generation fails, fall back to vector search
+
+**Example flow:**
+```
+User: "What books did I read about systems thinking?"
+
+LLM generates:
+  SELECT ?book ?title WHERE {
+    ?book a pkm:Book ;
+          dcterms:title ?title ;
+          pkm:hasTopic ?topic .
+    ?topic rdfs:label ?topicLabel .
+    FILTER(CONTAINS(LCASE(?topicLabel), "systems thinking"))
+  }
+
+Execute against RDF4J → structured results → format answer
+```
+
+**SemPKM advantage**: The ontology schema is already well-defined (SHACL shapes provide
+exact property names, types, cardinalities). This is exactly what the LLM needs to
+generate correct SPARQL.
+
+### Entity-Centric Retrieval (vs Chunk-Based)
+
+Standard RAG chunks documents into 500-token pieces. This is arbitrary and lossy.
+SemPKM can use **entity-centric retrieval** — each RDF object is a natural unit:
+
+```
+For entity <urn:sempkm:obj:Decision_123>:
+  Type:       Decision
+  Properties: title, date, status, rationale
+  Body:       Markdown text (full content)
+  Outgoing:   relatedTo Project_A, usedModel SWOT_Analysis
+  Incoming:   reviewedBy Person_B, partOf Sprint_7
+  Inferred:   also instance of TrackedItem (via OWL subclass)
+```
+
+This assembled context is richer than any text chunk because it includes **structure**
+(type, properties, edges) alongside **content** (body text).
+
+### OWL Inference as Retrieval Amplifier
+
+OWL reasoning automatically expands queries:
+
+| Inference Type | Example | Retrieval Effect |
+|---------------|---------|-----------------|
+| **Subclass** | Book ⊂ LearningResource | Query for "learning resources" also returns books |
+| **Transitive** | A partOf B, B partOf C | Query for "parts of C" also returns A |
+| **Inverse** | authorOf ↔ writtenBy | Store one direction, query both |
+| **Domain/Range** | hasTopic → Concept | AI knows valid targets for relationships |
+
+This is **free retrieval expansion** — no extra embeddings, no extra LLM calls.
+The reasoner has already materialized inferred triples in `urn:sempkm:inferred`.
+
+### Hybrid Retrieval: Best of Both Worlds
+
+**Phase 1 — Seed discovery** (parallel):
+- SPARQL: Find structurally matching entities (type, properties, edges)
+- Vector: Find semantically similar body text (embeddings cosine similarity)
+
+**Phase 2 — Context expansion**:
+- For each seed entity, traverse graph 1-2 hops
+- Gather: type info, direct properties, related entities, incoming edges
+
+**Phase 3 — Reranking**:
+- Score by: embedding similarity + graph distance + type relevance
+- Return top-k with full entity context
+
+### Grounded, Traceable Answers
+
+Unlike text-only RAG where sources are vague ("from your notes"), SemPKM can provide:
+- **Clickable object links**: Each citation links to the specific object in the workspace
+- **Triple-level provenance**: "This answer is based on 3 triples: [Decision_123 usedModel SWOT], ..."
+- **Query transparency**: Show the SPARQL query that was executed (for power users)
+- **Confidence signals**: SPARQL results = 100% certain; vector results = similarity score
+
+---
+
+## Part C: Slash Commands for SemPKM's Editor
+
+Based on the current CodeMirror 6 editor and workspace architecture, here are
+slash commands ranked by value and implementation feasibility.
+
+### Tier 1 — High Value, Straightforward Implementation
+
+These leverage existing API endpoints and services.
+
+| Command | Action | Implementation |
+|---------|--------|---------------|
+| `/link` | Search objects, insert `[[Object Title]]` wiki-link | RDF4J Lucene search → picker UI → insert markdown link |
+| `/type` | Change object's RDF type | Show installed types → PATCH via commands API |
+| `/tag` | Add/remove tags on current object | Autocomplete from existing tags → edge.create |
+| `/template` | Insert template for current type | SHACL shape → generate markdown scaffolding |
+| `/relate` | Create edge to another object | Object picker → edge type picker → edge.create |
+| `/status` | Quick-set status property | Dropdown of valid values (from SHACL sh:in) |
+
+### Tier 2 — Medium Complexity, High Value
+
+These require new backend capabilities or LLM integration.
+
+| Command | Action | Implementation |
+|---------|--------|---------------|
+| `/ask` | Ask a question about your knowledge base | Text-to-SPARQL + vector search → LLM answer |
+| `/summarize` | Summarize current object or linked objects | Gather entity context → LLM summarize |
+| `/suggest-links` | AI suggests related objects to link | Embeddings + SPARQL → show candidates |
+| `/suggest-model` | AI recommends mental models for this object | Analyze object type + content → rank models |
+| `/extract` | Extract structured properties from body text | LLM reads body → suggests property values |
+| `/review` | Generate spaced repetition items from object | LLM creates Q&A pairs from content |
+
+### Tier 3 — Advanced, Requires New Infrastructure
+
+| Command | Action | Implementation |
+|---------|--------|---------------|
+| `/query` | Natural language → SPARQL → results | Text-to-SPARQL pipeline |
+| `/canvas` | Create spatial canvas from current object's neighborhood | Graph traversal → spatial layout |
+| `/compare` | Side-by-side comparison of two objects | Dual retrieval + LLM diff |
+| `/explain` | Explain how two objects are connected | Graph path-finding + LLM narrative |
+| `/refactor` | Split/merge/reorganize objects | Multi-command batch with preview |
+
+### Implementation Notes
+
+The CodeMirror 6 editor (`editor.js`) currently supports toolbar actions for basic
+markdown formatting. Slash commands would integrate as a CodeMirror extension:
+
+1. Listen for `/` keystroke in editor
+2. Show autocomplete dropdown (ninja-keys style, already in workspace)
+3. On selection, execute command (some inline, some open a modal/picker)
+4. For AI commands, show streaming response in a panel or inline
+
+The command palette (F1, ninja-keys) already has the UI pattern — slash commands
+in the editor would follow the same pattern but triggered contextually while writing.
+
+---
+
+## Part D: Implementation Roadmap
+
+### Phase 1 — Foundation (enables everything else)
+
+1. **Embedding service**: Index object body text + assembled entity context as vectors
+   - Use sentence-transformers locally or OpenAI API (LLM config already exists)
+   - Store in pgvector (add to stack) or Chroma (simpler)
+   - Re-embed on body.set events (webhook-triggered)
+
+2. **Text-to-SPARQL endpoint**: `/api/nl-query`
+   - Takes natural language, returns SPARQL results + generated query
+   - System prompt with ontology schema from installed models
+   - Validation + retry on syntax errors
+
+3. **Basic slash commands**: `/link`, `/tag`, `/relate`, `/template`
+   - CodeMirror extension for `/` trigger
+   - Reuse existing search + command APIs
+
+### Phase 2 — Semantic Search ("Ask Your KB")
+
+4. **Hybrid retrieval endpoint**: `/api/ask`
+   - Query router: classify → SPARQL and/or vector → fusion → LLM answer
+   - Citations with clickable object links
+   - Show in chat panel or bottom panel
+
+5. **AI slash commands**: `/ask`, `/summarize`, `/suggest-links`
+   - Streaming responses in editor or side panel
+
+### Phase 3 — Proactive Agent
+
+6. **Agent loop**: Event-driven via WebhookService
+   - On object.create → suggest links, classify captures, check SHACL gaps
+   - Suggestions panel in right pane (accept/dismiss UX)
+
+7. **Scheduled agents**: Daily/weekly digests
+   - Stale objects, unlinked knowledge, knowledge gaps
+   - Notification system or email digest
+
+8. **MCP server**: Expose SemPKM as MCP resource
+   - External AI clients can read/write SemPKM knowledge graph
+   - Multiplies value — any MCP-compatible agent becomes a SemPKM agent
+
+---
+
+## References (Deep Dive)
+
+- [Microsoft GraphRAG — GitHub](https://github.com/microsoft/graphrag)
+- [LightRAG — HKU, GitHub](https://github.com/HKUDS/LightRAG)
+- [Khoj — Self-hosted AI, GitHub](https://github.com/khoj-ai/khoj)
+- [LlamaIndex KnowledgeGraphIndex](https://docs.llamaindex.ai/)
+- [Think-on-Graph — arXiv 2024](https://arxiv.org/abs/2307.07697)
+- [Graph RAG Survey — Peng et al. 2024](https://arxiv.org/abs/2408.08921)
+- [Unifying LLMs and KGs: A Roadmap — Pan et al. 2023](https://arxiv.org/abs/2306.08302)
+- [KG-RAG: Bridging Knowledge and Creativity 2024](https://arxiv.org/abs/2405.12035)
+- [SPARQL Generation with LLMs — 2024](https://arxiv.org/abs/2402.00285)
+- [Mem.ai](https://mem.ai/)
+- [Anthropic MCP Specification](https://modelcontextprotocol.io/)
+- [Obsidian Smart Connections](https://github.com/brianpetro/obsidian-smart-connections)
+- [nano-graphrag — GitHub](https://github.com/gusye1234/nano-graphrag)
+- [Haystack — deepset](https://github.com/deepset-ai/haystack)
