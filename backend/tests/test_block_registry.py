@@ -25,9 +25,12 @@ class TestRegistration:
         "sparql-result",
         "divider",
         "form-group",
+        "stat-card",
+        "chart",
+        "heading",
     }
 
-    def test_all_seven_types_registered(self):
+    def test_all_ten_types_registered(self):
         assert set(BLOCK_REGISTRY.all_types()) == self.EXPECTED_TYPES
 
     def test_all_types_returns_sorted(self):
@@ -68,8 +71,35 @@ class TestRegistration:
 
     def test_all_specs_returns_all(self):
         specs = BLOCK_REGISTRY.all_specs()
-        assert len(specs) == 7
+        assert len(specs) == 10
         assert all(isinstance(s, BlockTypeSpec) for s in specs)
+
+    def test_stat_card_spec(self):
+        spec = BLOCK_REGISTRY.get("stat-card")
+        assert spec.label == "Stat Card"
+        assert spec.icon == "hash"
+        assert spec.category == "data"
+        assert set(spec.config_schema.keys()) == {"query", "label", "icon", "color"}
+        assert spec.default_w == 3
+        assert spec.default_h == 2
+
+    def test_chart_spec(self):
+        spec = BLOCK_REGISTRY.get("chart")
+        assert spec.label == "Chart"
+        assert spec.icon == "bar-chart-3"
+        assert spec.category == "data"
+        assert set(spec.config_schema.keys()) == {"query", "chart_type", "label"}
+        assert spec.default_w == 6
+        assert spec.default_h == 4
+
+    def test_heading_spec(self):
+        spec = BLOCK_REGISTRY.get("heading")
+        assert spec.label == "Heading"
+        assert spec.icon == "heading"
+        assert spec.category == "content"
+        assert set(spec.config_schema.keys()) == {"text", "level", "subtitle", "align"}
+        assert spec.default_w == 12
+        assert spec.default_h == 2
 
 
 # ---------------------------------------------------------------------------

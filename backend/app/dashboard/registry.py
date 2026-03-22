@@ -174,7 +174,7 @@ class BlockRegistry:
 
 
 def _build_default_registry() -> BlockRegistry:
-    """Construct the default registry with all 7 built-in block types."""
+    """Construct the default registry with all 10 built-in block types."""
     registry = BlockRegistry()
 
     registry.register(BlockTypeSpec(
@@ -251,6 +251,36 @@ def _build_default_registry() -> BlockRegistry:
         config_schema={"slots": list, "edges": list},
         default_w=12,
         default_h=8,
+    ))
+
+    registry.register(BlockTypeSpec(
+        type_name="stat-card",
+        label="Stat Card",
+        icon="hash",
+        category="data",
+        config_schema={"query": str, "label": str, "icon": str, "color": str},
+        default_w=3,
+        default_h=2,
+    ))
+
+    registry.register(BlockTypeSpec(
+        type_name="chart",
+        label="Chart",
+        icon="bar-chart-3",
+        category="data",
+        config_schema={"query": str, "chart_type": str, "label": str},
+        default_w=6,
+        default_h=4,
+    ))
+
+    registry.register(BlockTypeSpec(
+        type_name="heading",
+        label="Heading",
+        icon="heading",
+        category="content",
+        config_schema={"text": str, "level": str, "subtitle": str, "align": str},
+        default_w=12,
+        default_h=2,
     ))
 
     return registry
