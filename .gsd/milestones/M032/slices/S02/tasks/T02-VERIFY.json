@@ -2,8 +2,27 @@
   "schemaVersion": 1,
   "taskId": "T02",
   "unitId": "M032/S02/T02",
-  "timestamp": 1774164465922,
+  "timestamp": 1774119666862,
   "passed": true,
-  "discoverySource": "none",
-  "checks": []
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "test -f backend/app/templates/browser/blocks/block_stat_card.html",
+      "exitCode": 0,
+      "durationMs": 12,
+      "verdict": "pass"
+    },
+    {
+      "command": "test -f backend/app/templates/browser/blocks/block_chart.html",
+      "exitCode": 0,
+      "durationMs": 11,
+      "verdict": "pass"
+    },
+    {
+      "command": "grep -q \"stat-card\" backend/app/dashboard/router.py",
+      "exitCode": 0,
+      "durationMs": 13,
+      "verdict": "pass"
+    }
+  ]
 }

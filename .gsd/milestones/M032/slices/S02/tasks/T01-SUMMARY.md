@@ -3,87 +3,82 @@ id: T01
 parent: S02
 milestone: M032
 provides:
-  - 10 block types registered in BLOCK_REGISTRY (3 new: stat-card, chart, heading)
-  - render_block HTML output with data-* attributes for stat-card, chart, heading
-  - Fixed markdown render_block: script type="text/plain" + data-md-block
-  - Fixed sparql-result render_block: data-sparql-query + data-sparql-table
-  - Test coverage for all 5 block type render outputs
+  - stat-card, chart, heading block types registered in BLOCK_REGISTRY (9 total)
+  - builder config panels for all 3 new types in dashboard_builder.html
+  - 44 unit tests covering all 9 block types with validation
 key_files:
   - backend/app/dashboard/registry.py
-  - backend/app/dashboard/router.py
+  - backend/app/templates/browser/dashboard_builder.html
   - backend/tests/test_block_registry.py
-  - backend/tests/test_data_widgets.py
 key_decisions:
-  - Heading level clamped to 1-4 (not 1-6) — h5/h6 are too small for dashboard headings
-  - Markdown content placed in script type="text/plain" without HTML-escaping — browsers don't parse script tag content as HTML, so raw markdown is safe there
-  - sparql-result uses both data-sparql-query (unified selector for frontend) and data-sparql-table (distinguishes table mode from scalar stat mode)
+  - stat-card default 3×2 grid cells; chart 6×4; heading 12×1
+  - chart_type stored as string with select options bar/line/pie/doughnut
+  - heading level defaults to h2 when no selection
 patterns_established:
-  - All SPARQL query text in data attributes uses html.escape(query, quote=True)
-  - Error blocks use consistent dashboard-block-error class with descriptive message
-  - stat-card icon uses Lucide i[data-lucide] pattern consistent with codebase
+  - data-category blocks include query textarea with SPARQL placeholder
+  - select elements for enum config values (chart_type, heading level) use data-key attribute like other inputs
 observability_surfaces:
-  - dashboard-block-error class in rendered HTML for missing config
-  - data-sparql-query, data-chart-query, data-chart-type, data-sparql-table, data-stat-target, data-md-block attributes inspectable in DevTools
-duration: 20m
+  - validate_block() raises descriptive ValueError for wrong config types on new blocks
+  - all_types() returns 9 sorted type names — inspectable via Python one-liner
+duration: 12m
 verification_result: passed
-completed_at: 2026-03-22
+completed_at: 2026-03-21
 blocker_discovered: false
 ---
 
-# T01: Register stat-card, chart, heading blocks and fix markdown/sparql-result render handlers
+# T01: Register stat-card, chart, heading block types with builder config panels and tests
 
-**Registered 3 new block types (stat-card, chart, heading) and fixed markdown/sparql-result render handlers to emit correct data-* attributes for frontend JS pickup**
+**Registered 3 new block types (stat-card, chart, heading) in BLOCK_REGISTRY with builder config panels and 44 passing unit tests**
 
 ## What Happened
 
-Added stat-card (data category, 3×2, query+label+icon+color config), chart (data category, 6×4, query+chart_type+label config), and heading (content category, 12×2, text+level+subtitle+align config) to `_build_default_registry()` in registry.py.
+Added three `BlockTypeSpec` registrations to `_build_default_registry()` in `registry.py`: stat-card (data, 3×2), chart (data, 6×4), and heading (layout, 12×1). Each has a typed config_schema for validation.
 
-Added three new `elif` branches in `render_block()` in router.py:
-- **stat-card**: emits `data-sparql-query` with escaped query, `data-stat-target` on the value span, Lucide icon, optional color style
-- **chart**: emits `data-chart-query` and `data-chart-type`, contains a `<canvas class="chart-canvas">`, optional label span
-- **heading**: emits configurable `<h1>`–`<h4>` (level clamped to 1–4), optional subtitle, configurable text-align
+Added three `case` branches to `getTypeConfigHTML()` in `dashboard_builder.html`: stat-card gets a SPARQL query textarea plus label/icon/color text inputs; chart gets a SPARQL query textarea, chart_type select (bar/line/pie/doughnut), and label_var/value_var inputs; heading gets a text input and level select (h1–h4, default h2). All inputs use `escapeAttr()`/`escapeHtml()` and follow existing patterns.
 
-Fixed two existing handlers:
-- **markdown**: replaced `html.escape()` + paragraph-split with `<script type="text/plain" class="md-source">` inside a `data-md-block` wrapper, plus an `md-rendered` div for client-side rendering
-- **sparql-result**: changed `data-query` to `data-sparql-query`, added `data-sparql-table` attribute, replaced inline `<span>` with a `sparql-table-container` div
-
-Updated test_block_registry.py (EXPECTED_TYPES now has 10, added spec tests for all 3 new types). Created test_data_widgets.py with 28 tests covering all 5 block types' render output.
+Updated `test_block_registry.py` with EXPECTED_TYPES expanded to 9, renamed the count test, and added `TestS02BlockTypes` class with 11 new tests: category/icon/dimension checks, parameterized valid config acceptance, and negative validation cases for non-string config values.
 
 ## Verification
 
-- `test_block_registry.py`: 38/38 passed — 10 types registered, new types have correct specs
-- `test_data_widgets.py`: 28/28 passed — render output assertions for stat-card, chart, heading, markdown, sparql-result
-- `test_dashboard.py`: 27/27 passed — no regressions
-- `test_dashboard_builder.py`: 6/9 passed — 3 pre-existing failures (layout radio button checks removed in prior GridStack migration, confirmed same failures on `main` before this task)
+- `cd backend && uv run --extra dev python -m pytest tests/test_block_registry.py -v` — 44 passed in 0.07s
+- Python one-liner confirmed 9 types with stat-card/chart/heading present
+- `data-key` count in builder template increased from 11 to 21 (expected +10)
+- Diagnostic check: `validate_block({'type':'stat-card','config':{'query':42}})` raises `ValueError: must be str, got int`
 
 ## Verification Evidence
 
 | # | Command | Exit Code | Verdict | Duration |
 |---|---------|-----------|---------|----------|
-| 1 | `cd backend && .venv/bin/python -m pytest tests/test_block_registry.py -v` | 0 | ✅ pass | 4.2s |
-| 2 | `cd backend && .venv/bin/python -m pytest tests/test_data_widgets.py -v` | 0 | ✅ pass | 4.2s |
-| 3 | `cd backend && .venv/bin/python -m pytest tests/test_dashboard.py tests/test_dashboard_builder.py -v` | 1 | ⚠️ partial (3 pre-existing failures) | 4.2s |
+| 1 | `cd backend && uv run --extra dev python -m pytest tests/test_block_registry.py -v` | 0 | ✅ pass | 0.07s |
+| 2 | `python3 -c "...assert len(types) == 9; assert 'stat-card' in types..."` | 0 | ✅ pass | <1s |
+| 3 | `grep -c "data-key" backend/app/templates/browser/dashboard_builder.html` → 21 | 0 | ✅ pass | <1s |
+| 4 | `grep -q "chart.js" backend/app/templates/base.html` | 1 | ❌ fail (T02) | <1s |
+| 5 | `test -f backend/app/templates/browser/blocks/block_stat_card.html` | 1 | ❌ fail (T02) | <1s |
+| 6 | `test -f backend/app/templates/browser/blocks/block_chart.html` | 1 | ❌ fail (T02) | <1s |
+| 7 | `test -f .gsd/milestones/M032/M032-DESIGN.md` | 1 | ❌ fail (T03) | <1s |
+
+Slice checks 4–7 are expected to fail at this intermediate task; they belong to T02 and T03.
 
 ## Diagnostics
 
-- Rendered blocks can be inspected by hitting `GET /browser/dashboard/{id}/block/{index}` — the raw HTML shows all data-* attributes
-- Missing config produces a `<div class="dashboard-block-error">` with descriptive text (e.g., "No query configured")
-- Query escaping verified by test assertions checking for `&amp;` in rendered output
-- Registry state inspectable via `python -c "from app.dashboard.registry import BLOCK_REGISTRY; print(BLOCK_REGISTRY.all_types())"` from backend dir
+- Inspect registered types: `cd backend && python3 -c "from app.dashboard.registry import BLOCK_REGISTRY; print(BLOCK_REGISTRY.all_types())"`
+- Inspect a specific type: `cd backend && python3 -c "from app.dashboard.registry import BLOCK_REGISTRY; print(BLOCK_REGISTRY.get('stat-card'))"`
+- Test failure-path validation: `cd backend && python3 -c "from app.dashboard.registry import BLOCK_REGISTRY; BLOCK_REGISTRY.validate_block({'type':'stat-card','config':{'query':42}})"`
 
 ## Deviations
 
-None — implementation matched the task plan exactly.
+- Added `## Observability Impact` section to T01-PLAN.md per pre-flight requirement.
+- Added diagnostic failure-path verification step to S02-PLAN.md per pre-flight requirement.
+- Used `uv run --extra dev` instead of `python -m pytest` since no Docker stack was running and pytest needed installing via dev extras.
 
 ## Known Issues
 
-- 3 pre-existing test failures in `test_dashboard_builder.py` (tests check for layout radio buttons that were removed during GridStack migration in S01). Not caused by this task — confirmed by running the same tests on the unmodified codebase.
+None.
 
 ## Files Created/Modified
 
-- `backend/app/dashboard/registry.py` — added stat-card, chart, heading BlockTypeSpec registrations (7→10 types)
-- `backend/app/dashboard/router.py` — added 3 new render_block branches, fixed markdown and sparql-result handlers
-- `backend/tests/test_block_registry.py` — updated EXPECTED_TYPES to 10, added spec tests for new types
-- `backend/tests/test_data_widgets.py` — new file, 28 tests for render_block output of 5 block types
-- `.gsd/milestones/M032/slices/S02/tasks/T01-PLAN.md` — added Observability Impact section (pre-flight fix)
-- `.gsd/milestones/M032/slices/S02/S02-PLAN.md` — added diagnostic verification step (pre-flight fix)
+- `backend/app/dashboard/registry.py` — Added 3 new BlockTypeSpec registrations (stat-card, chart, heading); updated docstring to "9 built-in block types"
+- `backend/app/templates/browser/dashboard_builder.html` — Added 3 case branches in getTypeConfigHTML() with config inputs for new block types
+- `backend/tests/test_block_registry.py` — Expanded EXPECTED_TYPES to 9, added TestS02BlockTypes class with 11 new tests
+- `.gsd/milestones/M032/slices/S02/tasks/T01-PLAN.md` — Added Observability Impact section (pre-flight fix)
+- `.gsd/milestones/M032/slices/S02/S02-PLAN.md` — Added diagnostic failure-path verification step (pre-flight fix)

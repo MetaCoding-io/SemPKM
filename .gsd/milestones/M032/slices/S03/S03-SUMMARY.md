@@ -1,109 +1,75 @@
----
-id: S03
-parent: M032
-milestone: M032
-provides:
-  - E2E Playwright spec verifying stat-card, chart, heading, and multi-block dashboard rendering
-  - Dashboard selectors in e2e/helpers/selectors.ts
-  - openDashboardTab helper in e2e/helpers/dockview.ts
-  - User guide chapter 28 updated with all 10 block types, GridStack, data widgets, form groups
-requires:
-  - slice: S02
-    provides: Frontend JS widget activation, CSS, builder config for all 10 block types
-affects: []
-key_files:
-  - e2e/tests/45-dashboard-blocks/dashboard-blocks.spec.ts
-  - e2e/helpers/selectors.ts
-  - e2e/helpers/dockview.ts
-  - docs/guide/28-dashboards-and-workflows.md
-key_decisions:
-  - Wait for actual content changes (stat value != "…", canvas drawn) instead of data-*-loaded attributes
-  - Chart.js instance detection via Chart.getChart(canvas) with fallback to canvas.toDataURL() length
-patterns_established:
-  - waitForStatCardValue() and waitForChartRendered() helpers for async dashboard widget readiness
-  - createDashboard/deleteDashboard API helpers for E2E test arrangement/cleanup
-observability_surfaces:
-  - Playwright HTML report in e2e/playwright-report/ with per-test screenshots and DOM snapshots
-  - Trace artifacts in e2e/test-results/*/trace.zip for failed test debugging
-  - Console tab in traces captures [SemPKM] SPARQL/Chart warnings
-drill_down_paths:
-  - .gsd/milestones/M032/slices/S03/tasks/T01-SUMMARY.md
-  - .gsd/milestones/M032/slices/S03/tasks/T02-SUMMARY.md
-duration: 37min
-verification_result: passed
-completed_at: 2026-03-22
----
+# S03: Multi-Object Form Groups — Summary
 
-# S03: E2E Tests and User Guide
+**Status:** Complete
+**Duration:** ~55 minutes across 3 tasks
+**Tests:** 73 pass (23 slot resolver + 50 block registry)
 
-**Added E2E Playwright spec with 4 test cases for dashboard block rendering (stat-card, chart, heading, multi-block) and rewrote user guide chapter 28 with all 10 block types, GridStack layout, data widgets, and form groups.**
+## What This Slice Delivered
 
-## What Happened
+A `form-group` dashboard block that creates multiple linked objects in a single atomic transaction, with SHACL-driven sub-forms rendered as collapsible sections and cross-object IRI references resolved via a slot-based mechanism.
 
-T01 added dashboard selectors to `e2e/helpers/selectors.ts` (13 selectors covering grid, stat-card, chart, heading, markdown, form-group, loading/error states) and `openDashboardTab()` helper to `e2e/helpers/dockview.ts`. Created the E2E spec with 4 test cases: stat-card rendering a live SPARQL count, chart rendering a Chart.js visualization, heading rendering configured text/subtitle, and multi-block dashboard with all three types simultaneously. Key discovery: data-*-loaded attributes are dedup guards set before async fetch, not readiness signals — implemented waitForStatCardValue() (waits for text ≠ "…") and waitForChartRendered() (waits for Chart.js instance) as proper readiness checks.
+### Core Capabilities
 
-T02 rewrote chapter 28 of the user guide: expanded the Block Types table from 6 to 10 types, replaced the CSS Grid Layout Templates section with GridStack drag-and-drop description, added Data Widgets subsection with SPARQL configuration examples for stat-card/chart/sparql-result, added Form Groups subsection explaining slots/edges/batch creation, and updated the Dashboard vs. Workflow comparison table. All three guide index files already had chapter 28 registered.
+1. **Slot-based IRI resolution engine** (`backend/app/commands/slot_resolver.py`): `resolve_and_dispatch()` processes commands sequentially, accumulates a `slot_map[slot_id] → IRI` from `object.create` results, and substitutes `$slot:xxx` placeholders in downstream commands (e.g., `edge.create` targeting a just-created object). Recursive substitution handles nested dicts/lists. Unresolved references produce HTTP 400 with descriptive error.
 
-## Verification
+2. **Batch command endpoint** (`POST /api/commands/batch`): New endpoint in `commands/router.py` accepts an array of commands with optional `_slot_id` fields. Returns `{event_iri, timestamp, operation_count, affected_count, slot_map}` — the slot_map enables client-side debugging of IRI resolution.
 
-- E2E Playwright spec: 4/4 test cases pass (`cd e2e && npx playwright test tests/45-dashboard-blocks/dashboard-blocks.spec.ts --project=chromium`)
-- Guide file exists with all 10 block types documented
-- `grep -c 'stat-card|chart|heading|form-group'` returns 19 (≥4 required)
-- `grep -c '^|'` returns 25 table rows (≥12 required)
-- GridStack, navigation links, and all block type names confirmed present
+3. **Form-group block type** (type #10 in BLOCK_REGISTRY): Registered with icon "layers", category "data", default 6×8 grid dimensions. Config schema validates `shapes` as a list. `render_block()` branch fetches SHACL `NodeShapeForm` per sub-form type via `ShapesService.get_form_for_type()`, renders `block_form_group.html` template with collapsible `<details>` sections using the existing `_field.html` `render_field()` macro.
 
-## Requirements Advanced
+4. **Client-side batch submission**: JavaScript in the template collects field values per `data-slot-id` section, builds `object.create` commands with `_slot_id` and `edge.create` commands with `$slot:xxx` references, POSTs to `/api/commands/batch`. Success dispatches `sempkm:form-group-created` custom event with `{dashboard_id, slot_map}`.
 
-- DASH-01 — Dashboard documentation updated to reflect 10 block types and GridStack builder (was validated with 6 types and CSS Grid)
+5. **Builder config panel**: `case 'form-group':` in `getTypeConfigHTML()` with repeatable shape entries — type IRI picker (reusing `_builderClassSearch` autocomplete), label, slot ID, and collapsible edge-linking config (target slot + predicate IRI). Save serialization in `_builderSave()` builds nested `{shapes: [{type_iri, label, slot_id, edge_to?}]}`.
 
-## Requirements Validated
+6. **CSS styling**: ~180 lines for `.dashboard-block-form-group` (scrollable container), `.form-group-section` (border-left accent), `.form-group-edge-badge` (pill), `.form-group-actions` (submit row), builder `.shape-entry` cards, and a global GridStack `.suggestions-dropdown` z-index fix (1000).
 
-None — DASH-01 was already validated; this milestone extends it.
+## Key Patterns Established
 
-## New Requirements Surfaced
+- **`$slot:xxx` placeholder pattern**: Cross-command IRI references in batch operations. Commands declare `_slot_id`, later commands use `$slot:xxx` in any string field. Sequential dispatch guarantees ordering.
+- **DOM-based config serialization override**: `_builderSave()` checks `typeName` after generic `[data-key]` collection and overrides `block.config` for block types with nested config structures (like the `shapes` array).
+- **Per-shape error tolerance**: If `get_form_for_type()` fails for one sub-form, that section renders an error div while other sub-forms still render. Avoids all-or-nothing rendering.
+- **Edge config via data attributes**: `data-edge-predicate` and `data-edge-target` on `<details>` sections — more reliable for JS access than parsing badge text.
 
-None.
+## Files Created
 
-## Requirements Invalidated or Re-scoped
+| File | Purpose |
+|------|---------|
+| `backend/app/commands/slot_resolver.py` | `resolve_and_dispatch()` + `_substitute_slots()` for slot-based IRI resolution |
+| `backend/app/templates/browser/blocks/block_form_group.html` | Form-group template with collapsible sub-forms and batch submit JS |
+| `backend/tests/test_slot_resolver.py` | 23 tests across 6 test classes |
 
-None.
+## Files Modified
 
-## Deviations
+| File | Change |
+|------|--------|
+| `backend/app/commands/router.py` | Added `POST /api/commands/batch` endpoint with `BatchCommandRequest` schema |
+| `backend/app/dashboard/registry.py` | Registered form-group BlockTypeSpec (type #10, icon "layers", category "data") |
+| `backend/app/dashboard/router.py` | Added `elif block_type == "form-group"` branch with ShapesService integration |
+| `backend/app/templates/browser/dashboard_builder.html` | Added form-group config panel, `_buildShapeEntryHTML()`, save serialization |
+| `frontend/static/css/workspace.css` | ~180 lines: form-group rendering + builder config + z-index fix |
+| `backend/tests/test_block_registry.py` | Updated EXPECTED_TYPES to 10, added 5 form-group tests |
 
-- E2E tests wait for actual content changes instead of data-*-loaded attributes (plan assumed these were readiness signals; they're dedup guards).
-- Chart.js instance detection uses Chart.getChart(canvas) (v4.x API) with toDataURL fallback, not the __chartjs_instance__ property from the plan.
-- Added backwards-compatibility note about legacy CSS Grid layouts in the guide (not in plan, but necessary for existing users).
+## Verification Results
 
-## Known Limitations
+All 9 slice-level checks pass:
+- ✅ `pytest tests/test_slot_resolver.py` — 23 passed
+- ✅ `pytest tests/test_block_registry.py` — 50 passed
+- ✅ `slot_resolver.py` exists and importable
+- ✅ `block_form_group.html` exists
+- ✅ `form-group` in registry.py, router.py, dashboard_builder.html, workspace.css
+- ✅ Unresolved slot error message present in slot_resolver.py
 
-- E2E spec does not test form-group submission (would require a running triplestore with model data for SHACL forms). Backend unit tests cover this path.
-- E2E spec does not test the SPARQL error path (would need a mock or intentionally broken query). The T01 plan mentioned this but it was deferred — backend error-path tests exist in test_data_widgets.py.
+## Observability
 
-## Follow-ups
+- **Batch endpoint response**: Returns `slot_map` dict for client debugging
+- **Error responses**: HTTP 400 with descriptive message naming unresolved `$slot:xxx` and listing resolved slots
+- **Render-time logging**: WARNING on `get_form_for_type()` failures with dashboard_id, block_index, type_iri
+- **Client-side**: `.form-group-status` shows submit progress/success/error; `sempkm:form-group-created` event dispatched on success
+- **Builder save**: `console.info` logs full block array including nested shapes config
 
-None.
+## What the Next Slice/Milestone Should Know
 
-## Files Created/Modified
-
-- `e2e/tests/45-dashboard-blocks/dashboard-blocks.spec.ts` — 4 E2E test cases for dashboard block rendering
-- `e2e/helpers/selectors.ts` — 13 dashboard selectors
-- `e2e/helpers/dockview.ts` — openDashboardTab() helper
-- `docs/guide/28-dashboards-and-workflows.md` — Rewritten chapter with 10 block types, GridStack, data widgets, form groups
-
-## Forward Intelligence
-
-### What the next slice should know
-- The E2E spec creates and deletes dashboards via the API — no builder UI interaction needed for test setup.
-- waitForStatCardValue() and waitForChartRendered() are the correct readiness patterns for any future E2E test that needs to verify async dashboard widget content.
-
-### What's fragile
-- Chart.js CDN load can fail in restricted network environments — the waitForChartRendered helper has a 15s timeout but no explicit CDN error detection.
-- The E2E spec targets seed data counts — if seed data changes, the stat-card assertions (numeric value > 0) should still hold but exact counts would differ.
-
-### Authoritative diagnostics
-- Playwright HTML report at `e2e/playwright-report/` for test results
-- Trace zip at `e2e/test-results/*/trace.zip` for failed test debugging
-- Browser console in traces shows `[SemPKM]` prefixed warnings for SPARQL/Chart errors
-
-### What assumptions changed
-- data-sparql-loaded/data-chart-loaded are NOT readiness signals — they're idempotency guards set before the async work starts. This was the key E2E timing insight.
+- S03 completes M032. All 10 block types are registered, the GridStack layout engine is operational, and the batch command endpoint supports multi-object atomic creation.
+- The `$slot:xxx` pattern is reusable for any future batch operation needing cross-command references.
+- The batch endpoint (`POST /api/commands/batch`) is a general-purpose facility — not form-group-specific. Any client needing atomic multi-object creation can use it directly.
+- Form-group rendering requires the triplestore to have SHACL shapes for configured types. Empty shapes config renders an error div, not a crash.
+- The builder config panel uses the same `_builderClassSearch` autocomplete for type IRI selection that other create-form blocks use.

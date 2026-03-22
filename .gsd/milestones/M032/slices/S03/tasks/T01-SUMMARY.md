@@ -3,74 +3,73 @@ id: T01
 parent: S03
 milestone: M032
 provides:
-  - E2E Playwright spec for dashboard block rendering (stat-card, chart, heading)
-  - Dashboard selectors in e2e/helpers/selectors.ts
-  - openDashboardTab helper in e2e/helpers/dockview.ts
+  - slot_resolver.py module with resolve_and_dispatch() for atomic multi-object creation
+  - POST /api/commands/batch endpoint with slot_map in response
+  - 23 unit tests covering valid, error, and edge cases
 key_files:
-  - e2e/tests/45-dashboard-blocks/dashboard-blocks.spec.ts
-  - e2e/helpers/selectors.ts
-  - e2e/helpers/dockview.ts
+  - backend/app/commands/slot_resolver.py
+  - backend/app/commands/router.py
+  - backend/tests/test_slot_resolver.py
 key_decisions:
-  - Wait for actual content changes (stat value != "…", canvas drawn) instead of data-sparql-loaded/data-chart-loaded attributes, since those are dedup guards set before the async fetch starts
+  - Used deepcopy of input commands before stripping _slot_id to avoid mutating caller data
+  - Used Pydantic TypeAdapter for discriminated union parsing (matches existing router.py pattern)
+  - Recursive _substitute_slots handles nested dicts/lists, not just top-level source/target
 patterns_established:
-  - waitForStatCardValue() and waitForChartRendered() helpers for async dashboard widget readiness
-  - createDashboard/deleteDashboard API helpers for E2E test arrangement/cleanup
+  - $slot:xxx placeholder pattern for cross-command IRI references in batch operations
+  - Sequential dispatch with slot_map accumulation for dependent command chains
 observability_surfaces:
-  - Playwright trace captures [SemPKM] SPARQL/Chart console warnings on fetch failures
-  - Test timeouts on waitForStatCardValue/waitForChartRendered directly indicate which rendering stage stalled
+  - logger.info on slot resolution completion with slot count and map
+  - logger.warning when slotted command produces no affected_iris
+  - HTTP 400 with descriptive error naming the unresolved $slot:xxx reference
+  - Batch endpoint response includes slot_map dict for client-side debugging
 duration: 25m
 verification_result: passed
-completed_at: 2026-03-22
+completed_at: 2026-03-21
 blocker_discovered: false
 ---
 
-# T01: E2E Playwright test for dashboard block rendering
+# T01: Implement slot-based IRI resolution and batch endpoint
 
-**Added E2E Playwright spec with 4 test cases verifying stat-card (live SPARQL count), chart (Chart.js canvas), heading (configured text/subtitle), and multi-block dashboard rendering.**
+**Added slot_resolver.py with resolve_and_dispatch() and POST /api/commands/batch endpoint for atomic multi-object creation with $slot:xxx cross-references**
 
 ## What Happened
 
-Added dashboard selectors to `e2e/helpers/selectors.ts` covering grid, stat-card, chart, heading, markdown, form-group, sparql-result, and loading/error states. Added `openDashboardTab()` helper to `e2e/helpers/dockview.ts` that calls `window.openDashboardTab()` and waits for the GridStack container.
+Created the slot resolution engine that enables atomic multi-object creation with cross-references between commands. The `slot_resolver.py` module processes commands sequentially, tracks minted IRIs in a slot map, and substitutes `$slot:xxx` placeholders before dispatch. A new `POST /api/commands/batch` endpoint in `router.py` exposes this to clients, returning the slot_map in the response for debugging.
 
-Created the E2E spec at `e2e/tests/45-dashboard-blocks/dashboard-blocks.spec.ts` with 4 test cases:
-1. **stat-card renders live SPARQL count** — creates dashboard with COUNT query, verifies numeric value > 0
-2. **chart block renders Chart.js visualization** — creates dashboard with bar chart, verifies Chart.js instance on canvas
-3. **heading block renders configured text** — verifies h2 text and subtitle
-4. **multiple block types render in one dashboard** — all three types at different grid positions
-
-Key timing insight: `data-sparql-loaded` and `data-chart-loaded` attributes are deduplication guards set *before* the async fetch, not readiness signals. The first test run failed because it read the "…" placeholder before the SPARQL response arrived. Fixed by implementing `waitForStatCardValue()` (waits for text ≠ "…") and `waitForChartRendered()` (waits for Chart.js instance or drawn canvas).
+Key implementation details:
+- `_substitute_slots()` recursively handles strings, lists, and nested dicts — not just top-level `source`/`target` fields
+- Input commands are deepcopied before `_slot_id` is stripped, preventing mutation of caller data
+- Used `TypeAdapter(Command).validate_python()` for discriminated union parsing, matching the existing pattern in `router.py`
+- Unresolved slot references produce a descriptive `CommandError` listing available slots
 
 ## Verification
 
-All 4 test cases pass consistently (ran twice to confirm stability):
-```
-cd e2e && npx playwright test tests/45-dashboard-blocks/dashboard-blocks.spec.ts --project=chromium
-```
-- stat-card: confirms numeric value > 0 from live SPARQL query against seed data
-- chart: confirms Chart.js instance on canvas via `Chart.getChart()` or non-blank canvas data URL
-- heading: confirms h2 text "E2E Test Dashboard" and subtitle "Automated verification"
-- multi-block: all three types present simultaneously with correct content
+All 23 unit tests pass covering: valid resolution (2 creates + 1 edge), slot map population, missing slot refs, forward references, _slot_id stripping, empty commands, mixed slotted/unslotted, nested property substitution, no-affected-IRIs edge case, hyphenated slot IDs, and input immutability.
+
+Task-level verification commands all pass. Slice-level verification: test suite passes (67 tests including slot resolver + block registry), module exists, endpoint registered. T02/T03 checks are expectedly not yet passing.
 
 ## Verification Evidence
 
 | # | Command | Exit Code | Verdict | Duration |
 |---|---------|-----------|---------|----------|
-| 1 | `cd e2e && npx playwright test tests/45-dashboard-blocks/dashboard-blocks.spec.ts --project=chromium` | 0 | ✅ pass | 6.4s |
-| 2 | `test -f docs/guide/28-dashboards-and-workflows.md` | 0 | ✅ pass (file exists) | <1s |
-| 3 | `grep -c 'stat-card\|chart\|heading\|form-group' docs/guide/28-dashboards-and-workflows.md` | 0 | ⏳ partial (returns 1, needs ≥4 — T02 will update guide) | <1s |
+| 1 | `cd backend && uv run pytest tests/test_slot_resolver.py -v` | 0 | ✅ pass | 0.14s |
+| 2 | `cd backend && uv run pytest tests/test_slot_resolver.py tests/test_block_registry.py -v` | 0 | ✅ pass | 0.18s |
+| 3 | `grep -q "resolve_and_dispatch" backend/app/commands/slot_resolver.py` | 0 | ✅ pass | <0.1s |
+| 4 | `grep -q "/commands/batch" backend/app/commands/router.py` | 0 | ✅ pass | <0.1s |
+| 5 | `test -f backend/app/commands/slot_resolver.py` | 0 | ✅ pass | <0.1s |
+| 6 | `uv run python -c "from app.commands.slot_resolver import resolve_and_dispatch; print('import ok')"` | 0 | ✅ pass | <0.1s |
+| 7 | `grep -q 'Unresolved slot' backend/app/commands/slot_resolver.py` | 0 | ✅ pass | <0.1s |
 
 ## Diagnostics
 
-- **Failed test debugging:** Check Playwright HTML report in `e2e/playwright-report/`. On retry, traces are saved at `e2e/test-results/*/trace.zip` — open with `npx playwright show-trace <path>`.
-- **SPARQL widget failures:** Console tab in trace shows `[SemPKM] SPARQL widget error:` warnings with query substring when /api/sparql returns errors.
-- **Chart.js failures:** Console tab shows `[SemPKM] Chart block error:` with query info. The chart block renders an error div instead of the canvas.
-- **Timing issues:** If `waitForStatCardValue()` or `waitForChartRendered()` times out, the async pipeline stalled — check network tab in trace for pending /api/sparql requests.
+- **Batch endpoint response**: `POST /api/commands/batch` returns `{event_iri, timestamp, operation_count, affected_count, slot_map}` — the `slot_map` dict shows `slot_id → IRI` mappings
+- **Error responses**: Unresolved `$slot:xxx` references return HTTP 400 with error message naming the missing slot and listing resolved slots so far
+- **Logs**: `app.commands.slot_resolver` logger emits INFO on successful resolution (slot count + map) and WARNING when a slotted command produces no affected IRIs
+- **Unit tests**: Run `cd backend && uv run pytest tests/test_slot_resolver.py -v` to verify all 23 tests pass
 
 ## Deviations
 
-- **data-sparql-loaded is not a readiness signal:** Plan assumed `[data-sparql-loaded]` indicates SPARQL fetch completed. In reality, it's a dedup guard set immediately before `fetch()`. Replaced with `waitForStatCardValue()` that checks for actual content change (text ≠ "…"). Similarly for `[data-chart-loaded]`.
-- **Chart.js instance detection:** Plan suggested checking `__chartjs_instance__` property. Actual Chart.js 4.x uses `Chart.getChart(canvas)`. Added fallback via `canvas.toDataURL()` length check for robustness.
-- **Chart SPARQL query fix:** Plan's query used `GROUP BY ?type` but the chart renderer expects `?label` column. Fixed to `GROUP BY ?label` to match the frontend's binding loop.
+None — implementation matches the task plan.
 
 ## Known Issues
 
@@ -78,8 +77,7 @@ None.
 
 ## Files Created/Modified
 
-- `e2e/tests/45-dashboard-blocks/dashboard-blocks.spec.ts` — New E2E spec with 4 test cases for dashboard block rendering
-- `e2e/helpers/selectors.ts` — Added `dashboard` selector group with 13 selectors for dashboard block testing
-- `e2e/helpers/dockview.ts` — Added `openDashboardTab()` helper for opening dashboard tabs in E2E tests
-- `.gsd/milestones/M032/slices/S03/S03-PLAN.md` — Added Observability / Diagnostics section and diagnostic verification step
-- `.gsd/milestones/M032/slices/S03/tasks/T01-PLAN.md` — Added Observability Impact section
+- `backend/app/commands/slot_resolver.py` — new module with `resolve_and_dispatch()` and `_substitute_slots()` for slot-based IRI resolution
+- `backend/app/commands/router.py` — added `POST /api/commands/batch` endpoint with `BatchCommandRequest` schema, import of `resolve_and_dispatch`
+- `backend/tests/test_slot_resolver.py` — new test file with 23 tests across 6 test classes covering valid resolution, errors, stripping, substitution, and edge cases
+- `.gsd/milestones/M032/slices/S03/S03-PLAN.md` — added diagnostic verification checks, marked T01 done
