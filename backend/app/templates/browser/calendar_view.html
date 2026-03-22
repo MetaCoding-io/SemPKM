@@ -17,6 +17,40 @@
     var dataUrl = {{ calendar_data_url | tojson }};
     var CDN = 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.17/index.global.min.js';
 
+    /**
+     * Persist a calendar drag/resize via the PATCH endpoint.
+     * Calls info.revert() on failure for optimistic rollback.
+     */
+    function patchCalendarEvent(info, actionLabel) {
+        var iri = info.event.extendedProps && info.event.extendedProps.iri;
+        if (!iri) return;
+
+        var payload = { iri: iri, start: info.event.startStr };
+        if (info.event.end) payload.end = info.event.endStr;
+
+        console.log('[calendar] ' + actionLabel + ':', iri,
+            'start=' + info.event.startStr,
+            info.event.end ? 'end=' + info.event.endStr : '(no end)');
+
+        fetch('/browser/views/calendar/patch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(payload)
+        }).then(function (r) {
+            if (!r.ok) return r.json().then(function (d) { throw new Error(d.error || 'HTTP ' + r.status); });
+            return r.json();
+        }).then(function (result) {
+            console.log('[calendar] ' + actionLabel + ' persisted, event_iri:', result.event_iri);
+            if (typeof showToast === 'function') showToast(actionLabel === 'resize' ? 'Duration updated' : 'Task rescheduled');
+            document.dispatchEvent(new CustomEvent('sempkm:command-executed'));
+        }).catch(function (err) {
+            console.error('[calendar] ' + actionLabel + ' patch failed:', err);
+            info.revert();
+            if (typeof showToast === 'function') showToast('Failed to save — reverted');
+        });
+    }
+
     function initCalendar() {
         fetch(dataUrl, { credentials: 'include' })
             .then(function (r) { return r.json(); })
@@ -33,15 +67,59 @@
                     },
                     events: data.events || [],
                     height: '100%',
+
+                    /* ── Editable / selectable ── */
+                    editable: true,
+                    selectable: true,
+                    eventStartEditable: true,
+                    eventDurationEditable: true,
+
+                    /* ── Color-code by sourceType ── */
+                    eventClassNames: function (arg) {
+                        var st = arg.event.extendedProps && arg.event.extendedProps.sourceType;
+                        if (st === 'Task') return ['fc-event-task'];
+                        if (st === 'Event') return ['fc-event-event'];
+                        return [];
+                    },
+
+                    /* ── Click to open object tab ── */
                     eventClick: function (info) {
                         var iri = info.event.extendedProps && info.event.extendedProps.iri;
                         var title = info.event.title || '';
                         if (iri && typeof openTab === 'function') {
                             openTab(iri, title);
                         }
+                    },
+
+                    /* ── Drag to reschedule ── */
+                    eventDrop: function (info) {
+                        patchCalendarEvent(info, 'drop');
+                    },
+
+                    /* ── Resize to change duration ── */
+                    eventResize: function (info) {
+                        patchCalendarEvent(info, 'resize');
+                    },
+
+                    /* ── Click empty slot to create Task ── */
+                    select: function (info) {
+                        console.log('[calendar] select range:',
+                            info.startStr, '→', info.endStr);
+                        /* Stash selected dates for future form pre-fill */
+                        window._calendarSelectedDates = {
+                            scheduledStart: info.startStr,
+                            scheduledEnd: info.endStr
+                        };
+                        if (typeof window.showCreateFormForType === 'function') {
+                            window.showCreateFormForType(
+                                'urn:sempkm:model:basic-pkm:Task', 'Task'
+                            );
+                        }
                     }
                 });
                 cal.render();
+                console.log('[calendar] rendered with',
+                    (data.events || []).length, 'events, editable=true');
             })
             .catch(function (err) {
                 console.error('[calendar] data fetch failed:', err);

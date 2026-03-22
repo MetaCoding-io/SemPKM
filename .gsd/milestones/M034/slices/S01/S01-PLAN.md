@@ -56,7 +56,7 @@
   - Verify: `cd backend && .venv/bin/python -m pytest tests/test_calendar_editable.py -v` — merged query and patch handler tests pass
   - Done when: `/browser/views/generic/calendar/data?merged=true` returns events from both Event and Task types with `sourceType` field; POST to `/browser/views/calendar/patch` with valid IRI+dates returns 200 and persists
 
-- [ ] **T03: Make FullCalendar editable with drag/resize/select handlers and task/event color coding** `est:1h30m`
+- [x] **T03: Make FullCalendar editable with drag/resize/select handlers and task/event color coding** `est:1h30m`
   - Why: The calendar template currently creates a read-only FullCalendar. This task adds all interactive behavior and visual differentiation.
   - Files: `backend/app/templates/browser/calendar_view.html`, `frontend/static/css/views.css`
   - Do: (1) Add `editable: true`, `selectable: true` to Calendar config. (2) Add `eventDrop` handler that POSTs new start/end to `/browser/views/calendar/patch`, shows toast on success/failure. (3) Add `eventResize` handler (same pattern). (4) Add `select` handler that opens the object creation form with pre-filled scheduledStart/scheduledEnd via `openCreateForm()` or similar workspace API. (5) Add `eventClassNames` callback that returns CSS class based on `event.extendedProps.sourceType` (task vs event). (6) In views.css, add `.fc-event-task` and `.fc-event-event` color classes using the existing bpkm icon colors (task: #10b981 green, event: #8b5cf6 purple). (7) Update the `calendar_data_url` construction to include `merged=true` when appropriate. (8) Add event duration display via `displayEventTime: true`.

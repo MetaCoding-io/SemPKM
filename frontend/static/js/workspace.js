@@ -3575,6 +3575,7 @@
   window.maximizeBottomPanel = maximizeBottomPanel;
   window.movePanel = movePanel;
   window.showToast = showToast;
+  window.showCreateFormForType = showCreateFormForType;
   window.handleTreeLeafClick = handleTreeLeafClick;
   window.clearSelection = clearSelection;
   window.getSelectedIris = function() {
