@@ -57,7 +57,7 @@ This milestone is complete only when all are true:
   > After this: User opens a dashboard with a form-group block, fills two SHACL sub-forms (e.g., Note + Task), submits once, and both objects are created with an edge linking them — visible in the object browser.
 - [x] **S02: Data-Driven Widgets (stat-card, chart, heading) + Block Fixes** `risk:medium` `depends:[]`
   > After this: A dashboard displays a stat-card with a live count from SPARQL, a Chart.js bar chart visualizing query results, a styled heading, working markdown with full rendering, and an executable sparql-result table — all configured through the builder.
-- [ ] **S03: E2E Tests and User Guide** `risk:low` `depends:[S01,S02]`
+- [x] **S03: E2E Tests and User Guide** `risk:low` `depends:[S01,S02]`
   > After this: Playwright E2E test verifies stat-card and chart rendering in a live dashboard. User guide documents all new block types with screenshots and configuration instructions.
 
 ## Boundary Map
