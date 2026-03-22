@@ -53,6 +53,12 @@ The existing `/api/commands` already supports batch (array) payloads and dispatc
 - `cd backend && .venv/bin/python -m pytest tests/test_form_group.py tests/test_block_registry.py -v` — all tests pass
 - `cd backend && .venv/bin/python -m pytest tests/test_dashboard.py tests/test_dashboard_builder.py -v` — regression pass
 
+## Observability Impact
+
+- Signals added/changed: `logger.info("Resolved @slot:%s → %s", slot_name, resolved_iri)` in commands router during batch slot resolution
+- How a future agent inspects this: Check command API response `results[].iri` for resolved IRIs; grep logs for `Resolved @slot:`
+- Failure state exposed: HTTP 400 with `"Unresolved slot reference: @slot:X"` when a batch references a slot not defined by a prior object.create
+
 ## Inputs
 
 - `backend/app/dashboard/registry.py` — existing BlockRegistry with 6 built-in types
