@@ -713,12 +713,17 @@ from triples    from body text
 
 ### Text-to-SPARQL: Natural Language → Graph Queries
 
-Research shows GPT-4/Claude achieve ~80% accuracy on SPARQL generation when given
-the ontology schema. The approach:
+**State of the art (Dec 2025)**: SPARQL-LLM achieves 24% F1 improvement over prior
+work, runs at **$0.01 per query**, and is 36x faster than competing systems. It uses
+ShEx/SHACL schemas for validation to reduce hallucinations. Deployed in production
+at expasy.org/chat (bioinformatics). Source: [arXiv 2512.14277](https://arxiv.org/html/2512.14277v1)
+
+General research shows GPT-4/Claude achieve ~80% accuracy on SPARQL generation when
+given the ontology schema. The approach:
 
 1. **System prompt includes**: All classes, properties, ranges from installed mental models
 2. **Few-shot examples**: 5-10 common query patterns for SemPKM's ontology
-3. **Validation step**: Parse generated SPARQL before execution; retry on syntax error
+3. **Schema validation**: Use SHACL shapes to validate/correct generated SPARQL (SPARQL-LLM pattern)
 4. **Fallback**: If SPARQL generation fails, fall back to vector search
 
 **Example flow:**
@@ -794,6 +799,35 @@ Unlike text-only RAG where sources are vague ("from your notes"), SemPKM can pro
 - **Triple-level provenance**: "This answer is based on 3 triples: [Decision_123 usedModel SWOT], ..."
 - **Query transparency**: Show the SPARQL query that was executed (for power users)
 - **Confidence signals**: SPARQL results = 100% certain; vector results = similarity score
+
+### Reference Architecture: Ontotext GraphDB "Talk to Your Graph"
+
+The closest existing implementation to what SemPKM needs is Ontotext's GraphDB,
+which combines four retrieval methods in a single conversational interface over RDF:
+
+1. **SPARQL query generation** (text-to-SPARQL) — for precise, closed-ended queries
+2. **Similarity search** — GraphDB's embedding index, queryable via SPARQL
+3. **Full-text search** — Lucene-based keyword matching (SemPKM already has this)
+4. **Vector retrieval connector** — RDF data → embeddings, kept in sync with graph
+
+The key architectural insight: **the vector index stays synchronized with the graph
+store** — after each update, changes propagate incrementally. SemPKM can replicate
+this via WebhookService: `body.set` event → re-embed that object's entity context.
+
+See: [GraphDB Talk to Your Graph](https://graphdb.ontotext.com/documentation/11.2/talk-to-graph.html)
+
+### Fusion Strategy: Reciprocal Rank Fusion (RRF)
+
+When merging results from SPARQL and vector search, use **Reciprocal Rank Fusion**
+(from "Towards Practical GraphRAG", arXiv 2507.03226). RRF scores each result by:
+
+```
+RRF_score(d) = Σ 1 / (k + rank_i(d))
+```
+
+Where `rank_i(d)` is the rank of document `d` in result list `i`, and `k` is a
+constant (typically 60). This is simple, effective, and doesn't require learned
+weights. Reports 15% improvement over vector-only baselines on enterprise datasets.
 
 ---
 
@@ -913,3 +947,14 @@ in the editor would follow the same pattern but triggered contextually while wri
 - [Obsidian Smart Connections](https://github.com/brianpetro/obsidian-smart-connections)
 - [nano-graphrag — GitHub](https://github.com/gusye1234/nano-graphrag)
 - [Haystack — deepset](https://github.com/deepset-ai/haystack)
+- [SPARQL-LLM: Real-Time SPARQL Generation — arXiv Dec 2025](https://arxiv.org/html/2512.14277v1)
+- [Ontotext GraphDB "Talk to Your Graph"](https://graphdb.ontotext.com/documentation/11.2/talk-to-graph.html)
+- [Towards Practical GraphRAG — arXiv 2507.03226](https://arxiv.org/abs/2507.03226)
+- [HybridRAG — NVIDIA/BlackRock, arXiv](https://arxiv.org/abs/2408.04948)
+- [Obsidian Hybrid Search MCP](https://forum.obsidian.md/t/hybrid-search-hybrid-search-mcp-server-cli-for-ai-assistants-bm25-semantic-obsidian-native/112491)
+- [Mem.ai Architecture — Pinecone](https://www.pinecone.io/learn/series/wild/mem-semantic-search/)
+- [Beyond Simple Chunking: RDF Knowledge Graphs — Oracle](https://medium.com/oracledevs/beyond-simple-chunking-building-smarter-chatbots-with-rdf-knowledge-graphs-bed314275013)
+- [AWS: RAG with Knowledge Graph Using SPARQL](https://github.com/aws-samples/rag-with-knowledge-graph-using-sparql)
+- [Graph RAG Survey — arXiv 2501.13958](https://arxiv.org/html/2501.13958v1)
+- [What is Graph RAG — Ontotext](https://www.ontotext.com/knowledgehub/fundamentals/what-is-graph-rag/)
+- [Knowledge Graph vs Vector RAG — Neo4j](https://neo4j.com/blog/developer/knowledge-graph-vs-vector-rag/)
