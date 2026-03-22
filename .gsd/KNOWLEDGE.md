@@ -389,3 +389,24 @@ Any popover, tooltip, or overlay rendered inside a dockview panel is trapped in 
 `_executeSparqlWidgets()` sets `data-sparql-loaded="1"` on the element *before* calling `fetch('/api/sparql', ...)`. Similarly, `_initChartBlocks()` sets `data-chart-loaded="1"` before the Chart.js CDN load and SPARQL fetch. These attributes prevent re-execution on htmx re-swaps, but they do NOT indicate the async work has completed.
 
 **Impact on E2E tests:** Waiting for `[data-sparql-loaded]` or `[data-chart-loaded]` to appear does not guarantee the content is ready. For stat-cards, wait until `[data-stat-target]` text is no longer "…" (the loading placeholder). For charts, wait until `Chart.getChart(canvas)` returns truthy or the canvas `toDataURL()` exceeds ~500 chars (non-blank).
+
+### @slot:name convention for cross-command IRI references in batch payloads
+
+**Discovered:** M032/S01/T01
+
+The batch command endpoint (`POST /api/commands`) supports `@slot:name` references for cross-command dependencies. An `object.create` command with a `slot` field registers its minted IRI in a `slot_map`. Subsequent commands (e.g., `edge.create`) can use `@slot:slotName` as a value — the router resolves it to the actual IRI before execution. Unresolved references return HTTP 400.
+
+**Pattern:** Commands execute sequentially. The `slot_map` accumulates as commands succeed. Order matters — a command referencing `@slot:X` must appear after the command that defines slot `X`.
+
+```python
+# In commands/router.py
+slot_map = {}
+for cmd in batch:
+    if cmd.type == "object.create" and cmd.params.slot:
+        slot_map[cmd.params.slot] = minted_iri
+    # Resolve @slot: references in subsequent commands
+    if value.startswith("@slot:"):
+        resolved = slot_map.get(value[6:])
+```
+
+**Use beyond form-groups:** The convention is generic — any batch payload can use it. Future features (templates, import wizards, automation) that need to create linked objects in one API call can use `@slot:name` references.

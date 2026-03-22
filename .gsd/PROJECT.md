@@ -657,7 +657,20 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current State
 
-**Latest shipped: M031 Views Overhaul, Saved Queries as First-Class, & UI Polish (2026-03-21) — all 7 slices, 20 requirements validated**
+**Latest shipped: M032 Block-Based Custom UI Builder (2026-03-22) — all 3 slices, 10 block types, 125 test assertions**
+
+**What shipped in M032:**
+- Dashboard widget palette expanded from 6 to 10 block types: form-group, stat-card, chart, heading added
+- Form-group block: multi-object creation with SHACL sub-forms, `@slot:name` IRI resolution in batch commands, edge wiring
+- Stat-card block: live SPARQL scalar queries with accent color, icon, and label
+- Chart block: lazy Chart.js CDN loading, bar/line/pie visualization from SPARQL query results (`?label` + `?value` columns)
+- Heading block: configurable h1-h4 with optional subtitle and alignment
+- Fixed markdown block (marked.js + DOMPurify via `<script type="text/plain">`) and sparql-result block (live SPARQL table execution)
+- Builder config forms for all 4 new block types with dynamic slot/edge management for form-group
+- Frontend JS widget activation: `_executeSparqlWidgets()`, `_initChartBlocks()`, `_renderMarkdownBlocks()` hooked into htmx:afterSettle
+- E2E Playwright spec (4 test cases) for stat-card, chart, heading, and multi-block rendering
+- User guide chapter 28 rewritten with all 10 block types, GridStack layout, data widgets, form groups
+- 2 key decisions (D295 SQLite JSON storage, D296 Python type hints for config schema)
 
 **What shipped in M031:**
 - Carousel tab bar fully removed — explorer sidebar is sole view selector (VIEW-08)
@@ -874,9 +887,9 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - E2E test coverage: 5 new Playwright tests across 3 spec files
 - User guide: 4 chapters updated with new feature documentation
 
-**Previous milestones:** M031 Views Overhaul (2026-03-21), M030 Data Quality Linting & Lint UX (2026-03-21), M029 Frontend Performance & Build Pipeline (2026-03-20), M026 Homepage & Messaging Rewrite (2026-03-20), M025 Hosted Demo Instance (2026-03-20), M024 Monday.com Sync App (2026-03-20), M023 Jira Sync App (2026-03-19), M017 GitHub Issues Sync App (2026-03-18), M016 Linear Sync App (2026-03-18), M015 Browser Extension Phase 2 (2026-03-18), M014 Browser Extension Phase 1 (2026-03-18), M013 API Surface for External Clients (2026-03-17), M012 Workspace & Event Log Polish (2026-03-17), M011 Mental Models Expansion (2026-03-17), M008 Spatial Canvas (2026-03-16), M007 Generic Views, VFS Completion & Polish (2026-03-16), M006 Dashboards, Workflows & Platform Alignment (2026-03-15), M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
+**Previous milestones:** M032 Block-Based Custom UI Builder (2026-03-22), M031 Views Overhaul (2026-03-21), M030 Data Quality Linting & Lint UX (2026-03-21), M029 Frontend Performance & Build Pipeline (2026-03-20), M026 Homepage & Messaging Rewrite (2026-03-20), M025 Hosted Demo Instance (2026-03-20), M024 Monday.com Sync App (2026-03-20), M023 Jira Sync App (2026-03-19), M017 GitHub Issues Sync App (2026-03-18), M016 Linear Sync App (2026-03-18), M015 Browser Extension Phase 2 (2026-03-18), M014 Browser Extension Phase 1 (2026-03-18), M013 API Surface for External Clients (2026-03-17), M012 Workspace & Event Log Polish (2026-03-17), M011 Mental Models Expansion (2026-03-17), M008 Spatial Canvas (2026-03-16), M007 Generic Views, VFS Completion & Polish (2026-03-16), M006 Dashboards, Workflows & Platform Alignment (2026-03-15), M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
 
-**Latest shipped: M031 Views Overhaul, Saved Queries as First-Class, & UI Polish (2026-03-21)**
+**Latest shipped: M032 Block-Based Custom UI Builder (2026-03-22)**
 
 **What shipped in M013 (API Surface for External Clients):**
 - `GET /.well-known/sempkm` discovery endpoint with version, endpoints, auth methods, capabilities
@@ -1041,4 +1054,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-03-21 after M031/S07 complete (E2E Tests + User Guide Docs — 6-case Playwright spec, carousel tests retired, chapters 7/21/28 updated. M031 milestone fully complete: all 7 slices done, all 20 requirements validated)*
+*Last updated: 2026-03-22 after M032 complete (Block-Based Custom UI Builder — 10 block types, form-group with slot IRI resolution, stat-card/chart/heading data widgets, E2E tests, chapter 28 rewritten. All 3 slices done, 125 test assertions.)*
