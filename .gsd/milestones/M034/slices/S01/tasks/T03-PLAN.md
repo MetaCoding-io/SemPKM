@@ -119,3 +119,11 @@ Key API surfaces:
 
 - `backend/app/templates/browser/calendar_view.html` — editable FullCalendar with drag/resize/select handlers
 - `frontend/static/css/views.css` — task/event color coding CSS classes
+
+## Observability Impact
+
+- **Console signals:** `[calendar] drop:` / `[calendar] resize:` / `[calendar] select range:` logged on each interaction with IRI and date details. `[calendar] ... persisted, event_iri:` on successful PATCH. `[calendar] ... patch failed:` on error with full error object.
+- **Optimistic rollback:** `info.revert()` called on PATCH failure — the event snaps back to its original position, and a toast shows "Failed to save — reverted".
+- **DOM signals:** `.fc-event-task` and `.fc-event-event` CSS classes on calendar event elements indicate type classification; inspectable via browser DevTools.
+- **Network inspection:** POST to `/browser/views/calendar/patch` visible in Network tab with `{iri, start, end}` payload; response includes `{ok, event_iri}` on success or `{error}` on failure.
+- **Custom event:** `sempkm:command-executed` dispatched after successful PATCH — triggers sidebar/event-log refresh listeners.

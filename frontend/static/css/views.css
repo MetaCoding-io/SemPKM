@@ -1336,6 +1336,45 @@ select.cards-group-select {
     padding: 12px;
 }
 
+/* Calendar event type color coding */
+.fc-event-task {
+    background-color: #10b981 !important;
+    border-color: #059669 !important;
+    color: #fff !important;
+}
+
+.fc-event-task:hover {
+    background-color: #059669 !important;
+}
+
+.fc-event-event {
+    background-color: #8b5cf6 !important;
+    border-color: #7c3aed !important;
+    color: #fff !important;
+}
+
+.fc-event-event:hover {
+    background-color: #7c3aed !important;
+}
+
+/* Ensure resize cursor appears on editable events */
+.fc-event {
+    cursor: grab;
+}
+
+.fc-event .fc-event-resizer {
+    cursor: ns-resize;
+}
+
+.fc-timegrid-event .fc-event-resizer {
+    cursor: ns-resize;
+}
+
+/* Selection highlight for click-to-create */
+.fc .fc-highlight {
+    background: var(--color-primary-subtle, rgba(0, 120, 212, 0.15));
+}
+
 /* Light mode accent overrides */
 .fc {
     --fc-event-bg-color: var(--color-accent);
