@@ -102,3 +102,10 @@ The catalog list page shows all apps (installed + available on disk) in a search
 - `backend/app/templates/browser/apps_explorer.html` — "Browse Catalog" entry added
 - `frontend/static/js/workspace.js` — `openCatalogTab()` and `openCatalogDetailTab()` added
 - `frontend/static/css/style.css` — catalog-specific CSS added
+
+## Observability Impact
+
+- **Catalog routes**: `GET /browser/apps/catalog` and `GET /browser/apps/catalog/{app_id}` emit `logger.warning` on 404 (unknown app_id) and `logger.warning` on manifest parse failures. Install/uninstall actions redirect through `/admin/apps/...` which already has structured logging with user email.
+- **Inspection**: `curl http://localhost:3901/browser/apps/catalog` returns the grid HTML. `curl http://localhost:3901/browser/apps/catalog/{app_id}` returns detail HTML. HTTP 404 for invalid app_id.
+- **JS functions**: `window.openCatalogTab` and `window.openCatalogDetailTab` are available in browser console for manual testing.
+- **Special panel routing**: `workspace-layout.js` maps `specialType: 'catalog'` → `/browser/apps/catalog` and `specialType: 'catalog-detail'` → `/browser/apps/catalog/{appId}`.

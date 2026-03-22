@@ -40,7 +40,7 @@
   - Verify: `cd backend && python -c "from app.apps.manifest import AppManifestSchema; m = AppManifestSchema(appId='t', version='1.0.0', name='T', backend={'entrypoint': 'x:Y'}); assert m.features == []"` and `grep -q 'Operations' backend/app/templates/admin/apps/detail.html`
   - Done when: Schema validates with and without new fields; admin detail page shows catalog-first layout with ops collapsed
 
-- [ ] **T02: Workspace catalog routes, templates, sidebar entry, and CSS** `est:1.5h`
+- [x] **T02: Workspace catalog routes, templates, sidebar entry, and CSS** `est:1.5h`
   - Why: Make the app catalog browsable from within the workspace — the second half of the CAT-02 requirement. Users should be able to discover and learn about apps without going to the admin portal.
   - Files: `backend/app/browser/apps.py`, `backend/app/templates/browser/catalog_list.html`, `backend/app/templates/browser/catalog_detail.html`, `backend/app/templates/browser/apps_explorer.html`, `frontend/static/js/workspace.js`, `frontend/static/css/style.css`
   - Do: Add `GET /apps/catalog` and `GET /apps/catalog/{app_id}` routes to the browser apps router. Create `catalog_list.html` with a card grid showing all apps (installed + available on disk) with search filtering. Create `catalog_detail.html` with description, features, permissions, and conditional install/uninstall actions (only for owner role). Add `openCatalogTab()` to workspace.js that opens a dockview tab loading the catalog list via htmx. Add a "Browse Catalog" tree-leaf entry to `apps_explorer.html`. Add catalog CSS (`.catalog-grid`, `.catalog-card`, `.feature-list`, `.permission-badge`, `.category-pill`) to `style.css`.

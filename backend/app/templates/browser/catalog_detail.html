@@ -1,0 +1,171 @@
+{# Workspace catalog detail — single app page.
+   Rendered by GET /browser/apps/catalog/{app_id}.
+   Context: app_id, manifest (AppManifestSchema), status (str),
+            uptime (str), user (User), installed (bool), app_path (str) #}
+
+<div class="catalog-detail">
+  <!-- Back link -->
+  <a href="javascript:void(0)" class="catalog-back-link" onclick="openCatalogTab()">
+    <i data-lucide="arrow-left"></i> Back to Catalog
+  </a>
+
+  <!-- Header -->
+  <div class="catalog-detail-header">
+    <h2 style="margin: 0; font-size: 1.3rem; font-weight: 600;">{{ manifest.name }}</h2>
+    <div class="catalog-card-badges">
+      <span class="version-pill">v{{ manifest.version }}</span>
+      {% if status == 'running' %}
+      <span class="status-badge status-running">Running</span>
+      {% elif status == 'stopped' %}
+      <span class="status-badge status-stopped">Stopped</span>
+      {% elif status == 'not_installed' %}
+      <span class="status-badge" style="background: var(--color-surface-elevated); color: var(--color-text-muted);">Not Installed</span>
+      {% elif status == 'error' %}
+      <span class="status-badge status-error">Error</span>
+      {% else %}
+      <span class="status-badge">{{ status }}</span>
+      {% endif %}
+      {% if manifest.category %}
+      <span class="category-pill">{{ manifest.category }}</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Description -->
+  {% if manifest.description %}
+  <p class="catalog-detail-desc">{{ manifest.description }}</p>
+  {% endif %}
+
+  <!-- Author -->
+  {% if manifest.author %}
+  <p class="catalog-detail-author">
+    by <strong>{{ manifest.author.name }}</strong>{% if manifest.author.url %} —
+    <a href="{{ manifest.author.url }}" target="_blank" rel="noopener noreferrer">{{ manifest.author.url }}</a>{% endif %}
+  </p>
+  {% endif %}
+
+  <!-- Features -->
+  {% if manifest.features %}
+  <div class="catalog-section">
+    <h3>Features</h3>
+    <ul class="feature-list">
+      {% for feature in manifest.features %}
+      <li>
+        <i data-lucide="check" class="feature-check-icon"></i>
+        {{ feature }}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <!-- Permissions -->
+  {% if manifest.permissions %}
+  <div class="catalog-section">
+    <h3>Permissions</h3>
+    <table class="config-table">
+      {% if manifest.permissions.commands %}
+      <tr>
+        <td class="config-label">Commands</td>
+        <td>
+          {% for cmd in manifest.permissions.commands %}
+          <code class="permission-badge">{{ cmd }}</code>{% if not loop.last %} {% endif %}
+          {% endfor %}
+        </td>
+      </tr>
+      {% endif %}
+      {% if manifest.permissions.network %}
+      <tr>
+        <td class="config-label">Network</td>
+        <td>
+          {% for domain in manifest.permissions.network %}
+          <code class="permission-badge">{{ domain }}</code>{% if not loop.last %} {% endif %}
+          {% endfor %}
+        </td>
+      </tr>
+      {% endif %}
+      {% if manifest.permissions.sparql and manifest.permissions.sparql.read %}
+      <tr>
+        <td class="config-label">SPARQL</td>
+        <td>Read access</td>
+      </tr>
+      {% endif %}
+      {% if manifest.permissions.backgroundTasks %}
+      <tr>
+        <td class="config-label">Background Tasks</td>
+        <td>Enabled</td>
+      </tr>
+      {% endif %}
+      {% if manifest.permissions.settings %}
+      <tr>
+        <td class="config-label">Settings</td>
+        <td>Enabled</td>
+      </tr>
+      {% endif %}
+    </table>
+  </div>
+  {% endif %}
+
+  <!-- Dependencies -->
+  {% if manifest.dependencies and manifest.dependencies.models %}
+  <div class="catalog-section">
+    <h3>Model Dependencies</h3>
+    <table class="config-table">
+      <thead>
+        <tr>
+          <th style="text-align: left;">Model</th>
+          <th style="text-align: left;">Version</th>
+          <th style="text-align: left;">Required</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for dep in manifest.dependencies.models %}
+        <tr>
+          <td><code>{{ dep.id }}</code></td>
+          <td><code>{{ dep.version }}</code></td>
+          <td>{{ "Optional" if dep.optional else "Required" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  <!-- Actions (owner only) -->
+  {% if user.role == 'owner' %}
+  <div class="catalog-section">
+    <h3>Actions</h3>
+    <div class="catalog-actions">
+      {% if installed %}
+        {% if status == 'stopped' or status == 'error' %}
+        <form method="post" action="/admin/apps/{{ app_id }}/start" style="margin: 0;">
+          <button type="submit" class="btn btn-primary">Start</button>
+        </form>
+        {% endif %}
+        {% if status == 'running' %}
+        <form method="post" action="/admin/apps/{{ app_id }}/stop" style="margin: 0;">
+          <button type="submit" class="btn catalog-btn-secondary">Stop</button>
+        </form>
+        <form method="post" action="/admin/apps/{{ app_id }}/restart" style="margin: 0;">
+          <button type="submit" class="btn catalog-btn-secondary">Restart</button>
+        </form>
+        {% endif %}
+        <form method="post" action="/admin/apps/{{ app_id }}/uninstall" style="margin: 0;"
+              onsubmit="return confirm('Uninstall {{ manifest.name | e }}? This will stop the app and remove it.');">
+          <button type="submit" class="btn catalog-btn-danger">Uninstall</button>
+        </form>
+      {% else %}
+        <form method="post" action="/admin/apps/install" style="margin: 0;">
+          <input type="hidden" name="app_path" value="{{ app_path }}">
+          <button type="submit" class="btn btn-primary">Install</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+  // Initialize Lucide icons for this fragment
+  if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+</script>
