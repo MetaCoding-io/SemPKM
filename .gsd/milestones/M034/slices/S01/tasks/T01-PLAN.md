@@ -53,3 +53,10 @@ The existing `_detect_date_fields()` in `backend/app/views/service.py` uses `_ST
 - `models/basic-pkm/shapes/basic-pkm.jsonld` — TaskShape with 3 new scheduling properties
 - `models/basic-pkm/ontology/basic-pkm.jsonld` — 3 new DatatypeProperty declarations
 - `models/basic-pkm/manifest.yaml` — version 2.2.0
+
+## Observability Impact
+
+- **What changes:** The Task type's SHACL shape now has 3 additional property shapes. When the model is installed, the form editor for Tasks will render 3 new fields in the Dates group. The ontology graph will have 3 new `owl:DatatypeProperty` triples.
+- **How to inspect:** Load `/browser/objects/<task-iri>` — the edit form should show Scheduled Start, Scheduled End, and Estimated Duration fields in the Dates section. Query the SPARQL endpoint: `SELECT ?p WHERE { bpkm:scheduledStart a owl:DatatypeProperty }` should return a result after model install.
+- **Failure visibility:** If properties are missing from the form editor, check the shapes file JSON validity (`python3 -c "import json; json.load(open('models/basic-pkm/shapes/basic-pkm.jsonld'))"`). If the model fails to install, the backend log will show a shapes parse error with the JSON-LD file path.
+- **Date field detection note:** The planner assumed `"startdate" in "scheduledstart"` is True — it's actually False. T02 must update `_START_DATE_PRIORITY` and `_WELL_KNOWN_DATE_PATHS` in `backend/app/views/service.py` for the calendar to detect these fields.

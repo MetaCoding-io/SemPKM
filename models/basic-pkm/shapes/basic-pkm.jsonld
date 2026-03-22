@@ -655,6 +655,36 @@
           "sempkm:editHelpText": "When this task needs to be finished. Tasks past their due date with status todo or in-progress will trigger overdue warnings."
         },
         {
+          "sh:path": { "@id": "bpkm:scheduledStart" },
+          "sh:name": "Scheduled Start",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 6.1,
+          "sh:group": { "@id": "bpkm:TaskDatesGroup" },
+          "sh:description": "When this task is scheduled to begin.",
+          "sempkm:editHelpText": "Calendar time-blocking start. Drag tasks on the calendar view to reschedule, or set manually for planned work sessions."
+        },
+        {
+          "sh:path": { "@id": "bpkm:scheduledEnd" },
+          "sh:name": "Scheduled End",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 6.2,
+          "sh:group": { "@id": "bpkm:TaskDatesGroup" },
+          "sh:description": "When this task is scheduled to end.",
+          "sempkm:editHelpText": "Calendar time-blocking end. Resize task blocks on the calendar to adjust duration."
+        },
+        {
+          "sh:path": { "@id": "bpkm:estimatedDuration" },
+          "sh:name": "Estimated Duration",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 6.3,
+          "sh:group": { "@id": "bpkm:TaskDatesGroup" },
+          "sh:description": "Expected duration in ISO 8601 format (e.g. PT1H30M).",
+          "sempkm:editHelpText": "How long the task is expected to take, in ISO 8601 duration format. Examples: PT30M (30 minutes), PT1H (1 hour), PT1H30M (1.5 hours), PT2H (2 hours)."
+        },
+        {
           "sh:path": { "@id": "bpkm:completedDate" },
           "sh:name": "Completed Date",
           "sh:datatype": { "@id": "xsd:date" },

@@ -117,6 +117,30 @@
       "rdfs:range": { "@id": "xsd:date" }
     },
     {
+      "@id": "bpkm:scheduledStart",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Scheduled Start",
+      "rdfs:comment": "When the task is scheduled to begin (calendar time-blocking)",
+      "rdfs:domain": { "@id": "bpkm:Task" },
+      "rdfs:range": { "@id": "xsd:dateTime" }
+    },
+    {
+      "@id": "bpkm:scheduledEnd",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Scheduled End",
+      "rdfs:comment": "When the task is scheduled to end (calendar time-blocking)",
+      "rdfs:domain": { "@id": "bpkm:Task" },
+      "rdfs:range": { "@id": "xsd:dateTime" }
+    },
+    {
+      "@id": "bpkm:estimatedDuration",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Estimated Duration",
+      "rdfs:comment": "Expected duration in ISO 8601 format (e.g. PT1H30M)",
+      "rdfs:domain": { "@id": "bpkm:Task" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
       "@id": "bpkm:completedDate",
       "@type": "owl:DatatypeProperty",
       "rdfs:label": "Completed Date",
