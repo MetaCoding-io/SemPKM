@@ -1146,6 +1146,231 @@ WHERE {{
 
         return await self._parse_graph_results(turtle_bytes, inferred_edge_set, mirrored_edge_set)
 
+    # ── Calendar renderer ──────────────────────────────────────
+
+    # Well-known date path IRI fragments (matched case-insensitively against
+    # the local name of sh:path).  These are checked even when sh:datatype is
+    # absent — e.g. bpkm:Event's schema:startDate has no datatype declaration.
+    _WELL_KNOWN_DATE_PATHS: set[str] = {
+        "startdate",
+        "enddate",
+        "duedate",
+        "completeddate",
+        "targetdate",
+    }
+
+    # Priority order for selecting the *start* date field.
+    _START_DATE_PRIORITY = ["startdate", "duedate", "targetdate", "created"]
+
+    _XSD_DATE_TYPES: set[str] = {
+        "http://www.w3.org/2001/XMLSchema#date",
+        "http://www.w3.org/2001/XMLSchema#dateTime",
+    }
+
+    async def _detect_date_fields(
+        self, type_iri: str,
+    ) -> tuple[PropertyShape | None, PropertyShape | None]:
+        """Find date properties suitable for calendar start/end fields.
+
+        Uses two heuristics:
+        1. ``prop.datatype`` is ``xsd:date`` or ``xsd:dateTime``
+        2. The local-name of ``prop.path`` matches a well-known date IRI
+           (e.g. ``schema:startDate``, ``bpkm:dueDate``) — even when
+           ``prop.datatype`` is ``None``.
+
+        Returns ``(start_field, end_field)`` or ``(None, None)``.
+        """
+        if not self._shapes_service:
+            return None, None
+
+        try:
+            form: NodeShapeForm | None = (
+                await self._shapes_service.get_form_for_type(type_iri)
+            )
+        except Exception:
+            logger.warning(
+                "_detect_date_fields: shapes lookup failed for %s",
+                type_iri,
+                exc_info=True,
+            )
+            return None, None
+
+        if form is None:
+            return None, None
+
+        # Collect all properties that look like dates
+        date_props: list[PropertyShape] = []
+        for prop in form.properties:
+            local = _local_name(prop.path).lower()
+            if prop.datatype in self._XSD_DATE_TYPES:
+                date_props.append(prop)
+            elif local in self._WELL_KNOWN_DATE_PATHS:
+                date_props.append(prop)
+
+        if not date_props:
+            return None, None
+
+        # Pick start field by priority
+        start_field: PropertyShape | None = None
+        for keyword in self._START_DATE_PRIORITY:
+            for prop in date_props:
+                if keyword in _local_name(prop.path).lower():
+                    start_field = prop
+                    break
+            if start_field:
+                break
+
+        # Fallback: first date property
+        if start_field is None:
+            start_field = date_props[0]
+
+        # Pick end field: prefer path containing "enddate"
+        end_field: PropertyShape | None = None
+        for prop in date_props:
+            if "enddate" in _local_name(prop.path).lower() and prop is not start_field:
+                end_field = prop
+                break
+
+        logger.debug(
+            "_detect_date_fields: type=%s start=%s end=%s",
+            type_iri,
+            start_field.path if start_field else None,
+            end_field.path if end_field else None,
+        )
+        return start_field, end_field
+
+    @staticmethod
+    def _build_calendar_select(
+        type_iri: str,
+        start_path: str,
+        end_path: str | None = None,
+        scope_filter: str | None = None,
+    ) -> str:
+        """Build a SELECT query that fetches subjects with date values.
+
+        Args:
+            type_iri: The RDF type IRI to filter by.
+            start_path: The property IRI for the start date field.
+            end_path: Optional property IRI for the end date field.
+            scope_filter: Optional SPARQL WHERE body injected as sub-select.
+
+        Returns:
+            SPARQL SELECT query string.
+        """
+        scope_clause = ""
+        if scope_filter:
+            scope_clause = f"  {{ SELECT ?s WHERE {{ {scope_filter} }} }}\n"
+
+        end_clause = ""
+        end_var = ""
+        if end_path:
+            end_var = " ?endDate"
+            end_clause = f"  OPTIONAL {{ ?s <{end_path}> ?endDate }}\n"
+
+        return (
+            "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
+            "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n"
+            "PREFIX dcterms: <http://purl.org/dc/terms/>\n"
+            "\n"
+            f"SELECT ?s ?label ?startDate{end_var}\n"
+            "WHERE {\n"
+            f"  ?s rdf:type <{type_iri}> .\n"
+            f"  ?s <{start_path}> ?startDate .\n"
+            f"{end_clause}"
+            f"{scope_clause}"
+            "  OPTIONAL { ?s rdfs:label|dcterms:title ?label }\n"
+            "}"
+        )
+
+    async def execute_calendar_query(
+        self,
+        type_iri: str,
+        start_field: PropertyShape,
+        end_field: PropertyShape | None = None,
+        scope_filter: str | None = None,
+    ) -> dict:
+        """Execute a calendar query and return FullCalendar-compatible events.
+
+        Maps SPARQL results to FullCalendar event objects with ``id``,
+        ``title``, ``start``, ``end``, ``allDay``, and ``extendedProps``.
+
+        Detects ``allDay`` by checking whether the start value looks like
+        an ``xsd:date`` (no 'T' time separator) vs ``xsd:dateTime``.
+
+        Returns:
+            ``{"events": [...], "date_fields": {"start": {...}, "end": {...} | None}}``
+        """
+        query = self._build_calendar_select(
+            type_iri,
+            start_field.path,
+            end_path=end_field.path if end_field else None,
+            scope_filter=scope_filter,
+        )
+        scoped = scope_to_current_graph(query)
+
+        try:
+            result = await self._client.query(scoped)
+        except Exception:
+            logger.warning(
+                "execute_calendar_query: query failed for type=%s start=%s",
+                type_iri,
+                start_field.path,
+                exc_info=True,
+            )
+            return {
+                "events": [],
+                "date_fields": {
+                    "start": {"path": start_field.path, "name": start_field.name},
+                    "end": {"path": end_field.path, "name": end_field.name} if end_field else None,
+                },
+            }
+
+        bindings = result.get("results", {}).get("bindings", [])
+
+        events: list[dict] = []
+        seen: set[str] = set()
+
+        for b in bindings:
+            iri = b.get("s", {}).get("value", "")
+            if not iri or iri in seen:
+                continue
+            seen.add(iri)
+
+            label = b.get("label", {}).get("value", "") or _local_name(iri)
+            start_val = b.get("startDate", {}).get("value", "")
+            end_val = b.get("endDate", {}).get("value", "") if end_field else ""
+
+            if not start_val:
+                continue
+
+            # Detect allDay: xsd:date has no 'T', xsd:dateTime does
+            all_day = "T" not in start_val
+
+            event: dict = {
+                "id": iri,
+                "title": label,
+                "start": start_val,
+                "allDay": all_day,
+                "extendedProps": {"iri": iri},
+            }
+            if end_val:
+                event["end"] = end_val
+
+            events.append(event)
+
+        logger.info(
+            "execute_calendar_query: type=%s events=%d",
+            type_iri, len(events),
+        )
+
+        return {
+            "events": events,
+            "date_fields": {
+                "start": {"path": start_field.path, "name": start_field.name},
+                "end": {"path": end_field.path, "name": end_field.name} if end_field else None,
+            },
+        }
+
     # ── Kanban renderer ────────────────────────────────────────
 
     async def _detect_status_field(

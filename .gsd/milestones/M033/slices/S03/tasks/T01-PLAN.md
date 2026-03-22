@@ -73,3 +73,9 @@ Follow the kanban view pattern exactly — `_detect_status_field()` / `_build_ka
 - `backend/app/views/service.py` — modified with `_detect_date_fields()`, `_build_calendar_select()`, `execute_calendar_query()`
 - `backend/app/views/router.py` — modified with `"calendar"` in `_VALID_RENDERERS`, calendar branch in `generic_view()`, calendar data endpoint
 - `backend/tests/test_calendar.py` — new test file with date detection + query tests
+
+## Observability Impact
+
+- **New log lines:** `_detect_date_fields` emits DEBUG log with detected start/end paths. `execute_calendar_query` emits INFO log with event count. `generic_view` calendar branch emits INFO with type/scope/start/end details. All failure paths emit WARNING with `exc_info=True`.
+- **Inspectable endpoint:** `/browser/views/generic/calendar/data?type=<iri>` returns JSON inspectable via curl or DevTools. Empty/error states return valid JSON with `events: []`.
+- **Failure state:** SPARQL query failures return empty events (not 500), with failure logged. Missing type and missing date fields produce distinct `error_message` strings in HTML response.
