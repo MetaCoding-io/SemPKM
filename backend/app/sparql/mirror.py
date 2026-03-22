@@ -10,8 +10,8 @@ import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
-from app.config import settings
 from app.rdf.namespaces import MIRRORED_GRAPH_IRI
+from app.sparql.federation_config import get_merged_endpoints
 from app.triplestore.client import TriplestoreClient
 
 logger = logging.getLogger(__name__)
@@ -40,15 +40,16 @@ class MirrorService:
         self._client = client
 
     def validate_endpoint(self, url: str) -> bool:
-        """Check if the URL is in the configured allowlist.
+        """Check if the URL is in the merged allowlist (env + admin).
 
         Returns True if the endpoint is allowed, False otherwise.
         An empty allowlist means no endpoints are permitted.
         """
-        allowed = settings.get_allowed_endpoints()
-        if not allowed:
+        merged = get_merged_endpoints()
+        if not merged:
             return False
-        return url.strip() in allowed
+        allowed_urls = {entry["url"] for entry in merged}
+        return url.strip() in allowed_urls
 
     async def mirror_results(
         self,

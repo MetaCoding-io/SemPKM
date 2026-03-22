@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block page_css %}{% endblock %}
+
+{% block title %}SemPKM - Federation Endpoints{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+    <h1>Federation Endpoints</h1>
+    <p class="lead">Manage the SPARQL endpoint allowlist for federated queries. Endpoints listed here can be used in SERVICE clauses and mirrored via the SPARQL console.</p>
+
+    <div class="card">
+        <h2>Add Endpoint</h2>
+        <form hx-post="/admin/federation/add" hx-target="#endpoint-list" hx-swap="outerHTML"
+              hx-indicator="#federation-spinner">
+            <div class="form-group">
+                <label for="endpoint-url">Endpoint URL</label>
+                <input type="url" id="endpoint-url" name="endpoint_url"
+                       placeholder="https://dbpedia.org/sparql" required>
+            </div>
+            <div>
+                <button type="submit" class="btn btn-primary">Add Endpoint</button>
+                <span id="federation-spinner" class="htmx-indicator loading">Adding...</span>
+            </div>
+        </form>
+    </div>
+
+    {% block endpoint_list %}
+    <div id="endpoint-list" data-testid="endpoint-list">
+        {% if error is defined and error %}
+        <div class="error-box" id="federation-messages">{{ error }}</div>
+        {% elif success is defined and success %}
+        <div class="success-box" id="federation-messages">{{ success }}</div>
+        {% endif %}
+
+        {% if endpoints %}
+        <table class="sparql-results">
+            <thead>
+                <tr>
+                    <th>Endpoint URL</th>
+                    <th>Source</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ep in endpoints %}
+                <tr>
+                    <td style="word-break: break-all;">{{ ep.url }}</td>
+                    <td>
+                        {% if ep.source == "env" %}
+                        <span class="badge">env</span>
+                        {% else %}
+                        <span class="badge badge-success">admin</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if ep.removable %}
+                        <button class="btn btn-secondary btn-sm"
+                                hx-delete="/admin/federation/remove?url={{ ep.url | urlencode }}"
+                                hx-target="#endpoint-list"
+                                hx-swap="outerHTML"
+                                hx-confirm="Remove this endpoint?">
+                            Remove
+                        </button>
+                        {% else %}
+                        <span style="color: var(--color-text-muted); font-size: 0.85rem;">Set via environment variable</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="card" style="text-align: center; color: var(--color-text-muted); padding: 2rem;">
+            <p>No federation endpoints configured.</p>
+            <p style="font-size: 0.85rem;">Add an endpoint above, or set <code>FEDERATION_ALLOWED_ENDPOINTS</code> in your environment.</p>
+        </div>
+        {% endif %}
+    </div>
+    {% endblock %}
+</div>
+{% endblock %}
