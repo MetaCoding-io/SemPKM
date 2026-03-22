@@ -23,6 +23,7 @@
 ## Verification
 
 - `cd backend && .venv/bin/python -m pytest tests/test_calendar.py tests/test_calendar_editable.py -v` — all pass
+- `python3 -c "import json; d=json.load(open('models/basic-pkm/shapes/basic-pkm.jsonld')); props=[p for ps in d['@graph'] if ps.get('rdfs:label')=='Task Shape' for p in ps.get('sh:property',[]) if 'scheduled' in str(p.get('sh:path',{}).get('@id','')) or 'estimated' in str(p.get('sh:path',{}).get('@id',''))]; assert len(props)==3"` — exits 0 (shapes integrity check)
 - Manual: open calendar in Docker stack, confirm drag/resize/select work and persist
 
 ## Observability / Diagnostics
@@ -40,7 +41,7 @@
 
 ## Tasks
 
-- [ ] **T01: Add scheduledStart/scheduledEnd/estimatedDuration to Task schema and ontology** `est:30m`
+- [x] **T01: Add scheduledStart/scheduledEnd/estimatedDuration to Task schema and ontology** `est:30m`
   - Why: All calendar time-blocking depends on Tasks having scheduling properties. This is the foundational data model change.
   - Files: `models/basic-pkm/shapes/basic-pkm.jsonld`, `models/basic-pkm/ontology/basic-pkm.jsonld`, `models/basic-pkm/manifest.yaml`
   - Do: Add 3 properties to TaskShape in the Dates group (scheduledStart order 5.1, scheduledEnd order 5.2, estimatedDuration order 5.3 — between existing dueDate at 6 and completedDate at 7). Add matching OWL DatatypeProperty declarations in ontology. Bump manifest version to 2.2.0. Ensure `_detect_date_fields()` will prefer scheduledStart over dueDate for start field (scheduledStart contains "startdate" which is highest priority in `_START_DATE_PRIORITY`).
