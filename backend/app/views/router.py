@@ -201,7 +201,7 @@ async def views_menu(
     )
 
 
-_VALID_RENDERERS = {"table", "card", "graph", "kanban", "calendar"}
+_VALID_RENDERERS = {"table", "card", "graph", "kanban", "calendar", "map"}
 
 
 @router.get("/generic/{renderer}")
@@ -549,6 +549,101 @@ async def generic_view(
             return _embed_response(templates, request, "browser/calendar_view.html", context)
         return templates.TemplateResponse(request, "browser/calendar_view.html", context)
 
+    elif renderer == "map":
+        if not type_iri:
+            logger.info("generic_view: renderer=map but no type selected")
+            return templates.TemplateResponse(
+                request,
+                "browser/map_view.html",
+                {
+                    "request": request,
+                    "error_message": "Select a type to use Map View",
+                    "markers": [],
+                    "geo_fields": None,
+                    "type_label": type_label,
+                    "type_iri": "",
+                    "selected_type": "",
+                    "types": types_list,
+                    "model_view_specs": model_view_specs,
+                    "scope_query": scope_query,
+                    "user_saved_queries": user_saved_queries,
+                    "model_saved_queries": model_saved_queries,
+                    "is_generic": True,
+                    "renderer": "map",
+                    "pagination_base_url": pagination_base_url,
+                    "pag_extra": pag_extra,
+                    "spec": spec,
+                },
+            )
+
+        lat_field, lng_field = await view_spec_service._detect_geo_fields(type_iri)
+
+        if lat_field is None:
+            logger.warning("generic_view: renderer=map type=%s has no geo properties", type_iri)
+            return templates.TemplateResponse(
+                request,
+                "browser/map_view.html",
+                {
+                    "request": request,
+                    "error_message": "This type has no geographic coordinate properties for Map display",
+                    "markers": [],
+                    "geo_fields": None,
+                    "type_label": type_label,
+                    "type_iri": spec.target_class,
+                    "selected_type": type_iri or "",
+                    "types": types_list,
+                    "model_view_specs": model_view_specs,
+                    "scope_query": scope_query,
+                    "user_saved_queries": user_saved_queries,
+                    "model_saved_queries": model_saved_queries,
+                    "is_generic": True,
+                    "renderer": "map",
+                    "pagination_base_url": pagination_base_url,
+                    "pag_extra": pag_extra,
+                    "spec": spec,
+                },
+            )
+
+        logger.info(
+            "generic_view: renderer=map type=%s scope_query=%s lat=%s lng=%s",
+            type_iri, scope_query or "(none)", lat_field.path, lng_field.path,
+        )
+
+        # Build the data URL for the map JSON endpoint
+        map_data_url = "/browser/views/generic/map/data"
+        map_data_params = []
+        if type_iri:
+            map_data_params.append(f"type={quote(type_iri, safe='')}")
+        if scope_query:
+            map_data_params.append(f"scope_query={quote(scope_query, safe='')}")
+        if map_data_params:
+            map_data_url += "?" + "&".join(map_data_params)
+
+        context = {
+            "request": request,
+            "geo_fields": {
+                "lat": {"path": lat_field.path, "name": lat_field.name},
+                "lng": {"path": lng_field.path, "name": lng_field.name},
+            },
+            "map_data_url": map_data_url,
+            "type_label": type_label,
+            "type_iri": spec.target_class,
+            "selected_type": type_iri or "",
+            "types": types_list,
+            "model_view_specs": model_view_specs,
+            "scope_query": scope_query,
+            "user_saved_queries": user_saved_queries,
+            "model_saved_queries": model_saved_queries,
+            "is_generic": True,
+            "renderer": "map",
+            "pagination_base_url": pagination_base_url,
+            "pag_extra": pag_extra,
+            "spec": spec,
+        }
+        if embed:
+            return _embed_response(templates, request, "browser/map_view.html", context)
+        return templates.TemplateResponse(request, "browser/map_view.html", context)
+
     else:  # kanban
         if not type_iri:
             logger.info("generic_view: renderer=kanban but no type selected")
@@ -646,13 +741,14 @@ async def generic_view_data(
     view_spec_service: ViewSpecService = Depends(get_view_spec_service),
     query_service: QueryService = Depends(get_query_service),
 ):
-    """Return data as JSON for the generic graph or calendar view.
+    """Return data as JSON for the generic graph, calendar, or map view.
 
     For graph: builds a dynamic CONSTRUCT query and executes it.
     For calendar: detects date fields and returns FullCalendar events.
+    For map: detects geo fields and returns marker data with coordinates.
     Accepts optional scope_query to filter results by saved query.
     """
-    if renderer not in ("graph", "calendar"):
+    if renderer not in ("graph", "calendar", "map"):
         return JSONResponse(content={"error": "Invalid renderer for data endpoint"}, status_code=404)
 
     type_iri = type if type else None
@@ -676,6 +772,17 @@ async def generic_view_data(
             return JSONResponse(content={"events": [], "date_fields": None})
         result = await view_spec_service.execute_calendar_query(
             type_iri, start_field, end_field, scope_filter=scope_filter_text,
+        )
+        return JSONResponse(content=result)
+
+    if renderer == "map":
+        if not type_iri:
+            return JSONResponse(content={"markers": [], "geo_fields": None})
+        lat_field, lng_field = await view_spec_service._detect_geo_fields(type_iri)
+        if lat_field is None:
+            return JSONResponse(content={"markers": [], "geo_fields": None})
+        result = await view_spec_service.execute_map_query(
+            type_iri, lat_field, lng_field, scope_filter=scope_filter_text,
         )
         return JSONResponse(content=result)
 

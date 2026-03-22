@@ -19,10 +19,19 @@
 
 - `cd backend && .venv/bin/python -m pytest tests/test_map.py -v` — all unit tests pass
 - `cd e2e && npx playwright test tests/02-views/map-view.spec.ts` — E2E tests pass (empty-state verification, map loading)
+- `grep -c 'execute_map_query: query failed' backend/app/views/service.py` — failure log line exists (diagnostic path)
+
+## Observability / Diagnostics
+
+- **Geo detection logging:** `_detect_geo_fields` logs at DEBUG level for IRI/heuristic matches and when no geo pair is found. Includes the type IRI and resolved property paths.
+- **Query failure logging:** `execute_map_query` logs at WARNING level with `exc_info=True` when the SPARQL query fails, returning empty markers gracefully instead of crashing.
+- **Router logging:** `generic_view()` map branch logs at INFO level when no type selected, WARNING when type has no geo fields, INFO with full details (type, scope_query, lat/lng paths) on success.
+- **Empty-state visibility:** Three distinct empty states in the template (no type, no geo fields, geo data present but empty) — each with an instructive user-facing message identifying what's missing.
+- **Redaction:** No secrets in any log statement — only IRIs and property paths.
 
 ## Tasks
 
-- [ ] **T01: Backend geo field detection, map query, and router wiring** `est:45m`
+- [x] **T01: Backend geo field detection, map query, and router wiring** `est:45m`
   - Why: Provides the data layer — geo property detection via SHACL, SPARQL query building, JSON data endpoint, and the `generic_view()` renderer branch for map. Mirrors calendar T01 exactly.
   - Files: `backend/app/views/service.py`, `backend/app/views/router.py`, `backend/tests/test_map.py`
   - Do: (1) Add `_WELL_KNOWN_GEO_PATHS`, `_XSD_DECIMAL_TYPES` class constants to ViewSpecService. (2) Add `_detect_geo_fields(type_iri)` method scanning SHACL PropertyShapes for lat/lng pairs — by well-known IRI (wgs84:lat/long, schema:latitude/longitude) and by path local-name heuristic. (3) Add `_build_map_select()` static method building the SPARQL query with required lat/lng and optional label. (4) Add `execute_map_query()` returning `{"markers": [...], "geo_fields": {...}}`. (5) Add `"map"` to `_VALID_RENDERERS`. (6) Add `elif renderer == "map":` branch in `generic_view()` with three empty-state paths (no type, no geo fields, geo fields present). (7) Add `elif renderer == "map":` in `generic_view_data()` and update allowed-renderers check from `("graph", "calendar")` to `("graph", "calendar", "map")`. (8) Write `test_map.py` mirroring `test_calendar.py` structure — test geo field detection (wgs84, schema.org, heuristic, no-match, no-shapes-service), query building, and execute_map_query event mapping.
