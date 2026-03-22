@@ -259,6 +259,22 @@
       "doneMilestones": 31,
       "totalMilestones": 33,
       "phase": "pre-planning"
+    },
+    {
+      "filename": "M034-2026-03-22T04-14-19.html",
+      "generatedAt": "2026-03-22T04:14:19.205Z",
+      "milestoneId": "M034",
+      "milestoneTitle": "M034",
+      "label": "M034: M034",
+      "kind": "milestone",
+      "totalCost": 914.6774942500001,
+      "totalTokens": 1264198552,
+      "totalDuration": 167457923,
+      "doneSlices": 208,
+      "totalSlices": 215,
+      "doneMilestones": 32,
+      "totalMilestones": 38,
+      "phase": "planning"
     }
   ]
 }
