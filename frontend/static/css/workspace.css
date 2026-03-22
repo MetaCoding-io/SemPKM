@@ -7524,6 +7524,100 @@ details.form-group[open] > .form-group-summary::before {
     background: var(--color-surface-hover, var(--color-bg-secondary));
 }
 
+/* ============================================
+   Mirror Results button in SPARQL results info
+   ============================================ */
+
+.sparql-mirror-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 12px;
+    padding: 2px 8px;
+    font-size: 12px;
+    border: 1px solid rgba(20, 184, 166, 0.4);
+    border-radius: 4px;
+    background: rgba(20, 184, 166, 0.08);
+    color: #0d9488;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.sparql-mirror-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+.sparql-mirror-btn:hover {
+    background: rgba(20, 184, 166, 0.15);
+    border-color: rgba(20, 184, 166, 0.6);
+}
+
+.sparql-mirror-btn:disabled {
+    opacity: 0.6;
+    cursor: default;
+    pointer-events: none;
+}
+
+/* Warning state — endpoint not in allowlist */
+.sparql-mirror-btn.mirror-warning {
+    border-color: rgba(245, 158, 11, 0.5);
+    background: rgba(245, 158, 11, 0.08);
+    color: #d97706;
+}
+
+.sparql-mirror-btn.mirror-warning:hover {
+    background: rgba(245, 158, 11, 0.15);
+}
+
+/* Success state — mirroring complete */
+.sparql-mirror-btn.mirror-success {
+    border-color: rgba(20, 184, 166, 0.5);
+    background: rgba(20, 184, 166, 0.1);
+    color: #0d9488;
+}
+
+.sparql-mirror-success {
+    font-weight: 500;
+}
+
+/* Error state */
+.sparql-mirror-btn.mirror-error {
+    border-color: rgba(239, 68, 68, 0.4);
+    background: rgba(239, 68, 68, 0.08);
+    color: #dc2626;
+}
+
+/* Dark theme overrides */
+[data-theme="dark"] .sparql-mirror-btn {
+    background: rgba(20, 184, 166, 0.1);
+    color: #5eead4;
+    border-color: rgba(20, 184, 166, 0.3);
+}
+
+[data-theme="dark"] .sparql-mirror-btn:hover {
+    background: rgba(20, 184, 166, 0.2);
+    border-color: rgba(20, 184, 166, 0.5);
+}
+
+[data-theme="dark"] .sparql-mirror-btn.mirror-warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: #fbbf24;
+    border-color: rgba(245, 158, 11, 0.4);
+}
+
+[data-theme="dark"] .sparql-mirror-btn.mirror-success {
+    color: #5eead4;
+}
+
+[data-theme="dark"] .sparql-mirror-btn.mirror-error {
+    background: rgba(239, 68, 68, 0.1);
+    color: #fca5a5;
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
 
 /* ── Dashboard layouts ────────────────────────────────────────────── */
 
