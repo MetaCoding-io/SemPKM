@@ -39,7 +39,7 @@
   - Verify: Start dev stack, open Calendar View from sidebar → FullCalendar renders → month/week/day switching works → click event opens object tab
   - Done when: Calendar view renders with proper styling in both light and dark modes; empty states display correctly; event clicks open object tabs.
 
-- [ ] **T03: E2E test for calendar view** `est:30m`
+- [x] **T03: E2E test for calendar view** `est:30m`
   - Why: Automated verification that the full calendar view pipeline works: sidebar entry → FullCalendar rendering → view switching → event click → object tab opens.
   - Files: `e2e/tests/02-views/calendar-view.spec.ts`, `e2e/helpers/selectors.ts`, `e2e/helpers/dockview.ts`
   - Do: Add `'calendar'` to the `openGenericViewTab` renderer union type in dockview.ts. Add `calendar` selector to `SEL.views`. Write E2E spec covering: open calendar view → verify FullCalendar `.fc` container rendered → switch to week/day views → verify view changes → (if Event data exists) click event → verify object tab opens.
