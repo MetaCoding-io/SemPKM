@@ -52,6 +52,21 @@ class Settings(BaseSettings):
     # Set DEMO_MODE=true in env for the hosted demo instance.
     demo_mode: bool = False
 
+    # Federation — comma-separated list of allowed external SPARQL endpoints
+    # Empty string means no endpoints are allowed (secure default).
+    # Example: FEDERATION_ALLOWED_ENDPOINTS=https://query.wikidata.org/sparql,https://dbpedia.org/sparql
+    federation_allowed_endpoints: str = ""
+
+    def get_allowed_endpoints(self) -> list[str]:
+        """Parse the comma-separated allowlist into a list of stripped URLs."""
+        if not self.federation_allowed_endpoints.strip():
+            return []
+        return [
+            ep.strip()
+            for ep in self.federation_allowed_endpoints.split(",")
+            if ep.strip()
+        ]
+
     # Rate limiting — disable for E2E test environments
     rate_limit_enabled: bool = True
 

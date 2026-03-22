@@ -54,7 +54,7 @@
   - Verify: `cd backend && .venv/bin/python -m pytest tests/test_sparql_client.py -v` — all pass including new SERVICE tests
   - Done when: SERVICE clauses survive `scope_to_current_graph()` intact; FROM `<urn:sempkm:mirrored>` appears in scoped queries; member queries with SERVICE are rejected
 
-- [ ] **T02: Mirror service, endpoint allowlist, and API endpoints** `est:2h`
+- [x] **T02: Mirror service, endpoint allowlist, and API endpoints** `est:2h`
   - Why: Core backend capability — stores federated results as mirrored triples with provenance. Endpoint allowlist prevents querying arbitrary external endpoints.
   - Files: `backend/app/sparql/mirror.py`, `backend/app/sparql/mirror_router.py`, `backend/app/config.py`, `backend/app/main.py`, `backend/tests/test_mirror_service.py`
   - Do: (1) Add `federation_allowed_endpoints: str = ""` to config.py (comma-separated URLs, empty = all blocked). (2) Create `mirror.py` with `MirrorService` class: `mirror_results(query, endpoint_url)` extracts SERVICE results, stores triples in `urn:sempkm:mirrored` via SPARQL INSERT DATA with provenance (each mirror batch gets a provenance graph `urn:sempkm:mirror-prov:{uuid}` linking to source endpoint via `prov:wasAttributedTo`). (3) Create `mirror_router.py` with: `POST /api/sparql/mirror` (accepts `{query, endpoint_url}`, validates endpoint against allowlist, executes query, stores mirrored triples); `GET /api/sparql/mirror/endpoints` (returns allowlist); `DELETE /api/sparql/mirror` (clears all mirrored triples). (4) Mount router in `main.py`. (5) Add ~20 unit tests covering: allowlist validation, mirror storage, provenance creation, clear operation, blocked endpoint rejection.

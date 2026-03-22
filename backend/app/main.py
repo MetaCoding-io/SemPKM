@@ -58,6 +58,7 @@ from app.services.validation import ValidationService
 from app.services.ops_log import OperationsLogService
 from app.services.webhooks import WebhookService
 from app.views.service import ViewSpecService
+from app.sparql.mirror_router import router as mirror_router
 from app.sparql.router import router as sparql_router
 from app.triplestore.client import TriplestoreClient
 from app.triplestore.setup import ensure_repository
@@ -606,6 +607,7 @@ app.include_router(commands_router)
 app.include_router(health_router)
 app.include_router(models_router)
 app.include_router(sparql_router)
+app.include_router(mirror_router)
 app.include_router(lint_router)
 app.include_router(inference_router)
 app.include_router(admin_router)
