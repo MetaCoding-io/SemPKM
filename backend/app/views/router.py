@@ -205,7 +205,7 @@ async def views_menu(
     )
 
 
-_VALID_RENDERERS = {"table", "card", "graph", "kanban", "calendar", "map"}
+_VALID_RENDERERS = {"table", "card", "graph", "kanban", "calendar", "map", "timeline"}
 
 
 @router.get("/generic/{renderer}")
@@ -652,6 +652,102 @@ async def generic_view(
             return _embed_response(templates, request, "browser/map_view.html", context)
         return templates.TemplateResponse(request, "browser/map_view.html", context)
 
+    elif renderer == "timeline":
+        if not type_iri:
+            logger.info("generic_view: renderer=timeline but no type selected")
+            return templates.TemplateResponse(
+                request,
+                "browser/timeline_view.html",
+                {
+                    "request": request,
+                    "error_message": "Select a type to use Timeline View",
+                    "tasks": [],
+                    "date_fields": None,
+                    "type_label": type_label,
+                    "type_iri": "",
+                    "selected_type": "",
+                    "types": types_list,
+                    "model_view_specs": model_view_specs,
+                    "scope_query": scope_query,
+                    "user_saved_queries": user_saved_queries,
+                    "model_saved_queries": model_saved_queries,
+                    "is_generic": True,
+                    "renderer": "timeline",
+                    "pagination_base_url": pagination_base_url,
+                    "pag_extra": pag_extra,
+                    "spec": spec,
+                },
+            )
+
+        start_field, end_field = await view_spec_service._detect_date_fields(type_iri)
+
+        if start_field is None:
+            logger.warning("generic_view: renderer=timeline type=%s has no date properties", type_iri)
+            return templates.TemplateResponse(
+                request,
+                "browser/timeline_view.html",
+                {
+                    "request": request,
+                    "error_message": "This type has no date properties for Timeline display",
+                    "tasks": [],
+                    "date_fields": None,
+                    "type_label": type_label,
+                    "type_iri": spec.target_class,
+                    "selected_type": type_iri or "",
+                    "types": types_list,
+                    "model_view_specs": model_view_specs,
+                    "scope_query": scope_query,
+                    "user_saved_queries": user_saved_queries,
+                    "model_saved_queries": model_saved_queries,
+                    "is_generic": True,
+                    "renderer": "timeline",
+                    "pagination_base_url": pagination_base_url,
+                    "pag_extra": pag_extra,
+                    "spec": spec,
+                },
+            )
+
+        logger.info(
+            "generic_view: renderer=timeline type=%s scope_query=%s start=%s end=%s",
+            type_iri, scope_query or "(none)", start_field.path,
+            end_field.path if end_field else "(none)",
+        )
+
+        # Build the data URL for the timeline JSON endpoint
+        timeline_data_url = "/browser/views/generic/timeline/data"
+        timeline_data_params = []
+        if type_iri:
+            timeline_data_params.append(f"type={quote(type_iri, safe='')}")
+        if scope_query:
+            timeline_data_params.append(f"scope_query={quote(scope_query, safe='')}")
+        if timeline_data_params:
+            timeline_data_url += "?" + "&".join(timeline_data_params)
+
+        context = {
+            "request": request,
+            "date_fields": {
+                "start": {"path": start_field.path, "name": start_field.name},
+                "end": {"path": end_field.path, "name": end_field.name} if end_field else None,
+            },
+            "timeline_data_url": timeline_data_url,
+            "type_label": type_label,
+            "type_iri": spec.target_class,
+            "selected_type": type_iri or "",
+            "types": types_list,
+            "model_view_specs": model_view_specs,
+            "scope_query": scope_query,
+            "user_saved_queries": user_saved_queries,
+            "model_saved_queries": model_saved_queries,
+            "is_generic": True,
+            "renderer": "timeline",
+            "pagination_base_url": pagination_base_url,
+            "pag_extra": pag_extra,
+            "spec": spec,
+        }
+        if embed:
+            return _embed_response(templates, request, "browser/timeline_view.html", context)
+        return templates.TemplateResponse(request, "browser/timeline_view.html", context)
+
     else:  # kanban
         if not type_iri:
             logger.info("generic_view: renderer=kanban but no type selected")
@@ -758,7 +854,7 @@ async def generic_view_data(
     For map: detects geo fields and returns marker data with coordinates.
     Accepts optional scope_query to filter results by saved query.
     """
-    if renderer not in ("graph", "calendar", "map"):
+    if renderer not in ("graph", "calendar", "map", "timeline"):
         return JSONResponse(content={"error": "Invalid renderer for data endpoint"}, status_code=404)
 
     type_iri = type if type else None
@@ -801,6 +897,17 @@ async def generic_view_data(
             return JSONResponse(content={"markers": [], "geo_fields": None})
         result = await view_spec_service.execute_map_query(
             type_iri, lat_field, lng_field, scope_filter=scope_filter_text,
+        )
+        return JSONResponse(content=result)
+
+    if renderer == "timeline":
+        if not type_iri:
+            return JSONResponse(content={"tasks": [], "dependency_count": 0})
+        start_field, end_field = await view_spec_service._detect_date_fields(type_iri)
+        if start_field is None:
+            return JSONResponse(content={"tasks": [], "dependency_count": 0})
+        result = await view_spec_service.execute_timeline_query(
+            type_iri, start_field, end_field, scope_filter=scope_filter_text,
         )
         return JSONResponse(content=result)
 
