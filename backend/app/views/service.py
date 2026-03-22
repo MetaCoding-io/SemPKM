@@ -16,8 +16,10 @@ import math
 import re
 import uuid
 from dataclasses import dataclass, field
+from datetime import date, datetime, timedelta, timezone
 
 import rdflib
+from dateutil.rrule import rruleset, rrulestr
 from rdflib import RDF, URIRef
 
 from app.browser._helpers import _validate_iri
@@ -1248,6 +1250,54 @@ WHERE {{
         return start_field, end_field
 
     @staticmethod
+    def _expand_rrule(
+        rrule_str: str,
+        dtstart: datetime,
+        range_start: datetime,
+        range_end: datetime,
+        exdates: list[date] | None = None,
+        max_instances: int = 52,
+    ) -> list[datetime]:
+        """Expand an RFC 5545 RRULE string into occurrence datetimes.
+
+        Uses ``python-dateutil`` to parse the RRULE and generate occurrences
+        within ``[range_start, range_end]``, excluding any dates in ``exdates``.
+        Returns at most ``max_instances`` occurrences.
+
+        On malformed input, logs a warning and returns an empty list — never
+        raises.
+
+        Args:
+            rrule_str: RFC 5545 RRULE string (e.g. ``FREQ=WEEKLY;BYDAY=FR``).
+            dtstart: The anchor datetime for recurrence calculation.
+            range_start: Start of the expansion window (inclusive).
+            range_end: End of the expansion window (inclusive).
+            exdates: Optional dates to exclude from results.
+            max_instances: Maximum number of occurrences to return (default 52).
+
+        Returns:
+            List of occurrence datetimes within the window.
+        """
+        try:
+            rule = rrulestr(rrule_str, dtstart=dtstart)
+            rset = rruleset()
+            rset.rrule(rule)
+            if exdates:
+                for exd in exdates:
+                    # Convert date to datetime at midnight for rruleset.exdate()
+                    if isinstance(exd, date) and not isinstance(exd, datetime):
+                        exd = datetime(exd.year, exd.month, exd.day)
+                    rset.exdate(exd)
+            occurrences = rset.between(range_start, range_end, inc=True)
+            return list(occurrences[:max_instances])
+        except Exception:
+            logger.warning(
+                "_expand_rrule: failed to parse RRULE %r with dtstart=%s",
+                rrule_str, dtstart, exc_info=True,
+            )
+            return []
+
+    @staticmethod
     def _build_calendar_select(
         type_iri: str,
         start_path: str,
@@ -1280,13 +1330,15 @@ WHERE {{
             "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n"
             "PREFIX dcterms: <http://purl.org/dc/terms/>\n"
             "\n"
-            f"SELECT ?s ?label ?startDate{end_var}\n"
+            f"SELECT ?s ?label ?startDate{end_var} ?recurrenceRule ?exceptionDates\n"
             "WHERE {\n"
             f"  ?s rdf:type <{type_iri}> .\n"
             f"  ?s <{start_path}> ?startDate .\n"
             f"{end_clause}"
             f"{scope_clause}"
             "  OPTIONAL { ?s rdfs:label|dcterms:title ?label }\n"
+            "  OPTIONAL { ?s <urn:sempkm:model:basic-pkm:recurrenceRule> ?recurrenceRule }\n"
+            "  OPTIONAL { ?s <urn:sempkm:model:basic-pkm:exceptionDates> ?exceptionDates }\n"
             "}"
         )
 
@@ -1337,6 +1389,11 @@ WHERE {{
 
         events: list[dict] = []
         seen: set[str] = set()
+        virtual_count = 0
+
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
+        expansion_start = now - timedelta(days=183)  # ~6 months back
+        expansion_end = now + timedelta(days=183)     # ~6 months forward
 
         for b in bindings:
             iri = b.get("s", {}).get("value", "")
@@ -1347,6 +1404,8 @@ WHERE {{
             label = b.get("label", {}).get("value", "") or _local_name(iri)
             start_val = b.get("startDate", {}).get("value", "")
             end_val = b.get("endDate", {}).get("value", "") if end_field else ""
+            rrule_val = b.get("recurrenceRule", {}).get("value", "")
+            exdates_val = b.get("exceptionDates", {}).get("value", "")
 
             if not start_val:
                 continue
@@ -1364,11 +1423,101 @@ WHERE {{
             if end_val:
                 event["end"] = end_val
 
+            # Add recurrenceRule to master event's extendedProps for frontend indicator
+            if rrule_val:
+                event["extendedProps"]["recurrenceRule"] = rrule_val
+
             events.append(event)
 
+            # ── RRULE expansion: generate virtual events ──
+            if rrule_val:
+                # Parse dtstart from start_val
+                try:
+                    if "T" in start_val:
+                        # Strip timezone to keep naive — rruleset.between()
+                        # needs consistent naive datetimes
+                        dt_parsed = datetime.fromisoformat(
+                            start_val.replace("Z", "+00:00")
+                        )
+                        dtstart = dt_parsed.replace(tzinfo=None)
+                    else:
+                        parsed_date = date.fromisoformat(start_val[:10])
+                        dtstart = datetime(parsed_date.year, parsed_date.month, parsed_date.day)
+                except (ValueError, TypeError):
+                    dtstart = None
+
+                if dtstart is None:
+                    continue
+
+                # Parse exdates (comma-separated ISO dates)
+                exdates: list[date] | None = None
+                if exdates_val:
+                    exdates = []
+                    for part in exdates_val.split(","):
+                        part = part.strip()
+                        if part:
+                            try:
+                                exdates.append(date.fromisoformat(part[:10]))
+                            except (ValueError, TypeError):
+                                pass
+
+                # Compute original duration (default 1 hour if no end)
+                if end_val:
+                    try:
+                        if "T" in end_val:
+                            dt_end = datetime.fromisoformat(
+                                end_val.replace("Z", "+00:00")
+                            ).replace(tzinfo=None)
+                        else:
+                            parsed_end = date.fromisoformat(end_val[:10])
+                            dt_end = datetime(parsed_end.year, parsed_end.month, parsed_end.day)
+                        duration = dt_end - dtstart
+                    except (ValueError, TypeError):
+                        duration = timedelta(hours=1)
+                else:
+                    duration = timedelta(hours=1) if not all_day else timedelta(days=1)
+
+                occurrences = self._expand_rrule(
+                    rrule_val, dtstart, expansion_start, expansion_end,
+                    exdates=exdates,
+                )
+
+                master_date = dtstart.date() if isinstance(dtstart, datetime) else dtstart
+                for occ in occurrences:
+                    occ_date = occ.date() if isinstance(occ, datetime) else occ
+                    # Skip the master event's own date — it's already in events
+                    if occ_date == master_date:
+                        continue
+
+                    if all_day:
+                        occ_start = occ_date.isoformat()
+                        occ_end = (occ_date + duration).isoformat() if duration.days > 1 else ""
+                    else:
+                        occ_start = occ.isoformat()
+                        occ_end = (occ + duration).isoformat()
+
+                    synth_id = f"{iri}__recurrence__{occ_date.isoformat()}"
+                    virtual_event: dict = {
+                        "id": synth_id,
+                        "title": label,
+                        "start": occ_start,
+                        "allDay": all_day,
+                        "extendedProps": {
+                            "iri": iri,
+                            "isVirtual": True,
+                            "masterIri": iri,
+                            "recurrenceRule": rrule_val,
+                        },
+                    }
+                    if occ_end:
+                        virtual_event["end"] = occ_end
+
+                    events.append(virtual_event)
+                    virtual_count += 1
+
         logger.info(
-            "execute_calendar_query: type=%s events=%d",
-            type_iri, len(events),
+            "execute_calendar_query: type=%s events=%d (real=%d virtual=%d)",
+            type_iri, len(events), len(seen), virtual_count,
         )
 
         return {
@@ -1959,7 +2108,6 @@ WHERE {{
                 else:
                     # Fallback: start + 1 day
                     try:
-                        from datetime import datetime, timedelta
                         dt = datetime.strptime(start_date, "%Y-%m-%d")
                         end_date = (dt + timedelta(days=1)).strftime("%Y-%m-%d")
                     except (ValueError, TypeError):

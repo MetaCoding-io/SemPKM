@@ -464,3 +464,13 @@ In Jinja2, `col.items` on a Python dict resolves to the dict's `.items()` method
 **Fix:** Use bracket notation `col['items']` for dict key access when the key name collides with a dict method (`items`, `keys`, `values`, `get`, `update`, etc.). This is a Jinja2-specific gotcha — Python code `col["items"]` and `col.items` (via __getattr__) behave differently in Jinja2's attribute resolution order.
 
 **Affected file:** `backend/app/templates/browser/kanban_view.html`
+
+### python-dateutil rruleset.between() requires consistent naive/aware datetimes
+
+**Discovered:** M034/S04/T02
+
+`dateutil.rrule.rruleset.between(start, end)` raises `TypeError: can't compare offset-naive and offset-aware datetimes` if `start`/`end` are timezone-aware but the `dtstart` used in the rule is naive (or vice versa). RDF date/dateTime values parsed via `fromisoformat()` may be naive or aware depending on whether they include a `Z` suffix.
+
+**Fix:** In the RRULE expansion code, strip timezone info from all datetimes before passing to rruleset: `dt.replace(tzinfo=None)`. The expansion window is computed as `datetime.now(timezone.utc).replace(tzinfo=None)` — getting UTC then stripping the tzinfo. This keeps all comparisons in naive-datetime space.
+
+**Affected file:** `backend/app/views/service.py` — `_expand_rrule()` and `execute_calendar_query()` RRULE expansion block.
