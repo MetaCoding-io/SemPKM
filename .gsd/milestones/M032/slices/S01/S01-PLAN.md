@@ -39,7 +39,7 @@
 
 ## Tasks
 
-- [ ] **T01: Register form-group block type and implement slot-based IRI resolution in batch commands** `est:2h`
+- [x] **T01: Register form-group block type and implement slot-based IRI resolution in batch commands** `est:2h`
   - Why: The form-group block type must exist in the registry for validation and builder palette. Slot-based IRI resolution is the core backend risk — it enables cross-command references so edge.create can target objects created in the same batch.
   - Files: `backend/app/dashboard/registry.py`, `backend/app/commands/router.py`, `backend/tests/test_form_group.py`, `backend/tests/test_block_registry.py`
   - Do: Register `form-group` BlockTypeSpec with config_schema `{slots: list, edges: list}`. In the `/api/commands` endpoint, after parsing commands, scan for `@slot:name` patterns in EdgeCreateParams source/target fields. Maintain a `slot_map: dict[str, str]` populated from each object.create's result IRI keyed by the command's `slot` field. Resolve all `@slot:` references before dispatching. Return 400 if any slot reference is unresolved.

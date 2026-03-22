@@ -24,9 +24,10 @@ class TestRegistration:
         "create-form",
         "sparql-result",
         "divider",
+        "form-group",
     }
 
-    def test_all_six_types_registered(self):
+    def test_all_seven_types_registered(self):
         assert set(BLOCK_REGISTRY.all_types()) == self.EXPECTED_TYPES
 
     def test_all_types_returns_sorted(self):
@@ -39,6 +40,16 @@ class TestRegistration:
         assert spec.label == "Markdown"
         assert spec.icon == "file-text"
         assert spec.category == "content"
+
+    def test_form_group_spec_correct(self):
+        spec = BLOCK_REGISTRY.get("form-group")
+        assert spec.type_name == "form-group"
+        assert spec.label == "Form Group"
+        assert spec.icon == "layers"
+        assert spec.category == "data"
+        assert spec.config_schema == {"slots": list, "edges": list}
+        assert spec.default_w == 12
+        assert spec.default_h == 8
 
     def test_get_unknown_type_raises_key_error(self):
         with pytest.raises(KeyError, match="Unknown block type: 'bogus'"):
@@ -57,7 +68,7 @@ class TestRegistration:
 
     def test_all_specs_returns_all(self):
         specs = BLOCK_REGISTRY.all_specs()
-        assert len(specs) == 6
+        assert len(specs) == 7
         assert all(isinstance(s, BlockTypeSpec) for s in specs)
 
 

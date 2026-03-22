@@ -126,6 +126,7 @@ async def execute_commands(
         # Dispatch all commands to get Operations
         operations: list[Operation] = []
         command_iris: list[tuple[str, str]] = []  # (iri, command_type)
+        slot_map: dict[str, str] = {}  # slot_name -> minted IRI
 
         # Extract optional target_graph from the request body
         # Supports creating objects directly in a shared graph
@@ -137,11 +138,32 @@ async def execute_commands(
             target_graph = body[0].get("target_graph") if isinstance(body[0], dict) else None
 
         for cmd in commands:
+            # Resolve @slot:name references in edge.create params
+            if cmd.command == "edge.create":
+                for field_name in ("source", "target"):
+                    value = getattr(cmd.params, field_name)
+                    if isinstance(value, str) and value.startswith("@slot:"):
+                        slot_name = value[6:]  # strip "@slot:" prefix
+                        if slot_name not in slot_map:
+                            raise CommandError(
+                                f"Unresolved slot reference: @slot:{slot_name}"
+                            )
+                        resolved_iri = slot_map[slot_name]
+                        logger.info(
+                            "Resolved @slot:%s → %s", slot_name, resolved_iri
+                        )
+                        # Replace the param value with the resolved IRI
+                        object.__setattr__(cmd.params, field_name, resolved_iri)
+
             operation = await dispatch(cmd, settings.base_namespace)
             operations.append(operation)
             # Track the primary IRI for each command's result
             primary_iri = operation.affected_iris[0] if operation.affected_iris else ""
             command_iris.append((primary_iri, cmd.command))
+
+            # Record slot mapping after successful dispatch
+            if cmd.command == "object.create" and getattr(cmd, "slot", None):
+                slot_map[cmd.slot] = primary_iri
 
         # Commit all operations atomically with user provenance
         event_store = EventStore(client)
