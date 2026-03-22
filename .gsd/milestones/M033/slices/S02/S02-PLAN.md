@@ -26,6 +26,7 @@
 - Layout picker has 4+ options including "Isometric 2.5D": `cd e2e && npx playwright test tests/02-views/graph-isometric.spec.ts --reporter=list`
 - Icon toggle button is present and functional: same E2E spec covers icon toggle
 - Manual verification: open graph view in browser, select Isometric, click nodes, check popover positions, toggle icons
+- Failure-path: select isometric layout when wrapper div is absent → console shows `[graph] Isometric wrapper #cy-wrapper not found` warning, graph continues with previous layout (no crash)
 
 ## Integration Closure
 
@@ -42,7 +43,7 @@
   - Verify: `rg -c '_lucideSvgDataUri\|_setIconMode\|sempkm_graph_icon_mode' frontend/static/js/graph.js` returns ≥ 3
   - Done when: Icon toggle button visible in graph toolbar; clicking it switches nodes between shapes and SVG icons; preference persists across page reload via localStorage
 
-- [ ] **T02: Implement isometric 2.5D CSS transform layout with coordinate correction** `est:2.5h`
+- [x] **T02: Implement isometric 2.5D CSS transform layout with coordinate correction** `est:2.5h`
   - Why: Delivers ISO-01 and ISO-02 — the isometric layout with CSS 3D perspective and correct click/popover interaction
   - Files: `frontend/static/js/graph.js`, `frontend/static/css/views.css`, `backend/app/templates/browser/graph_view.html`, `backend/app/views/router.py`
   - Do: Add `.graph-isometric-wrapper` div around `#cy-container` in template. Add `_applyIsometricTransform(cy, container)` — wraps container, applies CSS 3D, monkey-patches `cy.renderer().findContainerClientCoords` to return untransformed coords via container's `clientWidth`/`clientHeight` and wrapper center. Add `_removeIsometricTransform(cy, container)` — removes CSS, restores original method. Add isometric entry to `LAYOUT_REGISTRY` that runs fcose first then applies transform. Fix `_showNodePopover` and `_showEdgePopover` to forward-transform coordinates through wrapper's CSS matrix when isometric is active. Add `{"name": "isometric", "label": "Isometric 2.5D"}` to BOTH `available_layouts` lists in router.py (line ~431 and line ~971). CSS: `.graph-isometric-wrapper` with perspective, transform-style, transition.

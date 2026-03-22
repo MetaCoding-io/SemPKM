@@ -8,7 +8,7 @@
     <label class="layout-picker-label" for="layout-picker">Layout:</label>
     <select id="layout-picker" class="layout-picker" onchange="changeLayout(this.value)">
         {% for layout in available_layouts %}
-        {% if loop.index0 == 3 and available_layouts | length > 3 %}
+        {% if loop.index0 == 4 and available_layouts | length > 4 %}
         <option disabled>--- Model Layouts ---</option>
         {% endif %}
         <option value="{{ layout.name }}"{% if loop.first %} selected{% endif %}>{{ layout.label }}</option>
@@ -18,7 +18,9 @@
     <button class="graph-icon-toggle-btn" id="graph-icon-toggle" onclick="window._toggleGraphIcons()" title="Toggle node icons"><i data-lucide="shapes"></i> <span>Icons</span></button>
 </div>
 
-<div id="cy-container" class="graph-container" data-testid="graph-view"></div>
+<div class="graph-isometric-wrapper" id="cy-wrapper">
+    <div id="cy-container" class="graph-container" data-testid="graph-view"></div>
+</div>
 </div>
 
 <script>

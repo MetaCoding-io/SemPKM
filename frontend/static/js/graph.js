@@ -467,6 +467,59 @@
     // typeLabel is populated from backend node.type_label (view service.py line ~920)
     // which resolves the primary type IRI via LabelService. The if (d.typeLabel) guard
     // conditionally renders the type span — no changes needed to this implementation.
+    /**
+     * Compute viewport coordinates for a popover from a Cytoscape rendered position.
+     * When isometric transform is active, forward-transforms the position through
+     * the wrapper's CSS matrix to get the correct screen position.
+     *
+     * @param {object} cy - Cytoscape instance
+     * @param {HTMLElement} container - The #cy-container element
+     * @param {{x: number, y: number}} renderedPos - Cytoscape rendered position
+     * @returns {{x: number, y: number}} viewport coordinates
+     */
+    function _popoverViewportCoords(cy, container, renderedPos) {
+      if (cy._isometricActive) {
+        var wrapper = document.getElementById('cy-wrapper');
+        if (wrapper) {
+          // Get the wrapper's computed transform matrix
+          var wrapperStyle = getComputedStyle(wrapper);
+          var containerStyle = getComputedStyle(container);
+          var containerMatrix = new DOMMatrix(containerStyle.transform);
+          var wrapperRect = wrapper.getBoundingClientRect();
+
+          // The rendered position is relative to the untransformed container.
+          // Transform it through the CSS 3D matrix to get screen coordinates.
+          // Container center = (clientWidth/2, clientHeight/2)
+          var cx = container.clientWidth / 2;
+          var cy2 = container.clientHeight / 2;
+
+          // Point relative to container center
+          var relX = renderedPos.x - cx;
+          var relY = renderedPos.y - cy2;
+
+          // Apply the CSS transform
+          var pt = new DOMPoint(relX, relY, 0, 1);
+          var transformed = containerMatrix.transformPoint(pt);
+
+          // Map to viewport coordinates using wrapper center
+          var wrapperCenterX = wrapperRect.left + wrapperRect.width / 2;
+          var wrapperCenterY = wrapperRect.top + wrapperRect.height / 2;
+
+          return {
+            x: wrapperCenterX + transformed.x,
+            y: wrapperCenterY + transformed.y
+          };
+        }
+      }
+
+      // Non-isometric: standard container-relative positioning
+      var cRect = container.getBoundingClientRect();
+      return {
+        x: cRect.left + renderedPos.x,
+        y: cRect.top + renderedPos.y
+      };
+    }
+
     function _showNodePopover(nodeEl, evt) {
       var d = nodeEl.data();
       var nodeIri = nodeEl.id();
@@ -504,9 +557,9 @@
 
       // Position near the node using viewport-relative (fixed) coordinates
       var pos = evt.renderedPosition || nodeEl.renderedPosition();
-      var cRect = container.getBoundingClientRect();
-      var left = cRect.left + pos.x + 16;
-      var top = cRect.top + pos.y - 12;
+      var coords = _popoverViewportCoords(cy, container, pos);
+      var left = coords.x + 16;
+      var top = coords.y - 12;
 
       popover.style.left = left + 'px';
       popover.style.top = top + 'px';
@@ -514,10 +567,10 @@
       // Adjust if overflowing viewport edges
       var pRect = popover.getBoundingClientRect();
       if (pRect.right > window.innerWidth - 8) {
-        popover.style.left = (cRect.left + pos.x - pRect.width - 12) + 'px';
+        popover.style.left = (coords.x - pRect.width - 12) + 'px';
       }
       if (pRect.bottom > window.innerHeight - 8) {
-        popover.style.top = (cRect.top + pos.y - pRect.height + 12) + 'px';
+        popover.style.top = (coords.y - pRect.height + 12) + 'px';
       }
     }
 
@@ -563,19 +616,19 @@
 
       // Position near the edge midpoint using viewport-relative (fixed) coordinates
       var pos = evt.renderedPosition || edgeEl.renderedMidpoint();
-      var cRect = container.getBoundingClientRect();
-      var left = cRect.left + pos.x + 16;
-      var top = cRect.top + pos.y - 12;
+      var coords = _popoverViewportCoords(cy, container, pos);
+      var left = coords.x + 16;
+      var top = coords.y - 12;
 
       edgePopover.style.left = left + 'px';
       edgePopover.style.top = top + 'px';
 
       var pRect = edgePopover.getBoundingClientRect();
       if (pRect.right > window.innerWidth - 8) {
-        edgePopover.style.left = (cRect.left + pos.x - pRect.width - 12) + 'px';
+        edgePopover.style.left = (coords.x - pRect.width - 12) + 'px';
       }
       if (pRect.bottom > window.innerHeight - 8) {
-        edgePopover.style.top = (cRect.top + pos.y - pRect.height + 12) + 'px';
+        edgePopover.style.top = (coords.y - pRect.height + 12) + 'px';
       }
     }
 
@@ -724,13 +777,113 @@
     return undefined;
   }
 
+  // --- Isometric 2.5D Transform ---
+
+  /**
+   * Apply isometric CSS 3D perspective transform to the graph.
+   * Runs fcose layout first to position nodes, then tilts the container.
+   * Monkey-patches findContainerClientCoords to fix click targeting under transform.
+   *
+   * @param {object} cy - Cytoscape instance
+   * @param {HTMLElement} container - The #cy-container element
+   */
+  function _applyIsometricTransform(cy, container) {
+    var wrapper = document.getElementById('cy-wrapper');
+    if (!wrapper) {
+      console.warn('[graph] Isometric wrapper #cy-wrapper not found');
+      return;
+    }
+
+    // Run fcose layout first to position nodes before tilting
+    var fcoseConfig = Object.assign({}, LAYOUT_REGISTRY['fcose'] || { name: 'fcose' }, {
+      animate: true,
+      animationDuration: 500
+    });
+
+    var layout = cy.layout(fcoseConfig);
+
+    layout.on('layoutstop', function () {
+      // Apply the CSS 3D transform via class
+      wrapper.classList.add('isometric-active');
+
+      // Store original findContainerClientCoords for later restore
+      var renderer = cy.renderer();
+      if (renderer && typeof renderer.findContainerClientCoords === 'function') {
+        cy._origFindCoords = renderer.findContainerClientCoords.bind(renderer);
+
+        // Monkey-patch: return coordinates based on untransformed container dimensions
+        // and the wrapper's visual center. This corrects the mismatch between
+        // getBoundingClientRect() (which reports the transformed bounding box)
+        // and clientWidth/clientHeight (which remain untransformed).
+        renderer.findContainerClientCoords = function () {
+          var wrapperRect = wrapper.getBoundingClientRect();
+          var cw = container.clientWidth;
+          var ch = container.clientHeight;
+          return [
+            wrapperRect.left + wrapperRect.width / 2 - cw / 2,
+            wrapperRect.top + wrapperRect.height / 2 - ch / 2,
+            cw,
+            ch,
+            1
+          ];
+        };
+      }
+
+      cy.invalidateSize();
+      cy._isometricActive = true;
+      console.log('[graph] Isometric 2.5D transform applied');
+    });
+
+    layout.run();
+  }
+
+  /**
+   * Remove isometric CSS 3D perspective transform and restore normal interaction.
+   *
+   * @param {object} cy - Cytoscape instance
+   * @param {HTMLElement} container - The #cy-container element
+   */
+  function _removeIsometricTransform(cy, container) {
+    var wrapper = document.getElementById('cy-wrapper');
+    if (!wrapper) return;
+
+    wrapper.classList.remove('isometric-active');
+
+    // Restore original findContainerClientCoords
+    if (cy._origFindCoords) {
+      var renderer = cy.renderer();
+      if (renderer) {
+        renderer.findContainerClientCoords = cy._origFindCoords;
+      }
+      delete cy._origFindCoords;
+    }
+
+    cy.invalidateSize();
+    cy._isometricActive = false;
+    console.log('[graph] Isometric 2.5D transform removed');
+  }
+
   // --- Layout Switching ---
 
   function changeLayout(layoutName) {
     var cy = window._sempkmGraph;
     if (!cy) return;
 
+    var container = cy.container();
+    if (!container) return;
+
+    // Remove isometric transform if currently active
+    if (cy._isometricActive) {
+      _removeIsometricTransform(cy, container);
+    }
+
     currentLayoutName = layoutName;
+
+    // Isometric is special: run fcose first, then apply CSS 3D transform
+    if (layoutName === 'isometric') {
+      _applyIsometricTransform(cy, container);
+      return;
+    }
 
     var config = LAYOUT_REGISTRY[layoutName];
     if (!config) {

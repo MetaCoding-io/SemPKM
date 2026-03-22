@@ -66,3 +66,10 @@ There are TWO `available_layouts` definitions in `backend/app/views/router.py` �
 - `frontend/static/css/views.css` — modified with `.graph-isometric-wrapper` and `.isometric-active` styles
 - `backend/app/templates/browser/graph_view.html` — modified with wrapper div around cy-container
 - `backend/app/views/router.py` — modified with isometric entry in both available_layouts lists
+
+## Observability Impact
+
+- **New console log signals:** `[graph] Isometric 2.5D transform applied` on successful activation, `[graph] Isometric 2.5D transform removed` on deactivation. `[graph] Isometric wrapper #cy-wrapper not found` (console.warn) if template is missing the wrapper div.
+- **DOM inspection:** `.graph-isometric-wrapper.isometric-active` class presence in DOM indicates isometric is active. The CSS `transform` property on `.graph-container` is inspectable via DevTools.
+- **Cytoscape instance flags:** `window._sempkmGraph._isometricActive` (boolean) indicates if isometric transform is currently active. `window._sempkmGraph._origFindCoords` stores the original method for restore.
+- **Failure state:** If `findContainerClientCoords` monkey-patch fails (renderer unavailable), isometric visuals still apply but click targeting may be incorrect. The `cy._origFindCoords` presence/absence distinguishes patched from unpatched state.
