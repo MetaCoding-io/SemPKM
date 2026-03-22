@@ -640,6 +640,11 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Integrates with podcast RSS, YouTube Data API, Spotify Web API
 - Real-time adaptation when user context changes
 
+**RDF Data Import & API Documentation Cleanup** — queued as M039 (depends on M033)
+- Workspace UI for importing JSON-LD, Turtle, N-Triples with SHACL validation preview
+- Event-sourced object creation via two-pass import (objects → edges)
+- Redoc/OpenAPI tag cleanup: 84 routes currently under "default" properly categorized
+
 ### Out of Scope
 
 - Read/write filesystem projections full sync — v2.3+ (VFS write MVP is v2.2)
