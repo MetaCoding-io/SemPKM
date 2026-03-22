@@ -307,6 +307,22 @@
       "doneMilestones": 32,
       "totalMilestones": 38,
       "phase": "pre-planning"
+    },
+    {
+      "filename": "M033-2026-03-22T17-24-05.html",
+      "generatedAt": "2026-03-22T17:24:05.964Z",
+      "milestoneId": "M033",
+      "milestoneTitle": "Federated SPARQL, New View Renderers, App Catalog & Deployment Overhaul",
+      "label": "M033: Federated SPARQL, New View Renderers, App Catalog & Deployment Overhaul",
+      "kind": "milestone",
+      "totalCost": 1036.91806925,
+      "totalTokens": 1445328954,
+      "totalDuration": 185654648,
+      "doneSlices": 214,
+      "totalSlices": 214,
+      "doneMilestones": 33,
+      "totalMilestones": 39,
+      "phase": "pre-planning"
     }
   ]
 }
