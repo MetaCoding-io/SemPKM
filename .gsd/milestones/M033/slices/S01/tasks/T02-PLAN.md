@@ -80,3 +80,10 @@ The service follows the same structural pattern as `InferenceService` — a doma
 - `backend/app/config.py` — with federation_allowed_endpoints setting
 - `backend/app/main.py` — with mirror_router mounted
 - `backend/tests/test_mirror_service.py` — ~20 unit tests
+
+## Observability Impact
+
+- **New signals:** `logger.info` in MirrorService for mirror operations (endpoint, triple count, provenance graph IRI), `logger.warning` in mirror_router for blocked endpoint attempts (includes endpoint URL and user email).
+- **Inspection:** `GET /api/sparql/mirror/endpoints` returns the configured allowlist; `GET /api/sparql/mirror/stats` returns triple count and source endpoint list. Both are authenticated but available to any role.
+- **Failure visibility:** Mirror router returns structured JSON errors: 403 with `detail: "Endpoint not in allowlist: <url>"` for blocked endpoints, 502 for upstream query failures, 500 for triplestore write failures. Empty result sets return `mirrored_count: 0` with a message (not an error).
+- **Future agent inspection:** To check if mirroring is operational, call `GET /api/sparql/mirror/stats`. To verify the allowlist, call `GET /api/sparql/mirror/endpoints`. `logger.debug` calls in the service internals trace count/provenance queries.
