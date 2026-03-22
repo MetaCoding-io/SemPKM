@@ -34,6 +34,7 @@ from app.notion.router import router as notion_router
 from app.views.router import router as views_router
 from app.dashboard.router import browser_router as dashboard_browser_router, api_router as dashboard_api_router
 from app.workflow.router import browser_router as workflow_browser_router, api_router as workflow_api_router
+from app.task_templates.router import api_router as templates_api_router, browser_router as templates_browser_router
 from app.persona.router import browser_router as persona_browser_router, api_router as persona_api_router
 from app.debug.router import router as debug_router
 from app.middleware.etag import ConditionalGetMiddleware
@@ -340,6 +341,10 @@ async def lifespan(app: FastAPI):
     from app.workflow.service import WorkflowService
     app.state.workflow_service = WorkflowService(async_session_factory)
 
+    # Create TaskTemplateService and store on app state
+    from app.task_templates.service import TaskTemplateService
+    app.state.template_service = TaskTemplateService(client)
+
     # Create PersonaService and store on app state
     from app.persona.service import PersonaService
     app.state.persona_service = PersonaService(async_session_factory)
@@ -630,6 +635,8 @@ app.include_router(dashboard_browser_router)
 app.include_router(dashboard_api_router)
 app.include_router(workflow_browser_router)
 app.include_router(workflow_api_router)
+app.include_router(templates_api_router)
+app.include_router(templates_browser_router)
 app.include_router(persona_browser_router)
 app.include_router(persona_api_router)
 app.include_router(vfs_browser_router)

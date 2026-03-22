@@ -88,3 +88,10 @@ Build the `TaskTemplateService` for RDF-backed task template CRUD operations, pl
 - `backend/app/task_templates/router.py` — REST + htmx routers
 - `backend/app/templates/browser/template_picker.html` — template picker partial
 - `backend/app/main.py` — updated with template service wiring and router mounts
+
+## Observability Impact
+
+- **New structured logs:** `TaskTemplateService` logs create/update/delete/instantiate at INFO level with template IRI and operation details (title on create, field list on update, command count on instantiate).
+- **New inspection surface:** `GET /api/task-templates` returns all templates as JSON — agents can verify template storage without querying the triplestore directly.
+- **Error visibility:** All router endpoints return structured JSON error responses with `detail` field. 400 for validation (empty title, no updates, unresolved slot). 404 for missing templates. 500 with `detail` for unexpected instantiation failures.
+- **Instantiate audit trail:** The instantiate endpoint triggers `EventStore.commit()` and `validation_queue.enqueue()`, producing the same event graph and async validation as direct `POST /api/commands` — visible in the event log UI.
