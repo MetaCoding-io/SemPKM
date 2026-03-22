@@ -89,3 +89,10 @@ Create the user-facing map view: Jinja2 template with lazy-loaded Leaflet + Mark
 - `backend/app/templates/browser/views_explorer.html` — modified with Map View sidebar entry
 - `e2e/helpers/selectors.ts` — modified with map selector
 - `e2e/tests/02-views/map-view.spec.ts` — new E2E test file
+
+## Observability Impact
+
+- **Console logging:** `[map]` prefix on data fetch failures and library load failures — grep browser console for `[map]` to diagnose CDN or data endpoint issues.
+- **Empty-state visibility:** Three distinct empty states (no type selected, no geo properties, error message) — each renders `.view-empty-state` with a different instructive message, visible in both E2E tests and manual inspection.
+- **ResizeObserver:** Map auto-invalidates on container resize — no manual intervention needed when dockview panels are resized.
+- **Lazy-load chain:** Leaflet CSS → Leaflet JS → MarkerCluster JS — if any step fails, the `onerror` handler replaces the container with an error message and logs to console.
