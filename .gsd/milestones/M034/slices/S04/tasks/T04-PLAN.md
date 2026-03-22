@@ -98,3 +98,10 @@ Connect the backend RRULE expansion (T02) to the calendar frontend (calendar.js)
 - `frontend/static/js/calendar.js` — updated eventClassNames and eventClick for virtual events
 - `frontend/static/css/views.css` — `.fc-event-recurring` styles
 - `e2e/tests/02-views/recurring-tasks.spec.ts` — E2E test file for recurring task calendar rendering
+
+## Observability Impact
+
+- **New signal:** `fc-event-recurring` CSS class on virtual calendar events — visible in DOM inspector and usable by E2E selectors
+- **Changed signal:** `eventClick` handler now logs via `openTab` using `masterIri` for virtual events instead of `iri` — observable in dockview tab title showing master task name
+- **Inspection:** Count recurring events: `document.querySelectorAll('.fc-event-recurring').length` in browser console
+- **Failure visibility:** If RRULE expansion returns no virtual events, zero `.fc-event-recurring` elements appear. If `masterIri` is missing from extendedProps, clicking a virtual event opens nothing (existing null-check prevents errors).

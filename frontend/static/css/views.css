@@ -1809,3 +1809,11 @@ select.cards-group-select {
     font-size: 0.82rem;
     padding: 4px 6px;
 }
+
+/* ── Recurring event visual indicator ── */
+.fc-event-recurring {
+    border-style: dashed !important;
+}
+.fc-event-recurring .fc-event-title::before {
+    content: '↻ ';
+}

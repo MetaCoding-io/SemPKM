@@ -12,11 +12,23 @@
 {% elif date_fields %}
 <div id="calendar-container" class="calendar-container" data-testid="calendar-view"></div>
 
-<script src="/static/js/calendar.js"></script>
 <script>
-if (typeof initCalendar === 'function') {
-    initCalendar('calendar-container', {{ calendar_data_url | tojson }});
-}
+(function() {
+    var dataUrl = {{ calendar_data_url | tojson }};
+    function _boot() {
+        if (typeof initCalendar === 'function') {
+            initCalendar('calendar-container', dataUrl);
+        }
+    }
+    if (typeof initCalendar === 'function') {
+        _boot();
+    } else {
+        var s = document.createElement('script');
+        s.src = '/js/calendar.js';
+        s.onload = _boot;
+        document.head.appendChild(s);
+    }
+})();
 </script>
 
 {% else %}

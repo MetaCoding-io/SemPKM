@@ -211,7 +211,7 @@
       if (typeof window.initRecurrenceEditor === 'function') { _initRR(); }
       else {
         var s = document.createElement('script');
-        s.src = '/static/js/recurrence-editor.js';
+        s.src = '/js/recurrence-editor.js';
         s.onload = _initRR;
         document.head.appendChild(s);
       }
@@ -227,7 +227,7 @@
       if (typeof window.initExdateEditor === 'function') { _initEX(); }
       else {
         var s = document.createElement('script');
-        s.src = '/static/js/recurrence-editor.js';
+        s.src = '/js/recurrence-editor.js';
         s.onload = _initEX;
         document.head.appendChild(s);
       }
