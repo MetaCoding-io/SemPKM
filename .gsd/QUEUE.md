@@ -638,3 +638,15 @@ SemPKM platform app managing a personalized daily media queue. Integrates podcas
 
 **Context:** `.gsd/milestones/M038/M038-CONTEXT.md`
 **Depends on:** M037 (User Context)
+
+---
+
+## RDF Data Import & API Documentation Cleanup
+
+**Queued:** 2026-03-22
+**Status:** Queued as M039 (depends on M033)
+
+Workspace UI for importing structured RDF data (JSON-LD, Turtle, N-Triples) with SHACL validation preview and event-sourced object creation. Upload or paste RDF content, see parse results and SHACL warnings per subject, selectively import as event-sourced objects with full provenance. Two-pass import (objects then edges) following the Obsidian/Notion importer pattern. Plus: Redoc/OpenAPI tag cleanup — 84 routes across 10 routers currently under "default" properly categorized with descriptive tags (commands, sparql, validation, health, admin, inference, lint, app-management).
+
+**Context:** `.gsd/milestones/M039/M039-CONTEXT.md`
+**Depends on:** M033
