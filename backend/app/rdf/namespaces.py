@@ -43,6 +43,7 @@ __all__ = [
     "GIST",
     "CURRENT_GRAPH_IRI",
     "INFERRED_GRAPH_IRI",
+    "MIRRORED_GRAPH_IRI",
     "COMMON_PREFIXES",
 ]
 
@@ -54,6 +55,9 @@ CURRENT_GRAPH_IRI = URIRef("urn:sempkm:current")
 
 # The inferred triples graph identifier (OWL 2 RL inference results)
 INFERRED_GRAPH_IRI = URIRef("urn:sempkm:inferred")
+
+# The mirrored triples graph identifier (federated SPARQL results cached locally)
+MIRRORED_GRAPH_IRI = URIRef("urn:sempkm:mirrored")
 
 # Common prefix mappings for SPARQL injection and JSON-LD contexts
 COMMON_PREFIXES: dict[str, str] = {
