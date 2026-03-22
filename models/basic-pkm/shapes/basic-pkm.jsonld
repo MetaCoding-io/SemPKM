@@ -685,6 +685,26 @@
           "sempkm:editHelpText": "How long the task is expected to take, in ISO 8601 duration format. Examples: PT30M (30 minutes), PT1H (1 hour), PT1H30M (1.5 hours), PT2H (2 hours)."
         },
         {
+          "sh:path": { "@id": "bpkm:recurrenceRule" },
+          "sh:name": "Recurrence Rule",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 6.4,
+          "sh:group": { "@id": "bpkm:TaskDatesGroup" },
+          "sh:description": "RFC 5545 RRULE string, e.g. FREQ=WEEKLY;BYDAY=FR",
+          "sempkm:editHelpText": "Recurrence pattern in RFC 5545 RRULE format. Use the recurrence editor button to build rules visually, or type directly. Examples: FREQ=DAILY, FREQ=WEEKLY;BYDAY=MO;BYDAY=FR, FREQ=MONTHLY;BYMONTHDAY=1."
+        },
+        {
+          "sh:path": { "@id": "bpkm:exceptionDates" },
+          "sh:name": "Exception Dates",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 6.5,
+          "sh:group": { "@id": "bpkm:TaskDatesGroup" },
+          "sh:description": "Comma-separated ISO dates to skip, e.g. 2026-04-03,2026-04-10",
+          "sempkm:editHelpText": "Dates to exclude from the recurrence pattern. Enter as comma-separated ISO dates (YYYY-MM-DD). These dates will not generate virtual calendar instances even if they match the recurrence rule."
+        },
+        {
           "sh:path": { "@id": "bpkm:completedDate" },
           "sh:name": "Completed Date",
           "sh:datatype": { "@id": "xsd:date" },
