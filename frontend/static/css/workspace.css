@@ -7921,6 +7921,99 @@ details.form-group[open] > .form-group-summary::before {
     top: 50%;
 }
 
+/* ---------------------------------------------------------------------------
+ * Form-Group Block — M032/S01
+ * --------------------------------------------------------------------------- */
+
+.form-group-block {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 12px;
+    height: 100%;
+    overflow: auto;
+}
+
+.form-group-slot {
+    border: 1px solid var(--color-border, #333);
+    border-radius: 6px;
+    padding: 12px;
+    background: var(--color-bg-secondary, #252526);
+}
+
+.form-group-slot-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--color-border, #333);
+}
+
+.form-group-slot-label {
+    font-weight: 600;
+    font-size: 0.9em;
+    color: var(--color-text-primary, #ccc);
+}
+
+/* Prevent SHACL form inside a slot from creating its own submit button actions */
+.form-group-slot .object-form-container .form-actions {
+    display: none;
+}
+
+.form-group-actions {
+    display: flex;
+    justify-content: center;
+    padding-top: 8px;
+}
+
+.form-group-submit {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 20px;
+    font-size: 0.95em;
+}
+
+.form-group-submit svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+.form-group-result {
+    min-height: 0;
+}
+
+.form-group-success {
+    color: var(--color-success, #4ec9b0);
+    padding: 8px 12px;
+    border-radius: 4px;
+    background: rgba(78, 201, 176, 0.1);
+    font-size: 0.9em;
+}
+
+.form-group-error {
+    color: var(--color-error, #f14c4c);
+    padding: 8px 12px;
+    border-radius: 4px;
+    background: rgba(241, 76, 76, 0.1);
+    font-size: 0.9em;
+}
+
+.form-group-loading {
+    color: var(--color-text-muted, #888);
+    padding: 8px 12px;
+    font-size: 0.9em;
+    font-style: italic;
+}
+
+/* Form-group inside GridStack widgets */
+.dashboard-page .form-group-block {
+    height: 100%;
+    overflow: auto;
+}
+
 /* GridStack dark theme overrides for read-only dashboard */
 .dashboard-page .gs-item-content {
     inset: 0;

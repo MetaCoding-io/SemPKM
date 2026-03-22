@@ -4743,3 +4743,181 @@
 
 })();
 
+// =========================================================================
+// Form-Group Block Submission — M032/S01
+// =========================================================================
+(function() {
+  'use strict';
+
+  /**
+   * Hidden fields and meta inputs to skip when collecting SHACL form data.
+   * These are managed by the form infrastructure, not user-editable content.
+   */
+  var SKIP_FIELDS = ['type_iri', 'object_iri'];
+
+  /**
+   * Collect form field values from a single SHACL sub-form inside a slot container.
+   * Iterates all elements with a [name] attribute inside the form, skipping
+   * hidden meta fields. Multi-value fields (same name appearing multiple times)
+   * are collected as arrays.
+   *
+   * @param {HTMLFormElement} formEl - The <form> element inside the slot container
+   * @returns {Object} - Map of property path → value (string or string[])
+   */
+  function _collectFormFields(formEl) {
+    var properties = {};
+    var inputs = formEl.querySelectorAll('[name]');
+    for (var i = 0; i < inputs.length; i++) {
+      var input = inputs[i];
+      var name = input.name;
+      if (!name || SKIP_FIELDS.indexOf(name) !== -1) continue;
+      if (input.type === 'hidden') continue;
+
+      var value = input.value;
+      if (input.type === 'checkbox') {
+        value = input.checked ? 'true' : '';
+      }
+      if (!value) continue;
+
+      // Multi-value: same property path can appear multiple times
+      if (properties[name] !== undefined) {
+        if (!Array.isArray(properties[name])) {
+          properties[name] = [properties[name]];
+        }
+        properties[name].push(value);
+      } else {
+        properties[name] = value;
+      }
+    }
+    return properties;
+  }
+
+  /**
+   * Submit all sub-forms in a form-group block as a single batch command.
+   *
+   * Collects form data from each .form-group-slot, builds a batch payload
+   * with one object.create per slot (using slot name for @slot: resolution)
+   * and one edge.create per configured edge, then POSTs to /api/commands.
+   *
+   * @param {HTMLElement} blockEl - The .form-group-block container
+   */
+  function _submitFormGroup(blockEl) {
+    var resultArea = blockEl.querySelector('.form-group-result');
+    var submitBtn = blockEl.querySelector('.form-group-submit');
+    var slots = blockEl.querySelectorAll('.form-group-slot');
+    var edgesJson = blockEl.getAttribute('data-edges');
+    var edges = [];
+
+    try {
+      edges = JSON.parse(edgesJson || '[]');
+    } catch (e) {
+      console.error('[form-group] Failed to parse data-edges:', e);
+    }
+
+    if (!slots.length) {
+      if (resultArea) {
+        resultArea.innerHTML = '<div class="form-group-error">No form slots found.</div>';
+      }
+      return;
+    }
+
+    // Build batch command payload
+    var commands = [];
+    var hasEmptySlot = false;
+
+    for (var i = 0; i < slots.length; i++) {
+      var slotEl = slots[i];
+      var slotName = slotEl.getAttribute('data-slot');
+      var targetClass = slotEl.getAttribute('data-target-class');
+      var formEl = slotEl.querySelector('form');
+
+      if (!formEl) {
+        console.warn('[form-group] Slot "' + slotName + '" has no form element — skipping');
+        hasEmptySlot = true;
+        continue;
+      }
+
+      var properties = _collectFormFields(formEl);
+
+      commands.push({
+        command: 'object.create',
+        slot: slotName,
+        params: {
+          type: targetClass,
+          properties: properties
+        }
+      });
+    }
+
+    if (hasEmptySlot && commands.length === 0) {
+      if (resultArea) {
+        resultArea.innerHTML = '<div class="form-group-error">Forms not loaded yet. Please wait and try again.</div>';
+      }
+      return;
+    }
+
+    // Add edge.create commands using @slot: references
+    for (var j = 0; j < edges.length; j++) {
+      var edge = edges[j];
+      commands.push({
+        command: 'edge.create',
+        params: {
+          source: '@slot:' + edge.source_slot,
+          target: '@slot:' + edge.target_slot,
+          predicate: edge.predicate
+        }
+      });
+    }
+
+    // Disable submit button during request
+    if (submitBtn) submitBtn.disabled = true;
+    if (resultArea) {
+      resultArea.innerHTML = '<div class="form-group-loading">Creating objects…</div>';
+    }
+
+    fetch('/api/commands', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(commands)
+    })
+    .then(function(res) {
+      if (!res.ok) {
+        return res.json().then(function(body) {
+          throw new Error(body.detail || 'Batch command failed: ' + res.status);
+        });
+      }
+      return res.json();
+    })
+    .then(function(data) {
+      var count = (data.results || []).length;
+      if (resultArea) {
+        resultArea.innerHTML =
+          '<div class="form-group-success">' +
+          '✓ Created ' + count + ' item(s) successfully.' +
+          '</div>';
+      }
+      // Clear form fields after successful creation
+      var allForms = blockEl.querySelectorAll('.form-group-slot form');
+      for (var k = 0; k < allForms.length; k++) {
+        allForms[k].reset();
+      }
+    })
+    .catch(function(err) {
+      console.error('[form-group] Batch submission error:', err);
+      if (resultArea) {
+        resultArea.innerHTML =
+          '<div class="form-group-error">' +
+          'Error: ' + err.message +
+          '</div>';
+      }
+    })
+    .finally(function() {
+      if (submitBtn) submitBtn.disabled = false;
+    });
+  }
+
+  // Expose to global scope for onclick handler in template
+  window._submitFormGroup = _submitFormGroup;
+
+})();
+

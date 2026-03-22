@@ -75,3 +75,10 @@ DOM isolation is critical: each sub-form is loaded independently via htmx GET to
 - `frontend/static/js/workspace.js` — `_submitFormGroup()` function added
 - `frontend/static/css/workspace.css` — form-group CSS styles added
 - `backend/tests/test_form_group.py` — render tests added
+
+## Observability Impact
+
+- **Browser console:** `[form-group]` prefix on all console.warn/console.error messages from `_submitFormGroup()` — e.g., slot parse failures, submission errors, missing form elements.
+- **Network inspection:** Batch submission POSTs to `/api/commands` as a JSON array — visible in browser dev tools Network tab. Response includes `results[].iri` for each created object.
+- **DOM inspection:** Each slot container has `data-slot`, `data-slot-index`, `data-target-class` attributes for debugging which slot maps to which form. Edge config is embedded as `data-edges` JSON on the `.form-group-block` container.
+- **Failure visibility:** `.form-group-error` div renders inside the block with the error message from the API (including `@slot:` resolution failures). `.form-group-loading` indicator shows during submission.
