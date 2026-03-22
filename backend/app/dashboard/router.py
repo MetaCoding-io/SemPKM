@@ -284,14 +284,11 @@ async def render_block(
     config = block.get("config", {})
 
     if block_type == "markdown":
-        import html
         content = config.get("content", "")
-        # Basic markdown-ish rendering: paragraphs + HTML escaping
-        escaped = html.escape(content)
-        paragraphs = escaped.split("\n\n")
-        html_content = "".join(f"<p>{p.replace(chr(10), '<br>')}</p>" for p in paragraphs if p.strip())
         return HTMLResponse(
-            f'<div class="dashboard-block dashboard-block-markdown">{html_content}</div>'
+            f'<div class="dashboard-block dashboard-block-markdown" data-md-block>'
+            f'<script type="text/plain" class="md-source">{content}</script>'
+            f'<div class="md-rendered">Loading\u2026</div></div>'
         )
 
     elif block_type == "view-embed":
@@ -348,14 +345,83 @@ async def render_block(
         return HTMLResponse('<hr class="dashboard-block dashboard-block-divider">')
 
     elif block_type == "sparql-result":
+        import html as html_mod
         query = config.get("query", "")
         label = config.get("label", "Result")
         if not query:
             return HTMLResponse('<div class="dashboard-block dashboard-block-error">No query configured</div>')
+        escaped_query = html_mod.escape(query, quote=True)
+        escaped_label = html_mod.escape(label)
         return HTMLResponse(
-            f'<div class="dashboard-block dashboard-block-sparql">'
-            f'<span class="dashboard-sparql-label">{label}</span>'
-            f'<span class="dashboard-sparql-value" data-query="{query}">...</span></div>'
+            f'<div class="dashboard-block dashboard-block-sparql"'
+            f' data-sparql-query="{escaped_query}" data-sparql-table>'
+            f'<span class="dashboard-sparql-label">{escaped_label}</span>'
+            f'<div class="sparql-table-container"></div></div>'
+        )
+
+    elif block_type == "stat-card":
+        import html as html_mod
+        query = config.get("query", "")
+        label = config.get("label", "")
+        icon = config.get("icon", "hash")
+        color = config.get("color", "")
+        if not query:
+            return HTMLResponse('<div class="dashboard-block dashboard-block-error">No query configured</div>')
+        escaped_query = html_mod.escape(query, quote=True)
+        escaped_label = html_mod.escape(label)
+        escaped_icon = html_mod.escape(icon)
+        color_style = f' style="color:{html_mod.escape(color)}"' if color else ""
+        return HTMLResponse(
+            f'<div class="dashboard-block dashboard-block-stat-card"'
+            f' data-sparql-query="{escaped_query}">'
+            f'<span class="stat-card-icon"><i data-lucide="{escaped_icon}"></i></span>'
+            f'<span class="stat-card-label">{escaped_label}</span>'
+            f'<span class="stat-card-value" data-stat-target{color_style}>\u2026</span>'
+            f'</div>'
+        )
+
+    elif block_type == "chart":
+        import html as html_mod
+        query = config.get("query", "")
+        chart_type = config.get("chart_type", "bar")
+        label = config.get("label", "")
+        if not query:
+            return HTMLResponse('<div class="dashboard-block dashboard-block-error">No query configured</div>')
+        escaped_query = html_mod.escape(query, quote=True)
+        escaped_type = html_mod.escape(chart_type)
+        label_html = ""
+        if label:
+            label_html = f'<span class="chart-label">{html_mod.escape(label)}</span>'
+        return HTMLResponse(
+            f'<div class="dashboard-block dashboard-block-chart"'
+            f' data-chart-query="{escaped_query}"'
+            f' data-chart-type="{escaped_type}">'
+            f'<canvas class="chart-canvas"></canvas>'
+            f'{label_html}</div>'
+        )
+
+    elif block_type == "heading":
+        import html as html_mod
+        text = config.get("text", "")
+        level_str = config.get("level", "2")
+        subtitle = config.get("subtitle", "")
+        align = config.get("align", "left")
+        # Clamp heading level to 1-4
+        try:
+            level = int(level_str)
+        except (ValueError, TypeError):
+            level = 2
+        level = max(1, min(4, level))
+        escaped_text = html_mod.escape(text)
+        escaped_align = html_mod.escape(align)
+        subtitle_html = ""
+        if subtitle:
+            subtitle_html = f'<p class="heading-subtitle">{html_mod.escape(subtitle)}</p>'
+        return HTMLResponse(
+            f'<div class="dashboard-block dashboard-block-heading"'
+            f' style="text-align:{escaped_align}">'
+            f'<h{level}>{escaped_text}</h{level}>'
+            f'{subtitle_html}</div>'
         )
 
     elif block_type == "form-group":

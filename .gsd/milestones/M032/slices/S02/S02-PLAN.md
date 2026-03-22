@@ -30,6 +30,7 @@
 - `cd backend && .venv/bin/python -m pytest tests/test_dashboard.py tests/test_dashboard_builder.py -v` — existing tests pass (regression guard)
 - `grep -c 'data-sparql-query\|data-chart-query\|data-md-block' frontend/static/js/workspace.js` returns ≥ 3 (frontend hooks present)
 - `grep -c 'stat-card\|chart\|heading' backend/app/templates/browser/dashboard_builder.html` returns ≥ 6 (builder config cases present)
+- `cd backend && .venv/bin/python -m pytest tests/test_data_widgets.py::TestStatCardRender::test_no_query_returns_error tests/test_data_widgets.py::TestChartRender::test_no_query_returns_error tests/test_data_widgets.py::TestSparqlResultRender::test_no_query_returns_error -v` — error-path blocks render with diagnostic message (failure visibility)
 
 ## Observability / Diagnostics
 
@@ -45,7 +46,7 @@
 
 ## Tasks
 
-- [ ] **T01: Register stat-card, chart, heading blocks and fix markdown/sparql-result render handlers** `est:1h`
+- [x] **T01: Register stat-card, chart, heading blocks and fix markdown/sparql-result render handlers** `est:1h`
   - Why: Backend foundation — all 3 new block types need registry entries for palette visibility and validation, and the render_block function needs HTML output with correct data attributes for frontend JS pickup. Markdown and sparql-result are already registered but their render handlers are broken (html.escape instead of marked.js, no SPARQL execution).
   - Files: `backend/app/dashboard/registry.py`, `backend/app/dashboard/router.py`, `backend/tests/test_block_registry.py`, `backend/tests/test_data_widgets.py`
   - Do: (1) Add 3 BlockTypeSpec registrations to registry.py (stat-card: category=data, icon=hash, config={query:str,label:str,icon:str,color:str}, 3×2; chart: category=data, icon=bar-chart-3, config={query:str,chart_type:str,label:str}, 6×4; heading: category=content, icon=heading, config={text:str,level:str,subtitle:str,align:str}, 12×2). (2) Add render_block elif branches for stat-card (div with data-sparql-query, stat-card-label, stat-card-icon, stat-card-value[data-stat-target]), chart (div with data-chart-query, data-chart-type, canvas.chart-canvas), heading (div with configurable h1-h4 + subtitle p). (3) Fix markdown branch: replace html.escape+paragraph split with `<script type="text/plain" class="md-source">` containing raw content inside a `<div data-md-block>` wrapper. (4) Fix sparql-result branch: change data-query to data-sparql-query, add data-sparql-table attribute, emit proper table container. (5) SPARQL query text in data attributes must be HTML-escaped via html.escape(query, quote=True). (6) Update test_block_registry.py EXPECTED_TYPES to include new types, count to 10. (7) Create test_data_widgets.py with render_block output tests for all 5 block types (3 new + 2 fixed).

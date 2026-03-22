@@ -69,6 +69,12 @@ The sparql-result block currently emits `data-query` but no JS executes it. The 
 - `cd backend && .venv/bin/python -m pytest tests/test_data_widgets.py -v` — all pass
 - `cd backend && .venv/bin/python -m pytest tests/test_dashboard.py tests/test_dashboard_builder.py -v` — existing tests pass (regression guard)
 
+## Observability Impact
+
+- **Block render errors visible in HTML:** Every data-driven block (stat-card, chart, sparql-result) returns a `dashboard-block-error` div with descriptive message when config is missing or invalid. Future agents can detect these by searching for `dashboard-block-error` in rendered HTML.
+- **data-* attributes are inspectable:** `data-sparql-query`, `data-chart-query`, `data-chart-type`, `data-sparql-table`, `data-stat-target`, `data-md-block` are all present in rendered HTML and queryable via DOM/DevTools. Tests verify their presence.
+- **HTML escaping prevents XSS:** All user-supplied SPARQL query text and heading text is HTML-escaped via `html.escape(query, quote=True)` before embedding in data attributes. Tests verify `&amp;` encoding.
+
 ## Inputs
 
 - `backend/app/dashboard/registry.py` — existing BlockRegistry with 7 types, add 3 new
