@@ -1,128 +1,79 @@
----
-id: S02
-parent: M032
-milestone: M032
-provides:
-  - 10 block types in BLOCK_REGISTRY (3 new: stat-card, chart, heading)
-  - render_block HTML with data-* attributes for all new and fixed block types
-  - _executeSparqlWidgets() for live SPARQL stat-card and sparql-result rendering
-  - _initChartBlocks() with lazy Chart.js CDN loading for chart visualization
-  - _renderMarkdownBlocks() with marked.js + DOMPurify for full markdown rendering
-  - Builder config forms for stat-card, chart, heading block types
-requires:
-  - slice: S01
-    provides: form-group block type (7 types baseline)
-affects:
-  - S03
-key_files:
-  - backend/app/dashboard/registry.py
-  - backend/app/dashboard/router.py
-  - frontend/static/js/workspace.js
-  - frontend/static/css/workspace.css
-  - backend/app/templates/browser/dashboard_builder.html
-  - backend/tests/test_block_registry.py
-  - backend/tests/test_data_widgets.py
-key_decisions:
-  - Chart.js loaded from jsdelivr CDN (chart.js@4.4 UMD build) with lazy singleton pattern
-  - Heading level clamped to 1-4 (h5/h6 too small for dashboard headings)
-  - Markdown placed in script type="text/plain" (browsers don't parse script content as HTML)
-  - sparql-result uses both data-sparql-query (unified selector) and data-sparql-table (distinguishes table from scalar mode)
-  - Stat-card scalar extraction uses first binding's first variable (simple and generic)
-patterns_established:
-  - data-*-loaded attributes for idempotent widget activation (prevents re-execution on htmx re-settle)
-  - "[SemPKM]" console.warn prefix with query excerpt (first 120 chars) for debugging
-  - Chart.js callback queue pattern (_chartJsCallbacks) for concurrent chart blocks
-  - Error blocks use consistent dashboard-block-error / dashboard-block-error-inline classes
-  - All SPARQL query text in data attributes uses html.escape(query, quote=True)
-observability_surfaces:
-  - "console.warn('[SemPKM] SPARQL widget error: ...') with query excerpt"
-  - "console.warn('[SemPKM] Chart block error: ...') for query/render failures"
-  - "console.warn('[SemPKM] Chart.js failed to load') for CDN issues"
-  - "data-sparql-loaded, data-chart-loaded, data-md-rendered attributes on processed blocks"
-  - "_chartJsLoaded / _chartJsLoading globals track CDN load state"
-  - ".dashboard-block-error-inline elements in DOM on fetch/render failures"
-drill_down_paths:
-  - .gsd/milestones/M032/slices/S02/tasks/T01-SUMMARY.md
-  - .gsd/milestones/M032/slices/S02/tasks/T02-SUMMARY.md
-duration: 40min
-verification_result: passed
-completed_at: 2026-03-22
----
+# S02 Summary: Data-Driven Widget Types (stat-card, chart, heading)
 
-# S02: Data-Driven Widgets (stat-card, chart, heading) + Block Fixes
+**Status:** Complete
+**Duration:** ~34 minutes across 3 tasks
+**Verification:** All 7 slice-level checks pass; 44 unit tests pass
 
-**Registered 3 new block types (stat-card, chart, heading), fixed markdown/sparql-result rendering, added frontend JS for live SPARQL widget execution and Chart.js visualization, plus builder config forms for all new types.**
+## What This Slice Delivered
 
-## What Happened
+Three new block types — `stat-card`, `chart`, and `heading` — are registered in `BLOCK_REGISTRY` (now 9 types total), have builder config panels in the dashboard builder, render server-side via `render_block()`, and are styled in `workspace.css`. The M032 architecture design document is written.
 
-T01 registered stat-card (3×2, query+label+icon+color), chart (6×4, query+chart_type+label), and heading (12×2, text+level+subtitle+align) in the block registry, bringing the total to 10 types. Added render_block branches emitting HTML with data-* attributes for frontend JS pickup. Fixed the markdown handler (replaced html.escape paragraph-split with `<script type="text/plain">` + `data-md-block` for client-side marked.js rendering) and the sparql-result handler (changed data-query to data-sparql-query, added data-sparql-table). Created test_data_widgets.py with 28 tests covering all 5 block types' render output.
+### stat-card
+- Executes a SPARQL query server-side, extracts the first variable's first binding value
+- Renders via `block_stat_card.html`: flex layout with optional Lucide icon, large `.stat-value` number, `.stat-label` text, optional color accent
+- Default grid size: 3×2 cells
 
-T02 added three JS functions hooked into htmx:afterSettle: `_executeSparqlWidgets()` (POSTs SPARQL queries, populates stat-card values and sparql-result tables), `_initChartBlocks()` (lazy-loads Chart.js from CDN, creates Chart instances from SPARQL data with bar/line/pie support), and `_renderMarkdownBlocks()` (renders via marked.parse + DOMPurify.sanitize with raw-text fallback). Added CSS for stat-card (accent-colored value, icon, label), chart (responsive canvas), heading (configurable h1-h4 with subtitle), and error states. Added builder config forms for all three new types.
+### chart
+- Executes a SPARQL query server-side, extracts label/value columns from result bindings
+- Renders via `block_chart.html`: `<canvas>` + Chart.js IIFE that creates the chart immediately
+- Supports bar/line/pie/doughnut via `chart_type` config
+- Theme-aware: reads CSS custom properties for axis colors; uses a 10-color palette that works light+dark
+- Canvas uses `responsive: true, maintainAspectRatio: false` for fill behavior
+- Chart ID uses `{dashboard_id}-{block_index}` for uniqueness
+- Default grid size: 6×4 cells
 
-## Verification
+### heading
+- Renders an `<hN>` element (h1–h4, default h2) with HTML-escaped text
+- Inline rendering (no template file needed)
+- Default grid size: 12×1 cells
 
-- `test_block_registry.py`: 38/38 passed (10 types registered)
-- `test_data_widgets.py`: 28/28 passed (all render output assertions)
-- `test_dashboard.py`: 27/27 passed (no regressions)
-- `test_dashboard_builder.py`: 6/9 passed (3 pre-existing failures)
-- Error-path tests: 3/3 passed (missing query → error div)
-- Frontend hooks: grep confirms ≥3 function definitions, ≥3 builder cases, ≥3 CSS class definitions
+### Error handling
+- All SPARQL execution wrapped in try/except
+- Failures render user-visible `.dashboard-block-error` HTML (stat-card: "Query Error", chart: "Chart Error")
+- `logger.warning()` logs query text + error for debugging (no secrets in SPARQL)
 
-## Requirements Advanced
+### Design document
+- `M032-DESIGN.md` has 8 sections covering architecture, registry API, all 9 widgets, layout migration, SPARQL data flow, Chart.js integration, and key decisions
 
-- DASH-01 — Dashboard block types expanded from 7 to 10 (stat-card, chart, heading add data visualization and layout structure)
+## Key Files
 
-## Requirements Validated
+| File | Change |
+|------|--------|
+| `backend/app/dashboard/registry.py` | 3 new `BlockTypeSpec` registrations; docstring updated to "9 built-in block types" |
+| `backend/app/dashboard/router.py` | `TriplestoreClient` dependency on `render_block()`; 3 new `elif` branches for heading/stat-card/chart |
+| `backend/app/templates/browser/dashboard_builder.html` | 3 new `case` branches in `getTypeConfigHTML()` with config inputs |
+| `backend/app/templates/base.html` | Chart.js 4.x CDN in both dev and prod asset blocks |
+| `backend/app/templates/browser/blocks/block_stat_card.html` | New — Jinja2 template for stat-card widget |
+| `backend/app/templates/browser/blocks/block_chart.html` | New — Jinja2 template with Chart.js IIFE |
+| `frontend/static/css/workspace.css` | CSS for `.dashboard-block-stat-card`, `.dashboard-block-chart`, `.dashboard-block-heading` + `.dashboard-page` variants |
+| `backend/tests/test_block_registry.py` | EXPECTED_TYPES → 9; `TestS02BlockTypes` class with 11 new tests |
+| `.gsd/milestones/M032/M032-DESIGN.md` | New — 8-section architecture document |
 
-None in this slice alone — validated as part of full M032 milestone with E2E tests in S03.
+## Patterns Established
 
-## New Requirements Surfaced
+1. **SPARQL execution in non-API routes:** `_execute_sparql` imported from `sparql.router` and called in `render_block()` — same pattern as `sparql_result.py`
+2. **Block-level Jinja2 templates:** `templates.env.get_template()` for rendering block HTML fragments (not full page responses) in `blocks/` directory
+3. **Chart.js IIFE init:** Chart blocks include an inline IIFE that runs immediately when the HTML is swapped in by htmx — no event listener or mutation observer needed
+4. **Data-category config panels:** SPARQL query textarea with placeholder text + typed inputs for binding variable names
+5. **Error blocks:** `.dashboard-block-error` class + user-facing text for any SPARQL failure — inspectable in DOM
 
-None.
+## What the Next Slice (S03) Should Know
 
-## Requirements Invalidated or Re-scoped
+- `render_block()` now has a `TriplestoreClient` dependency parameter — S03 form-group rendering can use it directly
+- The `blocks/` template directory exists at `backend/app/templates/browser/blocks/` — add `block_form_group.html` there
+- Builder config panels follow the `case 'type-name':` pattern in `getTypeConfigHTML()` — add a new case for form-group
+- BLOCK_REGISTRY.register() with BlockTypeSpec is the pattern — S03 adds type #10
+- Chart.js CDN is in both dev and prod blocks of `base.html` — no additional CDN setup needed for S03
+- The test file expects `EXPECTED_TYPES` count to match — S03 must bump this to 10
 
-None.
+## Verification Results
 
-## Deviations
-
-- Chart label is read from `.chart-label` span textContent rather than a separate JS variable — simpler since backend already renders the label.
-- Added root-element self-match checks in all three widget functions — handles the edge case where the htmx-settled element itself is a widget block.
-
-## Known Limitations
-
-- Chart.js CDN dependency means charts won't render offline.
-- marked.js and DOMPurify must be loaded separately — markdown blocks fall back to raw text without them.
-- 3 pre-existing test failures in test_dashboard_builder.py from prior GridStack migration.
-
-## Follow-ups
-
-None.
-
-## Files Created/Modified
-
-- `backend/app/dashboard/registry.py` — Added stat-card, chart, heading BlockTypeSpec (7→10 types)
-- `backend/app/dashboard/router.py` — Added 3 new + fixed 2 existing render_block branches
-- `backend/tests/test_block_registry.py` — Updated to expect 10 types
-- `backend/tests/test_data_widgets.py` — New: 28 tests for block render output
-- `frontend/static/js/workspace.js` — Added _executeSparqlWidgets, _initChartBlocks, _renderMarkdownBlocks, _ensureChartJs
-- `frontend/static/css/workspace.css` — Added stat-card, chart, heading, sparql-result table, error styles
-- `backend/app/templates/browser/dashboard_builder.html` — Added stat-card, chart, heading builder config cases
-
-## Forward Intelligence
-
-### What the next slice should know
-- data-sparql-loaded and data-chart-loaded are dedup guards set BEFORE the async fetch, not readiness signals. E2E tests must wait for actual content changes (stat value ≠ "…", canvas drawn) not just attribute presence.
-- Chart.js uses `Chart.getChart(canvas)` for instance detection (v4.x API), not a `__chartjs_instance__` property.
-
-### What's fragile
-- Stat-card scalar extraction takes the first binding's first variable — if the query returns multiple columns, only the first is shown. No column name matching.
-- Chart SPARQL query must return `?label` and `?value` columns exactly — the JS iterates bindings looking for these names.
-
-### Authoritative diagnostics
-- Browser console filter `[SemPKM]` shows all widget errors with query excerpts
-- DevTools `data-sparql-loaded="1"` / `data-chart-loaded="1"` confirms the widget function ran (but not that the async work completed)
-- `window._chartJsLoaded` in console confirms CDN load state
-
-### What assumptions changed
-- data-*-loaded attributes are idempotency guards, not completion signals — this is the critical insight for E2E test design.
+| Check | Result |
+|-------|--------|
+| `pytest tests/test_block_registry.py -v` — 44 tests | ✅ PASS |
+| `grep -q "chart.js" base.html` | ✅ PASS |
+| `test -f blocks/block_stat_card.html` | ✅ PASS |
+| `test -f blocks/block_chart.html` | ✅ PASS |
+| `test -f M032-DESIGN.md` (8 sections) | ✅ PASS |
+| `BLOCK_REGISTRY.all_types()` returns 9 | ✅ PASS |
+| `validate_block({'type':'stat-card','config':{'query':42}})` raises ValueError | ✅ PASS |
