@@ -1,7 +1,7 @@
 /**
  * SemPKM Auth Pages - Vanilla JS
  *
- * Provides: auth status checks, setup form handling, login form handling,
+ * Provides: auth status checks, setup wizard (two-step), login form handling,
  * magic link token verification, logout, and invitation acceptance.
  */
 
@@ -44,70 +44,236 @@ async function checkAuthStatus() {
         return;
       }
     }
+
+    return data;
   } catch (e) {
     // Network error - silently fail, user can still interact
     console.warn("Auth status check failed:", e.message);
   }
 }
 
-/* -- Setup Form -- */
+/* -- Setup Wizard (Two-Step) -- */
 
 /**
- * Handle the setup wizard form submission.
- * POSTs to /api/auth/setup with the setup token and optional email.
+ * Initialise the two-step setup wizard on setup.html.
+ *
+ * Step 1: Deployment mode selection → POST /api/setup/configure-instance
+ * Step 2: Token + email claim → POST /api/auth/setup (unchanged)
+ *
+ * On page load, reads `instance_configured` from GET /api/auth/status.
+ * If already configured, skips straight to Step 2.
  */
-function handleSetupForm() {
-  var form = document.getElementById("setupForm");
-  if (!form) return;
+function initSetupWizard() {
+  var step1 = document.getElementById("setup-step-1");
+  var step2 = document.getElementById("setup-step-2");
+  var indicator = document.getElementById("step-indicator");
+  var messageEl = document.getElementById("setup-message");
+  if (!step1 || !step2) return;
 
-  form.addEventListener("submit", async function (e) {
-    e.preventDefault();
+  // --- Step transition helpers ---
 
-    var messageEl = document.getElementById("setup-message");
-    var submitBtn = form.querySelector('button[type="submit"]');
-
-    // Clear previous messages
+  function showStep(num) {
     if (messageEl) messageEl.innerHTML = "";
-
-    var token = document.getElementById("setup-token").value.trim();
-    if (!token) {
-      showAuthMessage(messageEl, "Please enter the setup token.", "error");
-      return;
+    if (num === 1) {
+      step1.classList.add("active");
+      step2.classList.remove("active");
+      if (indicator) indicator.textContent = "Step 1 of 2";
+      // Focus first radio option
+      var firstRadio = step1.querySelector('input[type="radio"]');
+      if (firstRadio) firstRadio.focus();
+    } else {
+      step1.classList.remove("active");
+      step2.classList.add("active");
+      if (indicator) indicator.textContent = "Step 2 of 2";
+      // Focus the token input
+      var tokenInput = document.getElementById("setup-token");
+      if (tokenInput) tokenInput.focus();
     }
+  }
 
-    var email = document.getElementById("setup-email").value.trim() || null;
+  // --- Domain input conditional visibility ---
 
-    // Disable submit during request
-    if (submitBtn) submitBtn.disabled = true;
+  var domainWrap = document.getElementById("domain-input-wrap");
+  var domainInput = document.getElementById("domain-input");
+  var radios = document.querySelectorAll('input[name="deployment-mode"]');
 
-    try {
-      var resp = await fetch("/api/auth/setup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: token, email: email }),
-      });
+  function updateDomainVisibility() {
+    var selected = document.querySelector('input[name="deployment-mode"]:checked');
+    var isDomain = selected && selected.value === "domain";
+    if (domainWrap) {
+      domainWrap.hidden = !isDomain;
+      if (isDomain && domainInput) {
+        domainInput.setAttribute("required", "");
+      } else if (domainInput) {
+        domainInput.removeAttribute("required");
+      }
+    }
+  }
 
-      var data = await resp.json();
+  for (var i = 0; i < radios.length; i++) {
+    radios[i].addEventListener("change", updateDomainVisibility);
+  }
+  updateDomainVisibility();
 
-      if (!resp.ok) {
-        showAuthMessage(messageEl, data.detail || "Setup failed.", "error");
-        if (submitBtn) submitBtn.disabled = false;
+  // --- Step 1: Next handler ---
+
+  var nextBtn = document.getElementById("setup-next-btn");
+  if (nextBtn) {
+    nextBtn.addEventListener("click", async function () {
+      var selected = document.querySelector('input[name="deployment-mode"]:checked');
+      if (!selected) {
+        showAuthMessage(messageEl, "Please select a deployment mode.", "error");
         return;
       }
 
-      showAuthMessage(
-        messageEl,
-        "Instance claimed successfully! Redirecting...",
-        "success"
-      );
-      setTimeout(function () {
-        window.location.href = "/";
-      }, 2000);
-    } catch (err) {
-      showAuthMessage(messageEl, "Network error: " + err.message, "error");
-      if (submitBtn) submitBtn.disabled = false;
+      var mode = selected.value;
+      var domain = null;
+
+      if (mode === "domain") {
+        domain = _cleanDomain(domainInput ? domainInput.value : "");
+        if (!domain) {
+          showAuthMessage(messageEl, "Please enter a valid domain.", "error");
+          if (domainInput) domainInput.focus();
+          return;
+        }
+        // Write cleaned value back for user transparency
+        if (domainInput) domainInput.value = domain;
+      }
+
+      // Disable button during request
+      nextBtn.disabled = true;
+      nextBtn.textContent = "Configuring…";
+
+      try {
+        var payload = { mode: mode };
+        if (domain) payload.domain = domain;
+
+        var resp = await fetch("/api/setup/configure-instance", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        var data = await resp.json();
+
+        if (!resp.ok) {
+          showAuthMessage(messageEl, data.detail || "Configuration failed.", "error");
+          nextBtn.disabled = false;
+          nextBtn.textContent = "Next";
+          return;
+        }
+
+        // Success — transition to Step 2
+        showStep(2);
+      } catch (err) {
+        showAuthMessage(messageEl, "Network error: " + err.message, "error");
+      } finally {
+        nextBtn.disabled = false;
+        nextBtn.textContent = "Next";
+      }
+    });
+  }
+
+  // --- Step 2: Back handler ---
+
+  var backBtn = document.getElementById("setup-back-btn");
+  if (backBtn) {
+    backBtn.addEventListener("click", function () {
+      showStep(1);
+    });
+  }
+
+  // --- Step 2: Submit handler (existing setup flow) ---
+
+  var form = document.getElementById("setupForm");
+  if (form) {
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      var submitBtn = form.querySelector('button[type="submit"]');
+
+      // Clear previous messages
+      if (messageEl) messageEl.innerHTML = "";
+
+      var token = document.getElementById("setup-token").value.trim();
+      if (!token) {
+        showAuthMessage(messageEl, "Please enter the setup token.", "error");
+        return;
+      }
+
+      var email = document.getElementById("setup-email").value.trim() || null;
+
+      // Disable submit during request
+      if (submitBtn) submitBtn.disabled = true;
+
+      try {
+        var resp = await fetch("/api/auth/setup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: token, email: email }),
+        });
+
+        var data = await resp.json();
+
+        if (!resp.ok) {
+          showAuthMessage(messageEl, data.detail || "Setup failed.", "error");
+          if (submitBtn) submitBtn.disabled = false;
+          return;
+        }
+
+        showAuthMessage(
+          messageEl,
+          "Instance claimed successfully! Redirecting...",
+          "success"
+        );
+        setTimeout(function () {
+          window.location.href = "/";
+        }, 2000);
+      } catch (err) {
+        showAuthMessage(messageEl, "Network error: " + err.message, "error");
+        if (submitBtn) submitBtn.disabled = false;
+      }
+    });
+  }
+
+  // --- On page load: check instance_configured ---
+
+  (async function () {
+    var data = await checkAuthStatus();
+    // checkAuthStatus may have redirected. If we're still here:
+    if (data && data.instance_configured === true) {
+      // Instance already configured (Step 1 done), skip to Step 2
+      showStep(2);
+    } else {
+      // Show Step 1
+      showStep(1);
     }
-  });
+  })();
+}
+
+/* -- Domain input helpers -- */
+
+/**
+ * Clean a domain input string: strip protocol prefixes, trailing
+ * slashes/paths, and whitespace. Returns empty string if invalid.
+ */
+function _cleanDomain(raw) {
+  if (!raw) return "";
+  var d = raw.trim().toLowerCase();
+
+  // Strip protocol prefixes
+  d = d.replace(/^https?:\/\//i, "");
+  d = d.replace(/^\/\//, "");
+
+  // Strip trailing slash/path
+  d = d.split("/")[0];
+
+  // Basic hostname validation: letters, digits, dots, hyphens
+  if (!/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*\.[a-z]{2,}$/.test(d)) {
+    return "";
+  }
+
+  return d;
 }
 
 /* -- Login Form -- */

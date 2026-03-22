@@ -97,3 +97,11 @@ Follow the existing auth page design language (`.auth-container`, `.auth-card`, 
 - `frontend/static/setup.html` — redesigned two-step wizard
 - `frontend/static/js/auth.js` — updated with multi-step setup flow
 - `frontend/static/css/style.css` — extended with wizard step styling
+
+## Observability Impact
+
+- **Browser console:** `console.warn("Auth status check failed:", ...)` on network error during status fetch — helps debug connectivity issues during setup
+- **Step indicator:** `#step-indicator` element with `aria-live="polite"` announces step transitions to screen readers and provides visual context for which step the user is on
+- **API error display:** Setup message area (`#setup-message`) shows server-side error details (400 invalid domain, 409 data exists) — the error text comes directly from the backend, making failure diagnosis transparent
+- **Domain cleaning feedback:** The domain input value is rewritten after stripping the protocol prefix, so the user sees exactly what will be submitted
+- **Inspection:** `instance_configured` field in `GET /api/auth/status` determines whether Step 1 or Step 2 is shown on page load — the wizard state is fully derived from the backend, not persisted in browser storage

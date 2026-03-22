@@ -51,7 +51,7 @@
   - Verify: `cd backend && python -m pytest tests/test_instance_config.py -v` passes all tests
   - Done when: Config priority chain works (env > instance config > default), endpoint writes config, auth/status includes instance_configured, startup warns about example.org
 
-- [ ] **T02: Two-step setup wizard frontend** `est:1.5h`
+- [x] **T02: Two-step setup wizard frontend** `est:1.5h`
   - Why: The user-facing half — transforms the single-step setup page into a two-step flow where Step 1 collects deployment mode (calling the T01 endpoint) and Step 2 is the existing account claim form.
   - Files: `frontend/static/setup.html`, `frontend/static/js/auth.js`, `frontend/static/css/style.css`
   - Do: (1) Redesign setup.html with two step containers — Step 1 has three radio options (local/domain/later) with domain input field, Step 2 is existing token+email form. (2) Update auth.js handleSetupForm() to be multi-step: Step 1 calls POST /api/setup/configure-instance, Step 2 calls POST /api/auth/setup. (3) Update checkAuthStatus() to use instance_configured from status response to decide which step to show. (4) Add CSS for step indicator, radio cards, domain input validation styling. (5) Add one-way-door warning text about namespace permanence.
