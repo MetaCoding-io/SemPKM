@@ -610,8 +610,19 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Backlinks panel (incoming references for any object)
 - Edge model enhancements: edge inspector panel, inline wiki-link creation
 - JSON-LD export for objects/collections
-- AI Copilot (chat about data, SPARQL generation, writing assistance)
+- AI Copilot (chat about data, SPARQL generation, writing assistance) — queued as M035
 - pgvector / semantic search (deferred until keyword FTS validated in v2.2)
+
+**Task Planning, Time-Blocking & Calendar UX** — queued as M034 (depends on M033)
+- Time-blocking on bpkm:Task (scheduledStart/scheduledEnd), editable FullCalendar (drag, resize, click-to-create)
+- Custom open-source timeline/Gantt renderer with dependency arrows
+- Recurring tasks with RRULE, task templates, PPV review workflows (weekly/monthly/quarterly/yearly)
+- Composable planning surfaces (calendar + kanban side by side with shared scope)
+
+**AI Copilot & LLM Test Harness** — queued as M035 (depends on M033)
+- Workspace AI Copilot chat panel with SPARQL generation, graph context injection, personas
+- 3-tier LLM test harness (mock for CI, Ollama for dev, cloud with budget caps)
+- M028 AI endpoints wired and extended
 
 ### Out of Scope
 

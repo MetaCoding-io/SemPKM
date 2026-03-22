@@ -570,3 +570,35 @@ Seven feature areas in one mega-milestone:
 **Context:** `.gsd/milestones/M033/M033-CONTEXT.md`
 **Design ref:** `.gsd/design/DEPLOYMENT-AND-ONBOARDING-DESIGN.md`
 **Key decisions (pending):** Lib choices (FullCalendar, Leaflet+OSM), 2.5D CSS approach (not WebGL), cache-and-mirror (not pass-through federation)
+
+---
+
+## Task Planning, Time-Blocking & Calendar UX
+
+**Queued:** 2026-03-21
+**Status:** Queued as M034 (depends on M033)
+
+Full task planning workflow: time-blocking fields on bpkm:Task (scheduledStart/scheduledEnd), interactive editable FullCalendar (drag, resize, click-to-create, external drag from kanban), custom open-source timeline/Gantt renderer with dependency arrows, recurring tasks with RRULE, task templates, PPV weekly/monthly/quarterly/yearly review workflows using existing WorkflowSpec runner, and composable planning surfaces (calendar + kanban side by side sharing saved query scope).
+
+Data model additions: bpkm:scheduledStart, bpkm:scheduledEnd, bpkm:estimatedDuration, bpkm:recurrenceRule on Task. Leverages existing ppv:doDate concept ("when to DO it" vs "when it's DUE").
+
+Key technical decisions: custom timeline renderer (vis-timeline MIT or SVG) instead of FullCalendar Premium ($480 license); RRULE expansion at query time without creating phantom objects; cross-dockview drag with stopPropagation() pattern.
+
+**Context:** `.gsd/milestones/M034/M034-CONTEXT.md`
+**Depends on:** M033 (calendar view renderer)
+
+---
+
+## AI Copilot & LLM Test Harness
+
+**Queued:** 2026-03-21
+**Status:** Queued as M035 (depends on M033)
+
+Workspace AI Copilot in the existing "AI COPILOT" bottom panel placeholder: graph-aware chat with SPARQL generation and execution (with approval controls), writing assistance referencing existing objects, configurable personas (Research Assistant, Project Manager, Writing Coach) with system prompt templates, automatic graph context injection (1-hop/2-hop neighborhood serialized as readable text), object creation from chat, and conversation persistence in SQLite.
+
+3-tier LLM test harness: (1) Mock LLM server for CI — deterministic canned responses, <5s, $0; (2) Local Ollama in Docker — llama3.2:1b on CPU for prompt quality evaluation, <60s, $0; (3) Cloud provider with budget caps — OpenAI/Anthropic with per-run token counting and configurable cost limits (default $1.00/run).
+
+M028 AI endpoints (ai.py, 6 endpoints) recovered and on disk but not wired into main.py — this milestone wires and extends them.
+
+**Context:** `.gsd/milestones/M035/M035-CONTEXT.md`
+**Depends on:** M033 (M028 AI endpoints need to be operational first)
