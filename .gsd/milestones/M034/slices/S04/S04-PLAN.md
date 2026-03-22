@@ -51,7 +51,7 @@
   - Verify: `python3 -c "import json; d=json.load(open('models/basic-pkm/shapes/basic-pkm.jsonld')); [print(p.get('sh:path',{}).get('@id','')) for item in d['@graph'] if item.get('@id')=='bpkm:TaskShape' for p in item.get('sh:property',[])]" | grep -q recurrenceRule && grep -q python-dateutil backend/pyproject.toml`
   - Done when: TaskShape has both recurrence properties at correct orders; ontology has exceptionDates declaration and recurrenceRule domain covers Task; pyproject.toml lists python-dateutil
 
-- [ ] **T02: Implement backend RRULE expansion and unit tests** `est:1.5h`
+- [x] **T02: Implement backend RRULE expansion and unit tests** `est:1.5h`
   - Why: Core slice logic — expands RRULE strings into virtual calendar events. Must handle edge cases (malformed, EXDATE, COUNT, UNTIL, max cap).
   - Files: `backend/app/views/service.py`, `backend/tests/test_rrule_expansion.py`
   - Do: Add `_expand_rrule()` method to ViewSpecService. Extend `_build_calendar_select()` to OPTIONAL-fetch `?recurrenceRule` and `?exceptionDates`. Extend `execute_calendar_query()` to detect recurrenceRule bindings and generate virtual events with synthetic IDs (`{iri}__recurrence__{isodate}`), `isVirtual: true`, and `masterIri` in extendedProps. Use ±6 month default window, max 52 instances per task. Write comprehensive unit tests.
