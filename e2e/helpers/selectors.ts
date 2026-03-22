@@ -238,4 +238,21 @@ export const SEL = {
     syncNowBtn: '#sync-now-btn',
     syncStats: '.sync-stats',
   },
+
+  // Dashboard blocks
+  dashboard: {
+    grid: '.grid-stack',
+    statCard: '.dashboard-block-stat-card',
+    statValue: '[data-stat-target]',
+    chart: '.dashboard-block-chart',
+    chartCanvas: 'canvas.chart-canvas',
+    heading: '.dashboard-block-heading',
+    markdown: '[data-md-block]',
+    formGroup: '.dashboard-block-form-group',
+    sparqlResult: '[data-sparql-table]',
+    sparqlLoaded: '[data-sparql-loaded]',
+    chartLoaded: '[data-chart-loaded]',
+    blockError: '.dashboard-block-error',
+    blockLoading: '.dashboard-block-loading',
+  },
 } as const;

@@ -197,3 +197,32 @@ export async function openGenericViewTab(
   }, { renderer, scopeQuery, scopeLabel });
   await page.waitForSelector(waitSelector, { timeout: timeoutMs });
 }
+
+/**
+ * Open a dashboard tab via the application's openDashboardTab() API.
+ *
+ * Wraps `window.openDashboardTab(id, name)` and waits for the GridStack
+ * container to appear, indicating the dashboard page has loaded.
+ *
+ * @param page           Playwright page
+ * @param dashboardId    Dashboard UUID string
+ * @param dashboardName  Display name for the tab title
+ * @param timeoutMs      Max wait time for the GridStack container (default 15s)
+ */
+export async function openDashboardTab(
+  page: Page,
+  dashboardId: string,
+  dashboardName: string,
+  timeoutMs = 15000,
+) {
+  await page.evaluate(
+    ({ id, name }) => {
+      if (typeof (window as any).openDashboardTab === 'function') {
+        (window as any).openDashboardTab(id, name);
+      }
+    },
+    { id: dashboardId, name: dashboardName },
+  );
+  // Wait for GridStack container to appear in the dockview panel
+  await page.waitForSelector('.grid-stack', { timeout: timeoutMs });
+}
