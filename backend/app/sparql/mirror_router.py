@@ -2,11 +2,14 @@
 
 POST /api/sparql/mirror — execute a federated query and mirror results
 GET /api/sparql/mirror/endpoints — list allowed federation endpoints
+POST /api/sparql/mirror/endpoints — add a federation endpoint (owner-only)
+DELETE /api/sparql/mirror/endpoints/{encoded_url} — remove a federation endpoint (owner-only)
 GET /api/sparql/mirror/stats — mirror statistics
 DELETE /api/sparql/mirror — clear all mirrored data (owner-only)
 """
 
 import logging
+from urllib.parse import unquote
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -15,6 +18,11 @@ from app.auth.dependencies import get_current_user, require_role
 from app.auth.models import User
 from app.config import settings
 from app.dependencies import get_triplestore_client
+from app.sparql.federation_config import (
+    add_endpoint,
+    get_merged_endpoints,
+    remove_endpoint,
+)
 from app.sparql.mirror import MirrorService
 from app.triplestore.client import TriplestoreClient
 
@@ -28,6 +36,12 @@ class MirrorRequest(BaseModel):
 
     query: str
     endpoint_url: str
+
+
+class AddEndpointRequest(BaseModel):
+    """Request body for adding a federation endpoint."""
+
+    url: str
 
 
 @router.post("")
@@ -100,11 +114,64 @@ async def mirror_results(
 async def list_endpoints(
     user: User = Depends(get_current_user),
 ):
-    """Return the configured federation endpoint allowlist."""
-    endpoints = settings.get_allowed_endpoints()
+    """Return the merged federation endpoint allowlist (env + admin)."""
+    merged = get_merged_endpoints()
     return {
-        "endpoints": endpoints,
-        "allowlist_configured": len(endpoints) > 0,
+        "endpoints": merged,
+        "allowlist_configured": len(merged) > 0,
+    }
+
+
+@router.post("/endpoints")
+async def add_federation_endpoint(
+    body: AddEndpointRequest,
+    user: User = Depends(require_role("owner")),
+):
+    """Add a federation endpoint to the admin-managed allowlist.
+
+    Validates URL format and persists to data/.federation-endpoints.json.
+    Returns the updated merged list.
+    """
+    url = body.url.strip()
+    if not url.startswith(("http://", "https://")):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid URL: must start with http:// or https://",
+        )
+
+    merged = add_endpoint(url)
+    logger.info(
+        "Federation endpoint added via API: %s (user: %s)", url, user.email
+    )
+    return {
+        "endpoints": merged,
+        "allowlist_configured": len(merged) > 0,
+    }
+
+
+@router.delete("/endpoints/{encoded_url:path}")
+async def remove_federation_endpoint(
+    encoded_url: str,
+    user: User = Depends(require_role("owner")),
+):
+    """Remove an admin-added federation endpoint.
+
+    URL-decodes the path parameter. Refuses to remove env-var-sourced entries.
+    Returns the updated merged list.
+    """
+    url = unquote(encoded_url).strip()
+
+    try:
+        merged = remove_endpoint(url)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc))
+
+    logger.info(
+        "Federation endpoint removed via API: %s (user: %s)", url, user.email
+    )
+    return {
+        "endpoints": merged,
+        "allowlist_configured": len(merged) > 0,
     }
 
 

@@ -48,6 +48,14 @@
                 Manage Applications
             </a>
         </div>
+        <div class="card">
+            <h2>Federation</h2>
+            <p>Manage the SPARQL federation endpoint allowlist for SERVICE clause queries and result mirroring.</p>
+            <a href="/admin/federation" class="btn btn-primary"
+               hx-get="/admin/federation" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
+                Manage Endpoints
+            </a>
+        </div>
     </div>
 </div>
 {% endblock %}

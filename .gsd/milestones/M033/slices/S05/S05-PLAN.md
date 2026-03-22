@@ -22,7 +22,7 @@
 
 ## Tasks
 
-- [ ] **T01: Federation endpoint persistence and admin API** `est:45m`
+- [x] **T01: Federation endpoint persistence and admin API** `est:45m`
   - Why: The allowlist is currently env-var only. Need file-based persistence so admins can add/remove endpoints at runtime, plus API routes for CRUD, plus the admin page.
   - Files: `backend/app/sparql/federation_config.py`, `backend/app/sparql/mirror_router.py`, `backend/app/templates/admin/federation.html`, `backend/app/templates/admin/index.html`, `backend/app/admin/router.py`
   - Do: Create `federation_config.py` following `instance_config.py` pattern (Pydantic model, load/save with atomic write, merge with env var). Add POST/DELETE routes to `mirror_router.py` with `require_role("owner")`. Update GET `/endpoints` to return merged list with source field. Create admin federation template following `webhooks.html` layout. Add Federation card to admin index. Add route in admin router.
@@ -55,3 +55,10 @@
 - `frontend/static/css/workspace.css`
 - `backend/tests/test_federation_config.py` (new)
 - `backend/tests/test_federation_endpoints_api.py` (new)
+
+## Observability / Diagnostics
+
+- **Log signals:** `federation_config.py` logs at INFO for add/remove/save operations, WARNING for load failures. `mirror_router.py` logs at INFO for API add/remove with user email. `admin/router.py` logs at INFO/WARNING for admin add/remove.
+- **Inspection surface:** `GET /api/sparql/mirror/endpoints` returns the full merged endpoint list with source annotation (`"env"` or `"admin"`) and `removable` flag — this is the primary diagnostic endpoint for endpoint configuration state.
+- **Failure visibility:** Malformed `data/.federation-endpoints.json` gracefully degrades to empty list (logged at WARNING). Invalid URL format returns 400 with descriptive detail. Env-var removal attempt returns 409 with explanation.
+- **Persisted state:** `data/.federation-endpoints.json` is the durable artifact — readable as plain JSON for manual inspection or recovery.

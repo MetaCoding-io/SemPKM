@@ -1290,6 +1290,108 @@ async def admin_sparql(request: Request, user: User = Depends(require_role("owne
     return RedirectResponse("/browser?panel=sparql", status_code=302)
 
 
+# ---- Federation endpoint management ----
+
+
+@router.get("/federation")
+async def admin_federation(
+    request: Request,
+    user: User = Depends(require_role("owner")),
+):
+    """Render the federation endpoint management page."""
+    from app.sparql.federation_config import get_merged_endpoints
+
+    endpoints = get_merged_endpoints()
+    context = {
+        "request": request,
+        "endpoints": endpoints,
+        "user": user,
+    }
+    if _is_htmx_request(request):
+        return templates_response(
+            request, "admin/federation.html", context, block_name="content"
+        )
+    return templates_response(request, "admin/federation.html", context)
+
+
+@router.post("/federation/add")
+async def admin_federation_add(
+    request: Request,
+    user: User = Depends(require_role("owner")),
+    endpoint_url: str = Form(...),
+):
+    """Add a federation endpoint via the admin UI.
+
+    Returns the updated endpoint list partial for htmx swap.
+    """
+    from app.sparql.federation_config import add_endpoint, get_merged_endpoints
+
+    url = endpoint_url.strip()
+    context: dict = {"request": request, "user": user}
+
+    if not url.startswith(("http://", "https://")):
+        context["error"] = "Invalid URL: must start with http:// or https://"
+        context["endpoints"] = get_merged_endpoints()
+        return templates_response(
+            request, "admin/federation.html", context, block_name="endpoint_list"
+        )
+
+    try:
+        merged = add_endpoint(url)
+        context["success"] = f"Endpoint added: {url}"
+        context["endpoints"] = merged
+        logger.info(
+            "Federation endpoint added via admin: %s (user: %s)",
+            url,
+            user.email,
+        )
+    except Exception as e:
+        context["error"] = f"Failed to add endpoint: {e}"
+        context["endpoints"] = get_merged_endpoints()
+        logger.warning("Federation endpoint add failed: %s", e)
+
+    return templates_response(
+        request, "admin/federation.html", context, block_name="endpoint_list"
+    )
+
+
+@router.delete("/federation/remove")
+async def admin_federation_remove(
+    request: Request,
+    url: str,
+    user: User = Depends(require_role("owner")),
+):
+    """Remove an admin-added federation endpoint via the admin UI.
+
+    Accepts the URL as a query parameter. Returns the updated endpoint
+    list partial for htmx swap.
+    """
+    from app.sparql.federation_config import get_merged_endpoints, remove_endpoint
+
+    context: dict = {"request": request, "user": user}
+
+    try:
+        merged = remove_endpoint(url.strip())
+        context["success"] = "Endpoint removed."
+        context["endpoints"] = merged
+        logger.info(
+            "Federation endpoint removed via admin: %s (user: %s)",
+            url,
+            user.email,
+        )
+    except ValueError as exc:
+        context["error"] = str(exc)
+        context["endpoints"] = get_merged_endpoints()
+    except Exception as e:
+        context["error"] = f"Failed to remove endpoint: {e}"
+        context["endpoints"] = get_merged_endpoints()
+        logger.warning("Federation endpoint remove failed: %s", e)
+
+    return templates_response(
+        request, "admin/federation.html", context, block_name="endpoint_list"
+    )
+
+
 def templates_response(request: Request, template: str, context: dict, block_name: str | None = None):
     """Render a template with optional block-level rendering."""
     templates = request.app.state.templates
