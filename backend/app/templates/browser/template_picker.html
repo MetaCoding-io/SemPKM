@@ -1,0 +1,50 @@
+{# Template picker partial — htmx fragment for task template selection.
+   Rendered by GET /browser/task-templates/picker.
+   Context: templates (list of dicts with id, title, target_class, created) #}
+
+{% if templates %}
+<div class="template-picker">
+  <div class="template-picker-header">
+    <h4>Create from Template</h4>
+  </div>
+  <ul class="template-picker-list">
+    {% for t in templates %}
+    <li class="template-picker-item"
+        data-template-id="{{ t.id }}"
+        onclick="instantiateTemplate('{{ t.id }}', '{{ t.title | e }}')">
+      <span class="template-picker-title">{{ t.title }}</span>
+      <span class="template-picker-type">{{ t.target_class | compact_iri }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% else %}
+<div class="template-picker template-picker-empty">
+  <p>No templates yet. Create one from the API.</p>
+  <code>POST /api/task-templates</code>
+</div>
+{% endif %}
+
+<script>
+async function instantiateTemplate(templateId, title) {
+    try {
+        const resp = await fetch('/api/task-templates/' + encodeURIComponent(templateId) + '/instantiate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({})
+        });
+        if (!resp.ok) {
+            const err = await resp.json();
+            console.error('Template instantiation failed:', err.detail || err);
+            return;
+        }
+        const data = await resp.json();
+        const mainIri = data.created_iris && data.created_iris[0];
+        if (mainIri && typeof openTab === 'function') {
+            openTab(mainIri, title || 'New Object');
+        }
+    } catch (e) {
+        console.error('Template instantiation error:', e);
+    }
+}
+</script>

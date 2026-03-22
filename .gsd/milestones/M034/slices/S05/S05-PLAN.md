@@ -28,6 +28,8 @@
 - `rg "Create from Template" frontend/static/js/workspace.js` — confirms command palette entry
 - `rg "Run Weekly Review" frontend/static/js/workspace.js` — confirms workflow launch entries
 - `python3 -c "import ast; ast.parse(open('backend/app/task_templates/service.py').read()); ast.parse(open('backend/app/task_templates/router.py').read()); print('OK')"` — syntax valid
+- `rg "logger\." backend/app/task_templates/service.py | head -5` — confirms structured logging in service
+- `rg "status_code=4" backend/app/task_templates/router.py` — confirms error responses with detail messages
 
 ## Observability / Diagnostics
 
@@ -44,7 +46,7 @@
 
 ## Tasks
 
-- [ ] **T01: Backend task template service and REST API** `est:2h`
+- [x] **T01: Backend task template service and REST API** `est:2h`
   - Why: Core backend for task template CRUD — stores templates in RDF, exposes REST/htmx endpoints for create/list/get/update/delete/instantiate
   - Files: `backend/app/task_templates/__init__.py`, `backend/app/task_templates/service.py`, `backend/app/task_templates/router.py`, `backend/app/main.py`, `backend/app/templates/browser/template_picker.html`
   - Do: Create `task_templates` package with `TaskTemplateService` using TriplestoreClient for SPARQL against `urn:sempkm:task-templates` graph. Template IRIs: `urn:sempkm:task-template:{uuid}`. Properties: `dcterms:title`, `sempkm:targetClass`, `sempkm:defaultProperties` (JSON string), `sempkm:subtaskDefinitions` (JSON string), `dcterms:created`. REST router: `GET/POST /api/task-templates`, `GET/PATCH/DELETE /api/task-templates/{id}`, `POST /api/task-templates/{id}/instantiate` (calls batch command API internally). Browser route: `GET /browser/task-templates/picker` returning htmx partial. Wire service onto `app.state.template_service`, mount routers in main.py.
