@@ -64,7 +64,7 @@ Existing Active requirements not addressed by M033: APP-01 through APP-14 (App P
   > After this: Graph view toolbar has an "Isometric" layout option that applies CSS 3D perspective with correct click interaction, and a toggle button that switches nodes between shape-only and Lucide SVG icon display.
 - [x] **S03: Calendar View** `risk:low` `depends:[]`
   > After this: Users can open a Calendar view from the views menu. FullCalendar renders objects with date properties on month/week/day grids. Clicking an event opens the object tab. Type filter pills and scope queries work.
-- [ ] **S04: Map View** `risk:low` `depends:[]`
+- [x] **S04: Map View** `risk:low` `depends:[]`
   > After this: Users can open a Map view from the views menu. Leaflet renders objects with geo coordinates as clustered markers on OpenStreetMap tiles. An instructive empty state explains what geo properties are needed when no data matches.
 - [ ] **S05: Federated SPARQL Console** `risk:low` `depends:[]`
   > After this: SPARQL console detects SERVICE clauses, validates endpoints against the configured allowlist, shows a mirror button for allowed endpoints, and provides endpoint URL autocomplete. Admin can manage the federation endpoint allowlist.
