@@ -1,4 +1,4 @@
-# M028: Browser Extension Phase 3 — Active Intelligence
+# M028: Browser Extension Phase 3 - Active Intelligence
 
 **Vision:** While reading any web page, the extension detects claims, matches them against the user's knowledge graph, surfaces contradictions and evidence gaps, suggests relationships, and provides personalized summaries — turning passive browsing into active knowledge building.
 

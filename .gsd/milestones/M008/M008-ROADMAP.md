@@ -1,4 +1,4 @@
-# M008: Spatial Canvas — Resizable Nodes, Property Flip & Live Embeds
+# M008: Spatial Canvas - Resizable Nodes, Property Flip & Live Embeds
 
 **Vision:** Transform the spatial canvas from a read-only graph surface into a composable working surface where nodes are resizable, can flip to show properties, and where views, dashboards, SPARQL queries, and objects can be placed as live interactive panels.
 

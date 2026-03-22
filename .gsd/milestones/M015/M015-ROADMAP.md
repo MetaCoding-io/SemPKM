@@ -1,4 +1,4 @@
-# M015: Browser Extension Phase 2 — Knowledge Context Overlay
+# M015: Browser Extension Phase 2 - Knowledge Context Overlay
 
 **Vision:** While browsing any web page, the user sees how many related objects exist in their SemPKM knowledge graph (badge count), opens a sidebar showing those objects grouped by type, and takes in-context actions — open, link, or add evidence — without leaving the page.
 

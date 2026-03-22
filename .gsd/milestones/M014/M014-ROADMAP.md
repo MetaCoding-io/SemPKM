@@ -1,4 +1,4 @@
-# M014: Browser Extension Phase 1 — Smart Structured Capture
+# M014: Browser Extension Phase 1 - Smart Structured Capture
 
 **Vision:** Chrome/Firefox browser extension that captures typed, schema-validated objects from any web page — with dynamic SHACL-driven forms, auto-population from page metadata and schema.org JSON-LD, relationship creation, and context menu integration.
 
