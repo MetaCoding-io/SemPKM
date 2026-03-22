@@ -90,7 +90,7 @@ Orphan risks: None — all prior Active requirements (APP-01..14, RSS-01..08, GC
   - **Proof:** E2E test: drag from kanban panel to calendar panel → verify scheduledStart persisted and task visible on calendar. Verify scope change propagation.
   - **Verification:** `contract` `integration`
 
-- [ ] **S04: Recurring Tasks & RRULE Expansion** `risk:medium` `depends:[S01]`
+- [x] **S04: Recurring Tasks & RRULE Expansion** `risk:medium` `depends:[S01]`
   > After this: User creates a task with a recurrence rule (e.g., FREQ=WEEKLY;BYDAY=FR). Calendar shows virtual instances for the next N occurrences without creating real objects. A recurrence editor UI provides presets (daily, weekly, monthly, custom). Exception dates (EXDATE) are tracked.
   - **Demo:** Create task "Weekly Review" with FREQ=WEEKLY;BYDAY=FR. Calendar shows next 4 Fridays as task blocks. Click one — opens the real task. Edit recurrence to skip next Friday — EXDATE applied, that instance disappears.
   - **Proof:** Unit test: RRULE expansion generates correct dates, respects EXDATE. E2E test: recurring task shows virtual instances on calendar.

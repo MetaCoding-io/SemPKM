@@ -65,7 +65,7 @@
   - Verify: Form field for recurrenceRule renders with editor button; selecting "Weekly" preset produces `FREQ=WEEKLY`; custom mode with BYDAY produces correct RRULE string
   - Done when: Recurrence editor popover opens from form field, presets generate correct RRULE strings, EXDATE editor adds/removes dates, human-readable summary shown on input
 
-- [ ] **T04: Wire virtual event rendering in calendar and write E2E test** `est:1h`
+- [x] **T04: Wire virtual event rendering in calendar and write E2E test** `est:1h`
   - Why: Connects backend expansion to frontend rendering. Virtual recurring events need visual distinction and click-to-open-master behavior. E2E test proves the full stack.
   - Files: `frontend/static/js/calendar.js`, `frontend/static/css/views.css`, `e2e/tests/02-views/recurring-tasks.spec.ts`
   - Do: In `calendar.js` `eventClassNames`, add `fc-event-recurring` class when `extendedProps.isVirtual` is true. In `eventClick`, if `extendedProps.masterIri` exists, open that instead of `extendedProps.iri`. Add CSS for recurring indicator (↻ icon or dashed border). Write E2E test: create task with scheduledStart + recurrenceRule via API, open calendar, verify multiple events for single task, verify clicking virtual event opens master.

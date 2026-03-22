@@ -474,3 +474,35 @@ In Jinja2, `col.items` on a Python dict resolves to the dict's `.items()` method
 **Fix:** In the RRULE expansion code, strip timezone info from all datetimes before passing to rruleset: `dt.replace(tzinfo=None)`. The expansion window is computed as `datetime.now(timezone.utc).replace(tzinfo=None)` — getting UTC then stripping the tzinfo. This keeps all comparisons in naive-datetime space.
 
 **Affected file:** `backend/app/views/service.py` — `_expand_rrule()` and `execute_calendar_query()` RRULE expansion block.
+
+### nginx serves /js/ and /css/ but NOT /static/ — template paths must match
+
+**Discovered:** M034/S04/T04
+
+The nginx config (`frontend/nginx.conf`) defines `location /js/` and `location /css/` with `root /usr/share/nginx/html`. There is NO `/static/` location. Requests to `/static/js/foo.js` fall through to the catch-all proxy → backend, which returns 404.
+
+**Impact:** `calendar_view.html` used `<script src="/static/js/calendar.js">` which returned 404, silently breaking all calendar functionality. Same issue affected `_field.html` with `recurrence-editor.js`.
+
+**Rule:** All JS references in templates must use `/js/filename.js`, not `/static/js/filename.js`. All CSS references must use `/css/filename.css`. The Docker volume mount maps `frontend/static/` → `/usr/share/nginx/html/`, so the file at `frontend/static/js/calendar.js` is served at `/js/calendar.js`.
+
+### htmx swap of <script src> races with subsequent inline scripts
+
+**Discovered:** M034/S04/T04
+
+When htmx swaps HTML containing `<script src="/js/foo.js"></script>` followed by `<script>if (typeof foo === 'function') foo();</script>`, the external script loads asynchronously but the inline script executes immediately. The function from the external script is not yet defined when the inline script runs.
+
+**Fix:** Use the lazy-load pattern instead:
+```javascript
+(function() {
+    function _boot() { /* use the loaded function */ }
+    if (typeof targetFn === 'function') { _boot(); }
+    else {
+        var s = document.createElement('script');
+        s.src = '/js/foo.js';
+        s.onload = _boot;
+        document.head.appendChild(s);
+    }
+})();
+```
+
+This pattern is already used by `recurrence-editor.js` (T03) and now `calendar_view.html` (T04).

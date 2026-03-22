@@ -132,17 +132,20 @@
             handleExternalDrop(info, cal);
           },
 
-          /* ── Color-code by sourceType ── */
+          /* ── Color-code by sourceType + recurring indicator ── */
           eventClassNames: function (arg) {
-            var st = arg.event.extendedProps && arg.event.extendedProps.sourceType;
-            if (st === 'Task') return ['fc-event-task'];
-            if (st === 'Event') return ['fc-event-event'];
-            return [];
+            var ep = arg.event.extendedProps || {};
+            var classes = [];
+            if (ep.sourceType === 'Task' || ep.sourceType === 'task') classes.push('fc-event-task');
+            if (ep.sourceType === 'Event' || ep.sourceType === 'event') classes.push('fc-event-event');
+            if (ep.isVirtual) classes.push('fc-event-recurring');
+            return classes;
           },
 
-          /* ── Click to open object tab ── */
+          /* ── Click to open object tab (virtual events → master) ── */
           eventClick: function (info) {
-            var iri = info.event.extendedProps && info.event.extendedProps.iri;
+            var ep = info.event.extendedProps || {};
+            var iri = ep.masterIri || ep.iri;  // virtual events point to master
             var title = info.event.title || '';
             if (iri && typeof openTab === 'function') {
               openTab(iri, title);
