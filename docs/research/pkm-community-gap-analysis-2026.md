@@ -578,12 +578,15 @@ surfaces, suggests, acts). Concrete behaviors users want:
 |------|-----------|------------|
 | **Mem.ai** | Auto-organizes notes, temporal awareness, proactive surfacing | Closed-source, no structured data, no user ontology |
 | **Notion AI** | Q&A over workspace, auto-fill DB properties, Slack/Drive connectors | Reactive only, treats everything as text |
-| **Khoj** | Self-hosted RAG over notes, multi-modal search | No graph structure, no proactive behavior |
-| **Obsidian Copilot** | Chat over vault, vector search | Plugin, not integrated; no graph awareness |
-| **Fabric** (Daniel Miessler) | AI "patterns" as prompt templates for processing any content | Framework, not a PKM tool; no persistence |
+| **Notion 3.3 Custom Agents** (Feb 2026) | Autonomous 20-min runs, triggers/schedules, runs 24/7 across Notion/Slack/Mail | No structured semantics, proprietary, everything is pages/DBs |
+| **Tana** ($25M raise, Feb 2025) | Supertags = structured schemas on notes, AI agents understand types, voice → structured | Closest competitor, but proprietary schema (not RDF/OWL), no formal reasoning |
+| **Khoj** | Self-hosted RAG, custom agents, scheduled automations, deep research | No graph structure, no type-aware retrieval |
+| **Obsidian Copilot** | Chat over vault, AI agents, web clipper | Plugin, not integrated; no graph awareness |
+| **Limitless** (acq. by Meta, Dec 2025) | Continuous ambient capture, NL search over recordings | Life-logging, not structured PKM |
 
-**Key insight**: Nobody combines structured knowledge graph + proactive AI. All are
-either text-only (Mem, Notion) or graph-only without AI (existing SemPKM).
+**Key insight**: Tana is the closest competitor (structured schemas + AI), but uses
+proprietary Supertags — not RDF/OWL, no formal inference, no federation, no SPARQL.
+Nobody combines **formal ontological reasoning + proactive agentic AI + PKM**.
 
 ### MCP (Model Context Protocol) and PKM
 
@@ -607,6 +610,43 @@ by using LLMs to *extract* a knowledge graph from unstructured text. This is:
 **SemPKM already has the graph.** User-validated, schema-aware, with OWL inference.
 The entire expensive extraction step is skipped. SemPKM goes straight to graph-based
 retrieval with clean structure.
+
+### OG-RAG: The Proof That Ontology-Grounded RAG Works
+
+**OG-RAG** (Microsoft, EMNLP 2025) is the strongest validation of SemPKM's approach.
+It anchors retrieval in domain-specific ontologies using a hypergraph where each
+hyperedge encapsulates clusters of factual knowledge grounded in ontology concepts.
+
+Results across four different LLMs:
+- **55% increase** in recall of accurate facts
+- **40% improvement** in response correctness
+- **30% faster** attribution (tracing answers to sources)
+- **27% boost** in fact-based reasoning accuracy
+
+Source: [arXiv 2412.15235](https://arxiv.org/abs/2412.15235) |
+Code: [github.com/microsoft/ograg2](https://github.com/microsoft/ograg2)
+
+### MCP Tools > Raw Query Generation
+
+A critical finding from biomedical KG research (arXiv 2603.15080): exposing
+domain-specific **MCP tools achieves 98% accuracy** vs. 85% for schema-aware
+text-to-Cypher and **75% for standalone GPT-4o** — with **zero schema errors**.
+
+The implication for SemPKM: instead of asking the LLM to generate arbitrary SPARQL,
+expose **typed MCP tools** like `find_objects(type, filters)`, `get_relations(iri)`,
+`search_body(query)`. The LLM selects the right tool and provides arguments — no
+raw query generation needed. This is simpler to build AND more accurate.
+
+### Competitive Landscape: The AKM Term
+
+The emerging term is **Agentic Knowledge Management (AKM)**, coined by Sébastien
+Dubois. Core argument: current AI in PKM is reactive (you invoke AI, provide
+context, get response). AKM flips this — the AI invokes *you* for approval. You
+become the **director** of knowledge operations, not the executor.
+
+Key framing from Cprime: "Search-based design assumes effort. Surfacing design
+assumes intelligence." Proactive knowledge surfacing means the AI identifies and
+presents relevant knowledge **without explicit user queries**.
 
 ### Architecture: SemPKM Agentic AI
 
@@ -958,3 +998,14 @@ in the editor would follow the same pattern but triggered contextually while wri
 - [Graph RAG Survey — arXiv 2501.13958](https://arxiv.org/html/2501.13958v1)
 - [What is Graph RAG — Ontotext](https://www.ontotext.com/knowledgehub/fundamentals/what-is-graph-rag/)
 - [Knowledge Graph vs Vector RAG — Neo4j](https://neo4j.com/blog/developer/knowledge-graph-vs-vector-rag/)
+- [OG-RAG: Ontology-Grounded RAG — Microsoft, EMNLP 2025](https://arxiv.org/abs/2412.15235)
+- [OG-RAG Code — GitHub](https://github.com/microsoft/ograg2)
+- [MCP Tools for KG Access — arXiv 2603.15080](https://arxiv.org/html/2603.15080)
+- [Notion 3.0 AI Agents](https://www.notion.com/releases/2025-09-18)
+- [Notion 3.3 Custom Agents](https://www.notion.com/releases/2026-02-24)
+- [Tana $25M Raise — TechCrunch](https://techcrunch.com/2025/02/03/tana-snaps-up-25m-with-its-ai-powered-knowledge-graph-for-work-racking-up-a-160k-waitlist/)
+- [Agentic Knowledge Management — Sébastien Dubois](https://www.dsebastien.net/agentic-knowledge-management-the-next-evolution-of-pkm/)
+- [Graphiti: Temporal KG for AI Agents — Zep](https://github.com/getzep/graphiti)
+- [Cognee: KG Engine for Agent Memory](https://github.com/topoteretes/cognee)
+- [AI Ontologies in Practice — Hiflylabs](https://hiflylabs.com/blog/2025/6/11/ai-ontologies-in-practice)
+- [Awesome-GraphRAG Paper List](https://github.com/DEEP-PolyU/Awesome-GraphRAG)
