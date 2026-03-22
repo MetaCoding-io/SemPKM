@@ -64,3 +64,9 @@ Write a Playwright E2E spec that proves the full pipeline: SPARQL → JSON → F
 
 - `e2e/specs/timeline.spec.ts` — Playwright E2E spec with 3 tests (bars, arrows, zoom)
 - `e2e/helpers/selectors.ts` — timeline selectors added to `SEL.views`
+
+## Observability Impact
+
+- **New signals:** E2E tests produce Playwright trace files on failure (in `test-results/`) and console log capture via the test framework. The `[timeline]` console prefix (from T02) is available for filtered E2E debugging.
+- **Inspection:** Run `cd e2e && npx playwright test tests/02-views/timeline.spec.ts --project chromium` for quick verification. Add `--headed` for visual debugging. Failed tests produce screenshots and trace zips in `test-results/`.
+- **Failure visibility:** If the timeline rendering pipeline breaks (SPARQL query, data endpoint, CDN load, or Gantt initialization), the E2E tests catch it with specific failure messages — bar count assertion for data flow issues, arrow existence for dependency resolution, and post-zoom bar presence for view mode stability.

@@ -438,3 +438,19 @@ View templates that depend on heavy third-party libraries (FullCalendar 6.1.17 =
 `_detect_date_fields()` and `_detect_geo_fields()` in `ViewSpecService` use a dual heuristic: (1) check SHACL PropertyShape `sh:datatype` (e.g., `xsd:date`, `xsd:dateTime`) and (2) match the `sh:path` IRI against a well-known list (e.g., `dcterms:date`, `schema:startDate`, `wgs84:lat`). This catches types that declare date/geo fields but use non-standard IRIs, and types that use standard IRIs but don't specify `sh:datatype`.
 
 **Pattern:** Any future field-type-dependent renderer (timeline, gantt, etc.) should follow the same dual heuristic. The detection functions are on `ViewSpecService` and return structured results (field path IRIs + detected labels).
+
+### Timeline _detect_date_fields priority: scheduledStart beats dueDate
+
+**Discovered:** M034/S02/T03
+
+The `_START_DATE_PRIORITY` list in `_detect_date_fields()` is `["scheduledstart", "startdate", "duedate", "targetdate", "created"]`. For the basic-pkm Task shape, which defines both `bpkm:scheduledStart` (xsd:dateTime) and `bpkm:dueDate` (xsd:date), the timeline SPARQL uses `scheduledStart` as the start field. Seed data tasks only populate `dueDate`, so the timeline view appears empty for seed tasks.
+
+**Impact on E2E tests:** Tests that need tasks visible in the timeline must create tasks with `bpkm:scheduledStart` values, not `bpkm:dueDate`. The `createTask()` helper in `e2e/tests/02-views/timeline.spec.ts` demonstrates this pattern.
+
+### Playwright SVG element visibility: use state:'attached' not toBeVisible
+
+**Discovered:** M034/S02/T03
+
+Frappe Gantt renders dependency arrows as `<g class="arrow">` SVG group elements. Playwright's visibility check reports these as "hidden" (`locator resolved to hidden <g class="arrow"></g>`) even when the arrows render visually in the browser. SVG group elements don't have intrinsic dimensions that Playwright can measure.
+
+**Fix:** Use `page.waitForSelector('.arrow', { state: 'attached' })` instead of the default `{ state: 'visible' }`. Then assert count > 0 via `.count()`. This applies to any SVG sub-element (groups, paths, etc.) inside third-party charting libraries.

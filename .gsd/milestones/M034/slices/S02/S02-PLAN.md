@@ -56,7 +56,7 @@
   - Verify: Docker stack renders the timeline view when navigated to `/browser/views/generic/timeline?type=urn:sempkm:model:basic-pkm:Task`; dark mode toggle doesn't break rendering
   - Done when: Timeline view loads from explorer sidebar, shows Frappe Gantt chart with task bars, dependency arrows visible, zoom selector works, drag fires PATCH request
 
-- [ ] **T03: E2E test proving timeline renders with bars and dependencies** `est:1h`
+- [x] **T03: E2E test proving timeline renders with bars and dependencies** `est:1h`
   - Why: Proves the full pipeline end-to-end — SPARQL → JSON → Frappe Gantt rendering. Without this, visual regressions are invisible.
   - Files: `e2e/specs/timeline.spec.ts`, `e2e/helpers/selectors.ts`
   - Do: Add `timeline` selector to `SEL.views` in selectors.ts. Write Playwright spec: open timeline via `openGenericViewTab('timeline')`, wait for `.gantt-container` or `[data-testid="timeline-view"]`, assert `.bar-wrapper` elements exist (task bars rendered), assert `.arrow` elements exist (dependency arrows). Test zoom level change via Frappe Gantt's view mode selector. Verify empty state when no tasks have dates (use a type with no date fields).
