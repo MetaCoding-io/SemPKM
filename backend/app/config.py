@@ -1,6 +1,17 @@
-"""Application configuration using Pydantic BaseSettings."""
+"""Application configuration using Pydantic BaseSettings.
+
+Config loading priority (highest wins):
+1. Explicit environment variables (BASE_NAMESPACE=... in .env or shell)
+2. Instance config file (data/.instance-config.json)
+3. Pydantic defaults defined below
+"""
+
+import logging
+import os
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+_config_logger = logging.getLogger(__name__)
 
 
 class Settings(BaseSettings):
@@ -80,3 +91,39 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+
+def _apply_instance_config_overrides() -> None:
+    """Apply instance config overrides to settings where env vars are absent.
+
+    Priority: explicit env var > instance config > Pydantic default.
+    Only ``base_namespace`` and ``app_base_url`` are overridable via
+    instance config.
+    """
+    # Lazy import to avoid circular dependency (instance_config imports nothing
+    # from config, but keeping the import local is defensive).
+    from app.instance_config import load_instance_config
+
+    ic = load_instance_config()
+    if ic is None:
+        _config_logger.info("base_namespace source: default = %s", settings.base_namespace)
+        return
+
+    # For each overridable field, check if the env var was explicitly set.
+    # If it was, the env var wins. Otherwise, the instance config wins.
+    for field_name in ("base_namespace", "app_base_url"):
+        env_key = field_name.upper()  # BASE_NAMESPACE, APP_BASE_URL
+        env_value = os.environ.get(env_key)
+        if env_value is not None:
+            source = "env"
+            value = env_value
+        else:
+            source = "instance_config"
+            value = getattr(ic, field_name)
+            # Pydantic Settings objects are mutable — direct assignment works.
+            object.__setattr__(settings, field_name, value)
+
+        _config_logger.info("%s source: %s = %s", field_name, source, value)
+
+
+_apply_instance_config_overrides()

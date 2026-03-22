@@ -16,6 +16,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from jinja2_fragments.fastapi import Jinja2Blocks
 
 from app.api.router import well_known_router, api_surface_router
+from app.api.setup_routes import setup_router
 from app.admin.router import router as admin_router
 from app.apps.admin_router import app_admin_router
 from app.apps.proxy import AppProxy
@@ -384,6 +385,17 @@ async def lifespan(app: FastAPI):
     if purged:
         logger.info("Purged %d expired sessions", purged)
 
+    # --- Namespace Validation ---
+    # Warn if base_namespace is still the dangerous default and no instance
+    # config exists — means the user hasn't gone through the setup wizard.
+    from app.instance_config import DEFAULT_CONFIG_PATH as _ic_path
+    if settings.base_namespace == "https://example.org/data/" and not _ic_path.is_file():
+        logger.warning(
+            "BASE_NAMESPACE is set to the default 'https://example.org/data/'. "
+            "This will cause IRI collisions with other SemPKM instances. "
+            "Run the setup wizard or set BASE_NAMESPACE in your .env file."
+        )
+
     # --- Setup Mode Detection ---
     setup_complete = await auth_service.is_setup_complete()
     if not setup_complete:
@@ -603,6 +615,7 @@ app.include_router(monitoring_router)
 app.include_router(well_known_router)
 app.include_router(api_surface_router)
 app.include_router(auth_router)
+app.include_router(setup_router)
 app.include_router(commands_router)
 app.include_router(health_router)
 app.include_router(models_router)

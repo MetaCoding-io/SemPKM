@@ -97,6 +97,7 @@ class StatusResponse(BaseModel):
 
     setup_complete: bool
     setup_mode: bool
+    instance_configured: bool
 
 
 class CreateTokenRequest(BaseModel):
