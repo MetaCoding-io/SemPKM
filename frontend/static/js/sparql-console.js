@@ -58,6 +58,7 @@ var currentSavedQueryId = null;
 var currentSavedQueryName = '';
 var sparqlCyInstance = null;  // Current Cytoscape instance for SPARQL graph tab
 var mirrorAllowlistCache = null;  // Cached mirror endpoint allowlist (fetched lazily)
+var _serviceInfoDebounce = null;  // Debounce timer for SERVICE info banner updates
 
 // Known vocabulary prefixes (object IRIs are those NOT matching these).
 // NOTE: urn:sempkm:model:* is intentionally EXCLUDED so that model ontology
@@ -131,6 +132,26 @@ var SPARQL_KEYWORDS = [
 // --- Autocomplete ---
 
 function sparqlCompletions(context) {
+  // --- SERVICE URI autocomplete (checked first, returns early) ---
+  var line = context.state.doc.lineAt(context.pos);
+  var textBeforeCursor = line.text.substring(0, context.pos - line.from);
+  var serviceUriMatch = textBeforeCursor.match(/SERVICE\s+(?:SILENT\s+)?<([^>]*)$/i);
+  if (serviceUriMatch) {
+    var partial = serviceUriMatch[1].toLowerCase();
+    var angleBracketPos = line.from + textBeforeCursor.lastIndexOf('<') + 1;
+    var uriOptions = [];
+    if (mirrorAllowlistCache && mirrorAllowlistCache.length > 0) {
+      mirrorAllowlistCache.forEach(function(entry) {
+        var url = _allowlistEntryUrl(entry);
+        if (url && url.toLowerCase().indexOf(partial) === 0) {
+          uriOptions.push({ label: url, type: 'url', detail: '\u26D3' });
+        }
+      });
+    }
+    if (uriOptions.length === 0) return null;
+    return { from: angleBracketPos, options: uriOptions, validFor: /^[^\s>]*/ };
+  }
+
   var word = context.matchBefore(/[\w:?$]*/);
   if (!word || (word.from === word.to && !context.explicit)) return null;
 
@@ -217,6 +238,14 @@ function createEditor(container) {
     EditorView.theme({
       '&': { height: '100%' },
       '.cm-scroller': { overflow: 'auto' }
+    }),
+    EditorView.updateListener.of(function(update) {
+      if (update.docChanged) {
+        clearTimeout(_serviceInfoDebounce);
+        _serviceInfoDebounce = setTimeout(function() {
+          _updateServiceInfoBanner(update.state.doc.toString());
+        }, 500);
+      }
     })
   ];
 
@@ -293,11 +322,73 @@ async function fetchMirrorAllowlist() {
 }
 
 /**
+ * Extract the URL string from an allowlist entry.
+ * Handles both new object format {url, source, removable} and legacy string format.
+ */
+function _allowlistEntryUrl(entry) {
+  if (typeof entry === 'string') return entry;
+  if (entry && typeof entry === 'object' && entry.url) return entry.url;
+  return '';
+}
+
+/**
  * Check if an endpoint URL is in the cached allowlist.
+ * Handles both object format {url, source, removable} and legacy string format.
  */
 function isEndpointAllowed(endpointUrl) {
   if (!mirrorAllowlistCache || mirrorAllowlistCache.length === 0) return false;
-  return mirrorAllowlistCache.indexOf(endpointUrl) !== -1;
+  return mirrorAllowlistCache.some(function(entry) {
+    return _allowlistEntryUrl(entry) === endpointUrl;
+  });
+}
+
+/**
+ * Update the SERVICE info banner below the editor.
+ * Shows detected SERVICE endpoints with allowlist status indicators.
+ * Called on a 500ms debounce from the EditorView.updateListener.
+ */
+function _updateServiceInfoBanner(queryText) {
+  var banner = document.getElementById('sparql-service-info');
+  if (!banner) return;
+
+  var endpoints = detectServiceEndpoints(queryText);
+  if (endpoints.length === 0) {
+    banner.style.display = 'none';
+    banner.innerHTML = '';
+    return;
+  }
+
+  // If cache hasn't been fetched yet, trigger it and re-render when ready
+  if (mirrorAllowlistCache === null) {
+    fetchMirrorAllowlist().then(function() {
+      _updateServiceInfoBanner(queryText);
+    });
+    return;
+  }
+
+  var html = '<span class="service-info-label">SERVICE endpoints:</span>';
+  endpoints.forEach(function(url) {
+    var allowed = isEndpointAllowed(url);
+    var statusClass = allowed ? 'endpoint-allowed' : 'endpoint-blocked';
+    var icon = allowed ? '\u2713' : '\u26A0';
+    var title = allowed ? 'Endpoint is in the allowlist' : 'Endpoint is NOT in the allowlist — mirroring will be blocked';
+    html += '<span class="endpoint-status ' + statusClass + '" title="' + title + '">'
+          + '<span class="endpoint-status-icon">' + icon + '</span>'
+          + '<span class="endpoint-status-url">' + _escapeHtml(url) + '</span>'
+          + '</span>';
+  });
+
+  banner.innerHTML = html;
+  banner.style.display = 'flex';
+}
+
+/**
+ * Escape HTML special characters for safe insertion.
+ */
+function _escapeHtml(str) {
+  var div = document.createElement('div');
+  div.appendChild(document.createTextNode(str));
+  return div.innerHTML;
 }
 
 // --- Query Execution ---
@@ -1662,5 +1753,17 @@ export function initSparqlConsole() {
   createEditor(container);
   bindToolbarEvents();
   fetchVocabulary();
+  fetchMirrorAllowlist();  // Warm the allowlist cache for SERVICE autocomplete & info banner
+
+  // Create the SERVICE info banner below the editor
+  var editorWrap = container.closest('.sparql-editor-wrap');
+  if (editorWrap && !document.getElementById('sparql-service-info')) {
+    var banner = document.createElement('div');
+    banner.id = 'sparql-service-info';
+    banner.className = 'sparql-service-info';
+    banner.style.display = 'none';
+    editorWrap.appendChild(banner);
+  }
+
   handlePromoteSubmit();
 }

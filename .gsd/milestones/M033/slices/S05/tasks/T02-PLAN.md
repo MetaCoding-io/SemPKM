@@ -74,3 +74,10 @@ The console already has `detectServiceEndpoints()`, `fetchMirrorAllowlist()`, `i
 
 - `frontend/static/js/sparql-console.js` — updated with autocomplete branch, info banner, early allowlist fetch
 - `frontend/static/css/workspace.css` — updated with `.sparql-service-info` styles
+
+## Observability Impact
+
+- **New signal:** The `.sparql-service-info` banner is a live diagnostic surface — it shows which SERVICE endpoints are detected in the current query and whether each is in the allowlist (✓ or ⚠). This is visible to the user without running the query.
+- **Cache warm-up:** `fetchMirrorAllowlist()` now runs at console init, so the allowlist cache is populated immediately. Any fetch failure is logged to console via `console.warn()`.
+- **Autocomplete inspection:** SERVICE URI completions use type `'url'` and detail `'⛓'` — these are distinguishable from keyword/variable/class completions in the CodeMirror dropdown.
+- **Failure visibility:** If the allowlist fetch fails, the info banner shows ⚠ for all endpoints (cache is empty = nothing allowed). The autocomplete silently returns no suggestions when the cache is empty.

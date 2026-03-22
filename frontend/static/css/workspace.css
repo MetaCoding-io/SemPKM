@@ -7618,6 +7618,73 @@ details.form-group[open] > .form-group-summary::before {
     border-color: rgba(239, 68, 68, 0.3);
 }
 
+/* ── SERVICE info banner ──────────────────────────────────────────── */
+
+.sparql-service-info {
+    display: none;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 10px;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    background: var(--color-surface-raised);
+    border-top: 1px solid var(--color-border);
+    flex-shrink: 0;
+}
+
+.sparql-service-info .service-info-label {
+    color: var(--color-text-muted);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.sparql-service-info .endpoint-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    white-space: nowrap;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.sparql-service-info .endpoint-status-icon {
+    flex-shrink: 0;
+    font-size: 0.8rem;
+}
+
+.sparql-service-info .endpoint-status-url {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sparql-service-info .endpoint-allowed {
+    background: rgba(20, 184, 166, 0.08);
+    color: #0d9488;
+}
+
+.sparql-service-info .endpoint-blocked {
+    background: rgba(245, 158, 11, 0.08);
+    color: #d97706;
+}
+
+/* Dark theme */
+[data-theme="dark"] .sparql-service-info {
+    background: var(--color-surface-recessed, #1e1e2e);
+}
+
+[data-theme="dark"] .sparql-service-info .endpoint-allowed {
+    background: rgba(20, 184, 166, 0.12);
+    color: #5eead4;
+}
+
+[data-theme="dark"] .sparql-service-info .endpoint-blocked {
+    background: rgba(245, 158, 11, 0.12);
+    color: #fbbf24;
+}
+
 
 /* ── Dashboard layouts ────────────────────────────────────────────── */
 
