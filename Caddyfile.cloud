@@ -1,0 +1,109 @@
+# SemPKM Cloud — Caddy Reverse Proxy Configuration
+#
+# Replaces the nginx frontend service for cloud deployments.
+# Caddy provides automatic TLS (Let's Encrypt), HTTP/2, HTTP/3 (QUIC),
+# and HTTP→HTTPS redirects with zero configuration.
+#
+# Domain is set via environment variable in .env:
+#   SEMPKM_DOMAIN=sempkm.example.com
+#
+# Defaults to localhost for safety (self-signed cert, no ACME).
+# Usage: docker compose -f docker-compose.yml -f docker-compose.cloud.yml up
+
+{$SEMPKM_DOMAIN:localhost} {
+	# ── Compression ──
+	encode gzip
+
+	# ── Built assets (content-hashed filenames, immutable cache) ──
+	handle /assets/* {
+		root * /srv/built-assets
+		file_server
+		header Cache-Control "public, max-age=31536000, immutable"
+	}
+
+	# ── Static CSS (no cache for dev iteration) ──
+	handle /css/* {
+		root * /srv/static
+		file_server
+		header Cache-Control "no-store, no-cache, must-revalidate"
+	}
+
+	# ── Static JS (no cache for dev iteration) ──
+	handle /js/* {
+		root * /srv/static
+		file_server
+		header Cache-Control "no-store, no-cache, must-revalidate"
+	}
+
+	# ── Auth pages served as static HTML (no cache) ──
+	handle /setup.html {
+		root * /srv/static
+		file_server
+		header Cache-Control "no-cache"
+	}
+	handle /login.html {
+		root * /srv/static
+		file_server
+		header Cache-Control "no-cache"
+	}
+	handle /invite.html {
+		root * /srv/static
+		file_server
+		header Cache-Control "no-cache"
+	}
+
+	# ── SSE streaming: LLM chat ──
+	# flush_interval -1 disables response buffering for Server-Sent Events
+	handle /browser/llm/chat/stream {
+		reverse_proxy api:8000 {
+			flush_interval -1
+			transport http {
+				read_timeout 300s
+				write_timeout 300s
+			}
+		}
+	}
+
+	# ── SSE streaming: lint validation ──
+	handle /api/lint/stream {
+		reverse_proxy api:8000 {
+			flush_interval -1
+			transport http {
+				read_timeout 86400s
+				write_timeout 86400s
+			}
+		}
+	}
+
+	# ── SSE streaming: Obsidian import scan ──
+	handle /browser/import/scan/*/stream {
+		reverse_proxy api:8000 {
+			flush_interval -1
+		}
+	}
+
+	# ── WebDAV: extended timeouts, 10MB body limit ──
+	handle /dav/* {
+		reverse_proxy api:8000 {
+			transport http {
+				read_timeout 300s
+				write_timeout 300s
+			}
+		}
+	}
+
+	# ── Obsidian vault upload: no body size limit ──
+	handle /browser/import/upload {
+		request_body {
+			max_size 0
+		}
+		reverse_proxy api:8000
+	}
+
+	# ── API and all other routes → FastAPI ──
+	# CORS is handled by FastAPI's CORSMiddleware (not at the proxy layer).
+	# Caddy does not merge slashes by default — correct behavior, no config needed.
+	handle {
+		reverse_proxy api:8000
+	}
+}
