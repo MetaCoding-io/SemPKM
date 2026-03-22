@@ -46,7 +46,7 @@
   - Verify: `cd backend && .venv/bin/python -m pytest tests/test_form_group.py tests/test_block_registry.py -v`
   - Done when: form-group validates in BlockRegistry, batch with `@slot:note` in edge.create source resolves to the minted IRI from a prior object.create with `slot: "note"`, and unresolved slots return 400.
 
-- [ ] **T02: Render form-group block with multiple SHACL sub-forms and submission JS** `est:2h`
+- [x] **T02: Render form-group block with multiple SHACL sub-forms and submission JS** `est:2h`
   - Why: The form-group block needs to render in the dashboard viewer, showing one SHACL form per slot, and submit all forms as a single batch command with slot references for edges.
   - Files: `backend/app/dashboard/router.py`, `backend/app/templates/browser/dashboard_form_group.html`, `frontend/static/js/workspace.js`, `frontend/static/css/workspace.css`, `backend/tests/test_form_group.py`
   - Do: Add `form-group` handler in `render_block()` that returns an HTML template loading one SHACL sub-form per slot via htmx (each in a namespaced container with `data-slot="name"` and `data-slot-index="N"`). Add form-group template that renders slot sub-forms and a combined Submit button. Add JS function `_submitFormGroup(blockEl)` that collects form data from each slot, builds the batch payload (object.create per slot + edge.create per configured edge with `@slot:` references), POSTs to `/api/commands`, and handles success/error. Add CSS for form-group layout.

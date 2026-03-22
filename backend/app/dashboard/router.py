@@ -358,6 +358,25 @@ async def render_block(
             f'<span class="dashboard-sparql-value" data-query="{query}">...</span></div>'
         )
 
+    elif block_type == "form-group":
+        slots = config.get("slots", [])
+        edges = config.get("edges", [])
+        if not slots:
+            return HTMLResponse(
+                '<div class="dashboard-block dashboard-block-error">'
+                'No slots configured for form-group</div>'
+            )
+        context = {
+            "request": request,
+            "dashboard_id": dashboard_id,
+            "block_index": block_index,
+            "slots": slots,
+            "edges": edges,
+        }
+        return templates.TemplateResponse(
+            request, "browser/dashboard_form_group.html", context
+        )
+
     return HTMLResponse('<div class="dashboard-block dashboard-block-error">Unknown block type</div>')
 
 

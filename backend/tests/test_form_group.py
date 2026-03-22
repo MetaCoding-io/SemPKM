@@ -3,8 +3,10 @@
 Covers:
 - form-group block validation in BlockRegistry (valid/invalid config shapes)
 - Slot resolution in batch commands: happy path, unresolved references, edge cases
+- form-group block render output (template HTML with slot containers and data attributes)
 """
 
+import json
 import pytest
 from unittest.mock import AsyncMock, patch
 
@@ -317,3 +319,148 @@ class TestSlotResolution:
 
         # Only "task" should be in slot_map
         assert slot_map == {"task": "urn:test:obj-1"}
+
+
+# ---------------------------------------------------------------------------
+# Template rendering: form-group block HTML output
+# ---------------------------------------------------------------------------
+
+from pathlib import Path
+from jinja2 import Environment, FileSystemLoader
+
+
+@pytest.fixture
+def jinja_env():
+    """Jinja2 environment pointed at the project's templates directory."""
+    templates_dir = Path(__file__).resolve().parent.parent / "app" / "templates"
+    env = Environment(loader=FileSystemLoader(str(templates_dir)), autoescape=True)
+    return env
+
+
+class TestFormGroupRender:
+    """render_block for form-group produces correct HTML structure."""
+
+    def test_two_slots_renders_two_containers(self, jinja_env):
+        """Template produces one .form-group-slot per configured slot."""
+        tmpl = jinja_env.get_template("browser/dashboard_form_group.html")
+        html = tmpl.render(
+            dashboard_id="test-dash-1",
+            block_index=0,
+            slots=[
+                {"name": "note", "target_class": "urn:sempkm:model:basic-pkm:Note"},
+                {"name": "task", "target_class": "urn:sempkm:model:basic-pkm:Task"},
+            ],
+            edges=[],
+        )
+        assert html.count('class="form-group-slot"') == 2
+        assert 'data-slot="note"' in html
+        assert 'data-slot="task"' in html
+
+    def test_slot_index_attributes(self, jinja_env):
+        """Each slot container has correct data-slot-index (0-based)."""
+        tmpl = jinja_env.get_template("browser/dashboard_form_group.html")
+        html = tmpl.render(
+            dashboard_id="test-dash-1",
+            block_index=0,
+            slots=[
+                {"name": "note", "target_class": "urn:sempkm:model:basic-pkm:Note"},
+                {"name": "task", "target_class": "urn:sempkm:model:basic-pkm:Task"},
+            ],
+            edges=[],
+        )
+        assert 'data-slot-index="0"' in html
+        assert 'data-slot-index="1"' in html
+
+    def test_target_class_attributes(self, jinja_env):
+        """Each slot container has the correct data-target-class."""
+        tmpl = jinja_env.get_template("browser/dashboard_form_group.html")
+        html = tmpl.render(
+            dashboard_id="test-dash-1",
+            block_index=0,
+            slots=[
+                {"name": "note", "target_class": "urn:sempkm:model:basic-pkm:Note"},
+                {"name": "task", "target_class": "urn:sempkm:model:basic-pkm:Task"},
+            ],
+            edges=[],
+        )
+        assert 'data-target-class="urn:sempkm:model:basic-pkm:Note"' in html
+        assert 'data-target-class="urn:sempkm:model:basic-pkm:Task"' in html
+
+    def test_htmx_load_attributes(self, jinja_env):
+        """Each slot container has hx-get to load the SHACL form."""
+        tmpl = jinja_env.get_template("browser/dashboard_form_group.html")
+        html = tmpl.render(
+            dashboard_id="test-dash-1",
+            block_index=0,
+            slots=[
+                {"name": "note", "target_class": "urn:sempkm:model:basic-pkm:Note"},
+            ],
+            edges=[],
+        )
+        assert 'hx-get="/browser/objects/new?type=urn' in html
+        assert 'hx-trigger="load"' in html
+        assert 'hx-swap="innerHTML"' in html
+
+    def test_edges_serialized_as_data_attribute(self, jinja_env):
+        """Edge config is embedded as JSON in data-edges attribute."""
+        tmpl = jinja_env.get_template("browser/dashboard_form_group.html")
+        edges = [
+            {"source_slot": "note", "target_slot": "task", "predicate": "sempkm:relatedTo"},
+        ]
+        html = tmpl.render(
+            dashboard_id="test-dash-1",
+            block_index=0,
+            slots=[
+                {"name": "note", "target_class": "urn:sempkm:model:basic-pkm:Note"},
+                {"name": "task", "target_class": "urn:sempkm:model:basic-pkm:Task"},
+            ],
+            edges=edges,
+        )
+        assert "data-edges='" in html
+        # Extract the JSON from single-quoted attribute
+        import re
+        match = re.search(r"data-edges='([^']*)'", html)
+        assert match, "data-edges attribute not found"
+        edges_json = match.group(1)
+        parsed = json.loads(edges_json)
+        assert len(parsed) == 1
+        assert parsed[0]["source_slot"] == "note"
+        assert parsed[0]["target_slot"] == "task"
+        assert parsed[0]["predicate"] == "sempkm:relatedTo"
+
+    def test_submit_button_present(self, jinja_env):
+        """Template includes a Create All submit button."""
+        tmpl = jinja_env.get_template("browser/dashboard_form_group.html")
+        html = tmpl.render(
+            dashboard_id="test-dash-1",
+            block_index=0,
+            slots=[{"name": "note", "target_class": "urn:test:Note"}],
+            edges=[],
+        )
+        assert 'Create All' in html
+        assert '_submitFormGroup' in html
+
+    def test_result_area_present(self, jinja_env):
+        """Template includes a result/status area div."""
+        tmpl = jinja_env.get_template("browser/dashboard_form_group.html")
+        html = tmpl.render(
+            dashboard_id="test-dash-1",
+            block_index=0,
+            slots=[{"name": "note", "target_class": "urn:test:Note"}],
+            edges=[],
+        )
+        assert 'form-group-result' in html
+
+    def test_empty_slots_not_rendered_by_template(self, jinja_env):
+        """With zero slots, template renders no slot containers (router handles the error)."""
+        tmpl = jinja_env.get_template("browser/dashboard_form_group.html")
+        html = tmpl.render(
+            dashboard_id="test-dash-1",
+            block_index=0,
+            slots=[],
+            edges=[],
+        )
+        assert 'form-group-slot' not in html
+        # Submit button is still present (router guards empty slots before reaching template)
+        assert 'Create All' in html
+

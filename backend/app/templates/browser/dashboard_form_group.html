@@ -1,0 +1,45 @@
+{# Dashboard form-group block template.
+
+   Renders multiple SHACL sub-forms (one per slot) and a combined submit
+   button. Each slot's form is loaded via htmx from /browser/objects/new.
+   The "Create All" button invokes window._submitFormGroup() which collects
+   all sub-form data and POSTs a batch command payload to /api/commands.
+
+   Context:
+     dashboard_id: str — UUID of the parent dashboard
+     block_index: int — block index within the dashboard
+     slots: list[dict] — [{name, target_class}, ...]
+     edges: list[dict] — [{source_slot, target_slot, predicate}, ...]
+#}
+
+<div class="form-group-block"
+     data-dashboard-id="{{ dashboard_id }}"
+     data-block-index="{{ block_index }}"
+     data-edges='{{ edges | tojson }}'>
+
+  {% for slot in slots %}
+  <div class="form-group-slot"
+       data-slot="{{ slot.name }}"
+       data-slot-index="{{ loop.index0 }}"
+       data-target-class="{{ slot.target_class }}"
+       hx-get="/browser/objects/new?type={{ slot.target_class | urlencode }}"
+       hx-trigger="load"
+       hx-swap="innerHTML">
+    <div class="form-group-slot-header">
+      <span class="form-group-slot-label">{{ slot.name | capitalize }}</span>
+    </div>
+    <div class="dashboard-block-loading">Loading form…</div>
+  </div>
+  {% endfor %}
+
+  <div class="form-group-actions">
+    <button type="button"
+            class="btn btn-primary form-group-submit"
+            onclick="window._submitFormGroup(this.closest('.form-group-block'))">
+      <i data-lucide="plus-circle"></i>
+      Create All
+    </button>
+  </div>
+
+  <div class="form-group-result" role="status" aria-live="polite"></div>
+</div>
