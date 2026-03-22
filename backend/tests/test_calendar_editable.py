@@ -6,8 +6,12 @@ Tests the new execute_merged_calendar_query() method, the POST
 behavior with Task scheduling properties from T01.
 """
 
-import pytest
+import uuid
+from dataclasses import dataclass
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+from rdflib import URIRef
 
 from app.services.shapes import NodeShapeForm, PropertyShape, ShapesService
 from app.views.service import ViewSpecService
@@ -151,6 +155,29 @@ class TestDetectDateFieldsScheduling:
         assert start is not None
         assert start.path == "urn:sempkm:model:basic-pkm:dueDate"
         assert end is None
+
+    @pytest.mark.asyncio
+    async def test_event_type_unaffected(self):
+        """Event type with schema:startDate/endDate still detected correctly
+        after scheduling property changes — no regression."""
+        form = _make_form("urn:sempkm:model:basic-pkm:Event", [
+            _make_property(
+                "https://schema.org/startDate", "Start Date",
+            ),
+            _make_property(
+                "https://schema.org/endDate", "End Date",
+            ),
+            _make_property(
+                "http://purl.org/dc/terms/title", "Title",
+                datatype="http://www.w3.org/2001/XMLSchema#string",
+            ),
+        ])
+        svc = _build_service(form_return=form)
+        start, end = await svc._detect_date_fields("urn:sempkm:model:basic-pkm:Event")
+        assert start is not None
+        assert start.path == "https://schema.org/startDate"
+        assert end is not None
+        assert end.path == "https://schema.org/endDate"
 
     @pytest.mark.asyncio
     async def test_scheduledstart_detected_via_well_known_path(self):
@@ -315,6 +342,72 @@ class TestMergedCalendarQuery:
         assert result["types_found"] == []
 
     @pytest.mark.asyncio
+    async def test_events_only_when_no_tasks(self):
+        """When only Event has date fields, merged returns only event results."""
+        event_form = _make_form("urn:sempkm:model:basic-pkm:Event", [
+            _make_property("https://schema.org/startDate", "Start Date"),
+            _make_property("https://schema.org/endDate", "End Date"),
+        ])
+        # Task form has no date properties — only string fields
+        task_form = _make_form("urn:sempkm:model:basic-pkm:Task", [
+            _make_property(
+                "http://purl.org/dc/terms/title", "Title",
+                datatype="http://www.w3.org/2001/XMLSchema#string",
+            ),
+        ])
+        form_map = {
+            "urn:sempkm:model:basic-pkm:Event": event_form,
+            "urn:sempkm:model:basic-pkm:Task": task_form,
+        }
+
+        svc = _build_service(form_map=form_map, query_bindings=[
+            {"s": {"value": "urn:event:1"}, "label": {"value": "Meeting"}, "startDate": {"value": "2025-06-15T10:00:00"}, "endDate": {"value": "2025-06-15T11:00:00"}},
+        ])
+
+        result = await svc.execute_merged_calendar_query()
+
+        assert len(result["events"]) == 1
+        assert result["events"][0]["extendedProps"]["sourceType"] == "event"
+        assert len(result["types_found"]) == 1
+        assert "urn:sempkm:model:basic-pkm:Event" in result["types_found"]
+
+    @pytest.mark.asyncio
+    async def test_tasks_only_when_no_events(self):
+        """When only Task has date fields, merged returns only task results."""
+        # Event form has no date properties
+        event_form = _make_form("urn:sempkm:model:basic-pkm:Event", [
+            _make_property(
+                "http://purl.org/dc/terms/title", "Title",
+                datatype="http://www.w3.org/2001/XMLSchema#string",
+            ),
+        ])
+        task_form = _make_form("urn:sempkm:model:basic-pkm:Task", [
+            _make_property(
+                "urn:sempkm:model:basic-pkm:scheduledStart", "Scheduled Start",
+                datatype="http://www.w3.org/2001/XMLSchema#dateTime",
+            ),
+            _make_property(
+                "urn:sempkm:model:basic-pkm:scheduledEnd", "Scheduled End",
+                datatype="http://www.w3.org/2001/XMLSchema#dateTime",
+            ),
+        ])
+        form_map = {
+            "urn:sempkm:model:basic-pkm:Event": event_form,
+            "urn:sempkm:model:basic-pkm:Task": task_form,
+        }
+
+        svc = _build_service(form_map=form_map, query_bindings=[
+            {"s": {"value": "urn:task:1"}, "label": {"value": "Design Sprint"}, "startDate": {"value": "2025-06-15T14:00:00"}, "endDate": {"value": "2025-06-15T16:00:00"}},
+        ])
+
+        result = await svc.execute_merged_calendar_query()
+
+        assert len(result["events"]) == 1
+        assert result["events"][0]["extendedProps"]["sourceType"] == "task"
+        assert len(result["types_found"]) == 1
+        assert "urn:sempkm:model:basic-pkm:Task" in result["types_found"]
+
+    @pytest.mark.asyncio
     async def test_merged_passes_scope_filter(self):
         """scope_filter is passed through to execute_calendar_query."""
         event_form = _make_form("urn:sempkm:model:basic-pkm:Event", [
@@ -342,11 +435,31 @@ class TestMergedCalendarQuery:
 # ── Calendar PATCH endpoint ────────────────────────────────────
 
 
+@dataclass
+class _FakeEventResult:
+    """Minimal stand-in for EventResult returned by EventStore.commit()."""
+    event_iri: URIRef
+    timestamp: str
+
+
+def _make_fake_user():
+    """Create a minimal User-like object for endpoint tests."""
+    user = MagicMock()
+    user.id = uuid.UUID("00000000-0000-0000-0000-000000000001")
+    user.role = "member"
+    return user
+
+
+def _make_fake_request():
+    """Create a minimal Request-like object for endpoint tests."""
+    return MagicMock()
+
+
 class TestCalendarPatchEndpoint:
     """Tests for the POST /browser/views/calendar/patch endpoint.
 
     These test the endpoint logic by importing and calling the handler
-    with mocked dependencies.
+    with mocked dependencies — both model-level and handler-level.
     """
 
     @pytest.mark.asyncio
@@ -397,3 +510,283 @@ class TestCalendarPatchEndpoint:
         task_preds = _CALENDAR_DATE_PREDICATES["urn:sempkm:model:basic-pkm:Task"]
         assert task_preds["start"] == "urn:sempkm:model:basic-pkm:scheduledStart"
         assert task_preds["end"] == "urn:sempkm:model:basic-pkm:scheduledEnd"
+
+    # ── Handler-level tests (call calendar_patch directly) ─────
+
+    @pytest.mark.asyncio
+    async def test_patch_invalid_iri_returns_400(self):
+        """PATCH with invalid IRI returns 400 status."""
+        from app.views.router import calendar_patch, CalendarPatchRequest
+
+        body = CalendarPatchRequest(iri="not-a-valid-iri", start="2025-06-15T10:00:00")
+        result = await calendar_patch(
+            body=body,
+            request=_make_fake_request(),
+            user=_make_fake_user(),
+            client=MagicMock(),
+            view_spec_service=MagicMock(),
+            validation_queue=MagicMock(),
+            webhook_service=MagicMock(),
+        )
+        assert result.status_code == 400
+        import json
+        content = json.loads(result.body)
+        assert "Invalid IRI" in content["error"]
+
+    @pytest.mark.asyncio
+    async def test_patch_no_dates_returns_400(self):
+        """PATCH with neither start nor end returns 400 status."""
+        from app.views.router import calendar_patch, CalendarPatchRequest
+
+        body = CalendarPatchRequest(iri="urn:sempkm:obj:test-1")
+        result = await calendar_patch(
+            body=body,
+            request=_make_fake_request(),
+            user=_make_fake_user(),
+            client=MagicMock(),
+            view_spec_service=MagicMock(),
+            validation_queue=MagicMock(),
+            webhook_service=MagicMock(),
+        )
+        assert result.status_code == 400
+        import json
+        content = json.loads(result.body)
+        assert "start or end" in content["error"].lower()
+
+    @pytest.mark.asyncio
+    async def test_patch_unsupported_type_returns_400(self):
+        """PATCH on an object whose type is not in the predicate map returns 400."""
+        from app.views.router import calendar_patch, CalendarPatchRequest
+
+        # Mock triplestore returning a type not in _CALENDAR_DATE_PREDICATES
+        client = MagicMock()
+        client.query = AsyncMock(return_value={
+            "results": {"bindings": [
+                {"type": {"value": "urn:sempkm:model:basic-pkm:Note"}},
+            ]},
+        })
+
+        body = CalendarPatchRequest(iri="urn:sempkm:obj:note-1", start="2025-06-15T10:00:00")
+        result = await calendar_patch(
+            body=body,
+            request=_make_fake_request(),
+            user=_make_fake_user(),
+            client=client,
+            view_spec_service=MagicMock(),
+            validation_queue=MagicMock(),
+            webhook_service=MagicMock(),
+        )
+        assert result.status_code == 400
+        import json
+        content = json.loads(result.body)
+        assert "not supported" in content["error"].lower()
+
+    @pytest.mark.asyncio
+    async def test_patch_valid_task_dispatches_correct_predicates(self):
+        """PATCH on a Task dispatches object.patch with scheduledStart/scheduledEnd."""
+        from app.views.router import calendar_patch, CalendarPatchRequest
+
+        # Mock triplestore returning Task type
+        client = MagicMock()
+        client.query = AsyncMock(return_value={
+            "results": {"bindings": [
+                {"type": {"value": "urn:sempkm:model:basic-pkm:Task"}},
+            ]},
+        })
+
+        fake_event_result = _FakeEventResult(
+            event_iri=URIRef("urn:sempkm:event:test-1"),
+            timestamp="2025-06-15T10:00:00+00:00",
+        )
+        validation_queue = MagicMock()
+        validation_queue.enqueue = AsyncMock()
+        webhook_service = MagicMock()
+        webhook_service.dispatch = AsyncMock()
+
+        body = CalendarPatchRequest(
+            iri="urn:sempkm:obj:task-1",
+            start="2025-06-15T14:00:00",
+            end="2025-06-15T16:00:00",
+        )
+
+        with patch("app.commands.dispatcher.dispatch", new_callable=AsyncMock) as mock_dispatch, \
+             patch("app.events.store.EventStore") as MockEventStore:
+
+            mock_dispatch.return_value = MagicMock()  # operation
+            mock_store_instance = MagicMock()
+            mock_store_instance.commit = AsyncMock(return_value=fake_event_result)
+            MockEventStore.return_value = mock_store_instance
+
+            result = await calendar_patch(
+                body=body,
+                request=_make_fake_request(),
+                user=_make_fake_user(),
+                client=client,
+                view_spec_service=MagicMock(),
+                validation_queue=validation_queue,
+                webhook_service=webhook_service,
+            )
+
+        assert result.status_code == 200
+        import json
+        content = json.loads(result.body)
+        assert content["ok"] is True
+        assert content["event_iri"] == "urn:sempkm:event:test-1"
+
+        # Verify the dispatched command used Task predicates
+        mock_dispatch.assert_called_once()
+        dispatched_cmd = mock_dispatch.call_args[0][0]
+        props = dispatched_cmd.params.properties
+        assert "urn:sempkm:model:basic-pkm:scheduledStart" in props
+        assert props["urn:sempkm:model:basic-pkm:scheduledStart"] == "2025-06-15T14:00:00"
+        assert "urn:sempkm:model:basic-pkm:scheduledEnd" in props
+        assert props["urn:sempkm:model:basic-pkm:scheduledEnd"] == "2025-06-15T16:00:00"
+
+    @pytest.mark.asyncio
+    async def test_patch_preserves_event_dates(self):
+        """PATCH on an Event uses schema:startDate/endDate predicates."""
+        from app.views.router import calendar_patch, CalendarPatchRequest
+
+        # Mock triplestore returning Event type
+        client = MagicMock()
+        client.query = AsyncMock(return_value={
+            "results": {"bindings": [
+                {"type": {"value": "urn:sempkm:model:basic-pkm:Event"}},
+            ]},
+        })
+
+        fake_event_result = _FakeEventResult(
+            event_iri=URIRef("urn:sempkm:event:test-2"),
+            timestamp="2025-06-15T10:00:00+00:00",
+        )
+        validation_queue = MagicMock()
+        validation_queue.enqueue = AsyncMock()
+        webhook_service = MagicMock()
+        webhook_service.dispatch = AsyncMock()
+
+        body = CalendarPatchRequest(
+            iri="urn:sempkm:obj:event-1",
+            start="2025-06-15T09:00:00",
+            end="2025-06-15T10:30:00",
+        )
+
+        with patch("app.commands.dispatcher.dispatch", new_callable=AsyncMock) as mock_dispatch, \
+             patch("app.events.store.EventStore") as MockEventStore:
+
+            mock_dispatch.return_value = MagicMock()
+            mock_store_instance = MagicMock()
+            mock_store_instance.commit = AsyncMock(return_value=fake_event_result)
+            MockEventStore.return_value = mock_store_instance
+
+            result = await calendar_patch(
+                body=body,
+                request=_make_fake_request(),
+                user=_make_fake_user(),
+                client=client,
+                view_spec_service=MagicMock(),
+                validation_queue=validation_queue,
+                webhook_service=webhook_service,
+            )
+
+        assert result.status_code == 200
+        import json
+        content = json.loads(result.body)
+        assert content["ok"] is True
+
+        # Verify Event predicates (not Task predicates)
+        mock_dispatch.assert_called_once()
+        dispatched_cmd = mock_dispatch.call_args[0][0]
+        props = dispatched_cmd.params.properties
+        assert "https://schema.org/startDate" in props
+        assert props["https://schema.org/startDate"] == "2025-06-15T09:00:00"
+        assert "https://schema.org/endDate" in props
+        assert props["https://schema.org/endDate"] == "2025-06-15T10:30:00"
+        # Must NOT use Task predicates
+        assert "urn:sempkm:model:basic-pkm:scheduledStart" not in props
+
+    @pytest.mark.asyncio
+    async def test_patch_start_only_omits_end(self):
+        """PATCH with only start date omits end predicate from properties."""
+        from app.views.router import calendar_patch, CalendarPatchRequest
+
+        client = MagicMock()
+        client.query = AsyncMock(return_value={
+            "results": {"bindings": [
+                {"type": {"value": "urn:sempkm:model:basic-pkm:Task"}},
+            ]},
+        })
+
+        fake_event_result = _FakeEventResult(
+            event_iri=URIRef("urn:sempkm:event:test-3"),
+            timestamp="2025-06-15T10:00:00+00:00",
+        )
+        validation_queue = MagicMock()
+        validation_queue.enqueue = AsyncMock()
+        webhook_service = MagicMock()
+        webhook_service.dispatch = AsyncMock()
+
+        body = CalendarPatchRequest(
+            iri="urn:sempkm:obj:task-2",
+            start="2025-06-15T14:00:00",
+        )
+
+        with patch("app.commands.dispatcher.dispatch", new_callable=AsyncMock) as mock_dispatch, \
+             patch("app.events.store.EventStore") as MockEventStore:
+
+            mock_dispatch.return_value = MagicMock()
+            mock_store_instance = MagicMock()
+            mock_store_instance.commit = AsyncMock(return_value=fake_event_result)
+            MockEventStore.return_value = mock_store_instance
+
+            result = await calendar_patch(
+                body=body,
+                request=_make_fake_request(),
+                user=_make_fake_user(),
+                client=client,
+                view_spec_service=MagicMock(),
+                validation_queue=validation_queue,
+                webhook_service=webhook_service,
+            )
+
+        assert result.status_code == 200
+        dispatched_cmd = mock_dispatch.call_args[0][0]
+        props = dispatched_cmd.params.properties
+        assert "urn:sempkm:model:basic-pkm:scheduledStart" in props
+        assert "urn:sempkm:model:basic-pkm:scheduledEnd" not in props
+
+    @pytest.mark.asyncio
+    async def test_patch_dispatch_failure_returns_500(self):
+        """PATCH returns 500 when command dispatch raises."""
+        from app.views.router import calendar_patch, CalendarPatchRequest
+
+        client = MagicMock()
+        client.query = AsyncMock(return_value={
+            "results": {"bindings": [
+                {"type": {"value": "urn:sempkm:model:basic-pkm:Task"}},
+            ]},
+        })
+
+        body = CalendarPatchRequest(
+            iri="urn:sempkm:obj:task-3",
+            start="2025-06-15T14:00:00",
+        )
+
+        with patch("app.commands.dispatcher.dispatch", new_callable=AsyncMock) as mock_dispatch, \
+             patch("app.events.store.EventStore"):
+
+            mock_dispatch.side_effect = RuntimeError("triplestore down")
+
+            result = await calendar_patch(
+                body=body,
+                request=_make_fake_request(),
+                user=_make_fake_user(),
+                client=client,
+                view_spec_service=MagicMock(),
+                validation_queue=MagicMock(),
+                webhook_service=MagicMock(),
+            )
+
+        assert result.status_code == 500
+        import json
+        content = json.loads(result.body)
+        assert "Patch failed" in content["error"]

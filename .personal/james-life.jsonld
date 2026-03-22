@@ -1,0 +1,1679 @@
+{
+  "@context": {
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "schema": "https://schema.org/",
+    "ppv": "urn:sempkm:model:ppv:"
+  },
+  "@graph": [
+    {
+      "@id": "ppv:group-growth",
+      "@type": "ppv:PillarGroup",
+      "dcterms:title": "Growth",
+      "dcterms:description": "Personal development, health, learning, and inner life.",
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:group-business",
+      "@type": "ppv:PillarGroup",
+      "dcterms:title": "Business",
+      "dcterms:description": "Career, finances, and creative endeavors.",
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:group-home-social",
+      "@type": "ppv:PillarGroup",
+      "dcterms:title": "Home & Social",
+      "dcterms:description": "Relationships, living environment, and recreation.",
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:pillar-health",
+      "@type": "ppv:Pillar",
+      "dcterms:title": "Health & Fitness",
+      "dcterms:description": "Physical health, exercise, nutrition, sleep, and overall wellness.",
+      "ppv:status": "Active",
+      "ppv:icon": "💪",
+      "ppv:color": "green",
+      "ppv:order": {
+        "@value": "1",
+        "@type": "xsd:integer"
+      },
+      "ppv:pillarGroup": {
+        "@id": "ppv:group-growth"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:pillar-mental-health",
+      "@type": "ppv:Pillar",
+      "dcterms:title": "Mental Health & Mindfulness",
+      "dcterms:description": "Meditation, journaling, therapy, stress management, and emotional well-being.",
+      "ppv:status": "Active",
+      "ppv:icon": "🧠",
+      "ppv:color": "purple",
+      "ppv:order": {
+        "@value": "2",
+        "@type": "xsd:integer"
+      },
+      "ppv:pillarGroup": {
+        "@id": "ppv:group-growth"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:pillar-learning",
+      "@type": "ppv:Pillar",
+      "dcterms:title": "Learning & Personal Growth",
+      "dcterms:description": "Reading, courses, skill building, and expanding capabilities beyond career.",
+      "ppv:status": "Active",
+      "ppv:icon": "📚",
+      "ppv:color": "teal",
+      "ppv:order": {
+        "@value": "3",
+        "@type": "xsd:integer"
+      },
+      "ppv:pillarGroup": {
+        "@id": "ppv:group-growth"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:pillar-career",
+      "@type": "ppv:Pillar",
+      "dcterms:title": "Career Development",
+      "dcterms:description": "Professional growth, skill building, career trajectory, and workplace effectiveness.",
+      "ppv:status": "Active",
+      "ppv:icon": "🚀",
+      "ppv:color": "blue",
+      "ppv:order": {
+        "@value": "4",
+        "@type": "xsd:integer"
+      },
+      "ppv:pillarGroup": {
+        "@id": "ppv:group-business"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:pillar-finances",
+      "@type": "ppv:Pillar",
+      "dcterms:title": "Finances & Wealth",
+      "dcterms:description": "Money management, investing, financial independence, and income growth.",
+      "ppv:status": "Active",
+      "ppv:icon": "💰",
+      "ppv:color": "gold",
+      "ppv:order": {
+        "@value": "5",
+        "@type": "xsd:integer"
+      },
+      "ppv:pillarGroup": {
+        "@id": "ppv:group-business"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:pillar-creative",
+      "@type": "ppv:Pillar",
+      "dcterms:title": "Creative Work & Side Projects",
+      "dcterms:description": "Making things outside the day job — writing, building, creating.",
+      "ppv:status": "Active",
+      "ppv:icon": "🎨",
+      "ppv:color": "orange",
+      "ppv:order": {
+        "@value": "6",
+        "@type": "xsd:integer"
+      },
+      "ppv:pillarGroup": {
+        "@id": "ppv:group-business"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:pillar-relationships",
+      "@type": "ppv:Pillar",
+      "dcterms:title": "Relationships",
+      "dcterms:description": "Partner, family bonds, friendships, and community connections.",
+      "ppv:status": "Active",
+      "ppv:icon": "❤️",
+      "ppv:color": "red",
+      "ppv:order": {
+        "@value": "7",
+        "@type": "xsd:integer"
+      },
+      "ppv:pillarGroup": {
+        "@id": "ppv:group-home-social"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:pillar-home",
+      "@type": "ppv:Pillar",
+      "dcterms:title": "Home & Environment",
+      "dcterms:description": "Living space, organization, household systems, and surroundings.",
+      "ppv:status": "Active",
+      "ppv:icon": "🏠",
+      "ppv:color": "brown",
+      "ppv:order": {
+        "@value": "8",
+        "@type": "xsd:integer"
+      },
+      "ppv:pillarGroup": {
+        "@id": "ppv:group-home-social"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:pillar-fun",
+      "@type": "ppv:Pillar",
+      "dcterms:title": "Fun & Recreation",
+      "dcterms:description": "Hobbies, travel, entertainment, and the things that recharge you.",
+      "ppv:status": "Active",
+      "ppv:icon": "🎯",
+      "ppv:color": "cyan",
+      "ppv:order": {
+        "@value": "9",
+        "@type": "xsd:integer"
+      },
+      "ppv:pillarGroup": {
+        "@id": "ppv:group-home-social"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:vg-build-life-with-partner",
+      "@type": "ppv:ValueGoal",
+      "dcterms:title": "Build a Life with My Partner",
+      "dcterms:description": "Take the next major steps in our relationship — proposal, engagement, and building a shared future together.",
+      "ppv:pillar": {
+        "@id": "ppv:pillar-relationships"
+      },
+      "ppv:status": "Underway",
+      "ppv:priority": "1st Priority",
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:vg-strengthen-family",
+      "@type": "ppv:ValueGoal",
+      "dcterms:title": "Strengthen Family Bonds",
+      "dcterms:description": "Invest real time and attention in family — reconnect with extended family, mentor nephew Jack, show up more.",
+      "ppv:pillar": {
+        "@id": "ppv:pillar-relationships"
+      },
+      "ppv:status": "Underway",
+      "ppv:priority": "2nd Priority",
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:vg-investment-income",
+      "@type": "ppv:ValueGoal",
+      "dcterms:title": "Build Investment Income Streams",
+      "dcterms:description": "Develop knowledge and positions in options trading to create a recurring cashflow stream outside of salary.",
+      "ppv:pillar": {
+        "@id": "ppv:pillar-finances"
+      },
+      "ppv:status": "Underway",
+      "ppv:priority": "1st Priority",
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:vg-practical-life-skills",
+      "@type": "ppv:ValueGoal",
+      "dcterms:title": "Build Practical Life Skills",
+      "dcterms:description": "Close the gaps on essential life skills that expand independence and capability.",
+      "ppv:pillar": {
+        "@id": "ppv:pillar-learning"
+      },
+      "ppv:status": "Underway",
+      "ppv:priority": "1st Priority",
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:vg-stay-active",
+      "@type": "ppv:ValueGoal",
+      "dcterms:title": "Stay Physically Active",
+      "dcterms:description": "Maintain an active lifestyle through sports and regular physical activity.",
+      "ppv:pillar": {
+        "@id": "ppv:pillar-health"
+      },
+      "ppv:status": "Underway",
+      "ppv:priority": "1st Priority",
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:vg-play-music",
+      "@type": "ppv:ValueGoal",
+      "dcterms:title": "Play Music Again",
+      "dcterms:description": "Get back into drumming — whether through lessons, practice at home, or both.",
+      "ppv:pillar": {
+        "@id": "ppv:pillar-fun"
+      },
+      "ppv:status": "Underway",
+      "ppv:priority": "1st Priority",
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:vg-tidy-life-admin",
+      "@type": "ppv:ValueGoal",
+      "dcterms:title": "Keep Life Admin Under Control",
+      "dcterms:description": "Stay on top of paperwork, household admin, and the unglamorous stuff that piles up when ignored.",
+      "ppv:pillar": {
+        "@id": "ppv:pillar-home"
+      },
+      "ppv:status": "Underway",
+      "ppv:priority": "1st Priority",
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:vg-build-ai-projects",
+      "@type": "ppv:ValueGoal",
+      "dcterms:title": "Build AI Projects",
+      "dcterms:description": "Collaborate with buddy on AI projects — learn by building, ship real things.",
+      "ppv:pillar": {
+        "@id": "ppv:pillar-creative"
+      },
+      "ppv:status": "Underway",
+      "ppv:priority": "1st Priority",
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:go-propose",
+      "@type": "ppv:GoalOutcome",
+      "dcterms:title": "Propose",
+      "dcterms:description": "Plan and execute a meaningful wedding proposal.",
+      "ppv:valueGoal": {
+        "@id": "ppv:vg-build-life-with-partner"
+      },
+      "ppv:status": "Active",
+      "ppv:progress": {
+        "@value": "10",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:go-wedding-bands",
+      "@type": "ppv:GoalOutcome",
+      "dcterms:title": "Wedding Bands Secured",
+      "dcterms:description": "Finish purchasing the wedding bands — sizing, ordering, delivery confirmed.",
+      "ppv:valueGoal": {
+        "@id": "ppv:vg-build-life-with-partner"
+      },
+      "ppv:status": "Active",
+      "ppv:progress": {
+        "@value": "50",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:go-reconnect-family",
+      "@type": "ppv:GoalOutcome",
+      "dcterms:title": "Reconnect with Joseph & Adrianna",
+      "dcterms:description": "Re-establish contact with cousins Joseph and Adrianna. It's been a while and there are messages to respond to — handle with care.",
+      "ppv:valueGoal": {
+        "@id": "ppv:vg-strengthen-family"
+      },
+      "ppv:status": "Active",
+      "ppv:progress": {
+        "@value": "0",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:go-mentor-jack",
+      "@type": "ppv:GoalOutcome",
+      "dcterms:title": "Mentor Jack Beyond Math",
+      "dcterms:description": "Expand weekly tutoring to include programming, career thinking, and other practical skills. Push him to grow.",
+      "ppv:valueGoal": {
+        "@id": "ppv:vg-strengthen-family"
+      },
+      "ppv:status": "Active",
+      "ppv:progress": {
+        "@value": "20",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:go-oca-program",
+      "@type": "ppv:GoalOutcome",
+      "dcterms:title": "Join Options Cashflow Accelerator Program",
+      "dcterms:description": "Enroll in the OCA program to start building options trading knowledge and cashflow.",
+      "ppv:valueGoal": {
+        "@id": "ppv:vg-investment-income"
+      },
+      "ppv:status": "Active",
+      "ppv:progress": {
+        "@value": "0",
+        "@type": "xsd:integer"
+      },
+      "ppv:targetDate": {
+        "@value": "2026-03-31",
+        "@type": "xsd:date"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:go-drivers-license",
+      "@type": "ppv:GoalOutcome",
+      "dcterms:title": "Get Driver's License",
+      "dcterms:description": "Obtain a driver's license — written test, driving lessons, road test.",
+      "ppv:valueGoal": {
+        "@id": "ppv:vg-practical-life-skills"
+      },
+      "ppv:status": "Active",
+      "ppv:progress": {
+        "@value": "0",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:go-soccer-gear",
+      "@type": "ppv:GoalOutcome",
+      "dcterms:title": "Stay Game-Ready for Soccer",
+      "dcterms:description": "Keep gear current so nothing blocks playing.",
+      "ppv:valueGoal": {
+        "@id": "ppv:vg-stay-active"
+      },
+      "ppv:status": "Active",
+      "ppv:progress": {
+        "@value": "0",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:go-start-drumming",
+      "@type": "ppv:GoalOutcome",
+      "dcterms:title": "Start Drumming Again",
+      "dcterms:description": "Get a practice setup at home and/or find a teacher. Be playing regularly.",
+      "ppv:valueGoal": {
+        "@id": "ppv:vg-play-music"
+      },
+      "ppv:status": "Active",
+      "ppv:progress": {
+        "@value": "0",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:go-process-old-mail",
+      "@type": "ppv:GoalOutcome",
+      "dcterms:title": "Clear the Mail Backlog",
+      "dcterms:description": "Go through all accumulated old mail, extract anything important, shred the rest.",
+      "ppv:valueGoal": {
+        "@id": "ppv:vg-tidy-life-admin"
+      },
+      "ppv:status": "Active",
+      "ppv:progress": {
+        "@value": "0",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:go-cloud-env",
+      "@type": "ppv:GoalOutcome",
+      "dcterms:title": "Working Cloud Environment for AI Collaboration",
+      "dcterms:description": "Set up a shared cloud dev environment so you and your buddy can build AI projects together.",
+      "ppv:valueGoal": {
+        "@id": "ppv:vg-build-ai-projects"
+      },
+      "ppv:status": "Active",
+      "ppv:progress": {
+        "@value": "0",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:proj-plan-proposal",
+      "@type": "ppv:Project",
+      "dcterms:title": "Plan the Proposal",
+      "dcterms:description": "Figure out the when, where, and how of the proposal. Location scouting, logistics, any accomplices, the words.",
+      "ppv:goalOutcome": {
+        "@id": "ppv:go-propose"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-relationships"
+      },
+      "ppv:status": "Active",
+      "ppv:priority": "1st Priority",
+      "ppv:progress": {
+        "@value": "10",
+        "@type": "xsd:integer"
+      },
+      "schema:startDate": {
+        "@value": "2026-03-21",
+        "@type": "xsd:date"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:proj-wedding-bands",
+      "@type": "ppv:Project",
+      "dcterms:title": "Finish Buying Wedding Bands",
+      "dcterms:description": "Complete sizing, finalize selection, place the order, confirm delivery.",
+      "ppv:goalOutcome": {
+        "@id": "ppv:go-wedding-bands"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-relationships"
+      },
+      "ppv:status": "Active",
+      "ppv:priority": "1st Priority",
+      "ppv:progress": {
+        "@value": "50",
+        "@type": "xsd:integer"
+      },
+      "schema:startDate": {
+        "@value": "2026-03-21",
+        "@type": "xsd:date"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:proj-reconnect-joseph",
+      "@type": "ppv:Project",
+      "dcterms:title": "Write Back to Joseph",
+      "dcterms:description": "It's been a long time and you forgot to respond. This needs a thoughtful, unhurried reply — not a quick text. Set aside real time to write something genuine.",
+      "ppv:goalOutcome": {
+        "@id": "ppv:go-reconnect-family"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-relationships"
+      },
+      "ppv:status": "Active",
+      "ppv:priority": "2nd Priority",
+      "ppv:progress": {
+        "@value": "0",
+        "@type": "xsd:integer"
+      },
+      "schema:startDate": {
+        "@value": "2026-03-21",
+        "@type": "xsd:date"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:proj-reconnect-adrianna",
+      "@type": "ppv:Project",
+      "dcterms:title": "Write Back to Adrianna",
+      "dcterms:description": "Same as Joseph — dropped the ball on responding, been a while. Needs care, not haste. Set aside a quiet window to write a real reply.",
+      "ppv:goalOutcome": {
+        "@id": "ppv:go-reconnect-family"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-relationships"
+      },
+      "ppv:status": "Active",
+      "ppv:priority": "2nd Priority",
+      "ppv:progress": {
+        "@value": "0",
+        "@type": "xsd:integer"
+      },
+      "schema:startDate": {
+        "@value": "2026-03-21",
+        "@type": "xsd:date"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:proj-mentor-jack",
+      "@type": "ppv:Project",
+      "dcterms:title": "Expand Jack's Tutoring into Programming & Career",
+      "dcterms:description": "Already have a weekly math tutoring cadence. Start weaving in programming fundamentals, career thinking, and other practical skills to push his growth.",
+      "ppv:goalOutcome": {
+        "@id": "ppv:go-mentor-jack"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-relationships"
+      },
+      "ppv:status": "Active",
+      "ppv:priority": "2nd Priority",
+      "ppv:progress": {
+        "@value": "0",
+        "@type": "xsd:integer"
+      },
+      "schema:startDate": {
+        "@value": "2026-03-21",
+        "@type": "xsd:date"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:proj-oca-enroll",
+      "@type": "ppv:Project",
+      "dcterms:title": "Enroll in OCA Program",
+      "dcterms:description": "Research, allocate funds, and purchase the Options Cashflow Accelerator program before end of March.",
+      "ppv:goalOutcome": {
+        "@id": "ppv:go-oca-program"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-finances"
+      },
+      "ppv:status": "Active",
+      "ppv:priority": "1st Priority",
+      "ppv:progress": {
+        "@value": "0",
+        "@type": "xsd:integer"
+      },
+      "schema:startDate": {
+        "@value": "2026-03-21",
+        "@type": "xsd:date"
+      },
+      "ppv:dueDate": {
+        "@value": "2026-03-31",
+        "@type": "xsd:date"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:proj-learn-to-drive",
+      "@type": "ppv:Project",
+      "dcterms:title": "Learn to Drive",
+      "dcterms:description": "Get permit, take lessons, pass written and road tests.",
+      "ppv:goalOutcome": {
+        "@id": "ppv:go-drivers-license"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-learning"
+      },
+      "ppv:status": "Active",
+      "ppv:priority": "1st Priority",
+      "ppv:progress": {
+        "@value": "0",
+        "@type": "xsd:integer"
+      },
+      "schema:startDate": {
+        "@value": "2026-03-21",
+        "@type": "xsd:date"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:proj-process-mail",
+      "@type": "ppv:Project",
+      "dcterms:title": "Process Old Mail Backlog",
+      "dcterms:description": "Sort through all the accumulated old mail. Extract anything useful (tax docs, important notices, etc.) and take the rest to UPS to shred.",
+      "ppv:goalOutcome": {
+        "@id": "ppv:go-process-old-mail"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-home"
+      },
+      "ppv:status": "Active",
+      "ppv:priority": "2nd Priority",
+      "ppv:progress": {
+        "@value": "0",
+        "@type": "xsd:integer"
+      },
+      "schema:startDate": {
+        "@value": "2026-03-21",
+        "@type": "xsd:date"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:proj-cloud-env",
+      "@type": "ppv:Project",
+      "dcterms:title": "Set Up Cloud Dev Environment for AI Projects",
+      "dcterms:description": "Stand up a shared cloud environment where you and your buddy can collaborate on AI projects.",
+      "ppv:goalOutcome": {
+        "@id": "ppv:go-cloud-env"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-creative"
+      },
+      "ppv:status": "Active",
+      "ppv:priority": "1st Priority",
+      "ppv:progress": {
+        "@value": "0",
+        "@type": "xsd:integer"
+      },
+      "schema:startDate": {
+        "@value": "2026-03-21",
+        "@type": "xsd:date"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:proj-get-back-into-drums",
+      "@type": "ppv:Project",
+      "dcterms:title": "Get Back Into Drums",
+      "dcterms:description": "Find a way to practice at home (aerodrums), explore lessons — check if old teacher is still around, find local options.",
+      "ppv:goalOutcome": {
+        "@id": "ppv:go-start-drumming"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-fun"
+      },
+      "ppv:status": "Active",
+      "ppv:priority": "1st Priority",
+      "ppv:progress": {
+        "@value": "0",
+        "@type": "xsd:integer"
+      },
+      "schema:startDate": {
+        "@value": "2026-03-21",
+        "@type": "xsd:date"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:action-proposal-brainstorm-locations",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "Brainstorm proposal locations",
+      "dcterms:description": "List 3-5 places that are meaningful to your relationship. Think about where you first met, favorite date spots, or somewhere new that would feel special.",
+      "ppv:project": {
+        "@id": "ppv:proj-plan-proposal"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-relationships"
+      },
+      "ppv:status": "Active",
+      "ppv:priority": "1st Priority",
+      "ppv:done": false,
+      "ppv:doDate": {
+        "@value": "2026-03-23",
+        "@type": "xsd:date"
+      },
+      "ppv:context": "anywhere",
+      "ppv:energy": "medium",
+      "ppv:timeEstimate": {
+        "@value": "30",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:action-proposal-decide-accomplices",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "Decide if anyone else should be involved",
+      "dcterms:description": "Photographer? Family hiding nearby? Or just the two of you? Decide the vibe.",
+      "ppv:project": {
+        "@id": "ppv:proj-plan-proposal"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-relationships"
+      },
+      "ppv:status": "Next Up",
+      "ppv:priority": "2nd Priority",
+      "ppv:done": false,
+      "ppv:doDate": {
+        "@value": "2026-03-25",
+        "@type": "xsd:date"
+      },
+      "ppv:context": "anywhere",
+      "ppv:energy": "medium",
+      "ppv:timeEstimate": {
+        "@value": "20",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:action-proposal-write-words",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "Draft what you want to say",
+      "dcterms:description": "Doesn't need to be a speech — just the core of what you want her to hear. Write from the heart, edit later.",
+      "ppv:project": {
+        "@id": "ppv:proj-plan-proposal"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-relationships"
+      },
+      "ppv:status": "Next Up",
+      "ppv:priority": "2nd Priority",
+      "ppv:done": false,
+      "ppv:doDate": {
+        "@value": "2026-03-28",
+        "@type": "xsd:date"
+      },
+      "ppv:context": "home",
+      "ppv:energy": "high",
+      "ppv:timeEstimate": {
+        "@value": "45",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:action-bands-confirm-sizing",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "Confirm ring sizing for both bands",
+      "ppv:project": {
+        "@id": "ppv:proj-wedding-bands"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-relationships"
+      },
+      "ppv:status": "Active",
+      "ppv:priority": "Immediate",
+      "ppv:done": false,
+      "ppv:doDate": {
+        "@value": "2026-03-23",
+        "@type": "xsd:date"
+      },
+      "ppv:context": "errands",
+      "ppv:energy": "low",
+      "ppv:timeEstimate": {
+        "@value": "30",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:action-bands-place-order",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "Place the wedding band order",
+      "ppv:project": {
+        "@id": "ppv:proj-wedding-bands"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-relationships"
+      },
+      "ppv:status": "Next Up",
+      "ppv:priority": "Immediate",
+      "ppv:done": false,
+      "ppv:doDate": {
+        "@value": "2026-03-24",
+        "@type": "xsd:date"
+      },
+      "ppv:context": "computer",
+      "ppv:energy": "low",
+      "ppv:timeEstimate": {
+        "@value": "20",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:action-bands-confirm-delivery",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "Confirm delivery timeline for bands",
+      "dcterms:description": "Make sure bands arrive before the proposal date you pick.",
+      "ppv:project": {
+        "@id": "ppv:proj-wedding-bands"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-relationships"
+      },
+      "ppv:status": "Future 1",
+      "ppv:priority": "Scheduled",
+      "ppv:done": false,
+      "ppv:context": "computer",
+      "ppv:energy": "low",
+      "ppv:timeEstimate": {
+        "@value": "10",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:action-write-joseph",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "Set aside time to write a thoughtful response to Joseph",
+      "dcterms:description": "It's been a long time and you forgot to write back. Don't rush this — find a quiet 30-minute window, re-read his last message, and write something real. Acknowledge the gap without over-apologizing.",
+      "ppv:project": {
+        "@id": "ppv:proj-reconnect-joseph"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-relationships"
+      },
+      "ppv:status": "Active",
+      "ppv:priority": "2nd Priority",
+      "ppv:done": false,
+      "ppv:doDate": {
+        "@value": "2026-03-24",
+        "@type": "xsd:date"
+      },
+      "ppv:context": "home",
+      "ppv:energy": "medium",
+      "ppv:timeEstimate": {
+        "@value": "30",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:action-joseph-followup",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "Follow up with Joseph — suggest a call or hangout",
+      "dcterms:description": "After the initial reply lands, propose something concrete: a call, a meal, a visit.",
+      "ppv:project": {
+        "@id": "ppv:proj-reconnect-joseph"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-relationships"
+      },
+      "ppv:status": "Future 1",
+      "ppv:priority": "Scheduled",
+      "ppv:done": false,
+      "ppv:doDate": {
+        "@value": "2026-03-29",
+        "@type": "xsd:date"
+      },
+      "ppv:context": "calls",
+      "ppv:energy": "low",
+      "ppv:timeEstimate": {
+        "@value": "10",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:action-write-adrianna",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "Set aside time to write a thoughtful response to Adrianna",
+      "dcterms:description": "Same situation as Joseph — you owe her a real reply. Find a quiet window, re-read her message, write something genuine.",
+      "ppv:project": {
+        "@id": "ppv:proj-reconnect-adrianna"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-relationships"
+      },
+      "ppv:status": "Active",
+      "ppv:priority": "2nd Priority",
+      "ppv:done": false,
+      "ppv:doDate": {
+        "@value": "2026-03-25",
+        "@type": "xsd:date"
+      },
+      "ppv:context": "home",
+      "ppv:energy": "medium",
+      "ppv:timeEstimate": {
+        "@value": "30",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:action-adrianna-followup",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "Follow up with Adrianna — suggest catching up",
+      "ppv:project": {
+        "@id": "ppv:proj-reconnect-adrianna"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-relationships"
+      },
+      "ppv:status": "Future 1",
+      "ppv:priority": "Scheduled",
+      "ppv:done": false,
+      "ppv:doDate": {
+        "@value": "2026-03-29",
+        "@type": "xsd:date"
+      },
+      "ppv:context": "calls",
+      "ppv:energy": "low",
+      "ppv:timeEstimate": {
+        "@value": "10",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:action-jack-pick-first-language",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "Pick a first programming language/tool for Jack",
+      "dcterms:description": "Consider his age and interests. Scratch? Python? JavaScript? Something he can see results from quickly. Maybe tie it to something he already cares about (games, math visualizations).",
+      "ppv:project": {
+        "@id": "ppv:proj-mentor-jack"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-relationships"
+      },
+      "ppv:status": "Active",
+      "ppv:priority": "2nd Priority",
+      "ppv:done": false,
+      "ppv:doDate": {
+        "@value": "2026-03-24",
+        "@type": "xsd:date"
+      },
+      "ppv:context": "anywhere",
+      "ppv:energy": "medium",
+      "ppv:timeEstimate": {
+        "@value": "20",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:action-jack-first-programming-session",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "Run first programming mini-lesson with Jack",
+      "dcterms:description": "Introduce it during the next tutoring session — 15-20 min at the end. Keep it fun, low-pressure. Build something small together.",
+      "ppv:project": {
+        "@id": "ppv:proj-mentor-jack"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-relationships"
+      },
+      "ppv:status": "Next Up",
+      "ppv:priority": "Scheduled",
+      "ppv:done": false,
+      "ppv:doDate": {
+        "@value": "2026-03-25",
+        "@type": "xsd:date"
+      },
+      "ppv:context": "home",
+      "ppv:energy": "medium",
+      "ppv:timeEstimate": {
+        "@value": "30",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:action-jack-career-convo",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "Have a casual career/interests conversation with Jack",
+      "dcterms:description": "What does he think is cool? What does he want to be? No pressure — just listen and plant seeds.",
+      "ppv:project": {
+        "@id": "ppv:proj-mentor-jack"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-relationships"
+      },
+      "ppv:status": "Next Up",
+      "ppv:priority": "3rd Priority",
+      "ppv:done": false,
+      "ppv:doDate": {
+        "@value": "2026-03-25",
+        "@type": "xsd:date"
+      },
+      "ppv:context": "home",
+      "ppv:energy": "low",
+      "ppv:timeEstimate": {
+        "@value": "15",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:action-oca-research",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "Review OCA program details and cost",
+      "dcterms:description": "Check the program page, confirm price, what's included, payment options.",
+      "ppv:project": {
+        "@id": "ppv:proj-oca-enroll"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-finances"
+      },
+      "ppv:status": "Active",
+      "ppv:priority": "Immediate",
+      "ppv:done": false,
+      "ppv:doDate": {
+        "@value": "2026-03-23",
+        "@type": "xsd:date"
+      },
+      "ppv:context": "computer",
+      "ppv:energy": "medium",
+      "ppv:timeEstimate": {
+        "@value": "30",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:action-oca-allocate-funds",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "Allocate funds for OCA purchase",
+      "dcterms:description": "Move money into the right account or confirm you have the budget.",
+      "ppv:project": {
+        "@id": "ppv:proj-oca-enroll"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-finances"
+      },
+      "ppv:status": "Next Up",
+      "ppv:priority": "Immediate",
+      "ppv:done": false,
+      "ppv:doDate": {
+        "@value": "2026-03-24",
+        "@type": "xsd:date"
+      },
+      "ppv:context": "computer",
+      "ppv:energy": "low",
+      "ppv:timeEstimate": {
+        "@value": "15",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:action-oca-purchase",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "Purchase OCA program",
+      "dcterms:description": "⚠️ DEADLINE: March 31, 2026. Do not let this slip.",
+      "ppv:project": {
+        "@id": "ppv:proj-oca-enroll"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-finances"
+      },
+      "ppv:status": "Next Up",
+      "ppv:priority": "Immediate",
+      "ppv:done": false,
+      "ppv:doDate": {
+        "@value": "2026-03-27",
+        "@type": "xsd:date"
+      },
+      "ppv:context": "computer",
+      "ppv:energy": "low",
+      "ppv:timeEstimate": {
+        "@value": "15",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:action-drive-research-requirements",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "Research permit requirements in your state",
+      "dcterms:description": "What documents do you need? Is there a written test? What's the minimum age/residency requirement? Find the DMV page.",
+      "ppv:project": {
+        "@id": "ppv:proj-learn-to-drive"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-learning"
+      },
+      "ppv:status": "Active",
+      "ppv:priority": "2nd Priority",
+      "ppv:done": false,
+      "ppv:doDate": {
+        "@value": "2026-03-24",
+        "@type": "xsd:date"
+      },
+      "ppv:context": "computer",
+      "ppv:energy": "low",
+      "ppv:timeEstimate": {
+        "@value": "20",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:action-drive-research-schools",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "Research local driving schools",
+      "dcterms:description": "Check reviews, pricing, and scheduling. Ask friends for recommendations.",
+      "ppv:project": {
+        "@id": "ppv:proj-learn-to-drive"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-learning"
+      },
+      "ppv:status": "Next Up",
+      "ppv:priority": "Scheduled",
+      "ppv:done": false,
+      "ppv:doDate": {
+        "@value": "2026-03-27",
+        "@type": "xsd:date"
+      },
+      "ppv:context": "computer",
+      "ppv:energy": "low",
+      "ppv:timeEstimate": {
+        "@value": "30",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:action-drive-study-written-test",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "Start studying for the written permit test",
+      "dcterms:description": "Download the driver's manual or find a practice test app.",
+      "ppv:project": {
+        "@id": "ppv:proj-learn-to-drive"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-learning"
+      },
+      "ppv:status": "Future 1",
+      "ppv:priority": "Scheduled",
+      "ppv:done": false,
+      "ppv:doDate": {
+        "@value": "2026-04-01",
+        "@type": "xsd:date"
+      },
+      "ppv:context": "anywhere",
+      "ppv:energy": "medium",
+      "ppv:timeEstimate": {
+        "@value": "60",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:action-mail-sort",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "Sort through all old mail — keep pile vs. shred pile",
+      "dcterms:description": "Go through the entire backlog. Pull out anything important (tax documents, insurance, legal notices, statements you need). Everything else goes in the shred pile.",
+      "ppv:project": {
+        "@id": "ppv:proj-process-mail"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-home"
+      },
+      "ppv:status": "Active",
+      "ppv:priority": "2nd Priority",
+      "ppv:done": false,
+      "ppv:doDate": {
+        "@value": "2026-03-24",
+        "@type": "xsd:date"
+      },
+      "ppv:context": "home",
+      "ppv:energy": "low",
+      "ppv:timeEstimate": {
+        "@value": "60",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:action-mail-file-keepers",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "File or scan the important documents",
+      "dcterms:description": "Anything worth keeping — file it properly or scan it digitally.",
+      "ppv:project": {
+        "@id": "ppv:proj-process-mail"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-home"
+      },
+      "ppv:status": "Next Up",
+      "ppv:priority": "Scheduled",
+      "ppv:done": false,
+      "ppv:doDate": {
+        "@value": "2026-03-25",
+        "@type": "xsd:date"
+      },
+      "ppv:context": "home",
+      "ppv:energy": "low",
+      "ppv:timeEstimate": {
+        "@value": "30",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:action-mail-ups-shred",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "Drop shred pile off at UPS",
+      "ppv:project": {
+        "@id": "ppv:proj-process-mail"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-home"
+      },
+      "ppv:status": "Next Up",
+      "ppv:priority": "Errand",
+      "ppv:done": false,
+      "ppv:doDate": {
+        "@value": "2026-03-26",
+        "@type": "xsd:date"
+      },
+      "ppv:context": "errands",
+      "ppv:energy": "low",
+      "ppv:timeEstimate": {
+        "@value": "20",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:action-cloud-env-setup",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "Set up cloud environment for AI projects with buddy",
+      "dcterms:description": "Pick a provider, spin up the environment, configure access for both of you. Keep it simple — can upgrade later.",
+      "ppv:project": {
+        "@id": "ppv:proj-cloud-env"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-creative"
+      },
+      "ppv:status": "Active",
+      "ppv:priority": "2nd Priority",
+      "ppv:done": false,
+      "ppv:doDate": {
+        "@value": "2026-03-26",
+        "@type": "xsd:date"
+      },
+      "ppv:context": "computer",
+      "ppv:energy": "high",
+      "ppv:timeEstimate": {
+        "@value": "90",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:action-soccer-game-sun",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "Soccer game — 9:00 PM",
+      "ppv:pillar": {
+        "@id": "ppv:pillar-health"
+      },
+      "ppv:status": "Active",
+      "ppv:priority": "Scheduled",
+      "ppv:done": false,
+      "ppv:doDate": {
+        "@value": "2026-03-22",
+        "@type": "xsd:date"
+      },
+      "ppv:context": "anywhere",
+      "ppv:energy": "high",
+      "ppv:timeEstimate": {
+        "@value": "90",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:action-buy-soccer-cleats",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "Buy bigger soccer cleats",
+      "ppv:pillar": {
+        "@id": "ppv:pillar-health"
+      },
+      "ppv:status": "Active",
+      "ppv:priority": "Errand",
+      "ppv:done": false,
+      "ppv:doDate": {
+        "@value": "2026-03-26",
+        "@type": "xsd:date"
+      },
+      "ppv:context": "errands",
+      "ppv:energy": "low",
+      "ppv:timeEstimate": {
+        "@value": "45",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:action-find-aerodrums",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "Find aerodrums — research where to buy and pricing",
+      "dcterms:description": "Look into Aerodrums (air drumming system). Check current pricing, what's included, compatibility with your setup.",
+      "ppv:project": {
+        "@id": "ppv:proj-get-back-into-drums"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-fun"
+      },
+      "ppv:status": "Active",
+      "ppv:priority": "2nd Priority",
+      "ppv:done": false,
+      "ppv:doDate": {
+        "@value": "2026-03-24",
+        "@type": "xsd:date"
+      },
+      "ppv:context": "computer",
+      "ppv:energy": "low",
+      "ppv:timeEstimate": {
+        "@value": "20",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:action-find-local-drum-lessons",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "Find local drum lessons",
+      "dcterms:description": "Search for drum teachers/music schools in the area. Check reviews, pricing, scheduling.",
+      "ppv:project": {
+        "@id": "ppv:proj-get-back-into-drums"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-fun"
+      },
+      "ppv:status": "Active",
+      "ppv:priority": "2nd Priority",
+      "ppv:done": false,
+      "ppv:doDate": {
+        "@value": "2026-03-24",
+        "@type": "xsd:date"
+      },
+      "ppv:context": "computer",
+      "ppv:energy": "low",
+      "ppv:timeEstimate": {
+        "@value": "20",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:action-research-old-drum-teacher",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "Research if old drum teacher still offers lessons",
+      "dcterms:description": "Look them up — still teaching? Still in the area? Worth reaching out if so.",
+      "ppv:project": {
+        "@id": "ppv:proj-get-back-into-drums"
+      },
+      "ppv:pillar": {
+        "@id": "ppv:pillar-fun"
+      },
+      "ppv:status": "Active",
+      "ppv:priority": "Quick",
+      "ppv:done": false,
+      "ppv:doDate": {
+        "@value": "2026-03-23",
+        "@type": "xsd:date"
+      },
+      "ppv:context": "computer",
+      "ppv:energy": "low",
+      "ppv:timeEstimate": {
+        "@value": "10",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:action-sunday-weekly-planning",
+      "@type": "ppv:ActionItem",
+      "dcterms:title": "Sunday evening: plan and time-block the week",
+      "dcterms:description": "Every Sunday evening, sit down and plan the coming week. Review what's active, set your focus objective, and time-block your calendar. This is the PPV Weekly Review in action.",
+      "ppv:pillar": {
+        "@id": "ppv:pillar-mental-health"
+      },
+      "ppv:status": "Active",
+      "ppv:priority": "1st Priority",
+      "ppv:done": false,
+      "ppv:doDate": {
+        "@value": "2026-03-22",
+        "@type": "xsd:date"
+      },
+      "ppv:context": "home",
+      "ppv:energy": "medium",
+      "ppv:timeEstimate": {
+        "@value": "45",
+        "@type": "xsd:integer"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:review-yearly-2026",
+      "@type": "ppv:YearlyReview",
+      "dcterms:title": "2026 Annual Review",
+      "ppv:cycle": "yearly",
+      "ppv:yearName": "2026",
+      "ppv:quarters": [
+        {
+          "@id": "ppv:review-q1-2026"
+        }
+      ],
+      "dcterms:created": {
+        "@value": "2026-01-01T09:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:review-q1-2026",
+      "@type": "ppv:QuarterlyReview",
+      "dcterms:title": "Q1 2026",
+      "ppv:cycle": "quarterly",
+      "ppv:quarterName": "Q1 2026",
+      "ppv:yearLink": {
+        "@id": "ppv:review-yearly-2026"
+      },
+      "dcterms:created": {
+        "@value": "2026-01-01T09:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:review-march-2026",
+      "@type": "ppv:MonthlyReview",
+      "dcterms:title": "March 2026",
+      "ppv:cycle": "monthly",
+      "ppv:monthName": "March 2026",
+      "ppv:year": "2026",
+      "ppv:quarter": {
+        "@id": "ppv:review-q1-2026"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-01T09:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    {
+      "@id": "ppv:review-week-mar17",
+      "@type": "ppv:WeeklyReview",
+      "dcterms:title": "Week of March 17, 2026",
+      "ppv:cycle": "weekly",
+      "ppv:focusObjective": "Kick off proposal planning, secure wedding bands, purchase OCA program, get back into drums",
+      "schema:startDate": {
+        "@value": "2026-03-17",
+        "@type": "xsd:date"
+      },
+      "schema:endDate": {
+        "@value": "2026-03-23",
+        "@type": "xsd:date"
+      },
+      "ppv:month": {
+        "@id": "ppv:review-march-2026"
+      },
+      "dcterms:created": {
+        "@value": "2026-03-21T12:00:00Z",
+        "@type": "xsd:dateTime"
+      }
+    }
+  ]
+}

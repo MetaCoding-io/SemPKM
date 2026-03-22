@@ -71,3 +71,9 @@ Key behaviors to test:
 ## Expected Output
 
 - `backend/tests/test_calendar_editable.py` — comprehensive test file covering all new backend behavior
+
+## Observability Impact
+
+- **Test signals**: 23 tests in `test_calendar_editable.py` serve as regression guards for date detection priority, merged query behavior, and PATCH endpoint correctness
+- **Failure-path coverage**: Tests `test_patch_invalid_iri_returns_400`, `test_patch_no_dates_returns_400`, `test_patch_unsupported_type_returns_400` verify error responses match expected status codes and messages — future agents can run `-k "invalid_iri or unsupported_type or no_dates"` to check failure-path health
+- **Predicate verification**: Handler tests assert the exact predicate IRIs in dispatched commands, catching regressions if `_CALENDAR_DATE_PREDICATES` mapping changes

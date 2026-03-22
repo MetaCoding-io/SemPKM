@@ -63,7 +63,7 @@
   - Verify: Load calendar page in browser at `http://localhost:3901/browser/views/generic?renderer=calendar`, confirm FullCalendar renders with editable=true (events show resize handles, empty slots are clickable)
   - Done when: Calendar renders with drag handles on events, resize cursors at event edges, click-to-select on empty slots; task events colored green, event events colored purple
 
-- [ ] **T04: Unit tests for merged calendar query, PATCH endpoint, and date field detection with scheduling properties** `est:45m`
+- [x] **T04: Unit tests for merged calendar query, PATCH endpoint, and date field detection with scheduling properties** `est:45m`
   - Why: Verifies the new backend behavior contractually — merged query returns both types, PATCH persists dates, and scheduledStart is preferred over dueDate for Task date detection.
   - Files: `backend/tests/test_calendar_editable.py`
   - Do: (1) Test `_detect_date_fields()` with Task type that has both scheduledStart and dueDate — scheduledStart must win as start field, scheduledEnd must be detected as end field. (2) Test `execute_merged_calendar_query()` with mock bindings from both Event and Task — verify merged list with sourceType annotations. (3) Test the PATCH endpoint handler — mock command dispatch, verify correct object.patch payload. (4) Test edge cases: Task with no scheduledStart falls back to dueDate; merged query with no Tasks returns only Events; PATCH with invalid IRI returns 400.
