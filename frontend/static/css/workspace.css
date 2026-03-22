@@ -8014,6 +8014,94 @@ details.form-group[open] > .form-group-summary::before {
     overflow: auto;
 }
 
+/* ---------------------------------------------------------------------------
+ * Form-Group Builder Config (slots + edges dynamic lists)
+ * --------------------------------------------------------------------------- */
+
+.fg-config {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.fg-slot-row,
+.fg-edge-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+.fg-slot-row .fg-slot-name {
+    flex: 1;
+    min-width: 80px;
+}
+
+.fg-slot-row .fg-slot-class-field {
+    flex: 2;
+    min-width: 0;
+}
+
+.fg-edge-row select {
+    flex: 1;
+    min-width: 60px;
+}
+
+.fg-edge-row .fg-edge-pred {
+    flex: 2;
+    min-width: 100px;
+}
+
+.fg-remove-btn {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    padding: 2px;
+    border: none;
+    background: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.fg-remove-btn:hover {
+    color: var(--color-danger, #e06c75);
+    background: var(--color-hover-bg, rgba(255,255,255,0.06));
+}
+
+.fg-remove-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+.fg-add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border: 1px dashed var(--color-border);
+    border-radius: 4px;
+    background: none;
+    color: var(--color-text-muted);
+    font-size: 0.78rem;
+    cursor: pointer;
+    margin-top: 4px;
+}
+
+.fg-add-btn:hover {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.fg-add-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
 /* GridStack dark theme overrides for read-only dashboard */
 .dashboard-page .gs-item-content {
     inset: 0;

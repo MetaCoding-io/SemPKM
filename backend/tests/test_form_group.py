@@ -464,3 +464,220 @@ class TestFormGroupRender:
         # Submit button is still present (router guards empty slots before reaching template)
         assert 'Create All' in html
 
+
+# ---------------------------------------------------------------------------
+# Integration: dashboard with form-group round-trips through API
+# ---------------------------------------------------------------------------
+
+import uuid
+import pytest_asyncio
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+
+from app.auth.models import User
+from app.dashboard.service import DashboardService
+from app.db.base import Base
+
+
+@pytest_asyncio.fixture
+async def async_session_factory():
+    """Provide an in-memory SQLite async session factory."""
+    engine = create_async_engine("sqlite+aiosqlite://", echo=False)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    factory = async_sessionmaker(engine, expire_on_commit=False)
+    yield factory
+    await engine.dispose()
+
+
+@pytest_asyncio.fixture
+async def test_user(async_session_factory):
+    """Create a test user and return them."""
+    user = User(
+        id=uuid.uuid4(),
+        username="fg_testuser",
+        email="fg@example.com",
+        display_name="FG Test",
+    )
+    async with async_session_factory() as session:
+        session.add(user)
+        await session.commit()
+        await session.refresh(user)
+    return user
+
+
+@pytest_asyncio.fixture
+async def dashboard_service(async_session_factory):
+    """Provide a DashboardService with in-memory database."""
+    return DashboardService(async_session_factory)
+
+
+FORM_GROUP_BLOCKS = [
+    {
+        "type": "form-group",
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8,
+        "config": {
+            "slots": [
+                {"name": "note", "target_class": "urn:sempkm:model:basic-pkm:Note"},
+                {"name": "task", "target_class": "urn:sempkm:model:basic-pkm:Task"},
+            ],
+            "edges": [
+                {
+                    "source_slot": "note",
+                    "target_slot": "task",
+                    "predicate": "sempkm:relatedTo",
+                },
+            ],
+        },
+    }
+]
+
+
+class TestFormGroupDashboardRoundTrip:
+    """Dashboard with form-group block round-trips through create → get."""
+
+    @pytest.mark.asyncio
+    async def test_create_and_get_preserves_form_group_config(
+        self, dashboard_service, test_user
+    ):
+        """Creating a dashboard with form-group config, then reading it back, preserves slots and edges."""
+        dashboard = await dashboard_service.create(
+            user_id=test_user.id,
+            name="Form Group Test",
+            layout="gridstack",
+            blocks=FORM_GROUP_BLOCKS,
+        )
+
+        fetched = await dashboard_service.get(uuid.UUID(dashboard.id))
+        assert fetched is not None
+        assert len(fetched.blocks) == 1
+
+        block = fetched.blocks[0]
+        assert block["type"] == "form-group"
+        cfg = block["config"]
+        assert len(cfg["slots"]) == 2
+        assert cfg["slots"][0]["name"] == "note"
+        assert cfg["slots"][0]["target_class"] == "urn:sempkm:model:basic-pkm:Note"
+        assert cfg["slots"][1]["name"] == "task"
+        assert len(cfg["edges"]) == 1
+        assert cfg["edges"][0]["source_slot"] == "note"
+        assert cfg["edges"][0]["target_slot"] == "task"
+        assert cfg["edges"][0]["predicate"] == "sempkm:relatedTo"
+
+    @pytest.mark.asyncio
+    async def test_form_group_empty_config_round_trips(
+        self, dashboard_service, test_user
+    ):
+        """form-group with empty slots/edges round-trips correctly."""
+        blocks = [
+            {
+                "type": "form-group",
+                "x": 0,
+                "y": 0,
+                "w": 12,
+                "h": 8,
+                "config": {"slots": [], "edges": []},
+            }
+        ]
+        dashboard = await dashboard_service.create(
+            user_id=test_user.id,
+            name="Empty FG",
+            layout="gridstack",
+            blocks=blocks,
+        )
+
+        fetched = await dashboard_service.get(uuid.UUID(dashboard.id))
+        assert fetched is not None
+        cfg = fetched.blocks[0]["config"]
+        assert cfg["slots"] == []
+        assert cfg["edges"] == []
+
+    @pytest.mark.asyncio
+    async def test_update_preserves_form_group_config(
+        self, dashboard_service, test_user
+    ):
+        """Updating blocks with form-group config preserves it after re-read."""
+        dashboard = await dashboard_service.create(
+            user_id=test_user.id,
+            name="FG Update Test",
+            layout="gridstack",
+            blocks=[{"type": "divider", "x": 0, "y": 0, "w": 12, "h": 2, "config": {}}],
+        )
+
+        updated = await dashboard_service.update(
+            dashboard_id=uuid.UUID(dashboard.id),
+            user_id=test_user.id,
+            blocks=FORM_GROUP_BLOCKS,
+        )
+        assert updated is not None
+        assert updated.blocks[0]["type"] == "form-group"
+        assert len(updated.blocks[0]["config"]["slots"]) == 2
+        assert len(updated.blocks[0]["config"]["edges"]) == 1
+
+
+class TestFormGroupBuilderEdit:
+    """Builder edit route renders for dashboards with form-group blocks."""
+
+    @pytest_asyncio.fixture
+    async def builder_app(self, async_session_factory, dashboard_service, test_user):
+        """Minimal FastAPI app with dashboard builder routes."""
+        from pathlib import Path
+        from fastapi import FastAPI
+        from jinja2_fragments.fastapi import Jinja2Blocks
+        from app.dashboard.router import browser_router
+
+        app = FastAPI()
+        templates_dir = Path(__file__).parent.parent / "app" / "templates"
+        templates = Jinja2Blocks(directory=templates_dir)
+        templates.env.filters.setdefault("tojson", json.dumps)
+        app.state.templates = templates
+        app.state.dashboard_service = dashboard_service
+
+        from app.auth.dependencies import get_current_user
+
+        async def override_user():
+            return test_user
+
+        app.dependency_overrides[get_current_user] = override_user
+        app.include_router(browser_router)
+        yield app
+
+    @pytest_asyncio.fixture
+    async def builder_client(self, builder_app):
+        """HTTP client for builder routes."""
+        from httpx import ASGITransport, AsyncClient
+
+        transport = ASGITransport(app=builder_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as c:
+            yield c
+
+    @pytest.mark.asyncio
+    async def test_edit_form_group_dashboard_returns_200(
+        self, dashboard_service, test_user, builder_client
+    ):
+        """Builder edit route returns 200 for a dashboard containing a form-group block."""
+        dashboard = await dashboard_service.create(
+            user_id=test_user.id,
+            name="FG Builder Test",
+            layout="gridstack",
+            blocks=FORM_GROUP_BLOCKS,
+        )
+
+        resp = await builder_client.get(f"/browser/dashboard/{dashboard.id}/edit")
+        assert resp.status_code == 200
+        body = resp.text
+        assert "Edit Dashboard" in body
+        assert "FG Builder Test" in body
+
+    @pytest.mark.asyncio
+    async def test_new_dashboard_builder_includes_form_group_palette(
+        self, builder_client
+    ):
+        """New dashboard builder includes form-group in the block palette."""
+        resp = await builder_client.get("/browser/dashboard/new")
+        assert resp.status_code == 200
+        body = resp.text
+        assert 'data-type="form-group"' in body
+
