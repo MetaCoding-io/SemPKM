@@ -1060,13 +1060,31 @@ WHERE {
         except Exception:
             logger.warning("Inferred edges identification query failed", exc_info=True)
 
-        return await self._parse_graph_results(turtle_bytes, inferred_edge_set)
+        # Identify edges from the mirrored graph
+        mirrored_edge_set: set[tuple[str, str, str]] = set()
+        try:
+            mir_query = """SELECT ?s ?p ?o
+WHERE {
+  GRAPH <urn:sempkm:mirrored> {
+    ?s ?p ?o .
+    FILTER(isIRI(?o))
+  }
+}"""
+            mir_result = await self._client.query(mir_query)
+            for b in mir_result.get("results", {}).get("bindings", []):
+                mirrored_edge_set.add((
+                    b["s"]["value"], b["p"]["value"], b["o"]["value"]
+                ))
+        except Exception:
+            logger.warning("Mirrored edges identification query failed", exc_info=True)
+
+        return await self._parse_graph_results(turtle_bytes, inferred_edge_set, mirrored_edge_set)
 
     async def expand_neighbors(self, node_iri: str) -> dict:
         """Fetch all triples where node_iri is subject or object.
 
         Executes a SPARQL CONSTRUCT for both directions (outbound and inbound),
-        scoped to both the current and inferred graphs.
+        scoped to the current, inferred, and mirrored graphs.
 
         Args:
             node_iri: The IRI of the node to expand.
@@ -1077,6 +1095,7 @@ WHERE {
         construct_query = f"""CONSTRUCT {{ ?s ?p ?o }}
 FROM <urn:sempkm:current>
 FROM <urn:sempkm:inferred>
+FROM <urn:sempkm:mirrored>
 WHERE {{
   {{ <{node_iri}> ?p ?o . BIND(<{node_iri}> AS ?s) . FILTER(isIRI(?o)) }}
   UNION
@@ -1107,7 +1126,25 @@ WHERE {{
         except Exception:
             logger.warning("Inferred edges query failed for %s", node_iri, exc_info=True)
 
-        return await self._parse_graph_results(turtle_bytes, inferred_edge_set)
+        # Identify which edges come from the mirrored graph
+        mirrored_edges_query = f"""SELECT ?s ?p ?o WHERE {{
+  GRAPH <urn:sempkm:mirrored> {{
+    {{ <{node_iri}> ?p ?o . BIND(<{node_iri}> AS ?s) . FILTER(isIRI(?o)) }}
+    UNION
+    {{ ?s ?p <{node_iri}> . BIND(<{node_iri}> AS ?o) . FILTER(isIRI(?s)) }}
+  }}
+}}"""
+        mirrored_edge_set: set[tuple[str, str, str]] = set()
+        try:
+            mir_result = await self._client.query(mirrored_edges_query)
+            for b in mir_result.get("results", {}).get("bindings", []):
+                mirrored_edge_set.add((
+                    b["s"]["value"], b["p"]["value"], b["o"]["value"]
+                ))
+        except Exception:
+            logger.warning("Mirrored edges query failed for %s", node_iri, exc_info=True)
+
+        return await self._parse_graph_results(turtle_bytes, inferred_edge_set, mirrored_edge_set)
 
     # ── Kanban renderer ────────────────────────────────────────
 
@@ -1341,6 +1378,7 @@ WHERE {{
         self,
         turtle_bytes: bytes,
         inferred_edge_set: set[tuple[str, str, str]] | None = None,
+        mirrored_edge_set: set[tuple[str, str, str]] | None = None,
     ) -> dict:
         """Parse Turtle CONSTRUCT results into Cytoscape.js-compatible JSON.
 
@@ -1407,7 +1445,7 @@ WHERE {{
             for iri in iris_needing_labels:
                 nodes_dict[iri]["label"] = resolved.get(iri, _local_name(iri))
 
-        # Supplement: fetch all literal properties for graph nodes from both graphs
+        # Supplement: fetch all literal properties for graph nodes from all graphs
         # (CONSTRUCT results often only contain relationships + labels)
         all_node_iris = list(nodes_dict.keys())
         if all_node_iris:
@@ -1415,6 +1453,7 @@ WHERE {{
             sup_query = f"""SELECT ?s ?p ?o
 FROM <urn:sempkm:current>
 FROM <urn:sempkm:inferred>
+FROM <urn:sempkm:mirrored>
 WHERE {{
   VALUES ?s {{ {values_clause} }}
   ?s ?p ?o .
@@ -1497,6 +1536,7 @@ WHERE {{
 
         edges_out = []
         _inferred = inferred_edge_set or set()
+        _mirrored = mirrored_edge_set or set()
         for e in edges:
             # Use resolved label if it's a real human-readable name,
             # otherwise fall back to local name for short display
@@ -1507,14 +1547,17 @@ WHERE {{
                 short_label = _local_name(e["predicate"])
             else:
                 short_label = resolved
-            # Check if this edge exists in the inferred graph
-            is_inferred = (e["source"], e["predicate"], e["target"]) in _inferred
+            edge_key = (e["source"], e["predicate"], e["target"])
+            # Check if this edge exists in the inferred or mirrored graph
+            is_inferred = edge_key in _inferred
+            is_mirrored = edge_key in _mirrored and edge_key not in _inferred
             edges_out.append({
                 "source": e["source"],
                 "target": e["target"],
                 "predicate": e["predicate"],
                 "predicate_label": short_label,
                 "inferred": is_inferred,
+                "mirrored": is_mirrored,
             })
 
         return {

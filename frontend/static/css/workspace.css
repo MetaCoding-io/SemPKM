@@ -3162,6 +3162,39 @@ details.form-group[open] > .form-group-summary::before {
 }
 
 /* ============================================
+   Mirrored Badge — teal pill label for federated/mirrored triples
+   ============================================ */
+
+.mirrored-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 500;
+    line-height: 1;
+    padding: 2px 6px;
+    border-radius: 8px;
+    background: rgba(20, 184, 166, 0.1);
+    color: #0d9488;
+    border: 1px solid rgba(20, 184, 166, 0.3);
+    vertical-align: middle;
+    margin-left: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    letter-spacing: 0.02em;
+}
+
+/* Mirrored badge inside flex containers (relation-item) */
+.relation-item .mirrored-badge {
+    margin-left: auto;
+}
+
+/* Dark theme overrides for mirrored badge */
+[data-theme="dark"] .mirrored-badge {
+    background: rgba(20, 184, 166, 0.15);
+    color: #5eead4;
+    border-color: rgba(20, 184, 166, 0.35);
+}
+
+/* ============================================
    Right Pane: Lint Panel
    ============================================ */
 

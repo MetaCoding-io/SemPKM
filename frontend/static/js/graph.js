@@ -84,6 +84,17 @@
           'width': 1.2
         }
       },
+      // Mirrored edge style (dotted teal line for federated/mirrored triples)
+      {
+        selector: 'edge.mirrored-edge',
+        style: {
+          'line-style': 'dashed',
+          'line-dash-pattern': [2, 4],
+          'line-color': isDark ? '#5eead4' : '#14b8a6',
+          'target-arrow-color': isDark ? '#5eead4' : '#14b8a6',
+          'width': 1.2
+        }
+      },
       // Selected node
       {
         selector: 'node:selected',
@@ -243,10 +254,13 @@
           label: edge.predicate_label || '',
           fullPredicate: edge.predicate,
           predicate: edge.predicate,
-          inferred: edge.inferred || false
+          inferred: edge.inferred || false,
+          mirrored: edge.mirrored || false
         }
       };
-      if (edge.inferred) {
+      if (edge.mirrored) {
+        edgeEl.classes = 'mirrored-edge';
+      } else if (edge.inferred) {
         edgeEl.classes = 'inferred-edge';
       }
       elements.push(edgeEl);
@@ -558,10 +572,13 @@
                 label: edge.predicate_label || '',
                 fullPredicate: edge.predicate,
                 predicate: edge.predicate,
-                inferred: edge.inferred || false
+                inferred: edge.inferred || false,
+                mirrored: edge.mirrored || false
               }
             };
-            if (edge.inferred) {
+            if (edge.mirrored) {
+              newEdge.classes = 'mirrored-edge';
+            } else if (edge.inferred) {
               newEdge.classes = 'inferred-edge';
             }
             newElements.push(newEdge);
