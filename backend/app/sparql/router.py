@@ -110,6 +110,7 @@ _VOCAB_PREFIXES = (
     "urn:sempkm:vocab:",
     "urn:sempkm:webhook:",
     "urn:sempkm:workflow:",
+    "urn:sempkm:mirrored:",
 )
 
 
@@ -200,7 +201,8 @@ async def _execute_sparql(
     # Apply prefix injection then graph scoping
     processed = inject_prefixes(query)
     processed = scope_to_current_graph(
-        processed, all_graphs=all_graphs, shared_graphs=shared_graphs
+        processed, all_graphs=all_graphs, shared_graphs=shared_graphs,
+        include_mirrored=True,
     )
 
     logger.debug("Executing SPARQL: %s", processed[:200])

@@ -12,10 +12,11 @@ import re
 
 from fastapi import HTTPException
 
-from app.rdf.namespaces import COMMON_PREFIXES, CURRENT_GRAPH_IRI, INFERRED_GRAPH_IRI
+from app.rdf.namespaces import COMMON_PREFIXES, CURRENT_GRAPH_IRI, INFERRED_GRAPH_IRI, MIRRORED_GRAPH_IRI
 
 CURRENT_GRAPH = str(CURRENT_GRAPH_IRI)
 INFERRED_GRAPH = str(INFERRED_GRAPH_IRI)
+MIRRORED_GRAPH = str(MIRRORED_GRAPH_IRI)
 
 # Regex for SPARQL string literals and comments.
 # Order matters: triple-quoted forms must be tried before single-quoted
@@ -65,14 +66,14 @@ def check_member_query_safety(query: str) -> None:
     """Validate that a SPARQL query is safe for member-role users.
 
     Members are restricted to the current graph only. Queries containing
-    FROM or GRAPH clauses are rejected because they could be used to
-    access data outside the scoped current graph.
+    FROM, GRAPH, or SERVICE clauses are rejected because they could be
+    used to access data outside the scoped current graph.
 
     Args:
         query: The raw SPARQL query string.
 
     Raises:
-        HTTPException: 403 if FROM or GRAPH clauses are detected.
+        HTTPException: 403 if FROM, GRAPH, or SERVICE clauses are detected.
     """
     upper = _strip_sparql_strings(query).upper()
     if re.search(r'\bFROM\s+', upper):
@@ -85,21 +86,78 @@ def check_member_query_safety(query: str) -> None:
             status_code=403,
             detail="FROM/GRAPH clauses not allowed for member role",
         )
+    if re.search(r'\bSERVICE\s+', upper):
+        raise HTTPException(
+            status_code=403,
+            detail="SERVICE clauses not allowed for member role",
+        )
+
+
+def _find_outer_where(query: str) -> int | None:
+    """Find the position of the outer WHERE keyword in a SPARQL query.
+
+    Uses brace-depth counting on the *original* query text, but checks
+    keywords against a string-stripped version so that WHERE inside string
+    literals or comments is ignored. Only the WHERE at brace depth 0 (the
+    outer query's WHERE, not one inside SERVICE, OPTIONAL, or sub-select
+    blocks) is returned.
+
+    Args:
+        query: The original SPARQL query string.
+
+    Returns:
+        The character index of the outer WHERE keyword in *query*, or None
+        if no outer WHERE is found.
+    """
+    stripped = _strip_sparql_strings(query)
+    depth = 0
+    i = 0
+    length = len(stripped)
+
+    while i < length:
+        ch = stripped[i]
+        if ch == '{':
+            depth += 1
+            i += 1
+        elif ch == '}':
+            depth -= 1
+            i += 1
+        elif depth == 0 and ch in ('W', 'w'):
+            # Potential WHERE keyword — check word boundary and full keyword
+            # Ensure we're at a word boundary (start of string or non-alnum before)
+            if i == 0 or not stripped[i - 1].isalnum():
+                candidate = stripped[i:i + 5]
+                if candidate.upper() == 'WHERE':
+                    # Check trailing word boundary
+                    after = i + 5
+                    if after >= length or not stripped[after].isalnum():
+                        return i
+            i += 1
+        else:
+            i += 1
+
+    return None
 
 
 def scope_to_current_graph(
     query: str,
     all_graphs: bool = False,
     include_inferred: bool = True,
+    include_mirrored: bool = True,
     shared_graphs: list[str] | None = None,
 ) -> str:
     """Inject FROM <urn:sempkm:current> into SPARQL queries.
 
     Scopes SELECT and CONSTRUCT queries to the current state graph by
-    inserting a FROM clause before the WHERE keyword. When include_inferred
-    is True, also injects FROM <urn:sempkm:inferred> so inferred triples
-    are included in query results. When shared_graphs is provided, adds
-    FROM clauses for each shared graph so their data is included.
+    inserting a FROM clause before the outer WHERE keyword. Uses brace-depth
+    counting to skip WHERE keywords that appear inside SERVICE, OPTIONAL,
+    or sub-select blocks — only the depth-0 WHERE gets FROM clauses.
+
+    When include_inferred is True, also injects FROM <urn:sempkm:inferred>
+    so inferred triples are included. When include_mirrored is True, also
+    injects FROM <urn:sempkm:mirrored> so mirrored (federated) triples
+    are included. When shared_graphs is provided, adds FROM clauses for
+    each shared graph.
 
     Leaves the query unchanged if:
     - all_graphs=True (explicit admin/debug bypass)
@@ -111,6 +169,8 @@ def scope_to_current_graph(
         all_graphs: If True, skip scoping (for admin/debug use).
         include_inferred: If True, also include the inferred graph
             (default True). Set to False to query only user-created data.
+        include_mirrored: If True, also include the mirrored graph
+            (default True). Set to False to exclude federated cached data.
         shared_graphs: Optional list of shared graph IRIs to include
             in FROM clauses. Default None preserves backward compatibility.
 
@@ -134,21 +194,22 @@ def scope_to_current_graph(
     if CURRENT_GRAPH in query:
         return query
 
-    # Inject FROM <current> (and optionally FROM <inferred> and shared graphs) before WHERE
+    # Inject FROM <current> (and optionally FROM <inferred>, <mirrored>, and shared graphs) before WHERE
     from_clause = f"FROM <{CURRENT_GRAPH}>\n"
     if include_inferred:
         from_clause += f"FROM <{INFERRED_GRAPH}>\n"
+    if include_mirrored:
+        from_clause += f"FROM <{MIRRORED_GRAPH}>\n"
     if shared_graphs:
         for sg in shared_graphs:
             from_clause += f"FROM <{sg}>\n"
 
-    # Find WHERE keyword position (case-insensitive, word boundary)
-    where_match = re.search(r'\bWHERE\b', query, re.IGNORECASE)
-    if where_match:
-        insert_pos = where_match.start()
-        return query[:insert_pos] + from_clause + query[insert_pos:]
+    # Find the outer WHERE keyword (depth 0), skipping WHERE inside SERVICE etc.
+    outer_where_pos = _find_outer_where(query)
+    if outer_where_pos is not None:
+        return query[:outer_where_pos] + from_clause + query[outer_where_pos:]
 
-    # No WHERE clause found -- return as-is (unusual but possible for
+    # No outer WHERE clause found -- return as-is (unusual but possible for
     # queries like DESCRIBE or ASK without explicit WHERE)
     return query
 

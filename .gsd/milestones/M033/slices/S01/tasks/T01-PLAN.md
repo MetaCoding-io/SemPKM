@@ -6,6 +6,13 @@ skills_used: []
 
 # T01: SERVICE clause pass-through and mirrored graph scoping
 
+## Observability Impact
+
+- **Changed signal:** `scope_to_current_graph()` now injects `FROM <urn:sempkm:mirrored>` by default alongside current and inferred graphs. Future agents debugging SPARQL results that include unexpected triples should check whether they originated from the mirrored graph.
+- **Inspection:** The `_find_outer_where()` function returns `None` when no outer WHERE is found — callers can detect this to understand why FROM injection was skipped.
+- **Failure visibility:** `check_member_query_safety()` now raises 403 with `"SERVICE clauses not allowed for member role"` detail — distinguishable from the existing FROM/GRAPH rejection message.
+- **Diagnostic surface:** `_strip_sparql_strings()` continues to blank out string literals and comments before keyword detection, preventing false positives for SERVICE/FROM/GRAPH/WHERE keywords inside quoted text.
+
 **Slice:** S01 — Federated SPARQL & Mirrored Triples
 **Milestone:** M033
 

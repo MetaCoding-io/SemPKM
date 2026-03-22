@@ -47,7 +47,7 @@
 
 ## Tasks
 
-- [ ] **T01: SERVICE clause pass-through and mirrored graph scoping** `est:1.5h`
+- [x] **T01: SERVICE clause pass-through and mirrored graph scoping** `est:1.5h`
   - Why: The #1 risk in this slice — `scope_to_current_graph()` uses regex to inject FROM clauses before WHERE. SERVICE clauses contain inner WHERE blocks that must not be scoped. Also need to add `urn:sempkm:mirrored` to the FROM clause set.
   - Files: `backend/app/rdf/namespaces.py`, `backend/app/sparql/client.py`, `backend/tests/test_sparql_client.py`
   - Do: (1) Add `MIRRORED_GRAPH_IRI = URIRef("urn:sempkm:mirrored")` to namespaces.py. (2) Refactor `scope_to_current_graph()` to detect SERVICE blocks and exclude them from FROM injection — use brace-depth counting to find the outer WHERE vs inner SERVICE WHERE. (3) Add `include_mirrored: bool = True` parameter that adds `FROM <urn:sempkm:mirrored>`. (4) Update `check_member_query_safety()` to reject SERVICE clauses for member role. (5) Add ~25 unit tests covering: SERVICE pass-through, nested SERVICE, SERVICE inside OPTIONAL, mirrored graph inclusion, member safety rejection of SERVICE.
