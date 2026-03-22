@@ -410,3 +410,31 @@ for cmd in batch:
 ```
 
 **Use beyond form-groups:** The convention is generic — any batch payload can use it. Future features (templates, import wizards, automation) that need to create linked objects in one API call can use `@slot:name` references.
+
+### Cytoscape CSS 3D transforms require coordinate correction monkey-patch
+
+**Discovered:** M033/S02/T02
+
+Applying CSS 3D transforms (e.g., `perspective(800px) rotateX(55deg) rotateZ(-45deg)`) to a Cytoscape container causes click events to land on wrong nodes — the browser reports mouse coordinates in transformed screen space but Cytoscape expects untransformed coordinates. This is Cytoscape issue #1756.
+
+**Fix:** Monkey-patch `cy.renderer().findContainerClientCoords` to apply the inverse DOMMatrix transform before Cytoscape processes click positions. For popover positioning, apply the forward DOMMatrix transform to convert Cytoscape model coordinates back to screen coordinates.
+
+**Fragile:** The monkey-patch must be reapplied after layout changes. The DOMMatrix positioning assumes the transform is on `#cy-wrapper` — if the DOM hierarchy changes, popovers will misposition.
+
+### CDN lazy-loading pattern for heavy JS libraries in view templates
+
+**Discovered:** M033/S03/T02, M033/S04/T02
+
+View templates that depend on heavy third-party libraries (FullCalendar 6.1.17 = ~400KB, Leaflet 1.9.4 + MarkerCluster 1.5.3 = ~200KB) use CDN lazy-loading: the template includes `<script>` tags with pinned CDN URLs, and the library is only fetched when the view tab is opened. This avoids bloating the initial workspace load.
+
+**Risk:** CDN outage breaks these views entirely. The M029 vendor pipeline could absorb these libraries to eliminate the CDN dependency. Versions are pinned in the HTML templates — update requires editing the template file.
+
+**Files:** `backend/app/templates/browser/calendar_view.html`, `backend/app/templates/browser/map_view.html`
+
+### SHACL field detection heuristic: sh:datatype + well-known path IRI
+
+**Discovered:** M033/S03/T01, M033/S04/T01
+
+`_detect_date_fields()` and `_detect_geo_fields()` in `ViewSpecService` use a dual heuristic: (1) check SHACL PropertyShape `sh:datatype` (e.g., `xsd:date`, `xsd:dateTime`) and (2) match the `sh:path` IRI against a well-known list (e.g., `dcterms:date`, `schema:startDate`, `wgs84:lat`). This catches types that declare date/geo fields but use non-standard IRIs, and types that use standard IRIs but don't specify `sh:datatype`.
+
+**Pattern:** Any future field-type-dependent renderer (timeline, gantt, etc.) should follow the same dual heuristic. The detection functions are on `ViewSpecService` and return structured results (field path IRIs + detected labels).
