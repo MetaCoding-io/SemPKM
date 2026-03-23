@@ -1,4 +1,4 @@
-# Chapter 39: CalDAV Calendar Sync
+# Chapter 44: CalDAV Calendar Sync
 
 The **CalDAV Calendar Sync** app connects any CalDAV-compatible calendar server to SemPKM, synchronizing events as `bpkm:Event` objects. It supports **pull sync** (import calendar events into SemPKM), **RSVP push-back** (send your response status changes back to the server), and **bidirectional** mode that does both.
 

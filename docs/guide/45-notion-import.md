@@ -1,4 +1,4 @@
-# Chapter 39: Notion Import
+# Chapter 45: Notion Import
 
 SemPKM includes a built-in import wizard that converts a Notion workspace export into typed knowledge objects. The wizard handles ZIP upload, database scanning, type mapping, property mapping, relation mapping, preview, and import — all from within the browser, with no external scripts or command-line tools required.
 

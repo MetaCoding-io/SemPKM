@@ -1,4 +1,4 @@
-# Chapter 40: Asana Sync
+# Chapter 47: Asana Sync
 
 The **Asana Sync** app connects your Asana workspace to SemPKM, synchronizing tasks as `bpkm:Task` objects with **configurable field mapping** for status, priority, and story points. It supports **pull sync** (import tasks from Asana), **bidirectional sync** (push SemPKM changes back to Asana), and subtask nesting up to 5 levels deep.
 

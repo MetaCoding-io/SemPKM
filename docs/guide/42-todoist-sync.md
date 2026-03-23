@@ -1,4 +1,4 @@
-# Chapter 37: Todoist Sync
+# Chapter 42: Todoist Sync
 
 The **Todoist Sync** app connects [Todoist](https://todoist.com) tasks to SemPKM, synchronizing them as `bpkm:Task` objects. It supports **pull sync** (import Todoist tasks into SemPKM), **push sync** (close, reopen, and update tasks bidirectionally), and **bidirectional** mode that does both.
 

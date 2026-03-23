@@ -1,4 +1,4 @@
-# Chapter 32: RSS Reader
+# Chapter 40: RSS Reader
 
 The **RSS Reader** is a first-party SemPKM application that brings external web content into your knowledge base. Subscribe to RSS, Atom, or JSON feeds, and the reader automatically polls them for new articles, ingests the content as typed objects in the knowledge graph, and presents them in a clean three-pane reading interface. Because articles are stored as `rss:Article` objects, they participate in the full SemPKM experience — search, tagging, edges, views, and SPARQL queries all work on feed content just like any other object.
 
