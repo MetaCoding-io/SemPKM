@@ -979,6 +979,28 @@
   }
   window.openImportTab = openImportTab;
 
+  // --- Import RDF Tab ---
+
+  function openRdfImportTab() {
+    var tabKey = 'special:rdf-import';
+    var dv = window._dockview;
+    if (!dv) return;
+
+    var existing = dv.panels.find(function(p) { return p.id === tabKey; });
+    if (existing) { existing.api.setActive(); return; }
+
+    if (!window._tabMeta) window._tabMeta = {};
+    window._tabMeta[tabKey] = { label: 'Import RDF', dirty: false };
+
+    dv.api.addPanel({
+      id: tabKey,
+      component: 'special-panel',
+      params: { specialType: 'rdf-import', isView: false, isSpecial: true },
+      title: 'Import RDF'
+    });
+  }
+  window.openRdfImportTab = openRdfImportTab;
+
   // --- Ontology Viewer Tab ---
 
   function openOntologyTab() {
@@ -1506,6 +1528,14 @@
           section: 'Navigation',
           handler: function () {
             window.location.href = '/browser/notion/import';
+          }
+        },
+        {
+          id: 'import-rdf',
+          title: 'Import > RDF Data',
+          section: 'Navigation',
+          handler: function () {
+            openRdfImportTab();
           }
         },
         {

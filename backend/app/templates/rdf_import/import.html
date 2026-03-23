@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block page_css %}{% endblock %}
+
+{% block title %}Import RDF Data{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="/css/import.css">
+{% endblock %}
+
+{% block content %}
+<div id="import-container">
+    <div id="import-step-bar" class="import-step-bar">
+        <div class="step-item step-active">
+            <div class="step-circle">1</div>
+            <span class="step-label">Input</span>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step-item">
+            <div class="step-circle">2</div>
+            <span class="step-label">Preview</span>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step-item">
+            <div class="step-circle">3</div>
+            <span class="step-label">Import</span>
+        </div>
+    </div>
+    <div id="import-content">
+        <div id="import-area">
+            {% include "rdf_import/partials/input_form.html" %}
+        </div>
+    </div>
+</div>
+{% endblock %}
