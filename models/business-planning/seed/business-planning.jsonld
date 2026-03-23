@@ -179,6 +179,192 @@
       "bp:sectionContent": "• Premium hosted offering with managed infrastructure\n• Enterprise support and customization services\n• Marketplace for community-contributed Mental Models",
       "bp:belongsToCanvas": { "@id": "bp:seed-canvas-sempkm" },
       "dcterms:created": { "@value": "2026-03-15T10:09:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "bp:seed-objective-product-quality",
+      "@type": "bp:Objective",
+      "dcterms:title": "Improve Product Quality",
+      "dcterms:description": "Raise the bar on product reliability and user satisfaction through measurable quality improvements across bugs, test coverage, and user feedback scores.",
+      "bp:timeframe": "Q2 2026",
+      "dcterms:created": { "@value": "2026-03-20T09:00:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "bp:seed-kr-reduce-bugs",
+      "@type": "bp:KeyResult",
+      "dcterms:title": "Reduce open bug count from 50 to 10",
+      "dcterms:description": "Track the number of open P1/P2 bugs in the issue tracker. Close or fix bugs to reduce the count.",
+      "bp:currentValue": { "@value": "40", "@type": "xsd:decimal" },
+      "bp:targetValue": { "@value": "50", "@type": "xsd:decimal" },
+      "bp:unit": "bugs closed",
+      "bp:belongsToObjective": { "@id": "bp:seed-objective-product-quality" },
+      "dcterms:created": { "@value": "2026-03-20T09:05:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-kr-test-coverage",
+      "@type": "bp:KeyResult",
+      "dcterms:title": "Increase test coverage from 60% to 90%",
+      "dcterms:description": "Measured by CI coverage report across backend and frontend modules.",
+      "bp:currentValue": { "@value": "13.5", "@type": "xsd:decimal" },
+      "bp:targetValue": { "@value": "30", "@type": "xsd:decimal" },
+      "bp:unit": "%",
+      "bp:belongsToObjective": { "@id": "bp:seed-objective-product-quality" },
+      "dcterms:created": { "@value": "2026-03-20T09:10:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-kr-nps",
+      "@type": "bp:KeyResult",
+      "dcterms:title": "Raise NPS from 30 to 50",
+      "dcterms:description": "Net Promoter Score measured via monthly user surveys.",
+      "bp:currentValue": { "@value": "2", "@type": "xsd:decimal" },
+      "bp:targetValue": { "@value": "20", "@type": "xsd:decimal" },
+      "bp:unit": "points",
+      "bp:belongsToObjective": { "@id": "bp:seed-objective-product-quality" },
+      "dcterms:created": { "@value": "2026-03-20T09:15:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "bp:seed-dm-tech-selection",
+      "@type": "bp:DecisionMatrix",
+      "dcterms:title": "Technology Selection",
+      "dcterms:description": "Compare technology options for the next platform iteration based on performance, cost, and usability criteria.",
+      "dcterms:created": { "@value": "2026-03-20T10:00:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "bp:seed-criterion-performance",
+      "@type": "bp:Criterion",
+      "dcterms:title": "Performance",
+      "dcterms:description": "Runtime speed, throughput, and latency characteristics.",
+      "bp:weight": { "@value": "8", "@type": "xsd:decimal" },
+      "bp:belongsToDecisionMatrix": { "@id": "bp:seed-dm-tech-selection" },
+      "dcterms:created": { "@value": "2026-03-20T10:01:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-criterion-cost",
+      "@type": "bp:Criterion",
+      "dcterms:title": "Cost",
+      "dcterms:description": "Total cost of ownership including licensing, infrastructure, and maintenance.",
+      "bp:weight": { "@value": "6", "@type": "xsd:decimal" },
+      "bp:belongsToDecisionMatrix": { "@id": "bp:seed-dm-tech-selection" },
+      "dcterms:created": { "@value": "2026-03-20T10:02:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-criterion-ease",
+      "@type": "bp:Criterion",
+      "dcterms:title": "Ease of Use",
+      "dcterms:description": "Developer experience, learning curve, and documentation quality.",
+      "bp:weight": { "@value": "4", "@type": "xsd:decimal" },
+      "bp:belongsToDecisionMatrix": { "@id": "bp:seed-dm-tech-selection" },
+      "dcterms:created": { "@value": "2026-03-20T10:03:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "bp:seed-alt-option-a",
+      "@type": "bp:Alternative",
+      "dcterms:title": "Option A — Rust Framework",
+      "dcterms:description": "High-performance compiled solution with steep learning curve but excellent runtime characteristics.",
+      "bp:belongsToDecisionMatrix": { "@id": "bp:seed-dm-tech-selection" },
+      "dcterms:created": { "@value": "2026-03-20T10:05:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-alt-option-b",
+      "@type": "bp:Alternative",
+      "dcterms:title": "Option B — Go Service",
+      "dcterms:description": "Good balance of performance and simplicity with strong concurrency primitives.",
+      "bp:belongsToDecisionMatrix": { "@id": "bp:seed-dm-tech-selection" },
+      "dcterms:created": { "@value": "2026-03-20T10:06:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-alt-option-c",
+      "@type": "bp:Alternative",
+      "dcterms:title": "Option C — Python + FastAPI",
+      "dcterms:description": "Familiar ecosystem with rapid development but moderate runtime performance.",
+      "bp:belongsToDecisionMatrix": { "@id": "bp:seed-dm-tech-selection" },
+      "dcterms:created": { "@value": "2026-03-20T10:07:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "bp:seed-score-a-perf",
+      "@type": "bp:Score",
+      "dcterms:title": "Option A – Performance",
+      "bp:value": { "@value": "9", "@type": "xsd:decimal" },
+      "bp:scoreAlternative": { "@id": "bp:seed-alt-option-a" },
+      "bp:scoreCriterion": { "@id": "bp:seed-criterion-performance" },
+      "dcterms:created": { "@value": "2026-03-20T10:10:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-score-a-cost",
+      "@type": "bp:Score",
+      "dcterms:title": "Option A – Cost",
+      "bp:value": { "@value": "5", "@type": "xsd:decimal" },
+      "bp:scoreAlternative": { "@id": "bp:seed-alt-option-a" },
+      "bp:scoreCriterion": { "@id": "bp:seed-criterion-cost" },
+      "dcterms:created": { "@value": "2026-03-20T10:11:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-score-a-ease",
+      "@type": "bp:Score",
+      "dcterms:title": "Option A – Ease of Use",
+      "bp:value": { "@value": "3", "@type": "xsd:decimal" },
+      "bp:scoreAlternative": { "@id": "bp:seed-alt-option-a" },
+      "bp:scoreCriterion": { "@id": "bp:seed-criterion-ease" },
+      "dcterms:created": { "@value": "2026-03-20T10:12:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-score-b-perf",
+      "@type": "bp:Score",
+      "dcterms:title": "Option B – Performance",
+      "bp:value": { "@value": "7", "@type": "xsd:decimal" },
+      "bp:scoreAlternative": { "@id": "bp:seed-alt-option-b" },
+      "bp:scoreCriterion": { "@id": "bp:seed-criterion-performance" },
+      "dcterms:created": { "@value": "2026-03-20T10:13:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-score-b-cost",
+      "@type": "bp:Score",
+      "dcterms:title": "Option B – Cost",
+      "bp:value": { "@value": "7", "@type": "xsd:decimal" },
+      "bp:scoreAlternative": { "@id": "bp:seed-alt-option-b" },
+      "bp:scoreCriterion": { "@id": "bp:seed-criterion-cost" },
+      "dcterms:created": { "@value": "2026-03-20T10:14:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-score-b-ease",
+      "@type": "bp:Score",
+      "dcterms:title": "Option B – Ease of Use",
+      "bp:value": { "@value": "7", "@type": "xsd:decimal" },
+      "bp:scoreAlternative": { "@id": "bp:seed-alt-option-b" },
+      "bp:scoreCriterion": { "@id": "bp:seed-criterion-ease" },
+      "dcterms:created": { "@value": "2026-03-20T10:15:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-score-c-perf",
+      "@type": "bp:Score",
+      "dcterms:title": "Option C – Performance",
+      "bp:value": { "@value": "5", "@type": "xsd:decimal" },
+      "bp:scoreAlternative": { "@id": "bp:seed-alt-option-c" },
+      "bp:scoreCriterion": { "@id": "bp:seed-criterion-performance" },
+      "dcterms:created": { "@value": "2026-03-20T10:16:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-score-c-cost",
+      "@type": "bp:Score",
+      "dcterms:title": "Option C – Cost",
+      "bp:value": { "@value": "8", "@type": "xsd:decimal" },
+      "bp:scoreAlternative": { "@id": "bp:seed-alt-option-c" },
+      "bp:scoreCriterion": { "@id": "bp:seed-criterion-cost" },
+      "dcterms:created": { "@value": "2026-03-20T10:17:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-score-c-ease",
+      "@type": "bp:Score",
+      "dcterms:title": "Option C – Ease of Use",
+      "bp:value": { "@value": "9", "@type": "xsd:decimal" },
+      "bp:scoreAlternative": { "@id": "bp:seed-alt-option-c" },
+      "bp:scoreCriterion": { "@id": "bp:seed-criterion-ease" },
+      "dcterms:created": { "@value": "2026-03-20T10:18:00Z", "@type": "xsd:dateTime" }
     }
   ]
 }

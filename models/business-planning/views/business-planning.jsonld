@@ -64,6 +64,64 @@
       "sempkm:targetClass": { "@id": "bp:BMCSection" },
       "sempkm:rendererType": "bmc",
       "sempkm:sparqlQuery": "SELECT ?s ?title ?sectionType ?sectionContent ?canvas WHERE { ?s a <urn:sempkm:model:business-planning:BMCSection> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:business-planning:sectionType> ?sectionType } . OPTIONAL { ?s <urn:sempkm:model:business-planning:sectionContent> ?sectionContent } . OPTIONAL { ?s <urn:sempkm:model:business-planning:belongsToCanvas> ?canvas } }"
+    },
+
+    {
+      "@id": "bp:view-objective-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Objectives Table",
+      "sempkm:targetClass": { "@id": "bp:Objective" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?description ?timeframe ?created WHERE { ?s a <urn:sempkm:model:business-planning:Objective> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } . OPTIONAL { ?s <urn:sempkm:model:business-planning:timeframe> ?timeframe } . OPTIONAL { ?s <http://purl.org/dc/terms/created> ?created } }",
+      "sempkm:columns": "title,description,timeframe,created",
+      "sempkm:sortDefault": "title"
+    },
+    {
+      "@id": "bp:view-keyresult-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Key Results Table",
+      "sempkm:targetClass": { "@id": "bp:KeyResult" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?currentValue ?targetValue ?unit WHERE { ?s a <urn:sempkm:model:business-planning:KeyResult> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:business-planning:currentValue> ?currentValue } . OPTIONAL { ?s <urn:sempkm:model:business-planning:targetValue> ?targetValue } . OPTIONAL { ?s <urn:sempkm:model:business-planning:unit> ?unit } }",
+      "sempkm:columns": "title,currentValue,targetValue,unit",
+      "sempkm:sortDefault": "title"
+    },
+    {
+      "@id": "bp:view-keyresult-okr",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "OKR Progress",
+      "sempkm:targetClass": { "@id": "bp:KeyResult" },
+      "sempkm:rendererType": "okr",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?currentValue ?targetValue ?unit ?objective ?objectiveTitle WHERE { ?s a <urn:sempkm:model:business-planning:KeyResult> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:business-planning:currentValue> ?currentValue } . OPTIONAL { ?s <urn:sempkm:model:business-planning:targetValue> ?targetValue } . OPTIONAL { ?s <urn:sempkm:model:business-planning:unit> ?unit } . OPTIONAL { ?s <urn:sempkm:model:business-planning:belongsToObjective> ?objective . ?objective <http://purl.org/dc/terms/title> ?objectiveTitle } }"
+    },
+
+    {
+      "@id": "bp:view-decisionmatrix-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Decision Matrices Table",
+      "sempkm:targetClass": { "@id": "bp:DecisionMatrix" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?description ?created WHERE { ?s a <urn:sempkm:model:business-planning:DecisionMatrix> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } . OPTIONAL { ?s <http://purl.org/dc/terms/created> ?created } }",
+      "sempkm:columns": "title,description,created",
+      "sempkm:sortDefault": "title"
+    },
+    {
+      "@id": "bp:view-alternative-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Alternatives Table",
+      "sempkm:targetClass": { "@id": "bp:Alternative" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?description WHERE { ?s a <urn:sempkm:model:business-planning:Alternative> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } }",
+      "sempkm:columns": "title,description",
+      "sempkm:sortDefault": "title"
+    },
+    {
+      "@id": "bp:view-score-decisionmatrix",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Decision Matrix Scoring",
+      "sempkm:targetClass": { "@id": "bp:Score" },
+      "sempkm:rendererType": "decision-matrix",
+      "sempkm:sparqlQuery": "SELECT ?s ?value ?alternative ?alternativeTitle ?criterion ?criterionTitle ?weight ?matrix WHERE { ?s a <urn:sempkm:model:business-planning:Score> ; <urn:sempkm:model:business-planning:value> ?value ; <urn:sempkm:model:business-planning:scoreAlternative> ?alternative ; <urn:sempkm:model:business-planning:scoreCriterion> ?criterion . ?alternative <http://purl.org/dc/terms/title> ?alternativeTitle . ?criterion <http://purl.org/dc/terms/title> ?criterionTitle . OPTIONAL { ?criterion <urn:sempkm:model:business-planning:weight> ?weight } . OPTIONAL { ?criterion <urn:sempkm:model:business-planning:belongsToDecisionMatrix> ?matrix } }"
     }
   ]
 }

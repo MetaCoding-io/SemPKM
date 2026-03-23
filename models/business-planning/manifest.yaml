@@ -1,7 +1,7 @@
 modelId: business-planning
 version: "1.0.0"
 name: "Business Planning"
-description: "Business planning frameworks including the Eisenhower Matrix for urgency×importance prioritization and the Business Model Canvas for mapping the nine building blocks of a business model. Provides quadrant-based views, poster-style canvas layout, and drag-to-reclassify interaction for visual strategy work."
+description: "Business planning frameworks including the Eisenhower Matrix for urgency×importance prioritization, the Business Model Canvas for mapping the nine building blocks of a business model, OKR for measurable goal tracking, and Decision Matrix for weighted multi-criteria evaluation. Provides quadrant-based views, poster-style canvas layout, OKR progress bars, decision matrix scoring, and drag-to-reclassify interaction for visual strategy work."
 namespace: "urn:sempkm:model:business-planning:"
 prefixes:
   bp: "urn:sempkm:model:business-planning:"
@@ -67,3 +67,87 @@ icons:
     graph:
       icon: "sticky-note"
       color: "#f59e0b"
+  - type: "bp:Objective"
+    icon: "target"
+    color: "#059669"
+    tree:
+      icon: "target"
+      color: "#059669"
+      size: 16
+    tab:
+      icon: "target"
+      color: "#059669"
+      size: 14
+    graph:
+      icon: "target"
+      color: "#059669"
+  - type: "bp:KeyResult"
+    icon: "trending-up"
+    color: "#0891b2"
+    tree:
+      icon: "trending-up"
+      color: "#0891b2"
+      size: 16
+    tab:
+      icon: "trending-up"
+      color: "#0891b2"
+      size: 14
+    graph:
+      icon: "trending-up"
+      color: "#0891b2"
+  - type: "bp:DecisionMatrix"
+    icon: "scale"
+    color: "#7c3aed"
+    tree:
+      icon: "scale"
+      color: "#7c3aed"
+      size: 16
+    tab:
+      icon: "scale"
+      color: "#7c3aed"
+      size: 14
+    graph:
+      icon: "scale"
+      color: "#7c3aed"
+  - type: "bp:Criterion"
+    icon: "ruler"
+    color: "#d97706"
+    tree:
+      icon: "ruler"
+      color: "#d97706"
+      size: 16
+    tab:
+      icon: "ruler"
+      color: "#d97706"
+      size: 14
+    graph:
+      icon: "ruler"
+      color: "#d97706"
+  - type: "bp:Alternative"
+    icon: "layers"
+    color: "#2563eb"
+    tree:
+      icon: "layers"
+      color: "#2563eb"
+      size: 16
+    tab:
+      icon: "layers"
+      color: "#2563eb"
+      size: 14
+    graph:
+      icon: "layers"
+      color: "#2563eb"
+  - type: "bp:Score"
+    icon: "hash"
+    color: "#64748b"
+    tree:
+      icon: "hash"
+      color: "#64748b"
+      size: 16
+    tab:
+      icon: "hash"
+      color: "#64748b"
+      size: 14
+    graph:
+      icon: "hash"
+      color: "#64748b"

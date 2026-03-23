@@ -371,6 +371,511 @@
           "sh:group": { "@id": "bp:SectionMetadataGroup" }
         }
       ]
+    },
+
+    {
+      "@id": "bp:ObjectiveBasicInfoGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Basic Info",
+      "sh:order": 1
+    },
+    {
+      "@id": "bp:ObjectiveConfigGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Configuration",
+      "sh:order": 2
+    },
+    {
+      "@id": "bp:ObjectiveMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 3
+    },
+
+    {
+      "@id": "bp:ObjectiveShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bp:Objective" },
+      "rdfs:label": "Objective Shape",
+      "sempkm:editHelpText": "An OKR Objective — a qualitative, aspirational goal. Add Key Results to measure progress toward this objective.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bp:ObjectiveBasicInfoGroup" },
+          "sh:description": "The objective statement.",
+          "sempkm:editHelpText": "Write a clear, aspirational goal — e.g. \"Improve Product Quality\" or \"Expand Market Reach\"."
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bp:ObjectiveBasicInfoGroup" },
+          "sh:description": "Additional context for the objective.",
+          "sempkm:editHelpText": "Explain why this objective matters, what success looks like, and any context for the team."
+        },
+        {
+          "sh:path": { "@id": "bp:timeframe" },
+          "sh:name": "Timeframe",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bp:ObjectiveConfigGroup" },
+          "sh:description": "Time period for this objective.",
+          "sempkm:editHelpText": "The planning period — e.g. \"Q2 2026\", \"H1 2026\", or \"FY2026\"."
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "bp:ObjectiveMetadataGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:modified" },
+          "sh:name": "Modified",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "bp:ObjectiveMetadataGroup" }
+        }
+      ]
+    },
+
+    {
+      "@id": "bp:KRBasicInfoGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Basic Info",
+      "sh:order": 1
+    },
+    {
+      "@id": "bp:KRMeasurementGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Measurement",
+      "sh:order": 2
+    },
+    {
+      "@id": "bp:KRRelationshipsGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Relationships",
+      "sh:order": 3
+    },
+    {
+      "@id": "bp:KRMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 4
+    },
+
+    {
+      "@id": "bp:KeyResultShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bp:KeyResult" },
+      "rdfs:label": "Key Result Shape",
+      "sempkm:editHelpText": "A measurable Key Result that tracks progress toward an Objective. Set current and target values to see progress bars.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bp:KRBasicInfoGroup" },
+          "sh:description": "The key result statement.",
+          "sempkm:editHelpText": "Write a specific, measurable outcome — e.g. \"Reduce bug count from 50 to 10\" or \"Increase NPS from 30 to 50\"."
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bp:KRBasicInfoGroup" },
+          "sh:description": "Additional context.",
+          "sempkm:editHelpText": "How will this be measured? What data source or method?"
+        },
+        {
+          "sh:path": { "@id": "bp:currentValue" },
+          "sh:name": "Current Value",
+          "sh:datatype": { "@id": "xsd:decimal" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bp:KRMeasurementGroup" },
+          "sh:description": "The current measured value.",
+          "sempkm:editHelpText": "Where are you now? Update this as progress is made."
+        },
+        {
+          "sh:path": { "@id": "bp:targetValue" },
+          "sh:name": "Target Value",
+          "sh:datatype": { "@id": "xsd:decimal" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "bp:KRMeasurementGroup" },
+          "sh:description": "The target value for full completion.",
+          "sempkm:editHelpText": "What number means this key result is fully achieved?"
+        },
+        {
+          "sh:path": { "@id": "bp:unit" },
+          "sh:name": "Unit",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "bp:KRMeasurementGroup" },
+          "sh:description": "Unit of measurement.",
+          "sempkm:editHelpText": "The unit for current/target values — e.g. \"%\", \"points\", \"count\", \"hours\"."
+        },
+        {
+          "sh:path": { "@id": "bp:belongsToObjective" },
+          "sh:name": "Objective",
+          "sh:class": { "@id": "bp:Objective" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "bp:KRRelationshipsGroup" },
+          "sh:description": "The Objective this key result measures.",
+          "sempkm:editHelpText": "Link this key result to its parent Objective."
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 7,
+          "sh:group": { "@id": "bp:KRMetadataGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:modified" },
+          "sh:name": "Modified",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 8,
+          "sh:group": { "@id": "bp:KRMetadataGroup" }
+        }
+      ]
+    },
+
+    {
+      "@id": "bp:DMBasicInfoGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Basic Info",
+      "sh:order": 1
+    },
+    {
+      "@id": "bp:DMMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 2
+    },
+
+    {
+      "@id": "bp:DecisionMatrixShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bp:DecisionMatrix" },
+      "rdfs:label": "Decision Matrix Shape",
+      "sempkm:editHelpText": "A Decision Matrix helps you compare alternatives by scoring them against weighted criteria. Create the matrix first, then add criteria, alternatives, and scores.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bp:DMBasicInfoGroup" },
+          "sh:description": "A name for this Decision Matrix.",
+          "sempkm:editHelpText": "Give this matrix a clear name — e.g. \"Technology Selection\" or \"Vendor Comparison\"."
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bp:DMBasicInfoGroup" },
+          "sh:description": "Purpose or context for this decision.",
+          "sempkm:editHelpText": "Describe the decision you're trying to make and any constraints."
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bp:DMMetadataGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:modified" },
+          "sh:name": "Modified",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "bp:DMMetadataGroup" }
+        }
+      ]
+    },
+
+    {
+      "@id": "bp:CriterionBasicInfoGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Basic Info",
+      "sh:order": 1
+    },
+    {
+      "@id": "bp:CriterionScoringGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Scoring",
+      "sh:order": 2
+    },
+    {
+      "@id": "bp:CriterionRelationshipsGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Relationships",
+      "sh:order": 3
+    },
+    {
+      "@id": "bp:CriterionMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 4
+    },
+
+    {
+      "@id": "bp:CriterionShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bp:Criterion" },
+      "rdfs:label": "Criterion Shape",
+      "sempkm:editHelpText": "A weighted evaluation dimension in a Decision Matrix. Higher weights mean this criterion matters more in the final ranking.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bp:CriterionBasicInfoGroup" },
+          "sh:description": "The criterion name.",
+          "sempkm:editHelpText": "Name this evaluation dimension — e.g. \"Performance\", \"Cost\", \"Ease of Use\"."
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bp:CriterionBasicInfoGroup" },
+          "sh:description": "What this criterion measures.",
+          "sempkm:editHelpText": "Clarify how alternatives should be evaluated on this dimension."
+        },
+        {
+          "sh:path": { "@id": "bp:weight" },
+          "sh:name": "Weight",
+          "sh:datatype": { "@id": "xsd:decimal" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bp:CriterionScoringGroup" },
+          "sh:description": "Relative weight (higher = more important).",
+          "sempkm:editHelpText": "How important is this criterion relative to others? Use a scale like 1–10."
+        },
+        {
+          "sh:path": { "@id": "bp:belongsToDecisionMatrix" },
+          "sh:name": "Decision Matrix",
+          "sh:class": { "@id": "bp:DecisionMatrix" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "bp:CriterionRelationshipsGroup" },
+          "sh:description": "Which Decision Matrix this criterion belongs to.",
+          "sempkm:editHelpText": "Link this criterion to a Decision Matrix."
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "bp:CriterionMetadataGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:modified" },
+          "sh:name": "Modified",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "bp:CriterionMetadataGroup" }
+        }
+      ]
+    },
+
+    {
+      "@id": "bp:AlternativeBasicInfoGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Basic Info",
+      "sh:order": 1
+    },
+    {
+      "@id": "bp:AlternativeRelationshipsGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Relationships",
+      "sh:order": 2
+    },
+    {
+      "@id": "bp:AlternativeMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 3
+    },
+
+    {
+      "@id": "bp:AlternativeShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bp:Alternative" },
+      "rdfs:label": "Alternative Shape",
+      "sempkm:editHelpText": "An option being evaluated in a Decision Matrix. Each alternative is scored against every criterion.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bp:AlternativeBasicInfoGroup" },
+          "sh:description": "The alternative name.",
+          "sempkm:editHelpText": "Name this option — e.g. \"React Native\", \"Vendor A\", \"Build In-House\"."
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bp:AlternativeBasicInfoGroup" },
+          "sh:description": "Details about this alternative.",
+          "sempkm:editHelpText": "Key facts about this option — capabilities, pricing, constraints."
+        },
+        {
+          "sh:path": { "@id": "bp:belongsToDecisionMatrix" },
+          "sh:name": "Decision Matrix",
+          "sh:class": { "@id": "bp:DecisionMatrix" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bp:AlternativeRelationshipsGroup" },
+          "sh:description": "Which Decision Matrix this alternative belongs to.",
+          "sempkm:editHelpText": "Link this alternative to a Decision Matrix."
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "bp:AlternativeMetadataGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:modified" },
+          "sh:name": "Modified",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "bp:AlternativeMetadataGroup" }
+        }
+      ]
+    },
+
+    {
+      "@id": "bp:ScoreBasicInfoGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Score",
+      "sh:order": 1
+    },
+    {
+      "@id": "bp:ScoreRelationshipsGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Relationships",
+      "sh:order": 2
+    },
+    {
+      "@id": "bp:ScoreMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 3
+    },
+
+    {
+      "@id": "bp:ScoreShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bp:Score" },
+      "rdfs:label": "Score Shape",
+      "sempkm:editHelpText": "A score entry linking an Alternative to a Criterion with a numeric value. Create one Score for each alternative-criterion combination in the matrix.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bp:ScoreBasicInfoGroup" },
+          "sh:description": "Optional label for this score entry.",
+          "sempkm:editHelpText": "A label like \"Option A – Performance\" (auto-generated by the matrix view if left empty)."
+        },
+        {
+          "sh:path": { "@id": "bp:value" },
+          "sh:name": "Value",
+          "sh:datatype": { "@id": "xsd:decimal" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bp:ScoreBasicInfoGroup" },
+          "sh:description": "Numeric score (e.g. 1–10).",
+          "sempkm:editHelpText": "Rate this alternative on this criterion. Use the same scale across all scores (e.g. 1–10)."
+        },
+        {
+          "sh:path": { "@id": "bp:scoreAlternative" },
+          "sh:name": "Alternative",
+          "sh:class": { "@id": "bp:Alternative" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bp:ScoreRelationshipsGroup" },
+          "sh:description": "The alternative being scored.",
+          "sempkm:editHelpText": "Which option is being rated?"
+        },
+        {
+          "sh:path": { "@id": "bp:scoreCriterion" },
+          "sh:name": "Criterion",
+          "sh:class": { "@id": "bp:Criterion" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "bp:ScoreRelationshipsGroup" },
+          "sh:description": "The criterion being scored against.",
+          "sempkm:editHelpText": "Which evaluation dimension is this score for?"
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "bp:ScoreMetadataGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:modified" },
+          "sh:name": "Modified",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "bp:ScoreMetadataGroup" }
+        }
+      ]
     }
   ]
 }

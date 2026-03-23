@@ -13,7 +13,7 @@
       "@id": "bp:ontology",
       "@type": "owl:Ontology",
       "rdfs:label": "Business Planning Ontology",
-      "dcterms:description": "Business planning frameworks: Eisenhower Matrix for urgency×importance prioritization and Business Model Canvas for the nine building blocks of a business model."
+      "dcterms:description": "Business planning frameworks: Eisenhower Matrix for urgency×importance prioritization, Business Model Canvas for the nine building blocks of a business model, OKR (Objectives and Key Results) for goal tracking with measurable progress, and Decision Matrix for weighted multi-criteria evaluation."
     },
 
     {
@@ -132,6 +132,131 @@
       "rdfs:comment": "The Business Model Canvas this section belongs to",
       "rdfs:domain": { "@id": "bp:BMCSection" },
       "rdfs:range": { "@id": "bp:BusinessModelCanvas" }
+    },
+
+    {
+      "@id": "bp:Objective",
+      "@type": "owl:Class",
+      "rdfs:label": "Objective",
+      "rdfs:comment": "An OKR Objective — a qualitative goal that key results measure progress toward",
+      "rdfs:subClassOf": { "@id": "bp:FrameworkItem" }
+    },
+    {
+      "@id": "bp:KeyResult",
+      "@type": "owl:Class",
+      "rdfs:label": "Key Result",
+      "rdfs:comment": "A measurable outcome that tracks progress toward an Objective, with current and target values",
+      "rdfs:subClassOf": { "@id": "bp:FrameworkItem" }
+    },
+
+    {
+      "@id": "bp:currentValue",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Current Value",
+      "rdfs:comment": "The current measured value for this key result",
+      "rdfs:domain": { "@id": "bp:KeyResult" },
+      "rdfs:range": { "@id": "xsd:decimal" }
+    },
+    {
+      "@id": "bp:targetValue",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Target Value",
+      "rdfs:comment": "The target value that represents full completion of this key result",
+      "rdfs:domain": { "@id": "bp:KeyResult" },
+      "rdfs:range": { "@id": "xsd:decimal" }
+    },
+    {
+      "@id": "bp:unit",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Unit",
+      "rdfs:comment": "The unit of measurement for current and target values (e.g. %, points, count)",
+      "rdfs:domain": { "@id": "bp:KeyResult" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bp:timeframe",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Timeframe",
+      "rdfs:comment": "The time period for this objective or key result (e.g. Q2 2026, H1 2026)",
+      "rdfs:domain": { "@id": "bp:Objective" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bp:belongsToObjective",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Belongs To Objective",
+      "rdfs:comment": "The Objective this Key Result measures progress toward",
+      "rdfs:domain": { "@id": "bp:KeyResult" },
+      "rdfs:range": { "@id": "bp:Objective" }
+    },
+
+    {
+      "@id": "bp:DecisionMatrix",
+      "@type": "owl:Class",
+      "rdfs:label": "Decision Matrix",
+      "rdfs:comment": "A weighted scoring matrix for comparing alternatives against multiple criteria",
+      "rdfs:subClassOf": { "@id": "gist:Collection" }
+    },
+    {
+      "@id": "bp:Criterion",
+      "@type": "owl:Class",
+      "rdfs:label": "Criterion",
+      "rdfs:comment": "A weighted evaluation dimension in a Decision Matrix",
+      "rdfs:subClassOf": { "@id": "bp:FrameworkItem" }
+    },
+    {
+      "@id": "bp:Alternative",
+      "@type": "owl:Class",
+      "rdfs:label": "Alternative",
+      "rdfs:comment": "An option being evaluated in a Decision Matrix",
+      "rdfs:subClassOf": { "@id": "bp:FrameworkItem" }
+    },
+    {
+      "@id": "bp:Score",
+      "@type": "owl:Class",
+      "rdfs:label": "Score",
+      "rdfs:comment": "A junction node linking an Alternative to a Criterion with a numeric score value",
+      "rdfs:subClassOf": { "@id": "bp:FrameworkItem" }
+    },
+
+    {
+      "@id": "bp:weight",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Weight",
+      "rdfs:comment": "The relative weight of this criterion in the scoring calculation (higher = more important)",
+      "rdfs:domain": { "@id": "bp:Criterion" },
+      "rdfs:range": { "@id": "xsd:decimal" }
+    },
+    {
+      "@id": "bp:value",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Value",
+      "rdfs:comment": "The numeric score value for this alternative-criterion combination",
+      "rdfs:domain": { "@id": "bp:Score" },
+      "rdfs:range": { "@id": "xsd:decimal" }
+    },
+    {
+      "@id": "bp:belongsToDecisionMatrix",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Belongs To Decision Matrix",
+      "rdfs:comment": "The Decision Matrix this criterion or alternative belongs to",
+      "rdfs:range": { "@id": "bp:DecisionMatrix" }
+    },
+    {
+      "@id": "bp:scoreAlternative",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Score Alternative",
+      "rdfs:comment": "The alternative being scored",
+      "rdfs:domain": { "@id": "bp:Score" },
+      "rdfs:range": { "@id": "bp:Alternative" }
+    },
+    {
+      "@id": "bp:scoreCriterion",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Score Criterion",
+      "rdfs:comment": "The criterion being scored against",
+      "rdfs:domain": { "@id": "bp:Score" },
+      "rdfs:range": { "@id": "bp:Criterion" }
     }
   ]
 }
