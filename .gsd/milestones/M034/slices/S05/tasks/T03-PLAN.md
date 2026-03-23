@@ -78,3 +78,9 @@ Add task template and review workflow entries to the ninja-keys command palette.
 ## Expected Output
 
 - `frontend/static/js/workspace.js` — updated with template palette entries, review workflow launchers, `_refreshTemplatePaletteItems`, and `_launchReviewWorkflow`
+
+## Observability Impact
+
+- **Console warnings on failure:** `_refreshTemplatePaletteItems` logs `console.warn` if the template API fetch fails; `_launchReviewWorkflow` logs `console.error` and shows a toast if the workflow API fetch or lookup fails
+- **User-visible feedback:** Template instantiation failure shows a toast with the error message; missing review workflow shows "Is the PPV model installed?" guidance toast
+- **Inspection:** Open browser console and run `document.querySelector('ninja-keys').data.filter(d => d.id.startsWith('template-') || d.id.startsWith('run-'))` to verify palette entries were loaded

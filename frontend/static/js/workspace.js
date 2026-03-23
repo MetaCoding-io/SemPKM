@@ -1631,6 +1631,38 @@
             }
             createNewPersona(pname);
           }
+        },
+        // --- Task Templates ---
+        {
+          id: 'create-from-template',
+          title: 'Create from Template',
+          section: 'Objects',
+          children: []  // populated by _refreshTemplatePaletteItems
+        },
+        // --- Review Workflows ---
+        {
+          id: 'run-weekly-review',
+          title: 'Run Weekly Review',
+          section: 'Workflows',
+          handler: function () { _launchReviewWorkflow('Weekly Review'); }
+        },
+        {
+          id: 'run-monthly-review',
+          title: 'Run Monthly Review',
+          section: 'Workflows',
+          handler: function () { _launchReviewWorkflow('Monthly Review'); }
+        },
+        {
+          id: 'run-quarterly-review',
+          title: 'Run Quarterly Review',
+          section: 'Workflows',
+          handler: function () { _launchReviewWorkflow('Quarterly Review'); }
+        },
+        {
+          id: 'run-yearly-review',
+          title: 'Run Yearly Review',
+          section: 'Workflows',
+          handler: function () { _launchReviewWorkflow('Yearly Review'); }
         }
       ];
 
@@ -1647,6 +1679,9 @@
 
       // Populate persona switch children from API
       _refreshPersonaPaletteItems(ninja);
+
+      // Populate template children from API
+      _refreshTemplatePaletteItems(ninja);
 
       // Add per-type Create entries from nav tree DOM
       _addTypeCreateEntries(ninja);
@@ -2669,6 +2704,100 @@
       })
       .catch(function (err) {
         console.warn('SemPKM: persona palette refresh failed:', err.message || err);
+      });
+  }
+
+  /**
+   * Refresh the command palette "Create from Template" children from the API.
+   * Follows the same pattern as _refreshPersonaPaletteItems.
+   */
+  function _refreshTemplatePaletteItems(ninja) {
+    if (!ninja) return;
+
+    fetch('/api/task-templates', { credentials: 'same-origin' })
+      .then(function (resp) {
+        if (!resp.ok) throw new Error('Fetch templates for palette failed');
+        return resp.json();
+      })
+      .then(function (templates) {
+        // Filter out existing template- prefixed items
+        var baseData = ninja.data.filter(function (d) {
+          return !d.id.startsWith('template-');
+        });
+
+        // Collect child IDs for the parent's children array
+        var childIds = [];
+
+        // Add template children
+        templates.forEach(function (tmpl) {
+          var childId = 'template-' + tmpl.id;
+          childIds.push(childId);
+          baseData.push({
+            id: childId,
+            title: tmpl.title,
+            parent: 'create-from-template',
+            handler: (function (templateId, templateTitle) {
+              return function () {
+                fetch('/api/task-templates/' + encodeURIComponent(templateId) + '/instantiate', {
+                  method: 'POST',
+                  credentials: 'same-origin',
+                  headers: { 'Content-Type': 'application/json' }
+                })
+                  .then(function (resp) {
+                    if (!resp.ok) throw new Error('Template instantiation failed');
+                    return resp.json();
+                  })
+                  .then(function (result) {
+                    var primaryIri = result.created_iris && result.created_iris[0];
+                    if (primaryIri) {
+                      openTab(primaryIri, templateTitle);
+                    } else {
+                      showToast('Template created but no object IRI returned', 3000);
+                    }
+                  })
+                  .catch(function (err) {
+                    console.error('SemPKM: template instantiation failed:', err.message || err);
+                    showToast('Failed to create from template: ' + (err.message || 'unknown error'), 4000);
+                  });
+              };
+            })(tmpl.id, tmpl.title)
+          });
+        });
+
+        // Update the parent's children array so ninja-keys enables drill-down
+        var parentItem = baseData.find(function (d) { return d.id === 'create-from-template'; });
+        if (parentItem) {
+          parentItem.children = childIds;
+        }
+
+        ninja.data = baseData;
+      })
+      .catch(function (err) {
+        console.warn('SemPKM: template palette refresh failed:', err.message || err);
+      });
+  }
+
+  /**
+   * Launch a review workflow by name — fetches the workflow list, finds
+   * the matching workflow, and opens the stepper via openWorkflowTab().
+   */
+  function _launchReviewWorkflow(name) {
+    fetch('/api/workflow', { credentials: 'same-origin' })
+      .then(function (resp) {
+        if (!resp.ok) throw new Error('Fetch workflows failed');
+        return resp.json();
+      })
+      .then(function (workflows) {
+        var match = workflows.find(function (w) { return w.name === name; });
+        if (match) {
+          openWorkflowTab(match.id, match.name);
+        } else {
+          showToast('Review workflow not found. Is the PPV model installed?', 4000);
+        }
+      })
+      .catch(function (err) {
+        console.error('SemPKM: review workflow launch failed:', err.message || err);
+        showToast('Failed to launch review workflow: ' + (err.message || 'unknown error'), 4000);
       });
   }
 
