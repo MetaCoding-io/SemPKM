@@ -39,6 +39,14 @@ Create the CSS Grid layout for the BMC 9-box poster and the JavaScript for inlin
 - `grep -c "object.patch" frontend/static/js/bmc.js` — ≥ 1
 - `grep -c "initBMC" frontend/static/js/bmc.js` — ≥ 2 (definition + export)
 
+## Observability Impact
+
+- **JS console signals**: `console.error('bmc: failed to patch section content for', iri, err)` on save failure — visible in browser devtools and E2E `browser_get_console_logs`
+- **JS console info**: `[bmc] scope sync: scopeQuery=... from panel=...` on scope-changed events
+- **Visual feedback**: `.bmc-save-error` CSS class (red border flash, 1.5s) on failed patch; `.bmc-save-ok` CSS class (green border flash, 0.6s) on success
+- **Failure inspection**: If the textarea shows a red flash after editing, check browser network tab for the `/api/commands` response body — the error detail is in the JSON
+- **Scope sync**: When the board has a `.scope-syncing` class briefly, it's re-fetching data from the backend via htmx
+
 ## Inputs
 
 - `frontend/static/css/quadrant.css` — CSS Grid pattern, dark mode approach, color tinting
