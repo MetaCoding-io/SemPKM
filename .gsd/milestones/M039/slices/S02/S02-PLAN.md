@@ -49,7 +49,7 @@
 
 ## Tasks
 
-- [ ] **T01: Build RDF parser module with format detection, subject extraction, and unit tests** `est:2h`
+- [x] **T01: Build RDF parser module with format detection, subject extraction, and unit tests** `est:2h`
   - Why: Core novel code — format detection heuristic, rdflib parsing, subject grouping, blank node skolemization. This is where all 3 key risks (P1-P3) live. Unit tests retire the risks immediately.
   - Files: `backend/app/rdf_import/__init__.py`, `backend/app/rdf_import/parser.py`, `backend/app/rdf_import/models.py`, `backend/tests/test_rdf_import_parser.py`
   - Do: Implement `detect_format()` heuristic (JSON-LD via `{`/`[`, Turtle via `@prefix`/`@base`, N-Triples via `<...> <...>` pattern, file extension via `rdflib.util.guess_format`). Implement `parse_rdf()` that calls `Graph.parse(data=..., format=detected)` with error capture. Implement `extract_subjects()` that groups triples by subject, extracts rdf:type, resolves labels via precedence chain, counts properties, and applies top-level subject heuristic. Implement `skolemize_bnodes()` that builds `BNode→URIRef` mapping in single pass, applying to both subject and object positions. Write dataclasses in models.py (`SubjectInfo`, `RdfParseResult`). Write pytest unit tests covering: format detection for all 3 formats + edge cases, parsing valid/invalid input, subject extraction with types/labels/counts, top-level subject heuristic, blank node skolemization consistency.
