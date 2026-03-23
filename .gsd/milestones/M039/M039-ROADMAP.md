@@ -52,7 +52,7 @@ This milestone is complete only when all are true:
 
 - [x] **S01: Redoc API Tag Cleanup** `risk:low` `depends:[]`
   > After this: opening `/redoc` shows all 85 routes organized under descriptive tags (commands, sparql, validation, health, admin, inference, lint, app-management, app-proxy, shell) with zero routes under "default"
-- [ ] **S02: RDF Data Import Wizard** `risk:medium` `depends:[]`
+- [x] **S02: RDF Data Import Wizard** `risk:medium` `depends:[]`
   > After this: user can paste JSON-LD/Turtle/N-Triples or upload a file, see parsed subjects with types and SHACL validation preview, selectively import as event-sourced objects, and find them in the workspace object browser — accessible from sidebar and command palette
 
 ## Boundary Map
