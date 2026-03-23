@@ -430,6 +430,20 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - ✓ PLAN-09: Calendar shows tasks and events together with color coding — M034
 - ✓ PLAN-10: Timeline project-scoped filtering via saved queries — M034
 
+### Validated (M036 — Business Planning Mental Models & Custom Renderers)
+
+<!-- Shipped and confirmed in M036 (2026-03-23). -->
+
+- ✓ BIZ-01: business-planning model archive — 5-file JSON-LD structure, 34 OWL classes, 2822 RDF triples, manifest validates, E2E install — M036
+- ✓ BIZ-02: Quadrant renderer full vertical — SHACL-driven axis detection, 2×2 CSS Grid, drag-to-reclassify with RDF property updates, 28 unit tests — M036
+- ✓ BMC 9-box poster renderer — 10-column CSS Grid, inline editing with debounced saves, 31 unit tests — M036
+- ✓ OKR progress bars — current/target computation (clamped 0–100%), grouped by Objective, 25 unit tests — M036
+- ✓ Decision Matrix weighted scoring — Σ(weight × score) auto-ranking, 26 unit tests — M036
+- ✓ 11 extended frameworks (SWOT, Porter, PESTLE, BSC, RACI, Value Chain, Lean Canvas, BCG, Ansoff, Stakeholder, Risk) using existing renderers — M036
+- ✓ Cross-model edges (bp:relatedTask → bpkm:Task, bp:relatedGoalOutcome → ppv:GoalOutcome) — M036
+- ✓ E2E Playwright spec covering model install → 4 custom renderers → SPARQL query — M036
+- ✓ User guide section documenting all 15 frameworks in chapter 39 — M036
+
 ### Validated (M030 — Data Quality Linting & Lint UX)
 
 <!-- Shipped and confirmed in M030 (2026-03-21). -->
