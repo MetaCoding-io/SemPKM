@@ -656,12 +656,12 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - 3-tier LLM test harness (mock for CI, Ollama for dev, cloud with budget caps)
 - M028 AI endpoints wired and extended
 
-**Business Planning Mental Models & Custom Renderers** — in progress as M036
-- S01 complete: business-planning model archive (Eisenhower Matrix/Item types), quadrant renderer (2×2 grid with drag-to-reclassify), 28 unit tests
-- S02 complete: Business Model Canvas 9-box poster renderer with inline editing
-- S03 complete: OKR progress bars + Decision Matrix weighted scoring with server-side computation
-- S04 complete: 11 extended framework types (SWOT, BCG, Ansoff, Stakeholder, Risk, Porter, PESTLE, BSC, RACI, Value Chain, Lean Canvas) — 32 total types, 42 unit tests
-- Custom visual renderers: 2×2 quadrant, 9-box canvas, progress bars, weighted tables
+**Business Planning Mental Models & Custom Renderers** — complete (M036)
+- `business-planning` model archive: 32 types across 15 frameworks (Eisenhower, SWOT, BMC, OKR, Decision Matrix, Porter, PESTLE, BCG, Ansoff, Stakeholder Map, Risk Matrix, Balanced Scorecard, RACI, Value Chain, Lean Canvas)
+- 4 custom visual renderers: 2×2 quadrant (6 frameworks), 9-box canvas (BMC), progress bars (OKR), weighted scoring tables (Decision Matrix)
+- Cross-model edges: bp:relatedTask → bpkm:Task, bp:relatedGoalOutcome → ppv:GoalOutcome, bp:relatedProject → bpkm:Project
+- E2E Playwright tests cover model install, object creation, all 4 custom renderers, SPARQL queries
+- User guide chapter 39 section 5 documents all frameworks with type reference tables
 - All frameworks stored as typed RDF for AI copilot queryability
 
 **User Context & Mobile App** — queued as M037 (depends on M033)
