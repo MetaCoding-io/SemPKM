@@ -60,7 +60,7 @@
   - Verify: `cd backend && .venv/bin/python -m pytest tests/test_seed_data.py -v`
   - Done when: 4 review workflows seeded on first startup, idempotent on repeat, existing user workflows preserved
 
-- [ ] **T03: Command palette integration for templates and review workflows** `est:1.5h`
+- [x] **T03: Command palette integration for templates and review workflows** `est:1.5h`
   - Why: Connects the backend services to the user's primary discovery mechanism — the command palette. Users need to find and use templates and review workflows without navigating to dedicated admin pages.
   - Files: `frontend/static/js/workspace.js`
   - Do: Add "Create from Template" parent entry with `children: []` to ninja.data. Add `_refreshTemplatePaletteItems(ninja)` function that fetches `GET /api/task-templates`, populates children with template names, each handler calling `POST /api/task-templates/{id}/instantiate` then opening the created task tab via `openTab()`. Add 4 workflow launch entries ("Run Weekly Review", "Run Monthly Review", "Run Quarterly Review", "Run Yearly Review") in a "Workflows" section — handlers fetch `/api/workflow` to find the workflow by name, then call `openWorkflowTab(id, name)`. Call `_refreshTemplatePaletteItems(ninja)` during ninja-keys init alongside the existing `_refreshLayoutPaletteItems` and `_refreshPersonaPaletteItems`.
