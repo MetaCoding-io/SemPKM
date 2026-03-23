@@ -1,0 +1,41 @@
+modelId: business-planning
+version: "1.0.0"
+name: "Business Planning"
+description: "Business planning frameworks including the Eisenhower Matrix for urgency×importance prioritization. Provides quadrant-based views with drag-to-reclassify interaction for visual prioritization of items."
+namespace: "urn:sempkm:model:business-planning:"
+prefixes:
+  bp: "urn:sempkm:model:business-planning:"
+entrypoints:
+  ontology: "ontology/business-planning.jsonld"
+  shapes: "shapes/business-planning.jsonld"
+  views: "views/business-planning.jsonld"
+  seed: "seed/business-planning.jsonld"
+icons:
+  - type: "bp:EisenhowerMatrix"
+    icon: "grid-2x2"
+    color: "#7c3aed"
+    tree:
+      icon: "grid-2x2"
+      color: "#7c3aed"
+      size: 16
+    tab:
+      icon: "grid-2x2"
+      color: "#7c3aed"
+      size: 14
+    graph:
+      icon: "grid-2x2"
+      color: "#7c3aed"
+  - type: "bp:EisenhowerItem"
+    icon: "target"
+    color: "#dc2626"
+    tree:
+      icon: "target"
+      color: "#dc2626"
+      size: 16
+    tab:
+      icon: "target"
+      color: "#dc2626"
+      size: 14
+    graph:
+      icon: "target"
+      color: "#dc2626"

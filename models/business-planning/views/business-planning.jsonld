@@ -1,0 +1,40 @@
+{
+  "@context": {
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "bp": "urn:sempkm:model:business-planning:",
+    "sempkm": "urn:sempkm:vocab:",
+    "dcterms": "http://purl.org/dc/terms/"
+  },
+  "@graph": [
+    {
+      "@id": "bp:view-eisenhower-matrix-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Eisenhower Matrices Table",
+      "sempkm:targetClass": { "@id": "bp:EisenhowerMatrix" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?description ?created WHERE { ?s a <urn:sempkm:model:business-planning:EisenhowerMatrix> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } . OPTIONAL { ?s <http://purl.org/dc/terms/created> ?created } }",
+      "sempkm:columns": "title,description,created",
+      "sempkm:sortDefault": "title"
+    },
+    {
+      "@id": "bp:view-eisenhower-item-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Eisenhower Items Table",
+      "sempkm:targetClass": { "@id": "bp:EisenhowerItem" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?urgency ?importance ?description WHERE { ?s a <urn:sempkm:model:business-planning:EisenhowerItem> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:business-planning:urgency> ?urgency } . OPTIONAL { ?s <urn:sempkm:model:business-planning:importance> ?importance } . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } }",
+      "sempkm:columns": "title,urgency,importance,description",
+      "sempkm:sortDefault": "title"
+    },
+    {
+      "@id": "bp:view-eisenhower-item-quadrant",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Eisenhower Quadrant",
+      "sempkm:targetClass": { "@id": "bp:EisenhowerItem" },
+      "sempkm:rendererType": "quadrant",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?urgency ?importance ?description WHERE { ?s a <urn:sempkm:model:business-planning:EisenhowerItem> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:business-planning:urgency> ?urgency } . OPTIONAL { ?s <urn:sempkm:model:business-planning:importance> ?importance } . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } }"
+    }
+  ]
+}

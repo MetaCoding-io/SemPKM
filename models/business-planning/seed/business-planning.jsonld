@@ -1,0 +1,94 @@
+{
+  "@context": {
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "bp": "urn:sempkm:model:business-planning:"
+  },
+  "@graph": [
+    {
+      "@id": "bp:seed-matrix-priorities",
+      "@type": "bp:EisenhowerMatrix",
+      "dcterms:title": "My Priority Matrix",
+      "dcterms:description": "Personal task prioritization using the Eisenhower urgency×importance framework.",
+      "bp:xAxisLabel": "Urgency",
+      "bp:yAxisLabel": "Importance",
+      "dcterms:created": { "@value": "2026-03-01T09:00:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "bp:seed-item-quarterly-report",
+      "@type": "bp:EisenhowerItem",
+      "dcterms:title": "Finish quarterly report",
+      "dcterms:description": "Board presentation due Friday — needs revenue numbers and projections finalized.",
+      "bp:urgency": "high",
+      "bp:importance": "high",
+      "bp:belongsToMatrix": { "@id": "bp:seed-matrix-priorities" },
+      "dcterms:created": { "@value": "2026-03-01T09:05:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-item-client-escalation",
+      "@type": "bp:EisenhowerItem",
+      "dcterms:title": "Respond to client escalation",
+      "dcterms:description": "Key account flagged a critical bug — SLA response window closes today.",
+      "bp:urgency": "high",
+      "bp:importance": "high",
+      "bp:belongsToMatrix": { "@id": "bp:seed-matrix-priorities" },
+      "dcterms:created": { "@value": "2026-03-01T09:10:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "bp:seed-item-strategy-doc",
+      "@type": "bp:EisenhowerItem",
+      "dcterms:title": "Draft product strategy document",
+      "dcterms:description": "Align team on H2 roadmap priorities and investment areas. No hard deadline but shapes everything downstream.",
+      "bp:urgency": "low",
+      "bp:importance": "high",
+      "bp:belongsToMatrix": { "@id": "bp:seed-matrix-priorities" },
+      "dcterms:created": { "@value": "2026-03-01T09:15:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-item-mentoring",
+      "@type": "bp:EisenhowerItem",
+      "dcterms:title": "Set up mentoring program",
+      "dcterms:description": "Build structured mentoring for junior engineers. High long-term impact on retention and growth.",
+      "bp:urgency": "low",
+      "bp:importance": "high",
+      "bp:belongsToMatrix": { "@id": "bp:seed-matrix-priorities" },
+      "dcterms:created": { "@value": "2026-03-01T09:20:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "bp:seed-item-meeting-notes",
+      "@type": "bp:EisenhowerItem",
+      "dcterms:title": "Send meeting notes from standup",
+      "dcterms:description": "Team asked for written summary of this morning's standup decisions.",
+      "bp:urgency": "high",
+      "bp:importance": "low",
+      "bp:belongsToMatrix": { "@id": "bp:seed-matrix-priorities" },
+      "dcterms:created": { "@value": "2026-03-01T09:25:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "bp:seed-item-clean-inbox",
+      "@type": "bp:EisenhowerItem",
+      "dcterms:title": "Clean out email inbox",
+      "dcterms:description": "500+ unread emails accumulated — mostly newsletters and notifications.",
+      "bp:urgency": "low",
+      "bp:importance": "low",
+      "bp:belongsToMatrix": { "@id": "bp:seed-matrix-priorities" },
+      "dcterms:created": { "@value": "2026-03-01T09:30:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-item-org-chart",
+      "@type": "bp:EisenhowerItem",
+      "dcterms:title": "Update org chart on wiki",
+      "dcterms:description": "Three people moved teams last month — org chart is out of date but nobody checks it.",
+      "bp:urgency": "low",
+      "bp:importance": "low",
+      "bp:belongsToMatrix": { "@id": "bp:seed-matrix-priorities" },
+      "dcterms:created": { "@value": "2026-03-01T09:35:00Z", "@type": "xsd:dateTime" }
+    }
+  ]
+}

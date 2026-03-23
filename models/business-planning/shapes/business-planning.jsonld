@@ -1,0 +1,206 @@
+{
+  "@context": {
+    "sh": "http://www.w3.org/ns/shacl#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "bp": "urn:sempkm:model:business-planning:",
+    "sempkm": "urn:sempkm:"
+  },
+  "@graph": [
+    {
+      "@id": "bp:MatrixBasicInfoGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Basic Info",
+      "sh:order": 1
+    },
+    {
+      "@id": "bp:MatrixConfigGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Configuration",
+      "sh:order": 2
+    },
+    {
+      "@id": "bp:MatrixMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 3
+    },
+
+    {
+      "@id": "bp:EisenhowerMatrixShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bp:EisenhowerMatrix" },
+      "rdfs:label": "Eisenhower Matrix Shape",
+      "sempkm:editHelpText": "An Eisenhower Matrix organizes items into four quadrants by urgency and importance. Create the matrix first, then add items that reference it.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bp:MatrixBasicInfoGroup" },
+          "sh:description": "A name for this Eisenhower Matrix.",
+          "sempkm:editHelpText": "Give this matrix a clear name — e.g. \"Q2 Priorities\" or \"Personal Tasks\". You can have multiple matrices for different contexts."
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bp:MatrixBasicInfoGroup" },
+          "sh:description": "Purpose or context for this matrix.",
+          "sempkm:editHelpText": "Describe what this matrix is for — the project, context, or decision you're trying to prioritize."
+        },
+        {
+          "sh:path": { "@id": "bp:xAxisLabel" },
+          "sh:name": "X-Axis Label",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:defaultValue": "Urgency",
+          "sh:order": 3,
+          "sh:group": { "@id": "bp:MatrixConfigGroup" },
+          "sh:description": "Label for the horizontal axis.",
+          "sempkm:editHelpText": "The horizontal axis label. Defaults to \"Urgency\" for the standard Eisenhower layout."
+        },
+        {
+          "sh:path": { "@id": "bp:yAxisLabel" },
+          "sh:name": "Y-Axis Label",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:defaultValue": "Importance",
+          "sh:order": 4,
+          "sh:group": { "@id": "bp:MatrixConfigGroup" },
+          "sh:description": "Label for the vertical axis.",
+          "sempkm:editHelpText": "The vertical axis label. Defaults to \"Importance\" for the standard Eisenhower layout."
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "bp:MatrixMetadataGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:modified" },
+          "sh:name": "Modified",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "bp:MatrixMetadataGroup" }
+        }
+      ]
+    },
+
+    {
+      "@id": "bp:ItemBasicInfoGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Basic Info",
+      "sh:order": 1
+    },
+    {
+      "@id": "bp:ItemClassificationGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Classification",
+      "sh:order": 2
+    },
+    {
+      "@id": "bp:ItemRelationshipsGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Relationships",
+      "sh:order": 3
+    },
+    {
+      "@id": "bp:ItemMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 4
+    },
+
+    {
+      "@id": "bp:EisenhowerItemShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bp:EisenhowerItem" },
+      "rdfs:label": "Eisenhower Item Shape",
+      "sempkm:editHelpText": "An item to be prioritized using the Eisenhower method. Set urgency and importance to place it in one of the four quadrants: Do First (high/high), Schedule (low/high), Delegate (high/low), or Eliminate (low/low).",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bp:ItemBasicInfoGroup" },
+          "sh:description": "The item title.",
+          "sempkm:editHelpText": "A short, actionable title for this item — what needs to be done or decided."
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bp:ItemBasicInfoGroup" },
+          "sh:description": "Additional context or details.",
+          "sempkm:editHelpText": "More detail about this item — why it matters, what's involved, any deadlines or dependencies."
+        },
+        {
+          "sh:path": { "@id": "bp:urgency" },
+          "sh:name": "Urgency",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["high", "low"] },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bp:ItemClassificationGroup" },
+          "sh:description": "How urgent is this item?",
+          "sempkm:editHelpText": "High urgency means it needs attention now — there's a time pressure or deadline. Low urgency means it can wait without immediate consequences."
+        },
+        {
+          "sh:path": { "@id": "bp:importance" },
+          "sh:name": "Importance",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["high", "low"] },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "bp:ItemClassificationGroup" },
+          "sh:description": "How important is this item?",
+          "sempkm:editHelpText": "High importance means it contributes to long-term goals or has significant impact. Low importance means it has limited lasting value even if it feels pressing."
+        },
+        {
+          "sh:path": { "@id": "bp:belongsToMatrix" },
+          "sh:name": "Matrix",
+          "sh:class": { "@id": "bp:EisenhowerMatrix" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "bp:ItemRelationshipsGroup" },
+          "sh:description": "Which Eisenhower Matrix this item belongs to.",
+          "sempkm:editHelpText": "Link this item to an Eisenhower Matrix. Items not linked to a matrix will still appear in global quadrant views."
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "bp:ItemMetadataGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:modified" },
+          "sh:name": "Modified",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 7,
+          "sh:group": { "@id": "bp:ItemMetadataGroup" }
+        }
+      ]
+    }
+  ]
+}
