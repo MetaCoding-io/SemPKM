@@ -2446,6 +2446,520 @@ WHERE {{
             "total": total,
         }
 
+    # ── OKR (Objectives & Key Results) renderer ────────────────
+
+    async def _detect_okr_structure(
+        self, type_iri: str,
+    ) -> tuple["PropertyShape | None", "PropertyShape | None", "PropertyShape | None", "PropertyShape | None"]:
+        """Find SHACL properties for OKR progress computation.
+
+        Looks for decimal properties whose paths contain "currentvalue"
+        or "targetvalue" (case-insensitive), a string property containing
+        "unit", and an ObjectProperty whose path contains
+        "belongstoobjective".
+
+        Returns:
+            ``(current_prop, target_prop, unit_prop, objective_prop)`` or
+            ``(None, None, None, None)`` when required properties are not
+            found.
+        """
+        if not self._shapes_service:
+            return None, None, None, None
+
+        try:
+            form: NodeShapeForm | None = (
+                await self._shapes_service.get_form_for_type(type_iri)
+            )
+        except Exception:
+            logger.warning(
+                "_detect_okr_structure: shapes lookup failed for %s",
+                type_iri,
+                exc_info=True,
+            )
+            return None, None, None, None
+
+        if form is None:
+            return None, None, None, None
+
+        current_prop: PropertyShape | None = None
+        target_prop: PropertyShape | None = None
+        unit_prop: PropertyShape | None = None
+        objective_prop: PropertyShape | None = None
+
+        xsd_decimal = "http://www.w3.org/2001/XMLSchema#decimal"
+
+        for prop in form.properties:
+            local = _local_name(prop.path).lower()
+
+            if prop.datatype == xsd_decimal:
+                if "currentvalue" in local and current_prop is None:
+                    current_prop = prop
+                elif "targetvalue" in local and target_prop is None:
+                    target_prop = prop
+
+            if prop.datatype and "unit" in local and not prop.target_class:
+                unit_prop = prop
+
+            if prop.target_class:
+                if "belongstoobjective" in local:
+                    objective_prop = prop
+
+        if current_prop is None or target_prop is None:
+            logger.debug(
+                "_detect_okr_structure: type=%s missing currentValue or targetValue decimal properties",
+                type_iri,
+            )
+            return None, None, None, None
+
+        logger.debug(
+            "_detect_okr_structure: type=%s current=%s target=%s unit=%s objective=%s",
+            type_iri,
+            current_prop.path,
+            target_prop.path,
+            unit_prop.path if unit_prop else "(none)",
+            objective_prop.path if objective_prop else "(none)",
+        )
+        return current_prop, target_prop, unit_prop, objective_prop
+
+    @staticmethod
+    def _build_okr_select(
+        type_iri: str,
+        current_path: str,
+        target_path: str,
+        unit_path: str | None = None,
+        objective_path: str | None = None,
+        scope_filter: str | None = None,
+    ) -> str:
+        """Build a SELECT query for OKR key results with progress data.
+
+        currentValue and targetValue are OPTIONAL (items with missing
+        values get 0% progress).  Unit and objective join are OPTIONAL.
+
+        Args:
+            type_iri: The RDF type IRI (e.g. bp:KeyResult).
+            current_path: Property IRI for the currentValue field.
+            target_path: Property IRI for the targetValue field.
+            unit_path: Optional property IRI for the unit field.
+            objective_path: Optional property IRI linking to the objective.
+            scope_filter: Optional SPARQL WHERE body for scope filtering.
+
+        Returns:
+            SPARQL SELECT query string.
+        """
+        scope_clause = ""
+        if scope_filter:
+            scope_clause = f"  {{ SELECT ?s WHERE {{ {scope_filter} }} }}\n"
+
+        unit_clause = ""
+        if unit_path:
+            unit_clause = f"  OPTIONAL {{ ?s <{unit_path}> ?unit }}\n"
+
+        objective_clause = ""
+        if objective_path:
+            objective_clause = (
+                f"  OPTIONAL {{\n"
+                f"    ?s <{objective_path}> ?objective .\n"
+                f"    OPTIONAL {{ ?objective rdfs:label|dcterms:title ?objTitle }}\n"
+                f"  }}\n"
+            )
+
+        return (
+            "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
+            "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n"
+            "PREFIX dcterms: <http://purl.org/dc/terms/>\n"
+            "\n"
+            "SELECT ?s ?title ?currentValue ?targetValue ?unit ?objective ?objTitle\n"
+            "WHERE {\n"
+            f"  ?s rdf:type <{type_iri}> .\n"
+            f"{scope_clause}"
+            "  OPTIONAL { ?s rdfs:label|dcterms:title ?title }\n"
+            f"  OPTIONAL {{ ?s <{current_path}> ?currentValue }}\n"
+            f"  OPTIONAL {{ ?s <{target_path}> ?targetValue }}\n"
+            f"{unit_clause}"
+            f"{objective_clause}"
+            "}"
+        )
+
+    async def execute_okr_query(
+        self,
+        type_iri: str,
+        current_prop: "PropertyShape",
+        target_prop: "PropertyShape",
+        unit_prop: "PropertyShape | None" = None,
+        objective_prop: "PropertyShape | None" = None,
+        scope_filter: str | None = None,
+    ) -> dict:
+        """Execute an OKR query and compute progress percentages.
+
+        Groups key results by their parent objective.  Each key result
+        gets a ``progress`` field computed as
+        ``(currentValue / targetValue) * 100`` clamped to 0–100.
+        Division by zero (targetValue is 0 or missing) yields 0.
+
+        Each objective gets an aggregate ``progress`` (average of its
+        children).
+
+        Returns:
+            ``{"objectives": [...], "ungrouped": [...], "total": N}``
+        """
+        query = self._build_okr_select(
+            type_iri,
+            current_prop.path,
+            target_prop.path,
+            unit_path=unit_prop.path if unit_prop else None,
+            objective_path=objective_prop.path if objective_prop else None,
+            scope_filter=scope_filter,
+        )
+        scoped = scope_to_current_graph(query)
+
+        try:
+            result = await self._client.query(scoped)
+        except Exception:
+            logger.warning(
+                "execute_okr_query: query failed for type=%s",
+                type_iri,
+                exc_info=True,
+            )
+            return {"objectives": [], "ungrouped": [], "total": 0}
+
+        bindings = result.get("results", {}).get("bindings", [])
+
+        # Group key results by objective
+        objectives_map: dict[str, dict] = {}  # objective_iri -> {title, key_results}
+        ungrouped: list[dict] = []
+        seen: set[str] = set()
+
+        for b in bindings:
+            iri = b.get("s", {}).get("value", "")
+            if not iri or iri in seen:
+                continue
+            seen.add(iri)
+
+            title = b.get("title", {}).get("value", "") or _local_name(iri)
+
+            # Compute progress
+            try:
+                current_val = float(b.get("currentValue", {}).get("value", "0"))
+            except (ValueError, TypeError):
+                current_val = 0.0
+
+            try:
+                target_val = float(b.get("targetValue", {}).get("value", "0"))
+            except (ValueError, TypeError):
+                target_val = 0.0
+
+            if target_val <= 0:
+                progress = 0.0
+            else:
+                progress = max(0.0, min(100.0, (current_val / target_val) * 100.0))
+
+            unit = b.get("unit", {}).get("value", "")
+
+            kr_item = {
+                "iri": iri,
+                "title": title,
+                "current_value": current_val,
+                "target_value": target_val,
+                "progress": round(progress, 1),
+                "unit": unit,
+            }
+
+            obj_iri = b.get("objective", {}).get("value", "")
+            if obj_iri:
+                obj_title = b.get("objTitle", {}).get("value", "") or _local_name(obj_iri)
+                if obj_iri not in objectives_map:
+                    objectives_map[obj_iri] = {
+                        "iri": obj_iri,
+                        "title": obj_title,
+                        "key_results": [],
+                    }
+                objectives_map[obj_iri]["key_results"].append(kr_item)
+            else:
+                ungrouped.append(kr_item)
+
+        # Compute aggregate progress per objective
+        objectives = []
+        for obj_data in objectives_map.values():
+            krs = obj_data["key_results"]
+            if krs:
+                avg_progress = sum(kr["progress"] for kr in krs) / len(krs)
+            else:
+                avg_progress = 0.0
+            objectives.append({
+                "iri": obj_data["iri"],
+                "title": obj_data["title"],
+                "progress": round(avg_progress, 1),
+                "key_results": krs,
+            })
+
+        total = len(seen)
+
+        logger.info(
+            "execute_okr_query: type=%s total=%d objectives=%d ungrouped=%d",
+            type_iri, total, len(objectives), len(ungrouped),
+        )
+
+        return {
+            "objectives": objectives,
+            "ungrouped": ungrouped,
+            "total": total,
+        }
+
+    # ── Decision Matrix (Weighted Scoring) renderer ────────────
+
+    async def _detect_decision_matrix_structure(
+        self, type_iri: str,
+    ) -> tuple["PropertyShape | None", "PropertyShape | None", "PropertyShape | None", "PropertyShape | None"]:
+        """Find SHACL properties for Decision Matrix weighted scoring.
+
+        Looks for:
+        - A decimal property whose path contains "value" (the score value)
+        - An ObjectProperty whose target_class path contains "alternative"
+        - An ObjectProperty whose target_class path contains "criterion"
+
+        The weight property lives on the Criterion type and is fetched
+        via SPARQL join, not detected here.
+
+        Returns:
+            ``(value_prop, alt_prop, crit_prop, None)`` or
+            ``(None, None, None, None)`` when required properties are not
+            found.
+        """
+        if not self._shapes_service:
+            return None, None, None, None
+
+        try:
+            form: NodeShapeForm | None = (
+                await self._shapes_service.get_form_for_type(type_iri)
+            )
+        except Exception:
+            logger.warning(
+                "_detect_decision_matrix_structure: shapes lookup failed for %s",
+                type_iri,
+                exc_info=True,
+            )
+            return None, None, None, None
+
+        if form is None:
+            return None, None, None, None
+
+        value_prop: PropertyShape | None = None
+        alt_prop: PropertyShape | None = None
+        crit_prop: PropertyShape | None = None
+
+        xsd_decimal = "http://www.w3.org/2001/XMLSchema#decimal"
+
+        for prop in form.properties:
+            local = _local_name(prop.path).lower()
+
+            if prop.datatype == xsd_decimal and "value" in local:
+                if value_prop is None:
+                    value_prop = prop
+
+            if prop.target_class:
+                tc_local = _local_name(prop.target_class).lower()
+                if "alternative" in tc_local and alt_prop is None:
+                    alt_prop = prop
+                elif "criterion" in tc_local and crit_prop is None:
+                    crit_prop = prop
+
+        if value_prop is None or alt_prop is None or crit_prop is None:
+            logger.debug(
+                "_detect_decision_matrix_structure: type=%s missing required properties "
+                "(value=%s, alt=%s, crit=%s)",
+                type_iri,
+                value_prop is not None,
+                alt_prop is not None,
+                crit_prop is not None,
+            )
+            return None, None, None, None
+
+        logger.debug(
+            "_detect_decision_matrix_structure: type=%s value=%s alt=%s crit=%s",
+            type_iri, value_prop.path, alt_prop.path, crit_prop.path,
+        )
+        return value_prop, alt_prop, crit_prop, None
+
+    @staticmethod
+    def _build_decision_matrix_select(
+        type_iri: str,
+        value_path: str,
+        alt_path: str,
+        crit_path: str,
+        scope_filter: str | None = None,
+    ) -> str:
+        """Build a SELECT query joining Score→Alternative and Score→Criterion.
+
+        All joins are required (non-OPTIONAL) since a score without both
+        references is meaningless.  Criterion weight is fetched via a
+        well-known ``weight`` predicate on the criterion resource.
+
+        Args:
+            type_iri: The RDF type IRI for Score.
+            value_path: Property IRI for the score value.
+            alt_path: Property IRI linking score to alternative.
+            crit_path: Property IRI linking score to criterion.
+            scope_filter: Optional SPARQL WHERE body for scope filtering.
+
+        Returns:
+            SPARQL SELECT query string.
+        """
+        scope_clause = ""
+        if scope_filter:
+            scope_clause = f"  {{ SELECT ?score WHERE {{ {scope_filter} }} }}\n"
+
+        # Derive weight predicate: replace the local name of the value
+        # property with "weight" — e.g. bp:value → bp:weight.
+        # Fallback to a well-known IRI for the weight property.
+        weight_ns = value_path
+        if "#" in weight_ns:
+            weight_path = weight_ns.rsplit("#", 1)[0] + "#weight"
+        elif "/" in weight_ns:
+            weight_path = weight_ns.rsplit("/", 1)[0] + "/weight"
+        else:
+            weight_path = "urn:sempkm:model:business-planning:weight"
+
+        return (
+            "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
+            "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n"
+            "PREFIX dcterms: <http://purl.org/dc/terms/>\n"
+            "\n"
+            "SELECT ?score ?alt ?altTitle ?crit ?critTitle ?critWeight ?scoreValue\n"
+            "WHERE {\n"
+            f"  ?score rdf:type <{type_iri}> .\n"
+            f"  ?score <{value_path}> ?scoreValue .\n"
+            f"  ?score <{alt_path}> ?alt .\n"
+            f"  ?score <{crit_path}> ?crit .\n"
+            f"{scope_clause}"
+            "  OPTIONAL { ?alt rdfs:label|dcterms:title ?altTitle }\n"
+            "  OPTIONAL { ?crit rdfs:label|dcterms:title ?critTitle }\n"
+            f"  OPTIONAL {{ ?crit <{weight_path}> ?critWeight }}\n"
+            "}"
+        )
+
+    async def execute_decision_matrix_query(
+        self,
+        type_iri: str,
+        value_prop: "PropertyShape",
+        alt_prop: "PropertyShape",
+        crit_prop: "PropertyShape",
+        scope_filter: str | None = None,
+    ) -> dict:
+        """Execute a Decision Matrix query and compute weighted scores.
+
+        Groups scores by alternative.  For each alternative, computes
+        ``weighted_score = Σ(critWeight × scoreValue)``.  Alternatives
+        are ranked by descending weighted_score (ties get the same rank).
+
+        Returns:
+            ``{"alternatives": [...], "criteria": [...], "total_scores": N}``
+            where each alternative has ``iri``, ``title``,
+            ``weighted_score``, ``rank``, and ``scores`` dict keyed by
+            criterion IRI.
+        """
+        query = self._build_decision_matrix_select(
+            type_iri,
+            value_prop.path,
+            alt_prop.path,
+            crit_prop.path,
+            scope_filter=scope_filter,
+        )
+        scoped = scope_to_current_graph(query)
+
+        try:
+            result = await self._client.query(scoped)
+        except Exception:
+            logger.warning(
+                "execute_decision_matrix_query: query failed for type=%s",
+                type_iri,
+                exc_info=True,
+            )
+            return {"alternatives": [], "criteria": [], "total_scores": 0}
+
+        bindings = result.get("results", {}).get("bindings", [])
+
+        # Collect criteria and alternatives
+        criteria_map: dict[str, dict] = {}  # crit_iri -> {title, weight}
+        alt_map: dict[str, dict] = {}  # alt_iri -> {title, scores: {crit_iri: value}}
+
+        for b in bindings:
+            score_iri = b.get("score", {}).get("value", "")
+            if not score_iri:
+                continue
+
+            alt_iri = b.get("alt", {}).get("value", "")
+            crit_iri = b.get("crit", {}).get("value", "")
+            if not alt_iri or not crit_iri:
+                continue
+
+            alt_title = b.get("altTitle", {}).get("value", "") or _local_name(alt_iri)
+            crit_title = b.get("critTitle", {}).get("value", "") or _local_name(crit_iri)
+
+            try:
+                crit_weight = float(b.get("critWeight", {}).get("value", "1"))
+            except (ValueError, TypeError):
+                crit_weight = 1.0
+
+            try:
+                score_value = float(b.get("scoreValue", {}).get("value", "0"))
+            except (ValueError, TypeError):
+                score_value = 0.0
+
+            # Register criterion
+            if crit_iri not in criteria_map:
+                criteria_map[crit_iri] = {
+                    "iri": crit_iri,
+                    "title": crit_title,
+                    "weight": crit_weight,
+                }
+
+            # Register alternative and score
+            if alt_iri not in alt_map:
+                alt_map[alt_iri] = {
+                    "iri": alt_iri,
+                    "title": alt_title,
+                    "scores": {},
+                }
+            alt_map[alt_iri]["scores"][crit_iri] = score_value
+
+        # Compute weighted scores per alternative
+        alternatives = []
+        for alt_data in alt_map.values():
+            weighted_score = 0.0
+            for crit_iri, score_val in alt_data["scores"].items():
+                crit_weight = criteria_map.get(crit_iri, {}).get("weight", 1.0)
+                weighted_score += crit_weight * score_val
+            alternatives.append({
+                "iri": alt_data["iri"],
+                "title": alt_data["title"],
+                "weighted_score": round(weighted_score, 2),
+                "scores": alt_data["scores"],
+            })
+
+        # Sort by weighted_score descending
+        alternatives.sort(key=lambda a: a["weighted_score"], reverse=True)
+
+        # Assign ranks (ties get same rank)
+        rank = 1
+        for i, alt in enumerate(alternatives):
+            if i > 0 and alt["weighted_score"] < alternatives[i - 1]["weighted_score"]:
+                rank = i + 1
+            alt["rank"] = rank
+
+        criteria = sorted(criteria_map.values(), key=lambda c: c.get("weight", 0), reverse=True)
+        total_scores = len(bindings)
+
+        logger.info(
+            "execute_decision_matrix_query: type=%s total_scores=%d alternatives=%d criteria=%d",
+            type_iri, total_scores, len(alternatives), len(criteria),
+        )
+
+        return {
+            "alternatives": alternatives,
+            "criteria": criteria,
+            "total_scores": total_scores,
+        }
+
     # ── Timeline renderer ──────────────────────────────────────
 
     # Status value → Frappe Gantt CSS class mapping

@@ -1,0 +1,106 @@
+<link rel="stylesheet" href="/css/okr.css">
+<div class="view-flex-column">
+{% if is_generic | default(false) %}
+{% include "browser/type_filter_pills.html" %}
+{% endif %}
+{% include "browser/view_toolbar.html" %}
+
+{% if error_message is defined and error_message %}
+<div class="view-empty-state">
+    <p>{{ error_message }}</p>
+</div>
+
+{% elif objectives or ungrouped %}
+<div class="okr-board"
+     data-type-iri="{{ type_iri | default('') }}"
+     data-data-url="{{ okr_data_url | default('') }}">
+
+    {% for obj in objectives %}
+    <div class="okr-objective-card" data-iri="{{ obj['iri'] }}">
+        <div class="okr-objective-header">
+            <span class="okr-objective-title"
+                  onclick="openTab('{{ obj['iri'] }}', '{{ obj['title'] | replace("'", "\\'") }}'); return false;">
+                {{ obj['title'] }}
+            </span>
+            <span class="okr-objective-progress">{{ obj['progress'] }}%</span>
+        </div>
+        <div class="okr-progress-bar okr-progress-bar--aggregate">
+            <div class="okr-progress-fill
+                {% if obj['progress'] >= 70 %}okr-progress--green
+                {% elif obj['progress'] >= 30 %}okr-progress--amber
+                {% else %}okr-progress--red{% endif %}"
+                 style="width: {{ obj['progress'] }}%"></div>
+        </div>
+        <div class="okr-key-results">
+            {% for kr in obj['key_results'] %}
+            <div class="okr-kr-row" data-iri="{{ kr['iri'] }}">
+                <span class="okr-kr-title"
+                      onclick="openTab('{{ kr['iri'] }}', '{{ kr['title'] | replace("'", "\\'") }}'); return false;">
+                    {{ kr['title'] }}
+                </span>
+                <span class="okr-kr-values">{{ kr['current_value'] }} / {{ kr['target_value'] }}{% if kr['unit'] %} {{ kr['unit'] }}{% endif %}</span>
+                <span class="okr-kr-percent">{{ kr['progress'] }}%</span>
+                <div class="okr-progress-bar okr-progress-bar--kr">
+                    <div class="okr-progress-fill
+                        {% if kr['progress'] >= 70 %}okr-progress--green
+                        {% elif kr['progress'] >= 30 %}okr-progress--amber
+                        {% else %}okr-progress--red{% endif %}"
+                         style="width: {{ kr['progress'] }}%"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+
+    {% if ungrouped %}
+    <div class="okr-ungrouped">
+        <div class="okr-objective-header">
+            <span class="okr-objective-title">Ungrouped Key Results</span>
+        </div>
+        {% for kr in ungrouped %}
+        <div class="okr-kr-row" data-iri="{{ kr['iri'] }}">
+            <span class="okr-kr-title"
+                  onclick="openTab('{{ kr['iri'] }}', '{{ kr['title'] | replace("'", "\\'") }}'); return false;">
+                {{ kr['title'] }}
+            </span>
+            <span class="okr-kr-values">{{ kr['current_value'] }} / {{ kr['target_value'] }}{% if kr['unit'] %} {{ kr['unit'] }}{% endif %}</span>
+            <span class="okr-kr-percent">{{ kr['progress'] }}%</span>
+            <div class="okr-progress-bar okr-progress-bar--kr">
+                <div class="okr-progress-fill
+                    {% if kr['progress'] >= 70 %}okr-progress--green
+                    {% elif kr['progress'] >= 30 %}okr-progress--amber
+                    {% else %}okr-progress--red{% endif %}"
+                     style="width: {{ kr['progress'] }}%"></div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+{% else %}
+<div class="view-empty-state">
+    <p>Select a type with currentValue/targetValue properties to use OKR View.</p>
+</div>
+{% endif %}
+</div>
+
+<script>
+(function() {
+    function _boot() {
+        var board = document.querySelector('.okr-board');
+        if (board && typeof initOKR === 'function') {
+            initOKR(board);
+        }
+    }
+    if (typeof initOKR === 'function') {
+        _boot();
+    } else {
+        var s = document.createElement('script');
+        s.src = '/js/okr.js';
+        s.onload = _boot;
+        document.head.appendChild(s);
+    }
+})();
+</script>

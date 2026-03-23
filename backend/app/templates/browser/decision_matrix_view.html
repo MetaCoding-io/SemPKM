@@ -1,0 +1,85 @@
+<link rel="stylesheet" href="/css/decision-matrix.css">
+<div class="view-flex-column">
+{% if is_generic | default(false) %}
+{% include "browser/type_filter_pills.html" %}
+{% endif %}
+{% include "browser/view_toolbar.html" %}
+
+{% if error_message is defined and error_message %}
+<div class="view-empty-state">
+    <p>{{ error_message }}</p>
+</div>
+
+{% elif alternatives %}
+<div class="dm-board"
+     data-type-iri="{{ type_iri | default('') }}"
+     data-data-url="{{ dm_data_url | default('') }}">
+
+    <table class="dm-table">
+        <thead>
+            <tr>
+                <th class="dm-th-rank">#</th>
+                <th class="dm-th-alternative">Alternative</th>
+                {% for crit in criteria %}
+                <th class="dm-th-criterion" data-crit-iri="{{ crit['iri'] }}">
+                    {{ crit['title'] }}
+                    <span class="dm-weight-badge">w={{ crit['weight'] }}</span>
+                </th>
+                {% endfor %}
+                <th class="dm-th-total">Weighted Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for alt in alternatives %}
+            <tr class="dm-row" data-iri="{{ alt['iri'] }}">
+                <td class="dm-cell-rank">
+                    {% if alt['rank'] == 1 %}🥇
+                    {% elif alt['rank'] == 2 %}🥈
+                    {% elif alt['rank'] == 3 %}🥉
+                    {% else %}{{ alt['rank'] }}{% endif %}
+                </td>
+                <td class="dm-cell-alternative">
+                    <span class="dm-alt-title"
+                          onclick="openTab('{{ alt['iri'] }}', '{{ alt['title'] | replace("'", "\\'") }}'); return false;">
+                        {{ alt['title'] }}
+                    </span>
+                </td>
+                {% for crit in criteria %}
+                <td class="dm-cell-score" data-crit-iri="{{ crit['iri'] }}">
+                    {{ alt['scores'].get(crit['iri'], '-') }}
+                </td>
+                {% endfor %}
+                <td class="dm-cell-total">
+                    <strong>{{ alt['weighted_score'] }}</strong>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% else %}
+<div class="view-empty-state">
+    <p>Select a type with score/alternative/criterion properties to use Decision Matrix View.</p>
+</div>
+{% endif %}
+</div>
+
+<script>
+(function() {
+    function _boot() {
+        var board = document.querySelector('.dm-board');
+        if (board && typeof initDecisionMatrix === 'function') {
+            initDecisionMatrix(board);
+        }
+    }
+    if (typeof initDecisionMatrix === 'function') {
+        _boot();
+    } else {
+        var s = document.createElement('script');
+        s.src = '/js/decision-matrix.js';
+        s.onload = _boot;
+        document.head.appendChild(s);
+    }
+})();
+</script>

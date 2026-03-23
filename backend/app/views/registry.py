@@ -41,6 +41,14 @@ RENDERER_REGISTRY: dict[str, dict] = {
         "type": "bmc",
         "template": "browser/bmc_view.html",
     },
+    "okr": {
+        "type": "okr",
+        "template": "browser/okr_view.html",
+    },
+    "decision-matrix": {
+        "type": "decision-matrix",
+        "template": "browser/decision_matrix_view.html",
+    },
 }
 
 
