@@ -323,6 +323,22 @@
       "doneMilestones": 33,
       "totalMilestones": 39,
       "phase": "pre-planning"
+    },
+    {
+      "filename": "M034-2026-03-23T02-58-26.html",
+      "generatedAt": "2026-03-23T02:58:26.892Z",
+      "milestoneId": "M034",
+      "milestoneTitle": "Task Planning, Time-Blocking & Calendar UX",
+      "label": "M034: Task Planning, Time-Blocking & Calendar UX",
+      "kind": "milestone",
+      "totalCost": 1136.24110175,
+      "totalTokens": 1595599164,
+      "totalDuration": 201067697,
+      "doneSlices": 219,
+      "totalSlices": 219,
+      "doneMilestones": 34,
+      "totalMilestones": 39,
+      "phase": "pre-planning"
     }
   ]
 }
