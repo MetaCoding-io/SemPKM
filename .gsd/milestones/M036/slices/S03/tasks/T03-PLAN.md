@@ -60,3 +60,20 @@ Create the CSS and JS files for both renderers. OKR gets progress bars with colo
 - `frontend/static/js/okr.js` — OKR interactivity IIFE (~120–180 lines)
 - `frontend/static/css/decision-matrix.css` — Decision Matrix table styling with dark mode (~150–250 lines)
 - `frontend/static/js/decision-matrix.js` — Decision Matrix sorting IIFE (~100–150 lines)
+
+## Observability Impact
+
+**Signals added:**
+- `console.error('okr: failed to patch currentValue for', iri, err)` in okr.js on save failure
+- `console.log('[okr] scope sync: scopeQuery=...')` on scope-changed re-fetch
+- `console.log('[decision-matrix] scope sync: scopeQuery=...')` on scope-changed re-fetch
+- Visual feedback classes: `.okr-save-ok` / `.okr-save-error` on KR rows after edit attempt
+- `.scope-syncing` class on both boards during htmx re-fetch
+
+**Inspection surfaces:**
+- Browser DevTools: filter console for `[okr]` or `[decision-matrix]` to see scope sync events
+- DOM: check `.okr-current-value` elements for click-to-edit wiring; check `.dm-th-criterion` for sort state classes
+
+**Failure visibility:**
+- OKR edit failure: row flashes red (`.okr-save-error`) + console.error logged + showToast if available
+- Sort state persists only in DOM classes (`sort-asc`/`sort-desc`) — lost on re-render (expected)
