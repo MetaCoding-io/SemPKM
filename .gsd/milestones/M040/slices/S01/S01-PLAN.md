@@ -32,7 +32,7 @@
   - Verify: `grep -c "^## " docs/guide/07-browsing-and-visualizing.md` returns >= 10 (was 7 sections); `grep -q "Calendar View" docs/guide/07-browsing-and-visualizing.md`
   - Done when: Chapter 7 has Calendar View, Timeline/Gantt View, and Map View sections with usage instructions matching actual codebase behavior
 
-- [ ] **T02: Add Task Templates and Review Workflows to chapter 28** `est:45m`
+- [x] **T02: Add Task Templates and Review Workflows to chapter 28** `est:45m`
   - Why: Task templates and review workflows are planning tools built on the dashboard/workflow system — they belong in chapter 28
   - Files: `docs/guide/28-dashboards-and-workflows.md`
   - Do: Add "Task Templates" section covering CRUD, the "Create from Template" palette command, batch instantiation with @slot: references. Add "Review Workflows" section covering the 4 seeded PPV workflows, launching from palette, step-by-step progression. Reference `backend/app/task_templates/` and `backend/app/dashboard/seed.py` for accurate details.

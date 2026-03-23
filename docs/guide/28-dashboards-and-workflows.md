@@ -283,6 +283,166 @@ The Explorer sidebar includes dedicated sections for dashboards and workflows:
 
 Both sections support the Explorer's drag-to-reorder panel positioning and the expand/collapse chevron toggle.
 
+## Task Templates
+
+A **task template** is a reusable blueprint for creating objects with pre-filled properties and optional linked subtasks. Instead of filling out the same form fields every time you create a recurring type of task, project, or note, you define a template once and instantiate it whenever you need a new copy.
+
+Templates are stored in the knowledge base as RDF data in a dedicated graph (`urn:sempkm:task-templates`), so they persist across sessions and are available to all features that use the command pipeline.
+
+### What a Template Contains
+
+Each template stores four pieces of information:
+
+| Field | Description |
+|-------|-------------|
+| **Title** | A human-readable name for the template (e.g., "Bug Report", "Sprint Planning Task"). |
+| **Target Class** | The RDF type IRI of the object to create (e.g., `bpkm:Task`, `bpkm:Note`). This determines which SHACL form is used. |
+| **Default Properties** | A key→value map of properties that are pre-filled on every object created from this template. For example, a "Bug Report" template might set `bpkm:taskStatus` to "Open" and `dcterms:description` to a bug report outline. |
+| **Subtask Definitions** | An optional list of linked objects created alongside the main object. Each subtask definition specifies a title, an optional type (defaults to the parent's target class), optional properties, and a relationship predicate (defaults to `sempkm:subtaskOf`). |
+
+### Creating a Template
+
+Templates are currently created via the REST API:
+
+```
+POST /api/task-templates
+Content-Type: application/json
+
+{
+  "title": "Sprint Planning Task",
+  "target_class": "urn:sempkm:model:basic-pkm:Task",
+  "default_properties": {
+    "bpkm:taskStatus": "Open",
+    "dcterms:description": "Plan the upcoming sprint."
+  },
+  "subtask_definitions": [
+    {
+      "title": "Review backlog",
+      "properties": { "bpkm:taskStatus": "Open" }
+    },
+    {
+      "title": "Assign story points",
+      "properties": { "bpkm:taskStatus": "Open" }
+    }
+  ]
+}
+```
+
+This creates a template that, when instantiated, produces a main "Sprint Planning Task" plus two linked subtasks — "Review backlog" and "Assign story points" — each connected to the main task via `sempkm:subtaskOf`.
+
+### Editing and Deleting Templates
+
+Update any field on an existing template with a PATCH request:
+
+```
+PATCH /api/task-templates/{template_id}
+Content-Type: application/json
+
+{ "title": "Updated Template Name" }
+```
+
+Only the fields you include are changed; omitted fields retain their current values. Delete a template with:
+
+```
+DELETE /api/task-templates/{template_id}
+```
+
+Deleting a template does not affect objects that were previously created from it — they are independent objects in your knowledge base.
+
+### Using "Create from Template" via the Command Palette
+
+The most common way to instantiate a template is through the **command palette** (<kbd>Alt</kbd>+<kbd>K</kbd>):
+
+1. Open the command palette with <kbd>Alt</kbd>+<kbd>K</kbd>.
+2. Select **Create from Template** from the Objects section.
+3. A submenu lists all available templates by name. Select the template you want.
+4. The system instantiates the template — creating the main object and any subtasks — and opens the new object in a workspace tab.
+
+The template submenu refreshes automatically when the workspace loads, so newly created templates appear immediately.
+
+### How Instantiation Works
+
+When you instantiate a template, the system builds a **batch command payload** that creates all objects in a single atomic operation:
+
+1. **Main object:** An `object.create` command creates the primary object with the template's target class and default properties. This command registers its IRI in a slot named `"main"`.
+2. **Subtasks:** For each subtask definition, an `object.create` command creates the subtask object, followed by an `edge.create` command that links it to the main object using `@slot:main` references.
+3. **Atomic commit:** All commands are dispatched through the batch command pipeline and committed as a single event. If any part fails, the entire batch is rolled back.
+4. **Overrides:** You can pass property overrides at instantiation time that are merged on top of the template's default properties. Overrides take precedence over defaults.
+
+The `@slot:` reference convention lets subtask commands refer to the main object's IRI before it exists — the slot is resolved to the actual minted IRI at dispatch time. This is the same mechanism used by form-group blocks in dashboards (see [Form Groups](#form-groups) above).
+
+> **Tip:** Templates complement form groups. Use a form group when you want a visual multi-form UI on a dashboard. Use a template when you want a one-click creation shortcut from the command palette with consistent defaults.
+
+## Review Workflows
+
+SemPKM ships with **seeded review workflows** that implement structured periodic reviews — a practice drawn from personal productivity methodologies like PPV (Pillars, Pipelines, Vaults). These workflows guide you through reviewing past work, logging new entries, and checking progress, all in a step-by-step sequence.
+
+Review workflows are standard workflows (see [Workflows](#workflows) above) with steps pre-configured to reference views and forms from the **PPV Mental Model**. They are created automatically on first launch when the PPV model is installed.
+
+### The Seeded Review Workflows
+
+Five review workflows are seeded by default:
+
+| Workflow | Steps | What It Guides You Through |
+|----------|-------|---------------------------|
+| **Create & Review** | 2 steps | A simple sample: create an item, then review it in a table view. Uses generic (non-PPV) views. |
+| **Weekly Review** | 4 steps | (1) Review past weekly reviews → (2) Scan completed actions → (3) Create a new weekly review → (4) Confirm in a graph view. |
+| **Monthly Review** | 4 steps | (1) Review past monthly entries → (2) Scan this month's weekly reviews → (3) Create a new monthly review → (4) Check goal progress. |
+| **Quarterly Review** | 3 steps | (1) Review past quarterly entries → (2) Create a new quarterly review → (3) Assess goals overview. |
+| **Yearly Review** | 3 steps | (1) Review past yearly entries → (2) Create a new yearly review → (3) See the full value-goal hierarchy in a graph. |
+
+Each PPV review workflow uses views and forms that are defined in the PPV model's view specifications. The step labels describe the purpose — "Past Reviews", "Completed Work", "Create Review", "Goal Progress", etc. — so you always know what each step is for.
+
+### Launching a Review from the Command Palette
+
+The four PPV review workflows (Weekly, Monthly, Quarterly, Yearly) each have a dedicated command palette entry:
+
+1. Open the command palette with <kbd>Alt</kbd>+<kbd>K</kbd>.
+2. In the **Workflows** section, select one of:
+   - **Run Weekly Review**
+   - **Run Monthly Review**
+   - **Run Quarterly Review**
+   - **Run Yearly Review**
+3. The workflow runner opens in a new workspace tab, starting at step 1.
+
+Behind the scenes, the command palette fetches the workflow list from the API, finds the workflow by name, and opens it in the workflow runner. If the PPV model is not installed (and therefore the seeded workflows don't exist), a toast notification explains that the review workflow was not found.
+
+### Stepping Through a Review
+
+Once a review workflow is running, the workflow runner interface is the same as any other workflow:
+
+- The **stepper bar** at the top shows all steps with labels. The current step is highlighted.
+- The **step content area** loads the appropriate view or form for each step via htmx.
+- **← Previous** and **Next →** buttons navigate between steps.
+- The **step counter** shows your position (e.g., "Step 2 of 4").
+
+A typical weekly review session looks like:
+
+1. **Step 1 — Past Reviews:** A table view of previous weekly reviews. Scan what you wrote last time to maintain continuity.
+2. **Step 2 — Completed Work:** A table view of actions/tasks. Check off what you accomplished this week.
+3. **Step 3 — Create Review:** A SHACL creation form for `WeeklyReview`. Fill in your reflections, wins, and areas for improvement.
+4. **Step 4 — Confirm:** A graph view showing the newly created review and its connections. Verify everything looks correct.
+
+### Customizing Review Workflows
+
+Because review workflows are standard workflows, you can edit them just like any other workflow:
+
+- **Modify steps:** Open the workflow builder and add, remove, or reorder steps. For example, add a stat-card dashboard step that shows KPI metrics before the review form.
+- **Change views:** Swap the default PPV views for custom views that better match your review process.
+- **Delete and recreate:** If you delete a seeded review workflow, it will not be recreated automatically. Create a new workflow with your preferred steps to replace it.
+- **Create your own:** Build entirely custom review workflows using any combination of view, dashboard, and form steps. The seeded workflows are starting points, not fixed processes.
+
+> **Tip:** Pair review workflows with task templates. Create a "Weekly Review" task template that pre-fills common fields, then use the review workflow to guide the full review process. The template handles object creation; the workflow handles the review sequence.
+
+### PPV Model Dependency
+
+The Weekly, Monthly, Quarterly, and Yearly review workflows depend on the **PPV (Pillars, Pipelines, Vaults) Mental Model** being installed. Specifically, they reference:
+
+- **PPV review types:** `WeeklyReview`, `MonthlyReview`, `QuarterlyReview`, `YearlyReview` — used as target classes in form steps.
+- **PPV view specs:** Table and graph views for reviews, actions, goals, and the value-goal hierarchy — used in view steps.
+
+If the PPV model is not installed, the seeded workflows are not created (they are seeded only when the model's views are available). The "Create & Review" sample workflow uses generic views and does not depend on PPV.
+
 ## Dashboard vs. Workflow
 
 | | Dashboard | Workflow |
