@@ -205,7 +205,7 @@ async def views_menu(
     )
 
 
-_VALID_RENDERERS = {"table", "card", "graph", "kanban", "calendar", "map", "timeline", "quadrant", "bmc"}
+_VALID_RENDERERS = {"table", "card", "graph", "kanban", "calendar", "map", "timeline", "quadrant", "bmc", "okr", "decision-matrix"}
 
 
 @router.get("/generic/{renderer}")
@@ -946,6 +946,204 @@ async def generic_view(
             return _embed_response(templates, request, "browser/bmc_view.html", context)
         return templates.TemplateResponse(request, "browser/bmc_view.html", context)
 
+    elif renderer == "okr":
+        if not type_iri:
+            logger.info("generic_view: renderer=okr but no type selected")
+            return templates.TemplateResponse(
+                request,
+                "browser/okr_view.html",
+                {
+                    "request": request,
+                    "error_message": "Select a type to use OKR View",
+                    "objectives": [],
+                    "ungrouped": [],
+                    "type_label": type_label,
+                    "type_iri": "",
+                    "selected_type": "",
+                    "types": types_list,
+                    "model_view_specs": model_view_specs,
+                    "scope_query": scope_query,
+                    "user_saved_queries": user_saved_queries,
+                    "model_saved_queries": model_saved_queries,
+                    "is_generic": True,
+                    "renderer": "okr",
+                    "pagination_base_url": pagination_base_url,
+                    "pag_extra": pag_extra,
+                    "spec": spec,
+                },
+            )
+
+        current_prop, target_prop, unit_prop, objective_prop = await view_spec_service._detect_okr_structure(type_iri)
+
+        if current_prop is None:
+            logger.warning("generic_view: renderer=okr type=%s has no OKR progress properties", type_iri)
+            return templates.TemplateResponse(
+                request,
+                "browser/okr_view.html",
+                {
+                    "request": request,
+                    "error_message": "This type has no decimal currentValue/targetValue properties suitable for OKR progress tracking",
+                    "objectives": [],
+                    "ungrouped": [],
+                    "type_label": type_label,
+                    "type_iri": spec.target_class,
+                    "selected_type": type_iri or "",
+                    "types": types_list,
+                    "model_view_specs": model_view_specs,
+                    "scope_query": scope_query,
+                    "user_saved_queries": user_saved_queries,
+                    "model_saved_queries": model_saved_queries,
+                    "is_generic": True,
+                    "renderer": "okr",
+                    "pagination_base_url": pagination_base_url,
+                    "pag_extra": pag_extra,
+                    "spec": spec,
+                },
+            )
+
+        logger.info(
+            "generic_view: renderer=okr type=%s scope_query=%s current=%s target=%s",
+            type_iri, scope_query or "(none)", current_prop.path, target_prop.path,
+        )
+
+        okr_result = await view_spec_service.execute_okr_query(
+            type_iri, current_prop, target_prop, unit_prop, objective_prop,
+            scope_filter=scope_filter_text,
+        )
+
+        # Build data URL for the OKR JSON endpoint
+        okr_data_url = "/browser/views/generic/okr/data"
+        okr_data_params = []
+        if type_iri:
+            okr_data_params.append(f"type={quote(type_iri, safe='')}")
+        if scope_query:
+            okr_data_params.append(f"scope_query={quote(scope_query, safe='')}")
+        if okr_data_params:
+            okr_data_url += "?" + "&".join(okr_data_params)
+
+        context = {
+            "request": request,
+            "objectives": okr_result["objectives"],
+            "ungrouped": okr_result["ungrouped"],
+            "total": okr_result["total"],
+            "okr_data_url": okr_data_url,
+            "type_label": type_label,
+            "type_iri": spec.target_class,
+            "selected_type": type_iri or "",
+            "types": types_list,
+            "model_view_specs": model_view_specs,
+            "scope_query": scope_query,
+            "user_saved_queries": user_saved_queries,
+            "model_saved_queries": model_saved_queries,
+            "is_generic": True,
+            "renderer": "okr",
+            "pagination_base_url": pagination_base_url,
+            "pag_extra": pag_extra,
+            "spec": spec,
+        }
+        if embed:
+            return _embed_response(templates, request, "browser/okr_view.html", context)
+        return templates.TemplateResponse(request, "browser/okr_view.html", context)
+
+    elif renderer == "decision-matrix":
+        if not type_iri:
+            logger.info("generic_view: renderer=decision-matrix but no type selected")
+            return templates.TemplateResponse(
+                request,
+                "browser/decision_matrix_view.html",
+                {
+                    "request": request,
+                    "error_message": "Select a type to use Decision Matrix View",
+                    "alternatives": [],
+                    "criteria": [],
+                    "type_label": type_label,
+                    "type_iri": "",
+                    "selected_type": "",
+                    "types": types_list,
+                    "model_view_specs": model_view_specs,
+                    "scope_query": scope_query,
+                    "user_saved_queries": user_saved_queries,
+                    "model_saved_queries": model_saved_queries,
+                    "is_generic": True,
+                    "renderer": "decision-matrix",
+                    "pagination_base_url": pagination_base_url,
+                    "pag_extra": pag_extra,
+                    "spec": spec,
+                },
+            )
+
+        value_prop, alt_prop, crit_prop, _ = await view_spec_service._detect_decision_matrix_structure(type_iri)
+
+        if value_prop is None:
+            logger.warning("generic_view: renderer=decision-matrix type=%s has no scoring properties", type_iri)
+            return templates.TemplateResponse(
+                request,
+                "browser/decision_matrix_view.html",
+                {
+                    "request": request,
+                    "error_message": "This type has no value/alternative/criterion properties suitable for Decision Matrix scoring",
+                    "alternatives": [],
+                    "criteria": [],
+                    "type_label": type_label,
+                    "type_iri": spec.target_class,
+                    "selected_type": type_iri or "",
+                    "types": types_list,
+                    "model_view_specs": model_view_specs,
+                    "scope_query": scope_query,
+                    "user_saved_queries": user_saved_queries,
+                    "model_saved_queries": model_saved_queries,
+                    "is_generic": True,
+                    "renderer": "decision-matrix",
+                    "pagination_base_url": pagination_base_url,
+                    "pag_extra": pag_extra,
+                    "spec": spec,
+                },
+            )
+
+        logger.info(
+            "generic_view: renderer=decision-matrix type=%s scope_query=%s value=%s",
+            type_iri, scope_query or "(none)", value_prop.path,
+        )
+
+        dm_result = await view_spec_service.execute_decision_matrix_query(
+            type_iri, value_prop, alt_prop, crit_prop,
+            scope_filter=scope_filter_text,
+        )
+
+        # Build data URL for the Decision Matrix JSON endpoint
+        dm_data_url = "/browser/views/generic/decision-matrix/data"
+        dm_data_params = []
+        if type_iri:
+            dm_data_params.append(f"type={quote(type_iri, safe='')}")
+        if scope_query:
+            dm_data_params.append(f"scope_query={quote(scope_query, safe='')}")
+        if dm_data_params:
+            dm_data_url += "?" + "&".join(dm_data_params)
+
+        context = {
+            "request": request,
+            "alternatives": dm_result["alternatives"],
+            "criteria": dm_result["criteria"],
+            "total_scores": dm_result["total_scores"],
+            "dm_data_url": dm_data_url,
+            "type_label": type_label,
+            "type_iri": spec.target_class,
+            "selected_type": type_iri or "",
+            "types": types_list,
+            "model_view_specs": model_view_specs,
+            "scope_query": scope_query,
+            "user_saved_queries": user_saved_queries,
+            "model_saved_queries": model_saved_queries,
+            "is_generic": True,
+            "renderer": "decision-matrix",
+            "pagination_base_url": pagination_base_url,
+            "pag_extra": pag_extra,
+            "spec": spec,
+        }
+        if embed:
+            return _embed_response(templates, request, "browser/decision_matrix_view.html", context)
+        return templates.TemplateResponse(request, "browser/decision_matrix_view.html", context)
+
     else:  # kanban
         if not type_iri:
             logger.info("generic_view: renderer=kanban but no type selected")
@@ -1052,7 +1250,7 @@ async def generic_view_data(
     For map: detects geo fields and returns marker data with coordinates.
     Accepts optional scope_query to filter results by saved query.
     """
-    if renderer not in ("graph", "calendar", "map", "timeline", "quadrant", "bmc"):
+    if renderer not in ("graph", "calendar", "map", "timeline", "quadrant", "bmc", "okr", "decision-matrix"):
         return JSONResponse(content={"error": "Invalid renderer for data endpoint"}, status_code=404)
 
     type_iri = type if type else None
@@ -1129,6 +1327,30 @@ async def generic_view_data(
             return JSONResponse(content={"sections": [], "section_types": {}, "total": 0})
         result = await view_spec_service.execute_bmc_query(
             type_iri, section_prop, canvas_prop,
+            scope_filter=scope_filter_text,
+        )
+        return JSONResponse(content=result)
+
+    if renderer == "okr":
+        if not type_iri:
+            return JSONResponse(content={"objectives": [], "ungrouped": [], "total": 0})
+        current_prop, target_prop, unit_prop, objective_prop = await view_spec_service._detect_okr_structure(type_iri)
+        if current_prop is None:
+            return JSONResponse(content={"objectives": [], "ungrouped": [], "total": 0})
+        result = await view_spec_service.execute_okr_query(
+            type_iri, current_prop, target_prop, unit_prop, objective_prop,
+            scope_filter=scope_filter_text,
+        )
+        return JSONResponse(content=result)
+
+    if renderer == "decision-matrix":
+        if not type_iri:
+            return JSONResponse(content={"alternatives": [], "criteria": [], "total_scores": 0})
+        value_prop, alt_prop, crit_prop, _ = await view_spec_service._detect_decision_matrix_structure(type_iri)
+        if value_prop is None:
+            return JSONResponse(content={"alternatives": [], "criteria": [], "total_scores": 0})
+        result = await view_spec_service.execute_decision_matrix_query(
+            type_iri, value_prop, alt_prop, crit_prop,
             scope_filter=scope_filter_text,
         )
         return JSONResponse(content=result)

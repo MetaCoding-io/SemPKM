@@ -71,3 +71,19 @@ Wire two new renderer types (`okr` and `decision-matrix`) through the full 4-lay
 - `backend/app/views/service.py` — 6 new methods (3 OKR + 3 Decision Matrix)
 - `backend/app/templates/browser/okr_view.html` — OKR renderer template
 - `backend/app/templates/browser/decision_matrix_view.html` — Decision Matrix renderer template
+
+## Observability Impact
+
+**New runtime signals:**
+- `logger.info("generic_view: renderer=okr ...")` and `logger.info("generic_view: renderer=decision-matrix ...")` in the router's elif branches — emitted on every OKR/DM view render with type_iri and scope_query context
+- `logger.info("execute_okr_query: type=%s total=%d objectives=%d ungrouped=%d")` in `ViewSpecService.execute_okr_query()` — emitted after successful query with item counts
+- `logger.info("execute_decision_matrix_query: type=%s total_scores=%d alternatives=%d criteria=%d")` in `ViewSpecService.execute_decision_matrix_query()` — emitted after successful query with score/alt/crit counts
+- `logger.warning(...)` on detection failures (`_detect_okr_structure`, `_detect_decision_matrix_structure`) and query exceptions
+
+**New inspection surfaces:**
+- `GET /browser/views/generic/okr/data?type=<iri>` — returns JSON `{"objectives": [...], "ungrouped": [...], "total": N}`
+- `GET /browser/views/generic/decision-matrix/data?type=<iri>` — returns JSON `{"alternatives": [...], "criteria": [...], "total_scores": N}`
+
+**Failure visibility:**
+- Error template rendered when type lacks required SHACL structure (no currentValue/targetValue for OKR, no value/alt/crit for DM)
+- Query exceptions logged with `exc_info=True` and empty result returned to template
