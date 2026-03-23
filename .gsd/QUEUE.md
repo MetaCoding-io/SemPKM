@@ -650,3 +650,17 @@ Workspace UI for importing structured RDF data (JSON-LD, Turtle, N-Triples) with
 
 **Context:** `.gsd/milestones/M039/M039-CONTEXT.md`
 **Depends on:** M033
+
+---
+
+## Cleanup — Documentation, UI Fixes & Bug Squashing
+
+**Queued:** 2026-03-23
+**Status:** Queued as M040 (depends on M034)
+
+Catch-all milestone for accumulated documentation gaps, UI polish issues, and bugs found during app review. Initial slice: user guide documentation for all M034 features (editable calendar, timeline/Gantt, recurring tasks, task templates, review workflows, cross-view drag, composable planning) — 7 user-visible features shipped with zero guide chapters. Additional slices to be added as issues are discovered.
+
+**Process fix:** M034's validation flagged ❌ on "User guide docs for new features" but no remediation was created. This milestone ensures validation findings produce actionable follow-up.
+
+**Context:** `.gsd/milestones/M040/M040-CONTEXT.md`
+**Depends on:** M034
