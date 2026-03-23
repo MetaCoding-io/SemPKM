@@ -1,0 +1,286 @@
+/* ============================================
+   Quadrant View — 2×2 CSS Grid Layout
+   Eisenhower-style priority matrix and generic quadrant views.
+   ============================================ */
+
+/* --- Board Container --- */
+
+.quadrant-board {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    padding: 16px;
+    gap: 8px;
+}
+
+/* --- Axis Labels --- */
+
+.quadrant-axis-labels {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 0 4px 4px 40px;
+}
+
+.quadrant-x-axis-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.quadrant-y-axis-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: rotate(-90deg) translateX(-50%);
+    transform-origin: left center;
+    white-space: nowrap;
+}
+
+/* --- Grid --- */
+
+.quadrant-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 8px;
+    flex: 1;
+    min-height: 0;
+    position: relative;
+}
+
+/* --- Cells --- */
+
+.quadrant-cell {
+    display: flex;
+    flex-direction: column;
+    border-radius: 8px;
+    border: 1px solid var(--color-border-subtle);
+    min-height: 120px;
+    overflow: hidden;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+/* Quadrant color coding — soft tinted backgrounds */
+/* Q1: high urgency + high importance = Do First (green) */
+.quadrant-cell[data-x-value="high"][data-y-value="high"] {
+    background: rgba(42, 138, 74, 0.07);
+    border-color: rgba(42, 138, 74, 0.2);
+}
+.quadrant-cell[data-x-value="high"][data-y-value="high"] .quadrant-cell-header {
+    border-bottom-color: rgba(42, 138, 74, 0.15);
+}
+
+/* Q2: low urgency + high importance = Schedule (blue) */
+.quadrant-cell[data-x-value="low"][data-y-value="high"] {
+    background: rgba(45, 90, 158, 0.07);
+    border-color: rgba(45, 90, 158, 0.2);
+}
+.quadrant-cell[data-x-value="low"][data-y-value="high"] .quadrant-cell-header {
+    border-bottom-color: rgba(45, 90, 158, 0.15);
+}
+
+/* Q3: high urgency + low importance = Delegate (amber/orange) */
+.quadrant-cell[data-x-value="high"][data-y-value="low"] {
+    background: rgba(242, 142, 43, 0.07);
+    border-color: rgba(242, 142, 43, 0.2);
+}
+.quadrant-cell[data-x-value="high"][data-y-value="low"] .quadrant-cell-header {
+    border-bottom-color: rgba(242, 142, 43, 0.15);
+}
+
+/* Q4: low urgency + low importance = Eliminate (red) */
+.quadrant-cell[data-x-value="low"][data-y-value="low"] {
+    background: rgba(225, 87, 89, 0.07);
+    border-color: rgba(225, 87, 89, 0.2);
+}
+.quadrant-cell[data-x-value="low"][data-y-value="low"] .quadrant-cell-header {
+    border-bottom-color: rgba(225, 87, 89, 0.15);
+}
+
+/* --- Cell Header --- */
+
+.quadrant-cell-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--color-border-subtle);
+    flex-shrink: 0;
+}
+
+.quadrant-cell-title {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.quadrant-cell-count {
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+    background: var(--color-surface);
+    border-radius: 10px;
+    padding: 1px 7px;
+    min-width: 20px;
+    text-align: center;
+}
+
+/* --- Cell Body (drop zone) --- */
+
+.quadrant-cell-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 8px;
+}
+
+/* --- Cards --- */
+
+.quadrant-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    cursor: grab;
+    transition: box-shadow 0.15s, border-color 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.quadrant-card:last-child {
+    margin-bottom: 0;
+}
+
+.quadrant-card:hover {
+    border-color: var(--color-border-strong, var(--color-border));
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.quadrant-card.dragging {
+    opacity: 0.4;
+    cursor: grabbing;
+}
+
+.quadrant-card svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+.quadrant-card-title {
+    font-size: 0.82rem;
+    cursor: pointer;
+    color: var(--color-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.quadrant-card-title:hover {
+    color: var(--color-primary);
+    text-decoration: underline;
+}
+
+/* --- Drag-over highlight --- */
+
+.quadrant-cell.drag-over {
+    border: 2px dashed var(--color-primary);
+    box-shadow: inset 0 0 0 1px var(--color-primary-subtle, rgba(45, 90, 158, 0.1));
+}
+
+/* --- Unclassified section --- */
+
+.quadrant-unclassified {
+    background: var(--color-surface-recessed, #f4f5f7);
+    border-radius: 8px;
+    border: 1px dashed var(--color-border);
+    margin-top: 4px;
+}
+
+.quadrant-unclassified .quadrant-cell-header {
+    border-bottom-color: var(--color-border-subtle);
+}
+
+.quadrant-unclassified .quadrant-cell-body {
+    padding: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.quadrant-unclassified .quadrant-card {
+    margin-bottom: 0;
+}
+
+/* --- Empty state within a cell --- */
+
+.quadrant-cell-body:empty::after {
+    content: 'Drag items here';
+    display: block;
+    text-align: center;
+    padding: 20px 8px;
+    color: var(--color-text-faint, #999);
+    font-size: 0.78rem;
+    font-style: italic;
+}
+
+/* ============================================
+   Dark Mode
+   ============================================ */
+
+html[data-theme="dark"] .quadrant-cell {
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme="dark"] .quadrant-cell[data-x-value="high"][data-y-value="high"] {
+    background: rgba(42, 138, 74, 0.1);
+    border-color: rgba(42, 138, 74, 0.25);
+}
+
+html[data-theme="dark"] .quadrant-cell[data-x-value="low"][data-y-value="high"] {
+    background: rgba(78, 121, 167, 0.1);
+    border-color: rgba(78, 121, 167, 0.25);
+}
+
+html[data-theme="dark"] .quadrant-cell[data-x-value="high"][data-y-value="low"] {
+    background: rgba(242, 142, 43, 0.1);
+    border-color: rgba(242, 142, 43, 0.25);
+}
+
+html[data-theme="dark"] .quadrant-cell[data-x-value="low"][data-y-value="low"] {
+    background: rgba(225, 87, 89, 0.1);
+    border-color: rgba(225, 87, 89, 0.25);
+}
+
+html[data-theme="dark"] .quadrant-card {
+    background: var(--color-surface, #1e1e1e);
+    border-color: var(--color-border, #333);
+}
+
+html[data-theme="dark"] .quadrant-card:hover {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+html[data-theme="dark"] .quadrant-cell-count {
+    background: var(--color-surface-recessed, #252525);
+}
+
+html[data-theme="dark"] .quadrant-unclassified {
+    background: var(--color-surface-recessed, #1a1a1a);
+}
+
+html[data-theme="dark"] .quadrant-cell.drag-over {
+    border-color: var(--color-accent, #0d9488);
+    box-shadow: inset 0 0 0 1px rgba(13, 148, 136, 0.15);
+}

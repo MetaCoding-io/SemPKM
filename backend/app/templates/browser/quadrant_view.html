@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="/css/quadrant.css">
 <div class="view-flex-column">
 {% if is_generic | default(false) %}
 {% include "browser/type_filter_pills.html" %}
@@ -31,10 +32,10 @@
              data-y-value="{{ q.y_value }}">
             <div class="quadrant-cell-header">
                 <span class="quadrant-cell-title">{{ q.label }}</span>
-                <span class="quadrant-cell-count">{{ q.items | length }}</span>
+                <span class="quadrant-cell-count">{{ q['items'] | length }}</span>
             </div>
             <div class="quadrant-cell-body">
-                {% for item in q.items %}
+                {% for item in q['items'] %}
                 <div class="quadrant-card" draggable="true"
                      data-iri="{{ item.iri }}"
                      data-title="{{ item.label }}">
@@ -51,14 +52,14 @@
     </div>
 
     {% for q in quadrants %}
-    {% if q.x_value == '__unclassified__' and q.items | length > 0 %}
+    {% if q.x_value == '__unclassified__' and q['items'] | length > 0 %}
     <div class="quadrant-unclassified">
         <div class="quadrant-cell-header">
             <span class="quadrant-cell-title">{{ q.label }}</span>
-            <span class="quadrant-cell-count">{{ q.items | length }}</span>
+            <span class="quadrant-cell-count">{{ q['items'] | length }}</span>
         </div>
         <div class="quadrant-cell-body">
-            {% for item in q.items %}
+            {% for item in q['items'] %}
             <div class="quadrant-card" draggable="true"
                  data-iri="{{ item.iri }}"
                  data-title="{{ item.label }}">

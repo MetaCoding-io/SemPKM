@@ -56,14 +56,14 @@
   - Verify: `cd backend && .venv/bin/python -m pytest tests/test_quadrant.py -v` — test `_detect_quadrant_axes` returns correct fields for Eisenhower shape, test `execute_quadrant_query` returns 4 quadrant buckets
   - Done when: quadrant route serves HTML template, data endpoint returns JSON with 4 quadrant groups, unit tests pass
 
-- [ ] **T03: Frontend quadrant renderer — template, CSS, drag-to-reclassify JS** `est:1h30m`
+- [x] **T03: Frontend quadrant renderer — template, CSS, drag-to-reclassify JS** `est:1h30m`
   - Why: The visual 2×2 quadrant grid and drag-to-reclassify interaction are the user-facing deliverable of this slice. Must support dark mode and prevent dockview drag interference.
   - Files: `backend/app/templates/browser/quadrant_view.html`, `frontend/static/js/quadrant.js`, `frontend/static/css/quadrant.css`
   - Do: (1) Build `quadrant_view.html` with type_filter_pills, view_toolbar, and a `.quadrant-board` container with 4 `.quadrant-cell` divs arranged in a CSS Grid 2×2 layout. Each cell has axis labels (e.g., "Urgent + Important → Do First") and contains draggable `.quadrant-card` items. (2) Create `quadrant.css` with CSS Grid layout, axis labels on borders, quadrant color coding (green/yellow/orange/red for priority quadrants), dark mode via CSS variables, `.view-flex-column` wrapper for full-height. (3) Create `quadrant.js` with `initQuadrant(boardEl)` — HTML5 drag-drop handlers with `stopPropagation()`, on drop: extract target quadrant's x/y axis values, fire two `object.patch` commands (one for each axis property), optimistic DOM move with revert on failure. Follow kanban.js patterns exactly. (4) Wire `<script>` tag in template to call `initQuadrant()`.
   - Verify: Start Docker stack, install business-planning model, create an EisenhowerMatrix with seed data, open quadrant view — 4 quadrants visible with items placed correctly, drag an item to a different quadrant and verify the item moves and stays after page reload.
   - Done when: 2×2 grid renders with correct axis labels and color coding, items display in correct quadrants based on urgency/importance values, drag-to-reclassify updates both axis properties via command API, dark mode works, dockview drag interference prevented
 
-- [ ] **T04: Quadrant backend unit tests** `est:45m`
+- [x] **T04: Quadrant backend unit tests** `est:45m`
   - Why: Backend unit tests verify the quadrant axis detection and query builder logic independently of a running triplestore, ensuring the data pipeline is correct before integration testing.
   - Files: `backend/tests/test_quadrant.py`
   - Do: (1) Test `_detect_quadrant_axes()` with mock SHACL shapes — verify it finds two sh:in properties with high/low values. (2) Test `_detect_quadrant_axes()` returns None when no quadrant-compatible properties exist. (3) Test the SPARQL query builder produces correct SELECT with two axis bindings. (4) Test quadrant grouping logic — items distributed into 4 buckets by (x,y) axis values, with an "unset" bucket for items missing axis values. Follow the pattern in existing tests (e.g., test_kanban.py if it exists, or other service tests).
