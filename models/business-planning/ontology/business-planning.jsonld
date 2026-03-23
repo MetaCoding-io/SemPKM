@@ -6,7 +6,9 @@
     "xsd": "http://www.w3.org/2001/XMLSchema#",
     "dcterms": "http://purl.org/dc/terms/",
     "bp": "urn:sempkm:model:business-planning:",
-    "gist": "https://w3id.org/semanticarts/ns/ontology/gist/"
+    "gist": "https://w3id.org/semanticarts/ns/ontology/gist/",
+    "bpkm": "urn:sempkm:model:basic-pkm:",
+    "ppv": "urn:sempkm:model:ppv:"
   },
   "@graph": [
     {
@@ -702,6 +704,31 @@
       "rdfs:comment": "The Lean Canvas this section belongs to",
       "rdfs:domain": { "@id": "bp:LeanCanvasSection" },
       "rdfs:range": { "@id": "bp:LeanCanvas" }
+    },
+
+    {
+      "@id": "bp:relatedTask",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Related Task",
+      "rdfs:comment": "Link a prioritized item to its task tracking in basic-pkm",
+      "rdfs:domain": { "@id": "bp:EisenhowerItem" },
+      "rdfs:range": { "@id": "bpkm:Task" }
+    },
+    {
+      "@id": "bp:relatedGoalOutcome",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Related Goal Outcome",
+      "rdfs:comment": "Link an OKR objective to a PPV goal outcome",
+      "rdfs:domain": { "@id": "bp:Objective" },
+      "rdfs:range": { "@id": "ppv:GoalOutcome" }
+    },
+    {
+      "@id": "bp:relatedProject",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Related Project",
+      "rdfs:comment": "Link any framework item to a project in basic-pkm",
+      "rdfs:domain": { "@id": "bp:FrameworkItem" },
+      "rdfs:range": { "@id": "bpkm:Project" }
     }
   ]
 }

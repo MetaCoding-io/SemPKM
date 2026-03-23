@@ -6,7 +6,9 @@
     "xsd": "http://www.w3.org/2001/XMLSchema#",
     "dcterms": "http://purl.org/dc/terms/",
     "bp": "urn:sempkm:model:business-planning:",
-    "sempkm": "urn:sempkm:"
+    "sempkm": "urn:sempkm:",
+    "bpkm": "urn:sempkm:model:basic-pkm:",
+    "ppv": "urn:sempkm:model:ppv:"
   },
   "@graph": [
     {
@@ -121,6 +123,12 @@
       "rdfs:label": "Metadata",
       "sh:order": 4
     },
+    {
+      "@id": "bp:CrossLinksGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Cross-Model Links",
+      "sh:order": 5
+    },
 
     {
       "@id": "bp:EisenhowerItemShape",
@@ -199,6 +207,16 @@
           "sh:maxCount": 1,
           "sh:order": 7,
           "sh:group": { "@id": "bp:ItemMetadataGroup" }
+        },
+        {
+          "sh:path": { "@id": "bp:relatedTask" },
+          "sh:name": "Related Task",
+          "sh:class": { "@id": "bpkm:Task" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:maxCount": 1,
+          "sh:order": 8,
+          "sh:group": { "@id": "bp:CrossLinksGroup" },
+          "sh:description": "Link this item to a task in basic-pkm for tracking."
         }
       ]
     },
@@ -445,6 +463,16 @@
           "sh:maxCount": 1,
           "sh:order": 5,
           "sh:group": { "@id": "bp:ObjectiveMetadataGroup" }
+        },
+        {
+          "sh:path": { "@id": "bp:relatedGoalOutcome" },
+          "sh:name": "Related Goal Outcome",
+          "sh:class": { "@id": "ppv:GoalOutcome" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "bp:CrossLinksGroup" },
+          "sh:description": "Link this objective to a goal outcome in PPV."
         }
       ]
     },
@@ -1955,6 +1983,25 @@
           "sh:maxCount": 1,
           "sh:order": 5,
           "sh:group": { "@id": "bp:ItemMetadataGroup" }
+        }
+      ]
+    },
+
+    {
+      "@id": "bp:FrameworkItemShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bp:FrameworkItem" },
+      "rdfs:label": "Framework Item Shape",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "bp:relatedProject" },
+          "sh:name": "Related Project",
+          "sh:class": { "@id": "bpkm:Project" },
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bp:CrossLinksGroup" },
+          "sh:description": "Link this framework item to a project in basic-pkm."
         }
       ]
     }
