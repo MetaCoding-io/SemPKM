@@ -78,3 +78,9 @@ Build the core RDF parsing module that handles format detection, rdflib parsing 
 - `backend/app/rdf_import/parser.py` — format detection, parsing, subject extraction, skolemization
 - `backend/app/rdf_import/models.py` — `SubjectInfo`, `RdfParseResult`, `RdfImportResult` dataclasses
 - `backend/tests/test_rdf_import_parser.py` — unit tests for all parser functions
+
+## Observability Impact
+
+- **Structured logging:** `parser.py` emits `logger.info` on successful parse (format, triple count, subject count) and `logger.warning` on parse failure (format, error message). Searchable via `rdf_import.parser` logger name.
+- **Inspection:** `RdfParseResult.errors` captures parse failures as strings — callers can surface them to users without try/catch. `SubjectInfo.triples` carries raw triple data for downstream SHACL validation and import execution.
+- **Future agent debugging:** Run `cd backend && .venv/bin/python -m pytest tests/test_rdf_import_parser.py -v` to verify parser integrity. Import the module directly to test format detection: `from app.rdf_import.parser import detect_format; detect_format('...')`.
