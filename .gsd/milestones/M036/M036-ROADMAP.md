@@ -64,7 +64,7 @@ This milestone is complete only when all are true:
   > After this: User creates a Business Model Canvas and fills the 9 standard sections (Key Partners, Key Activities, Value Propositions, etc.) in a poster-style grid layout with inline editing.
 - [x] **S03: OKR Progress + Decision Matrix Weighted Scoring** `risk:medium` `depends:[S01]`
   > After this: User creates OKR Objectives with Key Results showing progress bars, and Decision Matrices with weighted criteria showing auto-ranked alternatives.
-- [ ] **S04: Extended Framework Library** `risk:low` `depends:[S01]`
+- [x] **S04: Extended Framework Library** `risk:low` `depends:[S01]`
   > After this: User creates Porter's Five Forces, PESTLE, Balanced Scorecard, RACI, Value Chain, Lean Canvas, BCG/Ansoff/Stakeholder/Risk matrices, all browsable via table, kanban, and existing renderers. SWOT uses the quadrant renderer from S01.
 - [ ] **S05: Cross-Model Integration, E2E Tests & Documentation** `risk:low` `depends:[S01,S02,S03,S04]`
   > After this: Eisenhower items link to bpkm:Tasks, OKR Objectives link to ppv:GoalOutcomes. SPARQL queries return structured data across all frameworks. E2E Playwright tests cover model install, custom renderers, and drag interactions. User guide documents all frameworks.
