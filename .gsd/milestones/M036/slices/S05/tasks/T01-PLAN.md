@@ -68,3 +68,10 @@ The edge system (`edge.create` command) already supports arbitrary object-to-obj
 
 - `models/business-planning/ontology/business-planning.jsonld` — ontology with 3 new ObjectProperty entries and bpkm:/ppv: prefixes
 - `models/business-planning/shapes/business-planning.jsonld` — shapes with 3 new PropertyShapes, a CrossLinksGroup, and bpkm:/ppv: prefixes
+
+## Observability Impact
+
+This task adds only static RDF model data (no runtime code). Observability is limited to:
+- **Inspection:** `rdflib.Graph().parse()` on either JSON-LD file — triple count increases confirm data was added. Searching for `relatedTask`, `relatedGoalOutcome`, `relatedProject` in either file confirms presence.
+- **Runtime signal (after model install):** The SHACL form generator will include cross-model reference pickers on Eisenhower Item and Objective edit forms. If the cross-model target types (`bpkm:Task`, `ppv:GoalOutcome`, `bpkm:Project`) are not installed, the picker will render but show no options — this is expected behavior, not a failure.
+- **Failure visibility:** If the JSON-LD is malformed, `rdflib.parse()` raises an exception with line/offset info. Model install will fail at the ontology/shapes import step with a triplestore parse error.

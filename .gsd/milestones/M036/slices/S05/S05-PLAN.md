@@ -23,7 +23,7 @@
 
 ## Tasks
 
-- [ ] **T01: Add cross-model edge definitions to business-planning ontology and shapes** `est:25m`
+- [x] **T01: Add cross-model edge definitions to business-planning ontology and shapes** `est:25m`
   - Why: Enables linking framework items to objects in other installed models (bpkm:Task, ppv:GoalOutcome, bpkm:Project), completing the cross-model integration requirement.
   - Files: `models/business-planning/ontology/business-planning.jsonld`, `models/business-planning/shapes/business-planning.jsonld`
   - Do: Add 3 OWL ObjectProperty declarations (`bp:relatedTask`, `bp:relatedGoalOutcome`, `bp:relatedProject`) to the ontology with appropriate domain/range. Add SHACL PropertyShapes on the relevant NodeShapes (EisenhowerItem, FrameworkItem, Objective) with `sh:class` pointing to cross-model type IRIs. Add `bpkm:` and `ppv:` namespace prefixes to the `@context` blocks. Verify JSON-LD parses cleanly via rdflib.
@@ -52,3 +52,10 @@
 - `e2e/helpers/dockview.ts`
 - `e2e/helpers/selectors.ts`
 - `docs/guide/39-mental-model-catalog.md`
+
+## Observability / Diagnostics
+
+- **Cross-model properties:** `rg "relatedTask|relatedGoalOutcome|relatedProject"` on ontology/shapes files confirms presence; rdflib triple count confirms parse integrity
+- **E2E runtime:** Playwright test spec exercises model install, object creation, view rendering, and SPARQL queries in the Docker stack — failures report specific step and selector
+- **User guide:** `rg "Business Planning"` with line count confirms section exists with sufficient content
+- **Failure visibility:** JSON-LD parse errors surface as rdflib exceptions with line info; TypeScript compile errors from `tsc --noEmit` catch E2E type issues before runtime
