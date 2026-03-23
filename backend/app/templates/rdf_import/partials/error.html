@@ -1,0 +1,52 @@
+<!-- Step bar — step 1 active (error state) -->
+<div id="import-step-bar" class="import-step-bar">
+    <div class="step-item step-active">
+        <div class="step-circle">1</div>
+        <span class="step-label">Input</span>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step-item">
+        <div class="step-circle">2</div>
+        <span class="step-label">Preview</span>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step-item">
+        <div class="step-circle">3</div>
+        <span class="step-label">Import</span>
+    </div>
+</div>
+<script>
+(function() {
+    var oob = document.querySelector('#import-content > #import-step-bar');
+    if (oob) {
+        var target = document.querySelector('#import-container > #import-step-bar');
+        if (target) target.replaceWith(oob);
+    }
+})();
+</script>
+
+<div class="import-section">
+    <div class="import-info-notice" style="border-left-color: var(--color-danger, #e74c3c); background: var(--color-bg-danger-subtle, rgba(231, 76, 60, 0.08));">
+        <i data-lucide="circle-x"></i>
+        <div>
+            <strong>Parse Error</strong>
+            <p style="margin: 0.25rem 0 0;">{{ error }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="import-actions">
+    <button type="button" class="btn btn-outline"
+            hx-get="/browser/rdf-import"
+            hx-target="#import-area"
+            hx-swap="innerHTML"
+            hx-select="#import-area"
+            hx-push-url="false">
+        <i data-lucide="arrow-left"></i>
+        Try Again
+    </button>
+</div>
+
+<script>
+    if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+</script>

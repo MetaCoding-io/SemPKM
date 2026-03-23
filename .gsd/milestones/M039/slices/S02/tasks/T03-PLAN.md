@@ -92,3 +92,10 @@ Build the user-facing HTML templates for the 3-step import wizard and wire the f
 - `backend/app/templates/rdf_import/partials/summary.html` — post-import stat cards
 - `backend/app/templates/components/_sidebar.html` — modified with "Import RDF" entry
 - `frontend/static/js/workspace.js` — modified with `openRdfImportTab()` and command palette entry
+
+## Observability Impact
+
+- **SSE connection:** The progress partial opens an `EventSource` to `/browser/rdf-import/execute/stream`. Agent can verify SSE connectivity by checking browser console for connection events or network logs for the EventSource request.
+- **Step bar state:** The wizard step bar visually tracks progress (Input → Preview → Import). Each partial updates the step bar via DOM replacement. Agent can verify step transitions by checking which `.step-active` / `.step-complete` classes are present.
+- **Error surface:** Parse errors render in a red notice div via `error.html` partial. SHACL validation issues and IRI collisions are highlighted in the preview table. Agent can inspect these via `browser_find` for `.import-info-notice` elements.
+- **Import summary:** Stat cards (Created/Skipped/Errors/Duration) provide at-a-glance import outcome. Agent can verify via `browser_find` for `.import-stat-card` elements.

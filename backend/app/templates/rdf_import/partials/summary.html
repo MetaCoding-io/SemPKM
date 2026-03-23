@@ -1,0 +1,100 @@
+<!-- Step bar — step 3 complete -->
+<div id="import-step-bar" class="import-step-bar">
+    <div class="step-item step-complete">
+        <div class="step-circle"><i data-lucide="check"></i></div>
+        <span class="step-label">Input</span>
+    </div>
+    <div class="step-connector step-connector-complete"></div>
+    <div class="step-item step-complete">
+        <div class="step-circle"><i data-lucide="check"></i></div>
+        <span class="step-label">Preview</span>
+    </div>
+    <div class="step-connector step-connector-complete"></div>
+    <div class="step-item step-complete">
+        <div class="step-circle"><i data-lucide="check"></i></div>
+        <span class="step-label">Import</span>
+    </div>
+</div>
+<script>
+(function() {
+    var oob = document.querySelector('#import-content > #import-step-bar');
+    if (oob) {
+        var target = document.querySelector('#import-container > #import-step-bar');
+        if (target) target.replaceWith(oob);
+    }
+})();
+</script>
+
+<div class="import-section">
+    <h3 class="import-section-title">
+        <i data-lucide="check-circle"></i>
+        Import Complete
+    </h3>
+</div>
+
+<!-- Stat Cards -->
+<div class="import-stat-cards">
+    <div class="import-stat-card{% if result.created > 0 %} success{% endif %}">
+        <span class="stat-number">{{ result.created }}</span>
+        <span class="stat-label">Created</span>
+    </div>
+    <div class="import-stat-card{% if result.skipped > 0 %} warning{% endif %}">
+        <span class="stat-number">{{ result.skipped }}</span>
+        <span class="stat-label">Skipped</span>
+    </div>
+    <div class="import-stat-card{% if result.errors|length > 0 %} warning{% endif %}">
+        <span class="stat-number">{{ result.errors|length }}</span>
+        <span class="stat-label">Errors</span>
+    </div>
+    <div class="import-stat-card">
+        <span class="stat-number">{{ "%.1f"|format(result.duration_seconds) }}s</span>
+        <span class="stat-label">Duration</span>
+    </div>
+</div>
+
+{% if result.errors %}
+<details class="import-collapsible">
+    <summary>
+        <i data-lucide="alert-triangle"></i>
+        Errors ({{ result.errors|length }})
+    </summary>
+    <table class="import-detail-table">
+        <thead>
+            <tr>
+                <th>Subject</th>
+                <th>Error</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for err in result.errors %}
+            <tr>
+                <td><code>{{ err.iri if err.iri is defined else '—' }}</code></td>
+                <td>{{ err.message if err.message is defined else err }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</details>
+{% endif %}
+
+<!-- Actions -->
+<div class="import-actions">
+    <button class="btn btn-primary"
+            onclick="document.dispatchEvent(new CustomEvent('sempkm:nav-refresh')); if (typeof openExplorerAndRefresh === 'function') { openExplorerAndRefresh(); } else { window.location.href='/workspace'; }">
+        <i data-lucide="compass"></i>
+        Browse Imported Objects
+    </button>
+    <button class="btn btn-outline"
+            hx-get="/browser/rdf-import"
+            hx-target="#import-area"
+            hx-swap="innerHTML"
+            hx-select="#import-area"
+            hx-push-url="false">
+        <i data-lucide="upload"></i>
+        Import More
+    </button>
+</div>
+
+<script>
+    if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+</script>

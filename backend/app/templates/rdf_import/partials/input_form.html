@@ -1,0 +1,98 @@
+<div class="import-section">
+    <h3 class="import-section-title">
+        <i data-lucide="file-code-2"></i>
+        Paste or Upload RDF Data
+    </h3>
+    <p style="color: var(--color-text-muted); margin-bottom: 1rem;">
+        Supports JSON-LD, Turtle, and N-Triples formats. Paste content directly or upload a file.
+    </p>
+</div>
+
+<form id="rdf-import-form"
+      hx-post="/browser/rdf-import/parse"
+      hx-target="#import-area"
+      hx-swap="innerHTML"
+      hx-encoding="multipart/form-data"
+      hx-indicator="#rdf-parse-indicator">
+
+    <!-- Paste area -->
+    <div class="import-section">
+        <label for="rdf-paste-area" style="display: block; font-weight: 600; margin-bottom: 0.5rem;">
+            RDF Content
+        </label>
+        <textarea id="rdf-paste-area"
+                  name="content"
+                  class="import-textarea"
+                  placeholder="@prefix schema: <http://schema.org/> .&#10;@prefix ex: <http://example.org/> .&#10;&#10;ex:my-project a schema:Project ;&#10;    schema:name &quot;My Project&quot; ;&#10;    schema:description &quot;An example project.&quot; ."
+                  rows="10"
+                  style="width: 100%; min-height: 200px; font-family: var(--font-mono, monospace); font-size: 0.85rem; padding: 0.75rem; border: 1px solid var(--color-border); border-radius: var(--radius-md, 6px); background: var(--color-bg-input, var(--color-bg)); color: var(--color-text); resize: vertical;"></textarea>
+    </div>
+
+    <!-- File upload -->
+    <div class="import-section" style="margin-top: 1rem;">
+        <label class="import-upload-zone" id="rdf-upload-zone" style="cursor: pointer;">
+            <i data-lucide="upload" style="width: 24px; height: 24px; stroke: var(--color-text-muted);"></i>
+            <span style="color: var(--color-text-muted);">
+                Or drop a file here / click to browse
+            </span>
+            <input type="file"
+                   name="file"
+                   id="rdf-file-input"
+                   accept=".jsonld,.json,.ttl,.nt,.nq,.rdf,.xml"
+                   style="display: none;"
+                   onchange="document.getElementById('rdf-file-name').textContent = this.files[0] ? this.files[0].name : '';">
+            <span id="rdf-file-name" style="font-size: 0.85rem; color: var(--color-text); font-weight: 600;"></span>
+        </label>
+    </div>
+
+    <!-- Format override -->
+    <div class="import-section" style="margin-top: 1rem; display: flex; align-items: center; gap: 1rem;">
+        <label for="rdf-format-select" style="font-weight: 600; white-space: nowrap;">Format:</label>
+        <select id="rdf-format-select" name="format_override"
+                style="padding: 0.4rem 0.75rem; border: 1px solid var(--color-border); border-radius: var(--radius-md, 6px); background: var(--color-bg-input, var(--color-bg)); color: var(--color-text); font-size: 0.9rem;">
+            <option value="">Auto-detect</option>
+            <option value="json-ld">JSON-LD</option>
+            <option value="turtle">Turtle</option>
+            <option value="nt">N-Triples</option>
+        </select>
+    </div>
+
+    <!-- Submit -->
+    <div class="import-actions" style="margin-top: 1.5rem;">
+        <button type="submit" class="btn btn-primary">
+            <i data-lucide="search"></i>
+            Parse &amp; Preview
+        </button>
+        <span id="rdf-parse-indicator" class="htmx-indicator" style="margin-left: 0.5rem; color: var(--color-text-muted);">
+            Parsing...
+        </span>
+    </div>
+</form>
+
+<script>
+(function() {
+    // Drag-and-drop support for the upload zone
+    var zone = document.getElementById('rdf-upload-zone');
+    var fileInput = document.getElementById('rdf-file-input');
+    if (!zone || !fileInput) return;
+
+    zone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        zone.classList.add('drag-over');
+    });
+    zone.addEventListener('dragleave', function(e) {
+        if (zone.contains(e.relatedTarget)) return;
+        zone.classList.remove('drag-over');
+    });
+    zone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        zone.classList.remove('drag-over');
+        if (e.dataTransfer.files.length) {
+            fileInput.files = e.dataTransfer.files;
+            document.getElementById('rdf-file-name').textContent = e.dataTransfer.files[0].name;
+        }
+    });
+
+    if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+})();
+</script>

@@ -1,0 +1,108 @@
+<!-- Step bar — step 3 active (importing) -->
+<div id="import-step-bar" class="import-step-bar">
+    <div class="step-item step-complete">
+        <div class="step-circle"><i data-lucide="check"></i></div>
+        <span class="step-label">Input</span>
+    </div>
+    <div class="step-connector step-connector-complete"></div>
+    <div class="step-item step-complete">
+        <div class="step-circle"><i data-lucide="check"></i></div>
+        <span class="step-label">Preview</span>
+    </div>
+    <div class="step-connector step-connector-complete"></div>
+    <div class="step-item step-active">
+        <div class="step-circle">3</div>
+        <span class="step-label">Import</span>
+    </div>
+</div>
+<script>
+(function() {
+    var oob = document.querySelector('#import-content > #import-step-bar');
+    if (oob) {
+        var target = document.querySelector('#import-container > #import-step-bar');
+        if (target) target.replaceWith(oob);
+    }
+})();
+</script>
+
+<div class="import-section">
+    <h3 class="import-section-title">
+        <i data-lucide="loader"></i>
+        Importing...
+    </h3>
+</div>
+
+<div class="import-progress-container">
+    <!-- Phase indicator -->
+    <div class="import-progress-phase" id="rdf-import-phase-text">
+        Preparing import...
+    </div>
+
+    <!-- Progress bar -->
+    <div class="import-progress-bar-track">
+        <div class="import-progress-fill" id="rdf-import-progress-fill" style="width: 0%"></div>
+    </div>
+
+    <!-- Counter -->
+    <div class="import-progress-counter" id="rdf-import-counter"></div>
+
+    <!-- Scrolling log -->
+    <div class="import-log" id="rdf-import-log"></div>
+</div>
+
+<script>
+(function() {
+    var logEl = document.getElementById('rdf-import-log');
+    var fillEl = document.getElementById('rdf-import-progress-fill');
+    var phaseEl = document.getElementById('rdf-import-phase-text');
+    var counterEl = document.getElementById('rdf-import-counter');
+
+    var source = new EventSource('/browser/rdf-import/execute/stream');
+
+    source.addEventListener('import_progress', function(e) {
+        var data = JSON.parse(e.data);
+        var pct = 0;
+        if (data.total > 0) {
+            pct = Math.round((data.current / data.total) * 100);
+        }
+        fillEl.style.width = pct + '%';
+        phaseEl.textContent = data.phase || 'Importing...';
+        counterEl.textContent = data.current + ' of ' + data.total;
+
+        if (data.message) {
+            var line = document.createElement('div');
+            line.className = 'import-log-line';
+            line.textContent = '[' + data.current + '/' + data.total + '] ' + data.message;
+            logEl.appendChild(line);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+    });
+
+    source.addEventListener('import_complete', function(e) {
+        source.close();
+        // Fetch summary via htmx
+        htmx.ajax('GET', '/browser/rdf-import/summary', {
+            target: '#import-area',
+            swap: 'innerHTML'
+        });
+    });
+
+    source.addEventListener('import_error', function(e) {
+        source.close();
+        var data = JSON.parse(e.data);
+        phaseEl.textContent = 'Import failed';
+        phaseEl.style.color = 'var(--color-danger, #e74c3c)';
+        var line = document.createElement('div');
+        line.className = 'import-log-line import-log-error';
+        line.textContent = 'Error: ' + data.message;
+        logEl.appendChild(line);
+        logEl.scrollTop = logEl.scrollHeight;
+    });
+
+    source.onerror = function() {
+        source.close();
+    };
+
+    if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+})();
+</script>

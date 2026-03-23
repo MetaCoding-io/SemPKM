@@ -1,0 +1,138 @@
+<!-- Step bar — step 2 active -->
+<div id="import-step-bar" class="import-step-bar">
+    <div class="step-item step-complete">
+        <div class="step-circle"><i data-lucide="check"></i></div>
+        <span class="step-label">Input</span>
+    </div>
+    <div class="step-connector step-connector-complete"></div>
+    <div class="step-item step-active">
+        <div class="step-circle">2</div>
+        <span class="step-label">Preview</span>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step-item">
+        <div class="step-circle">3</div>
+        <span class="step-label">Import</span>
+    </div>
+</div>
+<script>
+(function() {
+    var oob = document.querySelector('#import-content > #import-step-bar');
+    if (oob) {
+        var target = document.querySelector('#import-container > #import-step-bar');
+        if (target) target.replaceWith(oob);
+    }
+})();
+</script>
+
+<div class="import-section">
+    <h3 class="import-section-title">
+        <i data-lucide="list-checks"></i>
+        Preview — {{ subjects|length }} Subject{{ 's' if subjects|length != 1 }}
+    </h3>
+    <p style="color: var(--color-text-muted); margin-bottom: 0.5rem;">
+        Parsed {{ total_triples }} triples as <strong>{{ format_used }}</strong>.
+        Select subjects to import.
+    </p>
+</div>
+
+{% set collision_count = collisions|length if collisions else 0 %}
+{% set shacl_issue_count = shacl_results|length if shacl_results else 0 %}
+
+{% if collision_count > 0 %}
+<div class="import-info-notice" style="border-left-color: var(--color-warning, #f0ad4e);">
+    <i data-lucide="alert-triangle"></i>
+    {{ collision_count }} subject{{ 's' if collision_count != 1 }} already exist{{ '' if collision_count != 1 else 's' }} in the knowledge base. They are unchecked by default — check to overwrite.
+</div>
+{% endif %}
+
+{% if shacl_issue_count > 0 %}
+<div class="import-info-notice" style="border-left-color: var(--color-warning, #f0ad4e);">
+    <i data-lucide="shield-alert"></i>
+    {{ shacl_issue_count }} subject{{ 's' if shacl_issue_count != 1 }} {{ 'have' if shacl_issue_count != 1 else 'has' }} SHACL validation issues.
+</div>
+{% endif %}
+
+<form id="rdf-import-select-form"
+      hx-post="/browser/rdf-import/execute"
+      hx-target="#import-area"
+      hx-swap="innerHTML"
+      hx-indicator="#rdf-import-indicator">
+
+    <table class="import-detail-table" style="width: 100%; margin-bottom: 1rem;">
+        <thead>
+            <tr>
+                <th style="width: 2.5rem;">
+                    <input type="checkbox" id="rdf-select-all" checked
+                           onchange="document.querySelectorAll('.rdf-subject-cb').forEach(function(cb) { cb.checked = this.checked; }.bind(this));"
+                           title="Select / Deselect All">
+                </th>
+                <th>IRI</th>
+                <th>Type(s)</th>
+                <th>Label</th>
+                <th style="text-align: center;">Properties</th>
+                <th style="text-align: center;">SHACL</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for subj in subjects %}
+            {% set has_collision = subj.iri in collisions %}
+            {% set shacl_issues = shacl_results.get(subj.iri, []) if shacl_results else [] %}
+            {% set has_errors = shacl_issues|selectattr('severity', 'equalto', 'Violation')|list|length > 0 %}
+            {% set has_warnings = shacl_issues|selectattr('severity', 'equalto', 'Warning')|list|length > 0 %}
+            <tr{% if has_collision %} style="opacity: 0.7;"{% endif %}>
+                <td>
+                    <input type="checkbox"
+                           class="rdf-subject-cb"
+                           name="selected"
+                           value="{{ subj.iri }}"
+                           {% if not has_collision %}checked{% endif %}>
+                </td>
+                <td title="{{ subj.iri }}" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-mono, monospace); font-size: 0.8rem;">
+                    {{ subj.iri.split('/')[-1].split('#')[-1] if '/' in subj.iri or '#' in subj.iri else subj.iri }}
+                </td>
+                <td style="font-size: 0.85rem;">
+                    {% for t in subj.types %}
+                        <span class="badge" style="background: var(--color-bg-subtle); border: 1px solid var(--color-border); border-radius: 3px; padding: 0.1rem 0.4rem; font-size: 0.75rem; margin-right: 0.25rem;">{{ t.split('/')[-1].split('#')[-1] }}</span>
+                    {% endfor %}
+                    {% if not subj.types %}<span style="color: var(--color-text-muted);">—</span>{% endif %}
+                </td>
+                <td style="font-size: 0.85rem;">{{ subj.label or '—' }}</td>
+                <td style="text-align: center;">{{ subj.property_count }}</td>
+                <td style="text-align: center;">
+                    {% if has_errors %}
+                        <span title="Validation errors" style="color: var(--color-danger, #e74c3c);">✗</span>
+                    {% elif has_warnings %}
+                        <span title="Validation warnings" style="color: var(--color-warning, #f0ad4e);">⚠</span>
+                    {% else %}
+                        <span title="Valid" style="color: var(--color-success, #2ecc71);">✓</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="import-actions">
+        <button type="submit" class="btn btn-primary">
+            <i data-lucide="download"></i>
+            Import Selected
+        </button>
+        <button type="button" class="btn btn-outline"
+                hx-get="/browser/rdf-import"
+                hx-target="#import-area"
+                hx-swap="innerHTML"
+                hx-select="#import-area"
+                hx-push-url="false">
+            <i data-lucide="arrow-left"></i>
+            Back
+        </button>
+        <span id="rdf-import-indicator" class="htmx-indicator" style="margin-left: 0.5rem; color: var(--color-text-muted);">
+            Starting import...
+        </span>
+    </div>
+</form>
+
+<script>
+    if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+</script>
