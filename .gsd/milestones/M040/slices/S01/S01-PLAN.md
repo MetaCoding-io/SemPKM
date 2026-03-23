@@ -25,7 +25,7 @@
 
 ## Tasks
 
-- [ ] **T01: Add Calendar, Timeline, and Map View sections to chapter 7** `est:1h`
+- [x] **T01: Add Calendar, Timeline, and Map View sections to chapter 7** `est:1h`
   - Why: Chapter 7 covers renderers but is missing the 3 newest ones (Calendar from M034, Timeline from M034, Map from M033)
   - Files: `docs/guide/07-browsing-and-visualizing.md`
   - Do: Add three new sections following the existing pattern (opening, features, interactions). Reference `calendar.js` for calendar interactions, `timeline_view.html` for Gantt config, `map_view.html` for Leaflet/cluster behavior. Include recurring tasks subsection under Calendar covering the recurrence editor presets, custom mode, and how recurring events appear. Include cross-view drag subsection under Calendar. Include composable planning note about side-by-side calendar+kanban.
