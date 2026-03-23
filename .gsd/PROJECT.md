@@ -658,6 +658,9 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 **Business Planning Mental Models & Custom Renderers** — in progress as M036
 - S01 complete: business-planning model archive (Eisenhower Matrix/Item types), quadrant renderer (2×2 grid with drag-to-reclassify), 28 unit tests
+- S02 complete: Business Model Canvas 9-box poster renderer with inline editing
+- S03 complete: OKR progress bars + Decision Matrix weighted scoring with server-side computation
+- S04 complete: 11 extended framework types (SWOT, BCG, Ansoff, Stakeholder, Risk, Porter, PESTLE, BSC, RACI, Value Chain, Lean Canvas) — 32 total types, 42 unit tests
 - Custom visual renderers: 2×2 quadrant, 9-box canvas, progress bars, weighted tables
 - All frameworks stored as typed RDF for AI copilot queryability
 
