@@ -37,7 +37,7 @@
   - Verify: `cd e2e && npx tsc --noEmit` — type-checks cleanly. Full test: `cd e2e && npx playwright test tests/36-business-planning/ --reporter=list` (requires Docker stack)
   - Done when: Spec file exists, type-checks, and covers model install + 4 custom renderers + SPARQL query
 
-- [ ] **T03: User guide documentation for all business planning frameworks** `est:30m`
+- [x] **T03: User guide documentation for all business planning frameworks** `est:30m`
   - Why: Documents all 16 business planning frameworks with field reference tables, custom renderer descriptions, and cross-model edge documentation. Covers BIZ-10 (documentation).
   - Files: `docs/guide/39-mental-model-catalog.md`
   - Do: Add section `## 5. Business Planning` after existing section 4 (Research Workflow) and before `## Model Comparison`. Include: model metadata (ID, version, namespace), overview, sub-sections grouped by framework category (Prioritization, Strategy, Business Design, Goal Tracking, Resource Management), type reference tables for all 16 frameworks, custom renderer descriptions (quadrant, bmc, okr, decision-matrix), cross-model edges section, SPARQL query examples. Update the Model Comparison table with a Business Planning row.
