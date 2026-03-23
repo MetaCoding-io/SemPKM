@@ -1,76 +1,69 @@
 ---
-estimated_steps: 5
-estimated_files: 3
-skills_used: []
+estimated_steps: 6
+estimated_files: 2
+skills_used:
+  - test
+  - review
 ---
 
-# T01: Build CopilotService backend — schema context, SPARQL generation, validation, and self-correction
+# T01: Build CopilotService with schema context and SPARQL generation
 
 **Slice:** S01 — Copilot Chat with SPARQL Generation
 **Milestone:** M035
 
 ## Description
 
-Create the `backend/app/copilot/` module with the core CopilotService class. This is the intelligence layer that:
-1. Builds LLM system prompts containing installed model schema context (types, properties, prefixes)
-2. Validates generated SPARQL queries (parse check, predicate verification, read-only guard)
-3. Executes validated queries through the existing SPARQL pipeline (scope_to_current_graph + inject_prefixes)
-4. Orchestrates a self-correction loop when generated SPARQL fails (max 2 retries, error message fed back to LLM)
+Create the core backend service class that powers the AI copilot. `CopilotService` is the brain: it builds schema context from installed Mental Models (so the LLM knows what types and predicates exist), generates SPARQL from natural language via LLM, validates the generated queries (parse check, read-only guard, predicate verification), executes them against the triplestore, formats results as prose with IRI references, and handles self-correction when queries fail.
 
-The service does NOT handle HTTP/SSE — that's T02's job. This task produces pure Python service classes that T02's router will call.
+This task focuses on the service layer only — no API endpoint, no frontend. The service will be consumed by T02's endpoint.
 
 ## Steps
 
-1. Create `backend/app/copilot/__init__.py` (empty module init).
+1. **Create `backend/app/services/copilot.py`** with the `CopilotService` class. The constructor accepts `triplestore_client: TriplestoreClient`, `shapes_service: ShapesService`, `label_service: LabelService`, and `llm_config_service: LLMConfigService`.
 
-2. Create `backend/app/copilot/schemas.py` with Pydantic models:
-   - `CopilotChatRequest` — `messages: list[dict]`, `conversation_id: str | None`, `model: str | None`
-   - `CopilotMessage` — `role: str`, `content: str`
-   - `SparqlGenerationResult` — `query: str | None`, `error: str | None`, `retries: int`
-   - `QueryExecutionResult` — `bindings: list[dict]`, `prose: str`, `object_iris: list[str]`
+2. **Implement `build_schema_context(db: AsyncSession) -> str`** — queries `ShapesService.get_types()` to get all installed type IRIs and labels, then for each type calls `ShapesService.get_form_for_type(type_iri)` to get property shapes. Serializes into a compact text block like:
+   ```
+   Available types and their properties:
+   - Project (urn:sempkm:model:basic-pkm:Project): title, description, status [todo|in-progress|done], assignedTo → Person
+   - Task (urn:sempkm:model:basic-pkm:Task): title, dueDate (date), priority [low|medium|high], status [todo|in-progress|done]
+   ...
+   ```
+   Include property datatypes, enum constraints (sh:in values), and object reference target classes. Cap total output at ~3000 chars to stay within token budget. Use common SPARQL prefixes (dcterms, rdfs, rdf, bpkm) in the output.
 
-3. Create `backend/app/copilot/service.py` with `CopilotService` class:
-   - Constructor takes `triplestore_client: TriplestoreClient`, `shapes_service: ShapesService`, `label_service: LabelService`, `prefix_registry: PrefixRegistry`
-   - `async build_schema_context() -> str` — calls `shapes_service.get_node_shapes()` to get all installed type shapes, serializes each as "Type: {label} ({target_class})\n  Properties: {name} ({path}, datatype: {dt})\n  ..." text. Include prefix table from `prefix_registry.get_all_prefixes()`. Use character-based token estimation (~4 chars/token per D326) and truncate at configurable budget (default 4000 tokens = ~16000 chars).
-   - `validate_query(query: str) -> tuple[bool, str | None]` — (a) regex check for SELECT, ASK, CONSTRUCT, DESCRIBE keywords (reject INSERT, DELETE, DROP, CLEAR, LOAD, CREATE), (b) extract predicate IRIs from the query and check against known predicates from `shapes_service.get_labels_for_predicates()` or the vocabulary endpoint pattern. Return `(True, None)` if valid, `(False, error_message)` if invalid.
-   - `async execute_and_format(query: str) -> QueryExecutionResult` — run query through `inject_prefixes()` + `scope_to_current_graph()` + `client.query()`. Extract bindings, collect object IRIs (those matching base_namespace), resolve labels via `label_service.resolve_batch()`, format as prose string with IRI references marked as `[[iri|label]]` placeholders.
-   - `async generate_sparql(user_message: str, schema_context: str, llm_call: Callable) -> SparqlGenerationResult` — build prompt with schema context + user question, call `llm_call` to get response, extract SPARQL from markdown code blocks or raw text, validate with `validate_query()`, if validation fails retry (max 2 per D324) with error feedback appended to messages. The `llm_call` parameter is a callable that takes messages and returns a string — this keeps the service testable without HTTP dependencies.
+3. **Implement `build_system_prompt(schema_context: str) -> str`** — constructs the system prompt that instructs the LLM to generate SPARQL queries. Key instructions: always use `GRAPH <urn:sempkm:current>` for scoping, use the exact predicate IRIs from the schema context, return SPARQL in a ```sparql code fence, use SELECT queries only, include PREFIX declarations. Provide 2-3 example question→SPARQL pairs using the schema context types.
 
-4. Add a `_extract_sparql_from_response(text: str) -> str | None` helper that extracts SPARQL from LLM response text — looks for ```sparql...``` or ```sql...``` code blocks first, falls back to heuristic detection (lines starting with SELECT/PREFIX/ASK/CONSTRUCT).
+4. **Implement `validate_query(sparql: str, known_predicates: set[str]) -> tuple[bool, str | None]`** — (a) regex check that query contains no INSERT/DELETE/DROP/CLEAR/CREATE/LOAD keywords outside string literals (reuse `_strip_sparql_strings` from `backend/app/sparql/client.py`); (b) basic parse: check balanced braces, contains SELECT keyword; (c) predicate verification: extract IRI-like tokens from the query and check they exist in `known_predicates` set (built from schema context). Returns `(True, None)` on success or `(False, "error message")` on failure.
 
-5. Add a `_build_system_prompt(schema_context: str) -> str` helper that constructs the full system prompt including: role description (SPARQL assistant for a semantic knowledge graph), schema context section, instruction to output SPARQL in a code block, instruction to wrap object IRIs in the answer as `[[iri|label]]` for pill rendering.
+5. **Implement `execute_query(sparql: str) -> dict`** — wraps the query with `scope_to_current_graph()` from `backend/app/sparql/client.py` then calls `triplestore_client.query()`. Catches exceptions and returns structured error dict.
+
+6. **Implement `format_results(sparql_results: dict, db: AsyncSession) -> str`** — takes SPARQL JSON results, extracts all IRI values, batch-resolves labels via `LabelService.resolve_batch()`, then builds a markdown string where IRIs become `[Label](iri:full-iri)` references (the frontend will convert these to clickable pills). For count queries, produce natural language like "You have 5 projects." For tabular results, produce a markdown table with labeled columns.
+
+7. **Implement `build_retry_prompt(original_query: str, error_message: str) -> list[dict]`** — constructs a messages array that shows the LLM the failed query and error, asking it to fix the SPARQL. Used by the self-correction loop in T04.
 
 ## Must-Haves
 
-- [ ] `CopilotService.build_schema_context()` produces readable text with type names, property paths, and datatypes from ShapesService
-- [ ] `CopilotService.validate_query()` accepts valid SELECT/ASK/CONSTRUCT and rejects INSERT/DELETE/DROP/CLEAR
-- [ ] `CopilotService.validate_query()` warns on unknown predicates (non-blocking — query can still run)
-- [ ] `CopilotService.execute_and_format()` runs SPARQL through scope_to_current_graph and returns prose with `[[iri|label]]` markers
-- [ ] `CopilotService.generate_sparql()` implements self-correction loop with max 2 retries
-- [ ] `_extract_sparql_from_response()` handles both code-block and raw-text SPARQL
+- [ ] `CopilotService` class with all 6 methods implemented
+- [ ] `build_schema_context()` serializes installed model types and properties into compact text
+- [ ] `validate_query()` rejects mutating queries (INSERT/DELETE/DROP)
+- [ ] `validate_query()` checks predicates against known model schemas
+- [ ] `execute_query()` uses `scope_to_current_graph()` for safety
+- [ ] `format_results()` resolves IRI labels and produces markdown with IRI references
+- [ ] Structured logging with `copilot.` prefix at key points
 
 ## Verification
 
-- `cd backend && .venv/bin/python -c "from app.copilot.service import CopilotService; print('import ok')"` — module imports without error
-- `cd backend && .venv/bin/python -c "from app.copilot.schemas import CopilotChatRequest; print(CopilotChatRequest.model_json_schema())"` — schema validates
+- `cd backend && python -m pytest tests/test_copilot_service.py -v` — all tests pass
+- `python -c "from app.services.copilot import CopilotService; print('import OK')"` (run from backend/) — module imports cleanly
 
 ## Inputs
 
-- `backend/app/services/shapes.py` — ShapesService.get_node_shapes() for type schema extraction
-- `backend/app/services/labels.py` — LabelService.resolve_batch() for IRI→label resolution
-- `backend/app/services/prefixes.py` — PrefixRegistry.get_all_prefixes() for prefix table
-- `backend/app/sparql/client.py` — scope_to_current_graph(), inject_prefixes() for safe query execution
-- `backend/app/triplestore/client.py` — TriplestoreClient.query() for SPARQL execution
-- `backend/app/config.py` — settings.base_namespace for object IRI detection
-
-## Observability Impact
-
-- **New structured log events:** `copilot.schema_context.built` (token count, type count), `copilot.sparql.generated` (query text), `copilot.sparql.validated` (valid/invalid, error message), `copilot.sparql.failed` (query text, error), `copilot.sparql.retry` (attempt number, previous error), `copilot.sparql.executed` (binding count, IRI count)
-- **Inspection:** Future agents can verify CopilotService behavior by checking structured log output for the above events. `build_schema_context` logs the estimated token count; `generate_sparql` logs each retry attempt with the error that triggered it.
-- **Failure visibility:** SPARQL validation failures log the rejected query text and the reason (mutation keyword detected, unknown predicate). Self-correction loop exhaustion logs the final error after max retries.
+- `backend/app/services/shapes.py` — ShapesService API for getting types and property shapes
+- `backend/app/services/labels.py` — LabelService.resolve_batch() for IRI label resolution
+- `backend/app/services/llm.py` — LLMConfigService for LLM config and API key
+- `backend/app/sparql/client.py` — scope_to_current_graph(), _strip_sparql_strings()
+- `backend/app/triplestore/client.py` — TriplestoreClient.query()
 
 ## Expected Output
 
-- `backend/app/copilot/__init__.py` — empty module init
-- `backend/app/copilot/service.py` — CopilotService with build_schema_context, validate_query, execute_and_format, generate_sparql
-- `backend/app/copilot/schemas.py` — Pydantic request/response models
+- `backend/app/services/copilot.py` — new CopilotService class with all methods
+- `backend/tests/test_copilot_service.py` — pytest unit tests with mocked dependencies (ShapesService, LabelService, TriplestoreClient, LLMConfigService)
