@@ -77,3 +77,9 @@ Add 5 new quadrant-based framework types to the `business-planning` model archiv
 - `models/business-planning/manifest.yaml` — extended with 10 new icon entries
 - `backend/app/views/service.py` — `_QUADRANT_LABELS` restructured, `_quadrant_label()` updated, `_detect_quadrant_axes()` extended
 - `backend/tests/test_quadrant.py` — ~10 new tests for label mappings and axis detection
+
+## Observability Impact
+
+- **`_detect_quadrant_axes` debug log** now shows axis discovery for all 6 framework types, not just Eisenhower. The log line includes type IRI, x/y axis paths, and sh:in values — useful for diagnosing why a new quadrant type isn't rendering.
+- **`_quadrant_label()` generic fallback** is the visible failure signal: if a framework key isn't matched, labels show "AxisName: value / AxisName: value" instead of framework-specific names (e.g., "Strengths"). Check the quadrant JSON endpoint to see which label format is returned.
+- **`_AXIS_KEYWORD_PAIRS` class attribute** can be inspected at runtime to see the registered keyword pairs. Adding a new quadrant framework requires adding an entry here and in `_QUADRANT_LABELS`.

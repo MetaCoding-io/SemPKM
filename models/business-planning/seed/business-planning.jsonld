@@ -365,6 +365,176 @@
       "bp:scoreAlternative": { "@id": "bp:seed-alt-option-c" },
       "bp:scoreCriterion": { "@id": "bp:seed-criterion-ease" },
       "dcterms:created": { "@value": "2026-03-20T10:18:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "bp:seed-swot-product-launch",
+      "@type": "bp:SWOTAnalysis",
+      "dcterms:title": "Product Launch SWOT",
+      "dcterms:description": "SWOT analysis for the upcoming product launch campaign.",
+      "dcterms:created": { "@value": "2026-03-22T09:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-swot-brand-awareness",
+      "@type": "bp:SWOTItem",
+      "dcterms:title": "Strong brand awareness",
+      "dcterms:description": "Our brand is well-recognized in the target market with high recall.",
+      "bp:swotNature": "internal",
+      "bp:swotValence": "positive",
+      "bp:belongsToSWOT": { "@id": "bp:seed-swot-product-launch" },
+      "dcterms:created": { "@value": "2026-03-22T09:01:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-swot-limited-budget",
+      "@type": "bp:SWOTItem",
+      "dcterms:title": "Limited marketing budget",
+      "dcterms:description": "Budget constraints limit paid advertising reach.",
+      "bp:swotNature": "internal",
+      "bp:swotValence": "negative",
+      "bp:belongsToSWOT": { "@id": "bp:seed-swot-product-launch" },
+      "dcterms:created": { "@value": "2026-03-22T09:02:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-swot-rising-costs",
+      "@type": "bp:SWOTItem",
+      "dcterms:title": "Rising material costs",
+      "dcterms:description": "Supply chain disruptions are increasing production costs across the industry.",
+      "bp:swotNature": "external",
+      "bp:swotValence": "negative",
+      "bp:belongsToSWOT": { "@id": "bp:seed-swot-product-launch" },
+      "dcterms:created": { "@value": "2026-03-22T09:03:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "bp:seed-bcg-portfolio",
+      "@type": "bp:BCGMatrix",
+      "dcterms:title": "Product Portfolio BCG",
+      "dcterms:description": "Growth-share analysis of the current product portfolio.",
+      "dcterms:created": { "@value": "2026-03-22T10:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-bcg-cloud-platform",
+      "@type": "bp:BCGItem",
+      "dcterms:title": "Cloud Platform",
+      "dcterms:description": "High-growth SaaS product with strong market position.",
+      "bp:marketGrowth": "high",
+      "bp:marketShare": "high",
+      "bp:belongsToBCG": { "@id": "bp:seed-bcg-portfolio" },
+      "dcterms:created": { "@value": "2026-03-22T10:01:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-bcg-legacy-desktop",
+      "@type": "bp:BCGItem",
+      "dcterms:title": "Legacy Desktop App",
+      "dcterms:description": "Declining market but still generates steady revenue.",
+      "bp:marketGrowth": "low",
+      "bp:marketShare": "high",
+      "bp:belongsToBCG": { "@id": "bp:seed-bcg-portfolio" },
+      "dcterms:created": { "@value": "2026-03-22T10:02:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-bcg-ai-assistant",
+      "@type": "bp:BCGItem",
+      "dcterms:title": "AI Assistant",
+      "dcterms:description": "New AI product in rapidly growing market, still gaining traction.",
+      "bp:marketGrowth": "high",
+      "bp:marketShare": "low",
+      "bp:belongsToBCG": { "@id": "bp:seed-bcg-portfolio" },
+      "dcterms:created": { "@value": "2026-03-22T10:03:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "bp:seed-ansoff-growth",
+      "@type": "bp:AnsoffMatrix",
+      "dcterms:title": "Growth Strategy 2026",
+      "dcterms:description": "Ansoff matrix for evaluating growth paths for the coming year.",
+      "dcterms:created": { "@value": "2026-03-22T11:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-ansoff-loyalty-program",
+      "@type": "bp:AnsoffItem",
+      "dcterms:title": "Loyalty program for existing customers",
+      "dcterms:description": "Increase share of wallet with current customers through rewards.",
+      "bp:marketNovelty": "existing",
+      "bp:productNovelty": "existing",
+      "bp:belongsToAnsoff": { "@id": "bp:seed-ansoff-growth" },
+      "dcterms:created": { "@value": "2026-03-22T11:01:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-ansoff-new-geography",
+      "@type": "bp:AnsoffItem",
+      "dcterms:title": "Expand to APAC region",
+      "dcterms:description": "Bring current product to new geographic markets.",
+      "bp:marketNovelty": "new",
+      "bp:productNovelty": "existing",
+      "bp:belongsToAnsoff": { "@id": "bp:seed-ansoff-growth" },
+      "dcterms:created": { "@value": "2026-03-22T11:02:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "bp:seed-stakeholder-map-project",
+      "@type": "bp:StakeholderMap",
+      "dcterms:title": "Platform Rewrite Stakeholders",
+      "dcterms:description": "Stakeholder mapping for the platform rewrite initiative.",
+      "dcterms:created": { "@value": "2026-03-22T12:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-stakeholder-cto",
+      "@type": "bp:StakeholderItem",
+      "dcterms:title": "CTO",
+      "dcterms:description": "Executive sponsor with final architecture decisions.",
+      "bp:stakeholderPower": "high",
+      "bp:stakeholderInterest": "high",
+      "bp:belongsToStakeholderMap": { "@id": "bp:seed-stakeholder-map-project" },
+      "dcterms:created": { "@value": "2026-03-22T12:01:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-stakeholder-end-user",
+      "@type": "bp:StakeholderItem",
+      "dcterms:title": "End Users",
+      "dcterms:description": "Will use the new platform daily but have limited influence on architecture.",
+      "bp:stakeholderPower": "low",
+      "bp:stakeholderInterest": "high",
+      "bp:belongsToStakeholderMap": { "@id": "bp:seed-stakeholder-map-project" },
+      "dcterms:created": { "@value": "2026-03-22T12:02:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "bp:seed-risk-matrix-launch",
+      "@type": "bp:RiskMatrix",
+      "dcterms:title": "Launch Risk Assessment",
+      "dcterms:description": "Risk assessment for the upcoming product launch.",
+      "dcterms:created": { "@value": "2026-03-22T13:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-risk-data-breach",
+      "@type": "bp:RiskItem",
+      "dcterms:title": "Data breach during migration",
+      "dcterms:description": "Risk of exposing customer data during the database migration process.",
+      "bp:riskLikelihood": "low",
+      "bp:riskImpact": "high",
+      "bp:belongsToRiskMatrix": { "@id": "bp:seed-risk-matrix-launch" },
+      "dcterms:created": { "@value": "2026-03-22T13:01:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-risk-scope-creep",
+      "@type": "bp:RiskItem",
+      "dcterms:title": "Scope creep on feature set",
+      "dcterms:description": "Uncontrolled growth of feature requirements delaying launch.",
+      "bp:riskLikelihood": "high",
+      "bp:riskImpact": "high",
+      "bp:belongsToRiskMatrix": { "@id": "bp:seed-risk-matrix-launch" },
+      "dcterms:created": { "@value": "2026-03-22T13:02:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-risk-minor-bug",
+      "@type": "bp:RiskItem",
+      "dcterms:title": "Minor UI bugs on launch day",
+      "dcterms:description": "Non-critical visual issues that don't affect core functionality.",
+      "bp:riskLikelihood": "high",
+      "bp:riskImpact": "low",
+      "bp:belongsToRiskMatrix": { "@id": "bp:seed-risk-matrix-launch" },
+      "dcterms:created": { "@value": "2026-03-22T13:03:00Z", "@type": "xsd:dateTime" }
     }
   ]
 }

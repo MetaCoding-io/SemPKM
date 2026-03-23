@@ -122,6 +122,151 @@
       "sempkm:targetClass": { "@id": "bp:Score" },
       "sempkm:rendererType": "decision-matrix",
       "sempkm:sparqlQuery": "SELECT ?s ?value ?alternative ?alternativeTitle ?criterion ?criterionTitle ?weight ?matrix WHERE { ?s a <urn:sempkm:model:business-planning:Score> ; <urn:sempkm:model:business-planning:value> ?value ; <urn:sempkm:model:business-planning:scoreAlternative> ?alternative ; <urn:sempkm:model:business-planning:scoreCriterion> ?criterion . ?alternative <http://purl.org/dc/terms/title> ?alternativeTitle . ?criterion <http://purl.org/dc/terms/title> ?criterionTitle . OPTIONAL { ?criterion <urn:sempkm:model:business-planning:weight> ?weight } . OPTIONAL { ?criterion <urn:sempkm:model:business-planning:belongsToDecisionMatrix> ?matrix } }"
+    },
+
+    {
+      "@id": "bp:view-swot-analysis-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "SWOT Analyses Table",
+      "sempkm:targetClass": { "@id": "bp:SWOTAnalysis" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?description ?created WHERE { ?s a <urn:sempkm:model:business-planning:SWOTAnalysis> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } . OPTIONAL { ?s <http://purl.org/dc/terms/created> ?created } }",
+      "sempkm:columns": "title,description,created",
+      "sempkm:sortDefault": "title"
+    },
+    {
+      "@id": "bp:view-swot-item-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "SWOT Items Table",
+      "sempkm:targetClass": { "@id": "bp:SWOTItem" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?swotNature ?swotValence ?description WHERE { ?s a <urn:sempkm:model:business-planning:SWOTItem> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:business-planning:swotNature> ?swotNature } . OPTIONAL { ?s <urn:sempkm:model:business-planning:swotValence> ?swotValence } . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } }",
+      "sempkm:columns": "title,swotNature,swotValence,description",
+      "sempkm:sortDefault": "title"
+    },
+    {
+      "@id": "bp:view-swot-item-quadrant",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "SWOT Quadrant",
+      "sempkm:targetClass": { "@id": "bp:SWOTItem" },
+      "sempkm:rendererType": "quadrant",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?swotNature ?swotValence ?description WHERE { ?s a <urn:sempkm:model:business-planning:SWOTItem> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:business-planning:swotNature> ?swotNature } . OPTIONAL { ?s <urn:sempkm:model:business-planning:swotValence> ?swotValence } . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } }"
+    },
+
+    {
+      "@id": "bp:view-bcg-matrix-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "BCG Matrices Table",
+      "sempkm:targetClass": { "@id": "bp:BCGMatrix" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?description ?created WHERE { ?s a <urn:sempkm:model:business-planning:BCGMatrix> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } . OPTIONAL { ?s <http://purl.org/dc/terms/created> ?created } }",
+      "sempkm:columns": "title,description,created",
+      "sempkm:sortDefault": "title"
+    },
+    {
+      "@id": "bp:view-bcg-item-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "BCG Items Table",
+      "sempkm:targetClass": { "@id": "bp:BCGItem" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?marketGrowth ?marketShare ?description WHERE { ?s a <urn:sempkm:model:business-planning:BCGItem> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:business-planning:marketGrowth> ?marketGrowth } . OPTIONAL { ?s <urn:sempkm:model:business-planning:marketShare> ?marketShare } . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } }",
+      "sempkm:columns": "title,marketGrowth,marketShare,description",
+      "sempkm:sortDefault": "title"
+    },
+    {
+      "@id": "bp:view-bcg-item-quadrant",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "BCG Quadrant",
+      "sempkm:targetClass": { "@id": "bp:BCGItem" },
+      "sempkm:rendererType": "quadrant",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?marketGrowth ?marketShare ?description WHERE { ?s a <urn:sempkm:model:business-planning:BCGItem> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:business-planning:marketGrowth> ?marketGrowth } . OPTIONAL { ?s <urn:sempkm:model:business-planning:marketShare> ?marketShare } . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } }"
+    },
+
+    {
+      "@id": "bp:view-ansoff-matrix-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Ansoff Matrices Table",
+      "sempkm:targetClass": { "@id": "bp:AnsoffMatrix" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?description ?created WHERE { ?s a <urn:sempkm:model:business-planning:AnsoffMatrix> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } . OPTIONAL { ?s <http://purl.org/dc/terms/created> ?created } }",
+      "sempkm:columns": "title,description,created",
+      "sempkm:sortDefault": "title"
+    },
+    {
+      "@id": "bp:view-ansoff-item-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Ansoff Items Table",
+      "sempkm:targetClass": { "@id": "bp:AnsoffItem" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?marketNovelty ?productNovelty ?description WHERE { ?s a <urn:sempkm:model:business-planning:AnsoffItem> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:business-planning:marketNovelty> ?marketNovelty } . OPTIONAL { ?s <urn:sempkm:model:business-planning:productNovelty> ?productNovelty } . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } }",
+      "sempkm:columns": "title,marketNovelty,productNovelty,description",
+      "sempkm:sortDefault": "title"
+    },
+    {
+      "@id": "bp:view-ansoff-item-quadrant",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Ansoff Quadrant",
+      "sempkm:targetClass": { "@id": "bp:AnsoffItem" },
+      "sempkm:rendererType": "quadrant",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?marketNovelty ?productNovelty ?description WHERE { ?s a <urn:sempkm:model:business-planning:AnsoffItem> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:business-planning:marketNovelty> ?marketNovelty } . OPTIONAL { ?s <urn:sempkm:model:business-planning:productNovelty> ?productNovelty } . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } }"
+    },
+
+    {
+      "@id": "bp:view-stakeholder-map-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Stakeholder Maps Table",
+      "sempkm:targetClass": { "@id": "bp:StakeholderMap" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?description ?created WHERE { ?s a <urn:sempkm:model:business-planning:StakeholderMap> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } . OPTIONAL { ?s <http://purl.org/dc/terms/created> ?created } }",
+      "sempkm:columns": "title,description,created",
+      "sempkm:sortDefault": "title"
+    },
+    {
+      "@id": "bp:view-stakeholder-item-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Stakeholder Items Table",
+      "sempkm:targetClass": { "@id": "bp:StakeholderItem" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?stakeholderPower ?stakeholderInterest ?description WHERE { ?s a <urn:sempkm:model:business-planning:StakeholderItem> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:business-planning:stakeholderPower> ?stakeholderPower } . OPTIONAL { ?s <urn:sempkm:model:business-planning:stakeholderInterest> ?stakeholderInterest } . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } }",
+      "sempkm:columns": "title,stakeholderPower,stakeholderInterest,description",
+      "sempkm:sortDefault": "title"
+    },
+    {
+      "@id": "bp:view-stakeholder-item-quadrant",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Stakeholder Quadrant",
+      "sempkm:targetClass": { "@id": "bp:StakeholderItem" },
+      "sempkm:rendererType": "quadrant",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?stakeholderPower ?stakeholderInterest ?description WHERE { ?s a <urn:sempkm:model:business-planning:StakeholderItem> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:business-planning:stakeholderPower> ?stakeholderPower } . OPTIONAL { ?s <urn:sempkm:model:business-planning:stakeholderInterest> ?stakeholderInterest } . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } }"
+    },
+
+    {
+      "@id": "bp:view-risk-matrix-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Risk Matrices Table",
+      "sempkm:targetClass": { "@id": "bp:RiskMatrix" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?description ?created WHERE { ?s a <urn:sempkm:model:business-planning:RiskMatrix> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } . OPTIONAL { ?s <http://purl.org/dc/terms/created> ?created } }",
+      "sempkm:columns": "title,description,created",
+      "sempkm:sortDefault": "title"
+    },
+    {
+      "@id": "bp:view-risk-item-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Risk Items Table",
+      "sempkm:targetClass": { "@id": "bp:RiskItem" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?riskLikelihood ?riskImpact ?description WHERE { ?s a <urn:sempkm:model:business-planning:RiskItem> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:business-planning:riskLikelihood> ?riskLikelihood } . OPTIONAL { ?s <urn:sempkm:model:business-planning:riskImpact> ?riskImpact } . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } }",
+      "sempkm:columns": "title,riskLikelihood,riskImpact,description",
+      "sempkm:sortDefault": "title"
+    },
+    {
+      "@id": "bp:view-risk-item-quadrant",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Risk Quadrant",
+      "sempkm:targetClass": { "@id": "bp:RiskItem" },
+      "sempkm:rendererType": "quadrant",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?riskLikelihood ?riskImpact ?description WHERE { ?s a <urn:sempkm:model:business-planning:RiskItem> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:business-planning:riskLikelihood> ?riskLikelihood } . OPTIONAL { ?s <urn:sempkm:model:business-planning:riskImpact> ?riskImpact } . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } }"
     }
   ]
 }

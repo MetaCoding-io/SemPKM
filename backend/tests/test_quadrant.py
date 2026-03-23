@@ -647,3 +647,133 @@ class TestExecuteQuadrantQuery:
 
         on_yes = result["quadrants"][0]
         assert on_yes["label"] == "Power: on / Speed: yes"
+
+
+# ── New framework label tests ─────────────────────────────────
+
+
+class TestQuadrantLabelSWOT:
+    """SWOT label mapping: nature × valence → quadrant name."""
+
+    def test_strengths(self):
+        svc = _build_service()
+        assert svc._quadrant_label("internal", "positive", "Nature", "Valence") == "Strengths"
+
+    def test_weaknesses(self):
+        svc = _build_service()
+        assert svc._quadrant_label("internal", "negative", "Nature", "Valence") == "Weaknesses"
+
+    def test_opportunities(self):
+        svc = _build_service()
+        assert svc._quadrant_label("external", "positive", "Nature", "Valence") == "Opportunities"
+
+    def test_threats(self):
+        svc = _build_service()
+        assert svc._quadrant_label("external", "negative", "Nature", "Valence") == "Threats"
+
+
+class TestQuadrantLabelBCG:
+    """BCG label mapping: growth × share → quadrant name."""
+
+    def test_stars(self):
+        svc = _build_service()
+        assert svc._quadrant_label("high", "high", "Market Growth", "Market Share") == "Stars"
+
+    def test_question_marks(self):
+        svc = _build_service()
+        assert svc._quadrant_label("low", "high", "Market Growth", "Market Share") == "Question Marks"
+
+    def test_cash_cows(self):
+        svc = _build_service()
+        assert svc._quadrant_label("high", "low", "Market Growth", "Market Share") == "Cash Cows"
+
+    def test_dogs(self):
+        svc = _build_service()
+        assert svc._quadrant_label("low", "low", "Market Growth", "Market Share") == "Dogs"
+
+
+class TestQuadrantLabelAnsoff:
+    """Ansoff label mapping: market novelty × product novelty."""
+
+    def test_market_development(self):
+        svc = _build_service()
+        assert svc._quadrant_label("existing", "new", "Market Novelty", "Product Novelty") == "Market Development"
+
+
+class TestQuadrantLabelStakeholder:
+    """Stakeholder label mapping: power × interest."""
+
+    def test_keep_informed(self):
+        svc = _build_service()
+        assert svc._quadrant_label("high", "low", "Stakeholder Power", "Stakeholder Interest") == "Keep Informed"
+
+
+class TestQuadrantLabelRisk:
+    """Risk label mapping: likelihood × impact."""
+
+    def test_accept(self):
+        svc = _build_service()
+        assert svc._quadrant_label("low", "low", "Risk Likelihood", "Risk Impact") == "Accept"
+
+    def test_critical(self):
+        svc = _build_service()
+        assert svc._quadrant_label("high", "high", "Risk Likelihood", "Risk Impact") == "Critical"
+
+
+# ── New framework axis detection tests ────────────────────────
+
+
+class TestDetectQuadrantAxesSWOT:
+    """Keyword matching for SWOT axes: nature → x, valence → y."""
+
+    @pytest.mark.asyncio
+    async def test_swot_keyword_preference(self):
+        form = _make_form("urn:test:SWOTItem", [
+            _make_property("urn:test:title", "Title"),
+            _make_property(
+                "urn:bp:swotNature", "Nature",
+                in_values=["internal", "external"],
+            ),
+            _make_property(
+                "urn:bp:swotValence", "Valence",
+                in_values=["positive", "negative"],
+            ),
+        ])
+        svc = _build_service(form_return=form)
+        x_axis, y_axis, x_vals, y_vals = await svc._detect_quadrant_axes(
+            "urn:test:SWOTItem",
+        )
+        assert x_axis is not None
+        assert y_axis is not None
+        assert x_axis.path == "urn:bp:swotNature"
+        assert y_axis.path == "urn:bp:swotValence"
+        assert x_vals == ["internal", "external"]
+        assert y_vals == ["positive", "negative"]
+
+
+class TestDetectQuadrantAxesBCG:
+    """Keyword matching for BCG axes: growth → x, share → y."""
+
+    @pytest.mark.asyncio
+    async def test_bcg_keyword_preference(self):
+        form = _make_form("urn:test:BCGItem", [
+            _make_property("urn:test:title", "Title"),
+            _make_property(
+                "urn:bp:marketGrowth", "Market Growth",
+                in_values=["high", "low"],
+            ),
+            _make_property(
+                "urn:bp:marketShare", "Market Share",
+                in_values=["high", "low"],
+            ),
+        ])
+        svc = _build_service(form_return=form)
+        x_axis, y_axis, x_vals, y_vals = await svc._detect_quadrant_axes(
+            "urn:test:BCGItem",
+        )
+        assert x_axis is not None
+        assert y_axis is not None
+        assert x_axis.path == "urn:bp:marketGrowth"
+        assert y_axis.path == "urn:bp:marketShare"
+        assert x_vals == ["high", "low"]
+        assert y_vals == ["high", "low"]

@@ -13,7 +13,7 @@
       "@id": "bp:ontology",
       "@type": "owl:Ontology",
       "rdfs:label": "Business Planning Ontology",
-      "dcterms:description": "Business planning frameworks: Eisenhower Matrix for urgency×importance prioritization, Business Model Canvas for the nine building blocks of a business model, OKR (Objectives and Key Results) for goal tracking with measurable progress, and Decision Matrix for weighted multi-criteria evaluation."
+      "dcterms:description": "Business planning frameworks: Eisenhower Matrix for urgency×importance prioritization, Business Model Canvas for the nine building blocks of a business model, OKR (Objectives and Key Results) for goal tracking with measurable progress, Decision Matrix for weighted multi-criteria evaluation, SWOT Analysis for strengths/weaknesses/opportunities/threats, BCG Matrix for growth-share portfolio analysis, Ansoff Matrix for growth strategy selection, Stakeholder Map for power-interest mapping, and Risk Matrix for likelihood-impact assessment."
     },
 
     {
@@ -257,6 +257,201 @@
       "rdfs:comment": "The criterion being scored against",
       "rdfs:domain": { "@id": "bp:Score" },
       "rdfs:range": { "@id": "bp:Criterion" }
+    },
+
+    {
+      "@id": "bp:SWOTAnalysis",
+      "@type": "owl:Class",
+      "rdfs:label": "SWOT Analysis",
+      "rdfs:comment": "A container for SWOT (Strengths, Weaknesses, Opportunities, Threats) analysis items",
+      "rdfs:subClassOf": { "@id": "gist:Collection" }
+    },
+    {
+      "@id": "bp:SWOTItem",
+      "@type": "owl:Class",
+      "rdfs:label": "SWOT Item",
+      "rdfs:comment": "An item in a SWOT Analysis, classified by nature (internal/external) and valence (positive/negative)",
+      "rdfs:subClassOf": { "@id": "bp:QuadrantItem" }
+    },
+    {
+      "@id": "bp:swotNature",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Nature",
+      "rdfs:comment": "Whether this factor is internal or external to the organization",
+      "rdfs:domain": { "@id": "bp:SWOTItem" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bp:swotValence",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Valence",
+      "rdfs:comment": "Whether this factor is positive (helpful) or negative (harmful)",
+      "rdfs:domain": { "@id": "bp:SWOTItem" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bp:belongsToSWOT",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Belongs To SWOT",
+      "rdfs:comment": "The SWOT Analysis this item belongs to",
+      "rdfs:domain": { "@id": "bp:SWOTItem" },
+      "rdfs:range": { "@id": "bp:SWOTAnalysis" }
+    },
+
+    {
+      "@id": "bp:BCGMatrix",
+      "@type": "owl:Class",
+      "rdfs:label": "BCG Matrix",
+      "rdfs:comment": "A container for BCG (Boston Consulting Group) growth-share matrix items",
+      "rdfs:subClassOf": { "@id": "gist:Collection" }
+    },
+    {
+      "@id": "bp:BCGItem",
+      "@type": "owl:Class",
+      "rdfs:label": "BCG Item",
+      "rdfs:comment": "A business unit or product in a BCG Matrix, classified by market growth and market share",
+      "rdfs:subClassOf": { "@id": "bp:QuadrantItem" }
+    },
+    {
+      "@id": "bp:marketGrowth",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Market Growth",
+      "rdfs:comment": "Whether the market is growing at a high or low rate",
+      "rdfs:domain": { "@id": "bp:BCGItem" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bp:marketShare",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Market Share",
+      "rdfs:comment": "Whether this unit has high or low relative market share",
+      "rdfs:domain": { "@id": "bp:BCGItem" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bp:belongsToBCG",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Belongs To BCG",
+      "rdfs:comment": "The BCG Matrix this item belongs to",
+      "rdfs:domain": { "@id": "bp:BCGItem" },
+      "rdfs:range": { "@id": "bp:BCGMatrix" }
+    },
+
+    {
+      "@id": "bp:AnsoffMatrix",
+      "@type": "owl:Class",
+      "rdfs:label": "Ansoff Matrix",
+      "rdfs:comment": "A container for Ansoff growth strategy matrix items",
+      "rdfs:subClassOf": { "@id": "gist:Collection" }
+    },
+    {
+      "@id": "bp:AnsoffItem",
+      "@type": "owl:Class",
+      "rdfs:label": "Ansoff Item",
+      "rdfs:comment": "A growth strategy in an Ansoff Matrix, classified by market novelty and product novelty",
+      "rdfs:subClassOf": { "@id": "bp:QuadrantItem" }
+    },
+    {
+      "@id": "bp:marketNovelty",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Market Novelty",
+      "rdfs:comment": "Whether the target market is existing or new",
+      "rdfs:domain": { "@id": "bp:AnsoffItem" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bp:productNovelty",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Product Novelty",
+      "rdfs:comment": "Whether the product or service is existing or new",
+      "rdfs:domain": { "@id": "bp:AnsoffItem" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bp:belongsToAnsoff",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Belongs To Ansoff",
+      "rdfs:comment": "The Ansoff Matrix this item belongs to",
+      "rdfs:domain": { "@id": "bp:AnsoffItem" },
+      "rdfs:range": { "@id": "bp:AnsoffMatrix" }
+    },
+
+    {
+      "@id": "bp:StakeholderMap",
+      "@type": "owl:Class",
+      "rdfs:label": "Stakeholder Map",
+      "rdfs:comment": "A container for stakeholder mapping items organized by power and interest",
+      "rdfs:subClassOf": { "@id": "gist:Collection" }
+    },
+    {
+      "@id": "bp:StakeholderItem",
+      "@type": "owl:Class",
+      "rdfs:label": "Stakeholder Item",
+      "rdfs:comment": "A stakeholder in a Stakeholder Map, classified by power and interest level",
+      "rdfs:subClassOf": { "@id": "bp:QuadrantItem" }
+    },
+    {
+      "@id": "bp:stakeholderPower",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Stakeholder Power",
+      "rdfs:comment": "The stakeholder's level of power or influence (high or low)",
+      "rdfs:domain": { "@id": "bp:StakeholderItem" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bp:stakeholderInterest",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Stakeholder Interest",
+      "rdfs:comment": "The stakeholder's level of interest in the project (high or low)",
+      "rdfs:domain": { "@id": "bp:StakeholderItem" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bp:belongsToStakeholderMap",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Belongs To Stakeholder Map",
+      "rdfs:comment": "The Stakeholder Map this item belongs to",
+      "rdfs:domain": { "@id": "bp:StakeholderItem" },
+      "rdfs:range": { "@id": "bp:StakeholderMap" }
+    },
+
+    {
+      "@id": "bp:RiskMatrix",
+      "@type": "owl:Class",
+      "rdfs:label": "Risk Matrix",
+      "rdfs:comment": "A container for risk assessment items organized by likelihood and impact",
+      "rdfs:subClassOf": { "@id": "gist:Collection" }
+    },
+    {
+      "@id": "bp:RiskItem",
+      "@type": "owl:Class",
+      "rdfs:label": "Risk Item",
+      "rdfs:comment": "A risk in a Risk Matrix, classified by likelihood and impact level",
+      "rdfs:subClassOf": { "@id": "bp:QuadrantItem" }
+    },
+    {
+      "@id": "bp:riskLikelihood",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Risk Likelihood",
+      "rdfs:comment": "How likely this risk is to occur (high or low)",
+      "rdfs:domain": { "@id": "bp:RiskItem" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bp:riskImpact",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Risk Impact",
+      "rdfs:comment": "How severe the impact would be if this risk occurs (high or low)",
+      "rdfs:domain": { "@id": "bp:RiskItem" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bp:belongsToRiskMatrix",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Belongs To Risk Matrix",
+      "rdfs:comment": "The Risk Matrix this item belongs to",
+      "rdfs:domain": { "@id": "bp:RiskItem" },
+      "rdfs:range": { "@id": "bp:RiskMatrix" }
     }
   ]
 }
