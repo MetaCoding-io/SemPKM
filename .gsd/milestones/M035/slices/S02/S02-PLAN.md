@@ -28,6 +28,7 @@
 - `cd backend && .venv/bin/python -m pytest tests/test_graph_context.py -v` — all tests pass
 - `cd backend && .venv/bin/python -m pytest tests/test_conversation_service.py -v` — all tests pass
 - `bash .gsd/milestones/M035/slices/S02/verify-s02.sh` — structural checks pass (file existence, import chains, endpoint registration, migration validity, frontend wiring)
+- `cd backend && .venv/bin/python -c "from app.copilot.context import GraphContextService; from app.copilot.service import _build_system_prompt; print(_build_system_prompt('schema', graph_context='test'))"` — graph context appears in system prompt (failure path: null/empty context gracefully skipped)
 
 ## Observability / Diagnostics
 
@@ -44,7 +45,7 @@
 
 ## Tasks
 
-- [ ] **T01: GraphContextService with neighborhood SPARQL and token-budgeted serialization** `est:1h`
+- [x] **T01: GraphContextService with neighborhood SPARQL and token-budgeted serialization** `est:1h`
   - Why: Provides the backend service that queries a 1-hop graph neighborhood for any IRI and serializes it as human-readable text within a configurable token budget — the core of graph context injection
   - Files: `backend/app/copilot/context.py`, `backend/app/copilot/service.py`, `backend/app/copilot/schemas.py`, `backend/app/api/copilot.py`, `backend/tests/test_graph_context.py`
   - Do: Create GraphContextService with get_neighborhood() (SPARQL for properties + outbound + inbound edges from urn:sempkm:current), serialize_context() (resolve labels, group by predicate, truncate at budget with priority ordering). Add `active_object_iri` to CopilotChatRequest. Add `graph_context` parameter to `_build_system_prompt()`. Wire into copilot_chat() endpoint — call GraphContextService when active_object_iri is provided, inject result into system prompt. Write unit tests with mocked triplestore.

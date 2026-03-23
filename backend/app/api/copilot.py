@@ -21,6 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import get_current_user_or_api
 from app.auth.models import User
+from app.copilot.context import GraphContextService
 from app.copilot.schemas import CopilotChatRequest
 from app.copilot.service import CopilotService, MAX_RETRIES, _build_system_prompt
 from app.db.session import get_db_session
@@ -153,7 +154,39 @@ async def copilot_chat(
         prefix_registry=request.app.state.prefix_registry,
     )
     schema_context = await copilot_svc.build_schema_context()
-    system_prompt = _build_system_prompt(schema_context)
+
+    # Build graph context for active object (if provided)
+    graph_context_text: str | None = None
+    if chat_req.active_object_iri:
+        try:
+            ctx_svc = GraphContextService(
+                triplestore_client=request.app.state.triplestore_client,
+                label_service=request.app.state.label_service,
+                prefix_registry=request.app.state.prefix_registry,
+            )
+            neighborhood = await ctx_svc.get_neighborhood(chat_req.active_object_iri)
+            graph_context_text = await ctx_svc.serialize_context(neighborhood)
+            if graph_context_text:
+                logger.info(
+                    "copilot.chat.graph_context: iri=%s, chars=%d",
+                    chat_req.active_object_iri,
+                    len(graph_context_text),
+                )
+            else:
+                logger.info(
+                    "copilot.chat.graph_context: iri=%s, empty=true",
+                    chat_req.active_object_iri,
+                )
+        except Exception as exc:
+            logger.warning(
+                "copilot.chat.graph_context_error: iri=%s, error=%s",
+                chat_req.active_object_iri,
+                str(exc),
+                exc_info=True,
+            )
+            # Graceful degradation — proceed without graph context
+
+    system_prompt = _build_system_prompt(schema_context, graph_context=graph_context_text)
 
     # Prepare messages: prepend system message
     messages = [{"role": "system", "content": system_prompt}]
