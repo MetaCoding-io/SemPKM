@@ -10,7 +10,7 @@ from app.config import settings
 from app.dependencies import get_triplestore_client
 from app.triplestore.client import TriplestoreClient
 
-router = APIRouter(prefix="/api")
+router = APIRouter(prefix="/api", tags=["health"])
 
 
 @router.get("/health")

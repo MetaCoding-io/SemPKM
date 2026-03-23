@@ -16,7 +16,7 @@
 
 ## Tasks
 
-- [ ] **T01: Add tags to all 10 untagged routers** `est:15m`
+- [x] **T01: Add tags to all 10 untagged routers** `est:15m`
   - Why: The only task — adds the `tags=` parameter to each `APIRouter()` constructor
   - Files: `backend/app/commands/router.py`, `backend/app/sparql/router.py`, `backend/app/validation/router.py`, `backend/app/health/router.py`, `backend/app/admin/router.py`, `backend/app/inference/router.py`, `backend/app/lint/router.py`, `backend/app/apps/admin_router.py`, `backend/app/apps/router.py`, `backend/app/shell/router.py`
   - Do: For each router file, change `APIRouter(...)` to include `tags=["tag_name"]`. Use these tag names: commands, sparql, validation, health, admin, inference, lint, app-management, app-proxy, shell. Preserve all existing parameters (prefix, etc.).

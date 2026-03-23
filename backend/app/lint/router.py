@@ -31,7 +31,7 @@ from app.lint.models import (
 )
 from app.lint.service import LintService
 
-router = APIRouter(prefix="/api/lint")
+router = APIRouter(prefix="/api/lint", tags=["lint"])
 
 
 @router.get("/results", response_model=LintResultsResponse)

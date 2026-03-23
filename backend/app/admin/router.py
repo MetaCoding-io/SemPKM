@@ -38,7 +38,7 @@ from app.triplestore.client import TriplestoreClient
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/admin")
+router = APIRouter(prefix="/admin", tags=["admin"])
 
 # Available webhook event types
 WEBHOOK_EVENT_TYPES = ["object.changed", "edge.changed", "validation.completed"]

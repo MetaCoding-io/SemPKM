@@ -13,7 +13,7 @@ from app.auth.dependencies import get_current_user
 from app.auth.models import User
 from app.config import settings
 
-router = APIRouter()
+router = APIRouter(tags=["shell"])
 
 
 def _is_htmx_request(request: Request) -> bool:

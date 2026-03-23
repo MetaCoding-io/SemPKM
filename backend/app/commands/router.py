@@ -31,7 +31,7 @@ from app.validation.queue import AsyncValidationQueue
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api")
+router = APIRouter(prefix="/api", tags=["commands"])
 
 
 class BulkCommandRequest(BaseModel):
