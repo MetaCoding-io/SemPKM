@@ -402,6 +402,19 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - ✓ User guide Chapter 38, DEMO_MODE in Appendix A, 2 glossary entries — M025
 - ✓ 10 DEMO requirements validated (DEMO-01 through DEMO-10) — M025
 
+### Validated (M039 — RDF Data Import & API Documentation Cleanup)
+
+<!-- Shipped and confirmed in M039 (2026-03-22). -->
+
+- ✓ IMPORT-01: RDF paste/upload UI — sidebar entry, command palette entry, 3-step wizard with dockview tab — M039
+- ✓ IMPORT-02: Parse + format detection — JSON-LD, Turtle, N-Triples via 3-tier heuristic, 29 unit tests — M039
+- ✓ IMPORT-03: SHACL validation preview — pyshacl against installed shapes, grouped by focus node — M039
+- ✓ IMPORT-04: Event-sourced import — Operations from rdflib triples, per-subject and bulk commit — M039
+- ✓ IMPORT-05: Blank node skolemization — urn:sempkm:import:{uuid} URIs, 5 unit tests — M039
+- ✓ IMPORT-06: IRI collision detection — batch SPARQL VALUES against urn:sempkm:current — M039
+- ✓ IMPORT-07: SSE progress events — import_progress/import_complete/import_error via EventSource — M039
+- ✓ API-09: Redoc tag cleanup — all 10 routers tagged, zero "default" routes — M039
+
 ### Validated (M034 — Task Planning, Time-Blocking & Calendar UX)
 
 <!-- Shipped and confirmed in M034 (2026-03-22). -->
@@ -659,10 +672,11 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Integrates with podcast RSS, YouTube Data API, Spotify Web API
 - Real-time adaptation when user context changes
 
-**RDF Data Import & API Documentation Cleanup** — queued as M039 (depends on M033)
-- Workspace UI for importing JSON-LD, Turtle, N-Triples with SHACL validation preview
-- Event-sourced object creation via two-pass import (objects → edges)
-- Redoc/OpenAPI tag cleanup: 84 routes currently under "default" properly categorized
+**RDF Data Import & API Documentation Cleanup** — complete (M039, 2026-03-22)
+- RDF import wizard: paste/upload JSON-LD/Turtle/N-Triples → SHACL preview → event-sourced import
+- Format detection, subject extraction, blank node skolemization, IRI collision detection, SSE progress
+- OpenAPI tag cleanup: all routers tagged, zero "default" routes in /redoc
+- 29 unit tests, sidebar + command palette integration
 
 ### Out of Scope
 
@@ -681,15 +695,17 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current State
 
-**Latest shipped: M034 Task Planning, Time-Blocking & Calendar UX (2026-03-22) — 5 slices, 99 unit tests + 8 E2E tests**
+**Latest shipped: M039 RDF Data Import & API Documentation Cleanup (2026-03-22) — 2 slices, 29 unit tests**
 
-**What shipped in M034:**
-- Task time-blocking: scheduledStart (xsd:dateTime), scheduledEnd (xsd:dateTime), estimatedDuration (xsd:string ISO 8601) on TaskShape, basic-pkm v2.2.0
-- Editable calendar: FullCalendar with eventDrop (drag-to-reschedule), eventResize (change duration), select (click-to-create), merged calendar query returning Events + Tasks with color coding
-- Calendar PATCH endpoint flowing through command dispatch pipeline for event log consistency
-- Timeline/Gantt view: 8th generic renderer using Frappe Gantt CDN — task bars with dependency arrows from bpkm:dependsOn, drag-to-reschedule, zoom levels (day/week/month/quarter), project-scoped filtering
-- Cross-view drag: kanban cards drag to calendar with IRI/title/duration payload, FullCalendar external drop handler, __calendarDragPayload side-channel
-- Composable planning: sempkm:scope-changed custom event propagation between dockview panels, dv-panel ID self-trigger prevention, scope-syncing CSS animation
+**What shipped in M039:**
+- RDF data import wizard: paste or upload JSON-LD, Turtle, N-Triples → 3-step flow (input → preview → import)
+- Format detection via 3-tier heuristic (manual override → file extension → content analysis)
+- Subject extraction with label precedence, top-level heuristic, blank node skolemization to `urn:sempkm:import:{uuid}`
+- SHACL validation preview grouped by focus node, IRI collision detection against `urn:sempkm:current`
+- Event-sourced import via Operation/EventStore (per-subject ≤10, bulk chunks of 500)
+- SSE progress broadcasting (import_progress/import_complete/import_error)
+- Sidebar entry, command palette entry, dockview tab integration
+- OpenAPI tag cleanup: all 10 previously-untagged APIRouter constructors now have `tags=` — zero "default" routes in /redoc
 - Recurring tasks: python-dateutil RRULE expansion into virtual calendar events (max 52 per task, ±6 month window), EXDATE exclusions, synthetic IDs ({iri}__recurrence__{isodate}), dashed border + ↻ prefix rendering
 - Recurrence editor: IIFE with presets (daily/weekdays/weekly/biweekly/monthly/custom), custom RRULE builder (frequency/interval/day checkboxes/end conditions), EXDATE date picker, human-readable summary
 - Task templates: TaskTemplateService with RDF CRUD in urn:sempkm:task-templates named graph, REST API, batch instantiation via @slot: references through command dispatch, command palette "Create from Template" with dynamic API children

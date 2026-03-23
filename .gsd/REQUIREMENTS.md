@@ -837,6 +837,70 @@ initPersonas() checks GET /api/personas; if empty, POSTs new "Default" with curr
 
 ## Validated
 
+### IMPORT-01 — RDF paste/upload UI
+- Status: validated
+- Class: core-capability
+- Source: design (M039-ROADMAP.md)
+- Primary Slice: M039/S02
+
+Sidebar entry ("Import RDF") and command palette entry ("Import > RDF Data") present. 3-step wizard UI with paste textarea, file upload, and format override dropdown. Dockview tab opener via openRdfImportTab().
+
+### IMPORT-02 — Parse + format detection
+- Status: validated
+- Class: core-capability
+- Source: design (M039-ROADMAP.md)
+- Primary Slice: M039/S02
+
+Three-tier format detection (manual override → file extension → content heuristic) for JSON-LD, Turtle, N-Triples. 29 unit tests in test_rdf_import_parser.py.
+
+### IMPORT-03 — SHACL validation preview with per-subject status
+- Status: validated
+- Class: core-capability
+- Source: design (M039-ROADMAP.md)
+- Primary Slice: M039/S02
+
+validate_shacl() runs pyshacl against installed model shapes with allow_warnings=True. Results grouped by focus node, rendered as status icons in preview table.
+
+### IMPORT-04 — Event-sourced object creation via Operation/EventStore
+- Status: validated
+- Class: core-capability
+- Source: design (M039-ROADMAP.md)
+- Primary Slice: M039/S02
+
+execute_import() builds Operation dataclasses directly from rdflib terms. Per-subject commit for ≤10 subjects, bulk commit in chunks of 500 for >10. Preserves original datatypes and language tags.
+
+### IMPORT-05 — Blank node skolemization to urn:sempkm:import:{uuid}
+- Status: validated
+- Class: core-capability
+- Source: design (M039-ROADMAP.md)
+- Primary Slice: M039/S02
+
+skolemize_bnodes() replaces all blank nodes with deterministic URIs. 5 unit tests cover consistency, format, preservation, and multi-bnode graphs.
+
+### IMPORT-06 — IRI collision detection with skip-duplicate default
+- Status: validated
+- Class: core-capability
+- Source: design (M039-ROADMAP.md)
+- Primary Slice: M039/S02
+
+check_collisions() queries urn:sempkm:current via batch SPARQL VALUES clause. Preview template renders collision warnings.
+
+### IMPORT-07 — SSE progress events during import
+- Status: validated
+- Class: core-capability
+- Source: design (M039-ROADMAP.md)
+- Primary Slice: M039/S02
+
+Executor broadcasts import_progress, import_complete, import_error events. Router exposes /execute/stream SSE endpoint. Progress template connects via EventSource.
+
+### API-09 — All routes tagged, /redoc shows descriptive groupings
+- Status: validated
+- Class: enhancement
+- Source: design (M039-ROADMAP.md)
+- Primary Slice: M039/S01
+
+tags= parameter added to all 10 previously-untagged APIRouter() constructors. Zero routes under "default" in /redoc.
+
 ### EXP-01 — Explorer mode dropdown with switchable navigation strategies
 - Status: validated
 - Class: core-capability
@@ -2931,7 +2995,7 @@ S03: 59 unit tests. S04 E2E test saves/applies preset, verifies restoration.
 ## Coverage Summary
 
 - Active requirements: 25 (14 APP + 8 RSS + 3 GCAL)
-- Validated: 265 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 8 from M013 + 13 from M014 + 4 from M015 + 7 from M016 + 7 from M017 + 5 from M018 + 12 from M023 + 15 from M024 + 10 from M025 + 7 from M026 + 9 from M029 + 13 from M030 + 21 from M031 + 2 from other)
+- Validated: 273 (38 from M001 + 22 from M002 + 21 from M003 + 7 from M004 + 4 from M005 + 7 from M006 + 13 from M007 + 5 from M008 + 4 from M011 + 11 from M012 + 8 from M013 + 13 from M014 + 4 from M015 + 7 from M016 + 7 from M017 + 5 from M018 + 12 from M023 + 15 from M024 + 10 from M025 + 7 from M026 + 9 from M029 + 13 from M030 + 21 from M031 + 8 from M039 + 2 from other)
 - Partial: 4 (EXT-14, EXT-18, EXT-20, EXT-21)
 - Deferred: 6 (TYPE-03, TYPE-04, MCP-01, VIEW-06, VIEW-07, VFS-13)
 - Out of scope: 3
