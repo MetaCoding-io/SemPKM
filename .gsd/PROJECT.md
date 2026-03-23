@@ -656,8 +656,8 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - 3-tier LLM test harness (mock for CI, Ollama for dev, cloud with budget caps)
 - M028 AI endpoints wired and extended
 
-**Business Planning Mental Models & Custom Renderers** — queued as M036 (depends on M033)
-- Comprehensive library of business frameworks (Eisenhower, BMC, SWOT, OKR, Decision Matrix, Porter's, Lean Canvas, BCG, PESTLE, Balanced Scorecard, RACI, etc.)
+**Business Planning Mental Models & Custom Renderers** — in progress as M036
+- S01 complete: business-planning model archive (Eisenhower Matrix/Item types), quadrant renderer (2×2 grid with drag-to-reclassify), 28 unit tests
 - Custom visual renderers: 2×2 quadrant, 9-box canvas, progress bars, weighted tables
 - All frameworks stored as typed RDF for AI copilot queryability
 
