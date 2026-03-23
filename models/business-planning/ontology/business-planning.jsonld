@@ -1,0 +1,97 @@
+{
+  "@context": {
+    "owl": "http://www.w3.org/2002/07/owl#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "bp": "urn:sempkm:model:business-planning:",
+    "gist": "https://w3id.org/semanticarts/ns/ontology/gist/"
+  },
+  "@graph": [
+    {
+      "@id": "bp:ontology",
+      "@type": "owl:Ontology",
+      "rdfs:label": "Business Planning Ontology",
+      "dcterms:description": "Business planning frameworks: abstract base types for framework items and quadrant-placed items, plus Eisenhower Matrix types for urgency×importance prioritization."
+    },
+
+    {
+      "@id": "bp:FrameworkItem",
+      "@type": "owl:Class",
+      "rdfs:label": "Framework Item",
+      "rdfs:comment": "Abstract base class for all business framework items",
+      "rdfs:subClassOf": { "@id": "gist:Category" }
+    },
+    {
+      "@id": "bp:QuadrantItem",
+      "@type": "owl:Class",
+      "rdfs:label": "Quadrant Item",
+      "rdfs:comment": "Base class for items placed on a 2-axis grid (quadrant view)",
+      "rdfs:subClassOf": { "@id": "bp:FrameworkItem" }
+    },
+    {
+      "@id": "bp:EisenhowerMatrix",
+      "@type": "owl:Class",
+      "rdfs:label": "Eisenhower Matrix",
+      "rdfs:comment": "A container for prioritized items organized by urgency and importance",
+      "rdfs:subClassOf": { "@id": "gist:Collection" }
+    },
+    {
+      "@id": "bp:EisenhowerItem",
+      "@type": "owl:Class",
+      "rdfs:label": "Eisenhower Item",
+      "rdfs:comment": "An item in an Eisenhower Matrix, classified by urgency and importance",
+      "rdfs:subClassOf": { "@id": "bp:QuadrantItem" }
+    },
+
+    {
+      "@id": "bp:urgency",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Urgency",
+      "rdfs:comment": "How urgent this item is (high or low)",
+      "rdfs:domain": { "@id": "bp:QuadrantItem" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bp:importance",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Importance",
+      "rdfs:comment": "How important this item is (high or low)",
+      "rdfs:domain": { "@id": "bp:QuadrantItem" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bp:belongsToMatrix",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Belongs To Matrix",
+      "rdfs:comment": "The Eisenhower Matrix this item belongs to",
+      "rdfs:domain": { "@id": "bp:EisenhowerItem" },
+      "rdfs:range": { "@id": "bp:EisenhowerMatrix" }
+    },
+    {
+      "@id": "bp:matrixDescription",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Matrix Description",
+      "rdfs:comment": "Longer description of the matrix purpose or context",
+      "rdfs:domain": { "@id": "bp:EisenhowerMatrix" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bp:xAxisLabel",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "X-Axis Label",
+      "rdfs:comment": "Label for the horizontal axis of the quadrant view",
+      "rdfs:domain": { "@id": "bp:EisenhowerMatrix" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bp:yAxisLabel",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Y-Axis Label",
+      "rdfs:comment": "Label for the vertical axis of the quadrant view",
+      "rdfs:domain": { "@id": "bp:EisenhowerMatrix" },
+      "rdfs:range": { "@id": "xsd:string" }
+    }
+  ]
+}

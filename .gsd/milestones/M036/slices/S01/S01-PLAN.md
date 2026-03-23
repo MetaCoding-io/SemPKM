@@ -41,7 +41,7 @@
 
 ## Tasks
 
-- [ ] **T01: Create business-planning model archive with Eisenhower types** `est:1h30m`
+- [x] **T01: Create business-planning model archive with Eisenhower types** `est:1h30m`
   - Why: The model archive is the foundation — ontology defines the types, SHACL shapes drive form generation, ViewSpecs declare the quadrant renderer, seed data provides sample items. S02–S04 extend this archive.
   - Files: `models/business-planning/manifest.yaml`, `models/business-planning/ontology/business-planning.jsonld`, `models/business-planning/shapes/business-planning.jsonld`, `models/business-planning/views/business-planning.jsonld`, `models/business-planning/seed/business-planning.jsonld`
   - Do: Create the 6-file model archive. Define shared base types (bp:FrameworkItem, bp:QuadrantItem) and Eisenhower-specific types (bp:EisenhowerMatrix, bp:EisenhowerItem). SHACL shapes must include `sh:in` constraints on bp:urgency and bp:importance. ViewSpecs must declare `sempkm:rendererType: "quadrant"` for Eisenhower. Seed data must include a sample matrix with 4+ items spanning all quadrants. Follow basic-pkm patterns exactly for JSON-LD context, property groups, and icon definitions.
