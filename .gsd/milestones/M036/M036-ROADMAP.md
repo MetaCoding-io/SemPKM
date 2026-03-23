@@ -62,7 +62,7 @@ This milestone is complete only when all are true:
   > After this: User installs business-planning model, creates an Eisenhower Matrix, sees items in a 2×2 quadrant view, and drags items between quadrants with RDF property updates.
 - [x] **S02: Business Model Canvas — 9-Box Poster Renderer** `risk:high` `depends:[S01]`
   > After this: User creates a Business Model Canvas and fills the 9 standard sections (Key Partners, Key Activities, Value Propositions, etc.) in a poster-style grid layout with inline editing.
-- [ ] **S03: OKR Progress + Decision Matrix Weighted Scoring** `risk:medium` `depends:[S01]`
+- [x] **S03: OKR Progress + Decision Matrix Weighted Scoring** `risk:medium` `depends:[S01]`
   > After this: User creates OKR Objectives with Key Results showing progress bars, and Decision Matrices with weighted criteria showing auto-ranked alternatives.
 - [ ] **S04: Extended Framework Library** `risk:low` `depends:[S01]`
   > After this: User creates Porter's Five Forces, PESTLE, Balanced Scorecard, RACI, Value Chain, Lean Canvas, BCG/Ansoff/Stakeholder/Risk matrices, all browsable via table, kanban, and existing renderers. SWOT uses the quadrant renderer from S01.
