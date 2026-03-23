@@ -35,6 +35,35 @@
       "sempkm:targetClass": { "@id": "bp:EisenhowerItem" },
       "sempkm:rendererType": "quadrant",
       "sempkm:sparqlQuery": "SELECT ?s ?title ?urgency ?importance ?description WHERE { ?s a <urn:sempkm:model:business-planning:EisenhowerItem> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:business-planning:urgency> ?urgency } . OPTIONAL { ?s <urn:sempkm:model:business-planning:importance> ?importance } . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } }"
+    },
+
+    {
+      "@id": "bp:view-bmc-canvas-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Business Model Canvases Table",
+      "sempkm:targetClass": { "@id": "bp:BusinessModelCanvas" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?description ?created WHERE { ?s a <urn:sempkm:model:business-planning:BusinessModelCanvas> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } . OPTIONAL { ?s <http://purl.org/dc/terms/created> ?created } }",
+      "sempkm:columns": "title,description,created",
+      "sempkm:sortDefault": "title"
+    },
+    {
+      "@id": "bp:view-bmc-section-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "BMC Sections Table",
+      "sempkm:targetClass": { "@id": "bp:BMCSection" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?sectionType ?sectionContent WHERE { ?s a <urn:sempkm:model:business-planning:BMCSection> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:business-planning:sectionType> ?sectionType } . OPTIONAL { ?s <urn:sempkm:model:business-planning:sectionContent> ?sectionContent } }",
+      "sempkm:columns": "title,sectionType,sectionContent",
+      "sempkm:sortDefault": "sectionType"
+    },
+    {
+      "@id": "bp:view-bmc-section-bmc",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Business Model Canvas",
+      "sempkm:targetClass": { "@id": "bp:BMCSection" },
+      "sempkm:rendererType": "bmc",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?sectionType ?sectionContent ?canvas WHERE { ?s a <urn:sempkm:model:business-planning:BMCSection> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:business-planning:sectionType> ?sectionType } . OPTIONAL { ?s <urn:sempkm:model:business-planning:sectionContent> ?sectionContent } . OPTIONAL { ?s <urn:sempkm:model:business-planning:belongsToCanvas> ?canvas } }"
     }
   ]
 }

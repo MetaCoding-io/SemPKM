@@ -44,7 +44,7 @@
 
 ## Tasks
 
-- [ ] **T01: Extend model archive with BMC ontology, shapes, views, and seed data** `est:25m`
+- [x] **T01: Extend model archive with BMC ontology, shapes, views, and seed data** `est:25m`
   - Why: BMC types must exist in the model before the backend can detect and query them. Extends the existing business-planning model with 2 new OWL classes, SHACL shapes with 9-value `sh:in` constraint, ViewSpecs for table and BMC renderer, seed data with a complete canvas, and icon definitions.
   - Files: `models/business-planning/ontology/business-planning.jsonld`, `models/business-planning/shapes/business-planning.jsonld`, `models/business-planning/views/business-planning.jsonld`, `models/business-planning/seed/business-planning.jsonld`, `models/business-planning/manifest.yaml`
   - Do: Add `bp:BusinessModelCanvas` (subClassOf `gist:Collection`) and `bp:BMCSection` (subClassOf `bp:FrameworkItem`) classes with properties (`bp:sectionType`, `bp:sectionContent`, `bp:belongsToCanvas`). Add SHACL NodeShapes with `sh:in` constraint listing 9 kebab-case section type values. Add ViewSpecs for BMC canvas table, section table, and section BMC renderer. Add seed data with 1 canvas + 9 sections with realistic content. Add icon definitions to manifest. All files are JSON-LD with inline `@context` — follow exact S01 patterns.

@@ -89,6 +89,96 @@
       "bp:importance": "low",
       "bp:belongsToMatrix": { "@id": "bp:seed-matrix-priorities" },
       "dcterms:created": { "@value": "2026-03-01T09:35:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "bp:seed-canvas-sempkm",
+      "@type": "bp:BusinessModelCanvas",
+      "dcterms:title": "SemPKM Business Model",
+      "dcterms:description": "Business model canvas for a semantic personal knowledge management platform.",
+      "dcterms:created": { "@value": "2026-03-15T10:00:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "bp:seed-bmc-key-partners",
+      "@type": "bp:BMCSection",
+      "dcterms:title": "Key Partners",
+      "bp:sectionType": "key-partners",
+      "bp:sectionContent": "• Open-source ontology communities (W3C, Schema.org)\n• Cloud infrastructure providers (hosting, storage)\n• Academic knowledge-management researchers\n• Integration partners (Notion, Linear, GitHub)",
+      "bp:belongsToCanvas": { "@id": "bp:seed-canvas-sempkm" },
+      "dcterms:created": { "@value": "2026-03-15T10:01:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-bmc-key-activities",
+      "@type": "bp:BMCSection",
+      "dcterms:title": "Key Activities",
+      "bp:sectionType": "key-activities",
+      "bp:sectionContent": "• Develop and maintain the semantic workspace engine\n• Curate and expand Mental Model library\n• Build sync integrations with external tools\n• Provide documentation and onboarding flows",
+      "bp:belongsToCanvas": { "@id": "bp:seed-canvas-sempkm" },
+      "dcterms:created": { "@value": "2026-03-15T10:02:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-bmc-key-resources",
+      "@type": "bp:BMCSection",
+      "dcterms:title": "Key Resources",
+      "bp:sectionType": "key-resources",
+      "bp:sectionContent": "• RDF triplestore and SHACL validation engine\n• Mental Model archive (ontologies, shapes, views)\n• Developer community and contributor base\n• Domain expertise in knowledge graphs and PKM",
+      "bp:belongsToCanvas": { "@id": "bp:seed-canvas-sempkm" },
+      "dcterms:created": { "@value": "2026-03-15T10:03:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-bmc-value-propositions",
+      "@type": "bp:BMCSection",
+      "dcterms:title": "Value Propositions",
+      "bp:sectionType": "value-propositions",
+      "bp:sectionContent": "• Structured thinking through semantic frameworks\n• Interoperable knowledge via RDF and open standards\n• Installable Mental Models for instant domain structure\n• Visual workspace with multiple renderers (table, graph, kanban, canvas)",
+      "bp:belongsToCanvas": { "@id": "bp:seed-canvas-sempkm" },
+      "dcterms:created": { "@value": "2026-03-15T10:04:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-bmc-customer-relationships",
+      "@type": "bp:BMCSection",
+      "dcterms:title": "Customer Relationships",
+      "bp:sectionType": "customer-relationships",
+      "bp:sectionContent": "• Self-service with in-app documentation\n• Community support via GitHub discussions\n• Guided onboarding with seed data and tutorials",
+      "bp:belongsToCanvas": { "@id": "bp:seed-canvas-sempkm" },
+      "dcterms:created": { "@value": "2026-03-15T10:05:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-bmc-channels",
+      "@type": "bp:BMCSection",
+      "dcterms:title": "Channels",
+      "bp:sectionType": "channels",
+      "bp:sectionContent": "• Self-hosted Docker deployment\n• GitHub repository for open-source distribution\n• Documentation site and user guides",
+      "bp:belongsToCanvas": { "@id": "bp:seed-canvas-sempkm" },
+      "dcterms:created": { "@value": "2026-03-15T10:06:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-bmc-customer-segments",
+      "@type": "bp:BMCSection",
+      "dcterms:title": "Customer Segments",
+      "bp:sectionType": "customer-segments",
+      "bp:sectionContent": "• Knowledge workers who manage complex domains\n• Researchers organizing literature and concepts\n• Product teams tracking strategy and planning\n• Developers who value semantic interoperability",
+      "bp:belongsToCanvas": { "@id": "bp:seed-canvas-sempkm" },
+      "dcterms:created": { "@value": "2026-03-15T10:07:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-bmc-cost-structure",
+      "@type": "bp:BMCSection",
+      "dcterms:title": "Cost Structure",
+      "bp:sectionType": "cost-structure",
+      "bp:sectionContent": "• Engineering and development effort\n• Infrastructure and hosting costs\n• Community management and documentation\n• Third-party integration maintenance",
+      "bp:belongsToCanvas": { "@id": "bp:seed-canvas-sempkm" },
+      "dcterms:created": { "@value": "2026-03-15T10:08:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-bmc-revenue-streams",
+      "@type": "bp:BMCSection",
+      "dcterms:title": "Revenue Streams",
+      "bp:sectionType": "revenue-streams",
+      "bp:sectionContent": "• Premium hosted offering with managed infrastructure\n• Enterprise support and customization services\n• Marketplace for community-contributed Mental Models",
+      "bp:belongsToCanvas": { "@id": "bp:seed-canvas-sempkm" },
+      "dcterms:created": { "@value": "2026-03-15T10:09:00Z", "@type": "xsd:dateTime" }
     }
   ]
 }
