@@ -2463,6 +2463,90 @@ S03: 59 unit tests. S04 E2E test dismisses EmptyBody for specific object and ver
 
 S03: 59 unit tests. S04 E2E test saves/applies preset, verifies restoration.
 
+### PLAN-01 — Task time-blocking (scheduledStart/scheduledEnd/estimatedDuration on Task)
+- Status: validated
+- Class: core-capability
+- Source: design (M034-ROADMAP.md)
+- Primary Slice: M034/S01
+- Acceptance: bpkm:Task has scheduledStart (xsd:dateTime), scheduledEnd (xsd:dateTime), estimatedDuration (xsd:string, ISO 8601 duration). Setting these places the task on the calendar as a colored block.
+- Validation: 23 unit tests in test_calendar_editable.py. Schema confirmed in basic-pkm v2.2.0 shapes file. Ontology declarations verified.
+
+### PLAN-02 — Editable calendar (drag-to-reschedule, resize duration, click-to-create)
+- Status: validated
+- Class: core-capability
+- Source: design (M034-ROADMAP.md)
+- Primary Slice: M034/S01
+- Acceptance: Users drag tasks on calendar to reschedule, resize to change duration, click empty time slots to create new tasks. Changes persist via object.patch through command dispatch pipeline.
+- Validation: S01 delivers FullCalendar editable mode with eventDrop, eventResize, select handlers. 23 unit tests. Calendar PATCH endpoint verified.
+
+### PLAN-03 — External drag to calendar (kanban/explorer → calendar drop scheduling)
+- Status: validated
+- Class: core-capability
+- Source: design (M034-ROADMAP.md)
+- Primary Slice: M034/S03
+- Supporting Slices: M034/S01
+- Acceptance: Dragging a task from kanban onto the calendar at a time slot schedules the task at that time. scheduledStart persisted via PATCH endpoint.
+- Validation: S03 E2E test proves kanban-to-calendar drag with SPARQL verification of persisted scheduledStart. Backend unit tests confirm PATCH payload structure.
+
+### PLAN-04 — Timeline/Gantt view with dependency arrows and zoom levels
+- Status: validated
+- Class: core-capability
+- Source: design (M034-ROADMAP.md)
+- Primary Slice: M034/S02
+- Acceptance: Timeline view renders tasks as horizontal bars with dependency arrows from bpkm:dependsOn. Drag-to-reschedule, zoom levels (day/week/month/quarter), project-scoped filtering via saved queries.
+- Validation: 15 unit tests in test_timeline.py. 3 E2E tests (rendering, dependency arrows via state:attached, zoom switching). Frappe Gantt integration verified.
+
+### PLAN-05 — Recurring tasks (RRULE storage, virtual calendar expansion, editor UI)
+- Status: validated
+- Class: core-capability
+- Source: design (M034-ROADMAP.md)
+- Primary Slice: M034/S04
+- Supporting Slices: M034/S01
+- Acceptance: Tasks with RFC 5545 RRULE strings produce virtual calendar instances without creating real objects. Recurrence editor UI with presets. EXDATE exclusions tracked.
+- Validation: 24 unit tests in test_rrule_expansion.py (weekly/daily/monthly/EXDATE/COUNT/UNTIL/malformed/max cap). 2 E2E tests (virtual instances rendered, click routes to master). Editor UI syntax-verified.
+
+### PLAN-06 — Task templates (named patterns, subtask structures, command palette)
+- Status: validated
+- Class: core-capability
+- Source: design (M034-ROADMAP.md)
+- Primary Slice: M034/S05
+- Acceptance: Users create task templates with title patterns, default properties, and subtask structures. "Create from Template" available in command palette.
+- Validation: 21 unit tests in test_task_templates.py covering CRUD, instantiation with and without subtasks, @slot: references, error paths. Command palette entries verified by grep.
+
+### PLAN-07 — PPV review workflows (weekly/monthly/quarterly/yearly via stepper)
+- Status: validated
+- Class: core-capability
+- Source: design (M034-ROADMAP.md)
+- Primary Slice: M034/S05
+- Acceptance: 4 PPV review workflows (Weekly/Monthly/Quarterly/Yearly) seeded as WorkflowSpecs with per-name idempotency. Launchable from command palette.
+- Validation: 10 seed idempotency tests in test_seed_data.py. 4 palette launcher commands verified. Workflow step configurations correct.
+
+### PLAN-08 — Composable planning (calendar + kanban side by side, shared scope, cross-view events)
+- Status: validated
+- Class: core-capability
+- Source: design (M034-ROADMAP.md)
+- Primary Slice: M034/S03
+- Supporting Slices: M034/S01, M034/S02
+- Acceptance: Calendar and kanban views share scope context via sempkm:scope-changed custom event. Status changes propagate between views.
+- Validation: S03 E2E tests prove scope-changed propagation and cross-view drag. dv-panel ID self-trigger prevention verified.
+
+### PLAN-09 — Calendar shows tasks and events together with color coding
+- Status: validated
+- Class: core-capability
+- Source: design (M034-ROADMAP.md)
+- Primary Slice: M034/S01
+- Supporting Slices: M034/S03
+- Acceptance: Calendar data endpoint returns both Events (schema:startDate) and Tasks (bpkm:scheduledStart) with distinct color coding.
+- Validation: S01 merged calendar query unit tests verify both Events and Tasks returned. CSS color classes for task vs event type verified.
+
+### PLAN-10 — Timeline project-scoped filtering via saved queries
+- Status: validated
+- Class: core-capability
+- Source: design (M034-ROADMAP.md)
+- Primary Slice: M034/S02
+- Acceptance: Timeline view accepts scope_query parameter for saved query filtering. WHERE body injected as sub-select filter.
+- Validation: S02 unit tests verify scope binding in _build_timeline_select(). Timeline renders with scope query active.
+
 ## Deferred
 
 ### TYPE-03 — Full SHACL shape editor with advanced constraints
