@@ -73,3 +73,10 @@ The frameworks:
 - `models/business-planning/views/business-planning.jsonld` — extended with ~14 table ViewSpecs
 - `models/business-planning/seed/business-planning.jsonld` — extended with ~15 seed entities
 - `models/business-planning/manifest.yaml` — extended with 12 icon entries
+
+## Observability Impact
+
+- **No new runtime signals** — these types use existing table renderers with no backend code changes
+- **sh:in constraints** generate dropdown select fields in SHACL form editor — visible when creating/editing items of these types
+- **Table ViewSpecs** make all new types immediately browsable via the standard table view pipeline after model installation
+- **Seed data** provides immediate verifiable content — after installing the model, an agent can check the explorer sidebar for all 12 new types

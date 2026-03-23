@@ -535,6 +535,213 @@
       "bp:riskImpact": "low",
       "bp:belongsToRiskMatrix": { "@id": "bp:seed-risk-matrix-launch" },
       "dcterms:created": { "@value": "2026-03-22T13:03:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "bp:seed-porter-saas",
+      "@type": "bp:PorterAnalysis",
+      "dcterms:title": "SaaS Market Five Forces",
+      "dcterms:description": "Competitive analysis of the enterprise SaaS knowledge management market.",
+      "dcterms:created": { "@value": "2026-03-22T14:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-porter-rivalry",
+      "@type": "bp:PorterForce",
+      "dcterms:title": "High competitive rivalry",
+      "dcterms:description": "Numerous established players (Notion, Confluence, Obsidian) compete aggressively on features and pricing.",
+      "bp:forceType": "Competitive Rivalry",
+      "bp:forceIntensity": "High",
+      "bp:belongsToPorter": { "@id": "bp:seed-porter-saas" },
+      "dcterms:created": { "@value": "2026-03-22T14:01:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-porter-buyer",
+      "@type": "bp:PorterForce",
+      "dcterms:title": "Moderate buyer power",
+      "dcterms:description": "Enterprise buyers have negotiating leverage but switching costs create lock-in once adopted.",
+      "bp:forceType": "Buyer Power",
+      "bp:forceIntensity": "Medium",
+      "bp:belongsToPorter": { "@id": "bp:seed-porter-saas" },
+      "dcterms:created": { "@value": "2026-03-22T14:02:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-porter-newentry",
+      "@type": "bp:PorterForce",
+      "dcterms:title": "High threat of new entry",
+      "dcterms:description": "Low capital requirements for SaaS; AI-first startups entering the market with novel approaches.",
+      "bp:forceType": "Threat of New Entry",
+      "bp:forceIntensity": "High",
+      "bp:belongsToPorter": { "@id": "bp:seed-porter-saas" },
+      "dcterms:created": { "@value": "2026-03-22T14:03:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "bp:seed-pestle-market",
+      "@type": "bp:PESTLEAnalysis",
+      "dcterms:title": "Market Entry PESTLE",
+      "dcterms:description": "Macro-environmental scan for European market entry.",
+      "dcterms:created": { "@value": "2026-03-22T15:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-pestle-gdpr",
+      "@type": "bp:PESTLEFactor",
+      "dcterms:title": "GDPR data residency requirements",
+      "dcterms:description": "EU data protection regulations require data to be stored and processed within the EU, increasing infrastructure complexity.",
+      "bp:pestleCategory": "Legal",
+      "bp:factorImpact": "High",
+      "bp:belongsToPESTLE": { "@id": "bp:seed-pestle-market" },
+      "dcterms:created": { "@value": "2026-03-22T15:01:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-pestle-remote",
+      "@type": "bp:PESTLEFactor",
+      "dcterms:title": "Growing remote work adoption",
+      "dcterms:description": "Continued shift to remote and hybrid work increases demand for digital knowledge management tools.",
+      "bp:pestleCategory": "Social",
+      "bp:factorImpact": "High",
+      "bp:belongsToPESTLE": { "@id": "bp:seed-pestle-market" },
+      "dcterms:created": { "@value": "2026-03-22T15:02:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-pestle-ai",
+      "@type": "bp:PESTLEFactor",
+      "dcterms:title": "AI regulation uncertainty",
+      "dcterms:description": "The EU AI Act introduces compliance requirements for AI-powered features with uncertain enforcement timelines.",
+      "bp:pestleCategory": "Political",
+      "bp:factorImpact": "Medium",
+      "bp:belongsToPESTLE": { "@id": "bp:seed-pestle-market" },
+      "dcterms:created": { "@value": "2026-03-22T15:03:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "bp:seed-bsc-strategy",
+      "@type": "bp:BalancedScorecard",
+      "dcterms:title": "2026 Strategy Scorecard",
+      "dcterms:description": "Balanced Scorecard for tracking strategic objectives across all four perspectives.",
+      "dcterms:created": { "@value": "2026-03-22T16:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-bsc-revenue",
+      "@type": "bp:BSCItem",
+      "dcterms:title": "Increase recurring revenue",
+      "dcterms:description": "Grow monthly recurring revenue through new subscriptions and reduced churn.",
+      "bp:bscPerspective": "Financial",
+      "bp:bscMeasure": "MRR growth rate",
+      "bp:bscTarget": "15% quarter-over-quarter",
+      "bp:belongsToBSC": { "@id": "bp:seed-bsc-strategy" },
+      "dcterms:created": { "@value": "2026-03-22T16:01:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-bsc-satisfaction",
+      "@type": "bp:BSCItem",
+      "dcterms:title": "Improve customer satisfaction",
+      "dcterms:description": "Raise NPS through faster support response times and proactive feature communication.",
+      "bp:bscPerspective": "Customer",
+      "bp:bscMeasure": "Net Promoter Score",
+      "bp:bscTarget": "NPS > 50",
+      "bp:belongsToBSC": { "@id": "bp:seed-bsc-strategy" },
+      "dcterms:created": { "@value": "2026-03-22T16:02:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "bp:seed-raci-platform",
+      "@type": "bp:RACIMatrix",
+      "dcterms:title": "Platform Rewrite RACI",
+      "dcterms:description": "Responsibility assignments for the platform rewrite project.",
+      "dcterms:created": { "@value": "2026-03-22T17:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-raci-arch",
+      "@type": "bp:RACIEntry",
+      "dcterms:title": "Architecture — Tech Lead (R)",
+      "bp:raciRole": "Responsible",
+      "bp:raciPerson": "Tech Lead",
+      "bp:raciActivity": "Architecture design",
+      "bp:belongsToRACI": { "@id": "bp:seed-raci-platform" },
+      "dcterms:created": { "@value": "2026-03-22T17:01:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-raci-arch-cto",
+      "@type": "bp:RACIEntry",
+      "dcterms:title": "Architecture — CTO (A)",
+      "bp:raciRole": "Accountable",
+      "bp:raciPerson": "CTO",
+      "bp:raciActivity": "Architecture design",
+      "bp:belongsToRACI": { "@id": "bp:seed-raci-platform" },
+      "dcterms:created": { "@value": "2026-03-22T17:02:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-raci-testing",
+      "@type": "bp:RACIEntry",
+      "dcterms:title": "QA — QA Lead (R)",
+      "bp:raciRole": "Responsible",
+      "bp:raciPerson": "QA Lead",
+      "bp:raciActivity": "Integration testing",
+      "bp:belongsToRACI": { "@id": "bp:seed-raci-platform" },
+      "dcterms:created": { "@value": "2026-03-22T17:03:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "bp:seed-vc-saas",
+      "@type": "bp:ValueChain",
+      "dcterms:title": "SaaS Value Chain",
+      "dcterms:description": "Value chain analysis for a SaaS knowledge management platform.",
+      "dcterms:created": { "@value": "2026-03-22T18:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-vc-development",
+      "@type": "bp:VCActivity",
+      "dcterms:title": "Product Development",
+      "dcterms:description": "Core engineering work — building and maintaining the platform, implementing new features, fixing bugs.",
+      "bp:activityType": "Primary",
+      "bp:activityCategory": "Operations",
+      "bp:belongsToVC": { "@id": "bp:seed-vc-saas" },
+      "dcterms:created": { "@value": "2026-03-22T18:01:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-vc-infrastructure",
+      "@type": "bp:VCActivity",
+      "dcterms:title": "Cloud Infrastructure",
+      "dcterms:description": "DevOps, CI/CD pipelines, monitoring, and cloud resource management enabling reliable service delivery.",
+      "bp:activityType": "Support",
+      "bp:activityCategory": "Technology",
+      "bp:belongsToVC": { "@id": "bp:seed-vc-saas" },
+      "dcterms:created": { "@value": "2026-03-22T18:02:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "bp:seed-lean-app",
+      "@type": "bp:LeanCanvas",
+      "dcterms:title": "Knowledge Graph App",
+      "dcterms:description": "Lean Canvas for a personal knowledge graph application targeting researchers.",
+      "dcterms:created": { "@value": "2026-03-22T19:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-lean-problem",
+      "@type": "bp:LeanCanvasSection",
+      "dcterms:title": "Problem",
+      "bp:leanSectionType": "Problem",
+      "bp:leanSectionContent": "Researchers lose context when switching between papers, notes, and reference managers. Existing tools don't preserve semantic relationships between concepts.",
+      "bp:belongsToLeanCanvas": { "@id": "bp:seed-lean-app" },
+      "dcterms:created": { "@value": "2026-03-22T19:01:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-lean-solution",
+      "@type": "bp:LeanCanvasSection",
+      "dcterms:title": "Solution",
+      "bp:leanSectionType": "Solution",
+      "bp:leanSectionContent": "A semantic workspace that auto-links concepts, papers, and notes using RDF knowledge graphs. Install domain-specific Mental Models for instant structure.",
+      "bp:belongsToLeanCanvas": { "@id": "bp:seed-lean-app" },
+      "dcterms:created": { "@value": "2026-03-22T19:02:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "bp:seed-lean-uvp",
+      "@type": "bp:LeanCanvasSection",
+      "dcterms:title": "Unique Value Proposition",
+      "bp:leanSectionType": "Unique Value Proposition",
+      "bp:leanSectionContent": "Think in frameworks, not folders. Your knowledge stays connected, structured, and queryable — not scattered across apps.",
+      "bp:belongsToLeanCanvas": { "@id": "bp:seed-lean-app" },
+      "dcterms:created": { "@value": "2026-03-22T19:03:00Z", "@type": "xsd:dateTime" }
     }
   ]
 }

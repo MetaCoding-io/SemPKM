@@ -1,7 +1,7 @@
 modelId: business-planning
 version: "1.0.0"
 name: "Business Planning"
-description: "Business planning frameworks including the Eisenhower Matrix for urgency×importance prioritization, the Business Model Canvas for mapping the nine building blocks of a business model, OKR for measurable goal tracking, Decision Matrix for weighted multi-criteria evaluation, SWOT Analysis, BCG Matrix, Ansoff Matrix, Stakeholder Map, and Risk Matrix. Provides quadrant-based views, poster-style canvas layout, OKR progress bars, decision matrix scoring, and drag-to-reclassify interaction for visual strategy work."
+description: "Business planning frameworks including the Eisenhower Matrix for urgency×importance prioritization, the Business Model Canvas for mapping the nine building blocks of a business model, OKR for measurable goal tracking, Decision Matrix for weighted multi-criteria evaluation, SWOT Analysis, BCG Matrix, Ansoff Matrix, Stakeholder Map, Risk Matrix, Porter's Five Forces for competitive analysis, PESTLE for macro-environmental scanning, Balanced Scorecard for multi-perspective strategy measurement, RACI Matrix for responsibility assignment, Value Chain for activity-based competitive advantage, and Lean Canvas for lean startup business modeling. Provides quadrant-based views, poster-style canvas layout, OKR progress bars, decision matrix scoring, and drag-to-reclassify interaction for visual strategy work."
 namespace: "urn:sempkm:model:business-planning:"
 prefixes:
   bp: "urn:sempkm:model:business-planning:"
@@ -290,4 +290,172 @@ icons:
       size: 14
     graph:
       icon: "shield-alert"
+      color: "#ef4444"
+  - type: "bp:PorterAnalysis"
+    icon: "shield"
+    color: "#6366f1"
+    tree:
+      icon: "shield"
+      color: "#6366f1"
+      size: 16
+    tab:
+      icon: "shield"
+      color: "#6366f1"
+      size: 14
+    graph:
+      icon: "shield"
+      color: "#6366f1"
+  - type: "bp:PorterForce"
+    icon: "swords"
+    color: "#818cf8"
+    tree:
+      icon: "swords"
+      color: "#818cf8"
+      size: 16
+    tab:
+      icon: "swords"
+      color: "#818cf8"
+      size: 14
+    graph:
+      icon: "swords"
+      color: "#818cf8"
+  - type: "bp:PESTLEAnalysis"
+    icon: "globe"
+    color: "#059669"
+    tree:
+      icon: "globe"
+      color: "#059669"
+      size: 16
+    tab:
+      icon: "globe"
+      color: "#059669"
+      size: 14
+    graph:
+      icon: "globe"
+      color: "#059669"
+  - type: "bp:PESTLEFactor"
+    icon: "tag"
+    color: "#10b981"
+    tree:
+      icon: "tag"
+      color: "#10b981"
+      size: 16
+    tab:
+      icon: "tag"
+      color: "#10b981"
+      size: 14
+    graph:
+      icon: "tag"
+      color: "#10b981"
+  - type: "bp:BalancedScorecard"
+    icon: "gauge"
+    color: "#d97706"
+    tree:
+      icon: "gauge"
+      color: "#d97706"
+      size: 16
+    tab:
+      icon: "gauge"
+      color: "#d97706"
+      size: 14
+    graph:
+      icon: "gauge"
+      color: "#d97706"
+  - type: "bp:BSCItem"
+    icon: "bar-chart-2"
+    color: "#f59e0b"
+    tree:
+      icon: "bar-chart-2"
+      color: "#f59e0b"
+      size: 16
+    tab:
+      icon: "bar-chart-2"
+      color: "#f59e0b"
+      size: 14
+    graph:
+      icon: "bar-chart-2"
+      color: "#f59e0b"
+  - type: "bp:RACIMatrix"
+    icon: "table-2"
+    color: "#7c3aed"
+    tree:
+      icon: "table-2"
+      color: "#7c3aed"
+      size: 16
+    tab:
+      icon: "table-2"
+      color: "#7c3aed"
+      size: 14
+    graph:
+      icon: "table-2"
+      color: "#7c3aed"
+  - type: "bp:RACIEntry"
+    icon: "user-check"
+    color: "#a78bfa"
+    tree:
+      icon: "user-check"
+      color: "#a78bfa"
+      size: 16
+    tab:
+      icon: "user-check"
+      color: "#a78bfa"
+      size: 14
+    graph:
+      icon: "user-check"
+      color: "#a78bfa"
+  - type: "bp:ValueChain"
+    icon: "link"
+    color: "#0284c7"
+    tree:
+      icon: "link"
+      color: "#0284c7"
+      size: 16
+    tab:
+      icon: "link"
+      color: "#0284c7"
+      size: 14
+    graph:
+      icon: "link"
+      color: "#0284c7"
+  - type: "bp:VCActivity"
+    icon: "cog"
+    color: "#0ea5e9"
+    tree:
+      icon: "cog"
+      color: "#0ea5e9"
+      size: 16
+    tab:
+      icon: "cog"
+      color: "#0ea5e9"
+      size: 14
+    graph:
+      icon: "cog"
+      color: "#0ea5e9"
+  - type: "bp:LeanCanvas"
+    icon: "layout-template"
+    color: "#dc2626"
+    tree:
+      icon: "layout-template"
+      color: "#dc2626"
+      size: 16
+    tab:
+      icon: "layout-template"
+      color: "#dc2626"
+      size: 14
+    graph:
+      icon: "layout-template"
+      color: "#dc2626"
+  - type: "bp:LeanCanvasSection"
+    icon: "file-text"
+    color: "#ef4444"
+    tree:
+      icon: "file-text"
+      color: "#ef4444"
+      size: 16
+    tab:
+      icon: "file-text"
+      color: "#ef4444"
+      size: 14
+    graph:
+      icon: "file-text"
       color: "#ef4444"

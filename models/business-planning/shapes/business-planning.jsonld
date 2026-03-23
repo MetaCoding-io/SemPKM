@@ -1371,6 +1371,592 @@
           "sh:group": { "@id": "bp:ItemMetadataGroup" }
         }
       ]
+    },
+
+    {
+      "@id": "bp:PorterAnalysisShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bp:PorterAnalysis" },
+      "rdfs:label": "Porter's Five Forces Analysis Shape",
+      "sempkm:editHelpText": "Analyze the competitive forces in your industry using Porter's Five Forces: Competitive Rivalry, Supplier Power, Buyer Power, Threat of Substitution, and Threat of New Entry.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bp:MatrixBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bp:MatrixBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bp:MatrixMetadataGroup" }
+        }
+      ]
+    },
+    {
+      "@id": "bp:PorterForceShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bp:PorterForce" },
+      "rdfs:label": "Porter Force Shape",
+      "sempkm:editHelpText": "A competitive force in Porter's Five Forces analysis. Select the force type and assess its intensity.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bp:ItemBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bp:ItemBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "bp:forceType" },
+          "sh:name": "Force Type",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["Competitive Rivalry", "Supplier Power", "Buyer Power", "Threat of Substitution", "Threat of New Entry"] },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bp:ItemClassificationGroup" },
+          "sh:description": "Which of the five competitive forces."
+        },
+        {
+          "sh:path": { "@id": "bp:forceIntensity" },
+          "sh:name": "Intensity",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["High", "Medium", "Low"] },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "bp:ItemClassificationGroup" },
+          "sh:description": "How intense this competitive force is."
+        },
+        {
+          "sh:path": { "@id": "bp:belongsToPorter" },
+          "sh:name": "Porter Analysis",
+          "sh:class": { "@id": "bp:PorterAnalysis" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "bp:ItemRelationshipsGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "bp:ItemMetadataGroup" }
+        }
+      ]
+    },
+
+    {
+      "@id": "bp:PESTLEAnalysisShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bp:PESTLEAnalysis" },
+      "rdfs:label": "PESTLE Analysis Shape",
+      "sempkm:editHelpText": "Analyze macro-environmental factors across Political, Economic, Social, Technological, Legal, and Environmental dimensions.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bp:MatrixBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bp:MatrixBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bp:MatrixMetadataGroup" }
+        }
+      ]
+    },
+    {
+      "@id": "bp:PESTLEFactorShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bp:PESTLEFactor" },
+      "rdfs:label": "PESTLE Factor Shape",
+      "sempkm:editHelpText": "A macro-environmental factor. Select the PESTLE category and assess its impact level.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bp:ItemBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bp:ItemBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "bp:pestleCategory" },
+          "sh:name": "PESTLE Category",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["Political", "Economic", "Social", "Technological", "Legal", "Environmental"] },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bp:ItemClassificationGroup" },
+          "sh:description": "Which PESTLE dimension this factor falls under."
+        },
+        {
+          "sh:path": { "@id": "bp:factorImpact" },
+          "sh:name": "Impact",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["High", "Medium", "Low"] },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "bp:ItemClassificationGroup" },
+          "sh:description": "The impact level of this environmental factor."
+        },
+        {
+          "sh:path": { "@id": "bp:belongsToPESTLE" },
+          "sh:name": "PESTLE Analysis",
+          "sh:class": { "@id": "bp:PESTLEAnalysis" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "bp:ItemRelationshipsGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "bp:ItemMetadataGroup" }
+        }
+      ]
+    },
+
+    {
+      "@id": "bp:BalancedScorecardShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bp:BalancedScorecard" },
+      "rdfs:label": "Balanced Scorecard Shape",
+      "sempkm:editHelpText": "A Balanced Scorecard translates strategy into measurable objectives across four perspectives: Financial, Customer, Internal Process, and Learning & Growth.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bp:MatrixBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bp:MatrixBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bp:MatrixMetadataGroup" }
+        }
+      ]
+    },
+    {
+      "@id": "bp:BSCItemShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bp:BSCItem" },
+      "rdfs:label": "BSC Item Shape",
+      "sempkm:editHelpText": "A strategic measure or initiative in a Balanced Scorecard. Assign a perspective, define the measure, and set a target.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bp:ItemBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bp:ItemBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "bp:bscPerspective" },
+          "sh:name": "Perspective",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["Financial", "Customer", "Internal Process", "Learning & Growth"] },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bp:ItemClassificationGroup" },
+          "sh:description": "Which Balanced Scorecard perspective this item belongs to."
+        },
+        {
+          "sh:path": { "@id": "bp:bscMeasure" },
+          "sh:name": "Measure",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "bp:ItemClassificationGroup" },
+          "sh:description": "The metric or KPI used to track this initiative."
+        },
+        {
+          "sh:path": { "@id": "bp:bscTarget" },
+          "sh:name": "Target",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "bp:ItemClassificationGroup" },
+          "sh:description": "The target value or goal for this measure."
+        },
+        {
+          "sh:path": { "@id": "bp:belongsToBSC" },
+          "sh:name": "Balanced Scorecard",
+          "sh:class": { "@id": "bp:BalancedScorecard" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "bp:ItemRelationshipsGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 7,
+          "sh:group": { "@id": "bp:ItemMetadataGroup" }
+        }
+      ]
+    },
+
+    {
+      "@id": "bp:RACIMatrixShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bp:RACIMatrix" },
+      "rdfs:label": "RACI Matrix Shape",
+      "sempkm:editHelpText": "A RACI Matrix clarifies roles and responsibilities by assigning Responsible, Accountable, Consulted, and Informed designations to activities.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bp:MatrixBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bp:MatrixBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bp:MatrixMetadataGroup" }
+        }
+      ]
+    },
+    {
+      "@id": "bp:RACIEntryShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bp:RACIEntry" },
+      "rdfs:label": "RACI Entry Shape",
+      "sempkm:editHelpText": "A responsibility assignment in a RACI Matrix. Specify the person, activity, and their RACI role.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bp:ItemBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "bp:raciRole" },
+          "sh:name": "RACI Role",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["Responsible", "Accountable", "Consulted", "Informed"] },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bp:ItemClassificationGroup" },
+          "sh:description": "The RACI responsibility level."
+        },
+        {
+          "sh:path": { "@id": "bp:raciPerson" },
+          "sh:name": "Person",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bp:ItemClassificationGroup" },
+          "sh:description": "The person or role assigned this responsibility."
+        },
+        {
+          "sh:path": { "@id": "bp:raciActivity" },
+          "sh:name": "Activity",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "bp:ItemClassificationGroup" },
+          "sh:description": "The activity or deliverable."
+        },
+        {
+          "sh:path": { "@id": "bp:belongsToRACI" },
+          "sh:name": "RACI Matrix",
+          "sh:class": { "@id": "bp:RACIMatrix" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "bp:ItemRelationshipsGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "bp:ItemMetadataGroup" }
+        }
+      ]
+    },
+
+    {
+      "@id": "bp:ValueChainShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bp:ValueChain" },
+      "rdfs:label": "Value Chain Shape",
+      "sempkm:editHelpText": "A Value Chain analysis breaks down your organization's activities into primary (directly creating value) and support (enabling primary activities) to identify competitive advantages.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bp:MatrixBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bp:MatrixBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bp:MatrixMetadataGroup" }
+        }
+      ]
+    },
+    {
+      "@id": "bp:VCActivityShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bp:VCActivity" },
+      "rdfs:label": "Value Chain Activity Shape",
+      "sempkm:editHelpText": "An activity in a Value Chain. Classify it as primary or support and specify the category.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bp:ItemBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bp:ItemBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "bp:activityType" },
+          "sh:name": "Activity Type",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["Primary", "Support"] },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bp:ItemClassificationGroup" },
+          "sh:description": "Whether this is a primary or support activity."
+        },
+        {
+          "sh:path": { "@id": "bp:activityCategory" },
+          "sh:name": "Category",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "bp:ItemClassificationGroup" },
+          "sh:description": "The specific value chain category (e.g. Inbound Logistics, Operations, Marketing & Sales)."
+        },
+        {
+          "sh:path": { "@id": "bp:belongsToVC" },
+          "sh:name": "Value Chain",
+          "sh:class": { "@id": "bp:ValueChain" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "bp:ItemRelationshipsGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "bp:ItemMetadataGroup" }
+        }
+      ]
+    },
+
+    {
+      "@id": "bp:LeanCanvasShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bp:LeanCanvas" },
+      "rdfs:label": "Lean Canvas Shape",
+      "sempkm:editHelpText": "A Lean Canvas is a one-page business model adapted for startups. Create the canvas, then add sections for each of the nine building blocks.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bp:MatrixBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bp:MatrixBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bp:MatrixMetadataGroup" }
+        }
+      ]
+    },
+    {
+      "@id": "bp:LeanCanvasSectionShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bp:LeanCanvasSection" },
+      "rdfs:label": "Lean Canvas Section Shape",
+      "sempkm:editHelpText": "A section in a Lean Canvas. Select the section type and describe the content for that building block.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bp:ItemBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "bp:leanSectionType" },
+          "sh:name": "Section Type",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["Problem", "Solution", "Key Metrics", "Unique Value Proposition", "Unfair Advantage", "Channels", "Customer Segments", "Cost Structure", "Revenue Streams"] },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bp:ItemClassificationGroup" },
+          "sh:description": "Which of the nine Lean Canvas sections."
+        },
+        {
+          "sh:path": { "@id": "bp:leanSectionContent" },
+          "sh:name": "Content",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bp:ItemClassificationGroup" },
+          "sh:description": "Free-text content describing this section."
+        },
+        {
+          "sh:path": { "@id": "bp:belongsToLeanCanvas" },
+          "sh:name": "Lean Canvas",
+          "sh:class": { "@id": "bp:LeanCanvas" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "bp:ItemRelationshipsGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "bp:ItemMetadataGroup" }
+        }
+      ]
     }
   ]
 }

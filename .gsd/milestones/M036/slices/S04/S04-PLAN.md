@@ -43,7 +43,7 @@
   - Verify: `cd backend && .venv/bin/python -m pytest tests/test_quadrant.py -v` — all pass
   - Done when: all 5 quadrant framework types have ontology, shapes, views, seed, icons, and the backend renders framework-specific labels
 
-- [ ] **T02: Non-quadrant framework types — Porter, PESTLE, BSC, RACI, Value Chain, Lean Canvas** `est:1h`
+- [x] **T02: Non-quadrant framework types — Porter, PESTLE, BSC, RACI, Value Chain, Lean Canvas** `est:1h`
   - Why: Remaining frameworks use existing table/kanban renderers and need only model archive additions — no backend code changes
   - Files: `models/business-planning/ontology/business-planning.jsonld`, `models/business-planning/shapes/business-planning.jsonld`, `models/business-planning/views/business-planning.jsonld`, `models/business-planning/seed/business-planning.jsonld`, `models/business-planning/manifest.yaml`
   - Do: (1) Add ~8 OWL classes (Porter container + PorterForce, PESTLEAnalysis + PESTLEFactor, BalancedScorecard + BSCItem, RACIMatrix + RACIEntry, ValueChain + VCActivity, LeanCanvas + LeanCanvasSection) and ~12 properties to ontology. (2) Add NodeShapes with sh:in enum constraints (5 Porter forces, 6 PESTLE categories, 4 BSC perspectives, 4 RACI roles, primary/support for VC). (3) Add table ViewSpecs for all types. (4) Add seed data (2–3 items per type). (5) Add icon entries to manifest. (6) Update ontology description to mention new frameworks.
