@@ -13,7 +13,7 @@
       "@id": "bp:ontology",
       "@type": "owl:Ontology",
       "rdfs:label": "Business Planning Ontology",
-      "dcterms:description": "Business planning frameworks: abstract base types for framework items and quadrant-placed items, plus Eisenhower Matrix types for urgency×importance prioritization."
+      "dcterms:description": "Business planning frameworks: Eisenhower Matrix for urgency×importance prioritization and Business Model Canvas for the nine building blocks of a business model."
     },
 
     {
@@ -92,6 +92,46 @@
       "rdfs:comment": "Label for the vertical axis of the quadrant view",
       "rdfs:domain": { "@id": "bp:EisenhowerMatrix" },
       "rdfs:range": { "@id": "xsd:string" }
+    },
+
+    {
+      "@id": "bp:BusinessModelCanvas",
+      "@type": "owl:Class",
+      "rdfs:label": "Business Model Canvas",
+      "rdfs:comment": "A container for the nine building blocks of a business model (Osterwalder & Pigneur)",
+      "rdfs:subClassOf": { "@id": "gist:Collection" }
+    },
+    {
+      "@id": "bp:BMCSection",
+      "@type": "owl:Class",
+      "rdfs:label": "BMC Section",
+      "rdfs:comment": "One of the nine sections in a Business Model Canvas — each section holds content for a specific building block",
+      "rdfs:subClassOf": { "@id": "bp:FrameworkItem" }
+    },
+
+    {
+      "@id": "bp:sectionType",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Section Type",
+      "rdfs:comment": "Which of the nine BMC building blocks this section represents",
+      "rdfs:domain": { "@id": "bp:BMCSection" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bp:sectionContent",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Section Content",
+      "rdfs:comment": "Free-text content describing the business model aspect for this section",
+      "rdfs:domain": { "@id": "bp:BMCSection" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bp:belongsToCanvas",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Belongs To Canvas",
+      "rdfs:comment": "The Business Model Canvas this section belongs to",
+      "rdfs:domain": { "@id": "bp:BMCSection" },
+      "rdfs:range": { "@id": "bp:BusinessModelCanvas" }
     }
   ]
 }

@@ -1,7 +1,7 @@
 modelId: business-planning
 version: "1.0.0"
 name: "Business Planning"
-description: "Business planning frameworks including the Eisenhower Matrix for urgency×importance prioritization. Provides quadrant-based views with drag-to-reclassify interaction for visual prioritization of items."
+description: "Business planning frameworks including the Eisenhower Matrix for urgency×importance prioritization and the Business Model Canvas for mapping the nine building blocks of a business model. Provides quadrant-based views, poster-style canvas layout, and drag-to-reclassify interaction for visual strategy work."
 namespace: "urn:sempkm:model:business-planning:"
 prefixes:
   bp: "urn:sempkm:model:business-planning:"
@@ -39,3 +39,31 @@ icons:
     graph:
       icon: "target"
       color: "#dc2626"
+  - type: "bp:BusinessModelCanvas"
+    icon: "layout-grid"
+    color: "#2563eb"
+    tree:
+      icon: "layout-grid"
+      color: "#2563eb"
+      size: 16
+    tab:
+      icon: "layout-grid"
+      color: "#2563eb"
+      size: 14
+    graph:
+      icon: "layout-grid"
+      color: "#2563eb"
+  - type: "bp:BMCSection"
+    icon: "sticky-note"
+    color: "#f59e0b"
+    tree:
+      icon: "sticky-note"
+      color: "#f59e0b"
+      size: 16
+    tab:
+      icon: "sticky-note"
+      color: "#f59e0b"
+      size: 14
+    graph:
+      icon: "sticky-note"
+      color: "#f59e0b"

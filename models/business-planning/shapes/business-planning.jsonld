@@ -201,6 +201,176 @@
           "sh:group": { "@id": "bp:ItemMetadataGroup" }
         }
       ]
+    },
+
+    {
+      "@id": "bp:CanvasBasicInfoGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Basic Info",
+      "sh:order": 1
+    },
+    {
+      "@id": "bp:CanvasMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 2
+    },
+
+    {
+      "@id": "bp:BMCCanvasShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bp:BusinessModelCanvas" },
+      "rdfs:label": "Business Model Canvas Shape",
+      "sempkm:editHelpText": "A Business Model Canvas captures the nine building blocks of how your organization creates, delivers, and captures value. Create the canvas first, then add sections for each building block.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bp:CanvasBasicInfoGroup" },
+          "sh:description": "A name for this Business Model Canvas.",
+          "sempkm:editHelpText": "Give this canvas a clear name — e.g. \"SaaS Platform BMC\" or \"Marketplace Business Model\"."
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bp:CanvasBasicInfoGroup" },
+          "sh:description": "Purpose or context for this canvas.",
+          "sempkm:editHelpText": "Describe the business or initiative this canvas models."
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bp:CanvasMetadataGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:modified" },
+          "sh:name": "Modified",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "bp:CanvasMetadataGroup" }
+        }
+      ]
+    },
+
+    {
+      "@id": "bp:SectionBasicInfoGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Basic Info",
+      "sh:order": 1
+    },
+    {
+      "@id": "bp:SectionClassificationGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Classification",
+      "sh:order": 2
+    },
+    {
+      "@id": "bp:SectionContentGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Content",
+      "sh:order": 3
+    },
+    {
+      "@id": "bp:SectionRelationshipsGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Relationships",
+      "sh:order": 4
+    },
+    {
+      "@id": "bp:SectionMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 5
+    },
+
+    {
+      "@id": "bp:BMCSectionShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bp:BMCSection" },
+      "rdfs:label": "BMC Section Shape",
+      "sempkm:editHelpText": "A section in a Business Model Canvas — each section represents one of the nine building blocks (Key Partners, Key Activities, Key Resources, Value Propositions, Customer Relationships, Channels, Customer Segments, Cost Structure, Revenue Streams).",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bp:SectionBasicInfoGroup" },
+          "sh:description": "A name for this section.",
+          "sempkm:editHelpText": "Usually matches the section type — e.g. \"Key Partners\" or \"Value Propositions\"."
+        },
+        {
+          "sh:path": { "@id": "bp:sectionType" },
+          "sh:name": "Section Type",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": [
+            "key-partners",
+            "key-activities",
+            "key-resources",
+            "value-propositions",
+            "customer-relationships",
+            "channels",
+            "customer-segments",
+            "cost-structure",
+            "revenue-streams"
+          ] },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bp:SectionClassificationGroup" },
+          "sh:description": "Which BMC building block this section represents.",
+          "sempkm:editHelpText": "Choose one of the nine standard Business Model Canvas sections."
+        },
+        {
+          "sh:path": { "@id": "bp:sectionContent" },
+          "sh:name": "Content",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bp:SectionContentGroup" },
+          "sh:description": "Free-text content for this section.",
+          "sempkm:editHelpText": "Describe the key elements for this building block — use bullet points or short paragraphs."
+        },
+        {
+          "sh:path": { "@id": "bp:belongsToCanvas" },
+          "sh:name": "Canvas",
+          "sh:class": { "@id": "bp:BusinessModelCanvas" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "bp:SectionRelationshipsGroup" },
+          "sh:description": "Which Business Model Canvas this section belongs to.",
+          "sempkm:editHelpText": "Link this section to a Business Model Canvas."
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "bp:SectionMetadataGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:modified" },
+          "sh:name": "Modified",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "bp:SectionMetadataGroup" }
+        }
+      ]
     }
   ]
 }
