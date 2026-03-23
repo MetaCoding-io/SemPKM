@@ -344,8 +344,8 @@ Asana enforces API rate limits. If the app hits a 429 response:
 
 - [Chapter 29: App Platform](29-app-platform.md) — managing apps, installation, monitoring
 - [Chapter 10: Managing Mental Models](10-managing-mental-models.md) — installing Basic PKM (required for Task type)
-- [Chapter 37: Todoist Sync](37-todoist-sync.md) — another task sync app for comparison
+- [Chapter 42: Todoist Sync](42-todoist-sync.md) — another task sync app for comparison
 
 ---
 
-**Previous:** [Chapter 39: CalDAV Calendar Sync](39-caldav-calendar-sync.md) | **Next:** [Appendix A: Environment Variable Reference](appendix-a-environment-variables.md)
+**Previous:** [Chapter 44: CalDAV Calendar Sync](44-caldav-calendar-sync.md) | **Next:** [Appendix A: Environment Variable Reference](appendix-a-environment-variables.md)

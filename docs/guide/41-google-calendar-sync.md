@@ -374,4 +374,4 @@ Google Calendar API has usage quotas. If you sync many calendars with many event
 
 ---
 
-**Previous:** [Chapter 35: GitHub Sync](35-github-sync.md) | **Next:** [Chapter 37: Todoist Sync](37-todoist-sync.md)
+**Previous:** [Chapter 35: GitHub Sync](35-github-sync.md) | **Next:** [Chapter 42: Todoist Sync](42-todoist-sync.md)

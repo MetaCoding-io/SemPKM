@@ -355,4 +355,4 @@ Each task run shows its timestamp, duration, and success/failure status. Failed 
 
 ---
 
-**Previous:** [Chapter 36: Google Calendar Sync](36-google-calendar-sync.md) | **Next:** [Chapter 38: Outlook Calendar Sync](38-outlook-calendar-sync.md)
+**Previous:** [Chapter 41: Google Calendar Sync](41-google-calendar-sync.md) | **Next:** [Chapter 43: Outlook Calendar Sync](43-outlook-calendar-sync.md)

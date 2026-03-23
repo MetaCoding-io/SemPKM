@@ -365,4 +365,4 @@ This means the event was modified on the server between the GET and PUT requests
 
 ---
 
-**Previous:** [Chapter 38: Outlook Calendar Sync](38-outlook-calendar-sync.md) | **Next:** [Chapter 40: Asana Sync](40-asana-sync.md)
+**Previous:** [Chapter 43: Outlook Calendar Sync](43-outlook-calendar-sync.md) | **Next:** [Chapter 47: Asana Sync](47-asana-sync.md)

@@ -269,4 +269,4 @@ If an object has properties but no body content, the corresponding `.md` file ma
 
 ---
 
-**Previous:** [Chapter 38: Hosted Demo](38-hosted-demo.md) | **Next:** [Chapter 40: AI Features](40-ai-features.md)
+**Previous:** [Chapter 38: Hosted Demo](38-hosted-demo.md) | **Next:** [Chapter 46: AI Features](46-ai-features.md)
