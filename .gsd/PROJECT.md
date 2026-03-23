@@ -652,7 +652,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Backlinks panel (incoming references for any object)
 - Edge model enhancements: edge inspector panel, inline wiki-link creation
 - JSON-LD export for objects/collections
-- AI Copilot (chat about data, SPARQL generation, writing assistance) — queued as M035
+- AI Copilot (chat about data, SPARQL generation, writing assistance) — in progress (M035, S01 complete)
 - pgvector / semantic search (deferred until keyword FTS validated in v2.2)
 
 **Task Planning, Time-Blocking & Calendar UX** — complete (M034, 2026-03-22)
@@ -665,10 +665,10 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - PPV review workflows: 4 seeded WorkflowSpecs (Weekly/Monthly/Quarterly/Yearly)
 - 99 unit tests + 8 E2E tests. User guide docs gap — no chapters written.
 
-**AI Copilot & LLM Test Harness** — queued as M035 (depends on M033)
-- Workspace AI Copilot chat panel with SPARQL generation, graph context injection, personas
-- 3-tier LLM test harness (mock for CI, Ollama for dev, cloud with budget caps)
-- M028 AI endpoints wired and extended
+**AI Copilot & LLM Test Harness** — in progress (M035, S01 complete)
+- S01 delivered: AI Copilot chat panel with SSE streaming, schema-aware SPARQL generation, query approval flow (approve/edit/reject), self-correction retry, markdown rendering, clickable object pills, 48 unit tests
+- Remaining: S02 (graph context injection, conversation persistence), S03 (AI personas, object creation from chat), S04 (mock LLM E2E tests, Ollama integration, cloud budget cap)
+- M028 AI endpoints wired into main.py alongside new copilot router
 
 **Business Planning Mental Models & Custom Renderers** — complete (M036)
 - `business-planning` model archive: 32 types across 15 frameworks (Eisenhower, SWOT, BMC, OKR, Decision Matrix, Porter, PESTLE, BCG, Ansoff, Stakeholder Map, Risk Matrix, Balanced Scorecard, RACI, Value Chain, Lean Canvas)
