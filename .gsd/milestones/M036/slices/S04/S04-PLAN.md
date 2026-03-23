@@ -50,7 +50,7 @@
   - Verify: `python3 -c "import rdflib; g=rdflib.Graph(); [g.parse(f'models/business-planning/{p}/business-planning.jsonld', format='json-ld') for p in ['ontology','shapes','views','seed']]; print(f'total: {len(g)} triples')"` — parses without error
   - Done when: all 6 non-quadrant types have complete ontology, shapes, views, seed, and icons
 
-- [ ] **T03: Full verification — parse validation, test suite, manifest check** `est:20m`
+- [x] **T03: Full verification — parse validation, test suite, manifest check** `est:20m`
   - Why: Final quality gate — ensures all JSON-LD files are structurally sound, existing tests still pass, new tests pass, and manifest validates with all type entries
   - Files: `models/business-planning/ontology/business-planning.jsonld`, `models/business-planning/shapes/business-planning.jsonld`, `models/business-planning/views/business-planning.jsonld`, `models/business-planning/seed/business-planning.jsonld`, `models/business-planning/manifest.yaml`, `backend/tests/test_quadrant.py`
   - Do: (1) Parse all 4 JSON-LD files via rdflib, report triple counts. (2) Run `pytest tests/test_quadrant.py -v` and confirm all pass. (3) Validate manifest.yaml has entries for all new types. (4) Spot-check: verify each new quadrant type has exactly 2 `sh:in` properties with exactly 2 values. (5) Fix any issues found.
