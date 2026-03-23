@@ -46,6 +46,9 @@ An incremental change record for object body content. When editing an existing b
 **Browser Extension**
 A Chrome/Firefox extension that captures typed, schema-validated objects from any web page directly into your SemPKM knowledge graph. Supports SHACL-driven forms, auto-population from page metadata and schema.org JSON-LD, relationship creation, and keyboard shortcuts. See [Chapter 32: Browser Extension](32-browser-extension.md).
 
+**Calendar View**
+An interactive view that renders date-bearing objects on a FullCalendar grid with month, week, day, and list modes. Supports drag-to-reschedule, resize-to-change-duration, click-to-create, and cross-view drag from kanban columns. Types qualify automatically when their SHACL shapes declare `xsd:date` or `xsd:dateTime` fields. Recurring task instances are expanded via RRULE and displayed as repeating events. See [Chapter 7: Browsing and Visualizing Data](07-browsing-and-visualizing.md).
+
 **Carousel View**
 A tabbed browsing interface for Mental Model views that groups table, card, and graph views into a single page with a tab strip. Each tab loads a different view of the same type's data, letting you switch between display formats without navigating away. See [Chapter 7: Browsing and Visualizing Data](07-browsing-and-visualizing.md).
 
@@ -75,6 +78,9 @@ An API endpoint (`POST /api/context-query`) that finds objects in the knowledge 
 
 **Cross-View Context**
 A dashboard mechanism where selecting a row in one block filters data in other blocks. The source block emits a context IRI on row click; consumer blocks bind it to a SPARQL variable and re-fetch their data. See [Chapter 28: Dashboards and Workflows](28-dashboards-and-workflows.md).
+
+**Cross-View Drag**
+The ability to drag an object card from one view (such as a kanban column) and drop it onto a calendar date in a side-by-side layout, automatically setting the object's date field. Enables composable planning workflows where multiple views are arranged together in the dockview workspace. See [Chapter 7: Browsing and Visualizing Data](07-browsing-and-visualizing.md).
 
 **Dashboard**
 A configurable multi-block layout page that combines views, markdown, object embeds, forms, and SPARQL results into a single workspace tab. Five layout templates arrange blocks in a CSS Grid. See [Chapter 28: Dashboards and Workflows](28-dashboards-and-workflows.md).
@@ -117,6 +123,9 @@ A minimalist upper ontology (v14.0.0) by Semantic Arts that provides foundationa
 
 **GitHub Sync**
 A SemPKM app that synchronizes GitHub Issues and Pull Requests with `bpkm:Task` objects. Supports pull sync (GitHub → SemPKM), push sync (SemPKM → GitHub), and bidirectional mode. PRs that reference issues are linked via `bpkm:dependsOn` edges. See [Chapter 35: GitHub Sync](35-github-sync.md).
+
+**Gantt Chart**
+A horizontal bar chart showing tasks along a timeline with dependency arrows between them. In SemPKM, the Timeline View renders a Gantt chart using the Frappe Gantt library. Tasks are positioned by start date and duration; `bpkm:dependsOn` edges render as SVG arrows. Supports drag-to-reschedule and zoom levels from quarter-day to month. See [Chapter 7: Browsing and Visualizing Data](07-browsing-and-visualizing.md).
 
 **Hosted Demo**
 A pre-populated, read-only SemPKM instance deployed for prospective users to explore. Includes 4 Mental Models with 74 sample objects, a guided Driver.js tour, and a pre-built dashboard demonstrating cross-view context filtering. See [Chapter 38: Hosted Demo](38-hosted-demo.md).
@@ -226,17 +235,26 @@ The process of sending local changes from SemPKM back to an external system. In 
 **RBox**
 (Relational Box) The set of properties (object properties and datatype properties) defined in an ontology. Viewable in the Ontology Viewer's RBox tab.
 
+**Recurrence (RRULE)**
+A repeating schedule defined by an iCalendar RRULE string (e.g., `FREQ=WEEKLY;BYDAY=MO,WE,FR`). SemPKM's recurrence editor offers presets (daily, weekdays, weekly, biweekly, monthly) and a custom mode for arbitrary patterns. Recurring tasks generate virtual instances in the Calendar and Timeline views, expanded by python-dateutil within a rolling time window. EXDATE entries exclude specific dates from the pattern. See [Chapter 7: Browsing and Visualizing Data](07-browsing-and-visualizing.md).
+
 **RDF**
 Resource Description Framework. The W3C standard data model that underpins SemPKM. All data is stored as triples: subject-predicate-object statements. For example, "Alice Chen" (subject) "has job title" (predicate) "Lead Developer" (object). RDF enables flexible, schema-on-read data that can be queried, linked, and extended without migrations.
 
 **ResearchQuestion** (Research Workflow)
 An open question driving a research investigation. Research questions can be addressed by arguments that synthesize claims and evidence. Status tracks progress from open through partially-answered to answered. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
 
+**Review Workflow**
+A seeded workflow that guides a structured review process through a sequence of view, dashboard, and form steps. SemPKM ships with five review workflows: Weekly Review, Monthly Review, Quarterly Review, Project Status Review, and Goal Alignment Review. Launched from the command palette with Ctrl+K → "review". See [Chapter 28: Dashboards and Workflows](28-dashboards-and-workflows.md).
+
 **SHACL**
 Shapes Constraint Language.
 
 **SHACL-AF Rule**
 A SHACL Advanced Features rule that generates new triples from existing data. Unlike validation shapes (which check constraints), SHACL-AF rules produce inferred triples -- for example, automatically deriving a `fullName` property by concatenating `firstName` and `lastName`. SemPKM executes SHACL-AF rules as part of the inference pipeline. See [Chapter 16: The Data Model](16-data-model.md). A W3C standard for validating RDF data against a set of conditions (shapes). In SemPKM, SHACL shapes serve double duty: they define the form structure for editing objects (field names, order, groups, data types, dropdowns) and they provide validation rules (required fields, allowed values, cardinality). See also: Shape, Validation.
+
+**Scope Propagation**
+The mechanism by which a Saved View's scope query filters data across different renderers. When a view is saved with a scope (a SPARQL WHERE clause), that scope is injected into the renderer's data query at load time. Scope propagation ensures that switching renderers (e.g., from table to calendar) preserves the same data filter without the user reconfiguring it. See [Chapter 7: Browsing and Visualizing Data](07-browsing-and-visualizing.md).
 
 **Shape**
 A SHACL node shape that describes the expected structure of a specific type. Each shape lists property constraints (what fields should exist, their data types, whether they are required, allowed values) and property groups (how fields are organized in the form). Shapes drive both form generation and data validation. See also: SHACL, Mental Model.
@@ -262,8 +280,14 @@ SPARQL Protocol and RDF Query Language. The standard query language for RDF data
 **Task** (Basic PKM v2.0)
 A unit of work with status tracking (todo, in-progress, done, blocked, cancelled), priority, effort sizing, due dates, and person assignment. Tasks link to projects and milestones to form a work graph. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
 
+**Task Template**
+A reusable blueprint for creating pre-configured tasks. Templates store a set of property values (title pattern, priority, effort, assignee, edges) that are stamped onto new task objects via the "Create from Template" command palette action. Templates support batch instantiation where multiple linked objects are created in a single operation using `@slot:` cross-references. See [Chapter 28: Dashboards and Workflows](28-dashboards-and-workflows.md).
+
 **Triple**
 The atomic unit of data in RDF: a subject-predicate-object statement. For example: `<Person/alice> <foaf:name> "Alice Chen"` is a triple stating that the resource `Person/alice` has the name "Alice Chen". All data in SemPKM -- objects, properties, edges, events -- is ultimately stored as triples.
+
+**Timeline View**
+A horizontal Gantt-style view that renders date-bearing objects as bars along a time axis. Powered by the Frappe Gantt library. Types qualify automatically when their SHACL shapes declare date fields (detected via `sh:datatype` and well-known path IRIs). Supports zoom levels from quarter-day to month, drag-to-reschedule, and dependency arrows derived from `bpkm:dependsOn` edges. See [Chapter 7: Browsing and Visualizing Data](07-browsing-and-visualizing.md).
 
 **Triplestore**
 A database optimized for storing and querying RDF triples. SemPKM uses Eclipse RDF4J as its triplestore, running as a Docker container. The triplestore holds all object data, ontologies, shapes, views, event graphs, and the current state graph.

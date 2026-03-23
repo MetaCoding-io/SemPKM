@@ -39,7 +39,7 @@
   - Verify: `grep -c "^## " docs/guide/28-dashboards-and-workflows.md` shows growth; `grep -q "Task Templates" docs/guide/28-dashboards-and-workflows.md`
   - Done when: Chapter 28 has Task Templates and Review Workflows sections with accurate feature descriptions
 
-- [ ] **T03: Add glossary entries and verify three-file nav sync** `est:30m`
+- [x] **T03: Add glossary entries and verify three-file nav sync** `est:30m`
   - Why: Appendix D needs M034 terms; any new chapter entries must appear in all 3 nav files
   - Files: `docs/guide/appendix-d-glossary.md`, `docs/guide/README.md`, `docs/guide/index.html`, `backend/app/templates/guide.html`
   - Do: Add glossary entries for Calendar View (editable), Timeline View, Gantt Chart, Recurrence/RRULE, Task Template, Review Workflow, Scope Propagation, Cross-View Drag. Since T01-T02 extend existing chapters (7 and 28) rather than creating new ones, nav files may not need new entries — but verify all existing entries are present and consistent across the 3 files. Fix any drift found.
