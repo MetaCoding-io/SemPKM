@@ -1,6 +1,6 @@
 # Chapter 7: Browsing and Visualizing Data
 
-SemPKM provides several ways to browse your knowledge base: **Table View** for structured scanning and sorting, **Card View** for visual overviews, **Graph View** for exploring how objects connect, and **Kanban View** for status-based workflows. Each view is defined by a view specification shipped with a Mental Model, so the views you see depend on which models you have installed. The Basic PKM model includes table, card, and graph views for all four types -- Notes, Concepts, Projects, and People.
+SemPKM provides several ways to browse your knowledge base: **Table View** for structured scanning and sorting, **Card View** for visual overviews, **Graph View** for exploring how objects connect, **Kanban View** for status-based workflows, **Calendar View** for time-based planning, **Timeline/Gantt View** for dependency-aware scheduling, and **Map View** for geographic data. Each view is defined by a view specification shipped with a Mental Model, so the views you see depend on which models you have installed. The Basic PKM model includes table, card, and graph views for all four types -- Notes, Concepts, Projects, and People.
 
 This chapter covers how to open views, what each renderer offers, the view toolbar with scope binding and variant selection, and how to manage saved views and multiple view instances.
 
@@ -72,6 +72,189 @@ For example, if your Mental Model defines a Task type with a `status` property c
 - Each column header shows the column title and a count of items in that column.
 
 > **Tip:** Kanban View works best with types that have a clearly defined status lifecycle. If you select a type with no status properties, the view displays a message: "Select a type with status values to use Kanban View."
+
+## Calendar View
+
+Calendar View displays objects with date properties on an interactive monthly, weekly, or daily calendar. It is powered by FullCalendar and designed for time-based planning -- you can drag events to reschedule them, resize events to change their duration, click empty slots to create new tasks, and even drop items from other views onto the calendar.
+
+### How Types Qualify for Calendar View
+
+SemPKM automatically detects whether a type has date properties suitable for calendar display. The detection uses two heuristics:
+
+1. **SHACL datatype check** -- any property declared with `sh:datatype xsd:date` or `xsd:dateTime` in the model's shapes file qualifies.
+2. **Well-known path matching** -- property paths containing well-known date terms (`scheduledStart`, `startDate`, `dueDate`, `endDate`, `targetDate`, `completedDate`, `scheduledEnd`) are recognized even if no explicit datatype is declared.
+
+If no date properties are found for the selected type, the calendar displays a message: "Select a type with date properties to use Calendar View."
+
+The start date field is chosen by priority: `scheduledStart` is preferred (for task time-blocking), followed by `startDate`, `dueDate`, `targetDate`, and finally `created`. If the type also has an end date property (`scheduledEnd` or `endDate`), events are rendered with duration bars rather than single-day markers.
+
+### Opening the Calendar View
+
+Open Calendar View from the **Views Explorer** sidebar, the command palette (`Alt+K` → search "Calendar"), or the view menu. Like other views, you can select a type using the **type filter pills** at the top of the view.
+
+### Calendar Modes
+
+The calendar toolbar provides three viewing modes:
+
+- **Month** (default) -- a standard monthly grid showing events as colored bars on their scheduled dates.
+- **Week** -- an hourly grid for a single week, useful for detailed time-blocking.
+- **Day** -- an hourly grid for a single day.
+
+Switch between modes using the **Month**, **Week**, and **Day** buttons in the upper-right corner of the calendar. Use the **Previous** and **Next** arrows to navigate between periods, and click **Today** to jump back to the current date.
+
+### Color Coding
+
+Events are color-coded by their source type:
+
+- **Task events** receive a distinct task color class, making them visually distinguishable from other types.
+- **Event-type objects** (if your model defines an Event type) use a different color class.
+- **Recurring event instances** are visually marked with a recurring indicator so you can tell them apart from single occurrences.
+
+### Drag to Reschedule
+
+Click and drag any event to a different date (or time slot in week/day mode) to reschedule it. SemPKM saves the new date immediately via an optimistic update -- the event moves on screen right away, and the change is persisted to the triplestore in the background. If the save fails (for example, due to a network error), the event snaps back to its original position and a toast message reports the failure.
+
+### Resize to Change Duration
+
+In week and day modes, grab the bottom edge of an event and drag to resize it. This changes the event's end date or time. The same optimistic update applies: the change is saved immediately, and reverted if the save fails.
+
+### Click to Create a Task
+
+Click (or click-and-drag to select a range) on an empty calendar slot to create a new task. SemPKM opens the task creation form with the selected date range pre-filled in the `scheduledStart` and `scheduledEnd` fields. Fill in the remaining fields and save to add the task to both the triplestore and the calendar.
+
+### Recurring Tasks and the Recurrence Editor
+
+Tasks with a recurrence rule (`bpkm:recurrenceRule`) appear on the calendar as **virtual instances** -- one event per occurrence within the visible date range. Virtual instances are visually distinguished from regular events by a recurring indicator style.
+
+Clicking a virtual instance opens the **master task** (the original recurring task) in an editor tab, where you can modify the recurrence pattern or edit the task details.
+
+#### Setting Up Recurrence
+
+When editing a task that has a `recurrenceRule` field, a **recurrence editor** button (↻) appears next to the field. Click it to open the recurrence popover, which offers:
+
+- **Quick presets** -- Daily, Weekdays (Mon–Fri), Weekly, Biweekly, and Monthly. Select a preset to apply the corresponding RRULE immediately.
+- **Custom mode** -- for full control, select "Custom" to configure:
+  - **Frequency** -- Daily, Weekly, Monthly, or Yearly.
+  - **Interval** -- repeat every N periods (e.g., every 2 weeks).
+  - **Day selection** (weekly only) -- choose specific days of the week (Mon, Tue, Wed, etc.).
+  - **End condition** -- Never (repeats indefinitely), After N times, or On a specific date.
+
+The editor displays a human-readable summary of the current rule (e.g., "Every 2 weeks on Monday, Friday") alongside the raw RRULE string. You can edit the raw string directly if you prefer, or use the visual controls.
+
+#### Exception Dates (EXDATE)
+
+If the task has an `exceptionDates` field, a separate **exception date editor** button (✕) appears. Use it to exclude specific dates from the recurrence pattern -- for example, to skip a recurring meeting on a holiday. The editor shows the current exception list and lets you add or remove dates with a date picker.
+
+### Cross-View Drag (Kanban → Calendar)
+
+You can drag a task card from a **Kanban View** and drop it onto the calendar to schedule it. When a kanban card is dropped on a calendar date:
+
+1. The task's `scheduledStart` is set to the drop date.
+2. A default 1-hour duration is applied for the `scheduledEnd`.
+3. The task appears on the calendar immediately.
+4. A toast notification confirms: "Task scheduled."
+
+This cross-view drag works because kanban cards carry `data-iri` and `data-title` attributes that the calendar's external drop handler reads. You can also drag items from the **Explorer sidebar** onto the calendar using the same mechanism.
+
+### Composable Planning: Calendar + Kanban Side by Side
+
+A powerful pattern for task planning is to open a **Calendar View** and a **Kanban View** side by side in the dockview panel layout. This gives you a combined view of your task pipeline:
+
+- The **kanban** shows your backlog organized by status (todo, in-progress, done).
+- The **calendar** shows when tasks are scheduled in time.
+
+Drag unscheduled tasks from the kanban "todo" column onto the calendar to assign them to specific dates. Both views update in real time through the `sempkm:command-executed` event -- when you schedule a task on the calendar, the kanban reflects any status changes, and vice versa.
+
+### Scope Synchronization
+
+When you change the scope query on the calendar toolbar (or on a sibling view's toolbar), the calendar automatically re-fetches its events to match the new scope. This means two side-by-side views sharing the same scope stay in sync -- filtering to a specific project in the kanban also filters the calendar to that project's tasks.
+
+## Timeline / Gantt View
+
+Timeline View renders tasks as horizontal bars on a Gantt chart, powered by Frappe Gantt. It is designed for visualizing task schedules with dependencies -- you can see which tasks overlap, which block others, and how the overall timeline flows. Like the calendar, it supports drag-to-reschedule for quick re-planning.
+
+### How Types Qualify for Timeline View
+
+Timeline View uses the same date field detection as Calendar View (see "How Types Qualify for Calendar View" above). If the selected type has at least one date property recognized by the detection heuristics, the timeline renders. Otherwise, it displays: "Select a type with date properties to use Timeline View."
+
+### Opening the Timeline View
+
+Open Timeline View from the **Views Explorer** sidebar, the command palette (`Alt+K` → search "Timeline"), or the view menu. Select a type using the type filter pills to see tasks of that type.
+
+### Zoom Levels
+
+The Gantt chart includes a built-in **view mode selector** that lets you zoom between different time scales:
+
+- **Quarter Day** -- four slots per day, for fine-grained hour-level scheduling.
+- **Half Day** -- two slots per day.
+- **Day** -- one slot per day (useful for short-term sprints).
+- **Week** (default) -- one slot per week, good for multi-week project views.
+- **Month** -- one slot per month, for high-level quarterly planning.
+- **Year** -- one slot per year, for long-horizon roadmaps.
+
+The chart also includes a **Today** button to scroll the viewport to the current date.
+
+### Task Bars
+
+Each task is rendered as a horizontal bar whose left edge corresponds to the start date and right edge to the end date. The bar height is fixed for readability. Each bar displays the task name as a label.
+
+Clicking a task bar opens the corresponding object in an editor tab, so you can view or edit the task's full details.
+
+### Dependencies
+
+If your objects have dependency relationships (e.g., task A must complete before task B can start), the timeline renders **dependency arrows** connecting the dependent task bars. Arrows are drawn as curved lines from the end of the predecessor bar to the start of the successor bar.
+
+Dependencies are extracted from the task data returned by the backend. The timeline logs the total dependency count on initialization for diagnostic visibility.
+
+### Drag to Reschedule
+
+Click and drag a task bar to move it to a new date range. When you release the bar, the new start and end dates are persisted via the same calendar patch endpoint used by Calendar View. A toast notification confirms "Task rescheduled" on success.
+
+> **Note:** Dragging a task does not automatically move its dependents. If you reschedule a predecessor, you may want to check whether downstream tasks still have valid dates.
+
+### Recurring Tasks in Timeline
+
+Recurring tasks appear as separate bars for each virtual instance within the visible date range, just as they do in Calendar View. Each bar is labeled with the task name and positioned according to its computed occurrence date.
+
+## Map View
+
+Map View displays objects with geographic coordinates on an interactive map, powered by Leaflet with MarkerCluster. It is designed for types that include latitude and longitude properties -- for example, places, locations, or geotagged notes.
+
+### How Types Qualify for Map View
+
+SemPKM detects geographic fields using a two-pass heuristic:
+
+1. **Well-known IRI match** (highest priority) -- properties with IRIs from the WGS84 or Schema.org vocabularies are recognized automatically:
+   - `wgs84:lat` / `wgs84:long` (W3C Basic Geo)
+   - `schema:latitude` / `schema:longitude` (Schema.org)
+
+2. **Local-name heuristic** -- if no well-known IRI match is found, SemPKM checks property local names for terms like `lat`, `latitude`, `long`, `longitude`, or `lng`.
+
+Both a latitude and a longitude field must be detected -- if only one is found, the map view is not available for that type. When no geo fields are found, the view displays a help message explaining which property patterns are supported.
+
+### Opening the Map View
+
+Open Map View from the **Views Explorer** sidebar, the command palette (`Alt+K` → search "Map"), or the view menu. Select a type using the type filter pills to see objects of that type on the map.
+
+### The Map Interface
+
+The map displays an OpenStreetMap tile layer with standard pan-and-zoom controls:
+
+- **Pan** by clicking and dragging the map surface.
+- **Zoom** with the scroll wheel or the +/− buttons in the upper-left corner.
+- The map initially fits its bounds to show all markers with a small padding, so you see the full extent of your data without manual zooming.
+
+### Markers and Clusters
+
+Each object with valid latitude and longitude values is placed on the map as a **marker**. When many markers are close together, they are grouped into **clusters** -- colored circles that show a count of how many objects are in that area. Zoom in to break clusters apart into individual markers.
+
+Click a marker to see a **popup** showing the object's title. Clicking the marker also opens the corresponding object in an editor tab for viewing or editing.
+
+Clustering uses **chunked loading** for performance -- markers are added to the cluster layer progressively, so large datasets (hundreds of markers) don't freeze the browser.
+
+### Responsive Resizing
+
+The map automatically adjusts when its containing panel is resized (e.g., when you drag a dockview panel divider). A ResizeObserver watches the map container and calls Leaflet's `invalidateSize()` to ensure tiles and markers are positioned correctly after resize.
 
 ## Saved Views
 
