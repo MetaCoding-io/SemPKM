@@ -46,7 +46,7 @@ This milestone is complete only when all are true:
 
 - [x] **S01: M034 Feature Documentation** `risk:low` `depends:[]`
   > After this: user guide chapter 7 documents Calendar, Timeline, and Map views; chapter 28 documents task templates and review workflows; glossary has new terms; all 3 nav files are updated for any new entries
-- [ ] **S02: Orphan Chapter Integration & Renumbering** `risk:low` `depends:[]`
+- [x] **S02: Orphan Chapter Integration & Renumbering** `risk:low` `depends:[]`
   > After this: all 8 orphan guide files have unique chapter numbers and are linked in README.md, index.html, and guide.html; zero chapter number collisions on disk
 
 <!--
