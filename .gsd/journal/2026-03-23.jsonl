@@ -1,0 +1,6 @@
+{"ts":"2026-03-23T04:04:56.531Z","flowId":"8ece5d97-07cc-4635-a4ff-bf9d2e8c8c29","seq":1,"eventType":"iteration-start","data":{"iteration":1}}
+{"ts":"2026-03-23T04:04:56.608Z","flowId":"8ece5d97-07cc-4635-a4ff-bf9d2e8c8c29","seq":2,"eventType":"dispatch-stop","rule":"validating-milestone → validate-milestone","data":{"reason":"Cannot validate milestone M039: slices S01, S02 are missing SUMMARY files. These slices may have been skipped."}}
+{"ts":"2026-03-23T04:19:30.221Z","flowId":"f5618857-0428-4493-92ba-72712f10f87e","seq":1,"eventType":"iteration-start","data":{"iteration":1}}
+{"ts":"2026-03-23T04:19:30.355Z","flowId":"f5618857-0428-4493-92ba-72712f10f87e","seq":2,"eventType":"dispatch-match","rule":"validating-milestone → validate-milestone","data":{"unitType":"validate-milestone","unitId":"M039"}}
+{"ts":"2026-03-23T04:19:30.372Z","flowId":"f5618857-0428-4493-92ba-72712f10f87e","seq":3,"eventType":"unit-start","data":{"unitType":"validate-milestone","unitId":"M039"}}
+{"ts":"2026-03-23T04:21:40.191Z","flowId":"f5618857-0428-4493-92ba-72712f10f87e","seq":4,"eventType":"unit-end","data":{"unitType":"validate-milestone","unitId":"M039","status":"completed","artifactVerified":true},"causedBy":{"flowId":"f5618857-0428-4493-92ba-72712f10f87e","seq":3}}
