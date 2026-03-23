@@ -445,6 +445,307 @@ class TestGenerateSparql:
 # ---------------------------------------------------------------------------
 
 
+# ---------------------------------------------------------------------------
+# Additional validation tests (T05)
+# ---------------------------------------------------------------------------
+
+
+class TestValidateQueryExtended:
+    """Extended validation tests added in T05 to cover edge cases."""
+
+    @pytest.mark.asyncio
+    async def test_mutation_keyword_inside_string_literal_is_caught(self, service):
+        """Known limitation: mutation keyword check is regex-based and does
+        not strip string literals first, so DELETE inside a SPARQL string
+        literal is still flagged as forbidden."""
+        valid, error = await service.validate_query(
+            'SELECT ?s WHERE { ?s <http://example.org/desc> "to DELETE old records" }'
+        )
+        # This documents actual behavior — the regex catches DELETE even
+        # inside quotes. A future improvement could strip string literals
+        # before checking.
+        assert valid is False
+        assert "DELETE" in error
+
+    @pytest.mark.asyncio
+    async def test_accepts_known_predicates(self, service, mock_shapes_service):
+        """Query using only predicates known to the shapes service passes
+        without warnings."""
+        # mock_shapes_service.get_labels_for_predicates returns labels for
+        # dcterms:title and dcterms:description by default
+        valid, error = await service.validate_query(
+            "SELECT ?s ?title WHERE { "
+            "?s <http://purl.org/dc/terms/title> ?title }"
+        )
+        assert valid is True
+        assert error is None
+
+    @pytest.mark.asyncio
+    async def test_rejects_load(self, service):
+        valid, error = await service.validate_query("LOAD <http://example.org/data>")
+        assert valid is False
+        assert "LOAD" in error
+
+    @pytest.mark.asyncio
+    async def test_rejects_create(self, service):
+        valid, error = await service.validate_query("CREATE GRAPH <urn:test>")
+        assert valid is False
+        assert "CREATE" in error
+
+    @pytest.mark.asyncio
+    async def test_accepts_describe(self, service):
+        valid, error = await service.validate_query(
+            "DESCRIBE <https://example.org/data/p1>"
+        )
+        assert valid is True
+        assert error is None
+
+
+# ---------------------------------------------------------------------------
+# Extended result formatting tests (T05)
+# ---------------------------------------------------------------------------
+
+
+class TestExecuteAndFormatExtended:
+    """Extended formatting tests added in T05."""
+
+    @pytest.mark.asyncio
+    async def test_tabular_multiple_bindings(self, service, mock_triplestore):
+        """Multi-row results produce an enumerated list."""
+        mock_triplestore.query.return_value = {
+            "results": {
+                "bindings": [
+                    {
+                        "title": {"type": "literal", "value": "Alpha"},
+                        "status": {"type": "literal", "value": "Active"},
+                    },
+                    {
+                        "title": {"type": "literal", "value": "Beta"},
+                        "status": {"type": "literal", "value": "Completed"},
+                    },
+                    {
+                        "title": {"type": "literal", "value": "Gamma"},
+                        "status": {"type": "literal", "value": "Draft"},
+                    },
+                ]
+            }
+        }
+        result = await service.execute_and_format(
+            "SELECT ?title ?status WHERE { ?s a <Project> ; dcterms:title ?title ; bpkm:status ?status }"
+        )
+        assert "1." in result.prose
+        assert "2." in result.prose
+        assert "3." in result.prose
+        assert "Alpha" in result.prose
+        assert "Gamma" in result.prose
+
+    @pytest.mark.asyncio
+    async def test_resolves_iris_via_label_service(self, service, mock_triplestore, mock_label_service):
+        """IRI values are resolved via LabelService and rendered as [[iri|label]] markers."""
+        mock_triplestore.query.return_value = {
+            "results": {
+                "bindings": [
+                    {
+                        "project": {
+                            "type": "uri",
+                            "value": "https://example.org/data/p1",
+                        },
+                        "title": {
+                            "type": "literal",
+                            "value": "Alpha",
+                        },
+                    },
+                    {
+                        "project": {
+                            "type": "uri",
+                            "value": "https://example.org/data/p2",
+                        },
+                        "title": {
+                            "type": "literal",
+                            "value": "Beta",
+                        },
+                    },
+                ]
+            }
+        }
+        result = await service.execute_and_format(
+            "SELECT ?project ?title WHERE { ?project a <Project> ; dcterms:title ?title }"
+        )
+        # LabelService mock resolves p1→"Project Alpha", p2→"Project Beta"
+        assert "[[https://example.org/data/p1|Project Alpha]]" in result.prose
+        assert "[[https://example.org/data/p2|Project Beta]]" in result.prose
+        mock_label_service.resolve_batch.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_literal_only_results_have_no_iris(self, service, mock_triplestore):
+        """Results with only literal values produce no object_iris."""
+        mock_triplestore.query.return_value = {
+            "results": {
+                "bindings": [
+                    {"name": {"type": "literal", "value": "Foo"}},
+                    {"name": {"type": "literal", "value": "Bar"}},
+                ]
+            }
+        }
+        result = await service.execute_and_format(
+            "SELECT ?name WHERE { ?s rdfs:label ?name }"
+        )
+        assert result.object_iris == []
+        assert "Foo" in result.prose
+
+    @pytest.mark.asyncio
+    async def test_query_error_propagates(self, service, mock_triplestore):
+        """When the triplestore raises an exception, execute_and_format propagates it."""
+        mock_triplestore.query.side_effect = RuntimeError("SPARQL timeout")
+        with pytest.raises(RuntimeError, match="SPARQL timeout"):
+            await service.execute_and_format("SELECT ?s WHERE { ?s ?p ?o }")
+
+
+# ---------------------------------------------------------------------------
+# Extended system prompt tests (T05)
+# ---------------------------------------------------------------------------
+
+
+class TestBuildSystemPromptExtended:
+    """Extended system prompt tests added in T05."""
+
+    def test_includes_select_only_instructions(self):
+        prompt = _build_system_prompt("schema ctx")
+        # Must instruct LLM to use only read-only queries
+        assert "SELECT" in prompt
+        assert "INSERT" in prompt.upper() or "Never use INSERT" in prompt or "mutation" in prompt.lower()
+
+    def test_includes_graph_clause_instruction(self):
+        prompt = _build_system_prompt("schema ctx")
+        # Must mention that graph scoping is automatic
+        assert "graph" in prompt.lower() or "FROM" in prompt
+
+    def test_includes_object_link_format(self):
+        prompt = _build_system_prompt("schema ctx")
+        assert "[[" in prompt
+        assert "]]" in prompt
+
+
+# ---------------------------------------------------------------------------
+# Retry conversation tests (T05)
+# ---------------------------------------------------------------------------
+
+
+class TestRetryConversation:
+    """Verify that the self-correction loop builds correct retry messages."""
+
+    @pytest.mark.asyncio
+    async def test_retry_includes_error_in_feedback(self, service):
+        """When validation fails, the retry message includes the validation error."""
+        captured_messages = []
+
+        async def capture_llm(messages):
+            captured_messages.append(list(messages))
+            if len(captured_messages) == 1:
+                return "```sparql\nINSERT DATA { <s> <p> <o> }\n```"
+            return "```sparql\nSELECT ?s WHERE { ?s a <Project> }\n```"
+
+        await service.generate_sparql("List projects", "schema ctx", capture_llm)
+
+        # Second call should have retry feedback with the error
+        assert len(captured_messages) >= 2
+        retry_msgs = captured_messages[1]
+        # Last user message should contain the validation error
+        last_user_msg = [m for m in retry_msgs if m["role"] == "user"][-1]
+        assert "forbidden mutation keyword" in last_user_msg["content"].lower() or \
+               "INSERT" in last_user_msg["content"]
+
+    @pytest.mark.asyncio
+    async def test_retry_includes_original_response(self, service):
+        """Retry messages include the original LLM response as assistant context."""
+        captured_messages = []
+        original_response = "Here's my attempt:\n```sparql\nINSERT DATA { <s> <p> <o> }\n```"
+
+        async def capture_llm(messages):
+            captured_messages.append(list(messages))
+            if len(captured_messages) == 1:
+                return original_response
+            return "```sparql\nSELECT ?s WHERE { ?s a <Project> }\n```"
+
+        await service.generate_sparql("List projects", "schema ctx", capture_llm)
+
+        assert len(captured_messages) >= 2
+        retry_msgs = captured_messages[1]
+        assistant_msgs = [m for m in retry_msgs if m["role"] == "assistant"]
+        assert len(assistant_msgs) >= 1
+        assert original_response in assistant_msgs[0]["content"]
+
+
+# ---------------------------------------------------------------------------
+# Schema context extended tests (T05)
+# ---------------------------------------------------------------------------
+
+
+class TestBuildSchemaContextExtended:
+    """Extended schema context tests added in T05."""
+
+    @pytest.mark.asyncio
+    async def test_includes_enum_values(
+        self, mock_triplestore, mock_label_service, mock_prefix_registry
+    ):
+        """Schema context includes sh:in enum values when present."""
+        shapes_svc = AsyncMock()
+        shapes_svc.get_node_shapes.return_value = [
+            NodeShapeForm(
+                shape_iri="urn:shapes:TaskShape",
+                target_class="https://example.org/ontology/Task",
+                label="Task",
+                properties=[
+                    PropertyShape(
+                        path="https://example.org/ontology/status",
+                        name="Status",
+                        datatype=None,
+                        order=1.0,
+                        in_values=["Active", "Completed", "Draft"],
+                    ),
+                ],
+            ),
+        ]
+        svc = CopilotService(mock_triplestore, shapes_svc, mock_label_service, mock_prefix_registry)
+        ctx = await svc.build_schema_context()
+        assert "Active" in ctx
+        assert "Completed" in ctx
+        assert "Draft" in ctx
+        assert "values:" in ctx
+
+    @pytest.mark.asyncio
+    async def test_includes_object_property_references(
+        self, mock_triplestore, mock_label_service, mock_prefix_registry
+    ):
+        """Schema context includes target_class for object properties."""
+        shapes_svc = AsyncMock()
+        shapes_svc.get_node_shapes.return_value = [
+            NodeShapeForm(
+                shape_iri="urn:shapes:TaskShape",
+                target_class="https://example.org/ontology/Task",
+                label="Task",
+                properties=[
+                    PropertyShape(
+                        path="https://example.org/ontology/assignedTo",
+                        name="Assigned To",
+                        datatype=None,
+                        target_class="https://example.org/ontology/Person",
+                        order=1.0,
+                    ),
+                ],
+            ),
+        ]
+        svc = CopilotService(mock_triplestore, shapes_svc, mock_label_service, mock_prefix_registry)
+        ctx = await svc.build_schema_context()
+        assert "Assigned To" in ctx
+        assert "object:" in ctx
+
+
+# ---------------------------------------------------------------------------
+# Pydantic schema tests
+# ---------------------------------------------------------------------------
+
+
 class TestSchemas:
     def test_copilot_chat_request_schema(self):
         schema = CopilotChatRequest.model_json_schema()

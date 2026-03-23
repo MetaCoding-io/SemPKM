@@ -97,3 +97,9 @@ Write comprehensive pytest unit tests for CopilotService and an integration veri
 
 - `backend/tests/test_copilot_service.py` — comprehensive test suite (15+ tests)
 - `.gsd/milestones/M035/slices/S01/verify-s01.sh` — integration verification script
+
+## Observability Impact
+
+- **Test failure signals:** `pytest tests/test_copilot_service.py -v --tb=short` shows pass/fail per test with assertion details. 48 tests cover schema context building, SPARQL validation (including mutation rejection, read-keyword enforcement, predicate checking), result formatting (IRI pills, tabular, count, error propagation), system prompt construction, self-correction retry conversation structure, and Pydantic schema contracts.
+- **Integration verification:** `bash .gsd/milestones/M035/slices/S01/verify-s01.sh` produces a ✓/✗ checklist of 13 deliverable checks (file existence, router wiring, nginx config, template state, import health). Exit code 0 = all pass, non-zero = at least one failure.
+- **Failure visibility:** Each verification check in the script prints the specific check name on failure, making it clear which deliverable is missing or misconfigured.

@@ -74,7 +74,7 @@
   - Verify: `grep -q "query_approval\|approve" frontend/static/js/copilot.js && grep -q "approve" backend/app/api/copilot.py` — approval flow code exists in both frontend and backend
   - Done when: SPARQL queries shown for approval before execution; approve/edit/reject buttons work; self-correction retries on failure up to 2 times
 
-- [ ] **T05: Unit tests for CopilotService and integration verification script** `est:1h`
+- [x] **T05: Unit tests for CopilotService and integration verification script** `est:1h`
   - Why: S01 verification requires passing unit tests and an integration check script. This task writes the comprehensive test suite and verification script.
   - Files: `backend/tests/test_copilot_service.py`, `.gsd/milestones/M035/slices/S01/verify-s01.sh`
   - Do: (1) Write pytest unit tests for CopilotService: test `build_schema_context()` returns expected format with mock ShapesService; test `validate_query()` rejects INSERT/DELETE/DROP, accepts valid SELECT; test `validate_query()` checks predicates against known schemas; test `format_results()` resolves labels and builds prose; test `self_correct()` builds correct retry prompt; test schema context truncation when too large; (2) Write `verify-s01.sh` integration script that: checks copilot.js and copilot.css exist, checks copilot_router is in main.py, checks nginx.conf has copilot location block, checks workspace.html has copilot container (not placeholder), runs pytest for copilot tests.
