@@ -58,7 +58,7 @@
   - Verify: `python3 -c "from app.views.registry import RENDERER_REGISTRY; assert 'bmc' in RENDERER_REGISTRY"` succeeds. `grep -c "bmc" backend/app/views/router.py` returns ≥ 5. Template references correct CSS/JS paths.
   - Done when: `bmc` in `_VALID_RENDERERS` and `RENDERER_REGISTRY`, elif branch in `generic_view()`, `_detect_bmc_sections` + `_build_bmc_select` + `execute_bmc_query` methods exist on ViewSpecService, `bmc_view.html` template renders 9 section boxes
 
-- [ ] **T03: Build BMC frontend — CSS Grid layout, inline editing JS, dark mode** `est:30m`
+- [x] **T03: Build BMC frontend — CSS Grid layout, inline editing JS, dark mode** `est:30m`
   - Why: The visual presentation layer — CSS Grid positions the 9 BMC sections in the canonical poster layout, and the JS handles inline content editing with debounced saves via the command API.
   - Files: `frontend/static/css/bmc.css`, `frontend/static/js/bmc.js`
   - Do: (1) `bmc.css`: 10-column × 3-row CSS Grid with `[data-section-type]` positioning selectors for all 9 sections. Section-specific color tints (soft pastels for each section). Dark mode via `html[data-theme="dark"]` overrides. `.view-flex-column` full-height integration. Section header styling, textarea styling for content editing, empty-state hint via CSS `:empty` pseudo-element. Responsive: 2-column layout at narrow widths. (2) `bmc.js`: IIFE following `quadrant.js` structure. `initBMC(boardEl)` attaches blur/input event listeners to textareas. Debounced save (500ms) via `object.patch` command with `bp:sectionContent` property. `stopPropagation()` on drag events to isolate from dockview. Listen for `sempkm:scope-changed` to re-fetch via htmx. Error handling with console.error and visual feedback on save failure.
