@@ -97,3 +97,11 @@
 {"ts":"2026-03-23T05:33:07.832Z","flowId":"d43e9318-d4a8-4050-ae7e-f66036d6f108","seq":2,"eventType":"dispatch-match","rule":"executing → execute-task","data":{"unitType":"execute-task","unitId":"M036/S01/T02"}}
 {"ts":"2026-03-23T05:33:07.846Z","flowId":"d43e9318-d4a8-4050-ae7e-f66036d6f108","seq":3,"eventType":"unit-start","data":{"unitType":"execute-task","unitId":"M036/S01/T02"}}
 {"ts":"2026-03-23T05:37:42.869Z","flowId":"d43e9318-d4a8-4050-ae7e-f66036d6f108","seq":4,"eventType":"unit-end","data":{"unitType":"execute-task","unitId":"M036/S01/T02","status":"completed","artifactVerified":true},"causedBy":{"flowId":"d43e9318-d4a8-4050-ae7e-f66036d6f108","seq":3}}
+{"ts":"2026-03-23T05:37:43.407Z","flowId":"d43e9318-d4a8-4050-ae7e-f66036d6f108","seq":5,"eventType":"iteration-end","data":{"iteration":19}}
+{"ts":"2026-03-23T05:37:43.407Z","flowId":"9ab17958-39c9-44ea-b56e-a5e37b2c0852","seq":1,"eventType":"iteration-start","data":{"iteration":20}}
+{"ts":"2026-03-23T05:37:43.508Z","flowId":"9ab17958-39c9-44ea-b56e-a5e37b2c0852","seq":2,"eventType":"dispatch-match","rule":"executing → execute-task","data":{"unitType":"execute-task","unitId":"M036/S01/T03"}}
+{"ts":"2026-03-23T05:37:43.523Z","flowId":"9ab17958-39c9-44ea-b56e-a5e37b2c0852","seq":3,"eventType":"unit-start","data":{"unitType":"execute-task","unitId":"M036/S01/T03"}}
+{"ts":"2026-03-23T05:53:08.195Z","flowId":"886c5d42-175c-43ed-b049-4653e35a5749","seq":1,"eventType":"iteration-start","data":{"iteration":1}}
+{"ts":"2026-03-23T05:53:08.299Z","flowId":"886c5d42-175c-43ed-b049-4653e35a5749","seq":2,"eventType":"dispatch-match","rule":"executing → execute-task","data":{"unitType":"execute-task","unitId":"M036/S01/T04"}}
+{"ts":"2026-03-23T05:53:08.316Z","flowId":"886c5d42-175c-43ed-b049-4653e35a5749","seq":3,"eventType":"unit-start","data":{"unitType":"execute-task","unitId":"M036/S01/T04"}}
+{"ts":"2026-03-23T05:56:01.664Z","flowId":"886c5d42-175c-43ed-b049-4653e35a5749","seq":4,"eventType":"unit-end","data":{"unitType":"execute-task","unitId":"M036/S01/T04","status":"completed","artifactVerified":true},"causedBy":{"flowId":"886c5d42-175c-43ed-b049-4653e35a5749","seq":3}}

@@ -83,6 +83,14 @@ The JS follows `kanban.js` patterns exactly: HTML5 drag events with `stopPropaga
 - `frontend/static/css/workspace.css` — reference for theme variables and existing view styles
 - `backend/app/templates/browser/kanban_view.html` — reference template structure (38 lines)
 
+## Observability Impact
+
+- **JS console.error** on drag-patch failure: `"quadrant: failed to patch for <IRI> <error>"` — visible in browser devtools and E2E console log capture
+- **Custom event** `sempkm:command-executed` dispatched on successful patch — downstream listeners (sync, scope) can react
+- **Visual feedback**: `.dragging` class on source card (opacity 0.5), `.drag-over` class on target cell (dashed border highlight) — both are inspectable via DOM
+- **Failure state**: on API error the card reverts to source cell + toast notification — visible without devtools
+- **Cell counts** update optimistically on drop — `querySelectorAll('.quadrant-cell-count')` shows current distribution
+
 ## Expected Output
 
 - `frontend/static/js/quadrant.js` — drag-to-reclassify module with dockview isolation
