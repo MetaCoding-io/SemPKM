@@ -40,6 +40,12 @@ Final quality gate for S04. Parse all 4 JSON-LD files via rdflib and confirm the
 - `python3 -c "import rdflib; g=rdflib.Graph(); g.parse('models/business-planning/views/business-planning.jsonld', format='json-ld'); print(f'views: {len(g)} triples')"` — no error
 - `python3 -c "import rdflib; g=rdflib.Graph(); g.parse('models/business-planning/seed/business-planning.jsonld', format='json-ld'); print(f'seed: {len(g)} triples')"` — no error
 
+## Observability Impact
+
+- **No new runtime signals** — T03 is a verification-only task. It validates existing artifacts rather than adding runtime code.
+- **Future agent inspection:** If any verification check fails, the task summary's Verification Evidence table records which specific check failed and why. The fix is always in the model archive files or test file, not in runtime code.
+- **Failure visibility:** Parse errors surface as Python tracebacks with file path and line. Test failures surface via pytest output with assertion diffs. Manifest gaps surface as a list of missing type entries.
+
 ## Inputs
 
 - `models/business-planning/ontology/business-planning.jsonld` — T02 output (complete ontology)
