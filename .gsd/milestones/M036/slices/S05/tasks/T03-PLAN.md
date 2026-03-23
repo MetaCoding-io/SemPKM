@@ -9,6 +9,12 @@ skills_used: []
 **Slice:** S05 — Cross-Model Integration, E2E Tests & Documentation
 **Milestone:** M036
 
+## Observability Impact
+
+- **No runtime signals change.** This task modifies only a static documentation markdown file.
+- **Verification:** `rg "^## 5\. Business Planning" docs/guide/39-mental-model-catalog.md` confirms section exists. `rg "Eisenhower|SWOT|OKR|..." | wc -l` confirms all frameworks are documented (≥15 matches). `wc -l` confirms sufficient content (≥900 lines).
+- **Failure visibility:** Missing or incomplete documentation is detectable via the grep/wc checks above. No runtime diagnostics affected.
+
 ## Description
 
 Add a comprehensive "5. Business Planning" section to `docs/guide/39-mental-model-catalog.md` documenting all 16 business planning frameworks. Follow the exact format of existing sections (1–4) with type reference tables, field descriptions, and installation instructions. Include custom renderer descriptions, cross-model edge documentation, and SPARQL query examples. Update the Model Comparison table at the bottom.
