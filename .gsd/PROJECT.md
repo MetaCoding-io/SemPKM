@@ -402,6 +402,21 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - ✓ User guide Chapter 38, DEMO_MODE in Appendix A, 2 glossary entries — M025
 - ✓ 10 DEMO requirements validated (DEMO-01 through DEMO-10) — M025
 
+### Validated (M034 — Task Planning, Time-Blocking & Calendar UX)
+
+<!-- Shipped and confirmed in M034 (2026-03-22). -->
+
+- ✓ PLAN-01: Task time-blocking — scheduledStart/scheduledEnd/estimatedDuration on TaskShape (basic-pkm v2.2.0) — M034
+- ✓ PLAN-02: Editable calendar — drag-to-reschedule, resize duration, click-to-create with persistence — M034
+- ✓ PLAN-03: External drag to calendar — kanban-to-calendar drop scheduling at target time — M034
+- ✓ PLAN-04: Timeline/Gantt view — Frappe Gantt with dependency arrows, zoom levels, drag-to-reschedule — M034
+- ✓ PLAN-05: Recurring tasks — RRULE expansion, virtual calendar instances, recurrence editor UI — M034
+- ✓ PLAN-06: Task templates — RDF CRUD with batch instantiation, command palette integration — M034
+- ✓ PLAN-07: PPV review workflows — 4 seeded WorkflowSpecs with per-name idempotency — M034
+- ✓ PLAN-08: Composable planning — calendar + kanban side by side with shared scope context — M034
+- ✓ PLAN-09: Calendar shows tasks and events together with color coding — M034
+- ✓ PLAN-10: Timeline project-scoped filtering via saved queries — M034
+
 ### Validated (M030 — Data Quality Linting & Lint UX)
 
 <!-- Shipped and confirmed in M030 (2026-03-21). -->
@@ -613,11 +628,15 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - AI Copilot (chat about data, SPARQL generation, writing assistance) — queued as M035
 - pgvector / semantic search (deferred until keyword FTS validated in v2.2)
 
-**Task Planning, Time-Blocking & Calendar UX** — queued as M034 (depends on M033)
-- Time-blocking on bpkm:Task (scheduledStart/scheduledEnd), editable FullCalendar (drag, resize, click-to-create)
-- Custom open-source timeline/Gantt renderer with dependency arrows
-- Recurring tasks with RRULE, task templates, PPV review workflows (weekly/monthly/quarterly/yearly)
-- Composable planning surfaces (calendar + kanban side by side with shared scope)
+**Task Planning, Time-Blocking & Calendar UX** — complete (M034, 2026-03-22)
+- Editable calendar: drag-to-reschedule, resize duration, click-to-create with FullCalendar interactive mode
+- Task time-blocking: scheduledStart/scheduledEnd/estimatedDuration on bpkm:Task (basic-pkm v2.2.0)
+- Timeline/Gantt view: Frappe Gantt with dependency arrows, zoom levels, drag-to-reschedule
+- Kanban-to-calendar drag scheduling with composable scope propagation
+- Recurring tasks: RRULE expansion into virtual calendar instances, recurrence editor UI
+- Task templates: RDF CRUD with batch instantiation, command palette integration
+- PPV review workflows: 4 seeded WorkflowSpecs (Weekly/Monthly/Quarterly/Yearly)
+- 99 unit tests + 8 E2E tests. User guide docs gap — no chapters written.
 
 **AI Copilot & LLM Test Harness** — queued as M035 (depends on M033)
 - Workspace AI Copilot chat panel with SPARQL generation, graph context injection, personas
@@ -662,7 +681,21 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current State
 
-**Latest shipped: M033 Federated SPARQL, New View Renderers, App Catalog & Deployment Overhaul (2026-03-22) — 6 slices, 136 unit tests + 10 E2E tests**
+**Latest shipped: M034 Task Planning, Time-Blocking & Calendar UX (2026-03-22) — 5 slices, 99 unit tests + 8 E2E tests**
+
+**What shipped in M034:**
+- Task time-blocking: scheduledStart (xsd:dateTime), scheduledEnd (xsd:dateTime), estimatedDuration (xsd:string ISO 8601) on TaskShape, basic-pkm v2.2.0
+- Editable calendar: FullCalendar with eventDrop (drag-to-reschedule), eventResize (change duration), select (click-to-create), merged calendar query returning Events + Tasks with color coding
+- Calendar PATCH endpoint flowing through command dispatch pipeline for event log consistency
+- Timeline/Gantt view: 8th generic renderer using Frappe Gantt CDN — task bars with dependency arrows from bpkm:dependsOn, drag-to-reschedule, zoom levels (day/week/month/quarter), project-scoped filtering
+- Cross-view drag: kanban cards drag to calendar with IRI/title/duration payload, FullCalendar external drop handler, __calendarDragPayload side-channel
+- Composable planning: sempkm:scope-changed custom event propagation between dockview panels, dv-panel ID self-trigger prevention, scope-syncing CSS animation
+- Recurring tasks: python-dateutil RRULE expansion into virtual calendar events (max 52 per task, ±6 month window), EXDATE exclusions, synthetic IDs ({iri}__recurrence__{isodate}), dashed border + ↻ prefix rendering
+- Recurrence editor: IIFE with presets (daily/weekdays/weekly/biweekly/monthly/custom), custom RRULE builder (frequency/interval/day checkboxes/end conditions), EXDATE date picker, human-readable summary
+- Task templates: TaskTemplateService with RDF CRUD in urn:sempkm:task-templates named graph, REST API, batch instantiation via @slot: references through command dispatch, command palette "Create from Template" with dynamic API children
+- PPV review workflows: 4 seed WorkflowSpecs (Weekly/Monthly/Quarterly/Yearly) with per-name idempotency, 4 palette launcher commands with name-based lookup
+- 7 key decisions (D303–D309), 99 unit tests across 6 files, 8 E2E tests across 3 specs
+- ⚠️ User guide docs gap: no docs/guide chapters written for M034 features
 
 **What shipped in M033:**
 - Instance config system: `InstanceConfig` Pydantic model with atomic file persistence (`data/.instance-config.json`), config priority chain (env var > instance config > default), startup namespace warning
@@ -1071,4 +1104,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-03-22 after M032 complete (Block-Based Custom UI Builder — 10 block types, form-group with slot IRI resolution, stat-card/chart/heading data widgets, E2E tests, chapter 28 rewritten. All 3 slices done, 125 test assertions.)*
+*Last updated: 2026-03-22 after M034 complete (Task Planning, Time-Blocking & Calendar UX — editable calendar, timeline/Gantt, cross-view drag, recurring tasks, templates, review workflows. 5 slices, 99 unit tests + 8 E2E tests. All 10 PLAN requirements validated. User guide docs gap.)*
