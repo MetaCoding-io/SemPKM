@@ -2228,6 +2228,224 @@ WHERE {{
             "total": total,
         }
 
+    # ── BMC (Business Model Canvas) renderer ───────────────────
+
+    BMC_SECTION_TYPES: dict[str, str] = {
+        "key-partners": "Key Partners",
+        "key-activities": "Key Activities",
+        "key-resources": "Key Resources",
+        "value-propositions": "Value Propositions",
+        "customer-relationships": "Customer Relationships",
+        "channels": "Channels",
+        "customer-segments": "Customer Segments",
+        "cost-structure": "Cost Structure",
+        "revenue-streams": "Revenue Streams",
+    }
+
+    async def _detect_bmc_sections(
+        self, type_iri: str,
+    ) -> tuple["PropertyShape | None", "PropertyShape | None"]:
+        """Find a SHACL property with exactly 9 ``sh:in`` values (BMC section type).
+
+        Prefers a property whose path contains "sectiontype" (case-insensitive).
+        Also looks for an ObjectProperty pointing to ``bp:BusinessModelCanvas``
+        as the canvas link property.
+
+        Returns:
+            ``(section_prop, canvas_prop)`` or ``(None, None)`` when no
+            qualifying property is found.
+        """
+        if not self._shapes_service:
+            return None, None
+
+        try:
+            form: NodeShapeForm | None = (
+                await self._shapes_service.get_form_for_type(type_iri)
+            )
+        except Exception:
+            logger.warning(
+                "_detect_bmc_sections: shapes lookup failed for %s",
+                type_iri,
+                exc_info=True,
+            )
+            return None, None
+
+        if form is None:
+            return None, None
+
+        # Find the property with exactly 9 sh:in values
+        section_prop: PropertyShape | None = None
+        canvas_prop: PropertyShape | None = None
+
+        for prop in form.properties:
+            if prop.in_values and len(prop.in_values) == 9:
+                if section_prop is None:
+                    section_prop = prop
+                # Prefer property with "sectiontype" in path
+                local = _local_name(prop.path).lower()
+                if "sectiontype" in local:
+                    section_prop = prop
+
+        # Look for an ObjectProperty referencing the canvas
+        for prop in form.properties:
+            if prop.target_class:
+                local = _local_name(prop.target_class).lower()
+                if "canvas" in local or "businessmodelcanvas" in local:
+                    canvas_prop = prop
+                    break
+
+        if section_prop is None:
+            logger.debug(
+                "_detect_bmc_sections: type=%s no property with 9 sh:in values",
+                type_iri,
+            )
+            return None, None
+
+        logger.debug(
+            "_detect_bmc_sections: type=%s section_prop=%s canvas_prop=%s",
+            type_iri,
+            section_prop.path,
+            canvas_prop.path if canvas_prop else "(none)",
+        )
+        return section_prop, canvas_prop
+
+    @staticmethod
+    def _build_bmc_select(
+        type_iri: str,
+        section_path: str,
+        canvas_path: str | None = None,
+        scope_filter: str | None = None,
+    ) -> str:
+        """Build a SELECT query that fetches BMC section data.
+
+        The sectionType property is required (non-OPTIONAL).
+        sectionContent and canvas link are OPTIONAL.
+
+        Args:
+            type_iri: The RDF type IRI to filter by (e.g. BMCSection).
+            section_path: The property IRI for the sectionType field.
+            canvas_path: Optional property IRI for the canvas link.
+            scope_filter: Optional SPARQL WHERE body for scope filtering.
+
+        Returns:
+            SPARQL SELECT query string.
+        """
+        scope_clause = ""
+        if scope_filter:
+            scope_clause = f"  {{ SELECT ?s WHERE {{ {scope_filter} }} }}\n"
+
+        canvas_clause = ""
+        if canvas_path:
+            canvas_clause = f"  OPTIONAL {{ ?s <{canvas_path}> ?canvas }}\n"
+
+        return (
+            "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
+            "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n"
+            "PREFIX dcterms: <http://purl.org/dc/terms/>\n"
+            "\n"
+            "SELECT ?s ?label ?sectionType ?sectionContent ?canvas\n"
+            "WHERE {\n"
+            f"  ?s rdf:type <{type_iri}> .\n"
+            f"  ?s <{section_path}> ?sectionType .\n"
+            f"{scope_clause}"
+            "  OPTIONAL { ?s rdfs:label|dcterms:title ?label }\n"
+            "  OPTIONAL { ?s <urn:sempkm:model:business-planning:sectionContent> ?sectionContent }\n"
+            f"{canvas_clause}"
+            "}"
+        )
+
+    async def execute_bmc_query(
+        self,
+        type_iri: str,
+        section_prop: "PropertyShape",
+        canvas_prop: "PropertyShape | None",
+        scope_filter: str | None = None,
+    ) -> dict:
+        """Execute a BMC grouping query and return bucketed section data.
+
+        Groups results into 9 section buckets keyed by sectionType value.
+        Items whose sectionType doesn't match any known bucket are skipped.
+
+        Returns:
+            ``{"sections": [...], "section_types": {...}, "total": N}``
+            where each section has ``type``, ``label``, and ``items``.
+        """
+        query = self._build_bmc_select(
+            type_iri,
+            section_prop.path,
+            canvas_path=canvas_prop.path if canvas_prop else None,
+            scope_filter=scope_filter,
+        )
+        scoped = scope_to_current_graph(query)
+
+        try:
+            result = await self._client.query(scoped)
+        except Exception:
+            logger.warning(
+                "execute_bmc_query: query failed for type=%s section=%s",
+                type_iri, section_prop.path,
+                exc_info=True,
+            )
+            return {
+                "sections": [
+                    {"type": st, "label": lbl, "items": []}
+                    for st, lbl in self.BMC_SECTION_TYPES.items()
+                ],
+                "section_types": dict(self.BMC_SECTION_TYPES),
+                "total": 0,
+            }
+
+        bindings = result.get("results", {}).get("bindings", [])
+
+        # Build section buckets keyed by sectionType value
+        buckets: dict[str, list[dict]] = {
+            st: [] for st in self.BMC_SECTION_TYPES
+        }
+        seen: set[str] = set()
+
+        for b in bindings:
+            iri = b.get("s", {}).get("value", "")
+            if not iri or iri in seen:
+                continue
+            seen.add(iri)
+
+            label = b.get("label", {}).get("value", "") or _local_name(iri)
+            section_type = b.get("sectionType", {}).get("value", "")
+            content = b.get("sectionContent", {}).get("value", "")
+            canvas = b.get("canvas", {}).get("value", "")
+
+            item = {
+                "iri": iri,
+                "label": label,
+                "content": content,
+                "canvas": canvas,
+            }
+
+            if section_type in buckets:
+                buckets[section_type].append(item)
+
+        sections = [
+            {
+                "type": st,
+                "label": lbl,
+                "items": buckets[st],
+            }
+            for st, lbl in self.BMC_SECTION_TYPES.items()
+        ]
+
+        total = len(seen)
+
+        logger.info(
+            "execute_bmc_query: type=%s total=%d sections=%d",
+            type_iri, total, len(sections),
+        )
+
+        return {
+            "sections": sections,
+            "section_types": dict(self.BMC_SECTION_TYPES),
+            "total": total,
+        }
+
     # ── Timeline renderer ──────────────────────────────────────
 
     # Status value → Frappe Gantt CSS class mapping

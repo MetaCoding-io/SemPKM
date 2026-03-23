@@ -205,7 +205,7 @@ async def views_menu(
     )
 
 
-_VALID_RENDERERS = {"table", "card", "graph", "kanban", "calendar", "map", "timeline", "quadrant"}
+_VALID_RENDERERS = {"table", "card", "graph", "kanban", "calendar", "map", "timeline", "quadrant", "bmc"}
 
 
 @router.get("/generic/{renderer}")
@@ -847,6 +847,105 @@ async def generic_view(
             return _embed_response(templates, request, "browser/quadrant_view.html", context)
         return templates.TemplateResponse(request, "browser/quadrant_view.html", context)
 
+    elif renderer == "bmc":
+        if not type_iri:
+            logger.info("generic_view: renderer=bmc but no type selected")
+            return templates.TemplateResponse(
+                request,
+                "browser/bmc_view.html",
+                {
+                    "request": request,
+                    "error_message": "Select a type to use Canvas View",
+                    "sections": [],
+                    "section_types": {},
+                    "type_label": type_label,
+                    "type_iri": "",
+                    "selected_type": "",
+                    "types": types_list,
+                    "model_view_specs": model_view_specs,
+                    "scope_query": scope_query,
+                    "user_saved_queries": user_saved_queries,
+                    "model_saved_queries": model_saved_queries,
+                    "is_generic": True,
+                    "renderer": "bmc",
+                    "pagination_base_url": pagination_base_url,
+                    "pag_extra": pag_extra,
+                    "spec": spec,
+                },
+            )
+
+        section_prop, canvas_prop = await view_spec_service._detect_bmc_sections(type_iri)
+
+        if section_prop is None:
+            logger.warning("generic_view: renderer=bmc type=%s has no BMC section type property", type_iri)
+            return templates.TemplateResponse(
+                request,
+                "browser/bmc_view.html",
+                {
+                    "request": request,
+                    "error_message": "This type has no BMC section type property (needs a property with exactly 9 sh:in values)",
+                    "sections": [],
+                    "section_types": {},
+                    "type_label": type_label,
+                    "type_iri": spec.target_class,
+                    "selected_type": type_iri or "",
+                    "types": types_list,
+                    "model_view_specs": model_view_specs,
+                    "scope_query": scope_query,
+                    "user_saved_queries": user_saved_queries,
+                    "model_saved_queries": model_saved_queries,
+                    "is_generic": True,
+                    "renderer": "bmc",
+                    "pagination_base_url": pagination_base_url,
+                    "pag_extra": pag_extra,
+                    "spec": spec,
+                },
+            )
+
+        logger.info(
+            "generic_view: renderer=bmc type=%s scope_query=%s section_prop=%s",
+            type_iri, scope_query or "(none)", section_prop.path,
+        )
+
+        bmc_result = await view_spec_service.execute_bmc_query(
+            type_iri, section_prop, canvas_prop,
+            scope_filter=scope_filter_text,
+        )
+
+        # Build data URL for the BMC JSON endpoint
+        bmc_data_url = "/browser/views/generic/bmc/data"
+        bmc_data_params = []
+        if type_iri:
+            bmc_data_params.append(f"type={quote(type_iri, safe='')}")
+        if scope_query:
+            bmc_data_params.append(f"scope_query={quote(scope_query, safe='')}")
+        if bmc_data_params:
+            bmc_data_url += "?" + "&".join(bmc_data_params)
+
+        context = {
+            "request": request,
+            "sections": bmc_result["sections"],
+            "section_types": bmc_result["section_types"],
+            "total": bmc_result["total"],
+            "bmc_data_url": bmc_data_url,
+            "type_label": type_label,
+            "type_iri": spec.target_class,
+            "selected_type": type_iri or "",
+            "types": types_list,
+            "model_view_specs": model_view_specs,
+            "scope_query": scope_query,
+            "user_saved_queries": user_saved_queries,
+            "model_saved_queries": model_saved_queries,
+            "is_generic": True,
+            "renderer": "bmc",
+            "pagination_base_url": pagination_base_url,
+            "pag_extra": pag_extra,
+            "spec": spec,
+        }
+        if embed:
+            return _embed_response(templates, request, "browser/bmc_view.html", context)
+        return templates.TemplateResponse(request, "browser/bmc_view.html", context)
+
     else:  # kanban
         if not type_iri:
             logger.info("generic_view: renderer=kanban but no type selected")
@@ -953,7 +1052,7 @@ async def generic_view_data(
     For map: detects geo fields and returns marker data with coordinates.
     Accepts optional scope_query to filter results by saved query.
     """
-    if renderer not in ("graph", "calendar", "map", "timeline", "quadrant"):
+    if renderer not in ("graph", "calendar", "map", "timeline", "quadrant", "bmc"):
         return JSONResponse(content={"error": "Invalid renderer for data endpoint"}, status_code=404)
 
     type_iri = type if type else None
@@ -1018,6 +1117,18 @@ async def generic_view_data(
             return JSONResponse(content={"quadrants": [], "axes": None, "total": 0})
         result = await view_spec_service.execute_quadrant_query(
             type_iri, x_axis, y_axis, x_values, y_values,
+            scope_filter=scope_filter_text,
+        )
+        return JSONResponse(content=result)
+
+    if renderer == "bmc":
+        if not type_iri:
+            return JSONResponse(content={"sections": [], "section_types": {}, "total": 0})
+        section_prop, canvas_prop = await view_spec_service._detect_bmc_sections(type_iri)
+        if section_prop is None:
+            return JSONResponse(content={"sections": [], "section_types": {}, "total": 0})
+        result = await view_spec_service.execute_bmc_query(
+            type_iri, section_prop, canvas_prop,
             scope_filter=scope_filter_text,
         )
         return JSONResponse(content=result)

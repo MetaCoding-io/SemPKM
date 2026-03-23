@@ -9,6 +9,13 @@ skills_used: []
 **Slice:** S02 — Business Model Canvas — 9-Box Poster Renderer
 **Milestone:** M036
 
+## Observability Impact
+
+- **New log signals:** `logger.info("generic_view: renderer=bmc type=%s ...")` in router when BMC view is requested; `logger.info("execute_bmc_query: type=%s total=%d sections=%d")` in service after query execution; `logger.warning(...)` on shapes lookup failure and query failure
+- **Debug inspection:** `/browser/views/generic/bmc/data?type=<iri>` JSON endpoint returns raw BMC data (sections, section_types, total) for debugging without rendering
+- **Failure visibility:** Error template rendered when type has no 9-value `sh:in` property; empty JSON response from data endpoint when detection fails; `_detect_bmc_sections` logs at DEBUG level when no qualifying property found
+- **How to inspect:** Check `logger.info` output for `execute_bmc_query` to see section counts; hit the `/data` endpoint with curl to see raw JSON; check router logs for `generic_view: renderer=bmc` to confirm routing
+
 ## Description
 
 Wire the `bmc` renderer through all three backend layers (registry, router, service) and create the Jinja2 template. Mirrors the quadrant wiring pattern exactly: registry entry, `_VALID_RENDERERS` set, elif branches in `generic_view()` and `generic_view_data()`, and three service methods for section detection, SPARQL query building, and result grouping.
