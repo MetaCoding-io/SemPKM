@@ -58,3 +58,9 @@ Write comprehensive unit tests for both renderer pipelines, following the exact 
 
 - `backend/tests/test_okr.py` — ≥15 unit tests for OKR detection, query building, and progress computation
 - `backend/tests/test_decision_matrix.py` — ≥15 unit tests for Decision Matrix detection, query building, and weighted scoring
+
+## Observability Impact
+
+- **Test coverage signal:** `cd backend && .venv/bin/python -m pytest tests/test_okr.py tests/test_decision_matrix.py -v` — tests pin the detection, query building, and computation logic for both renderer pipelines. Regressions in progress clamping, weighted scoring, tie handling, or SHACL detection will be caught here.
+- **Inspection:** `grep -c 'def test_' backend/tests/test_okr.py` (≥15) and `grep -c 'def test_' backend/tests/test_decision_matrix.py` (≥15) confirm test density.
+- **Failure visibility:** Test names encode the edge case being verified (e.g., `test_div_by_zero`, `test_tie_handling`, `test_negative_current_clamped_to_0`) — failure output immediately identifies which computation path broke.
