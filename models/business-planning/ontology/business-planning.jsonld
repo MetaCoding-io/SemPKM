@@ -13,7 +13,7 @@
       "@id": "bp:ontology",
       "@type": "owl:Ontology",
       "rdfs:label": "Business Planning Ontology",
-      "dcterms:description": "Business planning frameworks: Eisenhower Matrix for urgency×importance prioritization, Business Model Canvas for the nine building blocks of a business model, OKR (Objectives and Key Results) for goal tracking with measurable progress, Decision Matrix for weighted multi-criteria evaluation, SWOT Analysis for strengths/weaknesses/opportunities/threats, BCG Matrix for growth-share portfolio analysis, Ansoff Matrix for growth strategy selection, Stakeholder Map for power-interest mapping, and Risk Matrix for likelihood-impact assessment."
+      "dcterms:description": "Business planning frameworks: Eisenhower Matrix for urgency×importance prioritization, Business Model Canvas for the nine building blocks of a business model, OKR (Objectives and Key Results) for goal tracking with measurable progress, Decision Matrix for weighted multi-criteria evaluation, SWOT Analysis for strengths/weaknesses/opportunities/threats, BCG Matrix for growth-share portfolio analysis, Ansoff Matrix for growth strategy selection, Stakeholder Map for power-interest mapping, Risk Matrix for likelihood-impact assessment, Porter's Five Forces for competitive analysis, PESTLE for macro-environmental scanning, Balanced Scorecard for multi-perspective strategy measurement, RACI Matrix for responsibility assignment, Value Chain for activity-based competitive advantage, and Lean Canvas for lean startup business modeling."
     },
 
     {
@@ -452,6 +452,256 @@
       "rdfs:comment": "The Risk Matrix this item belongs to",
       "rdfs:domain": { "@id": "bp:RiskItem" },
       "rdfs:range": { "@id": "bp:RiskMatrix" }
+    },
+
+    {
+      "@id": "bp:PorterAnalysis",
+      "@type": "owl:Class",
+      "rdfs:label": "Porter's Five Forces Analysis",
+      "rdfs:comment": "A container for analyzing competitive forces using Porter's Five Forces framework",
+      "rdfs:subClassOf": { "@id": "gist:Collection" }
+    },
+    {
+      "@id": "bp:PorterForce",
+      "@type": "owl:Class",
+      "rdfs:label": "Porter Force",
+      "rdfs:comment": "One of the five competitive forces in a Porter's Five Forces analysis",
+      "rdfs:subClassOf": { "@id": "bp:FrameworkItem" }
+    },
+    {
+      "@id": "bp:forceType",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Force Type",
+      "rdfs:comment": "Which of the five competitive forces this entry represents",
+      "rdfs:domain": { "@id": "bp:PorterForce" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bp:forceIntensity",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Force Intensity",
+      "rdfs:comment": "How intense this competitive force is (e.g. high, medium, low)",
+      "rdfs:domain": { "@id": "bp:PorterForce" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bp:belongsToPorter",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Belongs To Porter Analysis",
+      "rdfs:comment": "The Porter's Five Forces Analysis this force belongs to",
+      "rdfs:domain": { "@id": "bp:PorterForce" },
+      "rdfs:range": { "@id": "bp:PorterAnalysis" }
+    },
+
+    {
+      "@id": "bp:PESTLEAnalysis",
+      "@type": "owl:Class",
+      "rdfs:label": "PESTLE Analysis",
+      "rdfs:comment": "A container for analyzing macro-environmental factors using the PESTLE framework",
+      "rdfs:subClassOf": { "@id": "gist:Collection" }
+    },
+    {
+      "@id": "bp:PESTLEFactor",
+      "@type": "owl:Class",
+      "rdfs:label": "PESTLE Factor",
+      "rdfs:comment": "A macro-environmental factor classified by PESTLE category",
+      "rdfs:subClassOf": { "@id": "bp:FrameworkItem" }
+    },
+    {
+      "@id": "bp:pestleCategory",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "PESTLE Category",
+      "rdfs:comment": "Which PESTLE category this factor falls under",
+      "rdfs:domain": { "@id": "bp:PESTLEFactor" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bp:factorImpact",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Factor Impact",
+      "rdfs:comment": "The impact level of this environmental factor (e.g. high, medium, low)",
+      "rdfs:domain": { "@id": "bp:PESTLEFactor" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bp:belongsToPESTLE",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Belongs To PESTLE Analysis",
+      "rdfs:comment": "The PESTLE Analysis this factor belongs to",
+      "rdfs:domain": { "@id": "bp:PESTLEFactor" },
+      "rdfs:range": { "@id": "bp:PESTLEAnalysis" }
+    },
+
+    {
+      "@id": "bp:BalancedScorecard",
+      "@type": "owl:Class",
+      "rdfs:label": "Balanced Scorecard",
+      "rdfs:comment": "A container for strategic measures organized by the four Balanced Scorecard perspectives",
+      "rdfs:subClassOf": { "@id": "gist:Collection" }
+    },
+    {
+      "@id": "bp:BSCItem",
+      "@type": "owl:Class",
+      "rdfs:label": "BSC Item",
+      "rdfs:comment": "A strategic measure or initiative in a Balanced Scorecard, classified by perspective",
+      "rdfs:subClassOf": { "@id": "bp:FrameworkItem" }
+    },
+    {
+      "@id": "bp:bscPerspective",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "BSC Perspective",
+      "rdfs:comment": "Which Balanced Scorecard perspective this item belongs to",
+      "rdfs:domain": { "@id": "bp:BSCItem" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bp:bscMeasure",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Measure",
+      "rdfs:comment": "The metric or KPI used to track this strategic initiative",
+      "rdfs:domain": { "@id": "bp:BSCItem" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bp:bscTarget",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Target",
+      "rdfs:comment": "The target value or goal for this measure",
+      "rdfs:domain": { "@id": "bp:BSCItem" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bp:belongsToBSC",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Belongs To Balanced Scorecard",
+      "rdfs:comment": "The Balanced Scorecard this item belongs to",
+      "rdfs:domain": { "@id": "bp:BSCItem" },
+      "rdfs:range": { "@id": "bp:BalancedScorecard" }
+    },
+
+    {
+      "@id": "bp:RACIMatrix",
+      "@type": "owl:Class",
+      "rdfs:label": "RACI Matrix",
+      "rdfs:comment": "A container for responsibility assignments using the RACI (Responsible, Accountable, Consulted, Informed) framework",
+      "rdfs:subClassOf": { "@id": "gist:Collection" }
+    },
+    {
+      "@id": "bp:RACIEntry",
+      "@type": "owl:Class",
+      "rdfs:label": "RACI Entry",
+      "rdfs:comment": "A responsibility assignment linking a person to an activity with a RACI role",
+      "rdfs:subClassOf": { "@id": "bp:FrameworkItem" }
+    },
+    {
+      "@id": "bp:raciRole",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "RACI Role",
+      "rdfs:comment": "The RACI responsibility level: Responsible, Accountable, Consulted, or Informed",
+      "rdfs:domain": { "@id": "bp:RACIEntry" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bp:raciPerson",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Person",
+      "rdfs:comment": "The person or role assigned this responsibility",
+      "rdfs:domain": { "@id": "bp:RACIEntry" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bp:raciActivity",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Activity",
+      "rdfs:comment": "The activity or deliverable this responsibility assignment applies to",
+      "rdfs:domain": { "@id": "bp:RACIEntry" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bp:belongsToRACI",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Belongs To RACI Matrix",
+      "rdfs:comment": "The RACI Matrix this entry belongs to",
+      "rdfs:domain": { "@id": "bp:RACIEntry" },
+      "rdfs:range": { "@id": "bp:RACIMatrix" }
+    },
+
+    {
+      "@id": "bp:ValueChain",
+      "@type": "owl:Class",
+      "rdfs:label": "Value Chain",
+      "rdfs:comment": "A container for analyzing activities using Porter's Value Chain framework",
+      "rdfs:subClassOf": { "@id": "gist:Collection" }
+    },
+    {
+      "@id": "bp:VCActivity",
+      "@type": "owl:Class",
+      "rdfs:label": "Value Chain Activity",
+      "rdfs:comment": "An activity in a Value Chain, classified as primary or support",
+      "rdfs:subClassOf": { "@id": "bp:FrameworkItem" }
+    },
+    {
+      "@id": "bp:activityType",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Activity Type",
+      "rdfs:comment": "Whether this is a primary or support activity in the value chain",
+      "rdfs:domain": { "@id": "bp:VCActivity" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bp:activityCategory",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Activity Category",
+      "rdfs:comment": "The specific value chain category (e.g. Inbound Logistics, Operations, Marketing & Sales, HR, Technology)",
+      "rdfs:domain": { "@id": "bp:VCActivity" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bp:belongsToVC",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Belongs To Value Chain",
+      "rdfs:comment": "The Value Chain this activity belongs to",
+      "rdfs:domain": { "@id": "bp:VCActivity" },
+      "rdfs:range": { "@id": "bp:ValueChain" }
+    },
+
+    {
+      "@id": "bp:LeanCanvas",
+      "@type": "owl:Class",
+      "rdfs:label": "Lean Canvas",
+      "rdfs:comment": "A container for a Lean Canvas — a one-page business model adapted from Business Model Canvas for startups",
+      "rdfs:subClassOf": { "@id": "gist:Collection" }
+    },
+    {
+      "@id": "bp:LeanCanvasSection",
+      "@type": "owl:Class",
+      "rdfs:label": "Lean Canvas Section",
+      "rdfs:comment": "A section in a Lean Canvas representing one of the nine building blocks",
+      "rdfs:subClassOf": { "@id": "bp:FrameworkItem" }
+    },
+    {
+      "@id": "bp:leanSectionType",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Lean Section Type",
+      "rdfs:comment": "Which of the nine Lean Canvas sections this entry represents",
+      "rdfs:domain": { "@id": "bp:LeanCanvasSection" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bp:leanSectionContent",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Section Content",
+      "rdfs:comment": "Free-text content describing this section of the Lean Canvas",
+      "rdfs:domain": { "@id": "bp:LeanCanvasSection" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "bp:belongsToLeanCanvas",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Belongs To Lean Canvas",
+      "rdfs:comment": "The Lean Canvas this section belongs to",
+      "rdfs:domain": { "@id": "bp:LeanCanvasSection" },
+      "rdfs:range": { "@id": "bp:LeanCanvas" }
     }
   ]
 }
