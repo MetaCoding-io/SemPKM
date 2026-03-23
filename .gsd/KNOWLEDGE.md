@@ -508,3 +508,29 @@ When htmx swaps HTML containing `<script src="/js/foo.js"></script>` followed by
 ```
 
 This pattern is already used by `recurrence-editor.js` (T03) and now `calendar_view.html` (T04).
+
+### CopilotService module location: backend/app/copilot/ not backend/app/services/
+
+**Discovered:** M035/S01/T01
+
+CopilotService lives in `backend/app/copilot/service.py` as a dedicated package with `schemas.py` and `__init__.py`. Not in the flat `backend/app/services/` directory. The plan referenced `backend/app/services/copilot.py` but the executor chose a package structure. Future S02/S03 work (conversation persistence, personas) should add files to this package.
+
+### SSE streaming from POST endpoint: use ReadableStream, not EventSource
+
+**Discovered:** M035/S01/T03
+
+The browser's `EventSource` API only supports GET requests. The copilot chat endpoint is POST (sends messages array as JSON body). `copilot.js` uses `fetch()` with `response.body.getReader()` and manual line-based SSE parsing. The parser handles three event types: `data:` (OpenAI streaming chunks), `event: sparql_query` (SPARQL detection), and `event: error`.
+
+**Pattern:** Any future SSE endpoint that requires POST with a JSON body must use this ReadableStream approach on the frontend. The parsing logic is in `copilot.js` `_streamCopilotResponse()`.
+
+### Copilot SPARQL extraction: three-tier heuristic from LLM response text
+
+**Discovered:** M035/S01/T01
+
+LLMs return SPARQL in unpredictable formats. `_extract_sparql_from_response()` tries three strategies in order: (1) fenced ` ```sparql ` code block, (2) any fenced code block containing a SELECT/ASK keyword, (3) heuristic line detection (lines starting with SELECT/PREFIX/ASK). This handles GPT-4, Claude, and Llama response styles. Mutation keywords in generic code blocks are rejected at the extraction stage.
+
+### Custom SSE events coexist with OpenAI streaming format
+
+**Discovered:** M035/S01/T02
+
+The `/api/copilot/chat` endpoint emits both standard OpenAI `data: {"choices":[...]}` lines AND custom SSE events (`event: sparql_query`, `event: error`). The backend accumulates streamed content and emits `sparql_query` events when complete code blocks are detected. The frontend parser dispatches based on the `event:` line preceding the `data:` line. This mixed-event pattern enables inline SPARQL approval without a separate communication channel.

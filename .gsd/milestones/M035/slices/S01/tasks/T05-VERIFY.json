@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T05",
+  "unitId": "M035/S01/T05",
+  "timestamp": 1774296120357,
+  "passed": false,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "python -m pytest tests/test_copilot_service.py -v",
+      "exitCode": 127,
+      "durationMs": 16,
+      "verdict": "fail"
+    }
+  ],
+  "retryAttempt": 1,
+  "maxRetries": 2
+}
