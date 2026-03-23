@@ -47,7 +47,7 @@
 
 ## Tasks
 
-- [ ] **T01: Extend model archive with OKR + Decision Matrix types** `est:25m`
+- [x] **T01: Extend model archive with OKR + Decision Matrix types** `est:25m`
   - Why: OKR and Decision Matrix types must exist in the model archive before backend wiring can reference them — this adds 6 OWL classes, SHACL shapes, ViewSpecs, seed data, and manifest icon entries
   - Files: `models/business-planning/ontology/business-planning.jsonld`, `models/business-planning/shapes/business-planning.jsonld`, `models/business-planning/views/business-planning.jsonld`, `models/business-planning/seed/business-planning.jsonld`, `models/business-planning/manifest.yaml`
   - Do: Add 6 OWL classes (bp:Objective, bp:KeyResult, bp:DecisionMatrix, bp:Criterion, bp:Alternative, bp:Score) with properties. Add SHACL NodeShapes with PropertyGroups. Add ViewSpecs (table + okr for OKR types, table + decision-matrix for DM types). Add seed data (1 objective + 3 KRs + 1 matrix + 3 criteria + 3 alternatives + 9 scores). Add 6 icon entries to manifest. Use `bp:` namespace, inline `@context`, `item['key']` in any Jinja2.
