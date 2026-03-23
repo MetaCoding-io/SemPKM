@@ -28,7 +28,7 @@
   - Verify: `ls docs/guide/[0-9]*.md | sed 's/.*\///' | grep -oP '^\d+' | sort -n | uniq -d` returns empty
   - Done when: Zero duplicate chapter numbers; all orphan files have unique sequential numbers
 
-- [ ] **T02: Add orphan entries to all 3 navigation files** `est:45m`
+- [x] **T02: Add orphan entries to all 3 navigation files** `est:45m`
   - Why: The 3 navigation files (README.md, index.html, guide.html) must list every chapter for users to find them
   - Files: `docs/guide/README.md`, `docs/guide/index.html`, `backend/app/templates/guide.html`
   - Do: Add each renamed orphan to README.md in the appropriate Part section (sync apps go in Part VIII with other integrations; Mental Model Catalog near chapter 10/19; AI Features in Part VIII; Notion Import in Part VIII). Add matching `<a data-file="...">` entries to index.html. Add matching `<button hx-get="/guide/...">` entries to guide.html. Follow exact formatting patterns used by existing entries.
