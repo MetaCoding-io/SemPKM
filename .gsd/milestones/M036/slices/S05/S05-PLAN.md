@@ -30,7 +30,7 @@
   - Verify: `python3 -c "from rdflib import Graph; g = Graph(); g.parse('models/business-planning/ontology/business-planning.jsonld', format='json-ld'); print(len(g))"` — triple count increases; `rg "relatedTask" models/business-planning/ontology/business-planning.jsonld` returns results
   - Done when: 3 cross-model ObjectProperty declarations in ontology, 3 matching SHACL PropertyShapes in shapes, both files parse without error
 
-- [ ] **T02: E2E Playwright tests for business-planning model install and custom renderers** `est:45m`
+- [x] **T02: E2E Playwright tests for business-planning model install and custom renderers** `est:45m`
   - Why: Proves the full vertical — model install, object creation, all 4 custom renderers — works end-to-end in a running Docker stack. Covers BIZ-09 (E2E tests).
   - Files: `e2e/tests/36-business-planning/business-planning.spec.ts`, `e2e/helpers/dockview.ts`, `e2e/helpers/selectors.ts`
   - Do: Extend `openGenericViewTab` renderer union with `'quadrant' | 'bmc' | 'okr' | 'decision-matrix'`. Add view selectors to `SEL.views`. Write single consolidated test: install model → create objects via Command API → set localStorage type preselection → open each of 4 custom view tabs → verify board selectors visible → run cross-model SPARQL query → best-effort cleanup. Follow `mental-model-expansion.spec.ts` patterns. Use generous timeouts (20s) for view rendering.

@@ -82,6 +82,14 @@ export const SEL = {
     variantSelect: '.view-variant-select',
     saveViewBtn: '.save-view-btn',
     calendarEvent: '.fc-event',
+    quadrantBoard: '.quadrant-board',
+    quadrantCell: '.quadrant-cell',
+    bmcBoard: '.bmc-board',
+    bmcSection: '.bmc-section',
+    okrBoard: '.okr-board',
+    okrObjectiveCard: '.okr-objective-card',
+    dmBoard: '.dm-board',
+    dmRow: '.dm-row',
   },
 
   // Admin
