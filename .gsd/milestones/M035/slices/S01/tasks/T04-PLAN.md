@@ -70,6 +70,13 @@ Implement the SPARQL query approval flow — the key trust/safety feature of the
 - `grep -q "approve\|retry" backend/app/api/copilot.py` — approval endpoint handles all actions
 - `grep -q "copilot-approval" frontend/static/css/copilot.css` — approval card styles exist
 
+## Observability Impact
+
+- **New log events:** `copilot.approve.retry` (attempt number, original query length, error), `copilot.approve.max_retries` (final error). These extend the existing `copilot.approve.*` family from T02.
+- **Inspection:** Retry attempts are visible in the chat thread as system messages with attempt counters ("Retrying... attempt 2/3"). The approval card shows validation status inline. Browser DevTools Network tab shows each POST to `/api/copilot/approve` with the action field.
+- **Failure visibility:** Validation errors displayed on the approval card with yellow warning icon. Execution errors trigger a Retry button with the error message. After 3 failed attempts, a clear "max retries" message replaces the retry option.
+- **Redaction:** No sensitive data in approval flow — queries are user-visible by design.
+
 ## Inputs
 
 - `frontend/static/js/copilot.js` — chat UI from T03 (with approval stub)

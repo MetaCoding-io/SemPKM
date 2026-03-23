@@ -1,0 +1,17 @@
+{
+  "pyright": {
+    "command": "pyright-langserver",
+    "args": ["--stdio"],
+    "fileTypes": [".py", ".pyi"],
+    "rootMarkers": ["pyrightconfig.json", "pyproject.toml"],
+    "settings": {
+      "python": {
+        "analysis": {
+          "autoSearchPaths": true,
+          "diagnosticMode": "openFilesOnly",
+          "useLibraryCodeForTypes": true
+        }
+      }
+    }
+  }
+}

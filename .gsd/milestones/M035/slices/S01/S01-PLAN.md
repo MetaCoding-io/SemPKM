@@ -29,6 +29,7 @@
 - `cd backend && python -m pytest tests/test_copilot_service.py -v` — unit tests for CopilotService (schema context, SPARQL validation, query formatting, self-correction)
 - `cd backend && python -m pytest tests/test_ai_endpoints.py -v` — existing AI endpoint tests still pass after ai_router wiring
 - `bash .gsd/milestones/M035/slices/S01/verify-s01.sh` — integration check: confirm endpoint responds, chat UI renders, nginx proxies SSE
+- `cd backend && python -c "from app.api.copilot import copilot_router; print('import OK')"` — copilot module imports cleanly (failure-path: catches missing imports or syntax errors)
 
 ## Observability / Diagnostics
 
@@ -52,21 +53,21 @@
   - Verify: `cd backend && python -m pytest tests/test_copilot_service.py -v` — all tests pass
   - Done when: CopilotService can build schema context, generate SPARQL from a mock LLM response, validate queries, and format results with labels
 
-- [ ] **T02: Create copilot chat SSE endpoint and wire routers into main.py** `est:1h`
+- [x] **T02: Create copilot chat SSE endpoint and wire routers into main.py** `est:1h`
   - Why: The copilot needs its own streaming endpoint that injects system prompt + schema context before proxying to the LLM, plus the existing ai_router needs to be registered. Also needs nginx SSE proxy config.
   - Files: `backend/app/api/copilot.py`, `backend/app/main.py`, `frontend/nginx.conf`
   - Do: (1) Create `backend/app/api/copilot.py` with `POST /api/copilot/chat` endpoint: accepts `{messages, model?, approve_query?}` body, builds system prompt with schema context via CopilotService, prepends to messages, streams response via SSE; implement query detection in streamed content (detect ```sparql blocks), return query-approval events in the SSE stream; (2) Wire both `ai_router` and new `copilot_router` into main.py; (3) Add nginx location block for `/api/copilot/` with SSE proxy settings (proxy_buffering off, X-Accel-Buffering no, Cache-Control no-cache).
   - Verify: `cd backend && python -m pytest tests/test_ai_endpoints.py -v` — existing tests pass; `grep "copilot_router\|ai_router" backend/app/main.py` confirms both routers wired
   - Done when: `POST /api/copilot/chat` returns SSE stream; ai_router endpoints accessible; nginx proxies SSE correctly
 
-- [ ] **T03: Build copilot chat UI with streaming and markdown rendering** `est:2h`
+- [x] **T03: Build copilot chat UI with streaming and markdown rendering** `est:2h`
   - Why: Replace the placeholder in #panel-ai-copilot with a functional chat interface: message input, streaming response display, markdown rendering, and IRI pill links.
   - Files: `frontend/static/js/copilot.js`, `frontend/static/css/copilot.css`, `backend/app/templates/browser/workspace.html`, `frontend/static/js/workspace.js`
   - Do: (1) Create `copilot.js` module (lazy-loaded like sparql-console.js): manages SSE connection to /api/copilot/chat, renders user/assistant/system messages, handles streaming token display with typing indicator, renders markdown in responses (reuse markdown-render.js pattern), converts IRI references to clickable object pills (reuse SPARQL console pill pattern from sparql_result_embed.html), shows "LLM not configured" state with link to Settings; (2) Create `copilot.css` with chat message styles: message bubbles (user right-aligned, assistant left-aligned), streaming indicator, code block syntax highlighting for SPARQL, object pill styles; (3) Replace placeholder in workspace.html `#panel-ai-copilot` div with copilot chat container (message thread + input area); (4) Add lazy-load hook in workspace.js `initPanelTabs()` for ai-copilot tab (same pattern as sparql console).
   - Verify: `grep -q "copilot" frontend/static/js/copilot.js && grep -q "initCopilot" frontend/static/js/workspace.js` — files exist and are wired
   - Done when: AI COPILOT tab shows chat UI, user can type messages, responses stream in with markdown rendering and IRI pills
 
-- [ ] **T04: Implement SPARQL approval flow with self-correction** `est:1.5h`
+- [x] **T04: Implement SPARQL approval flow with self-correction** `est:1.5h`
   - Why: The demo requires showing generated SPARQL for user approval before execution. This is the key trust/safety feature — users see what query will run and can approve, edit, or reject.
   - Files: `frontend/static/js/copilot.js`, `frontend/static/css/copilot.css`, `backend/app/api/copilot.py`, `backend/app/services/copilot.py`
   - Do: (1) Backend: extend copilot chat endpoint to detect when LLM response contains SPARQL, pause streaming, emit a `query_approval` SSE event with the query text and validation result; when client sends approval (`POST /api/copilot/approve`), execute the query and stream the formatted results; on rejection, stream a "Query cancelled" message; on edit, re-validate the edited query before execution; (2) Frontend: render approval card in chat thread when `query_approval` event received — shows SPARQL in syntax-highlighted code block with Approve/Edit/Reject buttons; on approve, send approval request and show execution result; on edit, show inline textarea for query editing; on reject, show cancelled state; (3) Self-correction: if query execution fails (SPARQL error), automatically feed error back to LLM (up to 2 retries), show each retry attempt in the chat as a system message; after 3 failures, show the error and suggest rephrasing.

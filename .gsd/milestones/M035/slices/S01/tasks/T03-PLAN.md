@@ -112,3 +112,11 @@ Replace the "AI Copilot — coming in v2.1" placeholder in the workspace bottom 
 - `frontend/static/css/copilot.css` — new copilot styles
 - `backend/app/templates/browser/workspace.html` — modified (placeholder replaced with chat container)
 - `frontend/static/js/workspace.js` — modified (lazy-load hook added for ai-copilot tab)
+
+## Observability Impact
+
+- **Console logging:** `copilot.js` logs `copilot: initialized` on successful init and `copilot: stream error` on fetch failures — check browser DevTools console.
+- **SSE stream inspection:** Open browser DevTools Network tab, filter by EventStream, and inspect the `/api/copilot/chat` SSE stream to see `data:`, `event: sparql_query`, and `event: error` events in real time.
+- **LLM status check:** On init, the UI fetches `GET /api/llm/status` — a 200 with `{"available": false}` renders the "not configured" state; a 200 with `{"available": true}` shows the chat input. Network tab shows this request.
+- **Failure states visible in UI:** LLM not configured → grey "not configured" card. Stream errors → red error messages in the chat thread. Typing indicator visible during streaming. SPARQL validation errors shown on approval cards.
+- **Future agent inspection:** `grep -rn "copilot:" frontend/static/js/copilot.js` to see all console log sites. `grep -q "copilot-container" backend/app/templates/browser/workspace.html` to verify the chat container is present.

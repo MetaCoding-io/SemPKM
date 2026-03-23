@@ -15,6 +15,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from jinja2_fragments.fastapi import Jinja2Blocks
 
+from app.api.ai import ai_router
+from app.api.copilot import copilot_router
 from app.api.router import well_known_router, api_surface_router
 from app.api.setup_routes import setup_router
 from app.admin.router import router as admin_router
@@ -620,6 +622,8 @@ app.add_middleware(TimingMiddleware)
 app.include_router(monitoring_router)
 app.include_router(well_known_router)
 app.include_router(api_surface_router)
+app.include_router(ai_router)
+app.include_router(copilot_router)
 app.include_router(auth_router)
 app.include_router(setup_router)
 app.include_router(commands_router)
