@@ -198,4 +198,4 @@ The LLM assigns confidence levels and types as best it can, but these are AI-gen
 
 ---
 
-**Previous:** [Chapter 39: Notion Import](39-notion-import.md) | **Next:** [Appendix A: Environment Variable Reference](appendix-a-environment-variables.md)
+**Previous:** [Chapter 45: Notion Import](45-notion-import.md) | **Next:** [Appendix A: Environment Variable Reference](appendix-a-environment-variables.md)

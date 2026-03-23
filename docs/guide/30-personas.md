@@ -158,4 +158,4 @@ only changes what you see, not how the application behaves.
 
 ---
 
-**Previous:** [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md) | **Next:** [Chapter 31: API Surface](31-api-surface.md)
+**Previous:** [Chapter 39: Mental Model Catalog](39-mental-model-catalog.md) | **Next:** [Chapter 31: API Surface](31-api-surface.md)

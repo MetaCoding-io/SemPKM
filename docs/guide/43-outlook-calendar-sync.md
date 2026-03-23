@@ -481,4 +481,4 @@ Microsoft Graph API has throttling limits. If you sync many calendars with many 
 
 ---
 
-**Previous:** [Chapter 37: Todoist Sync](37-todoist-sync.md) | **Next:** [Chapter 39: CalDAV Calendar Sync](39-caldav-calendar-sync.md)
+**Previous:** [Chapter 42: Todoist Sync](42-todoist-sync.md) | **Next:** [Chapter 44: CalDAV Calendar Sync](44-caldav-calendar-sync.md)

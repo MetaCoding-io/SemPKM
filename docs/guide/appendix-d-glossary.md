@@ -29,7 +29,7 @@ The isolation boundary for each app: a separate Python subprocess with its own v
 The `sempkm-app-sdk` Python package that provides the `App` class, `AppContext`, and scoped clients for building SemPKM applications. Installed automatically into each app's virtual environment. See [Chapter 29: App Platform](29-app-platform.md).
 
 **Argument** (Research Workflow)
-A structured reasoning unit that synthesizes claims and evidence to address a research question. Each argument presents a thesis supported by referenced claims and evidence items. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
+A structured reasoning unit that synthesizes claims and evidence to address a research question. Each argument presents a thesis supported by referenced claims and evidence items. See [Chapter 39: Mental Model Catalog](39-mental-model-catalog.md).
 
 **Atlassian Document Format (ADF)**
 JSON-based rich text format used by Jira Cloud for issue descriptions and comments. SemPKM's Jira Sync automatically converts ADF to Markdown on import and Markdown back to ADF on push. See [Chapter 36: Jira Sync](36-jira-sync.md).
@@ -53,16 +53,16 @@ An interactive view that renders date-bearing objects on a FullCalendar grid wit
 A tabbed browsing interface for Mental Model views that groups table, card, and graph views into a single page with a tab strip. Each tab loads a different view of the same type's data, letting you switch between display formats without navigating away. See [Chapter 7: Browsing and Visualizing Data](07-browsing-and-visualizing.md).
 
 **Claim** (Research Workflow)
-A specific assertion or proposition extracted from a paper, with a confidence level ranging from established to refuted. Claims accumulate supporting and refuting evidence over time. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
+A specific assertion or proposition extracted from a paper, with a confidence level ranging from established to refuted. Claims accumulate supporting and refuting evidence over time. See [Chapter 39: Mental Model Catalog](39-mental-model-catalog.md).
 
 **Column Mapping**
 The user-configurable mapping between Monday.com board columns and SemPKM properties. Because Monday.com boards have fully customizable columns, the mapping cannot be hardcoded — users configure which columns correspond to status, priority, due date, etc. via type-filtered dropdowns. See [Chapter 37: Monday.com Sync](37-monday-sync.md).
 
 **Company** (Personal CRM)
-An organization entity representing a business your contacts work at. Tracks industry, size, and website to provide context for relationships. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
+An organization entity representing a business your contacts work at. Tracks industry, size, and website to provide context for relationships. See [Chapter 39: Mental Model Catalog](39-mental-model-catalog.md).
 
 **Contact** (Personal CRM)
-A person in your professional or personal network. Tracks name, email, role, company affiliation, and interaction history. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
+A person in your professional or personal network. Tracks name, email, role, company affiliation, and interaction history. See [Chapter 39: Mental Model Catalog](39-mental-model-catalog.md).
 
 **Content Negotiation**
 An HTTP mechanism where the server returns different representations of a resource based on the client's `Accept` header. SemPKM uses content negotiation for WebID profiles: browsers receive an HTML page while Linked Data clients receive JSON-LD or Turtle. See [Chapter 25: WebID Profiles](25-webid-profiles.md).
@@ -89,7 +89,7 @@ A configurable multi-block layout page that combines views, markdown, object emb
 SHACL-AF validation rules that detect data hygiene issues (empty bodies, orphan objects, comma-in-tags, duplicate URLs, etc.) at Warning or Info severity. Unlike structural SHACL constraints that enforce object schema (required fields, data types), data quality rules are advisory — they highlight potential issues but don't indicate broken data. Each Mental Model can ship its own rules. See [Chapter 14: System Health and Debugging](14-system-health-and-debugging.md).
 
 **Deal** (Personal CRM)
-A business opportunity tracked through a pipeline from lead through qualification, proposal, and negotiation to won or lost. Deals link to contacts and companies. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
+A business opportunity tracked through a pipeline from lead through qualification, proposal, and negotiation to won or lost. Deals link to contacts and companies. See [Chapter 39: Mental Model Catalog](39-mental-model-catalog.md).
 
 **Demo Mode**
 A configuration flag (`DEMO_MODE=true`) that makes SemPKM accessible without login for prospective users. Enables anonymous access via a synthetic guest user, bypasses the setup wizard, auto-starts the demo tour on first visit, and shows a CTA banner after tour completion. Combine with read-only nginx config to prevent data modification. See [Chapter 38: Hosted Demo](38-hosted-demo.md).
@@ -104,7 +104,7 @@ A canvas node that displays live content from another part of SemPKM (view, dash
 The process of deriving new triples from existing data using ontological reasoning rules. SemPKM supports RDFS and OWL entailment (e.g., inferring that if Alice is a `Researcher` and `Researcher` is a subclass of `Person`, then Alice is also a `Person`). Configure entailment in Settings > Inference. See [Chapter 13: Settings](13-settings.md).
 
 **Evidence** (Research Workflow)
-Empirical data, experimental results, or observations that support or refute research claims. Each piece of evidence has a type (e.g., empirical-data, case-study) and a strength assessment (strong through preliminary). See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
+Empirical data, experimental results, or observations that support or refute research claims. Each piece of evidence has a type (e.g., empirical-data, case-study) and a strength assessment (strong through preliminary). See [Chapter 39: Mental Model Catalog](39-mental-model-catalog.md).
 
 **Event**
 An immutable, timestamped record of a change made to the knowledge base. Every mutation -- creating an object, editing a property, setting a body, creating an edge -- produces an event stored as a named graph in the triplestore. Events form the audit trail and enable undo. Events record who made the change, when it happened, and exactly which triples were added or removed. See also: Named Graph, Event Sourcing.
@@ -116,7 +116,7 @@ The architectural pattern used by SemPKM where every state change is stored as a
 Objects starred by the user for quick access. Shown in the FAVORITES section of the Explorer panel.
 
 **FleetingNote** (Zettelkasten+)
-A quick-capture note in the Zettelkasten workflow — the entry point for raw ideas and thoughts that will be processed later into literature or permanent notes. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
+A quick-capture note in the Zettelkasten workflow — the entry point for raw ideas and thoughts that will be processed later into literature or permanent notes. See [Chapter 39: Mental Model Catalog](39-mental-model-catalog.md).
 
 **Gist**
 A minimalist upper ontology (v14.0.0) by Semantic Arts that provides foundational classes and properties. Auto-loaded in SemPKM as the semantic foundation for all Mental Models.
@@ -137,7 +137,7 @@ An authentication and authorization protocol built on OAuth 2.0 that uses person
 The automatic derivation of implicit facts from explicit data using ontological rules. In SemPKM, inference materializes triples such as `owl:inverseOf` relationships and `rdfs:subClassOf` hierarchies. Also called entailment. See [Chapter 13: Settings](13-settings.md).
 
 **Interaction** (Personal CRM)
-A recorded touchpoint with a contact — meetings, calls, emails, coffees, or conferences. Interactions build a contact's history and trigger follow-up tracking. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
+A recorded touchpoint with a contact — meetings, calls, emails, coffees, or conferences. Interactions build a contact's history and trigger follow-up tracking. See [Chapter 39: Mental Model Catalog](39-mental-model-catalog.md).
 
 **Instance Discovery**
 The `GET /.well-known/sempkm` endpoint that returns a JSON document describing a SemPKM instance — its version, available API endpoints, supported authentication methods, and enabled capabilities. External clients should call this endpoint first to learn how to interact with the instance. See [Chapter 31: API Surface](31-api-surface.md).
@@ -158,7 +158,7 @@ The side panel (Chrome) or sidebar (Firefox) showing related objects from SemPKM
 The CSS Grid template that arranges blocks on a dashboard. Five options: single, sidebar-main, grid-2x2, grid-3, and top-bottom. Each layout defines named slots where blocks are placed. See [Chapter 28: Dashboards and Workflows](28-dashboards-and-workflows.md).
 
 **LiteratureNote** (Zettelkasten+)
-A note that summarizes a key idea from a source in your own words. Each literature note references a single source and preserves the original quote for attribution. Part of the Zettelkasten provenance chain. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
+A note that summarizes a key idea from a source in your own words. Each literature note references a single source and preserves the original quote for attribution. Part of the Zettelkasten provenance chain. See [Chapter 39: Mental Model Catalog](39-mental-model-catalog.md).
 
 **Linear Sync**
 A SemPKM app that synchronizes Linear project management issues with `bpkm:Task` objects. Supports pull sync (Linear → SemPKM), push sync (SemPKM → Linear), and bidirectional mode. See [Chapter 34: Linear Sync](34-linear-sync.md).
@@ -188,7 +188,7 @@ The process of applying event operations to the current state graph. When a comm
 An installable package that defines a domain vocabulary for SemPKM. A Mental Model includes an ontology (types and properties), SHACL shapes (form structure and validation rules), view specifications (table, card, and graph queries), and optional seed data (starter objects). The built-in "Basic PKM" model provides Note, Concept, Project, and Person types. See also: Ontology, Shape, View.
 
 **Milestone** (Basic PKM v2.0)
-A project phase that groups related tasks toward a deliverable or deadline. Milestones have a target date and status (planned, active, completed, cancelled). See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
+A project phase that groups related tasks toward a deliverable or deadline. Milestones have a target date and status (planned, active, completed, cancelled). See [Chapter 39: Mental Model Catalog](39-mental-model-catalog.md).
 
 **Monday.com Sync**
 An app that synchronizes Monday.com board items with SemPKM `bpkm:Task` objects. Supports user-configurable column mapping, custom status/priority label mapping, bidirectional sync with LoopGuard echo prevention, groups as taskGroup, subitems as parentTask, and dependency edges. See [Chapter 37: Monday.com Sync](37-monday-sync.md).
@@ -209,10 +209,10 @@ The formal definition of types (classes) and properties within a Mental Model. W
 Web Ontology Language.
 
 **Paper** (Research Workflow)
-An academic paper, journal article, preprint, or other publication in the Research Workflow model. Papers are the source material from which claims are extracted and citation networks are built. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
+An academic paper, journal article, preprint, or other publication in the Research Workflow model. Papers are the source material from which claims are extracted and citation networks are built. See [Chapter 39: Mental Model Catalog](39-mental-model-catalog.md).
 
 **PermanentNote** (Zettelkasten+)
-An atomic, self-contained knowledge claim — the core unit of a Zettelkasten. Permanent notes express your own ideas and connect to other permanent notes via argumentation links (supports, contradicts, followsFrom, relatedTo). See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
+An atomic, self-contained knowledge claim — the core unit of a Zettelkasten. Permanent notes express your own ideas and connect to other permanent notes via argumentation links (supports, contradicts, followsFrom, relatedTo). See [Chapter 39: Mental Model Catalog](39-mental-model-catalog.md).
 
 **Persona**
 A named workspace configuration that stores panel layout, sidebar arrangement, and explorer mode. Switching personas instantly reconfigures the workspace without affecting user settings like theme or font size. See [Chapter 30: Workspace Personas](30-personas.md).
@@ -242,7 +242,7 @@ A repeating schedule defined by an iCalendar RRULE string (e.g., `FREQ=WEEKLY;BY
 Resource Description Framework. The W3C standard data model that underpins SemPKM. All data is stored as triples: subject-predicate-object statements. For example, "Alice Chen" (subject) "has job title" (predicate) "Lead Developer" (object). RDF enables flexible, schema-on-read data that can be queried, linked, and extended without migrations.
 
 **ResearchQuestion** (Research Workflow)
-An open question driving a research investigation. Research questions can be addressed by arguments that synthesize claims and evidence. Status tracks progress from open through partially-answered to answered. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
+An open question driving a research investigation. Research questions can be addressed by arguments that synthesize claims and evidence. Status tracks progress from open through partially-answered to answered. See [Chapter 39: Mental Model Catalog](39-mental-model-catalog.md).
 
 **Review Workflow**
 A seeded workflow that guides a structured review process through a sequence of view, dashboard, and form steps. SemPKM ships with five review workflows: Weekly Review, Monthly Review, Quarterly Review, Project Status Review, and Goal Alignment Review. Launched from the command palette with Ctrl+K → "review". See [Chapter 28: Dashboards and Workflows](28-dashboards-and-workflows.md).
@@ -269,7 +269,7 @@ An individual stage in a workflow. Three types: view (opens a view), dashboard (
 Jira's three-way classification of all issue statuses: `new` (not started), `indeterminate` (in progress), and `done` (completed). Every Jira status — regardless of its custom name — belongs to exactly one category. Used by SemPKM's Jira Sync for reliable cross-project status normalization. See [Chapter 36: Jira Sync](36-jira-sync.md).
 
 **StructureNote** (Zettelkasten+)
-An organizing note that curates permanent notes into coherent topics — argument maps, field surveys, or indexes. Structure notes sit at the top of the Zettelkasten provenance chain. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
+An organizing note that curates permanent notes into coherent topics — argument maps, field surveys, or indexes. Structure notes sit at the top of the Zettelkasten provenance chain. See [Chapter 39: Mental Model Catalog](39-mental-model-catalog.md).
 
 **SPARQL**
 SPARQL Protocol and RDF Query Language. The standard query language for RDF data, analogous to SQL for relational databases. SemPKM uses SPARQL internally for all data retrieval and manipulation. View specifications contain SPARQL queries that power table, card, and graph views. The bottom panel includes a SPARQL console for running ad-hoc queries.
@@ -278,7 +278,7 @@ SPARQL Protocol and RDF Query Language. The standard query language for RDF data
 (Terminological Box) The set of class definitions and their hierarchy in an ontology. Viewable in the Ontology Viewer's TBox tab.
 
 **Task** (Basic PKM v2.0)
-A unit of work with status tracking (todo, in-progress, done, blocked, cancelled), priority, effort sizing, due dates, and person assignment. Tasks link to projects and milestones to form a work graph. See [Chapter 29: Mental Model Catalog](29-mental-model-catalog.md).
+A unit of work with status tracking (todo, in-progress, done, blocked, cancelled), priority, effort sizing, due dates, and person assignment. Tasks link to projects and milestones to form a work graph. See [Chapter 39: Mental Model Catalog](39-mental-model-catalog.md).
 
 **Task Template**
 A reusable blueprint for creating pre-configured tasks. Templates store a set of property values (title pattern, priority, effort, assignee, edges) that are stamped onto new task objects via the "Create from Template" command palette action. Templates support batch instantiation where multiple linked objects are created in a single operation using `@slot:` cross-references. See [Chapter 28: Dashboards and Workflows](28-dashboards-and-workflows.md).

@@ -35,7 +35,7 @@
   - Verify: `diff <(ls docs/guide/[0-9]*.md | sed 's/.*\///' | grep -oP '^\d+' | sort -n) <(grep -oP '\d+(?=-)' docs/guide/README.md | sort -n | uniq)` shows no differences for numbered chapters
   - Done when: Every numbered `.md` file in `docs/guide/` has a corresponding entry in all 3 nav files
 
-- [ ] **T03: Audit and fix cross-references** `est:20m`
+- [x] **T03: Audit and fix cross-references** `est:20m`
   - Why: Orphan files may contain cross-references to other chapters by number; renumbered files need their internal references updated
   - Files: all renamed orphan files, plus any existing chapters that reference renumbered content
   - Do: Run `grep -rn 'Chapter [0-9]\|[0-9]*-[a-z].*\.md' docs/guide/*.md` to find all cross-references. Check each reference resolves to a real file. Fix any that point to old numbers. Check the 8 orphan files' internal chapter-number headings match their filenames.
