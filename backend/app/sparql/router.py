@@ -49,7 +49,7 @@ from app.triplestore.client import TriplestoreClient
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api")
+router = APIRouter(prefix="/api", tags=["sparql"])
 
 
 def _is_uuid(val: str) -> bool:

@@ -17,7 +17,7 @@ from app.apps.tokens import generate_app_token, get_secret, validate_app_token
 
 logger = logging.getLogger(__name__)
 
-app_proxy_router = APIRouter()
+app_proxy_router = APIRouter(tags=["app-proxy"])
 
 
 @app_proxy_router.api_route(

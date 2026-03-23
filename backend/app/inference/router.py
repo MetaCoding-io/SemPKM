@@ -23,7 +23,7 @@ from app.validation.queue import AsyncValidationQueue
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/inference")
+router = APIRouter(prefix="/api/inference", tags=["inference"])
 
 
 def _get_inference_service(

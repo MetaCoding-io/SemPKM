@@ -15,7 +15,7 @@ from app.dependencies import get_validation_queue, get_validation_service
 from app.services.validation import ValidationService
 from app.validation.queue import AsyncValidationQueue
 
-router = APIRouter(prefix="/api")
+router = APIRouter(prefix="/api", tags=["validation"])
 
 
 @router.get("/validation/latest")

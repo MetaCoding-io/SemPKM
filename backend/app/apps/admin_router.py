@@ -21,7 +21,7 @@ from app.auth.models import User
 
 logger = logging.getLogger(__name__)
 
-app_admin_router = APIRouter()
+app_admin_router = APIRouter(tags=["app-management"])
 
 
 def _is_htmx_request(request: Request) -> bool:
