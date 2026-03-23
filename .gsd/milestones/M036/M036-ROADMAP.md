@@ -60,7 +60,7 @@ This milestone is complete only when all are true:
 
 - [x] **S01: Eisenhower Matrix — Model Archive + Quadrant Renderer** `risk:high` `depends:[]`
   > After this: User installs business-planning model, creates an Eisenhower Matrix, sees items in a 2×2 quadrant view, and drags items between quadrants with RDF property updates.
-- [ ] **S02: Business Model Canvas — 9-Box Poster Renderer** `risk:high` `depends:[S01]`
+- [x] **S02: Business Model Canvas — 9-Box Poster Renderer** `risk:high` `depends:[S01]`
   > After this: User creates a Business Model Canvas and fills the 9 standard sections (Key Partners, Key Activities, Value Propositions, etc.) in a poster-style grid layout with inline editing.
 - [ ] **S03: OKR Progress + Decision Matrix Weighted Scoring** `risk:medium` `depends:[S01]`
   > After this: User creates OKR Objectives with Key Results showing progress bars, and Decision Matrices with weighted criteria showing auto-ranked alternatives.
