@@ -96,7 +96,7 @@ Orphan risks: None — all prior Active requirements (APP-01..14, RSS-01..08, GC
   - **Proof:** Unit test: RRULE expansion generates correct dates, respects EXDATE. E2E test: recurring task shows virtual instances on calendar.
   - **Verification:** `contract` `integration`
 
-- [ ] **S05: Task Templates & Review Workflows** `risk:low` `depends:[S01]`
+- [x] **S05: Task Templates & Review Workflows** `risk:low` `depends:[S01]`
   > After this: User creates a task template with a title pattern, default properties, and subtask structure. "Create from Template" appears in the command palette. PPV review workflows (weekly/monthly/quarterly/yearly) are available as pre-seeded WorkflowSpecs that guide users through review steps and create linked Review objects.
   - **Demo:** Open command palette → "Create from Template" → select "Sprint Planning" → new task created with defaults. Run "Weekly Review" workflow → stepper guides through completed tasks, next week goals → creates ppv:WeeklyReview object linked to the month.
   - **Proof:** E2E test: create task from template, verify properties match. E2E test: run weekly review workflow, verify ppv:WeeklyReview object created with correct links.
