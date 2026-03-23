@@ -695,7 +695,20 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current State
 
-**Latest shipped: M039 RDF Data Import & API Documentation Cleanup (2026-03-22) — 2 slices, 29 unit tests**
+**Latest shipped: M040 Cleanup - Documentation, UI Fixes & Bug Squashing (2026-03-23) — 2 slices, pure documentation**
+
+**What shipped in M040:**
+- User guide Chapter 7 expanded to cover all 7 renderers: Table, Cards, Graph, Kanban, Calendar, Timeline/Gantt, Map
+- Calendar View docs include recurring tasks (RRULE editor, EXDATE), cross-view drag, composable planning pattern
+- Timeline/Gantt View docs cover date field detection, zoom levels, dependency arrows, drag-to-reschedule
+- Map View docs cover geo field detection, OpenStreetMap tiles, marker clusters, chunked loading
+- Chapter 28 expanded with Task Templates (REST API, command palette, batch instantiation) and Review Workflows (5 seeded workflows, stepper UI, customization)
+- 8 new glossary entries in Appendix D
+- 9 orphaned guide chapters renumbered to unique chapters 39–47 and integrated into all 3 nav files
+- 27 broken cross-references fixed across 9 files
+- Three-file nav sync verified and drift issues fixed (duplicate entries removed, missing entries added)
+- User guide now has 47 numbered chapters + 6 appendices, zero collisions, zero broken cross-references
+- Resolves the docs gap flagged in M039 ("⚠️ no docs/guide chapters written for M034 features")
 
 **What shipped in M039:**
 - RDF data import wizard: paste or upload JSON-LD, Turtle, N-Triples → 3-step flow (input → preview → import)
@@ -711,7 +724,6 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Task templates: TaskTemplateService with RDF CRUD in urn:sempkm:task-templates named graph, REST API, batch instantiation via @slot: references through command dispatch, command palette "Create from Template" with dynamic API children
 - PPV review workflows: 4 seed WorkflowSpecs (Weekly/Monthly/Quarterly/Yearly) with per-name idempotency, 4 palette launcher commands with name-based lookup
 - 7 key decisions (D303–D309), 99 unit tests across 6 files, 8 E2E tests across 3 specs
-- ⚠️ User guide docs gap: no docs/guide chapters written for M034 features
 
 **What shipped in M033:**
 - Instance config system: `InstanceConfig` Pydantic model with atomic file persistence (`data/.instance-config.json`), config priority chain (env var > instance config > default), startup namespace warning
