@@ -17,6 +17,7 @@
 <script src="https://cdn.jsdelivr.net/npm/dockview-core@4.11.0/dist/dockview-core.min.js"></script>
 {% endif %}
 <link rel="stylesheet" href="{{ 'federation.css' | asset_url }}">
+<link rel="stylesheet" href="/css/copilot.css">
 <script src="{{ 'federation.js' | asset_url }}" defer></script>
 {% endblock %}
 
@@ -181,9 +182,17 @@
               {% include 'browser/inference_panel.html' %}
             </div>
             <div class="panel-pane" id="panel-ai-copilot">
-              <div class="panel-placeholder">
-                <i data-lucide="bot" style="width:24px;height:24px;display:block;margin:0 auto 8px;"></i>
-                AI Copilot — coming in v2.1
+              <div class="copilot-container" id="copilot-container">
+                <div class="copilot-messages" id="copilot-messages"></div>
+                <div class="copilot-input-area">
+                  <textarea class="copilot-input" id="copilot-input"
+                            placeholder="Ask about your knowledge graph..."
+                            rows="1" aria-label="Copilot message input"></textarea>
+                  <button class="copilot-send-btn" id="copilot-send-btn"
+                          title="Send message (Enter)" aria-label="Send message" disabled>
+                    <i data-lucide="send-horizontal"></i>
+                  </button>
+                </div>
               </div>
             </div>
             <div class="panel-pane" id="panel-lint-dashboard"

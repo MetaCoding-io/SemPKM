@@ -426,6 +426,19 @@
         });
       }
     }
+
+    // Lazy-load Copilot chat on first activation
+    if (panelState.open && panelState.activeTab === 'ai-copilot') {
+      if (!window._copilotInit) {
+        window._copilotInit = true;
+        import('/js/copilot.js').then(function(mod) {
+          mod.initCopilotChat();
+        }).catch(function(err) {
+          console.error('Failed to load copilot:', err);
+          window._copilotInit = false;
+        });
+      }
+    }
   }
 
   function toggleBottomPanel() {
@@ -493,6 +506,14 @@
               target: '#panel-event-log',
               swap: 'innerHTML'
             });
+          }
+        }
+
+        // Focus copilot input when switching to ai-copilot tab
+        if (btn.dataset.panel === 'ai-copilot' && window._copilotInit) {
+          var copilotInput = document.getElementById('copilot-input');
+          if (copilotInput && !copilotInput.disabled) {
+            copilotInput.focus();
           }
         }
 
