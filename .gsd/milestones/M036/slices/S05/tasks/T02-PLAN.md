@@ -93,3 +93,11 @@ Follows the established `mental-model-expansion.spec.ts` pattern: single consoli
 - `e2e/tests/36-business-planning/business-planning.spec.ts` — new E2E spec file
 - `e2e/helpers/dockview.ts` — updated renderer type union
 - `e2e/helpers/selectors.ts` — updated with new view selectors
+
+## Observability Impact
+
+- **E2E test runtime:** `npx playwright test tests/36-business-planning/` exercises model install, 4 view renderers, and SPARQL query — failures identify the exact step and selector that broke
+- **TypeScript compile:** `cd e2e && npx tsc --noEmit 2>&1 | grep 36-business-planning` confirms new spec has no type errors; grep for `helpers/dockview` and `helpers/selectors` verifies helper changes are clean
+- **Selector constants:** `rg "quadrantBoard|bmcBoard|okrBoard|dmBoard" e2e/helpers/selectors.ts` confirms all 4 view selectors exist
+- **Renderer union:** `rg "quadrant.*bmc.*okr.*decision-matrix" e2e/helpers/dockview.ts` confirms the type union includes all business-planning renderers
+- **Failure state visibility:** Playwright reports include step name, selector, timeout, and screenshot on failure — no custom instrumentation needed beyond the assertions in the spec
