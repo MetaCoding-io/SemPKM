@@ -876,6 +876,501 @@
           "sh:group": { "@id": "bp:ScoreMetadataGroup" }
         }
       ]
+    },
+
+    {
+      "@id": "bp:SWOTAnalysisShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bp:SWOTAnalysis" },
+      "rdfs:label": "SWOT Analysis Shape",
+      "sempkm:editHelpText": "A SWOT Analysis identifies Strengths, Weaknesses, Opportunities, and Threats. Create the analysis container first, then add items classified by nature and valence.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bp:MatrixBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bp:MatrixBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bp:MatrixMetadataGroup" }
+        }
+      ]
+    },
+    {
+      "@id": "bp:SWOTItemShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bp:SWOTItem" },
+      "rdfs:label": "SWOT Item Shape",
+      "sempkm:editHelpText": "An item in a SWOT Analysis. Set nature (internal/external) and valence (positive/negative) to classify into Strengths, Weaknesses, Opportunities, or Threats.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bp:ItemBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bp:ItemBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "bp:swotNature" },
+          "sh:name": "Nature",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["internal", "external"] },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bp:ItemClassificationGroup" },
+          "sh:description": "Internal (within the organization) or external (in the environment)."
+        },
+        {
+          "sh:path": { "@id": "bp:swotValence" },
+          "sh:name": "Valence",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["positive", "negative"] },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "bp:ItemClassificationGroup" },
+          "sh:description": "Positive (helpful) or negative (harmful) factor."
+        },
+        {
+          "sh:path": { "@id": "bp:belongsToSWOT" },
+          "sh:name": "SWOT Analysis",
+          "sh:class": { "@id": "bp:SWOTAnalysis" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "bp:ItemRelationshipsGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "bp:ItemMetadataGroup" }
+        }
+      ]
+    },
+
+    {
+      "@id": "bp:BCGMatrixShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bp:BCGMatrix" },
+      "rdfs:label": "BCG Matrix Shape",
+      "sempkm:editHelpText": "A BCG (Boston Consulting Group) Matrix classifies business units by market growth rate and relative market share into Stars, Cash Cows, Question Marks, and Dogs.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bp:MatrixBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bp:MatrixBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bp:MatrixMetadataGroup" }
+        }
+      ]
+    },
+    {
+      "@id": "bp:BCGItemShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bp:BCGItem" },
+      "rdfs:label": "BCG Item Shape",
+      "sempkm:editHelpText": "A business unit or product line in a BCG Matrix. Set market growth (high/low) and market share (high/low) to classify into Stars, Cash Cows, Question Marks, or Dogs.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bp:ItemBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bp:ItemBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "bp:marketGrowth" },
+          "sh:name": "Market Growth",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["high", "low"] },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bp:ItemClassificationGroup" },
+          "sh:description": "Rate of market growth (high or low)."
+        },
+        {
+          "sh:path": { "@id": "bp:marketShare" },
+          "sh:name": "Market Share",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["high", "low"] },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "bp:ItemClassificationGroup" },
+          "sh:description": "Relative market share (high or low)."
+        },
+        {
+          "sh:path": { "@id": "bp:belongsToBCG" },
+          "sh:name": "BCG Matrix",
+          "sh:class": { "@id": "bp:BCGMatrix" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "bp:ItemRelationshipsGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "bp:ItemMetadataGroup" }
+        }
+      ]
+    },
+
+    {
+      "@id": "bp:AnsoffMatrixShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bp:AnsoffMatrix" },
+      "rdfs:label": "Ansoff Matrix Shape",
+      "sempkm:editHelpText": "An Ansoff Matrix maps growth strategies across market novelty and product novelty: Market Penetration, Market Development, Product Development, and Diversification.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bp:MatrixBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bp:MatrixBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bp:MatrixMetadataGroup" }
+        }
+      ]
+    },
+    {
+      "@id": "bp:AnsoffItemShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bp:AnsoffItem" },
+      "rdfs:label": "Ansoff Item Shape",
+      "sempkm:editHelpText": "A growth strategy in an Ansoff Matrix. Set market novelty (existing/new) and product novelty (existing/new) to classify the strategy.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bp:ItemBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bp:ItemBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "bp:marketNovelty" },
+          "sh:name": "Market Novelty",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["existing", "new"] },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bp:ItemClassificationGroup" },
+          "sh:description": "Whether the target market is existing or new."
+        },
+        {
+          "sh:path": { "@id": "bp:productNovelty" },
+          "sh:name": "Product Novelty",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["existing", "new"] },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "bp:ItemClassificationGroup" },
+          "sh:description": "Whether the product or service is existing or new."
+        },
+        {
+          "sh:path": { "@id": "bp:belongsToAnsoff" },
+          "sh:name": "Ansoff Matrix",
+          "sh:class": { "@id": "bp:AnsoffMatrix" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "bp:ItemRelationshipsGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "bp:ItemMetadataGroup" }
+        }
+      ]
+    },
+
+    {
+      "@id": "bp:StakeholderMapShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bp:StakeholderMap" },
+      "rdfs:label": "Stakeholder Map Shape",
+      "sempkm:editHelpText": "A Stakeholder Map plots stakeholders by their level of power and interest to determine engagement strategy: Manage Closely, Keep Satisfied, Keep Informed, or Monitor.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bp:MatrixBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bp:MatrixBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bp:MatrixMetadataGroup" }
+        }
+      ]
+    },
+    {
+      "@id": "bp:StakeholderItemShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bp:StakeholderItem" },
+      "rdfs:label": "Stakeholder Item Shape",
+      "sempkm:editHelpText": "A stakeholder in a Stakeholder Map. Set power (high/low) and interest (high/low) to determine the engagement strategy.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bp:ItemBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bp:ItemBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "bp:stakeholderPower" },
+          "sh:name": "Stakeholder Power",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["high", "low"] },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bp:ItemClassificationGroup" },
+          "sh:description": "Level of power or influence (high or low)."
+        },
+        {
+          "sh:path": { "@id": "bp:stakeholderInterest" },
+          "sh:name": "Stakeholder Interest",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["high", "low"] },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "bp:ItemClassificationGroup" },
+          "sh:description": "Level of interest in the project (high or low)."
+        },
+        {
+          "sh:path": { "@id": "bp:belongsToStakeholderMap" },
+          "sh:name": "Stakeholder Map",
+          "sh:class": { "@id": "bp:StakeholderMap" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "bp:ItemRelationshipsGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "bp:ItemMetadataGroup" }
+        }
+      ]
+    },
+
+    {
+      "@id": "bp:RiskMatrixShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bp:RiskMatrix" },
+      "rdfs:label": "Risk Matrix Shape",
+      "sempkm:editHelpText": "A Risk Matrix assesses risks by plotting likelihood against impact to prioritize risk response: Critical, Mitigate, Monitor, or Accept.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bp:MatrixBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bp:MatrixBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bp:MatrixMetadataGroup" }
+        }
+      ]
+    },
+    {
+      "@id": "bp:RiskItemShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "bp:RiskItem" },
+      "rdfs:label": "Risk Item Shape",
+      "sempkm:editHelpText": "A risk in a Risk Matrix. Set likelihood (high/low) and impact (high/low) to determine the risk response strategy.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "bp:ItemBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "bp:ItemBasicInfoGroup" }
+        },
+        {
+          "sh:path": { "@id": "bp:riskLikelihood" },
+          "sh:name": "Risk Likelihood",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["high", "low"] },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "bp:ItemClassificationGroup" },
+          "sh:description": "How likely this risk is to occur (high or low)."
+        },
+        {
+          "sh:path": { "@id": "bp:riskImpact" },
+          "sh:name": "Risk Impact",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["high", "low"] },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "bp:ItemClassificationGroup" },
+          "sh:description": "How severe the impact would be (high or low)."
+        },
+        {
+          "sh:path": { "@id": "bp:belongsToRiskMatrix" },
+          "sh:name": "Risk Matrix",
+          "sh:class": { "@id": "bp:RiskMatrix" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "bp:ItemRelationshipsGroup" }
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "bp:ItemMetadataGroup" }
+        }
+      ]
     }
   ]
 }

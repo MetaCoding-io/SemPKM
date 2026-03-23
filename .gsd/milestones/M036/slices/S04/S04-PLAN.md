@@ -36,7 +36,7 @@
 
 ## Tasks
 
-- [ ] **T01: Quadrant framework types — SWOT, BCG, Ansoff, Stakeholder Map, Risk Matrix** `est:1h30m`
+- [x] **T01: Quadrant framework types — SWOT, BCG, Ansoff, Stakeholder Map, Risk Matrix** `est:1h30m`
   - Why: 5 frameworks reuse the quadrant renderer but need ontology types, SHACL shapes with 2-value `sh:in` axes, ViewSpecs, seed data, manifest icons, and backend label/axis detection extensions
   - Files: `models/business-planning/ontology/business-planning.jsonld`, `models/business-planning/shapes/business-planning.jsonld`, `models/business-planning/views/business-planning.jsonld`, `models/business-planning/seed/business-planning.jsonld`, `models/business-planning/manifest.yaml`, `backend/app/views/service.py`, `backend/tests/test_quadrant.py`
   - Do: (1) Add 10 OWL classes (5 containers subclassing gist:Collection + 5 items subclassing bp:QuadrantItem) and 10 axis properties to ontology. (2) Add 10 NodeShapes with sh:in axis constraints to shapes. (3) Add 15 ViewSpecs (quadrant + table for each item type, table for each container). (4) Add seed data (1 container + 2–3 items per framework = ~15 entities). (5) Add 10 icon entries to manifest. (6) Restructure `_EISENHOWER_QUADRANT_LABELS` → `_QUADRANT_LABELS` multi-framework dict and update `_quadrant_label()` dispatch. (7) Add keyword pairs to `_detect_quadrant_axes()`. (8) Add ~10 unit tests for new label mappings and axis detection keywords.

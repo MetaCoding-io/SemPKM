@@ -1,7 +1,7 @@
 modelId: business-planning
 version: "1.0.0"
 name: "Business Planning"
-description: "Business planning frameworks including the Eisenhower Matrix for urgency×importance prioritization, the Business Model Canvas for mapping the nine building blocks of a business model, OKR for measurable goal tracking, and Decision Matrix for weighted multi-criteria evaluation. Provides quadrant-based views, poster-style canvas layout, OKR progress bars, decision matrix scoring, and drag-to-reclassify interaction for visual strategy work."
+description: "Business planning frameworks including the Eisenhower Matrix for urgency×importance prioritization, the Business Model Canvas for mapping the nine building blocks of a business model, OKR for measurable goal tracking, Decision Matrix for weighted multi-criteria evaluation, SWOT Analysis, BCG Matrix, Ansoff Matrix, Stakeholder Map, and Risk Matrix. Provides quadrant-based views, poster-style canvas layout, OKR progress bars, decision matrix scoring, and drag-to-reclassify interaction for visual strategy work."
 namespace: "urn:sempkm:model:business-planning:"
 prefixes:
   bp: "urn:sempkm:model:business-planning:"
@@ -151,3 +151,143 @@ icons:
     graph:
       icon: "hash"
       color: "#64748b"
+  - type: "bp:SWOTAnalysis"
+    icon: "compass"
+    color: "#0d9488"
+    tree:
+      icon: "compass"
+      color: "#0d9488"
+      size: 16
+    tab:
+      icon: "compass"
+      color: "#0d9488"
+      size: 14
+    graph:
+      icon: "compass"
+      color: "#0d9488"
+  - type: "bp:SWOTItem"
+    icon: "crosshair"
+    color: "#14b8a6"
+    tree:
+      icon: "crosshair"
+      color: "#14b8a6"
+      size: 16
+    tab:
+      icon: "crosshair"
+      color: "#14b8a6"
+      size: 14
+    graph:
+      icon: "crosshair"
+      color: "#14b8a6"
+  - type: "bp:BCGMatrix"
+    icon: "pie-chart"
+    color: "#8b5cf6"
+    tree:
+      icon: "pie-chart"
+      color: "#8b5cf6"
+      size: 16
+    tab:
+      icon: "pie-chart"
+      color: "#8b5cf6"
+      size: 14
+    graph:
+      icon: "pie-chart"
+      color: "#8b5cf6"
+  - type: "bp:BCGItem"
+    icon: "circle-dot"
+    color: "#a78bfa"
+    tree:
+      icon: "circle-dot"
+      color: "#a78bfa"
+      size: 16
+    tab:
+      icon: "circle-dot"
+      color: "#a78bfa"
+      size: 14
+    graph:
+      icon: "circle-dot"
+      color: "#a78bfa"
+  - type: "bp:AnsoffMatrix"
+    icon: "expand"
+    color: "#ea580c"
+    tree:
+      icon: "expand"
+      color: "#ea580c"
+      size: 16
+    tab:
+      icon: "expand"
+      color: "#ea580c"
+      size: 14
+    graph:
+      icon: "expand"
+      color: "#ea580c"
+  - type: "bp:AnsoffItem"
+    icon: "move-diagonal"
+    color: "#f97316"
+    tree:
+      icon: "move-diagonal"
+      color: "#f97316"
+      size: 16
+    tab:
+      icon: "move-diagonal"
+      color: "#f97316"
+      size: 14
+    graph:
+      icon: "move-diagonal"
+      color: "#f97316"
+  - type: "bp:StakeholderMap"
+    icon: "users"
+    color: "#0284c7"
+    tree:
+      icon: "users"
+      color: "#0284c7"
+      size: 16
+    tab:
+      icon: "users"
+      color: "#0284c7"
+      size: 14
+    graph:
+      icon: "users"
+      color: "#0284c7"
+  - type: "bp:StakeholderItem"
+    icon: "user-check"
+    color: "#0ea5e9"
+    tree:
+      icon: "user-check"
+      color: "#0ea5e9"
+      size: 16
+    tab:
+      icon: "user-check"
+      color: "#0ea5e9"
+      size: 14
+    graph:
+      icon: "user-check"
+      color: "#0ea5e9"
+  - type: "bp:RiskMatrix"
+    icon: "alert-triangle"
+    color: "#dc2626"
+    tree:
+      icon: "alert-triangle"
+      color: "#dc2626"
+      size: 16
+    tab:
+      icon: "alert-triangle"
+      color: "#dc2626"
+      size: 14
+    graph:
+      icon: "alert-triangle"
+      color: "#dc2626"
+  - type: "bp:RiskItem"
+    icon: "shield-alert"
+    color: "#ef4444"
+    tree:
+      icon: "shield-alert"
+      color: "#ef4444"
+      size: 16
+    tab:
+      icon: "shield-alert"
+      color: "#ef4444"
+      size: 14
+    graph:
+      icon: "shield-alert"
+      color: "#ef4444"

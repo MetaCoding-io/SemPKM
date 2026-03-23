@@ -1982,12 +1982,56 @@ WHERE {{
     # ── Quadrant renderer ──────────────────────────────────────
 
     # Well-known Eisenhower quadrant labels: (x_value, y_value) → label
-    _EISENHOWER_QUADRANT_LABELS: dict[tuple[str, str], str] = {
-        ("high", "high"): "Do First",
-        ("low", "high"): "Schedule",
-        ("high", "low"): "Delegate",
-        ("low", "low"): "Eliminate",
+    # Multi-framework quadrant label mappings keyed by framework id.
+    _QUADRANT_LABELS: dict[str, dict[tuple[str, str], str]] = {
+        "eisenhower": {
+            ("high", "high"): "Do First",
+            ("low", "high"): "Schedule",
+            ("high", "low"): "Delegate",
+            ("low", "low"): "Eliminate",
+        },
+        "swot": {
+            ("internal", "positive"): "Strengths",
+            ("external", "positive"): "Opportunities",
+            ("internal", "negative"): "Weaknesses",
+            ("external", "negative"): "Threats",
+        },
+        "bcg": {
+            ("high", "high"): "Stars",
+            ("low", "high"): "Question Marks",
+            ("high", "low"): "Cash Cows",
+            ("low", "low"): "Dogs",
+        },
+        "ansoff": {
+            ("existing", "existing"): "Market Penetration",
+            ("existing", "new"): "Market Development",
+            ("new", "existing"): "Product Development",
+            ("new", "new"): "Diversification",
+        },
+        "stakeholder": {
+            ("high", "high"): "Manage Closely",
+            ("low", "high"): "Keep Satisfied",
+            ("high", "low"): "Keep Informed",
+            ("low", "low"): "Monitor",
+        },
+        "risk": {
+            ("high", "high"): "Critical",
+            ("low", "high"): "Monitor",
+            ("high", "low"): "Mitigate",
+            ("low", "low"): "Accept",
+        },
     }
+
+    # Keyword pairs for axis assignment: (x_keyword, y_keyword) → framework id.
+    # The first matching pair wins. Check is case-insensitive on the local name.
+    _AXIS_KEYWORD_PAIRS: list[tuple[str, str, str]] = [
+        ("urgency", "importance", "eisenhower"),
+        ("nature", "valence", "swot"),
+        ("growth", "share", "bcg"),
+        ("market", "product", "ansoff"),
+        ("power", "interest", "stakeholder"),
+        ("likelihood", "impact", "risk"),
+    ]
 
     async def _detect_quadrant_axes(
         self, type_iri: str,
@@ -2038,12 +2082,19 @@ WHERE {{
         x_axis: PropertyShape | None = None
         y_axis: PropertyShape | None = None
 
-        for prop in candidates:
-            local = _local_name(prop.path).lower()
-            if "urgency" in local and x_axis is None:
-                x_axis = prop
-            elif "importance" in local and y_axis is None:
-                y_axis = prop
+        for x_kw, y_kw, _fid in self._AXIS_KEYWORD_PAIRS:
+            x_candidate: PropertyShape | None = None
+            y_candidate: PropertyShape | None = None
+            for prop in candidates:
+                local = _local_name(prop.path).lower()
+                if x_kw in local and x_candidate is None:
+                    x_candidate = prop
+                elif y_kw in local and y_candidate is None:
+                    y_candidate = prop
+            if x_candidate and y_candidate:
+                x_axis = x_candidate
+                y_axis = y_candidate
+                break
 
         # Fill in any unassigned axis with remaining candidates
         remaining = [p for p in candidates if p is not x_axis and p is not y_axis]
@@ -2109,12 +2160,25 @@ WHERE {{
     ) -> str:
         """Generate a human-readable label for a quadrant cell.
 
-        Uses Eisenhower-specific labels when available, otherwise
-        falls back to a generic ``"X: val / Y: val"`` pattern.
+        Derives the framework key from axis names using keyword matching,
+        then looks up the framework-specific label dict.  Falls back to
+        a generic ``"X: val / Y: val"`` pattern.
         """
-        specific = self._EISENHOWER_QUADRANT_LABELS.get((x_val, y_val))
-        if specific:
-            return specific
+        # Determine framework key from axis names
+        x_lower = x_name.lower()
+        y_lower = y_name.lower()
+        framework_key: str | None = None
+        for x_kw, y_kw, fid in self._AXIS_KEYWORD_PAIRS:
+            if x_kw in x_lower and y_kw in y_lower:
+                framework_key = fid
+                break
+
+        if framework_key:
+            label_dict = self._QUADRANT_LABELS.get(framework_key, {})
+            specific = label_dict.get((x_val, y_val))
+            if specific:
+                return specific
+
         return f"{x_name}: {x_val} / {y_name}: {y_val}"
 
     async def execute_quadrant_query(
