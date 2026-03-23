@@ -65,7 +65,7 @@
   - Verify: `wc -l frontend/static/css/bmc.css` shows 200+ lines. `grep -c "stopPropagation" frontend/static/js/bmc.js` ≥ 1. `grep -c 'data-theme="dark"' frontend/static/css/bmc.css` ≥ 1. `grep -c "data-section-type" frontend/static/css/bmc.css` ≥ 9. CSS Grid positions all 9 sections.
   - Done when: CSS Grid renders 9-box poster layout, dark mode has readable contrast, inline editing triggers `object.patch`, JS isolates drag events from dockview
 
-- [ ] **T04: Unit tests for BMC detection, query building, and result grouping** `est:20m`
+- [x] **T04: Unit tests for BMC detection, query building, and result grouping** `est:20m`
   - Why: Pins the BMC backend pipeline with the same test structure as `test_quadrant.py` — detection logic, SPARQL generation, label mapping, and result grouping. Ensures future changes don't silently break the BMC renderer.
   - Files: `backend/tests/test_bmc.py`
   - Do: Create `test_bmc.py` following `test_quadrant.py` patterns exactly. Test classes: (1) `TestDetectBmcSections` — happy path with 9 `sh:in` values, keyword preference for "sectiontype" in path, rejection of properties with ≠9 values, no shapes service, no form, shapes exception. (2) `TestBuildBmcSelect` — basic query, with scope filter, OPTIONAL for sectionContent. (3) `TestExecuteBmcQuery` — groups into 9 section buckets, handles missing sections gracefully, handles empty results, error handling returns empty sections, total count correct. Use same `_make_property`, `_make_form`, `_build_service` helper pattern from `test_quadrant.py`.

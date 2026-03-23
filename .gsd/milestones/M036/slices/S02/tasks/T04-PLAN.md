@@ -44,3 +44,9 @@ Create `backend/tests/test_bmc.py` following the exact `test_quadrant.py` test s
 ## Expected Output
 
 - `backend/tests/test_bmc.py` — 20+ unit tests covering detection, SPARQL building, and result grouping
+
+## Observability Impact
+
+- **Test count signal:** `cd backend && .venv/bin/python -m pytest tests/test_bmc.py -v --tb=short` — tests pin BMC detection, query building, and result grouping. Test names encode the behavior being pinned.
+- **Failure visibility:** Pytest output shows which specific BMC pipeline behavior regressed (detection, SPARQL generation, or result grouping).
+- **Inspection:** `grep -c "def test_\|async def test_" backend/tests/test_bmc.py` — should return ≥ 20.
