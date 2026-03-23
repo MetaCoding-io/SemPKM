@@ -57,3 +57,9 @@ Write comprehensive pytest unit tests for `TaskTemplateService` with a mocked `T
 ## Expected Output
 
 - `backend/tests/test_task_templates.py` — comprehensive test file with 8+ test cases
+
+## Observability Impact
+
+- **New signals:** 21 unit tests provide regression coverage for all CRUD paths and instantiation logic; test failures surface broken SPARQL generation, JSON serialization, or @slot: reference patterns
+- **Inspection:** `cd backend && .venv/bin/python -m pytest tests/test_task_templates.py -v` — run the full suite to verify service behavior
+- **Failure visibility:** pytest output shows per-test pass/fail with assertion diffs; no runtime signals added (tests only)

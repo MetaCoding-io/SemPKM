@@ -67,7 +67,7 @@
   - Verify: `rg "Create from Template" frontend/static/js/workspace.js` and `rg "Run Weekly Review" frontend/static/js/workspace.js` and `rg "_refreshTemplatePaletteItems" frontend/static/js/workspace.js`
   - Done when: Command palette shows template and workflow entries; template children populate dynamically from API
 
-- [ ] **T04: Unit tests for task template CRUD and instantiation** `est:1h`
+- [x] **T04: Unit tests for task template CRUD and instantiation** `est:1h`
   - Why: Contract verification for the template service — proves CRUD operations, instantiation via batch commands, and error handling without requiring a live triplestore
   - Files: `backend/tests/test_task_templates.py`
   - Do: Write pytest tests mocking TriplestoreClient. Tests: create template → verify SPARQL INSERT; list templates → verify SELECT returns expected data; get template by ID → verify result; update template title → verify SPARQL UPDATE; delete template → verify SPARQL DELETE; instantiate template → verify batch command generation with @slot: references for subtasks; instantiate template without subtasks → verify single object.create command; error case: get nonexistent template returns None.
