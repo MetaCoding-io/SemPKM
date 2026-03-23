@@ -8,7 +8,7 @@
 **Service:** OpenAI
 **Dashboard:** https://platform.openai.com/api-keys
 **Format hint:** `sk-...` (51+ characters)
-**Status:** pending
+**Status:** collected
 **Destination:** dotenv
 
 1. Navigate to https://platform.openai.com/api-keys
@@ -22,7 +22,7 @@
 **Service:** Anthropic
 **Dashboard:** https://console.anthropic.com/settings/keys
 **Format hint:** `sk-ant-...` (108 characters)
-**Status:** pending
+**Status:** collected
 **Destination:** dotenv
 
 1. Navigate to https://console.anthropic.com/settings/keys

@@ -261,3 +261,11 @@
 {"ts":"2026-03-23T08:23:54.510Z","flowId":"c5cd0819-8722-4e22-ba48-a9bca78d369d","seq":2,"eventType":"dispatch-match","rule":"pre-planning (has research) → plan-milestone","data":{"unitType":"plan-milestone","unitId":"M035"}}
 {"ts":"2026-03-23T08:23:54.524Z","flowId":"c5cd0819-8722-4e22-ba48-a9bca78d369d","seq":3,"eventType":"unit-start","data":{"unitType":"plan-milestone","unitId":"M035"}}
 {"ts":"2026-03-23T08:28:52.156Z","flowId":"c5cd0819-8722-4e22-ba48-a9bca78d369d","seq":4,"eventType":"unit-end","data":{"unitType":"plan-milestone","unitId":"M035","status":"completed","artifactVerified":true},"causedBy":{"flowId":"c5cd0819-8722-4e22-ba48-a9bca78d369d","seq":3}}
+{"ts":"2026-03-23T08:28:52.688Z","flowId":"c5cd0819-8722-4e22-ba48-a9bca78d369d","seq":5,"eventType":"iteration-end","data":{"iteration":32}}
+{"ts":"2026-03-23T08:28:52.688Z","flowId":"e11b865c-1c8d-45e2-b307-539aaedb9766","seq":1,"eventType":"iteration-start","data":{"iteration":33}}
+{"ts":"2026-03-23T13:42:31.770Z","flowId":"e11b865c-1c8d-45e2-b307-539aaedb9766","seq":2,"eventType":"dispatch-match","rule":"planning → plan-slice","data":{"unitType":"plan-slice","unitId":"M035/S01"}}
+{"ts":"2026-03-23T13:42:31.791Z","flowId":"e11b865c-1c8d-45e2-b307-539aaedb9766","seq":3,"eventType":"unit-start","data":{"unitType":"plan-slice","unitId":"M035/S01"}}
+{"ts":"2026-03-23T18:17:49.600Z","flowId":"54217456-0977-4ecd-b6f2-b13e85aff29b","seq":1,"eventType":"iteration-start","data":{"iteration":1}}
+{"ts":"2026-03-23T18:17:50.523Z","flowId":"54217456-0977-4ecd-b6f2-b13e85aff29b","seq":2,"eventType":"dispatch-match","rule":"executing → execute-task","data":{"unitType":"execute-task","unitId":"M035/S01/T01"}}
+{"ts":"2026-03-23T18:17:50.554Z","flowId":"54217456-0977-4ecd-b6f2-b13e85aff29b","seq":3,"eventType":"unit-start","data":{"unitType":"execute-task","unitId":"M035/S01/T01"}}
+{"ts":"2026-03-23T18:24:20.213Z","flowId":"54217456-0977-4ecd-b6f2-b13e85aff29b","seq":4,"eventType":"unit-end","data":{"unitType":"execute-task","unitId":"M035/S01/T01","status":"completed","artifactVerified":true},"causedBy":{"flowId":"54217456-0977-4ecd-b6f2-b13e85aff29b","seq":3}}
