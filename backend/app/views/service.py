@@ -1979,6 +1979,255 @@ WHERE {{
             "total": total,
         }
 
+    # ── Quadrant renderer ──────────────────────────────────────
+
+    # Well-known Eisenhower quadrant labels: (x_value, y_value) → label
+    _EISENHOWER_QUADRANT_LABELS: dict[tuple[str, str], str] = {
+        ("high", "high"): "Do First",
+        ("low", "high"): "Schedule",
+        ("high", "low"): "Delegate",
+        ("low", "low"): "Eliminate",
+    }
+
+    async def _detect_quadrant_axes(
+        self, type_iri: str,
+    ) -> tuple[PropertyShape | None, PropertyShape | None, list[str], list[str]]:
+        """Find two SHACL properties with ``sh:in`` suitable for quadrant axes.
+
+        Looks for properties whose ``in_values`` contain exactly two string
+        values (e.g. ``["high", "low"]``).  Prefers property paths containing
+        "urgency" for x-axis and "importance" for y-axis (case-insensitive).
+
+        Returns:
+            ``(x_axis, y_axis, x_values, y_values)`` or
+            ``(None, None, [], [])`` when fewer than 2 qualifying properties
+            are found.
+        """
+        if not self._shapes_service:
+            return None, None, [], []
+
+        try:
+            form: NodeShapeForm | None = (
+                await self._shapes_service.get_form_for_type(type_iri)
+            )
+        except Exception:
+            logger.warning(
+                "_detect_quadrant_axes: shapes lookup failed for %s",
+                type_iri,
+                exc_info=True,
+            )
+            return None, None, [], []
+
+        if form is None:
+            return None, None, [], []
+
+        # Collect properties with exactly 2 sh:in values
+        candidates: list[PropertyShape] = []
+        for prop in form.properties:
+            if prop.in_values and len(prop.in_values) == 2:
+                candidates.append(prop)
+
+        if len(candidates) < 2:
+            logger.debug(
+                "_detect_quadrant_axes: type=%s found %d candidates (need 2)",
+                type_iri, len(candidates),
+            )
+            return None, None, [], []
+
+        # Try to assign x/y by keyword preference
+        x_axis: PropertyShape | None = None
+        y_axis: PropertyShape | None = None
+
+        for prop in candidates:
+            local = _local_name(prop.path).lower()
+            if "urgency" in local and x_axis is None:
+                x_axis = prop
+            elif "importance" in local and y_axis is None:
+                y_axis = prop
+
+        # Fill in any unassigned axis with remaining candidates
+        remaining = [p for p in candidates if p is not x_axis and p is not y_axis]
+        if x_axis is None and remaining:
+            x_axis = remaining.pop(0)
+        if y_axis is None and remaining:
+            y_axis = remaining.pop(0)
+
+        if x_axis is None or y_axis is None:
+            return None, None, [], []
+
+        logger.debug(
+            "_detect_quadrant_axes: type=%s x=%s (%s) y=%s (%s)",
+            type_iri,
+            x_axis.path, x_axis.in_values,
+            y_axis.path, y_axis.in_values,
+        )
+        return x_axis, y_axis, list(x_axis.in_values), list(y_axis.in_values)
+
+    @staticmethod
+    def _build_quadrant_select(
+        type_iri: str,
+        x_path: str,
+        y_path: str,
+        scope_filter: str | None = None,
+    ) -> str:
+        """Build a SELECT query that fetches subjects with two axis values.
+
+        Both axis properties are required (non-OPTIONAL) — items missing
+        either axis are excluded from results.
+
+        Args:
+            type_iri: The RDF type IRI to filter by.
+            x_path: The property IRI for the x-axis field.
+            y_path: The property IRI for the y-axis field.
+            scope_filter: Optional SPARQL WHERE body injected as sub-select.
+
+        Returns:
+            SPARQL SELECT query string.
+        """
+        scope_clause = ""
+        if scope_filter:
+            scope_clause = f"  {{ SELECT ?s WHERE {{ {scope_filter} }} }}\n"
+
+        return (
+            "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
+            "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n"
+            "PREFIX dcterms: <http://purl.org/dc/terms/>\n"
+            "\n"
+            "SELECT ?s ?label ?xValue ?yValue\n"
+            "WHERE {\n"
+            f"  ?s rdf:type <{type_iri}> .\n"
+            f"  ?s <{x_path}> ?xValue .\n"
+            f"  ?s <{y_path}> ?yValue .\n"
+            f"{scope_clause}"
+            "  OPTIONAL { ?s rdfs:label|dcterms:title ?label }\n"
+            "}"
+        )
+
+    def _quadrant_label(
+        self, x_val: str, y_val: str,
+        x_name: str, y_name: str,
+    ) -> str:
+        """Generate a human-readable label for a quadrant cell.
+
+        Uses Eisenhower-specific labels when available, otherwise
+        falls back to a generic ``"X: val / Y: val"`` pattern.
+        """
+        specific = self._EISENHOWER_QUADRANT_LABELS.get((x_val, y_val))
+        if specific:
+            return specific
+        return f"{x_name}: {x_val} / {y_name}: {y_val}"
+
+    async def execute_quadrant_query(
+        self,
+        type_iri: str,
+        x_axis: PropertyShape,
+        y_axis: PropertyShape,
+        x_values: list[str],
+        y_values: list[str],
+        scope_filter: str | None = None,
+    ) -> dict:
+        """Execute a quadrant grouping query and return bucketed data.
+
+        Groups results into quadrant buckets, one per (x_value, y_value)
+        combination.  Items whose axis values don't match any bucket are
+        placed in an "Unclassified" bucket.
+
+        Returns:
+            ``{"quadrants": [...], "axes": {"x": {...}, "y": {...}}, "total": N}``
+        """
+        query = self._build_quadrant_select(
+            type_iri, x_axis.path, y_axis.path,
+            scope_filter=scope_filter,
+        )
+        scoped = scope_to_current_graph(query)
+
+        try:
+            result = await self._client.query(scoped)
+        except Exception:
+            logger.warning(
+                "execute_quadrant_query: query failed for type=%s x=%s y=%s",
+                type_iri, x_axis.path, y_axis.path,
+                exc_info=True,
+            )
+            return {
+                "quadrants": [
+                    {
+                        "x_value": xv,
+                        "y_value": yv,
+                        "label": self._quadrant_label(xv, yv, x_axis.name, y_axis.name),
+                        "items": [],
+                    }
+                    for xv in x_values
+                    for yv in y_values
+                ],
+                "axes": {
+                    "x": {"path": x_axis.path, "name": x_axis.name},
+                    "y": {"path": y_axis.path, "name": y_axis.name},
+                },
+                "total": 0,
+            }
+
+        bindings = result.get("results", {}).get("bindings", [])
+
+        # Build quadrant buckets keyed by (x_value, y_value)
+        buckets: dict[tuple[str, str], list[dict]] = {
+            (xv, yv): [] for xv in x_values for yv in y_values
+        }
+        unclassified: list[dict] = []
+        seen: set[str] = set()
+
+        for b in bindings:
+            iri = b.get("s", {}).get("value", "")
+            if not iri or iri in seen:
+                continue
+            seen.add(iri)
+
+            label = b.get("label", {}).get("value", "") or _local_name(iri)
+            x_val = b.get("xValue", {}).get("value", "")
+            y_val = b.get("yValue", {}).get("value", "")
+
+            item = {"iri": iri, "label": label}
+            key = (x_val, y_val)
+
+            if key in buckets:
+                buckets[key].append(item)
+            else:
+                unclassified.append(item)
+
+        quadrants = []
+        for xv in x_values:
+            for yv in y_values:
+                quadrants.append({
+                    "x_value": xv,
+                    "y_value": yv,
+                    "label": self._quadrant_label(xv, yv, x_axis.name, y_axis.name),
+                    "items": buckets[(xv, yv)],
+                })
+
+        if unclassified:
+            quadrants.append({
+                "x_value": "__unclassified__",
+                "y_value": "__unclassified__",
+                "label": "Unclassified",
+                "items": unclassified,
+            })
+
+        total = len(seen)
+
+        logger.info(
+            "execute_quadrant_query: type=%s total=%d quadrants=%d",
+            type_iri, total, len(quadrants),
+        )
+
+        return {
+            "quadrants": quadrants,
+            "axes": {
+                "x": {"path": x_axis.path, "name": x_axis.name},
+                "y": {"path": y_axis.path, "name": y_axis.name},
+            },
+            "total": total,
+        }
+
     # ── Timeline renderer ──────────────────────────────────────
 
     # Status value → Frappe Gantt CSS class mapping

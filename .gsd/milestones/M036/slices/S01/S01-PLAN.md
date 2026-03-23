@@ -25,6 +25,7 @@
 - `cd backend && .venv/bin/python -m pytest tests/test_quadrant.py -v` — unit test for quadrant query builder and data grouping
 - Docker Compose stack: install model via Admin, create EisenhowerMatrix, open quadrant view, verify 4 quadrants render
 - Manual drag test: drag an item between quadrants and verify the SPARQL data reflects the updated urgency/importance
+- Diagnostic: `curl -s http://localhost:3901/browser/views/generic/quadrant/data?type=urn:sempkm:model:business-planning:EisenhowerItem | python3 -m json.tool` returns `quadrants` array with `axes` field and items grouped correctly (or error JSON with descriptive message when type has no axes)
 
 ## Observability / Diagnostics
 
@@ -48,7 +49,7 @@
   - Verify: `cd backend && .venv/bin/python -c "from app.models.manifest import parse_manifest; from pathlib import Path; m = parse_manifest(Path('/app/models/business-planning')); print(m.modelId, m.version)"` succeeds in Docker container, or locally: `python -c "from backend.app.models.manifest import parse_manifest; from pathlib import Path; m = parse_manifest(Path('models/business-planning')); print(m.modelId, m.version)"`
   - Done when: manifest.yaml validates, all JSON-LD files parse without error, SHACL shapes have correct sh:in constraints, ViewSpecs declare quadrant renderer type
 
-- [ ] **T02: Wire quadrant renderer into view router + backend data endpoint** `est:1h30m`
+- [x] **T02: Wire quadrant renderer into view router + backend data endpoint** `est:1h30m`
   - Why: The view router needs a `quadrant` branch in the elif chain (matching the kanban/calendar/map/timeline pattern) and a `/browser/views/generic/quadrant/data` JSON endpoint. The ViewSpecService needs `_detect_quadrant_axes()` and `execute_quadrant_query()` methods.
   - Files: `backend/app/views/router.py`, `backend/app/views/service.py`, `backend/app/views/registry.py`, `backend/app/templates/browser/quadrant_view.html`
   - Do: (1) Add "quadrant" to `_VALID_RENDERERS` set. (2) Add `elif renderer == "quadrant"` branch in `generic_view()` — detect two sh:in axis properties via `_detect_quadrant_axes()`, call `execute_quadrant_query()`, render `quadrant_view.html`. (3) Add quadrant branch to `generic_view_data()` returning JSON `{quadrants: [{x: "high", y: "high", label: "Do First", items: [...]}, ...]}`. (4) Add `_detect_quadrant_axes()` to ViewSpecService — finds two properties with sh:in ["high","low"] values, preferring paths containing "urgency"/"importance". (5) Add `execute_quadrant_query()` to ViewSpecService — SELECT query grouping items by the two axis values. (6) Register "quadrant" in RENDERER_REGISTRY. (7) Create basic `quadrant_view.html` Jinja2 template (the JS/CSS comes in T03).

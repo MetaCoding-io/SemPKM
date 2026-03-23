@@ -1,0 +1,101 @@
+<div class="view-flex-column">
+{% if is_generic | default(false) %}
+{% include "browser/type_filter_pills.html" %}
+{% endif %}
+{% include "browser/view_toolbar.html" %}
+
+{% if error_message is defined and error_message %}
+<div class="view-empty-state">
+    <p>{{ error_message }}</p>
+</div>
+
+{% elif quadrants %}
+<div class="quadrant-board"
+     data-x-predicate="{{ axes.x.path }}"
+     data-y-predicate="{{ axes.y.path }}"
+     data-type-iri="{{ type_iri | default('') }}"
+     data-data-url="{{ quadrant_data_url | default('') }}">
+
+    {% if axes %}
+    <div class="quadrant-axis-labels">
+        <div class="quadrant-x-axis-label">{{ axes.x.name }} →</div>
+        <div class="quadrant-y-axis-label">↑ {{ axes.y.name }}</div>
+    </div>
+    {% endif %}
+
+    <div class="quadrant-grid">
+        {% for q in quadrants %}
+        {% if q.x_value != '__unclassified__' %}
+        <div class="quadrant-cell"
+             data-x-value="{{ q.x_value }}"
+             data-y-value="{{ q.y_value }}">
+            <div class="quadrant-cell-header">
+                <span class="quadrant-cell-title">{{ q.label }}</span>
+                <span class="quadrant-cell-count">{{ q.items | length }}</span>
+            </div>
+            <div class="quadrant-cell-body">
+                {% for item in q.items %}
+                <div class="quadrant-card" draggable="true"
+                     data-iri="{{ item.iri }}"
+                     data-title="{{ item.label }}">
+                    <span class="quadrant-card-title"
+                          onclick="openTab('{{ item.iri }}', '{{ item.label | replace("'", "\\'") }}'); return false;">
+                        {{ item.label }}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+
+    {% for q in quadrants %}
+    {% if q.x_value == '__unclassified__' and q.items | length > 0 %}
+    <div class="quadrant-unclassified">
+        <div class="quadrant-cell-header">
+            <span class="quadrant-cell-title">{{ q.label }}</span>
+            <span class="quadrant-cell-count">{{ q.items | length }}</span>
+        </div>
+        <div class="quadrant-cell-body">
+            {% for item in q.items %}
+            <div class="quadrant-card" draggable="true"
+                 data-iri="{{ item.iri }}"
+                 data-title="{{ item.label }}">
+                <span class="quadrant-card-title"
+                      onclick="openTab('{{ item.iri }}', '{{ item.label | replace("'", "\\'") }}'); return false;">
+                    {{ item.label }}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+</div>
+
+{% else %}
+<div class="view-empty-state">
+    <p>Select a type with two-value axis properties to use Quadrant View.</p>
+</div>
+{% endif %}
+</div>
+
+<script>
+(function() {
+    function _boot() {
+        var board = document.querySelector('.quadrant-board');
+        if (board && typeof initQuadrant === 'function') {
+            initQuadrant(board);
+        }
+    }
+    if (typeof initQuadrant === 'function') {
+        _boot();
+    } else {
+        var s = document.createElement('script');
+        s.src = '/js/quadrant.js';
+        s.onload = _boot;
+        document.head.appendChild(s);
+    }
+})();
+</script>

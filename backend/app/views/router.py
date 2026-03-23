@@ -205,7 +205,7 @@ async def views_menu(
     )
 
 
-_VALID_RENDERERS = {"table", "card", "graph", "kanban", "calendar", "map", "timeline"}
+_VALID_RENDERERS = {"table", "card", "graph", "kanban", "calendar", "map", "timeline", "quadrant"}
 
 
 @router.get("/generic/{renderer}")
@@ -748,6 +748,105 @@ async def generic_view(
             return _embed_response(templates, request, "browser/timeline_view.html", context)
         return templates.TemplateResponse(request, "browser/timeline_view.html", context)
 
+    elif renderer == "quadrant":
+        if not type_iri:
+            logger.info("generic_view: renderer=quadrant but no type selected")
+            return templates.TemplateResponse(
+                request,
+                "browser/quadrant_view.html",
+                {
+                    "request": request,
+                    "error_message": "Select a type to use Quadrant View",
+                    "quadrants": [],
+                    "axes": None,
+                    "type_label": type_label,
+                    "type_iri": "",
+                    "selected_type": "",
+                    "types": types_list,
+                    "model_view_specs": model_view_specs,
+                    "scope_query": scope_query,
+                    "user_saved_queries": user_saved_queries,
+                    "model_saved_queries": model_saved_queries,
+                    "is_generic": True,
+                    "renderer": "quadrant",
+                    "pagination_base_url": pagination_base_url,
+                    "pag_extra": pag_extra,
+                    "spec": spec,
+                },
+            )
+
+        x_axis, y_axis, x_values, y_values = await view_spec_service._detect_quadrant_axes(type_iri)
+
+        if x_axis is None:
+            logger.warning("generic_view: renderer=quadrant type=%s has no quadrant-axis properties", type_iri)
+            return templates.TemplateResponse(
+                request,
+                "browser/quadrant_view.html",
+                {
+                    "request": request,
+                    "error_message": "This type has no properties with two-value constraints (sh:in) suitable for quadrant axes",
+                    "quadrants": [],
+                    "axes": None,
+                    "type_label": type_label,
+                    "type_iri": spec.target_class,
+                    "selected_type": type_iri or "",
+                    "types": types_list,
+                    "model_view_specs": model_view_specs,
+                    "scope_query": scope_query,
+                    "user_saved_queries": user_saved_queries,
+                    "model_saved_queries": model_saved_queries,
+                    "is_generic": True,
+                    "renderer": "quadrant",
+                    "pagination_base_url": pagination_base_url,
+                    "pag_extra": pag_extra,
+                    "spec": spec,
+                },
+            )
+
+        logger.info(
+            "generic_view: renderer=quadrant type=%s scope_query=%s x=%s y=%s",
+            type_iri, scope_query or "(none)", x_axis.path, y_axis.path,
+        )
+
+        quadrant_result = await view_spec_service.execute_quadrant_query(
+            type_iri, x_axis, y_axis, x_values, y_values,
+            scope_filter=scope_filter_text,
+        )
+
+        # Build the data URL for the quadrant JSON endpoint
+        quadrant_data_url = "/browser/views/generic/quadrant/data"
+        quadrant_data_params = []
+        if type_iri:
+            quadrant_data_params.append(f"type={quote(type_iri, safe='')}")
+        if scope_query:
+            quadrant_data_params.append(f"scope_query={quote(scope_query, safe='')}")
+        if quadrant_data_params:
+            quadrant_data_url += "?" + "&".join(quadrant_data_params)
+
+        context = {
+            "request": request,
+            "quadrants": quadrant_result["quadrants"],
+            "axes": quadrant_result["axes"],
+            "total": quadrant_result["total"],
+            "quadrant_data_url": quadrant_data_url,
+            "type_label": type_label,
+            "type_iri": spec.target_class,
+            "selected_type": type_iri or "",
+            "types": types_list,
+            "model_view_specs": model_view_specs,
+            "scope_query": scope_query,
+            "user_saved_queries": user_saved_queries,
+            "model_saved_queries": model_saved_queries,
+            "is_generic": True,
+            "renderer": "quadrant",
+            "pagination_base_url": pagination_base_url,
+            "pag_extra": pag_extra,
+            "spec": spec,
+        }
+        if embed:
+            return _embed_response(templates, request, "browser/quadrant_view.html", context)
+        return templates.TemplateResponse(request, "browser/quadrant_view.html", context)
+
     else:  # kanban
         if not type_iri:
             logger.info("generic_view: renderer=kanban but no type selected")
@@ -854,7 +953,7 @@ async def generic_view_data(
     For map: detects geo fields and returns marker data with coordinates.
     Accepts optional scope_query to filter results by saved query.
     """
-    if renderer not in ("graph", "calendar", "map", "timeline"):
+    if renderer not in ("graph", "calendar", "map", "timeline", "quadrant"):
         return JSONResponse(content={"error": "Invalid renderer for data endpoint"}, status_code=404)
 
     type_iri = type if type else None
@@ -908,6 +1007,18 @@ async def generic_view_data(
             return JSONResponse(content={"tasks": [], "dependency_count": 0})
         result = await view_spec_service.execute_timeline_query(
             type_iri, start_field, end_field, scope_filter=scope_filter_text,
+        )
+        return JSONResponse(content=result)
+
+    if renderer == "quadrant":
+        if not type_iri:
+            return JSONResponse(content={"quadrants": [], "axes": None, "total": 0})
+        x_axis, y_axis, x_values, y_values = await view_spec_service._detect_quadrant_axes(type_iri)
+        if x_axis is None:
+            return JSONResponse(content={"quadrants": [], "axes": None, "total": 0})
+        result = await view_spec_service.execute_quadrant_query(
+            type_iri, x_axis, y_axis, x_values, y_values,
+            scope_filter=scope_filter_text,
         )
         return JSONResponse(content=result)
 

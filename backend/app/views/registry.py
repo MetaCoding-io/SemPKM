@@ -33,6 +33,10 @@ RENDERER_REGISTRY: dict[str, dict] = {
         "type": "kanban",
         "template": "browser/kanban_view.html",
     },
+    "quadrant": {
+        "type": "quadrant",
+        "template": "browser/quadrant_view.html",
+    },
 }
 
 
