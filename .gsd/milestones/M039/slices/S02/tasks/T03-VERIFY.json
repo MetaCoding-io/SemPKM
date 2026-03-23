@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T03",
+  "unitId": "M039/S02/T03",
+  "timestamp": 1774237205163,
+  "passed": true,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "test -f backend/app/templates/rdf_import/partials/input_form.html",
+      "exitCode": 0,
+      "durationMs": 8,
+      "verdict": "pass"
+    },
+    {
+      "command": "test -f backend/app/templates/rdf_import/partials/preview.html",
+      "exitCode": 0,
+      "durationMs": 9,
+      "verdict": "pass"
+    }
+  ]
+}
