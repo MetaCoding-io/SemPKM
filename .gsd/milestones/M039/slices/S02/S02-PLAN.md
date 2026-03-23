@@ -56,7 +56,7 @@
   - Verify: `cd backend && .venv/bin/python -m pytest tests/test_rdf_import_parser.py -v` — all tests pass
   - Done when: Parser handles all 3 formats, skolemization is consistent, subject extraction is correct, and unit tests prove it
 
-- [ ] **T02: Build executor, router endpoints, and SHACL validation preview** `est:2h`
+- [x] **T02: Build executor, router endpoints, and SHACL validation preview** `est:2h`
   - Why: The API layer that connects the parser to the triplestore. Handles SHACL validation preview, IRI collision detection, EventStore commit with SSE progress, and all HTTP endpoints.
   - Files: `backend/app/rdf_import/executor.py`, `backend/app/rdf_import/router.py`, `backend/app/main.py`
   - Do: Build `RdfImportExecutor` class with: `validate_shacl()` using pyshacl against `model_shapes_loader()` shapes, grouping results by focus node; `check_collisions()` with batch ASK query against `urn:sempkm:current`; `execute_import()` that builds `Operation` dataclasses directly from parsed triples (NOT through `handle_object_create`), commits via `EventStore.commit()` for ≤10 subjects or `EventStore.commit_bulk()` for larger batches, broadcasts SSE progress events. Build router with prefix `/browser/rdf-import`, tag `rdf-import`, endpoints: GET `/` (main page), POST `/parse` (parse pasted/uploaded RDF, return preview), POST `/execute` (trigger import), GET `/execute/stream` (SSE), GET `/summary` (post-import summary). Store parse results in module-level dict keyed by session/user. Register router in `main.py` after the notion router.
