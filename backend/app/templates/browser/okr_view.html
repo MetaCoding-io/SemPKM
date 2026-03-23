@@ -38,7 +38,7 @@
                       onclick="openTab('{{ kr['iri'] }}', '{{ kr['title'] | replace("'", "\\'") }}'); return false;">
                     {{ kr['title'] }}
                 </span>
-                <span class="okr-kr-values">{{ kr['current_value'] }} / {{ kr['target_value'] }}{% if kr['unit'] %} {{ kr['unit'] }}{% endif %}</span>
+                <span class="okr-kr-values"><span class="okr-current-value">{{ kr['current_value'] }}</span> / {{ kr['target_value'] }}{% if kr['unit'] %} {{ kr['unit'] }}{% endif %}</span>
                 <span class="okr-kr-percent">{{ kr['progress'] }}%</span>
                 <div class="okr-progress-bar okr-progress-bar--kr">
                     <div class="okr-progress-fill
@@ -64,7 +64,7 @@
                   onclick="openTab('{{ kr['iri'] }}', '{{ kr['title'] | replace("'", "\\'") }}'); return false;">
                 {{ kr['title'] }}
             </span>
-            <span class="okr-kr-values">{{ kr['current_value'] }} / {{ kr['target_value'] }}{% if kr['unit'] %} {{ kr['unit'] }}{% endif %}</span>
+            <span class="okr-kr-values"><span class="okr-current-value">{{ kr['current_value'] }}</span> / {{ kr['target_value'] }}{% if kr['unit'] %} {{ kr['unit'] }}{% endif %}</span>
             <span class="okr-kr-percent">{{ kr['progress'] }}%</span>
             <div class="okr-progress-bar okr-progress-bar--kr">
                 <div class="okr-progress-fill

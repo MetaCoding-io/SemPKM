@@ -61,7 +61,7 @@
   - Verify: `rg '"okr"' backend/app/views/registry.py backend/app/views/router.py` — present in both; `rg '"decision-matrix"' backend/app/views/registry.py backend/app/views/router.py` — present in both; templates exist and use `/css/` + `/js/` paths (not `/static/`)
   - Done when: Both renderers wired through all 4 layers, service methods handle computation with edge cases, templates render server-side content with lazy-load JS boot
 
-- [ ] **T03: Create OKR + Decision Matrix frontend (CSS + JS)** `est:25m`
+- [x] **T03: Create OKR + Decision Matrix frontend (CSS + JS)** `est:25m`
   - Why: The renderers need styled interactive frontends — OKR progress bars with color coding and Decision Matrix sortable table with rank badges, both supporting dark mode
   - Files: `frontend/static/css/okr.css`, `frontend/static/js/okr.js`, `frontend/static/css/decision-matrix.css`, `frontend/static/js/decision-matrix.js`
   - Do: (1) `okr.css`: progress bar styling (green ≥70%, amber 30–69%, red <30%), objective card layout, `.view-flex-column` full height, dark mode via `html[data-theme="dark"]`, responsive. (2) `okr.js`: IIFE with `initOKR(boardEl)`, click-to-edit on currentValue via `object.patch`, `sempkm:scope-changed` listener for refresh, `stopPropagation()` on drag events for dockview isolation. (3) `decision-matrix.css`: weighted table layout, rank badges (🥇🥈🥉), score cell color gradient, dark mode, responsive. (4) `decision-matrix.js`: IIFE with `initDecisionMatrix(boardEl)`, client-side sort on column click, `sempkm:scope-changed` listener, `stopPropagation()` for dockview isolation. All SVG icon sizing must use CSS with `flex-shrink: 0`.

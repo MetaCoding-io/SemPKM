@@ -31,7 +31,7 @@
         </thead>
         <tbody>
             {% for alt in alternatives %}
-            <tr class="dm-row" data-iri="{{ alt['iri'] }}">
+            <tr class="dm-row" data-iri="{{ alt['iri'] }}" data-rank="{{ alt['rank'] }}">
                 <td class="dm-cell-rank">
                     {% if alt['rank'] == 1 %}🥇
                     {% elif alt['rank'] == 2 %}🥈
