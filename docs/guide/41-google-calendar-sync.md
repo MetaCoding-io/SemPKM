@@ -1,4 +1,4 @@
-# Chapter 36: Google Calendar Sync
+# Chapter 41: Google Calendar Sync
 
 The **Google Calendar Sync** app connects your Google Calendar to SemPKM, synchronizing events as `bpkm:Event` objects. It supports **pull sync** (import Google Calendar events into SemPKM), **RSVP push-back** (send your response status changes back to Google), and **bidirectional** mode that does both.
 

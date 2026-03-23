@@ -21,7 +21,7 @@
 
 ## Tasks
 
-- [ ] **T01: Rename orphan files and assign unique chapter numbers** `est:30m`
+- [x] **T01: Rename orphan files and assign unique chapter numbers** `est:30m`
   - Why: 8 files have duplicate numbers (two 29s, two 32s, two 36s, two 37s, two 38s, two 39s, two 40s). They need unique numbers to be linkable.
   - Files: `docs/guide/29-mental-model-catalog.md`, `docs/guide/32-rss-reader.md`, `docs/guide/36-google-calendar-sync.md`, `docs/guide/37-todoist-sync.md`, `docs/guide/38-outlook-calendar-sync.md`, `docs/guide/39-caldav-calendar-sync.md`, `docs/guide/39-notion-import.md`, `docs/guide/40-ai-features.md`, `docs/guide/40-asana-sync.md`
   - Do: Rename each orphan to a unique number starting at 39 (since current highest linked is 38-hosted-demo). Proposed mapping: 39-mental-model-catalog, 40-rss-reader, 41-google-calendar-sync, 42-todoist-sync, 43-outlook-calendar-sync, 44-caldav-calendar-sync, 45-notion-import, 46-ai-features, 47-asana-sync. Use `git mv` for each rename. Update the `# Chapter NN:` heading inside each file to match its new number.
@@ -41,6 +41,14 @@
   - Do: Run `grep -rn 'Chapter [0-9]\|[0-9]*-[a-z].*\.md' docs/guide/*.md` to find all cross-references. Check each reference resolves to a real file. Fix any that point to old numbers. Check the 8 orphan files' internal chapter-number headings match their filenames.
   - Verify: `grep -rn '\[.*\](.*\.md)' docs/guide/*.md | while read line; do file=$(echo "$line" | grep -oP '\]\(\K[^)]+'); [ -f "docs/guide/$file" ] || echo "BROKEN: $line"; done` returns no BROKEN lines
   - Done when: All markdown cross-references between guide chapters resolve to existing files
+
+## Observability / Diagnostics
+
+This slice is documentation-only (static `.md`, `.html` files). No runtime services, APIs, or background processes are affected.
+
+- **Inspection surface:** `ls docs/guide/[0-9]*.md | sed 's/.*\///' | grep -oP '^\d+' | sort -n | uniq -d` — returns empty when no duplicate chapter numbers exist.
+- **Failure visibility:** A broken cross-reference (`[text](file.md)` pointing to a non-existent file) produces a 404 in both the static docs site and the in-app `/guide` route. The static site renders a broken link; the in-app guide returns an htmx swap error visible in browser dev tools.
+- **Diagnostic command:** `grep -rn '\[.*\](.*\.md)' docs/guide/*.md | while read line; do file=$(echo "$line" | grep -oP '\]\(\K[^)]+'); [ -f "docs/guide/$file" ] || echo "BROKEN: $line"; done` — lists all broken markdown cross-references.
 
 ## Files Likely Touched
 

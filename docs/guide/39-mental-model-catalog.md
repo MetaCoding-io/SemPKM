@@ -1,4 +1,4 @@
-# Chapter 29: Mental Model Catalog
+# Chapter 39: Mental Model Catalog
 
 SemPKM ships with several mental models that define domain-specific types, forms, views, validation rules, and saved queries. This chapter documents the models available for installation, including field references, relationships, validation behavior, and recommended dashboard configurations.
 

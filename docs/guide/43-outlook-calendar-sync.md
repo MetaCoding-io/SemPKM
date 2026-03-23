@@ -1,4 +1,4 @@
-# Chapter 38: Outlook Calendar Sync
+# Chapter 43: Outlook Calendar Sync
 
 The **Outlook Calendar Sync** app connects your Microsoft Outlook Calendar to SemPKM, synchronizing events as `bpkm:Event` objects. It supports **pull sync** (import Outlook events into SemPKM), **RSVP push-back** (send your response status changes back to Outlook), and **bidirectional** mode that does both.
 

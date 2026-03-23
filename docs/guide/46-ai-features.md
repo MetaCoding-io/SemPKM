@@ -1,4 +1,4 @@
-# Chapter 40: AI Features
+# Chapter 46: AI Features
 
 SemPKM's browser extension can analyze web pages using AI to detect claims, match them against your existing knowledge graph, suggest new relationships, and generate personalized summaries that highlight what's new versus what you already know. These features appear in the **AI Insights** section of the extension sidebar when visiting any web page.
 
