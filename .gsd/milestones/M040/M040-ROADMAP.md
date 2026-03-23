@@ -1,4 +1,4 @@
-# M040: Cleanup — Documentation, UI Fixes & Bug Squashing
+# M040: Cleanup - Documentation, UI Fixes & Bug Squashing
 
 **Vision:** Every M034 planning feature has user guide documentation, and all 8 orphaned guide chapters are reachable from the guide navigation.
 
