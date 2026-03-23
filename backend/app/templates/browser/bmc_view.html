@@ -1,0 +1,71 @@
+<link rel="stylesheet" href="/css/bmc.css">
+<div class="view-flex-column">
+{% if is_generic | default(false) %}
+{% include "browser/type_filter_pills.html" %}
+{% endif %}
+{% include "browser/view_toolbar.html" %}
+
+{% if error_message is defined and error_message %}
+<div class="view-empty-state">
+    <p>{{ error_message }}</p>
+</div>
+
+{% elif sections %}
+<div class="bmc-board"
+     data-type-iri="{{ type_iri | default('') }}"
+     data-data-url="{{ bmc_data_url | default('') }}">
+
+    <div class="bmc-grid">
+        {% for section in sections %}
+        <div class="bmc-section" data-section-type="{{ section['type'] }}">
+            <div class="bmc-section-header">
+                <span class="bmc-section-title">{{ section['label'] }}</span>
+                <span class="bmc-section-count">{{ section['items'] | length }}</span>
+            </div>
+            <div class="bmc-section-content">
+                {% if section['items'] | length > 0 %}
+                    {% for item in section['items'] %}
+                    <div class="bmc-item" data-iri="{{ item['iri'] }}">
+                        <textarea class="bmc-item-textarea"
+                                  data-iri="{{ item['iri'] }}"
+                                  placeholder="Add content…">{{ item['content'] }}</textarea>
+                        <span class="bmc-item-label"
+                              onclick="openTab('{{ item['iri'] }}', '{{ item['label'] | replace("'", "\\'") }}'); return false;">
+                            {{ item['label'] }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="bmc-empty-hint">No items</div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% else %}
+<div class="view-empty-state">
+    <p>Select a type with BMC section properties to use Canvas View.</p>
+</div>
+{% endif %}
+</div>
+
+<script>
+(function() {
+    function _boot() {
+        var board = document.querySelector('.bmc-board');
+        if (board && typeof initBMC === 'function') {
+            initBMC(board);
+        }
+    }
+    if (typeof initBMC === 'function') {
+        _boot();
+    } else {
+        var s = document.createElement('script');
+        s.src = '/js/bmc.js';
+        s.onload = _boot;
+        document.head.appendChild(s);
+    }
+})();
+</script>

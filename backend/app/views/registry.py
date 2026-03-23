@@ -37,6 +37,10 @@ RENDERER_REGISTRY: dict[str, dict] = {
         "type": "quadrant",
         "template": "browser/quadrant_view.html",
     },
+    "bmc": {
+        "type": "bmc",
+        "template": "browser/bmc_view.html",
+    },
 }
 
 
