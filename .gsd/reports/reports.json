@@ -387,6 +387,22 @@
       "doneMilestones": 36,
       "totalMilestones": 40,
       "phase": "pre-planning"
+    },
+    {
+      "filename": "M036-2026-03-23T08-12-13.html",
+      "generatedAt": "2026-03-23T08:12:13.951Z",
+      "milestoneId": "M036",
+      "milestoneTitle": "Business Planning Mental Models & Custom Renderers",
+      "label": "M036: Business Planning Mental Models & Custom Renderers",
+      "kind": "milestone",
+      "totalCost": 1242.1916477500006,
+      "totalTokens": 1741820855,
+      "totalDuration": 216895991,
+      "doneSlices": 228,
+      "totalSlices": 228,
+      "doneMilestones": 37,
+      "totalMilestones": 40,
+      "phase": "pre-planning"
     }
   ]
 }
