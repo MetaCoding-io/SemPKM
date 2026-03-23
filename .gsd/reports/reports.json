@@ -371,6 +371,22 @@
       "doneMilestones": 35,
       "totalMilestones": 40,
       "phase": "pre-planning"
+    },
+    {
+      "filename": "M040-2026-03-23T05-15-41.html",
+      "generatedAt": "2026-03-23T05:15:41.702Z",
+      "milestoneId": "M040",
+      "milestoneTitle": "Cleanup - Documentation, UI Fixes & Bug Squashing",
+      "label": "M040: Cleanup - Documentation, UI Fixes & Bug Squashing",
+      "kind": "milestone",
+      "totalCost": 1173.1198792500002,
+      "totalTokens": 1647622996,
+      "totalDuration": 206918957,
+      "doneSlices": 223,
+      "totalSlices": 223,
+      "doneMilestones": 36,
+      "totalMilestones": 40,
+      "phase": "pre-planning"
     }
   ]
 }
