@@ -15,6 +15,9 @@ class CopilotChatRequest(BaseModel):
     model: str | None = Field(
         None, description="Optional LLM model override"
     )
+    active_object_iri: str | None = Field(
+        None, description="IRI of the active object tab for graph context injection"
+    )
 
 
 class CopilotMessage(BaseModel):

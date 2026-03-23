@@ -472,18 +472,22 @@ def _extract_sparql_from_response(text: str) -> str | None:
     return None
 
 
-def _build_system_prompt(schema_context: str) -> str:
+def _build_system_prompt(schema_context: str, graph_context: str | None = None) -> str:
     """Build the full LLM system prompt for SPARQL generation.
 
-    Includes the role description, schema context, and instructions
-    for output formatting.
+    Includes the role description, schema context, optional graph context
+    for the active object, and instructions for output formatting.
     """
+    graph_section = ""
+    if graph_context:
+        graph_section = f"\n{graph_context}\n"
+
     return f"""You are a SPARQL assistant for a personal semantic knowledge graph (SemPKM).
 
 Your job is to translate natural-language questions into SPARQL queries that run against the user's knowledge graph.
 
 {schema_context}
-
+{graph_section}
 ## Instructions
 
 1. Generate ONLY read-only SPARQL queries (SELECT, ASK, CONSTRUCT, DESCRIBE). Never use INSERT, DELETE, DROP, or any mutation keyword.
