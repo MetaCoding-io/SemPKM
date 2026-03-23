@@ -45,7 +45,7 @@
 
 ## Tasks
 
-- [ ] **T01: Build CopilotService with schema context and SPARQL generation** `est:2h`
+- [x] **T01: Build CopilotService with schema context and SPARQL generation** `est:2h`
   - Why: The core backend logic — builds schema context from installed models, generates SPARQL via LLM, validates queries, executes them, formats results with labels. This is the brain of the copilot.
   - Files: `backend/app/services/copilot.py`, `backend/tests/test_copilot_service.py`
   - Do: Create CopilotService class with: (1) `build_schema_context()` that queries ShapesService for all installed types + property shapes and serializes them as a compact text block for the LLM system prompt; (2) `generate_sparql()` that builds a prompt with schema context + user question and calls LLM (non-streaming) to get a SPARQL query; (3) `validate_query()` that parses the query string, checks it's SELECT-only (no INSERT/DELETE/DROP), verifies predicates reference known model schemas; (4) `execute_query()` that runs via scope_to_current_graph with timeout; (5) `format_results()` that takes SPARQL JSON results and uses LabelService to build prose with IRI references; (6) `self_correct()` that feeds the error message + original query back to LLM for retry. Include structured logging for each step.
