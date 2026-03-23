@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T03",
+  "unitId": "M036/S03/T03",
+  "timestamp": 1774249160870,
+  "passed": true,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "test -f frontend/static/css/okr.css",
+      "exitCode": 0,
+      "durationMs": 6,
+      "verdict": "pass"
+    },
+    {
+      "command": "test -f frontend/static/js/decision-matrix.js",
+      "exitCode": 0,
+      "durationMs": 5,
+      "verdict": "pass"
+    }
+  ]
+}
