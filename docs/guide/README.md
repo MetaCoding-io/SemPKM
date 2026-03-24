@@ -72,6 +72,7 @@ setup to advanced topics like SPARQL queries and creating your own Mental Models
 43. [Outlook Calendar Sync](43-outlook-calendar-sync.md)
 44. [CalDAV Calendar Sync](44-caldav-calendar-sync.md)
 47. [Asana Sync](47-asana-sync.md)
+48. [Mobile App & Context](48-mobile-app-context.md)
 38. [Hosted Demo](38-hosted-demo.md)
 
 ## Part IX: Identity and Federation
