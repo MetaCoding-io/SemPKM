@@ -534,3 +534,27 @@ LLMs return SPARQL in unpredictable formats. `_extract_sparql_from_response()` t
 **Discovered:** M035/S01/T02
 
 The `/api/copilot/chat` endpoint emits both standard OpenAI `data: {"choices":[...]}` lines AND custom SSE events (`event: sparql_query`, `event: error`). The backend accumulates streamed content and emits `sparql_query` events when complete code blocks are detected. The frontend parser dispatches based on the `event:` line preceding the `data:` line. This mixed-event pattern enables inline SPARQL approval without a separate communication channel.
+
+### SQLAlchemy auto-flush: do conditional checks BEFORE db.add()
+
+**Discovered:** M035/S02/T02
+
+When adding a row with `db.add(obj)` and then running a SELECT query on the same session (e.g., to count existing rows), SQLAlchemy auto-flushes the pending `add()` before executing the SELECT. This means the just-added object appears in the query results, even though `await db.commit()` hasn't been called yet.
+
+**Impact:** `ConversationService.add_message()` auto-titles a conversation on the first user message by checking `SELECT COUNT(*) ... WHERE role='user'`. If the new message is added first, the count is 1 (not 0), so the "is this the first?" check fails and auto-titling never fires.
+
+**Fix:** Move the conditional check (SELECT) before `db.add()`. The pending object isn't in the session yet, so the query sees the true state.
+
+```python
+# Correct: check BEFORE add
+existing_count = await db.scalar(select(func.count(...)))
+db.add(new_message)  # now add
+if existing_count == 0:
+    conversation.title = derive_title(content)
+
+# Wrong: check AFTER add — auto-flush makes new_message visible
+db.add(new_message)
+existing_count = await db.scalar(select(func.count(...)))  # sees the pending add!
+```
+
+**Affected file:** `backend/app/copilot/conversation.py` — `add_message()` method
