@@ -50,6 +50,12 @@ The service must handle the full lifecycle: requesting permission, reading calen
 - `mobile/app.json` — current Expo config (needs expo-calendar plugin added to plugins array)
 - `mobile/src/services/geofencing.ts` — reference pattern for service module structure
 
+## Observability Impact
+
+- **New signals:** `calendar.permission_granted`, `calendar.permission_denied`, `calendar.events_fetched` (with count), `calendar.no_calendars`, `calendar.error` — all structured console logs for Expo dev tools filtering.
+- **Inspection:** `requestCalendarPermission()` returns boolean and caches status in a module-level variable. `getCurrentCalendarEvent()` returns typed `{ title, busy }` — inspectable in any caller's state.
+- **Failure visibility:** Permission denied → returns `{ title: null, busy: false }` (never throws). API errors from `Calendar.*` are caught and logged with `calendar.error` key before returning graceful default. No calendars found → logged as `calendar.no_calendars`.
+
 ## Expected Output
 
 - `mobile/package.json` — updated with expo-calendar and expo-sensors dependencies

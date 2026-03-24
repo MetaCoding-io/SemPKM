@@ -25,7 +25,7 @@
 
 ## Tasks
 
-- [ ] **T01: Calendar service with expo-calendar integration** `est:45m`
+- [x] **T01: Calendar service with expo-calendar integration** `est:45m`
   - Why: CTX-12 requires reading device calendar events. This installs `expo-calendar` and `expo-sensors`, configures app.json plugins, and builds the calendar service that reads current/upcoming events with busy status detection and graceful permission-denied handling.
   - Files: `mobile/package.json`, `mobile/app.json`, `mobile/src/services/calendar.ts`
   - Do: Run `npx expo install expo-calendar expo-sensors` in `mobile/`. Add `expo-calendar` plugin to `app.json` with permission string. Implement `calendar.ts` with `requestCalendarPermission()`, `getCurrentCalendarEvent()` returning `{title, busy}`, permission status caching, and a 5-minute lookahead window for upcoming events. Handle permission denied by returning `{title: null, busy: false}`.
@@ -45,6 +45,13 @@
   - Do: Implement `time-period.ts` with `getTimePeriod()` returning morning/work_hours/evening/night based on current hour (defaults: 5-8 morning, 9-16 work_hours, 17-20 evening, 21-4 night). Build `useContextServices()` hook that starts activity monitoring on mount, polls calendar every 60s, computes time-period on each cycle, listens for AppState changes to re-check on foreground, batches changed fields into a single `updateContext()` call (minimum 30s between pushes to respect rate limit), and returns current detected state `{calendarEvent, calendarBusy, activity, timePeriod, isMonitoring}`. Wire hook into dashboard screen, showing monitoring status indicator. Clean up all subscriptions on unmount.
   - Verify: `cd mobile && npx tsc --noEmit` passes, `grep -q 'useContextServices' mobile/src/app/\(app\)/\(tabs\)/index.tsx` passes
   - Done when: All three services wired through orchestrator, dashboard shows monitoring status, TypeScript compiles clean, context updates batched with deduplication
+
+## Observability / Diagnostics
+
+- **Runtime signals:** Each service logs structured console messages with domain-prefixed keys (`calendar.*`, `activity.*`, `timePeriod.*`) for filtering in Expo dev tools. The orchestrator hook logs `context.update_sent` with field diffs on each successful push and `context.update_skipped` when rate-limited or unchanged.
+- **Inspection surfaces:** The `useContextServices()` hook returns current detected state (`calendarEvent`, `calendarBusy`, `activity`, `timePeriod`, `isMonitoring`) — visible in React DevTools and rendered on the dashboard. Permission denial is surfaced as `calendar.permission_denied` log entry.
+- **Failure visibility:** Network errors from `updateContext()` are logged as `context.api_error` with status code. Hardware unavailability (no accelerometer/pedometer) is logged once as `activity.hardware_unavailable` and the service degrades to `"unknown"`. Calendar permission denial returns a typed null result — no silent swallowing.
+- **Redaction:** No calendar event content beyond title is logged. No PII from calendar descriptions or attendee lists is ever transmitted.
 
 ## Files Likely Touched
 
