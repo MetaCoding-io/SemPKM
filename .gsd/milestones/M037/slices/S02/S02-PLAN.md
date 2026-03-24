@@ -41,7 +41,7 @@
 
 ## Tasks
 
-- [ ] **T01: ContextRule model, migration, and RulesEngine service with unit tests** `est:45m`
+- [x] **T01: ContextRule model, migration, and RulesEngine service with unit tests** `est:45m`
   - Why: The data model and evaluation logic are the foundation — everything else (API, UI, integration) depends on them
   - Files: `backend/app/context/rules_models.py`, `backend/app/context/rules_engine.py`, `backend/migrations/versions/019_context_rules.py`, `backend/tests/test_rules_engine.py`
   - Do: Create ContextRule SQLAlchemy model (id UUID, user_id FK, name, priority int, conditions JSON, persona_id str, enabled bool, timestamps). Write Alembic migration 019 creating `context_rules` table and adding `manual_override` boolean to `user_context`. Implement RulesEngine class with `evaluate(user_id, context_data) → Optional[str]` — loads enabled rules sorted by priority desc, first-match-wins with AND condition matching. Write comprehensive unit tests: priority ordering, AND conditions, partial condition match (subset), disabled rules skipped, no-match returns None, empty rules returns None.
