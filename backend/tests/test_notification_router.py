@@ -274,6 +274,44 @@ class TestTestNotification:
         assert data["sent_count"] == 1
         assert data["suppressed"] is False
 
+    @pytest.mark.asyncio
+    async def test_no_tokens_returns_zero_sent(self, client, mock_service):
+        """POST /api/notifications/test with no registered tokens returns sent_count=0, no error."""
+        mock_service.get_tokens_for_user.return_value = []
+        mock_service.should_suppress.return_value = (False, None)
+        resp = await client.post("/api/notifications/test")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["sent_count"] == 0
+        assert data["suppressed"] is False
+        assert data["reason"] == "no_devices"
+
+    @pytest.mark.asyncio
+    async def test_suppression_info_returned(self, client, mock_service):
+        """POST /api/notifications/test returns suppression info (reason + suppressed=True)."""
+        mock_service.should_suppress.return_value = (True, "calendar_busy")
+        resp = await client.post("/api/notifications/test")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["suppressed"] is True
+        assert data["reason"] == "calendar_busy"
+        assert data["sent_count"] == 0
+
+    @pytest.mark.asyncio
+    async def test_respects_quiet_hours_suppression(self, client, mock_service):
+        """POST /api/notifications/test with quiet hours covering now returns suppressed=True."""
+        mock_token = MagicMock()
+        mock_token.token = "tok-for-quiet"
+        mock_service.get_tokens_for_user.return_value = [mock_token]
+        mock_service.should_suppress.return_value = (True, "quiet_hours")
+
+        resp = await client.post("/api/notifications/test")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["suppressed"] is True
+        assert data["reason"] == "quiet_hours"
+        assert data["sent_count"] == 0
+
 
 # ── Auth Enforcement ─────────────────────────────────────────────
 

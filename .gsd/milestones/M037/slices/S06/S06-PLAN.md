@@ -62,7 +62,7 @@
   - Verify: `cd backend && .venv/bin/python -m pytest tests/test_notification_router.py -v` — all pass; `grep -q "notification_service" backend/app/main.py`
   - Done when: Router tests pass, NotificationService on app.state, settings UI has Notifications panel with quiet hours and suppress-when-busy controls
 
-- [ ] **T03: Context-aware notification dispatch hook and integration tests** `est:30m`
+- [x] **T03: Context-aware notification dispatch hook and integration tests** `est:30m`
   - Why: Connects the notification system to the context update flow — the core value prop of "context filtering"
   - Files: `backend/app/context/router.py`, `backend/app/context/notification_service.py`, `backend/tests/test_notification_service.py`, `backend/tests/test_notification_router.py`
   - Do: Add a notification dispatch hook in `update_context()` in `context/router.py` — after the existing rule evaluation block, if the context update contains notable state changes (calendar_busy transitioning to False = "focus block ended", or location_zone change), dispatch a notification via `notification_service.send_to_user()`. The `send_to_user()` method already calls `should_suppress()` internally, so the router just fires and trusts the service to filter. Add structured logging: `notification.dispatch_triggered` with context fields. Add integration-style tests that verify the full suppress→skip and allow→send paths by mocking firebase_admin at the messaging.send level while using real service + router together. Verify midnight-spanning quiet hours edge case has a dedicated test.
