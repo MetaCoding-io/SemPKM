@@ -18,6 +18,7 @@
 {% endif %}
 <link rel="stylesheet" href="{{ 'federation.css' | asset_url }}">
 <link rel="stylesheet" href="/css/copilot.css">
+<link rel="stylesheet" href="/css/context-indicator.css">
 <script src="{{ 'federation.js' | asset_url }}" defer></script>
 {% endblock %}
 
@@ -30,6 +31,10 @@
             <button class="panel-btn pane-close-btn" onclick="togglePane('nav-pane')" title="Close Explorer (Alt+[)" style="margin-left:auto;">
                 <i data-lucide="panel-left-close"></i>
             </button>
+        </div>
+        <div class="context-indicator context-stale" id="context-indicator">
+            <i data-lucide="radar"></i>
+            <span class="context-status">Context unknown</span>
         </div>
         <div class="pane-content" id="nav-tree" data-testid="nav-tree">
             {% include "browser/partials/favorites_section.html" %}
@@ -330,4 +335,8 @@ document.addEventListener('sempkm:demo-tour-done', function() {
 });
 </script>
 {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="/js/context-indicator.js"></script>
 {% endblock %}

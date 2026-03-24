@@ -67,7 +67,7 @@
   - Verify: `cd backend && .venv/bin/python -m pytest tests/test_context_service.py tests/test_context_router.py -v` — all pass
   - Done when: ≥10 service tests + ≥8 router tests pass, covering TTL, upsert, auth, rate limit, and SSE content type
 
-- [ ] **T04: Workspace sidebar context indicator with SSE** `est:1h`
+- [x] **T04: Workspace sidebar context indicator with SSE** `est:1h`
   - Why: Makes context visible in the UI — user sees location/activity/time updating in real-time
   - Files: `backend/app/templates/browser/workspace.html`, `frontend/static/js/context-indicator.js`, `frontend/static/css/context-indicator.css`
   - Do: Add a context indicator element in the workspace sidebar (bottom of `#nav-pane`, above the explorer sections or as a thin status bar at the top of the sidebar). The indicator shows: location zone icon (map-pin), activity (footprints/car/armchair), time period (sun/moon/briefcase), and optional calendar event name. Create `context-indicator.js` as a self-contained IIFE: on DOMContentLoaded, call `GET /api/context/current` to populate initial state, then open `EventSource('/api/context/stream')` for real-time updates. On `context_update` event, update indicator text/icons. On `context_stale` event (or when `is_stale` is true), show "Unknown" with muted styling. Create `context-indicator.css` with compact styling (small text, subtle icons, muted colors when stale). Add `<script src="/js/context-indicator.js">` and `<link href="/css/context-indicator.css">` to workspace.html. Include the indicator HTML partial in the sidebar.
