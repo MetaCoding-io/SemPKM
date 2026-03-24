@@ -47,8 +47,11 @@ services:
       GITHUB_API_URL: http://mock-github:8080
       JIRA_API_URL: http://mock-jira:8080
       MONDAY_API_URL: http://mock-monday:8080
+      LLM_API_URL: http://mock-llm:8080
     depends_on:
       triplestore:
+        condition: service_healthy
+      mock-llm:
         condition: service_healthy
       mock-linear:
         condition: service_healthy
@@ -63,6 +66,20 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    networks:
+      - sempkm-test
+
+  mock-llm:
+    image: python:3.12-slim
+    volumes:
+      - ./e2e/mock-llm-api:/app:ro
+    working_dir: /app
+    command: ["python", "server.py"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
     networks:
       - sempkm-test
 
