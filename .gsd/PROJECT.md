@@ -707,17 +707,16 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - 184 backend tests (172 unit/router + 12 integration), user guide Chapter 48 (386 lines)
 
 **Personal Media Scheduler App** — complete (M038, 2026-03-23)
-- Daily media queue: podcasts, YouTube, Spotify scheduled by context and rules
-- Podcast RSS polling, YouTube Data API polling, Spotify OAuth + playlist polling all operational
-- Schedule rules engine with daily plan generation (time-slot entries from rules + content)
-- Spotify OAuth 2.0 with PKCE, playlist track discovery, Premium/Free tier detection
-- Context SSE subscription: plan re-evaluates on M037 context changes (120s debounce, immediate for location)
-- Entry status tracking: complete/skip/save actions in today view via htmx
+- Daily media queue: podcasts, YouTube, Spotify scheduled by context and configurable rules
+- media-scheduler Mental Model (MediaSource, MediaItem, MediaCategory) with SHACL shapes and ViewSpecs
+- Podcast RSS polling via feedparser with conditional GET and dedup, YouTube Data API v3 with quota tracking, Spotify OAuth 2.0 with PKCE and playlist discovery
+- Schedule rules engine with AND-matching conditions (location, activity, time period, time range) + daily plan generator with time-slot allocation
+- Context SSE subscription consuming M037 stream with 120s debounce (immediate for location_zone), exponential backoff reconnect
+- Entry status tracking (completed/skipped/saved) in Today view with htmx actions
 - Mobile Now Playing card with deep links to Spotify/YouTube/podcast native apps
-- Stats dashboard: hours per category, most-played sources, weekly trends (Chart.js)
-- 395 unit tests across all media scheduler services
-- E2E Playwright spec: 10-phase lifecycle test (install → subscribe → rules → plan → stats → uninstall)
-- User guide chapter documenting full app workflow
+- Stats dashboard: hours by category, top 10 sources, weekly trends (Chart.js CDN lazy-load)
+- 414 unit tests across 30+ test classes, E2E Playwright spec (14 phases), user guide Chapter 49
+- 36 source files, 14,063 lines added
 
 **RDF Data Import & API Documentation Cleanup** — complete (M039, 2026-03-22)
 - RDF import wizard: paste/upload JSON-LD/Turtle/N-Triples → SHACL preview → event-sourced import
@@ -742,7 +741,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current State
 
-**Latest shipped: M037 User Context & Mobile App (2026-03-23) — 7 slices, 184 backend tests, Expo React Native mobile app**
+**Latest shipped: M038 Personal Media Scheduler App (2026-03-23) — 7 slices, 414 unit tests, daily media queue with podcast/YouTube/Spotify sources, context-driven plan adaptation, mobile Now Playing card**
 
 **What shipped in M037:**
 - Backend Context API: POST /api/context/update, GET /api/context/current, GET /api/context/stream (SSE). ContextService with TTL-based staleness (15 min default). ContextBroadcast SSE fan-out.
