@@ -28,7 +28,7 @@
   - Verify: working notes exist with dead code count, duplication instances, and test gap list
   - Done when: cross-cutting analysis data is collected and ready for assembly
 
-- [ ] **T02: Report assembly, Top 10 prioritization, and linting recommendations** `est:40m`
+- [x] **T02: Report assembly, Top 10 prioritization, and linting recommendations** `est:40m`
   - Why: The final deliverable. Consolidates all findings into one actionable report.
   - Files: `.gsd/milestones/M041/S01-BACKEND-FINDINGS.md`, `.gsd/milestones/M041/S02-FRONTEND-FINDINGS.md`, `.gsd/milestones/M041/M041-RECOMMENDATIONS.md`
   - Do: (1) Create M041-RECOMMENDATIONS.md with preamble (scope, methodology, metrics summary). (2) Consolidate backend findings from S01. (3) Consolidate frontend findings from S02. (4) Add cross-cutting section (dead code, duplication, test gaps, tech debt from T01). (5) Write Top 10 section by selecting highest-impact findings across all dimensions — prioritize by: runtime risk > correctness > maintainability > style. (6) Write linting recommendations section: recommend ruff for Python (with specific rule sets), eslint for JS, stylelint for CSS. Estimate setup effort. (7) Add appendix with all detection commands used for reproducibility. (8) Final verification: every dimension present, every finding annotated, Top 10 complete.
