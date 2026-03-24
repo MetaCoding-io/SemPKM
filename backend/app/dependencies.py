@@ -203,3 +203,25 @@ async def get_context_broadcast(request: Request) -> ContextBroadcast:
     stored on app.state.context_broadcast.
     """
     return request.app.state.context_broadcast
+
+
+async def get_rules_engine(request: Request):
+    """Get the RulesEngine instance from app state.
+
+    The engine is created during app lifespan startup and stored on
+    app.state.rules_engine.
+    """
+    from app.context.rules_engine import RulesEngine
+
+    return request.app.state.rules_engine
+
+
+async def get_persona_service(request: Request):
+    """Get the PersonaService instance from app state.
+
+    The service is created during app lifespan startup and stored on
+    app.state.persona_service.
+    """
+    from app.persona.service import PersonaService
+
+    return request.app.state.persona_service

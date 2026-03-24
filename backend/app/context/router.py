@@ -9,6 +9,7 @@ Endpoints:
 import asyncio
 import dataclasses
 import logging
+import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
@@ -93,6 +94,42 @@ async def update_context(
             data=dataclasses.asdict(ctx),
         )
     )
+
+    # ── Auto-persona rule evaluation ─────────────────────────────
+    # After every context update, evaluate the user's rules and switch
+    # persona if a rule matches and the target persona isn't already active.
+    try:
+        rules_engine = request.app.state.rules_engine
+        persona_service = request.app.state.persona_service
+
+        matched_persona_id = await rules_engine.evaluate(user.id, fields)
+        if matched_persona_id:
+            active = await persona_service.get_active(user.id)
+            if not active or active.id != matched_persona_id:
+                result = await persona_service.activate(
+                    uuid.UUID(matched_persona_id), user.id
+                )
+                if result:
+                    await broadcast.publish(
+                        SSEEvent(
+                            event="persona_switched",
+                            data={
+                                "persona_id": matched_persona_id,
+                                "persona_name": result.name,
+                                "rule_name": "auto",
+                            },
+                        )
+                    )
+                    logger.info(
+                        "context.persona_switched user_id=%s persona_id=%s persona_name=%s",
+                        user.id,
+                        matched_persona_id,
+                        result.name,
+                    )
+    except Exception:
+        logger.error(
+            "context.rule_evaluation_failed user_id=%s", user.id, exc_info=True
+        )
 
     return dataclasses.asdict(ctx)
 
