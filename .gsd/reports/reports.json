@@ -435,6 +435,22 @@
       "doneMilestones": 39,
       "totalMilestones": 40,
       "phase": "pre-planning"
+    },
+    {
+      "filename": "M038-2026-03-24T19-52-10.html",
+      "generatedAt": "2026-03-24T19:52:10.476Z",
+      "milestoneId": "M038",
+      "milestoneTitle": "Personal Media Scheduler App",
+      "label": "M038: Personal Media Scheduler App",
+      "kind": "milestone",
+      "totalCost": 1495.738522750001,
+      "totalTokens": 2097037475,
+      "totalDuration": 254204267,
+      "doneSlices": 246,
+      "totalSlices": 246,
+      "doneMilestones": 40,
+      "totalMilestones": 40,
+      "phase": "complete"
     }
   ]
 }
