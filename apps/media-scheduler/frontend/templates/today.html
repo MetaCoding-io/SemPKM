@@ -53,6 +53,38 @@
         </span>
         {% endif %}
       </div>
+      {% if entry.status not in ['completed', 'skipped', 'saved'] %}
+      <div class="ms-entry-actions">
+        <button class="ms-btn ms-action-btn ms-action-complete"
+                title="Mark complete"
+                hx-post="/app/media-scheduler/_fragments/entry/{{ entry.iri | urlencode }}/status"
+                hx-vals='{"status": "completed"}'
+                hx-target="closest .ms-entry-actions"
+                hx-swap="outerHTML">
+          ✓
+        </button>
+        <button class="ms-btn ms-action-btn ms-action-skip"
+                title="Skip"
+                hx-post="/app/media-scheduler/_fragments/entry/{{ entry.iri | urlencode }}/status"
+                hx-vals='{"status": "skipped"}'
+                hx-target="closest .ms-entry-actions"
+                hx-swap="outerHTML">
+          →
+        </button>
+        <button class="ms-btn ms-action-btn ms-action-save"
+                title="Save for later"
+                hx-post="/app/media-scheduler/_fragments/entry/{{ entry.iri | urlencode }}/status"
+                hx-vals='{"status": "saved"}'
+                hx-target="closest .ms-entry-actions"
+                hx-swap="outerHTML">
+          ♡
+        </button>
+      </div>
+      {% else %}
+      <div class="ms-entry-actions ms-entry-done">
+        <span class="ms-status-badge ms-status-{{ entry.status }}">{{ entry.status }}</span>
+      </div>
+      {% endif %}
     </div>
     {% endfor %}
   </div>

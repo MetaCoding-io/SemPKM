@@ -84,3 +84,10 @@ The app currently has placeholder `on_startup`/`on_shutdown` hooks (lines 1781-1
 - `apps/media-scheduler/frontend/templates/today.html` — modified: action buttons added per entry
 - `apps/media-scheduler/frontend/static/styles.css` — modified: `.ms-entry-actions` button styles
 - `backend/tests/test_media_scheduler.py` — ~25 new test functions appended
+
+## Observability Impact
+
+- **New runtime signals:** `entry_status.updated` (INFO log with IRI and new status on each successful status change); `entry_status.patch_failed` (WARNING on object.patch failure); `current-suggestion-json SPARQL failed` (WARNING on query failure)
+- **Inspection:** Entry status changes are visible in the existing `TODAY_PLAN_SPARQL` query results (the `?entryStatus` binding); `get_context_subscription_status()` confirms SSE lifecycle is wired
+- **Failure visibility:** Status update failures return HTTP 500 with error message in response body; JSON endpoint returns `{"status": "none", "error": "..."}` on SPARQL failure
+- **Lifecycle signals:** `on_startup` logs context listener spawn; `on_shutdown` logs cancellation

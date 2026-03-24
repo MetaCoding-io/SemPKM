@@ -55,7 +55,7 @@
   - Verify: `cd backend && .venv/bin/python -m pytest tests/test_media_scheduler.py -k "context" -v` — all context service tests pass
   - Done when: `context_service.py` exists with all functions, 45+ new tests pass, AST parse clean
 
-- [ ] **T02: App wiring — lifecycle hooks, entry status route, JSON suggestion endpoint, today UI buttons** `est:1h`
+- [x] **T02: App wiring — lifecycle hooks, entry status route, JSON suggestion endpoint, today UI buttons** `est:1h`
   - Why: Wires the context service into the app lifecycle, adds the missing entry status mutation route, provides the JSON endpoint the mobile app needs, and gives users UI controls to mark entries complete/skipped/saved.
   - Files: `apps/media-scheduler/app.py`, `apps/media-scheduler/frontend/templates/today.html`, `apps/media-scheduler/frontend/static/styles.css`, `backend/tests/test_media_scheduler.py`
   - Do: (1) Make `on_startup` async, call `start_context_listener(ctx)` from context_service, store task ref. Make `on_shutdown` async, call `stop_context_listener()`. (2) Add `POST /_fragments/entry/{entry_iri}/status` route accepting `status` form field (completed/skipped/saved), calling `object.patch` to update `entryStatus`. (3) Add `GET /_fragments/current-suggestion/json` returning `{title, slot_start, slot_end, status, source_type, source_title, enclosure_url, duration_seconds}`. (4) Add action buttons to each plan entry in today.html: complete (✓), skip (→), save (♡) — each htmx-POSTs to status route and swaps the entry. (5) Add ~25 tests for new routes, lifecycle wiring, and template content.

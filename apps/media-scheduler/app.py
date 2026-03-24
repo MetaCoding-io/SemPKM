@@ -14,14 +14,16 @@ after each feed.
 
 from __future__ import annotations
 
+import json
 import logging
 import uuid
 from datetime import date, datetime, timezone
 from typing import Any
+from urllib.parse import unquote
 
 from sempkm_app_sdk import App, AppContext
 from starlette.requests import Request
-from starlette.responses import HTMLResponse, RedirectResponse
+from starlette.responses import HTMLResponse, JSONResponse, RedirectResponse
 
 try:
     from services.podcast_service import (
@@ -181,6 +183,24 @@ except ModuleNotFoundError:
     store_spotify_tokens = _sp_fm.store_spotify_tokens
     subscribe_spotify = _sp_fm.subscribe_spotify
     track_to_media_item = _sp_fm.track_to_media_item
+
+try:
+    from services.context_service import (
+        get_context_subscription_status,
+        start_context_listener,
+        stop_context_listener,
+    )
+except ModuleNotFoundError:
+    import importlib.util as _ilu6
+    import pathlib as _pl6
+
+    _ctx_svc = _pl6.Path(__file__).resolve().parent / "services" / "context_service.py"
+    _ctx_sp = _ilu6.spec_from_file_location("_context_service_fallback", _ctx_svc)
+    _ctx_fm = _ilu6.module_from_spec(_ctx_sp)
+    _ctx_sp.loader.exec_module(_ctx_fm)
+    get_context_subscription_status = _ctx_fm.get_context_subscription_status
+    start_context_listener = _ctx_fm.start_context_listener
+    stop_context_listener = _ctx_fm.stop_context_listener
 
 logger = logging.getLogger(__name__)
 
@@ -1443,6 +1463,7 @@ async def today_fragment(request: Request):
         has_plan = len(bindings) > 0
 
         for b in bindings:
+            entry_iri = b.get("entry", {}).get("value", "")
             slot_start = b.get("slotStart", {}).get("value", "")
             slot_end = b.get("slotEnd", {}).get("value", "")
             status = b.get("entryStatus", {}).get("value", "pending")
@@ -1465,6 +1486,7 @@ async def today_fragment(request: Request):
                     now_playing = True
 
             entries.append({
+                "iri": entry_iri,
                 "title": title or "Untitled",
                 "slot_start": slot_start,
                 "slot_end": slot_end,
@@ -1680,6 +1702,7 @@ async def plan_generate_fragment(request: Request):
         has_plan = len(bindings) > 0
 
         for b in bindings:
+            entry_iri = b.get("entry", {}).get("value", "")
             slot_start = b.get("slotStart", {}).get("value", "")
             slot_end = b.get("slotEnd", {}).get("value", "")
             status = b.get("entryStatus", {}).get("value", "pending")
@@ -1701,6 +1724,7 @@ async def plan_generate_fragment(request: Request):
                     now_playing = True
 
             entries.append({
+                "iri": entry_iri,
                 "title": title or "Untitled",
                 "slot_start": slot_start,
                 "slot_end": slot_end,
@@ -1775,16 +1799,144 @@ async def current_suggestion_fragment(request: Request):
     )
 
 
+# ── Entry status route ──
+
+VALID_ENTRY_STATUSES = {"completed", "skipped", "saved"}
+
+
+@media_scheduler_app.route("/_fragments/entry/{entry_iri:path}/status", methods=["POST"])
+async def entry_status_fragment(request: Request):
+    """Update a plan entry's status (completed/skipped/saved).
+
+    Accepts ``status`` form field.  Returns an HTML fragment with
+    the updated status badge + action buttons for htmx swap.
+    """
+    ctx = request.app.state.ctx
+    entry_iri_raw = request.path_params.get("entry_iri", "")
+    entry_iri = unquote(entry_iri_raw)
+
+    if not entry_iri:
+        return HTMLResponse(
+            '<div class="ms-error">Missing entry IRI</div>', status_code=400
+        )
+
+    form = await request.form()
+    status = form.get("status", "").strip()
+
+    if status not in VALID_ENTRY_STATUSES:
+        return HTMLResponse(
+            f'<div class="ms-error">Invalid status: {status}. '
+            f'Must be one of: {", ".join(sorted(VALID_ENTRY_STATUSES))}</div>',
+            status_code=400,
+        )
+
+    try:
+        await ctx.commands.execute(
+            "object.patch",
+            {"iri": entry_iri, "properties": {f"{MS_NS}entryStatus": status}},
+        )
+        logger.info("entry_status.updated iri=%s status=%s", entry_iri, status)
+    except Exception as exc:
+        logger.warning("entry_status.patch_failed iri=%s error=%s", entry_iri, exc)
+        return HTMLResponse(
+            f'<div class="ms-error">Failed to update status: {exc}</div>',
+            status_code=500,
+        )
+
+    # Return updated action area fragment
+    return HTMLResponse(
+        f'<div class="ms-entry-actions ms-entry-done">'
+        f'<span class="ms-status-badge ms-status-{status}">{status}</span>'
+        f'</div>'
+    )
+
+
+# ── JSON suggestion endpoint (mobile) ──
+
+
+@media_scheduler_app.route("/_fragments/current-suggestion/json")
+async def current_suggestion_json(request: Request):
+    """JSON endpoint for the current/next media suggestion.
+
+    Returns structured JSON for mobile app consumption:
+    ``{title, slot_start, slot_end, status, source_type, source_title,
+    enclosure_url, duration_seconds}``.
+
+    Returns ``{"status": "none"}`` when no current/next entry exists.
+    """
+    ctx = request.app.state.ctx
+    today_str = date.today().isoformat()
+    now_time = _current_time_str()
+
+    sparql = TODAY_PLAN_SPARQL.replace("{date_str}", today_str)
+
+    try:
+        result = await ctx.graph.query(sparql)
+        bindings = result.get("results", {}).get("bindings", [])
+    except Exception as exc:
+        logger.warning("current-suggestion-json SPARQL failed: %s", exc)
+        return JSONResponse({"status": "none", "error": str(exc)})
+
+    current_entry = None
+    next_entry = None
+
+    for b in bindings:
+        slot_start = b.get("slotStart", {}).get("value", "")
+        slot_end = b.get("slotEnd", {}).get("value", "")
+        entry_status = b.get("entryStatus", {}).get("value", "pending")
+        title = b.get("title", {}).get("value", "Untitled")
+        enclosure_url = b.get("enclosureUrl", {}).get("value", "")
+        source_title = b.get("sourceTitle", {}).get("value", "")
+        source_type = b.get("sourceType", {}).get("value", "")
+        duration_raw = b.get("duration", {}).get("value", "")
+
+        if entry_status in ("completed", "skipped", "replaced"):
+            continue
+
+        duration_seconds = None
+        if duration_raw:
+            try:
+                duration_seconds = int(duration_raw)
+            except (ValueError, TypeError):
+                pass
+
+        entry_data = {
+            "title": title,
+            "slot_start": slot_start,
+            "slot_end": slot_end,
+            "source_type": source_type,
+            "source_title": source_title,
+            "enclosure_url": enclosure_url,
+            "duration_seconds": duration_seconds,
+        }
+
+        if slot_start and slot_end:
+            if slot_start <= now_time <= slot_end:
+                current_entry = {**entry_data, "status": "now"}
+                break
+            elif slot_start > now_time and next_entry is None:
+                next_entry = {**entry_data, "status": "next"}
+
+    entry = current_entry or next_entry
+
+    if not entry:
+        return JSONResponse({"status": "none"})
+
+    return JSONResponse(entry)
+
+
 # ── Lifecycle hooks ──
 
 
 @media_scheduler_app.on_startup
-def on_startup(ctx: AppContext):
-    """Log app startup."""
-    logger.info("Media Scheduler app started: %s", ctx.app_id)
+async def on_startup(ctx: AppContext):
+    """Start context SSE listener on app startup."""
+    start_context_listener(ctx)
+    logger.info("Media Scheduler app started (context listener spawned): %s", ctx.app_id)
 
 
 @media_scheduler_app.on_shutdown
-def on_shutdown(ctx: AppContext):
-    """Log app shutdown."""
-    logger.info("Media Scheduler app stopped: %s", ctx.app_id)
+async def on_shutdown(ctx: AppContext):
+    """Stop context SSE listener on app shutdown."""
+    stop_context_listener()
+    logger.info("Media Scheduler app stopped (context listener cancelled): %s", ctx.app_id)
