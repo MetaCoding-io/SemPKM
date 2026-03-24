@@ -51,7 +51,7 @@
   - Verify: `python e2e/mock-llm-api/server.py --selftest` passes all checks; `docker compose -f docker-compose.test.yml config --quiet` succeeds
   - Done when: selftest passes with streaming + non-streaming + copilot routing checks; docker-compose.test.yml validates with mock-llm service
 
-- [ ] **T02: Copilot E2E Playwright tests** `est:1h`
+- [x] **T02: Copilot E2E Playwright tests** `est:1h`
   - Why: Validates the entire copilot stack end-to-end: chat streaming through mock LLM, SPARQL generation and approval, conversation persistence across page reloads, persona switching, and object creation from chat. This is the primary deliverable of the slice.
   - Files: `e2e/tests/46-copilot/copilot.spec.ts`, `e2e/helpers/selectors.ts`
   - Do: (1) Add copilot selectors to `SEL` object. (2) Create test spec with beforeAll that configures LLM to point at `http://mock-llm:8080` via `PUT /browser/llm/config` and afterAll that cleans up. (3) Write test cases: basic chat (send message, see streaming response), SPARQL generation (trigger message, see approval card, approve, see results), conversation persistence (send message, reload, verify conversation appears in selector), persona switching (load selector, switch persona, verify selection), object creation (trigger message, see confirmation card, confirm, verify object created). (4) Handle copilot lazy-load — click AI COPILOT tab to activate before each test.

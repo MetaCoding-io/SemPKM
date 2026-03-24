@@ -114,6 +114,13 @@ The copilot tab is lazy-loaded — tests must click the AI COPILOT panel tab to 
 - `frontend/static/css/copilot.css` — copilot styles (for discovering actual CSS class names)
 - `backend/app/api/copilot.py` — copilot API (for understanding SSE event types and endpoint contracts)
 
+## Observability Impact
+
+- **Playwright trace-on-retry:** When copilot E2E tests fail, Playwright's built-in trace captures the SSE stream state, approval card DOM, and conversation list — visible in `test-results/` directory.
+- **Mock-LLM request logs:** During test runs, `docker compose logs mock-llm` shows `[mock-llm] POST /v1/chat/completions stream=true|false route=...` for each copilot request, enabling correlation between test actions and mock responses.
+- **Conversation API inspection:** After a test run, `GET /api/copilot/conversations` on the test stack shows persisted conversations, useful for debugging conversation persistence test failures.
+- **Test failure signals:** Each test has explicit `expect()` assertions on visible DOM elements — failures report the exact missing selector or mismatched text, not generic timeouts.
+
 ## Expected Output
 
 - `e2e/tests/46-copilot/copilot.spec.ts` — Playwright E2E test spec with 5+ test cases
