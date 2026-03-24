@@ -210,3 +210,204 @@ This function handles: (1) message validation, (2) LLM provider selection, (3) S
 **Detection:** `python3 -c "import ast; [print(f'{fp}: {n.end_lineno-n.lineno+1} lines') for fp in ['backend/app/notion/executor.py','backend/app/obsidian/executor.py'] for n in ast.walk(ast.parse(open(fp).read())) if isinstance(n,(ast.FunctionDef,ast.AsyncFunctionDef)) and n.name=='execute']"`
 
 Both executors implement the full sync pipeline (connect → scan → diff → apply → report) in a single method. The pipeline stages are identifiable by inline comments but not extractable for testing or reuse.
+
+---
+
+## Error Handling
+
+### Finding EH-01: 312 `except Exception` handlers — 70% catch-and-degrade, 8% silent
+
+**Severity:** High
+**Effort:** High (aggregate — many low-effort individual fixes)
+**Location:** Across 50+ modules
+**Detection:** `python3 -c "import ast,os; total=0; [total:=total+1 for r,_,fs in os.walk('backend/app') for f in fs if f.endswith('.py') for n in ast.walk(ast.parse(open(os.path.join(r,f)).read())) if isinstance(n,ast.ExceptHandler) and n.type and isinstance(n.type,ast.Name) and n.type.id=='Exception']; print(total)"`
+
+| Category | Count | % | Risk |
+|----------|-------|---|------|
+| Logs + returns default value (graceful degradation) | 218 | 70% | Medium — hides root cause behind empty results |
+| Silent `pass` (no log, no re-raise) | 24 | 8% | **High** — errors vanish completely |
+| Silent `return` (no log, returns default) | 19 | 6% | **High** — errors vanish with misleading "empty" response |
+| Logs + re-raises | 15 | 5% | Low — proper pattern |
+| Other (mixed patterns) | 36 | 11% | Varies |
+
+The dominant pattern is catch-and-degrade: catch `Exception`, log a warning with `exc_info=True`, and return an empty list/dict/zero. This is intentional for SPARQL query failures in view renderers (views/service.py has 37 of these) but problematic when it masks real bugs — a typo in a SPARQL template produces the same empty result as an actual empty dataset.
+
+### Finding EH-02: 26 `except Exception: pass` blocks — completely silent failure
+
+**Severity:** Critical
+**Effort:** Low (add `logger.debug(..., exc_info=True)` to each)
+**Location:** Multiple files (see table)
+**Detection:** `python3 -c "import ast,os; [(print(f'{os.path.join(r,f)}:{n.lineno}')) for r,_,fs in os.walk('backend/app') for f in fs if f.endswith('.py') for n in ast.walk(ast.parse(open(os.path.join(r,f)).read())) if isinstance(n,ast.ExceptHandler) and n.type and isinstance(n.type,ast.Name) and n.type.id=='Exception' and len(n.body)==1 and isinstance(n.body[0],ast.Pass)]"`
+
+| Module | Lines | Context |
+|--------|-------|---------|
+| `admin/router.py` | 770, 796, 822, 843, 882, 900, 923 | 7 entailment example SPARQL queries in `_query_entailment_examples()` — all silent |
+| `services/models.py` | 406, 564, 944, 971 | Rollback, manifest scan, analytics queries |
+| `events/query.py` | 444, 498 | Undo materialization queries |
+| `events/store.py` | 225, 327 | Transaction rollback (best-effort — re-raises outer) |
+| `canvas/router.py` | 478, 561 | Wikilink resolve, batch edges |
+| `canvas/service.py` | 64, 72 | JSON parse of stored canvas data |
+| `inference/service.py` | 668 | User override loading |
+| `models/registry.py` | 285 | Model registry scan |
+| `monitoring/middleware.py` | 39 | Session token extraction in error handler |
+| `ontology/service.py` | 100 | Namespace prefix parsing |
+| `services/icons.py` | 108 | Icon loading |
+| `services/settings.py` | 93 | Settings iteration |
+| `task_templates/router.py` | 162 | JSON body parsing |
+
+**Risk classification:**
+- **Acceptable (4):** `events/store.py` (225, 327) — rollback-then-reraise pattern; outer exception propagates.
+- **Should add logging (15):** `admin/router.py` (7), `canvas/router.py` (2), `canvas/service.py` (2), `ontology/service.py` (1), `monitoring/middleware.py` (1), `task_templates/router.py` (1) — UI enrichment or parsing failures that are low-risk but invisible to debugging.
+- **Dangerous (7):** `services/models.py` (4), `inference/service.py` (1), `models/registry.py` (1), `services/settings.py` (1) — silenced errors in core model installation, inference configuration, and settings loading can mask real failures.
+
+### Finding EH-03: 19 `except Exception: return <default>` with no logging
+
+**Severity:** High
+**Effort:** Low
+**Location:** Multiple files including `views/service.py:3211,3236,3464,3489`
+**Detection:** `python3 -c "import ast,os; [(print(f'{os.path.join(r,f)}:{n.lineno}')) for r,_,fs in os.walk('backend/app') for f in fs if f.endswith('.py') for n in ast.walk(ast.parse(open(os.path.join(r,f)).read())) if isinstance(n,ast.ExceptHandler) and n.type and isinstance(n.type,ast.Name) and n.type.id=='Exception' and len(n.body)==1 and isinstance(n.body[0],ast.Return)]"`
+
+These return empty defaults (`[]`, `{}`, `None`, `0`) without any trace that an error occurred. The caller sees an empty result indistinguishable from a genuine empty dataset. At minimum, add `logger.debug(..., exc_info=True)` so that enabling debug logging reveals the real error.
+
+Notable locations in `views/service.py`:
+- **L3211, L3236** — `_get_model_node_colors()` and layout queries silently return `[]` on any SPARQL failure, making graph views render with default colors instead of model-declared ones. No signal that the query failed.
+- **L3464, L3489** — Color queries silently return `{}`, same issue.
+
+### Finding EH-04: `views/service.py` has 37 broad `except Exception` handlers — most are catch-and-degrade
+
+**Severity:** Medium
+**Effort:** Medium
+**Location:** `backend/app/views/service.py` (37 handlers, 33 logged, 4 silent)
+**Detection:** `rg "except Exception" -c backend/app/views/service.py`
+
+33 of 37 handlers follow a consistent pattern: catch Exception, `logger.warning("... failed for %s", iri, exc_info=True)`, return empty default. This is a deliberate "graceful degradation" strategy — a failed graph query returns an empty graph instead of a 500 error. The 4 unlogged handlers (EH-03) should match the same pattern for consistency.
+
+**Recommendation:** The pattern itself is reasonable for a UI service where partial results are better than errors. However, none of these failures are visible to the user or admin. Consider: (1) incrementing a failure counter per renderer type for health monitoring, (2) returning a `warnings` field alongside data so the UI can show "some data may be missing."
+
+### Finding EH-05: `admin/router.py` `_query_entailment_examples()` has 7 sequential silent catches
+
+**Severity:** Medium
+**Effort:** Trivial
+**Location:** `backend/app/admin/router.py:770-923`
+**Detection:** `rg "except Exception" -n backend/app/admin/router.py | grep -c "pass"`
+
+Seven consecutive try/except blocks, each querying a different entailment type (owl:inverseOf, rdfs:subClassOf, rdfs:subPropertyOf, owl:TransitiveProperty, rdfs:domain/range, sh:rule, manifest defaults). Every one silently swallows `Exception` with `pass`. If the triplestore is down or a query is malformed, the admin page renders with zero entailment examples and no indication of why.
+
+**Fix:** Add `logger.debug("entailment example query failed for %s: %s", entailment_type, e)` to each catch. Alternatively, refactor into a loop over entailment query specs with a single try/except wrapping each iteration.
+
+### Finding EH-06: `inference/service.py` logs triplestore errors at `debug` level
+
+**Severity:** Medium
+**Effort:** Trivial
+**Location:** `backend/app/inference/service.py:485,585`
+**Detection:** `rg "logger\.debug.*error\|logger\.debug.*fail" -i -n backend/app/inference/service.py`
+
+Two exception handlers catch triplestore failures (clearing inferred graphs, removing triples) and log them at `logger.debug()`. These are real operational errors — if the triplestore rejects a CLEAR GRAPH or DELETE, the inference state becomes inconsistent. At minimum these should be `logger.warning()`.
+
+```python
+# Line 485: "Clear inferred graph: %s" at debug — should be warning
+except Exception as e:
+    logger.debug("Clear inferred graph: %s", e)  # Should be warning
+
+# Line 585: "Remove triple from inferred: %s" at debug — should be warning
+except Exception as e:
+    logger.debug("Remove triple from inferred: %s", e)  # Should be warning
+```
+
+---
+
+## Logging
+
+### Finding LG-01: 115 of 233 modules (49%) have loggers — substantial modules missing coverage
+
+**Severity:** High
+**Effort:** Medium
+**Location:** See table below
+**Detection:** `comm -23 <(fd -e py . backend/app/ | sort) <(rg "logger\s*=\s*|logging\.getLogger" -l backend/app/ 2>/dev/null | sort) | grep -v "__init__\.py" | grep -v "models\.py" | grep -v "schemas\.py" | xargs -I{} sh -c 'lines=$(wc -l < "{}"); [ "$lines" -gt 100 ] && echo "$lines {}"' | sort -rn`
+
+118 modules (51%) have no logger. After filtering out `__init__.py`, models, and schemas (which typically don't need logging), 26 substantial modules (>100 LOC) lack logging:
+
+| Module | LOC | Has except blocks? | Risk |
+|--------|-----|---------------------|------|
+| `vfs/mount_service.py` | 597 | No | **High** — largest unlogged module, handles mount CRUD |
+| `lint/router.py` | 378 | 4 | **High** — validation results router with no error tracing |
+| `vfs/collections.py` | 334 | No | Medium — collection SPARQL queries |
+| `auth/service.py` | 333 | No | **Critical** — authentication logic with zero logging |
+| `models/registry.py` | 326 | 1 (silent!) | **High** — model registration with a silent exception |
+| `validation/report.py` | 308 | No | Medium — SHACL report parsing |
+| `apps/manifest.py` | 298 | 2 | Medium |
+| `vfs/write.py` | 253 | No | **High** — VFS write operations |
+| `models/validator.py` | 251 | No | Medium |
+| `canvas/service.py` | 250 | 4 (silent!) | **High** — silent exceptions with no logger to add to |
+| `dependencies.py` | 249 | No | Medium — DI factory |
+| `sparql/client.py` | 242 | No | **High** — SPARQL client with no error tracing |
+| `federation/patch.py` | 183 | No | Medium |
+| `models/router.py` | 181 | No | Medium |
+| `models/loader.py` | 179 | No | Medium |
+| `webid/service.py` | 160 | 1 | Medium |
+| `auth/tokens.py` | 154 | 2 | Medium |
+| `triplestore/client.py` | 151 | 1 | **High** — triplestore client wrapper |
+| `services/settings.py` | 150 | 2 (silent!) | **High** — silent exceptions with no logger |
+| `browser/pages.py` | 150 | No | Low |
+| `inference/entailments.py` | 143 | No | Medium |
+| `models/manifest.py` | 140 | 1 | Low |
+| `services/llm.py` | 124 | 1 | Medium — LLM service selection |
+| `commands/handlers/object_create.py` | 121 | No | Medium |
+| `browser/tag_tree.py` | 121 | No | Low |
+| `shell/router.py` | 116 | No | Medium |
+
+The most critical gaps are `auth/service.py` (authentication with zero logging), `sparql/client.py` (SPARQL communication with no error tracing), `triplestore/client.py` (triplestore wrapper), and `vfs/mount_service.py` (597-line module with no logging).
+
+### Finding LG-02: Zero f-string logging — %-style used consistently (positive finding)
+
+**Severity:** None (positive finding)
+**Detection:** `rg "logger\.\w+\(f\"" -c backend/app/ 2>/dev/null | awk -F: '{s+=$2} END {print s}'` → 0
+
+All 743 logger calls use %-style format strings (`logger.warning("Failed for %s", var)`) rather than f-strings (`logger.warning(f"Failed for {var}")`). This is the correct pattern — %-style defers string formatting until the log message is actually emitted, avoiding computation when the log level is disabled.
+
+### Finding LG-03: Zero `extra={}` structured logging — all log messages are unstructured strings
+
+**Severity:** Medium
+**Effort:** Medium (incremental adoption)
+**Location:** All 743 logger calls across the codebase
+**Detection:** `rg "extra\s*=" backend/app/ 2>/dev/null | grep "logger\."` → 0 results
+
+No logger call in the codebase uses the `extra={}` parameter for structured logging. All error context is embedded in the format string: `logger.warning("Failed to query %s for %s", thing, iri)`. This makes log aggregation and filtering harder — you can't search for `{"object_iri": "urn:...", "operation": "delete"}` in a log management tool.
+
+**Recommendation:** Prioritize structured logging for:
+1. Error paths in API endpoints (include request method, path, user_id)
+2. Triplestore operations (include query type, graph IRI, duration)
+3. Federation operations (include peer URL, operation, status code)
+
+### Finding LG-04: 105 `exc_info=True` usages — good exception chain preservation
+
+**Severity:** None (positive finding)
+**Detection:** `rg "exc_info=True" -c backend/app/ 2>/dev/null | awk -F: '{s+=$2} END {print s}'` → 105
+
+About 14% of logger calls include `exc_info=True`, ensuring stack traces are captured for exception handlers. This is well-applied in the catch-and-degrade pattern across views, browser, and federation modules.
+
+### Finding LG-05: `federation/signatures.py` logs signature verification failure at `info` level
+
+**Severity:** Low
+**Effort:** Trivial
+**Location:** `backend/app/federation/signatures.py:260`
+**Detection:** `rg "logger\.info.*fail" -i -n backend/app/federation/signatures.py`
+
+```
+logger.info("Signature verification failed for %s, retrying with fresh key", key_id)
+```
+
+A signature verification failure is a security-relevant event — it could indicate a compromised key, a replay attack, or a misconfigured peer. This should be `logger.warning()` at minimum, or possibly a dedicated security audit log entry.
+
+### Finding LG-06: `indieauth/service.py` logs client fetch failure at `debug` level
+
+**Severity:** Low
+**Effort:** Trivial
+**Location:** `backend/app/indieauth/service.py:142`
+**Detection:** `rg "logger\.debug.*fail" -i -n backend/app/indieauth/service.py`
+
+```
+logger.debug("Failed to fetch client info for %s", client_id, exc_info=True)
+```
+
+This is an OAuth client metadata fetch — failure means the authorization flow can't display client information. While not critical, `debug` means it's invisible in production logs. Should be `logger.info()` or `logger.warning()`.

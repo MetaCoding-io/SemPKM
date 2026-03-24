@@ -25,7 +25,7 @@
   - Verify: `test -f .gsd/milestones/M041/S01-BACKEND-FINDINGS.md && grep -c "^### " .gsd/milestones/M041/S01-BACKEND-FINDINGS.md` returns >= 2
   - Done when: Module Structure and Readability sections exist with specific findings
 
-- [ ] **T02: Error handling and logging audit** `est:40m`
+- [x] **T02: Error handling and logging audit** `est:40m`
   - Why: Research found 15 swallowed exceptions and 7 broad `except Exception` blocks in admin/router.py alone. Error handling is a runtime reliability concern.
   - Files: all backend `.py` files
   - Do: (1) `rg "except Exception" --count` across backend/ to find all broad catches. (2) `rg "except.*:[\s]*pass" -n` to find swallowed exceptions. (3) `rg "except.*:\s*$" -A2` to find empty except blocks. (4) Audit logging patterns: `rg "logger\." --count` vs modules with no logging. (5) Check structured vs unstructured logging (f-string in log calls vs %s or extra={}). (6) Check log level appropriateness (logger.info for errors, logger.debug for important events). (7) Append "Error Handling" and "Logging" sections to findings doc.
