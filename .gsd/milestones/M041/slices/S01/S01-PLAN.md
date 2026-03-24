@@ -32,7 +32,7 @@
   - Verify: `grep -c "^### " .gsd/milestones/M041/S01-BACKEND-FINDINGS.md` returns >= 4
   - Done when: Error Handling and Logging sections exist with categorized findings
 
-- [ ] **T03: Type safety, SPARQL construction, async patterns, and FastAPI audit** `est:50m`
+- [x] **T03: Type safety, SPARQL construction, async patterns, and FastAPI audit** `est:50m`
   - Why: Completes the backend dimension coverage. SPARQL f-string injection is a correctness risk. Type annotation gaps affect maintainability. Async boundary violations cause runtime bugs.
   - Files: all backend `.py` files, especially `backend/app/views/service.py`, `backend/app/triplestore/`, `backend/app/sparql/`, `backend/app/dependencies.py`
   - Do: (1) Type safety: count functions without return annotations via grep/ast-grep. Sample annotation coverage across routers vs services vs utilities. (2) SPARQL construction: `rg 'f".*SELECT|f".*INSERT|f".*DELETE|f".*CONSTRUCT' backend/` to find f-string SPARQL. Check for the absence of a shared escaping utility. (3) Async: `rg "def [a-z]" backend/app/` in async router files to find sync functions in async contexts. Check for `time.sleep`, `open()`, other blocking calls in async code. (4) FastAPI: Check dependency injection patterns, router organization (flat vs nested), middleware layering. (5) Append "Type Safety", "SPARQL Construction", "Async Patterns", and "FastAPI Patterns" sections.
