@@ -1,0 +1,73 @@
+<div class="ms-today-view">
+  <div class="ms-today-header">
+    <div class="ms-today-title">
+      <h3>Today's Plan</h3>
+      <span class="ms-today-date">{{ plan_date }}</span>
+    </div>
+    <button class="ms-btn ms-btn-primary"
+            hx-post="/app/media-scheduler/_fragments/plan/generate"
+            hx-target="#ms-tab-content"
+            hx-swap="innerHTML"
+            hx-indicator=".ms-loading">
+      <i data-lucide="sparkles"></i>
+      <span>Generate Plan</span>
+    </button>
+  </div>
+
+  {% if has_plan and entries %}
+  <div class="ms-plan-list" id="ms-plan-list">
+    {% for entry in entries %}
+    <div class="ms-plan-entry {% if entry.now_playing %}ms-now-playing{% endif %}">
+      <div class="ms-time-slot">
+        <span class="ms-time-start">{{ entry.slot_start }}</span>
+        <span class="ms-time-sep">–</span>
+        <span class="ms-time-end">{{ entry.slot_end }}</span>
+      </div>
+      <div class="ms-entry-content">
+        <div class="ms-entry-title">
+          {% if entry.enclosure_url %}
+          <a href="{{ entry.enclosure_url }}" target="_blank" rel="noopener" title="Play">
+            {{ entry.title or "Untitled" }}
+          </a>
+          {% else %}
+          {{ entry.title or "Untitled" }}
+          {% endif %}
+        </div>
+        <div class="ms-entry-meta">
+          {% if entry.source_title %}
+          <span class="ms-entry-source">{{ entry.source_title }}</span>
+          {% endif %}
+          {% if entry.duration_display %}
+          <span class="ms-duration-badge">{{ entry.duration_display }}</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="ms-entry-status">
+        <span class="ms-status-badge ms-status-{{ entry.status or 'pending' }}">
+          {{ entry.status or "pending" }}
+        </span>
+        {% if entry.now_playing %}
+        <span class="ms-now-indicator">
+          <i data-lucide="radio"></i>
+          <span>Now</span>
+        </span>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="ms-empty-state ms-today-empty">
+    <i data-lucide="calendar-off"></i>
+    <p>No plan for today.</p>
+    <p>Click <strong>Generate Plan</strong> to create one based on your schedule rules.</p>
+    <button class="ms-btn ms-btn-primary"
+            hx-post="/app/media-scheduler/_fragments/plan/generate"
+            hx-target="#ms-tab-content"
+            hx-swap="innerHTML">
+      <i data-lucide="sparkles"></i>
+      <span>Generate Plan</span>
+    </button>
+  </div>
+  {% endif %}
+</div>

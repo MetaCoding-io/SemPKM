@@ -15,7 +15,7 @@ after each feed.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Any
 
 from sempkm_app_sdk import App, AppContext
@@ -62,7 +62,12 @@ except ModuleNotFoundError:
     update_source_state = _fm.update_source_state
 
 try:
-    from services.plan_service import fetch_context, generate_plan
+    from services.plan_service import (
+        DAILY_MEDIA_PLAN_TYPE,
+        PLAN_ENTRY_TYPE,
+        fetch_context,
+        generate_plan,
+    )
 except ModuleNotFoundError:
     import importlib.util as _ilu2
     import pathlib as _pl2
@@ -71,8 +76,32 @@ except ModuleNotFoundError:
     _plan_sp = _ilu2.spec_from_file_location("_plan_service_fallback", _plan_svc)
     _plan_fm = _ilu2.module_from_spec(_plan_sp)
     _plan_sp.loader.exec_module(_plan_fm)
+    DAILY_MEDIA_PLAN_TYPE = _plan_fm.DAILY_MEDIA_PLAN_TYPE
+    PLAN_ENTRY_TYPE = _plan_fm.PLAN_ENTRY_TYPE
     fetch_context = _plan_fm.fetch_context
     generate_plan = _plan_fm.generate_plan
+
+try:
+    from services.rules_service import (
+        add_rule,
+        delete_rule,
+        load_rules,
+        toggle_rule,
+        validate_rule,
+    )
+except ModuleNotFoundError:
+    import importlib.util as _ilu3
+    import pathlib as _pl3
+
+    _rules_svc = _pl3.Path(__file__).resolve().parent / "services" / "rules_service.py"
+    _rules_sp = _ilu3.spec_from_file_location("_rules_service_fallback", _rules_svc)
+    _rules_fm = _ilu3.module_from_spec(_rules_sp)
+    _rules_sp.loader.exec_module(_rules_fm)
+    add_rule = _rules_fm.add_rule
+    delete_rule = _rules_fm.delete_rule
+    load_rules = _rules_fm.load_rules
+    toggle_rule = _rules_fm.toggle_rule
+    validate_rule = _rules_fm.validate_rule
 
 logger = logging.getLogger(__name__)
 
@@ -560,6 +589,396 @@ async def items_list_fragment(request: Request):
         items=items,
         active_source=source_iri,
     ))
+
+
+# ── Today / Rules / Plan routes ──
+
+TODAY_PLAN_SPARQL = f"""
+SELECT ?entry ?title ?slotStart ?slotEnd ?slotOrder ?entryStatus
+       ?mediaItem ?enclosureUrl ?sourceTitle ?duration ?sourceType
+WHERE {{
+    ?entry a <{PLAN_ENTRY_TYPE}> .
+    ?entry <{MS_NS}plan> ?plan .
+    ?plan a <{DAILY_MEDIA_PLAN_TYPE}> .
+    ?plan <http://purl.org/dc/terms/title> ?planTitle .
+    FILTER(CONTAINS(?planTitle, "{{date_str}}"))
+    OPTIONAL {{ ?entry <http://purl.org/dc/terms/title> ?title }}
+    OPTIONAL {{ ?entry <{MS_NS}slotStart> ?slotStart }}
+    OPTIONAL {{ ?entry <{MS_NS}slotEnd> ?slotEnd }}
+    OPTIONAL {{ ?entry <{MS_NS}slotOrder> ?slotOrder }}
+    OPTIONAL {{ ?entry <{MS_NS}entryStatus> ?entryStatus }}
+    OPTIONAL {{
+        ?entry <{MS_NS}mediaItem> ?mediaItem .
+        OPTIONAL {{ ?mediaItem <{MS_NS}enclosureUrl> ?enclosureUrl }}
+        OPTIONAL {{ ?mediaItem <{MS_NS}duration> ?duration }}
+        OPTIONAL {{
+            ?mediaItem <{MS_NS}mediaSource> ?source .
+            OPTIONAL {{ ?source <http://purl.org/dc/terms/title> ?sourceTitle }}
+            OPTIONAL {{ ?source <{MS_NS}sourceType> ?sourceType }}
+        }}
+    }}
+    FILTER(!BOUND(?entryStatus) || ?entryStatus != "replaced")
+}} ORDER BY ?slotOrder
+"""
+
+
+def _current_time_str() -> str:
+    """Return current local time as HH:MM string."""
+    return datetime.now().strftime("%H:%M")
+
+
+@media_scheduler_app.route("/_fragments/today")
+async def today_fragment(request: Request):
+    """Today's plan fragment — agenda-style daily plan view.
+
+    Queries PlanEntry objects for today's date, renders as time-slotted cards.
+    Marks the entry whose time slot contains the current time as "now playing".
+    """
+    ctx = request.app.state.ctx
+    today_str = date.today().isoformat()
+    now_time = _current_time_str()
+
+    sparql = TODAY_PLAN_SPARQL.replace("{date_str}", today_str)
+
+    entries = []
+    has_plan = False
+
+    try:
+        result = await ctx.graph.query(sparql)
+        bindings = result.get("results", {}).get("bindings", [])
+        has_plan = len(bindings) > 0
+
+        for b in bindings:
+            slot_start = b.get("slotStart", {}).get("value", "")
+            slot_end = b.get("slotEnd", {}).get("value", "")
+            status = b.get("entryStatus", {}).get("value", "pending")
+            title = b.get("title", {}).get("value", "")
+            enclosure_url = b.get("enclosureUrl", {}).get("value", "")
+            source_title = b.get("sourceTitle", {}).get("value", "")
+            duration_raw = b.get("duration", {}).get("value", "")
+
+            duration_seconds = None
+            if duration_raw:
+                try:
+                    duration_seconds = int(duration_raw)
+                except (ValueError, TypeError):
+                    pass
+
+            # Determine "now playing" based on time slot containing current time
+            now_playing = False
+            if slot_start and slot_end and status != "completed" and status != "skipped":
+                if slot_start <= now_time <= slot_end:
+                    now_playing = True
+
+            entries.append({
+                "title": title or "Untitled",
+                "slot_start": slot_start,
+                "slot_end": slot_end,
+                "status": status,
+                "now_playing": now_playing,
+                "enclosure_url": enclosure_url,
+                "source_title": source_title,
+                "duration_display": _format_duration(duration_seconds),
+            })
+
+    except Exception as exc:
+        logger.warning("today-plan SPARQL failed: %s", exc)
+        return HTMLResponse(
+            '<div class="ms-error">Failed to load today\'s plan</div>'
+        )
+
+    return HTMLResponse(ctx.render_template(
+        "today.html",
+        entries=entries,
+        plan_date=today_str,
+        has_plan=has_plan,
+    ))
+
+
+@media_scheduler_app.route("/_fragments/rules")
+async def rules_fragment(request: Request):
+    """Rules list fragment — shows all schedule rules with controls."""
+    ctx = request.app.state.ctx
+
+    try:
+        rules = await load_rules(ctx.state)
+    except Exception as exc:
+        logger.warning("rules load failed: %s", exc)
+        return HTMLResponse(
+            '<div class="ms-error">Failed to load rules</div>'
+        )
+
+    return HTMLResponse(ctx.render_template("rules.html", rules=rules))
+
+
+@media_scheduler_app.route("/_fragments/rules/add")
+async def rule_add_form_fragment(request: Request):
+    """Empty rule form fragment for adding a new rule."""
+    ctx = request.app.state.ctx
+    return HTMLResponse(ctx.render_template(
+        "rule-form.html", rule=None, editing=False
+    ))
+
+
+@media_scheduler_app.route("/_fragments/rules", methods=["POST"])
+async def rules_save_fragment(request: Request):
+    """Save a new or updated rule from form data, return refreshed rules list."""
+    ctx = request.app.state.ctx
+    form = await request.form()
+
+    name = form.get("name", "").strip()
+    if not name:
+        return HTMLResponse(
+            '<div class="ms-error">Rule name is required</div>',
+            status_code=400,
+        )
+
+    # Build conditions from form
+    conditions: dict[str, Any] = {}
+    activity = form.get("activity", "").strip()
+    location_zone = form.get("location_zone", "").strip()
+    time_period = form.get("time_period", "").strip()
+
+    if activity:
+        conditions["activity"] = activity
+    if location_zone:
+        conditions["location_zone"] = location_zone
+    if time_period:
+        conditions["time_period"] = time_period
+
+    # Time range
+    if form.get("use_time_range"):
+        time_start = form.get("time_start", "").strip()
+        time_end = form.get("time_end", "").strip()
+        if time_start and time_end:
+            conditions["time_range"] = {"start": time_start, "end": time_end}
+
+    # Build action from form
+    action_type = form.get("action_type", "source_type").strip()
+    action_value = ""
+    if action_type == "source_type":
+        action_value = form.get("action_source_type", "podcast").strip()
+    elif action_type == "source_iri":
+        action_value = form.get("action_source_iri", "").strip()
+    elif action_type == "category":
+        action_value = form.get("action_category", "").strip()
+
+    priority_raw = form.get("priority", "10").strip()
+    try:
+        priority = int(priority_raw)
+    except (ValueError, TypeError):
+        priority = 10
+
+    rule_dict: dict[str, Any] = {
+        "name": name,
+        "priority": priority,
+        "conditions": conditions,
+        "action": {"type": action_type, "value": action_value},
+    }
+
+    # If editing, preserve the ID
+    rule_id = form.get("rule_id", "").strip()
+    if rule_id:
+        rule_dict["id"] = rule_id
+
+    try:
+        await add_rule(ctx.state, rule_dict)
+    except ValueError as exc:
+        logger.warning("rule validation failed: %s", exc)
+        return HTMLResponse(
+            f'<div class="ms-error">Invalid rule: {exc}</div>',
+            status_code=400,
+        )
+    except Exception as exc:
+        logger.warning("rule save failed: %s", exc)
+        return HTMLResponse(
+            f'<div class="ms-error">Failed to save rule: {exc}</div>',
+        )
+
+    # Return refreshed rules list
+    rules = await load_rules(ctx.state)
+    return HTMLResponse(ctx.render_template("rules-list.html", rules=rules))
+
+
+@media_scheduler_app.route("/_fragments/rules/{rule_id}/toggle", methods=["POST"])
+async def rule_toggle_fragment(request: Request):
+    """Toggle a rule's enabled state and return refreshed rules list."""
+    ctx = request.app.state.ctx
+    rule_id = request.path_params.get("rule_id", "")
+
+    if not rule_id:
+        return HTMLResponse(
+            '<div class="ms-error">Missing rule_id</div>', status_code=400
+        )
+
+    try:
+        result = await toggle_rule(ctx.state, rule_id)
+        if result is None:
+            return HTMLResponse(
+                '<div class="ms-error">Rule not found</div>', status_code=404
+            )
+    except Exception as exc:
+        logger.warning("rule toggle failed for %s: %s", rule_id, exc)
+        return HTMLResponse(
+            f'<div class="ms-error">Failed to toggle rule: {exc}</div>'
+        )
+
+    rules = await load_rules(ctx.state)
+    return HTMLResponse(ctx.render_template("rules-list.html", rules=rules))
+
+
+@media_scheduler_app.route("/_fragments/rules/{rule_id}/delete", methods=["POST"])
+async def rule_delete_fragment(request: Request):
+    """Delete a rule and return refreshed rules list."""
+    ctx = request.app.state.ctx
+    rule_id = request.path_params.get("rule_id", "")
+
+    if not rule_id:
+        return HTMLResponse(
+            '<div class="ms-error">Missing rule_id</div>', status_code=400
+        )
+
+    try:
+        deleted = await delete_rule(ctx.state, rule_id)
+        if not deleted:
+            return HTMLResponse(
+                '<div class="ms-error">Rule not found</div>', status_code=404
+            )
+    except Exception as exc:
+        logger.warning("rule delete failed for %s: %s", rule_id, exc)
+        return HTMLResponse(
+            f'<div class="ms-error">Failed to delete rule: {exc}</div>'
+        )
+
+    rules = await load_rules(ctx.state)
+    return HTMLResponse(ctx.render_template("rules-list.html", rules=rules))
+
+
+@media_scheduler_app.route("/_fragments/plan/generate", methods=["POST"])
+async def plan_generate_fragment(request: Request):
+    """Trigger plan generation and return refreshed today view."""
+    ctx = request.app.state.ctx
+    today_str = date.today().isoformat()
+
+    try:
+        summary = await generate_plan(ctx, date_str=today_str)
+        logger.info(
+            "Plan generated via UI: %d rules matched, %d entries created",
+            summary.get("rules_matched", 0),
+            summary.get("entries_created", 0),
+        )
+    except Exception as exc:
+        logger.warning("plan generation failed: %s", exc)
+        return HTMLResponse(
+            f'<div class="ms-error">Plan generation failed: {exc}</div>'
+        )
+
+    # Re-render the today view with the new plan
+    now_time = _current_time_str()
+    sparql = TODAY_PLAN_SPARQL.replace("{date_str}", today_str)
+
+    entries = []
+    has_plan = False
+
+    try:
+        result = await ctx.graph.query(sparql)
+        bindings = result.get("results", {}).get("bindings", [])
+        has_plan = len(bindings) > 0
+
+        for b in bindings:
+            slot_start = b.get("slotStart", {}).get("value", "")
+            slot_end = b.get("slotEnd", {}).get("value", "")
+            status = b.get("entryStatus", {}).get("value", "pending")
+            title = b.get("title", {}).get("value", "")
+            enclosure_url = b.get("enclosureUrl", {}).get("value", "")
+            source_title = b.get("sourceTitle", {}).get("value", "")
+            duration_raw = b.get("duration", {}).get("value", "")
+
+            duration_seconds = None
+            if duration_raw:
+                try:
+                    duration_seconds = int(duration_raw)
+                except (ValueError, TypeError):
+                    pass
+
+            now_playing = False
+            if slot_start and slot_end and status not in ("completed", "skipped"):
+                if slot_start <= now_time <= slot_end:
+                    now_playing = True
+
+            entries.append({
+                "title": title or "Untitled",
+                "slot_start": slot_start,
+                "slot_end": slot_end,
+                "status": status,
+                "now_playing": now_playing,
+                "enclosure_url": enclosure_url,
+                "source_title": source_title,
+                "duration_display": _format_duration(duration_seconds),
+            })
+
+    except Exception as exc:
+        logger.warning("today-plan SPARQL after generate failed: %s", exc)
+
+    return HTMLResponse(ctx.render_template(
+        "today.html",
+        entries=entries,
+        plan_date=today_str,
+        has_plan=has_plan,
+    ))
+
+
+@media_scheduler_app.route("/_fragments/current-suggestion")
+async def current_suggestion_fragment(request: Request):
+    """Minimal HTML fragment showing the current or next plan entry.
+
+    For S05 mobile widget use. Returns a compact card with the entry
+    whose time slot contains the current time, or the next upcoming entry.
+    """
+    ctx = request.app.state.ctx
+    today_str = date.today().isoformat()
+    now_time = _current_time_str()
+
+    sparql = TODAY_PLAN_SPARQL.replace("{date_str}", today_str)
+
+    try:
+        result = await ctx.graph.query(sparql)
+        bindings = result.get("results", {}).get("bindings", [])
+    except Exception as exc:
+        logger.warning("current-suggestion SPARQL failed: %s", exc)
+        return HTMLResponse('<div class="ms-empty-state">No suggestion</div>')
+
+    current_entry = None
+    next_entry = None
+
+    for b in bindings:
+        slot_start = b.get("slotStart", {}).get("value", "")
+        slot_end = b.get("slotEnd", {}).get("value", "")
+        status = b.get("entryStatus", {}).get("value", "pending")
+        title = b.get("title", {}).get("value", "Untitled")
+
+        if status in ("completed", "skipped", "replaced"):
+            continue
+
+        if slot_start and slot_end:
+            if slot_start <= now_time <= slot_end:
+                current_entry = {"title": title, "slot_start": slot_start, "slot_end": slot_end, "status": "now"}
+                break
+            elif slot_start > now_time and next_entry is None:
+                next_entry = {"title": title, "slot_start": slot_start, "slot_end": slot_end, "status": "next"}
+
+    entry = current_entry or next_entry
+
+    if not entry:
+        return HTMLResponse('<div class="ms-empty-state">No upcoming items</div>')
+
+    label = "Now playing" if entry["status"] == "now" else f"Up next at {entry['slot_start']}"
+    return HTMLResponse(
+        f'<div class="ms-suggestion">'
+        f'<span class="ms-suggestion-label">{label}</span>'
+        f'<span class="ms-suggestion-title">{entry["title"]}</span>'
+        f'</div>'
+    )
 
 
 # ── Lifecycle hooks ──

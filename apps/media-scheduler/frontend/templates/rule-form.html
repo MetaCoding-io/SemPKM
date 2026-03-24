@@ -1,0 +1,160 @@
+<div class="ms-rule-form" id="ms-rule-form">
+  <form hx-post="/app/media-scheduler/_fragments/rules"
+        hx-target="#ms-rules-list"
+        hx-swap="innerHTML">
+
+    {% if editing and rule %}
+    <input type="hidden" name="rule_id" value="{{ rule.id }}">
+    {% endif %}
+
+    <h4>{% if editing %}Edit Rule{% else %}New Schedule Rule{% endif %}</h4>
+
+    <div class="ms-form-section">
+      <label class="ms-form-label">Rule Name</label>
+      <input type="text" name="name" class="ms-input" required
+             placeholder="e.g. Commute podcasts"
+             value="{{ rule.name if rule else '' }}">
+    </div>
+
+    <div class="ms-form-section">
+      <label class="ms-form-label">Priority</label>
+      <input type="number" name="priority" class="ms-input ms-input-short"
+             value="{{ rule.priority if rule else 10 }}" min="0" max="100">
+    </div>
+
+    <fieldset class="ms-form-section ms-form-fieldset">
+      <legend class="ms-form-label">Conditions</legend>
+
+      <div class="ms-form-row">
+        <div class="ms-form-field">
+          <label class="ms-form-sublabel" for="ms-cond-activity">Activity</label>
+          <select name="activity" id="ms-cond-activity" class="ms-input">
+            <option value="">Any</option>
+            <option value="commuting" {% if rule and rule.conditions and rule.conditions.activity == 'commuting' %}selected{% endif %}>Commuting</option>
+            <option value="exercising" {% if rule and rule.conditions and rule.conditions.activity == 'exercising' %}selected{% endif %}>Exercising</option>
+            <option value="working" {% if rule and rule.conditions and rule.conditions.activity == 'working' %}selected{% endif %}>Working</option>
+            <option value="relaxing" {% if rule and rule.conditions and rule.conditions.activity == 'relaxing' %}selected{% endif %}>Relaxing</option>
+            <option value="cooking" {% if rule and rule.conditions and rule.conditions.activity == 'cooking' %}selected{% endif %}>Cooking</option>
+            <option value="reading" {% if rule and rule.conditions and rule.conditions.activity == 'reading' %}selected{% endif %}>Reading</option>
+          </select>
+        </div>
+
+        <div class="ms-form-field">
+          <label class="ms-form-sublabel" for="ms-cond-location">Location Zone</label>
+          <select name="location_zone" id="ms-cond-location" class="ms-input">
+            <option value="">Any</option>
+            <option value="home" {% if rule and rule.conditions and rule.conditions.location_zone == 'home' %}selected{% endif %}>Home</option>
+            <option value="office" {% if rule and rule.conditions and rule.conditions.location_zone == 'office' %}selected{% endif %}>Office</option>
+            <option value="gym" {% if rule and rule.conditions and rule.conditions.location_zone == 'gym' %}selected{% endif %}>Gym</option>
+            <option value="transit" {% if rule and rule.conditions and rule.conditions.location_zone == 'transit' %}selected{% endif %}>Transit</option>
+            <option value="outdoors" {% if rule and rule.conditions and rule.conditions.location_zone == 'outdoors' %}selected{% endif %}>Outdoors</option>
+          </select>
+        </div>
+
+        <div class="ms-form-field">
+          <label class="ms-form-sublabel" for="ms-cond-time-period">Time Period</label>
+          <select name="time_period" id="ms-cond-time-period" class="ms-input">
+            <option value="">Any</option>
+            <option value="morning" {% if rule and rule.conditions and rule.conditions.time_period == 'morning' %}selected{% endif %}>Morning</option>
+            <option value="afternoon" {% if rule and rule.conditions and rule.conditions.time_period == 'afternoon' %}selected{% endif %}>Afternoon</option>
+            <option value="evening" {% if rule and rule.conditions and rule.conditions.time_period == 'evening' %}selected{% endif %}>Evening</option>
+            <option value="night" {% if rule and rule.conditions and rule.conditions.time_period == 'night' %}selected{% endif %}>Night</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="ms-form-row ms-time-range-row">
+        <label class="ms-form-sublabel">
+          <input type="checkbox" name="use_time_range" id="ms-use-time-range"
+                 {% if rule and rule.conditions and rule.conditions.time_range %}checked{% endif %}
+                 onchange="document.getElementById('ms-time-range-fields').classList.toggle('ms-hidden', !this.checked)">
+          Specific time range
+        </label>
+        <div id="ms-time-range-fields"
+             class="ms-time-range-fields {% if not (rule and rule.conditions and rule.conditions.time_range) %}ms-hidden{% endif %}">
+          <input type="time" name="time_start" class="ms-input ms-input-short"
+                 value="{{ rule.conditions.time_range.start if rule and rule.conditions and rule.conditions.time_range else '' }}">
+          <span>to</span>
+          <input type="time" name="time_end" class="ms-input ms-input-short"
+                 value="{{ rule.conditions.time_range.end if rule and rule.conditions and rule.conditions.time_range else '' }}">
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="ms-form-section ms-form-fieldset">
+      <legend class="ms-form-label">Action — What to play</legend>
+
+      <div class="ms-form-radio-group">
+        <label class="ms-form-radio">
+          <input type="radio" name="action_type" value="source_type"
+                 {% if not rule or not rule.action or rule.action.type == 'source_type' %}checked{% endif %}
+                 onchange="msShowActionInput(this.value)">
+          <span>Source type</span>
+        </label>
+        <label class="ms-form-radio">
+          <input type="radio" name="action_type" value="source_iri"
+                 {% if rule and rule.action and rule.action.type == 'source_iri' %}checked{% endif %}
+                 onchange="msShowActionInput(this.value)">
+          <span>Specific source</span>
+        </label>
+        <label class="ms-form-radio">
+          <input type="radio" name="action_type" value="category"
+                 {% if rule and rule.action and rule.action.type == 'category' %}checked{% endif %}
+                 onchange="msShowActionInput(this.value)">
+          <span>Category</span>
+        </label>
+      </div>
+
+      <div id="ms-action-source-type"
+           class="ms-action-input {% if rule and rule.action and rule.action.type != 'source_type' %}ms-hidden{% endif %}">
+        <select name="action_source_type" class="ms-input">
+          <option value="podcast" {% if rule and rule.action and rule.action.value == 'podcast' %}selected{% endif %}>Podcasts</option>
+          <option value="youtube" {% if rule and rule.action and rule.action.value == 'youtube' %}selected{% endif %}>YouTube</option>
+          <option value="spotify" {% if rule and rule.action and rule.action.value == 'spotify' %}selected{% endif %}>Spotify</option>
+        </select>
+      </div>
+
+      <div id="ms-action-source-iri"
+           class="ms-action-input {% if not rule or not rule.action or rule.action.type != 'source_iri' %}ms-hidden{% endif %}">
+        <input type="text" name="action_source_iri" class="ms-input"
+               placeholder="Source IRI"
+               value="{{ rule.action.value if rule and rule.action and rule.action.type == 'source_iri' else '' }}">
+      </div>
+
+      <div id="ms-action-category"
+           class="ms-action-input {% if not rule or not rule.action or rule.action.type != 'category' %}ms-hidden{% endif %}">
+        <input type="text" name="action_category" class="ms-input"
+               placeholder="Category IRI"
+               value="{{ rule.action.value if rule and rule.action and rule.action.type == 'category' else '' }}">
+      </div>
+    </fieldset>
+
+    <div class="ms-form-buttons">
+      <button type="submit" class="ms-btn ms-btn-primary">
+        <i data-lucide="check"></i>
+        <span>{% if editing %}Update{% else %}Save{% endif %} Rule</span>
+      </button>
+      <button type="button" class="ms-btn ms-btn-secondary"
+              onclick="document.getElementById('ms-rule-form-area').innerHTML = ''">
+        Cancel
+      </button>
+    </div>
+  </form>
+</div>
+
+<script>
+function msShowActionInput(type) {
+  var ids = ['ms-action-source-type', 'ms-action-source-iri', 'ms-action-category'];
+  var map = {
+    'source_type': 'ms-action-source-type',
+    'source_iri': 'ms-action-source-iri',
+    'category': 'ms-action-category'
+  };
+  for (var i = 0; i < ids.length; i++) {
+    var el = document.getElementById(ids[i]);
+    if (el) el.classList.add('ms-hidden');
+  }
+  var show = document.getElementById(map[type]);
+  if (show) show.classList.remove('ms-hidden');
+}
+</script>

@@ -22,14 +22,55 @@
     </div>
   </div>
   <div class="ms-main" id="ms-main">
-    <div class="ms-main-header">
-      <h3>Episodes</h3>
+    <div class="ms-tabs" id="ms-tabs">
+      <button class="ms-tab ms-tab-active" data-tab="today"
+              onclick="msSelectTab(this, 'today')"
+              title="Today's Plan">
+        <i data-lucide="calendar"></i>
+        <span>Today</span>
+      </button>
+      <button class="ms-tab" data-tab="episodes"
+              onclick="msSelectTab(this, 'episodes')"
+              title="Episodes">
+        <i data-lucide="list-music"></i>
+        <span>Episodes</span>
+      </button>
+      <button class="ms-tab" data-tab="rules"
+              onclick="msSelectTab(this, 'rules')"
+              title="Schedule Rules">
+        <i data-lucide="sliders-horizontal"></i>
+        <span>Rules</span>
+      </button>
     </div>
-    <div id="ms-items-list"
-         hx-get="/app/media-scheduler/_fragments/items"
-         hx-trigger="load, sourcesChanged from:body"
+    <div id="ms-tab-content"
+         hx-get="/app/media-scheduler/_fragments/today"
+         hx-trigger="load"
          hx-swap="innerHTML">
-      <div class="ms-empty-state">Loading items…</div>
+      <div class="ms-empty-state">Loading…</div>
     </div>
   </div>
 </div>
+
+<script>
+function msSelectTab(btn, tab) {
+  // Update active tab styling
+  var tabs = document.querySelectorAll('#ms-tabs .ms-tab');
+  for (var i = 0; i < tabs.length; i++) {
+    tabs[i].classList.remove('ms-tab-active');
+  }
+  btn.classList.add('ms-tab-active');
+
+  // Map tab names to fragment URLs
+  var urls = {
+    today: '/app/media-scheduler/_fragments/today',
+    episodes: '/app/media-scheduler/_fragments/items',
+    rules: '/app/media-scheduler/_fragments/rules'
+  };
+
+  // Load the fragment via htmx
+  var target = document.getElementById('ms-tab-content');
+  if (target && urls[tab]) {
+    htmx.ajax('GET', urls[tab], {target: target, swap: 'innerHTML'});
+  }
+}
+</script>

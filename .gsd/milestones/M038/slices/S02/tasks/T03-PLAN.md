@@ -109,6 +109,14 @@ All htmx URLs must use the `/app/media-scheduler/` proxy prefix (KNOWLEDGE.md ru
 - `grep -c "ms-tab" apps/media-scheduler/frontend/static/styles.css` — returns ≥ 3
 - `grep -c "@media_scheduler_app.route" apps/media-scheduler/app.py` — returns ≥ 13 (5 existing + 8 new)
 
+## Observability Impact
+
+- **Route health:** All 8 routes log errors via `logger.warning` on SPARQL/service failures, returning user-visible error HTML fragments. Future agent can `rg 'logger.warning' apps/media-scheduler/app.py` to find all error paths.
+- **Plan generation trigger:** The `POST /_fragments/plan/generate` route delegates to `generate_plan()` which logs rules_matched + entries_created. Response contains rendered today.html with entry count — inspect via htmx response.
+- **Rules CRUD:** Each rule mutation (add/toggle/delete) logs via rules_service logger. State inspection: `load_rules(state_client)` returns current rules array.
+- **Template rendering:** All fragments render via `ctx.render_template()` — Jinja2 template errors surface as 500s in the app proxy log.
+- **Failure visibility:** SPARQL query failures in today/rules routes produce `<div class="ms-error">` fragments visible in the UI. No silent swallowing.
+
 ## Inputs
 
 - `apps/media-scheduler/services/rules_service.py` — load_rules, add_rule, delete_rule, toggle_rule (from T01)
