@@ -1,0 +1,18 @@
+<div class="ms-rules-view">
+  <div class="ms-rules-header">
+    <h3>Schedule Rules</h3>
+    <button class="ms-btn ms-btn-primary"
+            hx-get="/app/media-scheduler/_fragments/rules/add"
+            hx-target="#ms-rule-form-area"
+            hx-swap="innerHTML">
+      <i data-lucide="plus"></i>
+      <span>Add Rule</span>
+    </button>
+  </div>
+
+  <div id="ms-rule-form-area"></div>
+
+  <div id="ms-rules-list">
+    {% include "rules-list.html" %}
+  </div>
+</div>

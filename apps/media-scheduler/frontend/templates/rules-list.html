@@ -1,0 +1,66 @@
+{% if rules %}
+{% for rule in rules %}
+<div class="ms-rule-card {% if not rule.enabled %}ms-rule-disabled{% endif %}">
+  <div class="ms-rule-main">
+    <div class="ms-rule-info">
+      <div class="ms-rule-name-row">
+        <span class="ms-rule-name">{{ rule.name }}</span>
+        <span class="ms-priority-badge">P{{ rule.priority }}</span>
+        {% if not rule.enabled %}
+        <span class="ms-badge ms-badge-disabled">disabled</span>
+        {% endif %}
+      </div>
+      <div class="ms-rule-summary">
+        <span class="ms-rule-conditions">
+          {% if rule.conditions %}
+            {% if rule.conditions.activity %}When {{ rule.conditions.activity }}{% else %}Any activity{% endif %}
+            · {% if rule.conditions.time_period %}{{ rule.conditions.time_period }}{% else %}Any time{% endif %}
+            · {% if rule.conditions.location_zone %}{{ rule.conditions.location_zone }}{% else %}Any location{% endif %}
+            {% if rule.conditions.time_range %}
+              · {{ rule.conditions.time_range.start }}–{{ rule.conditions.time_range.end }}
+            {% endif %}
+          {% else %}
+            Any context (always matches)
+          {% endif %}
+        </span>
+        <span class="ms-rule-action">
+          → Play
+          {% if rule.action and rule.action.type == 'source_type' %}
+            {{ rule.action.value }}s
+          {% elif rule.action and rule.action.type == 'source_iri' %}
+            specific source
+          {% elif rule.action and rule.action.type == 'category' %}
+            {{ rule.action.value }}
+          {% else %}
+            (no action)
+          {% endif %}
+        </span>
+      </div>
+    </div>
+    <div class="ms-rule-actions">
+      <button class="ms-btn ms-btn-icon"
+              hx-post="/app/media-scheduler/_fragments/rules/{{ rule.id }}/toggle"
+              hx-target="#ms-rules-list"
+              hx-swap="innerHTML"
+              title="{% if rule.enabled %}Disable{% else %}Enable{% endif %}">
+        <i data-lucide="{% if rule.enabled %}toggle-right{% else %}toggle-left{% endif %}"></i>
+      </button>
+      <button class="ms-btn ms-btn-icon ms-btn-danger-icon"
+              hx-post="/app/media-scheduler/_fragments/rules/{{ rule.id }}/delete"
+              hx-target="#ms-rules-list"
+              hx-swap="innerHTML"
+              hx-confirm="Delete rule '{{ rule.name }}'?"
+              title="Delete rule">
+        <i data-lucide="trash-2"></i>
+      </button>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="ms-empty-state">
+  <i data-lucide="sliders-horizontal"></i>
+  <p>No schedule rules yet.</p>
+  <p>Rules map context conditions (location, activity, time) to media sources.</p>
+</div>
+{% endif %}
