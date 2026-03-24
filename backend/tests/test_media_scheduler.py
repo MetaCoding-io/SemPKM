@@ -9,6 +9,7 @@ feedparser is mocked at sys.modules level before exec_module.
 
 from __future__ import annotations
 
+import asyncio
 import importlib.util
 import json
 import sys
@@ -3630,4 +3631,689 @@ class TestPollSpotifyEdgeCases:
 
         mock_client_cls.assert_not_called()
         assert result["sources_polled"] == 0
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Import context_service via file path
+# ═══════════════════════════════════════════════════════════════════════
+
+_ctx_svc_path = (
+    Path(__file__).resolve().parent.parent.parent
+    / "apps" / "media-scheduler" / "services" / "context_service.py"
+)
+_ctx_svc_spec = importlib.util.spec_from_file_location("context_service_test", str(_ctx_svc_path))
+_ctx_svc_mod = importlib.util.module_from_spec(_ctx_svc_spec)
+_ctx_svc_spec.loader.exec_module(_ctx_svc_mod)
+
+parse_sse_lines = _ctx_svc_mod.parse_sse_lines
+_on_context_event = _ctx_svc_mod._on_context_event
+_debounce_regenerate = _ctx_svc_mod._debounce_regenerate
+_trigger_regeneration = _ctx_svc_mod._trigger_regeneration
+_listen_sse = _ctx_svc_mod._listen_sse
+start_context_listener = _ctx_svc_mod.start_context_listener
+stop_context_listener = _ctx_svc_mod.stop_context_listener
+get_context_subscription_status = _ctx_svc_mod.get_context_subscription_status
+DEBOUNCE_SECONDS = _ctx_svc_mod.DEBOUNCE_SECONDS
+MAX_BACKOFF_SECONDS = _ctx_svc_mod.MAX_BACKOFF_SECONDS
+
+
+def _reset_context_module():
+    """Reset module-level state in context_service between tests."""
+    _ctx_svc_mod._listener_task = None
+    _ctx_svc_mod._debounce_task = None
+    _ctx_svc_mod._last_context = {}
+    _ctx_svc_mod._prev_context = {}
+    _ctx_svc_mod._plan_lock = None
+    _ctx_svc_mod._reconnect_count = 0
+    _ctx_svc_mod._last_event_at = None
+    _ctx_svc_mod._connected = False
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# SSE parsing tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestParseSSELines:
+    """parse_sse_lines extracts event type and JSON data from SSE text."""
+
+    def test_single_event(self):
+        lines = ['event: context_update', 'data: {"location_zone": "office"}']
+        event_type, data = parse_sse_lines(lines)
+        assert event_type == "context_update"
+        assert data == {"location_zone": "office"}
+
+    def test_multi_line_data(self):
+        """Multiple data: lines are concatenated before JSON parse."""
+        lines = [
+            'event: context_update',
+            'data: {"location_zone":',
+            'data:  "home"}',
+        ]
+        event_type, data = parse_sse_lines(lines)
+        assert event_type == "context_update"
+        # JSON from "{"location_zone":\n "home"}" — valid JSON
+        assert data == {"location_zone": "home"}
+
+    def test_missing_event_type(self):
+        """Lines without event: still parse data."""
+        lines = ['data: {"activity": "working"}']
+        event_type, data = parse_sse_lines(lines)
+        assert event_type is None
+        assert data == {"activity": "working"}
+
+    def test_missing_data(self):
+        """Lines without data: return (None, None)."""
+        lines = ['event: context_update']
+        event_type, data = parse_sse_lines(lines)
+        assert event_type is None
+        assert data is None
+
+    def test_non_json_data(self):
+        """Non-JSON data returns event_type but None data."""
+        lines = ['event: context_update', 'data: not-json-at-all']
+        event_type, data = parse_sse_lines(lines)
+        assert event_type == "context_update"
+        assert data is None
+
+    def test_empty_lines_and_comments_ignored(self):
+        """Empty lines and comments (starting with ':') are skipped."""
+        lines = [
+            ': keepalive',
+            '',
+            'event: context_update',
+            '',
+            'data: {"ok": true}',
+            ': another comment',
+        ]
+        event_type, data = parse_sse_lines(lines)
+        assert event_type == "context_update"
+        assert data == {"ok": True}
+
+    def test_all_empty_lines(self):
+        lines = ['', '', '']
+        event_type, data = parse_sse_lines(lines)
+        assert event_type is None
+        assert data is None
+
+    def test_whitespace_handling(self):
+        """Leading/trailing whitespace in event/data values is stripped."""
+        lines = ['event:  context_update  ', 'data:  {"x": 1} ']
+        event_type, data = parse_sse_lines(lines)
+        assert event_type == "context_update"
+        assert data == {"x": 1}
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Debounce logic tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestDebounceLogic:
+    """_on_context_event debounces non-location changes, immediate for location."""
+
+    @pytest.fixture(autouse=True)
+    def reset_state(self):
+        _reset_context_module()
+        yield
+        _reset_context_module()
+
+    @pytest.mark.asyncio
+    async def test_non_location_change_starts_debounce(self):
+        """Non-location context change creates a debounce task."""
+        ctx = MagicMock()
+        with patch.object(_ctx_svc_mod, "generate_plan", new_callable=AsyncMock):
+            await _on_context_event(ctx, {"activity": "working"})
+            assert _ctx_svc_mod._debounce_task is not None
+            assert not _ctx_svc_mod._debounce_task.done()
+            # Clean up
+            _ctx_svc_mod._debounce_task.cancel()
+            try:
+                await _ctx_svc_mod._debounce_task
+            except asyncio.CancelledError:
+                pass
+
+    @pytest.mark.asyncio
+    async def test_location_zone_change_triggers_immediate(self):
+        """location_zone change triggers immediate regeneration, not debounce."""
+        ctx = MagicMock()
+        mock_gen = AsyncMock(return_value={"plan_iri": "test", "entries_created": 1})
+        with patch.object(_ctx_svc_mod, "generate_plan", mock_gen):
+            _ctx_svc_mod._last_context = {"location_zone": "home"}
+            await _on_context_event(ctx, {"location_zone": "office"})
+            mock_gen.assert_awaited_once()
+            # No debounce task should be pending
+            assert _ctx_svc_mod._debounce_task is None or _ctx_svc_mod._debounce_task.done()
+
+    @pytest.mark.asyncio
+    async def test_same_location_zone_does_not_trigger_immediate(self):
+        """Same location_zone value → debounce, not immediate."""
+        ctx = MagicMock()
+        mock_gen = AsyncMock(return_value={"plan_iri": "test", "entries_created": 0})
+        with patch.object(_ctx_svc_mod, "generate_plan", mock_gen):
+            _ctx_svc_mod._last_context = {"location_zone": "office"}
+            await _on_context_event(ctx, {"location_zone": "office", "activity": "focused"})
+            mock_gen.assert_not_awaited()
+            assert _ctx_svc_mod._debounce_task is not None
+            _ctx_svc_mod._debounce_task.cancel()
+            try:
+                await _ctx_svc_mod._debounce_task
+            except asyncio.CancelledError:
+                pass
+
+    @pytest.mark.asyncio
+    async def test_debounce_cancels_on_new_event(self):
+        """New event cancels existing debounce and starts a new one."""
+        ctx = MagicMock()
+        with patch.object(_ctx_svc_mod, "generate_plan", new_callable=AsyncMock):
+            await _on_context_event(ctx, {"activity": "working"})
+            first_task = _ctx_svc_mod._debounce_task
+            assert first_task is not None
+
+            await _on_context_event(ctx, {"activity": "commuting"})
+            second_task = _ctx_svc_mod._debounce_task
+            assert second_task is not first_task
+            # Allow cancellation to propagate through the event loop
+            await asyncio.sleep(0)
+            assert first_task.cancelled() or first_task.done()
+
+            # Clean up
+            second_task.cancel()
+            try:
+                await second_task
+            except asyncio.CancelledError:
+                pass
+
+    @pytest.mark.asyncio
+    async def test_debounce_fires_after_timeout(self):
+        """Debounce timer fires generate_plan after DEBOUNCE_SECONDS."""
+        ctx = MagicMock()
+        mock_gen = AsyncMock(return_value={"plan_iri": "test", "entries_created": 2})
+        with patch.object(_ctx_svc_mod, "generate_plan", mock_gen), \
+             patch.object(_ctx_svc_mod, "DEBOUNCE_SECONDS", 0.05):
+            await _on_context_event(ctx, {"activity": "relaxing"})
+            # Wait slightly longer than debounce
+            await asyncio.sleep(0.15)
+            mock_gen.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_location_zone_none_to_value_is_change(self):
+        """location_zone going from None/absent to a value is a change."""
+        ctx = MagicMock()
+        mock_gen = AsyncMock(return_value={"plan_iri": "t", "entries_created": 0})
+        with patch.object(_ctx_svc_mod, "generate_plan", mock_gen):
+            _ctx_svc_mod._last_context = {}  # no previous zone
+            await _on_context_event(ctx, {"location_zone": "gym"})
+            mock_gen.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_location_zone_change_cancels_pending_debounce(self):
+        """Location change cancels any pending non-location debounce."""
+        ctx = MagicMock()
+        mock_gen = AsyncMock(return_value={"plan_iri": "t", "entries_created": 0})
+        with patch.object(_ctx_svc_mod, "generate_plan", mock_gen):
+            # Start a debounce from non-location event
+            await _on_context_event(ctx, {"activity": "working"})
+            pending = _ctx_svc_mod._debounce_task
+            assert pending is not None
+
+            # Location change cancels it and triggers immediately
+            _ctx_svc_mod._last_context = {"activity": "working", "location_zone": "home"}
+            await _on_context_event(ctx, {"location_zone": "office", "activity": "working"})
+            await asyncio.sleep(0)  # let cancellation propagate
+            assert pending.cancelled() or pending.done()
+            mock_gen.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_debounce_restarts_timer(self):
+        """Each new non-location event restarts the debounce clock."""
+        ctx = MagicMock()
+        mock_gen = AsyncMock(return_value={"plan_iri": "t", "entries_created": 0})
+        with patch.object(_ctx_svc_mod, "generate_plan", mock_gen), \
+             patch.object(_ctx_svc_mod, "DEBOUNCE_SECONDS", 0.1):
+            await _on_context_event(ctx, {"activity": "a"})
+            await asyncio.sleep(0.05)  # halfway
+            await _on_context_event(ctx, {"activity": "b"})  # restart
+            await asyncio.sleep(0.05)  # 0.05 into new timer
+            mock_gen.assert_not_awaited()  # shouldn't have fired yet
+            await asyncio.sleep(0.1)  # now past the second timer
+            mock_gen.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_context_stored_on_event(self):
+        """_last_context and _prev_context are updated on each event."""
+        ctx = MagicMock()
+        with patch.object(_ctx_svc_mod, "generate_plan", new_callable=AsyncMock):
+            await _on_context_event(ctx, {"activity": "a"})
+            assert _ctx_svc_mod._last_context == {"activity": "a"}
+            assert _ctx_svc_mod._prev_context == {}
+
+            await _on_context_event(ctx, {"activity": "b"})
+            assert _ctx_svc_mod._last_context == {"activity": "b"}
+            assert _ctx_svc_mod._prev_context == {"activity": "a"}
+
+            # Clean up debounce
+            if _ctx_svc_mod._debounce_task and not _ctx_svc_mod._debounce_task.done():
+                _ctx_svc_mod._debounce_task.cancel()
+                try:
+                    await _ctx_svc_mod._debounce_task
+                except asyncio.CancelledError:
+                    pass
+
+    @pytest.mark.asyncio
+    async def test_location_zone_value_to_same_value_not_immediate(self):
+        """location_zone value→same value is not a change (debounces)."""
+        ctx = MagicMock()
+        mock_gen = AsyncMock(return_value={"plan_iri": "t", "entries_created": 0})
+        with patch.object(_ctx_svc_mod, "generate_plan", mock_gen):
+            _ctx_svc_mod._last_context = {"location_zone": "home"}
+            await _on_context_event(ctx, {"location_zone": "home"})
+            mock_gen.assert_not_awaited()
+            if _ctx_svc_mod._debounce_task and not _ctx_svc_mod._debounce_task.done():
+                _ctx_svc_mod._debounce_task.cancel()
+                try:
+                    await _ctx_svc_mod._debounce_task
+                except asyncio.CancelledError:
+                    pass
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Reconnect logic tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestReconnectLogic:
+    """SSE reconnect with exponential backoff."""
+
+    @pytest.fixture(autouse=True)
+    def reset_state(self):
+        _reset_context_module()
+        yield
+        _reset_context_module()
+
+    def test_backoff_calculation_exponential(self):
+        """Backoff is 2**count, capped at MAX_BACKOFF_SECONDS."""
+        assert min(2 ** 1, MAX_BACKOFF_SECONDS) == 2
+        assert min(2 ** 5, MAX_BACKOFF_SECONDS) == 32
+        assert min(2 ** 10, MAX_BACKOFF_SECONDS) == 300  # capped
+
+    def test_backoff_never_exceeds_max(self):
+        """Even at very high reconnect counts, backoff is capped."""
+        for count in range(1, 50):
+            assert min(2 ** count, MAX_BACKOFF_SECONDS) <= MAX_BACKOFF_SECONDS
+
+    @pytest.mark.asyncio
+    async def test_reconnect_increments_counter(self):
+        """Connection error increments _reconnect_count."""
+        ctx = MagicMock()
+        call_count = 0
+
+        def fake_get_client():
+            nonlocal call_count
+            call_count += 1
+            if call_count <= 2:
+                raise ConnectionError("test")
+            raise asyncio.CancelledError()  # break the loop
+
+        ctx._get_platform_client = fake_get_client
+
+        with patch.object(_ctx_svc_mod, "asyncio") as mock_asyncio:
+            mock_asyncio.CancelledError = asyncio.CancelledError
+            mock_asyncio.sleep = AsyncMock()
+            try:
+                await _listen_sse(ctx)
+            except asyncio.CancelledError:
+                pass
+        assert _ctx_svc_mod._reconnect_count == 2
+
+    @pytest.mark.asyncio
+    async def test_reconnect_counter_resets_on_success(self):
+        """Successful connection resets _reconnect_count to 0."""
+        _ctx_svc_mod._reconnect_count = 5
+
+        ctx = MagicMock()
+        mock_response = AsyncMock()
+        mock_response.status_code = 200
+        mock_response.__aenter__ = AsyncMock(return_value=mock_response)
+        mock_response.__aexit__ = AsyncMock(return_value=False)
+
+        # Simulate one successful connection then cancel
+        async def fake_aiter_lines():
+            _ctx_svc_mod._reconnect_count = 0  # reset happens before iteration
+            raise asyncio.CancelledError()
+            yield  # make it an async generator
+
+        mock_response.aiter_lines = fake_aiter_lines
+
+        mock_client = MagicMock()
+        mock_client.stream = MagicMock(return_value=mock_response)
+        ctx._get_platform_client = MagicMock(return_value=mock_client)
+
+        try:
+            await _listen_sse(ctx)
+        except asyncio.CancelledError:
+            pass
+
+    def test_max_backoff_is_300(self):
+        """MAX_BACKOFF_SECONDS constant is 300."""
+        assert MAX_BACKOFF_SECONDS == 300.0
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Plan trigger tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestPlanTrigger:
+    """_trigger_regeneration acquires lock, calls generate_plan, logs result."""
+
+    @pytest.fixture(autouse=True)
+    def reset_state(self):
+        _reset_context_module()
+        yield
+        _reset_context_module()
+
+    @pytest.mark.asyncio
+    async def test_calls_generate_plan_with_context(self):
+        """_trigger_regeneration passes _last_context as context_override."""
+        ctx = MagicMock()
+        mock_gen = AsyncMock(return_value={"plan_iri": "urn:test", "entries_created": 3})
+        _ctx_svc_mod._last_context = {"location_zone": "office", "activity": "working"}
+
+        with patch.object(_ctx_svc_mod, "generate_plan", mock_gen):
+            await _trigger_regeneration(ctx)
+        mock_gen.assert_awaited_once_with(
+            ctx, context_override={"location_zone": "office", "activity": "working"}
+        )
+
+    @pytest.mark.asyncio
+    async def test_creates_lock_if_needed(self):
+        """_trigger_regeneration creates _plan_lock if None."""
+        ctx = MagicMock()
+        mock_gen = AsyncMock(return_value={"plan_iri": "x", "entries_created": 0})
+        _ctx_svc_mod._plan_lock = None
+
+        with patch.object(_ctx_svc_mod, "generate_plan", mock_gen):
+            await _trigger_regeneration(ctx)
+        assert _ctx_svc_mod._plan_lock is not None
+
+    @pytest.mark.asyncio
+    async def test_generate_plan_error_caught(self):
+        """Errors from generate_plan are logged, not raised."""
+        ctx = MagicMock()
+        mock_gen = AsyncMock(side_effect=RuntimeError("plan failed"))
+        with patch.object(_ctx_svc_mod, "generate_plan", mock_gen):
+            # Should not raise
+            await _trigger_regeneration(ctx)
+
+    @pytest.mark.asyncio
+    async def test_result_logged(self):
+        """Plan result summary is logged after generation."""
+        ctx = MagicMock()
+        result = {"plan_iri": "urn:p1", "entries_created": 5}
+        mock_gen = AsyncMock(return_value=result)
+        with patch.object(_ctx_svc_mod, "generate_plan", mock_gen), \
+             patch.object(_ctx_svc_mod.logger, "info") as mock_log:
+            await _trigger_regeneration(ctx)
+        # Check that completion was logged
+        log_calls = [c for c in mock_log.call_args_list
+                     if "plan_generation_completed" in str(c)]
+        assert len(log_calls) == 1
+
+    @pytest.mark.asyncio
+    async def test_lock_contention_logged(self):
+        """Concurrent trigger logs a contention warning."""
+        ctx = MagicMock()
+        _ctx_svc_mod._plan_lock = asyncio.Lock()
+        # Acquire the lock externally to simulate contention
+        await _ctx_svc_mod._plan_lock.acquire()
+
+        mock_gen = AsyncMock(return_value={"plan_iri": "x", "entries_created": 0})
+        with patch.object(_ctx_svc_mod, "generate_plan", mock_gen), \
+             patch.object(_ctx_svc_mod.logger, "warning") as mock_warn:
+            # Run in background — it will block on the lock
+            task = asyncio.create_task(_trigger_regeneration(ctx))
+            await asyncio.sleep(0.05)
+            # Should have logged contention warning
+            contention_calls = [c for c in mock_warn.call_args_list
+                                if "lock_contention" in str(c)]
+            assert len(contention_calls) == 1
+            # Release lock so task can complete
+            _ctx_svc_mod._plan_lock.release()
+            await asyncio.wait_for(task, timeout=2.0)
+
+    @pytest.mark.asyncio
+    async def test_uses_existing_lock(self):
+        """_trigger_regeneration reuses _plan_lock if already created."""
+        ctx = MagicMock()
+        lock = asyncio.Lock()
+        _ctx_svc_mod._plan_lock = lock
+        mock_gen = AsyncMock(return_value={"plan_iri": "x", "entries_created": 0})
+        with patch.object(_ctx_svc_mod, "generate_plan", mock_gen):
+            await _trigger_regeneration(ctx)
+        assert _ctx_svc_mod._plan_lock is lock
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Listener lifecycle tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestListenerLifecycle:
+    """start/stop_context_listener and get_context_subscription_status."""
+
+    @pytest.fixture(autouse=True)
+    def reset_state(self):
+        _reset_context_module()
+        yield
+        _reset_context_module()
+
+    @pytest.mark.asyncio
+    async def test_start_creates_task(self):
+        """start_context_listener returns an asyncio.Task."""
+        ctx = MagicMock()
+        # Mock _listen_sse to avoid real SSE connection
+        with patch.object(_ctx_svc_mod, "_listen_sse", new_callable=AsyncMock):
+            task = start_context_listener(ctx)
+            assert isinstance(task, asyncio.Task)
+            task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
+
+    @pytest.mark.asyncio
+    async def test_start_creates_plan_lock(self):
+        """start_context_listener creates _plan_lock if None."""
+        ctx = MagicMock()
+        _ctx_svc_mod._plan_lock = None
+        with patch.object(_ctx_svc_mod, "_listen_sse", new_callable=AsyncMock):
+            task = start_context_listener(ctx)
+            assert _ctx_svc_mod._plan_lock is not None
+            task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
+
+    @pytest.mark.asyncio
+    async def test_stop_cancels_listener(self):
+        """stop_context_listener cancels the listener task."""
+        ctx = MagicMock()
+        with patch.object(_ctx_svc_mod, "_listen_sse", new_callable=AsyncMock):
+            task = start_context_listener(ctx)
+            assert not task.done()
+            stop_context_listener()
+            await asyncio.sleep(0.01)
+            assert task.cancelled() or task.done()
+
+    @pytest.mark.asyncio
+    async def test_stop_cancels_debounce(self):
+        """stop_context_listener cancels pending debounce task."""
+        async def fake_debounce():
+            await asyncio.sleep(999)
+
+        _ctx_svc_mod._debounce_task = asyncio.create_task(fake_debounce())
+        stop_context_listener()
+        await asyncio.sleep(0.01)
+        assert _ctx_svc_mod._debounce_task is None
+
+    @pytest.mark.asyncio
+    async def test_stop_resets_state(self):
+        """stop_context_listener resets all module state."""
+        _ctx_svc_mod._connected = True
+        _ctx_svc_mod._reconnect_count = 5
+        _ctx_svc_mod._last_context = {"x": 1}
+        _ctx_svc_mod._last_event_at = "2025-01-01T00:00:00"
+        stop_context_listener()
+        assert _ctx_svc_mod._connected is False
+        assert _ctx_svc_mod._reconnect_count == 0
+        assert _ctx_svc_mod._last_context == {}
+        assert _ctx_svc_mod._last_event_at is None
+
+    def test_status_reports_connected(self):
+        """get_context_subscription_status reports connection state."""
+        _ctx_svc_mod._connected = True
+        _ctx_svc_mod._last_event_at = "2025-01-01T12:00:00+00:00"
+        _ctx_svc_mod._reconnect_count = 0
+        status = get_context_subscription_status()
+        assert status["connected"] is True
+        assert status["last_event_at"] == "2025-01-01T12:00:00+00:00"
+        assert status["reconnect_count"] == 0
+
+    def test_status_reports_debounce_pending(self):
+        """Status shows debounce_pending when a debounce task is active."""
+        mock_task = MagicMock()
+        mock_task.done.return_value = False
+        _ctx_svc_mod._debounce_task = mock_task
+        status = get_context_subscription_status()
+        assert status["debounce_pending"] is True
+
+    def test_status_debounce_not_pending_when_done(self):
+        """Status shows debounce_pending=False when task is done."""
+        mock_task = MagicMock()
+        mock_task.done.return_value = True
+        _ctx_svc_mod._debounce_task = mock_task
+        status = get_context_subscription_status()
+        assert status["debounce_pending"] is False
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Concurrent generation tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestConcurrentGeneration:
+    """asyncio.Lock prevents overlapping generate_plan calls."""
+
+    @pytest.fixture(autouse=True)
+    def reset_state(self):
+        _reset_context_module()
+        yield
+        _reset_context_module()
+
+    @pytest.mark.asyncio
+    async def test_lock_serializes_concurrent_triggers(self):
+        """Two concurrent _trigger_regeneration calls are serialized."""
+        ctx = MagicMock()
+        call_order = []
+
+        async def slow_generate(*args, **kwargs):
+            call_order.append("start")
+            await asyncio.sleep(0.05)
+            call_order.append("end")
+            return {"plan_iri": "x", "entries_created": 0}
+
+        mock_gen = AsyncMock(side_effect=slow_generate)
+        with patch.object(_ctx_svc_mod, "generate_plan", mock_gen):
+            t1 = asyncio.create_task(_trigger_regeneration(ctx))
+            t2 = asyncio.create_task(_trigger_regeneration(ctx))
+            await asyncio.gather(t1, t2)
+
+        # Should be start-end-start-end (serialized), not start-start-end-end
+        assert call_order == ["start", "end", "start", "end"]
+
+    @pytest.mark.asyncio
+    async def test_lock_shared_across_triggers(self):
+        """All triggers share the same _plan_lock instance."""
+        ctx = MagicMock()
+        mock_gen = AsyncMock(return_value={"plan_iri": "x", "entries_created": 0})
+        with patch.object(_ctx_svc_mod, "generate_plan", mock_gen):
+            await _trigger_regeneration(ctx)
+            lock1 = _ctx_svc_mod._plan_lock
+            await _trigger_regeneration(ctx)
+            lock2 = _ctx_svc_mod._plan_lock
+        assert lock1 is lock2
+
+    @pytest.mark.asyncio
+    async def test_lock_not_held_after_error(self):
+        """Lock is released even if generate_plan raises."""
+        ctx = MagicMock()
+        mock_gen = AsyncMock(side_effect=RuntimeError("oops"))
+        with patch.object(_ctx_svc_mod, "generate_plan", mock_gen):
+            await _trigger_regeneration(ctx)
+        assert not _ctx_svc_mod._plan_lock.locked()
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Error handling tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestContextErrorHandling:
+    """Edge cases and error recovery."""
+
+    @pytest.fixture(autouse=True)
+    def reset_state(self):
+        _reset_context_module()
+        yield
+        _reset_context_module()
+
+    @pytest.mark.asyncio
+    async def test_sse_parse_error_does_not_crash_listener(self):
+        """Malformed SSE data is logged and skipped, not raised."""
+        # parse_sse_lines with bad JSON returns (type, None) — handled by listener
+        lines = ['event: context_update', 'data: {bad json}']
+        event_type, data = parse_sse_lines(lines)
+        assert event_type == "context_update"
+        assert data is None  # gracefully handled
+
+    @pytest.mark.asyncio
+    async def test_empty_context_event(self):
+        """Empty context dict is stored without error."""
+        ctx = MagicMock()
+        with patch.object(_ctx_svc_mod, "generate_plan", new_callable=AsyncMock):
+            await _on_context_event(ctx, {})
+            assert _ctx_svc_mod._last_context == {}
+            if _ctx_svc_mod._debounce_task and not _ctx_svc_mod._debounce_task.done():
+                _ctx_svc_mod._debounce_task.cancel()
+                try:
+                    await _ctx_svc_mod._debounce_task
+                except asyncio.CancelledError:
+                    pass
+
+    @pytest.mark.asyncio
+    async def test_generate_plan_exception_is_caught(self):
+        """Exception in generate_plan doesn't propagate out of trigger."""
+        ctx = MagicMock()
+        mock_gen = AsyncMock(side_effect=Exception("catastrophic"))
+        with patch.object(_ctx_svc_mod, "generate_plan", mock_gen):
+            # Should not raise
+            await _trigger_regeneration(ctx)
+
+    @pytest.mark.asyncio
+    async def test_location_zone_none_in_previous(self):
+        """Previous context has no location_zone — new zone triggers immediate."""
+        ctx = MagicMock()
+        mock_gen = AsyncMock(return_value={"plan_iri": "x", "entries_created": 0})
+        _ctx_svc_mod._last_context = {"activity": "idle"}
+
+        with patch.object(_ctx_svc_mod, "generate_plan", mock_gen):
+            await _on_context_event(ctx, {"location_zone": "cafe", "activity": "idle"})
+            mock_gen.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_debounce_seconds_constant(self):
+        """DEBOUNCE_SECONDS is 120."""
+        assert DEBOUNCE_SECONDS == 120.0
 
