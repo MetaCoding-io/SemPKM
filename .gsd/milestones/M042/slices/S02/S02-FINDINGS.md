@@ -372,5 +372,407 @@ Magic link tokens are 32-byte hex (256-bit entropy), so brute-force is computati
 
 ---
 
-<!-- A06 and A08 sections will be added by T02 -->
+## A06: Vulnerable and Outdated Components
+
+### F-031: Zero Subresource Integrity (SRI) on All CDN-Loaded Dependencies
+
+**Severity:** High
+**OWASP Category:** A06:2021 — Vulnerable and Outdated Components
+**Affected Files:**
+- `backend/app/templates/base.html` (lines 29–30, 38–51)
+- `backend/app/templates/base_embed.html` (lines 17–20)
+- `backend/app/templates/browser/map_view.html` (Leaflet CDN URLs)
+- `backend/app/templates/browser/timeline_view.html` (Frappe Gantt CDN URLs)
+- `backend/app/templates/browser/workspace.html` (dockview CDN URLs)
+- `backend/app/templates/admin/model_detail.html` (line 388)
+- `backend/app/templates/admin/sparql.html` (lines 11–12)
+- `backend/app/templates/errors/403.html` (line 23)
+- `frontend/static/js/workspace.js` (line 3432)
+- `frontend/static/js/calendar.js` (line 13)
+- `frontend/static/js/theme.js` (line 47)
+
+**Description:**
+Every CDN-loaded `<script>` and `<link>` tag across the entire codebase is missing the `integrity` attribute. There are zero `integrity=` attributes in any template or JS file. This applies to both always-loaded CDN dependencies (production and dev) and dev-only CDN dependencies.
+
+The full CDN dependency inventory across all templates and JS files:
+
+**Always-CDN — loaded in both production and development:**
+
+| Library | Version Pin | SRI | CDN Host | Loaded From |
+|---------|-----------|-----|----------|-------------|
+| gridstack | `@10` (major only) | ❌ None | cdn.jsdelivr.net | `base.html` (lines 29–30) |
+| fullcalendar | `@6.1.17` (exact) | ❌ None | cdn.jsdelivr.net | `calendar.js` (line 13, lazy) |
+| leaflet | `@1.9.4` (exact) | ❌ None | unpkg.com | `map_view.html` (lazy) |
+| leaflet.markercluster | `@1.5.3` (exact) | ❌ None | unpkg.com | `map_view.html` (lazy) |
+| chart.js | `@4.4` (minor only) | ❌ None | cdn.jsdelivr.net | `workspace.js` (line 3432, lazy) |
+| chart.js | `@4.4` (minor only) | ❌ None | cdn.jsdelivr.net | `model_detail.html` (line 388) |
+| frappe-gantt | `@1.2.2` (exact) | ❌ None | cdn.jsdelivr.net | `timeline_view.html` (lazy) |
+| highlight.js themes | `11.11.1` (exact) | ❌ None | cdnjs.cloudflare.com | `theme.js` (line 47, runtime swap) |
+
+**Dev-only CDN — vendored in production via `frontend/build.js`:**
+
+| Library | Version Pin | SRI | CDN Host | Loaded From |
+|---------|-----------|-----|----------|-------------|
+| htmx.org | `@2.0.4` (exact) | ❌ None | unpkg.com | `base.html` |
+| split.js | `@1.6.5` (exact) | ❌ None | unpkg.com | `base.html` |
+| ninja-keys | `@1.2.2` (exact) | ❌ None | unpkg.com | `base.html` |
+| cytoscape | `@3.33.1` (exact) | ❌ None | unpkg.com | `base.html` |
+| layout-base | `@2.0.1` (exact) | ❌ None | unpkg.com | `base.html` |
+| cose-base | `@2.2.0` (exact) | ❌ None | unpkg.com | `base.html` |
+| cytoscape-fcose | `@2.2.0` (exact) | ❌ None | unpkg.com | `base.html` |
+| dagre | `@0.8.5` (exact) | ❌ None | unpkg.com | `base.html` |
+| cytoscape-dagre | `@2.5.0` (exact) | ❌ None | unpkg.com | `base.html` |
+| marked | **unpinned** | ❌ None | cdn.jsdelivr.net | `base.html`, `base_embed.html` |
+| marked-highlight | **unpinned** | ❌ None | cdn.jsdelivr.net | `base.html` |
+| highlight.js | `@11.11.1` (exact) | ❌ None | cdnjs.cloudflare.com | `base.html` |
+| dompurify | **unpinned** | ❌ None | cdn.jsdelivr.net | `base.html`, `base_embed.html` |
+| lucide | `@0.575.0` (exact) | ❌ None | unpkg.com | `base.html`, `base_embed.html`, `errors/403.html` |
+| driver.js | `@1.4.0` (exact) | ❌ None | cdn.jsdelivr.net | `base.html` |
+| dockview-core | `@4.11.0` (exact) | ❌ None | cdn.jsdelivr.net | `workspace.html` |
+| @zazuko/yasgui | `@4.5.0` (exact) | ❌ None | unpkg.com | `admin/sparql.html` |
+
+**Three CDN hosts in use:** `unpkg.com`, `cdn.jsdelivr.net`, `cdnjs.cloudflare.com`. A compromise of any single CDN host delivers malicious JavaScript to all SemPKM users loading from that host.
+
+**Exploit Scenario:**
+1. An attacker compromises the npm registry account for `marked` (or any other dependency) and publishes a malicious version.
+2. unpkg.com and cdn.jsdelivr.net immediately serve the compromised package.
+3. Because there are no `integrity` attributes, the browser fetches and executes the malicious script without any hash check.
+4. The malicious script has full access to the page DOM, including: session cookies (unless HttpOnly), SPARQL query capabilities via the workspace API, all displayed knowledge graph data, and the ability to exfiltrate data via `fetch()` to an attacker-controlled server.
+5. Because CSP is also absent (see F-021), there is no browser-level restriction on what the malicious script can do.
+
+**Severity Assessment:**
+- For always-CDN deps (gridstack, fullcalendar, leaflet, chart.js, frappe-gantt, hljs themes): **High** — affects all deployments including production.
+- For dev-only CDN deps: **Medium** — affects developers only; production uses vendored bundles.
+- The combination of zero SRI + zero CSP means a CDN compromise has unrestricted code execution.
+
+**Localhost Mitigation:** The threat model still applies — a CDN compromise serves malicious code regardless of whether the client is localhost or cloud.
+
+**Remediation:**
+1. Generate SRI hashes for all CDN-loaded scripts and stylesheets:
+```bash
+curl -s https://cdn.jsdelivr.net/npm/gridstack@10/dist/gridstack-all.js | openssl dgst -sha384 -binary | openssl base64 -A
+```
+2. Add `integrity` and `crossorigin="anonymous"` attributes to all `<script>` and `<link>` tags:
+```html
+<script src="https://cdn.jsdelivr.net/npm/gridstack@10/dist/gridstack-all.js"
+        integrity="sha384-<hash>"
+        crossorigin="anonymous"></script>
+```
+3. For dynamically created `<script>` elements (calendar.js, workspace.js, theme.js, map_view.html, timeline_view.html), set `script.integrity` and `script.crossOrigin` before appending to `document.head`.
+4. Long-term: extend the M029 vendor pipeline (`frontend/build.js`) to cover the always-CDN deps, eliminating the CDN dependency entirely for production.
+
+---
+
+### F-032: Three CDN Dependencies Loaded Without Any Version Pin
+
+**Severity:** High
+**OWASP Category:** A06:2021 — Vulnerable and Outdated Components
+**Affected Files:**
+- `backend/app/templates/base.html` (lines 42, 43, 46)
+- `backend/app/templates/base_embed.html` (lines 18, 19)
+
+**Description:**
+Three libraries are loaded from CDN URLs with no version specifier at all:
+
+| Library | CDN URL | Resolves To |
+|---------|---------|-------------|
+| marked | `https://cdn.jsdelivr.net/npm/marked/lib/marked.umd.js` | Latest published version |
+| marked-highlight | `https://cdn.jsdelivr.net/npm/marked-highlight/lib/index.umd.js` | Latest published version |
+| dompurify | `https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js` | Latest published version |
+
+Additionally, two deps use partial version pins that resolve to the latest matching release:
+
+| Library | CDN URL | Resolves To |
+|---------|---------|-------------|
+| gridstack | `https://cdn.jsdelivr.net/npm/gridstack@10/...` | Latest 10.x.x |
+| chart.js | `https://cdn.jsdelivr.net/npm/chart.js@4.4/...` | Latest 4.4.x |
+
+The fully unpinned deps (`marked`, `marked-highlight`, `dompurify`) change their resolved version every time a new release is published to npm. This means:
+- Different users loading the page at different times get different library versions.
+- A breaking change in any of these libraries can silently break functionality.
+- A malicious npm publish (account takeover, typosquat) is immediately served to all users.
+
+**DOMPurify is particularly critical** — it is the HTML sanitization library that prevents XSS in user-generated markdown content. An attacker who publishes a compromised DOMPurify version effectively disables XSS protection for all SemPKM instances loading from CDN.
+
+**Exploit Scenario:**
+1. An attacker gains publish access to the `dompurify` npm package (via account takeover or social engineering).
+2. The attacker publishes version 3.99.0 with a subtle modification: the `sanitize()` function returns input unchanged for strings containing a specific trigger pattern.
+3. cdn.jsdelivr.net immediately serves the new version because the URL has no version pin.
+4. All SemPKM instances in dev mode (and `base_embed.html` in all modes) load the compromised DOMPurify.
+5. The attacker creates a knowledge graph object with a body containing the trigger pattern + XSS payload.
+6. When rendered, DOMPurify passes the payload through, achieving persistent XSS.
+
+**Localhost Mitigation:** None — unpinned CDN URLs are dangerous regardless of deployment context. The compromise is upstream, not network-level.
+
+**Remediation:**
+1. **Immediate:** Pin exact versions for all three libraries:
+```html
+<script src="https://cdn.jsdelivr.net/npm/marked@15.0.7/lib/marked.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked-highlight@2.2.1/lib/index.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.4/dist/purify.min.js"></script>
+```
+2. Pin gridstack and chart.js to exact patch versions.
+3. Add SRI hashes (see F-031) after pinning versions.
+4. These three libraries are already vendored in production via `frontend/build.js` — this finding primarily affects dev mode and `base_embed.html`.
+
+---
+
+### F-033: Always-CDN Dependencies Not Covered by Vendor Pipeline
+
+**Severity:** Medium
+**OWASP Category:** A06:2021 — Vulnerable and Outdated Components
+**Affected Files:**
+- `frontend/build.js` — vendor pipeline
+- `backend/app/templates/base.html` (gridstack)
+- `frontend/static/js/calendar.js` (fullcalendar)
+- `backend/app/templates/browser/map_view.html` (leaflet, markercluster)
+- `frontend/static/js/workspace.js` (chart.js)
+- `backend/app/templates/browser/timeline_view.html` (frappe-gantt)
+- `frontend/static/js/theme.js` (highlight.js themes)
+
+**Description:**
+The M029 vendor pipeline (`frontend/build.js`) successfully vendors 17 libraries into content-hashed bundles for production use. Templates use `{% if asset_manifest_available %}` to switch between vendored (production) and CDN (dev). However, 7 libraries remain always-CDN — they load from external CDN hosts in both development and production:
+
+| Library | Why Not Vendored | Production Impact |
+|---------|-----------------|-------------------|
+| gridstack@10 | Comment in base.html: "not yet in vendor bundle" | Loaded on every page with dashboard widgets |
+| fullcalendar@6.1.17 | Lazy-loaded via `document.createElement('script')` in calendar.js | Loaded when calendar view opened |
+| leaflet@1.9.4 | Lazy-loaded in map_view.html template | Loaded when map view opened |
+| leaflet.markercluster@1.5.3 | Lazy-loaded in map_view.html template | Loaded when map view opened |
+| chart.js@4.4 | Lazy-loaded in workspace.js (workspace stat widgets) | Loaded when SPARQL stat widget renders |
+| frappe-gantt@1.2.2 | Lazy-loaded in timeline_view.html template | Loaded when timeline view opened |
+| highlight.js themes | Runtime-swapped in theme.js based on user theme preference | Loaded on every page (CSS only) |
+
+Note: `chart.js@4.4` is vendored for the admin model_detail page (via `build.js` section 6) but separately loaded from CDN in `workspace.js` for the workspace stat widget — the vendored bundle exists but isn't used in the workspace context.
+
+**Exploit Scenario:**
+A CDN outage at cdn.jsdelivr.net or unpkg.com causes these views to fail silently. Gridstack is loaded on every page — a jsdelivr outage breaks all dashboard layouts. Calendar, map, timeline views become completely non-functional. The highlight.js theme swap fails, leaving syntax highlighting unstyled.
+
+More critically, without SRI (F-031), a CDN compromise serves malicious code to production users — not just developers.
+
+**Remediation:**
+1. Add gridstack to the `vendorJsSources` array in `frontend/build.js` and update `base.html` to use `{{ 'vendor.js' | asset_url }}` for gridstack in production mode.
+2. For lazy-loaded libraries (fullcalendar, leaflet, frappe-gantt), create separate content-hashed bundles in `build.js` (similar to the yasgui and chartjs bundles) and update the lazy-load URLs to use `asset_url` when `asset_manifest_available`.
+3. For highlight.js themes, the runtime theme swap in `theme.js` already has a production path using `asset_url` — confirm it covers all theme variants.
+
+---
+
+### F-034: No Automated Dependency Vulnerability Scanning
+
+**Severity:** Medium
+**OWASP Category:** A06:2021 — Vulnerable and Outdated Components
+**Affected Files:**
+- `backend/pyproject.toml` — Python dependencies (29 packages with `~=` compatible-release pins)
+- `frontend/package.json` / `frontend/package-lock.json` — JavaScript dependencies
+- `frontend/Dockerfile` (line 6: `npm ci --no-audit --no-fund`)
+
+**Description:**
+No automated CVE scanning or dependency audit pipeline exists for either the Python or JavaScript dependency trees:
+
+| Check | Python | JavaScript |
+|-------|--------|------------|
+| Lockfile exists | ✅ `uv.lock` (280 packages) | ✅ `package-lock.json` |
+| Version pins | ✅ `~=` compatible-release | ✅ Lockfile |
+| `pip-audit` / `safety` in CI | ❌ None | N/A |
+| `npm audit` in CI | N/A | ❌ None |
+| Dependabot / Renovate configured | ❌ None | ❌ None |
+| Snyk / Socket / etc. | ❌ None | ❌ None |
+| GitHub Advisory Database alerts | ❌ No `.github/workflows/` directory exists | ❌ Same |
+
+The frontend Dockerfile explicitly suppresses npm audit output: `npm ci --no-audit --no-fund` (line 6 of `frontend/Dockerfile`). While `--no-audit` is common in CI to avoid false-positive build failures, without a separate audit step the vulnerability information is never surfaced.
+
+**Notable dependency versions (backend, from `pyproject.toml`):**
+- `cryptography~=46.0.5` — frequently has CVEs; no automated update path
+- `jinja2~=3.1.6` — template engine with past SSTI vulnerabilities
+- `pyjwt~=2.10` — JWT implementation; correctness bugs can be security-critical
+- `httpx~=0.28` — HTTP client used for federation sync; TLS bugs matter
+
+**Exploit Scenario:**
+1. A CVE is published for `cryptography` (a common occurrence — this package had 8 CVEs in 2024).
+2. With no scanning pipeline, the vulnerability goes unnoticed until a developer manually checks.
+3. If the CVE affects TLS certificate validation (which `cryptography` handles for `httpx`), federation sync traffic could be silently intercepted.
+
+**Remediation:**
+1. Add `pip-audit` to CI: `pip-audit --requirement requirements.txt --strict`
+2. Add `npm audit` step in CI: `cd frontend && npm audit --audit-level=moderate`
+3. Configure GitHub Dependabot (`.github/dependabot.yml`) for both pip and npm ecosystems
+4. Remove `--no-audit` from `frontend/Dockerfile` or add a separate audit step that surfaces the output
+
+---
+
+## A08: Software and Data Integrity Failures
+
+### F-035: ZIP Extraction Without Zip-Bomb or Size-Limit Protection
+
+**Severity:** Medium
+**OWASP Category:** A08:2021 — Software and Data Integrity Failures
+**Affected Files:**
+- `backend/app/obsidian/router.py` (lines 125–126)
+- `backend/app/notion/router.py` (lines 152–153)
+- `frontend/nginx.conf` (lines 195–196)
+
+**Description:**
+Both the Obsidian and Notion import endpoints extract user-uploaded ZIP files without checking total uncompressed size or file count:
+
+```python
+# backend/app/obsidian/router.py, line 125-126
+with zipfile.ZipFile(zip_path, "r") as zf:
+    zf.extractall(extract_path)
+```
+
+```python
+# backend/app/notion/router.py, line 152-153
+with zipfile.ZipFile(zip_path, "r") as zf:
+    zf.extractall(extract_path)
+```
+
+Before extraction, no validation occurs:
+- No check on total uncompressed size (`sum(info.file_size for info in zf.infolist())`)
+- No check on file count (`len(zf.infolist())`)
+- No check on compression ratio (zip bombs use extreme ratios like 1000:1)
+- The Obsidian upload endpoint has `client_max_body_size 0` in nginx (F-027), removing even the compressed-size gate
+
+**Path traversal mitigation:** Python 3.12+ (which this project uses per the Dockerfile's Python 3.12 base image) rejects ZIP entries containing `..` path components by default via the fix for CVE-2024-0450. This eliminates the classic zip-slip vulnerability. The remaining risk is resource exhaustion.
+
+**Exploit Scenario:**
+1. An authenticated user uploads a zip bomb — a 10MB compressed file that expands to 10GB of nested XML/text files (readily available as proof-of-concept files).
+2. `zf.extractall()` writes 10GB to the container's filesystem, exhausting disk space.
+3. The API container becomes unresponsive as disk writes consume all I/O bandwidth.
+4. Other users cannot create objects, run SPARQL queries, or access the workspace.
+5. If the extraction directory is on a mounted volume shared with the host, host disk space is consumed.
+
+**Localhost Mitigation:** Self-inflicted DoS only. However, even on localhost, an accidentally corrupted ZIP (e.g., from a broken Obsidian backup plugin) could trigger unexpected disk exhaustion.
+
+**Remediation:**
+1. Before calling `extractall()`, inspect the ZIP contents:
+```python
+with zipfile.ZipFile(zip_path, "r") as zf:
+    total_size = sum(info.file_size for info in zf.infolist())
+    file_count = len(zf.infolist())
+    if total_size > MAX_EXTRACT_SIZE:  # e.g., 2GB
+        raise ValueError(f"ZIP uncompressed size ({total_size}) exceeds limit")
+    if file_count > MAX_FILE_COUNT:  # e.g., 50000
+        raise ValueError(f"ZIP file count ({file_count}) exceeds limit")
+    zf.extractall(extract_path)
+```
+2. Set `client_max_body_size` to a reasonable value (e.g., `500m`) on the Obsidian upload nginx location (see F-027).
+
+---
+
+### F-036: Federation Patches Are Not Cryptographically Signed
+
+**Severity:** Medium
+**OWASP Category:** A08:2021 — Software and Data Integrity Failures
+**Affected Files:**
+- `backend/app/federation/router.py` (lines 380–425, `export_patches()`)
+- `backend/app/federation/service.py` (lines 600–680, `sync_shared_graph()`)
+
+**Description:**
+The federation sync mechanism exports and imports RDF patches between instances over HTTPS without any content-level integrity verification:
+
+**Export side** (`export_patches()`, `federation/router.py`):
+- Queries event graphs matching a shared graph IRI
+- Serializes matching triples as patch text
+- Returns JSON `{"patch_text": "...", "event_count": N}` over HTTPS
+- No digital signature, HMAC, or content hash is attached to the patch
+
+**Import side** (`sync_shared_graph()`, `federation/service.py`):
+- Fetches patches from the remote instance via `httpx.AsyncClient.get()`
+- Optional HTTP Signature authentication for the request (if `private_key_pem` and `key_id` are provided)
+- Deserializes the patch and applies it to the local triplestore
+- No verification that the patch content matches what the remote instance intended to send
+- No content hash or signature validation on the received patch body
+
+The HTTP Signature on the *request* authenticates the *requester*, not the *response content*. A man-in-the-middle who can intercept the HTTPS response (e.g., via a compromised CDN, a TLS-intercepting corporate proxy, or a compromised CA certificate) can modify the patch JSON in transit without detection.
+
+**Exploit Scenario:**
+1. Instance A and Instance B federate a shared knowledge graph.
+2. An attacker positioned on the network path (corporate TLS inspection proxy, compromised DNS, BGP hijack) intercepts the HTTPS response from Instance B's `/api/federation/patches/{graph_id}` endpoint.
+3. The attacker modifies the `patch_text` to inject additional RDF triples — for example, adding a `owl:sameAs` triple that merges two distinct entities, or inserting misleading metadata.
+4. Instance A's `sync_shared_graph()` deserializes and applies the modified patch without detecting the tampering.
+5. The injected triples persist in Instance A's triplestore and propagate through SPARQL queries and views.
+
+**Localhost Mitigation:** Federation is disabled by default on localhost instances. This finding only applies when federation is explicitly configured between multiple instances.
+
+**Remediation:**
+1. Add a content hash to patch exports:
+```python
+import hashlib
+patch_hash = hashlib.sha256(patch_text.encode()).hexdigest()
+return {"patch_text": patch_text, "event_count": count, "sha256": patch_hash}
+```
+2. On the import side, verify the hash before applying:
+```python
+received_hash = data.get("sha256")
+computed_hash = hashlib.sha256(patch_text.encode()).hexdigest()
+if received_hash and received_hash != computed_hash:
+    errors.append("Patch integrity check failed — content modified in transit")
+    return SyncResult(pulled=event_count, applied=0, errors=errors)
+```
+3. Long-term: implement Ed25519 or RSA signing of patch content, where the exporting instance signs the patch with its private key and the importing instance verifies with the exporting instance's public key (exchanged during federation setup).
+
+---
+
+### F-037: Federation Sync Applies Remote RDF Content Without Semantic Validation
+
+**Severity:** Low
+**OWASP Category:** A08:2021 — Software and Data Integrity Failures
+**Affected Files:**
+- `backend/app/federation/service.py` (lines 670–680, `sync_shared_graph()`)
+
+**Description:**
+When `sync_shared_graph()` deserializes a remote patch, the resulting quads are applied to the local triplestore without any content filtering or semantic validation. The only validation is that the patch is syntactically valid RDF (the `deserialize_patch()` call would fail on malformed content).
+
+No checks are performed for:
+- **Ontology injection:** The remote patch could contain `owl:Class`, `rdfs:subClassOf`, or SHACL shape triples that modify the local schema.
+- **Metadata pollution:** Triples targeting system-managed predicates (`sempkm:*` namespace) could manipulate internal state.
+- **Scope violation:** The patch should only contain triples within the shared graph's scope, but there is no enforcement that the patch content is limited to the expected named graph or expected RDF types.
+- **Volume:** No limit on the number of triples in a single patch — a remote instance could send millions of triples in one sync.
+
+**Exploit Scenario:**
+1. A malicious federated instance (or an attacker who has compromised a federated instance) responds to a sync request with a patch containing thousands of SHACL shape triples.
+2. These shapes define `sh:sparql` constraints with embedded SPARQL that queries sensitive named graphs.
+3. When the local instance runs SHACL validation (e.g., during the next object edit), the injected SPARQL executes against the local triplestore, potentially extracting data from private graphs.
+
+**Assessment:** This is a defense-in-depth concern. The primary protection is that federation is opt-in and requires explicit trust configuration between instances. The risk materializes only when a trusted federated instance is compromised or when federation is configured carelessly.
+
+**Localhost Mitigation:** Not applicable — federation is a multi-instance feature.
+
+**Remediation:**
+1. Filter incoming patch triples to only allow predicates within the shared graph's expected namespace.
+2. Reject triples using system-managed predicates (`sempkm:*`, `sh:*`, `owl:*`).
+3. Limit the number of triples per sync operation (e.g., 10,000) with pagination for larger syncs.
+4. Log the triple count and namespace distribution of each applied patch for audit purposes.
+
+---
+
+## Summary — Findings by Severity
+
+| Severity | Count | Finding IDs |
+|---|---|---|
+| **High** | 5 | F-021, F-028, F-029, F-031, F-032 |
+| **Medium** | 8 | F-022, F-023, F-026, F-030, F-033, F-034, F-035, F-036 |
+| **Low** | 4 | F-024, F-025, F-027, F-037 |
+
+**Total: 17 findings across 4 OWASP categories.**
+
+### Findings by OWASP Category
+
+| Category | Count | Severity Breakdown |
+|----------|-------|--------------------|
+| A05: Security Misconfiguration | 7 (F-021 – F-027) | 1 High, 3 Medium, 3 Low |
+| A06: Vulnerable and Outdated Components | 4 (F-031 – F-034) | 2 High, 2 Medium |
+| A08: Software and Data Integrity Failures | 3 (F-035 – F-037) | 0 High, 2 Medium, 1 Low |
+| A09: Security Logging and Monitoring Failures | 3 (F-028 – F-030) | 2 High, 1 Medium |
+
+### Top Remediation Priorities
+
+1. **F-031 + F-032: Add SRI hashes and pin all CDN dependency versions** — Highest impact supply chain fix; SRI prevents execution of tampered scripts, version pins prevent silent upgrades.
+2. **F-028: Redact magic link tokens from log output** — Easy fix, eliminates credential leakage in logs.
+3. **F-029: Implement security event audit trail** — Enables forensic analysis of any future breach; currently zero visibility into auth events.
+4. **F-033: Extend vendor pipeline to cover always-CDN deps** — Eliminates CDN dependency for production; gridstack is the most impactful since it loads on every page.
+5. **F-021: Add HTTP security headers to all reverse proxy configs** — Low effort, high defensive value; CSP alone blocks most XSS exploitation.
+6. **F-035: Add zip-bomb protection to import endpoints** — Prevents DoS via resource exhaustion.
+7. **F-034: Establish automated CVE scanning pipeline** — Continuous vulnerability visibility for both Python and JavaScript dependency trees.
+8. **F-036: Add content hashing to federation patches** — Prevents in-transit tampering of sync data.
 
