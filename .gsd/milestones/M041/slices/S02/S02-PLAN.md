@@ -24,7 +24,7 @@
   - Verify: `test -f .gsd/milestones/M041/S02-FRONTEND-FINDINGS.md && grep -c "^### " .gsd/milestones/M041/S02-FRONTEND-FINDINGS.md` returns >= 2
   - Done when: JS Structure and DOM/Event sections exist with specific findings
 
-- [ ] **T02: CSS architecture and theme consistency audit** `est:35m`
+- [x] **T02: CSS architecture and theme consistency audit** `est:35m`
   - Why: 201 hardcoded hex colors alongside 1205 var() references means the theming system is 85% adopted but inconsistently applied. CSS at 9203 lines may have significant duplication.
   - Files: `frontend/static/css/workspace.css`, all `frontend/static/css/*.css` files
   - Do: (1) `fd -e css . frontend/static/css/ | xargs wc -l | sort -rn` to rank CSS files. (2) `rg "#[0-9a-fA-F]{3,8}" frontend/static/css/ --count` to count hardcoded colors per file. (3) `rg "var(--" frontend/static/css/ --count` to count variable usage per file. (4) `rg "!important" frontend/static/css/ --count` to find specificity overrides. (5) Check selector complexity — look for selectors >3 levels deep. (6) Check for duplicate property blocks. (7) Check responsive breakpoints — `rg "@media" frontend/static/css/` for consistency. (8) Write "CSS Architecture & Theming" section.
