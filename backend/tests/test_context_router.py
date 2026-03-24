@@ -252,6 +252,59 @@ class TestAuthEnforcement:
             resp = await ac.get("/api/context/current")
             assert resp.status_code == 401
 
+    @pytest.mark.asyncio
+    async def test_stream_requires_auth(self, mock_service, mock_broadcast):
+        """GET /api/context/stream without auth returns 401."""
+        from fastapi import FastAPI
+
+        app = FastAPI()
+        app.state.shutdown_event = asyncio.Event()
+        app.include_router(router)
+        app.dependency_overrides[get_context_service] = lambda: mock_service
+        app.dependency_overrides[get_context_broadcast] = lambda: mock_broadcast
+
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as ac:
+            resp = await ac.get("/api/context/stream")
+            assert resp.status_code == 401
+
+
+# ── SSE stream content type ──────────────────────────────────────
+
+
+class TestStreamEndpoint:
+    @pytest.mark.asyncio
+    async def test_stream_content_type(self, client, mock_broadcast):
+        """GET /api/context/stream returns text/event-stream content type."""
+        # Create a broadcast that will immediately provide a shutdown
+        # so the stream terminates quickly
+        from fastapi import FastAPI
+
+        app = FastAPI()
+        from app.auth.rate_limit import limiter
+
+        app.state.limiter = limiter
+        app.state.shutdown_event = asyncio.Event()
+        app.state.shutdown_event.set()  # signal shutdown immediately
+        app.include_router(router)
+
+        test_user_obj = User(
+            id=uuid.uuid4(), email="stream@test.com", role="owner"
+        )
+        real_broadcast = ContextBroadcast()
+
+        app.dependency_overrides[get_current_user_or_api] = lambda: test_user_obj
+        app.dependency_overrides[get_context_service] = lambda: AsyncMock(
+            spec=ContextService
+        )
+        app.dependency_overrides[get_context_broadcast] = lambda: real_broadcast
+
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as ac:
+            resp = await ac.get("/api/context/stream")
+            assert resp.status_code == 200
+            assert "text/event-stream" in resp.headers["content-type"]
+
 
 # ── Pydantic model validation ───────────────────────────────────
 

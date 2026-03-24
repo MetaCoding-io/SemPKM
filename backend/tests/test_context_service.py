@@ -68,6 +68,48 @@ class TestContextServiceUpdate:
         ctx = await service.update(user_id, location_zone="home")
         assert ctx.is_stale is False
 
+    @pytest.mark.asyncio
+    async def test_update_partial_only_location(self, service, user_id):
+        """Update with only location_zone leaves other fields unchanged."""
+        await service.update(
+            user_id,
+            location_zone="office",
+            activity="stationary",
+            time_period="work_hours",
+        )
+        ctx = await service.update(user_id, location_zone="transit")
+        assert ctx.location_zone == "transit"
+        assert ctx.activity == "stationary"  # unchanged
+        assert ctx.time_period == "work_hours"  # unchanged
+
+    @pytest.mark.asyncio
+    async def test_calendar_busy_default_false(self, service, user_id):
+        """New context without explicit calendar_busy defaults to False."""
+        ctx = await service.update(user_id, location_zone="office")
+        assert ctx.calendar_busy is False
+
+    @pytest.mark.asyncio
+    async def test_device_id_persists_across_updates(self, service, user_id):
+        """device_id set in one update survives a subsequent update."""
+        await service.update(user_id, device_id="phone-01")
+        ctx = await service.update(user_id, location_zone="transit")
+        assert ctx.device_id == "phone-01"
+
+    @pytest.mark.asyncio
+    async def test_upsert_one_row_per_user(self, service, user_id, session_factory):
+        """Multiple updates produce exactly one row, not appends."""
+        await service.update(user_id, location_zone="office")
+        await service.update(user_id, location_zone="home")
+        await service.update(user_id, location_zone="transit")
+        async with session_factory() as session:
+            from sqlalchemy import func, select
+            count = await session.scalar(
+                select(func.count()).select_from(UserContext).where(
+                    UserContext.user_id == user_id
+                )
+            )
+            assert count == 1
+
 
 class TestContextServiceGetCurrent:
     """Read and TTL staleness."""
@@ -109,3 +151,34 @@ class TestContextServiceGetCurrent:
         assert ctx.device_id == "phone-01"
         assert ctx.ttl_seconds == DEFAULT_TTL_SECONDS
         assert ctx.updated_at != ""
+
+    @pytest.mark.asyncio
+    async def test_includes_ttl_seconds(self, service, user_id):
+        """Returned data includes the TTL value."""
+        await service.update(user_id, location_zone="office")
+        ctx = await service.get_current(user_id, ttl_seconds=42)
+        assert ctx.ttl_seconds == 42
+
+    @pytest.mark.asyncio
+    async def test_update_returns_all_fields(self, service, user_id):
+        """Verify all ContextData fields are present in returned data."""
+        ctx = await service.update(
+            user_id,
+            location_zone="office",
+            activity="stationary",
+            time_period="work_hours",
+            calendar_event="Standup",
+            calendar_busy=True,
+            device_id="laptop-01",
+        )
+        assert ctx.user_id == str(user_id)
+        assert ctx.location_zone == "office"
+        assert ctx.activity == "stationary"
+        assert ctx.time_period == "work_hours"
+        assert ctx.calendar_event == "Standup"
+        assert ctx.calendar_busy is True
+        assert ctx.device_id == "laptop-01"
+        assert ctx.is_stale is False
+        assert ctx.ttl_seconds == DEFAULT_TTL_SECONDS
+        assert ctx.updated_at != ""
+        assert ctx.created_at != ""

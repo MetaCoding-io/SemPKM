@@ -60,7 +60,7 @@
   - Verify: `python -c "from app.context.router import router; print('router OK')"` succeeds; `grep -q "context_service" backend/app/main.py` returns 0
   - Done when: All three endpoints defined, service+broadcast wired in main.py lifespan, dependencies registered, router included
 
-- [ ] **T03: Unit tests for ContextService and context API endpoints** `est:1h`
+- [x] **T03: Unit tests for ContextService and context API endpoints** `est:1h`
   - Why: Proves the contract — TTL staleness, upsert semantics, rate limiting, SSE stream format, auth enforcement
   - Files: `backend/tests/test_context_service.py`, `backend/tests/test_context_router.py`
   - Do: Write `test_context_service.py` with in-memory SQLite (same pattern as `test_persona_service.py`): test create/update context, test get_current returns correct fields, test is_stale=False when fresh, test is_stale=True when updated_at is old (mock time or use tiny TTL), test upsert overwrites existing row, test get_current for non-existent user returns None/empty. Write `test_context_router.py` with httpx TestClient: test POST /api/context/update with valid payload returns 200, test POST with empty body returns 200 (all fields optional), test GET /api/context/current returns context after POST, test auth enforcement (401 without credentials), test rate limiting (multiple rapid POSTs), test SSE stream returns event-stream content type.

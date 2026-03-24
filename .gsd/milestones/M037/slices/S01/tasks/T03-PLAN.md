@@ -67,3 +67,14 @@ Write comprehensive unit tests proving the context domain contract: ContextServi
 
 - `backend/tests/test_context_service.py` — ≥8 unit tests for ContextService
 - `backend/tests/test_context_router.py` — ≥6 endpoint tests for context API
+
+## Observability Impact
+
+This task is test-only — no runtime signals change. The tests themselves verify the observability surfaces created in T01/T02:
+- `is_stale` field transitions (tested via `test_stale_with_zero_ttl`, `test_returns_stale_context`)
+- `ttl_seconds` returned in responses (tested via `test_includes_ttl_seconds`, `test_context_data_includes_all_fields`)
+- SSE content type `text/event-stream` (tested via `test_stream_content_type`)
+- Auth enforcement returns 401 (tested via `test_*_requires_auth`)
+- HTTP 422 on empty body (tested via `test_update_empty_body_returns_422`)
+
+A future agent inspects this task by running `cd backend && .venv/bin/python -m pytest tests/test_context_service.py tests/test_context_router.py -v`. Failures surface as standard pytest output with assertion details.
