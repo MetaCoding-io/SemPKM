@@ -163,6 +163,46 @@
             });
     }
 
+    // ── Auto-switch toast notification ─────────────────────────
+
+    /**
+     * Show a brief toast notification when persona auto-switches.
+     * @param {string} personaName — display name of the activated persona
+     * @param {string} ruleName — name of the rule that triggered the switch
+     */
+    function _showAutoSwitchNotice(personaName, ruleName) {
+        // Remove any existing toast first
+        var existing = document.querySelector('.context-auto-switch-toast');
+        if (existing) existing.remove();
+
+        var toast = document.createElement('div');
+        toast.className = 'context-auto-switch-toast';
+
+        var msg = '<strong>Auto-switched to ' + _esc(personaName) + '</strong>';
+        if (ruleName && ruleName !== 'auto') {
+            msg += '<span class="context-toast-rule">Rule: ' + _esc(ruleName) + '</span>';
+        }
+        toast.innerHTML = msg;
+
+        document.body.appendChild(toast);
+
+        // Force reflow then trigger enter animation
+        toast.offsetHeight; // eslint-disable-line no-unused-expressions
+        toast.classList.add('context-toast-visible');
+
+        // Auto-dismiss after 3 seconds
+        setTimeout(function () {
+            toast.classList.add('context-toast-exit');
+            toast.addEventListener('animationend', function () {
+                if (toast.parentNode) toast.remove();
+            });
+            // Safety fallback removal after animation duration
+            setTimeout(function () {
+                if (toast.parentNode) toast.remove();
+            }, 500);
+        }, 3000);
+    }
+
     // ── SSE connection ──────────────────────────────────────────
 
     function _connectSSE() {
@@ -178,6 +218,24 @@
                 _renderContext(data);
             } catch (err) {
                 console.warn('[context-indicator] Failed to parse SSE data:', err);
+            }
+        });
+
+        _sse.addEventListener('persona_switched', function (e) {
+            try {
+                var data = JSON.parse(e.data);
+                var personaId = data.persona_id;
+                var personaName = data.persona_name || 'Unknown';
+                var ruleName = data.rule_name || '';
+
+                if (typeof window.switchPersona === 'function') {
+                    window.switchPersona(personaId);
+                    _showAutoSwitchNotice(personaName, ruleName);
+                } else {
+                    console.warn('[context-indicator] window.switchPersona not available');
+                }
+            } catch (err) {
+                console.error('[context-indicator] persona_switched parse error:', err);
             }
         });
 

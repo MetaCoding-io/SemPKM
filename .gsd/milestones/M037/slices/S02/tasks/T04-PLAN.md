@@ -76,3 +76,10 @@ Add a `persona_switched` event handler to the existing SSE EventSource in contex
 
 - `frontend/static/js/context-indicator.js` — modified with persona_switched handler and toast function
 - `frontend/static/css/context-indicator.css` — modified with auto-switch toast styles
+
+## Observability Impact
+
+- **New browser console signals:** `[context-indicator] window.switchPersona not available` warning when the workspace.js persona function hasn't loaded — indicates a script loading order issue. `[context-indicator] persona_switched parse error: <err>` when SSE payload is malformed.
+- **Visual signal:** Auto-switch toast (`.context-auto-switch-toast`) appears at top-right of viewport for 3 seconds — visible confirmation that the SSE→switchPersona→UI loop completed. If the toast never appears after a context update that should trigger a rule, inspect the SSE stream in the Network tab for `persona_switched` events.
+- **DOM inspection:** `document.querySelector('.context-auto-switch-toast')` returns the toast element while it's visible (null after auto-dismiss). Useful for E2E tests.
+- **Failure visibility:** If `window.switchPersona` is undefined, the persona won't change but the console warning is logged — the toast is suppressed (no false positive UI signal).
