@@ -15,12 +15,13 @@ after each feed.
 from __future__ import annotations
 
 import logging
+import uuid
 from datetime import date, datetime, timezone
 from typing import Any
 
 from sempkm_app_sdk import App, AppContext
 from starlette.requests import Request
-from starlette.responses import HTMLResponse
+from starlette.responses import HTMLResponse, RedirectResponse
 
 try:
     from services.podcast_service import (
@@ -134,6 +135,52 @@ except ModuleNotFoundError:
     parse_youtube_url = _yt_fm.parse_youtube_url
     subscribe_youtube = _yt_fm.subscribe_youtube
     video_to_media_item = _yt_fm.video_to_media_item
+
+try:
+    from services.spotify_service import (
+        SPOTIFY_SOURCES_SPARQL,
+        SpotifyAPIError,
+        SpotifyAuthError,
+        SpotifyClient,
+        build_spotify_authorize_url,
+        clear_spotify_auth,
+        exchange_spotify_code,
+        generate_code_challenge,
+        generate_code_verifier,
+        get_existing_item_iris as sp_get_existing_item_iris,
+        get_spotify_connection_status,
+        mint_item_iri as sp_mint_item_iri,
+        parse_spotify_url,
+        refresh_spotify_if_expired,
+        store_spotify_tokens,
+        subscribe_spotify,
+        track_to_media_item,
+    )
+except ModuleNotFoundError:
+    import importlib.util as _ilu5
+    import pathlib as _pl5
+
+    _sp_svc = _pl5.Path(__file__).resolve().parent / "services" / "spotify_service.py"
+    _sp_sp = _ilu5.spec_from_file_location("_spotify_service_fallback", _sp_svc)
+    _sp_fm = _ilu5.module_from_spec(_sp_sp)
+    _sp_sp.loader.exec_module(_sp_fm)
+    SPOTIFY_SOURCES_SPARQL = _sp_fm.SPOTIFY_SOURCES_SPARQL
+    SpotifyAPIError = _sp_fm.SpotifyAPIError
+    SpotifyAuthError = _sp_fm.SpotifyAuthError
+    SpotifyClient = _sp_fm.SpotifyClient
+    build_spotify_authorize_url = _sp_fm.build_spotify_authorize_url
+    clear_spotify_auth = _sp_fm.clear_spotify_auth
+    exchange_spotify_code = _sp_fm.exchange_spotify_code
+    generate_code_challenge = _sp_fm.generate_code_challenge
+    generate_code_verifier = _sp_fm.generate_code_verifier
+    sp_get_existing_item_iris = _sp_fm.get_existing_item_iris
+    get_spotify_connection_status = _sp_fm.get_spotify_connection_status
+    sp_mint_item_iri = _sp_fm.mint_item_iri
+    parse_spotify_url = _sp_fm.parse_spotify_url
+    refresh_spotify_if_expired = _sp_fm.refresh_spotify_if_expired
+    store_spotify_tokens = _sp_fm.store_spotify_tokens
+    subscribe_spotify = _sp_fm.subscribe_spotify
+    track_to_media_item = _sp_fm.track_to_media_item
 
 logger = logging.getLogger(__name__)
 
@@ -525,6 +572,169 @@ async def _update_youtube_source_state(
     )
 
 
+@media_scheduler_app.task("poll-spotify")
+async def poll_spotify(ctx: AppContext) -> dict:
+    """Poll all Spotify MediaSource objects and create new MediaItem objects.
+
+    Checks Spotify connection status, refreshes the access token if expired,
+    then for each Spotify playlist source: fetches tracks, deduplicates
+    against existing items, caps at MAX_INITIAL_ITEMS, and bulk-creates.
+
+    SpotifyAPIError is caught per-source (increments errorCount).
+    SpotifyAuthError breaks the loop (auth is shared across all sources).
+
+    Returns:
+        Summary dict with sources_polled and items_created counts.
+    """
+    import logging as _log
+    _spotify_poll_log = _log.getLogger("spotify.poll")
+
+    # Check connection before any API calls
+    status = await get_spotify_connection_status(ctx.state)
+    if not status["connected"]:
+        _spotify_poll_log.info("poll-spotify: not connected, skipping")
+        return {"skipped": "not_connected"}
+
+    # Read credentials from state
+    client_id = await ctx.state.get("spotify_client_id") or ""
+    client_secret = await ctx.state.get("spotify_client_secret") or ""
+
+    if not client_id or not client_secret:
+        _spotify_poll_log.warning("poll-spotify: no credentials configured, skipping")
+        return {"skipped": "no_credentials"}
+
+    # Refresh token if expired
+    try:
+        access_token = await refresh_spotify_if_expired(
+            ctx.http, ctx.state, client_id, client_secret
+        )
+    except SpotifyAuthError as e:
+        _spotify_poll_log.warning("poll-spotify: auth refresh failed: %s", e)
+        return {"skipped": "auth_refresh_failed", "error": str(e)}
+
+    # Query Spotify-type sources
+    result = await ctx.graph.query(SPOTIFY_SOURCES_SPARQL)
+    bindings = result.get("results", {}).get("bindings", [])
+
+    sources_polled = 0
+    items_created = 0
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    for binding in bindings:
+        source_iri = binding.get("source", {}).get("value", "")
+        feed_url = binding.get("feedUrl", {}).get("value", "")
+        external_id = binding.get("externalId", {}).get("value", "")
+
+        if not external_id:
+            _spotify_poll_log.warning(
+                "Spotify source %s has no externalId, skipping", source_iri
+            )
+            continue
+
+        try:
+            client = SpotifyClient(ctx.http, access_token)
+
+            # Fetch playlist tracks
+            playlist_items = await client.get_playlist_tracks(external_id)
+
+            # Deduplicate against existing items
+            existing_iris = await sp_get_existing_item_iris(ctx.graph, source_iri)
+
+            new_items = []
+            for item in playlist_items:
+                inner_track = item.get("track")
+                if not inner_track or not isinstance(inner_track, dict):
+                    continue
+                track_id = inner_track.get("id", "")
+                if not track_id:
+                    continue
+                candidate_iri = sp_mint_item_iri(source_iri, track_id)
+                if candidate_iri not in existing_iris:
+                    media_item = track_to_media_item(inner_track, source_iri)
+                    new_items.append(media_item)
+
+            # Cap imports
+            if len(new_items) > MAX_INITIAL_ITEMS:
+                _spotify_poll_log.info(
+                    "Capping %d new Spotify items to %d for %s",
+                    len(new_items), MAX_INITIAL_ITEMS, feed_url,
+                )
+                new_items = new_items[:MAX_INITIAL_ITEMS]
+
+            # Bulk-create new items
+            if new_items:
+                async with ctx.commands.bulk(
+                    summary=f"Poll Spotify: {feed_url}",
+                    source=ctx.app_id,
+                ) as batch:
+                    for media_item in new_items:
+                        batch.add("object.create", media_item)
+
+            created_count = len(new_items)
+            items_created += created_count
+            sources_polled += 1
+
+            _spotify_poll_log.info(
+                "Polled %s: %d new items (skipped %d existing)",
+                feed_url, created_count,
+                len(playlist_items) - len(new_items),
+            )
+
+            # Success: reset error state
+            await _update_spotify_source_state(
+                ctx, source_iri, now_iso, error_count=0, last_error=""
+            )
+
+        except SpotifyAuthError as e:
+            _spotify_poll_log.warning(
+                "Spotify auth error during poll — stopping: %s", e
+            )
+            break
+
+        except SpotifyAPIError as e:
+            current_error_count = _get_current_error_count(binding)
+            _spotify_poll_log.warning(
+                "Spotify API error polling %s: %s", feed_url, e
+            )
+            await _update_spotify_source_state(
+                ctx, source_iri, now_iso,
+                error_count=current_error_count + 1,
+                last_error=str(e),
+            )
+
+        except Exception as e:
+            current_error_count = _get_current_error_count(binding)
+            _spotify_poll_log.exception("Error polling Spotify source %s", feed_url)
+            await _update_spotify_source_state(
+                ctx, source_iri, now_iso,
+                error_count=current_error_count + 1,
+                last_error=str(e),
+            )
+
+    _spotify_poll_log.info(
+        "poll-spotify complete: %d sources polled, %d items created",
+        sources_polled, items_created,
+    )
+    return {"sources_polled": sources_polled, "items_created": items_created}
+
+
+async def _update_spotify_source_state(
+    ctx: AppContext,
+    source_iri: str,
+    last_polled: str,
+    error_count: int | None = None,
+    last_error: str | None = None,
+) -> None:
+    """Update a Spotify source's poll state via SPARQL."""
+    await update_source_state(
+        ctx,
+        source_iri,
+        last_polled=last_polled,
+        error_count=error_count if error_count is not None else 0,
+        last_error=last_error if last_error is not None else "",
+    )
+
+
 # ── Helper ──
 
 
@@ -574,7 +784,12 @@ async def main_fragment(request: Request):
 async def add_source_fragment(request: Request):
     """Add-source form fragment — rendered inline in the sidebar."""
     ctx = request.app.state.ctx
-    return HTMLResponse(ctx.render_template("add-source.html"))
+    spotify_status = await get_spotify_connection_status(ctx.state)
+    return HTMLResponse(ctx.render_template(
+        "add-source.html",
+        spotify_connected=spotify_status["connected"],
+        spotify_status=spotify_status,
+    ))
 
 
 @media_scheduler_app.route("/_fragments/sources")
@@ -728,6 +943,297 @@ async def add_youtube_fragment(request: Request):
 
     response = HTMLResponse(
         '<div class="ms-success">Subscribed to YouTube source!</div>'
+    )
+    response.headers["HX-Trigger"] = "sourcesChanged"
+    return response
+
+
+# ── Spotify OAuth + subscription routes ──
+
+
+def _spotify_oauth_result_page(success: bool, message: str) -> str:
+    """Generate a minimal HTML page for the Spotify OAuth callback result.
+
+    On success, auto-redirects to the workspace after 2 seconds.
+    Same pattern as Google Calendar's ``_oauth_result_page``.
+    """
+    status_class = "success" if success else "error"
+    redirect_script = ""
+    if success:
+        redirect_script = (
+            '<script>setTimeout(function() { '
+            'window.location.href = "/browser/"; '
+            '}, 2000);</script>'
+        )
+    return f"""<!DOCTYPE html>
+<html>
+<head><title>Spotify — {'Connected' if success else 'Error'}</title></head>
+<body style="font-family: system-ui; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #1a1a1a; color: #eee;">
+  <div style="text-align: center; max-width: 400px;">
+    <h2 class="{status_class}">{message}</h2>
+    {'<p>Redirecting to workspace…</p>' if success else '<p><a href="/browser/">Return to workspace</a></p>'}
+  </div>
+  {redirect_script}
+</body>
+</html>"""
+
+
+@media_scheduler_app.route("/_fragments/spotify/connect", methods=["POST"])
+async def spotify_connect_fragment(request: Request):
+    """Save Spotify credentials, generate PKCE pair, redirect to Spotify OAuth.
+
+    Reads client_id, client_secret, redirect_uri from the form. Stores
+    credentials and the PKCE code_verifier in state, then 303-redirects
+    the user's browser to Spotify's authorization page.
+    """
+    ctx = request.app.state.ctx
+    form = await request.form()
+    client_id = form.get("client_id", "").strip()
+    client_secret = form.get("client_secret", "").strip()
+    redirect_uri = form.get("redirect_uri", "").strip()
+
+    if not client_id or not client_secret or not redirect_uri:
+        return HTMLResponse(
+            '<div class="ms-error">Client ID, Client Secret, and Redirect URI are all required</div>'
+        )
+
+    # Store credentials for later use (token exchange, refresh)
+    await ctx.state.set("spotify_client_id", client_id)
+    await ctx.state.set("spotify_client_secret", client_secret)
+    await ctx.state.set("spotify_redirect_uri", redirect_uri)
+
+    # Generate PKCE verifier + challenge
+    code_verifier = generate_code_verifier()
+    code_challenge = generate_code_challenge(code_verifier)
+    await ctx.state.set("spotify_code_verifier", code_verifier)
+
+    # Generate CSRF state parameter
+    oauth_state = str(uuid.uuid4())
+    await ctx.state.set("spotify_oauth_state", oauth_state)
+
+    authorize_url = build_spotify_authorize_url(
+        client_id=client_id,
+        redirect_uri=redirect_uri,
+        state=oauth_state,
+        code_challenge=code_challenge,
+    )
+
+    logger.info("Redirecting to Spotify OAuth consent screen")
+    return RedirectResponse(url=authorize_url, status_code=303)
+
+
+@media_scheduler_app.route("/_fragments/spotify/callback")
+async def spotify_callback_fragment(request: Request):
+    """Handle Spotify OAuth callback — CSRF validation, PKCE code exchange, store tokens.
+
+    Validates the state parameter, reads the stored code_verifier, exchanges
+    the authorization code for tokens, fetches the user profile, and stores
+    everything in state. Returns a standalone HTML result page.
+    """
+    ctx = request.app.state.ctx
+    code = request.query_params.get("code")
+    state_param = request.query_params.get("state")
+    error = request.query_params.get("error")
+
+    if error:
+        logger.warning("Spotify OAuth callback error: %s", error)
+        return HTMLResponse(
+            _spotify_oauth_result_page(
+                success=False,
+                message=f"Spotify denied access: {error}",
+            )
+        )
+
+    if not code:
+        return HTMLResponse(
+            _spotify_oauth_result_page(
+                success=False,
+                message="Missing authorization code.",
+            )
+        )
+
+    # Validate CSRF state parameter
+    expected_state = await ctx.state.get("spotify_oauth_state")
+    if not expected_state or state_param != expected_state:
+        logger.warning(
+            "Spotify OAuth state mismatch: expected=%s got=%s",
+            expected_state, state_param,
+        )
+        return HTMLResponse(
+            _spotify_oauth_result_page(
+                success=False,
+                message="OAuth state mismatch — possible CSRF attack. Please try again.",
+            )
+        )
+
+    try:
+        client_id = await ctx.state.get("spotify_client_id") or ""
+        client_secret = await ctx.state.get("spotify_client_secret") or ""
+        redirect_uri = await ctx.state.get("spotify_redirect_uri") or ""
+        code_verifier = await ctx.state.get("spotify_code_verifier") or ""
+
+        # Exchange code with PKCE code_verifier
+        tokens = await exchange_spotify_code(
+            ctx.http,
+            code=code,
+            client_id=client_id,
+            client_secret=client_secret,
+            redirect_uri=redirect_uri,
+            code_verifier=code_verifier,
+        )
+
+        # Fetch user profile for display name and product tier
+        client = SpotifyClient(ctx.http, tokens["access_token"])
+        profile = await client.get_user_profile()
+        display_name = profile.get("display_name", "")
+        product = profile.get("product", "")
+
+        # Store tokens and profile metadata
+        await store_spotify_tokens(
+            ctx.state,
+            access_token=tokens["access_token"],
+            refresh_token=tokens.get("refresh_token", ""),
+            expires_in=tokens.get("expires_in"),
+            display_name=display_name,
+            product=product,
+        )
+
+        # Clear one-time PKCE/CSRF state
+        await ctx.state.set("spotify_oauth_state", "")
+        await ctx.state.set("spotify_code_verifier", "")
+
+        logger.info("Spotify OAuth connection established for %s", display_name)
+        return HTMLResponse(
+            _spotify_oauth_result_page(
+                success=True,
+                message=f"Connected to Spotify ({display_name})!",
+            )
+        )
+
+    except (SpotifyAuthError, SpotifyAPIError) as exc:
+        logger.warning("Spotify OAuth callback failed: %s", exc)
+        return HTMLResponse(
+            _spotify_oauth_result_page(
+                success=False,
+                message=f"Authentication failed: {exc}",
+            )
+        )
+    except Exception as exc:
+        logger.error("Unexpected error in Spotify OAuth callback: %s", exc)
+        return HTMLResponse(
+            _spotify_oauth_result_page(
+                success=False,
+                message=f"Unexpected error: {exc}",
+            )
+        )
+
+
+@media_scheduler_app.route("/_fragments/spotify/disconnect", methods=["POST"])
+async def spotify_disconnect_fragment(request: Request):
+    """Disconnect from Spotify — clear all auth state, re-render add-source form."""
+    ctx = request.app.state.ctx
+    await clear_spotify_auth(ctx.state)
+    # Also clear stored credentials
+    await ctx.state.set("spotify_client_id", "")
+    await ctx.state.set("spotify_client_secret", "")
+    await ctx.state.set("spotify_redirect_uri", "")
+    logger.info("Disconnected from Spotify")
+    spotify_status = await get_spotify_connection_status(ctx.state)
+    return HTMLResponse(ctx.render_template(
+        "add-source.html",
+        spotify_connected=spotify_status["connected"],
+        spotify_status=spotify_status,
+    ))
+
+
+@media_scheduler_app.route("/_fragments/spotify/status")
+async def spotify_status_fragment(request: Request):
+    """Return Spotify connection status as an HTML fragment."""
+    ctx = request.app.state.ctx
+    status = await get_spotify_connection_status(ctx.state)
+    connected = status["connected"]
+    if connected:
+        display_name = status.get("display_name") or "Unknown"
+        product = status.get("product") or "free"
+        return HTMLResponse(
+            f'<div class="ms-info">Connected as {display_name} ({product})</div>'
+        )
+    return HTMLResponse('<div class="ms-info">Not connected to Spotify</div>')
+
+
+@media_scheduler_app.route("/_fragments/spotify/playlists")
+async def spotify_playlists_fragment(request: Request):
+    """Fetch and render the user's Spotify playlists for the subscription selector.
+
+    Requires an active Spotify connection. Refreshes the token if needed.
+    Returns HTML <option> elements for a <select> dropdown.
+    """
+    ctx = request.app.state.ctx
+    status = await get_spotify_connection_status(ctx.state)
+    if not status["connected"]:
+        return HTMLResponse('<option value="">Not connected</option>')
+
+    client_id = await ctx.state.get("spotify_client_id") or ""
+    client_secret = await ctx.state.get("spotify_client_secret") or ""
+
+    try:
+        access_token = await refresh_spotify_if_expired(
+            ctx.http, ctx.state, client_id, client_secret
+        )
+        client = SpotifyClient(ctx.http, access_token)
+        playlists = await client.get_playlists()
+    except (SpotifyAuthError, SpotifyAPIError) as exc:
+        logger.warning("Failed to fetch Spotify playlists: %s", exc)
+        return HTMLResponse(f'<option value="">Error: {exc}</option>')
+
+    if not playlists:
+        return HTMLResponse('<option value="">No playlists found</option>')
+
+    options_html = '<option value="">Select a playlist…</option>'
+    for pl in playlists:
+        pl_id = pl.get("id", "")
+        pl_name = pl.get("name", "Untitled")
+        track_count = pl.get("tracks", {}).get("total", 0)
+        options_html += (
+            f'<option value="{pl_id}" data-name="{pl_name}">'
+            f'{pl_name} ({track_count} tracks)</option>'
+        )
+    return HTMLResponse(options_html)
+
+
+@media_scheduler_app.route("/_fragments/sources/add-spotify", methods=["POST"])
+async def add_spotify_fragment(request: Request):
+    """Add a Spotify playlist subscription from form data.
+
+    Reads ``playlist_id`` and ``playlist_name`` from the POST body.
+    Returns an HTML fragment indicating success, duplicate, or error.
+    Emits ``HX-Trigger: sourcesChanged`` on success.
+    """
+    ctx = request.app.state.ctx
+    form = await request.form()
+    playlist_id = form.get("playlist_id", "").strip()
+    playlist_name = form.get("playlist_name", "").strip() or "Untitled Playlist"
+
+    if not playlist_id:
+        return HTMLResponse(
+            '<div class="ms-error">Please select a playlist</div>'
+        )
+
+    try:
+        result = await subscribe_spotify(ctx, playlist_id, playlist_name)
+    except Exception as exc:
+        logger.warning("subscribe_spotify failed for %s: %s", playlist_id, exc)
+        return HTMLResponse(
+            f'<div class="ms-error">Failed to subscribe: {exc}</div>'
+        )
+
+    if result["status"] == "duplicate":
+        return HTMLResponse(
+            '<div class="ms-info">Already subscribed to this Spotify playlist</div>'
+        )
+
+    response = HTMLResponse(
+        '<div class="ms-success">Subscribed to Spotify playlist!</div>'
     )
     response.headers["HX-Trigger"] = "sourcesChanged"
     return response

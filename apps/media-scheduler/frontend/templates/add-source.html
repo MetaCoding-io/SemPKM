@@ -37,4 +37,63 @@
   </form>
 </div>
 
+<div class="ms-add-section">
+  <h4 class="ms-add-heading">Spotify</h4>
+  {% if spotify_connected %}
+  <div class="ms-connected-status">
+    <p class="ms-info">
+      Connected as <strong>{{ spotify_status.display_name or 'Unknown' }}</strong>
+      ({{ spotify_status.product or 'free' }})
+    </p>
+    <div class="ms-spotify-playlists">
+      <form class="ms-add-form"
+            method="post"
+            action="/app/media-scheduler/_fragments/sources/add-spotify"
+            hx-post="/app/media-scheduler/_fragments/sources/add-spotify"
+            hx-target="#ms-add-result"
+            hx-swap="innerHTML">
+        <select name="playlist_id"
+                class="ms-input"
+                required
+                hx-get="/app/media-scheduler/_fragments/spotify/playlists"
+                hx-trigger="load"
+                hx-swap="innerHTML"
+                onchange="this.form.playlist_name.value = this.options[this.selectedIndex].dataset.name || ''">
+          <option value="">Loading playlists…</option>
+        </select>
+        <input type="hidden" name="playlist_name" value="">
+        <button type="submit" class="ms-btn ms-btn-primary">Add Selected Playlist</button>
+      </form>
+    </div>
+    <form class="ms-add-form"
+          method="post"
+          action="/app/media-scheduler/_fragments/spotify/disconnect"
+          hx-post="/app/media-scheduler/_fragments/spotify/disconnect"
+          hx-target="#ms-add-source-container"
+          hx-swap="innerHTML">
+      <button type="submit" class="ms-btn ms-btn-danger">Disconnect Spotify</button>
+    </form>
+  </div>
+  {% else %}
+  <form class="ms-add-form"
+        method="post"
+        action="/app/media-scheduler/_fragments/spotify/connect"
+        hx-boost="false">
+    <input type="text" name="client_id"
+           placeholder="Spotify Client ID"
+           class="ms-input"
+           required>
+    <input type="password" name="client_secret"
+           placeholder="Spotify Client Secret"
+           class="ms-input"
+           required>
+    <input type="url" name="redirect_uri"
+           placeholder="Redirect URI (e.g. https://...)"
+           class="ms-input"
+           required>
+    <button type="submit" class="ms-btn ms-btn-primary">Connect Spotify</button>
+  </form>
+  {% endif %}
+</div>
+
 <div id="ms-add-result"></div>

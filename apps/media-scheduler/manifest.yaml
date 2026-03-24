@@ -54,6 +54,15 @@ tasks:
       backoffMultiplier: 2
       maxBackoff: "5m"
 
+  - id: "poll-spotify"
+    description: "Poll Spotify playlists for new tracks"
+    interval: "15m"
+    configurable: true
+    retryPolicy:
+      maxRetries: 2
+      backoffMultiplier: 2
+      maxBackoff: "5m"
+
   - id: "generate-plan"
     description: "Generate or regenerate today's media plan"
     interval: "6h"
