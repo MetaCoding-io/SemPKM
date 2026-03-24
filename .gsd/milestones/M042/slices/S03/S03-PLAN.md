@@ -55,12 +55,21 @@ grep -q "Executive Summary" .gsd/milestones/M042/M042-SECURITY-FINDINGS.md
 
 ## Tasks
 
-- [ ] **T01: Assemble complete M042-SECURITY-FINDINGS.md from S01, S02, and S03 research** `est:1h30m`
+- [x] **T01: Assemble complete M042-SECURITY-FINDINGS.md from S01, S02, and S03 research** `est:1h30m`
   - Why: This is the sole deliverable for both S03 and the entire M042 milestone — a self-contained security finding report covering all OWASP Top 10 categories with prioritized remediation guidance
   - Files: `.gsd/milestones/M042/M042-SECURITY-FINDINGS.md`
   - Do: (1) Read S01-FINDINGS.md, S02-FINDINGS.md, and S03-RESEARCH.md as inputs. (2) Write the complete report with these sections in order: Executive Summary (severity distribution, coverage statement), OWASP A01–A10 (one `## A0N` section per category — incorporate S01 findings for A01/A03/A07, S02 findings for A05/A06/A08/A09, write new findings F-038–F-044 for A02/A04/A10 from S03-RESEARCH.md), Backend Hardening Assessment (cross-cutting: secret management, session lifecycle, API tokens, debug endpoints, federation auth, file handling — referencing relevant findings), Infrastructure Security Assessment (nginx headers, Docker config, deployment hardening — referencing relevant findings), SPARQL Injection Classification Summary (incorporate the 33-module table from S01's T01-SPARQL-TRIAGE.md), Prioritized Top 10 Findings (rank by severity × exploitability × blast radius, include effort estimates per the research's candidate list), CDN Dependency Inventory appendix (from S02). (3) Ensure every finding has: finding number (F-NNN), severity, OWASP category, affected files, exploit scenario, remediation guidance. (4) Run all verification commands from the slice plan.
   - Verify: All verification commands from slice plan pass — file exists, 10 OWASP categories present, ≥40 findings with severity annotations, structural sections present
   - Done when: `M042-SECURITY-FINDINGS.md` exists with all 10 OWASP categories, ~44 findings, backend/infrastructure hardening sections, SPARQL classification table, Top 10 summary, and CDN inventory — all verification grep checks pass
+
+## Observability / Diagnostics
+
+This slice produces a documentation artifact only — no runtime code, services, or background processes.
+
+- **Inspection surface:** `cat .gsd/milestones/M042/M042-SECURITY-FINDINGS.md | head -50` for executive summary
+- **Structure validation:** `grep -c "^### F-" .gsd/milestones/M042/M042-SECURITY-FINDINGS.md` confirms finding count
+- **Failure visibility:** If the report is malformed, the slice verification grep checks fail explicitly with non-zero exit codes
+- **Diagnostic check:** `grep -c "Severity:" .gsd/milestones/M042/M042-SECURITY-FINDINGS.md` — if this is less than the finding count, some findings are missing their severity annotation
 
 ## Files Likely Touched
 
