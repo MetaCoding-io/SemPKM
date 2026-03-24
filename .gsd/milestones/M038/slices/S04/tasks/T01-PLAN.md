@@ -57,6 +57,13 @@ This is the risk-bearing task — PKCE is a new auth pattern for this codebase, 
 - [ ] Redirect URI is a function parameter, not hardcoded (D353: HTTPS required, varies by deployment)
 - [ ] Tests use importlib.util.spec_from_file_location pattern to load the module (consistent with existing test architecture)
 
+## Observability Impact
+
+- **New loggers:** `spotify.auth` (OAuth flow events), `spotify.client` (API request/response diagnostics), `spotify.poll` (poll cycle summaries — used by T02)
+- **Inspection surface:** `get_spotify_connection_status(state_client)` returns `{connected, display_name, product, token_expiry}` — usable by routes and poll tasks to check auth state
+- **Failure signals:** `SpotifyAPIError` with status_code + error_type for API failures; `SpotifyAuthError` with status_code + response_body for OAuth failures; HTTP 429 logged as warning with Retry-After value
+- **Redaction:** Token values (access_token, refresh_token, client_secret, code_verifier) never logged — only key names and status strings
+
 ## Verification
 
 - `cd backend && python -m pytest tests/test_media_scheduler.py -v -k "Spotify or spotify or PKCE"` — all ~50 new tests pass
