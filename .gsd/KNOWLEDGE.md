@@ -583,3 +583,27 @@ The mock LLM server at `e2e/mock-llm-api/server.py` uses keyword matching on use
 **Impact:** When adding new copilot-specific canned routes, insert them AFTER the claims check but BEFORE the generic fallback. A message matching multiple routes (e.g., "extract data and create a task") will hit the first matching route.
 
 **Affected file:** `e2e/mock-llm-api/server.py` — `_select_response()` function
+
+---
+
+### Expo SDK 55: src/app/ route directory, not app/
+
+**Discovered:** M037/S03/T01
+
+Expo SDK 55's default template uses `src/app/` as the file-based routing directory (not `app/`). All screens, layouts, and route groups live under `mobile/src/app/`. This is configured in the template's `package.json` `main` field and `app.json` — don't change it.
+
+**Impact:** All `mobile/src/app/(app)/(tabs)/` paths are correct for the tab navigator. Future slices (S04 zones, S05 calendar) add screens under this same tree.
+
+### expo-router: root-level routes shadow group routes
+
+**Discovered:** M037/S03/T03
+
+expo-router matches root-level files in `src/app/` before group directories like `(app)/`. If `src/app/index.tsx` exists alongside `src/app/(app)/(tabs)/index.tsx`, the root file wins — the tab navigator never renders. Similarly, a `(app)/index.tsx` shadows `(app)/(tabs)/index.tsx`.
+
+**Rule:** Delete any index/route files at shallower levels if they conflict with the intended deeper route group. The auth pattern requires: sign-in at root level (`src/app/sign-in.tsx`), everything else inside `(app)/` group with guard layout, tabs inside `(app)/(tabs)/`.
+
+### Expo SDK 55: --non-interactive requires CI=1 env var
+
+**Discovered:** M037/S03/T01
+
+`npx expo start --non-interactive` does not work as a standalone CLI flag in SDK 55. Metro prints "use $CI=1 instead". For headless/CI verification, use `CI=1 npx expo start --no-dev` or `CI=1 timeout 20 npx expo start --no-dev --non-interactive`.
