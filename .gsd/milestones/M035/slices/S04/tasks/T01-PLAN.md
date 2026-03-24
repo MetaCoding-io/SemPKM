@@ -62,6 +62,13 @@ The existing mock LLM server (`e2e/mock-llm-api/server.py`, 348 lines) only retu
 - `python e2e/mock-llm-api/server.py --selftest` — all checks pass
 - `docker compose -f docker-compose.test.yml config --quiet` — validates without errors
 
+## Observability Impact
+
+- **New signal:** `[mock-llm] POST /v1/chat/completions stream=true|false` logged to stderr on every request — shows whether streaming or non-streaming path was taken, plus pattern-match route selected.
+- **Health surface:** `GET /health` returns `{"status": "ok"}` — used by Docker healthcheck and manual inspection from Docker network (`docker compose exec api curl http://mock-llm:8080/health`).
+- **Selftest diagnostic:** `python server.py --selftest` exercises all routes (streaming, non-streaming, pattern matching) and reports pass/fail per check — a future agent can run this to verify the mock is correctly wired without starting Docker.
+- **Failure visibility:** When the mock receives an unrecognised path, it returns `{"message": "Not Found"}` with HTTP 404 — visible in Playwright network logs or `docker compose logs mock-llm`.
+
 ## Inputs
 
 - `e2e/mock-llm-api/server.py` — existing mock LLM server (348 lines, stdlib only)

@@ -27,6 +27,7 @@
 - `docker compose -f docker-compose.test-ollama.yml config --quiet` — validates Ollama variant
 - `cd backend && python -m pytest tests/test_copilot_service.py tests/test_ai_personas.py tests/test_object_creation_chat.py tests/test_graph_context.py tests/test_conversation_service.py -v` — all 126 tests pass (regression)
 - `npx playwright test tests/46-copilot/` — all copilot E2E tests pass against Docker test stack
+- `python e2e/mock-llm-api/server.py --selftest 2>&1 | grep -c '✗'` — outputs `0` (no failed checks); confirms mock diagnostic surface is functional
 
 ## Observability / Diagnostics
 
@@ -43,7 +44,7 @@
 
 ## Tasks
 
-- [ ] **T01: Upgrade mock LLM server with SSE streaming and copilot canned responses** `est:45m`
+- [x] **T01: Upgrade mock LLM server with SSE streaming and copilot canned responses** `est:45m`
   - Why: The existing mock server only returns single JSON responses for claim detection. The copilot endpoint sends `stream: True` and expects OpenAI SSE chunks. E2E tests need pattern-matched canned responses for SPARQL blocks, object creation JSON, and persona-aware prose.
   - Files: `e2e/mock-llm-api/server.py`, `docker-compose.test.yml`
   - Do: (1) Add request body parsing in `do_POST` to detect `stream` field. (2) When `stream: true`, send SSE chunks (word-by-word from canned response) in OpenAI format. (3) Add pattern matching on user message content: "how many"/"project" → SPARQL response, "create"+"task" → object creation JSON, default → generic helpful response. (4) Add `mock-llm` service to `docker-compose.test.yml` following mock-linear pattern. (5) Extend selftest to validate streaming output format and routing.
