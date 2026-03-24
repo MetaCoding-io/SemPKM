@@ -2,7 +2,8 @@
 
 **Audit date:** 2026-03-23
 **Total frontend JS:** 18,587 LOC across 28 files
-**Scope:** JavaScript structure, global state, DOM/event patterns, error handling
+**Total frontend CSS:** 20,495 LOC across 16 files
+**Scope:** JavaScript structure, global state, DOM/event patterns, error handling, CSS architecture & theming
 
 ---
 
@@ -250,4 +251,191 @@ A centralized wrapper would:
 
 ---
 
-*Remaining dimension sections (CSS Architecture & Theming, Jinja2 Template Hygiene, htmx Consistency) will be added by T02 and T03.*
+## CSS Architecture & Theming
+
+**Total CSS:** 20,495 LOC across 16 files
+**CSS variable adoption:** 89.7% (2,517 var() references vs 286 standalone hardcoded color values)
+**Theme system:** Two-tier token architecture in `theme.css` — primitives (`--_*`) + semantics (`--color-*`)
+
+**CSS files by size:**
+
+| File | LOC | var() refs | Hardcoded hex | Hardcoded rgba | `!important` |
+|------|-----|-----------|---------------|----------------|-------------|
+| workspace.css | 9,203 | 1,205 | 201 (169 as fallbacks) | 101 | 40 |
+| style.css | 2,749 | 322 | 12 | 8 | 6 |
+| views.css | 1,819 | 257 | 25 | 8 | 9 |
+| import.css | 997 | 120 | 78 (67 as fallbacks) | 8 | 0 |
+| copilot.css | 972 | 105 | 18 | 10 | 0 |
+| settings.css | 950 | 115 | 39 | 0 | 2 |
+| vfs-browser.css | 772 | 74 | 24 | 0 | 0 |
+| federation.css | 503 | 45 | 9 | 0 | 0 |
+| theme.css | 477 | 108 | 55 (definitions) | 30 (definitions) | 1 |
+| forms.css | 455 | 63 | 0 | 0 | 2 |
+| bmc.css | 443 | 17 | 8 | 61 | 0 |
+| okr.css | 320 | 24 | 15 | 16 | 0 |
+| decision-matrix.css | 320 | 11 | 4 | 26 | 0 |
+| quadrant.css | 286 | 23 | 7 | 25 | 0 |
+| context-indicator.css | 129 | 7 | 4 | 0 | 0 |
+| dockview-sempkm-bridge.css | 100 | 21 | 0 | 0 | 1 |
+
+---
+
+### Finding CSS-01: 84 standalone hardcoded hex colors bypass the theme system
+
+**Severity:** Medium
+**Effort:** Small-Medium (mechanical variable replacement)
+**Category:** Theming Consistency / Dark Mode
+
+Of 499 hex color instances across all CSS files, 360 are used as `var()` fallback values (acceptable degradation pattern), 55 are variable definitions in `theme.css` (expected), and **84 are standalone hardcoded values** that bypass the theme system entirely. These will not respond to theme changes (e.g., dark mode).
+
+**Most-shared standalone colors (appearing in 3+ files — candidates for variable extraction):**
+
+| Color | Files using it | Semantic mapping |
+|-------|---------------|-----------------|
+| `#fff` | 10 files | → `var(--color-surface)` or `var(--_color-white)` |
+| `#1e1e1e` | 5 files | → `var(--color-text)` (dark mode surface?) |
+| `#ef4444` | 4 files | → `var(--color-error)` |
+| `#dc2626` | 4 files | → `var(--color-error)` variant |
+| `#888` | 4 files | → `var(--color-text-muted)` |
+| `#3b82f6` | 4 files | → `var(--color-primary)` |
+| `#333` | 4 files | → `var(--color-text)` |
+| `#22c55e` | 4 files | → `var(--color-success)` |
+| `#16a34a` | 4 files | → `var(--color-success)` variant |
+
+**Worst offenders by standalone hardcoded count:**
+
+| File | Standalone hex | Notes |
+|------|---------------|-------|
+| workspace.css | 32 | Status colors, syntax highlighting, drag states |
+| views.css | 12 | FullCalendar event colors, button states |
+| import.css | 11 | Legacy status borders and text colors |
+| vfs-browser.css | 9 | File-type icon colors, accent blue |
+| okr.css | 6 | Progress bar RAG colors |
+
+**Detection command:**
+```bash
+rg "#[0-9a-fA-F]{3,8}\b" frontend/static/css/ -n | grep -v "var(--" | grep -v "theme.css"
+```
+
+---
+
+### Finding CSS-02: 202 standalone hardcoded rgba() values bypass theme system
+
+**Severity:** Medium
+**Effort:** Medium (need `color-mix()` or additional CSS variables)
+**Category:** Theming Consistency / Dark Mode
+
+202 `rgba()` values across CSS files use raw RGB values instead of referencing CSS variables. These are harder to fix than hex colors because CSS custom properties can't be directly interpolated inside `rgba()` in older syntax. The modern `color-mix(in srgb, var(--color-x) 15%, transparent)` pattern is already used in some places (e.g., workspace.css:8462) but not consistently.
+
+**Worst offenders:**
+
+| File | Hardcoded rgba | Notes |
+|------|---------------|-------|
+| workspace.css | 101 | Shadows, overlays, status backgrounds |
+| bmc.css | 61 | Quadrant background tints |
+| decision-matrix.css | 26 | Cell background gradients |
+| quadrant.css | 25 | Quadrant region fills |
+| okr.css | 16 | Progress indicators |
+
+**Detection command:**
+```bash
+rg "rgba\(" frontend/static/css/ -n | grep -v "var(--" | grep -v "theme.css" | wc -l
+```
+
+---
+
+### Finding CSS-03: 61 `!important` declarations — 30 are necessary vendor overrides, 31 are avoidable
+
+**Severity:** Low
+**Effort:** Medium (refactor specificity for the 31 avoidable ones)
+**Category:** Specificity / Maintainability
+
+61 `!important` declarations exist across 8 CSS files. Categorization:
+
+**Necessary (vendor library overrides) — 30 total:**
+- workspace.css lines 4354–4411: **30** declarations overriding driver.js (guided tour library) default styles. These are standard practice — the library's own CSS loads first, application theming overrides via `!important`.
+
+**Avoidable — 31 total:**
+
+| File | Count | Purpose | Why avoidable |
+|------|-------|---------|---------------|
+| workspace.css | 10 | Field highlight, drag indicators, form resets | Could increase selector specificity instead |
+| views.css | 9 | FullCalendar button colors, kanban drag states | FC overrides could use `:where()` or higher specificity |
+| style.css | 6 | Modal/toast styling | Modal context should have naturally higher specificity |
+| settings.css | 2 | Layout fixes for flex direction / width | Structural issue — specificity war between layout rules |
+| forms.css | 2 | Disabled state text color | Could use `[disabled]` attribute selector for higher specificity |
+| dockview-sempkm-bridge.css | 1 | Tab border accent | Overrides dockview's default styles — borderline necessary |
+| theme.css | 1 | Unknown context | Should be unnecessary in the theme definition file |
+
+**Detection command:**
+```bash
+rg "!important" frontend/static/css/ -n --count | sort -t: -k2 -rn
+# Categorize driver.js block:
+awk 'NR>=4354 && NR<=4411' frontend/static/css/workspace.css | grep -c "!important"
+```
+
+---
+
+### Finding CSS-04: Inconsistent responsive breakpoints — 4 different values, no shared tokens
+
+**Severity:** Low
+**Effort:** Small (define breakpoint variables or document standard set)
+**Category:** Responsive Design Consistency
+
+12 `@media` queries use 4 different breakpoint values with no CSS custom property tokens:
+
+| Breakpoint | Usage count | Files |
+|-----------|-------------|-------|
+| 600px | 5 | workspace.css, style.css, import.css, okr.css, decision-matrix.css |
+| 640px | 3 | style.css (×2), views.css |
+| 768px | 3 | workspace.css, style.css, import.css |
+| 800px | 1 | bmc.css |
+
+**Issues:**
+1. **No breakpoint tokens** — values are hardcoded in each `@media` query. CSS custom properties can't be used in media queries, but a documented standard set (e.g., `--bp-sm: 600px`, `--bp-md: 768px`) with a comment convention would prevent drift.
+2. **640px vs 600px overlap** — `style.css` uses both 640px and 600px for different sections. The 40px gap means some layouts change at 640px while sibling content changes at 600px, causing a jarring intermediate state.
+3. **800px outlier** — `bmc.css` uses 800px while all other files use 600/640/768. This may be intentional (BMC layout is wider) but it's undocumented.
+4. **workspace.css has only 2 breakpoints** for 9,203 lines — the main workspace has minimal responsive design, relying on dockview's panel system instead.
+
+**Detection command:**
+```bash
+rg "@media" frontend/static/css/ -n
+```
+
+---
+
+### Finding CSS-05: Repeated property patterns suggest missing shared utility classes
+
+**Severity:** Low
+**Effort:** Medium (extract utilities, update selectors)
+**Category:** DRY / Maintainability
+
+workspace.css alone contains heavily repeated property patterns that could be extracted into shared utility classes:
+
+| Pattern | Occurrences in workspace.css | Candidate utility |
+|---------|------------------------------|-------------------|
+| `display: flex` | 165 | `.flex` |
+| `align-items: center` | 134 | `.items-center` |
+| `flex-shrink: 0` | 134 | `.shrink-0` |
+| `cursor: pointer` | 101 | `.pointer` |
+| `font-size: 0.8*rem` | 115 | `.text-sm` family |
+| `border-radius: 4px` | 68 | `.rounded` |
+| `border-radius: 6px` | 43 | `.rounded-md` |
+| `gap: 8px` | 32 | `.gap-2` |
+| `padding: 4px 8px` | 17 | `.px-2 .py-1` |
+| `padding: 6px 12px` | 12 | `.px-3 .py-1.5` |
+
+This is not necessarily a problem — CSS naturally repeats common properties. But the `flex + align-items: center + flex-shrink: 0` triplet appears ~130 times, suggesting a `.flex-center` utility class would significantly reduce file size and improve consistency.
+
+**Note:** Without a bundler or utility framework (Tailwind, etc.), utility classes would need to be defined in a shared CSS file and used via class names in templates. The trade-off is: fewer CSS lines but more HTML class attributes.
+
+**Detection command:**
+```bash
+rg "display: flex" frontend/static/css/workspace.css -c
+rg "border-radius: 4px" frontend/static/css/workspace.css -c
+rg "font-size:\s*0\.8[0-9]*rem" frontend/static/css/workspace.css -c
+```
+
+---
+
+*Remaining dimension sections (Jinja2 Template Hygiene, htmx Consistency) will be added by T03.*
