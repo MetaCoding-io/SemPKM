@@ -34,7 +34,7 @@
   - Verify: `cd backend && .venv/bin/python -m pytest tests/test_media_scheduler.py -v -k "stats" --tb=short` passes; AST parse of app.py and stats_service.py succeeds
   - Done when: Stats tab loads and renders three charts from server-provided data; all stats tests pass; status badges have improved visual treatment
 
-- [ ] **T02: User guide chapter 49** `est:20m`
+- [x] **T02: User guide chapter 49** `est:20m`
   - Why: Completes the slice by documenting the full Media Scheduler app for users. All three guide index files must be updated per KNOWLEDGE.md rule.
   - Files: `docs/guide/49-media-scheduler.md`, `docs/guide/README.md`, `docs/guide/index.html`, `backend/app/templates/guide.html`
   - Do: Write chapter 49 following the format of chapter 40 (RSS Reader). Cover: prerequisites, installing model + app, adding sources (podcast/YouTube/Spotify), schedule rules, today's plan, stats dashboard, mobile integration, troubleshooting. Update all three index files.
