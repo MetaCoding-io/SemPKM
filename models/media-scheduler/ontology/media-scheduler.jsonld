@@ -159,6 +159,84 @@
       "rdfs:comment": "The category this source belongs to",
       "rdfs:domain": { "@id": "ms:MediaSource" },
       "rdfs:range": { "@id": "ms:MediaCategory" }
+    },
+
+    {
+      "@id": "ms:DailyMediaPlan",
+      "@type": "owl:Class",
+      "rdfs:label": "Daily Media Plan",
+      "rdfs:comment": "A generated daily schedule of media items assigned to time slots based on context rules"
+    },
+    {
+      "@id": "ms:PlanEntry",
+      "@type": "owl:Class",
+      "rdfs:label": "Plan Entry",
+      "rdfs:comment": "A single time-slotted media item within a daily media plan"
+    },
+
+    {
+      "@id": "ms:planStatus",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Plan Status",
+      "rdfs:comment": "Lifecycle status of the daily plan: active, completed, or regenerating",
+      "rdfs:domain": { "@id": "ms:DailyMediaPlan" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "ms:plan",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Plan",
+      "rdfs:comment": "The daily media plan this entry belongs to",
+      "rdfs:domain": { "@id": "ms:PlanEntry" },
+      "rdfs:range": { "@id": "ms:DailyMediaPlan" }
+    },
+    {
+      "@id": "ms:mediaItem",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Media Item",
+      "rdfs:comment": "The media item scheduled in this plan entry",
+      "rdfs:domain": { "@id": "ms:PlanEntry" },
+      "rdfs:range": { "@id": "ms:MediaItem" }
+    },
+    {
+      "@id": "ms:slotStart",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Slot Start",
+      "rdfs:comment": "Start time of the scheduled slot in HH:MM format",
+      "rdfs:domain": { "@id": "ms:PlanEntry" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "ms:slotEnd",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Slot End",
+      "rdfs:comment": "End time of the scheduled slot in HH:MM format",
+      "rdfs:domain": { "@id": "ms:PlanEntry" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "ms:slotOrder",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Slot Order",
+      "rdfs:comment": "Ordinal position of this entry within the daily plan",
+      "rdfs:domain": { "@id": "ms:PlanEntry" },
+      "rdfs:range": { "@id": "xsd:integer" }
+    },
+    {
+      "@id": "ms:entryStatus",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Entry Status",
+      "rdfs:comment": "Status of this plan entry: pending, active, completed, skipped, or replaced",
+      "rdfs:domain": { "@id": "ms:PlanEntry" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "ms:ruleId",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Rule ID",
+      "rdfs:comment": "UUID of the schedule rule that generated this plan entry",
+      "rdfs:domain": { "@id": "ms:PlanEntry" },
+      "rdfs:range": { "@id": "xsd:string" }
     }
   ]
 }

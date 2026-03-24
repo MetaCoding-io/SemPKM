@@ -10,7 +10,9 @@ feedparser is mocked at sys.modules level before exec_module.
 from __future__ import annotations
 
 import importlib.util
+import json
 import sys
+import uuid
 from pathlib import Path
 from time import struct_time
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -82,14 +84,15 @@ class TestManifest:
         )
         assert m.appId == "media-scheduler"
 
-    def test_manifest_has_one_task(self):
+    def test_manifest_has_tasks(self):
         from app.apps.manifest import parse_app_manifest
         m = parse_app_manifest(
             str(Path(__file__).resolve().parent.parent.parent
                 / "apps" / "media-scheduler" / "manifest.yaml")
         )
-        assert len(m.tasks) == 1
+        assert len(m.tasks) == 2
         assert m.tasks[0].id == "poll-sources"
+        assert m.tasks[1].id == "generate-plan"
 
     def test_manifest_permissions(self):
         from app.apps.manifest import parse_app_manifest
@@ -696,3 +699,445 @@ class TestPollSources:
             mock_update.assert_awaited_once()
             call_kwargs = mock_update.call_args
             assert call_kwargs.kwargs.get("error_count") == 3
+
+
+# ── Import rules_service via file path ──
+
+_rules_svc_path = (
+    Path(__file__).resolve().parent.parent.parent
+    / "apps" / "media-scheduler" / "services" / "rules_service.py"
+)
+_rules_svc_spec = importlib.util.spec_from_file_location("rules_service_test", str(_rules_svc_path))
+_rules_svc_mod = importlib.util.module_from_spec(_rules_svc_spec)
+_rules_svc_spec.loader.exec_module(_rules_svc_mod)
+
+validate_rule = _rules_svc_mod.validate_rule
+load_rules = _rules_svc_mod.load_rules
+save_rules = _rules_svc_mod.save_rules
+add_rule = _rules_svc_mod.add_rule
+update_rule = _rules_svc_mod.update_rule
+delete_rule = _rules_svc_mod.delete_rule
+toggle_rule = _rules_svc_mod.toggle_rule
+evaluate_rules = _rules_svc_mod.evaluate_rules
+_matches_condition = _rules_svc_mod._matches_condition
+RULES_STATE_KEY = _rules_svc_mod.RULES_STATE_KEY
+DEFAULT_DURATIONS = _rules_svc_mod.DEFAULT_DURATIONS
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Rule validation tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestRuleValidation:
+    """Test validate_rule with various inputs."""
+
+    def test_valid_rule_returns_complete_dict(self):
+        rule = validate_rule({"name": "Commute podcasts", "priority": 5})
+        assert rule["name"] == "Commute podcasts"
+        assert rule["priority"] == 5
+        assert rule["enabled"] is True
+        assert "id" in rule
+        assert isinstance(rule["conditions"], dict)
+        assert isinstance(rule["action"], dict)
+
+    def test_generates_uuid_when_missing(self):
+        rule = validate_rule({"name": "Test rule"})
+        assert len(rule["id"]) == 36  # UUID format
+
+    def test_preserves_existing_id(self):
+        rule = validate_rule({"name": "Test", "id": "my-custom-id"})
+        assert rule["id"] == "my-custom-id"
+
+    def test_missing_name_raises_value_error(self):
+        with pytest.raises(ValueError, match="name"):
+            validate_rule({"priority": 1})
+
+    def test_empty_name_raises_value_error(self):
+        with pytest.raises(ValueError, match="name"):
+            validate_rule({"name": ""})
+
+    def test_whitespace_name_raises_value_error(self):
+        with pytest.raises(ValueError, match="name"):
+            validate_rule({"name": "   "})
+
+    def test_non_dict_raises_value_error(self):
+        with pytest.raises(ValueError, match="dict"):
+            validate_rule("not a dict")
+
+    def test_defaults_priority_to_zero(self):
+        rule = validate_rule({"name": "Test"})
+        assert rule["priority"] == 0
+
+    def test_defaults_enabled_to_true(self):
+        rule = validate_rule({"name": "Test"})
+        assert rule["enabled"] is True
+
+    def test_invalid_priority_type_raises(self):
+        with pytest.raises(ValueError, match="priority"):
+            validate_rule({"name": "Test", "priority": "not-a-number"})
+
+    def test_string_priority_coerced_to_int(self):
+        rule = validate_rule({"name": "Test", "priority": "5"})
+        assert rule["priority"] == 5
+
+    def test_name_stripped(self):
+        rule = validate_rule({"name": "  spaced out  "})
+        assert rule["name"] == "spaced out"
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Rule CRUD tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestRuleCRUD:
+    """Test rule CRUD operations with AsyncMock StateClient."""
+
+    def _make_state_client(self, initial_rules=None):
+        """Create a mock StateClient with get/set methods."""
+        import json as _json
+        stored = {"value": _json.dumps(initial_rules) if initial_rules is not None else None}
+
+        async def mock_get(key):
+            return stored["value"]
+
+        async def mock_set(key, value):
+            stored["value"] = value
+
+        client = AsyncMock()
+        client.get = AsyncMock(side_effect=mock_get)
+        client.set = AsyncMock(side_effect=mock_set)
+        client._stored = stored  # for test inspection
+        return client
+
+    @pytest.mark.asyncio
+    async def test_load_rules_empty(self):
+        client = self._make_state_client()
+        rules = await load_rules(client)
+        assert rules == []
+
+    @pytest.mark.asyncio
+    async def test_load_rules_with_data(self):
+        client = self._make_state_client([
+            {"id": "r1", "name": "Rule 1", "priority": 1, "enabled": True,
+             "conditions": {}, "action": {}}
+        ])
+        rules = await load_rules(client)
+        assert len(rules) == 1
+        assert rules[0]["id"] == "r1"
+
+    @pytest.mark.asyncio
+    async def test_load_rules_invalid_json(self):
+        client = AsyncMock()
+        client.get = AsyncMock(return_value="not valid json{{{")
+        rules = await load_rules(client)
+        assert rules == []
+
+    @pytest.mark.asyncio
+    async def test_load_rules_non_list_json(self):
+        client = AsyncMock()
+        client.get = AsyncMock(return_value='{"not": "a list"}')
+        rules = await load_rules(client)
+        assert rules == []
+
+    @pytest.mark.asyncio
+    async def test_add_rule(self):
+        client = self._make_state_client()
+        rule = await add_rule(client, {"name": "Morning music", "priority": 3})
+        assert rule["name"] == "Morning music"
+        assert rule["priority"] == 3
+        # Verify persisted
+        import json as _json
+        saved = _json.loads(client._stored["value"])
+        assert len(saved) == 1
+        assert saved[0]["name"] == "Morning music"
+
+    @pytest.mark.asyncio
+    async def test_add_rule_appends_to_existing(self):
+        client = self._make_state_client([
+            {"id": "existing", "name": "Old rule", "priority": 1, "enabled": True,
+             "conditions": {}, "action": {}}
+        ])
+        await add_rule(client, {"name": "New rule"})
+        import json as _json
+        saved = _json.loads(client._stored["value"])
+        assert len(saved) == 2
+
+    @pytest.mark.asyncio
+    async def test_update_rule_success(self):
+        client = self._make_state_client([
+            {"id": "r1", "name": "Old name", "priority": 1, "enabled": True,
+             "conditions": {}, "action": {}}
+        ])
+        result = await update_rule(client, "r1", {"name": "New name", "priority": 5})
+        assert result is not None
+        assert result["name"] == "New name"
+        assert result["priority"] == 5
+
+    @pytest.mark.asyncio
+    async def test_update_rule_not_found(self):
+        client = self._make_state_client([])
+        result = await update_rule(client, "nonexistent", {"name": "X"})
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_delete_rule_success(self):
+        client = self._make_state_client([
+            {"id": "r1", "name": "Rule 1", "priority": 1, "enabled": True,
+             "conditions": {}, "action": {}},
+            {"id": "r2", "name": "Rule 2", "priority": 2, "enabled": True,
+             "conditions": {}, "action": {}}
+        ])
+        result = await delete_rule(client, "r1")
+        assert result is True
+        import json as _json
+        saved = _json.loads(client._stored["value"])
+        assert len(saved) == 1
+        assert saved[0]["id"] == "r2"
+
+    @pytest.mark.asyncio
+    async def test_delete_rule_not_found(self):
+        client = self._make_state_client([])
+        result = await delete_rule(client, "nonexistent")
+        assert result is False
+
+    @pytest.mark.asyncio
+    async def test_toggle_rule_enables(self):
+        client = self._make_state_client([
+            {"id": "r1", "name": "Disabled rule", "priority": 1, "enabled": False,
+             "conditions": {}, "action": {}}
+        ])
+        result = await toggle_rule(client, "r1")
+        assert result is not None
+        assert result["enabled"] is True
+
+    @pytest.mark.asyncio
+    async def test_toggle_rule_disables(self):
+        client = self._make_state_client([
+            {"id": "r1", "name": "Enabled rule", "priority": 1, "enabled": True,
+             "conditions": {}, "action": {}}
+        ])
+        result = await toggle_rule(client, "r1")
+        assert result is not None
+        assert result["enabled"] is False
+
+    @pytest.mark.asyncio
+    async def test_toggle_rule_not_found(self):
+        client = self._make_state_client([])
+        result = await toggle_rule(client, "nonexistent")
+        assert result is None
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Rule evaluation tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestRuleEvaluation:
+    """Test rule evaluation and condition matching."""
+
+    def _make_rule(self, **overrides):
+        """Create a standard enabled rule with optional overrides."""
+        base = {
+            "id": str(uuid.uuid4()) if "id" not in overrides else overrides.pop("id"),
+            "name": "Test Rule",
+            "priority": 0,
+            "enabled": True,
+            "conditions": {},
+            "action": {"type": "source_type", "value": "podcast"},
+        }
+        base.update(overrides)
+        return base
+
+    def test_wildcard_conditions_match_any_context(self):
+        """Rule with all-null conditions matches any context."""
+        rules = [self._make_rule(conditions={})]
+        context = {"location_zone": "office", "activity": "working"}
+        matched = evaluate_rules(rules, context)
+        assert len(matched) == 1
+
+    def test_exact_location_match(self):
+        rules = [self._make_rule(conditions={"location_zone": "commute"})]
+        context = {"location_zone": "commute", "activity": "transit"}
+        matched = evaluate_rules(rules, context)
+        assert len(matched) == 1
+
+    def test_location_no_match(self):
+        rules = [self._make_rule(conditions={"location_zone": "office"})]
+        context = {"location_zone": "home"}
+        matched = evaluate_rules(rules, context)
+        assert len(matched) == 0
+
+    def test_multiple_conditions_and_match(self):
+        """All non-null conditions must match (AND logic)."""
+        rules = [self._make_rule(conditions={
+            "location_zone": "home",
+            "activity": "relaxing",
+        })]
+        context = {"location_zone": "home", "activity": "relaxing"}
+        matched = evaluate_rules(rules, context)
+        assert len(matched) == 1
+
+    def test_partial_condition_mismatch(self):
+        """If one condition doesn't match, rule doesn't fire."""
+        rules = [self._make_rule(conditions={
+            "location_zone": "home",
+            "activity": "exercising",
+        })]
+        context = {"location_zone": "home", "activity": "relaxing"}
+        matched = evaluate_rules(rules, context)
+        assert len(matched) == 0
+
+    def test_null_condition_is_wildcard(self):
+        """Explicitly null condition values act as wildcards."""
+        rules = [self._make_rule(conditions={
+            "location_zone": None,
+            "activity": "working",
+        })]
+        context = {"location_zone": "office", "activity": "working"}
+        matched = evaluate_rules(rules, context)
+        assert len(matched) == 1
+
+    def test_disabled_rules_filtered_out(self):
+        rules = [
+            self._make_rule(id="r1", enabled=False, conditions={}),
+            self._make_rule(id="r2", enabled=True, conditions={}),
+        ]
+        matched = evaluate_rules(rules, {})
+        assert len(matched) == 1
+        assert matched[0]["id"] == "r2"
+
+    def test_priority_ordering_descending(self):
+        rules = [
+            self._make_rule(id="low", priority=1, conditions={}),
+            self._make_rule(id="high", priority=10, conditions={}),
+            self._make_rule(id="mid", priority=5, conditions={}),
+        ]
+        matched = evaluate_rules(rules, {})
+        assert [r["id"] for r in matched] == ["high", "mid", "low"]
+
+    def test_priority_ties_preserve_array_order(self):
+        """Same priority → stable sort preserves insertion order."""
+        rules = [
+            self._make_rule(id="first", priority=5, conditions={}),
+            self._make_rule(id="second", priority=5, conditions={}),
+            self._make_rule(id="third", priority=5, conditions={}),
+        ]
+        matched = evaluate_rules(rules, {})
+        assert [r["id"] for r in matched] == ["first", "second", "third"]
+
+    def test_empty_rules_returns_empty(self):
+        matched = evaluate_rules([], {"location_zone": "home"})
+        assert matched == []
+
+    def test_no_matching_rules(self):
+        rules = [self._make_rule(conditions={"location_zone": "mars"})]
+        matched = evaluate_rules(rules, {"location_zone": "earth"})
+        assert matched == []
+
+    def test_time_range_within_range(self):
+        rules = [self._make_rule(conditions={
+            "time_range": {"start": "08:00", "end": "17:00"}
+        })]
+        context = {"current_time": "12:00"}
+        matched = evaluate_rules(rules, context)
+        assert len(matched) == 1
+
+    def test_time_range_outside_range(self):
+        rules = [self._make_rule(conditions={
+            "time_range": {"start": "08:00", "end": "17:00"}
+        })]
+        context = {"current_time": "20:00"}
+        matched = evaluate_rules(rules, context)
+        assert len(matched) == 0
+
+    def test_time_range_at_boundary_start(self):
+        rules = [self._make_rule(conditions={
+            "time_range": {"start": "08:00", "end": "17:00"}
+        })]
+        context = {"current_time": "08:00"}
+        matched = evaluate_rules(rules, context)
+        assert len(matched) == 1
+
+    def test_time_range_at_boundary_end(self):
+        rules = [self._make_rule(conditions={
+            "time_range": {"start": "08:00", "end": "17:00"}
+        })]
+        context = {"current_time": "17:00"}
+        matched = evaluate_rules(rules, context)
+        assert len(matched) == 1
+
+    def test_time_range_wrapping_midnight(self):
+        """Time range crossing midnight: 22:00 → 06:00."""
+        rules = [self._make_rule(conditions={
+            "time_range": {"start": "22:00", "end": "06:00"}
+        })]
+        # 23:00 is within the late-night range
+        assert len(evaluate_rules(rules, {"current_time": "23:00"})) == 1
+        # 03:00 is within the early-morning range
+        assert len(evaluate_rules(rules, {"current_time": "03:00"})) == 1
+        # 12:00 is outside the range
+        assert len(evaluate_rules(rules, {"current_time": "12:00"})) == 0
+
+    def test_time_range_missing_current_time_in_context(self):
+        """If current_time not in context but time_range specified, rule still matches
+        (empty string comparison — no time_range check fires for empty start/end)."""
+        rules = [self._make_rule(conditions={
+            "time_range": {"start": "08:00", "end": "17:00"}
+        })]
+        # No current_time in context → start and end are both truthy but
+        # current_time is "" which is < "08:00", so this should NOT match
+        context = {}
+        matched = evaluate_rules(rules, context)
+        assert len(matched) == 0
+
+    def test_time_period_condition(self):
+        rules = [self._make_rule(conditions={"time_period": "morning"})]
+        context = {"time_period": "morning"}
+        matched = evaluate_rules(rules, context)
+        assert len(matched) == 1
+
+    def test_multiple_rules_mixed_matching(self):
+        """Multiple rules, some match and some don't."""
+        rules = [
+            self._make_rule(id="r1", priority=10, conditions={"location_zone": "home"}),
+            self._make_rule(id="r2", priority=5, conditions={"location_zone": "office"}),
+            self._make_rule(id="r3", priority=1, conditions={}),  # wildcard
+        ]
+        context = {"location_zone": "home"}
+        matched = evaluate_rules(rules, context)
+        assert len(matched) == 2
+        assert matched[0]["id"] == "r1"
+        assert matched[1]["id"] == "r3"
+
+    def test_matches_condition_with_all_fields(self):
+        """Direct test of _matches_condition with all condition types."""
+        conditions = {
+            "location_zone": "commute",
+            "activity": "transit",
+            "time_period": "morning",
+            "time_range": {"start": "07:00", "end": "09:00"},
+        }
+        context = {
+            "location_zone": "commute",
+            "activity": "transit",
+            "time_period": "morning",
+            "current_time": "08:00",
+        }
+        assert _matches_condition(conditions, context) is True
+
+    def test_matches_condition_fails_on_activity_mismatch(self):
+        conditions = {"activity": "exercising"}
+        context = {"activity": "sleeping"}
+        assert _matches_condition(conditions, context) is False
+
+    def test_default_durations_present(self):
+        """Verify DEFAULT_DURATIONS has expected media types."""
+        assert DEFAULT_DURATIONS["podcast"] == 1800
+        assert DEFAULT_DURATIONS["video"] == 900
+        assert DEFAULT_DURATIONS["track"] == 240
+
+    def test_rules_state_key_is_string(self):
+        assert isinstance(RULES_STATE_KEY, str)
+        assert RULES_STATE_KEY == "schedule_rules"

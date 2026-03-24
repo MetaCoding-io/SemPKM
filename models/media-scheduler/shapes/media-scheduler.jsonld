@@ -283,6 +283,151 @@
           "sh:description": "Display color for the category (hex code)."
         }
       ]
+    },
+
+    {
+      "@id": "ms:DailyMediaPlanScheduleGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Schedule",
+      "sh:order": 1
+    },
+    {
+      "@id": "ms:DailyMediaPlanStatusGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Status",
+      "sh:order": 2
+    },
+
+    {
+      "@id": "ms:DailyMediaPlanShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "ms:DailyMediaPlan" },
+      "rdfs:label": "Daily Media Plan Shape",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:date" },
+          "sh:name": "Date",
+          "sh:datatype": { "@id": "xsd:date" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "ms:DailyMediaPlanScheduleGroup" },
+          "sh:description": "The date this plan covers."
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "ms:DailyMediaPlanScheduleGroup" },
+          "sh:description": "When this plan was generated."
+        },
+        {
+          "sh:path": { "@id": "ms:planStatus" },
+          "sh:name": "Plan Status",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:in": {
+            "@list": ["active", "completed", "regenerating"]
+          },
+          "sh:defaultValue": "active",
+          "sh:order": 3,
+          "sh:group": { "@id": "ms:DailyMediaPlanStatusGroup" },
+          "sh:description": "Lifecycle status of this daily plan."
+        }
+      ]
+    },
+
+    {
+      "@id": "ms:PlanEntryScheduleGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Schedule",
+      "sh:order": 1
+    },
+    {
+      "@id": "ms:PlanEntryStatusGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Status",
+      "sh:order": 2
+    },
+
+    {
+      "@id": "ms:PlanEntryShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "ms:PlanEntry" },
+      "rdfs:label": "Plan Entry Shape",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "ms:plan" },
+          "sh:name": "Plan",
+          "sh:class": { "@id": "ms:DailyMediaPlan" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "ms:PlanEntryScheduleGroup" },
+          "sh:description": "The daily plan this entry belongs to."
+        },
+        {
+          "sh:path": { "@id": "ms:mediaItem" },
+          "sh:name": "Media Item",
+          "sh:class": { "@id": "ms:MediaItem" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "ms:PlanEntryScheduleGroup" },
+          "sh:description": "The media item scheduled in this slot."
+        },
+        {
+          "sh:path": { "@id": "ms:slotStart" },
+          "sh:name": "Slot Start",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "ms:PlanEntryScheduleGroup" },
+          "sh:description": "Start time of the slot in HH:MM format."
+        },
+        {
+          "sh:path": { "@id": "ms:slotEnd" },
+          "sh:name": "Slot End",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "ms:PlanEntryScheduleGroup" },
+          "sh:description": "End time of the slot in HH:MM format."
+        },
+        {
+          "sh:path": { "@id": "ms:slotOrder" },
+          "sh:name": "Slot Order",
+          "sh:datatype": { "@id": "xsd:integer" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "ms:PlanEntryScheduleGroup" },
+          "sh:description": "Ordinal position within the daily plan."
+        },
+        {
+          "sh:path": { "@id": "ms:entryStatus" },
+          "sh:name": "Entry Status",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:in": {
+            "@list": ["pending", "active", "completed", "skipped", "replaced"]
+          },
+          "sh:defaultValue": "pending",
+          "sh:order": 6,
+          "sh:group": { "@id": "ms:PlanEntryStatusGroup" },
+          "sh:description": "Status of this plan entry."
+        },
+        {
+          "sh:path": { "@id": "ms:ruleId" },
+          "sh:name": "Rule ID",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 7,
+          "sh:group": { "@id": "ms:PlanEntryStatusGroup" },
+          "sh:description": "UUID of the schedule rule that generated this entry."
+        }
+      ]
     }
   ]
 }

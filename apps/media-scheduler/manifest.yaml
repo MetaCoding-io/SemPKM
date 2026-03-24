@@ -45,6 +45,15 @@ tasks:
       backoffMultiplier: 2
       maxBackoff: "5m"
 
+  - id: "generate-plan"
+    description: "Generate or regenerate today's media plan"
+    interval: "6h"
+    configurable: true
+    retryPolicy:
+      maxRetries: 1
+      backoffMultiplier: 2
+      maxBackoff: "5m"
+
 frontend:
   staticDir: "frontend/static"
   css: []
