@@ -71,7 +71,7 @@ This milestone is complete only when all are true:
 - [x] **S05: Mobile Calendar & Activity Detection** `risk:medium` `depends:[S03]`
   > After this: mobile app reads the device calendar and detects activity type (stationary/walking/driving), enriching context updates with calendar event name and activity — verified by checking context API response after calendar event starts
 
-- [ ] **S06: Push Notifications with Context Filtering** `risk:medium` `depends:[S01,S02]`
+- [x] **S06: Push Notifications with Context Filtering** `risk:medium` `depends:[S01,S02]`
   > After this: backend dispatches push notifications to registered mobile devices via FCM, suppressing notifications during configured quiet periods (focus blocks, outside work hours) — verified by receiving a test notification on the mobile device
 
 - [ ] **S07: End-to-End Integration & Acceptance** `risk:low` `depends:[S01,S02,S03,S04,S05,S06]`
