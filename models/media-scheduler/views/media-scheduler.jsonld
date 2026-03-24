@@ -1,0 +1,42 @@
+{
+  "@context": {
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "ms": "urn:sempkm:model:media-scheduler:",
+    "sempkm": "urn:sempkm:vocab:",
+    "dcterms": "http://purl.org/dc/terms/"
+  },
+  "@graph": [
+    {
+      "@id": "ms:view-media-item-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Media Items Table",
+      "sempkm:targetClass": { "@id": "ms:MediaItem" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?status ?duration ?published ?sourceName WHERE { ?s a <urn:sempkm:model:media-scheduler:MediaItem> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:media-scheduler:status> ?status } . OPTIONAL { ?s <urn:sempkm:model:media-scheduler:duration> ?duration } . OPTIONAL { ?s <http://purl.org/dc/terms/created> ?published } . OPTIONAL { ?s <urn:sempkm:model:media-scheduler:mediaSource> ?source . ?source <http://purl.org/dc/terms/title> ?sourceName } } ORDER BY DESC(?published)",
+      "sempkm:columns": "title,status,duration,published,sourceName",
+      "sempkm:sortDefault": "published"
+    },
+    {
+      "@id": "ms:view-media-item-card",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Media Items Cards",
+      "sempkm:targetClass": { "@id": "ms:MediaItem" },
+      "sempkm:rendererType": "card",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?description ?status ?duration ?published WHERE { ?s a <urn:sempkm:model:media-scheduler:MediaItem> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } . OPTIONAL { ?s <urn:sempkm:model:media-scheduler:status> ?status } . OPTIONAL { ?s <urn:sempkm:model:media-scheduler:duration> ?duration } . OPTIONAL { ?s <http://purl.org/dc/terms/created> ?published } } ORDER BY DESC(?published)",
+      "sempkm:cardTitle": "http://purl.org/dc/terms/title",
+      "sempkm:cardSubtitle": "urn:sempkm:model:media-scheduler:status"
+    },
+    {
+      "@id": "ms:view-media-source-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Media Sources Table",
+      "sempkm:targetClass": { "@id": "ms:MediaSource" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?sourceType ?feedUrl ?lastPolled ?errorCount WHERE { ?s a <urn:sempkm:model:media-scheduler:MediaSource> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:media-scheduler:sourceType> ?sourceType } . OPTIONAL { ?s <urn:sempkm:model:media-scheduler:feedUrl> ?feedUrl } . OPTIONAL { ?s <urn:sempkm:model:media-scheduler:lastPolled> ?lastPolled } . OPTIONAL { ?s <urn:sempkm:model:media-scheduler:errorCount> ?errorCount } } ORDER BY ?title",
+      "sempkm:columns": "title,sourceType,feedUrl,lastPolled,errorCount",
+      "sempkm:sortDefault": "title"
+    }
+  ]
+}

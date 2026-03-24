@@ -1,0 +1,56 @@
+modelId: media-scheduler
+version: "1.0.0"
+name: "Media Scheduler"
+description: "Media scheduling and consumption tracking. Provides MediaSource, MediaItem, and MediaCategory types for podcast, YouTube, and Spotify content management."
+namespace: "urn:sempkm:model:media-scheduler:"
+prefixes:
+  ms: "urn:sempkm:model:media-scheduler:"
+entrypoints:
+  ontology: "ontology/media-scheduler.jsonld"
+  shapes: "shapes/media-scheduler.jsonld"
+  views: "views/media-scheduler.jsonld"
+  seed: null
+icons:
+  - type: "ms:MediaSource"
+    icon: "radio"
+    color: "#3b82f6"
+    tree:
+      icon: "radio"
+      color: "#3b82f6"
+      size: 16
+    tab:
+      icon: "radio"
+      color: "#3b82f6"
+      size: 14
+    graph:
+      icon: "radio"
+      color: "#3b82f6"
+  - type: "ms:MediaItem"
+    icon: "play-circle"
+    color: "#22c55e"
+    tree:
+      icon: "play-circle"
+      color: "#22c55e"
+      size: 16
+    tab:
+      icon: "play-circle"
+      color: "#22c55e"
+      size: 14
+    graph:
+      icon: "play-circle"
+      color: "#22c55e"
+  - type: "ms:MediaCategory"
+    icon: "folder"
+    color: "#f59e0b"
+    tree:
+      icon: "folder"
+      color: "#f59e0b"
+      size: 16
+    tab:
+      icon: "folder"
+      color: "#f59e0b"
+      size: 14
+    graph:
+      icon: "folder"
+      color: "#f59e0b"
+    browserVisible: false

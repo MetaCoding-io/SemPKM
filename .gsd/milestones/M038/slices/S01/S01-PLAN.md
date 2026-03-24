@@ -41,7 +41,7 @@
 
 ## Tasks
 
-- [ ] **T01: Create media-scheduler Mental Model** `est:45m`
+- [x] **T01: Create media-scheduler Mental Model** `est:45m`
   - Why: All other tasks depend on the RDF types — MediaSource, MediaItem, MediaCategory — being defined with proper ontology classes, SHACL shapes, and view specs.
   - Files: `models/media-scheduler/manifest.yaml`, `models/media-scheduler/ontology/media-scheduler.jsonld`, `models/media-scheduler/shapes/media-scheduler.jsonld`, `models/media-scheduler/views/media-scheduler.jsonld`
   - Do: Create model directory with manifest.yaml (following rss-feeds pattern), JSON-LD ontology defining 3 owl:Classes (MediaSource, MediaItem, MediaCategory) with properties (sourceType enum, feedUrl, enclosureUrl, duration, status enum, etc.), SHACL NodeShapes with PropertyGroups for form generation, and ViewSpecs for table/card views. MediaSource.sourceType uses sh:in [podcast, youtube, spotify]. MediaItem.status uses sh:in [queued, playing, completed, skipped, saved].
