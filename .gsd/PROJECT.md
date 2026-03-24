@@ -733,9 +733,10 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Linting recommendations: ruff + ESLint + Stylelint configs, ~2hr setup, ~100 auto-fixable issues
 - Pure analysis milestone — no source code changes, feeds a future execution milestone
 
-**Security Audit — OWASP & Backend Hardening** — queued (M042)
-- Systematic security audit against OWASP Top 10 2021 (A01–A10) plus backend hardening and infrastructure security
-- Covers: SPARQL injection (24 modules), missing HTTP security headers, CORS wildcard, CSRF absence, session management, debug endpoint exposure, federation auth gaps, Docker security
+**Security Audit — OWASP & Backend Hardening** — in progress (M042)
+- S01 complete: 20 findings across A01 (Broken Access Control), A03 (Injection), A07 (Auth Failures). 33 SPARQL modules classified (5 confirmed-exploitable, 4 likely-exploitable, 24 safe). 6 unauthenticated app endpoints found. Magic link replay, unscoped API tokens, rate limiting gaps documented.
+- S02 queued: Configuration, infrastructure & supply chain findings (A05, A06, A08, A09)
+- S03 queued: Design, crypto, SSRF & final report assembly (A02, A04, A10 + Top 10)
 - Deliverable: prioritized finding report with OWASP mapping, severity, exploit scenarios, and remediation guidance — no fixes
 
 ### Out of Scope

@@ -51,7 +51,7 @@ This milestone is complete only when all are true:
 
 ## Slices
 
-- [ ] **S01: Injection, Access Control & Authentication Findings (A01, A03, A07)** `risk:high` `depends:[]`
+- [x] **S01: Injection, Access Control & Authentication Findings (A01, A03, A07)** `risk:high` `depends:[]`
   > After this: findings for the three highest-risk OWASP categories exist — SPARQL injection modules individually classified, broken access control gaps documented with exploit scenarios, authentication/session management weaknesses identified
 - [ ] **S02: Configuration, Infrastructure & Supply Chain Findings (A05, A06, A08, A09)** `risk:medium` `depends:[]`
   > After this: findings for security misconfiguration (headers, CORS, debug endpoints), vulnerable components (CDN SRI, dependency CVEs), data integrity (federation patches, ZIP handling), and logging gaps documented with affected files and remediation
