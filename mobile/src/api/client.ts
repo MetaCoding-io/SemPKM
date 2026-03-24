@@ -92,6 +92,23 @@ export interface TestNotificationResponse {
   reason?: string | null;
 }
 
+// ── Media scheduler types ───────────────────────────────────────
+
+/**
+ * Current media suggestion from the media-scheduler app.
+ * Returned by GET /app/media-scheduler/_fragments/current-suggestion/json.
+ */
+export interface MediaSuggestion {
+  title: string;
+  slot_start: string;
+  slot_end: string;
+  status: 'now' | 'next' | 'none';
+  source_type: 'podcast' | 'youtube' | 'spotify' | null;
+  source_title: string | null;
+  enclosure_url: string | null;
+  duration_seconds: number | null;
+}
+
 // ── Error class ─────────────────────────────────────────────────
 
 /**
@@ -345,5 +362,20 @@ export class SemPKMClient {
     return this.request<TestNotificationResponse>('/api/notifications/test', {
       method: 'POST',
     });
+  }
+
+  // ── Media scheduler ─────────────────────────────────────────
+
+  /**
+   * Fetch the current or next media suggestion from the media-scheduler app.
+   * GET /app/media-scheduler/_fragments/current-suggestion/json
+   *
+   * Returns the suggestion with deep-link URL for native playback.
+   * Throws SemPKMError on network or API failure.
+   */
+  async getMediaSuggestion(): Promise<MediaSuggestion> {
+    return this.request<MediaSuggestion>(
+      '/app/media-scheduler/_fragments/current-suggestion/json',
+    );
   }
 }

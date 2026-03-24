@@ -13,6 +13,7 @@ import { useSession, parseSession } from '@/ctx';
 import { SemPKMClient, SemPKMError } from '@/api/client';
 import type { ContextResponse } from '@/api/client';
 import { useContextServices } from '@/hooks/useContextServices';
+import { MediaSuggestionCard } from '@/components/MediaSuggestion';
 
 // ── Helpers ─────────────────────────────────────────────────────
 
@@ -48,6 +49,9 @@ export default function DashboardScreen() {
     timePeriod: localTimePeriod,
     isMonitoring,
   } = useContextServices();
+
+  // Parse session once for both context fetching and media suggestion
+  const creds = parseSession(session);
 
   const [context, setContext] = useState<ContextResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -175,6 +179,14 @@ export default function DashboardScreen() {
           {isMonitoring ? '📡 Monitoring' : '⏸ Monitoring paused'}
         </Text>
       </View>
+
+      {/* Media suggestion — current or next scheduled media */}
+      {creds && (
+        <MediaSuggestionCard
+          instanceUrl={creds.instanceUrl}
+          apiKey={creds.apiKey}
+        />
+      )}
 
       {/* Server-reported context fields */}
       <Text style={styles.sectionHeader}>Server Context</Text>

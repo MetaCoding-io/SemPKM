@@ -94,3 +94,10 @@ Per D350, all media types open via deep links — no embedded player.
 - `mobile/src/api/client.ts` — modified: `MediaSuggestion` interface + `getMediaSuggestion()` method (~25 lines added)
 - `mobile/src/components/MediaSuggestion.tsx` — new file (~130 lines) with Now Playing card component
 - `mobile/src/app/(app)/(tabs)/index.tsx` — modified: import + render MediaSuggestionCard (~5 lines added)
+
+## Observability Impact
+
+- **New signal:** `console.warn('Media suggestion fetch failed: ...')` in the mobile component when the API call fails — visible in Expo dev console and React Native Logcat/system log.
+- **Inspection:** The `MediaSuggestionCard` renders nothing (null) on error or empty state, so its absence on the dashboard is the visual indicator that the endpoint is unreachable or the app isn't installed.
+- **Failure visibility:** Network errors surface as `SemPKMError` with `status: 0` and are logged via console.warn — never crash the dashboard. A 404 (app not installed) is indistinguishable from other HTTP errors in the component, but logged with status code.
+- **Deep link failures:** `Linking.openURL` failures are caught and logged via `console.warn('Failed to open media URL:', err)` — covers cases where no app handles the URL scheme.

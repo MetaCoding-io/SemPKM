@@ -62,7 +62,7 @@
   - Verify: `cd backend && .venv/bin/python -m pytest tests/test_media_scheduler.py -k "status or suggestion_json or lifecycle" -v` — all new tests pass
   - Done when: lifecycle hooks spawn/cancel context listener, status route works, JSON endpoint returns valid JSON, today.html has action buttons, 25+ new tests pass
 
-- [ ] **T03: Mobile Now Playing card with deep links** `est:45m`
+- [x] **T03: Mobile Now Playing card with deep links** `est:45m`
   - Why: The mobile dashboard needs to show the current media suggestion so users can tap-to-play from their phone. This completes the mobile integration pillar of S05.
   - Files: `mobile/src/api/client.ts`, `mobile/src/components/MediaSuggestion.tsx`, `mobile/src/app/(app)/(tabs)/index.tsx`
   - Do: (1) Add `MediaSuggestion` interface to client.ts matching the JSON endpoint shape. Add `getMediaSuggestion()` method calling `GET /app/media-scheduler/_fragments/current-suggestion/json`. (2) Create `MediaSuggestion.tsx` component: fetches suggestion on mount, shows card with title/time/source, "Play" button calls `Linking.openURL(enclosure_url)`, handles empty/error states, uses source-type-specific icons (🎙️ podcast, 🎬 youtube, 🎵 spotify). (3) Import and render `MediaSuggestionCard` in dashboard index.tsx between the monitoring status row and the "Server Context" section header. (4) Add ~10 verification assertions (grep checks for key patterns since these are React Native components without a test runner in the current setup).
