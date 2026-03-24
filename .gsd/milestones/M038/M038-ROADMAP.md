@@ -57,7 +57,7 @@ This milestone is complete only when all are true:
 - [x] **S02: Schedule Rules Engine + Daily Plan Generation** `risk:high` `depends:[S01]`
   > After this: user creates schedule rules (e.g. "when commuting, play podcasts") via a rule builder UI, triggers daily plan generation, and sees an ordered time-slot plan for today. Plan is stored as RDF and visible in the app's Today view.
 
-- [ ] **S03: YouTube Integration** `risk:medium` `depends:[S01]`
+- [x] **S03: YouTube Integration** `risk:medium` `depends:[S01]`
   > After this: user adds a YouTube channel or playlist as a media source, the app polls YouTube Data API for new videos, and discovered videos appear as MediaItems in the daily plan alongside podcast episodes.
 
 - [ ] **S04: Spotify Integration** `risk:high` `depends:[S01]`
