@@ -63,3 +63,13 @@ Wire the frontend persona selector into the copilot header bar and implement the
 - `frontend/static/css/copilot.css` — modified: persona selector styles, create-object card styles
 - `backend/app/copilot/service.py` — modified: object creation instructions in system prompt
 - `backend/app/api/copilot.py` — modified: create_object JSON detection + SSE event emission in stream
+
+## Observability Impact
+
+- **New log keys:**
+  - `copilot.chat.create_object_detected` — emitted when a `create_object` JSON block is detected in the LLM stream; includes type and property keys
+  - `copilot.chat.create_object_parse_error` — emitted when a JSON fence block fails to parse; includes raw content (first 200 chars)
+- **New SSE event:** `event: create_object` — custom SSE event emitted to the frontend with the parsed JSON payload (type, label, properties)
+- **Inspection surface:** Browser console logs `copilot: persona activated id=..., name=...` on switch, `copilot: object created iri=...` on successful creation
+- **Frontend persona state:** `_activePersonaId` and `_personas` module-level vars track loaded persona list and active selection
+- **Failure visibility:** Command API errors are surfaced directly in the confirmation card UI (`.copilot-create-error`); persona load failures logged to console but don't block chat

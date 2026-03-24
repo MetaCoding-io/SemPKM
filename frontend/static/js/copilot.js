@@ -17,6 +17,8 @@ var _abortController = null;
 var _activeObjectIri = null;
 var _currentConversationId = null;
 var _conversations = [];
+var _activePersonaId = null;
+var _personas = [];
 
 // DOM refs (set in initCopilotChat)
 var _messagesEl = null;
@@ -84,6 +86,9 @@ export function initCopilotChat() {
 
   // Load existing conversations
   _loadConversations();
+
+  // Load personas for the selector
+  _loadPersonas();
 
   console.log('copilot: initialized');
 }
@@ -483,7 +488,8 @@ function _streamCopilotResponse() {
     body: JSON.stringify({
       messages: apiMessages,
       conversation_id: _currentConversationId,
-      active_object_iri: _activeObjectIri
+      active_object_iri: _activeObjectIri,
+      persona_id: _activePersonaId
     }),
     credentials: 'same-origin',
     signal: _abortController.signal
@@ -564,6 +570,17 @@ function _streamCopilotResponse() {
                   _renderApprovalCard(sparqlData, assistantEl);
                 } catch (e) {
                   console.warn('copilot: failed to parse sparql_query event', e);
+                }
+                currentEvent = null;
+                continue;
+              }
+
+              if (currentEvent === 'create_object') {
+                try {
+                  var createData = JSON.parse(dataStr);
+                  _renderCreateObjectCard(createData, assistantEl);
+                } catch (e) {
+                  console.warn('copilot: failed to parse create_object event', e);
                 }
                 currentEvent = null;
                 continue;
@@ -1358,4 +1375,397 @@ function _escapeJs(str) {
     .replace(/\\/g, '\\\\')
     .replace(/'/g, "\\'")
     .replace(/"/g, '\\"');
+}
+
+// ---------------------------------------------------------------------------
+// Persona management
+// ---------------------------------------------------------------------------
+
+function _loadPersonas() {
+  fetch('/api/copilot/personas', { credentials: 'same-origin' })
+    .then(function (resp) {
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      return resp.json();
+    })
+    .then(function (data) {
+      _personas = data || [];
+      // Find active persona
+      for (var i = 0; i < _personas.length; i++) {
+        if (_personas[i].is_active) {
+          _activePersonaId = _personas[i].id;
+          break;
+        }
+      }
+      console.log('copilot: personas loaded, count=' + _personas.length + ', active=' + _activePersonaId);
+      _renderPersonaSelector();
+    })
+    .catch(function (err) {
+      console.warn('copilot: failed to load personas', err);
+    });
+}
+
+function _renderPersonaSelector() {
+  // Remove existing selector if present
+  var existing = document.getElementById('copilot-persona-selector');
+  if (existing) existing.remove();
+
+  var header = document.getElementById('copilot-conv-header');
+  if (!header || _personas.length === 0) return;
+
+  // Find the active persona for display
+  var activePersona = null;
+  for (var i = 0; i < _personas.length; i++) {
+    if (_personas[i].id === _activePersonaId) {
+      activePersona = _personas[i];
+      break;
+    }
+  }
+
+  var wrapper = document.createElement('div');
+  wrapper.className = 'copilot-persona-selector';
+  wrapper.id = 'copilot-persona-selector';
+
+  var btn = document.createElement('button');
+  btn.className = 'copilot-persona-btn';
+  btn.setAttribute('aria-label', 'Switch persona');
+  btn.title = activePersona ? activePersona.name : 'Select persona';
+  btn.innerHTML = '<span class="copilot-persona-icon">' + (activePersona ? _escapeHtml(activePersona.icon) : '🤖') + '</span>' +
+    '<span class="copilot-persona-name">' + _escapeHtml(activePersona ? activePersona.name : 'Persona') + '</span>' +
+    '<i data-lucide="chevron-down"></i>';
+  btn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    _togglePersonaDropdown();
+  });
+  wrapper.appendChild(btn);
+
+  // Insert between title and new-chat button
+  var newBtn = header.querySelector('.copilot-conv-new-btn');
+  if (newBtn) {
+    header.insertBefore(wrapper, newBtn);
+  } else {
+    header.appendChild(wrapper);
+  }
+
+  // Init Lucide icons
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons({ attrs: { class: ['lucide'] }, nameAttr: 'data-lucide' });
+  }
+}
+
+function _togglePersonaDropdown() {
+  var existing = document.getElementById('copilot-persona-dropdown');
+  if (existing) {
+    existing.remove();
+    return;
+  }
+
+  var dropdown = document.createElement('div');
+  dropdown.className = 'copilot-persona-dropdown';
+  dropdown.id = 'copilot-persona-dropdown';
+
+  for (var i = 0; i < _personas.length; i++) {
+    (function (persona) {
+      var item = document.createElement('div');
+      item.className = 'copilot-persona-item';
+      if (persona.id === _activePersonaId) {
+        item.classList.add('copilot-persona-item-active');
+      }
+
+      var icon = document.createElement('span');
+      icon.className = 'copilot-persona-item-icon';
+      icon.textContent = persona.icon;
+      item.appendChild(icon);
+
+      var info = document.createElement('div');
+      info.className = 'copilot-persona-item-info';
+
+      var name = document.createElement('span');
+      name.className = 'copilot-persona-item-name';
+      name.textContent = persona.name;
+      info.appendChild(name);
+
+      item.appendChild(info);
+
+      if (persona.id === _activePersonaId) {
+        var check = document.createElement('span');
+        check.className = 'copilot-persona-item-check';
+        check.innerHTML = '<i data-lucide="check"></i>';
+        item.appendChild(check);
+      }
+
+      item.addEventListener('click', function () {
+        _activatePersona(persona.id);
+      });
+      dropdown.appendChild(item);
+    })(_personas[i]);
+  }
+
+  var selector = document.getElementById('copilot-persona-selector');
+  if (selector) {
+    selector.appendChild(dropdown);
+  }
+
+  // Init Lucide icons in dropdown
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons({ attrs: { class: ['lucide'] }, nameAttr: 'data-lucide' });
+  }
+
+  // Close on outside click
+  function _outsideClick(e) {
+    var dd = document.getElementById('copilot-persona-dropdown');
+    if (dd && !dd.contains(e.target) && !e.target.closest('.copilot-persona-btn')) {
+      dd.remove();
+      document.removeEventListener('click', _outsideClick);
+    }
+  }
+  setTimeout(function () {
+    document.addEventListener('click', _outsideClick);
+  }, 0);
+}
+
+function _activatePersona(personaId) {
+  fetch('/api/copilot/personas/' + personaId + '/activate', {
+    method: 'POST',
+    credentials: 'same-origin'
+  })
+    .then(function (resp) {
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      return resp.json();
+    })
+    .then(function (data) {
+      _activePersonaId = data.id;
+      // Update is_active flags in local state
+      for (var i = 0; i < _personas.length; i++) {
+        _personas[i].is_active = (_personas[i].id === data.id);
+      }
+      console.log('copilot: persona activated id=' + data.id + ', name=' + data.name);
+      _renderPersonaSelector();
+      // Close dropdown
+      var dd = document.getElementById('copilot-persona-dropdown');
+      if (dd) dd.remove();
+    })
+    .catch(function (err) {
+      console.warn('copilot: failed to activate persona', err);
+    });
+}
+
+// ---------------------------------------------------------------------------
+// Create Object Confirmation Card
+// ---------------------------------------------------------------------------
+
+function _renderCreateObjectCard(data, parentEl) {
+  var target = parentEl && parentEl.parentNode ? parentEl : _messagesEl;
+
+  var card = document.createElement('div');
+  card.className = 'copilot-create-card';
+
+  // Header
+  var header = document.createElement('div');
+  header.className = 'copilot-create-header';
+
+  var label = document.createElement('div');
+  label.className = 'copilot-create-label';
+  label.textContent = 'Create Object';
+  header.appendChild(label);
+
+  var typeBadge = document.createElement('div');
+  typeBadge.className = 'copilot-create-type';
+  // Show just the local name from the type IRI
+  var typeLabel = data.label || _iriLocalName(data.type || '');
+  typeBadge.textContent = typeLabel;
+  header.appendChild(typeBadge);
+
+  card.appendChild(header);
+
+  // Properties table
+  var props = data.properties || {};
+  var propKeys = Object.keys(props);
+  if (propKeys.length > 0) {
+    var table = document.createElement('div');
+    table.className = 'copilot-create-props';
+    for (var i = 0; i < propKeys.length; i++) {
+      var row = document.createElement('div');
+      row.className = 'copilot-create-prop-row';
+
+      var keyEl = document.createElement('span');
+      keyEl.className = 'copilot-create-prop-key';
+      keyEl.textContent = _iriLocalName(propKeys[i]);
+      row.appendChild(keyEl);
+
+      var valEl = document.createElement('span');
+      valEl.className = 'copilot-create-prop-val';
+      valEl.textContent = String(props[propKeys[i]]);
+      row.appendChild(valEl);
+
+      table.appendChild(row);
+    }
+    card.appendChild(table);
+  }
+
+  // Action buttons
+  var actions = document.createElement('div');
+  actions.className = 'copilot-create-actions';
+
+  var createBtn = document.createElement('button');
+  createBtn.className = 'copilot-approval-btn copilot-approval-btn-approve';
+  createBtn.innerHTML = '<i data-lucide="plus"></i> Create';
+  createBtn.setAttribute('aria-label', 'Create this object');
+  createBtn.addEventListener('click', function () {
+    _handleCreateObject(card, data);
+  });
+  actions.appendChild(createBtn);
+
+  var cancelBtn = document.createElement('button');
+  cancelBtn.className = 'copilot-approval-btn copilot-approval-btn-reject';
+  cancelBtn.innerHTML = '<i data-lucide="x"></i> Cancel';
+  cancelBtn.setAttribute('aria-label', 'Cancel object creation');
+  cancelBtn.addEventListener('click', function () {
+    _handleCancelCreate(card);
+  });
+  actions.appendChild(cancelBtn);
+
+  card.appendChild(actions);
+
+  // Loading overlay (hidden by default)
+  var loadingEl = document.createElement('div');
+  loadingEl.className = 'copilot-approval-loading copilot-create-loading';
+  loadingEl.style.display = 'none';
+  loadingEl.innerHTML =
+    '<div class="copilot-approval-spinner"></div>' +
+    '<span>Creating object…</span>';
+  card.appendChild(loadingEl);
+
+  // Result area (hidden by default)
+  var resultArea = document.createElement('div');
+  resultArea.className = 'copilot-create-result';
+  resultArea.style.display = 'none';
+  card.appendChild(resultArea);
+
+  // Insert after the assistant message element
+  if (parentEl && parentEl.parentNode) {
+    parentEl.parentNode.insertBefore(card, parentEl.nextSibling);
+  } else {
+    _messagesEl.appendChild(card);
+  }
+
+  // Init Lucide icons
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons({ attrs: { class: ['lucide'] }, nameAttr: 'data-lucide' });
+  }
+
+  _scrollToBottom();
+}
+
+function _handleCreateObject(card, data) {
+  var actionsEl = card.querySelector('.copilot-create-actions');
+  var loadingEl = card.querySelector('.copilot-create-loading');
+  if (actionsEl) actionsEl.style.display = 'none';
+  if (loadingEl) loadingEl.style.display = '';
+
+  // Build the Command API payload
+  var commandPayload = {
+    command: 'object.create',
+    params: {
+      type: data.type,
+      properties: data.properties || {}
+    }
+  };
+
+  // Add label as dcterms:title if present and not already in properties
+  if (data.label && !data.properties['http://purl.org/dc/terms/title'] && !data.properties['dcterms:title']) {
+    commandPayload.params.properties['dcterms:title'] = data.label;
+  }
+
+  fetch('/api/commands', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(commandPayload),
+    credentials: 'same-origin'
+  })
+    .then(function (resp) {
+      if (!resp.ok) {
+        return resp.json().then(function (errBody) {
+          throw new Error(errBody.detail || errBody.error || ('HTTP ' + resp.status));
+        });
+      }
+      return resp.json();
+    })
+    .then(function (result) {
+      if (loadingEl) loadingEl.style.display = 'none';
+
+      // Show success state
+      var resultArea = card.querySelector('.copilot-create-result');
+      if (resultArea) {
+        var createdIri = result.results && result.results[0] ? result.results[0].iri : '';
+        var displayLabel = data.label || _iriLocalName(data.type || 'Object');
+        resultArea.style.display = '';
+        resultArea.innerHTML =
+          '<div class="copilot-create-success">' +
+            '<i data-lucide="check-circle"></i> Created ' +
+            (createdIri
+              ? '<a class="copilot-iri-pill" href="#" title="' + _escapeAttr(createdIri) + '" ' +
+                'onclick="event.preventDefault();if(window.openTab){window.openTab(\'' +
+                _escapeJs(createdIri) + '\',\'' + _escapeJs(displayLabel) + '\')}">' +
+                _escapeHtml(displayLabel) + '</a>'
+              : _escapeHtml(displayLabel)) +
+          '</div>';
+
+        // Init Lucide icons
+        if (typeof lucide !== 'undefined') {
+          lucide.createIcons({ attrs: { class: ['lucide'] }, nameAttr: 'data-lucide' });
+        }
+      }
+
+      // Add system message to thread
+      var typeLabel = _iriLocalName(data.type || 'Object');
+      var iri = result.results && result.results[0] ? result.results[0].iri : '';
+      var sysContent = 'Created ' + typeLabel + (iri ? ': [[' + iri + '|' + (data.label || typeLabel) + ']]' : '');
+      _messageThread.push({ role: 'assistant', content: sysContent, timestamp: new Date() });
+
+      _scrollToBottom();
+      console.log('copilot: object created iri=' + iri);
+    })
+    .catch(function (err) {
+      if (loadingEl) loadingEl.style.display = 'none';
+      if (actionsEl) actionsEl.style.display = '';
+
+      // Show error in the result area
+      var resultArea = card.querySelector('.copilot-create-result');
+      if (resultArea) {
+        resultArea.style.display = '';
+        resultArea.innerHTML =
+          '<div class="copilot-create-error">' +
+            '<i data-lucide="alert-circle"></i> ' + _escapeHtml(err.message || 'Failed to create object') +
+          '</div>';
+        if (typeof lucide !== 'undefined') {
+          lucide.createIcons({ attrs: { class: ['lucide'] }, nameAttr: 'data-lucide' });
+        }
+      }
+      console.warn('copilot: object creation failed', err);
+      _scrollToBottom();
+    });
+}
+
+function _handleCancelCreate(card) {
+  card.classList.add('copilot-create-cancelled');
+  var actionsEl = card.querySelector('.copilot-create-actions');
+  if (actionsEl) {
+    actionsEl.innerHTML = '<span class="copilot-approval-cancelled">Creation cancelled</span>';
+  }
+}
+
+/**
+ * Extract the local name from an IRI.
+ * e.g. "http://example.org/vocab#Task" → "Task"
+ *      "urn:sempkm:model:basic-pkm:Note" → "Note"
+ */
+function _iriLocalName(iri) {
+  if (!iri) return '';
+  var hashIdx = iri.lastIndexOf('#');
+  if (hashIdx >= 0) return iri.substring(hashIdx + 1);
+  var slashIdx = iri.lastIndexOf('/');
+  if (slashIdx >= 0) return iri.substring(slashIdx + 1);
+  var colonIdx = iri.lastIndexOf(':');
+  if (colonIdx >= 0) return iri.substring(colonIdx + 1);
+  return iri;
 }
