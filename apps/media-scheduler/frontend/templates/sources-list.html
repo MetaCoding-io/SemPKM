@@ -1,34 +1,43 @@
-<div class="ms-sources" id="ms-sources-content">
-  {% if sources %}
-  <ul class="ms-source-list">
-    {% for src in sources %}
-    <li class="ms-source-item{% if src.error_count > 0 %} ms-source-error{% endif %}">
+{% if sources %}
+<ul class="ms-source-list">
+  {% for src in sources %}
+  <li class="ms-source-item{% if src.error_count > 0 %} ms-source-error{% endif %}"
+      hx-get="/app/media-scheduler/_fragments/items?source_iri={{ src.iri | urlencode }}"
+      hx-target="#ms-items-list"
+      hx-swap="innerHTML"
+      title="{{ src.url }}">
+    <div class="ms-source-info">
       <span class="ms-source-title">{{ src.title }}</span>
-      <span class="ms-source-type">{{ src.source_type }}</span>
+      <span class="ms-badge ms-badge-{{ src.source_type }}">{{ src.source_type }}</span>
+    </div>
+    <div class="ms-source-meta">
       {% if src.error_count > 0 %}
-      <span class="ms-source-error-badge" title="{{ src.last_error }}">⚠ {{ src.error_count }}</span>
+      <span class="ms-badge ms-badge-error" title="{{ src.last_error }}">⚠ {{ src.error_count }} error{{ 's' if src.error_count != 1 }}</span>
       {% endif %}
-      <form method="post" action="/_fragments/sources/remove" style="display:inline">
+      <form method="post" action="/app/media-scheduler/_fragments/sources/remove"
+            hx-post="/app/media-scheduler/_fragments/sources/remove"
+            hx-target="#ms-sources-list"
+            hx-swap="innerHTML"
+            style="display:inline"
+            onclick="event.stopPropagation()">
         <input type="hidden" name="source_iri" value="{{ src.iri }}">
-        <button type="submit" class="ms-btn-remove" title="Remove source">×</button>
+        <button type="submit" class="ms-btn-remove" title="Remove source">
+          <i data-lucide="x"></i>
+        </button>
       </form>
-    </li>
-    {% endfor %}
-  </ul>
-  {% else %}
-  <div class="ms-empty-state">
-    <p>No sources yet. Add a podcast feed to get started.</p>
-  </div>
-  {% endif %}
-
-  <form method="post" action="/_fragments/sources/add-podcast"
-        hx-post="/_fragments/sources/add-podcast"
-        hx-target="#ms-add-result"
-        hx-swap="innerHTML"
-        class="ms-add-form">
-    <input type="url" name="feed_url" placeholder="Podcast RSS feed URL" required>
-    <input type="text" name="title" placeholder="Title (optional)">
-    <button type="submit" class="ms-btn-add">Add Podcast</button>
-  </form>
-  <div id="ms-add-result"></div>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+<button class="ms-btn ms-btn-secondary ms-btn-show-all"
+        hx-get="/app/media-scheduler/_fragments/items"
+        hx-target="#ms-items-list"
+        hx-swap="innerHTML">
+  Show all items
+</button>
+{% else %}
+<div class="ms-empty-state">
+  <p>No sources yet.</p>
+  <p>Click <strong>+</strong> above to add a podcast feed.</p>
 </div>
+{% endif %}

@@ -297,6 +297,13 @@ async def main_fragment(request: Request):
     return HTMLResponse(ctx.render_template("main.html"))
 
 
+@media_scheduler_app.route("/_fragments/add-source")
+async def add_source_fragment(request: Request):
+    """Add-source form fragment — rendered inline in the sidebar."""
+    ctx = request.app.state.ctx
+    return HTMLResponse(ctx.render_template("add-source.html"))
+
+
 @media_scheduler_app.route("/_fragments/sources")
 async def sources_list_fragment(request: Request):
     """Sources list fragment — lists all MediaSource objects with poll state.
