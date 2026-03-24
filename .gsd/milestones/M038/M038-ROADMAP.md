@@ -69,7 +69,7 @@ This milestone is complete only when all are true:
 - [x] **S06: Stats Dashboard + Polish** `risk:low` `depends:[S05]`
   > After this: user sees media consumption stats (hours per category, most-played sources, weekly trends) in a stats view. Media item status tracking (completed, skipped, saved) is polished. The full app is documented in the user guide.
 
-- [ ] **S07: Integration Verification** `risk:low` `depends:[S06]`
+- [x] **S07: Integration Verification** `risk:low` `depends:[S06]`
   > After this: E2E tests prove the assembled system works end-to-end — podcast polling discovers episodes, YouTube/Spotify sources sync, rules evaluate against context, daily plan generates and adapts, mobile app displays suggestion. All verification classes pass.
 
 ## Boundary Map
