@@ -66,6 +66,13 @@ Create the data model and core evaluation logic for context-aware auto-persona r
 - `backend/migrations/versions/018_user_context.py` — previous migration (revision chain)
 - `backend/tests/test_context_service.py` — test pattern reference (in-memory SQLite fixtures)
 
+## Observability Impact
+
+- **New structured log events:** `context.rule_matched` (user_id, rule_name, persona_id) on every successful rule evaluation; `context.no_rule_matched` (user_id) when no rule fires; `context.rule_created`, `context.rule_updated`, `context.rule_deleted` for CRUD operations
+- **Inspection:** `RulesEngine.list_rules(user_id)` returns all rules with enabled/disabled state — future API endpoint will expose this
+- **Failure visibility:** Rule evaluation does not swallow exceptions; DB errors propagate to caller. CRUD operations log rule_id for traceability
+- **Schema change:** `manual_override` column on `user_context` table enables future agents to check if auto-switch is suppressed
+
 ## Expected Output
 
 - `backend/app/context/rules_models.py` — ContextRule SQLAlchemy model
