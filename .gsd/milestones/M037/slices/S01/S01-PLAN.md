@@ -53,7 +53,7 @@
   - Verify: `python -c "from app.context.models import UserContext; from app.context.service import ContextService; from app.context.broadcast import ContextBroadcast; print('imports OK')"` succeeds from backend/
   - Done when: All four files exist, model has correct columns and FK, service has update/get_current with TTL logic, broadcast has fan-out pattern
 
-- [ ] **T02: Context API router, dependency wiring, and rate limiting** `est:1h`
+- [x] **T02: Context API router, dependency wiring, and rate limiting** `est:1h`
   - Why: Exposes the context domain via REST + SSE endpoints, wires service/broadcast into app.state, adds rate throttle
   - Files: `backend/app/context/router.py`, `backend/app/main.py`, `backend/app/dependencies.py`
   - Do: Create `router.py` with three endpoints: (1) `POST /api/context/update` accepting JSON body with optional fields (location_zone, activity, time_period, calendar_event, calendar_busy, device_id), calling `ContextService.update()` then `ContextBroadcast.publish()`, protected by `get_current_user_or_api` + slowapi rate limit (1/5s per user), returning current context JSON. (2) `GET /api/context/current` returning context dict with `is_stale`. (3) `GET /api/context/stream` SSE endpoint following the exact `lint_stream()` pattern (shutdown_event, subscribe/unsubscribe, 30s keepalive). Add `get_context_service` and `get_context_broadcast` dependency functions in `dependencies.py`. In `main.py` lifespan: create `ContextService(async_session_factory)` and `ContextBroadcast()`, store on `app.state.context_service` and `app.state.context_broadcast`. Include the context router via `app.include_router()`.

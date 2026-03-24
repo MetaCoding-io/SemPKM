@@ -3,6 +3,8 @@
 from fastapi import Request
 
 from app.auth.service import AuthService
+from app.context.broadcast import ContextBroadcast
+from app.context.service import ContextService
 from app.events.store import EventStore
 from app.lint.broadcast import LintBroadcast
 from app.lint.service import LintService
@@ -183,3 +185,21 @@ async def get_lint_filter_service(request: Request):
     from app.lint.filter_service import LintFilterService
 
     return request.app.state.lint_filter_service
+
+
+async def get_context_service(request: Request) -> ContextService:
+    """Get the ContextService instance from app state.
+
+    The service is created during app lifespan startup and stored on
+    app.state.context_service.
+    """
+    return request.app.state.context_service
+
+
+async def get_context_broadcast(request: Request) -> ContextBroadcast:
+    """Get the ContextBroadcast instance from app state.
+
+    The broadcast manager is created during app lifespan startup and
+    stored on app.state.context_broadcast.
+    """
+    return request.app.state.context_broadcast
