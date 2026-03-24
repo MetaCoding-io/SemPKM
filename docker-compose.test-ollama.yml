@@ -1,0 +1,190 @@
+# Ollama variant of the E2E test stack for local real-inference testing.
+#
+# This extends the base test stack (docker-compose.test.yml) by replacing
+# the mock-llm service with a real Ollama instance for integration testing
+# against actual LLM inference.
+#
+# Usage:
+#   docker compose -f docker-compose.test-ollama.yml up -d --build
+#
+#   # Pull a small test model (~1.3GB):
+#   docker compose -f docker-compose.test-ollama.yml exec ollama ollama pull llama3.2:1b
+#
+#   # Configure the app to use Ollama (done automatically by e2e/helpers/llm-tier.ts):
+#   PUT /browser/llm/config with api_base_url=http://ollama:11434, default_model=llama3.2:1b
+#
+#   # Run E2E tests with Ollama tier:
+#   LLM_TEST_TIER=ollama npx playwright test tests/46-copilot/
+#
+#   # Tear down:
+#   docker compose -f docker-compose.test-ollama.yml down -v
+#
+# GPU passthrough:
+#   The ollama service includes a commented-out deploy.resources block for
+#   NVIDIA GPU passthrough. Uncomment it if you have nvidia-container-toolkit
+#   installed and want GPU-accelerated inference. CPU-only works but is slower.
+#
+# Model cache:
+#   The ollama_models volume persists downloaded models between container
+#   restarts, so you only need to pull once.
+#
+services:
+  triplestore:
+    image: eclipse/rdf4j-workbench:5.0.1
+    volumes:
+      - rdf4j_test_data:/var/rdf4j
+    environment:
+      JAVA_OPTS: "-Xmx512m"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/rdf4j-server/protocol"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - sempkm-test
+
+  ollama:
+    image: ollama/ollama:latest
+    volumes:
+      - ollama_models:/root/.ollama
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+    networks:
+      - sempkm-test
+    # Uncomment for NVIDIA GPU passthrough (requires nvidia-container-toolkit):
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+  api:
+    build: ./backend
+    ports:
+      - "8901:8000"
+    volumes:
+      - ./backend/app:/app/app
+      - ./config:/app/config:ro
+      - ./models:/app/models:ro
+      - ./backend/ontologies:/app/ontologies:ro
+      - sempkm_test_data:/app/data
+      - ./docs:/app/docs:ro
+      - ./apps:/app/apps:ro
+      - ./backend/sdk:/app/backend/sdk:ro
+    environment:
+      TRIPLESTORE_URL: http://triplestore:8080/rdf4j-server
+      REPOSITORY_ID: sempkm_test
+      BASE_NAMESPACE: https://test.example.org/data/
+      DATABASE_URL: sqlite+aiosqlite:///./data/sempkm_test.db
+      SECRET_KEY: e2e-test-secret-key-do-not-use-in-production
+      SESSION_DURATION_DAYS: 1
+      RATE_LIMIT_ENABLED: "false"
+      LINEAR_API_URL: http://mock-linear:8080/graphql
+      LINEAR_TOKEN_URL: http://mock-linear:8080/oauth/token
+      GITHUB_API_URL: http://mock-github:8080
+      JIRA_API_URL: http://mock-jira:8080
+      MONDAY_API_URL: http://mock-monday:8080
+      LLM_API_URL: http://ollama:11434
+    depends_on:
+      triplestore:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+      mock-linear:
+        condition: service_healthy
+      mock-github:
+        condition: service_healthy
+      mock-jira:
+        condition: service_healthy
+      mock-monday:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - sempkm-test
+
+  mock-linear:
+    image: python:3.12-slim
+    volumes:
+      - ./e2e/mock-linear-api:/app:ro
+    working_dir: /app
+    command: ["python", "server.py"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+    networks:
+      - sempkm-test
+
+  mock-github:
+    image: python:3.12-slim
+    volumes:
+      - ./e2e/mock-github-api:/app:ro
+    working_dir: /app
+    command: ["python", "server.py"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+    networks:
+      - sempkm-test
+
+  mock-jira:
+    image: python:3.12-slim
+    volumes:
+      - ./e2e/mock-jira-api:/app:ro
+    working_dir: /app
+    command: ["python", "server.py"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+    networks:
+      - sempkm-test
+
+  mock-monday:
+    image: python:3.12-slim
+    volumes:
+      - ./e2e/mock-monday-api:/app:ro
+    working_dir: /app
+    command: ["python", "server.py"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+    networks:
+      - sempkm-test
+
+  frontend:
+    image: nginx:stable-alpine
+    ports:
+      - "3901:80"
+    volumes:
+      - ./frontend/static:/usr/share/nginx/html:ro
+      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - sempkm_test_data:/app/data:ro
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - sempkm-test
+
+networks:
+  sempkm-test:
+
+volumes:
+  rdf4j_test_data:
+  sempkm_test_data:
+  ollama_models:

@@ -58,7 +58,7 @@
   - Verify: test file has valid TypeScript syntax (`npx tsc --noEmit e2e/tests/46-copilot/copilot.spec.ts` or equivalent check); selectors are added to SEL.copilot
   - Done when: `e2e/tests/46-copilot/copilot.spec.ts` exists with 5+ test cases covering all must-have scenarios; copilot selectors present in `e2e/helpers/selectors.ts`
 
-- [ ] **T03: Ollama compose variant, cloud tier helper, and cost tracking** `est:30m`
+- [x] **T03: Ollama compose variant, cloud tier helper, and cost tracking** `est:30m`
   - Why: Completes the 3-tier test strategy: mock (CI), Ollama (local real inference), cloud (real API with budget cap). The Ollama compose file enables local developers to test with real LLM inference. The tier helper auto-selects the right backend based on environment. The cost tracker prevents runaway cloud test bills.
   - Files: `docker-compose.test-ollama.yml`, `e2e/helpers/llm-tier.ts`, `e2e/helpers/cost-tracker.ts`
   - Do: (1) Create `docker-compose.test-ollama.yml` extending test stack with Ollama service, model cache volume, and GPU passthrough. (2) Create `e2e/helpers/llm-tier.ts` that auto-selects tier based on env vars (`LLM_TEST_TIER`, `OPENAI_API_KEY`, `OLLAMA_API_URL`). (3) Create `e2e/helpers/cost-tracker.ts` with token accumulation from SSE stream content, cost estimation, and configurable budget cap (default $1.00) that fails the test when exceeded.
