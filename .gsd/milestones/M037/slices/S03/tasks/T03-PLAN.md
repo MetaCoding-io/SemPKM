@@ -67,6 +67,13 @@ Create the sign-in screen and route protection. Unauthenticated users see the on
 - `grep -q "SemPKMClient" mobile/src/app/sign-in.tsx` — uses API client
 - `grep -q "Redirect" mobile/src/app/\(app\)/_layout.tsx` — route guard redirects
 
+## Observability Impact
+
+- **Route guard:** `(app)/_layout.tsx` logs nothing but its redirect behavior is observable — unauthenticated state reliably shows `/sign-in`, authenticated state shows the main app. A `useSession()` call outside `<SessionProvider>` throws immediately with a descriptive error.
+- **Sign-in errors:** Connection failures surface inline on the sign-in screen as red error text. `SemPKMError.status` distinguishes network errors (0) from HTTP errors (401, 404, etc.). Errors are never swallowed.
+- **Loading state:** `ActivityIndicator` visible during connection test. `isLoading` from `useSession()` shows a loading state during initial secure-store read.
+- **Credential redaction:** API key input uses `secureTextEntry` (masked). Credentials stored only in SecureStore, never logged or displayed post-entry.
+
 ## Inputs
 
 - `mobile/src/api/client.ts` — SemPKMClient for connection test (from T02)

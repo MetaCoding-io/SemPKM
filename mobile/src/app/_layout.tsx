@@ -1,16 +1,18 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import React from 'react';
-import { useColorScheme } from 'react-native';
+import { Slot } from 'expo-router';
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
+import { SessionProvider } from '@/ctx';
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+/**
+ * Root layout — wraps the entire app in the auth SessionProvider.
+ *
+ * expo-router's <Slot> renders the matched child route.
+ * All routes beneath this layout have access to useSession().
+ */
+export default function RootLayout() {
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
-    </ThemeProvider>
+    <SessionProvider>
+      <Slot />
+    </SessionProvider>
   );
 }
