@@ -56,7 +56,7 @@ This milestone is complete only when all are true:
 
 ## Slices
 
-- [ ] **S01: Backend Context API & Workspace Indicator** `risk:high` `depends:[]`
+- [x] **S01: Backend Context API & Workspace Indicator** `risk:high` `depends:[]`
   > After this: user can POST context updates via API, see them in real-time in the workspace sidebar via SSE, and stale context (>15 min) shows as "Unknown" — all verified in the running Docker stack
 
 - [ ] **S02: Auto-Persona Rules Engine & Settings UI** `risk:high` `depends:[S01]`
