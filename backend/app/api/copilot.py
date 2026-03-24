@@ -2,8 +2,9 @@
 
 Provides ``POST /api/copilot/chat`` (SSE streaming endpoint that injects
 schema context into the system prompt and proxies the LLM response with
-inline SPARQL detection) and ``POST /api/copilot/approve`` (executes or
-rejects a SPARQL query proposed by the copilot).
+inline SPARQL detection), ``POST /api/copilot/approve`` (executes or
+rejects a SPARQL query proposed by the copilot), and conversation CRUD
+endpoints for persistent chat threads.
 
 All endpoints accept dual auth: session cookie + Bearer token via
 ``get_current_user_or_api``.
@@ -12,6 +13,7 @@ All endpoints accept dual auth: session cookie + Bearer token via
 import json
 import logging
 import re
+from uuid import UUID
 
 import httpx
 from fastapi import APIRouter, Depends, Request
@@ -22,6 +24,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.dependencies import get_current_user_or_api
 from app.auth.models import User
 from app.copilot.context import GraphContextService
+from app.copilot.conversation import ConversationService
 from app.copilot.schemas import CopilotChatRequest
 from app.copilot.service import CopilotService, MAX_RETRIES, _build_system_prompt
 from app.db.session import get_db_session
@@ -30,6 +33,80 @@ from app.services.llm import LLMConfigService
 logger = logging.getLogger(__name__)
 
 copilot_router = APIRouter(prefix="/api/copilot", tags=["copilot"])
+
+conversation_svc = ConversationService()
+
+
+# ---------------------------------------------------------------------------
+# Conversation CRUD endpoints
+# ---------------------------------------------------------------------------
+
+
+class CreateConversationRequest(BaseModel):
+    """Request body for creating a new conversation."""
+
+    title: str | None = Field(None, description="Optional conversation title")
+
+
+@copilot_router.get("/conversations")
+async def list_conversations(
+    user: User = Depends(get_current_user_or_api),
+    db: AsyncSession = Depends(get_db_session),
+):
+    """List all conversations for the current user, most recent first."""
+    convs = await conversation_svc.list_conversations(db, user.id)
+    return [
+        {
+            "id": str(c.id),
+            "title": c.title,
+            "created_at": c.created_at.isoformat() if c.created_at else None,
+            "updated_at": c.updated_at.isoformat() if c.updated_at else None,
+        }
+        for c in convs
+    ]
+
+
+@copilot_router.post("/conversations")
+async def create_conversation(
+    body: CreateConversationRequest,
+    user: User = Depends(get_current_user_or_api),
+    db: AsyncSession = Depends(get_db_session),
+):
+    """Create a new conversation for the current user."""
+    conv = await conversation_svc.create_conversation(db, user.id, body.title)
+    return {"id": str(conv.id), "title": conv.title}
+
+
+@copilot_router.get("/conversations/{conversation_id}")
+async def get_conversation(
+    conversation_id: UUID,
+    user: User = Depends(get_current_user_or_api),
+    db: AsyncSession = Depends(get_db_session),
+):
+    """Get a conversation with all its messages."""
+    try:
+        return await conversation_svc.get_conversation(db, conversation_id, user.id)
+    except ValueError:
+        return JSONResponse(
+            {"error": f"Conversation {conversation_id} not found"},
+            status_code=404,
+        )
+
+
+@copilot_router.delete("/conversations/{conversation_id}")
+async def delete_conversation(
+    conversation_id: UUID,
+    user: User = Depends(get_current_user_or_api),
+    db: AsyncSession = Depends(get_db_session),
+):
+    """Delete a conversation and all its messages."""
+    deleted = await conversation_svc.delete_conversation(db, conversation_id, user.id)
+    if not deleted:
+        return JSONResponse(
+            {"error": f"Conversation {conversation_id} not found"},
+            status_code=404,
+        )
+    return {"status": "deleted"}
 
 
 # ---------------------------------------------------------------------------
@@ -188,8 +265,78 @@ async def copilot_chat(
 
     system_prompt = _build_system_prompt(schema_context, graph_context=graph_context_text)
 
-    # Prepare messages: prepend system message
+    # -------------------------------------------------------------------
+    # Conversation persistence: load or auto-create
+    # -------------------------------------------------------------------
+    conversation_id: UUID | None = None
+    auto_created_conversation = False
+    conversation_title: str | None = None
+    stored_history_messages: list[dict] = []
+
+    if chat_req.conversation_id:
+        try:
+            conversation_id = UUID(chat_req.conversation_id)
+        except (ValueError, AttributeError):
+            logger.warning(
+                "copilot.chat.invalid_conversation_id: value=%s",
+                chat_req.conversation_id,
+            )
+
+    # Extract the user's latest message content for auto-titling and saving
+    user_message_content = ""
+    if chat_req.messages:
+        for m in reversed(chat_req.messages):
+            if m.get("role") == "user":
+                user_message_content = m.get("content", "")
+                break
+
+    if conversation_id:
+        # Load existing conversation history
+        try:
+            conv_data = await conversation_svc.get_conversation(db, conversation_id, user.id)
+            for m in conv_data.get("messages", []):
+                if m["role"] in ("user", "assistant"):
+                    stored_history_messages.append(
+                        {"role": m["role"], "content": m["content"]}
+                    )
+            logger.info(
+                "copilot.chat.history_loaded: conversation_id=%s, history_count=%d",
+                conversation_id,
+                len(stored_history_messages),
+            )
+        except ValueError:
+            logger.warning(
+                "copilot.chat.conversation_not_found: conversation_id=%s, user_id=%s",
+                conversation_id,
+                user.id,
+            )
+            conversation_id = None  # Proceed without history
+    else:
+        # Auto-create a new conversation
+        try:
+            auto_title = user_message_content[:50].strip() if user_message_content else None
+            if auto_title and len(user_message_content) > 50:
+                auto_title += "…"
+            conv = await conversation_svc.create_conversation(db, user.id, auto_title)
+            conversation_id = conv.id
+            conversation_title = conv.title
+            auto_created_conversation = True
+            logger.info(
+                "copilot.chat.auto_created_conversation: conversation_id=%s, title=%s",
+                conversation_id,
+                conversation_title,
+            )
+        except Exception as exc:
+            logger.warning(
+                "copilot.chat.conversation_create_error: error=%s",
+                str(exc),
+                exc_info=True,
+            )
+            # Proceed without persistence
+
+    # Prepare messages: system + stored history + current user messages
     messages = [{"role": "system", "content": system_prompt}]
+    messages.extend(stored_history_messages)
     for msg in chat_req.messages:
         messages.append(msg)
 
@@ -215,6 +362,16 @@ async def copilot_chat(
         sparql_blocks_emitted = 0
         # Track which blocks we already emitted so we don't re-emit
         emitted_block_ends: set[int] = set()
+
+        # Emit conversation_created event if we auto-created
+        if auto_created_conversation and conversation_id:
+            yield _sse_event(
+                json.dumps({
+                    "conversation_id": str(conversation_id),
+                    "title": conversation_title or "New Chat",
+                }),
+                event="conversation_created",
+            )
 
         try:
             async with httpx.AsyncClient(timeout=300.0) as client:
@@ -298,6 +455,31 @@ async def copilot_chat(
                 json.dumps({"error": f"Stream error: {str(e)[:200]}"}),
                 event="error",
             )
+
+        # Save messages to conversation after stream completes
+        if conversation_id and accumulated_content:
+            try:
+                # Save the user's message
+                if user_message_content:
+                    await conversation_svc.add_message(
+                        db, conversation_id, "user", user_message_content
+                    )
+                # Save the assistant's response
+                await conversation_svc.add_message(
+                    db, conversation_id, "assistant", accumulated_content
+                )
+                await db.commit()
+                logger.info(
+                    "copilot.chat.messages_saved: conversation_id=%s",
+                    conversation_id,
+                )
+            except Exception as save_exc:
+                logger.warning(
+                    "copilot.chat.message_save_error: conversation_id=%s, error=%s",
+                    conversation_id,
+                    str(save_exc),
+                    exc_info=True,
+                )
 
         # Final done sentinel (always emitted)
         yield "data: [DONE]\n\n"
