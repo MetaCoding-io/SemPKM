@@ -1,4 +1,4 @@
-# M042: Security Audit — OWASP Web Security & Backend Hardening
+# M042: Security Audit - OWASP Web Security & Backend Hardening
 
 **Vision:** Produce a comprehensive, severity-rated security finding report covering all 10 OWASP Top 10 2021 categories plus backend/infrastructure hardening — giving the user a prioritized remediation roadmap with exploit scenarios, affected files, and effort estimates for each finding.
 
