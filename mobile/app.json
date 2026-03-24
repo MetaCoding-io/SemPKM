@@ -47,7 +47,13 @@
           "locationAlwaysAndWhenInUsePermission": "SemPKM uses your location to detect when you arrive at or leave configured zones (home, office, etc.) and automatically adjust your workspace."
         }
       ],
-      "expo-task-manager"
+      "expo-task-manager",
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "SemPKM reads your calendar to detect meetings and focus blocks for automatic context updates."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
