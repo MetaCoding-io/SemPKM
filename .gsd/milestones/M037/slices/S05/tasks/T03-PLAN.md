@@ -74,3 +74,18 @@ The orchestrator is the critical piece — it prevents three independent service
 - `mobile/src/services/time-period.ts` — new file with time-of-day classification
 - `mobile/src/hooks/useContextServices.ts` — new file with context orchestrator hook
 - `mobile/src/app/(app)/(tabs)/index.tsx` — modified to wire orchestrator hook and show monitoring status
+
+## Observability Impact
+
+**New diagnostic signals:**
+- `context.update_sent` — logged on each successful batched push, includes all field values. Confirms the orchestrator is pushing to the server.
+- `context.update_skipped` — logged with `reason` (no_changes, rate_limited, no_session). Confirms dedup and rate limiting are working.
+- `context.api_error` — logged with HTTP status and message on push failure. Critical for diagnosing backend connectivity.
+- `context.services_started` — logged once on mount with poll and push intervals.
+- `context.services_stopped` — logged on unmount, confirms cleanup happened.
+- `context.foreground_refresh` — logged when AppState triggers a re-poll.
+- `timePeriod.classified` — not logged per-call since it's pure computation, but visible via React DevTools on the hook's returned state.
+
+**Inspection surface:** The `useContextServices()` hook returns `{ calendarEvent, calendarBusy, activity, timePeriod, isMonitoring }` — all visible in React DevTools. The dashboard renders both server-reported and device-detected values side by side, making discrepancies immediately visible.
+
+**Failure visibility:** Push failures are logged as `context.api_error` with status code. Missing hardware degrades gracefully (activity → "unknown"). Calendar permission denial flows through existing `calendar.permission_denied` diagnostic.
