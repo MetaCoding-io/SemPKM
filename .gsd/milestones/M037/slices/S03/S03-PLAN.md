@@ -52,7 +52,7 @@
   - Verify: `cd mobile && npx tsc --noEmit` exits 0
   - Done when: All three modules compile cleanly, API client has connect/getCurrentContext/updateContext methods, SessionProvider exposes signIn/signOut/session
 
-- [ ] **T03: Onboarding Screen & Route Guards** `est:30m`
+- [x] **T03: Onboarding Screen & Route Guards** `est:30m`
   - Why: The sign-in flow and route protection are the first user-facing capability — without them, the app has no way to collect credentials or protect authenticated screens.
   - Files: `mobile/src/app/_layout.tsx`, `mobile/src/app/sign-in.tsx`
   - Do: Create root `_layout.tsx` that wraps the app in `<SessionProvider>`, renders `<Slot/>`. Create `(app)/_layout.tsx` (or inline in root layout) that checks `session` from `useSession()` — if null and not loading, redirect to `/sign-in`. Create `sign-in.tsx` with TextInput for instance URL (placeholder "https://sempkm.example.com"), TextInput for API key (secureTextEntry), "Connect" button that instantiates SemPKMClient, calls connect(), on success calls signIn(), on failure shows error (network error, 401 invalid key, wrong URL). Show ActivityIndicator during connection test. Input validation: URL must start with http:// or https://, API key must be non-empty.
