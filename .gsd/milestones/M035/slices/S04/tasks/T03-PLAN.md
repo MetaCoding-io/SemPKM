@@ -75,3 +75,11 @@ Create the remaining two tiers of the 3-tier LLM test strategy: an Ollama Docker
 - `docker-compose.test-ollama.yml` — Ollama Docker Compose variant
 - `e2e/helpers/llm-tier.ts` — LLM tier auto-selection helper
 - `e2e/helpers/cost-tracker.ts` — token counting and budget cap utility
+
+## Observability Impact
+
+- **Tier selection logging:** `getLlmTier()` returns the resolved tier — callers can log which tier was activated for each test run, enabling CI debugging when the wrong backend is selected.
+- **Cost report:** `printCostReport()` emits a formatted token-cost summary to the console after cloud-tier test runs. CI logs capture this for per-run budget auditing.
+- **Budget enforcement:** `assertBudget()` throws a descriptive error (`Budget exceeded: $X.XX / $Y.YY`) when cloud costs exceed the cap — test suite fails fast with a clear message rather than silently accumulating charges.
+- **Ollama health:** The compose healthcheck (`curl -f http://localhost:11434/api/tags`) surfaces Ollama readiness in `docker compose ps` and container logs. GPU passthrough issues are visible as repeated healthcheck failures.
+- **Inspection surfaces:** `docker compose -f docker-compose.test-ollama.yml ps` shows Ollama service health. `docker compose exec ollama ollama list` shows cached models.
