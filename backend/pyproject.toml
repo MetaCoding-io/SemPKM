@@ -32,6 +32,7 @@ dependencies = [
     "http-message-signatures~=2.0.1",
     "slowapi~=0.1.9",
     "python-dateutil~=2.9.0",
+    "firebase-admin~=6.7",
 ]
 
 [project.optional-dependencies]

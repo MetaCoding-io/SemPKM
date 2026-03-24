@@ -81,6 +81,10 @@ class Settings(BaseSettings):
     # Rate limiting — disable for E2E test environments
     rate_limit_enabled: bool = True
 
+    # Firebase Cloud Messaging — path to service account JSON.
+    # Empty string means FCM is disabled (no-op mode).
+    firebase_credentials_path: str = ""
+
     # PostHog analytics and error monitoring
     # Set posthog_enabled=True for cloud deployments; leave False for self-hosted
     posthog_enabled: bool = False

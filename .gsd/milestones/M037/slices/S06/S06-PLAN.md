@@ -31,6 +31,7 @@
 - `grep -q "firebase_credentials_path" backend/app/config.py` — config setting exists
 - `grep -q "Notifications" backend/app/templates/browser/settings_page.html` — settings sidebar button exists
 - `grep -q "expo-notifications" mobile/package.json` — mobile dependency added
+- `cd backend && .venv/bin/python -m pytest tests/test_notification_service.py -v -k "suppress"` — suppression failure-path tests pass (calendar_busy, quiet hours, disabled types)
 
 ## Observability / Diagnostics
 
@@ -47,7 +48,7 @@
 
 ## Tasks
 
-- [ ] **T01: DeviceToken + NotificationPreferences models, migration 021, and NotificationService** `est:45m`
+- [x] **T01: DeviceToken + NotificationPreferences models, migration 021, and NotificationService** `est:45m`
   - Why: Foundation layer — all other notification work depends on the data model and service logic
   - Files: `backend/app/context/notification_models.py`, `backend/app/context/notification_service.py`, `backend/migrations/versions/021_device_tokens.py`, `backend/app/config.py`, `backend/pyproject.toml`, `backend/tests/test_notification_service.py`
   - Do: Create `DeviceToken` model (user_id FK CASCADE, token unique, platform, device_name, timestamps) and `NotificationPreferences` model (user_id FK CASCADE unique, enabled, quiet_hours_start/end as "HH:MM" strings, suppress_when_busy bool, enabled_types JSON string). Create Alembic migration 021 chaining from 020. Add `firebase_credentials_path: str = ""` to Settings in config.py. Add `firebase-admin~=6.7` to pyproject.toml dependencies. Build `NotificationService` with: `register_token()` (upsert by token value), `unregister_token()`, `get_tokens_for_user()`, `get_preferences()`/`update_preferences()`, `should_suppress(user_id)` checking calendar_busy (via ContextService), quiet hours (midnight-spanning: `now >= start OR now < end`), and enabled flag. `send_notification(token, title, body, data)` wraps `messaging.send()` in `asyncio.to_thread()`, catches `UnregisteredError` to auto-delete stale tokens. `send_to_user(user_id, title, body, data)` fans out to all user tokens with suppression check. No-op mode when `firebase_app is None`. Write 15+ unit tests covering: suppression for calendar_busy, quiet hours (including midnight span), disabled notifications, disabled type, no-token user, token CRUD (register/unregister/list), stale token cleanup, no-op mode, preferences CRUD.
