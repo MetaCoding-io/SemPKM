@@ -8,7 +8,7 @@
 **Service:** YouTube Data API v3
 **Dashboard:** https://console.cloud.google.com/apis/credentials
 **Format hint:** `AIza...` (39-character string starting with `AIza`)
-**Status:** pending
+**Status:** collected
 **Destination:** dotenv
 
 1. Navigate to https://console.cloud.google.com/
@@ -23,7 +23,7 @@
 **Service:** Spotify Web API
 **Dashboard:** https://developer.spotify.com/dashboard
 **Format hint:** 32-character hex string (e.g. `a1b2c3d4e5f6...`)
-**Status:** pending
+**Status:** collected
 **Destination:** dotenv
 
 1. Navigate to https://developer.spotify.com/dashboard
@@ -40,7 +40,7 @@
 **Service:** Spotify Web API
 **Dashboard:** https://developer.spotify.com/dashboard
 **Format hint:** 32-character hex string (e.g. `f6e5d4c3b2a1...`)
-**Status:** pending
+**Status:** collected
 **Destination:** dotenv
 
 1. Navigate to https://developer.spotify.com/dashboard
