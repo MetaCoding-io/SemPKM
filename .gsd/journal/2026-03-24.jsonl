@@ -518,3 +518,11 @@
 {"ts":"2026-03-24T19:48:17.480Z","flowId":"b09bce2b-430b-49ae-b884-c8c0eb6a7374","seq":2,"eventType":"dispatch-match","rule":"completing-milestone → complete-milestone","data":{"unitType":"complete-milestone","unitId":"M038"}}
 {"ts":"2026-03-24T19:48:17.513Z","flowId":"b09bce2b-430b-49ae-b884-c8c0eb6a7374","seq":3,"eventType":"unit-start","data":{"unitType":"complete-milestone","unitId":"M038"}}
 {"ts":"2026-03-24T19:52:06.181Z","flowId":"b09bce2b-430b-49ae-b884-c8c0eb6a7374","seq":4,"eventType":"unit-end","data":{"unitType":"complete-milestone","unitId":"M038","status":"completed","artifactVerified":true},"causedBy":{"flowId":"b09bce2b-430b-49ae-b884-c8c0eb6a7374","seq":3}}
+{"ts":"2026-03-24T19:52:08.163Z","flowId":"b09bce2b-430b-49ae-b884-c8c0eb6a7374","seq":5,"eventType":"iteration-end","data":{"iteration":24}}
+{"ts":"2026-03-24T19:52:08.164Z","flowId":"3aea8857-a0bb-4a79-801c-9aa1bad79ab1","seq":1,"eventType":"iteration-start","data":{"iteration":25}}
+{"ts":"2026-03-24T19:52:09.240Z","flowId":"3aea8857-a0bb-4a79-801c-9aa1bad79ab1","seq":2,"eventType":"milestone-transition","data":{"from":"M038","to":"M040"}}
+{"ts":"2026-03-24T19:52:10.587Z","flowId":"3aea8857-a0bb-4a79-801c-9aa1bad79ab1","seq":3,"eventType":"terminal","data":{"reason":"milestone-complete","milestoneId":"M040"}}
+{"ts":"2026-03-24T20:20:09.728Z","flowId":"41be9942-afec-4284-8173-a326e397a4d8","seq":1,"eventType":"iteration-start","data":{"iteration":1}}
+{"ts":"2026-03-24T20:20:10.850Z","flowId":"41be9942-afec-4284-8173-a326e397a4d8","seq":2,"eventType":"dispatch-match","rule":"pre-planning (no research) → research-milestone","data":{"unitType":"research-milestone","unitId":"M041"}}
+{"ts":"2026-03-24T20:20:10.884Z","flowId":"41be9942-afec-4284-8173-a326e397a4d8","seq":3,"eventType":"unit-start","data":{"unitType":"research-milestone","unitId":"M041"}}
+{"ts":"2026-03-24T20:30:53.143Z","flowId":"41be9942-afec-4284-8173-a326e397a4d8","seq":4,"eventType":"unit-end","data":{"unitType":"research-milestone","unitId":"M041","status":"completed","artifactVerified":true},"causedBy":{"flowId":"41be9942-afec-4284-8173-a326e397a4d8","seq":3}}

@@ -724,6 +724,16 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - OpenAPI tag cleanup: all routers tagged, zero "default" routes in /redoc
 - 29 unit tests, sidebar + command palette integration
 
+**Code Quality Audit** — queued (M041)
+- Systematic audit of backend Python (60k LOC) + frontend JS/CSS/templates producing a prioritized recommendation report
+- Covers: readability, module structure, logging, error handling, type safety, SPARQL patterns, CSS architecture, JS structure, test gaps, duplication, dead code, tech debt
+- Deliverable: categorized recommendations with severity, effort estimates, and file references — no code changes
+
+**Security Audit — OWASP & Backend Hardening** — queued (M042)
+- Systematic security audit against OWASP Top 10 2021 (A01–A10) plus backend hardening and infrastructure security
+- Covers: SPARQL injection (24 modules), missing HTTP security headers, CORS wildcard, CSRF absence, session management, debug endpoint exposure, federation auth gaps, Docker security
+- Deliverable: prioritized finding report with OWASP mapping, severity, exploit scenarios, and remediation guidance — no fixes
+
 ### Out of Scope
 
 - Read/write filesystem projections full sync — v2.3+ (VFS write MVP is v2.2)

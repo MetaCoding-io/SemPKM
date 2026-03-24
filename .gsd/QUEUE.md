@@ -664,3 +664,27 @@ Catch-all milestone for accumulated documentation gaps, UI polish issues, and bu
 
 **Context:** `.gsd/milestones/M040/M040-CONTEXT.md`
 **Depends on:** M034
+
+---
+
+## Code Quality Audit — Backend & Frontend
+
+**Queued:** 2026-03-23
+**Status:** Queued as M041
+
+Systematic code quality audit of the core SemPKM platform producing a prioritized recommendation report. Covers backend Python (60k LOC, 233 modules), frontend JS (19k LOC, 28 files), CSS (20k LOC, 16 files), and 165 Jinja2 templates. Examines readability, module structure, logging, error handling, type safety, SPARQL construction, CSS architecture, JS structure, test gaps, duplication, dead code, and tech debt. Each recommendation categorized, severity-rated, effort-estimated, and file-anchored. No code changes — report feeds a subsequent execution milestone.
+
+**Context:** `.gsd/milestones/M041/M041-CONTEXT.md`
+**Depends on:** None (can run immediately)
+
+---
+
+## Security Audit — OWASP Web Security & Backend Hardening
+
+**Queued:** 2026-03-23
+**Status:** Queued as M042
+
+Systematic security audit against OWASP Top 10 2021 (A01–A10) plus backend hardening and infrastructure security review. Covers the full attack surface: SPARQL injection via f-string construction in 24 modules, zero HTTP security headers in nginx (no CSP, X-Frame-Options, HSTS), CORS wildcard on all API routes, no CSRF protection, shell/debug endpoint exposure, federation auth gaps, cookie/session management, API token lifecycle, Docker security, and Fernet key management. Each finding mapped to OWASP category with severity, exploit scenario, affected files, and remediation guidance. Report only — no fixes. Feeds a subsequent remediation milestone.
+
+**Context:** `.gsd/milestones/M042/M042-CONTEXT.md`
+**Depends on:** None (can run immediately)
