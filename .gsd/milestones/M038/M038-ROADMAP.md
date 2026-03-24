@@ -66,7 +66,7 @@ This milestone is complete only when all are true:
 - [x] **S05: Context-Driven Adaptation + Mobile** `risk:medium` `depends:[S02,S04]`
   > After this: context changes from M037 trigger real-time plan re-evaluation. The daily plan adapts when the user starts commuting or enters focus mode. The mobile app displays the current media suggestion with deep links to Spotify/YouTube/podcast apps.
 
-- [ ] **S06: Stats Dashboard + Polish** `risk:low` `depends:[S05]`
+- [x] **S06: Stats Dashboard + Polish** `risk:low` `depends:[S05]`
   > After this: user sees media consumption stats (hours per category, most-played sources, weekly trends) in a stats view. Media item status tracking (completed, skipped, saved) is polished. The full app is documented in the user guide.
 
 - [ ] **S07: Integration Verification** `risk:low` `depends:[S06]`
