@@ -724,10 +724,11 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - OpenAPI tag cleanup: all routers tagged, zero "default" routes in /redoc
 - 29 unit tests, sidebar + command palette integration
 
-**Code Quality Audit** — queued (M041)
-- Systematic audit of backend Python (60k LOC) + frontend JS/CSS/templates producing a prioritized recommendation report
-- Covers: readability, module structure, logging, error handling, type safety, SPARQL patterns, CSS architecture, JS structure, test gaps, duplication, dead code, tech debt
-- Deliverable: categorized recommendations with severity, effort estimates, and file references — no code changes
+**Code Quality Audit** — complete (M041)
+- Produced M041-RECOMMENDATIONS.md: 84 findings across 17 quality dimensions, 1034 lines
+- Top 10 prioritized by runtime risk: #1 SPARQL injection (131 f-string sites), #2 silent exceptions (26 blocks), #3 auth test coverage (0%), #4 unhandled fetch() (67 calls)
+- Linting recommendations: ruff + ESLint + Stylelint configs, ~2hr setup, ~100 auto-fixable issues
+- Feeds a future execution milestone for implementation
 
 **Security Audit — OWASP & Backend Hardening** — queued (M042)
 - Systematic security audit against OWASP Top 10 2021 (A01–A10) plus backend hardening and infrastructure security
