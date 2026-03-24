@@ -697,9 +697,10 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - User guide chapter 39 section 5 documents all frameworks with type reference tables
 - All frameworks stored as typed RDF for AI copilot queryability
 
-**User Context & Mobile App** — in progress as M037 (S01 complete, S02–S07 remaining)
+**User Context & Mobile App** — in progress as M037 (S01–S02 complete, S03–S07 remaining)
 - S01 complete: Backend Context API (`POST /api/context/update`, `GET /api/context/current`, `GET /api/context/stream` SSE), ContextService with TTL-based staleness (default 15 min), ContextBroadcast SSE fan-out, workspace sidebar context indicator with real-time updates, Alembic migration 018, 28 unit tests
-- Remaining: S02 auto-persona rules engine, S03 React Native mobile app foundation, S04 geofencing, S05 calendar/activity detection, S06 push notifications, S07 integration acceptance
+- S02 complete: Auto-persona rules engine — ContextRule model + Alembic migration 019, RulesEngine with priority-ordered AND-condition evaluation, 5-endpoint CRUD+test API, integration hook (context update → rule match → persona activation → `persona_switched` SSE event), Settings UI "Context Rules" category with full CRUD and test-against-current-context, frontend SSE handler with toast notification, 45 unit/router tests
+- Remaining: S03 React Native mobile app foundation, S04 geofencing, S05 calendar/activity detection, S06 push notifications, S07 integration acceptance
 
 **Personal Media Scheduler App** — queued as M038 (depends on M037)
 - Daily media queue: podcasts, YouTube, Spotify scheduled by context and rules
