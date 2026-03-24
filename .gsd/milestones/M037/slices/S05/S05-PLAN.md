@@ -39,7 +39,7 @@
   - Verify: `cd mobile && npx tsc --noEmit` passes, `test -f mobile/src/services/activity.ts`
   - Done when: `activity.ts` exports start/stop/get functions with accelerometer subscription, sliding window variance classification, pedometer supplement, and unavailable-hardware fallback
 
-- [ ] **T03: Time-period service, context orchestrator hook, and dashboard wiring** `est:45m`
+- [x] **T03: Time-period service, context orchestrator hook, and dashboard wiring** `est:45m`
   - Why: Ties all three context enrichment services together. The time-period service is pure computation. The orchestrator hook coordinates calendar polling (60s), activity monitoring, and time-period computation into rate-limit-aware batched `updateContext()` calls with change deduplication. Dashboard wiring makes it live.
   - Files: `mobile/src/services/time-period.ts`, `mobile/src/hooks/useContextServices.ts`, `mobile/src/app/(app)/(tabs)/index.tsx`
   - Do: Implement `time-period.ts` with `getTimePeriod()` returning morning/work_hours/evening/night based on current hour (defaults: 5-8 morning, 9-16 work_hours, 17-20 evening, 21-4 night). Build `useContextServices()` hook that starts activity monitoring on mount, polls calendar every 60s, computes time-period on each cycle, listens for AppState changes to re-check on foreground, batches changed fields into a single `updateContext()` call (minimum 30s between pushes to respect rate limit), and returns current detected state `{calendarEvent, calendarBusy, activity, timePeriod, isMonitoring}`. Wire hook into dashboard screen, showing monitoring status indicator. Clean up all subscriptions on unmount.

@@ -12,6 +12,7 @@ import {
 import { useSession, parseSession } from '@/ctx';
 import { SemPKMClient, SemPKMError } from '@/api/client';
 import type { ContextResponse } from '@/api/client';
+import { useContextServices } from '@/hooks/useContextServices';
 
 // ── Helpers ─────────────────────────────────────────────────────
 
@@ -38,6 +39,15 @@ function relativeTime(iso: string): string {
 
 export default function DashboardScreen() {
   const { session } = useSession();
+
+  // Orchestrator hook: coordinates calendar, activity, and time-period
+  const {
+    calendarEvent: localCalendar,
+    calendarBusy: localBusy,
+    activity: localActivity,
+    timePeriod: localTimePeriod,
+    isMonitoring,
+  } = useContextServices();
 
   const [context, setContext] = useState<ContextResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -153,11 +163,36 @@ export default function DashboardScreen() {
         </Text>
       </View>
 
-      {/* Context fields */}
+      {/* Monitoring status indicator */}
+      <View style={styles.monitoringRow}>
+        <View
+          style={[
+            styles.monitoringDot,
+            isMonitoring ? styles.monitoringActive : styles.monitoringInactive,
+          ]}
+        />
+        <Text style={styles.monitoringText}>
+          {isMonitoring ? '📡 Monitoring' : '⏸ Monitoring paused'}
+        </Text>
+      </View>
+
+      {/* Server-reported context fields */}
+      <Text style={styles.sectionHeader}>Server Context</Text>
       <ContextField label="Location" value={context.location_zone ?? 'Not set'} />
       <ContextField label="Activity" value={context.activity ?? 'Not set'} />
       <ContextField label="Time Period" value={context.time_period ?? 'Not set'} />
       <ContextField label="Calendar" value={context.calendar_event ?? 'None'} />
+      <ContextField
+        label="Calendar Busy"
+        value={context.calendar_busy ? 'Busy' : 'Free'}
+      />
+
+      {/* Locally-detected values */}
+      <Text style={styles.sectionHeader}>Device Detected</Text>
+      <ContextField label="Activity" value={localActivity} />
+      <ContextField label="Time Period" value={localTimePeriod} />
+      <ContextField label="Calendar" value={localCalendar ?? 'None'} />
+      <ContextField label="Calendar Busy" value={localBusy ? 'Busy' : 'Free'} />
 
       {/* Inline error for refresh failures */}
       {error ? <Text style={styles.inlineError}>{error}</Text> : null}
@@ -224,6 +259,42 @@ const styles = StyleSheet.create({
   stalenessText: {
     fontSize: 14,
     color: '#374151',
+  },
+
+  // Monitoring status
+  monitoringRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+  monitoringDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 6,
+  },
+  monitoringActive: {
+    backgroundColor: '#22c55e',
+  },
+  monitoringInactive: {
+    backgroundColor: '#9ca3af',
+  },
+  monitoringText: {
+    fontSize: 13,
+    color: '#6b7280',
+  },
+
+  // Section headers
+  sectionHeader: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#9ca3af',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 8,
+    marginTop: 4,
   },
 
   // Field cards
