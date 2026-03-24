@@ -46,7 +46,7 @@ This milestone is complete only when all are true:
   > After this: the user can read a structured findings section covering backend Python across 8 dimensions (readability, module structure, logging, error handling, type safety, SPARQL patterns, async hygiene, FastAPI patterns) with severity-rated, effort-estimated entries anchored to specific files
 - [x] **S02: Frontend Code Quality Audit** `risk:medium` `depends:[]`
   > After this: the user can read a structured findings section covering frontend JS, CSS, and Jinja2 templates across 5 dimensions (JS structure, CSS architecture, template hygiene, DOM/event patterns, htmx consistency) with severity-rated, effort-estimated entries anchored to specific files
-- [ ] **S03: Cross-Cutting Analysis & Report Assembly** `risk:low` `depends:[S01,S02]`
+- [x] **S03: Cross-Cutting Analysis & Report Assembly** `risk:low` `depends:[S01,S02]`
   > After this: the user can read the complete M041-RECOMMENDATIONS.md report with cross-cutting findings (dead code, duplication, test gaps, tech debt), the Top 10 prioritized summary, and a linting tool recommendation section — all dimensions consolidated into a single deliverable
 
 ## Boundary Map
