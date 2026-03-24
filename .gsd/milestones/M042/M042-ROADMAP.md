@@ -55,7 +55,7 @@ This milestone is complete only when all are true:
   > After this: findings for the three highest-risk OWASP categories exist — SPARQL injection modules individually classified, broken access control gaps documented with exploit scenarios, authentication/session management weaknesses identified
 - [x] **S02: Configuration, Infrastructure & Supply Chain Findings (A05, A06, A08, A09)** `risk:medium` `depends:[]`
   > After this: findings for security misconfiguration (headers, CORS, debug endpoints), vulnerable components (CDN SRI, dependency CVEs), data integrity (federation patches, ZIP handling), and logging gaps documented with affected files and remediation
-- [ ] **S03: Design, Crypto, SSRF & Final Report Assembly (A02, A04, A10 + Top 10)** `risk:low` `depends:[S01,S02]`
+- [x] **S03: Design, Crypto, SSRF & Final Report Assembly (A02, A04, A10 + Top 10)** `risk:low` `depends:[S01,S02]`
   > After this: the complete `M042-SECURITY-FINDINGS.md` exists with all OWASP categories covered, backend/infrastructure hardening assessed, every finding severity-rated with exploit scenarios, and a prioritized Top 10 summary — ready for user review and remediation scoping
 
 ## Boundary Map
