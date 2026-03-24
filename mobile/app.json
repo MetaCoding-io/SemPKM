@@ -53,6 +53,12 @@
         {
           "calendarPermission": "SemPKM reads your calendar to detect meetings and focus blocks for automatic context updates."
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#208AEF"
+        }
       ]
     ],
     "experiments": {

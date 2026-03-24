@@ -69,7 +69,7 @@
   - Verify: `cd backend && .venv/bin/python -m pytest tests/test_notification_service.py tests/test_notification_router.py -v` — all pass
   - Done when: Context update can trigger notification dispatch, suppression works end-to-end in tests, midnight-spanning quiet hours tested
 
-- [ ] **T04: Mobile app expo-notifications integration** `est:35m`
+- [x] **T04: Mobile app expo-notifications integration** `est:35m`
   - Why: Completes the mobile side — the app needs to request permission, get the native FCM token, register it with the backend, and handle incoming notifications
   - Files: `mobile/package.json`, `mobile/app.json`, `mobile/src/services/notifications.ts`, `mobile/src/api/client.ts`, `mobile/src/app/(app)/(tabs)/settings.tsx`, `mobile/src/app/(app)/_layout.tsx`
   - Do: Add `expo-notifications` and `expo-device` to mobile/package.json. Add `expo-notifications` plugin to app.json (with Android notification channel config). Create `mobile/src/services/notifications.ts` with: `registerForPushNotifications(client)` — checks `Device.isDevice`, requests permission, gets native token via `getDevicePushTokenAsync()`, calls `client.registerPushToken()`. `setupNotificationHandler()` — registers foreground notification handler (display even when app is open) and response handler (tap to navigate). Add `registerPushToken(token, platform)`, `getNotificationPreferences()`, `updateNotificationPreferences(prefs)` methods to `SemPKMClient` in client.ts. Add corresponding TypeScript interfaces. Update settings.tsx with a "Push Notifications" section showing permission status and a toggle. Call `registerForPushNotifications()` from the app layout after successful authentication. Add Android notification channel setup in the layout's useEffect.
