@@ -29,6 +29,7 @@
 - `grep -q 'spotify' apps/media-scheduler/frontend/templates/add-source.html` — Spotify section in template
 - `python -c "import ast; ast.parse(open('apps/media-scheduler/services/spotify_service.py').read())"` — service module parses cleanly
 - `python -c "import ast; ast.parse(open('apps/media-scheduler/app.py').read())"` — app module parses cleanly
+- `cd backend && python -m pytest tests/test_media_scheduler.py -v -k "connection_status or auth_error or rate_limit or SpotifyAPIError"` — failure-path and diagnostic tests pass
 
 ## Observability / Diagnostics
 
@@ -45,7 +46,7 @@
 
 ## Tasks
 
-- [ ] **T01: SpotifyClient, OAuth PKCE auth, and pure converters** `est:2h`
+- [x] **T01: SpotifyClient, OAuth PKCE auth, and pure converters** `est:2h`
   - Why: The service module is the risk-bearing work — OAuth PKCE is a new pattern for this codebase, and the SpotifyClient must handle Bearer auth, 429 rate limiting, and Premium detection. All pure functions and the async client must be built and tested before wiring into the app.
   - Files: `apps/media-scheduler/services/spotify_service.py`, `backend/tests/test_media_scheduler.py`
   - Do: Create `spotify_service.py` with: (1) PKCE helpers — `generate_code_verifier()` (secrets.token_urlsafe), `generate_code_challenge()` (SHA-256 + base64url). (2) OAuth functions — `build_spotify_authorize_url()`, `exchange_spotify_code()`, `refresh_spotify_token()`, `refresh_spotify_if_expired()`, `store_spotify_tokens()`, `get_spotify_connection_status()`, `clear_spotify_auth()`. Follow Google Calendar auth.py pattern but add code_verifier/code_challenge params. Use `http_client.post()` with `data={}` form body (not JSON). (3) SpotifyClient class — `__init__(http_client, access_token)`, `_get(endpoint, params)` with Bearer auth header, `_handle_rate_limit()` for 429 + Retry-After, `get_user_profile()` (GET /v1/me), `get_playlists(limit=50)` (GET /v1/me/playlists), `get_playlist_tracks(playlist_id, limit=100)` (GET /v1/playlists/{id}/tracks). (4) Pure converters — `parse_spotify_url(url)` (web URL + spotify: URI → playlist_id), `track_to_media_item(track, source_iri)` following youtube_service.video_to_media_item pattern. (5) SPARQL constant `SPOTIFY_SOURCES_SPARQL` filtering `sourceType = "spotify"`. (6) `subscribe_spotify()` and `check_source_exists_spotify()` async functions. (7) ~50 unit tests: PKCE generation, URL parsing, track conversion, mock HTTP for auth flow and API calls, connection status. Redirect URI is passed as parameter (configurable per D353). Token expiry stored as UTC ISO 8601 (KNOWLEDGE: naive datetime issue).

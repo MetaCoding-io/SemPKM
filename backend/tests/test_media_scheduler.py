@@ -2421,3 +2421,691 @@ class TestSubscribeYouTube:
         assert result["status"] == "created"
         assert result["playlist_id"] == "PLtestlist12345"
 
+
+# ── Import spotify_service via file path ──
+
+_sp_svc_path = (
+    Path(__file__).resolve().parent.parent.parent
+    / "apps" / "media-scheduler" / "services" / "spotify_service.py"
+)
+_sp_svc_spec = importlib.util.spec_from_file_location("spotify_service_test", str(_sp_svc_path))
+_sp_svc_mod = importlib.util.module_from_spec(_sp_svc_spec)
+_sp_svc_spec.loader.exec_module(_sp_svc_mod)
+
+generate_code_verifier = _sp_svc_mod.generate_code_verifier
+generate_code_challenge = _sp_svc_mod.generate_code_challenge
+build_spotify_authorize_url = _sp_svc_mod.build_spotify_authorize_url
+exchange_spotify_code = _sp_svc_mod.exchange_spotify_code
+refresh_spotify_token = _sp_svc_mod.refresh_spotify_token
+refresh_spotify_if_expired = _sp_svc_mod.refresh_spotify_if_expired
+store_spotify_tokens = _sp_svc_mod.store_spotify_tokens
+get_spotify_connection_status = _sp_svc_mod.get_spotify_connection_status
+clear_spotify_auth = _sp_svc_mod.clear_spotify_auth
+parse_spotify_url = _sp_svc_mod.parse_spotify_url
+track_to_media_item_sp = _sp_svc_mod.track_to_media_item
+sp_mint_source_iri = _sp_svc_mod.mint_source_iri
+sp_mint_item_iri = _sp_svc_mod.mint_item_iri
+SpotifyClient = _sp_svc_mod.SpotifyClient
+SpotifyAPIError = _sp_svc_mod.SpotifyAPIError
+SpotifyAuthError = _sp_svc_mod.SpotifyAuthError
+subscribe_spotify = _sp_svc_mod.subscribe_spotify
+check_source_exists_spotify = _sp_svc_mod.check_source_exists_spotify
+sp_get_existing_item_iris = _sp_svc_mod.get_existing_item_iris
+SPOTIFY_SOURCES_SPARQL = _sp_svc_mod.SPOTIFY_SOURCES_SPARQL
+SP_AUTH_STATE_KEYS = _sp_svc_mod.AUTH_STATE_KEYS
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# PKCE generation tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestPKCEGeneration:
+    """Test PKCE code_verifier and code_challenge generation."""
+
+    def test_verifier_length_and_charset(self):
+        verifier = generate_code_verifier()
+        # secrets.token_urlsafe(32) produces 43 chars
+        assert len(verifier) == 43
+        # URL-safe base64: alphanumeric + '-' + '_'
+        assert all(c.isalnum() or c in "-_" for c in verifier)
+
+    def test_challenge_is_base64url(self):
+        verifier = generate_code_verifier()
+        challenge = generate_code_challenge(verifier)
+        # base64url chars only
+        assert all(c.isalnum() or c in "-_" for c in challenge)
+
+    def test_challenge_deterministic_from_same_verifier(self):
+        verifier = "test-verifier-value-for-determinism"
+        c1 = generate_code_challenge(verifier)
+        c2 = generate_code_challenge(verifier)
+        assert c1 == c2
+
+    def test_challenge_no_padding_chars(self):
+        """PKCE code_challenge must not contain base64 padding '='."""
+        verifier = generate_code_verifier()
+        challenge = generate_code_challenge(verifier)
+        assert "=" not in challenge
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Spotify URL parsing tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestSpotifyURLParsing:
+    """Test Spotify URL → playlist ID extraction."""
+
+    def test_web_url(self):
+        result = parse_spotify_url(
+            "https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M"
+        )
+        assert result == {"type": "playlist", "value": "37i9dQZF1DXcBWIGoYBM5M"}
+
+    def test_web_url_with_query_params(self):
+        result = parse_spotify_url(
+            "https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M?si=abc123"
+        )
+        assert result == {"type": "playlist", "value": "37i9dQZF1DXcBWIGoYBM5M"}
+
+    def test_spotify_uri(self):
+        result = parse_spotify_url("spotify:playlist:37i9dQZF1DXcBWIGoYBM5M")
+        assert result == {"type": "playlist", "value": "37i9dQZF1DXcBWIGoYBM5M"}
+
+    def test_invalid_url(self):
+        assert parse_spotify_url("https://example.com/not-spotify") is None
+
+    def test_none_input(self):
+        assert parse_spotify_url(None) is None
+
+    def test_non_playlist_url(self):
+        """Album, artist, or track URLs should return None."""
+        assert parse_spotify_url("https://open.spotify.com/album/123abc") is None
+        assert parse_spotify_url("https://open.spotify.com/artist/456def") is None
+        assert parse_spotify_url("https://open.spotify.com/track/789ghi") is None
+
+    def test_empty_string(self):
+        assert parse_spotify_url("") is None
+
+    def test_spotify_uri_non_playlist(self):
+        assert parse_spotify_url("spotify:album:37i9dQZF1DXcBWIGoYBM5M") is None
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Track-to-MediaItem conversion tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestSpotifyTrackToMediaItem:
+    """Test Spotify track → MediaItem conversion."""
+
+    def _make_track(self, **overrides):
+        """Create a standard Spotify track dict with reasonable defaults."""
+        base = {
+            "id": "4uLU6hMCjMI75M1A2tKUQC",
+            "name": "Never Gonna Give You Up",
+            "duration_ms": 213573,
+            "artists": [{"name": "Rick Astley"}],
+            "album": {
+                "images": [
+                    {"url": "https://i.scdn.co/image/large.jpg", "height": 640},
+                    {"url": "https://i.scdn.co/image/medium.jpg", "height": 300},
+                ]
+            },
+            "external_urls": {
+                "spotify": "https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC"
+            },
+        }
+        base.update(overrides)
+        return base
+
+    def test_basic_conversion(self):
+        source_iri = "urn:sempkm:app:media-scheduler:source-abc"
+        track = self._make_track()
+        result = track_to_media_item_sp(track, source_iri)
+
+        assert result["type"] == MEDIA_ITEM_TYPE
+        assert result["iri"].startswith("urn:sempkm:app:media-scheduler:item-")
+        assert result["properties"]["dcterms:title"] == "Never Gonna Give You Up"
+        assert result["properties"][f"{MS_NS}status"] == "queued"
+        assert result["properties"][f"{MS_NS}mediaSource"] == source_iri
+
+    def test_duration_ms_to_seconds(self):
+        track = self._make_track(duration_ms=213573)
+        result = track_to_media_item_sp(track, "urn:test:src")
+        # 213573ms // 1000 = 213 seconds (integer division)
+        assert result["properties"][f"{MS_NS}duration"] == 213
+
+    def test_artist_name_in_description(self):
+        track = self._make_track(
+            artists=[{"name": "Artist A"}, {"name": "Artist B"}]
+        )
+        result = track_to_media_item_sp(track, "urn:test:src")
+        assert result["properties"]["dcterms:description"] == "Artist A, Artist B"
+
+    def test_thumbnail_from_album_images(self):
+        track = self._make_track()
+        result = track_to_media_item_sp(track, "urn:test:src")
+        assert result["properties"][f"{MS_NS}thumbnailUrl"] == "https://i.scdn.co/image/large.jpg"
+
+    def test_external_id(self):
+        track = self._make_track(id="customTrackId")
+        result = track_to_media_item_sp(track, "urn:test:src")
+        assert result["properties"][f"{MS_NS}externalId"] == "customTrackId"
+
+    def test_enclosure_url(self):
+        track = self._make_track()
+        result = track_to_media_item_sp(track, "urn:test:src")
+        assert (
+            result["properties"][f"{MS_NS}enclosureUrl"]
+            == "https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC"
+        )
+
+    def test_iri_determinism(self):
+        """Same track + same source → same IRI."""
+        track = self._make_track()
+        source = "urn:test:source"
+        iri1 = track_to_media_item_sp(track, source)["iri"]
+        iri2 = track_to_media_item_sp(track, source)["iri"]
+        assert iri1 == iri2
+
+    def test_missing_artists(self):
+        track = self._make_track(artists=[])
+        result = track_to_media_item_sp(track, "urn:test:src")
+        assert "dcterms:description" not in result["properties"]
+
+    def test_missing_album_images(self):
+        track = self._make_track(album={"images": []})
+        result = track_to_media_item_sp(track, "urn:test:src")
+        assert f"{MS_NS}thumbnailUrl" not in result["properties"]
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Spotify IRI minting tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestSpotifyIRIMinting:
+    """Test deterministic IRI generation for Spotify sources and items."""
+
+    def test_mint_source_iri_deterministic(self):
+        iri1 = sp_mint_source_iri("spotify:playlist:abc123")
+        iri2 = sp_mint_source_iri("spotify:playlist:abc123")
+        assert iri1 == iri2
+
+    def test_mint_source_iri_different_inputs(self):
+        iri1 = sp_mint_source_iri("spotify:playlist:aaa")
+        iri2 = sp_mint_source_iri("spotify:playlist:bbb")
+        assert iri1 != iri2
+
+    def test_mint_source_iri_correct_prefix(self):
+        iri = sp_mint_source_iri("spotify:playlist:xyz")
+        assert iri.startswith("urn:sempkm:app:media-scheduler:source-")
+
+    def test_mint_item_iri_from_source_and_track(self):
+        source_iri = "urn:sempkm:app:media-scheduler:source-abc"
+        iri1 = sp_mint_item_iri(source_iri, "track123")
+        iri2 = sp_mint_item_iri(source_iri, "track456")
+        assert iri1 != iri2
+        assert iri1.startswith("urn:sempkm:app:media-scheduler:item-")
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Spotify OAuth auth tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestSpotifyAuth:
+    """Test Spotify OAuth functions with mocked HTTP and state."""
+
+    def test_build_authorize_url_has_all_params(self):
+        url = build_spotify_authorize_url(
+            client_id="my-client-id",
+            redirect_uri="https://example.com/callback",
+            state="csrf-state-abc",
+            code_challenge="challenge-abc",
+        )
+        assert "client_id=my-client-id" in url
+        assert "redirect_uri=" in url
+        assert "response_type=code" in url
+        assert "code_challenge_method=S256" in url
+        assert "code_challenge=challenge-abc" in url
+        assert "state=csrf-state-abc" in url
+        assert "scope=" in url
+
+    def test_build_authorize_url_starts_with_base(self):
+        url = build_spotify_authorize_url("id", "https://cb", "st", "ch")
+        assert url.startswith("https://accounts.spotify.com/authorize?")
+
+    @pytest.mark.asyncio
+    async def test_exchange_code_sends_correct_form_data(self):
+        response = MagicMock()
+        response.status_code = 200
+        response.json = MagicMock(return_value={
+            "access_token": "new-access",
+            "refresh_token": "new-refresh",
+            "expires_in": 3600,
+        })
+        http = MagicMock()
+        http.post = AsyncMock(return_value=response)
+
+        result = await exchange_spotify_code(
+            http, "auth-code", "cid", "csecret", "https://cb", "verifier123"
+        )
+        assert result["access_token"] == "new-access"
+        assert result["refresh_token"] == "new-refresh"
+        assert result["expires_in"] == 3600
+
+        # Verify form data was sent correctly
+        call_kwargs = http.post.call_args
+        data = call_kwargs.kwargs.get("data") or call_kwargs[1].get("data")
+        assert data["grant_type"] == "authorization_code"
+        assert data["code"] == "auth-code"
+        assert data["code_verifier"] == "verifier123"
+
+    @pytest.mark.asyncio
+    async def test_exchange_code_auth_error(self):
+        response = MagicMock()
+        response.status_code = 400
+        response.text = '{"error": "invalid_grant"}'
+        http = MagicMock()
+        http.post = AsyncMock(return_value=response)
+
+        with pytest.raises(SpotifyAuthError) as exc_info:
+            await exchange_spotify_code(
+                http, "bad-code", "cid", "csecret", "https://cb", "verifier"
+            )
+        assert exc_info.value.status_code == 400
+
+    @pytest.mark.asyncio
+    async def test_refresh_token_success(self):
+        response = MagicMock()
+        response.status_code = 200
+        response.json = MagicMock(return_value={
+            "access_token": "refreshed-token",
+            "expires_in": 3600,
+        })
+        http = MagicMock()
+        http.post = AsyncMock(return_value=response)
+
+        result = await refresh_spotify_token(http, "old-refresh", "cid", "csecret")
+        assert result["access_token"] == "refreshed-token"
+
+    @pytest.mark.asyncio
+    async def test_refresh_if_expired_skips_when_valid(self):
+        """Token not near expiry → should return existing token without refresh."""
+        from datetime import datetime, timedelta, timezone
+
+        future_expiry = (
+            datetime.now(timezone.utc) + timedelta(hours=1)
+        ).isoformat()
+
+        state = AsyncMock()
+        state.get = AsyncMock(side_effect=lambda k: {
+            "spotify_access_token": "still-valid-token",
+            "spotify_token_expiry": future_expiry,
+            "spotify_refresh_token": "refresh-tok",
+        }.get(k, ""))
+
+        http = MagicMock()
+        http.post = AsyncMock()  # Should NOT be called
+
+        result = await refresh_spotify_if_expired(http, state, "cid", "csecret")
+        assert result == "still-valid-token"
+        http.post.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_refresh_if_expired_refreshes_when_expired(self):
+        """Token near expiry → should refresh."""
+        from datetime import datetime, timedelta, timezone
+
+        past_expiry = (
+            datetime.now(timezone.utc) - timedelta(hours=1)
+        ).isoformat()
+
+        stored = {
+            "spotify_access_token": "old-token",
+            "spotify_token_expiry": past_expiry,
+            "spotify_refresh_token": "my-refresh-token",
+        }
+        state = AsyncMock()
+        state.get = AsyncMock(side_effect=lambda k: stored.get(k, ""))
+        state.set = AsyncMock()
+
+        response = MagicMock()
+        response.status_code = 200
+        response.json = MagicMock(return_value={
+            "access_token": "fresh-token",
+            "expires_in": 3600,
+        })
+        http = MagicMock()
+        http.post = AsyncMock(return_value=response)
+
+        result = await refresh_spotify_if_expired(http, state, "cid", "csecret")
+        assert result == "fresh-token"
+        http.post.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_store_tokens(self):
+        state = AsyncMock()
+        state.set = AsyncMock()
+
+        await store_spotify_tokens(
+            state, "access", "refresh", 3600, "TestUser", "premium"
+        )
+        state.set.assert_any_call("spotify_access_token", "access")
+        state.set.assert_any_call("spotify_refresh_token", "refresh")
+        state.set.assert_any_call("spotify_display_name", "TestUser")
+        state.set.assert_any_call("spotify_product", "premium")
+
+    @pytest.mark.asyncio
+    async def test_store_tokens_sets_expiry_as_iso(self):
+        state = AsyncMock()
+        state.set = AsyncMock()
+
+        await store_spotify_tokens(state, "a", "r", 3600, "User", "free")
+
+        # Find the call that set spotify_token_expiry
+        expiry_calls = [
+            c for c in state.set.call_args_list
+            if c[0][0] == "spotify_token_expiry"
+        ]
+        assert len(expiry_calls) == 1
+        expiry_val = expiry_calls[0][0][1]
+        # Should be a valid ISO 8601 datetime with timezone
+        from datetime import datetime
+        dt = datetime.fromisoformat(expiry_val)
+        assert dt.tzinfo is not None  # timezone-aware
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# SpotifyClient tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestSpotifyClient:
+    """Test SpotifyClient with mocked HTTP responses."""
+
+    def _make_response(self, status_code=200, data=None, headers=None):
+        resp = MagicMock()
+        resp.status_code = status_code
+        resp.json = MagicMock(return_value=data or {})
+        resp.headers = headers or {}
+        return resp
+
+    @pytest.mark.asyncio
+    async def test_get_user_profile_success(self):
+        profile_data = {
+            "display_name": "Test User",
+            "product": "premium",
+            "id": "testuser123",
+        }
+        http = MagicMock()
+        http.get = AsyncMock(return_value=self._make_response(200, profile_data))
+
+        client = SpotifyClient(http, "test-token")
+        result = await client.get_user_profile()
+        assert result["display_name"] == "Test User"
+        assert result["product"] == "premium"
+
+    @pytest.mark.asyncio
+    async def test_get_playlists_success(self):
+        playlists_data = {
+            "items": [
+                {"id": "pl1", "name": "Playlist 1", "tracks": {"total": 50}},
+                {"id": "pl2", "name": "Playlist 2", "tracks": {"total": 30}},
+            ]
+        }
+        http = MagicMock()
+        http.get = AsyncMock(return_value=self._make_response(200, playlists_data))
+
+        client = SpotifyClient(http, "test-token")
+        result = await client.get_playlists()
+        assert len(result) == 2
+        assert result[0]["name"] == "Playlist 1"
+
+    @pytest.mark.asyncio
+    async def test_get_playlist_tracks_success(self):
+        tracks_data = {
+            "items": [
+                {"track": {"id": "t1", "name": "Track 1"}},
+                {"track": {"id": "t2", "name": "Track 2"}},
+            ]
+        }
+        http = MagicMock()
+        http.get = AsyncMock(return_value=self._make_response(200, tracks_data))
+
+        client = SpotifyClient(http, "test-token")
+        result = await client.get_playlist_tracks("playlist123")
+        assert len(result) == 2
+
+    @pytest.mark.asyncio
+    async def test_api_error_raises_spotify_api_error(self):
+        error_data = {
+            "error": {"status": 403, "message": "Forbidden"}
+        }
+        http = MagicMock()
+        http.get = AsyncMock(return_value=self._make_response(403, error_data))
+
+        client = SpotifyClient(http, "test-token")
+        with pytest.raises(SpotifyAPIError) as exc_info:
+            await client.get_user_profile()
+        assert exc_info.value.status_code == 403
+
+    @pytest.mark.asyncio
+    async def test_429_rate_limit_raises_with_retry_info(self):
+        resp = self._make_response(429, {"error": {"status": 429, "message": "Too many requests"}})
+        resp.headers = {"Retry-After": "30"}
+        http = MagicMock()
+        http.get = AsyncMock(return_value=resp)
+
+        client = SpotifyClient(http, "test-token")
+        with pytest.raises(SpotifyAPIError) as exc_info:
+            await client.get_playlists()
+        assert exc_info.value.status_code == 429
+        assert "rate_limited" in exc_info.value.error_type
+        assert "30" in exc_info.value.message
+
+    @pytest.mark.asyncio
+    async def test_empty_playlists(self):
+        http = MagicMock()
+        http.get = AsyncMock(return_value=self._make_response(200, {"items": []}))
+
+        client = SpotifyClient(http, "test-token")
+        result = await client.get_playlists()
+        assert result == []
+
+    @pytest.mark.asyncio
+    async def test_missing_fields_handled(self):
+        """Track with missing optional fields should still convert."""
+        track = {"id": "minimal", "name": "Minimal Track"}
+        result = track_to_media_item_sp(track, "urn:test:src")
+        assert result["properties"]["dcterms:title"] == "Minimal Track"
+        assert result["properties"][f"{MS_NS}externalId"] == "minimal"
+        assert result["properties"][f"{MS_NS}status"] == "queued"
+
+    @pytest.mark.asyncio
+    async def test_bearer_token_in_header(self):
+        http = MagicMock()
+        http.get = AsyncMock(return_value=self._make_response(200, {"items": []}))
+
+        client = SpotifyClient(http, "my-secret-token")
+        await client.get_playlists()
+
+        call_kwargs = http.get.call_args
+        headers = call_kwargs.kwargs.get("headers") or call_kwargs[1].get("headers")
+        assert headers["Authorization"] == "Bearer my-secret-token"
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Subscribe Spotify tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestSubscribeSpotify:
+    """Test subscribe_spotify with mocked context."""
+
+    @pytest.mark.asyncio
+    async def test_creates_source(self):
+        ctx = MagicMock()
+        ctx.graph.query = AsyncMock(return_value={
+            "results": {"bindings": []}
+        })
+        ctx.commands.execute = AsyncMock()
+
+        result = await subscribe_spotify(ctx, "PLtest123", "My Playlist")
+        assert result["status"] == "created"
+        assert result["iri"].startswith("urn:sempkm:app:media-scheduler:source-")
+        ctx.commands.execute.assert_awaited_once()
+
+        params = ctx.commands.execute.call_args[0][1]
+        assert params["type"] == MEDIA_SOURCE_TYPE
+        assert params["properties"][f"{MS_NS}sourceType"] == "spotify"
+
+    @pytest.mark.asyncio
+    async def test_duplicate_returns_existing(self):
+        ctx = MagicMock()
+        ctx.graph.query = AsyncMock(return_value={
+            "results": {"bindings": [
+                {"source": {"value": "urn:existing:spotify-source"}}
+            ]}
+        })
+        ctx.commands.execute = AsyncMock()
+
+        result = await subscribe_spotify(ctx, "PLtest123", "My Playlist")
+        assert result["status"] == "duplicate"
+        assert result["iri"] == "urn:existing:spotify-source"
+        ctx.commands.execute.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_source_iri_format_correct(self):
+        ctx = MagicMock()
+        ctx.graph.query = AsyncMock(return_value={
+            "results": {"bindings": []}
+        })
+        ctx.commands.execute = AsyncMock()
+
+        result = await subscribe_spotify(ctx, "PLtest123", "My Playlist")
+        iri = result["iri"]
+        # IRI should be deterministic from spotify:playlist:{id}
+        expected = sp_mint_source_iri("spotify:playlist:PLtest123")
+        assert iri == expected
+
+    @pytest.mark.asyncio
+    async def test_playlist_name_stored_as_title(self):
+        ctx = MagicMock()
+        ctx.graph.query = AsyncMock(return_value={
+            "results": {"bindings": []}
+        })
+        ctx.commands.execute = AsyncMock()
+
+        await subscribe_spotify(ctx, "PLtest123", "Discover Weekly")
+        params = ctx.commands.execute.call_args[0][1]
+        assert params["properties"]["dcterms:title"] == "Discover Weekly"
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Spotify connection status tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestSpotifyConnectionStatus:
+    """Test Spotify connection status and auth state management."""
+
+    @pytest.mark.asyncio
+    async def test_connected_state(self):
+        state = AsyncMock()
+        state.get = AsyncMock(side_effect=lambda k: {
+            "spotify_access_token": "valid-token",
+            "spotify_display_name": "Test User",
+            "spotify_product": "premium",
+            "spotify_token_expiry": "2026-12-31T23:59:59+00:00",
+        }.get(k, ""))
+
+        status = await get_spotify_connection_status(state)
+        assert status["connected"] is True
+        assert status["display_name"] == "Test User"
+        assert status["product"] == "premium"
+        assert status["token_expiry"] == "2026-12-31T23:59:59+00:00"
+
+    @pytest.mark.asyncio
+    async def test_disconnected_state(self):
+        state = AsyncMock()
+        state.get = AsyncMock(return_value="")
+
+        status = await get_spotify_connection_status(state)
+        assert status["connected"] is False
+        assert status["display_name"] is None
+        assert status["product"] is None
+
+    @pytest.mark.asyncio
+    async def test_clear_auth_sets_all_empty(self):
+        state = AsyncMock()
+        state.set = AsyncMock()
+
+        await clear_spotify_auth(state)
+
+        # Should have set every AUTH_STATE_KEY to ""
+        set_calls = {c[0][0]: c[0][1] for c in state.set.call_args_list}
+        for key in SP_AUTH_STATE_KEYS:
+            assert set_calls[key] == "", f"Expected key '{key}' to be cleared"
+
+    @pytest.mark.asyncio
+    async def test_product_tier_stored(self):
+        state = AsyncMock()
+        state.set = AsyncMock()
+
+        await store_spotify_tokens(state, "a", "r", 3600, "User", "premium")
+        state.set.assert_any_call("spotify_product", "premium")
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Spotify existing items dedup tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestSpotifyExistingItems:
+    """Test SPARQL dedup for Spotify items."""
+
+    @pytest.mark.asyncio
+    async def test_get_existing_items_returns_set(self):
+        graph = MagicMock()
+        graph.query = AsyncMock(return_value={
+            "results": {"bindings": [
+                {"item": {"value": "urn:item:sp1"}},
+                {"item": {"value": "urn:item:sp2"}},
+            ]}
+        })
+        result = await sp_get_existing_item_iris(graph, "urn:test:spotify-source")
+        assert result == {"urn:item:sp1", "urn:item:sp2"}
+
+    @pytest.mark.asyncio
+    async def test_get_existing_items_empty(self):
+        graph = MagicMock()
+        graph.query = AsyncMock(return_value={
+            "results": {"bindings": []}
+        })
+        result = await sp_get_existing_item_iris(graph, "urn:test:spotify-source")
+        assert result == set()
+
+    @pytest.mark.asyncio
+    async def test_check_source_exists_found(self):
+        graph = MagicMock()
+        graph.query = AsyncMock(return_value={
+            "results": {"bindings": [
+                {"source": {"value": "urn:existing:source"}}
+            ]}
+        })
+        result = await check_source_exists_spotify(graph, "PLtest123")
+        assert result == "urn:existing:source"
+
+    @pytest.mark.asyncio
+    async def test_check_source_exists_not_found(self):
+        graph = MagicMock()
+        graph.query = AsyncMock(return_value={
+            "results": {"bindings": []}
+        })
+        result = await check_source_exists_spotify(graph, "PLnonexistent")
+        assert result is None
+
