@@ -1,14 +1,35 @@
-<div class="media-scheduler" id="ms-container">
-  <div class="ms-sources-sidebar" id="ms-sources-sidebar"
-       hx-get="/_fragments/sources"
-       hx-trigger="load, sourcesChanged from:body"
-       hx-swap="innerHTML">
-    <div class="tree-empty">Loading sources...</div>
+<div class="ms-container" id="ms-container">
+  <div class="ms-sidebar" id="ms-sidebar">
+    <div class="ms-sidebar-header">
+      <h3>Sources</h3>
+      <button class="ms-btn ms-btn-icon" id="ms-toggle-add-form"
+              onclick="document.getElementById('ms-add-section').classList.toggle('ms-hidden')"
+              title="Add source">
+        <i data-lucide="plus"></i>
+      </button>
+    </div>
+    <div id="ms-add-section" class="ms-hidden">
+      <div hx-get="/app/media-scheduler/_fragments/add-source"
+           hx-trigger="load"
+           hx-swap="innerHTML">
+      </div>
+    </div>
+    <div id="ms-sources-list"
+         hx-get="/app/media-scheduler/_fragments/sources"
+         hx-trigger="load, sourcesChanged from:body"
+         hx-swap="innerHTML">
+      <div class="ms-empty-state">Loading sources…</div>
+    </div>
   </div>
-  <div class="ms-items-list" id="ms-items-list"
-       hx-get="/_fragments/items"
-       hx-trigger="load, sourcesChanged from:body"
-       hx-swap="innerHTML">
-    <div class="tree-empty">Loading items...</div>
+  <div class="ms-main" id="ms-main">
+    <div class="ms-main-header">
+      <h3>Episodes</h3>
+    </div>
+    <div id="ms-items-list"
+         hx-get="/app/media-scheduler/_fragments/items"
+         hx-trigger="load, sourcesChanged from:body"
+         hx-swap="innerHTML">
+      <div class="ms-empty-state">Loading items…</div>
+    </div>
   </div>
 </div>

@@ -9,6 +9,13 @@ skills_used: []
 **Slice:** S01 — Mental Model + Podcast Sources
 **Milestone:** M038
 
+## Observability Impact
+
+- **Test suite as regression signal:** 64 unit tests in `test_media_scheduler.py` cover manifest validation, IRI minting, entry conversion, duration parsing, dedup, subscribe/unsubscribe, source state updates, feed fetching, and poll-sources task logic. Any regression in these pure functions or async workflows will surface immediately via `pytest`.
+- **Template inspection:** Templates use htmx fragments that can be individually requested via `curl /app/media-scheduler/_fragments/{sources,items,add-source}` to verify rendering without a full browser.
+- **Error visibility:** Source error counts and last error messages are displayed in the sources list template (`ms-badge-error` badge), giving users immediate visibility into feed health.
+- **Future agent can verify:** Run `cd backend && python -m pytest tests/test_media_scheduler.py -v` for the full test suite, or inspect individual templates via `cat apps/media-scheduler/frontend/templates/*.html | grep hx-` to verify all htmx URLs use the proxy prefix.
+
 ## Description
 
 Create the Jinja2 HTML templates for the Media Scheduler app page and write comprehensive unit tests covering the pure functions, manifest validation, and poll task logic. This closes the slice: after this task, the app has a visible UI and verified behavior.

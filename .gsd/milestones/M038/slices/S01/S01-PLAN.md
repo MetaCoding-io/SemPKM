@@ -62,7 +62,7 @@
   - Verify: `cd backend && python -m pytest tests/test_media_scheduler.py -v -k "poll"` — tests verify poll task queries sources, parses feed, deduplicates, creates items, and updates source state
   - Done when: poll-sources task handler is complete with error handling, dedup, conditional GET, and bulk creation; source state updates work.
 
-- [ ] **T04: App UI templates + unit tests** `est:1h`
+- [x] **T04: App UI templates + unit tests** `est:1h`
   - Why: Closes the slice by providing the user-visible surface (app page with sources and items lists) and comprehensive unit tests proving the pure logic and manifest are correct.
   - Files: `apps/media-scheduler/frontend/templates/main.html`, `apps/media-scheduler/frontend/templates/sources-list.html`, `apps/media-scheduler/frontend/templates/items-list.html`, `apps/media-scheduler/frontend/templates/add-source.html`, `apps/media-scheduler/frontend/static/styles.css`, `backend/tests/test_media_scheduler.py`
   - Do: Create Jinja2 templates for the main app page (two-column layout: sources sidebar + items list), sources list fragment (htmx-powered with add/remove), items list fragment showing discovered episodes with title/date/duration/source, and add-source dialog form. Create `test_media_scheduler.py` with tests covering: manifest validation, IRI minting determinism, entry_to_media_item conversion (title, enclosure URL, published date, duration extraction), dedup logic (existing IRIs skipped), feed error handling, and source state updates. Follow the `test_rss_settings.py` pattern for importing app module via `importlib.util.spec_from_file_location`.

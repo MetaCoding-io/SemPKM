@@ -1,0 +1,16 @@
+<form class="ms-add-form"
+      method="post"
+      action="/app/media-scheduler/_fragments/sources/add-podcast"
+      hx-post="/app/media-scheduler/_fragments/sources/add-podcast"
+      hx-target="#ms-add-result"
+      hx-swap="innerHTML">
+  <input type="url" name="feed_url"
+         placeholder="Podcast RSS feed URL"
+         class="ms-input"
+         required>
+  <input type="text" name="title"
+         placeholder="Title (optional)"
+         class="ms-input">
+  <button type="submit" class="ms-btn ms-btn-primary">Add Podcast</button>
+</form>
+<div id="ms-add-result"></div>
