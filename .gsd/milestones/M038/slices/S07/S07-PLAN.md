@@ -24,12 +24,19 @@
 
 ## Tasks
 
-- [ ] **T01: Write Media Scheduler E2E spec with selectors** `est:2h`
+- [x] **T01: Write Media Scheduler E2E spec with selectors** `est:2h`
   - Why: This is the only task — it produces the complete E2E test proving the assembled Media Scheduler app works end-to-end. The app (S01–S06) is fully built; this slice adds the integration proof.
   - Files: `e2e/helpers/selectors.ts`, `e2e/tests/55-media-scheduler/media-scheduler.spec.ts`
   - Do: Add `mediaScheduler` selector block to `SEL` in `selectors.ts`. Create the spec file following the RSS Reader single-sequential-test pattern (one `test()` with phases). Phases: (0) idempotent cleanup, (1) install model via POST `/admin/models`, (2) install app via admin form + poll for running status, (3) navigate to app and verify layout, (4) add podcast source with dummy URL + verify source appears, (5) tab navigation across all 4 tabs, (6) create schedule rule via form + verify rule card appears, (7) generate plan + verify response, (8) status tracking if entries exist, (9) stats tab with chart canvases, (10) uninstall app + delete model. Set `test.setTimeout(240_000)`. Add `ownerPage.on('dialog', d => d.accept())` for hx-confirm dialogs. Use `waitForIdle` / `page.waitForSelector` for htmx swap timing. For YouTube/Spotify: skip (require real API keys). For podcast polling: skip (source CRUD is sufficient — subscription creates the MediaSource immediately).
   - Verify: `cd e2e && npx tsc --noEmit` passes; `test -f e2e/tests/55-media-scheduler/media-scheduler.spec.ts`
   - Done when: Spec file compiles, contains ≥ 10 test phases, selectors are registered in helpers
+
+## Observability / Diagnostics
+
+- **Runtime signals:** Playwright test output shows per-phase pass/fail. `console.log` messages from skipped phases (e.g., status tracking when no plan entries exist) are captured in Playwright output.
+- **Inspection surface:** `npx playwright test --ui` allows step-through debugging. `--trace on` generates a trace zip for post-mortem analysis.
+- **Failure visibility:** Each phase has explicit `expect()` assertions — failures pinpoint which lifecycle stage broke. The test uses `waitForIdle()` between phases to avoid false negatives from in-flight htmx swaps.
+- **Redaction:** No secrets or API keys are used in this test (dummy podcast URL only).
 
 ## Files Likely Touched
 
