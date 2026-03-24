@@ -48,7 +48,7 @@
   - Verify: `cd backend && .venv/bin/python -m pytest tests/test_rules_engine.py -v` — all tests pass
   - Done when: RulesEngine correctly evaluates context against rules with priority ordering, AND logic, and all unit tests pass
 
-- [ ] **T02: Rules CRUD API router, integration hook, and router tests** `est:45m`
+- [x] **T02: Rules CRUD API router, integration hook, and router tests** `est:45m`
   - Why: The API layer exposes rules management and wires auto-evaluation into the context update flow — this is the critical integration seam
   - Files: `backend/app/context/rules_router.py`, `backend/app/context/router.py`, `backend/app/main.py`, `backend/app/dependencies.py`, `backend/tests/test_rules_router.py`
   - Do: Create rules_router.py with GET/POST/PUT/DELETE `/api/context/rules` CRUD + POST `/api/context/rules/test` (evaluate against current context, return match result without side effects). Add `get_rules_engine` dependency function. Mount rules router in main.py. Add integration hook in context router's `update_context()`: after broadcast.publish(), call rules_engine.evaluate() — if persona_id returned and differs from active persona, call persona_service.activate() and broadcast `persona_switched` SSE event. Implement manual_override logic: manual persona activate sets flag, context update clears it and re-evaluates. Write router tests covering CRUD operations, test endpoint, auth enforcement, and integration hook (mock persona_service to verify activate called on rule match).
