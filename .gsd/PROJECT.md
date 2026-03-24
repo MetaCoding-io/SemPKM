@@ -430,6 +430,22 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - ✓ PLAN-09: Calendar shows tasks and events together with color coding — M034
 - ✓ PLAN-10: Timeline project-scoped filtering via saved queries — M034
 
+### Validated (M035 — AI Copilot & LLM Test Harness)
+
+<!-- Shipped and confirmed in M035 (2026-03-23). -->
+
+- ✓ AI-01: Copilot chat UI — streaming SSE, markdown rendering, IRI object pills, lazy-loaded panel — M035
+- ✓ AI-02: Schema-aware SPARQL generation — installed model SHACL shapes as system prompt context, parse+predicate validation, self-correction loop (2 retries) — M035
+- ✓ AI-03: Query approval flow — approve/edit/reject/retry controls, inline SPARQL display, execution with formatted prose results — M035
+- ✓ AI-04: Graph context injection — 1-hop neighborhood SPARQL, token-budgeted serialization (2000 tokens), active object tracking via sempkm:tab-activated — M035
+- ✓ AI-05: Conversation persistence — SQLAlchemy models (copilot_conversations + copilot_messages), CRUD service, auto-create/load/save, conversation selector UI — M035
+- ✓ AI-06: AI personas — 4 built-in personas (General Assistant, Research Assistant, Project Manager, Writing Coach), CRUD, lazy seeding, system prompt templates with slot variables — M035
+- ✓ AI-07: Object creation from chat — JSON block detection in SSE stream, confirmation card, Command API dispatch — M035
+- ✓ AI-08: Mock LLM test harness — SSE streaming mock server with 5-route pattern matching, 12-check selftest, Docker service in test stack — M035
+- ✓ AI-09: Ollama integration tests — docker-compose.test-ollama.yml with model cache volume, GPU passthrough opt-in — M035
+- ✓ AI-10: Cloud test tier — CostTracker with token accumulation, budget cap ($1.00 default), cost reporting — M035
+- ✓ 139 backend unit tests + 5 E2E Playwright test cases, all passing — M035
+
 ### Validated (M036 — Business Planning Mental Models & Custom Renderers)
 
 <!-- Shipped and confirmed in M036 (2026-03-23). -->
