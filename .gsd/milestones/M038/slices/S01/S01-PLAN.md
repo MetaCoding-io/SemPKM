@@ -55,7 +55,7 @@
   - Verify: `python -c "from app.apps.manifest import parse_app_manifest; m=parse_app_manifest('apps/media-scheduler/manifest.yaml'); assert m.appId=='media-scheduler' and len(m.tasks)==1 and m.tasks[0].id=='poll-sources'"` passes
   - Done when: App manifest validates, app.py imports cleanly, podcast_service.py defines the 4 core functions, and fragment routes are registered.
 
-- [ ] **T03: Implement poll-sources task and episode discovery** `est:1h`
+- [x] **T03: Implement poll-sources task and episode discovery** `est:1h`
   - Why: The scheduled task is the core integration point — it polls podcast RSS feeds, parses episodes, deduplicates against existing items, and creates MediaItem objects. Without this, the app can store sources but never discovers content.
   - Files: `apps/media-scheduler/app.py`, `apps/media-scheduler/services/podcast_service.py`
   - Do: Implement `@media_scheduler_app.task("poll-sources")` handler that queries all MediaSource objects with sourceType="podcast", calls feedparser for each, converts entries to MediaItem params via `entry_to_media_item()`, deduplicates against existing items via SPARQL query, and bulk-creates new items via CommandClient. Handle conditional GET (ETag/Last-Modified) for efficiency. Track poll state on MediaSource (lastPolled, errorCount, lastError). Cap initial imports to 50 items per source. Add source removal route (`/_fragments/sources/remove`).
