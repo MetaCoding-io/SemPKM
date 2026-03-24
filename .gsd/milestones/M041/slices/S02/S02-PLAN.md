@@ -17,7 +17,7 @@
 
 ## Tasks
 
-- [ ] **T01: JavaScript structure, global state, and DOM/event audit** `est:45m`
+- [x] **T01: JavaScript structure, global state, and DOM/event audit** `est:45m`
   - Why: workspace.js at 5409 LOC is the highest-impact frontend finding. Event listener imbalance (197 add vs 20 remove) signals memory leak risk.
   - Files: `frontend/static/js/workspace.js`, all `frontend/static/js/*.js` files
   - Do: (1) `fd -e js . frontend/static/js/ | xargs wc -l | sort -rn` to rank JS files by size. (2) Count functions per file. (3) Identify IIFE vs module pattern usage. (4) `rg "window\." frontend/static/js/` to find global state. (5) `rg "addEventListener" --count` vs `rg "removeEventListener" --count` per file. (6) `rg "setInterval|setTimeout" frontend/static/js/` to find timer usage without cleanup. (7) Check for error handling in fetch calls — `rg "fetch\(" -A5` looking for missing .catch or try/catch. (8) Write "JS Structure & Global State" and "DOM & Event Patterns" sections to S02-FRONTEND-FINDINGS.md.
@@ -37,6 +37,12 @@
   - Do: (1) `fd -e html . backend/app/templates/ | xargs wc -l | sort -rn` to rank templates by size. (2) `rg "{% if|{% for|{% set|{% macro" backend/app/templates/ --count` to measure logic density per template. (3) Look for Python expressions in templates (`rg "\|int\b|\|float\b|\|round" backend/app/templates/`). (4) Check partial reuse — `rg "{% include" --count` vs inline duplication. (5) htmx audit: `rg "hx-post|hx-get|hx-put|hx-delete|hx-patch" backend/app/templates/ --count` for consistency. (6) Check for hardcoded URLs vs url_for. (7) `rg "hx-trigger" backend/app/templates/` to audit trigger patterns. (8) Write "Jinja2 Template Hygiene" and "htmx Consistency" sections.
   - Verify: `grep -c "^### " .gsd/milestones/M041/S02-FRONTEND-FINDINGS.md` returns >= 5
   - Done when: All 5 frontend dimension sections exist with specific, actionable findings
+
+## Observability / Diagnostics
+
+- **Detection reproducibility:** Every finding includes the exact `rg`/`fd`/`grep` command used to detect it — any agent can re-run to verify the finding still exists or has been resolved.
+- **Findings staleness:** Re-running the detection commands after code changes validates which findings are still active; stale findings will produce lower counts or no matches.
+- **Failure path:** If a detection command exits non-zero or returns empty, the finding section notes "0 matches — pattern may have changed" rather than silently omitting.
 
 ## Files Likely Touched
 
