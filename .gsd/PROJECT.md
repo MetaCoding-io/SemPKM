@@ -724,11 +724,14 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - OpenAPI tag cleanup: all routers tagged, zero "default" routes in /redoc
 - 29 unit tests, sidebar + command palette integration
 
-**Code Quality Audit** — complete (M041)
-- Produced M041-RECOMMENDATIONS.md: 84 findings across 17 quality dimensions, 1034 lines
-- Top 10 prioritized by runtime risk: #1 SPARQL injection (131 f-string sites), #2 silent exceptions (26 blocks), #3 auth test coverage (0%), #4 unhandled fetch() (67 calls)
+**Code Quality Audit** — complete (M041, 2026-03-23)
+- Systematic audit of 117,474 LOC across 442 files producing M041-RECOMMENDATIONS.md (1,034 lines, 84 findings, 17 quality dimensions)
+- Backend (40 findings): module structure, readability, error handling, logging, type safety, SPARQL construction, async patterns, FastAPI patterns
+- Frontend (21 findings): JS structure, DOM/event patterns, CSS architecture, template hygiene, htmx consistency
+- Cross-cutting (23 findings): dead code, duplication, test coverage gaps, tech debt
+- Top 10 prioritized by runtime risk: #1 SPARQL injection (131 f-string sites), #2 silent exceptions (26 blocks), #3 auth test coverage (0%), #4 unhandled fetch() (67 calls), #5 views/service.py 3,663-line god module
 - Linting recommendations: ruff + ESLint + Stylelint configs, ~2hr setup, ~100 auto-fixable issues
-- Feeds a future execution milestone for implementation
+- Pure analysis milestone — no source code changes, feeds a future execution milestone
 
 **Security Audit — OWASP & Backend Hardening** — queued (M042)
 - Systematic security audit against OWASP Top 10 2021 (A01–A10) plus backend hardening and infrastructure security
@@ -1035,7 +1038,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 **Previous milestones:** M032 Block-Based Custom UI Builder (2026-03-22), M031 Views Overhaul (2026-03-21), M030 Data Quality Linting & Lint UX (2026-03-21), M029 Frontend Performance & Build Pipeline (2026-03-20), M026 Homepage & Messaging Rewrite (2026-03-20), M025 Hosted Demo Instance (2026-03-20), M024 Monday.com Sync App (2026-03-20), M023 Jira Sync App (2026-03-19), M017 GitHub Issues Sync App (2026-03-18), M016 Linear Sync App (2026-03-18), M015 Browser Extension Phase 2 (2026-03-18), M014 Browser Extension Phase 1 (2026-03-18), M013 API Surface for External Clients (2026-03-17), M012 Workspace & Event Log Polish (2026-03-17), M011 Mental Models Expansion (2026-03-17), M008 Spatial Canvas (2026-03-16), M007 Generic Views, VFS Completion & Polish (2026-03-16), M006 Dashboards, Workflows & Platform Alignment (2026-03-15), M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
 
-**Latest shipped: M032 Block-Based Custom UI Builder (2026-03-22)**
+**Latest shipped: M041 Code Quality Audit (2026-03-23) — pure analysis milestone, 84 findings across 17 quality dimensions in M041-RECOMMENDATIONS.md, prioritized Top 10 execution roadmap**
 
 **What shipped in M013 (API Surface for External Clients):**
 - `GET /.well-known/sempkm` discovery endpoint with version, endpoints, auth methods, capabilities
