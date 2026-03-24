@@ -47,6 +47,12 @@
         <i data-lucide="brain" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;"></i>
         Context Rules
       </button>
+      <button class="settings-category-btn"
+              data-category="notifications"
+              onclick="showSettingsCategory('notifications')">
+        <i data-lucide="bell" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;"></i>
+        Notifications
+      </button>
     </nav>
 
     <!-- Right: settings detail panels -->
@@ -134,6 +140,19 @@
              hx-trigger="intersect once"
              hx-swap="innerHTML">
           <p class="settings-loading">Loading context rules…</p>
+        </div>
+      </div>
+      <div class="settings-category-panel" id="category-notifications"
+           data-category="notifications"
+           style="display:none">
+        <div class="settings-category-header">
+          <h2 class="settings-category-title">Notifications</h2>
+        </div>
+        <div id="notification-preferences-content"
+             hx-get="/browser/settings/notification-preferences"
+             hx-trigger="intersect once"
+             hx-swap="innerHTML">
+          <p class="settings-loading">Loading notification preferences…</p>
         </div>
       </div>
     </div>

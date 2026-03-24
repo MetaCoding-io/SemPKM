@@ -1,0 +1,183 @@
+{# Notification preferences settings partial — loaded via htmx into #notification-preferences-content #}
+
+<div class="notification-prefs-container">
+
+  {# ── Master toggle ─────────────────────────────────────────── #}
+  <div class="notification-pref-row">
+    <div class="notification-pref-info">
+      <span class="notification-pref-label">Push Notifications</span>
+      <span class="notification-pref-desc">Enable or disable all push notifications</span>
+    </div>
+    <label class="settings-toggle" title="Master enable/disable">
+      <input type="checkbox" class="settings-toggle-input" id="notif-master-toggle"
+             {% if prefs.enabled %}checked{% endif %}
+             onchange="notifUpdatePref('enabled', this.checked)">
+      <span class="settings-toggle-slider"></span>
+    </label>
+  </div>
+
+  {# ── Quiet hours ───────────────────────────────────────────── #}
+  <div class="notification-pref-row">
+    <div class="notification-pref-info">
+      <span class="notification-pref-label">Quiet Hours</span>
+      <span class="notification-pref-desc">Suppress notifications during this time window (UTC)</span>
+    </div>
+    <div class="notification-quiet-hours">
+      <input type="time" id="notif-quiet-start"
+             value="{{ prefs.quiet_hours_start or '' }}"
+             class="settings-text-input notification-time-input"
+             onchange="notifUpdateQuietHours()">
+      <span class="notification-quiet-sep">to</span>
+      <input type="time" id="notif-quiet-end"
+             value="{{ prefs.quiet_hours_end or '' }}"
+             class="settings-text-input notification-time-input"
+             onchange="notifUpdateQuietHours()">
+    </div>
+  </div>
+
+  {# ── Suppress when busy ────────────────────────────────────── #}
+  <div class="notification-pref-row">
+    <div class="notification-pref-info">
+      <span class="notification-pref-label">Suppress When Busy</span>
+      <span class="notification-pref-desc">Silence notifications when calendar shows you as busy</span>
+    </div>
+    <label class="settings-toggle" title="Suppress during calendar busy">
+      <input type="checkbox" class="settings-toggle-input" id="notif-suppress-busy"
+             {% if prefs.suppress_when_busy %}checked{% endif %}
+             onchange="notifUpdatePref('suppress_when_busy', this.checked)">
+      <span class="settings-toggle-slider"></span>
+    </label>
+  </div>
+
+  {# ── Notification types ────────────────────────────────────── #}
+  <fieldset class="notification-types-fieldset">
+    <legend class="notification-types-legend">Notification Types</legend>
+    <div class="notification-types-grid">
+      {% set types = [
+        ("overdue_tasks", "Overdue Tasks", "Get notified about tasks past their due date"),
+        ("validation_warnings", "Validation Warnings", "SHACL validation issues on your data"),
+        ("context_changes", "Context Changes", "Significant changes in your location or activity context"),
+      ] %}
+      {% for type_id, type_label, type_desc in types %}
+      <label class="notification-type-item">
+        <input type="checkbox" class="notification-type-checkbox"
+               value="{{ type_id }}"
+               {% if type_id in prefs.enabled_types %}checked{% endif %}
+               onchange="notifUpdateTypes()">
+        <div class="notification-type-info">
+          <span class="notification-type-label">{{ type_label }}</span>
+          <span class="notification-type-desc">{{ type_desc }}</span>
+        </div>
+      </label>
+      {% endfor %}
+    </div>
+  </fieldset>
+
+  {# ── Test notification ─────────────────────────────────────── #}
+  <div class="notification-test-section">
+    <button class="settings-action-btn" id="notif-test-btn"
+            onclick="notifSendTest()">
+      <i data-lucide="send"></i>
+      Send Test Notification
+    </button>
+    <div id="notif-test-result" class="notification-test-result"></div>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /** Update a single preference field via PUT. */
+  window.notifUpdatePref = function (field, value) {
+    var payload = {};
+    payload[field] = value;
+    fetch('/api/notifications/preferences', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(function (resp) {
+      if (!resp.ok) {
+        resp.json().then(function (err) {
+          console.error('Notification pref update failed:', err.detail || resp.statusText);
+        });
+      }
+    });
+  };
+
+  /** Update quiet hours (both start and end together). */
+  window.notifUpdateQuietHours = function () {
+    var start = document.getElementById('notif-quiet-start').value;
+    var end = document.getElementById('notif-quiet-end').value;
+    if (!start || !end) return;
+    fetch('/api/notifications/preferences', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        quiet_hours_start: start,
+        quiet_hours_end: end
+      })
+    }).then(function (resp) {
+      if (!resp.ok) {
+        resp.json().then(function (err) {
+          console.error('Quiet hours update failed:', err.detail || resp.statusText);
+        });
+      }
+    });
+  };
+
+  /** Collect checked notification types and update. */
+  window.notifUpdateTypes = function () {
+    var checkboxes = document.querySelectorAll('.notification-type-checkbox');
+    var types = [];
+    checkboxes.forEach(function (cb) {
+      if (cb.checked) types.push(cb.value);
+    });
+    fetch('/api/notifications/preferences', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled_types: types })
+    });
+  };
+
+  /** Send a test notification and show the result. */
+  window.notifSendTest = function () {
+    var resultDiv = document.getElementById('notif-test-result');
+    var btn = document.getElementById('notif-test-btn');
+    resultDiv.textContent = 'Sending…';
+    resultDiv.className = 'notification-test-result';
+    btn.disabled = true;
+
+    fetch('/api/notifications/test', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    })
+      .then(function (resp) { return resp.json(); })
+      .then(function (data) {
+        btn.disabled = false;
+        if (data.suppressed) {
+          resultDiv.textContent = 'Suppressed: ' + (data.reason || 'unknown reason');
+          resultDiv.className = 'notification-test-result notification-test-warn';
+        } else if (data.sent_count > 0) {
+          resultDiv.textContent = '✓ Sent to ' + data.sent_count + ' device(s)';
+          resultDiv.className = 'notification-test-result notification-test-ok';
+        } else {
+          resultDiv.textContent = 'No devices registered — install the mobile app first';
+          resultDiv.className = 'notification-test-result notification-test-warn';
+        }
+      })
+      .catch(function (err) {
+        btn.disabled = false;
+        resultDiv.textContent = 'Error: ' + err.message;
+        resultDiv.className = 'notification-test-result notification-test-error';
+      });
+  };
+
+  /* Re-init Lucide icons for this htmx-swapped fragment */
+  if (typeof lucide !== 'undefined') {
+    var container = document.getElementById('notification-preferences-content');
+    if (container) lucide.createIcons({ nodes: [container] });
+  }
+})();
+</script>

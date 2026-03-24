@@ -112,6 +112,26 @@ async def context_rules_panel(
     })
 
 
+@settings_router.get("/settings/notification-preferences")
+async def notification_preferences_panel(
+    request: Request,
+    user: User = Depends(get_current_user),
+):
+    """Return the Notification Preferences settings partial (HTML fragment).
+
+    Fetches the user's notification preferences via NotificationService
+    and renders the _notification_preferences.html template.
+    """
+    templates = request.app.state.templates
+    notification_service = request.app.state.notification_service
+    prefs = await notification_service.get_preferences(user.id)
+
+    return templates.TemplateResponse(request, "browser/_notification_preferences.html", {
+        "request": request,
+        "prefs": prefs,
+    })
+
+
 @settings_router.get("/settings/data")
 async def settings_data(
     user: User = Depends(get_current_user),
