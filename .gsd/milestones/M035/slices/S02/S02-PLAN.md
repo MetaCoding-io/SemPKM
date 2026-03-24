@@ -52,14 +52,14 @@
   - Verify: `cd backend && .venv/bin/python -m pytest tests/test_graph_context.py -v` passes, `cd backend && python -c "from app.copilot.context import GraphContextService; print('OK')"`
   - Done when: GraphContextService returns human-readable context text for a mocked IRI, token budget truncation works, and copilot_chat() injects graph context into system prompt when active_object_iri is provided
 
-- [ ] **T02: Conversation persistence data model, service, API, and chat flow integration** `est:1h`
+- [x] **T02: Conversation persistence data model, service, API, and chat flow integration** `est:1h`
   - Why: Delivers SQLite-backed conversation persistence — the data model, CRUD service, REST endpoints, and integration into the chat SSE flow so messages survive page reloads
   - Files: `backend/app/copilot/models.py`, `backend/app/copilot/conversation.py`, `backend/app/api/copilot.py`, `backend/migrations/versions/016_copilot_conversations.py`, `backend/tests/test_conversation_service.py`
   - Do: Create SQLAlchemy models (CopilotConversation with user_id/title/timestamps, CopilotMessage with conversation_id/role/content/timestamp). Create Alembic migration 016. Build ConversationService with create/list/get/delete/add_message/update_title. Add REST endpoints to copilot_router. Wire into copilot_chat(): on first message with null conversation_id auto-create conversation and emit SSE `conversation_created` event; load history from DB and prepend to messages; save user and assistant messages after exchange. Write unit tests.
   - Verify: `cd backend && .venv/bin/python -m pytest tests/test_conversation_service.py -v` passes, migration file parses without error
   - Done when: ConversationService CRUD works against in-memory SQLite, REST endpoints registered, chat flow auto-creates conversations and saves messages
 
-- [ ] **T03: Frontend conversation selector, active-object tracking, and slice verification** `est:1h`
+- [x] **T03: Frontend conversation selector, active-object tracking, and slice verification** `est:1h`
   - Why: Connects both backend features to the UI — tracks the active object IRI and sends it with each request, builds the conversation selector for switching/creating/deleting threads, and provides the slice-level verification script
   - Files: `frontend/static/js/copilot.js`, `frontend/static/css/copilot.css`, `.gsd/milestones/M035/slices/S02/verify-s02.sh`
   - Do: Add `_activeObjectIri` tracking via `sempkm:tab-activated` listener (read `detail.tabId` when `detail.isObjectTab`, clear otherwise). Include `active_object_iri` in chat request body. Add conversation header bar above messages area with title display, "New Chat" button, conversation list dropdown. On init fetch conversations from GET endpoint, display current or most recent. Handle `conversation_created` SSE event to store new ID. On switch/new/delete, call appropriate REST endpoints and re-render. Write verification script checking file existence, imports, endpoint registration, migration validity, and frontend wiring.

@@ -81,6 +81,13 @@ The existing `copilot.js` uses `_messageThread` as an in-memory array and sends 
 - `backend/app/api/copilot.py` — T02's conversation REST endpoints and `conversation_created` SSE event format
 - `backend/app/copilot/schemas.py` — T01's `active_object_iri` field on CopilotChatRequest
 
+## Observability Impact
+
+- **Frontend console logging**: `copilot: conversations loaded (count=N)`, `copilot: switched conversation (id=X)`, `copilot: new chat created`, `copilot: conversation deleted (id=X)`, `copilot: active object tracking (iri=X|null)`
+- **Inspection surface**: The conversation selector dropdown displays all threads with titles and relative timestamps — visible state of persistence without needing dev tools
+- **Failure visibility**: Network fetch errors for conversation CRUD are caught and logged to console; the UI degrades gracefully (empty state shown, chat still works without persistence)
+- **Active object tracking**: `_activeObjectIri` value is included in every chat POST body — backend logs show `copilot.chat.graph_context` or `copilot.chat.graph_context_error` confirming the frontend→backend wiring
+
 ## Expected Output
 
 - `frontend/static/js/copilot.js` — modified with active-object tracking, conversation selector, persistence integration

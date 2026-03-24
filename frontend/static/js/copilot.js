@@ -14,6 +14,9 @@
 var _messageThread = [];
 var _isStreaming = false;
 var _abortController = null;
+var _activeObjectIri = null;
+var _currentConversationId = null;
+var _conversations = [];
 
 // DOM refs (set in initCopilotChat)
 var _messagesEl = null;
@@ -68,7 +71,307 @@ export function initCopilotChat() {
   // Focus input
   _inputEl.focus();
 
+  // Track active object IRI via tab-activated events
+  document.addEventListener('sempkm:tab-activated', function (e) {
+    var detail = e.detail || {};
+    if (detail.isObjectTab) {
+      _activeObjectIri = detail.tabId;
+    } else {
+      _activeObjectIri = null;
+    }
+    console.log('copilot: active object tracking', _activeObjectIri ? 'iri=' + _activeObjectIri : 'null');
+  });
+
+  // Load existing conversations
+  _loadConversations();
+
   console.log('copilot: initialized');
+}
+
+// ---------------------------------------------------------------------------
+// Conversation management
+// ---------------------------------------------------------------------------
+
+function _loadConversations() {
+  fetch('/api/copilot/conversations', { credentials: 'same-origin' })
+    .then(function (resp) {
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      return resp.json();
+    })
+    .then(function (data) {
+      _conversations = data || [];
+      console.log('copilot: conversations loaded, count=' + _conversations.length);
+      _renderConversationHeader();
+      if (_conversations.length > 0) {
+        _switchConversation(_conversations[0].id);
+      } else {
+        _showEmptyState();
+      }
+    })
+    .catch(function (err) {
+      console.warn('copilot: failed to load conversations', err);
+      _renderConversationHeader();
+      _showEmptyState();
+    });
+}
+
+function _switchConversation(id) {
+  if (_isStreaming) return;
+  _currentConversationId = id;
+  _messageThread = [];
+  if (_messagesEl) _messagesEl.innerHTML = '';
+
+  console.log('copilot: switched conversation id=' + id);
+
+  fetch('/api/copilot/conversations/' + id, { credentials: 'same-origin' })
+    .then(function (resp) {
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      return resp.json();
+    })
+    .then(function (data) {
+      var messages = data.messages || [];
+      _updateHeaderTitle(data.title || 'New Chat');
+      for (var i = 0; i < messages.length; i++) {
+        var m = messages[i];
+        if (m.role === 'user' || m.role === 'assistant') {
+          var msg = { role: m.role, content: m.content, timestamp: m.created_at ? new Date(m.created_at) : new Date() };
+          _messageThread.push(msg);
+          _renderMessage(msg);
+        }
+      }
+      if (_messageThread.length === 0) {
+        _showEmptyState();
+      }
+      _scrollToBottom();
+      // Close dropdown if open
+      _closeConversationDropdown();
+    })
+    .catch(function (err) {
+      console.warn('copilot: failed to load conversation', id, err);
+      _showEmptyState();
+    });
+}
+
+function _createNewChat() {
+  if (_isStreaming) return;
+
+  fetch('/api/copilot/conversations', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title: null }),
+    credentials: 'same-origin'
+  })
+    .then(function (resp) {
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      return resp.json();
+    })
+    .then(function (data) {
+      _currentConversationId = data.id;
+      _messageThread = [];
+      if (_messagesEl) _messagesEl.innerHTML = '';
+      _conversations.unshift({ id: data.id, title: data.title || 'New Chat', updated_at: new Date().toISOString() });
+      _updateHeaderTitle(data.title || 'New Chat');
+      _showEmptyState();
+      console.log('copilot: new chat created id=' + data.id);
+      if (_inputEl && !_inputEl.disabled) _inputEl.focus();
+    })
+    .catch(function (err) {
+      console.warn('copilot: failed to create conversation', err);
+    });
+}
+
+function _deleteConversation(id) {
+  fetch('/api/copilot/conversations/' + id, {
+    method: 'DELETE',
+    credentials: 'same-origin'
+  })
+    .then(function (resp) {
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      return resp.json();
+    })
+    .then(function () {
+      console.log('copilot: conversation deleted id=' + id);
+      _conversations = _conversations.filter(function (c) { return c.id !== id; });
+      if (_currentConversationId === id) {
+        if (_conversations.length > 0) {
+          _switchConversation(_conversations[0].id);
+        } else {
+          _currentConversationId = null;
+          _messageThread = [];
+          if (_messagesEl) _messagesEl.innerHTML = '';
+          _updateHeaderTitle('New Chat');
+          _showEmptyState();
+        }
+      }
+      _closeConversationDropdown();
+    })
+    .catch(function (err) {
+      console.warn('copilot: failed to delete conversation', id, err);
+    });
+}
+
+// ---------------------------------------------------------------------------
+// Conversation selector header
+// ---------------------------------------------------------------------------
+
+function _renderConversationHeader() {
+  // Remove existing header if present
+  var existing = document.getElementById('copilot-conv-header');
+  if (existing) existing.remove();
+
+  var header = document.createElement('div');
+  header.className = 'copilot-conv-header';
+  header.id = 'copilot-conv-header';
+
+  // Menu button
+  var menuBtn = document.createElement('button');
+  menuBtn.className = 'copilot-conv-menu-btn';
+  menuBtn.setAttribute('aria-label', 'Conversation list');
+  menuBtn.title = 'Conversation list';
+  menuBtn.innerHTML = '<i data-lucide="menu"></i>';
+  menuBtn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    _toggleConversationDropdown();
+  });
+  header.appendChild(menuBtn);
+
+  // Title
+  var title = document.createElement('span');
+  title.className = 'copilot-conv-title';
+  title.id = 'copilot-conv-title';
+  title.textContent = 'New Chat';
+  header.appendChild(title);
+
+  // New chat button
+  var newBtn = document.createElement('button');
+  newBtn.className = 'copilot-conv-new-btn';
+  newBtn.setAttribute('aria-label', 'New chat');
+  newBtn.title = 'New chat';
+  newBtn.innerHTML = '<i data-lucide="plus"></i>';
+  newBtn.addEventListener('click', function () {
+    _createNewChat();
+  });
+  header.appendChild(newBtn);
+
+  // Insert before messages area
+  var container = document.getElementById('copilot-container');
+  if (container && _messagesEl) {
+    container.insertBefore(header, _messagesEl);
+  }
+
+  // Init Lucide icons in header
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons({ attrs: { class: ['lucide'] }, nameAttr: 'data-lucide' });
+  }
+}
+
+function _updateHeaderTitle(text) {
+  var titleEl = document.getElementById('copilot-conv-title');
+  if (titleEl) titleEl.textContent = text;
+}
+
+function _toggleConversationDropdown() {
+  var existing = document.getElementById('copilot-conv-dropdown');
+  if (existing) {
+    existing.remove();
+    return;
+  }
+
+  var dropdown = document.createElement('div');
+  dropdown.className = 'copilot-conv-dropdown';
+  dropdown.id = 'copilot-conv-dropdown';
+
+  if (_conversations.length === 0) {
+    var emptyItem = document.createElement('div');
+    emptyItem.className = 'copilot-conv-dropdown-empty';
+    emptyItem.textContent = 'No conversations yet';
+    dropdown.appendChild(emptyItem);
+  } else {
+    for (var i = 0; i < _conversations.length; i++) {
+      (function (conv) {
+        var item = document.createElement('div');
+        item.className = 'copilot-conv-dropdown-item';
+        if (conv.id === _currentConversationId) {
+          item.classList.add('copilot-conv-dropdown-active');
+        }
+
+        var itemText = document.createElement('div');
+        itemText.className = 'copilot-conv-dropdown-text';
+
+        var itemTitle = document.createElement('span');
+        itemTitle.className = 'copilot-conv-dropdown-title';
+        itemTitle.textContent = conv.title || 'New Chat';
+        itemText.appendChild(itemTitle);
+
+        var itemTime = document.createElement('span');
+        itemTime.className = 'copilot-conv-dropdown-time';
+        itemTime.textContent = _relativeTime(conv.updated_at);
+        itemText.appendChild(itemTime);
+
+        itemText.addEventListener('click', function () {
+          _switchConversation(conv.id);
+        });
+        item.appendChild(itemText);
+
+        var delBtn = document.createElement('button');
+        delBtn.className = 'copilot-conv-dropdown-del';
+        delBtn.setAttribute('aria-label', 'Delete conversation');
+        delBtn.title = 'Delete';
+        delBtn.innerHTML = '<i data-lucide="x"></i>';
+        delBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          _deleteConversation(conv.id);
+        });
+        item.appendChild(delBtn);
+
+        dropdown.appendChild(item);
+      })(_conversations[i]);
+    }
+  }
+
+  var header = document.getElementById('copilot-conv-header');
+  if (header) {
+    header.appendChild(dropdown);
+  }
+
+  // Init Lucide icons in dropdown
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons({ attrs: { class: ['lucide'] }, nameAttr: 'data-lucide' });
+  }
+
+  // Close on outside click
+  function _outsideClick(e) {
+    var dd = document.getElementById('copilot-conv-dropdown');
+    if (dd && !dd.contains(e.target) && !e.target.closest('.copilot-conv-menu-btn')) {
+      dd.remove();
+      document.removeEventListener('click', _outsideClick);
+    }
+  }
+  // Defer to avoid the triggering click from closing the dropdown immediately
+  setTimeout(function () {
+    document.addEventListener('click', _outsideClick);
+  }, 0);
+}
+
+function _closeConversationDropdown() {
+  var dd = document.getElementById('copilot-conv-dropdown');
+  if (dd) dd.remove();
+}
+
+function _relativeTime(isoStr) {
+  if (!isoStr) return '';
+  try {
+    var d = new Date(isoStr);
+    var now = new Date();
+    var diff = Math.floor((now - d) / 1000);
+    if (diff < 60) return 'just now';
+    if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+    if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+    if (diff < 604800) return Math.floor(diff / 86400) + 'd ago';
+    return d.toLocaleDateString();
+  } catch (e) {
+    return '';
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -177,7 +480,11 @@ function _streamCopilotResponse() {
   fetch('/api/copilot/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ messages: apiMessages }),
+    body: JSON.stringify({
+      messages: apiMessages,
+      conversation_id: _currentConversationId,
+      active_object_iri: _activeObjectIri
+    }),
     credentials: 'same-origin',
     signal: _abortController.signal
   })
@@ -223,6 +530,34 @@ function _streamCopilotResponse() {
               }
 
               // Handle custom events
+              if (currentEvent === 'conversation_created') {
+                try {
+                  var convData = JSON.parse(dataStr);
+                  if (convData.conversation_id) {
+                    _currentConversationId = convData.conversation_id;
+                    var convTitle = convData.title || 'New Chat';
+                    _updateHeaderTitle(convTitle);
+                    // Add to conversations list if not already present
+                    var found = false;
+                    for (var ci = 0; ci < _conversations.length; ci++) {
+                      if (_conversations[ci].id === convData.conversation_id) { found = true; break; }
+                    }
+                    if (!found) {
+                      _conversations.unshift({
+                        id: convData.conversation_id,
+                        title: convTitle,
+                        updated_at: new Date().toISOString()
+                      });
+                    }
+                    console.log('copilot: conversation_created id=' + convData.conversation_id);
+                  }
+                } catch (e) {
+                  console.warn('copilot: failed to parse conversation_created event', e);
+                }
+                currentEvent = null;
+                continue;
+              }
+
               if (currentEvent === 'sparql_query') {
                 try {
                   var sparqlData = JSON.parse(dataStr);
