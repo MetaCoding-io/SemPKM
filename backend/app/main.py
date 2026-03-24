@@ -39,6 +39,7 @@ from app.dashboard.router import browser_router as dashboard_browser_router, api
 from app.workflow.router import browser_router as workflow_browser_router, api_router as workflow_api_router
 from app.task_templates.router import api_router as templates_api_router, browser_router as templates_browser_router
 from app.persona.router import browser_router as persona_browser_router, api_router as persona_api_router
+from app.context.router import router as context_router
 from app.debug.router import router as debug_router
 from app.middleware.etag import ConditionalGetMiddleware
 from app.middleware.timing import TimingMiddleware, timing_router
@@ -352,6 +353,12 @@ async def lifespan(app: FastAPI):
     from app.persona.service import PersonaService
     app.state.persona_service = PersonaService(async_session_factory)
 
+    # Create ContextService and ContextBroadcast for user context awareness
+    from app.context.service import ContextService
+    from app.context.broadcast import ContextBroadcast
+    app.state.context_service = ContextService(async_session_factory)
+    app.state.context_broadcast = ContextBroadcast()
+
     # Create LintFilterService and store on app state
     from app.lint.filter_service import LintFilterService
     app.state.lint_filter_service = LintFilterService(async_session_factory)
@@ -644,6 +651,7 @@ app.include_router(templates_api_router)
 app.include_router(templates_browser_router)
 app.include_router(persona_browser_router)
 app.include_router(persona_api_router)
+app.include_router(context_router)
 app.include_router(vfs_browser_router)
 app.include_router(vfs_mount_router)
 app.include_router(app_commands_router)
