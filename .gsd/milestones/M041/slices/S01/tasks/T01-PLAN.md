@@ -32,6 +32,10 @@ Identify all oversized backend modules, assess function length distribution, che
 
 - `test -f .gsd/milestones/M041/S01-BACKEND-FINDINGS.md && grep -c "^### " .gsd/milestones/M041/S01-BACKEND-FINDINGS.md` returns >= 2
 
+## Observability Impact
+
+Static analysis task — no runtime signals change. The findings document sections written by this task establish the format (severity/effort/file:line/detection command) that all subsequent tasks follow. A future agent can re-run any detection command listed in the findings to check whether the issue persists.
+
 ## Inputs
 
 - `backend/app/` — all Python source modules to analyze
