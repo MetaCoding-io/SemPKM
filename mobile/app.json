@@ -9,7 +9,10 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "app.sempkm.mobile",
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "infoPlist": {
+        "UIBackgroundModes": ["location"]
+      }
     },
     "android": {
       "package": "app.sempkm.mobile",
@@ -37,7 +40,14 @@
           }
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "SemPKM uses your location to detect when you arrive at or leave configured zones (home, office, etc.) and automatically adjust your workspace."
+        }
+      ],
+      "expo-task-manager"
     ],
     "experiments": {
       "typedRoutes": true,
