@@ -59,7 +59,7 @@ This milestone is complete only when all are true:
 
 - [x] **S01: Copilot Chat with SPARQL Generation** `risk:high` `depends:[]`
   > After this: user opens AI COPILOT tab, asks "How many projects do I have?", sees the generated SPARQL query for approval, approves it, and gets a prose answer with clickable object links — all streaming in real time against real triplestore data
-- [ ] **S02: Graph Context Injection & Conversation Persistence** `risk:medium` `depends:[S01]`
+- [x] **S02: Graph Context Injection & Conversation Persistence** `risk:medium` `depends:[S01]`
   > After this: copilot automatically includes the active object's 1-hop neighborhood in its context, user asks "Summarize this project" while viewing a Project and gets an answer referencing linked tasks and notes by name, and conversation history persists across page reloads in SQLite
 - [ ] **S03: AI Personas & Object Creation from Chat** `risk:low` `depends:[S01]`
   > After this: user picks "Research Assistant" from the persona selector and copilot shifts to citation-heavy responses, user says "Create a task: Review Q1 goals, due Friday" and copilot shows a confirmation card then creates the object via Command API
