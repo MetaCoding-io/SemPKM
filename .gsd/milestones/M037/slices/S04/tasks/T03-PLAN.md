@@ -66,3 +66,10 @@ The screen has two visual regions: a `MapView` (upper portion) showing zone circ
 - `mobile/src/app/(app)/(tabs)/zones.tsx` — full zone management screen with map
 - `mobile/src/components/ZoneEditor.tsx` — zone add/edit modal component
 - `mobile/package.json` — modified: react-native-maps added
+
+## Observability Impact
+
+- **New signals:** `zones.geofence_sync_failed` console.warn on registration failure after zone mutation. All zone CRUD errors surface via `Alert.alert()` with the server's error detail.
+- **Inspection:** Zone list state visible in the UI. Backend `GET /api/context/zones` shows the authoritative server state. Enabled/disabled toggle state reflects in Circle overlay color (blue=enabled, grey=disabled).
+- **Failure visibility:** Loading spinner on mount, error state with retry button on API failure, empty state when no zones exist. Permission denial shows an explanatory Alert. iOS region limit warning badge appears at 15+ enabled zones.
+- **Geofence sync:** After every create/update/delete, `registerGeofences()` is called with the current enabled-zone set. Failures are logged to console but don't block the UI (zone CRUD succeeds even if geofence registration fails).
