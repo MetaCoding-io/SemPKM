@@ -2611,7 +2611,170 @@ S03: 59 unit tests. S04 E2E test saves/applies preset, verifies restoration.
 - Acceptance: Timeline view accepts scope_query parameter for saved query filtering. WHERE body injected as sub-select filter.
 - Validation: S02 unit tests verify scope binding in _build_timeline_select(). Timeline renders with scope query active.
 
+### CTX-01 — Context update API (POST /api/context/update)
+- Status: validated
+- Class: core-capability
+- Source: design (M037-ROADMAP.md)
+- Primary Slice: M037/S01
+- Acceptance: Authenticated client can POST context snapshots (location_zone, activity, time_period, calendar_event, calendar_busy, device_id). Stores in SQLite user_context table with upsert pattern.
+- Validation: 13 service tests + 16 router tests prove insert, merge-update, partial update, auth enforcement, rate limiting, field validation.
+
+### CTX-02 — Real-time context streaming via SSE
+- Status: validated
+- Class: core-capability
+- Source: design (M037-ROADMAP.md)
+- Primary Slice: M037/S01
+- Acceptance: GET /api/context/stream delivers context_update events via SSE with 30s keepalive. Workspace sidebar indicator consumes EventSource.
+- Validation: S01 router tests prove SSE event publishing. context-indicator.js consumes EventSource with error/disconnect fallback.
+
+### CTX-03 — TTL-based context staleness detection
+- Status: validated
+- Class: core-capability
+- Source: design (M037-ROADMAP.md)
+- Primary Slice: M037/S01
+- Acceptance: Context >TTL (default 15 min) reported as is_stale=true. Workspace indicator shows "Context unknown" when stale.
+- Validation: Zero-TTL staleness test technique in service tests. S07 integration tests verify staleness with TTL=0 and freshness with default TTL.
+
+### CTX-04 — Context rules engine (AND conditions, priority ordering)
+- Status: validated
+- Class: core-capability
+- Source: design (M037-ROADMAP.md)
+- Primary Slice: M037/S02
+- Acceptance: RulesEngine.evaluate() loads enabled rules sorted by priority DESC, AND-matches JSON conditions, returns persona_id on first match.
+- Validation: 19 engine unit tests covering priority ordering, AND conditions, disabled rules, empty/null conditions, tiebreakers, CRUD authorization.
+
+### CTX-05 — Auto-persona switch on context change
+- Status: validated
+- Class: core-capability
+- Source: design (M037-ROADMAP.md)
+- Primary Slice: M037/S02
+- Supporting Slices: M037/S07
+- Acceptance: Context update → rule evaluation → persona switch → persona_switched SSE event → workspace UI switches with toast notification.
+- Validation: S07 12-test integration suite proves full loop, priority ordering, redundant switch skip, and error isolation.
+
+### CTX-06 — Context rules CRUD + Settings UI
+- Status: validated
+- Class: core-capability
+- Source: design (M037-ROADMAP.md)
+- Primary Slice: M037/S02
+- Acceptance: 5-endpoint CRUD API at /api/context/rules. Settings UI panel with rule builder, priority, conditions, enable toggle, edit/delete, test-against-current-context.
+- Validation: 27 router tests covering CRUD, test endpoint, auth enforcement. Settings UI template verified.
+
+### CTX-07 — Geofence zone CRUD API
+- Status: validated
+- Class: core-capability
+- Source: design (M037-ROADMAP.md)
+- Primary Slice: M037/S04
+- Acceptance: 4-endpoint CRUD API at /api/context/zones with Pydantic validation (lat ±90, lon ±180, radius 50–10000m).
+- Validation: 18 service + 27 router tests prove CRUD, validation, auth enforcement, user isolation, boundary values.
+
+### CTX-08 — Mobile geofencing background task
+- Status: validated
+- Class: core-capability
+- Source: design (M037-ROADMAP.md)
+- Primary Slice: M037/S04
+- Acceptance: TaskManager.defineTask at module scope with expo-location startGeofencingAsync. Background task reads credentials from SecureStore and POSTs context update on zone enter/exit.
+- Validation: TypeScript compiles clean. Task defined at module scope. Side-effect imported in root layout. Pattern verified.
+
+### CTX-09 — Mobile location permissions (foreground-then-background)
+- Status: validated
+- Class: core-capability
+- Source: design (M037-ROADMAP.md)
+- Primary Slice: M037/S04
+- Acceptance: iOS "Always Allow" and Android foreground service permission request sequence.
+- Validation: permissions.ts implements foreground-then-background sequence. TypeScript compiles clean. app.json configured with UIBackgroundModes.
+
+### CTX-10 — Mobile calendar + activity + time-period detection
+- Status: validated
+- Class: core-capability
+- Source: design (M037-ROADMAP.md)
+- Primary Slice: M037/S05
+- Acceptance: expo-calendar reads device events with busy status. Accelerometer+pedometer classifies stationary/walking/driving. Time-of-day classifier (morning/work_hours/evening/night).
+- Validation: TypeScript compiles clean. Three service files verified. Domain-prefixed console logs for diagnostics.
+
+### CTX-11 — Mobile context update orchestrator
+- Status: validated
+- Class: core-capability
+- Source: design (M037-ROADMAP.md)
+- Primary Slice: M037/S05
+- Acceptance: useContextServices hook batches calendar/activity/time-period into rate-limited (30s gap) single API calls with change deduplication and AppState foreground re-poll.
+- Validation: TypeScript compiles clean. Hook wired in dashboard screen.
+
+### CTX-12 — Push notification dispatch via FCM
+- Status: validated
+- Class: core-capability
+- Source: design (M037-ROADMAP.md)
+- Primary Slice: M037/S06
+- Acceptance: NotificationService dispatches via firebase-admin messaging.send(). Stale token auto-cleanup on UnregisteredError. No-op when firebase_app is None. Device token registration via POST /api/notifications/register.
+- Validation: 35 service + 21 router tests prove dispatch, suppression, stale cleanup, no-op mode, CRUD, auth.
+
+### CTX-13 — Notification preferences with context-aware suppression
+- Status: validated
+- Class: core-capability
+- Source: design (M037-ROADMAP.md)
+- Primary Slice: M037/S06
+- Acceptance: should_suppress() checks master toggle, type enabled, calendar_busy, quiet hours (including midnight-spanning). Settings UI with quiet hours, busy suppression, type checkboxes, test-send button.
+- Validation: 17 suppression tests including 4 midnight-spanning time tests. Settings UI template verified.
+
+### CTX-14 — Zone configuration via map UI
+- Status: validated
+- Class: core-capability
+- Source: design (M037-ROADMAP.md)
+- Primary Slice: M037/S04
+- Acceptance: Zone management screen with MapView, Circle overlays (blue enabled/grey disabled), FlatList, FAB, ZoneEditor modal with radius stepper and coordinate display.
+- Validation: TypeScript compiles clean. MapView, Circle, FlatList components verified in zones.tsx.
+
+### CTX-17 — Context update rate limiting
+- Status: validated
+- Class: quality-attribute
+- Source: design (M037-ROADMAP.md)
+- Primary Slice: M037/S01
+- Acceptance: Rate limit 12/min per IP via slowapi on POST /api/context/update. HTTP 429 with Retry-After on breach.
+- Validation: S01 router tests verify rate limit configuration. slowapi infrastructure reused from existing codebase.
+
+### CTX-18 — Context deletion on account removal
+- Status: validated
+- Class: quality-attribute
+- Source: design (M037-ROADMAP.md)
+- Primary Slice: M037/S01
+- Supporting Slices: M037/S04, M037/S06
+- Acceptance: All context tables (user_context, context_rules, context_zones, device_tokens) have user_id FK with CASCADE delete.
+- Validation: All 4 migrations verified with ondelete="CASCADE" on user_id foreign keys.
+
 ## Deferred
+
+### CTX-15 — Offline queue with retry for mobile context updates
+- Class: enhancement
+- Status: deferred
+- Description: When mobile device is offline during geofence transition or context change, queue the update and retry when connectivity returns.
+- Why it matters: Without this, context updates are lost on network failure (logged as warning, update dropped).
+- Source: design (M037-ROADMAP.md)
+- Primary owning slice: none
+- Supporting slices: none
+- Validation: unmapped
+- Notes: Best-effort in S04 — geofence network errors logged. Full resilience deferred per M037 roadmap scope.
+
+### CTX-16 — Multi-device conflict resolution UI
+- Class: enhancement
+- Status: deferred
+- Description: When multiple devices report context for the same user, provide conflict resolution beyond last-writer-wins.
+- Why it matters: Users with phone + tablet both running the app may get unpredictable context oscillation.
+- Source: design (M037-ROADMAP.md)
+- Primary owning slice: none
+- Supporting slices: none
+- Validation: unmapped
+- Notes: Last-reporting device wins via device_id field. No conflict resolution UI per M037 roadmap scope.
+
+### CTX-19 — Mobile app version checking against backend
+- Class: enhancement
+- Status: deferred
+- Description: Mobile app checks backend API version on connect and warns user if versions are incompatible.
+- Why it matters: API contract changes between backend and mobile app versions could cause silent failures.
+- Source: design (M037-ROADMAP.md)
+- Primary owning slice: none
+- Supporting slices: none
+- Validation: unmapped
+- Notes: Deferred per M037 roadmap scope — leaves for later.
 
 ### TYPE-03 — Full SHACL shape editor with advanced constraints
 - Class: core-capability

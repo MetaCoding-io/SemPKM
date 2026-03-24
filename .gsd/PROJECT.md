@@ -729,12 +729,23 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - 3D graph visualization — experimental, deferred
 - SPARQL UPDATE as external write surface — by design (bypasses event sourcing)
 - Real-time collaborative editing — CRDT/OT complexity, v2+ at earliest
-- Mobile native app — web-first, responsive design and eventual PWA
+- Mobile native app — delivered in M037 (Expo/React Native mobile app with geofencing, calendar, activity detection, push notifications)
 - Full ontology editor — M004 completed full CRUD for classes and properties; Protege still needed for advanced OWL authoring (TYPE-03 deferred)
 
 ## Current State
 
-**Latest shipped: M040 Cleanup - Documentation, UI Fixes & Bug Squashing (2026-03-23) — 2 slices, pure documentation**
+**Latest shipped: M037 User Context & Mobile App (2026-03-23) — 7 slices, 184 backend tests, Expo React Native mobile app**
+
+**What shipped in M037:**
+- Backend Context API: POST /api/context/update, GET /api/context/current, GET /api/context/stream (SSE). ContextService with TTL-based staleness (15 min default). ContextBroadcast SSE fan-out.
+- Auto-persona rules engine: ContextRule model, RulesEngine.evaluate() with AND-condition first-match-wins by priority, 5-endpoint CRUD API, Settings UI panel with test-against-current
+- Expo SDK 55 React Native mobile app (`mobile/`): TypeScript API client, onboarding with connection test, context dashboard, zone management with MapView, geofencing background task, calendar+activity+time-period detection, push notification handler
+- Geofence zone CRUD API: 4-endpoint REST with Pydantic validation, mobile MapView with Circle overlays and ZoneEditor modal
+- Push notifications via firebase-admin FCM: should_suppress() with 5-check pipeline (master toggle, type enabled, calendar_busy, quiet hours with midnight-spanning), context-aware dispatch on zone changes and calendar_busy→free transitions, no-op without Firebase credentials
+- Workspace sidebar context indicator consuming SSE stream with staleness fallback
+- 4 Alembic migrations (018–021), 14 backend source files, 19 mobile TypeScript files
+- 184 backend tests (172 unit/router + 12 integration), user guide Chapter 48 (386 lines)
+- 16 CTX requirements validated, 3 deferred (offline queue, multi-device conflict UI, version checking)
 
 **What shipped in M040:**
 - User guide Chapter 7 expanded to cover all 7 renderers: Table, Cards, Graph, Kanban, Calendar, Timeline/Gantt, Map

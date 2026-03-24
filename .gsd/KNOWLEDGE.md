@@ -642,3 +642,18 @@ Accelerometer magnitude variance alone misclassifies steady-pace straight-line w
 In Expo SDK 55 (`expo-notifications ~55.0.10`), the `NotificationBehavior` interface requires `shouldShowBanner: boolean` and `shouldShowList: boolean` instead of the old `shouldShowAlert: boolean`. Using `shouldShowAlert` still compiles with a deprecation warning at runtime but causes a TypeScript error because the required fields are missing. The handler must return both `shouldShowBanner` and `shouldShowList` for foreground notification display to work.
 
 **Affected file:** `mobile/src/services/notifications.ts` — `setupNotificationHandler()` function.
+
+### Multi-service integration test fixture: wire real services on app.state, mock only externals
+
+**Discovered:** M037/S07/T01
+
+When testing cross-service integration (ContextService + RulesEngine + PersonaService + NotificationService), wire all services as real implementations against in-memory SQLite. Only mock truly external dependencies (Firebase = no-op via firebase_app=None). Wire services onto `app.state` matching the exact attribute names from `main.py` lifespan. Add dependency overrides for both `Depends()`-injected and `request.app.state`-accessed services. Disable rate limiter (`limiter.enabled = False`) on the test app to prevent interference across test methods.
+
+**Reference implementation:** `backend/tests/test_context_integration.py` — 12 tests proving full context→persona→notification loop with real services and in-memory DB.
+
+### firebase-admin no-op mode: safe when firebase_app is None
+
+**Discovered:** M037/S06/T01
+
+`NotificationService.__init__()` accepts an optional `firebase_app` parameter. When `None`, all dispatch methods become no-ops (return None without attempting to call `messaging.send()`). This means all 184 M037 tests pass without Firebase credentials, and the backend runs normally without push capability when `FIREBASE_CREDENTIALS_PATH` is empty. Import `firebase_admin.messaging` lazily inside `send_notification()` to avoid import failure when the package is installed but not initialized.
+
