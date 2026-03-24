@@ -28,6 +28,8 @@
 - `curl -X POST http://localhost:3901/api/context/update -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"location_zone":"office","activity":"stationary","time_period":"work_hours"}' ` — returns 200 with context JSON
 - `curl http://localhost:3901/api/context/current -H "Authorization: Bearer $TOKEN"` — returns context with `is_stale` field
 - Context indicator visible in workspace sidebar (browser visual check)
+- `curl -X POST http://localhost:3901/api/context/update -H "Content-Type: application/json" -d '{"location_zone":"office"}' 2>&1 | grep -q '401\|Not authenticated'` — returns 401 without auth (failure path)
+- `curl http://localhost:3901/api/context/current -H "Authorization: Bearer $TOKEN" 2>&1 | grep -q 'is_stale'` — response includes staleness diagnostic field
 
 ## Observability / Diagnostics
 
@@ -44,7 +46,7 @@
 
 ## Tasks
 
-- [ ] **T01: Context domain — model, migration, service, and broadcast** `est:1h`
+- [x] **T01: Context domain — model, migration, service, and broadcast** `est:1h`
   - Why: Foundation for all context features — SQLAlchemy model, Alembic migration, ContextService with TTL staleness, ContextBroadcast for SSE fan-out
   - Files: `backend/app/context/__init__.py`, `backend/app/context/models.py`, `backend/app/context/service.py`, `backend/app/context/broadcast.py`, `backend/migrations/versions/018_user_context.py`
   - Do: Create `backend/app/context/` package. Define `UserContext` SQLAlchemy model with `id`, `user_id` (FK users.id CASCADE), `location_zone`, `activity`, `time_period`, `calendar_event`, `calendar_busy`, `device_id`, `updated_at` columns. Write Alembic migration 018 (up creates table, down drops it). Implement `ContextService` with `update(user_id, **fields)` (upsert pattern — one row per user), `get_current(user_id)` returning dict with `is_stale` computed from `updated_at` vs configurable TTL (default 900s / 15 min). Implement `ContextBroadcast` as exact copy of `LintBroadcast` pattern with `subscribe()`, `unsubscribe()`, `publish()`.
