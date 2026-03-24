@@ -411,3 +411,271 @@ logger.debug("Failed to fetch client info for %s", client_id, exc_info=True)
 ```
 
 This is an OAuth client metadata fetch — failure means the authorization flow can't display client information. While not critical, `debug` means it's invisible in production logs. Should be `logger.info()` or `logger.warning()`.
+
+---
+
+## Type Safety
+
+### Finding TS-01: 74% return type annotation coverage overall — routers are the weakest layer (15% average)
+
+**Severity:** High
+**Effort:** Medium (incremental, file-by-file)
+**Location:** 35 router modules, 20 service modules, 30+ utility modules
+**Detection:** `rg "^\s*def " backend/app/ -n | wc -l` → 669 total; `rg "^\s*def " backend/app/ -n | rg -v "\->" | wc -l` → 173 without return annotations; coverage = 496/669 = 74%
+
+| Layer | Annotated / Total | Coverage |
+|-------|-------------------|----------|
+| Routers (35 files) | 62 / 368 | **17%** |
+| Services (20 files) | 223 / 332 | **67%** |
+| Utilities / other (30+ files) | 211 / ~300 | ~70% |
+
+Routers are the weakest layer at ~17% annotation coverage. Zero-coverage routers include `lint/router.py` (0/18), `models/router.py` (0/3), `health/router.py` (0/1), `debug/router.py` (0/2), `rdf_import/router.py` (0/8), `sparql/mirror_router.py` (0/6), `validation/router.py` (0/2), `apps/router.py` (0/2), `context/router.py` (0/4).
+
+The worst service-layer offenders: `views/service.py` (21/56 = 37%), `canvas/service.py` (2/11 = 18%), `copilot/service.py` (4/9 = 44%), `context/notification_service.py` (5/11 = 45%).
+
+The worst utility-layer offenders: `browser/events.py` (0/7), `browser/objects.py` (0/12), `browser/pages.py` (0/5), `browser/settings.py` (0/12), `copilot/conversation.py` (0/6), `copilot/personas.py` (0/9).
+
+**Recommendation:** Prioritize router annotations — FastAPI uses return type annotations for `response_model` inference when no explicit `response_model=` is given. Without annotations, OpenAPI docs show no response schema for 83% of routes, and FastAPI skips response validation entirely.
+
+### Finding TS-02: Only 45 of ~260 route decorators specify `response_model` (17%)
+
+**Severity:** Medium
+**Effort:** Medium
+**Location:** 35 router modules
+**Detection:** `rg "response_model=" backend/app/ -n | wc -l` → 45; total route decorators → ~260
+
+215 route handlers return untyped responses. FastAPI can infer response_model from the return type annotation, but per TS-01 most routers lack annotations too, so there's no response validation at all on those endpoints.
+
+The modules with best `response_model` coverage are `federation/router.py` (6/21 routes), `webid/router.py` (5/8), `models/router.py` (3/3), and `api/router.py` (3/6). The entire `browser/` module tree (objects.py, workspace.py, events.py, settings.py, search.py, apps.py, pages.py, comments.py) has zero `response_model` declarations — understandable since they return HTML via `TemplateResponse`, but JSON endpoints mixed in (e.g., `objects.py` autocomplete, events list) could benefit from response schemas.
+
+**Recommendation:** Add `response_model` to all JSON-returning endpoints first. HTML-returning routes should use `response_class=HTMLResponse` for accurate OpenAPI docs.
+
+### Finding TS-03: 158 Pydantic models — zero use of deprecated `.dict()` (positive finding)
+
+**Severity:** None (positive finding)
+**Detection:** `rg "class\s+\w+.*\(.*BaseModel" backend/app/ | wc -l` → 158; `rg "\.dict\(\)" backend/app/` → 0; `rg "\.model_dump\(\)" backend/app/ | wc -l` → 18
+
+All Pydantic serialization uses the v2 `model_dump()` API. Zero instances of the deprecated v1 `.dict()` method. The 18 `model_dump()` calls are in the correct locations (API endpoints, serialization boundaries).
+
+---
+
+## SPARQL Construction
+
+### Finding SQ-01: 131 f-string SPARQL construction sites across 25 files — no parameterized query builder
+
+**Severity:** High
+**Effort:** High (architectural — requires building SPARQL builder utility)
+**Location:** 25 files (see table below)
+**Detection:** `{ rg -n 'f"[^"]*(?:SELECT|INSERT|DELETE|CONSTRUCT|ASK)' backend/app/ --no-heading; rg -n "f'[^']*(?:SELECT|INSERT|DELETE|CONSTRUCT|ASK)" backend/app/ --no-heading; rg -n 'f"""[^"]*(?:SELECT|INSERT|DELETE|CONSTRUCT|ASK)' backend/app/ --no-heading; } | sort -u | wc -l`
+
+| File | f-string SPARQL sites |
+|------|-----------------------|
+| `views/service.py` | ~30 (largest) |
+| `sparql/query_service.py` | ~12 |
+| `services/models.py` | ~15 |
+| `ontology/service.py` | ~14 |
+| `services/webhooks.py` | ~8 |
+| `admin/router.py` | ~6 |
+| `events/store.py` | ~5 |
+| `models/registry.py` | ~6 |
+| `services/validation.py` | ~5 |
+| `sparql/mirror.py` | ~3 |
+| `sparql/migrate_queries.py` | ~6 |
+| Other (14 files) | 1–3 each |
+
+Every SPARQL query in the codebase is constructed via Python f-strings. There is no parameterized query builder, no template engine, and no central utility for safe IRI insertion. The sole escaping function is `escape_sparql_regex()` in `sparql/utils.py`, which only handles REGEX metacharacters — it does not escape IRIs, literals, or prevent SPARQL injection.
+
+### Finding SQ-02: `scope_filter` is inserted raw into SPARQL WHERE clauses — injection via saved queries
+
+**Severity:** High
+**Effort:** Medium
+**Location:** `backend/app/views/service.py:346,380,409,1320,1708,1881,2140,2399,2615,2873,3063`
+**Detection:** `rg "scope_filter" backend/app/views/service.py -n | head -10`
+
+The `scope_filter` parameter (a raw SPARQL WHERE clause body from a saved query) is interpolated directly into f-string queries at 11 sites in `views/service.py`:
+
+```python
+scope_clause = f"  {{ SELECT ?s WHERE {{ {scope_filter} }} }}\n"
+```
+
+If a saved query's WHERE body contains SPARQL injection (e.g., `} } ; DROP ALL ; #`), it could modify the outer query structure. The risk is mitigated by the fact that saved queries are authored by authenticated users who already have full SPARQL access via `/api/sparql`, but this pattern is still fragile:
+1. Future multi-user scenarios where query sharing is enabled could expose this
+2. The `vfs/strategies.py` (L94, L96) similarly injects `resolved_query_text` and `mount.sparql_scope` raw into subqueries
+
+**Recommendation:** Validate that `scope_filter` contains only WHERE body patterns (no closing braces that escape the subquery) before interpolation. A simple check: count `{` vs `}` and reject if unbalanced.
+
+### Finding SQ-03: IRI validation is duplicated across 3 independent implementations
+
+**Severity:** Medium
+**Effort:** Low
+**Location:** `backend/app/browser/_helpers.py:13`, `backend/app/canvas/router.py:40`, `backend/app/models/validator.py:55`
+**Detection:** `rg "def.*iri.*valid|def.*valid.*iri|def.*is_valid_iri" backend/app/ -n -i`
+
+Three separate functions validate IRIs:
+- `_validate_iri()` in `browser/_helpers.py` — used by browser routes
+- `_is_valid_iri()` in `canvas/router.py` — used by canvas routes
+- `validate_iri_namespacing()` in `models/validator.py` — validates namespace conventions
+
+These likely have subtly different validation rules. A single shared `validate_iri()` utility in `sparql/utils.py` or a common module would prevent drift and ensure consistent IRI handling.
+
+### Finding SQ-04: Only regex escaping exists — no IRI or literal escaping for SPARQL construction
+
+**Severity:** Medium
+**Effort:** Medium
+**Location:** `backend/app/sparql/utils.py`
+**Detection:** `rg "def " backend/app/sparql/utils.py -n` → single function: `escape_sparql_regex()`
+
+The `sparql/utils.py` module contains only one function — `escape_sparql_regex()` — which escapes REGEX metacharacters for SPARQL `REGEX()` filters. There are no utilities for:
+- **IRI escaping** — IRIs from user input or external sources are wrapped in `<{iri}>` with no validation that the string is a valid IRI (no `<`, `>`, or space characters)
+- **Literal escaping** — String literals from user input are quoted with no escaping of `"` or `\` characters
+- **Parameterized query construction** — No builder pattern, no template substitution with proper escaping
+
+This means all 131 f-string SPARQL sites trust their input. For graph IRIs (controlled by the system) this is acceptable. For user-supplied labels, descriptions, or search terms used in SPARQL string comparisons, this is a correctness risk (a description containing `"` would produce malformed SPARQL).
+
+---
+
+## Async Patterns
+
+### Finding AP-01: 6 blocking `open()` calls in async router modules
+
+**Severity:** Medium
+**Effort:** Low
+**Location:** 6 files (see table)
+**Detection:** `for f in $(fd -e py . backend/app/ --exclude tests); do has_async=$(rg "^async def " "$f" | wc -l); has_open=$(rg "\bopen\(" "$f" | rg -v "^\s*#" | wc -l); if [ "$has_async" -gt 0 ] && [ "$has_open" -gt 0 ]; then echo "$f"; fi; done`
+
+| File | Line | Context |
+|------|------|---------|
+| `admin/router.py` | 917 | `with open(manifest_path) as f:` — reads manifest JSON synchronously in async handler |
+| `apps/admin_router.py` | 110 | `with open(manifest_path) as f:` — reads manifest JSON |
+| `browser/apps.py` | 356 | `with open(manifest_path) as f:` — reads manifest JSON |
+| `notion/router.py` | 145 | `with open(zip_path, "wb") as f:` — writes uploaded zip |
+| `obsidian/router.py` | 117 | `with open(zip_path, "wb") as f:` — writes uploaded zip |
+| `services/icons.py` | 72 | `with open(manifest_path) as f:` — reads manifest JSON |
+
+These are synchronous filesystem I/O operations inside `async def` route handlers. While the impact is minimal for small files (manifest JSONs are <10KB), the `notion/router.py` and `obsidian/router.py` zip writes could block the event loop for large uploads.
+
+**Recommendation:** Replace with `aiofiles.open()` for write operations on uploaded files. The manifest reads are low-risk (small files, infrequent access) but should still use `asyncio.to_thread(json.load, f)` or `aiofiles` for consistency.
+
+### Finding AP-02: Zero `time.sleep()` calls (positive finding)
+
+**Severity:** None (positive finding)
+**Detection:** `rg "time\.sleep\(" backend/app/ -n` → 0 results
+
+No blocking `time.sleep()` calls exist anywhere in the backend application code. All delays use `asyncio.sleep()` or no delay at all.
+
+### Finding AP-03: 3 sync helper functions in async router modules — low risk
+
+**Severity:** Low
+**Effort:** Trivial
+**Location:** `backend/app/admin/router.py:1395`, `backend/app/canvas/router.py:56,175`
+**Detection:** `rg "^def [a-z]" backend/app/admin/router.py backend/app/canvas/router.py -n`
+
+| Function | File | Analysis |
+|----------|------|----------|
+| `templates_response()` | `admin/router.py:1395` | Pure template rendering helper — CPU-bound, fast, no I/O. Sync is correct. |
+| `get_canvas_service()` | `canvas/router.py:56` | FastAPI `Depends()` factory — sync factories are standard FastAPI practice. |
+| `build_property_list()` | `canvas/router.py:175` | Pure data transformation — no I/O, sync is correct. |
+
+These are all appropriate uses of sync functions in async modules. FastAPI handles sync `Depends()` factories correctly by running them in a thread pool.
+
+### Finding AP-04: 254 `request.app.state` accesses — mixed DI pattern
+
+**Severity:** Medium
+**Effort:** High (widespread refactor)
+**Location:** 35+ router and utility modules
+**Detection:** `rg "request\.app\.state\." backend/app/ -n | wc -l` → 254
+
+The codebase uses two parallel dependency injection patterns:
+1. **`Depends()` functions** in `dependencies.py` — 9 factory functions wrapping `request.app.state` access
+2. **Direct `request.app.state.X`** — 254 inline accesses scattered across routers
+
+Many routes use both patterns simultaneously: `Depends(get_triplestore_client)` for the triplestore but `request.app.state.templates` directly for Jinja2. This inconsistency means:
+- Some dependencies are testable via `app.dependency_overrides` (Depends-based)
+- Others require patching `app.state` directly (hard to mock in tests)
+- No single place shows all dependencies a route handler needs
+
+The `dependencies.py` module has factories for only 9 of the ~20+ services attached to `app.state`. Notable missing factories: `templates`, `template_service`, `view_spec_service`, `shapes_service` (exists but not used consistently), `validation_queue`, `workflow_service`.
+
+**Recommendation:** Create `Depends()` factories for all services and eliminate direct `request.app.state` access in route handlers. This is a large refactor but dramatically improves testability.
+
+---
+
+## FastAPI Patterns
+
+### Finding FP-01: Router prefix conventions are inconsistent — some have prefix, some rely on `include_router`
+
+**Severity:** Low
+**Effort:** Low
+**Location:** 30+ router definitions in `main.py`
+**Detection:** `rg "APIRouter\(" backend/app/ -n | head -30`
+
+| Pattern | Count | Example |
+|---------|-------|---------|
+| `APIRouter(prefix="/api/...", tags=[...])` | 18 | `federation/router.py` |
+| `APIRouter(tags=[...])` (no prefix) | 12 | `shell/router.py`, `federation/inbox.py`, `apps/router.py` |
+| Dual router (browser + api) | 4 | `workflow/router.py`, `persona/router.py`, `dashboard/router.py` |
+
+Routers without prefixes have their paths defined in `main.py` via `include_router(prefix=...)`. This splits route definition across two files, making it harder to determine a route's full path from the router file alone.
+
+All routers have `tags=` — no untagged routers exist (positive).
+
+### Finding FP-02: 45 of ~260 routes specify `response_model` — 83% lack response schema
+
+**Severity:** Medium
+**Effort:** Medium
+**Location:** All router modules
+**Detection:** `rg "response_model=" backend/app/ | wc -l` → 45; total routes → ~260
+
+(Cross-reference with TS-02.) The 215 routes without `response_model` produce untyped OpenAPI documentation. For JSON API endpoints this means:
+1. No automatic response serialization/filtering (fields not in the model leak through)
+2. No response validation in debug mode
+3. OpenAPI clients (code generators, Swagger UI) show empty response schemas
+
+The `browser/` module tree (HTML-returning routes) accounts for ~80 routes that legitimately don't need `response_model` — they should instead use `response_class=HTMLResponse`. The remaining ~135 JSON-returning routes without `response_model` are the actionable gap.
+
+### Finding FP-03: `dependencies.py` covers only 9 of ~20+ `app.state` services
+
+**Severity:** Medium
+**Effort:** Low (add missing factories)
+**Location:** `backend/app/dependencies.py`
+**Detection:** `rg "def get_" backend/app/dependencies.py -n`
+
+Current `Depends()` factories in `dependencies.py`:
+1. `get_triplestore_client()`
+2. `get_prefix_registry()`
+3. `get_label_service()`
+4. `get_validation_queue()`
+5. `get_validation_service()`
+6. `get_model_service()`
+7. `get_shapes_service()`
+8. `get_webhook_service()`
+9. `get_auth_service()`
+
+Missing factories for services accessed via `request.app.state` directly:
+- `templates` (Jinja2Templates) — accessed in 15+ routers
+- `template_service` — accessed in `task_templates/router.py`
+- `view_spec_service` — accessed in `models/router.py`, `browser/workspace.py`
+- `workflow_service` — accessed in `workflow/router.py`
+- `event_store` — accessed in some routers directly
+- `ops_log_service` — defined as `Depends` in `inference/router.py` but not in `dependencies.py`
+- `icon_service` — accessed in `browser/_helpers.py`
+- `settings_service` — accessed in `browser/_helpers.py`
+
+**Recommendation:** Add the missing factories to `dependencies.py` and migrate direct `request.app.state` accesses. This is the prerequisite for AP-04's consistency improvement.
+
+### Finding FP-04: No middleware ordering documentation — 5 middleware layers with implicit ordering
+
+**Severity:** Low
+**Effort:** Trivial (documentation task)
+**Location:** `backend/app/main.py`
+**Detection:** `rg "add_middleware\|\.middleware" backend/app/main.py -n`
+
+The app registers 5 middleware layers in `main.py`. FastAPI/Starlette processes middleware in reverse registration order (last registered = outermost). The current order and its implications aren't documented:
+
+1. CORS middleware
+2. Session middleware
+3. Timing middleware
+4. Rate limiting middleware
+5. Error handling middleware (exception handlers)
+
+The timing middleware wraps inside CORS but outside session — this means CORS preflight timing is captured but session resolution isn't included in the timing measurement. Whether this is intentional isn't documented.
