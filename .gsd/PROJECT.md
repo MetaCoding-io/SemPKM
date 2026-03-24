@@ -733,11 +733,14 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Linting recommendations: ruff + ESLint + Stylelint configs, ~2hr setup, ~100 auto-fixable issues
 - Pure analysis milestone — no source code changes, feeds a future execution milestone
 
-**Security Audit — OWASP & Backend Hardening** — in progress (M042)
-- S01 complete: 20 findings across A01 (Broken Access Control), A03 (Injection), A07 (Auth Failures). 33 SPARQL modules classified (5 confirmed-exploitable, 4 likely-exploitable, 24 safe). 6 unauthenticated app endpoints found. Magic link replay, unscoped API tokens, rate limiting gaps documented.
-- S02 queued: Configuration, infrastructure & supply chain findings (A05, A06, A08, A09)
-- S03 queued: Design, crypto, SSRF & final report assembly (A02, A04, A10 + Top 10)
-- Deliverable: prioritized finding report with OWASP mapping, severity, exploit scenarios, and remediation guidance — no fixes
+**Security Audit — OWASP & Backend Hardening** — complete (M042)
+- 44 findings across all 10 OWASP Top 10:2021 categories (9 High, 14 Medium, 13 Low, 8 Info)
+- 33 SPARQL modules classified (5 confirmed-exploitable, 4 likely-exploitable, 24 safe)
+- Backend hardening: secret management, session lifecycle, API tokens, debug endpoints, federation auth, file handling
+- Infrastructure: nginx headers, Docker security, deployment hardening
+- CDN dependency inventory with SRI/version pin status
+- Prioritized Top 10 remediation list with effort estimates (19–35h total)
+- Deliverable: `.gsd/milestones/M042/M042-SECURITY-FINDINGS.md` — ready for user review and remediation scoping
 
 ### Out of Scope
 
