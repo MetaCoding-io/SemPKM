@@ -69,6 +69,10 @@ Close the slice with unit tests for the object creation extraction logic (detect
 - `backend/app/copilot/models.py` — T01 output: AIPersona model
 - `backend/tests/test_ai_personas.py` — T01 output: persona tests (run for regression)
 
+## Observability Impact
+
+This task is test-only — no runtime behavior changes. The new test file (`test_object_creation_chat.py`) validates the detection and parsing signals established in T02. The verification script (`verify-s03.sh`) is a one-shot structural audit tool for future agents to confirm all S03 deliverables are intact. No new log keys, endpoints, or runtime signals are introduced.
+
 ## Expected Output
 
 - `backend/tests/test_object_creation_chat.py` — new file: unit tests for create_object extraction and command generation
