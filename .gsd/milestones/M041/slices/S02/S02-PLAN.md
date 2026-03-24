@@ -31,7 +31,7 @@
   - Verify: `grep -c "^### " .gsd/milestones/M041/S02-FRONTEND-FINDINGS.md` returns >= 3
   - Done when: CSS Architecture section exists with specific findings including hardcoded color count and theming gap analysis
 
-- [ ] **T03: Jinja2 template hygiene and htmx consistency audit** `est:35m`
+- [x] **T03: Jinja2 template hygiene and htmx consistency audit** `est:35m`
   - Why: 165 templates is a large surface. Logic-heavy templates and inconsistent htmx patterns increase maintenance cost.
   - Files: `backend/app/templates/**/*.html`
   - Do: (1) `fd -e html . backend/app/templates/ | xargs wc -l | sort -rn` to rank templates by size. (2) `rg "{% if|{% for|{% set|{% macro" backend/app/templates/ --count` to measure logic density per template. (3) Look for Python expressions in templates (`rg "\|int\b|\|float\b|\|round" backend/app/templates/`). (4) Check partial reuse — `rg "{% include" --count` vs inline duplication. (5) htmx audit: `rg "hx-post|hx-get|hx-put|hx-delete|hx-patch" backend/app/templates/ --count` for consistency. (6) Check for hardcoded URLs vs url_for. (7) `rg "hx-trigger" backend/app/templates/` to audit trigger patterns. (8) Write "Jinja2 Template Hygiene" and "htmx Consistency" sections.

@@ -3,7 +3,8 @@
 **Audit date:** 2026-03-23
 **Total frontend JS:** 18,587 LOC across 28 files
 **Total frontend CSS:** 20,495 LOC across 16 files
-**Scope:** JavaScript structure, global state, DOM/event patterns, error handling, CSS architecture & theming
+**Total Jinja2 templates:** 18,323 LOC across 165 files
+**Scope:** JavaScript structure, global state, DOM/event patterns, error handling, CSS architecture & theming, Jinja2 template hygiene, htmx consistency
 
 ---
 
@@ -438,4 +439,270 @@ rg "font-size:\s*0\.8[0-9]*rem" frontend/static/css/workspace.css -c
 
 ---
 
-*Remaining dimension sections (Jinja2 Template Hygiene, htmx Consistency) will be added by T03.*
+## Jinja2 Template Hygiene
+
+**Total templates:** 165 files, 18,323 LOC
+**Logic density:** 1,002 control-flow statements ({% if/for/set/macro %})
+**Partial reuse:** 67 {% include %} calls across 35 templates
+**Template inheritance:** 28 templates use {% extends %}, 137 are standalone partials/fragments
+
+---
+
+### Finding TPL-01: 23 templates >200 LOC with zero partial extraction ({% include %})
+
+**Severity:** Medium
+**Effort:** Medium (extract shared sections into partials)
+**Category:** DRY / Maintainability
+
+23 templates exceed 200 lines of code and contain zero `{% include %}` statements. These are monolithic templates where common patterns (form buttons, status badges, permission checks, navigation elements) are inlined rather than extracted into reusable partials.
+
+**Worst offenders:**
+
+| Template | LOC | Logic stmts | Notes |
+|----------|-----|-------------|-------|
+| dashboard_builder.html | 749 | 14 | Complex builder UI, no shared components |
+| guide.html | 578 | 5 | 55 identical hx-swap/hx-get chapter buttons |
+| admin/model_detail.html | 481 | 23 | Model admin, deeply nested conditionals |
+| workflow_builder.html | 477 | 11 | Workflow editor, parallel to dashboard_builder |
+| admin/apps/detail.html | 356 | 34 | App admin detail, highest logic density |
+| ontology/ontology_page.html | 345 | 15 | 6 tabbed sections, each could be a partial |
+| admin/models.html | 333 | 18 | Model listing with inline table logic |
+| forms/object_form.html | 312 | 28 | Object CRUD form with inline field rendering |
+| docs_page.html | 286 | 3 | 26 identical hx-swap/hx-get doc chapter buttons |
+| admin/model_ontology_diagram.html | 281 | 3 | SVG diagram generation |
+| indieauth/consent.html | 275 | 7 | OAuth consent screen |
+| ontology/edit_class_form.html | 266 | 13 | Class editor form |
+| _webid_settings.html | 265 | 6 | WebID settings panel |
+
+**Detection command:**
+```bash
+for f in $(fd -e html . backend/app/templates/); do
+  lines=$(wc -l < "$f")
+  if [ "$lines" -gt 200 ]; then
+    inc=$(rg -c "\{%\s*include" "$f" 2>/dev/null || echo "0")
+    if [ "$inc" = "0" ]; then
+      echo "  $f ($lines LOC, 0 includes)"
+    fi
+  fi
+done
+```
+
+---
+
+### Finding TPL-02: Computation logic in templates via namespace() hacks and .append() side-effects
+
+**Severity:** High
+**Effort:** Medium (move logic to Python view functions)
+**Category:** Separation of Concerns / Testability
+
+7 templates use Jinja2's `namespace()` workaround (to mutate variables across scopes) and 10 use `.append()` side-effects to build lists in-place. This is computation that belongs in the Python view function, not in the template. These patterns are untestable, hard to debug, and fragile.
+
+**`namespace()` usage (mutating variables across scopes):**
+
+| Template | Line | Purpose |
+|----------|------|---------|
+| object_read.html | 44 | `namespace(has_values=false)` — check if any property has values |
+| object_read.html | 69 | `namespace(any_prop=false)` — check if any property exists |
+| object_form.html | 81 | `namespace(required_props=[], optional_ungrouped=[])` — partition properties |
+| object_form.html | 110 | `namespace(group_props=[])` — filter properties per group |
+| object_tab.html | 24 | `namespace(n=0)` — count items |
+| object_embed.html | 22 | `namespace(any_prop=false)` — duplicate of object_read.html logic |
+| notion/.../property_mapping.html | 45 | `namespace(iri=None)` — auto-match lookup |
+
+**`.append()` side-effects (building lists in templates):**
+
+| Template | Line | Purpose |
+|----------|------|---------|
+| dashboard_builder.html | 59 | Group block types by category |
+| object_read.html | 54 | Build form_paths list |
+| object_embed.html | 18 | Build form_paths list (duplicate) |
+| saved_queries_explorer.html | 9,11 | Split queries into model/user lists |
+| _context_rules.html | 49 | Build has_conds list (boolean accumulator hack) |
+| admin/models.html | 195,198 | Flatten property lists |
+| notion/.../scan_results.html | 150 | Group warnings by category |
+| obsidian/.../scan_results.html | 145 | Group warnings by category |
+
+**Why this matters:** The `object_read.html` template has 45 logic statements in 284 lines — a 15.8% logic density — performing property filtering, path comparison, source attribution (inferred vs mirrored), and empty-state detection. All of this could be precomputed in the view function and passed as simple template variables.
+
+**Detection command:**
+```bash
+rg "namespace\(" backend/app/templates/ -n
+rg "\.append\(" backend/app/templates/ -n
+```
+
+---
+
+### Finding TPL-03: Notion/Obsidian importer templates are near-duplicate sets (9 matching files)
+
+**Severity:** Medium
+**Effort:** Medium (extract shared base templates with importer-specific blocks)
+**Category:** DRY / Maintenance Cost
+
+The Notion and Obsidian importers have 9 templates with identical filenames and largely similar structure. The total diff surface is significant but the structural patterns are the same — a shared base template with importer-specific slots would eliminate ~800 LOC of duplication.
+
+| Template | Notion LOC | Obsidian LOC | Diff lines | Similarity |
+|----------|-----------|-------------|------------|------------|
+| upload_form.html | 90 | 90 | 18 | ~90% identical |
+| import_progress.html | 109 | 109 | 10 | ~95% identical |
+| step_bar.html | 28 | 27 | 7 | ~87% identical |
+| scan_trigger.html | 95 | 89 | 14 | ~92% identical |
+| type_mapping.html | 125 | 89 | 80 | ~63% similar |
+| property_mapping.html | 145 | 125 | 60 | ~78% similar |
+| import_summary.html | 140 | 138 | 70 | ~75% similar |
+| preview.html | 152 | 111 | 95 | ~64% similar |
+| scan_results.html | 213 | 192 | 183 | ~55% similar |
+
+The most similar templates (upload_form, import_progress, step_bar, scan_trigger) are >87% identical and are strong candidates for extraction. The less similar ones (scan_results, preview) have importer-specific fields but share the same HTML structure.
+
+**Detection command:**
+```bash
+for tpl in upload_form.html import_progress.html step_bar.html scan_trigger.html type_mapping.html property_mapping.html import_summary.html preview.html scan_results.html; do
+  diff backend/app/templates/notion/partials/$tpl backend/app/templates/obsidian/partials/$tpl | grep -c "^[<>]"
+done
+```
+
+---
+
+### Finding TPL-04: Zero url_for() usage — all 349 URLs are hardcoded strings
+
+**Severity:** Medium
+**Effort:** Large (architectural decision — url_for or path constants)
+**Category:** Maintainability / Refactoring Safety
+
+Across 165 templates, there are 349 hardcoded URL references (59 `href="/"`, 19 `action="/"`, 212 `hx-get="/"`, 49 `hx-post="/"`, 10 `hx-delete="/"`) and **zero** `url_for()` calls. Every route reference is a raw string like `hx-get="/browser/objects/{{ iri }}"`.
+
+This means renaming any backend route requires updating every template that references it — a mechanical but error-prone process with no compiler assistance.
+
+**Mitigating factor:** 107 of the 349 URLs contain Jinja2 `{{ }}` expressions (dynamic segments), meaning they're already coupled to the view's context variables. Jinja2's `url_for()` wouldn't eliminate this coupling but would make route-name changes safer.
+
+**Breakdown by htmx method:**
+
+| Method | Count | Notes |
+|--------|-------|-------|
+| hx-get | 212 | Primary htmx interaction pattern |
+| href | 59 | Static navigation links |
+| hx-post | 49 | Form submissions, create/update |
+| action | 19 | Traditional form submissions |
+| hx-delete | 10 | Delete operations |
+
+**Detection command:**
+```bash
+rg '(href|action|hx-get|hx-post|hx-put|hx-delete|hx-patch)="/' backend/app/templates/ --count | awk -F: '{sum+=$2} END{print sum}'
+rg "url_for" backend/app/templates/ --count
+```
+
+---
+
+## htmx Consistency
+
+**Total htmx interactions:** 283 (224 hx-get, 49 hx-post, 10 hx-delete, 0 hx-put, 0 hx-patch)
+**Explicit hx-swap:** 265 (of which 242 on elements without hx-get/hx-post on the same line — separate targets)
+**Explicit hx-trigger:** 82
+
+---
+
+### Finding HTMX-01: 88% of hx-swap is innerHTML, but no documented convention exists
+
+**Severity:** Low
+**Effort:** Small (document convention)
+**Category:** Consistency / Developer Guidance
+
+Of 265 explicit `hx-swap` values:
+
+| Strategy | Count | % | Usage |
+|----------|-------|---|-------|
+| innerHTML | 230 | 86.8% | Content replacement inside container |
+| outerHTML | 21 | 7.9% | Full element replacement (admin CRUD) |
+| none | 11 | 4.2% | Fire-and-forget (import step navigation) |
+| outerHTML swap:0.3s | 2 | 0.8% | Animated replacement (models.html only) |
+| beforeend | 1 | 0.4% | Append (event_log.html only) |
+
+The overwhelmingly consistent use of `innerHTML` is good — but 242 htmx interactions rely on the default swap behavior (no explicit `hx-swap` attribute). Since htmx's default is `innerHTML`, this works, but explicit is better than implicit for maintainability.
+
+**Convention inconsistency:** `admin/models.html` uses `outerHTML swap:0.3s` (transition timing) in 2 places but no other template uses swap transitions. Either adopt transitions broadly or remove this outlier.
+
+**Detection command:**
+```bash
+rg 'hx-swap="([^"]*)"' backend/app/templates/ -or '$1' | sed 's/.*://' | sort | uniq -c | sort -rn
+```
+
+---
+
+### Finding HTMX-02: Inconsistent hx-trigger patterns — 14 unique trigger types, mixed conventions
+
+**Severity:** Medium
+**Effort:** Small-Medium (standardize on fewer patterns)
+**Category:** Consistency / Predictability
+
+82 explicit `hx-trigger` values use 14 distinct patterns:
+
+| Trigger | Count | Usage |
+|---------|-------|-------|
+| change | 21 | Select/dropdown changes |
+| click once | 16 | Tree expand/collapse (lazy load) |
+| load | 14 | Initial content load for panels |
+| custom events from:body | 9 | Cross-component communication |
+| input changed delay:300ms | 9 | Search/filter debounce |
+| intersect once | 3 | Lazy load on scroll into view |
+| revealed / revealed once | 3 | Similar to intersect — redundant? |
+| keyup changed delay:300ms, focus | 2 | Search with focus trigger |
+| load, every 60s | 1 | Polling (inbox_panel only) |
+| loadForm / loadPropertyForm | 2 | Custom event names (ontology editor) |
+| input changed delay:200ms, focus | 1 | Different debounce than 300ms variant |
+| focus | 1 | Standalone focus trigger |
+
+**Issues:**
+1. **Debounce inconsistency:** `_field.html` uses `delay:200ms` while all other search inputs use `delay:300ms`. No documented standard debounce interval.
+2. **`revealed` vs `intersect once`:** Both achieve lazy loading but use different htmx mechanisms. `intersect once` is the newer, documented approach; `revealed` is a legacy trigger.
+3. **Custom event names** (`loadForm`, `loadPropertyForm`, `workflowsRefreshed`, `dashboardsRefreshed`, etc.) are ad hoc with no naming convention or registry. Finding all listeners for `classCreated` requires grepping templates.
+4. **183 htmx interactions have NO explicit hx-trigger** — they rely on the element's natural event (click for buttons/links, submit for forms). This is usually correct but makes the trigger behavior implicit.
+
+**Detection command:**
+```bash
+rg 'hx-trigger="([^"]*)"' backend/app/templates/ -or '$1' | sed 's/.*://' | sort | uniq -c | sort -rn
+```
+
+---
+
+### Finding HTMX-03: guide.html and docs_page.html contain 81 near-identical htmx button blocks
+
+**Severity:** Low
+**Effort:** Small (extract into a Jinja2 macro or loop)
+**Category:** DRY / Maintainability
+
+`guide.html` has 55 and `docs_page.html` has 26 nearly identical `<button>` elements with `hx-get`, `hx-target`, `hx-swap`, and `onclick` attributes. Each button loads a chapter/doc section. The only variation is the URL path, button text, and icon.
+
+**Example (one of 55 identical patterns in guide.html):**
+```html
+<button class="chapter-btn" hx-get="/guide/chapter/..." hx-target="#guide-content" hx-swap="innerHTML" onclick="...">
+  <i data-lucide="..."></i> Chapter Title
+</button>
+```
+
+These could be generated from a Jinja2 loop over a chapters list variable passed from the view function, reducing 550+ lines to ~15 lines.
+
+**Detection command:**
+```bash
+rg 'hx-swap=' backend/app/templates/guide.html -c
+rg 'hx-swap=' backend/app/templates/browser/docs_page.html -c
+```
+
+---
+
+### Finding HTMX-04: No hx-put or hx-patch usage — all mutations via hx-post
+
+**Severity:** Low
+**Effort:** N/A (informational — may be intentional)
+**Category:** REST Semantics / API Design
+
+All 49 mutation htmx calls use `hx-post`. Zero use `hx-put` (full update) or `hx-patch` (partial update). This is common in htmx applications where the backend determines create-vs-update from the presence of an identifier, but it means the template doesn't communicate intent — every mutation looks the same to a developer reading the HTML.
+
+The 10 `hx-delete` calls do follow REST semantics correctly.
+
+**Detection command:**
+```bash
+rg -c 'hx-put=' backend/app/templates/   # 0
+rg -c 'hx-patch=' backend/app/templates/  # 0
+rg -c 'hx-post=' backend/app/templates/   # 49
+rg -c 'hx-delete=' backend/app/templates/ # 10
+```
