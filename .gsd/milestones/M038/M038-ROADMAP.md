@@ -54,7 +54,7 @@ This milestone is complete only when all are true:
 - [x] **S01: Mental Model + Podcast Sources** `risk:high` `depends:[]`
   > After this: user installs the media-scheduler model, opens the Media Scheduler app from the sidebar, subscribes to a podcast RSS feed, and sees discovered episodes listed as MediaItem objects in the triplestore. Podcast polling runs as a scheduled task.
 
-- [ ] **S02: Schedule Rules Engine + Daily Plan Generation** `risk:high` `depends:[S01]`
+- [x] **S02: Schedule Rules Engine + Daily Plan Generation** `risk:high` `depends:[S01]`
   > After this: user creates schedule rules (e.g. "when commuting, play podcasts") via a rule builder UI, triggers daily plan generation, and sees an ordered time-slot plan for today. Plan is stored as RDF and visible in the app's Today view.
 
 - [ ] **S03: YouTube Integration** `risk:medium` `depends:[S01]`
