@@ -63,7 +63,7 @@ This milestone is complete only when all are true:
 - [x] **S04: Spotify Integration** `risk:high` `depends:[S01]`
   > After this: user connects their Spotify account via OAuth, selects playlists as media sources, and Spotify tracks appear as MediaItems. Premium users see playback control hints; Free users see deep links.
 
-- [ ] **S05: Context-Driven Adaptation + Mobile** `risk:medium` `depends:[S02,S04]`
+- [x] **S05: Context-Driven Adaptation + Mobile** `risk:medium` `depends:[S02,S04]`
   > After this: context changes from M037 trigger real-time plan re-evaluation. The daily plan adapts when the user starts commuting or enters focus mode. The mobile app displays the current media suggestion with deep links to Spotify/YouTube/podcast apps.
 
 - [ ] **S06: Stats Dashboard + Polish** `risk:low` `depends:[S05]`
