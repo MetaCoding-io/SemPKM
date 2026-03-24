@@ -45,7 +45,7 @@
   - Verify: `cd mobile && npx tsc --noEmit` exits 0; `cd mobile && npx expo start --no-dev --non-interactive` produces "Metro waiting on" within 15s
   - Done when: Expo project exists in `mobile/`, TypeScript compiles, Metro bundler starts without errors
 
-- [ ] **T02: API Client & Auth Provider** `est:30m`
+- [x] **T02: API Client & Auth Provider** `est:30m`
   - Why: The API client and auth state management are pure TypeScript modules with no UI — isolating them makes T03/T04 simpler and easier to test. The client mirrors the proven extension `SemPKMClient` pattern.
   - Files: `mobile/src/api/client.ts`, `mobile/src/hooks/useStorageState.ts`, `mobile/src/ctx.tsx`
   - Do: Create `client.ts` as a TypeScript class with constructor(instanceUrl, apiKey), private headers(), async request<T>(path, options), connect(), getCurrentContext(), updateContext(). Define TypeScript interfaces for InstanceInfo, ContextResponse, ContextUpdate matching the backend Pydantic models. Create custom SemPKMError class. Create `useStorageState.ts` hook wrapping expo-secure-store (getItemAsync/setItemAsync/deleteItemAsync) with React state sync. Create `ctx.tsx` SessionProvider with signIn(url, apiKey)/signOut/session/isLoading via React Context, storing JSON `{instanceUrl, apiKey}` in secure storage. Follow the Expo docs SessionProvider pattern.

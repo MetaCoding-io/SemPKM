@@ -54,6 +54,13 @@ Create the TypeScript API client, secure storage hook, and SessionProvider — t
 - `grep -q "SessionProvider" mobile/src/ctx.tsx` — auth provider exists
 - `grep -q "SecureStore" mobile/src/hooks/useStorageState.ts` — uses secure store
 
+## Observability Impact
+
+- **API client errors:** `SemPKMError` carries `status` (HTTP code, or 0 for network errors) and `detail` (parsed backend message). Callers surface these to the user — never swallowed silently.
+- **Auth state inspection:** Session stored in `expo-secure-store` under key `session`. A null session means unauthenticated. JSON payload shape: `{ instanceUrl, apiKey }`. Use `parseSession()` to safely decode.
+- **Storage load state:** `useStorageState` returns `[isLoading, value]` — `isLoading=true` until the initial SecureStore read completes. Screens should show a loading indicator during this phase to avoid flash-of-wrong-state.
+- **Context-missing guard:** `useSession()` throws an explicit error if called outside `<SessionProvider>`, providing a clear diagnostic message for wiring mistakes.
+
 ## Inputs
 
 - `mobile/package.json` — Expo project with expo-secure-store installed (from T01)
