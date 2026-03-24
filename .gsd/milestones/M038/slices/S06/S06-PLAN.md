@@ -27,7 +27,7 @@
 
 ## Tasks
 
-- [ ] **T01: Stats service, route, chart template, and status polish** `est:45m`
+- [x] **T01: Stats service, route, chart template, and status polish** `est:45m`
   - Why: Delivers the core stats dashboard — SPARQL queries, route handler, Chart.js template, tab wiring, status CSS polish, and tests.
   - Files: `apps/media-scheduler/services/stats_service.py`, `apps/media-scheduler/app.py`, `apps/media-scheduler/frontend/templates/main.html`, `apps/media-scheduler/frontend/templates/stats.html`, `apps/media-scheduler/frontend/static/styles.css`, `backend/tests/test_media_scheduler.py`
   - Do: Create stats_service.py with three SPARQL aggregate query builders (hours-by-type, top-sources, weekly-trends). Add `/_fragments/stats` route to app.py that calls the service and renders stats.html. Create stats.html with Chart.js CDN lazy-load and three charts. Add Stats tab button to main.html. Polish status badge CSS. Add unit tests for query building, result parsing, and route handler.
@@ -53,3 +53,10 @@
 - `docs/guide/README.md`
 - `docs/guide/index.html`
 - `backend/app/templates/guide.html`
+
+## Observability / Diagnostics
+
+- **Stats route logging:** `stats_fragment` logs `stats.rendered hours=N top=N weekly=N` on each render — visible in app container logs.
+- **Query failure resilience:** Each stats query function catches exceptions and logs `stats.<function_name> query failed: <error>` before returning `[]`. The stats route never 500s — it renders the template with empty data, and Chart.js shows "No data" empty states.
+- **Inspection surface:** Hit `GET /app/media-scheduler/_fragments/stats` directly — the rendered HTML includes `{{ stats_json }}` with the full data payload, inspectable in browser devtools.
+- **Redaction:** No user secrets in stats data — only aggregate counts and source type strings.

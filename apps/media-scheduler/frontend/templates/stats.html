@@ -1,0 +1,176 @@
+<div class="ms-stats-view">
+  <div class="ms-stats-header">
+    <h3>Listening Stats</h3>
+  </div>
+
+  <div class="ms-stats-grid">
+    <div class="ms-stats-card">
+      <h4>Hours by Category</h4>
+      <canvas id="ms-chart-hours" width="400" height="200"></canvas>
+      <div class="ms-stats-empty" id="ms-hours-empty" style="display:none;">
+        No listening data yet.
+      </div>
+    </div>
+
+    <div class="ms-stats-card">
+      <h4>Top Sources</h4>
+      <canvas id="ms-chart-top-sources" width="400" height="200"></canvas>
+      <div class="ms-stats-empty" id="ms-top-sources-empty" style="display:none;">
+        No completion data yet.
+      </div>
+    </div>
+
+    <div class="ms-stats-card ms-stats-card-wide">
+      <h4>Weekly Activity</h4>
+      <canvas id="ms-chart-weekly" width="800" height="200"></canvas>
+      <div class="ms-stats-empty" id="ms-weekly-empty" style="display:none;">
+        No activity data yet.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var statsJson = '{{ stats_json | safe }}';
+  var stats;
+  try {
+    stats = JSON.parse(statsJson);
+  } catch (e) {
+    console.error('media-scheduler: failed to parse stats JSON', e);
+    return;
+  }
+
+  var CHART_COLORS = [
+    '#0d9488', '#2563eb', '#059669', '#ca8a04',
+    '#dc2626', '#7c3aed', '#db2777', '#ea580c',
+    '#0891b2', '#4f46e5'
+  ];
+
+  function _boot() {
+    _renderHoursChart(stats.hours_by_source_type || []);
+    _renderTopSourcesChart(stats.top_sources || []);
+    _renderWeeklyChart(stats.weekly_trends || []);
+  }
+
+  function _renderHoursChart(data) {
+    var canvas = document.getElementById('ms-chart-hours');
+    if (!canvas) return;
+    if (!data.length) {
+      canvas.style.display = 'none';
+      document.getElementById('ms-hours-empty').style.display = '';
+      return;
+    }
+    new Chart(canvas.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: data.map(function(d) { return d.source_type; }),
+        datasets: [{
+          label: 'Hours',
+          data: data.map(function(d) { return d.hours; }),
+          backgroundColor: data.map(function(_, i) { return CHART_COLORS[i % CHART_COLORS.length]; }),
+          borderRadius: 4
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { beginAtZero: true, title: { display: true, text: 'Hours' } }
+        }
+      }
+    });
+  }
+
+  function _renderTopSourcesChart(data) {
+    var canvas = document.getElementById('ms-chart-top-sources');
+    if (!canvas) return;
+    if (!data.length) {
+      canvas.style.display = 'none';
+      document.getElementById('ms-top-sources-empty').style.display = '';
+      return;
+    }
+    new Chart(canvas.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: data.map(function(d) {
+          var t = d.source_title;
+          return t.length > 30 ? t.substring(0, 27) + '…' : t;
+        }),
+        datasets: [{
+          label: 'Completions',
+          data: data.map(function(d) { return d.count; }),
+          backgroundColor: data.map(function(_, i) { return CHART_COLORS[i % CHART_COLORS.length]; }),
+          borderRadius: 4
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { beginAtZero: true, title: { display: true, text: 'Completions' } }
+        }
+      }
+    });
+  }
+
+  function _renderWeeklyChart(data) {
+    var canvas = document.getElementById('ms-chart-weekly');
+    if (!canvas) return;
+    if (!data.length) {
+      canvas.style.display = 'none';
+      document.getElementById('ms-weekly-empty').style.display = '';
+      return;
+    }
+    new Chart(canvas.getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: data.map(function(d) {
+          // Format YYYY-MM-DD to shorter label
+          var parts = d.date.split('-');
+          return parts[1] + '/' + parts[2];
+        }),
+        datasets: [{
+          label: 'Completions',
+          data: data.map(function(d) { return d.count; }),
+          borderColor: '#0d9488',
+          backgroundColor: 'rgba(13, 148, 136, 0.1)',
+          fill: true,
+          tension: 0.3,
+          pointRadius: 4,
+          pointBackgroundColor: '#0d9488'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { stepSize: 1 },
+            title: { display: true, text: 'Completions' }
+          }
+        }
+      }
+    });
+  }
+
+  // Lazy-load Chart.js from CDN
+  if (typeof Chart !== 'undefined') {
+    _boot();
+  } else {
+    var s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4/dist/chart.umd.min.js';
+    s.onload = _boot;
+    s.onerror = function() {
+      console.error('media-scheduler: failed to load Chart.js CDN');
+    };
+    document.head.appendChild(s);
+  }
+})();
+</script>

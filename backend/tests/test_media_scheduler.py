@@ -76,6 +76,24 @@ on_startup = _app_mod.on_startup
 on_shutdown = _app_mod.on_shutdown
 VALID_ENTRY_STATUSES = _app_mod.VALID_ENTRY_STATUSES
 today_fragment = _app_mod.today_fragment
+stats_fragment = _app_mod.stats_fragment
+
+# ── Import stats_service via file path ──
+
+_stats_path = (
+    Path(__file__).resolve().parent.parent.parent
+    / "apps" / "media-scheduler" / "services" / "stats_service.py"
+)
+_stats_spec = importlib.util.spec_from_file_location("stats_service_test", str(_stats_path))
+_stats_mod = importlib.util.module_from_spec(_stats_spec)
+_stats_spec.loader.exec_module(_stats_mod)
+
+get_hours_by_source_type = _stats_mod.get_hours_by_source_type
+get_top_sources = _stats_mod.get_top_sources
+get_weekly_trends = _stats_mod.get_weekly_trends
+HOURS_BY_SOURCE_TYPE_SPARQL = _stats_mod.HOURS_BY_SOURCE_TYPE_SPARQL
+TOP_SOURCES_SPARQL = _stats_mod.TOP_SOURCES_SPARQL
+WEEKLY_TRENDS_SPARQL = _stats_mod.WEEKLY_TRENDS_SPARQL
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -4753,3 +4771,230 @@ class TestTodayTemplateActions:
             assert entries is not None
             assert len(entries) == 1
             assert entries[0]["iri"] == "urn:sempkm:entry:abc123"
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Stats service tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestStatsService:
+    """Tests for stats_service.py query functions."""
+
+    def _make_ctx(self, bindings=None):
+        ctx = MagicMock()
+        ctx.graph = MagicMock()
+        ctx.graph.query = AsyncMock(
+            return_value={"results": {"bindings": bindings or []}}
+        )
+        return ctx
+
+    # ── get_hours_by_source_type ──
+
+    @pytest.mark.asyncio
+    async def test_stats_hours_empty(self):
+        """Returns empty list when no completed entries exist."""
+        ctx = self._make_ctx(bindings=[])
+        result = await get_hours_by_source_type(ctx)
+        assert result == []
+
+    @pytest.mark.asyncio
+    async def test_stats_hours_aggregation(self):
+        """Correctly converts seconds to hours from SPARQL bindings."""
+        bindings = [
+            {"sourceType": {"value": "podcast"}, "totalSeconds": {"value": "7200"}},
+            {"sourceType": {"value": "youtube"}, "totalSeconds": {"value": "3600"}},
+        ]
+        ctx = self._make_ctx(bindings=bindings)
+        result = await get_hours_by_source_type(ctx)
+        assert len(result) == 2
+        assert result[0] == {"source_type": "podcast", "hours": 2.0}
+        assert result[1] == {"source_type": "youtube", "hours": 1.0}
+
+    @pytest.mark.asyncio
+    async def test_stats_hours_fractional(self):
+        """Handles fractional hours (e.g. 5400s = 1.5h)."""
+        bindings = [
+            {"sourceType": {"value": "spotify"}, "totalSeconds": {"value": "5400"}},
+        ]
+        ctx = self._make_ctx(bindings=bindings)
+        result = await get_hours_by_source_type(ctx)
+        assert result[0]["hours"] == 1.5
+
+    @pytest.mark.asyncio
+    async def test_stats_hours_query_failure(self):
+        """Returns empty list on query failure."""
+        ctx = self._make_ctx()
+        ctx.graph.query = AsyncMock(side_effect=Exception("SPARQL error"))
+        result = await get_hours_by_source_type(ctx)
+        assert result == []
+
+    @pytest.mark.asyncio
+    async def test_stats_hours_sparql_contains_group_by(self):
+        """SPARQL template contains GROUP BY sourceType."""
+        assert "GROUP BY ?sourceType" in HOURS_BY_SOURCE_TYPE_SPARQL
+
+    @pytest.mark.asyncio
+    async def test_stats_hours_sparql_filters_completed(self):
+        """SPARQL template filters on entryStatus = completed."""
+        assert '"completed"' in HOURS_BY_SOURCE_TYPE_SPARQL
+
+    # ── get_top_sources ──
+
+    @pytest.mark.asyncio
+    async def test_stats_top_sources_empty(self):
+        """Returns empty list when no data."""
+        ctx = self._make_ctx(bindings=[])
+        result = await get_top_sources(ctx)
+        assert result == []
+
+    @pytest.mark.asyncio
+    async def test_stats_top_sources_parsing(self):
+        """Parses source titles and counts from bindings."""
+        bindings = [
+            {"sourceTitle": {"value": "My Podcast"}, "completionCount": {"value": "15"}},
+            {"sourceTitle": {"value": "Tech Talk"}, "completionCount": {"value": "8"}},
+        ]
+        ctx = self._make_ctx(bindings=bindings)
+        result = await get_top_sources(ctx, limit=10)
+        assert len(result) == 2
+        assert result[0] == {"source_title": "My Podcast", "count": 15}
+        assert result[1] == {"source_title": "Tech Talk", "count": 8}
+
+    @pytest.mark.asyncio
+    async def test_stats_top_sources_limit_injected(self):
+        """Limit parameter is injected into the SPARQL query."""
+        ctx = self._make_ctx()
+        await get_top_sources(ctx, limit=5)
+        call_args = ctx.graph.query.call_args[0][0]
+        assert "LIMIT 5" in call_args
+
+    @pytest.mark.asyncio
+    async def test_stats_top_sources_query_failure(self):
+        """Returns empty list on query failure."""
+        ctx = self._make_ctx()
+        ctx.graph.query = AsyncMock(side_effect=Exception("timeout"))
+        result = await get_top_sources(ctx)
+        assert result == []
+
+    @pytest.mark.asyncio
+    async def test_stats_top_sources_sparql_contains_group_by(self):
+        """SPARQL template has GROUP BY sourceTitle."""
+        assert "GROUP BY ?sourceTitle" in TOP_SOURCES_SPARQL
+
+    # ── get_weekly_trends ──
+
+    @pytest.mark.asyncio
+    async def test_stats_weekly_trends_empty(self):
+        """Returns zero-filled days when no data."""
+        ctx = self._make_ctx(bindings=[])
+        result = await get_weekly_trends(ctx, days=3)
+        assert len(result) == 3
+        assert all(item["count"] == 0 for item in result)
+
+    @pytest.mark.asyncio
+    async def test_stats_weekly_trends_fills_zeros(self):
+        """Fills missing days with zero counts."""
+        from datetime import date, timedelta
+        today = date.today()
+        yesterday = (today - timedelta(days=1)).isoformat()
+        bindings = [
+            {"planDate": {"value": yesterday}, "completionCount": {"value": "3"}},
+        ]
+        ctx = self._make_ctx(bindings=bindings)
+        result = await get_weekly_trends(ctx, days=3)
+        assert len(result) == 3
+        # Yesterday should have count 3
+        yesterday_entry = [r for r in result if r["date"] == yesterday]
+        assert len(yesterday_entry) == 1
+        assert yesterday_entry[0]["count"] == 3
+        # Other days should be 0
+        other = [r for r in result if r["date"] != yesterday]
+        assert all(r["count"] == 0 for r in other)
+
+    @pytest.mark.asyncio
+    async def test_stats_weekly_trends_chronological_order(self):
+        """Results are in chronological order."""
+        ctx = self._make_ctx(bindings=[])
+        result = await get_weekly_trends(ctx, days=5)
+        dates = [r["date"] for r in result]
+        assert dates == sorted(dates)
+
+    @pytest.mark.asyncio
+    async def test_stats_weekly_trends_query_failure(self):
+        """Returns empty list on query failure."""
+        ctx = self._make_ctx()
+        ctx.graph.query = AsyncMock(side_effect=Exception("error"))
+        result = await get_weekly_trends(ctx)
+        assert result == []
+
+    @pytest.mark.asyncio
+    async def test_stats_weekly_trends_sparql_filters_completed(self):
+        """SPARQL template filters on completed status."""
+        assert '"completed"' in WEEKLY_TRENDS_SPARQL
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Stats route tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestStatsRoute:
+    """Tests for GET /_fragments/stats route."""
+
+    @pytest.mark.asyncio
+    async def test_stats_route_renders_template(self):
+        """Stats route calls render_template with stats.html."""
+        req, ctx = _make_request()
+        # Mock graph.query for the three stats queries
+        ctx.graph.query = AsyncMock(
+            return_value={"results": {"bindings": []}}
+        )
+        resp = await stats_fragment(req)
+        assert resp.status_code == 200
+        # render_template called with stats.html
+        ctx.render_template.assert_called_once()
+        call_args = ctx.render_template.call_args
+        assert call_args[0][0] == "stats.html"
+
+    @pytest.mark.asyncio
+    async def test_stats_route_passes_json(self):
+        """Stats route passes stats_json to template."""
+        req, ctx = _make_request()
+        ctx.graph.query = AsyncMock(
+            return_value={"results": {"bindings": []}}
+        )
+        await stats_fragment(req)
+        call_kwargs = ctx.render_template.call_args[1]
+        assert "stats_json" in call_kwargs
+        # Verify it's valid JSON
+        data = json.loads(call_kwargs["stats_json"])
+        assert "hours_by_source_type" in data
+        assert "top_sources" in data
+        assert "weekly_trends" in data
+
+    @pytest.mark.asyncio
+    async def test_stats_route_with_data(self):
+        """Stats route correctly passes populated data."""
+        req, ctx = _make_request()
+        # Return different data for the three queries
+        call_count = 0
+        async def side_effect_query(sparql):
+            nonlocal call_count
+            call_count += 1
+            if "SUM" in sparql:
+                return {"results": {"bindings": [
+                    {"sourceType": {"value": "podcast"}, "totalSeconds": {"value": "3600"}}
+                ]}}
+            elif "COUNT" in sparql and "sourceTitle" in sparql:
+                return {"results": {"bindings": [
+                    {"sourceTitle": {"value": "Test Pod"}, "completionCount": {"value": "5"}}
+                ]}}
+            else:
+                return {"results": {"bindings": []}}
+        ctx.graph.query = AsyncMock(side_effect=side_effect_query)
+        await stats_fragment(req)
+        call_kwargs = ctx.render_template.call_args[1]
+        data = json.loads(call_kwargs["stats_json"])
+        assert data["hours_by_source_type"] == [{"source_type": "podcast", "hours": 1.0}]
+        assert data["top_sources"] == [{"source_title": "Test Pod", "count": 5}]
