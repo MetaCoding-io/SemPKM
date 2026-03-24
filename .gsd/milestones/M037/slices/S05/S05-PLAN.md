@@ -32,7 +32,7 @@
   - Verify: `cd mobile && npx tsc --noEmit` passes, `grep -q 'expo-calendar' mobile/app.json` passes
   - Done when: `calendar.ts` exports `requestCalendarPermission` and `getCurrentCalendarEvent`, both `expo-calendar` and `expo-sensors` are in package.json, and TypeScript compiles clean
 
-- [ ] **T02: Activity detection service with accelerometer and pedometer** `est:45m`
+- [x] **T02: Activity detection service with accelerometer and pedometer** `est:45m`
   - Why: CTX-13 requires detecting stationary/walking/driving activity. This builds the activity service using Accelerometer magnitude variance over a sliding window, supplemented by Pedometer step counting to confirm walking.
   - Files: `mobile/src/services/activity.ts`
   - Do: Implement `activity.ts` with `ActivityService` class (or functional module) that subscribes to Accelerometer at 1Hz, maintains a 10-sample sliding window of magnitude values, computes variance to classify activity (variance < 0.01 → stationary, < 0.15 → walking, ≥ 0.15 → driving). Supplement with `Pedometer.watchStepCount()` — increasing steps override to "walking". Check `Accelerometer.isAvailableAsync()` and degrade to "unknown" if unavailable. Export `startActivityMonitoring()`, `stopActivityMonitoring()`, and `getCurrentActivity()`.
