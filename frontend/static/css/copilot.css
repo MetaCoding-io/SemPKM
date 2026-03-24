@@ -731,3 +731,242 @@
 .copilot-not-configured a:hover {
   text-decoration: underline;
 }
+
+/* ===========================================================================
+   Persona Selector
+   =========================================================================== */
+
+.copilot-persona-selector {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.copilot-persona-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  transition: background 0.12s, border-color 0.12s;
+  max-width: 160px;
+}
+
+.copilot-persona-btn:hover {
+  background: var(--color-surface-hover, var(--color-surface-raised));
+  border-color: var(--color-accent);
+}
+
+.copilot-persona-btn svg {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  stroke: currentColor;
+}
+
+.copilot-persona-icon {
+  font-size: 0.85rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.copilot-persona-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --- Persona Dropdown --- */
+.copilot-persona-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 110;
+  min-width: 200px;
+  max-width: 260px;
+  background: var(--color-surface-raised, var(--color-surface));
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  max-height: 280px;
+  overflow-y: auto;
+  margin-top: 2px;
+  animation: copilot-fade-in 0.1s ease-out;
+}
+
+.copilot-persona-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.1s;
+  border-bottom: 1px solid var(--color-border-subtle, var(--color-border));
+}
+
+.copilot-persona-item:last-child {
+  border-bottom: none;
+}
+
+.copilot-persona-item:hover {
+  background: var(--color-surface-hover, var(--color-surface));
+}
+
+.copilot-persona-item-active {
+  background: var(--color-accent-muted, rgba(13, 148, 136, 0.1));
+}
+
+.copilot-persona-item-icon {
+  font-size: 1.1rem;
+  line-height: 1;
+  flex-shrink: 0;
+  width: 22px;
+  text-align: center;
+}
+
+.copilot-persona-item-info {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.copilot-persona-item-name {
+  font-size: 0.82rem;
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.copilot-persona-item-check {
+  flex-shrink: 0;
+  color: var(--color-accent);
+}
+
+.copilot-persona-item-check svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  stroke: currentColor;
+}
+
+/* ===========================================================================
+   Create Object Confirmation Card
+   =========================================================================== */
+
+.copilot-create-card {
+  background: var(--color-surface-raised, var(--color-surface));
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin: 8px 0;
+  position: relative;
+  transition: opacity 0.2s;
+}
+
+.copilot-create-card.copilot-create-cancelled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.copilot-create-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+
+.copilot-create-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.copilot-create-type {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-text);
+  background: var(--color-accent-muted, rgba(13, 148, 136, 0.12));
+  border-radius: 4px;
+  padding: 2px 8px;
+}
+
+/* --- Property key-value table --- */
+.copilot-create-props {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+  padding: 8px 10px;
+  background: var(--color-surface-recessed, var(--color-bg));
+  border: 1px solid var(--color-border-subtle, var(--color-border));
+  border-radius: 6px;
+}
+
+.copilot-create-prop-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.copilot-create-prop-key {
+  color: var(--color-text-muted);
+  min-width: 80px;
+  flex-shrink: 0;
+  font-weight: 500;
+}
+
+.copilot-create-prop-val {
+  color: var(--color-text);
+  word-break: break-word;
+}
+
+/* --- Action buttons (reuse approval button styles) --- */
+.copilot-create-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  align-items: center;
+}
+
+/* --- Success / Error states --- */
+.copilot-create-success {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.82rem;
+  color: var(--color-success, #22c55e);
+  font-weight: 500;
+  padding: 4px 0;
+}
+
+.copilot-create-success svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  stroke: currentColor;
+}
+
+.copilot-create-error {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.82rem;
+  color: var(--color-error, #dc2626);
+  font-weight: 500;
+  padding: 4px 0;
+}
+
+.copilot-create-error svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  stroke: currentColor;
+}

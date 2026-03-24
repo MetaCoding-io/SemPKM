@@ -230,6 +230,7 @@ async def activate_persona(
 # Regex to detect the opening of a ```sparql code fence
 _SPARQL_FENCE_OPEN = re.compile(r"```sparql\s*$", re.IGNORECASE | re.MULTILINE)
 _FENCE_CLOSE = re.compile(r"^```\s*$", re.MULTILINE)
+_JSON_FENCE_OPEN = re.compile(r"```json\s*$", re.IGNORECASE | re.MULTILINE)
 
 
 def _detect_sparql_blocks(accumulated: str) -> list[tuple[str, int, int]]:
@@ -252,6 +253,38 @@ def _detect_sparql_blocks(accumulated: str) -> list[tuple[str, int, int]]:
             break  # Block not yet complete
         query_text = accumulated[content_start:close_match.start()].strip()
         blocks.append((query_text, open_match.start(), close_match.end()))
+        pos = close_match.end()
+    return blocks
+
+
+def _detect_create_object_blocks(accumulated: str) -> list[tuple[dict, int, int]]:
+    """Detect complete ```json ... ``` code blocks containing create_object actions.
+
+    Returns a list of (parsed_dict, start_char, end_char) for each valid block found.
+    Only returns blocks where the JSON contains ``"action": "create_object"``.
+    """
+    blocks: list[tuple[dict, int, int]] = []
+    pos = 0
+    while pos < len(accumulated):
+        open_match = _JSON_FENCE_OPEN.search(accumulated, pos)
+        if not open_match:
+            break
+        content_start = open_match.end()
+        if content_start < len(accumulated) and accumulated[content_start] == "\n":
+            content_start += 1
+        close_match = _FENCE_CLOSE.search(accumulated, content_start)
+        if not close_match:
+            break  # Block not yet complete
+        raw_json = accumulated[content_start:close_match.start()].strip()
+        try:
+            parsed = json.loads(raw_json)
+            if isinstance(parsed, dict) and parsed.get("action") == "create_object":
+                blocks.append((parsed, open_match.start(), close_match.end()))
+        except json.JSONDecodeError:
+            logger.warning(
+                "copilot.chat.create_object_parse_error: raw=%s",
+                raw_json[:200],
+            )
         pos = close_match.end()
     return blocks
 
@@ -601,6 +634,22 @@ async def copilot_chat(
                                             "copilot.chat.sparql_detected: valid=%s, error=%s",
                                             valid,
                                             error,
+                                        )
+
+                                    # Check for create_object JSON blocks
+                                    co_blocks = _detect_create_object_blocks(accumulated_content)
+                                    for parsed_obj, _co_start, co_end in co_blocks:
+                                        if co_end in emitted_block_ends:
+                                            continue
+                                        emitted_block_ends.add(co_end)
+                                        yield _sse_event(
+                                            json.dumps(parsed_obj),
+                                            event="create_object",
+                                        )
+                                        logger.info(
+                                            "copilot.chat.create_object_detected: type=%s, properties=%s",
+                                            parsed_obj.get("type", ""),
+                                            list(parsed_obj.get("properties", {}).keys()),
                                         )
                             except (json.JSONDecodeError, IndexError, KeyError):
                                 pass  # Not all lines are parseable JSON chunks

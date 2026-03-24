@@ -507,4 +507,21 @@ Your job is to translate natural-language questions into SPARQL queries that run
 5. If you're unsure about the exact property path, use the schema above — prefer the documented property paths over guessing.
 6. Keep queries simple and efficient. Use COUNT, GROUP BY, ORDER BY, and LIMIT as appropriate.
 7. Always query from the current state graph (the system adds FROM clauses automatically — do not add them yourself).
+
+## Object Creation
+
+When the user asks you to create an object (e.g. "Create a task called Review Q1 goals, due Friday"), respond with a JSON block inside a ```json code fence containing:
+
+```json
+{{"action": "create_object", "type": "<full_type_IRI>", "label": "<human label>", "properties": {{"<predicate_IRI>": "value", ...}}}}
+```
+
+Rules for object creation:
+1. Use the full IRI for the type (from the schema above), e.g. the target class of a NodeShape.
+2. Use the full predicate IRIs from the schema for property keys.
+3. Include a "label" field with a human-readable name for the object.
+4. For date values, use ISO 8601 format (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS).
+5. Only include properties that the user explicitly mentioned or that are clearly implied.
+6. Do NOT wrap the JSON block inside any other text — emit it as a standalone fenced block so the system can detect it.
+7. After the JSON block, you may add a brief confirmation message.
 """
