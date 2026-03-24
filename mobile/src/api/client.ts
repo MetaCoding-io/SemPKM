@@ -36,6 +36,27 @@ export interface ContextResponse {
   created_at: string;
 }
 
+/** Geofence zone from GET/POST/PUT /api/context/zones. */
+export interface Zone {
+  id: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+  radius_meters: number;
+  enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Payload for creating a zone. Omits server-assigned fields. */
+export interface ZoneCreatePayload {
+  name: string;
+  latitude: number;
+  longitude: number;
+  radius_meters: number;
+  enabled: boolean;
+}
+
 /** Payload for POST /api/context/update. All fields optional. */
 export interface ContextUpdate {
   location_zone?: string | null;
@@ -179,5 +200,72 @@ export class SemPKMClient {
       method: 'POST',
       body: JSON.stringify(update),
     });
+  }
+
+  // ── Zone CRUD ───────────────────────────────────────────────
+
+  /**
+   * List all geofence zones for the authenticated user.
+   * GET /api/context/zones
+   */
+  async getZones(): Promise<Zone[]> {
+    return this.request<Zone[]>('/api/context/zones');
+  }
+
+  /**
+   * Create a new geofence zone.
+   * POST /api/context/zones → 201
+   */
+  async createZone(zone: ZoneCreatePayload): Promise<Zone> {
+    return this.request<Zone>('/api/context/zones', {
+      method: 'POST',
+      body: JSON.stringify(zone),
+    });
+  }
+
+  /**
+   * Update a geofence zone. Only provided fields are changed.
+   * PUT /api/context/zones/{id}
+   */
+  async updateZone(id: string, zone: Partial<ZoneCreatePayload>): Promise<Zone> {
+    return this.request<Zone>(`/api/context/zones/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(zone),
+    });
+  }
+
+  /**
+   * Delete a geofence zone.
+   * DELETE /api/context/zones/{id} → 204 No Content
+   */
+  async deleteZone(id: string): Promise<void> {
+    const url = `${this.instanceUrl}/api/context/zones/${id}`;
+
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        method: 'DELETE',
+        headers: this.headers(),
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      throw new SemPKMError(`Network error: ${message}`, 0, message);
+    }
+
+    if (!response.ok) {
+      let detail: string | null = null;
+      try {
+        const body = await response.json();
+        detail = body.detail ?? body.error ?? JSON.stringify(body);
+      } catch {
+        detail = response.statusText;
+      }
+      throw new SemPKMError(
+        `API request failed: ${response.status} ${detail}`,
+        response.status,
+        detail,
+      );
+    }
+    // 204 No Content — no body to parse
   }
 }

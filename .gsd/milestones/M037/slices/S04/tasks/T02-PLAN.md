@@ -97,3 +97,24 @@ Install the native location packages, create the geofencing background task and 
 - `mobile/app.json` — modified: expo-location plugin, expo-task-manager, UIBackgroundModes
 - `mobile/src/app/_layout.tsx` — modified: geofencing side-effect import added
 - `mobile/package.json` — modified: expo-location and expo-task-manager added
+
+## Observability Impact
+
+**New runtime signals:**
+- `geofence.transition` — console.log on every geofence enter/exit with event type and region identifier
+- `geofence.task_error` — console.error when the OS reports a task error
+- `geofence.no_session` / `geofence.invalid_session` / `geofence.session_parse_error` — console.warn when credentials are missing or malformed
+- `geofence.api_error` — console.error with HTTP status on failed context updates
+- `geofence.network_error` — console.error with message on fetch failures
+- `geofence.registered` — console.log with count when geofences are successfully registered
+- `geofence.stopped` — console.log when geofencing is deactivated
+
+**Inspection:**
+- All signals are in the device/simulator console log (via `npx expo start` or Xcode console)
+- `isGeofencingActive()` can be called programmatically to check if the task is running
+- Zone API client errors throw `SemPKMError` with HTTP status code for caller inspection
+
+**Failure visibility:**
+- Background task errors are logged immediately with structured keys (greppable)
+- Session parse failures distinguish between missing session, missing fields, and JSON parse errors
+- API failures include the HTTP status code for diagnosis
