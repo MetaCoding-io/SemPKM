@@ -21,7 +21,7 @@
 
 ## Tasks
 
-- [ ] **T01: Dead code, duplication, and test coverage gap analysis** `est:45m`
+- [x] **T01: Dead code, duplication, and test coverage gap analysis** `est:45m`
   - Why: These cross-cutting dimensions span both backend and frontend and weren't covered in S01/S02.
   - Files: all backend and frontend source files, `backend/tests/`
   - Do: (1) Dead code: `rg "# TODO|# FIXME|# HACK|# XXX" backend/ frontend/` for marked debt. Search for unused imports via ast-grep or grep patterns. Look for commented-out code blocks (>3 consecutive commented lines). (2) Duplication: identify copy-pasted utility functions (PersonMatcher is out of scope in apps/, but look for backend/ internal duplication). Check for duplicated SPARQL query fragments. (3) Test gaps: `fd -e py . backend/app/ -x basename {} .py` cross-referenced against `fd -e py . backend/tests/ -x basename {} .py` to find modules with zero test coverage. Identify critical paths (auth, commands, triplestore) and their coverage status. (4) Tech debt: cross-reference KNOWLEDGE.md and PROJECT.md tech debt sections. Check for items that have accumulated since those were written.
